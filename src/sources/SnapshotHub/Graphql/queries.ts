@@ -200,15 +200,22 @@ const assertSpace = (
 	}
 	if ((space.strategies?.length ?? 0) > 32)
 		throw new Error('SnapshotHub_Graphql: space has too many strategies')
-	for (const identity of [
-		...space.admins ?? [],
-		...space.members ?? [],
-		...space.moderators ?? [],
+	for (const accountIdentities of [
+		space.admins,
+		space.members,
+		space.moderators,
 	]) {
-		if (identity == null)
-			throw new Error('SnapshotHub_Graphql: space contains an empty account identity')
+		const uniqueAccountIdentities = new Set<string>()
+		for (const identity of accountIdentities ?? []) {
+			if (identity == null)
+				throw new Error('SnapshotHub_Graphql: space contains an empty account identity')
 
-		assertOpaqueIdentity(identity, 'space account identity')
+			assertOpaqueIdentity(identity, 'space account identity')
+			if (uniqueAccountIdentities.has(identity))
+				throw new Error('SnapshotHub_Graphql: space contains duplicate account identity')
+
+			uniqueAccountIdentities.add(identity)
+		}
 	}
 }
 

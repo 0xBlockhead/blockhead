@@ -221,6 +221,22 @@ describe('Snapshot Hub public governance reads', () => {
 		)
 	})
 
+	it('rejects duplicate space account identities within one role', async () => {
+		vi.spyOn(runtimeHttp, 'sourceFetch').mockResolvedValue(jsonResponse({
+			space: {
+				...space,
+				admins: [
+					author,
+					author,
+				],
+			},
+		}))
+
+		await expect(getSpace({
+			spaceId,
+		})).rejects.toThrow('space contains duplicate account identity')
+	})
+
 	it.each([
 		{
 			state: 'pending' as const,
