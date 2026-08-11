@@ -88,6 +88,15 @@ describe('Etherscan fail-closed envelopes', () => {
 			},
 		})).toThrow('Etherscan_Rest: proxy error -32000: execution reverted')
 	})
+
+	it('rejects a non-hex block-number result before exposing it', async () => {
+		etherscanV2GetJson.mockResolvedValueOnce({ result: '1234' })
+
+		await expect(etherscanQueries.getBlockNumber({
+			publicEnv,
+			chainId: 1,
+		})).rejects.toThrow('invalid block number quantity')
+	})
 })
 
 describe('Etherscan transaction hash query boundaries', () => {

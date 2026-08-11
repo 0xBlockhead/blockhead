@@ -59,6 +59,12 @@ const requireTxHash = (txHash: string) => {
 	return normalizedTxHash
 }
 
+const requireHexQuantity = (value: string | null, label: string) => {
+	if (value == null || !/^0x[0-9a-f]+$/i.test(value))
+		throw new Error(`Etherscan_Rest: invalid ${label} quantity ${String(value)}`)
+	return value
+}
+
 const etherscanAccountListQuery = ({
 	address,
 	offset,
@@ -174,21 +180,24 @@ export const etherscanQueries = (() => {
  * @see https://docs.etherscan.io/api-reference/endpoint/ethblocknumber
  */
 	const getBlockNumber = async ({
-	publicEnv,
-	chainId,
-}: {
-	publicEnv: SourcePublicEnv
-	chainId: number
-}) => (
-	etherscanV2GetProxyResult<string>({
-		chainId,
 		publicEnv,
-		query: {
-			module: 'proxy',
-			action: 'eth_blockNumber',
-		},
-	})
-)
+		chainId,
+	}: {
+		publicEnv: SourcePublicEnv
+		chainId: number
+	}) => (
+		requireHexQuantity(
+			await etherscanV2GetProxyResult<string>({
+				chainId,
+				publicEnv,
+				query: {
+					module: 'proxy',
+					action: 'eth_blockNumber',
+				},
+			}),
+			'block number'
+		)
+	)
 
 /**
  * **`module=proxy`**, **`action=eth_getBlockByNumber`**, **`tag`** (hex block number or **`latest`**), **`boolean`**.
