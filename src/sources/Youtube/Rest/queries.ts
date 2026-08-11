@@ -20,9 +20,11 @@ const commentParts = 'snippet'
 const youtubeReplyPageLimit = 20
 const youtubeReplyResponseLimit = 1_000
 
-const clampYoutubeMaxResults = (limit: number) => (
-	Math.min(50, Math.max(1, limit))
-)
+const clampYoutubeMaxResults = (limit: number) => {
+	if (!Number.isSafeInteger(limit))
+		throw new Error(`Youtube_Rest: invalid page limit ${limit}`)
+	return Math.min(50, Math.max(1, limit))
+}
 
 const assertEnvelope = <_Value>(
 	label: string,
@@ -165,8 +167,9 @@ export const listChannelPlaylists = async (
 	channelId: string,
 	limit: number,
 	pageToken?: string
-) => (
-	assertEnvelope(
+) => {
+	assertPointLookupIdentity('channel', channelId)
+	return assertEnvelope(
 		'playlists',
 		youtubeApiPlaylistsListResponseWire,
 		await youtubeApiV3Get(
@@ -180,15 +183,16 @@ export const listChannelPlaylists = async (
 			}
 		)
 	)
-)
+}
 
 export const listPlaylistItems = async (
 	publicEnv: SourcePublicEnv,
 	playlistId: string,
 	limit: number,
 	pageToken?: string
-) => (
-	assertEnvelope(
+) => {
+	assertPointLookupIdentity('playlist', playlistId)
+	return assertEnvelope(
 		'playlistItems',
 		youtubeApiPlaylistItemsListResponseWire,
 		await youtubeApiV3Get(
@@ -202,15 +206,16 @@ export const listPlaylistItems = async (
 			}
 		)
 	)
-)
+}
 
 export const listCommentThreads = async (
 	publicEnv: SourcePublicEnv,
 	videoId: string,
 	limit: number,
 	pageToken?: string
-) => (
-	assertEnvelope(
+) => {
+	assertPointLookupIdentity('video', videoId)
+	return assertEnvelope(
 		'commentThreads',
 		youtubeApiCommentThreadsListResponseWire,
 		await youtubeApiV3Get(
@@ -224,15 +229,16 @@ export const listCommentThreads = async (
 			}
 		)
 	)
-)
+}
 
 export const listCommentReplies = async (
 	publicEnv: SourcePublicEnv,
 	parentId: string,
 	limit: number,
 	pageToken?: string
-) => (
-	assertEnvelope(
+) => {
+	assertPointLookupIdentity('comment thread', parentId)
+	return assertEnvelope(
 		'comments',
 		youtubeApiCommentsListResponseWire,
 		await youtubeApiV3Get(
@@ -246,7 +252,7 @@ export const listCommentReplies = async (
 			}
 		)
 	)
-)
+}
 
 export const listCompleteCommentReplies = async (
 	publicEnv: SourcePublicEnv,
@@ -255,6 +261,10 @@ export const listCompleteCommentReplies = async (
 	limit: number,
 	pageToken?: string
 ) => {
+	assertPointLookupIdentity('video', videoId)
+	assertPointLookupIdentity('comment thread', parentId)
+	if (!Number.isSafeInteger(limit))
+		throw new Error(`Youtube_Rest: invalid reply limit ${limit}`)
 	const boundedLimit = Math.min(youtubeReplyResponseLimit, Math.max(1, limit))
 	const commentById = new Map<string, NonNullable<YoutubeApiCommentsListResponse['items']>[number]>()
 	let nextPageToken = pageToken
@@ -362,8 +372,9 @@ export const searchChannelVideos = async (
 	channelId: string,
 	limit: number,
 	pageToken?: string
-) => (
-	assertEnvelope(
+) => {
+	assertPointLookupIdentity('channel', channelId)
+	return assertEnvelope(
 		'search',
 		youtubeApiSearchListResponseWire,
 		await youtubeApiV3Get(
@@ -379,4 +390,4 @@ export const searchChannelVideos = async (
 			}
 		)
 	)
-)
+}

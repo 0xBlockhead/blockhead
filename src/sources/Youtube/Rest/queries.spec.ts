@@ -24,7 +24,13 @@ const {
 	getCommentThread,
 	getPlaylist,
 	getVideo,
+	listChannelPlaylists,
+	listCommentReplies,
+	listCommentThreads,
+	listCompleteCommentReplies,
+	listPlaylistItems,
 	listPopularVideos,
+	searchChannelVideos,
 	searchChannels,
 } = await import('$/sources/Youtube/Rest/queries.ts')
 
@@ -171,6 +177,35 @@ describe('Youtube Rest arktype envelopes', () => {
 		await expect(getComment(publicEnv, '')).rejects.toThrow('identity must not be empty')
 		await expect(getCommentThread(publicEnv, '')).rejects.toThrow('identity must not be empty')
 		await expect(getPlaylist(publicEnv, '')).rejects.toThrow('identity must not be empty')
+		expect(sourceGetJson).not.toHaveBeenCalled()
+	})
+
+	it.each([
+		() => listPopularVideos(publicEnv, Number.NaN),
+		() => listPopularVideos(publicEnv, 1.5),
+		() => searchChannels(publicEnv, 'demo', Number.MAX_SAFE_INTEGER + 1),
+	])('rejects non-integral or unsafe page limits before transport', async (query) => {
+		await expect(query()).rejects.toThrow('Youtube_Rest: invalid page limit')
+		expect(sourceGetJson).not.toHaveBeenCalled()
+	})
+
+	it('rejects non-integral complete-reply limits before transport', async () => {
+		await expect(listCompleteCommentReplies(publicEnv, 'video', 'thread', Number.NaN)).rejects.toThrow(
+			'Youtube_Rest: invalid reply limit'
+		)
+		expect(sourceGetJson).not.toHaveBeenCalled()
+	})
+
+	it.each([
+		() => listChannelPlaylists(publicEnv, '', 1),
+		() => listPlaylistItems(publicEnv, '', 1),
+		() => listCommentThreads(publicEnv, '', 1),
+		() => listCommentReplies(publicEnv, '', 1),
+		() => listCompleteCommentReplies(publicEnv, '', 'thread', 1),
+		() => listCompleteCommentReplies(publicEnv, 'video', '', 1),
+		() => searchChannelVideos(publicEnv, '', 1),
+	])('rejects missing relationship subjects before transport', async (query) => {
+		await expect(query()).rejects.toThrow('identity must not be empty')
 		expect(sourceGetJson).not.toHaveBeenCalled()
 	})
 })
