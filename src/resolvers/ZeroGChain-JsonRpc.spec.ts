@@ -20,9 +20,6 @@ import { Source } from '$/sources/Source.ts'
 const queries = vi.hoisted(() => ({
 	getBlockByNumber: vi.fn(),
 	getBlockWithTransactionsByNumber: vi.fn(),
-	getBlockNumber: vi.fn(),
-	getCode: vi.fn(),
-	getTransactionCount: vi.fn(),
 	getTransactionByHash: vi.fn(),
 	getTransactionReceipt: vi.fn(),
 }))
@@ -83,14 +80,6 @@ const expectNetworkApplicability = (reference: string, expected: boolean) => {
 		{
 			$network: selectedNetwork,
 			$actor: { address: actorAddress },
-		},
-		{
-			$account: {
-				$network: selectedNetwork,
-				$actor: { address: actorAddress },
-			},
-			timestampMs: 0,
-			source: Source.ZeroGChain_JsonRpc,
 		},
 		{ $network: selectedNetwork, txHash },
 		{ $network: selectedNetwork, blockNumber: 1n },
@@ -169,9 +158,9 @@ describe('ZeroGChain JSON-RPC resolver I/O', () => {
 		expect(queries.getBlockByNumber).toHaveBeenCalledWith(1n)
 	})
 
-	it('materializes account tip blockNumber + transactionCount + contract status', async () => {
+	it('materializes a current account observation selector without arbitrary timestamp resolution', async () => {
 		const accountResolver = resolverFor(EntityType.EvmNetworkAccount, '$$timestamps')
-		const timestampResolver = resolverFor(EntityType.EvmNetworkAccount_Timestamp, 'isContract')
+		vi.spyOn(Date, 'now').mockReturnValue(1_700_000_000_000)
 
 		await expect(accountResolver.resolve.EvmNetworkEvmAccount.resolve({
 			$network: network,
@@ -183,32 +172,15 @@ describe('ZeroGChain JSON-RPC resolver I/O', () => {
 						$network: network,
 						$actor: { address: actorAddress },
 					},
+					timestampMs: 1_700_000_000_000,
 					source: Source.ZeroGChain_JsonRpc,
 				},
 			}],
 		})
 
-		queries.getBlockNumber.mockResolvedValueOnce(100n)
-		queries.getCode.mockResolvedValueOnce('0x60806040')
-		queries.getTransactionCount.mockResolvedValueOnce(3n)
-		await expect(timestampResolver.resolve.AccountTimestampMsSource.resolve({
-			$account: {
-				$network: network,
-				$actor: { address: actorAddress },
-			},
-			timestampMs: 0,
-			source: Source.ZeroGChain_JsonRpc,
-		}, context)).resolves.toEqual({
-			blockNumber: 100n,
-			transactionCount: 3n,
-			isContract: true,
-		})
-		expect(queries.getCode).toHaveBeenCalledWith({
-			address: actorAddress,
-		})
-		expect(queries.getTransactionCount).toHaveBeenCalledWith({
-			address: actorAddress,
-		})
+		expect(zeroGChain.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.EvmNetworkAccount_Timestamp
+		))).toBeUndefined()
 	})
 
 	it('maps transaction + receipt ownership and rejects malformed to', async () => {

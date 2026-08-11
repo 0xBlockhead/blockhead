@@ -32,11 +32,6 @@ const zeroGNetworkReferenceApplicability = [{
 	$network: zeroGNetworkApplicability[0],
 }] as const
 
-const zeroGAccountTimestampApplicability = [{
-	$account: zeroGNetworkReferenceApplicability[0],
-	source: Source.ZeroGChain_JsonRpc,
-}] as const
-
 const assertZeroGMainnetChain = (network: NetworkId) => {
 	if (
 		!('caip2' in network)
@@ -185,46 +180,6 @@ export default {
 			},
 		})({
 			$$timestamps: (account) => account.$$timestamps,
-		}),
-
-		defineResolver({
-			entityType: EntityType.EvmNetworkAccount_Timestamp,
-			resolve: {
-				AccountTimestampMsSource: {
-					appliesTo: zeroGAccountTimestampApplicability,
-					resolve: async ({ $account }) => {
-						assertZeroGMainnetChain($account.$network)
-						const {
-							getBlockNumber,
-							getCode,
-							getTransactionCount,
-						} = await import('$/sources/ZeroG/Chain/JsonRpc/queries.ts')
-						const address = hexLowerOfByteSize($account.$actor.address, 20)
-						if (address == null)
-							throw new Error('ZeroGChain_JsonRpc: EvmNetworkAccount wallet address not normalized')
-
-						const [
-							blockNumber,
-							code,
-							transactionCount,
-						] = await Promise.all([
-							getBlockNumber(),
-							getCode({ address }),
-							getTransactionCount({ address }),
-						])
-
-						return {
-							blockNumber,
-							transactionCount,
-							isContract: code !== '0x',
-						}
-					},
-				},
-			},
-		})({
-			blockNumber: (account) => account.blockNumber,
-			transactionCount: (account) => account.transactionCount,
-			isContract: (account) => account.isContract,
 		}),
 
 		defineResolver({
