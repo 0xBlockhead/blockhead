@@ -51,15 +51,20 @@ const discoverModules = async (filter?: string): Promise<string[]> => {
 	return modules
 }
 
+const normalizeSchemaText = (schemaText: string) => (
+	`${schemaText.replace(/[\t ]+$/gm, '').trimEnd()}\n`
+)
+
 const normalizeGraphqlSchemaText = (schemaText: string) => {
+	const normalizedSchemaText = normalizeSchemaText(schemaText)
 	const missingDeclarations = theGraphScalarDeclarations.filter(
-		(declaration) => !schemaText.includes(declaration)
+		(declaration) => !normalizedSchemaText.includes(declaration)
 	)
 	return (
 		missingDeclarations.length === 0 ?
-			schemaText
+			normalizedSchemaText
 		:
-			`${missingDeclarations.join('\n')}\n\n${schemaText}`
+			`${missingDeclarations.join('\n')}\n\n${normalizedSchemaText}`
 	)
 }
 
@@ -99,14 +104,14 @@ const downloadSchemaText = async (schemaUrl: string) => {
 				}`
 			)
 		}
-		return printSchema(buildClientSchema(data))
+		return normalizeSchemaText(printSchema(buildClientSchema(data)))
 	}
 
 	const response = await fetch(schemaUrl)
 	if (!response.ok) {
 		throw new Error(`Failed to download schema: ${response.status} ${response.statusText}`)
 	}
-	return response.text()
+	return normalizeSchemaText(await response.text())
 }
 
 const downloadSchemaSnapshotText = async (schemaUrl: string) => {
