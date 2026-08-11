@@ -265,6 +265,17 @@ describe('Blockfrost REST transport', () => {
 		])
 	})
 
+	it('rejects duplicate transaction hashes in the latest block', async () => {
+		sourceFetch.mockResolvedValueOnce(Response.json([
+			'transaction-hash',
+			'transaction-hash',
+		]))
+
+		await expect(listLatestBlockTransactions(2)).rejects.toThrow(
+			'Blockfrost_Rest: latest block transactions contains duplicate identities'
+		)
+	})
+
 	it('loads nonempty typed protocol and committee singleton operations', async () => {
 		sourceFetch
 			.mockResolvedValueOnce(Response.json({ epoch: 500 }))

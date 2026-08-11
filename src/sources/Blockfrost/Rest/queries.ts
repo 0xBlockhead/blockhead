@@ -271,13 +271,17 @@ export const getNetwork = async () => (
 
 export const listLatestBlockTransactions = async (
 	count: number
-) => (
-	assertBlockfrostEnvelope(
+) => {
+	const transactionHashes = assertBlockfrostEnvelope(
 		type('string').array(),
 		await listPage('blocks/latest/txs', count),
 		'latest block transactions'
 	)
-)
+	if (new Set(transactionHashes).size !== transactionHashes.length)
+		throw new Error('Blockfrost_Rest: latest block transactions contains duplicate identities')
+
+	return transactionHashes
+}
 
 export const listStakePools = async (count: number) => (
 	assertBlockfrostEnvelope(
