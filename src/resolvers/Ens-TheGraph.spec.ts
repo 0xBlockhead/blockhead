@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 
 import {
+	entityFieldAddressKey,
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
@@ -220,6 +221,24 @@ describe('Ens-TheGraph entity resolver', () => {
 						},
 						recordKey: 'text:url',
 					},
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.EnsRecord, [], 'recordKind')]: 'text',
+						[entityFieldAddressKey(EntityType.EnsRecord, [], '$$timestamps')]: [{
+							[EntityMetaKey.Selector]: {
+								$record: {
+									$name: {
+										name: 'vitalik.eth',
+									},
+									recordKey: 'text:url',
+								},
+								timestampMs: 1_800_000_000_000,
+								source: Source.TheGraph_Graphql,
+							},
+							[EntityMetaKey.Fields]: {
+								[entityFieldAddressKey(EntityType.EnsRecord_Timestamp, [], 'value')]: 'https://vitalik.ca',
+							},
+						}],
+					},
 				},
 				{
 					[EntityMetaKey.Selector]: {
@@ -227,6 +246,15 @@ describe('Ens-TheGraph entity resolver', () => {
 							name: 'vitalik.eth',
 						},
 						recordKey: 'coin:60',
+					},
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.EnsRecord, [], 'recordKind')]: 'coin',
+						[entityFieldAddressKey(EntityType.EnsRecord, [], 'coinType')]: 60,
+						[entityFieldAddressKey(EntityType.EnsRecord, [], '$$timestamps')]: [{
+							[EntityMetaKey.Fields]: {
+								[entityFieldAddressKey(EntityType.EnsRecord_Timestamp, [], 'value')]: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
+							},
+						}],
 					},
 				},
 			],

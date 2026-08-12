@@ -5,6 +5,7 @@ import {
 } from '$/resolvers/defineResolver.ts'
 import { normalize as ensNormalizeNode, toString as ensToString } from '@tevm/voltaire/Ens'
 import {
+	entityFieldAddressKey,
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import type { Entity } from '$/schema/$schema.ts'
@@ -203,24 +204,54 @@ export default {
 							:
 								[]
 						))
+						const observedAtMs = Date.now()
 						const recordEntities = [
-							...resolverTextKeys.map((textKey) => ({
+							...resolverTextKeys.map((textKey) => `text:${textKey}`),
+							...resolverCoinTypes.map((coinType) => `coin:${coinType}`),
+						].map((recordKey) => {
+							const coinType = recordKey.startsWith('coin:') ?
+								Number(recordKey.slice('coin:'.length))
+							:
+								undefined
+							const value = ensRecordTipValueFromDomain(matchingEnsDomain, recordKey)
+							return {
 								[EntityMetaKey.Selector]: {
 									$name: {
 										name: normalizedName,
 									},
-									recordKey: `text:${textKey}`,
+									recordKey,
 								},
-							})),
-							...resolverCoinTypes.map((coinType) => ({
-								[EntityMetaKey.Selector]: {
-									$name: {
-										name: normalizedName,
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.EnsRecord, [], '$name')]: {
+										[EntityMetaKey.Selector]: {
+											name: normalizedName,
+										},
 									},
-									recordKey: `coin:${coinType}`,
+									[entityFieldAddressKey(EntityType.EnsRecord, [], 'recordKey')]: recordKey,
+									[entityFieldAddressKey(EntityType.EnsRecord, [], 'recordKind')]: recordKey.startsWith('coin:') ? 'coin' : 'text',
+									...(coinType != null && Number.isSafeInteger(coinType) && {
+										[entityFieldAddressKey(EntityType.EnsRecord, [], 'coinType')]: coinType,
+									}),
+									[entityFieldAddressKey(EntityType.EnsRecord, [], '$$timestamps')]: [{
+										[EntityMetaKey.Selector]: {
+											$record: {
+												$name: {
+													name: normalizedName,
+												},
+												recordKey,
+											},
+											timestampMs: observedAtMs,
+											source: Source.TheGraph_Graphql,
+										},
+										[EntityMetaKey.Fields]: {
+											...(value !== undefined && {
+												[entityFieldAddressKey(EntityType.EnsRecord_Timestamp, [], 'value')]: value,
+											}),
+										},
+									}],
 								},
-							})),
-						]
+							}
+						})
 						const textRecords = Object.fromEntries(
 							resolverTextKeys.flatMap((textKey) => {
 								const value = ensRecordTipValueFromDomain(
@@ -292,7 +323,7 @@ export default {
 									$name: {
 										name: normalizedName,
 									},
-									timestampMs: Date.now(),
+									timestampMs: observedAtMs,
 									source: Source.TheGraph_Graphql,
 								},
 							}],
