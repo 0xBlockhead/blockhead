@@ -286,6 +286,9 @@ describe('Farcaster public cast direct replies', () => {
 						text: 'Direct reply',
 						timestamp: 1_752_840_001,
 						channel: { id: 'design' },
+						reactions: { count: 4 },
+						recasts: { count: 2 },
+						replies: { count: 1 },
 					},
 					{
 						hash: '0x2222',
@@ -343,7 +346,85 @@ describe('Farcaster public cast direct replies', () => {
 			[entityFieldAddressKey(EntityType.FarcasterCast, [], '$channel')]: {
 				[EntityMetaKey.Selector]: { id: 'design' },
 			},
+			[entityFieldAddressKey(EntityType.FarcasterCast, [], '$$timestamps')]: [{
+				[EntityMetaKey.Selector]: {
+					$cast: {
+						fid: 7,
+						hash: '0x1111',
+					},
+					source: 'Farcaster_Rest',
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.FarcasterCast_Timestamp, [], 'likeCount')]: 4,
+					[entityFieldAddressKey(EntityType.FarcasterCast_Timestamp, [], 'recastCount')]: 2,
+					[entityFieldAddressKey(EntityType.FarcasterCast_Timestamp, [], 'replyCount')]: 1,
+				},
+			}],
 		})
+	})
+
+	it('materializes source-clocked public engagement counts on the cast observation', async () => {
+		getUserThreadCasts.mockResolvedValueOnce({
+			result: {
+				casts: [{
+					hash: '0xabcdef',
+					author: {
+						fid: 42,
+						username: 'alice',
+					},
+					timestamp: 1_752_840_000,
+					reactions: { count: 8 },
+					recasts: { count: 3 },
+					replies: { count: 5 },
+					quoteCount: 2,
+				}],
+			},
+		})
+
+		const cast = await castResolve.UsernameHashPrefix.resolve({
+			username: 'alice',
+			hashPrefix: '0xabcdef',
+		})
+
+		expect(castResolver.projections.$$timestamps(cast)).toMatchObject([{
+			[EntityMetaKey.Selector]: {
+				$cast: {
+					fid: 42,
+					hash: '0xabcdef',
+				},
+				source: 'Farcaster_Rest',
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.FarcasterCast_Timestamp, [], 'likeCount')]: 8,
+				[entityFieldAddressKey(EntityType.FarcasterCast_Timestamp, [], 'recastCount')]: 3,
+				[entityFieldAddressKey(EntityType.FarcasterCast_Timestamp, [], 'replyCount')]: 5,
+			},
+		}])
+		expect(cast.$$timestamps[0]?.[EntityMetaKey.Selector]).toEqual(expect.objectContaining({
+			timestampMs: expect.any(Number),
+			source: 'Farcaster_Rest',
+		}))
+	})
+
+	it('rejects invalid public engagement observations', async () => {
+		getUserThreadCasts.mockResolvedValueOnce({
+			result: {
+				casts: [{
+					hash: '0xabcdef',
+					author: {
+						fid: 42,
+						username: 'alice',
+					},
+					timestamp: 1_752_840_000,
+					recasts: { count: -1 },
+				}],
+			},
+		})
+
+		await expect(castResolve.UsernameHashPrefix.resolve({
+			username: 'alice',
+			hashPrefix: '0xabcdef',
+		})).rejects.toThrow('cast engagement counts must be safe nonnegative integers')
 	})
 
 	it('rejects a hash-prefix result for another username subject', async () => {

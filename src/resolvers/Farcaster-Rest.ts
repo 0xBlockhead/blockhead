@@ -174,10 +174,23 @@ const farcasterCastFromThread = ({
 	const timestamp = farcasterTimestampMs(cast.timestamp)
 	if (timestamp == null)
 		throw new Error('Farcaster_Rest: cast missing timestamp')
+	if (casts.some((threadCast) => (
+		[
+			threadCast.reactions?.count,
+			threadCast.recasts?.count,
+			threadCast.replies?.count,
+			threadCast.quoteCount,
+		].some((count) => (
+			count != null
+			&& (!Number.isSafeInteger(count) || count < 0)
+		))
+	)))
+		throw new Error('Farcaster_Rest: cast engagement counts must be safe nonnegative integers')
 
 	const parentHash = optionalNonemptyString(cast.parentHash)
 	const parentUrl = optionalNonemptyString(cast.parentUrl)
 	const channelId = optionalNonemptyString(cast.channel?.id)
+	const observedAtMs = Date.now()
 	return {
 		fid: cast.author.fid,
 		hash: castHash,
@@ -214,6 +227,27 @@ const farcasterCastFromThread = ({
 				} satisfies Entity<typeof schema, EntityType.FarcasterChannel>)
 		),
 		timestamp,
+		$$timestamps: [{
+			[EntityMetaKey.Selector]: {
+				$cast: {
+					fid: cast.author.fid,
+					hash: castHash,
+				},
+				timestampMs: observedAtMs,
+				source: Source.Farcaster_Rest,
+			},
+			[EntityMetaKey.Fields]: {
+				...(cast.reactions?.count != null && {
+					[entityFieldAddressKey(EntityType.FarcasterCast_Timestamp, [], 'likeCount')]: cast.reactions.count,
+				}),
+				...(cast.recasts?.count != null && {
+					[entityFieldAddressKey(EntityType.FarcasterCast_Timestamp, [], 'recastCount')]: cast.recasts.count,
+				}),
+				...(cast.replies?.count != null && {
+					[entityFieldAddressKey(EntityType.FarcasterCast_Timestamp, [], 'replyCount')]: cast.replies.count,
+				}),
+			},
+		}],
 		$$directReplies: casts
 			.filter((reply) => (
 				reply.hash != null
@@ -261,6 +295,27 @@ const farcasterCastFromThread = ({
 								[EntityMetaKey.Selector]: { id: replyChannelId },
 							},
 						}),
+						[entityFieldAddressKey(EntityType.FarcasterCast, [], '$$timestamps')]: [{
+							[EntityMetaKey.Selector]: {
+								$cast: {
+									fid: reply.author.fid,
+									hash: zeroXLowerHexCastHash(replyHash),
+								},
+								timestampMs: observedAtMs,
+								source: Source.Farcaster_Rest,
+							},
+							[EntityMetaKey.Fields]: {
+								...(reply.reactions?.count != null && {
+									[entityFieldAddressKey(EntityType.FarcasterCast_Timestamp, [], 'likeCount')]: reply.reactions.count,
+								}),
+								...(reply.recasts?.count != null && {
+									[entityFieldAddressKey(EntityType.FarcasterCast_Timestamp, [], 'recastCount')]: reply.recasts.count,
+								}),
+								...(reply.replies?.count != null && {
+									[entityFieldAddressKey(EntityType.FarcasterCast_Timestamp, [], 'replyCount')]: reply.replies.count,
+								}),
+							},
+						}],
 					},
 				}]
 			}),
@@ -490,6 +545,7 @@ export default {
 			$channel: (cast) => cast.$channel,
 			timestamp: (cast) => cast.timestamp,
 			$$directReplies: (cast) => cast.$$directReplies,
+			$$timestamps: (cast) => cast.$$timestamps,
 			threadHash: (cast) => cast.threadHash,
 		}),
 
