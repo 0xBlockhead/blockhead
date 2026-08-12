@@ -16,6 +16,27 @@ const providerReference = {
 	[EntityMetaKey.Selector]: providerSelector,
 } as const
 
+const retrieveHuggingFaceModel = async (input: {
+	repoId: string
+	revision?: string
+}) => (
+	typeof window === 'undefined' ?
+		await import('$/sources/HuggingFace/Rest/queries.ts').then(({ retrieveModel }) => retrieveModel(input))
+	:
+		await import('$/sources/HuggingFace/Rest/queries.remote.ts').then(({ retrieveHuggingFaceModelRemote }) => retrieveHuggingFaceModelRemote(input))
+)
+
+const retrieveHuggingFaceFileText = async (input: {
+	repoId: string
+	revision: string
+	path: string
+}) => (
+	typeof window === 'undefined' ?
+		await import('$/sources/HuggingFace/Rest/queries.ts').then(({ retrieveFileText }) => retrieveFileText(input))
+	:
+		await import('$/sources/HuggingFace/Rest/queries.remote.ts').then(({ retrieveHuggingFaceFileTextRemote }) => retrieveHuggingFaceFileTextRemote(input))
+)
+
 const documentReference = (
 	repoId: string,
 	revision: string
@@ -56,8 +77,7 @@ export const huggingFaceHubResolvers = [
 				ProviderModelId: {
 					resolve: async ({ $provider, providerModelId }) => {
 						assertProvider($provider)
-						const { retrieveModel } = await import('$/sources/HuggingFace/Rest/queries.ts')
-						return retrieveModel({
+						return retrieveHuggingFaceModel({
 							repoId: providerModelId,
 						})
 					},
@@ -83,8 +103,7 @@ export const huggingFaceHubResolvers = [
 			resolve: {
 				HuggingFaceRepoRevision: {
 					resolve: async ({ huggingFaceRepo, revision }) => {
-						const { retrieveModel } = await import('$/sources/HuggingFace/Rest/queries.ts')
-						return retrieveModel({
+						return retrieveHuggingFaceModel({
 							repoId: huggingFaceRepo,
 							revision,
 						})
@@ -111,10 +130,9 @@ export const huggingFaceHubResolvers = [
 					resolve: async ({ $provider, providerArtifactId }) => {
 						assertProvider($provider)
 						const artifact = parseArtifactId(providerArtifactId)
-						const { retrieveModel } = await import('$/sources/HuggingFace/Rest/queries.ts')
 						return {
 							...artifact,
-							model: await retrieveModel({
+							model: await retrieveHuggingFaceModel({
 								repoId: artifact.repoId,
 								revision: artifact.revision,
 							}),
@@ -145,8 +163,7 @@ export const huggingFaceHubResolvers = [
 						if (match == null)
 							throw new Error('HuggingFaceHub_Rest: unsupported document URL')
 
-						const { retrieveFileText } = await import('$/sources/HuggingFace/Rest/queries.ts')
-						await retrieveFileText({
+						await retrieveHuggingFaceFileText({
 							repoId: match[1],
 							revision: match[2],
 							path: match[3],

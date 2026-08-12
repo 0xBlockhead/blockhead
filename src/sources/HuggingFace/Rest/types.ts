@@ -1,24 +1,32 @@
-export type HuggingFaceSibling = {
-	rfilename: string
-	size?: number
-	blobId?: string
-	lfs?: {
-		sha256: string
-		size: number
-		pointerSize?: number
-	}
-}
+import { type as arktype } from 'arktype'
 
-export type HuggingFaceModel = {
-	id: string
-	modelId?: string
-	author?: string
-	sha?: string
-	createdAt?: string
-	lastModified?: string
-	pipeline_tag?: string
-	tags?: string[]
-	siblings?: HuggingFaceSibling[]
-}
+export const huggingFaceSiblingWire = arktype({
+	rfilename: 'string > 0',
+	'size?': 'number.integer >= 0',
+	'blobId?': 'string > 0',
+	'lfs?': {
+		sha256: 'string > 0',
+		size: 'number.integer >= 0',
+		'pointerSize?': 'number.integer >= 0',
+	},
+})
 
-export type HuggingFaceModelList = HuggingFaceModel[]
+export type HuggingFaceSibling = typeof huggingFaceSiblingWire.infer
+
+export const huggingFaceModelWire = arktype({
+	id: 'string > 0',
+	'modelId?': 'string > 0',
+	'author?': 'string > 0',
+	'sha?': 'string > 0',
+	'createdAt?': 'string > 0',
+	'lastModified?': 'string > 0',
+	'pipeline_tag?': 'string > 0',
+	'tags?': 'string[]',
+	'siblings?': huggingFaceSiblingWire.array(),
+})
+
+export type HuggingFaceModel = typeof huggingFaceModelWire.infer
+
+export const huggingFaceModelListWire = huggingFaceModelWire.array()
+
+export type HuggingFaceModelList = typeof huggingFaceModelListWire.infer

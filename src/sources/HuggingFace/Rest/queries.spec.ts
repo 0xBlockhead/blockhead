@@ -87,4 +87,28 @@ describe('Hugging Face typed queries', () => {
 			'https://huggingface.example/org/model/resolve/abc123/README.md'
 		)
 	})
+
+	it('rejects malformed model identities and lossy file metadata', async () => {
+		sourceFetch.mockResolvedValueOnce({
+			ok: true,
+			json: async () => ({
+				id: '',
+			}),
+		})
+		await expect(retrieveModel({
+			repoId: 'org/model',
+		})).rejects.toThrow('invalid model detail response envelope')
+
+		sourceFetch.mockResolvedValueOnce({
+			ok: true,
+			json: async () => [{
+				id: 'org/model',
+				siblings: [{
+					rfilename: 'weights.bin',
+					size: -1,
+				}],
+			}],
+		})
+		await expect(listModels({})).rejects.toThrow('invalid model list response envelope')
+	})
 })

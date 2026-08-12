@@ -9,9 +9,25 @@ import type {
 	HuggingFaceModel,
 	HuggingFaceModelList,
 } from '$/sources/HuggingFace/Rest/types.ts'
+import {
+	huggingFaceModelListWire,
+	huggingFaceModelWire,
+} from '$/sources/HuggingFace/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 
 const binding = bindings[Source.HuggingFaceHub_Rest][0]
+
+const assertEnvelope = <_Value>(
+	label: string,
+	wire: { assert: (value: unknown) => _Value },
+	response: unknown
+) => {
+	try {
+		return wire.assert(response)
+	} catch {
+		throw new Error(`HuggingFaceHub_Rest: invalid ${label} response envelope`)
+	}
+}
 
 const requestHuggingFaceJson = async <_Result>({
 	path,
@@ -48,7 +64,7 @@ export const listModels = ({
 			`?${new URLSearchParams({ search })}`
 	}`,
 	credential,
-})
+}).then((response) => assertEnvelope('model list', huggingFaceModelListWire, response))
 
 export const retrieveModel = ({
 	repoId,
@@ -66,7 +82,7 @@ export const retrieveModel = ({
 			`?${new URLSearchParams({ revision })}`
 	}`,
 	credential,
-})
+}).then((response) => assertEnvelope('model detail', huggingFaceModelWire, response))
 
 export const retrieveFileText = ({
 	repoId,
