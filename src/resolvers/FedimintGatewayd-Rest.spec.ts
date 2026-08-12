@@ -4,7 +4,10 @@ import {
 	vi,
 } from 'vitest'
 
-import { EntityMetaKey } from '$/schema/$schema.ts'
+import {
+	entityFieldAddressKey,
+	EntityMetaKey,
+} from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
@@ -120,6 +123,30 @@ it('projects enrolled gateway identity leftovers from /info', async () => {
 	expect(snapshot.$$federations).toEqual([{
 		[EntityMetaKey.Selector]: {
 			federationId: 'fed-1',
+		},
+		[EntityMetaKey.Fields]: {
+			[entityFieldAddressKey(EntityType.FedimintFederation, [], 'name')]: 'Test Fed',
+			[entityFieldAddressKey(EntityType.FedimintFederation, [], '$$gateways')]: [{
+				[EntityMetaKey.Selector]: {
+					gatewayId: '02pubkey',
+				},
+			}],
+			[entityFieldAddressKey(EntityType.FedimintFederation, [], '$$timestamps')]: [
+				expect.objectContaining({
+					[EntityMetaKey.Selector]: expect.objectContaining({
+						$federation: {
+							federationId: 'fed-1',
+						},
+						source: Source.FedimintGatewayd_Rest,
+					}),
+					[EntityMetaKey.Fields]: expect.objectContaining({
+						[entityFieldAddressKey(EntityType.FedimintFederation_Timestamp, [], 'reachable')]: true,
+						[entityFieldAddressKey(EntityType.FedimintFederation_Timestamp, [], 'health')]: 'running',
+						[entityFieldAddressKey(EntityType.FedimintFederation_Timestamp, [], 'gatewayCount')]: 1,
+						[entityFieldAddressKey(EntityType.FedimintFederation_Timestamp, [], 'inviteCodeObserved')]: true,
+					}),
+				}),
+			],
 		},
 	}])
 	expect(snapshot.$$timestamps[0]?.[EntityMetaKey.Selector]).toMatchObject({

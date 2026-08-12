@@ -11,6 +11,7 @@ import {
 	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import {
+	entityFieldAddressKey,
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
@@ -117,11 +118,41 @@ export default {
 							}),
 							$$federations: info.federations
 								.slice(0, resolverContextRowLimit(context))
-								.map((federation) => ({
-									[EntityMetaKey.Selector]: {
+								.map((federation) => {
+									const federationSelector = {
 										federationId: federation.federation_id,
-									},
-								})),
+									}
+									return {
+										[EntityMetaKey.Selector]: federationSelector,
+										[EntityMetaKey.Fields]: {
+											...(federation.federation_name != null && {
+												[entityFieldAddressKey(EntityType.FedimintFederation, [], 'name')]: federation.federation_name,
+											}),
+											[entityFieldAddressKey(EntityType.FedimintFederation, [], '$$gateways')]: [{
+												[EntityMetaKey.Selector]: {
+													gatewayId,
+												},
+											}],
+											[entityFieldAddressKey(EntityType.FedimintFederation, [], '$$timestamps')]: [{
+												[EntityMetaKey.Selector]: {
+													$federation: federationSelector,
+													timestampMs,
+													source: Source.FedimintGatewayd_Rest,
+												},
+												[EntityMetaKey.Fields]: {
+													[entityFieldAddressKey(EntityType.FedimintFederation_Timestamp, [], 'reachable')]: true,
+													[entityFieldAddressKey(EntityType.FedimintFederation_Timestamp, [], 'health')]: info.gateway_state,
+													[entityFieldAddressKey(EntityType.FedimintFederation_Timestamp, [], 'gatewayCount')]: 1,
+													[entityFieldAddressKey(EntityType.FedimintFederation_Timestamp, [], 'inviteCodeObserved')]: federation.config.invite_code.length > 0,
+													[entityFieldAddressKey(EntityType.FedimintFederation_Timestamp, [], 'metaJson')]: JSON.stringify({
+														federationIndex: federation.config.federation_index,
+														balanceMsat: federation.balance_msat,
+													}),
+												},
+											}],
+										},
+									}
+								}),
 							$$timestamps: [{
 								[EntityMetaKey.Selector]: {
 									$gateway: { gatewayId },
