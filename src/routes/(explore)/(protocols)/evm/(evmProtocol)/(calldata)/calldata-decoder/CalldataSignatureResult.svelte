@@ -81,7 +81,8 @@
 	placeholderText={`Loading ${kind === CalldataSignatureKind.Function ? 'function' : 'event'} signature...`}
 >
 	{#snippet children(signatures)}
-		{@const selectedSignature = signatures.values[Math.min(selectedSignatureIndex, signatures.values.length - 1)]}
+		{@const selectedCandidateIndex = Math.min(selectedSignatureIndex, signatures.values.length - 1)}
+		{@const selectedSignature = signatures.values[selectedCandidateIndex]}
 		{@const decoded = selectedSignature == null ? null : kind === CalldataSignatureKind.Function ? decodeCalldataWithSignature(selectedSignature, ZeroExHex.assert(hex)) : decodeEventDataWithSignature(selectedSignature, ZeroExHex.assert(hex))}
 
 		{#if selectedSignature == null}
@@ -110,6 +111,9 @@
 				input: hex,
 				sourceClaim: {
 					source,
+					lookupHex: kind === CalldataSignatureKind.Function ? hex.slice(0, 10) : hex.slice(0, 66),
+					candidateSignatures: signatures.values,
+					selectedCandidateIndex,
 					signature: selectedSignature,
 					abi: abiFragment,
 				},

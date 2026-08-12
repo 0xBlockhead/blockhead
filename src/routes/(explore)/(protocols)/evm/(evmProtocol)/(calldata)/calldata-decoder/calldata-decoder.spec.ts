@@ -37,5 +37,8 @@ describe('calldata decoder resource ownership', () => {
 		expect(resultSource).toContain('decodeEventDataWithSignature(')
 		expect(resultSource).toContain('sourceClaim')
 		expect(resultSource).toContain('deterministicResult')
+		expect(resultSource).toContain('candidateSignatures')
+		expect(resultSource).toContain('selectedCandidateIndex')
+		expect(resultSource).toContain('lookupHex')
 	})
 })

@@ -56,6 +56,24 @@ test('keeps pending, ready-empty, late decoded data, and failure distinct withou
 		'download',
 		'evm-function-calldata-provenance.json'
 	)
+	const provenanceManifestHref = page.getByRole('link', {
+		name: 'Download provenance manifest JSON',
+	}).element().getAttribute('href')
+	if (provenanceManifestHref == null)
+		throw new Error('Missing provenance manifest href')
+	expect(JSON.parse(decodeURIComponent(provenanceManifestHref.split(',')[1] ?? ''))).toMatchObject({
+		input: `${functionSelectorFromSignature(signature)}${'0'.repeat(62)}7b`,
+		sourceClaim: {
+			source: Source.Openchain_Rest,
+			lookupHex: functionSelectorFromSignature(signature),
+			candidateSignatures: [signature],
+			selectedCandidateIndex: 0,
+			signature,
+		},
+		deterministicResult: {
+			name: 'setValue',
+		},
+	})
 	await expect.element(page.getByText('No catalog signatures matched this function selector.')).not.toBeInTheDocument()
 
 	resource.fail(new Error('catalog unavailable'))
