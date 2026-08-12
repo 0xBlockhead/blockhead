@@ -243,6 +243,44 @@ describe('Blobscan REST queries', () => {
 		})).rejects.toThrow('block contains duplicate transaction identity')
 	})
 
+	it('validates nested block-list hierarchy and rejects duplicate block identity', async () => {
+		vi.spyOn(globalThis, 'fetch')
+			.mockResolvedValueOnce(jsonResponse({
+				blocks: [{
+					hash: blockHash,
+					number: 12,
+					timestamp: '2026-08-05T02:08:35.000Z',
+					transactions: [{
+						hash: txHash,
+						blobs: [{
+							versionedHash: `0x02${versionedHash.slice(4)}`,
+						}],
+					}],
+				}],
+			}))
+			.mockResolvedValueOnce(jsonResponse({
+				blocks: [
+					{
+						hash: blockHash,
+						number: 12,
+						timestamp: '2026-08-05T02:08:35.000Z',
+					},
+					{
+						hash: `0x${'ab'.repeat(32)}`,
+						number: 12,
+						timestamp: '2026-08-05T02:08:47.000Z',
+					},
+				],
+			}))
+
+		await expect(listBlocks('1', {
+			limit: 2,
+		})).rejects.toThrow('invalid block blob versioned hash')
+		await expect(listBlocks('1', {
+			limit: 2,
+		})).rejects.toThrow('block list contains duplicate identity')
+	})
+
 	it('throws when a found transaction lacks the requested blob index', async () => {
 		vi.spyOn(globalThis, 'fetch')
 			.mockResolvedValueOnce(jsonResponse({

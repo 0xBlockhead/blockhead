@@ -162,9 +162,24 @@ const assertBlobListItem = (
 		assertSafeNonnegativeInteger(blob.index, 'blob list index')
 }
 
+const assertBlockTransactions = (
+	transactions: BlobscanBlockDetail['transactions']
+) => {
+	const transactionHashes = new Set<string>()
+	for (const transaction of transactions) {
+		assertBytes32Hex(transaction.hash, 'block transaction hash')
+		const transactionHash = transaction.hash.toLowerCase()
+		if (transactionHashes.has(transactionHash))
+			throw new Error('Blobscan_Rest: block contains duplicate transaction identity')
+		transactionHashes.add(transactionHash)
+		for (const blob of transaction.blobs)
+			assertBlobVersionedHash(blob.versionedHash, 'block blob versioned hash')
+	}
+}
+
 const assertBlockDetail = (
 	block: BlobscanBlockDetail,
-	blockId?: string | number
+	blockId?: number | string
 ) => {
 	assertEnvelope(blobscanBlockDetailEnvelope, block, 'block detail')
 	assertBytes32Hex(block.hash, 'block hash')
@@ -178,20 +193,11 @@ const assertBlockDetail = (
 				block.number !== blockId
 			:
 				block.hash.toLowerCase() !== blockId.toLowerCase()
-				&& String(block.number) !== blockId
+					&& String(block.number) !== blockId
 		)
 	)
 		throw new Error(`Blobscan_Rest: mismatched block identity ${block.hash}`)
-	const transactionHashes = new Set<string>()
-	for (const transaction of block.transactions) {
-		assertBytes32Hex(transaction.hash, 'block transaction hash')
-		const transactionHash = transaction.hash.toLowerCase()
-		if (transactionHashes.has(transactionHash))
-			throw new Error('Blobscan_Rest: block contains duplicate transaction identity')
-		transactionHashes.add(transactionHash)
-		for (const blob of transaction.blobs)
-			assertBlobVersionedHash(blob.versionedHash, 'block blob versioned hash')
-	}
+	assertBlockTransactions(block.transactions)
 }
 
 const assertBlockListItem = (
@@ -201,6 +207,8 @@ const assertBlockListItem = (
 	assertSafePositiveInteger(block.number, 'block list number')
 	if (block.timestamp === '' || !Number.isFinite(Date.parse(block.timestamp)))
 		throw new Error(`Blobscan_Rest: invalid block list timestamp ${block.timestamp}`)
+	if (block.transactions != null)
+		assertBlockTransactions(block.transactions)
 }
 
 const getOptional = async <_Response>(
@@ -358,8 +366,16 @@ export const listBlocks = async (
 	assertEnvelope(blobscanBlockListEnvelope, body, 'block list')
 	if (body.blocks.length > limit)
 		throw new Error('Blobscan_Rest: block list exceeds requested page size')
-	for (const block of body.blocks)
+	const blockHashes = new Set<string>()
+	const blockNumbers = new Set<number>()
+	for (const block of body.blocks) {
 		assertBlockListItem(block)
+		const blockHash = block.hash.toLowerCase()
+		if (blockHashes.has(blockHash) || blockNumbers.has(block.number))
+			throw new Error('Blobscan_Rest: block list contains duplicate identity')
+		blockHashes.add(blockHash)
+		blockNumbers.add(block.number)
+	}
 	return body.blocks
 }
 

@@ -155,9 +155,13 @@ describe('Blobscan EVM blob resolvers', () => {
 	})
 
 	it('maps EvmTransaction.$$blobs from Blobscan transaction rows', async () => {
+		expect(blobscanRest.resolvers.filter((resolver) => (
+			resolver.entityType === EntityType.EvmTransaction
+		))).toHaveLength(1)
 		getTransaction.mockResolvedValueOnce({
 			hash: txHash,
 			blockNumber: 12,
+			from: '0xc1b634853cb333d3ad8663715b08f41a3aec47cc',
 			blobs: [{
 				versionedHash,
 			}],
@@ -191,6 +195,13 @@ describe('Blobscan EVM blob resolvers', () => {
 				[entityFieldAddressKey(EntityType.EvmBlob, [], 'versionedHash')]: versionedHash,
 			},
 		}])
+		expect(transactionBlobsResolver.projections.$block(rows, context)).toEqual({
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				blockNumber: 12n,
+			},
+		})
+		expect(getTransaction).toHaveBeenCalledOnce()
 	})
 
 	it('lists Network.Evm.$$blobs from Blobscan recent blobs', async () => {
@@ -433,6 +444,24 @@ describe('Blobscan EVM blob resolvers', () => {
 				[entityFieldAddressKey(EntityType.EvmBlock, [], 'blobGasUsed')]: 131072n,
 				[entityFieldAddressKey(EntityType.EvmBlock, [], 'excessBlobGas')]: 0n,
 				[entityFieldAddressKey(EntityType.EvmBlock, [], 'transactionCount')]: 1,
+				[entityFieldAddressKey(EntityType.EvmBlock, [], '$$transactions')]: [expect.objectContaining({
+					[EntityMetaKey.Selector]: {
+						$network: network,
+						txHash,
+					},
+					[EntityMetaKey.Fields]: expect.objectContaining({
+						[entityFieldAddressKey(EntityType.EvmTransaction, [], 'envelopeType')]: 'Blob',
+						[entityFieldAddressKey(EntityType.EvmTransaction, ['Blob'], '$$blobs')]: [expect.objectContaining({
+							[EntityMetaKey.Selector]: {
+								$transaction: {
+									$network: network,
+									txHash,
+								},
+								indexInTransaction: 0,
+							},
+						})],
+					}),
+				})],
 			},
 		}])
 	})

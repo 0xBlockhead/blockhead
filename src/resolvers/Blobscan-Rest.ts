@@ -86,6 +86,47 @@ const evmBlobRefsFromTransactionBlobs = ({
 	})
 )
 
+const evmTransactionReferenceFromBlobscanBlock = ({
+	$network,
+	blockNumber,
+	transaction,
+}: {
+	$network: {
+		caip2: {
+			namespace: string
+			reference: string
+		}
+	}
+	blockNumber: number
+	transaction: BlobscanBlockDetail['transactions'][number]
+}) => {
+	const txHash = hexLowerOfByteSize(transaction.hash, 32)
+	if (txHash == null)
+		return
+
+	return {
+		[EntityMetaKey.Selector]: {
+			$network,
+			txHash,
+		},
+		[EntityMetaKey.Fields]: {
+			[entityFieldAddressKey(EntityType.EvmTransaction, [], '$block')]: {
+				[EntityMetaKey.Selector]: {
+					$network,
+					blockNumber: BigInt(blockNumber),
+				},
+			},
+			[entityFieldAddressKey(EntityType.EvmTransaction, [], 'envelopeType')]: EvmTransactionEnvelopeType.Blob,
+			[entityFieldAddressKey(EntityType.EvmTransaction, ['Blob'], '$$blobs')]: evmBlobRefsFromTransactionBlobs({
+				$network,
+				txHash,
+				blockNumber,
+				blobs: transaction.blobs,
+			}),
+		},
+	}
+}
+
 const mapEvmBlockFromWire = (
 	$network: {
 		caip2: {
@@ -131,31 +172,12 @@ const mapEvmBlockFromWire = (
 		}),
 		transactionCount: block.transactions.length,
 		transactions: block.transactions.flatMap((transaction) => {
-			const txHash = hexLowerOfByteSize(transaction.hash, 32)
-			if (txHash == null)
-				return []
-
-			return [{
-				[EntityMetaKey.Selector]: {
-					$network,
-					txHash,
-				},
-				[EntityMetaKey.Fields]: {
-					[entityFieldAddressKey(EntityType.EvmTransaction, [], '$block')]: {
-						[EntityMetaKey.Selector]: {
-							$network,
-							blockNumber: BigInt(block.number),
-						},
-					},
-					[entityFieldAddressKey(EntityType.EvmTransaction, [], 'envelopeType')]: EvmTransactionEnvelopeType.Blob,
-					[entityFieldAddressKey(EntityType.EvmTransaction, ['Blob'], '$$blobs')]: evmBlobRefsFromTransactionBlobs({
-						$network,
-						txHash,
-						blockNumber: block.number,
-						blobs: transaction.blobs,
-					}),
-				},
-			}]
+			const reference = evmTransactionReferenceFromBlobscanBlock({
+				$network,
+				blockNumber: block.number,
+				transaction,
+			})
+			return reference == null ? [] : [reference]
 		}),
 	}
 }
@@ -371,6 +393,12 @@ export default {
 							...(maxFeePerBlobGas != null && {
 								maxFeePerBlobGas,
 							}),
+							blobs: evmBlobRefsFromTransactionBlobs({
+								$network,
+								txHash,
+								blockNumber: transaction.blockNumber,
+								blobs: transaction.blobs,
+							}),
 						}
 					},
 				},
@@ -385,38 +413,7 @@ export default {
 			Blob: {
 				blobGasUsed: (transaction) => transaction.blobGasUsed,
 				maxFeePerBlobGas: (transaction) => transaction.maxFeePerBlobGas,
-			},
-		}),
-
-		defineResolver({
-			entityType: EntityType.EvmTransaction,
-			resolve: {
-				EvmNetworkTxHash: {
-					resolve: async ({ $network, txHash }) => {
-						const { getTransaction } = await import(
-							'$/sources/Blobscan/Rest/queries.ts'
-						)
-						const transaction = await getTransaction(
-							$network.caip2.reference,
-							{
-								txHash,
-							}
-						)
-						if (transaction == null)
-							throw new Error('Blobscan_Rest: transaction not found')
-
-						return evmBlobRefsFromTransactionBlobs({
-							$network,
-							txHash,
-							blockNumber: transaction.blockNumber,
-							blobs: transaction.blobs,
-						})
-					},
-				},
-			},
-		})({
-			Blob: {
-				$$blobs: (entity) => entity,
+				$$blobs: (transaction) => transaction.blobs,
 			},
 		}),
 
@@ -560,6 +557,14 @@ export default {
 									}),
 									...(block.transactions != null && {
 										[entityFieldAddressKey(EntityType.EvmBlock, [], 'transactionCount')]: block.transactions.length,
+										[entityFieldAddressKey(EntityType.EvmBlock, [], '$$transactions')]: block.transactions.flatMap((transaction) => {
+											const reference = evmTransactionReferenceFromBlobscanBlock({
+												$network: entitySelector,
+												blockNumber: block.number,
+												transaction,
+											})
+											return reference == null ? [] : [reference]
+										}),
 									}),
 								},
 							}]
