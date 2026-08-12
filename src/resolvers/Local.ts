@@ -8,6 +8,7 @@ import type {
 	NormalizedStateChannelDeposit,
 } from '$/resolvers/Local/Internal/catalog.ts'
 import {
+	entityFieldAddressKey,
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
@@ -34,6 +35,51 @@ const normalizedLocalInternalModule = import('$/resolvers/Local/Internal/catalog
 const readNormalizedLocalInternal = async () => (
 	(await normalizedLocalInternalModule).readNormalizedLocalInternal()
 )
+
+const blockheadSourceTimestampFields = async ({
+	sourceId,
+	timestampMs,
+}: {
+	sourceId: string
+	timestampMs: number
+}) => {
+	const source = Object.values(Source).find((candidate) => candidate === sourceId)
+	if (source == null)
+		throw new Error(`Local_Internal: unsupported Blockhead source ${sourceId}`)
+
+	const startedAt = performance.now()
+	try {
+		const loadedResolverModule = (
+			await (await import('$/resolvers/index.ts')).loadResolvers(new Set([source]))
+		)[0]
+		if (loadedResolverModule == null)
+			throw new Error(`resolver module ${source} is not registered`)
+
+		return {
+			$source: {
+				id: source,
+			},
+			timestampMs,
+			enabled: true,
+			health: 'Resolver module available',
+			latencyMs: performance.now() - startedAt,
+			error: undefined,
+			resolverCount: loadedResolverModule.resolvers.length,
+		}
+	} catch (error) {
+		return {
+			$source: {
+				id: source,
+			},
+			timestampMs,
+			enabled: false,
+			health: 'Resolver module unavailable',
+			latencyMs: performance.now() - startedAt,
+			error: String(error),
+			resolverCount: 0,
+		}
+	}
+}
 
 const localXmtpMessages = [
 	{
@@ -130,6 +176,57 @@ export default {
 	source: Source.Local_Internal,
 
 	resolvers: [
+		defineResolver({
+			entityType: EntityType.BlockheadSource,
+			resolve: {
+				Id: {
+					resolve: async ({ id }) => {
+						const timestamp = await blockheadSourceTimestampFields({
+							sourceId: id,
+							timestampMs: Date.now(),
+						})
+						return [{
+							[EntityMetaKey.Selector]: {
+								$source: timestamp.$source,
+								timestampMs: timestamp.timestampMs,
+							},
+							[EntityMetaKey.Fields]: {
+								[entityFieldAddressKey(EntityType.BlockheadSource_Timestamp, [], 'enabled')]: timestamp.enabled,
+								[entityFieldAddressKey(EntityType.BlockheadSource_Timestamp, [], 'health')]: timestamp.health,
+								[entityFieldAddressKey(EntityType.BlockheadSource_Timestamp, [], 'latencyMs')]: timestamp.latencyMs,
+								...(timestamp.error != null && {
+									[entityFieldAddressKey(EntityType.BlockheadSource_Timestamp, [], 'error')]: timestamp.error,
+								}),
+								[entityFieldAddressKey(EntityType.BlockheadSource_Timestamp, [], 'resolverCount')]: timestamp.resolverCount,
+							},
+						}]
+					},
+				},
+			},
+		})({
+			$$timestamps: (timestamps) => timestamps,
+		}),
+
+		defineResolver({
+			entityType: EntityType.BlockheadSource_Timestamp,
+			resolve: {
+				SourceTimestampMs: {
+					resolve: ({ $source, timestampMs }) => blockheadSourceTimestampFields({
+						sourceId: $source.id,
+						timestampMs,
+					}),
+				},
+			},
+		})({
+			$source: (timestamp) => timestamp.$source,
+			timestampMs: (timestamp) => timestamp.timestampMs,
+			enabled: (timestamp) => timestamp.enabled,
+			health: (timestamp) => timestamp.health,
+			latencyMs: (timestamp) => timestamp.latencyMs,
+			error: (timestamp) => timestamp.error,
+			resolverCount: (timestamp) => timestamp.resolverCount,
+		}),
+
 		defineResolver({
 			entityType: EntityType.XmtpConversation,
 			resolve: {
