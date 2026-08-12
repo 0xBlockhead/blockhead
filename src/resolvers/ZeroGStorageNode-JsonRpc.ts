@@ -1,4 +1,5 @@
 import { networkBySlug } from '$/constants/Network.ts'
+import { zeroExLowerCase } from '$/lib/hexLowerOfByteSize.ts'
 import {
 	defineResolver,
 	type RegisteredSourceResolverModule,
@@ -13,6 +14,8 @@ import { Source } from '$/sources/Source.ts'
 
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 
+const zeroGChainId = 16661
+
 const assertZeroGMainnet = (network: NetworkId) => {
 	if (!('slug' in network) || network.slug !== networkBySlug['0g'].slug)
 		throw new Error('ZeroGStorageNode_JsonRpc: unsupported network')
@@ -20,8 +23,14 @@ const assertZeroGMainnet = (network: NetworkId) => {
 
 const localStorageNodeId = async () => {
 	const { getStatus } = await import('$/sources/ZeroG/StorageNode/JsonRpc/queries.ts')
-	return (await getStatus()).networkIdentity.flowAddress
+	const status = await getStatus()
+	if (status.networkIdentity.chainId !== zeroGChainId)
+		throw new Error('ZeroGStorageNode_JsonRpc: local node is connected to an unsupported chain')
+
+	return zeroExLowerCase(status.networkIdentity.flowAddress)
 }
+
+const localConnectionId = 'local-0g-storage-node'
 
 const fileInfoForDataBlob = async ({ $network, dataRoot }: {
 	$network: NetworkId
@@ -41,6 +50,156 @@ export default {
 	source: Source.ZeroGStorageNode_JsonRpc,
 
 	resolvers: [
+		defineResolver({
+			entityType: EntityType._Global,
+			resolve: {
+				Scope: {
+					resolve: async () => [{
+						[EntityMetaKey.Selector]: {
+							connectionId: localConnectionId,
+							$network: { slug: networkBySlug['0g'].slug },
+							nodeId: await localStorageNodeId(),
+						},
+					}],
+				},
+			},
+		})({
+			$$blockheadZeroGStorageNodeStates: (nodeStates) => nodeStates,
+		}),
+
+		defineResolver({
+			entityType: EntityType.ZeroGNetwork,
+			resolve: {
+				Slug: {
+					resolve: async (network) => {
+						assertZeroGMainnet(network)
+						const timestampMs = Date.now()
+						const nodeId = await localStorageNodeId()
+						return {
+							$$storageNodes: [{
+								[EntityMetaKey.Selector]: {
+									$network: network,
+									nodeId,
+								},
+							}],
+							$$timestamps: [{
+								[EntityMetaKey.Selector]: {
+									$network: network,
+									timestampMs,
+									source: Source.ZeroGStorageNode_JsonRpc,
+								},
+							}],
+						}
+					},
+				},
+			},
+		})({
+			$$storageNodes: (snapshot) => snapshot.$$storageNodes,
+			$$timestamps: (snapshot) => snapshot.$$timestamps,
+		}),
+
+		defineResolver({
+			entityType: EntityType.ZeroGNetwork_Timestamp,
+			resolve: {
+				NetworkTimestampMsSource: {
+					resolve: async ({ $network, timestampMs, source }) => {
+						if (source !== Source.ZeroGStorageNode_JsonRpc)
+							throw new Error('ZeroGStorageNode_JsonRpc: unsupported timestamp source')
+						assertZeroGMainnet($network)
+						const status = await import('$/sources/ZeroG/StorageNode/JsonRpc/queries.ts').then(({ getStatus }) => getStatus())
+						if (status.networkIdentity.chainId !== zeroGChainId)
+							throw new Error('ZeroGStorageNode_JsonRpc: local node is connected to an unsupported chain')
+
+						return {
+							$network: { [EntityMetaKey.Selector]: $network },
+							timestampMs,
+							source,
+							storageLogSyncHeight: status.logSyncHeight,
+						}
+					},
+				},
+			},
+		})({
+			$network: (snapshot) => snapshot.$network,
+			timestampMs: (snapshot) => snapshot.timestampMs,
+			source: (snapshot) => snapshot.source,
+			storageLogSyncHeight: (snapshot) => snapshot.storageLogSyncHeight,
+		}),
+
+		defineResolver({
+			entityType: EntityType.BlockheadZeroGStorageNodeState,
+			resolve: {
+				ConnectionIdNetworkNodeId: {
+					resolve: async ({ connectionId, $network, nodeId }) => {
+						if (connectionId !== localConnectionId)
+							throw new Error(`ZeroGStorageNode_JsonRpc: unsupported connection ${connectionId}`)
+						assertZeroGMainnet($network)
+						const resolvedNodeId = await localStorageNodeId()
+						if (nodeId.toLowerCase() !== resolvedNodeId)
+							throw new Error(`ZeroGStorageNode_JsonRpc: local node ${resolvedNodeId} does not match ${nodeId}`)
+						return {
+							endpoint: (
+								await import('$/sources/ZeroG/StorageNode/JsonRpc/queries.ts')
+							).endpoint,
+						}
+					},
+				},
+			},
+		})({
+			endpoint: (snapshot) => snapshot.endpoint,
+		}),
+
+		defineResolver({
+			entityType: EntityType.BlockheadZeroGStoredChunk,
+			resolve: {
+				NodeStateDataRootChunkIndex: {
+					resolve: async ({ $nodeState, dataRoot, chunkIndex }) => {
+						if ($nodeState.connectionId !== localConnectionId)
+							throw new Error(`ZeroGStorageNode_JsonRpc: unsupported connection ${$nodeState.connectionId}`)
+						assertZeroGMainnet($nodeState.$network)
+						if (await localStorageNodeId() !== zeroExLowerCase($nodeState.nodeId))
+							throw new Error('ZeroGStorageNode_JsonRpc: stored chunk node identity mismatch')
+						const { getFileInfo } = await import('$/sources/ZeroG/StorageNode/JsonRpc/queries.ts')
+						const fileInfo = await getFileInfo({
+							root: dataRoot,
+							needAvailable: true,
+						})
+						const chunkRoot = fileInfo?.tx.streamIds.at(chunkIndex)
+						const checkedAt = Date.now()
+
+						return {
+							$dataBlob: {
+								[EntityMetaKey.Selector]: {
+									$network: $nodeState.$network,
+									dataRoot,
+								},
+							},
+							...(chunkRoot != null && {
+								$publicChunk: {
+									[EntityMetaKey.Selector]: {
+										$dataBlob: {
+											$network: $nodeState.$network,
+											dataRoot,
+										},
+										chunkIndex,
+									},
+								},
+								chunkRoot,
+							}),
+							present: chunkRoot != null,
+							lastCheckedAt: checkedAt,
+						}
+					},
+				},
+			},
+		})({
+			$dataBlob: (snapshot) => snapshot.$dataBlob,
+			$publicChunk: (snapshot) => snapshot.$publicChunk,
+			chunkRoot: (snapshot) => snapshot.chunkRoot,
+			present: (snapshot) => snapshot.present,
+			lastCheckedAt: (snapshot) => snapshot.lastCheckedAt,
+		}),
+
 		defineResolver({
 			entityType: EntityType.ZeroGStorageNode,
 			resolve: {

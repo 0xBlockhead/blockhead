@@ -8,6 +8,7 @@ import {
 
 import { EntityMetaKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 
 const queries = vi.hoisted(() => ({
 	getStatus: vi.fn(),
@@ -144,6 +145,105 @@ describe('ZeroGStorageNode_JsonRpc resolver leftovers', () => {
 					dataRoot: '0xbbb',
 				},
 			},
+		})
+	})
+
+	it('materializes the local node in global and 0G network hierarchy with source-owned sync history', async () => {
+		const globalResolver = resolverFor(EntityType._Global, '$$blockheadZeroGStorageNodeStates')
+		await expect(globalResolver.resolve.Scope.resolve({ scope: 'global' }, context)).resolves.toEqual([{
+			[EntityMetaKey.Selector]: {
+				connectionId: 'local-0g-storage-node',
+				$network: { slug: '0g' },
+				nodeId: '0x4d19f72978eaf45f6b0dc4db43f15b4a39d65bfd',
+			},
+		}])
+
+		const networkResolver = resolverFor(EntityType.ZeroGNetwork, '$$storageNodes')
+		const networkSnapshot = await networkResolver.resolve.Slug.resolve(network, context)
+		expect(networkSnapshot.$$storageNodes).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				nodeId: '0x4d19f72978eaf45f6b0dc4db43f15b4a39d65bfd',
+			},
+		}])
+		expect(networkSnapshot.$$timestamps).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				timestampMs: expect.any(Number),
+				source: Source.ZeroGStorageNode_JsonRpc,
+			},
+		}])
+
+		const timestampResolver = resolverFor(EntityType.ZeroGNetwork_Timestamp, 'storageLogSyncHeight')
+		await expect(timestampResolver.resolve.NetworkTimestampMsSource.resolve({
+			$network: network,
+			timestampMs: 123,
+			source: Source.ZeroGStorageNode_JsonRpc,
+		}, context)).resolves.toMatchObject({
+			timestampMs: 123,
+			source: Source.ZeroGStorageNode_JsonRpc,
+			storageLogSyncHeight: 10,
+		})
+	})
+
+	it('resolves the canonical local storage-node state without inventing unsupported local metrics', async () => {
+		const nodeState = {
+			connectionId: 'local-0g-storage-node',
+			$network: network,
+			nodeId: '0x4d19f72978eaf45f6b0dc4db43f15b4a39d65bfd' as const,
+		}
+		const nodeStateResolver = resolverFor(EntityType.BlockheadZeroGStorageNodeState, 'endpoint')
+		const snapshot = await nodeStateResolver.resolve.ConnectionIdNetworkNodeId.resolve(nodeState, context)
+		expect(snapshot).toEqual({
+			endpoint: 'http://127.0.0.1:5678',
+		})
+	})
+
+	it('maps local chunk presence to the public blob/chunk hierarchy without inventing size or verification', async () => {
+		const nodeState = {
+			connectionId: 'local-0g-storage-node',
+			$network: network,
+			nodeId: '0x4d19f72978eaf45f6b0dc4db43f15b4a39d65bfd' as const,
+		}
+		const storedChunkResolver = resolverFor(EntityType.BlockheadZeroGStoredChunk, 'present')
+		await expect(storedChunkResolver.resolve.NodeStateDataRootChunkIndex.resolve({
+			$nodeState: nodeState,
+			dataRoot: '0xbbb',
+			chunkIndex: 1,
+		}, context)).resolves.toMatchObject({
+			$dataBlob: {
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					dataRoot: '0xbbb',
+				},
+			},
+			$publicChunk: {
+				[EntityMetaKey.Selector]: {
+					$dataBlob: {
+						$network: network,
+						dataRoot: '0xbbb',
+					},
+					chunkIndex: 1,
+				},
+			},
+			chunkRoot: '0xchunk1',
+			present: true,
+			lastCheckedAt: expect.any(Number),
+		})
+
+		await expect(storedChunkResolver.resolve.NodeStateDataRootChunkIndex.resolve({
+			$nodeState: nodeState,
+			dataRoot: '0xbbb',
+			chunkIndex: 9,
+		}, context)).resolves.toEqual({
+			$dataBlob: {
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					dataRoot: '0xbbb',
+				},
+			},
+			present: false,
+			lastCheckedAt: expect.any(Number),
 		})
 	})
 
