@@ -121,3 +121,4 @@ export const bitcoinCoreScanTxOutSet = arktype({
 
 export const bitcoinCoreBlockHash = arktype('string')
 export const bitcoinCoreBlockCount = arktype('number.integer >= 0')
+export const bitcoinCoreMempoolTransactionIds = arktype('string[]')

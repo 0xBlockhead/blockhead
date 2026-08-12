@@ -24,6 +24,11 @@ const blocksResolver = networkResolvers.find((resolver) => (
 	&& '$$blocks' in resolver.projections.Utxo
 	&& typeof resolver.projections.Utxo.$$blocks === 'function'
 ))
+const mempoolTransactionsResolver = networkResolvers.find((resolver) => (
+	'Utxo' in resolver.projections
+	&& '$$transactions' in resolver.projections.Utxo
+	&& typeof resolver.projections.Utxo.$$transactions === 'function'
+))
 const blockResolver = mempoolSpaceResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.UtxoBlock
 	&& 'NetworkHeight' in resolver.resolve
@@ -53,6 +58,9 @@ const outputResolver = mempoolSpaceResolvers.resolvers.find((resolver) => (
 
 if (blocksResolver == null)
 	throw new Error('MempoolSpace-Rest spec missing Network.Utxo.$$blocks resolver')
+
+if (mempoolTransactionsResolver == null)
+	throw new Error('MempoolSpace-Rest spec missing Network.Utxo.$$transactions resolver')
 
 if (blockResolver == null)
 	throw new Error('MempoolSpace-Rest spec missing UtxoBlock NetworkHeight resolver')
@@ -512,6 +520,87 @@ describe('MempoolSpace UTXO', () => {
 			},
 		}])
 		expect(sourceGetJson).toHaveBeenCalledOnce()
+	})
+
+	it('materializes a paged mempool transaction hierarchy from authoritative transaction reads', async () => {
+		sourceGetJson
+			.mockResolvedValueOnce([
+				'a'.repeat(64),
+				'b'.repeat(64),
+				'c'.repeat(64),
+			])
+			.mockResolvedValueOnce({
+				txid: 'b'.repeat(64),
+				version: 2,
+				locktime: 0,
+				size: 141,
+				weight: 561,
+				fee: 1_250,
+				status: {
+					confirmed: false,
+				},
+				vin: [{
+					txid: 'd'.repeat(64),
+					vout: 2,
+					is_coinbase: false,
+					sequence: 4_294_967_293,
+					witness: ['3044'],
+				}],
+				vout: [{
+					scriptpubkey: '0014',
+					scriptpubkey_type: 'v0_p2wpkh',
+					scriptpubkey_address: 'bc1qrecipient',
+					value: 40_000,
+				}],
+			})
+
+		const rows = await mempoolTransactionsResolver.resolve.Caip2.resolve(network, {
+			...resolverContext,
+			pagination: {
+				limit: 1,
+				offset: 1,
+			},
+		})
+
+		expect(rows).toMatchObject([{
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				txId: 'b'.repeat(64),
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.UtxoTransaction, [], 'virtualSizeBytes')]: 141,
+				[entityFieldAddressKey(EntityType.UtxoTransaction, [], 'feeSats')]: 1_250n,
+				[entityFieldAddressKey(EntityType.UtxoTransaction, [], 'isCoinbase')]: false,
+				[entityFieldAddressKey(EntityType.UtxoTransaction, [], '$$inputs')]: [{
+					[EntityMetaKey.Selector]: {
+						$transaction: {
+							$network: network,
+							txId: 'b'.repeat(64),
+						},
+						indexInTransaction: 0,
+					},
+				}],
+				[entityFieldAddressKey(EntityType.UtxoTransaction, [], '$$outputs')]: [{
+					[EntityMetaKey.Selector]: {
+						$transaction: {
+							$network: network,
+							txId: 'b'.repeat(64),
+						},
+						indexInTransaction: 0,
+					},
+				}],
+			},
+		}])
+		expect(sourceGetJson).toHaveBeenNthCalledWith(
+			1,
+			binding,
+			'https://mempool.space/api/mempool/txids'
+		)
+		expect(sourceGetJson).toHaveBeenNthCalledWith(
+			2,
+			binding,
+			`https://mempool.space/api/tx/${'b'.repeat(64)}`
+		)
 	})
 
 	it('resumes block history from the native height endpoint and stops after genesis', async () => {

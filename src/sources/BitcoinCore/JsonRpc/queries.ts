@@ -4,6 +4,7 @@ import {
 	bitcoinCoreBlockCount,
 	bitcoinCoreBlockHash,
 	bitcoinCoreMempoolInfo,
+	bitcoinCoreMempoolTransactionIds,
 	bitcoinCoreScanTxOutSet,
 	bitcoinCoreTransaction,
 	bitcoinCoreValidatedAddress,
@@ -158,6 +159,20 @@ export const getMempoolInfo = async () => (
 		await core.getMempoolInfo()
 	)
 )
+
+export const getMempoolTransactionIds = async () => {
+	const transactionIds = assertEnvelope(
+		'mempool transaction IDs',
+		bitcoinCoreMempoolTransactionIds,
+		await jsonRpc2<unknown>(binding, 'getrawmempool', [false])
+	)
+	for (const transactionId of transactionIds)
+		assertHash(transactionId, 'mempool transaction ID')
+	if (new Set(transactionIds).size !== transactionIds.length)
+		throw new Error(`${Source.BitcoinCore_JsonRpc}: duplicate mempool transaction ID`)
+
+	return transactionIds
+}
 
 export const getTransparentAddressUtxos = async ({
 	address,

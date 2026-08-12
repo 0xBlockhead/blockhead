@@ -923,14 +923,22 @@ export default {
 			entityType: EntityType.Network,
 			resolve: bitcoinNetworkSelectors(async (network, context) => {
 				assertBitcoinMainnet(network)
-				const { getMempoolTxids } = await import('$/sources/MempoolSpace/Rest/queries.ts')
+				const {
+					getMempoolTxids,
+					getTransaction,
+				} = await import('$/sources/MempoolSpace/Rest/queries.ts')
 				const txids = await getMempoolTxids()
-				return txids.slice(0, resolverContextRowLimit(context)).map((txId) => ({
-					[EntityMetaKey.Selector]: {
-						$network: network,
-						txId,
-					},
-				}))
+				return Promise.all(
+					txids
+						.slice(
+							context.pagination.offset ?? 0,
+							(context.pagination.offset ?? 0) + resolverContextRowLimit(context)
+						)
+						.map(async (txId) => utxoTransactionReferenceFromMempoolSpaceWire(
+							network,
+							await getTransaction(txId)
+						))
+				)
 			}),
 		})({
 				Utxo: {

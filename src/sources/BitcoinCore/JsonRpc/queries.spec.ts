@@ -15,6 +15,7 @@ const {
 	getBlockCount,
 	getBlockHash,
 	getMempoolInfo,
+	getMempoolTransactionIds,
 	getRawTransaction,
 	getTransparentAddressUtxos,
 } = await import('$/sources/BitcoinCore/JsonRpc/queries.ts')
@@ -211,6 +212,28 @@ describe('Bitcoin Core JSON-RPC', () => {
 			loaded: true,
 		})
 		await expect(getMempoolInfo()).rejects.toThrow('invalid mempool info response envelope')
+	})
+
+	it('loads a unique fail-closed direct-node mempool identity set', async () => {
+		jsonRpc2.mockResolvedValueOnce([
+			txId,
+			blockHash,
+		])
+		await expect(getMempoolTransactionIds()).resolves.toEqual([
+			txId,
+			blockHash,
+		])
+		expect(jsonRpc2).toHaveBeenCalledWith(
+			bitcoinMainnetBinding,
+			'getrawmempool',
+			[false]
+		)
+
+		jsonRpc2.mockResolvedValueOnce([txId, txId])
+		await expect(getMempoolTransactionIds()).rejects.toThrow('duplicate mempool transaction ID')
+
+		jsonRpc2.mockResolvedValueOnce(['not-a-transaction-id'])
+		await expect(getMempoolTransactionIds()).rejects.toThrow('invalid mempool transaction ID')
 	})
 
 	it('scans transparent address UTXOs with fail-closed validation', async () => {

@@ -10,6 +10,7 @@ const getRawTransaction = vi.fn()
 const getBlockCount = vi.fn()
 const getBlockHash = vi.fn()
 const getMempoolInfo = vi.fn()
+const getMempoolTransactionIds = vi.fn()
 const getTransparentAddressUtxos = vi.fn()
 const getTransactionProtocolPayloads = vi.fn(async () => [])
 
@@ -19,6 +20,7 @@ vi.mock('$/sources/BitcoinCore/JsonRpc/queries.ts', () => ({
 	getBlockCount,
 	getBlockHash,
 	getMempoolInfo,
+	getMempoolTransactionIds,
 	getTransparentAddressUtxos,
 	getTransactionProtocolPayloads,
 }))
@@ -77,6 +79,12 @@ const networkBlocksResolver = bitcoinCoreResolvers.resolvers.find((resolver) => 
 	&& typeof resolver.projections.Utxo.$$blocks === 'object'
 	&& 'select' in resolver.projections.Utxo.$$blocks
 ))
+const networkMempoolTransactionsResolver = bitcoinCoreResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.Network
+	&& 'Utxo' in resolver.projections
+	&& '$$transactions' in resolver.projections.Utxo
+	&& typeof resolver.projections.Utxo.$$transactions === 'function'
+))
 const addressOutputsResolver = bitcoinCoreResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.UtxoAddress
 	&& '$$outputs' in resolver.projections
@@ -100,6 +108,9 @@ if (inputResolver == null || outputResolver == null)
 
 if (blockResolver == null || networkBlocksResolver == null)
 	throw new Error('BitcoinCore-JsonRpc spec missing UTXO block / network list resolvers')
+
+if (networkMempoolTransactionsResolver == null)
+	throw new Error('BitcoinCore-JsonRpc spec missing native mempool transaction resolver')
 
 if (addressOutputsResolver == null || addressTimestampResolver == null)
 	throw new Error('BitcoinCore-JsonRpc spec missing address UTXO resolvers')
@@ -348,6 +359,78 @@ describe('BitcoinCore UTXO', () => {
 		expect(blockResolver.projections.transactionCount(block)).toBe(1)
 		expect(getBlockHash).toHaveBeenCalledWith({
 			height: 5n,
+		})
+	})
+
+	it('materializes paged direct-node mempool transactions with native ancestry and outputs', async () => {
+		getMempoolTransactionIds.mockResolvedValueOnce([
+			'a'.repeat(64),
+			'b'.repeat(64),
+			'c'.repeat(64),
+		])
+		getRawTransaction.mockResolvedValueOnce({
+			txid: 'b'.repeat(64),
+			version: 2,
+			locktime: 0,
+			size: 141,
+			vsize: 110,
+			weight: 438,
+			vin: [{
+				txid: 'd'.repeat(64),
+				vout: 1,
+				sequence: 4_294_967_293,
+				txinwitness: ['3044'],
+			}],
+			vout: [{
+				value: 0.0004,
+				n: 0,
+				scriptPubKey: {
+					asm: '0 example',
+					hex: '0014',
+					type: 'witness_v0_keyhash',
+					address: 'bc1qexample',
+				},
+			}],
+		})
+
+		const rows = await networkMempoolTransactionsResolver.resolve.Caip2.resolve(network, {
+			...resolverContext,
+			pagination: {
+				limit: 1,
+				offset: 1,
+			},
+		})
+
+		expect(rows).toMatchObject([{
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				txId: 'b'.repeat(64),
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.UtxoTransaction, [], 'virtualSizeBytes')]: 110,
+				[entityFieldAddressKey(EntityType.UtxoTransaction, [], '$$inputs')]: [{
+					[EntityMetaKey.Selector]: {
+						$transaction: {
+							$network: network,
+							txId: 'b'.repeat(64),
+						},
+						indexInTransaction: 0,
+					},
+				}],
+				[entityFieldAddressKey(EntityType.UtxoTransaction, [], '$$outputs')]: [{
+					[EntityMetaKey.Selector]: {
+						$transaction: {
+							$network: network,
+							txId: 'b'.repeat(64),
+						},
+						indexInTransaction: 0,
+					},
+				}],
+			},
+		}])
+		expect(getRawTransaction).toHaveBeenCalledOnce()
+		expect(getRawTransaction).toHaveBeenCalledWith({
+			txId: 'b'.repeat(64),
 		})
 	})
 

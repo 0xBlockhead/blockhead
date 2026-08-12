@@ -30,11 +30,13 @@ export const bitcoinCoreJsonRpcResolvers = <
 	_Source extends Source.BitcoinCore_JsonRpc
 >({
 	acceptsSlugSelector,
+	loadMempoolTransactionIds,
 	loadQueries,
 	network,
 	source,
 }: {
 	acceptsSlugSelector: boolean
+	loadMempoolTransactionIds?: () => Promise<string[]>
 	loadQueries: () => Promise<BitcoinCoreQueries>
 	network: (typeof networkBySlug)['bitcoin']
 	source: _Source
@@ -83,6 +85,80 @@ export const bitcoinCoreJsonRpcResolvers = <
 	) => {
 		const { extractProtocolPayloads } = await import('$/sources/BitcoinCore/JsonRpc/protocol.ts')
 		return extractProtocolPayloads(transaction)
+	}
+
+	const utxoTransactionSnapshot = async (
+		entitySelector: EntitySelector<typeof schema, EntityType.UtxoTransaction>,
+		transaction: Awaited<ReturnType<typeof getTransaction>>
+	) => {
+		const payloads = await bitcoinProtocolPayloadsFromTransaction(transaction)
+		const $bitcoinRunestone = bitcoinRunestoneRefFromPayloads(entitySelector, payloads)
+		return {
+			[EntityMetaKey.Selector]: {
+				$network: entitySelector.$network,
+				txId: transaction.txid,
+			},
+			version: transaction.version,
+			lockTime: transaction.locktime,
+			sizeBytes: transaction.size,
+			virtualSizeBytes: transaction.vsize,
+			weightUnits: transaction.weight,
+			isCoinbase: transaction.vin.some((input) => input.coinbase != null),
+			$$inputs: transaction.vin.map((input, indexInTransaction) => ({
+				[EntityMetaKey.Selector]: {
+					$transaction: entitySelector,
+					indexInTransaction,
+				},
+				[EntityMetaKey.Fields]: {
+					...(input.txid != null && input.vout != null && {
+						[entityFieldAddressKey(EntityType.UtxoInput, [], '$spentOutput')]: {
+							[EntityMetaKey.Selector]: {
+								$transaction: {
+									$network: entitySelector.$network,
+									txId: input.txid,
+								},
+								indexInTransaction: input.vout,
+							},
+						},
+					}),
+					...(input.coinbase != null && {
+						[entityFieldAddressKey(EntityType.UtxoInput, [], 'coinbaseScript')]: input.coinbase,
+					}),
+					...(input.scriptSig != null && {
+						[entityFieldAddressKey(EntityType.UtxoInput, [], 'scriptSigAsm')]: input.scriptSig.asm,
+					}),
+					[entityFieldAddressKey(EntityType.UtxoInput, [], 'sequence')]: input.sequence,
+					[entityFieldAddressKey(EntityType.UtxoInput, [], 'witness')]: input.txinwitness ?? [],
+				},
+			})),
+			$$outputs: transaction.vout.map((output, indexInTransaction) => ({
+				[EntityMetaKey.Selector]: {
+					$transaction: entitySelector,
+					indexInTransaction,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.UtxoOutput, [], 'valueSats')]: BigInt(Math.round(output.value * 100_000_000)),
+					[entityFieldAddressKey(EntityType.UtxoOutput, [], 'scriptPubKeyAsm')]: output.scriptPubKey.asm,
+					[entityFieldAddressKey(EntityType.UtxoOutput, [], 'scriptPubKeyHex')]: output.scriptPubKey.hex,
+					[entityFieldAddressKey(EntityType.UtxoOutput, [], 'scriptPubKeyType')]: output.scriptPubKey.type,
+					...(output.scriptPubKey.address != null && {
+						[entityFieldAddressKey(EntityType.UtxoOutput, [], '$address')]: {
+							[EntityMetaKey.Selector]: {
+								$network: entitySelector.$network,
+								address: output.scriptPubKey.address,
+							},
+						},
+					}),
+				},
+			})),
+			$$bitcoinOrdinalInscriptions: bitcoinOrdinalInscriptionRefsFromPayloads(
+				entitySelector.$network,
+				payloads
+			),
+			...($bitcoinRunestone != null && {
+				$bitcoinRunestone,
+			}),
+		}
 	}
 
 	const utxoBlockSnapshot = async (
@@ -259,6 +335,56 @@ export const bitcoinCoreJsonRpcResolvers = <
 		source,
 
 		resolvers: [
+			...(loadMempoolTransactionIds == null ? [] : [
+				defineResolver({
+					entityType: EntityType.Network,
+					resolve: {
+						Caip2: {
+							resolve: async (networkSelector, context) => {
+								assertNetwork(networkSelector)
+								return Promise.all(
+									(await loadMempoolTransactionIds())
+										.slice(
+											context.pagination.offset ?? 0,
+											(context.pagination.offset ?? 0) + resolverContextRowLimit(context)
+										)
+										.map(async (txId) => {
+											const entitySelector = {
+												$network: networkSelector,
+												txId,
+											}
+											const snapshot = await utxoTransactionSnapshot(
+												entitySelector,
+												await getTransaction(entitySelector)
+											)
+											return {
+												[EntityMetaKey.Selector]: snapshot[EntityMetaKey.Selector],
+												[EntityMetaKey.Fields]: {
+													[entityFieldAddressKey(EntityType.UtxoTransaction, [], 'version')]: snapshot.version,
+													[entityFieldAddressKey(EntityType.UtxoTransaction, [], 'lockTime')]: snapshot.lockTime,
+													[entityFieldAddressKey(EntityType.UtxoTransaction, [], 'sizeBytes')]: snapshot.sizeBytes,
+													[entityFieldAddressKey(EntityType.UtxoTransaction, [], 'virtualSizeBytes')]: snapshot.virtualSizeBytes,
+													[entityFieldAddressKey(EntityType.UtxoTransaction, [], 'weightUnits')]: snapshot.weightUnits,
+													[entityFieldAddressKey(EntityType.UtxoTransaction, [], 'isCoinbase')]: snapshot.isCoinbase,
+													[entityFieldAddressKey(EntityType.UtxoTransaction, [], '$$inputs')]: snapshot.$$inputs,
+													[entityFieldAddressKey(EntityType.UtxoTransaction, [], '$$outputs')]: snapshot.$$outputs,
+													[entityFieldAddressKey(EntityType.UtxoTransaction, [], '$$bitcoinOrdinalInscriptions')]: snapshot.$$bitcoinOrdinalInscriptions,
+													...(snapshot.$bitcoinRunestone != null && {
+														[entityFieldAddressKey(EntityType.UtxoTransaction, [], '$bitcoinRunestone')]: snapshot.$bitcoinRunestone,
+													}),
+												},
+											}
+										})
+								)
+							},
+						},
+					},
+				})({
+					Utxo: {
+						$$transactions: (transactions) => transactions,
+					},
+				}),
+			]),
 			defineResolver({
 				entityType: EntityType.UtxoBlock,
 				resolve: {
@@ -298,81 +424,10 @@ export const bitcoinCoreJsonRpcResolvers = <
 				entityType: EntityType.UtxoTransaction,
 				resolve: {
 					NetworkTxId: {
-						resolve: async (entitySelector) => {
-							const transaction = await getTransaction(entitySelector)
-							const payloads = await bitcoinProtocolPayloadsFromTransaction(transaction)
-							const $bitcoinRunestone = bitcoinRunestoneRefFromPayloads(entitySelector, payloads)
-							return {
-								[EntityMetaKey.Selector]: {
-									$network: entitySelector.$network,
-									txId: transaction.txid,
-								},
-								version: transaction.version,
-								lockTime: transaction.locktime,
-								sizeBytes: transaction.size,
-								virtualSizeBytes: transaction.vsize,
-								weightUnits: transaction.weight,
-								isCoinbase: transaction.vin.some((input) => input.coinbase != null),
-								$$inputs: transaction.vin.map((input, indexInTransaction) => (
-									{
-										[EntityMetaKey.Selector]: {
-											$transaction: entitySelector,
-											indexInTransaction,
-										},
-										[EntityMetaKey.Fields]: {
-											...(input.txid != null && input.vout != null && {
-												[entityFieldAddressKey(EntityType.UtxoInput, [], '$spentOutput')]: {
-													[EntityMetaKey.Selector]: {
-														$transaction: {
-															$network: entitySelector.$network,
-															txId: input.txid,
-														},
-														indexInTransaction: input.vout,
-													},
-												},
-											}),
-											...(input.coinbase != null && {
-												[entityFieldAddressKey(EntityType.UtxoInput, [], 'coinbaseScript')]: input.coinbase,
-											}),
-											...(input.scriptSig != null && {
-												[entityFieldAddressKey(EntityType.UtxoInput, [], 'scriptSigAsm')]: input.scriptSig.asm,
-											}),
-											[entityFieldAddressKey(EntityType.UtxoInput, [], 'sequence')]: input.sequence,
-											[entityFieldAddressKey(EntityType.UtxoInput, [], 'witness')]: input.txinwitness ?? [],
-										},
-									}
-								)),
-								$$outputs: transaction.vout.map((output, indexInTransaction) => (
-									{
-										[EntityMetaKey.Selector]: {
-											$transaction: entitySelector,
-											indexInTransaction,
-										},
-										[EntityMetaKey.Fields]: {
-											[entityFieldAddressKey(EntityType.UtxoOutput, [], 'valueSats')]: BigInt(Math.round(output.value * 100_000_000)),
-											[entityFieldAddressKey(EntityType.UtxoOutput, [], 'scriptPubKeyAsm')]: output.scriptPubKey.asm,
-											[entityFieldAddressKey(EntityType.UtxoOutput, [], 'scriptPubKeyHex')]: output.scriptPubKey.hex,
-											[entityFieldAddressKey(EntityType.UtxoOutput, [], 'scriptPubKeyType')]: output.scriptPubKey.type,
-											...(output.scriptPubKey.address != null && {
-												[entityFieldAddressKey(EntityType.UtxoOutput, [], '$address')]: {
-													[EntityMetaKey.Selector]: {
-														$network: entitySelector.$network,
-														address: output.scriptPubKey.address,
-													},
-												},
-											}),
-										},
-									}
-								)),
-								$$bitcoinOrdinalInscriptions: bitcoinOrdinalInscriptionRefsFromPayloads(
-									entitySelector.$network,
-									payloads
-								),
-								...($bitcoinRunestone != null && {
-									$bitcoinRunestone,
-								}),
-							}
-						},
+						resolve: async (entitySelector) => utxoTransactionSnapshot(
+							entitySelector,
+							await getTransaction(entitySelector)
+						),
 					}
 				},
 			})({
