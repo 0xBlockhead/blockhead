@@ -167,7 +167,10 @@ describe('Monero local wallet journey', () => {
 				amount_index: 0,
 				txid: txHash,
 				global_index: 456,
-				subaddr_index: 0,
+				subaddr_index: {
+					major: 2,
+					minor: 3,
+				},
 				spent: false,
 				unlocked: true,
 				confirmations: 10,
@@ -178,7 +181,10 @@ describe('Monero local wallet journey', () => {
 			in: [{
 				amount: 12,
 				txid: txHash,
-				subaddr_index: 0,
+				subaddr_index: {
+					major: 2,
+					minor: 3,
+				},
 				timestamp: 1_786_000_000,
 				confirmations: 10,
 				unlock_time: 100,
@@ -209,7 +215,8 @@ describe('Monero local wallet journey', () => {
 			outputIndex: 0,
 		})).resolves.toMatchObject({
 			amountAtomicUnits: 12n,
-			addressIndex: 0,
+			accountIndex: 2,
+			addressIndex: 3,
 			globalOutputIndex: 456n,
 		})
 		await expect(transferResolver.resolve.WalletIdTxHashTransferIndex.resolve({
@@ -219,7 +226,8 @@ describe('Monero local wallet journey', () => {
 		})).resolves.toMatchObject({
 			direction: 'in',
 			amountAtomicUnits: 12n,
-			addressIndex: 0,
+			accountIndex: 2,
+			addressIndex: 3,
 			timestampMs: 1_786_000_000_000,
 		})
 	})

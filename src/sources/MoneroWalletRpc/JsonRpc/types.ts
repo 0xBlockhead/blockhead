@@ -58,7 +58,10 @@ export type MoneroWalletOutput = {
 	amount_index: number
 	txid: string
 	global_index?: number
-	subaddr_index?: number
+	subaddr_index?: {
+		major: number
+		minor: number
+	}
 	key_image?: string
 	key_image_known?: boolean
 	key_image_partial?: boolean
@@ -76,7 +79,10 @@ export type MoneroWalletTransfer = {
 	txid: string
 	amount: number
 	fee?: number
-	subaddr_index?: number
+	subaddr_index?: {
+		major: number
+		minor: number
+	}
 	payment_id?: string
 	note?: string
 	key_image?: string
@@ -144,7 +150,10 @@ const walletOutputWire = arktype({
 	amount_index: nonNegativeInteger,
 	txid: 'string > 0',
 	'global_index?': nonNegativeInteger,
-	'subaddr_index?': nonNegativeInteger,
+	'subaddr_index?': {
+		major: nonNegativeInteger,
+		minor: nonNegativeInteger,
+	},
 	'key_image?': 'string > 0',
 	'key_image_known?': 'boolean',
 	'key_image_partial?': 'boolean',
@@ -157,7 +166,10 @@ const walletTransferWire = arktype({
 	txid: 'string > 0',
 	amount: nonNegativeInteger,
 	'fee?': nonNegativeInteger,
-	'subaddr_index?': nonNegativeInteger,
+	'subaddr_index?': {
+		major: nonNegativeInteger,
+		minor: nonNegativeInteger,
+	},
 	'payment_id?': 'string > 0',
 	'note?': 'string',
 	'key_image?': 'string > 0',

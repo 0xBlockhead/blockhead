@@ -75,7 +75,10 @@ const outputFields = (
 			},
 		},
 		amountAtomicUnits: atomicUnits(output.amount, 'output amount'),
-		...(output.subaddr_index != null && { addressIndex: output.subaddr_index }),
+		...(output.subaddr_index != null && {
+			accountIndex: output.subaddr_index.major,
+			addressIndex: output.subaddr_index.minor,
+		}),
 		...(output.key_image != null && { keyImage: output.key_image }),
 		...(output.global_index != null && {
 			globalOutputIndex: atomicUnits(output.global_index, 'output global index'),
@@ -129,7 +132,10 @@ const transferFields = (
 		direction,
 		amountAtomicUnits: atomicUnits(transfer.amount, 'transfer amount'),
 		...(transfer.fee != null && { feeAtomicUnits: atomicUnits(transfer.fee, 'transfer fee') }),
-		...(transfer.subaddr_index != null && { addressIndex: transfer.subaddr_index }),
+		...(transfer.subaddr_index != null && {
+			accountIndex: transfer.subaddr_index.major,
+			addressIndex: transfer.subaddr_index.minor,
+		}),
 		...(transfer.payment_id != null && { paymentId: transfer.payment_id }),
 		...(transfer.note != null && transfer.note !== '' && { note: transfer.note }),
 		...(transfer.key_image != null && { keyImage: transfer.key_image }),

@@ -74,6 +74,10 @@ describe('Monero wallet RPC reads', () => {
 					amount: 12,
 					amount_index: 0,
 					txid: 'a'.repeat(64),
+					subaddr_index: {
+						major: 2,
+						minor: 3,
+					},
 					spent: false,
 				}],
 			})
@@ -81,14 +85,30 @@ describe('Monero wallet RPC reads', () => {
 				in: [{
 					amount: 12,
 					txid: 'a'.repeat(64),
+					subaddr_index: {
+						major: 2,
+						minor: 3,
+					},
 				}],
 			})
 
 		await expect(getOutputs(binding)).resolves.toMatchObject({
-			outputs: [{ amount_index: 0 }],
+			outputs: [{
+				amount_index: 0,
+				subaddr_index: {
+					major: 2,
+					minor: 3,
+				},
+			}],
 		})
 		await expect(getTransfers(binding)).resolves.toMatchObject({
-			in: [{ txid: 'a'.repeat(64) }],
+			in: [{
+				txid: 'a'.repeat(64),
+				subaddr_index: {
+					major: 2,
+					minor: 3,
+				},
+			}],
 		})
 		expect(jsonRpc2).toHaveBeenNthCalledWith(1, binding, 'get_outputs', {
 			all: true,
@@ -109,6 +129,19 @@ describe('Monero wallet RPC reads', () => {
 		})
 
 		await expect(getBalance(binding)).rejects.toThrow('invalid get_balance response envelope')
+	})
+
+	it('fails closed when wallet RPC flattens a subaddress index', async () => {
+		jsonRpc2.mockResolvedValue({
+			outputs: [{
+				amount: 12,
+				amount_index: 0,
+				txid: 'a'.repeat(64),
+				subaddr_index: 3,
+			}],
+		})
+
+		await expect(getOutputs(binding)).rejects.toThrow('invalid get_outputs response envelope')
 	})
 
 	it('rejects duplicate local output identities', async () => {
