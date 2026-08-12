@@ -42,6 +42,11 @@ describe(entityHrefFromSearchInput, () => {
 		['https://bsky.app/profile/alice.bsky.social/post/3lbm6y55c2c2a', '/atproto/post/at%3A%2F%2Falice.bsky.social%2Fapp.bsky.feed.post%2F3lbm6y55c2c2a'],
 		['https://www.reddit.com/r/ethereum/comments/1u8x2f8/a_title/', '/reddit/link/t3_1u8x2f8'],
 		['https://reddit.com/r/ethereum?utm_source=search', '/reddit/r/ethereum'],
+		['https://gitlab.com/gitlab-org/gitlab', '/git/forge/gitlab.com/gitlab-org/gitlab'],
+		['https://gitlab.com/gitlab-org/gitlab.git', '/git/forge/gitlab.com/gitlab-org/gitlab'],
+		['https://gitlab.com/gitlab-org/gitlab/-/issues/12', '/git/forge/gitlab.com/gitlab-org/gitlab/issue/12'],
+		['https://gitlab.com/gitlab-org/gitlab/-/merge_requests/34', '/git/forge/gitlab.com/gitlab-org/gitlab/pull-request/34'],
+		['https://gitlab.com/gitlab-org/gitlab/-/releases/v1.0.0', '/git/forge/gitlab.com/gitlab-org/gitlab/release/v1.0.0'],
 		[`https://snapshot.org/#/ens.eth/proposal/0x${'AB'.repeat(32)}`, `/~/snapshot/proposal/0x${'ab'.repeat(32)}`],
 		[`https://snapshot.box/#/s:ens.eth/proposal/0x${'12'.repeat(32)}?ref=search`, `/~/snapshot/proposal/0x${'12'.repeat(32)}`],
 		['eip155:1', '/network/eip155:1'],
@@ -149,6 +154,9 @@ describe(entityHrefFromSearchInput, () => {
 		['https://snapshot.org/#/ens.eth/proposal/not-a-proposal'],
 		[`http://snapshot.org/#/ens.eth/proposal/0x${'12'.repeat(32)}`],
 		[`https://snapshot.org.evil.example/#/ens.eth/proposal/0x${'12'.repeat(32)}`],
+		['http://gitlab.com/gitlab-org/gitlab'],
+		['https://gitlab.com.evil.example/gitlab-org/gitlab'],
+		['https://gitlab.com/gitlab-org/gitlab/-/issues/not-a-number'],
 	])('does not relabel unsafe or incomplete provider URL %s', (query) => {
 		expect(entityHrefFromSearchInput(query)).toBe(`/url/${encodeURIComponent(query)}`)
 	})

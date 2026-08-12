@@ -306,6 +306,57 @@ export const entityHrefFromSearchInput = (query: string) => {
 			}
 		)
 
+	const gitlabResource = query.match(/^https:\/\/gitlab\.com\/([^/?#\s]+)\/([^/?#\s]+?)(?:\.git)?\/-\/(issues|merge_requests|releases)\/([^/?#\s]+)\/?(?:[?#].*)?$/i)
+
+	if (
+		gitlabResource
+		&& (
+			gitlabResource[3] === 'releases'
+			|| /^[0-9]+$/.test(gitlabResource[4])
+		)
+	)
+		return resolve(
+			gitlabResource[3] === 'issues' ?
+				'/git/forge/[forgeHost=stringSegment]/[owner=stringSegment]/[repositoryName=stringSegment]/(gitForgeMirror)/issue/[issueNumber=nonNegativeInteger]'
+			: gitlabResource[3] === 'merge_requests' ?
+				'/git/forge/[forgeHost=stringSegment]/[owner=stringSegment]/[repositoryName=stringSegment]/(gitForgeMirror)/pull-request/[pullRequestNumber=nonNegativeInteger]'
+			:
+				'/git/forge/[forgeHost=stringSegment]/[owner=stringSegment]/[repositoryName=stringSegment]/(gitForgeMirror)/release/[releaseTagName=stringSegment]',
+			gitlabResource[3] === 'issues' ?
+				{
+					forgeHost: 'gitlab.com',
+					owner: gitlabResource[1],
+					repositoryName: gitlabResource[2],
+					issueNumber: gitlabResource[4],
+				}
+			: gitlabResource[3] === 'merge_requests' ?
+				{
+					forgeHost: 'gitlab.com',
+					owner: gitlabResource[1],
+					repositoryName: gitlabResource[2],
+					pullRequestNumber: gitlabResource[4],
+				}
+			:
+				{
+					forgeHost: 'gitlab.com',
+					owner: gitlabResource[1],
+					repositoryName: gitlabResource[2],
+					releaseTagName: gitlabResource[4],
+				}
+		)
+
+	const gitlabRepository = query.match(/^https:\/\/gitlab\.com\/([^/?#\s]+)\/([^/?#\s]+?)(?:\.git)?\/?(?:[?#].*)?$/i)
+
+	if (gitlabRepository)
+		return resolve(
+			'/git/forge/[forgeHost=stringSegment]/[owner=stringSegment]/[repositoryName=stringSegment]',
+			{
+				forgeHost: 'gitlab.com',
+				owner: gitlabRepository[1],
+				repositoryName: gitlabRepository[2],
+			}
+		)
+
 	const snapshotProposal = query.match(/^https:\/\/snapshot\.(?:org|box)\/#\/(?:s:)?[^/?#\s]+\/proposal\/(0x[a-f0-9]{64})\/?(?:[?&].*)?$/i)
 
 	if (snapshotProposal)

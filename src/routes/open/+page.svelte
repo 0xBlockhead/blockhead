@@ -87,7 +87,7 @@
 		/>
 
 		<p id="open-entity-help">
-			Supported identifiers: CAIP-2 networks, CAIP-10 accounts, Solana transaction signatures, HTTP(S), YouTube, Farcaster, Bluesky, Reddit and ActivityPub content URLs, .eth names, @user@host ActivityPub handles, Nostr npub and note identifiers, AT Protocol PLC DIDs and post URIs, Radicle RIDs, Arweave, IPFS/IPNS and Swarm URIs, and magnet URIs.
+			Supported identifiers: CAIP-2 networks, CAIP-10 accounts, Solana transaction signatures, HTTP(S), YouTube, Farcaster, Bluesky, Reddit, Git forge and ActivityPub content URLs, .eth names, @user@host ActivityPub handles, Nostr npub and note identifiers, AT Protocol PLC DIDs and post URIs, Radicle RIDs, Arweave, IPFS/IPNS and Swarm URIs, and magnet URIs.
 		</p>
 
 		<button type="submit">Open entity</button>
