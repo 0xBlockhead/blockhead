@@ -433,7 +433,12 @@ describe('source binding indexes', () => {
 				target: 'radicle-cli',
 				delivery: SourceDelivery.LocalOnly,
 				wireProtocol: WireProtocol.InProcess,
-				operations: [SourceOperationGroup.RepositoryMetadata],
+				operations: [
+					SourceOperationGroup.GenericRead,
+					SourceOperationGroup.IssueTracking,
+					SourceOperationGroup.PullRequestReview,
+					SourceOperationGroup.RepositoryMetadata,
+				],
 			},
 			{
 				source: Source.RadicleNode_Control,
