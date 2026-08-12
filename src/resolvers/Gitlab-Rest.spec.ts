@@ -12,6 +12,7 @@ const {
 	getBranches,
 	getBranch,
 	getCommitSignature,
+	getCommits,
 	getIssue,
 	getIssues,
 	getMergeRequest,
@@ -26,6 +27,7 @@ const {
 	getBranches: vi.fn(),
 	getBranch: vi.fn(),
 	getCommitSignature: vi.fn(),
+	getCommits: vi.fn(),
 	getIssue: vi.fn(),
 	getIssues: vi.fn(),
 	getMergeRequest: vi.fn(),
@@ -42,6 +44,7 @@ vi.mock('$/sources/Gitlab/Rest/queries.ts', () => ({
 	getBranches,
 	getBranch,
 	getCommitSignature,
+	getCommits,
 	getIssue,
 	getIssues,
 	getMergeRequest,
@@ -124,6 +127,22 @@ describe('GitLab repository journey', () => {
 				type: 'blob',
 				path: 'src/index.ts',
 				mode: '100644',
+			},
+		])
+		getCommits.mockResolvedValue([
+			{
+				id: 'f'.repeat(40),
+				short_id: 'f'.repeat(8),
+				title: 'Connect complete commit history',
+				message: 'Connect complete commit history',
+				parent_ids: ['a'.repeat(40)],
+				author_name: 'Commit Author',
+				author_email: 'author@example.com',
+				authored_date: '2026-04-01T00:00:00Z',
+				committer_name: 'Committer',
+				committer_email: 'committer@example.com',
+				committed_date: '2026-04-01T00:00:00Z',
+				web_url: 'https://gitlab.com/gitlab-org/gitlab/-/commit/' + 'f'.repeat(40),
 			},
 		])
 		getTags.mockResolvedValue([
@@ -372,7 +391,7 @@ describe('GitLab repository journey', () => {
 		if (snapshot == null)
 			throw new Error('GitLab repository snapshot must resolve')
 		expect(repositoryResolver.projections.$$refs.resolveCount(snapshot)).toBe(3)
-		expect(repositoryResolver.projections.$$objects.resolveCount(snapshot)).toBe(5)
+		expect(repositoryResolver.projections.$$objects.resolveCount(snapshot)).toBe(6)
 		expect(repositoryResolver.projections.$$objects.select(snapshot)).toEqual(expect.arrayContaining([
 			{
 				[EntityMetaKey.Selector]: {
@@ -406,12 +425,22 @@ describe('GitLab repository journey', () => {
 			}),
 			expect.objectContaining({
 				[EntityMetaKey.Selector]: {
+					objectId: `0x${'f'.repeat(40)}`,
+					objectFormat: 'sha1',
+				},
+				objectKind: 'commit',
+			}),
+			expect.objectContaining({
+				[EntityMetaKey.Selector]: {
 					objectId: `0x${'d'.repeat(40)}`,
 					objectFormat: 'sha1',
 				},
 				objectKind: 'blob',
 			}),
 		]))
+		expect(getCommits).toHaveBeenCalledWith({
+			projectId: 'gitlab-org/gitlab',
+		})
 	})
 
 	it('does not claim non-GitLab forge or remote authority', async () => {

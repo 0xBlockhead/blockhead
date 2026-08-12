@@ -391,14 +391,16 @@ export default {
 
 						const {
 							getBranches,
+							getCommits,
 							getProject,
 							getRepositoryTree,
 							getTags,
 						} = await import('$/sources/Gitlab/Rest/queries.ts')
-						const [project, branches, tags, repositoryTree] = await Promise.all([
+						const [project, branches, tags, commits, repositoryTree] = await Promise.all([
 							getProject({ projectId: coordinates.projectId }),
 							getBranches({ projectId: coordinates.projectId }),
 							getTags({ projectId: coordinates.projectId }),
+							getCommits({ projectId: coordinates.projectId }),
 							getRepositoryTree({ projectId: coordinates.projectId }),
 						])
 						if (project.path !== coordinates.repositoryName || project.path_with_namespace !== coordinates.projectId)
@@ -435,6 +437,7 @@ export default {
 							$$objects: [...new Map([
 								...branches.map((branch) => [branch.commit.id, 'commit'] as const),
 								...tags.map((tag) => [tag.commit.id, 'commit'] as const),
+								...commits.map((commit) => [commit.id, 'commit'] as const),
 								...repositoryTree.map((object) => [object.id, object.type] as const),
 							]).entries()].map(([objectId, objectKind]) => ({
 								[EntityMetaKey.Selector]: {

@@ -16,6 +16,25 @@ test('GitLab mirror visibly connects provider identity to the native Git reposit
 	test.setTimeout(180_000)
 	await page.route('**/api-proxy/**', async (route) => {
 		const requestUrl = decodeURIComponent(route.request().url())
+		if (requestUrl.includes('/repository/commits?')) {
+			await route.fulfill({
+				json: [{
+					id: 'f'.repeat(40),
+					short_id: 'f'.repeat(8),
+					title: 'Connect complete commit history',
+					message: 'Connect complete commit history',
+					parent_ids: ['a'.repeat(40)],
+					author_name: 'Commit Author',
+					author_email: 'author@example.com',
+					authored_date: '2026-04-01T00:00:00Z',
+					committer_name: 'Committer',
+					committer_email: 'committer@example.com',
+					committed_date: '2026-04-01T00:00:00Z',
+					web_url: `https://gitlab.com/gitlab-org/gitlab/-/commit/${'f'.repeat(40)}`,
+				}],
+			})
+			return
+		}
 		if (requestUrl.includes('/repository/branches')) {
 			await route.fulfill({
 				json: [
@@ -27,6 +46,14 @@ test('GitLab mirror visibly connects provider identity to the native Git reposit
 					},
 				],
 			})
+			return
+		}
+		if (requestUrl.includes('/repository/tags')) {
+			await route.fulfill({ json: [] })
+			return
+		}
+		if (requestUrl.includes('/repository/tree')) {
+			await route.fulfill({ json: [] })
 			return
 		}
 		if (requestUrl.includes('/issues/12')) {
@@ -97,6 +124,7 @@ test('GitLab mirror visibly connects provider identity to the native Git reposit
 		timeout: 120_000,
 	})
 	await expect(page.locator('#main')).toContainText('sha1')
+	await expect(page.locator(`a[href*="/git/object/0x${'f'.repeat(40)}/sha1"]`)).toBeAttached()
 
 	await page.goto('/git/forge/gitlab.com/gitlab-org/gitlab/issue/12')
 	await expect(page.locator('#main')).toContainText('Preserve native repository links', {
