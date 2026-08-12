@@ -37,6 +37,13 @@ const icpLedgerCanisterApplicability = [{
 	},
 }] as const
 
+const loadRosettaQueries = () => (
+	typeof window === 'undefined' ?
+		import('$/sources/InternetComputer/RosettaApi/queries.ts')
+	:
+		import('$/sources/InternetComputer/RosettaApi/queries.remote.ts')
+)
+
 const assertIcpNetwork = (
 	network: IcpNetworkId
 ) => {
@@ -71,7 +78,7 @@ const ownerEqualityFilter = (
 	))
 	if (owners.length > 1)
 		throw new Error('InternetComputer_RosettaApi: conflicting owner filters')
-	return owners[0]
+	return owners.at(0)
 }
 
 const transactionFields = (
@@ -304,7 +311,7 @@ export default {
 						const {
 							getNetworkOptions,
 							getNetworkStatus,
-						} = await import('$/sources/InternetComputer/RosettaApi/queries.ts')
+						} = await loadRosettaQueries()
 						const [
 							status,
 							options,
@@ -350,7 +357,7 @@ export default {
 						if (owner == null || resolverContextRowLimit(context) === 0)
 							return []
 
-						const { getAccountBalance } = await import('$/sources/InternetComputer/RosettaApi/queries.ts')
+						const { getAccountBalance } = await loadRosettaQueries()
 						const balance = await getAccountBalance(owner)
 						const timestampMs = Date.now()
 						return [{
@@ -405,7 +412,7 @@ export default {
 						const {
 							getBlock,
 							getNetworkStatus,
-						} = await import('$/sources/InternetComputer/RosettaApi/queries.ts')
+						} = await loadRosettaQueries()
 						const tipIndex = maxBlock ?? (
 							await getNetworkStatus()
 						).current_block_identifier.index
@@ -490,7 +497,7 @@ export default {
 						const {
 							getAccountTransactions,
 							searchTransactions,
-						} = await import('$/sources/InternetComputer/RosettaApi/queries.ts')
+						} = await loadRosettaQueries()
 						const page = owner == null ?
 							await searchTransactions({
 								limit,
@@ -550,7 +557,7 @@ export default {
 						assertIcpLedgerCanister($ledger)
 						if (blockIndex > BigInt(Number.MAX_SAFE_INTEGER))
 							throw new Error('InternetComputer_RosettaApi: block index exceeds lossless JSON integer range')
-						const { getBlock } = await import('$/sources/InternetComputer/RosettaApi/queries.ts')
+						const { getBlock } = await loadRosettaQueries()
 						const response = await getBlock({
 							index: Number(blockIndex),
 						})
@@ -578,7 +585,7 @@ export default {
 							return []
 						if (blockIndex > BigInt(Number.MAX_SAFE_INTEGER))
 							throw new Error('InternetComputer_RosettaApi: block index exceeds lossless JSON integer range')
-						const { getBlock } = await import('$/sources/InternetComputer/RosettaApi/queries.ts')
+						const { getBlock } = await loadRosettaQueries()
 						const response = await getBlock({
 							index: Number(blockIndex),
 						})
@@ -610,11 +617,11 @@ export default {
 						assertIcpLedgerCanister($block.$ledger)
 						if ($block.blockIndex > BigInt(Number.MAX_SAFE_INTEGER))
 							throw new Error('InternetComputer_RosettaApi: block index exceeds lossless JSON integer range')
-						const { getBlock } = await import('$/sources/InternetComputer/RosettaApi/queries.ts')
+						const { getBlock } = await loadRosettaQueries()
 						const response = await getBlock({
 							index: Number($block.blockIndex),
 						})
-						const transaction = response.block.transactions[transactionIndex]
+						const transaction = response.block.transactions.at(transactionIndex)
 						if (transaction == null)
 							throw new Error('InternetComputer_RosettaApi: transaction index out of range for ICP ledger block')
 						return {
