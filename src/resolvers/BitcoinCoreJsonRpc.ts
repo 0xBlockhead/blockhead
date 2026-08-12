@@ -313,19 +313,54 @@ export const bitcoinCoreJsonRpcResolvers = <
 								virtualSizeBytes: transaction.vsize,
 								weightUnits: transaction.weight,
 								isCoinbase: transaction.vin.some((input) => input.coinbase != null),
-								$$inputs: transaction.vin.map((_input, indexInTransaction) => (
+								$$inputs: transaction.vin.map((input, indexInTransaction) => (
 									{
 										[EntityMetaKey.Selector]: {
 											$transaction: entitySelector,
 											indexInTransaction,
 										},
+										[EntityMetaKey.Fields]: {
+											...(input.txid != null && input.vout != null && {
+												[entityFieldAddressKey(EntityType.UtxoInput, [], '$spentOutput')]: {
+													[EntityMetaKey.Selector]: {
+														$transaction: {
+															$network: entitySelector.$network,
+															txId: input.txid,
+														},
+														indexInTransaction: input.vout,
+													},
+												},
+											}),
+											...(input.coinbase != null && {
+												[entityFieldAddressKey(EntityType.UtxoInput, [], 'coinbaseScript')]: input.coinbase,
+											}),
+											...(input.scriptSig != null && {
+												[entityFieldAddressKey(EntityType.UtxoInput, [], 'scriptSigAsm')]: input.scriptSig.asm,
+											}),
+											[entityFieldAddressKey(EntityType.UtxoInput, [], 'sequence')]: input.sequence,
+											[entityFieldAddressKey(EntityType.UtxoInput, [], 'witness')]: input.txinwitness ?? [],
+										},
 									}
 								)),
-								$$outputs: transaction.vout.map((_output, indexInTransaction) => (
+								$$outputs: transaction.vout.map((output, indexInTransaction) => (
 									{
 										[EntityMetaKey.Selector]: {
 											$transaction: entitySelector,
 											indexInTransaction,
+										},
+										[EntityMetaKey.Fields]: {
+											[entityFieldAddressKey(EntityType.UtxoOutput, [], 'valueSats')]: BigInt(Math.round(output.value * 100_000_000)),
+											[entityFieldAddressKey(EntityType.UtxoOutput, [], 'scriptPubKeyAsm')]: output.scriptPubKey.asm,
+											[entityFieldAddressKey(EntityType.UtxoOutput, [], 'scriptPubKeyHex')]: output.scriptPubKey.hex,
+											[entityFieldAddressKey(EntityType.UtxoOutput, [], 'scriptPubKeyType')]: output.scriptPubKey.type,
+											...(output.scriptPubKey.address != null && {
+												[entityFieldAddressKey(EntityType.UtxoOutput, [], '$address')]: {
+													[EntityMetaKey.Selector]: {
+														$network: entitySelector.$network,
+														address: output.scriptPubKey.address,
+													},
+												},
+											}),
 										},
 									}
 								)),
@@ -359,6 +394,9 @@ export const bitcoinCoreJsonRpcResolvers = <
 					TransactionIndexInTransaction: {
 						resolve: async ({ $transaction, indexInTransaction }) => {
 							const input = (await getTransaction($transaction)).vin[indexInTransaction]
+							if (input == null)
+								throw new Error(`${source}: transaction input ${indexInTransaction} not found`)
+
 							return {
 								[EntityMetaKey.Selector]: {
 									$transaction: $transaction,
@@ -404,6 +442,9 @@ export const bitcoinCoreJsonRpcResolvers = <
 						resolve: async ({ $transaction, indexInTransaction }) => {
 							const transaction = await getTransaction($transaction)
 							const output = transaction.vout[indexInTransaction]
+							if (output == null)
+								throw new Error(`${source}: transaction output ${indexInTransaction} not found`)
+
 							const runestone = runestonePayload(
 								await bitcoinProtocolPayloadsFromTransaction(transaction)
 							)

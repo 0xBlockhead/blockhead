@@ -159,11 +159,37 @@ describe('BitcoinCore UTXO', () => {
 				$transaction: entitySelector,
 				indexInTransaction: 0,
 			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.UtxoInput, [], '$spentOutput')]: {
+					[EntityMetaKey.Selector]: {
+						$transaction: {
+							$network: network,
+							txId: 'd'.repeat(64),
+						},
+						indexInTransaction: 1,
+					},
+				},
+				[entityFieldAddressKey(EntityType.UtxoInput, [], 'scriptSigAsm')]: 'input script',
+				[entityFieldAddressKey(EntityType.UtxoInput, [], 'sequence')]: 1,
+				[entityFieldAddressKey(EntityType.UtxoInput, [], 'witness')]: [],
+			},
 		}])
 		expect(transactionResolver.projections.$$outputs(transaction)).toEqual([{
 			[EntityMetaKey.Selector]: {
 				$transaction: entitySelector,
 				indexInTransaction: 0,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.UtxoOutput, [], 'valueSats')]: 5_000n,
+				[entityFieldAddressKey(EntityType.UtxoOutput, [], 'scriptPubKeyAsm')]: 'output script',
+				[entityFieldAddressKey(EntityType.UtxoOutput, [], 'scriptPubKeyHex')]: '0014',
+				[entityFieldAddressKey(EntityType.UtxoOutput, [], 'scriptPubKeyType')]: 'witness_v0_keyhash',
+				[entityFieldAddressKey(EntityType.UtxoOutput, [], '$address')]: {
+					[EntityMetaKey.Selector]: {
+						$network: network,
+						address: 'bc1qexample',
+					},
+				},
 			},
 		}])
 		expect(getRawTransaction).toHaveBeenCalledOnce()
@@ -243,6 +269,29 @@ describe('BitcoinCore UTXO', () => {
 			},
 		})
 		expect(getRawTransaction).toHaveBeenCalledTimes(2)
+	})
+
+	it('fails closed when a requested child index is absent', async () => {
+		const txId = '9'.repeat(64)
+		getRawTransaction.mockResolvedValue({
+			txid: txId,
+			vin: [],
+			vout: [],
+		})
+		const childSelector = {
+			$transaction: {
+				$network: network,
+				txId,
+			},
+			indexInTransaction: 0,
+		}
+
+		await expect(inputResolver.resolve.TransactionIndexInTransaction.resolve(childSelector)).rejects.toThrow(
+			'BitcoinCore_JsonRpc: transaction input 0 not found'
+		)
+		await expect(outputResolver.resolve.TransactionIndexInTransaction.resolve(childSelector)).rejects.toThrow(
+			'BitcoinCore_JsonRpc: transaction output 0 not found'
+		)
 	})
 
 	it('fails closed on JSON-RPC errors', async () => {

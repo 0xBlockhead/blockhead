@@ -149,11 +149,29 @@ describe('MempoolSpace UTXO', () => {
 				$transaction: entitySelector,
 				indexInTransaction: 0,
 			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.UtxoInput, [], '$spentOutput')]: {
+					[EntityMetaKey.Selector]: {
+						$transaction: {
+							$network: network,
+							txId: 'd'.repeat(64),
+						},
+						indexInTransaction: 1,
+					},
+				},
+				[entityFieldAddressKey(EntityType.UtxoInput, [], 'sequence')]: 1,
+				[entityFieldAddressKey(EntityType.UtxoInput, [], 'witness')]: [],
+			},
 		}])
 		expect(transactionResolver.projections.$$outputs(transaction)).toEqual([{
 			[EntityMetaKey.Selector]: {
 				$transaction: entitySelector,
 				indexInTransaction: 0,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.UtxoOutput, [], 'valueSats')]: 5_000n,
+				[entityFieldAddressKey(EntityType.UtxoOutput, [], 'scriptPubKeyHex')]: '0014',
+				[entityFieldAddressKey(EntityType.UtxoOutput, [], 'scriptPubKeyType')]: 'v0_p2wpkh',
 			},
 		}])
 		expect(sourceGetJson).toHaveBeenCalledOnce()
@@ -164,6 +182,32 @@ describe('MempoolSpace UTXO', () => {
 		expect(mempoolSpaceResolvers.resolvers.filter((resolver) => (
 			resolver.entityType === EntityType.UtxoTransaction
 		))).toEqual([transactionResolver])
+	})
+
+	it('fails closed when a requested child index is absent', async () => {
+		const txId = '9'.repeat(64)
+		sourceGetJson.mockResolvedValue({
+			txid: txId,
+			status: {
+				confirmed: false,
+			},
+			vin: [],
+			vout: [],
+		})
+		const childSelector = {
+			$transaction: {
+				$network: network,
+				txId,
+			},
+			indexInTransaction: 0,
+		}
+
+		await expect(inputResolver.resolve.TransactionIndexInTransaction.resolve(childSelector)).rejects.toThrow(
+			'MempoolSpace_Rest: transaction input 0 not found'
+		)
+		await expect(outputResolver.resolve.TransactionIndexInTransaction.resolve(childSelector)).rejects.toThrow(
+			'MempoolSpace_Rest: transaction output 0 not found'
+		)
 	})
 
 	it('resolves UtxoBlock by height via block-height then block', async () => {

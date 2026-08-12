@@ -226,16 +226,59 @@ export default {
 								feeSats: BigInt(transaction.fee),
 							}),
 							isCoinbase: transaction.vin.some((input) => input.is_coinbase),
-							$$inputs: transaction.vin.map((_input, indexInTransaction) => ({
+							$$inputs: transaction.vin.map((input, indexInTransaction) => ({
 								[EntityMetaKey.Selector]: {
 									$transaction: entitySelector,
 									indexInTransaction,
 								},
+								[EntityMetaKey.Fields]: {
+									...(input.txid != null && input.vout != null && {
+										[entityFieldAddressKey(EntityType.UtxoInput, [], '$spentOutput')]: {
+											[EntityMetaKey.Selector]: {
+												$transaction: {
+													$network: entitySelector.$network,
+													txId: input.txid,
+												},
+												indexInTransaction: input.vout,
+											},
+										},
+									}),
+									...(input.is_coinbase && input.scriptsig != null && {
+										[entityFieldAddressKey(EntityType.UtxoInput, [], 'coinbaseScript')]: input.scriptsig,
+									}),
+									...(!input.is_coinbase && input.scriptsig_asm != null && {
+										[entityFieldAddressKey(EntityType.UtxoInput, [], 'scriptSigAsm')]: input.scriptsig_asm,
+									}),
+									[entityFieldAddressKey(EntityType.UtxoInput, [], 'sequence')]: input.sequence,
+									[entityFieldAddressKey(EntityType.UtxoInput, [], 'witness')]: input.witness ?? [],
+								},
 							})),
-							$$outputs: transaction.vout.map((_output, indexInTransaction) => ({
+							$$outputs: transaction.vout.map((output, indexInTransaction) => ({
 								[EntityMetaKey.Selector]: {
 									$transaction: entitySelector,
 									indexInTransaction,
+								},
+								[EntityMetaKey.Fields]: {
+									...(output.value != null && {
+										[entityFieldAddressKey(EntityType.UtxoOutput, [], 'valueSats')]: BigInt(output.value),
+									}),
+									...(output.scriptpubkey_asm != null && {
+										[entityFieldAddressKey(EntityType.UtxoOutput, [], 'scriptPubKeyAsm')]: output.scriptpubkey_asm,
+									}),
+									...(output.scriptpubkey != null && {
+										[entityFieldAddressKey(EntityType.UtxoOutput, [], 'scriptPubKeyHex')]: output.scriptpubkey,
+									}),
+									...(output.scriptpubkey_type != null && {
+										[entityFieldAddressKey(EntityType.UtxoOutput, [], 'scriptPubKeyType')]: output.scriptpubkey_type,
+									}),
+									...(output.scriptpubkey_address != null && {
+										[entityFieldAddressKey(EntityType.UtxoOutput, [], '$address')]: {
+											[EntityMetaKey.Selector]: {
+												$network: entitySelector.$network,
+												address: output.scriptpubkey_address,
+											},
+										},
+									}),
 								},
 							})),
 							$$bitcoinOrdinalInscriptions: bitcoinOrdinalInscriptionRefsFromPayloads(
@@ -271,6 +314,9 @@ export default {
 					appliesTo: bitcoinTransactionReferenceApplicability,
 					resolve: async ({ $transaction, indexInTransaction }) => {
 						const input = (await getTransaction($transaction)).vin[indexInTransaction]
+						if (input == null)
+							throw new Error(`MempoolSpace_Rest: transaction input ${indexInTransaction} not found`)
+
 						return {
 							[EntityMetaKey.Selector]: {
 								$transaction: $transaction,
@@ -287,10 +333,10 @@ export default {
 									},
 								},
 							}),
-							...(input.scriptsig != null && {
+							...(input.is_coinbase && input.scriptsig != null && {
 								coinbaseScript: input.scriptsig,
 							}),
-							...(input.scriptsig_asm != null && {
+							...(!input.is_coinbase && input.scriptsig_asm != null && {
 								scriptSigAsm: input.scriptsig_asm,
 							}),
 							sequence: input.sequence,
@@ -462,6 +508,9 @@ export default {
 					resolve: async ({ $transaction, indexInTransaction }) => {
 						const transaction = await getTransaction($transaction)
 						const output = transaction.vout[indexInTransaction]
+						if (output == null)
+							throw new Error(`MempoolSpace_Rest: transaction output ${indexInTransaction} not found`)
+
 						const runestone = runestonePayload(
 							(
 								await import('$/sources/BitcoinCore/JsonRpc/protocol.ts')
