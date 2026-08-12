@@ -632,6 +632,13 @@ describe('Mastodon ActivityPub observations', () => {
 			reblog: {
 				id: 'remote-note-4',
 				uri: 'https://boost-origin.example/users/bob/statuses/remote-note-4',
+				content: '<p>Original note</p>',
+				created_at: '2026-07-16T11:30:00.000Z',
+				account: {
+					id: 'bob-local-id',
+					uri: 'https://boost-origin.example/users/bob',
+					acct: 'bob',
+				},
 			},
 			media_attachments: [{
 				id: 'media-2',
@@ -679,9 +686,18 @@ describe('Mastodon ActivityPub observations', () => {
 				localStatusId: 'note-8',
 			},
 		})
-		expect(local.$reblogOf).toEqual({
+		expect(local.$reblogOf).toMatchObject({
 			[EntityMetaKey.Selector]: {
 				activityStreamsUri: 'https://boost-origin.example/users/bob/statuses/remote-note-4',
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.ActivityPubNote, [], 'content')]: '<p>Original note</p>',
+				[entityFieldAddressKey(EntityType.ActivityPubNote, [], 'createdAt')]: 1_784_201_400_000,
+				[entityFieldAddressKey(EntityType.ActivityPubNote, [], '$author')]: {
+					[EntityMetaKey.Selector]: {
+						activityStreamsUri: 'https://boost-origin.example/users/bob',
+					},
+				},
 			},
 		})
 		expect(local.$$media).toHaveLength(1)

@@ -179,6 +179,17 @@ const activityPubNoteFieldsFromMastodonStatus = (
 							}
 					),
 				},
+				...(optionalNonemptyString(status.reblog.uri) != null && {
+					[EntityMetaKey.Fields]: Object.fromEntries(
+						Object.entries(activityPubNoteFieldsFromMastodonStatus(
+							status.reblog,
+							new URL(String(status.reblog.uri)).origin
+						)).map(([fieldName, value]) => [
+							entityFieldAddressKey(EntityType.ActivityPubNote, [], fieldName),
+							value,
+						])
+					),
+				}),
 			},
 		}),
 	}
