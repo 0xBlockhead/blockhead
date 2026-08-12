@@ -5,6 +5,7 @@ import bindings from '$/sources/Lotus/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 import {
 	lotusActor,
+	lotusBlockHeader,
 	lotusIdAddress,
 	lotusMarketDeal,
 	lotusMessage,
@@ -91,6 +92,20 @@ export const getHead = async () => (
 		'chain-head',
 		lotusTipset,
 		await jsonRpc2(binding, 'Filecoin.ChainHead', [])
+	)
+)
+
+export const getBlockHeader = async ({
+	blockCid,
+}: {
+	blockCid: string
+}) => (
+	assertEnvelope(
+		'block-header',
+		lotusBlockHeader,
+		await jsonRpc2(binding, 'Filecoin.ChainGetBlock', [{
+			'/': blockCid,
+		}])
 	)
 )
 

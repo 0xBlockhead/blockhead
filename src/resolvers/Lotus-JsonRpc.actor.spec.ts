@@ -9,6 +9,8 @@ import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
 
 const getActor = vi.fn()
+
+const getBlockHeader = vi.fn()
 const getHead = vi.fn()
 const getIdAddress = vi.fn()
 const getMinerPower = vi.fn()
@@ -19,6 +21,7 @@ const getVersion = vi.fn()
 
 vi.mock('$/sources/Lotus/JsonRpc/queries.ts', () => ({
 	getActor,
+	getBlockHeader,
 	getHead,
 	getIdAddress,
 	getMinerPower,
@@ -58,13 +61,16 @@ const indexedActorResolver = indexed.resolverDefinitions.find((resolver) => (
 const lotusResolvers = resolverModules.find(({ source }) => source === Source.Lotus_JsonRpc)
 const actorResolver = lotusResolvers?.resolvers.find(({ entityType }) => entityType === EntityType.FilecoinActor)
 const actorTimestampResolver = lotusResolvers?.resolvers.find(({ entityType }) => entityType === EntityType.FilecoinActor_Timestamp)
+const blockResolver = lotusResolvers?.resolvers.find(({ entityType }) => entityType === EntityType.FilecoinBlock)
 const networkTimestampResolver = lotusResolvers?.resolvers.find(({ entityType }) => entityType === EntityType.FilecoinNetwork_Timestamp)
+const tipsetResolver = lotusResolvers?.resolvers.find(({ entityType }) => entityType === EntityType.FilecoinTipset)
 
-if (indexedActorResolver == null || actorResolver == null || actorTimestampResolver == null || networkTimestampResolver == null)
+if (indexedActorResolver == null || actorResolver == null || actorTimestampResolver == null || blockResolver == null || networkTimestampResolver == null || tipsetResolver == null)
 	throw new Error('missing indexed Lotus actor resolvers')
 
 beforeEach(() => {
 	getActor.mockReset()
+	getBlockHeader.mockReset()
 	getHead.mockReset()
 	getIdAddress.mockReset()
 	getMinerPower.mockReset()
@@ -78,6 +84,79 @@ it('indexes the clocked Lotus observation relation on the stable actor', () => {
 	expect(indexed.resolverParts.filter(({ resolver }) => resolver === indexedActorResolver).map(({ fieldName }) => fieldName)).toEqual([
 		'$$timestamps',
 	])
+})
+
+it('resolves a block linked by an historical tipset without substituting mutable head data', async () => {
+	getTipSet.mockResolvedValue({
+		Cids: [{
+			'/': 'bafy-historical-block',
+		}],
+		Blocks: [{
+			Miner: 'f09876',
+			Ticket: {
+				VRFProof: 'historical-ticket-proof',
+			},
+			ElectionProof: {
+				WinCount: 2,
+			},
+			Parents: [{
+				'/': 'bafy-parent-tipset',
+			}],
+			ParentWeight: '9',
+			Height: 122,
+			Timestamp: 1_750_000_030,
+			Messages: {
+				'/': 'bafy-messages',
+			},
+		}],
+		Height: 122,
+	})
+	const tipset = await tipsetResolver.resolve.NetworkHeightTipsetKey.resolve({
+		$network: network,
+		height: 122n,
+		tipsetKey: 'bafy-historical-block',
+	}, context)
+	expect(tipset.$$blocks.map((block) => block[EntityMetaKey.Selector])).toEqual([{
+		$network: network,
+		cid: 'bafy-historical-block',
+	}])
+
+	getBlockHeader.mockResolvedValue({
+		Miner: 'f09876',
+		Ticket: {
+			VRFProof: 'historical-ticket-proof',
+		},
+		ElectionProof: {
+			WinCount: 2,
+		},
+		Parents: [{
+			'/': 'bafy-parent-tipset',
+		}],
+		ParentWeight: '9',
+		Height: 122,
+		Timestamp: 1_750_000_030,
+		Messages: {
+			'/': 'bafy-messages',
+		},
+	})
+
+	await expect(blockResolver.resolve.NetworkCid.resolve({
+		$network: network,
+		cid: 'bafy-historical-block',
+	}, context)).resolves.toEqual({
+		$miner: {
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				minerAddress: 'f09876',
+			},
+		},
+		ticketVrFProof: 'historical-ticket-proof',
+		winCount: 2,
+	})
+	expect(getBlockHeader).toHaveBeenCalledWith({
+		blockCid: 'bafy-historical-block',
+	})
+	expect(getHead).not.toHaveBeenCalled()
 })
 
 it('materializes current and historical actor state only at the exact selected tipset', async () => {

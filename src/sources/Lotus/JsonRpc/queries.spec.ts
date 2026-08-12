@@ -9,6 +9,7 @@ import {
 
 import {
 	getActor,
+	getBlockHeader,
 	getIdAddress,
 	getMarketStorageDeal,
 	getMinerActiveSectors,
@@ -95,6 +96,23 @@ const tipsetEnvelope = {
 		Messages: { '/': 'bafy2bzacemessages' },
 	}],
 	Height: 100,
+}
+
+const blockHeaderEnvelope = {
+	Miner: 'f01234',
+	Ticket: {
+		VRFProof: 'ticket-proof',
+	},
+	ElectionProof: {
+		WinCount: 2,
+	},
+	Parents: tipsetKey,
+	ParentWeight: '0',
+	Height: 101,
+	Timestamp: 1_750_000_030,
+	Messages: {
+		'/': 'bafy2bzacemessages',
+	},
 }
 
 const dealEnvelope = {
@@ -249,6 +267,24 @@ describe('Lotus JSON-RPC state queries', () => {
 				id: 1,
 				method: 'Filecoin.StateMarketStorageDeal',
 				params: [42, tipsetKey],
+			},
+		])
+	})
+
+	it('reads a historical block header by its CID', async () => {
+		fetchMock.mockResolvedValueOnce(rpcResponse(blockHeaderEnvelope))
+
+		await expect(getBlockHeader({
+			blockCid: 'bafy2bzacehistoricalblock',
+		})).resolves.toEqual(blockHeaderEnvelope)
+		expect(fetchMock.mock.calls.map(([, init]) => JSON.parse(String(init?.body)))).toEqual([
+			{
+				jsonrpc: '2.0',
+				id: 1,
+				method: 'Filecoin.ChainGetBlock',
+				params: [{
+					'/': 'bafy2bzacehistoricalblock',
+				}],
 			},
 		])
 	})

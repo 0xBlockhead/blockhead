@@ -343,14 +343,24 @@ export default {
 				NetworkCid: {
 					resolve: async ({ $network, cid }) => {
 						assertFilecoinMainnet($network)
-						const { getHead } = await import('$/sources/Lotus/JsonRpc/queries.ts')
-						const head = await getHead()
-						const block = blockSnapshots(
-							$network,
-							head
-						).find((block) => block.cid === cid)
-						if (block == null) throw new Error(`Lotus_JsonRpc: block not found for ${cid}`)
-						return block
+						const { getBlockHeader } = await import('$/sources/Lotus/JsonRpc/queries.ts')
+						const block = await getBlockHeader({
+							blockCid: cid,
+						})
+						return {
+							$miner: {
+								[EntityMetaKey.Selector]: {
+									$network,
+									minerAddress: block.Miner,
+								},
+							},
+							...(block.Ticket?.VRFProof != null && {
+								ticketVrFProof: block.Ticket.VRFProof,
+							}),
+							...(block.ElectionProof?.WinCount != null && {
+								winCount: block.ElectionProof.WinCount,
+							}),
+						}
 					},
 				}
 			},
