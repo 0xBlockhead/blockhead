@@ -242,30 +242,12 @@ const projectOrderFields = (
 	},
 })
 
-const dydxPerpetualPositionTimestampSnapshot = (
-	position: DydxPerpetualPosition,
-	updatedAtHeight: string
-) => ({
-	blockHeight: BigInt(updatedAtHeight),
-	side: position.side,
-	size: position.size,
-	entryPrice: position.entryPrice,
-	unrealizedPnl: position.unrealizedPnl,
-	realizedPnl: position.realizedPnl,
-	netFunding: position.netFunding,
-})
-
 const projectPerpetualPositionTimestamp = (
 	position: DydxPerpetualPosition,
 	positionSelector: DydxPerpetualPositionId,
 	observedAtMs: number,
-	updatedAtHeight: string
+	updatedAtHeight?: string
 ) => {
-	const timestamp = dydxPerpetualPositionTimestampSnapshot(
-		position,
-		updatedAtHeight
-	)
-
 	return {
 		[EntityMetaKey.Selector]: {
 			$position: positionSelector,
@@ -273,13 +255,15 @@ const projectPerpetualPositionTimestamp = (
 			source: Source.DydxIndexer,
 		},
 		[EntityMetaKey.Fields]: {
-			[entityFieldAddressKey(EntityType.DydxChainPerpetualPosition_Timestamp, [], 'blockHeight')]: timestamp.blockHeight,
-			[entityFieldAddressKey(EntityType.DydxChainPerpetualPosition_Timestamp, [], 'side')]: timestamp.side,
-			[entityFieldAddressKey(EntityType.DydxChainPerpetualPosition_Timestamp, [], 'size')]: timestamp.size,
-			[entityFieldAddressKey(EntityType.DydxChainPerpetualPosition_Timestamp, [], 'entryPrice')]: timestamp.entryPrice,
-			[entityFieldAddressKey(EntityType.DydxChainPerpetualPosition_Timestamp, [], 'unrealizedPnl')]: timestamp.unrealizedPnl,
-			[entityFieldAddressKey(EntityType.DydxChainPerpetualPosition_Timestamp, [], 'realizedPnl')]: timestamp.realizedPnl,
-			[entityFieldAddressKey(EntityType.DydxChainPerpetualPosition_Timestamp, [], 'netFunding')]: timestamp.netFunding,
+			...(updatedAtHeight != null && {
+				[entityFieldAddressKey(EntityType.DydxChainPerpetualPosition_Timestamp, [], 'blockHeight')]: BigInt(updatedAtHeight),
+			}),
+			[entityFieldAddressKey(EntityType.DydxChainPerpetualPosition_Timestamp, [], 'side')]: position.side,
+			[entityFieldAddressKey(EntityType.DydxChainPerpetualPosition_Timestamp, [], 'size')]: position.size,
+			[entityFieldAddressKey(EntityType.DydxChainPerpetualPosition_Timestamp, [], 'entryPrice')]: position.entryPrice,
+			[entityFieldAddressKey(EntityType.DydxChainPerpetualPosition_Timestamp, [], 'unrealizedPnl')]: position.unrealizedPnl,
+			[entityFieldAddressKey(EntityType.DydxChainPerpetualPosition_Timestamp, [], 'realizedPnl')]: position.realizedPnl,
+			[entityFieldAddressKey(EntityType.DydxChainPerpetualPosition_Timestamp, [], 'netFunding')]: position.netFunding,
 		},
 	}
 }
@@ -289,17 +273,50 @@ const resolveDydxPerpetualPosition = async (
 ) => {
 	assertDydxSubaccount(entitySelector.$subaccount)
 	assertDydxMainnet(entitySelector.$market.$network.$network)
-	const { getSubaccount } = await import('$/sources/Dydx/Rest/queries.ts')
-	const observation = await getSubaccount({
-		address: entitySelector.$subaccount.$account.address,
-		subaccountNumber: entitySelector.$subaccount.subaccountNumber,
-	})
-	if (!Object.hasOwn(observation.value.openPerpetualPositions, entitySelector.$market.ticker))
-		throw new Error(`DydxIndexer_Rest: open position not found for ${entitySelector.$market.ticker}`)
+	const {
+		getPerpetualPositions,
+		getSubaccount,
+	} = await import('$/sources/Dydx/Rest/queries.ts')
+	const [
+		observation,
+		positionsObservation,
+	] = await Promise.all([
+		getSubaccount({
+			address: entitySelector.$subaccount.$account.address,
+			subaccountNumber: entitySelector.$subaccount.subaccountNumber,
+		}),
+		getPerpetualPositions({
+			address: entitySelector.$subaccount.$account.address,
+			subaccountNumber: entitySelector.$subaccount.subaccountNumber,
+		}),
+	])
+	const position = (
+		observation.value.openPerpetualPositions[entitySelector.$market.ticker]
+		?? positionsObservation.value
+			.filter((candidate) => (
+				candidate.market === entitySelector.$market.ticker
+				&& candidate.closedAt != null
+			))
+			.sort((positionA, positionB) => (
+				parseTimestampMs(positionB.closedAt ?? positionB.createdAt, 'closedAt')
+				- parseTimestampMs(positionA.closedAt ?? positionA.createdAt, 'closedAt')
+			)).find(() => true)
+	)
+	if (position == null)
+		throw new Error(`DydxIndexer_Rest: position not found for ${entitySelector.$market.ticker}`)
 
 	return {
 		...observation,
-		position: observation.value.openPerpetualPositions[entitySelector.$market.ticker],
+		position,
+		positionTimestampMs: (
+			position.closedAt == null ?
+				observation.observedAtMs
+			:
+				parseTimestampMs(position.closedAt, 'closedAt')
+		),
+		...(position.closedAt == null && {
+			positionUpdatedAtHeight: observation.value.updatedAtHeight,
+		}),
 	}
 }
 
@@ -674,14 +691,17 @@ export const dydxChainSubaccountResolver = defineResolver({
 				assertDydxSubaccount(entitySelector)
 				const {
 					getOrders,
+					getPerpetualPositions,
 					getSubaccount,
 				} = await import('$/sources/Dydx/Rest/queries.ts')
 				const {
 					dydxPageLimitMax,
 				} = await import('$/sources/Dydx/Rest/constants.ts')
+				const positionLimit = resolverContextRowLimit(context)
 				const [
 					observation,
 					ordersObservation,
+					positionsObservation,
 				] = await Promise.all([
 					getSubaccount({
 						address: entitySelector.$account.address,
@@ -692,12 +712,37 @@ export const dydxChainSubaccountResolver = defineResolver({
 						subaccountNumber: entitySelector.subaccountNumber,
 						limit: dydxPageLimitMax,
 					}),
+					getPerpetualPositions({
+						address: entitySelector.$account.address,
+						subaccountNumber: entitySelector.subaccountNumber,
+						limit: positionLimit,
+					}),
 				])
+
+				const positionSnapshotsByMarket = new Map<string, {
+					position: DydxPerpetualPosition
+					timestampMs: number
+					updatedAtHeight?: string
+				}[]>()
+				for (const position of Object.values(observation.value.openPerpetualPositions))
+					positionSnapshotsByMarket.set(position.market, [{
+						position,
+						timestampMs: observation.observedAtMs,
+						updatedAtHeight: observation.value.updatedAtHeight,
+					}])
+				for (const position of positionsObservation.value)
+					if (position.closedAt != null)
+						positionSnapshotsByMarket.set(position.market, [
+							...(positionSnapshotsByMarket.get(position.market) ?? []),
+							{
+								position,
+								timestampMs: parseTimestampMs(position.closedAt, 'closedAt'),
+							},
+						])
 
 				return {
 					...observation,
-					positions: Object.values(observation.value.openPerpetualPositions)
-						.slice(0, resolverContextRowLimit(context)),
+					positions: [...positionSnapshotsByMarket.values()].slice(0, positionLimit),
 					...(
 						ordersObservation.value.length < dydxPageLimitMax ?
 							{
@@ -716,30 +761,29 @@ export const dydxChainSubaccountResolver = defineResolver({
 	},
 })({
 	$$positions: {
-		select: (observation, subaccount) => observation.positions.map((position) => {
+		select: (observation, subaccount) => observation.positions.map((snapshots) => {
 			const positionSelector = {
 				$subaccount: subaccount,
 				$market: {
 					$network: subaccount.$network,
-					ticker: position.market,
+					ticker: snapshots[0].position.market,
 				},
 			}
 
 			return {
 				[EntityMetaKey.Selector]: positionSelector,
 				[EntityMetaKey.Fields]: {
-					[entityFieldAddressKey(EntityType.DydxChainPerpetualPosition, [], '$$timestamps')]: [
+					[entityFieldAddressKey(EntityType.DydxChainPerpetualPosition, [], '$$timestamps')]: snapshots.map((snapshot) => (
 						projectPerpetualPositionTimestamp(
-							position,
+							snapshot.position,
 							positionSelector,
-							observation.observedAtMs,
-							observation.value.updatedAtHeight
-						),
-					],
+							snapshot.timestampMs,
+							snapshot.updatedAtHeight
+						)
+					)),
 				},
 			}
 		}),
-		resolveCount: (observation) => Object.keys(observation.value.openPerpetualPositions).length,
 	},
 	$$timestamps: (observation, subaccount) => {
 		const marginUsage = marginUsageFromEquity({
@@ -782,8 +826,8 @@ export const dydxChainPerpetualPositionResolver = defineResolver({
 		projectPerpetualPositionTimestamp(
 			observation.position,
 			position,
-			observation.observedAtMs,
-			observation.value.updatedAtHeight
+			observation.positionTimestampMs,
+			observation.positionUpdatedAtHeight
 		),
 	],
 })
