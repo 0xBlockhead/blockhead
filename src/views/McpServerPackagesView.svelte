@@ -47,7 +47,7 @@
 					resolve(
 						'/mcp/package/registry/[registryServerName=stringSegment]',
 						{
-							registryServerName: mcpServerPackageSelector.registryServerName,
+							registryServerName: encodeURIComponent(mcpServerPackageSelector.registryServerName),
 						}
 					)
 				:

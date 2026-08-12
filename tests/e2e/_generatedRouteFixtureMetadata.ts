@@ -11440,7 +11440,10 @@ export const e2eRouteFixtureMetadataByNodeId = {
 		],
 	},
 	'/~/cashu/wallet/[walletId]/mint/[mintUrl]/[unit]': {
-		routeId: '/~/cashu/wallet/[walletId=stringSegment]/mint/[mintUrl=stringSegment]/[unit=stringSegment]',
+		routeId: '/~/cashu/wallet/[walletId=stringSegment]/mint/[mintUrl=absoluteUrl]/[unit=stringSegment]',
+		parameterEncodingByName: {
+			mintUrl: 'Opaque',
+		},
 		mappings: [
 			{
 				id: 'BlockheadCashuWalletState.WalletIdMintUrlUnit',
@@ -11450,7 +11453,10 @@ export const e2eRouteFixtureMetadataByNodeId = {
 		],
 	},
 	'/~/cashu/wallet/[walletId]/mint/[mintUrl]/[unit]/observations/[timestampMs]/[source]': {
-		routeId: '/~/cashu/wallet/[walletId=stringSegment]/mint/[mintUrl=stringSegment]/[unit=stringSegment]/(blockheadCashuWalletState)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+		routeId: '/~/cashu/wallet/[walletId=stringSegment]/mint/[mintUrl=absoluteUrl]/[unit=stringSegment]/(blockheadCashuWalletState)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+		parameterEncodingByName: {
+			mintUrl: 'Opaque',
+		},
 		mappings: [
 			{
 				id: 'BlockheadCashuWalletState_Timestamp.WalletStateTimestampMsSource',
@@ -11460,7 +11466,10 @@ export const e2eRouteFixtureMetadataByNodeId = {
 		],
 	},
 	'/~/cashu/wallet/[walletId]/mint/[mintUrl]/keyset/[keysetId]/proof/[secretHash]': {
-		routeId: '/~/cashu/wallet/[walletId=stringSegment]/mint/[mintUrl=stringSegment]/keyset/[keysetId=stringSegment]/proof/[secretHash=stringSegment]',
+		routeId: '/~/cashu/wallet/[walletId=stringSegment]/mint/[mintUrl=absoluteUrl]/keyset/[keysetId=stringSegment]/proof/[secretHash=stringSegment]',
+		parameterEncodingByName: {
+			mintUrl: 'Opaque',
+		},
 		mappings: [
 			{
 				id: 'BlockheadCashuProof.WalletIdMintUrlKeysetIdSecretHash',
@@ -11470,7 +11479,10 @@ export const e2eRouteFixtureMetadataByNodeId = {
 		],
 	},
 	'/~/cashu/wallet/[walletId]/mint/[mintUrl]/keyset/[keysetId]/proof/[secretHash]/observations/[timestampMs]/[source]': {
-		routeId: '/~/cashu/wallet/[walletId=stringSegment]/mint/[mintUrl=stringSegment]/keyset/[keysetId=stringSegment]/proof/[secretHash=stringSegment]/(blockheadCashuProof)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+		routeId: '/~/cashu/wallet/[walletId=stringSegment]/mint/[mintUrl=absoluteUrl]/keyset/[keysetId=stringSegment]/proof/[secretHash=stringSegment]/(blockheadCashuProof)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+		parameterEncodingByName: {
+			mintUrl: 'Opaque',
+		},
 		mappings: [
 			{
 				id: 'BlockheadCashuProof_Timestamp.ProofTimestampMsSource',
@@ -13076,6 +13088,9 @@ export const e2eRouteFixtureMetadataByNodeId = {
 	},
 	'/mcp/package/registry/[registryServerName]': {
 		routeId: '/mcp/package/registry/[registryServerName=stringSegment]',
+		parameterEncodingByName: {
+			registryServerName: 'Opaque',
+		},
 		mappings: [
 			{
 				id: 'McpServerPackage.RegistryServerName',
@@ -13086,6 +13101,9 @@ export const e2eRouteFixtureMetadataByNodeId = {
 	},
 	'/mcp/package/registry/[registryServerName]/version/[version]': {
 		routeId: '/mcp/package/registry/[registryServerName=stringSegment]/(mcpServerPackage)/version/[version=stringSegment]',
+		parameterEncodingByName: {
+			registryServerName: 'Opaque',
+		},
 		mappings: [
 			{
 				id: 'McpServerPackageVersion.PackageVersion',

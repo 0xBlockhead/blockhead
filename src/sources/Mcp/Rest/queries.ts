@@ -8,6 +8,28 @@ import type {
 } from '$/sources/Mcp/Rest/types.ts'
 import { type } from 'arktype'
 
+const mcpPackageEnvelope = type({
+	identifier: 'string',
+	registryType: 'string',
+	'registryBaseUrl?': 'string',
+	version: 'string',
+	'fileSha256?': 'string',
+	'runtimeHint?': 'string',
+	transport: 'unknown',
+	'runtimeArguments?': 'unknown[]',
+	'packageArguments?': 'unknown[]',
+	'environmentVariables?': 'unknown[]',
+})
+
+const mcpRegistryMetadataEnvelope = type({
+	'status?': "'active' | 'deprecated' | 'deleted'",
+	'statusMessage?': 'string',
+	'statusChangedAt?': 'string',
+	'publishedAt?': 'string',
+	'updatedAt?': 'string',
+	'isLatest?': 'boolean',
+})
+
 const mcpRegistryServerEnvelope = type({
 	name: 'string',
 	description: 'string',
@@ -20,14 +42,16 @@ const mcpRegistryServerEnvelope = type({
 		'subfolder?': 'string',
 	},
 	'websiteUrl?': 'string',
-	'packages?': 'unknown[]',
+	'packages?': mcpPackageEnvelope.array(),
 	'remotes?': 'unknown[]',
 	'_meta?': 'object',
 })
 
 const registryServerResponseEnvelope = type({
 	server: mcpRegistryServerEnvelope,
-	'_meta?': 'object',
+	'_meta?': {
+		'io.modelcontextprotocol.registry/official?': mcpRegistryMetadataEnvelope,
+	},
 })
 
 const registryServerListEnvelope = type({
@@ -141,7 +165,7 @@ export const getRegistryServerVersions = (
 
 	return getJson<McpRegistryServerVersionsEnvelope>(
 		binding,
-		`/${encodeURIComponent(serverName)}/versions${query.size === 0 ? '' : `?${query.toString()}`}`
+		`${encodeURIComponent(serverName)}/versions${query.size === 0 ? '' : `?${query.toString()}`}`
 	).then(assertRegistryServerVersionsEnvelope)
 }
 
@@ -157,6 +181,6 @@ export const getRegistryServer = (
 
 	return getJson<McpRegistryServerDetailEnvelope>(
 		binding,
-		`/${encodeURIComponent(serverName)}/versions/${encodeURIComponent(version)}`
+		`${encodeURIComponent(serverName)}/versions/${encodeURIComponent(version)}`
 	).then(assertRegistryServerDetailEnvelope)
 }

@@ -74,7 +74,7 @@
 						resolve(
 							'/mcp/package/registry/[registryServerName=stringSegment]/(mcpServerPackage)/version/[version=stringSegment]',
 							{
-								registryServerName: selection.entitySelector.$package.registryServerName,
+								registryServerName: encodeURIComponent(selection.entitySelector.$package.registryServerName),
 								version: selection.entitySelector.version,
 							}
 						)

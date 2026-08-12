@@ -45,7 +45,7 @@ export default indexSourceBindings([
 		endpoints: [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: 'https://registry.modelcontextprotocol.io/v0.1/servers',
+				locator: 'https://registry.modelcontextprotocol.io/v0.1/servers/',
 				corsEnabled: false,
 			},
 		],

@@ -65,7 +65,7 @@
 						resolve(
 							'/mcp/package/registry/[registryServerName=stringSegment]/(mcpServerPackage)/version/[version=stringSegment]',
 							{
-								registryServerName: mcpServerPackageVersionSelector.$package.registryServerName,
+								registryServerName: encodeURIComponent(mcpServerPackageVersionSelector.$package.registryServerName),
 								version: mcpServerPackageVersionSelector.version,
 							}
 						)

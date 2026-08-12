@@ -16,7 +16,7 @@ export const load: LayoutLoad = ({ params }) => {
 		schema,
 		McpServerPackageSchema,
 		{
-			registryServerName: params.registryServerName,
+			registryServerName: decodeURIComponent(params.registryServerName),
 		},
 		'RegistryServerName'
 	)

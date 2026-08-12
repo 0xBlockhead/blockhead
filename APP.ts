@@ -44155,7 +44155,7 @@ export const schema = {
 					plural: "MCP server packages",
 				},
 			})({
-				"registryServerName": { label: "registry server name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+				"registryServerName": { label: "registry server name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "opaqueRouteIdentifier" },
 				"repositoryUrl": { label: "repository URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "urlString" },
 				"label": { label: "Label", description: "A human-readable name for the subject.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 			})({
@@ -113640,6 +113640,10 @@ export const app = {
 			{
 				source: Source.Mastodon_Rest,
 				path: "src/resolvers/Mastodon-Rest.ts",
+			},
+			{
+				source: Source.McpPackageRegistry_Rest,
+				path: "src/resolvers/McpPackageRegistry-Rest.ts",
 			},
 			{
 				source: Source.MempoolSpace_Rest,

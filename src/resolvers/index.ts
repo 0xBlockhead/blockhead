@@ -115,6 +115,7 @@ const resolverLoaderEntries = [
 	[Source.LogosBlockchainNode_Rest, () => import('./LogosBlockchainNode-Rest.ts')],
 	[Source.Lotus_JsonRpc, () => import('./Lotus-JsonRpc.ts')],
 	[Source.Mastodon_Rest, () => import('./Mastodon-Rest.ts')],
+	[Source.McpPackageRegistry_Rest, () => import('./McpPackageRegistry-Rest.ts')],
 	[Source.MempoolSpace_Rest, () => import('./MempoolSpace-Rest.ts')],
 	[Source.MetadataVision_Rest, () => import('./MetadataVision-Rest.ts')],
 	[Source.MevRelay_Rest, () => import('./MevRelay-Rest.ts')],

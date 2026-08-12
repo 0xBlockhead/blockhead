@@ -79,6 +79,33 @@ describe('MCP registry REST queries', () => {
 		await expect(getRegistryServerVersions(binding, 'io.example/server')).rejects.toThrow(
 			'McpPackageRegistry_Rest: invalid server versions response envelope'
 		)
+
+		sourceGetJson.mockResolvedValueOnce({
+			server: {
+				...server,
+				packages: [{
+					identifier: '@example/server',
+					registryType: 'npm',
+					version: 1,
+					transport: {},
+				}],
+			},
+		})
+		await expect(getRegistryServer(binding, 'io.example/server')).rejects.toThrow(
+			'McpPackageRegistry_Rest: invalid server detail response envelope'
+		)
+
+		sourceGetJson.mockResolvedValueOnce({
+			server,
+			_meta: {
+				'io.modelcontextprotocol.registry/official': {
+					status: 'maybe',
+				},
+			},
+		})
+		await expect(getRegistryServer(binding, 'io.example/server')).rejects.toThrow(
+			'McpPackageRegistry_Rest: invalid server detail response envelope'
+		)
 	})
 
 	it('rejects empty selectors and invalid pagination before making a request', async () => {
@@ -116,12 +143,12 @@ describe('MCP registry REST queries', () => {
 		expect(sourceGetJson).toHaveBeenNthCalledWith(
 			1,
 			binding,
-			httpUrl(binding, '/io.example%2Fserver/versions?cursor=next')
+			httpUrl(binding, 'io.example%2Fserver/versions?cursor=next')
 		)
 		expect(sourceGetJson).toHaveBeenNthCalledWith(
 			2,
 			binding,
-			httpUrl(binding, '/io.example%2Fserver/versions/1.0.0')
+			httpUrl(binding, 'io.example%2Fserver/versions/1.0.0')
 		)
 	})
 })
