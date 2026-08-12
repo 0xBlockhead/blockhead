@@ -7,7 +7,7 @@ import {
 } from 'vitest'
 
 import { networkBySlug } from '$/constants/Network.ts'
-import { EntityMetaKey } from '$/schema/$schema.ts'
+import { entityFieldAddressKey, EntityMetaKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
@@ -398,6 +398,21 @@ describe('UniSat Rest resolver module', () => {
 						runeId: '840000:1',
 					},
 				},
+				[EntityMetaKey.Fields]: expect.objectContaining({
+					[entityFieldAddressKey(EntityType.BitcoinRuneBalance, [], 'amount')]: '3',
+					[entityFieldAddressKey(EntityType.BitcoinRuneBalance, [], 'divisibility')]: 0,
+					[entityFieldAddressKey(EntityType.BitcoinRuneBalance, [], 'symbol')]: '⧉',
+					[entityFieldAddressKey(EntityType.BitcoinRuneBalance, [], '$rune')]: {
+						[EntityMetaKey.Selector]: {
+							$network: bitcoinNetwork,
+							runeId: '840000:1',
+						},
+						[EntityMetaKey.Fields]: {
+							[entityFieldAddressKey(EntityType.BitcoinRune, [], 'divisibility')]: 0,
+							[entityFieldAddressKey(EntityType.BitcoinRune, [], 'symbol')]: '⧉',
+						},
+					},
+				}),
 			},
 		])
 		expect(
@@ -496,6 +511,9 @@ describe('UniSat Rest resolver module', () => {
 						runeId: '840000:9',
 					},
 				},
+				[EntityMetaKey.Fields]: expect.objectContaining({
+					[entityFieldAddressKey(EntityType.BitcoinRuneBalance, [], 'amount')]: '7',
+				}),
 			},
 		])
 		expect(

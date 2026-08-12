@@ -5,12 +5,14 @@ import {
 } from '$/resolvers/bitcoinOrdinalsRunes.ts'
 import { defineResolver } from '$/resolvers/defineResolver.ts'
 import {
+	entityFieldAddressKey,
 	EntityMetaKey,
 	type EntitySelector,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
+import type { UniSatRuneBalance } from '$/sources/UniSat/Rest/types.ts'
 
 
 const source = Source.UniSat_Rest
@@ -36,6 +38,56 @@ const networkFromOutput = (
 ) => (
 	$output.$transaction.$network
 )
+
+const bitcoinRuneBalanceReference = ({
+	$address,
+	$output,
+	$network,
+	row,
+}: {
+	$address?: EntitySelector<typeof schema, EntityType.UtxoAddress>
+	$output?: EntitySelector<typeof schema, EntityType.UtxoOutput>
+	$network: EntitySelector<typeof schema, EntityType.Network>
+	row: UniSatRuneBalance
+}) => ({
+	[EntityMetaKey.Selector]: {
+		...($address != null && { $address }),
+		...($output != null && { $output }),
+		$rune: {
+			$network,
+			runeId: row.runeid,
+		},
+	},
+	[EntityMetaKey.Fields]: {
+		[entityFieldAddressKey(EntityType.BitcoinRuneBalance, [], 'amount')]: row.amount,
+		...(row.divisibility != null && {
+			[entityFieldAddressKey(EntityType.BitcoinRuneBalance, [], 'divisibility')]: row.divisibility,
+		}),
+		...(row.symbol != null && {
+			[entityFieldAddressKey(EntityType.BitcoinRuneBalance, [], 'symbol')]: row.symbol,
+		}),
+		[entityFieldAddressKey(EntityType.BitcoinRuneBalance, [], '$rune')]: {
+			[EntityMetaKey.Selector]: {
+				$network,
+				runeId: row.runeid,
+			},
+			[EntityMetaKey.Fields]: {
+				...(row.rune != null && {
+					[entityFieldAddressKey(EntityType.BitcoinRune, [], 'rune')]: row.rune,
+				}),
+				...(row.spacedRune != null && {
+					[entityFieldAddressKey(EntityType.BitcoinRune, [], 'spacedRune')]: row.spacedRune,
+				}),
+				...(row.divisibility != null && {
+					[entityFieldAddressKey(EntityType.BitcoinRune, [], 'divisibility')]: row.divisibility,
+				}),
+				...(row.symbol != null && {
+					[entityFieldAddressKey(EntityType.BitcoinRune, [], 'symbol')]: row.symbol,
+				}),
+			},
+		},
+	},
+})
 
 export default {
 	source,
@@ -361,17 +413,13 @@ export default {
 							limit: context.pagination.limit,
 						})
 						return {
-							runeBalances: page.detail.map((row) => ({
-								[EntityMetaKey.Selector]: {
-									$address: {
-										$network,
-										address,
-									},
-									$rune: {
-										$network,
-										runeId: row.runeid,
-									},
+							runeBalances: page.detail.map((row) => bitcoinRuneBalanceReference({
+								$address: {
+									$network,
+									address,
 								},
+								$network,
+								row,
 							})),
 							runeBalanceCount: page.total,
 						}
@@ -458,17 +506,13 @@ export default {
 							outputIndex: indexInTransaction,
 						})
 						return {
-							$$bitcoinRuneBalances: balances.map((row) => ({
-								[EntityMetaKey.Selector]: {
-									$output: {
-										$transaction,
-										indexInTransaction,
-									},
-									$rune: {
-										$network: $transaction.$network,
-										runeId: row.runeid,
-									},
+							$$bitcoinRuneBalances: balances.map((row) => bitcoinRuneBalanceReference({
+								$output: {
+									$transaction,
+									indexInTransaction,
 								},
+								$network: $transaction.$network,
+								row,
 							})),
 							runeBalanceCount: balances.length,
 						}
