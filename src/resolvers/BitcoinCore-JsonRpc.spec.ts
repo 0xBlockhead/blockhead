@@ -11,6 +11,9 @@ const getBlockCount = vi.fn()
 const getBlockHash = vi.fn()
 const getMempoolInfo = vi.fn()
 const getMempoolTransactionIds = vi.fn()
+const getBlockTemplate = vi.fn()
+const getNetworkHashrate = vi.fn()
+const estimateSmartFee = vi.fn()
 const getTransparentAddressUtxos = vi.fn()
 const getTransactionProtocolPayloads = vi.fn(async () => [])
 
@@ -21,6 +24,9 @@ vi.mock('$/sources/BitcoinCore/JsonRpc/queries.ts', () => ({
 	getBlockHash,
 	getMempoolInfo,
 	getMempoolTransactionIds,
+	getBlockTemplate,
+	getNetworkHashrate,
+	estimateSmartFee,
 	getTransparentAddressUtxos,
 	getTransactionProtocolPayloads,
 }))
@@ -512,6 +518,36 @@ describe('BitcoinCore UTXO', () => {
 			mempoolminfee: 0.00001,
 			minrelaytxfee: 0.00001,
 		})
+		getBlockTemplate.mockResolvedValue({
+			version: 536_870_912,
+			rules: ['segwit'],
+			previousblockhash: blockHash,
+			transactions: [{
+				data: '00',
+				txid: 'd'.repeat(64),
+				hash: 'e'.repeat(64),
+				depends: [],
+				fee: 1200,
+				sigops: 1,
+				weight: 400,
+			}],
+			coinbasevalue: 312_500_000,
+			target: 'f'.repeat(64),
+			mintime: 1_749_999_999,
+			mutable: ['time'],
+			noncerange: '00000000ffffffff',
+			sigoplimit: 80_000,
+			sizelimit: 4_000_000,
+			weightlimit: 4_000_000,
+			curtime: 1_750_000_001,
+			bits: '17034219',
+			height: 850_001,
+		})
+		getNetworkHashrate.mockResolvedValue(600_000_000_000_000_000)
+		estimateSmartFee.mockImplementation(async ({ confirmationTarget }) => ({
+			feerate: confirmationTarget / 100_000,
+			blocks: confirmationTarget,
+		}))
 
 		const tip = await networkTimestampResolver.resolve.NetworkTimestampMsSource.resolve({
 			$network: network,
@@ -525,6 +561,9 @@ describe('BitcoinCore UTXO', () => {
 		expect(networkTimestampResolver.projections.Utxo.blockCount(tip)).toBe(850_001n)
 		expect(networkTimestampResolver.projections.Utxo.mempoolTransactionCount(tip)).toBe(42)
 		expect(networkTimestampResolver.projections.Utxo.mempoolSizeBytes(tip)).toBe(12_345n)
+		expect(networkTimestampResolver.projections.Utxo.hashrateHashesPerSecond(tip)).toBe(600_000_000_000_000_000)
+		expect(networkTimestampResolver.projections.Utxo.miningTemplateHeight(tip)).toBe(850_001n)
+		expect(networkTimestampResolver.projections.Utxo.$$miningTemplateTransactions(tip)).toHaveLength(1)
 
 		const timestamps = await networkTimestampsResolver.resolve.Caip2.resolve(network, resolverContext)
 		expect(networkTimestampsResolver.projections.$$timestamps(timestamps)).toEqual([
@@ -541,6 +580,32 @@ describe('BitcoinCore UTXO', () => {
 					[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'blockCount')]: 850_001n,
 					[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'mempoolTransactionCount')]: 42,
 					[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'mempoolSizeBytes')]: 12_345n,
+					[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'hashrateHashesPerSecond')]: 600_000_000_000_000_000,
+					[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'hashrateBlockWindow')]: 120,
+					[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'conservativeFeeRate2BlocksSatsPerKvb')]: 2_000n,
+					[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'conservativeFeeRate6BlocksSatsPerKvb')]: 6_000n,
+					[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'conservativeFeeRate12BlocksSatsPerKvb')]: 12_000n,
+					[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'conservativeFeeRate24BlocksSatsPerKvb')]: 24_000n,
+					[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'miningTemplateHeight')]: 850_001n,
+					[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'miningTemplatePreviousBlockHash')]: blockHash,
+					[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'miningTemplateTarget')]: 'f'.repeat(64),
+					[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'miningTemplateCurrentTimeMs')]: 1_750_000_001_000,
+					[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'miningTemplateMinimumTimeMs')]: 1_749_999_999_000,
+					[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'miningTemplateCoinbaseValueSats')]: 312_500_000n,
+					[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'miningTemplateTransactionCount')]: 1,
+					[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'miningTemplateSizeLimitBytes')]: 4_000_000,
+					[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'miningTemplateWeightLimit')]: 4_000_000,
+					[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'miningTemplateSigopLimit')]: 80_000,
+					[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'miningTemplateRules')]: ['segwit'],
+					[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'miningTemplateMutableFields')]: ['time'],
+					[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'miningTemplateNonceRange')]: '00000000ffffffff',
+					[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'miningTemplateBits')]: '17034219',
+					[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], '$$miningTemplateTransactions')]: [expect.objectContaining({
+						[EntityMetaKey.Selector]: {
+							$network: network,
+							txId: 'd'.repeat(64),
+						},
+					})],
 				},
 			},
 		])

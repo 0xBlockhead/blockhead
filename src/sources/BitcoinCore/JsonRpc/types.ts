@@ -27,6 +27,61 @@ export type BitcoinCoreValidatedAddress = {
 	address?: string
 }
 
+export type BitcoinCoreBlockTemplate = {
+	version: number
+	rules: string[]
+	previousblockhash: string
+	transactions: {
+		data: string
+		txid: string
+		hash: string
+		depends: number[]
+		fee: number
+		sigops: number
+		weight: number
+	}[]
+	coinbasevalue: number
+	target: string
+	mintime: number
+	mutable: string[]
+	noncerange: string
+	sigoplimit: number
+	sizelimit: number
+	weightlimit: number
+	curtime: number
+	bits: string
+	height: number
+	default_witness_commitment?: string
+}
+
+export type BitcoinCoreSmartFeeEstimate = {
+	feerate?: number
+	errors?: string[]
+	blocks: number
+}
+
+export type BitcoinCoreMempoolEntry = {
+	vsize: number
+	weight: number
+	time: number
+	height: number
+	descendantcount: number
+	descendantsize: number
+	ancestorcount: number
+	ancestorsize: number
+	wtxid: string
+	fees: {
+		base: number
+		modified: number
+		ancestor: number
+		descendant: number
+	}
+	depends: string[]
+	spentby: string[]
+	'bip125-replaceable': boolean
+	unbroadcast?: boolean
+}
+
 const bitcoinCoreTransactionInput = arktype({
 	'txid?': 'string',
 	'vout?': 'number.integer >= 0',
@@ -119,6 +174,62 @@ export const bitcoinCoreScanTxOutSet = arktype({
 	total_amount: 'number',
 }) satisfies Type<BitcoinCoreScanTxOutSet>
 
+export const bitcoinCoreBlockTemplate = arktype({
+	version: 'number.integer',
+	rules: 'string[]',
+	previousblockhash: 'string',
+	transactions: arktype({
+		data: 'string',
+		txid: 'string',
+		hash: 'string',
+		depends: 'number.integer[]',
+		fee: 'number.integer',
+		sigops: 'number.integer >= 0',
+		weight: 'number.integer >= 0',
+	}).array(),
+	coinbasevalue: 'number.integer >= 0',
+	target: 'string',
+	mintime: 'number.integer >= 0',
+	mutable: 'string[]',
+	noncerange: 'string',
+	sigoplimit: 'number.integer >= 0',
+	sizelimit: 'number.integer >= 0',
+	weightlimit: 'number.integer >= 0',
+	curtime: 'number.integer >= 0',
+	bits: 'string',
+	height: 'number.integer >= 0',
+	'default_witness_commitment?': 'string',
+}) satisfies Type<BitcoinCoreBlockTemplate>
+
+export const bitcoinCoreSmartFeeEstimate = arktype({
+	'feerate?': 'number',
+	'errors?': 'string[]',
+	blocks: 'number.integer >= 0',
+}) satisfies Type<BitcoinCoreSmartFeeEstimate>
+
+export const bitcoinCoreMempoolEntry = arktype({
+	vsize: 'number.integer >= 0',
+	weight: 'number.integer >= 0',
+	time: 'number.integer >= 0',
+	height: 'number.integer >= 0',
+	descendantcount: 'number.integer >= 0',
+	descendantsize: 'number.integer >= 0',
+	ancestorcount: 'number.integer >= 0',
+	ancestorsize: 'number.integer >= 0',
+	wtxid: 'string',
+	fees: {
+		base: 'number >= 0',
+		modified: 'number >= 0',
+		ancestor: 'number >= 0',
+		descendant: 'number >= 0',
+	},
+	depends: 'string[]',
+	spentby: 'string[]',
+	'bip125-replaceable': 'boolean',
+	'unbroadcast?': 'boolean',
+}) satisfies Type<BitcoinCoreMempoolEntry>
+
 export const bitcoinCoreBlockHash = arktype('string')
 export const bitcoinCoreBlockCount = arktype('number.integer >= 0')
+export const bitcoinCoreNetworkHashrate = arktype('number >= 0')
 export const bitcoinCoreMempoolTransactionIds = arktype('string[]')

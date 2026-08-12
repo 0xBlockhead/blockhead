@@ -243,17 +243,26 @@ export const bitcoinCoreJsonRpcResolvers = <
 	const resolveNetworkTipObservation = async (networkSelector: NetworkId) => {
 		assertNetwork(networkSelector)
 		const {
+			estimateSmartFee,
 			getBlock,
 			getBlockCount,
 			getBlockHash,
+			getBlockTemplate,
 			getMempoolInfo,
+			getNetworkHashrate,
 		} = await loadQueries()
 		const tipHeight = await getBlockCount()
-		const [bestBlockHash, mempoolInfo] = await Promise.all([
+		const [bestBlockHash, mempoolInfo, template, hashesPerSecond, fee2Blocks, fee6Blocks, fee12Blocks, fee24Blocks] = await Promise.all([
 			getBlockHash({
 				height: BigInt(tipHeight),
 			}),
 			getMempoolInfo(),
+			getBlockTemplate(),
+			getNetworkHashrate({ blockWindow: 120 }),
+			estimateSmartFee({ confirmationTarget: 2 }),
+			estimateSmartFee({ confirmationTarget: 6 }),
+			estimateSmartFee({ confirmationTarget: 12 }),
+			estimateSmartFee({ confirmationTarget: 24 }),
 		])
 		const tipBlock = await getBlock({
 			blockHash: bestBlockHash,
@@ -265,6 +274,36 @@ export const bitcoinCoreJsonRpcResolvers = <
 			blockCount: BigInt(tipHeight + 1),
 			mempoolTransactionCount: mempoolInfo.size,
 			mempoolSizeBytes: BigInt(mempoolInfo.bytes),
+			hashrateHashesPerSecond: hashesPerSecond,
+			hashrateBlockWindow: 120,
+			...(fee2Blocks.feerate != null && { conservativeFeeRate2BlocksSatsPerKvb: BigInt(Math.round(fee2Blocks.feerate * 100_000_000)) }),
+			...(fee6Blocks.feerate != null && { conservativeFeeRate6BlocksSatsPerKvb: BigInt(Math.round(fee6Blocks.feerate * 100_000_000)) }),
+			...(fee12Blocks.feerate != null && { conservativeFeeRate12BlocksSatsPerKvb: BigInt(Math.round(fee12Blocks.feerate * 100_000_000)) }),
+			...(fee24Blocks.feerate != null && { conservativeFeeRate24BlocksSatsPerKvb: BigInt(Math.round(fee24Blocks.feerate * 100_000_000)) }),
+			miningTemplateHeight: BigInt(template.height),
+			miningTemplatePreviousBlockHash: template.previousblockhash,
+			miningTemplateTarget: template.target,
+			miningTemplateCurrentTimeMs: template.curtime * 1000,
+			miningTemplateMinimumTimeMs: template.mintime * 1000,
+			miningTemplateCoinbaseValueSats: BigInt(template.coinbasevalue),
+			miningTemplateTransactionCount: template.transactions.length,
+			miningTemplateSizeLimitBytes: template.sizelimit,
+			miningTemplateWeightLimit: template.weightlimit,
+			miningTemplateSigopLimit: template.sigoplimit,
+			miningTemplateRules: template.rules,
+			miningTemplateMutableFields: template.mutable,
+			miningTemplateNonceRange: template.noncerange,
+			miningTemplateBits: template.bits,
+			$$miningTemplateTransactions: template.transactions.map((transaction) => ({
+				[EntityMetaKey.Selector]: {
+					$network: networkSelector,
+					txId: transaction.txid,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.UtxoTransaction, [], 'weightUnits')]: transaction.weight,
+					[entityFieldAddressKey(EntityType.UtxoTransaction, [], 'feeSats')]: BigInt(transaction.fee),
+				},
+			})),
 		}
 	}
 
@@ -284,6 +323,35 @@ export const bitcoinCoreJsonRpcResolvers = <
 					[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'blockCount')]: tip.blockCount,
 					[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'mempoolTransactionCount')]: tip.mempoolTransactionCount,
 					[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'mempoolSizeBytes')]: tip.mempoolSizeBytes,
+					[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'hashrateHashesPerSecond')]: tip.hashrateHashesPerSecond,
+					[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'hashrateBlockWindow')]: tip.hashrateBlockWindow,
+					...(tip.conservativeFeeRate2BlocksSatsPerKvb != null && {
+						[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'conservativeFeeRate2BlocksSatsPerKvb')]: tip.conservativeFeeRate2BlocksSatsPerKvb,
+					}),
+					...(tip.conservativeFeeRate6BlocksSatsPerKvb != null && {
+						[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'conservativeFeeRate6BlocksSatsPerKvb')]: tip.conservativeFeeRate6BlocksSatsPerKvb,
+					}),
+					...(tip.conservativeFeeRate12BlocksSatsPerKvb != null && {
+						[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'conservativeFeeRate12BlocksSatsPerKvb')]: tip.conservativeFeeRate12BlocksSatsPerKvb,
+					}),
+					...(tip.conservativeFeeRate24BlocksSatsPerKvb != null && {
+						[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'conservativeFeeRate24BlocksSatsPerKvb')]: tip.conservativeFeeRate24BlocksSatsPerKvb,
+					}),
+					[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'miningTemplateHeight')]: tip.miningTemplateHeight,
+					[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'miningTemplatePreviousBlockHash')]: tip.miningTemplatePreviousBlockHash,
+					[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'miningTemplateTarget')]: tip.miningTemplateTarget,
+					[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'miningTemplateCurrentTimeMs')]: tip.miningTemplateCurrentTimeMs,
+					[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'miningTemplateMinimumTimeMs')]: tip.miningTemplateMinimumTimeMs,
+					[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'miningTemplateCoinbaseValueSats')]: tip.miningTemplateCoinbaseValueSats,
+					[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'miningTemplateTransactionCount')]: tip.miningTemplateTransactionCount,
+					[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'miningTemplateSizeLimitBytes')]: tip.miningTemplateSizeLimitBytes,
+					[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'miningTemplateWeightLimit')]: tip.miningTemplateWeightLimit,
+					[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'miningTemplateSigopLimit')]: tip.miningTemplateSigopLimit,
+					[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'miningTemplateRules')]: tip.miningTemplateRules,
+					[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'miningTemplateMutableFields')]: tip.miningTemplateMutableFields,
+					[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'miningTemplateNonceRange')]: tip.miningTemplateNonceRange,
+					[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'miningTemplateBits')]: tip.miningTemplateBits,
+					[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], '$$miningTemplateTransactions')]: tip.$$miningTemplateTransactions,
 				},
 			},
 		]
@@ -449,6 +517,7 @@ export const bitcoinCoreJsonRpcResolvers = <
 					TransactionIndexInTransaction: {
 						resolve: async ({ $transaction, indexInTransaction }) => {
 							const input = (await getTransaction($transaction)).vin[indexInTransaction]
+							// oxlint-disable-next-line typescript/no-unnecessary-condition -- Provider arrays can omit the requested runtime index despite TypeScript's unchecked indexed access.
 							if (input == null)
 								throw new Error(`${source}: transaction input ${indexInTransaction} not found`)
 
@@ -497,6 +566,7 @@ export const bitcoinCoreJsonRpcResolvers = <
 						resolve: async ({ $transaction, indexInTransaction }) => {
 							const transaction = await getTransaction($transaction)
 							const output = transaction.vout[indexInTransaction]
+							// oxlint-disable-next-line typescript/no-unnecessary-condition -- Provider arrays can omit the requested runtime index despite TypeScript's unchecked indexed access.
 							if (output == null)
 								throw new Error(`${source}: transaction output ${indexInTransaction} not found`)
 
@@ -557,6 +627,7 @@ export const bitcoinCoreJsonRpcResolvers = <
 								})
 							)
 							const payload = payloads[parsed.inscriptionIndex]
+							// oxlint-disable-next-line typescript/no-unnecessary-condition -- Parsed inscription indexes can exceed the provider-derived payload array at runtime.
 							if (payload == null)
 								throw new Error(`${source}: inscription ${inscriptionId} not found in reveal transaction`)
 
@@ -737,6 +808,27 @@ export const bitcoinCoreJsonRpcResolvers = <
 					blockCount: (timestamp) => timestamp.blockCount,
 					mempoolTransactionCount: (timestamp) => timestamp.mempoolTransactionCount,
 					mempoolSizeBytes: (timestamp) => timestamp.mempoolSizeBytes,
+					hashrateHashesPerSecond: (timestamp) => timestamp.hashrateHashesPerSecond,
+					hashrateBlockWindow: (timestamp) => timestamp.hashrateBlockWindow,
+					conservativeFeeRate2BlocksSatsPerKvb: (timestamp) => timestamp.conservativeFeeRate2BlocksSatsPerKvb,
+					conservativeFeeRate6BlocksSatsPerKvb: (timestamp) => timestamp.conservativeFeeRate6BlocksSatsPerKvb,
+					conservativeFeeRate12BlocksSatsPerKvb: (timestamp) => timestamp.conservativeFeeRate12BlocksSatsPerKvb,
+					conservativeFeeRate24BlocksSatsPerKvb: (timestamp) => timestamp.conservativeFeeRate24BlocksSatsPerKvb,
+					miningTemplateHeight: (timestamp) => timestamp.miningTemplateHeight,
+					miningTemplatePreviousBlockHash: (timestamp) => timestamp.miningTemplatePreviousBlockHash,
+					miningTemplateTarget: (timestamp) => timestamp.miningTemplateTarget,
+					miningTemplateCurrentTimeMs: (timestamp) => timestamp.miningTemplateCurrentTimeMs,
+					miningTemplateMinimumTimeMs: (timestamp) => timestamp.miningTemplateMinimumTimeMs,
+					miningTemplateCoinbaseValueSats: (timestamp) => timestamp.miningTemplateCoinbaseValueSats,
+					miningTemplateTransactionCount: (timestamp) => timestamp.miningTemplateTransactionCount,
+					miningTemplateSizeLimitBytes: (timestamp) => timestamp.miningTemplateSizeLimitBytes,
+					miningTemplateWeightLimit: (timestamp) => timestamp.miningTemplateWeightLimit,
+					miningTemplateSigopLimit: (timestamp) => timestamp.miningTemplateSigopLimit,
+					miningTemplateRules: (timestamp) => timestamp.miningTemplateRules,
+					miningTemplateMutableFields: (timestamp) => timestamp.miningTemplateMutableFields,
+					miningTemplateNonceRange: (timestamp) => timestamp.miningTemplateNonceRange,
+					miningTemplateBits: (timestamp) => timestamp.miningTemplateBits,
+					$$miningTemplateTransactions: (timestamp) => timestamp.$$miningTemplateTransactions,
 				},
 			}),
 		],

@@ -348,6 +348,153 @@ export default entity({
 				primitiveType: type('bigint'),
 				cardinality: EntityFieldCardinality.ZeroOrOne,
 			},
+			hashrateHashesPerSecond: {
+				primitiveType: type('number'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.BitcoinCore_JsonRpc,
+				],
+			},
+			hashrateBlockWindow: {
+				primitiveType: type('number'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.BitcoinCore_JsonRpc,
+				],
+			},
+			conservativeFeeRate2BlocksSatsPerKvb: {
+				primitiveType: type('bigint'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.BitcoinCore_JsonRpc,
+				],
+			},
+			conservativeFeeRate6BlocksSatsPerKvb: {
+				primitiveType: type('bigint'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.BitcoinCore_JsonRpc,
+				],
+			},
+			conservativeFeeRate12BlocksSatsPerKvb: {
+				primitiveType: type('bigint'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.BitcoinCore_JsonRpc,
+				],
+			},
+			conservativeFeeRate24BlocksSatsPerKvb: {
+				primitiveType: type('bigint'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.BitcoinCore_JsonRpc,
+				],
+			},
+			miningTemplateHeight: {
+				primitiveType: type('bigint'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.BitcoinCore_JsonRpc,
+				],
+			},
+			miningTemplatePreviousBlockHash: {
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.BitcoinCore_JsonRpc,
+				],
+			},
+			miningTemplateTarget: {
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.BitcoinCore_JsonRpc,
+				],
+			},
+			miningTemplateCurrentTimeMs: {
+				primitiveType: type('number'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.BitcoinCore_JsonRpc,
+				],
+			},
+			miningTemplateMinimumTimeMs: {
+				primitiveType: type('number'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.BitcoinCore_JsonRpc,
+				],
+			},
+			miningTemplateCoinbaseValueSats: {
+				primitiveType: type('bigint'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.BitcoinCore_JsonRpc,
+				],
+			},
+			miningTemplateTransactionCount: {
+				primitiveType: type('number'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.BitcoinCore_JsonRpc,
+				],
+			},
+			miningTemplateSizeLimitBytes: {
+				primitiveType: type('number'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.BitcoinCore_JsonRpc,
+				],
+			},
+			miningTemplateWeightLimit: {
+				primitiveType: type('number'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.BitcoinCore_JsonRpc,
+				],
+			},
+			miningTemplateSigopLimit: {
+				primitiveType: type('number'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.BitcoinCore_JsonRpc,
+				],
+			},
+			miningTemplateRules: {
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.BitcoinCore_JsonRpc,
+				],
+			},
+			miningTemplateMutableFields: {
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.BitcoinCore_JsonRpc,
+				],
+			},
+			miningTemplateNonceRange: {
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.BitcoinCore_JsonRpc,
+				],
+			},
+			miningTemplateBits: {
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.BitcoinCore_JsonRpc,
+				],
+			},
+			$$miningTemplateTransactions: {
+				entityType: EntityType.UtxoTransaction,
+				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.BitcoinCore_JsonRpc,
+				],
+			},
 		}),
 	},
 })

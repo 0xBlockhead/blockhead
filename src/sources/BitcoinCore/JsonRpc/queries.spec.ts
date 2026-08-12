@@ -14,10 +14,14 @@ const {
 	getBlock,
 	getBlockCount,
 	getBlockHash,
+	getBlockTemplate,
 	getMempoolInfo,
+	getMempoolEntry,
 	getMempoolTransactionIds,
+	getNetworkHashrate,
 	getRawTransaction,
 	getTransparentAddressUtxos,
+	estimateSmartFee,
 } = await import('$/sources/BitcoinCore/JsonRpc/queries.ts')
 
 const bitcoinMainnetBinding = bitcoinCoreBindings[Source.BitcoinCore_JsonRpc][0]
@@ -234,6 +238,147 @@ describe('Bitcoin Core JSON-RPC', () => {
 
 		jsonRpc2.mockResolvedValueOnce(['not-a-transaction-id'])
 		await expect(getMempoolTransactionIds()).rejects.toThrow('invalid mempool transaction ID')
+	})
+
+	it('preserves native RBF and CPFP mempool ancestry', async () => {
+		const entry = {
+			vsize: 200,
+			weight: 800,
+			time: 1_700_000_000,
+			height: 840_000,
+			descendantcount: 2,
+			descendantsize: 300,
+			ancestorcount: 2,
+			ancestorsize: 400,
+			wtxid: parentHash,
+			fees: {
+				base: 0.00001,
+				modified: 0.00001,
+				ancestor: 0.00002,
+				descendant: 0.00003,
+			},
+			depends: [blockHash],
+			spentby: ['d'.repeat(64)],
+			'bip125-replaceable': true,
+			unbroadcast: false,
+		}
+		jsonRpc2.mockResolvedValueOnce(entry)
+
+		await expect(getMempoolEntry({ txId })).resolves.toEqual(entry)
+		expect(jsonRpc2).toHaveBeenCalledWith(
+			bitcoinMainnetBinding,
+			'getmempoolentry',
+			[txId]
+		)
+
+		jsonRpc2.mockResolvedValueOnce({
+			...entry,
+			depends: [txId],
+		})
+		await expect(getMempoolEntry({ txId })).rejects.toThrow('references itself')
+
+		jsonRpc2.mockResolvedValueOnce({
+			...entry,
+			spentby: [blockHash, blockHash],
+		})
+		await expect(getMempoolEntry({ txId })).rejects.toThrow('duplicate mempool descendant')
+	})
+
+	it('loads a coherent direct-node mining template', async () => {
+		const template = {
+			version: 536_870_912,
+			rules: ['csv', 'segwit'],
+			previousblockhash: blockHash,
+			transactions: [{
+				data: '00',
+				txid: txId,
+				hash: parentHash,
+				depends: [],
+				fee: 1_000,
+				sigops: 1,
+				weight: 400,
+			}],
+			coinbasevalue: 312_501_000,
+			target: '0'.repeat(64),
+			mintime: 1_700_000_000,
+			mutable: ['time', 'transactions'],
+			noncerange: '00000000ffffffff',
+			sigoplimit: 80_000,
+			sizelimit: 4_000_000,
+			weightlimit: 4_000_000,
+			curtime: 1_700_000_001,
+			bits: '1a00ffff',
+			height: 840_001,
+		}
+		jsonRpc2.mockResolvedValueOnce(template)
+
+		await expect(getBlockTemplate()).resolves.toEqual(template)
+		expect(jsonRpc2).toHaveBeenCalledWith(
+			bitcoinMainnetBinding,
+			'getblocktemplate',
+			[{ rules: ['segwit'] }]
+		)
+
+		jsonRpc2.mockResolvedValueOnce({
+			...template,
+			transactions: [
+				{
+					...template.transactions[0],
+					depends: [1],
+				},
+			],
+		})
+		await expect(getBlockTemplate()).rejects.toThrow('dependency is not an earlier transaction')
+
+		jsonRpc2.mockResolvedValueOnce({
+			...template,
+			transactions: [
+				template.transactions[0],
+				template.transactions[0],
+			],
+		})
+		await expect(getBlockTemplate()).rejects.toThrow('duplicate block template transaction ID')
+	})
+
+	it('loads smart fee and hashrate observations with bounded authority', async () => {
+		jsonRpc2.mockResolvedValueOnce({
+			feerate: 0.00001,
+			blocks: 6,
+		})
+		await expect(estimateSmartFee({
+			confirmationTarget: 6,
+		})).resolves.toEqual({
+			feerate: 0.00001,
+			blocks: 6,
+		})
+		expect(jsonRpc2).toHaveBeenLastCalledWith(
+			bitcoinMainnetBinding,
+			'estimatesmartfee',
+			[6, 'CONSERVATIVE']
+		)
+
+		jsonRpc2.mockResolvedValueOnce({
+			errors: ['Insufficient data'],
+			blocks: 6,
+		})
+		await expect(estimateSmartFee({
+			confirmationTarget: 6,
+		})).resolves.toMatchObject({
+			errors: ['Insufficient data'],
+		})
+
+		jsonRpc2.mockResolvedValueOnce(600_000_000_000_000_000_000)
+		await expect(getNetworkHashrate({
+			blockWindow: 120,
+		})).resolves.toBe(600_000_000_000_000_000_000)
+		expect(jsonRpc2).toHaveBeenLastCalledWith(
+			bitcoinMainnetBinding,
+			'getnetworkhashps',
+			[120, -1]
+		)
+
+		await expect(estimateSmartFee({ confirmationTarget: 0 })).rejects.toThrow('confirmation target')
+		await expect(getNetworkHashrate({ blockWindow: 0 })).rejects.toThrow('hashrate block window')
 	})
 
 	it('scans transparent address UTXOs with fail-closed validation', async () => {

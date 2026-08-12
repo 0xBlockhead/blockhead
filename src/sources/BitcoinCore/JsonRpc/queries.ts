@@ -3,9 +3,13 @@ import {
 	bitcoinCoreBlock,
 	bitcoinCoreBlockCount,
 	bitcoinCoreBlockHash,
+	bitcoinCoreBlockTemplate,
 	bitcoinCoreMempoolInfo,
+	bitcoinCoreMempoolEntry,
 	bitcoinCoreMempoolTransactionIds,
+	bitcoinCoreNetworkHashrate,
 	bitcoinCoreScanTxOutSet,
+	bitcoinCoreSmartFeeEstimate,
 	bitcoinCoreTransaction,
 	bitcoinCoreValidatedAddress,
 	type BitcoinCoreScanTxOutSet,
@@ -172,6 +176,103 @@ export const getMempoolTransactionIds = async () => {
 		throw new Error(`${Source.BitcoinCore_JsonRpc}: duplicate mempool transaction ID`)
 
 	return transactionIds
+}
+
+export const getMempoolEntry = async ({
+	txId,
+}: {
+	txId: string
+}) => {
+	assertHash(txId, 'mempool transaction ID')
+	const entry = assertEnvelope(
+		'mempool entry',
+		bitcoinCoreMempoolEntry,
+		await jsonRpc2<unknown>(binding, 'getmempoolentry', [txId])
+	)
+	assertHash(entry.wtxid, 'mempool transaction witness hash')
+	const relatedTransactionIds = [...entry.depends, ...entry.spentby]
+	for (const relatedTransactionId of relatedTransactionIds)
+		assertHash(relatedTransactionId, 'mempool related transaction ID')
+	if (new Set(entry.depends).size !== entry.depends.length)
+		throw new Error(`${Source.BitcoinCore_JsonRpc}: duplicate mempool ancestor transaction ID`)
+	if (new Set(entry.spentby).size !== entry.spentby.length)
+		throw new Error(`${Source.BitcoinCore_JsonRpc}: duplicate mempool descendant transaction ID`)
+	if (entry.depends.includes(txId) || entry.spentby.includes(txId))
+		throw new Error(`${Source.BitcoinCore_JsonRpc}: mempool transaction references itself`)
+	for (const [feeKind, fee] of Object.entries(entry.fees))
+		satoshisFromBtc(fee, `mempool ${feeKind} fee`)
+
+	return entry
+}
+
+export const getBlockTemplate = async () => {
+	const template = assertEnvelope(
+		'block template',
+		bitcoinCoreBlockTemplate,
+		await jsonRpc2<unknown>(binding, 'getblocktemplate', [{ rules: ['segwit'] }])
+	)
+	assertHash(template.previousblockhash, 'block template previous block hash')
+	assertHash(template.target, 'block template target')
+	if (!/^[0-9a-f]{8}$/i.test(template.bits))
+		throw new Error(`${Source.BitcoinCore_JsonRpc}: invalid block template compact target`)
+	if (!/^[0-9a-f]{16}$/i.test(template.noncerange))
+		throw new Error(`${Source.BitcoinCore_JsonRpc}: invalid block template nonce range`)
+	assertSafeUnsignedInteger(template.height, 'block template height')
+	assertSafeUnsignedInteger(template.coinbasevalue, 'block template coinbase value')
+	const transactionIds = new Set<string>()
+	for (const [transactionIndex, transaction] of template.transactions.entries()) {
+		assertHash(transaction.txid, 'block template transaction ID')
+		assertHash(transaction.hash, 'block template transaction witness hash')
+		if (!/^(?:[0-9a-f]{2})+$/i.test(transaction.data))
+			throw new Error(`${Source.BitcoinCore_JsonRpc}: invalid block template transaction data`)
+		if (transactionIds.has(transaction.txid))
+			throw new Error(`${Source.BitcoinCore_JsonRpc}: duplicate block template transaction ID`)
+		transactionIds.add(transaction.txid)
+		if (transaction.depends.some((dependency) => dependency < 1 || dependency > transactionIndex))
+			throw new Error(`${Source.BitcoinCore_JsonRpc}: block template transaction dependency is not an earlier transaction`)
+	}
+
+	return template
+}
+
+export const estimateSmartFee = async ({
+	confirmationTarget,
+}: {
+	confirmationTarget: number
+}) => {
+	if (!Number.isSafeInteger(confirmationTarget) || confirmationTarget < 1 || confirmationTarget > 1_008)
+		throw new Error(`${Source.BitcoinCore_JsonRpc}: confirmation target must be an integer from 1 through 1008`)
+	const estimate = assertEnvelope(
+		'smart fee estimate',
+		bitcoinCoreSmartFeeEstimate,
+		await jsonRpc2<unknown>(binding, 'estimatesmartfee', [confirmationTarget, 'CONSERVATIVE'])
+	)
+	if (estimate.blocks < 1)
+		throw new Error(`${Source.BitcoinCore_JsonRpc}: smart fee estimate returned no confirmation horizon`)
+	if (estimate.feerate != null)
+		satoshisFromBtc(estimate.feerate, 'smart fee BTC/kvB rate')
+	if (estimate.feerate == null && (estimate.errors == null || estimate.errors.length === 0))
+		throw new Error(`${Source.BitcoinCore_JsonRpc}: smart fee estimate has neither a rate nor an explicit error`)
+
+	return estimate
+}
+
+export const getNetworkHashrate = async ({
+	blockWindow = 120,
+}: {
+	blockWindow?: number
+} = {}) => {
+	if (!Number.isSafeInteger(blockWindow) || blockWindow < 1 || blockWindow > 2_016)
+		throw new Error(`${Source.BitcoinCore_JsonRpc}: hashrate block window must be an integer from 1 through 2016`)
+	const hashesPerSecond = assertEnvelope(
+		'network hashrate',
+		bitcoinCoreNetworkHashrate,
+		await jsonRpc2<unknown>(binding, 'getnetworkhashps', [blockWindow, -1])
+	)
+	if (!Number.isFinite(hashesPerSecond))
+		throw new Error(`${Source.BitcoinCore_JsonRpc}: network hashrate is not finite`)
+
+	return hashesPerSecond
 }
 
 export const getTransparentAddressUtxos = async ({
