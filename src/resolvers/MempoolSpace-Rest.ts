@@ -582,6 +582,10 @@ export default {
 									},
 									indexInTransaction: utxo.vout,
 								},
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.UtxoOutput, [], 'valueSats')]: BigInt(utxo.value),
+									[entityFieldAddressKey(EntityType.UtxoOutput, [], 'isSpent')]: false,
+								},
 							}))
 					},
 				},

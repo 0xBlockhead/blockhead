@@ -284,6 +284,10 @@ describe('MempoolSpace UTXO', () => {
 				},
 				indexInTransaction: 2,
 			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.UtxoOutput, [], 'valueSats')]: 9_000n,
+				[entityFieldAddressKey(EntityType.UtxoOutput, [], 'isSpent')]: false,
+			},
 		}])
 	})
 
