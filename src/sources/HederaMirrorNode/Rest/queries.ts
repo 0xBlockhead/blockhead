@@ -11,6 +11,7 @@ import {
 	type HederaMirrorNodeAccountTokens,
 	type HederaMirrorNodeBlock,
 	type HederaMirrorNodeBlocks,
+	type HederaMirrorNodeContract,
 	type HederaMirrorNodeContractResult,
 	type HederaMirrorNodeCryptoAllowances,
 	type HederaMirrorNodeNetworkExchangeRate,
@@ -798,6 +799,24 @@ export const getTokenNft = async (
 	)
 		throw new Error('HederaMirrorNode_Rest: token NFT response does not match request')
 	return nft
+}
+
+export const getContract = async (
+	contractId: string
+) => {
+	if (!accountIdPattern.test(contractId))
+		throw new Error('HederaMirrorNode_Rest: invalid contract selector')
+
+	const contract = await sourceGetHederaJson<HederaMirrorNodeContract>(
+		new URL(
+			`/api/v1/contracts/${encodeURIComponent(contractId)}`,
+			firstHttpUrlForBinding(binding)
+		).toString()
+	)
+	if (contract.contract_id !== contractId)
+		throw new Error('HederaMirrorNode_Rest: contract response does not match request')
+
+	return contract
 }
 
 export const getContractResultByTransactionIdNonce = async (

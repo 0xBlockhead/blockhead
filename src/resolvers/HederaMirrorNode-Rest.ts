@@ -11,6 +11,7 @@ import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
 import type {
 	HederaMirrorNodeBlock,
+	HederaMirrorNodeContract,
 	HederaMirrorNodeContractResult,
 	HederaMirrorNodeCustomFees,
 	HederaMirrorNodeNetworkExchangeRate,
@@ -98,6 +99,43 @@ const timestampMs = (
 		fieldName
 	)
 }
+
+const contractSnapshot = (
+	$network: EntitySelector<typeof schema, EntityType.Network>,
+	contract: HederaMirrorNodeContract
+) => ({
+	contractId: hederaEntityId(contract.contract_id, 'contract ID'),
+	...(contract.evm_address != null && {
+		evmAddress: (
+			contract.evm_address.startsWith('0x') ?
+				contract.evm_address.toLowerCase()
+			:
+				`0x${contract.evm_address.toLowerCase()}`
+		),
+	}),
+	...(contract.created_timestamp != null && {
+		createdTimestamp: contract.created_timestamp,
+	}),
+	$$timestamps: [{
+		[EntityMetaKey.Selector]: {
+			$contract: {
+				$network,
+				contractId: contract.contract_id,
+			},
+			timestampMs: timestampMs(contract.timestamp.from, 'contract valid-from timestamp'),
+			source: Source.HederaMirrorNode_Rest,
+		},
+		[EntityMetaKey.Fields]: {
+			[entityFieldAddressKey(EntityType.HederaContract_Timestamp, [], 'deleted')]: contract.deleted ?? false,
+			...(contract.memo != null && {
+				[entityFieldAddressKey(EntityType.HederaContract_Timestamp, [], 'memo')]: contract.memo,
+			}),
+			...(contract.expiration_timestamp != null && {
+				[entityFieldAddressKey(EntityType.HederaContract_Timestamp, [], 'expirationTimestamp')]: contract.expiration_timestamp,
+			}),
+		},
+	}],
+})
 
 const hederaContinuation = (
 	next: string | null,
@@ -2547,6 +2585,24 @@ export default {
 			waitForExpiry: (observation) => observation.waitForExpiry,
 			signatureCount: (observation) => observation.signatureCount,
 			$executionTransaction: (observation) => observation.$executionTransaction,
+		}),
+
+		defineResolver({
+			entityType: EntityType.HederaContract,
+			resolve: {
+				NetworkContractId: {
+					resolve: async ({ $network, contractId }) => {
+						assertHederaMainnet($network)
+						const { getContract } = await import('$/sources/HederaMirrorNode/Rest/queries.ts')
+						return contractSnapshot($network, await getContract(contractId))
+					},
+				},
+			},
+		})({
+			contractId: (contract) => contract.contractId,
+			evmAddress: (contract) => contract.evmAddress,
+			createdTimestamp: (contract) => contract.createdTimestamp,
+			$$timestamps: (contract) => contract.$$timestamps,
 		}),
 	],
 } satisfies RegisteredSourceResolverModule

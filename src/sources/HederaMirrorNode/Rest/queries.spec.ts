@@ -22,6 +22,7 @@ vi.mock('$/sources/_runtime/http.ts', async (importOriginal) => ({
 
 const {
 	getBlock,
+	getContract,
 	getNetworkExchangeRate,
 	getNetworkFees,
 	getNetworkStake,
@@ -314,5 +315,43 @@ describe('Hedera Mirror network collections', () => {
 			'https://mainnet-public.mirrornode.hedera.com/api/v1/network/fees',
 		])
 		await expect(getNetworkSupply()).rejects.toThrow('HTTP 503')
+	})
+})
+
+describe('Hedera Mirror contract detail', () => {
+	beforeEach(() => {
+		sourceGetText.mockReset()
+	})
+
+	it('preserves exact native contract identity and observation coordinates', async () => {
+		sourceGetText.mockResolvedValueOnce(JSON.stringify({
+			contract_id: '0.0.359',
+			created_timestamp: '1700000000.000000001',
+			deleted: false,
+			evm_address: '0000000000000000000000000000000000000167',
+			expiration_timestamp: '1800000000.000000001',
+			memo: 'contract memo',
+			timestamp: {
+				from: '1710000000.123456789',
+				to: null,
+			},
+		}))
+
+		await expect(getContract('0.0.359')).resolves.toMatchObject({
+			contract_id: '0.0.359',
+			timestamp: {
+				from: '1710000000.123456789',
+			},
+		})
+		expect(sourceGetText).toHaveBeenCalledWith(
+			binding,
+			'https://mainnet-public.mirrornode.hedera.com/api/v1/contracts/0.0.359'
+		)
+	})
+
+	it('rejects substituted contract identities', async () => {
+		sourceGetText.mockResolvedValueOnce('{"contract_id":"0.0.360"}')
+
+		await expect(getContract('0.0.359')).rejects.toThrow('contract response does not match request')
 	})
 })

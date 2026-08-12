@@ -351,6 +351,55 @@ describe('Hedera Mirror Node block query', () => {
 	})
 })
 
+describe('Hedera Mirror Node contract hierarchy', () => {
+	beforeEach(() => {
+		sourceFetch.mockReset()
+	})
+
+	it('resolves contract identity and source-clocked lifecycle observation', async () => {
+		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+			contract_id: '0.0.359',
+			created_timestamp: '1700000000.000000001',
+			deleted: false,
+			evm_address: '0000000000000000000000000000000000000167',
+			expiration_timestamp: '1800000000.000000001',
+			memo: 'contract memo',
+			timestamp: {
+				from: '1710000000.123456789',
+				to: null,
+			},
+		})))
+		const resolver = hederaMirrorNode.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.HederaContract
+		))
+		if (resolver == null)
+			throw new Error('missing HederaContract resolver')
+
+		const snapshot = await resolver.resolve.NetworkContractId.resolve({
+			$network: network,
+			contractId: '0.0.359',
+		}, context)
+
+		expect(resolver.projections.contractId(snapshot)).toBe('0.0.359')
+		expect(resolver.projections.evmAddress(snapshot)).toBe('0x0000000000000000000000000000000000000167')
+		expect(resolver.projections.$$timestamps(snapshot)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$contract: {
+					$network: network,
+					contractId: '0.0.359',
+				},
+				timestampMs: 1710000000123,
+				source: Source.HederaMirrorNode_Rest,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.HederaContract_Timestamp, [], 'deleted')]: false,
+				[entityFieldAddressKey(EntityType.HederaContract_Timestamp, [], 'memo')]: 'contract memo',
+				[entityFieldAddressKey(EntityType.HederaContract_Timestamp, [], 'expirationTimestamp')]: '1800000000.000000001',
+			},
+		}])
+	})
+})
+
 describe('Hedera Mirror Node topic lifecycle', () => {
 	beforeEach(() => {
 		sourceFetch.mockReset()

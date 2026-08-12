@@ -35063,12 +35063,14 @@ export const schema = {
 					type: EntityFieldType.Primitive,
 					valueType: "evmAddress",
 					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.HederaMirrorNode_Rest],
 				},
 				"createdTimestamp": {
 					label: 'created timestamp',
 					type: EntityFieldType.Primitive,
 					valueType: "string",
 					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.HederaMirrorNode_Rest],
 				},
 				"$$results": {
 					label: 'results',
@@ -35093,6 +35095,7 @@ export const schema = {
 					type: EntityFieldType.EntitiesReference,
 					entityType: EntityType.HederaContract_Timestamp,
 					cardinality: EntityFieldCardinality.Many,
+					defaultSources: [Source.HederaMirrorNode_Rest],
 				},
 			})({
 				selectors: {
@@ -35172,6 +35175,7 @@ export const schema = {
 					type: EntityFieldType.Primitive,
 					valueType: "boolean",
 					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.HederaMirrorNode_Rest],
 				},
 				"fileId": {
 					label: 'file ID',
@@ -35184,6 +35188,7 @@ export const schema = {
 					type: EntityFieldType.Primitive,
 					valueType: "string",
 					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.HederaMirrorNode_Rest],
 				},
 				"obtainerId": {
 					label: 'obtainer ID',
@@ -35196,6 +35201,7 @@ export const schema = {
 					type: EntityFieldType.Primitive,
 					valueType: "string",
 					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.HederaMirrorNode_Rest],
 				},
 				"autoRenewPeriodSeconds": {
 					label: 'auto renew period seconds',

@@ -3,6 +3,7 @@
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export default entity({
@@ -35,6 +36,9 @@ export default entity({
 	deleted: {
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.HederaMirrorNode_Rest,
+		],
 	},
 	fileId: {
 		primitiveType: type('string'),
@@ -43,6 +47,9 @@ export default entity({
 	memo: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.HederaMirrorNode_Rest,
+		],
 	},
 	obtainerId: {
 		primitiveType: type('string'),
@@ -51,6 +58,9 @@ export default entity({
 	expirationTimestamp: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.HederaMirrorNode_Rest,
+		],
 	},
 	autoRenewPeriodSeconds: {
 		primitiveType: type('number'),

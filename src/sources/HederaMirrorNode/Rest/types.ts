@@ -456,6 +456,20 @@ export type HederaMirrorNodeToken = {
 	wipe_key: unknown | null
 }
 
+// https://docs.hedera.com/api-reference/contracts/get-contract-by-id
+export type HederaMirrorNodeContract = {
+	contract_id: string
+	created_timestamp: string | null
+	deleted: boolean | null
+	evm_address: string | null
+	expiration_timestamp: string | null
+	memo: string | null
+	timestamp: {
+		from: string
+		to: string | null
+	}
+}
+
 // https://docs.hedera.com/api-reference/contracts/get-the-contract-result-from-a-contract-on-the-network-for-a-given-transactionid-or-ethereum-transaction-hash
 export type HederaMirrorNodeContractResult = {
 	access_list: unknown
