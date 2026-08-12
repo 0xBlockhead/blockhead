@@ -44,5 +44,7 @@ test('public graph funding capacity remains visibly distinct from local LND bala
 		timeout: 120_000,
 	})
 	await expect(page.locator('#main')).toContainText('250,000')
+	await expect(page.locator('#main')).toContainText('Fee rate ppm')
+	await expect(page.locator('#main')).toContainText('125')
 	await expect(page.locator('#main')).not.toContainText('Local directional balance sats')
 })
