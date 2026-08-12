@@ -35,6 +35,9 @@ import {
 	getBlocks,
 	getContractResultByTransactionIdNonce,
 	getSchedule,
+	getTopic,
+	getTopicMessage,
+	getTopicMessages,
 	getTransactionByIdNonce,
 	getTransactions,
 } from '$/sources/HederaMirrorNode/Rest/queries.ts'
@@ -49,6 +52,9 @@ import type {
 	HederaMirrorNodeNftAllowances,
 	HederaMirrorNodeNfts,
 	HederaMirrorNodeSchedule,
+	HederaMirrorNodeTopic,
+	HederaMirrorNodeTopicMessage,
+	HederaMirrorNodeTopicMessages,
 	HederaMirrorNodeTokenAllowances,
 	HederaMirrorNodeTransaction,
 	HederaMirrorNodeTransactions,
@@ -193,6 +199,44 @@ const nftFixture = {
 	token_id: '0.0.701',
 }
 
+const topicFixture = {
+	admin_key: {
+		_type: 'ED25519',
+		key: 'admin-key',
+	},
+	auto_renew_account: '0.0.98',
+	auto_renew_period: 7_776_000,
+	created_timestamp: '1710000000.000000001',
+	custom_fees: {
+		fixed_fees: [],
+	},
+	deleted: false,
+	fee_exempt_key_list: [],
+	fee_schedule_key: null,
+	memo: 'topic memo',
+	running_hash: 'running-hash',
+	sequence_number: '7',
+	submit_key: null,
+	timestamp: {
+		from: '1710000000.000000001',
+		to: null,
+	},
+	topic_id: '0.0.700',
+} satisfies HederaMirrorNodeTopic
+
+const topicMessageFixture = {
+	chunk_info: {
+		number: 1,
+		total: 1,
+	},
+	consensus_timestamp: '1710000001.000000002',
+	message: 'bWVzc2FnZQ==',
+	payer_account_id: '0.0.98',
+	running_hash: 'message-running-hash',
+	sequence_number: '7',
+	topic_id: '0.0.700',
+} satisfies HederaMirrorNodeTopicMessage
+
 const binding = bindings[Source.HederaMirrorNode_Rest][0]
 
 const network = {
@@ -264,6 +308,140 @@ describe('Hedera Mirror Node block query', () => {
 		)
 		await expect(getBlock('hash/value')).rejects.toThrow('invalid block selector')
 		await expect(getBlock(' ')).rejects.toThrow('invalid block selector')
+	})
+})
+
+describe('Hedera Mirror Node topic lifecycle', () => {
+	beforeEach(() => {
+		sourceFetch.mockReset()
+	})
+
+	it('uses native topic detail, message history, and direct message routes', async () => {
+		sourceFetch
+			.mockResolvedValueOnce(new Response(JSON.stringify(topicFixture)))
+			.mockResolvedValueOnce(new Response(JSON.stringify({
+				messages: [topicMessageFixture],
+				links: {
+					next: '/api/v1/topics/0.0.700/messages?limit=1&order=desc&sequencenumber=lt%3A7',
+				},
+			} satisfies HederaMirrorNodeTopicMessages)))
+			.mockResolvedValueOnce(new Response(JSON.stringify(topicMessageFixture)))
+
+		await expect(getTopic('0.0.700')).resolves.toEqual(topicFixture)
+		await expect(getTopicMessages('0.0.700', 1)).resolves.toEqual({
+			messages: [topicMessageFixture],
+			links: {
+				next: '/api/v1/topics/0.0.700/messages?limit=1&order=desc&sequencenumber=lt%3A7',
+			},
+		})
+		await expect(getTopicMessage('0.0.700', 7n)).resolves.toEqual(topicMessageFixture)
+		expect(sourceFetch.mock.calls.map(([, url]) => url)).toEqual([
+			'https://mainnet-public.mirrornode.hedera.com/api/v1/topics/0.0.700',
+			'https://mainnet-public.mirrornode.hedera.com/api/v1/topics/0.0.700/messages?limit=1&order=desc',
+			'https://mainnet-public.mirrornode.hedera.com/api/v1/topics/0.0.700/messages/7',
+		])
+	})
+
+	it('materializes topic observations, message hierarchy, and continuation', async () => {
+		const topicResolver = hederaMirrorNode.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.HederaTopic
+			&& '$$timestamps' in candidate.projections
+		))
+		const topicMessagesResolver = hederaMirrorNode.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.HederaTopic
+			&& '$$messages' in candidate.projections
+		))
+		const topicMessageResolver = hederaMirrorNode.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.HederaTopicMessage
+			&& 'message' in candidate.projections
+		))
+		if (
+			topicResolver == null
+			|| topicMessagesResolver == null
+			|| topicMessageResolver == null
+		)
+			throw new Error('Hedera Mirror Node topic resolvers are missing')
+
+		sourceFetch
+			.mockResolvedValueOnce(new Response(JSON.stringify(topicFixture)))
+			.mockResolvedValueOnce(new Response(JSON.stringify({
+				messages: [topicMessageFixture],
+				links: {
+					next: '/api/v1/topics/0.0.700/messages?limit=1&order=desc&sequencenumber=lt%3A7',
+				},
+			} satisfies HederaMirrorNodeTopicMessages)))
+			.mockResolvedValueOnce(new Response(JSON.stringify(topicMessageFixture)))
+
+		const topic = {
+			$network: network,
+			topicId: '0.0.700',
+		}
+		const resolvedTopic = await topicResolver.resolve.NetworkTopicId?.resolve(topic, context)
+		expect(topicResolver.projections.$$timestamps?.(resolvedTopic)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$topic: topic,
+					timestampMs: 1_710_000_000_000,
+					source: Source.HederaMirrorNode_Rest,
+				},
+				[EntityMetaKey.Fields]: expect.objectContaining({
+					[entityFieldAddressKey(EntityType.HederaTopic_Timestamp, [], 'memo')]: 'topic memo',
+					[entityFieldAddressKey(EntityType.HederaTopic_Timestamp, [], 'sequenceNumber')]: 7n,
+				}),
+			},
+		])
+
+		const page = await topicMessagesResolver.resolve.NetworkTopicId?.resolve(topic, {
+			...context,
+			pagination: {
+				limit: 1,
+			},
+		})
+		expect(topicMessagesResolver.projections.$$messages.select(page, topic, context)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$topic: topic,
+					sequenceNumber: 7n,
+				},
+				[EntityMetaKey.Fields]: expect.objectContaining({
+					[entityFieldAddressKey(EntityType.HederaTopicMessage, [], 'consensusTimestamp')]: '1710000001.000000002',
+					[entityFieldAddressKey(EntityType.HederaTopicMessage, [], 'message')]: 'bWVzc2FnZQ==',
+				}),
+			},
+		])
+		expect(topicMessagesResolver.projections.$$messages.continuation(page, topic, {
+			...context,
+			pagination: {
+				limit: 1,
+			},
+		})).toMatchObject({
+			operation: 'topic-messages',
+			target: '0.0.700',
+			terminal: false,
+		})
+
+		await expect(topicMessageResolver.resolve.TopicSequenceNumber?.resolve({
+			$topic: topic,
+			sequenceNumber: 7n,
+		}, context)).resolves.toEqual(expect.objectContaining({
+			[entityFieldAddressKey(EntityType.HederaTopicMessage, [], 'payerAccount')]: '0.0.98',
+			[entityFieldAddressKey(EntityType.HederaTopicMessage, [], 'message')]: 'bWVzc2FnZQ==',
+		}))
+	})
+
+	it('rejects substituted topic and message identities before projection', async () => {
+		sourceFetch
+			.mockResolvedValueOnce(new Response(JSON.stringify({
+				...topicFixture,
+				topic_id: '0.0.701',
+			})))
+			.mockResolvedValueOnce(new Response(JSON.stringify({
+				...topicMessageFixture,
+				sequence_number: '8',
+			})))
+
+		await expect(getTopic('0.0.700')).rejects.toThrow('topic response does not match request')
+		await expect(getTopicMessage('0.0.700', 7n)).rejects.toThrow('topic message response does not match request')
 	})
 })
 

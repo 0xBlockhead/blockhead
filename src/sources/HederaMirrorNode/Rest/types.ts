@@ -355,6 +355,45 @@ export type HederaMirrorNodeSchedule = {
 	wait_for_expiry: boolean
 }
 
+// https://docs.hedera.com/api-reference/topics/get-topic-by-id
+export type HederaMirrorNodeTopic = {
+	admin_key: unknown | null
+	auto_renew_account: string | null
+	auto_renew_period: number | null
+	created_timestamp: string | null
+	custom_fees: unknown | null
+	deleted: boolean | null
+	fee_exempt_key_list: unknown[]
+	fee_schedule_key: unknown | null
+	memo: string
+	running_hash: string | null
+	sequence_number: string | null
+	submit_key: unknown | null
+	timestamp: {
+		from: string
+		to: string | null
+	}
+	topic_id: string | null
+}
+
+// https://docs.hedera.com/api-reference/topics/get-topic-message-by-id-and-sequence-number
+export type HederaMirrorNodeTopicMessage = {
+	chunk_info: unknown | null
+	consensus_timestamp: string
+	message: string
+	payer_account_id: string | null
+	running_hash: string
+	sequence_number: string
+	topic_id: string | null
+}
+
+export type HederaMirrorNodeTopicMessages = {
+	messages: HederaMirrorNodeTopicMessage[]
+	links: {
+		next: string | null
+	}
+}
+
 // https://docs.hedera.com/api-reference/contracts/get-the-contract-result-from-a-contract-on-the-network-for-a-given-transactionid-or-ethereum-transaction-hash
 export type HederaMirrorNodeContractResult = {
 	access_list: unknown

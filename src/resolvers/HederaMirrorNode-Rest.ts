@@ -18,6 +18,8 @@ import type {
 	HederaMirrorNodeNetworkSupply,
 	HederaMirrorNodeNode,
 	HederaMirrorNodeSchedule,
+	HederaMirrorNodeTopic,
+	HederaMirrorNodeTopicMessage,
 	HederaMirrorNodeTransaction,
 } from '$/sources/HederaMirrorNode/Rest/types.ts'
 
@@ -603,6 +605,145 @@ const transactionJoins = async (
 		block,
 		schedule,
 		contractResult,
+	}
+}
+
+const topicObservation = (
+	network: EntitySelector<typeof schema, EntityType.Network>,
+	topic: HederaMirrorNodeTopic
+) => {
+	const topicId = hederaEntityId(topic.topic_id ?? '', 'topic ID')
+	const topicTimestampMs = timestampMs(topic.timestamp.from, 'topic timestamp')
+	if (topic.timestamp.to != null)
+		timestampMs(topic.timestamp.to, 'topic timestamp')
+	if (topic.auto_renew_account != null)
+		hederaEntityId(topic.auto_renew_account, 'topic auto renew account')
+	if (topic.auto_renew_period != null)
+		nonnegativeSafeInteger(topic.auto_renew_period, 'topic auto renew period')
+	if (topic.sequence_number != null)
+		nonnegativeBigInt(topic.sequence_number, 'topic sequence number')
+
+	return {
+		$topic: {
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				topicId,
+			},
+		},
+		timestampMs: topicTimestampMs,
+		source: Source.HederaMirrorNode_Rest,
+		memo: topic.memo,
+		...(topic.admin_key != null && {
+			adminKey: topic.admin_key,
+		}),
+		...(topic.submit_key != null && {
+			submitKey: topic.submit_key,
+		}),
+		...(topic.auto_renew_account != null && {
+			autoRenewAccountId: topic.auto_renew_account,
+		}),
+		...(topic.auto_renew_period != null && {
+			autoRenewPeriodSeconds: topic.auto_renew_period,
+		}),
+		...(topic.fee_schedule_key != null && {
+			feeScheduleKey: topic.fee_schedule_key,
+		}),
+		feeExemptKeys: topic.fee_exempt_key_list,
+		...(topic.custom_fees != null && {
+			customFees: topic.custom_fees,
+		}),
+		...(topic.deleted != null && {
+			deleted: topic.deleted,
+		}),
+		...(topic.sequence_number != null && {
+			sequenceNumber: nonnegativeBigInt(topic.sequence_number, 'topic sequence number'),
+		}),
+		...(topic.running_hash != null && {
+			runningHash: topic.running_hash,
+		}),
+	}
+}
+
+const topicSnapshot = (
+	network: EntitySelector<typeof schema, EntityType.Network>,
+	topic: HederaMirrorNodeTopic
+) => {
+	const observation = topicObservation(network, topic)
+	const topicSelector = observation.$topic[EntityMetaKey.Selector]
+
+	return {
+		topicId: topicSelector.topicId,
+		$$timestamps: [{
+			[EntityMetaKey.Selector]: {
+				$topic: topicSelector,
+				timestampMs: observation.timestampMs,
+				source: observation.source,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.HederaTopic_Timestamp, [], 'memo')]: observation.memo,
+				...(observation.adminKey != null && {
+					[entityFieldAddressKey(EntityType.HederaTopic_Timestamp, [], 'adminKey')]: observation.adminKey,
+				}),
+				...(observation.submitKey != null && {
+					[entityFieldAddressKey(EntityType.HederaTopic_Timestamp, [], 'submitKey')]: observation.submitKey,
+				}),
+				...(observation.autoRenewAccountId != null && {
+					[entityFieldAddressKey(EntityType.HederaTopic_Timestamp, [], 'autoRenewAccountId')]: observation.autoRenewAccountId,
+				}),
+				...(observation.autoRenewPeriodSeconds != null && {
+					[entityFieldAddressKey(EntityType.HederaTopic_Timestamp, [], 'autoRenewPeriodSeconds')]: observation.autoRenewPeriodSeconds,
+				}),
+				...(observation.feeScheduleKey != null && {
+					[entityFieldAddressKey(EntityType.HederaTopic_Timestamp, [], 'feeScheduleKey')]: observation.feeScheduleKey,
+				}),
+				[entityFieldAddressKey(EntityType.HederaTopic_Timestamp, [], 'feeExemptKeys')]: observation.feeExemptKeys,
+				...(observation.customFees != null && {
+					[entityFieldAddressKey(EntityType.HederaTopic_Timestamp, [], 'customFees')]: observation.customFees,
+				}),
+				...(observation.deleted != null && {
+					[entityFieldAddressKey(EntityType.HederaTopic_Timestamp, [], 'deleted')]: observation.deleted,
+				}),
+				...(observation.sequenceNumber != null && {
+					[entityFieldAddressKey(EntityType.HederaTopic_Timestamp, [], 'sequenceNumber')]: observation.sequenceNumber,
+				}),
+				...(observation.runningHash != null && {
+					[entityFieldAddressKey(EntityType.HederaTopic_Timestamp, [], 'runningHash')]: observation.runningHash,
+				}),
+			},
+		}],
+	}
+}
+
+const topicMessageFields = (
+	topic: {
+		$network: EntitySelector<typeof schema, EntityType.Network>
+		topicId: string
+	},
+	message: HederaMirrorNodeTopicMessage
+) => {
+	if (message.topic_id !== topic.topicId)
+		throw new Error('HederaMirrorNode_Rest: topic message does not match subject')
+	const sequenceNumber = nonnegativeBigInt(message.sequence_number, 'topic message sequence number')
+	timestampMs(message.consensus_timestamp, 'topic message consensus timestamp')
+	if (message.payer_account_id != null)
+		hederaEntityId(message.payer_account_id, 'topic message payer account')
+
+	return {
+		[EntityMetaKey.Selector]: {
+			$topic: topic,
+			sequenceNumber,
+		},
+		[EntityMetaKey.Fields]: {
+			[entityFieldAddressKey(EntityType.HederaTopicMessage, [], 'consensusTimestamp')]: message.consensus_timestamp,
+			[entityFieldAddressKey(EntityType.HederaTopicMessage, [], 'runningHash')]: message.running_hash,
+			...(message.payer_account_id != null && {
+				[entityFieldAddressKey(EntityType.HederaTopicMessage, [], 'payerAccount')]: message.payer_account_id,
+			}),
+			[entityFieldAddressKey(EntityType.HederaTopicMessage, [], 'message')]: message.message,
+			...(message.chunk_info != null && {
+				[entityFieldAddressKey(EntityType.HederaTopicMessage, [], 'chunkInfo')]: message.chunk_info,
+			}),
+		},
 	}
 }
 
@@ -1730,6 +1871,118 @@ export default {
 			transactionBody: (schedule) => schedule.transactionBody,
 			$$timestamps: (schedule) => schedule.$$timestamps,
 			$$signatures: (schedule) => schedule.$$signatures,
+		}),
+
+		defineResolver({
+			entityType: EntityType.HederaTopic,
+			resolve: {
+				NetworkTopicId: {
+					resolve: async ({ $network, topicId }) => {
+						assertHederaMainnet($network)
+						const { getTopic } = await import('$/sources/HederaMirrorNode/Rest/queries.ts')
+						return topicSnapshot(
+							$network,
+							await getTopic(topicId)
+						)
+					},
+				},
+			},
+		})({
+			topicId: (topic) => topic.topicId,
+			$$timestamps: (topic) => topic.$$timestamps,
+		}),
+
+		defineResolver({
+			entityType: EntityType.HederaTopic,
+			resolve: {
+				NetworkTopicId: {
+					resolve: async (topic, context) => {
+						assertHederaMainnet(topic.$network)
+						const { getTopicMessages } = await import('$/sources/HederaMirrorNode/Rest/queries.ts')
+						return getTopicMessages(
+							topic.topicId,
+							resolverContextRowLimit(context),
+							context.providerContinuationToken
+						)
+					},
+				},
+			},
+		})({
+			$$messages: {
+				select: (page, topic) => page.messages.map((message) => (
+					topicMessageFields(topic, message)
+				)),
+				continuation: (page, topic, context) => hederaContinuation(
+					page.links.next,
+					context.providerContinuationToken,
+					'topic-messages',
+					topic.topicId
+				),
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.HederaTopic_Timestamp,
+			resolve: {
+				TopicTimestampMsSource: {
+					resolve: async ({
+						$topic,
+						timestampMs: requestedTimestampMs,
+						source,
+					}) => {
+						assertHederaMainnet($topic.$network)
+						assertHederaMirrorSource(source)
+						const { getTopic } = await import('$/sources/HederaMirrorNode/Rest/queries.ts')
+						const observation = topicObservation(
+							$topic.$network,
+							await getTopic($topic.topicId)
+						)
+						if (observation.timestampMs !== requestedTimestampMs)
+							throw new Error('HederaMirrorNode_Rest: topic observation clock mismatch')
+						return observation
+					},
+				},
+			},
+		})({
+			$topic: (observation) => observation.$topic,
+			timestampMs: (observation) => observation.timestampMs,
+			source: (observation) => observation.source,
+			memo: (observation) => observation.memo,
+			adminKey: (observation) => observation.adminKey,
+			submitKey: (observation) => observation.submitKey,
+			autoRenewAccountId: (observation) => observation.autoRenewAccountId,
+			autoRenewPeriodSeconds: (observation) => observation.autoRenewPeriodSeconds,
+			feeScheduleKey: (observation) => observation.feeScheduleKey,
+			feeExemptKeys: (observation) => observation.feeExemptKeys,
+			customFees: (observation) => observation.customFees,
+			deleted: (observation) => observation.deleted,
+			sequenceNumber: (observation) => observation.sequenceNumber,
+			runningHash: (observation) => observation.runningHash,
+		}),
+
+		defineResolver({
+			entityType: EntityType.HederaTopicMessage,
+			resolve: {
+				TopicSequenceNumber: {
+					resolve: async ({ $topic, sequenceNumber }) => {
+						assertHederaMainnet($topic.$network)
+						const { getTopicMessage } = await import('$/sources/HederaMirrorNode/Rest/queries.ts')
+						return topicMessageFields(
+							$topic,
+							await getTopicMessage(
+								$topic.topicId,
+								sequenceNumber
+							)
+						)[EntityMetaKey.Fields]
+					},
+				},
+			},
+		})({
+			consensusTimestamp: (message) => message[entityFieldAddressKey(EntityType.HederaTopicMessage, [], 'consensusTimestamp')],
+			runningHash: (message) => message[entityFieldAddressKey(EntityType.HederaTopicMessage, [], 'runningHash')],
+			payerAccount: (message) => message[entityFieldAddressKey(EntityType.HederaTopicMessage, [], 'payerAccount')],
+			message: (message) => message[entityFieldAddressKey(EntityType.HederaTopicMessage, [], 'message')],
+			chunkInfo: (message) => message[entityFieldAddressKey(EntityType.HederaTopicMessage, [], 'chunkInfo')],
 		}),
 
 		defineResolver({

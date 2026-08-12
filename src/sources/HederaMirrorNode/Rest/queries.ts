@@ -21,6 +21,9 @@ import {
 	type HederaMirrorNodeNfts,
 	type HederaMirrorNodeNodes,
 	type HederaMirrorNodeSchedule,
+	type HederaMirrorNodeTopic,
+	type HederaMirrorNodeTopicMessage,
+	type HederaMirrorNodeTopicMessages,
 	type HederaMirrorNodeTokenAllowances,
 	type HederaMirrorNodeTransactionResponse,
 	type HederaMirrorNodeTransactions,
@@ -52,6 +55,7 @@ const bigintWireKeys = new Set([
 	'stake_rewarded',
 	'stake_total',
 	'staking_reward_start_threshold',
+	'sequence_number',
 	'total_supply',
 	'unreserved_staking_reward_balance',
 	'valid_duration_seconds',
@@ -609,6 +613,98 @@ export const getSchedule = (
 			firstHttpUrlForBinding(binding)
 		).toString()
 	)
+}
+
+const topicMessagesUrl = (
+	topicId: string,
+	limit: number,
+	continuationToken?: string
+) => {
+	if (!accountIdPattern.test(topicId))
+		throw new Error('HederaMirrorNode_Rest: invalid topic selector')
+	if (!Number.isSafeInteger(limit) || limit < 1 || limit > 100)
+		throw new Error('HederaMirrorNode_Rest: invalid topic message list limit')
+
+	const url = paginatedUrl(
+		`/api/v1/topics/${encodeURIComponent(topicId)}/messages`,
+		continuationToken
+	)
+	if (continuationToken == null) {
+		url.searchParams.set('limit', String(limit))
+		url.searchParams.set('order', 'desc')
+	} else if (
+		url.searchParams.getAll('limit').length !== 1
+		|| url.searchParams.get('limit') !== String(limit)
+		|| url.searchParams.getAll('order').length !== 1
+		|| url.searchParams.get('order') !== 'desc'
+		|| url.searchParams.getAll('sequencenumber').some((value) => (
+			!/^(?:(?:eq|gt|gte|lt|lte):)?\d{1,19}$/.test(value)
+		))
+		|| url.searchParams.getAll('timestamp').some((value) => (
+			!/^(?:(?:eq|gt|gte|lt|lte|ne):)?\d{1,10}(?:\.\d{1,9})?$/.test(value)
+		))
+		|| [...url.searchParams.keys()].some((key) => ![
+			'limit',
+			'order',
+			'sequencenumber',
+			'timestamp',
+		].includes(key))
+	)
+		throw new Error('HederaMirrorNode_Rest: invalid topic message continuation')
+
+	return url
+}
+
+export const getTopic = async (
+	topicId: string
+) => {
+	if (!accountIdPattern.test(topicId))
+		throw new Error('HederaMirrorNode_Rest: invalid topic selector')
+
+	const topic = await sourceGetHederaJson<HederaMirrorNodeTopic>(
+		new URL(
+			`/api/v1/topics/${encodeURIComponent(topicId)}`,
+			firstHttpUrlForBinding(binding)
+		).toString()
+	)
+	if (topic.topic_id !== topicId)
+		throw new Error('HederaMirrorNode_Rest: topic response does not match request')
+	return topic
+}
+
+export const getTopicMessages = (
+	topicId: string,
+	limit: number,
+	continuationToken?: string
+) => sourceGetHederaJson<HederaMirrorNodeTopicMessages>(
+	topicMessagesUrl(
+		topicId,
+		limit,
+		continuationToken
+	).toString()
+)
+
+export const getTopicMessage = async (
+	topicId: string,
+	sequenceNumber: bigint
+) => {
+	if (!accountIdPattern.test(topicId))
+		throw new Error('HederaMirrorNode_Rest: invalid topic selector')
+	if (sequenceNumber < 0n || sequenceNumber > 9_223_372_036_854_775_807n)
+		throw new Error('HederaMirrorNode_Rest: invalid topic message sequence number')
+
+	const message = await sourceGetHederaJson<HederaMirrorNodeTopicMessage>(
+		new URL(
+			`/api/v1/topics/${encodeURIComponent(topicId)}/messages/${sequenceNumber.toString()}`,
+			firstHttpUrlForBinding(binding)
+		).toString()
+	)
+	if (
+		message.topic_id !== topicId
+		|| message.sequence_number !== sequenceNumber.toString()
+	)
+		throw new Error('HederaMirrorNode_Rest: topic message response does not match request')
+	return message
 }
 
 export const getContractResultByTransactionIdNonce = async (
