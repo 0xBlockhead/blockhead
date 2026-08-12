@@ -162,3 +162,11 @@ test('rejects failed refresh responses before parsing their bodies', async () =>
 		'503 Service Unavailable'
 	)
 })
+
+test('rejects a non-feed XML response instead of reporting a reachable empty feed', async () => {
+	sourceFetch.mockResolvedValueOnce(new Response('<html><body>temporarily unavailable</body></html>'))
+
+	await expect(rssFetchFeed(hnrssBinding, 'https://hnrss.org/frontpage')).rejects.toThrow(
+		'invalid feed XML envelope'
+	)
+})

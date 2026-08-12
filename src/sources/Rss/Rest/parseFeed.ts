@@ -176,6 +176,8 @@ const parseItemBlock = (
 
 export const parseRssFeedXml = (xml: string) => {
 	const isAtom = /<feed[\s>]/i.test(xml)
+	if (!isAtom && !/<rss[\s>]/i.test(xml))
+		throw new Error('Rss_Rest: invalid feed XML envelope')
 	const channelBlock = (
 		xml.match(/<channel[\s>][\s\S]*?<\/channel>/i)?.[0]
 		?? xml.match(/<feed[\s>][\s\S]*?<\/feed>/i)?.[0]
