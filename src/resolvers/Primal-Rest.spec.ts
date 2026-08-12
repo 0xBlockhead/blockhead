@@ -17,6 +17,7 @@ import { nostrEventId } from '$/sources/NostrRelay/Nip01/event.ts'
 import { Source } from '$/sources/Source.ts'
 
 const getNoteActions = vi.hoisted(() => vi.fn())
+const getProfileNotes = vi.hoisted(() => vi.fn())
 const search = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/Primal/Rest/queries.ts', async (importOriginal) => {
@@ -24,6 +25,7 @@ vi.mock('$/sources/Primal/Rest/queries.ts', async (importOriginal) => {
 	return {
 		...original,
 		getNoteActions,
+		getProfileNotes,
 		search,
 	}
 })
@@ -84,6 +86,7 @@ const signedEvent = (
 
 beforeEach(() => {
 	getNoteActions.mockReset()
+	getProfileNotes.mockReset()
 	search.mockReset()
 })
 
@@ -123,9 +126,19 @@ describe('Primal Rest enrolled leftovers', () => {
 			eventId: noteId,
 		}, context)
 
-		expect(replyRows).toEqual([{
+		expect(replyRows).toMatchObject([{
 			[EntityMetaKey.Selector]: {
 				eventId: reply.id,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.NostrNote, [], 'content')]: 'fixture',
+				[entityFieldAddressKey(EntityType.NostrNote, [], 'createdAt')]: 1_700_000_000_000,
+				[entityFieldAddressKey(EntityType.NostrNote, [], '$author')]: {
+					[EntityMetaKey.Selector]: { pubkey },
+				},
+				[entityFieldAddressKey(EntityType.NostrNote, [], '$replyToNote')]: {
+					[EntityMetaKey.Selector]: { eventId: noteId },
+				},
 			},
 		}])
 		expect(reactionRows).toEqual([{
@@ -135,6 +148,33 @@ describe('Primal Rest enrolled leftovers', () => {
 		}])
 		expect(replies.projections.$$replies.resolveCount(replyRows)).toBe(1)
 		expect(reactions.projections.$$reactions.resolveCount(reactionRows)).toBe(1)
+	})
+
+	it('materializes profile note cards from the bounded source timeline', async () => {
+		const note = signedEvent([], 1, 'Readable profile card')
+		getProfileNotes.mockResolvedValueOnce({
+			notes: [note],
+		})
+		const notes = resolver(
+			EntityType.NostrProfile,
+			'$$notes'
+		)
+
+		await expect(notes.resolve.CanonicalPubkey.resolve({
+			pubkey,
+		}, context)).resolves.toMatchObject([{
+			[EntityMetaKey.Selector]: {
+				eventId: note.id,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.NostrNote, [], 'content')]: 'Readable profile card',
+				[entityFieldAddressKey(EntityType.NostrNote, [], 'createdAt')]: 1_700_000_000_000,
+				[entityFieldAddressKey(EntityType.NostrNote, [], '$author')]: {
+					[EntityMetaKey.Selector]: { pubkey },
+				},
+			},
+		}])
+		expect(getProfileNotes).toHaveBeenCalledWith(pubkey, 16)
 	})
 
 	it('projects hub tip observed counts from the search window', async () => {

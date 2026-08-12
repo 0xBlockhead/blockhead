@@ -12,6 +12,7 @@ import {
 	nostrArticleReferencesFromEvent,
 	nostrEventsNewestFirst,
 	nostrNoteFieldValues,
+	nostrNoteReference,
 	nostrProfileMetadataEventFieldValues,
 	nostrProfileMetadataEventReference,
 	nostrReactionFieldValues,
@@ -579,9 +580,7 @@ export default {
 									kinds: [1],
 								}
 							)
-								.map((event) => ({
-									[EntityMetaKey.Selector]: { eventId: event.id },
-								}))
+								.map(nostrNoteReference)
 						)
 					},
 				}
@@ -668,9 +667,7 @@ export default {
 								{ kinds: [1] }
 							)
 								.filter((event) => nostrReplyToEventId(event.tags) === eventId)
-								.map((event) => ({
-									[EntityMetaKey.Selector]: { eventId: event.id },
-								}))
+								.map(nostrNoteReference)
 						)
 					},
 				}

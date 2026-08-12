@@ -174,6 +174,42 @@ export const nostrNoteFieldValues = (event: NostrEventEnvelope) => {
 	}
 }
 
+export const nostrNoteReference = (event: NostrEventEnvelope) => {
+	const note = nostrNoteFieldValues(event)
+	return {
+		[EntityMetaKey.Selector]: {
+			eventId: note.eventId,
+		},
+		[EntityMetaKey.Fields]: {
+			[entityFieldAddressKey(EntityType.NostrNote, [], 'eventId')]: note.eventId,
+			[entityFieldAddressKey(EntityType.NostrNote, [], 'kind')]: note.kind,
+			[entityFieldAddressKey(EntityType.NostrNote, [], 'pubkey')]: note.pubkey,
+			...(note.content != null && {
+				[entityFieldAddressKey(EntityType.NostrNote, [], 'content')]: note.content,
+			}),
+			[entityFieldAddressKey(EntityType.NostrNote, [], 'sensitive')]: note.sensitive,
+			...(note.contentWarning != null && {
+				[entityFieldAddressKey(EntityType.NostrNote, [], 'contentWarning')]: note.contentWarning,
+			}),
+			[entityFieldAddressKey(EntityType.NostrNote, [], 'tags')]: note.tags,
+			[entityFieldAddressKey(EntityType.NostrNote, [], 'createdAt')]: note.createdAt,
+			[entityFieldAddressKey(EntityType.NostrNote, [], '$author')]: note.$author,
+			...(note.replyToEventId != null && {
+				[entityFieldAddressKey(EntityType.NostrNote, [], 'replyToEventId')]: note.replyToEventId,
+			}),
+			...(note.rootEventId != null && {
+				[entityFieldAddressKey(EntityType.NostrNote, [], 'rootEventId')]: note.rootEventId,
+			}),
+			...(note.$replyToNote != null && {
+				[entityFieldAddressKey(EntityType.NostrNote, [], '$replyToNote')]: note.$replyToNote,
+			}),
+			...(note.$rootNote != null && {
+				[entityFieldAddressKey(EntityType.NostrNote, [], '$rootNote')]: note.$rootNote,
+			}),
+		},
+	}
+}
+
 export const nostrRepostFieldValues = (event: NostrEventEnvelope) => {
 	if (!isNostrRepostKind(event.kind))
 		throw new Error('Nostr event is not a repost')
