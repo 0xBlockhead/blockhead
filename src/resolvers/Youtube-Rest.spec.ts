@@ -11,11 +11,13 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
 const listPopularVideos = vi.hoisted(() => vi.fn())
+const getVideo = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/Youtube/Rest/queries.ts', async (importOriginal) => {
 	const original = await importOriginal<typeof import('$/sources/Youtube/Rest/queries.ts')>()
 	return {
 		...original,
+		getVideo,
 		listPopularVideos,
 	}
 })
@@ -54,6 +56,7 @@ const resolver = (
 }
 
 beforeEach(() => {
+	getVideo.mockReset()
 	listPopularVideos.mockReset()
 })
 
@@ -108,5 +111,22 @@ describe('Youtube Rest enrolled leftovers', () => {
 		expect(youtubeRest.resolvers.some((candidate) => (
 			candidate.entityType === EntityType._GlobalYoutubeNetwork_Timestamp
 		))).toBe(false)
+	})
+
+	it('preserves complete ISO 8601 duration precision from video content metadata', async () => {
+		getVideo.mockResolvedValueOnce({
+			items: [{
+				id: 'duration-video',
+				contentDetails: {
+					duration: 'P1DT2H3M4.5S',
+				},
+			}],
+		})
+
+		const video = await resolver(EntityType.YoutubeVideo).resolve.VideoId.resolve({
+			videoId: 'duration-video',
+		}, context)
+
+		expect(video.durationSeconds).toBe(93_784.5)
 	})
 })

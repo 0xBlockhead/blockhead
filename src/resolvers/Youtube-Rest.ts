@@ -240,17 +240,19 @@ export default {
 						)
 						const durationSeconds = (() => {
 							const value = d.contentDetails?.duration
-							if (value == null || !value.startsWith('PT')) return undefined
-							const match = /^PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?$/.exec(value)
-							if (match == null) return undefined
+							if (value == null) return undefined
+							const match = /^P(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+(?:\.\d+)?)S)?)?$/.exec(value)
+							if (match == null || match.slice(1).every((part) => part == null)) return undefined
 							const [
 								,
+								days = '0',
 								hours = '0',
 								minutes = '0',
 								seconds = '0',
 							] = match
 							return (
-								Number(hours) * 3600
+								Number(days) * 86_400
+								+ Number(hours) * 3600
 								+ Number(minutes) * 60
 								+ Number(seconds)
 							)
