@@ -106,8 +106,8 @@ export const getAccountTransactions = async ({
 	) as TronGridAccountTransactions
 )
 
-export const listWitnesses = async () => (
-	assertEnvelope(
+export const listWitnesses = async () => {
+	const response = assertEnvelope(
 		'witnesses',
 		tronNodeWitnessesWire,
 		await postJson<TronNodeWitnesses>({
@@ -118,7 +118,14 @@ export const listWitnesses = async () => (
 			},
 		})
 	) as TronNodeWitnesses
-)
+	if (
+		response.witnesses.some((witness) => witness.address.length === 0)
+		|| new Set(response.witnesses.map((witness) => witness.address)).size !== response.witnesses.length
+	)
+		throw new Error('TronGrid_Rest: witness response contains invalid identity')
+
+	return response
+}
 
 export const getChainParameters = async () => (
 	assertEnvelope(

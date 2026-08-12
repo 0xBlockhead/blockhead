@@ -307,12 +307,27 @@ const witnessFields = (witness: TronNodeWitness) => ({
 	active: witness.isJobs,
 })
 
+const observationCoordinate = (block: TronNodeBlock) => {
+	const rawBlock = block.block_header?.raw_data
+	if (rawBlock?.number == null || rawBlock.timestamp == null)
+		throw new Error('TronGrid_Rest: head block is missing observation coordinates')
+
+	return {
+		height: BigInt(rawBlock.number),
+		timestampMs: rawBlock.timestamp,
+	}
+}
+
 const witnessRows = (
 	network: NetworkId,
-	witnesses: TronNodeWitness[]
+	witnesses: TronNodeWitness[],
+	coordinate: ReturnType<typeof observationCoordinate>
 ) => (
 	witnesses.map((witness) => {
 		const fields = witnessFields(witness)
+		if (fields.latestBlockHeight != null && fields.latestBlockHeight > coordinate.height)
+			throw new Error('TronGrid_Rest: witness latest block exceeds observed head')
+
 		return {
 			[EntityMetaKey.Selector]: {
 				$network: network,
@@ -325,7 +340,7 @@ const witnessRows = (
 							$network: network,
 							address: witness.address,
 						},
-						timestampMs: Date.now(),
+						timestampMs: coordinate.timestampMs,
 						source: Source.TronGrid_Rest,
 					},
 					[EntityMetaKey.Fields]: Object.fromEntries(
@@ -378,8 +393,10 @@ export default {
 			resolve: {
 				NetworkTimestampMsSource: {
 					appliesTo: tronNetworkTimestampApplicability,
-					resolve: async ({ $network }) => {
+					resolve: async ({ $network, timestampMs, source }) => {
 						assertTronMainnet($network)
+						if (source !== Source.TronGrid_Rest)
+							throw new Error('TronGrid_Rest: unsupported observation source')
 						const {
 							getChainParameters,
 							getNodeInfo,
@@ -387,6 +404,8 @@ export default {
 							listWitnesses,
 						} = await import('$/sources/TronGrid/Rest/queries.ts')
 						const block = await getNowBlock()
+						if (observationCoordinate(block).timestampMs !== timestampMs)
+							throw new Error('TronGrid_Rest: network observation timestamp does not match head block')
 						const witnesses = await listWitnesses()
 						const chainParameters = await getChainParameters()
 						const nodeInfo = await getNodeInfo()
@@ -679,10 +698,20 @@ export default {
 					appliesTo: tronNetworkReferenceApplicability,
 					resolve: async ({ $network, address }) => {
 						assertTronMainnet($network)
-						const { listWitnesses } = await import('$/sources/TronGrid/Rest/queries.ts')
-						const witness = (await listWitnesses()).witnesses
+						const {
+							getNowBlock,
+							listWitnesses,
+						} = await import('$/sources/TronGrid/Rest/queries.ts')
+						const [block, witnesses] = await Promise.all([
+							getNowBlock(),
+							listWitnesses(),
+						])
+						const coordinate = observationCoordinate(block)
+						const witness = witnesses.witnesses
 							.find((tronAccount) => tronAccount.address === address)
 						if (witness == null) throw new Error(`TronGrid_Rest: witness not found for ${address}`)
+						if (witness.latestBlockNum != null && BigInt(witness.latestBlockNum) > coordinate.height)
+							throw new Error('TronGrid_Rest: witness latest block exceeds observed head')
 						return {
 							$$timestamps: [
 								{
@@ -691,7 +720,7 @@ export default {
 											$network,
 											address,
 										},
-										timestampMs: Date.now(),
+										timestampMs: coordinate.timestampMs,
 										source: Source.TronGrid_Rest,
 									},
 								},
@@ -709,12 +738,26 @@ export default {
 			resolve: {
 				WitnessTimestampMsSource: {
 					appliesTo: tronWitnessTimestampApplicability,
-					resolve: async ({ $witness }) => {
+					resolve: async ({ $witness, timestampMs, source }) => {
 						assertTronMainnet($witness.$network)
-						const { listWitnesses } = await import('$/sources/TronGrid/Rest/queries.ts')
-						const witness = (await listWitnesses()).witnesses
+						if (source !== Source.TronGrid_Rest)
+							throw new Error('TronGrid_Rest: unsupported observation source')
+						const {
+							getNowBlock,
+							listWitnesses,
+						} = await import('$/sources/TronGrid/Rest/queries.ts')
+						const [block, witnesses] = await Promise.all([
+							getNowBlock(),
+							listWitnesses(),
+						])
+						const coordinate = observationCoordinate(block)
+						if (coordinate.timestampMs !== timestampMs)
+							throw new Error('TronGrid_Rest: witness observation timestamp does not match head block')
+						const witness = witnesses.witnesses
 							.find((tronAccount) => tronAccount.address === $witness.address)
 						if (witness == null) throw new Error(`TronGrid_Rest: witness not found for ${$witness.address}`)
+						if (witness.latestBlockNum != null && BigInt(witness.latestBlockNum) > coordinate.height)
+							throw new Error('TronGrid_Rest: witness latest block exceeds observed head')
 						return witnessFields(witness)
 					},
 				}
@@ -734,11 +777,12 @@ export default {
 			resolve: tronNetworkResolverSelectors(
 				async (network) => {
 					assertTronMainnet(network)
+					const { getNowBlock } = await import('$/sources/TronGrid/Rest/queries.ts')
 					return [
 						{
 							[EntityMetaKey.Selector]: {
 								$network: network,
-								timestampMs: Date.now(),
+								timestampMs: observationCoordinate(await getNowBlock()).timestampMs,
 								source: Source.TronGrid_Rest,
 							},
 						},
@@ -756,12 +800,20 @@ export default {
 			resolve: tronNetworkResolverSelectors(
 				async (network, context) => {
 					assertTronMainnet(network)
-					const { listWitnesses } = await import('$/sources/TronGrid/Rest/queries.ts')
+					const {
+						getNowBlock,
+						listWitnesses,
+					} = await import('$/sources/TronGrid/Rest/queries.ts')
 					const offset = context.pagination.offset ?? 0
+					const [block, witnesses] = await Promise.all([
+						getNowBlock(),
+						listWitnesses(),
+					])
 					return witnessRows(
 						network,
-						(await listWitnesses()).witnesses
-							.slice(offset, offset + resolverContextRowLimit(context))
+						witnesses.witnesses
+							.slice(offset, offset + resolverContextRowLimit(context)),
+						observationCoordinate(block)
 					)
 				}
 			),

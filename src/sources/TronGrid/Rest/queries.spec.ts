@@ -208,6 +208,27 @@ describe('TronGrid / TronNodeRest arktype envelopes', () => {
 		})
 	})
 
+	it('rejects ambiguous witness identities', async () => {
+		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+			witnesses: [
+				{
+					address: 'Twitness',
+				},
+				{
+					address: 'Twitness',
+				},
+			],
+		})))
+		await expect(listWitnesses()).rejects.toThrow('witness response contains invalid identity')
+
+		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+			witnesses: [{
+				address: '',
+			}],
+		})))
+		await expect(listWitnesses()).rejects.toThrow('witness response contains invalid identity')
+	})
+
 	it('fail-closes malformed block and account-transaction envelopes', async () => {
 		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
 			block_header: {

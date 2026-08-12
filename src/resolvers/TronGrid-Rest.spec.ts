@@ -194,6 +194,14 @@ describe('TronGrid REST network relationships', () => {
 	})
 
 	it('embeds witness observations through canonical field addresses', async () => {
+		getNowBlock.mockResolvedValueOnce({
+			block_header: {
+				raw_data: {
+					number: 124,
+					timestamp: 1_720_000_000_000,
+				},
+			},
+		})
 		listWitnesses.mockResolvedValueOnce({
 			witnesses: [{
 				address: 'TExampleWitness',
@@ -233,7 +241,7 @@ describe('TronGrid REST network relationships', () => {
 							$network: networkSelector,
 							address: 'TExampleWitness',
 						},
-						timestampMs: expect.any(Number),
+						timestampMs: 1_720_000_000_000,
 						source: Source.TronGrid_Rest,
 					},
 					[EntityMetaKey.Fields]: {
@@ -268,11 +276,12 @@ describe('TronGrid REST network relationships', () => {
 				},
 			],
 		})
-		getNowBlock.mockResolvedValueOnce({
+		getNowBlock.mockResolvedValue({
 			blockID: 'head-hash',
 			block_header: {
 				raw_data: {
 					number: 10,
+					timestamp: 1_720_000_000_000,
 				},
 			},
 		})
@@ -319,6 +328,73 @@ describe('TronGrid REST network relationships', () => {
 				height: 9n,
 			},
 		}])
+	})
+
+	it('pins witness direct reads to the source head clock and rejects stale or impossible observations', async () => {
+		const witnessResolver = tronGridRest.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.TronWitness
+		))
+		const timestampResolver = tronGridRest.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.TronWitness_Timestamp
+		))
+		if (witnessResolver == null || timestampResolver == null)
+			throw new Error('Tron witness hierarchy resolver is missing')
+
+		const network = {
+			caip2: networkBySlug.tron.caip2,
+		}
+		const witness = {
+			$network: network,
+			address: 'TWitness',
+		}
+		getNowBlock.mockResolvedValue({
+			block_header: {
+				raw_data: {
+					number: 100,
+					timestamp: 1_720_000_000_000,
+				},
+			},
+		})
+		listWitnesses.mockResolvedValue({
+			witnesses: [{
+				address: witness.address,
+				latestBlockNum: 99,
+				voteCount: 42,
+			}],
+		})
+
+		expect(await witnessResolver.resolve.NetworkAddress.resolve(witness, resolverContext)).toEqual({
+			$$timestamps: [{
+				[EntityMetaKey.Selector]: {
+					$witness: witness,
+					timestampMs: 1_720_000_000_000,
+					source: Source.TronGrid_Rest,
+				},
+			}],
+		})
+		expect(await timestampResolver.resolve.WitnessTimestampMsSource.resolve({
+			$witness: witness,
+			timestampMs: 1_720_000_000_000,
+			source: Source.TronGrid_Rest,
+		}, resolverContext)).toMatchObject({
+			latestBlockHeight: 99n,
+			voteCount: 42n,
+		})
+
+		await expect(timestampResolver.resolve.WitnessTimestampMsSource.resolve({
+			$witness: witness,
+			timestampMs: 1_719_999_999_999,
+			source: Source.TronGrid_Rest,
+		}, resolverContext)).rejects.toThrow('witness observation timestamp does not match head block')
+
+		listWitnesses.mockResolvedValueOnce({
+			witnesses: [{
+				address: witness.address,
+				latestBlockNum: 101,
+			}],
+		})
+		await expect(witnessResolver.resolve.NetworkAddress.resolve(witness, resolverContext))
+			.rejects.toThrow('witness latest block exceeds observed head')
 	})
 
 	it('projects enrolled Fields on account $$transactions from v1 list wire', async () => {
