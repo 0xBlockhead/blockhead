@@ -22,6 +22,7 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import type {
 	FarcasterChannel,
+	FarcasterThreadCast,
 	FarcasterUserThreadCastsResponse,
 } from '$/sources/Farcaster/Rest/types.ts'
 const normalizeMediaUrl = (value: string | null | undefined) => {
@@ -140,6 +141,73 @@ const getFarcasterChannelByParentUrl = async (parentUrl: string) => {
 
 	return channel
 }
+
+const farcasterCastEmbedEntities = ({
+	fid,
+	hash,
+	embeds,
+}: {
+	fid: number
+	hash: string
+	embeds: FarcasterThreadCast['embeds']
+}) => (embeds ?? []).flatMap((embed, indexInCast) => {
+	const castId = (
+		embed.castId?.fid != null
+		&& Number.isSafeInteger(embed.castId.fid)
+		&& embed.castId.fid >= 0
+		&& embed.castId.hash != null
+		?
+			{
+				fid: embed.castId.fid,
+				hash: zeroXLowerHexCastHash(embed.castId.hash),
+			}
+		:
+			undefined
+	)
+	const url = normalizeMediaUrl(optionalNonemptyString(embed.url))
+	const title = optionalNonemptyString(embed.title)
+	const description = optionalNonemptyString(embed.description)
+	const iconUrl = normalizeMediaUrl(optionalNonemptyString(embed.iconUrl))
+	const quotedPreviewText = optionalNonemptyString(embed.quotedPreviewText)
+	if (
+		url == null
+		&& castId == null
+		&& title == null
+		&& description == null
+		&& iconUrl == null
+		&& quotedPreviewText == null
+	)
+		return []
+
+	return [{
+		[EntityMetaKey.Selector]: {
+			$cast: { fid, hash },
+			indexInCast,
+		},
+		[EntityMetaKey.Fields]: {
+			...(url != null && {
+				[entityFieldAddressKey(EntityType.FarcasterCastEmbed, [], 'url')]: url,
+			}),
+			...(castId != null && {
+				[entityFieldAddressKey(EntityType.FarcasterCastEmbed, [], '$embeddedCast')]: {
+					[EntityMetaKey.Selector]: castId,
+				},
+			}),
+			...(title != null && {
+				[entityFieldAddressKey(EntityType.FarcasterCastEmbed, [], 'title')]: title,
+			}),
+			...(description != null && {
+				[entityFieldAddressKey(EntityType.FarcasterCastEmbed, [], 'description')]: description,
+			}),
+			...(iconUrl != null && {
+				[entityFieldAddressKey(EntityType.FarcasterCastEmbed, [], 'iconUrl')]: iconUrl,
+			}),
+			...(quotedPreviewText != null && {
+				[entityFieldAddressKey(EntityType.FarcasterCastEmbed, [], 'quotedPreviewText')]: quotedPreviewText,
+			}),
+		},
+	}]
+})
 
 const farcasterCastFromThread = ({
 	username,
@@ -316,9 +384,19 @@ const farcasterCastFromThread = ({
 								}),
 							},
 						}],
+						[entityFieldAddressKey(EntityType.FarcasterCast, [], '$$embeds')]: farcasterCastEmbedEntities({
+							fid: reply.author.fid,
+							hash: zeroXLowerHexCastHash(replyHash),
+							embeds: reply.embeds,
+						}),
 					},
 				}]
 			}),
+		$$embeds: farcasterCastEmbedEntities({
+			fid: cast.author.fid,
+			hash: castHash,
+			embeds: cast.embeds,
+		}),
 		...(cast.threadHash != null && cast.threadHash !== '' && {
 			threadHash: zeroXLowerHexCastHash(cast.threadHash),
 		}),
@@ -545,6 +623,7 @@ export default {
 			$channel: (cast) => cast.$channel,
 			timestamp: (cast) => cast.timestamp,
 			$$directReplies: (cast) => cast.$$directReplies,
+			$$embeds: (cast) => cast.$$embeds,
 			$$timestamps: (cast) => cast.$$timestamps,
 			threadHash: (cast) => cast.threadHash,
 		}),

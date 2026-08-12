@@ -83,6 +83,18 @@ export type FarcasterThreadCastAuthor = {
 	username?: string
 }
 
+export type FarcasterThreadCastEmbed = {
+	url?: string
+	title?: string
+	description?: string
+	iconUrl?: string
+	quotedPreviewText?: string
+	castId?: {
+		fid?: number
+		hash?: string
+	}
+}
+
 export type FarcasterThreadCast = {
 	hash?: string
 	threadHash?: string
@@ -105,6 +117,7 @@ export type FarcasterThreadCast = {
 		count?: number
 	}
 	quoteCount?: number
+	embeds?: FarcasterThreadCastEmbed[]
 }
 
 export type FarcasterUserThreadCastsResponse = {
