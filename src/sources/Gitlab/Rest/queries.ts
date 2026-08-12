@@ -5,11 +5,16 @@ import {
 	gitlabBranchesWire,
 	gitlabBranchWire,
 	gitlabCompareWire,
+	gitlabCommitSignatureWire,
+	gitlabCommitsWire,
+	gitlabCommitWire,
 	gitlabIssueWire,
 	gitlabIssuesWire,
+	gitlabJobsWire,
 	gitlabMergeRequestWire,
 	gitlabMergeRequestsWire,
 	gitlabProjectWire,
+	gitlabPipelinesWire,
 	gitlabReleaseWire,
 	gitlabReleasesWire,
 	gitlabRepositoryTreeWire,
@@ -113,6 +118,114 @@ export const getTag = ({
 			}
 		})
 )
+
+export const getCommit = ({
+	projectId,
+	commitSha,
+}: {
+	projectId: string
+	commitSha: string
+}) => (
+	getJson<JsonValue>(binding, `/api/v4/projects/${encodeURIComponent(projectId)}/repository/commits/${encodeURIComponent(commitSha)}`)
+		.then((commit) => {
+			try {
+				return gitlabCommitWire.assert(commit)
+			} catch {
+				throw new Error('Gitlab_Rest: invalid commit response')
+			}
+		})
+)
+
+export const getCommits = ({
+	projectId,
+	ref,
+	page = 1,
+	perPage = 100,
+}: {
+	projectId: string
+	ref?: string
+	page?: number
+	perPage?: number
+}) => (
+	getJson<JsonValue>(binding, `/api/v4/projects/${encodeURIComponent(projectId)}/repository/commits?${new URLSearchParams({
+		...(ref != null && { ref_name: ref }),
+		...gitlabPaginationParams(page, perPage),
+	})}`)
+		.then((commits) => {
+			try {
+				return gitlabCommitsWire.assert(commits)
+			} catch {
+				throw new Error('Gitlab_Rest: invalid commits response')
+			}
+		})
+)
+
+export const getCommitSignature = ({
+	projectId,
+	commitSha,
+}: {
+	projectId: string
+	commitSha: string
+}) => (
+	getJson<JsonValue>(binding, `/api/v4/projects/${encodeURIComponent(projectId)}/repository/commits/${encodeURIComponent(commitSha)}/signature`)
+		.then((signature) => {
+			try {
+				return gitlabCommitSignatureWire.assert(signature)
+			} catch {
+				throw new Error('Gitlab_Rest: invalid commit signature response')
+			}
+		})
+)
+
+export const getPipelines = ({
+	projectId,
+	ref,
+	page = 1,
+	perPage = 100,
+}: {
+	projectId: string
+	ref?: string
+	page?: number
+	perPage?: number
+}) => (
+	getJson<JsonValue>(binding, `/api/v4/projects/${encodeURIComponent(projectId)}/pipelines?${new URLSearchParams({
+		...(ref != null && { ref }),
+		...gitlabPaginationParams(page, perPage),
+	})}`)
+		.then((pipelines) => {
+			try {
+				return gitlabPipelinesWire.assert(pipelines)
+			} catch {
+				throw new Error('Gitlab_Rest: invalid pipelines response')
+			}
+		})
+)
+
+export const getPipelineJobs = ({
+	projectId,
+	pipelineId,
+	page = 1,
+	perPage = 100,
+}: {
+	projectId: string
+	pipelineId: number
+	page?: number
+	perPage?: number
+}) => {
+	if (!Number.isSafeInteger(pipelineId) || pipelineId < 0)
+		throw new Error('Gitlab_Rest: invalid pipeline ID')
+
+	return getJson<JsonValue>(binding, `/api/v4/projects/${encodeURIComponent(projectId)}/pipelines/${pipelineId}/jobs?${new URLSearchParams(
+		gitlabPaginationParams(page, perPage)
+	)}`)
+		.then((jobs) => {
+			try {
+				return gitlabJobsWire.assert(jobs)
+			} catch {
+				throw new Error('Gitlab_Rest: invalid pipeline jobs response')
+			}
+		})
+}
 
 export const getIssue = ({
 	projectId,

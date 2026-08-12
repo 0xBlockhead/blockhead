@@ -12,10 +12,15 @@ const {
 	compareRepositoryRefs,
 	getBranches,
 	getBranch,
+	getCommit,
+	getCommits,
+	getCommitSignature,
 	getIssue,
 	getIssues,
 	getMergeRequest,
 	getMergeRequests,
+	getPipelineJobs,
+	getPipelines,
 	getProject,
 	getRelease,
 	getReleases,
@@ -307,5 +312,121 @@ describe('GitLab REST wires', () => {
 			from: 'main',
 			to: 'feature',
 		})).rejects.toThrow('Gitlab_Rest: invalid repository comparison response')
+	})
+
+	it('retains commit ancestry, signature verification and CI job lifecycles', async () => {
+		const commit = {
+			id: 'a'.repeat(40),
+			short_id: 'a'.repeat(8),
+			title: 'Ship source authority',
+			message: 'Ship source authority\n',
+			parent_ids: ['b'.repeat(40)],
+			author_name: 'Author',
+			author_email: 'author@example.com',
+			authored_date: '2026-08-12T00:00:00Z',
+			committer_name: 'Committer',
+			committer_email: 'committer@example.com',
+			committed_date: '2026-08-12T00:01:00Z',
+			web_url: `https://gitlab.com/group/project/-/commit/${'a'.repeat(40)}`,
+		}
+		sourceGetJson
+			.mockResolvedValueOnce(commit)
+			.mockResolvedValueOnce([commit])
+			.mockResolvedValueOnce({
+				signature_type: 'PGP',
+				verification_status: 'verified',
+				gpg_key_primary_keyid: 'A1B2C3D4',
+				gpg_key_user_name: 'Author',
+				gpg_key_user_email: 'author@example.com',
+			})
+			.mockResolvedValueOnce([{
+				id: 91,
+				iid: 7,
+				project_id: 42,
+				sha: commit.id,
+				ref: 'main',
+				status: 'success',
+				source: 'push',
+				created_at: '2026-08-12T00:02:00Z',
+				updated_at: '2026-08-12T00:04:00Z',
+				web_url: 'https://gitlab.com/group/project/-/pipelines/91',
+			}])
+			.mockResolvedValueOnce([{
+				id: 123,
+				name: 'test',
+				stage: 'verify',
+				status: 'success',
+				created_at: '2026-08-12T00:02:00Z',
+				started_at: '2026-08-12T00:02:30Z',
+				finished_at: '2026-08-12T00:03:30Z',
+				duration: 60,
+				queued_duration: 30,
+				web_url: 'https://gitlab.com/group/project/-/jobs/123',
+				commit: { id: commit.id },
+				pipeline: {
+					id: 91,
+					sha: commit.id,
+					ref: 'main',
+					status: 'success',
+				},
+			}])
+
+		await expect(getCommit({
+			projectId: 'group/project',
+			commitSha: commit.id,
+		})).resolves.toMatchObject({ parent_ids: [commit.parent_ids[0]] })
+		await expect(getCommits({
+			projectId: 'group/project',
+			ref: 'release/next',
+		})).resolves.toHaveLength(1)
+		await expect(getCommitSignature({
+			projectId: 'group/project',
+			commitSha: commit.id,
+		})).resolves.toMatchObject({ verification_status: 'verified' })
+		await expect(getPipelines({
+			projectId: 'group/project',
+			ref: 'release/next',
+		})).resolves.toEqual([
+			expect.objectContaining({ status: 'success' }),
+		])
+		await expect(getPipelineJobs({
+			projectId: 'group/project',
+			pipelineId: 91,
+		})).resolves.toEqual([
+			expect.objectContaining({
+				name: 'test',
+				duration: 60,
+			}),
+		])
+		expect(sourceGetJson.mock.calls.map(([, path]) => path)).toEqual([
+			`https://gitlab.com/api/v4/projects/group%2Fproject/repository/commits/${commit.id}`,
+			'https://gitlab.com/api/v4/projects/group%2Fproject/repository/commits?ref_name=release%2Fnext&page=1&per_page=100',
+			`https://gitlab.com/api/v4/projects/group%2Fproject/repository/commits/${commit.id}/signature`,
+			'https://gitlab.com/api/v4/projects/group%2Fproject/pipelines?ref=release%2Fnext&page=1&per_page=100',
+			'https://gitlab.com/api/v4/projects/group%2Fproject/pipelines/91/jobs?page=1&per_page=100',
+		])
+	})
+
+	it('fails closed on incomplete commit and CI payloads and invalid pipeline identity', async () => {
+		sourceGetJson
+			.mockResolvedValueOnce({ id: 'a'.repeat(40) })
+			.mockResolvedValueOnce({ signature_type: 'PGP' })
+			.mockResolvedValueOnce([{ id: 91, status: 'success' }])
+
+		await expect(getCommit({
+			projectId: 'group/project',
+			commitSha: 'a'.repeat(40),
+		})).rejects.toThrow('invalid commit response')
+		await expect(getCommitSignature({
+			projectId: 'group/project',
+			commitSha: 'a'.repeat(40),
+		})).rejects.toThrow('invalid commit signature response')
+		await expect(getPipelines({
+			projectId: 'group/project',
+		})).rejects.toThrow('invalid pipelines response')
+		expect(() => getPipelineJobs({
+			projectId: 'group/project',
+			pipelineId: -1,
+		})).toThrow('invalid pipeline ID')
 	})
 })

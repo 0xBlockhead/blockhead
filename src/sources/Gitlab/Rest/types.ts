@@ -52,6 +52,72 @@ export const gitlabRepositoryTreeEntryWire = type({
 
 export const gitlabRepositoryTreeWire = gitlabRepositoryTreeEntryWire.array()
 
+export const gitlabCommitWire = type({
+	id: '/^[0-9a-fA-F]{40}$|^[0-9a-fA-F]{64}$/',
+	short_id: 'string > 0',
+	title: 'string',
+	message: 'string',
+	parent_ids: '(/^([0-9a-fA-F]{40}|[0-9a-fA-F]{64})$/)[]',
+	author_name: 'string',
+	author_email: 'string',
+	authored_date: 'string > 0',
+	committer_name: 'string',
+	committer_email: 'string',
+	committed_date: 'string > 0',
+	web_url: 'string.url',
+})
+
+export const gitlabCommitsWire = gitlabCommitWire.array()
+
+export const gitlabCommitSignatureWire = type({
+	signature_type: 'string > 0',
+	verification_status: 'string > 0',
+	'gpg_key_primary_keyid?': 'string | null',
+	'gpg_key_user_name?': 'string | null',
+	'gpg_key_user_email?': 'string | null',
+	'x509_certificate?': 'string | null',
+	'commit_source?': 'string | null',
+})
+
+export const gitlabPipelineWire = type({
+	id: 'number.integer >= 0',
+	iid: 'number.integer >= 0',
+	project_id: 'number.integer >= 0',
+	sha: '/^[0-9a-fA-F]{40}$|^[0-9a-fA-F]{64}$/',
+	ref: 'string > 0',
+	status: 'string > 0',
+	source: 'string > 0',
+	created_at: 'string > 0',
+	updated_at: 'string > 0',
+	web_url: 'string.url',
+})
+
+export const gitlabPipelinesWire = gitlabPipelineWire.array()
+
+export const gitlabJobWire = type({
+	id: 'number.integer >= 0',
+	name: 'string > 0',
+	stage: 'string > 0',
+	status: 'string > 0',
+	created_at: 'string > 0',
+	started_at: 'string | null',
+	finished_at: 'string | null',
+	duration: 'number | null',
+	queued_duration: 'number | null',
+	web_url: 'string.url',
+	commit: {
+		id: '/^[0-9a-fA-F]{40}$|^[0-9a-fA-F]{64}$/',
+	},
+	pipeline: {
+		id: 'number.integer >= 0',
+		sha: '/^[0-9a-fA-F]{40}$|^[0-9a-fA-F]{64}$/',
+		ref: 'string > 0',
+		status: 'string > 0',
+	},
+})
+
+export const gitlabJobsWire = gitlabJobWire.array()
+
 export const gitlabIssueWire = type({
 	iid: 'number.integer >= 0',
 	title: 'string',
