@@ -17,7 +17,7 @@
 	}: PageProps = $props()
 
 	const pageSelection = $derived(select(EntityType.PayjoinDirectory, {
-		directoryUrl: params.directoryUrl,
+		directoryUrl: decodeURIComponent(params.directoryUrl),
 	}, {
 		sources: [
 			Source.PayjoinDirectory_Rest,

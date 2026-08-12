@@ -25,5 +25,7 @@ export const getOhttpKeyConfigBase64 = async (
 		}
 	)
 	await throwIfHttpNotOk(response, url)
-	return Buffer.from(await response.arrayBuffer()).toString('base64')
+	return globalThis.btoa(
+		String.fromCharCode(...new Uint8Array(await response.arrayBuffer()))
+	)
 }

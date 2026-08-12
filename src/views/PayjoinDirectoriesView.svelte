@@ -45,9 +45,9 @@
 			entitySelector={payjoinDirectorySelector}
 			href={
 				resolve(
-					'/payjoin/directory/[directoryUrl=stringSegment]',
+					'/payjoin/directory/[directoryUrl=absoluteUrl]',
 					{
-						directoryUrl: payjoinDirectorySelector.directoryUrl,
+						directoryUrl: encodeURIComponent(payjoinDirectorySelector.directoryUrl),
 					}
 				)
 			}

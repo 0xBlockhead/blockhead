@@ -47,9 +47,9 @@
 	href={
 		href === undefined ?
 			resolve(
-				'/payjoin/directory/[directoryUrl=stringSegment]',
+				'/payjoin/directory/[directoryUrl=absoluteUrl]',
 				{
-					directoryUrl: selection.entitySelector.directoryUrl,
+					directoryUrl: encodeURIComponent(selection.entitySelector.directoryUrl),
 				}
 			)
 		:

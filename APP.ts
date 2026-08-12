@@ -50079,7 +50079,7 @@ export const schema = {
 					plural: "payjoin directories",
 				},
 			})({
-				"directoryUrl": { label: "directory URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"directoryUrl": { label: "directory URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "urlString" },
 				"ohttpGatewayUrl": { label: "ohttp gateway URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.PayjoinDirectory_Rest] },
 				"ohttpKeyConfig": { label: "ohttp key config", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.PayjoinDirectory_Rest] },
 				"maxPayloadBytes": { label: "max payload bytes", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },

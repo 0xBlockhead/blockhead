@@ -13252,7 +13252,10 @@ export const e2eRouteFixtureMetadataByNodeId = {
 		],
 	},
 	'/payjoin/directory/[directoryUrl]': {
-		routeId: '/payjoin/directory/[directoryUrl=stringSegment]',
+		routeId: '/payjoin/directory/[directoryUrl=absoluteUrl]',
+		parameterEncodingByName: {
+			directoryUrl: 'Opaque',
+		},
 		mappings: [
 			{
 				id: 'PayjoinDirectory.DirectoryUrl',
