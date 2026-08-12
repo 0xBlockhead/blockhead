@@ -449,7 +449,67 @@ export default {
 					surjectionProof: (snapshot) => snapshot.surjectionProof,
 					rangeProof: (snapshot) => snapshot.rangeProof,
 				},
-			}),
+		}),
+
+		defineResolver({
+			entityType: EntityType.ElementsIssuance,
+			resolve: {
+				UtxoTransactionInputIndex: {
+					resolve: async ({ $transaction, inputIndex }) => {
+						if (esploraTargetForNetwork($transaction.$network) !== 'liquid')
+							throw new Error('Esplora_Rest: Elements issuance requires the Liquid network')
+
+						const { getTransaction } = await import('$/sources/Esplora/Rest/queries.ts')
+						const input = (await getTransaction({
+							target: 'liquid',
+							txId: $transaction.txId,
+						})).vin[inputIndex]
+						if (input == null)
+							throw new Error(`Esplora_Rest: transaction input ${inputIndex} not found`)
+						if (input.issuance == null)
+							throw new Error(`Esplora_Rest: transaction input ${inputIndex} has no issuance`)
+
+						return {
+							$asset: {
+								[EntityMetaKey.Selector]: {
+									$network: {
+										$network: $transaction.$network,
+									},
+									assetId: input.issuance.asset_id,
+								},
+							},
+							...(input.issuance.token != null && {
+								$reissuanceTokenAsset: {
+									[EntityMetaKey.Selector]: {
+										$network: {
+											$network: $transaction.$network,
+										},
+										assetId: input.issuance.token,
+									},
+								},
+							}),
+							assetEntropy: input.issuance.asset_entropy,
+							assetBlindingNonce: input.issuance.asset_blinding_nonce,
+							...(input.issuance.assetamount != null && {
+								issuedAmount: BigInt(input.issuance.assetamount),
+							}),
+							...(input.issuance.tokenamount != null && {
+								tokenAmount: BigInt(input.issuance.tokenamount),
+							}),
+							isReissuance: input.issuance.is_reissuance,
+						}
+					},
+				},
+			},
+		})({
+			$asset: (issuance) => issuance.$asset,
+			$reissuanceTokenAsset: (issuance) => issuance.$reissuanceTokenAsset,
+			assetEntropy: (issuance) => issuance.assetEntropy,
+			assetBlindingNonce: (issuance) => issuance.assetBlindingNonce,
+			issuedAmount: (issuance) => issuance.issuedAmount,
+			tokenAmount: (issuance) => issuance.tokenAmount,
+			isReissuance: (issuance) => issuance.isReissuance,
+		}),
 
 		defineResolver({
 			entityType: EntityType.BitcoinOrdinalInscription,
@@ -529,8 +589,9 @@ export default {
 				ElementsNetworkAssetId: {
 					resolve: async ({ $network, assetId }) => {
 						if (
-							!('slug' in $network)
-							|| $network.slug !== 'liquid'
+							!('$network' in $network)
+							|| !('slug' in $network.$network)
+							|| $network.$network.slug !== 'liquid'
 						)
 						throw new Error('Esplora_Rest: unsupported Elements network')
 

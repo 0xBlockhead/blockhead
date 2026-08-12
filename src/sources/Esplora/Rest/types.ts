@@ -40,6 +40,15 @@ export type EsploraTransactionInput = {
 	witness?: string[]
 	is_coinbase: boolean
 	sequence: number
+	issuance?: {
+		asset_id: string
+		is_reissuance: boolean
+		asset_blinding_nonce: string
+		asset_entropy: string
+		assetamount?: number
+		token?: string
+		tokenamount?: number
+	}
 }
 
 export type EsploraTransactionOutput = {

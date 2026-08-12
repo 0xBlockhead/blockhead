@@ -99,6 +99,62 @@ describe('Esplora REST binding selection', () => {
 		})).rejects.toThrow('mismatched identity')
 	})
 
+	it('accepts bounded Liquid issuance wire and rejects malformed asset identity', async () => {
+		const txId = 'a'.repeat(64)
+		sourceGetJson
+			.mockResolvedValueOnce({
+				txid: txId,
+				status: {
+					confirmed: true,
+				},
+				vin: [{
+					is_coinbase: false,
+					sequence: 1,
+					issuance: {
+						asset_id: 'b'.repeat(64),
+						is_reissuance: false,
+						asset_blinding_nonce: '0'.repeat(64),
+						asset_entropy: 'c'.repeat(64),
+						assetamount: 1,
+					},
+				}],
+				vout: [],
+			})
+			.mockResolvedValueOnce({
+				txid: txId,
+				status: {
+					confirmed: true,
+				},
+				vin: [{
+					is_coinbase: false,
+					sequence: 1,
+					issuance: {
+						asset_id: 'not-an-asset-id',
+						is_reissuance: false,
+						asset_blinding_nonce: '0'.repeat(64),
+						asset_entropy: 'c'.repeat(64),
+					},
+				}],
+				vout: [],
+			})
+
+		await expect(getTransaction({
+			target: liquidBinding.target.key,
+			txId,
+		})).resolves.toMatchObject({
+			vin: [{
+				issuance: {
+					asset_id: 'b'.repeat(64),
+					assetamount: 1,
+				},
+			}],
+		})
+		await expect(getTransaction({
+			target: liquidBinding.target.key,
+			txId,
+		})).rejects.toThrow('invalid transaction envelope')
+	})
+
 	it('accepts the genesis block null previous hash', async () => {
 		sourceGetJson.mockResolvedValueOnce({
 			...validBlock,

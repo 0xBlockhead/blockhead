@@ -5,6 +5,7 @@ const nonEmptyString = arktype('string > 0')
 export const esploraTxIdWire = arktype('/^[0-9a-f]{64}$/')
 export const esploraBlockHashWire = arktype('/^[0-9a-fA-F]{64}$/')
 export const esploraTxIdListWire = esploraTxIdWire.array()
+const elementsHex32Wire = arktype('/^[0-9a-fA-F]{64}$/')
 
 export const esploraBlockWire = arktype({
 	id: esploraBlockHashWire,
@@ -46,6 +47,15 @@ const esploraInputWire = arktype({
 	'witness?': 'string[]',
 	'is_coinbase?': 'boolean',
 	'sequence?': unsignedSafe,
+	'issuance?': {
+		asset_id: elementsHex32Wire,
+		is_reissuance: 'boolean',
+		asset_blinding_nonce: elementsHex32Wire,
+		asset_entropy: elementsHex32Wire,
+		'assetamount?': unsignedSafe,
+		'token?': elementsHex32Wire,
+		'tokenamount?': unsignedSafe,
+	},
 })
 
 export const esploraTransactionWire = arktype({
