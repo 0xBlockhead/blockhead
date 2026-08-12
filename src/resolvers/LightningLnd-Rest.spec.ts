@@ -54,6 +54,10 @@ type PaymentListResolver = Extract<
 	typeof lightningLnd.resolvers[number],
 	{ projections: Record<'$$payments', unknown> }
 >
+type ChannelListResolver = Extract<
+	typeof lightningLnd.resolvers[number],
+	{ projections: Record<'$$channels', unknown> }
+>
 
 const nodeStateResolver = lightningLnd.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.BlockheadLightningNodeState
@@ -94,6 +98,10 @@ const paymentListResolver = lightningLnd.resolvers.find((resolver): resolver is 
 	resolver.entityType === EntityType.LightningNetwork
 	&& '$$payments' in resolver.projections
 ))
+const channelListResolver = lightningLnd.resolvers.find((resolver): resolver is ChannelListResolver => (
+	resolver.entityType === EntityType.LightningNetwork
+	&& '$$channels' in resolver.projections
+))
 const nodeChannelsResolver = lightningLnd.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.LightningNode
 	&& '$$channels' in resolver.projections
@@ -113,6 +121,7 @@ if (
 	|| invoiceTimestampResolver == null
 	|| paymentResolver == null
 	|| paymentTimestampResolver == null
+	|| channelListResolver == null
 	|| nodeChannelsResolver == null
 )
 	throw new Error('LightningLnd-Rest spec missing resolver')
@@ -363,12 +372,19 @@ describe('Lightning LND resolver ownership', () => {
 				offset: 1,
 			},
 		})).resolves.toEqual([
-			{
+			expect.objectContaining({
 				[EntityMetaKey.Selector]: {
 					$network: lightningNetwork,
 					channelId: '99',
 				},
-			},
+				[EntityMetaKey.Fields]: expect.objectContaining({
+					[entityFieldAddressKey(EntityType.LightningChannel, [], '$$timestamps')]: [expect.objectContaining({
+						[EntityMetaKey.Fields]: expect.objectContaining({
+							[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'feeRatePpm')]: 125,
+						}),
+					})],
+				}),
+			}),
 		])
 		expect(getNodeInfo).toHaveBeenCalledWith({
 			publicKey: peerPublicKey,
@@ -398,13 +414,56 @@ describe('Lightning LND resolver ownership', () => {
 				offset: 1,
 			},
 		})).resolves.toEqual([
-			{
+			expect.objectContaining({
 				[EntityMetaKey.Selector]: {
 					$network: lightningNetwork,
 					channelId: '99',
 				},
-			},
+				[EntityMetaKey.Fields]: expect.objectContaining({
+					[entityFieldAddressKey(EntityType.LightningChannel, [], '$$timestamps')]: [expect.objectContaining({
+						[EntityMetaKey.Fields]: expect.objectContaining({
+							[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'capacitySats')]: 250000n,
+						}),
+					})],
+				}),
+			}),
 		])
+	})
+
+	it('materializes bounded public channel facts and observations from the local list read', async () => {
+		listChannels.mockResolvedValue({
+			channels: [
+				channel,
+				{
+					...channel,
+					chan_id: 'private-channel',
+					private: true,
+				},
+			],
+		})
+
+		const channels = await channelListResolver.resolve.Network.resolve({
+			$network: lightningNetwork,
+		}, context)
+		expect(channelListResolver.projections.$$channels(channels)).toEqual([
+			expect.objectContaining({
+				[EntityMetaKey.Selector]: {
+					$network: lightningNetwork,
+					channelId: '42',
+				},
+				[EntityMetaKey.Fields]: expect.objectContaining({
+					[entityFieldAddressKey(EntityType.LightningChannel, [], 'fundingTransactionId')]: 'funding-transaction',
+					[entityFieldAddressKey(EntityType.LightningChannel, [], 'fundingOutputIndex')]: 7,
+					[entityFieldAddressKey(EntityType.LightningChannel, [], '$$timestamps')]: [expect.objectContaining({
+						[EntityMetaKey.Fields]: expect.objectContaining({
+							[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'status')]: 'Active',
+							[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'capacitySats')]: 250000n,
+						}),
+					})],
+				}),
+			}),
+		])
+		expect(getChannelInfo).not.toHaveBeenCalled()
 	})
 
 	it('omits hashless invoices and separates stable and observed invoice fields', async () => {
@@ -439,9 +498,21 @@ describe('Lightning LND resolver ownership', () => {
 			paymentHash: invoice.r_hash_str,
 		})
 		const invoicePage = await invoiceListResolver.resolve.Network.resolve({ $network: lightningNetwork }, context)
-		expect(invoiceListResolver.projections.$$invoices.select(invoicePage)).toEqual([{
-			[EntityMetaKey.Selector]: invoiceSelector,
-		}])
+		expect(invoiceListResolver.projections.$$invoices.select(invoicePage)).toEqual([
+			expect.objectContaining({
+				[EntityMetaKey.Selector]: invoiceSelector,
+				[EntityMetaKey.Fields]: expect.objectContaining({
+					[entityFieldAddressKey(EntityType.BlockheadLightningInvoice, [], 'valueMsat')]: 123000n,
+					[entityFieldAddressKey(EntityType.BlockheadLightningInvoice, [], 'createdAtMs')]: 1_700_000_000_000,
+					[entityFieldAddressKey(EntityType.BlockheadLightningInvoice, [], '$$timestamps')]: [expect.objectContaining({
+						[EntityMetaKey.Fields]: expect.objectContaining({
+							[entityFieldAddressKey(EntityType.BlockheadLightningInvoice_Timestamp, [], 'state')]: 'Settled',
+							[entityFieldAddressKey(EntityType.BlockheadLightningInvoice_Timestamp, [], 'amountPaidMsat')]: 123000n,
+						}),
+					})],
+				}),
+			}),
+		])
 		expect(listInvoices).toHaveBeenLastCalledWith({
 			indexOffset: undefined,
 			numMaxInvoices: 64,
@@ -505,12 +576,23 @@ describe('Lightning LND resolver ownership', () => {
 			indexOffset: '9007199254740993',
 			maxPayments: 64,
 		})
-		expect(paymentListResolver.projections.$$payments.select(paymentPage)).toEqual([{
-			[EntityMetaKey.Selector]: {
-				$network: lightningNetwork,
-				paymentHash: payment.payment_hash,
-			},
-		}])
+		expect(paymentListResolver.projections.$$payments.select(paymentPage)).toEqual([
+			expect.objectContaining({
+				[EntityMetaKey.Selector]: {
+					$network: lightningNetwork,
+					paymentHash: payment.payment_hash,
+				},
+				[EntityMetaKey.Fields]: expect.objectContaining({
+					[entityFieldAddressKey(EntityType.BlockheadLightningPayment, [], 'createdAtMs')]: 1_700_000_000_123,
+					[entityFieldAddressKey(EntityType.BlockheadLightningPayment, [], '$$timestamps')]: [expect.objectContaining({
+						[EntityMetaKey.Fields]: expect.objectContaining({
+							[entityFieldAddressKey(EntityType.BlockheadLightningPayment_Timestamp, [], 'status')]: 'Succeeded',
+							[entityFieldAddressKey(EntityType.BlockheadLightningPayment_Timestamp, [], 'feeMsat')]: 20n,
+						}),
+					})],
+				}),
+			}),
+		])
 		expect(paymentListResolver.projections.$$payments.continuation(
 			paymentPage,
 			{ $network: lightningNetwork },

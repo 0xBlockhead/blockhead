@@ -159,6 +159,23 @@ const channelFieldsFromLndEdge = (
 					timestampMs,
 					source: Source.LightningLnd_Rest,
 				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'status')]: (
+						edge.node1_policy?.disabled === true && edge.node2_policy?.disabled === true ?
+							LightningChannelStatus.Inactive
+						:
+							LightningChannelStatus.Active
+					),
+					...(bigintFromWire(edge.capacity) != null && {
+						[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'capacitySats')]: bigintFromWire(edge.capacity),
+					}),
+					...(edge.last_update != null && {
+						[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'updatedAtMs')]: edge.last_update * 1000,
+					}),
+					...(edge.node1_policy?.fee_rate_milli_msat != null && {
+						[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'feeRatePpm')]: Number(edge.node1_policy.fee_rate_milli_msat),
+					}),
+				},
 			},
 		],
 	}
@@ -217,6 +234,12 @@ const channelFieldsFromLndChannel = (
 					timestampMs,
 					source: Source.LightningLnd_Rest,
 				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'status')]: channelStatusFromLndChannel(channel),
+					...(bigintFromWire(channel.capacity) != null && {
+						[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'capacitySats')]: bigintFromWire(channel.capacity),
+					}),
+				},
 			},
 		],
 	}
@@ -253,12 +276,41 @@ const channelTimestampFieldsFromLndEdge = (
 	}),
 })
 
-const channelReferenceFromLndChannel = (channel: LndChannel) => ({
-	[EntityMetaKey.Selector]: {
-		$network: lightningNetwork,
-		channelId: channel.chan_id,
-	},
-})
+const channelRowFromLndChannel = (channel: LndChannel) => {
+	const fields = channelFieldsFromLndChannel(channel)
+	return {
+		[EntityMetaKey.Selector]: {
+			$network: lightningNetwork,
+			channelId: channel.chan_id,
+		},
+		[EntityMetaKey.Fields]: {
+			[entityFieldAddressKey(EntityType.LightningChannel, [], '$node1')]: fields.$node1,
+			[entityFieldAddressKey(EntityType.LightningChannel, [], 'fundingTransactionId')]: fields.fundingTransactionId,
+			[entityFieldAddressKey(EntityType.LightningChannel, [], 'fundingOutputIndex')]: fields.fundingOutputIndex,
+			[entityFieldAddressKey(EntityType.LightningChannel, [], '$$timestamps')]: fields.$$timestamps,
+		},
+	}
+}
+
+const channelRowFromLndEdge = (edge: LndChannelEdge) => {
+	const fields = channelFieldsFromLndEdge(edge)
+	return {
+		[EntityMetaKey.Selector]: {
+			$network: lightningNetwork,
+			channelId: edge.channel_id,
+		},
+		[EntityMetaKey.Fields]: {
+			[entityFieldAddressKey(EntityType.LightningChannel, [], '$node1')]: fields.$node1,
+			...(fields.fundingTransactionId != null && {
+				[entityFieldAddressKey(EntityType.LightningChannel, [], 'fundingTransactionId')]: fields.fundingTransactionId,
+			}),
+			...(fields.fundingOutputIndex != null && {
+				[entityFieldAddressKey(EntityType.LightningChannel, [], 'fundingOutputIndex')]: fields.fundingOutputIndex,
+			}),
+			[entityFieldAddressKey(EntityType.LightningChannel, [], '$$timestamps')]: fields.$$timestamps,
+		},
+	}
+}
 
 const invoicePaymentHash = (invoice: LndInvoice) => (
 	invoice.r_hash_str ?? invoice.r_hash
@@ -285,6 +337,18 @@ const invoiceFieldsFromLndInvoice = (
 				},
 				timestampMs,
 				source: Source.LightningLnd_Rest,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.BlockheadLightningInvoice_Timestamp, [], 'state')]: invoiceStateFromLnd(invoice.state),
+				...(bigintFromWire(invoice.amt_paid_msat) != null && {
+					[entityFieldAddressKey(EntityType.BlockheadLightningInvoice_Timestamp, [], 'amountPaidMsat')]: bigintFromWire(invoice.amt_paid_msat),
+				}),
+				...(timestampMsFromSeconds(invoice.settle_date) != null && {
+					[entityFieldAddressKey(EntityType.BlockheadLightningInvoice_Timestamp, [], 'settledAtMs')]: timestampMsFromSeconds(invoice.settle_date),
+				}),
+				...(bigintFromWire(invoice.settle_index) != null && {
+					[entityFieldAddressKey(EntityType.BlockheadLightningInvoice_Timestamp, [], 'settleIndex')]: bigintFromWire(invoice.settle_index),
+				}),
 			},
 		},
 	],
@@ -317,6 +381,18 @@ const paymentFieldsFromLndPayment = (
 				},
 				timestampMs,
 				source: Source.LightningLnd_Rest,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.BlockheadLightningPayment_Timestamp, [], 'status')]: paymentStatusFromLnd(payment.status),
+				...(bigintFromWire(payment.fee_msat) != null && {
+					[entityFieldAddressKey(EntityType.BlockheadLightningPayment_Timestamp, [], 'feeMsat')]: bigintFromWire(payment.fee_msat),
+				}),
+				...(payment.failure_reason != null && {
+					[entityFieldAddressKey(EntityType.BlockheadLightningPayment_Timestamp, [], 'failureReason')]: payment.failure_reason,
+				}),
+				...(payment.payment_preimage != null && {
+					[entityFieldAddressKey(EntityType.BlockheadLightningPayment_Timestamp, [], 'preimage')]: payment.payment_preimage,
+				}),
 			},
 		},
 	],
@@ -1042,7 +1118,7 @@ export default {
 						assertLightningNetwork($network)
 						return (await lndChannels())
 							.slice(0, resolverContextRowLimit(context))
-							.map(channelReferenceFromLndChannel)
+							.map(channelRowFromLndChannel)
 					},
 				},
 			},
@@ -1077,12 +1153,41 @@ export default {
 					if (new Set(paymentHashes).size !== paymentHashes.length)
 						throw new Error('LightningLnd_Rest: invoice page contains duplicate identities')
 
-					return paymentHashes.map((paymentHash) => ({
-						[EntityMetaKey.Selector]: {
-							$network: lightningNetwork,
-							paymentHash,
-						},
-					}))
+					return (page.invoices ?? []).flatMap((invoice) => {
+						const paymentHash = invoicePaymentHash(invoice)
+						if (paymentHash == null) return []
+						const fields = invoiceFieldsFromLndInvoice(invoice, paymentHash)
+						return [{
+							[EntityMetaKey.Selector]: {
+								$network: lightningNetwork,
+								paymentHash,
+							},
+							[EntityMetaKey.Fields]: {
+								...(fields.paymentRequest != null && {
+									[entityFieldAddressKey(EntityType.BlockheadLightningInvoice, [], 'paymentRequest')]: fields.paymentRequest,
+								}),
+								...(fields.memo != null && {
+									[entityFieldAddressKey(EntityType.BlockheadLightningInvoice, [], 'memo')]: fields.memo,
+								}),
+								...(fields.valueMsat != null && {
+									[entityFieldAddressKey(EntityType.BlockheadLightningInvoice, [], 'valueMsat')]: fields.valueMsat,
+								}),
+								...(fields.createdAtMs != null && {
+									[entityFieldAddressKey(EntityType.BlockheadLightningInvoice, [], 'createdAtMs')]: fields.createdAtMs,
+								}),
+								...(fields.expirySeconds != null && {
+									[entityFieldAddressKey(EntityType.BlockheadLightningInvoice, [], 'expirySeconds')]: fields.expirySeconds,
+								}),
+								...(fields.private != null && {
+									[entityFieldAddressKey(EntityType.BlockheadLightningInvoice, [], 'private')]: fields.private,
+								}),
+								...(fields.addIndex != null && {
+									[entityFieldAddressKey(EntityType.BlockheadLightningInvoice, [], 'addIndex')]: fields.addIndex,
+								}),
+								[entityFieldAddressKey(EntityType.BlockheadLightningInvoice, [], '$$timestamps')]: fields.$$timestamps,
+							},
+						}]
+					})
 				},
 				continuation: ({ page, pageSize }, _network, context) => (
 					page.last_index_offset == null
@@ -1128,12 +1233,30 @@ export default {
 					if (new Set(paymentHashes).size !== paymentHashes.length)
 						throw new Error('LightningLnd_Rest: payment page contains duplicate identities')
 
-					return paymentHashes.map((paymentHash) => ({
-						[EntityMetaKey.Selector]: {
-							$network: lightningNetwork,
-							paymentHash,
-						},
-					}))
+					return (page.payments ?? []).map((payment) => {
+						const fields = paymentFieldsFromLndPayment(payment)
+						return {
+							[EntityMetaKey.Selector]: {
+								$network: lightningNetwork,
+								paymentHash: payment.payment_hash,
+							},
+							[EntityMetaKey.Fields]: {
+								...(fields.paymentRequest != null && {
+									[entityFieldAddressKey(EntityType.BlockheadLightningPayment, [], 'paymentRequest')]: fields.paymentRequest,
+								}),
+								...(fields.valueMsat != null && {
+									[entityFieldAddressKey(EntityType.BlockheadLightningPayment, [], 'valueMsat')]: fields.valueMsat,
+								}),
+								...(fields.createdAtMs != null && {
+									[entityFieldAddressKey(EntityType.BlockheadLightningPayment, [], 'createdAtMs')]: fields.createdAtMs,
+								}),
+								...(fields.paymentIndex != null && {
+									[entityFieldAddressKey(EntityType.BlockheadLightningPayment, [], 'paymentIndex')]: fields.paymentIndex,
+								}),
+								[entityFieldAddressKey(EntityType.BlockheadLightningPayment, [], '$$timestamps')]: fields.$$timestamps,
+							},
+						}
+					})
 				},
 				continuation: ({ page, pageSize }, _network, context) => (
 					page.last_index_offset == null
@@ -1175,12 +1298,7 @@ export default {
 									context.pagination.offset ?? 0,
 									(context.pagination.offset ?? 0) + resolverContextRowLimit(context)
 								)
-								.map((edge) => ({
-									[EntityMetaKey.Selector]: {
-										$network: lightningNetwork,
-										channelId: edge.channel_id,
-									},
-								}))
+								.map(channelRowFromLndEdge)
 						} catch {
 							const info = await lndInfo()
 							return (await lndChannels())
@@ -1192,7 +1310,7 @@ export default {
 									context.pagination.offset ?? 0,
 									(context.pagination.offset ?? 0) + resolverContextRowLimit(context)
 								)
-								.map(channelReferenceFromLndChannel)
+								.map(channelRowFromLndChannel)
 						}
 					},
 				},
