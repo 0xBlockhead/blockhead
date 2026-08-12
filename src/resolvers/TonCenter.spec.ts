@@ -10,8 +10,11 @@ import { Source } from '$/sources/Source.ts'
 
 const sourceQueries = vi.hoisted(() => ({
 	getTonCenterV3Blocks: vi.fn(),
+	getTonCenterV3CompletedTrace: vi.fn(),
 	getTonCenterV3Transactions: vi.fn(),
+	getTonCenterV3TransactionByAccountLt: vi.fn(),
 	getTonCenterV3Messages: vi.fn(),
+	getTonCenterV3MessageByHash: vi.fn(),
 	getTonCenterV3CompletedTraces: vi.fn(),
 	getTonCenterV3JettonMasters: vi.fn(),
 	getTonCenterV3NftCollections: vi.fn(),
@@ -487,5 +490,131 @@ describe('TonCenter v3 network resolver', () => {
 		})
 		expect(item[EntityMetaKey.Fields]).not.toHaveProperty('onSale')
 		expect(item[EntityMetaKey.Fields]).not.toHaveProperty('saleContractAddress')
+	})
+
+	it('resolves direct message, transaction, and completed-trace routes through the same native hierarchy', async () => {
+		const message = {
+			hash: '1'.repeat(64),
+			source: `0:${'2'.repeat(64)}`,
+			destination: `0:${'3'.repeat(64)}`,
+			created_at: '1700000000',
+			created_lt: '42',
+			value: '100',
+			fwd_fee: '0',
+			import_fee: '0',
+			opcode: 1,
+		}
+		const transaction = {
+			account: `0:${'2'.repeat(64)}`,
+			hash: '4'.repeat(64),
+			lt: '43',
+			block_ref: {
+				workchain: 0,
+				shard: '8000000000000000',
+				seqno: 1,
+			},
+			now: 1_700_000_000,
+			total_fees: '1',
+			prev_trans_hash: '5'.repeat(64),
+			prev_trans_lt: '42',
+			orig_status: 'active',
+			end_status: 'active',
+			description: {
+				type: 'ord',
+				aborted: false,
+				destroyed: false,
+			},
+			in_msg: message,
+			out_msgs: [],
+			trace_id: '1'.repeat(64),
+		}
+		const trace = {
+			trace_id: '1'.repeat(64),
+			start_lt: '42',
+			end_lt: '43',
+			start_utime: 1_700_000_000,
+			end_utime: 1_700_000_001,
+			mc_seqno_start: '1',
+			mc_seqno_end: '1',
+			is_incomplete: false,
+			trace: {
+				in_msg_hash: '1'.repeat(64),
+				in_msg: message,
+				tx_hash: '4'.repeat(64),
+			},
+			transactions_order: ['4'.repeat(64)],
+			trace_info: {
+				messages: 1,
+				pending_messages: 0,
+				transactions: 1,
+			},
+		}
+		const messageResolver = tonCenter.resolvers.at(-3)
+		const transactionResolver = tonCenter.resolvers.at(-2)
+		const traceResolver = tonCenter.resolvers.at(-1)
+		if (messageResolver == null || transactionResolver == null || traceResolver == null)
+			throw new Error('TON Center v3 direct resolvers are missing')
+
+		sourceQueries.getTonCenterV3MessageByHash.mockResolvedValueOnce(message)
+		await expect(messageResolver.resolve.NetworkMessageHash.resolve({
+			$network: network,
+			messageHash: '1'.repeat(64),
+		})).resolves.toMatchObject({
+			[entityFieldAddressKey(EntityType.TonMessage, [], 'messageKind')]: 'internal',
+			[entityFieldAddressKey(EntityType.TonMessage, [], 'destinationAddress')]: `0:${'3'.repeat(64)}`,
+		})
+
+		sourceQueries.getTonCenterV3TransactionByAccountLt.mockResolvedValueOnce(transaction)
+		await expect(transactionResolver.resolve.AccountLt.resolve({
+			$account: {
+				$network: network,
+				address: `0:${'2'.repeat(64)}`,
+			},
+			lt: 43n,
+		})).resolves.toMatchObject({
+			[entityFieldAddressKey(EntityType.TonTransaction, [], '$trace')]: {
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					traceId: '1'.repeat(64),
+					source: Source.TonCenter,
+				},
+			},
+			[entityFieldAddressKey(EntityType.TonTransaction, [], '$inMessage')]: {
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					messageHash: '1'.repeat(64),
+				},
+			},
+		})
+
+		sourceQueries.getTonCenterV3CompletedTrace.mockResolvedValueOnce(trace)
+		await expect(traceResolver.resolve.NetworkTraceIdSource.resolve({
+			$network: network,
+			traceId: '1'.repeat(64),
+			source: Source.TonCenter,
+		})).resolves.toMatchObject({
+			[entityFieldAddressKey(EntityType.TonTrace, [], '$rootMessage')]: {
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					messageHash: '1'.repeat(64),
+				},
+			},
+			[entityFieldAddressKey(EntityType.TonTrace, [], '$$timestamps')]: [{
+				[EntityMetaKey.Selector]: {
+					$trace: {
+						$network: network,
+						traceId: '1'.repeat(64),
+						source: Source.TonCenter,
+					},
+					timestampMs: 1_700_000_001_000,
+					source: Source.TonCenter,
+				},
+			}],
+		})
+		await expect(traceResolver.resolve.NetworkTraceIdSource.resolve({
+			$network: network,
+			traceId: '1'.repeat(64),
+			source: Source.TonApi_Rest,
+		})).rejects.toThrow('unsupported trace source')
 	})
 })

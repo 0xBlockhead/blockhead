@@ -30,11 +30,14 @@ vi.mock('$/sources/_shared/wire/HttpRest/client.ts', () => ({
 
 const {
 	getTonCenterV3Blocks,
+	getTonCenterV3CompletedTrace,
 	getTonCenterV3CompletedTraces,
 	getTonCenterV3JettonMasters,
+	getTonCenterV3MessageByHash,
 	getTonCenterV3Messages,
 	getTonCenterV3NftCollections,
 	getTonCenterV3NftItems,
+	getTonCenterV3TransactionByAccountLt,
 	getTonCenterV3Transactions,
 } = await import('$/sources/TonCenter/V3/Rest/queries.ts')
 
@@ -249,6 +252,79 @@ describe('TON Center v3 source foundation', () => {
 			expect.anything(),
 			'messages?limit=2&offset=0&sort=asc'
 		)
+	})
+
+	it('resolves exact trace, message, and transaction subjects through their native filters', async () => {
+		getJson
+			.mockResolvedValueOnce({
+				traces: [trace],
+			})
+			.mockResolvedValueOnce({
+				messages: [message],
+			})
+			.mockResolvedValueOnce({
+				transactions: [transaction],
+			})
+
+		await expect(getTonCenterV3CompletedTrace(firstHash.toUpperCase())).resolves.toEqual(trace)
+		await expect(getTonCenterV3MessageByHash(firstHash.toUpperCase())).resolves.toEqual(message)
+		await expect(getTonCenterV3TransactionByAccountLt({
+			account: secondAddress.toUpperCase(),
+			logicalTime: 9_007_199_254_740_999n,
+		})).resolves.toEqual(transaction)
+
+		expect(getJson).toHaveBeenNthCalledWith(
+			1,
+			expect.anything(),
+			`traces?limit=1&offset=0&sort=desc&trace_id=${firstHash}`
+		)
+		expect(getJson).toHaveBeenNthCalledWith(
+			2,
+			expect.anything(),
+			`messages?limit=1&offset=0&sort=desc&msg_hash=${firstHash}`
+		)
+		expect(getJson).toHaveBeenNthCalledWith(
+			3,
+			expect.anything(),
+			`transactions?limit=1&offset=0&sort=desc&account=${encodeURIComponent(secondAddress)}&lt=9007199254740999`
+		)
+	})
+
+	it('rejects filtered detail responses that do not contain their exact subject', async () => {
+		getJson
+			.mockResolvedValueOnce({
+				messages: [{
+					...message,
+					hash: secondHash,
+				}],
+			})
+			.mockResolvedValueOnce({
+				traces: [{
+					...trace,
+					trace_id: secondHash,
+					trace: {
+						...trace.trace,
+						in_msg_hash: secondHash,
+						in_msg: {
+							...trace.trace.in_msg,
+							hash: secondHash,
+						},
+					},
+				}],
+			})
+			.mockResolvedValueOnce({
+				transactions: [{
+					...transaction,
+					lt: '9007199254740998',
+				}],
+			})
+
+		await expect(getTonCenterV3MessageByHash(firstHash)).rejects.toThrow('was not resolved exactly once')
+		await expect(getTonCenterV3CompletedTrace(firstHash)).rejects.toThrow('was not resolved exactly once')
+		await expect(getTonCenterV3TransactionByAccountLt({
+			account: secondAddress,
+			logicalTime: 9_007_199_254_740_999n,
+		})).rejects.toThrow('was not resolved exactly once')
 	})
 
 	it('preserves nullable external and log message endpoints and a null transaction input', async () => {

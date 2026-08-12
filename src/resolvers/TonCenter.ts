@@ -20,6 +20,8 @@ import {
 import type {
 	TonCenterV3MessageWire,
 	TonCenterV3Page,
+	TonCenterV3TraceWire,
+	TonCenterV3TransactionWire,
 } from '$/sources/TonCenter/V3/Rest/types.ts'
 type TonNetwork = EntitySelector<typeof schema, EntityType.Network>
 
@@ -160,6 +162,94 @@ const tonMessage = (
 	},
 })
 
+const tonTransaction = (
+	network: TonNetwork,
+	transaction: TonCenterV3TransactionWire
+) => ({
+	[EntityMetaKey.Selector]: {
+		$account: {
+			$network: network,
+			address: tonCenterV3RawAddress(transaction.account),
+		},
+		lt: BigInt(transaction.lt),
+		hash: tonCenterV3Hash(transaction.hash, 'transaction hash'),
+	},
+	[EntityMetaKey.Fields]: {
+		[entityFieldAddressKey(EntityType.TonTransaction, [], 'nowMs')]: transaction.now * 1_000,
+		[entityFieldAddressKey(EntityType.TonTransaction, [], 'origStatus')]: transaction.orig_status,
+		[entityFieldAddressKey(EntityType.TonTransaction, [], 'endStatus')]: transaction.end_status,
+		[entityFieldAddressKey(EntityType.TonTransaction, [], 'transactionKind')]: transaction.description.type,
+		[entityFieldAddressKey(EntityType.TonTransaction, [], 'outMessageCount')]: transaction.out_msgs.length,
+		[entityFieldAddressKey(EntityType.TonTransaction, [], 'totalFeesNano')]: BigInt(transaction.total_fees),
+		[entityFieldAddressKey(EntityType.TonTransaction, [], 'previousTransactionHash')]: tonCenterV3Hash(
+			transaction.prev_trans_hash,
+			'previous transaction hash'
+		),
+		[entityFieldAddressKey(EntityType.TonTransaction, [], 'previousTransactionLt')]: BigInt(transaction.prev_trans_lt),
+		[entityFieldAddressKey(EntityType.TonTransaction, [], '$block')]: {
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				workchain: transaction.block_ref.workchain,
+				shardPrefix: tonCenterV3Shard(transaction.block_ref.shard),
+				seqno: BigInt(transaction.block_ref.seqno),
+			},
+		},
+		[entityFieldAddressKey(EntityType.TonTransaction, [], '$trace')]: (
+			transaction.trace_id == null ?
+				undefined
+			:
+				{
+					[EntityMetaKey.Selector]: {
+						$network: network,
+						traceId: tonCenterV3Hash(transaction.trace_id, 'transaction trace ID'),
+						source: Source.TonCenter,
+					},
+				}
+		),
+		[entityFieldAddressKey(EntityType.TonTransaction, [], '$inMessage')]: (
+			transaction.in_msg == null ?
+				undefined
+			:
+				tonMessage(network, transaction.in_msg)
+		),
+		[entityFieldAddressKey(EntityType.TonTransaction, [], '$$outMessages')]: (
+			transaction.out_msgs.map((message) => tonMessage(network, message))
+		),
+	},
+})
+
+const tonTrace = (
+	network: TonNetwork,
+	trace: TonCenterV3TraceWire
+) => {
+	const traceSelector = {
+		$network: network,
+		traceId: tonCenterV3Hash(trace.trace_id, 'trace ID'),
+		source: Source.TonCenter,
+	}
+	const rootMessage = tonMessage(network, trace.trace.in_msg)
+	return {
+		[EntityMetaKey.Selector]: traceSelector,
+		[EntityMetaKey.Fields]: {
+			[entityFieldAddressKey(EntityType.TonTrace, [], '$rootMessage')]: rootMessage,
+			[entityFieldAddressKey(EntityType.TonTrace, [], 'startedAtMs')]: trace.start_utime * 1_000,
+			[entityFieldAddressKey(EntityType.TonTrace, [], '$$timestamps')]: [{
+				[EntityMetaKey.Selector]: {
+					$trace: traceSelector,
+					timestampMs: trace.end_utime * 1_000,
+					source: Source.TonCenter,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.TonTrace_Timestamp, [], 'status')]: 'completed',
+					[entityFieldAddressKey(EntityType.TonTrace_Timestamp, [], 'transactionCount')]: trace.trace_info.transactions,
+					[entityFieldAddressKey(EntityType.TonTrace_Timestamp, [], 'messageCount')]: trace.trace_info.messages,
+				},
+			}],
+			[entityFieldAddressKey(EntityType.TonTrace, [], '$$messages')]: [rootMessage],
+		},
+	}
+}
+
 export const createTonCenterV3Resolvers = () => ({
 	source: Source.TonCenter,
 
@@ -216,58 +306,7 @@ export const createTonCenterV3Resolvers = () => ({
 		})({
 			Ton: {
 				$$transactions: {
-					select: (page, network) => page.rows.map((transaction) => ({
-						[EntityMetaKey.Selector]: {
-							$account: {
-								$network: network,
-								address: tonCenterV3RawAddress(transaction.account),
-							},
-							lt: BigInt(transaction.lt),
-							hash: tonCenterV3Hash(transaction.hash, 'transaction hash'),
-						},
-						[EntityMetaKey.Fields]: {
-							[entityFieldAddressKey(EntityType.TonTransaction, [], 'nowMs')]: transaction.now * 1_000,
-							[entityFieldAddressKey(EntityType.TonTransaction, [], 'origStatus')]: transaction.orig_status,
-							[entityFieldAddressKey(EntityType.TonTransaction, [], 'endStatus')]: transaction.end_status,
-							[entityFieldAddressKey(EntityType.TonTransaction, [], 'transactionKind')]: transaction.description.type,
-							[entityFieldAddressKey(EntityType.TonTransaction, [], 'outMessageCount')]: transaction.out_msgs.length,
-							[entityFieldAddressKey(EntityType.TonTransaction, [], 'totalFeesNano')]: BigInt(transaction.total_fees),
-							[entityFieldAddressKey(EntityType.TonTransaction, [], 'previousTransactionHash')]: tonCenterV3Hash(
-								transaction.prev_trans_hash,
-								'previous transaction hash'
-							),
-							[entityFieldAddressKey(EntityType.TonTransaction, [], 'previousTransactionLt')]: BigInt(transaction.prev_trans_lt),
-							[entityFieldAddressKey(EntityType.TonTransaction, [], '$block')]: {
-								[EntityMetaKey.Selector]: {
-									$network: network,
-									workchain: transaction.block_ref.workchain,
-									shardPrefix: tonCenterV3Shard(transaction.block_ref.shard),
-									seqno: BigInt(transaction.block_ref.seqno),
-								},
-							},
-							[entityFieldAddressKey(EntityType.TonTransaction, [], '$trace')]: (
-								transaction.trace_id == null ?
-									undefined
-								:
-									{
-										[EntityMetaKey.Selector]: {
-											$network: network,
-											traceId: tonCenterV3Hash(transaction.trace_id, 'transaction trace ID'),
-											source: Source.TonCenter,
-										},
-									}
-							),
-							[entityFieldAddressKey(EntityType.TonTransaction, [], '$inMessage')]: (
-								transaction.in_msg == null ?
-									undefined
-								:
-									tonMessage(network, transaction.in_msg)
-							),
-							[entityFieldAddressKey(EntityType.TonTransaction, [], '$$outMessages')]: (
-								transaction.out_msgs.map((message) => tonMessage(network, message))
-							),
-						},
-					})),
+					select: (page, network) => page.rows.map((transaction) => tonTransaction(network, transaction)),
 					continuation: (page) => continuation(page.nextOffset, 'transactions'),
 				},
 			},
@@ -311,36 +350,7 @@ export const createTonCenterV3Resolvers = () => ({
 		})({
 			Ton: {
 				$$traces: {
-					select: (page, network) => (
-						page.rows.map((trace) => {
-							const traceSelector = {
-								$network: network,
-								traceId: tonCenterV3Hash(trace.trace_id, 'trace ID'),
-								source: Source.TonCenter,
-							}
-							const rootMessage = tonMessage(network, trace.trace.in_msg)
-							return {
-								[EntityMetaKey.Selector]: traceSelector,
-								[EntityMetaKey.Fields]: {
-									[entityFieldAddressKey(EntityType.TonTrace, [], '$rootMessage')]: rootMessage,
-									[entityFieldAddressKey(EntityType.TonTrace, [], 'startedAtMs')]: trace.start_utime * 1_000,
-									[entityFieldAddressKey(EntityType.TonTrace, [], '$$timestamps')]: [{
-										[EntityMetaKey.Selector]: {
-											$trace: traceSelector,
-											timestampMs: trace.end_utime * 1_000,
-											source: Source.TonCenter,
-										},
-										[EntityMetaKey.Fields]: {
-											[entityFieldAddressKey(EntityType.TonTrace_Timestamp, [], 'status')]: 'completed',
-											[entityFieldAddressKey(EntityType.TonTrace_Timestamp, [], 'transactionCount')]: trace.trace_info.transactions,
-											[entityFieldAddressKey(EntityType.TonTrace_Timestamp, [], 'messageCount')]: trace.trace_info.messages,
-										},
-									}],
-									[entityFieldAddressKey(EntityType.TonTrace, [], '$$messages')]: [rootMessage],
-								},
-							}
-						})
-					),
+					select: (page, network) => page.rows.map((trace) => tonTrace(network, trace)),
 					continuation: (page) => continuation(page.nextOffset, 'completed-traces'),
 				},
 			},
@@ -572,6 +582,84 @@ export const createTonCenterV3Resolvers = () => ({
 					continuation: (page) => continuation(page.nextOffset, 'nft-items'),
 				},
 			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.TonMessage,
+			resolve: {
+				NetworkMessageHash: {
+					resolve: async ({ $network, messageHash }) => {
+						assertTonMainnet($network)
+						const { getTonCenterV3MessageByHash } = await import('$/sources/TonCenter/V3/Rest/queries.ts')
+						return tonMessage(
+							$network,
+							await getTonCenterV3MessageByHash(messageHash)
+						)[EntityMetaKey.Fields]
+					},
+				},
+			},
+		})({
+			messageKind: (message) => message[entityFieldAddressKey(EntityType.TonMessage, [], 'messageKind')],
+			sourceAddress: (message) => message[entityFieldAddressKey(EntityType.TonMessage, [], 'sourceAddress')],
+			destinationAddress: (message) => message[entityFieldAddressKey(EntityType.TonMessage, [], 'destinationAddress')],
+			valueNano: (message) => message[entityFieldAddressKey(EntityType.TonMessage, [], 'valueNano')],
+			createdLt: (message) => message[entityFieldAddressKey(EntityType.TonMessage, [], 'createdLt')],
+			opcode: (message) => message[entityFieldAddressKey(EntityType.TonMessage, [], 'opcode')],
+		}),
+
+		defineResolver({
+			entityType: EntityType.TonTransaction,
+			resolve: {
+				AccountLt: {
+					resolve: async ({ $account, lt }) => {
+						assertTonMainnet($account.$network)
+						const { getTonCenterV3TransactionByAccountLt } = await import('$/sources/TonCenter/V3/Rest/queries.ts')
+						return tonTransaction(
+							$account.$network,
+							await getTonCenterV3TransactionByAccountLt({
+								account: $account.address,
+								logicalTime: lt,
+							})
+						)[EntityMetaKey.Fields]
+					},
+				},
+			},
+		})({
+			nowMs: (transaction) => transaction[entityFieldAddressKey(EntityType.TonTransaction, [], 'nowMs')],
+			origStatus: (transaction) => transaction[entityFieldAddressKey(EntityType.TonTransaction, [], 'origStatus')],
+			endStatus: (transaction) => transaction[entityFieldAddressKey(EntityType.TonTransaction, [], 'endStatus')],
+			transactionKind: (transaction) => transaction[entityFieldAddressKey(EntityType.TonTransaction, [], 'transactionKind')],
+			outMessageCount: (transaction) => transaction[entityFieldAddressKey(EntityType.TonTransaction, [], 'outMessageCount')],
+			totalFeesNano: (transaction) => transaction[entityFieldAddressKey(EntityType.TonTransaction, [], 'totalFeesNano')],
+			previousTransactionHash: (transaction) => transaction[entityFieldAddressKey(EntityType.TonTransaction, [], 'previousTransactionHash')],
+			previousTransactionLt: (transaction) => transaction[entityFieldAddressKey(EntityType.TonTransaction, [], 'previousTransactionLt')],
+			$block: (transaction) => transaction[entityFieldAddressKey(EntityType.TonTransaction, [], '$block')],
+			$trace: (transaction) => transaction[entityFieldAddressKey(EntityType.TonTransaction, [], '$trace')],
+			$inMessage: (transaction) => transaction[entityFieldAddressKey(EntityType.TonTransaction, [], '$inMessage')],
+			$$outMessages: (transaction) => transaction[entityFieldAddressKey(EntityType.TonTransaction, [], '$$outMessages')],
+		}),
+
+		defineResolver({
+			entityType: EntityType.TonTrace,
+			resolve: {
+				NetworkTraceIdSource: {
+					resolve: async ({ $network, traceId, source }) => {
+						assertTonMainnet($network)
+						if (source !== Source.TonCenter)
+							throw new Error(`TON Center v3: unsupported trace source ${source}`)
+						const { getTonCenterV3CompletedTrace } = await import('$/sources/TonCenter/V3/Rest/queries.ts')
+						return tonTrace(
+							$network,
+							await getTonCenterV3CompletedTrace(traceId)
+						)[EntityMetaKey.Fields]
+					},
+				},
+			},
+		})({
+			$rootMessage: (trace) => trace[entityFieldAddressKey(EntityType.TonTrace, [], '$rootMessage')],
+			startedAtMs: (trace) => trace[entityFieldAddressKey(EntityType.TonTrace, [], 'startedAtMs')],
+			$$timestamps: (trace) => trace[entityFieldAddressKey(EntityType.TonTrace, [], '$$timestamps')],
+			$$messages: (trace) => trace[entityFieldAddressKey(EntityType.TonTrace, [], '$$messages')],
 		}),
 		] as const,
 	}) satisfies RegisteredSourceResolverModule

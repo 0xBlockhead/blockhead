@@ -208,9 +208,12 @@ export const getTonCenterV3Messages = async (
 		limit: number
 		offset: number
 		order: TonCenterV3Order
+		messageHash?: string
 	}
 ) => {
 	const parameters = pageParameters(options)
+	if (options.messageHash != null)
+		parameters.set('msg_hash', tonCenterV3Hash(options.messageHash, 'message hash'))
 	const wire = tonCenterV3Messages.assert(await getTonCenterV3RestJson<unknown>(
 		`messages?${parameters.toString()}`
 	))
@@ -230,14 +233,37 @@ export const getTonCenterV3Messages = async (
 	return page(wire.messages, options.limit, options.offset)
 }
 
+export const getTonCenterV3MessageByHash = async (
+	messageHash: string
+) => {
+	const normalizedMessageHash = tonCenterV3Hash(messageHash, 'message hash')
+	const messages = await getTonCenterV3Messages({
+		limit: 1,
+		offset: 0,
+		order: 'desc',
+		messageHash: normalizedMessageHash,
+	})
+	const [message] = messages.rows
+	if (
+		messages.rows.length !== 1
+		|| tonCenterV3Hash(message.hash, 'message hash') !== normalizedMessageHash
+	)
+		throw new Error(`TON Center v3: message ${normalizedMessageHash} was not resolved exactly once`)
+
+	return message
+}
+
 export const getTonCenterV3CompletedTraces = async (
 	options: {
 		limit: number
 		offset: number
 		order: TonCenterV3Order
+		traceId?: string
 	}
 ) => {
 	const parameters = pageParameters(options)
+	if (options.traceId != null)
+		parameters.set('trace_id', tonCenterV3Hash(options.traceId, 'trace ID'))
 	const wire = tonCenterV3Traces.assert(await getTonCenterV3RestJson<unknown>(
 		`traces?${parameters.toString()}`
 	))
@@ -299,14 +325,40 @@ export const getTonCenterV3CompletedTraces = async (
 	return page(wire.traces, options.limit, options.offset)
 }
 
+export const getTonCenterV3CompletedTrace = async (
+	traceId: string
+) => {
+	const normalizedTraceId = tonCenterV3Hash(traceId, 'trace ID')
+	const traces = await getTonCenterV3CompletedTraces({
+		limit: 1,
+		offset: 0,
+		order: 'desc',
+		traceId: normalizedTraceId,
+	})
+	const [trace] = traces.rows
+	if (
+		traces.rows.length !== 1
+		|| tonCenterV3Hash(trace.trace_id, 'trace ID') !== normalizedTraceId
+	)
+		throw new Error(`TON Center v3: trace ${normalizedTraceId} was not resolved exactly once`)
+
+	return trace
+}
+
 export const getTonCenterV3Transactions = async (
 	options: {
 		limit: number
 		offset: number
 		order: TonCenterV3Order
+		account?: string
+		logicalTime?: bigint
 	}
 ) => {
 	const parameters = pageParameters(options)
+	if (options.account != null)
+		parameters.set('account', tonCenterV3RawAddress(options.account))
+	if (options.logicalTime != null)
+		parameters.set('lt', options.logicalTime.toString())
 	const wire = tonCenterV3Transactions.assert(await getTonCenterV3RestJson<unknown>(
 		`transactions?${parameters.toString()}`
 	))
@@ -392,6 +444,32 @@ export const getTonCenterV3Transactions = async (
 	}
 
 	return page(wire.transactions, options.limit, options.offset)
+}
+
+export const getTonCenterV3TransactionByAccountLt = async ({
+	account,
+	logicalTime,
+}: {
+	account: string
+	logicalTime: bigint
+}) => {
+	const normalizedAccount = tonCenterV3RawAddress(account)
+	const transactions = await getTonCenterV3Transactions({
+		limit: 1,
+		offset: 0,
+		order: 'desc',
+		account: normalizedAccount,
+		logicalTime,
+	})
+	const [transaction] = transactions.rows
+	if (
+		transactions.rows.length !== 1
+		|| tonCenterV3RawAddress(transaction.account) !== normalizedAccount
+		|| tonCenterV3NonnegativeInt64(transaction.lt, 'transaction logical time') !== logicalTime
+	)
+		throw new Error(`TON Center v3: transaction ${normalizedAccount}:${logicalTime.toString()} was not resolved exactly once`)
+
+	return transaction
 }
 
 export const getTonCenterV3JettonMasters = async (
