@@ -3,6 +3,7 @@
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export default entity({
@@ -24,9 +25,37 @@ export default entity({
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
+	manifestVersion: {
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Arweave_Rest,
+		],
+	},
+	manifestIndexPath: {
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Arweave_Rest,
+		],
+	},
+	manifestFallbackTransactionId: {
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Arweave_Rest,
+		],
+	},
 	$transaction: {
 		entityType: EntityType.ArweaveTransaction,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	$$manifestPaths: {
+		entityType: EntityType.ArweaveResource,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Arweave_Rest,
+		],
 	},
 	$$timestamps: {
 		entityType: EntityType.ArweaveResource_Timestamp,

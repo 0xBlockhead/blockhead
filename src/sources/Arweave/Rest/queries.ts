@@ -15,11 +15,13 @@ import {
 } from '$/sources/_shared/wire/HttpRest/client.ts'
 import {
 	arweaveBlockWire,
+	arweaveManifestWire,
 	arweaveNetworkInfoWire,
 	arweaveTransactionOffsetWire,
 	arweaveTransactionStatusWire,
 	arweaveTransactionWire,
 	type ArweaveBlockWire,
+	type ArweaveManifest,
 	type ArweaveTransactionStatus,
 } from '$/sources/Arweave/Rest/types.ts'
 import {
@@ -35,6 +37,32 @@ const binding = bindings[Source.Arweave_Rest][0]
 
 const gatewayUrlLastSegment = /([^/]+)$/
 const trimSlashes = (value: string) => value.replace(/^\/+|\/+$/g, '')
+
+export const parseArweaveManifest = (text: string): ArweaveManifest => {
+	let parsed
+	try {
+		parsed = JSON.parse(text)
+	} catch {
+		throw new Error('Arweave_Rest: invalid manifest JSON')
+	}
+	const manifest = assertEnvelope('manifest', arweaveManifestWire, parsed)
+	if (manifest.index != null)
+		assertGatewayContentPath({
+			family: ContentGatewayFamily.Arweave,
+			contentPath: manifest.index.path,
+		})
+	if (manifest.fallback != null)
+		assertBase64UrlId(manifest.fallback.id, 'manifest fallback transaction ID')
+	for (const [path, resource] of Object.entries(manifest.paths)) {
+		assertGatewayContentPath({
+			family: ContentGatewayFamily.Arweave,
+			contentPath: path,
+		})
+		assertBase64UrlId(resource.id, `manifest path ${path} transaction ID`)
+	}
+
+	return manifest
+}
 
 const assertEnvelope = <_Value>(
 	label: string,

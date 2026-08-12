@@ -26,6 +26,7 @@ const decodeArweaveTagField = vi.hoisted(() => vi.fn((value: string) => (
 		value
 )))
 const fetchBrowseResult = vi.hoisted(() => vi.fn())
+const parseArweaveManifest = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/Arweave/Rest/queries.ts', () => ({
 	getNetworkInfo,
@@ -37,6 +38,7 @@ vi.mock('$/sources/Arweave/Rest/queries.ts', () => ({
 	ownerAddressFromOwnerKey,
 	decodeArweaveTagField,
 	fetchBrowseResult,
+	parseArweaveManifest,
 }))
 
 const { default: arweaveRest } = await import('$/resolvers/Arweave-Rest.ts')
@@ -110,6 +112,11 @@ describe('Arweave_Rest block / info / resource browse resolvers', () => {
 		ownerAddressFromOwnerKey.mockReset()
 		decodeArweaveTagField.mockClear()
 		fetchBrowseResult.mockReset()
+		fetchBrowseResult.mockResolvedValue({
+			contentType: undefined,
+			text: undefined,
+		})
+		parseArweaveManifest.mockReset()
 	})
 
 	it('registers against Arweave_Rest only', () => {

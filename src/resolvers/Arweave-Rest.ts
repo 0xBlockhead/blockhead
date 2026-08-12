@@ -401,6 +401,22 @@ export default {
 							family: ContentGatewayFamily.Arweave,
 							contentPath,
 						})
+						const {
+							fetchBrowseResult,
+							parseArweaveManifest,
+						} = await import('$/sources/Arweave/Rest/queries.ts')
+						const browseResult = await fetchBrowseResult({
+							transactionId,
+							contentPath: normalizedContentPath,
+						})
+						const manifest = (
+							browseResult.contentType?.split(';', 1)[0].trim().toLowerCase()
+								=== 'application/x.arweave-manifest+json'
+							&& browseResult.text != null ?
+								parseArweaveManifest(browseResult.text)
+							:
+								undefined
+						)
 
 						return {
 							transactionId,
@@ -414,6 +430,26 @@ export default {
 									transactionId,
 								},
 							},
+							...(manifest != null && {
+								version: manifest.version,
+								...(manifest.index != null && {
+									indexPath: manifest.index.path,
+								}),
+								...(manifest.fallback != null && {
+									fallbackTransactionId: manifest.fallback.id,
+								}),
+								paths: Object.keys(manifest.paths).map((manifestPath) => ({
+									[EntityMetaKey.Selector]: {
+										transactionId,
+										contentPath: manifestPath,
+									},
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.ArweaveResource, [], 'canonicalUri')]:
+											arweaveCanonicalUri(transactionId, manifestPath),
+									},
+								})),
+							}),
+							...(!manifest && { paths: [] }),
 							timestamps: [{
 								[EntityMetaKey.Selector]: {
 									$resource: {
@@ -432,7 +468,14 @@ export default {
 			transactionId: (resource) => resource.transactionId,
 			contentPath: (resource) => resource.contentPath,
 			canonicalUri: (resource) => resource.canonicalUri,
+			manifestVersion: (resource) => resource.version,
+			manifestIndexPath: (resource) => resource.indexPath,
+			manifestFallbackTransactionId: (resource) => resource.fallbackTransactionId,
 			$transaction: (resource) => resource.$transaction,
+			$$manifestPaths: {
+				select: (resource) => resource.paths,
+				resolveCount: (resource) => resource.paths.length,
+			},
 			$$timestamps: (resource) => resource.timestamps,
 		}),
 

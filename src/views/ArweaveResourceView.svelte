@@ -35,6 +35,7 @@
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
+	import ArweaveResourcesView from '$/views/ArweaveResourcesView.svelte'
 	import ArweaveResource_TimestampsView from '$/views/ArweaveResource_TimestampsView.svelte'
 	import ArweaveTransactionView from '$/views/ArweaveTransactionView.svelte'
 </script>
@@ -108,6 +109,72 @@
 			</div>
 
 			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							manifestVersion: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const manifestVersion = entity.manifestVersion}
+					{#if manifestVersion != null}
+						<div>
+							<dt>manifest version</dt>
+							<dd>
+								{manifestVersion}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							manifestIndexPath: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const manifestIndexPath = entity.manifestIndexPath}
+					{#if manifestIndexPath != null}
+						<div>
+							<dt>manifest index path</dt>
+							<dd>
+								{manifestIndexPath}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							manifestFallbackTransactionId: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const manifestFallbackTransactionId = entity.manifestFallbackTransactionId}
+					{#if manifestFallbackTransactionId != null}
+						<div>
+							<dt>manifest fallback transaction ID</dt>
+							<dd>
+								<TruncatedValue value={manifestFallbackTransactionId} />
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
 				resource={selection.$transaction}
 			>
 				{#snippet children(arweaveTransaction)}
@@ -129,6 +196,21 @@
 	{/snippet}
 
 	{#snippet Details()}
+		{@const manifestPathsResource = selection.$$manifestPaths}
+		<ResourceBoundary
+			resource={manifestPathsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<ArweaveResourcesView
+						selection={manifestPathsResource}
+						countResource={manifestPathsResource.count}
+						title='Manifest paths'
+						id='manifest-paths'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
 			resource={timestampsResource}

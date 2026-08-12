@@ -1,5 +1,35 @@
 import { type as arktype } from 'arktype'
 
+export type ArweaveManifest = {
+	manifest: 'arweave/paths'
+	version: '0.1.0' | '0.2.0'
+	index?: {
+		path: string
+	}
+	fallback?: {
+		id: string
+	}
+	paths: Record<string, {
+		id: string
+	}>
+}
+
+export const arweaveManifestWire = arktype({
+	manifest: "'arweave/paths'",
+	version: "'0.1.0' | '0.2.0'",
+	'index?': {
+		path: 'string',
+	},
+	'fallback?': {
+		id: 'string',
+	},
+	paths: {
+		'[string]': {
+			id: 'string',
+		},
+	},
+})
+
 
 const base64Url = arktype('/^[A-Za-z0-9_-]+$/')
 const base64UrlId = arktype('/^[A-Za-z0-9_-]{43}$/')
