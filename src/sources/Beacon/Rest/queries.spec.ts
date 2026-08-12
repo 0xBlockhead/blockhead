@@ -12,6 +12,8 @@ import {
 	getCommittees,
 	getBlockDutySummary,
 	getBlockDutySummaryFromWire,
+	getBlockRewards,
+	getBlockRewardsFromWire,
 	getFinalityCheckpointsFromWire,
 	getForkScheduleFromWire,
 	getGenesisTimeSeconds,
@@ -43,6 +45,51 @@ afterEach(() => {
 })
 
 describe('Beacon REST native checkpoint and fork wires', () => {
+	it('parses coordinate-bound block reward components and finality', async () => {
+		const wire = {
+			execution_optimistic: false,
+			finalized: true,
+			data: {
+				proposer_index: '12',
+				total: '1000',
+				attestations: '700',
+				sync_aggregate: '200',
+				proposer_slashings: '60',
+				attester_slashings: '40',
+			},
+		}
+		expect(getBlockRewardsFromWire(wire)).toEqual({
+			proposerIndex: 12,
+			totalGwei: 1000n,
+			attestationsGwei: 700n,
+			syncAggregateGwei: 200n,
+			proposerSlashingsGwei: 60n,
+			attesterSlashingsGwei: 40n,
+			executionOptimistic: false,
+			finalized: true,
+		})
+		const sourceFetch = vi.spyOn(sourceHttp, 'sourceFetch').mockResolvedValue(new Response(JSON.stringify(wire)))
+		await expect(getBlockRewards(
+			1,
+			64
+		)).resolves.toMatchObject({ totalGwei: 1000n })
+		expect(String(sourceFetch.mock.calls[0]?.[1])).toContain('/eth/v1/beacon/rewards/blocks/64')
+	})
+
+	it('rejects partial or malformed block reward authority', () => {
+		expect(() => getBlockRewardsFromWire({
+			execution_optimistic: true,
+			finalized: false,
+			data: {
+				proposer_index: '12',
+				total: '1000',
+				attestations: '700',
+				sync_aggregate: '200',
+				proposer_slashings: '60',
+			},
+		})).toThrow('invalid block rewards amount')
+	})
+
 	it('retains complete block-duty relationships and rejects malformed partial payloads', () => {
 		expect(getBlockDutySummaryFromWire({
 			data: {

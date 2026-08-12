@@ -515,6 +515,31 @@ export default {
 			}),
 
 		defineResolver({
+			entityType: EntityType.BeaconSlot,
+			resolve: {
+				EvmNetworkSlot: {
+					appliesTo: eip155NetworkApplicability,
+					resolve: async ({ $network, slot }) => {
+						const { getBlockRewards } = await import('$/sources/Beacon/Rest/queries.ts')
+						return getBlockRewards(
+							eip155ChainId($network),
+							slot
+						)
+					},
+				},
+			},
+		})({
+				proposerIndex: (rewards) => rewards.proposerIndex,
+				rewardTotalGwei: (rewards) => rewards.totalGwei,
+				rewardAttestationsGwei: (rewards) => rewards.attestationsGwei,
+				rewardSyncAggregateGwei: (rewards) => rewards.syncAggregateGwei,
+				rewardProposerSlashingsGwei: (rewards) => rewards.proposerSlashingsGwei,
+				rewardAttesterSlashingsGwei: (rewards) => rewards.attesterSlashingsGwei,
+				rewardExecutionOptimistic: (rewards) => rewards.executionOptimistic,
+				rewardFinalized: (rewards) => rewards.finalized,
+			}),
+
+		defineResolver({
 			entityType: EntityType.BeaconValidator,
 			resolve: {
 				NetworkIndexInNetwork: {

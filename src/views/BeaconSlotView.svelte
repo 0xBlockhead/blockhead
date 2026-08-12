@@ -296,6 +296,196 @@
 				</ResourceBoundary>
 			{/if}
 		</dl>
+
+		<dl data-column-item="center">
+			{#if contentOpen}
+				<ResourceBoundary
+					resource={
+						viewSelection({
+							fields: {
+								rewardTotalGwei: true,
+							},
+						})
+					}
+				>
+					{#snippet children(entity)}
+						{@const rewardTotalGwei = entity.rewardTotalGwei}
+						{#if rewardTotalGwei != null}
+							<div>
+								<dt>Total proposer reward</dt>
+								<dd>
+									<NumberValue
+										value={rewardTotalGwei}
+									/>
+
+									<span> gwei</span>
+								</dd>
+							</div>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+			{/if}
+
+			{#if contentOpen}
+				<ResourceBoundary
+					resource={
+						viewSelection({
+							fields: {
+								rewardAttestationsGwei: true,
+							},
+						})
+					}
+				>
+					{#snippet children(entity)}
+						{@const rewardAttestationsGwei = entity.rewardAttestationsGwei}
+						{#if rewardAttestationsGwei != null}
+							<div>
+								<dt>Attestation reward</dt>
+								<dd>
+									<NumberValue
+										value={rewardAttestationsGwei}
+									/>
+
+									<span> gwei</span>
+								</dd>
+							</div>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+			{/if}
+
+			{#if contentOpen}
+				<ResourceBoundary
+					resource={
+						viewSelection({
+							fields: {
+								rewardSyncAggregateGwei: true,
+							},
+						})
+					}
+				>
+					{#snippet children(entity)}
+						{@const rewardSyncAggregateGwei = entity.rewardSyncAggregateGwei}
+						{#if rewardSyncAggregateGwei != null}
+							<div>
+								<dt>Sync aggregate reward</dt>
+								<dd>
+									<NumberValue
+										value={rewardSyncAggregateGwei}
+									/>
+
+									<span> gwei</span>
+								</dd>
+							</div>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+			{/if}
+
+			{#if contentOpen}
+				<ResourceBoundary
+					resource={
+						viewSelection({
+							fields: {
+								rewardProposerSlashingsGwei: true,
+							},
+						})
+					}
+				>
+					{#snippet children(entity)}
+						{@const rewardProposerSlashingsGwei = entity.rewardProposerSlashingsGwei}
+						{#if rewardProposerSlashingsGwei != null}
+							<div>
+								<dt>Proposer slashing reward</dt>
+								<dd>
+									<NumberValue
+										value={rewardProposerSlashingsGwei}
+									/>
+
+									<span> gwei</span>
+								</dd>
+							</div>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+			{/if}
+
+			{#if contentOpen}
+				<ResourceBoundary
+					resource={
+						viewSelection({
+							fields: {
+								rewardAttesterSlashingsGwei: true,
+							},
+						})
+					}
+				>
+					{#snippet children(entity)}
+						{@const rewardAttesterSlashingsGwei = entity.rewardAttesterSlashingsGwei}
+						{#if rewardAttesterSlashingsGwei != null}
+							<div>
+								<dt>Attester slashing reward</dt>
+								<dd>
+									<NumberValue
+										value={rewardAttesterSlashingsGwei}
+									/>
+
+									<span> gwei</span>
+								</dd>
+							</div>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+			{/if}
+
+			{#if contentOpen}
+				<ResourceBoundary
+					resource={
+						viewSelection({
+							fields: {
+								rewardExecutionOptimistic: true,
+							},
+						})
+					}
+				>
+					{#snippet children(entity)}
+						{@const rewardExecutionOptimistic = entity.rewardExecutionOptimistic}
+						{#if rewardExecutionOptimistic != null}
+							<div>
+								<dt>Reward execution optimistic</dt>
+								<dd>
+									{rewardExecutionOptimistic ? 'Yes' : 'No'}
+								</dd>
+							</div>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+			{/if}
+
+			{#if contentOpen}
+				<ResourceBoundary
+					resource={
+						viewSelection({
+							fields: {
+								rewardFinalized: true,
+							},
+						})
+					}
+				>
+					{#snippet children(entity)}
+						{@const rewardFinalized = entity.rewardFinalized}
+						{#if rewardFinalized != null}
+							<div>
+								<dt>Reward finalized</dt>
+								<dd>
+									{rewardFinalized ? 'Yes' : 'No'}
+								</dd>
+							</div>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+			{/if}
+		</dl>
 	{/snippet}
 
 	{#snippet Details()}

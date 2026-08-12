@@ -23,3 +23,14 @@ export type BeaconBlockDutySummary = {
 		kind: 'attester' | 'proposer'
 	}[]
 }
+
+export type BeaconBlockRewards = {
+	proposerIndex: number
+	totalGwei: bigint
+	attestationsGwei: bigint
+	syncAggregateGwei: bigint
+	proposerSlashingsGwei: bigint
+	attesterSlashingsGwei: bigint
+	executionOptimistic: boolean
+	finalized: boolean
+}

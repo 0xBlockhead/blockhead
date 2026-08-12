@@ -869,3 +869,48 @@ export const getBlockDutySummary = async (
 	if (!res.ok) await throwHttpError('Beacon GET block', res)
 	return getBlockDutySummaryFromWire(await res.json<JsonValue>())
 }
+
+export const getBlockRewardsFromWire = (wire: JsonValue) => {
+	if (!isJsonObject(wire) || !isJsonObject(wire.data))
+		throw new Error('Beacon: invalid block rewards response')
+	if (typeof wire.execution_optimistic !== 'boolean' || typeof wire.finalized !== 'boolean')
+		throw new Error('Beacon: invalid block rewards status')
+	const proposerIndex = Number(wire.data.proposer_index)
+	if (!Number.isSafeInteger(proposerIndex) || proposerIndex < 0)
+		throw new Error('Beacon: invalid block rewards proposer index')
+	const totalGwei = nonNegativeDecimalBigIntFromWire(typeof wire.data.total === 'string' ? wire.data.total : undefined)
+	const attestationsGwei = nonNegativeDecimalBigIntFromWire(typeof wire.data.attestations === 'string' ? wire.data.attestations : undefined)
+	const syncAggregateGwei = nonNegativeDecimalBigIntFromWire(typeof wire.data.sync_aggregate === 'string' ? wire.data.sync_aggregate : undefined)
+	const proposerSlashingsGwei = nonNegativeDecimalBigIntFromWire(typeof wire.data.proposer_slashings === 'string' ? wire.data.proposer_slashings : undefined)
+	const attesterSlashingsGwei = nonNegativeDecimalBigIntFromWire(typeof wire.data.attester_slashings === 'string' ? wire.data.attester_slashings : undefined)
+	if (
+		totalGwei == null
+		|| attestationsGwei == null
+		|| syncAggregateGwei == null
+		|| proposerSlashingsGwei == null
+		|| attesterSlashingsGwei == null
+	)
+		throw new Error('Beacon: invalid block rewards amount')
+	return {
+		proposerIndex,
+		totalGwei,
+		attestationsGwei,
+		syncAggregateGwei,
+		proposerSlashingsGwei,
+		attesterSlashingsGwei,
+		executionOptimistic: wire.execution_optimistic,
+		finalized: wire.finalized,
+	}
+}
+
+export const getBlockRewards = async (
+	chainId: number,
+	blockId: string | number
+) => {
+	const normalizedBlockId = normalizeBeaconStateOrBlockId(blockId)
+	const res = await beaconFetch(chainId, `/eth/v1/beacon/rewards/blocks/${normalizedBlockId}`, {
+		headers: { accept: 'application/json' },
+	})
+	if (!res.ok) await throwHttpError('Beacon GET block rewards', res)
+	return getBlockRewardsFromWire(await res.json<JsonValue>())
+}

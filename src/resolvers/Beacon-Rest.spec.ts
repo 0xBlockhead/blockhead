@@ -28,6 +28,7 @@ const getCommittees = vi.hoisted(() => vi.fn())
 const getSyncCommittee = vi.hoisted(() => vi.fn())
 const getValidator = vi.hoisted(() => vi.fn())
 const getBlockDutySummary = vi.hoisted(() => vi.fn())
+const getBlockRewards = vi.hoisted(() => vi.fn())
 const getHeader = vi.hoisted(() => vi.fn())
 const getHeadSlot = vi.hoisted(() => vi.fn())
 const getNodeHealthObservation = vi.hoisted(() => vi.fn())
@@ -46,6 +47,7 @@ vi.mock('$/sources/Beacon/Rest/queries.ts', async (importOriginal) => ({
 	getSyncCommittee,
 	getValidator,
 	getBlockDutySummary,
+	getBlockRewards,
 	getHeader,
 	getHeadSlot,
 	getNodeHealthObservation,
@@ -110,6 +112,10 @@ const headerResolver = beaconRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.BeaconSlot
 	&& 'root' in resolver.projections
 ))
+const blockRewardsResolver = beaconRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.BeaconSlot
+	&& 'rewardTotalGwei' in resolver.projections
+))
 const headSlotResolver = beaconRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.Network
 	&& 'Evm' in resolver.projections
@@ -148,6 +154,7 @@ if (
 	|| depositResolver == null
 	|| slashingResolver == null
 	|| headerResolver == null
+	|| blockRewardsResolver == null
 	|| headSlotResolver == null
 	|| committeesListResolver == null
 	|| slotCommitteesListResolver == null
@@ -722,6 +729,36 @@ describe('Beacon REST checkpoint and fork projections', () => {
 		expect(getHeader).toHaveBeenCalledWith(1, 'head')
 		expect(getHeader).toHaveBeenCalledWith(1, 63)
 		expect(getHeader).toHaveBeenCalledTimes(2)
+	})
+
+	it('projects coordinate-bound proposer reward components onto the slot owner', async () => {
+		getBlockRewards.mockResolvedValue({
+			proposerIndex: 12,
+			totalGwei: 1000n,
+			attestationsGwei: 700n,
+			syncAggregateGwei: 200n,
+			proposerSlashingsGwei: 60n,
+			attesterSlashingsGwei: 40n,
+			executionOptimistic: false,
+			finalized: true,
+		})
+
+		const rewards = await blockRewardsResolver.resolve.EvmNetworkSlot.resolve({
+			$network: network,
+			slot: 64,
+		})
+		expect(blockRewardsResolver.projections.proposerIndex(rewards)).toBe(12)
+		expect(blockRewardsResolver.projections.rewardTotalGwei(rewards)).toBe(1000n)
+		expect(blockRewardsResolver.projections.rewardAttestationsGwei(rewards)).toBe(700n)
+		expect(blockRewardsResolver.projections.rewardSyncAggregateGwei(rewards)).toBe(200n)
+		expect(blockRewardsResolver.projections.rewardProposerSlashingsGwei(rewards)).toBe(60n)
+		expect(blockRewardsResolver.projections.rewardAttesterSlashingsGwei(rewards)).toBe(40n)
+		expect(blockRewardsResolver.projections.rewardExecutionOptimistic(rewards)).toBe(false)
+		expect(blockRewardsResolver.projections.rewardFinalized(rewards)).toBe(true)
+		expect(getBlockRewards).toHaveBeenCalledWith(
+			1,
+			64
+		)
 	})
 
 	it('limits nested network selectors to the eip155 applicability contract', () => {

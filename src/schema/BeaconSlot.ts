@@ -57,6 +57,55 @@ export default entity({
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
+	rewardTotalGwei: {
+		primitiveType: type('bigint'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Beacon_Rest,
+		],
+	},
+	rewardAttestationsGwei: {
+		primitiveType: type('bigint'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Beacon_Rest,
+		],
+	},
+	rewardSyncAggregateGwei: {
+		primitiveType: type('bigint'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Beacon_Rest,
+		],
+	},
+	rewardProposerSlashingsGwei: {
+		primitiveType: type('bigint'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Beacon_Rest,
+		],
+	},
+	rewardAttesterSlashingsGwei: {
+		primitiveType: type('bigint'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Beacon_Rest,
+		],
+	},
+	rewardExecutionOptimistic: {
+		primitiveType: type('boolean'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Beacon_Rest,
+		],
+	},
+	rewardFinalized: {
+		primitiveType: type('boolean'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Beacon_Rest,
+		],
+	},
 	$$beaconCommittees: {
 		entityType: EntityType.BeaconCommittee,
 		cardinality: EntityFieldCardinality.Many,
