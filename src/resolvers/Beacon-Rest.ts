@@ -27,6 +27,7 @@ import { ApiFamily } from '$/sources/SourceBinding.ts'
 import {
 	beaconRestByChainId,
 } from '$/sources/Beacon/Rest/queries.ts'
+import type { BeaconBlockDutySummary } from '$/sources/Beacon/Rest/types.ts'
 
 const beaconNetworkApplicability = [...beaconRestByChainId.values()].map(({ chainId }) => ({
 	caip2: {
@@ -70,6 +71,80 @@ const safeIntegerFromDecimal = (
 		throw new Error(`Beacon_Rest: ${description} must be a safe integer`)
 	return number
 }
+
+const beaconAttestationReference = (
+	$network: EntitySelector<typeof schema, EntityType.Network>,
+	slot: number,
+	attestation: BeaconBlockDutySummary['attestations'][number]
+) => ({
+	[EntityMetaKey.Selector]: {
+		$network,
+		slot,
+		indexInSlot: attestation.index,
+	},
+	[EntityMetaKey.Fields]: {
+		...(attestation.committeeIndex != null && {
+			[entityFieldAddressKey(EntityType.BeaconAttestation, [], 'committeeIndex')]: attestation.committeeIndex,
+		}),
+		...(attestation.aggregationBits != null && {
+			[entityFieldAddressKey(EntityType.BeaconAttestation, [], 'aggregationBits')]: attestation.aggregationBits,
+		}),
+	},
+})
+
+const beaconWithdrawalReference = (
+	$network: EntitySelector<typeof schema, EntityType.Network>,
+	slot: number,
+	withdrawal: BeaconBlockDutySummary['withdrawals'][number]
+) => ({
+	[EntityMetaKey.Selector]: {
+		$network,
+		slot,
+		indexInSlot: withdrawal.index,
+	},
+	[EntityMetaKey.Fields]: {
+		...(withdrawal.validatorIndex != null && {
+			[entityFieldAddressKey(EntityType.BeaconWithdrawal, [], 'validatorIndex')]: withdrawal.validatorIndex,
+			[entityFieldAddressKey(EntityType.BeaconWithdrawal, [], '$validator')]: {
+				[EntityMetaKey.Selector]: {
+					$network,
+					indexInNetwork: withdrawal.validatorIndex,
+				},
+			},
+		}),
+		...(withdrawal.address != null && {
+			[entityFieldAddressKey(EntityType.BeaconWithdrawal, [], '$account')]: {
+				[EntityMetaKey.Selector]: {
+					address: with0xHex(withdrawal.address),
+				},
+			},
+		}),
+		...(withdrawal.amountGwei != null && {
+			[entityFieldAddressKey(EntityType.BeaconWithdrawal, [], 'amountGwei')]: withdrawal.amountGwei,
+		}),
+	},
+})
+
+const beaconSlashingReference = (
+	$network: EntitySelector<typeof schema, EntityType.Network>,
+	slot: number,
+	slashing: BeaconBlockDutySummary['slashings'][number]
+) => ({
+	[EntityMetaKey.Selector]: {
+		$network,
+		slot,
+		kind: slashing.kind,
+		indexInSlot: slashing.index,
+	},
+	[EntityMetaKey.Fields]: {
+		[entityFieldAddressKey(EntityType.BeaconSlashing, [], '$network')]: {
+			[EntityMetaKey.Selector]: $network,
+		},
+		[entityFieldAddressKey(EntityType.BeaconSlashing, [], 'slot')]: slot,
+		[entityFieldAddressKey(EntityType.BeaconSlashing, [], 'kind')]: slashing.kind,
+		[entityFieldAddressKey(EntityType.BeaconSlashing, [], 'indexInSlot')]: slashing.index,
+	},
+})
 
 const beaconForkScheduleEntryForNetworkConsensusUpgrade = async (
 	selector: EntitySelector<typeof schema, EntityType.EthereumConsensusUpgrade>
@@ -853,32 +928,25 @@ export default {
 						return {
 							attestations: summary.attestations
 								.slice(0, limit)
-								.map((attestation) => ({
-									[EntityMetaKey.Selector]: {
-										$network,
-										slot,
-										indexInSlot: attestation.index,
-									},
-								})),
+								.map((attestation) => beaconAttestationReference(
+									$network,
+									slot,
+									attestation
+								)),
 							withdrawals: summary.withdrawals
 								.slice(0, limit)
-								.map((withdrawal) => ({
-									[EntityMetaKey.Selector]: {
-										$network,
-										slot,
-										indexInSlot: withdrawal.index,
-									},
-								})),
+								.map((withdrawal) => beaconWithdrawalReference(
+									$network,
+									slot,
+									withdrawal
+								)),
 							slashings: summary.slashings
 								.slice(0, limit)
-								.map((slashing) => ({
-									[EntityMetaKey.Selector]: {
-										$network,
-										slot,
-										kind: slashing.kind,
-										indexInSlot: slashing.index,
-									},
-								})),
+								.map((slashing) => beaconSlashingReference(
+									$network,
+									slot,
+									slashing
+								)),
 						}
 					},
 				},
@@ -975,32 +1043,25 @@ export default {
 						return {
 							attestations: summary.attestations
 								.slice(0, limit)
-								.map((attestation) => ({
-									[EntityMetaKey.Selector]: {
-										$network: { caip2 },
-										slot,
-										indexInSlot: attestation.index,
-									},
-								})),
+								.map((attestation) => beaconAttestationReference(
+									{ caip2 },
+									slot,
+									attestation
+								)),
 							withdrawals: summary.withdrawals
 								.slice(0, limit)
-								.map((withdrawal) => ({
-									[EntityMetaKey.Selector]: {
-										$network: { caip2 },
-										slot,
-										indexInSlot: withdrawal.index,
-									},
-								})),
+								.map((withdrawal) => beaconWithdrawalReference(
+									{ caip2 },
+									slot,
+									withdrawal
+								)),
 							slashings: summary.slashings
 								.slice(0, limit)
-								.map((slashing) => ({
-									[EntityMetaKey.Selector]: {
-										$network: { caip2 },
-										slot,
-										kind: slashing.kind,
-										indexInSlot: slashing.index,
-									},
-								})),
+								.map((slashing) => beaconSlashingReference(
+									{ caip2 },
+									slot,
+									slashing
+								)),
 						}
 					},
 				},

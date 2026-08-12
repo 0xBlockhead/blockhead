@@ -596,6 +596,89 @@ describe('Beacon REST checkpoint and fork projections', () => {
 		)
 	})
 
+	it('materializes native duty cards from one block summary', async () => {
+		getBlockDutySummary.mockResolvedValue({
+			attestations: [{
+				index: 2,
+				committeeIndex: 4,
+				aggregationBits: '0x03',
+			}],
+			withdrawals: [{
+				index: 5,
+				validatorIndex: 12,
+				address: '0000000000000000000000000000000000000001',
+				amountGwei: 32_000_000_000n,
+			}],
+			slashings: [{
+				index: 1,
+				kind: 'attester',
+			}],
+		})
+		const dutySummaryResolver = beaconRest.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.BeaconSlot
+			&& '$$beaconAttestations' in resolver.projections
+			&& '$$beaconWithdrawals' in resolver.projections
+			&& '$$beaconSlashings' in resolver.projections
+		))
+		if (dutySummaryResolver == null || !('EvmNetworkSlot' in dutySummaryResolver.resolve))
+			throw new Error('Beacon REST block duty summary resolver is not registered')
+
+		const dutySummary = await dutySummaryResolver.resolve.EvmNetworkSlot.resolve({
+			$network: network,
+			slot: 64,
+		}, {
+			filters: [],
+			sorts: [],
+			pagination: {
+				limit: 4,
+			},
+			selectorKeys: [],
+			parentSelectorKeys: [],
+			sources: [],
+			publicEnv: {},
+		})
+
+		expect(dutySummaryResolver.projections.$$beaconAttestations(dutySummary)).toMatchObject([{
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				slot: 64,
+				indexInSlot: 2,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.BeaconAttestation, [], 'committeeIndex')]: 4,
+				[entityFieldAddressKey(EntityType.BeaconAttestation, [], 'aggregationBits')]: '0x03',
+			},
+		}])
+		expect(dutySummaryResolver.projections.$$beaconWithdrawals(dutySummary)).toMatchObject([{
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				slot: 64,
+				indexInSlot: 5,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.BeaconWithdrawal, [], 'validatorIndex')]: 12,
+				[entityFieldAddressKey(EntityType.BeaconWithdrawal, [], 'amountGwei')]: 32_000_000_000n,
+				[entityFieldAddressKey(EntityType.BeaconWithdrawal, [], '$validator')]: {
+					[EntityMetaKey.Selector]: {
+						$network: network,
+						indexInNetwork: 12,
+					},
+				},
+			},
+		}])
+		expect(dutySummaryResolver.projections.$$beaconSlashings(dutySummary)).toMatchObject([{
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				slot: 64,
+				kind: 'attester',
+				indexInSlot: 1,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.BeaconSlashing, [], 'kind')]: 'attester',
+			},
+		}])
+	})
+
 	it('projects historical sync committee membership from the period start slot', async () => {
 		getSyncCommittee.mockResolvedValue({
 			validators: [
