@@ -1481,8 +1481,6 @@ export enum EntityType {
 	OsmosisPool_Timestamp = "OsmosisPool_Timestamp",
 	OsmosisPoolAsset = "OsmosisPoolAsset",
 	OsmosisPosition = "OsmosisPosition",
-	OsmosisPositionAsset = "OsmosisPositionAsset",
-	OsmosisPositionReward = "OsmosisPositionReward",
 	PayjoinDirectory = "PayjoinDirectory",
 	PayjoinEndpoint = "PayjoinEndpoint",
 	PayjoinEndpoint_Timestamp = "PayjoinEndpoint_Timestamp",
@@ -13621,7 +13619,7 @@ export const schema = {
 				"encodedToken": { label: "encoded token", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"unit": { label: "unit", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"memo": { label: "memo", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"mintUrl": { label: "mint URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+				"mintUrl": { label: "mint URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "urlString" },
 				"$mint": { label: "mint", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.CashuMint },
 				"proofCount": { label: "proof count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 				"totalAmount": { label: "total amount", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
@@ -13670,7 +13668,7 @@ export const schema = {
 				"walletId": { label: "wallet ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"$wallet": { label: "wallet", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.BlockheadWallet },
 				"$mint": { label: "mint", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.CashuMint },
-				"mintUrl": { label: "mint URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"mintUrl": { label: "mint URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "urlString" },
 				"unit": { label: "unit", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"$$timestamps": { label: "timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadCashuWalletState_Timestamp },
 				"$$proofs": { label: "proofs", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadCashuProof },
@@ -21666,7 +21664,7 @@ export const schema = {
 					plural: "Cashu mints",
 				},
 			})({
-				"mintUrl": { label: "mint URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"mintUrl": { label: "mint URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "urlString" },
 				"$$keysets": { label: "keysets", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CashuKeyset, defaultSources: [Source.CashuMint_Rest] },
 				"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CashuMint_Timestamp, defaultSources: [Source.CashuMint_Rest] },
 			})({
@@ -50043,8 +50041,11 @@ export const schema = {
 				"tickUpper": { label: "Tick upper", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Osmosis_LCD_Rest] },
 				"liquidity": { label: "Liquidity", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Osmosis_LCD_Rest] },
 				"joinTime": { label: "Join time", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Osmosis_LCD_Rest] },
-				"$$assets": { label: "Assets", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.OsmosisPositionAsset, defaultSources: [Source.Osmosis_LCD_Rest] },
-				"$$rewards": { label: "Rewards", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.OsmosisPositionReward, defaultSources: [Source.Osmosis_LCD_Rest] },
+				"asset0Amount": { label: "Asset 0 amount", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Osmosis_LCD_Rest] },
+				"asset0Denom": { label: "Asset 0 denom", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Osmosis_LCD_Rest] },
+				"asset1Amount": { label: "Asset 1 amount", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Osmosis_LCD_Rest] },
+				"asset1Denom": { label: "Asset 1 denom", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Osmosis_LCD_Rest] },
+				"claimableSpreadRewards": { label: "Claimable spread rewards", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Osmosis_LCD_Rest] },
 			})({
 				selectors: {
 					"NetworkPositionId": ["$network", "positionId"],
@@ -50063,79 +50064,11 @@ export const schema = {
 							dl: [
 								["$network", "positionId", "$pool", "$account"],
 								["tickLower", "tickUpper", "liquidity", "joinTime"],
+								["asset0Denom", "asset0Amount", "asset1Denom", "asset1Amount", "claimableSpreadRewards"],
 							],
 						},
-						carousels: [
-							{
-								id: "osmosis-position-holdings",
-								label: "Assets and rewards",
-								className: "network-view-collapsible-defi",
-								sections: [
-									{ id: "osmosis-position-assets", field: "$$assets", List: "OsmosisPositionAssetsView", label: "Assets", emptyText: "No position assets." },
-									{ id: "osmosis-position-rewards", field: "$$rewards", List: "OsmosisPositionRewardsView", label: "Rewards", emptyText: "No position rewards." },
-								],
-							},
-						],
 					},
 					plural: { component: "OsmosisPositionsView", title: "Osmosis positions" },
-				},
-			}),
-
-			entity({
-				entityType: EntityType.OsmosisPositionAsset,
-				labels: {
-					singular: "Osmosis position asset",
-					plural: "Osmosis position assets",
-				},
-				description: "One source-reported asset balance in an Osmosis concentrated-liquidity position.",
-			})({
-				"$position": { label: "Position", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.OsmosisPosition },
-				"assetIndex": { label: "Asset index", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
-				"denom": { label: "Denom", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"amount": { label: "Amount", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeDecimalString" },
-				"$cosmosDenom": { label: "Cosmos denom", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.CosmosDenom },
-			})({
-				selectors: {
-					"PositionAssetIndex": ["$position", "assetIndex"],
-				},
-				views: {
-					singular: {
-						query: { sources: [Source.Osmosis_LCD_Rest] },
-						summary: { title: ["denom"], value: ["amount"], HeadingAfter: ["$position"] },
-						content: { dl: [
-							["$position", { field: "assetIndex", format: "number" }, "denom", "amount", "$cosmosDenom"],
-						] },
-					},
-					plural: { component: "OsmosisPositionAssetsView", title: "Position assets" },
-				},
-			}),
-
-			entity({
-				entityType: EntityType.OsmosisPositionReward,
-				labels: {
-					singular: "Osmosis position reward",
-					plural: "Osmosis position rewards",
-				},
-				description: "One source-reported claimable or forfeited reward amount in an Osmosis concentrated-liquidity position. This is passive state only; claiming requires separate wallet authority.",
-			})({
-				"$position": { label: "Position", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.OsmosisPosition },
-				"rewardKind": { label: "Reward kind", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"denom": { label: "Denom", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"amount": { label: "Amount", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeDecimalString" },
-				"$cosmosDenom": { label: "Cosmos denom", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.CosmosDenom },
-			})({
-				selectors: {
-					"PositionRewardKindDenom": ["$position", "rewardKind", "denom"],
-				},
-				views: {
-					singular: {
-						query: { sources: [Source.Osmosis_LCD_Rest] },
-						summary: { title: ["denom"], value: ["rewardKind", "amount"], HeadingAfter: ["$position"] },
-						content: { dl: [
-							["$position", "rewardKind", "denom", "amount", "$cosmosDenom"],
-						] },
-					},
-					plural: { component: "OsmosisPositionRewardsView", title: "Position rewards" },
 				},
 			}),
 
@@ -68301,11 +68234,12 @@ export const routes = defineRoutes(schema)({
 																],
 															},
 														},
-																	page: {},
-															},
-														},
+														page: {},
+													},
 												},
 											},
+										},
+									},
 								},
 							},
 						},
