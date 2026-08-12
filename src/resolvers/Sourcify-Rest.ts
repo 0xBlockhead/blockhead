@@ -69,7 +69,10 @@ const sourcifySourceFilesFromLookup = (
 	wire: SourcifyContractLookup
 ) => (
 	Object.fromEntries(
-		Object.entries(wire.sources ?? wire.metadata?.sources ?? {})
+		Object.entries({
+			...wire.metadata?.sources,
+			...wire.sources,
+		})
 			.flatMap(([path, source]) => (
 				source.content != null && source.content.length > 0 ?
 					[[path, source.content]]
@@ -336,7 +339,8 @@ export default {
 				EvmNetworkAddress: {
 					resolve: async (entitySelector) => {
 						const contractLookup = await getSourcifyContractLookupForEntitySelector(entitySelector)
-						const implementationAddress = contractLookup?.proxyResolution?.implementations?.[0]?.address
+						if (contractLookup?.proxyResolution?.isProxy !== true) return undefined
+						const implementationAddress = contractLookup.proxyResolution.implementations?.[0]?.address
 						if (implementationAddress == null || !implementationAddress.startsWith('0x')) return undefined
 						const normalized = hexLowerOfByteSize(implementationAddress, 20)
 						if (normalized == null) return undefined

@@ -408,6 +408,68 @@ describe('Sourcify REST resolvers', () => {
 		}))
 	})
 
+	it('keeps source-bundle files from metadata when the top-level source response is empty', async () => {
+		getContractLookup.mockResolvedValue({
+			...verifiedLookup,
+			sources: {},
+			metadata: {
+				...verifiedLookup.metadata,
+				sources: {
+					'contracts/DepositContract.sol': {
+						content: 'contract DepositContract { }',
+					},
+				},
+			},
+		})
+
+		await expect(findResolver(
+			EntityType.EvmContractSourceBundle,
+			'EvmContract'
+		).resolve.EvmContract.resolve({
+			$contract: contract,
+		})).resolves.toEqual({
+			files: {
+				'contracts/DepositContract.sol': 'contract DepositContract { }',
+			},
+		})
+	})
+
+	it('projects implementation only when the source declares a proxy', async () => {
+		const implementationResolver = sourcifyRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.EvmContract
+			&& '$implementation' in candidate.projections
+		))
+		if (implementationResolver == null)
+			throw new Error('Sourcify REST spec missing EvmContract.$implementation')
+
+		getContractLookup.mockResolvedValue({
+			...verifiedLookup,
+			proxyResolution: {
+				isProxy: false,
+				implementations: [{
+					address: '0x1111111111111111111111111111111111111111',
+				}],
+			},
+		})
+		await expect(implementationResolver.resolve.EvmNetworkAddress.resolve(contract)).resolves.toBeUndefined()
+
+		getContractLookup.mockResolvedValue({
+			...verifiedLookup,
+			proxyResolution: {
+				isProxy: true,
+				implementations: [{
+					address: '0x1111111111111111111111111111111111111111',
+				}],
+			},
+		})
+		await expect(implementationResolver.resolve.EvmNetworkAddress.resolve(contract)).resolves.toEqual({
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				address: '0x1111111111111111111111111111111111111111',
+			},
+		})
+	})
+
 	it('throws for missing verification snapshots and omits optional contract facets', async () => {
 		getContractLookup.mockResolvedValue(null)
 
