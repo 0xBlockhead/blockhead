@@ -349,6 +349,27 @@ export const getHeader = async (
 	return header
 }
 
+export const getHeadersAtSlot = async (
+	chainId: number,
+	slot: number
+) => {
+	const normalizedSlot = normalizeBeaconStateOrBlockId(slot)
+	const res = await beaconFetch(chainId, `/eth/v1/beacon/headers?slot=${normalizedSlot}`, {
+		headers: { accept: 'application/json' },
+	})
+	if (!res.ok) await throwHttpError('Beacon GET headers', res)
+	const wire = await res.json<JsonValue>()
+	if (!isJsonObject(wire) || !isJsonArray(wire.data))
+		throw new Error('Beacon: invalid headers response')
+
+	return wire.data.map((headerWire) => {
+		const header = getHeaderFromWire({ data: headerWire })
+		if (header == null)
+			throw new Error('Beacon: invalid header in headers response')
+		return header
+	})
+}
+
 /**
  * Consensus proposer validator indices from the latest beacon slots (deduped, bounded).
  * Keeps `Network` validator discovery inside a small, constant-time window instead of paging the full validator set.

@@ -24,6 +24,7 @@ import {
 	getHeadSlot,
 	getHeader,
 	getHeaderFromWire,
+	getHeadersAtSlot,
 	getNodePeerCountFromWire,
 	getNodePeerCountObservation,
 	getNodeIdentityFromWire,
@@ -469,6 +470,21 @@ describe('Beacon REST native header wire', () => {
 				},
 			},
 		})?.header.message.proposer_index).toBe('18446744073709551615')
+	})
+
+	it('lists zero or one canonical header at an exact slot', async () => {
+		const sourceFetch = vi.spyOn(sourceHttp, 'sourceFetch')
+			.mockResolvedValueOnce(new Response(JSON.stringify({
+				data: [],
+			})))
+			.mockResolvedValueOnce(new Response(JSON.stringify({
+				data: [header],
+			})))
+
+		await expect(getHeadersAtSlot(1, 63)).resolves.toEqual([])
+		await expect(getHeadersAtSlot(1, 64)).resolves.toEqual([header])
+		expect(String(sourceFetch.mock.calls[0]?.[1])).toContain('/eth/v1/beacon/headers?slot=63')
+		expect(String(sourceFetch.mock.calls[1]?.[1])).toContain('/eth/v1/beacon/headers?slot=64')
 	})
 
 	it('rejects partial rows, malformed uint64 values, and invalid protocol hex sizes', () => {

@@ -919,18 +919,54 @@ export default {
 			entityType: EntityType.BeaconEpoch,
 			resolve: {
 				EvmNetworkEpoch: {
-					resolve: async ({ $network, epoch }, context) => (
-						Array.from(
+					appliesTo: eip155NetworkApplicability,
+					resolve: async ({ $network, epoch }, context) => {
+						const {
+							getBlockRewards,
+							getHeadersAtSlot,
+						} = await import('$/sources/Beacon/Rest/queries.ts')
+						return Promise.all(Array.from(
 							{ length: Math.min(resolverContextRowLimit(context), slotsPerEpoch) },
 							(_, i) => (epoch * slotsPerEpoch) + i
 						)
-							.map((slot) => ({
-								[EntityMetaKey.Selector]: {
+							.map(async (slot) => {
+								const headers = await getHeadersAtSlot(
+									eip155ChainId($network),
+									slot
+								)
+								if (headers.length > 1)
+									throw new Error(`Beacon_Rest: multiple canonical headers returned for slot ${String(slot)}`)
+								const header = headers[0]
+								if (header == null)
+									return undefined
+								const [
+									rewards,
+								] = await Promise.all([
+									getBlockRewards(
+										eip155ChainId($network),
+										slot
+									),
+								])
+								const slotReference = beaconSlotReferenceFromHeader(
 									$network,
-									slot,
-								},
+									header
+								)
+								return {
+									...slotReference,
+									[EntityMetaKey.Fields]: {
+										...slotReference[EntityMetaKey.Fields],
+										[entityFieldAddressKey(EntityType.BeaconSlot, [], 'rewardTotalGwei')]: rewards.totalGwei,
+										[entityFieldAddressKey(EntityType.BeaconSlot, [], 'rewardAttestationsGwei')]: rewards.attestationsGwei,
+										[entityFieldAddressKey(EntityType.BeaconSlot, [], 'rewardSyncAggregateGwei')]: rewards.syncAggregateGwei,
+										[entityFieldAddressKey(EntityType.BeaconSlot, [], 'rewardProposerSlashingsGwei')]: rewards.proposerSlashingsGwei,
+										[entityFieldAddressKey(EntityType.BeaconSlot, [], 'rewardAttesterSlashingsGwei')]: rewards.attesterSlashingsGwei,
+										[entityFieldAddressKey(EntityType.BeaconSlot, [], 'rewardExecutionOptimistic')]: rewards.executionOptimistic,
+										[entityFieldAddressKey(EntityType.BeaconSlot, [], 'rewardFinalized')]: rewards.finalized,
+									},
+								}
 							}))
-					),
+							.then((slots) => slots.filter((slot) => slot != null))
+					},
 				},
 			},
 		})({

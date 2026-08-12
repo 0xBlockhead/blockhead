@@ -32,6 +32,7 @@ const getBlockRewards = vi.hoisted(() => vi.fn())
 const getAttestationRewards = vi.hoisted(() => vi.fn())
 const getSyncCommitteeRewards = vi.hoisted(() => vi.fn())
 const getHeader = vi.hoisted(() => vi.fn())
+const getHeadersAtSlot = vi.hoisted(() => vi.fn())
 const getHeadSlot = vi.hoisted(() => vi.fn())
 const getNodeHealthObservation = vi.hoisted(() => vi.fn())
 const getNodeIdentityObservation = vi.hoisted(() => vi.fn())
@@ -53,6 +54,7 @@ vi.mock('$/sources/Beacon/Rest/queries.ts', async (importOriginal) => ({
 	getAttestationRewards,
 	getSyncCommitteeRewards,
 	getHeader,
+	getHeadersAtSlot,
 	getHeadSlot,
 	getNodeHealthObservation,
 	getNodeIdentityObservation,
@@ -129,6 +131,10 @@ const headSlotResolver = beaconRest.resolvers.find((resolver) => (
 	&& 'Evm' in resolver.projections
 	&& '$$beaconSlots' in resolver.projections.Evm
 ))
+const epochSlotsResolver = beaconRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.BeaconEpoch
+	&& '$$beaconSlots' in resolver.projections
+))
 const committeesListResolver = beaconRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.Network
 	&& 'Evm' in resolver.projections
@@ -165,6 +171,7 @@ if (
 	|| headerResolver == null
 	|| blockRewardsResolver == null
 	|| headSlotResolver == null
+	|| epochSlotsResolver == null
 	|| committeesListResolver == null
 	|| slotCommitteesListResolver == null
 	|| syncCommitteesListResolver == null
@@ -738,6 +745,74 @@ describe('Beacon REST checkpoint and fork projections', () => {
 		expect(getHeader).toHaveBeenCalledWith(1, 'head')
 		expect(getHeader).toHaveBeenCalledWith(1, 63)
 		expect(getHeader).toHaveBeenCalledTimes(2)
+	})
+
+	it('materializes bounded epoch slot history with native header facts', async () => {
+		getHeadersAtSlot.mockImplementation(async (_chainId, slot) => [{
+			root: `0x${String(slot).padStart(64, '0')}`,
+			canonical: true,
+			header: {
+				message: {
+					slot: String(slot),
+					proposer_index: '12',
+					parent_root: `0x${'b'.repeat(64)}`,
+					state_root: `0x${'c'.repeat(64)}`,
+					body_root: `0x${'d'.repeat(64)}`,
+				},
+				signature: `0x${'e'.repeat(192)}`,
+			},
+		}])
+		getBlockRewards.mockImplementation(async (_chainId, slot) => ({
+			proposerIndex: 12,
+			totalGwei: BigInt(Number(slot) * 10),
+			attestationsGwei: 500n,
+			syncAggregateGwei: 200n,
+			proposerSlashingsGwei: 10n,
+			attesterSlashingsGwei: 5n,
+			executionOptimistic: false,
+			finalized: true,
+		}))
+
+		const slots = await epochSlotsResolver.resolve.EvmNetworkEpoch.resolve({
+			$network: network,
+			epoch: 2,
+		}, {
+			filters: [],
+			sorts: [],
+			pagination: {
+				limit: 2,
+			},
+			selectorKeys: [],
+			parentSelectorKeys: [],
+			publicEnv: {},
+		})
+
+		expect(slots).toHaveLength(2)
+		expect(slots).toMatchObject([
+			{
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					slot: 64,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.BeaconSlot, [], 'epoch')]: 2,
+					[entityFieldAddressKey(EntityType.BeaconSlot, [], 'canonical')]: true,
+					[entityFieldAddressKey(EntityType.BeaconSlot, [], 'proposerIndex')]: 12,
+					[entityFieldAddressKey(EntityType.BeaconSlot, [], 'rewardTotalGwei')]: 640n,
+					[entityFieldAddressKey(EntityType.BeaconSlot, [], 'rewardFinalized')]: true,
+				},
+			},
+			{
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					slot: 65,
+				},
+			},
+		])
+		expect(getHeadersAtSlot).toHaveBeenNthCalledWith(1, 1, 64)
+		expect(getHeadersAtSlot).toHaveBeenNthCalledWith(2, 1, 65)
+		expect(getBlockRewards).toHaveBeenNthCalledWith(1, 1, 64)
+		expect(getBlockRewards).toHaveBeenNthCalledWith(2, 1, 65)
 	})
 
 	it('projects coordinate-bound proposer reward components onto the slot owner', async () => {
