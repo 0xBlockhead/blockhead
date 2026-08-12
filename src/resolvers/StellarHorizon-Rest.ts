@@ -14,7 +14,10 @@ import type {
 	StellarHorizonTrade,
 	StellarHorizonTransaction,
 } from '$/sources/StellarHorizon/Rest/types.ts'
+import type { getLiquidityPool } from '$/sources/StellarHorizon/Rest/queries.ts'
 import { Source } from '$/sources/Source.ts'
+
+type StellarHorizonLiquidityPoolSnapshot = Awaited<ReturnType<typeof getLiquidityPool>>
 
 const assertStellarPublicNetwork = ($network: {
 	$network: {
@@ -359,10 +362,172 @@ const tradeFromWire = (
 	},
 })
 
+const liquidityPoolFields = (
+	$network: {
+		$network: {
+			slug: string
+		}
+	},
+	liquidityPool: StellarHorizonLiquidityPoolSnapshot
+) => {
+	const liquidityPoolSelector = {
+		$network,
+		liquidityPoolId: liquidityPool.liquidityPoolId,
+	}
+
+	return {
+		$assetA: {
+			[EntityMetaKey.Selector]: {
+				$network,
+				assetKey: liquidityPool.reserveA.assetKey,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.StellarAsset, [], 'assetKind')]: liquidityPool.reserveA.assetKind,
+				...(liquidityPool.reserveA.assetCode != null && {
+					[entityFieldAddressKey(EntityType.StellarAsset, [], 'assetCode')]: liquidityPool.reserveA.assetCode,
+				}),
+				...(liquidityPool.reserveA.issuer != null && {
+					[entityFieldAddressKey(EntityType.StellarAsset, [], 'issuer')]: liquidityPool.reserveA.issuer,
+				}),
+			},
+		},
+		$assetB: {
+			[EntityMetaKey.Selector]: {
+				$network,
+				assetKey: liquidityPool.reserveB.assetKey,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.StellarAsset, [], 'assetKind')]: liquidityPool.reserveB.assetKind,
+				...(liquidityPool.reserveB.assetCode != null && {
+					[entityFieldAddressKey(EntityType.StellarAsset, [], 'assetCode')]: liquidityPool.reserveB.assetCode,
+				}),
+				...(liquidityPool.reserveB.issuer != null && {
+					[entityFieldAddressKey(EntityType.StellarAsset, [], 'issuer')]: liquidityPool.reserveB.issuer,
+				}),
+			},
+		},
+		$$timestamps: [{
+			[EntityMetaKey.Selector]: {
+				$liquidityPool: liquidityPoolSelector,
+				timestampMs: liquidityPool.timestampMs,
+				source: Source.StellarHorizon_Rest,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.StellarLiquidityPool_Timestamp, [], 'ledgerSequence')]: liquidityPool.ledgerSequence,
+				[entityFieldAddressKey(EntityType.StellarLiquidityPool_Timestamp, [], 'reserveA')]: liquidityPool.reserveA.amount,
+				[entityFieldAddressKey(EntityType.StellarLiquidityPool_Timestamp, [], 'reserveB')]: liquidityPool.reserveB.amount,
+				[entityFieldAddressKey(EntityType.StellarLiquidityPool_Timestamp, [], 'totalShares')]: liquidityPool.totalShares,
+				[entityFieldAddressKey(EntityType.StellarLiquidityPool_Timestamp, [], 'accounts')]: liquidityPool.accounts,
+			},
+		}],
+	}
+}
+
 export default {
 	source: Source.StellarHorizon_Rest,
 
 	resolvers: [
+		defineResolver({
+			entityType: EntityType.StellarNetwork,
+			resolve: {
+				Network: {
+					resolve: async ($network, context) => {
+						assertStellarPublicNetwork($network)
+						const limit = Math.min(resolverContextRowLimit(context), 200)
+						const { getLiquidityPools } = await import('$/sources/StellarHorizon/Rest/queries.ts')
+						return {
+							limit,
+							page: await getLiquidityPools(limit, context.providerContinuationToken),
+						}
+					},
+				},
+			},
+		})({
+			$$liquidityPools: {
+				select: ({ page }, $network) => page._embedded.records.map((liquidityPool) => {
+					const fields = liquidityPoolFields($network, liquidityPool)
+					return {
+						[EntityMetaKey.Selector]: {
+							$network,
+							liquidityPoolId: liquidityPool.liquidityPoolId,
+						},
+						[EntityMetaKey.Fields]: {
+							[entityFieldAddressKey(EntityType.StellarLiquidityPool, [], 'poolType')]: liquidityPool.poolType,
+							[entityFieldAddressKey(EntityType.StellarLiquidityPool, [], 'feeBps')]: liquidityPool.feeBps,
+							[entityFieldAddressKey(EntityType.StellarLiquidityPool, [], '$assetA')]: fields.$assetA,
+							[entityFieldAddressKey(EntityType.StellarLiquidityPool, [], '$assetB')]: fields.$assetB,
+							[entityFieldAddressKey(EntityType.StellarLiquidityPool, [], '$$timestamps')]: fields.$$timestamps,
+						},
+					}
+				}),
+				continuation: ({ limit, page }, $network) => {
+					const nextCursor = page._embedded.records.at(-1)?.pagingToken
+					return nextCursor == null || page._embedded.records.length < limit ?
+						{
+							operation: 'stellar-liquidity-pools',
+							target: $network.$network.slug,
+							terminal: true,
+						}
+					:
+						{
+							operation: 'stellar-liquidity-pools',
+							target: $network.$network.slug,
+							terminal: false,
+							token: nextCursor,
+						}
+				},
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.StellarLiquidityPool,
+			resolve: {
+				NetworkLiquidityPoolId: {
+					resolve: async ({
+						$network,
+						liquidityPoolId,
+					}) => {
+						assertStellarPublicNetwork($network)
+						const { getLiquidityPool } = await import('$/sources/StellarHorizon/Rest/queries.ts')
+						return getLiquidityPool(liquidityPoolId)
+					},
+				},
+			},
+		})({
+			poolType: (liquidityPool) => liquidityPool.poolType,
+			feeBps: (liquidityPool) => liquidityPool.feeBps,
+			$assetA: (liquidityPool, { $network }) => liquidityPoolFields($network, liquidityPool).$assetA,
+			$assetB: (liquidityPool, { $network }) => liquidityPoolFields($network, liquidityPool).$assetB,
+		}),
+
+		defineResolver({
+			entityType: EntityType.StellarLiquidityPool_Timestamp,
+			resolve: {
+				LiquidityPoolTimestampMsSource: {
+					resolve: async ({
+						$liquidityPool,
+						source,
+						timestampMs,
+					}) => {
+						assertStellarPublicNetwork($liquidityPool.$network)
+						if (source !== Source.StellarHorizon_Rest)
+							throw new Error('StellarHorizon_Rest: liquidity pool observation source mismatch')
+						const { getLiquidityPool } = await import('$/sources/StellarHorizon/Rest/queries.ts')
+						const liquidityPool = await getLiquidityPool($liquidityPool.liquidityPoolId)
+						if (liquidityPool.timestampMs !== timestampMs)
+							throw new Error('StellarHorizon_Rest: liquidity pool observation timestamp mismatch')
+						return liquidityPool
+					},
+				},
+			},
+		})({
+			ledgerSequence: (liquidityPool) => liquidityPool.ledgerSequence,
+			reserveA: (liquidityPool) => liquidityPool.reserveA.amount,
+			reserveB: (liquidityPool) => liquidityPool.reserveB.amount,
+			totalShares: (liquidityPool) => liquidityPool.totalShares,
+			accounts: (liquidityPool) => liquidityPool.accounts,
+		}),
+
 		defineResolver({
 			entityType: EntityType.StellarAccount,
 			resolve: {
@@ -743,6 +908,24 @@ export default {
 						}
 				},
 			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.StellarLiquidityPool,
+			resolve: {
+				NetworkLiquidityPoolId: {
+					resolve: async ({
+						$network,
+						liquidityPoolId,
+					}) => {
+						assertStellarPublicNetwork($network)
+						const { getLiquidityPool } = await import('$/sources/StellarHorizon/Rest/queries.ts')
+						return getLiquidityPool(liquidityPoolId)
+					},
+				},
+			},
+		})({
+			$$timestamps: (liquidityPool, { $network }) => liquidityPoolFields($network, liquidityPool).$$timestamps,
 		}),
 
 	],

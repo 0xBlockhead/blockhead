@@ -2,6 +2,8 @@ import { getJson } from '$/sources/_shared/wire/HttpRest/client.ts'
 import bindings from '$/sources/StellarHorizon/bindings.ts'
 import {
 	stellarHorizonAccountWire,
+	stellarHorizonLiquidityPoolPageWire,
+	stellarHorizonLiquidityPoolWire,
 	stellarHorizonOfferPageWire,
 	stellarHorizonOperationPageWire,
 	stellarHorizonPaymentPageWire,
@@ -10,6 +12,8 @@ import {
 	stellarHorizonTransactionWire,
 	type StellarHorizonAssetIdentity,
 	type StellarHorizonBalance,
+	type StellarHorizonLiquidityPool,
+	type StellarHorizonLiquidityPoolReserve,
 	type StellarHorizonOffer,
 	type StellarHorizonOperation,
 	type StellarHorizonPage,
@@ -25,6 +29,13 @@ const assertAccountId = (
 ) => {
 	if (!/^G[A-Z2-7]{55}$/.test(accountId))
 		throw new Error(`StellarHorizon_Rest: invalid ${label}`)
+}
+
+const assertLiquidityPoolId = (
+	liquidityPoolId: string
+) => {
+	if (!/^[0-9a-f]{64}$/.test(liquidityPoolId))
+		throw new Error('StellarHorizon_Rest: invalid liquidity pool ID')
 }
 
 const assertUnsignedInteger = (
@@ -63,7 +74,6 @@ const omitUndefinedJson = (
 	if (value != null && typeof value === 'object')
 		return Object.fromEntries(
 			Object.entries(value)
-				.filter(([, entry]) => entry !== undefined)
 				.map(([key, entry]) => [
 					key,
 					omitUndefinedJson(entry),
@@ -126,6 +136,75 @@ const assertAssetIdentity = (
 	if (asset.asset_code == null || asset.asset_code.length === 0 || asset.asset_issuer == null)
 		throw new Error(`StellarHorizon_Rest: ${label} issued asset is missing identity`)
 	assertAccountId(asset.asset_issuer, `${label} asset issuer`)
+}
+
+const liquidityPoolReserveFromWire = (
+	reserve: StellarHorizonLiquidityPoolReserve
+) => {
+	assertAmount(reserve.amount, 'liquidity pool reserve')
+	if (reserve.asset === 'native')
+		return {
+			assetKey: 'XLM',
+			assetKind: 'native',
+			amount: reserve.amount,
+		}
+
+	const assetSeparatorIndex = reserve.asset.indexOf(':')
+	if (assetSeparatorIndex < 1)
+		throw new Error('StellarHorizon_Rest: invalid liquidity pool reserve asset')
+
+	const assetCode = reserve.asset.slice(0, assetSeparatorIndex)
+	const issuer = reserve.asset.slice(assetSeparatorIndex + 1)
+	if (!/^[A-Za-z0-9]{1,12}$/.test(assetCode) || issuer.includes(':'))
+		throw new Error('StellarHorizon_Rest: invalid liquidity pool reserve asset')
+	assertAccountId(issuer, 'liquidity pool reserve issuer')
+
+	return {
+		assetKey: `${assetCode}-${issuer}`,
+		assetKind: assetCode.length <= 4 ? 'credit_alphanum4' : 'credit_alphanum12',
+		assetCode,
+		issuer,
+		amount: reserve.amount,
+	}
+}
+
+const liquidityPoolFromWire = (
+	liquidityPool: StellarHorizonLiquidityPool
+) => {
+	assertLiquidityPoolId(liquidityPool.id)
+	if (liquidityPool.type !== 'constant_product')
+		throw new Error('StellarHorizon_Rest: unsupported liquidity pool type')
+	if (liquidityPool.fee_bp > 4_294_967_295)
+		throw new Error('StellarHorizon_Rest: invalid liquidity pool fee')
+	assertAmount(liquidityPool.total_shares, 'liquidity pool total shares')
+	assertUnsignedInteger(liquidityPool.last_modified_ledger, 'liquidity pool ledger')
+	const timestampMs = Date.parse(liquidityPool.last_modified_time)
+	if (!Number.isSafeInteger(timestampMs))
+		throw new Error('StellarHorizon_Rest: invalid liquidity pool modification time')
+
+	const accounts = Number(liquidityPool.total_trustlines)
+	if (!Number.isSafeInteger(accounts) || accounts < 0 || String(accounts) !== liquidityPool.total_trustlines)
+		throw new Error('StellarHorizon_Rest: invalid liquidity pool trustline count')
+	if (liquidityPool.reserves.length !== 2)
+		throw new Error('StellarHorizon_Rest: constant-product liquidity pool must have two reserves')
+
+	const reserveA = liquidityPoolReserveFromWire(liquidityPool.reserves[0])
+	const reserveB = liquidityPoolReserveFromWire(liquidityPool.reserves[1])
+	if (reserveA.assetKey === reserveB.assetKey)
+		throw new Error('StellarHorizon_Rest: liquidity pool reserves must have distinct assets')
+
+	return {
+		liquidityPoolId: liquidityPool.id,
+		pagingToken: liquidityPool.paging_token,
+		poolType: liquidityPool.type,
+		feeBps: liquidityPool.fee_bp,
+		accounts,
+		totalShares: liquidityPool.total_shares,
+		ledgerSequence: BigInt(liquidityPool.last_modified_ledger),
+		timestampMs,
+		reserveA,
+		reserveB,
+	}
 }
 
 const accountPath = (accountId: string) => (
@@ -249,6 +328,45 @@ export const getAccount = async (
 		assetIdentities.add(assetIdentity)
 	}
 	return account
+}
+
+export const getLiquidityPool = async (
+	liquidityPoolId: string
+) => {
+	assertLiquidityPoolId(liquidityPoolId)
+	const liquidityPool = assertEnvelope(
+		'liquidity pool',
+		stellarHorizonLiquidityPoolWire,
+		await query(`/liquidity_pools/${encodeURIComponent(liquidityPoolId)}`)
+	)
+	if (liquidityPool.id !== liquidityPoolId)
+		throw new Error('StellarHorizon_Rest: liquidity pool response identity mismatch')
+
+	return liquidityPoolFromWire(liquidityPool)
+}
+
+export const getLiquidityPools = async (
+	limit: number,
+	cursor?: string
+) => {
+	const parameters = pageParameters(limit, cursor)
+	if (limit === 0)
+		return emptyPage<ReturnType<typeof liquidityPoolFromWire>>()
+
+	const page = assertEnvelope(
+		'liquidity pool page',
+		stellarHorizonLiquidityPoolPageWire,
+		await query(`/liquidity_pools?${parameters.toString()}`)
+	)
+	assertPage(page, limit, cursor)
+
+	return {
+		...page,
+		_embedded: {
+			...page._embedded,
+			records: page._embedded.records.map(liquidityPoolFromWire),
+		},
+	}
 }
 
 const getAccountPage = async <_Record extends {

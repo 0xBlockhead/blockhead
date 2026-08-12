@@ -18,6 +18,8 @@ const {
 	getAccountPayments,
 	getAccountTrades,
 	getAccountTransactions,
+	getLiquidityPool,
+	getLiquidityPools,
 	getTransaction,
 	getTransactionOperations,
 	operationIndexFromHorizonId,
@@ -461,5 +463,119 @@ describe('Stellar Horizon account transport', () => {
 			`/transactions/${hash}/operations?limit=2&order=asc`
 		)
 		expect(operationIndexFromHorizonId('273998503801384961')).toBe(1)
+	})
+})
+
+describe('Stellar Horizon liquidity-pool transport', () => {
+	beforeEach(() => {
+		vi.clearAllMocks()
+	})
+
+	it('preserves the native pool, reserve assets, and source ledger observation', async () => {
+		const liquidityPoolId = 'a'.repeat(64)
+		getJson
+			.mockResolvedValueOnce(page([{
+				id: liquidityPoolId,
+				paging_token: liquidityPoolId,
+				fee_bp: 30,
+				type: 'constant_product',
+				total_trustlines: '12',
+				total_shares: '5494.2144063',
+				reserves: [
+					{
+						asset: 'native',
+						amount: '0.2500452',
+					},
+					{
+						asset: `USDC:${otherAccountId}`,
+						amount: '223681544.4698246',
+					},
+				],
+				last_modified_ledger: 63_779_242,
+				last_modified_time: '2026-08-03T11:35:17Z',
+			}]))
+			.mockResolvedValueOnce({
+				id: liquidityPoolId,
+				paging_token: liquidityPoolId,
+				fee_bp: 30,
+				type: 'constant_product',
+				total_trustlines: '12',
+				total_shares: '5494.2144063',
+				reserves: [
+					{
+						asset: 'native',
+						amount: '0.2500452',
+					},
+					{
+						asset: `USDC:${otherAccountId}`,
+						amount: '223681544.4698246',
+					},
+				],
+				last_modified_ledger: 63_779_242,
+				last_modified_time: '2026-08-03T11:35:17Z',
+			})
+
+		await expect(getLiquidityPools(2)).resolves.toMatchObject({
+			_embedded: {
+				records: [{
+					liquidityPoolId,
+					feeBps: 30,
+					accounts: 12,
+					totalShares: '5494.2144063',
+					ledgerSequence: 63_779_242n,
+					reserveA: {
+						assetKey: 'XLM',
+						amount: '0.2500452',
+					},
+					reserveB: {
+						assetKey: `USDC-${otherAccountId}`,
+						amount: '223681544.4698246',
+					},
+				}],
+			},
+		})
+		await expect(getLiquidityPool(liquidityPoolId)).resolves.toMatchObject({
+			liquidityPoolId,
+			poolType: 'constant_product',
+		})
+		expect(getJson.mock.calls).toEqual([
+			[
+				binding,
+				'/liquidity_pools?limit=2&order=desc',
+			],
+			[
+				binding,
+				`/liquidity_pools/${liquidityPoolId}`,
+			],
+		])
+	})
+
+	it('rejects noncanonical pool identities and nonconstant-product reserve shapes', async () => {
+		getJson
+			.mockResolvedValueOnce({
+				id: 'A'.repeat(64),
+				paging_token: 'A'.repeat(64),
+				fee_bp: 30,
+				type: 'constant_product',
+				total_trustlines: '1',
+				total_shares: '1.0000000',
+				reserves: [],
+				last_modified_ledger: 1,
+				last_modified_time: '2026-08-03T11:35:17Z',
+			})
+			.mockResolvedValueOnce({
+				id: 'b'.repeat(64),
+				paging_token: 'b'.repeat(64),
+				fee_bp: 30,
+				type: 'weighted',
+				total_trustlines: '1',
+				total_shares: '1.0000000',
+				reserves: [],
+				last_modified_ledger: 1,
+				last_modified_time: '2026-08-03T11:35:17Z',
+			})
+
+		await expect(getLiquidityPool('a'.repeat(64))).rejects.toThrow('liquidity pool response identity mismatch')
+		await expect(getLiquidityPool('b'.repeat(64))).rejects.toThrow('unsupported liquidity pool type')
 	})
 })

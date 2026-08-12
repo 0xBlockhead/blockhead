@@ -653,3 +653,121 @@ describe('Stellar Horizon public-account resolver', () => {
 		})
 	})
 })
+
+describe('Stellar Horizon liquidity-pool resolver', () => {
+	beforeEach(() => {
+		vi.clearAllMocks()
+	})
+
+	it('materializes pool assets and its source-clocked reserve observation from both the network list and direct route', async () => {
+		const liquidityPoolId = 'a'.repeat(64)
+		const stellarNetwork = {
+			$network: {
+				slug: 'stellar',
+			},
+		}
+		const liquidityPool = {
+			$network: stellarNetwork,
+			liquidityPoolId,
+		}
+		const liquidityPoolWire = {
+			id: liquidityPoolId,
+			paging_token: liquidityPoolId,
+			fee_bp: 30,
+			type: 'constant_product',
+			total_trustlines: '12',
+			total_shares: '5494.2144063',
+			reserves: [
+				{
+					asset: 'native',
+					amount: '0.2500452',
+				},
+				{
+					asset: `USDC:${otherAccountId}`,
+					amount: '223681544.4698246',
+				},
+			],
+			last_modified_ledger: 63_779_242,
+			last_modified_time: '2026-08-03T11:35:17Z',
+		}
+		getJson
+			.mockResolvedValueOnce(page([liquidityPoolWire]))
+			.mockResolvedValueOnce(liquidityPoolWire)
+			.mockResolvedValueOnce(liquidityPoolWire)
+
+		const networkResolver = stellarHorizonResolvers.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.StellarNetwork
+			&& '$$liquidityPools' in resolver.projections
+		))
+		const poolResolver = stellarHorizonResolvers.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.StellarLiquidityPool
+			&& 'poolType' in resolver.projections
+		))
+		const poolTimestampResolver = stellarHorizonResolvers.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.StellarLiquidityPool_Timestamp
+		))
+		if (networkResolver == null || poolResolver == null || poolTimestampResolver == null)
+			throw new Error('Stellar Horizon spec missing liquidity-pool resolvers')
+
+		const networkSnapshot = await networkResolver.resolve.Network.resolve(stellarNetwork, context)
+		const pools = networkResolver.projections.$$liquidityPools.select(networkSnapshot, stellarNetwork)
+		expect(pools).toHaveLength(1)
+		expect(pools[0]).toMatchObject({
+			[EntityMetaKey.Selector]: liquidityPool,
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.StellarLiquidityPool, [], 'poolType')]: 'constant_product',
+				[entityFieldAddressKey(EntityType.StellarLiquidityPool, [], 'feeBps')]: 30,
+				[entityFieldAddressKey(EntityType.StellarLiquidityPool, [], '$$timestamps')]: [
+					expect.objectContaining({
+						[EntityMetaKey.Selector]: {
+							$liquidityPool: liquidityPool,
+							timestampMs: Date.parse(liquidityPoolWire.last_modified_time),
+							source: 'StellarHorizon_Rest',
+						},
+					}),
+				],
+			},
+		})
+
+		const directPool = await poolResolver.resolve.NetworkLiquidityPoolId.resolve(liquidityPool, context)
+		expect(poolResolver.projections.$assetB(directPool, liquidityPool)).toMatchObject({
+			[EntityMetaKey.Selector]: {
+				$network: stellarNetwork,
+				assetKey: `USDC-${otherAccountId}`,
+			},
+		})
+
+		const poolTimestamp = await poolTimestampResolver.resolve.LiquidityPoolTimestampMsSource.resolve({
+			$liquidityPool: liquidityPool,
+			timestampMs: Date.parse(liquidityPoolWire.last_modified_time),
+			source: 'StellarHorizon_Rest',
+		}, context)
+		expect(poolTimestampResolver.projections).toMatchObject({
+			reserveA: expect.any(Function),
+			totalShares: expect.any(Function),
+		})
+		expect(poolTimestampResolver.projections.reserveA(poolTimestamp)).toBe('0.2500452')
+		expect(poolTimestampResolver.projections.totalShares(poolTimestamp)).toBe('5494.2144063')
+	})
+
+	it('rejects an observation whose source or owner clock cannot be proven', async () => {
+		const poolTimestampResolver = stellarHorizonResolvers.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.StellarLiquidityPool_Timestamp
+		))
+		if (poolTimestampResolver == null)
+			throw new Error('Stellar Horizon spec missing liquidity-pool timestamp resolver')
+
+		await expect(poolTimestampResolver.resolve.LiquidityPoolTimestampMsSource.resolve({
+			$liquidityPool: {
+				$network: {
+					$network: {
+						slug: 'stellar',
+					},
+				},
+				liquidityPoolId: 'a'.repeat(64),
+			},
+			timestampMs: 0,
+			source: 'Other_Source',
+		}, context)).rejects.toThrow('liquidity pool observation source mismatch')
+	})
+})
