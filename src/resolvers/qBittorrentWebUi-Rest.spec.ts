@@ -16,6 +16,7 @@ import { Source } from '$/sources/Source.ts'
 const {
 	getApplicationVersion,
 	getTorrentFiles,
+	getTorrentPeers,
 	getTorrentPieceStates,
 	getTorrentProperties,
 	getTorrentTrackers,
@@ -24,6 +25,7 @@ const {
 } = vi.hoisted(() => ({
 	getApplicationVersion: vi.fn(),
 	getTorrentFiles: vi.fn(),
+	getTorrentPeers: vi.fn(),
 	getTorrentPieceStates: vi.fn(),
 	getTorrentProperties: vi.fn(),
 	getTorrentTrackers: vi.fn(),
@@ -34,6 +36,7 @@ const {
 vi.mock('$/sources/qBittorrentWebUi/Rest/queries.ts', () => ({
 	getApplicationVersion,
 	getTorrentFiles,
+	getTorrentPeers,
 	getTorrentPieceStates,
 	getTorrentProperties,
 	getTorrentTrackers,
@@ -72,6 +75,12 @@ describe('qBittorrent WebUI native client state', () => {
 		vi.restoreAllMocks()
 		getApplicationVersion.mockReset()
 		getTorrentFiles.mockReset()
+		getTorrentPeers.mockReset()
+		getTorrentPeers.mockResolvedValue({
+			rid: 1,
+			full_update: true,
+			peers: {},
+		})
 		getTorrentPieceStates.mockReset()
 		getTorrentProperties.mockReset()
 		getTorrentTrackers.mockReset()
@@ -86,6 +95,8 @@ describe('qBittorrent WebUI native client state', () => {
 			hash: infoHash.toUpperCase(),
 			name: 'release',
 			state: 'downloading',
+			priority: 3,
+			ratio: 1.25,
 			save_path: '/downloads',
 			downloaded: 1_024,
 			uploaded: 64,
@@ -145,6 +156,12 @@ describe('qBittorrent WebUI native client state', () => {
 			},
 			[EntityMetaKey.Fields]: expect.objectContaining({
 				[entityFieldAddressKey(EntityType.BlockheadBitTorrentTransfer_Timestamp, [], 'status')]: 'downloading',
+				[entityFieldAddressKey(EntityType.BlockheadBitTorrentTransfer_Timestamp, [], 'filePriorities')]: [
+					1,
+					0,
+				],
+				[entityFieldAddressKey(EntityType.BlockheadBitTorrentTransfer_Timestamp, [], 'queuePosition')]: 3,
+				[entityFieldAddressKey(EntityType.BlockheadBitTorrentTransfer_Timestamp, [], 'ratio')]: 1.25,
 				[entityFieldAddressKey(EntityType.BlockheadBitTorrentTransfer_Timestamp, [], 'downloadedBytes')]: 1_024n,
 				[entityFieldAddressKey(EntityType.BlockheadBitTorrentTransfer_Timestamp, [], 'connectedPeerCount')]: 5,
 				[entityFieldAddressKey(EntityType.BlockheadBitTorrentTransfer_Timestamp, [], 'verifiedPieces')]: 2,
@@ -159,6 +176,8 @@ describe('qBittorrent WebUI native client state', () => {
 			hash: infoHash,
 			name: 'release',
 			state: 'downloading',
+			priority: 2,
+			ratio: 0.5,
 			num_seeds: 4,
 			num_leechs: 6,
 		}])
@@ -188,6 +207,18 @@ describe('qBittorrent WebUI native client state', () => {
 				num_peers: 3,
 			},
 		])
+		getTorrentPeers.mockResolvedValue({
+			rid: 2,
+			full_update: true,
+			peers: {
+				'peer-source-key': {
+					ip: '192.0.2.10',
+					port: 51_413,
+					client: 'qBittorrent 5.1.2',
+					progress: 0.75,
+				},
+			},
+		})
 
 		const snapshot = await metainfoResolver.resolve.InfoHashHashVersion.resolve({
 			infoHash,
@@ -257,6 +288,23 @@ describe('qBittorrent WebUI native client state', () => {
 					}],
 				},
 			}],
+			$$peerTimestamps: [{
+				[EntityMetaKey.Selector]: {
+					$torrent: {
+						infoHash,
+						hashVersion: 'v1',
+					},
+					peerId: 'peer-source-key',
+					timestampMs: 1_786_000_000_000,
+					source: Source.qBittorrentWebUi_Rest,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.BitTorrentPeer_Timestamp, [], 'address')]: '192.0.2.10',
+					[entityFieldAddressKey(EntityType.BitTorrentPeer_Timestamp, [], 'port')]: 51_413,
+					[entityFieldAddressKey(EntityType.BitTorrentPeer_Timestamp, [], 'client')]: 'qBittorrent 5.1.2',
+					[entityFieldAddressKey(EntityType.BitTorrentPeer_Timestamp, [], 'completedPercent')]: 75,
+				},
+			}],
 			$$swarmTimestamps: [{
 				[EntityMetaKey.Selector]: {
 					$torrent: {
@@ -283,6 +331,9 @@ describe('qBittorrent WebUI native client state', () => {
 				[EntityMetaKey.Fields]: expect.objectContaining({
 					[entityFieldAddressKey(EntityType.BlockheadBitTorrentTransfer_Timestamp, [], 'status')]: 'downloading',
 					[entityFieldAddressKey(EntityType.BlockheadBitTorrentTransfer_Timestamp, [], 'selectedFileIndexes')]: [0],
+					[entityFieldAddressKey(EntityType.BlockheadBitTorrentTransfer_Timestamp, [], 'filePriorities')]: [1],
+					[entityFieldAddressKey(EntityType.BlockheadBitTorrentTransfer_Timestamp, [], 'queuePosition')]: 2,
+					[entityFieldAddressKey(EntityType.BlockheadBitTorrentTransfer_Timestamp, [], 'ratio')]: 0.5,
 					[entityFieldAddressKey(EntityType.BlockheadBitTorrentTransfer_Timestamp, [], 'connectedPeerCount')]: 10,
 					[entityFieldAddressKey(EntityType.BlockheadBitTorrentTransfer_Timestamp, [], 'verifiedPieces')]: 2,
 				}),

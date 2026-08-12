@@ -51,9 +51,17 @@ describe('Transmission RPC reads', () => {
 					torrents: [{
 						hashString: '0123456789abcdef0123456789abcdef01234567',
 						name: 'release',
+						queuePosition: 2,
+						uploadRatio: 1.25,
 						files: [{
 							name: 'release/image.iso',
 							length: 1_024,
+						}],
+						peers: [{
+							address: '192.0.2.10',
+							port: 51_413,
+							clientName: 'Transmission 4.0.6',
+							progress: 0.75,
 						}],
 					}],
 				},
@@ -63,13 +71,22 @@ describe('Transmission RPC reads', () => {
 			'hashString',
 			'name',
 			'files',
+			'peers',
 		])).resolves.toEqual({
 			torrents: [{
 				hashString: '0123456789abcdef0123456789abcdef01234567',
 				name: 'release',
+				queuePosition: 2,
+				uploadRatio: 1.25,
 				files: [{
 					name: 'release/image.iso',
 					length: 1_024,
+				}],
+				peers: [{
+					address: '192.0.2.10',
+					port: 51_413,
+					clientName: 'Transmission 4.0.6',
+					progress: 0.75,
 				}],
 			}],
 		})

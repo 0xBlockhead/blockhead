@@ -100,6 +100,14 @@ export default entity({
 		entityType: EntityType.BlockheadBitTorrentTransfer_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},
+	$$peerTimestamps: {
+		entityType: EntityType.BitTorrentPeer_Timestamp,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.qBittorrentWebUi_Rest,
+			Source.TransmissionRpc_JsonRpc,
+		],
+	},
 })({
 	selectors: {
 		InfoHashHashVersion: [

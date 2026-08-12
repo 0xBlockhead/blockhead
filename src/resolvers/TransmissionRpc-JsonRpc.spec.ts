@@ -57,6 +57,8 @@ const torrent = {
 	rateDownload: 512,
 	rateUpload: 8,
 	peersConnected: 3,
+	queuePosition: 2,
+	uploadRatio: 1.25,
 	pieceCount: 2,
 	pieceSize: 600,
 	totalSize: 1_024,
@@ -66,6 +68,13 @@ const torrent = {
 	}],
 	fileStats: [{
 		wanted: true,
+		priority: 1,
+	}],
+	peers: [{
+		address: '192.0.2.10',
+		port: 51_413,
+		clientName: 'Transmission 4.0.6',
+		progress: 0.75,
 	}],
 }
 
@@ -123,12 +132,16 @@ describe('Transmission native client journey', () => {
 			[EntityMetaKey.Fields]: {
 				[entityFieldAddressKey(EntityType.BlockheadBitTorrentTransfer_Timestamp, [], 'status')]: 'downloading',
 				[entityFieldAddressKey(EntityType.BlockheadBitTorrentTransfer_Timestamp, [], 'selectedFileIndexes')]: [0],
+				[entityFieldAddressKey(EntityType.BlockheadBitTorrentTransfer_Timestamp, [], 'filePriorities')]: [1],
+				[entityFieldAddressKey(EntityType.BlockheadBitTorrentTransfer_Timestamp, [], 'queuePosition')]: 2,
+				[entityFieldAddressKey(EntityType.BlockheadBitTorrentTransfer_Timestamp, [], 'ratio')]: 1.25,
 				[entityFieldAddressKey(EntityType.BlockheadBitTorrentTransfer_Timestamp, [], 'connectedPeerCount')]: 3,
 			},
 		})
 	})
 
 	it('materializes metainfo, files, and the complete piece layout', async () => {
+		vi.spyOn(Date, 'now').mockReturnValue(1_786_000_000_000)
 		const snapshot = await torrentResolver.resolve.InfoHashHashVersion.resolve({
 			infoHash,
 			hashVersion: 'v1',
@@ -158,6 +171,23 @@ describe('Transmission native client journey', () => {
 				}),
 			}),
 		])
+		expect(snapshot.$$peerTimestamps).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$torrent: {
+					infoHash,
+					hashVersion: 'v1',
+				},
+				peerId: '192.0.2.10:51413',
+				timestampMs: 1_786_000_000_000,
+				source: Source.TransmissionRpc_JsonRpc,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.BitTorrentPeer_Timestamp, [], 'address')]: '192.0.2.10',
+				[entityFieldAddressKey(EntityType.BitTorrentPeer_Timestamp, [], 'port')]: 51_413,
+				[entityFieldAddressKey(EntityType.BitTorrentPeer_Timestamp, [], 'client')]: 'Transmission 4.0.6',
+				[entityFieldAddressKey(EntityType.BitTorrentPeer_Timestamp, [], 'completedPercent')]: 75,
+			},
+		}])
 
 		await expect(fileResolver.resolve.TorrentFileIndex.resolve({
 			$torrent: {

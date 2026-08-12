@@ -36,6 +36,18 @@ export default entity({
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.Many,
 	},
+	filePriorities: {
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.Many,
+	},
+	queuePosition: {
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	ratio: {
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
 	downloadedBytes: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,

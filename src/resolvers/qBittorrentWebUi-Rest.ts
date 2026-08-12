@@ -13,6 +13,7 @@ import bindings from '$/sources/qBittorrentWebUi/bindings.ts'
 import type {
 	QBittorrentTorrentFile,
 	QBittorrentTorrentInfo,
+	QBittorrentTorrentPeer,
 	QBittorrentTorrentTracker,
 } from '$/sources/qBittorrentWebUi/Rest/queries.ts'
 
@@ -55,6 +56,7 @@ const transferReference = (
 	torrent: QBittorrentTorrentInfo,
 	timestampMs: number,
 	selectedFileIndexes: number[],
+	filePriorities: number[] | undefined,
 	verifiedPieces: number
 ) => {
 	const infoHash = torrent.hash.toLowerCase()
@@ -76,7 +78,16 @@ const transferReference = (
 			...(torrent.save_path != null && {
 				[entityFieldAddressKey(EntityType.BlockheadBitTorrentTransfer_Timestamp, [], 'savePath')]: torrent.save_path,
 			}),
-			[entityFieldAddressKey(EntityType.BlockheadBitTorrentTransfer_Timestamp, [], 'selectedFileIndexes')]: selectedFileIndexes,
+		[entityFieldAddressKey(EntityType.BlockheadBitTorrentTransfer_Timestamp, [], 'selectedFileIndexes')]: selectedFileIndexes,
+		...(filePriorities != null && {
+			[entityFieldAddressKey(EntityType.BlockheadBitTorrentTransfer_Timestamp, [], 'filePriorities')]: filePriorities,
+		}),
+		...(torrent.priority != null && torrent.priority >= 0 && {
+			[entityFieldAddressKey(EntityType.BlockheadBitTorrentTransfer_Timestamp, [], 'queuePosition')]: torrent.priority,
+		}),
+		...(torrent.ratio != null && {
+			[entityFieldAddressKey(EntityType.BlockheadBitTorrentTransfer_Timestamp, [], 'ratio')]: torrent.ratio,
+		}),
 			...(torrent.downloaded != null && {
 				[entityFieldAddressKey(EntityType.BlockheadBitTorrentTransfer_Timestamp, [], 'downloadedBytes')]: byteCount(torrent.downloaded, 'torrent downloaded bytes'),
 			}),
@@ -241,6 +252,36 @@ const torrentTrackerReferences = (
 	}]
 })
 
+const torrentPeerReferences = (
+	$torrent: {
+		infoHash: string
+		hashVersion: string
+	},
+	peers: [string, QBittorrentTorrentPeer][],
+	timestampMs: number
+) => peers.map(([peerId, peer]) => ({
+	[EntityMetaKey.Selector]: {
+		$torrent,
+		peerId,
+		timestampMs,
+		source: Source.qBittorrentWebUi_Rest,
+	},
+	[EntityMetaKey.Fields]: {
+		...(peer.ip != null && {
+			[entityFieldAddressKey(EntityType.BitTorrentPeer_Timestamp, [], 'address')]: peer.ip,
+		}),
+		...(peer.port != null && {
+			[entityFieldAddressKey(EntityType.BitTorrentPeer_Timestamp, [], 'port')]: peer.port,
+		}),
+		...(peer.client != null && peer.client !== '' && {
+			[entityFieldAddressKey(EntityType.BitTorrentPeer_Timestamp, [], 'client')]: peer.client,
+		}),
+		...(peer.progress != null && {
+			[entityFieldAddressKey(EntityType.BitTorrentPeer_Timestamp, [], 'completedPercent')]: peer.progress * 100,
+		}),
+	},
+}))
+
 export default {
 	source: Source.qBittorrentWebUi_Rest,
 
@@ -284,9 +325,9 @@ export default {
 			entityType: EntityType.BitTorrentMetainfo,
 			resolve: {
 				InfoHashHashVersion: {
-					resolve: async (torrentIdentity) => {
+					resolve: async (torrentIdentity, context) => {
 						const { infoHash: normalizedInfoHash, hashVersion } = normalizedTorrentIdentity(torrentIdentity)
-						const { getTorrentFiles, getTorrentPieceStates, getTorrentProperties, getTorrentTrackers, getTorrentsInfo } = await (
+						const { getTorrentFiles, getTorrentPeers, getTorrentPieceStates, getTorrentProperties, getTorrentTrackers, getTorrentsInfo } = await (
 							typeof window === 'undefined' ?
 								import('$/sources/qBittorrentWebUi/Rest/queries.ts')
 							:
@@ -298,8 +339,9 @@ export default {
 						if (torrent == null)
 							throw new Error('qBittorrentWebUi_Rest: torrent not found in the configured local client')
 
-						const [files, pieceStates, properties, trackers] = await Promise.all([
+						const [files, peers, pieceStates, properties, trackers] = await Promise.all([
 							getTorrentFiles(binding, normalizedInfoHash),
+							getTorrentPeers(binding, normalizedInfoHash),
 							getTorrentPieceStates(binding, normalizedInfoHash),
 							getTorrentProperties(binding, normalizedInfoHash),
 							getTorrentTrackers(binding, normalizedInfoHash),
@@ -327,6 +369,11 @@ export default {
 									torrentPieceReferences($torrent, pieceStates, properties.piece_size, properties.total_size)
 							),
 							$$trackers: torrentTrackerReferences($torrent, trackers, timestampMs),
+							$$peerTimestamps: torrentPeerReferences(
+								$torrent,
+								Object.entries(peers.peers ?? {}).slice(0, resolverContextRowLimit(context)),
+								timestampMs
+							),
 							$$swarmTimestamps: [
 								{
 									[EntityMetaKey.Selector]: {
@@ -350,6 +397,7 @@ export default {
 								torrent,
 								timestampMs,
 								files.flatMap((file) => file.priority === 0 ? [] : [file.index]),
+								files.every((file) => file.priority != null) ? files.map((file) => file.priority ?? 0) : undefined,
 								pieceStates.filter((pieceState) => pieceState === 2).length
 							)],
 						}
@@ -365,6 +413,7 @@ export default {
 			$$files: (torrent) => torrent.$$files,
 			$$pieces: (torrent) => torrent.$$pieces,
 			$$trackers: (torrent) => torrent.$$trackers,
+			$$peerTimestamps: (torrent) => torrent.$$peerTimestamps,
 			$$swarmTimestamps: (torrent) => torrent.$$swarmTimestamps,
 			$$clientTransfers: (torrent) => torrent.$$clientTransfers,
 		}),
@@ -407,6 +456,7 @@ export default {
 									torrent,
 									timestampMs,
 									files.flatMap((file) => file.priority === 0 ? [] : [file.index]),
+									files.every((file) => file.priority != null) ? files.map((file) => file.priority ?? 0) : undefined,
 									pieceStates.filter((pieceState) => pieceState === 2).length
 								)
 							})),

@@ -29,6 +29,8 @@ export type QBittorrentTorrentInfo = {
 	num_leechs?: number
 	amount_left?: number
 	progress?: number
+	priority?: number
+	ratio?: number
 }
 
 export type QBittorrentTorrentFile = {
@@ -57,6 +59,21 @@ export type QBittorrentTorrentTracker = {
 	msg?: string
 }
 
+export type QBittorrentTorrentPeer = {
+	peer_id_client?: string
+	ip?: string
+	port?: number
+	client?: string
+	progress?: number
+}
+
+export type QBittorrentTorrentPeers = {
+	rid: number
+	full_update: boolean
+	peers?: Record<string, QBittorrentTorrentPeer>
+	peers_removed?: string[]
+}
+
 
 const nonNegativeNumber = arktype('number >= 0')
 
@@ -80,6 +97,8 @@ const qBittorrentTorrentInfoWire = arktype({
 	'num_leechs?': 'number.integer >= 0',
 	'amount_left?': nonNegativeNumber,
 	'progress?': 'number >= 0 <= 1',
+	'priority?': 'number.integer >= -1',
+	'ratio?': 'number >= 0 <= 9999',
 }) satisfies Type<QBittorrentTorrentInfo>
 
 const qBittorrentTorrentInfoListWire = qBittorrentTorrentInfoWire.array()
@@ -111,6 +130,23 @@ const qBittorrentTorrentTrackerListWire = arktype({
 	'num_downloaded?': 'number.integer >= -1',
 	'msg?': 'string',
 }).array() satisfies Type<QBittorrentTorrentTracker[]>
+
+const qBittorrentTorrentPeerWire = arktype({
+	'peer_id_client?': 'string',
+	'ip?': 'string',
+	'port?': 'number.integer >= 0 <= 65535',
+	'client?': 'string',
+	'progress?': 'number >= 0 <= 1',
+}) satisfies Type<QBittorrentTorrentPeer>
+
+const qBittorrentTorrentPeersWire = arktype({
+	rid: 'number.integer >= 0',
+	full_update: 'boolean',
+	'peers?': {
+		'[string]': qBittorrentTorrentPeerWire,
+	},
+	'peers_removed?': 'string[]',
+}) satisfies Type<QBittorrentTorrentPeers>
 
 const assertEnvelope = <_Value>(
 	label: string,
@@ -203,4 +239,22 @@ export const getTorrentTrackers = (
 			qBittorrentTorrentTrackerListWire,
 			response
 		))
+)
+
+export const getTorrentPeers = (
+	binding: SourceBinding,
+	infoHash: string
+) => (
+	getJson<unknown>(binding, `/api/v2/sync/torrentPeers?hash=${encodeURIComponent(infoHash)}&rid=0`)
+		.then((response) => {
+			const peers = assertEnvelope(
+				'torrent peers',
+				qBittorrentTorrentPeersWire,
+				response
+			)
+			if (!peers.full_update || (peers.peers_removed?.length ?? 0) !== 0)
+				throw new Error('qBittorrentWebUi_Rest: torrent peers response is not a complete snapshot')
+
+			return peers
+		})
 )

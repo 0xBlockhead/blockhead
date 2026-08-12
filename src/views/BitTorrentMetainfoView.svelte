@@ -41,6 +41,7 @@
 	import MagnetLinksView from '$/views/MagnetLinksView.svelte'
 	import BitTorrentSwarmObservation_TimestampsView from '$/views/BitTorrentSwarmObservation_TimestampsView.svelte'
 	import BlockheadBitTorrentTransfer_TimestampsView from '$/views/BlockheadBitTorrentTransfer_TimestampsView.svelte'
+	import BitTorrentPeer_TimestampsView from '$/views/BitTorrentPeer_TimestampsView.svelte'
 </script>
 
 
@@ -391,6 +392,10 @@
 						id: 'bittorrent-client-transfers',
 						label: 'Client transfers',
 					},
+					{
+						id: 'bittorrent-peer-observations',
+						label: 'Peer observations',
+					},
 				]
 			}
 			data-card
@@ -418,6 +423,16 @@
 					collapsible={false}
 					title={label}
 					emptyText='No client transfers yet.'
+					id={`${id}-list`}
+				/>
+			{/snippet}
+
+			{#snippet SectionBittorrentPeerObservations({ id, label })}
+				<BitTorrentPeer_TimestampsView
+					selection={selection.$$peerTimestamps}
+					collapsible={false}
+					title={label}
+					emptyText='No peer observations yet.'
 					id={`${id}-list`}
 				/>
 			{/snippet}

@@ -24,6 +24,7 @@ vi.mock('$/sources/_shared/wire/HttpRest/client.ts', () => ({
 const {
 	getApplicationVersion,
 	getTorrentFiles,
+	getTorrentPeers,
 	getTorrentPieceStates,
 	getTorrentProperties,
 	getTorrentTrackers,
@@ -55,6 +56,8 @@ describe('qBittorrent WebUI REST envelopes', () => {
 				name: 'release',
 				state: 'downloading',
 				progress: 0.5,
+				priority: 2,
+				ratio: 0.75,
 			}])
 
 		await expect(getTransferInfo(binding)).resolves.toMatchObject({
@@ -64,6 +67,8 @@ describe('qBittorrent WebUI REST envelopes', () => {
 		await expect(getTorrentsInfo(binding)).resolves.toEqual([expect.objectContaining({
 			name: 'release',
 			progress: 0.5,
+			priority: 2,
+			ratio: 0.75,
 		})])
 	})
 
@@ -111,6 +116,37 @@ describe('qBittorrent WebUI REST envelopes', () => {
 		])
 	})
 
+	it('validates a complete native peer snapshot', async () => {
+		getJson.mockResolvedValueOnce({
+			rid: 4,
+			full_update: true,
+			peers: {
+				'peer-source-key': {
+					peer_id_client: '-qB5120-',
+					ip: '192.0.2.10',
+					port: 51413,
+					client: 'qBittorrent 5.1.2',
+					progress: 0.75,
+				},
+			},
+		})
+
+		await expect(getTorrentPeers(binding, '0'.repeat(40))).resolves.toEqual({
+			rid: 4,
+			full_update: true,
+			peers: {
+				'peer-source-key': expect.objectContaining({
+					ip: '192.0.2.10',
+					progress: 0.75,
+				}),
+			},
+		})
+		expect(getJson).toHaveBeenCalledWith(
+			binding,
+			`/api/v2/sync/torrentPeers?hash=${'0'.repeat(40)}&rid=0`
+		)
+	})
+
 	it('fails closed on malformed identities, counters, and piece states', async () => {
 		getJson.mockResolvedValueOnce([{ hash: 'not-a-hash' }])
 		await expect(getTorrentsInfo(binding)).rejects.toThrow('invalid torrents info response envelope')
@@ -123,5 +159,12 @@ describe('qBittorrent WebUI REST envelopes', () => {
 
 		getJson.mockResolvedValueOnce([{ url: 'https://tracker.example', num_seeds: -2 }])
 		await expect(getTorrentTrackers(binding, '0'.repeat(40))).rejects.toThrow('invalid torrent trackers response envelope')
+
+		getJson.mockResolvedValueOnce({
+			rid: 8,
+			full_update: false,
+			peers: {},
+		})
+		await expect(getTorrentPeers(binding, '0'.repeat(40))).rejects.toThrow('not a complete snapshot')
 	})
 })

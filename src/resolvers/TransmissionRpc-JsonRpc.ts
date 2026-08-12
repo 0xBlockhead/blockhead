@@ -13,6 +13,7 @@ import bindings from '$/sources/Transmission/bindings.ts'
 import type {
 	TransmissionTorrent,
 	TransmissionTorrentFile,
+	TransmissionTorrentPeer,
 } from '$/sources/Transmission/Rpc/types.ts'
 
 
@@ -28,12 +29,15 @@ const torrentFields = [
 	'rateDownload',
 	'rateUpload',
 	'peersConnected',
+	'queuePosition',
+	'uploadRatio',
 	'errorString',
 	'pieceCount',
 	'pieceSize',
 	'totalSize',
 	'files',
 	'fileStats',
+	'peers',
 ] as const
 
 const normalizedTorrent = (
@@ -141,6 +145,15 @@ const transferReference = (
 			[entityFieldAddressKey(EntityType.BlockheadBitTorrentTransfer_Timestamp, [], 'savePath')]: torrent.downloadDir,
 		}),
 		[entityFieldAddressKey(EntityType.BlockheadBitTorrentTransfer_Timestamp, [], 'selectedFileIndexes')]: (torrent.fileStats ?? []).flatMap((file, fileIndex) => file.wanted === false ? [] : [fileIndex]),
+		...(torrent.fileStats?.every((file) => file.priority != null) && {
+			[entityFieldAddressKey(EntityType.BlockheadBitTorrentTransfer_Timestamp, [], 'filePriorities')]: torrent.fileStats.map((file) => file.priority ?? 0),
+		}),
+		...(torrent.queuePosition != null && {
+			[entityFieldAddressKey(EntityType.BlockheadBitTorrentTransfer_Timestamp, [], 'queuePosition')]: torrent.queuePosition,
+		}),
+		...(torrent.uploadRatio != null && {
+			[entityFieldAddressKey(EntityType.BlockheadBitTorrentTransfer_Timestamp, [], 'ratio')]: torrent.uploadRatio,
+		}),
 		...(torrent.downloadedEver != null && {
 			[entityFieldAddressKey(EntityType.BlockheadBitTorrentTransfer_Timestamp, [], 'downloadedBytes')]: byteCount(torrent.downloadedEver, 'downloaded bytes'),
 		}),
@@ -158,6 +171,29 @@ const transferReference = (
 		}),
 		...(torrent.errorString != null && torrent.errorString !== '' && {
 			[entityFieldAddressKey(EntityType.BlockheadBitTorrentTransfer_Timestamp, [], 'error')]: torrent.errorString,
+		}),
+	},
+})
+
+const torrentPeerReference = (
+	$torrent: ReturnType<typeof torrentIdentity>,
+	peer: TransmissionTorrentPeer,
+	timestampMs: number
+) => ({
+	[EntityMetaKey.Selector]: {
+		$torrent,
+		peerId: `${peer.address.includes(':') ? `[${peer.address}]` : peer.address}:${peer.port}`,
+		timestampMs,
+		source: Source.TransmissionRpc_JsonRpc,
+	},
+	[EntityMetaKey.Fields]: {
+		[entityFieldAddressKey(EntityType.BitTorrentPeer_Timestamp, [], 'address')]: peer.address,
+		[entityFieldAddressKey(EntityType.BitTorrentPeer_Timestamp, [], 'port')]: peer.port,
+		...(peer.clientName != null && peer.clientName !== '' && {
+			[entityFieldAddressKey(EntityType.BitTorrentPeer_Timestamp, [], 'client')]: peer.clientName,
+		}),
+		...(peer.progress != null && {
+			[entityFieldAddressKey(EntityType.BitTorrentPeer_Timestamp, [], 'completedPercent')]: peer.progress * 100,
 		}),
 	},
 })
@@ -206,7 +242,7 @@ export default {
 			entityType: EntityType.BitTorrentMetainfo,
 			resolve: {
 				InfoHashHashVersion: {
-					resolve: async ({ infoHash, hashVersion }) => {
+					resolve: async ({ infoHash, hashVersion }, context) => {
 						const $torrent = normalizedTorrent(infoHash, hashVersion)
 						const { torrentGet } = await (
 							typeof window === 'undefined' ?
@@ -220,6 +256,7 @@ export default {
 						)).torrents.find((candidate) => candidate.hashString.toLowerCase() === $torrent.infoHash)
 						if (torrent == null)
 							throw new Error('TransmissionRpc_JsonRpc: torrent not found in the configured local client')
+						const timestampMs = Date.now()
 
 						return {
 							...$torrent,
@@ -233,6 +270,9 @@ export default {
 								:
 									torrentPieceReferences($torrent, torrent.pieceCount, torrent.pieceSize, torrent.totalSize)
 							),
+							$$peerTimestamps: (torrent.peers ?? [])
+								.slice(0, resolverContextRowLimit(context))
+								.map((peer) => torrentPeerReference($torrent, peer, timestampMs)),
 						}
 					},
 				},
@@ -245,6 +285,7 @@ export default {
 			totalLength: (torrent) => torrent.totalLength,
 			$$files: (torrent) => torrent.$$files,
 			$$pieces: (torrent) => torrent.$$pieces,
+			$$peerTimestamps: (torrent) => torrent.$$peerTimestamps,
 		}),
 
 		defineResolver({

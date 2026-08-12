@@ -47,6 +47,13 @@ export type TransmissionTorrentFileStats = {
 	bytesCompleted?: number
 }
 
+export type TransmissionTorrentPeer = {
+	address: string
+	port: number
+	clientName?: string
+	progress?: number
+}
+
 export type TransmissionTorrent = {
 	hashString: string
 	name?: string
@@ -57,12 +64,15 @@ export type TransmissionTorrent = {
 	rateDownload?: number
 	rateUpload?: number
 	peersConnected?: number
+	queuePosition?: number
+	uploadRatio?: number
 	errorString?: string
 	pieceCount?: number
 	pieceSize?: number
 	totalSize?: number
 	files?: TransmissionTorrentFile[]
 	fileStats?: TransmissionTorrentFileStats[]
+	peers?: TransmissionTorrentPeer[]
 }
 
 export type TransmissionTorrents = {
@@ -71,6 +81,7 @@ export type TransmissionTorrents = {
 
 
 const nonNegativeInteger = arktype('number.integer >= 0')
+const nonNegativeNumber = arktype('number >= 0')
 const transmissionSessionWire = arktype({
 	'version?': 'string',
 	'peer-port?': nonNegativeInteger,
@@ -96,6 +107,12 @@ const transmissionTorrentFileStatsWire = arktype({
 	'priority?': 'number.integer',
 	'bytesCompleted?': nonNegativeInteger,
 }) satisfies Type<TransmissionTorrentFileStats>
+const transmissionTorrentPeerWire = arktype({
+	address: 'string > 0',
+	port: 'number.integer >= 0 <= 65535',
+	'clientName?': 'string',
+	'progress?': 'number >= 0 <= 1',
+}) satisfies Type<TransmissionTorrentPeer>
 const transmissionTorrentWire = arktype({
 	hashString: 'string',
 	'name?': 'string',
@@ -106,12 +123,15 @@ const transmissionTorrentWire = arktype({
 	'rateDownload?': nonNegativeInteger,
 	'rateUpload?': nonNegativeInteger,
 	'peersConnected?': nonNegativeInteger,
+	'queuePosition?': nonNegativeInteger,
+	'uploadRatio?': nonNegativeNumber,
 	'errorString?': 'string',
 	'pieceCount?': nonNegativeInteger,
 	'pieceSize?': nonNegativeInteger,
 	'totalSize?': nonNegativeInteger,
 	'files?': transmissionTorrentFileWire.array(),
 	'fileStats?': transmissionTorrentFileStatsWire.array(),
+	'peers?': transmissionTorrentPeerWire.array(),
 }) satisfies Type<TransmissionTorrent>
 
 const response = <_Arguments extends JsonValue>(

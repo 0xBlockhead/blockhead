@@ -7,6 +7,7 @@ import bindings from '$/sources/qBittorrentWebUi/bindings.ts'
 import {
 	getApplicationVersion as getApplicationVersionFromClient,
 	getTorrentFiles as getTorrentFilesFromClient,
+	getTorrentPeers as getTorrentPeersFromClient,
 	getTorrentPieceStates as getTorrentPieceStatesFromClient,
 	getTorrentProperties as getTorrentPropertiesFromClient,
 	getTorrentTrackers as getTorrentTrackersFromClient,
@@ -41,6 +42,10 @@ const torrentTrackersRemote = query(
 	torrentIdentity,
 	({ infoHash }) => getTorrentTrackersFromClient(binding, infoHash)
 )
+const torrentPeersRemote = query(
+	torrentIdentity,
+	({ infoHash }) => getTorrentPeersFromClient(binding, infoHash)
+)
 
 export const getApplicationVersion = (_binding: SourceBinding) => applicationVersionRemote()
 export const getTorrentsInfo = (_binding: SourceBinding) => torrentsInfoRemote()
@@ -49,3 +54,4 @@ export const getTorrentFiles = (_binding: SourceBinding, infoHash: string) => to
 export const getTorrentPieceStates = (_binding: SourceBinding, infoHash: string) => torrentPieceStatesRemote({ infoHash })
 export const getTorrentProperties = (_binding: SourceBinding, infoHash: string) => torrentPropertiesRemote({ infoHash })
 export const getTorrentTrackers = (_binding: SourceBinding, infoHash: string) => torrentTrackersRemote({ infoHash })
+export const getTorrentPeers = (_binding: SourceBinding, infoHash: string) => torrentPeersRemote({ infoHash })

@@ -191,6 +191,73 @@
 				</dd>
 			</div>
 
+			<div>
+				<dt>file priorities</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									filePriorities: true,
+								},
+							})
+						}
+					>
+						{#snippet children(entity)}
+							{entity.filePriorities.values.join(', ')}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							queuePosition: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const queuePosition = entity.queuePosition}
+					{#if queuePosition != null}
+						<div>
+							<dt>queue position</dt>
+							<dd>
+								<NumberValue
+									value={queuePosition}
+								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							ratio: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const ratio = entity.ratio}
+					{#if ratio != null}
+						<div>
+							<dt>ratio</dt>
+							<dd>
+								<NumberValue
+									value={ratio}
+								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
 			<ResourceBoundary
 				resource={
 					selection({

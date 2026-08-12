@@ -12202,6 +12202,7 @@ export const schema = {
 				"$$magnets": { label: "magnets", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.MagnetLink },
 				"$$swarmTimestamps": { label: "swarm timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BitTorrentSwarmObservation_Timestamp },
 				"$$clientTransfers": { label: "client transfers", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadBitTorrentTransfer_Timestamp },
+				"$$peerTimestamps": { label: "peer observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BitTorrentPeer_Timestamp, defaultSources: [Source.qBittorrentWebUi_Rest, Source.TransmissionRpc_JsonRpc] },
 			})({
 				selectors: {
 					"InfoHashHashVersion": ["infoHash", "hashVersion"],
@@ -12246,6 +12247,7 @@ export const schema = {
 								sections: [
 									{ id: "bittorrent-swarm-observations", field: "$$swarmTimestamps", List: "BitTorrentSwarmObservation_TimestampsView", label: "Swarm observations", emptyText: "No swarm observations yet." },
 									{ id: "bittorrent-client-transfers", field: "$$clientTransfers", List: "BlockheadBitTorrentTransfer_TimestampsView", label: "Client transfers", emptyText: "No client transfers yet." },
+									{ id: "bittorrent-peer-observations", field: "$$peerTimestamps", List: "BitTorrentPeer_TimestampsView", label: "Peer observations", emptyText: "No peer observations yet." },
 								],
 							},
 						],
@@ -13349,6 +13351,9 @@ export const schema = {
 				"status": { label: "status", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"savePath": { label: "save path", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"selectedFileIndexes": { label: "selected file indexes", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "number" },
+				"filePriorities": { label: "file priorities", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "number" },
+				"queuePosition": { label: "queue position", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+				"ratio": { label: "ratio", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 				"downloadedBytes": { label: "downloaded bytes", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
 				"uploadedBytes": { label: "uploaded bytes", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
 				"downloadRate": { label: "download rate", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
@@ -13371,7 +13376,7 @@ export const schema = {
 						content: {
 							dl: [
 								["$client", "$torrent", { field: "timestampMs", format: "timestamp" }, "status", "error"],
-								["savePath", "selectedFileIndexes", { field: "connectedPeerCount", format: "number" }],
+								["savePath", "selectedFileIndexes", "filePriorities", { field: "queuePosition", format: "number" }, { field: "ratio", format: "number" }, { field: "connectedPeerCount", format: "number" }],
 								[{ field: "downloadedBytes", format: "numberValue" }, { field: "uploadedBytes", format: "numberValue" }, { field: "downloadRate", format: "number" }, { field: "uploadRate", format: "number" }],
 								[{ field: "verifiedPieces", format: "number" }, { field: "failedPieces", format: "number" }],
 							],
@@ -50008,6 +50013,8 @@ export const schema = {
 				"digest": { label: "digest", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string", defaultSources: [Source.OciRegistry_Distribution] },
 				"sizeBytes": { label: "size", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number", defaultSources: [Source.OciRegistry_Distribution] },
 				"urls": { label: "URLs", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "urlString", defaultSources: [Source.OciRegistry_Distribution] },
+				"artifactType": { label: "artifact type", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.OciRegistry_Distribution] },
+				"annotations": { label: "annotations", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "unknown", defaultSources: [Source.OciRegistry_Distribution] },
 			})({
 				selectors: {
 					"ManifestKindIndex": ["$manifest", "descriptorKind", "descriptorIndex"],
@@ -50016,7 +50023,7 @@ export const schema = {
 					singular: {
 						query: { sources: [Source.OciRegistry_Distribution] },
 						summary: { title: ["descriptorKind"], value: [{ field: "digest", format: "truncated" }], HeadingAfter: [{ field: "sizeBytes", format: "number" }] },
-						content: { dl: [["$manifest", "descriptorKind", { field: "descriptorIndex", format: "number" }], ["mediaType", { field: "digest", format: "truncated" }, { field: "sizeBytes", format: "number" }, "urls"]] },
+						content: { dl: [["$manifest", "descriptorKind", { field: "descriptorIndex", format: "number" }], ["mediaType", { field: "digest", format: "truncated" }, { field: "sizeBytes", format: "number" }, "artifactType", "urls"]] },
 					},
 					plural: { component: "OciDescriptorsView" },
 				},
@@ -50040,6 +50047,7 @@ export const schema = {
 				"$subject": { label: "subject", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.OciDescriptor, defaultSources: [Source.OciRegistry_Distribution] },
 				"$$layers": { label: "layers", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.OciDescriptor, defaultSources: [Source.OciRegistry_Distribution] },
 				"$$manifests": { label: "child manifests", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.OciDescriptor, defaultSources: [Source.OciRegistry_Distribution] },
+				"$$referrers": { label: "referrers", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.OciDescriptor, defaultSources: [Source.OciRegistry_Distribution] },
 			})({
 				selectors: {
 					"RegistryRepositoryReference": ["registry", "repository", "reference"],
@@ -50052,6 +50060,7 @@ export const schema = {
 						lists: [
 							{ field: "$$layers", component: "OciDescriptorsView", label: "Layers", emptyText: "No layers declared." },
 							{ field: "$$manifests", component: "OciDescriptorsView", label: "Child manifests", emptyText: "No child manifests declared." },
+							{ field: "$$referrers", component: "OciDescriptorsView", label: "Referrers", emptyText: "No referrers declared." },
 						],
 					},
 					plural: { component: "OciManifestsView" },
