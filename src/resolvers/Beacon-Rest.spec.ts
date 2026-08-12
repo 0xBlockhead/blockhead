@@ -651,7 +651,20 @@ describe('Beacon REST checkpoint and fork projections', () => {
 	})
 
 	it('rejects a native head-slot uint64 that cannot be represented by resolver numbers', async () => {
-		getHeadSlot.mockResolvedValue('18446744073709551615')
+		getHeader.mockResolvedValue({
+			root: `0x${'A'.repeat(64)}`,
+			canonical: true,
+			header: {
+				message: {
+					slot: '18446744073709551615',
+					proposer_index: '1',
+					parent_root: `0x${'B'.repeat(64)}`,
+					state_root: `0x${'C'.repeat(64)}`,
+					body_root: `0x${'D'.repeat(64)}`,
+				},
+				signature: `0x${'E'.repeat(192)}`,
+			},
+		})
 
 		await expect(resolveHeadSlots(network, {
 			filters: [],
@@ -661,6 +674,50 @@ describe('Beacon REST checkpoint and fork projections', () => {
 			parentSelectorKeys: [],
 			publicEnv: {},
 		})).rejects.toThrow('head slot must be a safe integer')
+	})
+
+	it('materializes recent slot headers from the bounded network collection', async () => {
+		getHeader.mockImplementation(async (_chainId, slot) => ({
+			root: `0x${'A'.repeat(64)}`,
+			canonical: true,
+			header: {
+				message: {
+					slot: slot === 'head' ? '64' : String(slot),
+					proposer_index: '12',
+					parent_root: `0x${'B'.repeat(64)}`,
+					state_root: `0x${'C'.repeat(64)}`,
+					body_root: `0x${'D'.repeat(64)}`,
+				},
+				signature: `0x${'E'.repeat(192)}`,
+			},
+		}))
+
+		const slots = await resolveHeadSlots(network, {
+			filters: [],
+			sorts: [],
+			pagination: {
+				limit: 2,
+			},
+			selectorKeys: [],
+			parentSelectorKeys: [],
+			publicEnv: {},
+		})
+		expect(slots).toHaveLength(2)
+		expect(slots[0]).toMatchObject({
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				slot: 64,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.BeaconSlot, [], 'epoch')]: 2,
+				[entityFieldAddressKey(EntityType.BeaconSlot, [], 'canonical')]: true,
+				[entityFieldAddressKey(EntityType.BeaconSlot, [], 'proposerIndex')]: 12,
+				[entityFieldAddressKey(EntityType.BeaconSlot, [], 'root')]: `0x${'A'.repeat(64)}`,
+			},
+		})
+		expect(getHeader).toHaveBeenCalledWith(1, 'head')
+		expect(getHeader).toHaveBeenCalledWith(1, 63)
+		expect(getHeader).toHaveBeenCalledTimes(2)
 	})
 
 	it('limits nested network selectors to the eip155 applicability contract', () => {

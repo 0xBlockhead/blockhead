@@ -233,6 +233,35 @@ const observationFields = (
 	)
 )
 
+const beaconSlotReferenceFromHeader = (
+	$network: EntitySelector<typeof schema, EntityType.Network>,
+	header: Awaited<ReturnType<typeof import('$/sources/Beacon/Rest/queries.ts').getHeader>>
+) => {
+	const slot = safeIntegerFromDecimal(header.header.message.slot, 'slot')
+	return {
+		[EntityMetaKey.Selector]: {
+			$network,
+			slot,
+		},
+		[EntityMetaKey.Fields]: {
+			[entityFieldAddressKey(EntityType.BeaconSlot, [], 'epoch')]: Math.floor(slot / slotsPerEpoch),
+			[entityFieldAddressKey(EntityType.BeaconSlot, [], '$epoch')]: {
+				[EntityMetaKey.Selector]: {
+					$network,
+					epoch: Math.floor(slot / slotsPerEpoch),
+				},
+			},
+			[entityFieldAddressKey(EntityType.BeaconSlot, [], 'bodyRoot')]: with0xHex(header.header.message.body_root),
+			[entityFieldAddressKey(EntityType.BeaconSlot, [], 'canonical')]: header.canonical,
+			[entityFieldAddressKey(EntityType.BeaconSlot, [], 'parentRoot')]: with0xHex(header.header.message.parent_root),
+			[entityFieldAddressKey(EntityType.BeaconSlot, [], 'proposerIndex')]: safeIntegerFromDecimal(header.header.message.proposer_index, 'proposer index'),
+			[entityFieldAddressKey(EntityType.BeaconSlot, [], 'root')]: with0xHex(header.root),
+			[entityFieldAddressKey(EntityType.BeaconSlot, [], 'signature')]: with0xHex(header.header.signature),
+			[entityFieldAddressKey(EntityType.BeaconSlot, [], 'stateRoot')]: with0xHex(header.header.message.state_root),
+		},
+	}
+}
+
 const mapBeaconValidatorSnapshot = async (
 	$network: EntitySelector<typeof schema, EntityType.Network>,
 	indexOrPubkey: number | string
@@ -816,13 +845,14 @@ export default {
 			resolve: {
 				Caip2: {
 					resolve: async ({ caip2 }, context) => {
-						const { getHeadSlot } = await import('$/sources/Beacon/Rest/queries.ts')
+						const { getHeader } = await import('$/sources/Beacon/Rest/queries.ts')
 						const chainId = Number(caip2.reference)
+						const headHeader = await getHeader(chainId, 'head')
 						const headSlot = safeIntegerFromDecimal(
-							await getHeadSlot(chainId),
+							headHeader.header.message.slot,
 							'head slot'
 						)
-						return (
+						return Promise.all(
 							Array.from(
 								{ length: resolverContextRowLimit(context) },
 								(_, i) => headSlot - i
@@ -831,14 +861,8 @@ export default {
 									slot < 0 ?
 										[]
 									:
-										[
-											{
-												[EntityMetaKey.Selector]: {
-													$network: { caip2 },
-													slot,
-												},
-											},
-										]
+											[(slot === headSlot ? Promise.resolve(headHeader) : getHeader(chainId, slot))
+												.then((header) => beaconSlotReferenceFromHeader({ caip2 }, header))]
 								))
 						)
 					},
