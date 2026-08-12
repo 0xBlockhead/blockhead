@@ -1004,10 +1004,12 @@ const evmTraceEntitiesFromBlockscoutRawTrace = ({
 	$network,
 	txHash,
 	wires,
+	rootError,
 }: {
 	$network: EvmNetworkId
 	txHash: string
 	wires: BlockscoutRawTrace
+	rootError?: string
 }): Entity<typeof schema, EntityType.EvmTrace>[] => {
 	const $transaction = {
 		$network,
@@ -1058,6 +1060,7 @@ const evmTraceEntitiesFromBlockscoutRawTrace = ({
 				gasUsed: BigInt(wire.result.gasUsed),
 				output: with0xHex(wire.result.output),
 			}),
+			...(traceAddress === 'root' && rootError != null && { error: rootError }),
 			$$children: (childTraceAddressesByTraceAddress.get(traceAddress) ?? [])
 				.map((childTraceAddress) => ({
 					[EntityMetaKey.Selector]: {
@@ -3523,14 +3526,37 @@ export default {
 			resolve: {
 				EvmNetworkTxHash: {
 					resolve: async ({ $network, txHash }) => {
-						const { getTransactionRawTrace } = await import('$/sources/Blockscout/Rest/queries.ts')
+						const {
+							getTransactionByHash,
+							getTransactionRawTrace,
+						} = await import('$/sources/Blockscout/Rest/queries.ts')
+						const chainId = evmChainIdFromNetworkSelector($network)
+						const [transaction, wires] = await Promise.all([
+							getTransactionByHash({
+								chainId,
+								txHash,
+							}),
+							getTransactionRawTrace({
+								chainId,
+								txHash,
+							}),
+						])
+						const revertReason = transaction?.revert_reason
 						return evmTraceEntitiesFromBlockscoutRawTrace({
 							$network,
 							txHash,
-							wires: await getTransactionRawTrace({
-								chainId: evmChainIdFromNetworkSelector($network),
-								txHash,
-							}),
+							wires,
+							rootError: (
+								revertReason == null ?
+									transaction?.status === 'error' ?
+										'Execution reverted'
+									:
+										undefined
+								: 'raw' in revertReason ?
+									revertReason.raw ?? undefined
+								:
+									revertReason.method_call ?? revertReason.method_id ?? 'Reverted'
+							),
 						})
 					},
 				},

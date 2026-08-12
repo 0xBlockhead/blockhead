@@ -569,6 +569,11 @@ describe('Blockscout raw EVM trace hierarchy', () => {
 	})
 
 	it('preserves the source trace tree as native transaction-local EVM traces', async () => {
+		getTransactionByHash.mockResolvedValue({
+			revert_reason: {
+				raw: 'execution reverted: insufficient balance',
+			},
+		})
 		getTransactionRawTrace.mockResolvedValue([
 			{
 				action: {
@@ -626,6 +631,7 @@ describe('Blockscout raw EVM trace hierarchy', () => {
 			value: 0n,
 			gas: 21_000n,
 			gasUsed: 21_000n,
+			error: 'execution reverted: insufficient balance',
 			$$children: [{
 				[EntityMetaKey.Selector]: {
 					traceAddress: '0',
@@ -637,6 +643,62 @@ describe('Blockscout raw EVM trace hierarchy', () => {
 			type: 'DelegateCall',
 			input: '0x1234',
 		})
+	})
+
+	it('retains a decoded root revert label without assigning it to successful child frames', async () => {
+		getTransactionByHash.mockResolvedValue({
+			revert_reason: {
+				method_call: 'Unauthorized(address)',
+				method_id: '0x8e4a23d6',
+				parameters: [],
+			},
+		})
+		getTransactionRawTrace.mockResolvedValue([
+			{
+				action: {
+					from: '0x1111111111111111111111111111111111111111',
+					gas: '0x5208',
+					input: '0x',
+					to: '0x2222222222222222222222222222222222222222',
+					value: '0x0',
+				},
+				subtraces: 1,
+				traceAddress: [],
+				type: 'call',
+			},
+			{
+				action: {
+					from: '0x2222222222222222222222222222222222222222',
+					gas: '0x100',
+					input: '0x',
+					to: '0x3333333333333333333333333333333333333333',
+					value: '0x0',
+				},
+				result: {
+					gasUsed: '0x10',
+					output: '0x',
+				},
+				subtraces: 0,
+				traceAddress: [0],
+				type: 'call',
+			},
+		])
+		const resolver = blockscoutRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.EvmTransaction
+			&& '$$traces' in candidate.projections
+		))
+		if (resolver == null)
+			throw new Error('Blockscout EvmTransaction trace resolver is not registered')
+
+		const resolved = await resolver.resolve.EvmNetworkTxHash.resolve({
+			$network: network,
+			txHash,
+		}, context)
+
+		expect(resolved[0]).toMatchObject({
+			error: 'Unauthorized(address)',
+		})
+		expect(resolved[1]).not.toHaveProperty('error')
 	})
 })
 

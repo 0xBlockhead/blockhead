@@ -63,6 +63,13 @@ export const blockscoutTransactionEnvelope = arktype({
 	'position?': 'number | null',
 	'created_contract?': blockscoutAddressEnvelope.or(arktype.null),
 	'authorization_list?': blockscoutSignedAuthorizationEnvelope.array().or(arktype.null),
+	'revert_reason?': arktype({
+		'raw?': 'string | null',
+	}).or(arktype({
+		'method_call?': 'string | null',
+		'method_id?': 'string | null',
+		'parameters?': 'unknown[]',
+	})).or(arktype.null),
 })
 export const blockscoutTransactionsPageEnvelope = arktype({
 	items: blockscoutTransactionEnvelope.array(),
