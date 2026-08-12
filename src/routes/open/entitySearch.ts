@@ -2,7 +2,7 @@ import { resolve } from '$app/paths'
 
 import { base58, bech32, hex } from '@scure/base'
 
-import { NetworkExecutionModel, NetworkNamespace, networks } from '$/constants/Network.ts'
+import { NetworkExecutionModel, NetworkLedgerModel, networks } from '$/constants/Network.ts'
 import { ipfsResourceAddressFromInput, ipfsResourceHref } from '$/lib/ipfs.ts'
 import { swarmResourceHrefFromInput } from '$/lib/swarm.ts'
 import { parseFarcasterUrlIngress } from '$/routes/(social)/(farcaster)/farcaster/farcasterUrlIngress.ts'
@@ -45,15 +45,7 @@ export const evmAddressEntityKinds = [
 ] as const
 
 export const utxoTransactionNetworkChoices = networks.flatMap((network) => (
-	[
-		NetworkNamespace.Bitcoin,
-		NetworkNamespace.BitcoinCash,
-		NetworkNamespace.Cardano,
-		NetworkNamespace.Dogecoin,
-		NetworkNamespace.Elements,
-		NetworkNamespace.Litecoin,
-		NetworkNamespace.Zcash,
-	].some((namespace) => namespace === network.namespace) ?
+	network.ledgerModels.some((ledgerModel) => ledgerModel === NetworkLedgerModel.Utxo) ?
 		[{
 			name: network.name,
 			environment: network.environment,

@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest'
 
 import { base58, bech32 } from '@scure/base'
 
+import { NetworkLedgerModel, networks } from '$/constants/Network.ts'
+
 import {
 	entityHrefFromSearchInput,
 	evmAccountCandidatesFromSearchInput,
@@ -275,6 +277,16 @@ describe(utxoTransactionHrefFromCoordinates, () => {
 	const transactionId = '31ed178236b6bc4dd6dc8c6026e9d344e39afe0dc6d832c228131ce4ee40a8ca'
 
 	it('offers every checked-in transaction route supported by this identifier shape', () => {
+		expect(utxoTransactionNetworkChoices.map(({ network }) => network)).toEqual(
+			networks
+				.filter(({ ledgerModels }) => ledgerModels.includes(NetworkLedgerModel.Utxo))
+				.map((network) => (
+					'caip2' in network ?
+						`${network.caip2.namespace}:${network.caip2.reference}`
+					:
+						network.slug
+				))
+		)
 		expect(utxoTransactionNetworkChoices).toEqual(expect.arrayContaining([
 			expect.objectContaining({ name: 'Bitcoin', network: 'bip122:000000000019d6689c085ae165831e93' }),
 			expect.objectContaining({ name: 'Cardano', network: 'cip34:1-764824073' }),
