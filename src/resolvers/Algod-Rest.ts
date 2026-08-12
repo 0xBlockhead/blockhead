@@ -12,14 +12,43 @@ import {
 	defineResolver,
 	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
-import { EntityMetaKey } from '$/schema/$schema.ts'
+import {
+	entityFieldAddressKey,
+	EntityMetaKey,
+	type EntitySelector,
+} from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { schema } from '$/schema/index.ts'
 import type {
 	AlgodPendingTransaction,
 	AlgodParticipationKey,
 	AlgodSignedTransaction,
 } from '$/sources/Algod/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
+
+type AlgorandNetworkSelector = EntitySelector<typeof schema, EntityType.AlgorandNetwork>
+
+const algorandBoxApplicability = [{
+	$application: {
+		$network: {
+			$network: {
+				slug: networkBySlug.algorand.slug,
+			},
+		},
+	},
+}] as const
+
+const assertAlgorandMainnet = (
+	network: AlgorandNetworkSelector
+) => {
+	if (
+		'slug' in network.$network
+		&& network.$network.slug === networkBySlug.algorand.slug
+	)
+		return
+
+	throw new Error('Algod_Rest: unsupported network')
+}
 
 const optionalSafeBigInt = (
 	value: number | undefined
@@ -45,6 +74,28 @@ const base64ToZeroExHex = (
 	} catch {
 		throw new Error(`Algod_Rest: malformed ${label}`)
 	}
+}
+
+const zeroExHexToBase64 = (
+	value: `0x${string}`
+) => {
+	if (value.length % 2 !== 0)
+		throw new Error('Algod_Rest: application box name must contain whole bytes')
+
+	const bytes = value.slice(2).match(/.{2}/g) ?? []
+	return globalThis.btoa(String.fromCharCode(...bytes.map((byte) => Number.parseInt(byte, 16))))
+}
+
+const base64Sha256 = async (
+	value: string
+) => {
+	const bytes = Uint8Array.from(
+		globalThis.atob(value),
+		(character) => character.charCodeAt(0)
+	)
+	return `0x${[...new Uint8Array(await globalThis.crypto.subtle.digest('SHA-256', bytes))]
+		.map((byte) => byte.toString(16).padStart(2, '0'))
+		.join('')}` as const
 }
 
 const signedTransactionsEqual = (
@@ -155,6 +206,71 @@ export default {
 	source: Source.Nodely,
 
 	resolvers: [
+		defineResolver({
+			entityType: EntityType.AlgorandBox,
+			resolve: {
+				ApplicationBoxName: {
+					appliesTo: algorandBoxApplicability,
+					resolve: async (box) => {
+						assertAlgorandMainnet(box.$application.$network)
+						const { getApplicationBox } = await import('$/sources/Algod/Rest/queries.ts')
+						const response = await getApplicationBox({
+							applicationId: box.$application.applicationId,
+							boxName: zeroExHexToBase64(box.boxName),
+						})
+						return [{
+							[EntityMetaKey.Selector]: {
+								$box: box,
+								round: response.round,
+								source: Source.Nodely,
+							},
+							[EntityMetaKey.Fields]: {
+								[entityFieldAddressKey(EntityType.AlgorandBox_Round, [], 'valueHash')]: await base64Sha256(response.body.value),
+								[entityFieldAddressKey(EntityType.AlgorandBox_Round, [], 'deleted')]: false,
+							},
+						}]
+					},
+				},
+			},
+		})({
+			$$rounds: (rounds) => rounds,
+		}),
+
+		defineResolver({
+			entityType: EntityType.AlgorandBox_Round,
+			resolve: {
+				BoxRoundSource: {
+					appliesTo: [{
+						$box: algorandBoxApplicability[0],
+						source: Source.Nodely,
+					}],
+					resolve: async ({
+						$box,
+						round,
+						source,
+					}) => {
+						assertAlgorandMainnet($box.$application.$network)
+						if (source !== Source.Nodely)
+							throw new Error(`Algod_Rest: unsupported source ${source}`)
+						const { getApplicationBox } = await import('$/sources/Algod/Rest/queries.ts')
+						const response = await getApplicationBox({
+							applicationId: $box.$application.applicationId,
+							boxName: zeroExHexToBase64($box.boxName),
+						})
+						if (response.round !== round)
+							throw new Error('Algod_Rest: application box round mismatch')
+						return {
+							valueHash: await base64Sha256(response.body.value),
+							deleted: false,
+						}
+					},
+				},
+			},
+		})({
+			valueHash: (box) => box.valueHash,
+			deleted: (box) => box.deleted,
+		}),
+
 		defineResolver({
 			entityType: EntityType._Global,
 			resolve: {

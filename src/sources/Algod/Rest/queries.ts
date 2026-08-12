@@ -1,8 +1,14 @@
-import { getJson } from '$/sources/_shared/wire/HttpRest/client.ts'
+import { throwHttpError } from '$/lib/http.ts'
+import { sourceFetch } from '$/sources/_runtime/http.ts'
+import {
+	getJson,
+	httpUrl,
+} from '$/sources/_shared/wire/HttpRest/client.ts'
 import bindings from '$/sources/Nodely/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 import { ApiFamily } from '$/sources/SourceBinding.ts'
 import type {
+	AlgodApplicationBox,
 	AlgodBlockHash,
 	AlgodNodeStatus,
 	AlgodParticipationKey,
@@ -141,6 +147,11 @@ const transactionProofWire = arktype({
 	treedepth: unsigned,
 })
 
+const applicationBoxWire = arktype({
+	name: nonEmptyBase64ish,
+	value: 'string',
+})
+
 const assertEnvelope = <_Value>(
 	wire: {
 		assert: (value: unknown) => _Value
@@ -206,6 +217,50 @@ export const getTransactionParams = async (): Promise<AlgodTransactionParams> =>
 		'transaction params'
 	)
 )
+
+export const getApplicationBox = async ({
+	applicationId,
+	boxName,
+}: {
+	applicationId: bigint
+	boxName: string
+}): Promise<{
+	body: AlgodApplicationBox
+	round: bigint
+}> => {
+	if (applicationId < 0n)
+		throw new Error('Algod_Rest: application id must be non-negative')
+	if (!nonEmptyBase64ish.allows(boxName))
+		throw new Error('Algod_Rest: invalid application box name')
+
+	const response = await sourceFetch(
+		binding,
+		httpUrl(
+			binding,
+			`/v2/applications/${applicationId.toString()}/box`,
+			{ name: boxName }
+		)
+	)
+	if (!response.ok)
+		await throwHttpError('Algod_Rest application box', response)
+
+	const round = response.headers.get('x-algo-round')
+	if (round == null || !/^(0|[1-9][0-9]*)$/.test(round))
+		throw new Error('Algod_Rest: application box response is missing a valid round')
+
+	const body = assertEnvelope(
+		applicationBoxWire,
+		await response.json<unknown>(),
+		'application box'
+	)
+	if (body.name !== boxName)
+		throw new Error('Algod_Rest: application box name mismatch')
+
+	return {
+		body,
+		round: BigInt(round),
+	}
+}
 
 export const getPendingTransactions = async (
 	max = 0

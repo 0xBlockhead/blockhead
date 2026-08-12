@@ -4,6 +4,7 @@ import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { ZeroExHex } from '$/schema/ZeroExHex.ts'
+import { Source } from '$/sources/Source.ts'
 
 export default entity({
 	entityType: EntityType.AlgorandBox,
@@ -23,6 +24,9 @@ export default entity({
 	$$rounds: {
 		entityType: EntityType.AlgorandBox_Round,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Nodely,
+		],
 	},
 })({
 	selectors: {

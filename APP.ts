@@ -7194,7 +7194,7 @@ export const schema = {
 			})({
 				"$application": { label: "application", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.AlgorandApplication },
 				"boxName": { label: "box name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "zeroExHex" },
-				"$$rounds": { label: "rounds", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.AlgorandBox_Round },
+				"$$rounds": { label: "rounds", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.AlgorandBox_Round, defaultSources: [Source.Nodely] },
 			})({
 				selectors: {
 					"ApplicationBoxName": ["$application", "boxName"],
@@ -7220,8 +7220,8 @@ export const schema = {
 				"round": { label: "round", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeBigInt" },
 				"source": { label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"value": { label: "Value", description: "The native asset amount transferred by the call frame.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
-				"valueHash": { label: "value hash", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "zeroExHex" },
-				"deleted": { label: "deleted", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean" },
+				"valueHash": { label: "value hash", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "zeroExHex", defaultSources: [Source.Nodely] },
+				"deleted": { label: "deleted", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean", defaultSources: [Source.Nodely] },
 			})({
 				selectors: {
 					"BoxRoundSource": ["$box", "round", "source"],

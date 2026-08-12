@@ -108,3 +108,8 @@ export type AlgodTransactionProof = {
 	stibhash: string
 	treedepth: number
 }
+
+export type AlgodApplicationBox = {
+	name: string
+	value: string
+}

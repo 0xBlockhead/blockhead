@@ -2,16 +2,35 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ApiFamily } from '$/sources/SourceBinding.ts'
 import { Source } from '$/sources/Source.ts'
 
-const { getJson } = vi.hoisted(() => ({
+const {
+	getJson,
+	sourceFetch,
+} = vi.hoisted(() => ({
 	getJson: vi.fn(),
+	sourceFetch: vi.fn(),
 }))
 
 vi.mock('$/sources/_shared/wire/HttpRest/client.ts', () => ({
 	getJson,
+	httpUrl: (_binding: unknown, path: string, query?: Record<string, string>) => {
+		const url = new URL(path, 'https://mainnet-api.4160.nodely.dev')
+		for (const [key, value] of Object.entries(query ?? {}))
+			url.searchParams.set(key, value)
+		return url.toString()
+	},
+}))
+
+vi.mock('$/sources/_runtime/http.ts', () => ({
+	sourceFetch,
+}))
+
+vi.mock('$/lib/http.ts', () => ({
+	throwHttpError: vi.fn(),
 }))
 
 const {
 	getBlockHash,
+	getApplicationBox,
 	getParticipationKey,
 	getParticipationKeys,
 	getPendingTransaction,
@@ -83,6 +102,50 @@ describe('Algod Rest transport', () => {
 			'time-since-last-round': 0,
 		})
 		await expect(getStatus()).rejects.toThrow('Algod_Rest: invalid node status envelope')
+	})
+
+	it('loads application boxes with an authoritative response round', async () => {
+		sourceFetch.mockResolvedValueOnce({
+			ok: true,
+			headers: new Headers({
+				'x-algo-round': '63823221',
+			}),
+			json: async () => ({
+				name: 'Ym94',
+				value: 'dmFsdWU=',
+			}),
+		})
+
+		await expect(getApplicationBox({
+			applicationId: 42n,
+			boxName: 'Ym94',
+		})).resolves.toEqual({
+			body: {
+				name: 'Ym94',
+				value: 'dmFsdWU=',
+			},
+			round: 63823221n,
+		})
+		expect(sourceFetch).toHaveBeenCalledWith(
+			expect.objectContaining({
+				source: Source.Nodely,
+				apiFamily: ApiFamily.AlgodRestApi,
+			}),
+			'https://mainnet-api.4160.nodely.dev/v2/applications/42/box?name=Ym94'
+		)
+
+		sourceFetch.mockResolvedValueOnce({
+			ok: true,
+			headers: new Headers(),
+			json: async () => ({
+				name: 'Ym94',
+				value: 'dmFsdWU=',
+			}),
+		})
+		await expect(getApplicationBox({
+			applicationId: 42n,
+			boxName: 'Ym94',
+		})).rejects.toThrow('application box response is missing a valid round')
 	})
 
 	it('loads fail-closed transaction params', async () => {

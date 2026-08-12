@@ -5,16 +5,21 @@ import {
 	vi,
 } from 'vitest'
 import { networkBySlug } from '$/constants/Network.ts'
-import { EntityMetaKey } from '$/schema/$schema.ts'
+import {
+	entityFieldAddressKey,
+	EntityMetaKey,
+} from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
 const {
+	getApplicationBox,
 	getParticipationKey,
 	getParticipationKeys,
 	getPendingTransaction,
 	getPendingTransactions,
 } = vi.hoisted(() => ({
+	getApplicationBox: vi.fn(),
 	getParticipationKey: vi.fn(),
 	getParticipationKeys: vi.fn(),
 	getPendingTransaction: vi.fn(),
@@ -22,6 +27,7 @@ const {
 }))
 
 vi.mock('$/sources/Algod/Rest/queries.ts', () => ({
+	getApplicationBox,
 	getParticipationKey,
 	getParticipationKeys,
 	getPendingTransaction,
@@ -49,12 +55,34 @@ const participationKeyResolver = algodRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.BlockheadAlgorandParticipationKey
 ))
 
+const boxResolver = algodRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.AlgorandBox
+))
+
+const boxRoundResolver = algodRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.AlgorandBox_Round
+))
+
 if (participationKeyResolver == null)
 	throw new Error('Algod-Rest spec missing BlockheadAlgorandParticipationKey resolver')
+if (boxResolver == null || boxRoundResolver == null)
+	throw new Error('Algod-Rest spec missing application box resolvers')
 
 const account = 'CCOSLTGG2BNX2FQATPIWW5PRDEEEYI74BY2FGNUYEP4UPO24I5STKK43GM'
 const otherAccount = 'EH5BHWISPB7MEIITJIWF2VB3YFN2RZLJMWBRV6CBJV76FBAEAALL6XKSQE'
 const groupBytes = 'wGHE2Pwdvd7S12BL5FaOP20EGYesN73ktiC1qzkkit8='
+
+const boxSelector = {
+	$application: {
+		$network: {
+			$network: {
+				slug: networkBySlug.algorand.slug,
+			},
+		},
+		applicationId: 42n,
+	},
+	boxName: '0x626f78' as const,
+}
 
 const participationKey = {
 	address: account,
@@ -88,6 +116,44 @@ const signedAssetTransfer = {
 		xaid: 31566704,
 	},
 }
+
+it('materializes source-clocked application box content and fails closed on stale rounds', async () => {
+	getApplicationBox.mockResolvedValue({
+		body: {
+			name: 'Ym94',
+			value: 'dmFsdWU=',
+		},
+		round: 63823221n,
+	})
+
+	const rounds = await boxResolver.resolve.ApplicationBoxName.resolve(boxSelector)
+	expect(rounds).toEqual([{
+		[EntityMetaKey.Selector]: {
+			$box: boxSelector,
+			round: 63823221n,
+			source: Source.Nodely,
+		},
+		[EntityMetaKey.Fields]: {
+			[entityFieldAddressKey(EntityType.AlgorandBox_Round, [], 'valueHash')]: '0xcd42404d52ad55ccfa9aca4adc828aa5800ad9d385a0671fbcbf724118320619',
+			[entityFieldAddressKey(EntityType.AlgorandBox_Round, [], 'deleted')]: false,
+		},
+	}])
+
+	await expect(boxRoundResolver.resolve.BoxRoundSource.resolve({
+		$box: boxSelector,
+		round: 63823221n,
+		source: Source.Nodely,
+	})).resolves.toEqual({
+		valueHash: '0xcd42404d52ad55ccfa9aca4adc828aa5800ad9d385a0671fbcbf724118320619',
+		deleted: false,
+	})
+
+	await expect(boxRoundResolver.resolve.BoxRoundSource.resolve({
+		$box: boxSelector,
+		round: 63823220n,
+		source: Source.Nodely,
+	})).rejects.toThrow('application box round mismatch')
+})
 
 const context = {
 	filters: [],
