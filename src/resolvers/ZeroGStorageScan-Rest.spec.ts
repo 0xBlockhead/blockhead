@@ -118,8 +118,20 @@ describe('ZeroGStorageScan_Rest resolver leftovers', () => {
 
 	it('projects Network.ZeroG tip lists with authoritative resolveCount and blob/log leftovers', async () => {
 		const storageNodesResolver = resolverFor(EntityType.Network, '$$storageNodes')
-		const storageNodesSnapshot = await storageNodesResolver.resolve.Slug.resolve(network, context)
+		const storageNodesSnapshot = await storageNodesResolver.resolve.Slug.resolve(network, {
+			...context,
+			providerContinuationToken: '10',
+		})
 		expect(storageNodesResolver.projections.ZeroG.$$storageNodes.resolveCount?.(storageNodesSnapshot)).toBe(149)
+		expect(queries.listStorageMiners).toHaveBeenCalledWith({
+			limit: 64,
+			skip: 10,
+		})
+		expect(storageNodesResolver.projections.ZeroG.$$storageNodes.continuation?.(storageNodesSnapshot)).toEqual({
+			operation: 'storage-miners',
+			terminal: false,
+			token: '11',
+		})
 		expect(storageNodesResolver.projections.ZeroG.$$storageNodes.select(storageNodesSnapshot)[0]).toMatchObject({
 			[EntityMetaKey.Selector]: {
 				$network: network,
@@ -128,8 +140,22 @@ describe('ZeroGStorageScan_Rest resolver leftovers', () => {
 		})
 
 		const blobsResolver = resolverFor(EntityType.Network, '$$dataBlobs')
-		const blobsSnapshot = await blobsResolver.resolve.Slug.resolve(network, context)
+		const blobsSnapshot = await blobsResolver.resolve.Slug.resolve(network, {
+			...context,
+			pagination: {
+				offset: 20,
+			},
+		})
 		expect(blobsResolver.projections.ZeroG.$$dataBlobs.resolveCount?.(blobsSnapshot)).toBe(185009)
+		expect(queries.listStorageTransactions).toHaveBeenCalledWith({
+			limit: 64,
+			skip: 20,
+		})
+		expect(blobsResolver.projections.ZeroG.$$dataBlobs.continuation?.(blobsSnapshot)).toEqual({
+			operation: 'storage-transactions',
+			terminal: false,
+			token: '21',
+		})
 		expect(blobsResolver.projections.ZeroG.$$storageLogEntries.resolveCount?.(blobsSnapshot)).toBe(185009)
 		expect(blobsResolver.projections.ZeroG.$$dataBlobs.select(blobsSnapshot)[0]).toMatchObject({
 			[EntityMetaKey.Selector]: {

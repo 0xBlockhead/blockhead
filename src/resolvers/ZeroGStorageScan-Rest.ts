@@ -38,6 +38,17 @@ const unsignedInteger = (
 	typeof value === 'number' ? value : Number(value)
 )
 
+const zeroGStorageScanOffset = (
+	providerContinuationToken: string | undefined,
+	offset: number | undefined
+) => {
+	const resolvedOffset = providerContinuationToken == null ? offset ?? 0 : Number(providerContinuationToken)
+	if (!Number.isSafeInteger(resolvedOffset) || resolvedOffset < 0)
+		throw new Error('ZeroGStorageScan_Rest: invalid continuation offset')
+
+	return resolvedOffset
+}
+
 const consensusNetworkIdFor = (
 	network: NetworkId
 ) => (
@@ -330,10 +341,16 @@ export default {
 						assertZeroGMainnet(network)
 						const { listStorageMiners } = await import('$/sources/ZeroG/StorageScan/Rest/queries.ts')
 						const timestampMs = Date.now()
+						const offset = zeroGStorageScanOffset(
+							context.providerContinuationToken,
+							context.pagination.offset
+						)
 						const miners = await listStorageMiners({
 							limit: resolverContextRowLimit(context),
+							skip: offset,
 						})
 						return {
+							offset,
 							storageNodes: miners.list.map((miner) => ({
 								[EntityMetaKey.Selector]: {
 									$network: network,
@@ -374,6 +391,13 @@ export default {
 					$$storageNodes: {
 						select: (snapshot) => snapshot.storageNodes,
 						resolveCount: (snapshot) => snapshot.storageNodeCount,
+						continuation: (snapshot) => ({
+							operation: 'storage-miners',
+							terminal: snapshot.offset + snapshot.storageNodes.length >= snapshot.storageNodeCount,
+							...(snapshot.offset + snapshot.storageNodes.length < snapshot.storageNodeCount && {
+								token: String(snapshot.offset + snapshot.storageNodes.length),
+							}),
+						}),
 					},
 				},
 			}),
@@ -385,10 +409,16 @@ export default {
 					resolve: async (network, context) => {
 						assertZeroGMainnet(network)
 						const { listStorageMiners } = await import('$/sources/ZeroG/StorageScan/Rest/queries.ts')
+						const offset = zeroGStorageScanOffset(
+							context.providerContinuationToken,
+							context.pagination.offset
+						)
 						const miners = await listStorageMiners({
 							limit: resolverContextRowLimit(context),
+							skip: offset,
 						})
 						return {
+							offset,
 							storageNodes: miners.list.map((miner) => ({
 								[EntityMetaKey.Selector]: {
 									$network: network,
@@ -404,6 +434,13 @@ export default {
 				$$storageNodes: {
 					select: (snapshot) => snapshot.storageNodes,
 					resolveCount: (snapshot) => snapshot.storageNodeCount,
+					continuation: (snapshot) => ({
+						operation: 'storage-miners',
+						terminal: snapshot.offset + snapshot.storageNodes.length >= snapshot.storageNodeCount,
+						...(snapshot.offset + snapshot.storageNodes.length < snapshot.storageNodeCount && {
+							token: String(snapshot.offset + snapshot.storageNodes.length),
+						}),
+					}),
 				},
 			}),
 
@@ -455,10 +492,16 @@ export default {
 					resolve: async (network, context) => {
 						assertZeroGMainnet(network)
 						const { listStorageTransactions } = await import('$/sources/ZeroG/StorageScan/Rest/queries.ts')
+						const offset = zeroGStorageScanOffset(
+							context.providerContinuationToken,
+							context.pagination.offset
+						)
 						const transactions = await listStorageTransactions({
 							limit: resolverContextRowLimit(context),
+							skip: offset,
 						})
 						return {
+							offset,
 							network,
 							transactions: transactions.list,
 							transactionCount: unsignedInteger(transactions.total),
@@ -479,6 +522,13 @@ export default {
 							})
 						)),
 						resolveCount: (snapshot) => snapshot.transactionCount,
+						continuation: (snapshot) => ({
+							operation: 'storage-transactions',
+							terminal: snapshot.offset + snapshot.transactions.length >= snapshot.transactionCount,
+							...(snapshot.offset + snapshot.transactions.length < snapshot.transactionCount && {
+								token: String(snapshot.offset + snapshot.transactions.length),
+							}),
+						}),
 					},
 					$$storageLogEntries: {
 						select: ({
@@ -491,6 +541,13 @@ export default {
 							})
 						)),
 						resolveCount: (snapshot) => snapshot.transactionCount,
+						continuation: (snapshot) => ({
+							operation: 'storage-transactions',
+							terminal: snapshot.offset + snapshot.transactions.length >= snapshot.transactionCount,
+							...(snapshot.offset + snapshot.transactions.length < snapshot.transactionCount && {
+								token: String(snapshot.offset + snapshot.transactions.length),
+							}),
+						}),
 					},
 				},
 			}),
@@ -502,10 +559,16 @@ export default {
 					resolve: async (network, context) => {
 						assertZeroGMainnet(network)
 						const { listStorageTransactions } = await import('$/sources/ZeroG/StorageScan/Rest/queries.ts')
+						const offset = zeroGStorageScanOffset(
+							context.providerContinuationToken,
+							context.pagination.offset
+						)
 						const transactions = await listStorageTransactions({
 							limit: resolverContextRowLimit(context),
+							skip: offset,
 						})
 						return {
+							offset,
 							network,
 							transactions: transactions.list,
 							transactionCount: unsignedInteger(transactions.total),
@@ -525,6 +588,13 @@ export default {
 						})
 					)),
 					resolveCount: (snapshot) => snapshot.transactionCount,
+					continuation: (snapshot) => ({
+						operation: 'storage-transactions',
+						terminal: snapshot.offset + snapshot.transactions.length >= snapshot.transactionCount,
+						...(snapshot.offset + snapshot.transactions.length < snapshot.transactionCount && {
+							token: String(snapshot.offset + snapshot.transactions.length),
+						}),
+					}),
 				},
 			}),
 
