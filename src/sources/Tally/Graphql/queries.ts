@@ -272,10 +272,16 @@ const assertGovernor = (
 		assertOpaqueIdentity(governor.kind, 'governor kind')
 	if (governor.quorum != null)
 		assertOpaqueIdentity(governor.quorum, 'governor quorum', 78)
-	if (governor.timelockId != null)
+	if (governor.timelockId != null) {
 		assertAccountId(governor.timelockId, 'timelock ID')
-	if (governor.tokenId != null)
+		if (!governor.timelockId.startsWith(`${governor.chainId}:`))
+			throw new Error('Tally: timelock chain disagrees with governor')
+	}
+	if (governor.tokenId != null) {
 		assertOpaqueIdentity(governor.tokenId, 'token ID', 128)
+		if (!governor.tokenId.startsWith(`${governor.chainId}/`))
+			throw new Error('Tally: token chain disagrees with governor')
+	}
 	if (governor.delegatesCount != null)
 		assertSafeNonnegativeInteger(governor.delegatesCount, 'delegates count')
 	if (governor.delegatesVotesCount != null)
@@ -315,6 +321,8 @@ const assertGovernor = (
 	if (governor.contracts?.governor?.address != null) {
 		if (!/^0x[0-9a-fA-F]{40}$/.test(governor.contracts.governor.address))
 			throw new Error('Tally: invalid governor contract address')
+		if (governor.contracts.governor.address.toLowerCase() !== governor.id.slice(governor.chainId.length + 1).toLowerCase())
+			throw new Error('Tally: governor contract disagrees with ID')
 	}
 	if (governor.metadata?.description != null)
 		assertOpaqueIdentity(governor.metadata.description, 'governor description', 100_000)
@@ -323,7 +331,10 @@ const assertGovernor = (
 const assertProposal = (
 	proposal: TallyProposal
 ) => {
-	proposal.id = normalizeIntId(proposal.id, 'proposal ID')
+	const normalizedProposal = {
+		...proposal,
+		id: normalizeIntId(proposal.id, 'proposal ID'),
+	}
 	assertCaip2(proposal.chainId, 'proposal chain ID')
 	if (!proposalStatuses.has(proposal.status))
 		throw new Error('Tally: invalid proposal status')
@@ -390,6 +401,8 @@ const assertProposal = (
 		if (proposal.voteStats.length > 32)
 			throw new Error('Tally: too many vote stats')
 	}
+
+	return normalizedProposal
 }
 
 export const getGovernor = async ({
@@ -496,10 +509,10 @@ export const getProposal = async ({
 	)
 	if (proposal == null)
 		throw new Error('Tally: proposal not found')
-	assertProposal(proposal)
-	if (proposal.id !== proposalId)
+	const normalizedProposal = assertProposal(proposal)
+	if (normalizedProposal.id !== proposalId)
 		throw new Error('Tally: returned a foreign proposal')
-	return proposal
+	return normalizedProposal
 }
 
 export const getProposalsPage = async ({
@@ -548,13 +561,13 @@ export const getProposalsPage = async ({
 	for (const proposal of proposals.nodes) {
 		if (proposal == null)
 			throw new Error('Tally: proposals page contains an empty row')
-		assertProposal(proposal)
+		const normalizedProposal = assertProposal(proposal)
 		if (proposal.governor.id.toLowerCase() !== governorId.toLowerCase())
 			throw new Error('Tally: returned a proposal from a foreign governor')
-		if (proposalIds.has(proposal.id))
+		if (proposalIds.has(normalizedProposal.id))
 			throw new Error('Tally: duplicate proposal in page')
-		proposalIds.add(proposal.id)
-		nodes.push(proposal)
+		proposalIds.add(normalizedProposal.id)
+		nodes.push(normalizedProposal)
 	}
 	return {
 		nodes,

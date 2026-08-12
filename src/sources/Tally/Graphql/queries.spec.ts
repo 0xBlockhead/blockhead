@@ -286,6 +286,11 @@ describe('Tally onchain governance reads', () => {
 				governor: {
 					...governor,
 					id: 'eip155:1:0x0000000000000000000000000000000000000001',
+					contracts: {
+						governor: {
+							address: '0x0000000000000000000000000000000000000001',
+						},
+					},
 				},
 			}))
 			.mockResolvedValueOnce(jsonResponse({
@@ -383,6 +388,43 @@ describe('Tally onchain governance reads', () => {
 		await expect(getProposal({
 			proposalId,
 		})).rejects.toThrow('proposal governor chain disagrees with ID')
+	})
+
+	it('rejects governor relationships that disagree with its native chain identity', async () => {
+		const sourceFetch = vi.spyOn(runtimeHttp, 'sourceFetch')
+		sourceFetch
+			.mockResolvedValueOnce(jsonResponse({
+				governor: {
+					...governor,
+					timelockId: 'eip155:10:0x1a9C8182C09F50C8318d769245beA52c32BE546D',
+				},
+			}))
+			.mockResolvedValueOnce(jsonResponse({
+				governor: {
+					...governor,
+					tokenId: 'eip155:10/erc20:0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984',
+				},
+			}))
+			.mockResolvedValueOnce(jsonResponse({
+				governor: {
+					...governor,
+					contracts: {
+						governor: {
+							address: '0x0000000000000000000000000000000000000001',
+						},
+					},
+				},
+			}))
+
+		await expect(getGovernor({
+			governorId,
+		})).rejects.toThrow('timelock chain disagrees with governor')
+		await expect(getGovernor({
+			governorId,
+		})).rejects.toThrow('token chain disagrees with governor')
+		await expect(getGovernor({
+			governorId,
+		})).rejects.toThrow('governor contract disagrees with ID')
 	})
 
 	it('fails closed on invalid native page cursors and unsafe counts', async () => {
