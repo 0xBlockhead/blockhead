@@ -13,6 +13,7 @@ const {
 	getAccountResource,
 	getAccountTransactions,
 	getBlockByNumber,
+	getNowBlock,
 	getTransactionInfoById,
 	listWitnesses,
 } = vi.hoisted(() => ({
@@ -20,6 +21,7 @@ const {
 	getAccountResource: vi.fn(),
 	getAccountTransactions: vi.fn(),
 	getBlockByNumber: vi.fn(),
+	getNowBlock: vi.fn(),
 	getTransactionInfoById: vi.fn(),
 	listWitnesses: vi.fn(),
 }))
@@ -34,6 +36,7 @@ vi.mock('$/sources/TronGrid/Rest/queries.ts', () => ({
 	getAccountResource,
 	getAccountTransactions,
 	getBlockByNumber,
+	getNowBlock,
 	getTransactionInfoById,
 	listWitnesses,
 }))
@@ -249,6 +252,73 @@ describe('TronGrid REST network relationships', () => {
 			EntityMetaKey.Selector,
 			EntityMetaKey.Fields,
 		])
+	})
+
+	it('paginates witness and block collections without repeating the first page', async () => {
+		listWitnesses.mockResolvedValueOnce({
+			witnesses: [
+				{
+					address: 'TWitness0',
+				},
+				{
+					address: 'TWitness1',
+				},
+				{
+					address: 'TWitness2',
+				},
+			],
+		})
+		getNowBlock.mockResolvedValueOnce({
+			blockID: 'head-hash',
+			block_header: {
+				raw_data: {
+					number: 10,
+				},
+			},
+		})
+
+		const networkWitnessesResolver = tronGridRest.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.Network
+			&& 'Tron' in resolver.projections
+			&& '$$witnesses' in resolver.projections.Tron
+		))
+		const networkBlocksResolver = tronGridRest.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.Network
+			&& 'Tron' in resolver.projections
+			&& '$$blocks' in resolver.projections.Tron
+		))
+		if (networkWitnessesResolver == null || networkBlocksResolver == null)
+			throw new Error('TronGrid collection resolver is missing')
+
+		const network = {
+			slug: networkBySlug.tron.slug,
+		}
+		const paginationContext = {
+			...resolverContext,
+			pagination: {
+				limit: 1,
+				offset: 1,
+			},
+		}
+		expect(
+			networkWitnessesResolver.projections.Tron.$$witnesses(
+				await networkWitnessesResolver.resolve.Slug.resolve(network, paginationContext)
+			)
+				.map((witness) => witness[EntityMetaKey.Selector])
+		).toEqual([{
+			$network: network,
+			address: 'TWitness1',
+		}])
+		expect(
+			networkBlocksResolver.projections.Tron.$$blocks(
+				await networkBlocksResolver.resolve.Slug.resolve(network, paginationContext)
+			)
+		).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				height: 9n,
+			},
+		}])
 	})
 
 	it('projects enrolled Fields on account $$transactions from v1 list wire', async () => {

@@ -14,6 +14,7 @@ const getBlockHeader = vi.fn()
 const getHead = vi.fn()
 const getIdAddress = vi.fn()
 const getMinerPower = vi.fn()
+const getMinerSectors = vi.fn()
 const getNetworkVersion = vi.fn()
 const getTipSet = vi.fn()
 const getTipSetByHeight = vi.fn()
@@ -25,6 +26,7 @@ vi.mock('$/sources/Lotus/JsonRpc/queries.ts', () => ({
 	getHead,
 	getIdAddress,
 	getMinerPower,
+	getMinerSectors,
 	getNetworkVersion,
 	getTipSet,
 	getTipSetByHeight,
@@ -64,8 +66,14 @@ const actorTimestampResolver = lotusResolvers?.resolvers.find(({ entityType }) =
 const blockResolver = lotusResolvers?.resolvers.find(({ entityType }) => entityType === EntityType.FilecoinBlock)
 const networkTimestampResolver = lotusResolvers?.resolvers.find(({ entityType }) => entityType === EntityType.FilecoinNetwork_Timestamp)
 const tipsetResolver = lotusResolvers?.resolvers.find(({ entityType }) => entityType === EntityType.FilecoinTipset)
+const minerResolver = lotusResolvers?.resolvers.find(({ entityType }) => entityType === EntityType.FilecoinMiner)
+const networkTipsetsResolver = lotusResolvers?.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.Network
+	&& 'Filecoin' in resolver.projections
+	&& '$$tipsets' in resolver.projections.Filecoin
+))
 
-if (indexedActorResolver == null || actorResolver == null || actorTimestampResolver == null || blockResolver == null || networkTimestampResolver == null || tipsetResolver == null)
+if (indexedActorResolver == null || actorResolver == null || actorTimestampResolver == null || blockResolver == null || networkTimestampResolver == null || tipsetResolver == null || minerResolver == null || networkTipsetsResolver == null)
 	throw new Error('missing indexed Lotus actor resolvers')
 
 beforeEach(() => {
@@ -74,10 +82,76 @@ beforeEach(() => {
 	getHead.mockReset()
 	getIdAddress.mockReset()
 	getMinerPower.mockReset()
+	getMinerSectors.mockReset()
 	getNetworkVersion.mockReset()
 	getTipSet.mockReset()
 	getTipSetByHeight.mockReset()
 	getVersion.mockReset()
+})
+
+it('paginates native tipset and miner-sector hierarchies without repeating the first page', async () => {
+	getHead
+		.mockResolvedValueOnce({
+			Height: 3,
+			Cids: [{ '/': 'bafy-head' }],
+			Blocks: [{
+				Timestamp: 1_750_000_000,
+			}],
+		})
+		.mockResolvedValueOnce({
+			Height: 3,
+			Cids: [{ '/': 'bafy-head' }],
+			Blocks: [{
+				Timestamp: 1_750_000_000,
+			}],
+		})
+	getTipSetByHeight.mockResolvedValueOnce({
+		Height: 2,
+		Cids: [{ '/': 'bafy-height-2' }],
+		Blocks: [{
+			Timestamp: 1_749_999_970,
+		}],
+	})
+	getMinerSectors.mockResolvedValueOnce([
+		{
+			SectorNumber: 1,
+			SealedCID: { '/': 'bafy-sector-1' },
+			Activation: 10,
+			Expiration: 100,
+		},
+		{
+			SectorNumber: 2,
+			SealedCID: { '/': 'bafy-sector-2' },
+			Activation: 20,
+			Expiration: 200,
+		},
+	])
+
+	const pageContext = {
+		...context,
+		pagination: {
+			limit: 1,
+			offset: 1,
+		},
+	}
+	const tipsets = await networkTipsetsResolver.resolve.Slug.resolve(network, pageContext)
+	expect(networkTipsetsResolver.projections.Filecoin.$$tipsets(tipsets)[0][EntityMetaKey.Selector]).toEqual({
+		$network: network,
+		height: 2n,
+		tipsetKey: 'bafy-height-2',
+	})
+
+	const miner = await minerResolver.resolve.NetworkMinerAddress.resolve({
+		$network: network,
+		minerAddress: 'f01234',
+	}, pageContext)
+	expect(minerResolver.projections.$$sectors(miner).map((sector) => sector[EntityMetaKey.Selector])).toEqual([{
+		$miner: {
+			$network: network,
+			minerAddress: 'f01234',
+		},
+		sectorNumber: 2n,
+	}])
 })
 
 it('indexes the clocked Lotus observation relation on the stable actor', () => {

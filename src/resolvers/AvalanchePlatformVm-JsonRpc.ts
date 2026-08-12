@@ -605,7 +605,10 @@ export default {
 						assertAvalanchePChain($network)
 						const { getBlockByHeight } = await import('$/sources/AvalanchePlatformVm/JsonRpc/queries.ts')
 						const response = await getBlockByHeight(height, 'json')
-						return pChainBlockFields($network, jsonBlock(response.block), response.encoding)
+						const block = jsonBlock(response.block)
+						if (BigInt(block.height) !== height)
+							throw new Error(`AvalanchePlatformVm_JsonRpc: block height ${block.height} does not match selector ${height}`)
+						return pChainBlockFields($network, block, response.encoding)
 					},
 				},
 				NetworkBlockId: {
@@ -613,7 +616,10 @@ export default {
 						assertAvalanchePChain($network)
 						const { getBlock } = await import('$/sources/AvalanchePlatformVm/JsonRpc/queries.ts')
 						const response = await getBlock(blockId, 'json')
-						return pChainBlockFields($network, jsonBlock(response.block), response.encoding)
+						const block = jsonBlock(response.block)
+						if (block.id !== blockId)
+							throw new Error(`AvalanchePlatformVm_JsonRpc: block id ${block.id} does not match selector ${blockId}`)
+						return pChainBlockFields($network, block, response.encoding)
 					},
 				},
 			},
@@ -633,7 +639,10 @@ export default {
 						assertAvalanchePChain($network)
 						const { getTx } = await import('$/sources/AvalanchePlatformVm/JsonRpc/queries.ts')
 						const response = await getTx(txId, 'json')
-						return pChainTransactionFields($network, txId, jsonTx(response.tx))
+						const transaction = jsonTx(response.tx)
+						if (transaction.id != null && transaction.id !== txId)
+							throw new Error(`AvalanchePlatformVm_JsonRpc: transaction id ${transaction.id} does not match selector ${txId}`)
+						return pChainTransactionFields($network, txId, transaction)
 					},
 				},
 			},
@@ -699,23 +708,21 @@ export default {
 					resolve: async (network, context) => {
 						assertAvalanchePChain(network)
 						const limit = resolverContextRowLimit(context)
-						if (limit === 0)
-							return {
-								blocks: [],
-								blockCount: 0n,
-							}
-
 						const { getHeight } = await import('$/sources/AvalanchePlatformVm/JsonRpc/queries.ts')
 						const tipHeight = bigintFromWire((await getHeight()).height, 'height')
 						const blockCount = tipHeight + 1n
+						const offset = BigInt(context.pagination.offset ?? 0)
 						return {
 							blockCount,
 							blocks: Array.from({
-								length: Math.min(Number(blockCount), limit),
+								length: Math.min(
+									Number(blockCount > offset ? blockCount - offset : 0n),
+									limit
+								),
 							}, (_value, blockOffset) => ({
 								[EntityMetaKey.Selector]: {
 									$network: network,
-									height: tipHeight - BigInt(blockOffset),
+									height: tipHeight - offset - BigInt(blockOffset),
 								},
 							})),
 						}
@@ -739,10 +746,11 @@ export default {
 						assertAvalanchePChain(network)
 						const { getSubnets } = await import('$/sources/AvalanchePlatformVm/JsonRpc/queries.ts')
 						const wireSubnets = (await getSubnets()).subnets
+						const offset = context.pagination.offset ?? 0
 						return {
 							subnetCount: BigInt(wireSubnets.length),
 							subnets: wireSubnets
-								.slice(0, resolverContextRowLimit(context))
+								.slice(offset, offset + resolverContextRowLimit(context))
 								.map((subnet) => {
 									const threshold = Number(subnet.threshold)
 									return {

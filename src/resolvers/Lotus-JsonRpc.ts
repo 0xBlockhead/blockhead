@@ -164,6 +164,7 @@ const latestNetworkTimestampReference = async (network: NetworkSelector) => {
 const recentTipsetReferences = async (
 	network: NetworkSelector,
 	limit: number,
+	offset: number,
 	includeBlocks = true
 ) => {
 	assertFilecoinMainnet(network)
@@ -174,16 +175,17 @@ const recentTipsetReferences = async (
 	const head = await getHead()
 	return Promise.all(Array.from({
 		length: Math.min(
-			Number(BigInt(head.Height) + 1n),
+			Math.max(Number(BigInt(head.Height) + 1n) - offset, 0),
 			limit
 		),
 	}, async (_value, tipsetOffset) => {
+		const heightOffset = offset + tipsetOffset
 		const tipset = (
-			tipsetOffset === 0 ?
+			heightOffset === 0 ?
 				head
 			:
 				await getTipSetByHeight({
-					height: BigInt(head.Height) - BigInt(tipsetOffset),
+					height: BigInt(head.Height) - BigInt(heightOffset),
 				})
 		)
 		return tipsetReference(network, tipset, includeBlocks)
@@ -675,7 +677,8 @@ export default {
 				Network: {
 					resolve: async ({ $network }, context) => recentTipsetReferences(
 						$network,
-						resolverContextRowLimit(context)
+						resolverContextRowLimit(context),
+						context.pagination.offset ?? 0
 					),
 				}
 			},
@@ -690,6 +693,7 @@ export default {
 					resolve: async (network, context) => recentTipsetReferences(
 						network,
 						resolverContextRowLimit(context),
+						context.pagination.offset ?? 0,
 						false
 					),
 				}
@@ -711,7 +715,10 @@ export default {
 							sectors: (await sectorSnapshots({
 								...entitySelector,
 								tipsetKey: head.Cids,
-							})).slice(0, resolverContextRowLimit(context)).map((sector) => ({
+							})).slice(
+								context.pagination.offset ?? 0,
+								(context.pagination.offset ?? 0) + resolverContextRowLimit(context)
+							).map((sector) => ({
 								[EntityMetaKey.Selector]: {
 									$miner: sector.$miner,
 									sectorNumber: sector.sectorNumber,

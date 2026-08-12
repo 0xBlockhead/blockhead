@@ -754,12 +754,14 @@ export default {
 		defineResolver({
 			entityType: EntityType.Network,
 			resolve: tronNetworkResolverSelectors(
-				async (network) => {
+				async (network, context) => {
 					assertTronMainnet(network)
 					const { listWitnesses } = await import('$/sources/TronGrid/Rest/queries.ts')
+					const offset = context.pagination.offset ?? 0
 					return witnessRows(
 						network,
 						(await listWitnesses()).witnesses
+							.slice(offset, offset + resolverContextRowLimit(context))
 					)
 				}
 			),
@@ -777,16 +779,17 @@ export default {
 					const { getNowBlock } = await import('$/sources/TronGrid/Rest/queries.ts')
 					const block = await getNowBlock()
 					const headBlockHeight = BigInt(block.block_header?.raw_data?.number ?? 0)
+					const offset = BigInt(context.pagination.offset ?? 0)
 					return Array.from({
 						length: Math.min(
-							Number(headBlockHeight + 1n),
+							Number(headBlockHeight + 1n > offset ? headBlockHeight + 1n - offset : 0n),
 							resolverContextRowLimit(context)
 						),
 					}, (_value, blockOffset) => ({
 						[EntityMetaKey.Selector]: {
 							$network: network,
-							height: headBlockHeight - BigInt(blockOffset),
-							...(blockOffset === 0 && {
+							height: headBlockHeight - offset - BigInt(blockOffset),
+							...(offset === 0n && blockOffset === 0 && {
 								hash: block.blockID,
 							}),
 						},

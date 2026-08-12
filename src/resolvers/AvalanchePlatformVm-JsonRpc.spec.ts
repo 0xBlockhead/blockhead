@@ -294,6 +294,54 @@ it('projects enrolled AvalanchePChainTransaction fields from platform.getTx json
 	])
 })
 
+it('fails closed when direct P-Chain responses disagree with requested identity', async () => {
+	jsonRpc2
+		.mockResolvedValueOnce({
+			block: {
+				parentID: 'parent',
+				height: 8,
+				id: 'block-8',
+			},
+			encoding: 'json',
+		})
+		.mockResolvedValueOnce({
+			block: {
+				parentID: 'parent',
+				height: 7,
+				id: 'block-other',
+			},
+			encoding: 'json',
+		})
+		.mockResolvedValueOnce({
+			tx: {
+				id: 'tx-other',
+				unsignedTx: {},
+			},
+			encoding: 'json',
+		})
+
+	await expect(blockResolver.resolve.NetworkHeight.resolve({
+		$network: {
+			slug: networkBySlug['avalanche-p-chain'].slug,
+		},
+		height: 7n,
+	}, context)).rejects.toThrow('block height response does not match request')
+
+	await expect(blockResolver.resolve.NetworkBlockId.resolve({
+		$network: {
+			slug: networkBySlug['avalanche-p-chain'].slug,
+		},
+		blockId: 'block-7',
+	}, context)).rejects.toThrow('block response does not match request')
+
+	await expect(txResolver.resolve.NetworkTxId.resolve({
+		$network: {
+			slug: networkBySlug['avalanche-p-chain'].slug,
+		},
+		txId: 'tx-requested',
+	}, context)).rejects.toThrow('transaction response does not match request')
+})
+
 const networkBlocksResolver = avalanchePlatformVm.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.Network
 	&& 'Avalanche' in resolver.projections
@@ -338,6 +386,7 @@ it('projects Network.Avalanche $$blocks tip walk and $$subnets from platform.get
 		...context,
 		pagination: {
 			limit: 2,
+			offset: 1,
 		},
 	})
 	expect(networkBlocksResolver.projections.Avalanche.$$blocks.select(blocksSnapshot)).toEqual([
@@ -346,7 +395,7 @@ it('projects Network.Avalanche $$blocks tip walk and $$subnets from platform.get
 				$network: {
 					slug: networkBySlug['avalanche-p-chain'].slug,
 				},
-				height: 3n,
+				height: 2n,
 			},
 		},
 		{
@@ -354,7 +403,7 @@ it('projects Network.Avalanche $$blocks tip walk and $$subnets from platform.get
 				$network: {
 					slug: networkBySlug['avalanche-p-chain'].slug,
 				},
-				height: 2n,
+				height: 1n,
 			},
 		},
 	])
@@ -366,17 +415,18 @@ it('projects Network.Avalanche $$blocks tip walk and $$subnets from platform.get
 		...context,
 		pagination: {
 			limit: 1,
+			offset: 1,
 		},
 	})
 	expect(networkSubnetsResolver.projections.Avalanche.$$subnets.resolveCount(subnetsSnapshot)).toBe(2n)
 	expect(networkSubnetsResolver.projections.Avalanche.$$subnets.select(subnetsSnapshot)).toEqual([{
 		[EntityMetaKey.Selector]: {
-			subnetId: avalanchePrimaryNetworkSubnetId,
+			subnetId: 'subnet-2',
 		},
 		[EntityMetaKey.Fields]: {
-			[entityFieldAddressKey(EntityType.AvalancheSubnet, [], 'controlKeys')]: ['P-avax1control'],
-			[entityFieldAddressKey(EntityType.AvalancheSubnet, [], 'ownerAddresses')]: ['P-avax1control'],
-			[entityFieldAddressKey(EntityType.AvalancheSubnet, [], 'threshold')]: 1,
+			[entityFieldAddressKey(EntityType.AvalancheSubnet, [], 'controlKeys')]: [],
+			[entityFieldAddressKey(EntityType.AvalancheSubnet, [], 'ownerAddresses')]: [],
+			[entityFieldAddressKey(EntityType.AvalancheSubnet, [], 'threshold')]: 0,
 		},
 	}])
 })
