@@ -2,6 +2,7 @@ import { defineResolver, type RegisteredSourceResolverModule } from '$/resolvers
 import { EntityMetaKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
+import type { SourcePublicEnv } from '$/sources/$sources.ts'
 
 const providerSelector = {
 	providerId: 'mlflow',
@@ -15,6 +16,55 @@ const assertProvider = ($provider: { domain?: string, providerId?: string }) => 
 const providerReference = {
 	[EntityMetaKey.Selector]: providerSelector,
 } as const
+
+const getMlflowRegisteredModel = async (
+	name: string,
+	publicEnv: SourcePublicEnv
+) => (
+	typeof window === 'undefined' ?
+		await import('$/sources/Mlflow/Rest/queries.ts').then(({ getRegisteredModel }) => getRegisteredModel({
+			name,
+			publicEnv,
+		}))
+	:
+		await import('$/sources/Mlflow/Rest/queries.remote.ts').then(({ getMlflowRegisteredModelRemote }) => getMlflowRegisteredModelRemote({ name }))
+)
+
+const getMlflowModelVersion = async (
+	name: string,
+	version: string,
+	publicEnv: SourcePublicEnv
+) => (
+	typeof window === 'undefined' ?
+		await import('$/sources/Mlflow/Rest/queries.ts').then(({ getModelVersion }) => getModelVersion({
+			name,
+			publicEnv,
+			version,
+		}))
+	:
+		await import('$/sources/Mlflow/Rest/queries.remote.ts').then(({ getMlflowModelVersionRemote }) => getMlflowModelVersionRemote({
+			name,
+			version,
+		}))
+)
+
+const listMlflowArtifacts = async (
+	path: string,
+	runId: string,
+	publicEnv: SourcePublicEnv
+) => (
+	typeof window === 'undefined' ?
+		await import('$/sources/Mlflow/Rest/queries.ts').then(({ listArtifacts }) => listArtifacts({
+			path,
+			publicEnv,
+			runId,
+		}))
+	:
+		await import('$/sources/Mlflow/Rest/queries.remote.ts').then(({ listMlflowArtifactsRemote }) => listMlflowArtifactsRemote({
+			path,
+			runId,
+		}))
+)
 
 const artifactReference = (
 	runId: string,
@@ -47,11 +97,7 @@ export const mlflowResolvers = [
 					}],
 					resolve: async ({ $provider, providerModelId }, context) => {
 						assertProvider($provider)
-						const { getRegisteredModel } = await import('$/sources/Mlflow/Rest/queries.ts')
-						return (await getRegisteredModel({
-							name: providerModelId,
-							publicEnv: context.publicEnv,
-						})).registered_model
+						return (await getMlflowRegisteredModel(providerModelId, context.publicEnv)).registered_model
 					},
 				},
 			},
@@ -82,12 +128,7 @@ export const mlflowResolvers = [
 					}],
 					resolve: async ({ $model, versionId }, context) => {
 						assertProvider($model.$provider)
-						const { getModelVersion } = await import('$/sources/Mlflow/Rest/queries.ts')
-						return (await getModelVersion({
-							name: $model.providerModelId,
-							publicEnv: context.publicEnv,
-							version: versionId,
-						})).model_version
+						return (await getMlflowModelVersion($model.providerModelId, versionId, context.publicEnv)).model_version
 					},
 				},
 			},
@@ -121,14 +162,9 @@ export const mlflowResolvers = [
 					resolve: async ({ $provider, providerArtifactId }, context) => {
 						assertProvider($provider)
 						const artifact = parseArtifactId(providerArtifactId)
-						const { listArtifacts } = await import('$/sources/Mlflow/Rest/queries.ts')
 						return {
 							...artifact,
-							listing: await listArtifacts({
-								path: artifact.path,
-								publicEnv: context.publicEnv,
-								runId: artifact.runId,
-							}),
+							listing: await listMlflowArtifacts(artifact.path, artifact.runId, context.publicEnv),
 						}
 					},
 				},
@@ -162,12 +198,7 @@ export const mlflowResolvers = [
 					resolve: async ({ documentKind, $artifact }, context) => {
 						assertProvider($artifact.$provider)
 						const artifact = parseArtifactId($artifact.providerArtifactId)
-						const { listArtifacts } = await import('$/sources/Mlflow/Rest/queries.ts')
-						await listArtifacts({
-							path: artifact.path,
-							publicEnv: context.publicEnv,
-							runId: artifact.runId,
-						})
+						await listMlflowArtifacts(artifact.path, artifact.runId, context.publicEnv)
 						return {
 							documentKind,
 							artifact,

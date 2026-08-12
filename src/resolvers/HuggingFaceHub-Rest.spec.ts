@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from 'vitest'
 
 import { EntityMetaKey } from '$/schema/$schema.ts'
+import { indexResolvers } from '$/resolvers/$resolvers.ts'
+import { schema } from '$/schema/index.ts'
+import { Source } from '$/sources/Source.ts'
 
 const retrieveModel = vi.hoisted(() => vi.fn())
 const retrieveFileText = vi.hoisted(() => vi.fn())
@@ -11,6 +14,25 @@ vi.mock('$/sources/HuggingFace/Rest/queries.ts', () => ({
 }))
 
 describe('HuggingFace resolver mappings', () => {
+	it('applies provider selectors only to Hugging Face identities', async () => {
+		const { default: huggingFace } = await import('$/resolvers/HuggingFaceHub-Rest.ts')
+		const indexes = indexResolvers(schema, [huggingFace], new Set([Source.HuggingFaceHub_Rest]))
+		const resolver = indexes.resolverDefinitionsByEntityType.AiModel[0]
+
+		expect(resolver.appliesTo('ProviderModelId', {
+			$provider: {
+				providerId: 'huggingface',
+			},
+			providerModelId: 'bert-base-uncased',
+		})).toBe(true)
+		expect(resolver.appliesTo('ProviderModelId', {
+			$provider: {
+				providerId: 'mlflow',
+			},
+			providerModelId: 'fraud-detector',
+		})).toBe(false)
+	})
+
 	it('maps model, revision, artifact, and document identities from provider payloads', async () => {
 		retrieveModel.mockResolvedValue({
 			id: 'org/model',

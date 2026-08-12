@@ -75,6 +75,9 @@ export const huggingFaceHubResolvers = [
 			entityType: EntityType.AiModel,
 			resolve: {
 				ProviderModelId: {
+					appliesTo: [{
+						$provider: providerSelector,
+					}],
 					resolve: async ({ $provider, providerModelId }) => {
 						assertProvider($provider)
 						return retrieveHuggingFaceModel({
@@ -127,6 +130,9 @@ export const huggingFaceHubResolvers = [
 			entityType: EntityType.AiArtifact,
 			resolve: {
 				ProviderArtifactId: {
+					appliesTo: [{
+						$provider: providerSelector,
+					}],
 					resolve: async ({ $provider, providerArtifactId }) => {
 						assertProvider($provider)
 						const artifact = parseArtifactId(providerArtifactId)

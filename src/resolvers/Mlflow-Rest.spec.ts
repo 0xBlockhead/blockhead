@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from 'vitest'
 
 import { EntityMetaKey } from '$/schema/$schema.ts'
+import { indexResolvers } from '$/resolvers/$resolvers.ts'
+import { schema } from '$/schema/index.ts'
+import { Source } from '$/sources/Source.ts'
 
 const getRegisteredModel = vi.hoisted(() => vi.fn())
 const getModelVersion = vi.hoisted(() => vi.fn())
@@ -24,6 +27,25 @@ const context = {
 } as const
 
 describe('MLflow resolver mappings', () => {
+	it('applies only to MLflow provider identities in the runtime index', async () => {
+		const { default: mlflow } = await import('$/resolvers/Mlflow-Rest.ts')
+		const indexes = indexResolvers(schema, [mlflow], new Set([Source.Mlflow_Rest]))
+		const resolver = indexes.resolverDefinitionsByEntityType.AiModel[0]
+
+		expect(resolver.appliesTo('ProviderModelId', {
+			$provider: {
+				providerId: 'mlflow',
+			},
+			providerModelId: 'fraud-detector',
+		})).toBe(true)
+		expect(resolver.appliesTo('ProviderModelId', {
+			$provider: {
+				providerId: 'huggingface',
+			},
+			providerModelId: 'bert-base-uncased',
+		})).toBe(false)
+	})
+
 	it('maps registered model versions without replacing provider model identity', async () => {
 		getRegisteredModel.mockResolvedValue({
 			registered_model: {

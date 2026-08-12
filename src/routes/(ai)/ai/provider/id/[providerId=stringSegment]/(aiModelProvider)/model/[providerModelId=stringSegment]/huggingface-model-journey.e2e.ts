@@ -3,6 +3,11 @@ import { expect, test } from '@playwright/test'
 
 test('renders a public Hugging Face model and immutable revision through server-owned reads', async ({ page }, testInfo) => {
 	testInfo.setTimeout(180_000)
+	const consoleErrors: string[] = []
+	page.on('console', (message) => {
+		if (message.type() === 'error')
+			consoleErrors.push(message.text())
+	})
 	await page.addInitScript(({ name, schemaVersion }) => {
 		window.__blockheadWaSqliteDatabaseNameOverride = name
 		window.__blockheadWaSqliteVfsNameOverride = name.replace(/[^a-zA-Z0-9_-]/g, '_')
@@ -21,4 +26,5 @@ test('renders a public Hugging Face model and immutable revision through server-
 	await expect(page.getByRole('heading', {
 		name: '86b5e0934494bd15c9632b12f734a8a67f723594',
 	})).toBeVisible({ timeout: 120_000 })
+	expect(consoleErrors.filter((message) => message.includes('Mlflow_Rest'))).toEqual([])
 })
