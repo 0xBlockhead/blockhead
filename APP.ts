@@ -28179,6 +28179,14 @@ export const schema = {
 				},
 				views: {
 					singular: {
+						artifacts: [
+							{
+								field: "files",
+								label: "Download verified source bundle",
+								fileName: "verified-source-bundle.json",
+								mediaType: "application/json",
+							},
+						],
 						summary: { title: ["$contract"], value: ["$contract"] },
 						closed: ["$contract"],
 						content: {

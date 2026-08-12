@@ -23,6 +23,11 @@
 	}: Omit<EntitySelectionViewProps<EntityType.EvmContractSourceBundle>, 'prefetched'> = $props()
 
 	const contract = $derived(selection.entitySelector.$contract)
+	const evmContractSourceBundle = $derived(selection({
+		fields: {
+			files: true,
+		},
+	}))
 
 
 	// Components
@@ -86,13 +91,7 @@
 		</dl>
 
 		<ResourceBoundary
-			resource={
-				selection({
-					fields: {
-						files: true,
-					},
-				})
-			}
+			resource={evmContractSourceBundle}
 		>
 			{#snippet children(entity)}
 				{@const files = entity.files}
@@ -100,6 +99,22 @@
 					<code>{files}</code>
 				{:else}
 					<p data-text="muted">No verified source files available.</p>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+
+		<ResourceBoundary
+			resource={evmContractSourceBundle}
+		>
+			{#snippet children(entity)}
+				{@const artifactContent = entity.files}
+				{#if artifactContent != null && artifactContent !== ''}
+					<a
+						href={`data:application/json;charset=utf-8,${encodeURIComponent(artifactContent)}`}
+						download='verified-source-bundle.json'
+					>
+						Download verified source bundle
+					</a>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
