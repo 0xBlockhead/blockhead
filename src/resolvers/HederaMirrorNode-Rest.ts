@@ -17,6 +17,7 @@ import type {
 	HederaMirrorNodeNetworkStake,
 	HederaMirrorNodeNetworkSupply,
 	HederaMirrorNodeNode,
+	HederaMirrorNodeSchedule,
 	HederaMirrorNodeTransaction,
 } from '$/sources/HederaMirrorNode/Rest/types.ts'
 
@@ -602,6 +603,114 @@ const transactionJoins = async (
 		block,
 		schedule,
 		contractResult,
+	}
+}
+
+const scheduleObservation = (
+	network: EntitySelector<typeof schema, EntityType.Network>,
+	schedule: HederaMirrorNodeSchedule
+) => {
+	const scheduleId = hederaEntityId(schedule.schedule_id, 'schedule ID')
+	const scheduleTimestampMs = timestampMs(schedule.consensus_timestamp, 'schedule consensus timestamp')
+	if (schedule.executed_timestamp != null)
+		timestampMs(schedule.executed_timestamp, 'schedule executed timestamp')
+	if (schedule.expiration_time != null)
+		timestampMs(schedule.expiration_time, 'schedule expiration time')
+
+	return {
+		$schedule: {
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				scheduleId,
+			},
+		},
+		timestampMs: scheduleTimestampMs,
+		source: Source.HederaMirrorNode_Rest,
+		...(schedule.executed_timestamp != null && {
+			executedTimestamp: schedule.executed_timestamp,
+			$executionTransaction: {
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					consensusTimestamp: schedule.executed_timestamp,
+				},
+			},
+		}),
+		deleted: schedule.deleted,
+		...(schedule.expiration_time != null && {
+			expirationTime: schedule.expiration_time,
+		}),
+		waitForExpiry: schedule.wait_for_expiry,
+		signatureCount: schedule.signatures.length,
+	}
+}
+
+const scheduleSnapshot = (
+	network: EntitySelector<typeof schema, EntityType.Network>,
+	schedule: HederaMirrorNodeSchedule
+) => {
+	const scheduleId = hederaEntityId(schedule.schedule_id, 'schedule ID')
+	if (schedule.creator_account_id != null)
+		hederaEntityId(schedule.creator_account_id, 'schedule creator')
+	if (schedule.payer_account_id != null)
+		hederaEntityId(schedule.payer_account_id, 'schedule payer')
+	if (schedule.transaction_body.length === 0)
+		throw new Error('HederaMirrorNode_Rest: malformed schedule transaction body')
+
+	const scheduleSelector = {
+		$network: network,
+		scheduleId,
+	}
+	const observation = scheduleObservation(network, schedule)
+
+	return {
+		scheduleId,
+		...(schedule.creator_account_id != null && {
+			creatorAccountId: schedule.creator_account_id,
+		}),
+		...(schedule.payer_account_id != null && {
+			payerAccountId: schedule.payer_account_id,
+		}),
+		transactionBody: schedule.transaction_body,
+		$$timestamps: [{
+			[EntityMetaKey.Selector]: {
+				$schedule: scheduleSelector,
+				timestampMs: observation.timestampMs,
+				source: observation.source,
+			},
+			[EntityMetaKey.Fields]: {
+				...(observation.executedTimestamp != null && {
+					[entityFieldAddressKey(EntityType.HederaSchedule_Timestamp, [], 'executedTimestamp')]: observation.executedTimestamp,
+					[entityFieldAddressKey(EntityType.HederaSchedule_Timestamp, [], '$executionTransaction')]: observation.$executionTransaction,
+				}),
+				[entityFieldAddressKey(EntityType.HederaSchedule_Timestamp, [], 'deleted')]: observation.deleted,
+				...(observation.expirationTime != null && {
+					[entityFieldAddressKey(EntityType.HederaSchedule_Timestamp, [], 'expirationTime')]: observation.expirationTime,
+				}),
+				[entityFieldAddressKey(EntityType.HederaSchedule_Timestamp, [], 'waitForExpiry')]: observation.waitForExpiry,
+				[entityFieldAddressKey(EntityType.HederaSchedule_Timestamp, [], 'signatureCount')]: observation.signatureCount,
+			},
+		}],
+		$$signatures: schedule.signatures.map((signature) => {
+			if (signature.public_key_prefix.length === 0)
+				throw new Error('HederaMirrorNode_Rest: malformed schedule signature public key prefix')
+			if (signature.consensus_timestamp.length > 0)
+				timestampMs(signature.consensus_timestamp, 'schedule signature timestamp')
+
+			return {
+				[EntityMetaKey.Selector]: {
+					$schedule: scheduleSelector,
+					publicKeyPrefix: signature.public_key_prefix,
+				},
+				[EntityMetaKey.Fields]: {
+					...(signature.consensus_timestamp.length > 0 && {
+						[entityFieldAddressKey(EntityType.HederaScheduleSignature, [], 'consensusTimestamp')]: signature.consensus_timestamp,
+					}),
+					...(signature.signature.length > 0 && {
+						[entityFieldAddressKey(EntityType.HederaScheduleSignature, [], 'signature')]: signature.signature,
+					}),
+				},
+			}
+		}),
 	}
 }
 
@@ -1596,6 +1705,67 @@ export default {
 			networkTinycent: (observation) => observation.networkTinycent,
 			serviceTinycent: (observation) => observation.serviceTinycent,
 			totalTinycent: (observation) => observation.totalTinycent,
+		}),
+
+		defineResolver({
+			entityType: EntityType.HederaSchedule,
+			resolve: {
+				NetworkScheduleId: {
+					resolve: async ({ $network, scheduleId }) => {
+						assertHederaMainnet($network)
+						const { getSchedule } = await import('$/sources/HederaMirrorNode/Rest/queries.ts')
+						const schedule = await getSchedule(scheduleId)
+						const snapshot = scheduleSnapshot($network, schedule)
+						if (snapshot.scheduleId !== scheduleId)
+							throw new Error('HederaMirrorNode_Rest: response schedule does not match request')
+
+						return snapshot
+					},
+				},
+			},
+		})({
+			scheduleId: (schedule) => schedule.scheduleId,
+			creatorAccountId: (schedule) => schedule.creatorAccountId,
+			payerAccountId: (schedule) => schedule.payerAccountId,
+			transactionBody: (schedule) => schedule.transactionBody,
+			$$timestamps: (schedule) => schedule.$$timestamps,
+			$$signatures: (schedule) => schedule.$$signatures,
+		}),
+
+		defineResolver({
+			entityType: EntityType.HederaSchedule_Timestamp,
+			resolve: {
+				ScheduleTimestampMsSource: {
+					resolve: async ({
+						$schedule,
+						timestampMs: requestedTimestampMs,
+						source,
+					}) => {
+						assertHederaMainnet($schedule.$network)
+						assertHederaMirrorSource(source)
+						const { getSchedule } = await import('$/sources/HederaMirrorNode/Rest/queries.ts')
+						const schedule = await getSchedule($schedule.scheduleId)
+						if (schedule.schedule_id !== $schedule.scheduleId)
+							throw new Error('HederaMirrorNode_Rest: response schedule does not match request')
+
+						const observation = scheduleObservation($schedule.$network, schedule)
+						if (observation.timestampMs !== requestedTimestampMs)
+							throw new Error('HederaMirrorNode_Rest: schedule lifecycle clock mismatch')
+
+						return observation
+					},
+				},
+			},
+		})({
+			$schedule: (observation) => observation.$schedule,
+			timestampMs: (observation) => observation.timestampMs,
+			source: (observation) => observation.source,
+			executedTimestamp: (observation) => observation.executedTimestamp,
+			deleted: (observation) => observation.deleted,
+			expirationTime: (observation) => observation.expirationTime,
+			waitForExpiry: (observation) => observation.waitForExpiry,
+			signatureCount: (observation) => observation.signatureCount,
+			$executionTransaction: (observation) => observation.$executionTransaction,
 		}),
 	],
 } satisfies RegisteredSourceResolverModule

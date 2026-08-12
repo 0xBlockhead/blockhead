@@ -262,8 +262,8 @@ describe('Hedera Mirror Node block query', () => {
 		expect(sourceFetch.mock.calls[0][1]).toBe(
 			`https://mainnet-public.mirrornode.hedera.com/api/v1/blocks/${fixture.hash.slice(2)}`
 		)
-		expect(() => getBlock('hash/value')).toThrow('invalid block selector')
-		expect(() => getBlock(' ')).toThrow('invalid block selector')
+		await expect(getBlock('hash/value')).rejects.toThrow('invalid block selector')
+		await expect(getBlock(' ')).rejects.toThrow('invalid block selector')
 	})
 })
 
@@ -442,7 +442,7 @@ describe('Hedera Mirror Node block resolver', () => {
 		].resolve({
 			$network: network,
 			blockNumber: 77n,
-		}, context)).rejects.toThrow('response block does not match request')
+		}, context)).rejects.toThrow('block response does not match request')
 	})
 
 	it('rejects unsupported networks before transport', async () => {
@@ -1294,6 +1294,16 @@ describe('Hedera Mirror Node transaction detail', () => {
 	if (transactionResolver == null)
 		throw new Error('HederaMirrorNode_Rest spec missing transaction resolver')
 
+	const scheduleResolver = hederaMirrorNode.resolvers.find((resolver) => (
+		resolver.entityType === EntityType.HederaSchedule
+	))
+	const scheduleTimestampResolver = hederaMirrorNode.resolvers.find((resolver) => (
+		resolver.entityType === EntityType.HederaSchedule_Timestamp
+	))
+
+	if (scheduleResolver == null || scheduleTimestampResolver == null)
+		throw new Error('HederaMirrorNode_Rest spec missing schedule lifecycle resolvers')
+
 	it('addresses both official detail forms and materializes lossless transfer children', async () => {
 		sourceFetch
 			.mockResolvedValueOnce(new Response(JSON.stringify({
@@ -1486,6 +1496,84 @@ describe('Hedera Mirror Node transaction detail', () => {
 			'https://mainnet-public.mirrornode.hedera.com/api/v1/schedules/0.0.7000',
 			'https://mainnet-public.mirrornode.hedera.com/api/v1/contracts/results/0.0.98-1710000000-000000006?nonce=0',
 		])
+	})
+
+	it('resolves a schedule into its signer, lifecycle, and execution hierarchy', async () => {
+		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify(scheduleFixture)))
+
+		const snapshot = await scheduleResolver.resolve.NetworkScheduleId.resolve({
+			$network: network,
+			scheduleId: scheduleFixture.schedule_id,
+		})
+
+		expect(snapshot).toMatchObject({
+			scheduleId: scheduleFixture.schedule_id,
+			creatorAccountId: scheduleFixture.creator_account_id,
+			payerAccountId: scheduleFixture.payer_account_id,
+			transactionBody: scheduleFixture.transaction_body,
+		})
+		expect(scheduleResolver.projections.$$signatures(snapshot)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$schedule: {
+					$network: network,
+					scheduleId: scheduleFixture.schedule_id,
+				},
+				publicKeyPrefix: 'AA==',
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.HederaScheduleSignature, [], 'consensusTimestamp')]: '1710000000.600000000',
+				[entityFieldAddressKey(EntityType.HederaScheduleSignature, [], 'signature')]: 'Aw==',
+			},
+		}])
+		expect(scheduleResolver.projections.$$timestamps(snapshot)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$schedule: {
+					$network: network,
+					scheduleId: scheduleFixture.schedule_id,
+				},
+				timestampMs: 1710000000500,
+				source: Source.HederaMirrorNode_Rest,
+			},
+			[EntityMetaKey.Fields]: expect.objectContaining({
+				[entityFieldAddressKey(EntityType.HederaSchedule_Timestamp, [], 'signatureCount')]: 1,
+				[entityFieldAddressKey(EntityType.HederaSchedule_Timestamp, [], '$executionTransaction')]: {
+					[EntityMetaKey.Selector]: {
+						$network: network,
+						consensusTimestamp: detailedTransaction.consensus_timestamp,
+					},
+				},
+			}),
+		}])
+
+		expect(sourceFetch.mock.calls.map(([, url]) => url)).toEqual([
+			'https://mainnet-public.mirrornode.hedera.com/api/v1/schedules/0.0.7000',
+		])
+	})
+
+	it('preserves the schedule creation clock and rejects foreign source observations', async () => {
+		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify(scheduleFixture)))
+		await expect(scheduleTimestampResolver.resolve.ScheduleTimestampMsSource.resolve({
+			$schedule: {
+				$network: network,
+				scheduleId: scheduleFixture.schedule_id,
+			},
+			timestampMs: 1710000000500,
+			source: Source.HederaMirrorNode_Rest,
+		})).resolves.toMatchObject({
+			timestampMs: 1710000000500,
+			executedTimestamp: detailedTransaction.consensus_timestamp,
+			signatureCount: 1,
+		})
+
+		await expect(scheduleTimestampResolver.resolve.ScheduleTimestampMsSource.resolve({
+			$schedule: {
+				$network: network,
+				scheduleId: scheduleFixture.schedule_id,
+			},
+			timestampMs: 1710000000500,
+			source: Source.Lotus_JsonRpc,
+		})).rejects.toThrow('unsupported network timestamp source')
+		expect(sourceFetch).toHaveBeenCalledTimes(1)
 	})
 
 	it('fail-closes unenrolled contract-result leftovers and mismatched Mirror joins', async () => {
