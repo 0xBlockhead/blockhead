@@ -114,6 +114,28 @@ export type SidecarStakingValidators = {
 		controllerId?: string
 		commission?: string | number
 		totalStake?: string
+		status?: 'active' | 'waiting'
+		blocked?: boolean
+	}[]
+}
+
+export type SidecarStakingProgress = {
+	at: {
+		hash: string
+		height: string
+	}
+	activeEra: string
+	forceEra: string
+	nextActiveEraEstimate?: string
+	nextSessionEstimate?: string
+	idealValidatorCount?: string
+	validatorSet?: string[]
+	unappliedSlashes?: {
+		validator: string
+		own: string
+		others: string[]
+		reporters: string[]
+		payout: string
 	}[]
 }
 

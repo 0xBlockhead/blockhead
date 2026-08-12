@@ -42,6 +42,7 @@ const {
 	getRcStakingValidators,
 	getRuntimeMetadata,
 	getRuntimeSpec,
+	getStakingProgress,
 	getStakingValidators,
 	getTransactionMaterial,
 	polkadotAssetHubSidecarBinding,
@@ -688,6 +689,50 @@ describe('Substrate Sidecar query envelopes', () => {
 			],
 		})
 		expect(sourceFetch.mock.calls[1][1]).toBe('http://127.0.0.1:8080/rc/pallets/staking/validators')
+	})
+
+	it('reads the active staking era and pending validator slashes from one block', async () => {
+		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+			at: {
+				hash: '0xSTAKING_PROGRESS',
+				height: '32442435',
+			},
+			activeEra: '1702',
+			forceEra: 'NotForcing',
+			nextActiveEraEstimate: '32450000',
+			validatorSet: [
+				'15oF4uVJwmo4qjQJeHCDruaKdS2nG6t6dD6rJ8X2vY8rKzq',
+			],
+			unappliedSlashes: [
+				{
+					validator: '15oF4uVJwmo4qjQJeHCDruaKdS2nG6t6dD6rJ8X2vY8rKzq',
+					own: '10000000000',
+					others: [],
+					reporters: [],
+					payout: '0',
+				},
+			],
+		})))
+
+		await expect(getStakingProgress()).resolves.toMatchObject({
+			activeEra: '1702',
+			unappliedSlashes: [
+				{
+					own: '10000000000',
+				},
+			],
+		})
+		expect(sourceFetch.mock.calls[0][1]).toBe('http://127.0.0.1:8080/pallets/staking/progress')
+
+		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+			at: {
+				hash: '0xSTAKING_PROGRESS',
+				height: '32442435',
+			},
+			activeEra: '-1',
+			forceEra: 'NotForcing',
+		})))
+		await expect(getStakingProgress()).rejects.toThrow('invalid staking progress response envelope')
 	})
 
 	it('accepts live node/network envelopes with object roles and string peersInfo errors', async () => {

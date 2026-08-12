@@ -165,6 +165,33 @@ const sidecarStakingValidatorsWire = arktype({
 		'controllerId?': 'string > 0',
 		'commission?': arktype('string').or('number'),
 		'totalStake?': 'string',
+		'status?': arktype.enumerated('active', 'waiting'),
+		'blocked?': 'boolean',
+	}).array(),
+})
+
+const sidecarStakingProgressWire = arktype({
+	at: {
+		hash: 'string > 0',
+		height: unsignedDecimal,
+	},
+	activeEra: unsignedDecimal,
+	forceEra: arktype.enumerated(
+		'ForceNone',
+		'NotForcing',
+		'ForceAlways',
+		'ForceNew'
+	),
+	'nextActiveEraEstimate?': unsignedDecimal,
+	'nextSessionEstimate?': unsignedDecimal,
+	'idealValidatorCount?': unsignedDecimal,
+	'validatorSet?': arktype('string > 0').array(),
+	'unappliedSlashes?': arktype({
+		validator: 'string > 0',
+		own: unsignedDecimal,
+		others: 'string[]',
+		reporters: arktype('string > 0').array(),
+		payout: unsignedDecimal,
 	}).array(),
 })
 
@@ -894,8 +921,10 @@ export const getNodeVersion = async ({
 )
 
 export const getStakingValidators = async ({
+	at,
 	binding,
 }: {
+	at?: bigint | string
 	binding?: SourceBinding
 } = {}) => (
 	assertEnvelope(
@@ -903,9 +932,24 @@ export const getStakingValidators = async ({
 		sidecarStakingValidatorsWire,
 		await getJson<unknown>(
 			bindingOrDefault(binding),
-			'/pallets/staking/validators'
+			`/pallets/staking/validators${at == null ? '' : `?at=${encodeURIComponent(String(at))}`}`
 		)
 	) as SidecarStakingValidators
+)
+
+export const getStakingProgress = async ({
+	binding,
+}: {
+	binding?: SourceBinding
+} = {}) => (
+	assertEnvelope(
+		'staking progress',
+		sidecarStakingProgressWire,
+		await getJson<unknown>(
+			bindingOrDefault(binding),
+			'/pallets/staking/progress'
+		)
+	)
 )
 
 export const getRcStakingValidators = async ({

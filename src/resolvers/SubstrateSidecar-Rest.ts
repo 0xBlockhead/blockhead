@@ -964,6 +964,84 @@ export default {
 		}),
 
 		defineResolver({
+			entityType: EntityType.PolkadotValidator_Era,
+			resolve: {
+				ValidatorEraIndexSource: {
+					resolve: async ({
+						$validator,
+						eraIndex,
+						source,
+					}) => {
+						if (source !== Source.SubstrateSidecar_Rest)
+							throw new Error(`SubstrateSidecar_Rest: unsupported source ${source}`)
+						assertPolkadotMainnet($validator.$network)
+						if ($validator.stashAccountId.length === 0)
+							throw new Error('SubstrateSidecar_Rest: stash account ID must not be empty')
+						const {
+							getStakingProgress,
+							getStakingValidators,
+						} = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
+						const progress = await getStakingProgress()
+						const validators = await getStakingValidators({
+							at: progress.at.hash,
+						})
+						if (BigInt(progress.activeEra) !== eraIndex)
+							throw new Error('SubstrateSidecar_Rest: requested validator era is not the active era')
+						if (
+							validators.at?.hash != null
+							&& validators.at.hash !== progress.at.hash
+						)
+							throw new Error('SubstrateSidecar_Rest: validator set block does not match staking progress')
+						const validator = validators.validators?.find((candidate) => (
+							candidate.accountId === $validator.stashAccountId
+							|| candidate.address === $validator.stashAccountId
+							|| candidate.stashId === $validator.stashAccountId
+						))
+						if (validator == null)
+							throw new Error(`SubstrateSidecar_Rest: validator not found for ${$validator.stashAccountId}`)
+						const commissionPerBillion = validator.commission == null ?
+							undefined
+						:
+							Number(validator.commission)
+						if (
+							commissionPerBillion != null
+							&& (
+								!Number.isSafeInteger(commissionPerBillion)
+								|| commissionPerBillion < 0
+								|| commissionPerBillion > 1_000_000_000
+							)
+						)
+							throw new Error('SubstrateSidecar_Rest: invalid validator commission')
+
+						return {
+							$validator: {
+								[EntityMetaKey.Selector]: $validator,
+							},
+							eraIndex,
+							source,
+							...(commissionPerBillion != null && {
+								commissionPerBillion,
+							}),
+							...(validator.status != null && {
+								active: validator.status === 'active',
+							}),
+							slashed: progress.unappliedSlashes?.some(({ validator }) => (
+								validator === $validator.stashAccountId
+							)) ?? false,
+						}
+					},
+				},
+			},
+		})({
+			$validator: (observation) => observation.$validator,
+			eraIndex: (observation) => observation.eraIndex,
+			source: (observation) => observation.source,
+			commissionPerBillion: (observation) => observation.commissionPerBillion,
+			active: (observation) => observation.active,
+			slashed: (observation) => observation.slashed,
+		}),
+
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Slug: {

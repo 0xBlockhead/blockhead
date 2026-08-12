@@ -105,6 +105,13 @@ const networkValidatorListResolver = sidecar.resolvers.find((resolver) => (
 	&& '$$validators' in resolver.projections.Polkadot
 ))
 
+const validatorEraResolver = sidecar.resolvers.find((
+	resolver
+): resolver is Extract<
+	typeof sidecar.resolvers[number],
+	{ entityType: EntityType.PolkadotValidator_Era }
+> => resolver.entityType === EntityType.PolkadotValidator_Era)
+
 if (
 	accountResolver == null
 	|| accountAssetBalanceResolver == null
@@ -116,6 +123,7 @@ if (
 	|| networkBlockListResolver == null
 	|| networkReferendumListResolver == null
 	|| networkValidatorListResolver == null
+	|| validatorEraResolver == null
 )
 	throw new Error('Substrate Sidecar resolvers are missing')
 
@@ -683,6 +691,116 @@ describe('Substrate Sidecar network observation + validator leftovers', () => {
 		expect(networkTimestampResolver.projections.Polkadot.peerCount(snapshot)).toBe(42)
 		expect(networkTimestampResolver.projections.Polkadot.isSyncing(snapshot)).toBe(false)
 		expect(networkTimestampResolver.projections.Polkadot.shouldHavePeers(snapshot)).toBe(true)
+	})
+
+	it('resolves active validator-era commission, activity, and pending slashing state', async () => {
+		const stashAccountId = '15oF4uVJwmo4qjQJeHCDruaKdS2nG6t6dD6rJ8X2vY8rKzq'
+		sourceFetch
+			.mockResolvedValueOnce(new Response(JSON.stringify({
+				at: {
+					hash: '0xSTAKING_PROGRESS',
+					height: '32442435',
+				},
+				activeEra: '1702',
+				forceEra: 'NotForcing',
+				unappliedSlashes: [
+					{
+						validator: stashAccountId,
+						own: '10000000000',
+						others: [],
+						reporters: [],
+						payout: '0',
+					},
+				],
+			})))
+			.mockResolvedValueOnce(new Response(JSON.stringify({
+				at: {
+					hash: '0xSTAKING_PROGRESS',
+					height: '32442435',
+				},
+				validators: [
+					{
+						address: stashAccountId,
+						status: 'active',
+						commission: '100000000',
+						blocked: false,
+					},
+				],
+			})))
+
+		const selector = {
+			$validator: {
+				$network: account.$network,
+				stashAccountId,
+			},
+			eraIndex: 1702n,
+			source: Source.SubstrateSidecar_Rest,
+		}
+		const snapshot = await validatorEraResolver.resolve.ValidatorEraIndexSource.resolve(selector, context)
+
+		expect(sourceFetch.mock.calls.map(([, url]) => url)).toEqual([
+			'http://127.0.0.1:8080/pallets/staking/progress',
+			'http://127.0.0.1:8080/pallets/staking/validators?at=0xSTAKING_PROGRESS',
+		])
+		expect(validatorEraResolver.projections.$validator(snapshot)).toEqual({
+			[EntityMetaKey.Selector]: selector.$validator,
+		})
+		expect(validatorEraResolver.projections.eraIndex(snapshot)).toBe(1702n)
+		expect(validatorEraResolver.projections.commissionPerBillion(snapshot)).toBe(100_000_000)
+		expect(validatorEraResolver.projections.active(snapshot)).toBe(true)
+		expect(validatorEraResolver.projections.slashed(snapshot)).toBe(true)
+	})
+
+	it('rejects historical aliases and invalid active-era commission', async () => {
+		const stashAccountId = '15oF4uVJwmo4qjQJeHCDruaKdS2nG6t6dD6rJ8X2vY8rKzq'
+		const selector = {
+			$validator: {
+				$network: account.$network,
+				stashAccountId,
+			},
+			eraIndex: 1701n,
+			source: Source.SubstrateSidecar_Rest,
+		}
+		sourceFetch
+			.mockResolvedValueOnce(new Response(JSON.stringify({
+				at: {
+					hash: '0xSTAKING_PROGRESS',
+					height: '32442435',
+				},
+				activeEra: '1702',
+				forceEra: 'NotForcing',
+			})))
+			.mockResolvedValueOnce(new Response(JSON.stringify({
+				validators: [],
+			})))
+		await expect(
+			validatorEraResolver.resolve.ValidatorEraIndexSource.resolve(selector, context)
+		).rejects.toThrow('requested validator era is not the active era')
+
+		sourceFetch
+			.mockResolvedValueOnce(new Response(JSON.stringify({
+				at: {
+					hash: '0xSTAKING_PROGRESS',
+					height: '32442435',
+				},
+				activeEra: '1702',
+				forceEra: 'NotForcing',
+			})))
+			.mockResolvedValueOnce(new Response(JSON.stringify({
+				validators: [
+					{
+						address: stashAccountId,
+						status: 'active',
+						commission: '1000000001',
+					},
+				],
+			})))
+		await expect(
+			validatorEraResolver.resolve.ValidatorEraIndexSource.resolve({
+				...selector,
+				eraIndex: 1702n,
+			}, context)
+		).rejects.toThrow('invalid validator commission')
 	})
 
 	it('resolves ongoing referendum identity and its block-anchored lifecycle observation', async () => {
