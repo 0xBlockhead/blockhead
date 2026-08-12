@@ -102,6 +102,9 @@ const namespaceResolver = celeniumRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.CelestiaNamespace
 	&& 'namespaceVersion' in resolver.projections
 ))
+const namespaceTimestampResolver = celeniumRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.CelestiaNamespace_Timestamp
+))
 const namespaceBlobsResolver = celeniumRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.CelestiaNamespace
 	&& '$$blobs' in resolver.projections
@@ -147,6 +150,7 @@ if (
 	|| blockBlobsResolver == null
 	|| blockBlobsCountResolver == null
 	|| namespaceResolver == null
+	|| namespaceTimestampResolver == null
 	|| namespaceBlobsResolver == null
 	|| namespaceBlobsCountResolver == null
 	|| blobResolver == null
@@ -596,6 +600,7 @@ describe('Celenium REST head projection', () => {
 				namespace_id: 'A'.repeat(56),
 				hash: `${'B'.repeat(39)}=`,
 				last_height: 12_424_720,
+				last_message_time: '2026-07-23T04:48:00Z',
 				name: 'PayForBlobs',
 				reserved: false,
 			},
@@ -621,10 +626,10 @@ describe('Celenium REST head projection', () => {
 					[entityFieldAddressKey(EntityType.CelestiaNamespace, [], 'label')]: 'PayForBlobs',
 					[entityFieldAddressKey(EntityType.CelestiaNamespace, [], '$$timestamps')]: [
 						{
-							[EntityMetaKey.Selector]: {
-								$namespace: namespaceSelector,
-								timestampMs: 1_753_248_000_000,
-								source: Source.Celenium_Rest,
+			[EntityMetaKey.Selector]: {
+				$namespace: namespaceSelector,
+				timestampMs: 1_784_782_080_000,
+				source: Source.Celenium_Rest,
 							},
 							[EntityMetaKey.Fields]: {
 								[entityFieldAddressKey(EntityType.CelestiaNamespace_Timestamp, [], 'height')]: 12_424_720n,
@@ -639,6 +644,58 @@ describe('Celenium REST head projection', () => {
 			limit: 1,
 			offset: 3,
 		})
+	})
+
+	it('resolves namespace observations only at the source-owned namespace clock', async () => {
+		const namespaceSelector = {
+			$network: celestiaNetwork,
+			namespaceId: `00${'a'.repeat(56)}`,
+		}
+		getNamespace.mockResolvedValueOnce({
+			size: 24_857,
+			blobs_count: 4,
+			version: 0,
+			namespace_id: 'A'.repeat(56),
+			hash: `${'B'.repeat(39)}=`,
+			last_height: 12_424_720,
+			last_message_time: '2026-07-23T04:48:00Z',
+			reserved: false,
+		})
+		await expect(namespaceTimestampResolver.resolve.NamespaceTimestampMsSource.resolve({
+			$namespace: namespaceSelector,
+			timestampMs: 1_784_782_080_000,
+			source: Source.Celenium_Rest,
+		}, context)).resolves.toEqual({
+			$namespace: {
+				[EntityMetaKey.Selector]: namespaceSelector,
+			},
+			timestampMs: 1_784_782_080_000,
+			source: Source.Celenium_Rest,
+			height: 12_424_720n,
+			blobCount: 4,
+		})
+
+		await expect(namespaceTimestampResolver.resolve.NamespaceTimestampMsSource.resolve({
+			$namespace: namespaceSelector,
+			timestampMs: 1_784_782_080_000,
+			source: Source.CelestiaNode,
+		}, context)).rejects.toThrow('unsupported namespace observation source')
+
+		getNamespace.mockResolvedValueOnce({
+			size: 24_857,
+			blobs_count: 4,
+			version: 0,
+			namespace_id: 'A'.repeat(56),
+			hash: `${'B'.repeat(39)}=`,
+			last_height: 12_424_720,
+			last_message_time: '2026-07-23T04:48:00Z',
+			reserved: false,
+		})
+		await expect(namespaceTimestampResolver.resolve.NamespaceTimestampMsSource.resolve({
+			$namespace: namespaceSelector,
+			timestampMs: 1_784_782_080_001,
+			source: Source.Celenium_Rest,
+		}, context)).rejects.toThrow('does not match the observation time')
 	})
 
 	it('projects blob metadata into canonical namespace, block, and metadata fields', async () => {

@@ -263,7 +263,6 @@ export default {
 							return []
 
 						const { listNamespaces } = await import('$/sources/Celenium/Rest/queries.ts')
-						const timestampMs = Date.now()
 						return (
 							await listNamespaces({
 								limit,
@@ -286,19 +285,21 @@ export default {
 									...(namespace.name != null && {
 										[entityFieldAddressKey(EntityType.CelestiaNamespace, [], 'label')]: namespace.name,
 									}),
-									[entityFieldAddressKey(EntityType.CelestiaNamespace, [], '$$timestamps')]: [
-										{
-											[EntityMetaKey.Selector]: {
-												$namespace: namespaceSelector,
-												timestampMs,
-												source: Source.Celenium_Rest,
+									...(namespace.last_message_time != null && {
+										[entityFieldAddressKey(EntityType.CelestiaNamespace, [], '$$timestamps')]: [
+											{
+												[EntityMetaKey.Selector]: {
+													$namespace: namespaceSelector,
+													timestampMs: Date.parse(namespace.last_message_time),
+													source: Source.Celenium_Rest,
+												},
+												[EntityMetaKey.Fields]: {
+													[entityFieldAddressKey(EntityType.CelestiaNamespace_Timestamp, [], 'height')]: BigInt(namespace.last_height),
+													[entityFieldAddressKey(EntityType.CelestiaNamespace_Timestamp, [], 'blobCount')]: namespace.blobs_count,
+												},
 											},
-											[EntityMetaKey.Fields]: {
-												[entityFieldAddressKey(EntityType.CelestiaNamespace_Timestamp, [], 'height')]: BigInt(namespace.last_height),
-												[entityFieldAddressKey(EntityType.CelestiaNamespace_Timestamp, [], 'blobCount')]: namespace.blobs_count,
-											},
-										},
-									],
+										],
+									}),
 								},
 							}
 						})
@@ -421,28 +422,31 @@ export default {
 						assertCelestiaMainnet($network.$network)
 						const { getNamespace } = await import('$/sources/Celenium/Rest/queries.ts')
 						const namespace = await getNamespace(namespaceId)
-						const timestampMs = Date.now()
 						return {
 							namespaceVersion: namespace.version,
 							...(namespace.name != null && {
 								label: namespace.name,
 							}),
-							$$timestamps: [
-								{
-									[EntityMetaKey.Selector]: {
-										$namespace: {
-											$network,
-											namespaceId,
+							...(
+								namespace.last_message_time != null && {
+									$$timestamps: [
+										{
+											[EntityMetaKey.Selector]: {
+												$namespace: {
+													$network,
+													namespaceId,
+												},
+												timestampMs: Date.parse(namespace.last_message_time),
+												source: Source.Celenium_Rest,
+											},
+											[EntityMetaKey.Fields]: {
+												[entityFieldAddressKey(EntityType.CelestiaNamespace_Timestamp, [], 'height')]: BigInt(namespace.last_height),
+												[entityFieldAddressKey(EntityType.CelestiaNamespace_Timestamp, [], 'blobCount')]: namespace.blobs_count,
+											},
 										},
-										timestampMs,
-										source: Source.Celenium_Rest,
-									},
-									[EntityMetaKey.Fields]: {
-										[entityFieldAddressKey(EntityType.CelestiaNamespace_Timestamp, [], 'height')]: BigInt(namespace.last_height),
-										[entityFieldAddressKey(EntityType.CelestiaNamespace_Timestamp, [], 'blobCount')]: namespace.blobs_count,
-									},
-								},
-							],
+									],
+								}
+							),
 						}
 					},
 				},
@@ -450,8 +454,42 @@ export default {
 		})({
 				namespaceVersion: (namespace) => namespace.namespaceVersion,
 				label: (namespace) => namespace.label,
-				$$timestamps: (namespace) => namespace.$$timestamps,
-			}),
+				$$timestamps: (namespace) => namespace.$$timestamps ?? [],
+		}),
+
+		defineResolver({
+			entityType: EntityType.CelestiaNamespace_Timestamp,
+			resolve: {
+				NamespaceTimestampMsSource: {
+					resolve: async ({ $namespace, timestampMs, source }) => {
+						assertCelestiaMainnet($namespace.$network.$network)
+						if (source !== Source.Celenium_Rest)
+							throw new Error(`Celenium_Rest: unsupported namespace observation source ${source}`)
+						const { getNamespace } = await import('$/sources/Celenium/Rest/queries.ts')
+						const namespace = await getNamespace($namespace.namespaceId)
+						if (namespace.last_message_time == null)
+							throw new Error('Celenium_Rest: namespace has no source observation clock')
+						if (Date.parse(namespace.last_message_time) !== timestampMs)
+							throw new Error('Celenium_Rest: namespace response does not match the observation time')
+						return {
+							$namespace: {
+								[EntityMetaKey.Selector]: $namespace,
+							},
+							timestampMs,
+							source,
+							height: BigInt(namespace.last_height),
+							blobCount: namespace.blobs_count,
+						}
+					},
+				},
+			},
+		})({
+			$namespace: (timestamp) => timestamp.$namespace,
+			timestampMs: (timestamp) => timestamp.timestampMs,
+			source: (timestamp) => timestamp.source,
+			height: (timestamp) => timestamp.height,
+			blobCount: (timestamp) => timestamp.blobCount,
+		}),
 
 		defineResolver({
 			entityType: EntityType.CelestiaNamespace,
