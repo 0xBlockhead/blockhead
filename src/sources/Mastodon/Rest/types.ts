@@ -29,6 +29,7 @@ export type MastodonApiV1MediaAttachment = {
 	id?: string
 	type?: string
 	url?: string
+	remote_url?: string | null
 	preview_url?: string
 	description?: string | null
 }
@@ -146,6 +147,7 @@ export const mastodonApiV1MediaAttachmentWire = arktype({
 	'id?': 'string',
 	'type?': 'string',
 	'url?': 'string',
+	'remote_url?': nullableString,
 	'preview_url?': 'string',
 	'description?': nullableString,
 }) satisfies Type<MastodonApiV1MediaAttachment>

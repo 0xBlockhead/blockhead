@@ -636,7 +636,7 @@ describe('Mastodon ActivityPub observations', () => {
 			media_attachments: [{
 				id: 'media-2',
 				type: 'image',
-				url: 'https://media-origin.example/files/image.png',
+				remote_url: 'https://remote.example/files/image.png',
 			}],
 		}
 		getStatus.mockImplementation(async (_binding, instanceOrigin, localStatusId) => {
@@ -685,6 +685,11 @@ describe('Mastodon ActivityPub observations', () => {
 			},
 		})
 		expect(local.$$media).toHaveLength(1)
+		expect(local.$$media[0]).toMatchObject({
+			[EntityMetaKey.Selector]: {
+				url: 'https://remote.example/files/image.png',
+			},
+		})
 		expect(getStatus).toHaveBeenCalledTimes(1)
 		expect(getStatusByActivityStreamsUri).toHaveBeenCalledTimes(1)
 		await expect(note.resolve['ActivityStreamsUri'].resolve({

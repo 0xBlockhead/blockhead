@@ -48,15 +48,16 @@ const mediaUrlFromMastodonAttachment = (
 ) => {
 	const wireType = attachment.type
 	const url = optionalNonemptyString(attachment.url)
+	const remoteUrl = optionalNonemptyString(attachment.remote_url ?? undefined)
 	const previewUrl = optionalNonemptyString(attachment.preview_url)
 	return (
 		wireType === 'video' || wireType === 'gifv' || wireType === 'audio' ?
-			url
+			url ?? remoteUrl
 		:
 			wireType === 'image' ?
-				url ?? previewUrl
+				url ?? remoteUrl ?? previewUrl
 			:
-				url ?? previewUrl
+				url ?? remoteUrl ?? previewUrl
 	)
 }
 
