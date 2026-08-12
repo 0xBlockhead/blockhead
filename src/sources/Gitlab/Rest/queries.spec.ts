@@ -14,6 +14,7 @@ const {
 	getMergeRequest,
 	getProject,
 	getRelease,
+	getRepositoryTree,
 } = await import('$/sources/Gitlab/Rest/queries.ts')
 
 describe('GitLab REST wires', () => {
@@ -70,12 +71,27 @@ describe('GitLab REST wires', () => {
 					id: 'c'.repeat(40),
 				},
 			})
+			.mockResolvedValueOnce([
+				{
+					id: 'd'.repeat(40),
+					name: 'index.ts',
+					type: 'blob',
+					path: 'src/index.ts',
+					mode: '100644',
+				},
+			])
 
 		await expect(getProject({ projectId: 'gitlab-org/gitlab' })).resolves.toMatchObject({ id: 278964 })
 		await expect(getBranches({ projectId: 'gitlab-org/gitlab' })).resolves.toHaveLength(1)
 		await expect(getIssue({ projectId: 'gitlab-org/gitlab', issueNumber: 12 })).resolves.toMatchObject({ iid: 12 })
 		await expect(getMergeRequest({ projectId: 'gitlab-org/gitlab', pullRequestNumber: 34 })).resolves.toMatchObject({ iid: 34 })
 		await expect(getRelease({ projectId: 'gitlab-org/gitlab', releaseTagName: 'v1' })).resolves.toMatchObject({ tag_name: 'v1' })
+		await expect(getRepositoryTree({ projectId: 'gitlab-org/gitlab' })).resolves.toEqual([
+			expect.objectContaining({
+				path: 'src/index.ts',
+				type: 'blob',
+			}),
+		])
 	})
 
 	it('rejects incomplete lifecycle payloads', async () => {

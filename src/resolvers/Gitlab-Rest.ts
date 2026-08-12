@@ -116,17 +116,21 @@ export default {
 						const {
 							getBranches,
 							getProject,
+							getRepositoryTree,
 						} = await import('$/sources/Gitlab/Rest/queries.ts')
-						const [project, branches] = await Promise.all([
+						const [project, branches, repositoryTree] = await Promise.all([
 							getProject({ projectId: coordinates.projectId }),
 							getBranches({ projectId: coordinates.projectId }),
+							getRepositoryTree({ projectId: coordinates.projectId }),
 						])
 						if (project.path !== coordinates.repositoryName || project.path_with_namespace !== coordinates.projectId)
 							throw new Error('Gitlab_Rest: project identity does not match remote URL')
 
+						const objectFormat = branches.some((branch) => branch.commit.id.length === 64) ? 'sha256' : 'sha1'
 						return {
+							repositoryId: project.http_url_to_repo,
 							canonicalRemoteUrl: project.http_url_to_repo,
-							objectFormat: branches.some((branch) => branch.commit.id.length === 64) ? 'sha256' : 'sha1',
+							objectFormat,
 							...(project.default_branch != null && { defaultRefName: `refs/heads/${project.default_branch}` }),
 							$$refs: branches.map((branch) => ({
 								[EntityMetaKey.Selector]: {
@@ -138,11 +142,24 @@ export default {
 								refKind: 'branch',
 								targetObjectId: `0x${branch.commit.id}`,
 							})),
+							$$objects: repositoryTree.map((object) => ({
+								[EntityMetaKey.Selector]: {
+									objectId: `0x${object.id}`,
+									objectFormat,
+								},
+								objectKind: object.type,
+								$repository: {
+									[EntityMetaKey.Selector]: {
+										canonicalRemoteUrl: project.http_url_to_repo,
+									},
+								},
+							})),
 						}
 					},
 				},
 			},
 		})({
+			repositoryId: (repository) => repository.repositoryId,
 			canonicalRemoteUrl: (repository) => repository.canonicalRemoteUrl,
 			objectFormat: (repository) => repository.objectFormat,
 			defaultRefName: (repository) => repository.defaultRefName,
@@ -155,6 +172,16 @@ export default {
 					},
 				})),
 				resolveCount: (repository) => repository.$$refs.length,
+			},
+			$$objects: {
+				select: (repository) => repository.$$objects.map((object) => ({
+					[EntityMetaKey.Selector]: object[EntityMetaKey.Selector],
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.GitObject, [], 'objectKind')]: object.objectKind,
+						[entityFieldAddressKey(EntityType.GitObject, [], '$repository')]: object.$repository,
+					},
+				})),
+				resolveCount: (repository) => repository.$$objects.length,
 			},
 		}),
 

@@ -11,12 +11,14 @@ const {
 	getMergeRequest,
 	getProject,
 	getRelease,
+	getRepositoryTree,
 } = vi.hoisted(() => ({
 	getBranches: vi.fn(),
 	getIssue: vi.fn(),
 	getMergeRequest: vi.fn(),
 	getProject: vi.fn(),
 	getRelease: vi.fn(),
+	getRepositoryTree: vi.fn(),
 }))
 
 vi.mock('$/sources/Gitlab/Rest/queries.ts', () => ({
@@ -25,6 +27,7 @@ vi.mock('$/sources/Gitlab/Rest/queries.ts', () => ({
 	getMergeRequest,
 	getProject,
 	getRelease,
+	getRepositoryTree,
 }))
 
 const resolverModule = (await import('$/resolvers/Gitlab-Rest.ts')).default
@@ -69,6 +72,22 @@ describe('GitLab repository journey', () => {
 				commit: {
 					id: 'b'.repeat(40),
 				},
+			},
+		])
+		getRepositoryTree.mockResolvedValue([
+			{
+				id: 'c'.repeat(40),
+				name: 'src',
+				type: 'tree',
+				path: 'src',
+				mode: '040000',
+			},
+			{
+				id: 'd'.repeat(40),
+				name: 'index.ts',
+				type: 'blob',
+				path: 'src/index.ts',
+				mode: '100644',
 			},
 		])
 		getIssue.mockResolvedValue({
@@ -138,6 +157,7 @@ describe('GitLab repository journey', () => {
 		})
 
 		expect(snapshot).toMatchObject({
+			repositoryId: project.http_url_to_repo,
 			canonicalRemoteUrl: project.http_url_to_repo,
 			objectFormat: 'sha1',
 			defaultRefName: 'refs/heads/master',
@@ -167,6 +187,23 @@ describe('GitLab repository journey', () => {
 		if (snapshot == null)
 			throw new Error('GitLab repository snapshot must resolve')
 		expect(repositoryResolver.projections.$$refs.resolveCount(snapshot)).toBe(2)
+		expect(repositoryResolver.projections.$$objects.resolveCount(snapshot)).toBe(2)
+		expect(repositoryResolver.projections.$$objects.select(snapshot)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					objectId: `0x${'c'.repeat(40)}`,
+					objectFormat: 'sha1',
+				},
+				[EntityMetaKey.Fields]: expect.any(Object),
+			},
+			{
+				[EntityMetaKey.Selector]: {
+					objectId: `0x${'d'.repeat(40)}`,
+					objectFormat: 'sha1',
+				},
+				[EntityMetaKey.Fields]: expect.any(Object),
+			},
+		])
 	})
 
 	it('does not claim non-GitLab forge or remote authority', async () => {

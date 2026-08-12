@@ -7,6 +7,7 @@ import {
 	gitlabMergeRequestWire,
 	gitlabProjectWire,
 	gitlabReleaseWire,
+	gitlabRepositoryTreeWire,
 } from '$/sources/Gitlab/Rest/types.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 
@@ -108,7 +109,15 @@ export const getRepositoryTree = ({
 			new URLSearchParams({
 				...(path != null && { path }),
 				...(ref != null && { ref }),
+				recursive: 'true',
+				per_page: '100',
 			})
 		}`
-	)
+	).then((tree) => {
+		try {
+			return gitlabRepositoryTreeWire.assert(tree)
+		} catch {
+			throw new Error('Gitlab_Rest: invalid repository tree response')
+		}
+	})
 )

@@ -25,6 +25,16 @@ export type GitlabBranch = typeof gitlabBranchWire.infer
 
 export const gitlabBranchesWire = gitlabBranchWire.array()
 
+export const gitlabRepositoryTreeEntryWire = type({
+	id: '/^[0-9a-fA-F]{40}$|^[0-9a-fA-F]{64}$/',
+	name: 'string > 0',
+	type: "'blob' | 'tree'",
+	path: 'string > 0',
+	mode: '/^[0-7]{6}$/',
+})
+
+export const gitlabRepositoryTreeWire = gitlabRepositoryTreeEntryWire.array()
+
 export const gitlabIssueWire = type({
 	iid: 'number.integer >= 0',
 	title: 'string',
