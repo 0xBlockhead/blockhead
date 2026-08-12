@@ -113525,6 +113525,10 @@ export const app = {
 				path: "src/resolvers/GetBlock-Yellowstone.ts",
 			},
 			{
+				source: Source.Gitlab_Rest,
+				path: "src/resolvers/Gitlab-Rest.ts",
+			},
+			{
 				source: Source.Gmx_Rest,
 				path: "src/resolvers/Gmx-Rest.ts",
 			},
