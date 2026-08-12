@@ -42,6 +42,7 @@ const omitUndefinedJson = (
 	if (value != null && typeof value === 'object' && !(value instanceof Date))
 		return Object.fromEntries(
 			Object.entries(value)
+				// oxlint-disable-next-line typescript/no-unnecessary-condition -- Runtime SQL rows can contain undefined columns despite the JSON-compatible static type.
 				.filter(([, entry]) => entry !== undefined)
 				.map(([key, entry]) => [
 					key,
@@ -397,6 +398,64 @@ export const listAccountBalances = async ({
 	})
 }
 
+export const listTokenBalances = async ({
+	contractAddress,
+	tokenId,
+	offset = 0,
+	limit = 100,
+}: {
+	contractAddress: string
+	tokenId: bigint
+	offset?: number
+	limit?: number
+}): Promise<DappetizerBalance[]> => {
+	if (contractAddress.length === 0)
+		throw new Error('TezosDappetizer_Postgres: empty token contract address')
+	if (tokenId < 0n || tokenId > BigInt(Number.MAX_SAFE_INTEGER))
+		throw new Error(`TezosDappetizer_Postgres: unsupported token id ${tokenId.toString()}`)
+	assertPage(offset, limit, 'token balances')
+
+	return (
+		await queryRows(
+			`
+				SELECT
+					balance.owner_address AS "ownerAddress",
+					balance.amount,
+					balance.operation_group_hash AS "operationGroupHash",
+					balance.token_id AS "tokenId",
+					balance.token_contract_address AS "tokenContractAddress",
+					balance.valid_from_block_hash AS "validFromBlockHash",
+					balance.valid_until_block_hash AS "validUntilBlockHash",
+					block.level,
+					block.timestamp
+				FROM balance
+				INNER JOIN block
+					ON block.hash = balance.valid_from_block_hash
+				WHERE balance.token_contract_address = $1
+					AND balance.token_id = $2
+					AND balance.valid_until_block_hash IS NULL
+				ORDER BY balance.owner_address ASC
+				OFFSET $3
+				LIMIT $4
+			`,
+			[
+				contractAddress,
+				tokenId.toString(),
+				offset,
+				limit,
+			]
+		)
+	).map((row) => {
+		const balance = assertEnvelope('balance', dappetizerBalanceWire, row)
+		if (
+			balance.tokenContractAddress !== contractAddress
+			|| bigintFromWire(balance.tokenId, 'token id') !== tokenId
+		)
+			throw new Error('TezosDappetizer_Postgres: balance token does not match the subject')
+		return balance
+	})
+}
+
 export const listAccountTransferActions = async ({
 	address,
 	offset = 0,
@@ -446,6 +505,115 @@ export const listAccountTransferActions = async ({
 			]
 		)
 	).map((row) => assertEnvelope('action', dappetizerActionWire, row))
+}
+
+const transferActionSelect = `
+	SELECT
+		action."order",
+		action.type,
+		action.operation_group_hash AS "operationGroupHash",
+		action.amount,
+		action.from_address AS "fromAddress",
+		action.to_address AS "toAddress",
+		action.owner_address AS "ownerAddress",
+		action.block_hash AS "blockHash",
+		action.token_id AS "tokenId",
+		action.token_contract_address AS "tokenContractAddress",
+		block.level,
+		block.timestamp
+	FROM action
+	INNER JOIN block
+		ON block.hash = action.block_hash
+`
+
+const transferAction = (
+	transferId: string
+) => {
+	const match = /^([^:]+):(0|[1-9][0-9]*)$/.exec(transferId)
+	if (match == null)
+		throw new Error(`TezosDappetizer_Postgres: invalid transfer id ${transferId}`)
+
+	return {
+		operationGroupHash: match[1],
+		order: Number(match[2]),
+	}
+}
+
+export const getTokenTransferAction = async ({
+	transferId,
+}: {
+	transferId: string
+}): Promise<DappetizerAction> => {
+	const {
+		operationGroupHash,
+		order,
+	} = transferAction(transferId)
+	const row = (
+		await queryRows(
+			`${transferActionSelect}
+				WHERE action.type = 'transfer'
+					AND action.operation_group_hash = $1
+					AND action."order" = $2
+				LIMIT 1
+			`,
+			[
+				operationGroupHash,
+				order,
+			]
+		)
+	)[0]
+	if (row == null)
+		throw new Error(`TezosDappetizer_Postgres: transfer ${transferId} not found`)
+
+	const action = assertEnvelope('action', dappetizerActionWire, row)
+	if (`${action.operationGroupHash}:${action.order}` !== transferId)
+		throw new Error('TezosDappetizer_Postgres: transfer response does not match the subject')
+	return action
+}
+
+export const listTokenTransferActions = async ({
+	contractAddress,
+	tokenId,
+	offset = 0,
+	limit = 100,
+}: {
+	contractAddress: string
+	tokenId: bigint
+	offset?: number
+	limit?: number
+}): Promise<DappetizerAction[]> => {
+	if (contractAddress.length === 0)
+		throw new Error('TezosDappetizer_Postgres: empty token contract address')
+	if (tokenId < 0n || tokenId > BigInt(Number.MAX_SAFE_INTEGER))
+		throw new Error(`TezosDappetizer_Postgres: unsupported token id ${tokenId.toString()}`)
+	assertPage(offset, limit, 'token transfer actions')
+
+	return (
+		await queryRows(
+			`${transferActionSelect}
+				WHERE action.type = 'transfer'
+					AND action.token_contract_address = $1
+					AND action.token_id = $2
+				ORDER BY block.level DESC, action."order" DESC
+				OFFSET $3
+				LIMIT $4
+			`,
+			[
+				contractAddress,
+				tokenId.toString(),
+				offset,
+				limit,
+			]
+		)
+	).map((row) => {
+		const action = assertEnvelope('action', dappetizerActionWire, row)
+		if (
+			action.tokenContractAddress !== contractAddress
+			|| bigintFromWire(action.tokenId, 'token id') !== tokenId
+		)
+			throw new Error('TezosDappetizer_Postgres: transfer token does not match the subject')
+		return action
+	})
 }
 
 export const listTransferActions = async ({

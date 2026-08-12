@@ -203,6 +203,44 @@ const transferFieldsFromWire = (
 	}
 }
 
+const tokenBalanceTimestampFieldsFromWire = (
+	tezosNetwork: { $network: NetworkId },
+	balance: {
+		ownerAddress: string
+		amount: string | number
+		tokenId: string | number
+		tokenContractAddress: string
+		level?: number
+		timestamp?: string | Date | number | null
+	}
+) => {
+	const tokenId = bigintFromWire(balance.tokenId, 'token id')
+	const timestampMs = timestampMsFromWire(balance.timestamp)
+	return {
+		[EntityMetaKey.Selector]: {
+			$account: {
+				$network: tezosNetwork,
+				address: balance.ownerAddress,
+			},
+			$token: {
+				$network: tezosNetwork,
+				contractAddress: balance.tokenContractAddress,
+				tokenId,
+			},
+			level: BigInt(balance.level ?? 0),
+			source: Source.TezosDappetizer_Postgres,
+		},
+		[EntityMetaKey.Fields]: {
+			[entityFieldAddressKey(EntityType.TezosTokenBalance_Timestamp, [], 'balance')]: bigintFromWire(balance.amount, 'balance amount'),
+			[entityFieldAddressKey(EntityType.TezosTokenBalance_Timestamp, [], 'contractAddress')]: balance.tokenContractAddress,
+			[entityFieldAddressKey(EntityType.TezosTokenBalance_Timestamp, [], 'tokenId')]: tokenId,
+			...(timestampMs != null && {
+				[entityFieldAddressKey(EntityType.TezosTokenBalance_Timestamp, [], 'timestampMs')]: timestampMs,
+			}),
+		},
+	}
+}
+
 
 export default {
 	source: Source.TezosDappetizer_Postgres,
@@ -429,36 +467,9 @@ export default {
 			},
 		})({
 			$$tokenBalanceTimestamps: {
-				select: (page, account) => page.balances.map((balance) => {
-					const tokenId = bigintFromWire(balance.tokenId, 'token id')
-					const level = (
-						balance.level == null ?
-							0n
-						:
-							BigInt(balance.level)
-					)
-					const timestampMs = timestampMsFromWire(balance.timestamp ?? undefined)
-					return {
-						[EntityMetaKey.Selector]: {
-							$account: account,
-							$token: {
-								$network: account.$network,
-								contractAddress: balance.tokenContractAddress,
-								tokenId,
-							},
-							level,
-							source: Source.TezosDappetizer_Postgres,
-						},
-						[EntityMetaKey.Fields]: {
-							[entityFieldAddressKey(EntityType.TezosTokenBalance_Timestamp, [], 'balance')]: bigintFromWire(balance.amount, 'balance amount'),
-							[entityFieldAddressKey(EntityType.TezosTokenBalance_Timestamp, [], 'contractAddress')]: balance.tokenContractAddress,
-							[entityFieldAddressKey(EntityType.TezosTokenBalance_Timestamp, [], 'tokenId')]: tokenId,
-							...(timestampMs != null && {
-								[entityFieldAddressKey(EntityType.TezosTokenBalance_Timestamp, [], 'timestampMs')]: timestampMs,
-							}),
-						},
-					}
-				}),
+				select: (page, account) => page.balances.map((balance) => (
+					tokenBalanceTimestampFieldsFromWire(account.$network, balance)
+				)),
 				continuation: (page) => pageContinuation(
 					'account-token-balances',
 					page.offset,
@@ -534,6 +545,112 @@ export default {
 			contractAddress: (token) => token.contractAddress,
 			tokenId: (token) => token.tokenId,
 			$contract: (token) => token.$contract,
+		}),
+
+		defineResolver({
+			entityType: EntityType.TezosToken,
+			resolve: {
+				NetworkContractAddressTokenId: {
+					resolve: async (token, context) => {
+						assertTezosMainnet(token.$network.$network)
+						const offset = pageOffset(context.providerContinuationToken)
+						const limit = Math.min(resolverContextRowLimit(context), 1_000)
+						const { listTokenBalances } = await import('$/sources/TezosDappetizer/Postgres/queries.ts')
+						return {
+							balances: await listTokenBalances({
+								contractAddress: token.contractAddress,
+								tokenId: token.tokenId,
+								offset,
+								limit,
+							}),
+							limit,
+							offset,
+						}
+					},
+				},
+			},
+		})({
+			$$balanceTimestamps: {
+				select: (page, token) => page.balances.map((balance) => (
+					tokenBalanceTimestampFieldsFromWire(token.$network, balance)
+				)),
+				continuation: (page, token) => pageContinuation(
+					'token-balances',
+					page.offset,
+					page.limit,
+					page.balances.length
+				),
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.TezosToken,
+			resolve: {
+				NetworkContractAddressTokenId: {
+					resolve: async (token, context) => {
+						assertTezosMainnet(token.$network.$network)
+						const offset = pageOffset(context.providerContinuationToken)
+						const limit = Math.min(resolverContextRowLimit(context), 1_000)
+						const { listTokenTransferActions } = await import('$/sources/TezosDappetizer/Postgres/queries.ts')
+						return {
+							actions: await listTokenTransferActions({
+								contractAddress: token.contractAddress,
+								tokenId: token.tokenId,
+								offset,
+								limit,
+							}),
+							limit,
+							offset,
+						}
+					},
+				},
+			},
+		})({
+			$$transfers: {
+				select: (page, token) => page.actions.map((action) => (
+					transferFieldsFromWire(token.$network, action)
+				)),
+				continuation: (page) => pageContinuation(
+					'token-transfers',
+					page.offset,
+					page.limit,
+					page.actions.length
+				),
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.TezosTokenTransfer,
+			resolve: {
+				NetworkTransferIdSource: {
+					resolve: async ({
+						$network,
+						transferId,
+						source,
+					}) => {
+						assertTezosMainnet($network.$network)
+						if (source !== Source.TezosDappetizer_Postgres)
+							throw new Error(`TezosDappetizer_Postgres: unsupported transfer source ${source}`)
+						const { getTokenTransferAction } = await import('$/sources/TezosDappetizer/Postgres/queries.ts')
+						return transferFieldsFromWire(
+							$network,
+							await getTokenTransferAction({
+								transferId,
+							})
+						)[EntityMetaKey.Fields]
+					},
+				},
+			},
+		})({
+			$token: (transfer) => transfer[entityFieldAddressKey(EntityType.TezosTokenTransfer, [], '$token')],
+			$from: (transfer) => transfer[entityFieldAddressKey(EntityType.TezosTokenTransfer, [], '$from')],
+			$to: (transfer) => transfer[entityFieldAddressKey(EntityType.TezosTokenTransfer, [], '$to')],
+			level: (transfer) => transfer[entityFieldAddressKey(EntityType.TezosTokenTransfer, [], 'level')],
+			timestampMs: (transfer) => transfer[entityFieldAddressKey(EntityType.TezosTokenTransfer, [], 'timestampMs')],
+			contractAddress: (transfer) => transfer[entityFieldAddressKey(EntityType.TezosTokenTransfer, [], 'contractAddress')],
+			tokenId: (transfer) => transfer[entityFieldAddressKey(EntityType.TezosTokenTransfer, [], 'tokenId')],
+			amount: (transfer) => transfer[entityFieldAddressKey(EntityType.TezosTokenTransfer, [], 'amount')],
+			transactionId: (transfer) => transfer[entityFieldAddressKey(EntityType.TezosTokenTransfer, [], 'transactionId')],
 		}),
 
 		defineResolver({
