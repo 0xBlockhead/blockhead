@@ -53,6 +53,9 @@ vi.mock('$/sources/Gitlab/Rest/queries.ts', () => ({
 
 const resolverModule = (await import('$/resolvers/Gitlab-Rest.ts')).default
 const mirrorResolver = resolverModule.resolvers.find((resolver) => resolver.entityType === EntityType.GitForgeMirror)
+const mirrorIssuesResolver = resolverModule.resolvers.find((resolver) => '$$issues' in resolver.projections)
+const mirrorPullRequestsResolver = resolverModule.resolvers.find((resolver) => '$$pullRequests' in resolver.projections)
+const mirrorReleasesResolver = resolverModule.resolvers.find((resolver) => '$$releases' in resolver.projections)
 const repositoryResolver = resolverModule.resolvers.find((resolver) => resolver.entityType === EntityType.GitRepository)
 const refResolver = resolverModule.resolvers.find((resolver) => resolver.entityType === EntityType.GitRef)
 const pathResolutionResolver = resolverModule.resolvers.find((resolver) => resolver.entityType === EntityType.GitTreePathResolution)
@@ -62,6 +65,9 @@ const releaseResolver = resolverModule.resolvers.find((resolver) => resolver.ent
 if (
 	mirrorResolver == null
 	|| repositoryResolver == null
+	|| mirrorIssuesResolver == null
+	|| mirrorPullRequestsResolver == null
+	|| mirrorReleasesResolver == null
 	|| refResolver == null
 	|| pathResolutionResolver == null
 	|| issueResolver == null
@@ -254,29 +260,64 @@ describe('GitLab repository journey', () => {
 			commit: { id: 'd'.repeat(40) },
 		}])
 
-		const snapshot = await mirrorResolver.resolve.ForgeHostOwnerRepositoryName.resolve({
+		const selector = {
 			forgeHost: 'gitlab.com',
 			owner: 'gitlab-org',
 			repositoryName: 'gitlab',
-		})
+		}
+		const pageContext = {
+			filters: [],
+			sorts: [],
+			pagination: { limit: 1 },
+			selectorKeys: [],
+			parentSelectorKeys: [],
+			sources: [],
+			publicEnv: {},
+		}
+		const issuePage = await mirrorIssuesResolver.resolve.ForgeHostOwnerRepositoryName.resolve(selector, pageContext)
+		const pullRequestPage = await mirrorPullRequestsResolver.resolve.ForgeHostOwnerRepositoryName.resolve(selector, pageContext)
+		const releasePage = await mirrorReleasesResolver.resolve.ForgeHostOwnerRepositoryName.resolve(selector, pageContext)
+		if (issuePage == null || pullRequestPage == null || releasePage == null)
+			throw new Error('GitLab lifecycle pages must resolve')
+		const issues = mirrorIssuesResolver.projections.$$issues.select(issuePage, selector, pageContext)
+		const pullRequests = mirrorPullRequestsResolver.projections.$$pullRequests.select(pullRequestPage, selector, pageContext)
+		const releases = mirrorReleasesResolver.projections.$$releases.select(releasePage, selector, pageContext)
 
-		expect(snapshot?.$$issues[0]).toMatchObject({
+		expect(issues[0]).toMatchObject({
 			[EntityMetaKey.Selector]: { issueNumber: 12 },
 			[EntityMetaKey.Fields]: {
 				[entityFieldAddressKey(EntityType.GitForgeIssue, [], 'state')]: 'closed',
 			},
 		})
-		expect(snapshot?.$$pullRequests[0]).toMatchObject({
+		expect(pullRequests[0]).toMatchObject({
 			[EntityMetaKey.Selector]: { pullRequestNumber: 34 },
 			[EntityMetaKey.Fields]: {
 				[entityFieldAddressKey(EntityType.GitForgePullRequest, [], 'headObjectId')]: `0x${'c'.repeat(40)}`,
 			},
 		})
-		expect(snapshot?.$$releases[0]).toMatchObject({
+		expect(releases[0]).toMatchObject({
 			[EntityMetaKey.Selector]: { releaseTagName: 'v1.0.0' },
 			[EntityMetaKey.Fields]: {
 				[entityFieldAddressKey(EntityType.GitForgeRelease, [], 'targetObjectId')]: `0x${'d'.repeat(40)}`,
 			},
+		})
+		expect(getIssues).toHaveBeenCalledWith(expect.objectContaining({ page: 1, perPage: 1 }))
+		expect(getMergeRequests).toHaveBeenCalledWith(expect.objectContaining({ page: 1, perPage: 1 }))
+		expect(getReleases).toHaveBeenCalledWith(expect.objectContaining({ page: 1, perPage: 1 }))
+		expect(mirrorIssuesResolver.projections.$$issues.continuation?.(issuePage, selector, pageContext)).toEqual({
+			operation: 'gitlab-issues',
+			terminal: false,
+			token: '2',
+		})
+		expect(mirrorPullRequestsResolver.projections.$$pullRequests.continuation?.(pullRequestPage, selector, pageContext)).toEqual({
+			operation: 'gitlab-merge-requests',
+			terminal: false,
+			token: '2',
+		})
+		expect(mirrorReleasesResolver.projections.$$releases.continuation?.(releasePage, selector, pageContext)).toEqual({
+			operation: 'gitlab-releases',
+			terminal: false,
+			token: '2',
 		})
 	})
 

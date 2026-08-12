@@ -2,6 +2,7 @@ import {
 	defineResolver,
 	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
+import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
 	EntityMetaKey,
 	entityFieldAddressKey,
@@ -48,6 +49,14 @@ const gitlabTimestampMs = (timestamp: string) => {
 	return timestampMs
 }
 
+const gitlabPage = (providerContinuationToken: string | undefined) => {
+	const page = Number(providerContinuationToken ?? '1')
+	if (!Number.isSafeInteger(page) || page < 1)
+		throw new Error('Gitlab_Rest: invalid continuation page')
+
+	return page
+}
+
 export default {
 	source: Source.Gitlab_Rest,
 
@@ -63,19 +72,9 @@ export default {
 					}) => {
 						if (forgeHost !== 'gitlab.com') return undefined
 
-						const {
-							getIssues,
-							getMergeRequests,
-							getProject,
-							getReleases,
-						} = await import('$/sources/Gitlab/Rest/queries.ts')
+						const { getProject } = await import('$/sources/Gitlab/Rest/queries.ts')
 						const projectId = `${owner}/${repositoryName}`
-						const [project, issues, mergeRequests, releases] = await Promise.all([
-							getProject({ projectId }),
-							getIssues({ projectId }),
-							getMergeRequests({ projectId }),
-							getReleases({ projectId }),
-						])
+						const project = await getProject({ projectId })
 						if (project.path !== repositoryName || project.path_with_namespace !== `${owner}/${repositoryName}`)
 							throw new Error('Gitlab_Rest: project identity does not match selector')
 
@@ -97,63 +96,6 @@ export default {
 							htmlUrl: project.web_url,
 							providerRepositoryId: String(project.id),
 							source: Source.Gitlab_Rest,
-							$$issues: issues.map((issue) => ({
-								[EntityMetaKey.Selector]: {
-									$forgeMirror: { forgeHost, owner, repositoryName },
-									issueNumber: issue.iid,
-								},
-								[EntityMetaKey.Fields]: {
-									[entityFieldAddressKey(EntityType.GitForgeIssue, [], 'title')]: issue.title,
-									[entityFieldAddressKey(EntityType.GitForgeIssue, [], 'state')]: issue.state,
-									[entityFieldAddressKey(EntityType.GitForgeIssue, [], 'labels')]: issue.labels,
-									...(issue.author != null && {
-										[entityFieldAddressKey(EntityType.GitForgeIssue, [], 'authorSelector')]: issue.author,
-									}),
-									[entityFieldAddressKey(EntityType.GitForgeIssue, [], 'createdAt')]: gitlabTimestampMs(issue.created_at),
-									[entityFieldAddressKey(EntityType.GitForgeIssue, [], 'updatedAt')]: gitlabTimestampMs(issue.updated_at),
-									...(issue.closed_at != null && {
-										[entityFieldAddressKey(EntityType.GitForgeIssue, [], 'closedAt')]: gitlabTimestampMs(issue.closed_at),
-									}),
-								},
-							})),
-							$$pullRequests: mergeRequests.map((mergeRequest) => ({
-								[EntityMetaKey.Selector]: {
-									$forgeMirror: { forgeHost, owner, repositoryName },
-									pullRequestNumber: mergeRequest.iid,
-								},
-								[EntityMetaKey.Fields]: {
-									[entityFieldAddressKey(EntityType.GitForgePullRequest, [], 'title')]: mergeRequest.title,
-									[entityFieldAddressKey(EntityType.GitForgePullRequest, [], 'state')]: mergeRequest.state,
-									[entityFieldAddressKey(EntityType.GitForgePullRequest, [], 'baseRef')]: mergeRequest.target_branch,
-									[entityFieldAddressKey(EntityType.GitForgePullRequest, [], 'headRef')]: mergeRequest.source_branch,
-									[entityFieldAddressKey(EntityType.GitForgePullRequest, [], 'headObjectId')]: `0x${mergeRequest.sha}`,
-									...(mergeRequest.author != null && {
-										[entityFieldAddressKey(EntityType.GitForgePullRequest, [], 'authorSelector')]: mergeRequest.author,
-									}),
-									[entityFieldAddressKey(EntityType.GitForgePullRequest, [], 'createdAt')]: gitlabTimestampMs(mergeRequest.created_at),
-									[entityFieldAddressKey(EntityType.GitForgePullRequest, [], 'updatedAt')]: gitlabTimestampMs(mergeRequest.updated_at),
-									...(mergeRequest.merged_at != null && {
-										[entityFieldAddressKey(EntityType.GitForgePullRequest, [], 'mergedAt')]: gitlabTimestampMs(mergeRequest.merged_at),
-									}),
-								},
-							})),
-							$$releases: releases.map((release) => ({
-								[EntityMetaKey.Selector]: {
-									$forgeMirror: { forgeHost, owner, repositoryName },
-									releaseTagName: release.tag_name,
-								},
-								[EntityMetaKey.Fields]: {
-									...(release.name != null && {
-										[entityFieldAddressKey(EntityType.GitForgeRelease, [], 'name')]: release.name,
-									}),
-									[entityFieldAddressKey(EntityType.GitForgeRelease, [], 'targetObjectId')]: `0x${release.commit.id}`,
-									...(release.author != null && {
-										[entityFieldAddressKey(EntityType.GitForgeRelease, [], 'authorSelector')]: release.author,
-									}),
-									[entityFieldAddressKey(EntityType.GitForgeRelease, [], 'createdAt')]: gitlabTimestampMs(release.created_at),
-									[entityFieldAddressKey(EntityType.GitForgeRelease, [], 'publishedAt')]: gitlabTimestampMs(release.released_at),
-								},
-							})),
 						}
 					},
 				},
@@ -169,9 +111,189 @@ export default {
 			htmlUrl: (project) => project.htmlUrl,
 			providerRepositoryId: (project) => project.providerRepositoryId,
 			source: (project) => project.source,
-			$$issues: (project) => project.$$issues,
-			$$pullRequests: (project) => project.$$pullRequests,
-			$$releases: (project) => project.$$releases,
+		}),
+
+		defineResolver({
+			entityType: EntityType.GitForgeMirror,
+			resolve: {
+				ForgeHostOwnerRepositoryName: {
+					resolve: async (mirror, context) => {
+						const projectId = gitlabProjectIdFromMirror(mirror)
+						if (projectId == null) return undefined
+
+						const page = gitlabPage(context.providerContinuationToken)
+						const perPage = resolverContextRowLimit(context)
+						const { getIssues } = await import('$/sources/Gitlab/Rest/queries.ts')
+						return {
+							page,
+							perPage,
+							issues: (
+								perPage === 0 ?
+									[]
+								:
+									await getIssues({
+										projectId,
+										page,
+										perPage,
+									})
+							),
+						}
+					},
+				},
+			},
+		})({
+			$$issues: {
+				select: ({ issues }, mirror) => issues.map((issue) => ({
+					[EntityMetaKey.Selector]: {
+						$forgeMirror: mirror,
+						issueNumber: issue.iid,
+					},
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.GitForgeIssue, [], 'title')]: issue.title,
+						[entityFieldAddressKey(EntityType.GitForgeIssue, [], 'state')]: issue.state,
+						[entityFieldAddressKey(EntityType.GitForgeIssue, [], 'labels')]: issue.labels,
+						...(issue.author != null && {
+							[entityFieldAddressKey(EntityType.GitForgeIssue, [], 'authorSelector')]: issue.author,
+						}),
+						[entityFieldAddressKey(EntityType.GitForgeIssue, [], 'createdAt')]: gitlabTimestampMs(issue.created_at),
+						[entityFieldAddressKey(EntityType.GitForgeIssue, [], 'updatedAt')]: gitlabTimestampMs(issue.updated_at),
+						...(issue.closed_at != null && {
+							[entityFieldAddressKey(EntityType.GitForgeIssue, [], 'closedAt')]: gitlabTimestampMs(issue.closed_at),
+						}),
+					},
+				})),
+				continuation: ({
+					issues,
+					page,
+					perPage,
+				}) => ({
+					operation: 'gitlab-issues',
+					terminal: perPage === 0 || issues.length < perPage,
+					...(issues.length === perPage && { token: String(page + 1) }),
+				}),
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.GitForgeMirror,
+			resolve: {
+				ForgeHostOwnerRepositoryName: {
+					resolve: async (mirror, context) => {
+						const projectId = gitlabProjectIdFromMirror(mirror)
+						if (projectId == null) return undefined
+
+						const page = gitlabPage(context.providerContinuationToken)
+						const perPage = resolverContextRowLimit(context)
+						const { getMergeRequests } = await import('$/sources/Gitlab/Rest/queries.ts')
+						return {
+							page,
+							perPage,
+							mergeRequests: (
+								perPage === 0 ?
+									[]
+								:
+									await getMergeRequests({
+										projectId,
+										page,
+										perPage,
+									})
+							),
+						}
+					},
+				},
+			},
+		})({
+			$$pullRequests: {
+				select: ({ mergeRequests }, mirror) => mergeRequests.map((mergeRequest) => ({
+					[EntityMetaKey.Selector]: {
+						$forgeMirror: mirror,
+						pullRequestNumber: mergeRequest.iid,
+					},
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.GitForgePullRequest, [], 'title')]: mergeRequest.title,
+						[entityFieldAddressKey(EntityType.GitForgePullRequest, [], 'state')]: mergeRequest.state,
+						[entityFieldAddressKey(EntityType.GitForgePullRequest, [], 'baseRef')]: mergeRequest.target_branch,
+						[entityFieldAddressKey(EntityType.GitForgePullRequest, [], 'headRef')]: mergeRequest.source_branch,
+						[entityFieldAddressKey(EntityType.GitForgePullRequest, [], 'headObjectId')]: `0x${mergeRequest.sha}`,
+						...(mergeRequest.author != null && {
+							[entityFieldAddressKey(EntityType.GitForgePullRequest, [], 'authorSelector')]: mergeRequest.author,
+						}),
+						[entityFieldAddressKey(EntityType.GitForgePullRequest, [], 'createdAt')]: gitlabTimestampMs(mergeRequest.created_at),
+						[entityFieldAddressKey(EntityType.GitForgePullRequest, [], 'updatedAt')]: gitlabTimestampMs(mergeRequest.updated_at),
+						...(mergeRequest.merged_at != null && {
+							[entityFieldAddressKey(EntityType.GitForgePullRequest, [], 'mergedAt')]: gitlabTimestampMs(mergeRequest.merged_at),
+						}),
+					},
+				})),
+				continuation: ({
+					mergeRequests,
+					page,
+					perPage,
+				}) => ({
+					operation: 'gitlab-merge-requests',
+					terminal: perPage === 0 || mergeRequests.length < perPage,
+					...(mergeRequests.length === perPage && { token: String(page + 1) }),
+				}),
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.GitForgeMirror,
+			resolve: {
+				ForgeHostOwnerRepositoryName: {
+					resolve: async (mirror, context) => {
+						const projectId = gitlabProjectIdFromMirror(mirror)
+						if (projectId == null) return undefined
+
+						const page = gitlabPage(context.providerContinuationToken)
+						const perPage = resolverContextRowLimit(context)
+						const { getReleases } = await import('$/sources/Gitlab/Rest/queries.ts')
+						return {
+							page,
+							perPage,
+							releases: (
+								perPage === 0 ?
+									[]
+								:
+									await getReleases({
+										projectId,
+										page,
+										perPage,
+									})
+							),
+						}
+					},
+				},
+			},
+		})({
+			$$releases: {
+				select: ({ releases }, mirror) => releases.map((release) => ({
+					[EntityMetaKey.Selector]: {
+						$forgeMirror: mirror,
+						releaseTagName: release.tag_name,
+					},
+					[EntityMetaKey.Fields]: {
+						...(release.name != null && {
+							[entityFieldAddressKey(EntityType.GitForgeRelease, [], 'name')]: release.name,
+						}),
+						[entityFieldAddressKey(EntityType.GitForgeRelease, [], 'targetObjectId')]: `0x${release.commit.id}`,
+						...(release.author != null && {
+							[entityFieldAddressKey(EntityType.GitForgeRelease, [], 'authorSelector')]: release.author,
+						}),
+						[entityFieldAddressKey(EntityType.GitForgeRelease, [], 'createdAt')]: gitlabTimestampMs(release.created_at),
+						[entityFieldAddressKey(EntityType.GitForgeRelease, [], 'publishedAt')]: gitlabTimestampMs(release.released_at),
+					},
+				})),
+				continuation: ({
+					releases,
+					page,
+					perPage,
+				}) => ({
+					operation: 'gitlab-releases',
+					terminal: perPage === 0 || releases.length < perPage,
+					...(releases.length === perPage && { token: String(page + 1) }),
+				}),
+			},
 		}),
 
 		defineResolver({

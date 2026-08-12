@@ -19,6 +19,21 @@ import type { JsonValue } from '$/typescript/JsonValue.ts'
 
 const binding = bindings[Source.Gitlab_Rest][0]
 
+const gitlabPaginationParams = (
+	page: number,
+	perPage: number
+) => {
+	if (!Number.isSafeInteger(page) || page < 1)
+		throw new Error('Gitlab_Rest: invalid page')
+	if (!Number.isSafeInteger(perPage) || perPage < 1 || perPage > 100)
+		throw new Error('Gitlab_Rest: invalid per-page limit')
+
+	return {
+		page: String(page),
+		per_page: String(perPage),
+	}
+}
+
 export const getProject = ({
 	projectId,
 }: {
@@ -117,10 +132,17 @@ export const getIssue = ({
 
 export const getIssues = ({
 	projectId,
+	page = 1,
+	perPage = 100,
 }: {
 	projectId: string
+	page?: number
+	perPage?: number
 }) => (
-	getJson<JsonValue>(binding, `/api/v4/projects/${encodeURIComponent(projectId)}/issues?scope=all&per_page=100`)
+	getJson<JsonValue>(binding, `/api/v4/projects/${encodeURIComponent(projectId)}/issues?${new URLSearchParams({
+		scope: 'all',
+		...gitlabPaginationParams(page, perPage),
+	})}`)
 		.then((issues) => {
 			try {
 				return gitlabIssuesWire.assert(issues)
@@ -149,10 +171,17 @@ export const getMergeRequest = ({
 
 export const getMergeRequests = ({
 	projectId,
+	page = 1,
+	perPage = 100,
 }: {
 	projectId: string
+	page?: number
+	perPage?: number
 }) => (
-	getJson<JsonValue>(binding, `/api/v4/projects/${encodeURIComponent(projectId)}/merge_requests?scope=all&per_page=100`)
+	getJson<JsonValue>(binding, `/api/v4/projects/${encodeURIComponent(projectId)}/merge_requests?${new URLSearchParams({
+		scope: 'all',
+		...gitlabPaginationParams(page, perPage),
+	})}`)
 		.then((mergeRequests) => {
 			try {
 				return gitlabMergeRequestsWire.assert(mergeRequests)
@@ -181,10 +210,16 @@ export const getRelease = ({
 
 export const getReleases = ({
 	projectId,
+	page = 1,
+	perPage = 100,
 }: {
 	projectId: string
+	page?: number
+	perPage?: number
 }) => (
-	getJson<JsonValue>(binding, `/api/v4/projects/${encodeURIComponent(projectId)}/releases?per_page=100`)
+	getJson<JsonValue>(binding, `/api/v4/projects/${encodeURIComponent(projectId)}/releases?${new URLSearchParams({
+		...gitlabPaginationParams(page, perPage),
+	})}`)
 		.then((releases) => {
 			try {
 				return gitlabReleasesWire.assert(releases)

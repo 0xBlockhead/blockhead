@@ -219,9 +219,25 @@ describe('GitLab REST wires', () => {
 		await expect(getMergeRequests({ projectId: 'gitlab-org/gitlab' })).resolves.toHaveLength(1)
 		await expect(getReleases({ projectId: 'gitlab-org/gitlab' })).resolves.toHaveLength(1)
 		expect(sourceGetJson.mock.calls.map(([, path]) => path)).toEqual([
-			'https://gitlab.com/api/v4/projects/gitlab-org%2Fgitlab/issues?scope=all&per_page=100',
-			'https://gitlab.com/api/v4/projects/gitlab-org%2Fgitlab/merge_requests?scope=all&per_page=100',
-			'https://gitlab.com/api/v4/projects/gitlab-org%2Fgitlab/releases?per_page=100',
+			'https://gitlab.com/api/v4/projects/gitlab-org%2Fgitlab/issues?scope=all&page=1&per_page=100',
+			'https://gitlab.com/api/v4/projects/gitlab-org%2Fgitlab/merge_requests?scope=all&page=1&per_page=100',
+			'https://gitlab.com/api/v4/projects/gitlab-org%2Fgitlab/releases?page=1&per_page=100',
 		])
+	})
+
+	it('rejects invalid lifecycle pagination before transport', async () => {
+		expect(() => getIssues({
+			projectId: 'gitlab-org/gitlab',
+			page: 0,
+		})).toThrow('invalid page')
+		expect(() => getMergeRequests({
+			projectId: 'gitlab-org/gitlab',
+			perPage: 101,
+		})).toThrow('invalid per-page limit')
+		expect(() => getReleases({
+			projectId: 'gitlab-org/gitlab',
+			page: 1.5,
+		})).toThrow('invalid page')
+		expect(sourceGetJson).not.toHaveBeenCalled()
 	})
 })
