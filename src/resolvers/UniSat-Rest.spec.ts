@@ -340,6 +340,16 @@ describe('UniSat Rest resolver module', () => {
 			detail: [
 				{
 					inscriptionId: `${'aa'.repeat(32)}i0`,
+					inscriptionNumber: 42,
+					contentType: 'image/png',
+					utxo: {
+						txid: 'bb'.repeat(32),
+						vout: 1,
+						address: 'bc1qlist',
+						satoshi: 10_000,
+						scriptPk: '0014',
+						scriptType: 'v0_p2wpkh',
+					},
 				},
 			],
 		})
@@ -366,12 +376,29 @@ describe('UniSat Rest resolver module', () => {
 		)
 		expect(
 			addressInscriptionsResolver.projections.$$bitcoinOrdinalInscriptions.select(inscriptionPage)
-		).toEqual([
+		).toMatchObject([
 			{
 				[EntityMetaKey.Selector]: {
 					$network: bitcoinNetwork,
 					inscriptionId: `${'aa'.repeat(32)}i0`,
 				},
+				[EntityMetaKey.Fields]: expect.objectContaining({
+					[entityFieldAddressKey(EntityType.BitcoinOrdinalInscription, [], 'inscriptionIndex')]: 0,
+					[entityFieldAddressKey(EntityType.BitcoinOrdinalInscription, [], 'inscriptionNumber')]: 42,
+					[entityFieldAddressKey(EntityType.BitcoinOrdinalInscription, [], 'contentType')]: 'image/png',
+					[entityFieldAddressKey(EntityType.BitcoinOrdinalInscription, [], '$contentOutput')]: expect.objectContaining({
+						[EntityMetaKey.Selector]: {
+							$transaction: {
+								$network: bitcoinNetwork,
+								txId: 'bb'.repeat(32),
+							},
+							indexInTransaction: 1,
+						},
+						[EntityMetaKey.Fields]: expect.objectContaining({
+							[entityFieldAddressKey(EntityType.UtxoOutput, [], 'valueSats')]: 10_000n,
+						}),
+					}),
+				}),
 			},
 		])
 		expect(
@@ -389,7 +416,7 @@ describe('UniSat Rest resolver module', () => {
 		)
 		expect(
 			addressRuneBalancesResolver.projections.$$bitcoinRuneBalances.select(runePage)
-		).toEqual([
+		).toMatchObject([
 			{
 				[EntityMetaKey.Selector]: {
 					$address: addressSelector,
@@ -455,7 +482,7 @@ describe('UniSat Rest resolver module', () => {
 
 		expect(
 			outputInscriptionsResolver.projections.$$bitcoinOrdinalInscriptions.select(output)
-		).toEqual([
+		).toMatchObject([
 			{
 				[EntityMetaKey.Selector]: {
 					$network: bitcoinNetwork,

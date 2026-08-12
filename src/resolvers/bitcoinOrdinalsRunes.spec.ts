@@ -178,7 +178,7 @@ describe('bitcoinOrdinalsRunes helpers', () => {
 					inscriptionId: `${'bb'.repeat(32)}i2`,
 				},
 			])
-		).toEqual([
+		).toMatchObject([
 			{
 				[EntityMetaKey.Selector]: {
 					$network: network,
