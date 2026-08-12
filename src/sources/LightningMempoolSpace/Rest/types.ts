@@ -81,10 +81,18 @@ export type MempoolSpaceLightningChannelSummary = Pick<
 	| 'short_id'
 	| 'status'
 	| 'capacity'
+	| 'transaction_id'
+	| 'transaction_vout'
+	| 'closing_transaction_id'
+	| 'closing_fee'
 	| 'closing_reason'
 	| 'closing_date'
+	| 'updated_at'
+	| 'created'
 	| 'fee_rate'
 	| 'node'
+	| 'node_left'
+	| 'node_right'
 >
 
 export type MempoolSpaceLightningStatistics = {

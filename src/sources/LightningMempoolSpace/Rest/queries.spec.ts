@@ -1,7 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import bindings from '$/sources/LightningMempoolSpace/bindings.ts'
-import { EntityMetaKey } from '$/schema/$schema.ts'
+import {
+	EntityMetaKey,
+	entityFieldAddressKey,
+} from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import {
@@ -47,6 +50,10 @@ const channelResolver = lightningMempoolSpaceResolvers.resolvers.find((resolver)
 const channelTimestampResolver = lightningMempoolSpaceResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.LightningChannel_Timestamp
 ))
+const nodeChannelsResolver = lightningMempoolSpaceResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.LightningNode
+	&& '$$channels' in resolver.projections
+))
 
 if (
 	networkTimestampResolver == null
@@ -54,6 +61,7 @@ if (
 	|| nodeTimestampResolver == null
 	|| channelResolver == null
 	|| channelTimestampResolver == null
+	|| nodeChannelsResolver == null
 )
 	throw new Error('LightningMempoolSpace_Rest spec missing public graph resolver')
 
@@ -315,6 +323,63 @@ describe('mempool.space public Lightning graph queries', () => {
 			timestampMs: Date.parse(channel.updated_at) - 1,
 			source: Source.LightningMempoolSpace_Rest,
 		})).rejects.toThrow('channel observation clock mismatch')
+	})
+
+	it('materializes funding identity and public observations in the node channel hierarchy', async () => {
+		const updatedAt = '2026-07-23T05:09:40.000Z'
+		sourceGetJson.mockResolvedValueOnce([{
+			id: '42',
+			short_id: '100x2x0',
+			transaction_id: 'a'.repeat(64),
+			transaction_vout: 1,
+			created: '2026-07-01T00:00:00.000Z',
+			updated_at: updatedAt,
+			status: 1,
+			capacity: '250000',
+			fee_rate: 125,
+			node: {
+				public_key: peerPublicKey,
+			},
+		}])
+
+		const channels = await nodeChannelsResolver.resolve.NetworkPublicKey.resolve({
+			$network: {
+				slug: 'lightning',
+			},
+			publicKey,
+		}, {
+			filters: [],
+			sorts: [],
+			pagination: {},
+			selectorKeys: [],
+			parentSelectorKeys: [],
+			sources: [],
+			publicEnv: {},
+		})
+
+		expect(channels).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$network: {
+					slug: 'lightning',
+				},
+				channelId: '42',
+			},
+			[EntityMetaKey.Fields]: expect.objectContaining({
+				[entityFieldAddressKey(EntityType.LightningChannel, [], 'fundingTransactionId')]: 'a'.repeat(64),
+				[entityFieldAddressKey(EntityType.LightningChannel, [], 'fundingOutputIndex')]: 1,
+				[entityFieldAddressKey(EntityType.LightningChannel, [], '$$timestamps')]: [expect.objectContaining({
+					[EntityMetaKey.Selector]: expect.objectContaining({
+						timestampMs: Date.parse(updatedAt),
+						source: Source.LightningMempoolSpace_Rest,
+					}),
+					[EntityMetaKey.Fields]: expect.objectContaining({
+						[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'capacitySats')]: 250000n,
+						[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'feeRatePpm')]: 125,
+					}),
+				})],
+			}),
+		}])
+		expect(sourceGetJson).toHaveBeenCalledTimes(1)
 	})
 
 	it('rejects invalid provider clocks and fee rates at the source boundary', async () => {

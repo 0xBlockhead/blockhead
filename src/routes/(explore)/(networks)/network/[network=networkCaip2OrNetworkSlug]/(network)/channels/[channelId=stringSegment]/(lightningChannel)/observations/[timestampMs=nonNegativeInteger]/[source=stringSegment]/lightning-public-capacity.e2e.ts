@@ -5,6 +5,18 @@ const channelId = '123456789'
 const observedAtMs = '1735689600000'
 const channelPath = `/network/lightning/channels/${channelId}/observations/${observedAtMs}/LightningMempoolSpace_Rest`
 
+
+test.beforeEach(async ({ page }, testInfo) => {
+	await page.addInitScript(({ name, schemaVersion }) => {
+		window.__blockheadWaSqliteDatabaseNameOverride = name
+		window.__blockheadWaSqliteVfsNameOverride = name.replace(/[^a-zA-Z0-9_-]/g, '_')
+		window.__blockheadPersistedCollectionSchemaVersionOverride = schemaVersion
+	}, {
+		name: `bh-lightning-channel-${testInfo.workerIndex}-${testInfo.retry}-${Date.now()}.sqlite`,
+		schemaVersion: Date.now(),
+	})
+})
+
 test('public graph funding capacity remains visibly distinct from local LND balances', async ({ page }) => {
 	test.setTimeout(180_000)
 	await page.route(`https://mempool.space/api/v1/lightning/channels/${channelId}`, async (route) => {

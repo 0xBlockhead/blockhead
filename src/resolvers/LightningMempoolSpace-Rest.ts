@@ -112,15 +112,19 @@ const nodeReferenceFromMempoolSpaceRankedNode = (
 
 const channelSnapshotFromMempoolSpaceChannel = (
 	channel: MempoolSpaceLightningChannel
-) => ({
-	shortChannelId: channel.short_id ?? undefined,
-	fundingTransactionId: channel.transaction_id ?? undefined,
-	fundingOutputIndex: channel.transaction_vout ?? undefined,
-	openedAtMs: timestampMsFromIso(channel.created),
-	...(channel.node_right != null && {
-		$node1: nodeReferenceFromMempoolSpaceChannelNode(channel.node_right),
-	}),
-})
+) => {
+	const node = channel.node ?? channel.node_right ?? channel.node_left
+
+	return {
+		shortChannelId: channel.short_id ?? undefined,
+		fundingTransactionId: channel.transaction_id ?? undefined,
+		fundingOutputIndex: channel.transaction_vout ?? undefined,
+		openedAtMs: timestampMsFromIso(channel.created),
+		...(node != null && {
+			$node1: nodeReferenceFromMempoolSpaceChannelNode(node),
+		}),
+	}
+}
 
 const channelTimestampSnapshotFromMempoolSpaceChannel = (
 	channel: MempoolSpaceLightningChannel
@@ -486,20 +490,68 @@ export default {
 							await getLightningNodeChannels({
 								publicKey,
 							})
-						).slice(0, resolverContextRowLimit(context)).map((channel) => ({
-							[EntityMetaKey.Selector]: {
-								$network,
-								channelId: String(channel.id),
-							},
-							[EntityMetaKey.Fields]: {
-								...(channel.short_id != null && {
-									[entityFieldAddressKey(EntityType.LightningChannel, [], 'shortChannelId')]: channel.short_id,
-								}),
-								...(channel.node != null && {
-									[entityFieldAddressKey(EntityType.LightningChannel, [], '$node1')]: nodeReferenceFromMempoolSpaceChannelNode(channel.node),
-								}),
-							},
-						}))
+						).slice(0, resolverContextRowLimit(context)).map((channel) => {
+							const snapshot = channelSnapshotFromMempoolSpaceChannel(channel)
+							const timestampSnapshot = channelTimestampSnapshotFromMempoolSpaceChannel(channel)
+
+							return {
+								[EntityMetaKey.Selector]: {
+									$network,
+									channelId: String(channel.id),
+								},
+								[EntityMetaKey.Fields]: {
+									...(snapshot.shortChannelId != null && {
+										[entityFieldAddressKey(EntityType.LightningChannel, [], 'shortChannelId')]: snapshot.shortChannelId,
+									}),
+									...(snapshot.fundingTransactionId != null && {
+										[entityFieldAddressKey(EntityType.LightningChannel, [], 'fundingTransactionId')]: snapshot.fundingTransactionId,
+									}),
+									...(snapshot.fundingOutputIndex != null && {
+										[entityFieldAddressKey(EntityType.LightningChannel, [], 'fundingOutputIndex')]: snapshot.fundingOutputIndex,
+									}),
+									...(snapshot.openedAtMs != null && {
+										[entityFieldAddressKey(EntityType.LightningChannel, [], 'openedAtMs')]: snapshot.openedAtMs,
+									}),
+									...(snapshot.$node1 != null && {
+										[entityFieldAddressKey(EntityType.LightningChannel, [], '$node1')]: snapshot.$node1,
+									}),
+									...(channel.updated_at != null && {
+										[entityFieldAddressKey(EntityType.LightningChannel, [], '$$timestamps')]: [{
+											[EntityMetaKey.Selector]: {
+												$channel: {
+													$network,
+													channelId: String(channel.id),
+												},
+												timestampMs: timestampMsFromIso(channel.updated_at),
+												source: Source.LightningMempoolSpace_Rest,
+											},
+											[EntityMetaKey.Fields]: {
+												[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'status')]: timestampSnapshot.status,
+												...(timestampSnapshot.capacitySats != null && {
+													[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'capacitySats')]: timestampSnapshot.capacitySats,
+												}),
+												...(timestampSnapshot.feeRatePpm != null && {
+													[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'feeRatePpm')]: timestampSnapshot.feeRatePpm,
+												}),
+												[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'updatedAtMs')]: timestampSnapshot.updatedAtMs,
+												...(timestampSnapshot.closingTransactionId != null && {
+													[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'closingTransactionId')]: timestampSnapshot.closingTransactionId,
+												}),
+												...(timestampSnapshot.closingFeeSats != null && {
+													[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'closingFeeSats')]: timestampSnapshot.closingFeeSats,
+												}),
+												...(timestampSnapshot.closingReason != null && {
+													[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'closingReason')]: timestampSnapshot.closingReason,
+												}),
+												...(timestampSnapshot.closedAtMs != null && {
+													[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'closedAtMs')]: timestampSnapshot.closedAtMs,
+												}),
+											},
+										}],
+									}),
+								},
+							}
+						})
 					},
 				}
 			},
