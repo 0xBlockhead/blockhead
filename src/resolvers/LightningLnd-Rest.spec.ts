@@ -547,6 +547,7 @@ describe('Lightning LND resolver ownership', () => {
 	it('projects local node tip sync fields and channel state balances including private peers', async () => {
 		vi.spyOn(Date, 'now').mockReturnValue(1_700_000_111_000)
 		getInfo.mockResolvedValue({
+			version: '0.18.5-beta',
 			identity_pubkey: localPublicKey,
 			alias: 'Local',
 			synced_to_chain: true,
@@ -598,6 +599,7 @@ describe('Lightning LND resolver ownership', () => {
 			timestampMs: 1,
 			source: Source.LightningLnd_Rest,
 		}, context)).resolves.toEqual({
+			nodeVersion: '0.18.5-beta',
 			syncedToChain: true,
 			syncedToGraph: false,
 			blockHeight: 800000n,

@@ -14797,6 +14797,7 @@ export const schema = {
 				"$localNodeState": { label: "local LND node state", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.BlockheadLightningNodeState },
 				"timestampMs": { label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
 				"source": { label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"nodeVersion": { label: "LND version", description: "The version reported by the configured macaroon-authorized local LND node.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"syncedToChain": { label: "synced to chain", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean" },
 				"syncedToGraph": { label: "synced to graph", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean" },
 				"blockHeight": { label: "block height", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
@@ -14816,13 +14817,13 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.LightningLnd_Rest, Source.Local_Internal],
-							openFields: ["syncedToChain", "syncedToGraph", "blockHeight", "bestHeaderTimestampMs", "walletBalanceSats", "channelBalanceSats", "pendingChannelBalanceSats", "peerCount", "activeChannelCount", "inactiveChannelCount", "pendingChannelCount"],
+							openFields: ["nodeVersion", "syncedToChain", "syncedToGraph", "blockHeight", "bestHeaderTimestampMs", "walletBalanceSats", "channelBalanceSats", "pendingChannelBalanceSats", "peerCount", "activeChannelCount", "inactiveChannelCount", "pendingChannelCount"],
 						},
 						summary: { title: [{ field: "timestampMs", format: "timestamp" }], value: ["syncedToChain", "syncedToGraph"], HeadingAfter: [{ field: "blockHeight", format: "number" }] },
 						closed: ["$localNodeState", { field: "timestampMs", format: "timestamp" }, "source"],
 						content: {
 							dl: [
-								["$localNodeState", { field: "timestampMs", format: "timestamp" }, "source", "syncedToChain", "syncedToGraph"],
+								["$localNodeState", { field: "timestampMs", format: "timestamp" }, "source", "nodeVersion", "syncedToChain", "syncedToGraph"],
 								[{ field: "blockHeight", format: "number" }, { field: "bestHeaderTimestampMs", format: "timestamp" }],
 								[{ field: "walletBalanceSats", format: "number" }, { field: "channelBalanceSats", format: "number" }, { field: "pendingChannelBalanceSats", format: "number" }],
 								[{ field: "peerCount", format: "number" }, { field: "activeChannelCount", format: "number" }, { field: "inactiveChannelCount", format: "number" }, { field: "pendingChannelCount", format: "number" }],

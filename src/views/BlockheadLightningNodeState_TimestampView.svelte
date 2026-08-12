@@ -128,6 +128,28 @@
 			</div>
 
 			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							nodeVersion: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const nodeVersion = entity.nodeVersion}
+					{#if nodeVersion != null}
+						<div>
+							<dt>LND version</dt>
+							<dd>
+								{nodeVersion}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
 				resource={blockheadLightningNodeStateTimestamp}
 			>
 				{#snippet children(entity)}

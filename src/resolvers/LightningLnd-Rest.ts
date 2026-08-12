@@ -419,6 +419,7 @@ const nodeStateTimestampFieldsFromLndInfo = (
 	walletBalance: LndWalletBalanceResponse,
 	channelBalance: LndChannelBalanceResponse
 ) => ({
+	nodeVersion: info.version,
 	syncedToChain: info.synced_to_chain,
 	syncedToGraph: info.synced_to_graph,
 	...(info.block_height != null && {
@@ -562,6 +563,7 @@ export default {
 				},
 			},
 		})({
+			nodeVersion: (snapshot) => snapshot.nodeVersion,
 			syncedToChain: (snapshot) => snapshot.syncedToChain,
 			syncedToGraph: (snapshot) => snapshot.syncedToGraph,
 			blockHeight: (snapshot) => snapshot.blockHeight,
