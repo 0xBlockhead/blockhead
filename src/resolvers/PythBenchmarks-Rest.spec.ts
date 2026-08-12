@@ -128,6 +128,7 @@ describe('PythBenchmarks_Rest PythPriceFeed projections', () => {
 		expect(getBenchmarkPriceFeed).toHaveBeenCalledWith(priceFeedId.slice(2))
 	})
 
+
 	it('re-resolves historical observations by publishTimeMs', async () => {
 		getBenchmarkPriceUpdateAt.mockResolvedValue({
 			priceUpdate,
