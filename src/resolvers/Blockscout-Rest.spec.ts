@@ -22,6 +22,7 @@ const getBlockByNumber = vi.hoisted(() => vi.fn())
 const getErc4337BundlerDetail = vi.hoisted(() => vi.fn())
 const getErc4337SmartAccountList = vi.hoisted(() => vi.fn())
 const getStats = vi.hoisted(() => vi.fn())
+const getSmartContracts = vi.hoisted(() => vi.fn())
 const getTransactionByHash = vi.hoisted(() => vi.fn())
 const getTransactionLogs = vi.hoisted(() => vi.fn())
 const getTransactionRawTrace = vi.hoisted(() => vi.fn())
@@ -39,6 +40,7 @@ vi.mock('$/sources/Blockscout/Rest/queries.ts', async (importOriginal) => ({
 	getErc4337BundlerDetail,
 	getErc4337SmartAccountList,
 	getStats,
+	getSmartContracts,
 	getTransactionByHash,
 	getTransactionLogs,
 	getTransactionRawTrace,
@@ -811,6 +813,57 @@ describe('Blockscout_Rest network blocks', () => {
 			},
 		}])
 		expect(getBlockByNumber).not.toHaveBeenCalled()
+	})
+})
+
+describe('Blockscout_Rest verified contracts', () => {
+	const contractsResolver = blockscoutRest.resolvers.find((candidate) => (
+		candidate.entityType === EntityType.Network
+		&& 'Evm' in candidate.projections
+		&& '$$contracts' in candidate.projections.Evm
+		&& 'Caip2' in candidate.resolve
+	))
+
+	if (contractsResolver == null || !('Caip2' in contractsResolver.resolve))
+		throw new Error('Blockscout_Rest: missing Network.Evm.$$contracts resolver')
+
+	beforeEach(() => {
+		vi.clearAllMocks()
+	})
+
+	it('materializes verification and compilation hierarchy without contract detail reads', async () => {
+		getSmartContracts.mockResolvedValue([{
+			address: {
+				hash: contract.address,
+			},
+			compiler_version: 'v0.8.28+commit.7893614a',
+			language: 'solidity',
+			verified_at: '2026-07-16T09:30:43.020Z',
+		}])
+
+		const contracts = await contractsResolver.resolve.Caip2.resolve(network, context)
+		expect(contracts).toEqual([{
+			[EntityMetaKey.Selector]: contract,
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.EvmContract, [], '$verification')]: {
+					[EntityMetaKey.Selector]: {
+						$contract: contract,
+					},
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.EvmContractVerification, [], 'verifiedAtMs')]: Date.parse('2026-07-16T09:30:43.020Z'),
+						[entityFieldAddressKey(EntityType.EvmContractVerification, [], '$compilation')]: {
+							[EntityMetaKey.Selector]: {
+								$contract: contract,
+							},
+							[EntityMetaKey.Fields]: {
+								[entityFieldAddressKey(EntityType.EvmContractCompilation, [], 'language')]: 'solidity',
+								[entityFieldAddressKey(EntityType.EvmContractCompilation, [], 'compilerVersion')]: 'v0.8.28+commit.7893614a',
+							},
+						},
+					},
+				},
+			},
+		}])
 	})
 })
 

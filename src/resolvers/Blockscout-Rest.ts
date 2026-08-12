@@ -40,6 +40,7 @@ import type {
 	BlockscoutInternalTransaction,
 	BlockscoutErc4337RegistryEntry,
 	BlockscoutRawTrace,
+	BlockscoutSmartContractForList,
 	BlockscoutStats,
 	BlockscoutTokenTransfer,
 	BlockscoutTransaction,
@@ -94,6 +95,54 @@ const evmBlockReferenceFromBlockscoutWire = ({
 			[entityFieldAddressKey(EntityType.EvmBlock, [], 'gasLimit')]: blockscoutQuantityToBigInt(wire.gas_limit),
 			[entityFieldAddressKey(EntityType.EvmBlock, [], 'baseFeePerGas')]: blockscoutQuantityToBigInt(wire.base_fee_per_gas),
 			[entityFieldAddressKey(EntityType.EvmBlock, [], 'transactionCount')]: wire.transactions_count,
+		},
+	}
+}
+
+const evmContractReferenceFromBlockscoutListWire = ({
+	$network,
+	wire,
+}: {
+	$network: EvmNetworkId
+	wire: BlockscoutSmartContractForList
+}) => {
+	const address = hexLowerOfByteSize(wire.address.hash, 20)
+	if (address == null)
+		return undefined
+
+	const $contract = {
+		$network,
+		address,
+	}
+	const verifiedAtMs = wire.verified_at == null ? undefined : Date.parse(wire.verified_at)
+	return {
+		[EntityMetaKey.Selector]: $contract,
+		[EntityMetaKey.Fields]: {
+			[entityFieldAddressKey(EntityType.EvmContract, [], '$verification')]: {
+				[EntityMetaKey.Selector]: {
+					$contract,
+				},
+				[EntityMetaKey.Fields]: {
+					...(verifiedAtMs != null && Number.isFinite(verifiedAtMs) && {
+						[entityFieldAddressKey(EntityType.EvmContractVerification, [], 'verifiedAtMs')]: verifiedAtMs,
+					}),
+					...((wire.language != null || wire.compiler_version != null) && {
+						[entityFieldAddressKey(EntityType.EvmContractVerification, [], '$compilation')]: {
+							[EntityMetaKey.Selector]: {
+								$contract,
+							},
+							[EntityMetaKey.Fields]: {
+								...(wire.language != null && {
+									[entityFieldAddressKey(EntityType.EvmContractCompilation, [], 'language')]: wire.language,
+								}),
+								...(wire.compiler_version != null && {
+									[entityFieldAddressKey(EntityType.EvmContractCompilation, [], 'compilerVersion')]: wire.compiler_version,
+								}),
+							},
+						},
+					}),
+				},
+			},
 		},
 	}
 }
@@ -3494,29 +3543,18 @@ export default {
 							resolverContextRowLimit(context),
 							blockscoutV2ItemsCountMax
 						)
-						const {
-							normalizeAddressFromContractListWire,
-							getSmartContracts,
-						} = await import('$/sources/Blockscout/Rest/queries.ts')
+						const { getSmartContracts } = await import('$/sources/Blockscout/Rest/queries.ts')
 						const smartContracts = await getSmartContracts({
 							chainId: evmChainIdFromNetworkSelector(entitySelector),
 							limit,
 						})
-						return (
-							smartContracts
-								.flatMap((w) => {
-									const address = normalizeAddressFromContractListWire(w)
-									return address == null ?
-										[]
-									:
-										[{
-											[EntityMetaKey.Selector]: {
-												$network: evmNetworkSelectorFromChainId(evmChainIdFromNetworkSelector(entitySelector)),
-												address,
-											},
-										} satisfies Entity<typeof schema, EntityType.EvmContract>]
-								})
-						)
+						return smartContracts.flatMap((wire) => {
+							const reference = evmContractReferenceFromBlockscoutListWire({
+								$network: evmNetworkSelectorFromChainId(evmChainIdFromNetworkSelector(entitySelector)),
+								wire,
+							})
+							return reference == null ? [] : [reference]
+						})
 					},
 				}
 			},
