@@ -42,6 +42,9 @@ export const mlflowResolvers = [
 			entityType: EntityType.AiModel,
 			resolve: {
 				ProviderModelId: {
+					appliesTo: [{
+						$provider: providerSelector,
+					}],
 					resolve: async ({ $provider, providerModelId }, context) => {
 						assertProvider($provider)
 						const { getRegisteredModel } = await import('$/sources/Mlflow/Rest/queries.ts')
@@ -72,6 +75,11 @@ export const mlflowResolvers = [
 			entityType: EntityType.AiModelVersion,
 			resolve: {
 				ModelVersionId: {
+					appliesTo: [{
+						$model: {
+							$provider: providerSelector,
+						},
+					}],
 					resolve: async ({ $model, versionId }, context) => {
 						assertProvider($model.$provider)
 						const { getModelVersion } = await import('$/sources/Mlflow/Rest/queries.ts')
@@ -107,6 +115,9 @@ export const mlflowResolvers = [
 			entityType: EntityType.AiArtifact,
 			resolve: {
 				ProviderArtifactId: {
+					appliesTo: [{
+						$provider: providerSelector,
+					}],
 					resolve: async ({ $provider, providerArtifactId }, context) => {
 						assertProvider($provider)
 						const artifact = parseArtifactId(providerArtifactId)
@@ -143,6 +154,11 @@ export const mlflowResolvers = [
 			entityType: EntityType.AiDocument,
 			resolve: {
 				KindArtifact: {
+					appliesTo: [{
+						$artifact: {
+							$provider: providerSelector,
+						},
+					}],
 					resolve: async ({ documentKind, $artifact }, context) => {
 						assertProvider($artifact.$provider)
 						const artifact = parseArtifactId($artifact.providerArtifactId)
