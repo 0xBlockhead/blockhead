@@ -92,7 +92,7 @@ describe('Local source capability observations', () => {
 		})
 		expect(observation[EntityMetaKey.Fields]).toMatchObject({
 			[entityFieldAddressKey(EntityType.BlockheadSource_Timestamp, [], 'enabled')]: true,
-			[entityFieldAddressKey(EntityType.BlockheadSource_Timestamp, [], 'health')]: 'HTTP endpoint available',
+			[entityFieldAddressKey(EntityType.BlockheadSource_Timestamp, [], 'health')]: 'All 1 HTTP endpoints available',
 			[entityFieldAddressKey(EntityType.BlockheadSource_Timestamp, [], 'statusCode')]: 200,
 			[entityFieldAddressKey(EntityType.BlockheadSource_Timestamp, [], 'rateLimitRemaining')]: 499,
 			[entityFieldAddressKey(EntityType.BlockheadSource_Timestamp, [], 'rateLimitResetMs')]: 1_800_000_000_000,
@@ -102,7 +102,7 @@ describe('Local source capability observations', () => {
 			context
 		)
 		expect(timestampResolver.projections.enabled(detail)).toBe(true)
-		expect(timestampResolver.projections.health(detail)).toBe('HTTP endpoint available')
+		expect(timestampResolver.projections.health(detail)).toBe('All 1 HTTP endpoints available')
 		expect(timestampResolver.projections.latencyMs(detail)).toBeGreaterThanOrEqual(0)
 		expect(timestampResolver.projections.statusCode(detail)).toBe(200)
 		expect(timestampResolver.projections.rateLimitRemaining(detail)).toBe(499)
@@ -126,7 +126,7 @@ describe('Local source capability observations', () => {
 		}, context)
 
 		expect(found.projections.enabled(observation)).toBe(true)
-		expect(found.projections.health(observation)).toBe('HTTP endpoint reachable')
+		expect(found.projections.health(observation)).toBe('1 of 1 HTTP endpoints reachable')
 		expect(found.projections.statusCode(observation)).toBe(401)
 	})
 
@@ -145,10 +145,40 @@ describe('Local source capability observations', () => {
 		}, context)
 
 		expect(found.projections.enabled(observation)).toBe(true)
-		expect(found.projections.health(observation)).toBe('HTTP endpoint unavailable')
+		expect(found.projections.health(observation)).toBe('0 of 1 HTTP endpoints reachable')
 		expect(found.projections.statusCode(observation)).toBeUndefined()
 		expect(found.projections.error(observation)).toContain('connection refused')
 		expect(found.projections.resolverCount(observation)).toBeGreaterThan(0)
+	})
+
+	it('aggregates every concrete endpoint and preserves partial availability', async () => {
+		sourceFetch
+			.mockResolvedValueOnce(new Response(null, {
+				status: 200,
+				headers: {
+					'x-ratelimit-remaining': '40',
+					'x-ratelimit-reset': '1800000100',
+				},
+			}))
+			.mockRejectedValueOnce(new Error('secondary endpoint refused'))
+		const found = resolver(
+			EntityType.BlockheadSource_Timestamp,
+			'SourceTimestampMs',
+			'health'
+		)
+		const observation = await found.resolve.SourceTimestampMs.resolve({
+			$source: {
+				id: Source.Nodely,
+			},
+			timestampMs: 1,
+		}, context)
+
+		expect(found.projections.enabled(observation)).toBe(true)
+		expect(found.projections.health(observation)).toBe('1 of 2 HTTP endpoints available')
+		expect(found.projections.error(observation)).toContain('secondary endpoint refused')
+		expect(found.projections.statusCode(observation)).toBeUndefined()
+		expect(found.projections.rateLimitRemaining(observation)).toBe(40)
+		expect(sourceFetch).toHaveBeenCalledTimes(2)
 	})
 
 	it('labels non-HTTP sources as capability-only instead of inventing an endpoint probe', async () => {

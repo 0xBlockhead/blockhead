@@ -71,7 +71,7 @@ const blockheadSourceTimestampFields = async ({
 				},
 				timestampMs,
 				enabled: true,
-				health: 'HTTP endpoint unavailable',
+				health: 'HTTP endpoints unavailable',
 				latencyMs: performance.now() - startedAt,
 				error: String(error),
 				statusCode: undefined,
@@ -102,9 +102,18 @@ const blockheadSourceTimestampFields = async ({
 			},
 			timestampMs,
 			enabled: true,
-			health: endpointProbe.ok ? 'HTTP endpoint available' : 'HTTP endpoint reachable',
+			health: (
+				endpointProbe.availableEndpointCount === endpointProbe.endpointCount ?
+					`All ${endpointProbe.endpointCount} HTTP endpoints available`
+				: endpointProbe.availableEndpointCount > 0 ?
+					`${endpointProbe.availableEndpointCount} of ${endpointProbe.endpointCount} HTTP endpoints available`
+				: endpointProbe.reachableEndpointCount > 0 ?
+					`${endpointProbe.reachableEndpointCount} of ${endpointProbe.endpointCount} HTTP endpoints reachable`
+				:
+					`0 of ${endpointProbe.endpointCount} HTTP endpoints reachable`
+			),
 			latencyMs: performance.now() - startedAt,
-			error: undefined,
+			error: endpointProbe.error,
 			...endpointProbe,
 			resolverCount: loadedResolverModule.resolvers.length,
 		}
