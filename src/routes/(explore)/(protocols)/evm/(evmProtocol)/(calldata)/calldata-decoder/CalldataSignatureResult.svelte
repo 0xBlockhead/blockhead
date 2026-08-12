@@ -10,6 +10,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 	import { Source } from '$/sources/Source.ts'
 
@@ -60,7 +61,8 @@
 >
 	<p>
 		<strong>Candidate lookup:</strong>
-		{source} supplied these candidate signatures. They are catalog claims, not verified contract behavior.
+		<a href={resolve('/~/manage/source/[sourceId=stringSegment]', { sourceId: source })}>{source}</a>
+		supplied these candidate signatures. They are catalog claims, not verified contract behavior.
 	</p>
 
 	<p>
@@ -84,6 +86,51 @@
 		{@const selectedCandidateIndex = Math.min(selectedSignatureIndex, signatures.values.length - 1)}
 		{@const selectedSignature = signatures.values[selectedCandidateIndex]}
 		{@const decoded = selectedSignature == null ? null : kind === CalldataSignatureKind.Function ? decodeCalldataWithSignature(selectedSignature, ZeroExHex.assert(hex)) : decodeEventDataWithSignature(selectedSignature, ZeroExHex.assert(hex))}
+		{@const lookupHex = kind === CalldataSignatureKind.Function ? hex.slice(0, 10) : hex.slice(0, 66)}
+
+		<section aria-label={`${source} claim status`} data-card="padding-2" data-column="gap-1">
+			<h3>{source} claim status</h3>
+
+			<dl data-definition-list="vertical">
+				<div>
+					<dt>Source role</dt>
+					<dd>Hosted signature catalog</dd>
+				</div>
+
+				<div>
+					<dt>Lookup coordinate</dt>
+					<dd><code>{lookupHex}</code></dd>
+				</div>
+
+				<div>
+					<dt>Candidate outcome</dt>
+					<dd>
+						{signatures.values.length === 0 ? 'No matching claim' : signatures.values.length === 1 ? 'One catalog claim' : `${signatures.values.length} ambiguous catalog claims`}
+					</dd>
+				</div>
+
+				<div>
+					<dt>Retrieval clock</dt>
+					<dd>Not exposed by this source payload</dd>
+				</div>
+
+				<div>
+					<dt>Finality</dt>
+					<dd>Not applicable to a signature catalog claim</dd>
+				</div>
+
+				<div>
+					<dt>Confidence and retention</dt>
+					<dd>Not declared by the source</dd>
+				</div>
+			</dl>
+
+			{#if signatures.values.length > 1}
+				<p role="status">
+					The lookup is ambiguous. Selecting a candidate chooses a deterministic interpretation; it does not resolve the source conflict.
+				</p>
+			{/if}
+		</section>
 
 		{#if selectedSignature == null}
 			<p data-text="muted">No catalog signatures matched this {kind === CalldataSignatureKind.Function ? 'function selector' : 'event topic'}.</p>
@@ -111,7 +158,13 @@
 				input: hex,
 				sourceClaim: {
 					source,
-					lookupHex: kind === CalldataSignatureKind.Function ? hex.slice(0, 10) : hex.slice(0, 66),
+					lookupHex,
+					role: 'hosted-signature-catalog',
+					retrievalTimestampMs: null,
+					finality: null,
+					confidence: null,
+					retention: null,
+					outcome: signatures.values.length === 1 ? 'single-claim' : 'ambiguous-claims',
 					candidateSignatures: signatures.values,
 					selectedCandidateIndex,
 					signature: selectedSignature,
