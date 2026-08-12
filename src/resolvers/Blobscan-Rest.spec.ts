@@ -50,10 +50,6 @@ const context = {
 	publicEnv: {},
 }
 
-const blobIdentityResolver = blobscanRest.resolvers.find((resolver) => (
-	resolver.entityType === EntityType.EvmBlob
-	&& 'versionedHash' in resolver.projections
-))
 const blobDetailResolver = blobscanRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.EvmBlob
 	&& 'kzgCommitment' in resolver.projections
@@ -80,8 +76,7 @@ const networkBlocksResolver = blobscanRest.resolvers.find((resolver) => (
 ))
 
 if (
-	blobIdentityResolver == null
-	|| blobDetailResolver == null
+	blobDetailResolver == null
 	|| transactionBlobsResolver == null
 	|| networkBlobsResolver == null
 	|| blockResolver == null
@@ -99,35 +94,16 @@ describe('Blobscan EVM blob resolvers', () => {
 	})
 
 	it('resolves blob identity and detail from the transaction selector', async () => {
-		getTransaction.mockResolvedValueOnce({
-			hash: txHash,
-			blockNumber: 25680860,
-			blobs: [{
-				versionedHash,
-			}],
-		})
 		getBlobDetail.mockResolvedValueOnce({
 			versionedHash,
+			blockNumber: 25680860,
+			txHash,
+			index: 0,
 			commitment: '0xcommit',
 			dataStorageReferences: [{
 				storage: 'ipfs',
 				url: 'https://blobscan.com/ipfs/bafy',
 			}],
-		})
-
-		const identity = await blobIdentityResolver.resolve.TransactionIndexInTransaction.resolve({
-			$transaction: {
-				$network: network,
-				txHash,
-			},
-			indexInTransaction: 0,
-		}, context)
-		expect(blobIdentityResolver.projections.versionedHash(identity, context)).toBe(versionedHash)
-		expect(blobIdentityResolver.projections.$block(identity, context)).toEqual({
-			[EntityMetaKey.Selector]: {
-				$network: network,
-				blockNumber: 25680860n,
-			},
 		})
 
 		const detail = await blobDetailResolver.resolve.TransactionIndexInTransaction.resolve({
@@ -137,6 +113,13 @@ describe('Blobscan EVM blob resolvers', () => {
 			},
 			indexInTransaction: 0,
 		}, context)
+		expect(blobDetailResolver.projections.versionedHash(detail, context)).toBe(versionedHash)
+		expect(blobDetailResolver.projections.$block(detail, context)).toEqual({
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				blockNumber: 25680860n,
+			},
+		})
 		expect(blobDetailResolver.projections.kzgCommitment(detail, context)).toBe('0xcommit')
 		expect(blobDetailResolver.projections.blobDataStorageReferences(detail, context)).toEqual([{
 			storage: 'ipfs',

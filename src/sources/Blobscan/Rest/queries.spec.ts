@@ -314,6 +314,29 @@ describe('Blobscan REST queries', () => {
 		})).rejects.toThrow(`blob ${versionedHash} missing`)
 	})
 
+	it('fails closed when blob detail contradicts its transaction hierarchy', async () => {
+		vi.spyOn(globalThis, 'fetch')
+			.mockResolvedValueOnce(jsonResponse({
+				hash: txHash,
+				blockNumber: 12,
+				blobs: [{
+					versionedHash,
+				}],
+			}))
+			.mockResolvedValueOnce(jsonResponse({
+				versionedHash,
+				commitment: '0xcommit',
+				txHash: `0x${'2'.repeat(64)}`,
+				blockNumber: 12,
+				index: 0,
+			}))
+
+		await expect(getBlobDetail('1', {
+			txHash,
+			blobIndex: 0,
+		})).rejects.toThrow('belongs to another transaction')
+	})
+
 	it('throws for unbound chains', async () => {
 		await expect(getTransaction('999', {
 			txHash,

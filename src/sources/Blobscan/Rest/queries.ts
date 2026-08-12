@@ -397,6 +397,7 @@ export const getBlobDetail = async (
 		return undefined
 
 	const row = transaction.blobs[blobIndex]
+	// oxlint-disable-next-line typescript/no-unnecessary-condition -- Numeric indexes can exceed the validated nonempty wire array at runtime.
 	if (row == null)
 		throw new Error(`Blobscan_Rest: blob index ${blobIndex} missing on transaction ${txHash}`)
 
@@ -405,6 +406,17 @@ export const getBlobDetail = async (
 	})
 	if (blob == null)
 		throw new Error(`Blobscan_Rest: blob ${row.versionedHash} missing for transaction ${txHash}`)
+	if (blob.txHash != null && blob.txHash.toLowerCase() !== transaction.hash.toLowerCase())
+		throw new Error(`Blobscan_Rest: blob ${row.versionedHash} belongs to another transaction`)
+	if (blob.blockNumber != null && blob.blockNumber !== transaction.blockNumber)
+		throw new Error(`Blobscan_Rest: blob ${row.versionedHash} belongs to another block`)
+	if (blob.index != null && blob.index !== blobIndex)
+		throw new Error(`Blobscan_Rest: blob ${row.versionedHash} has mismatched transaction index`)
 
-	return blob
+	return {
+		...blob,
+		txHash: transaction.hash,
+		blockNumber: transaction.blockNumber,
+		index: blobIndex,
+	}
 }

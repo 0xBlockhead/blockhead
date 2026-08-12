@@ -53,7 +53,7 @@ const evmBlobRefsFromTransactionBlobs = ({
 	}[] | undefined
 }) => (
 	(blobs ?? []).flatMap((blob, indexInTransaction) => {
-		const versionedHash = hexLowerOfByteSize(blob.versionedHash ?? '', 32)
+								const versionedHash = hexLowerOfByteSize(blob.versionedHash, 32)
 		if (versionedHash == null || !versionedHash.startsWith('0x01'))
 			return []
 
@@ -190,51 +190,6 @@ export default {
 			entityType: EntityType.EvmBlob,
 			resolve: {
 				TransactionIndexInTransaction: {
-					resolve: async (entitySelector) => {
-						const { getTransaction } = await import(
-							'$/sources/Blobscan/Rest/queries.ts'
-						)
-						const transaction = await getTransaction(
-							entitySelector.$transaction.$network.caip2.reference,
-							{
-								txHash: entitySelector.$transaction.txHash,
-							}
-						)
-						if (transaction == null)
-							throw new Error('Blobscan_Rest: blob transaction not found')
-
-						const versionedHash = hexLowerOfByteSize(
-							transaction.blobs?.[entitySelector.indexInTransaction]?.versionedHash ?? '',
-							32
-						)
-						if (versionedHash == null || !versionedHash.startsWith('0x01'))
-							throw new Error('Blobscan_Rest: blob versioned hash missing')
-
-						const blockNumber = transaction.blockNumber
-						if (blockNumber == null)
-							throw new Error('Blobscan_Rest: blob transaction block missing')
-
-						return {
-							versionedHash,
-							$block: {
-								[EntityMetaKey.Selector]: {
-									$network: entitySelector.$transaction.$network,
-									blockNumber: BigInt(blockNumber),
-								},
-							},
-						}
-					},
-				},
-			},
-		})({
-			versionedHash: (snapshot) => snapshot.versionedHash,
-			$block: (snapshot) => snapshot.$block,
-		}),
-
-		defineResolver({
-			entityType: EntityType.EvmBlob,
-			resolve: {
-				TransactionIndexInTransaction: {
 					resolve: async ({ $transaction, indexInTransaction }) => {
 						const { getBlobDetail } = await import(
 							'$/sources/Blobscan/Rest/queries.ts'
@@ -247,9 +202,16 @@ export default {
 							}
 						)
 						if (blobDetail == null)
-							return {}
+							throw new Error('Blobscan_Rest: blob transaction not found')
 
 						return {
+							versionedHash: blobDetail.versionedHash,
+							$block: {
+								[EntityMetaKey.Selector]: {
+									$network: $transaction.$network,
+									blockNumber: BigInt(blobDetail.blockNumber),
+								},
+							},
 							kzgCommitment: blobDetail.commitment,
 							blobDataStorageReferences: blobDataStorageReferencesFromWire(
 								blobDetail.dataStorageReferences
@@ -259,6 +221,8 @@ export default {
 				},
 			},
 		})({
+			versionedHash: (snapshot) => snapshot.versionedHash,
+			$block: (snapshot) => snapshot.$block,
 			kzgCommitment: (snapshot) => snapshot.kzgCommitment,
 			blobDataStorageReferences: (snapshot) => snapshot.blobDataStorageReferences,
 		}),
@@ -442,7 +406,7 @@ export default {
 
 						return blobs.flatMap((blob) => {
 							const txHash = hexLowerOfByteSize(blob.txHash ?? '', 32)
-							const versionedHash = hexLowerOfByteSize(blob.versionedHash ?? '', 32)
+							const versionedHash = hexLowerOfByteSize(blob.versionedHash, 32)
 							const blobDataStorageReferences = blobDataStorageReferencesFromWire(
 								blob.dataStorageReferences
 							)
