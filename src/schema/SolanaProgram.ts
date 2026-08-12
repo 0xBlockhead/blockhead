@@ -3,6 +3,7 @@
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export default entity({
@@ -27,10 +28,16 @@ export default entity({
 	$programAccount: {
 		entityType: EntityType.SolanaAccount,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Solana_JsonRpc,
+		],
 	},
 	$upgradeAuthority: {
 		entityType: EntityType.SolanaAccount,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Solana_JsonRpc,
+		],
 	},
 })({
 	selectors: {

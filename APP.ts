@@ -53811,8 +53811,8 @@ export const schema = {
 				"$network": { label: "Network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
 				"programId": { label: "Program ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"name": { label: "Name", description: "The human-readable name of the subject.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"$programAccount": { label: "Program account", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.SolanaAccount },
-				"$upgradeAuthority": { label: "Upgrade authority", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.SolanaAccount },
+				"$programAccount": { label: "Program account", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.SolanaAccount, defaultSources: [Source.Solana_JsonRpc] },
+				"$upgradeAuthority": { label: "Upgrade authority", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.SolanaAccount, defaultSources: [Source.Solana_JsonRpc] },
 			})({
 				selectors: {
 					"NetworkProgramId": ["$network", "programId"],

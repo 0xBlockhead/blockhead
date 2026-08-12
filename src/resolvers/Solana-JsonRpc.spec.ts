@@ -21,6 +21,7 @@ const {
 	getBlocks,
 	getParsedTokenAccountInfo,
 	getParsedTokenMintAccountInfo,
+	getProgramInfo,
 	getSlot,
 	getTokenAccountsByOwner,
 	getVoteAccounts,
@@ -43,6 +44,7 @@ const {
 	getAccountInfo: vi.fn(),
 	getParsedTokenAccountInfo: vi.fn(),
 	getParsedTokenMintAccountInfo: vi.fn(),
+	getProgramInfo: vi.fn(),
 	getTokenAccountsByOwner: vi.fn(),
 	getVoteAccounts: vi.fn().mockResolvedValue({
 		current: [{
@@ -120,6 +122,7 @@ vi.mock('$/sources/Solana/JsonRpc/queries.ts', () => ({
 	getAccountInfo,
 	getParsedTokenAccountInfo,
 	getParsedTokenMintAccountInfo,
+	getProgramInfo,
 	getTokenAccountsByOwner,
 	getVoteAccounts,
 	getBlocks,
@@ -158,6 +161,12 @@ const networkTimestampsResolver = solanaJsonRpc.resolvers.find((candidate) => (
 if (networkTimestampsResolver == null)
 	throw new Error('Solana Network $$timestamps resolveLive resolver is missing')
 
+const programResolver = solanaJsonRpc.resolvers.find((candidate) => (
+	candidate.entityType === EntityType.SolanaProgram
+))
+if (programResolver == null)
+	throw new Error('Solana program resolver is missing')
+
 const liveField = () => ({
 	replaceRows: vi.fn(),
 	invalidate: vi.fn(),
@@ -183,6 +192,33 @@ const startSlotStreamLive = (
 })
 
 describe('Solana JSON-RPC network state lists', () => {
+	it('projects native program-account and upgrade-authority relationships', async () => {
+		vi.mocked(getProgramInfo).mockResolvedValueOnce({
+			loaderAddress: 'loader',
+			programDataAddress: 'program-data',
+			upgradeAuthorityAddress: 'upgrade-authority',
+			slot: 100,
+		})
+
+		const program = await programResolver.resolve['NetworkProgramId'].resolve({
+			$network: networkSelector,
+			programId: 'program-id',
+		}, context)
+
+		expect(programResolver.projections.$programAccount(program)).toEqual({
+			[EntityMetaKey.Selector]: {
+				$network: networkSelector,
+				pubkey: 'program-id',
+			},
+		})
+		expect(programResolver.projections.$upgradeAuthority(program)).toEqual({
+			[EntityMetaKey.Selector]: {
+				$network: networkSelector,
+				pubkey: 'upgrade-authority',
+			},
+		})
+	})
+
 	it('owns the registered Solana RPC endpoints', async () => {
 		const resolver = solanaJsonRpc.resolvers.find((candidate) => (
 			candidate.entityType === EntityType.Network

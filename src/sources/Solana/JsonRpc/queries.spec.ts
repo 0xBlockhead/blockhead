@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { SourceDelivery } from '$/sources/SourceBinding.ts'
+import { base58, base64 } from '@scure/base'
 
 const sourceFetch = vi.hoisted(() => vi.fn())
 
@@ -16,6 +17,8 @@ const {
 	getSignaturesForAddress,
 	getTransaction,
 	getTransactionsForAddress,
+	getProgramInfo,
+	solanaUpgradeableLoaderProgramId,
 } = await import('$/sources/Solana/JsonRpc/queries.ts')
 
 const pubkey = 'Account111111111111111111111111111111111'
@@ -268,6 +271,88 @@ describe('Solana account transaction JSON-RPC', () => {
 			},
 		})
 		expect(sourceFetch).not.toHaveBeenCalled()
+	})
+})
+
+describe('Solana upgradeable program hierarchy', () => {
+	beforeEach(() => {
+		sourceFetch.mockReset()
+	})
+
+	it('resolves the program-data account and current upgrade authority at one monotonic context', async () => {
+		const programDataAddressBytes = new Uint8Array(32).fill(7)
+		const authorityAddressBytes = new Uint8Array(32).fill(9)
+		const programData = new Uint8Array(36)
+		new DataView(programData.buffer).setUint32(0, 2, true)
+		programData.set(programDataAddressBytes, 4)
+		const authorityData = new Uint8Array(45)
+		new DataView(authorityData.buffer).setUint32(0, 3, true)
+		authorityData[12] = 1
+		authorityData.set(authorityAddressBytes, 13)
+
+		sourceFetch
+			.mockResolvedValueOnce(rpcResponse({
+				context: {
+					slot: 100,
+				},
+				value: {
+					lamports: 1,
+					owner: solanaUpgradeableLoaderProgramId,
+					executable: true,
+					rentEpoch: 0,
+					data: [base64.encode(programData), 'base64'],
+				},
+			}))
+			.mockResolvedValueOnce(rpcResponse({
+				context: {
+					slot: 101,
+				},
+				value: {
+					lamports: 1,
+					owner: solanaUpgradeableLoaderProgramId,
+					executable: false,
+					rentEpoch: 0,
+					data: [base64.encode(authorityData), 'base64'],
+				},
+			}))
+
+		await expect(getProgramInfo({
+			programId: pubkey,
+		})).resolves.toEqual({
+			loaderAddress: solanaUpgradeableLoaderProgramId,
+			programDataAddress: base58.encode(programDataAddressBytes),
+			upgradeAuthorityAddress: base58.encode(authorityAddressBytes),
+			slot: 101,
+		})
+		expect(JSON.parse(sourceFetch.mock.calls[1][2].body).params).toEqual([
+			base58.encode(programDataAddressBytes),
+			{
+				encoding: 'base64',
+				minContextSlot: 100,
+			},
+		])
+	})
+
+	it('preserves an executable immutable program without inventing upgrade authority', async () => {
+		sourceFetch.mockResolvedValueOnce(rpcResponse({
+			context: {
+				slot: 100,
+			},
+			value: {
+				lamports: 1,
+				owner: 'ForeignLoader11111111111111111111111111111',
+				executable: true,
+				rentEpoch: 0,
+				data: [base64.encode(new Uint8Array(36)), 'base64'],
+			},
+		}))
+
+		await expect(getProgramInfo({
+			programId: pubkey,
+		})).resolves.toEqual({
+			loaderAddress: 'ForeignLoader11111111111111111111111111111',
+			slot: 100,
+		})
 	})
 })
 

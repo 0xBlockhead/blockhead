@@ -877,6 +877,10 @@ export default {
 				NetworkProgramId: {
 					resolve: async ({ $network, programId }) => {
 						assertSolanaMainnet($network)
+						const { getProgramInfo } = await import('$/sources/Solana/JsonRpc/queries.ts')
+						const program = await getProgramInfo({
+							programId,
+						})
 						return {
 							$programAccount: {
 								[EntityMetaKey.Selector]: {
@@ -884,12 +888,21 @@ export default {
 									pubkey: programId,
 								},
 							},
+							...(program.upgradeAuthorityAddress != null && {
+								$upgradeAuthority: {
+									[EntityMetaKey.Selector]: {
+										$network,
+										pubkey: program.upgradeAuthorityAddress,
+									},
+								},
+							}),
 						}
 					},
 				}
 			},
 		})({
 				$programAccount: (program) => program.$programAccount,
+				$upgradeAuthority: (program) => program.$upgradeAuthority,
 			}),
 
 		defineResolver({

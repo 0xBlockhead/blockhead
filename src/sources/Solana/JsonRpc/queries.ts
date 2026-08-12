@@ -23,6 +23,7 @@ import {
 import { Source } from '$/sources/Source.ts'
 import bindings from '$/sources/PublicNode/bindings.ts'
 import { solanaSlotLive } from '$/sources/Solana/JsonRpc/live.remote.ts'
+import { base58, base64 } from '@scure/base'
 import { type as arktype } from 'arktype'
 
 const binding = bindings[Source.Solana_JsonRpc].find(({ delivery }) => (
@@ -53,6 +54,8 @@ export const solanaTokenProgramId = 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA
 
 /** Token-2022 program id — optional getTokenAccountsByOwner programId filter. */
 export const solanaToken2022ProgramId = 'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb'
+
+export const solanaUpgradeableLoaderProgramId = 'BPFLoaderUpgradeab1e11111111111111111111111'
 
 const solanaRpcContextWire = arktype({
 	slot: nonNegativeSafeInteger,
@@ -546,8 +549,10 @@ export const getTransactionsForAddress = async ({
 
 export const getAccountInfo = async ({
 	pubkey,
+	minContextSlot,
 }: {
 	pubkey: string
+	minContextSlot?: number
 }) => (
 	assertEnvelope(
 		'account info',
@@ -556,10 +561,73 @@ export const getAccountInfo = async ({
 			pubkey,
 			{
 				encoding: 'base64',
+				...(minContextSlot != null && {
+					minContextSlot,
+				}),
 			},
 		])
 	) as SolanaRpcAccountInfo
 )
+
+export const getProgramInfo = async ({
+	programId,
+}: {
+	programId: string
+}) => {
+	const programAccount = await getAccountInfo({
+		pubkey: programId,
+	})
+	if (programAccount.value == null)
+		throw new Error(`Solana program account not found for ${programId}`)
+	if (!programAccount.value.executable)
+		throw new Error(`Solana program account ${programId} is not executable`)
+	if (programAccount.value.owner !== solanaUpgradeableLoaderProgramId)
+		return {
+			loaderAddress: programAccount.value.owner,
+			slot: programAccount.context.slot,
+		}
+	if (programAccount.value.data[1] !== 'base64')
+		throw new Error(`Solana program ${programId} did not return base64 account data`)
+
+	const programData = base64.decode(programAccount.value.data[0])
+	if (
+		programData.length !== 36
+		|| new DataView(programData.buffer, programData.byteOffset, programData.byteLength).getUint32(0, true) !== 2
+	)
+		throw new Error(`Solana program ${programId} has invalid upgradeable-loader program data`)
+
+	const programDataAddress = base58.encode(programData.subarray(4))
+	const programDataAccount = await getAccountInfo({
+		pubkey: programDataAddress,
+		minContextSlot: programAccount.context.slot,
+	})
+	if (programDataAccount.value == null)
+		throw new Error(`Solana program-data account not found for ${programId}`)
+	if (programDataAccount.value.owner !== solanaUpgradeableLoaderProgramId)
+		throw new Error(`Solana program-data account for ${programId} has an invalid owner`)
+	if (programDataAccount.value.data[1] !== 'base64')
+		throw new Error(`Solana program-data account for ${programId} did not return base64 data`)
+
+	const authorityData = base64.decode(programDataAccount.value.data[0])
+	if (
+		authorityData.length < 13
+		|| new DataView(authorityData.buffer, authorityData.byteOffset, authorityData.byteLength).getUint32(0, true) !== 3
+		|| (authorityData[12] === 0 && authorityData.length !== 13)
+		|| (authorityData[12] === 1 && authorityData.length !== 45)
+		|| (authorityData[12] !== 0 && authorityData[12] !== 1)
+	)
+		throw new Error(`Solana program-data account for ${programId} has invalid upgradeable-loader data`)
+
+	return {
+		loaderAddress: programAccount.value.owner,
+		programDataAddress,
+		upgradeAuthorityAddress: authorityData[12] === 1 ?
+			base58.encode(authorityData.subarray(13))
+		:
+			undefined,
+		slot: programDataAccount.context.slot,
+	}
+}
 
 export const getParsedTokenMintAccountInfo = async ({
 	pubkey,
