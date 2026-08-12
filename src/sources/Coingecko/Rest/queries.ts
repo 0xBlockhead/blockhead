@@ -351,7 +351,7 @@ export const getSimplePrice = async ({
 	assertEnvelope(coingeckoSimplePriceEnvelope, prices, 'simple price')
 	if (
 		Array.isArray(prices)
-		|| Object.keys(prices).some((id) => !ids.includes(id))
+		|| Object.keys(prices).some((id) => !ids.includes(String(id)))
 		|| ids.some((id) => {
 			if (id === '' || !Object.hasOwn(prices, id))
 				return true
