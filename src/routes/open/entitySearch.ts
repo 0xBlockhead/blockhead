@@ -449,6 +449,97 @@ export const entityHrefFromSearchInput = (query: string) => {
 			}
 		)
 
+	const mempoolSpaceResource = query.match(/^https:\/\/(?:www\.)?mempool\.space\/(?:(testnet)\/)?(tx|block|address)\/([^/?#\s]+)\/?(?:[?#].*)?$/i)
+
+	if (mempoolSpaceResource) {
+		const network = `bip122:${mempoolSpaceResource[1] == null ? '000000000019d6689c085ae165831e93' : '000000000933ea01ad0ee984209779ba'}`
+		if (mempoolSpaceResource[2] === 'tx' && /^[a-f0-9]{64}$/i.test(mempoolSpaceResource[3]))
+			return resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxIdOrStringSegment]',
+				{
+					network,
+					transactionId: mempoolSpaceResource[3].toLowerCase(),
+				}
+			)
+
+		if (mempoolSpaceResource[2] === 'block' && /^[a-f0-9]{64}$/i.test(mempoolSpaceResource[3]))
+			return resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(blocks)/block/hash/[blockHash=zeroExHexOrStringSegmentOrUtxoTxId]',
+				{
+					network,
+					blockHash: mempoolSpaceResource[3].toLowerCase(),
+				}
+			)
+
+		if (
+			mempoolSpaceResource[2] === 'address'
+			&& /^(?:[13][a-km-zA-HJ-NP-Z1-9]{25,61}|(?:bc|tb)1[ac-hj-np-z02-9]{11,71})$/i.test(mempoolSpaceResource[3])
+		)
+			return resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/address/[address=stringSegment]',
+				{
+					network,
+					address: mempoolSpaceResource[3],
+				}
+			)
+	}
+
+	const mempoolSpaceLightningResource = query.match(/^https:\/\/(?:www\.)?mempool\.space\/lightning\/(node|channel)\/([^/?#\s]+)\/?(?:[?#].*)?$/i)
+
+	if (
+		mempoolSpaceLightningResource?.[1] === 'node'
+		&& /^(?:02|03)[a-f0-9]{64}$/i.test(mempoolSpaceLightningResource[2])
+	)
+		return resolve(
+			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/nodes/[pubkey=stringSegment]',
+			{
+				network: 'bip122:000000000019d6689c085ae165831e93',
+				pubkey: mempoolSpaceLightningResource[2].toLowerCase(),
+			}
+		)
+
+	if (
+		mempoolSpaceLightningResource?.[1] === 'channel'
+		&& /^(?:0|[1-9][0-9]*)$/.test(mempoolSpaceLightningResource[2])
+	)
+		return resolve(
+			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/channels/[channelId=stringSegment]',
+			{
+				network: 'bip122:000000000019d6689c085ae165831e93',
+				channelId: mempoolSpaceLightningResource[2],
+			}
+		)
+
+	const beaconchaInResource = query.match(/^https:\/\/(?:www\.)?beaconcha\.in\/(validator|epoch|slot)\/([0-9]+)\/?(?:[?#].*)?$/i)
+
+	if (beaconchaInResource)
+		return (
+			beaconchaInResource[1] === 'validator' ?
+				resolve(
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/validator/[validatorId=nonNegativeIntegerOrSolanaPubkeyOrStringSegment]',
+					{
+						network: 'eip155:1',
+						validatorId: beaconchaInResource[2],
+					}
+				)
+			: beaconchaInResource[1] === 'epoch' ?
+				resolve(
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/epoch/[epoch=nonNegativeInteger]',
+					{
+						network: 'eip155:1',
+						epoch: beaconchaInResource[2],
+					}
+				)
+			:
+				resolve(
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/slot/[slot=nonNegativeInteger]',
+					{
+						network: 'eip155:1',
+						slot: beaconchaInResource[2],
+					}
+				)
+		)
+
 	const evmExplorerTransaction = query.match(/^https:\/\/([^/?#\s]+)\/tx\/(0x[a-f0-9]{64})\/?(?:[?#].*)?$/i)
 
 	if (evmExplorerTransaction && evmExplorerNetworkByHost[evmExplorerTransaction[1].toLowerCase()] != null)
