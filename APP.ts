@@ -5121,9 +5121,22 @@ export const schema = {
 				facets: {
 					Evm: facet({
 						path: ["namespace"],
-						is: "eip155",
+					is: "eip155",
 					})({
 						"$account": { label: "EVM account", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EvmNetworkAccount, defaultSources: [Source.Constants_Internal] },
+					})({
+						singularView: {
+							carousels: [
+								{
+									id: "account-evm",
+									label: "EVM holdings and positions",
+									className: "account-view-collapsible-evm",
+									sections: [
+										{ id: "account-evm-projection", field: ["Evm", "$account"], List: "EvmNetworkAccountView", label: "EVM holdings and positions", layout: EntityLayout.SummaryDetails },
+									],
+								},
+							],
+						},
 					}),
 					Aptos: facet({
 						path: ["namespace"],
@@ -29195,6 +29208,7 @@ export const schema = {
 				"$$morphoVaultPositions": { label: "Morpho vault positions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.MorphoVaultPosition, defaultSources: [Source.Morpho_Graphql] },
 				"$$pendlePositions": { label: "Pendle positions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.PendlePosition, defaultSources: [Source.Pendle_Rest] },
 				"$$balancerPoolBalances": { label: "Balancer pool balances", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BalancerAccountPoolBalance, defaultSources: [Source.Balancer_Rest] },
+				"$$eigenLayerDelegations": { label: "EigenLayer delegations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EigenLayerDelegation_Timestamp, defaultSources: [Source.EigenExplorer_Rest] },
 				"$veBal": { label: "veBAL", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.BalancerVeBalBalance, defaultSources: [Source.Balancer_Rest] },
 			})({
 				selectors: {
@@ -29254,6 +29268,14 @@ export const schema = {
 									{ id: "evm-network-account-morpho-vault-positions", field: "$$morphoVaultPositions", List: "MorphoVaultPositionsView", label: "Morpho vaults", emptyText: "No Morpho vault positions.", selection: { sources: [Source.Morpho_Graphql], limit: 32 } },
 									{ id: "evm-network-account-pendle-positions", field: "$$pendlePositions", List: "PendlePositionsView", label: "Pendle", emptyText: "No Pendle positions.", selection: { sources: [Source.Pendle_Rest], limit: 32 } },
 									{ id: "evm-network-account-balancer-pool-balances", field: "$$balancerPoolBalances", List: "BalancerAccountPoolBalancesView", label: "Balancer", emptyText: "No Balancer pool balances.", selection: { sources: [Source.Balancer_Rest], limit: 32 } },
+								],
+							},
+							{
+								id: "evm-network-account-restaking",
+								label: "Staking and restaking",
+								className: "network-view-collapsible-restaking",
+								sections: [
+									{ id: "evm-network-account-eigenlayer-delegations", field: "$$eigenLayerDelegations", List: "EigenLayerDelegation_TimestampsView", label: "EigenLayer delegations", emptyText: "No EigenLayer delegation observations for this Ethereum account.", selection: { sources: [Source.EigenExplorer_Rest], limit: 32 } },
 								],
 							},
 						],

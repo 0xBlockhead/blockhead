@@ -8,6 +8,7 @@ import {
 
 import { networkBySlug } from '$/constants/Network.ts'
 import { EntityMetaKey } from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
 const getAvs = vi.hoisted(() => vi.fn())
@@ -48,6 +49,7 @@ const { default: eigenExplorerResolvers } = await import('$/resolvers/EigenExplo
 
 const [
 	delegationResolver,
+	,
 	operatorResolver,
 	operatorRewardsResolver,
 	rewardTimestampResolver,
@@ -124,6 +126,13 @@ const context = {
 	publicEnv: {},
 }
 
+const evmNetworkAccountResolver = eigenExplorerResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.EvmNetworkAccount
+))
+
+if (evmNetworkAccountResolver == null)
+	throw new Error('EigenExplorer_Rest: EvmNetworkAccount resolver missing')
+
 describe('EigenExplorer delegation resolver', () => {
 	beforeEach(() => {
 		vi.restoreAllMocks()
@@ -181,6 +190,55 @@ describe('EigenExplorer delegation resolver', () => {
 				take: 100,
 			},
 		})
+	})
+
+	it('projects current mainnet staker shares as typed delegation observations', async () => {
+		const account = await evmNetworkAccountResolver.resolve.EvmNetworkEvmAccount.resolve({
+			$network: network,
+			$actor: {
+				address: stakerAddress,
+			},
+		}, context)
+
+		expect(evmNetworkAccountResolver.projections.$$eigenLayerDelegations.select(account)).toEqual([{
+			[EntityMetaKey.Selector]: selector,
+		}])
+		expect(evmNetworkAccountResolver.projections.$$eigenLayerDelegations.resolveCount(account)).toBe(1)
+		expect(getStaker).toHaveBeenCalledWith(stakerAddress)
+	})
+
+	it('keeps an explicit no-operator staker response as an empty delegation list', async () => {
+		getStaker.mockResolvedValueOnce({
+			address: stakerAddress,
+			operatorAddress: null,
+			createdAtBlock: '100',
+			updatedAtBlock: '101',
+			createdAt: '2026-01-01T00:00:00.000Z',
+			updatedAt: '2026-01-02T00:00:00.000Z',
+			shares: [],
+		})
+
+		const account = await evmNetworkAccountResolver.resolve.EvmNetworkEvmAccount.resolve({
+			$network: network,
+			$actor: {
+				address: stakerAddress,
+			},
+		}, context)
+
+		expect(evmNetworkAccountResolver.projections.$$eigenLayerDelegations.select(account)).toEqual([])
+		expect(evmNetworkAccountResolver.projections.$$eigenLayerDelegations.resolveCount(account)).toBe(0)
+	})
+
+	it('rejects non-mainnet account composition before transport', async () => {
+		await expect(evmNetworkAccountResolver.resolve.EvmNetworkEvmAccount.resolve({
+			$network: {
+				caip2: networkBySlug.base.caip2,
+			},
+			$actor: {
+				address: stakerAddress,
+			},
+		}, context)).rejects.toThrow('unsupported network')
+		expect(getStaker).not.toHaveBeenCalled()
 	})
 
 	it('projects delegated shares plus deposit and withdrawal fields', async () => {

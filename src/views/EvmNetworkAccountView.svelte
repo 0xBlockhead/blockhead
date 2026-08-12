@@ -52,6 +52,7 @@
 	import MorphoVaultPositionsView from '$/views/MorphoVaultPositionsView.svelte'
 	import PendlePositionsView from '$/views/PendlePositionsView.svelte'
 	import BalancerAccountPoolBalancesView from '$/views/BalancerAccountPoolBalancesView.svelte'
+	import EigenLayerDelegation_TimestampsView from '$/views/EigenLayerDelegation_TimestampsView.svelte'
 </script>
 
 
@@ -496,6 +497,46 @@
 					collapsible={false}
 					title={label}
 					emptyText='No Balancer pool balances.'
+					id={`${id}-list`}
+				/>
+			{/snippet}
+
+		</CollapsibleTabs>
+
+		<CollapsibleTabs
+			id={viewDomId + '-carousel-evm-network-account-restaking'}
+			sectionIdPrefix={viewDomId}
+			sections={
+				[
+					{
+						id: 'evm-network-account-eigenlayer-delegations',
+						label: 'EigenLayer delegations',
+					},
+				]
+			}
+			data-card
+			class='network-view-collapsible-restaking'
+		>
+			{#snippet Summary()}
+				<header data-row-item="flexible" data-row="wrap gap-4">
+					<HeadingComponent>Staking and restaking</HeadingComponent>
+				</header>
+			{/snippet}
+
+			{#snippet SectionEvmNetworkAccountEigenlayerDelegations({ id, label })}
+				<EigenLayerDelegation_TimestampsView
+					selection={
+						selection
+						.$$eigenLayerDelegations({
+							sources: [
+								Source.EigenExplorer_Rest,
+							],
+							limit: 32,
+						})
+					}
+					collapsible={false}
+					title={label}
+					emptyText='No EigenLayer delegation observations for this Ethereum account.'
 					id={`${id}-list`}
 				/>
 			{/snippet}

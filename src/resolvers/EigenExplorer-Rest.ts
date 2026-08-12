@@ -340,6 +340,68 @@ export default {
 		}),
 
 		defineResolver({
+			entityType: EntityType.EvmNetworkAccount,
+			resolve: {
+				EvmNetworkEvmAccount: {
+					appliesTo: ethereumMainnetApplicability,
+					resolve: async ({
+						$network,
+						$actor,
+					}) => {
+						assertEthereumMainnet($network)
+
+						const { getStaker } = await import('$/sources/EigenExplorer/Rest/queries.ts')
+						const staker = await getStaker($actor.address)
+						if (staker.operatorAddress == null)
+							return {
+								delegations: [],
+							}
+
+						const operatorAddress = hexLowerOfByteSize(staker.operatorAddress, 20)
+						if (operatorAddress == null)
+							throw new Error('EigenExplorer_Rest: staker operator address not normalized')
+
+						const timestampMs = Date.parse(staker.updatedAt)
+						if (!Number.isFinite(timestampMs))
+							throw new Error('EigenExplorer_Rest: invalid staker observation timestamp')
+
+						return {
+							delegations: staker.shares.map(({ strategyAddress }) => {
+								const normalizedStrategyAddress = hexLowerOfByteSize(strategyAddress, 20)
+								if (normalizedStrategyAddress == null)
+									throw new Error('EigenExplorer_Rest: staker strategy address not normalized')
+
+								return {
+									[EntityMetaKey.Selector]: {
+										$staker: {
+											$network: ethereumNetwork,
+											$actor,
+										},
+										$operator: {
+											$network: ethereumNetwork,
+											operatorAddress,
+										},
+										$strategy: {
+											$network: ethereumNetwork,
+											strategyAddress: normalizedStrategyAddress,
+										},
+										timestampMs,
+										source: Source.EigenExplorer_Rest,
+									},
+								}
+							}),
+						}
+					},
+				},
+			},
+		})({
+			$$eigenLayerDelegations: {
+				select: (snapshot) => snapshot.delegations,
+				resolveCount: (snapshot) => snapshot.delegations.length,
+			},
+		}),
+
+		defineResolver({
 			entityType: EntityType.EigenLayerOperator,
 			resolve: {
 				NetworkOperatorAddress: {

@@ -45,6 +45,7 @@
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
+	import EvmNetworkAccountView from '$/views/EvmNetworkAccountView.svelte'
 	import SuiAccountView from '$/views/SuiAccountView.svelte'
 	import TezosAccountView from '$/views/TezosAccountView.svelte'
 </script>
@@ -132,6 +133,78 @@
 	{/snippet}
 
 	{#snippet Details()}
+		<ProjectionBoundary
+			resource={selection.Evm}
+		>
+			{#snippet Applicable(projection)}
+				<CollapsibleTabs
+					id={viewDomId + '-carousel-account-evm'}
+					sectionIdPrefix={viewDomId}
+					sections={
+						[
+							{
+								id: 'account-evm-projection',
+								label: 'EVM holdings and positions',
+								ownsSection: true,
+							},
+						]
+					}
+					data-card
+					class='account-view-collapsible-evm'
+				>
+					{#snippet Summary()}
+						<header data-row-item="flexible" data-row="wrap gap-4">
+							<HeadingComponent>EVM holdings and positions</HeadingComponent>
+						</header>
+					{/snippet}
+
+					{#snippet SectionAccountEvmProjection({ id, label, active })}
+						<ResourceBoundary
+							resource={projection.$account}
+						>
+							{#snippet children(evmNetworkAccount)}
+								{@const evmNetworkAccountInitial = untrack(() => evmNetworkAccount)}
+								<section
+									id={id}
+									aria-labelledby={`${id}:marker`}
+									data-scroll-marker-label={label}
+									data-column-item="flexible"
+									data-column
+									data-active={active}
+								>
+									<EvmNetworkAccountView
+										selection={
+											select(EntityType.EvmNetworkAccount, (evmNetworkAccount ?? evmNetworkAccountInitial)[EntityMetaKey.Selector], {
+												sources: selection.sources,
+											})
+										}
+										layout={EntityLayout.SummaryDetails}
+									/>
+								</section>
+							{/snippet}
+
+							{#snippet Pending()}
+								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+										<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
+									</article>
+								</section>
+							{/snippet}
+
+							{#snippet Failed(_error, _retry)}
+								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+										<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
+									</article>
+								</section>
+							{/snippet}
+						</ResourceBoundary>
+					{/snippet}
+
+				</CollapsibleTabs>
+			{/snippet}
+		</ProjectionBoundary>
+
 		<ProjectionBoundary
 			resource={selection.Sui}
 		>

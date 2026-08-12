@@ -124,6 +124,13 @@ export default entity({
 			Source.Balancer_Rest,
 		],
 	},
+	$$eigenLayerDelegations: {
+		entityType: EntityType.EigenLayerDelegation_Timestamp,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.EigenExplorer_Rest,
+		],
+	},
 	$veBal: {
 		entityType: EntityType.BalancerVeBalBalance,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
