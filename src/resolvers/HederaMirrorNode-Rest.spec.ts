@@ -2156,6 +2156,15 @@ describe('Hedera Mirror Node transaction detail', () => {
 					consensus_timestamp: '1710000001.100000000',
 				}],
 			})))
+			.mockResolvedValueOnce(new Response(JSON.stringify({
+				...scheduleFixture,
+				executed_timestamp: null,
+				expiration_time: '1710000000.700000000',
+				signatures: [{
+					...scheduleFixture.signatures[0],
+					consensus_timestamp: '1710000000.800000000',
+				}],
+			})))
 
 		await expect(scheduleResolver.resolve.NetworkScheduleId.resolve({
 			$network: network,
@@ -2165,6 +2174,10 @@ describe('Hedera Mirror Node transaction detail', () => {
 			$network: network,
 			scheduleId: scheduleFixture.schedule_id,
 		})).rejects.toThrow('duplicate schedule signer')
+		await expect(scheduleResolver.resolve.NetworkScheduleId.resolve({
+			$network: network,
+			scheduleId: scheduleFixture.schedule_id,
+		})).rejects.toThrow('schedule signature lies outside the lifecycle')
 		await expect(scheduleResolver.resolve.NetworkScheduleId.resolve({
 			$network: network,
 			scheduleId: scheduleFixture.schedule_id,

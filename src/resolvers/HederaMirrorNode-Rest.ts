@@ -1184,6 +1184,11 @@ const scheduleSnapshot = (
 						observation.executedTimestamp != null
 						&& signatureTimestampMs > timestampMs(observation.executedTimestamp, 'schedule executed timestamp')
 					)
+					|| (
+						observation.executedTimestamp == null
+						&& observation.expirationTime != null
+						&& signatureTimestampMs > timestampMs(observation.expirationTime, 'schedule expiration time')
+					)
 				)
 					throw new Error('HederaMirrorNode_Rest: schedule signature lies outside the lifecycle')
 			}
