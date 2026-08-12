@@ -157,6 +157,7 @@ describe('Blockscout EVM coin instances', () => {
 		expect(resolver.projections.Erc20Token.name(resolved, resolved[EntityMetaKey.Selector], context)).toBe('USD Coin')
 		expect(resolver.projections.Erc20Token.symbol(resolved, resolved[EntityMetaKey.Selector], context)).toBe('USDC')
 	})
+
 })
 
 describe('Blockscout Network account abstraction applicability', () => {
@@ -843,7 +844,7 @@ describe('Blockscout EvmTransaction enrolled leftovers', () => {
 		getTransactionLogs.mockResolvedValue([])
 	})
 
-	it('projects $block and SetCode.$$authorizations from transaction detail', async () => {
+	it('projects SetCode authorizations and resolves a native authorization route from the same source detail', async () => {
 		const delegation = '0x5555555555555555555555555555555555555555'
 		const authority = '0x6666666666666666666666666666666666666666'
 		getTransactionByHash.mockResolvedValue({
@@ -914,7 +915,96 @@ describe('Blockscout EvmTransaction enrolled leftovers', () => {
 		expect(authorizations[0]?.nonce).toBe(7n)
 		expect(authorizations[0]?.yParity).toBe(1)
 		expect(authorizations[0]?.verificationStatus).toBe('ok')
+		expect(authorizations[0]?.r).toBe(`0x${'0'.repeat(63)}1`)
+		expect(authorizations[0]?.s).toBe(`0x${'0'.repeat(63)}2`)
+		expect(authorizations[0]?.$authorityAccount?.[EntityMetaKey.Selector]).toEqual({
+			$network: network,
+			$actor: {
+				address: authority,
+			},
+		})
+		expect(authorizations[0]?.$delegationContract?.[EntityMetaKey.Selector]).toEqual({
+			$network: network,
+			address: delegation,
+		})
 		expect(resolver.projections.SetCode.$$authorizations.resolveCount(entity)).toBe(1)
+
+		const authorizationResolver = blockscoutRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.Eip7702Authorization
+			&& 'TransactionAuthorizationIndex' in candidate.resolve
+		))
+		if (
+			authorizationResolver == null
+			|| !('TransactionAuthorizationIndex' in authorizationResolver.resolve)
+		)
+			throw new Error('Blockscout_Rest: missing Eip7702Authorization resolver')
+
+		const authorization = await authorizationResolver.resolve.TransactionAuthorizationIndex.resolve({
+			$transaction: {
+				$network: network,
+				txHash,
+			},
+			authorizationIndex: 0,
+		}, context)
+		expect(authorizationResolver.projections.chainId(authorization)).toBe(1n)
+		expect(authorizationResolver.projections.delegationAddress(authorization)).toBe(delegation)
+		expect(authorizationResolver.projections.authority(authorization)).toBe(authority)
+		expect(authorizationResolver.projections.nonce(authorization)).toBe(7n)
+		expect(authorizationResolver.projections.yParity(authorization)).toBe(1)
+		expect(authorizationResolver.projections.$authorityAccount(authorization)?.[EntityMetaKey.Selector]).toEqual({
+			$network: network,
+			$actor: {
+				address: authority,
+			},
+		})
+		expect(authorizationResolver.projections.$delegationContract(authorization)?.[EntityMetaKey.Selector]).toEqual({
+			$network: network,
+			address: delegation,
+		})
+		await expect(authorizationResolver.resolve.TransactionAuthorizationIndex.resolve({
+			$transaction: {
+				$network: network,
+				txHash,
+			},
+			authorizationIndex: 1,
+		}, context)).rejects.toThrow('authorization index is missing from transaction')
+	})
+
+	it('fails closed when an authorization response does not preserve the requested transaction identity', async () => {
+		getTransactionByHash.mockResolvedValue({
+			from: {
+				hash: '0x1111111111111111111111111111111111111111',
+			},
+			to: {
+				hash: '0x2222222222222222222222222222222222222222',
+			},
+			gas_limit: '21000',
+			gas_price: '1',
+			gas_used: '21000',
+			hash: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+			nonce: 4,
+			raw_input: '0x',
+			value: '0',
+			type: 4,
+			authorization_list: [],
+		})
+		const resolver = blockscoutRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.Eip7702Authorization
+			&& 'TransactionAuthorizationIndex' in candidate.resolve
+		))
+		if (
+			resolver == null
+			|| !('TransactionAuthorizationIndex' in resolver.resolve)
+		)
+			throw new Error('Blockscout_Rest: missing Eip7702Authorization resolver')
+
+		await expect(resolver.resolve.TransactionAuthorizationIndex.resolve({
+			$transaction: {
+				$network: network,
+				txHash,
+			},
+			authorizationIndex: 0,
+		}, context)).rejects.toThrow('authorization transaction identity does not match request')
 	})
 })
 

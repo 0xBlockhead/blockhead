@@ -1620,6 +1620,52 @@ export default {
 		}),
 
 		defineResolver({
+			entityType: EntityType.Eip7702Authorization,
+			resolve: {
+				TransactionAuthorizationIndex: {
+					resolve: async (entitySelector) => {
+						const { getTransactionByHash } = await import('$/sources/Blockscout/Rest/queries.ts')
+						const transaction = await getTransactionByHash({
+							chainId: evmChainIdFromNetworkSelector(entitySelector.$transaction.$network),
+							txHash: entitySelector.$transaction.txHash,
+						})
+						if (transaction == null)
+							throw new Error('Blockscout_Rest: authorization transaction not found')
+
+						const txHash = hexLowerOfByteSize(transaction.hash, 32)
+						if (txHash !== entitySelector.$transaction.txHash)
+							throw new Error('Blockscout_Rest: authorization transaction identity does not match request')
+
+						const authorization = eip7702AuthorizationEntitiesFromBlockscoutWire({
+							$network: entitySelector.$transaction.$network,
+							txHash,
+							authorizationList: transaction.authorization_list ?? [],
+						}).find((candidate) => (
+							candidate[EntityMetaKey.Selector].authorizationIndex === entitySelector.authorizationIndex
+						))
+						if (authorization == null)
+							throw new Error('Blockscout_Rest: authorization index is missing from transaction')
+
+						return authorization
+					},
+				},
+			},
+		})({
+			$transaction: (authorization) => authorization.$transaction,
+			authorizationIndex: (authorization) => authorization[EntityMetaKey.Selector].authorizationIndex,
+			chainId: (authorization) => authorization.chainId,
+			delegationAddress: (authorization) => authorization.delegationAddress,
+			authority: (authorization) => authorization.authority,
+			nonce: (authorization) => authorization.nonce,
+			yParity: (authorization) => authorization.yParity,
+			r: (authorization) => authorization.r,
+			s: (authorization) => authorization.s,
+			verificationStatus: (authorization) => authorization.verificationStatus,
+			$authorityAccount: (authorization) => authorization.$authorityAccount,
+			$delegationContract: (authorization) => authorization.$delegationContract,
+		}),
+
+		defineResolver({
 			entityType: EntityType.EvmLog,
 			resolve: {
 				TransactionIndexInTransaction: {
