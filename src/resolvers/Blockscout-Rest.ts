@@ -1459,6 +1459,10 @@ const evmUserOperationReferenceFromBlockscoutWire = ({
 
 	const timestampMs = wire.timestamp == null ? undefined : Date.parse(wire.timestamp)
 	const fee = optionalNonemptyString(wire.fee)
+	const senderAddress = hexLowerOfByteSize(wire.address.hash, 20)
+	const entryPointAddress = hexLowerOfByteSize(wire.entry_point.hash, 20)
+	const bundledTransactionHash = hexLowerOfByteSize(wire.transaction_hash, 32)
+	const blockNumber = blockscoutQuantityToBigInt(wire.block_number)
 	return {
 		[EntityMetaKey.Selector]: {
 			$network,
@@ -1466,6 +1470,39 @@ const evmUserOperationReferenceFromBlockscoutWire = ({
 		},
 		[EntityMetaKey.Fields]: {
 			[entityFieldAddressKey(EntityType.EvmUserOperation, [], 'successful')]: wire.status,
+			...(senderAddress != null && {
+				[entityFieldAddressKey(EntityType.EvmUserOperation, [], '$sender')]: {
+					[EntityMetaKey.Selector]: {
+						$network,
+						address: senderAddress,
+					},
+				},
+			}),
+			...(entryPointAddress != null && {
+				[entityFieldAddressKey(EntityType.EvmUserOperation, [], '$entryPoint')]: {
+					[EntityMetaKey.Selector]: {
+						$network,
+						address: entryPointAddress,
+					},
+				},
+			}),
+			...(bundledTransactionHash != null && {
+				[entityFieldAddressKey(EntityType.EvmUserOperation, [], '$bundledTransaction')]: {
+					[EntityMetaKey.Selector]: {
+						$network,
+						txHash: bundledTransactionHash,
+					},
+				},
+			}),
+			...(blockNumber != null && {
+				[entityFieldAddressKey(EntityType.EvmUserOperation, [], '$block')]: {
+					[EntityMetaKey.Selector]: {
+						$network,
+						blockNumber,
+					},
+				},
+			}),
+			[entityFieldAddressKey(EntityType.EvmUserOperation, [], 'entryPointVersion')]: wire.entry_point_version,
 			...(timestampMs != null && Number.isFinite(timestampMs) && {
 				[entityFieldAddressKey(EntityType.EvmUserOperation, [], 'timestampMs')]: timestampMs,
 			}),

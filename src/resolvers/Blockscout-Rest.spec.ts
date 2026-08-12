@@ -295,6 +295,31 @@ describe('Blockscout Network account abstraction applicability', () => {
 			},
 			[EntityMetaKey.Fields]: {
 				[entityFieldAddressKey(EntityType.EvmUserOperation, [], 'successful')]: true,
+				[entityFieldAddressKey(EntityType.EvmUserOperation, [], '$sender')]: {
+					[EntityMetaKey.Selector]: {
+						$network: network,
+						address: blockscoutAddress.hash,
+					},
+				},
+				[entityFieldAddressKey(EntityType.EvmUserOperation, [], '$entryPoint')]: {
+					[EntityMetaKey.Selector]: {
+						$network: network,
+						address: blockscoutAddress.hash,
+					},
+				},
+				[entityFieldAddressKey(EntityType.EvmUserOperation, [], '$bundledTransaction')]: {
+					[EntityMetaKey.Selector]: {
+						$network: network,
+						txHash,
+					},
+				},
+				[entityFieldAddressKey(EntityType.EvmUserOperation, [], '$block')]: {
+					[EntityMetaKey.Selector]: {
+						$network: network,
+						blockNumber: 12n,
+					},
+				},
+				[entityFieldAddressKey(EntityType.EvmUserOperation, [], 'entryPointVersion')]: 'v0.7',
 				[entityFieldAddressKey(EntityType.EvmUserOperation, [], 'timestampMs')]: 1_785_369_600_000,
 				[entityFieldAddressKey(EntityType.EvmUserOperation, [], 'fee')]: '12',
 			},
