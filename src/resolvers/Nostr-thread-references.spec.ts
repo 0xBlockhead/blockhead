@@ -24,6 +24,7 @@ const getPrimalNoteActions = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/NostrRelay/WebSocket/queries.ts', () => ({
 	listNostrRelayEvents,
+	listNostrRelayEventsForOperationGroup: listNostrRelayEvents,
 	nostrRelaySnapshotBindings,
 }))
 vi.mock('$/sources/Primal/Rest/queries.ts', () => ({
@@ -135,14 +136,31 @@ describe('Nostr thread references', () => {
 				expectedReplyEventId: replyEventId,
 			},
 			{
-				label: 'uses a marked root as the direct reply when no reply marker exists',
+				label: 'does not fabricate a direct reply from a marked root',
 				tags: [
 					['e', rootEventId, '', 'root'],
 					['e', replyEventId, '', 'mention'],
+				],
+				expectedRootEventId: rootEventId,
+				expectedReplyEventId: undefined,
+			},
+			{
+				label: 'keeps marked and legacy tags from contaminating each other',
+				tags: [
+					['e', rootEventId, '', 'root'],
 					['e', mentionEventId],
 				],
 				expectedRootEventId: rootEventId,
-				expectedReplyEventId: rootEventId,
+				expectedReplyEventId: undefined,
+			},
+			{
+				label: 'does not fabricate a root from a marked direct reply',
+				tags: [
+					['e', replyEventId, '', 'reply'],
+					['e', rootEventId],
+				],
+				expectedRootEventId: undefined,
+				expectedReplyEventId: replyEventId,
 			},
 			{
 				label: 'uses first and last unmarked tags for legacy threads',
@@ -332,14 +350,14 @@ describe('Nostr thread references', () => {
 
 			await expect(repliesResolver.resolve['CanonicalEventId'].resolve({
 				eventId: replyEventId,
-			}, resolverContext)).resolves.toEqual([{
+			}, resolverContext)).resolves.toEqual([expect.objectContaining({
 				[EntityMetaKey.Selector]: { eventId: validReply.id },
-			}])
+			})])
 			await expect(reactionsResolver.resolve['CanonicalEventId'].resolve({
 				eventId: replyEventId,
-			}, resolverContext)).resolves.toEqual([{
+			}, resolverContext)).resolves.toEqual([expect.objectContaining({
 				[EntityMetaKey.Selector]: { eventId: validReaction.id },
-			}])
+			})])
 			if (source === 'Primal') {
 				expect(getPrimalNoteActions).toHaveBeenNthCalledWith(
 					1,
@@ -356,7 +374,7 @@ describe('Nostr thread references', () => {
 			} else {
 				expect(listNostrRelayEvents.mock.calls.slice(-2)).toEqual([
 					[{
-						bindings: expect.any(Array),
+						operationGroup: 'NostrRelayRead',
 						filters: [{
 							'#e': [replyEventId],
 							kinds: [1],
@@ -364,7 +382,7 @@ describe('Nostr thread references', () => {
 						}],
 					}],
 					[{
-						bindings: expect.any(Array),
+						operationGroup: 'NostrRelayRead',
 						filters: [{
 							'#e': [replyEventId],
 							kinds: [7],
@@ -397,7 +415,7 @@ describe('Nostr thread references', () => {
 			}))
 			if (source === 'NostrRelay')
 				expect(listNostrRelayEvents).toHaveBeenLastCalledWith({
-					bindings: expect.any(Array),
+					operationGroup: 'NostrRelayRead',
 					filters: [{
 						'#d': ['target'],
 						authors: [pubkey],
@@ -463,7 +481,7 @@ describe('Nostr thread references', () => {
 		expect(article).not.toHaveProperty('content')
 		expect(article.$latestEvent[EntityMetaKey.Selector]).toEqual({ eventId: articleVersions[0].id })
 		expect(listNostrRelayEvents).toHaveBeenLastCalledWith({
-			bindings: expect.any(Array),
+			operationGroup: 'NostrRelayRead',
 			filters: [{
 				'#d': ['target'],
 				authors: [pubkey],
@@ -489,7 +507,7 @@ describe('Nostr thread references', () => {
 		expect(profile).not.toHaveProperty('displayName')
 		expect(profile.$latestMetadataEvent[EntityMetaKey.Selector]).toEqual({ eventId: profileVersions[0].id })
 		expect(listNostrRelayEvents).toHaveBeenLastCalledWith({
-			bindings: expect.any(Array),
+			operationGroup: 'NostrRelayRead',
 			filters: [{
 				authors: [pubkey],
 				kinds: [0],

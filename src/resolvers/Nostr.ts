@@ -60,10 +60,15 @@ export const nostrReactionTargetEventId = (tags: string[][]) => (
 	nostrEventIdsFromTags(tags).at(-1)
 )
 
+const hasNostrMarkedThreadTags = (tags: string[][]) => tags.some((tag) => (
+	tag[0] === 'e'
+	&& (tag[3] === 'root' || tag[3] === 'reply')
+))
+
 export const nostrReplyToEventId = (tags: string[][]) => {
-	const eventIds = tags.flatMap((tag) => (
+	const unmarkedEventIds = tags.flatMap((tag) => (
 		tag[0] === 'e'
-		&& tag[3] !== 'mention' ?
+		&& tag[3] == null ?
 			[normalizeNostrEventId(tag[1])]
 		:
 			[]
@@ -76,33 +81,39 @@ export const nostrReplyToEventId = (tags: string[][]) => {
 			:
 				[]
 		)).at(0)
-		?? tags.flatMap((tag) => (
+		?? (
+			hasNostrMarkedThreadTags(tags) ?
+				undefined
+			:
+				unmarkedEventIds.at(-1)
+		)
+	)
+}
+
+const nostrRootEventId = (tags: string[][]) => {
+	const unmarkedEventIds = tags.flatMap((tag) => (
+		tag[0] === 'e'
+		&& tag[3] == null ?
+			[normalizeNostrEventId(tag[1])]
+		:
+			[]
+	)).filter((eventId) => eventId != null)
+	return (
+		tags.flatMap((tag) => (
 			tag[0] === 'e'
 			&& tag[3] === 'root' ?
 				[normalizeNostrEventId(tag[1])]
 			:
 				[]
 		)).at(0)
-		?? eventIds.at(-1)
+		?? (
+			hasNostrMarkedThreadTags(tags) ?
+				undefined
+			:
+				unmarkedEventIds.at(0)
+		)
 	)
 }
-
-const nostrRootEventId = (tags: string[][]) => (
-	tags.flatMap((tag) => (
-		tag[0] === 'e'
-		&& tag[3] === 'root' ?
-			[normalizeNostrEventId(tag[1])]
-		:
-			[]
-	)).at(0)
-	?? tags.flatMap((tag) => (
-		tag[0] === 'e'
-		&& tag[3] !== 'mention' ?
-			[normalizeNostrEventId(tag[1])]
-		:
-			[]
-	)).filter((eventId) => eventId != null).at(0)
-)
 
 export const isNostrRepostKind = (kind: number): kind is 6 | 16 => (
 	kind === 6 || kind === 16
