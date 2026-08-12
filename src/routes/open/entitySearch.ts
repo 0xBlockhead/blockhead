@@ -2,7 +2,13 @@ import { resolve } from '$app/paths'
 
 import { base58, bech32, hex } from '@scure/base'
 
-import { NetworkExecutionModel, NetworkLedgerModel, networks } from '$/constants/Network.ts'
+import {
+	NetworkExecutionModel,
+	NetworkLedgerModel,
+	NetworkResourceKind,
+	networkResourceUrls,
+	networks,
+} from '$/constants/Network.ts'
 import { ipfsResourceAddressFromInput, ipfsResourceHref } from '$/lib/ipfs.ts'
 import { swarmResourceHrefFromInput } from '$/lib/swarm.ts'
 import { parseFarcasterUrlIngress } from '$/routes/(social)/(farcaster)/farcaster/farcasterUrlIngress.ts'
@@ -102,6 +108,21 @@ export const nostrHexEntityKinds = [
 		label: 'Repost event',
 	},
 ] as const
+
+const evmExplorerNetworkByHost = Object.fromEntries(
+	networkResourceUrls.flatMap((resource) => {
+		const network = networks.find((candidate) => candidate.slug === resource.networkSlug)
+		return (
+			resource.kind === NetworkResourceKind.BlockExplorer
+			&& network != null
+			&& 'caip2' in network
+			&& network.caip2.namespace === 'eip155' ?
+				[[new URL(resource.url).hostname, `${network.caip2.namespace}:${network.caip2.reference}`]]
+			:
+				[]
+		)
+	})
+)
 
 const farcasterHrefFromSearchInput = (query: string) => {
 	if (!/^https:\/\/(?:farcaster\.xyz|warpcast\.com)\//i.test(query)) return
@@ -306,7 +327,7 @@ export const entityHrefFromSearchInput = (query: string) => {
 			}
 		)
 
-	const gitlabResource = query.match(/^https:\/\/gitlab\.com\/([^/?#\s]+)\/([^/?#\s]+?)(?:\.git)?\/-\/(issues|merge_requests|releases)\/([^/?#\s]+)\/?(?:[?#].*)?$/i)
+	const gitlabResource = query.match(/^https:\/\/gitlab\.com\/(.+)\/([^/?#\s]+?)(?:\.git)?\/-\/(issues|merge_requests|releases)\/([^/?#\s]+)\/?(?:[?#].*)?$/i)
 
 	if (
 		gitlabResource
@@ -325,35 +346,86 @@ export const entityHrefFromSearchInput = (query: string) => {
 			gitlabResource[3] === 'issues' ?
 				{
 					forgeHost: 'gitlab.com',
-					owner: gitlabResource[1],
+					owner: encodeURIComponent(gitlabResource[1]),
 					repositoryName: gitlabResource[2],
 					issueNumber: gitlabResource[4],
 				}
 			: gitlabResource[3] === 'merge_requests' ?
 				{
 					forgeHost: 'gitlab.com',
-					owner: gitlabResource[1],
+					owner: encodeURIComponent(gitlabResource[1]),
 					repositoryName: gitlabResource[2],
 					pullRequestNumber: gitlabResource[4],
 				}
 			:
 				{
 					forgeHost: 'gitlab.com',
-					owner: gitlabResource[1],
+					owner: encodeURIComponent(gitlabResource[1]),
 					repositoryName: gitlabResource[2],
 					releaseTagName: gitlabResource[4],
 				}
 		)
 
-	const gitlabRepository = query.match(/^https:\/\/gitlab\.com\/([^/?#\s]+)\/([^/?#\s]+?)(?:\.git)?\/?(?:[?#].*)?$/i)
+	const gitlabRepository = query.match(/^https:\/\/gitlab\.com\/(.+)\/([^/?#\s]+?)(?:\.git)?\/?(?:[?#].*)?$/i)
 
-	if (gitlabRepository)
+	if (gitlabRepository && !gitlabRepository[1].includes('/-/'))
 		return resolve(
 			'/git/forge/[forgeHost=stringSegment]/[owner=stringSegment]/[repositoryName=stringSegment]',
 			{
 				forgeHost: 'gitlab.com',
-				owner: gitlabRepository[1],
+				owner: encodeURIComponent(gitlabRepository[1]),
 				repositoryName: gitlabRepository[2],
+			}
+		)
+
+	const githubResource = query.match(/^https:\/\/(?:www\.)?github\.com\/([^/?#\s]+)\/([^/?#\s]+?)(?:\.git)?\/(issues|pull|releases\/tag)\/([^/?#\s]+)\/?(?:[?#].*)?$/i)
+
+	if (
+		githubResource
+		&& (
+			githubResource[3] === 'releases/tag'
+			|| /^[0-9]+$/.test(githubResource[4])
+		)
+	)
+		return resolve(
+			githubResource[3] === 'issues' ?
+				'/git/forge/[forgeHost=stringSegment]/[owner=stringSegment]/[repositoryName=stringSegment]/(gitForgeMirror)/issue/[issueNumber=nonNegativeInteger]'
+			: githubResource[3] === 'pull' ?
+				'/git/forge/[forgeHost=stringSegment]/[owner=stringSegment]/[repositoryName=stringSegment]/(gitForgeMirror)/pull-request/[pullRequestNumber=nonNegativeInteger]'
+			:
+				'/git/forge/[forgeHost=stringSegment]/[owner=stringSegment]/[repositoryName=stringSegment]/(gitForgeMirror)/release/[releaseTagName=stringSegment]',
+			githubResource[3] === 'issues' ?
+				{
+					forgeHost: 'github.com',
+					owner: githubResource[1],
+					repositoryName: githubResource[2],
+					issueNumber: githubResource[4],
+				}
+			: githubResource[3] === 'pull' ?
+				{
+					forgeHost: 'github.com',
+					owner: githubResource[1],
+					repositoryName: githubResource[2],
+					pullRequestNumber: githubResource[4],
+				}
+			:
+				{
+					forgeHost: 'github.com',
+					owner: githubResource[1],
+					repositoryName: githubResource[2],
+					releaseTagName: githubResource[4],
+				}
+		)
+
+	const githubRepository = query.match(/^https:\/\/(?:www\.)?github\.com\/([^/?#\s]+)\/([^/?#\s]+?)(?:\.git)?\/?(?:[?#].*)?$/i)
+
+	if (githubRepository)
+		return resolve(
+			'/git/forge/[forgeHost=stringSegment]/[owner=stringSegment]/[repositoryName=stringSegment]',
+			{
+				forgeHost: 'github.com',
+				owner: githubRepository[1],
+				repositoryName: githubRepository[2],
 			}
 		)
 
@@ -364,6 +436,39 @@ export const entityHrefFromSearchInput = (query: string) => {
 			'/~/snapshot/proposal/[proposalId=stringSegment]',
 			{
 				proposalId: snapshotProposal[1].toLowerCase(),
+			}
+		)
+
+	const tallyProposal = query.match(/^https:\/\/(?:www\.)?tally\.xyz\/gov\/[^/?#\s]+\/proposal\/([0-9]+)\/?(?:[?#].*)?$/i)
+
+	if (tallyProposal)
+		return resolve(
+			'/~/tally/proposal/[proposalId=stringSegment]',
+			{
+				proposalId: tallyProposal[1],
+			}
+		)
+
+	const evmExplorerTransaction = query.match(/^https:\/\/([^/?#\s]+)\/tx\/(0x[a-f0-9]{64})\/?(?:[?#].*)?$/i)
+
+	if (evmExplorerTransaction && evmExplorerNetworkByHost[evmExplorerTransaction[1].toLowerCase()] != null)
+		return resolve(
+			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxIdOrStringSegment]',
+			{
+				network: evmExplorerNetworkByHost[evmExplorerTransaction[1].toLowerCase()],
+				transactionId: evmExplorerTransaction[2].toLowerCase(),
+			}
+		)
+
+	const evmExplorerAddress = query.match(/^https:\/\/([^/?#\s]+)\/address\/(0x[a-f0-9]{40})\/?(?:[?#].*)?$/i)
+
+	if (evmExplorerAddress && evmExplorerNetworkByHost[evmExplorerAddress[1].toLowerCase()] != null)
+		return resolve(
+			'/(explore)/account/[namespace=stringSegment]:[reference=stringSegment]/[accountAddress=stringSegment]',
+			{
+				namespace: 'eip155',
+				reference: evmExplorerNetworkByHost[evmExplorerAddress[1].toLowerCase()].slice('eip155:'.length),
+				accountAddress: evmExplorerAddress[2],
 			}
 		)
 
