@@ -398,8 +398,14 @@ export default {
 						} = await import('$/sources/Gitlab/Rest/queries.ts')
 						const [project, branches, tags, commits, repositoryTree] = await Promise.all([
 							getProject({ projectId: coordinates.projectId }),
-							getBranches({ projectId: coordinates.projectId }),
-							getTags({ projectId: coordinates.projectId }),
+							getBranches({
+								projectId: coordinates.projectId,
+								maxRows: 1_000,
+							}),
+							getTags({
+								projectId: coordinates.projectId,
+								maxRows: 1_000,
+							}),
 							getCommits({ projectId: coordinates.projectId }),
 							getRepositoryTree({ projectId: coordinates.projectId }),
 						])

@@ -191,6 +191,53 @@ describe('GitLab REST wires', () => {
 		})
 	})
 
+	it('materializes branch and tag indexes beyond the first provider page', async () => {
+		sourceGetJson
+			.mockResolvedValueOnce(Array.from({ length: 100 }, (_, index) => ({
+				name: `branch-${index}`,
+				commit: {
+					id: index.toString(16).padStart(40, '0'),
+				},
+			})))
+			.mockResolvedValueOnce([{
+				name: 'branch-100',
+				commit: {
+					id: 'f'.repeat(40),
+				},
+			}])
+			.mockResolvedValueOnce(Array.from({ length: 100 }, (_, index) => ({
+				name: `v${index}`,
+				target: index.toString(16).padStart(40, '0'),
+				message: null,
+				commit: {
+					id: index.toString(16).padStart(40, '0'),
+				},
+			})))
+			.mockResolvedValueOnce([{
+				name: 'v100',
+				target: 'f'.repeat(40),
+				message: null,
+				commit: {
+					id: 'f'.repeat(40),
+				},
+			}])
+
+		await expect(getBranches({
+			projectId: 'gitlab-org/gitlab',
+			maxRows: 150,
+		})).resolves.toHaveLength(101)
+		await expect(getTags({
+			projectId: 'gitlab-org/gitlab',
+			maxRows: 150,
+		})).resolves.toHaveLength(101)
+		expect(sourceGetJson.mock.calls.map(([, url]) => url)).toEqual([
+			'https://gitlab.com/api/v4/projects/gitlab-org%2Fgitlab/repository/branches?page=1&per_page=100',
+			'https://gitlab.com/api/v4/projects/gitlab-org%2Fgitlab/repository/branches?page=2&per_page=50',
+			'https://gitlab.com/api/v4/projects/gitlab-org%2Fgitlab/repository/tags?page=1&per_page=100',
+			'https://gitlab.com/api/v4/projects/gitlab-org%2Fgitlab/repository/tags?page=2&per_page=50',
+		])
+	})
+
 	it('accepts bounded native lifecycle indexes', async () => {
 		sourceGetJson
 			.mockResolvedValueOnce([{
