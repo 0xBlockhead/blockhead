@@ -11,6 +11,7 @@ import { Source } from '$/sources/Source.ts'
 const {
 	getBranches,
 	getBranch,
+	getCommitSignature,
 	getIssue,
 	getIssues,
 	getMergeRequest,
@@ -24,6 +25,7 @@ const {
 } = vi.hoisted(() => ({
 	getBranches: vi.fn(),
 	getBranch: vi.fn(),
+	getCommitSignature: vi.fn(),
 	getIssue: vi.fn(),
 	getIssues: vi.fn(),
 	getMergeRequest: vi.fn(),
@@ -39,6 +41,7 @@ const {
 vi.mock('$/sources/Gitlab/Rest/queries.ts', () => ({
 	getBranches,
 	getBranch,
+	getCommitSignature,
 	getIssue,
 	getIssues,
 	getMergeRequest,
@@ -62,6 +65,7 @@ const pathResolutionResolver = resolverModule.resolvers.find((resolver) => resol
 const issueResolver = resolverModule.resolvers.find((resolver) => resolver.entityType === EntityType.GitForgeIssue)
 const pullRequestResolver = resolverModule.resolvers.find((resolver) => resolver.entityType === EntityType.GitForgePullRequest)
 const releaseResolver = resolverModule.resolvers.find((resolver) => resolver.entityType === EntityType.GitForgeRelease)
+const signatureResolver = resolverModule.resolvers.find((resolver) => resolver.entityType === EntityType.GitSignature)
 if (
 	mirrorResolver == null
 	|| repositoryResolver == null
@@ -73,6 +77,7 @@ if (
 	|| issueResolver == null
 	|| pullRequestResolver == null
 	|| releaseResolver == null
+	|| signatureResolver == null
 )
 	throw new Error('GitLab repository-journey resolvers must all be registered')
 
@@ -528,5 +533,81 @@ describe('GitLab repository journey', () => {
 				username: 'release-author',
 			},
 		})
+	})
+
+	it('resolves a GitLab commit signature into its native verification owner', async () => {
+		getCommitSignature.mockResolvedValue({
+			signature_type: 'PGP',
+			verification_status: 'verified',
+			gpg_key_primary_keyid: '0123456789ABCDEF',
+			gpg_key_user_name: 'Example Signer',
+			gpg_key_user_email: 'signer@example.com',
+			x509_certificate: null,
+			commit_source: 'web',
+		})
+		const commitSha = 'a'.repeat(40)
+		const signatureId = `https://gitlab.com/gitlab-org/security/project/-/commit/${commitSha}#signature`
+
+		await expect(signatureResolver.resolve.SignatureId.resolve({
+			signatureId,
+		})).resolves.toEqual({
+			signatureId,
+			subjectObjectId: `0x${commitSha}`,
+			signatureKind: 'PGP',
+			signerSelector: {
+				gpgKeyPrimaryKeyId: '0123456789ABCDEF',
+				gpgKeyUserName: 'Example Signer',
+				gpgKeyUserEmail: 'signer@example.com',
+				commitSource: 'web',
+			},
+			verificationStatus: 'verified',
+			verifier: 'GitLab',
+			evidenceUrl: `https://gitlab.com/gitlab-org/security/project/-/commit/${commitSha}`,
+		})
+		expect(getCommitSignature).toHaveBeenCalledWith({
+			projectId: 'gitlab-org/security/project',
+			commitSha,
+		})
+	})
+
+	it('retains X.509 and provider commit-source evidence without inventing key identity', async () => {
+		getCommitSignature.mockResolvedValue({
+			signature_type: 'X509',
+			verification_status: 'unverified',
+			gpg_key_primary_keyid: null,
+			gpg_key_user_name: null,
+			gpg_key_user_email: null,
+			x509_certificate: '-----BEGIN CERTIFICATE-----fixture',
+			commit_source: 'unknown',
+		})
+		const commitSha = 'b'.repeat(64)
+
+		await expect(signatureResolver.resolve.SignatureId.resolve({
+			signatureId: `https://gitlab.com/group/project/-/commit/${commitSha}#signature`,
+		})).resolves.toMatchObject({
+			subjectObjectId: `0x${commitSha}`,
+			signatureKind: 'X509',
+			signerSelector: {
+				x509Certificate: '-----BEGIN CERTIFICATE-----fixture',
+				commitSource: 'unknown',
+			},
+			verificationStatus: 'unverified',
+		})
+	})
+
+	it('rejects non-canonical signature identities before source execution', async () => {
+		await expect(signatureResolver.resolve.SignatureId.resolve({
+			signatureId: 'not-a-url',
+		})).resolves.toBeUndefined()
+		await expect(signatureResolver.resolve.SignatureId.resolve({
+			signatureId: `https://example.com/group/project/-/commit/${'a'.repeat(40)}#signature`,
+		})).resolves.toBeUndefined()
+		await expect(signatureResolver.resolve.SignatureId.resolve({
+			signatureId: `https://gitlab.com/group/project/-/commit/${'A'.repeat(40)}#signature`,
+		})).resolves.toBeUndefined()
+		await expect(signatureResolver.resolve.SignatureId.resolve({
+			signatureId: `https://gitlab.com/group/project/-/commit/${'a'.repeat(40)}`,
+		})).resolves.toBeUndefined()
+		expect(getCommitSignature).not.toHaveBeenCalled()
 	})
 })

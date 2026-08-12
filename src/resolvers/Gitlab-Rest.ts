@@ -57,10 +57,95 @@ const gitlabPage = (providerContinuationToken: string | undefined) => {
 	return page
 }
 
+const gitlabCommitCoordinatesFromSignatureId = (signatureId: string) => {
+	const signatureUrl = URL.parse(signatureId)
+	if (signatureUrl == null)
+		return undefined
+	const pathSegments = signatureUrl.pathname.split('/').filter(Boolean)
+	const commitMarkerIndex = pathSegments.length - 2
+	const commitSha = pathSegments.at(-1)
+	if (
+		signatureUrl.origin !== 'https://gitlab.com'
+		|| signatureUrl.search !== ''
+		|| signatureUrl.hash !== '#signature'
+		|| commitMarkerIndex < 3
+		|| pathSegments[commitMarkerIndex] !== 'commit'
+		|| pathSegments[commitMarkerIndex - 1] !== '-'
+		|| commitSha == null
+		|| !/^(?:[0-9a-f]{40}|[0-9a-f]{64})$/.test(commitSha)
+	)
+		return undefined
+
+	const projectId = pathSegments.slice(0, commitMarkerIndex - 1).join('/')
+	const evidenceUrl = `https://gitlab.com/${projectId}/-/commit/${commitSha}`
+	if (signatureId !== `${evidenceUrl}#signature`)
+		return undefined
+
+	return {
+		commitSha,
+		evidenceUrl,
+		projectId,
+	}
+}
+
 export default {
 	source: Source.Gitlab_Rest,
 
 	resolvers: [
+		defineResolver({
+			entityType: EntityType.GitSignature,
+			resolve: {
+				SignatureId: {
+					resolve: async ({ signatureId }) => {
+						const coordinates = gitlabCommitCoordinatesFromSignatureId(signatureId)
+						if (coordinates == null)
+							return undefined
+
+						const { getCommitSignature } = await import('$/sources/Gitlab/Rest/queries.ts')
+						const signature = await getCommitSignature({
+							projectId: coordinates.projectId,
+							commitSha: coordinates.commitSha,
+						})
+						const signerSelector = {
+							...(signature.gpg_key_primary_keyid != null && {
+								gpgKeyPrimaryKeyId: signature.gpg_key_primary_keyid,
+							}),
+							...(signature.gpg_key_user_name != null && {
+								gpgKeyUserName: signature.gpg_key_user_name,
+							}),
+							...(signature.gpg_key_user_email != null && {
+								gpgKeyUserEmail: signature.gpg_key_user_email,
+							}),
+							...(signature.x509_certificate != null && {
+								x509Certificate: signature.x509_certificate,
+							}),
+							...(signature.commit_source != null && {
+								commitSource: signature.commit_source,
+							}),
+						}
+
+						return {
+							signatureId,
+							subjectObjectId: `0x${coordinates.commitSha}`,
+							signatureKind: signature.signature_type,
+							...(Object.keys(signerSelector).length > 0 && { signerSelector }),
+							verificationStatus: signature.verification_status,
+							verifier: 'GitLab',
+							evidenceUrl: coordinates.evidenceUrl,
+						}
+					},
+				},
+			},
+		})({
+			signatureId: (signature) => signature.signatureId,
+			subjectObjectId: (signature) => signature.subjectObjectId,
+			signatureKind: (signature) => signature.signatureKind,
+			signerSelector: (signature) => signature.signerSelector,
+			verificationStatus: (signature) => signature.verificationStatus,
+			verifier: (signature) => signature.verifier,
+			evidenceUrl: (signature) => signature.evidenceUrl,
+		}),
+
 		defineResolver({
 			entityType: EntityType.GitForgeMirror,
 			resolve: {
