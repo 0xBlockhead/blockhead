@@ -74,10 +74,7 @@ const readManifest = async (registry: string, repository: string, reference: str
 )
 
 export default {
-	meta: {
-		source: Source.OciRegistry_Distribution,
-		resolversCount: 2,
-	},
+	source: Source.OciRegistry_Distribution,
 	resolvers: [
 		defineResolver({
 			entityType: EntityType.OciManifest,

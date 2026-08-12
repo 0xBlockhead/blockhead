@@ -6,6 +6,7 @@ import {
 } from 'vitest'
 import { EntityMetaKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 
 
 const getManifest = vi.hoisted(() => vi.fn())
@@ -15,6 +16,8 @@ vi.mock('$/sources/OciRegistry/Distribution/queries.ts', () => ({
 }))
 
 const { default: ociRegistryDistribution } = await import('$/resolvers/OciRegistry-Distribution.ts')
+
+expect(ociRegistryDistribution.source).toBe(Source.OciRegistry_Distribution)
 
 const manifestResolver = ociRegistryDistribution.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.OciManifest
