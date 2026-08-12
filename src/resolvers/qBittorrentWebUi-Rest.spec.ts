@@ -18,6 +18,7 @@ const {
 	getTorrentFiles,
 	getTorrentPieceStates,
 	getTorrentProperties,
+	getTorrentTrackers,
 	getTorrentsInfo,
 	getTransferInfo,
 } = vi.hoisted(() => ({
@@ -25,6 +26,7 @@ const {
 	getTorrentFiles: vi.fn(),
 	getTorrentPieceStates: vi.fn(),
 	getTorrentProperties: vi.fn(),
+	getTorrentTrackers: vi.fn(),
 	getTorrentsInfo: vi.fn(),
 	getTransferInfo: vi.fn(),
 }))
@@ -34,6 +36,7 @@ vi.mock('$/sources/qBittorrentWebUi/Rest/queries.ts', () => ({
 	getTorrentFiles,
 	getTorrentPieceStates,
 	getTorrentProperties,
+	getTorrentTrackers,
 	getTorrentsInfo,
 	getTransferInfo,
 }))
@@ -71,6 +74,7 @@ describe('qBittorrent WebUI native client state', () => {
 		getTorrentFiles.mockReset()
 		getTorrentPieceStates.mockReset()
 		getTorrentProperties.mockReset()
+		getTorrentTrackers.mockReset()
 		getTorrentsInfo.mockReset()
 		getTransferInfo.mockReset()
 	})
@@ -111,6 +115,7 @@ describe('qBittorrent WebUI native client state', () => {
 			},
 		])
 		getTorrentPieceStates.mockResolvedValue([2, 2, 1, 0])
+		getTorrentTrackers.mockResolvedValue([])
 
 		const snapshot = await clientResolver.resolve.ClientId.resolve({
 			clientId: 'qbittorrent-local',
@@ -168,6 +173,21 @@ describe('qBittorrent WebUI native client state', () => {
 			priority: 1,
 		}])
 		getTorrentPieceStates.mockResolvedValue([2, 1, 0, 2])
+		getTorrentTrackers.mockResolvedValue([
+			{
+				url: 'https://tracker.example/announce',
+				status: 2,
+				num_peers: 10,
+				num_seeds: 4,
+				num_leeches: 6,
+				num_downloaded: 20,
+			},
+			{
+				url: '** [DHT] **',
+				status: 2,
+				num_peers: 3,
+			},
+		])
 
 		const snapshot = await metainfoResolver.resolve.InfoHashHashVersion.resolve({
 			infoHash,
@@ -215,6 +235,28 @@ describe('qBittorrent WebUI native client state', () => {
 					[entityFieldAddressKey(EntityType.BitTorrentPiece, [], 'length')]: 262_144n,
 				},
 			})),
+			$$trackers: [{
+				[EntityMetaKey.Selector]: {
+					trackerUrl: 'https://tracker.example/announce',
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.BitTorrentTracker, [], 'trackerKind')]: 'https',
+					[entityFieldAddressKey(EntityType.BitTorrentTracker, [], '$$scrapes')]: [{
+						[EntityMetaKey.Selector]: {
+							$tracker: { trackerUrl: 'https://tracker.example/announce' },
+							infoHash,
+							timestampMs: 1_786_000_000_000,
+							source: Source.qBittorrentWebUi_Rest,
+						},
+						[EntityMetaKey.Fields]: {
+							[entityFieldAddressKey(EntityType.BitTorrentTrackerScrape_Timestamp, [], 'complete')]: 4,
+							[entityFieldAddressKey(EntityType.BitTorrentTrackerScrape_Timestamp, [], 'downloaded')]: 20,
+							[entityFieldAddressKey(EntityType.BitTorrentTrackerScrape_Timestamp, [], 'incomplete')]: 6,
+							[entityFieldAddressKey(EntityType.BitTorrentTrackerScrape_Timestamp, [], 'status')]: 'working',
+						},
+					}],
+				},
+			}],
 			$$swarmTimestamps: [{
 				[EntityMetaKey.Selector]: {
 					$torrent: {
@@ -300,6 +342,7 @@ describe('qBittorrent WebUI native client state', () => {
 			size: 1,
 		}])
 		getTorrentPieceStates.mockResolvedValue([2, 0])
+		getTorrentTrackers.mockResolvedValue([])
 		await expect(metainfoResolver.resolve.InfoHashHashVersion.resolve({
 			infoHash,
 			hashVersion: 'v1',

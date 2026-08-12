@@ -47,6 +47,16 @@ export type QBittorrentTorrentProperties = {
 	comment?: string
 }
 
+export type QBittorrentTorrentTracker = {
+	url: string
+	status?: number
+	num_peers?: number
+	num_seeds?: number
+	num_leeches?: number
+	num_downloaded?: number
+	msg?: string
+}
+
 
 const nonNegativeNumber = arktype('number >= 0')
 
@@ -91,6 +101,16 @@ const qBittorrentTorrentPropertiesWire = arktype({
 	'created_by?': 'string',
 	'comment?': 'string',
 }) satisfies Type<QBittorrentTorrentProperties>
+
+const qBittorrentTorrentTrackerListWire = arktype({
+	url: 'string > 0',
+	'status?': 'number.integer >= 0 <= 4',
+	'num_peers?': 'number.integer >= -1',
+	'num_seeds?': 'number.integer >= -1',
+	'num_leeches?': 'number.integer >= -1',
+	'num_downloaded?': 'number.integer >= -1',
+	'msg?': 'string',
+}).array() satisfies Type<QBittorrentTorrentTracker[]>
 
 const assertEnvelope = <_Value>(
 	label: string,
@@ -169,6 +189,18 @@ export const getTorrentProperties = (
 		.then((response) => assertEnvelope(
 			'torrent properties',
 			qBittorrentTorrentPropertiesWire,
+			response
+		))
+)
+
+export const getTorrentTrackers = (
+	binding: SourceBinding,
+	infoHash: string
+) => (
+	getJson<unknown>(binding, `/api/v2/torrents/trackers?hash=${encodeURIComponent(infoHash)}`)
+		.then((response) => assertEnvelope(
+			'torrent trackers',
+			qBittorrentTorrentTrackerListWire,
 			response
 		))
 )

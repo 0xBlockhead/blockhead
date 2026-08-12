@@ -26,6 +26,7 @@ const {
 	getTorrentFiles,
 	getTorrentPieceStates,
 	getTorrentProperties,
+	getTorrentTrackers,
 	getTorrentsInfo,
 	getTransferInfo,
 } = await import('$/sources/qBittorrentWebUi/Rest/queries.ts')
@@ -88,6 +89,28 @@ describe('qBittorrent WebUI REST envelopes', () => {
 		})
 	})
 
+	it('validates native tracker availability responses', async () => {
+		getJson.mockResolvedValueOnce([
+			{
+				url: 'https://tracker.example/announce',
+				status: 2,
+				num_peers: 8,
+				num_seeds: 5,
+				num_leeches: 3,
+				num_downloaded: 21,
+				msg: 'Working',
+			},
+		])
+
+		await expect(getTorrentTrackers(binding, '0'.repeat(40))).resolves.toEqual([
+			expect.objectContaining({
+				url: 'https://tracker.example/announce',
+				status: 2,
+				num_peers: 8,
+			}),
+		])
+	})
+
 	it('fails closed on malformed identities, counters, and piece states', async () => {
 		getJson.mockResolvedValueOnce([{ hash: 'not-a-hash' }])
 		await expect(getTorrentsInfo(binding)).rejects.toThrow('invalid torrents info response envelope')
@@ -97,5 +120,8 @@ describe('qBittorrent WebUI REST envelopes', () => {
 
 		getJson.mockResolvedValueOnce([3])
 		await expect(getTorrentPieceStates(binding, '0'.repeat(40))).rejects.toThrow('invalid torrent piece states response envelope')
+
+		getJson.mockResolvedValueOnce([{ url: 'https://tracker.example', num_seeds: -2 }])
+		await expect(getTorrentTrackers(binding, '0'.repeat(40))).rejects.toThrow('invalid torrent trackers response envelope')
 	})
 })

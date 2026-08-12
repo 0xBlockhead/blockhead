@@ -13,6 +13,7 @@ import bindings from '$/sources/qBittorrentWebUi/bindings.ts'
 import type {
 	QBittorrentTorrentFile,
 	QBittorrentTorrentInfo,
+	QBittorrentTorrentTracker,
 } from '$/sources/qBittorrentWebUi/Rest/queries.ts'
 
 
@@ -167,6 +168,79 @@ const torrentPieceReferences = (
 	}))
 }
 
+const trackerStatusByCode = {
+	0: 'disabled',
+	1: 'not-contacted',
+	2: 'working',
+	3: 'updating',
+	4: 'not-working',
+} as const
+
+const torrentTrackerReferences = (
+	$torrent: {
+		infoHash: string
+		hashVersion: string
+	},
+	trackers: QBittorrentTorrentTracker[],
+	timestampMs: number
+) => trackers.flatMap((tracker) => {
+	let trackerUrl: URL
+	try {
+		trackerUrl = new URL(tracker.url)
+	} catch {
+		return []
+	}
+	if (
+		trackerUrl.username !== ''
+		|| trackerUrl.password !== ''
+		|| trackerUrl.hash !== ''
+		|| ![
+			'http:',
+			'https:',
+			'udp:',
+		].includes(trackerUrl.protocol)
+	)
+		return []
+
+	const normalizedTrackerUrl = trackerUrl.toString()
+	return [{
+		[EntityMetaKey.Selector]: {
+			trackerUrl: normalizedTrackerUrl,
+		},
+		[EntityMetaKey.Fields]: {
+			[entityFieldAddressKey(EntityType.BitTorrentTracker, [], 'trackerKind')]: trackerUrl.protocol.slice(0, -1),
+			[entityFieldAddressKey(EntityType.BitTorrentTracker, [], '$$scrapes')]: [{
+				[EntityMetaKey.Selector]: {
+					$tracker: { trackerUrl: normalizedTrackerUrl },
+					infoHash: $torrent.infoHash,
+					timestampMs,
+					source: Source.qBittorrentWebUi_Rest,
+				},
+				[EntityMetaKey.Fields]: {
+					...(tracker.num_seeds != null && tracker.num_seeds >= 0 && {
+						[entityFieldAddressKey(EntityType.BitTorrentTrackerScrape_Timestamp, [], 'complete')]: tracker.num_seeds,
+					}),
+					...(tracker.num_downloaded != null && tracker.num_downloaded >= 0 && {
+						[entityFieldAddressKey(EntityType.BitTorrentTrackerScrape_Timestamp, [], 'downloaded')]: tracker.num_downloaded,
+					}),
+					...(tracker.num_leeches != null && tracker.num_leeches >= 0 && {
+						[entityFieldAddressKey(EntityType.BitTorrentTrackerScrape_Timestamp, [], 'incomplete')]: tracker.num_leeches,
+					}),
+					[entityFieldAddressKey(EntityType.BitTorrentTrackerScrape_Timestamp, [], 'status')]: (
+						tracker.status == null ?
+							'unknown'
+						:
+							trackerStatusByCode[tracker.status]
+					),
+					...(tracker.msg != null && tracker.msg !== '' && tracker.status === 4 && {
+						[entityFieldAddressKey(EntityType.BitTorrentTrackerScrape_Timestamp, [], 'error')]: tracker.msg,
+					}),
+				},
+			}],
+		},
+	}]
+})
+
 export default {
 	source: Source.qBittorrentWebUi_Rest,
 
@@ -212,7 +286,7 @@ export default {
 				InfoHashHashVersion: {
 					resolve: async (torrentIdentity) => {
 						const { infoHash: normalizedInfoHash, hashVersion } = normalizedTorrentIdentity(torrentIdentity)
-						const { getTorrentFiles, getTorrentPieceStates, getTorrentProperties, getTorrentsInfo } = await (
+						const { getTorrentFiles, getTorrentPieceStates, getTorrentProperties, getTorrentTrackers, getTorrentsInfo } = await (
 							typeof window === 'undefined' ?
 								import('$/sources/qBittorrentWebUi/Rest/queries.ts')
 							:
@@ -224,10 +298,11 @@ export default {
 						if (torrent == null)
 							throw new Error('qBittorrentWebUi_Rest: torrent not found in the configured local client')
 
-						const [files, pieceStates, properties] = await Promise.all([
+						const [files, pieceStates, properties, trackers] = await Promise.all([
 							getTorrentFiles(binding, normalizedInfoHash),
 							getTorrentPieceStates(binding, normalizedInfoHash),
 							getTorrentProperties(binding, normalizedInfoHash),
+							getTorrentTrackers(binding, normalizedInfoHash),
 						])
 						const $torrent = {
 							infoHash: normalizedInfoHash,
@@ -251,6 +326,7 @@ export default {
 								:
 									torrentPieceReferences($torrent, pieceStates, properties.piece_size, properties.total_size)
 							),
+							$$trackers: torrentTrackerReferences($torrent, trackers, timestampMs),
 							$$swarmTimestamps: [
 								{
 									[EntityMetaKey.Selector]: {
@@ -288,6 +364,7 @@ export default {
 			totalLength: (torrent) => torrent.totalLength,
 			$$files: (torrent) => torrent.$$files,
 			$$pieces: (torrent) => torrent.$$pieces,
+			$$trackers: (torrent) => torrent.$$trackers,
 			$$swarmTimestamps: (torrent) => torrent.$$swarmTimestamps,
 			$$clientTransfers: (torrent) => torrent.$$clientTransfers,
 		}),
