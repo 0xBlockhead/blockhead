@@ -53,6 +53,17 @@ const layerZeroMessageObservationMs = (updated: string) => {
 	return timestampMs
 }
 
+const layerZeroTransactionTimestampMs = (timestamp: number, role: string) => {
+	if (!Number.isSafeInteger(timestamp) || timestamp < 0)
+		throw new Error(`LayerZeroScan_Rest: invalid ${role} transaction timestamp`)
+
+	const timestampMs = timestamp * 1_000
+	if (!Number.isSafeInteger(timestampMs))
+		throw new Error(`LayerZeroScan_Rest: invalid ${role} transaction timestamp`)
+
+	return timestampMs
+}
+
 const layerZeroExecutorRelayer = (
 	message: LayerZeroMessage
 ) => {
@@ -95,11 +106,11 @@ const layerZeroBridgeTransferSnapshot = (
 		throw new Error('LayerZeroScan_Rest: invalid destination transaction hash')
 
 	const timestampMs = layerZeroMessageObservationMs(message.updated)
-	const sourceTransactionAtMs = message.source.tx.blockTimestamp * 1_000
+	const sourceTransactionAtMs = layerZeroTransactionTimestampMs(message.source.tx.blockTimestamp, 'source')
 	const destinationTransactionAtMs = message.destination?.tx?.blockTimestamp == null ?
 		undefined
 	:
-		message.destination.tx.blockTimestamp * 1_000
+		layerZeroTransactionTimestampMs(message.destination.tx.blockTimestamp, 'destination')
 	if (
 		destinationTransactionAtMs != null
 		&& destinationTransactionAtMs < sourceTransactionAtMs

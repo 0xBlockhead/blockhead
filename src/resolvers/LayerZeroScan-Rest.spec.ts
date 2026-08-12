@@ -178,6 +178,30 @@ describe('LayerZeroScan BridgeTransfer resolvers', () => {
 		expect(resolver.resolve).not.toHaveProperty('SourceTxSourceLogIndex')
 	})
 
+	it('rejects non-finite transaction timestamps before materializing bridge timing', async () => {
+		getMessageByGuid.mockResolvedValue({
+			data: [{
+				...message,
+				source: {
+					...message.source,
+					tx: {
+						...message.source.tx,
+						blockTimestamp: Number.NaN,
+					},
+				},
+			}],
+		})
+		const resolver = layerZeroScan.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.BridgeTransfer
+		))
+		if (resolver == null)
+			throw new Error('LayerZeroScan_Rest: BridgeTransfer resolver missing')
+
+		await expect(resolver.resolve.SourceTransferId.resolve(transfer)).rejects.toThrow(
+			'LayerZeroScan_Rest: invalid source transaction timestamp'
+		)
+	})
+
 	it('projects status observations from official message lifecycle fields', async () => {
 		getMessageByGuid.mockResolvedValue({
 			data: [message],
