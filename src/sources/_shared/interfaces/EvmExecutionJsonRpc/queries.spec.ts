@@ -151,6 +151,7 @@ describe('shared EVM execution JSON-RPC queries', () => {
 				blobGasUsedRatio: [0.25],
 				reward: [['0x4']],
 			})
+			.mockResolvedValueOnce('0x2a')
 			.mockResolvedValueOnce('0xstorage')
 			.mockResolvedValueOnce('0xcode')
 			.mockResolvedValueOnce('0xcafe')
@@ -184,6 +185,10 @@ describe('shared EVM execution JSON-RPC queries', () => {
 			blobGasUsedRatio: [0.25],
 			reward: [['0x4']],
 		})
+		await expect(client.getBalance({
+			address: '0x0000000000000000000000000000000000000001',
+			blockTag: '0x20',
+		})).resolves.toBe('0x2a')
 		await expect(client.getStorageAt({
 			address: '0xaddress',
 			slotQuantityHex: '0x0',
@@ -215,6 +220,13 @@ describe('shared EVM execution JSON-RPC queries', () => {
 					'0x1',
 					'0x20',
 					[50],
+				],
+			],
+			[
+				'eth_getBalance',
+				[
+					'0x0000000000000000000000000000000000000001',
+					'0x20',
 				],
 			],
 			[

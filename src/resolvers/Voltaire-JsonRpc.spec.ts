@@ -20,6 +20,7 @@ const getTransactionByHash = vi.hoisted(() => vi.fn())
 const getTransactionReceipt = vi.hoisted(() => vi.fn())
 const debugTraceTransaction = vi.hoisted(() => vi.fn())
 const getCall = vi.hoisted(() => vi.fn())
+const getBalance = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/Voltaire/JsonRpc/queries.ts', () => ({
 	voltaireJsonRpcTransports: {
@@ -30,6 +31,7 @@ vi.mock('$/sources/Voltaire/JsonRpc/queries.ts', () => ({
 				getTransactionReceipt,
 				debugTraceTransaction,
 				getCall,
+				getBalance,
 			}],
 			10: [
 				{
@@ -145,6 +147,71 @@ describe('Voltaire ERC-20 allowance blocks', () => {
 
 		getCall.mockResolvedValue('0x')
 		await expect(resolver.resolve.AllowanceBlockNumberSource.resolve(selector)).rejects.toThrow('ERC-20 allowance call returned empty data')
+	})
+})
+
+describe('Voltaire exact EVM coin balances', () => {
+	beforeEach(() => {
+		vi.clearAllMocks()
+	})
+
+	it('reads native and ERC-20 balances from the selected block instead of a current portfolio aggregate', async () => {
+		const resolver = voltaireJsonRpc.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.EvmNetworkActorCoinBalance_EvmBlock
+		))
+		if (resolver == null)
+			throw new Error('Voltaire actor coin block resolver is not registered')
+
+		const network = {
+			caip2: {
+				namespace: 'eip155',
+				reference: '1',
+			},
+		}
+		const actor = {
+			address: '0x1111111111111111111111111111111111111111',
+		}
+		const block = {
+			$network: network,
+			blockNumber: 1_234n,
+		}
+		getBalance.mockResolvedValue('0x2a')
+		const native = await resolver.resolve.EvmNetworkActorCoinBalanceEvmBlock.resolve({
+			$actorCoin: {
+				$actor: actor,
+				$network: network,
+				symbol: 'ETH',
+				decimals: 18,
+			},
+			$block: block,
+		})
+		expect(getBalance).toHaveBeenCalledWith({
+			address: actor.address,
+			blockTag: '0x4d2',
+		})
+		expect(resolver.projections.balance(native)).toBe(42n)
+
+		const token = '0x2222222222222222222222222222222222222222'
+		getCall.mockResolvedValue(`0x${'0'.repeat(62)}2a`)
+		const erc20 = await resolver.resolve.EvmNetworkActorCoinBalanceEvmBlock.resolve({
+			$actorCoin: {
+				$actor: actor,
+				$network: network,
+				$contract: {
+					$network: network,
+					address: token,
+				},
+				symbol: 'USDC',
+				decimals: 6,
+			},
+			$block: block,
+		})
+		expect(getCall).toHaveBeenCalledWith({
+			to: token,
+			input: `0x70a08231${actor.address.slice(2).padStart(64, '0')}`,
+			blockTag: '0x4d2',
+		})
+		expect(resolver.projections.balance(erc20)).toBe(42n)
 	})
 })
 

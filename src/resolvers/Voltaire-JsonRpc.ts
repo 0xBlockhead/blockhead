@@ -47,7 +47,24 @@ import { voltaireCallTraceError } from '$/sources/Voltaire/JsonRpc/CallTrace.ts'
 
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 
-const ERC20_ALLOWANCE_ABI = new Abi([
+const ERC20_ABI = new Abi([
+	{
+		type: 'function',
+		name: 'balanceOf',
+		stateMutability: 'view',
+		inputs: [
+			{
+				type: 'address',
+				name: 'account',
+			},
+		],
+		outputs: [
+			{
+				type: 'uint256',
+				name: '',
+			},
+		],
+	},
 	{
 		type: 'function',
 		name: 'allowance',
@@ -1024,7 +1041,7 @@ export default {
 								const response = await jsonRpcTransport.getCall({
 									to: $allowance.$contract.address,
 									input: encodeFunction(
-										ERC20_ALLOWANCE_ABI,
+										ERC20_ABI,
 										'allowance',
 										[
 											$allowance.$actor.address,
@@ -1060,6 +1077,77 @@ export default {
 			blockNumber: (allowanceBlock) => allowanceBlock.blockNumber,
 			source: (allowanceBlock) => allowanceBlock.source,
 			allowance: (allowanceBlock) => allowanceBlock.allowance,
+		}),
+
+		defineResolver({
+			entityType: EntityType.EvmNetworkActorCoinBalance_EvmBlock,
+			resolve: {
+				EvmNetworkActorCoinBalanceEvmBlock: {
+					resolve: async ({
+						$actorCoin,
+						$block,
+					}) => {
+						const chainId = chainIdFromEvmNetworkId($actorCoin.$network)
+						if (chainIdFromEvmNetworkId($block.$network) !== chainId)
+							throw new Error('Voltaire_JsonRpc: balance block network does not match the actor coin network')
+						if (
+							$actorCoin.$contract != null
+							&& chainIdFromEvmNetworkId($actorCoin.$contract.$network) !== chainId
+						)
+							throw new Error('Voltaire_JsonRpc: balance contract network does not match the actor coin network')
+
+						const jsonRpcTransports = (await voltaireJsonRpcHttpTransportsByChainId())[chainId] ?? []
+						if (jsonRpcTransports.length === 0)
+							throw new Error(`Voltaire_JsonRpc: no JSON-RPC URL for EvmNetworkActorCoinBalance_EvmBlock on chain ${String(chainId)}`)
+
+						const blockTag = `0x${$block.blockNumber.toString(16)}`
+						const errors: string[] = []
+						for (const jsonRpcTransport of jsonRpcTransports) {
+							try {
+								const balance = (
+									$actorCoin.$contract == null ?
+										nonNegativeBigIntFromHex(await jsonRpcTransport.getBalance({
+											address: $actorCoin.$actor.address,
+											blockTag,
+										}))
+									:
+										decodeParameters(
+											erc20AllowanceOutput,
+											toBytes(await jsonRpcTransport.getCall({
+												to: $actorCoin.$contract.address,
+												input: encodeFunction(
+													ERC20_ABI,
+													'balanceOf',
+													[$actorCoin.$actor.address]
+												),
+												blockTag,
+											}))
+										)[0]
+								)
+								if (balance == null)
+									throw new Error('balance read returned an invalid non-negative quantity')
+
+								return {
+									$actorCoin,
+									$block,
+									balance,
+								}
+							} catch (error) {
+								errors.push(`${jsonRpcTransport.diagnosticLabel}: ${errorMessage(error)}`)
+							}
+						}
+						throw allJsonRpcEndpointsFailedError(chainId, 'EvmNetworkActorCoinBalance_EvmBlock', errors)
+					},
+				},
+			},
+		})({
+			$actorCoin: (balanceBlock) => ({
+				[EntityMetaKey.Selector]: balanceBlock.$actorCoin,
+			}),
+			$block: (balanceBlock) => ({
+				[EntityMetaKey.Selector]: balanceBlock.$block,
+			}),
+			balance: (balanceBlock) => balanceBlock.balance,
 		}),
 
 		defineResolver({

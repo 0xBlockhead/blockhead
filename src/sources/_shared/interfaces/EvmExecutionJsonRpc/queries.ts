@@ -251,6 +251,19 @@ export const evmExecutionJsonRpc = ({
 	return {
 		getBlockNumber: () => request('eth_blockNumber')
 			.then((result) => BigInt(stringResult(result, 'eth_blockNumber'))),
+		getBalance: ({
+			address,
+			blockTag = 'latest',
+		}: {
+			address: `0x${string}`
+			blockTag?: EvmExecutionBlockTag
+		}) => request(
+			'eth_getBalance',
+			[
+				address,
+				blockTag,
+			]
+		).then((result) => stringResult(result, 'eth_getBalance')),
 		getPeerCountObservation: () => request('net_peerCount')
 			.then((result) => {
 				const quantity = stringResult(result, 'net_peerCount')
