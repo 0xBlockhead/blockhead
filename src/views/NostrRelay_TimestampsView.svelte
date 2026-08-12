@@ -34,6 +34,8 @@
 					source: true,
 					reachable: true,
 					software: true,
+					limitation: true,
+					fees: true,
 					timestampMs: true,
 				},
 			},
@@ -51,11 +53,11 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{[String(nostrRelayTimestamp.reachable ?? ''), (nostrRelayTimestamp.software ?? '')].filter(Boolean).join(' ')}
+				{[String(nostrRelayTimestamp.reachable ?? ''), (nostrRelayTimestamp.software ?? ''), nostrRelayTimestamp.limitation == null ? '' : `Limitations: ${JSON.stringify(nostrRelayTimestamp.limitation)}`, nostrRelayTimestamp.fees == null ? '' : `Fees: ${JSON.stringify(nostrRelayTimestamp.fees)}`].filter(Boolean).join(' ')}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{nostrRelayTimestampSelector.timestampMs}</span>
+				<span data-text="annotation">{[nostrRelayTimestamp.limitation == null ? '' : `Limitations: ${JSON.stringify(nostrRelayTimestamp.limitation)}`, nostrRelayTimestamp.fees == null ? '' : `Fees: ${JSON.stringify(nostrRelayTimestamp.fees)}`, String(nostrRelayTimestampSelector.timestampMs)].filter(Boolean).join(' ')}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

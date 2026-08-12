@@ -206,6 +206,52 @@
 				resource={
 					selection({
 						fields: {
+							limitation: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const limitation = entity.limitation}
+					{#if limitation != null}
+						<div>
+							<dt>Limitations</dt>
+							<dd>
+								{`Limitations: ${JSON.stringify(limitation)}`}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							fees: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const fees = entity.fees}
+					{#if fees != null}
+						<div>
+							<dt>Fees</dt>
+							<dd>
+								{`Fees: ${JSON.stringify(fees)}`}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		</dl>
+
+		<dl data-column-item="center">
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
 							paymentsUrl: true,
 						},
 					})

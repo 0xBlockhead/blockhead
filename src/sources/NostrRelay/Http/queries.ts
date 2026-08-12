@@ -109,6 +109,25 @@ export const fetchRelayInformation = async ({
 		))
 	)
 		throw new Error('NostrRelay_Nip11_Http: invalid native limitation value')
+	if (
+		document.fees != null
+		&& Object.values(document.fees)
+			.flatMap((fees) => fees)
+			.some((fee) => (
+				!Number.isSafeInteger(fee.amount)
+				|| fee.amount < 0
+				|| fee.unit.trim() === ''
+				|| (
+					fee.period != null
+					&& (
+						!Number.isSafeInteger(fee.period)
+						|| fee.period <= 0
+					)
+				)
+				|| fee.kinds?.some((kind) => !Number.isSafeInteger(kind) || kind < 0) === true
+			))
+	)
+		throw new Error('NostrRelay_Nip11_Http: invalid native fee value')
 
 	return document
 }

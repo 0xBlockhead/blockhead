@@ -260,4 +260,44 @@ describe('NostrRelay NIP-11 Http transport', () => {
 			})
 		).rejects.toThrow('NostrRelay_Nip11_Http: reversed created_at clock limits')
 	})
+
+	it('fails closed on invalid native fee amounts, periods, units and event kinds', async () => {
+		for (const fee of [
+			{
+				amount: -1,
+				unit: 'msats',
+			},
+			{
+				amount: 1.5,
+				unit: 'msats',
+			},
+			{
+				amount: 1_000,
+				unit: ' ',
+			},
+			{
+				amount: 1_000,
+				unit: 'msats',
+				period: 0,
+			},
+			{
+				amount: 1_000,
+				unit: 'msats',
+				kinds: [-1],
+			},
+		]) {
+			sourceFetch.mockResolvedValueOnce({
+				ok: true,
+				json: async () => ({
+					fees: {
+						publication: [fee],
+					},
+				}),
+			})
+
+			await expect(fetchRelayInformation({
+				relayUrl: boundRelayUrl,
+			})).rejects.toThrow('NostrRelay_Nip11_Http: invalid native fee value')
+		}
+	})
 })
