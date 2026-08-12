@@ -41,6 +41,7 @@
 			contentLength: true,
 			displayType: true,
 			isContentTypeInferred: true,
+			text: true,
 		},
 	}))
 	const titleFallback = $derived((prefetched.canonicalUri ?? '') || 'IPFS resource')
@@ -432,13 +433,7 @@
 		</dl>
 
 		<ResourceBoundary
-			resource={
-				viewSelection({
-					fields: {
-						text: true,
-					},
-				})
-			}
+			resource={ipfsResource}
 		>
 			{#snippet children(entity)}
 				{@const text = entity.text}

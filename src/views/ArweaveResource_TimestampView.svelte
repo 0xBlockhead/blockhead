@@ -29,6 +29,7 @@
 			contentType: true,
 			displayType: true,
 			reachable: true,
+			text: true,
 		},
 	}))
 
@@ -303,13 +304,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							text: true,
-						},
-					})
-				}
+				resource={arweaveResourceTimestamp}
 			>
 				{#snippet children(entity)}
 					{@const text = entity.text}

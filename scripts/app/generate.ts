@@ -9232,7 +9232,10 @@ const generateSingularViewFile = (
 		[...entitySelectorFieldNames(entity)]
 			.filter((fieldName) => entitySelectorOwnsField(entity, fieldName))
 	)
-	const queryFields = summaryPlan.queryFields
+	const queryFields = unique([
+		...summaryPlan.queryFields,
+		...(singularView?.artifacts ?? []).map((artifact) => artifact.field),
+	])
 	const queryFieldKeys = new Set(queryFields.map(fieldReferenceKey))
 	const sections = declaredRelationshipViewSections(entity, indexes)
 	const detailsTabs = details?.tabs ?? []

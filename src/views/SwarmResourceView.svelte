@@ -25,12 +25,10 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.SwarmResource> = $props()
 
-	const viewSelection = $derived(selection({
+	const swarmResource = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Swarm_Rest,
 		],
-	}))
-	const swarmResource = $derived(viewSelection({
 		fields: {
 			canonicalUri: true,
 			gatewayOrigin: true,
@@ -41,6 +39,7 @@
 			contentLength: true,
 			displayType: true,
 			isContentTypeInferred: true,
+			text: true,
 		},
 	}))
 	const titleFallback = $derived((prefetched.canonicalUri ?? '') || 'Swarm resource')
@@ -283,13 +282,7 @@
 		</dl>
 
 		<ResourceBoundary
-			resource={
-				viewSelection({
-					fields: {
-						text: true,
-					},
-				})
-			}
+			resource={swarmResource}
 		>
 			{#snippet children(entity)}
 				{@const text = entity.text}
