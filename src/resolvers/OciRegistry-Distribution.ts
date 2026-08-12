@@ -1,7 +1,12 @@
 import { EntityType } from '$/schema/EntityType.ts'
 import { EntityMetaKey, entityFieldAddressKey } from '$/schema/$schema.ts'
+import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import { defineResolver, type RegisteredSourceResolverModule } from '$/resolvers/defineResolver.ts'
-import type { OciDescriptor, OciManifest as OciManifestWire } from '$/sources/OciRegistry/Distribution/types.ts'
+import {
+	ociDigestWire,
+	type OciDescriptor,
+	type OciManifest as OciManifestWire,
+} from '$/sources/OciRegistry/Distribution/types.ts'
 import { Source } from '$/sources/Source.ts'
 
 
@@ -25,6 +30,12 @@ const descriptorReference = (
 		[entityFieldAddressKey(EntityType.OciDescriptor, [], 'digest')]: descriptor.digest,
 		[entityFieldAddressKey(EntityType.OciDescriptor, [], 'sizeBytes')]: descriptor.size,
 		[entityFieldAddressKey(EntityType.OciDescriptor, [], 'urls')]: descriptor.urls ?? [],
+		...(descriptor.artifactType != null && {
+			[entityFieldAddressKey(EntityType.OciDescriptor, [], 'artifactType')]: descriptor.artifactType,
+		}),
+		...(descriptor.annotations != null && {
+			[entityFieldAddressKey(EntityType.OciDescriptor, [], 'annotations')]: descriptor.annotations,
+		}),
 	},
 })
 
@@ -73,6 +84,42 @@ const readManifest = async (registry: string, repository: string, reference: str
 	)
 )
 
+const readReferrers = async (
+	registry: string,
+	repository: string,
+	reference: string,
+	context: Parameters<typeof resolverContextRowLimit>[0]
+) => {
+	const digest = (
+		ociDigestWire.allows(reference) ?
+			reference
+		:
+			(await readManifest(registry, repository, reference)).contentDigest
+	)
+	if (digest == null)
+		throw new Error('OciRegistry_Distribution: manifest response has no content digest for referrers')
+	const descriptors = await (
+		typeof window === 'undefined' ?
+			(await import('$/sources/OciRegistry/Distribution/queries.ts')).getReferrers({
+				registry,
+				repository,
+				digest,
+				limit: resolverContextRowLimit(context),
+			})
+		:
+			(await import('$/sources/OciRegistry/Distribution/queries.remote.ts')).getReferrersRemote({
+				registry,
+				repository,
+				digest,
+				limit: resolverContextRowLimit(context),
+			})
+	)
+	const $manifest = { registry, repository, reference }
+	return descriptors.map((descriptor, descriptorIndex) => (
+		descriptorReference($manifest, 'referrer', descriptorIndex, descriptor)
+	))
+}
+
 export default {
 	source: Source.OciRegistry_Distribution,
 	resolvers: [
@@ -97,16 +144,38 @@ export default {
 		}),
 
 		defineResolver({
+			entityType: EntityType.OciManifest,
+			resolve: {
+				RegistryRepositoryReference: {
+					resolve: async ({ registry, repository, reference }, context) => ({
+						registry,
+						repository,
+						reference,
+						$$referrers: await readReferrers(registry, repository, reference, context),
+					}),
+				},
+			},
+		})({
+			$$referrers: (manifest) => manifest.$$referrers,
+		}),
+
+		defineResolver({
 			entityType: EntityType.OciDescriptor,
 			resolve: {
 				ManifestKindIndex: {
-					resolve: async ({ $manifest, descriptorKind, descriptorIndex }) => {
+					resolve: async ({ $manifest, descriptorKind, descriptorIndex }, context) => {
 						const manifest = await readManifest($manifest.registry, $manifest.repository, $manifest.reference)
 						const descriptor = (
 							descriptorKind === 'config' ? manifest.$config
 							: descriptorKind === 'subject' ? manifest.$subject
 							: descriptorKind === 'layer' ? manifest.$$layers?.[descriptorIndex]
 							: descriptorKind === 'manifest' ? manifest.$$manifests?.[descriptorIndex]
+							: descriptorKind === 'referrer' ? (await readReferrers(
+								$manifest.registry,
+								$manifest.repository,
+								$manifest.reference,
+								context
+							))[descriptorIndex]
 							: undefined
 						)
 						if (descriptor == null)
@@ -124,6 +193,8 @@ export default {
 			digest: (descriptor) => descriptor[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.OciDescriptor, [], 'digest')],
 			sizeBytes: (descriptor) => descriptor[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.OciDescriptor, [], 'sizeBytes')],
 			urls: (descriptor) => descriptor[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.OciDescriptor, [], 'urls')],
+			artifactType: (descriptor) => descriptor[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.OciDescriptor, [], 'artifactType')],
+			annotations: (descriptor) => descriptor[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.OciDescriptor, [], 'annotations')],
 		}),
 	],
 } satisfies RegisteredSourceResolverModule

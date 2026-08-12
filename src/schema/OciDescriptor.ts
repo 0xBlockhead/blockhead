@@ -55,6 +55,20 @@ export default entity({
 			Source.OciRegistry_Distribution,
 		],
 	},
+	artifactType: {
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.OciRegistry_Distribution,
+		],
+	},
+	annotations: {
+		primitiveType: type('unknown'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.OciRegistry_Distribution,
+		],
+	},
 })({
 	selectors: {
 		ManifestKindIndex: [

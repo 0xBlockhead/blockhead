@@ -75,6 +75,13 @@ export default entity({
 			Source.OciRegistry_Distribution,
 		],
 	},
+	$$referrers: {
+		entityType: EntityType.OciDescriptor,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.OciRegistry_Distribution,
+		],
+	},
 })({
 	selectors: {
 		RegistryRepositoryReference: [

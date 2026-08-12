@@ -240,5 +240,20 @@
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
+		{@const referrersResource = selection.$$referrers}
+		<ResourceBoundary
+			resource={referrersResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<OciDescriptorsView
+						selection={referrersResource}
+						countResource={referrersResource.count}
+						title='Referrers'
+						id='referrers'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

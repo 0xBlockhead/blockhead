@@ -5,6 +5,7 @@ import {
 	ociDigestWire,
 	ociImageIndexWire,
 	ociImageManifestWire,
+	type OciDescriptor,
 	type OciManifest,
 } from '$/sources/OciRegistry/Distribution/types.ts'
 import { Source } from '$/sources/Source.ts'
@@ -30,6 +31,7 @@ const ociManifestAccept = [
 	'application/vnd.docker.distribution.manifest.v2+json',
 	'application/vnd.docker.distribution.manifest.list.v2+json',
 ].join(', ')
+const ociIndexMediaType = 'application/vnd.oci.image.index.v1+json'
 
 
 // Functions
@@ -72,6 +74,19 @@ export const manifestPath = ({
 }: Pick<OciImageReference, 'repository' | 'reference'>) => (
 	`/v2/${assertRepository(repository)}/manifests/${encodeURIComponent(assertReference(reference))}`
 )
+
+export const referrersPath = ({
+	repository,
+	digest,
+}: {
+	repository: string
+	digest: string
+}) => {
+	if (!ociDigestWire.allows(digest))
+		throw new Error('OciRegistry_Distribution: referrers subject must use a canonical digest')
+
+	return `/v2/${assertRepository(repository)}/referrers/${encodeURIComponent(digest)}`
+}
 
 const assertManifest = (value: JsonValue): OciManifest => {
 	try {
@@ -144,7 +159,98 @@ const bearerAuthorization = async (response: Response) => {
 	return `Bearer ${token}`
 }
 
-export const getManifest = async ({
+const registryGet = async (
+	registryBinding: SourceBinding,
+	url: string,
+	accept: string
+) => {
+	let response = await sourceFetch(registryBinding, url, {
+		headers: { accept },
+	})
+	if (response.status === 401)
+		response = await sourceFetch(registryBinding, url, {
+			headers: {
+				accept,
+				authorization: await bearerAuthorization(response),
+			},
+		})
+
+	return response
+}
+
+const nextReferrersUrl = (
+	linkHeader: string | null,
+	currentUrl: string,
+	registryOrigin: string,
+	pathname: string
+) => {
+	if (linkHeader == null)
+		return undefined
+
+	const linkValues: string[] = []
+	let linkValueStart = 0
+	let insideUri = false
+	let insideQuotedParameter = false
+	let quotedParameterEscape = false
+	for (let index = 0; index < linkHeader.length; index++) {
+		const character = linkHeader[index]
+		if (insideQuotedParameter) {
+			if (quotedParameterEscape)
+				quotedParameterEscape = false
+			else if (character === '\\')
+				quotedParameterEscape = true
+			else if (character === '"')
+				insideQuotedParameter = false
+		}
+		else if (character === '<')
+			insideUri = true
+		else if (character === '>')
+			insideUri = false
+		else if (character === '"')
+			insideQuotedParameter = true
+		else if (character === ',' && !insideUri) {
+			linkValues.push(linkHeader.slice(linkValueStart, index).trim())
+			linkValueStart = index + 1
+		}
+	}
+	if (insideUri || insideQuotedParameter || quotedParameterEscape)
+		throw new Error('OciRegistry_Distribution: malformed referrers continuation')
+	linkValues.push(linkHeader.slice(linkValueStart).trim())
+
+	const nextUrls = linkValues.flatMap((linkValue) => {
+		const match = /^<([^>]*)>(.*)$/.exec(linkValue)
+		const relationValues = [...linkValue.matchAll(/;\s*rel\s*=\s*(?:"[^"]*"|[^;\s,]+)/gi)]
+			.flatMap((relation) => relation[0]
+				.slice(relation[0].indexOf('=') + 1)
+				.trim()
+				.replace(/^"|"$/g, '')
+				.split(/\s+/))
+		if (!relationValues.some((relation) => relation.toLowerCase() === 'next'))
+			return []
+		if (match == null || match[1] === '')
+			throw new Error('OciRegistry_Distribution: malformed referrers continuation')
+
+		return [new URL(match[1], currentUrl)]
+	})
+	if (nextUrls.length > 1)
+		throw new Error('OciRegistry_Distribution: ambiguous referrers continuation')
+	const [nextUrl] = nextUrls
+	if (nextUrl == null)
+		return undefined
+	if (
+		nextUrl.origin !== registryOrigin
+		|| decodeURIComponent(nextUrl.pathname) !== decodeURIComponent(pathname)
+		|| nextUrl.username !== ''
+		|| nextUrl.password !== ''
+		|| nextUrl.hash !== ''
+		|| nextUrl.href === currentUrl
+	)
+		throw new Error('OciRegistry_Distribution: invalid referrers continuation')
+
+	return nextUrl.href
+}
+
+const getManifestOrUndefined = async ({
 	registry,
 	repository,
 	reference,
@@ -157,18 +263,9 @@ export const getManifest = async ({
 		reference,
 	})}`
 	const registryBinding = bindingForHttpUrl(`${registryOrigin}/v2`)
-	let response = await sourceFetch(registryBinding, url, {
-		headers: {
-			accept: ociManifestAccept,
-		},
-	})
-	if (response.status === 401)
-		response = await sourceFetch(registryBinding, url, {
-			headers: {
-				accept: ociManifestAccept,
-				authorization: await bearerAuthorization(response),
-			},
-		})
+	const response = await registryGet(registryBinding, url, ociManifestAccept)
+	if (response.status === 404)
+		return undefined
 	if (!response.ok)
 		throw new Error(`OciRegistry_Distribution: manifest request failed: ${response.status} ${response.statusText}`)
 
@@ -186,4 +283,84 @@ export const getManifest = async ({
 		...manifest,
 		...(contentDigest != null && { contentDigest }),
 	}
+}
+
+export const getManifest = async (identity: OciImageReference & { registry: string }) => {
+	const manifest = await getManifestOrUndefined(identity)
+	if (manifest == null)
+		throw new Error('OciRegistry_Distribution: manifest request failed: 404 Not Found')
+
+	return manifest
+}
+
+export const referrersTag = (digest: string) => {
+	if (!ociDigestWire.allows(digest))
+		throw new Error('OciRegistry_Distribution: referrers subject must use a canonical digest')
+	const separatorIndex = digest.indexOf(':')
+	return `${digest.slice(0, separatorIndex).slice(0, 32).replace(/[^A-Za-z0-9_.-]/g, '-')}-${digest.slice(separatorIndex + 1, separatorIndex + 65)}`
+}
+
+export const getReferrers = async ({
+	registry,
+	repository,
+	digest,
+	limit,
+}: {
+	registry: string
+	repository: string
+	digest: string
+	limit: number
+}) => {
+	if (!Number.isSafeInteger(limit) || limit < 0 || limit > 1_000)
+		throw new Error('OciRegistry_Distribution: invalid referrers result limit')
+	if (limit === 0)
+		return []
+
+	const registryOrigin = ociRegistryOrigin(registry)
+	const pathname = referrersPath({ repository, digest })
+	const registryBinding = bindingForHttpUrl(`${registryOrigin}/v2`)
+	const descriptors: OciDescriptor[] = []
+	const descriptorDigests = new Set<string>()
+	let url: string | undefined = `${registryOrigin}${pathname}`
+	while (url != null && descriptors.length < limit) {
+		const response = await registryGet(registryBinding, url, ociIndexMediaType)
+		if (response.status === 404) {
+			if (descriptors.length !== 0 || url !== `${registryOrigin}${pathname}`)
+				throw new Error('OciRegistry_Distribution: paginated referrers request disappeared')
+			const fallback = await getManifestOrUndefined({
+				registry,
+				repository,
+				reference: referrersTag(digest),
+			})
+			if (fallback == null || !('manifests' in fallback))
+				return []
+			for (const descriptor of fallback.manifests) {
+				if (descriptorDigests.has(descriptor.digest))
+					throw new Error('OciRegistry_Distribution: referrers response contains a duplicate digest')
+				descriptorDigests.add(descriptor.digest)
+				descriptors.push(descriptor)
+			}
+			break
+		}
+		if (!response.ok)
+			throw new Error(`OciRegistry_Distribution: referrers request failed: ${response.status} ${response.statusText}`)
+		if (response.headers.get('Content-Type')?.split(';')[0].trim() !== ociIndexMediaType)
+			throw new Error('OciRegistry_Distribution: referrers response has an invalid content type')
+
+		let index
+		try {
+			index = ociImageIndexWire.assert(await response.json<JsonValue>())
+		} catch {
+			throw new Error('OciRegistry_Distribution: invalid referrers response')
+		}
+		for (const descriptor of index.manifests) {
+			if (descriptorDigests.has(descriptor.digest))
+				throw new Error('OciRegistry_Distribution: referrers response contains a duplicate digest')
+			descriptorDigests.add(descriptor.digest)
+			descriptors.push(descriptor)
+		}
+		url = nextReferrersUrl(response.headers.get('Link'), url, registryOrigin, pathname)
+	}
+
+	return descriptors.slice(0, limit)
 }

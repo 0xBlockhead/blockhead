@@ -12,8 +12,11 @@ vi.mock('$/sources/_runtime/http.ts', () => ({
 
 const {
 	getManifest,
+	getReferrers,
 	manifestPath,
 	ociRegistryOrigin,
+	referrersPath,
+	referrersTag,
 } = await import('$/sources/OciRegistry/Distribution/queries.ts')
 
 const digest = `sha256:${'a'.repeat(64)}`
@@ -249,5 +252,140 @@ describe('OCI distribution manifest transport', () => {
 				},
 			}
 		)
+	})
+
+	it('paginates typed attestation and signature referrers without leaving the repository', async () => {
+		const signatureDigest = `sha256:${'b'.repeat(64)}`
+		sourceFetch
+			.mockResolvedValueOnce(new Response(JSON.stringify({
+				schemaVersion: 2,
+				mediaType: 'application/vnd.oci.image.index.v1+json',
+				manifests: [{
+					mediaType: 'application/vnd.oci.image.manifest.v1+json',
+					digest,
+					size: 42,
+					artifactType: 'application/vnd.example.sbom.v1',
+					annotations: {
+						'org.opencontainers.image.created': '2026-08-12T00:00:00Z',
+					},
+				}],
+			}), {
+				status: 200,
+				headers: {
+					'Content-Type': 'application/vnd.oci.image.index.v1+json',
+					Link: `</v2/team/image/referrers/${digest}?last=${digest}>; rel="next"`,
+				},
+			}))
+			.mockResolvedValueOnce(new Response(JSON.stringify({
+				schemaVersion: 2,
+				mediaType: 'application/vnd.oci.image.index.v1+json',
+				manifests: [{
+					mediaType: 'application/vnd.oci.image.manifest.v1+json',
+					digest: signatureDigest,
+					size: 84,
+					artifactType: 'application/vnd.example.signature.v1',
+				}],
+			}), {
+				status: 200,
+				headers: {
+					'Content-Type': 'application/vnd.oci.image.index.v1+json',
+				},
+			}))
+
+		await expect(getReferrers({
+			registry: 'registry.example',
+			repository: 'team/image',
+			digest,
+			limit: 20,
+		})).resolves.toEqual([
+			expect.objectContaining({
+				digest,
+				artifactType: 'application/vnd.example.sbom.v1',
+			}),
+			expect.objectContaining({
+				digest: signatureDigest,
+				artifactType: 'application/vnd.example.signature.v1',
+			}),
+		])
+		expect(sourceFetch).toHaveBeenNthCalledWith(
+			2,
+			expect.any(Object),
+			`https://registry.example/v2/team/image/referrers/${digest}?last=${digest}`,
+			{
+				headers: {
+					accept: 'application/vnd.oci.image.index.v1+json',
+				},
+			}
+		)
+	})
+
+	it('uses the OCI 1.1 fallback tag and rejects malformed cross-origin continuations', async () => {
+		expect(() => referrersPath({
+			repository: 'team/image',
+			digest: 'latest',
+		})).toThrow('canonical digest')
+		expect(referrersTag(digest)).toBe(`sha256-${'a'.repeat(64)}`)
+
+		sourceFetch.mockReset()
+		sourceFetch
+			.mockResolvedValueOnce(new Response(null, { status: 404 }))
+			.mockResolvedValueOnce(new Response(JSON.stringify({
+				schemaVersion: 2,
+				mediaType: 'application/vnd.oci.image.index.v1+json',
+				manifests: [{
+					mediaType: 'application/vnd.oci.image.manifest.v1+json',
+					digest: `sha256:${'b'.repeat(64)}`,
+					size: 84,
+					artifactType: 'application/vnd.example.signature.v1',
+				}],
+			}), { status: 200 }))
+		await expect(getReferrers({
+			registry: 'registry.example',
+			repository: 'team/image',
+			digest,
+			limit: 20,
+		})).resolves.toEqual([expect.objectContaining({
+			artifactType: 'application/vnd.example.signature.v1',
+		})])
+		expect(sourceFetch).toHaveBeenNthCalledWith(
+			2,
+			expect.any(Object),
+			`https://registry.example/v2/team/image/manifests/sha256-${'a'.repeat(64)}`,
+			{
+				headers: {
+					accept: expect.stringContaining('application/vnd.oci.image.index.v1+json'),
+				},
+			}
+		)
+
+		sourceFetch.mockReset()
+		sourceFetch
+			.mockResolvedValueOnce(new Response(null, { status: 404 }))
+			.mockResolvedValueOnce(new Response(null, { status: 404 }))
+		await expect(getReferrers({
+			registry: 'registry.example',
+			repository: 'team/image',
+			digest,
+			limit: 20,
+		})).resolves.toEqual([])
+
+		sourceFetch.mockReset()
+		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+			schemaVersion: 2,
+			mediaType: 'application/vnd.oci.image.index.v1+json',
+			manifests: [],
+		}), {
+			status: 200,
+			headers: {
+				'Content-Type': 'application/vnd.oci.image.index.v1+json',
+				Link: '<https://attacker.example/next>; rel="next"',
+			},
+		}))
+		await expect(getReferrers({
+			registry: 'registry.example',
+			repository: 'team/image',
+			digest,
+			limit: 20,
+		})).rejects.toThrow('invalid referrers continuation')
 	})
 })

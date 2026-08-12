@@ -11,6 +11,10 @@ export const ociDescriptorWire = type({
 	digest: ociDigestWire,
 	size: 'number.integer >= 0',
 	'urls?': 'string[]',
+	'artifactType?': 'string > 0',
+	'annotations?': {
+		'[string]': 'string',
+	},
 })
 
 export type OciDescriptor = typeof ociDescriptorWire.infer

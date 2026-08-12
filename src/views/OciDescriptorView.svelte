@@ -164,6 +164,28 @@
 				</dd>
 			</div>
 
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							artifactType: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const artifactType = entity.artifactType}
+					{#if artifactType != null}
+						<div>
+							<dt>artifact type</dt>
+							<dd>
+								{artifactType}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
 			<div>
 				<dt>URLs</dt>
 				<dd>
