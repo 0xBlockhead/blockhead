@@ -216,9 +216,15 @@ describe('Blockscout account-abstraction queries', () => {
 
 	it('returns validated endpoint-native block rows', async () => {
 		const block = {
-			hash: '0xblock',
+			base_fee_per_gas: '1000000000',
+			gas_limit: '30000000',
+			gas_used: '15000000',
+			hash: hex('1', 64),
 			height: 12,
-			parent_hash: '0xparent',
+			miner: {
+				hash: hex('2', 40),
+			},
+			parent_hash: hex('3', 64),
 			timestamp: '2026-07-16T09:30:43.020Z',
 			transactions_count: 3,
 		}

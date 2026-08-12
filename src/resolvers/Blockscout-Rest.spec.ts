@@ -757,6 +757,63 @@ describe('Blockscout_Rest balance observations', () => {
 	})
 })
 
+describe('Blockscout_Rest network blocks', () => {
+	const blocksResolver = blockscoutRest.resolvers.find((candidate) => (
+		candidate.entityType === EntityType.Network
+		&& 'Evm' in candidate.projections
+		&& '$$blocks' in candidate.projections.Evm
+		&& typeof candidate.projections.Evm.$$blocks === 'function'
+		&& 'Caip2' in candidate.resolve
+	))
+
+	if (blocksResolver == null || !('Caip2' in blocksResolver.resolve))
+		throw new Error('Blockscout_Rest: missing Network.Evm.$$blocks resolver')
+
+	beforeEach(() => {
+		vi.clearAllMocks()
+	})
+
+	it('materializes endpoint-native block facts without block detail reads', async () => {
+		getBlocks.mockResolvedValue([{
+			base_fee_per_gas: '1000000000',
+			gas_limit: '30000000',
+			gas_used: '15000000',
+			hash: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+			height: 12,
+			miner: {
+				hash: '0x1111111111111111111111111111111111111111',
+			},
+			parent_hash: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+			timestamp: '2024-01-02T03:04:05.432Z',
+			transactions_count: 3,
+		}])
+
+		const blocks = await blocksResolver.resolve.Caip2.resolve(network, context)
+		expect(blocks).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				blockNumber: 12n,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.EvmBlock, [], 'hash')]: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+				[entityFieldAddressKey(EntityType.EvmBlock, [], 'blockNumber')]: 12n,
+				[entityFieldAddressKey(EntityType.EvmBlock, [], 'parentHash')]: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+				[entityFieldAddressKey(EntityType.EvmBlock, [], 'timestamp')]: Date.parse('2024-01-02T03:04:05.000Z'),
+				[entityFieldAddressKey(EntityType.EvmBlock, [], '$miner')]: {
+					[EntityMetaKey.Selector]: {
+						address: '0x1111111111111111111111111111111111111111',
+					},
+				},
+				[entityFieldAddressKey(EntityType.EvmBlock, [], 'gasUsed')]: 15000000n,
+				[entityFieldAddressKey(EntityType.EvmBlock, [], 'gasLimit')]: 30000000n,
+				[entityFieldAddressKey(EntityType.EvmBlock, [], 'baseFeePerGas')]: 1000000000n,
+				[entityFieldAddressKey(EntityType.EvmBlock, [], 'transactionCount')]: 3,
+			},
+		}])
+		expect(getBlockByNumber).not.toHaveBeenCalled()
+	})
+})
+
 describe('Blockscout EvmNetworkAccount_Timestamp', () => {
 	const address = '0x1111111111111111111111111111111111111111'
 	const tipTimestamp = '2024-01-02T03:04:05.000Z'

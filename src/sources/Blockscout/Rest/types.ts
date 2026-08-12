@@ -21,7 +21,15 @@ export const blockscoutBlockDetailEnvelope = arktype({
 })
 export const blockscoutBlocksPageEnvelope = arktype({
 	items: arktype({
+		base_fee_per_gas: 'string | null',
+		gas_limit: 'string',
+		gas_used: 'string',
+		hash: 'string',
 		height: 'number',
+		miner: blockscoutAddressEnvelope,
+		parent_hash: 'string',
+		timestamp: 'string',
+		transactions_count: 'number',
 	}).array(),
 })
 export const blockscoutSignedAuthorizationEnvelope = arktype({

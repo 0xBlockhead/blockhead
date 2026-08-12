@@ -36,6 +36,7 @@ import { CoinId } from '$/constants/Coin.ts'
 import { CoinInstanceType } from '$/schema/CoinInstanceType.ts'
 import type {
 	BlockscoutAddress,
+	BlockscoutBlock,
 	BlockscoutInternalTransaction,
 	BlockscoutErc4337RegistryEntry,
 	BlockscoutRawTrace,
@@ -47,6 +48,55 @@ import type {
 } from '$/sources/Blockscout/Rest/types.ts'
 
 type EvmNetworkId = EntitySelector<typeof schema, EntityType.Network>
+
+const evmBlockReferenceFromBlockscoutWire = ({
+	$network,
+	wire,
+}: {
+	$network: EvmNetworkId
+	wire: BlockscoutBlock
+}) => {
+	const blockNumber = (
+		Number.isSafeInteger(wire.height) && wire.height >= 0 ?
+			BigInt(wire.height)
+		:
+			undefined
+	)
+	const hash = hexLowerOfByteSize(wire.hash, 32)
+	if (blockNumber == null || hash == null)
+		return undefined
+
+	const parentHash = hexLowerOfByteSize(wire.parent_hash, 32)
+	const miner = hexLowerOfByteSize(wire.miner.hash, 20)
+	const timestamp = Math.floor(Date.parse(wire.timestamp) / 1_000) * 1_000
+	return {
+		[EntityMetaKey.Selector]: {
+			$network,
+			blockNumber,
+		},
+		[EntityMetaKey.Fields]: {
+			[entityFieldAddressKey(EntityType.EvmBlock, [], 'hash')]: hash,
+			[entityFieldAddressKey(EntityType.EvmBlock, [], 'blockNumber')]: blockNumber,
+			...(parentHash != null && {
+				[entityFieldAddressKey(EntityType.EvmBlock, [], 'parentHash')]: parentHash,
+			}),
+			...(Number.isFinite(timestamp) && timestamp >= 0 && {
+				[entityFieldAddressKey(EntityType.EvmBlock, [], 'timestamp')]: timestamp,
+			}),
+			...(miner != null && {
+				[entityFieldAddressKey(EntityType.EvmBlock, [], '$miner')]: {
+					[EntityMetaKey.Selector]: {
+						address: miner,
+					},
+				},
+			}),
+			[entityFieldAddressKey(EntityType.EvmBlock, [], 'gasUsed')]: blockscoutQuantityToBigInt(wire.gas_used),
+			[entityFieldAddressKey(EntityType.EvmBlock, [], 'gasLimit')]: blockscoutQuantityToBigInt(wire.gas_limit),
+			[entityFieldAddressKey(EntityType.EvmBlock, [], 'baseFeePerGas')]: blockscoutQuantityToBigInt(wire.base_fee_per_gas),
+			[entityFieldAddressKey(EntityType.EvmBlock, [], 'transactionCount')]: wire.transactions_count,
+		},
+	}
+}
 
 const evmContractRuntimeCodeFromGetCodeHex = (
 	codeHex: `0x${string}`
@@ -3181,27 +3231,13 @@ export default {
 							chainId: evmChainIdFromNetworkSelector(entitySelector),
 							limit,
 						})
-						return (
-							wires.flatMap((wire) => {
-								const blockNumber = (
-									Number.isSafeInteger(wire.height) && wire.height >= 0 ?
-										BigInt(wire.height)
-									:
-										null
-								)
-								if (blockNumber == null)
-									return []
-
-								return [
-									{
-										[EntityMetaKey.Selector]: {
-											$network: evmNetworkSelectorFromChainId(evmChainIdFromNetworkSelector(entitySelector)),
-											blockNumber,
-										},
-									} satisfies Entity<typeof schema, EntityType.EvmBlock>,
-								]
+						return wires.flatMap((wire) => {
+							const reference = evmBlockReferenceFromBlockscoutWire({
+								$network: evmNetworkSelectorFromChainId(evmChainIdFromNetworkSelector(entitySelector)),
+								wire,
 							})
-						)
+							return reference == null ? [] : [reference]
+						})
 					},
 				}
 			},
