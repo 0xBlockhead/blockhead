@@ -1117,7 +1117,7 @@ describe('resolver registry live resolver architecture', () => {
 			&& sourceClaimParentMaterializers(claim).length > 0
 		))
 
-		expect(parentOwnedClaims).toHaveLength(71)
+		expect(parentOwnedClaims).toHaveLength(70)
 		expect(Object.entries(Object.groupBy(
 			parentOwnedClaims,
 			(claim) => claim.entityType
@@ -1136,7 +1136,6 @@ describe('resolver registry live resolver architecture', () => {
 			[EntityType.HyperliquidPerpMarket_Timestamp, 2],
 			[EntityType.LiquidityPool_Timestamp, 16],
 			[EntityType.NetworkEndpointObservation_Timestamp, 20],
-			[EntityType.UniswapV3Position, 1],
 			[EntityType.UtxoAddress_Timestamp, 1],
 			[EntityType.XrplLedger, 1],
 			[EntityType.XrplLedgerEntry, 5],
