@@ -98,16 +98,61 @@ export default {
 							providerRepositoryId: String(project.id),
 							source: Source.Gitlab_Rest,
 							$$issues: issues.map((issue) => ({
-								$forgeMirror: { forgeHost, owner, repositoryName },
-								issueNumber: issue.iid,
+								[EntityMetaKey.Selector]: {
+									$forgeMirror: { forgeHost, owner, repositoryName },
+									issueNumber: issue.iid,
+								},
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.GitForgeIssue, [], 'title')]: issue.title,
+									[entityFieldAddressKey(EntityType.GitForgeIssue, [], 'state')]: issue.state,
+									[entityFieldAddressKey(EntityType.GitForgeIssue, [], 'labels')]: issue.labels,
+									...(issue.author != null && {
+										[entityFieldAddressKey(EntityType.GitForgeIssue, [], 'authorSelector')]: issue.author,
+									}),
+									[entityFieldAddressKey(EntityType.GitForgeIssue, [], 'createdAt')]: gitlabTimestampMs(issue.created_at),
+									[entityFieldAddressKey(EntityType.GitForgeIssue, [], 'updatedAt')]: gitlabTimestampMs(issue.updated_at),
+									...(issue.closed_at != null && {
+										[entityFieldAddressKey(EntityType.GitForgeIssue, [], 'closedAt')]: gitlabTimestampMs(issue.closed_at),
+									}),
+								},
 							})),
 							$$pullRequests: mergeRequests.map((mergeRequest) => ({
-								$forgeMirror: { forgeHost, owner, repositoryName },
-								pullRequestNumber: mergeRequest.iid,
+								[EntityMetaKey.Selector]: {
+									$forgeMirror: { forgeHost, owner, repositoryName },
+									pullRequestNumber: mergeRequest.iid,
+								},
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.GitForgePullRequest, [], 'title')]: mergeRequest.title,
+									[entityFieldAddressKey(EntityType.GitForgePullRequest, [], 'state')]: mergeRequest.state,
+									[entityFieldAddressKey(EntityType.GitForgePullRequest, [], 'baseRef')]: mergeRequest.target_branch,
+									[entityFieldAddressKey(EntityType.GitForgePullRequest, [], 'headRef')]: mergeRequest.source_branch,
+									[entityFieldAddressKey(EntityType.GitForgePullRequest, [], 'headObjectId')]: `0x${mergeRequest.sha}`,
+									...(mergeRequest.author != null && {
+										[entityFieldAddressKey(EntityType.GitForgePullRequest, [], 'authorSelector')]: mergeRequest.author,
+									}),
+									[entityFieldAddressKey(EntityType.GitForgePullRequest, [], 'createdAt')]: gitlabTimestampMs(mergeRequest.created_at),
+									[entityFieldAddressKey(EntityType.GitForgePullRequest, [], 'updatedAt')]: gitlabTimestampMs(mergeRequest.updated_at),
+									...(mergeRequest.merged_at != null && {
+										[entityFieldAddressKey(EntityType.GitForgePullRequest, [], 'mergedAt')]: gitlabTimestampMs(mergeRequest.merged_at),
+									}),
+								},
 							})),
 							$$releases: releases.map((release) => ({
-								$forgeMirror: { forgeHost, owner, repositoryName },
-								releaseTagName: release.tag_name,
+								[EntityMetaKey.Selector]: {
+									$forgeMirror: { forgeHost, owner, repositoryName },
+									releaseTagName: release.tag_name,
+								},
+								[EntityMetaKey.Fields]: {
+									...(release.name != null && {
+										[entityFieldAddressKey(EntityType.GitForgeRelease, [], 'name')]: release.name,
+									}),
+									[entityFieldAddressKey(EntityType.GitForgeRelease, [], 'targetObjectId')]: `0x${release.commit.id}`,
+									...(release.author != null && {
+										[entityFieldAddressKey(EntityType.GitForgeRelease, [], 'authorSelector')]: release.author,
+									}),
+									[entityFieldAddressKey(EntityType.GitForgeRelease, [], 'createdAt')]: gitlabTimestampMs(release.created_at),
+									[entityFieldAddressKey(EntityType.GitForgeRelease, [], 'publishedAt')]: gitlabTimestampMs(release.released_at),
+								},
 							})),
 						}
 					},
@@ -180,12 +225,16 @@ export default {
 									targetObjectId: `0x${tag.target}`,
 								})),
 							],
-							$$objects: repositoryTree.map((object) => ({
+							$$objects: [...new Map([
+								...branches.map((branch) => [branch.commit.id, 'commit'] as const),
+								...tags.map((tag) => [tag.commit.id, 'commit'] as const),
+								...repositoryTree.map((object) => [object.id, object.type] as const),
+							]).entries()].map(([objectId, objectKind]) => ({
 								[EntityMetaKey.Selector]: {
-									objectId: `0x${object.id}`,
+									objectId: `0x${objectId}`,
 									objectFormat,
 								},
-								objectKind: object.type,
+								objectKind,
 								$repository: {
 									[EntityMetaKey.Selector]: {
 										canonicalRemoteUrl: project.http_url_to_repo,
@@ -405,6 +454,7 @@ export default {
 							title: issue.title,
 							state: issue.state,
 							labels: issue.labels,
+							...(issue.author != null && { authorSelector: issue.author }),
 							createdAt: gitlabTimestampMs(issue.created_at),
 							updatedAt: gitlabTimestampMs(issue.updated_at),
 							...(issue.closed_at != null && { closedAt: gitlabTimestampMs(issue.closed_at) }),
@@ -418,6 +468,7 @@ export default {
 			title: (issue) => issue.title,
 			state: (issue) => issue.state,
 			labels: (issue) => issue.labels,
+			authorSelector: (issue) => issue.authorSelector,
 			createdAt: (issue) => issue.createdAt,
 			updatedAt: (issue) => issue.updatedAt,
 			closedAt: (issue) => issue.closedAt,
@@ -447,6 +498,7 @@ export default {
 							pullRequestNumber,
 							title: mergeRequest.title,
 							state: mergeRequest.state,
+							...(mergeRequest.author != null && { authorSelector: mergeRequest.author }),
 							baseRef: mergeRequest.target_branch,
 							headRef: mergeRequest.source_branch,
 							headObjectId: `0x${mergeRequest.sha}`,
@@ -462,6 +514,7 @@ export default {
 			pullRequestNumber: (mergeRequest) => mergeRequest.pullRequestNumber,
 			title: (mergeRequest) => mergeRequest.title,
 			state: (mergeRequest) => mergeRequest.state,
+			authorSelector: (mergeRequest) => mergeRequest.authorSelector,
 			baseRef: (mergeRequest) => mergeRequest.baseRef,
 			headRef: (mergeRequest) => mergeRequest.headRef,
 			headObjectId: (mergeRequest) => mergeRequest.headObjectId,
@@ -494,6 +547,7 @@ export default {
 							releaseTagName,
 							...(release.name != null && { name: release.name }),
 							targetObjectId: `0x${release.commit.id}`,
+							...(release.author != null && { authorSelector: release.author }),
 							createdAt: gitlabTimestampMs(release.created_at),
 							publishedAt: gitlabTimestampMs(release.released_at),
 						}
@@ -505,6 +559,7 @@ export default {
 			releaseTagName: (release) => release.releaseTagName,
 			name: (release) => release.name,
 			targetObjectId: (release) => release.targetObjectId,
+			authorSelector: (release) => release.authorSelector,
 			createdAt: (release) => release.createdAt,
 			publishedAt: (release) => release.publishedAt,
 		}),

@@ -60,6 +60,12 @@ export const gitlabIssueWire = type({
 	created_at: 'string > 0',
 	updated_at: 'string > 0',
 	closed_at: 'string | null',
+	'author?': {
+		id: 'number.integer >= 0',
+		username: 'string > 0',
+		name: 'string',
+		web_url: 'string.url',
+	},
 })
 
 export const gitlabIssuesWire = gitlabIssueWire.array()
@@ -74,6 +80,12 @@ export const gitlabMergeRequestWire = type({
 	created_at: 'string > 0',
 	updated_at: 'string > 0',
 	merged_at: 'string | null',
+	'author?': {
+		id: 'number.integer >= 0',
+		username: 'string > 0',
+		name: 'string',
+		web_url: 'string.url',
+	},
 })
 
 export const gitlabMergeRequestsWire = gitlabMergeRequestWire.array()
@@ -85,6 +97,12 @@ export const gitlabReleaseWire = type({
 	released_at: 'string > 0',
 	commit: {
 		id: '/^[0-9a-fA-F]{40}$|^[0-9a-fA-F]{64}$/',
+	},
+	'author?': {
+		id: 'number.integer >= 0',
+		username: 'string > 0',
+		name: 'string',
+		web_url: 'string.url',
 	},
 })
 

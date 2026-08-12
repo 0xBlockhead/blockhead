@@ -56,6 +56,12 @@ describe('GitLab REST wires', () => {
 				created_at: '2026-01-01T00:00:00Z',
 				updated_at: '2026-01-01T00:00:00Z',
 				closed_at: null,
+				author: {
+					id: 7,
+					username: 'issue-author',
+					name: 'Issue Author',
+					web_url: 'https://gitlab.com/issue-author',
+				},
 			})
 			.mockResolvedValueOnce({
 				iid: 34,
@@ -67,6 +73,12 @@ describe('GitLab REST wires', () => {
 				created_at: '2026-01-01T00:00:00Z',
 				updated_at: '2026-01-01T00:00:00Z',
 				merged_at: null,
+				author: {
+					id: 8,
+					username: 'merge-author',
+					name: 'Merge Author',
+					web_url: 'https://gitlab.com/merge-author',
+				},
 			})
 			.mockResolvedValueOnce({
 				tag_name: 'v1',
@@ -75,6 +87,12 @@ describe('GitLab REST wires', () => {
 				released_at: '2026-01-02T00:00:00Z',
 				commit: {
 					id: 'c'.repeat(40),
+				},
+				author: {
+					id: 9,
+					username: 'release-author',
+					name: 'Release Author',
+					web_url: 'https://gitlab.com/release-author',
 				},
 			})
 			.mockResolvedValueOnce([

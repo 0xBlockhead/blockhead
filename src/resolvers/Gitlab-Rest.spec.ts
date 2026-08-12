@@ -153,6 +153,12 @@ describe('GitLab repository journey', () => {
 			created_at: '2026-01-01T00:00:00Z',
 			updated_at: '2026-01-02T00:00:00Z',
 			closed_at: '2026-01-03T00:00:00Z',
+			author: {
+				id: 7,
+				username: 'issue-author',
+				name: 'Issue Author',
+				web_url: 'https://gitlab.com/issue-author',
+			},
 		})
 		getIssues.mockResolvedValue([])
 		getMergeRequest.mockResolvedValue({
@@ -165,6 +171,12 @@ describe('GitLab repository journey', () => {
 			created_at: '2026-02-01T00:00:00Z',
 			updated_at: '2026-02-02T00:00:00Z',
 			merged_at: '2026-02-03T00:00:00Z',
+			author: {
+				id: 8,
+				username: 'merge-author',
+				name: 'Merge Author',
+				web_url: 'https://gitlab.com/merge-author',
+			},
 		})
 		getMergeRequests.mockResolvedValue([])
 		getRelease.mockResolvedValue({
@@ -174,6 +186,12 @@ describe('GitLab repository journey', () => {
 			released_at: '2026-03-02T00:00:00Z',
 			commit: {
 				id: 'd'.repeat(40),
+			},
+			author: {
+				id: 9,
+				username: 'release-author',
+				name: 'Release Author',
+				web_url: 'https://gitlab.com/release-author',
 			},
 		})
 		getReleases.mockResolvedValue([])
@@ -205,6 +223,61 @@ describe('GitLab repository journey', () => {
 			project.http_url_to_repo,
 			project.ssh_url_to_repo,
 		])
+	})
+
+	it('materializes lifecycle cards in the repository hierarchy without detail refetches', async () => {
+		getIssues.mockResolvedValueOnce([{
+			iid: 12,
+			title: 'Preserve native repository links',
+			state: 'closed',
+			labels: ['architecture'],
+			created_at: '2026-01-01T00:00:00Z',
+			updated_at: '2026-01-02T00:00:00Z',
+			closed_at: '2026-01-03T00:00:00Z',
+		}])
+		getMergeRequests.mockResolvedValueOnce([{
+			iid: 34,
+			title: 'Connect the repository graph',
+			state: 'merged',
+			target_branch: 'master',
+			source_branch: 'native-repository-links',
+			sha: 'c'.repeat(40),
+			created_at: '2026-02-01T00:00:00Z',
+			updated_at: '2026-02-02T00:00:00Z',
+			merged_at: '2026-02-03T00:00:00Z',
+		}])
+		getReleases.mockResolvedValueOnce([{
+			tag_name: 'v1.0.0',
+			name: 'Version 1.0.0',
+			created_at: '2026-03-01T00:00:00Z',
+			released_at: '2026-03-02T00:00:00Z',
+			commit: { id: 'd'.repeat(40) },
+		}])
+
+		const snapshot = await mirrorResolver.resolve.ForgeHostOwnerRepositoryName.resolve({
+			forgeHost: 'gitlab.com',
+			owner: 'gitlab-org',
+			repositoryName: 'gitlab',
+		})
+
+		expect(snapshot?.$$issues[0]).toMatchObject({
+			[EntityMetaKey.Selector]: { issueNumber: 12 },
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.GitForgeIssue, [], 'state')]: 'closed',
+			},
+		})
+		expect(snapshot?.$$pullRequests[0]).toMatchObject({
+			[EntityMetaKey.Selector]: { pullRequestNumber: 34 },
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.GitForgePullRequest, [], 'headObjectId')]: `0x${'c'.repeat(40)}`,
+			},
+		})
+		expect(snapshot?.$$releases[0]).toMatchObject({
+			[EntityMetaKey.Selector]: { releaseTagName: 'v1.0.0' },
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.GitForgeRelease, [], 'targetObjectId')]: `0x${'d'.repeat(40)}`,
+			},
+		})
 	})
 
 	it('resolves the canonical repository into native branch refs and targets', async () => {
@@ -253,8 +326,8 @@ describe('GitLab repository journey', () => {
 		if (snapshot == null)
 			throw new Error('GitLab repository snapshot must resolve')
 		expect(repositoryResolver.projections.$$refs.resolveCount(snapshot)).toBe(3)
-		expect(repositoryResolver.projections.$$objects.resolveCount(snapshot)).toBe(2)
-		expect(repositoryResolver.projections.$$objects.select(snapshot)).toEqual([
+		expect(repositoryResolver.projections.$$objects.resolveCount(snapshot)).toBe(5)
+		expect(repositoryResolver.projections.$$objects.select(snapshot)).toEqual(expect.arrayContaining([
 			{
 				[EntityMetaKey.Selector]: {
 					objectId: `0x${'c'.repeat(40)}`,
@@ -269,7 +342,30 @@ describe('GitLab repository journey', () => {
 				},
 				[EntityMetaKey.Fields]: expect.any(Object),
 			},
-		])
+		]))
+	})
+
+	it('includes ref commit targets in the native repository object graph', async () => {
+		const snapshot = await repositoryResolver.resolve.CanonicalRemoteUrl.resolve({
+			canonicalRemoteUrl: project.http_url_to_repo,
+		})
+
+		expect(snapshot?.$$objects).toEqual(expect.arrayContaining([
+			expect.objectContaining({
+				[EntityMetaKey.Selector]: {
+					objectId: `0x${'a'.repeat(40)}`,
+					objectFormat: 'sha1',
+				},
+				objectKind: 'commit',
+			}),
+			expect.objectContaining({
+				[EntityMetaKey.Selector]: {
+					objectId: `0x${'d'.repeat(40)}`,
+					objectFormat: 'sha1',
+				},
+				objectKind: 'blob',
+			}),
+		]))
 	})
 
 	it('does not claim non-GitLab forge or remote authority', async () => {
@@ -357,6 +453,10 @@ describe('GitLab repository journey', () => {
 			createdAt: Date.parse('2026-01-01T00:00:00Z'),
 			updatedAt: Date.parse('2026-01-02T00:00:00Z'),
 			closedAt: Date.parse('2026-01-03T00:00:00Z'),
+			authorSelector: {
+				id: 7,
+				username: 'issue-author',
+			},
 		})
 		await expect(pullRequestResolver.resolve.ForgeMirrorPullRequestNumber.resolve({
 			$forgeMirror,
@@ -368,6 +468,10 @@ describe('GitLab repository journey', () => {
 			headRef: 'native-repository-links',
 			headObjectId: `0x${'c'.repeat(40)}`,
 			mergedAt: Date.parse('2026-02-03T00:00:00Z'),
+			authorSelector: {
+				id: 8,
+				username: 'merge-author',
+			},
 		})
 		await expect(releaseResolver.resolve.ForgeMirrorReleaseTagName.resolve({
 			$forgeMirror,
@@ -378,6 +482,10 @@ describe('GitLab repository journey', () => {
 			name: 'Version 1.0.0',
 			targetObjectId: `0x${'d'.repeat(40)}`,
 			publishedAt: Date.parse('2026-03-02T00:00:00Z'),
+			authorSelector: {
+				id: 9,
+				username: 'release-author',
+			},
 		})
 	})
 })
