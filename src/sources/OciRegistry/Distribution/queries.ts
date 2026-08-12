@@ -8,12 +8,21 @@ import {
 	type OciManifest,
 } from '$/sources/OciRegistry/Distribution/types.ts'
 import { Source } from '$/sources/Source.ts'
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
 import { sourceFetch } from '$/sources/_runtime/http.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 
 
 // Constants
 const binding = bindings[Source.OciRegistry_Distribution][0]
+
+const bindingForHttpUrl = (locator: string) => ({
+	...binding,
+	endpoints: [{
+		...binding.endpoints[0],
+		locator,
+	}],
+}) satisfies SourceBinding
 
 const ociManifestAccept = [
 	'application/vnd.oci.image.manifest.v1+json',
@@ -101,7 +110,7 @@ const bearerAuthorization = async (response: Response) => {
 	if (scope != null)
 		tokenUrl.searchParams.set('scope', scope)
 
-	const tokenResponse = await sourceFetch(binding, tokenUrl.href)
+	const tokenResponse = await sourceFetch(bindingForHttpUrl(tokenUrl.origin), tokenUrl.href)
 	if (!tokenResponse.ok)
 		throw new Error(`OciRegistry_Distribution: bearer token request failed: ${tokenResponse.status} ${tokenResponse.statusText}`)
 
@@ -120,17 +129,19 @@ export const getManifest = async ({
 }: OciImageReference & {
 	registry: string
 }) => {
-	const url = `${ociRegistryOrigin(registry)}${manifestPath({
+	const registryOrigin = ociRegistryOrigin(registry)
+	const url = `${registryOrigin}${manifestPath({
 		repository,
 		reference,
 	})}`
-	let response = await sourceFetch(binding, url, {
+	const registryBinding = bindingForHttpUrl(`${registryOrigin}/v2`)
+	let response = await sourceFetch(registryBinding, url, {
 		headers: {
 			accept: ociManifestAccept,
 		},
 	})
 	if (response.status === 401)
-		response = await sourceFetch(binding, url, {
+		response = await sourceFetch(registryBinding, url, {
 			headers: {
 				accept: ociManifestAccept,
 				authorization: await bearerAuthorization(response),

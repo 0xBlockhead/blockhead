@@ -47,7 +47,13 @@ describe('OCI distribution manifest transport', () => {
 			layers: [],
 		})
 		expect(sourceFetch).toHaveBeenCalledWith(
-			bindings[Source.OciRegistry_Distribution][0],
+			{
+				...bindings[Source.OciRegistry_Distribution][0],
+				endpoints: [{
+					...bindings[Source.OciRegistry_Distribution][0].endpoints[0],
+					locator: 'https://ghcr.io/v2',
+				}],
+			},
 			'https://ghcr.io/v2/openai/blockhead/manifests/latest',
 			{
 				headers: {
@@ -160,12 +166,24 @@ describe('OCI distribution manifest transport', () => {
 		})
 		expect(sourceFetch).toHaveBeenNthCalledWith(
 			2,
-			bindings[Source.OciRegistry_Distribution][0],
+			{
+				...bindings[Source.OciRegistry_Distribution][0],
+				endpoints: [{
+					...bindings[Source.OciRegistry_Distribution][0].endpoints[0],
+					locator: 'https://auth.example',
+				}],
+			},
 			'https://auth.example/token?service=registry.example&scope=repository%3Ateam%2Fimage%3Apull'
 		)
 		expect(sourceFetch).toHaveBeenNthCalledWith(
 			3,
-			bindings[Source.OciRegistry_Distribution][0],
+			{
+				...bindings[Source.OciRegistry_Distribution][0],
+				endpoints: [{
+					...bindings[Source.OciRegistry_Distribution][0].endpoints[0],
+					locator: 'https://registry.example/v2',
+				}],
+			},
 			'https://registry.example/v2/team/image/manifests/latest',
 			{
 				headers: {
