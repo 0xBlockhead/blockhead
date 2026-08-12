@@ -1,4 +1,9 @@
+import {
+	encode,
+	Tagged,
+} from 'cborg'
 import { CID } from 'multiformats/cid'
+import { sha256 } from 'multiformats/hashes/sha2'
 import {
 	describe,
 	expect,
@@ -9,6 +14,7 @@ import {
 	parseGetHostStatusResponse,
 	parseListHostsResponse,
 	parseListReposResponse,
+	projectAtprotoRepoCommitBlock,
 	projectAtprotoRepoCommitFromSubscribeReposBody,
 } from '$/sources/AtprotoSync/Xrpc/commit.ts'
 import { Source } from '$/sources/Source.ts'
@@ -16,6 +22,31 @@ import { Source } from '$/sources/Source.ts'
 
 const commitCid = CID.parse('bafyreigbtj4x7ip5legnfznufuopld32owlx3aujofcjblvhwdcxxwrtya')
 const recordCid = CID.parse('bafkreidqz2dr7cr5h62etpb4hlhgkr6o6aw7y5h74sgzcjjsu4sl7w7fxe')
+
+const cidLink = (cid: CID) => new Tagged(42, new Uint8Array([
+	0,
+	...cid.bytes,
+]))
+
+const unsignedVarint = (value: number) => {
+	const bytes: number[] = []
+	let remaining = value
+	do {
+		bytes.push((remaining & 0x7f) | (remaining > 0x7f ? 0x80 : 0))
+		remaining = Math.floor(remaining / 128)
+	} while (remaining > 0)
+	return new Uint8Array(bytes)
+}
+
+const concatenateBytes = (...parts: Uint8Array[]) => {
+	const bytes = new Uint8Array(parts.reduce((length, part) => length + part.byteLength, 0))
+	let offset = 0
+	for (const part of parts) {
+		bytes.set(part, offset)
+		offset += part.byteLength
+	}
+	return bytes
+}
 
 
 describe('AtprotoSync #commit → AtprotoRepoCommit projection', () => {
@@ -87,6 +118,90 @@ describe('AtprotoSync #commit → AtprotoRepoCommit projection', () => {
 				seq: 1,
 			},
 		})).toThrow('malformed #commit body')
+	})
+})
+
+
+describe('AtprotoSync getBlocks CAR → repository commit projection', () => {
+	it('binds the requested CAR root to its signed repository commit facts', async () => {
+		const dataCid = CID.createV1(0x71, await sha256.digest(new Uint8Array([1, 2, 3])))
+		const previousDataCid = CID.createV1(0x71, await sha256.digest(new Uint8Array([4, 5, 6])))
+		const blockBytes = encode({
+			did: 'did:plc:example',
+			version: 3,
+			data: cidLink(dataCid),
+			rev: '3jzfcijpj2z2a',
+			prev: cidLink(previousDataCid),
+			sig: new Uint8Array([7, 8, 9]),
+		})
+		const rootCid = CID.createV1(0x71, await sha256.digest(blockBytes))
+		const headerBytes = encode({
+			version: 1,
+			roots: [cidLink(rootCid)],
+		})
+		const car = concatenateBytes(
+			unsignedVarint(headerBytes.byteLength),
+			headerBytes,
+			unsignedVarint(rootCid.bytes.byteLength + blockBytes.byteLength),
+			rootCid.bytes,
+			blockBytes
+		)
+
+		await expect(projectAtprotoRepoCommitBlock({
+			car,
+			repoDid: 'did:plc:example',
+			rev: '3jzfcijpj2z2a',
+			commitCid: rootCid.toString(),
+		})).resolves.toEqual({
+			rev: '3jzfcijpj2z2a',
+			dataCid: dataCid.toString(),
+			previousDataCid: previousDataCid.toString(),
+			carByteLength: car.byteLength,
+		})
+	})
+
+	it('rejects a CAR whose declared root is not the requested commit', async () => {
+		const otherCid = CID.createV1(0x71, await sha256.digest(new Uint8Array([9])))
+		const headerBytes = encode({
+			version: 1,
+			roots: [cidLink(otherCid)],
+		})
+
+		await expect(projectAtprotoRepoCommitBlock({
+			car: concatenateBytes(unsignedVarint(headerBytes.byteLength), headerBytes),
+			repoDid: 'did:plc:example',
+			rev: '3jzfcijpj2z2a',
+			commitCid: commitCid.toString(),
+		})).rejects.toThrow('CAR root does not match requested commit CID')
+	})
+
+	it('rejects commit bytes that do not match the declared CAR block CID', async () => {
+		const declaredCid = CID.createV1(0x71, await sha256.digest(new Uint8Array([1])))
+		const blockBytes = encode({
+			did: 'did:plc:example',
+			version: 3,
+			data: cidLink(recordCid),
+			rev: '3jzfcijpj2z2a',
+			prev: null,
+			sig: new Uint8Array([7]),
+		})
+		const headerBytes = encode({
+			version: 1,
+			roots: [cidLink(declaredCid)],
+		})
+
+		await expect(projectAtprotoRepoCommitBlock({
+			car: concatenateBytes(
+				unsignedVarint(headerBytes.byteLength),
+				headerBytes,
+				unsignedVarint(declaredCid.bytes.byteLength + blockBytes.byteLength),
+				declaredCid.bytes,
+				blockBytes
+			),
+			repoDid: 'did:plc:example',
+			rev: '3jzfcijpj2z2a',
+			commitCid: declaredCid.toString(),
+		})).rejects.toThrow('does not match its CID digest')
 	})
 })
 

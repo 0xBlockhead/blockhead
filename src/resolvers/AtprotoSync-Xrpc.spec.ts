@@ -11,12 +11,20 @@ import { Source } from '$/sources/Source.ts'
 
 const getLatestCommit = vi.hoisted(() => vi.fn())
 const getRepoStatus = vi.hoisted(() => vi.fn())
+const getBlocks = vi.hoisted(() => vi.fn())
+const projectAtprotoRepoCommitBlock = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/AtprotoSync/Xrpc/queries.ts', async (importOriginal) => ({
 	...await importOriginal<typeof import('$/sources/AtprotoSync/Xrpc/queries.ts')>(),
 	getLatestCommit,
 	getRepoStatus,
+	getBlocks,
 	defaultAtprotoSyncRelayOrigin: 'https://bsky.network',
+}))
+
+vi.mock('$/sources/AtprotoSync/Xrpc/commit.ts', async (importOriginal) => ({
+	...await importOriginal<typeof import('$/sources/AtprotoSync/Xrpc/commit.ts')>(),
+	projectAtprotoRepoCommitBlock,
 }))
 
 const resolverModule = (await import('$/resolvers/AtprotoSync-Xrpc.ts')).default
@@ -33,6 +41,8 @@ describe('AtprotoSync-Xrpc AtprotoRepoCommit latest-commit projection', () => {
 	beforeEach(() => {
 		getLatestCommit.mockReset()
 		getRepoStatus.mockReset()
+		getBlocks.mockReset()
+		projectAtprotoRepoCommitBlock.mockReset()
 		getLatestCommit.mockResolvedValue({
 			commitCid: 'bafyreigbtj4x7ip5legnfznufuopld32owlx3aujofcjblvhwdcxxwrtya',
 			rev: '3jzfcijpj2z2a',
@@ -41,6 +51,12 @@ describe('AtprotoSync-Xrpc AtprotoRepoCommit latest-commit projection', () => {
 			did: 'did:plc:example',
 			active: true,
 			rev: '3jzfcijpj2z2a',
+		})
+		getBlocks.mockResolvedValue(new Uint8Array([1, 2, 3]))
+		projectAtprotoRepoCommitBlock.mockReturnValue({
+			rev: '3jzfcijpj2z2a',
+			dataCid: 'bafyreidqz2dr7cr5h62etpb4hlhgkr6o6aw7y5h74sgzcjjsu4sl7w7fxe',
+			carByteLength: 3,
 		})
 	})
 
@@ -57,6 +73,8 @@ describe('AtprotoSync-Xrpc AtprotoRepoCommit latest-commit projection', () => {
 			source: Source.AtprotoSync_Xrpc,
 			commitCid: 'bafyreigbtj4x7ip5legnfznufuopld32owlx3aujofcjblvhwdcxxwrtya',
 			relayHost: 'bsky.network',
+			dataCid: 'bafyreidqz2dr7cr5h62etpb4hlhgkr6o6aw7y5h74sgzcjjsu4sl7w7fxe',
+			carByteLength: 3,
 		})
 		expect(repoCommitResolvers[0].projections.$$posts(snapshot)).toEqual([])
 		expect(getLatestCommit).toHaveBeenCalledWith({
@@ -66,6 +84,11 @@ describe('AtprotoSync-Xrpc AtprotoRepoCommit latest-commit projection', () => {
 		expect(getRepoStatus).toHaveBeenCalledWith({
 			serviceOrigin: 'https://bsky.network',
 			did: 'did:plc:example',
+		})
+		expect(getBlocks).toHaveBeenCalledWith({
+			serviceOrigin: 'https://bsky.network',
+			did: 'did:plc:example',
+			cids: ['bafyreigbtj4x7ip5legnfznufuopld32owlx3aujofcjblvhwdcxxwrtya'],
 		})
 	})
 
@@ -105,7 +128,14 @@ describe('AtprotoSync-Xrpc AtprotoRepoCommit latest-commit projection', () => {
 		})).rejects.toThrow('is not the latest commit')
 	})
 
-	it('projects RepoDidCommitCidSource when the tip CID matches', async () => {
+	it('projects RepoDidCommitCidSource directly from its CAR block without tip-only identity', async () => {
+		getLatestCommit.mockClear()
+		getRepoStatus.mockClear()
+		projectAtprotoRepoCommitBlock.mockReturnValueOnce({
+			rev: '3historical',
+			dataCid: 'bafyreidqz2dr7cr5h62etpb4hlhgkr6o6aw7y5h74sgzcjjsu4sl7w7fxe',
+			carByteLength: 3,
+		})
 		const snapshot = await resolveByCommitCid({
 			repoDid: 'did:plc:example',
 			commitCid: 'bafyreigbtj4x7ip5legnfznufuopld32owlx3aujofcjblvhwdcxxwrtya',
@@ -113,6 +143,9 @@ describe('AtprotoSync-Xrpc AtprotoRepoCommit latest-commit projection', () => {
 		})
 
 		expect(snapshot.commitCid).toBe('bafyreigbtj4x7ip5legnfznufuopld32owlx3aujofcjblvhwdcxxwrtya')
+		expect(snapshot.rev).toBe('3historical')
+		expect(getLatestCommit).not.toHaveBeenCalled()
+		expect(getRepoStatus).not.toHaveBeenCalled()
 		expect(repoCommitResolvers[1].projections.repoDid(snapshot)).toBe('did:plc:example')
 		expect(EntityMetaKey.Selector in (repoCommitResolvers[1].projections.$$posts({
 			...snapshot,

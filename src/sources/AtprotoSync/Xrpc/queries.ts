@@ -18,6 +18,7 @@ import {
 	parseListReposResponse,
 } from '$/sources/AtprotoSync/Xrpc/commit.ts'
 import { decodeAtprotoSyncFrame } from '$/sources/AtprotoSync/Xrpc/framing.ts'
+import { atprotoCidString } from '$/sources/AtprotoSync/Xrpc/cid.ts'
 import type { AtprotoSyncSubscribeReposMessage } from '$/sources/AtprotoSync/Xrpc/types.ts'
 
 
@@ -143,6 +144,46 @@ export const getRepo = async ({
 	url.searchParams.set('did', did)
 	if (since != null)
 		url.searchParams.set('since', since)
+
+	const response = await sourceFetch(resolvedBinding, url.toString(), { signal })
+	if (!response.ok)
+		throw new Error(`AtprotoSync_Xrpc: ${await fetchFailedMessage(url.toString(), response)}`)
+
+	return new Uint8Array(await response.arrayBuffer())
+}
+
+
+export const getBlocks = async ({
+	serviceOrigin,
+	did,
+	cids,
+	signal,
+}: {
+	serviceOrigin: string
+	did: string
+	cids: string[]
+	signal?: AbortSignal
+}) => {
+	const {
+		validatedOrigin,
+		resolvedBinding,
+	} = resolvedRemoteQueryBinding({
+		binding: remoteQueryBinding,
+		serviceOrigin,
+	})
+	if (cids.length === 0)
+		throw new Error('AtprotoSync_Xrpc: getBlocks requires at least one CID')
+	const canonicalCids = cids.map((cid) => {
+		const canonicalCid = atprotoCidString(cid)
+		if (canonicalCid == null)
+			throw new Error('AtprotoSync_Xrpc: getBlocks received a malformed CID')
+		return canonicalCid
+	})
+
+	const url = new URL('/xrpc/com.atproto.sync.getBlocks', validatedOrigin)
+	url.searchParams.set('did', did)
+	for (const cid of canonicalCids)
+		url.searchParams.append('cids', cid)
 
 	const response = await sourceFetch(resolvedBinding, url.toString(), { signal })
 	if (!response.ok)

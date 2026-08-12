@@ -30,6 +30,7 @@ vi.mock('$/sources/_runtime/live.remote.ts', () => ({
 }))
 
 const {
+	getBlocks,
 	getHostStatus,
 	getLatestCommit,
 	getRepo,
@@ -94,6 +95,42 @@ describe('AtprotoSync_Xrpc getRepo RemoteQuery transport', () => {
 		)
 		expect(resolvedRemoteQueryBinding.delivery).toBe(SourceDelivery.RemoteQuery)
 		expect(remoteQueryBinding.endpoints[0].locator).toBe('https://{pds-host}')
+	})
+
+	it('GETs an explicit commit block CAR without acquiring the full repository', async () => {
+		await expect(getBlocks({
+			serviceOrigin,
+			did,
+			cids: [
+				'bafyreigbtj4x7ip5legnfznufuopld32owlx3aujofcjblvhwdcxxwrtya',
+			],
+		})).resolves.toEqual(carBytes)
+
+		expect(sourceFetch).toHaveBeenCalledWith(
+			resolvedRemoteQueryBinding,
+			'https://pds.example/xrpc/com.atproto.sync.getBlocks?did=did%3Aplc%3Aexample&cids=bafyreigbtj4x7ip5legnfznufuopld32owlx3aujofcjblvhwdcxxwrtya',
+			{ signal: undefined }
+		)
+	})
+
+	it('rejects a block request without a CID before transport', async () => {
+		await expect(getBlocks({
+			serviceOrigin,
+			did,
+			cids: [],
+		})).rejects.toThrow('getBlocks requires at least one CID')
+
+		expect(sourceFetch).not.toHaveBeenCalled()
+	})
+
+	it('rejects malformed block CIDs before transport', async () => {
+		await expect(getBlocks({
+			serviceOrigin,
+			did,
+			cids: ['not-a-cid'],
+		})).rejects.toThrow('getBlocks received a malformed CID')
+
+		expect(sourceFetch).not.toHaveBeenCalled()
 	})
 
 	it('rejects browser-side RemoteQuery before transport', async () => {

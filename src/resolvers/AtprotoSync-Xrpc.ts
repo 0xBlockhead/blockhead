@@ -7,10 +7,12 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import {
+	getBlocks,
 	getLatestCommit,
 	getRepoStatus,
 } from '$/sources/AtprotoSync/Xrpc/queries.ts'
 import { Source } from '$/sources/Source.ts'
+import { projectAtprotoRepoCommitBlock } from '$/sources/AtprotoSync/Xrpc/commit.ts'
 
 const defaultAtprotoSyncRelayOrigin = 'https://bsky.network'
 
@@ -37,6 +39,24 @@ const getAtprotoRepoStatus = async (did: string) => (
 		await import('$/sources/AtprotoSync/Xrpc/queries.remote.ts').then(({ getAtprotoRepoStatusRemote }) => getAtprotoRepoStatusRemote({
 			serviceOrigin: defaultAtprotoSyncRelayOrigin,
 			did,
+		}))
+)
+
+const getAtprotoCommitBlock = async (
+	did: string,
+	commitCid: string
+) => (
+	typeof window === 'undefined' ?
+		await getBlocks({
+			serviceOrigin: defaultAtprotoSyncRelayOrigin,
+			did,
+			cids: [commitCid],
+		})
+	:
+		await import('$/sources/AtprotoSync/Xrpc/queries.remote.ts').then(({ getAtprotoBlocksRemote }) => getAtprotoBlocksRemote({
+			serviceOrigin: defaultAtprotoSyncRelayOrigin,
+			did,
+			cids: [commitCid],
 		}))
 )
 
@@ -74,11 +94,45 @@ const projectLatestCommit = async ({
 			`AtprotoSync_Xrpc: commitCid ${commitCid} is not the latest commit for ${repoDid} (latest ${latest.commitCid}); historical commit decode is not projected yet`
 		)
 
-	return {
+	const commitBlock = await projectAtprotoRepoCommitBlock({
+		car: await getAtprotoCommitBlock(repoDid, latest.commitCid),
 		repoDid,
 		rev: latest.rev,
+		commitCid: latest.commitCid,
+	})
+
+	return {
+		repoDid,
 		source: Source.AtprotoSync_Xrpc,
 		commitCid: latest.commitCid,
+		...commitBlock,
+		relayHost: new URL(defaultAtprotoSyncRelayOrigin).host,
+		operationPaths: [],
+		createdRecordCids: [],
+		updatedRecordCids: [],
+		deletedRecordPaths: [],
+		$$posts: [],
+	}
+}
+
+const projectCommitByCid = async ({
+	repoDid,
+	commitCid,
+}: {
+	repoDid: string
+	commitCid: string
+}) => {
+	const commitBlock = await projectAtprotoRepoCommitBlock({
+		car: await getAtprotoCommitBlock(repoDid, commitCid),
+		repoDid,
+		commitCid,
+	})
+
+	return {
+		repoDid,
+		source: Source.AtprotoSync_Xrpc,
+		commitCid,
+		...commitBlock,
 		relayHost: new URL(defaultAtprotoSyncRelayOrigin).host,
 		operationPaths: [],
 		createdRecordCids: [],
@@ -159,7 +213,7 @@ export default {
 						if (source !== Source.AtprotoSync_Xrpc)
 							throw new Error(`AtprotoSync_Xrpc: unsupported source ${source}`)
 
-						return projectLatestCommit({
+						return projectCommitByCid({
 							repoDid,
 							commitCid,
 						})

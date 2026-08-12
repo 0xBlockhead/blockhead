@@ -1,6 +1,13 @@
 import { type } from 'arktype'
+import { decode } from 'cborg'
+import { CID } from 'multiformats/cid'
+import { sha256 } from 'multiformats/hashes/sha2'
 
-import { atprotoCidString } from '$/sources/AtprotoSync/Xrpc/cid.ts'
+import {
+	atprotoCidLinkTag,
+	atprotoCidLinkTagDecoder,
+	atprotoCidString,
+} from '$/sources/AtprotoSync/Xrpc/cid.ts'
 import { Source } from '$/sources/Source.ts'
 
 
@@ -26,6 +33,20 @@ const subscribeReposCommitWire = type({
 	'prevData?': 'unknown',
 })
 
+const repoCommitBlockWire = type({
+	did: 'string',
+	version: 'number.integer',
+	data: 'unknown',
+	rev: 'string',
+	prev: 'unknown | null',
+	sig: type.instanceOf(Uint8Array),
+}).onUndeclaredKey('delete')
+
+const carHeaderWire = type({
+	version: '1',
+	roots: 'unknown[]',
+}).onUndeclaredKey('delete')
+
 
 export type AtprotoRepoCommitProjection = {
 	repoDid: string
@@ -50,6 +71,116 @@ export type AtprotoRepoCommitProjection = {
 	$$posts: {
 		uri: string
 	}[]
+}
+
+
+const readUnsignedVarint = (
+	bytes: Uint8Array,
+	offset: number
+) => {
+	let value = 0
+	let multiplier = 1
+	for (let index = offset; index < bytes.byteLength && index < offset + 10; index++) {
+		const byte = bytes[index]
+		value += (byte & 0x7f) * multiplier
+		if ((byte & 0x80) === 0) {
+			if (!Number.isSafeInteger(value))
+				throw new Error('AtprotoSync_Xrpc: CAR section length exceeds safe integer range')
+
+			return {
+				value,
+				nextOffset: index + 1,
+			}
+		}
+		multiplier *= 128
+	}
+
+	throw new Error('AtprotoSync_Xrpc: malformed CAR section length')
+}
+
+export const projectAtprotoRepoCommitBlock = async ({
+	car,
+	repoDid,
+	rev,
+	commitCid,
+}: {
+	car: Uint8Array
+	repoDid: string
+	rev?: string
+	commitCid: string
+}) => {
+	const headerLength = readUnsignedVarint(car, 0)
+	const headerEnd = headerLength.nextOffset + headerLength.value
+	if (headerEnd > car.byteLength)
+		throw new Error('AtprotoSync_Xrpc: truncated CAR header')
+
+	let decodedHeader
+	try {
+		decodedHeader = decode(car.subarray(headerLength.nextOffset, headerEnd), {
+			tags: {
+				[atprotoCidLinkTag]: atprotoCidLinkTagDecoder,
+			},
+		})
+	} catch (error) {
+		throw new Error('AtprotoSync_Xrpc: malformed CAR header', { cause: error })
+	}
+	const header = carHeaderWire(decodedHeader)
+	if (header instanceof type.errors)
+		throw new Error(`AtprotoSync_Xrpc: malformed CAR header: ${header.summary}`)
+	if (!header.roots.some((root) => atprotoCidString(root) === commitCid))
+		throw new Error('AtprotoSync_Xrpc: CAR root does not match requested commit CID')
+
+	let offset = headerEnd
+	while (offset < car.byteLength) {
+		const sectionLength = readUnsignedVarint(car, offset)
+		const sectionEnd = sectionLength.nextOffset + sectionLength.value
+		if (sectionEnd > car.byteLength)
+			throw new Error('AtprotoSync_Xrpc: truncated CAR block')
+		const [blockCid, blockBytes] = CID.decodeFirst(
+			car.subarray(sectionLength.nextOffset, sectionEnd)
+		)
+		offset = sectionEnd
+		if (blockCid.toString() !== commitCid)
+			continue
+		const blockDigest = await sha256.digest(blockBytes)
+		if (
+			blockCid.multihash.code !== blockDigest.code
+			|| blockCid.multihash.digest.byteLength !== blockDigest.digest.byteLength
+			|| !blockCid.multihash.digest.every((byte, index) => byte === blockDigest.digest[index])
+		)
+			throw new Error('AtprotoSync_Xrpc: repository commit block does not match its CID digest')
+
+		let decodedCommit
+		try {
+			decodedCommit = decode(blockBytes, {
+				tags: {
+					[atprotoCidLinkTag]: atprotoCidLinkTagDecoder,
+				},
+			})
+		} catch (error) {
+			throw new Error('AtprotoSync_Xrpc: malformed repository commit block', { cause: error })
+		}
+		const commit = repoCommitBlockWire(decodedCommit)
+		if (commit instanceof type.errors)
+			throw new Error(`AtprotoSync_Xrpc: malformed repository commit block: ${commit.summary}`)
+		if (commit.did !== repoDid || (rev != null && commit.rev !== rev))
+			throw new Error('AtprotoSync_Xrpc: repository commit block identity does not match request')
+		if (commit.version !== 3)
+			throw new Error(`AtprotoSync_Xrpc: unsupported repository commit version ${commit.version}`)
+		const dataCid = atprotoCidString(commit.data)
+		if (dataCid == null)
+			throw new Error('AtprotoSync_Xrpc: repository commit block has malformed data CID')
+		const previousDataCid = optionalCidString(commit.prev)
+
+		return {
+			rev: commit.rev,
+			dataCid,
+			...(previousDataCid != null && { previousDataCid }),
+			carByteLength: car.byteLength,
+		}
+	}
+
+	throw new Error('AtprotoSync_Xrpc: CAR is missing the requested repository commit block')
 }
 
 
