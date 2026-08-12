@@ -178,9 +178,13 @@ describe('Constants resolver projections', () => {
 				id: Source.AcpLocal_JsonRpc,
 			},
 			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.BlockheadSource, [], 'authKind')]: 'LocalSecret',
+				[entityFieldAddressKey(EntityType.BlockheadSource, [], 'environmentScope')]: 'LocalDevice',
 				[entityFieldAddressKey(EntityType.BlockheadSource, [], 'label')]: 'ACP local JSON-RPC',
 				[entityFieldAddressKey(EntityType.BlockheadSource, [], 'provider')]: 'Acp',
+				[entityFieldAddressKey(EntityType.BlockheadSource, [], 'proxyMode')]: 'LocalOnly',
 				[entityFieldAddressKey(EntityType.BlockheadSource, [], 'source')]: Source.AcpLocal_JsonRpc,
+				[entityFieldAddressKey(EntityType.BlockheadSource, [], 'transportKind')]: 'JsonRpc2',
 			},
 		})
 		expect(blockheadSourcesResolver.projections.$$blockheadSources.resolveCount(snapshot)).toBe(sourceCount)
@@ -215,6 +219,24 @@ describe('Constants resolver projections', () => {
 			label: 'Local Internal',
 			provider: 'Local',
 			source: Source.Local_Internal,
+		})
+		const mempoolSpaceSource = await blockheadSourceResolver.resolve.Id.resolve({
+			id: Source.MempoolSpace_Rest,
+		}, resolverContext)
+		expect({
+			endpointUrl: blockheadSourceResolver.projections.endpointUrl(mempoolSpaceSource),
+			transportKind: blockheadSourceResolver.projections.transportKind(mempoolSpaceSource),
+			authKind: blockheadSourceResolver.projections.authKind(mempoolSpaceSource),
+			corsMode: blockheadSourceResolver.projections.corsMode(mempoolSpaceSource),
+			proxyMode: blockheadSourceResolver.projections.proxyMode(mempoolSpaceSource),
+			environmentScope: blockheadSourceResolver.projections.environmentScope(mempoolSpaceSource),
+		}).toEqual({
+			endpointUrl: 'https://mempool.space/api',
+			transportKind: 'HttpRest',
+			authKind: 'None',
+			corsMode: 'Browser CORS',
+			proxyMode: 'BrowserDirect',
+			environmentScope: 'Caip2Network',
 		})
 		expect(schema.find(({ entityType }) => (
 			entityType === EntityType._Global

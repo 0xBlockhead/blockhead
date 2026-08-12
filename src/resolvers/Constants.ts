@@ -111,7 +111,8 @@ import { schema } from '$/schema/index.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { EvmAddress } from '$/schema/ZeroExHex.ts'
 import { Source } from '$/sources/Source.ts'
-import sourceProviders from '$/sources/$sourceProviders.ts'
+import sourceProviders, { sourceBindingsBySource } from '$/sources/$sourceProviders.ts'
+import { SourceEndpointKind } from '$/sources/SourceBinding.ts'
 import type { Entity } from '$/schema/$schema.ts'
 import {
 	precompilesByChainId,
@@ -121,12 +122,42 @@ import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
 import { ZcashShieldedPoolKind } from '$/schema/ZcashShieldedPoolKind.ts'
 
 const blockheadSources = sourceProviders.flatMap(({ provider, sources }) => (
-	Object.entries(sources).map(([source, definition]) => ({
-		id: source,
-		label: definition.label,
-		provider,
-		source,
-	}))
+	Object.entries(sources).map(([source, definition]) => {
+		const bindings = sourceBindingsBySource[source]
+		const endpointUrls = [...new Set(bindings.flatMap(({ endpoints }) => (
+			endpoints.flatMap(({ endpointKind, locator }) => (
+				endpointKind === SourceEndpointKind.HttpUrl
+				|| endpointKind === SourceEndpointKind.WebSocketUrl ?
+					[locator]
+				:
+					[]
+			))
+		)))]
+		return {
+			id: source,
+			label: definition.label,
+			provider,
+			source,
+			...(endpointUrls.length === 1 && { endpointUrl: endpointUrls[0] }),
+			transportKind: [...new Set(bindings.map(({ wireProtocol }) => wireProtocol))].join(', '),
+			authKind: bindings.some(({ credentials }) => credentials.length > 0) ?
+				[...new Set(bindings.flatMap(({ credentials }) => (
+					credentials.map(({ scope }) => scope)
+				)))].join(', ')
+			:
+				'None',
+			corsMode: [...new Set(bindings.flatMap(({ endpoints }) => (
+				endpoints.flatMap((endpoint) => (
+					'corsEnabled' in endpoint ?
+						[endpoint.corsEnabled ? 'Browser CORS' : 'No browser CORS']
+					:
+						[]
+				))
+			)))].join(', '),
+			proxyMode: [...new Set(bindings.map(({ delivery }) => delivery))].join(', '),
+			environmentScope: [...new Set(bindings.map(({ target }) => target.kind))].join(', '),
+		}
+	})
 )).toSorted((sourceA, sourceB) => sourceA.id.localeCompare(sourceB.id))
 const blockheadSourceById = Object.fromEntries(blockheadSources.map((source) => [source.id, source]))
 
@@ -399,6 +430,14 @@ export default {
 			label: (blockheadSource) => blockheadSource.label,
 			provider: (blockheadSource) => blockheadSource.provider,
 			source: (blockheadSource) => blockheadSource.source,
+			endpointUrl: (blockheadSource) => blockheadSource.endpointUrl,
+			transportKind: (blockheadSource) => blockheadSource.transportKind,
+			authKind: (blockheadSource) => blockheadSource.authKind,
+			corsMode: (blockheadSource) => (
+				blockheadSource.corsMode.length > 0 ? blockheadSource.corsMode : undefined
+			),
+			proxyMode: (blockheadSource) => blockheadSource.proxyMode,
+			environmentScope: (blockheadSource) => blockheadSource.environmentScope,
 		}),
 
 		defineResolver({
@@ -425,6 +464,16 @@ export default {
 										[entityFieldAddressKey(EntityType.BlockheadSource, [], 'label')]: blockheadSource.label,
 										[entityFieldAddressKey(EntityType.BlockheadSource, [], 'provider')]: blockheadSource.provider,
 										[entityFieldAddressKey(EntityType.BlockheadSource, [], 'source')]: blockheadSource.source,
+										...(blockheadSource.endpointUrl != null && {
+											[entityFieldAddressKey(EntityType.BlockheadSource, [], 'endpointUrl')]: blockheadSource.endpointUrl,
+										}),
+										[entityFieldAddressKey(EntityType.BlockheadSource, [], 'transportKind')]: blockheadSource.transportKind,
+										[entityFieldAddressKey(EntityType.BlockheadSource, [], 'authKind')]: blockheadSource.authKind,
+										...(blockheadSource.corsMode.length > 0 && {
+											[entityFieldAddressKey(EntityType.BlockheadSource, [], 'corsMode')]: blockheadSource.corsMode,
+										}),
+										[entityFieldAddressKey(EntityType.BlockheadSource, [], 'proxyMode')]: blockheadSource.proxyMode,
+										[entityFieldAddressKey(EntityType.BlockheadSource, [], 'environmentScope')]: blockheadSource.environmentScope,
 									},
 								})),
 							totalCount: blockheadSources.length,
