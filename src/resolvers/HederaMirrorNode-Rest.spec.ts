@@ -1652,6 +1652,12 @@ describe('Hedera Mirror Node transaction detail', () => {
 
 	if (transactionResolver == null)
 		throw new Error('HederaMirrorNode_Rest spec missing transaction resolver')
+	const contractResultResolver = hederaMirrorNode.resolvers.find((resolver) => (
+		resolver.entityType === EntityType.HederaContractResult
+	))
+
+	if (contractResultResolver == null)
+		throw new Error('HederaMirrorNode_Rest spec missing contract result resolver')
 
 	const scheduleResolver = hederaMirrorNode.resolvers.find((resolver) => (
 		resolver.entityType === EntityType.HederaSchedule
@@ -1853,6 +1859,47 @@ describe('Hedera Mirror Node transaction detail', () => {
 			'https://mainnet-public.mirrornode.hedera.com/api/v1/transactions/0.0.98-1710000000-000000006?nonce=0&scheduled=false',
 			'https://mainnet-public.mirrornode.hedera.com/api/v1/blocks?limit=1&order=asc&timestamp=gte%3A1710000001.000000007',
 			'https://mainnet-public.mirrornode.hedera.com/api/v1/schedules/0.0.7000',
+			'https://mainnet-public.mirrornode.hedera.com/api/v1/contracts/results/0.0.98-1710000000-000000006?nonce=0',
+		])
+	})
+
+	it('resolves a contract result directly through either transaction selector', async () => {
+		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify(contractResultFixture)))
+
+		const transactionIdResult = await contractResultResolver.resolve.Transaction.resolve({
+			$transaction: {
+				$network: network,
+				transactionId: detailedTransaction.transaction_id,
+				nonce: detailedTransaction.nonce,
+			},
+		})
+
+		expect(contractResultResolver.projections.status(transactionIdResult)).toBe('0x1')
+		expect(contractResultResolver.projections.$contract(transactionIdResult)).toEqual({
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				contractId: '0.0.359',
+			},
+		})
+
+		sourceFetch
+			.mockResolvedValueOnce(new Response(JSON.stringify({
+				transactions: [detailedTransaction],
+				links: {
+					next: null,
+				},
+			} satisfies HederaMirrorNodeTransactions)))
+			.mockResolvedValueOnce(new Response(JSON.stringify(contractResultFixture)))
+
+		await expect(contractResultResolver.resolve.Transaction.resolve({
+			$transaction: {
+				$network: network,
+				consensusTimestamp: detailedTransaction.consensus_timestamp,
+			},
+		})).resolves.toEqual(transactionIdResult)
+		expect(sourceFetch.mock.calls.map(([, url]) => url)).toEqual([
+			'https://mainnet-public.mirrornode.hedera.com/api/v1/contracts/results/0.0.98-1710000000-000000006?nonce=0',
+			'https://mainnet-public.mirrornode.hedera.com/api/v1/transactions?limit=2&order=desc&timestamp=eq%3A1710000001.000000007',
 			'https://mainnet-public.mirrornode.hedera.com/api/v1/contracts/results/0.0.98-1710000000-000000006?nonce=0',
 		])
 	})

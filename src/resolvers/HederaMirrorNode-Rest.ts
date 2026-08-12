@@ -417,14 +417,14 @@ const normalizeEvmAddress = (
 
 const contractResultRow = (
 	network: EntitySelector<typeof schema, EntityType.Network>,
-	transactionSelector: {
-		$network: EntitySelector<typeof schema, EntityType.Network>
-		consensusTimestamp: string
-	},
+	transactionSelector: EntitySelector<typeof schema, EntityType.HederaTransaction>,
 	result: HederaMirrorNodeContractResult
 ) => {
 	timestampMs(result.timestamp, 'contract result timestamp')
-	if (result.timestamp !== transactionSelector.consensusTimestamp)
+	if (
+		'consensusTimestamp' in transactionSelector
+		&& result.timestamp !== transactionSelector.consensusTimestamp
+	)
 		throw new Error('HederaMirrorNode_Rest: response contract result does not match request')
 	if (result.status.length === 0)
 		throw new Error('HederaMirrorNode_Rest: malformed contract result status')
@@ -1992,6 +1992,66 @@ export default {
 			networkTinycent: (observation) => observation.networkTinycent,
 			serviceTinycent: (observation) => observation.serviceTinycent,
 			totalTinycent: (observation) => observation.totalTinycent,
+		}),
+
+		defineResolver({
+			entityType: EntityType.HederaContractResult,
+			resolve: {
+				Transaction: {
+					resolve: async ({ $transaction }) => {
+						assertHederaMainnet($transaction.$network)
+						const {
+							getContractResultByTransactionIdNonce,
+							getTransactions,
+						} = await import('$/sources/HederaMirrorNode/Rest/queries.ts')
+						const transactionIdentity = 'consensusTimestamp' in $transaction ?
+							await (async () => {
+								const response = await getTransactions({
+									consensusTimestamp: $transaction.consensusTimestamp,
+								})
+								if (
+									response.transactions.length !== 1
+									|| response.transactions[0].consensus_timestamp !== $transaction.consensusTimestamp
+								)
+									throw new Error('HederaMirrorNode_Rest: transaction response does not match request')
+
+								return {
+									transactionId: response.transactions[0].transaction_id,
+									nonce: response.transactions[0].nonce,
+								}
+							})()
+						:
+							{
+								transactionId: $transaction.transactionId,
+								nonce: $transaction.nonce,
+							}
+						const result = await getContractResultByTransactionIdNonce(
+							transactionIdentity.transactionId,
+							transactionIdentity.nonce
+						)
+						if (result == null)
+							throw new Error('HederaMirrorNode_Rest: contract result not found')
+
+						return contractResultRow(
+							$transaction.$network,
+							$transaction,
+							result
+						)[EntityMetaKey.Fields]
+					},
+				},
+			},
+		})({
+			$contract: (result) => result[entityFieldAddressKey(EntityType.HederaContractResult, [], '$contract')],
+			contractId: (result) => result[entityFieldAddressKey(EntityType.HederaContractResult, [], 'contractId')],
+			evmAddress: (result) => result[entityFieldAddressKey(EntityType.HederaContractResult, [], 'evmAddress')],
+			ethereumHash: (result) => result[entityFieldAddressKey(EntityType.HederaContractResult, [], 'ethereumHash')],
+			functionParameters: (result) => result[entityFieldAddressKey(EntityType.HederaContractResult, [], 'functionParameters')],
+			gasLimit: (result) => result[entityFieldAddressKey(EntityType.HederaContractResult, [], 'gasLimit')],
+			gasUsed: (result) => result[entityFieldAddressKey(EntityType.HederaContractResult, [], 'gasUsed')],
+			amountTinybar: (result) => result[entityFieldAddressKey(EntityType.HederaContractResult, [], 'amountTinybar')],
+			status: (result) => result[entityFieldAddressKey(EntityType.HederaContractResult, [], 'status')],
+			errorMessage: (result) => result[entityFieldAddressKey(EntityType.HederaContractResult, [], 'errorMessage')],
+			bloom: (result) => result[entityFieldAddressKey(EntityType.HederaContractResult, [], 'bloom')],
 		}),
 
 		defineResolver({
