@@ -396,6 +396,48 @@ describe('MempoolSpace UTXO', () => {
 		expect(sourceGetJson).toHaveBeenCalledTimes(1)
 	})
 
+	it('materializes native mining facts in block history without block detail reads', async () => {
+		sourceGetJson.mockResolvedValueOnce([{
+			difficulty: 83_148_355_189_239,
+			height: 840_000,
+			id: 'a'.repeat(64),
+			merkle_root: 'b'.repeat(64),
+			nonce: 1_234,
+			previousblockhash: 'c'.repeat(64),
+			size: 1_500_000,
+			timestamp: 1_700_000_000,
+			tx_count: 3_000,
+			weight: 3_990_000,
+		}])
+
+		expect(await blocksResolver.resolve.Caip2.resolve(network, resolverContext)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				height: 840_000n,
+				hash: 'a'.repeat(64),
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.UtxoBlock, [], 'height')]: 840_000n,
+				[entityFieldAddressKey(EntityType.UtxoBlock, [], 'hash')]: 'a'.repeat(64),
+				[entityFieldAddressKey(EntityType.UtxoBlock, [], '$parent')]: {
+					[EntityMetaKey.Selector]: {
+						$network: network,
+						height: 839_999n,
+						hash: 'c'.repeat(64),
+					},
+				},
+				[entityFieldAddressKey(EntityType.UtxoBlock, [], 'timestampMs')]: 1_700_000_000_000,
+				[entityFieldAddressKey(EntityType.UtxoBlock, [], 'merkleRoot')]: 'b'.repeat(64),
+				[entityFieldAddressKey(EntityType.UtxoBlock, [], 'nonce')]: 1_234,
+				[entityFieldAddressKey(EntityType.UtxoBlock, [], 'difficulty')]: 83_148_355_189_239,
+				[entityFieldAddressKey(EntityType.UtxoBlock, [], 'sizeBytes')]: 1_500_000,
+				[entityFieldAddressKey(EntityType.UtxoBlock, [], 'weightUnits')]: 3_990_000,
+				[entityFieldAddressKey(EntityType.UtxoBlock, [], 'transactionCount')]: 3_000,
+			},
+		}])
+		expect(sourceGetJson).toHaveBeenCalledOnce()
+	})
+
 	it('resumes block history from the native height endpoint and stops after genesis', async () => {
 		sourceGetJson
 			.mockResolvedValueOnce([
@@ -421,26 +463,22 @@ describe('MempoolSpace UTXO', () => {
 				},
 			])
 
-		expect(await blocksResolver.resolve.Caip2.resolve(network, {
+		expect((await blocksResolver.resolve.Caip2.resolve(network, {
 			...resolverContext,
 			pagination: {
 				limit: 2,
 				offset: 2,
 			},
-		})).toEqual([
+		})).map((block) => block[EntityMetaKey.Selector])).toEqual([
 			{
-				[EntityMetaKey.Selector]: {
-					$network: network,
-					height: 1n,
-					hash: 'b'.repeat(64),
-				},
+				$network: network,
+				height: 1n,
+				hash: 'b'.repeat(64),
 			},
 			{
-				[EntityMetaKey.Selector]: {
-					$network: network,
-					height: 0n,
-					hash: 'c'.repeat(64),
-				},
+				$network: network,
+				height: 0n,
+				hash: 'c'.repeat(64),
 			},
 		])
 		expect(sourceGetJson.mock.calls).toEqual([

@@ -27,6 +27,50 @@ import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
 
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
+type MempoolSpaceBlock = Awaited<ReturnType<
+	typeof import('$/sources/MempoolSpace/Rest/queries.ts').getBlocks
+>>[number]
+
+const utxoBlockReferenceFromMempoolSpaceWire = (
+	$network: NetworkId,
+	block: MempoolSpaceBlock
+) => ({
+	[EntityMetaKey.Selector]: {
+		$network,
+		height: BigInt(block.height),
+		hash: block.id,
+	},
+	[EntityMetaKey.Fields]: {
+		[entityFieldAddressKey(EntityType.UtxoBlock, [], 'height')]: BigInt(block.height),
+		[entityFieldAddressKey(EntityType.UtxoBlock, [], 'hash')]: block.id,
+		...(block.previousblockhash != null && block.height > 0 && {
+			[entityFieldAddressKey(EntityType.UtxoBlock, [], '$parent')]: {
+				[EntityMetaKey.Selector]: {
+					$network,
+					height: BigInt(block.height - 1),
+					hash: block.previousblockhash,
+				},
+			},
+		}),
+		[entityFieldAddressKey(EntityType.UtxoBlock, [], 'timestampMs')]: block.timestamp * 1_000,
+		...(block.merkle_root != null && {
+			[entityFieldAddressKey(EntityType.UtxoBlock, [], 'merkleRoot')]: block.merkle_root,
+		}),
+		...(block.nonce != null && {
+			[entityFieldAddressKey(EntityType.UtxoBlock, [], 'nonce')]: block.nonce,
+		}),
+		...(block.difficulty != null && {
+			[entityFieldAddressKey(EntityType.UtxoBlock, [], 'difficulty')]: block.difficulty,
+		}),
+		...(block.size != null && {
+			[entityFieldAddressKey(EntityType.UtxoBlock, [], 'sizeBytes')]: block.size,
+		}),
+		...(block.weight != null && {
+			[entityFieldAddressKey(EntityType.UtxoBlock, [], 'weightUnits')]: block.weight,
+		}),
+		[entityFieldAddressKey(EntityType.UtxoBlock, [], 'transactionCount')]: block.tx_count,
+	},
+})
 
 const bitcoinNetworkApplicability = [
 	{
@@ -265,9 +309,7 @@ export default {
 									...(output.scriptpubkey_asm != null && {
 										[entityFieldAddressKey(EntityType.UtxoOutput, [], 'scriptPubKeyAsm')]: output.scriptpubkey_asm,
 									}),
-									...(output.scriptpubkey != null && {
-										[entityFieldAddressKey(EntityType.UtxoOutput, [], 'scriptPubKeyHex')]: output.scriptpubkey,
-									}),
+									[entityFieldAddressKey(EntityType.UtxoOutput, [], 'scriptPubKeyHex')]: output.scriptpubkey,
 									...(output.scriptpubkey_type != null && {
 										[entityFieldAddressKey(EntityType.UtxoOutput, [], 'scriptPubKeyType')]: output.scriptpubkey_type,
 									}),
@@ -313,7 +355,7 @@ export default {
 				TransactionIndexInTransaction: {
 					appliesTo: bitcoinTransactionReferenceApplicability,
 					resolve: async ({ $transaction, indexInTransaction }) => {
-						const input = (await getTransaction($transaction)).vin[indexInTransaction]
+						const input = (await getTransaction($transaction)).vin.at(indexInTransaction)
 						if (input == null)
 							throw new Error(`MempoolSpace_Rest: transaction input ${indexInTransaction} not found`)
 
@@ -507,7 +549,7 @@ export default {
 					appliesTo: bitcoinTransactionReferenceApplicability,
 					resolve: async ({ $transaction, indexInTransaction }) => {
 						const transaction = await getTransaction($transaction)
-						const output = transaction.vout[indexInTransaction]
+						const output = transaction.vout.at(indexInTransaction)
 						if (output == null)
 							throw new Error(`MempoolSpace_Rest: transaction output ${indexInTransaction} not found`)
 
@@ -571,7 +613,7 @@ export default {
 						const payloads = ordinalsPayloads(
 							await getTransactionProtocolPayloads(parsed.txId)
 						)
-						const payload = payloads[parsed.inscriptionIndex]
+						const payload = payloads.at(parsed.inscriptionIndex)
 						if (payload == null)
 							throw new Error(`MempoolSpace_Rest: inscription ${inscriptionId} not found in reveal transaction`)
 
@@ -749,13 +791,9 @@ export default {
 					:
 						await getBlocks(BigInt(tip.height) - BigInt(offset))
 				)
-				return blocks.slice(0, resolverContextRowLimit(context)).map((block) => ({
-					[EntityMetaKey.Selector]: {
-						$network: network,
-						height: BigInt(block.height),
-						hash: block.id,
-					},
-				}))
+				return blocks
+					.slice(0, resolverContextRowLimit(context))
+					.map((block) => utxoBlockReferenceFromMempoolSpaceWire(network, block))
 			}),
 		})({
 				Utxo: {
