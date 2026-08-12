@@ -11,6 +11,7 @@ import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
 import {
+	entityFieldAddressKey,
 	EntityMetaKey,
 	type EntitySelector,
 } from '$/schema/$schema.ts'
@@ -580,20 +581,64 @@ export default {
 				ConnectionIdNetwork: {
 					resolve: async ({ connectionId, $network }, context) => {
 						assertLightningNetwork($network.$network)
+						const timestampMs = Date.now()
 						return (await lndLocalChannels())
 							.slice(0, resolverContextRowLimit(context))
-							.map((channel) => ({
-								[EntityMetaKey.Selector]: {
+							.map((channel) => {
+								const $channel = {
+									$network: $network.$network,
+									channelId: channel.chan_id,
+								}
+								const $channelState = {
 									$localNodeState: {
 										connectionId,
 										$network,
 									},
-									$channel: {
-										$network: $network.$network,
-										channelId: channel.chan_id,
+									$channel,
+								}
+								return {
+									[EntityMetaKey.Selector]: $channelState,
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.BlockheadLightningChannelState, [], 'private')]: channel.private,
+										[entityFieldAddressKey(EntityType.BlockheadLightningChannelState, [], 'initiator')]: channel.initiator,
+										[entityFieldAddressKey(EntityType.BlockheadLightningChannelState, [], '$$timestamps')]: [{
+											[EntityMetaKey.Selector]: {
+												$channelState,
+												timestampMs,
+												source: Source.LightningLnd_Rest,
+											},
+											[EntityMetaKey.Fields]: {
+												[entityFieldAddressKey(EntityType.BlockheadLightningChannelState_Timestamp, [], 'localBalanceSats')]: bigintFromWire(channel.local_balance),
+												[entityFieldAddressKey(EntityType.BlockheadLightningChannelState_Timestamp, [], 'remoteBalanceSats')]: bigintFromWire(channel.remote_balance),
+												[entityFieldAddressKey(EntityType.BlockheadLightningChannelState_Timestamp, [], 'unsettledBalanceSats')]: bigintFromWire(channel.unsettled_balance),
+												[entityFieldAddressKey(EntityType.BlockheadLightningChannelState_Timestamp, [], 'active')]: channel.active,
+												[entityFieldAddressKey(EntityType.BlockheadLightningChannelState_Timestamp, [], 'commitFeeSats')]: bigintFromWire(channel.commit_fee),
+												[entityFieldAddressKey(EntityType.BlockheadLightningChannelState_Timestamp, [], 'commitWeight')]: bigintFromWire(channel.commit_weight),
+												[entityFieldAddressKey(EntityType.BlockheadLightningChannelState_Timestamp, [], 'feePerKw')]: bigintFromWire(channel.fee_per_kw),
+												[entityFieldAddressKey(EntityType.BlockheadLightningChannelState_Timestamp, [], 'numUpdates')]: bigintFromWire(channel.num_updates),
+												[entityFieldAddressKey(EntityType.BlockheadLightningChannelState_Timestamp, [], 'lastSyncedAt')]: timestampMs,
+											},
+										}],
+										[entityFieldAddressKey(EntityType.BlockheadLightningChannelState, [], '$$htlcs')]: (channel.pending_htlcs ?? []).map((htlc, index) => {
+											const fields = htlcFieldsFromLndHtlc(channel, htlc, index)
+											return {
+												[EntityMetaKey.Selector]: {
+													$channelState,
+													htlcIndex: fields.htlcIndex,
+												},
+												[EntityMetaKey.Fields]: {
+													[entityFieldAddressKey(EntityType.BlockheadLightningHtlc, [], '$channel')]: fields.$channel,
+													[entityFieldAddressKey(EntityType.BlockheadLightningHtlc, [], 'direction')]: fields.direction,
+													[entityFieldAddressKey(EntityType.BlockheadLightningHtlc, [], 'amountMsat')]: fields.amountMsat,
+													[entityFieldAddressKey(EntityType.BlockheadLightningHtlc, [], 'expiryHeight')]: fields.expiryHeight,
+													[entityFieldAddressKey(EntityType.BlockheadLightningHtlc, [], 'hashLock')]: fields.hashLock,
+													[entityFieldAddressKey(EntityType.BlockheadLightningHtlc, [], 'state')]: fields.state,
+												},
+											}
+										}),
 									},
-								},
-							}))
+								}
+							})
 					},
 				},
 			},

@@ -1,6 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { EntityMetaKey } from '$/schema/$schema.ts'
+import {
+	entityFieldAddressKey,
+	EntityMetaKey,
+} from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
@@ -610,23 +613,76 @@ describe('Lightning LND resolver ownership', () => {
 		expect(getWalletBalance).toHaveBeenCalledWith()
 		expect(getChannelBalance).toHaveBeenCalledWith()
 
-		await expect(nodeChannelStatesResolver.resolve.ConnectionIdNetwork.resolve(localNodeState, context)).resolves.toEqual([
+		const channelStates = await nodeChannelStatesResolver.resolve.ConnectionIdNetwork.resolve(
+			localNodeState,
+			context
+		)
+		expect(channelStates.map((channelState) => channelState[EntityMetaKey.Selector])).toEqual([
 			{
-				[EntityMetaKey.Selector]: {
-					$localNodeState: localNodeState,
-					$channel: {
-						$network: lightningNetwork,
-						channelId: '42',
-					},
+				$localNodeState: localNodeState,
+				$channel: {
+					$network: lightningNetwork,
+					channelId: '42',
 				},
 			},
 			{
-				[EntityMetaKey.Selector]: {
-					$localNodeState: localNodeState,
-					$channel: channelSelector,
-				},
+				$localNodeState: localNodeState,
+				$channel: channelSelector,
 			},
 		])
+		expect(channelStates[0]?.[EntityMetaKey.Fields]).toEqual({
+			[entityFieldAddressKey(EntityType.BlockheadLightningChannelState, [], 'private')]: false,
+			[entityFieldAddressKey(EntityType.BlockheadLightningChannelState, [], 'initiator')]: true,
+			[entityFieldAddressKey(EntityType.BlockheadLightningChannelState, [], '$$timestamps')]: [{
+				[EntityMetaKey.Selector]: {
+					$channelState: {
+						$localNodeState: localNodeState,
+						$channel: {
+							$network: lightningNetwork,
+							channelId: '42',
+						},
+					},
+					timestampMs: 1_700_000_111_000,
+					source: Source.LightningLnd_Rest,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.BlockheadLightningChannelState_Timestamp, [], 'localBalanceSats')]: 100000n,
+					[entityFieldAddressKey(EntityType.BlockheadLightningChannelState_Timestamp, [], 'remoteBalanceSats')]: 150000n,
+					[entityFieldAddressKey(EntityType.BlockheadLightningChannelState_Timestamp, [], 'unsettledBalanceSats')]: 0n,
+					[entityFieldAddressKey(EntityType.BlockheadLightningChannelState_Timestamp, [], 'active')]: true,
+					[entityFieldAddressKey(EntityType.BlockheadLightningChannelState_Timestamp, [], 'commitFeeSats')]: 183n,
+					[entityFieldAddressKey(EntityType.BlockheadLightningChannelState_Timestamp, [], 'commitWeight')]: 600n,
+					[entityFieldAddressKey(EntityType.BlockheadLightningChannelState_Timestamp, [], 'feePerKw')]: 253n,
+					[entityFieldAddressKey(EntityType.BlockheadLightningChannelState_Timestamp, [], 'numUpdates')]: 69n,
+					[entityFieldAddressKey(EntityType.BlockheadLightningChannelState_Timestamp, [], 'lastSyncedAt')]: 1_700_000_111_000,
+				},
+			}],
+			[entityFieldAddressKey(EntityType.BlockheadLightningChannelState, [], '$$htlcs')]: [{
+				[EntityMetaKey.Selector]: {
+					$channelState: {
+						$localNodeState: localNodeState,
+						$channel: {
+							$network: lightningNetwork,
+							channelId: '42',
+						},
+					},
+					htlcIndex: 7,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.BlockheadLightningHtlc, [], '$channel')]: {
+						[EntityMetaKey.Selector]: {
+							$network: lightningNetwork,
+							channelId: '42',
+						},
+					},
+					[entityFieldAddressKey(EntityType.BlockheadLightningHtlc, [], 'direction')]: 'Incoming',
+					[entityFieldAddressKey(EntityType.BlockheadLightningHtlc, [], 'amountMsat')]: 12000n,
+					[entityFieldAddressKey(EntityType.BlockheadLightningHtlc, [], 'expiryHeight')]: 800001n,
+					[entityFieldAddressKey(EntityType.BlockheadLightningHtlc, [], 'hashLock')]: 'aa',
+					[entityFieldAddressKey(EntityType.BlockheadLightningHtlc, [], 'state')]: 'Accepted',
+				},
+			}],
+		})
 
 		await expect(channelStateResolver.resolve.LocalNodeStateChannel.resolve({
 			$localNodeState: localNodeState,
