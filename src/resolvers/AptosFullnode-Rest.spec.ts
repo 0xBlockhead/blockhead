@@ -526,10 +526,73 @@ describe('Aptos Fullnode resolver materialization', () => {
 			$transaction: aptosTransaction,
 			changeIndex: 0,
 		})
+		expect(byVersion.stateChanges[0][EntityMetaKey.Fields][
+			entityFieldAddressKey(EntityType.AptosStateChange, [], '$resource')
+		][EntityMetaKey.Fields][
+			entityFieldAddressKey(EntityType.AptosAccountResource, [], '$$timestamps')
+		][0]).toEqual({
+			[EntityMetaKey.Selector]: {
+				$resource: {
+					$account: aptosAccount,
+					resourceType: '0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>',
+				},
+				ledgerVersion: 42n,
+				source: Source.AptosFullnode_Rest,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.AptosAccountResource_Timestamp, [], 'timestampMs')]: 1_720_000_000_123,
+				[entityFieldAddressKey(EntityType.AptosAccountResource_Timestamp, [], 'value')]: {
+					coin: {
+						value: '5',
+					},
+				},
+			},
+		})
+		expect(byVersion.stateChanges[4][EntityMetaKey.Fields][
+			entityFieldAddressKey(EntityType.AptosStateChange, [], '$tableItem')
+		]).toEqual({
+			[EntityMetaKey.Selector]: {
+				$network: aptosNetwork,
+				tableHandle: '0xhandle',
+				keyHash: '0xtable-state',
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.AptosTableItem, [], 'key')]: 'alice',
+				[entityFieldAddressKey(EntityType.AptosTableItem, [], 'keyType')]: 'address',
+				[entityFieldAddressKey(EntityType.AptosTableItem, [], 'valueType')]: 'u64',
+				[entityFieldAddressKey(EntityType.AptosTableItem, [], '$$timestamps')]: [{
+					[EntityMetaKey.Selector]: {
+						$tableItem: {
+							$network: aptosNetwork,
+							tableHandle: '0xhandle',
+							keyHash: '0xtable-state',
+						},
+						ledgerVersion: 42n,
+						source: Source.AptosFullnode_Rest,
+					},
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.AptosTableItem_Timestamp, [], 'timestampMs')]: 1_720_000_000_123,
+						[entityFieldAddressKey(EntityType.AptosTableItem_Timestamp, [], 'value')]: '7',
+					},
+				}],
+			},
+		})
 		expect(byVersion.events[0][EntityMetaKey.Selector]).toEqual({
 			$network: aptosNetwork,
 			transactionVersion: 42n,
 			eventIndex: 0,
+		})
+		expect(byVersion.events[0][EntityMetaKey.Fields]).toEqual({
+			[entityFieldAddressKey(EntityType.AptosEvent, [], 'eventType')]: '0x1::coin::DepositEvent',
+			[entityFieldAddressKey(EntityType.AptosEvent, [], 'accountAddress')]: '0xa11ce',
+			[entityFieldAddressKey(EntityType.AptosEvent, [], 'creationNumber')]: 3n,
+			[entityFieldAddressKey(EntityType.AptosEvent, [], 'sequenceNumber')]: 4n,
+			[entityFieldAddressKey(EntityType.AptosEvent, [], '$transaction')]: {
+				[EntityMetaKey.Selector]: aptosTransaction,
+			},
+			[entityFieldAddressKey(EntityType.AptosEvent, [], 'value')]: {
+				amount: '5',
+			},
 		})
 
 		await expect(resolverFor(EntityType.AptosEvent).resolve[
@@ -554,12 +617,13 @@ describe('Aptos Fullnode resolver materialization', () => {
 			address: '0xa11ce',
 			resourceType: '0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>',
 		})
-		await expect(Promise.all([1, 2, 3, 4, 5].map((changeIndex) => resolverFor(EntityType.AptosStateChange).resolve[
+		const stateChanges = await Promise.all([1, 2, 3, 4, 5].map((changeIndex) => resolverFor(EntityType.AptosStateChange).resolve[
 			'TransactionChangeIndex'
 		].resolve({
 			$transaction: aptosTransaction,
 			changeIndex,
-		}, resolverContext)))).resolves.toMatchObject([
+		}, resolverContext)))
+		expect(stateChanges).toMatchObject([
 			{
 				changeKind: 'delete_resource',
 				resourceType: '0x1::resource::Deleted',
@@ -597,6 +661,23 @@ describe('Aptos Fullnode resolver materialization', () => {
 				},
 			},
 		])
+		expect(stateChanges[3].$tableItem[EntityMetaKey.Fields][
+			entityFieldAddressKey(EntityType.AptosTableItem, [], '$$timestamps')
+		][0][EntityMetaKey.Selector]).toEqual({
+			$tableItem: {
+				$network: aptosNetwork,
+				tableHandle: '0xhandle',
+				keyHash: '0xtable-state',
+			},
+			ledgerVersion: 42n,
+			source: Source.AptosFullnode_Rest,
+		})
+		expect(stateChanges[4].$tableItem[EntityMetaKey.Fields][
+			entityFieldAddressKey(EntityType.AptosTableItem, [], '$$timestamps')
+		][0][EntityMetaKey.Fields]).toEqual({
+			[entityFieldAddressKey(EntityType.AptosTableItem_Timestamp, [], 'timestampMs')]: 1_720_000_000_123,
+			[entityFieldAddressKey(EntityType.AptosTableItem_Timestamp, [], 'pruned')]: true,
+		})
 	})
 
 	it('rejects transaction responses that mismatch either exact selector arm', async () => {

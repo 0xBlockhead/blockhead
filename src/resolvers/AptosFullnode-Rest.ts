@@ -166,19 +166,43 @@ const transactionFields = (
 				source: Source.AptosFullnode_Rest,
 			},
 		}],
-		stateChanges: transaction.changes.map((_change, changeIndex) => ({
+		stateChanges: transaction.changes.map((change, changeIndex) => ({
 			[EntityMetaKey.Selector]: {
 				$transaction,
 				changeIndex,
 			},
+			[EntityMetaKey.Fields]: Object.fromEntries(
+				Object.entries(stateChangeFields(
+					change,
+					$transaction,
+					version,
+					'timestamp' in transaction ?
+						timestampMsFromMicroseconds(transaction.timestamp, 'transaction timestamp')
+						:
+						undefined
+				)).map(([fieldName, value]) => [
+					entityFieldAddressKey(EntityType.AptosStateChange, [], fieldName),
+					value,
+				])
+			),
 		})),
-		events: ('events' in transaction ? transaction.events : []).map((_event, eventIndex) => ({
-			[EntityMetaKey.Selector]: {
-				$network,
-				transactionVersion: version,
-				eventIndex,
-			},
-		})),
+		events: ('events' in transaction ? transaction.events : []).map((event, eventIndex) => (
+			((fields) => ({
+				[EntityMetaKey.Selector]: {
+					$network,
+					transactionVersion: version,
+					eventIndex,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.AptosEvent, [], 'eventType')]: fields.eventType,
+					[entityFieldAddressKey(EntityType.AptosEvent, [], 'accountAddress')]: fields.accountAddress,
+					[entityFieldAddressKey(EntityType.AptosEvent, [], 'creationNumber')]: fields.creationNumber,
+					[entityFieldAddressKey(EntityType.AptosEvent, [], 'sequenceNumber')]: fields.sequenceNumber,
+					[entityFieldAddressKey(EntityType.AptosEvent, [], '$transaction')]: fields.$transaction,
+					[entityFieldAddressKey(EntityType.AptosEvent, [], 'value')]: fields.value,
+				},
+			}))(eventFields(event, $network, version))
+		)),
 	}
 }
 
@@ -215,7 +239,9 @@ const accountObservationFields = (
 
 const stateChangeFields = (
 	change: AptosWriteSetChange,
-	$transaction: AptosTransactionIdentity
+	$transaction: AptosTransactionIdentity,
+	ledgerVersion: bigint,
+	timestampMs?: number
 ): {
 	changeKind: string
 	address?: string
@@ -231,6 +257,7 @@ const stateChangeFields = (
 			}
 			resourceType: string
 		}
+		[EntityMetaKey.Fields]?: Record<string, unknown>
 	}
 	$module?: {
 		[EntityMetaKey.Selector]: {
@@ -245,6 +272,7 @@ const stateChangeFields = (
 			tableHandle: string
 			keyHash: string
 		}
+		[EntityMetaKey.Fields]: Record<string, unknown>
 	}
 	value?: unknown
 } => {
@@ -266,6 +294,31 @@ const stateChangeFields = (
 				},
 				resourceType,
 			},
+			...(change.type === 'write_resource' && {
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.AptosAccountResource, [], '$$timestamps')]: [{
+						[EntityMetaKey.Selector]: {
+							$resource: {
+								$account: {
+									$network: $transaction.$network,
+									address,
+								},
+								resourceType,
+							},
+							ledgerVersion,
+							source: Source.AptosFullnode_Rest,
+						},
+						[EntityMetaKey.Fields]: {
+							...(timestampMs != null && {
+								[entityFieldAddressKey(EntityType.AptosAccountResource_Timestamp, [], 'timestampMs')]: timestampMs,
+							}),
+							...(value != null && {
+								[entityFieldAddressKey(EntityType.AptosAccountResource_Timestamp, [], 'value')]: value,
+							}),
+						},
+					}],
+				},
+			}),
 		},
 		...(value != null && { value }),
 	})
@@ -323,6 +376,30 @@ const stateChangeFields = (
 						tableHandle: change.handle,
 						keyHash: change.state_key_hash,
 					},
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.AptosTableItem, [], 'key')]: change.data?.key ?? change.key,
+						...(change.data != null && {
+							[entityFieldAddressKey(EntityType.AptosTableItem, [], 'keyType')]: change.data.key_type,
+							[entityFieldAddressKey(EntityType.AptosTableItem, [], 'valueType')]: change.data.value_type,
+						}),
+						[entityFieldAddressKey(EntityType.AptosTableItem, [], '$$timestamps')]: [{
+							[EntityMetaKey.Selector]: {
+								$tableItem: {
+									$network: $transaction.$network,
+									tableHandle: change.handle,
+									keyHash: change.state_key_hash,
+								},
+								ledgerVersion,
+								source: Source.AptosFullnode_Rest,
+							},
+							[EntityMetaKey.Fields]: {
+								...(timestampMs != null && {
+									[entityFieldAddressKey(EntityType.AptosTableItem_Timestamp, [], 'timestampMs')]: timestampMs,
+								}),
+								[entityFieldAddressKey(EntityType.AptosTableItem_Timestamp, [], 'value')]: change.data?.value ?? change.value,
+							},
+						}],
+					},
 				},
 				value: change.data ?? {
 					handle: change.handle,
@@ -339,6 +416,29 @@ const stateChangeFields = (
 						$network: $transaction.$network,
 						tableHandle: change.handle,
 						keyHash: change.state_key_hash,
+					},
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.AptosTableItem, [], 'key')]: change.data?.key ?? change.key,
+						...(change.data != null && {
+							[entityFieldAddressKey(EntityType.AptosTableItem, [], 'keyType')]: change.data.key_type,
+						}),
+						[entityFieldAddressKey(EntityType.AptosTableItem, [], '$$timestamps')]: [{
+							[EntityMetaKey.Selector]: {
+								$tableItem: {
+									$network: $transaction.$network,
+									tableHandle: change.handle,
+									keyHash: change.state_key_hash,
+								},
+								ledgerVersion,
+								source: Source.AptosFullnode_Rest,
+							},
+							[EntityMetaKey.Fields]: {
+								...(timestampMs != null && {
+									[entityFieldAddressKey(EntityType.AptosTableItem_Timestamp, [], 'timestampMs')]: timestampMs,
+								}),
+								[entityFieldAddressKey(EntityType.AptosTableItem_Timestamp, [], 'pruned')]: true,
+							},
+						}],
 					},
 				},
 				value: change.data ?? {
@@ -767,7 +867,15 @@ export default {
 						if (change == null)
 							throw new Error('AptosFullnode_Rest: state change index is missing')
 
-						return stateChangeFields(change, $transaction)
+						return stateChangeFields(
+							change,
+							$transaction,
+							bigintFromWire(transaction.version, 'transaction version'),
+							'timestamp' in transaction ?
+								timestampMsFromMicroseconds(transaction.timestamp, 'transaction timestamp')
+								:
+								undefined
+						)
 					},
 				},
 			},
@@ -780,6 +888,7 @@ export default {
 			moduleName: (change) => change.moduleName,
 			$resource: (change) => change.$resource,
 			$module: (change) => change.$module,
+			$tableItem: (change) => change.$tableItem,
 			value: (change) => change.value,
 		}),
 
