@@ -183,4 +183,24 @@ describe('Xrpl_Rippled account and AMM request identity', () => {
 		await expect(getAccountTransactions('', 10)).rejects.toThrow('account must not be empty')
 		expect(sourceFetch).not.toHaveBeenCalled()
 	})
+
+	it('pins peer-filtered trustline reads to an exact ledger', async () => {
+		const account = 'rRequested'
+		sourceFetch.mockResolvedValueOnce(jsonRpcResponse({
+			account,
+			ledger_index: 123,
+			lines: [],
+			validated: true,
+		}))
+		await getAccountLines(account, 400, undefined, 'rPeer', 123)
+
+		expect(JSON.parse(sourceFetch.mock.calls[0][2].body)).toMatchObject({
+			method: 'account_lines',
+			params: [{
+				account,
+				ledger_index: 123,
+				peer: 'rPeer',
+			}],
+		})
+	})
 })

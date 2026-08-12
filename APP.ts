@@ -66518,18 +66518,21 @@ export const schema = {
 					type: EntityFieldType.EntityReference,
 					entityType: EntityType.XrplAccount,
 					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Xrpl_Rippled],
 				},
 				"$issuerAccount": {
 					label: 'issuer account',
 					type: EntityFieldType.EntityReference,
 					entityType: EntityType.XrplAccount,
 					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Xrpl_Rippled],
 				},
 				"$$timestamps": {
 					label: 'timestamps',
 					type: EntityFieldType.EntitiesReference,
 					entityType: EntityType.XrplTrustline_Timestamp,
 					cardinality: EntityFieldCardinality.Many,
+					defaultSources: [Source.Xrpl_Rippled],
 				},
 			})({
 				selectors: {
@@ -66583,42 +66586,49 @@ export const schema = {
 					type: EntityFieldType.Primitive,
 					valueType: "string",
 					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Xrpl_Rippled],
 				},
 				"limit": {
 					label: 'limit',
 					type: EntityFieldType.Primitive,
 					valueType: "string",
 					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Xrpl_Rippled],
 				},
 				"limitPeer": {
 					label: 'limit peer',
 					type: EntityFieldType.Primitive,
 					valueType: "string",
 					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Xrpl_Rippled],
 				},
 				"noRipple": {
 					label: 'no ripple',
 					type: EntityFieldType.Primitive,
 					valueType: "boolean",
 					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Xrpl_Rippled],
 				},
 				"noRipplePeer": {
 					label: 'no ripple peer',
 					type: EntityFieldType.Primitive,
 					valueType: "boolean",
 					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Xrpl_Rippled],
 				},
 				"authorized": {
 					label: 'authorized',
 					type: EntityFieldType.Primitive,
 					valueType: "boolean",
 					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Xrpl_Rippled],
 				},
 				"peerAuthorized": {
 					label: 'peer authorized',
 					type: EntityFieldType.Primitive,
 					valueType: "boolean",
 					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Xrpl_Rippled],
 				},
 			})({
 				selectors: {

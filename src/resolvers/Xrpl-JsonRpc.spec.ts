@@ -1021,3 +1021,69 @@ describe('XRPL rippled amendment and AMM entity resolvers', () => {
 		})
 	})
 })
+
+describe('XRPL rippled direct trustline resolvers', () => {
+	beforeEach(() => {
+		sourceFetch.mockReset()
+	})
+
+	const trustline = {
+		$network: account.$network,
+		account: account.account,
+		currency: accountLines.lines[0].currency,
+		issuer: accountLines.lines[0].account,
+	}
+
+	it('resolves native account relationships and a validated observation', async () => {
+		const resolver = xrpl.resolvers.find(({ entityType }) => entityType === EntityType.XrplTrustline)
+		if (resolver == null)
+			throw new Error('Xrpl_Rippled spec missing direct trustline resolver')
+
+		sourceFetch.mockResolvedValueOnce(jsonRpcResponse(accountLines))
+		await expect(resolver.resolve['NetworkAccountCurrencyIssuer'].resolve(trustline)).resolves.toMatchObject({
+			$account: {
+				[EntityMetaKey.Selector]: account,
+			},
+			$issuerAccount: {
+				[EntityMetaKey.Selector]: {
+					$network: account.$network,
+					account: accountLines.lines[0].account,
+				},
+			},
+			$$timestamps: [{
+				[EntityMetaKey.Selector]: {
+					$trustline: trustline,
+					ledgerIndex: 93_412_781n,
+					source: Source.Xrpl_Rippled,
+				},
+			}],
+		})
+	})
+
+	it('replays exact-ledger trustline state and rejects a foreign clock', async () => {
+		const resolver = xrpl.resolvers.find(({ entityType }) => entityType === EntityType.XrplTrustline_Timestamp)
+		if (resolver == null)
+			throw new Error('Xrpl_Rippled spec missing trustline timestamp resolver')
+
+		sourceFetch.mockResolvedValueOnce(jsonRpcResponse(accountLines))
+		await expect(resolver.resolve['TrustlineLedgerIndexSource'].resolve({
+			$trustline: trustline,
+			ledgerIndex: 93_412_781n,
+			source: Source.Xrpl_Rippled,
+		})).resolves.toMatchObject({
+			balance: accountLines.lines[0].balance,
+			limit: accountLines.lines[0].limit,
+			limitPeer: accountLines.lines[0].limit_peer,
+		})
+
+		sourceFetch.mockResolvedValueOnce(jsonRpcResponse({
+			...accountLines,
+			ledger_index: 93_412_782,
+		}))
+		await expect(resolver.resolve['TrustlineLedgerIndexSource'].resolve({
+			$trustline: trustline,
+			ledgerIndex: 93_412_781n,
+			source: Source.Xrpl_Rippled,
+		})).rejects.toThrow('ledger index does not match')
+	})
+})

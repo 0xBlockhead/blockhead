@@ -198,20 +198,29 @@ export const getAccountObjects = async (
 export const getAccountLines = async (
 	account: string,
 	limit: number,
-	marker?: XrplMarker
+	marker?: XrplMarker,
+	peer?: string,
+	ledgerIndex: 'validated' | number = 'validated'
 ) => {
 	if (account === '')
 		throw new Error('Xrpl_Rippled: account must not be empty')
 	if (!Number.isSafeInteger(limit) || limit < 1 || limit > 400)
 		throw new Error('Xrpl_Rippled: invalid account lines limit')
+	if (peer === '')
+		throw new Error('Xrpl_Rippled: peer account must not be empty')
+	if (ledgerIndex !== 'validated' && (!Number.isSafeInteger(ledgerIndex) || ledgerIndex < 0))
+		throw new Error('Xrpl_Rippled: invalid account lines ledger index')
 
 	const response = assertEnvelope(
 		'account_lines',
 		xrplAccountLines,
 		await jsonRpc2<unknown>(binding, 'account_lines', [{
 			account,
-			ledger_index: 'validated',
+			ledger_index: ledgerIndex,
 			limit: Math.min(400, Math.max(10, limit)),
+			...(peer != null && {
+				peer,
+			}),
 			...(marker != null && {
 				marker,
 			}),

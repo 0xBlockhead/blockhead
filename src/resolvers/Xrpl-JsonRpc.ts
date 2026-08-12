@@ -15,6 +15,7 @@ import { Source } from '$/sources/Source.ts'
 import {
 	XRPL_RIPPLE_EPOCH_OFFSET_SECONDS,
 	type XrplAccountInfoResult,
+	type XrplAccountLine,
 	type XrplLedgerResult,
 	type XrplMarker,
 } from '$/sources/Xrpl/JsonRpc/types.ts'
@@ -46,6 +47,36 @@ const validatedLedgerIndex = (ledgerIndex: number) => {
 		throw new Error('Xrpl_Rippled: malformed validated ledger index')
 
 	return BigInt(ledgerIndex)
+}
+
+const xrplTrustlineSnapshot = (
+	trustline: EntitySelector<typeof schema, EntityType.XrplTrustline>,
+	ledgerIndex: bigint,
+	line: XrplAccountLine
+) => {
+	if (line.account !== trustline.issuer || line.currency !== trustline.currency)
+		throw new Error('Xrpl_Rippled: trustline response does not match the subject')
+	if (
+		![line.balance, line.limit, line.limit_peer].every((value) => (
+			/^-?(?:\d+(?:\.\d+)?|\.\d+)(?:[eE][+-]?\d+)?$/.test(value)
+		))
+	)
+		throw new Error('Xrpl_Rippled: account trustline has a malformed amount')
+
+	return {
+		$trustline: {
+			[EntityMetaKey.Selector]: trustline,
+		},
+		ledgerIndex,
+		source: Source.Xrpl_Rippled,
+		balance: line.balance,
+		limit: line.limit,
+		limitPeer: line.limit_peer,
+		noRipple: line.no_ripple ?? false,
+		noRipplePeer: line.no_ripple_peer ?? false,
+		authorized: line.authorized ?? false,
+		peerAuthorized: line.peer_authorized ?? false,
+	}
 }
 
 const validatedAccountInfo = (
@@ -692,6 +723,108 @@ export default {
 					context.providerContinuationToken
 				),
 			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.XrplTrustline,
+			resolve: {
+				NetworkAccountCurrencyIssuer: {
+					resolve: async (trustline) => {
+						assertXrplNetwork(trustline.$network)
+						const { getAccountLines } = await import('$/sources/Xrpl/JsonRpc/queries.ts')
+						const response = await getAccountLines(
+							trustline.account,
+							400,
+							undefined,
+							trustline.issuer
+						)
+						if (!response.validated || response.ledger_index == null)
+							throw new Error('Xrpl_Rippled: direct trustline is not validated')
+						const line = response.lines.find(({ account, currency }) => (
+							account === trustline.issuer && currency === trustline.currency
+						))
+						if (line == null)
+							throw new Error('Xrpl_Rippled: trustline not found')
+
+						const snapshot = xrplTrustlineSnapshot(
+							trustline,
+							validatedLedgerIndex(response.ledger_index),
+							line
+						)
+						return {
+							$account: {
+								[EntityMetaKey.Selector]: {
+									$network: trustline.$network,
+									account: trustline.account,
+								},
+							},
+							$issuerAccount: {
+								[EntityMetaKey.Selector]: {
+									$network: trustline.$network,
+									account: trustline.issuer,
+								},
+							},
+							$$timestamps: [{
+								[EntityMetaKey.Selector]: {
+									$trustline: trustline,
+									ledgerIndex: snapshot.ledgerIndex,
+									source: Source.Xrpl_Rippled,
+								},
+							}],
+						}
+					},
+				},
+			},
+		})({
+			$account: (trustline) => trustline.$account,
+			$issuerAccount: (trustline) => trustline.$issuerAccount,
+			$$timestamps: (trustline) => trustline.$$timestamps,
+		}),
+
+		defineResolver({
+			entityType: EntityType.XrplTrustline_Timestamp,
+			resolve: {
+				TrustlineLedgerIndexSource: {
+					resolve: async ({ $trustline, ledgerIndex, source }) => {
+						assertXrplNetwork($trustline.$network)
+						if (source !== Source.Xrpl_Rippled)
+							throw new Error('Xrpl_Rippled: trustline observation source does not match')
+						if (ledgerIndex > BigInt(Number.MAX_SAFE_INTEGER))
+							throw new Error('Xrpl_Rippled: trustline observation ledger index is too large')
+
+						const { getAccountLines } = await import('$/sources/Xrpl/JsonRpc/queries.ts')
+						const response = await getAccountLines(
+							$trustline.account,
+							400,
+							undefined,
+							$trustline.issuer,
+							Number(ledgerIndex)
+						)
+						if (!response.validated || response.ledger_index == null)
+							throw new Error('Xrpl_Rippled: trustline observation is not validated')
+						if (validatedLedgerIndex(response.ledger_index) !== ledgerIndex)
+							throw new Error('Xrpl_Rippled: trustline observation ledger index does not match')
+						const line = response.lines.find(({ account, currency }) => (
+							account === $trustline.issuer && currency === $trustline.currency
+						))
+						if (line == null)
+							throw new Error('Xrpl_Rippled: trustline not found at ledger')
+
+						return xrplTrustlineSnapshot($trustline, ledgerIndex, line)
+					},
+				},
+			},
+		})({
+			$trustline: (timestamp) => timestamp.$trustline,
+			ledgerIndex: (timestamp) => timestamp.ledgerIndex,
+			source: (timestamp) => timestamp.source,
+			balance: (timestamp) => timestamp.balance,
+			limit: (timestamp) => timestamp.limit,
+			limitPeer: (timestamp) => timestamp.limitPeer,
+			noRipple: (timestamp) => timestamp.noRipple,
+			noRipplePeer: (timestamp) => timestamp.noRipplePeer,
+			authorized: (timestamp) => timestamp.authorized,
+			peerAuthorized: (timestamp) => timestamp.peerAuthorized,
 		}),
 
 		defineResolver({
