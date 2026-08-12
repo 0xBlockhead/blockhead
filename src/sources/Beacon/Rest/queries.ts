@@ -8,7 +8,11 @@ import {
 	sourceFetch,
 } from '$/sources/_runtime/http.ts'
 import bindings from '$/sources/Beacon/bindings.ts'
-import type { BeaconBlockDutySummary } from '$/sources/Beacon/Rest/types.ts'
+import type {
+	BeaconBlockDutySummary,
+	BeaconValidatorAttestationReward,
+	BeaconValidatorSyncCommitteeReward,
+} from '$/sources/Beacon/Rest/types.ts'
 import type {
 	components,
 	operations,
@@ -92,6 +96,10 @@ const beaconSyncingWire = arktype({
 const isUint64Wire = (value: string) => (
 	/^[0-9]+$/.test(value)
 	&& BigInt(value) <= 18_446_744_073_709_551_615n
+)
+
+const signedDecimalBigIntFromWire = (value: JsonValue | undefined) => (
+	typeof value === 'string' && /^-?[0-9]+$/.test(value) ? BigInt(value) : undefined
 )
 
 export const beaconRestByChainId = new Map(
@@ -913,4 +921,109 @@ export const getBlockRewards = async (
 	})
 	if (!res.ok) await throwHttpError('Beacon GET block rewards', res)
 	return getBlockRewardsFromWire(await res.json<JsonValue>())
+}
+
+export const getAttestationRewardsFromWire = (wire: JsonValue) => {
+	if (
+		!isJsonObject(wire)
+		|| typeof wire.execution_optimistic !== 'boolean'
+		|| typeof wire.finalized !== 'boolean'
+		|| !isJsonObject(wire.data)
+		|| !Array.isArray(wire.data.total_rewards)
+	)
+		throw new Error('Beacon: invalid attestation rewards response')
+	return {
+		executionOptimistic: wire.execution_optimistic,
+		finalized: wire.finalized,
+		rewards: wire.data.total_rewards.map<BeaconValidatorAttestationReward>((rewardWire) => {
+			if (!isJsonObject(rewardWire))
+				throw new Error('Beacon: invalid attestation reward')
+			const validatorIndex = Number(rewardWire.validator_index)
+			const headGwei = signedDecimalBigIntFromWire(rewardWire.head)
+			const targetGwei = signedDecimalBigIntFromWire(rewardWire.target)
+			const sourceGwei = signedDecimalBigIntFromWire(rewardWire.source)
+			const inclusionDelayGwei = signedDecimalBigIntFromWire(rewardWire.inclusion_delay)
+			const inactivityGwei = signedDecimalBigIntFromWire(rewardWire.inactivity)
+			if (
+				!Number.isSafeInteger(validatorIndex)
+				|| validatorIndex < 0
+				|| headGwei == null
+				|| targetGwei == null
+				|| sourceGwei == null
+				|| inactivityGwei == null
+			)
+				throw new Error('Beacon: invalid attestation reward')
+			return {
+				validatorIndex,
+				headGwei,
+				targetGwei,
+				sourceGwei,
+				inclusionDelayGwei,
+				inactivityGwei,
+			}
+		}),
+	}
+}
+
+export const getAttestationRewards = async (
+	chainId: number,
+	epoch: number,
+	validatorIds: (number | string)[]
+) => {
+	if (!Number.isSafeInteger(epoch) || epoch < 0)
+		throw new Error('Beacon: attestation reward epoch must be a non-negative safe integer')
+	const res = await beaconFetch(chainId, `/eth/v1/beacon/rewards/attestations/${String(epoch)}`, {
+		method: 'POST',
+		headers: {
+			accept: 'application/json',
+			'content-type': 'application/json',
+		},
+		body: JSON.stringify(validatorIds.map(String)),
+	})
+	if (!res.ok) await throwHttpError('Beacon POST attestation rewards', res)
+	return getAttestationRewardsFromWire(await res.json<JsonValue>())
+}
+
+export const getSyncCommitteeRewardsFromWire = (wire: JsonValue) => {
+	if (
+		!isJsonObject(wire)
+		|| typeof wire.execution_optimistic !== 'boolean'
+		|| typeof wire.finalized !== 'boolean'
+		|| !Array.isArray(wire.data)
+	)
+		throw new Error('Beacon: invalid sync committee rewards response')
+	return {
+		executionOptimistic: wire.execution_optimistic,
+		finalized: wire.finalized,
+		rewards: wire.data.map<BeaconValidatorSyncCommitteeReward>((rewardWire) => {
+			if (!isJsonObject(rewardWire))
+				throw new Error('Beacon: invalid sync committee reward')
+			const validatorIndex = Number(rewardWire.validator_index)
+			const rewardGwei = signedDecimalBigIntFromWire(rewardWire.reward)
+			if (!Number.isSafeInteger(validatorIndex) || validatorIndex < 0 || rewardGwei == null)
+				throw new Error('Beacon: invalid sync committee reward')
+			return {
+				validatorIndex,
+				rewardGwei,
+			}
+		}),
+	}
+}
+
+export const getSyncCommitteeRewards = async (
+	chainId: number,
+	blockId: string | number,
+	validatorIds: (number | string)[]
+) => {
+	const normalizedBlockId = normalizeBeaconStateOrBlockId(blockId)
+	const res = await beaconFetch(chainId, `/eth/v1/beacon/rewards/sync_committee/${normalizedBlockId}`, {
+		method: 'POST',
+		headers: {
+			accept: 'application/json',
+			'content-type': 'application/json',
+		},
+		body: JSON.stringify(validatorIds.map(String)),
+	})
+	if (!res.ok) await throwHttpError('Beacon POST sync committee rewards', res)
+	return getSyncCommitteeRewardsFromWire(await res.json<JsonValue>())
 }

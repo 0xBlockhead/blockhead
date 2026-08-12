@@ -29,6 +29,8 @@ const getSyncCommittee = vi.hoisted(() => vi.fn())
 const getValidator = vi.hoisted(() => vi.fn())
 const getBlockDutySummary = vi.hoisted(() => vi.fn())
 const getBlockRewards = vi.hoisted(() => vi.fn())
+const getAttestationRewards = vi.hoisted(() => vi.fn())
+const getSyncCommitteeRewards = vi.hoisted(() => vi.fn())
 const getHeader = vi.hoisted(() => vi.fn())
 const getHeadSlot = vi.hoisted(() => vi.fn())
 const getNodeHealthObservation = vi.hoisted(() => vi.fn())
@@ -48,6 +50,8 @@ vi.mock('$/sources/Beacon/Rest/queries.ts', async (importOriginal) => ({
 	getValidator,
 	getBlockDutySummary,
 	getBlockRewards,
+	getAttestationRewards,
+	getSyncCommitteeRewards,
 	getHeader,
 	getHeadSlot,
 	getNodeHealthObservation,
@@ -96,6 +100,10 @@ const validatorResolver = beaconRest.resolvers.find((resolver) => (
 ))
 const validatorTimestampResolver = beaconRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.BeaconValidator_Timestamp
+))
+const validatorRewardResolver = beaconRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.BeaconValidator_Timestamp
+	&& 'attestationHeadRewardGwei' in resolver.projections
 ))
 const networkValidatorsResolver = beaconRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.Network
@@ -151,6 +159,7 @@ if (
 	|| syncCommitteeResolver == null
 	|| validatorResolver == null
 	|| validatorTimestampResolver == null
+	|| validatorRewardResolver == null
 	|| depositResolver == null
 	|| slashingResolver == null
 	|| headerResolver == null
@@ -758,6 +767,51 @@ describe('Beacon REST checkpoint and fork projections', () => {
 		expect(getBlockRewards).toHaveBeenCalledWith(
 			1,
 			64
+		)
+	})
+
+	it('resolves per-validator attestation and sync rewards at an epoch-end slot', async () => {
+		getAttestationRewards.mockResolvedValue({
+			executionOptimistic: false,
+			finalized: true,
+			rewards: [{
+				validatorIndex: 12,
+				headGwei: 20n,
+				targetGwei: 30n,
+				sourceGwei: 40n,
+				inclusionDelayGwei: 5n,
+				inactivityGwei: -2n,
+			}],
+		})
+		getSyncCommitteeRewards.mockResolvedValue({
+			executionOptimistic: false,
+			finalized: true,
+			rewards: [{
+				validatorIndex: 12,
+				rewardGwei: 9n,
+			}],
+		})
+		const reward = await validatorRewardResolver.resolve.ValidatorSlotSource.resolve({
+			$validator: {
+				$network: network,
+				indexInNetwork: 12,
+			},
+			slot: 63,
+			source: Source.Beacon_Rest,
+		})
+		expect(validatorRewardResolver.projections.attestationHeadRewardGwei(reward)).toBe(20n)
+		expect(validatorRewardResolver.projections.attestationInactivityRewardGwei(reward)).toBe(-2n)
+		expect(validatorRewardResolver.projections.syncCommitteeRewardGwei(reward)).toBe(9n)
+		expect(validatorRewardResolver.projections.rewardFinalized(reward)).toBe(true)
+		expect(getAttestationRewards).toHaveBeenCalledWith(
+			1,
+			1,
+			[12]
+		)
+		expect(getSyncCommitteeRewards).toHaveBeenCalledWith(
+			1,
+			63,
+			[12]
 		)
 	})
 

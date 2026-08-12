@@ -34,3 +34,17 @@ export type BeaconBlockRewards = {
 	executionOptimistic: boolean
 	finalized: boolean
 }
+
+export type BeaconValidatorAttestationReward = {
+	validatorIndex: number
+	headGwei: bigint
+	targetGwei: bigint
+	sourceGwei: bigint
+	inclusionDelayGwei: bigint | undefined
+	inactivityGwei: bigint
+}
+
+export type BeaconValidatorSyncCommitteeReward = {
+	validatorIndex: number
+	rewardGwei: bigint
+}

@@ -644,6 +644,58 @@ export default {
 			}),
 
 		defineResolver({
+			entityType: EntityType.BeaconValidator_Timestamp,
+			resolve: {
+				ValidatorSlotSource: {
+					resolve: async ({ $validator, slot, source }) => {
+						if (source !== Source.Beacon_Rest)
+							throw new Error(`Beacon_Rest: unsupported reward source ${source}`)
+						if (slot % slotsPerEpoch !== slotsPerEpoch - 1)
+							throw new Error('Beacon_Rest: validator reward observations use the epoch end slot')
+						const validatorId = (
+							'indexInNetwork' in $validator ?
+								$validator.indexInNetwork
+							:
+								$validator.pubkey
+						)
+						const { getAttestationRewards, getSyncCommitteeRewards } = await import('$/sources/Beacon/Rest/queries.ts')
+						const [attestationResponse, syncResponse] = await Promise.all([
+							getAttestationRewards(eip155ChainId($validator.$network), Math.floor(slot / slotsPerEpoch), [validatorId]),
+							getSyncCommitteeRewards(eip155ChainId($validator.$network), slot, [validatorId]),
+						])
+						const attestationReward = attestationResponse.rewards[0]
+						if (attestationReward == null)
+							throw new Error('Beacon_Rest: validator attestation reward not found')
+						if (
+							attestationResponse.finalized !== syncResponse.finalized
+							|| attestationResponse.executionOptimistic !== syncResponse.executionOptimistic
+						)
+							throw new Error('Beacon_Rest: validator reward finality conflict')
+						return {
+							attestationHeadRewardGwei: attestationReward.headGwei,
+							attestationTargetRewardGwei: attestationReward.targetGwei,
+							attestationSourceRewardGwei: attestationReward.sourceGwei,
+							...(attestationReward.inclusionDelayGwei != null && { attestationInclusionDelayRewardGwei: attestationReward.inclusionDelayGwei }),
+							attestationInactivityRewardGwei: attestationReward.inactivityGwei,
+							...(syncResponse.rewards[0] != null && { syncCommitteeRewardGwei: syncResponse.rewards[0].rewardGwei }),
+							rewardFinalized: attestationResponse.finalized,
+							rewardExecutionOptimistic: attestationResponse.executionOptimistic,
+						}
+					},
+				},
+			},
+		})({
+				attestationHeadRewardGwei: (reward) => reward.attestationHeadRewardGwei,
+				attestationTargetRewardGwei: (reward) => reward.attestationTargetRewardGwei,
+				attestationSourceRewardGwei: (reward) => reward.attestationSourceRewardGwei,
+				attestationInclusionDelayRewardGwei: (reward) => reward.attestationInclusionDelayRewardGwei,
+				attestationInactivityRewardGwei: (reward) => reward.attestationInactivityRewardGwei,
+				syncCommitteeRewardGwei: (reward) => reward.syncCommitteeRewardGwei,
+				rewardFinalized: (reward) => reward.rewardFinalized,
+				rewardExecutionOptimistic: (reward) => reward.rewardExecutionOptimistic,
+			}),
+
+		defineResolver({
 			entityType: EntityType.BeaconCommittee,
 			resolve: {
 				EvmNetworkSlotIndexInSlot: {

@@ -205,6 +205,208 @@
 				resource={
 					selection({
 						fields: {
+							attestationHeadRewardGwei: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const attestationHeadRewardGwei = entity.attestationHeadRewardGwei}
+					{#if attestationHeadRewardGwei != null}
+						<div>
+							<dt>Attestation head reward</dt>
+							<dd>
+								<NumberValue
+									value={attestationHeadRewardGwei}
+								/>
+
+								<span> gwei</span>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							attestationTargetRewardGwei: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const attestationTargetRewardGwei = entity.attestationTargetRewardGwei}
+					{#if attestationTargetRewardGwei != null}
+						<div>
+							<dt>Attestation target reward</dt>
+							<dd>
+								<NumberValue
+									value={attestationTargetRewardGwei}
+								/>
+
+								<span> gwei</span>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							attestationSourceRewardGwei: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const attestationSourceRewardGwei = entity.attestationSourceRewardGwei}
+					{#if attestationSourceRewardGwei != null}
+						<div>
+							<dt>Attestation source reward</dt>
+							<dd>
+								<NumberValue
+									value={attestationSourceRewardGwei}
+								/>
+
+								<span> gwei</span>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							attestationInclusionDelayRewardGwei: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const attestationInclusionDelayRewardGwei = entity.attestationInclusionDelayRewardGwei}
+					{#if attestationInclusionDelayRewardGwei != null}
+						<div>
+							<dt>Attestation inclusion delay reward</dt>
+							<dd>
+								<NumberValue
+									value={attestationInclusionDelayRewardGwei}
+								/>
+
+								<span> gwei</span>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							attestationInactivityRewardGwei: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const attestationInactivityRewardGwei = entity.attestationInactivityRewardGwei}
+					{#if attestationInactivityRewardGwei != null}
+						<div>
+							<dt>Attestation inactivity reward</dt>
+							<dd>
+								<NumberValue
+									value={attestationInactivityRewardGwei}
+								/>
+
+								<span> gwei</span>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							syncCommitteeRewardGwei: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const syncCommitteeRewardGwei = entity.syncCommitteeRewardGwei}
+					{#if syncCommitteeRewardGwei != null}
+						<div>
+							<dt>Sync committee reward</dt>
+							<dd>
+								<NumberValue
+									value={syncCommitteeRewardGwei}
+								/>
+
+								<span> gwei</span>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							rewardFinalized: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const rewardFinalized = entity.rewardFinalized}
+					{#if rewardFinalized != null}
+						<div>
+							<dt>Reward finalized</dt>
+							<dd>
+								{rewardFinalized ? 'Yes' : 'No'}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							rewardExecutionOptimistic: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const rewardExecutionOptimistic = entity.rewardExecutionOptimistic}
+					{#if rewardExecutionOptimistic != null}
+						<div>
+							<dt>Reward execution optimistic</dt>
+							<dd>
+								{rewardExecutionOptimistic ? 'Yes' : 'No'}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		</dl>
+
+		<dl data-column-item="center">
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
 							activationEligibilityEpoch: true,
 						},
 					})

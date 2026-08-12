@@ -11161,6 +11161,14 @@ export const schema = {
 				"withdrawalCredentials": { label: "Withdrawal credentials", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"finalized": { label: "Finalized", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean" },
 				"executionOptimistic": { label: "Execution optimistic", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean" },
+				"attestationHeadRewardGwei": { label: "Attestation head reward", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Beacon_Rest] },
+				"attestationTargetRewardGwei": { label: "Attestation target reward", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Beacon_Rest] },
+				"attestationSourceRewardGwei": { label: "Attestation source reward", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Beacon_Rest] },
+				"attestationInclusionDelayRewardGwei": { label: "Attestation inclusion delay reward", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Beacon_Rest] },
+				"attestationInactivityRewardGwei": { label: "Attestation inactivity reward", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Beacon_Rest] },
+				"syncCommitteeRewardGwei": { label: "Sync committee reward", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Beacon_Rest] },
+				"rewardFinalized": { label: "Reward finalized", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean", defaultSources: [Source.Beacon_Rest] },
+				"rewardExecutionOptimistic": { label: "Reward execution optimistic", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean", defaultSources: [Source.Beacon_Rest] },
 			})({
 				selectors: {
 					"ValidatorSlotSource": ["$validator", "slot", "source"],
@@ -11184,6 +11192,16 @@ export const schema = {
 									"effectiveBalanceGwei",
 									"status",
 									"slashed",
+								],
+								[
+									{ field: "attestationHeadRewardGwei", format: "numberValue", suffix: " gwei" },
+									{ field: "attestationTargetRewardGwei", format: "numberValue", suffix: " gwei" },
+									{ field: "attestationSourceRewardGwei", format: "numberValue", suffix: " gwei" },
+									{ field: "attestationInclusionDelayRewardGwei", format: "numberValue", suffix: " gwei" },
+									{ field: "attestationInactivityRewardGwei", format: "numberValue", suffix: " gwei" },
+									{ field: "syncCommitteeRewardGwei", format: "numberValue", suffix: " gwei" },
+									"rewardFinalized",
+									"rewardExecutionOptimistic",
 								],
 								[
 									"activationEligibilityEpoch",

@@ -14,6 +14,10 @@ import {
 	getBlockDutySummaryFromWire,
 	getBlockRewards,
 	getBlockRewardsFromWire,
+	getAttestationRewards,
+	getAttestationRewardsFromWire,
+	getSyncCommitteeRewards,
+	getSyncCommitteeRewardsFromWire,
 	getFinalityCheckpointsFromWire,
 	getForkScheduleFromWire,
 	getGenesisTimeSeconds,
@@ -88,6 +92,95 @@ describe('Beacon REST native checkpoint and fork wires', () => {
 				proposer_slashings: '60',
 			},
 		})).toThrow('invalid block rewards amount')
+	})
+
+	it('retains signed validator attestation and sync reward components', async () => {
+		const attestationWire = {
+			execution_optimistic: true,
+			finalized: false,
+			data: {
+				ideal_rewards: [],
+				total_rewards: [{
+					validator_index: '12',
+					head: '2000',
+					target: '-500',
+					source: '4000',
+					inclusion_delay: '100',
+					inactivity: '-50',
+				}],
+			},
+		}
+		expect(getAttestationRewardsFromWire(attestationWire)).toMatchObject({
+			executionOptimistic: true,
+			finalized: false,
+			rewards: [{
+				validatorIndex: 12,
+				headGwei: 2000n,
+				targetGwei: -500n,
+				sourceGwei: 4000n,
+				inclusionDelayGwei: 100n,
+				inactivityGwei: -50n,
+			}],
+		})
+		const sourceFetch = vi.spyOn(sourceHttp, 'sourceFetch')
+			.mockResolvedValueOnce(new Response(JSON.stringify(attestationWire)))
+			.mockResolvedValueOnce(new Response(JSON.stringify({
+				execution_optimistic: false,
+				finalized: true,
+				data: [{
+					validator_index: '12',
+					reward: '-25',
+				}],
+			})))
+		await expect(getAttestationRewards(
+			1,
+			2,
+			[12]
+		)).resolves.toMatchObject({ rewards: [{ validatorIndex: 12 }] })
+		await expect(getSyncCommitteeRewards(
+			1,
+			64,
+			[12]
+		)).resolves.toEqual({
+			executionOptimistic: false,
+			finalized: true,
+			rewards: [{
+				validatorIndex: 12,
+				rewardGwei: -25n,
+			}],
+		})
+		expect(sourceFetch.mock.calls.map((call) => String(call[1]))).toEqual([
+			expect.stringContaining('/eth/v1/beacon/rewards/attestations/2'),
+			expect.stringContaining('/eth/v1/beacon/rewards/sync_committee/64'),
+		])
+		expect(sourceFetch.mock.calls.map((call) => call[2]?.body)).toEqual([
+			'["12"]',
+			'["12"]',
+		])
+	})
+
+	it('rejects malformed validator reward rows rather than dropping them', () => {
+		expect(() => getAttestationRewardsFromWire({
+			execution_optimistic: false,
+			finalized: true,
+			data: {
+				ideal_rewards: [],
+				total_rewards: [{
+					validator_index: '12',
+					head: '1',
+					target: '2',
+					source: '3',
+				}],
+			},
+		})).toThrow('invalid attestation reward')
+		expect(() => getSyncCommitteeRewardsFromWire({
+			execution_optimistic: false,
+			finalized: true,
+			data: [{
+				validator_index: '12',
+				reward: 'not-a-number',
+			}],
+		})).toThrow('invalid sync committee reward')
 	})
 
 	it('retains complete block-duty relationships and rejects malformed partial payloads', () => {

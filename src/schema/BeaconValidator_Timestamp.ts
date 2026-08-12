@@ -3,6 +3,7 @@
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export default entity({
@@ -71,6 +72,62 @@ export default entity({
 	executionOptimistic: {
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	attestationHeadRewardGwei: {
+		primitiveType: type('bigint'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Beacon_Rest,
+		],
+	},
+	attestationTargetRewardGwei: {
+		primitiveType: type('bigint'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Beacon_Rest,
+		],
+	},
+	attestationSourceRewardGwei: {
+		primitiveType: type('bigint'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Beacon_Rest,
+		],
+	},
+	attestationInclusionDelayRewardGwei: {
+		primitiveType: type('bigint'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Beacon_Rest,
+		],
+	},
+	attestationInactivityRewardGwei: {
+		primitiveType: type('bigint'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Beacon_Rest,
+		],
+	},
+	syncCommitteeRewardGwei: {
+		primitiveType: type('bigint'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Beacon_Rest,
+		],
+	},
+	rewardFinalized: {
+		primitiveType: type('boolean'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Beacon_Rest,
+		],
+	},
+	rewardExecutionOptimistic: {
+		primitiveType: type('boolean'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Beacon_Rest,
+		],
 	},
 })({
 	selectors: {
