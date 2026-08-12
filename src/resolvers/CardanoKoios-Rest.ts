@@ -590,6 +590,86 @@ export default {
 		}),
 
 		defineResolver({
+			entityType: EntityType.CardanoGovernanceVote,
+			resolve: {
+				ProposalVoterKindVoterCredentialVoteTxHashSource: {
+					appliesTo: [{
+						source: Source.CardanoKoios_Rest,
+					}],
+					resolve: async ({
+						$proposal,
+						voterKind,
+						voterCredential,
+						voteTxHash,
+						source,
+					}) => {
+						assertCardanoMainnet($proposal.$network)
+						if (source !== Source.CardanoKoios_Rest)
+							throw new Error('CardanoKoios_Rest: governance vote source does not match the subject')
+
+						const transaction = await cardanoKoiosTransactionInfoSnapshot({
+							$network: $proposal.$network,
+							hash: voteTxHash,
+						})
+						const votes = transaction.transaction.voting_procedures.filter((votingProcedure) => (
+							votingProcedure.proposal_tx_hash === $proposal.proposalTxHash
+							&& votingProcedure.proposal_index === $proposal.proposalIndex
+							&& votingProcedure.voter_role === voterKind
+							&& votingProcedure.voter === voterCredential
+						))
+						if (votes.length !== 1)
+							throw new Error('CardanoKoios_Rest: governance vote response does not match the subject')
+
+						const [vote] = votes
+						return {
+							vote: vote.vote,
+							$transaction: transaction.cardanoTransaction,
+							...(vote.voter_role === 'DRep' && {
+								$drep: {
+									$network: $proposal.$network,
+									drepCredential: vote.voter,
+								},
+							}),
+							...(vote.voter_role === 'SPO' && {
+								$stakePool: {
+									$network: $proposal.$network,
+									poolId: vote.voter,
+								},
+							}),
+							epoch: transaction.transaction.epoch_no,
+							slot: BigInt(transaction.transaction.absolute_slot),
+							timestampMs: transaction.transaction.tx_timestamp * 1_000,
+						}
+					},
+				},
+			},
+		})({
+			vote: (snapshot) => snapshot.vote,
+			$transaction: (snapshot) => ({
+				[EntityMetaKey.Selector]: snapshot.$transaction,
+			}),
+			$drep: (snapshot) => (
+				snapshot.$drep == null ?
+					undefined
+				:
+					{
+						[EntityMetaKey.Selector]: snapshot.$drep,
+					}
+			),
+			$stakePool: (snapshot) => (
+				snapshot.$stakePool == null ?
+					undefined
+				:
+					{
+						[EntityMetaKey.Selector]: snapshot.$stakePool,
+					}
+			),
+			epoch: (snapshot) => snapshot.epoch,
+			slot: (snapshot) => snapshot.slot,
+			timestampMs: (snapshot) => snapshot.timestampMs,
+		}),
+
+		defineResolver({
 			entityType: EntityType.CardanoTransaction,
 			resolve: {
 				NetworkHash: {

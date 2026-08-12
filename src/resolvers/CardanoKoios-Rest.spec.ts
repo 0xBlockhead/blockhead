@@ -268,6 +268,16 @@ const cardanoGovernanceProposalResolver = cardanoKoiosResolvers.resolvers.find((
 if (cardanoGovernanceProposalResolver == null)
 	throw new Error('CardanoKoios-Rest spec missing CardanoGovernanceProposal resolver')
 
+const cardanoGovernanceVoteResolver = cardanoKoiosResolvers.resolvers.find((
+	resolver
+): resolver is Extract<
+	typeof cardanoKoiosResolvers.resolvers[number],
+	{ entityType: EntityType.CardanoGovernanceVote }
+> => resolver.entityType === EntityType.CardanoGovernanceVote)
+
+if (cardanoGovernanceVoteResolver == null)
+	throw new Error('CardanoKoios-Rest spec missing CardanoGovernanceVote resolver')
+
 describe('Cardano Koios transaction relationships', () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
@@ -715,6 +725,108 @@ describe('Cardano Koios governance proposal detail', () => {
 			},
 			resolverContext
 		)).rejects.toThrow('proposal response does not match the subject')
+	})
+})
+
+describe('Cardano Koios governance vote detail', () => {
+	beforeEach(() => {
+		vi.clearAllMocks()
+	})
+
+	it('resolves a source-pinned vote through its owning transaction and native relationships', async () => {
+		getTransactionInfo.mockResolvedValue(transactionInfo)
+		const vote = await cardanoGovernanceVoteResolver.resolve[
+			'ProposalVoterKindVoterCredentialVoteTxHashSource'
+		].resolve({
+			$proposal: {
+				$network: cardanoTransaction.$network,
+				proposalTxHash: 'proposal-transaction-hash',
+				proposalIndex: 5,
+			},
+			voterKind: 'DRep',
+			voterCredential: 'drep1example',
+			voteTxHash: cardanoTransaction.hash,
+			source: Source.CardanoKoios_Rest,
+		}, resolverContext)
+
+		expect(cardanoGovernanceVoteResolver.projections.vote(vote)).toBe('Yes')
+		expect(cardanoGovernanceVoteResolver.projections.$transaction(vote)).toEqual({
+			[EntityMetaKey.Selector]: cardanoTransaction,
+		})
+		expect(cardanoGovernanceVoteResolver.projections.$drep(vote)).toEqual({
+			[EntityMetaKey.Selector]: {
+				$network: cardanoTransaction.$network,
+				drepCredential: 'drep1example',
+			},
+		})
+		expect(cardanoGovernanceVoteResolver.projections.$stakePool(vote)).toBeUndefined()
+		expect(cardanoGovernanceVoteResolver.projections.epoch(vote)).toBe(500)
+		expect(cardanoGovernanceVoteResolver.projections.slot(vote)).toBe(130_000_000n)
+		expect(cardanoGovernanceVoteResolver.projections.timestampMs(vote)).toBe(1_700_000_000_000)
+	})
+
+	it('resolves an SPO vote to its stake pool without manufacturing a DRep', async () => {
+		getTransactionInfo.mockResolvedValue({
+			...transactionInfo,
+			voting_procedures: [{
+				...transactionInfo.voting_procedures[0],
+				vote: 'No',
+				voter: 'pool1example',
+				voter_role: 'SPO',
+			}],
+		})
+		const vote = await cardanoGovernanceVoteResolver.resolve[
+			'ProposalVoterKindVoterCredentialVoteTxHashSource'
+		].resolve({
+			$proposal: {
+				$network: cardanoTransaction.$network,
+				proposalTxHash: 'proposal-transaction-hash',
+				proposalIndex: 5,
+			},
+			voterKind: 'SPO',
+			voterCredential: 'pool1example',
+			voteTxHash: cardanoTransaction.hash,
+			source: Source.CardanoKoios_Rest,
+		}, resolverContext)
+
+		expect(cardanoGovernanceVoteResolver.projections.vote(vote)).toBe('No')
+		expect(cardanoGovernanceVoteResolver.projections.$drep(vote)).toBeUndefined()
+		expect(cardanoGovernanceVoteResolver.projections.$stakePool(vote)).toEqual({
+			[EntityMetaKey.Selector]: {
+				$network: cardanoTransaction.$network,
+				poolId: 'pool1example',
+			},
+		})
+	})
+
+	it('fails closed before transport for another source or absent vote identity', async () => {
+		const selector = {
+			$proposal: {
+				$network: cardanoTransaction.$network,
+				proposalTxHash: 'proposal-transaction-hash',
+				proposalIndex: 5,
+			},
+			voterKind: 'DRep',
+			voterCredential: 'drep1example',
+			voteTxHash: cardanoTransaction.hash,
+			source: Source.CardanoKoios_Rest,
+		}
+
+		await expect(cardanoGovernanceVoteResolver.resolve[
+			'ProposalVoterKindVoterCredentialVoteTxHashSource'
+		].resolve({
+			...selector,
+			source: Source.Blockfrost_Rest,
+		}, resolverContext)).rejects.toThrow('governance vote source does not match the subject')
+		expect(getTransactionInfo).not.toHaveBeenCalled()
+
+		getTransactionInfo.mockResolvedValue(transactionInfo)
+		await expect(cardanoGovernanceVoteResolver.resolve[
+			'ProposalVoterKindVoterCredentialVoteTxHashSource'
+		].resolve({
+			...selector,
+			voterCredential: 'drep1different',
+		}, resolverContext)).rejects.toThrow('governance vote response does not match the subject')
 	})
 })
 
