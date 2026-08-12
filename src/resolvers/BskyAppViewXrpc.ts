@@ -224,11 +224,13 @@ export const bskyAppViewResolvers = (
 					resolve: async (_entitySelector, context) => {
 						const [binding, { searchActors }] = await loadBindingAndQueries(context)
 						const limit = resolverContextRowLimit(context)
-						return (
-							((await searchActors(binding, {
-								limit,
-								q: 'bsky',
-							})).actors ?? [])
+						const response = await searchActors(binding, {
+							limit,
+							q: 'bsky',
+							cursor: context.providerContinuationToken,
+						})
+						return {
+							rows: (response.actors ?? [])
 								.flatMap((actor) => {
 									const did = optionalNonemptyString(actor.did)
 									const handle = optionalNonemptyString(actor.handle)
@@ -269,13 +271,31 @@ export const bskyAppViewResolvers = (
 										},
 									}]
 								})
-								.slice(0, limit)
-						)
+								.slice(0, limit),
+							nextCursor: response.cursor,
+						}
 					},
 				}
 			},
 		})({
-				$$observedActors: (actors) => actors,
+				$$observedActors: {
+					select: (snapshot) => snapshot.rows,
+					continuation: (snapshot) => (
+						snapshot.nextCursor == null || snapshot.nextCursor === '' ?
+							{
+								operation: 'search-actors',
+								target: 'appview',
+								terminal: true,
+							}
+						:
+							{
+								operation: 'search-actors',
+								target: 'appview',
+								terminal: false,
+								token: snapshot.nextCursor,
+							}
+					),
+				},
 			}),
 
 		defineResolver({
@@ -285,11 +305,13 @@ export const bskyAppViewResolvers = (
 					resolve: async (_entitySelector, context) => {
 						const [binding, { searchPosts }] = await loadBindingAndQueries(context)
 						const limit = resolverContextRowLimit(context)
-						return (
-							((await searchPosts(binding, {
-								limit,
-								q: 'bsky',
-							})).posts ?? [])
+						const response = await searchPosts(binding, {
+							limit,
+							q: 'bsky',
+							cursor: context.providerContinuationToken,
+						})
+						return {
+							rows: (response.posts ?? [])
 								.flatMap((post) => {
 									const uri = optionalNonemptyString(post.uri)
 									return uri == null ?
@@ -297,13 +319,31 @@ export const bskyAppViewResolvers = (
 									:
 										[atprotoPostReferenceFromPostView(post)]
 								})
-								.slice(0, limit)
-						)
+								.slice(0, limit),
+							nextCursor: response.cursor,
+						}
 					},
 				}
 			},
 		})({
-				$$observedPosts: (posts) => posts,
+				$$observedPosts: {
+					select: (snapshot) => snapshot.rows,
+					continuation: (snapshot) => (
+						snapshot.nextCursor == null || snapshot.nextCursor === '' ?
+							{
+								operation: 'search-posts',
+								target: 'appview',
+								terminal: true,
+							}
+						:
+							{
+								operation: 'search-posts',
+								target: 'appview',
+								terminal: false,
+								token: snapshot.nextCursor,
+							}
+					),
+				},
 			}),
 
 		defineResolver({
@@ -387,23 +427,42 @@ export const bskyAppViewResolvers = (
 					resolve: async ({ did }, context) => {
 						const [binding, { getAuthorFeed }] = await loadBindingAndQueries(context)
 						const limit = resolverContextRowLimit(context)
-						const { feed } = await getAuthorFeed(binding, {
+						const response = await getAuthorFeed(binding, {
 							actor: did,
 							limit,
+							cursor: context.providerContinuationToken,
 							includePins: true,
 						})
-						return (
-							feed
+						return {
+							rows: response.feed
 								.flatMap((feedItem) => {
 									if (feedItem.post.author.did !== did) return []
 									return [atprotoPostReferenceFromPostView(feedItem.post)]
-								})
-						)
+								}),
+							nextCursor: response.cursor,
+						}
 					},
 				},
 			},
 		})({
-				$$posts: (posts) => posts,
+				$$posts: {
+					select: (snapshot) => snapshot.rows,
+					continuation: (snapshot) => (
+						snapshot.nextCursor == null || snapshot.nextCursor === '' ?
+							{
+								operation: 'author-feed',
+								target: 'appview',
+								terminal: true,
+							}
+						:
+							{
+								operation: 'author-feed',
+								target: 'appview',
+								terminal: false,
+								token: snapshot.nextCursor,
+							}
+					),
+				},
 			}),
 
 		defineResolver({
