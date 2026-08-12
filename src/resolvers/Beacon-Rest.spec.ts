@@ -847,6 +847,16 @@ describe('Beacon REST checkpoint and fork projections', () => {
 
 	it('lists recent sync committee periods back from tip', async () => {
 		getHeadSlot.mockResolvedValue(String(2 * epochsPerSyncCommitteePeriod * slotsPerEpoch + 1))
+		getSyncCommittee.mockResolvedValue({
+			validators: [
+				'4',
+				'5',
+			],
+			validator_aggregates: [
+				['4'],
+				['5'],
+			],
+		})
 
 		await expect(resolveSyncCommitteesList(network, {
 			filters: [],
@@ -863,11 +873,17 @@ describe('Beacon REST checkpoint and fork projections', () => {
 					$network: network,
 					period: 2,
 				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.BeaconSyncCommittee, [], 'validatorIndices')]: [4, 5],
+				},
 			},
 			{
 				[EntityMetaKey.Selector]: {
 					$network: network,
 					period: 1,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.BeaconSyncCommittee, [], 'validatorIndices')]: [4, 5],
 				},
 			},
 			{
@@ -875,8 +891,12 @@ describe('Beacon REST checkpoint and fork projections', () => {
 					$network: network,
 					period: 0,
 				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.BeaconSyncCommittee, [], 'validatorIndices')]: [4, 5],
+				},
 			},
 		])
+		expect(getSyncCommittee).toHaveBeenCalledTimes(3)
 	})
 
 	it('preserves missing finality and unmatched fork behavior', async () => {

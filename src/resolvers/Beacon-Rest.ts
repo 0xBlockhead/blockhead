@@ -1038,7 +1038,7 @@ export default {
 			resolve: {
 				Caip2: {
 					resolve: async ({ caip2 }, context) => {
-						const { getHeadSlot } = await import('$/sources/Beacon/Rest/queries.ts')
+						const { getHeadSlot, getSyncCommittee } = await import('$/sources/Beacon/Rest/queries.ts')
 						const chainId = Number(caip2.reference)
 						const headPeriod = Math.floor(
 							Math.floor(
@@ -1048,7 +1048,7 @@ export default {
 								) / slotsPerEpoch
 							) / epochsPerSyncCommitteePeriod
 						)
-						return (
+						return Promise.all(
 							Array.from(
 								{ length: resolverContextRowLimit(context) },
 								(_, i) => headPeriod - i
@@ -1057,14 +1057,23 @@ export default {
 									period < 0 ?
 										[]
 									:
-										[
-											{
+											[Promise.resolve(getSyncCommittee(
+												chainId,
+												period * epochsPerSyncCommitteePeriod * slotsPerEpoch
+											)).then((committee) => {
+												if (committee == null)
+													throw new Error(`Beacon_Rest: sync committee ${String(period)} not found`)
+
+												return {
 												[EntityMetaKey.Selector]: {
 													$network: { caip2 },
 													period,
 												},
-											},
-										]
+												[EntityMetaKey.Fields]: {
+													[entityFieldAddressKey(EntityType.BeaconSyncCommittee, [], 'validatorIndices')]: committee.validators.map(Number),
+												},
+												}
+											})]
 								))
 						)
 					},
