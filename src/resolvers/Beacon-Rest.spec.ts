@@ -574,10 +574,7 @@ describe('Beacon REST checkpoint and fork projections', () => {
 		)
 	})
 
-	it('projects tip BeaconValidator_Timestamp and rejects foreign observation slots', async () => {
-		getHeadSlot
-			.mockResolvedValueOnce('9500000')
-			.mockResolvedValueOnce('9500000')
+	it('projects BeaconValidator_Timestamp at its requested historical state slot', async () => {
 		getValidator
 			.mockResolvedValueOnce(tipValidatorEnvelope)
 			.mockResolvedValueOnce(tipValidatorEnvelope)
@@ -606,7 +603,13 @@ describe('Beacon REST checkpoint and fork projections', () => {
 			},
 			slot: 1,
 			source: Source.Beacon_Rest,
-		})).rejects.toThrow('no validator observation at slot 1')
+		})).resolves.toMatchObject({
+			slot: 1,
+			source: Source.Beacon_Rest,
+			status: 'active_ongoing',
+		})
+		expect(getValidator).toHaveBeenNthCalledWith(1, 1, 12, 9_500_000)
+		expect(getValidator).toHaveBeenNthCalledWith(2, 1, 12, 1)
 	})
 
 	it('projects native header keys, decimal strings, and case only at the schema boundary', async () => {

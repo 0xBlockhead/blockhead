@@ -289,13 +289,14 @@ const beaconSlotReferenceFromHeader = (
 
 const mapBeaconValidatorSnapshot = async (
 	$network: EntitySelector<typeof schema, EntityType.Network>,
-	indexOrPubkey: number | string
+	indexOrPubkey: number | string,
+	requestedSlot?: number
 ) => {
 	const { getHeadSlot, getValidator } = await import('$/sources/Beacon/Rest/queries.ts')
 	const chainId = eip155ChainId($network)
 	const observationSlot = safeIntegerFromDecimal(
-		await getHeadSlot(chainId),
-		'head slot'
+		requestedSlot == null ? await getHeadSlot(chainId) : String(requestedSlot),
+		requestedSlot == null ? 'head slot' : 'validator observation slot'
 	)
 	const envelope = await getValidator(
 		chainId,
@@ -591,11 +592,10 @@ export default {
 						)
 						const snapshot = await mapBeaconValidatorSnapshot(
 							$validator.$network,
-							indexOrPubkey
+							indexOrPubkey,
+							slot
 						)
 						const observation = snapshot.timestamps[0]
-						if (observation[EntityMetaKey.Selector].slot !== slot)
-							throw new Error(`Beacon_Rest: no validator observation at slot ${String(slot)}`)
 
 						return {
 							$validator: {
