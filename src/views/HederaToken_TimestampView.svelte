@@ -15,6 +15,7 @@
 	// State
 	let {
 		selection,
+		title,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
@@ -25,9 +26,11 @@
 
 
 	// Components
+	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
+	import HederaTokenCustomFeesView from '$/views/HederaTokenCustomFeesView.svelte'
 	import HederaTokenView from '$/views/HederaTokenView.svelte'
 </script>
 
@@ -35,6 +38,7 @@
 <EntityView
 	entityType={EntityType.HederaToken_Timestamp}
 	entitySelector={selection.entitySelector}
+	title={title ?? String(selection.entitySelector.timestampMs)}
 	href={
 		href === undefined ?
 			resolve(
@@ -58,6 +62,24 @@
 	bind:open
 	{...EntityViewProps}
 >
+	{#snippet Title()}
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
+	{/snippet}
+
+	{#snippet Value()}
+		<HederaTokenView
+			selection={select(EntityType.HederaToken, selection.entitySelector.$token)}
+			href={null}
+			layout={EntityLayout.Value}
+		/>
+	{/snippet}
+
+	{#snippet HeadingAfter()}
+		<span data-text="muted">
+			{selection.entitySelector.source}
+		</span>
+	{/snippet}
+
 	{#snippet Content()}
 		<dl data-column-item="center">
 			<div>
@@ -143,29 +165,9 @@
 						<div>
 							<dt>total supply</dt>
 							<dd>
-								{totalSupply}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							maxSupply: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const maxSupply = entity.maxSupply}
-					{#if maxSupply != null}
-						<div>
-							<dt>max supply</dt>
-							<dd>
-								{maxSupply}
+								<NumberValue
+									value={totalSupply}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -260,5 +262,23 @@
 				{/snippet}
 			</ResourceBoundary>
 		</dl>
+	{/snippet}
+
+	{#snippet Details()}
+		{@const customFeesResource = selection.$$customFees}
+		<ResourceBoundary
+			resource={customFeesResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<HederaTokenCustomFeesView
+						selection={customFeesResource}
+						countResource={customFeesResource.count}
+						title='Custom fees'
+						id='custom-fees'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

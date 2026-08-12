@@ -610,6 +610,108 @@ describe('Hedera Mirror Node token and NFT hierarchy', () => {
 		}))
 	})
 
+	it('materializes typed fixed, fractional, and royalty custom-fee children', async () => {
+		const tokenResolver = hederaMirrorNode.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.HederaToken
+			&& '$$timestamps' in candidate.projections
+		))
+		const customFeeResolver = hederaMirrorNode.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.HederaTokenCustomFee
+		))
+		if (tokenResolver == null || customFeeResolver == null)
+			throw new Error('Hedera Mirror Node custom fee resolvers are missing')
+
+		const customFeeToken = {
+			...tokenFixture,
+			custom_fees: {
+				created_timestamp: '1710000002.000000003',
+				fixed_fees: [{
+					all_collectors_are_exempt: true,
+					amount: '9007199254740993',
+					collector_account_id: '0.0.98',
+					denominating_token_id: '0.0.701',
+				}],
+				fractional_fees: [{
+					amount: {
+						denominator: '29',
+						numerator: '12',
+					},
+					collector_account_id: '0.0.99',
+					denominating_token_id: '0.0.700',
+					maximum: '120',
+					minimum: '30',
+					net_of_transfers: true,
+				}],
+				royalty_fees: [{
+					all_collectors_are_exempt: false,
+					amount: {
+						denominator: '100',
+						numerator: '5',
+					},
+					collector_account_id: '0.0.100',
+					fallback_fee: {
+						amount: '1',
+						denominating_token_id: '0.0.701',
+					},
+				}],
+			},
+		} satisfies HederaMirrorNodeToken
+		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify(customFeeToken)))
+
+		const token = {
+			$network: network,
+			tokenId: '0.0.700',
+		}
+		const resolvedToken = await tokenResolver.resolve.NetworkTokenId?.resolve(token, context)
+		const tokenTimestamp = tokenResolver.projections.$$timestamps?.(resolvedToken)[0]
+		if (tokenTimestamp == null)
+			throw new Error('Hedera Mirror Node token timestamp is missing')
+		const customFees = tokenTimestamp[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.HederaToken_Timestamp, [], '$$customFees')]
+		expect(customFees).toHaveLength(3)
+		expect(customFees.map((fee) => fee[EntityMetaKey.Selector].feeIndex)).toEqual([
+			0,
+			1,
+			2,
+		])
+		expect(customFees[0][EntityMetaKey.Fields]).toMatchObject({
+			[entityFieldAddressKey(EntityType.HederaTokenCustomFee, [], 'feeKind')]: 'fixed',
+			[entityFieldAddressKey(EntityType.HederaTokenCustomFee, [], 'amount')]: 9_007_199_254_740_993n,
+			[entityFieldAddressKey(EntityType.HederaTokenCustomFee, [], '$collector')]: {
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					accountId: '0.0.98',
+				},
+			},
+			[entityFieldAddressKey(EntityType.HederaTokenCustomFee, [], '$denominatingToken')]: {
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					tokenId: '0.0.701',
+				},
+			},
+		})
+		expect(customFees[1][EntityMetaKey.Fields]).toMatchObject({
+			[entityFieldAddressKey(EntityType.HederaTokenCustomFee, [], 'feeKind')]: 'fractional',
+			[entityFieldAddressKey(EntityType.HederaTokenCustomFee, [], 'numerator')]: 12n,
+			[entityFieldAddressKey(EntityType.HederaTokenCustomFee, [], 'denominator')]: 29n,
+			[entityFieldAddressKey(EntityType.HederaTokenCustomFee, [], 'minimumAmount')]: 30n,
+			[entityFieldAddressKey(EntityType.HederaTokenCustomFee, [], 'maximumAmount')]: 120n,
+			[entityFieldAddressKey(EntityType.HederaTokenCustomFee, [], 'netOfTransfers')]: true,
+		})
+		expect(customFees[2][EntityMetaKey.Fields]).toMatchObject({
+			[entityFieldAddressKey(EntityType.HederaTokenCustomFee, [], 'feeKind')]: 'royalty',
+			[entityFieldAddressKey(EntityType.HederaTokenCustomFee, [], 'numerator')]: 5n,
+			[entityFieldAddressKey(EntityType.HederaTokenCustomFee, [], 'denominator')]: 100n,
+			[entityFieldAddressKey(EntityType.HederaTokenCustomFee, [], 'amount')]: 1n,
+			[entityFieldAddressKey(EntityType.HederaTokenCustomFee, [], 'denominatingTokenId')]: '0.0.701',
+		})
+
+		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify(customFeeToken)))
+		await expect(customFeeResolver.resolve.TokenTimestampFeeIndex.resolve({
+			$tokenTimestamp: tokenTimestamp[EntityMetaKey.Selector],
+			feeIndex: 1,
+		}, context)).resolves.toMatchObject(customFees[1][EntityMetaKey.Fields])
+	})
+
 	it('rejects substituted token and NFT identities before projection', async () => {
 		sourceFetch
 			.mockResolvedValueOnce(new Response(JSON.stringify({

@@ -31,7 +31,7 @@
 	<title>{
 		(
 			data.entityType === EntityType.HederaToken_Timestamp ?
-				('hedera token timestamp') + ' • hedera token timestamp • Blockhead'
+				(String(data.selector.timestampMs) || 'hedera token timestamp') + ' • hedera token timestamp • Blockhead'
 			:
 				('tron token timestamp') + ' • tron token timestamp • Blockhead'
 		)

@@ -12,6 +12,7 @@ import { Source } from '$/sources/Source.ts'
 import type {
 	HederaMirrorNodeBlock,
 	HederaMirrorNodeContractResult,
+	HederaMirrorNodeCustomFees,
 	HederaMirrorNodeNetworkExchangeRate,
 	HederaMirrorNodeNetworkFees,
 	HederaMirrorNodeNetworkStake,
@@ -749,6 +750,130 @@ const topicMessageFields = (
 	}
 }
 
+const tokenCustomFeeRows = (
+	network: EntitySelector<typeof schema, EntityType.Network>,
+	tokenTimestamp: {
+		$token: {
+			$network: EntitySelector<typeof schema, EntityType.Network>
+			tokenId: string
+		}
+		timestampMs: number
+		source: Source.HederaMirrorNode_Rest
+	},
+	customFees: HederaMirrorNodeCustomFees
+) => [
+	...customFees.fixed_fees.map((fee) => {
+		if (fee.collector_account_id != null)
+			hederaEntityId(fee.collector_account_id, 'custom fee collector account')
+		if (fee.denominating_token_id != null)
+			hederaEntityId(fee.denominating_token_id, 'custom fee denominating token')
+		return {
+			feeKind: 'fixed',
+			...(fee.collector_account_id != null && {
+				collectorAccountId: fee.collector_account_id,
+				$collector: {
+					[EntityMetaKey.Selector]: {
+						$network: network,
+						accountId: fee.collector_account_id,
+					},
+				},
+			}),
+			...(fee.denominating_token_id != null && {
+				denominatingTokenId: fee.denominating_token_id,
+				$denominatingToken: {
+					[EntityMetaKey.Selector]: {
+						$network: network,
+						tokenId: fee.denominating_token_id,
+					},
+				},
+			}),
+			amount: nonnegativeBigInt(String(fee.amount), 'custom fixed fee amount'),
+			...(fee.all_collectors_are_exempt != null && {
+				allCollectorsAreExempt: fee.all_collectors_are_exempt,
+			}),
+		}
+	}),
+	...(customFees.fractional_fees ?? []).map((fee) => {
+		if (fee.collector_account_id != null)
+			hederaEntityId(fee.collector_account_id, 'custom fee collector account')
+		if (fee.denominating_token_id != null)
+			hederaEntityId(fee.denominating_token_id, 'custom fee denominating token')
+		return {
+			feeKind: 'fractional',
+			...(fee.collector_account_id != null && {
+				collectorAccountId: fee.collector_account_id,
+				$collector: {
+					[EntityMetaKey.Selector]: {
+						$network: network,
+						accountId: fee.collector_account_id,
+					},
+				},
+			}),
+			...(fee.denominating_token_id != null && {
+				denominatingTokenId: fee.denominating_token_id,
+				$denominatingToken: {
+					[EntityMetaKey.Selector]: {
+						$network: network,
+						tokenId: fee.denominating_token_id,
+					},
+				},
+			}),
+			numerator: nonnegativeBigInt(String(fee.amount.numerator), 'custom fractional fee numerator'),
+			denominator: nonnegativeBigInt(String(fee.amount.denominator), 'custom fractional fee denominator'),
+			minimumAmount: nonnegativeBigInt(String(fee.minimum), 'custom fractional fee minimum'),
+			maximumAmount: nonnegativeBigInt(String(fee.maximum), 'custom fractional fee maximum'),
+			netOfTransfers: fee.net_of_transfers,
+			...(fee.all_collectors_are_exempt != null && {
+				allCollectorsAreExempt: fee.all_collectors_are_exempt,
+			}),
+		}
+	}),
+	...(customFees.royalty_fees ?? []).map((fee) => {
+		if (fee.collector_account_id != null)
+			hederaEntityId(fee.collector_account_id, 'custom fee collector account')
+		if (fee.fallback_fee?.denominating_token_id != null)
+			hederaEntityId(fee.fallback_fee.denominating_token_id, 'custom fee denominating token')
+		return {
+			feeKind: 'royalty',
+			...(fee.collector_account_id != null && {
+				collectorAccountId: fee.collector_account_id,
+				$collector: {
+					[EntityMetaKey.Selector]: {
+						$network: network,
+						accountId: fee.collector_account_id,
+					},
+				},
+			}),
+			numerator: nonnegativeBigInt(String(fee.amount.numerator), 'custom royalty fee numerator'),
+			denominator: nonnegativeBigInt(String(fee.amount.denominator), 'custom royalty fee denominator'),
+			...(fee.fallback_fee != null && {
+				amount: nonnegativeBigInt(String(fee.fallback_fee.amount), 'custom royalty fallback fee amount'),
+				...(fee.fallback_fee.denominating_token_id != null && {
+					denominatingTokenId: fee.fallback_fee.denominating_token_id,
+					$denominatingToken: {
+						[EntityMetaKey.Selector]: {
+							$network: network,
+							tokenId: fee.fallback_fee.denominating_token_id,
+						},
+					},
+				}),
+			}),
+			...(fee.all_collectors_are_exempt != null && {
+				allCollectorsAreExempt: fee.all_collectors_are_exempt,
+			}),
+		}
+	}),
+].map((fields, feeIndex) => ({
+	[EntityMetaKey.Selector]: {
+		$tokenTimestamp: tokenTimestamp,
+		feeIndex,
+	},
+	[EntityMetaKey.Fields]: Object.fromEntries(Object.entries(fields).map(([field, value]) => [
+		entityFieldAddressKey(EntityType.HederaTokenCustomFee, [], field),
+		value,
+	])),
+}))
+
 const tokenSnapshot = (
 	network: EntitySelector<typeof schema, EntityType.Network>,
 	token: HederaMirrorNodeToken
@@ -830,6 +955,15 @@ const tokenSnapshot = (
 				}),
 				...(token.custom_fees != null && {
 					[entityFieldAddressKey(EntityType.HederaToken_Timestamp, [], 'customFees')]: token.custom_fees,
+					[entityFieldAddressKey(EntityType.HederaToken_Timestamp, [], '$$customFees')]: tokenCustomFeeRows(
+						network,
+						{
+							$token: tokenSelector,
+							timestampMs: tokenTimestampMs,
+							source: Source.HederaMirrorNode_Rest,
+						},
+						token.custom_fees
+					),
 				}),
 				...(token.expiry_timestamp != null && {
 					[entityFieldAddressKey(EntityType.HederaToken_Timestamp, [], 'expiryTimestamp')]: token.expiry_timestamp,
@@ -2281,6 +2415,45 @@ export default {
 			paused: (observation) => observation[entityFieldAddressKey(EntityType.HederaToken_Timestamp, [], 'paused')],
 			customFees: (observation) => observation[entityFieldAddressKey(EntityType.HederaToken_Timestamp, [], 'customFees')],
 			expiryTimestamp: (observation) => observation[entityFieldAddressKey(EntityType.HederaToken_Timestamp, [], 'expiryTimestamp')],
+			$$customFees: (observation) => observation[entityFieldAddressKey(EntityType.HederaToken_Timestamp, [], '$$customFees')],
+		}),
+
+		defineResolver({
+			entityType: EntityType.HederaTokenCustomFee,
+			resolve: {
+				TokenTimestampFeeIndex: {
+					resolve: async ({ $tokenTimestamp, feeIndex }) => {
+						assertHederaMainnet($tokenTimestamp.$token.$network)
+						assertHederaMirrorSource($tokenTimestamp.source)
+						const { getToken } = await import('$/sources/HederaMirrorNode/Rest/queries.ts')
+						const snapshot = tokenSnapshot(
+							$tokenTimestamp.$token.$network,
+							await getToken($tokenTimestamp.$token.tokenId)
+						)
+						const observation = snapshot.$$timestamps[0]
+						if (observation[EntityMetaKey.Selector].timestampMs !== $tokenTimestamp.timestampMs)
+							throw new Error('HederaMirrorNode_Rest: custom fee observation clock mismatch')
+						const fee = observation[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.HederaToken_Timestamp, [], '$$customFees')]
+							.find((row) => row[EntityMetaKey.Selector].feeIndex === feeIndex)
+						if (fee == null)
+							throw new Error(`HederaMirrorNode_Rest: custom fee ${feeIndex.toString()} not found`)
+						return fee[EntityMetaKey.Fields]
+					},
+				},
+			},
+		})({
+			feeKind: (fee) => fee[entityFieldAddressKey(EntityType.HederaTokenCustomFee, [], 'feeKind')],
+			collectorAccountId: (fee) => fee[entityFieldAddressKey(EntityType.HederaTokenCustomFee, [], 'collectorAccountId')],
+			denominatingTokenId: (fee) => fee[entityFieldAddressKey(EntityType.HederaTokenCustomFee, [], 'denominatingTokenId')],
+			amount: (fee) => fee[entityFieldAddressKey(EntityType.HederaTokenCustomFee, [], 'amount')],
+			numerator: (fee) => fee[entityFieldAddressKey(EntityType.HederaTokenCustomFee, [], 'numerator')],
+			denominator: (fee) => fee[entityFieldAddressKey(EntityType.HederaTokenCustomFee, [], 'denominator')],
+			minimumAmount: (fee) => fee[entityFieldAddressKey(EntityType.HederaTokenCustomFee, [], 'minimumAmount')],
+			maximumAmount: (fee) => fee[entityFieldAddressKey(EntityType.HederaTokenCustomFee, [], 'maximumAmount')],
+			netOfTransfers: (fee) => fee[entityFieldAddressKey(EntityType.HederaTokenCustomFee, [], 'netOfTransfers')],
+			allCollectorsAreExempt: (fee) => fee[entityFieldAddressKey(EntityType.HederaTokenCustomFee, [], 'allCollectorsAreExempt')],
+			$collector: (fee) => fee[entityFieldAddressKey(EntityType.HederaTokenCustomFee, [], '$collector')],
+			$denominatingToken: (fee) => fee[entityFieldAddressKey(EntityType.HederaTokenCustomFee, [], '$denominatingToken')],
 		}),
 
 		defineResolver({

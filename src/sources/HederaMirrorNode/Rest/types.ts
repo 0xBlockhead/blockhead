@@ -394,13 +394,47 @@ export type HederaMirrorNodeTopicMessages = {
 	}
 }
 
+export type HederaMirrorNodeCustomFees = {
+	created_timestamp?: string
+	fixed_fees: {
+		all_collectors_are_exempt?: boolean
+		amount: number | string
+		collector_account_id: string | null
+		denominating_token_id: string | null
+	}[]
+	fractional_fees?: {
+		all_collectors_are_exempt?: boolean
+		amount: {
+			denominator: number | string
+			numerator: number | string
+		}
+		collector_account_id: string | null
+		denominating_token_id: string | null
+		maximum: number | string
+		minimum: number | string
+		net_of_transfers: boolean
+	}[]
+	royalty_fees?: {
+		all_collectors_are_exempt?: boolean
+		amount: {
+			denominator: number | string
+			numerator: number | string
+		}
+		collector_account_id: string | null
+		fallback_fee: {
+			amount: number | string
+			denominating_token_id: string | null
+		} | null
+	}[]
+}
+
 // https://docs.hedera.com/api-reference/tokens/get-token-by-id
 export type HederaMirrorNodeToken = {
 	admin_key: unknown | null
 	auto_renew_account: string | null
 	auto_renew_period: number | null
 	created_timestamp: string
-	custom_fees: unknown | null
+	custom_fees: HederaMirrorNodeCustomFees | null
 	decimals: number | null
 	deleted: boolean | null
 	expiry_timestamp: string | null

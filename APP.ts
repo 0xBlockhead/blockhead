@@ -36747,6 +36747,19 @@ export const schema = {
 					],
 				},
 				views: {
+					singular: {
+						summary: {
+							title: [{ field: "timestampMs", format: "timestamp" }],
+							value: ["$token"],
+							HeadingAfter: ["source"],
+						},
+						content: {
+								dl: [["$token", { field: "timestampMs", format: "timestamp" }, "source", "name", "symbol", { field: "totalSupply", format: "numberValue" }, "treasuryAccount", "deleted", "paused", "expiryTimestamp"]],
+						},
+						lists: [
+							{ field: "$$customFees", component: "HederaTokenCustomFeesView", label: "Custom fees", emptyText: "No custom fees." },
+						],
+					},
 					plural: { component: "HederaToken_TimestampsView", },
 				},
 			}),

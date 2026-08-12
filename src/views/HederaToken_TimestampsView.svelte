@@ -26,7 +26,22 @@
 	{...EntitiesListProps}
 	entityType={EntityType.HederaToken_Timestamp}
 	bind:open
-	resource={selection()}
+	resource={
+		selection({
+			...{
+				fields: {
+					timestampMs: true,
+					$token: {
+						fields: {
+							tokenType: true,
+							decimals: true,
+						},
+					},
+					source: true,
+				},
+			},
+		})
+	}
 >
 	{#snippet Item({ item: hederaTokenTimestamp })}
 		{@const hederaTokenTimestampSelector = hederaTokenTimestamp[EntityMetaKey.Selector]}
@@ -50,6 +65,18 @@
 					}
 				)
 			}
-		/>
+		>
+			{#snippet Title()}
+				{hederaTokenTimestampSelector.timestampMs}
+			{/snippet}
+
+			{#snippet Value()}
+				{hederaTokenTimestampSelector.$token.tokenId || 'hedera token'}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{hederaTokenTimestampSelector.source}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>
