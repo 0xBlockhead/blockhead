@@ -216,6 +216,30 @@ export type BskyAppViewGetAuthorFeedResponse = {
 	cursor?: string
 }
 
+export type BskyAppViewActorListResponse = {
+	subject: BskyAppViewProfile
+	actors: BskyAppViewProfile[]
+	cursor?: string
+}
+
+export type BskyAppViewGetLikesResponse = {
+	uri: string
+	cid?: string
+	likes: {
+		indexedAt: string
+		createdAt: string
+		actor: BskyAppViewProfile
+	}[]
+	cursor?: string
+}
+
+export type BskyAppViewGetRepostedByResponse = {
+	uri: string
+	cid?: string
+	repostedBy: BskyAppViewProfile[]
+	cursor?: string
+}
+
 export type BskyAppViewThreadViewPost = {
 	$type?: string
 	post: BskyAppViewPostView
@@ -352,6 +376,42 @@ export const bskyAppViewGetAuthorFeedResponseWire = arktype({
 	}).array(),
 	'cursor?': 'string',
 }) satisfies Type<BskyAppViewGetAuthorFeedResponse>
+
+export const bskyAppViewFollowersResponseWire = arktype({
+	subject: bskyAppViewProfileWire,
+	followers: bskyAppViewProfileWire.array(),
+	'cursor?': 'string',
+}).pipe(({ followers, ...response }) => ({
+	...response,
+	actors: followers,
+})) satisfies Type<BskyAppViewActorListResponse>
+
+export const bskyAppViewFollowsResponseWire = arktype({
+	subject: bskyAppViewProfileWire,
+	follows: bskyAppViewProfileWire.array(),
+	'cursor?': 'string',
+}).pipe(({ follows, ...response }) => ({
+	...response,
+	actors: follows,
+})) satisfies Type<BskyAppViewActorListResponse>
+
+export const bskyAppViewGetLikesResponseWire = arktype({
+	uri: 'string',
+	'cid?': 'string',
+	likes: arktype({
+		indexedAt: 'string',
+		createdAt: 'string',
+		actor: bskyAppViewProfileWire,
+	}).array(),
+	'cursor?': 'string',
+}) satisfies Type<BskyAppViewGetLikesResponse>
+
+export const bskyAppViewGetRepostedByResponseWire = arktype({
+	uri: 'string',
+	'cid?': 'string',
+	repostedBy: bskyAppViewProfileWire.array(),
+	'cursor?': 'string',
+}) satisfies Type<BskyAppViewGetRepostedByResponse>
 
 const bskyAppViewThreadNotFoundWire = arktype({
 	uri: 'string',

@@ -36,6 +36,52 @@ export const getAuthorFeed = (
 	bskyAppViewXrpc(binding).getAuthorFeed(params)
 )
 
+export const getFollowers = (
+	binding: SourceBinding,
+	params: {
+		actor: string
+		limit?: number
+		cursor?: string
+	}
+) => (
+	bskyAppViewXrpc(binding).getFollowers(params)
+)
+
+export const getFollows = (
+	binding: SourceBinding,
+	params: {
+		actor: string
+		limit?: number
+		cursor?: string
+	}
+) => (
+	bskyAppViewXrpc(binding).getFollows(params)
+)
+
+export const getLikes = (
+	binding: SourceBinding,
+	params: {
+		uri: string
+		cid?: string
+		limit?: number
+		cursor?: string
+	}
+) => (
+	bskyAppViewXrpc(binding).getLikes(params)
+)
+
+export const getRepostedBy = (
+	binding: SourceBinding,
+	params: {
+		uri: string
+		cid?: string
+		limit?: number
+		cursor?: string
+	}
+) => (
+	bskyAppViewXrpc(binding).getRepostedBy(params)
+)
+
 export const searchActorsTypeahead = (
 	binding: SourceBinding,
 	params: {

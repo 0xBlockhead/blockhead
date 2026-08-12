@@ -43,6 +43,7 @@
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
+	import AtprotoActorsView from '$/views/AtprotoActorsView.svelte'
 	import AtprotoPostsView from '$/views/AtprotoPostsView.svelte'
 	import AtprotoPost_TimestampsView from '$/views/AtprotoPost_TimestampsView.svelte'
 	import AtprotoActorView from '$/views/AtprotoActorView.svelte'
@@ -272,6 +273,36 @@
 	{/snippet}
 
 	{#snippet Details()}
+		{@const likersResource = selection.$$likers}
+		<ResourceBoundary
+			resource={likersResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<AtprotoActorsView
+						selection={likersResource}
+						countResource={likersResource.count}
+						title='Likers'
+						id='likers'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+		{@const repostersResource = selection.$$reposters}
+		<ResourceBoundary
+			resource={repostersResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<AtprotoActorsView
+						selection={repostersResource}
+						countResource={repostersResource.count}
+						title='Reposters'
+						id='reposters'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 		{@const threadResource = selection.$$thread}
 		<ResourceBoundary
 			resource={threadResource}

@@ -16,18 +16,26 @@ import { Source } from '$/sources/Source.ts'
 
 const {
 	getAuthorFeed,
+	getFollowers,
+	getFollows,
+	getLikes,
 	getPostThread,
 	getPosts,
 	getProfile,
+	getRepostedBy,
 	resolveHandle,
 	searchActors,
 	searchActorsTypeahead,
 	searchPosts,
 } = vi.hoisted(() => ({
 	getAuthorFeed: vi.fn(),
+	getFollowers: vi.fn(),
+	getFollows: vi.fn(),
+	getLikes: vi.fn(),
 	getPostThread: vi.fn(),
 	getPosts: vi.fn(),
 	getProfile: vi.fn(),
+	getRepostedBy: vi.fn(),
 	resolveHandle: vi.fn(),
 	searchActors: vi.fn(),
 	searchActorsTypeahead: vi.fn(),
@@ -36,9 +44,13 @@ const {
 
 vi.mock('$/sources/AtprotoBsky/Rest/queries.ts', () => ({
 	getAuthorFeed,
+	getFollowers,
+	getFollows,
+	getLikes,
 	getPostThread,
 	getPosts,
 	getProfile,
+	getRepostedBy,
 	resolveHandle,
 	searchActors,
 	searchActorsTypeahead,
@@ -81,14 +93,130 @@ const postView = {
 describe('Atproto_Xrpc APP-free social deepenings', () => {
 	beforeEach(() => {
 		getAuthorFeed.mockReset()
+		getFollowers.mockReset()
+		getFollows.mockReset()
+		getLikes.mockReset()
 		getPostThread.mockReset()
 		getPosts.mockReset()
 		getProfile.mockReset()
+		getRepostedBy.mockReset()
 		resolveHandle.mockReset()
 		searchActors.mockReset()
 		searchActorsTypeahead.mockReset()
 		searchPosts.mockReset()
 		vi.restoreAllMocks()
+	})
+
+	it('resolves paginated followers and follows as native actor references', async () => {
+		getFollowers.mockResolvedValue({
+			subject: { did: 'did:plc:alice', handle: 'alice.test' },
+			actors: [{ did: 'did:plc:bob', handle: 'bob.test' }],
+			cursor: 'followers-next',
+		})
+		getFollows.mockResolvedValue({
+			subject: { did: 'did:plc:alice', handle: 'alice.test' },
+			actors: [{ did: 'did:plc:carol', handle: 'carol.test' }],
+		})
+		const followers = atproto.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.AtprotoActor
+			&& '$$followers' in resolver.projections
+		))
+		const follows = atproto.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.AtprotoActor
+			&& '$$follows' in resolver.projections
+		))
+		if (
+			followers == null
+			|| follows == null
+			|| !('Did' in followers.resolve)
+			|| !('Did' in follows.resolve)
+		)
+			throw new Error('missing followers/follows resolvers')
+
+		const followerRows = await followers.resolve.Did.resolve({ did: 'did:plc:alice' }, context)
+		const followRows = await follows.resolve.Did.resolve({ did: 'did:plc:alice' }, context)
+		expect(followerRows.rows[0][EntityMetaKey.Selector]).toEqual({ did: 'did:plc:bob' })
+		expect(followerRows.rows[0][EntityMetaKey.Fields]).toMatchObject({
+			[entityFieldAddressKey(EntityType.AtprotoActor, [], 'handle')]: 'bob.test',
+		})
+		expect(followRows.rows[0][EntityMetaKey.Selector]).toEqual({ did: 'did:plc:carol' })
+		expect(followerRows.nextCursor).toBe('followers-next')
+		expect(getFollowers).toHaveBeenCalledWith(context.sourceBinding, {
+		actor: 'did:plc:alice',
+		limit: 4,
+		cursor: undefined,
+	})
+	})
+
+	it('resolves post likers and reposters with independent provider cursors', async () => {
+		getLikes.mockResolvedValue({
+			uri: postView.uri,
+			likes: [{
+				indexedAt: '2025-02-03T04:05:06.000Z',
+				createdAt: '2025-02-03T04:05:06.000Z',
+				actor: { did: 'did:plc:bob', handle: 'bob.test' },
+			}],
+			cursor: 'likes-next',
+		})
+		getRepostedBy.mockResolvedValue({
+			uri: postView.uri,
+			repostedBy: [{ did: 'did:plc:carol', handle: 'carol.test' }],
+		})
+		const likers = atproto.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.AtprotoPost
+			&& '$$likers' in resolver.projections
+		))
+		const reposters = atproto.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.AtprotoPost
+			&& '$$reposters' in resolver.projections
+		))
+		if (
+			likers == null
+			|| reposters == null
+			|| !('Uri' in likers.resolve)
+			|| !('Uri' in reposters.resolve)
+		)
+			throw new Error('missing likers/reposters resolvers')
+
+		const likerRows = await likers.resolve.Uri.resolve({ uri: postView.uri }, context)
+		const reposterRows = await reposters.resolve.Uri.resolve({ uri: postView.uri }, context)
+		expect(likerRows.rows[0][EntityMetaKey.Selector]).toEqual({ did: 'did:plc:bob' })
+		expect(reposterRows.rows[0][EntityMetaKey.Selector]).toEqual({ did: 'did:plc:carol' })
+		expect(likerRows.nextCursor).toBe('likes-next')
+		expect(getLikes).toHaveBeenCalledWith(context.sourceBinding, {
+		uri: postView.uri,
+		limit: 4,
+		cursor: undefined,
+	})
+	})
+
+	it('fails closed when social list responses identify a different subject', async () => {
+		getFollowers.mockResolvedValue({
+			subject: { did: 'did:plc:other', handle: 'other.test' },
+			actors: [],
+		})
+		getFollows.mockResolvedValue({
+			subject: { did: 'did:plc:other', handle: 'other.test' },
+			actors: [],
+		})
+		getLikes.mockResolvedValue({ uri: 'at://did:plc:other/app.bsky.feed.post/3post', likes: [] })
+		getRepostedBy.mockResolvedValue({ uri: 'at://did:plc:other/app.bsky.feed.post/3post', repostedBy: [] })
+		const actorResolvers = atproto.resolvers.filter((resolver) => (
+			resolver.entityType === EntityType.AtprotoActor
+			&& ('$$followers' in resolver.projections || '$$follows' in resolver.projections)
+		))
+		const postResolvers = atproto.resolvers.filter((resolver) => (
+			resolver.entityType === EntityType.AtprotoPost
+			&& ('$$likers' in resolver.projections || '$$reposters' in resolver.projections)
+		))
+		for (const resolver of actorResolvers) {
+			if (!('Did' in resolver.resolve)) continue
+			await expect(resolver.resolve.Did.resolve({ did: 'did:plc:alice' }, context)).rejects.toThrow('subject mismatch')
+		}
+		for (const resolver of postResolvers) {
+			if (!('Uri' in resolver.resolve)) continue
+			await expect(resolver.resolve.Uri.resolve({ uri: postView.uri }, context)).rejects.toThrow('subject mismatch')
+		}
 	})
 
 	it('projects $$observedActors via searchActors with handle + tip observation fields', async () => {

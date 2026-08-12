@@ -27,6 +27,7 @@
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import AtprotoPostsView from '$/views/AtprotoPostsView.svelte'
+	import AtprotoActorsView from '$/views/AtprotoActorsView.svelte'
 	import AtprotoActor_TimestampsView from '$/views/AtprotoActor_TimestampsView.svelte'
 </script>
 
@@ -143,6 +144,36 @@
 								undefined
 						}
 						id='posts'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+		{@const followersResource = selection.$$followers}
+		<ResourceBoundary
+			resource={followersResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<AtprotoActorsView
+						selection={followersResource}
+						countResource={followersResource.count}
+						title='Followers'
+						id='followers'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+		{@const followsResource = selection.$$follows}
+		<ResourceBoundary
+			resource={followsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<AtprotoActorsView
+						selection={followsResource}
+						countResource={followsResource.count}
+						title='Follows'
+						id='follows'
 					/>
 				{/if}
 			{/snippet}

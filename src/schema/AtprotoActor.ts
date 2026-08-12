@@ -38,6 +38,22 @@ export default entity({
 			Source.Atproto_BskySocial_Xrpc,
 		],
 	},
+	$$followers: {
+		entityType: EntityType.AtprotoActor,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Atproto_Xrpc,
+			Source.Atproto_BskySocial_Xrpc,
+		],
+	},
+	$$follows: {
+		entityType: EntityType.AtprotoActor,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Atproto_Xrpc,
+			Source.Atproto_BskySocial_Xrpc,
+		],
+	},
 })({
 	selectors: {
 		Did: [

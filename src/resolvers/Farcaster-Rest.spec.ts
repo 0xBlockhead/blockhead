@@ -406,6 +406,54 @@ describe('Farcaster public cast direct replies', () => {
 		}))
 	})
 
+	it('materializes URL and quoted-cast embeds without fabricating empty rows', async () => {
+		getUserThreadCasts.mockResolvedValueOnce({
+			result: {
+				casts: [{
+					hash: '0xabcdef',
+					author: { fid: 42, username: 'alice' },
+					timestamp: 1_752_840_000,
+					embeds: [
+						{
+							url: 'https://example.com/article',
+							title: 'Article',
+							description: 'A description',
+						},
+						{
+							castId: {
+								fid: 7,
+								hash: '0x1234',
+							},
+							quotedPreviewText: 'Quoted body',
+						},
+						{},
+					],
+				}],
+			},
+		})
+
+		const cast = await castResolve.UsernameHashPrefix.resolve({
+			username: 'alice',
+			hashPrefix: '0xabcdef',
+		})
+		const embeds = castResolver.projections.$$embeds(cast)
+		expect(embeds).toHaveLength(2)
+		expect(embeds[0]?.[EntityMetaKey.Selector]).toEqual({
+			$cast: { fid: 42, hash: '0xabcdef' },
+			indexInCast: 0,
+		})
+		expect(embeds[0]?.[EntityMetaKey.Fields]).toMatchObject({
+			[entityFieldAddressKey(EntityType.FarcasterCastEmbed, [], 'url')]: 'https://example.com/article',
+			[entityFieldAddressKey(EntityType.FarcasterCastEmbed, [], 'title')]: 'Article',
+		})
+		expect(embeds[1]?.[EntityMetaKey.Fields]).toMatchObject({
+			[entityFieldAddressKey(EntityType.FarcasterCastEmbed, [], '$embeddedCast')]: {
+				[EntityMetaKey.Selector]: { fid: 7, hash: '0x1234' },
+			},
+			[entityFieldAddressKey(EntityType.FarcasterCastEmbed, [], 'quotedPreviewText')]: 'Quoted body',
+		})
+	})
+
 	it('rejects invalid public engagement observations', async () => {
 		getUserThreadCasts.mockResolvedValueOnce({
 			result: {

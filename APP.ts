@@ -8958,6 +8958,8 @@ export const schema = {
 					entityType: EntityType.AtprotoPost,
 					defaultSources: [Source.Atproto_Xrpc, Source.Atproto_BskySocial_Xrpc],
 				},
+				"$$followers": { label: "Followers", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.AtprotoActor, defaultSources: [Source.Atproto_Xrpc, Source.Atproto_BskySocial_Xrpc] },
+				"$$follows": { label: "Follows", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.AtprotoActor, defaultSources: [Source.Atproto_Xrpc, Source.Atproto_BskySocial_Xrpc] },
 			})({
 				selectors: {
 					"Did": ["did"],
@@ -9041,6 +9043,8 @@ export const schema = {
 						},
 						lists: [
 							{ field: "$$posts", component: "AtprotoPostsView", label: "Posts" },
+							{ field: "$$followers", component: "AtprotoActorsView", label: "Followers" },
+							{ field: "$$follows", component: "AtprotoActorsView", label: "Follows" },
 							{
 								field: "$$timestamps",
 								component: "AtprotoActor_TimestampsView",
@@ -9327,6 +9331,8 @@ export const schema = {
 					entityType: EntityType.AtprotoPost_Timestamp,
 					defaultSources: [Source.Atproto_Xrpc, Source.Atproto_BskySocial_Xrpc],
 				},
+				"$$likers": { label: "Likers", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.AtprotoActor, defaultSources: [Source.Atproto_Xrpc, Source.Atproto_BskySocial_Xrpc] },
+				"$$reposters": { label: "Reposters", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.AtprotoActor, defaultSources: [Source.Atproto_Xrpc, Source.Atproto_BskySocial_Xrpc] },
 			})({
 				selectors: {
 					"Uri": ["uri"],
@@ -9393,6 +9399,8 @@ export const schema = {
 							],
 						},
 						lists: [
+							{ field: "$$likers", component: "AtprotoActorsView", label: "Likers" },
+							{ field: "$$reposters", component: "AtprotoActorsView", label: "Reposters" },
 							{
 								field: "$$thread",
 								component: "AtprotoPostsView",

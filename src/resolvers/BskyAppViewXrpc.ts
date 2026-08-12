@@ -16,9 +16,42 @@ import { Source } from '$/sources/Source.ts'
 import { firstHttpUrlForBinding } from '$/sources/_runtime/http.ts'
 import {
 	isBskyAppViewThreadViewPost,
+	type BskyAppViewProfile,
 	type BskyAppViewPostView,
 	type BskyAppViewThreadViewPost,
 } from '$/sources/_shared/interfaces/BskyAppViewXrpc/types.ts'
+
+const atprotoActorReference = (profile: BskyAppViewProfile) => ({
+	[EntityMetaKey.Selector]: { did: profile.did },
+	[EntityMetaKey.Fields]: {
+		[entityFieldAddressKey(EntityType.AtprotoActor, [], 'did')]: profile.did,
+		[entityFieldAddressKey(EntityType.AtprotoActor, [], 'handle')]: profile.handle,
+	},
+})
+
+const atprotoActorListContinuation = ({
+	operation,
+	target,
+	nextCursor,
+}: {
+	operation: string
+	target: string
+	nextCursor?: string
+}) => (
+	nextCursor == null || nextCursor === '' ?
+		{
+			operation,
+			target,
+			terminal: true,
+		}
+	:
+		{
+			operation,
+			target,
+			terminal: false,
+			token: nextCursor,
+		}
+)
 
 
 const atprotoPostEngagementFromPostView = (postView: BskyAppViewPostView) => ({
@@ -178,6 +211,68 @@ export const bskyAppViewResolvers = (
 		defineResolver({
 			entityType: EntityType.AtprotoActor,
 			resolve: {
+				Did: {
+					resolve: async ({ did }, context) => {
+						const [binding, { getFollowers }] = await loadBindingAndQueries(context)
+						const response = await getFollowers(binding, {
+							actor: did,
+							limit: resolverContextRowLimit(context),
+							cursor: context.providerContinuationToken,
+						})
+						if (response.subject.did !== did)
+							throw new Error(`${source}: followers response subject mismatch for ${did}`)
+						return {
+							rows: response.actors.map(atprotoActorReference),
+							nextCursor: response.cursor,
+						}
+					},
+				},
+			},
+		})({
+				$$followers: {
+					select: (snapshot) => snapshot.rows,
+					continuation: (snapshot) => atprotoActorListContinuation({
+						operation: 'followers',
+						target: 'appview',
+						nextCursor: snapshot.nextCursor,
+					}),
+				},
+			}),
+
+		defineResolver({
+			entityType: EntityType.AtprotoActor,
+			resolve: {
+				Did: {
+					resolve: async ({ did }, context) => {
+						const [binding, { getFollows }] = await loadBindingAndQueries(context)
+						const response = await getFollows(binding, {
+							actor: did,
+							limit: resolverContextRowLimit(context),
+							cursor: context.providerContinuationToken,
+						})
+						if (response.subject.did !== did)
+							throw new Error(`${source}: follows response subject mismatch for ${did}`)
+						return {
+							rows: response.actors.map(atprotoActorReference),
+							nextCursor: response.cursor,
+						}
+					},
+				},
+			},
+		})({
+				$$follows: {
+					select: (snapshot) => snapshot.rows,
+					continuation: (snapshot) => atprotoActorListContinuation({
+						operation: 'follows',
+						target: 'appview',
+						nextCursor: snapshot.nextCursor,
+					}),
+				},
+			}),
+
+		defineResolver({
+			entityType: EntityType.AtprotoActor,
+			resolve: {
 				Handle: {
 					resolve: async ({ handle }, context) => {
 						const [binding, { resolveHandle }] = await loadBindingAndQueries(context)
@@ -191,6 +286,68 @@ export const bskyAppViewResolvers = (
 		})({
 				did: (actor) => actor.did,
 				handle: (actor) => actor.handle,
+			}),
+
+		defineResolver({
+			entityType: EntityType.AtprotoPost,
+			resolve: {
+				Uri: {
+					resolve: async ({ uri }, context) => {
+						const [binding, { getLikes }] = await loadBindingAndQueries(context)
+						const response = await getLikes(binding, {
+							uri,
+							limit: resolverContextRowLimit(context),
+							cursor: context.providerContinuationToken,
+						})
+						if (response.uri !== uri)
+							throw new Error(`${source}: likes response subject mismatch for ${uri}`)
+						return {
+							rows: response.likes.map(({ actor }) => atprotoActorReference(actor)),
+							nextCursor: response.cursor,
+						}
+					},
+				},
+			},
+		})({
+				$$likers: {
+					select: (snapshot) => snapshot.rows,
+					continuation: (snapshot) => atprotoActorListContinuation({
+						operation: 'likes',
+						target: 'appview',
+						nextCursor: snapshot.nextCursor,
+					}),
+				},
+			}),
+
+		defineResolver({
+			entityType: EntityType.AtprotoPost,
+			resolve: {
+				Uri: {
+					resolve: async ({ uri }, context) => {
+						const [binding, { getRepostedBy }] = await loadBindingAndQueries(context)
+						const response = await getRepostedBy(binding, {
+							uri,
+							limit: resolverContextRowLimit(context),
+							cursor: context.providerContinuationToken,
+						})
+						if (response.uri !== uri)
+							throw new Error(`${source}: reposted-by response subject mismatch for ${uri}`)
+						return {
+							rows: response.repostedBy.map(atprotoActorReference),
+							nextCursor: response.cursor,
+						}
+					},
+				},
+			},
+		})({
+				$$reposters: {
+					select: (snapshot) => snapshot.rows,
+					continuation: (snapshot) => atprotoActorListContinuation({
+						operation: 'reposted-by',
+						target: 'appview',
+						nextCursor: snapshot.nextCursor,
+					}),
+				},
 			}),
 
 		defineResolver({

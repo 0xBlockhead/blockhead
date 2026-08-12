@@ -3,8 +3,11 @@ import { firstHttpUrlForBinding, sourceGetJson } from '$/sources/_runtime/http.t
 import type {
 	AtprotoIdentityResolveHandleResponse,
 	BskyAppViewGetAuthorFeedResponse,
+	BskyAppViewActorListResponse,
+	BskyAppViewGetLikesResponse,
 	BskyAppViewGetPostThreadResponse,
 	BskyAppViewGetPostsResponse,
+	BskyAppViewGetRepostedByResponse,
 	BskyAppViewProfile,
 	BskyAppViewSearchActorsResponse,
 	BskyAppViewSearchActorsTypeaheadResponse,
@@ -13,8 +16,12 @@ import type {
 import {
 	atprotoIdentityResolveHandleResponseWire,
 	bskyAppViewGetAuthorFeedResponseWire,
+	bskyAppViewFollowersResponseWire,
+	bskyAppViewFollowsResponseWire,
+	bskyAppViewGetLikesResponseWire,
 	bskyAppViewGetPostThreadResponseWire,
 	bskyAppViewGetPostsResponseWire,
+	bskyAppViewGetRepostedByResponseWire,
 	bskyAppViewProfileWireAssert,
 	bskyAppViewSearchActorsResponseWire,
 	bskyAppViewSearchActorsTypeaheadResponseWire,
@@ -136,6 +143,116 @@ export const bskyAppViewXrpc = (binding: SourceBinding) => {
 				)
 			)
 		),
+		getFollowers: async ({
+			actor,
+			limit = 50,
+			cursor,
+		}: {
+			actor: string
+			limit?: number
+			cursor?: string
+		}) => {
+			const response = assertEnvelope(
+				'followers',
+				bskyAppViewFollowersResponseWire,
+				await get<BskyAppViewActorListResponse>(
+					'/app.bsky.graph.getFollowers',
+					[
+						['actor', actor],
+						['limit', limit],
+						['cursor', cursor == null || cursor === '' ? undefined : cursor],
+					]
+				)
+			)
+			if (actor.startsWith('did:') && response.subject.did !== actor)
+				throw new Error('BskyAppView_Xrpc: followers response subject mismatch')
+
+			return response
+		},
+		getFollows: async ({
+			actor,
+			limit = 50,
+			cursor,
+		}: {
+			actor: string
+			limit?: number
+			cursor?: string
+		}) => {
+			const response = assertEnvelope(
+				'follows',
+				bskyAppViewFollowsResponseWire,
+				await get<BskyAppViewActorListResponse>(
+					'/app.bsky.graph.getFollows',
+					[
+						['actor', actor],
+						['limit', limit],
+						['cursor', cursor == null || cursor === '' ? undefined : cursor],
+					]
+				)
+			)
+			if (actor.startsWith('did:') && response.subject.did !== actor)
+				throw new Error('BskyAppView_Xrpc: follows response subject mismatch')
+
+			return response
+		},
+		getLikes: async ({
+			uri,
+			cid,
+			limit = 50,
+			cursor,
+		}: {
+			uri: string
+			cid?: string
+			limit?: number
+			cursor?: string
+		}) => {
+			const response = assertEnvelope(
+				'likes',
+				bskyAppViewGetLikesResponseWire,
+				await get<BskyAppViewGetLikesResponse>(
+					'/app.bsky.feed.getLikes',
+					[
+						['uri', uri],
+						['cid', cid],
+						['limit', limit],
+						['cursor', cursor == null || cursor === '' ? undefined : cursor],
+					]
+				)
+			)
+			if (response.uri !== uri || (cid != null && response.cid !== cid))
+				throw new Error('BskyAppView_Xrpc: likes response subject mismatch')
+
+			return response
+		},
+		getRepostedBy: async ({
+			uri,
+			cid,
+			limit = 50,
+			cursor,
+		}: {
+			uri: string
+			cid?: string
+			limit?: number
+			cursor?: string
+		}) => {
+			const response = assertEnvelope(
+				'reposted-by',
+				bskyAppViewGetRepostedByResponseWire,
+				await get<BskyAppViewGetRepostedByResponse>(
+					'/app.bsky.feed.getRepostedBy',
+					[
+						['uri', uri],
+						['cid', cid],
+						['limit', limit],
+						['cursor', cursor == null || cursor === '' ? undefined : cursor],
+					]
+				)
+			)
+			if (response.uri !== uri || (cid != null && response.cid !== cid))
+				throw new Error('BskyAppView_Xrpc: reposted-by response subject mismatch')
+
+			return response
+		},
 		searchActorsTypeahead: async ({
 			limit = 25,
 			q,

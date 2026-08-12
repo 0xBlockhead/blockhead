@@ -66,6 +66,22 @@ export default entity({
 			Source.Atproto_BskySocial_Xrpc,
 		],
 	},
+	$$likers: {
+		entityType: EntityType.AtprotoActor,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Atproto_Xrpc,
+			Source.Atproto_BskySocial_Xrpc,
+		],
+	},
+	$$reposters: {
+		entityType: EntityType.AtprotoActor,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Atproto_Xrpc,
+			Source.Atproto_BskySocial_Xrpc,
+		],
+	},
 })({
 	selectors: {
 		Uri: [
