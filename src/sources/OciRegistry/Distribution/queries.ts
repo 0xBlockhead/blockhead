@@ -86,6 +86,28 @@ const assertManifest = (value: JsonValue): OciManifest => {
 	}
 }
 
+const verifyManifestDigest = async (
+	body: ArrayBuffer,
+	digest: string
+) => {
+	const separatorIndex = digest.indexOf(':')
+	const algorithm = digest.slice(0, separatorIndex)
+	const expectedHex = digest.slice(separatorIndex + 1)
+	const subtleAlgorithm = (
+		algorithm === 'sha256' ? 'SHA-256'
+		: algorithm === 'sha512' ? 'SHA-512'
+		: undefined
+	)
+	if (subtleAlgorithm == null)
+		throw new Error(`OciRegistry_Distribution: unsupported manifest digest algorithm ${algorithm}`)
+
+	const actualHex = [...new Uint8Array(await globalThis.crypto.subtle.digest(subtleAlgorithm, body))]
+		.map((byte) => byte.toString(16).padStart(2, '0'))
+		.join('')
+	if (actualHex !== expectedHex)
+		throw new Error('OciRegistry_Distribution: manifest body does not match its content digest')
+}
+
 const bearerAuthorization = async (response: Response) => {
 	const challenge = response.headers.get('WWW-Authenticate')
 	if (challenge == null || !/^Bearer\s/i.test(challenge))
@@ -150,12 +172,15 @@ export const getManifest = async ({
 	if (!response.ok)
 		throw new Error(`OciRegistry_Distribution: manifest request failed: ${response.status} ${response.statusText}`)
 
+	const manifestResponse = response.clone()
 	const manifest = assertManifest(await response.json<JsonValue>())
 	const contentDigest = response.headers.get('Docker-Content-Digest')?.toLowerCase()
 	if (ociDigestWire.allows(reference)) {
 		if (contentDigest == null || contentDigest.toLowerCase() !== reference)
 			throw new Error('OciRegistry_Distribution: digest reference response does not prove the requested manifest')
 	}
+	if (contentDigest != null)
+		await verifyManifestDigest(await manifestResponse.arrayBuffer(), contentDigest)
 
 	return {
 		...manifest,

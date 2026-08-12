@@ -18,6 +18,15 @@ const {
 
 const digest = `sha256:${'a'.repeat(64)}`
 
+const digestForBody = async (body: string) => (
+	`sha256:${[...new Uint8Array(await globalThis.crypto.subtle.digest(
+		'SHA-256',
+		new TextEncoder().encode(body)
+	))]
+		.map((byte) => byte.toString(16).padStart(2, '0'))
+		.join('')}`
+)
+
 describe('OCI distribution manifest transport', () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
@@ -106,6 +115,35 @@ describe('OCI distribution manifest transport', () => {
 	})
 
 	it('requires Docker-Content-Digest evidence when the selector is a digest', async () => {
+		const body = JSON.stringify({
+			schemaVersion: 2,
+			config: {
+				mediaType: 'application/vnd.oci.image.config.v1+json',
+				digest,
+				size: 42,
+			},
+			layers: [],
+		})
+		const contentDigest = await digestForBody(body)
+		sourceFetch.mockResolvedValueOnce(new Response(body, {
+			status: 200,
+			headers: {
+				'Docker-Content-Digest': contentDigest,
+			},
+		}))
+
+		await expect(getManifest({
+			registry: 'ghcr.io',
+			repository: 'openai/blockhead',
+			reference: contentDigest,
+		})).resolves.toMatchObject({
+			config: {
+				digest,
+			},
+		})
+	})
+
+	it('rejects a manifest whose bytes do not match the registry content digest', async () => {
 		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
 			schemaVersion: 2,
 			config: {
@@ -124,12 +162,31 @@ describe('OCI distribution manifest transport', () => {
 		await expect(getManifest({
 			registry: 'ghcr.io',
 			repository: 'openai/blockhead',
-			reference: digest,
-		})).resolves.toMatchObject({
+			reference: 'latest',
+		})).rejects.toThrow('manifest body does not match its content digest')
+	})
+
+	it('fails closed on a content digest algorithm the runtime cannot verify', async () => {
+		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+			schemaVersion: 2,
 			config: {
+				mediaType: 'application/vnd.oci.image.config.v1+json',
 				digest,
+				size: 42,
 			},
-		})
+			layers: [],
+		}), {
+			status: 200,
+			headers: {
+				'Docker-Content-Digest': `blake3:${'a'.repeat(64)}`,
+			},
+		}))
+
+		await expect(getManifest({
+			registry: 'ghcr.io',
+			repository: 'openai/blockhead',
+			reference: 'latest',
+		})).rejects.toThrow('unsupported manifest digest algorithm blake3')
 	})
 
 	it('follows a standard anonymous bearer challenge before reading a public manifest', async () => {
