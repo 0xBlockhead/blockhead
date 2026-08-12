@@ -56,6 +56,9 @@ const evmNetworkAccountResolver = eulerRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.EvmNetworkAccount
 	&& '$$eulerEvkVaultPositions' in resolver.projections
 ))
+const eulerEvkVaultPositionResolver = eulerRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.EulerEvkVaultPosition
+))
 
 const baseVaultAddress = '0x00011d9A1EB3d7278b8DF2391e2E32f6f9bcF293'
 
@@ -117,7 +120,7 @@ describe('Euler Rest resolver module', () => {
 			context
 		)
 
-		expect(evmNetworkAccountResolver.projections.$$eulerEvkVaultPositions(account)).toEqual([
+		expect(evmNetworkAccountResolver.projections.$$eulerEvkVaultPositions.select(account)).toEqual([
 			{
 				[EntityMetaKey.Selector]: {
 					$account: accountSelector,
@@ -128,6 +131,7 @@ describe('Euler Rest resolver module', () => {
 				},
 			},
 		])
+		expect(evmNetworkAccountResolver.projections.$$eulerEvkVaultPositions.resolveCount(account)).toBe(1)
 		expect(getAccountPositions).toHaveBeenCalledWith({
 			chainId: 1,
 			account: accountSelector.$actor.address,
@@ -145,7 +149,98 @@ describe('Euler Rest resolver module', () => {
 				address: '0x0000000000000000000000000000000000000001',
 			},
 		}, context)
-		expect(evmNetworkAccountResolver.projections.$$eulerEvkVaultPositions(account)).toEqual([])
+		expect(evmNetworkAccountResolver.projections.$$eulerEvkVaultPositions.select(account)).toEqual([])
+		expect(evmNetworkAccountResolver.projections.$$eulerEvkVaultPositions.resolveCount(account)).toBe(0)
+	})
+
+	it('resolves an account vault position with its native collateral and controller lifecycle facts', async () => {
+		if (eulerEvkVaultPositionResolver == null)
+			throw new Error('missing Euler EVK position resolver')
+
+		const accountSelector = {
+			$network: baseNetwork,
+			$actor: {
+				address: '0x0000000000000000000000000000000000000001',
+			},
+		}
+		const vaultAddress = '0x01864ae3c7d5f507cc4c24ca67b4cabbdda37ecd'
+		getAccountPositions.mockResolvedValue([{
+			chainId: 1,
+			account: accountSelector.$actor.address,
+			vaultAddress,
+			vaultType: 'evk',
+			assetAddress: '0x1111111111111111111111111111111111111111',
+			shares: '600',
+			assets: '627',
+			borrowed: '150',
+			assetsValue: '627',
+			debtValue: '150',
+			isCollateral: true,
+			isController: true,
+			balanceForwarderEnabled: false,
+		}])
+
+		const position = await eulerEvkVaultPositionResolver.resolve.AccountVault.resolve({
+			$account: accountSelector,
+			$vault: {
+				$network: baseNetwork,
+				vaultAddress,
+			},
+		}, context)
+
+		expect(eulerEvkVaultPositionResolver.projections.$account(position)).toEqual({
+			[EntityMetaKey.Selector]: accountSelector,
+		})
+		expect(eulerEvkVaultPositionResolver.projections.$vault(position)).toEqual({
+			[EntityMetaKey.Selector]: {
+				$network: baseNetwork,
+				vaultAddress,
+			},
+		})
+		expect(eulerEvkVaultPositionResolver.projections.shares(position)).toBe('600')
+		expect(eulerEvkVaultPositionResolver.projections.assets(position)).toBe('627')
+		expect(eulerEvkVaultPositionResolver.projections.borrowed(position)).toBe('150')
+		expect(eulerEvkVaultPositionResolver.projections.isCollateral(position)).toBe(true)
+		expect(eulerEvkVaultPositionResolver.projections.isController(position)).toBe(true)
+		expect(eulerEvkVaultPositionResolver.projections.balanceForwarderEnabled(position)).toBe(false)
+	})
+
+	it('keeps Euler account collection counts authoritative when a row limit windows positions', async () => {
+		if (evmNetworkAccountResolver == null)
+			throw new Error('missing Euler account resolver')
+
+		getAccountPositions.mockResolvedValue([
+			{
+				chainId: 1,
+				account: '0x0000000000000000000000000000000000000001',
+				vaultAddress: '0x01864ae3c7d5f507cc4c24ca67b4cabbdda37ecd',
+				vaultType: 'evk',
+				assets: '627',
+				borrowed: '0',
+			},
+			{
+				chainId: 1,
+				account: '0x0000000000000000000000000000000000000001',
+				vaultAddress: '0x00011d9a1eb3d7278b8df2391e2e32f6f9bcf293',
+				vaultType: 'evk',
+				assets: '0',
+				borrowed: '150',
+			},
+		])
+		const account = await evmNetworkAccountResolver.resolve.EvmNetworkEvmAccount.resolve({
+			$network: baseNetwork,
+			$actor: {
+				address: '0x0000000000000000000000000000000000000001',
+			},
+		}, {
+			...context,
+			pagination: {
+				limit: 1,
+			},
+		})
+
+		expect(evmNetworkAccountResolver.projections.$$eulerEvkVaultPositions.select(account)).toHaveLength(1)
+		expect(evmNetworkAccountResolver.projections.$$eulerEvkVaultPositions.resolveCount(account)).toBe(2)
 	})
 
 	it('rejects unsupported Euler chains on account positions before transport', async () => {

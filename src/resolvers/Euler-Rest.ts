@@ -31,6 +31,19 @@ const eip155ChainId = (network: NetworkId) => {
 	return chainId
 }
 
+const eulerPositionForVault = (
+	positions: EulerAccountPosition[],
+	vaultAddress: `0x${string}`
+) => {
+	const positionsForVault = positions.filter((position) => position.vaultAddress === vaultAddress)
+	if (positionsForVault.length === 0)
+		throw new Error(`${Source.Euler_Rest}: vault position not found ${vaultAddress}`)
+	if (positionsForVault.length > 1)
+		throw new Error(`${Source.Euler_Rest}: ambiguous vault position ${vaultAddress}; the source exposes multiple asset or sub-account rows for this AccountVault selector`)
+
+	return positionsForVault[0]
+}
+
 const mapEulerEvkVaultSnapshot = (
 	network: NetworkId,
 	vault: EulerEvkVaultDetail
@@ -168,11 +181,12 @@ export default {
 							$actor,
 							$network,
 						}
-						return (
-							(await getAccountPositions({
+						const positions = await getAccountPositions({
 								chainId,
 								account: $actor.address,
-							}))
+							})
+						return {
+							positions: positions
 								.slice(0, resolverContextRowLimit(context))
 								.map((position) => ({
 									[EntityMetaKey.Selector]: {
@@ -182,13 +196,17 @@ export default {
 											vaultAddress: position.vaultAddress,
 										},
 									},
-								}))
-						)
+								})),
+							positionCount: positions.length,
+						}
 					},
 				},
 			},
 		})({
-			$$eulerEvkVaultPositions: (positions) => positions,
+			$$eulerEvkVaultPositions: {
+				select: (snapshot) => snapshot.positions,
+				resolveCount: (snapshot) => snapshot.positionCount,
+			},
 		}),
 
 		defineResolver({
@@ -209,15 +227,13 @@ export default {
 							throw new Error(`${Source.Euler_Rest}: invalid vault address ${$vault.vaultAddress}`)
 
 						const { getAccountPositions } = await import('$/sources/Euler/Rest/queries.ts')
-						const position = (
+						const position = eulerPositionForVault(
 							await getAccountPositions({
 								chainId,
 								account: $account.$actor.address,
-							})
+							}),
+							normalizedVaultAddress
 						)
-							.find((candidate) => candidate.vaultAddress === normalizedVaultAddress)
-						if (position == null)
-							throw new Error(`${Source.Euler_Rest}: vault position not found ${normalizedVaultAddress}`)
 
 						return mapEulerEvkVaultPositionSnapshot(
 							$account,
