@@ -38,6 +38,9 @@ import {
 	getTopic,
 	getTopicMessage,
 	getTopicMessages,
+	getToken,
+	getTokenNft,
+	getTokenNfts,
 	getTransactionByIdNonce,
 	getTransactions,
 } from '$/sources/HederaMirrorNode/Rest/queries.ts'
@@ -55,6 +58,7 @@ import type {
 	HederaMirrorNodeTopic,
 	HederaMirrorNodeTopicMessage,
 	HederaMirrorNodeTopicMessages,
+	HederaMirrorNodeToken,
 	HederaMirrorNodeTokenAllowances,
 	HederaMirrorNodeTransaction,
 	HederaMirrorNodeTransactions,
@@ -236,6 +240,42 @@ const topicMessageFixture = {
 	sequence_number: '7',
 	topic_id: '0.0.700',
 } satisfies HederaMirrorNodeTopicMessage
+
+const tokenFixture = {
+	admin_key: {
+		_type: 'ED25519',
+		key: 'admin-key',
+	},
+	auto_renew_account: '0.0.98',
+	auto_renew_period: 7_776_000,
+	created_timestamp: '1710000000.000000001',
+	custom_fees: null,
+	decimals: 8,
+	deleted: false,
+	expiry_timestamp: null,
+	fee_schedule_key: null,
+	freeze_key: null,
+	kyc_key: null,
+	max_supply: '9007199254740993',
+	modified_timestamp: '1710000002.000000003',
+	name: 'Example token',
+	pause_key: null,
+	pause_status: 'UNPAUSED',
+	supply_key: null,
+	supply_type: 'FINITE',
+	symbol: 'EXAMPLE',
+	token_id: '0.0.700',
+	total_supply: '9007199254740992',
+	treasury_account_id: '0.0.98',
+	type: 'NON_FUNGIBLE_UNIQUE',
+	wipe_key: null,
+} satisfies HederaMirrorNodeToken
+
+const tokenNftFixture = {
+	...nftFixture,
+	serial_number: '7',
+	token_id: '0.0.700',
+}
 
 const binding = bindings[Source.HederaMirrorNode_Rest][0]
 
@@ -442,6 +482,147 @@ describe('Hedera Mirror Node topic lifecycle', () => {
 
 		await expect(getTopic('0.0.700')).rejects.toThrow('topic response does not match request')
 		await expect(getTopicMessage('0.0.700', 7n)).rejects.toThrow('topic message response does not match request')
+	})
+})
+
+describe('Hedera Mirror Node token and NFT hierarchy', () => {
+	beforeEach(() => {
+		sourceFetch.mockReset()
+	})
+
+	it('uses native token detail, token-owned NFTs, and direct NFT routes', async () => {
+		sourceFetch
+			.mockResolvedValueOnce(new Response(JSON.stringify(tokenFixture)))
+			.mockResolvedValueOnce(new Response(JSON.stringify({
+				nfts: [tokenNftFixture],
+				links: {
+					next: '/api/v1/tokens/0.0.700/nfts?limit=1&order=desc&serialnumber=lt%3A7',
+				},
+			} satisfies HederaMirrorNodeNfts)))
+			.mockResolvedValueOnce(new Response(JSON.stringify(tokenNftFixture)))
+
+		await expect(getToken('0.0.700')).resolves.toEqual(tokenFixture)
+		await expect(getTokenNfts('0.0.700', 1)).resolves.toEqual({
+			nfts: [tokenNftFixture],
+			links: {
+				next: '/api/v1/tokens/0.0.700/nfts?limit=1&order=desc&serialnumber=lt%3A7',
+			},
+		})
+		await expect(getTokenNft('0.0.700', 7n)).resolves.toEqual(tokenNftFixture)
+		expect(sourceFetch.mock.calls.map(([, url]) => url)).toEqual([
+			'https://mainnet-public.mirrornode.hedera.com/api/v1/tokens/0.0.700',
+			'https://mainnet-public.mirrornode.hedera.com/api/v1/tokens/0.0.700/nfts?limit=1&order=desc',
+			'https://mainnet-public.mirrornode.hedera.com/api/v1/tokens/0.0.700/nfts/7',
+		])
+	})
+
+	it('materializes token observations, NFT hierarchy, and direct NFT detail', async () => {
+		const tokenResolver = hederaMirrorNode.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.HederaToken
+			&& '$$timestamps' in candidate.projections
+		))
+		const tokenNftsResolver = hederaMirrorNode.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.HederaToken
+			&& '$$nfts' in candidate.projections
+		))
+		const nftResolver = hederaMirrorNode.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.HederaNft
+			&& 'metadata' in candidate.projections
+		))
+		if (
+			tokenResolver == null
+			|| tokenNftsResolver == null
+			|| nftResolver == null
+		)
+			throw new Error('Hedera Mirror Node token resolvers are missing')
+
+		sourceFetch
+			.mockResolvedValueOnce(new Response(JSON.stringify(tokenFixture)))
+			.mockResolvedValueOnce(new Response(JSON.stringify({
+				nfts: [tokenNftFixture],
+				links: {
+					next: '/api/v1/tokens/0.0.700/nfts?limit=1&order=desc&serialnumber=lt%3A7',
+				},
+			} satisfies HederaMirrorNodeNfts)))
+			.mockResolvedValueOnce(new Response(JSON.stringify(tokenNftFixture)))
+
+		const token = {
+			$network: network,
+			tokenId: '0.0.700',
+		}
+		const resolvedToken = await tokenResolver.resolve.NetworkTokenId?.resolve(token, context)
+		expect(tokenResolver.projections.$$timestamps?.(resolvedToken)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$token: token,
+					timestampMs: 1_710_000_002_000,
+					source: Source.HederaMirrorNode_Rest,
+				},
+				[EntityMetaKey.Fields]: expect.objectContaining({
+					[entityFieldAddressKey(EntityType.HederaToken_Timestamp, [], 'name')]: 'Example token',
+					[entityFieldAddressKey(EntityType.HederaToken_Timestamp, [], 'totalSupply')]: 9_007_199_254_740_992n,
+					[entityFieldAddressKey(EntityType.HederaToken_Timestamp, [], 'maxSupply')]: 9_007_199_254_740_993n,
+					[entityFieldAddressKey(EntityType.HederaToken_Timestamp, [], 'paused')]: false,
+				}),
+			},
+		])
+
+		const page = await tokenNftsResolver.resolve.NetworkTokenId?.resolve(token, {
+			...context,
+			pagination: {
+				limit: 1,
+			},
+		})
+		expect(tokenNftsResolver.projections.$$nfts.select(page, token, context)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$token: token,
+					serialNumber: 7n,
+				},
+				[EntityMetaKey.Fields]: expect.objectContaining({
+					[entityFieldAddressKey(EntityType.HederaNft, [], 'metadata')]: 'VGhpcyBpcyBhIHRlc3QgTkZU',
+					[entityFieldAddressKey(EntityType.HederaNft, [], '$$timestamps')]: [
+						expect.objectContaining({
+							[EntityMetaKey.Fields]: expect.objectContaining({
+								[entityFieldAddressKey(EntityType.HederaNft_Timestamp, [], 'ownerAccountId')]: '0.0.98',
+							}),
+						}),
+					],
+				}),
+			},
+		])
+		expect(tokenNftsResolver.projections.$$nfts.continuation(page, token, {
+			...context,
+			pagination: {
+				limit: 1,
+			},
+		})).toMatchObject({
+			operation: 'token-nfts',
+			target: '0.0.700',
+			terminal: false,
+		})
+
+		await expect(nftResolver.resolve.TokenSerialNumber?.resolve({
+			$token: token,
+			serialNumber: 7n,
+		}, context)).resolves.toEqual(expect.objectContaining({
+			[entityFieldAddressKey(EntityType.HederaNft, [], 'metadata')]: 'VGhpcyBpcyBhIHRlc3QgTkZU',
+		}))
+	})
+
+	it('rejects substituted token and NFT identities before projection', async () => {
+		sourceFetch
+			.mockResolvedValueOnce(new Response(JSON.stringify({
+				...tokenFixture,
+				token_id: '0.0.701',
+			})))
+			.mockResolvedValueOnce(new Response(JSON.stringify({
+				...tokenNftFixture,
+				serial_number: '8',
+			})))
+
+		await expect(getToken('0.0.700')).rejects.toThrow('token response does not match request')
+		await expect(getTokenNft('0.0.700', 7n)).rejects.toThrow('token NFT response does not match request')
 	})
 })
 

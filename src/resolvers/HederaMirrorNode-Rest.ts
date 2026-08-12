@@ -18,8 +18,10 @@ import type {
 	HederaMirrorNodeNetworkSupply,
 	HederaMirrorNodeNode,
 	HederaMirrorNodeSchedule,
+	HederaMirrorNodeNft,
 	HederaMirrorNodeTopic,
 	HederaMirrorNodeTopicMessage,
+	HederaMirrorNodeToken,
 	HederaMirrorNodeTransaction,
 } from '$/sources/HederaMirrorNode/Rest/types.ts'
 
@@ -743,6 +745,150 @@ const topicMessageFields = (
 			...(message.chunk_info != null && {
 				[entityFieldAddressKey(EntityType.HederaTopicMessage, [], 'chunkInfo')]: message.chunk_info,
 			}),
+		},
+	}
+}
+
+const tokenSnapshot = (
+	network: EntitySelector<typeof schema, EntityType.Network>,
+	token: HederaMirrorNodeToken
+) => {
+	const tokenId = hederaEntityId(token.token_id ?? '', 'token ID')
+	const tokenTimestampMs = timestampMs(token.modified_timestamp, 'token modification timestamp')
+	timestampMs(token.created_timestamp, 'token creation timestamp')
+	if (token.decimals != null)
+		nonnegativeSafeInteger(token.decimals, 'token decimals')
+	if (token.max_supply != null)
+		nonnegativeBigInt(token.max_supply, 'token maximum supply')
+	nonnegativeBigInt(token.total_supply, 'token total supply')
+	if (token.treasury_account_id != null)
+		hederaEntityId(token.treasury_account_id, 'token treasury account')
+	if (token.auto_renew_account != null)
+		hederaEntityId(token.auto_renew_account, 'token auto renew account')
+	if (token.auto_renew_period != null)
+		nonnegativeSafeInteger(token.auto_renew_period, 'token auto renew period')
+	if (token.expiry_timestamp != null)
+		timestampMs(token.expiry_timestamp, 'token expiry timestamp')
+	if (token.type.length === 0)
+		throw new Error('HederaMirrorNode_Rest: malformed token type')
+
+	const tokenSelector = {
+		$network: network,
+		tokenId,
+	}
+	return {
+		tokenId,
+		tokenType: token.type,
+		...(token.supply_type != null && {
+			supplyType: token.supply_type,
+		}),
+		...(token.decimals != null && {
+			decimals: token.decimals,
+		}),
+		$$timestamps: [{
+			[EntityMetaKey.Selector]: {
+				$token: tokenSelector,
+				timestampMs: tokenTimestampMs,
+				source: Source.HederaMirrorNode_Rest,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.HederaToken_Timestamp, [], 'name')]: token.name,
+				[entityFieldAddressKey(EntityType.HederaToken_Timestamp, [], 'symbol')]: token.symbol,
+				[entityFieldAddressKey(EntityType.HederaToken_Timestamp, [], 'totalSupply')]: nonnegativeBigInt(token.total_supply, 'token total supply'),
+				...(token.max_supply != null && {
+					[entityFieldAddressKey(EntityType.HederaToken_Timestamp, [], 'maxSupply')]: nonnegativeBigInt(token.max_supply, 'token maximum supply'),
+				}),
+				...(token.treasury_account_id != null && {
+					[entityFieldAddressKey(EntityType.HederaToken_Timestamp, [], 'treasuryAccount')]: token.treasury_account_id,
+				}),
+				...(token.supply_key != null && {
+					[entityFieldAddressKey(EntityType.HederaToken_Timestamp, [], 'supplyKey')]: token.supply_key,
+				}),
+				...(token.admin_key != null && {
+					[entityFieldAddressKey(EntityType.HederaToken_Timestamp, [], 'adminKey')]: token.admin_key,
+				}),
+				...(token.freeze_key != null && {
+					[entityFieldAddressKey(EntityType.HederaToken_Timestamp, [], 'freezeKey')]: token.freeze_key,
+				}),
+				...(token.wipe_key != null && {
+					[entityFieldAddressKey(EntityType.HederaToken_Timestamp, [], 'wipeKey')]: token.wipe_key,
+				}),
+				...(token.kyc_key != null && {
+					[entityFieldAddressKey(EntityType.HederaToken_Timestamp, [], 'kycKey')]: token.kyc_key,
+				}),
+				...(token.pause_key != null && {
+					[entityFieldAddressKey(EntityType.HederaToken_Timestamp, [], 'pauseKey')]: token.pause_key,
+				}),
+				...(token.fee_schedule_key != null && {
+					[entityFieldAddressKey(EntityType.HederaToken_Timestamp, [], 'feeScheduleKey')]: token.fee_schedule_key,
+				}),
+				...(token.deleted != null && {
+					[entityFieldAddressKey(EntityType.HederaToken_Timestamp, [], 'deleted')]: token.deleted,
+				}),
+				...(token.pause_status != null && {
+					[entityFieldAddressKey(EntityType.HederaToken_Timestamp, [], 'paused')]: token.pause_status === 'PAUSED',
+				}),
+				...(token.custom_fees != null && {
+					[entityFieldAddressKey(EntityType.HederaToken_Timestamp, [], 'customFees')]: token.custom_fees,
+				}),
+				...(token.expiry_timestamp != null && {
+					[entityFieldAddressKey(EntityType.HederaToken_Timestamp, [], 'expiryTimestamp')]: token.expiry_timestamp,
+				}),
+			},
+		}],
+	}
+}
+
+const nftFields = (
+	token: {
+		$network: EntitySelector<typeof schema, EntityType.Network>
+		tokenId: string
+	},
+	nft: HederaMirrorNodeNft
+) => {
+	if (nft.token_id !== token.tokenId)
+		throw new Error('HederaMirrorNode_Rest: NFT does not match token subject')
+	const serialNumber = nonnegativeBigInt(nft.serial_number, 'NFT serial number')
+	const modifiedTimestampMs = timestampMs(nft.modified_timestamp, 'NFT modified timestamp')
+	timestampMs(nft.created_timestamp, 'NFT creation timestamp')
+	hederaEntityId(nft.account_id, 'NFT owner account')
+	if (nft.delegating_spender != null)
+		hederaEntityId(nft.delegating_spender, 'NFT delegating spender')
+	if (nft.spender_id != null)
+		hederaEntityId(nft.spender_id, 'NFT spender')
+
+	const nftSelector = {
+		$token: token,
+		serialNumber,
+	}
+	return {
+		[EntityMetaKey.Selector]: nftSelector,
+		[EntityMetaKey.Fields]: {
+			...(nft.metadata.length > 0 && {
+				[entityFieldAddressKey(EntityType.HederaNft, [], 'metadata')]: nft.metadata,
+			}),
+			[entityFieldAddressKey(EntityType.HederaNft, [], 'createdTimestamp')]: nft.created_timestamp,
+			[entityFieldAddressKey(EntityType.HederaNft, [], '$$timestamps')]: [{
+				[EntityMetaKey.Selector]: {
+					$nft: nftSelector,
+					timestampMs: modifiedTimestampMs,
+					source: Source.HederaMirrorNode_Rest,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.HederaNft_Timestamp, [], '$owner')]: {
+						[EntityMetaKey.Selector]: {
+							$network: token.$network,
+							accountId: nft.account_id,
+						},
+					},
+					[entityFieldAddressKey(EntityType.HederaNft_Timestamp, [], 'ownerAccountId')]: nft.account_id,
+					[entityFieldAddressKey(EntityType.HederaNft_Timestamp, [], 'deleted')]: nft.deleted,
+					...(nft.spender_id != null && {
+						[entityFieldAddressKey(EntityType.HederaNft_Timestamp, [], 'spenderAccountId')]: nft.spender_id,
+					}),
+					[entityFieldAddressKey(EntityType.HederaNft_Timestamp, [], 'modifiedTimestamp')]: nft.modified_timestamp,
+				},
+			}],
 		},
 	}
 }
@@ -1983,6 +2129,155 @@ export default {
 			payerAccount: (message) => message[entityFieldAddressKey(EntityType.HederaTopicMessage, [], 'payerAccount')],
 			message: (message) => message[entityFieldAddressKey(EntityType.HederaTopicMessage, [], 'message')],
 			chunkInfo: (message) => message[entityFieldAddressKey(EntityType.HederaTopicMessage, [], 'chunkInfo')],
+		}),
+
+		defineResolver({
+			entityType: EntityType.HederaToken,
+			resolve: {
+				NetworkTokenId: {
+					resolve: async ({ $network, tokenId }) => {
+						assertHederaMainnet($network)
+						const { getToken } = await import('$/sources/HederaMirrorNode/Rest/queries.ts')
+						return tokenSnapshot(
+							$network,
+							await getToken(tokenId)
+						)
+					},
+				},
+			},
+		})({
+			tokenType: (token) => token.tokenType,
+			supplyType: (token) => token.supplyType,
+			decimals: (token) => token.decimals,
+			$$timestamps: (token) => token.$$timestamps,
+		}),
+
+		defineResolver({
+			entityType: EntityType.HederaToken,
+			resolve: {
+				NetworkTokenId: {
+					resolve: async (token, context) => {
+						assertHederaMainnet(token.$network)
+						const { getTokenNfts } = await import('$/sources/HederaMirrorNode/Rest/queries.ts')
+						return getTokenNfts(
+							token.tokenId,
+							Math.min(resolverContextRowLimit(context), 100),
+							context.providerContinuationToken
+						)
+					},
+				},
+			},
+		})({
+			$$nfts: {
+				select: (page, token) => page.nfts.map((nft) => (
+					nftFields(token, nft)
+				)),
+				continuation: (page, token, context) => hederaContinuation(
+					page.links.next,
+					context.providerContinuationToken,
+					'token-nfts',
+					token.tokenId
+				),
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.HederaToken_Timestamp,
+			resolve: {
+				TokenTimestampMsSource: {
+					resolve: async ({
+						$token,
+						timestampMs: requestedTimestampMs,
+						source,
+					}) => {
+						assertHederaMainnet($token.$network)
+						assertHederaMirrorSource(source)
+						const { getToken } = await import('$/sources/HederaMirrorNode/Rest/queries.ts')
+						const snapshot = tokenSnapshot(
+							$token.$network,
+							await getToken($token.tokenId)
+						)
+						const observation = snapshot.$$timestamps[0]
+						if (observation[EntityMetaKey.Selector].timestampMs !== requestedTimestampMs)
+							throw new Error('HederaMirrorNode_Rest: token observation clock mismatch')
+						return observation[EntityMetaKey.Fields]
+					},
+				},
+			},
+		})({
+			name: (observation) => observation[entityFieldAddressKey(EntityType.HederaToken_Timestamp, [], 'name')],
+			symbol: (observation) => observation[entityFieldAddressKey(EntityType.HederaToken_Timestamp, [], 'symbol')],
+			totalSupply: (observation) => observation[entityFieldAddressKey(EntityType.HederaToken_Timestamp, [], 'totalSupply')],
+			maxSupply: (observation) => observation[entityFieldAddressKey(EntityType.HederaToken_Timestamp, [], 'maxSupply')],
+			treasuryAccount: (observation) => observation[entityFieldAddressKey(EntityType.HederaToken_Timestamp, [], 'treasuryAccount')],
+			supplyKey: (observation) => observation[entityFieldAddressKey(EntityType.HederaToken_Timestamp, [], 'supplyKey')],
+			adminKey: (observation) => observation[entityFieldAddressKey(EntityType.HederaToken_Timestamp, [], 'adminKey')],
+			freezeKey: (observation) => observation[entityFieldAddressKey(EntityType.HederaToken_Timestamp, [], 'freezeKey')],
+			wipeKey: (observation) => observation[entityFieldAddressKey(EntityType.HederaToken_Timestamp, [], 'wipeKey')],
+			kycKey: (observation) => observation[entityFieldAddressKey(EntityType.HederaToken_Timestamp, [], 'kycKey')],
+			pauseKey: (observation) => observation[entityFieldAddressKey(EntityType.HederaToken_Timestamp, [], 'pauseKey')],
+			feeScheduleKey: (observation) => observation[entityFieldAddressKey(EntityType.HederaToken_Timestamp, [], 'feeScheduleKey')],
+			deleted: (observation) => observation[entityFieldAddressKey(EntityType.HederaToken_Timestamp, [], 'deleted')],
+			paused: (observation) => observation[entityFieldAddressKey(EntityType.HederaToken_Timestamp, [], 'paused')],
+			customFees: (observation) => observation[entityFieldAddressKey(EntityType.HederaToken_Timestamp, [], 'customFees')],
+			expiryTimestamp: (observation) => observation[entityFieldAddressKey(EntityType.HederaToken_Timestamp, [], 'expiryTimestamp')],
+		}),
+
+		defineResolver({
+			entityType: EntityType.HederaNft,
+			resolve: {
+				TokenSerialNumber: {
+					resolve: async ({ $token, serialNumber }) => {
+						assertHederaMainnet($token.$network)
+						const { getTokenNft } = await import('$/sources/HederaMirrorNode/Rest/queries.ts')
+						return nftFields(
+							$token,
+							await getTokenNft(
+								$token.tokenId,
+								serialNumber
+							)
+						)[EntityMetaKey.Fields]
+					},
+				},
+			},
+		})({
+			metadata: (nft) => nft[entityFieldAddressKey(EntityType.HederaNft, [], 'metadata')],
+			createdTimestamp: (nft) => nft[entityFieldAddressKey(EntityType.HederaNft, [], 'createdTimestamp')],
+			$$timestamps: (nft) => nft[entityFieldAddressKey(EntityType.HederaNft, [], '$$timestamps')],
+		}),
+
+		defineResolver({
+			entityType: EntityType.HederaNft_Timestamp,
+			resolve: {
+				NftTimestampMsSource: {
+					resolve: async ({
+						$nft,
+						timestampMs: requestedTimestampMs,
+						source,
+					}) => {
+						assertHederaMainnet($nft.$token.$network)
+						assertHederaMirrorSource(source)
+						const { getTokenNft } = await import('$/sources/HederaMirrorNode/Rest/queries.ts')
+						const snapshot = nftFields(
+							$nft.$token,
+							await getTokenNft(
+								$nft.$token.tokenId,
+								$nft.serialNumber
+							)
+						)
+						const observation = snapshot[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.HederaNft, [], '$$timestamps')][0]
+						if (observation[EntityMetaKey.Selector].timestampMs !== requestedTimestampMs)
+							throw new Error('HederaMirrorNode_Rest: NFT observation clock mismatch')
+						return observation[EntityMetaKey.Fields]
+					},
+				},
+			},
+		})({
+			$owner: (observation) => observation[entityFieldAddressKey(EntityType.HederaNft_Timestamp, [], '$owner')],
+			ownerAccountId: (observation) => observation[entityFieldAddressKey(EntityType.HederaNft_Timestamp, [], 'ownerAccountId')],
+			deleted: (observation) => observation[entityFieldAddressKey(EntityType.HederaNft_Timestamp, [], 'deleted')],
+			spenderAccountId: (observation) => observation[entityFieldAddressKey(EntityType.HederaNft_Timestamp, [], 'spenderAccountId')],
+			modifiedTimestamp: (observation) => observation[entityFieldAddressKey(EntityType.HederaNft_Timestamp, [], 'modifiedTimestamp')],
 		}),
 
 		defineResolver({

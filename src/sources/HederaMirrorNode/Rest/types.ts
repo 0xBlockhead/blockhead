@@ -394,6 +394,34 @@ export type HederaMirrorNodeTopicMessages = {
 	}
 }
 
+// https://docs.hedera.com/api-reference/tokens/get-token-by-id
+export type HederaMirrorNodeToken = {
+	admin_key: unknown | null
+	auto_renew_account: string | null
+	auto_renew_period: number | null
+	created_timestamp: string
+	custom_fees: unknown | null
+	decimals: number | null
+	deleted: boolean | null
+	expiry_timestamp: string | null
+	fee_schedule_key: unknown | null
+	freeze_key: unknown | null
+	kyc_key: unknown | null
+	max_supply: string | null
+	modified_timestamp: string
+	name: string
+	pause_key: unknown | null
+	pause_status: string | null
+	supply_key: unknown | null
+	supply_type: string | null
+	symbol: string
+	token_id: string | null
+	total_supply: string
+	treasury_account_id: string | null
+	type: string
+	wipe_key: unknown | null
+}
+
 // https://docs.hedera.com/api-reference/contracts/get-the-contract-result-from-a-contract-on-the-network-for-a-given-transactionid-or-ethereum-transaction-hash
 export type HederaMirrorNodeContractResult = {
 	access_list: unknown

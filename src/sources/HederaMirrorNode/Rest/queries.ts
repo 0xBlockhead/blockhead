@@ -24,6 +24,7 @@ import {
 	type HederaMirrorNodeTopic,
 	type HederaMirrorNodeTopicMessage,
 	type HederaMirrorNodeTopicMessages,
+	type HederaMirrorNodeToken,
 	type HederaMirrorNodeTokenAllowances,
 	type HederaMirrorNodeTransactionResponse,
 	type HederaMirrorNodeTransactions,
@@ -705,6 +706,98 @@ export const getTopicMessage = async (
 	)
 		throw new Error('HederaMirrorNode_Rest: topic message response does not match request')
 	return message
+}
+
+const tokenNftsUrl = (
+	tokenId: string,
+	limit: number,
+	continuationToken?: string
+) => {
+	if (!accountIdPattern.test(tokenId))
+		throw new Error('HederaMirrorNode_Rest: invalid token selector')
+	if (!Number.isSafeInteger(limit) || limit < 1 || limit > 100)
+		throw new Error('HederaMirrorNode_Rest: invalid token NFT list limit')
+
+	const url = paginatedUrl(
+		`/api/v1/tokens/${encodeURIComponent(tokenId)}/nfts`,
+		continuationToken
+	)
+	if (continuationToken == null) {
+		url.searchParams.set('limit', String(limit))
+		url.searchParams.set('order', 'desc')
+	} else if (
+		url.searchParams.getAll('limit').length !== 1
+		|| url.searchParams.get('limit') !== String(limit)
+		|| url.searchParams.getAll('order').length !== 1
+		|| url.searchParams.get('order') !== 'desc'
+		|| url.searchParams.getAll('serialnumber').some((value) => (
+			!/^(?:(?:eq|gt|gte|lt|lte):)?\d{1,19}$/.test(value)
+		))
+		|| url.searchParams.getAll('account.id').some((value) => (
+			!/^(?:(?:eq|gt|gte|lt|lte|ne):)?(?:\d{1,10}\.){0,2}\d{1,10}$/.test(value)
+		))
+		|| [...url.searchParams.keys()].some((key) => ![
+			'limit',
+			'order',
+			'serialnumber',
+			'account.id',
+		].includes(key))
+	)
+		throw new Error('HederaMirrorNode_Rest: invalid token NFT continuation')
+
+	return url
+}
+
+export const getToken = async (
+	tokenId: string
+) => {
+	if (!accountIdPattern.test(tokenId))
+		throw new Error('HederaMirrorNode_Rest: invalid token selector')
+
+	const token = await sourceGetHederaJson<HederaMirrorNodeToken>(
+		new URL(
+			`/api/v1/tokens/${encodeURIComponent(tokenId)}`,
+			firstHttpUrlForBinding(binding)
+		).toString()
+	)
+	if (token.token_id !== tokenId)
+		throw new Error('HederaMirrorNode_Rest: token response does not match request')
+	return token
+}
+
+export const getTokenNfts = (
+	tokenId: string,
+	limit: number,
+	continuationToken?: string
+) => sourceGetHederaJson<HederaMirrorNodeNfts>(
+	tokenNftsUrl(
+		tokenId,
+		limit,
+		continuationToken
+	).toString()
+)
+
+export const getTokenNft = async (
+	tokenId: string,
+	serialNumber: bigint
+) => {
+	if (!accountIdPattern.test(tokenId))
+		throw new Error('HederaMirrorNode_Rest: invalid token selector')
+	if (serialNumber < 1n || serialNumber > 9_223_372_036_854_775_807n)
+		throw new Error('HederaMirrorNode_Rest: invalid token NFT serial number')
+
+	const nft = await sourceGetHederaJson<HederaMirrorNodeNft>(
+		new URL(
+			`/api/v1/tokens/${encodeURIComponent(tokenId)}/nfts/${serialNumber.toString()}`,
+			firstHttpUrlForBinding(binding)
+		).toString()
+	)
+	if (
+		nft.token_id !== tokenId
+		|| nft.serial_number !== serialNumber.toString()
+	)
+		throw new Error('HederaMirrorNode_Rest: token NFT response does not match request')
+	return nft
 }
 
 export const getContractResultByTransactionIdNonce = async (
