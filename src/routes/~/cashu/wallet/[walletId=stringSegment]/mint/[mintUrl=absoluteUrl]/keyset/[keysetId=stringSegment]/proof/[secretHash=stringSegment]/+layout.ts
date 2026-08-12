@@ -2,6 +2,7 @@
 
 import type { LayoutLoad } from './$types'
 import { error } from '@sveltejs/kit'
+import { match as matchAbsoluteUrl } from '$/params/absoluteUrl.ts'
 import { match as matchStringSegment } from '$/params/stringSegment.ts'
 import { parseEntitySelector } from '$/schema/$schema.ts'
 import BlockheadCashuProofSchema from '$/schema/BlockheadCashuProof.ts'
@@ -11,7 +12,7 @@ import { type as arktype } from 'arktype'
 export const load: LayoutLoad = ({ params }) => {
 	if (!(
 		matchStringSegment(params.walletId)
-		&& matchStringSegment(params.mintUrl)
+		&& matchAbsoluteUrl(params.mintUrl)
 		&& matchStringSegment(params.keysetId)
 		&& matchStringSegment(params.secretHash)
 	))
@@ -22,7 +23,7 @@ export const load: LayoutLoad = ({ params }) => {
 		BlockheadCashuProofSchema,
 		{
 			walletId: params.walletId,
-			mintUrl: params.mintUrl,
+			mintUrl: decodeURIComponent(params.mintUrl),
 			keysetId: params.keysetId,
 			secretHash: params.secretHash,
 		},

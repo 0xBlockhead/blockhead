@@ -2,6 +2,7 @@
 
 import type { LayoutLoad } from './$types'
 import { error } from '@sveltejs/kit'
+import { match as matchAbsoluteUrl } from '$/params/absoluteUrl.ts'
 import { match as matchStringSegment } from '$/params/stringSegment.ts'
 import { parseEntitySelector } from '$/schema/$schema.ts'
 import BlockheadCashuWalletStateSchema from '$/schema/BlockheadCashuWalletState.ts'
@@ -9,7 +10,7 @@ import { schema } from '$/schema/index.ts'
 import { type as arktype } from 'arktype'
 
 export const load: LayoutLoad = ({ params }) => {
-	if (!(matchStringSegment(params.walletId) && matchStringSegment(params.mintUrl) && matchStringSegment(params.unit)))
+	if (!(matchStringSegment(params.walletId) && matchAbsoluteUrl(params.mintUrl) && matchStringSegment(params.unit)))
 		error(404, 'Route mapping not applicable')
 
 	const blockheadCashuWalletStateWalletIdMintUrlUnitSelector = parseEntitySelector(
@@ -17,7 +18,7 @@ export const load: LayoutLoad = ({ params }) => {
 		BlockheadCashuWalletStateSchema,
 		{
 			walletId: params.walletId,
-			mintUrl: params.mintUrl,
+			mintUrl: decodeURIComponent(params.mintUrl),
 			unit: params.unit,
 		},
 		'WalletIdMintUrlUnit'

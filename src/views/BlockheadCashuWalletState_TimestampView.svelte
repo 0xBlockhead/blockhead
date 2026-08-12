@@ -49,10 +49,10 @@
 	href={
 		href === undefined ?
 			resolve(
-				'/~/cashu/wallet/[walletId=stringSegment]/mint/[mintUrl=stringSegment]/[unit=stringSegment]/(blockheadCashuWalletState)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+				'/~/cashu/wallet/[walletId=stringSegment]/mint/[mintUrl=absoluteUrl]/[unit=stringSegment]/(blockheadCashuWalletState)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 				{
 					walletId: walletState.walletId,
-					mintUrl: walletState.mintUrl,
+					mintUrl: encodeURIComponent(walletState.mintUrl),
 					unit: walletState.unit,
 					timestampMs: String(selection.entitySelector.timestampMs),
 					source: selection.entitySelector.source,

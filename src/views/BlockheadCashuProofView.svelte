@@ -49,10 +49,10 @@
 	href={
 		href === undefined ?
 			resolve(
-				'/~/cashu/wallet/[walletId=stringSegment]/mint/[mintUrl=stringSegment]/keyset/[keysetId=stringSegment]/proof/[secretHash=stringSegment]',
+				'/~/cashu/wallet/[walletId=stringSegment]/mint/[mintUrl=absoluteUrl]/keyset/[keysetId=stringSegment]/proof/[secretHash=stringSegment]',
 				{
 					walletId: selection.entitySelector.walletId,
-					mintUrl: selection.entitySelector.mintUrl,
+					mintUrl: encodeURIComponent(selection.entitySelector.mintUrl),
 					keysetId: selection.entitySelector.keysetId,
 					secretHash: selection.entitySelector.secretHash,
 				}

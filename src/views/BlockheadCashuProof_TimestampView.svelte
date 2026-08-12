@@ -43,10 +43,10 @@
 	href={
 		href === undefined ?
 			resolve(
-				'/~/cashu/wallet/[walletId=stringSegment]/mint/[mintUrl=stringSegment]/keyset/[keysetId=stringSegment]/proof/[secretHash=stringSegment]/(blockheadCashuProof)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+				'/~/cashu/wallet/[walletId=stringSegment]/mint/[mintUrl=absoluteUrl]/keyset/[keysetId=stringSegment]/proof/[secretHash=stringSegment]/(blockheadCashuProof)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 				{
 					walletId: proof.walletId,
-					mintUrl: proof.mintUrl,
+					mintUrl: encodeURIComponent(proof.mintUrl),
 					keysetId: proof.keysetId,
 					secretHash: proof.secretHash,
 					timestampMs: String(selection.entitySelector.timestampMs),

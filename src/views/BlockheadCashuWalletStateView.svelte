@@ -50,10 +50,10 @@
 	href={
 		href === undefined ?
 			resolve(
-				'/~/cashu/wallet/[walletId=stringSegment]/mint/[mintUrl=stringSegment]/[unit=stringSegment]',
+				'/~/cashu/wallet/[walletId=stringSegment]/mint/[mintUrl=absoluteUrl]/[unit=stringSegment]',
 				{
 					walletId: selection.entitySelector.walletId,
-					mintUrl: selection.entitySelector.mintUrl,
+					mintUrl: encodeURIComponent(selection.entitySelector.mintUrl),
 					unit: selection.entitySelector.unit,
 				}
 			)

@@ -44,10 +44,10 @@
 			entitySelector={blockheadCashuProofSelector}
 			href={
 				resolve(
-					'/~/cashu/wallet/[walletId=stringSegment]/mint/[mintUrl=stringSegment]/keyset/[keysetId=stringSegment]/proof/[secretHash=stringSegment]',
+					'/~/cashu/wallet/[walletId=stringSegment]/mint/[mintUrl=absoluteUrl]/keyset/[keysetId=stringSegment]/proof/[secretHash=stringSegment]',
 					{
 						walletId: blockheadCashuProofSelector.walletId,
-						mintUrl: blockheadCashuProofSelector.mintUrl,
+						mintUrl: encodeURIComponent(blockheadCashuProofSelector.mintUrl),
 						keysetId: blockheadCashuProofSelector.keysetId,
 						secretHash: blockheadCashuProofSelector.secretHash,
 					}

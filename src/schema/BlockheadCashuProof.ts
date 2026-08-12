@@ -3,6 +3,7 @@
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { UrlString } from '$/schema/UrlString.ts'
 import { type } from 'arktype'
 
 export default entity({
@@ -21,7 +22,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.One,
 	},
 	mintUrl: {
-		primitiveType: type('string'),
+		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.One,
 	},
 	$keyset: {

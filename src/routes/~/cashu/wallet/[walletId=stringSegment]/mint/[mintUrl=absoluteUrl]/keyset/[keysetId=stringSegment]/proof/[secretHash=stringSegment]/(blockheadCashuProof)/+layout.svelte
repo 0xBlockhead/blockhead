@@ -20,11 +20,12 @@
 
 	const detailHref = $derived(
 		resolve(
-			'/~/cashu/wallet/[walletId=stringSegment]/mint/[mintUrl=stringSegment]/[unit=stringSegment]',
+			'/~/cashu/wallet/[walletId=stringSegment]/mint/[mintUrl=absoluteUrl]/keyset/[keysetId=stringSegment]/proof/[secretHash=stringSegment]',
 			{
 				walletId: params.walletId,
 				mintUrl: params.mintUrl,
-				unit: params.unit,
+				keysetId: params.keysetId,
+				secretHash: params.secretHash,
 			}
 		)
 	)
@@ -33,7 +34,7 @@
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import ParentPageCollapsible from '$/components/ParentPageCollapsible.svelte'
-	import BlockheadCashuWalletStateView from '$/views/BlockheadCashuWalletStateView.svelte'
+	import BlockheadCashuProofView from '$/views/BlockheadCashuProofView.svelte'
 </script>
 
 
@@ -41,8 +42,8 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<BlockheadCashuWalletStateView
-			selection={select(EntityType.BlockheadCashuWalletState, data.selector)}
+		<BlockheadCashuProofView
+			selection={select(EntityType.BlockheadCashuProof, data.selector)}
 			href={detailHref}
 			layout={EntityLayout.SummaryInline}
 		/>
