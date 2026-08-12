@@ -390,6 +390,15 @@ const koiosTransactionInfo = {
 	epoch_no: 599,
 	absolute_slot: 130_000_000,
 	tx_timestamp: 1_720_000_000,
+	fee: '170000',
+	deposit: '1000000',
+	tx_size: 512,
+	invalid_before: null,
+	invalid_after: null,
+	inputs: [],
+	outputs: [],
+	collateral_inputs: [],
+	reference_inputs: [],
 	certificates: [],
 	native_scripts: [],
 	plutus_contracts: [],
@@ -419,6 +428,20 @@ const koiosTransactionInfo = {
 			return_address: 'stake1koiosproposal',
 		},
 	],
+} satisfies CardanoKoiosTransactionInfo
+
+const koiosVoteTransactionInfo = {
+	...koiosTransactionInfo,
+	tx_hash: 'proposal-vote-hash',
+	voting_procedures: [{
+		vote: 'Yes',
+		voter: 'drep1fixture',
+		voter_hex: 'ab',
+		voter_role: 'DRep',
+		proposal_index: 1,
+		proposal_tx_hash: 'proposal-hash',
+	}],
+	proposal_procedures: [],
 } satisfies CardanoKoiosTransactionInfo
 
 type Scenario = 'happy' | 'optional-empty' | 'proposal-error' | 'wrong-index'
@@ -542,6 +565,17 @@ const installCardanoGovernanceFixtures = async (
 				await route.fulfill({
 					contentType: 'application/json',
 					json: [] satisfies BlockfrostGovernanceProposalVotes,
+				})
+				return
+			}
+			if (
+				baseUrl === koiosBaseUrl
+				&& requestKey === 'POST tx_info'
+				&& request.postData()?.includes('proposal-vote-hash')
+			) {
+				await route.fulfill({
+					contentType: 'application/json',
+					json: [koiosVoteTransactionInfo],
 				})
 				return
 			}
@@ -767,6 +801,45 @@ test.describe('Cardano governance reading journey', () => {
 		expect(fixture.requests.get('GET governance/proposals/proposal-hash/1/votes?count=64&page=1')).toBeGreaterThan(0)
 		expect(diagnostics.issues).toEqual([])
 		expect(fixture.unexpected).toEqual([])
+	})
+
+	test('renders an exact source-qualified DRep vote detail with its transaction clock', async ({ page }, testInfo) => {
+		testInfo.setTimeout(180_000)
+		const fixture = await preparePage(page, testInfo, 'happy')
+		const diagnostics = setupPageRuntimeDiagnostics(page, {
+			failFast: true,
+			failOnDevServerContamination: true,
+			failOnTanStackWarnings: true,
+		})
+
+		await diagnostics.step(page.goto(
+			'/network/cardano/governance/proposal/proposal-hash/1/vote/DRep/drep1fixture/proposal-vote-hash/CardanoKoios_Rest',
+			{ waitUntil: 'domcontentloaded' }
+		))
+		await expectMainVisible(page, 120_000, diagnostics)
+		await diagnostics.step(assertMainSettled(page, 120_000, diagnostics))
+
+		const voteCard = page.locator('#main article[id^="cardano-governance-vote-"]')
+		await expect(voteCard).toContainText('Yes')
+		await expect(voteCard).toContainText('DRep')
+		await expect(voteCard).toContainText('drep1fixture')
+		await expect(voteCard).toContainText('proposal-vote-hash')
+		await expect(voteCard).toContainText('599')
+		await expect(voteCard).toContainText('130,000,000')
+		await expect(voteCard).toContainText('CardanoKoios_Rest')
+		await expect(voteCard.locator('dt', { hasText: 'drep' }).locator('+ dd a')).toHaveAttribute(
+			'href',
+			'/network/cardano/drep/drep1fixture'
+		)
+		await expect(voteCard.locator('dt', { hasText: 'transaction' }).locator('+ dd a')).toHaveAttribute(
+			'href',
+			'/network/cardano/tx/proposal-vote-hash'
+		)
+		await expectNoWalletActions(page)
+
+		expect(fixture.requests.get('POST tx_info')).toBeGreaterThan(0)
+		expect(fixture.unexpected).toEqual([])
+		expect(diagnostics.issues).toEqual([])
 	})
 
 	test('keeps a proposal transport failure inside its resource boundary', async ({ page }, testInfo) => {
