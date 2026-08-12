@@ -62,7 +62,7 @@
 			}
 		>
 			{#snippet Title()}
-				{[(lightningNodeTimestamp.alias ?? ''), String(lightningNodeTimestampSelector.timestampMs)].filter(Boolean).join(' ') || 'Lightning node timestamp'}
+				{[(lightningNodeTimestamp.alias ?? ''), String(lightningNodeTimestampSelector.timestampMs)].filter(Boolean).join(' ') || 'Lightning public node observation'}
 			{/snippet}
 
 			{#snippet Value()}

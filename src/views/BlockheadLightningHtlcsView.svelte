@@ -12,7 +12,6 @@
 	// State
 	let {
 		selection,
-		title = 'Blockhead Lightning HTLCs',
 		open = $bindable(true),
 		...EntitiesListProps
 	}: EntityListViewProps<EntityType.BlockheadLightningHtlc> = $props()
@@ -26,7 +25,6 @@
 <EntitiesList
 	{...EntitiesListProps}
 	entityType={EntityType.BlockheadLightningHtlc}
-	{title}
 	bind:open
 	resource={
 		selection({

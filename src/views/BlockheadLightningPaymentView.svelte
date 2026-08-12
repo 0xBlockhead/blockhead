@@ -54,7 +54,7 @@
 <EntityView
 	entityType={EntityType.BlockheadLightningPayment}
 	entitySelector={selection.entitySelector}
-	title={title ?? (selection.entitySelector.paymentHash || 'Lightning payment')}
+	title={title ?? (selection.entitySelector.paymentHash || 'local LND payment')}
 	href={
 		href === undefined ?
 			resolve(
@@ -185,7 +185,7 @@
 					{#if blockheadLightningNodeState != null}
 						{@const blockheadLightningNodeStateInitial = untrack(() => blockheadLightningNodeState)}
 						<div>
-							<dt>Local node state</dt>
+							<dt>Local LND node state</dt>
 							<dd>
 								<BlockheadLightningNodeStateView
 									selection={select(EntityType.BlockheadLightningNodeState, (blockheadLightningNodeState ?? blockheadLightningNodeStateInitial)[EntityMetaKey.Selector])}
@@ -205,7 +205,7 @@
 					{#if blockheadLightningInvoice != null}
 						{@const blockheadLightningInvoiceInitial = untrack(() => blockheadLightningInvoice)}
 						<div>
-							<dt>Invoice</dt>
+							<dt>Local LND invoice</dt>
 							<dd>
 								<BlockheadLightningInvoiceView
 									selection={select(EntityType.BlockheadLightningInvoice, (blockheadLightningInvoice ?? blockheadLightningInvoiceInitial)[EntityMetaKey.Selector])}

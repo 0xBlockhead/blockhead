@@ -110,7 +110,7 @@
 					{@const totalCapacitySats = entity.totalCapacitySats}
 					{#if totalCapacitySats != null}
 						<div>
-							<dt>Total capacity sats</dt>
+							<dt>Total graph funding capacity sats</dt>
 							<dd>
 								{totalCapacitySats}
 							</dd>
@@ -198,7 +198,7 @@
 					{@const averageCapacitySats = entity.averageCapacitySats}
 					{#if averageCapacitySats != null}
 						<div>
-							<dt>Average capacity sats</dt>
+							<dt>Average graph funding capacity sats</dt>
 							<dd>
 								{averageCapacitySats}
 							</dd>
@@ -220,7 +220,7 @@
 					{@const medianCapacitySats = entity.medianCapacitySats}
 					{#if medianCapacitySats != null}
 						<div>
-							<dt>Median capacity sats</dt>
+							<dt>Median graph funding capacity sats</dt>
 							<dd>
 								{medianCapacitySats}
 							</dd>

@@ -104,7 +104,7 @@
 	{#snippet Content()}
 		<dl data-column-item="center">
 			<div>
-				<dt>local node state</dt>
+				<dt>local LND node state</dt>
 				<dd>
 					<BlockheadLightningNodeStateView
 						selection={select(EntityType.BlockheadLightningNodeState, selection.entitySelector.$localNodeState)}
@@ -216,7 +216,7 @@
 					{@const walletBalanceSats = entity.walletBalanceSats}
 					{#if walletBalanceSats != null}
 						<div>
-							<dt>wallet balance sats</dt>
+							<dt>Local LND wallet balance sats</dt>
 							<dd>
 								<NumberValue
 									value={walletBalanceSats}
@@ -240,7 +240,7 @@
 					{@const channelBalanceSats = entity.channelBalanceSats}
 					{#if channelBalanceSats != null}
 						<div>
-							<dt>channel balance sats</dt>
+							<dt>Local LND channel balance sats</dt>
 							<dd>
 								<NumberValue
 									value={channelBalanceSats}
@@ -264,7 +264,7 @@
 					{@const pendingChannelBalanceSats = entity.pendingChannelBalanceSats}
 					{#if pendingChannelBalanceSats != null}
 						<div>
-							<dt>pending channel balance sats</dt>
+							<dt>Local LND pending channel balance sats</dt>
 							<dd>
 								<NumberValue
 									value={pendingChannelBalanceSats}

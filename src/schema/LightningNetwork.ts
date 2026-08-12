@@ -12,6 +12,7 @@ export default entity({
 		singular: 'Lightning network',
 		plural: 'Lightning networks',
 	},
+	description: 'The public Lightning graph with separate source-scoped network, node, and channel observations. Local LND invoices and payments remain distinct macaroon-authorized state.',
 })({
 	$network: {
 		entityType: EntityType.Network,

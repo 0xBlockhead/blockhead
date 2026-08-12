@@ -229,7 +229,7 @@
 					<LightningChannel_TimestampsView
 						selection={timestampsResource}
 						countResource={timestampsResource.count}
-						title='Observations'
+						title='Public graph observations'
 						id='timestamps'
 					/>
 				{/if}
@@ -244,7 +244,7 @@
 					<BlockheadLightningChannelStatesView
 						selection={localStatesResource}
 						countResource={localStatesResource.count}
-						title='Local states'
+						title='Local LND states'
 						id='local-states'
 					/>
 				{/if}

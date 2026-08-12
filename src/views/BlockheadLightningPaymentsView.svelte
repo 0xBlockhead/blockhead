@@ -59,7 +59,7 @@
 			}
 		>
 			{#snippet Title()}
-				{blockheadLightningPaymentSelector.paymentHash || 'Lightning payment'}
+				{blockheadLightningPaymentSelector.paymentHash || 'local LND payment'}
 			{/snippet}
 
 			{#snippet Value()}

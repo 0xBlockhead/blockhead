@@ -8,9 +8,10 @@ import { type } from 'arktype'
 export default entity({
 	entityType: EntityType.BlockheadLightningNodeState,
 	labels: {
-		singular: 'blockhead Lightning node state',
-		plural: 'blockhead Lightning node states',
+		singular: 'local LND node state',
+		plural: 'local LND node states',
 	},
+	description: 'Macaroon-authorized state from a configured LND endpoint on the local device. It is read-only product state and remains distinct from public Lightning graph observations.',
 })({
 	connectionId: {
 		primitiveType: type('string'),

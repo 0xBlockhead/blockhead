@@ -14406,13 +14406,14 @@ export const schema = {
 			entity({
 				entityType: EntityType.BlockheadLightningChannelState,
 				labels: {
-					singular: "blockhead Lightning channel state",
-					plural: "blockhead Lightning channel states",
+					singular: "local LND channel state",
+					plural: "local LND channel states",
 				},
+				description: "A macaroon-authorized observation from one configured local LND node. Its balances and pending HTLCs are private node state, not facts inferred from the public Lightning graph.",
 			})({
-				"$localNodeState": { label: "local node state", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.BlockheadLightningNodeState },
-				"$channel": { label: "channel", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.LightningChannel },
-				"private": { label: "private", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean" },
+				"$localNodeState": { label: "local LND node state", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.BlockheadLightningNodeState },
+				"$channel": { label: "public channel identity", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.LightningChannel },
+				"private": { label: "Private on local LND", description: "Whether this channel is private according to the configured local LND node.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean" },
 				"initiator": { label: "initiator", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean" },
 				"$$timestamps": { label: "timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadLightningChannelState_Timestamp },
 				"$$htlcs": { label: "htlcs", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadLightningHtlc },
@@ -14438,23 +14439,24 @@ export const schema = {
 							{ field: "$$htlcs", component: "BlockheadLightningHtlcsView", emptyText: "No pending HTLCs." },
 						],
 					},
-					plural: { component: "BlockheadLightningChannelStatesView", title: "Blockhead Lightning channel states", },
+					plural: { component: "BlockheadLightningChannelStatesView", title: "Local LND channel states", },
 				},
 			}),
 
 			entity({
 				entityType: EntityType.BlockheadLightningChannelState_Timestamp,
 				labels: {
-					singular: "blockhead Lightning channel state timestamp",
-					plural: "blockhead Lightning channel state observations",
+					singular: "local LND channel-state observation",
+					plural: "local LND channel-state observations",
 				},
+				description: "A local LND observation. Local and remote balances are directional amounts from this configured node's perspective; they are never substituted for public channel capacity.",
 			})({
-				"$channelState": { label: "channel state", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.BlockheadLightningChannelState },
+				"$channelState": { label: "local LND channel state", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.BlockheadLightningChannelState },
 				"timestampMs": { label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
 				"source": { label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"localBalanceSats": { label: "local balance sats", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
-				"remoteBalanceSats": { label: "remote balance sats", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
-				"unsettledBalanceSats": { label: "unsettled balance sats", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
+				"localBalanceSats": { label: "Local directional balance sats", description: "The configured local LND node's balance in this channel, not public graph capacity or route liquidity.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
+				"remoteBalanceSats": { label: "Remote directional balance sats", description: "The counterparty balance reported to the configured local LND node; it is not a public liquidity estimate.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
+				"unsettledBalanceSats": { label: "Local unsettled balance sats", description: "Unsettled amount reported by the configured local LND node.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
 				"active": { label: "active", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean" },
 				"commitFeeSats": { label: "commit fee sats", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
 				"commitWeight": { label: "commit weight", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
@@ -14482,16 +14484,17 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "BlockheadLightningChannelState_TimestampsView", title: "Blockhead Lightning channel state observations", },
+					plural: { component: "BlockheadLightningChannelState_TimestampsView", title: "Local LND channel-state observations", },
 				},
 			}),
 
 			entity({
 				entityType: EntityType.BlockheadLightningHtlc,
 				labels: {
-					singular: "blockhead Lightning htlc",
-					plural: "blockhead Lightning htlcs",
+					singular: "local LND HTLC",
+					plural: "local LND HTLCs",
 				},
+				description: "A pending HTLC observed through the configured local LND node's macaroon-authorized API. It is private node state, not public graph data.",
 			})({
 				"$channelState": { label: "channel state", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.BlockheadLightningChannelState },
 				"htlcIndex": { label: "htlc index", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
@@ -14520,16 +14523,17 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "BlockheadLightningHtlcsView", title: "Blockhead Lightning HTLCs", },
+					plural: { component: "BlockheadLightningHtlcsView", title: "Local LND HTLCs", },
 				},
 			}),
 
 			entity({
 				entityType: EntityType.BlockheadLightningInvoice,
 				labels: {
-					singular: "Lightning invoice",
-					plural: "Lightning invoices",
+					singular: "local LND invoice",
+					plural: "local LND invoices",
 				},
+				description: "An invoice observed through a configured local LND node. Its payment request, memo, settlement state, and private flag are macaroon-authorized local state.",
 			})({
 				"$network": { label: "Network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
 				"paymentHash": { label: "Payment hash", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
@@ -14540,7 +14544,7 @@ export const schema = {
 				"expirySeconds": { label: "Expiry seconds", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 				"private": { label: "Private", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean" },
 				"addIndex": { label: "Add index", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
-				"$localNodeState": { label: "Local node state", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.BlockheadLightningNodeState },
+				"$localNodeState": { label: "Local LND node state", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.BlockheadLightningNodeState },
 				"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadLightningInvoice_Timestamp },
 			})({
 				selectors: {
@@ -14568,7 +14572,7 @@ export const schema = {
 						lists: [{ field: "$$timestamps", component: "BlockheadLightningInvoice_TimestampsView", emptyText: "No observations yet." }],
 					},
 					plural: { component: "BlockheadLightningInvoicesView",
-						title: "Lightning invoices",
+						title: "Local LND invoices",
 					},
 				},
 			}),
@@ -14576,9 +14580,10 @@ export const schema = {
 			entity({
 				entityType: EntityType.BlockheadLightningInvoice_Timestamp,
 				labels: {
-					singular: "Lightning invoice timestamp",
-					plural: "Lightning invoice observations",
+					singular: "local LND invoice observation",
+					plural: "local LND invoice observations",
 				},
+				description: "A timestamped invoice state from the configured local LND node; it cannot establish a public Lightning graph fact.",
 			})({
 				"$invoice": { label: "Invoice", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.BlockheadLightningInvoice },
 				"timestampMs": { label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
@@ -14605,21 +14610,22 @@ export const schema = {
 			entity({
 				entityType: EntityType.BlockheadLightningNodeState,
 				labels: {
-					singular: "blockhead Lightning node state",
-					plural: "blockhead Lightning node states",
+					singular: "local LND node state",
+					plural: "local LND node states",
 				},
+				description: "Macaroon-authorized state from a configured LND endpoint on the local device. It is read-only product state and remains distinct from public Lightning graph observations.",
 			})({
-				"connectionId": { label: "connection ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"$network": { label: "network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.LightningNetwork },
+				"connectionId": { label: "local LND connection ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"$network": { label: "Lightning network graph", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.LightningNetwork },
 				"lndPubkey": { label: "lnd public key", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"alias": { label: "alias", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"macaroonPermissions": { label: "macaroon permissions", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "unknown" },
+				"macaroonPermissions": { label: "Granted macaroon permissions", description: "Permissions reported by the configured local LND node; credentials are not exposed in the graph surface.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "unknown" },
 				"$node": { label: "node", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.LightningNode },
-				"$$timestamps": { label: "timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadLightningNodeState_Timestamp },
-				"$$channelStates": { label: "channel states", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadLightningChannelState },
-				"$$channels": { label: "channels", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.LightningChannel },
-				"$$invoices": { label: "invoices", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadLightningInvoice },
-				"$$payments": { label: "payments", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadLightningPayment },
+				"$$timestamps": { label: "Local LND observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadLightningNodeState_Timestamp },
+				"$$channelStates": { label: "Local LND channel states", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadLightningChannelState },
+				"$$channels": { label: "Public graph channel refs", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.LightningChannel },
+				"$$invoices": { label: "Local LND invoices", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadLightningInvoice },
+				"$$payments": { label: "Local LND payments", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadLightningPayment },
 			})({
 				selectors: {
 					"ConnectionIdNetwork": ["connectionId", "$network"],
@@ -14640,53 +14646,54 @@ export const schema = {
 						carousels: [
 							{
 								id: "lightning-node-channels",
-								label: "Channels",
+								label: "Local LND channels",
 								className: "network-view-collapsible-channels",
 								sections: [
-									{ id: "lightning-node-channel-states", field: "$$channelStates", List: "BlockheadLightningChannelStatesView", label: "Channel states", emptyText: "No local channel states." },
-									{ id: "lightning-node-channels", field: "$$channels", List: "LightningChannelsView", label: "Channels", emptyText: "No public channel refs." },
+									{ id: "lightning-node-channel-states", field: "$$channelStates", List: "BlockheadLightningChannelStatesView", label: "Local directional balances", emptyText: "No local LND channel states." },
+									{ id: "lightning-node-channels", field: "$$channels", List: "LightningChannelsView", label: "Public graph channel refs", emptyText: "No public graph channel refs." },
 								],
 							},
 							{
 								id: "lightning-node-payments",
-								label: "Payments",
+								label: "Local LND payment history",
 								className: "network-view-collapsible-payments",
 								sections: [
-									{ id: "lightning-node-invoices", field: "$$invoices", List: "BlockheadLightningInvoicesView", label: "Invoices", emptyText: "No invoices." },
-									{ id: "lightning-node-payment-list", field: "$$payments", List: "BlockheadLightningPaymentsView", label: "Payments", emptyText: "No payments." },
+									{ id: "lightning-node-invoices", field: "$$invoices", List: "BlockheadLightningInvoicesView", label: "Local LND invoices", emptyText: "No local LND invoices." },
+									{ id: "lightning-node-payment-list", field: "$$payments", List: "BlockheadLightningPaymentsView", label: "Local LND payments", emptyText: "No local LND payments." },
 								],
 							},
 							{
 								id: "lightning-node-observations",
-								label: "Observations",
+								label: "Local LND observations",
 								className: "network-view-collapsible-observations",
 								sections: [
-									{ id: "lightning-node-timestamps", field: "$$timestamps", List: "BlockheadLightningNodeState_TimestampsView", label: "Observations", emptyText: "No node-state observations." },
+									{ id: "lightning-node-timestamps", field: "$$timestamps", List: "BlockheadLightningNodeState_TimestampsView", label: "Local LND observations", emptyText: "No local LND node-state observations." },
 								],
 							},
 						],
 					},
-					plural: { component: "BlockheadLightningNodeStatesView", title: "Blockhead Lightning node states", },
+					plural: { component: "BlockheadLightningNodeStatesView", title: "Local LND node states", },
 				},
 			}),
 
 			entity({
 				entityType: EntityType.BlockheadLightningNodeState_Timestamp,
 				labels: {
-					singular: "blockhead Lightning node state timestamp",
-					plural: "blockhead Lightning node state observations",
+					singular: "local LND node-state observation",
+					plural: "local LND node-state observations",
 				},
+				description: "A local, macaroon-authorized LND observation. Balances, peer counts, and synchronization are properties of this configured node rather than public Lightning graph facts.",
 			})({
-				"$localNodeState": { label: "local node state", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.BlockheadLightningNodeState },
+				"$localNodeState": { label: "local LND node state", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.BlockheadLightningNodeState },
 				"timestampMs": { label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
 				"source": { label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"syncedToChain": { label: "synced to chain", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean" },
 				"syncedToGraph": { label: "synced to graph", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean" },
 				"blockHeight": { label: "block height", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
 				"bestHeaderTimestampMs": { label: "best header timestamp ms", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"walletBalanceSats": { label: "wallet balance sats", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
-				"channelBalanceSats": { label: "channel balance sats", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
-				"pendingChannelBalanceSats": { label: "pending channel balance sats", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
+				"walletBalanceSats": { label: "Local LND wallet balance sats", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
+				"channelBalanceSats": { label: "Local LND channel balance sats", description: "Aggregate local node balance; it is not public graph capacity or directional route liquidity.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
+				"pendingChannelBalanceSats": { label: "Local LND pending channel balance sats", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
 				"peerCount": { label: "peer count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 				"activeChannelCount": { label: "active channel count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 				"inactiveChannelCount": { label: "inactive channel count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
@@ -14712,16 +14719,17 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "BlockheadLightningNodeState_TimestampsView", title: "Blockhead Lightning node state observations", },
+					plural: { component: "BlockheadLightningNodeState_TimestampsView", title: "Local LND node-state observations", },
 				},
 			}),
 
 			entity({
 				entityType: EntityType.BlockheadLightningPayment,
 				labels: {
-					singular: "Lightning payment",
-					plural: "Lightning payments",
+					singular: "local LND payment",
+					plural: "local LND payments",
 				},
+				description: "A payment observed through a configured local LND node. Its request, fee, failure reason, and preimage are local macaroon-authorized state, not public network observations.",
 			})({
 				"$network": { label: "Network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
 				"paymentHash": { label: "Payment hash", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
@@ -14729,8 +14737,8 @@ export const schema = {
 				"valueMsat": { label: "Value msat", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
 				"createdAtMs": { label: "Created", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 				"paymentIndex": { label: "Payment index", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
-				"$localNodeState": { label: "Local node state", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.BlockheadLightningNodeState },
-				"$invoice": { label: "Invoice", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.BlockheadLightningInvoice },
+				"$localNodeState": { label: "Local LND node state", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.BlockheadLightningNodeState },
+				"$invoice": { label: "Local LND invoice", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.BlockheadLightningInvoice },
 				"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadLightningPayment_Timestamp },
 			})({
 				selectors: {
@@ -14757,7 +14765,7 @@ export const schema = {
 						lists: [{ field: "$$timestamps", component: "BlockheadLightningPayment_TimestampsView", emptyText: "No observations yet." }],
 					},
 					plural: { component: "BlockheadLightningPaymentsView",
-						title: "Lightning payments",
+						title: "Local LND payments",
 					},
 				},
 			}),
@@ -14765,9 +14773,10 @@ export const schema = {
 			entity({
 				entityType: EntityType.BlockheadLightningPayment_Timestamp,
 				labels: {
-					singular: "Lightning payment timestamp",
-					plural: "Lightning payment observations",
+					singular: "local LND payment observation",
+					plural: "local LND payment observations",
 				},
+				description: "A timestamped payment result from the configured local LND node; it is not a public graph or settlement-chain observation.",
 			})({
 				"$payment": { label: "Payment", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.BlockheadLightningPayment },
 				"timestampMs": { label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
@@ -42023,6 +42032,7 @@ export const schema = {
 					singular: "Lightning channel",
 					plural: "Lightning channels",
 				},
+				description: "A public Lightning channel identity and its sourced graph observations. Public channel capacity is funding capacity, never an estimate of either party's directional balance or routable liquidity.",
 				enums: [
 					{
 						name: "LightningChannelStatus",
@@ -42044,8 +42054,8 @@ export const schema = {
 				"fundingTransactionId": { label: "Funding transaction ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"fundingOutputIndex": { label: "Funding output index", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 				"openedAtMs": { label: "Opened", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.LightningChannel_Timestamp, defaultSources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest, Source.Amboss_Graphql] },
-				"$$localStates": { label: "Local states", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadLightningChannelState },
+				"$$timestamps": { label: "Public graph observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.LightningChannel_Timestamp, defaultSources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest, Source.Amboss_Graphql] },
+				"$$localStates": { label: "Local LND states", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadLightningChannelState },
 			})({
 				selectors: {
 					"NetworkChannelId": ["$network", "channelId"],
@@ -42069,8 +42079,8 @@ export const schema = {
 							],
 						},
 						lists: [
-							{ field: "$$timestamps", component: "LightningChannel_TimestampsView", emptyText: "No observations yet." },
-							{ field: "$$localStates", component: "BlockheadLightningChannelStatesView", emptyText: "No local channel states." },
+							{ field: "$$timestamps", component: "LightningChannel_TimestampsView", emptyText: "No public graph observations yet." },
+							{ field: "$$localStates", component: "BlockheadLightningChannelStatesView", emptyText: "No local LND channel states." },
 						],
 					},
 					plural: { component: "LightningChannelsView",
@@ -42082,15 +42092,16 @@ export const schema = {
 			entity({
 				entityType: EntityType.LightningChannel_Timestamp,
 				labels: {
-					singular: "Lightning channel timestamp",
-					plural: "Lightning channel observations",
+					singular: "Lightning public channel observation",
+					plural: "Lightning public channel observations",
 				},
+				description: "A source-scoped public Lightning graph observation. Channel capacity is total funding capacity and must not be interpreted as a directional balance or guaranteed routable liquidity.",
 			})({
 				"$channel": { label: "Channel", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.LightningChannel },
 				"timestampMs": { label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
 				"source": { label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"status": { label: "Status", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "LightningChannelStatus", defaultSources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest, Source.Amboss_Graphql] },
-				"capacitySats": { label: "Capacity sats", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest, Source.Amboss_Graphql] },
+				"capacitySats": { label: "Channel funding capacity sats", description: "Total channel funding capacity from the source graph, not either party's directional balance or a routable-liquidity estimate.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest, Source.Amboss_Graphql] },
 				"feeRatePpm": { label: "Fee rate ppm", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest, Source.Amboss_Graphql] },
 				"updatedAtMs": { label: "Updated", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest, Source.Amboss_Graphql] },
 				"closingTransactionId": { label: "Closing transaction ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Amboss_Graphql, Source.LightningMempoolSpace_Rest] },
@@ -42107,6 +42118,13 @@ export const schema = {
 							title: [{ field: "timestampMs", format: "timestamp" }],
 							value: ["status", { field: "capacitySats", format: "number" }],
 						},
+						content: {
+							dl: [
+								["$channel", "source", { field: "capacitySats", format: "number" }],
+								["status", { field: "feeRatePpm", format: "number" }, { field: "updatedAtMs", format: "timestamp" }],
+								["closingTransactionId", { field: "closingFeeSats", format: "number" }, "closingReason", { field: "closedAtMs", format: "timestamp" }],
+							],
+						},
 					},
 					plural: { component: "LightningChannel_TimestampsView", },
 				},
@@ -42118,15 +42136,16 @@ export const schema = {
 					singular: "Lightning network",
 					plural: "Lightning networks",
 				},
+				description: "The public Lightning graph with separate source-scoped network, node, and channel observations. Local LND invoices and payments remain distinct macaroon-authorized state.",
 			})({
 				"$network": { label: "Network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
 				"name": { label: "Name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"$settlementNetwork": { label: "Settlement network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.Network },
-				"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.ZeroOrMany, entityType: EntityType.LightningNetwork_Timestamp, defaultSources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest] },
-				"$$nodes": { label: "Nodes", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.ZeroOrMany, entityType: EntityType.LightningNode, defaultSources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest, Source.Amboss_Graphql] },
-				"$$channels": { label: "Channels", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.ZeroOrMany, entityType: EntityType.LightningChannel, defaultSources: [Source.LightningLnd_Rest] },
-				"$$invoices": { label: "Invoices", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadLightningInvoice },
-				"$$payments": { label: "Payments", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadLightningPayment },
+				"$$timestamps": { label: "Public graph observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.ZeroOrMany, entityType: EntityType.LightningNetwork_Timestamp, defaultSources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest] },
+				"$$nodes": { label: "Public graph nodes", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.ZeroOrMany, entityType: EntityType.LightningNode, defaultSources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest, Source.Amboss_Graphql] },
+				"$$channels": { label: "Public graph channels", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.ZeroOrMany, entityType: EntityType.LightningChannel, defaultSources: [Source.LightningLnd_Rest] },
+				"$$invoices": { label: "Local LND invoices", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadLightningInvoice },
+				"$$payments": { label: "Local LND payments", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadLightningPayment },
 			})({
 				selectors: {
 					"Network": ["$network"],
@@ -42150,21 +42169,21 @@ export const schema = {
 						carousels: [
 							{
 								id: "lightning-network-graph",
-								label: "Network graph",
+								label: "Public network graph",
 								className: "network-view-collapsible-network-graph",
 								sections: [
-									{ id: "lightning-observations", field: "$$timestamps", List: "LightningNetwork_TimestampsView", label: "Observations", emptyText: "No observations yet." },
-									{ id: "lightning-nodes", field: "$$nodes", List: "LightningNodesView", label: "Nodes", emptyText: "No nodes yet." },
-									{ id: "lightning-channels", field: "$$channels", List: "LightningChannelsView", label: "Channels", emptyText: "No channels yet." },
+									{ id: "lightning-observations", field: "$$timestamps", List: "LightningNetwork_TimestampsView", label: "Public graph observations", emptyText: "No public graph observations yet." },
+									{ id: "lightning-nodes", field: "$$nodes", List: "LightningNodesView", label: "Public graph nodes", emptyText: "No public graph nodes yet." },
+									{ id: "lightning-channels", field: "$$channels", List: "LightningChannelsView", label: "Public graph channels", emptyText: "No public graph channels yet." },
 								],
 							},
 							{
 								id: "lightning-payments",
-								label: "Payments",
+								label: "Local LND payment history",
 								className: "network-view-collapsible-payments",
 								sections: [
-									{ id: "lightning-invoices", field: "$$invoices", List: "BlockheadLightningInvoicesView", label: "Invoices", emptyText: "No invoices yet." },
-									{ id: "lightning-payment-list", field: "$$payments", List: "BlockheadLightningPaymentsView", label: "Payments", emptyText: "No payments yet." },
+									{ id: "lightning-invoices", field: "$$invoices", List: "BlockheadLightningInvoicesView", label: "Local LND invoices", emptyText: "No local LND invoices yet." },
+									{ id: "lightning-payment-list", field: "$$payments", List: "BlockheadLightningPaymentsView", label: "Local LND payments", emptyText: "No local LND payments yet." },
 								],
 							},
 						],
@@ -42184,21 +42203,22 @@ export const schema = {
 			entity({
 				entityType: EntityType.LightningNetwork_Timestamp,
 				labels: {
-					singular: "Lightning network timestamp",
-					plural: "Lightning network observations",
+					singular: "Lightning public network observation",
+					plural: "Lightning public network observations",
 				},
+				description: "A source-scoped public Lightning graph aggregate. Capacity totals describe channel funding capacity, not private balances or directional routable liquidity.",
 			})({
 				"$lightningNetwork": { label: "Lightning network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.LightningNetwork },
 				"timestampMs": { label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
 				"source": { label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"nodeCount": { label: "Nodes", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.LightningLnd_Rest, Source.LightningMempoolSpace_Rest] },
 				"channelCount": { label: "Channels", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.LightningLnd_Rest, Source.LightningMempoolSpace_Rest] },
-				"totalCapacitySats": { label: "Total capacity sats", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.LightningLnd_Rest, Source.LightningMempoolSpace_Rest] },
+				"totalCapacitySats": { label: "Total graph funding capacity sats", description: "Total sourced channel funding capacity, not the amount a participant can send or receive.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.LightningLnd_Rest, Source.LightningMempoolSpace_Rest] },
 				"torNodeCount": { label: "Tor nodes", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.LightningMempoolSpace_Rest] },
 				"clearnetNodeCount": { label: "Clearnet nodes", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.LightningMempoolSpace_Rest] },
 				"unannouncedNodeCount": { label: "Unannounced nodes", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.LightningMempoolSpace_Rest] },
-				"averageCapacitySats": { label: "Average capacity sats", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.LightningLnd_Rest, Source.LightningMempoolSpace_Rest] },
-				"medianCapacitySats": { label: "Median capacity sats", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.LightningLnd_Rest, Source.LightningMempoolSpace_Rest] },
+				"averageCapacitySats": { label: "Average graph funding capacity sats", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.LightningLnd_Rest, Source.LightningMempoolSpace_Rest] },
+				"medianCapacitySats": { label: "Median graph funding capacity sats", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.LightningLnd_Rest, Source.LightningMempoolSpace_Rest] },
 				"averageFeeRatePpm": { label: "Average fee rate ppm", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.LightningMempoolSpace_Rest] },
 				"medianFeeRatePpm": { label: "Median fee rate ppm", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.LightningMempoolSpace_Rest] },
 			})({
@@ -42219,14 +42239,15 @@ export const schema = {
 			entity({
 				entityType: EntityType.LightningNode,
 				labels: {
-					singular: "Lightning node",
-					plural: "Lightning nodes",
+					singular: "Lightning public node",
+					plural: "Lightning public nodes",
 				},
+				description: "A public Lightning graph node identity. Its graph capacity and channels do not disclose local balance, private channels, or directional liquidity.",
 			})({
 				"$network": { label: "Network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
 				"publicKey": { label: "Public key", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.LightningNode_Timestamp, defaultSources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest, Source.Amboss_Graphql] },
-				"$$channels": { label: "Channels", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.LightningChannel, defaultSources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest, Source.Amboss_Graphql] },
+				"$$timestamps": { label: "Public graph observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.LightningNode_Timestamp, defaultSources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest, Source.Amboss_Graphql] },
+				"$$channels": { label: "Public graph channels", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.LightningChannel, defaultSources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest, Source.Amboss_Graphql] },
 			})({
 				selectors: {
 					"NetworkPublicKey": ["$network", "publicKey"],
@@ -42248,24 +42269,24 @@ export const schema = {
 						carousels: [
 							{
 								id: "lightning-node-activity",
-								label: "Activity",
+								label: "Public graph activity",
 								className: "network-view-collapsible-activity",
 								sections: [
-									{ id: "lightning-node-channels", field: "$$channels", List: "LightningChannelsView", label: "Channels", emptyText: "No channels." },
+									{ id: "lightning-node-channels", field: "$$channels", List: "LightningChannelsView", label: "Public graph channels", emptyText: "No public graph channels." },
 								],
 							},
 							{
 								id: "lightning-node-observations",
-								label: "Observations",
+								label: "Public graph observations",
 								className: "network-view-collapsible-observations",
 								sections: [
-									{ id: "lightning-node-timestamps", field: "$$timestamps", List: "LightningNode_TimestampsView", label: "Timestamps", emptyText: "No timestamps." },
+									{ id: "lightning-node-timestamps", field: "$$timestamps", List: "LightningNode_TimestampsView", label: "Public graph observations", emptyText: "No public graph observations." },
 								],
 							},
 						],
 					},
 					plural: { component: "LightningNodesView",
-						title: "Lightning nodes",
+						title: "Lightning public nodes",
 					},
 				},
 			}),
@@ -42273,16 +42294,17 @@ export const schema = {
 			entity({
 				entityType: EntityType.LightningNode_Timestamp,
 				labels: {
-					singular: "Lightning node timestamp",
-					plural: "Lightning node observations",
+					singular: "Lightning public node observation",
+					plural: "Lightning public node observations",
 				},
+				description: "A source-scoped public Lightning graph node observation. Node capacity is the total public channel funding capacity, not directional balance or routable liquidity.",
 			})({
 				"$node": { label: "Node", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.LightningNode },
 				"timestampMs": { label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
 				"source": { label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"alias": { label: "Alias", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest, Source.Amboss_Graphql] },
 				"color": { label: "Color", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest, Source.Amboss_Graphql] },
-				"capacitySats": { label: "Capacity sats", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest, Source.Amboss_Graphql] },
+				"capacitySats": { label: "Public channel funding capacity sats", description: "Aggregate public channel funding capacity, not a balance controlled by this node or an available-route estimate.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest, Source.Amboss_Graphql] },
 				"channelCount": { label: "Channels", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest, Source.Amboss_Graphql] },
 				"firstSeenMs": { label: "First seen", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.LightningMempoolSpace_Rest] },
 				"updatedAtMs": { label: "Updated", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest, Source.Amboss_Graphql] },

@@ -104,7 +104,7 @@
 	{#snippet Content()}
 		<dl data-column-item="center">
 			<div>
-				<dt>channel state</dt>
+				<dt>local LND channel state</dt>
 				<dd>
 					<BlockheadLightningChannelStateView
 						selection={select(EntityType.BlockheadLightningChannelState, selection.entitySelector.$channelState)}
@@ -152,7 +152,7 @@
 					{@const localBalanceSats = entity.localBalanceSats}
 					{#if localBalanceSats != null}
 						<div>
-							<dt>local balance sats</dt>
+							<dt>Local directional balance sats</dt>
 							<dd>
 								<NumberValue
 									value={localBalanceSats}
@@ -176,7 +176,7 @@
 					{@const remoteBalanceSats = entity.remoteBalanceSats}
 					{#if remoteBalanceSats != null}
 						<div>
-							<dt>remote balance sats</dt>
+							<dt>Remote directional balance sats</dt>
 							<dd>
 								<NumberValue
 									value={remoteBalanceSats}
@@ -200,7 +200,7 @@
 					{@const unsettledBalanceSats = entity.unsettledBalanceSats}
 					{#if unsettledBalanceSats != null}
 						<div>
-							<dt>unsettled balance sats</dt>
+							<dt>Local unsettled balance sats</dt>
 							<dd>
 								<NumberValue
 									value={unsettledBalanceSats}

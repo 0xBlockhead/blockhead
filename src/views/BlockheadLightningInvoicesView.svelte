@@ -60,7 +60,7 @@
 			}
 		>
 			{#snippet Title()}
-				{(blockheadLightningInvoice.memo ?? '') || blockheadLightningInvoiceSelector.paymentHash || 'Lightning invoice'}
+				{(blockheadLightningInvoice.memo ?? '') || blockheadLightningInvoiceSelector.paymentHash || 'local LND invoice'}
 			{/snippet}
 
 			{#snippet Value()}

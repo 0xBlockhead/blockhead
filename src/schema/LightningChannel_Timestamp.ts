@@ -10,9 +10,10 @@ import { type } from 'arktype'
 export default entity({
 	entityType: EntityType.LightningChannel_Timestamp,
 	labels: {
-		singular: 'Lightning channel timestamp',
-		plural: 'Lightning channel observations',
+		singular: 'Lightning public channel observation',
+		plural: 'Lightning public channel observations',
 	},
+	description: 'A source-scoped public Lightning graph observation. Channel capacity is total funding capacity and must not be interpreted as a directional balance or guaranteed routable liquidity.',
 })({
 	$channel: {
 		entityType: EntityType.LightningChannel,

@@ -9,9 +9,10 @@ import { type } from 'arktype'
 export default entity({
 	entityType: EntityType.LightningNode_Timestamp,
 	labels: {
-		singular: 'Lightning node timestamp',
-		plural: 'Lightning node observations',
+		singular: 'Lightning public node observation',
+		plural: 'Lightning public node observations',
 	},
+	description: 'A source-scoped public Lightning graph node observation. Node capacity is the total public channel funding capacity, not directional balance or routable liquidity.',
 })({
 	$node: {
 		entityType: EntityType.LightningNode,

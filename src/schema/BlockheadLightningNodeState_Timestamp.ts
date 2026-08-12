@@ -8,9 +8,10 @@ import { type } from 'arktype'
 export default entity({
 	entityType: EntityType.BlockheadLightningNodeState_Timestamp,
 	labels: {
-		singular: 'blockhead Lightning node state timestamp',
-		plural: 'blockhead Lightning node state observations',
+		singular: 'local LND node-state observation',
+		plural: 'local LND node-state observations',
 	},
+	description: 'A local, macaroon-authorized LND observation. Balances, peer counts, and synchronization are properties of this configured node rather than public Lightning graph facts.',
 })({
 	$localNodeState: {
 		entityType: EntityType.BlockheadLightningNodeState,

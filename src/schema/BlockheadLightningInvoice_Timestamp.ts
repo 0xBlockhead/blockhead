@@ -9,9 +9,10 @@ import { type } from 'arktype'
 export default entity({
 	entityType: EntityType.BlockheadLightningInvoice_Timestamp,
 	labels: {
-		singular: 'Lightning invoice timestamp',
-		plural: 'Lightning invoice observations',
+		singular: 'local LND invoice observation',
+		plural: 'local LND invoice observations',
 	},
+	description: 'A timestamped invoice state from the configured local LND node; it cannot establish a public Lightning graph fact.',
 })({
 	$invoice: {
 		entityType: EntityType.BlockheadLightningInvoice,

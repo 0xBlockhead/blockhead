@@ -49,7 +49,7 @@
 <EntityView
 	entityType={EntityType.BlockheadLightningChannelState}
 	entitySelector={selection.entitySelector}
-	title={title ?? 'blockhead Lightning channel state'}
+	title={title ?? 'local LND channel state'}
 	href={
 		href === undefined ?
 			resolve(
@@ -104,7 +104,7 @@
 	{#snippet Content()}
 		<dl data-column-item="center">
 			<div>
-				<dt>local node state</dt>
+				<dt>local LND node state</dt>
 				<dd>
 					<BlockheadLightningNodeStateView
 						selection={select(EntityType.BlockheadLightningNodeState, selection.entitySelector.$localNodeState)}
@@ -114,7 +114,7 @@
 			</div>
 
 			<div>
-				<dt>channel</dt>
+				<dt>public channel identity</dt>
 				<dd>
 					<LightningChannelView
 						selection={select(EntityType.LightningChannel, selection.entitySelector.$channel)}
@@ -130,7 +130,7 @@
 					{@const privateValue = entity.private}
 					{#if privateValue != null}
 						<div>
-							<dt>private</dt>
+							<dt>Private on local LND</dt>
 							<dd>
 								{privateValue ? 'Yes' : 'No'}
 							</dd>

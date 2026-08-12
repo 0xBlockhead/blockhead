@@ -32,7 +32,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (String(pageSelection.entitySelector.timestampMs) || 'blockhead Lightning channel state timestamp')} • blockhead Lightning channel state timestamp • Blockhead</title>
+	<title>{data.title ?? (String(pageSelection.entitySelector.timestampMs) || 'local LND channel-state observation')} • local LND channel-state observation • Blockhead</title>
 </svelte:head>
 
 

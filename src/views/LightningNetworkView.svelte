@@ -116,15 +116,15 @@
 				[
 					{
 						id: 'lightning-observations',
-						label: 'Observations',
+						label: 'Public graph observations',
 					},
 					{
 						id: 'lightning-nodes',
-						label: 'Nodes',
+						label: 'Public graph nodes',
 					},
 					{
 						id: 'lightning-channels',
-						label: 'Channels',
+						label: 'Public graph channels',
 					},
 				]
 			}
@@ -133,7 +133,7 @@
 		>
 			{#snippet Summary()}
 				<header data-row-item="flexible" data-row="wrap gap-4">
-					<HeadingComponent>Network graph</HeadingComponent>
+					<HeadingComponent>Public network graph</HeadingComponent>
 				</header>
 			{/snippet}
 
@@ -142,7 +142,7 @@
 					selection={selection.$$timestamps}
 					collapsible={false}
 					title={label}
-					emptyText='No observations yet.'
+					emptyText='No public graph observations yet.'
 					id={`${id}-list`}
 				/>
 			{/snippet}
@@ -152,7 +152,7 @@
 					selection={selection.$$nodes}
 					collapsible={false}
 					title={label}
-					emptyText='No nodes yet.'
+					emptyText='No public graph nodes yet.'
 					id={`${id}-list`}
 				/>
 			{/snippet}
@@ -162,7 +162,7 @@
 					selection={selection.$$channels}
 					collapsible={false}
 					title={label}
-					emptyText='No channels yet.'
+					emptyText='No public graph channels yet.'
 					id={`${id}-list`}
 				/>
 			{/snippet}
@@ -176,11 +176,11 @@
 				[
 					{
 						id: 'lightning-invoices',
-						label: 'Invoices',
+						label: 'Local LND invoices',
 					},
 					{
 						id: 'lightning-payment-list',
-						label: 'Payments',
+						label: 'Local LND payments',
 					},
 				]
 			}
@@ -189,7 +189,7 @@
 		>
 			{#snippet Summary()}
 				<header data-row-item="flexible" data-row="wrap gap-4">
-					<HeadingComponent>Payments</HeadingComponent>
+					<HeadingComponent>Local LND payment history</HeadingComponent>
 				</header>
 			{/snippet}
 
@@ -198,7 +198,7 @@
 					selection={selection.$$invoices}
 					collapsible={false}
 					title={label}
-					emptyText='No invoices yet.'
+					emptyText='No local LND invoices yet.'
 					id={`${id}-list`}
 				/>
 			{/snippet}
@@ -208,7 +208,7 @@
 					selection={selection.$$payments}
 					collapsible={false}
 					title={label}
-					emptyText='No payments yet.'
+					emptyText='No local LND payments yet.'
 					id={`${id}-list`}
 				/>
 			{/snippet}

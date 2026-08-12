@@ -30,7 +30,7 @@
 			capacitySats: true,
 		},
 	}))
-	const titleFallback = $derived([(prefetched.alias ?? ''), String(selection.entitySelector.timestampMs)].filter(Boolean).join(' ') || 'Lightning node timestamp')
+	const titleFallback = $derived([(prefetched.alias ?? ''), String(selection.entitySelector.timestampMs)].filter(Boolean).join(' ') || 'Lightning public node observation')
 
 
 	// Components

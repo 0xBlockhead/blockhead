@@ -8,9 +8,10 @@ import { type } from 'arktype'
 export default entity({
 	entityType: EntityType.BlockheadLightningHtlc,
 	labels: {
-		singular: 'blockhead Lightning htlc',
-		plural: 'blockhead Lightning htlcs',
+		singular: 'local LND HTLC',
+		plural: 'local LND HTLCs',
 	},
+	description: 'A pending HTLC observed through the configured local LND node\'s macaroon-authorized API. It is private node state, not public graph data.',
 })({
 	$channelState: {
 		entityType: EntityType.BlockheadLightningChannelState,

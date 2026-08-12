@@ -95,7 +95,7 @@
 				(String(data.selector.timestampMs) || 'dydx chain network timestamp') + ' • dydx chain network timestamp • Blockhead'
 			:
 			data.entityType === EntityType.LightningNetwork_Timestamp ?
-				(String(data.selector.timestampMs) || 'Lightning network timestamp') + ' • Lightning network timestamp • Blockhead'
+				(String(data.selector.timestampMs) || 'Lightning public network observation') + ' • Lightning public network observation • Blockhead'
 			:
 			data.entityType === EntityType.StarknetNetwork_Timestamp ?
 				('starknet network timestamp') + ' • starknet network timestamp • Blockhead'

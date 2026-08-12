@@ -8,9 +8,10 @@ import { type } from 'arktype'
 export default entity({
 	entityType: EntityType.BlockheadLightningInvoice,
 	labels: {
-		singular: 'Lightning invoice',
-		plural: 'Lightning invoices',
+		singular: 'local LND invoice',
+		plural: 'local LND invoices',
 	},
+	description: 'An invoice observed through a configured local LND node. Its payment request, memo, settlement state, and private flag are macaroon-authorized local state.',
 })({
 	$network: {
 		entityType: EntityType.Network,

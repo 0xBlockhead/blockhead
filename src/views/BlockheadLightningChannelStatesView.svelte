@@ -65,7 +65,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{(blockheadLightningChannelState.$localNodeState.alias ?? '') || blockheadLightningChannelStateSelector.$localNodeState.connectionId || 'blockhead Lightning node state'}
+				{(blockheadLightningChannelState.$localNodeState.alias ?? '') || blockheadLightningChannelStateSelector.$localNodeState.connectionId || 'local LND node state'}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

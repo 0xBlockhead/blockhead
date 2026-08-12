@@ -41,7 +41,7 @@
 	entityType={EntityType.LightningNode}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? (selection.entitySelector.publicKey || 'Lightning node')}
+	title={title ?? (selection.entitySelector.publicKey || 'Lightning public node')}
 	href={
 		href === undefined ?
 			resolve(
@@ -104,7 +104,7 @@
 				[
 					{
 						id: 'lightning-node-channels',
-						label: 'Channels',
+						label: 'Public graph channels',
 					},
 				]
 			}
@@ -113,7 +113,7 @@
 		>
 			{#snippet Summary()}
 				<header data-row-item="flexible" data-row="wrap gap-4">
-					<HeadingComponent>Activity</HeadingComponent>
+					<HeadingComponent>Public graph activity</HeadingComponent>
 				</header>
 			{/snippet}
 
@@ -122,7 +122,7 @@
 					selection={selection.$$channels}
 					collapsible={false}
 					title={label}
-					emptyText='No channels.'
+					emptyText='No public graph channels.'
 					id={`${id}-list`}
 				/>
 			{/snippet}
@@ -136,7 +136,7 @@
 				[
 					{
 						id: 'lightning-node-timestamps',
-						label: 'Timestamps',
+						label: 'Public graph observations',
 					},
 				]
 			}
@@ -145,7 +145,7 @@
 		>
 			{#snippet Summary()}
 				<header data-row-item="flexible" data-row="wrap gap-4">
-					<HeadingComponent>Observations</HeadingComponent>
+					<HeadingComponent>Public graph observations</HeadingComponent>
 				</header>
 			{/snippet}
 
@@ -154,7 +154,7 @@
 					selection={selection.$$timestamps}
 					collapsible={false}
 					title={label}
-					emptyText='No timestamps.'
+					emptyText='No public graph observations.'
 					id={`${id}-list`}
 				/>
 			{/snippet}

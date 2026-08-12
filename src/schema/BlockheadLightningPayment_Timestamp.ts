@@ -9,9 +9,10 @@ import { type } from 'arktype'
 export default entity({
 	entityType: EntityType.BlockheadLightningPayment_Timestamp,
 	labels: {
-		singular: 'Lightning payment timestamp',
-		plural: 'Lightning payment observations',
+		singular: 'local LND payment observation',
+		plural: 'local LND payment observations',
 	},
+	description: 'A timestamped payment result from the configured local LND node; it is not a public graph or settlement-chain observation.',
 })({
 	$payment: {
 		entityType: EntityType.BlockheadLightningPayment,

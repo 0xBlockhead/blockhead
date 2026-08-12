@@ -60,7 +60,7 @@
 			}
 		>
 			{#snippet Title()}
-				{(blockheadLightningNodeState.alias ?? '') || blockheadLightningNodeStateSelector.connectionId || 'blockhead Lightning node state'}
+				{(blockheadLightningNodeState.alias ?? '') || blockheadLightningNodeStateSelector.connectionId || 'local LND node state'}
 			{/snippet}
 
 			{#snippet Value()}
@@ -68,7 +68,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{blockheadLightningNodeState.$node == null ? '' : blockheadLightningNodeState.$node.publicKey || 'Lightning node'}</span>
+				<span data-text="annotation">{blockheadLightningNodeState.$node == null ? '' : blockheadLightningNodeState.$node.publicKey || 'Lightning public node'}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

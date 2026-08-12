@@ -59,7 +59,7 @@
 			}
 		>
 			{#snippet Title()}
-				{lightningNodeSelector.publicKey || 'Lightning node'}
+				{lightningNodeSelector.publicKey || 'Lightning public node'}
 			{/snippet}
 
 			{#snippet Value()}

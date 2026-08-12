@@ -9,9 +9,10 @@ import { type } from 'arktype'
 export default entity({
 	entityType: EntityType.LightningNode,
 	labels: {
-		singular: 'Lightning node',
-		plural: 'Lightning nodes',
+		singular: 'Lightning public node',
+		plural: 'Lightning public nodes',
 	},
+	description: 'A public Lightning graph node identity. Its graph capacity and channels do not disclose local balance, private channels, or directional liquidity.',
 })({
 	$network: {
 		entityType: EntityType.Network,

@@ -35,7 +35,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'HTLC ' + String(pageSelection.entitySelector.htlcIndex)} • blockhead Lightning htlc • Blockhead</title>
+	<title>{data.title ?? 'HTLC ' + String(pageSelection.entitySelector.htlcIndex)} • local LND HTLC • Blockhead</title>
 </svelte:head>
 
 

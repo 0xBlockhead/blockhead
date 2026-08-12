@@ -23,6 +23,12 @@
 	}: Omit<EntitySelectionViewProps<EntityType.LightningChannel_Timestamp>, 'prefetched'> = $props()
 
 	const channel = $derived(selection.entitySelector.$channel)
+	const lightningChannelTimestamp = $derived(selection({
+		fields: {
+			status: true,
+			capacitySats: true,
+		},
+	}))
 
 
 	// Components
@@ -65,16 +71,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary
-			resource={
-				selection({
-					fields: {
-						status: true,
-						capacitySats: true,
-					},
-				})
-			}
-		>
+		<ResourceBoundary resource={lightningChannelTimestamp}>
 			{#snippet children(entity)}
 				{[(entity.status ?? ''), String(entity.capacitySats ?? '')].filter(Boolean).join(' ') || String(selection.entitySelector.timestampMs)}
 			{/snippet}
@@ -101,6 +98,42 @@
 			</div>
 
 			<ResourceBoundary
+				resource={lightningChannelTimestamp}
+			>
+				{#snippet children(entity)}
+					{@const capacitySats = entity.capacitySats}
+					{#if capacitySats != null}
+						<div>
+							<dt>Channel funding capacity sats</dt>
+							<dd>
+								<NumberValue
+									value={capacitySats}
+								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		</dl>
+
+		<dl data-column-item="center">
+			<ResourceBoundary
+				resource={lightningChannelTimestamp}
+			>
+				{#snippet children(entity)}
+					{@const status = entity.status}
+					{#if status != null}
+						<div>
+							<dt>Status</dt>
+							<dd>
+								{status}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
 				resource={
 					selection({
 						fields: {
@@ -115,7 +148,9 @@
 						<div>
 							<dt>Fee rate ppm</dt>
 							<dd>
-								{feeRatePpm}
+								<NumberValue
+									value={feeRatePpm}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -137,13 +172,15 @@
 						<div>
 							<dt>Updated</dt>
 							<dd>
-								{updatedAtMs}
+								<Timestamp timestamp={updatedAtMs} />
 							</dd>
 						</div>
 					{/if}
 				{/snippet}
 			</ResourceBoundary>
+		</dl>
 
+		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
 					selection({
@@ -181,7 +218,9 @@
 						<div>
 							<dt>Closing fee sats</dt>
 							<dd>
-								{closingFeeSats}
+								<NumberValue
+									value={closingFeeSats}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -225,7 +264,7 @@
 						<div>
 							<dt>Closed</dt>
 							<dd>
-								{closedAtMs}
+								<Timestamp timestamp={closedAtMs} />
 							</dd>
 						</div>
 					{/if}

@@ -39,7 +39,7 @@
 			paymentRequest: true,
 		},
 	}))
-	const titleFallback = $derived((prefetched.memo ?? '') || selection.entitySelector.paymentHash || 'Lightning invoice')
+	const titleFallback = $derived((prefetched.memo ?? '') || selection.entitySelector.paymentHash || 'local LND invoice')
 
 
 	// Components
@@ -239,7 +239,7 @@
 					{#if blockheadLightningNodeState != null}
 						{@const blockheadLightningNodeStateInitial = untrack(() => blockheadLightningNodeState)}
 						<div>
-							<dt>Local node state</dt>
+							<dt>Local LND node state</dt>
 							<dd>
 								<BlockheadLightningNodeStateView
 									selection={select(EntityType.BlockheadLightningNodeState, (blockheadLightningNodeState ?? blockheadLightningNodeStateInitial)[EntityMetaKey.Selector])}

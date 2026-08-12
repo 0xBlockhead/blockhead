@@ -34,7 +34,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.connectionId ?? '') || 'blockhead Lightning node state' : (pageSelection.entity.alias ?? '') || pageSelection.entitySelector.connectionId || 'blockhead Lightning node state')} • blockhead Lightning node state • Blockhead</title>
+	<title>{data.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.connectionId ?? '') || 'local LND node state' : (pageSelection.entity.alias ?? '') || pageSelection.entitySelector.connectionId || 'local LND node state')} • local LND node state • Blockhead</title>
 </svelte:head>
 
 

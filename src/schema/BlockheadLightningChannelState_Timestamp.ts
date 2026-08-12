@@ -8,9 +8,10 @@ import { type } from 'arktype'
 export default entity({
 	entityType: EntityType.BlockheadLightningChannelState_Timestamp,
 	labels: {
-		singular: 'blockhead Lightning channel state timestamp',
-		plural: 'blockhead Lightning channel state observations',
+		singular: 'local LND channel-state observation',
+		plural: 'local LND channel-state observations',
 	},
+	description: 'A local LND observation. Local and remote balances are directional amounts from this configured node\'s perspective; they are never substituted for public channel capacity.',
 })({
 	$channelState: {
 		entityType: EntityType.BlockheadLightningChannelState,

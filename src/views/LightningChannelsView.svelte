@@ -64,7 +64,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{lightningChannel.$node1 == null ? '' : lightningChannel.$node1.publicKey || 'Lightning node'}
+				{lightningChannel.$node1 == null ? '' : lightningChannel.$node1.publicKey || 'Lightning public node'}
 			{/snippet}
 		</EntityView>
 	{/snippet}

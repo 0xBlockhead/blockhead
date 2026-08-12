@@ -38,7 +38,7 @@
 			alias: true,
 		},
 	}))
-	const titleFallback = $derived((prefetched.alias ?? '') || selection.entitySelector.connectionId || 'blockhead Lightning node state')
+	const titleFallback = $derived((prefetched.alias ?? '') || selection.entitySelector.connectionId || 'local LND node state')
 	const viewDomId = $derived('blockhead-lightning-node-state-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -118,14 +118,14 @@
 	{#snippet Content()}
 		<dl data-column-item="center">
 			<div>
-				<dt>connection ID</dt>
+				<dt>local LND connection ID</dt>
 				<dd>
 					{selection.entitySelector.connectionId}
 				</dd>
 			</div>
 
 			<div>
-				<dt>network</dt>
+				<dt>Lightning network graph</dt>
 				<dd>
 					<LightningNetworkView
 						selection={select(EntityType.LightningNetwork, selection.entitySelector.$network)}
@@ -201,11 +201,11 @@
 				[
 					{
 						id: 'lightning-node-channel-states',
-						label: 'Channel states',
+						label: 'Local directional balances',
 					},
 					{
 						id: 'lightning-node-channels',
-						label: 'Channels',
+						label: 'Public graph channel refs',
 					},
 				]
 			}
@@ -214,7 +214,7 @@
 		>
 			{#snippet Summary()}
 				<header data-row-item="flexible" data-row="wrap gap-4">
-					<HeadingComponent>Channels</HeadingComponent>
+					<HeadingComponent>Local LND channels</HeadingComponent>
 				</header>
 			{/snippet}
 
@@ -223,7 +223,7 @@
 					selection={selection.$$channelStates}
 					collapsible={false}
 					title={label}
-					emptyText='No local channel states.'
+					emptyText='No local LND channel states.'
 					id={`${id}-list`}
 				/>
 			{/snippet}
@@ -233,7 +233,7 @@
 					selection={selection.$$channels}
 					collapsible={false}
 					title={label}
-					emptyText='No public channel refs.'
+					emptyText='No public graph channel refs.'
 					id={`${id}-list`}
 				/>
 			{/snippet}
@@ -247,11 +247,11 @@
 				[
 					{
 						id: 'lightning-node-invoices',
-						label: 'Invoices',
+						label: 'Local LND invoices',
 					},
 					{
 						id: 'lightning-node-payment-list',
-						label: 'Payments',
+						label: 'Local LND payments',
 					},
 				]
 			}
@@ -260,7 +260,7 @@
 		>
 			{#snippet Summary()}
 				<header data-row-item="flexible" data-row="wrap gap-4">
-					<HeadingComponent>Payments</HeadingComponent>
+					<HeadingComponent>Local LND payment history</HeadingComponent>
 				</header>
 			{/snippet}
 
@@ -269,7 +269,7 @@
 					selection={selection.$$invoices}
 					collapsible={false}
 					title={label}
-					emptyText='No invoices.'
+					emptyText='No local LND invoices.'
 					id={`${id}-list`}
 				/>
 			{/snippet}
@@ -279,7 +279,7 @@
 					selection={selection.$$payments}
 					collapsible={false}
 					title={label}
-					emptyText='No payments.'
+					emptyText='No local LND payments.'
 					id={`${id}-list`}
 				/>
 			{/snippet}
@@ -293,7 +293,7 @@
 				[
 					{
 						id: 'lightning-node-timestamps',
-						label: 'Observations',
+						label: 'Local LND observations',
 					},
 				]
 			}
@@ -302,7 +302,7 @@
 		>
 			{#snippet Summary()}
 				<header data-row-item="flexible" data-row="wrap gap-4">
-					<HeadingComponent>Observations</HeadingComponent>
+					<HeadingComponent>Local LND observations</HeadingComponent>
 				</header>
 			{/snippet}
 
@@ -311,7 +311,7 @@
 					selection={selection.$$timestamps}
 					collapsible={false}
 					title={label}
-					emptyText='No node-state observations.'
+					emptyText='No local LND node-state observations.'
 					id={`${id}-list`}
 				/>
 			{/snippet}

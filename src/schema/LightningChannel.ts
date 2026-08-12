@@ -13,6 +13,7 @@ export default entity({
 		singular: 'Lightning channel',
 		plural: 'Lightning channels',
 	},
+	description: 'A public Lightning channel identity and its sourced graph observations. Public channel capacity is funding capacity, never an estimate of either party\'s directional balance or routable liquidity.',
 })({
 	$network: {
 		entityType: EntityType.Network,
