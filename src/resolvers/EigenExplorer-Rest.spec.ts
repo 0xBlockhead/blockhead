@@ -257,6 +257,96 @@ describe('EigenExplorer delegation resolver', () => {
 		expect(getStakerWithdrawals).toHaveBeenCalledWith(stakerAddress)
 	})
 
+	it('projects the latest authoritative strategy lifecycle instead of response order', async () => {
+		getStakerDeposits.mockResolvedValueOnce({
+			data: [
+				{
+					transactionHash,
+					stakerAddress,
+					tokenAddress,
+					strategyAddress,
+					shares: '1',
+					createdAtBlock: 100,
+					createdAt: '2026-01-01T00:00:00.000Z',
+				},
+				{
+					transactionHash: `0x${'7'.repeat(64)}`,
+					stakerAddress,
+					tokenAddress,
+					strategyAddress,
+					shares: '2',
+					createdAtBlock: 102,
+					createdAt: '2026-01-03T00:00:00.000Z',
+				},
+			],
+			meta: {
+				total: 2,
+				skip: 0,
+				take: 100,
+			},
+		})
+		getStakerWithdrawals.mockResolvedValueOnce({
+			data: [
+				{
+					withdrawalRoot,
+					nonce: 7,
+					stakerAddress,
+					delegatedTo: operatorAddress,
+					withdrawerAddress: stakerAddress,
+					shares: [{ strategyAddress, shares: '42' }],
+					createdAtBlock: 100,
+					createdAt: '2026-01-01T00:00:00.000Z',
+					updatedAtBlock: 101,
+					updatedAt: '2026-01-02T00:00:00.000Z',
+					isCompleted: false,
+				},
+				{
+					withdrawalRoot: `0x${'8'.repeat(64)}`,
+					nonce: 8,
+					stakerAddress,
+					delegatedTo: operatorAddress,
+					withdrawerAddress: stakerAddress,
+					shares: [{ strategyAddress, shares: '42' }],
+					createdAtBlock: 102,
+					createdAt: '2026-01-03T00:00:00.000Z',
+					updatedAtBlock: 103,
+					updatedAt: '2026-01-04T00:00:00.000Z',
+					isCompleted: true,
+				},
+			],
+			meta: {
+				total: 2,
+				skip: 0,
+				take: 100,
+			},
+		})
+
+		const delegation = await delegationResolver.resolve.StakerOperatorStrategyTimestampMsSource.resolve(
+			selector,
+			context
+		)
+
+		expect(delegationResolver.projections.depositRoot(delegation)).toBe(`0x${'7'.repeat(64)}`)
+		expect(delegationResolver.projections.withdrawalRoot(delegation)).toBe(`0x${'8'.repeat(64)}`)
+		expect(delegationResolver.projections.withdrawalCompleted(delegation)).toBe(true)
+	})
+
+	it('fails closed when delegation lifecycle pagination is incomplete', async () => {
+		getStakerDeposits.mockResolvedValueOnce({
+			data: [],
+			meta: {
+				total: 101,
+				skip: 0,
+				take: 100,
+			},
+		})
+
+		await expect(delegationResolver.resolve.StakerOperatorStrategyTimestampMsSource.resolve(
+			selector,
+			context
+		)).rejects.toThrow('lifecycle exceeds the authoritative page')
+	})
+
 	it('rejects non-mainnet selectors before transport', async () => {
 		await expect(delegationResolver.resolve.StakerOperatorStrategyTimestampMsSource.resolve({
 			...selector,
@@ -356,7 +446,7 @@ describe('EigenExplorer operator resolvers', () => {
 		})
 	})
 
-	it('projects reward strategy/token observations at the operator update clock', async () => {
+	it('keeps independently reported reward strategies and tokens in separate observations', async () => {
 		const rewards = await operatorRewardsResolver.resolve.NetworkOperatorAddress.resolve(
 			operatorSelector,
 			context
@@ -370,7 +460,7 @@ describe('EigenExplorer operator resolvers', () => {
 						address: operatorAddress,
 					},
 				},
-				rewardContextKey: `${strategyAddress}:${tokenAddress}`,
+				rewardContextKey: `strategy:${strategyAddress}`,
 				timestampMs,
 				source: Source.EigenExplorer_Rest,
 			},
@@ -387,6 +477,26 @@ describe('EigenExplorer operator resolvers', () => {
 						operatorAddress,
 					},
 				},
+			},
+		}, {
+			[EntityMetaKey.Selector]: {
+				$earner: {
+					$network: network,
+					$actor: {
+						address: operatorAddress,
+					},
+				},
+				rewardContextKey: `token:${tokenAddress}`,
+				timestampMs,
+				source: Source.EigenExplorer_Rest,
+			},
+			[EntityMetaKey.Fields]: {
+				$operator: {
+					[EntityMetaKey.Selector]: {
+						$network: network,
+						operatorAddress,
+					},
+				},
 				rewardToken: tokenAddress,
 			},
 		}])
@@ -394,7 +504,7 @@ describe('EigenExplorer operator resolvers', () => {
 		expect(getOperatorRewardInfo).toHaveBeenCalledWith(operatorAddress)
 	})
 
-	it('re-resolves a singular reward observation from operator reward info', async () => {
+	it('re-resolves independently sourced strategy and token observations', async () => {
 		const reward = await rewardTimestampResolver.resolve.EarnerRewardContextKeyTimestampMsSource.resolve({
 			$earner: {
 				$network: network,
@@ -402,7 +512,7 @@ describe('EigenExplorer operator resolvers', () => {
 					address: operatorAddress,
 				},
 			},
-			rewardContextKey: `${strategyAddress}:${tokenAddress}`,
+			rewardContextKey: `strategy:${strategyAddress}`,
 			timestampMs,
 			source: Source.EigenExplorer_Rest,
 		}, context)
@@ -419,7 +529,22 @@ describe('EigenExplorer operator resolvers', () => {
 				operatorAddress,
 			},
 		})
-		expect(rewardTimestampResolver.projections.rewardToken(reward)).toBe(tokenAddress)
+		expect(rewardTimestampResolver.projections.rewardToken(reward)).toBeUndefined()
+
+		const tokenReward = await rewardTimestampResolver.resolve.EarnerRewardContextKeyTimestampMsSource.resolve({
+			$earner: {
+				$network: network,
+				$actor: {
+					address: operatorAddress,
+				},
+			},
+			rewardContextKey: `token:${tokenAddress}`,
+			timestampMs,
+			source: Source.EigenExplorer_Rest,
+		}, context)
+
+		expect(rewardTimestampResolver.projections.$strategy(tokenReward)).toBeUndefined()
+		expect(rewardTimestampResolver.projections.rewardToken(tokenReward)).toBe(tokenAddress)
 	})
 
 	it('fail-closes singular reward observations on timestamp or context mismatch', async () => {
@@ -430,7 +555,7 @@ describe('EigenExplorer operator resolvers', () => {
 					address: operatorAddress,
 				},
 			},
-			rewardContextKey: `${strategyAddress}:${tokenAddress}`,
+			rewardContextKey: `strategy:${strategyAddress}`,
 			timestampMs: timestampMs + 1,
 			source: Source.EigenExplorer_Rest,
 		}, context)).rejects.toThrow('reward timestamp mismatch')
@@ -442,7 +567,7 @@ describe('EigenExplorer operator resolvers', () => {
 					address: operatorAddress,
 				},
 			},
-			rewardContextKey: `${strategyAddress}:0x9999999999999999999999999999999999999999`,
+			rewardContextKey: 'token:0x9999999999999999999999999999999999999999',
 			timestampMs,
 			source: Source.EigenExplorer_Rest,
 		}, context)).rejects.toThrow('reward context mismatch')

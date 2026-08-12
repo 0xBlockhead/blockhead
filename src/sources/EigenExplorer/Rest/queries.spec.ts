@@ -542,6 +542,25 @@ describe('EigenExplorer REST queries', () => {
 		expect(vi.mocked(sourceFetch).mock.calls.at(-1)?.[1]).toBe(
 			`https://api.eigenexplorer.test/avs/${avsAddress}/allocations?skip=0&take=100&operatorAddress=${operatorAddress}&strategyAddress=${strategyAddress}`
 		)
+
+		respond({
+			data: [
+				allocation,
+				{
+					...allocation,
+					operatorSetId: 1,
+					effectBlock: allocation.effectBlock + 1,
+				},
+			],
+			meta: {
+				total: 2,
+				skip: 0,
+				take: 100,
+			},
+		})
+		await expect(listOperatorAllocations(
+			operatorAddress
+		)).rejects.toThrow('allocations collapse onto one observation identity')
 	})
 
 	it('validates operator magnitudes, allocation delay, and withAvsData registrations', async () => {
@@ -703,6 +722,44 @@ describe('EigenExplorer REST queries', () => {
 		await expect(listAvsSlashes(
 			avsAddress
 		)).rejects.toThrow(`${Source.EigenExplorer_Rest}: invalid slash identity`)
+
+		respond({
+			data: [{
+				...slash,
+				strategies: [
+					strategyAddress,
+					strategyAddress.toUpperCase(),
+				],
+				wadSlashed: [
+					'1',
+					'2',
+				],
+			}],
+			meta: {
+				total: 1,
+				skip: 0,
+				take: 100,
+			},
+		})
+		await expect(listOperatorSlashes(
+			operatorAddress
+		)).rejects.toThrow(`${Source.EigenExplorer_Rest}: duplicate slash strategies`)
+
+		respond({
+			data: [{
+				...slash,
+				updatedAt: '2025-01-31T00:00:00.000Z',
+				updatedAtBlock: slash.createdAtBlock - 1,
+			}],
+			meta: {
+				total: 1,
+				skip: 0,
+				take: 100,
+			},
+		})
+		await expect(listOperatorSlashes(
+			operatorAddress
+		)).rejects.toThrow(`${Source.EigenExplorer_Rest}: reversed slash lifecycle`)
 
 		respond({
 			tvl: 12.5,

@@ -689,6 +689,7 @@ const assertAllocationPage = (
 ) => {
 	assertPage(page, skip, take)
 	const identities = new Set<string>()
+	const observationIdentities = new Set<string>()
 
 	for (const allocation of page.data) {
 		assertAddress(allocation.avsAddress, 'allocation AVS address')
@@ -741,6 +742,18 @@ const assertAllocationPage = (
 			throw new Error(`${Source.EigenExplorer_Rest}: duplicate allocations`)
 
 		identities.add(identity)
+
+		const observationIdentity = [
+			allocation.operatorAddress.toLowerCase(),
+			allocation.avsAddress.toLowerCase(),
+			allocation.strategyAddress.toLowerCase(),
+			String(Date.parse(allocation.updatedAt)),
+		].join(':')
+
+		if (observationIdentities.has(observationIdentity))
+			throw new Error(`${Source.EigenExplorer_Rest}: allocations collapse onto one observation identity`)
+
+		observationIdentities.add(observationIdentity)
 	}
 
 	return page
@@ -782,6 +795,12 @@ const assertSlashPage = (
 		for (const strategyAddress of slash.strategies)
 			assertAddress(strategyAddress, 'slash strategy address')
 
+		if (
+			new Set(slash.strategies.map((strategyAddress) => strategyAddress.toLowerCase())).size
+			!== slash.strategies.length
+		)
+			throw new Error(`${Source.EigenExplorer_Rest}: duplicate slash strategies`)
+
 		for (const wad of slash.wadSlashed) {
 			if (!unsignedIntegerPattern.test(wad))
 				throw new Error(`${Source.EigenExplorer_Rest}: invalid slash wad`)
@@ -792,6 +811,11 @@ const assertSlashPage = (
 
 		assertTimestamp(slash.createdAt, 'slash creation timestamp')
 		assertTimestamp(slash.updatedAt, 'slash update timestamp')
+		if (
+			slash.updatedAtBlock < slash.createdAtBlock
+			|| Date.parse(slash.updatedAt) < Date.parse(slash.createdAt)
+		)
+			throw new Error(`${Source.EigenExplorer_Rest}: reversed slash lifecycle`)
 
 		if (
 			operatorAddress != null

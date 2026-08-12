@@ -293,21 +293,31 @@ export default {
 							getStakerDeposits($staker.$actor.address),
 							getStakerWithdrawals($staker.$actor.address),
 						])
+						if (
+							deposits.meta.total !== deposits.data.length
+							|| withdrawals.meta.total !== withdrawals.data.length
+						)
+							throw new Error('EigenExplorer_Rest: delegation lifecycle exceeds the authoritative page')
 						const depositRoot = hexLowerOfByteSize(
-							deposits.data.find(({ strategyAddress }) => (
-								strategyAddress.toLowerCase() === $strategy.strategyAddress.toLowerCase()
-							))?.transactionHash ?? '',
+							deposits.data
+								.filter(({ strategyAddress }) => (
+									strategyAddress.toLowerCase() === $strategy.strategyAddress.toLowerCase()
+								))
+								.toSorted((left, right) => right.createdAtBlock - left.createdAtBlock)[0]
+								?.transactionHash ?? '',
 							32
 						)
-						const withdrawal = withdrawals.data.find(({
-							shares,
-							delegatedTo,
-						}) => (
-							delegatedTo.toLowerCase() === $operator.operatorAddress.toLowerCase()
-							&& shares.some(({ strategyAddress }) => (
-								strategyAddress.toLowerCase() === $strategy.strategyAddress.toLowerCase()
+						const withdrawal = withdrawals.data
+							.filter(({
+								shares,
+								delegatedTo,
+							}) => (
+								delegatedTo.toLowerCase() === $operator.operatorAddress.toLowerCase()
+								&& shares.some(({ strategyAddress }) => (
+									strategyAddress.toLowerCase() === $strategy.strategyAddress.toLowerCase()
+								))
 							))
-						))
+							.toSorted((left, right) => right.updatedAtBlock - left.updatedAtBlock)[0]
 						const withdrawalRoot = (
 							withdrawal == null ?
 								undefined
@@ -499,13 +509,41 @@ export default {
 
 						const timestampMs = Date.parse(operator.updatedAt)
 
-						return (
-							rewardInfo.rewardStrategies.flatMap((strategyAddressWire) => {
+						return [
+							...rewardInfo.rewardStrategies.map((strategyAddressWire) => {
 								const strategyAddress = hexLowerOfByteSize(strategyAddressWire, 20)
 								if (strategyAddress == null)
 									throw new Error('EigenExplorer_Rest: reward strategy address not normalized')
 
-								return rewardInfo.rewardTokens.map((rewardTokenWire) => {
+								return {
+									[EntityMetaKey.Selector]: {
+										$earner: {
+											$network: ethereumNetwork,
+											$actor: {
+												address: earnerAddress,
+											},
+										},
+										rewardContextKey: `strategy:${strategyAddress}`,
+										timestampMs,
+										source: Source.EigenExplorer_Rest,
+									},
+									[EntityMetaKey.Fields]: {
+										$strategy: {
+											[EntityMetaKey.Selector]: {
+												$network: ethereumNetwork,
+												strategyAddress,
+											},
+										},
+										$operator: {
+											[EntityMetaKey.Selector]: {
+												$network: ethereumNetwork,
+												operatorAddress: earnerAddress,
+											},
+										},
+									},
+								}
+							}),
+							...rewardInfo.rewardTokens.map((rewardTokenWire) => {
 									const rewardToken = hexLowerOfByteSize(rewardTokenWire, 20)
 									if (rewardToken == null)
 										throw new Error('EigenExplorer_Rest: reward token address not normalized')
@@ -518,17 +556,11 @@ export default {
 													address: earnerAddress,
 												},
 											},
-											rewardContextKey: `${strategyAddress}:${rewardToken}`,
+											rewardContextKey: `token:${rewardToken}`,
 											timestampMs,
 											source: Source.EigenExplorer_Rest,
 										},
 										[EntityMetaKey.Fields]: {
-											$strategy: {
-												[EntityMetaKey.Selector]: {
-													$network: ethereumNetwork,
-													strategyAddress,
-												},
-											},
 											$operator: {
 												[EntityMetaKey.Selector]: {
 													$network: ethereumNetwork,
@@ -538,9 +570,8 @@ export default {
 											rewardToken,
 										},
 									}
-								})
-							})
-						)
+							}),
+						]
 					},
 				},
 			},
@@ -581,15 +612,14 @@ export default {
 							throw new Error('EigenExplorer_Rest: observation source mismatch')
 
 						const [
-							strategyAddressWire,
-							rewardTokenWire,
+							contextKind,
+							contextAddressWire,
 						] = rewardContextKey.split(':')
-						const strategyAddress = hexLowerOfByteSize(strategyAddressWire ?? '', 20)
-						const rewardToken = hexLowerOfByteSize(rewardTokenWire ?? '', 20)
+						const contextAddress = hexLowerOfByteSize(contextAddressWire ?? '', 20)
 						if (
-							strategyAddress == null
-							|| rewardToken == null
-							|| rewardContextKey !== `${strategyAddress}:${rewardToken}`
+							(contextKind !== 'strategy' && contextKind !== 'token')
+							|| contextAddress == null
+							|| rewardContextKey !== `${contextKind}:${contextAddress}`
 						)
 							throw new Error('EigenExplorer_Rest: invalid reward context key')
 
@@ -614,30 +644,28 @@ export default {
 						)
 							throw new Error('EigenExplorer_Rest: foreign reward earner')
 
-						if (
-							!rewardInfo.rewardStrategies.some((value) => (
-								value.toLowerCase() === strategyAddress
-							))
-							|| !rewardInfo.rewardTokens.some((value) => (
-								value.toLowerCase() === rewardToken
-							))
-						)
+						if (!(contextKind === 'strategy' ? rewardInfo.rewardStrategies : rewardInfo.rewardTokens)
+							.some((value) => value.toLowerCase() === contextAddress))
 							throw new Error('EigenExplorer_Rest: reward context mismatch')
 
 						return {
-							$strategy: {
-								[EntityMetaKey.Selector]: {
-									$network: ethereumNetwork,
-									strategyAddress,
+							...(contextKind === 'strategy' && {
+								$strategy: {
+									[EntityMetaKey.Selector]: {
+										$network: ethereumNetwork,
+										strategyAddress: contextAddress,
+									},
 								},
-							},
+							}),
 							$operator: {
 								[EntityMetaKey.Selector]: {
 									$network: ethereumNetwork,
 									operatorAddress: earnerAddress,
 								},
 							},
-							rewardToken,
+							...(contextKind === 'token' && {
+								rewardToken: contextAddress,
+							}),
 						}
 					},
 				},
