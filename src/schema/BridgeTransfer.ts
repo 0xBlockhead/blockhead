@@ -107,6 +107,39 @@ export default entity({
 			Source.Wormholescan,
 		],
 	},
+	sourceTransactionAtMs: {
+		primitiveType: type('number.integer >= 0'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Across_Rest,
+			Source.Axelarscan_Rest,
+			Source.LayerZeroScan_Rest,
+			Source.Lifi_Rest,
+			Source.Wormholescan,
+		],
+	},
+	destinationTransactionAtMs: {
+		primitiveType: type('number.integer >= 0'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Across_Rest,
+			Source.Axelarscan_Rest,
+			Source.LayerZeroScan_Rest,
+			Source.Lifi_Rest,
+			Source.Wormholescan,
+		],
+	},
+	transactionLatencyMs: {
+		primitiveType: type('number.integer >= 0'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Across_Rest,
+			Source.Axelarscan_Rest,
+			Source.LayerZeroScan_Rest,
+			Source.Lifi_Rest,
+			Source.Wormholescan,
+		],
+	},
 	exclusiveRelayer: {
 		primitiveType: EvmAddress,
 		cardinality: EntityFieldCardinality.ZeroOrOne,

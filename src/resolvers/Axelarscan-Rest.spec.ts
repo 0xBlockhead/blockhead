@@ -140,6 +140,9 @@ describe('Axelarscan BridgeTransfer resolvers', () => {
 		expect(bridgeTransferResolver.projections.logIndex(snapshot)).toBe(1)
 		expect(bridgeTransferResolver.projections.assetOutcome(snapshot)).toBe(BridgeAssetOutcome.MessageOnly)
 		expect(bridgeTransferResolver.projections.bridgeFeeUsd(snapshot)).toBe('0.014628501')
+		expect(bridgeTransferResolver.projections.sourceTransactionAtMs(snapshot)).toBe(1_784_780_000_000)
+		expect(bridgeTransferResolver.projections.destinationTransactionAtMs(snapshot)).toBe(1_784_780_004_000)
+		expect(bridgeTransferResolver.projections.transactionLatencyMs(snapshot)).toBe(4_000)
 		expect(bridgeTransferResolver.projections.$fromNetwork(snapshot)).toEqual({
 			[EntityMetaKey.Selector]: {
 				caip2: {
@@ -222,7 +225,6 @@ describe('Axelarscan BridgeTransfer resolvers', () => {
 		expect(bridgeTransferTimestampResolver.projections.substatus(observation)).toBe('received')
 		expect(bridgeTransferTimestampResolver.projections.destinationTxHash(observation)).toBe(executionTransactionHash)
 		expect(bridgeTransferTimestampResolver.projections.relayer(observation)).toBe(relayerAddress)
-		expect(bridgeTransferTimestampResolver.projections.completedAt(observation)).toBe(1_784_780_004_000)
 		expect(bridgeTransferTimestampResolver.projections.sourceConfirmations(observation)).toBe(12)
 		expect(bridgeTransferTimestampResolver.projections.fillGasFee(observation)).toBe(397688n * 6000000n)
 		expect(bridgeTransferTimestampResolver.projections.fillGasFeeUsd(observation)).toBe(

@@ -52,6 +52,7 @@
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import Timestamp from '$/components/Timestamp.svelte'
 	import BridgeTransfer_TimestampsView from '$/views/BridgeTransfer_TimestampsView.svelte'
 	import EvmTransactionView from '$/views/EvmTransactionView.svelte'
 	import EvmAccountView from '$/views/EvmAccountView.svelte'
@@ -556,6 +557,76 @@
 							<dt>exclusive relayer</dt>
 							<dd>
 								{exclusiveRelayer}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		</dl>
+
+		<dl data-column-item="center">
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							sourceTransactionAtMs: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const sourceTransactionAtMs = entity.sourceTransactionAtMs}
+					{#if sourceTransactionAtMs != null}
+						<div>
+							<dt>source transaction at</dt>
+							<dd>
+								<Timestamp timestamp={sourceTransactionAtMs} />
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							destinationTransactionAtMs: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const destinationTransactionAtMs = entity.destinationTransactionAtMs}
+					{#if destinationTransactionAtMs != null}
+						<div>
+							<dt>destination transaction at</dt>
+							<dd>
+								<Timestamp timestamp={destinationTransactionAtMs} />
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							transactionLatencyMs: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const transactionLatencyMs = entity.transactionLatencyMs}
+					{#if transactionLatencyMs != null}
+						<div>
+							<dt>transaction latency ms</dt>
+							<dd>
+								<NumberValue
+									value={transactionLatencyMs}
+								/>
 							</dd>
 						</div>
 					{/if}

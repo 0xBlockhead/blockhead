@@ -300,28 +300,6 @@
 				resource={
 					viewSelection({
 						fields: {
-							completedAt: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const completedAt = entity.completedAt}
-					{#if completedAt != null}
-						<div>
-							<dt>completed AT</dt>
-							<dd>
-								<Timestamp timestamp={completedAt} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={
-					viewSelection({
-						fields: {
 							fillGasFee: true,
 						},
 					})

@@ -109,6 +109,9 @@ describe('Wormholescan BridgeTransfer resolvers', () => {
 			settlementModel: BridgeSettlementModel.LockMint,
 			verificationModel: BridgeVerificationModel.External,
 			assetOutcome: BridgeAssetOutcome.WrappedMint,
+			sourceTransactionAtMs: Date.parse('2026-01-02T03:04:05.000Z'),
+			destinationTransactionAtMs: Date.parse('2026-01-02T03:05:06.000Z'),
+			transactionLatencyMs: 61_000,
 			$fromToken: {
 				[EntityMetaKey.Selector]: {
 					$network: {
@@ -241,7 +244,6 @@ describe('Wormholescan BridgeTransfer resolvers', () => {
 		expect(snapshot).toMatchObject({
 			status: 'completed',
 			destinationTxHash,
-			completedAt: Date.parse('2026-01-02T03:05:06.000Z'),
 			fillGasFee: 21000n,
 			fillGasFeeUsd: '0.42',
 		})

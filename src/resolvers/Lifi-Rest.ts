@@ -244,6 +244,18 @@ const lifiBridgeTransferSnapshot = async (
 		lifiBridgeFeeUsdFromFeeCosts,
 	} = await import('$/sources/Lifi/Rest/queries.ts')
 	const bridgeFeeUsd = lifiBridgeFeeUsdFromFeeCosts(status.feeCosts)
+	const sourceTransactionAtMs = status.sending.timestamp * 1_000
+	const destinationTransactionAtMs = (
+		status.receiving?.timestamp == null ?
+			undefined
+		:
+			status.receiving.timestamp * 1_000
+	)
+	if (
+		destinationTransactionAtMs != null
+		&& destinationTransactionAtMs < sourceTransactionAtMs
+	)
+		throw new Error('Lifi_Rest: destination transaction precedes source transaction')
 
 	return {
 		source: Source.Lifi_Rest,
@@ -294,6 +306,11 @@ const lifiBridgeTransferSnapshot = async (
 		}),
 		...(bridgeFeeUsd != null && {
 			bridgeFeeUsd,
+		}),
+		sourceTransactionAtMs,
+		...(destinationTransactionAtMs != null && {
+			destinationTransactionAtMs,
+			transactionLatencyMs: destinationTransactionAtMs - sourceTransactionAtMs,
 		}),
 		$$timestamps: [{
 			[EntityMetaKey.Selector]: {
@@ -655,6 +672,9 @@ export default {
 			verificationModel: (transfer) => transfer.verificationModel,
 			assetOutcome: (transfer) => transfer.assetOutcome,
 			bridgeFeeUsd: (transfer) => transfer.bridgeFeeUsd,
+			sourceTransactionAtMs: (transfer) => transfer.sourceTransactionAtMs,
+			destinationTransactionAtMs: (transfer) => transfer.destinationTransactionAtMs,
+			transactionLatencyMs: (transfer) => transfer.transactionLatencyMs,
 			$$timestamps: {
 				select: (transfer) => transfer.$$timestamps,
 				resolveCount: (transfer) => transfer.$$timestamps.length,
@@ -698,9 +718,6 @@ export default {
 							status: status.status,
 							...(status.substatus != null && { substatus: status.substatus }),
 							...(destinationTxHash != null && { destinationTxHash }),
-							...(status.status === 'DONE' && status.receiving?.timestamp != null && {
-								completedAt: status.receiving.timestamp * 1_000,
-							}),
 							...(fillGasFee != null && { fillGasFee }),
 							...(fillGasFeeUsd != null && { fillGasFeeUsd }),
 							...((status.status === 'FAILED' || status.status === 'INVALID') && status.substatusMessage != null && {
@@ -717,7 +734,6 @@ export default {
 			status: (observation) => observation.status,
 			substatus: (observation) => observation.substatus,
 			destinationTxHash: (observation) => observation.destinationTxHash,
-			completedAt: (observation) => observation.completedAt,
 			fillGasFee: (observation) => observation.fillGasFee,
 			fillGasFeeUsd: (observation) => observation.fillGasFeeUsd,
 			error: (observation) => observation.error,

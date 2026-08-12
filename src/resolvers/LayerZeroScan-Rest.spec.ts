@@ -122,6 +122,9 @@ describe('LayerZeroScan BridgeTransfer resolvers', () => {
 			source: Source.LayerZeroScan_Rest,
 			transferId: guid,
 			assetOutcome: 'MessageOnly',
+			sourceTransactionAtMs: 1_784_783_358_000,
+			destinationTransactionAtMs: 1_784_783_400_000,
+			transactionLatencyMs: 42_000,
 			$sourceTx: {
 				[EntityMetaKey.Selector]: {
 					$network: {
@@ -197,7 +200,6 @@ describe('LayerZeroScan BridgeTransfer resolvers', () => {
 			sourceConfirmations: 64,
 			requiredConfirmations: 15,
 			destinationTxHash,
-			completedAt: 1_784_783_400_000,
 			relayer: '0x3333333333333333333333333333333333333333',
 		})
 		expect(resolver.projections).not.toHaveProperty('refundTxHash')

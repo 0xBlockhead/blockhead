@@ -18971,6 +18971,9 @@ export const schema = {
 				"verificationModel": { label: "verification model", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"assetOutcome": { label: "asset outcome", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Across_Rest, Source.Axelarscan_Rest, Source.LayerZeroScan_Rest, Source.Lifi_Rest, Source.Wormholescan] },
 				"bridgeFeeUsd": { label: "bridge fee USD", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Across_Rest, Source.Lifi_Rest, Source.Wormholescan] },
+				"sourceTransactionAtMs": { label: "source transaction at", description: "The source transaction time reported by the bridge provider in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeInteger", defaultSources: [Source.Across_Rest, Source.Axelarscan_Rest, Source.LayerZeroScan_Rest, Source.Lifi_Rest, Source.Wormholescan] },
+				"destinationTransactionAtMs": { label: "destination transaction at", description: "The destination transaction time reported by the bridge provider in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeInteger", defaultSources: [Source.Across_Rest, Source.Axelarscan_Rest, Source.LayerZeroScan_Rest, Source.Lifi_Rest, Source.Wormholescan] },
+				"transactionLatencyMs": { label: "transaction latency ms", description: "The provider-reported destination transaction time minus source transaction time, in milliseconds. This does not establish bridge settlement or finality.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeInteger", defaultSources: [Source.Across_Rest, Source.Axelarscan_Rest, Source.LayerZeroScan_Rest, Source.Lifi_Rest, Source.Wormholescan] },
 				"exclusiveRelayer": { label: "exclusive relayer", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "evmAddress", defaultSources: [Source.Across_Rest] },
 				"$$timestamps": { label: "timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BridgeTransfer_Timestamp, defaultSources: [Source.Across_Rest, Source.Axelarscan_Rest, Source.LayerZeroScan_Rest, Source.Lifi_Rest, Source.Wormholescan] },
 			})({
@@ -18984,7 +18987,7 @@ export const schema = {
 						query: {
 							sources: [Source.Across_Rest, Source.Allium_Rest, Source.Axelarscan_Rest, Source.Dune_Rest, Source.LayerZeroScan_Rest, Source.Lifi_Rest, Source.Voltaire_JsonRpc, Source.Wormholescan],
 							fields: ["transferId"],
-							openFields: ["logIndex", "originChainId", "depositId", "amountIn", "amountOut", "railId", "settlementModel", "verificationModel", "assetOutcome", "bridgeFeeUsd", "exclusiveRelayer"],
+							openFields: ["logIndex", "originChainId", "depositId", "amountIn", "amountOut", "railId", "settlementModel", "verificationModel", "assetOutcome", "bridgeFeeUsd", "sourceTransactionAtMs", "destinationTransactionAtMs", "transactionLatencyMs", "exclusiveRelayer"],
 						},
 						summary: {
 							title: ["transferId"],
@@ -18996,6 +18999,7 @@ export const schema = {
 								[{ field: "originChainId", format: "number" }, { field: "depositId", format: "number" }],
 								["$sender", "$recipient", "$fromNetwork", "$toNetwork", "$fromToken", "$toToken"],
 								[{ field: "amountIn", format: "number" }, { field: "amountOut", format: "number" }, "railId", "settlementModel", "verificationModel", "assetOutcome", "bridgeFeeUsd", "exclusiveRelayer"],
+								[{ field: "sourceTransactionAtMs", format: "timestamp" }, { field: "destinationTransactionAtMs", format: "timestamp" }, { field: "transactionLatencyMs", format: "number" }],
 							],
 						},
 						lists: [
@@ -19026,7 +19030,6 @@ export const schema = {
 				"relayer": { label: "relayer", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "evmAddress", defaultSources: [Source.Across_Rest, Source.Axelarscan_Rest, Source.LayerZeroScan_Rest] },
 				"refundTxHash": { label: "refund tx hash", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "zeroExHex" },
 				"estimatedCompletionMs": { label: "estimated completion ms", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"completedAt": { label: "completed AT", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Across_Rest, Source.Axelarscan_Rest, Source.LayerZeroScan_Rest, Source.Lifi_Rest, Source.Wormholescan] },
 				"fillGasFee": { label: "fill gas fee", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Across_Rest, Source.Lifi_Rest, Source.Wormholescan] },
 				"fillGasFeeUsd": { label: "fill gas fee USD", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Across_Rest, Source.Lifi_Rest, Source.Wormholescan] },
 				"error": { label: "error", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Across_Rest, Source.Axelarscan_Rest, Source.LayerZeroScan_Rest, Source.Lifi_Rest] },
@@ -19038,7 +19041,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Across_Rest, Source.Allium_Rest, Source.Axelarscan_Rest, Source.Dune_Rest, Source.LayerZeroScan_Rest, Source.Lifi_Rest, Source.Voltaire_JsonRpc, Source.Wormholescan],
-							openFields: ["status", "substatus", "sourceConfirmations", "requiredConfirmations", "destinationTxHash", "relayer", "refundTxHash", "estimatedCompletionMs", "completedAt", "fillGasFee", "fillGasFeeUsd", "error"],
+							openFields: ["status", "substatus", "sourceConfirmations", "requiredConfirmations", "destinationTxHash", "relayer", "refundTxHash", "estimatedCompletionMs", "fillGasFee", "fillGasFeeUsd", "error"],
 						},
 						summary: {
 							title: [{ field: "timestampMs", format: "timestamp" }],
@@ -19049,7 +19052,7 @@ export const schema = {
 							dl: [
 								["$transfer", { field: "timestampMs", format: "timestamp" }, "source", "status", "substatus"],
 								[{ field: "sourceConfirmations", format: "number" }, { field: "requiredConfirmations", format: "number" }, "destinationTxHash", "relayer", "refundTxHash"],
-								[{ field: "estimatedCompletionMs", format: "timestamp" }, { field: "completedAt", format: "timestamp" }, { field: "fillGasFee", format: "number" }, "fillGasFeeUsd", "error"],
+								[{ field: "estimatedCompletionMs", format: "timestamp" }, { field: "fillGasFee", format: "number" }, "fillGasFeeUsd", "error"],
 							],
 						},
 					},

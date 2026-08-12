@@ -95,6 +95,16 @@ const layerZeroBridgeTransferSnapshot = (
 		throw new Error('LayerZeroScan_Rest: invalid destination transaction hash')
 
 	const timestampMs = layerZeroMessageObservationMs(message.updated)
+	const sourceTransactionAtMs = message.source.tx.blockTimestamp * 1_000
+	const destinationTransactionAtMs = message.destination?.tx?.blockTimestamp == null ?
+		undefined
+	:
+		message.destination.tx.blockTimestamp * 1_000
+	if (
+		destinationTransactionAtMs != null
+		&& destinationTransactionAtMs < sourceTransactionAtMs
+	)
+		throw new Error('LayerZeroScan_Rest: destination transaction precedes source transaction')
 
 	return {
 		source: Source.LayerZeroScan_Rest,
@@ -119,6 +129,11 @@ const layerZeroBridgeTransferSnapshot = (
 		$toNetwork: toNetwork,
 		// Scan message rows are pathway packets; OFT amounts are not a Scan wire field.
 		assetOutcome: BridgeAssetOutcome.MessageOnly,
+		sourceTransactionAtMs,
+		...(destinationTransactionAtMs != null && {
+			destinationTransactionAtMs,
+			transactionLatencyMs: destinationTransactionAtMs - sourceTransactionAtMs,
+		}),
 		$$timestamps: [{
 			[EntityMetaKey.Selector]: {
 				$transfer: transfer,
@@ -206,13 +221,6 @@ const layerZeroBridgeTransferObservation = async ({
 		...(relayer != null && {
 			relayer,
 		}),
-		...(
-			message.destination?.status === 'SUCCEEDED'
-			&& message.destination.tx?.blockTimestamp != null
-			&& {
-				completedAt: message.destination.tx.blockTimestamp * 1_000,
-			}
-		),
 		...(message.config?.error && {
 			error: message.config.errorMessage ?? message.status.message ?? message.status.name,
 		}),
@@ -245,7 +253,10 @@ export default {
 			$recipient: (transfer) => transfer.$recipient,
 			$fromNetwork: (transfer) => transfer.$fromNetwork,
 			$toNetwork: (transfer) => transfer.$toNetwork,
-			assetOutcome: (transfer) => transfer.assetOutcome,
+		assetOutcome: (transfer) => transfer.assetOutcome,
+		sourceTransactionAtMs: (transfer) => transfer.sourceTransactionAtMs,
+		destinationTransactionAtMs: (transfer) => transfer.destinationTransactionAtMs,
+		transactionLatencyMs: (transfer) => transfer.transactionLatencyMs,
 			$$timestamps: {
 				select: (transfer) => transfer.$$timestamps,
 				resolveCount: (transfer) => transfer.$$timestamps.length,
@@ -269,7 +280,6 @@ export default {
 			requiredConfirmations: (observation) => observation.requiredConfirmations,
 			destinationTxHash: (observation) => observation.destinationTxHash,
 			relayer: (observation) => observation.relayer,
-			completedAt: (observation) => observation.completedAt,
 			error: (observation) => observation.error,
 		}),
 	],

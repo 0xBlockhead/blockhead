@@ -136,6 +136,9 @@ describe('LI.FI transfer status resolvers', () => {
 			amountOut: 999_000_000_000_000_000n,
 			railId: 'Across',
 			bridgeFeeUsd: '0.03',
+			sourceTransactionAtMs: 1_700_000_000_000,
+			destinationTransactionAtMs: 1_700_000_100_000,
+			transactionLatencyMs: 100_000,
 			$sourceTx: {
 				[EntityMetaKey.Selector]: {
 					$network: {
@@ -288,7 +291,6 @@ describe('LI.FI transfer status resolvers', () => {
 			status: 'DONE',
 			substatus: 'COMPLETED',
 			destinationTxHash,
-			completedAt: 1_700_000_100_000,
 			fillGasFee: 21000n,
 			fillGasFeeUsd: '0.42',
 		})

@@ -102,6 +102,12 @@ describe('Across BridgeTransfer resolvers', () => {
 			amountIn: BigInt(deposit.inputAmount),
 			amountOut: BigInt(deposit.outputAmount),
 			bridgeFeeUsd: deposit.bridgeFeeUsd,
+			sourceTransactionAtMs: Date.parse(deposit.depositBlockTimestamp),
+			destinationTransactionAtMs: Date.parse(deposit.fillBlockTimestamp),
+			transactionLatencyMs: (
+				Date.parse(deposit.fillBlockTimestamp)
+				- Date.parse(deposit.depositBlockTimestamp)
+			),
 			exclusiveRelayer: deposit.exclusiveRelayer.toLowerCase(),
 			$sourceTx: {
 				[EntityMetaKey.Selector]: {
@@ -170,7 +176,6 @@ describe('Across BridgeTransfer resolvers', () => {
 			status: 'filled',
 			destinationTxHash: fillTxnRef.toLowerCase(),
 			relayer: deposit.relayer.toLowerCase(),
-			completedAt: Date.parse(deposit.fillBlockTimestamp),
 			fillGasFee: BigInt(deposit.fillGasFee),
 			fillGasFeeUsd: deposit.fillGasFeeUsd,
 		})

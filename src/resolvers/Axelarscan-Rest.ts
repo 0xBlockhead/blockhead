@@ -158,6 +158,16 @@ const axelarscanBridgeTransferSnapshot = (
 			axelarscanEvmTxHash(message.executed.transactionHash, 'destination transaction hash')
 	)
 	const timestampMs = axelarscanObservationMs(message)
+	const sourceTransactionAtMs = message.call.block_timestamp * 1_000
+	const destinationTransactionAtMs = message.executed?.block_timestamp == null ?
+		undefined
+	:
+		message.executed.block_timestamp * 1_000
+	if (
+		destinationTransactionAtMs != null
+		&& destinationTransactionAtMs < sourceTransactionAtMs
+	)
+		throw new Error('Axelarscan_Rest: destination transaction precedes source transaction')
 	const messageLogIndex = axelarscanMessageLogIndex(message.call)
 	if (messageLogIndex == null)
 		throw new Error('Axelarscan_Rest: call missing message log index')
@@ -195,6 +205,11 @@ const axelarscanBridgeTransferSnapshot = (
 		$toNetwork: toNetwork,
 		// GMP search rows are cross-chain messages; token amounts stay transport-only (Across owns amountIn/Out).
 		assetOutcome: BridgeAssetOutcome.MessageOnly,
+		sourceTransactionAtMs,
+		...(destinationTransactionAtMs != null && {
+			destinationTransactionAtMs,
+			transactionLatencyMs: destinationTransactionAtMs - sourceTransactionAtMs,
+		}),
 		...(bridgeFeeUsd != null && {
 			bridgeFeeUsd,
 		}),
@@ -305,8 +320,11 @@ export default {
 			$recipient: (transfer) => transfer.$recipient,
 			$fromNetwork: (transfer) => transfer.$fromNetwork,
 			$toNetwork: (transfer) => transfer.$toNetwork,
-			assetOutcome: (transfer) => transfer.assetOutcome,
-			bridgeFeeUsd: (transfer) => transfer.bridgeFeeUsd,
+		assetOutcome: (transfer) => transfer.assetOutcome,
+		bridgeFeeUsd: (transfer) => transfer.bridgeFeeUsd,
+		sourceTransactionAtMs: (transfer) => transfer.sourceTransactionAtMs,
+		destinationTransactionAtMs: (transfer) => transfer.destinationTransactionAtMs,
+		transactionLatencyMs: (transfer) => transfer.transactionLatencyMs,
 			$$timestamps: {
 				select: (transfer) => transfer.$$timestamps,
 				resolveCount: (transfer) => transfer.$$timestamps.length,
@@ -364,12 +382,6 @@ export default {
 							...(sourceConfirmations != null && {
 								sourceConfirmations,
 							}),
-							...(
-								message.executed != null
-								&& {
-									completedAt: message.executed.block_timestamp * 1_000,
-								}
-							),
 							...(fillGasFee != null && {
 								fillGasFee,
 							}),
@@ -392,7 +404,6 @@ export default {
 			destinationTxHash: (observation) => observation.destinationTxHash,
 			relayer: (observation) => observation.relayer,
 			sourceConfirmations: (observation) => observation.sourceConfirmations,
-			completedAt: (observation) => observation.completedAt,
 			fillGasFee: (observation) => observation.fillGasFee,
 			fillGasFeeUsd: (observation) => observation.fillGasFeeUsd,
 			error: (observation) => observation.error,

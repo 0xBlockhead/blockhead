@@ -204,6 +204,14 @@ const bridgeTransferSnapshotFromOperation = (
 		properties?.tokenAddress
 	)
 	const bridgeFeeUsd = nonNegativeUsdFee(operation.sourceChain?.feeUSD)
+	const sourceTransactionAtMs = timestampMsFromIso(operation.sourceChain?.timestamp)
+	const destinationTransactionAtMs = timestampMsFromIso(operation.targetChain?.timestamp)
+	if (
+		sourceTransactionAtMs != null
+		&& destinationTransactionAtMs != null
+		&& destinationTransactionAtMs < sourceTransactionAtMs
+	)
+		throw new Error('Wormholescan_Rest: destination transaction precedes source transaction')
 	const observedAtMs = (
 		timestampMsFromIso(operation.targetChain?.timestamp)
 		?? timestampMsFromIso(operation.sourceChain?.timestamp)
@@ -264,6 +272,19 @@ const bridgeTransferSnapshotFromOperation = (
 		...(bridgeFeeUsd != null && {
 			bridgeFeeUsd,
 		}),
+		...(sourceTransactionAtMs != null && {
+			sourceTransactionAtMs,
+		}),
+		...(destinationTransactionAtMs != null && {
+			destinationTransactionAtMs,
+		}),
+		...(
+			sourceTransactionAtMs != null
+			&& destinationTransactionAtMs != null
+			&& {
+				transactionLatencyMs: destinationTransactionAtMs - sourceTransactionAtMs,
+			}
+		),
 		$$timestamps: [{
 			[EntityMetaKey.Selector]: {
 				$transfer: transfer,
@@ -378,7 +399,10 @@ export default {
 			settlementModel: (transfer) => transfer.settlementModel,
 			verificationModel: (transfer) => transfer.verificationModel,
 			assetOutcome: (transfer) => transfer.assetOutcome,
-			bridgeFeeUsd: (transfer) => transfer.bridgeFeeUsd,
+		bridgeFeeUsd: (transfer) => transfer.bridgeFeeUsd,
+		sourceTransactionAtMs: (transfer) => transfer.sourceTransactionAtMs,
+		destinationTransactionAtMs: (transfer) => transfer.destinationTransactionAtMs,
+		transactionLatencyMs: (transfer) => transfer.transactionLatencyMs,
 			$$timestamps: {
 				select: (transfer) => transfer.$$timestamps,
 				resolveCount: (transfer) => transfer.$$timestamps.length,
@@ -410,7 +434,6 @@ export default {
 						const destinationTxHash = evmTxHashFromWormholeWire(
 							operation.targetChain?.transaction?.txHash
 						)
-						const completedAt = timestampMsFromIso(operation.targetChain?.timestamp)
 						const status = (
 							operation.targetChain?.status
 							?? operation.sourceChain?.status
@@ -426,7 +449,6 @@ export default {
 							source,
 							...(status != null && { status }),
 							...(destinationTxHash != null && { destinationTxHash }),
-							...(completedAt != null && { completedAt }),
 							...(fillGasFee != null && { fillGasFee }),
 							...(fillGasFeeUsd != null && { fillGasFeeUsd }),
 						}
@@ -439,7 +461,6 @@ export default {
 			source: (observation) => observation.source,
 			status: (observation) => observation.status,
 			destinationTxHash: (observation) => observation.destinationTxHash,
-			completedAt: (observation) => observation.completedAt,
 			fillGasFee: (observation) => observation.fillGasFee,
 			fillGasFeeUsd: (observation) => observation.fillGasFeeUsd,
 		}),

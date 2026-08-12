@@ -106,6 +106,17 @@ const acrossObservationMs = (
 	return timestampMs
 }
 
+const acrossTransactionTimestampMs = (
+	timestamp: string,
+	role: string
+) => {
+	const timestampMs = Date.parse(timestamp)
+	if (!Number.isFinite(timestampMs))
+		throw new Error(`Across_Rest: invalid ${role} timestamp`)
+
+	return timestampMs
+}
+
 const acrossCoinInstanceRef = (
 	chainId: number,
 	tokenAddress: string,
@@ -145,6 +156,24 @@ const acrossBridgeTransferSnapshot = (
 			acrossEvmTxHash(deposit.fillTxnRef, 'fill transaction hash')
 	)
 	const timestampMs = acrossObservationMs(deposit)
+	const sourceTransactionAtMs = acrossTransactionTimestampMs(
+		deposit.depositBlockTimestamp,
+		'deposit transaction'
+	)
+	const destinationTransactionAtMs = (
+		deposit.fillBlockTimestamp == null ?
+			undefined
+		:
+			acrossTransactionTimestampMs(
+				deposit.fillBlockTimestamp,
+				'fill transaction'
+			)
+	)
+	if (
+		destinationTransactionAtMs != null
+		&& destinationTransactionAtMs < sourceTransactionAtMs
+	)
+		throw new Error('Across_Rest: fill transaction precedes deposit transaction')
 	const exclusiveRelayer = (
 		deposit.exclusiveRelayer == null ?
 			undefined
@@ -181,6 +210,11 @@ const acrossBridgeTransferSnapshot = (
 		$toToken: acrossCoinInstanceRef(deposit.destinationChainId, deposit.outputToken, 'output'),
 		amountIn: BigInt(deposit.inputAmount),
 		amountOut: BigInt(deposit.outputAmount),
+		sourceTransactionAtMs,
+		...(destinationTransactionAtMs != null && {
+			destinationTransactionAtMs,
+			transactionLatencyMs: destinationTransactionAtMs - sourceTransactionAtMs,
+		}),
 		railId: BridgeRailId.Across,
 		settlementModel: BridgeSettlementModel.IntentFill,
 		verificationModel: BridgeVerificationModel.Optimistic,
@@ -342,7 +376,10 @@ export default {
 			$fromToken: (transfer) => transfer.$fromToken,
 			$toToken: (transfer) => transfer.$toToken,
 			amountIn: (transfer) => transfer.amountIn,
-			amountOut: (transfer) => transfer.amountOut,
+		amountOut: (transfer) => transfer.amountOut,
+		sourceTransactionAtMs: (transfer) => transfer.sourceTransactionAtMs,
+		destinationTransactionAtMs: (transfer) => transfer.destinationTransactionAtMs,
+		transactionLatencyMs: (transfer) => transfer.transactionLatencyMs,
 			railId: (transfer) => transfer.railId,
 			settlementModel: (transfer) => transfer.settlementModel,
 			verificationModel: (transfer) => transfer.verificationModel,
@@ -422,12 +459,6 @@ export default {
 								refundTxHash,
 							}),
 							...(
-								deposit.fillBlockTimestamp != null
-								&& {
-									completedAt: Date.parse(deposit.fillBlockTimestamp),
-								}
-							),
-							...(
 								fillDeadlineMs != null
 								&& deposit.status !== 'filled'
 								&& deposit.status !== 'refunded'
@@ -462,7 +493,6 @@ export default {
 			destinationTxHash: (observation) => observation.destinationTxHash,
 			relayer: (observation) => observation.relayer,
 			refundTxHash: (observation) => observation.refundTxHash,
-			completedAt: (observation) => observation.completedAt,
 			estimatedCompletionMs: (observation) => observation.estimatedCompletionMs,
 			fillGasFee: (observation) => observation.fillGasFee,
 			fillGasFeeUsd: (observation) => observation.fillGasFeeUsd,

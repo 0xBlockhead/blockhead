@@ -84,17 +84,6 @@ export default entity({
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
-	completedAt: {
-		primitiveType: type('number'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Across_Rest,
-			Source.Axelarscan_Rest,
-			Source.LayerZeroScan_Rest,
-			Source.Lifi_Rest,
-			Source.Wormholescan,
-		],
-	},
 	fillGasFee: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
