@@ -113,22 +113,47 @@ describe('GitLab repository journey', () => {
 				},
 			},
 		])
-		getRepositoryTree.mockResolvedValue([
-			{
-				id: 'c'.repeat(40),
-				name: 'src',
-				type: 'tree',
-				path: 'src',
-				mode: '040000',
-			},
-			{
-				id: 'd'.repeat(40),
-				name: 'index.ts',
-				type: 'blob',
-				path: 'src/index.ts',
-				mode: '100644',
-			},
-		])
+		getRepositoryTree.mockImplementation(({
+			path,
+			recursive,
+		}: {
+			path?: string
+			recursive?: boolean
+		}) => Promise.resolve(
+			recursive !== false ?
+				[
+					{
+						id: 'c'.repeat(40),
+						name: 'src',
+						type: 'tree',
+						path: 'src',
+						mode: '040000',
+					},
+					{
+						id: 'd'.repeat(40),
+						name: 'index.ts',
+						type: 'blob',
+						path: 'src/index.ts',
+						mode: '100644',
+					},
+				]
+			: path === 'src' ?
+				[{
+					id: 'd'.repeat(40),
+					name: 'index.ts',
+					type: 'blob',
+					path: 'src/index.ts',
+					mode: '100644',
+				}]
+			:
+				[{
+					id: 'c'.repeat(40),
+					name: 'src',
+					type: 'tree',
+					path: 'src',
+					mode: '040000',
+				}]
+		))
 		getCommits.mockResolvedValue([
 			{
 				id: 'f'.repeat(40),
@@ -499,9 +524,20 @@ describe('GitLab repository journey', () => {
 			path: 'src/index.ts',
 		})
 
-		expect(getRepositoryTree).toHaveBeenCalledWith({
+		expect(getRepositoryTree).toHaveBeenNthCalledWith(1, {
+			page: 1,
 			projectId: 'gitlab-org/gitlab',
+			perPage: 100,
 			ref: 'e'.repeat(40),
+			recursive: false,
+		})
+		expect(getRepositoryTree).toHaveBeenNthCalledWith(2, {
+			page: 1,
+			projectId: 'gitlab-org/gitlab',
+			path: 'src',
+			perPage: 100,
+			ref: 'e'.repeat(40),
+			recursive: false,
 		})
 		expect(snapshot).toMatchObject({
 			commitObjectId,
@@ -510,6 +546,40 @@ describe('GitLab repository journey', () => {
 			blobObjectId: `0x${'d'.repeat(40)}`,
 			status: 'resolved-blob',
 		})
+	})
+
+	it('continues exact directory reads until the requested path is found', async () => {
+		getRepositoryTree
+			.mockResolvedValueOnce(Array.from({ length: 100 }, (_, index) => ({
+				id: index.toString(16).padStart(40, '0'),
+				name: `entry-${index}`,
+				type: 'blob',
+				path: `entry-${index}`,
+				mode: '100644',
+			})))
+			.mockResolvedValueOnce([{
+				id: 'd'.repeat(40),
+				name: 'needle.ts',
+				type: 'blob',
+				path: 'needle.ts',
+				mode: '100644',
+			}])
+
+		await expect(pathResolutionResolver.resolve.RepositoryCommitObjectIdPath.resolve({
+			$repository: {
+				canonicalRemoteUrl: project.http_url_to_repo,
+			},
+			commitObjectId: `0x${'e'.repeat(40)}`,
+			path: 'needle.ts',
+		})).resolves.toMatchObject({
+			blobObjectId: `0x${'d'.repeat(40)}`,
+			status: 'resolved-blob',
+		})
+		expect(getRepositoryTree).toHaveBeenNthCalledWith(2, expect.objectContaining({
+			page: 2,
+			perPage: 100,
+			recursive: false,
+		}))
 	})
 
 	it('preserves issue, merge-request, and release lifecycle clocks on their native owners', async () => {

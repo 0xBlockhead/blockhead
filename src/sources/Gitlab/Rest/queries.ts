@@ -369,13 +369,17 @@ export const compareRepositoryRefs = ({
 )
 
 export const getRepositoryTree = ({
+	page = 1,
 	projectId,
 	path,
+	perPage = 100,
 	ref,
 	recursive = true,
 }: {
+	page?: number
 	projectId: string
 	path?: string
+	perPage?: number
 	ref?: string
 	recursive?: boolean
 }) => (
@@ -386,7 +390,7 @@ export const getRepositoryTree = ({
 				...(path != null && { path }),
 				...(ref != null && { ref }),
 				recursive: String(recursive),
-				per_page: '100',
+				...gitlabPaginationParams(page, perPage),
 			})
 		}`
 	).then((tree) => {

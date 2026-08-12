@@ -595,22 +595,43 @@ export default {
 							throw new Error('Gitlab_Rest: invalid repository path')
 
 						const { getRepositoryTree } = await import('$/sources/Gitlab/Rest/queries.ts')
-						const repositoryTree = await getRepositoryTree({
-							projectId: coordinates.projectId,
-							ref: commitObjectId.slice(2),
-						})
-						const target = repositoryTree.find((entry) => entry.path === normalizedPath)
+						const pathSegments = normalizedPath.split('/')
+						const treeObjectIds: `0x${string}`[] = []
+						let target: Awaited<ReturnType<typeof getRepositoryTree>>[number] | undefined
+						for (let segmentIndex = 0; segmentIndex < pathSegments.length; segmentIndex += 1) {
+							const parentPath = pathSegments.slice(0, segmentIndex).join('/')
+							target = undefined
+							let page = 1
+							let treePage: Awaited<ReturnType<typeof getRepositoryTree>>
+							do {
+								treePage = await getRepositoryTree({
+									page,
+									projectId: coordinates.projectId,
+									...(parentPath !== '' && { path: parentPath }),
+									perPage: 100,
+									ref: commitObjectId.slice(2),
+									recursive: false,
+								})
+								target = treePage.find((entry) => entry.path === pathSegments.slice(0, segmentIndex + 1).join('/'))
+								page += 1
+							} while (treePage.length === 100 && target == null)
+							if (target == null)
+								break
+
+							if (segmentIndex < pathSegments.length - 1) {
+								if (target.type !== 'tree') {
+									target = undefined
+									break
+								}
+
+								treeObjectIds.push(`0x${target.id}`)
+							}
+						}
 						return {
 							$repository,
 							commitObjectId,
 							path: normalizedPath,
-							treeObjectIds: repositoryTree
-								.filter((entry) => (
-									entry.type === 'tree'
-									&& normalizedPath.startsWith(`${entry.path}/`)
-								))
-								.toSorted((left, right) => left.path.split('/').length - right.path.split('/').length)
-								.map((entry) => `0x${entry.id}`),
+							treeObjectIds,
 							...(target?.type === 'blob' && { blobObjectId: `0x${target.id}` }),
 							...(target?.type === 'commit' && { submoduleCommitId: `0x${target.id}` }),
 							status: (
