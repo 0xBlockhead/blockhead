@@ -26,7 +26,16 @@
 	{...EntitiesListProps}
 	entityType={EntityType.StellarOffer}
 	bind:open
-	resource={selection()}
+	resource={
+		selection({
+			...{
+				fields: {
+					offerId: true,
+					$seller: true,
+				},
+			},
+		})
+	}
 >
 	{#snippet Item({ item: stellarOffer })}
 		{@const stellarOfferSelector = stellarOffer[EntityMetaKey.Selector]}
@@ -47,6 +56,14 @@
 					}
 				)
 			}
-		/>
+		>
+			{#snippet Title()}
+				{stellarOfferSelector.offerId || 'stellar offer'}
+			{/snippet}
+
+			{#snippet Value()}
+				{stellarOffer.$seller == null ? '' : 'stellar account'}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

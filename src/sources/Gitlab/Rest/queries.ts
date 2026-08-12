@@ -4,9 +4,12 @@ import { Source } from '$/sources/Source.ts'
 import {
 	gitlabBranchesWire,
 	gitlabIssueWire,
+	gitlabIssuesWire,
 	gitlabMergeRequestWire,
+	gitlabMergeRequestsWire,
 	gitlabProjectWire,
 	gitlabReleaseWire,
+	gitlabReleasesWire,
 	gitlabRepositoryTreeWire,
 } from '$/sources/Gitlab/Rest/types.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
@@ -60,6 +63,21 @@ export const getIssue = ({
 		})
 )
 
+export const getIssues = ({
+	projectId,
+}: {
+	projectId: string
+}) => (
+	getJson<JsonValue>(binding, `/api/v4/projects/${encodeURIComponent(projectId)}/issues?scope=all&per_page=100`)
+		.then((issues) => {
+			try {
+				return gitlabIssuesWire.assert(issues)
+			} catch {
+				throw new Error('Gitlab_Rest: invalid issues response')
+			}
+		})
+)
+
 export const getMergeRequest = ({
 	projectId,
 	pullRequestNumber,
@@ -77,6 +95,21 @@ export const getMergeRequest = ({
 		})
 )
 
+export const getMergeRequests = ({
+	projectId,
+}: {
+	projectId: string
+}) => (
+	getJson<JsonValue>(binding, `/api/v4/projects/${encodeURIComponent(projectId)}/merge_requests?scope=all&per_page=100`)
+		.then((mergeRequests) => {
+			try {
+				return gitlabMergeRequestsWire.assert(mergeRequests)
+			} catch {
+				throw new Error('Gitlab_Rest: invalid merge requests response')
+			}
+		})
+)
+
 export const getRelease = ({
 	projectId,
 	releaseTagName,
@@ -90,6 +123,21 @@ export const getRelease = ({
 				return gitlabReleaseWire.assert(release)
 			} catch {
 				throw new Error('Gitlab_Rest: invalid release response')
+			}
+		})
+)
+
+export const getReleases = ({
+	projectId,
+}: {
+	projectId: string
+}) => (
+	getJson<JsonValue>(binding, `/api/v4/projects/${encodeURIComponent(projectId)}/releases?per_page=100`)
+		.then((releases) => {
+			try {
+				return gitlabReleasesWire.assert(releases)
+			} catch {
+				throw new Error('Gitlab_Rest: invalid releases response')
 			}
 		})
 )

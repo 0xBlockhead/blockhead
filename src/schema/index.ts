@@ -116,6 +116,7 @@ import AptosTableItemSchema from '$/schema/AptosTableItem.ts'
 import AptosTransaction_TimestampSchema from '$/schema/AptosTransaction_Timestamp.ts'
 import AptosTransactionSchema from '$/schema/AptosTransaction.ts'
 import ArweaveBlockSchema from '$/schema/ArweaveBlock.ts'
+import ArweaveManifestPathSchema from '$/schema/ArweaveManifestPath.ts'
 import ArweaveNetwork_TimestampSchema from '$/schema/ArweaveNetwork_Timestamp.ts'
 import ArweaveNetworkSchema from '$/schema/ArweaveNetwork.ts'
 import ArweaveResource_TimestampSchema from '$/schema/ArweaveResource_Timestamp.ts'
@@ -1179,6 +1180,7 @@ const schemaChunk2 = [
 	AptosTransactionSchema,
 	AptosTransaction_TimestampSchema,
 	ArweaveBlockSchema,
+	ArweaveManifestPathSchema,
 	ArweaveNetworkSchema,
 	ArweaveNetwork_TimestampSchema,
 	ArweaveResourceSchema,
@@ -1213,10 +1215,10 @@ const schemaChunk2 = [
 	AvalancheValidatorSchema,
 	AvalancheValidator_TimestampSchema,
 	BalancerAccountPoolBalanceSchema,
-	BalancerGaugeSchema,
 ] as const
 
 const schemaChunk3 = [
+	BalancerGaugeSchema,
 	BalancerPoolSchema,
 	BalancerPoolAprItemSchema,
 	BalancerPoolTokenSchema,
@@ -1266,10 +1268,10 @@ const schemaChunk3 = [
 	BlockheadAgentConnection_TimestampSchema,
 	BlockheadAgentConversationSchema,
 	BlockheadAgentConversationTurnSchema,
-	BlockheadAgentCredentialStateSchema,
 ] as const
 
 const schemaChunk4 = [
+	BlockheadAgentCredentialStateSchema,
 	BlockheadAgentCredentialState_TimestampSchema,
 	BlockheadAgentProfileSchema,
 	BlockheadAgentProgramInstallSchema,
@@ -1319,10 +1321,10 @@ const schemaChunk4 = [
 	BlockheadLightningNodeState_TimestampSchema,
 	BlockheadLightningPaymentSchema,
 	BlockheadLightningPayment_TimestampSchema,
-	BlockheadLitecoinMwebOutputStateSchema,
 ] as const
 
 const schemaChunk5 = [
+	BlockheadLitecoinMwebOutputStateSchema,
 	BlockheadLitecoinMwebOutputState_TimestampSchema,
 	BlockheadLitecoinMwebWalletStateSchema,
 	BlockheadLitecoinMwebWalletState_TimestampSchema,
@@ -1372,10 +1374,10 @@ const schemaChunk5 = [
 	BlockheadStateChannelDeposit_TimestampSchema,
 	BlockheadStateChannelStateSchema,
 	BlockheadStateChannelTransferSchema,
-	BlockheadSwapIntentSchema,
 ] as const
 
 const schemaChunk6 = [
+	BlockheadSwapIntentSchema,
 	BlockheadTransferIntentSchema,
 	BlockheadTransferRequestSchema,
 	BlockheadWakuMessageObservation_TimestampSchema,
@@ -1425,10 +1427,10 @@ const schemaChunk6 = [
 	CardanoConstitution_EpochSchema,
 	CardanoDRepSchema,
 	CardanoDRep_TimestampSchema,
-	CardanoGovernanceProposalSchema,
 ] as const
 
 const schemaChunk7 = [
+	CardanoGovernanceProposalSchema,
 	CardanoGovernanceProposal_TimestampSchema,
 	CardanoGovernanceVoteSchema,
 	CardanoNativeAssetSchema,
@@ -1478,10 +1480,10 @@ const schemaChunk7 = [
 	CosmosContractSchema,
 	CosmosDenomSchema,
 	CosmosGovernanceProposalSchema,
-	CosmosGovernanceProposal_TimestampSchema,
 ] as const
 
 const schemaChunk8 = [
+	CosmosGovernanceProposal_TimestampSchema,
 	CosmosMessageSchema,
 	CosmosModuleSchema,
 	CosmosTransactionSchema,
@@ -1531,10 +1533,10 @@ const schemaChunk8 = [
 	Eip8004Validation_TimestampSchema,
 	ElementsAssetSchema,
 	ElementsAsset_TimestampSchema,
-	ElementsIssuanceSchema,
 ] as const
 
 const schemaChunk9 = [
+	ElementsIssuanceSchema,
 	ElementsNetworkSchema,
 	ElementsPegSchema,
 	ElementsPeg_TimestampSchema,
@@ -1584,10 +1586,10 @@ const schemaChunk9 = [
 	EvmNetworkAccount_TimestampSchema,
 	EvmNetworkActorCoinBalanceSchema,
 	EvmNetworkActorCoinBalance_EvmBlockSchema,
-	EvmNetworkActorCoinBalance_TimestampSchema,
 ] as const
 
 const schemaChunk10 = [
+	EvmNetworkActorCoinBalance_TimestampSchema,
 	EvmNetworkBridgeSchema,
 	EvmNftSchema,
 	EvmProtocolSchema,
@@ -1637,10 +1639,10 @@ const schemaChunk10 = [
 	FilecoinSectorSchema,
 	FilecoinSector_TimestampSchema,
 	FilecoinTipsetSchema,
-	GitBlobSchema,
 ] as const
 
 const schemaChunk11 = [
+	GitBlobSchema,
 	GitCommitSchema,
 	GitFetchObservationSchema,
 	GitForgeIssueSchema,
@@ -1690,10 +1692,10 @@ const schemaChunk11 = [
 	HederaScheduleSignatureSchema,
 	HederaTokenSchema,
 	HederaToken_TimestampSchema,
-	HederaTokenAssociationSchema,
 ] as const
 
 const schemaChunk12 = [
+	HederaTokenAssociationSchema,
 	HederaTokenAssociation_TimestampSchema,
 	HederaTokenCustomFeeSchema,
 	HederaTokenTransferSchema,
@@ -1743,10 +1745,10 @@ const schemaChunk12 = [
 	IcpLedgerCanister_TimestampSchema,
 	IcpLedgerTransactionSchema,
 	IcpNetworkSchema,
-	IcpNetwork_TimestampSchema,
 ] as const
 
 const schemaChunk13 = [
+	IcpNetwork_TimestampSchema,
 	IcpRequestStatusSchema,
 	IcpRequestStatus_TimestampSchema,
 	IcpSubnetSchema,
@@ -1796,10 +1798,10 @@ const schemaChunk13 = [
 	MagnetLinkSchema,
 	MagnetResolution_TimestampSchema,
 	MarketSchema,
-	Market_Derivative_TimestampSchema,
 ] as const
 
 const schemaChunk14 = [
+	Market_Derivative_TimestampSchema,
 	Market_TimeInterval_TimestampSchema,
 	Market_TimestampSchema,
 	MarketAssetSchema,
@@ -1849,10 +1851,10 @@ const schemaChunk14 = [
 	NearContractSchema,
 	NearContract_TimestampSchema,
 	NearContractStorageEntrySchema,
-	NearExecutionOutcomeSchema,
 ] as const
 
 const schemaChunk15 = [
+	NearExecutionOutcomeSchema,
 	NearNetworkSchema,
 	NearNetwork_TimestampSchema,
 	NearReceiptSchema,
@@ -1902,10 +1904,10 @@ const schemaChunk15 = [
 	PolkadotEventSchema,
 	PolkadotExtrinsicSchema,
 	PolkadotPalletSchema,
-	PolkadotReferendumSchema,
 ] as const
 
 const schemaChunk16 = [
+	PolkadotReferendumSchema,
 	PolkadotReferendum_TimestampSchema,
 	PolkadotValidatorSchema,
 	PolkadotValidator_EraSchema,
@@ -1955,10 +1957,10 @@ const schemaChunk16 = [
 	SolanaTokenMint_TimestampSchema,
 	SolanaTransactionSchema,
 	SolanaTransaction_TimestampSchema,
-	SolanaValidatorSchema,
 ] as const
 
 const schemaChunk17 = [
+	SolanaValidatorSchema,
 	SolanaValidator_TimestampSchema,
 	SorobanContractSchema,
 	SorobanContract_TimestampSchema,
@@ -2008,10 +2010,10 @@ const schemaChunk17 = [
 	SuiCoinBalance_TimestampSchema,
 	SuiCoinTypeSchema,
 	SuiDynamicFieldEdgeSchema,
-	SuiDynamicFieldEdge_TimestampSchema,
 ] as const
 
 const schemaChunk18 = [
+	SuiDynamicFieldEdge_TimestampSchema,
 	SuiEventSchema,
 	SuiNetworkSchema,
 	SuiNetwork_TimestampSchema,
@@ -2061,10 +2063,10 @@ const schemaChunk18 = [
 	TokenMetadataDocumentSchema,
 	TokenProgramExtension_TimestampSchema,
 	TonAccountSchema,
-	TonAccount_TimestampSchema,
 ] as const
 
 const schemaChunk19 = [
+	TonAccount_TimestampSchema,
 	TonBlockSchema,
 	TonContractSchema,
 	TonContract_TimestampSchema,
@@ -2114,10 +2116,10 @@ const schemaChunk19 = [
 	UrlPreview_TimestampSchema,
 	UsageRight_TimestampSchema,
 	UtxoAddressSchema,
-	UtxoAddress_TimestampSchema,
 ] as const
 
 const schemaChunk20 = [
+	UtxoAddress_TimestampSchema,
 	UtxoBlockSchema,
 	UtxoInputSchema,
 	UtxoOutputSchema,
@@ -2167,10 +2169,10 @@ const schemaChunk20 = [
 	ZeroGNetworkSchema,
 	ZeroGNetwork_TimestampSchema,
 	ZeroGServiceProviderSchema,
-	ZeroGServiceRequestSchema,
 ] as const
 
 const schemaChunk21 = [
+	ZeroGServiceRequestSchema,
 	ZeroGSettlementTraceSchema,
 	ZeroGStorageLogEntrySchema,
 	ZeroGStorageNodeSchema,

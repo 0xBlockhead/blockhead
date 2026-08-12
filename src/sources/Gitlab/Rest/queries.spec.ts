@@ -11,9 +11,12 @@ vi.mock('$/sources/_runtime/http.ts', () => ({
 const {
 	getBranches,
 	getIssue,
+	getIssues,
 	getMergeRequest,
+	getMergeRequests,
 	getProject,
 	getRelease,
+	getReleases,
 	getRepositoryTree,
 } = await import('$/sources/Gitlab/Rest/queries.ts')
 
@@ -106,5 +109,45 @@ describe('GitLab REST wires', () => {
 			projectId: 'gitlab-org/gitlab',
 			issueNumber: 12,
 		})).rejects.toThrow('Gitlab_Rest: invalid issue response')
+	})
+
+	it('accepts bounded native lifecycle indexes', async () => {
+		sourceGetJson
+			.mockResolvedValueOnce([{
+				iid: 12,
+				title: 'Issue',
+				state: 'opened',
+				labels: [],
+				created_at: '2026-01-01T00:00:00Z',
+				updated_at: '2026-01-01T00:00:00Z',
+				closed_at: null,
+			}])
+			.mockResolvedValueOnce([{
+				iid: 34,
+				title: 'Merge request',
+				state: 'opened',
+				target_branch: 'master',
+				source_branch: 'feature',
+				sha: 'b'.repeat(40),
+				created_at: '2026-01-01T00:00:00Z',
+				updated_at: '2026-01-01T00:00:00Z',
+				merged_at: null,
+			}])
+			.mockResolvedValueOnce([{
+				tag_name: 'v1',
+				name: null,
+				created_at: '2026-01-01T00:00:00Z',
+				released_at: '2026-01-02T00:00:00Z',
+				commit: { id: 'c'.repeat(40) },
+			}])
+
+		await expect(getIssues({ projectId: 'gitlab-org/gitlab' })).resolves.toHaveLength(1)
+		await expect(getMergeRequests({ projectId: 'gitlab-org/gitlab' })).resolves.toHaveLength(1)
+		await expect(getReleases({ projectId: 'gitlab-org/gitlab' })).resolves.toHaveLength(1)
+		expect(sourceGetJson.mock.calls.map(([, path]) => path)).toEqual([
+			'https://gitlab.com/api/v4/projects/gitlab-org%2Fgitlab/issues?scope=all&per_page=100',
+			'https://gitlab.com/api/v4/projects/gitlab-org%2Fgitlab/merge_requests?scope=all&per_page=100',
+			'https://gitlab.com/api/v4/projects/gitlab-org%2Fgitlab/releases?per_page=100',
+		])
 	})
 })

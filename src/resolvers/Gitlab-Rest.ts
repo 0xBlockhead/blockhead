@@ -63,10 +63,19 @@ export default {
 					}) => {
 						if (forgeHost !== 'gitlab.com') return undefined
 
-						const { getProject } = await import('$/sources/Gitlab/Rest/queries.ts')
-						const project = await getProject({
-							projectId: `${owner}/${repositoryName}`,
-						})
+						const {
+							getIssues,
+							getMergeRequests,
+							getProject,
+							getReleases,
+						} = await import('$/sources/Gitlab/Rest/queries.ts')
+						const projectId = `${owner}/${repositoryName}`
+						const [project, issues, mergeRequests, releases] = await Promise.all([
+							getProject({ projectId }),
+							getIssues({ projectId }),
+							getMergeRequests({ projectId }),
+							getReleases({ projectId }),
+						])
 						if (project.path !== repositoryName || project.path_with_namespace !== `${owner}/${repositoryName}`)
 							throw new Error('Gitlab_Rest: project identity does not match selector')
 
@@ -88,6 +97,18 @@ export default {
 							htmlUrl: project.web_url,
 							providerRepositoryId: String(project.id),
 							source: Source.Gitlab_Rest,
+							$$issues: issues.map((issue) => ({
+								$forgeMirror: { forgeHost, owner, repositoryName },
+								issueNumber: issue.iid,
+							})),
+							$$pullRequests: mergeRequests.map((mergeRequest) => ({
+								$forgeMirror: { forgeHost, owner, repositoryName },
+								pullRequestNumber: mergeRequest.iid,
+							})),
+							$$releases: releases.map((release) => ({
+								$forgeMirror: { forgeHost, owner, repositoryName },
+								releaseTagName: release.tag_name,
+							})),
 						}
 					},
 				},
@@ -103,6 +124,9 @@ export default {
 			htmlUrl: (project) => project.htmlUrl,
 			providerRepositoryId: (project) => project.providerRepositoryId,
 			source: (project) => project.source,
+			$$issues: (project) => project.$$issues,
+			$$pullRequests: (project) => project.$$pullRequests,
+			$$releases: (project) => project.$$releases,
 		}),
 
 		defineResolver({

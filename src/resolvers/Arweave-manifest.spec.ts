@@ -59,22 +59,38 @@ describe('Arweave manifest resolver', () => {
 		expect(resolver.projections.$$manifestPaths.select(snapshot)).toEqual([
 			{
 				[EntityMetaKey.Selector]: {
-					transactionId: 'A'.repeat(43),
-					contentPath: 'index.html',
+					$manifest: {
+						transactionId: 'A'.repeat(43),
+						contentPath: '',
+					},
+					path: 'index.html',
 				},
 				[EntityMetaKey.Fields]: {
-					[entityFieldAddressKey(EntityType.ArweaveResource, [], 'canonicalUri')]:
-						`ar://${'A'.repeat(43)}/index.html`,
+					[entityFieldAddressKey(EntityType.ArweaveManifestPath, [], 'targetTransactionId')]: 'C'.repeat(43),
+					[entityFieldAddressKey(EntityType.ArweaveManifestPath, [], '$resource')]: {
+						[EntityMetaKey.Selector]: {
+							transactionId: 'C'.repeat(43),
+							contentPath: '',
+						},
+					},
 				},
 			},
 			{
 				[EntityMetaKey.Selector]: {
-					transactionId: 'A'.repeat(43),
-					contentPath: 'assets/app.js',
+					$manifest: {
+						transactionId: 'A'.repeat(43),
+						contentPath: '',
+					},
+					path: 'assets/app.js',
 				},
 				[EntityMetaKey.Fields]: {
-					[entityFieldAddressKey(EntityType.ArweaveResource, [], 'canonicalUri')]:
-						`ar://${'A'.repeat(43)}/assets/app.js`,
+					[entityFieldAddressKey(EntityType.ArweaveManifestPath, [], 'targetTransactionId')]: 'D'.repeat(43),
+					[entityFieldAddressKey(EntityType.ArweaveManifestPath, [], '$resource')]: {
+						[EntityMetaKey.Selector]: {
+							transactionId: 'D'.repeat(43),
+							contentPath: '',
+						},
+					},
 				},
 			},
 		])

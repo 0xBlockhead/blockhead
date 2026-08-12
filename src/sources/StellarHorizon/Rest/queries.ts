@@ -4,6 +4,7 @@ import {
 	stellarHorizonAccountWire,
 	stellarHorizonLiquidityPoolPageWire,
 	stellarHorizonLiquidityPoolWire,
+	stellarHorizonOfferWire,
 	stellarHorizonOfferPageWire,
 	stellarHorizonOperationPageWire,
 	stellarHorizonPaymentPageWire,
@@ -298,6 +299,50 @@ const assertTransactionDomain = (
 	assertUnsignedInteger(transaction.operation_count, 'transaction operation count')
 }
 
+const assertOfferDomain = (
+	offer: StellarHorizonOffer
+) => {
+	if (!/^\d+$/.test(offer.id))
+		throw new Error('StellarHorizon_Rest: invalid offer ID')
+	assertAccountId(offer.seller, 'offer seller')
+	assertAmount(offer.amount, 'offer amount')
+	assertAmount(offer.price, 'offer price')
+	assertUnsignedInteger(offer.last_modified_ledger, 'offer ledger')
+	assertUnsignedInteger(offer.price_r.n, 'offer price numerator')
+	assertUnsignedInteger(offer.price_r.d, 'offer price denominator')
+	if (offer.price_r.d === 0)
+		throw new Error('StellarHorizon_Rest: offer price denominator must be nonzero')
+	assertAssetIdentity(offer.selling, 'selling')
+	assertAssetIdentity(offer.buying, 'buying')
+	if (offer.sponsor != null)
+		assertAccountId(offer.sponsor, 'offer sponsor')
+}
+
+const assertTradeDomain = (
+	trade: StellarHorizonTrade
+) => {
+	if (trade.id.length === 0)
+		throw new Error('StellarHorizon_Rest: invalid trade ID')
+	assertAmount(trade.base_amount, 'trade base amount')
+	assertAmount(trade.counter_amount, 'trade counter amount')
+	if (trade.base_account != null)
+		assertAccountId(trade.base_account, 'trade base account')
+	if (trade.counter_account != null)
+		assertAccountId(trade.counter_account, 'trade counter account')
+	if (trade.base_asset_issuer != null)
+		assertAccountId(trade.base_asset_issuer, 'trade base asset issuer')
+	if (trade.counter_asset_issuer != null)
+		assertAccountId(trade.counter_asset_issuer, 'trade counter asset issuer')
+	if (trade.base_liquidity_pool_id != null && !/^[0-9a-f]{64}$/.test(trade.base_liquidity_pool_id))
+		throw new Error('StellarHorizon_Rest: invalid trade base liquidity pool')
+	if (trade.counter_liquidity_pool_id != null && !/^[0-9a-f]{64}$/.test(trade.counter_liquidity_pool_id))
+		throw new Error('StellarHorizon_Rest: invalid trade counter liquidity pool')
+	assertUnsignedIntegerString(String(trade.price.n), 'trade price numerator')
+	assertUnsignedIntegerString(String(trade.price.d), 'trade price denominator')
+	if (BigInt(trade.price.d) === 0n)
+		throw new Error('StellarHorizon_Rest: trade price denominator must be nonzero')
+}
+
 export const getAccount = async (
 	accountId: string
 ) => {
@@ -367,6 +412,22 @@ export const getLiquidityPools = async (
 			records: page._embedded.records.map(liquidityPoolFromWire),
 		},
 	}
+}
+
+export const getOffer = async (
+	offerId: string
+) => {
+	if (!/^\d+$/.test(offerId))
+		throw new Error('StellarHorizon_Rest: invalid offer ID')
+	const offer = assertEnvelope(
+		'offer',
+		stellarHorizonOfferWire,
+		await query(`/offers/${encodeURIComponent(offerId)}`)
+	)
+	if (offer.id !== offerId)
+		throw new Error('StellarHorizon_Rest: offer response identity mismatch')
+	assertOfferDomain(offer)
+	return offer
 }
 
 const getAccountPage = async <_Record extends {
@@ -474,19 +535,7 @@ export const getAccountOffers = async (
 	for (const offer of page._embedded.records) {
 		if (offer.seller !== accountId)
 			throw new Error('StellarHorizon_Rest: offer page contains a foreign seller')
-		if (!/^\d+$/.test(offer.id))
-			throw new Error('StellarHorizon_Rest: invalid offer ID')
-		assertAmount(offer.amount, 'offer amount')
-		assertAmount(offer.price, 'offer price')
-		assertUnsignedInteger(offer.last_modified_ledger, 'offer ledger')
-		assertUnsignedInteger(offer.price_r.n, 'offer price numerator')
-		assertUnsignedInteger(offer.price_r.d, 'offer price denominator')
-		if (offer.price_r.d === 0)
-			throw new Error('StellarHorizon_Rest: offer price denominator must be nonzero')
-		assertAssetIdentity(offer.selling, 'selling')
-		assertAssetIdentity(offer.buying, 'buying')
-		if (offer.sponsor != null)
-			assertAccountId(offer.sponsor, 'offer sponsor')
+		assertOfferDomain(offer)
 	}
 	return page
 }
@@ -510,26 +559,35 @@ export const getAccountTrades = async (
 			&& trade.counter_account !== accountId
 		)
 			throw new Error('StellarHorizon_Rest: trade page contains a foreign account row')
-		if (trade.id.length === 0)
-			throw new Error('StellarHorizon_Rest: invalid trade ID')
-		assertAmount(trade.base_amount, 'trade base amount')
-		assertAmount(trade.counter_amount, 'trade counter amount')
-		if (trade.base_account != null)
-			assertAccountId(trade.base_account, 'trade base account')
-		if (trade.counter_account != null)
-			assertAccountId(trade.counter_account, 'trade counter account')
-		if (trade.base_asset_issuer != null)
-			assertAccountId(trade.base_asset_issuer, 'trade base asset issuer')
-		if (trade.counter_asset_issuer != null)
-			assertAccountId(trade.counter_asset_issuer, 'trade counter asset issuer')
-		if (trade.base_liquidity_pool_id != null && !/^[0-9a-f]{64}$/.test(trade.base_liquidity_pool_id))
-			throw new Error('StellarHorizon_Rest: invalid trade base liquidity pool')
-		if (trade.counter_liquidity_pool_id != null && !/^[0-9a-f]{64}$/.test(trade.counter_liquidity_pool_id))
-			throw new Error('StellarHorizon_Rest: invalid trade counter liquidity pool')
-		assertUnsignedIntegerString(String(trade.price.n), 'trade price numerator')
-		assertUnsignedIntegerString(String(trade.price.d), 'trade price denominator')
-		if (BigInt(trade.price.d) === 0n)
-			throw new Error('StellarHorizon_Rest: trade price denominator must be nonzero')
+		assertTradeDomain(trade)
+	}
+	return page
+}
+
+export const getOfferTrades = async (
+	offerId: string,
+	limit: number,
+	cursor?: string
+) => {
+	if (!/^\d+$/.test(offerId))
+		throw new Error('StellarHorizon_Rest: invalid offer ID')
+	const parameters = pageParameters(limit, cursor)
+	if (limit === 0)
+		return emptyPage<StellarHorizonTrade>()
+	const page = assertEnvelope(
+		'offer trade page',
+		stellarHorizonTradePageWire,
+		await query(`/offers/${encodeURIComponent(offerId)}/trades?${parameters.toString()}`)
+	)
+	assertPage(page, limit, cursor)
+	for (const trade of page._embedded.records) {
+		assertTradeDomain(trade)
+		if (
+			trade.offer_id !== offerId
+			&& trade.base_offer_id !== offerId
+			&& trade.counter_offer_id !== offerId
+		)
+			throw new Error('StellarHorizon_Rest: offer trade page contains a foreign offer')
 	}
 	return page
 }

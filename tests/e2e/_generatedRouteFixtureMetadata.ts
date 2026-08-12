@@ -829,6 +829,16 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
+	'/(arweave)/arweave/manifest-path/[transactionId]/[contentPath]/[path]': {
+		routeId: '/(arweave)/arweave/manifest-path/[transactionId=stringSegment]/[contentPath=stringSegment]/[path=stringSegment]',
+		mappings: [
+			{
+				id: 'ArweaveManifestPath.ManifestPath',
+				probeAtomPrefixes: ['/arweave/manifest-path/[transactionId]/[contentPath]/[path]:ArweaveManifestPath.ManifestPath'],
+				probeCases: [[[0, '1', ['path', 'transactionId', 'contentPath']]]],
+			},
+		],
+	},
 	'/(arweave)/arweave/resource/[transactionId]/[contentPath]': {
 		routeId: '/(arweave)/arweave/resource/[transactionId=stringSegment]/[contentPath=stringSegment]',
 		mappings: [

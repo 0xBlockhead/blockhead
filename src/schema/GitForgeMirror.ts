@@ -4,6 +4,7 @@ import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
+import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export default entity({
@@ -52,6 +53,27 @@ export default entity({
 	source: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	$$issues: {
+		entityType: EntityType.GitForgeIssue,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Gitlab_Rest,
+		],
+	},
+	$$pullRequests: {
+		entityType: EntityType.GitForgePullRequest,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Gitlab_Rest,
+		],
+	},
+	$$releases: {
+		entityType: EntityType.GitForgeRelease,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Gitlab_Rest,
+		],
 	},
 })({
 	selectors: {

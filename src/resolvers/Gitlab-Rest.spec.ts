@@ -8,25 +8,34 @@ import { Source } from '$/sources/Source.ts'
 const {
 	getBranches,
 	getIssue,
+	getIssues,
 	getMergeRequest,
+	getMergeRequests,
 	getProject,
 	getRelease,
+	getReleases,
 	getRepositoryTree,
 } = vi.hoisted(() => ({
 	getBranches: vi.fn(),
 	getIssue: vi.fn(),
+	getIssues: vi.fn(),
 	getMergeRequest: vi.fn(),
+	getMergeRequests: vi.fn(),
 	getProject: vi.fn(),
 	getRelease: vi.fn(),
+	getReleases: vi.fn(),
 	getRepositoryTree: vi.fn(),
 }))
 
 vi.mock('$/sources/Gitlab/Rest/queries.ts', () => ({
 	getBranches,
 	getIssue,
+	getIssues,
 	getMergeRequest,
+	getMergeRequests,
 	getProject,
 	getRelease,
+	getReleases,
 	getRepositoryTree,
 }))
 
@@ -103,6 +112,7 @@ describe('GitLab repository journey', () => {
 			updated_at: '2026-01-02T00:00:00Z',
 			closed_at: '2026-01-03T00:00:00Z',
 		})
+		getIssues.mockResolvedValue([])
 		getMergeRequest.mockResolvedValue({
 			iid: 34,
 			title: 'Connect the repository graph',
@@ -114,6 +124,7 @@ describe('GitLab repository journey', () => {
 			updated_at: '2026-02-02T00:00:00Z',
 			merged_at: '2026-02-03T00:00:00Z',
 		})
+		getMergeRequests.mockResolvedValue([])
 		getRelease.mockResolvedValue({
 			tag_name: 'v1.0.0',
 			name: 'Version 1.0.0',
@@ -123,6 +134,7 @@ describe('GitLab repository journey', () => {
 				id: 'd'.repeat(40),
 			},
 		})
+		getReleases.mockResolvedValue([])
 	})
 
 	it('links the forge mirror to its canonical repository with provider provenance', async () => {

@@ -30,12 +30,35 @@ const resolverFor = (
 ) => {
 	const resolver = stellarHorizonResolvers.resolvers.find((candidate) => (
 		fieldName in candidate.projections
+		&& (
+			fieldName !== '$$trades'
+			|| candidate.entityType === EntityType.StellarAccount
+		)
 	))
 	if (resolver == null)
 		throw new Error(`Stellar Horizon spec missing ${fieldName} resolver`)
 
 	return resolver
 }
+
+const directOfferResolver = stellarHorizonResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.StellarOffer
+	&& '$seller' in resolver.projections
+))
+const offerTradesResolver = stellarHorizonResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.StellarOffer
+	&& '$$trades' in resolver.projections
+))
+const offerTimestampResolver = stellarHorizonResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.StellarOffer_Timestamp
+))
+
+if (
+	directOfferResolver == null
+	|| offerTradesResolver == null
+	|| offerTimestampResolver == null
+)
+	throw new Error('Stellar Horizon spec missing direct offer lifecycle resolvers')
 
 const accountId = `G${'A'.repeat(55)}`
 const otherAccountId = `G${'B'.repeat(55)}`
@@ -559,6 +582,114 @@ describe('Stellar Horizon public-account resolver', () => {
 			source: 'StellarHorizon_Rest',
 		})
 		expect(trades[0][EntityMetaKey.Fields]?.[entityFieldAddressKey(EntityType.StellarTrade, [], 'baseAmount')]).toBe('1.0000000')
+	})
+
+	it('resolves an offer through its current observation and related fills', async () => {
+		getJson.mockResolvedValueOnce({
+			id: '2',
+			paging_token: '2',
+			seller: accountId,
+			selling: {
+				asset_type: 'native',
+			},
+			buying: {
+				asset_type: 'credit_alphanum4',
+				asset_code: 'USDC',
+				asset_issuer: otherAccountId,
+			},
+			amount: '1.0000000',
+			price_r: {
+				n: 1,
+				d: 2,
+			},
+			price: '0.5000000',
+			last_modified_ledger: 100,
+			last_modified_time: '2026-07-22T00:00:00Z',
+		})
+		const offer = await directOfferResolver.resolve['NetworkOfferId'].resolve({
+			$network: account.$network,
+			offerId: '2',
+		}, context)
+		expect(directOfferResolver.projections.$seller(offer)).toEqual({
+			[EntityMetaKey.Selector]: {
+				$network: account.$network,
+				accountId,
+			},
+		})
+		expect(directOfferResolver.projections.$$timestamps(offer)).toEqual([
+			expect.objectContaining({
+				[EntityMetaKey.Selector]: {
+					$offer: {
+						$network: account.$network,
+						offerId: '2',
+					},
+					timestampMs: Date.parse('2026-07-22T00:00:00Z'),
+					source: 'StellarHorizon_Rest',
+				},
+			}),
+		])
+
+		getJson.mockResolvedValueOnce(page([{
+			id: '246907709817896961-0',
+			paging_token: '246907709817896961-0',
+			ledger_close_time: '2026-07-22T00:00:00Z',
+			offer_id: '2',
+			trade_type: 'orderbook',
+			base_offer_id: '1',
+			base_account: accountId,
+			base_amount: '1.0000000',
+			base_asset_type: 'native',
+			counter_offer_id: '2',
+			counter_account: otherAccountId,
+			counter_amount: '2.0000000',
+			counter_asset_type: 'credit_alphanum4',
+			counter_asset_code: 'USDC',
+			counter_asset_issuer: otherAccountId,
+			price: {
+				n: '2',
+				d: '1',
+			},
+		}]))
+		const tradePage = await offerTradesResolver.resolve['NetworkOfferId'].resolve({
+			$network: account.$network,
+			offerId: '2',
+		}, context)
+		const trades = offerTradesResolver.projections.$$trades.select(
+			tradePage,
+			{
+				$network: account.$network,
+				offerId: '2',
+			},
+			context
+		)
+		expect(trades[0][EntityMetaKey.Selector]).toEqual({
+			$network: account.$network,
+			tradeId: '246907709817896961-0',
+			source: 'StellarHorizon_Rest',
+		})
+		expect(offerTradesResolver.projections.$$trades.continuation(
+			tradePage,
+			{
+				$network: account.$network,
+				offerId: '2',
+			},
+			context
+		)).toEqual({
+			operation: 'offer-trades',
+			target: '2',
+			terminal: true,
+		})
+
+		await expect(offerTimestampResolver.resolve[
+			'OfferTimestampMsSource'
+		].resolve({
+			$offer: {
+				$network: account.$network,
+				offerId: '2',
+			},
+			timestampMs: 0,
+			source: 'Other_Source',
+		}, context)).rejects.toThrow('offer observation source mismatch')
 	})
 
 	it('resolves transaction headers and operation lists by network hash', async () => {

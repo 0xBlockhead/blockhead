@@ -438,14 +438,22 @@ export default {
 								...(manifest.fallback != null && {
 									fallbackTransactionId: manifest.fallback.id,
 								}),
-								paths: Object.keys(manifest.paths).map((manifestPath) => ({
+								paths: Object.entries(manifest.paths).map(([manifestPath, target]) => ({
 									[EntityMetaKey.Selector]: {
-										transactionId,
-										contentPath: manifestPath,
+										$manifest: {
+											transactionId,
+											contentPath: normalizedContentPath,
+										},
+										path: manifestPath,
 									},
 									[EntityMetaKey.Fields]: {
-										[entityFieldAddressKey(EntityType.ArweaveResource, [], 'canonicalUri')]:
-											arweaveCanonicalUri(transactionId, manifestPath),
+										[entityFieldAddressKey(EntityType.ArweaveManifestPath, [], 'targetTransactionId')]: target.id,
+										[entityFieldAddressKey(EntityType.ArweaveManifestPath, [], '$resource')]: {
+											[EntityMetaKey.Selector]: {
+												transactionId: target.id,
+												contentPath: '',
+											},
+										},
 									},
 								})),
 							}),
@@ -477,6 +485,48 @@ export default {
 				resolveCount: (resource) => resource.paths.length,
 			},
 			$$timestamps: (resource) => resource.timestamps,
+		}),
+
+		defineResolver({
+			entityType: EntityType.ArweaveManifestPath,
+			resolve: {
+				ManifestPath: {
+					resolve: async ({ $manifest, path }) => {
+						const {
+							fetchBrowseResult,
+							parseArweaveManifest,
+						} = await import('$/sources/Arweave/Rest/queries.ts')
+						const browseResult = await fetchBrowseResult({
+							transactionId: $manifest.transactionId,
+							contentPath: $manifest.contentPath,
+						})
+						if (
+							browseResult.contentType?.split(';', 1)[0].trim().toLowerCase()
+								!== 'application/x.arweave-manifest+json'
+							|| browseResult.text == null
+						)
+							throw new Error('Arweave_Rest: resource is not a path manifest')
+
+						const target = Object.entries(parseArweaveManifest(browseResult.text).paths)
+							.find(([manifestPath]) => manifestPath === path)?.[1]
+						if (target == null)
+							throw new Error(`Arweave_Rest: manifest path not found ${path}`)
+
+						return {
+							targetTransactionId: target.id,
+							$resource: {
+								[EntityMetaKey.Selector]: {
+									transactionId: target.id,
+									contentPath: '',
+								},
+							},
+						}
+					},
+				},
+			},
+		})({
+			targetTransactionId: (manifestPath) => manifestPath.targetTransactionId,
+			$resource: (manifestPath) => manifestPath.$resource,
 		}),
 
 		defineResolver({

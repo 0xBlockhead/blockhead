@@ -815,6 +815,7 @@ export enum EntityType {
 	AptosTransaction = "AptosTransaction",
 	AptosTransaction_Timestamp = "AptosTransaction_Timestamp",
 	ArweaveBlock = "ArweaveBlock",
+	ArweaveManifestPath = "ArweaveManifestPath",
 	ArweaveNetwork = "ArweaveNetwork",
 	ArweaveNetwork_Timestamp = "ArweaveNetwork_Timestamp",
 	ArweaveResource = "ArweaveResource",
@@ -8151,6 +8152,30 @@ export const schema = {
 			}),
 
 			entity({
+				entityType: EntityType.ArweaveManifestPath,
+				labels: {
+					singular: "Arweave manifest path",
+					plural: "Arweave manifest paths",
+				},
+			})({
+				"$manifest": { label: "manifest", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.ArweaveResource },
+				"path": { label: "path", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"targetTransactionId": { label: "target transaction ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string", defaultSources: [Source.Arweave_Rest] },
+				"$resource": { label: "target resource", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.ArweaveResource, defaultSources: [Source.Arweave_Rest] },
+			})({
+				selectors: {
+					"ManifestPath": ["$manifest", "path"],
+				},
+				views: {
+					singular: {
+						summary: { title: ["path"], value: [{ field: "targetTransactionId", format: "truncated" }] },
+						content: { dl: [["$manifest", "path", { field: "targetTransactionId", format: "truncated" }, "$resource"]] },
+					},
+					plural: { component: "ArweaveManifestPathsView", title: "Arweave manifest paths" },
+				},
+			}),
+
+			entity({
 				entityType: EntityType.ArweaveNetwork,
 				labels: {
 					singular: "arweave network",
@@ -8246,7 +8271,7 @@ export const schema = {
 				"manifestIndexPath": { label: "manifest index path", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Arweave_Rest] },
 				"manifestFallbackTransactionId": { label: "manifest fallback transaction ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Arweave_Rest] },
 				"$transaction": { label: "transaction", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.ArweaveTransaction },
-				"$$manifestPaths": { label: "manifest paths", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.ArweaveResource, defaultSources: [Source.Arweave_Rest] },
+				"$$manifestPaths": { label: "manifest paths", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.ArweaveManifestPath, defaultSources: [Source.Arweave_Rest] },
 				"$$timestamps": { label: "timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.ArweaveResource_Timestamp },
 			})({
 				selectors: {
@@ -8265,7 +8290,7 @@ export const schema = {
 							],
 						},
 						lists: [
-							{ field: "$$manifestPaths", component: "ArweaveResourcesView", label: "Manifest paths", emptyText: "No manifest paths." },
+							{ field: "$$manifestPaths", component: "ArweaveManifestPathsView", label: "Manifest paths", emptyText: "No manifest paths." },
 							{ field: "$$timestamps", component: "ArweaveResource_TimestampsView", emptyText: "No observations yet." },
 						],
 					},
@@ -33834,6 +33859,9 @@ export const schema = {
 				"htmlUrl": { label: "HTML URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "urlString" },
 				"providerRepositoryId": { label: "provider repository ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"source": { label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+				"$$issues": { label: "issues", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.GitForgeIssue, defaultSources: [Source.Gitlab_Rest] },
+				"$$pullRequests": { label: "merge requests", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.GitForgePullRequest, defaultSources: [Source.Gitlab_Rest] },
+				"$$releases": { label: "releases", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.GitForgeRelease, defaultSources: [Source.Gitlab_Rest] },
 			})({
 				selectors: {
 					"ForgeHostOwnerRepositoryName": ["forgeHost", "owner", "repositoryName"],
@@ -33842,7 +33870,14 @@ export const schema = {
 					singular: {
 						summary: { title: ["owner", "repositoryName"], value: ["forgeHost"] },
 						closed: ["forgeHost", "owner", "repositoryName"],
-						content: { dl: [["forgeHost", "owner", "repositoryName", "$gitRepository", "defaultBranch", "visibility", { field: "htmlUrl", format: "url" }, "providerRepositoryId", "source"], ["cloneUrls"]] },
+						content: {
+							dl: [["forgeHost", "owner", "repositoryName", "$gitRepository", "defaultBranch", "visibility", { field: "htmlUrl", format: "url" }, "providerRepositoryId", "source"], ["cloneUrls"]],
+							lists: [
+								{ field: "$$issues", component: "GitForgeIssuesView", label: "Issues", emptyText: "No issues." },
+								{ field: "$$pullRequests", component: "GitForgePullRequestsView", label: "Merge requests", emptyText: "No merge requests." },
+								{ field: "$$releases", component: "GitForgeReleasesView", label: "Releases", emptyText: "No releases." },
+							],
+						},
 					},
 					plural: { component: "GitForgeMirrorsView", title: "Git forge mirrors", },
 				},
@@ -56267,6 +56302,21 @@ export const schema = {
 					],
 				},
 				views: {
+					singular: {
+						summary: {
+							title: ['offerId'],
+							value: ['$seller'],
+						},
+						content: {
+							dl: [
+								['$network', 'offerId', '$seller', '$sellingAsset', '$buyingAsset'],
+							],
+							lists: [
+								{ field: '$$trades', component: 'StellarTradesView', label: 'Trade activity', emptyText: 'No trades for this offer.' },
+								{ field: '$$timestamps', component: 'StellarOffer_TimestampsView', label: 'Observations', emptyText: 'No offer observations.' },
+							],
+						},
+					},
 					plural: { component: "StellarOffersView", },
 				},
 			}),
@@ -95620,6 +95670,41 @@ export const routes = defineRoutes(schema)({
 			children: {
 				"arweave": {
 					children: {
+						"manifest-path": {
+							children: {
+								"[transactionId]": {
+									params: { "transactionId": ["string"] },
+									children: {
+										"[contentPath]": {
+											params: { "contentPath": ["string"] },
+											children: {
+												"[path]": {
+													selectors: {
+														[EntityType.ArweaveManifestPath]: {
+															"ManifestPath": {
+																params: { "path": ["path"] },
+																derivations: {
+																	"$manifest": {
+																		kind: "selector",
+																		entity: EntityType.ArweaveResource,
+																		selector: "TransactionIdContentPath",
+																		params: [
+																			{ field: "transactionId", param: "transactionId" },
+																			{ field: "contentPath", param: "contentPath" },
+																		],
+																	},
+																},
+																page: {},
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+							},
 						"resource": {
 							children: {
 								"[transactionId]": {

@@ -51,7 +51,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$manifestPaths: {
-		entityType: EntityType.ArweaveResource,
+		entityType: EntityType.ArweaveManifestPath,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
 			Source.Arweave_Rest,

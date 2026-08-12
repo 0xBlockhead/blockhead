@@ -29,6 +29,9 @@
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
+	import GitForgeIssuesView from '$/views/GitForgeIssuesView.svelte'
+	import GitForgePullRequestsView from '$/views/GitForgePullRequestsView.svelte'
+	import GitForgeReleasesView from '$/views/GitForgeReleasesView.svelte'
 	import GitRepositoryView from '$/views/GitRepositoryView.svelte'
 </script>
 
@@ -238,5 +241,53 @@
 				</dd>
 			</div>
 		</dl>
+	{/snippet}
+
+	{#snippet Details()}
+		{@const issuesResource = selection.$$issues}
+		<ResourceBoundary
+			resource={issuesResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<GitForgeIssuesView
+						selection={issuesResource}
+						countResource={issuesResource.count}
+						title='Issues'
+						id='issues'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+		{@const pullRequestsResource = selection.$$pullRequests}
+		<ResourceBoundary
+			resource={pullRequestsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<GitForgePullRequestsView
+						selection={pullRequestsResource}
+						countResource={pullRequestsResource.count}
+						title='Merge requests'
+						id='pull-requests'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+		{@const releasesResource = selection.$$releases}
+		<ResourceBoundary
+			resource={releasesResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<GitForgeReleasesView
+						selection={releasesResource}
+						countResource={releasesResource.count}
+						title='Releases'
+						id='releases'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

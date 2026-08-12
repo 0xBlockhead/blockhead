@@ -17,6 +17,7 @@
 	// State
 	let {
 		selection,
+		title,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
@@ -26,6 +27,8 @@
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import StellarTradesView from '$/views/StellarTradesView.svelte'
+	import StellarOffer_TimestampsView from '$/views/StellarOffer_TimestampsView.svelte'
 	import StellarNetworkView from '$/views/StellarNetworkView.svelte'
 	import StellarAccountView from '$/views/StellarAccountView.svelte'
 	import StellarAssetView from '$/views/StellarAssetView.svelte'
@@ -35,6 +38,7 @@
 <EntityView
 	entityType={EntityType.StellarOffer}
 	entitySelector={selection.entitySelector}
+	title={title ?? (selection.entitySelector.offerId || 'stellar offer')}
 	href={
 		href === undefined ?
 			resolve(
@@ -56,6 +60,23 @@
 	bind:open
 	{...EntityViewProps}
 >
+	{#snippet Value()}
+		<ResourceBoundary
+			resource={selection.$seller}
+		>
+			{#snippet children(stellarAccount)}
+				{#if stellarAccount != null}
+					{@const stellarAccountInitial = untrack(() => stellarAccount)}
+					<StellarAccountView
+						selection={select(EntityType.StellarAccount, (stellarAccount ?? stellarAccountInitial)[EntityMetaKey.Selector])}
+						href={null}
+						layout={EntityLayout.Value}
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
 	{#snippet Content()}
 		<dl data-column-item="center">
 			<div>
@@ -132,5 +153,38 @@
 				{/snippet}
 			</ResourceBoundary>
 		</dl>
+	{/snippet}
+
+	{#snippet Details()}
+		{@const tradesResource = selection.$$trades}
+		<ResourceBoundary
+			resource={tradesResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<StellarTradesView
+						selection={tradesResource}
+						countResource={tradesResource.count}
+						title='Trade activity'
+						id='trades'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+		{@const timestampsResource = selection.$$timestamps}
+		<ResourceBoundary
+			resource={timestampsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<StellarOffer_TimestampsView
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
+						title='Observations'
+						id='timestamps'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

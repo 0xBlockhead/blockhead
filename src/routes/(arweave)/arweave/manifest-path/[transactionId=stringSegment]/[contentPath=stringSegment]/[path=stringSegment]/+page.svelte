@@ -12,25 +12,31 @@
 
 	// State
 	let {
-		data,
+		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.StellarOffer, data.selector))
+	const pageSelection = $derived(select(EntityType.ArweaveManifestPath, {
+		$manifest: {
+			transactionId: params.transactionId,
+			contentPath: params.contentPath,
+		},
+		path: params.path,
+	}))
 
 
 	// Components
 	import Page from '$/components/Page.svelte'
-	import StellarOfferView from '$/views/StellarOfferView.svelte'
+	import ArweaveManifestPathView from '$/views/ArweaveManifestPathView.svelte'
 </script>
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.offerId || 'stellar offer')} • stellar offer • Blockhead</title>
+	<title>{pageSelection.entitySelector.path || 'Arweave manifest path'} • Arweave manifest path • Blockhead</title>
 </svelte:head>
 
 
 <Page>
-	<StellarOfferView
+	<ArweaveManifestPathView
 		selection={pageSelection}
 	/>
 </Page>

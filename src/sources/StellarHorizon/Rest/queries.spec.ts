@@ -20,6 +20,8 @@ const {
 	getAccountTransactions,
 	getLiquidityPool,
 	getLiquidityPools,
+	getOffer,
+	getOfferTrades,
 	getTransaction,
 	getTransactionOperations,
 	operationIndexFromHorizonId,
@@ -407,6 +409,90 @@ describe('Stellar Horizon account transport', () => {
 				}],
 			},
 		})
+	})
+
+	it('resolves an offer and only its related trades by canonical offer ID', async () => {
+		getJson.mockResolvedValueOnce({
+			id: '2',
+			paging_token: '2',
+			seller: accountId,
+			selling: {
+				asset_type: 'native',
+			},
+			buying: {
+				asset_type: 'credit_alphanum4',
+				asset_code: 'USDC',
+				asset_issuer: otherAccountId,
+			},
+			amount: '1.0000000',
+			price_r: {
+				n: 1,
+				d: 2,
+			},
+			price: '0.5000000',
+			last_modified_ledger: 100,
+			last_modified_time: '2026-07-22T00:00:00Z',
+		})
+		await expect(getOffer('2')).resolves.toMatchObject({
+			id: '2',
+			seller: accountId,
+		})
+		expect(getJson).toHaveBeenLastCalledWith(binding, '/offers/2')
+
+		getJson.mockResolvedValueOnce(page([{
+			id: '246907709817896961-0',
+			paging_token: '246907709817896961-0',
+			ledger_close_time: '2026-07-22T00:00:00Z',
+			offer_id: '2',
+			trade_type: 'orderbook',
+			base_offer_id: '1',
+			base_account: accountId,
+			base_amount: '1.0000000',
+			base_asset_type: 'native',
+			counter_offer_id: '2',
+			counter_account: otherAccountId,
+			counter_amount: '2.0000000',
+			counter_asset_type: 'credit_alphanum4',
+			counter_asset_code: 'USDC',
+			counter_asset_issuer: otherAccountId,
+			price: {
+				n: '2',
+				d: '1',
+			},
+		}]))
+		await expect(getOfferTrades('2', 10)).resolves.toMatchObject({
+			_embedded: {
+				records: [{
+					id: '246907709817896961-0',
+				}],
+			},
+		})
+		expect(getJson).toHaveBeenLastCalledWith(
+			binding,
+			'/offers/2/trades?limit=10&order=desc'
+		)
+
+		getJson.mockResolvedValueOnce(page([{
+			id: '246907709817896962-0',
+			paging_token: '246907709817896962-0',
+			ledger_close_time: '2026-07-22T00:00:00Z',
+			trade_type: 'orderbook',
+			base_offer_id: '3',
+			base_account: accountId,
+			base_amount: '1.0000000',
+			base_asset_type: 'native',
+			counter_offer_id: '4',
+			counter_account: otherAccountId,
+			counter_amount: '2.0000000',
+			counter_asset_type: 'credit_alphanum4',
+			counter_asset_code: 'USDC',
+			counter_asset_issuer: otherAccountId,
+			price: {
+				n: '2',
+				d: '1',
+			},
+		}]))
+		await expect(getOfferTrades('2', 10)).rejects.toThrow('offer trade page contains a foreign offer')
 	})
 
 	it('loads transaction snapshots and ordered operations', async () => {

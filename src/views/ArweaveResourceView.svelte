@@ -35,7 +35,7 @@
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
-	import ArweaveResourcesView from '$/views/ArweaveResourcesView.svelte'
+	import ArweaveManifestPathsView from '$/views/ArweaveManifestPathsView.svelte'
 	import ArweaveResource_TimestampsView from '$/views/ArweaveResource_TimestampsView.svelte'
 	import ArweaveTransactionView from '$/views/ArweaveTransactionView.svelte'
 </script>
@@ -202,7 +202,7 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-					<ArweaveResourcesView
+					<ArweaveManifestPathsView
 						selection={manifestPathsResource}
 						countResource={manifestPathsResource.count}
 						title='Manifest paths'

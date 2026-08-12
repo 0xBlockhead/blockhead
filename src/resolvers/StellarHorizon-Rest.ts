@@ -215,7 +215,7 @@ const operationBodyFromWire = (
 		undefined
 }
 
-const offerFromWire = (
+const offerFields = (
 	$network: {
 		$network: {
 			slug: string
@@ -235,42 +235,64 @@ const offerFromWire = (
 	)
 
 	return {
-		[EntityMetaKey.Selector]: offerSelector,
-		[EntityMetaKey.Fields]: {
-			[entityFieldAddressKey(EntityType.StellarOffer, [], '$seller')]: {
+		$seller: {
+			[EntityMetaKey.Selector]: {
+				$network,
+				accountId: offer.seller,
+			},
+		},
+		$sellingAsset: {
+			[EntityMetaKey.Selector]: assetSelector($network, offer.selling),
+			[EntityMetaKey.Fields]: assetFields(offer.selling),
+		},
+		$buyingAsset: {
+			[EntityMetaKey.Selector]: assetSelector($network, offer.buying),
+			[EntityMetaKey.Fields]: assetFields(offer.buying),
+		},
+		...(timestampMs != null && {
+			$$timestamps: [{
 				[EntityMetaKey.Selector]: {
-					$network,
-					accountId: offer.seller,
+					$offer: offerSelector,
+					timestampMs,
+					source: Source.StellarHorizon_Rest,
 				},
-			},
-			[entityFieldAddressKey(EntityType.StellarOffer, [], '$sellingAsset')]: {
-				[EntityMetaKey.Selector]: assetSelector($network, offer.selling),
-				[EntityMetaKey.Fields]: assetFields(offer.selling),
-			},
-			[entityFieldAddressKey(EntityType.StellarOffer, [], '$buyingAsset')]: {
-				[EntityMetaKey.Selector]: assetSelector($network, offer.buying),
-				[EntityMetaKey.Fields]: assetFields(offer.buying),
-			},
-			...(timestampMs != null && {
-				[entityFieldAddressKey(EntityType.StellarOffer, [], '$$timestamps')]: [{
-					[EntityMetaKey.Selector]: {
-						$offer: offerSelector,
-						timestampMs,
-						source: Source.StellarHorizon_Rest,
-					},
-					[EntityMetaKey.Fields]: {
-						[entityFieldAddressKey(EntityType.StellarOffer_Timestamp, [], 'ledgerSequence')]: BigInt(offer.last_modified_ledger),
-						[entityFieldAddressKey(EntityType.StellarOffer_Timestamp, [], 'amount')]: offer.amount,
-						[entityFieldAddressKey(EntityType.StellarOffer_Timestamp, [], 'price')]: offer.price,
-						[entityFieldAddressKey(EntityType.StellarOffer_Timestamp, [], 'priceNumerator')]: BigInt(offer.price_r.n),
-						[entityFieldAddressKey(EntityType.StellarOffer_Timestamp, [], 'priceDenominator')]: BigInt(offer.price_r.d),
-						[entityFieldAddressKey(EntityType.StellarOffer_Timestamp, [], 'active')]: true,
-						[entityFieldAddressKey(EntityType.StellarOffer_Timestamp, [], 'lastModifiedTimeMs')]: timestampMs,
-						...(offer.sponsor != null && {
-							[entityFieldAddressKey(EntityType.StellarOffer_Timestamp, [], 'sponsor')]: offer.sponsor,
-						}),
-					},
-				}],
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.StellarOffer_Timestamp, [], 'ledgerSequence')]: BigInt(offer.last_modified_ledger),
+					[entityFieldAddressKey(EntityType.StellarOffer_Timestamp, [], 'amount')]: offer.amount,
+					[entityFieldAddressKey(EntityType.StellarOffer_Timestamp, [], 'price')]: offer.price,
+					[entityFieldAddressKey(EntityType.StellarOffer_Timestamp, [], 'priceNumerator')]: BigInt(offer.price_r.n),
+					[entityFieldAddressKey(EntityType.StellarOffer_Timestamp, [], 'priceDenominator')]: BigInt(offer.price_r.d),
+					[entityFieldAddressKey(EntityType.StellarOffer_Timestamp, [], 'active')]: true,
+					[entityFieldAddressKey(EntityType.StellarOffer_Timestamp, [], 'lastModifiedTimeMs')]: timestampMs,
+					...(offer.sponsor != null && {
+						[entityFieldAddressKey(EntityType.StellarOffer_Timestamp, [], 'sponsor')]: offer.sponsor,
+					}),
+				},
+			}],
+		}),
+	}
+}
+
+const offerFromWire = (
+	$network: {
+		$network: {
+			slug: string
+		}
+	},
+	offer: StellarHorizonOffer
+) => {
+	const fields = offerFields($network, offer)
+	return {
+		[EntityMetaKey.Selector]: {
+			$network,
+			offerId: offer.id,
+		},
+		[EntityMetaKey.Fields]: {
+			[entityFieldAddressKey(EntityType.StellarOffer, [], '$seller')]: fields.$seller,
+			[entityFieldAddressKey(EntityType.StellarOffer, [], '$sellingAsset')]: fields.$sellingAsset,
+			[entityFieldAddressKey(EntityType.StellarOffer, [], '$buyingAsset')]: fields.$buyingAsset,
+			...(fields.$$timestamps != null && {
+				[entityFieldAddressKey(EntityType.StellarOffer, [], '$$timestamps')]: fields.$$timestamps,
 			}),
 		},
 	}
@@ -720,6 +742,94 @@ export default {
 					)
 				),
 			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.StellarOffer,
+			resolve: {
+				NetworkOfferId: {
+					resolve: async ({ $network, offerId }) => {
+						assertStellarPublicNetwork($network)
+						const { getOffer } = await import('$/sources/StellarHorizon/Rest/queries.ts')
+						return offerFields($network, await getOffer(offerId))
+					},
+				},
+			},
+		})({
+			$seller: (offer) => offer.$seller,
+			$sellingAsset: (offer) => offer.$sellingAsset,
+			$buyingAsset: (offer) => offer.$buyingAsset,
+			$$timestamps: (offer) => offer.$$timestamps,
+		}),
+
+		defineResolver({
+			entityType: EntityType.StellarOffer,
+			resolve: {
+				NetworkOfferId: {
+					resolve: async ({ $network, offerId }, context) => {
+						assertStellarPublicNetwork($network)
+						const limit = Math.min(resolverContextRowLimit(context), 200)
+						const { getOfferTrades } = await import('$/sources/StellarHorizon/Rest/queries.ts')
+						return {
+							limit,
+							page: await getOfferTrades(
+								offerId,
+								limit,
+								context.providerContinuationToken
+							),
+						}
+					},
+				},
+			},
+		})({
+			$$trades: {
+				select: ({ page }, { $network }) => (
+					page._embedded.records.map((trade) => tradeFromWire($network, trade))
+				),
+				continuation: ({ limit, page }, { offerId }) => (
+					accountContinuation(
+						'offer-trades',
+						offerId,
+						limit,
+						page._embedded.records
+					)
+				),
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.StellarOffer_Timestamp,
+			resolve: {
+				OfferTimestampMsSource: {
+					resolve: async ({ $offer, source, timestampMs }) => {
+						assertStellarPublicNetwork($offer.$network)
+						if (source !== Source.StellarHorizon_Rest)
+							throw new Error('StellarHorizon_Rest: offer observation source mismatch')
+						const { getOffer } = await import('$/sources/StellarHorizon/Rest/queries.ts')
+						const offer = await getOffer($offer.offerId)
+						if (
+							offer.last_modified_time == null
+							|| timestampMsFromWire(offer.last_modified_time, 'offer modification time') !== timestampMs
+						)
+							throw new Error('StellarHorizon_Rest: offer observation timestamp mismatch')
+						return offer
+					},
+				},
+			},
+		})({
+			ledgerSequence: (offer) => BigInt(offer.last_modified_ledger),
+			amount: (offer) => offer.amount,
+			price: (offer) => offer.price,
+			priceNumerator: (offer) => BigInt(offer.price_r.n),
+			priceDenominator: (offer) => BigInt(offer.price_r.d),
+			sponsor: (offer) => offer.sponsor,
+			active: () => true,
+			lastModifiedTimeMs: (offer) => (
+				offer.last_modified_time == null ?
+					undefined
+				:
+					timestampMsFromWire(offer.last_modified_time, 'offer modification time')
+			),
 		}),
 
 		defineResolver({

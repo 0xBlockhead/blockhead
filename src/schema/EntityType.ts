@@ -116,6 +116,7 @@ export enum EntityType {
 	AptosTransaction = 'AptosTransaction',
 	AptosTransaction_Timestamp = 'AptosTransaction_Timestamp',
 	ArweaveBlock = 'ArweaveBlock',
+	ArweaveManifestPath = 'ArweaveManifestPath',
 	ArweaveNetwork = 'ArweaveNetwork',
 	ArweaveNetwork_Timestamp = 'ArweaveNetwork_Timestamp',
 	ArweaveResource = 'ArweaveResource',

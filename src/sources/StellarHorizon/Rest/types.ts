@@ -155,6 +155,7 @@ export const stellarHorizonTradeWire = arktype({
 	paging_token: 'string > 0',
 	ledger_close_time: 'string > 0',
 	trade_type: "'orderbook' | 'liquidity_pool'",
+	'offer_id?': 'string',
 	'base_offer_id?': 'string',
 	'base_account?': 'string',
 	'base_liquidity_pool_id?': 'string',
