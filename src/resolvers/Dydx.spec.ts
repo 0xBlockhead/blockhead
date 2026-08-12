@@ -33,6 +33,7 @@ vi.mock('$/sources/Dydx/WebSocket/queries.ts', () => ({
 
 const {
 	default: dydx,
+	dydxChainMarketFundingHistoryResolver,
 	dydxChainMarketResolver,
 	dydxChainNetworkResolver,
 	dydxChainOrderResolver,
@@ -260,6 +261,14 @@ const heightResponse = {
 	time: '2026-08-03T12:34:56.789Z',
 }
 
+const historicalFunding = [{
+	ticker: 'BTC-USD',
+	rate: '-0.0000000000002',
+	price: '65432.109876543210000001',
+	effectiveAt: '2026-08-03T11:00:00.000Z',
+	effectiveAtHeight: '12345678901234567880',
+}]
+
 describe('dYdX Indexer resolvers', () => {
 	beforeEach(() => {
 		vi.spyOn(Date, 'now').mockReturnValue(observedAtMs)
@@ -268,6 +277,11 @@ describe('dYdX Indexer resolvers', () => {
 		sourceGetJson.mockImplementation((_binding, url) => Promise.resolve(
 			url.includes('/v4/height') ?
 				heightResponse
+			:
+			url.includes('/v4/historicalFunding/') ?
+				{
+					historicalFunding,
+				}
 			:
 			url.includes('/v4/perpetualPositions?') ?
 				{
@@ -296,6 +310,7 @@ describe('dYdX Indexer resolvers', () => {
 	it('registers only the dYdX Indexer source', () => {
 		expect(dydx.source).toBe(Source.DydxIndexer)
 		expect(dydx.resolvers).toEqual([
+			dydxChainMarketFundingHistoryResolver,
 			dydxChainMarketResolver,
 			dydxChainNetworkResolver,
 			dydxChainOrderResolver,
@@ -737,6 +752,26 @@ describe('dYdX Indexer resolvers', () => {
 				[entityFieldAddressKey(EntityType.DydxChainMarket_Timestamp, [], 'openInterest')]: '308.7674',
 				[entityFieldAddressKey(EntityType.DydxChainMarket_Timestamp, [], 'oraclePrice')]: '65554.247690000000000001',
 				[entityFieldAddressKey(EntityType.DydxChainMarket_Timestamp, [], 'status')]: 'ACTIVE',
+			},
+		}])
+	})
+
+	it('materializes authority-timestamped historical funding observations', async () => {
+		const observation = await dydxChainMarketFundingHistoryResolver.resolve.NetworkTicker.resolve(
+			market,
+			context
+		)
+
+		expect(sourceGetJson.mock.calls[0][1]).toContain('/v4/historicalFunding/BTC-USD?limit=1')
+		expect(dydxChainMarketFundingHistoryResolver.projections.$$timestamps(observation, market)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$market: market,
+				timestampMs: Date.parse(historicalFunding[0].effectiveAt),
+				source: Source.DydxIndexer,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.DydxChainMarket_Timestamp, [], 'fundingRate')]: historicalFunding[0].rate,
+				[entityFieldAddressKey(EntityType.DydxChainMarket_Timestamp, [], 'oraclePrice')]: historicalFunding[0].price,
 			},
 		}])
 	})
