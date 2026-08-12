@@ -698,19 +698,20 @@ describe('Constants resolver projections', () => {
 		}
 	})
 
-	it('preserves explicit unsupported native-asset resolution', async () => {
+	it('preserves assetless networks without failing unrelated network fields', async () => {
 		for (const slug of [
 			'avail',
 			'lightning',
 			'logos-testnet',
-		])
-			await expect(
-				networkNativeAssetsResolver.resolve['Slug'].resolve({
-					slug,
-				}, resolverContext)
-			).rejects.toThrow(
-				`Constants_Internal: native asset not cataloged for ${networkBySlug[slug].namespace}`
-			)
+		]) {
+			const network = await networkNativeAssetsResolver.resolve['Slug'].resolve({
+				slug,
+			}, resolverContext)
+
+			expect(network.nativeCoin).toBeUndefined()
+			expect(network.nativeCoinInstance).toBeUndefined()
+			expect(network.nativeAssets).toEqual([])
+		}
 	})
 
 	it('materializes Network.Evm.$$upgrades with only declared child fields', async () => {

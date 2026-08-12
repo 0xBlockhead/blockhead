@@ -2354,7 +2354,11 @@ export default {
 						const namespace = network.namespace
 						const coinId = networkNamespaceByNamespace[namespace].nativeAssetCoinId
 						if (coinId == null)
-							throw new Error(`Constants_Internal: native asset not cataloged for ${namespace}`)
+							return {
+								nativeCoin: undefined,
+								nativeCoinInstance: undefined,
+								nativeAssets: [],
+							}
 						return {
 							nativeCoin: {
 								[EntityMetaKey.Selector]: {
