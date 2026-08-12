@@ -2994,6 +2994,49 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
+	'/(explore)/(networks)/network/[network]/(polkadot)/referenda': {
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(polkadot)/referenda',
+		mappings: [
+			{
+				id: 'Network.Caip2',
+				probeAtomPrefixes: ['/network/[network]:Network.Caip2'],
+				probeCases: [[[0, '1', ['network']]]],
+			},
+			{
+				id: 'Network.Slug',
+				probeAtomPrefixes: ['/network/[network]:Network.Slug'],
+				probeCases: [[[0, '1', ['network']]], [[0, '2', ['network']]], [[0, '3', ['network']]], [[0, '4', ['network']]], [[0, '5', ['network']]], [[0, '6', ['network']]], [[0, '7', ['network']]], [[0, '8', ['network']]], [[0, '9', ['network']]], [[0, '10', ['network']]], [[0, '11', ['network']]], [[0, '12', ['network']]], [[0, '13', ['network']]], [[0, '14', ['network']]], [[0, '15', ['network']]]],
+			},
+		],
+	},
+	'/(explore)/(networks)/network/[network]/(polkadot)/referendum/[referendumId]': {
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(polkadot)/referendum/[referendumId=stringSegment]',
+		mappings: [
+			{
+				id: 'PolkadotReferendum.NetworkReferendumId',
+				projectionEntity: 'Network',
+				probeAtomPrefixes: ['/network/[network]/referendum/[referendumId]:PolkadotReferendum.NetworkReferendumId'],
+				probeCases: [[[0, '1', ['referendumId', 'network']]]],
+				projectionPath: [
+					'Polkadot',
+				],
+			},
+		],
+	},
+	'/(explore)/(networks)/network/[network]/(polkadot)/referendum/[referendumId]/observations/[timestampMs]/[source]': {
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(polkadot)/referendum/[referendumId=stringSegment]/(polkadotReferendum)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+		mappings: [
+			{
+				id: 'PolkadotReferendum_Timestamp.ReferendumTimestampMsSource',
+				projectionEntity: 'Network',
+				probeAtomPrefixes: ['/network/[network]/referendum/[referendumId]/observations/[timestampMs]/[source]:PolkadotReferendum_Timestamp.ReferendumTimestampMsSource'],
+				probeCases: [[[0, '1', ['timestampMs', 'source', 'referendumId', 'network']]]],
+				projectionPath: [
+					'Polkadot',
+				],
+			},
+		],
+	},
 	'/(explore)/(networks)/network/[network]/(protocol-networks)/(aptos)/table-item/[tableHandle]/[keyHash]': {
 		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/(aptos)/table-item/[tableHandle=stringSegment]/[keyHash=stringSegment]',
 		mappings: [
@@ -4492,34 +4535,6 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				probeCases: [[[0, '1', ['proverPeerId', 'network']]]],
 				projectionPath: [
 					'Quilibrium',
-				],
-			},
-		],
-	},
-	'/(explore)/(networks)/network/[network]/(protocol-networks)/referendum/[referendumId]': {
-		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/referendum/[referendumId=stringSegment]',
-		mappings: [
-			{
-				id: 'PolkadotReferendum.NetworkReferendumId',
-				projectionEntity: 'Network',
-				probeAtomPrefixes: ['/network/[network]/referendum/[referendumId]:PolkadotReferendum.NetworkReferendumId'],
-				probeCases: [[[0, '1', ['referendumId', 'network']]]],
-				projectionPath: [
-					'Polkadot',
-				],
-			},
-		],
-	},
-	'/(explore)/(networks)/network/[network]/(protocol-networks)/referendum/[referendumId]/observations/[timestampMs]/[source]': {
-		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/referendum/[referendumId=stringSegment]/(polkadotReferendum)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-		mappings: [
-			{
-				id: 'PolkadotReferendum_Timestamp.ReferendumTimestampMsSource',
-				projectionEntity: 'Network',
-				probeAtomPrefixes: ['/network/[network]/referendum/[referendumId]/observations/[timestampMs]/[source]:PolkadotReferendum_Timestamp.ReferendumTimestampMsSource'],
-				probeCases: [[[0, '1', ['timestampMs', 'source', 'referendumId', 'network']]]],
-				projectionPath: [
-					'Polkadot',
 				],
 			},
 		],

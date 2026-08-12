@@ -403,6 +403,7 @@
 	import CosmosGovernanceProposalsView from '$/views/CosmosGovernanceProposalsView.svelte'
 	import PolkadotBlocksView from '$/views/PolkadotBlocksView.svelte'
 	import PolkadotValidatorsView from '$/views/PolkadotValidatorsView.svelte'
+	import PolkadotReferendumsView from '$/views/PolkadotReferendumsView.svelte'
 	import SolanaBlocksView from '$/views/SolanaBlocksView.svelte'
 	import SolanaTransactionsView from '$/views/SolanaTransactionsView.svelte'
 	import SolanaValidatorsView from '$/views/SolanaValidatorsView.svelte'
@@ -3711,6 +3712,57 @@
 
 					</CollapsibleTabs>
 				{/if}
+
+				<CollapsibleTabs
+					id={viewDomId + '-carousel-polkadot-governance'}
+					sectionIdPrefix={viewDomId}
+					sections={
+						[
+							{
+								id: 'polkadot-governance-referenda',
+								label: 'Referenda',
+							},
+						]
+					}
+					data-card
+					class='network-view-collapsible-governance'
+				>
+					{#snippet Summary()}
+						<header data-row-item="flexible" data-row="wrap gap-4">
+							<HeadingComponent>Governance</HeadingComponent>
+							<Tooltip>
+								{#snippet Content()}
+									<p>
+										Native OpenGov referenda and their current on-chain lifecycle.
+									</p>
+								{/snippet}
+
+								<abbr
+									class="entity-heading-tip"
+									aria-label='Governance help'
+								>ⓘ</abbr>
+							</Tooltip>
+						</header>
+					{/snippet}
+
+					{#snippet SectionPolkadotGovernanceReferenda({ id, label })}
+						<PolkadotReferendumsView
+							selection={
+								projection
+								.$$referenda({
+									sources: [
+										Source.SubstrateSidecar_Rest,
+									],
+									limit: 16,
+								})
+							}
+							collapsible={false}
+							title={label}
+							id={`${id}-list`}
+						/>
+					{/snippet}
+
+				</CollapsibleTabs>
 				{@const polkadotResourcesEndpointsSources = networkApplicableSources([
 						Source.Polkadot_JsonRpc,
 					], pendingEntity)}

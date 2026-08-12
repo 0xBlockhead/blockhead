@@ -34,6 +34,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
 			Source.Subscan_Rest,
+			Source.SubstrateSidecar_Rest,
 		],
 	},
 })({

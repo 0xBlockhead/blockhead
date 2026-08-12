@@ -1044,22 +1044,102 @@ export default {
 						if (referendumId.length === 0)
 							throw new Error('SubstrateSidecar_Rest: referendum ID must not be empty')
 						const { getOngoingReferenda } = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
-						const referendum = (await getOngoingReferenda()).referenda
+						const response = await getOngoingReferenda()
+						const referendum = response.referenda
 							.find((candidate) => candidate.id === referendumId)
 						if (referendum == null)
 							throw new Error(`SubstrateSidecar_Rest: ongoing referendum not found for ${referendumId}`)
 
+						const timestampMs = Date.now()
+						const timestampSelector = {
+							$referendum: {
+								$network,
+								referendumId,
+							},
+							timestampMs,
+							source: Source.SubstrateSidecar_Rest,
+						}
+						const enactmentAtBlockNumber = (
+							typeof referendum.enactment === 'string' ?
+								BigInt(referendum.enactment)
+							: referendum.enactment?.at != null ?
+								BigInt(referendum.enactment.at)
+							:
+								undefined
+						)
+						const confirmationStartedAtBlockNumber = (
+							referendum.deciding?.confirming != null ?
+								BigInt(referendum.deciding.confirming)
+							:
+								undefined
+						)
 						return {
 							...(referendum.submitted != null && {
 								submittedAtBlockNumber: BigInt(referendum.submitted),
 							}),
+							$$timestamps: [{
+								[EntityMetaKey.Selector]: timestampSelector,
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.PolkadotReferendum_Timestamp, [], '$referendum')]: {
+										[EntityMetaKey.Selector]: timestampSelector.$referendum,
+									},
+									[entityFieldAddressKey(EntityType.PolkadotReferendum_Timestamp, [], 'timestampMs')]: timestampMs,
+									[entityFieldAddressKey(EntityType.PolkadotReferendum_Timestamp, [], 'source')]: Source.SubstrateSidecar_Rest,
+									[entityFieldAddressKey(EntityType.PolkadotReferendum_Timestamp, [], 'blockNumber')]: BigInt(response.at.height),
+									[entityFieldAddressKey(EntityType.PolkadotReferendum_Timestamp, [], 'blockHash')]: response.at.hash,
+									[entityFieldAddressKey(EntityType.PolkadotReferendum_Timestamp, [], 'status')]: 'Ongoing',
+									...(confirmationStartedAtBlockNumber != null && {
+										[entityFieldAddressKey(EntityType.PolkadotReferendum_Timestamp, [], 'confirmationStartedAtBlockNumber')]: confirmationStartedAtBlockNumber,
+									}),
+									...(enactmentAtBlockNumber != null && {
+										[entityFieldAddressKey(EntityType.PolkadotReferendum_Timestamp, [], 'enactmentAtBlockNumber')]: enactmentAtBlockNumber,
+									}),
+								},
+							}],
 						}
 					},
 				},
 			},
 		})({
 				submittedAtBlockNumber: (referendum) => referendum.submittedAtBlockNumber,
+				$$timestamps: (referendum) => referendum.$$timestamps,
 			}),
+
+		defineResolver({
+			entityType: EntityType.Network,
+			resolve: {
+				Slug: {
+					resolve: async (network, context) => {
+						assertPolkadotMainnet(network)
+						const { getOngoingReferenda } = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
+						const response = await getOngoingReferenda()
+						const referendumIds = response.referenda.map(({ id }) => id)
+						if (new Set(referendumIds).size !== referendumIds.length)
+							throw new Error('SubstrateSidecar_Rest: ongoing referenda contain duplicate identities')
+
+						const offset = context.pagination.offset ?? 0
+						return {
+							rows: referendumIds
+								.slice(offset, offset + resolverContextRowLimit(context))
+								.map((referendumId) => ({
+									[EntityMetaKey.Selector]: {
+										$network: network,
+										referendumId,
+									},
+								})),
+							totalCount: referendumIds.length,
+						}
+					},
+				},
+			},
+		})({
+			Polkadot: {
+				$$referenda: {
+					select: (snapshot) => snapshot.rows,
+					resolveCount: (snapshot) => snapshot.totalCount,
+				},
+			},
+		}),
 
 		defineResolver({
 			entityType: EntityType.Network,

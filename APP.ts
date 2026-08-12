@@ -47209,7 +47209,8 @@ export const schema = {
 					})({
 						"rpcEndpoints": { label: "RPC endpoints", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "sourceEndpoint", defaultSources: [Source.Polkadot_JsonRpc] },
 						"$$blocks": { label: "Blocks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.PolkadotBlock, defaultSources: [Source.Polkadot_JsonRpc, Source.SubstrateSidecar_Rest] },
-						"$$validators": { label: "Validators", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.PolkadotValidator, defaultSources: [Source.SubstrateSidecar_Rest] }
+						"$$validators": { label: "Validators", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.PolkadotValidator, defaultSources: [Source.SubstrateSidecar_Rest] },
+						"$$referenda": { label: "Referenda", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.PolkadotReferendum, defaultSources: [Source.SubstrateSidecar_Rest] }
 					})({
 						singularView: {
 							carousels: [
@@ -47220,6 +47221,15 @@ export const schema = {
 									sections: [
 										{ id: "polkadot-consensus-blocks", field: ["Polkadot", "$$blocks"], List: "PolkadotBlocksView", label: "Blocks", selection: { sources: [Source.Polkadot_JsonRpc, Source.SubstrateSidecar_Rest], limit: 16 } },
 										{ id: "polkadot-consensus-validators", field: ["Polkadot", "$$validators"], List: "PolkadotValidatorsView", label: "Validators", selection: { sources: [Source.SubstrateSidecar_Rest], limit: 16 } },
+									],
+								},
+								{
+									id: "polkadot-governance",
+									label: "Governance",
+									description: "Native OpenGov referenda and their current on-chain lifecycle.",
+									className: "network-view-collapsible-governance",
+									sections: [
+										{ id: "polkadot-governance-referenda", field: ["Polkadot", "$$referenda"], List: "PolkadotReferendumsView", label: "Referenda", selection: { sources: [Source.SubstrateSidecar_Rest], limit: 16 } },
 									],
 								},
 								{
@@ -50630,7 +50640,7 @@ export const schema = {
 				"referendumId": { label: "Referendum ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"track": { label: "Track", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"submittedAtBlockNumber": { label: "Submitted at block number", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
-				"$$timestamps": { label: "Lifecycle observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.PolkadotReferendum_Timestamp, defaultSources: [Source.Subscan_Rest] },
+				"$$timestamps": { label: "Lifecycle observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.PolkadotReferendum_Timestamp, defaultSources: [Source.Subscan_Rest, Source.SubstrateSidecar_Rest] },
 			})({
 				selectors: {
 					"NetworkReferendumId": ["$network", "referendumId"],
@@ -50674,7 +50684,7 @@ export const schema = {
 				},
 				views: {
 					singular: {
-						query: { sources: [Source.Subscan_Rest] },
+						query: { sources: [Source.Subscan_Rest, Source.SubstrateSidecar_Rest] },
 						summary: { title: ["status"], value: [{ field: "timestampMs", format: "timestamp" }], HeadingAfter: ["source"] },
 						closed: ["$referendum", { field: "timestampMs", format: "timestamp" }, "status"],
 						content: {
@@ -81890,6 +81900,57 @@ export const routes = defineRoutes(schema)({
 										"(hyperliquid)": {},
 										"(lightning)": {},
 										"(monero)": {},
+										"(polkadot)": {
+											children: {
+												"referendum": {
+													children: {
+														"[referendumId]": {
+															selectors: {
+																[EntityType.PolkadotReferendum]: {
+																	"NetworkReferendumId": {
+																		when: { path: ["namespace"], is: "Polkadot" },
+																		projection: { entityType: EntityType.Network, facetPath: ["Polkadot"] },
+																		params: { "referendumId": ["referendumId"] },
+																		page: {},
+																	}
+																}
+															},
+															children: {
+																"observations": {
+																	children: {
+																		"[timestampMs]": {
+																			children: {
+																				"[source]": {
+																					selectors: {
+																						[EntityType.PolkadotReferendum_Timestamp]: {
+																							"ReferendumTimestampMsSource": {
+																								params: { "timestampMs": ["timestampMs"], "source": ["source"] },
+																								page: {},
+																								when: { path: ["namespace"], is: "Polkadot" },
+																								projection: { entityType: EntityType.Network, facetPath: ["Polkadot"] },
+																							}
+																						}
+																					}
+																				}
+																			}
+																		}
+																	}
+																}
+															}
+														}
+													}
+												},
+												"referenda": {
+													collections: [{
+														field: [EntityType.Network, ["Polkadot", "$$referenda"]],
+														page: {
+															view: { component: "PolkadotReferendumsView" },
+															text: { title: "Polkadot referenda" },
+														},
+													}],
+												},
+											},
+										},
 										"(starknet)": {},
 										"(protocol-networks)": { selectors: {
 												[EntityType.AptosNetwork]: {
@@ -83169,44 +83230,6 @@ export const routes = defineRoutes(schema)({
 																		page: {},
 																		when: { path: ["namespace"], is: "Stellar" },
 																		projection: { entityType: EntityType.Network, facetPath: ["Stellar"] },
-																	}
-																}
-															}
-														}
-													}
-												},
-												"referendum": {
-													children: {
-														"[referendumId]": {
-															selectors: {
-																[EntityType.PolkadotReferendum]: {
-																	"NetworkReferendumId": {
-																		when: { path: ["namespace"], is: "Polkadot" },
-																		projection: { entityType: EntityType.Network, facetPath: ["Polkadot"] },
-																		params: { "referendumId": ["referendumId"] },
-																		page: {},
-																	}
-																}
-															},
-															children: {
-																"observations": {
-																	children: {
-																		"[timestampMs]": {
-																			children: {
-																				"[source]": {
-																					selectors: {
-																						[EntityType.PolkadotReferendum_Timestamp]: {
-																							"ReferendumTimestampMsSource": {
-																								params: { "timestampMs": ["timestampMs"], "source": ["source"] },
-																								page: {},
-																								when: { path: ["namespace"], is: "Polkadot" },
-																								projection: { entityType: EntityType.Network, facetPath: ["Polkadot"] },
-																							}
-																						}
-																					}
-																				}
-																			}
-																		}
 																	}
 																}
 															}

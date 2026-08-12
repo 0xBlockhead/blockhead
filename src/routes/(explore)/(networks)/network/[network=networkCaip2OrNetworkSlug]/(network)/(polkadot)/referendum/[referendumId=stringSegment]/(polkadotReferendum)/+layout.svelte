@@ -20,7 +20,7 @@
 
 	const detailHref = $derived(
 		resolve(
-			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/referendum/[referendumId=stringSegment]',
+			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(polkadot)/referendum/[referendumId=stringSegment]',
 			{
 				network: params.network,
 				referendumId: params.referendumId,

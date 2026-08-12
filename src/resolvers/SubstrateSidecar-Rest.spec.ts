@@ -93,6 +93,12 @@ const networkBlockListResolver = sidecar.resolvers.find((resolver) => (
 	&& typeof resolver.projections.Polkadot.$$blocks === 'function'
 ))
 
+const networkReferendumListResolver = sidecar.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.Network
+	&& 'Polkadot' in resolver.projections
+	&& '$$referenda' in resolver.projections.Polkadot
+))
+
 if (
 	accountResolver == null
 	|| accountAssetBalanceResolver == null
@@ -102,6 +108,7 @@ if (
 	|| blockResolver == null
 	|| palletResolver == null
 	|| networkBlockListResolver == null
+	|| networkReferendumListResolver == null
 )
 	throw new Error('Substrate Sidecar resolvers are missing')
 
@@ -671,7 +678,7 @@ describe('Substrate Sidecar network observation + validator leftovers', () => {
 		expect(networkTimestampResolver.projections.Polkadot.shouldHavePeers(snapshot)).toBe(true)
 	})
 
-	it('resolves ongoing referenda membership with submittedAtBlockNumber', async () => {
+	it('resolves ongoing referendum identity and its block-anchored lifecycle observation', async () => {
 		const referendumResolver = sidecar.resolvers.find((
 			resolver
 		): resolver is Extract<
@@ -690,6 +697,13 @@ describe('Substrate Sidecar network observation + validator leftovers', () => {
 				{
 					id: '1284',
 					submitted: '32440000',
+					deciding: {
+						since: '32441000',
+						confirming: '32442000',
+					},
+					enactment: {
+						at: '32450000',
+					},
 				},
 			],
 		})))
@@ -698,7 +712,72 @@ describe('Substrate Sidecar network observation + validator leftovers', () => {
 			referendumId: '1284',
 		}, context)
 		expect(referendumResolver.projections.submittedAtBlockNumber(snapshot)).toBe(32_440_000n)
+		const [observation] = referendumResolver.projections.$$timestamps(snapshot)
+		expect(observation[EntityMetaKey.Selector]).toMatchObject({
+			$referendum: {
+				$network: account.$network,
+				referendumId: '1284',
+			},
+			source: Source.SubstrateSidecar_Rest,
+		})
+		expect(observation[EntityMetaKey.Fields]).toMatchObject({
+			[entityFieldAddressKey(EntityType.PolkadotReferendum_Timestamp, [], 'blockNumber')]: 32_442_435n,
+			[entityFieldAddressKey(EntityType.PolkadotReferendum_Timestamp, [], 'blockHash')]: '0xREF_AT',
+			[entityFieldAddressKey(EntityType.PolkadotReferendum_Timestamp, [], 'status')]: 'Ongoing',
+			[entityFieldAddressKey(EntityType.PolkadotReferendum_Timestamp, [], 'confirmationStartedAtBlockNumber')]: 32_442_000n,
+			[entityFieldAddressKey(EntityType.PolkadotReferendum_Timestamp, [], 'enactmentAtBlockNumber')]: 32_450_000n,
+		})
 		expect(sourceFetch.mock.calls[0][1]).toBe('http://127.0.0.1:8080/pallets/on-going-referenda')
+	})
+
+	it('lists ongoing referenda with exact offset, limit and count', async () => {
+		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+			at: {
+				hash: '0xREF_AT',
+				height: '32442435',
+			},
+			referenda: [
+				{ id: '1284' },
+				{ id: '1285' },
+				{ id: '1286' },
+			],
+		})))
+		const snapshot = await networkReferendumListResolver.resolve.Slug.resolve({
+			slug: 'polkadot',
+		}, {
+			...context,
+			pagination: {
+				limit: 1,
+				offset: 1,
+			},
+		})
+		expect(networkReferendumListResolver.projections.Polkadot.$$referenda.select(snapshot)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$network: {
+						slug: 'polkadot',
+					},
+					referendumId: '1285',
+				},
+			},
+		])
+		expect(networkReferendumListResolver.projections.Polkadot.$$referenda.resolveCount(snapshot)).toBe(3)
+	})
+
+	it('rejects duplicate referendum identities instead of collapsing list state', async () => {
+		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+			at: {
+				hash: '0xREF_AT',
+				height: '32442435',
+			},
+			referenda: [
+				{ id: '1284' },
+				{ id: '1284' },
+			],
+		})))
+		await expect(networkReferendumListResolver.resolve.Slug.resolve({
+			slug: 'polkadot',
+		}, context)).rejects.toThrow('ongoing referenda contain duplicate identities')
 	})
 
 	it('restores Polkadot validator stash resolution from the staking list', async () => {

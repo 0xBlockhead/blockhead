@@ -48,7 +48,7 @@
 			entitySelector={polkadotReferendumSelector}
 			href={
 				resolve(
-					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/referendum/[referendumId=stringSegment]',
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(polkadot)/referendum/[referendumId=stringSegment]',
 					{
 						network: (
 							'caip2' in network ?

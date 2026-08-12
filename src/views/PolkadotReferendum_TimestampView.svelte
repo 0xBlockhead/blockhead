@@ -28,6 +28,7 @@
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Subscan_Rest,
+			Source.SubstrateSidecar_Rest,
 		],
 	}))
 	const polkadotReferendumTimestamp = $derived(viewSelection({
@@ -54,7 +55,7 @@
 	href={
 		href === undefined ?
 			resolve(
-				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/referendum/[referendumId=stringSegment]/(polkadotReferendum)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(polkadot)/referendum/[referendumId=stringSegment]/(polkadotReferendum)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 				{
 					network: (
 						'caip2' in referendum.$network ?

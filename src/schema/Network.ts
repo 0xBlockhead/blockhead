@@ -688,6 +688,13 @@ export default entity({
 					Source.SubstrateSidecar_Rest,
 				],
 			},
+			$$referenda: {
+				entityType: EntityType.PolkadotReferendum,
+				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.SubstrateSidecar_Rest,
+				],
+			},
 		}),
 		Solana: facet({
 			path: [
