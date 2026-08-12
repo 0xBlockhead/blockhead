@@ -579,7 +579,15 @@ export default {
 						const wireChunk = await getChunk({
 							chunkHash: chunkHash,
 						})
+						if (wireChunk.header.chunk_hash !== chunkHash)
+							throw new Error('NearRpc_JsonRpc: chunk hash does not match the requested selector')
 						return {
+							$block: {
+								[EntityMetaKey.Selector]: {
+									$network,
+									height: BigInt(wireChunk.header.height_included),
+								},
+							},
 							shardId: BigInt(wireChunk.header.shard_id),
 							gasUsed: BigInt(wireChunk.header.gas_used),
 							$$transactions: wireChunk.transactions.map((transaction) => {
@@ -604,6 +612,7 @@ export default {
 				}
 			},
 		})({
+			$block: (chunk) => chunk.$block,
 			shardId: (chunk) => chunk.shardId,
 			gasUsed: (chunk) => chunk.gasUsed,
 			$$transactions: (chunk) => chunk.$$transactions,

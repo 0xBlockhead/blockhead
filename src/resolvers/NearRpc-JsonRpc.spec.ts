@@ -2,7 +2,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { networkBySlug } from '$/constants/Network.ts'
 import { EntityMetaKey, entityFieldAddressKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import type { NearRpcBlock } from '$/sources/NearRpc/JsonRpc/types.ts'
+import type {
+	NearRpcBlock,
+	NearRpcChunk,
+} from '$/sources/NearRpc/JsonRpc/types.ts'
 import { Source } from '$/sources/Source.ts'
 
 const corsFetch = vi.hoisted(() => vi.fn())
@@ -39,6 +42,13 @@ const blockResolver = nearRpc.resolvers.find((resolver) => (
 
 if (blockResolver == null)
 	throw new Error('NearRpc_JsonRpc spec missing NearBlock resolver')
+
+const chunkResolver = nearRpc.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.NearChunk
+))
+
+if (chunkResolver == null)
+	throw new Error('NearRpc_JsonRpc spec missing NearChunk resolver')
 
 const networkBlocksResolver = nearRpc.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.NearNetwork
@@ -101,6 +111,21 @@ const wireBlock = {
 	}],
 } satisfies NearRpcBlock
 const height = BigInt(wireBlock.header.height)
+const wireChunk = {
+	author: 'validator.near',
+	header: wireBlock.chunks[0],
+	transactions: [{
+		hash: 'transaction-hash',
+		signer_id: 'signer.near',
+		receiver_id: 'receiver.near',
+		nonce: 17,
+		actions: [{
+			Transfer: {
+				deposit: '1000',
+			},
+		}],
+	}],
+} satisfies NearRpcChunk
 
 const jsonRpcResult = (result: unknown) => (
 	new Response(JSON.stringify({
@@ -355,6 +380,63 @@ describe('Near block selectors', () => {
 				},
 			},
 		])
+	})
+})
+
+describe('Near chunk hierarchy', () => {
+	beforeEach(() => {
+		corsFetch.mockReset()
+	})
+
+	it('links a direct chunk to its containing block and native transactions', async () => {
+		corsFetch.mockResolvedValueOnce(jsonRpcResult(wireChunk))
+		const chunk = await chunkResolver.resolve.NetworkChunkHash.resolve({
+			$network: network,
+			chunkHash: wireChunk.header.chunk_hash,
+		}, context)
+
+		expect(JSON.parse(corsFetch.mock.calls[0][1].init.body)).toMatchObject({
+			method: 'chunk',
+			params: {
+				chunk_id: wireChunk.header.chunk_hash,
+			},
+		})
+		expect(Object.keys(chunkResolver.projections).sort()).toEqual([
+			'$$transactions',
+			'$block',
+			'gasUsed',
+			'shardId',
+		])
+		expect(chunkResolver.projections.$block(chunk)).toEqual({
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				height: BigInt(wireChunk.header.height_included),
+			},
+		})
+		expect(chunkResolver.projections.$$transactions(chunk)).toEqual([
+			expect.objectContaining({
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					hash: wireChunk.transactions[0].hash,
+					signerAccountId: wireChunk.transactions[0].signer_id,
+				},
+			}),
+		])
+	})
+
+	it('rejects a chunk payload for a different requested hash', async () => {
+		corsFetch.mockResolvedValueOnce(jsonRpcResult({
+			...wireChunk,
+			header: {
+				...wireChunk.header,
+				chunk_hash: 'different-chunk-hash',
+			},
+		}))
+
+		await expect(chunkResolver.resolve.NetworkChunkHash.resolve({
+			$network: network,
+			chunkHash: wireChunk.header.chunk_hash,
+		}, context)).rejects.toThrow('chunk hash does not match the requested selector')
 	})
 })
 
