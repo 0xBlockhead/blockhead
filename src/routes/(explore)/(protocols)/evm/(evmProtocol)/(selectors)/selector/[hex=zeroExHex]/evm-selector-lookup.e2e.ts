@@ -7,6 +7,17 @@ test('EVM selector route renders source-attributed signature candidates', async 
 	await page.route('**/api-proxy/**', async (route) => {
 		const encodedTarget = new URL(route.request().url()).pathname.split('/').at(-1)
 		const target = encodedTarget == null ? '' : decodeURIComponent(encodedTarget)
+		if (target.includes('www.4byte.directory')) {
+			await route.fulfill({
+				json: {
+					results: [{
+						text_signature: 'transfer(address,uint256)',
+					}],
+				},
+			})
+			return
+		}
+
 		if (!target.includes('api.4byte.sourcify.dev')) {
 			await route.fallback()
 			return
