@@ -114467,6 +114467,10 @@ export const app = {
 				path: "src/resolvers/Zcashd-JsonRpc.ts",
 			},
 			{
+				source: Source.ZcashdWallet_JsonRpc,
+				path: "src/resolvers/ZcashdWallet-JsonRpc.ts",
+			},
+			{
 				source: Source.ZcashZips_Github,
 				path: "src/resolvers/ZcashZips-Github.ts",
 			},

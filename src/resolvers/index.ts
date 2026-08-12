@@ -216,6 +216,7 @@ const resolverLoaderEntries = [
 	[Source.XrpScan_Rest, () => import('./XrpScan-Rest.ts')],
 	[Source.Youtube_Rest, () => import('./Youtube-Rest.ts')],
 	[Source.Zcashd_JsonRpc, () => import('./Zcashd-JsonRpc.ts')],
+	[Source.ZcashdWallet_JsonRpc, () => import('./ZcashdWallet-JsonRpc.ts')],
 	[Source.ZcashZips_Github, () => import('./ZcashZips-Github.ts')],
 	[Source.Zebra_JsonRpc, () => import('./Zebra-JsonRpc.ts')],
 	[Source.ZeroGChain_JsonRpc, () => import('./ZeroGChain-JsonRpc.ts')],
