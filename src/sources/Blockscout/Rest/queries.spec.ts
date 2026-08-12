@@ -17,6 +17,7 @@ import {
 	getTokenTransfers,
 	getTransactionByHash,
 	getTransactionLogs,
+	getTransactionRawTrace,
 	getTransactionTokenTransfers,
 	getTransactions,
 	getUserOperationsPage,
@@ -429,6 +430,51 @@ describe('Blockscout account-abstraction queries', () => {
 		])
 	})
 
+	it('validates and returns the native raw trace tree for a transaction', async () => {
+		const rawTrace = [
+			{
+				action: {
+					from: hex('a', 40),
+					gas: '0x5208',
+					input: '0x',
+					to: hex('b', 40),
+					value: '0x0',
+				},
+				result: {
+					gasUsed: '0x5208',
+					output: '0x',
+				},
+				subtraces: 1,
+				traceAddress: [],
+				transactionHash: hex('A', 64),
+				type: 'call',
+			},
+			{
+				action: {
+					callType: 'delegatecall',
+					from: hex('b', 40),
+					gas: '0x100',
+					input: '0x1234',
+					to: hex('c', 40),
+					value: '0x0',
+				},
+				subtraces: 0,
+				traceAddress: [0],
+				transactionHash: hex('A', 64),
+				type: 'call',
+			},
+		] as const
+		const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse(rawTrace))
+
+		await expect(getTransactionRawTrace({
+			chainId: 1,
+			txHash: hex('A', 64),
+		})).resolves.toEqual(rawTrace)
+		expect(decodeURIComponent(String(fetchMock.mock.calls[0][0]))).toContain(
+			`/transactions/${hex('a', 64)}/raw-trace`
+		)
+	})
+
 	it('rejects malformed transaction identities before transport', async () => {
 		const fetchMock = vi.spyOn(globalThis, 'fetch')
 		await expect(getTransactionByHash({
@@ -439,7 +485,43 @@ describe('Blockscout account-abstraction queries', () => {
 			chainId: 1,
 			txHash: 'not-a-transaction-hash',
 		})).resolves.toEqual([])
+		await expect(getTransactionRawTrace({
+			chainId: 1,
+			txHash: 'not-a-transaction-hash',
+		})).resolves.toEqual([])
 		expect(fetchMock).not.toHaveBeenCalled()
+	})
+
+	it('rejects raw traces with duplicate native identities', async () => {
+		vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse([
+			{
+				action: {
+					from: hex('a', 40),
+					gas: '0x1',
+					input: '0x',
+					value: '0x0',
+				},
+				subtraces: 0,
+				traceAddress: [],
+				type: 'call',
+			},
+			{
+				action: {
+					from: hex('b', 40),
+					gas: '0x1',
+					input: '0x',
+					value: '0x0',
+				},
+				subtraces: 0,
+				traceAddress: [],
+				type: 'call',
+			},
+		]))
+
+		await expect(getTransactionRawTrace({
+			chainId: 1,
+			txHash: hex('a', 64),
+		})).rejects.toThrow('duplicate identities')
 	})
 
 	it('rejects invalid decimal transaction quantities', async () => {

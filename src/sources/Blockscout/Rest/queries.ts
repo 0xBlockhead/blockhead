@@ -17,6 +17,7 @@ import {
 	blockscoutBlockDetailEnvelope,
 	blockscoutBlocksPageEnvelope,
 	blockscoutCoinBalanceHistoryPageEnvelope,
+	blockscoutRawTraceEnvelope,
 	blockscoutTokenBalancesEnvelope,
 	blockscoutTokenTransfersPageEnvelope,
 	blockscoutTransactionEnvelope,
@@ -40,6 +41,7 @@ import type {
 	BlockscoutBlockDetails,
 	BlockscoutBlocksPage,
 	BlockscoutBlockTransactionsPage,
+	BlockscoutRawTrace,
 	BlockscoutErc4337Account,
 	BlockscoutErc4337AccountsPage,
 	BlockscoutErc4337AccountFactory,
@@ -317,6 +319,61 @@ export const getTransactionByHash = async ({ chainId, txHash }: {
 		throw new Error('Blockscout_Rest: transaction response does not match the requested hash')
 
 	return validatedBlockscoutTransactionWire(wire)
+}
+
+export const getTransactionRawTrace = async ({ chainId, txHash }: {
+	chainId: number
+	txHash: string
+}) => {
+	const normalized = hexLowerOfByteSize(txHash, 32)
+	if (normalized == null)
+		return []
+
+	const wire = await getBlockscoutJson<BlockscoutRawTrace>({
+		binding: requireBlockscoutBinding(chainId, ApiFamily.BlockscoutRestV2),
+		path: `/transactions/${normalized}/raw-trace`,
+	})
+	assertBlockscoutEnvelope(blockscoutRawTraceEnvelope, wire, 'transaction raw trace')
+
+	const traceAddresses = new Set<string>()
+	const childCountByParentTraceAddress = new Map<string, number>()
+	for (const trace of wire) {
+		if (!Number.isSafeInteger(trace.subtraces) || trace.subtraces < 0)
+			throw new Error('Blockscout_Rest: invalid transaction raw trace subtraces')
+		BigInt(trace.action.gas)
+		BigInt(trace.action.value)
+		if (trace.result != null)
+			BigInt(trace.result.gasUsed)
+		for (const index of trace.traceAddress)
+			if (!Number.isSafeInteger(index) || index < 0)
+				throw new Error('Blockscout_Rest: invalid transaction raw trace address')
+
+		if (trace.transactionHash != null && blockscoutTransactionHash(trace.transactionHash, 'transaction raw trace') !== normalized)
+			throw new Error('Blockscout_Rest: transaction raw trace does not match the requested transaction hash')
+
+		const traceAddress = trace.traceAddress.length === 0 ? 'root' : trace.traceAddress.join('.')
+		if (traceAddresses.has(traceAddress))
+			throw new Error('Blockscout_Rest: transaction raw trace contains duplicate identities')
+
+		traceAddresses.add(traceAddress)
+		if (trace.traceAddress.length > 0) {
+			const parentTraceAddress = trace.traceAddress.slice(0, -1).join('.') || 'root'
+			childCountByParentTraceAddress.set(
+				parentTraceAddress,
+				(childCountByParentTraceAddress.get(parentTraceAddress) ?? 0) + 1
+			)
+		}
+	}
+	for (const trace of wire) {
+		const traceAddress = trace.traceAddress.length === 0 ? 'root' : trace.traceAddress.join('.')
+		if (trace.traceAddress.length > 0 && !traceAddresses.has(trace.traceAddress.slice(0, -1).join('.') || 'root'))
+			throw new Error(`Blockscout_Rest: transaction raw trace parent missing for ${traceAddress}`)
+
+		if ((childCountByParentTraceAddress.get(traceAddress) ?? 0) !== trace.subtraces)
+			throw new Error(`Blockscout_Rest: transaction raw trace subtraces do not match children for ${traceAddress}`)
+	}
+
+	return wire
 }
 
 export const getTransactions = async ({ chainId, limit }: {

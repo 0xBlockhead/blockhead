@@ -38,6 +38,7 @@ import type {
 	BlockscoutAddress,
 	BlockscoutInternalTransaction,
 	BlockscoutErc4337RegistryEntry,
+	BlockscoutRawTrace,
 	BlockscoutStats,
 	BlockscoutTokenTransfer,
 	BlockscoutTransaction,
@@ -821,6 +822,86 @@ const evmInternalTransferReference = (
 		}),
 	},
 })
+
+const evmInternalCallTypeFromBlockscoutRawTrace = (raw: BlockscoutRawTrace[number]) => (
+	(raw.action.callType ?? raw.type) === 'call' ? EvmInternalCallType.Call
+	: (raw.action.callType ?? raw.type) === 'callcode' ? EvmInternalCallType.CallCode
+	: (raw.action.callType ?? raw.type) === 'delegatecall' ? EvmInternalCallType.DelegateCall
+	: (raw.action.callType ?? raw.type) === 'staticcall' ? EvmInternalCallType.StaticCall
+	: raw.type === 'create' ? EvmInternalCallType.Create
+	: raw.type === 'create2' ? EvmInternalCallType.Create2
+	: raw.type === 'selfdestruct' ? EvmInternalCallType.SelfDestruct
+	: EvmInternalCallType.Unknown
+)
+
+const evmTraceEntitiesFromBlockscoutRawTrace = ({
+	$network,
+	txHash,
+	wires,
+}: {
+	$network: EvmNetworkId
+	txHash: string
+	wires: BlockscoutRawTrace
+}): Entity<typeof schema, EntityType.EvmTrace>[] => {
+	const $transaction = {
+		$network,
+		txHash,
+	}
+	const childTraceAddressesByTraceAddress = new Map<string, string[]>()
+	for (const wire of wires)
+		if (wire.traceAddress.length > 0) {
+			const parentTraceAddress = wire.traceAddress.slice(0, -1).join('.') || 'root'
+			const childTraceAddresses = childTraceAddressesByTraceAddress.get(parentTraceAddress) ?? []
+			childTraceAddresses.push(wire.traceAddress.join('.'))
+			childTraceAddressesByTraceAddress.set(parentTraceAddress, childTraceAddresses)
+		}
+
+	return wires.map((wire) => {
+		const traceAddress = wire.traceAddress.length === 0 ? 'root' : wire.traceAddress.join('.')
+		const from = hexLowerOfByteSize(wire.action.from, 20)
+		const to = wire.action.to == null ? undefined : hexLowerOfByteSize(wire.action.to, 20)
+		return {
+			[EntityMetaKey.Selector]: {
+				$transaction,
+				traceAddress,
+			},
+			$transaction: {
+				[EntityMetaKey.Selector]: $transaction,
+			},
+			traceAddress,
+			index: wire.traceAddress.at(-1) ?? 0,
+			type: evmInternalCallTypeFromBlockscoutRawTrace(wire),
+			...(from != null && {
+				$from: {
+					[EntityMetaKey.Selector]: {
+						address: from,
+					},
+				},
+			}),
+			...(to != null && {
+				$to: {
+					[EntityMetaKey.Selector]: {
+						address: to,
+					},
+				},
+			}),
+			value: BigInt(wire.action.value),
+			gas: BigInt(wire.action.gas),
+			input: with0xHex(wire.action.input),
+			...(wire.result != null && {
+				gasUsed: BigInt(wire.result.gasUsed),
+				output: with0xHex(wire.result.output),
+			}),
+			$$children: (childTraceAddressesByTraceAddress.get(traceAddress) ?? [])
+				.map((childTraceAddress) => ({
+					[EntityMetaKey.Selector]: {
+						$transaction,
+						traceAddress: childTraceAddress,
+					},
+				})),
+		}
+	})
+}
 
 const evmTokenTransferReference = (
 	entity: NonNullable<ReturnType<typeof evmTokenTransferEntityFromWire>>
@@ -3183,6 +3264,29 @@ export default {
 			},
 		})({
 			$$internalTransfers: (entity) => entity.map(evmInternalTransferReference),
+		}),
+
+		defineResolver({
+			entityType: EntityType.EvmTransaction,
+			resolve: {
+				EvmNetworkTxHash: {
+					resolve: async ({ $network, txHash }) => {
+						const { getTransactionRawTrace } = await import('$/sources/Blockscout/Rest/queries.ts')
+						return evmTraceEntitiesFromBlockscoutRawTrace({
+							$network,
+							txHash,
+							wires: await getTransactionRawTrace({
+								chainId: evmChainIdFromNetworkSelector($network),
+								txHash,
+							}),
+						})
+					},
+				},
+			},
+		})({
+			$$traces: (entity) => entity.map((trace) => ({
+				[EntityMetaKey.Selector]: trace[EntityMetaKey.Selector],
+			})),
 		}),
 
 		defineResolver({

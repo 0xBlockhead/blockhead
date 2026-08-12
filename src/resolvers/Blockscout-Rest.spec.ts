@@ -23,6 +23,7 @@ const getErc4337SmartAccountList = vi.hoisted(() => vi.fn())
 const getStats = vi.hoisted(() => vi.fn())
 const getTransactionByHash = vi.hoisted(() => vi.fn())
 const getTransactionLogs = vi.hoisted(() => vi.fn())
+const getTransactionRawTrace = vi.hoisted(() => vi.fn())
 const getUserOperationsPage = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/Blockscout/Rest/queries.ts', async (importOriginal) => ({
@@ -38,6 +39,7 @@ vi.mock('$/sources/Blockscout/Rest/queries.ts', async (importOriginal) => ({
 	getStats,
 	getTransactionByHash,
 	getTransactionLogs,
+	getTransactionRawTrace,
 	getUserOperationsPage,
 }))
 
@@ -424,6 +426,83 @@ describe('Blockscout EVM log identity', () => {
 			},
 			topic0: receiptLogs[1].topics[0],
 			data: '0x02',
+		})
+	})
+})
+
+describe('Blockscout raw EVM trace hierarchy', () => {
+	beforeEach(() => {
+		vi.clearAllMocks()
+	})
+
+	it('preserves the source trace tree as native transaction-local EVM traces', async () => {
+		getTransactionRawTrace.mockResolvedValue([
+			{
+				action: {
+					from: '0x1111111111111111111111111111111111111111',
+					gas: '0x5208',
+					input: '0x',
+					to: '0x2222222222222222222222222222222222222222',
+					value: '0x0',
+				},
+				result: {
+					gasUsed: '0x5208',
+					output: '0x',
+				},
+				subtraces: 1,
+				traceAddress: [],
+				type: 'call',
+			},
+			{
+				action: {
+					callType: 'delegatecall',
+					from: '0x2222222222222222222222222222222222222222',
+					gas: '0x100',
+					input: '0x1234',
+					to: '0x3333333333333333333333333333333333333333',
+					value: '0x0',
+				},
+				subtraces: 0,
+				traceAddress: [0],
+					type: 'call',
+			},
+		])
+		const resolver = blockscoutRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.EvmTransaction
+			&& '$$traces' in candidate.projections
+		))
+		if (resolver == null)
+			throw new Error('Blockscout EvmTransaction trace resolver is not registered')
+
+		const resolved = await resolver.resolve.EvmNetworkTxHash.resolve({
+			$network: network,
+			txHash,
+		}, context)
+
+		expect(getTransactionRawTrace).toHaveBeenCalledWith({
+			chainId: 1,
+			txHash,
+		})
+		expect(resolved.map((trace) => trace[EntityMetaKey.Selector].traceAddress)).toEqual([
+			'root',
+			'0',
+		])
+		expect(resolved[0]).toMatchObject({
+			index: 0,
+			type: 'Call',
+			value: 0n,
+			gas: 21_000n,
+			gasUsed: 21_000n,
+			$$children: [{
+				[EntityMetaKey.Selector]: {
+					traceAddress: '0',
+				},
+			}],
+		})
+		expect(resolved[1]).toMatchObject({
+			index: 0,
+			type: 'DelegateCall',
+			input: '0x1234',
 		})
 	})
 })
@@ -940,4 +1019,3 @@ describe('Blockscout EvmBlock / Blob enrolled leftovers', () => {
 		expect(resolver.projections.Blob.maxFeePerBlobGas(entity)).toBe(5n)
 	})
 })
-

@@ -58,6 +58,24 @@ export const blockscoutTransactionEnvelope = arktype({
 export const blockscoutTransactionsPageEnvelope = arktype({
 	items: blockscoutTransactionEnvelope.array(),
 })
+export const blockscoutRawTraceEnvelope = arktype({
+	action: {
+		from: 'string',
+		gas: 'string',
+		input: 'string',
+		value: 'string',
+		'callType?': '"call" | "callcode" | "delegatecall" | "staticcall"',
+		'to?': 'string',
+	},
+	'result?': {
+		gasUsed: 'string',
+		output: 'string',
+	},
+	subtraces: 'number',
+	traceAddress: 'number[]',
+	'transactionHash?': 'string | null',
+	type: '"call" | "create" | "create2" | "reward" | "selfdestruct" | "stop" | "invalid"',
+}).array()
 export const blockscoutTokenTransferEnvelope = arktype({
 	from: blockscoutAddressEnvelope,
 	log_index: 'number',
@@ -152,6 +170,7 @@ export type BlockscoutTransaction = components['schemas']['TransactionResponse']
 	blob_gas_used?: string | null
 	blob_versioned_hashes?: string[] | null
 }
+export type BlockscoutRawTrace = Response<'/v2/transactions/{transaction_hash_param}/raw-trace'>
 export type BlockscoutSmartContractForList = components['schemas']['SmartContractListItem']
 export type BlockscoutSmartContract = components['schemas']['SmartContract']
 export type BlockscoutTransactionLog = components['schemas']['Log']
