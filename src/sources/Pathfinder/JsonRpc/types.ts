@@ -5,6 +5,7 @@ export type {
 	DeprecatedContractClass,
 	Felt,
 	ReceiptEvent,
+	StateUpdate,
 	StarknetClassDefinition,
 	TransactionReceiptWithBlockInfo,
 	TransactionWithHash,

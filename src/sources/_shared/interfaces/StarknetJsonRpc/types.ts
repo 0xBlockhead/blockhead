@@ -21,6 +21,8 @@ export type ResourcePrice = components['schemas']['RESOURCE_PRICE']
 
 export type BlockWithTxHashes = components['schemas']['BLOCK_WITH_TX_HASHES']
 
+export type StateUpdate = components['schemas']['Starknet_get_state_update_result']
+
 export type ContractClass = components['schemas']['CONTRACT_CLASS']
 
 export type DeprecatedContractClass = components['schemas']['DEPRECATED_CONTRACT_CLASS']

@@ -19,6 +19,7 @@ const { default: {
 	getEvents,
 	getNonce,
 	getStorageAt,
+	getStateUpdate,
 	getTransactionByBlockIdAndIndex,
 	getTransactionByHash,
 	getTransactionReceipt,
@@ -89,6 +90,69 @@ describe('Pathfinder Starknet JSON-RPC transport', () => {
 				continuation_token: 'opaque/provider+token',
 			}]
 		)
+	})
+
+	it('preserves exact block identity and optional address scope for state updates', async () => {
+		jsonRpc2
+			.mockResolvedValueOnce({
+				block_hash: '0xb10c',
+				new_root: '0x2',
+				old_root: '0x1',
+				state_diff: {
+					storage_diffs: [],
+					deprecated_declared_classes: [],
+					declared_classes: [],
+					deployed_contracts: [],
+					replaced_classes: [],
+					nonces: [],
+				},
+			})
+			.mockResolvedValueOnce({
+				old_root: '0x2',
+				state_diff: {
+					storage_diffs: [{
+						address: '0xabc',
+						storage_entries: [{
+							key: '0x1',
+							value: '0x9',
+						}],
+					}],
+					deprecated_declared_classes: [],
+					declared_classes: [],
+					deployed_contracts: [],
+					replaced_classes: [],
+					nonces: [],
+				},
+			})
+
+		await expect(getStateUpdate({ block_number: 12 })).resolves.toMatchObject({
+			block_hash: '0xb10c',
+			new_root: '0x2',
+		})
+		await expect(getStateUpdate('pre_confirmed', ['0xabc'])).resolves.toMatchObject({
+			old_root: '0x2',
+			state_diff: {
+				storage_diffs: [{
+					address: '0xabc',
+				}],
+			},
+		})
+
+		expect(jsonRpc2.mock.calls).toEqual([
+			[
+				binding,
+				'starknet_getStateUpdate',
+				[{ block_number: 12 }],
+			],
+			[
+				binding,
+				'starknet_getStateUpdate',
+				[
+					'pre_confirmed',
+					['0xabc'],
+				],
+			],
+		])
 	})
 
 	it('exposes block, class, storage, and transaction methods with hard-fail JSON-RPC transport', async () => {

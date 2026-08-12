@@ -7,6 +7,7 @@ import type {
 	EventsChunk,
 	EventsFilter,
 	Felt,
+	StateUpdate,
 	StarknetClassDefinition,
 	SyncStatus,
 	TransactionReceiptWithBlockInfo,
@@ -32,6 +33,16 @@ export const starknetJsonRpc = (binding: SourceBinding) => ({
 		blockId: BlockId
 	) => (
 		jsonRpc2<number>(binding, 'starknet_getBlockTransactionCount', [blockId])
+	),
+	getStateUpdate: (
+		blockId: BlockId,
+		contractAddresses?: Felt[]
+	) => (
+		jsonRpc2<StateUpdate>(
+			binding,
+			'starknet_getStateUpdate',
+			contractAddresses == null ? [blockId] : [blockId, contractAddresses]
+		)
 	),
 	getNonce: (
 		blockId: BlockId,
