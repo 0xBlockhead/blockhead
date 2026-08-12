@@ -21,7 +21,7 @@
 		participationId: params.participationId,
 	}, {
 		sources: [
-			Source.Local_Internal,
+			Source.Nodely,
 		],
 	}))
 

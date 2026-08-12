@@ -16,6 +16,7 @@ import { EntityMetaKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import type {
 	AlgodPendingTransaction,
+	AlgodParticipationKey,
 	AlgodSignedTransaction,
 } from '$/sources/Algod/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
@@ -28,6 +29,8 @@ const optionalSafeBigInt = (
 	:
 		BigInt(value)
 )
+
+const nodelyAlgodNodeId = 'nodely-algod'
 
 const base64ToZeroExHex = (
 	value: string,
@@ -94,6 +97,44 @@ const pendingTransactionFields = (
 	}
 }
 
+const participationKeyFields = (
+	participationKey: AlgodParticipationKey
+) => ({
+	nodeId: nodelyAlgodNodeId,
+	participationId: participationKey.id,
+	$account: {
+		[EntityMetaKey.Selector]: {
+			$network: {
+				$network: {
+					slug: networkBySlug.algorand.slug,
+				},
+			},
+			address: participationKey.address,
+		},
+	},
+	$network: {
+		[EntityMetaKey.Selector]: {
+			$network: {
+				slug: networkBySlug.algorand.slug,
+			},
+		},
+	},
+	firstValidRound: BigInt(participationKey.key['vote-first-valid']),
+	lastValidRound: BigInt(participationKey.key['vote-last-valid']),
+	keyDilution: BigInt(participationKey.key['vote-key-dilution']),
+	selectionKey: participationKey.key['selection-participation-key'],
+	votingKey: participationKey.key['vote-participation-key'],
+	...(participationKey.key['state-proof-key'] != null && {
+		stateProofKey: participationKey.key['state-proof-key'],
+	}),
+	...(participationKey['effective-first-valid'] != null && {
+		effectiveFirstRound: BigInt(participationKey['effective-first-valid']),
+	}),
+	...(participationKey['effective-last-valid'] != null && {
+		effectiveLastRound: BigInt(participationKey['effective-last-valid']),
+	}),
+})
+
 const poolPriorityForSignedTransaction = async (
 	signed: AlgodSignedTransaction
 ) => {
@@ -114,6 +155,56 @@ export default {
 	source: Source.Nodely,
 
 	resolvers: [
+		defineResolver({
+			entityType: EntityType._Global,
+			resolve: {
+				Scope: {
+					resolve: async () => {
+						const { getParticipationKeys } = await import('$/sources/Algod/Rest/queries.ts')
+						return (await getParticipationKeys()).map((participationKey) => ({
+							[EntityMetaKey.Selector]: {
+								nodeId: nodelyAlgodNodeId,
+								participationId: participationKey.id,
+							},
+						}))
+					},
+				},
+			},
+		})({
+			$$blockheadAlgorandParticipationKeys: (participationKeys) => participationKeys,
+		}),
+
+		defineResolver({
+			entityType: EntityType.BlockheadAlgorandParticipationKey,
+			resolve: {
+				NodeIdParticipationId: {
+					resolve: async ({
+						nodeId,
+						participationId,
+					}) => {
+						if (nodeId !== nodelyAlgodNodeId)
+							throw new Error(`Algod_Rest: unsupported node ${nodeId}`)
+
+						const { getParticipationKey } = await import('$/sources/Algod/Rest/queries.ts')
+						return participationKeyFields(await getParticipationKey(participationId))
+					},
+				},
+			},
+		})({
+			nodeId: (participationKey) => participationKey.nodeId,
+			participationId: (participationKey) => participationKey.participationId,
+			$account: (participationKey) => participationKey.$account,
+			$network: (participationKey) => participationKey.$network,
+			firstValidRound: (participationKey) => participationKey.firstValidRound,
+			lastValidRound: (participationKey) => participationKey.lastValidRound,
+			keyDilution: (participationKey) => participationKey.keyDilution,
+			selectionKey: (participationKey) => participationKey.selectionKey,
+			votingKey: (participationKey) => participationKey.votingKey,
+			stateProofKey: (participationKey) => participationKey.stateProofKey,
+			effectiveFirstRound: (participationKey) => participationKey.effectiveFirstRound,
+			effectiveLastRound: (participationKey) => participationKey.effectiveLastRound,
+		}),
+
 		defineResolver({
 			entityType: EntityType.BlockheadAlgorandPendingTransaction,
 			resolve: {

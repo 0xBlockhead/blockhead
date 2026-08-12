@@ -10,14 +10,20 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
 const {
+	getParticipationKey,
+	getParticipationKeys,
 	getPendingTransaction,
 	getPendingTransactions,
 } = vi.hoisted(() => ({
+	getParticipationKey: vi.fn(),
+	getParticipationKeys: vi.fn(),
 	getPendingTransaction: vi.fn(),
 	getPendingTransactions: vi.fn(),
 }))
 
 vi.mock('$/sources/Algod/Rest/queries.ts', () => ({
+	getParticipationKey,
+	getParticipationKeys,
 	getPendingTransaction,
 	getPendingTransactions,
 }))
@@ -31,9 +37,39 @@ const pendingTransactionResolver = algodRest.resolvers.find((resolver) => (
 if (pendingTransactionResolver == null)
 	throw new Error('Algod-Rest spec missing BlockheadAlgorandPendingTransaction resolver')
 
+const participationKeysResolver = algodRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType._Global
+	&& '$$blockheadAlgorandParticipationKeys' in resolver.projections
+))
+
+if (participationKeysResolver == null)
+	throw new Error('Algod-Rest spec missing global participation keys resolver')
+
+const participationKeyResolver = algodRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.BlockheadAlgorandParticipationKey
+))
+
+if (participationKeyResolver == null)
+	throw new Error('Algod-Rest spec missing BlockheadAlgorandParticipationKey resolver')
+
 const account = 'CCOSLTGG2BNX2FQATPIWW5PRDEEEYI74BY2FGNUYEP4UPO24I5STKK43GM'
 const otherAccount = 'EH5BHWISPB7MEIITJIWF2VB3YFN2RZLJMWBRV6CBJV76FBAEAALL6XKSQE'
 const groupBytes = 'wGHE2Pwdvd7S12BL5FaOP20EGYesN73ktiC1qzkkit8='
+
+const participationKey = {
+	address: account,
+	id: 'participation-key-1',
+	key: {
+		'selection-participation-key': groupBytes,
+		'vote-participation-key': groupBytes,
+		'vote-first-valid': 1,
+		'vote-last-valid': 100,
+		'vote-key-dilution': 10_000,
+		'state-proof-key': groupBytes,
+	},
+	'effective-first-valid': 2,
+	'effective-last-valid': 99,
+}
 
 const signedAssetTransfer = {
 	sig: 'IBRntOXMUD+5WwRSvp8QvaZFe++K19refR1zsIhUa6CDXlDMvoEpBGzaX2BiLuxFpDsh3nZ4LbXb/IGGW8EMCg==',
@@ -64,8 +100,76 @@ const context = {
 }
 
 beforeEach(() => {
+	getParticipationKey.mockReset()
+	getParticipationKeys.mockReset()
 	getPendingTransaction.mockReset()
 	getPendingTransactions.mockReset()
+})
+
+it('projects native participation-key selectors from the Nodely Algod node', async () => {
+	getParticipationKeys.mockResolvedValueOnce([participationKey])
+
+	const participationKeys = await participationKeysResolver.resolve.Scope.resolve({
+		scope: 'global',
+	}, context)
+
+	expect(getParticipationKeys).toHaveBeenCalledOnce()
+	expect(
+		participationKeysResolver.projections.$$blockheadAlgorandParticipationKeys(
+			participationKeys
+		)
+	).toEqual([
+		{
+			[EntityMetaKey.Selector]: {
+				nodeId: 'nodely-algod',
+				participationId: participationKey.id,
+			},
+		},
+	])
+})
+
+it('projects native participation key material for the enrolled node', async () => {
+	getParticipationKey.mockResolvedValueOnce(participationKey)
+
+	const resolvedParticipationKey = await participationKeyResolver.resolve.NodeIdParticipationId.resolve({
+		nodeId: 'nodely-algod',
+		participationId: participationKey.id,
+	}, context)
+
+	expect(getParticipationKey).toHaveBeenCalledWith(participationKey.id)
+	expect(resolvedParticipationKey).toMatchObject({
+		nodeId: 'nodely-algod',
+		participationId: participationKey.id,
+		firstValidRound: 1n,
+		lastValidRound: 100n,
+		keyDilution: 10_000n,
+		selectionKey: groupBytes,
+		votingKey: groupBytes,
+		stateProofKey: groupBytes,
+		effectiveFirstRound: 2n,
+		effectiveLastRound: 99n,
+		$account: {
+			[EntityMetaKey.Selector]: {
+				$network: {
+					$network: {
+						slug: networkBySlug.algorand.slug,
+					},
+				},
+				address: account,
+			},
+		},
+	})
+})
+
+it('rejects participation-key selectors for a node outside the enrolled binding', async () => {
+	await expect(
+		participationKeyResolver.resolve.NodeIdParticipationId.resolve({
+			nodeId: 'foreign-algod',
+			participationId: participationKey.id,
+		}, context)
+	).rejects.toThrow('Algod_Rest: unsupported node foreign-algod')
+
+	expect(getParticipationKey).not.toHaveBeenCalled()
 })
 
 it('projects enrolled BlockheadAlgorandPendingTransaction from singular pending-by-txid', async () => {

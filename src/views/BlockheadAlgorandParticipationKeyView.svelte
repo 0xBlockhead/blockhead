@@ -26,7 +26,7 @@
 
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
-			Source.Local_Internal,
+			Source.Nodely,
 		],
 	}))
 	const blockheadAlgorandParticipationKey = $derived(viewSelection({

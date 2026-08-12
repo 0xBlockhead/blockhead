@@ -185,6 +185,9 @@ export default entity({
 	$$blockheadAlgorandParticipationKeys: {
 		entityType: EntityType.BlockheadAlgorandParticipationKey,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Nodely,
+		],
 	},
 	$$bridgeTransactions: {
 		entityType: EntityType.BlockheadBridgeTransaction,

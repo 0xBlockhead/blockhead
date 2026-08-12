@@ -2768,7 +2768,7 @@ export const schema = {
 				"$$aiArtifactCatalogs": { label: "AI artifact catalogs", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType._GlobalAiArtifactCatalog },
 				"$$agentNetworks": { label: "agent networks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType._GlobalAgentNetwork },
 				"$$evmAbiCatalogs": { label: "EVM ABI catalogs", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType._GlobalEvmAbiCatalog },
-				"$$blockheadAlgorandParticipationKeys": { label: "blockhead algorand participation keys", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadAlgorandParticipationKey },
+				"$$blockheadAlgorandParticipationKeys": { label: "blockhead algorand participation keys", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadAlgorandParticipationKey, defaultSources: [Source.Nodely] },
 				"$$bridgeTransactions": { label: "bridge transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadBridgeTransaction },
 				"$$eip8004Services": { label: "eip8004 services", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmNft, defaultSources: [Source.Eip8004Scan_Rest] },
 				"$$blockheadRoomPeers": { label: "blockhead room peers", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadRoomPeer, defaultSources: [Source.Local_Internal] },
@@ -13095,16 +13095,16 @@ export const schema = {
 			})({
 				"nodeId": { label: "node ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"participationId": { label: "participation ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"$account": { label: "account", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.AlgorandAccount },
-				"$network": { label: "network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.AlgorandNetwork },
-				"firstValidRound": { label: "first valid round", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
-				"lastValidRound": { label: "last valid round", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
-				"keyDilution": { label: "key dilution", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
-				"selectionKey": { label: "selection key", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"votingKey": { label: "voting key", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"stateProofKey": { label: "state proof key", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"effectiveFirstRound": { label: "effective first round", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
-				"effectiveLastRound": { label: "effective last round", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
+				"$account": { label: "account", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.AlgorandAccount, defaultSources: [Source.Nodely] },
+				"$network": { label: "network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.AlgorandNetwork, defaultSources: [Source.Nodely] },
+				"firstValidRound": { label: "first valid round", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Nodely] },
+				"lastValidRound": { label: "last valid round", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Nodely] },
+				"keyDilution": { label: "key dilution", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Nodely] },
+				"selectionKey": { label: "selection key", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Nodely] },
+				"votingKey": { label: "voting key", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Nodely] },
+				"stateProofKey": { label: "state proof key", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Nodely] },
+				"effectiveFirstRound": { label: "effective first round", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Nodely] },
+				"effectiveLastRound": { label: "effective last round", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Nodely] },
 				"lastSyncedAt": { label: "last synced AT", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 			})({
 				selectors: {
@@ -13113,7 +13113,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Local_Internal],
+							sources: [Source.Nodely],
 							openFields: ["firstValidRound", "lastValidRound", "keyDilution", "selectionKey", "votingKey", "stateProofKey", "effectiveFirstRound", "effectiveLastRound", "lastSyncedAt"],
 						},
 						summary: { title: ["participationId"], value: ["nodeId"], HeadingAfter: [{ field: "firstValidRound", format: "number" }] },
