@@ -181,6 +181,26 @@ describe('LayerZero Scan public message queries', () => {
 		})
 	})
 
+	it('preserves API-owned read-channel pathway identities instead of deriving them from endpoint ids', async () => {
+		getJson.mockResolvedValueOnce({
+			data: [{
+				...message,
+				pathway: {
+					...message.pathway,
+					id: `4294967295-${message.pathway.dstEid}-${sender}-${receiver}`,
+				},
+			}],
+		})
+
+		await expect(getLatestMessages()).resolves.toMatchObject({
+			data: [{
+				pathway: {
+					id: `4294967295-${message.pathway.dstEid}-${sender}-${receiver}`,
+				},
+			}],
+		})
+	})
+
 	it.each([
 		{
 			query: () => getMessagesByTransaction({
@@ -296,10 +316,10 @@ describe('LayerZero Scan public message queries', () => {
 			mutate: {
 				pathway: {
 					...message.pathway,
-					dstEid: 30111,
+					id: 'invalid/pathway',
 				},
 			},
-			error: 'mismatched pathway identity',
+			error: 'invalid pathway id',
 		},
 		{
 			mutate: {

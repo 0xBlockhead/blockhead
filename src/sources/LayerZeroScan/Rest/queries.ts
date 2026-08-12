@@ -119,15 +119,7 @@ const assertMessage = (message: LayerZeroMessage) => {
 	assertEndpointId(message.pathway.dstEid)
 	if (!Number.isSafeInteger(message.pathway.nonce) || message.pathway.nonce < 0)
 		throw new Error('LayerZeroScan_Rest: unsafe message nonce')
-	if (
-		message.pathway.id !== [
-			message.pathway.srcEid,
-			message.pathway.dstEid,
-			message.pathway.sender.address,
-			message.pathway.receiver.address,
-		].join('-')
-	)
-		throw new Error('LayerZeroScan_Rest: mismatched pathway identity')
+	assertOpaquePathAtom(message.pathway.id, 'pathway id')
 	if (!guidPattern.test(message.guid))
 		throw new Error('LayerZeroScan_Rest: invalid message GUID')
 	if (

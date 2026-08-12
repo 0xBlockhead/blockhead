@@ -152,10 +152,16 @@ const loadLayerZeroMessageByGuid = async (
 	if (!('transferId' in transfer))
 		throw new Error('LayerZeroScan_Rest: bridge transfer requires SourceTransferId')
 
-	const { getMessageByGuid } = await import('$/sources/LayerZeroScan/Rest/queries.ts')
-	const { data } = await getMessageByGuid({
-		guid: transfer.transferId,
-	})
+	const { data } = (
+		typeof window === 'undefined' ?
+			await import('$/sources/LayerZeroScan/Rest/queries.ts').then(({ getMessageByGuid }) => getMessageByGuid({
+				guid: transfer.transferId,
+			}))
+		:
+			await import('$/sources/LayerZeroScan/Rest/queries.remote.ts').then(({ getLayerZeroMessageByGuidRemote }) => getLayerZeroMessageByGuidRemote({
+				guid: transfer.transferId,
+			}))
+	)
 	if (data.length !== 1)
 		throw new Error(`LayerZeroScan_Rest: expected one message for GUID ${transfer.transferId}`)
 
