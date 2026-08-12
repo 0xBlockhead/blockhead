@@ -1157,12 +1157,62 @@ export default {
 			$$logs: {
 				select: (entity) => entity.$$logs.map((log) => ({
 					[EntityMetaKey.Selector]: log[EntityMetaKey.Selector],
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.EvmLog, [], '$transaction')]: log.$transaction,
+						...(log.$block != null && {
+							[entityFieldAddressKey(EntityType.EvmLog, [], '$block')]: log.$block,
+						}),
+						[entityFieldAddressKey(EntityType.EvmLog, [], '$$topics')]: log.$$topics,
+						...(log.topic0 != null && {
+							[entityFieldAddressKey(EntityType.EvmLog, [], 'topic0')]: log.topic0,
+						}),
+						...(log.data != null && {
+							[entityFieldAddressKey(EntityType.EvmLog, [], 'data')]: log.data,
+						}),
+						...(log.removed != null && {
+							[entityFieldAddressKey(EntityType.EvmLog, [], 'removed')]: log.removed,
+						}),
+						...(log.$emitter != null && {
+							[entityFieldAddressKey(EntityType.EvmLog, [], '$emitter')]: log.$emitter,
+						}),
+					},
 				})),
 				resolveCount: (entity) => entity.$$logs.length,
 			},
 			$$traces: {
 				select: (entity) => entity.$$traces.map((trace) => ({
 					[EntityMetaKey.Selector]: trace[EntityMetaKey.Selector],
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.EvmTrace, [], '$transaction')]: trace.$transaction,
+						[entityFieldAddressKey(EntityType.EvmTrace, [], 'traceAddress')]: trace.traceAddress,
+						[entityFieldAddressKey(EntityType.EvmTrace, [], 'index')]: trace.index,
+						[entityFieldAddressKey(EntityType.EvmTrace, [], 'type')]: trace.type,
+						...(trace.$from != null && {
+							[entityFieldAddressKey(EntityType.EvmTrace, [], '$from')]: trace.$from,
+						}),
+						...(trace.$to != null && {
+							[entityFieldAddressKey(EntityType.EvmTrace, [], '$to')]: trace.$to,
+						}),
+						...(trace.value != null && {
+							[entityFieldAddressKey(EntityType.EvmTrace, [], 'value')]: trace.value,
+						}),
+						...(trace.gas != null && {
+							[entityFieldAddressKey(EntityType.EvmTrace, [], 'gas')]: trace.gas,
+						}),
+						...(trace.gasUsed != null && {
+							[entityFieldAddressKey(EntityType.EvmTrace, [], 'gasUsed')]: trace.gasUsed,
+						}),
+						...(trace.input != null && {
+							[entityFieldAddressKey(EntityType.EvmTrace, [], 'input')]: trace.input,
+						}),
+						...(trace.output != null && {
+							[entityFieldAddressKey(EntityType.EvmTrace, [], 'output')]: trace.output,
+						}),
+						...(trace.error != null && {
+							[entityFieldAddressKey(EntityType.EvmTrace, [], 'error')]: trace.error,
+						}),
+						[entityFieldAddressKey(EntityType.EvmTrace, [], '$$children')]: trace.$$children,
+					},
 				})),
 				resolveCount: (entity) => entity.$$traces.length,
 			},

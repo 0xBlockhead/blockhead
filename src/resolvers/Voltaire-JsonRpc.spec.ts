@@ -16,10 +16,19 @@ import { Source } from '$/sources/Source.ts'
 const getTxpoolStatus = vi.hoisted(() => vi.fn())
 const getPeerCountObservation = vi.hoisted(() => vi.fn())
 const getSecondPeerCountObservation = vi.hoisted(() => vi.fn())
+const getTransactionByHash = vi.hoisted(() => vi.fn())
+const getTransactionReceipt = vi.hoisted(() => vi.fn())
+const debugTraceTransaction = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/Voltaire/JsonRpc/queries.ts', () => ({
 	voltaireJsonRpcTransports: {
 		httpTransportsByChainId: {
+			1: [{
+				diagnosticLabel: 'test mainnet execution endpoint',
+				getTransactionByHash,
+				getTransactionReceipt,
+				debugTraceTransaction,
+			}],
 			10: [
 				{
 					diagnosticLabel: 'test execution endpoint',
@@ -214,5 +223,130 @@ describe('Voltaire endpoint observation', () => {
 			sources: [],
 			publicEnv: {},
 		})).rejects.toThrow('all JSON-RPC endpoints failed for Network.$$endpointObservations')
+	})
+})
+
+describe('Voltaire transaction execution hierarchy', () => {
+	beforeEach(() => {
+		vi.clearAllMocks()
+	})
+
+	it('materializes receipt logs and nested call traces from the parent transaction read', async () => {
+		const txHash = '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+		const from = '0x1111111111111111111111111111111111111111'
+		const to = '0x2222222222222222222222222222222222222222'
+		const logTopic = '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'
+		getTransactionByHash.mockResolvedValue({
+			hash: txHash,
+			blockNumber: '0x10',
+			from,
+			to,
+			type: '0x2',
+			transactionIndex: '0x0',
+			value: '0x1',
+			nonce: '0x2',
+			input: '0x1234',
+			r: '0x01',
+			s: '0x02',
+			gas: '0x5208',
+			gasPrice: '0x3b9aca00',
+			maxFeePerGas: '0x77359400',
+			maxPriorityFeePerGas: '0x3b9aca00',
+		})
+		getTransactionReceipt.mockResolvedValue({
+			status: '0x1',
+			gasUsed: '0x5208',
+			cumulativeGasUsed: '0x5208',
+			effectiveGasPrice: '0x3b9aca00',
+			logs: [{
+				address: to,
+				blockHash: '0xcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc',
+				blockNumber: '0x10',
+				data: '0xdeadbeef',
+				logIndex: '0x0',
+				removed: false,
+				topics: [logTopic],
+			}],
+		})
+		debugTraceTransaction.mockResolvedValue({
+			type: 'CALL',
+			from,
+			to,
+			value: '0x1',
+			gas: '0x5208',
+			gasUsed: '0x5000',
+			input: '0x1234',
+			output: '0x',
+			calls: [{
+				type: 'DELEGATECALL',
+				from: to,
+				to: from,
+				gas: '0x4000',
+				gasUsed: '0x3000',
+				input: '0xabcd',
+				output: '0x',
+			}],
+		})
+		const resolver = voltaireJsonRpc.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.EvmTransaction
+		))
+		if (resolver == null)
+			throw new Error('Voltaire transaction resolver is not registered')
+
+		const transaction = await resolver.resolve.EvmNetworkTxHash.resolve({
+			$network: {
+				caip2: {
+					namespace: 'eip155',
+					reference: '1',
+				},
+			},
+			txHash,
+		})
+		const logs = resolver.projections.$$logs.select(transaction)
+		const traces = resolver.projections.$$traces.select(transaction)
+
+		expect(logs).toMatchObject([{
+			[EntityMetaKey.Selector]: {
+				indexInTransaction: 0,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.EvmLog, [], 'data')]: '0xdeadbeef',
+				[entityFieldAddressKey(EntityType.EvmLog, [], 'topic0')]: logTopic,
+				[entityFieldAddressKey(EntityType.EvmLog, [], '$emitter')]: {
+					[EntityMetaKey.Selector]: {
+						address: to,
+					},
+				},
+			},
+		}])
+		expect(traces).toMatchObject([
+			{
+				[EntityMetaKey.Selector]: {
+					traceAddress: 'root',
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.EvmTrace, [], 'index')]: 0,
+					[entityFieldAddressKey(EntityType.EvmTrace, [], 'type')]: 'Call',
+					[entityFieldAddressKey(EntityType.EvmTrace, [], 'input')]: '0x1234',
+					[entityFieldAddressKey(EntityType.EvmTrace, [], '$$children')]: [{
+						[EntityMetaKey.Selector]: {
+							traceAddress: '0',
+						},
+					}],
+				},
+			},
+			{
+				[EntityMetaKey.Selector]: {
+					traceAddress: '0',
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.EvmTrace, [], 'index')]: 0,
+					[entityFieldAddressKey(EntityType.EvmTrace, [], 'type')]: 'DelegateCall',
+					[entityFieldAddressKey(EntityType.EvmTrace, [], 'input')]: '0xabcd',
+				},
+			},
+		])
+		expect(getTransactionReceipt).toHaveBeenCalledTimes(1)
+		expect(debugTraceTransaction).toHaveBeenCalledTimes(1)
 	})
 })
