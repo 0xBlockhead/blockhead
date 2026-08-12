@@ -163,6 +163,7 @@ const resolverLoaderEntries = [
 	[Source.Primal_Rest, () => import('./Primal-Rest.ts')],
 	[Source.PythBenchmarks_Rest, () => import('./PythBenchmarks-Rest.ts')],
 	[Source.PythHermes_Rest, () => import('./PythHermes-Rest.ts')],
+	[Source.qBittorrentWebUi_Rest, () => import('./qBittorrentWebUi-Rest.ts')],
 	[Source.QuilibriumDocs_Rest, () => import('./QuilibriumDocs-Rest.ts')],
 	[Source.QuilibriumNodeMetrics_Prometheus, () => import('./QuilibriumNodeMetrics-Prometheus.ts')],
 	[Source.QuilibriumNodeRpc_Grpc, () => import('./QuilibriumNodeRpc-Grpc.ts')],

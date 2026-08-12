@@ -3,6 +3,7 @@
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export default entity({
@@ -19,6 +20,9 @@ export default entity({
 	clientName: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.qBittorrentWebUi_Rest,
+		],
 	},
 	peerId: {
 		primitiveType: type('string'),
@@ -31,10 +35,16 @@ export default entity({
 	$$transfers: {
 		entityType: EntityType.BlockheadBitTorrentTransfer_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.qBittorrentWebUi_Rest,
+		],
 	},
 	$$timestamps: {
 		entityType: EntityType.BlockheadBitTorrentClientState_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.qBittorrentWebUi_Rest,
+		],
 	},
 })({
 	selectors: {

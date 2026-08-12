@@ -3,6 +3,7 @@
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export default entity({
@@ -39,14 +40,23 @@ export default entity({
 	name: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.qBittorrentWebUi_Rest,
+		],
 	},
 	pieceLength: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.qBittorrentWebUi_Rest,
+		],
 	},
 	totalLength: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.qBittorrentWebUi_Rest,
+		],
 	},
 	private: {
 		primitiveType: type('boolean'),
@@ -55,6 +65,9 @@ export default entity({
 	$$files: {
 		entityType: EntityType.BitTorrentFile,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.qBittorrentWebUi_Rest,
+		],
 	},
 	$$fileTreeEntries: {
 		entityType: EntityType.BitTorrentFileTreeEntry,

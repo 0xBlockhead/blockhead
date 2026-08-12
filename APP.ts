@@ -12107,9 +12107,9 @@ export const schema = {
 			})({
 				"$torrent": { label: "torrent", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.BitTorrentMetainfo },
 				"fileIndex": { label: "file index", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
-				"path": { label: "path", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"pathSegments": { label: "path segments", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "string" },
-				"length": { label: "length", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "bigint" },
+				"path": { label: "path", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string", defaultSources: [Source.qBittorrentWebUi_Rest] },
+				"pathSegments": { label: "path segments", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "string", defaultSources: [Source.qBittorrentWebUi_Rest] },
+				"length": { label: "length", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "bigint", defaultSources: [Source.qBittorrentWebUi_Rest] },
 				"piecesRoot": { label: "pieces root", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"fileHash": { label: "file hash", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 			})({
@@ -12181,11 +12181,11 @@ export const schema = {
 				"infoHashV2": { label: "info hash v2", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"metainfoHash": { label: "metainfo hash", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"bencodedInfoHash": { label: "bencoded info hash", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"name": { label: "Name", description: "The human-readable name of the subject.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"pieceLength": { label: "piece length", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
-				"totalLength": { label: "total length", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
+				"name": { label: "Name", description: "The human-readable name of the subject.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.qBittorrentWebUi_Rest] },
+				"pieceLength": { label: "piece length", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.qBittorrentWebUi_Rest] },
+				"totalLength": { label: "total length", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.qBittorrentWebUi_Rest] },
 				"private": { label: "private", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean" },
-				"$$files": { label: "files", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BitTorrentFile },
+				"$$files": { label: "files", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BitTorrentFile, defaultSources: [Source.qBittorrentWebUi_Rest] },
 				"$$fileTreeEntries": { label: "file tree entries", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BitTorrentFileTreeEntry },
 				"$$pieces": { label: "pieces", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BitTorrentPiece },
 				"$$trackers": { label: "trackers", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BitTorrentTracker },
@@ -13252,11 +13252,11 @@ export const schema = {
 				},
 			})({
 				"clientId": { label: "client ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"clientName": { label: "client name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+				"clientName": { label: "client name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.qBittorrentWebUi_Rest] },
 				"peerId": { label: "peer ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"dhtNodeId": { label: "DHT node ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"$$transfers": { label: "transfers", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadBitTorrentTransfer_Timestamp },
-				"$$timestamps": { label: "timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadBitTorrentClientState_Timestamp },
+				"$$transfers": { label: "transfers", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadBitTorrentTransfer_Timestamp, defaultSources: [Source.qBittorrentWebUi_Rest] },
+				"$$timestamps": { label: "timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadBitTorrentClientState_Timestamp, defaultSources: [Source.qBittorrentWebUi_Rest] },
 			})({
 				selectors: {
 					"ClientId": ["clientId"],
@@ -114044,6 +114044,10 @@ export const app = {
 			{
 				source: Source.PythHermes_Rest,
 				path: "src/resolvers/PythHermes-Rest.ts",
+			},
+			{
+				source: Source.qBittorrentWebUi_Rest,
+				path: "src/resolvers/qBittorrentWebUi-Rest.ts",
 			},
 			{
 				source: Source.QuilibriumDocs_Rest,
