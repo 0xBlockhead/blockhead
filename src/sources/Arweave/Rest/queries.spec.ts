@@ -4,6 +4,7 @@ import bindings from '$/sources/Arweave/bindings.ts'
 import {
 	decodeArweaveTagField,
 	fetchBrowseResult,
+	getGatewayUrl,
 	getBlockByHash,
 	getBlockByHeight,
 	getNetworkInfo,
@@ -423,6 +424,27 @@ describe('Arweave public gateway metadata', () => {
 		expect(String(fetchMock.mock.calls[0][0])).toBe(
 			`https://arweave.net/${transactionId}/assets/selected.txt`
 		)
+	})
+
+	it('preserves selected-path segment identity and rejects traversal before gateway fetches', async () => {
+		expect(getGatewayUrl({
+			transactionId,
+			contentPath: 'assets/a b?#%.txt',
+			gatewayOrigin: 'https://arweave.net',
+		})).toBe(
+			`https://arweave.net/${transactionId}/assets/a%20b%3F%23%25.txt`
+		)
+
+		expect(() => getGatewayUrl({
+			transactionId,
+			contentPath: 'assets/../outside.txt',
+			gatewayOrigin: 'https://arweave.net',
+		})).toThrow('traversal segment')
+		expect(() => getGatewayUrl({
+			transactionId,
+			contentPath: 'assets/line\nbreak.txt',
+			gatewayOrigin: 'https://arweave.net',
+		})).toThrow('control characters')
 	})
 
 	it('cancels content that exceeds the declared size', async () => {

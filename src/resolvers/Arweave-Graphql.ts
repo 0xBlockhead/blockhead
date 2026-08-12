@@ -9,6 +9,10 @@ import {
 } from '$/resolvers/defineResolver.ts'
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
+	assertGatewayContentPath,
+} from '$/sources/_shared/interfaces/ContentGateway/queries.ts'
+import { ContentGatewayFamily } from '$/sources/_shared/interfaces/ContentGateway/types.ts'
+import {
 	entityFieldAddressKey,
 	EntityMetaKey,
 	type EntitySelector,
@@ -627,18 +631,20 @@ export default {
 					}) => {
 						if (!/^[A-Za-z0-9_-]{43}$/.test(transactionId))
 							throw new Error('Arweave_Graphql: invalid transaction ID')
-						if (contentPath.includes('://') || contentPath.includes('..'))
-							throw new Error('Arweave_Graphql: invalid content path')
+						const normalizedContentPath = assertGatewayContentPath({
+							family: ContentGatewayFamily.Arweave,
+							contentPath,
+						})
 
 						const { getTransactionById } = await import('$/sources/Arweave/Graphql/queries.ts')
 						const transaction = await getTransactionById(transactionId)
-						if (BigInt(transaction.data.size) === 0n && contentPath === '')
+						if (BigInt(transaction.data.size) === 0n && normalizedContentPath === '')
 							throw new Error('Arweave_Graphql: transaction has no data payload')
 
 						return {
 							transactionId,
-							contentPath,
-							canonicalUri: arweaveCanonicalUri(transactionId, contentPath),
+							contentPath: normalizedContentPath,
+							canonicalUri: arweaveCanonicalUri(transactionId, normalizedContentPath),
 							$transaction: {
 								[EntityMetaKey.Selector]: {
 									$network: {

@@ -5,6 +5,10 @@
 import { jsonErrorHintFromResponse, throwHttpError } from '$/lib/http.ts'
 import { sourceFetch } from '$/sources/_runtime/http.ts'
 import {
+	assertGatewayContentPath,
+} from '$/sources/_shared/interfaces/ContentGateway/queries.ts'
+import { ContentGatewayFamily } from '$/sources/_shared/interfaces/ContentGateway/types.ts'
+import {
 	getJson,
 	getText,
 	httpUrl,
@@ -415,8 +419,12 @@ export const getGatewayUrl = ({
 	gatewayOrigin: string
 }) => {
 	const trimmedTransactionId = trimSlashes(transactionId.trim())
-	const trimmedPath = trimSlashes(contentPath?.trim() ?? '')
-	return `${gatewayOrigin}/${trimmedTransactionId}${trimmedPath ? `/${trimmedPath}` : ''}`
+	assertBase64UrlId(trimmedTransactionId, 'transaction ID')
+	const trimmedPath = assertGatewayContentPath({
+		family: ContentGatewayFamily.Arweave,
+		contentPath,
+	})
+	return `${gatewayOrigin}/${trimmedTransactionId}${trimmedPath ? `/${trimmedPath.split('/').map(encodeURIComponent).join('/')}` : ''}`
 }
 
 export const fetchBrowseResult = async ({
@@ -431,8 +439,11 @@ export const fetchBrowseResult = async ({
 	signal?: AbortSignal
 }) => {
 	const trimmedTransactionId = trimSlashes(transactionId.trim())
-	const trimmedPath = trimSlashes(contentPath?.trim() ?? '')
 	assertBase64UrlId(trimmedTransactionId, 'transaction ID')
+	const trimmedPath = assertGatewayContentPath({
+		family: ContentGatewayFamily.Arweave,
+		contentPath,
+	})
 	if (!Number.isSafeInteger(maxContentBytes) || maxContentBytes < 0 || maxContentBytes > 5_242_880)
 		throw new Error('Arweave_Rest: content inspection limit must be from 0 through 5242880 bytes')
 	const failures: string[] = []

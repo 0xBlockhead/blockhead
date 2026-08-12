@@ -506,4 +506,35 @@ describe('Arweave_Rest block / info / resource browse resolvers', () => {
 			reachable: true,
 		})
 	})
+
+	it('normalizes nested resource paths before emitting the source-owned observation selector', async () => {
+		const resource = await resourceResolver.resolve.TransactionIdContentPath.resolve(
+			{
+				transactionId,
+				contentPath: '/assets/selected.txt/',
+			},
+			context
+		)
+		expect(resource).toMatchObject({
+			contentPath: 'assets/selected.txt',
+			canonicalUri: `ar://${transactionId}/assets/selected.txt`,
+			timestamps: [
+				{
+					[EntityMetaKey.Selector]: {
+						$resource: {
+							transactionId,
+							contentPath: 'assets/selected.txt',
+						},
+					},
+				},
+			],
+		})
+		await expect(resourceResolver.resolve.TransactionIdContentPath.resolve(
+			{
+				transactionId,
+				contentPath: 'assets/../outside.txt',
+			},
+			context
+		)).rejects.toThrow('traversal segment')
+	})
 })
