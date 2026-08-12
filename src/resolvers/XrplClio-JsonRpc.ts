@@ -10,6 +10,7 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 import { networkBySlug } from '$/constants/Network.ts'
 import { Source } from '$/sources/Source.ts'
+import { countCompleteLedgers } from '$/sources/XrplClio/JsonRpc/queries.ts'
 import {
 	XRPL_RIPPLE_EPOCH_OFFSET_SECONDS,
 	type XrplClioLedgerDataResult,
@@ -22,6 +23,13 @@ import {
 	isJsonNumber,
 	isJsonString,
 } from '$/typescript/JsonValue.ts'
+
+const loadXrplQueries = () => (
+	typeof window === 'undefined' ?
+		import('$/sources/XrplClio/JsonRpc/queries.ts')
+	:
+		import('$/sources/XrplClio/JsonRpc/queries.remote.ts')
+)
 
 const assertXrplMainnet = (network: {
 	caip2?: {
@@ -179,7 +187,7 @@ const resolveXrplLedger = async (
 	if (match.ledgerIndex != null && match.ledgerIndex > BigInt(Number.MAX_SAFE_INTEGER))
 		throw new Error('XrplClio_JsonRpc: ledger index is too large')
 
-	const { getLedger } = await import('$/sources/XrplClio/JsonRpc/queries.ts')
+	const { getLedger } = await loadXrplQueries()
 	const fields = xrplLedgerFields(
 		await getLedger(
 			match.ledgerHash != null ?
@@ -377,7 +385,7 @@ const validatedLedgerDataPage = async (
 	if (ledgerIndex > BigInt(Number.MAX_SAFE_INTEGER))
 		throw new Error('XrplClio_JsonRpc: ledger index is too large')
 
-	const { getLedgerData } = await import('$/sources/XrplClio/JsonRpc/queries.ts')
+	const { getLedgerData } = await loadXrplQueries()
 	const ledgerData = await getLedgerData(
 		limit,
 		Number(ledgerIndex),
@@ -433,7 +441,7 @@ export default {
 						assertXrplMainnet($network)
 						if (ledgerIndex > BigInt(Number.MAX_SAFE_INTEGER))
 							throw new Error('XrplClio_JsonRpc: ledger index is too large')
-						const { getLedgerTransactions } = await import('$/sources/XrplClio/JsonRpc/queries.ts')
+						const { getLedgerTransactions } = await loadXrplQueries()
 						const limit = resolverContextRowLimit(context)
 						const ledger = await getLedgerTransactions(Number(ledgerIndex))
 						assertValidatedLedger(ledger)
@@ -520,7 +528,7 @@ export default {
 					}],
 					resolve: async (transaction) => {
 						assertXrplMainnet(transaction.$network)
-						const { getTransaction } = await import('$/sources/XrplClio/JsonRpc/queries.ts')
+						const { getTransaction } = await loadXrplQueries()
 						const response = await getTransaction(transaction.hash)
 						if (response.hash !== transaction.hash)
 							throw new Error('XrplClio_JsonRpc: transaction response does not match the subject')
@@ -546,7 +554,7 @@ export default {
 						if (ledgerIndex > BigInt(Number.MAX_SAFE_INTEGER))
 							throw new Error('XrplClio_JsonRpc: ledger index is too large')
 
-						const { getTransaction } = await import('$/sources/XrplClio/JsonRpc/queries.ts')
+						const { getTransaction } = await loadXrplQueries()
 						const response = await getTransaction($transaction.hash)
 						if (response.hash !== $transaction.hash)
 							throw new Error('XrplClio_JsonRpc: transaction response does not match the subject')
@@ -591,7 +599,7 @@ export default {
 				Caip2: {
 					resolve: async (network, context) => {
 						assertXrplMainnet(network)
-						const { getRecentLedgers } = await import('$/sources/XrplClio/JsonRpc/queries.ts')
+						const { getRecentLedgers } = await loadXrplQueries()
 						const limit = resolverContextRowLimit(context)
 						return (await getRecentLedgers(limit))
 							.map((ledger) => projectLedgerRow(network, ledger))
@@ -653,10 +661,9 @@ export default {
 					resolve: async (network) => {
 						assertXrplMainnet(network)
 						const {
-							countCompleteLedgers,
 							getServerInfo,
 							getValidatedLedger,
-						} = await import('$/sources/XrplClio/JsonRpc/queries.ts')
+						} = await loadXrplQueries()
 						const [
 							serverInfo,
 							tip,
