@@ -443,6 +443,7 @@ describe('Voltaire transaction execution hierarchy', () => {
 				type: 'DELEGATECALL',
 				from: to,
 				to: from,
+				value: '0x2',
 				gas: '0x4000',
 				gasUsed: '0x3000',
 				input: '0xabcd',
@@ -466,6 +467,7 @@ describe('Voltaire transaction execution hierarchy', () => {
 		})
 		const logs = resolver.projections.$$logs.select(transaction)
 		const traces = resolver.projections.$$traces.select(transaction)
+		const internalTransfers = resolver.projections.$$internalTransfers.select(transaction)
 
 		expect(logs).toMatchObject([{
 			[EntityMetaKey.Selector]: {
@@ -508,7 +510,197 @@ describe('Voltaire transaction execution hierarchy', () => {
 				},
 			},
 		])
+		expect(resolver.projections.$$internalTransfers.resolveCount(transaction)).toBe(1)
+		expect(internalTransfers).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$transaction: {
+					$network: {
+						caip2: {
+							namespace: 'eip155',
+							reference: '1',
+						},
+					},
+					txHash,
+				},
+				indexInTransaction: 1,
+			},
+			[EntityMetaKey.Fields]: expect.objectContaining({
+				[entityFieldAddressKey(EntityType.EvmInternalTransfer, [], 'value')]: 2n,
+				[entityFieldAddressKey(EntityType.EvmInternalTransfer, [], 'callType')]: 'DelegateCall',
+				[entityFieldAddressKey(EntityType.EvmInternalTransfer, [], 'success')]: true,
+			}),
+		}])
+
+		const internalTransferResolver = voltaireJsonRpc.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.EvmInternalTransfer
+		))
+		if (internalTransferResolver == null)
+			throw new Error('Voltaire internal transfer resolver is not registered')
+		debugTraceTransaction.mockClear()
+		const internalTransfer = await internalTransferResolver.resolve.TransactionIndexInTransaction.resolve({
+			$transaction: {
+				$network: {
+					caip2: {
+						namespace: 'eip155',
+						reference: '1',
+					},
+				},
+				txHash,
+			},
+			indexInTransaction: 1,
+		})
+		expect(internalTransferResolver.projections.value(internalTransfer)).toBe(2n)
+		expect(internalTransferResolver.projections.callType(internalTransfer)).toBe('DelegateCall')
+		expect(internalTransferResolver.projections.success(internalTransfer)).toBe(true)
+		expect(debugTraceTransaction).toHaveBeenCalledOnce()
 		expect(getTransactionReceipt).toHaveBeenCalledTimes(1)
-		expect(debugTraceTransaction).toHaveBeenCalledTimes(1)
+	})
+
+	it('materializes SetCode authorizations and resolves the native child from its transaction index', async () => {
+		const txHash = '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+		const from = '0x1111111111111111111111111111111111111111'
+		const delegationAddress = '0x2222222222222222222222222222222222222222'
+		getTransactionByHash.mockResolvedValue({
+			hash: txHash,
+			blockNumber: '0x10',
+			from,
+			to: delegationAddress,
+			type: '0x4',
+			transactionIndex: '0x0',
+			value: '0x0',
+			nonce: '0x2',
+			input: '0x',
+			r: '0x01',
+			s: '0x02',
+			gas: '0x5208',
+			maxFeePerGas: '0x77359400',
+			maxPriorityFeePerGas: '0x3b9aca00',
+			authorizationList: [{
+				chainId: '0x1',
+				address: delegationAddress,
+				nonce: '0x7',
+				yParity: '0x1',
+				r: '0x03',
+				s: '0x04',
+			}],
+		})
+		getTransactionReceipt.mockResolvedValue({
+			status: '0x1',
+			gasUsed: '0x5208',
+			cumulativeGasUsed: '0x5208',
+			effectiveGasPrice: '0x3b9aca00',
+			logs: [],
+		})
+		debugTraceTransaction.mockResolvedValue(undefined)
+
+		const transactionResolver = voltaireJsonRpc.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.EvmTransaction
+			&& 'SetCode' in candidate.projections
+			&& '$$authorizations' in candidate.projections.SetCode
+		))
+		const authorizationResolver = voltaireJsonRpc.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.Eip7702Authorization
+		))
+		if (transactionResolver == null || authorizationResolver == null)
+			throw new Error('Voltaire EIP-7702 hierarchy is not registered')
+
+		const selector = {
+			$network: {
+				caip2: {
+					namespace: 'eip155',
+					reference: '1',
+				},
+			},
+			txHash,
+		}
+		const transaction = await transactionResolver.resolve.EvmNetworkTxHash.resolve(selector)
+		const authorizations = transactionResolver.projections.SetCode.$$authorizations.select(transaction)
+		expect(transactionResolver.projections.SetCode.$$authorizations.resolveCount(transaction)).toBe(1)
+		expect(authorizations).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$transaction: selector,
+				authorizationIndex: 0,
+			},
+			[EntityMetaKey.Fields]: expect.objectContaining({
+				[entityFieldAddressKey(EntityType.Eip7702Authorization, [], 'chainId')]: 1n,
+				[entityFieldAddressKey(EntityType.Eip7702Authorization, [], 'delegationAddress')]: delegationAddress,
+				[entityFieldAddressKey(EntityType.Eip7702Authorization, [], 'nonce')]: 7n,
+				[entityFieldAddressKey(EntityType.Eip7702Authorization, [], 'yParity')]: 1,
+				[entityFieldAddressKey(EntityType.Eip7702Authorization, [], '$delegationContract')]: {
+					[EntityMetaKey.Selector]: {
+						$network: selector.$network,
+						address: delegationAddress,
+					},
+				},
+			}),
+		}])
+
+		getTransactionByHash.mockClear()
+		const authorization = await authorizationResolver.resolve.TransactionAuthorizationIndex.resolve({
+			$transaction: selector,
+			authorizationIndex: 0,
+		})
+		expect(authorizationResolver.projections.chainId(authorization)).toBe(1n)
+		expect(authorizationResolver.projections.delegationAddress(authorization)).toBe(delegationAddress)
+		expect(authorizationResolver.projections.nonce(authorization)).toBe(7n)
+		expect(authorizationResolver.projections.$delegationContract(authorization)).toEqual({
+			[EntityMetaKey.Selector]: {
+				$network: selector.$network,
+				address: delegationAddress,
+			},
+		})
+		expect(getTransactionByHash).toHaveBeenCalledOnce()
+		expect(getTransactionReceipt).toHaveBeenCalledOnce()
+		expect(debugTraceTransaction).toHaveBeenCalledOnce()
+	})
+
+	it('fails closed on malformed SetCode authorization identity and signature fields', async () => {
+		const txHash = '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+		getTransactionByHash.mockResolvedValue({
+			hash: txHash,
+			blockNumber: '0x10',
+			from: '0x1111111111111111111111111111111111111111',
+			to: '0x2222222222222222222222222222222222222222',
+			type: '0x4',
+			transactionIndex: '0x0',
+			value: '0x0',
+			nonce: '0x2',
+			input: '0x',
+			r: '0x01',
+			s: '0x02',
+			gas: '0x5208',
+			authorizationList: [{
+				chainId: '0x1',
+				address: 'not-an-address',
+				nonce: '0x7',
+				yParity: '0x2',
+				r: '0x03',
+				s: '0x04',
+			}],
+		})
+		getTransactionReceipt.mockResolvedValue({
+			status: '0x1',
+			gasUsed: '0x5208',
+			cumulativeGasUsed: '0x5208',
+			effectiveGasPrice: '0x3b9aca00',
+			logs: [],
+		})
+		debugTraceTransaction.mockResolvedValue(undefined)
+		const resolver = voltaireJsonRpc.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.EvmTransaction
+			&& 'SetCode' in candidate.projections
+		))
+		if (resolver == null)
+			throw new Error('Voltaire SetCode transaction resolver is not registered')
+
+		await expect(resolver.resolve.EvmNetworkTxHash.resolve({
+			$network: {
+				caip2: {
+					namespace: 'eip155',
+					reference: '1',
+				},
+			},
+			txHash,
+		})).rejects.toThrow('invalid EIP-7702 authorization at index 0')
 	})
 })

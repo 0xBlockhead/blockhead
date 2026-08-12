@@ -206,6 +206,27 @@ export const narrowRpcTransaction = (raw: JsonValue): RpcTransactionWire | null 
 		:
 			undefined
 	)
+	const authorizationListRaw = raw['authorizationList']
+	if (
+		authorizationListRaw != null
+		&& (
+			!Array.isArray(authorizationListRaw)
+			|| !authorizationListRaw.every(isJsonObject)
+		)
+	) return null
+	const authorizationList = (
+		Array.isArray(authorizationListRaw) ?
+			authorizationListRaw.map((authorization) => ({
+					chainId: typeof authorization['chainId'] === 'string' ? authorization['chainId'] : undefined,
+					address: typeof authorization['address'] === 'string' ? authorization['address'] : undefined,
+					nonce: typeof authorization['nonce'] === 'string' ? authorization['nonce'] : undefined,
+					yParity: typeof authorization['yParity'] === 'string' ? authorization['yParity'] : undefined,
+					r: typeof authorization['r'] === 'string' ? authorization['r'] : undefined,
+					s: typeof authorization['s'] === 'string' ? authorization['s'] : undefined,
+				}))
+		:
+			undefined
+	)
 	return {
 		hash,
 		blockNumber,
@@ -229,6 +250,7 @@ export const narrowRpcTransaction = (raw: JsonValue): RpcTransactionWire | null 
 		type: typeof raw['type'] === 'string' ? raw['type'] : undefined,
 		maxFeePerBlobGas: typeof raw['maxFeePerBlobGas'] === 'string' ? raw['maxFeePerBlobGas'] : undefined,
 		...(blobVersionedHashes != null && { blobVersionedHashes }),
+		...(authorizationList != null && { authorizationList }),
 	}
 }
 

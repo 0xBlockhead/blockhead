@@ -186,6 +186,59 @@ const evmTraceEntitiesFromVoltaireCallTrace = ({
 	]
 }
 
+const evmInternalTransferEntitiesFromVoltaireTraces = ({
+	$network,
+	txHash,
+	traces,
+}: {
+	$network: NetworkId
+	txHash: `0x${string}`
+	traces: Entity<typeof schema, EntityType.EvmTrace>[]
+}) => (
+	traces.flatMap((trace, indexInTransaction) => (
+		trace.traceAddress === 'root'
+		|| trace.value == null
+		|| trace.value === 0n ?
+			[]
+		:
+			[{
+				[EntityMetaKey.Selector]: {
+					$transaction: {
+						$network,
+						txHash,
+					},
+					indexInTransaction,
+				},
+				$transaction: {
+					[EntityMetaKey.Selector]: {
+						$network,
+						txHash,
+					},
+				},
+				...(trace.$from != null && { $from: trace.$from }),
+				...(trace.$to != null && { $to: trace.$to }),
+				value: trace.value,
+				callType: trace.type,
+				success: trace.error == null,
+				...(
+					(
+						trace.type === EvmInternalCallType.Create
+						|| trace.type === EvmInternalCallType.Create2
+					)
+					&& trace.$to != null
+					&& {
+						$createdContract: {
+							[EntityMetaKey.Selector]: {
+								$network,
+								address: trace.$to[EntityMetaKey.Selector].address,
+							},
+						},
+					}
+				),
+			}]
+	))
+)
+
 const chainIdFromEvmNetworkId = (network: NetworkId) => {
 	const caip2 = (
 		'caip2' in network ?
@@ -427,6 +480,66 @@ const evmTransactionKindFromSignedFields = ({
 				EvmTransactionKind.NativeTransfer
 			:
 				EvmTransactionKind.ContractCall
+)
+
+const eip7702AuthorizationEntitiesFromVoltaireWire = ({
+	$network,
+	txHash,
+	authorizationList,
+}: {
+	$network: NetworkId
+	txHash: `0x${string}`
+	authorizationList: NonNullable<RpcTransactionWire['authorizationList']>
+}) => (
+	authorizationList.map((authorization, authorizationIndex) => {
+		const chainId = rpcQuantityToBigInt(authorization.chainId)
+		const delegationAddress = hexLowerOfByteSize(authorization.address ?? '', 20)
+		const nonce = rpcQuantityToBigInt(authorization.nonce)
+		const yParity = rpcQuantityToNumber(authorization.yParity)
+		const r = authorization.r == null ? undefined : with0xHex(authorization.r)
+		const s = authorization.s == null ? undefined : with0xHex(authorization.s)
+		if (
+			chainId == null
+			|| delegationAddress == null
+			|| nonce == null
+			|| yParity == null
+			|| (yParity !== 0 && yParity !== 1)
+			|| r == null
+			|| !/^0x[0-9a-f]+$/.test(r)
+			|| s == null
+			|| !/^0x[0-9a-f]+$/.test(s)
+		)
+			throw new Error(`Voltaire_JsonRpc: invalid EIP-7702 authorization at index ${String(authorizationIndex)}`)
+
+		return {
+			[EntityMetaKey.Selector]: {
+				$transaction: {
+					$network,
+					txHash,
+				},
+				authorizationIndex,
+			},
+			$transaction: {
+				[EntityMetaKey.Selector]: {
+					$network,
+					txHash,
+				},
+			},
+			authorizationIndex,
+			chainId,
+			delegationAddress,
+			nonce,
+			yParity,
+			r,
+			s,
+			$delegationContract: {
+				[EntityMetaKey.Selector]: {
+					$network,
+					address: delegationAddress,
+				},
+			},
+		}
+	})
 )
 
 const evmBlobEntityRefsFromVoltaireTx = ({
@@ -1260,6 +1373,13 @@ export default {
 							:
 								undefined
 						)
+						const traces = rawCallTrace == null ? [] : evmTraceEntitiesFromVoltaireCallTrace({
+							call: rawCallTrace,
+							$transaction: {
+								$network,
+								txHash,
+							},
+						})
 						return {
 							...evmTransactionEntityBase,
 							envelopeType,
@@ -1298,12 +1418,16 @@ export default {
 											[evmLogEntityFromIdAndWire(id, log)]
 									})
 							),
-							$$traces: rawCallTrace == null ? [] : evmTraceEntitiesFromVoltaireCallTrace({
-								call: rawCallTrace,
-								$transaction: {
-									$network,
-									txHash,
-								},
+							$$traces: traces,
+							$$internalTransfers: evmInternalTransferEntitiesFromVoltaireTraces({
+								$network,
+								txHash,
+								traces,
+							}),
+							$$authorizations: eip7702AuthorizationEntitiesFromVoltaireWire({
+								$network,
+								txHash,
+								authorizationList: jsonRpcTransaction.authorizationList ?? [],
 							}),
 						}
 					},
@@ -1338,6 +1462,25 @@ export default {
 			Blob: {
 				blobGasUsed: (entity) => entity.blobGasUsed,
 				maxFeePerBlobGas: (entity) => entity.maxFeePerBlobGas,
+			},
+			SetCode: {
+				$$authorizations: {
+					select: (entity) => entity.$$authorizations.map((authorization) => ({
+						[EntityMetaKey.Selector]: authorization[EntityMetaKey.Selector],
+						[EntityMetaKey.Fields]: {
+							[entityFieldAddressKey(EntityType.Eip7702Authorization, [], '$transaction')]: authorization.$transaction,
+							[entityFieldAddressKey(EntityType.Eip7702Authorization, [], 'authorizationIndex')]: authorization.authorizationIndex,
+							[entityFieldAddressKey(EntityType.Eip7702Authorization, [], 'chainId')]: authorization.chainId,
+							[entityFieldAddressKey(EntityType.Eip7702Authorization, [], 'delegationAddress')]: authorization.delegationAddress,
+							[entityFieldAddressKey(EntityType.Eip7702Authorization, [], 'nonce')]: authorization.nonce,
+							[entityFieldAddressKey(EntityType.Eip7702Authorization, [], 'yParity')]: authorization.yParity,
+							[entityFieldAddressKey(EntityType.Eip7702Authorization, [], 'r')]: authorization.r,
+							[entityFieldAddressKey(EntityType.Eip7702Authorization, [], 's')]: authorization.s,
+							[entityFieldAddressKey(EntityType.Eip7702Authorization, [], '$delegationContract')]: authorization.$delegationContract,
+						},
+					})),
+					resolveCount: (entity) => entity.$$authorizations.length,
+				},
 			},
 			$$logs: {
 				select: (entity) => entity.$$logs.map((log) => ({
@@ -1401,6 +1544,133 @@ export default {
 				})),
 				resolveCount: (entity) => entity.$$traces.length,
 			},
+			$$internalTransfers: {
+				select: (entity) => entity.$$internalTransfers.map((transfer) => ({
+					[EntityMetaKey.Selector]: transfer[EntityMetaKey.Selector],
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.EvmInternalTransfer, [], '$transaction')]: transfer.$transaction,
+						...(transfer.$from != null && {
+							[entityFieldAddressKey(EntityType.EvmInternalTransfer, [], '$from')]: transfer.$from,
+						}),
+						...(transfer.$to != null && {
+							[entityFieldAddressKey(EntityType.EvmInternalTransfer, [], '$to')]: transfer.$to,
+						}),
+						[entityFieldAddressKey(EntityType.EvmInternalTransfer, [], 'value')]: transfer.value,
+						[entityFieldAddressKey(EntityType.EvmInternalTransfer, [], 'callType')]: transfer.callType,
+						[entityFieldAddressKey(EntityType.EvmInternalTransfer, [], 'success')]: transfer.success,
+						...(transfer.$createdContract != null && {
+							[entityFieldAddressKey(EntityType.EvmInternalTransfer, [], '$createdContract')]: transfer.$createdContract,
+						}),
+					},
+				})),
+				resolveCount: (entity) => entity.$$internalTransfers.length,
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.Eip7702Authorization,
+			resolve: {
+				TransactionAuthorizationIndex: {
+					resolve: async (entitySelector) => {
+						const chainId = chainIdFromEvmNetworkId(entitySelector.$transaction.$network)
+						const jsonRpcTransports = (await voltaireJsonRpcHttpTransportsByChainId())[chainId] ?? []
+						if (jsonRpcTransports.length === 0)
+							throw new Error(`Voltaire_JsonRpc: no JSON-RPC URL for Eip7702Authorization on chain ${String(chainId)}`)
+
+						const errors: string[] = []
+						for (const jsonRpcTransport of jsonRpcTransports) {
+							try {
+								const transaction = await jsonRpcTransport.getTransactionByHash({
+									txHash: entitySelector.$transaction.txHash,
+								})
+								if (transaction == null)
+									throw new Error('authorization transaction not returned from RPC')
+
+								const txHash = hexLowerOfByteSize(transaction.hash, 32)
+								if (txHash !== entitySelector.$transaction.txHash)
+									throw new Error('authorization transaction identity does not match request')
+
+								const authorization = eip7702AuthorizationEntitiesFromVoltaireWire({
+									$network: entitySelector.$transaction.$network,
+									txHash,
+									authorizationList: transaction.authorizationList ?? [],
+								}).at(entitySelector.authorizationIndex)
+								if (authorization == null)
+									throw new Error('authorization index is missing from transaction')
+
+								return authorization
+							} catch (error) {
+								errors.push(`${jsonRpcTransport.diagnosticLabel}: ${errorMessage(error)}`)
+							}
+						}
+						throw allJsonRpcEndpointsFailedError(chainId, 'Eip7702Authorization', errors)
+					},
+				},
+			},
+		})({
+			$transaction: (authorization) => authorization.$transaction,
+			authorizationIndex: (authorization) => authorization.authorizationIndex,
+			chainId: (authorization) => authorization.chainId,
+			delegationAddress: (authorization) => authorization.delegationAddress,
+			nonce: (authorization) => authorization.nonce,
+			yParity: (authorization) => authorization.yParity,
+			r: (authorization) => authorization.r,
+			s: (authorization) => authorization.s,
+			$delegationContract: (authorization) => authorization.$delegationContract,
+		}),
+
+		defineResolver({
+			entityType: EntityType.EvmInternalTransfer,
+			resolve: {
+				TransactionIndexInTransaction: {
+					resolve: async (entitySelector) => {
+						const chainId = chainIdFromEvmNetworkId(entitySelector.$transaction.$network)
+						const txHash = hexLowerOfByteSize(entitySelector.$transaction.txHash, 32)
+						if (txHash == null)
+							throw new Error('Voltaire_JsonRpc: invalid internal transfer transaction hash')
+
+						const jsonRpcTransports = (await voltaireJsonRpcHttpTransportsByChainId())[chainId] ?? []
+						if (jsonRpcTransports.length === 0)
+							throw new Error(`Voltaire_JsonRpc: no JSON-RPC URL for EvmInternalTransfer on chain ${String(chainId)}`)
+
+						const errors: string[] = []
+						for (const jsonRpcTransport of jsonRpcTransports) {
+							try {
+								const rawCallTrace = await jsonRpcTransport.debugTraceTransaction({ txHash })
+								if (rawCallTrace == null)
+									throw new Error('transaction call trace not returned from RPC')
+
+								const transfer = evmInternalTransferEntitiesFromVoltaireTraces({
+									$network: entitySelector.$transaction.$network,
+									txHash,
+									traces: evmTraceEntitiesFromVoltaireCallTrace({
+										call: rawCallTrace,
+										$transaction: entitySelector.$transaction,
+									}),
+								}).find((candidate) => (
+									candidate[EntityMetaKey.Selector].indexInTransaction === entitySelector.indexInTransaction
+								))
+								if (transfer == null)
+									throw new Error('internal transfer index is missing from transaction trace')
+
+								return transfer
+							} catch (error) {
+								errors.push(`${jsonRpcTransport.diagnosticLabel}: ${errorMessage(error)}`)
+							}
+						}
+						throw allJsonRpcEndpointsFailedError(chainId, 'EvmInternalTransfer', errors)
+					},
+				},
+			},
+		})({
+			$transaction: (transfer) => transfer.$transaction,
+			indexInTransaction: (transfer) => transfer[EntityMetaKey.Selector].indexInTransaction,
+			$from: (transfer) => transfer.$from,
+			$to: (transfer) => transfer.$to,
+			value: (transfer) => transfer.value,
+			callType: (transfer) => transfer.callType,
+			success: (transfer) => transfer.success,
+			$createdContract: (transfer) => transfer.$createdContract,
 		}),
 
 		defineResolver({

@@ -94,7 +94,7 @@ describe('source provider registry', () => {
 		expect(configured.resolverPublicEnvBySource.get(Source.Piped_Rest)).toEqual({})
 	})
 
-	it('keeps Voltaire transaction source narrowing from dropping signature and blob fields', () => {
+	it('keeps Voltaire transaction source narrowing from dropping signature, blob and authorization fields', () => {
 		const tx = narrowRpcTransaction({
 			hash: '0xtransaction',
 			blockHash: null,
@@ -115,6 +115,14 @@ describe('source provider registry', () => {
 			blobVersionedHashes: [
 				'0x01blob',
 			],
+			authorizationList: [{
+				chainId: '0x1',
+				address: '0x1111111111111111111111111111111111111111',
+				nonce: '0x2',
+				yParity: '0x1',
+				r: '0x3',
+				s: '0x4',
+			}],
 		})
 		if (tx == null)
 			throw new Error('Voltaire transaction narrowing rejected valid transaction wire')
@@ -130,7 +138,19 @@ describe('source provider registry', () => {
 			blobVersionedHashes: [
 				'0x01blob',
 			],
+			authorizationList: [{
+				chainId: '0x1',
+				address: '0x1111111111111111111111111111111111111111',
+				nonce: '0x2',
+				yParity: '0x1',
+				r: '0x3',
+				s: '0x4',
+			}],
 		})
+		expect(narrowRpcTransaction({
+			...tx,
+			authorizationList: ['malformed'],
+		})).toBeNull()
 	})
 
 	it('keeps Voltaire log source narrowing from dropping receipt detail fields', () => {
