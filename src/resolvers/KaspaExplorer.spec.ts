@@ -78,13 +78,12 @@ const singularTransactionResolver = kaspaExplorerResolvers.resolvers.find((resol
 const singularBlockResolver = kaspaExplorerResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.KaspaBlock
 ))
+const acceptedTransactionResolver = kaspaExplorerResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.KaspaAcceptedTransaction
+))
 const networkBlocksResolver = kaspaExplorerResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.KaspaNetwork
 	&& '$$blocks' in resolver.projections
-))
-const networkActivityResolver = kaspaExplorerResolvers.resolvers.find((resolver) => (
-	resolver.entityType === EntityType.KaspaNetwork
-	&& '$$acceptedTransactions' in resolver.projections
 ))
 
 if (
@@ -94,8 +93,8 @@ if (
 	|| transactionsResolver == null
 	|| singularTransactionResolver == null
 	|| singularBlockResolver == null
+	|| acceptedTransactionResolver == null
 	|| networkBlocksResolver == null
-	|| networkActivityResolver == null
 )
 	throw new Error('Kaspa Explorer spec missing deepened resolvers')
 
@@ -453,51 +452,6 @@ describe('Kaspa Explorer address resolver', () => {
 		expect(singularBlockResolver.projections.mergeSetBlues(block)).toEqual(['11'.repeat(32)])
 	})
 
-	it('projects block children as accepted transactions with source-ordered indexes', async () => {
-		getBlock.mockResolvedValueOnce({
-			header: {
-				timestamp: '1720000000000',
-			},
-			verboseData: {
-				hash: 'ee'.repeat(32),
-				transactionIds: ['a'.repeat(64), 'b'.repeat(64)],
-			},
-		})
-
-		const block = await singularBlockResolver.resolve[
-			'NetworkBlockHash'
-		].resolve({
-			$network: network,
-			blockHash: 'ee'.repeat(32),
-		}, resolverContext)
-		const acceptedTransactions = singularBlockResolver.projections.$$acceptedTransactions(
-			block,
-			{
-				$network: network,
-				blockHash: 'ee'.repeat(32),
-			},
-			resolverContext
-		)
-
-		expect(acceptedTransactions).toHaveLength(2)
-		expect(acceptedTransactions[0][EntityMetaKey.Selector]).toEqual({
-			$acceptingBlock: {
-				$network: network,
-				blockHash: 'ee'.repeat(32),
-			},
-			$transaction: {
-				$network: network,
-				transactionId: 'a'.repeat(64),
-			},
-		})
-		expect(acceptedTransactions[0][EntityMetaKey.Fields]).toEqual({
-			[entityFieldAddressKey(EntityType.KaspaAcceptedTransaction, [], 'acceptingBlockHash')]: 'ee'.repeat(32),
-			[entityFieldAddressKey(EntityType.KaspaAcceptedTransaction, [], 'transactionId')]: 'a'.repeat(64),
-			[entityFieldAddressKey(EntityType.KaspaAcceptedTransaction, [], 'acceptedIndex')]: 0,
-		})
-		expect(acceptedTransactions[1][EntityMetaKey.Selector].$transaction.transactionId).toBe('b'.repeat(64))
-	})
-
 	it('projects transaction acceptance provenance to the accepting block', async () => {
 		getTransaction.mockResolvedValueOnce({
 			transaction_id: 'a'.repeat(64),
@@ -539,6 +493,51 @@ describe('Kaspa Explorer address resolver', () => {
 		})
 	})
 
+	it('resolves a direct acceptance only when its transaction confirms the accepting block', async () => {
+		getTransaction.mockResolvedValueOnce({
+			transaction_id: 'a'.repeat(64),
+			is_accepted: true,
+			accepting_block_hash: 'c'.repeat(64),
+		})
+
+		const acceptance = await acceptedTransactionResolver.resolve[
+			'AcceptingBlockTransaction'
+		].resolve({
+			$acceptingBlock: {
+				$network: network,
+				blockHash: 'c'.repeat(64),
+			},
+			$transaction: {
+				$network: network,
+				transactionId: 'a'.repeat(64),
+			},
+		}, resolverContext)
+
+		expect(getTransaction).toHaveBeenCalledWith({
+			transaction_id: 'a'.repeat(64),
+			blockHash: 'c'.repeat(64),
+		})
+		expect(acceptedTransactionResolver.projections.acceptingBlockHash(acceptance)).toBe('c'.repeat(64))
+		expect(acceptedTransactionResolver.projections.transactionId(acceptance)).toBe('a'.repeat(64))
+
+		getTransaction.mockResolvedValueOnce({
+			transaction_id: 'a'.repeat(64),
+			is_accepted: false,
+		})
+		await expect(acceptedTransactionResolver.resolve[
+			'AcceptingBlockTransaction'
+		].resolve({
+			$acceptingBlock: {
+				$network: network,
+				blockHash: 'c'.repeat(64),
+			},
+			$transaction: {
+				$network: network,
+				transactionId: 'a'.repeat(64),
+			},
+		}, resolverContext)).rejects.toThrow('acceptance does not match its selector')
+	})
+
 	it('projects network DAG tips as block children', async () => {
 		getBlockdag.mockResolvedValueOnce({
 			networkName: 'kaspa-mainnet',
@@ -574,71 +573,4 @@ describe('Kaspa Explorer address resolver', () => {
 		})
 	})
 
-	it('projects network sink transactions and accepted transactions', async () => {
-		getBlockdag.mockResolvedValueOnce({
-			networkName: 'kaspa-mainnet',
-			blockCount: '260890',
-			headerCount: '2131312',
-			tipHashes: ['a'.repeat(64)],
-			difficulty: 12.5,
-			pastMedianTime: '1720000000000',
-			virtualParentHashes: ['b'.repeat(64)],
-			pruningPointHash: 'c'.repeat(64),
-			virtualDaaScore: '19989141',
-			sink: 'd'.repeat(64),
-		})
-		getBlock.mockResolvedValueOnce({
-			header: {
-				timestamp: '1720000000000',
-			},
-			verboseData: {
-				hash: 'd'.repeat(64),
-				transactionIds: ['a'.repeat(64), 'b'.repeat(64)],
-			},
-		})
-
-		const result = await networkActivityResolver.resolve[
-			'Network'
-		].resolve(network, resolverContext)
-		const acceptedTransactions = networkActivityResolver.projections.$$acceptedTransactions(
-			result,
-			network,
-			resolverContext
-		)
-		const transactions = networkActivityResolver.projections.$$transactions(
-			result,
-			network,
-			resolverContext
-		)
-
-		expect(getBlockdag).toHaveBeenCalledWith()
-		expect(getBlock).toHaveBeenCalledWith({
-			blockId: 'd'.repeat(64),
-			includeTransactions: false,
-		})
-		expect(acceptedTransactions).toHaveLength(2)
-		expect(acceptedTransactions[0][EntityMetaKey.Selector]).toEqual({
-			$acceptingBlock: {
-				$network: network,
-				blockHash: 'd'.repeat(64),
-			},
-			$transaction: {
-				$network: network,
-				transactionId: 'a'.repeat(64),
-			},
-		})
-		expect(acceptedTransactions[0][EntityMetaKey.Fields]).toEqual({
-			[entityFieldAddressKey(EntityType.KaspaAcceptedTransaction, [], 'acceptingBlockHash')]: 'd'.repeat(64),
-			[entityFieldAddressKey(EntityType.KaspaAcceptedTransaction, [], 'transactionId')]: 'a'.repeat(64),
-			[entityFieldAddressKey(EntityType.KaspaAcceptedTransaction, [], 'acceptedIndex')]: 0,
-		})
-		expect(transactions).toHaveLength(2)
-		expect(transactions[0][EntityMetaKey.Selector]).toEqual({
-			$network: network,
-			transactionId: 'a'.repeat(64),
-		})
-		expect(transactions[0][EntityMetaKey.Fields]).toEqual({
-			[entityFieldAddressKey(EntityType.KaspaTransaction, [], 'blockHashes')]: ['d'.repeat(64)],
-		})
-	})
 })

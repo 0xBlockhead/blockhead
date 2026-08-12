@@ -114,6 +114,12 @@ const validateTxModelLeftovers = (
 	}
 	if (transaction.block_time != null)
 		assertSafeUnsigned(transaction.block_time, 'transaction block time')
+	if (transaction.is_accepted === true && transaction.accepting_block_hash == null)
+		throw new Error('Kaspa Explorer: accepted transaction is missing its accepting block hash')
+	if (transaction.is_accepted !== true && transaction.accepting_block_hash != null)
+		throw new Error('Kaspa Explorer: unaccepted transaction has an accepting block hash')
+	if (transaction.accepting_block_hash != null)
+		assertBlockHash(transaction.accepting_block_hash, 'accepting block hash')
 	for (const input of transaction.inputs ?? []) {
 		if (input.previous_outpoint_amount != null)
 			assertSafeUnsigned(input.previous_outpoint_amount, 'transaction input amount')
@@ -317,6 +323,11 @@ export const getTransaction = async (
 	validateTxModelLeftovers(transaction)
 	if (transaction.transaction_id !== transaction_id)
 		throw new Error('Kaspa Explorer: transaction response belongs to a different ID')
+	if (
+		blockHash != null
+		&& transaction.accepting_block_hash !== blockHash
+	)
+		throw new Error('Kaspa Explorer: transaction is not accepted by the requested block')
 	return transaction
 }
 
@@ -408,4 +419,3 @@ export const getKaspadInfo = async () => {
 		assertSafeUnsignedDecimalString(info.mempoolSize, 'mempool size')
 	return info
 }
-

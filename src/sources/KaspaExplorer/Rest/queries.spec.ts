@@ -10,6 +10,7 @@ import {
 	getAddressBalance,
 	getAddressTransactionsPage,
 	getCompleteAddressUtxos,
+	getTransaction,
 } from '$/sources/KaspaExplorer/Rest/queries.ts'
 import * as httpRestClient from '$/sources/_shared/wire/HttpRest/client.ts'
 import * as sourceHttp from '$/sources/_runtime/http.ts'
@@ -150,5 +151,43 @@ describe('Kaspa Explorer address queries', () => {
 			before: 2,
 			after: 1,
 		})).rejects.toThrow('cannot use both before and after')
+	})
+
+	it('requires the queried acceptance relation and validates the accepting block', async () => {
+		vi.spyOn(httpRestClient, 'getJson').mockResolvedValueOnce({
+			transaction_id: transactionId,
+			is_accepted: true,
+			accepting_block_hash: 'b'.repeat(64),
+		})
+
+		await expect(getTransaction({
+			transaction_id: transactionId,
+			blockHash: 'b'.repeat(64),
+		})).resolves.toMatchObject({
+			accepting_block_hash: 'b'.repeat(64),
+		})
+
+		expect(httpRestClient.getJson).toHaveBeenCalledWith(
+			binding,
+			`/transactions/${transactionId}?inputs=true&outputs=true&resolve_previous_outpoints=light&blockHash=${'b'.repeat(64)}`
+		)
+
+		vi.spyOn(httpRestClient, 'getJson').mockResolvedValueOnce({
+			transaction_id: transactionId,
+			is_accepted: true,
+			accepting_block_hash: 'c'.repeat(64),
+		})
+		await expect(getTransaction({
+			transaction_id: transactionId,
+			blockHash: 'b'.repeat(64),
+		})).rejects.toThrow('not accepted by the requested block')
+
+		vi.spyOn(httpRestClient, 'getJson').mockResolvedValueOnce({
+			transaction_id: transactionId,
+			is_accepted: true,
+		})
+		await expect(getTransaction({
+			transaction_id: transactionId,
+		})).rejects.toThrow('missing its accepting block hash')
 	})
 })
