@@ -118,24 +118,24 @@ const txStatusWire = arktype({
 	'reason?': 'string',
 })
 
+const jsonTxWire = arktype({
+	unsignedTx: 'Record<string, unknown>',
+	'id?': 'string',
+	'credentials?': 'unknown[]',
+})
+
 const jsonBlockWire = arktype({
 	parentID: 'string',
 	height: 'number.integer | string',
 	id: 'string',
 	'timestamp?': 'number | string',
-	'txs?': 'unknown[]',
-	'tx?': 'unknown',
+	'txs?': jsonTxWire.array(),
+	'tx?': jsonTxWire,
 })
 
 const blockWire = arktype({
 	block: arktype('string').or(jsonBlockWire),
 	encoding: 'string',
-})
-
-const jsonTxWire = arktype({
-	unsignedTx: 'Record<string, unknown>',
-	'id?': 'string',
-	'credentials?': 'unknown[]',
 })
 
 const txWire = arktype({

@@ -94,7 +94,12 @@ const memoFromWire = (memo: string | undefined) => {
 const pChainTransactionFields = (
 	$network: NetworkId,
 	txId: string,
-	tx: AvalanchePlatformVmJsonTx
+	tx: AvalanchePlatformVmJsonTx,
+	$block?: {
+		$network: NetworkId
+		height: bigint
+		blockId: string
+	}
 ) => {
 	const unsignedTx = tx.unsignedTx
 	const txType = pChainTxType(unsignedTx)
@@ -105,6 +110,11 @@ const pChainTransactionFields = (
 			[EntityMetaKey.Selector]: $network,
 		},
 		txId,
+		...($block != null && {
+			$block: {
+				[EntityMetaKey.Selector]: $block,
+			},
+		}),
 		...(txType != null && { txType }),
 		...(unsignedTx.blockchainID != null && {
 			blockchainId: unsignedTx.blockchainID,
@@ -161,16 +171,9 @@ const blockTxCount = (block: AvalanchePlatformVmJsonBlock) => (
 const blockTimestampMs = (block: AvalanchePlatformVmJsonBlock) => {
 	if (block.timestamp != null)
 		return millisFromUnixSeconds(block.timestamp, 'block timestamp')
-	if (
-		block.tx != null
-		&& typeof block.tx === 'object'
-		&& 'unsignedTx' in block.tx
-		&& block.tx.unsignedTx != null
-		&& typeof block.tx.unsignedTx === 'object'
-		&& 'time' in block.tx.unsignedTx
-	)
+	if (block.tx?.unsignedTx.time != null)
 		return millisFromUnixSeconds(
-			block.tx.unsignedTx.time as string | number,
+			block.tx.unsignedTx.time,
 			'block transaction time'
 		)
 }
@@ -284,17 +287,56 @@ const pChainBlockFields = (
 		encoding,
 		txCount: blockTxCount(block),
 		$$transactions: transactions.flatMap((transaction) => {
-			if (
-				transaction == null
-				|| typeof transaction !== 'object'
-				|| !('id' in transaction)
-				|| typeof transaction.id !== 'string'
-			)
+			if (transaction.id == null)
 				return []
+			const fields = pChainTransactionFields(
+				$network,
+				transaction.id,
+				transaction,
+				{
+					$network,
+					height,
+					blockId: block.id,
+				}
+			)
 			return [{
 				[EntityMetaKey.Selector]: {
 					$network,
 					txId: transaction.id,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.AvalanchePChainTransaction, [], '$block')]: fields.$block,
+					...(fields.txType != null && {
+						[entityFieldAddressKey(EntityType.AvalanchePChainTransaction, [], 'txType')]: fields.txType,
+					}),
+					...(fields.subnetId != null && {
+						[entityFieldAddressKey(EntityType.AvalanchePChainTransaction, [], 'subnetId')]: fields.subnetId,
+					}),
+					...(fields.blockchainId != null && {
+						[entityFieldAddressKey(EntityType.AvalanchePChainTransaction, [], 'blockchainId')]: fields.blockchainId,
+					}),
+					...(fields.nodeId != null && {
+						[entityFieldAddressKey(EntityType.AvalanchePChainTransaction, [], 'nodeId')]: fields.nodeId,
+					}),
+					...(fields.startTimeMs != null && {
+						[entityFieldAddressKey(EntityType.AvalanchePChainTransaction, [], 'startTimeMs')]: fields.startTimeMs,
+					}),
+					...(fields.endTimeMs != null && {
+						[entityFieldAddressKey(EntityType.AvalanchePChainTransaction, [], 'endTimeMs')]: fields.endTimeMs,
+					}),
+					...(fields.stakeAmountNavax != null && {
+						[entityFieldAddressKey(EntityType.AvalanchePChainTransaction, [], 'stakeAmountNavax')]: fields.stakeAmountNavax,
+					}),
+					...(fields.memo != null && {
+						[entityFieldAddressKey(EntityType.AvalanchePChainTransaction, [], 'memo')]: fields.memo,
+					}),
+					...(fields.sourceChain != null && {
+						[entityFieldAddressKey(EntityType.AvalanchePChainTransaction, [], 'sourceChain')]: fields.sourceChain,
+					}),
+					...(fields.destinationChain != null && {
+						[entityFieldAddressKey(EntityType.AvalanchePChainTransaction, [], 'destinationChain')]: fields.destinationChain,
+					}),
+					[entityFieldAddressKey(EntityType.AvalanchePChainTransaction, [], 'payload')]: fields.payload,
 				},
 			}]
 		}),
@@ -648,7 +690,7 @@ export default {
 			},
 		})({
 			txType: (transaction) => transaction.txType,
-			$block: () => undefined,
+			$block: (transaction) => transaction.$block,
 			subnetId: (transaction) => transaction.subnetId,
 			blockchainId: (transaction) => transaction.blockchainId,
 			nodeId: (transaction) => transaction.nodeId,

@@ -206,6 +206,21 @@ it('projects enrolled blockchain, subnet, validator, and P-Chain block fields', 
 			},
 			txId: 'tx-7',
 		},
+		[EntityMetaKey.Fields]: {
+			[entityFieldAddressKey(EntityType.AvalanchePChainTransaction, [], '$block')]: {
+				[EntityMetaKey.Selector]: {
+					$network: {
+						slug: networkBySlug['avalanche-p-chain'].slug,
+					},
+					height: 7n,
+					blockId: 'block-7',
+				},
+			},
+			[entityFieldAddressKey(EntityType.AvalanchePChainTransaction, [], 'txType')]: 'AdvanceTimeTx',
+			[entityFieldAddressKey(EntityType.AvalanchePChainTransaction, [], 'payload')]: {
+				time: 1600740000,
+			},
+		},
 	}])
 })
 

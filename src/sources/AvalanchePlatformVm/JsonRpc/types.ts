@@ -106,8 +106,8 @@ export type AvalanchePlatformVmJsonBlock = {
 	height: number | string
 	id: string
 	timestamp?: number | string
-	txs?: unknown[]
-	tx?: unknown
+	txs?: AvalanchePlatformVmJsonTx[]
+	tx?: AvalanchePlatformVmJsonTx
 }
 
 export type AvalanchePlatformVmBlock = {
