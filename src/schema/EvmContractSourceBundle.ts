@@ -17,7 +17,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.One,
 	},
 	files: {
-		primitiveType: type('unknown'),
+		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 })({

@@ -28171,7 +28171,7 @@ export const schema = {
 				},
 			})({
 				"$contract": { label: "Contract", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EvmContract },
-				"files": { label: "Files", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "unknown" },
+				"files": { label: "Source files JSON", description: "Verified source paths and contents returned by Sourcify, serialized as one reproducible JSON source bundle.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 			})({
 				selectors: {
 					"EvmContract": ["$contract"],
@@ -28184,6 +28184,11 @@ export const schema = {
 							dl: [
 								["$contract"],
 							],
+							body: {
+								field: "files",
+								format: "code",
+								emptyText: "No verified source files available.",
+							},
 						},
 					},
 					plural: { component: "EvmContractSourceBundlesView", title: "Contract source bundles", },

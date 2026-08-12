@@ -241,7 +241,7 @@ export default {
 						const contractLookup = await getSourcifyContractLookupForEntitySelector($contract)
 						if (contractLookup == null) throw new Error('Sourcify_Rest: source bundle not verified')
 						return {
-							files: sourcifySourceFilesFromLookup(contractLookup),
+							files: JSON.stringify(sourcifySourceFilesFromLookup(contractLookup)),
 						}
 					},
 				},

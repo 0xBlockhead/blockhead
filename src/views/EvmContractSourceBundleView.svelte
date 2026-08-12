@@ -26,6 +26,7 @@
 
 
 	// Components
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import EvmContractView from '$/views/EvmContractView.svelte'
 </script>
 
@@ -83,5 +84,24 @@
 				</dd>
 			</div>
 		</dl>
+
+		<ResourceBoundary
+			resource={
+				selection({
+					fields: {
+						files: true,
+					},
+				})
+			}
+		>
+			{#snippet children(entity)}
+				{@const files = entity.files}
+				{#if files !== ''}
+					<code>{files}</code>
+				{:else}
+					<p data-text="muted">No verified source files available.</p>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

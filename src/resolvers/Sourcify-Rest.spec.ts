@@ -133,7 +133,6 @@ describe('Sourcify REST resolvers', () => {
 
 		const networkResolver = sourcifyRest.resolvers.find((candidate) => (
 			candidate.entityType === EntityType.Network
-			&& candidate.resolve.Caip2 != null
 		))
 		if (networkResolver == null)
 			throw new Error('Sourcify REST spec missing Network.Caip2 $$contracts')
@@ -157,7 +156,6 @@ describe('Sourcify REST resolvers', () => {
 	it('returns an empty Network.Evm.$$contracts page when offset is nonzero', async () => {
 		const networkResolver = sourcifyRest.resolvers.find((candidate) => (
 			candidate.entityType === EntityType.Network
-			&& candidate.resolve.Caip2 != null
 		))
 		if (networkResolver == null)
 			throw new Error('Sourcify REST spec missing Network.Caip2 $$contracts')
@@ -220,7 +218,7 @@ describe('Sourcify REST resolvers', () => {
 		).resolve.EvmContract.resolve({
 			$contract: contract,
 		})
-		expect(sourceBundle.files).toEqual({
+		expect(JSON.parse(sourceBundle.files)).toEqual({
 			'deposit_contract.sol': 'pragma solidity ^0.6.0; contract DepositContract {}',
 		})
 	})
@@ -428,9 +426,9 @@ describe('Sourcify REST resolvers', () => {
 		).resolve.EvmContract.resolve({
 			$contract: contract,
 		})).resolves.toEqual({
-			files: {
+			files: JSON.stringify({
 				'contracts/DepositContract.sol': 'contract DepositContract { }',
-			},
+			}),
 		})
 	})
 
