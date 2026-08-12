@@ -64,6 +64,55 @@ export const rssResolvers = <_Source extends Source.Rss_Rest | Source.Rss2Json_R
 												$feed: { feedUrl },
 												...identity,
 											},
+											[EntityMetaKey.Fields]: {
+												...(feedItem.title != null && {
+													[entityFieldAddressKey(EntityType.RssItem, [], 'title')]: feedItem.title,
+												}),
+												...(feedItem.link != null && {
+													[entityFieldAddressKey(EntityType.RssItem, [], 'link')]: feedItem.link,
+												}),
+												...(feedItem.description != null && {
+													[entityFieldAddressKey(EntityType.RssItem, [], 'description')]: feedItem.description,
+												}),
+												...(feedItem.content != null && {
+													[entityFieldAddressKey(EntityType.RssItem, [], 'content')]: feedItem.content,
+												}),
+												...(feedItem.author != null && {
+													[entityFieldAddressKey(EntityType.RssItem, [], 'author')]: feedItem.author,
+												}),
+												...(feedItem.publishedAt != null && {
+													[entityFieldAddressKey(EntityType.RssItem, [], 'publishedAt')]: feedItem.publishedAt,
+												}),
+												...(includesNativeMetadata && feedItem.updatedAt != null && {
+													[entityFieldAddressKey(EntityType.RssItem, [], 'updatedAt')]: feedItem.updatedAt,
+												}),
+												...(feedItem.categories != null && feedItem.categories.length > 0 && {
+													[entityFieldAddressKey(EntityType.RssItem, [], 'categories')]: feedItem.categories,
+												}),
+												...(feedItem.enclosureUrl != null && {
+													[entityFieldAddressKey(EntityType.RssItem, [], 'enclosureUrl')]: feedItem.enclosureUrl,
+												}),
+												...(includesNativeMetadata && feedItem.commentsUrl != null && {
+													[entityFieldAddressKey(EntityType.RssItem, [], 'commentsUrl')]: feedItem.commentsUrl,
+												}),
+												[entityFieldAddressKey(EntityType.RssItem, [], '$feed')]: {
+													[EntityMetaKey.Selector]: { feedUrl },
+												},
+												[entityFieldAddressKey(EntityType.RssItem, [], '$$timestamps')]: [{
+													[EntityMetaKey.Selector]: {
+														$item: {
+															$feed: { feedUrl },
+															...identity,
+														},
+														timestampMs,
+														source,
+													},
+													[EntityMetaKey.Fields]: {
+														[entityFieldAddressKey(EntityType.RssItem_Timestamp, [], 'observed')]: true,
+														[entityFieldAddressKey(EntityType.RssItem_Timestamp, [], 'reachable')]: true,
+													},
+												}],
+											},
 										}]
 									}),
 								$$timestamps: [{

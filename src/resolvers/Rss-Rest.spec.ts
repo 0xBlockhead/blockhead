@@ -94,6 +94,36 @@ it('materializes source-owned feed and item observations from successful reads',
 			[entityFieldAddressKey(EntityType.RssItem_Timestamp, [], 'reachable')]: true,
 		},
 	}])
+	expect(feedResolver.projections.$$items(feedSnapshot)).toEqual([{
+		[EntityMetaKey.Selector]: {
+			$feed: { feedUrl: 'https://hnrss.org/frontpage' },
+			itemIdentityKind: 'Guid',
+			itemIdentity: 'item-1',
+		},
+		[EntityMetaKey.Fields]: {
+			[entityFieldAddressKey(EntityType.RssItem, [], 'title')]: 'Item one',
+			[entityFieldAddressKey(EntityType.RssItem, [], '$feed')]: {
+				[EntityMetaKey.Selector]: {
+					feedUrl: 'https://hnrss.org/frontpage',
+				},
+			},
+			[entityFieldAddressKey(EntityType.RssItem, [], '$$timestamps')]: [{
+				[EntityMetaKey.Selector]: {
+					$item: {
+						$feed: { feedUrl: 'https://hnrss.org/frontpage' },
+						itemIdentityKind: 'Guid',
+						itemIdentity: 'item-1',
+					},
+					timestampMs: 1_750_000_000_000,
+					source: Source.Rss_Rest,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.RssItem_Timestamp, [], 'observed')]: true,
+					[entityFieldAddressKey(EntityType.RssItem_Timestamp, [], 'reachable')]: true,
+				},
+			}],
+		},
+	}])
 })
 
 it('rejects duplicate native item identities instead of materializing colliding rows', async () => {
