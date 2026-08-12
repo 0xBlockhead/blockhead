@@ -10,6 +10,7 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
+import { nodeStateObservationFromPrometheusText } from '$/sources/QuilibriumNodeMetrics/Prometheus/queries.ts'
 
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 
@@ -64,10 +65,12 @@ export default {
 						if (source !== Source.QuilibriumNodeMetrics_Prometheus)
 							throw new Error(`QuilibriumNodeMetrics_Prometheus: unsupported source ${source}`)
 						assertQuilibriumMainnet($nodeState.$network)
-						const {
-							getMetrics,
-							nodeStateObservationFromPrometheusText,
-						} = await import('$/sources/QuilibriumNodeMetrics/Prometheus/queries.ts')
+						const { getMetrics } = await (
+							typeof window === 'undefined' ?
+								import('$/sources/QuilibriumNodeMetrics/Prometheus/queries.ts')
+							:
+								import('$/sources/QuilibriumNodeMetrics/Prometheus/queries.remote.ts')
+						)
 						return nodeStateObservationFromPrometheusText(await getMetrics())
 					},
 				},
