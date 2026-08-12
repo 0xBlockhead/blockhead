@@ -1,4 +1,12 @@
 export type BeaconBlockDutySummary = {
+	deposits: {
+		index: number
+		pubkey: string
+		withdrawalCredentials: string
+		amountGwei: bigint
+		signature: string
+		proof: string[]
+	}[]
 	attestations: {
 		index: number
 		committeeIndex: number | undefined

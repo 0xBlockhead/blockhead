@@ -157,6 +157,7 @@ export enum EntityType {
 	BalancerVeBalBalance = 'BalancerVeBalBalance',
 	BeaconAttestation = 'BeaconAttestation',
 	BeaconCommittee = 'BeaconCommittee',
+	BeaconDeposit = 'BeaconDeposit',
 	BeaconEpoch = 'BeaconEpoch',
 	BeaconSlashing = 'BeaconSlashing',
 	BeaconSlot = 'BeaconSlot',

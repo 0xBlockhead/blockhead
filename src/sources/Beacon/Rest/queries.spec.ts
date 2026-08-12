@@ -48,6 +48,15 @@ describe('Beacon REST native checkpoint and fork wires', () => {
 			data: {
 				message: {
 					body: {
+						deposits: [{
+							proof: [`0x${'11'.repeat(32)}`],
+							data: {
+								pubkey: `0x${'22'.repeat(48)}`,
+								withdrawal_credentials: `0x${'33'.repeat(32)}`,
+								amount: '32000000000',
+								signature: `0x${'44'.repeat(96)}`,
+							},
+						}],
 						attestations: [{
 							aggregation_bits: '0x03',
 							data: {
@@ -68,6 +77,14 @@ describe('Beacon REST native checkpoint and fork wires', () => {
 				},
 			},
 		})).toEqual({
+			deposits: [{
+				index: 0,
+				pubkey: `0x${'22'.repeat(48)}`,
+				withdrawalCredentials: `0x${'33'.repeat(32)}`,
+				amountGwei: 32000000000n,
+				signature: `0x${'44'.repeat(96)}`,
+				proof: [`0x${'11'.repeat(32)}`],
+			}],
 			attestations: [{
 				index: 0,
 				committeeIndex: 7,
@@ -97,6 +114,7 @@ describe('Beacon REST native checkpoint and fork wires', () => {
 				data: {
 					message: {
 						body: {
+							deposits: [],
 							attestations: [{ data: { index: 'not-a-number' } }],
 							proposer_slashings: [],
 							attester_slashings: [],

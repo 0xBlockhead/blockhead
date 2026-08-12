@@ -44,6 +44,7 @@
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import BeaconEpochView from '$/views/BeaconEpochView.svelte'
 	import BeaconCommitteesView from '$/views/BeaconCommitteesView.svelte'
+	import BeaconDepositsView from '$/views/BeaconDepositsView.svelte'
 	import BeaconAttestationsView from '$/views/BeaconAttestationsView.svelte'
 	import BeaconWithdrawalsView from '$/views/BeaconWithdrawalsView.svelte'
 	import BeaconSlashingsView from '$/views/BeaconSlashingsView.svelte'
@@ -308,6 +309,10 @@
 						label: 'Committees',
 					},
 					{
+						id: 'beacon-slot-deposits',
+						label: 'Deposits',
+					},
+					{
 						id: 'beacon-slot-attestations',
 						label: 'Attestations',
 					},
@@ -327,6 +332,22 @@
 					selection={
 						selection
 						.$$beaconCommittees({
+							sources: [
+								Source.Beacon_Rest,
+							],
+						})
+					}
+					collapsible={false}
+					title={label}
+					id={`${id}-list`}
+				/>
+			{/snippet}
+
+			{#snippet SectionBeaconSlotDeposits({ id, label })}
+				<BeaconDepositsView
+					selection={
+						selection
+						.$$beaconDeposits({
 							sources: [
 								Source.Beacon_Rest,
 							],

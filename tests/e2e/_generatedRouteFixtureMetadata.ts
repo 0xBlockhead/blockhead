@@ -9134,6 +9134,20 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
+	'/(explore)/(networks)/network/[network]/slot/[slot]/deposit/[index]': {
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/slot/[slot=nonNegativeInteger]/(beaconSlot)/deposit/[index=nonNegativeInteger]',
+		mappings: [
+			{
+				id: 'BeaconDeposit.EvmNetworkSlotIndexInSlot',
+				projectionEntity: 'Network',
+				probeAtomPrefixes: ['/network/[network]/slot/[slot]/deposit/[index]:BeaconDeposit.EvmNetworkSlotIndexInSlot'],
+				probeCases: [[[0, '1', ['slot', 'index', 'network']]]],
+				projectionPath: [
+					'Evm',
+				],
+			},
+		],
+	},
 	'/(explore)/(networks)/network/[network]/slot/[slot]/slashing/[kind]/[index]': {
 		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/slot/[slot=nonNegativeInteger]/(beaconSlot)/slashing/[kind=stringSegment]/[index=nonNegativeInteger]',
 		mappings: [

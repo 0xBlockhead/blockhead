@@ -61,6 +61,13 @@ export default entity({
 		entityType: EntityType.BeaconCommittee,
 		cardinality: EntityFieldCardinality.Many,
 	},
+	$$beaconDeposits: {
+		entityType: EntityType.BeaconDeposit,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Beacon_Rest,
+		],
+	},
 	$$beaconAttestations: {
 		entityType: EntityType.BeaconAttestation,
 		cardinality: EntityFieldCardinality.Many,

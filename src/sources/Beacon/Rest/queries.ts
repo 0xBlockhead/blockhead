@@ -761,6 +761,7 @@ export const getBlockDutySummaryFromWire = (wire: JsonValue): BeaconBlockDutySum
 		throw new Error('Beacon: invalid block duty summary response')
 	if (
 		!Array.isArray(body.attestations)
+		|| !Array.isArray(body.deposits)
 		|| !Array.isArray(body.proposer_slashings)
 		|| !Array.isArray(body.attester_slashings)
 	) throw new Error('Beacon: invalid block duty summary response')
@@ -783,6 +784,31 @@ export const getBlockDutySummaryFromWire = (wire: JsonValue): BeaconBlockDutySum
 			...(attestationWire.aggregation_bits != null && {
 				aggregationBits: attestationWire.aggregation_bits,
 			}),
+		}
+	})
+	const deposits = body.deposits.map((depositWire, index) => {
+		if (!isJsonObject(depositWire) || !Array.isArray(depositWire.proof) || !isJsonObject(depositWire.data))
+			throw new Error('Beacon: invalid block duty summary deposit')
+		if (!depositWire.proof.every((proof) => typeof proof === 'string'))
+			throw new Error('Beacon: invalid block duty summary deposit proof')
+		if (
+			typeof depositWire.data.pubkey !== 'string'
+			|| typeof depositWire.data.withdrawal_credentials !== 'string'
+			|| typeof depositWire.data.signature !== 'string'
+		)
+			throw new Error('Beacon: invalid block duty summary deposit data')
+		const amountGwei = nonNegativeDecimalBigIntFromWire(
+			typeof depositWire.data.amount === 'string' ? depositWire.data.amount : undefined
+		)
+		if (amountGwei == null)
+			throw new Error('Beacon: invalid block duty summary deposit amount')
+		return {
+			index,
+			pubkey: depositWire.data.pubkey,
+			withdrawalCredentials: depositWire.data.withdrawal_credentials,
+			amountGwei,
+			signature: depositWire.data.signature,
+			proof: [...depositWire.proof],
 		}
 	})
 	const executionPayload = body.execution_payload
@@ -822,6 +848,7 @@ export const getBlockDutySummaryFromWire = (wire: JsonValue): BeaconBlockDutySum
 		kind: 'attester',
 	}))
 	return {
+		deposits,
 		attestations,
 		withdrawals,
 		slashings: [

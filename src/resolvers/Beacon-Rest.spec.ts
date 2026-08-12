@@ -103,6 +103,9 @@ const networkValidatorsResolver = beaconRest.resolvers.find((resolver) => (
 const slashingResolver = beaconRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.BeaconSlashing
 ))
+const depositResolver = beaconRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.BeaconDeposit
+))
 const headerResolver = beaconRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.BeaconSlot
 	&& 'root' in resolver.projections
@@ -142,6 +145,7 @@ if (
 	|| syncCommitteeResolver == null
 	|| validatorResolver == null
 	|| validatorTimestampResolver == null
+	|| depositResolver == null
 	|| slashingResolver == null
 	|| headerResolver == null
 	|| headSlotResolver == null
@@ -712,7 +716,7 @@ describe('Beacon REST checkpoint and fork projections', () => {
 				[entityFieldAddressKey(EntityType.BeaconSlot, [], 'epoch')]: 2,
 				[entityFieldAddressKey(EntityType.BeaconSlot, [], 'canonical')]: true,
 				[entityFieldAddressKey(EntityType.BeaconSlot, [], 'proposerIndex')]: 12,
-				[entityFieldAddressKey(EntityType.BeaconSlot, [], 'root')]: `0x${'A'.repeat(64)}`,
+				[entityFieldAddressKey(EntityType.BeaconSlot, [], 'root')]: `0x${'a'.repeat(64)}`,
 			},
 		})
 		expect(getHeader).toHaveBeenCalledWith(1, 'head')
@@ -768,6 +772,7 @@ describe('Beacon REST checkpoint and fork projections', () => {
 
 	it('projects a slashing network as an entity reference', async () => {
 		getBlockDutySummary.mockResolvedValue({
+			deposits: [],
 			attestations: [],
 			withdrawals: [],
 			slashings: [{
@@ -792,8 +797,50 @@ describe('Beacon REST checkpoint and fork projections', () => {
 		)
 	})
 
+	it('resolves a deposit route from its slot-local index', async () => {
+		getBlockDutySummary.mockResolvedValue({
+			deposits: [{
+				index: 0,
+				pubkey: `0x${'22'.repeat(48)}`,
+				withdrawalCredentials: `0x${'33'.repeat(32)}`,
+				amountGwei: 32_000_000_000n,
+				signature: `0x${'44'.repeat(96)}`,
+				proof: [`0x${'11'.repeat(32)}`],
+			}],
+			attestations: [],
+			withdrawals: [],
+			slashings: [],
+		})
+
+		const deposit = await depositResolver.resolve.EvmNetworkSlotIndexInSlot.resolve({
+			$network: network,
+			slot: 64,
+			indexInSlot: 0,
+		})
+
+		expect(depositResolver.projections.$validator(deposit)).toEqual({
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				pubkey: `0x${'22'.repeat(48)}`,
+			},
+		})
+		expect(depositResolver.projections.amountGwei(deposit)).toBe(32_000_000_000n)
+		expect(getBlockDutySummary).toHaveBeenCalledWith(
+			1,
+			64
+		)
+	})
+
 	it('materializes native duty cards from one block summary', async () => {
 		getBlockDutySummary.mockResolvedValue({
+			deposits: [{
+				index: 0,
+				pubkey: `0x${'22'.repeat(48)}`,
+				withdrawalCredentials: `0x${'33'.repeat(32)}`,
+				amountGwei: 32_000_000_000n,
+				signature: `0x${'44'.repeat(96)}`,
+				proof: [`0x${'11'.repeat(32)}`],
+			}],
 			attestations: [{
 				index: 2,
 				committeeIndex: 4,
@@ -812,6 +859,7 @@ describe('Beacon REST checkpoint and fork projections', () => {
 		})
 		const dutySummaryResolver = beaconRest.resolvers.find((resolver) => (
 			resolver.entityType === EntityType.BeaconSlot
+			&& '$$beaconDeposits' in resolver.projections
 			&& '$$beaconAttestations' in resolver.projections
 			&& '$$beaconWithdrawals' in resolver.projections
 			&& '$$beaconSlashings' in resolver.projections
@@ -833,6 +881,23 @@ describe('Beacon REST checkpoint and fork projections', () => {
 			sources: [],
 			publicEnv: {},
 		})
+		expect(dutySummaryResolver.projections.$$beaconDeposits(dutySummary)).toMatchObject([{
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				slot: 64,
+				indexInSlot: 0,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.BeaconDeposit, [], 'pubkey')]: `0x${'22'.repeat(48)}`,
+				[entityFieldAddressKey(EntityType.BeaconDeposit, [], '$validator')]: {
+					[EntityMetaKey.Selector]: {
+						$network: network,
+						pubkey: `0x${'22'.repeat(48)}`,
+					},
+				},
+				[entityFieldAddressKey(EntityType.BeaconDeposit, [], 'amountGwei')]: 32_000_000_000n,
+			},
+		}])
 
 		expect(dutySummaryResolver.projections.$$beaconAttestations(dutySummary)).toMatchObject([{
 			[EntityMetaKey.Selector]: {

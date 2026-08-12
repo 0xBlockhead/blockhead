@@ -125,6 +125,31 @@ const beaconWithdrawalReference = (
 	},
 })
 
+const beaconDepositReference = (
+	$network: EntitySelector<typeof schema, EntityType.Network>,
+	slot: number,
+	deposit: BeaconBlockDutySummary['deposits'][number]
+) => ({
+	[EntityMetaKey.Selector]: {
+		$network,
+		slot,
+		indexInSlot: deposit.index,
+	},
+	[EntityMetaKey.Fields]: {
+		[entityFieldAddressKey(EntityType.BeaconDeposit, [], 'pubkey')]: deposit.pubkey,
+		[entityFieldAddressKey(EntityType.BeaconDeposit, [], '$validator')]: {
+			[EntityMetaKey.Selector]: {
+				$network,
+				pubkey: deposit.pubkey,
+			},
+		},
+		[entityFieldAddressKey(EntityType.BeaconDeposit, [], 'withdrawalCredentials')]: deposit.withdrawalCredentials,
+		[entityFieldAddressKey(EntityType.BeaconDeposit, [], 'amountGwei')]: deposit.amountGwei,
+		[entityFieldAddressKey(EntityType.BeaconDeposit, [], 'signature')]: deposit.signature,
+		[entityFieldAddressKey(EntityType.BeaconDeposit, [], 'proof')]: deposit.proof,
+	},
+})
+
 const beaconSlashingReference = (
 	$network: EntitySelector<typeof schema, EntityType.Network>,
 	slot: number,
@@ -640,6 +665,42 @@ export default {
 			}),
 
 		defineResolver({
+			entityType: EntityType.BeaconDeposit,
+			resolve: {
+				EvmNetworkSlotIndexInSlot: {
+					appliesTo: eip155NetworkApplicability,
+					resolve: async ({ $network, slot, indexInSlot }) => {
+						const { getBlockDutySummary } = await import('$/sources/Beacon/Rest/queries.ts')
+						const deposit = (await getBlockDutySummary(eip155ChainId($network), slot)).deposits.at(indexInSlot)
+						if (deposit == null)
+							throw new Error('Beacon_Rest: deposit not found')
+
+						return {
+							pubkey: deposit.pubkey,
+							$validator: {
+								[EntityMetaKey.Selector]: {
+									$network,
+									pubkey: deposit.pubkey,
+								},
+							},
+							withdrawalCredentials: deposit.withdrawalCredentials,
+							amountGwei: deposit.amountGwei,
+							signature: deposit.signature,
+							proof: deposit.proof,
+						}
+					},
+				},
+			},
+		})({
+			pubkey: (deposit) => deposit.pubkey,
+			$validator: (deposit) => deposit.$validator,
+			withdrawalCredentials: (deposit) => deposit.withdrawalCredentials,
+			amountGwei: (deposit) => deposit.amountGwei,
+			signature: (deposit) => deposit.signature,
+			proof: (deposit) => deposit.proof,
+		}),
+
+		defineResolver({
 			entityType: EntityType.BeaconAttestation,
 			resolve: {
 				EvmNetworkSlotIndexInSlot: {
@@ -996,6 +1057,9 @@ export default {
 						)
 						const limit = resolverContextRowLimit(context)
 						return {
+							deposits: summary.deposits
+								.slice(0, limit)
+								.map((deposit) => beaconDepositReference($network, slot, deposit)),
 							attestations: summary.attestations
 								.slice(0, limit)
 								.map((attestation) => beaconAttestationReference(
@@ -1022,6 +1086,7 @@ export default {
 				},
 			},
 		})({
+				$$beaconDeposits: (slot) => slot.deposits,
 				$$beaconAttestations: (slot) => slot.attestations,
 				$$beaconWithdrawals: (slot) => slot.withdrawals,
 				$$beaconSlashings: (slot) => slot.slashings,

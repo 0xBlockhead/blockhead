@@ -856,6 +856,7 @@ export enum EntityType {
 	BalancerVeBalBalance = "BalancerVeBalBalance",
 	BeaconAttestation = "BeaconAttestation",
 	BeaconCommittee = "BeaconCommittee",
+	BeaconDeposit = "BeaconDeposit",
 	BeaconEpoch = "BeaconEpoch",
 	BeaconSlashing = "BeaconSlashing",
 	BeaconSlot = "BeaconSlot",
@@ -10517,6 +10518,34 @@ export const schema = {
 			}),
 
 			entity({
+				entityType: EntityType.BeaconDeposit,
+				labels: {
+					singular: "beacon deposit",
+					plural: "Beacon deposits",
+				},
+				description: "A validator deposit included in an Ethereum beacon block.",
+			})({
+				"$network": { label: "Network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
+				"slot": { label: "Slot", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
+				"indexInSlot": { label: "Index in slot", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
+				"pubkey": { label: "Validator pubkey", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"$validator": { label: "Validator", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.BeaconValidator },
+				"withdrawalCredentials": { label: "Withdrawal credentials", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"amountGwei": { label: "Amount", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "bigint" },
+				"signature": { label: "Signature", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"proof": { label: "Merkle proof", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "string" },
+			})({
+				selectors: { "EvmNetworkSlotIndexInSlot": ["$network", "slot", "indexInSlot"] },
+				views: {
+					singular: {
+						summary: { serial: { field: "indexInSlot", label: "Deposit" }, title: ["pubkey"], value: [{ field: "amountGwei", format: "numberValue", suffix: " gwei" }], HeadingAfter: [{ field: "slot", format: "number", prefix: "Slot " }] },
+						content: { dl: [["$validator", "pubkey", "withdrawalCredentials", { field: "amountGwei", format: "numberValue", suffix: " gwei" }], ["signature", "proof", "$network"]] },
+					},
+					plural: { component: "BeaconDepositsView", title: "Deposits" },
+				},
+			}),
+
+			entity({
 				entityType: EntityType.BeaconEpoch,
 				labels: {
 					singular: "beacon epoch",
@@ -10788,6 +10817,13 @@ export const schema = {
 					cardinality: EntityFieldCardinality.Many,
 					entityType: EntityType.BeaconCommittee,
 				},
+				"$$beaconDeposits": {
+					label: "Beacon deposits",
+					type: EntityFieldType.EntitiesReference,
+					cardinality: EntityFieldCardinality.Many,
+					entityType: EntityType.BeaconDeposit,
+					defaultSources: [Source.Beacon_Rest],
+				},
 				"$$beaconAttestations": {
 					label: "Beacon attestations",
 					type: EntityFieldType.EntitiesReference,
@@ -10853,6 +10889,7 @@ export const schema = {
 								className: "network-view-collapsible-consensus",
 								sections: [
 									{ id: "beacon-slot-committees", field: "$$beaconCommittees", List: "BeaconCommitteesView", label: "Committees", selection: { sources: [Source.Beacon_Rest] } },
+									{ id: "beacon-slot-deposits", field: "$$beaconDeposits", List: "BeaconDepositsView", label: "Deposits", selection: { sources: [Source.Beacon_Rest] } },
 									{ id: "beacon-slot-attestations", field: "$$beaconAttestations", List: "BeaconAttestationsView", label: "Attestations", selection: { sources: [Source.Beacon_Rest, Source.BeaconchaIn_Rest] } },
 								],
 							},
@@ -78671,6 +78708,31 @@ export const routes = defineRoutes(schema)({
 																"[index]": {
 																	selectors: {
 																		[EntityType.BeaconWithdrawal]: {
+																			"EvmNetworkSlotIndexInSlot": {
+																				projection: {
+																					entityType: EntityType.Network,
+																					facetPath: ["Evm"]
+																				},
+																				params: {
+																					"slot": [
+																						"slot"
+																					],
+																					"index": [
+																						"indexInSlot"
+																					]
+																				},
+																				page: {}
+																			}
+																		}
+																	},
+																}
+															}
+														},
+														"deposit": {
+															children: {
+																"[index]": {
+																	selectors: {
+																		[EntityType.BeaconDeposit]: {
 																			"EvmNetworkSlotIndexInSlot": {
 																				projection: {
 																					entityType: EntityType.Network,
