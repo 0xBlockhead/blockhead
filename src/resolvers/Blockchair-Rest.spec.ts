@@ -14,6 +14,7 @@ const getBitcoinLikeBlockDashboard = vi.fn()
 const getBitcoinLikeStats = vi.fn()
 const getBitcoinLikeTransactionDashboard = vi.fn()
 const getEthereumLikeStats = vi.fn()
+const getTransactions = vi.fn()
 
 vi.mock('$/sources/Blockchair/Rest/queries.ts', () => ({
 	getBlocks,
@@ -22,6 +23,7 @@ vi.mock('$/sources/Blockchair/Rest/queries.ts', () => ({
 	getBitcoinLikeStats,
 	getBitcoinLikeTransactionDashboard,
 	getEthereumLikeStats,
+	getTransactions,
 }))
 
 const { default: blockchairResolvers } = await import('$/resolvers/Blockchair-Rest.ts')
@@ -32,7 +34,14 @@ const networkResolvers = blockchairResolvers.resolvers.filter((resolver) => (
 const blocksResolver = networkResolvers.find((resolver) => (
 	'Utxo' in resolver.projections
 	&& '$$blocks' in resolver.projections.Utxo
-	&& typeof resolver.projections.Utxo.$$blocks === 'function'
+	&& typeof resolver.projections.Utxo.$$blocks === 'object'
+	&& 'select' in resolver.projections.Utxo.$$blocks
+))
+const transactionsResolver = networkResolvers.find((resolver) => (
+	'Utxo' in resolver.projections
+	&& '$$transactions' in resolver.projections.Utxo
+	&& typeof resolver.projections.Utxo.$$transactions === 'object'
+	&& 'select' in resolver.projections.Utxo.$$transactions
 ))
 const timestampsResolver = networkResolvers.find((resolver) => (
 	'$$timestamps' in resolver.projections
@@ -65,6 +74,8 @@ const addressTimestampResolver = blockchairResolvers.resolvers.find((resolver) =
 
 if (blocksResolver == null)
 	throw new Error('Blockchair-Rest spec missing Network.Utxo.$$blocks resolver')
+if (transactionsResolver == null)
+	throw new Error('Blockchair-Rest spec missing Network.Utxo.$$transactions resolver')
 if (timestampsResolver == null)
 	throw new Error('Blockchair-Rest spec missing Network.$$timestamps resolver')
 if (evmTipResolver == null)
@@ -157,12 +168,13 @@ describe('Blockchair Network selector applicability', () => {
 
 		await expect(blocksResolver.resolve['Caip2'].resolve({
 			caip2: networkBySlug.bitcoin.caip2,
-		}, resolverContext)).resolves.toHaveLength(1)
+		}, resolverContext)).resolves.toMatchObject({ rows: expect.any(Array) })
 		expect(getBlocks).toHaveBeenCalledWith({
 			chain: 'bitcoin',
 			params: {
 				sort: 'id(desc)',
 				limit: 1,
+				offset: 0,
 			},
 			options: {
 				publicEnv: resolverContext.publicEnv,
@@ -173,6 +185,106 @@ describe('Blockchair Network selector applicability', () => {
 			caip2: networkBySlug.ethereum.caip2,
 		}, resolverContext)).rejects.toThrow('unsupported UTXO network')
 		expect(getBlocks).toHaveBeenCalledTimes(1)
+	})
+
+	it('materializes recent block and transaction facts from list responses without detail reads', async () => {
+		getBlocks.mockResolvedValue({
+			data: [{
+				id: 900_000,
+				hash: 'a'.repeat(64),
+				time: '2026-01-15T00:00:00.000Z',
+				merkle_root: 'b'.repeat(64),
+				nonce: 42,
+				difficulty: 123.5,
+				size: 1_200_000,
+				weight: 3_900_000,
+				transaction_count: 2_500,
+			}],
+		})
+		getTransactions.mockResolvedValue({
+			data: [{
+				block_id: 900_000,
+				hash: 'c'.repeat(64),
+				version: 2,
+				lock_time: 899_999,
+				size: 250,
+				weight: 800,
+				fee: 1_234,
+				is_coinbase: false,
+			}],
+		})
+
+		const $network = {
+			caip2: networkBySlug.bitcoin.caip2,
+		}
+		const blockSnapshot = await blocksResolver.resolve.Caip2.resolve($network, resolverContext)
+		const transactionSnapshot = await transactionsResolver.resolve.Caip2.resolve($network, resolverContext)
+		const blocks = blocksResolver.projections.Utxo.$$blocks.select(blockSnapshot)
+		const transactions = transactionsResolver.projections.Utxo.$$transactions.select(transactionSnapshot)
+
+		expect(blocks).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$network,
+				height: 900_000n,
+				hash: 'a'.repeat(64),
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.UtxoBlock, [], '$parent')]: {
+					[EntityMetaKey.Selector]: {
+						$network,
+						height: 899_999n,
+					},
+				},
+				[entityFieldAddressKey(EntityType.UtxoBlock, [], 'timestampMs')]: Date.parse('2026-01-15T00:00:00.000Z'),
+				[entityFieldAddressKey(EntityType.UtxoBlock, [], 'merkleRoot')]: 'b'.repeat(64),
+				[entityFieldAddressKey(EntityType.UtxoBlock, [], 'nonce')]: 42,
+				[entityFieldAddressKey(EntityType.UtxoBlock, [], 'difficulty')]: 123.5,
+				[entityFieldAddressKey(EntityType.UtxoBlock, [], 'sizeBytes')]: 1_200_000,
+				[entityFieldAddressKey(EntityType.UtxoBlock, [], 'weightUnits')]: 3_900_000,
+				[entityFieldAddressKey(EntityType.UtxoBlock, [], 'transactionCount')]: 2_500,
+			},
+		}])
+		expect(transactions).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$network,
+				txId: 'c'.repeat(64),
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.UtxoTransaction, [], '$block')]: {
+					[EntityMetaKey.Selector]: {
+						$network,
+						height: 900_000n,
+					},
+				},
+				[entityFieldAddressKey(EntityType.UtxoTransaction, [], 'version')]: 2,
+				[entityFieldAddressKey(EntityType.UtxoTransaction, [], 'lockTime')]: 899_999,
+				[entityFieldAddressKey(EntityType.UtxoTransaction, [], 'sizeBytes')]: 250,
+				[entityFieldAddressKey(EntityType.UtxoTransaction, [], 'virtualSizeBytes')]: 200,
+				[entityFieldAddressKey(EntityType.UtxoTransaction, [], 'weightUnits')]: 800,
+				[entityFieldAddressKey(EntityType.UtxoTransaction, [], 'feeSats')]: 1_234n,
+				[entityFieldAddressKey(EntityType.UtxoTransaction, [], 'isCoinbase')]: false,
+			},
+		}])
+		expect(getBitcoinLikeBlockDashboard).not.toHaveBeenCalled()
+		expect(getBitcoinLikeTransactionDashboard).not.toHaveBeenCalled()
+		expect(blocksResolver.projections.Utxo.$$blocks.continuation(blockSnapshot, {
+			...resolverContext,
+			parentEntitySelector: $network,
+		})).toEqual({
+			operation: 'network-blocks',
+			target: 'bitcoin',
+			terminal: false,
+			token: '1',
+		})
+		expect(transactionsResolver.projections.Utxo.$$transactions.continuation(transactionSnapshot, {
+			...resolverContext,
+			parentEntitySelector: $network,
+		})).toEqual({
+			operation: 'network-transactions',
+			target: 'bitcoin',
+			terminal: false,
+			token: '1',
+		})
 	})
 
 	it('emits compact timestamp references and resolves their fields at the timestamp owner', async () => {
@@ -515,13 +627,22 @@ describe('Blockchair Network selector applicability', () => {
 					transactions: [
 						'tx-a',
 						{
+							block_id: 900_000,
 							hash: 'tx-b',
+							version: 2,
+							size: 200,
+							weight: 600,
+							fee: 500,
 						},
 					],
 					utxo: [
 						{
 							transaction_hash: 'tx-a',
 							index: 0,
+							value: 7,
+							script_hex: '0014abcd',
+							type: 'witness_v0_keyhash',
+							recipient: entitySelector.address,
 						},
 						{
 							transaction_hash: null,
@@ -559,6 +680,19 @@ describe('Blockchair Network selector applicability', () => {
 					$network: entitySelector.$network,
 					txId: 'tx-b',
 				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.UtxoTransaction, [], '$block')]: {
+						[EntityMetaKey.Selector]: {
+							$network: entitySelector.$network,
+							height: 900_000n,
+						},
+					},
+					[entityFieldAddressKey(EntityType.UtxoTransaction, [], 'version')]: 2,
+					[entityFieldAddressKey(EntityType.UtxoTransaction, [], 'sizeBytes')]: 200,
+					[entityFieldAddressKey(EntityType.UtxoTransaction, [], 'virtualSizeBytes')]: 150,
+					[entityFieldAddressKey(EntityType.UtxoTransaction, [], 'weightUnits')]: 600,
+					[entityFieldAddressKey(EntityType.UtxoTransaction, [], 'feeSats')]: 500n,
+				},
 			},
 		])
 		expect(addressRelationsResolver.projections.$$outputs(snapshot)).toEqual([{
@@ -568,6 +702,18 @@ describe('Blockchair Network selector applicability', () => {
 					txId: 'tx-a',
 				},
 				indexInTransaction: 0,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.UtxoOutput, [], 'valueSats')]: 7n,
+				[entityFieldAddressKey(EntityType.UtxoOutput, [], 'scriptPubKeyHex')]: '0014abcd',
+				[entityFieldAddressKey(EntityType.UtxoOutput, [], 'scriptPubKeyType')]: 'witness_v0_keyhash',
+				[entityFieldAddressKey(EntityType.UtxoOutput, [], '$address')]: {
+					[EntityMetaKey.Selector]: {
+						$network: entitySelector.$network,
+						address: entitySelector.address,
+					},
+				},
+				[entityFieldAddressKey(EntityType.UtxoOutput, [], 'isSpent')]: false,
 			},
 		}])
 

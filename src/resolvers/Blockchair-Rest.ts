@@ -245,9 +245,8 @@ const blockDashboardSnapshot = (
 	dashboard: BlockchairBitcoinLikeBlockDashboard
 ) => ({
 	hash,
-	...(
-		dashboard.block.id != null
-		&& dashboard.block.id > 0
+		...(
+			dashboard.block.id > 0
 		&& {
 			$parent: {
 				[EntityMetaKey.Selector]: {
@@ -527,17 +526,53 @@ export default {
 							},
 						})
 						return {
-							$$transactions: dashboard.transactions.map((transaction) => ({
-								[EntityMetaKey.Selector]: {
-									$network,
-									txId: (
-										typeof transaction === 'string' ?
-											transaction
-										:
-											transaction.hash
-									),
-								},
-							})),
+							$$transactions: dashboard.transactions.map((transaction) => (
+								typeof transaction === 'string' ?
+									{
+										[EntityMetaKey.Selector]: {
+											$network,
+											txId: transaction,
+										},
+									}
+								:
+									{
+										[EntityMetaKey.Selector]: {
+											$network,
+											txId: transaction.hash,
+										},
+										[EntityMetaKey.Fields]: {
+											...(transaction.block_id != null && {
+												[entityFieldAddressKey(EntityType.UtxoTransaction, [], '$block')]: {
+													[EntityMetaKey.Selector]: {
+														$network,
+														height: BigInt(transaction.block_id),
+													},
+												},
+											}),
+											...(transaction.version != null && {
+												[entityFieldAddressKey(EntityType.UtxoTransaction, [], 'version')]: transaction.version,
+											}),
+											...(transaction.lock_time != null && {
+												[entityFieldAddressKey(EntityType.UtxoTransaction, [], 'lockTime')]: transaction.lock_time,
+											}),
+											...(transaction.size != null && {
+												[entityFieldAddressKey(EntityType.UtxoTransaction, [], 'sizeBytes')]: transaction.size,
+											}),
+											...((virtualSizeBytes) => virtualSizeBytes != null && {
+												[entityFieldAddressKey(EntityType.UtxoTransaction, [], 'virtualSizeBytes')]: virtualSizeBytes,
+											})(virtualSizeBytesFromWeight(transaction.weight) ?? transaction.size),
+											...(transaction.weight != null && {
+												[entityFieldAddressKey(EntityType.UtxoTransaction, [], 'weightUnits')]: transaction.weight,
+											}),
+											...(transaction.fee != null && {
+												[entityFieldAddressKey(EntityType.UtxoTransaction, [], 'feeSats')]: BigInt(transaction.fee),
+											}),
+											...(transaction.is_coinbase != null && {
+												[entityFieldAddressKey(EntityType.UtxoTransaction, [], 'isCoinbase')]: transaction.is_coinbase,
+											}),
+										},
+									}
+							)),
 							$$outputs: (dashboard.utxo ?? []).flatMap((output) => (
 								output.transaction_hash == null || output.index == null ?
 									[]
@@ -549,6 +584,26 @@ export default {
 												txId: output.transaction_hash,
 											},
 											indexInTransaction: output.index,
+										},
+										[EntityMetaKey.Fields]: {
+											...(output.value != null && {
+												[entityFieldAddressKey(EntityType.UtxoOutput, [], 'valueSats')]: BigInt(output.value),
+											}),
+											...(output.script_hex != null && {
+												[entityFieldAddressKey(EntityType.UtxoOutput, [], 'scriptPubKeyHex')]: output.script_hex,
+											}),
+											...(output.type != null && {
+												[entityFieldAddressKey(EntityType.UtxoOutput, [], 'scriptPubKeyType')]: output.type,
+											}),
+											...(output.recipient != null && {
+												[entityFieldAddressKey(EntityType.UtxoOutput, [], '$address')]: {
+													[EntityMetaKey.Selector]: {
+														$network,
+														address: output.recipient,
+													},
+												},
+											}),
+											[entityFieldAddressKey(EntityType.UtxoOutput, [], 'isSpent')]: output.spending_transaction_hash != null,
 										},
 									}]
 							)),
@@ -869,11 +924,20 @@ export default {
 			entityType: EntityType.Network,
 			resolve: blockchairNetworkSelectors(async (network, context) => {
 				const { getBlocks } = await import('$/sources/Blockchair/Rest/queries.ts')
-				return (await getBlocks({
-					chain: blockchairChain(network),
+				const offset = context.providerContinuationToken == null ?
+					context.pagination.offset ?? 0
+				:
+					Number(context.providerContinuationToken)
+				if (!Number.isSafeInteger(offset) || offset < 0)
+					throw new Error('Blockchair_Rest: invalid block continuation')
+
+				const chain = blockchairChain(network)
+				const rows = (await getBlocks({
+					chain,
 					params: {
 						sort: 'id(desc)',
 						limit: resolverContextRowLimit(context),
+						offset,
 					},
 					options: requestOptions(context),
 				})).data.map((block) => ({
@@ -882,11 +946,57 @@ export default {
 						height: BigInt(block.id),
 						hash: block.hash,
 					},
+					[EntityMetaKey.Fields]: {
+						...(block.id > 0 && {
+							[entityFieldAddressKey(EntityType.UtxoBlock, [], '$parent')]: {
+								[EntityMetaKey.Selector]: {
+									$network: network,
+									height: BigInt(block.id - 1),
+								},
+							},
+						}),
+						...((timestampMs) => timestampMs != null && {
+							[entityFieldAddressKey(EntityType.UtxoBlock, [], 'timestampMs')]: timestampMs,
+						})(timestampMsFromBlockchairTime(block.time)),
+						...(block.merkle_root != null && {
+							[entityFieldAddressKey(EntityType.UtxoBlock, [], 'merkleRoot')]: block.merkle_root,
+						}),
+						...(block.nonce != null && {
+							[entityFieldAddressKey(EntityType.UtxoBlock, [], 'nonce')]: block.nonce,
+						}),
+						...(block.difficulty != null && {
+							[entityFieldAddressKey(EntityType.UtxoBlock, [], 'difficulty')]: block.difficulty,
+						}),
+						...(block.size != null && {
+							[entityFieldAddressKey(EntityType.UtxoBlock, [], 'sizeBytes')]: block.size,
+						}),
+						...(block.weight != null && {
+							[entityFieldAddressKey(EntityType.UtxoBlock, [], 'weightUnits')]: block.weight,
+						}),
+						...(block.transaction_count != null && {
+							[entityFieldAddressKey(EntityType.UtxoBlock, [], 'transactionCount')]: block.transaction_count,
+						}),
+					},
 				}))
+				return {
+					chain,
+					offset,
+					rows,
+				}
 			}),
 		})({
 			Utxo: {
-				$$blocks: (blocks) => blocks,
+				$$blocks: {
+					select: (snapshot) => snapshot.rows,
+					continuation: (snapshot, context) => ({
+						operation: 'network-blocks',
+						target: snapshot.chain,
+						terminal: snapshot.rows.length < resolverContextRowLimit(context),
+						...(snapshot.rows.length >= resolverContextRowLimit(context) && {
+							token: String(snapshot.offset + snapshot.rows.length),
+						}),
+					}),
+				},
 			},
 		}),
 
@@ -894,11 +1004,20 @@ export default {
 			entityType: EntityType.Network,
 			resolve: blockchairNetworkSelectors(async (network, context) => {
 				const { getTransactions } = await import('$/sources/Blockchair/Rest/queries.ts')
-				return (await getTransactions({
-					chain: blockchairChain(network),
+				const offset = context.providerContinuationToken == null ?
+					context.pagination.offset ?? 0
+				:
+					Number(context.providerContinuationToken)
+				if (!Number.isSafeInteger(offset) || offset < 0)
+					throw new Error('Blockchair_Rest: invalid transaction continuation')
+
+				const chain = blockchairChain(network)
+				const rows = (await getTransactions({
+					chain,
 					params: {
 						sort: 'id(desc)',
 						limit: resolverContextRowLimit(context),
+						offset,
 					},
 					options: requestOptions(context),
 				})).data.map((transaction) => ({
@@ -906,11 +1025,57 @@ export default {
 						$network: network,
 						txId: transaction.hash,
 					},
+					[EntityMetaKey.Fields]: {
+						...(transaction.block_id != null && {
+							[entityFieldAddressKey(EntityType.UtxoTransaction, [], '$block')]: {
+								[EntityMetaKey.Selector]: {
+									$network: network,
+									height: BigInt(transaction.block_id),
+								},
+							},
+						}),
+						...(transaction.version != null && {
+							[entityFieldAddressKey(EntityType.UtxoTransaction, [], 'version')]: transaction.version,
+						}),
+						...(transaction.lock_time != null && {
+							[entityFieldAddressKey(EntityType.UtxoTransaction, [], 'lockTime')]: transaction.lock_time,
+						}),
+						...(transaction.size != null && {
+							[entityFieldAddressKey(EntityType.UtxoTransaction, [], 'sizeBytes')]: transaction.size,
+						}),
+						...((virtualSizeBytes) => virtualSizeBytes != null && {
+							[entityFieldAddressKey(EntityType.UtxoTransaction, [], 'virtualSizeBytes')]: virtualSizeBytes,
+						})(virtualSizeBytesFromWeight(transaction.weight) ?? transaction.size),
+						...(transaction.weight != null && {
+							[entityFieldAddressKey(EntityType.UtxoTransaction, [], 'weightUnits')]: transaction.weight,
+						}),
+						...(transaction.fee != null && {
+							[entityFieldAddressKey(EntityType.UtxoTransaction, [], 'feeSats')]: BigInt(transaction.fee),
+						}),
+						...(transaction.is_coinbase != null && {
+							[entityFieldAddressKey(EntityType.UtxoTransaction, [], 'isCoinbase')]: transaction.is_coinbase,
+						}),
+					},
 				}))
+				return {
+					chain,
+					offset,
+					rows,
+				}
 			}),
 		})({
 			Utxo: {
-				$$transactions: (transactions) => transactions,
+				$$transactions: {
+					select: (snapshot) => snapshot.rows,
+					continuation: (snapshot, context) => ({
+						operation: 'network-transactions',
+						target: snapshot.chain,
+						terminal: snapshot.rows.length < resolverContextRowLimit(context),
+						...(snapshot.rows.length >= resolverContextRowLimit(context) && {
+							token: String(snapshot.offset + snapshot.rows.length),
+						}),
+					}),
+				},
 			},
 		}),
 
