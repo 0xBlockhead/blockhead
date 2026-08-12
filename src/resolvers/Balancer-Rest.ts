@@ -89,6 +89,27 @@ const mapBalancerPoolSnapshot = (
 				[entityFieldAddressKey(EntityType.BalancerPoolAprItem, [], 'apr')]: item.apr,
 			},
 		})),
+		$$tokens: pool.poolTokens.map((token, tokenIndex) => ({
+			[EntityMetaKey.Selector]: {
+				$pool: poolSelector,
+				tokenIndex,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.BalancerPoolToken, [], 'address')]: token.address,
+				[entityFieldAddressKey(EntityType.BalancerPoolToken, [], 'symbol')]: token.symbol,
+				[entityFieldAddressKey(EntityType.BalancerPoolToken, [], 'balance')]: token.balance,
+				[entityFieldAddressKey(EntityType.BalancerPoolToken, [], 'decimals')]: token.decimals,
+				...(token.weight != null && {
+					[entityFieldAddressKey(EntityType.BalancerPoolToken, [], 'weight')]: token.weight,
+				}),
+				[entityFieldAddressKey(EntityType.BalancerPoolToken, [], '$contract')]: {
+					[EntityMetaKey.Selector]: {
+						$network: network,
+						address: token.address,
+					},
+				},
+			},
+		})),
 	}
 }
 
@@ -203,6 +224,7 @@ export default {
 			totalShares: (pool) => pool.totalShares,
 			$gauge: (pool) => pool.$gauge,
 			$$aprItems: (pool) => pool.$$aprItems,
+			$$tokens: (pool) => pool.$$tokens,
 		}),
 
 		defineResolver({
@@ -247,6 +269,60 @@ export default {
 			title: (item) => item.title,
 			aprType: (item) => item.aprType,
 			apr: (item) => item.apr,
+		}),
+
+		defineResolver({
+			entityType: EntityType.BalancerPoolToken,
+			resolve: {
+				PoolTokenIndex: {
+					resolve: async ({
+						$pool,
+						tokenIndex,
+					}) => {
+						const chainId = eip155ChainId($pool.$network)
+						const { balancerChainByChainId } = await import('$/sources/Balancer/Rest/constants.ts')
+						if (balancerChainByChainId[chainId] == null)
+							throw new Error(`${Source.Balancer_Rest}: unsupported chain id ${String(chainId)}`)
+
+						const { getPool } = await import('$/sources/Balancer/Rest/queries.ts')
+						const token = (await getPool({
+							chainId,
+							poolId: $pool.poolId,
+						})).poolTokens.at(tokenIndex)
+						if (token == null)
+							throw new Error(`${Source.Balancer_Rest}: pool token ${String(tokenIndex)} not found`)
+
+						return {
+							$pool: {
+								[EntityMetaKey.Selector]: $pool,
+							},
+							tokenIndex,
+							address: token.address,
+							symbol: token.symbol,
+							balance: token.balance,
+							decimals: token.decimals,
+							...(token.weight != null && {
+								weight: token.weight,
+							}),
+							$contract: {
+								[EntityMetaKey.Selector]: {
+									$network: $pool.$network,
+									address: token.address,
+								},
+							},
+						}
+					},
+				},
+			},
+		})({
+			$pool: (token) => token.$pool,
+			tokenIndex: (token) => token.tokenIndex,
+			address: (token) => token.address,
+			symbol: (token) => token.symbol,
+			balance: (token) => token.balance,
+			decimals: (token) => token.decimals,
+			weight: (token) => token.weight,
+			$contract: (token) => token.$contract,
 		}),
 
 		defineResolver({

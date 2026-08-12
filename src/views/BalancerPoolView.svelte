@@ -45,6 +45,7 @@
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
+	import BalancerPoolTokensView from '$/views/BalancerPoolTokensView.svelte'
 	import BalancerPoolAprItemsView from '$/views/BalancerPoolAprItemsView.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
 	import BalancerGaugeView from '$/views/BalancerGaugeView.svelte'
@@ -309,6 +310,21 @@
 	{/snippet}
 
 	{#snippet Details()}
+		{@const tokensResource = selection.$$tokens}
+		<ResourceBoundary
+			resource={tokensResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<BalancerPoolTokensView
+						selection={tokensResource}
+						countResource={tokensResource.count}
+						title='Reserve tokens'
+						id='tokens'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 		{@const aprItemsResource = selection.$$aprItems}
 		<ResourceBoundary
 			resource={aprItemsResource}

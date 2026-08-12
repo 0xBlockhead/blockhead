@@ -94,6 +94,13 @@ export default entity({
 			Source.Balancer_Rest,
 		],
 	},
+	$$tokens: {
+		entityType: EntityType.BalancerPoolToken,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Balancer_Rest,
+		],
+	},
 	$$aprItems: {
 		entityType: EntityType.BalancerPoolAprItem,
 		cardinality: EntityFieldCardinality.Many,

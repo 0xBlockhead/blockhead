@@ -852,6 +852,7 @@ export enum EntityType {
 	BalancerGauge = "BalancerGauge",
 	BalancerPool = "BalancerPool",
 	BalancerPoolAprItem = "BalancerPoolAprItem",
+	BalancerPoolToken = "BalancerPoolToken",
 	BalancerVeBalBalance = "BalancerVeBalBalance",
 	BeaconAttestation = "BeaconAttestation",
 	BeaconCommittee = "BeaconCommittee",
@@ -10261,6 +10262,7 @@ export const schema = {
 				"totalLiquidity": { label: "Total liquidity", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Balancer_Rest] },
 				"totalShares": { label: "Total shares", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Balancer_Rest] },
 				"$gauge": { label: "Gauge", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.BalancerGauge, defaultSources: [Source.Balancer_Rest] },
+				"$$tokens": { label: "Reserve tokens", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BalancerPoolToken, defaultSources: [Source.Balancer_Rest] },
 				"$$aprItems": { label: "APR items", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BalancerPoolAprItem, defaultSources: [Source.Balancer_Rest] },
 			})({
 				selectors: {
@@ -10285,6 +10287,7 @@ export const schema = {
 							],
 						},
 						lists: [
+							{ field: "$$tokens", component: "BalancerPoolTokensView", label: "Reserve tokens", emptyText: "No source-reported reserve tokens." },
 							{ field: "$$aprItems", component: "BalancerPoolAprItemsView", label: "APR items", emptyText: "No APR items." },
 						],
 					},
@@ -10325,6 +10328,47 @@ export const schema = {
 						},
 					},
 					plural: { component: "BalancerPoolAprItemsView", title: "Balancer pool APR items" },
+				},
+				}),
+
+			entity({
+				entityType: EntityType.BalancerPoolToken,
+				labels: {
+					singular: "Balancer pool reserve token",
+					plural: "Balancer pool reserve tokens",
+				},
+				description: "One indexed reserve token reported by Balancer for a pool; balance and optional weight are the source's current pool accounting state.",
+			})({
+				"$pool": { label: "Pool", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.BalancerPool },
+				"tokenIndex": { label: "Token index", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
+				"address": { label: "Address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "evmAddress", defaultSources: [Source.Balancer_Rest] },
+				"symbol": { label: "Symbol", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string", defaultSources: [Source.Balancer_Rest] },
+				"balance": { label: "Reserve balance", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeDecimalString", defaultSources: [Source.Balancer_Rest] },
+				"decimals": { label: "Decimals", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger", defaultSources: [Source.Balancer_Rest] },
+				"weight": { label: "Weight", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Balancer_Rest] },
+				"$contract": { label: "Token contract", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EvmContract, defaultSources: [Source.Balancer_Rest] },
+			})({
+				selectors: {
+					"PoolTokenIndex": ["$pool", "tokenIndex"],
+				},
+				views: {
+					singular: {
+						query: {
+							sources: [Source.Balancer_Rest],
+						},
+						summary: {
+							title: ["symbol"],
+							value: ["balance", "weight"],
+							HeadingAfter: ["$pool"],
+						},
+						content: {
+							dl: [
+								["$pool", { field: "tokenIndex", format: "number" }, "symbol", { field: "address", format: "address" }, "$contract"],
+								["balance", { field: "decimals", format: "number" }, "weight"],
+							],
+						},
+					},
+					plural: { component: "BalancerPoolTokensView", title: "Balancer pool reserve tokens" },
 				},
 			}),
 
@@ -81733,7 +81777,7 @@ export const routes = defineRoutes(schema)({
 																		"[aprType]": {
 																			selectors: {
 																				[EntityType.BalancerPoolAprItem]: {
-																					"PoolTitleAprType": {
+																				"PoolTitleAprType": {
 																						params: { "title": ["title"], "aprType": ["aprType"] },
 																						page: {},
 																					},
@@ -81744,6 +81788,21 @@ export const routes = defineRoutes(schema)({
 																}
 															},
 														},
+															"token": {
+																children: {
+																	"[index]": {
+																		params: { "index": ["NonNegativeInteger"] },
+																		selectors: {
+																			[EntityType.BalancerPoolToken]: {
+																				"PoolTokenIndex": {
+																					derivations: { "tokenIndex": { kind: "param", name: "index" } },
+																					page: {},
+																			},
+																		},
+																	},
+																},
+																},
+															},
 														"balance": {
 															children: {
 																"[accountAddress]": {

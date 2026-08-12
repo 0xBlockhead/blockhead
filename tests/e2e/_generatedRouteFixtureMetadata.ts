@@ -6741,6 +6741,16 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
+	'/(explore)/(networks)/network/[network]/balancer-pool/[poolId]/token/[index]': {
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/balancer-pool/[poolId=stringSegment]/(balancerPool)/token/[index=nonNegativeInteger]',
+		mappings: [
+			{
+				id: 'BalancerPoolToken.PoolTokenIndex',
+				probeAtomPrefixes: ['/network/[network]/balancer-pool/[poolId]/token/[index]:BalancerPoolToken.PoolTokenIndex'],
+				probeCases: [[[0, '1', ['index', 'poolId', 'network']]]],
+			},
+		],
+	},
 	'/(explore)/(networks)/network/[network]/bitcoin-cash/metadata/[categoryId]/[registryUrl]': {
 		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/bitcoin-cash/metadata/[categoryId=stringSegment]/[registryUrl=stringSegment]',
 		mappings: [

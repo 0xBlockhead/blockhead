@@ -44,6 +44,9 @@ const context = {
 const balancerPoolResolver = balancerRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.BalancerPool
 ))
+const balancerPoolTokenResolver = balancerRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.BalancerPoolToken
+))
 
 const networkBalancerPoolsResolver = balancerRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.Network
@@ -97,6 +100,7 @@ describe('Balancer Rest resolver module', () => {
 	it('registers under Balancer_Rest for BalancerPool', () => {
 		expect(balancerRest.source).toBe(Source.Balancer_Rest)
 		expect(balancerPoolResolver).toBeDefined()
+		expect(balancerPoolTokenResolver).toBeDefined()
 	})
 
 	it('rejects non-eip155 networks before transport', async () => {
@@ -178,6 +182,43 @@ describe('Balancer Rest resolver module', () => {
 			totalLiquidity: '11356688.22',
 			totalShares: '78351.308448723247365152',
 			$$aprItems: [],
+			$$tokens: expect.arrayContaining([
+				expect.objectContaining({
+					[EntityMetaKey.Selector]: {
+						$pool: {
+							$network: ethereumNetwork,
+							poolId: weightedV2PoolId,
+						},
+						tokenIndex: 0,
+					},
+				}),
+			]),
+		})
+	})
+
+	it('resolves a Balancer pool reserve token by source order and preserves its contract relationship', async () => {
+		if (balancerPoolTokenResolver == null)
+			throw new Error('missing BalancerPoolToken resolver')
+
+		graphql.mockResolvedValueOnce({
+			poolGetPool: weightedV2Pool,
+		})
+
+		const token = await balancerPoolTokenResolver.resolve.PoolTokenIndex.resolve({
+			$pool: {
+				$network: ethereumNetwork,
+				poolId: weightedV2PoolId,
+			},
+			tokenIndex: 1,
+		}, context)
+		expect(balancerPoolTokenResolver.projections.symbol(token)).toBe('AAVE')
+		expect(balancerPoolTokenResolver.projections.balance(token)).toBe('101175.36320855851')
+		expect(balancerPoolTokenResolver.projections.weight(token)).toBe('0.8')
+		expect(balancerPoolTokenResolver.projections.$contract(token)).toEqual({
+			[EntityMetaKey.Selector]: {
+				$network: ethereumNetwork,
+				address: '0x7fc66500c84a76ad7e9c93437bfc5ac33e2ddae9',
+			},
 		})
 	})
 
