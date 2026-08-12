@@ -20,6 +20,7 @@ const {
 	getAddress,
 	getBalance,
 	getHeight,
+	getKeyStatus,
 	getOutputs,
 	getTransfers,
 } = vi.hoisted(() => ({
@@ -27,6 +28,7 @@ const {
 	getAddress: vi.fn(),
 	getBalance: vi.fn(),
 	getHeight: vi.fn(),
+	getKeyStatus: vi.fn(),
 	getOutputs: vi.fn(),
 	getTransfers: vi.fn(),
 }))
@@ -36,6 +38,7 @@ vi.mock('$/sources/MoneroWalletRpc/JsonRpc/queries.ts', () => ({
 	getAddress,
 	getBalance,
 	getHeight,
+	getKeyStatus,
 	getOutputs,
 	getTransfers,
 }))
@@ -70,6 +73,7 @@ describe('Monero local wallet journey', () => {
 		getAddress.mockReset()
 		getBalance.mockReset()
 		getHeight.mockReset()
+		getKeyStatus.mockReset()
 		getOutputs.mockReset()
 		getTransfers.mockReset()
 		getAccounts.mockResolvedValue({
@@ -101,6 +105,10 @@ describe('Monero local wallet journey', () => {
 			}],
 		})
 		getHeight.mockResolvedValue({ height: 100 })
+		getKeyStatus.mockResolvedValue({
+			viewKeyFingerprint: 'b'.repeat(64),
+			spendKeyAvailable: false,
+		})
 		getOutputs.mockResolvedValue({ outputs: [] })
 		getTransfers.mockResolvedValue({})
 	})
@@ -120,6 +128,8 @@ describe('Monero local wallet journey', () => {
 				},
 			},
 			primaryAddress: '48primary',
+			viewKeyFingerprint: 'b'.repeat(64),
+			spendKeyAvailable: false,
 		})
 		expect(snapshot.$$timestamps[0]).toMatchObject({
 			[EntityMetaKey.Selector]: {

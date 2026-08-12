@@ -38,6 +38,9 @@ export default entity({
 	viewOnly: {
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.MoneroWalletRpc_JsonRpc,
+		],
 	},
 	trustedDaemon: {
 		primitiveType: type('boolean'),
@@ -46,10 +49,16 @@ export default entity({
 	viewKeyFingerprint: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.MoneroWalletRpc_JsonRpc,
+		],
 	},
 	spendKeyAvailable: {
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.MoneroWalletRpc_JsonRpc,
+		],
 	},
 	$$timestamps: {
 		entityType: EntityType.BlockheadMoneroWalletState_Timestamp,

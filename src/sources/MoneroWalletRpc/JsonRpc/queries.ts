@@ -5,6 +5,7 @@ import {
 	moneroWalletAddressesWire,
 	moneroWalletBalanceWire,
 	moneroWalletHeightWire,
+	moneroWalletKeyWire,
 	moneroWalletOutputsWire,
 	moneroWalletTransfersWire,
 } from '$/sources/MoneroWalletRpc/JsonRpc/types.ts'
@@ -56,6 +57,25 @@ export const getHeight = (
 ) => (
 	request(binding, 'get_height', moneroWalletHeightWire)
 )
+
+export const getKeyStatus = async (
+	binding: SourceBinding
+) => {
+	const [viewKey, spendKey] = await Promise.all([
+		request(binding, 'query_key', moneroWalletKeyWire, { key_type: 'view_key' }),
+		request(binding, 'query_key', moneroWalletKeyWire, { key_type: 'spend_key' }),
+	])
+	if (!/^[0-9a-f]{64}$/i.test(viewKey.key) || !/^[0-9a-f]{64}$/i.test(spendKey.key))
+		throw new Error('MoneroWalletRpc_JsonRpc: invalid wallet key response')
+
+	return {
+		viewKeyFingerprint: [...new Uint8Array(await crypto.subtle.digest(
+			'SHA-256',
+			new TextEncoder().encode(viewKey.key.toLowerCase())
+		))].map((byte) => byte.toString(16).padStart(2, '0')).join(''),
+		spendKeyAvailable: !/^0{64}$/.test(spendKey.key),
+	}
+}
 
 export const getOutputs = async (
 	binding: SourceBinding

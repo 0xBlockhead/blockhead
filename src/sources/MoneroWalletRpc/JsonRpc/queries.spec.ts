@@ -21,6 +21,7 @@ const {
 	getAddress,
 	getBalance,
 	getHeight,
+	getKeyStatus,
 	getOutputs,
 	getTransfers,
 } = await import('$/sources/MoneroWalletRpc/JsonRpc/queries.ts')
@@ -120,6 +121,31 @@ describe('Monero wallet RPC reads', () => {
 			failed: true,
 			pool: true,
 		})
+	})
+
+	it('projects wallet key capability without exposing private key material', async () => {
+		jsonRpc2
+			.mockResolvedValueOnce({ key: 'a'.repeat(64) })
+			.mockResolvedValueOnce({ key: '0'.repeat(64) })
+
+		const keyStatus = await getKeyStatus(binding)
+		expect(keyStatus).toEqual({
+			viewKeyFingerprint: expect.stringMatching(/^[0-9a-f]{64}$/),
+			spendKeyAvailable: false,
+		})
+		expect(keyStatus.viewKeyFingerprint).not.toContain('a'.repeat(32))
+		expect(jsonRpc2).toHaveBeenNthCalledWith(1, binding, 'query_key', {
+			key_type: 'view_key',
+		})
+		expect(jsonRpc2).toHaveBeenNthCalledWith(2, binding, 'query_key', {
+			key_type: 'spend_key',
+		})
+	})
+
+	it('fails closed on malformed wallet key material', async () => {
+		jsonRpc2.mockResolvedValue({ key: 'not-a-private-key' })
+
+		await expect(getKeyStatus(binding)).rejects.toThrow('invalid wallet key response')
 	})
 
 	it('fails closed on malformed local wallet data', async () => {

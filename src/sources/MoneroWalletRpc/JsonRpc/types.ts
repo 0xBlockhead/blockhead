@@ -53,6 +53,10 @@ export type MoneroWalletHeight = {
 	height: number
 }
 
+export type MoneroWalletKey = {
+	key: string
+}
+
 export type MoneroWalletOutput = {
 	amount: number
 	amount_index: number
@@ -145,6 +149,9 @@ export const moneroWalletBalanceWire = arktype({
 export const moneroWalletHeightWire = arktype({
 	height: nonNegativeInteger,
 }) satisfies Type<MoneroWalletHeight>
+export const moneroWalletKeyWire = arktype({
+	key: 'string > 0',
+}) satisfies Type<MoneroWalletKey>
 const walletOutputWire = arktype({
 	amount: nonNegativeInteger,
 	amount_index: nonNegativeInteger,

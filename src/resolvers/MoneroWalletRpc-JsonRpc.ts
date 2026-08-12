@@ -300,6 +300,7 @@ export default {
 							getAddress,
 							getBalance,
 							getHeight,
+							getKeyStatus,
 							getOutputs,
 							getTransfers,
 						} = await (
@@ -314,12 +315,14 @@ export default {
 							accounts,
 							balance,
 							height,
+							keyStatus,
 							outputs,
 							transfers,
 						] = await Promise.all([
 							getAccounts(binding),
 							getBalance(binding),
 							getHeight(binding),
+							getKeyStatus(binding),
 							getOutputs(binding),
 							getTransfers(binding),
 						])
@@ -345,6 +348,8 @@ export default {
 							...(primaryAccount?.base_address != null && {
 								primaryAddress: primaryAccount.base_address,
 							}),
+							viewKeyFingerprint: keyStatus.viewKeyFingerprint,
+							spendKeyAvailable: keyStatus.spendKeyAvailable,
 							$$subaddresses: subaddresses
 								.slice(0, resolverContextRowLimit(context))
 								.map(subaddressReference),
@@ -389,6 +394,8 @@ export default {
 			walletId: (wallet) => wallet.walletId,
 			$network: (wallet) => wallet.$network,
 			primaryAddress: (wallet) => wallet.primaryAddress,
+			viewKeyFingerprint: (wallet) => wallet.viewKeyFingerprint,
+			spendKeyAvailable: (wallet) => wallet.spendKeyAvailable,
 			$$subaddresses: (wallet) => wallet.$$subaddresses,
 			$$outputs: (wallet) => wallet.$$outputs,
 			$$transfers: (wallet) => wallet.$$transfers,

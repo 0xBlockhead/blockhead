@@ -9,6 +9,7 @@ import {
 	getAddress as getAddressFromClient,
 	getBalance as getBalanceFromClient,
 	getHeight as getHeightFromClient,
+	getKeyStatus as getKeyStatusFromClient,
 	getOutputs as getOutputsFromClient,
 	getTransfers as getTransfersFromClient,
 } from '$/sources/MoneroWalletRpc/JsonRpc/queries.ts'
@@ -19,6 +20,7 @@ const binding = bindings[Source.MoneroWalletRpc_JsonRpc][0]
 const accountsRemote = query(() => getAccountsFromClient(binding))
 const balanceRemote = query(() => getBalanceFromClient(binding))
 const heightRemote = query(() => getHeightFromClient(binding))
+const keyStatusRemote = query(() => getKeyStatusFromClient(binding))
 const outputsRemote = query(() => getOutputsFromClient(binding))
 const transfersRemote = query(() => getTransfersFromClient(binding))
 const addressRemote = query(
@@ -29,6 +31,7 @@ const addressRemote = query(
 export const getAccounts = (_binding: SourceBinding) => accountsRemote()
 export const getBalance = (_binding: SourceBinding) => balanceRemote()
 export const getHeight = (_binding: SourceBinding) => heightRemote()
+export const getKeyStatus = (_binding: SourceBinding) => keyStatusRemote()
 export const getOutputs = (_binding: SourceBinding) => outputsRemote()
 export const getTransfers = (_binding: SourceBinding) => transfersRemote()
 export const getAddress = (_binding: SourceBinding, accountIndex: number) => addressRemote(accountIndex)
