@@ -264,6 +264,58 @@ describe('Wormholescan BridgeTransfer resolvers', () => {
 		})).rejects.toThrow('Wormholescan_Rest: observation clock mismatch')
 	})
 
+	it('fails closed on contradictory operation chain coordinates', async () => {
+		const resolver = wormholescanRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.BridgeTransfer
+		))
+		if (resolver == null)
+			throw new Error('Wormholescan BridgeTransfer resolver is not registered')
+
+		getOperationById.mockResolvedValueOnce({
+			...operation,
+			content: {
+				standarizedProperties: {
+					...operation.content.standarizedProperties,
+					fromChain: 23,
+				},
+			},
+		})
+		await expect(resolver.resolve.SourceTransferId.resolve(transfer))
+			.rejects.toThrow('source chain coordinates disagree')
+
+		getOperationById.mockResolvedValueOnce({
+			...operation,
+			sourceChain: {
+				...operation.sourceChain,
+				chainId: 23,
+			},
+			content: undefined,
+		})
+		await expect(resolver.resolve.SourceTransferId.resolve(transfer))
+			.rejects.toThrow('emitter and source chains disagree')
+	})
+
+	it('does not attach destination lifecycle facts to the source clock', async () => {
+		getOperationById.mockResolvedValue({
+			...operation,
+			targetChain: {
+				...operation.targetChain,
+				timestamp: undefined,
+			},
+		})
+		const resolver = wormholescanRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.BridgeTransfer_Timestamp
+		))
+		if (resolver == null)
+			throw new Error('Wormholescan BridgeTransfer_Timestamp resolver is not registered')
+
+		await expect(resolver.resolve.TransferTimestampMsSource.resolve({
+			$transfer: transfer,
+			timestampMs: Date.parse(operation.sourceChain.timestamp),
+			source: Source.Wormholescan,
+		})).rejects.toThrow('destination lifecycle facts lack a destination clock')
+	})
+
 	it('rejects foreign bridge transfer sources before transport', async () => {
 		const resolver = wormholescanRest.resolvers.find((candidate) => (
 			candidate.entityType === EntityType.BridgeTransfer

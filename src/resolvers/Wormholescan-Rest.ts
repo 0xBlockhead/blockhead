@@ -186,6 +186,23 @@ const bridgeTransferSnapshotFromOperation = (
 		presentWormholeChainId(properties?.toChain)
 		?? presentWormholeChainId(operation.targetChain?.chainId)
 	)
+	if (
+		presentWormholeChainId(properties?.fromChain) != null
+		&& operation.sourceChain?.chainId != null
+		&& properties.fromChain !== operation.sourceChain.chainId
+	)
+		throw new Error('Wormholescan_Rest: source chain coordinates disagree')
+	if (
+		presentWormholeChainId(properties?.toChain) != null
+		&& operation.targetChain?.chainId != null
+		&& properties.toChain !== operation.targetChain.chainId
+	)
+		throw new Error('Wormholescan_Rest: destination chain coordinates disagree')
+	if (
+		operation.sourceChain?.chainId != null
+		&& operation.sourceChain.chainId !== operation.emitterChain
+	)
+		throw new Error('Wormholescan_Rest: emitter and source chains disagree')
 	const fromNetwork = eip155NetworkRef(fromWormholeChainId)
 	const toNetwork = eip155NetworkRef(toWormholeChainId)
 	const sourceTxHash = evmTxHashFromWormholeWire(operation.sourceChain?.transaction?.txHash)
@@ -206,6 +223,16 @@ const bridgeTransferSnapshotFromOperation = (
 	const bridgeFeeUsd = nonNegativeUsdFee(operation.sourceChain?.feeUSD)
 	const sourceTransactionAtMs = timestampMsFromIso(operation.sourceChain?.timestamp)
 	const destinationTransactionAtMs = timestampMsFromIso(operation.targetChain?.timestamp)
+	if (
+		destinationTransactionAtMs == null
+		&& (
+			operation.targetChain?.status != null
+			|| operation.targetChain?.transaction?.txHash != null
+			|| operation.targetChain?.fee != null
+			|| operation.targetChain?.feeUSD != null
+		)
+	)
+		throw new Error('Wormholescan_Rest: destination lifecycle facts lack a destination clock')
 	if (
 		sourceTransactionAtMs != null
 		&& destinationTransactionAtMs != null
@@ -422,6 +449,7 @@ export default {
 							throw new Error(`Wormholescan_Rest: unsupported bridge transfer timestamp source ${source}`)
 
 						const operation = await loadOperationForTransfer($transfer)
+						bridgeTransferSnapshotFromOperation($transfer, operation)
 						const observedAtMs = (
 							timestampMsFromIso(operation.targetChain?.timestamp)
 							?? timestampMsFromIso(operation.sourceChain?.timestamp)
