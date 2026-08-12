@@ -615,8 +615,7 @@ export const getCommitteesFromWire = (
 	if (!isJsonObject(wire)) return []
 	const data = wire.data
 	if (!Array.isArray(data)) return []
-	return (
-		data.flatMap((committeeWire) => {
+	const committees = data.flatMap((committeeWire) => {
 			const committee = beaconCommitteeWire(committeeWire)
 			if (
 				committee instanceof arktype.errors
@@ -626,7 +625,7 @@ export const getCommitteesFromWire = (
 			) return []
 			return [committee]
 		})
-	)
+	return committees.length === data.length ? committees : []
 }
 
 export const getCommittees = async (

@@ -737,6 +737,23 @@ describe('Beacon REST native committee wires', () => {
 			},
 		})).toBeUndefined()
 	})
+
+	it('fails closed instead of publishing a partial committee page', () => {
+		expect(getCommitteesFromWire({
+			data: [
+				{
+					index: '1',
+					slot: '64',
+					validators: ['2'],
+				},
+				{
+					index: '2',
+					slot: '64',
+					validators: ['not-a-validator-index'],
+				},
+			],
+		})).toEqual([])
+	})
 })
 
 describe('Beacon REST native validator wire', () => {

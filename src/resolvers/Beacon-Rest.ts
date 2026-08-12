@@ -904,6 +904,9 @@ export default {
 										slot,
 										indexInSlot: Number(committee.index),
 									},
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.BeaconCommittee, [], 'validatorIndices')]: committee.validators.map(Number),
+									},
 								}))
 						)
 					},
@@ -972,6 +975,9 @@ export default {
 										$network: { caip2 },
 										slot: Number(committee.slot),
 										indexInSlot: Number(committee.index),
+									},
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.BeaconCommittee, [], 'validatorIndices')]: committee.validators.map(Number),
 									},
 								}))
 						)

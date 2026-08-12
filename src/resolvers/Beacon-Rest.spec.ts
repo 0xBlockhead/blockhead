@@ -103,6 +103,15 @@ const headSlotResolver = beaconRest.resolvers.find((resolver) => (
 	&& 'Evm' in resolver.projections
 	&& '$$beaconSlots' in resolver.projections.Evm
 ))
+const committeesListResolver = beaconRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.Network
+	&& 'Evm' in resolver.projections
+	&& '$$beaconCommittees' in resolver.projections.Evm
+))
+const slotCommitteesListResolver = beaconRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.BeaconSlot
+	&& '$$beaconCommittees' in resolver.projections
+))
 const syncCommitteesListResolver = beaconRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.Network
 	&& 'Evm' in resolver.projections
@@ -127,6 +136,8 @@ if (
 	|| slashingResolver == null
 	|| headerResolver == null
 	|| headSlotResolver == null
+	|| committeesListResolver == null
+	|| slotCommitteesListResolver == null
 	|| syncCommitteesListResolver == null
 	|| consensusEndpointsResolver == null
 ) throw new Error('Beacon REST checkpoint and fork resolvers are not registered')
@@ -164,6 +175,18 @@ const resolveHeadSlots = (
 	:
 		undefined
 )
+const resolveCommitteesList = (
+	'Caip2' in committeesListResolver.resolve ?
+		committeesListResolver.resolve.Caip2.resolve
+	:
+		undefined
+)
+const resolveSlotCommitteesList = (
+	'EvmNetworkSlot' in slotCommitteesListResolver.resolve ?
+		slotCommitteesListResolver.resolve.EvmNetworkSlot.resolve
+	:
+		undefined
+)
 const resolveSyncCommitteesList = (
 	'Caip2' in syncCommitteesListResolver.resolve ?
 		syncCommitteesListResolver.resolve.Caip2.resolve
@@ -176,6 +199,8 @@ if (resolveHeaderBySlot == null)
 	throw new Error('Beacon REST header resolver does not accept slots')
 if (resolveHeadSlots == null)
 	throw new Error('Beacon REST head-slot resolver does not accept CAIP-2 networks')
+if (resolveCommitteesList == null || resolveSlotCommitteesList == null)
+	throw new Error('Beacon REST committee list resolvers are not registered')
 if (resolveSyncCommitteesList == null)
 	throw new Error('Beacon REST sync-committee list resolver does not accept CAIP-2 networks')
 
@@ -338,6 +363,51 @@ describe('Beacon REST checkpoint and fork projections', () => {
 			1,
 			'64'
 		)
+	})
+
+	it('materializes committee membership in network and slot lists without detail refetches', async () => {
+		getCommittees.mockResolvedValue([
+			{
+				index: '1',
+				slot: '64',
+				validators: [
+					'2',
+					'3',
+				],
+			},
+		])
+		const context = {
+			filters: [],
+			sorts: [],
+			pagination: {
+				limit: 10,
+			},
+			selectorKeys: [],
+			parentSelectorKeys: [],
+			sources: [],
+			publicEnv: {},
+		}
+		const expectedCommittee = {
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				slot: 64,
+				indexInSlot: 1,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.BeaconCommittee, [], 'validatorIndices')]: [
+					2,
+					3,
+				],
+			},
+		}
+
+		await expect(resolveCommitteesList(network, context)).resolves.toEqual([expectedCommittee])
+		await expect(resolveSlotCommitteesList({
+			$network: network,
+			slot: 64,
+		}, context)).resolves.toEqual([expectedCommittee])
+		expect(getCommittees).toHaveBeenNthCalledWith(1, 1)
+		expect(getCommittees).toHaveBeenNthCalledWith(2, 1, '64')
 	})
 
 	it('projects tip BeaconValidator fields and $$timestamps from head-slot state', async () => {
