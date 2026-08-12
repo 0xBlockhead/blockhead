@@ -39,6 +39,9 @@ type BeaconNodeVersionWire = (
 type BeaconSyncingWire = (
 	operations['getSyncingStatus']['responses'][200]['content']['application/json']['data']
 )
+type BeaconProposerDutyWire = (
+	operations['getProposerDuties']['responses'][200]['content']['application/json']['data'][number]
+)
 
 const beaconHeaderWire = arktype({
 	root: 'string',
@@ -92,6 +95,12 @@ const beaconSyncingWire = arktype({
 	is_optimistic: 'boolean',
 	el_offline: 'boolean',
 }) satisfies Type<BeaconSyncingWire>
+
+const beaconProposerDutyWire = arktype({
+	pubkey: 'string',
+	validator_index: 'string',
+	slot: 'string',
+}) satisfies Type<BeaconProposerDutyWire>
 
 const isUint64Wire = (value: string) => (
 	/^[0-9]+$/.test(value)
@@ -735,6 +744,40 @@ export const getCommittees = async (
 	})
 	if (!res.ok) await throwHttpError('Beacon GET committees', res)
 	return getCommitteesFromWire(await res.json<JsonValue>())
+}
+
+export const getProposerDutiesFromWire = (
+	wire: JsonValue
+) => {
+	if (!isJsonObject(wire) || !Array.isArray(wire.data)) return []
+	const duties = wire.data.flatMap((dutyWire) => {
+		const duty = beaconProposerDutyWire(dutyWire)
+		if (
+			duty instanceof arktype.errors
+			|| !/^0x[0-9a-fA-F]{96}$/.test(duty.pubkey)
+			|| !isNonNegativeSafeIntegerWire(duty.validator_index)
+			|| !isNonNegativeSafeIntegerWire(duty.slot)
+		) return []
+		return [duty]
+	})
+	if (
+		duties.length !== wire.data.length
+		|| new Set(duties.map((duty) => duty.slot)).size !== duties.length
+	) return []
+	return duties
+}
+
+export const getProposerDuties = async (
+	chainId: number,
+	epoch: number
+) => {
+	if (!Number.isSafeInteger(epoch) || epoch < 0)
+		throw new Error(`Beacon_Rest: invalid proposer duty epoch ${String(epoch)}`)
+	const res = await beaconFetch(chainId, `/eth/v1/validator/duties/proposer/${String(epoch)}`, {
+		headers: { accept: 'application/json' },
+	})
+	if (!res.ok) await throwHttpError('Beacon GET proposer duties', res)
+	return getProposerDutiesFromWire(await res.json<JsonValue>())
 }
 
 export const getSyncCommitteeFromWire = (

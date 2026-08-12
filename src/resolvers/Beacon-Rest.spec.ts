@@ -25,6 +25,7 @@ import { Source } from '$/sources/Source.ts'
 const getFinalityCheckpoints = vi.hoisted(() => vi.fn())
 const getForkSchedule = vi.hoisted(() => vi.fn())
 const getCommittees = vi.hoisted(() => vi.fn())
+const getProposerDuties = vi.hoisted(() => vi.fn())
 const getSyncCommittee = vi.hoisted(() => vi.fn())
 const getValidator = vi.hoisted(() => vi.fn())
 const getBlockDutySummary = vi.hoisted(() => vi.fn())
@@ -47,6 +48,7 @@ vi.mock('$/sources/Beacon/Rest/queries.ts', async (importOriginal) => ({
 	getFinalityCheckpoints,
 	getForkSchedule,
 	getCommittees,
+	getProposerDuties,
 	getSyncCommittee,
 	getValidator,
 	getBlockDutySummary,
@@ -748,6 +750,18 @@ describe('Beacon REST checkpoint and fork projections', () => {
 	})
 
 	it('materializes bounded epoch slot history with native header facts', async () => {
+		getProposerDuties.mockResolvedValue([
+			{
+				pubkey: `0x${'1'.repeat(96)}`,
+				validator_index: '12',
+				slot: '64',
+			},
+			{
+				pubkey: `0x${'2'.repeat(96)}`,
+				validator_index: '13',
+				slot: '65',
+			},
+		])
 		getHeadersAtSlot.mockImplementation(async (_chainId, slot) => [{
 			root: `0x${String(slot).padStart(64, '0')}`,
 			canonical: true,
@@ -811,8 +825,40 @@ describe('Beacon REST checkpoint and fork projections', () => {
 		])
 		expect(getHeadersAtSlot).toHaveBeenNthCalledWith(1, 1, 64)
 		expect(getHeadersAtSlot).toHaveBeenNthCalledWith(2, 1, 65)
+		expect(getProposerDuties).toHaveBeenCalledWith(1, 2)
 		expect(getBlockRewards).toHaveBeenNthCalledWith(1, 1, 64)
 		expect(getBlockRewards).toHaveBeenNthCalledWith(2, 1, 65)
+	})
+
+	it('preserves missed proposer duties as native slot identities', async () => {
+		getProposerDuties.mockResolvedValue([{
+			pubkey: `0x${'1'.repeat(96)}`,
+			validator_index: '22',
+			slot: '96',
+		}])
+		getHeadersAtSlot.mockResolvedValue([])
+
+		await expect(epochSlotsResolver.resolve.EvmNetworkEpoch.resolve({
+			$network: network,
+			epoch: 3,
+		}, {
+			filters: [],
+			sorts: [],
+			pagination: { limit: 1 },
+			selectorKeys: [],
+			parentSelectorKeys: [],
+			publicEnv: {},
+		})).resolves.toEqual([{
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				slot: 96,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.BeaconSlot, [], 'epoch')]: 3,
+				[entityFieldAddressKey(EntityType.BeaconSlot, [], 'proposerIndex')]: 22,
+			},
+		}])
+		expect(getBlockRewards).not.toHaveBeenCalled()
 	})
 
 	it('projects coordinate-bound proposer reward components onto the slot owner', async () => {

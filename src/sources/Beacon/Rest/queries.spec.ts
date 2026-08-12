@@ -31,6 +31,8 @@ import {
 	getNodeIdentityObservation,
 	getNodeHealthObservation,
 	getNodeVersionObservation,
+	getProposerDuties,
+	getProposerDutiesFromWire,
 	getNodeSyncingFromWire,
 	getNodeSyncingObservation,
 	getRecentProposerValidatorIndices,
@@ -845,6 +847,45 @@ describe('Beacon REST native scalar clocks', () => {
 })
 
 describe('Beacon REST native committee wires', () => {
+	it('preserves complete proposer duty schedules and rejects duplicate slots', () => {
+		const duty = {
+			pubkey: `0x${'a'.repeat(96)}`,
+			validator_index: '12',
+			slot: '64',
+		}
+		expect(getProposerDutiesFromWire({ data: [duty] })).toEqual([duty])
+		expect(getProposerDutiesFromWire({ data: [duty, duty] })).toEqual([])
+		expect(getProposerDutiesFromWire({
+			data: [
+				duty,
+				{
+					...duty,
+					validator_index: 'unsafe',
+					slot: '65',
+				},
+			],
+		})).toEqual([])
+	})
+
+	it('requests proposer duties by epoch', async () => {
+		const duty = {
+			pubkey: `0x${'a'.repeat(96)}`,
+			validator_index: '12',
+			slot: '64',
+		}
+		const sourceFetch = vi.spyOn(sourceHttp, 'sourceFetch').mockResolvedValue(
+			new Response(JSON.stringify({ data: [duty] }))
+		)
+
+		await expect(getProposerDuties(1, 2)).resolves.toEqual([duty])
+		expect(String(sourceFetch.mock.calls[0]?.[1])).toContain(
+			'/eth/v1/validator/duties/proposer/2'
+		)
+		await expect(getProposerDuties(1, -1)).rejects.toThrow(
+			'invalid proposer duty epoch -1'
+		)
+	})
+
 	it('preserves committee decimal strings and native membership keys', () => {
 		expect(getCommitteesFromWire({
 			data: [
