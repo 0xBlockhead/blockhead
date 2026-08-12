@@ -362,6 +362,7 @@ export default {
 							[entityFieldAddressKey(EntityType.GitForgeRelease, [], 'name')]: release.name,
 						}),
 						[entityFieldAddressKey(EntityType.GitForgeRelease, [], 'targetObjectId')]: `0x${release.commit.id}`,
+						[entityFieldAddressKey(EntityType.GitForgeRelease, [], 'draft')]: false,
 						...(release.author != null && {
 							[entityFieldAddressKey(EntityType.GitForgeRelease, [], 'authorSelector')]: release.author,
 						}),
@@ -784,6 +785,7 @@ export default {
 							releaseTagName,
 							...(release.name != null && { name: release.name }),
 							targetObjectId: `0x${release.commit.id}`,
+							draft: false,
 							...(release.author != null && { authorSelector: release.author }),
 							createdAt: gitlabTimestampMs(release.created_at),
 							publishedAt: gitlabTimestampMs(release.released_at),
@@ -796,6 +798,7 @@ export default {
 			releaseTagName: (release) => release.releaseTagName,
 			name: (release) => release.name,
 			targetObjectId: (release) => release.targetObjectId,
+			draft: (release) => release.draft,
 			authorSelector: (release) => release.authorSelector,
 			createdAt: (release) => release.createdAt,
 			publishedAt: (release) => release.publishedAt,

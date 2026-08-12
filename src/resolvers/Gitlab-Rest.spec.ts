@@ -348,6 +348,7 @@ describe('GitLab repository journey', () => {
 			[EntityMetaKey.Selector]: { releaseTagName: 'v1.0.0' },
 			[EntityMetaKey.Fields]: {
 				[entityFieldAddressKey(EntityType.GitForgeRelease, [], 'targetObjectId')]: `0x${'d'.repeat(40)}`,
+				[entityFieldAddressKey(EntityType.GitForgeRelease, [], 'draft')]: false,
 			},
 		})
 		expect(getIssues).toHaveBeenCalledWith(expect.objectContaining({ page: 1, perPage: 1 }))
@@ -626,6 +627,7 @@ describe('GitLab repository journey', () => {
 			releaseTagName: 'v1.0.0',
 			name: 'Version 1.0.0',
 			targetObjectId: `0x${'d'.repeat(40)}`,
+			draft: false,
 			publishedAt: Date.parse('2026-03-02T00:00:00Z'),
 			authorSelector: {
 				id: 9,
