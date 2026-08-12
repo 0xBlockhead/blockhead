@@ -1477,6 +1477,8 @@ export enum EntityType {
 	NostrRelay_Timestamp = "NostrRelay_Timestamp",
 	NostrRepost = "NostrRepost",
 	NostrSearchQuery = "NostrSearchQuery",
+	OciDescriptor = "OciDescriptor",
+	OciManifest = "OciManifest",
 	OracleFeed = "OracleFeed",
 	OracleFeed_Round = "OracleFeed_Round",
 	OracleFeed_Timestamp = "OracleFeed_Timestamp",
@@ -49973,6 +49975,71 @@ export const schema = {
 			}),
 
 			entity({
+				entityType: EntityType.OciDescriptor,
+				labels: {
+					singular: "OCI descriptor",
+					plural: "OCI descriptors",
+				},
+				description: "A config, layer, child-manifest, or subject descriptor declared by one OCI manifest.",
+			})({
+				"$manifest": { label: "manifest", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.OciManifest },
+				"descriptorKind": { label: "descriptor kind", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"descriptorIndex": { label: "descriptor index", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
+				"mediaType": { label: "media type", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string", defaultSources: [Source.OciRegistry_Distribution] },
+				"digest": { label: "digest", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string", defaultSources: [Source.OciRegistry_Distribution] },
+				"sizeBytes": { label: "size", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number", defaultSources: [Source.OciRegistry_Distribution] },
+				"urls": { label: "URLs", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "urlString", defaultSources: [Source.OciRegistry_Distribution] },
+			})({
+				selectors: {
+					"ManifestKindIndex": ["$manifest", "descriptorKind", "descriptorIndex"],
+				},
+				views: {
+					singular: {
+						query: { sources: [Source.OciRegistry_Distribution] },
+						summary: { title: ["descriptorKind"], value: [{ field: "digest", format: "truncated" }], HeadingAfter: [{ field: "sizeBytes", format: "number" }] },
+						content: { dl: [["$manifest", "descriptorKind", { field: "descriptorIndex", format: "number" }], ["mediaType", { field: "digest", format: "truncated" }, { field: "sizeBytes", format: "number" }, "urls"]] },
+					},
+					plural: { component: "OciDescriptorsView" },
+				},
+			}),
+
+			entity({
+				entityType: EntityType.OciManifest,
+				labels: {
+					singular: "OCI manifest",
+					plural: "OCI manifests",
+				},
+				description: "An OCI image manifest or image index addressed by registry, repository, and tag or digest.",
+			})({
+				"registry": { label: "registry", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"repository": { label: "repository", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "opaqueRouteIdentifier" },
+				"reference": { label: "reference", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "opaqueRouteIdentifier" },
+				"contentDigest": { label: "content digest", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.OciRegistry_Distribution] },
+				"mediaType": { label: "media type", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.OciRegistry_Distribution] },
+				"artifactType": { label: "artifact type", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.OciRegistry_Distribution] },
+				"$config": { label: "config", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.OciDescriptor, defaultSources: [Source.OciRegistry_Distribution] },
+				"$subject": { label: "subject", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.OciDescriptor, defaultSources: [Source.OciRegistry_Distribution] },
+				"$$layers": { label: "layers", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.OciDescriptor, defaultSources: [Source.OciRegistry_Distribution] },
+				"$$manifests": { label: "child manifests", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.OciDescriptor, defaultSources: [Source.OciRegistry_Distribution] },
+			})({
+				selectors: {
+					"RegistryRepositoryReference": ["registry", "repository", "reference"],
+				},
+				views: {
+					singular: {
+						query: { sources: [Source.OciRegistry_Distribution] },
+						summary: { title: ["repository"], value: ["reference"], HeadingAfter: ["artifactType", "mediaType"] },
+						content: { dl: [["registry", "repository", "reference"], [{ field: "contentDigest", format: "truncated" }, "mediaType", "artifactType", "$config", "$subject"]] },
+						lists: [
+							{ field: "$$layers", component: "OciDescriptorsView", label: "Layers", emptyText: "No layers declared." },
+							{ field: "$$manifests", component: "OciDescriptorsView", label: "Child manifests", emptyText: "No child manifests declared." },
+						],
+					},
+					plural: { component: "OciManifestsView" },
+				},
+			}),
+
+			entity({
 				entityType: EntityType.OracleFeed,
 				labels: {
 					singular: "oracle feed",
@@ -91552,7 +91619,75 @@ export const routes = defineRoutes(schema)({
 						}
 					}
 				},
-				"(reddit)": {
+		"(oci)": {
+			children: {
+				"oci": {
+					children: {
+						"registry": {
+							children: {
+								"[registry]": {
+									children: {
+										"repository": {
+											children: {
+												"[repository]": {
+													children: {
+														"manifest": {
+															children: {
+																"[reference]": {
+																	selectors: {
+																		[EntityType.OciManifest]: {
+																			"RegistryRepositoryReference": {
+																				params: { "registry": ["registry"], "repository": ["repository"], "reference": ["reference"] },
+																				page: {},
+																			},
+																		},
+																	},
+																	children: {
+																		"descriptor": {
+																			children: {
+																				"[descriptorKind]": {
+																					children: {
+																						"[descriptorIndex]": {
+																							selectors: {
+																								[EntityType.OciDescriptor]: {
+																									"ManifestKindIndex": {
+																										params: { "descriptorKind": ["descriptorKind"], "descriptorIndex": ["descriptorIndex"] },
+																										derivations: {
+																											"$manifest": {
+																												kind: "object",
+																												fields: [
+																													{ name: "registry", value: { kind: "param", name: "registry" } },
+																													{ name: "repository", value: { kind: "param", name: "repository" } },
+																													{ name: "reference", value: { kind: "param", name: "reference" } },
+																												],
+																											},
+																										},
+																										page: {},
+																									},
+																								},
+																							},
+																						},
+																					},
+																				},
+																			},
+																		},
+																	},
+																},
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		"(reddit)": {
 					children: {
 						"reddit": {
 							selectors: {
@@ -114037,6 +114172,10 @@ export const app = {
 			{
 				source: Source.NostrRelay_WebSocket,
 				path: "src/resolvers/NostrRelay-WebSocket.ts",
+			},
+			{
+				source: Source.OciRegistry_Distribution,
+				path: "src/resolvers/OciRegistry-Distribution.ts",
 			},
 			{
 				source: Source.Ogmios_JsonRpc,

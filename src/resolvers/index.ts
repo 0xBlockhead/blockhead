@@ -150,6 +150,7 @@ const resolverLoaderEntries = [
 	}],
 	[Source.NostrRelay_Nip11_Http, () => import('./NostrRelay-Nip11-Http.ts')],
 	[Source.NostrRelay_WebSocket, () => import('./NostrRelay-WebSocket.ts')],
+	[Source.OciRegistry_Distribution, () => import('./OciRegistry-Distribution.ts')],
 	[Source.Ogmios_JsonRpc, () => import('./Ogmios-JsonRpc.ts')],
 	[Source.OpenAI_Rest, () => import('./OpenAI-Rest.ts')],
 	[Source.Openchain_Rest, () => import('./Openchain-Rest.ts')],

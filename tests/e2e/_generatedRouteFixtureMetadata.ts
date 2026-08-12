@@ -10646,6 +10646,34 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
+	'/(social)/(oci)/oci/registry/[registry]/repository/[repository]/manifest/[reference]': {
+		routeId: '/(social)/(oci)/oci/registry/[registry=stringSegment]/repository/[repository=stringSegment]/manifest/[reference=stringSegment]',
+		parameterEncodingByName: {
+			repository: 'Opaque',
+			reference: 'Opaque',
+		},
+		mappings: [
+			{
+				id: 'OciManifest.RegistryRepositoryReference',
+				probeAtomPrefixes: ['/oci/registry/[registry]/repository/[repository]/manifest/[reference]:OciManifest.RegistryRepositoryReference'],
+				probeCases: [[[0, '1', ['registry', 'repository', 'reference']]]],
+			},
+		],
+	},
+	'/(social)/(oci)/oci/registry/[registry]/repository/[repository]/manifest/[reference]/descriptor/[descriptorKind]/[descriptorIndex]': {
+		routeId: '/(social)/(oci)/oci/registry/[registry=stringSegment]/repository/[repository=stringSegment]/manifest/[reference=stringSegment]/(ociManifest)/descriptor/[descriptorKind=stringSegment]/[descriptorIndex=nonNegativeInteger]',
+		parameterEncodingByName: {
+			repository: 'Opaque',
+			reference: 'Opaque',
+		},
+		mappings: [
+			{
+				id: 'OciDescriptor.ManifestKindIndex',
+				probeAtomPrefixes: ['/oci/registry/[registry]/repository/[repository]/manifest/[reference]/descriptor/[descriptorKind]/[descriptorIndex]:OciDescriptor.ManifestKindIndex'],
+				probeCases: [[[0, '1', ['descriptorKind', 'descriptorIndex', 'registry', 'repository', 'reference']]]],
+			},
+		],
+	},
 	'/(social)/(reddit)/reddit/comment/[fullname]': {
 		routeId: '/(social)/(reddit)/reddit/(globalRedditNetwork)/comment/[fullname=stringSegment]',
 		parameterEncodingByName: {

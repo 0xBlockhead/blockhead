@@ -778,6 +778,8 @@ export enum EntityType {
 	NostrRelay_Timestamp = 'NostrRelay_Timestamp',
 	NostrRepost = 'NostrRepost',
 	NostrSearchQuery = 'NostrSearchQuery',
+	OciDescriptor = 'OciDescriptor',
+	OciManifest = 'OciManifest',
 	OracleFeed = 'OracleFeed',
 	OracleFeed_Round = 'OracleFeed_Round',
 	OracleFeed_Timestamp = 'OracleFeed_Timestamp',

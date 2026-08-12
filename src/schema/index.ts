@@ -778,6 +778,8 @@ import NostrRelay_TimestampSchema from '$/schema/NostrRelay_Timestamp.ts'
 import NostrRelaySchema from '$/schema/NostrRelay.ts'
 import NostrRepostSchema from '$/schema/NostrRepost.ts'
 import NostrSearchQuerySchema from '$/schema/NostrSearchQuery.ts'
+import OciDescriptorSchema from '$/schema/OciDescriptor.ts'
+import OciManifestSchema from '$/schema/OciManifest.ts'
 import OracleFeed_RoundSchema from '$/schema/OracleFeed_Round.ts'
 import OracleFeed_TimestampSchema from '$/schema/OracleFeed_Timestamp.ts'
 import OracleFeedSchema from '$/schema/OracleFeed.ts'
@@ -1881,6 +1883,8 @@ const schemaChunk15 = [
 	NostrRelay_TimestampSchema,
 	NostrRepostSchema,
 	NostrSearchQuerySchema,
+	OciDescriptorSchema,
+	OciManifestSchema,
 	OracleFeedSchema,
 	OracleFeed_RoundSchema,
 	OracleFeed_TimestampSchema,
@@ -1902,11 +1906,11 @@ const schemaChunk15 = [
 	PolkadotAssetBalance_TimestampSchema,
 	PolkadotBlockSchema,
 	PolkadotEventSchema,
-	PolkadotExtrinsicSchema,
-	PolkadotPalletSchema,
 ] as const
 
 const schemaChunk16 = [
+	PolkadotExtrinsicSchema,
+	PolkadotPalletSchema,
 	PolkadotReferendumSchema,
 	PolkadotReferendum_TimestampSchema,
 	PolkadotValidatorSchema,
@@ -1955,11 +1959,11 @@ const schemaChunk16 = [
 	SolanaTokenAccount_TimestampSchema,
 	SolanaTokenMintSchema,
 	SolanaTokenMint_TimestampSchema,
-	SolanaTransactionSchema,
-	SolanaTransaction_TimestampSchema,
 ] as const
 
 const schemaChunk17 = [
+	SolanaTransactionSchema,
+	SolanaTransaction_TimestampSchema,
 	SolanaValidatorSchema,
 	SolanaValidator_TimestampSchema,
 	SorobanContractSchema,
@@ -2008,11 +2012,11 @@ const schemaChunk17 = [
 	SuiBalanceChangeSchema,
 	SuiCheckpointSchema,
 	SuiCoinBalance_TimestampSchema,
-	SuiCoinTypeSchema,
-	SuiDynamicFieldEdgeSchema,
 ] as const
 
 const schemaChunk18 = [
+	SuiCoinTypeSchema,
+	SuiDynamicFieldEdgeSchema,
 	SuiDynamicFieldEdge_TimestampSchema,
 	SuiEventSchema,
 	SuiNetworkSchema,
@@ -2061,11 +2065,11 @@ const schemaChunk18 = [
 	TezosTokenBalance_TimestampSchema,
 	TezosTokenTransferSchema,
 	TokenMetadataDocumentSchema,
-	TokenProgramExtension_TimestampSchema,
-	TonAccountSchema,
 ] as const
 
 const schemaChunk19 = [
+	TokenProgramExtension_TimestampSchema,
+	TonAccountSchema,
 	TonAccount_TimestampSchema,
 	TonBlockSchema,
 	TonContractSchema,
@@ -2114,11 +2118,11 @@ const schemaChunk19 = [
 	UniswapV3Position_BlockSchema,
 	UrlSchema,
 	UrlPreview_TimestampSchema,
-	UsageRight_TimestampSchema,
-	UtxoAddressSchema,
 ] as const
 
 const schemaChunk20 = [
+	UsageRight_TimestampSchema,
+	UtxoAddressSchema,
 	UtxoAddress_TimestampSchema,
 	UtxoBlockSchema,
 	UtxoInputSchema,
@@ -2167,11 +2171,11 @@ const schemaChunk20 = [
 	ZeroGDataChunkSchema,
 	ZeroGKvEntrySchema,
 	ZeroGNetworkSchema,
-	ZeroGNetwork_TimestampSchema,
-	ZeroGServiceProviderSchema,
 ] as const
 
 const schemaChunk21 = [
+	ZeroGNetwork_TimestampSchema,
+	ZeroGServiceProviderSchema,
 	ZeroGServiceRequestSchema,
 	ZeroGSettlementTraceSchema,
 	ZeroGStorageLogEntrySchema,
