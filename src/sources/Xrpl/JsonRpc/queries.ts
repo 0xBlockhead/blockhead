@@ -96,10 +96,11 @@ export const getLedger = async (
 			expand: false,
 		}])
 	)
+	if (specifier === 'validated' && !ledger.validated)
+		throw new Error('Xrpl_Rippled: ledger is not validated')
 	if (
 		(typeof specifier === 'object' && ledger.ledger_hash.toLowerCase() !== specifier.ledgerHash.toLowerCase())
 		|| (typeof specifier === 'number' && ledger.ledger_index !== specifier)
-		|| (specifier === 'validated' && !ledger.validated)
 	)
 		throw new Error('Xrpl_Rippled: ledger response does not match request')
 	return ledger

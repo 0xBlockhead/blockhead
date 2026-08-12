@@ -107,7 +107,7 @@ describe('Xrpl_Rippled ledger transport', () => {
 		await expect(getLedger({
 			ledgerHash: validatedLedger.ledger_hash,
 		})).rejects.toThrow('ledger response does not match request')
-		await expect(getValidatedLedger()).rejects.toThrow('ledger response does not match request')
+	await expect(getValidatedLedger()).rejects.toThrow('ledger is not validated')
 		await expect(getLedger({
 			ledgerHash: 'not-a-ledger-hash',
 		})).rejects.toThrow('ledger hash must be canonical hexadecimal')
