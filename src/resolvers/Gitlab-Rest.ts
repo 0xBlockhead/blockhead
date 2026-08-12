@@ -141,31 +141,45 @@ export default {
 							getBranches,
 							getProject,
 							getRepositoryTree,
+							getTags,
 						} = await import('$/sources/Gitlab/Rest/queries.ts')
-						const [project, branches, repositoryTree] = await Promise.all([
+						const [project, branches, tags, repositoryTree] = await Promise.all([
 							getProject({ projectId: coordinates.projectId }),
 							getBranches({ projectId: coordinates.projectId }),
+							getTags({ projectId: coordinates.projectId }),
 							getRepositoryTree({ projectId: coordinates.projectId }),
 						])
 						if (project.path !== coordinates.repositoryName || project.path_with_namespace !== coordinates.projectId)
 							throw new Error('Gitlab_Rest: project identity does not match remote URL')
 
-						const objectFormat = branches.some((branch) => branch.commit.id.length === 64) ? 'sha256' : 'sha1'
+						const objectFormat = [...branches, ...tags].some(({ commit }) => commit.id.length === 64) ? 'sha256' : 'sha1'
 						return {
 							repositoryId: project.http_url_to_repo,
 							canonicalRemoteUrl: project.http_url_to_repo,
 							objectFormat,
 							...(project.default_branch != null && { defaultRefName: `refs/heads/${project.default_branch}` }),
-							$$refs: branches.map((branch) => ({
-								[EntityMetaKey.Selector]: {
-									$repository: {
-										canonicalRemoteUrl: project.http_url_to_repo,
+							$$refs: [
+								...branches.map((branch) => ({
+									[EntityMetaKey.Selector]: {
+										$repository: {
+											canonicalRemoteUrl: project.http_url_to_repo,
+										},
+										refName: `refs/heads/${branch.name}`,
 									},
-									refName: `refs/heads/${branch.name}`,
-								},
-								refKind: 'branch',
-								targetObjectId: `0x${branch.commit.id}`,
-							})),
+									refKind: 'branch',
+									targetObjectId: `0x${branch.commit.id}`,
+								})),
+								...tags.map((tag) => ({
+									[EntityMetaKey.Selector]: {
+										$repository: {
+											canonicalRemoteUrl: project.http_url_to_repo,
+										},
+										refName: `refs/tags/${tag.name}`,
+									},
+									refKind: 'tag',
+									targetObjectId: `0x${tag.target}`,
+								})),
+							],
 							$$objects: repositoryTree.map((object) => ({
 								[EntityMetaKey.Selector]: {
 									objectId: `0x${object.id}`,
@@ -207,6 +221,94 @@ export default {
 				})),
 				resolveCount: (repository) => repository.$$objects.length,
 			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.GitRef,
+			resolve: {
+				RepositoryRefName: {
+					resolve: async ({
+						$repository,
+						refName,
+					}) => {
+						const coordinates = gitlabCoordinatesFromRemoteUrl(
+							'canonicalRemoteUrl' in $repository ?
+								$repository.canonicalRemoteUrl
+							:
+								$repository.repositoryId
+						)
+						if (coordinates == null)
+							return undefined
+
+						const branchName = refName.startsWith('refs/heads/') ? refName.slice('refs/heads/'.length) : undefined
+						const tagName = refName.startsWith('refs/tags/') ? refName.slice('refs/tags/'.length) : undefined
+						if ((branchName == null && tagName == null) || branchName === '' || tagName === '')
+							return undefined
+
+						const { getBranch, getTag } = await import('$/sources/Gitlab/Rest/queries.ts')
+						const ref = await (
+							branchName != null ?
+								getBranch({
+									projectId: coordinates.projectId,
+									branchName,
+								})
+							: tagName != null ?
+								getTag({
+									projectId: coordinates.projectId,
+									tagName,
+								})
+							:
+								undefined
+						)
+						if (ref == null)
+							return undefined
+						if (ref.name !== branchName && ref.name !== tagName)
+							throw new Error('Gitlab_Rest: ref identity does not match selector')
+
+						const targetObjectId = `0x${'target' in ref ? ref.target : ref.commit.id}`
+						const timestampMs = Date.now()
+						return {
+							$repository,
+							refName,
+							refKind: branchName != null ? 'branch' : 'tag',
+							targetObjectId,
+							$$observations: [{
+								[EntityMetaKey.Selector]: {
+									$ref: {
+										$repository,
+										refName,
+									},
+									timestampMs,
+									source: Source.Gitlab_Rest,
+								},
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.GitRefObservation_Timestamp, [], 'targetObjectId')]: targetObjectId,
+									[entityFieldAddressKey(EntityType.GitRefObservation_Timestamp, [], 'advertised')]: true,
+									...(ref.protected != null && {
+										[entityFieldAddressKey(EntityType.GitRefObservation_Timestamp, [], 'protection')]: {
+											protected: ref.protected,
+											...('developers_can_push' in ref && ref.developers_can_push != null && {
+												developersCanPush: ref.developers_can_push,
+											}),
+											...('developers_can_merge' in ref && ref.developers_can_merge != null && {
+												developersCanMerge: ref.developers_can_merge,
+											}),
+										},
+									}),
+								},
+							}],
+						}
+					},
+				},
+			},
+		})({
+			$repository: (ref) => ({
+				[EntityMetaKey.Selector]: ref.$repository,
+			}),
+			refName: (ref) => ref.refName,
+			refKind: (ref) => ref.refKind,
+			targetObjectId: (ref) => ref.targetObjectId,
+			$$observations: (ref) => ref.$$observations,
 		}),
 
 		defineResolver({

@@ -10,6 +10,7 @@ vi.mock('$/sources/_runtime/http.ts', () => ({
 
 const {
 	getBranches,
+	getBranch,
 	getIssue,
 	getIssues,
 	getMergeRequest,
@@ -18,6 +19,8 @@ const {
 	getRelease,
 	getReleases,
 	getRepositoryTree,
+	getTag,
+	getTags,
 } = await import('$/sources/Gitlab/Rest/queries.ts')
 
 describe('GitLab REST wires', () => {
@@ -76,6 +79,16 @@ describe('GitLab REST wires', () => {
 			})
 			.mockResolvedValueOnce([
 				{
+					name: 'v1',
+					target: 'c'.repeat(40),
+					message: 'Version 1',
+					commit: {
+						id: 'c'.repeat(40),
+					},
+				},
+			])
+			.mockResolvedValueOnce([
+				{
 					id: 'd'.repeat(40),
 					name: 'index.ts',
 					type: 'blob',
@@ -89,6 +102,12 @@ describe('GitLab REST wires', () => {
 		await expect(getIssue({ projectId: 'gitlab-org/gitlab', issueNumber: 12 })).resolves.toMatchObject({ iid: 12 })
 		await expect(getMergeRequest({ projectId: 'gitlab-org/gitlab', pullRequestNumber: 34 })).resolves.toMatchObject({ iid: 34 })
 		await expect(getRelease({ projectId: 'gitlab-org/gitlab', releaseTagName: 'v1' })).resolves.toMatchObject({ tag_name: 'v1' })
+		await expect(getTags({ projectId: 'gitlab-org/gitlab' })).resolves.toEqual([
+			expect.objectContaining({
+				name: 'v1',
+				target: 'c'.repeat(40),
+			}),
+		])
 		await expect(getRepositoryTree({ projectId: 'gitlab-org/gitlab' })).resolves.toEqual([
 			expect.objectContaining({
 				path: 'src/index.ts',
@@ -109,6 +128,43 @@ describe('GitLab REST wires', () => {
 			projectId: 'gitlab-org/gitlab',
 			issueNumber: 12,
 		})).rejects.toThrow('Gitlab_Rest: invalid issue response')
+	})
+
+	it('accepts exact branch and tag observations with protection state', async () => {
+		sourceGetJson
+			.mockResolvedValueOnce({
+				name: 'master',
+				protected: true,
+				developers_can_push: false,
+				developers_can_merge: true,
+				commit: {
+					id: 'a'.repeat(40),
+				},
+			})
+			.mockResolvedValueOnce({
+				name: 'v1',
+				target: 'b'.repeat(40),
+				message: null,
+				protected: false,
+				commit: {
+					id: 'b'.repeat(40),
+				},
+			})
+
+		await expect(getBranch({
+			projectId: 'gitlab-org/gitlab',
+			branchName: 'master',
+		})).resolves.toMatchObject({
+			name: 'master',
+			protected: true,
+		})
+		await expect(getTag({
+			projectId: 'gitlab-org/gitlab',
+			tagName: 'v1',
+		})).resolves.toMatchObject({
+			name: 'v1',
+			protected: false,
+		})
 	})
 
 	it('accepts bounded native lifecycle indexes', async () => {

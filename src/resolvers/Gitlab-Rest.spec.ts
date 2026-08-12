@@ -1,12 +1,16 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { EntityMetaKey } from '$/schema/$schema.ts'
+import {
+	entityFieldAddressKey,
+	EntityMetaKey,
+} from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
 
 const {
 	getBranches,
+	getBranch,
 	getIssue,
 	getIssues,
 	getMergeRequest,
@@ -15,8 +19,11 @@ const {
 	getRelease,
 	getReleases,
 	getRepositoryTree,
+	getTag,
+	getTags,
 } = vi.hoisted(() => ({
 	getBranches: vi.fn(),
+	getBranch: vi.fn(),
 	getIssue: vi.fn(),
 	getIssues: vi.fn(),
 	getMergeRequest: vi.fn(),
@@ -25,10 +32,13 @@ const {
 	getRelease: vi.fn(),
 	getReleases: vi.fn(),
 	getRepositoryTree: vi.fn(),
+	getTag: vi.fn(),
+	getTags: vi.fn(),
 }))
 
 vi.mock('$/sources/Gitlab/Rest/queries.ts', () => ({
 	getBranches,
+	getBranch,
 	getIssue,
 	getIssues,
 	getMergeRequest,
@@ -37,11 +47,14 @@ vi.mock('$/sources/Gitlab/Rest/queries.ts', () => ({
 	getRelease,
 	getReleases,
 	getRepositoryTree,
+	getTag,
+	getTags,
 }))
 
 const resolverModule = (await import('$/resolvers/Gitlab-Rest.ts')).default
 const mirrorResolver = resolverModule.resolvers.find((resolver) => resolver.entityType === EntityType.GitForgeMirror)
 const repositoryResolver = resolverModule.resolvers.find((resolver) => resolver.entityType === EntityType.GitRepository)
+const refResolver = resolverModule.resolvers.find((resolver) => resolver.entityType === EntityType.GitRef)
 const pathResolutionResolver = resolverModule.resolvers.find((resolver) => resolver.entityType === EntityType.GitTreePathResolution)
 const issueResolver = resolverModule.resolvers.find((resolver) => resolver.entityType === EntityType.GitForgeIssue)
 const pullRequestResolver = resolverModule.resolvers.find((resolver) => resolver.entityType === EntityType.GitForgePullRequest)
@@ -49,6 +62,7 @@ const releaseResolver = resolverModule.resolvers.find((resolver) => resolver.ent
 if (
 	mirrorResolver == null
 	|| repositoryResolver == null
+	|| refResolver == null
 	|| pathResolutionResolver == null
 	|| issueResolver == null
 	|| pullRequestResolver == null
@@ -101,6 +115,34 @@ describe('GitLab repository journey', () => {
 				mode: '100644',
 			},
 		])
+		getTags.mockResolvedValue([
+			{
+				name: 'v1.0.0',
+				target: 'e'.repeat(40),
+				message: 'Version 1.0.0',
+				commit: {
+					id: 'e'.repeat(40),
+				},
+			},
+		])
+		getBranch.mockResolvedValue({
+			name: 'master',
+			protected: true,
+			developers_can_push: false,
+			developers_can_merge: true,
+			commit: {
+				id: 'a'.repeat(40),
+			},
+		})
+		getTag.mockResolvedValue({
+			name: 'v1.0.0',
+			target: 'e'.repeat(40),
+			message: 'Version 1.0.0',
+			protected: false,
+			commit: {
+				id: 'e'.repeat(40),
+			},
+		})
 		getIssue.mockResolvedValue({
 			iid: 12,
 			title: 'Preserve native repository links',
@@ -197,10 +239,20 @@ describe('GitLab repository journey', () => {
 				refKind: 'branch',
 				targetObjectId: `0x${'b'.repeat(40)}`,
 			},
+			{
+				[EntityMetaKey.Selector]: {
+					$repository: {
+						canonicalRemoteUrl: project.http_url_to_repo,
+					},
+					refName: 'refs/tags/v1.0.0',
+				},
+				refKind: 'tag',
+				targetObjectId: `0x${'e'.repeat(40)}`,
+			},
 		])
 		if (snapshot == null)
 			throw new Error('GitLab repository snapshot must resolve')
-		expect(repositoryResolver.projections.$$refs.resolveCount(snapshot)).toBe(2)
+		expect(repositoryResolver.projections.$$refs.resolveCount(snapshot)).toBe(3)
 		expect(repositoryResolver.projections.$$objects.resolveCount(snapshot)).toBe(2)
 		expect(repositoryResolver.projections.$$objects.select(snapshot)).toEqual([
 			{
@@ -230,6 +282,40 @@ describe('GitLab repository journey', () => {
 			canonicalRemoteUrl: 'https://codeberg.org/forgejo/forgejo.git',
 		})).resolves.toBeUndefined()
 		expect(getProject).not.toHaveBeenCalled()
+	})
+
+	it('resolves branch and tag routes into current native ref observations', async () => {
+		const $repository = {
+			canonicalRemoteUrl: project.http_url_to_repo,
+		}
+		const branch = await refResolver.resolve.RepositoryRefName.resolve({
+			$repository,
+			refName: 'refs/heads/master',
+		})
+		const tag = await refResolver.resolve.RepositoryRefName.resolve({
+			$repository,
+			refName: 'refs/tags/v1.0.0',
+		})
+
+		expect(branch).toMatchObject({
+			refName: 'refs/heads/master',
+			refKind: 'branch',
+			targetObjectId: `0x${'a'.repeat(40)}`,
+		})
+		expect(tag).toMatchObject({
+			refName: 'refs/tags/v1.0.0',
+			refKind: 'tag',
+			targetObjectId: `0x${'e'.repeat(40)}`,
+		})
+		if (branch == null)
+			throw new Error('GitLab branch must resolve')
+		expect(refResolver.projections.$$observations(branch)[0][EntityMetaKey.Fields]).toMatchObject({
+			[entityFieldAddressKey(EntityType.GitRefObservation_Timestamp, [], 'protection')]: {
+				protected: true,
+				developersCanPush: false,
+				developersCanMerge: true,
+			},
+		})
 	})
 
 	it('resolves a commit path through native tree ancestry to its blob identity', async () => {

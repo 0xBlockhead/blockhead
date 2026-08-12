@@ -16,6 +16,9 @@ export type GitlabProject = typeof gitlabProjectWire.infer
 
 export const gitlabBranchWire = type({
 	name: 'string > 0',
+	'protected?': 'boolean',
+	'developers_can_push?': 'boolean',
+	'developers_can_merge?': 'boolean',
 	commit: {
 		id: '/^[0-9a-fA-F]{40}$|^[0-9a-fA-F]{64}$/',
 	},
@@ -24,6 +27,20 @@ export const gitlabBranchWire = type({
 export type GitlabBranch = typeof gitlabBranchWire.infer
 
 export const gitlabBranchesWire = gitlabBranchWire.array()
+
+export const gitlabTagWire = type({
+	name: 'string > 0',
+	target: '/^[0-9a-fA-F]{40}$|^[0-9a-fA-F]{64}$/',
+	message: 'string | null',
+	commit: {
+		id: '/^[0-9a-fA-F]{40}$|^[0-9a-fA-F]{64}$/',
+	},
+	'protected?': 'boolean',
+})
+
+export type GitlabTag = typeof gitlabTagWire.infer
+
+export const gitlabTagsWire = gitlabTagWire.array()
 
 export const gitlabRepositoryTreeEntryWire = type({
 	id: '/^[0-9a-fA-F]{40}$|^[0-9a-fA-F]{64}$/',

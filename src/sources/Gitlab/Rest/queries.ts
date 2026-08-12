@@ -3,6 +3,7 @@ import bindings from '$/sources/Gitlab/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 import {
 	gitlabBranchesWire,
+	gitlabBranchWire,
 	gitlabIssueWire,
 	gitlabIssuesWire,
 	gitlabMergeRequestWire,
@@ -11,6 +12,8 @@ import {
 	gitlabReleaseWire,
 	gitlabReleasesWire,
 	gitlabRepositoryTreeWire,
+	gitlabTagsWire,
+	gitlabTagWire,
 } from '$/sources/Gitlab/Rest/types.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 
@@ -42,6 +45,55 @@ export const getBranches = ({
 				return gitlabBranchesWire.assert(branches)
 			} catch {
 				throw new Error('Gitlab_Rest: invalid branches response')
+			}
+		})
+)
+
+export const getBranch = ({
+	projectId,
+	branchName,
+}: {
+	projectId: string
+	branchName: string
+}) => (
+	getJson<JsonValue>(binding, `/api/v4/projects/${encodeURIComponent(projectId)}/repository/branches/${encodeURIComponent(branchName)}`)
+		.then((branch) => {
+			try {
+				return gitlabBranchWire.assert(branch)
+			} catch {
+				throw new Error('Gitlab_Rest: invalid branch response')
+			}
+		})
+)
+
+export const getTags = ({
+	projectId,
+}: {
+	projectId: string
+}) => (
+	getJson<JsonValue>(binding, `/api/v4/projects/${encodeURIComponent(projectId)}/repository/tags?per_page=100`)
+		.then((tags) => {
+			try {
+				return gitlabTagsWire.assert(tags)
+			} catch {
+				throw new Error('Gitlab_Rest: invalid tags response')
+			}
+		})
+)
+
+export const getTag = ({
+	projectId,
+	tagName,
+}: {
+	projectId: string
+	tagName: string
+}) => (
+	getJson<JsonValue>(binding, `/api/v4/projects/${encodeURIComponent(projectId)}/repository/tags/${encodeURIComponent(tagName)}`)
+		.then((tag) => {
+			try {
+				return gitlabTagWire.assert(tag)
+			} catch {
+				throw new Error('Gitlab_Rest: invalid tag response')
 			}
 		})
 )
