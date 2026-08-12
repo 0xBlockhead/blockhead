@@ -7895,6 +7895,7 @@ export const schema = {
 				"moduleName": { label: "module name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"$resource": { label: "resource", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.AptosAccountResource },
 				"$module": { label: "module", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.MoveModule },
+				"$tableItem": { label: "table item", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.AptosTableItem },
 				"value": { label: "Value", description: "The source-domain value.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "unknown" },
 			})({
 				selectors: {
@@ -7909,10 +7910,11 @@ export const schema = {
 						},
 						content: {
 							dl: [
-								["$transaction", { field: "changeIndex", format: "number" }, "changeKind"],
-								["address", "stateKeyHash", "resourceType", "$resource"],
-								["moduleAddress", "moduleName", "$module"],
-							],
+							["$transaction", { field: "changeIndex", format: "number" }, "changeKind"],
+							["address", "stateKeyHash", "resourceType", "$resource"],
+							["moduleAddress", "moduleName", "$module"],
+							["$tableItem"],
+						],
 						},
 					},
 					plural: { component: "AptosStateChangesView",

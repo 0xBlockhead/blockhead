@@ -239,6 +239,13 @@ const stateChangeFields = (
 			moduleName: string
 		}
 	}
+	$tableItem?: {
+		[EntityMetaKey.Selector]: {
+			$network: AptosNetworkIdentity
+			tableHandle: string
+			keyHash: string
+		}
+	}
 	value?: unknown
 } => {
 	const resourceFields = (
@@ -310,6 +317,13 @@ const stateChangeFields = (
 			return {
 				changeKind: change.type,
 				stateKeyHash: change.state_key_hash,
+				$tableItem: {
+					[EntityMetaKey.Selector]: {
+						$network: $transaction.$network,
+						tableHandle: change.handle,
+						keyHash: change.state_key_hash,
+					},
+				},
 				value: change.data ?? {
 					handle: change.handle,
 					key: change.key,
@@ -320,6 +334,13 @@ const stateChangeFields = (
 			return {
 				changeKind: change.type,
 				stateKeyHash: change.state_key_hash,
+				$tableItem: {
+					[EntityMetaKey.Selector]: {
+						$network: $transaction.$network,
+						tableHandle: change.handle,
+						keyHash: change.state_key_hash,
+					},
+				},
 				value: change.data ?? {
 					handle: change.handle,
 					key: change.key,

@@ -41,6 +41,7 @@
 	import AptosTransactionView from '$/views/AptosTransactionView.svelte'
 	import AptosAccountResourceView from '$/views/AptosAccountResourceView.svelte'
 	import MoveModuleView from '$/views/MoveModuleView.svelte'
+	import AptosTableItemView from '$/views/AptosTableItemView.svelte'
 </script>
 
 
@@ -276,6 +277,27 @@
 							<dd>
 								<MoveModuleView
 									selection={select(EntityType.MoveModule, (moveModule ?? moveModuleInitial)[EntityMetaKey.Selector])}
+									layout={EntityLayout.Value}
+								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		</dl>
+
+		<dl data-column-item="center">
+			<ResourceBoundary
+				resource={selection.$tableItem}
+			>
+				{#snippet children(aptosTableItem)}
+					{#if aptosTableItem != null}
+						{@const aptosTableItemInitial = untrack(() => aptosTableItem)}
+						<div>
+							<dt>table item</dt>
+							<dd>
+								<AptosTableItemView
+									selection={select(EntityType.AptosTableItem, (aptosTableItem ?? aptosTableItemInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

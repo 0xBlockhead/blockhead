@@ -52,6 +52,10 @@ export default entity({
 		entityType: EntityType.MoveModule,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
+	$tableItem: {
+		entityType: EntityType.AptosTableItem,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
 	value: {
 		primitiveType: type('unknown'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,

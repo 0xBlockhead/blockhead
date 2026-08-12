@@ -271,7 +271,10 @@ describe('Aptos Fullnode typed operations', () => {
 			}))
 			.mockResolvedValueOnce(jsonAptosResponse([]))
 			.mockResolvedValueOnce(jsonAptosResponse('1'))
-			.mockResolvedValueOnce(jsonAptosResponse(transaction))
+			.mockResolvedValueOnce(jsonAptosResponse({
+				...transaction,
+				hash: '0xhash/value',
+			}))
 			.mockResolvedValueOnce(jsonAptosResponse(transaction))
 
 		const ledgerResponse = await queries.getLedgerInfo(aptosFullnodeBinding)
@@ -574,10 +577,24 @@ describe('Aptos Fullnode resolver materialization', () => {
 			{
 				changeKind: 'write_table_item',
 				stateKeyHash: '0xtable-state',
+				$tableItem: {
+					[EntityMetaKey.Selector]: {
+						$network: aptosNetwork,
+						tableHandle: '0xhandle',
+						keyHash: '0xtable-state',
+					},
+				},
 			},
 			{
 				changeKind: 'delete_table_item',
 				stateKeyHash: '0xdeleted-table-state',
+				$tableItem: {
+					[EntityMetaKey.Selector]: {
+						$network: aptosNetwork,
+						tableHandle: '0xhandle',
+						keyHash: '0xdeleted-table-state',
+					},
+				},
 			},
 		])
 	})
