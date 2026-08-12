@@ -19,6 +19,13 @@ import { Source } from '$/sources/Source.ts'
 
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 
+const loadOgmiosQueries = () => (
+	typeof window === 'undefined' ?
+		import('$/sources/Ogmios/JsonRpc/queries.ts')
+	:
+		import('$/sources/Ogmios/JsonRpc/queries.remote.ts')
+)
+
 const assertCardanoMainnet = (
 	network: NetworkId
 ) => {
@@ -51,7 +58,7 @@ const tipObservation = async () => {
 		getEpoch,
 		getLedgerTip,
 		getNetworkBlockHeight,
-	} = await import('$/sources/Ogmios/JsonRpc/queries.ts')
+	} = await loadOgmiosQueries()
 	const [
 		tip,
 		blockHeight,
@@ -242,7 +249,7 @@ export default {
 					const {
 						getEpoch,
 						getProtocolParameters,
-					} = await import('$/sources/Ogmios/JsonRpc/queries.ts')
+					} = await loadOgmiosQueries()
 					const [
 						epoch,
 						parameters,
@@ -306,7 +313,7 @@ export default {
 						const {
 							getEpoch,
 							getProtocolParameters,
-						} = await import('$/sources/Ogmios/JsonRpc/queries.ts')
+						} = await loadOgmiosQueries()
 						const [
 							currentEpoch,
 							parameters,
