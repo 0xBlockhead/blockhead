@@ -2133,6 +2133,44 @@ describe('Hedera Mirror Node transaction detail', () => {
 		expect(sourceFetch).toHaveBeenCalledTimes(1)
 	})
 
+	it('fails closed on contradictory schedule and signer lifecycle facts', async () => {
+		sourceFetch
+			.mockResolvedValueOnce(new Response(JSON.stringify({
+				...scheduleFixture,
+				executed_timestamp: '1710000000.400000000',
+			})))
+			.mockResolvedValueOnce(new Response(JSON.stringify({
+				...scheduleFixture,
+				signatures: [
+					scheduleFixture.signatures[0],
+					{
+						...scheduleFixture.signatures[0],
+						signature: 'BA==',
+					},
+				],
+			})))
+			.mockResolvedValueOnce(new Response(JSON.stringify({
+				...scheduleFixture,
+				signatures: [{
+					...scheduleFixture.signatures[0],
+					consensus_timestamp: '1710000001.100000000',
+				}],
+			})))
+
+		await expect(scheduleResolver.resolve.NetworkScheduleId.resolve({
+			$network: network,
+			scheduleId: scheduleFixture.schedule_id,
+		})).rejects.toThrow('reversed schedule lifecycle')
+		await expect(scheduleResolver.resolve.NetworkScheduleId.resolve({
+			$network: network,
+			scheduleId: scheduleFixture.schedule_id,
+		})).rejects.toThrow('duplicate schedule signer')
+		await expect(scheduleResolver.resolve.NetworkScheduleId.resolve({
+			$network: network,
+			scheduleId: scheduleFixture.schedule_id,
+		})).rejects.toThrow('schedule signature lies outside the lifecycle')
+	})
+
 	it('fail-closes unenrolled contract-result leftovers and mismatched Mirror joins', async () => {
 		expect(() => getBlockByConsensusTimestamp('not-a-timestamp')).toThrow(
 			'invalid block consensus timestamp'

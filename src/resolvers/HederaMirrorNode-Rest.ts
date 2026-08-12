@@ -1071,10 +1071,28 @@ const scheduleObservation = (
 ) => {
 	const scheduleId = hederaEntityId(schedule.schedule_id, 'schedule ID')
 	const scheduleTimestampMs = timestampMs(schedule.consensus_timestamp, 'schedule consensus timestamp')
-	if (schedule.executed_timestamp != null)
-		timestampMs(schedule.executed_timestamp, 'schedule executed timestamp')
-	if (schedule.expiration_time != null)
-		timestampMs(schedule.expiration_time, 'schedule expiration time')
+	const executedTimestampMs = (
+		schedule.executed_timestamp == null ?
+			undefined
+		:
+			timestampMs(schedule.executed_timestamp, 'schedule executed timestamp')
+	)
+	const expirationTimestampMs = (
+		schedule.expiration_time == null ?
+			undefined
+		:
+			timestampMs(schedule.expiration_time, 'schedule expiration time')
+	)
+	if (
+		(executedTimestampMs != null && executedTimestampMs < scheduleTimestampMs)
+		|| (expirationTimestampMs != null && expirationTimestampMs < scheduleTimestampMs)
+		|| (
+			executedTimestampMs != null
+			&& expirationTimestampMs != null
+			&& executedTimestampMs > expirationTimestampMs
+		)
+	)
+		throw new Error('HederaMirrorNode_Rest: reversed schedule lifecycle')
 
 	return {
 		$schedule: {
@@ -1120,6 +1138,7 @@ const scheduleSnapshot = (
 		scheduleId,
 	}
 	const observation = scheduleObservation(network, schedule)
+	const signaturePublicKeyPrefixes = new Set<string>()
 
 	return {
 		scheduleId,
@@ -1152,8 +1171,22 @@ const scheduleSnapshot = (
 		$$signatures: schedule.signatures.map((signature) => {
 			if (signature.public_key_prefix.length === 0)
 				throw new Error('HederaMirrorNode_Rest: malformed schedule signature public key prefix')
-			if (signature.consensus_timestamp.length > 0)
-				timestampMs(signature.consensus_timestamp, 'schedule signature timestamp')
+			const publicKeyPrefix = signature.public_key_prefix
+			if (signaturePublicKeyPrefixes.has(publicKeyPrefix))
+				throw new Error('HederaMirrorNode_Rest: duplicate schedule signer')
+
+			signaturePublicKeyPrefixes.add(publicKeyPrefix)
+			if (signature.consensus_timestamp.length > 0) {
+				const signatureTimestampMs = timestampMs(signature.consensus_timestamp, 'schedule signature timestamp')
+				if (
+					signatureTimestampMs < observation.timestampMs
+					|| (
+						observation.executedTimestamp != null
+						&& signatureTimestampMs > timestampMs(observation.executedTimestamp, 'schedule executed timestamp')
+					)
+				)
+					throw new Error('HederaMirrorNode_Rest: schedule signature lies outside the lifecycle')
+			}
 
 			return {
 				[EntityMetaKey.Selector]: {
