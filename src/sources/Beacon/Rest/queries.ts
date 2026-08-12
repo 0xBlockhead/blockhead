@@ -681,85 +681,79 @@ export const getSyncCommittee = async (
 }
 
 export const getBlockDutySummaryFromWire = (wire: JsonValue): BeaconBlockDutySummary => {
-	const empty = {
-		attestations: [],
-		withdrawals: [],
-		slashings: [],
-	}
-	if (!isJsonObject(wire)) return empty
+	if (!isJsonObject(wire))
+		throw new Error('Beacon: invalid block duty summary response')
 	const data = wire.data
-	if (!isJsonObject(data)) return empty
+	if (!isJsonObject(data))
+		throw new Error('Beacon: invalid block duty summary response')
 	const message = data.message
-	if (!isJsonObject(message)) return empty
+	if (!isJsonObject(message))
+		throw new Error('Beacon: invalid block duty summary response')
 	const body = message.body
-	if (!isJsonObject(body)) return empty
-	const attestations = (
-		Array.isArray(body.attestations) ?
-			body.attestations.flatMap((attestationWire, index) => {
-				if (!isJsonObject(attestationWire)) return []
-				const attestationData = attestationWire.data
-				const committeeIndex = (
-					isJsonObject(attestationData) ?
-						Number.parseInt(String(attestationData.index), 10)
-					:
-						Number.NaN
-				)
-				return [
-					{
-						index,
-						committeeIndex: Number.isFinite(committeeIndex) ? committeeIndex : undefined,
-						aggregationBits: (
-							attestationWire.aggregation_bits == null ?
-								undefined
-							:
-								String(attestationWire.aggregation_bits)
-						),
-					},
-				]
-			})
-		:
-			[]
-	)
+	if (!isJsonObject(body))
+		throw new Error('Beacon: invalid block duty summary response')
+	if (
+		!Array.isArray(body.attestations)
+		|| !Array.isArray(body.proposer_slashings)
+		|| !Array.isArray(body.attester_slashings)
+	) throw new Error('Beacon: invalid block duty summary response')
+	const attestations = body.attestations.map((attestationWire, index) => {
+		if (!isJsonObject(attestationWire))
+			throw new Error('Beacon: invalid block duty summary attestation')
+		const attestationData = attestationWire.data
+		if (!isJsonObject(attestationData))
+			throw new Error('Beacon: invalid block duty summary attestation')
+		const committeeIndex = Number(attestationData.index)
+		if (!Number.isSafeInteger(committeeIndex) || committeeIndex < 0)
+			throw new Error('Beacon: invalid block duty summary attestation committee index')
+		if (
+			attestationWire.aggregation_bits != null
+			&& typeof attestationWire.aggregation_bits !== 'string'
+		) throw new Error('Beacon: invalid block duty summary attestation aggregation bits')
+		return {
+			index,
+			committeeIndex,
+			...(attestationWire.aggregation_bits != null && {
+				aggregationBits: attestationWire.aggregation_bits,
+			}),
+		}
+	})
 	const executionPayload = body.execution_payload
-	const withdrawals = (
-		isJsonObject(executionPayload) && Array.isArray(executionPayload.withdrawals) ?
-			executionPayload.withdrawals.flatMap((withdrawalWire) => {
-				if (!isJsonObject(withdrawalWire)) return []
-				const index = Number.parseInt(String(withdrawalWire.index), 10)
-				const validatorIndex = Number.parseInt(String(withdrawalWire.validator_index), 10)
-				if (!Number.isFinite(index)) return []
-				return [
-					{
-						index,
-						validatorIndex: Number.isFinite(validatorIndex) ? validatorIndex : undefined,
-						address: withdrawalWire.address == null ? undefined : String(withdrawalWire.address),
-						amountGwei: nonNegativeDecimalBigIntFromWire(
-							withdrawalWire.amount == null ? undefined : String(withdrawalWire.amount)
-						),
-					},
-				]
-			})
-		:
-			[]
-	)
-	const proposerSlashings = (
-		Array.isArray(body.proposer_slashings) ?
-			body.proposer_slashings.map<BeaconBlockDutySummary['slashings'][number]>((_slashing, index) => ({
-				index,
-				kind: 'proposer',
-			}))
-		:
-			[]
-	)
-	const attesterSlashings = (
-		Array.isArray(body.attester_slashings) ?
-			body.attester_slashings.map<BeaconBlockDutySummary['slashings'][number]>((_slashing, index) => ({
-				index,
-				kind: 'attester',
-			}))
-		:
-			[]
-	)
+	if (executionPayload != null && !isJsonObject(executionPayload))
+		throw new Error('Beacon: invalid block duty summary execution payload')
+	if (executionPayload?.withdrawals != null && !Array.isArray(executionPayload.withdrawals))
+		throw new Error('Beacon: invalid block duty summary withdrawals')
+	const withdrawals = (executionPayload?.withdrawals ?? []).map((withdrawalWire) => {
+		if (!isJsonObject(withdrawalWire))
+			throw new Error('Beacon: invalid block duty summary withdrawal')
+		const index = Number(withdrawalWire.index)
+		if (!Number.isSafeInteger(index) || index < 0)
+			throw new Error('Beacon: invalid block duty summary withdrawal index')
+		const validatorIndex = Number(withdrawalWire.validator_index)
+		if (!Number.isSafeInteger(validatorIndex) || validatorIndex < 0)
+			throw new Error('Beacon: invalid block duty summary withdrawal validator index')
+		if (typeof withdrawalWire.address !== 'string')
+			throw new Error('Beacon: invalid block duty summary withdrawal address')
+		const amountGwei = nonNegativeDecimalBigIntFromWire(
+			typeof withdrawalWire.amount === 'string' ? withdrawalWire.amount : undefined
+		)
+		if (amountGwei == null)
+			throw new Error('Beacon: invalid block duty summary withdrawal amount')
+		return {
+			index,
+			validatorIndex,
+			address: withdrawalWire.address,
+			amountGwei,
+		}
+	})
+	const proposerSlashings = body.proposer_slashings.map<BeaconBlockDutySummary['slashings'][number]>((_slashing, index) => ({
+		index,
+		kind: 'proposer',
+	}))
+	const attesterSlashings = body.attester_slashings.map<BeaconBlockDutySummary['slashings'][number]>((_slashing, index) => ({
+		index,
+		kind: 'attester',
+	}))
 	return {
 		attestations,
 		withdrawals,

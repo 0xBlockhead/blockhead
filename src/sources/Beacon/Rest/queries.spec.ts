@@ -11,6 +11,7 @@ import {
 	getCommitteesFromWire,
 	getCommittees,
 	getBlockDutySummary,
+	getBlockDutySummaryFromWire,
 	getFinalityCheckpointsFromWire,
 	getForkScheduleFromWire,
 	getGenesisTimeSeconds,
@@ -41,6 +42,71 @@ afterEach(() => {
 })
 
 describe('Beacon REST native checkpoint and fork wires', () => {
+	it('retains complete block-duty relationships and rejects malformed partial payloads', () => {
+		expect(getBlockDutySummaryFromWire({
+			data: {
+				message: {
+					body: {
+						attestations: [{
+							aggregation_bits: '0x03',
+							data: {
+								index: '7',
+							},
+						}],
+						proposer_slashings: [{}],
+						attester_slashings: [{}],
+						execution_payload: {
+							withdrawals: [{
+								index: '2',
+								validator_index: '31',
+								address: `0x${'ab'.repeat(20)}`,
+								amount: '32000000000',
+							}],
+						},
+					},
+				},
+			},
+		})).toEqual({
+			attestations: [{
+				index: 0,
+				committeeIndex: 7,
+				aggregationBits: '0x03',
+			}],
+			withdrawals: [{
+				index: 2,
+				validatorIndex: 31,
+				address: `0x${'ab'.repeat(20)}`,
+				amountGwei: 32000000000n,
+			}],
+			slashings: [
+				{
+					index: 0,
+					kind: 'proposer',
+				},
+				{
+					index: 0,
+					kind: 'attester',
+				},
+			],
+		})
+
+		for (const wire of [
+			{},
+			{
+				data: {
+					message: {
+						body: {
+							attestations: [{ data: { index: 'not-a-number' } }],
+							proposer_slashings: [],
+							attester_slashings: [],
+						},
+					},
+				},
+			},
+		])
+			expect(() => getBlockDutySummaryFromWire(wire)).toThrow('Beacon: invalid block duty summary')
+	})
+
 	it('rejects invalid proposer discovery bounds before transport', async () => {
 		const sourceFetch = vi.spyOn(sourceHttp, 'sourceFetch')
 
