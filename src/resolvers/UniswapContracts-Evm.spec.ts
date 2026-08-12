@@ -595,11 +595,32 @@ describe('UniswapContracts_Evm resolver', () => {
 		))
 		if (positionBlocksResolver == null)
 			throw new Error('missing UniswapV3Position $$blocks resolver')
+		getPosition.mockResolvedValueOnce({
+			token0: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+			token1: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+			fee: 500,
+			tickLower: -100,
+			tickUpper: 100,
+			liquidity: 9n,
+			feeGrowthInside0LastX128: 0xabcn,
+			feeGrowthInside1LastX128: 0xdefn,
+			tokensOwed0: 3n,
+			tokensOwed1: 4n,
+		})
+		getFactoryPool.mockResolvedValueOnce('0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640')
 
 		const tip = await positionBlocksResolver.resolve.PositionManagerTokenId.resolve({
 			positionManager: '0xC36442b4a4522E871399CD717aBDD847Ab11FE88',
 			tokenId: 1n,
 		}, context)
+		expect(positionBlocksResolver.projections.$pool(tip)).toEqual({
+			[EntityMetaKey.Selector]: {
+				$network: ethereumNetwork,
+				poolAddress: '0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640',
+			},
+		})
+		expect(positionBlocksResolver.projections.tickLower(tip)).toBe(-100)
+		expect(positionBlocksResolver.projections.tickUpper(tip)).toBe(100)
 		expect(positionBlocksResolver.projections.$$blocks.select(tip)).toEqual([{
 			[EntityMetaKey.Selector]: {
 				$position: {
@@ -609,6 +630,14 @@ describe('UniswapContracts_Evm resolver', () => {
 				blockNumber: 12_345_678n,
 			},
 		}])
+		expect(getFactoryPool).toHaveBeenCalledWith({
+			getCall,
+			factoryAddress: '0x1f98431c8ad98523631ae4a59f267346ea31f984',
+			token0: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+			token1: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+			fee: 500,
+			blockNumber: 12_345_678n,
+		})
 
 		getPositionOwner.mockResolvedValueOnce('0x1111111111111111111111111111111111111111')
 		getPosition.mockResolvedValueOnce({

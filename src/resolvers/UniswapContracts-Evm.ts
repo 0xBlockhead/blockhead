@@ -561,6 +561,8 @@ export default {
 							uniswapV3DeploymentsByNonfungiblePositionManagerAddress,
 						} = await import('$/sources/Uniswap/Catalog/constants.ts')
 						const {
+							getFactoryPool,
+							getPosition,
 							normalizeUniswapAddress,
 						} = await import('$/sources/Uniswap/Contracts/queries.ts')
 
@@ -575,11 +577,43 @@ export default {
 
 						const errors: string[] = []
 						for (const chainId of chainIds) {
+							const deployment = uniswapV3DeploymentsByNonfungiblePositionManagerAddress[manager]
+								?.find((candidate) => candidate.chainId === chainId)
+							if (deployment == null)
+								throw new Error(`UniswapContracts_Evm: no Uniswap V3 factory for position manager ${manager} on chain ${String(chainId)}`)
+
 							const voltaireTransports = (await import('$/sources/Voltaire/JsonRpc/queries.ts')).voltaireJsonRpcTransports.httpTransportsByChainId[chainId] ?? []
 							for (const transport of voltaireTransports) {
 								try {
 									const blockNumber = await transport.getBlockNumber()
+									const position = await getPosition({
+										getCall: transport.getCall,
+										positionManager: manager,
+										tokenId,
+										blockNumber,
+									})
+									const poolAddress = normalizeUniswapAddress(await getFactoryPool({
+										getCall: transport.getCall,
+										factoryAddress: deployment.factoryAddress,
+										token0: position.token0,
+										token1: position.token1,
+										fee: position.fee,
+										blockNumber,
+									}))
 									return {
+										$pool: {
+											[EntityMetaKey.Selector]: {
+												$network: {
+													caip2: {
+														namespace: 'eip155',
+														reference: String(chainId),
+													},
+												},
+												poolAddress,
+											},
+										},
+										tickLower: position.tickLower,
+										tickUpper: position.tickUpper,
 										$$blocks: [{
 											[EntityMetaKey.Selector]: {
 												$position: {
@@ -600,6 +634,9 @@ export default {
 				},
 			},
 		})({
+			$pool: (entity) => entity.$pool,
+			tickLower: (entity) => entity.tickLower,
+			tickUpper: (entity) => entity.tickUpper,
 			$$blocks: {
 				select: (entity) => entity.$$blocks,
 				resolveCount: (entity) => entity.$$blocks.length,
