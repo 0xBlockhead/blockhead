@@ -99,6 +99,12 @@ const networkReferendumListResolver = sidecar.resolvers.find((resolver) => (
 	&& '$$referenda' in resolver.projections.Polkadot
 ))
 
+const networkValidatorListResolver = sidecar.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.Network
+	&& 'Polkadot' in resolver.projections
+	&& '$$validators' in resolver.projections.Polkadot
+))
+
 if (
 	accountResolver == null
 	|| accountAssetBalanceResolver == null
@@ -109,6 +115,7 @@ if (
 	|| palletResolver == null
 	|| networkBlockListResolver == null
 	|| networkReferendumListResolver == null
+	|| networkValidatorListResolver == null
 )
 	throw new Error('Substrate Sidecar resolvers are missing')
 
@@ -797,5 +804,59 @@ describe('Substrate Sidecar network observation + validator leftovers', () => {
 			stashAccountId,
 		})
 		expect(sourceFetch.mock.calls[0][1]).toBe('http://127.0.0.1:8080/pallets/staking/validators')
+	})
+
+	it('lists the canonical current validator identities with exact pagination and count', async () => {
+		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+			validators: [
+				{
+					stashId: '15Stash',
+				},
+				{
+					accountId: '15Account',
+				},
+				{
+					address: '15Address',
+				},
+			],
+		})))
+		const snapshot = await networkValidatorListResolver.resolve.Slug.resolve({
+			slug: 'polkadot',
+		}, {
+			...context,
+			pagination: {
+				limit: 1,
+				offset: 1,
+			},
+		})
+		expect(networkValidatorListResolver.projections.Polkadot.$$validators.select(snapshot)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$network: {
+						slug: 'polkadot',
+					},
+					stashAccountId: '15Account',
+				},
+			},
+		])
+		expect(networkValidatorListResolver.projections.Polkadot.$$validators.resolveCount(snapshot)).toBe(3)
+		expect(sourceFetch.mock.calls[0][1]).toBe('http://127.0.0.1:8080/pallets/staking/validators')
+	})
+
+	it('rejects missing or duplicate current validator identities', async () => {
+		for (const validators of [
+			[{}],
+			[
+				{ stashId: '15Duplicate' },
+				{ accountId: '15Duplicate' },
+			],
+		]) {
+			sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+				validators,
+			})))
+			await expect(networkValidatorListResolver.resolve.Slug.resolve({
+				slug: 'polkadot',
+			}, context)).rejects.toThrow(/missing account identity|duplicate identities/)
+		}
 	})
 })

@@ -964,6 +964,49 @@ export default {
 		}),
 
 		defineResolver({
+			entityType: EntityType.Network,
+			resolve: {
+				Slug: {
+					resolve: async (network, context) => {
+						assertPolkadotMainnet(network)
+						const { getStakingValidators } = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
+						const validators = (await getStakingValidators()).validators
+						if (validators == null)
+							throw new Error('SubstrateSidecar_Rest: validators unavailable')
+
+						const stashAccountIds = validators.map((validator) => (
+							validator.stashId ?? validator.accountId ?? validator.address
+						))
+						if (stashAccountIds.some((stashAccountId) => stashAccountId == null))
+							throw new Error('SubstrateSidecar_Rest: staking validator missing account identity')
+						if (new Set(stashAccountIds).size !== stashAccountIds.length)
+							throw new Error('SubstrateSidecar_Rest: staking validators contain duplicate identities')
+
+						const offset = context.pagination.offset ?? 0
+						return {
+							rows: stashAccountIds
+								.slice(offset, offset + resolverContextRowLimit(context))
+								.map((stashAccountId) => ({
+									[EntityMetaKey.Selector]: {
+										$network: network,
+										stashAccountId,
+									},
+								})),
+							totalCount: stashAccountIds.length,
+						}
+					},
+				},
+			},
+		})({
+			Polkadot: {
+				$$validators: {
+					select: (snapshot) => snapshot.rows,
+					resolveCount: (snapshot) => snapshot.totalCount,
+				},
+			},
+		}),
+
+		defineResolver({
 			entityType: EntityType.Network_Timestamp,
 			resolve: {
 				NetworkTimestampMsSource: {
