@@ -81,11 +81,12 @@ const categoriesFromBlock = (block: string) => {
 }
 
 const enclosureUrlFromBlock = (block: string) => {
-	const rssMatch = block.match(/<enclosure[^>]+url=['"]([^'"]+)['"]/i)?.[1]
-	if (rssMatch?.trim()) return decodeXmlEntities(rssMatch)
 	for (const pattern of [
+		/<enclosure[^>]+url=['"]([^'"]+)['"]/i,
 		/<link[^>]*\srel=['"]enclosure['"][^>]*href=['"]([^'"]+)['"]/i,
 		/<link[^>]*href=['"]([^'"]+)['"][^>]*\srel=['"]enclosure['"]/i,
+		/<media:content[^>]+url=['"]([^'"]+)['"]/i,
+		/<podcast:alternateEnclosure[\s>][\s\S]*?<podcast:source[^>]+uri=['"]([^'"]+)['"]/i,
 	]) {
 		const match = block.match(pattern)?.[1]
 		if (match?.trim()) return decodeXmlEntities(match)

@@ -89,6 +89,44 @@ test('preserves a registered feed URL path, query, and reserved values', async (
 	)
 })
 
+test('materializes native enclosure URLs across RSS, Atom, Media RSS, and Podcasting 2.0', async () => {
+	for (const [enclosureMarkup, enclosureUrl] of [
+		[
+			'<enclosure length="12" type="audio/mpeg" url="https://media.example/rss.mp3" />',
+			'https://media.example/rss.mp3',
+		],
+		[
+			'<link type="audio/mpeg" href="https://media.example/atom.mp3" rel="enclosure" />',
+			'https://media.example/atom.mp3',
+		],
+		[
+			'<media:content medium="audio" url="https://media.example/media-rss.mp3" />',
+			'https://media.example/media-rss.mp3',
+		],
+		[
+			'<podcast:alternateEnclosure type="audio/mpeg"><podcast:source uri="https://media.example/podcast.mp3" /></podcast:alternateEnclosure>',
+			'https://media.example/podcast.mp3',
+		],
+	] as const) {
+		sourceFetch.mockResolvedValueOnce(new Response(`
+			<rss>
+				<channel>
+					<item>
+						<guid>fixture-item</guid>
+						${enclosureMarkup}
+					</item>
+				</channel>
+			</rss>
+		`))
+
+		await expect(rssFetchFeed(hnrssBinding, 'https://hnrss.org/frontpage')).resolves.toMatchObject({
+			items: [{
+				enclosureUrl,
+			}],
+		})
+	}
+})
+
 test('rejects credentials in a same-origin feed URL before transport', async () => {
 	await expect(rssFetchFeed(
 		hnrssBinding,
