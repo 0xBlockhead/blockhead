@@ -306,6 +306,16 @@ export const entityHrefFromSearchInput = (query: string) => {
 			}
 		)
 
+	const snapshotProposal = query.match(/^https:\/\/snapshot\.(?:org|box)\/#\/(?:s:)?[^/?#\s]+\/proposal\/(0x[a-f0-9]{64})\/?(?:[?&].*)?$/i)
+
+	if (snapshotProposal)
+		return resolve(
+			'/~/snapshot/proposal/[proposalId=stringSegment]',
+			{
+				proposalId: snapshotProposal[1].toLowerCase(),
+			}
+		)
+
 	if (/^ip(?:fs|ns):\/\//i.test(query)) {
 		const ipfsResourceAddress = ipfsResourceAddressFromInput({
 			targetInput: query,

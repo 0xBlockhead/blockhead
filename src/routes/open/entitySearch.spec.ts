@@ -42,6 +42,8 @@ describe(entityHrefFromSearchInput, () => {
 		['https://bsky.app/profile/alice.bsky.social/post/3lbm6y55c2c2a', '/atproto/post/at%3A%2F%2Falice.bsky.social%2Fapp.bsky.feed.post%2F3lbm6y55c2c2a'],
 		['https://www.reddit.com/r/ethereum/comments/1u8x2f8/a_title/', '/reddit/link/t3_1u8x2f8'],
 		['https://reddit.com/r/ethereum?utm_source=search', '/reddit/r/ethereum'],
+		[`https://snapshot.org/#/ens.eth/proposal/0x${'AB'.repeat(32)}`, `/~/snapshot/proposal/0x${'ab'.repeat(32)}`],
+		[`https://snapshot.box/#/s:ens.eth/proposal/0x${'12'.repeat(32)}?ref=search`, `/~/snapshot/proposal/0x${'12'.repeat(32)}`],
 		['eip155:1', '/network/eip155:1'],
 		['eip155:1:0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045', '/account/eip155:1/0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045'],
 		['https://example.com/a?b=c', '/url/https%3A%2F%2Fexample.com%2Fa%3Fb%3Dc'],
@@ -144,7 +146,10 @@ describe(entityHrefFromSearchInput, () => {
 		['https://reddit.com.evil.example/r/ethereum'],
 		['https://reddit.com/r/ab'],
 		['https://reddit.com/r/ethereum/comments/not-a-valid-id!'],
-	])('does not relabel unsafe or incomplete Bluesky URL %s', (query) => {
+		['https://snapshot.org/#/ens.eth/proposal/not-a-proposal'],
+		[`http://snapshot.org/#/ens.eth/proposal/0x${'12'.repeat(32)}`],
+		[`https://snapshot.org.evil.example/#/ens.eth/proposal/0x${'12'.repeat(32)}`],
+	])('does not relabel unsafe or incomplete provider URL %s', (query) => {
 		expect(entityHrefFromSearchInput(query)).toBe(`/url/${encodeURIComponent(query)}`)
 	})
 

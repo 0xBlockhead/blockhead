@@ -35,6 +35,7 @@ describe('universal search acceptance matrix', () => {
 		['Bluesky profile URL', 'https://bsky.app/profile/alice.bsky.social', '/atproto/actor/handle/alice.bsky.social'],
 		['Reddit link URL', 'https://reddit.com/r/ethereum/comments/1u8x2f8/a_title/', '/reddit/link/t3_1u8x2f8'],
 		['Reddit subreddit URL', 'https://reddit.com/r/ethereum', '/reddit/r/ethereum'],
+		['Snapshot proposal URL', `https://snapshot.org/#/ens.eth/proposal/0x${'12'.repeat(32)}`, `/~/snapshot/proposal/0x${'12'.repeat(32)}`],
 		['IPFS URI', 'ipfs://bafybeigdyrzt5sfp7udm7hu76f7lz4gf5o7vsvixd3rqfwxq6c6azp7j7m/folder/file.json', '/ipfs/ipfs/bafybeigdyrzt5sfp7udm7hu76f7lz4gf5o7vsvixd3rqfwxq6c6azp7j7m/path/folder/file.json'],
 		['IPNS URI', 'ipns://docs.ipfs.tech/concepts', '/ipfs/ipns/docs.ipfs.tech/path/concepts'],
 		['magnet URI', 'magnet:?xt=urn:btih:0123456789abcdef0123456789abcdef01234567', '/magnet/magnet%3A%3Fxt%3Durn%3Abtih%3A0123456789abcdef0123456789abcdef01234567'],
