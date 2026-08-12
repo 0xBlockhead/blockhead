@@ -9,8 +9,8 @@ import {
 import { EntityMetaKey } from '$/schema/$schema.ts'
 import { Source } from '$/sources/Source.ts'
 
-const getLatestCommit = vi.fn()
-const getRepoStatus = vi.fn()
+const getLatestCommit = vi.hoisted(() => vi.fn())
+const getRepoStatus = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/AtprotoSync/Xrpc/queries.ts', async (importOriginal) => ({
 	...await importOriginal<typeof import('$/sources/AtprotoSync/Xrpc/queries.ts')>(),

@@ -14,6 +14,32 @@ import { Source } from '$/sources/Source.ts'
 
 const defaultAtprotoSyncRelayOrigin = 'https://bsky.network'
 
+const getAtprotoLatestCommit = async (did: string) => (
+	typeof window === 'undefined' ?
+		await getLatestCommit({
+			serviceOrigin: defaultAtprotoSyncRelayOrigin,
+			did,
+		})
+	:
+		await import('$/sources/AtprotoSync/Xrpc/queries.remote.ts').then(({ getAtprotoLatestCommitRemote }) => getAtprotoLatestCommitRemote({
+			serviceOrigin: defaultAtprotoSyncRelayOrigin,
+			did,
+		}))
+)
+
+const getAtprotoRepoStatus = async (did: string) => (
+	typeof window === 'undefined' ?
+		await getRepoStatus({
+			serviceOrigin: defaultAtprotoSyncRelayOrigin,
+			did,
+		})
+	:
+		await import('$/sources/AtprotoSync/Xrpc/queries.remote.ts').then(({ getAtprotoRepoStatusRemote }) => getAtprotoRepoStatusRemote({
+			serviceOrigin: defaultAtprotoSyncRelayOrigin,
+			did,
+		}))
+)
+
 const projectLatestCommit = async ({
 	repoDid,
 	rev,
@@ -24,14 +50,8 @@ const projectLatestCommit = async ({
 	commitCid?: string
 }) => {
 	const [latest, status] = await Promise.all([
-		getLatestCommit({
-			serviceOrigin: defaultAtprotoSyncRelayOrigin,
-			did: repoDid,
-		}),
-		getRepoStatus({
-			serviceOrigin: defaultAtprotoSyncRelayOrigin,
-			did: repoDid,
-		}),
+		getAtprotoLatestCommit(repoDid),
+		getAtprotoRepoStatus(repoDid),
 	])
 
 	if (status.did !== repoDid)
