@@ -255,6 +255,10 @@ type LocalBlockheadSessionSimulationCall = Omit<
 	EntityFieldValues<typeof schema, EntityType.BlockheadSessionSimulationCall>,
 	'$simulation' | 'simulationId'
 >
+type LocalBlockheadSessionSimulationLog = Omit<
+	EntityFieldValues<typeof schema, EntityType.BlockheadSessionSimulationLog>,
+	'$simulation' | 'simulationId'
+>
 type LocalBlockheadTransferIntent = Omit<
 	EntityFieldValues<typeof schema, EntityType.BlockheadTransferIntent>,
 	'$sessionAction'
@@ -2327,7 +2331,8 @@ export const writeLocalBlockheadSessionSimulation = async (
 	context: LocalMutationContext,
 	sessionEntitySelector: EntitySelector<typeof schema, EntityType.BlockheadSession>,
 	simulation: LocalBlockheadSessionSimulation,
-	simulationCall?: LocalBlockheadSessionSimulationCall
+	simulationCalls: readonly LocalBlockheadSessionSimulationCall[] = [],
+	simulationLogs: readonly LocalBlockheadSessionSimulationLog[] = []
 ) => {
 	const entitySelector = {
 		id: simulation.id,
@@ -2365,10 +2370,20 @@ export const writeLocalBlockheadSessionSimulation = async (
 			EntityType.BlockheadSessionSimulation,
 			entitySelector,
 			'$$calls',
-			simulationCall === undefined ? [] : [{
+			simulationCalls.map((simulationCall) => ({
 				simulationId: simulation.id,
 				callPath: simulationCall.callPath,
-			}]
+			}))
+		),
+		replaceLocalEntityReferenceFieldRows(
+			context,
+			EntityType.BlockheadSessionSimulation,
+			entitySelector,
+			'$$logs',
+			simulationLogs.map((simulationLog) => ({
+				simulationId: simulation.id,
+				logIndex: simulationLog.logIndex,
+			}))
 		),
 		writeLocalEntityReferenceField(
 			context,
@@ -2385,7 +2400,7 @@ export const writeLocalBlockheadSessionSimulation = async (
 			[entitySelector]
 		),
 	]
-	if (simulationCall !== undefined) {
+	for (const simulationCall of simulationCalls) {
 		const simulationCallEntitySelector = {
 			simulationId: simulation.id,
 			callPath: simulationCall.callPath,
@@ -2425,6 +2440,41 @@ export const writeLocalBlockheadSessionSimulation = async (
 			[entitySelector]
 		))
 	}
+	for (const simulationLog of simulationLogs) {
+		const simulationLogEntitySelector = {
+			simulationId: simulation.id,
+			logIndex: simulationLog.logIndex,
+		}
+		writeLocalPresence(
+			context,
+			EntityType.BlockheadSessionSimulationLog,
+			simulationLogEntitySelector
+		)
+		writeLocalPrimitiveFields(
+			context,
+			EntityType.BlockheadSessionSimulationLog,
+			simulationLogEntitySelector,
+			{
+				simulationId: simulation.id,
+				logIndex: simulationLog.logIndex,
+				callPath: simulationLog.callPath,
+				address: simulationLog.address,
+				topic0: simulationLog.topic0,
+				topics: simulationLog.topics,
+				dataHash: simulationLog.dataHash,
+				decodedEventName: simulationLog.decodedEventName,
+				decodedArgs: simulationLog.decodedArgs,
+				removed: simulationLog.removed,
+			}
+		)
+		relationshipApplications.push(replaceLocalEntityReferenceFieldRows(
+			context,
+			EntityType.BlockheadSessionSimulationLog,
+			simulationLogEntitySelector,
+			'$simulation',
+			[entitySelector]
+		))
+	}
 	await Promise.all(relationshipApplications)
 	writeLocalPrimitiveFields(context, EntityType.BlockheadSession, sessionEntitySelector, {
 		simulationCount: new Set(context.entityFieldCollections[EntityType.BlockheadSession][
@@ -2440,17 +2490,21 @@ export const writeLocalBlockheadSessionSimulation = async (
 	})
 	await Promise.all([
 		context.entityCollections[EntityType.BlockheadSessionSimulation].utils.waitForPersistence(),
-		...(simulationCall === undefined ? [] : [
+		...(simulationCalls.length === 0 ? [] : [
 			context.entityCollections[EntityType.BlockheadSessionSimulationCall].utils.waitForPersistence(),
+		]),
+		...(simulationLogs.length === 0 ? [] : [
+			context.entityCollections[EntityType.BlockheadSessionSimulationLog].utils.waitForPersistence(),
 		]),
 		...[
 			'$session',
 			...Object.keys(primitiveFields),
 			'$$calls',
+			'$$logs',
 		].map((fieldName) => context.entityFieldCollections[EntityType.BlockheadSessionSimulation][
 			entityFieldAddressKey(EntityType.BlockheadSessionSimulation, [], fieldName)
 		].utils.waitForPersistence()),
-		...(simulationCall === undefined ? [] : [
+		...(simulationCalls.length === 0 ? [] : [
 			'$simulation',
 			'simulationId',
 			'callPath',
@@ -2470,6 +2524,21 @@ export const writeLocalBlockheadSessionSimulation = async (
 		].map((fieldName) => context.entityFieldCollections[EntityType.BlockheadSessionSimulationCall][
 			entityFieldAddressKey(EntityType.BlockheadSessionSimulationCall, [], fieldName)
 		].utils.waitForPersistence())),
+		...(simulationLogs.length === 0 ? [] : [
+			'$simulation',
+			'simulationId',
+			'logIndex',
+			'callPath',
+			'address',
+			'topic0',
+			'topics',
+			'dataHash',
+			'decodedEventName',
+			'decodedArgs',
+			'removed',
+		].map((fieldName) => context.entityFieldCollections[EntityType.BlockheadSessionSimulationLog][
+			entityFieldAddressKey(EntityType.BlockheadSessionSimulationLog, [], fieldName)
+		].utils.waitForPersistence())),
 		...[
 			'$latestSimulation',
 			'simulationCount',
@@ -2479,6 +2548,9 @@ export const writeLocalBlockheadSessionSimulation = async (
 		].utils.waitForPersistence()),
 		context.entityFieldCountCollections[EntityType.BlockheadSessionSimulation][
 			entityFieldAddressKey(EntityType.BlockheadSessionSimulation, [], '$$calls')
+		]?.utils.waitForPersistence(),
+		context.entityFieldCountCollections[EntityType.BlockheadSessionSimulation][
+			entityFieldAddressKey(EntityType.BlockheadSessionSimulation, [], '$$logs')
 		]?.utils.waitForPersistence(),
 		context.entityFieldCountCollections[EntityType.BlockheadSession][
 			entityFieldAddressKey(EntityType.BlockheadSession, [], '$$simulations')

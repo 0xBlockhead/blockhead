@@ -834,7 +834,7 @@ export const applyEvmNativeTransferPreparation = async ({
 				context,
 				{ id: session.id },
 				preparation.simulation,
-				preparation.simulationCall
+				preparation.simulationCall == null ? [] : [preparation.simulationCall]
 			),
 		]),
 	])

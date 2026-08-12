@@ -2342,14 +2342,36 @@ describe('local mutation authority journal', () => {
 				gasUsed: 21_000n,
 				resultPayloadHash: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
 			},
-			{
+			[{
 				callPath: '0',
 				depth: 0,
 				callIndex: 0,
 				callType: 'CALL',
 				gasUsed: 21_000n,
 				reverted: false,
-			}
+			}, {
+				callPath: '0.0',
+				parentCallPath: '0',
+				depth: 1,
+				callIndex: 0,
+				callType: 'STATICCALL',
+				gasUsed: 1_500n,
+				reverted: false,
+			}],
+			[{
+				logIndex: 0,
+				callPath: '0.0',
+				address: '0x1111111111111111111111111111111111111111',
+				topic0: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+				topics: [
+					'0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+					'0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+				],
+				dataHash: '0xcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc',
+				decodedEventName: 'Transfer',
+				decodedArgs: { amount: '100' },
+				removed: false,
+			}]
 		)
 		const failedSimulationSelector = {
 			id: 'simulation-2',
@@ -2375,9 +2397,39 @@ describe('local mutation authority journal', () => {
 					callPath: '0',
 				}),
 			}),
+			expect.objectContaining({
+				[EntityMetaKey.SelectorKey]: stringify({
+					simulationId: firstSimulationSelector.id,
+					callPath: '0.0',
+				}),
+			}),
+		])
+		expect(context.entityCollections[EntityType.BlockheadSessionSimulationLog].toArray).toEqual([
+			expect.objectContaining({
+				[EntityMetaKey.SelectorKey]: stringify({
+					simulationId: firstSimulationSelector.id,
+					logIndex: 0,
+				}),
+			}),
 		])
 		expect(context.entityFieldCollections[EntityType.BlockheadSessionSimulationCall][entityFieldAddressKey(
 			EntityType.BlockheadSessionSimulationCall,
+			[],
+			'$simulation'
+		)].toArray).toEqual([
+			expect.objectContaining({
+				[EntityMetaKey.Value]: expect.objectContaining({
+					[EntityMetaKey.SelectorKey]: stringify(firstSimulationSelector),
+				}),
+			}),
+			expect.objectContaining({
+				[EntityMetaKey.Value]: expect.objectContaining({
+					[EntityMetaKey.SelectorKey]: stringify(firstSimulationSelector),
+				}),
+			}),
+		])
+		expect(context.entityFieldCollections[EntityType.BlockheadSessionSimulationLog][entityFieldAddressKey(
+			EntityType.BlockheadSessionSimulationLog,
 			[],
 			'$simulation'
 		)].toArray).toEqual([
@@ -2428,6 +2480,20 @@ describe('local mutation authority journal', () => {
 			EntityType.BlockheadSessionSimulation,
 			[],
 			'$$calls'
+		)]?.toArray).toEqual(expect.arrayContaining([
+			expect.objectContaining({
+				[EntityMetaKey.ParentSelector]: firstSimulationSelector,
+				[EntityMetaKey.Value]: 2,
+			}),
+			expect.objectContaining({
+				[EntityMetaKey.ParentSelector]: failedSimulationSelector,
+				[EntityMetaKey.Value]: 0,
+			}),
+		]))
+		expect(context.entityFieldCountCollections[EntityType.BlockheadSessionSimulation][entityFieldAddressKey(
+			EntityType.BlockheadSessionSimulation,
+			[],
+			'$$logs'
 		)]?.toArray).toEqual(expect.arrayContaining([
 			expect.objectContaining({
 				[EntityMetaKey.ParentSelector]: firstSimulationSelector,

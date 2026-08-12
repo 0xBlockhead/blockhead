@@ -182,7 +182,7 @@ it('persists intent, quote, simulation, and only a prepared wallet request', asy
 		context,
 		{ id: 'session-1' },
 		preparation.simulation,
-		preparation.simulationCall
+		[preparation.simulationCall]
 	)
 	expect(localMutationMocks.writeLocalBlockheadWalletRequest).toHaveBeenCalledWith(
 		context,

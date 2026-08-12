@@ -396,12 +396,12 @@ export const applyEvmSwapPreparation = async ({
 			context,
 			{ id: session.id },
 			preparation.simulation,
-			preparation.simulationCall
+			[preparation.simulationCall]
 		),
 	])
 	const selectedWalletConnections = walletConnections.filter(isSelectedWalletConnection)
 	const selectedWallet = selectedWalletConnections.length === 1 ? selectedWalletConnections[0] : undefined
-	if (selectedWallet?.connectionKey == null || selectedWallet.activeAccount == null)
+	if (selectedWallet?.connectionKey == null)
 		throw new Error('Swap preparation lost the selected wallet binding.')
 
 	await writeLocalBlockheadWalletRequest(context, {

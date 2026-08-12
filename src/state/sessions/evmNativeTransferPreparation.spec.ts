@@ -733,7 +733,7 @@ describe('EVM native transfer preparation application', () => {
 			context,
 			{ id: 'session-1' },
 			preparation.simulation,
-			preparation.simulationCall
+			[preparation.simulationCall]
 		)
 		expect(preparation.walletRequest).toEqual({
 			id: expectedWalletRequestIdBySimulationId['simulation-application'],
