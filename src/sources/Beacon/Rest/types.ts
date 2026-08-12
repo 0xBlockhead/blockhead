@@ -48,3 +48,17 @@ export type BeaconValidatorSyncCommitteeReward = {
 	validatorIndex: number
 	rewardGwei: bigint
 }
+
+export type BeaconDataColumnSidecars = {
+	version: 'fulu' | 'gloas'
+	executionOptimistic: boolean
+	finalized: boolean
+	sidecars: {
+		index: number
+		columns: string[]
+		kzgProofs: string[]
+		kzgCommitments: string[]
+		beaconBlockRoot: string | undefined
+		slot: number | undefined
+	}[]
+}

@@ -10,6 +10,7 @@ import {
 import bindings from '$/sources/Beacon/bindings.ts'
 import type {
 	BeaconBlockDutySummary,
+	BeaconDataColumnSidecars,
 	BeaconValidatorAttestationReward,
 	BeaconValidatorSyncCommitteeReward,
 } from '$/sources/Beacon/Rest/types.ts'
@@ -1090,4 +1091,135 @@ export const getSyncCommitteeRewards = async (
 	})
 	if (!res.ok) await throwHttpError('Beacon POST sync committee rewards', res)
 	return getSyncCommitteeRewardsFromWire(await res.json<JsonValue>())
+}
+
+export const getDataColumnSidecarsFromWire = (
+	wire: JsonValue
+): BeaconDataColumnSidecars => {
+	if (
+		!isJsonObject(wire)
+		|| (wire.version !== 'fulu' && wire.version !== 'gloas')
+		|| typeof wire.execution_optimistic !== 'boolean'
+		|| typeof wire.finalized !== 'boolean'
+		|| !isJsonArray(wire.data)
+	)
+		throw new Error('Beacon: invalid data column sidecars response')
+
+	const version = wire.version
+	const seenIndices = new Set<number>()
+	return {
+		version,
+		executionOptimistic: wire.execution_optimistic,
+		finalized: wire.finalized,
+		sidecars: wire.data.map((sidecarWire) => {
+			if (
+				!isJsonObject(sidecarWire)
+				|| typeof sidecarWire.index !== 'string'
+				|| !isUint64Wire(sidecarWire.index)
+				|| !isJsonArray(sidecarWire.column)
+				|| !isJsonArray(sidecarWire.kzg_proofs)
+			)
+				throw new Error('Beacon: invalid data column sidecar')
+
+			const index = Number(sidecarWire.index)
+			if (!Number.isSafeInteger(index) || seenIndices.has(index))
+				throw new Error('Beacon: duplicate or unsafe data column sidecar index')
+
+			seenIndices.add(index)
+			const columns = sidecarWire.column.map((column) => {
+				if (typeof column !== 'string' || !/^0x[0-9a-fA-F]{4096}$/.test(column))
+					throw new Error('Beacon: invalid data column bytes')
+
+				return column.toLowerCase()
+			})
+			const kzgProofs = sidecarWire.kzg_proofs.map((proof) => {
+				if (typeof proof !== 'string' || !/^0x[0-9a-fA-F]{96}$/.test(proof))
+					throw new Error('Beacon: invalid data column KZG proof')
+
+				return proof.toLowerCase()
+			})
+			if (columns.length !== kzgProofs.length)
+				throw new Error('Beacon: data column proof count does not match column count')
+
+			if (version === 'gloas') {
+				if (
+					typeof sidecarWire.slot !== 'string'
+					|| !isUint64Wire(sidecarWire.slot)
+					|| typeof sidecarWire.beacon_block_root !== 'string'
+					|| !/^0x[0-9a-fA-F]{64}$/.test(sidecarWire.beacon_block_root)
+				)
+					throw new Error('Beacon: invalid Gloas data column identity')
+
+				const slot = Number(sidecarWire.slot)
+				if (!Number.isSafeInteger(slot))
+					throw new Error('Beacon: unsafe Gloas data column slot')
+
+				return {
+					index,
+					columns,
+					kzgProofs,
+					kzgCommitments: [],
+					beaconBlockRoot: sidecarWire.beacon_block_root.toLowerCase(),
+					slot,
+				}
+			}
+
+			if (
+				!isJsonArray(sidecarWire.kzg_commitments)
+				|| !isJsonObject(sidecarWire.signed_block_header)
+				|| !isJsonObject(sidecarWire.signed_block_header.message)
+				|| typeof sidecarWire.signed_block_header.message.slot !== 'string'
+				|| !isUint64Wire(sidecarWire.signed_block_header.message.slot)
+			)
+				throw new Error('Beacon: invalid Fulu data column identity')
+
+			const slot = Number(sidecarWire.signed_block_header.message.slot)
+			if (!Number.isSafeInteger(slot))
+				throw new Error('Beacon: unsafe Fulu data column slot')
+
+			const kzgCommitments = sidecarWire.kzg_commitments.map((commitment) => {
+				if (typeof commitment !== 'string' || !/^0x[0-9a-fA-F]{96}$/.test(commitment))
+					throw new Error('Beacon: invalid data column KZG commitment')
+
+				return commitment.toLowerCase()
+			})
+			if (columns.length !== kzgCommitments.length)
+				throw new Error('Beacon: data column commitment count does not match column count')
+
+			return {
+				index,
+				columns,
+				kzgProofs,
+				kzgCommitments,
+				beaconBlockRoot: undefined,
+				slot,
+			}
+		}),
+	}
+}
+
+export const getDataColumnSidecars = async (
+	chainId: number,
+	blockId: string | number,
+	indices?: number[]
+) => {
+	const normalizedBlockId = normalizeBeaconStateOrBlockId(blockId)
+	if (indices?.some((index) => !Number.isSafeInteger(index) || index < 0))
+		throw new Error('Beacon: invalid data column index')
+
+	const searchParams = new URLSearchParams()
+	for (const index of indices ?? [])
+		searchParams.append('indices', String(index))
+
+	const res = await beaconFetch(
+		chainId,
+		`/eth/v1/debug/beacon/data_column_sidecars/${normalizedBlockId}${searchParams.size === 0 ? '' : `?${searchParams}`}`,
+		{
+			headers: {
+				accept: 'application/json',
+			},
+		}
+	)
+	if (!res.ok) await throwHttpError('Beacon GET data column sidecars', res)
+	return getDataColumnSidecarsFromWire(await res.json<JsonValue>())
 }

@@ -119,6 +119,36 @@ export type LndListPaymentsResponse = {
 	total_num_payments?: string
 }
 
+export type LndPeer = {
+	pub_key: string
+	address: string
+	bytes_sent?: string
+	bytes_recv?: string
+	sat_sent?: string
+	sat_recv?: string
+	inbound?: boolean
+	ping_time?: string
+}
+
+export type LndListPeersResponse = {
+	peers?: LndPeer[]
+}
+
+export type LndForwardingEvent = {
+	timestamp?: string
+	chan_id_in: string
+	chan_id_out: string
+	amt_in_msat?: string
+	amt_out_msat?: string
+	fee_msat?: string
+	timestamp_ns?: string
+}
+
+export type LndForwardingHistoryResponse = {
+	forwarding_events?: LndForwardingEvent[]
+	last_offset_index?: number
+}
+
 export type LndNetworkInfoResponse = {
 	graph_diameter?: number
 	avg_out_degree?: number

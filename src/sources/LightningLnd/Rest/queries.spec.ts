@@ -19,12 +19,14 @@ vi.mock('$/sources/_runtime/http.ts', () => ({
 import {
 	getChannelBalance,
 	getChannelInfo,
+	getForwardingHistory,
 	getInvoice,
 	getNetworkInfo,
 	getNodeInfo,
 	getWalletBalance,
 	listInvoices,
 	listPayments,
+	listPeers,
 } from '$/sources/LightningLnd/Rest/queries.ts'
 
 const binding = bindings[Source.LightningLnd_Rest][0]
@@ -157,6 +159,90 @@ describe('LND server-authenticated public graph reads', () => {
 			binding,
 			'https://127.0.0.1:8080/v1/payments?index_offset=9007199254740993&max_payments=25'
 		)
+	})
+
+	it('preserves local peer counters and bounded forwarding-history coordinates', async () => {
+		respond({
+			peers: [{
+				pub_key: peerPublicKey,
+				address: '127.0.0.1:9735',
+				bytes_sent: '9007199254740993',
+				bytes_recv: '9007199254740994',
+				sat_sent: '42',
+				sat_recv: '43',
+				inbound: true,
+				ping_time: '1234',
+			}],
+		})
+		await expect(listPeers()).resolves.toMatchObject({
+			peers: [{
+				pub_key: peerPublicKey,
+				bytes_sent: '9007199254740993',
+				inbound: true,
+			}],
+		})
+		expect(sourceFetch).toHaveBeenLastCalledWith(
+			binding,
+			'https://127.0.0.1:8080/v1/peers'
+		)
+
+		respond({
+			forwarding_events: [{
+				timestamp: '1700000000',
+				timestamp_ns: '1700000000123456789',
+				chan_id_in: '123',
+				chan_id_out: '456',
+				amt_in_msat: '9007199254740993000',
+				amt_out_msat: '9007199254740992000',
+				fee_msat: '1000',
+			}],
+			last_offset_index: 8,
+		})
+		await expect(getForwardingHistory({
+			startTime: '1699990000',
+			endTime: '1700010000',
+			indexOffset: 7,
+			numMaxEvents: 25,
+		})).resolves.toMatchObject({
+			forwarding_events: [{
+				chan_id_in: '123',
+				chan_id_out: '456',
+				fee_msat: '1000',
+			}],
+			last_offset_index: 8,
+		})
+		expect(sourceFetch).toHaveBeenLastCalledWith(
+			binding,
+			'https://127.0.0.1:8080/v1/switch?start_time=1699990000&end_time=1700010000&index_offset=7&num_max_events=25'
+		)
+	})
+
+	it('fails closed on duplicate peers and ambiguous forwarding events', async () => {
+		respond({
+			peers: [
+				{
+					pub_key: peerPublicKey,
+					address: '127.0.0.1:9735',
+				},
+				{
+					pub_key: peerPublicKey,
+					address: '127.0.0.2:9735',
+				},
+			],
+		})
+		await expect(listPeers()).rejects.toThrow('duplicate peer')
+
+		respond({
+			forwarding_events: [{
+				chan_id_in: '123',
+				chan_id_out: '456',
+			}],
+		})
+		await expect(getForwardingHistory()).rejects.toThrow('ambiguous or duplicate event')
+		await expect(getForwardingHistory({
+			startTime: '2',
+			endTime: '1',
+		})).rejects.toThrow('time range is reversed')
 	})
 
 	it('requests bounded default local-history pages and rejects unbounded requests before transport', async () => {

@@ -10,6 +10,8 @@ import * as sourceHttp from '$/sources/_runtime/http.ts'
 import {
 	getCommitteesFromWire,
 	getCommittees,
+	getDataColumnSidecars,
+	getDataColumnSidecarsFromWire,
 	getBlockDutySummary,
 	getBlockDutySummaryFromWire,
 	getBlockRewards,
@@ -52,6 +54,107 @@ afterEach(() => {
 })
 
 describe('Beacon REST native checkpoint and fork wires', () => {
+	it('retains finalized Fulu and optimistic Gloas data-column identities', async () => {
+		const column = `0x${'ab'.repeat(2_048)}`
+		const proof = `0x${'cd'.repeat(48)}`
+		const commitment = `0x${'ef'.repeat(48)}`
+		expect(getDataColumnSidecarsFromWire({
+			version: 'fulu',
+			execution_optimistic: false,
+			finalized: true,
+			data: [{
+				index: '3',
+				column: [column],
+				kzg_commitments: [commitment],
+				kzg_proofs: [proof],
+				kzg_commitments_inclusion_proof: [],
+				signed_block_header: {
+					message: {
+						slot: '42',
+					},
+					signature: '0x',
+				},
+			}],
+		})).toEqual({
+			version: 'fulu',
+			executionOptimistic: false,
+			finalized: true,
+			sidecars: [{
+				index: 3,
+				columns: [column],
+				kzgProofs: [proof],
+				kzgCommitments: [commitment],
+				beaconBlockRoot: undefined,
+				slot: 42,
+			}],
+		})
+
+		const wire = {
+			version: 'gloas',
+			execution_optimistic: true,
+			finalized: false,
+			data: [{
+				index: '7',
+				column: [column],
+				kzg_proofs: [proof],
+				slot: '43',
+				beacon_block_root: `0x${'12'.repeat(32)}`,
+			}],
+		}
+		const sourceFetch = vi.spyOn(sourceHttp, 'sourceFetch').mockResolvedValue(
+			new Response(JSON.stringify(wire))
+		)
+		await expect(getDataColumnSidecars(
+			1,
+			43,
+			[
+				7,
+				8,
+			]
+		)).resolves.toMatchObject({
+			version: 'gloas',
+			executionOptimistic: true,
+			finalized: false,
+			sidecars: [{
+				index: 7,
+				slot: 43,
+			}],
+		})
+		expect(String(sourceFetch.mock.calls[0]?.[1])).toContain(
+			'/eth/v1/debug/beacon/data_column_sidecars/43?indices=7&indices=8'
+		)
+	})
+
+	it('fails closed on data-column identity, proof and custody ambiguity', () => {
+		const column = `0x${'ab'.repeat(2_048)}`
+		const proof = `0x${'cd'.repeat(48)}`
+		const sidecar = {
+			index: '3',
+			column: [column],
+			kzg_proofs: [proof],
+			slot: '42',
+			beacon_block_root: `0x${'12'.repeat(32)}`,
+		}
+		expect(() => getDataColumnSidecarsFromWire({
+			version: 'gloas',
+			execution_optimistic: false,
+			finalized: true,
+			data: [
+				sidecar,
+				sidecar,
+			],
+		})).toThrow('duplicate or unsafe data column sidecar index')
+		expect(() => getDataColumnSidecarsFromWire({
+			version: 'gloas',
+			execution_optimistic: false,
+			finalized: true,
+			data: [{
+				...sidecar,
+				kzg_proofs: [],
+			}],
+		})).toThrow('proof count does not match column count')
+	})
+
 	it('parses coordinate-bound block reward components and finality', async () => {
 		const wire = {
 			execution_optimistic: false,

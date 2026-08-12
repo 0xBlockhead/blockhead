@@ -184,6 +184,36 @@ const listPaymentsWire = arktype({
 	'total_num_payments?': losslessUnsignedString,
 })
 
+const peerWire = arktype({
+	pub_key: compressedPublicKey,
+	address: nonEmptyString,
+	'bytes_sent?': losslessUnsignedString,
+	'bytes_recv?': losslessUnsignedString,
+	'sat_sent?': losslessUnsignedString,
+	'sat_recv?': losslessUnsignedString,
+	'inbound?': 'boolean',
+	'ping_time?': losslessUnsignedString,
+})
+
+const listPeersWire = arktype({
+	'peers?': peerWire.array(),
+})
+
+const forwardingEventWire = arktype({
+	'timestamp?': losslessUnsignedString,
+	chan_id_in: channelIdWire,
+	chan_id_out: channelIdWire,
+	'amt_in_msat?': losslessUnsignedString,
+	'amt_out_msat?': losslessUnsignedString,
+	'fee_msat?': losslessUnsignedString,
+	'timestamp_ns?': losslessUnsignedString,
+})
+
+const forwardingHistoryWire = arktype({
+	'forwarding_events?': forwardingEventWire.array(),
+	'last_offset_index?': unsignedSafe,
+})
+
 const assertEnvelope = <_Value>(
 	wire: {
 		assert: (value: unknown) => _Value
@@ -431,6 +461,73 @@ export const listPayments = async ({
 		if (paymentHashes.has(payment.payment_hash))
 			throw new Error('LightningLnd_Rest: payment page contains a duplicate payment')
 		paymentHashes.add(payment.payment_hash)
+	}
+	return page
+}
+
+export const listPeers = async () => {
+	const page = assertEnvelope(
+		listPeersWire,
+		await requestLightningLndRestJson({
+			path: '/v1/peers',
+		}),
+		'list peers'
+	)
+	const publicKeys = new Set<string>()
+	for (const peer of page.peers ?? []) {
+		if (publicKeys.has(peer.pub_key))
+			throw new Error('LightningLnd_Rest: peer page contains a duplicate peer')
+
+		publicKeys.add(peer.pub_key)
+	}
+	return page
+}
+
+export const getForwardingHistory = async ({
+	startTime,
+	endTime,
+	indexOffset,
+	numMaxEvents = 100,
+}: {
+	startTime?: string
+	endTime?: string
+	indexOffset?: number
+	numMaxEvents?: number
+} = {}) => {
+	for (const [label, value] of [
+		['start time', startTime],
+		['end time', endTime],
+	] as const)
+		if (value != null && !losslessUnsignedString.allows(value))
+			throw new Error(`LightningLnd_Rest: forwarding ${label} must be an unsigned integer string`)
+
+	if (indexOffset != null && (!Number.isSafeInteger(indexOffset) || indexOffset < 0))
+		throw new Error('LightningLnd_Rest: forwarding index offset must be an unsigned safe integer')
+	if (!Number.isSafeInteger(numMaxEvents) || numMaxEvents < 1 || numMaxEvents > 100)
+		throw new Error('LightningLnd_Rest: forwarding page size must be a positive safe integer no greater than 100')
+	if (startTime != null && endTime != null && BigInt(startTime) > BigInt(endTime))
+		throw new Error('LightningLnd_Rest: forwarding time range is reversed')
+
+	const searchParams = new URLSearchParams({
+		...(startTime != null && { start_time: startTime }),
+		...(endTime != null && { end_time: endTime }),
+		...(indexOffset != null && { index_offset: String(indexOffset) }),
+		num_max_events: String(numMaxEvents),
+	})
+	const page = assertEnvelope(
+		forwardingHistoryWire,
+		await requestLightningLndRestJson({
+			path: `/v1/switch${searchParams.size === 0 ? '' : `?${searchParams}`}`,
+		}),
+		'forwarding history'
+	)
+	const eventIdentities = new Set<string>()
+	for (const event of page.forwarding_events ?? []) {
+		const identity = `${event.timestamp_ns ?? event.timestamp ?? ''}:${event.chan_id_in}:${event.chan_id_out}`
+		if (identity.startsWith(':') || eventIdentities.has(identity))
+			throw new Error('LightningLnd_Rest: forwarding page contains an ambiguous or duplicate event')
+
+		eventIdentities.add(identity)
 	}
 	return page
 }
