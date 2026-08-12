@@ -3,8 +3,8 @@
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { UrlString } from '$/schema/UrlString.ts'
 import { Source } from '$/sources/Source.ts'
-import { type } from 'arktype'
 
 export default entity({
 	entityType: EntityType.CashuMint,
@@ -14,7 +14,7 @@ export default entity({
 	},
 })({
 	mintUrl: {
-		primitiveType: type('string'),
+		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$keysets: {

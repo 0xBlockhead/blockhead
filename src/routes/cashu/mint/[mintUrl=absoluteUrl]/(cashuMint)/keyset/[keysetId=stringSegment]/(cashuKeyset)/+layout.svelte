@@ -21,9 +21,10 @@
 
 	const detailHref = $derived(
 		resolve(
-			'/cashu/mint/[mintUrl=stringSegment]',
+			'/cashu/mint/[mintUrl=absoluteUrl]/(cashuMint)/keyset/[keysetId=stringSegment]',
 			{
 				mintUrl: params.mintUrl,
+				keysetId: params.keysetId,
 			}
 		)
 	)
@@ -32,7 +33,7 @@
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import ParentPageCollapsible from '$/components/ParentPageCollapsible.svelte'
-	import CashuMintView from '$/views/CashuMintView.svelte'
+	import CashuKeysetView from '$/views/CashuKeysetView.svelte'
 </script>
 
 
@@ -40,9 +41,9 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<CashuMintView
+		<CashuKeysetView
 			selection={
-				select(EntityType.CashuMint, data.selector, {
+				select(EntityType.CashuKeyset, data.selector, {
 					sources: [
 						Source.CashuMint_Rest,
 					],

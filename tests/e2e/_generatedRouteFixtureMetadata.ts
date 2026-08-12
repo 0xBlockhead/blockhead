@@ -12538,7 +12538,10 @@ export const e2eRouteFixtureMetadataByNodeId = {
 		],
 	},
 	'/cashu/mint/[mintUrl]': {
-		routeId: '/cashu/mint/[mintUrl=stringSegment]',
+		routeId: '/cashu/mint/[mintUrl=absoluteUrl]',
+		parameterEncodingByName: {
+			mintUrl: 'Opaque',
+		},
 		mappings: [
 			{
 				id: 'CashuMint.MintUrl',
@@ -12548,7 +12551,10 @@ export const e2eRouteFixtureMetadataByNodeId = {
 		],
 	},
 	'/cashu/mint/[mintUrl]/keyset/[keysetId]': {
-		routeId: '/cashu/mint/[mintUrl=stringSegment]/(cashuMint)/keyset/[keysetId=stringSegment]',
+		routeId: '/cashu/mint/[mintUrl=absoluteUrl]/(cashuMint)/keyset/[keysetId=stringSegment]',
+		parameterEncodingByName: {
+			mintUrl: 'Opaque',
+		},
 		mappings: [
 			{
 				id: 'CashuKeyset.CashuMintKeysetId',
@@ -12558,7 +12564,10 @@ export const e2eRouteFixtureMetadataByNodeId = {
 		],
 	},
 	'/cashu/mint/[mintUrl]/keyset/[keysetId]/observations/[timestampMs]/[source]': {
-		routeId: '/cashu/mint/[mintUrl=stringSegment]/(cashuMint)/keyset/[keysetId=stringSegment]/(cashuKeyset)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+		routeId: '/cashu/mint/[mintUrl=absoluteUrl]/(cashuMint)/keyset/[keysetId=stringSegment]/(cashuKeyset)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+		parameterEncodingByName: {
+			mintUrl: 'Opaque',
+		},
 		mappings: [
 			{
 				id: 'CashuKeyset_Timestamp.KeysetTimestampMsSource',
@@ -12568,7 +12577,10 @@ export const e2eRouteFixtureMetadataByNodeId = {
 		],
 	},
 	'/cashu/mint/[mintUrl]/melt-quote/[method]/[quoteId]': {
-		routeId: '/cashu/mint/[mintUrl=stringSegment]/(cashuMint)/melt-quote/[method=stringSegment]/[quoteId=stringSegment]',
+		routeId: '/cashu/mint/[mintUrl=absoluteUrl]/(cashuMint)/melt-quote/[method=stringSegment]/[quoteId=stringSegment]',
+		parameterEncodingByName: {
+			mintUrl: 'Opaque',
+		},
 		mappings: [
 			{
 				id: 'BlockheadCashuMeltQuote.MintMethodQuoteId',
@@ -12578,7 +12590,10 @@ export const e2eRouteFixtureMetadataByNodeId = {
 		],
 	},
 	'/cashu/mint/[mintUrl]/melt-quote/[method]/[quoteId]/observations/[timestampMs]/[source]': {
-		routeId: '/cashu/mint/[mintUrl=stringSegment]/(cashuMint)/melt-quote/[method=stringSegment]/[quoteId=stringSegment]/(blockheadCashuMeltQuote)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+		routeId: '/cashu/mint/[mintUrl=absoluteUrl]/(cashuMint)/melt-quote/[method=stringSegment]/[quoteId=stringSegment]/(blockheadCashuMeltQuote)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+		parameterEncodingByName: {
+			mintUrl: 'Opaque',
+		},
 		mappings: [
 			{
 				id: 'BlockheadCashuMeltQuote_Timestamp.MeltQuoteTimestampMsSource',
@@ -12588,7 +12603,10 @@ export const e2eRouteFixtureMetadataByNodeId = {
 		],
 	},
 	'/cashu/mint/[mintUrl]/mint-quote/[method]/[quoteId]': {
-		routeId: '/cashu/mint/[mintUrl=stringSegment]/(cashuMint)/mint-quote/[method=stringSegment]/[quoteId=stringSegment]',
+		routeId: '/cashu/mint/[mintUrl=absoluteUrl]/(cashuMint)/mint-quote/[method=stringSegment]/[quoteId=stringSegment]',
+		parameterEncodingByName: {
+			mintUrl: 'Opaque',
+		},
 		mappings: [
 			{
 				id: 'BlockheadCashuMintQuote.MintMethodQuoteId',
@@ -12598,7 +12616,10 @@ export const e2eRouteFixtureMetadataByNodeId = {
 		],
 	},
 	'/cashu/mint/[mintUrl]/mint-quote/[method]/[quoteId]/observations/[timestampMs]/[source]': {
-		routeId: '/cashu/mint/[mintUrl=stringSegment]/(cashuMint)/mint-quote/[method=stringSegment]/[quoteId=stringSegment]/(blockheadCashuMintQuote)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+		routeId: '/cashu/mint/[mintUrl=absoluteUrl]/(cashuMint)/mint-quote/[method=stringSegment]/[quoteId=stringSegment]/(blockheadCashuMintQuote)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+		parameterEncodingByName: {
+			mintUrl: 'Opaque',
+		},
 		mappings: [
 			{
 				id: 'BlockheadCashuMintQuote_Timestamp.MintQuoteTimestampMsSource',
@@ -12608,7 +12629,10 @@ export const e2eRouteFixtureMetadataByNodeId = {
 		],
 	},
 	'/cashu/mint/[mintUrl]/observations/[timestampMs]/[source]': {
-		routeId: '/cashu/mint/[mintUrl=stringSegment]/(cashuMint)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+		routeId: '/cashu/mint/[mintUrl=absoluteUrl]/(cashuMint)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+		parameterEncodingByName: {
+			mintUrl: 'Opaque',
+		},
 		mappings: [
 			{
 				id: 'CashuMint_Timestamp.MintTimestampMsSource',

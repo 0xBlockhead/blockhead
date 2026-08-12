@@ -44,9 +44,9 @@
 			entitySelector={blockheadCashuMintQuoteSelector}
 			href={
 				resolve(
-					'/cashu/mint/[mintUrl=stringSegment]/(cashuMint)/mint-quote/[method=stringSegment]/[quoteId=stringSegment]',
+					'/cashu/mint/[mintUrl=absoluteUrl]/(cashuMint)/mint-quote/[method=stringSegment]/[quoteId=stringSegment]',
 					{
-						mintUrl: blockheadCashuMintQuoteSelector.$mint.mintUrl,
+						mintUrl: encodeURIComponent(blockheadCashuMintQuoteSelector.$mint.mintUrl),
 						method: blockheadCashuMintQuoteSelector.method,
 						quoteId: blockheadCashuMintQuoteSelector.quoteId,
 					}

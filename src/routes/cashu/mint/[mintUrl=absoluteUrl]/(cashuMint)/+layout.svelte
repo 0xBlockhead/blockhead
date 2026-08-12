@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { LayoutProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -20,11 +21,9 @@
 
 	const detailHref = $derived(
 		resolve(
-			'/cashu/mint/[mintUrl=stringSegment]/(cashuMint)/melt-quote/[method=stringSegment]/[quoteId=stringSegment]',
+			'/cashu/mint/[mintUrl=absoluteUrl]',
 			{
 				mintUrl: params.mintUrl,
-				method: params.method,
-				quoteId: params.quoteId,
 			}
 		)
 	)
@@ -33,7 +32,7 @@
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import ParentPageCollapsible from '$/components/ParentPageCollapsible.svelte'
-	import BlockheadCashuMeltQuoteView from '$/views/BlockheadCashuMeltQuoteView.svelte'
+	import CashuMintView from '$/views/CashuMintView.svelte'
 </script>
 
 
@@ -41,8 +40,14 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<BlockheadCashuMeltQuoteView
-			selection={select(EntityType.BlockheadCashuMeltQuote, data.selector)}
+		<CashuMintView
+			selection={
+				select(EntityType.CashuMint, data.selector, {
+					sources: [
+						Source.CashuMint_Rest,
+					],
+				})
+			}
 			href={detailHref}
 			layout={EntityLayout.SummaryInline}
 		/>

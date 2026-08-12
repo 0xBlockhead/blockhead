@@ -45,9 +45,9 @@
 			entitySelector={cashuMintTimestampSelector}
 			href={
 				resolve(
-					'/cashu/mint/[mintUrl=stringSegment]/(cashuMint)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+					'/cashu/mint/[mintUrl=absoluteUrl]/(cashuMint)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 					{
-						mintUrl: cashuMintTimestampSelector.$mint.mintUrl,
+						mintUrl: encodeURIComponent(cashuMintTimestampSelector.$mint.mintUrl),
 						timestampMs: String(cashuMintTimestampSelector.timestampMs),
 						source: cashuMintTimestampSelector.source,
 					}

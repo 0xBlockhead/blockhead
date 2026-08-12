@@ -43,9 +43,9 @@
 	href={
 		href === undefined ?
 			resolve(
-				'/cashu/mint/[mintUrl=stringSegment]/(cashuMint)/mint-quote/[method=stringSegment]/[quoteId=stringSegment]/(blockheadCashuMintQuote)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+				'/cashu/mint/[mintUrl=absoluteUrl]/(cashuMint)/mint-quote/[method=stringSegment]/[quoteId=stringSegment]/(blockheadCashuMintQuote)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 				{
-					mintUrl: mintQuote.$mint.mintUrl,
+					mintUrl: encodeURIComponent(mintQuote.$mint.mintUrl),
 					method: mintQuote.method,
 					quoteId: mintQuote.quoteId,
 					timestampMs: String(selection.entitySelector.timestampMs),

@@ -39,9 +39,9 @@
 	href={
 		href === undefined ?
 			resolve(
-				'/cashu/mint/[mintUrl=stringSegment]',
+				'/cashu/mint/[mintUrl=absoluteUrl]',
 				{
-					mintUrl: selection.entitySelector.mintUrl,
+					mintUrl: encodeURIComponent(selection.entitySelector.mintUrl),
 				}
 			)
 		:

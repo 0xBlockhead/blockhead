@@ -44,9 +44,9 @@
 			entitySelector={cashuKeysetSelector}
 			href={
 				resolve(
-					'/cashu/mint/[mintUrl=stringSegment]/(cashuMint)/keyset/[keysetId=stringSegment]',
+					'/cashu/mint/[mintUrl=absoluteUrl]/(cashuMint)/keyset/[keysetId=stringSegment]',
 					{
-						mintUrl: cashuKeysetSelector.$mint.mintUrl,
+						mintUrl: encodeURIComponent(cashuKeysetSelector.$mint.mintUrl),
 						keysetId: cashuKeysetSelector.keysetId,
 					}
 				)

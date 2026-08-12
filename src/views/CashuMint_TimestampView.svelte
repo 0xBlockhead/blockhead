@@ -45,9 +45,9 @@
 	href={
 		href === undefined ?
 			resolve(
-				'/cashu/mint/[mintUrl=stringSegment]/(cashuMint)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+				'/cashu/mint/[mintUrl=absoluteUrl]/(cashuMint)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 				{
-					mintUrl: selection.entitySelector.$mint.mintUrl,
+					mintUrl: encodeURIComponent(selection.entitySelector.$mint.mintUrl),
 					timestampMs: String(selection.entitySelector.timestampMs),
 					source: selection.entitySelector.source,
 				}

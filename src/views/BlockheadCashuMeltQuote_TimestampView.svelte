@@ -43,9 +43,9 @@
 	href={
 		href === undefined ?
 			resolve(
-				'/cashu/mint/[mintUrl=stringSegment]/(cashuMint)/melt-quote/[method=stringSegment]/[quoteId=stringSegment]/(blockheadCashuMeltQuote)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+				'/cashu/mint/[mintUrl=absoluteUrl]/(cashuMint)/melt-quote/[method=stringSegment]/[quoteId=stringSegment]/(blockheadCashuMeltQuote)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 				{
-					mintUrl: meltQuote.$mint.mintUrl,
+					mintUrl: encodeURIComponent(meltQuote.$mint.mintUrl),
 					method: meltQuote.method,
 					quoteId: meltQuote.quoteId,
 					timestampMs: String(selection.entitySelector.timestampMs),

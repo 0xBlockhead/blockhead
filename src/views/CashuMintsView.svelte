@@ -42,9 +42,9 @@
 			entitySelector={cashuMintSelector}
 			href={
 				resolve(
-					'/cashu/mint/[mintUrl=stringSegment]',
+					'/cashu/mint/[mintUrl=absoluteUrl]',
 					{
-						mintUrl: cashuMintSelector.mintUrl,
+						mintUrl: encodeURIComponent(cashuMintSelector.mintUrl),
 					}
 				)
 			}

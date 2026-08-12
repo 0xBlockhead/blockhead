@@ -20,7 +20,7 @@
 
 	const detailHref = $derived(
 		resolve(
-			'/cashu/mint/[mintUrl=stringSegment]/(cashuMint)/mint-quote/[method=stringSegment]/[quoteId=stringSegment]',
+			'/cashu/mint/[mintUrl=absoluteUrl]/(cashuMint)/mint-quote/[method=stringSegment]/[quoteId=stringSegment]',
 			{
 				mintUrl: params.mintUrl,
 				method: params.method,

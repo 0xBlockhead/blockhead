@@ -6950,6 +6950,8 @@ test('derives reusable entity hrefs from selector detail pages without empty hre
 	const evmNetworkActorCoinBalancesView = compiledApp.generatedFiles.find((generatedFile) => (
 		generatedFile.path === 'src/views/EvmNetworkActorCoinBalancesView.svelte'
 	))
+	const cashuMintView = compiledApp.generatedFiles.find((generatedFile) => generatedFile.path === 'src/views/CashuMintView.svelte')
+	const cashuKeysetView = compiledApp.generatedFiles.find((generatedFile) => generatedFile.path === 'src/views/CashuKeysetView.svelte')
 	const coinBridgeCapabilityViews = [
 		'src/views/CoinBridgeCapabilityView.svelte',
 		'src/views/CoinBridgeCapabilitiesView.svelte',
@@ -6960,12 +6962,24 @@ test('derives reusable entity hrefs from selector detail pages without empty hre
 	assert.ok(evmBlobView)
 	assert.ok(evmBlobsView)
 	assert.ok(evmNetworkActorCoinBalancesView)
+	assert.ok(cashuMintView)
+	assert.ok(cashuKeysetView)
 	assert.equal(coinBridgeCapabilityViews.every(Boolean), true)
 	const renderedYoutubeVideoView = renderGeneratedFile(youtubeVideoView)
 	const renderedYoutubeVideosView = renderGeneratedFile(youtubeVideosView)
 	const renderedEvmBlobView = renderGeneratedFile(evmBlobView)
 	const renderedEvmBlobsView = renderGeneratedFile(evmBlobsView)
 	const renderedEvmNetworkActorCoinBalancesView = renderGeneratedFile(evmNetworkActorCoinBalancesView)
+	const renderedCashuMintView = renderGeneratedFile(cashuMintView)
+	const renderedCashuKeysetView = renderGeneratedFile(cashuKeysetView)
+	assert.match(
+		renderedCashuMintView,
+		/resolve\([\s\S]*?'\/cashu\/mint\/\[mintUrl=absoluteUrl\]',[\s\S]*?mintUrl: encodeURIComponent\(selection\.entitySelector\.mintUrl\),/
+	)
+	assert.match(
+		renderedCashuKeysetView,
+		/resolve\([\s\S]*?'\/cashu\/mint\/\[mintUrl=absoluteUrl\]\/\(cashuMint\)\/keyset\/\[keysetId=stringSegment\]',[\s\S]*?mintUrl: encodeURIComponent\(selection\.entitySelector\.\$mint\.mintUrl\),/
+	)
 	assert.match(
 		renderedYoutubeVideoView,
 		/href=\{[\s\S]*?href === undefined \?[\s\S]*?resolve\([\s\S]*?'\/\(social\)\/\(youtube\)\/youtube\/\(globalYoutubeNetwork\)\/video\/\[videoId=stringSegment\]',[\s\S]*?videoId: encodeURIComponent\(selection\.entitySelector\.videoId\),[\s\S]*?:\s*href \?\? undefined/

@@ -55,9 +55,9 @@
 	href={
 		href === undefined ?
 			resolve(
-				'/cashu/mint/[mintUrl=stringSegment]/(cashuMint)/keyset/[keysetId=stringSegment]',
+				'/cashu/mint/[mintUrl=absoluteUrl]/(cashuMint)/keyset/[keysetId=stringSegment]',
 				{
-					mintUrl: selection.entitySelector.$mint.mintUrl,
+					mintUrl: encodeURIComponent(selection.entitySelector.$mint.mintUrl),
 					keysetId: selection.entitySelector.keysetId,
 				}
 			)

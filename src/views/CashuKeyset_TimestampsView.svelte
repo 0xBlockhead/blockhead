@@ -45,9 +45,9 @@
 			entitySelector={cashuKeysetTimestampSelector}
 			href={
 				resolve(
-					'/cashu/mint/[mintUrl=stringSegment]/(cashuMint)/keyset/[keysetId=stringSegment]/(cashuKeyset)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+					'/cashu/mint/[mintUrl=absoluteUrl]/(cashuMint)/keyset/[keysetId=stringSegment]/(cashuKeyset)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 					{
-						mintUrl: keyset.$mint.mintUrl,
+						mintUrl: encodeURIComponent(keyset.$mint.mintUrl),
 						keysetId: keyset.keysetId,
 						timestampMs: String(cashuKeysetTimestampSelector.timestampMs),
 						source: cashuKeysetTimestampSelector.source,

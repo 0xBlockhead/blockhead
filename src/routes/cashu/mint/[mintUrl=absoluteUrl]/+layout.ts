@@ -2,21 +2,21 @@
 
 import type { LayoutLoad } from './$types'
 import { error } from '@sveltejs/kit'
-import { match as matchStringSegment } from '$/params/stringSegment.ts'
+import { match as matchAbsoluteUrl } from '$/params/absoluteUrl.ts'
 import { parseEntitySelector } from '$/schema/$schema.ts'
 import CashuMintSchema from '$/schema/CashuMint.ts'
 import { schema } from '$/schema/index.ts'
 import { type as arktype } from 'arktype'
 
 export const load: LayoutLoad = ({ params }) => {
-	if (!(matchStringSegment(params.mintUrl)))
+	if (!(matchAbsoluteUrl(params.mintUrl)))
 		error(404, 'Route mapping not applicable')
 
 	const cashuMintMintUrlSelector = parseEntitySelector(
 		schema,
 		CashuMintSchema,
 		{
-			mintUrl: params.mintUrl,
+			mintUrl: decodeURIComponent(params.mintUrl),
 		},
 		'MintUrl'
 	)
