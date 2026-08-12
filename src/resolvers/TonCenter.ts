@@ -68,6 +68,38 @@ const assertTonMainnet = (
 		throw new Error('TON Center v3: unsupported network')
 }
 
+const tonCenterV2Network = (
+	network: TonNetwork
+) => {
+	if (
+		(
+			'slug' in network
+			&& network.slug === networkBySlug.ton.slug
+		)
+		|| (
+			'caip2' in network
+			&& network.caip2.namespace === networkBySlug.ton.caip2.namespace
+			&& network.caip2.reference === networkBySlug.ton.caip2.reference
+		)
+	)
+		return 'ton:-239' as const
+
+	if (
+		(
+			'slug' in network
+			&& network.slug === networkBySlug['ton-testnet'].slug
+		)
+		|| (
+			'caip2' in network
+			&& network.caip2.namespace === networkBySlug['ton-testnet'].caip2.namespace
+			&& network.caip2.reference === networkBySlug['ton-testnet'].caip2.reference
+		)
+	)
+		return 'ton:-3' as const
+
+	throw new Error('TON Center v2: unsupported network')
+}
+
 const offset = (
 	token: string | undefined
 ) => {
@@ -749,6 +781,44 @@ export const createTonCenterV3Resolvers = () => ({
 			$trace: (transaction) => transaction[entityFieldAddressKey(EntityType.TonTransaction, [], '$trace')],
 			$inMessage: (transaction) => transaction[entityFieldAddressKey(EntityType.TonTransaction, [], '$inMessage')],
 			$$outMessages: (transaction) => transaction[entityFieldAddressKey(EntityType.TonTransaction, [], '$$outMessages')],
+		}),
+
+		defineResolver({
+			entityType: EntityType.TonContractGetMethod,
+			resolve: {
+				ContractMethodName: {
+					resolve: async (method) => {
+						const { runGetMethod } = await import('$/sources/TonCenter/Rest/queries.ts')
+						const result = await runGetMethod(
+							tonCenterV2Network(method.$contract.$account.$network),
+							{
+								address: method.$contract.$account.address,
+								method: method.methodName,
+								stack: [],
+							}
+						)
+						if (!Number.isSafeInteger(result.gas_used) || result.gas_used < 0)
+							throw new Error('TON Center v2: get-method gas usage is malformed')
+
+						return [{
+							[EntityMetaKey.Selector]: {
+								$method: method,
+								timestampMs: Date.now(),
+								source: Source.TonCenter,
+							},
+							[EntityMetaKey.Fields]: {
+								[entityFieldAddressKey(EntityType.TonContractGetMethod_Timestamp, [], 'exitCode')]: result.exit_code,
+								[entityFieldAddressKey(EntityType.TonContractGetMethod_Timestamp, [], 'gasUsed')]: BigInt(result.gas_used),
+								[entityFieldAddressKey(EntityType.TonContractGetMethod_Timestamp, [], 'stack')]: result.stack,
+								[entityFieldAddressKey(EntityType.TonContractGetMethod_Timestamp, [], 'blockSeqno')]: BigInt(result.block_id.seqno),
+								[entityFieldAddressKey(EntityType.TonContractGetMethod_Timestamp, [], 'lastTransactionLt')]: BigInt(result.last_transaction_id.lt),
+							},
+						}]
+					},
+				},
+			},
+		})({
+			$$timestamps: (timestamps) => timestamps,
 		}),
 
 		defineResolver({

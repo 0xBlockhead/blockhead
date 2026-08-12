@@ -1,5 +1,8 @@
 import type { components, operations } from '$/sources/TonCenter/OpenApi/openapi.d.ts'
-import { getJson } from '$/sources/_shared/wire/HttpRest/client.ts'
+import {
+	getJson,
+	postJson,
+} from '$/sources/_shared/wire/HttpRest/client.ts'
 import bindings from '$/sources/TonCenter/bindings.ts'
 import { ApiFamily } from '$/sources/SourceBinding.ts'
 import { Source } from '$/sources/Source.ts'
@@ -54,4 +57,15 @@ export const getMasterchainInfo = (
 		bindingByNetwork[network],
 		'getMasterchainInfo'
 		).then(({ result }) => assertResultObject(result, 'getMasterchainInfo'))
+)
+
+export const runGetMethod = (
+	network: TonCenterV2Network,
+	request: components['schemas']['RunGetMethodRequest']
+) => (
+	postJson<TonlibOperationResponse<components['schemas']['RunGetMethodResult']>>({
+		binding: bindingByNetwork[network],
+		path: 'runGetMethod',
+		body: request,
+	}).then(({ result }) => assertResultObject(result, 'runGetMethod'))
 )

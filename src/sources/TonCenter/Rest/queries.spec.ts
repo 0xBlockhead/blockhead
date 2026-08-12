@@ -16,15 +16,18 @@ import {
 import { Source } from '$/sources/Source.ts'
 
 const getJson = vi.hoisted(() => vi.fn())
+const postJson = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/_shared/wire/HttpRest/client.ts', () => ({
 	getJson,
+	postJson,
 }))
 
 const queries = await import('$/sources/TonCenter/Rest/queries.ts')
 const {
 	getAddressInformation,
 	getMasterchainInfo,
+	runGetMethod,
 } = queries
 const bindingByNetwork = Object.fromEntries(
 	bindings[Source.TonCenter]
@@ -38,6 +41,56 @@ const bindingByNetwork = Object.fromEntries(
 describe('TON Center V2 OpenAPI operations', () => {
 	beforeEach(() => {
 		getJson.mockReset()
+		postJson.mockReset()
+	})
+
+	it('runs a contract get method through the canonical network binding', async () => {
+		postJson.mockResolvedValue({
+			ok: true,
+			result: {
+				'@type': 'ext.runResult',
+				gas_used: 173,
+				stack: [
+					[
+						'num',
+						'0x2a',
+					],
+				],
+				exit_code: 0,
+				block_id: {
+					'@type': 'ton.blockIdExt',
+					workchain: -1,
+					shard: '-9223372036854775808',
+					seqno: 42,
+					root_hash: 'root',
+					file_hash: 'file',
+				},
+				last_transaction_id: {
+					'@type': 'internal.transactionId',
+					lt: '99',
+					hash: 'hash',
+				},
+			},
+			'@extra': 'fixture',
+		})
+
+		await expect(runGetMethod('ton:-239', {
+			address: '0:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+			method: 'seqno',
+			stack: [],
+		})).resolves.toMatchObject({
+			gas_used: 173,
+			exit_code: 0,
+		})
+		expect(postJson).toHaveBeenCalledWith({
+			binding: bindingByNetwork['ton:-239'],
+			path: 'runGetMethod',
+			body: {
+				address: '0:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+				method: 'seqno',
+				stack: [],
+			},
+		})
 	})
 
 	it('indexes the definition-time V2 network targets', () => {
@@ -147,6 +200,7 @@ describe('TON Center V2 OpenAPI operations', () => {
 		expect(Object.keys(queries).sort()).toEqual([
 			'getAddressInformation',
 			'getMasterchainInfo',
+			'runGetMethod',
 		])
 	})
 })

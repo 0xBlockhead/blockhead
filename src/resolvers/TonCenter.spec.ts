@@ -24,7 +24,12 @@ const sourceQueries = vi.hoisted(() => ({
 	getTonCenterV3NftItems: vi.fn(),
 }))
 
+const v2SourceQueries = vi.hoisted(() => ({
+	runGetMethod: vi.fn(),
+}))
+
 vi.mock('$/sources/TonCenter/V3/Rest/queries.ts', () => sourceQueries)
+vi.mock('$/sources/TonCenter/Rest/queries.ts', () => v2SourceQueries)
 
 const { createTonCenterV3Resolvers } = await import('$/resolvers/TonCenter.ts')
 
@@ -552,8 +557,8 @@ describe('TonCenter v3 network resolver', () => {
 				transactions: 1,
 			},
 		}
-		const messageResolver = tonCenter.resolvers.at(-3)
-		const transactionResolver = tonCenter.resolvers.at(-2)
+		const messageResolver = tonCenter.resolvers.at(-4)
+		const transactionResolver = tonCenter.resolvers.at(-3)
 		const traceResolver = tonCenter.resolvers.at(-1)
 		if (messageResolver == null || transactionResolver == null || traceResolver == null)
 			throw new Error('TON Center v3 direct resolvers are missing')
@@ -641,9 +646,9 @@ describe('TonCenter v3 network resolver', () => {
 			gen_utime: '1700000001',
 			min_ref_mc_seqno: 42,
 		}
-		const timestampsResolver = tonCenter.resolvers.at(-6)
-		const timestampResolver = tonCenter.resolvers.at(-5)
-		const blockResolver = tonCenter.resolvers.at(-4)
+		const timestampsResolver = tonCenter.resolvers.at(-7)
+		const timestampResolver = tonCenter.resolvers.at(-6)
+		const blockResolver = tonCenter.resolvers.at(-5)
 		if (timestampsResolver == null || timestampResolver == null || blockResolver == null)
 			throw new Error('TON Center v3 network and block resolvers are missing')
 
@@ -701,6 +706,57 @@ describe('TonCenter v3 network resolver', () => {
 		})).resolves.toMatchObject({
 			[entityFieldAddressKey(EntityType.TonBlock, [], 'rootHash')]: '3'.repeat(64),
 			[entityFieldAddressKey(EntityType.TonBlock, [], 'fileHash')]: '4'.repeat(64),
+		})
+	})
+
+	it('executes a native contract get method into a source-clocked observation', async () => {
+		const methodResolver = tonCenter.resolvers.at(-2)
+		if (methodResolver == null)
+			throw new Error('TON Center v2 get-method resolver is missing')
+
+		v2SourceQueries.runGetMethod.mockResolvedValueOnce({
+			'@type': 'ext.runResult',
+			gas_used: 173,
+			stack: [[
+				'num',
+				'0x2a',
+			]],
+			exit_code: 0,
+			block_id: { seqno: 42 },
+			last_transaction_id: { lt: '99' },
+		})
+		const method = {
+			$contract: {
+				$account: {
+					$network: network,
+					address: '0:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+				},
+			},
+			methodName: 'seqno',
+		}
+		const [timestamp] = await methodResolver.resolve.ContractMethodName.resolve(method, context)
+
+		expect(v2SourceQueries.runGetMethod).toHaveBeenCalledWith('ton:-239', {
+			address: method.$contract.$account.address,
+			method: 'seqno',
+			stack: [],
+		})
+		expect(timestamp).toEqual({
+			[EntityMetaKey.Selector]: {
+				$method: method,
+				timestampMs: 1_750_000_000_000,
+				source: Source.TonCenter,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.TonContractGetMethod_Timestamp, [], 'exitCode')]: 0,
+				[entityFieldAddressKey(EntityType.TonContractGetMethod_Timestamp, [], 'gasUsed')]: 173n,
+				[entityFieldAddressKey(EntityType.TonContractGetMethod_Timestamp, [], 'stack')]: [[
+					'num',
+					'0x2a',
+				]],
+				[entityFieldAddressKey(EntityType.TonContractGetMethod_Timestamp, [], 'blockSeqno')]: 42n,
+				[entityFieldAddressKey(EntityType.TonContractGetMethod_Timestamp, [], 'lastTransactionLt')]: 99n,
+			},
 		})
 	})
 })
