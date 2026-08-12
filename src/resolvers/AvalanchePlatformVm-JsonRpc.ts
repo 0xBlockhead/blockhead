@@ -52,6 +52,52 @@ const millisFromUnixSeconds = (
 	return timestampMs
 }
 
+const getValidatorWithSetKind = async ({
+	nodeId,
+	startTimeMs,
+	subnetId,
+}: {
+	nodeId: string
+	startTimeMs: number
+	subnetId: string
+}) => {
+	const {
+		getCurrentValidators,
+		getPendingValidators,
+	} = await import('$/sources/AvalanchePlatformVm/JsonRpc/queries.ts')
+	const [
+		current,
+		pending,
+	] = await Promise.all([
+		getCurrentValidators({
+			subnetID: subnetId,
+			nodeIDs: [nodeId],
+		}),
+		getPendingValidators({
+			subnetID: subnetId,
+			nodeIDs: [nodeId],
+		}),
+	])
+	for (const [
+		validatorSetKind,
+		validators,
+	] of [
+		['current', current.validators],
+		['pending', pending.validators],
+	] as const) {
+		const validator = validators.find((row) => (
+			row.nodeID === nodeId
+			&& millisFromUnixSeconds(row.startTime, 'validator startTime') === startTimeMs
+		))
+		if (validator != null)
+			return {
+				validator,
+				validatorSetKind,
+			}
+	}
+	throw new Error(`AvalanchePlatformVm_JsonRpc: validator ${nodeId} not found on subnet ${subnetId}`)
+}
+
 const jsonBlock = (block: string | AvalanchePlatformVmJsonBlock): AvalanchePlatformVmJsonBlock => {
 	if (typeof block === 'string')
 		throw new Error('AvalanchePlatformVm_JsonRpc: expected json-encoded block')
@@ -389,6 +435,7 @@ export default {
 						const {
 							getBlockchains,
 							getCurrentValidators,
+							getPendingValidators,
 							getSubnets,
 						} = await import('$/sources/AvalanchePlatformVm/JsonRpc/queries.ts')
 						const subnet = (await getSubnets({
@@ -398,10 +445,14 @@ export default {
 							throw new Error(`AvalanchePlatformVm_JsonRpc: subnet ${subnetId} not found`)
 						const [
 							blockchains,
-							validators,
+							currentValidators,
+							pendingValidators,
 						] = await Promise.all([
 							getBlockchains(),
 							getCurrentValidators({
+								subnetID: subnetId,
+							}),
+							getPendingValidators({
 								subnetID: subnetId,
 							}),
 						])
@@ -421,7 +472,10 @@ export default {
 									[entityFieldAddressKey(EntityType.AvalancheBlockchain, [], 'chainName')]: blockchain.name,
 								},
 							})),
-							$$validators: validators.validators.map((validator) => {
+							$$validators: [
+								...currentValidators.validators,
+								...pendingValidators.validators,
+							].map((validator) => {
 								const fields = validatorFields(validator, subnetId)
 								return {
 									[EntityMetaKey.Selector]: validatorSelector(validator, subnetId),
@@ -433,7 +487,10 @@ export default {
 									},
 								}
 							}),
-							$$delegators: validators.validators.flatMap((validator) => (
+							$$delegators: [
+								...currentValidators.validators,
+								...pendingValidators.validators,
+							].flatMap((validator) => (
 								(validator.delegators ?? []).map((delegator) => {
 									const fields = delegatorFields(delegator, validator, subnetId)
 									return {
@@ -533,16 +590,11 @@ export default {
 			resolve: {
 				NodeIdSubnetIdStartTimeMs: {
 					resolve: async ({ nodeId, subnetId, startTimeMs }) => {
-						const { getCurrentValidators } = await import('$/sources/AvalanchePlatformVm/JsonRpc/queries.ts')
-						const validator = (await getCurrentValidators({
-							subnetID: subnetId,
-							nodeIDs: [nodeId],
-						})).validators.find((row) => (
-							row.nodeID === nodeId
-							&& millisFromUnixSeconds(row.startTime, 'validator startTime') === startTimeMs
-						))
-						if (validator == null)
-							throw new Error(`AvalanchePlatformVm_JsonRpc: validator ${nodeId} not found on subnet ${subnetId}`)
+						const { validator } = await getValidatorWithSetKind({
+							nodeId,
+							startTimeMs,
+							subnetId,
+						})
 						return validatorFields(validator, subnetId)
 					},
 				},
@@ -566,16 +618,14 @@ export default {
 					resolve: async ({ $validator, source }) => {
 						if (source !== Source.AvalanchePlatformVm_JsonRpc)
 							throw new Error('AvalanchePlatformVm_JsonRpc: observation source mismatch')
-						const { getCurrentValidators } = await import('$/sources/AvalanchePlatformVm/JsonRpc/queries.ts')
-						const validator = (await getCurrentValidators({
-							subnetID: $validator.subnetId,
-							nodeIDs: [$validator.nodeId],
-						})).validators.find((row) => (
-							row.nodeID === $validator.nodeId
-							&& millisFromUnixSeconds(row.startTime, 'validator startTime') === $validator.startTimeMs
-						))
-						if (validator == null)
-							throw new Error(`AvalanchePlatformVm_JsonRpc: validator ${$validator.nodeId} not found`)
+						const {
+							validator,
+							validatorSetKind,
+						} = await getValidatorWithSetKind({
+							nodeId: $validator.nodeId,
+							startTimeMs: $validator.startTimeMs,
+							subnetId: $validator.subnetId,
+						})
 						return {
 							timestampMs: Date.now(),
 							source: Source.AvalanchePlatformVm_JsonRpc,
@@ -583,7 +633,7 @@ export default {
 							...(validator.uptime != null && {
 								uptimePercent: Number(validator.uptime),
 							}),
-							validatorSetKind: 'current',
+							validatorSetKind,
 							observedStakeNavax: bigintFromWire(validator.weight, 'validator weight'),
 							observedDelegatorCount: (
 								validator.delegators?.length
@@ -613,16 +663,11 @@ export default {
 			resolve: {
 				ValidatorTxId: {
 					resolve: async ({ $validator, txId }) => {
-						const { getCurrentValidators } = await import('$/sources/AvalanchePlatformVm/JsonRpc/queries.ts')
-						const validator = (await getCurrentValidators({
-							subnetID: $validator.subnetId,
-							nodeIDs: [$validator.nodeId],
-						})).validators.find((row) => (
-							row.nodeID === $validator.nodeId
-							&& millisFromUnixSeconds(row.startTime, 'validator startTime') === $validator.startTimeMs
-						))
-						if (validator == null)
-							throw new Error(`AvalanchePlatformVm_JsonRpc: validator ${$validator.nodeId} not found`)
+						const { validator } = await getValidatorWithSetKind({
+							nodeId: $validator.nodeId,
+							startTimeMs: $validator.startTimeMs,
+							subnetId: $validator.subnetId,
+						})
 						const delegator = (validator.delegators ?? []).find((row) => row.txID === txId)
 						if (delegator == null)
 							throw new Error(`AvalanchePlatformVm_JsonRpc: delegator ${txId} not found`)

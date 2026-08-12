@@ -44,6 +44,9 @@ const subnetResolver = avalanchePlatformVm.resolvers.find((resolver) => (
 const validatorResolver = avalanchePlatformVm.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.AvalancheValidator
 ))
+const validatorTimestampResolver = avalanchePlatformVm.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.AvalancheValidator_Timestamp
+))
 const blockResolver = avalanchePlatformVm.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.AvalanchePChainBlock
 ))
@@ -58,6 +61,7 @@ if (
 	blockchainResolver == null
 	|| subnetResolver == null
 	|| validatorResolver == null
+	|| validatorTimestampResolver == null
 	|| blockResolver == null
 	|| txResolver == null
 	|| txTimestampResolver == null
@@ -108,6 +112,9 @@ it('projects enrolled blockchain, subnet, validator, and P-Chain block fields', 
 			}],
 		})
 		.mockResolvedValueOnce({
+			validators: [],
+		})
+		.mockResolvedValueOnce({
 			validators: [{
 				txID: 'tx-validator',
 				startTime: '1600000000',
@@ -135,6 +142,9 @@ it('projects enrolled blockchain, subnet, validator, and P-Chain block fields', 
 					potentialReward: '1000000000',
 				}],
 			}],
+		})
+		.mockResolvedValueOnce({
+			validators: [],
 		})
 		.mockResolvedValueOnce({
 			block: {
@@ -222,6 +232,80 @@ it('projects enrolled blockchain, subnet, validator, and P-Chain block fields', 
 			},
 		},
 	}])
+})
+
+it('materializes pending validators through the subnet, direct entity, and observation hierarchy', async () => {
+	const pendingValidator = {
+		txID: 'tx-pending',
+		startTime: '1800000000',
+		endTime: '1900000000',
+		weight: '4000000000000',
+		nodeID: 'NodeID-pending',
+		validationRewardOwner: {
+			locktime: '0',
+			threshold: '1',
+			addresses: ['P-avax1pending'],
+		},
+		delegationFee: '3.0000',
+		delegators: [],
+	}
+	jsonRpc2
+		.mockResolvedValueOnce({
+			subnets: [{
+				id: avalanchePrimaryNetworkSubnetId,
+				controlKeys: [],
+				threshold: '0',
+			}],
+		})
+		.mockResolvedValueOnce({
+			blockchains: [],
+		})
+		.mockResolvedValueOnce({
+			validators: [],
+		})
+		.mockResolvedValueOnce({
+			validators: [pendingValidator],
+		})
+		.mockResolvedValueOnce({
+			validators: [],
+		})
+		.mockResolvedValueOnce({
+			validators: [pendingValidator],
+		})
+		.mockResolvedValueOnce({
+			validators: [],
+		})
+		.mockResolvedValueOnce({
+			validators: [pendingValidator],
+		})
+
+	const subnet = await subnetResolver.resolve.SubnetId.resolve({
+		subnetId: avalanchePrimaryNetworkSubnetId,
+	}, context)
+	expect(subnet.$$validators).toHaveLength(1)
+	expect(subnet.$$validators[0][EntityMetaKey.Selector]).toMatchObject({
+		nodeId: 'NodeID-pending',
+		startTimeMs: 1_800_000_000_000,
+	})
+
+	const validatorSelector = {
+		nodeId: 'NodeID-pending',
+		subnetId: avalanchePrimaryNetworkSubnetId,
+		startTimeMs: 1_800_000_000_000,
+	}
+	const validator = await validatorResolver.resolve.NodeIdSubnetIdStartTimeMs.resolve(
+		validatorSelector,
+		context
+	)
+	expect(validator.stakeAmountNavax).toBe(4000000000000n)
+
+	const observation = await validatorTimestampResolver.resolve.ValidatorTimestampMsSource.resolve({
+		$validator: validatorSelector,
+		timestampMs: 1,
+		source: Source.AvalanchePlatformVm_JsonRpc,
+	}, context)
+	expect(observation.validatorSetKind).toBe('pending')
+	expect(observation.observedStakeNavax).toBe(4000000000000n)
 })
 
 it('projects committed P-Chain transaction status observations', async () => {
