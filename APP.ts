@@ -43044,14 +43044,14 @@ export const schema = {
 					plural: "magnet links",
 				},
 			})({
-				"magnetUri": { label: "magnet URI", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"infoHash": { label: "info hash", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"displayName": { label: "display name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"exactLength": { label: "exact length", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
-				"trackers": { label: "trackers", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "string" },
-				"webSeeds": { label: "Web seeds", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "string" },
-				"acceptableSources": { label: "acceptable sources", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "string" },
-				"$torrent": { label: "torrent", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.BitTorrentMetainfo },
+				"magnetUri": { label: "magnet URI", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string", defaultSources: [Source.MagnetUri_Uri] },
+				"infoHash": { label: "info hash", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.MagnetUri_Uri] },
+				"displayName": { label: "display name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.MagnetUri_Uri] },
+				"exactLength": { label: "exact length", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.MagnetUri_Uri] },
+				"trackers": { label: "trackers", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "string", defaultSources: [Source.MagnetUri_Uri] },
+				"webSeeds": { label: "Web seeds", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "string", defaultSources: [Source.MagnetUri_Uri] },
+				"acceptableSources": { label: "acceptable sources", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "string", defaultSources: [Source.MagnetUri_Uri] },
+				"$torrent": { label: "torrent", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.BitTorrentMetainfo, defaultSources: [Source.MagnetUri_Uri] },
 				"$$resolutionTimestamps": { label: "resolution timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.MagnetResolution_Timestamp },
 			})({
 				selectors: {
@@ -113775,6 +113775,10 @@ export const app = {
 			{
 				source: Source.Lotus_JsonRpc,
 				path: "src/resolvers/Lotus-JsonRpc.ts",
+			},
+			{
+				source: Source.MagnetUri_Uri,
+				path: "src/resolvers/MagnetUri-Uri.ts",
 			},
 			{
 				source: Source.Mastodon_Rest,
