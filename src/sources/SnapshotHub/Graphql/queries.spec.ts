@@ -149,6 +149,10 @@ const vote = {
 	},
 	proposal: {
 		id: proposalId,
+		type: 'weighted',
+		choices: proposal.choices,
+		start: proposal.start,
+		end: proposal.end,
 		space: {
 			id: spaceId,
 		},
@@ -431,6 +435,60 @@ describe('Snapshot Hub public governance reads', () => {
 		await expect(getVote({
 			voteId,
 		})).rejects.toThrow('does not align with strategies')
+	})
+
+	it('rejects vote choices that exceed or contradict proposal choice authority', async () => {
+		const sourceFetch = vi.spyOn(runtimeHttp, 'sourceFetch')
+		sourceFetch
+			.mockResolvedValueOnce(jsonResponse({
+				vote: {
+					...vote,
+					choice: {
+						'4': 1,
+					},
+				},
+			}))
+			.mockResolvedValueOnce(jsonResponse({
+				vote: {
+					...vote,
+					choice: {
+						'01': 1,
+					},
+				},
+			}))
+			.mockResolvedValueOnce(jsonResponse({
+				vote: {
+					...vote,
+					created: proposal.end + 1,
+				},
+			}))
+			.mockResolvedValueOnce(jsonResponse({
+				vote: {
+					...vote,
+					choice: {
+						'1': -1,
+					},
+				},
+			}))
+			.mockResolvedValueOnce(jsonResponse({
+				vote: {
+					...vote,
+					proposal: {
+						...vote.proposal,
+						type: 'approval',
+					},
+					choice: [
+						1,
+						1,
+					],
+				},
+			}))
+
+		await expect(getVote({ voteId })).rejects.toThrow('does not match proposal choices')
+		await expect(getVote({ voteId })).rejects.toThrow('invalid vote choice weights')
+		await expect(getVote({ voteId })).rejects.toThrow('outside the proposal lifecycle')
+		await expect(getVote({ voteId })).rejects.toThrow('invalid vote choice weights')
+		await expect(getVote({ voteId })).rejects.toThrow('does not match proposal choices')
 	})
 
 	it('rejects a proposal score clock that predates the proposal creation', async () => {

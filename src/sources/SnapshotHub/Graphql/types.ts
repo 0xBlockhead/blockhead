@@ -99,6 +99,10 @@ export const SnapshotHubVoteFragment = graphql(`
 		}
 		proposal {
 			id
+			type
+			choices
+			start
+			end
 			space {
 				id
 			}
@@ -222,6 +226,10 @@ export const snapshotHubVoteEnvelope = arktype({
 	},
 	proposal: {
 		id: snapshotHubMessageIdentity,
+		type: snapshotHubOpaqueIdentity,
+		choices: snapshotHubOpaqueIdentity.array(),
+		start: snapshotHubNonNegativeSafeInteger,
+		end: snapshotHubNonNegativeSafeInteger,
 		space: {
 			id: snapshotHubOpaqueIdentity,
 		},

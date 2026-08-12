@@ -23,6 +23,8 @@ import { Source } from '$/sources/Source.ts'
 import {
 	isJsonArray,
 	isJsonNumber,
+	isJsonObject,
+	type JsonValue,
 } from '$/typescript/JsonValue.ts'
 
 import {
@@ -306,6 +308,53 @@ const assertVote = (
 		|| vote.proposal.space.id !== vote.space.id
 	)
 		throw new Error('SnapshotHub_Graphql: vote space and proposal space disagree')
+	if (vote.proposal.choices.length < 1 || vote.proposal.choices.length > 1_000)
+		throw new Error('SnapshotHub_Graphql: invalid vote proposal choice count')
+	if (
+		vote.proposal.start > vote.proposal.end
+		|| vote.created < vote.proposal.start
+		|| vote.created > vote.proposal.end
+	)
+		throw new Error('SnapshotHub_Graphql: vote lies outside the proposal lifecycle')
+
+	const choice = vote.choice as JsonValue
+	const choiceIndexes = (
+		vote.proposal.type === 'single-choice-basic' || vote.proposal.type === 'basic' ?
+			(isJsonNumber(choice) ? [choice] : [])
+		: vote.proposal.type === 'approval' || vote.proposal.type === 'ranked-choice' ?
+			(isJsonArray(choice) ? choice : [])
+		: vote.proposal.type === 'quadratic' || vote.proposal.type === 'weighted' ?
+			(isJsonObject(choice) ? Object.keys(choice).map(Number) : [])
+		:
+			undefined
+	)
+	if (
+		choiceIndexes != null
+		&& (
+			choiceIndexes.length === 0
+			|| choiceIndexes.some((choiceIndex) => (
+				!isJsonNumber(choiceIndex)
+				|| !Number.isSafeInteger(choiceIndex)
+				|| choiceIndex < 1
+				|| choiceIndex > vote.proposal.choices.length
+			))
+			|| new Set(choiceIndexes).size !== choiceIndexes.length
+		)
+	)
+		throw new Error('SnapshotHub_Graphql: vote choice does not match proposal choices')
+	if (
+		(vote.proposal.type === 'quadratic' || vote.proposal.type === 'weighted')
+		&& (
+			!isJsonObject(choice)
+			|| Object.keys(choice).some((choiceIndex) => choiceIndex !== String(Number(choiceIndex)))
+			|| Object.values(choice).some((weight) => (
+				!isJsonNumber(weight)
+				|| !Number.isFinite(weight)
+				|| weight < 0
+			))
+		)
+	)
+		throw new Error('SnapshotHub_Graphql: invalid vote choice weights')
 	if (vote.vp_by_strategy != null) {
 		for (const votingPower of vote.vp_by_strategy) {
 			if (votingPower == null)
