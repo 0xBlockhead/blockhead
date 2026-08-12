@@ -390,18 +390,52 @@ export default {
 			resolve: {
 				MintUrl: {
 					resolve: async ({ mintUrl }, context) => {
-						const { getMintKeysets } = await import('$/sources/Cashu/Mint/Rest/queries.ts')
-						return (await getMintKeysets(mintUrl)).keysets
+						const {
+							getMintKeys,
+							getMintKeysets,
+						} = await import('$/sources/Cashu/Mint/Rest/queries.ts')
+						const timestampMs = Date.now()
+						const [keysets, keys] = await Promise.all([
+							getMintKeysets(mintUrl),
+							getMintKeys(mintUrl),
+						])
+						const keysByKeysetId = new Map(keys.keysets.map((keyset) => [keyset.id, keyset]))
+						return keysets.keysets
 							.slice(0, resolverContextRowLimit(context))
-							.map((keyset) => ({
-								[EntityMetaKey.Selector]: {
-									$mint: { mintUrl },
-									keysetId: keyset.id,
-								},
-								[EntityMetaKey.Fields]: {
-									[entityFieldAddressKey(EntityType.CashuKeyset, [], 'unit')]: keyset.unit,
-								},
-							}))
+							.map((keyset) => {
+								const keysForKeyset = keysByKeysetId.get(keyset.id)
+								return {
+									[EntityMetaKey.Selector]: {
+										$mint: { mintUrl },
+										keysetId: keyset.id,
+									},
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.CashuKeyset, [], 'unit')]: keyset.unit,
+										...(keysForKeyset != null && {
+											[entityFieldAddressKey(EntityType.CashuKeyset, [], 'keysByAmountJson')]: JSON.stringify(keysForKeyset.keys),
+										}),
+										[entityFieldAddressKey(EntityType.CashuKeyset, [], '$$timestamps')]: [{
+											[EntityMetaKey.Selector]: {
+												$keyset: {
+													$mint: { mintUrl },
+													keysetId: keyset.id,
+												},
+												timestampMs,
+												source: Source.CashuMint_Rest,
+											},
+											[EntityMetaKey.Fields]: {
+												[entityFieldAddressKey(EntityType.CashuKeyset_Timestamp, [], 'active')]: keyset.active,
+												[entityFieldAddressKey(EntityType.CashuKeyset_Timestamp, [], 'inputFeePpk')]: keyset.input_fee_ppk ?? 0,
+												...(keyset.final_expiry != null && {
+													[entityFieldAddressKey(EntityType.CashuKeyset_Timestamp, [], 'finalExpiryMs')]: cashuMillisecondsFromSeconds(keyset.final_expiry, 'keyset final expiry'),
+												}),
+												[entityFieldAddressKey(EntityType.CashuKeyset_Timestamp, [], 'listedByKeysetsEndpoint')]: true,
+												[entityFieldAddressKey(EntityType.CashuKeyset_Timestamp, [], 'listedByKeysEndpoint')]: keysForKeyset != null,
+											},
+										}],
+									},
+								}
+							})
 					},
 				},
 			},

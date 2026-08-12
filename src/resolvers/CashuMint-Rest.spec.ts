@@ -6,12 +6,16 @@ import {
 	vi,
 } from 'vitest'
 
-import { EntityMetaKey } from '$/schema/$schema.ts'
+import {
+	entityFieldAddressKey,
+	EntityMetaKey,
+} from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
-const { getMeltQuoteBolt11, getMintInfo, getMintKeysets, getMintKeysForKeyset, getMintQuoteBolt11 } = vi.hoisted(() => ({
+const { getMeltQuoteBolt11, getMintInfo, getMintKeys, getMintKeysets, getMintKeysForKeyset, getMintQuoteBolt11 } = vi.hoisted(() => ({
 	getMeltQuoteBolt11: vi.fn(),
 	getMintInfo: vi.fn(),
+	getMintKeys: vi.fn(),
 	getMintKeysets: vi.fn(),
 	getMintKeysForKeyset: vi.fn(),
 	getMintQuoteBolt11: vi.fn(),
@@ -19,6 +23,7 @@ const { getMeltQuoteBolt11, getMintInfo, getMintKeysets, getMintKeysForKeyset, g
 vi.mock('$/sources/Cashu/Mint/Rest/queries.ts', () => ({
 	getMeltQuoteBolt11,
 	getMintInfo,
+	getMintKeys,
 	getMintKeysets,
 	getMintKeysForKeyset,
 	getMintQuoteBolt11,
@@ -48,6 +53,10 @@ const meltQuoteResolver = cashuMintResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.BlockheadCashuMeltQuote
 	&& 'MintMethodQuoteId' in resolver.resolve
 ))
+const mintKeysetsResolver = cashuMintResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.CashuMint
+	&& '$$keysets' in resolver.projections
+))
 if (
 	mintTimestampResolver == null
 	|| !('MintTimestampMsSource' in mintTimestampResolver.resolve)
@@ -61,12 +70,15 @@ if (
 	|| !('MintQuoteTimestampMsSource' in mintQuoteTimestampResolver.resolve)
 	|| meltQuoteResolver == null
 	|| !('MintMethodQuoteId' in meltQuoteResolver.resolve)
+	|| mintKeysetsResolver == null
+	|| !('MintUrl' in mintKeysetsResolver.resolve)
 )
 	throw new Error('CashuMint_Rest spec missing read resolvers')
 
 beforeEach(() => {
 	getMeltQuoteBolt11.mockReset()
 	getMintInfo.mockReset()
+	getMintKeys.mockReset()
 	getMintKeysets.mockReset()
 	getMintKeysForKeyset.mockReset()
 	getMintQuoteBolt11.mockReset()
@@ -147,6 +159,68 @@ it('projects the current NUT-06 and NUT-02 contracts', async () => {
 	})
 	expect(mintTimestampResolver.projections.urls({})).toEqual([])
 	expect(mintTimestampResolver.projections.supportedNutNumbers({})).toEqual([])
+})
+
+it('materializes key rotation and key availability on the mint-owned keyset collection', async () => {
+	vi.spyOn(Date, 'now').mockReturnValue(1_700_000_000_000)
+	getMintKeysets.mockResolvedValue({
+		keysets: [
+			{
+				id: 'active-keyset',
+				unit: 'sat',
+				active: true,
+				input_fee_ppk: 100,
+			},
+			{
+				id: 'retired-keyset',
+				unit: 'sat',
+				active: false,
+				final_expiry: 1_800_000_000,
+			},
+		],
+	})
+	getMintKeys.mockResolvedValue({
+		keysets: [{
+			id: 'active-keyset',
+			unit: 'sat',
+			active: true,
+			keys: {
+				1: '02active',
+			},
+		}],
+	})
+
+	const rows = await mintKeysetsResolver.resolve.MintUrl.resolve(
+		{ mintUrl: 'https://mint.example' },
+		{ pagination: { limit: 10 } }
+	)
+	const activeFields = rows[0][EntityMetaKey.Fields]
+	const retiredFields = rows[1][EntityMetaKey.Fields]
+	const activeObservation = activeFields[
+		entityFieldAddressKey(EntityType.CashuKeyset, [], '$$timestamps')
+	][0]
+	const retiredObservation = retiredFields[
+		entityFieldAddressKey(EntityType.CashuKeyset, [], '$$timestamps')
+	][0]
+
+	expect(activeFields).toMatchObject({
+		[entityFieldAddressKey(EntityType.CashuKeyset, [], 'unit')]: 'sat',
+		[entityFieldAddressKey(EntityType.CashuKeyset, [], 'keysByAmountJson')]: JSON.stringify({ 1: '02active' }),
+	})
+	expect(activeObservation[EntityMetaKey.Fields]).toMatchObject({
+		[entityFieldAddressKey(EntityType.CashuKeyset_Timestamp, [], 'active')]: true,
+		[entityFieldAddressKey(EntityType.CashuKeyset_Timestamp, [], 'inputFeePpk')]: 100,
+		[entityFieldAddressKey(EntityType.CashuKeyset_Timestamp, [], 'listedByKeysetsEndpoint')]: true,
+		[entityFieldAddressKey(EntityType.CashuKeyset_Timestamp, [], 'listedByKeysEndpoint')]: true,
+	})
+	expect(retiredFields).not.toHaveProperty(
+		entityFieldAddressKey(EntityType.CashuKeyset, [], 'keysByAmountJson')
+	)
+	expect(retiredObservation[EntityMetaKey.Fields]).toMatchObject({
+		[entityFieldAddressKey(EntityType.CashuKeyset_Timestamp, [], 'active')]: false,
+		[entityFieldAddressKey(EntityType.CashuKeyset_Timestamp, [], 'finalExpiryMs')]: 1_800_000_000_000,
+		[entityFieldAddressKey(EntityType.CashuKeyset_Timestamp, [], 'listedByKeysEndpoint')]: false,
+	})
 })
 
 it('projects an exact BOLT11 mint quote read without owning the mutation', async () => {
