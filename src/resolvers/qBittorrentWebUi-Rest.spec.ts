@@ -96,6 +96,20 @@ describe('qBittorrent WebUI native client state', () => {
 			dl_info_data: 4_096,
 			up_info_data: 128,
 		})
+		getTorrentFiles.mockResolvedValue([
+			{
+				index: 0,
+				name: 'release/image.iso',
+				size: 1_024,
+				priority: 1,
+			},
+			{
+				index: 1,
+				name: 'release/notes.txt',
+				size: 64,
+				priority: 0,
+			},
+		])
 		getTorrentPieceStates.mockResolvedValue([2, 2, 1, 0])
 
 		const snapshot = await clientResolver.resolve.ClientId.resolve({
@@ -129,6 +143,7 @@ describe('qBittorrent WebUI native client state', () => {
 				[entityFieldAddressKey(EntityType.BlockheadBitTorrentTransfer_Timestamp, [], 'downloadedBytes')]: 1_024n,
 				[entityFieldAddressKey(EntityType.BlockheadBitTorrentTransfer_Timestamp, [], 'connectedPeerCount')]: 5,
 				[entityFieldAddressKey(EntityType.BlockheadBitTorrentTransfer_Timestamp, [], 'verifiedPieces')]: 2,
+				[entityFieldAddressKey(EntityType.BlockheadBitTorrentTransfer_Timestamp, [], 'selectedFileIndexes')]: [0],
 			}),
 		}])
 	})
@@ -147,6 +162,7 @@ describe('qBittorrent WebUI native client state', () => {
 			name: 'release/image.iso',
 			size: 1_048_576,
 		}])
+		getTorrentPieceStates.mockResolvedValue([2, 1, 0, 2])
 
 		const snapshot = await metainfoResolver.resolve.InfoHashHashVersion.resolve({
 			infoHash,
@@ -176,6 +192,24 @@ describe('qBittorrent WebUI native client state', () => {
 					[entityFieldAddressKey(EntityType.BitTorrentFile, [], 'length')]: 1_048_576n,
 				},
 			}],
+			$$pieces: [
+				0,
+				1,
+				2,
+				3,
+			].map((pieceIndex) => ({
+				[EntityMetaKey.Selector]: {
+					$torrent: {
+						infoHash,
+						hashVersion: 'v1',
+					},
+					pieceIndex,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.BitTorrentPiece, [], 'offset')]: BigInt(pieceIndex * 262_144),
+					[entityFieldAddressKey(EntityType.BitTorrentPiece, [], 'length')]: 262_144n,
+				},
+			})),
 		})
 
 		await expect(fileResolver.resolve.TorrentFileIndex.resolve({
@@ -220,5 +254,20 @@ describe('qBittorrent WebUI native client state', () => {
 			infoHash,
 			hashVersion: 'v1',
 		}, context)).rejects.toThrow('unsafe torrent file path')
+
+		getTorrentProperties.mockResolvedValue({
+			piece_size: 1,
+			total_size: 1,
+		})
+		getTorrentFiles.mockResolvedValue([{
+			index: 0,
+			name: 'safe',
+			size: 1,
+		}])
+		getTorrentPieceStates.mockResolvedValue([2, 0])
+		await expect(metainfoResolver.resolve.InfoHashHashVersion.resolve({
+			infoHash,
+			hashVersion: 'v1',
+		}, context)).rejects.toThrow('inconsistent torrent piece geometry')
 	})
 })

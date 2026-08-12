@@ -53,7 +53,8 @@ const byteCount = (
 const transferReference = (
 	torrent: QBittorrentTorrentInfo,
 	timestampMs: number,
-	verifiedPieces?: number
+	selectedFileIndexes: number[],
+	verifiedPieces: number
 ) => {
 	const infoHash = torrent.hash.toLowerCase()
 	const $torrent = {
@@ -74,7 +75,7 @@ const transferReference = (
 			...(torrent.save_path != null && {
 				[entityFieldAddressKey(EntityType.BlockheadBitTorrentTransfer_Timestamp, [], 'savePath')]: torrent.save_path,
 			}),
-			[entityFieldAddressKey(EntityType.BlockheadBitTorrentTransfer_Timestamp, [], 'selectedFileIndexes')]: [],
+			[entityFieldAddressKey(EntityType.BlockheadBitTorrentTransfer_Timestamp, [], 'selectedFileIndexes')]: selectedFileIndexes,
 			...(torrent.downloaded != null && {
 				[entityFieldAddressKey(EntityType.BlockheadBitTorrentTransfer_Timestamp, [], 'downloadedBytes')]: byteCount(torrent.downloaded, 'torrent downloaded bytes'),
 			}),
@@ -90,9 +91,7 @@ const transferReference = (
 			...(torrent.num_seeds != null && torrent.num_leechs != null && {
 				[entityFieldAddressKey(EntityType.BlockheadBitTorrentTransfer_Timestamp, [], 'connectedPeerCount')]: torrent.num_seeds + torrent.num_leechs,
 			}),
-			...(verifiedPieces != null && {
-				[entityFieldAddressKey(EntityType.BlockheadBitTorrentTransfer_Timestamp, [], 'verifiedPieces')]: verifiedPieces,
-			}),
+			[entityFieldAddressKey(EntityType.BlockheadBitTorrentTransfer_Timestamp, [], 'verifiedPieces')]: verifiedPieces,
 		},
 	}
 }
@@ -131,6 +130,41 @@ const torrentFileReference = (
 			[entityFieldAddressKey(EntityType.BitTorrentFile, [], 'length')]: fields.length,
 		},
 	}
+}
+
+const torrentPieceReferences = (
+	$torrent: {
+		infoHash: string
+		hashVersion: string
+	},
+	pieceStates: (0 | 1 | 2)[],
+	pieceSize: number,
+	totalSize: number
+) => {
+	if (
+		(pieceStates.length === 0 && totalSize !== 0)
+		|| (pieceStates.length > 0 && (
+			pieceSize === 0
+			|| Math.ceil(totalSize / pieceSize) !== pieceStates.length
+		))
+	)
+		throw new Error('qBittorrentWebUi_Rest: inconsistent torrent piece geometry')
+
+	return pieceStates.map((_pieceState, pieceIndex) => ({
+		[EntityMetaKey.Selector]: {
+			$torrent,
+			pieceIndex,
+		},
+		[EntityMetaKey.Fields]: {
+			[entityFieldAddressKey(EntityType.BitTorrentPiece, [], 'offset')]: BigInt(pieceIndex) * BigInt(pieceSize),
+			[entityFieldAddressKey(EntityType.BitTorrentPiece, [], 'length')]: BigInt(
+				pieceIndex === pieceStates.length - 1 ?
+					totalSize - pieceSize * pieceIndex
+				:
+					pieceSize
+			),
+		},
+	}))
 }
 
 export default {
@@ -178,7 +212,7 @@ export default {
 				InfoHashHashVersion: {
 					resolve: async (torrentIdentity) => {
 						const { infoHash: normalizedInfoHash, hashVersion } = normalizedTorrentIdentity(torrentIdentity)
-						const { getTorrentFiles, getTorrentProperties, getTorrentsInfo } = await (
+						const { getTorrentFiles, getTorrentPieceStates, getTorrentProperties, getTorrentsInfo } = await (
 							typeof window === 'undefined' ?
 								import('$/sources/qBittorrentWebUi/Rest/queries.ts')
 							:
@@ -190,8 +224,9 @@ export default {
 						if (torrent == null)
 							throw new Error('qBittorrentWebUi_Rest: torrent not found in the configured local client')
 
-						const [files, properties] = await Promise.all([
+						const [files, pieceStates, properties] = await Promise.all([
 							getTorrentFiles(binding, normalizedInfoHash),
+							getTorrentPieceStates(binding, normalizedInfoHash),
 							getTorrentProperties(binding, normalizedInfoHash),
 						])
 						const $torrent = {
@@ -209,6 +244,12 @@ export default {
 								totalLength: byteCount(properties.total_size, 'torrent total length'),
 							}),
 							$$files: files.map((file) => torrentFileReference($torrent, file)),
+							$$pieces: (
+								properties.piece_size == null || properties.total_size == null ?
+									[]
+								:
+									torrentPieceReferences($torrent, pieceStates, properties.piece_size, properties.total_size)
+							),
 						}
 					},
 				},
@@ -220,6 +261,7 @@ export default {
 			pieceLength: (torrent) => torrent.pieceLength,
 			totalLength: (torrent) => torrent.totalLength,
 			$$files: (torrent) => torrent.$$files,
+			$$pieces: (torrent) => torrent.$$pieces,
 		}),
 
 		defineResolver({
@@ -230,7 +272,7 @@ export default {
 						if (requestedClientId !== clientId)
 							throw new Error(`qBittorrentWebUi_Rest: unknown local client ${requestedClientId}`)
 
-						const { getApplicationVersion, getTorrentPieceStates, getTorrentsInfo, getTransferInfo } = await (
+						const { getApplicationVersion, getTorrentFiles, getTorrentPieceStates, getTorrentsInfo, getTransferInfo } = await (
 							typeof window === 'undefined' ?
 								import('$/sources/qBittorrentWebUi/Rest/queries.ts')
 							:
@@ -244,21 +286,25 @@ export default {
 							getTransferInfo(binding),
 						])
 						const selectedTorrents = torrents.slice(0, resolverContextRowLimit(context))
-						const verifiedPieceCounts = await Promise.all(selectedTorrents.map(async (torrent) => (
-							(await getTorrentPieceStates(binding, torrent.hash))
-								.filter((pieceState) => pieceState === 2).length
-						)))
 						const downloadedBytes = transfer.dl_info_data == null ? undefined : byteCount(transfer.dl_info_data, 'session downloaded bytes')
 						const uploadedBytes = transfer.up_info_data == null ? undefined : byteCount(transfer.up_info_data, 'session uploaded bytes')
 
 						return {
 							clientId,
 							clientName: 'qBittorrent',
-							$$transfers: selectedTorrents.map((torrent, index) => transferReference(
-								torrent,
-								timestampMs,
-								verifiedPieceCounts[index]
-							)),
+							$$transfers: await Promise.all(selectedTorrents.map(async (torrent) => {
+								const [files, pieceStates] = await Promise.all([
+									getTorrentFiles(binding, torrent.hash),
+									getTorrentPieceStates(binding, torrent.hash),
+								])
+
+								return transferReference(
+									torrent,
+									timestampMs,
+									files.flatMap((file) => file.priority === 0 ? [] : [file.index]),
+									pieceStates.filter((pieceState) => pieceState === 2).length
+								)
+							})),
 							$$timestamps: [{
 								[EntityMetaKey.Selector]: {
 									$clientState: clientSelector,
