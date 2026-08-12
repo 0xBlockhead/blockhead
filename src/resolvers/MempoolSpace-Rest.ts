@@ -30,6 +30,9 @@ type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 type MempoolSpaceBlock = Awaited<ReturnType<
 	typeof import('$/sources/MempoolSpace/Rest/queries.ts').getBlocks
 >>[number]
+type MempoolSpaceTransaction = Awaited<ReturnType<
+	typeof import('$/sources/MempoolSpace/Rest/queries.ts').getTransaction
+>>
 
 const utxoBlockReferenceFromMempoolSpaceWire = (
 	$network: NetworkId,
@@ -71,6 +74,85 @@ const utxoBlockReferenceFromMempoolSpaceWire = (
 		[entityFieldAddressKey(EntityType.UtxoBlock, [], 'transactionCount')]: block.tx_count,
 	},
 })
+
+const utxoTransactionReferenceFromMempoolSpaceWire = (
+	$network: NetworkId,
+	transaction: MempoolSpaceTransaction
+) => {
+	const $transaction = {
+		$network,
+		txId: transaction.txid,
+	}
+	return {
+		[EntityMetaKey.Selector]: $transaction,
+		[EntityMetaKey.Fields]: {
+			[entityFieldAddressKey(EntityType.UtxoTransaction, [], 'version')]: transaction.version,
+			[entityFieldAddressKey(EntityType.UtxoTransaction, [], 'lockTime')]: transaction.locktime,
+			[entityFieldAddressKey(EntityType.UtxoTransaction, [], 'sizeBytes')]: transaction.size,
+			[entityFieldAddressKey(EntityType.UtxoTransaction, [], 'weightUnits')]: transaction.weight,
+			[entityFieldAddressKey(EntityType.UtxoTransaction, [], 'virtualSizeBytes')]: Math.ceil(transaction.weight / 4),
+			...(transaction.fee != null && {
+				[entityFieldAddressKey(EntityType.UtxoTransaction, [], 'feeSats')]: BigInt(transaction.fee),
+			}),
+			[entityFieldAddressKey(EntityType.UtxoTransaction, [], 'isCoinbase')]: transaction.vin.some((input) => input.is_coinbase),
+			...(transaction.status.block_height != null && {
+				[entityFieldAddressKey(EntityType.UtxoTransaction, [], '$block')]: {
+					[EntityMetaKey.Selector]: {
+						$network,
+						height: BigInt(transaction.status.block_height),
+						...(transaction.status.block_hash != null && {
+							hash: transaction.status.block_hash,
+						}),
+					},
+				},
+			}),
+			[entityFieldAddressKey(EntityType.UtxoTransaction, [], '$$inputs')]: transaction.vin.map((input, indexInTransaction) => ({
+				[EntityMetaKey.Selector]: {
+					$transaction,
+					indexInTransaction,
+				},
+				[EntityMetaKey.Fields]: {
+					...(input.txid != null && input.vout != null && {
+						[entityFieldAddressKey(EntityType.UtxoInput, [], '$spentOutput')]: {
+							[EntityMetaKey.Selector]: {
+								$transaction: {
+									$network,
+									txId: input.txid,
+								},
+								indexInTransaction: input.vout,
+							},
+						},
+					}),
+					[entityFieldAddressKey(EntityType.UtxoInput, [], 'sequence')]: input.sequence,
+					[entityFieldAddressKey(EntityType.UtxoInput, [], 'witness')]: input.witness ?? [],
+				},
+			})),
+			[entityFieldAddressKey(EntityType.UtxoTransaction, [], '$$outputs')]: transaction.vout.map((output, indexInTransaction) => ({
+				[EntityMetaKey.Selector]: {
+					$transaction,
+					indexInTransaction,
+				},
+				[EntityMetaKey.Fields]: {
+					...(output.value != null && {
+						[entityFieldAddressKey(EntityType.UtxoOutput, [], 'valueSats')]: BigInt(output.value),
+					}),
+					[entityFieldAddressKey(EntityType.UtxoOutput, [], 'scriptPubKeyHex')]: output.scriptpubkey,
+					...(output.scriptpubkey_type != null && {
+						[entityFieldAddressKey(EntityType.UtxoOutput, [], 'scriptPubKeyType')]: output.scriptpubkey_type,
+					}),
+					...(output.scriptpubkey_address != null && {
+						[entityFieldAddressKey(EntityType.UtxoOutput, [], '$address')]: {
+							[EntityMetaKey.Selector]: {
+								$network,
+								address: output.scriptpubkey_address,
+							},
+						},
+					}),
+				},
+			})),
+		},
+	}
+}
 
 const bitcoinNetworkApplicability = [
 	{
@@ -453,12 +535,12 @@ export default {
 			},
 		})({
 			$$transactions: {
-				select: (page, utxoAddress) => page.transactions.map((transaction) => ({
-					[EntityMetaKey.Selector]: {
-						$network: utxoAddress.$network,
-						txId: transaction.txid,
-					},
-				})),
+				select: (page, utxoAddress) => page.transactions.map((transaction) => (
+					utxoTransactionReferenceFromMempoolSpaceWire(
+						utxoAddress.$network,
+						transaction
+					)
+				)),
 				continuation: (page, utxoAddress) => {
 					const lastTransaction = page.transactions.at(-1)
 					return (

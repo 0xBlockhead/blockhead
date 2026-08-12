@@ -554,6 +554,77 @@ describe('MempoolSpace UTXO', () => {
 		})
 	})
 
+	it('materializes address transaction facts and native children from the history response', async () => {
+		const txId = 'e'.repeat(64)
+		sourceGetJson.mockResolvedValueOnce([{
+			txid: txId,
+			version: 2,
+			locktime: 840_000,
+			size: 180,
+			weight: 600,
+			fee: 900,
+			status: {
+				confirmed: true,
+				block_height: 840_000,
+				block_hash: 'f'.repeat(64),
+			},
+			vin: [{
+				txid: 'a'.repeat(64),
+				vout: 1,
+				is_coinbase: false,
+				sequence: 4_294_967_293,
+				witness: ['01'],
+			}],
+			vout: [{
+				scriptpubkey: '0014',
+				scriptpubkey_type: 'v0_p2wpkh',
+				scriptpubkey_address: address.address,
+				value: 5_000,
+			}],
+		}])
+
+		const page = await addressTransactionsResolver.resolve.NetworkAddress.resolve(
+			address,
+			resolverContext
+		)
+		const projection = addressTransactionsResolver.projections.$$transactions
+		if (typeof projection === 'function' || projection.select == null)
+			throw new Error('MempoolSpace-Rest spec missing address transaction selection')
+
+		expect(projection.select(page, address)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				txId,
+			},
+			[EntityMetaKey.Fields]: expect.objectContaining({
+				[entityFieldAddressKey(EntityType.UtxoTransaction, [], 'version')]: 2,
+				[entityFieldAddressKey(EntityType.UtxoTransaction, [], 'feeSats')]: 900n,
+				[entityFieldAddressKey(EntityType.UtxoTransaction, [], '$block')]: {
+					[EntityMetaKey.Selector]: {
+						$network: network,
+						height: 840_000n,
+						hash: 'f'.repeat(64),
+					},
+				},
+				[entityFieldAddressKey(EntityType.UtxoTransaction, [], '$$inputs')]: [expect.objectContaining({
+					[EntityMetaKey.Selector]: {
+						$transaction: {
+							$network: network,
+							txId,
+						},
+						indexInTransaction: 0,
+					},
+				})],
+				[entityFieldAddressKey(EntityType.UtxoTransaction, [], '$$outputs')]: [expect.objectContaining({
+					[EntityMetaKey.Fields]: expect.objectContaining({
+						[entityFieldAddressKey(EntityType.UtxoOutput, [], 'valueSats')]: 5_000n,
+					}),
+				})],
+			}),
+		}])
+		expect(sourceGetJson).toHaveBeenCalledOnce()
+	})
+
 	it('rejects non-Bitcoin subjects before provider I/O', async () => {
 		for (const $network of [
 			{
