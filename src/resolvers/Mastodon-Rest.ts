@@ -82,7 +82,9 @@ const activityPubNoteFieldsFromMastodonStatus = (
 	const createdAt = status.created_at == null ? undefined : Date.parse(status.created_at)
 	if (createdAt != null && !Number.isFinite(createdAt))
 		throw new Error('Mastodon_Rest: ActivityPub note has an invalid creation timestamp')
-	const editedAt = optionalTimestampMs(status.edited_at ?? undefined)
+	const editedAt = status.edited_at == null ? undefined : Date.parse(status.edited_at)
+	if (editedAt != null && !Number.isFinite(editedAt))
+		throw new Error('Mastodon_Rest: ActivityPub note has an invalid edit timestamp')
 	const content = optionalNonemptyString(status.content)
 	const language = optionalNonemptyString(status.language ?? undefined)
 	const spoilerText = status.spoiler_text

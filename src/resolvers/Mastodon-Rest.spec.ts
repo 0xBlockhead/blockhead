@@ -617,6 +617,7 @@ describe('Mastodon ActivityPub observations', () => {
 			uri: 'https://fosstodon.org/users/alice/statuses/note-9',
 			content: '<p>Hello federation</p>',
 			created_at: '2026-07-16T12:00:00.000Z',
+			edited_at: '2026-07-16T12:30:00.000Z',
 			account: {
 				id: 'actor-17',
 				uri: 'https://mastodon.social/users/alice',
@@ -686,6 +687,7 @@ describe('Mastodon ActivityPub observations', () => {
 				localStatusId: 'note-8',
 			},
 		})
+		expect(local.editedAt).toBe(1_784_205_000_000)
 		expect(local.$reblogOf).toMatchObject({
 			[EntityMetaKey.Selector]: {
 				activityStreamsUri: 'https://boost-origin.example/users/bob/statuses/remote-note-4',
@@ -821,6 +823,24 @@ describe('Mastodon ActivityPub observations', () => {
 			instanceOrigin: 'https://fosstodon.org',
 			localStatusId: 'note-invalid-time',
 		}, context)).rejects.toThrow('invalid creation timestamp')
+	})
+
+	it('rejects notes with an invalid edit timestamp', async () => {
+		getStatus.mockResolvedValueOnce({
+			id: 'note-invalid-edit',
+			uri: 'https://fosstodon.org/users/alice/statuses/note-invalid-edit',
+			created_at: '2026-07-16T12:00:00.000Z',
+			edited_at: 'not-a-timestamp',
+			account: {
+				id: 'actor-17',
+				uri: 'https://fosstodon.org/users/alice',
+			},
+		})
+
+		await expect(resolver(EntityType.ActivityPubNote, 'content').resolve['InstanceOriginLocalStatusId'].resolve({
+			instanceOrigin: 'https://fosstodon.org',
+			localStatusId: 'note-invalid-edit',
+		}, context)).rejects.toThrow('invalid edit timestamp')
 	})
 
 	it('rejects source payloads whose actor or note identity differs from the requested subject', async () => {
