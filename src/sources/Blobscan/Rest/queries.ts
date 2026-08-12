@@ -182,8 +182,13 @@ const assertBlockDetail = (
 		)
 	)
 		throw new Error(`Blobscan_Rest: mismatched block identity ${block.hash}`)
+	const transactionHashes = new Set<string>()
 	for (const transaction of block.transactions) {
 		assertBytes32Hex(transaction.hash, 'block transaction hash')
+		const transactionHash = transaction.hash.toLowerCase()
+		if (transactionHashes.has(transactionHash))
+			throw new Error('Blobscan_Rest: block contains duplicate transaction identity')
+		transactionHashes.add(transactionHash)
 		for (const blob of transaction.blobs)
 			assertBlobVersionedHash(blob.versionedHash, 'block blob versioned hash')
 	}

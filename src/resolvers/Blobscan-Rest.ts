@@ -140,6 +140,21 @@ const mapEvmBlockFromWire = (
 					$network,
 					txHash,
 				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.EvmTransaction, [], '$block')]: {
+						[EntityMetaKey.Selector]: {
+							$network,
+							blockNumber: BigInt(block.number),
+						},
+					},
+					[entityFieldAddressKey(EntityType.EvmTransaction, [], 'envelopeType')]: EvmTransactionEnvelopeType.Blob,
+					[entityFieldAddressKey(EntityType.EvmTransaction, ['Blob'], '$$blobs')]: evmBlobRefsFromTransactionBlobs({
+						$network,
+						txHash,
+						blockNumber: block.number,
+						blobs: transaction.blobs,
+					}),
+				},
 			}]
 		}),
 	}

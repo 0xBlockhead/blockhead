@@ -275,6 +275,27 @@ describe('Blobscan EVM blob resolvers', () => {
 				$network: network,
 				txHash,
 			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.EvmTransaction, [], '$block')]: {
+					[EntityMetaKey.Selector]: {
+						$network: network,
+						blockNumber: 12n,
+					},
+				},
+				[entityFieldAddressKey(EntityType.EvmTransaction, [], 'envelopeType')]: 'Blob',
+				[entityFieldAddressKey(EntityType.EvmTransaction, ['Blob'], '$$blobs')]: [{
+					[EntityMetaKey.Selector]: {
+						$transaction: {
+							$network: network,
+							txHash,
+						},
+						indexInTransaction: 0,
+					},
+					[EntityMetaKey.Fields]: expect.objectContaining({
+						[entityFieldAddressKey(EntityType.EvmBlob, [], 'versionedHash')]: versionedHash,
+					}),
+				}],
+			},
 		}])
 	})
 
