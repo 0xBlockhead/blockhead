@@ -107,3 +107,42 @@ export const gitlabReleaseWire = type({
 })
 
 export const gitlabReleasesWire = gitlabReleaseWire.array()
+
+const gitlabCompareCommitWire = type({
+	id: '/^[0-9a-fA-F]{40}$|^[0-9a-fA-F]{64}$/',
+	parent_ids: '(/^([0-9a-fA-F]{40}|[0-9a-fA-F]{64})$/)[]',
+	title: 'string',
+	message: 'string',
+	author_name: 'string',
+	author_email: 'string',
+	authored_date: 'string > 0',
+	committer_name: 'string',
+	committer_email: 'string',
+	committed_date: 'string > 0',
+})
+
+const gitlabCompareDiffWire = type({
+	old_path: 'string',
+	new_path: 'string',
+	a_mode: 'string',
+	b_mode: 'string',
+	new_file: 'boolean',
+	renamed_file: 'boolean',
+	deleted_file: 'boolean',
+	diff: 'string',
+	'generated_file?': 'boolean',
+	'collapsed?': 'boolean',
+	'too_large?': 'boolean',
+})
+
+export const gitlabCompareWire = type({
+	commit: {
+		id: '/^[0-9a-fA-F]{40}$|^[0-9a-fA-F]{64}$/',
+	},
+	commits: gitlabCompareCommitWire.array(),
+	diffs: gitlabCompareDiffWire.array(),
+	compare_timeout: 'boolean',
+	compare_same_ref: 'boolean',
+})
+
+export type GitlabCompare = typeof gitlabCompareWire.infer

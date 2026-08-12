@@ -4,6 +4,7 @@ import { Source } from '$/sources/Source.ts'
 import {
 	gitlabBranchesWire,
 	gitlabBranchWire,
+	gitlabCompareWire,
 	gitlabIssueWire,
 	gitlabIssuesWire,
 	gitlabMergeRequestWire,
@@ -225,6 +226,31 @@ export const getReleases = ({
 				return gitlabReleasesWire.assert(releases)
 			} catch {
 				throw new Error('Gitlab_Rest: invalid releases response')
+			}
+		})
+)
+
+export const compareRepositoryRefs = ({
+	projectId,
+	from,
+	to,
+	straight = false,
+}: {
+	projectId: string
+	from: string
+	to: string
+	straight?: boolean
+}) => (
+	getJson<JsonValue>(binding, `/api/v4/projects/${encodeURIComponent(projectId)}/repository/compare?${new URLSearchParams({
+		from,
+		to,
+		straight: String(straight),
+	})}`)
+		.then((comparison) => {
+			try {
+				return gitlabCompareWire.assert(comparison)
+			} catch {
+				throw new Error('Gitlab_Rest: invalid repository comparison response')
 			}
 		})
 )

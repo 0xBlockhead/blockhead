@@ -9,6 +9,7 @@ vi.mock('$/sources/_runtime/http.ts', () => ({
 }))
 
 const {
+	compareRepositoryRefs,
 	getBranches,
 	getBranch,
 	getIssue,
@@ -239,5 +240,72 @@ describe('GitLab REST wires', () => {
 			page: 1.5,
 		})).toThrow('invalid page')
 		expect(sourceGetJson).not.toHaveBeenCalled()
+	})
+
+	it('retains native commit ancestry and file diffs for repository comparisons', async () => {
+		sourceGetJson.mockResolvedValue({
+			commit: {
+				id: 'c'.repeat(40),
+			},
+			commits: [{
+				id: 'b'.repeat(40),
+				parent_ids: ['a'.repeat(40)],
+				title: 'Add comparison support',
+				message: 'Add comparison support\n',
+				author_name: 'Author',
+				author_email: 'author@example.com',
+				authored_date: '2026-04-01T00:00:00Z',
+				committer_name: 'Committer',
+				committer_email: 'committer@example.com',
+				committed_date: '2026-04-01T00:01:00Z',
+			}],
+			diffs: [{
+				old_path: 'src/old.ts',
+				new_path: 'src/new.ts',
+				a_mode: '100644',
+				b_mode: '100644',
+				new_file: false,
+				renamed_file: true,
+				deleted_file: false,
+				diff: '@@ -1 +1 @@',
+				generated_file: false,
+				collapsed: false,
+				too_large: false,
+			}],
+			compare_timeout: false,
+			compare_same_ref: false,
+		})
+
+		await expect(compareRepositoryRefs({
+			projectId: 'gitlab-org/gitlab',
+			from: 'main',
+			to: 'feature/native objects',
+			straight: true,
+		})).resolves.toMatchObject({
+			commits: [{
+				parent_ids: ['a'.repeat(40)],
+			}],
+			diffs: [{
+				renamed_file: true,
+			}],
+		})
+		expect(sourceGetJson).toHaveBeenCalledWith(
+			expect.anything(),
+			'https://gitlab.com/api/v4/projects/gitlab-org%2Fgitlab/repository/compare?from=main&to=feature%2Fnative+objects&straight=true'
+		)
+	})
+
+	it('fails closed when a repository comparison omits provider completion state', async () => {
+		sourceGetJson.mockResolvedValue({
+			commit: { id: 'c'.repeat(40) },
+			commits: [],
+			diffs: [],
+		})
+
+		await expect(compareRepositoryRefs({
+			projectId: 'gitlab-org/gitlab',
+			from: 'main',
+			to: 'feature',
+		})).rejects.toThrow('Gitlab_Rest: invalid repository comparison response')
 	})
 })
