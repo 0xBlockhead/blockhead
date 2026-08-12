@@ -20,14 +20,26 @@ export const probeSourceHttpEndpoint = async (source: Source) => {
 		return undefined
 
 	const results = await Promise.allSettled(endpoints.map(async ({ binding, endpoint }) => {
-		const response = await sourceFetch(binding, endpoint.locator, {
+		let response = await sourceFetch(binding, endpoint.locator, {
 			method: 'HEAD',
 			signal: AbortSignal.timeout(10_000),
 		})
+		if (response.status === 405 || response.status === 501) {
+			response = await sourceFetch(binding, endpoint.locator, {
+				headers: {
+					range: 'bytes=0-0',
+				},
+				method: 'GET',
+				signal: AbortSignal.timeout(10_000),
+			})
+			await response.body?.cancel()
+		}
+		const rateLimitRemaining = response.headers.get('ratelimit-remaining') ?? response.headers.get('x-ratelimit-remaining')
+		const rateLimitReset = response.headers.get('ratelimit-reset') ?? response.headers.get('x-ratelimit-reset')
 		return {
 			response,
-			rateLimitRemaining: Number(response.headers.get('ratelimit-remaining') ?? response.headers.get('x-ratelimit-remaining')),
-			rateLimitReset: Number(response.headers.get('ratelimit-reset') ?? response.headers.get('x-ratelimit-reset')),
+			rateLimitRemaining: rateLimitRemaining == null || rateLimitRemaining.trim() === '' ? undefined : Number(rateLimitRemaining),
+			rateLimitReset: rateLimitReset == null || rateLimitReset.trim() === '' ? undefined : Number(rateLimitReset),
 		}
 	}))
 	const reachable = results.flatMap((result) => result.status === 'fulfilled' ? [result.value] : [])
