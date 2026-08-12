@@ -91,13 +91,15 @@ export default {
 						if (wantHash == null) throw new Error('MevRelay_Rest: invalid block hash in entity selector')
 
 						const { getProposerPayloadDeliveredForRelayHost } = await import('$/sources/MevRelay/Rest/queries.ts')
-						const [payload] = await getProposerPayloadDeliveredForRelayHost(entitySelector.relayHost, {
+						const payload = (await getProposerPayloadDeliveredForRelayHost(entitySelector.relayHost, {
 							limit: 1,
 							slot: entitySelector.slot,
-								block_hash: wantHash,
-							})
+							block_hash: wantHash,
+						})).at(0)
+						if (payload == null)
+							throw new Error('MevRelay_Rest: proposer payload not found')
 
-							const blockNumber = parsePayloadBlockNumber(payload)
+						const blockNumber = parsePayloadBlockNumber(payload)
 						const valueWei = parsePayloadValueWei(payload)
 						return {
 							[EntityMetaKey.Selector]: entitySelector,
@@ -334,30 +336,74 @@ export default {
 						const relayHosts = await relayHostsForChainId(chainId)
 
 						const entityLimit = resolverContextRowLimit(context)
-						const builderPubkeys = new Set<string>()
+						const timestampMs = Date.now()
 						const deliveredPayloadPages = await Promise.all(
 							relayHosts.map((relayHost) => (
 								getProposerPayloadDeliveredForRelayHost(relayHost, {
 									limit: Math.min(entityLimit * 8, 200),
-								})
+								}).then((deliveredPayloads) => ({
+									relayHost,
+									deliveredPayloads,
+								}))
 							))
 						)
-						for (const deliveredPayloads of deliveredPayloadPages) {
+						const payloadsByBuilderPubkey = new Map<string, {
+							deliveredPayloads: NonNullable<ReturnType<typeof deliveredPayloadReference>>[]
+							deliveredValueWei: bigint
+							relayHosts: Set<string>
+							windowStartSlot: number
+							windowEndSlot: number
+						}>()
+						for (const { relayHost, deliveredPayloads } of deliveredPayloadPages) {
 							for (const payload of deliveredPayloads) {
-								builderPubkeys.add(payload.builder_pubkey)
-								if (builderPubkeys.size >= entityLimit) break
+								const reference = deliveredPayloadReference({ caip2 }, relayHost, payload)
+								if (reference == null) continue
+								const slot = parsePayloadSlot(payload)
+								const builder = payloadsByBuilderPubkey.get(payload.builder_pubkey) ?? {
+									deliveredPayloads: [],
+									deliveredValueWei: 0n,
+									relayHosts: new Set<string>(),
+									windowStartSlot: slot,
+									windowEndSlot: slot,
+								}
+								builder.deliveredPayloads.push(reference)
+								builder.deliveredValueWei += parsePayloadValueWei(payload)
+								builder.relayHosts.add(relayHost)
+								builder.windowStartSlot = Math.min(builder.windowStartSlot, slot)
+								builder.windowEndSlot = Math.max(builder.windowEndSlot, slot)
+								payloadsByBuilderPubkey.set(payload.builder_pubkey, builder)
 							}
-							if (builderPubkeys.size >= entityLimit) break
 						}
 
-						return [...builderPubkeys].map((builderPubkey) => ({
-							[EntityMetaKey.Selector]: {
-								$network: {
-									caip2,
-								},
-								builderPubkey,
-							},
-						}))
+						return [...payloadsByBuilderPubkey.entries()]
+							.slice(0, entityLimit)
+							.map(([builderPubkey, builder]) => {
+								const $builder = {
+									$network: { caip2 },
+									builderPubkey,
+								}
+								return {
+									[EntityMetaKey.Selector]: $builder,
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.MevBuilder, [], '$$deliveredPayloads')]: builder.deliveredPayloads,
+										[entityFieldAddressKey(EntityType.MevBuilder, [], '$$timestamps')]: [{
+											[EntityMetaKey.Selector]: {
+												$builder,
+												timestampMs,
+												source: Source.MevRelay_Rest,
+											},
+											[EntityMetaKey.Fields]: {
+												[entityFieldAddressKey(EntityType.MevBuilder_Timestamp, [], 'deliveredPayloadCount')]: builder.deliveredPayloads.length,
+												[entityFieldAddressKey(EntityType.MevBuilder_Timestamp, [], 'deliveredValueWei')]: builder.deliveredValueWei,
+												[entityFieldAddressKey(EntityType.MevBuilder_Timestamp, [], 'relayCount')]: builder.relayHosts.size,
+												[entityFieldAddressKey(EntityType.MevBuilder_Timestamp, [], 'windowStartSlot')]: builder.windowStartSlot,
+												[entityFieldAddressKey(EntityType.MevBuilder_Timestamp, [], 'windowEndSlot')]: builder.windowEndSlot,
+												[entityFieldAddressKey(EntityType.MevBuilder_Timestamp, [], 'sampleLimit')]: Math.min(entityLimit * 8, 200),
+											},
+										}],
+									},
+								}
+							})
 					},
 				},
 			},

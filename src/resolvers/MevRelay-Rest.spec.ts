@@ -161,6 +161,17 @@ describe('MevRelay REST resolvers', () => {
 		}, context)).rejects.toThrow('invalid BidTrace block number')
 	})
 
+	it('fails with an explicit unsupported state when a relay has no matching payload', async () => {
+		getProposerPayloadDeliveredForRelayHost.mockResolvedValueOnce([])
+
+		await expect(payloadResolver.resolve.EvmNetworkRelayHostSlotBlockHash.resolve({
+			$network: network,
+			relayHost: 'boost-relay.flashbots.net',
+			slot: 14917871,
+			blockHash: bidTrace.block_hash,
+		}, context)).rejects.toThrow('proposer payload not found')
+	})
+
 	it('projects the enrolled relay URL without requiring observation delivery', async () => {
 		const snapshot = await relayUrlResolver.resolve.EvmNetworkHost.resolve({
 			$network: network,
@@ -295,5 +306,49 @@ describe('MevRelay REST resolvers', () => {
 				},
 			},
 		})
+	})
+
+	it('materializes builder performance and payload history from the network relay window', async () => {
+		getProposerPayloadDeliveredForRelayHost
+			.mockResolvedValueOnce([bidTrace])
+			.mockResolvedValueOnce([{
+				...bidTrace,
+				slot: '14917900',
+				value: '100',
+			}])
+
+		const snapshot = await networkBuildersResolver.resolve.Caip2.resolve(network, context)
+		const [builder] = networkBuildersResolver.projections.Evm.$$mevBuilders(snapshot)
+
+		expect(builder).toMatchObject({
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				builderPubkey: bidTrace.builder_pubkey,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.MevBuilder, [], '$$deliveredPayloads')]: [
+					expect.objectContaining({
+						[EntityMetaKey.Fields]: expect.objectContaining({
+							[entityFieldAddressKey(EntityType.MevRelay_ProposerPayloadDelivered, [], 'value')]: 5_316_647_666_874_603n,
+						}),
+					}),
+					expect.objectContaining({
+						[EntityMetaKey.Fields]: expect.objectContaining({
+							[entityFieldAddressKey(EntityType.MevRelay_ProposerPayloadDelivered, [], 'value')]: 100n,
+						}),
+					}),
+				],
+				[entityFieldAddressKey(EntityType.MevBuilder, [], '$$timestamps')]: [expect.objectContaining({
+					[EntityMetaKey.Fields]: expect.objectContaining({
+						[entityFieldAddressKey(EntityType.MevBuilder_Timestamp, [], 'deliveredPayloadCount')]: 2,
+						[entityFieldAddressKey(EntityType.MevBuilder_Timestamp, [], 'deliveredValueWei')]: 5_316_647_666_874_703n,
+						[entityFieldAddressKey(EntityType.MevBuilder_Timestamp, [], 'relayCount')]: 2,
+						[entityFieldAddressKey(EntityType.MevBuilder_Timestamp, [], 'windowStartSlot')]: 14_917_871,
+						[entityFieldAddressKey(EntityType.MevBuilder_Timestamp, [], 'windowEndSlot')]: 14_917_900,
+					}),
+				})],
+			},
+		})
+		expect(getProposerPayloadDeliveredForRelayHost).toHaveBeenCalledTimes(2)
 	})
 })
