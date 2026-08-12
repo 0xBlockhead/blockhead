@@ -28,7 +28,7 @@ export const gitlabBranchesWire = gitlabBranchWire.array()
 export const gitlabRepositoryTreeEntryWire = type({
 	id: '/^[0-9a-fA-F]{40}$|^[0-9a-fA-F]{64}$/',
 	name: 'string > 0',
-	type: "'blob' | 'tree'",
+	type: "'blob' | 'tree' | 'commit'",
 	path: 'string > 0',
 	mode: '/^[0-7]{6}$/',
 })

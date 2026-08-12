@@ -98,10 +98,12 @@ export const getRepositoryTree = ({
 	projectId,
 	path,
 	ref,
+	recursive = true,
 }: {
 	projectId: string
 	path?: string
 	ref?: string
+	recursive?: boolean
 }) => (
 	getJson<JsonValue>(
 		binding,
@@ -109,7 +111,7 @@ export const getRepositoryTree = ({
 			new URLSearchParams({
 				...(path != null && { path }),
 				...(ref != null && { ref }),
-				recursive: 'true',
+				recursive: String(recursive),
 				per_page: '100',
 			})
 		}`

@@ -186,6 +186,75 @@ export default {
 		}),
 
 		defineResolver({
+			entityType: EntityType.GitTreePathResolution,
+			resolve: {
+				RepositoryCommitObjectIdPath: {
+					resolve: async ({
+						$repository,
+						commitObjectId,
+						path,
+					}) => {
+						const coordinates = gitlabCoordinatesFromRemoteUrl(
+							'canonicalRemoteUrl' in $repository ?
+								$repository.canonicalRemoteUrl
+							:
+								$repository.repositoryId
+						)
+						if (coordinates == null)
+							return undefined
+						const normalizedPath = path.replace(/^\/+|\/+$/g, '')
+						if (
+							normalizedPath === ''
+							|| normalizedPath.split('/').some((segment) => segment === '.' || segment === '..' || segment === '')
+						)
+							throw new Error('Gitlab_Rest: invalid repository path')
+
+						const { getRepositoryTree } = await import('$/sources/Gitlab/Rest/queries.ts')
+						const repositoryTree = await getRepositoryTree({
+							projectId: coordinates.projectId,
+							ref: commitObjectId.slice(2),
+						})
+						const target = repositoryTree.find((entry) => entry.path === normalizedPath)
+						return {
+							$repository,
+							commitObjectId,
+							path: normalizedPath,
+							treeObjectIds: repositoryTree
+								.filter((entry) => (
+									entry.type === 'tree'
+									&& normalizedPath.startsWith(`${entry.path}/`)
+								))
+								.toSorted((left, right) => left.path.split('/').length - right.path.split('/').length)
+								.map((entry) => `0x${entry.id}`),
+							...(target?.type === 'blob' && { blobObjectId: `0x${target.id}` }),
+							...(target?.type === 'commit' && { submoduleCommitId: `0x${target.id}` }),
+							status: (
+								target == null ?
+									'not-found'
+								: target.type === 'blob' ?
+									'resolved-blob'
+								: target.type === 'tree' ?
+									'resolved-tree'
+								:
+									'resolved-submodule'
+							),
+						}
+					},
+				},
+			},
+		})({
+			$repository: (resolution) => ({
+				[EntityMetaKey.Selector]: resolution.$repository,
+			}),
+			commitObjectId: (resolution) => resolution.commitObjectId,
+			path: (resolution) => resolution.path,
+			treeObjectIds: (resolution) => resolution.treeObjectIds,
+			blobObjectId: (resolution) => resolution.blobObjectId,
+			submoduleCommitId: (resolution) => resolution.submoduleCommitId,
+			status: (resolution) => resolution.status,
+		}),
+
+		defineResolver({
 			entityType: EntityType.GitForgeIssue,
 			resolve: {
 				ForgeMirrorIssueNumber: {
