@@ -81,6 +81,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.Filfox_Rest,
+			Source.Lotus_JsonRpc,
 		],
 	},
 	$fee: {
@@ -116,6 +117,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
 			Source.Filfox_Rest,
+			Source.Lotus_JsonRpc,
 		],
 	},
 })({

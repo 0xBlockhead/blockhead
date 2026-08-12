@@ -23,6 +23,7 @@
 	}, {
 		sources: [
 			Source.Filfox_Rest,
+			Source.Lotus_JsonRpc,
 		],
 		fields: {
 			method: true,

@@ -7,8 +7,10 @@ import {
 	lotusActor,
 	lotusBlockHeader,
 	lotusIdAddress,
+	lotusInvocationResult,
 	lotusMarketDeal,
 	lotusMessage,
+	lotusMessageLookup,
 	lotusMinerInfo,
 	lotusMinerPower,
 	lotusMinerSectorCount,
@@ -178,6 +180,49 @@ export const getMessage = async ({
 		])
 	)
 )
+
+export const searchMessage = async ({
+	messageCid,
+}: {
+	messageCid: string
+}) => {
+	const lookup = await jsonRpc2(binding, 'Filecoin.StateSearchMsg', [
+		{
+			'/': messageCid,
+		},
+	])
+	if (lookup == null)
+		throw new Error(`Lotus_JsonRpc: message ${messageCid} was not found on chain`)
+
+	const asserted = assertEnvelope('message lookup', lotusMessageLookup, lookup)
+	if (asserted.Message['/'] !== messageCid)
+		throw new Error('Lotus_JsonRpc: message lookup identity does not match request')
+
+	return asserted
+}
+
+export const replayMessage = async ({
+	messageCid,
+	tipsetKey,
+}: {
+	messageCid: string
+	tipsetKey: LotusTipsetKey
+}) => {
+	const replay = assertEnvelope(
+		'message replay',
+		lotusInvocationResult,
+		await jsonRpc2(binding, 'Filecoin.StateReplay', [
+			tipsetKey,
+			{
+				'/': messageCid,
+			},
+		])
+	)
+	if (replay.MsgCid['/'] !== messageCid)
+		throw new Error('Lotus_JsonRpc: message replay identity does not match request')
+
+	return replay
+}
 
 export const getActor = async ({
 	address,

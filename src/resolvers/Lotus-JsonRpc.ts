@@ -15,6 +15,7 @@ import { Source } from '$/sources/Source.ts'
 import type { LotusTipset } from '$/sources/Lotus/JsonRpc/types.ts'
 
 type NetworkSelector = EntitySelector<typeof schema, EntityType.Network>
+type MessageSelector = EntitySelector<typeof schema, EntityType.FilecoinMessage>
 
 const assertFilecoinMainnet = (network: NetworkSelector) => {
 	if (
@@ -191,6 +192,64 @@ const recentTipsetReferences = async (
 		return tipsetReference(network, tipset, includeBlocks)
 	}))
 }
+
+const getMessageExecution = async ({
+	$network,
+	cid,
+}: MessageSelector) => {
+	assertFilecoinMainnet($network)
+	const {
+		getMessage,
+		replayMessage,
+		searchMessage,
+	} = await import('$/sources/Lotus/JsonRpc/queries.ts')
+	const [
+		message,
+		lookup,
+	] = await Promise.all([
+		getMessage({
+			messageCid: cid,
+		}),
+		searchMessage({
+			messageCid: cid,
+		}),
+	])
+	const replay = await replayMessage({
+		messageCid: cid,
+		tipsetKey: lookup.TipSet,
+	})
+
+	return {
+		message,
+		lookup,
+		replay,
+	}
+}
+
+const messageSubcallSnapshot = (
+	network: NetworkSelector,
+	subcall: Awaited<ReturnType<typeof getMessageExecution>>['replay']['ExecutionTrace']['Subcalls'][number]
+) => ({
+	$from: {
+		[EntityMetaKey.Selector]: {
+			$network: network,
+			address: subcall.Msg.From,
+		},
+	},
+	$to: {
+		[EntityMetaKey.Selector]: {
+			$network: network,
+			address: subcall.Msg.To,
+		},
+	},
+	valueAttoFil: BigInt(subcall.Msg.Value),
+	method: subcall.Msg.Method.toString(),
+	methodNumber: subcall.Msg.Method,
+	params: subcall.Msg.Params,
+	exitCode: subcall.MsgRct.ExitCode,
+	returnData: subcall.MsgRct.Return,
+	gasUsed: BigInt(subcall.MsgRct.GasUsed),
+})
 
 export default {
 	source: Source.Lotus_JsonRpc,
@@ -378,11 +437,18 @@ export default {
 			resolve: {
 				NetworkCid: {
 					resolve: async ({ $network, cid }) => {
-						assertFilecoinMainnet($network)
-						const { getMessage } = await import('$/sources/Lotus/JsonRpc/queries.ts')
-						const message = await getMessage({
-							messageCid: cid,
+						const {
+							message,
+							lookup,
+							replay,
+						} = await getMessageExecution({
+							$network,
+							cid,
 						})
+						const messageSelector = {
+							$network,
+							cid,
+						}
 						return {
 							$from: {
 								[EntityMetaKey.Selector]: {
@@ -400,6 +466,46 @@ export default {
 							nonce: BigInt(message.Nonce),
 							valueAttoFil: BigInt(message.Value),
 							gasLimit: BigInt(message.GasLimit),
+							$receipt: {
+								[EntityMetaKey.Selector]: {
+									$message: messageSelector,
+									tipsetKey: tipsetKey(lookup.TipSet),
+									source: Source.Lotus_JsonRpc,
+								},
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.FilecoinMessageReceipt, [], '$tipset')]: {
+										[EntityMetaKey.Selector]: {
+											$network,
+											height: BigInt(lookup.Height),
+											tipsetKey: tipsetKey(lookup.TipSet),
+										},
+									},
+									[entityFieldAddressKey(EntityType.FilecoinMessageReceipt, [], 'height')]: BigInt(lookup.Height),
+									[entityFieldAddressKey(EntityType.FilecoinMessageReceipt, [], 'exitCode')]: replay.MsgRct.ExitCode,
+									[entityFieldAddressKey(EntityType.FilecoinMessageReceipt, [], 'returnData')]: replay.MsgRct.Return,
+									[entityFieldAddressKey(EntityType.FilecoinMessageReceipt, [], 'gasUsed')]: BigInt(replay.MsgRct.GasUsed),
+								},
+							},
+							$$subcalls: replay.ExecutionTrace.Subcalls.map((subcall, index) => {
+								const snapshot = messageSubcallSnapshot($network, subcall)
+								return {
+									[EntityMetaKey.Selector]: {
+										$message: messageSelector,
+										index,
+									},
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.FilecoinMessageSubcall, [], '$from')]: snapshot.$from,
+										[entityFieldAddressKey(EntityType.FilecoinMessageSubcall, [], '$to')]: snapshot.$to,
+										[entityFieldAddressKey(EntityType.FilecoinMessageSubcall, [], 'valueAttoFil')]: snapshot.valueAttoFil,
+										[entityFieldAddressKey(EntityType.FilecoinMessageSubcall, [], 'method')]: snapshot.method,
+										[entityFieldAddressKey(EntityType.FilecoinMessageSubcall, [], 'methodNumber')]: snapshot.methodNumber,
+										[entityFieldAddressKey(EntityType.FilecoinMessageSubcall, [], 'params')]: snapshot.params,
+										[entityFieldAddressKey(EntityType.FilecoinMessageSubcall, [], 'exitCode')]: snapshot.exitCode,
+										[entityFieldAddressKey(EntityType.FilecoinMessageSubcall, [], 'returnData')]: snapshot.returnData,
+										[entityFieldAddressKey(EntityType.FilecoinMessageSubcall, [], 'gasUsed')]: snapshot.gasUsed,
+									},
+								}
+							}),
 						}
 					},
 				},
@@ -411,6 +517,72 @@ export default {
 			nonce: (message) => message.nonce,
 			valueAttoFil: (message) => message.valueAttoFil,
 			gasLimit: (message) => message.gasLimit,
+			$receipt: (message) => message.$receipt,
+			$$subcalls: (message) => message.$$subcalls,
+		}),
+
+		defineResolver({
+			entityType: EntityType.FilecoinMessageReceipt,
+			resolve: {
+				MessageTipsetKeySource: {
+					resolve: async ({ $message, tipsetKey: selectorTipsetKey, source }) => {
+						if (source !== Source.Lotus_JsonRpc)
+							throw new Error(`Lotus_JsonRpc: unsupported message receipt source ${source}`)
+						const {
+							lookup,
+							replay,
+						} = await getMessageExecution($message)
+						if (tipsetKey(lookup.TipSet) !== selectorTipsetKey)
+							throw new Error('Lotus_JsonRpc: message receipt tipset does not match selector')
+
+						return {
+							$tipset: {
+								[EntityMetaKey.Selector]: {
+									$network: $message.$network,
+									height: BigInt(lookup.Height),
+									tipsetKey: selectorTipsetKey,
+								},
+							},
+							height: BigInt(lookup.Height),
+							exitCode: replay.MsgRct.ExitCode,
+							returnData: replay.MsgRct.Return,
+							gasUsed: BigInt(replay.MsgRct.GasUsed),
+						}
+					},
+				},
+			},
+		})({
+			$tipset: (receipt) => receipt.$tipset,
+			height: (receipt) => receipt.height,
+			exitCode: (receipt) => receipt.exitCode,
+			returnData: (receipt) => receipt.returnData,
+			gasUsed: (receipt) => receipt.gasUsed,
+		}),
+
+		defineResolver({
+			entityType: EntityType.FilecoinMessageSubcall,
+			resolve: {
+				MessageIndex: {
+					resolve: async ({ $message, index }) => {
+						const { replay } = await getMessageExecution($message)
+						const subcall = replay.ExecutionTrace.Subcalls.at(index)
+						if (subcall == null)
+							throw new Error(`Lotus_JsonRpc: message subcall ${index.toString()} not found`)
+
+						return messageSubcallSnapshot($message.$network, subcall)
+					},
+				},
+			},
+		})({
+			$from: (subcall) => subcall.$from,
+			$to: (subcall) => subcall.$to,
+			valueAttoFil: (subcall) => subcall.valueAttoFil,
+			method: (subcall) => subcall.method,
+			methodNumber: (subcall) => subcall.methodNumber,
+			params: (subcall) => subcall.params,
+			exitCode: (subcall) => subcall.exitCode,
+			returnData: (subcall) => subcall.returnData,
+			gasUsed: (subcall) => subcall.gasUsed,
 		}),
 
 		defineResolver({
@@ -759,6 +931,7 @@ export default {
 							getMarketStorageDeal,
 						} = await import('$/sources/Lotus/JsonRpc/queries.ts')
 						const head = await getHead()
+						const headBlock = head.Blocks.at(0)
 						const deal = await getMarketStorageDeal({
 							dealId,
 							tipsetKey: head.Cids,
@@ -790,8 +963,8 @@ export default {
 										$network,
 										dealId,
 									},
-									timestampMs: head.Blocks[0]?.Timestamp != null ?
-										head.Blocks[0].Timestamp * 1000
+									timestampMs: headBlock?.Timestamp != null ?
+										headBlock.Timestamp * 1000
 									:
 										Date.now(),
 									source: Source.Lotus_JsonRpc,

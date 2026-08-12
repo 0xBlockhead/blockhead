@@ -17,6 +17,8 @@ import {
 	getMinerPower,
 	getMinerSectorCount,
 	getMinerSectors,
+	replayMessage,
+	searchMessage,
 	getTipSet,
 	getTipSetByHeight,
 } from '$/sources/Lotus/JsonRpc/queries.ts'
@@ -285,6 +287,71 @@ describe('Lotus JSON-RPC state queries', () => {
 				params: [{
 					'/': 'bafy2bzacehistoricalblock',
 				}],
+			},
+		])
+	})
+
+	it('finds and replays a message at its authoritative tipset', async () => {
+		const lookup = {
+			Message: { '/': 'bafy-message' },
+			Receipt: {
+				ExitCode: 0,
+				Return: '',
+				GasUsed: 10,
+			},
+			TipSet: tipsetKey,
+			Height: 100,
+		}
+		const message = {
+			Version: 0,
+			To: 'f1to',
+			From: 'f1from',
+			Nonce: 1,
+			Value: '1',
+			GasLimit: 100,
+			GasFeeCap: '2',
+			GasPremium: '1',
+			Method: 0,
+			Params: '',
+		}
+		const replay = {
+			MsgCid: { '/': 'bafy-message' },
+			Msg: message,
+			MsgRct: lookup.Receipt,
+			ExecutionTrace: {
+				Msg: message,
+				MsgRct: lookup.Receipt,
+				Subcalls: [],
+			},
+			Error: '',
+			Duration: 25,
+		}
+		fetchMock
+			.mockResolvedValueOnce(rpcResponse(lookup))
+			.mockResolvedValueOnce(rpcResponse(replay))
+
+		await expect(searchMessage({
+			messageCid: 'bafy-message',
+		})).resolves.toEqual(lookup)
+		await expect(replayMessage({
+			messageCid: 'bafy-message',
+			tipsetKey,
+		})).resolves.toEqual(replay)
+		expect(fetchMock.mock.calls.map(([, init]) => JSON.parse(String(init?.body)))).toEqual([
+			{
+				jsonrpc: '2.0',
+				id: 1,
+				method: 'Filecoin.StateSearchMsg',
+				params: [{ '/': 'bafy-message' }],
+			},
+			{
+				jsonrpc: '2.0',
+				id: 1,
+				method: 'Filecoin.StateReplay',
+				params: [
+					tipsetKey,
+					{ '/': 'bafy-message' },
+				],
 			},
 		])
 	})

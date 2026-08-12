@@ -56,6 +56,39 @@ export const lotusMessage = arktype({
 	Params: 'string',
 })
 
+export const lotusMessageReceipt = arktype({
+	ExitCode: integer,
+	Return: 'string',
+	GasUsed: integer,
+	'EventsRoot?': cidLink.or('null'),
+})
+
+export const lotusMessageLookup = arktype({
+	Message: cidLink,
+	Receipt: lotusMessageReceipt,
+	TipSet: lotusTipsetKey,
+	Height: nonNegativeInteger,
+})
+
+const lotusExecutionSubcall = arktype({
+	Msg: lotusMessage,
+	MsgRct: lotusMessageReceipt,
+	'Subcalls?': 'unknown[]',
+})
+
+export const lotusInvocationResult = arktype({
+	MsgCid: cidLink,
+	Msg: lotusMessage,
+	MsgRct: lotusMessageReceipt,
+	ExecutionTrace: {
+		Msg: lotusMessage,
+		MsgRct: lotusMessageReceipt,
+		Subcalls: lotusExecutionSubcall.array(),
+	},
+	'Error?': 'string',
+	'Duration?': nonNegativeInteger,
+})
+
 export const lotusActor = arktype({
 	Code: cidLink,
 	Head: cidLink,
@@ -139,6 +172,9 @@ export type LotusTipsetKey = typeof lotusTipsetKey.infer
 export type LotusVersion = typeof lotusVersion.infer
 export type LotusBlockHeader = typeof lotusBlockHeader.infer
 export type LotusMessage = typeof lotusMessage.infer
+export type LotusMessageReceipt = typeof lotusMessageReceipt.infer
+export type LotusMessageLookup = typeof lotusMessageLookup.infer
+export type LotusInvocationResult = typeof lotusInvocationResult.infer
 export type LotusActor = typeof lotusActor.infer
 export type LotusSectorOnChainInfo = typeof lotusSectorOnChainInfo.infer
 export type LotusMinerPower = typeof lotusMinerPower.infer

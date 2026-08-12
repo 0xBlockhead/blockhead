@@ -27,6 +27,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.Filfox_Rest,
+			Source.Lotus_JsonRpc,
 		],
 	},
 	$to: {
@@ -34,6 +35,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.Filfox_Rest,
+			Source.Lotus_JsonRpc,
 		],
 	},
 	valueAttoFil: {
@@ -41,6 +43,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.One,
 		defaultSources: [
 			Source.Filfox_Rest,
+			Source.Lotus_JsonRpc,
 		],
 	},
 	method: {
@@ -48,6 +51,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.One,
 		defaultSources: [
 			Source.Filfox_Rest,
+			Source.Lotus_JsonRpc,
 		],
 	},
 	methodNumber: {
@@ -55,6 +59,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.Filfox_Rest,
+			Source.Lotus_JsonRpc,
 		],
 	},
 	params: {
@@ -62,6 +67,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.Filfox_Rest,
+			Source.Lotus_JsonRpc,
 		],
 	},
 	exitCode: {
@@ -69,6 +75,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.Filfox_Rest,
+			Source.Lotus_JsonRpc,
 		],
 	},
 	returnData: {
@@ -76,6 +83,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.Filfox_Rest,
+			Source.Lotus_JsonRpc,
 		],
 	},
 	gasUsed: {
@@ -83,6 +91,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.Filfox_Rest,
+			Source.Lotus_JsonRpc,
 		],
 	},
 })({

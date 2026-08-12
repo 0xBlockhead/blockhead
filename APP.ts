@@ -32943,12 +32943,12 @@ export const schema = {
 				"valueAttoFil": { label: "Value attoFIL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Filfox_Rest, Source.Lotus_JsonRpc] },
 				"gasLimit": { label: "Gas limit", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Filfox_Rest, Source.Lotus_JsonRpc] },
 				"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.FilecoinMessage_Timestamp, defaultSources: [Source.Filfox_Rest] },
-				"$receipt": { label: "Receipt", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.FilecoinMessageReceipt, defaultSources: [Source.Filfox_Rest] },
+				"$receipt": { label: "Receipt", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.FilecoinMessageReceipt, defaultSources: [Source.Filfox_Rest, Source.Lotus_JsonRpc] },
 				"$fee": { label: "Fee", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.FilecoinMessageFee, defaultSources: [Source.Filfox_Rest] },
 				"$$transfers": { label: "Transfers", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.FilecoinMessageTransfer, defaultSources: [Source.Filfox_Rest] },
 				"$$tokenTransfers": { label: "Token transfers", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.FilecoinMessageTokenTransfer, defaultSources: [Source.Filfox_Rest] },
 				"$$events": { label: "Events", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.FilecoinMessageEvent, defaultSources: [Source.Filfox_Rest] },
-				"$$subcalls": { label: "Subcalls", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.FilecoinMessageSubcall, defaultSources: [Source.Filfox_Rest] },
+				"$$subcalls": { label: "Subcalls", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.FilecoinMessageSubcall, defaultSources: [Source.Filfox_Rest, Source.Lotus_JsonRpc] },
 			})({
 				selectors: {
 					"NetworkCid": ["$network", "cid"],
@@ -33144,17 +33144,17 @@ export const schema = {
 					singular: "filecoin message receipt",
 					plural: "filecoin message receipts",
 				},
-				description: "Execution receipt for a Filecoin message in a tipset context — exit code, gas used, and return data from Filfox getMessage.receipt (Lotus ChainGetMessage alone does not).",
+				description: "Execution receipt for a Filecoin message in a tipset context — exit code, gas used, and return data from Filfox message detail or Lotus StateReplay.",
 			})({
 				"$message": { label: "Message", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.FilecoinMessage },
 				"tipsetKey": { label: "Tipset key", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"source": { label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"$tipset": { label: "Tipset", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.FilecoinTipset, defaultSources: [Source.Filfox_Rest] },
-				"height": { label: "Height", description: "The block height.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Filfox_Rest] },
+				"$tipset": { label: "Tipset", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.FilecoinTipset, defaultSources: [Source.Filfox_Rest, Source.Lotus_JsonRpc] },
+				"height": { label: "Height", description: "The block height.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Filfox_Rest, Source.Lotus_JsonRpc] },
 				"blockCid": { label: "Block CID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Filfox_Rest] },
-				"exitCode": { label: "Exit code", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Filfox_Rest] },
-				"returnData": { label: "Return data", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Filfox_Rest] },
-				"gasUsed": { label: "Gas used", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Filfox_Rest] },
+				"exitCode": { label: "Exit code", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Filfox_Rest, Source.Lotus_JsonRpc] },
+				"returnData": { label: "Return data", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Filfox_Rest, Source.Lotus_JsonRpc] },
+				"gasUsed": { label: "Gas used", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Filfox_Rest, Source.Lotus_JsonRpc] },
 				"replacedMessageCid": { label: "Replaced message CID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 			})({
 				selectors: {
@@ -33163,7 +33163,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Filfox_Rest],
+							sources: [Source.Filfox_Rest, Source.Lotus_JsonRpc],
 						},
 						summary: {
 							title: ["tipsetKey"],
@@ -33202,15 +33202,15 @@ export const schema = {
 			})({
 				"$message": { label: "Message", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.FilecoinMessage },
 				"index": { label: "Index", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
-				"$from": { label: "From", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.FilecoinActor, defaultSources: [Source.Filfox_Rest] },
-				"$to": { label: "To", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.FilecoinActor, defaultSources: [Source.Filfox_Rest] },
-				"valueAttoFil": { label: "Value attoFIL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "bigint", defaultSources: [Source.Filfox_Rest] },
-				"method": { label: "Method", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string", defaultSources: [Source.Filfox_Rest] },
-				"methodNumber": { label: "Method number", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Filfox_Rest] },
-				"params": { label: "Params", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Filfox_Rest] },
-				"exitCode": { label: "Exit code", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Filfox_Rest] },
-				"returnData": { label: "Return data", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Filfox_Rest] },
-				"gasUsed": { label: "Gas used", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Filfox_Rest] },
+				"$from": { label: "From", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.FilecoinActor, defaultSources: [Source.Filfox_Rest, Source.Lotus_JsonRpc] },
+				"$to": { label: "To", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.FilecoinActor, defaultSources: [Source.Filfox_Rest, Source.Lotus_JsonRpc] },
+				"valueAttoFil": { label: "Value attoFIL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "bigint", defaultSources: [Source.Filfox_Rest, Source.Lotus_JsonRpc] },
+				"method": { label: "Method", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string", defaultSources: [Source.Filfox_Rest, Source.Lotus_JsonRpc] },
+				"methodNumber": { label: "Method number", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Filfox_Rest, Source.Lotus_JsonRpc] },
+				"params": { label: "Params", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Filfox_Rest, Source.Lotus_JsonRpc] },
+				"exitCode": { label: "Exit code", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Filfox_Rest, Source.Lotus_JsonRpc] },
+				"returnData": { label: "Return data", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Filfox_Rest, Source.Lotus_JsonRpc] },
+				"gasUsed": { label: "Gas used", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Filfox_Rest, Source.Lotus_JsonRpc] },
 			})({
 				selectors: {
 					"MessageIndex": ["$message", "index"],
@@ -33218,7 +33218,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Filfox_Rest],
+							sources: [Source.Filfox_Rest, Source.Lotus_JsonRpc],
 						},
 						summary: {
 							title: ["method"],

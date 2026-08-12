@@ -12,7 +12,7 @@ export default entity({
 		singular: 'filecoin message receipt',
 		plural: 'filecoin message receipts',
 	},
-	description: 'Execution receipt for a Filecoin message in a tipset context — exit code, gas used, and return data from Filfox getMessage.receipt (Lotus ChainGetMessage alone does not).',
+	description: 'Execution receipt for a Filecoin message in a tipset context — exit code, gas used, and return data from Filfox message detail or Lotus StateReplay.',
 })({
 	$message: {
 		entityType: EntityType.FilecoinMessage,
@@ -31,6 +31,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.Filfox_Rest,
+			Source.Lotus_JsonRpc,
 		],
 	},
 	height: {
@@ -38,6 +39,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.Filfox_Rest,
+			Source.Lotus_JsonRpc,
 		],
 	},
 	blockCid: {
@@ -52,6 +54,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.Filfox_Rest,
+			Source.Lotus_JsonRpc,
 		],
 	},
 	returnData: {
@@ -59,6 +62,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.Filfox_Rest,
+			Source.Lotus_JsonRpc,
 		],
 	},
 	gasUsed: {
@@ -66,6 +70,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.Filfox_Rest,
+			Source.Lotus_JsonRpc,
 		],
 	},
 	replacedMessageCid: {
