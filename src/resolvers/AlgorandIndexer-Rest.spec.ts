@@ -12,6 +12,7 @@ const {
 	getAccount,
 	getAccountApplications,
 	getAccountAssets,
+	getApplicationAccounts,
 	getApplication,
 	getAsset,
 	getAssetBalances,
@@ -27,6 +28,7 @@ const {
 	getAccount: vi.fn(),
 	getAccountApplications: vi.fn(),
 	getAccountAssets: vi.fn(),
+	getApplicationAccounts: vi.fn(),
 	getApplication: vi.fn(),
 	getAsset: vi.fn(),
 	getAssetBalances: vi.fn(),
@@ -44,6 +46,7 @@ vi.mock('$/sources/AlgorandIndexer/Rest/queries.ts', () => ({
 	getAccount,
 	getAccountApplications,
 	getAccountAssets,
+	getApplicationAccounts,
 	getApplication,
 	getAsset,
 	getAssetBalances,
@@ -86,6 +89,9 @@ const applicationResolver = algorandIndexerResolvers.resolvers.find((resolver) =
 const boxesResolver = algorandIndexerResolvers.resolvers.find((resolver) => (
 	'$$boxes' in resolver.projections
 ))
+const applicationLocalStatesResolver = algorandIndexerResolvers.resolvers.find((resolver) => (
+	'$$localStateRounds' in resolver.projections
+))
 const transactionResolver = algorandIndexerResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.AlgorandTransaction
 	&& 'sender' in resolver.projections
@@ -121,6 +127,7 @@ if (
 	|| assetHoldingsResolver == null
 	|| applicationResolver == null
 	|| boxesResolver == null
+	|| applicationLocalStatesResolver == null
 	|| transactionResolver == null
 	|| transactionProofsResolver == null
 	|| transactionProofResolver == null
@@ -511,6 +518,65 @@ describe('Algorand Indexer deepened resolvers', () => {
 			$network: network,
 			applicationId: 9n,
 		}, resolverContext)[0][EntityMetaKey.Selector].boxName).toMatch(/^0x/)
+
+		getApplicationAccounts.mockResolvedValueOnce({
+			accounts: [{
+				address: account.address,
+				'apps-local-state': [{
+					id: 9,
+					deleted: false,
+					'key-value': [{
+						key: 'a',
+					}],
+				}],
+			}],
+			'current-round': 101,
+			'next-token': 'account-next',
+		})
+		const applicationLocalStatesPage = await applicationLocalStatesResolver.resolve.NetworkApplicationId.resolve({
+			$network: network,
+			applicationId: 9n,
+		}, resolverContext)
+		const applicationLocalStatesProjection = applicationLocalStatesResolver.projections.$$localStateRounds
+		if (
+			typeof applicationLocalStatesProjection === 'function'
+			|| applicationLocalStatesProjection.select == null
+			|| applicationLocalStatesProjection.continuation == null
+		)
+			throw new Error('missing application local state projection')
+		expect(getApplicationAccounts).toHaveBeenCalledWith({
+			applicationId: 9n,
+			limit: 2,
+			next: 'opaque-current',
+		})
+		expect(applicationLocalStatesProjection.select(applicationLocalStatesPage, {
+			$network: network,
+			applicationId: 9n,
+		}, resolverContext)[0]).toEqual(expect.objectContaining({
+			[EntityMetaKey.Selector]: {
+				$account: account,
+				$application: {
+					$network: network,
+					applicationId: 9n,
+				},
+				round: 101n,
+				source: Source.Nodely,
+			},
+			[EntityMetaKey.Fields]: expect.objectContaining({
+				[entityFieldAddressKey(EntityType.AlgorandApplicationLocalState_Round, [], 'keyValues')]: [{
+					key: 'a',
+				}],
+			}),
+		}))
+		expect(applicationLocalStatesProjection.continuation(applicationLocalStatesPage, {
+			$network: network,
+			applicationId: 9n,
+		}, resolverContext)).toEqual({
+			operation: 'application-local-state-rounds',
+			target: '9',
+			terminal: false,
+			token: 'account-next',
+		})
 
 		getAssetBalances.mockResolvedValueOnce({
 			balances: [{

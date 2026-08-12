@@ -14,6 +14,7 @@ const {
 	getAccountApplications,
 	getAccountAssets,
 	getAccountTransactions,
+	getApplicationAccounts,
 	getApplication,
 	getAsset,
 	getAssetBalances,
@@ -226,7 +227,7 @@ describe('Algorand Indexer transport', () => {
 		await expect(getBlock(10n)).rejects.toThrow('duplicate block transaction ID')
 	})
 
-	it('pages network transactions, asset balances, local state, and boxes', async () => {
+	it('pages network transactions, asset balances, bidirectional local state, and boxes', async () => {
 		getJson.mockResolvedValueOnce({
 			'current-round': 100,
 			'next-token': 'n1',
@@ -278,6 +279,31 @@ describe('Algorand Indexer transport', () => {
 		})
 
 		getJson.mockResolvedValueOnce({
+			accounts: [{
+				address: account,
+				'apps-local-state': [{
+					id: 7,
+					deleted: false,
+					'key-value': [],
+				}],
+			}],
+			'current-round': 100,
+			'next-token': 'application-account-next',
+		})
+		await expect(getApplicationAccounts({
+			applicationId: 7n,
+			limit: 10,
+		})).resolves.toMatchObject({
+			accounts: [{
+				address: account,
+			}],
+		})
+		expect(getJson).toHaveBeenLastCalledWith(
+			expect.anything(),
+			'/v2/accounts?limit=10&application-id=7&include-all=true'
+		)
+
+		getJson.mockResolvedValueOnce({
 			'application-id': 7,
 			boxes: [{
 				name: 'Ym94',
@@ -325,6 +351,20 @@ describe('Algorand Indexer transport', () => {
 			limit: 25,
 			next: 'same',
 		})).rejects.toThrow('did not advance')
+
+		getJson.mockResolvedValueOnce({
+			accounts: [{
+				address: account,
+				'apps-local-state': [{
+					id: 8,
+				}],
+			}],
+			'current-round': 100,
+		})
+		await expect(getApplicationAccounts({
+			applicationId: 7n,
+			limit: 25,
+		})).rejects.toThrow('omits requested local state')
 	})
 
 	it('bounds pages and avoids transport for zero cardinality', async () => {

@@ -500,6 +500,66 @@ export default {
 		}),
 
 		defineResolver({
+			entityType: EntityType.AlgorandApplication,
+			resolve: {
+				NetworkApplicationId: {
+					appliesTo: algorandNestedNetworkApplicability,
+					resolve: async (application, context) => {
+						assertAlgorandMainnet(application.$network)
+						const { getApplicationAccounts } = await import('$/sources/AlgorandIndexer/Rest/queries.ts')
+						return getApplicationAccounts({
+							applicationId: application.applicationId,
+							limit: Math.min(resolverContextRowLimit(context), 1_000),
+							next: context.providerContinuationToken,
+						})
+					},
+				},
+			},
+		})({
+			$$localStateRounds: {
+				select: (page, application) => page.accounts.flatMap((account) => (
+					(account['apps-local-state'] ?? [])
+						.filter((localState) => BigInt(localState.id) === application.applicationId)
+						.map((localState) => ({
+							[EntityMetaKey.Selector]: {
+								$account: {
+									$network: application.$network,
+									address: account.address,
+								},
+								$application: application,
+								round: BigInt(page['current-round']),
+								source: Source.Nodely,
+							},
+							[EntityMetaKey.Fields]: {
+								...(localState['key-value'] != null && {
+									[entityFieldAddressKey(EntityType.AlgorandApplicationLocalState_Round, [], 'keyValues')]: localState['key-value'],
+								}),
+								...(localState.schema != null && {
+									[entityFieldAddressKey(EntityType.AlgorandApplicationLocalState_Round, [], 'schema')]: localState.schema,
+								}),
+								[entityFieldAddressKey(EntityType.AlgorandApplicationLocalState_Round, [], 'deleted')]: localState.deleted,
+							},
+						}))
+				)),
+				continuation: (page, application) => (
+					page['next-token'] == null ?
+						{
+							operation: 'application-local-state-rounds',
+							target: application.applicationId.toString(),
+							terminal: true,
+						}
+					:
+						{
+							operation: 'application-local-state-rounds',
+							target: application.applicationId.toString(),
+							terminal: false,
+							token: page['next-token'],
+						}
+				),
+			},
+		}),
+
+		defineResolver({
 			entityType: EntityType.AlgorandTransaction,
 			resolve: {
 				NetworkTxId: {

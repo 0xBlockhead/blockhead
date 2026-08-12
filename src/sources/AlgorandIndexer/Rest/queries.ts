@@ -4,6 +4,7 @@ import { ApiFamily } from '$/sources/SourceBinding.ts'
 import bindings from '$/sources/Nodely/bindings.ts'
 import type {
 	AlgorandIndexerAccountResponse,
+	AlgorandIndexerApplicationAccountsPage,
 	AlgorandIndexerApplicationBoxesPage,
 	AlgorandIndexerApplicationLocalStatesPage,
 	AlgorandIndexerApplicationResponse,
@@ -150,6 +151,21 @@ const applicationLocalStatesPageWire = arktype({
 		'key-value?': 'unknown',
 		'schema?': 'unknown',
 		'opted-in-at-round?': unsigned,
+	}).array(),
+	'current-round': unsigned,
+	'next-token?': 'string',
+})
+
+const applicationAccountsPageWire = arktype({
+	accounts: arktype({
+		address: addressWire,
+		'apps-local-state?': arktype({
+			id: unsigned,
+			'deleted?': 'boolean',
+			'key-value?': 'unknown',
+			'schema?': 'unknown',
+			'opted-in-at-round?': unsigned,
+		}).array(),
 	}).array(),
 	'current-round': unsigned,
 	'next-token?': 'string',
@@ -501,6 +517,50 @@ export const getAccountApplications = async (
 		applicationIds.add(localState.id)
 	}
 	assertPageContinuation(page, next, 'application local state')
+	return page
+}
+
+export const getApplicationAccounts = async (
+	{
+		applicationId,
+		limit,
+		next,
+	}: {
+		applicationId: bigint
+		limit: number
+		next?: string
+	}
+): Promise<AlgorandIndexerApplicationAccountsPage> => {
+	if (applicationId < 0n || applicationId > BigInt(Number.MAX_SAFE_INTEGER))
+		throw new Error('AlgorandIndexer_Rest: application ID exceeds lossless JSON integer range')
+	const parameters = pageParameters(limit, next)
+	parameters.set('application-id', applicationId.toString())
+	parameters.set('include-all', 'true')
+	if (limit === 0)
+		return {
+			accounts: [],
+			'current-round': 0,
+		}
+	const page = assertEnvelope(
+		applicationAccountsPageWire,
+		await query(`/v2/accounts?${parameters.toString()}`),
+		'application accounts page'
+	)
+	if (page.accounts.length > limit)
+		throw new Error('AlgorandIndexer_Rest: application accounts page exceeds requested limit')
+
+	const accounts = new Set<string>()
+	for (const account of page.accounts) {
+		if (accounts.has(account.address))
+			throw new Error('AlgorandIndexer_Rest: duplicate application account')
+		accounts.add(account.address)
+		const localStates = account['apps-local-state'] ?? []
+		if (!localStates.some((localState) => BigInt(localState.id) === applicationId))
+			throw new Error('AlgorandIndexer_Rest: application account omits requested local state')
+		if (localStates.filter((localState) => BigInt(localState.id) === applicationId).length > 1)
+			throw new Error('AlgorandIndexer_Rest: duplicate requested application local state')
+	}
+	assertPageContinuation(page, next, 'application account')
 	return page
 }
 

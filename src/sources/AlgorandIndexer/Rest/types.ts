@@ -131,6 +131,17 @@ export type AlgorandIndexerApplicationLocalStatesPage = {
 	'next-token'?: string
 }
 
+export type AlgorandIndexerApplicationAccount = {
+	address: string
+	'apps-local-state'?: AlgorandIndexerApplicationLocalState[]
+}
+
+export type AlgorandIndexerApplicationAccountsPage = {
+	accounts: AlgorandIndexerApplicationAccount[]
+	'current-round': number
+	'next-token'?: string
+}
+
 export type AlgorandIndexerBoxDescriptor = {
 	name: string
 }
