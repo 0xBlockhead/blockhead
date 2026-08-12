@@ -23,6 +23,8 @@ const installRssFixture = async (page: Page) => {
 						title: 'Deterministic item',
 						guid: 'deterministic-item',
 						link: 'https://example.com/items/1',
+						description: 'Deterministic summary',
+						content: 'Deterministic full text',
 					}],
 				},
 			})
@@ -40,6 +42,8 @@ const installRssFixture = async (page: Page) => {
 							<title>Deterministic item</title>
 							<guid>deterministic-item</guid>
 							<link>https://example.com/items/1</link>
+							<description>Deterministic summary</description>
+							<content:encoded><![CDATA[Deterministic full text]]></content:encoded>
 						</item>
 					</channel>
 				</rss>
@@ -97,6 +101,9 @@ test.describe('RSS reading journey', () => {
 
 		await expect(page).toHaveURL((url) => url.pathname === itemPath)
 		await expect(page.locator('#main')).toContainText('RSS item')
+		await expect(page.locator('#main')).toContainText('Deterministic full text', {
+			timeout: 120_000,
+		})
 		await expect(page.locator('#main a[href^="http"]').first()).toBeVisible()
 	})
 
