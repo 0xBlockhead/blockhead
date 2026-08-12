@@ -943,17 +943,20 @@ export default {
 			resolve: {
 				NetworkHeightHash: {
 					appliesTo: bitcoinNetworkReferenceApplicability,
-					resolve: async ({ $network, hash }) => {
+					resolve: async ({ $network, hash }, context) => {
 						assertBitcoinMainnet($network)
-						const { getBlockTransactionIds } = await import('$/sources/MempoolSpace/Rest/queries.ts')
+						const { getBlockTransactions } = await import('$/sources/MempoolSpace/Rest/queries.ts')
 						return (
-							await getBlockTransactionIds(hash)
-						).map((txId) => ({
-							[EntityMetaKey.Selector]: {
+							await getBlockTransactions(
+								hash,
+								context.pagination.offset ?? 0
+							)
+						)
+							.slice(0, resolverContextRowLimit(context))
+							.map((transaction) => utxoTransactionReferenceFromMempoolSpaceWire(
 								$network,
-								txId,
-							},
-						}))
+								transaction
+							))
 					},
 				}
 			},

@@ -29,6 +29,10 @@ const blockResolver = mempoolSpaceResolvers.resolvers.find((resolver) => (
 	&& 'NetworkHeight' in resolver.resolve
 	&& 'NetworkHeightHash' in resolver.resolve
 ))
+const blockTransactionsResolver = mempoolSpaceResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.UtxoBlock
+	&& '$$transactions' in resolver.projections
+))
 const addressTransactionsResolver = mempoolSpaceResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.UtxoAddress
 	&& '$$transactions' in resolver.projections
@@ -52,6 +56,9 @@ if (blocksResolver == null)
 
 if (blockResolver == null)
 	throw new Error('MempoolSpace-Rest spec missing UtxoBlock NetworkHeight resolver')
+
+if (blockTransactionsResolver == null)
+	throw new Error('MempoolSpace-Rest spec missing UtxoBlock.$$transactions resolver')
 
 if (addressTransactionsResolver == null)
 	throw new Error('MempoolSpace-Rest spec missing UtxoAddress.$$transactions resolver')
@@ -182,6 +189,71 @@ describe('MempoolSpace UTXO', () => {
 		expect(mempoolSpaceResolvers.resolvers.filter((resolver) => (
 			resolver.entityType === EntityType.UtxoTransaction
 		))).toEqual([transactionResolver])
+	})
+
+	it('materializes a paged block transaction hierarchy without child refetches', async () => {
+		const blockHash = 'c'.repeat(64)
+		sourceGetJson.mockResolvedValueOnce([{
+			txid: 'b'.repeat(64),
+			version: 2,
+			locktime: 1,
+			size: 200,
+			weight: 800,
+			fee: 1_000,
+			status: {
+				confirmed: true,
+				block_height: 840_000,
+				block_hash: blockHash,
+			},
+			vin: [{
+				txid: 'd'.repeat(64),
+				vout: 1,
+				is_coinbase: false,
+				sequence: 4,
+			}],
+			vout: [{
+				scriptpubkey: '0014',
+				scriptpubkey_type: 'v0_p2wpkh',
+				value: 5_000,
+			}],
+		}])
+
+		const rows = await blockTransactionsResolver.resolve.NetworkHeightHash.resolve({
+			$network: network,
+			height: 840_000n,
+			hash: blockHash,
+		}, {
+			...resolverContext,
+			pagination: {
+				limit: 1,
+				offset: 25,
+			},
+		})
+
+		expect(rows).toMatchObject([{
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				txId: 'b'.repeat(64),
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.UtxoTransaction, [], 'version')]: 2,
+				[entityFieldAddressKey(EntityType.UtxoTransaction, [], 'feeSats')]: 1_000n,
+				[entityFieldAddressKey(EntityType.UtxoTransaction, [], '$$inputs')]: [expect.objectContaining({
+					[EntityMetaKey.Selector]: expect.objectContaining({
+						indexInTransaction: 0,
+					}),
+				})],
+				[entityFieldAddressKey(EntityType.UtxoTransaction, [], '$$outputs')]: [expect.objectContaining({
+					[EntityMetaKey.Selector]: expect.objectContaining({
+						indexInTransaction: 0,
+					}),
+				})],
+			},
+		}])
+		expect(sourceGetJson).toHaveBeenCalledWith(
+			binding,
+			`https://mempool.space/api/block/${blockHash}/txs/25`
+		)
 	})
 
 	it('fails closed when a requested child index is absent', async () => {

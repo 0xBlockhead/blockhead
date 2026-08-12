@@ -19,6 +19,7 @@ const {
 	getBlock,
 	getBlockHashByHeight,
 	getBlockTransactionIds,
+	getBlockTransactions,
 	getBlocks,
 	getAddress,
 	getAddressTransactions,
@@ -114,6 +115,45 @@ describe('mempool.space Bitcoin REST binding', () => {
 		})
 	})
 
+	it('returns an identity-bound page of full block transactions', async () => {
+		sourceGetJson.mockResolvedValueOnce([{
+			txid: 'b'.repeat(64),
+			version: 2,
+			locktime: 0,
+			size: 120,
+			weight: 480,
+			vin: [],
+			vout: [],
+			status: {
+				confirmed: true,
+				block_hash: 'a'.repeat(64),
+				block_height: 840_000,
+			},
+		}])
+
+		await expect(getBlockTransactions('a'.repeat(64), 25)).resolves.toHaveLength(1)
+		expect(sourceGetJson).toHaveBeenCalledWith(
+			binding,
+			`https://mempool.space/api/block/${'a'.repeat(64)}/txs/25`
+		)
+	})
+
+	it('rejects substituted full block transaction pages', async () => {
+		sourceGetJson.mockResolvedValueOnce([{
+			txid: 'b'.repeat(64),
+			vin: [],
+			vout: [],
+			status: {
+				confirmed: true,
+				block_hash: 'c'.repeat(64),
+			},
+		}])
+
+		await expect(getBlockTransactions('a'.repeat(64), 0)).rejects.toThrow(
+			'block transactions contain mismatched block identity'
+		)
+	})
+
 	it('rejects invalid or substituted block, transaction, and address identities before returning provider rows', async () => {
 		sourceGetJson.mockResolvedValueOnce({
 			...validBlock,
@@ -152,6 +192,8 @@ describe('mempool.space Bitcoin REST binding', () => {
 		for (const query of [
 			() => getBlock('not-a-hash'),
 			() => getBlockTransactionIds('not-a-hash'),
+			() => getBlockTransactions('not-a-hash', 0),
+			() => getBlockTransactions('a'.repeat(64), -1),
 			() => getTransaction('not-a-transaction'),
 			() => getBlockHashByHeight(-1n),
 			() => getBlocks(-1n),
