@@ -785,6 +785,43 @@ describe('Stellar Horizon public-account resolver', () => {
 	})
 })
 
+describe('Stellar Horizon network history resolver', () => {
+	beforeEach(() => {
+		vi.clearAllMocks()
+	})
+
+	it('pages every APP-authorized native network collection', async () => {
+		const network = account.$network
+		for (const [fieldName, path] of [
+			['$$accounts', '/accounts?'],
+			['$$transactions', '/transactions?'],
+			['$$operations', '/operations?'],
+			['$$offers', '/offers?'],
+			['$$trades', '/trades?'],
+		] as const) {
+			getJson.mockResolvedValueOnce(page([]))
+			const resolver = stellarHorizonResolvers.resolvers.find((candidate) => (
+				candidate.entityType === EntityType.StellarNetwork
+				&& fieldName in candidate.projections
+			))
+			if (resolver == null)
+				throw new Error(`Stellar Horizon spec missing network ${fieldName} resolver`)
+
+			const snapshot = await resolver.resolve.Network.resolve(network, context)
+			expect(resolver.projections[fieldName].select(snapshot, network, context)).toEqual([])
+			expect(resolver.projections[fieldName].continuation(snapshot, network, context)).toEqual({
+				operation: `network-${fieldName.slice(2)}`,
+				target: 'stellar',
+				terminal: true,
+			})
+			expect(getJson).toHaveBeenLastCalledWith(
+				expect.anything(),
+				expect.stringContaining(path)
+			)
+		}
+	})
+})
+
 describe('Stellar Horizon liquidity-pool resolver', () => {
 	beforeEach(() => {
 		vi.clearAllMocks()

@@ -215,6 +215,69 @@ const operationBodyFromWire = (
 		undefined
 }
 
+const transactionFromWire = (
+	$network: {
+		$network: {
+			slug: string
+		}
+	},
+	transaction: StellarHorizonTransaction
+) => {
+	const transactionSelector = {
+		$network,
+		hash: transaction.hash,
+	}
+
+	return {
+		[EntityMetaKey.Selector]: transactionSelector,
+		[EntityMetaKey.Fields]: {
+			[entityFieldAddressKey(EntityType.StellarTransaction, [], 'sourceAccount')]: transaction.source_account,
+			[entityFieldAddressKey(EntityType.StellarTransaction, [], '$$timestamps')]: [
+				transactionTimestampFields(transaction, transactionSelector),
+			],
+		},
+	}
+}
+
+const operationFromWire = (
+	$network: {
+		$network: {
+			slug: string
+		}
+	},
+	operation: StellarHorizonOperation,
+	operationIndexFromHorizonId: (operationId: string) => number
+) => {
+	const body = operationBodyFromWire(operation)
+
+	return {
+		[EntityMetaKey.Selector]: {
+			$transaction: {
+				$network,
+				hash: operation.transaction_hash,
+			},
+			operationIndex: operationIndexFromHorizonId(operation.id),
+		},
+		[EntityMetaKey.Fields]: {
+			[entityFieldAddressKey(EntityType.StellarOperation, [], 'operationType')]: operation.type,
+			...(operation.source_account != null && {
+				[entityFieldAddressKey(EntityType.StellarOperation, [], 'sourceAccount')]: operation.source_account,
+			}),
+			...(body != null && {
+				[entityFieldAddressKey(EntityType.StellarOperation, [], 'body')]: body,
+			}),
+			...(operation.transaction_successful != null && {
+				[entityFieldAddressKey(EntityType.StellarOperation, [], 'resultCode')]: (
+					operation.transaction_successful ?
+						'successful'
+					:
+						'failed'
+				),
+			}),
+		},
+	}
+}
+
 const offerFields = (
 	$network: {
 		$network: {
@@ -1036,6 +1099,158 @@ export default {
 			},
 		})({
 			$$timestamps: (liquidityPool, { $network }) => liquidityPoolFields($network, liquidityPool).$$timestamps,
+		}),
+
+		defineResolver({
+			entityType: EntityType.StellarNetwork,
+			resolve: {
+				Network: {
+					resolve: async ($network, context) => {
+						assertStellarPublicNetwork($network)
+						const limit = Math.min(resolverContextRowLimit(context), 200)
+						const { getAccounts } = await import('$/sources/StellarHorizon/Rest/queries.ts')
+						return {
+							limit,
+							page: await getAccounts(limit, context.providerContinuationToken),
+						}
+					},
+				},
+			},
+		})({
+			$$accounts: {
+				select: ({ page }, $network) => page._embedded.records.map((account) => ({
+					[EntityMetaKey.Selector]: {
+						$network,
+						accountId: account.account_id,
+					},
+				})),
+				continuation: ({ limit, page }, $network) => accountContinuation(
+					'network-accounts',
+					$network.$network.slug,
+					limit,
+					page._embedded.records
+				),
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.StellarNetwork,
+			resolve: {
+				Network: {
+					resolve: async ($network, context) => {
+						assertStellarPublicNetwork($network)
+						const limit = Math.min(resolverContextRowLimit(context), 200)
+						const { getTransactions } = await import('$/sources/StellarHorizon/Rest/queries.ts')
+						return {
+							limit,
+							page: await getTransactions(limit, context.providerContinuationToken),
+						}
+					},
+				},
+			},
+		})({
+			$$transactions: {
+				select: ({ page }, $network) => page._embedded.records.map((transaction) => (
+					transactionFromWire($network, transaction)
+				)),
+				continuation: ({ limit, page }, $network) => accountContinuation(
+					'network-transactions',
+					$network.$network.slug,
+					limit,
+					page._embedded.records
+				),
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.StellarNetwork,
+			resolve: {
+				Network: {
+					resolve: async ($network, context) => {
+						assertStellarPublicNetwork($network)
+						const limit = Math.min(resolverContextRowLimit(context), 200)
+						const {
+							getOperations,
+							operationIndexFromHorizonId,
+						} = await import('$/sources/StellarHorizon/Rest/queries.ts')
+						return {
+							limit,
+							operationIndexFromHorizonId,
+							page: await getOperations(limit, context.providerContinuationToken),
+						}
+					},
+				},
+			},
+		})({
+			$$operations: {
+				select: ({ page, operationIndexFromHorizonId }, $network) => page._embedded.records.map((operation) => (
+					operationFromWire($network, operation, operationIndexFromHorizonId)
+				)),
+				continuation: ({ limit, page }, $network) => accountContinuation(
+					'network-operations',
+					$network.$network.slug,
+					limit,
+					page._embedded.records
+				),
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.StellarNetwork,
+			resolve: {
+				Network: {
+					resolve: async ($network, context) => {
+						assertStellarPublicNetwork($network)
+						const limit = Math.min(resolverContextRowLimit(context), 200)
+						const { getOffers } = await import('$/sources/StellarHorizon/Rest/queries.ts')
+						return {
+							limit,
+							page: await getOffers(limit, context.providerContinuationToken),
+						}
+					},
+				},
+			},
+		})({
+			$$offers: {
+				select: ({ page }, $network) => page._embedded.records.map((offer) => (
+					offerFromWire($network, offer)
+				)),
+				continuation: ({ limit, page }, $network) => accountContinuation(
+					'network-offers',
+					$network.$network.slug,
+					limit,
+					page._embedded.records
+				),
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.StellarNetwork,
+			resolve: {
+				Network: {
+					resolve: async ($network, context) => {
+						assertStellarPublicNetwork($network)
+						const limit = Math.min(resolverContextRowLimit(context), 200)
+						const { getTrades } = await import('$/sources/StellarHorizon/Rest/queries.ts')
+						return {
+							limit,
+							page: await getTrades(limit, context.providerContinuationToken),
+						}
+					},
+				},
+			},
+		})({
+			$$trades: {
+				select: ({ page }, $network) => page._embedded.records.map((trade) => (
+					tradeFromWire($network, trade)
+				)),
+				continuation: ({ limit, page }, $network) => accountContinuation(
+					'network-trades',
+					$network.$network.slug,
+					limit,
+					page._embedded.records
+				),
+			},
 		}),
 
 	],

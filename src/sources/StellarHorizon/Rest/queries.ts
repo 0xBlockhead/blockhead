@@ -2,6 +2,7 @@ import { getJson } from '$/sources/_shared/wire/HttpRest/client.ts'
 import bindings from '$/sources/StellarHorizon/bindings.ts'
 import {
 	stellarHorizonAccountWire,
+	stellarHorizonAccountPageWire,
 	stellarHorizonLiquidityPoolPageWire,
 	stellarHorizonLiquidityPoolWire,
 	stellarHorizonOfferWire,
@@ -451,6 +452,115 @@ const getAccountPage = async <_Record extends {
 		await query(`${accountPath(accountId)}/${resource}?${parameters.toString()}`)
 	)
 	assertPage(page, limit, cursor)
+	return page
+}
+
+const getNetworkPage = async <_Record extends {
+	id: string
+	paging_token: string
+}>(
+	resource: 'accounts' | 'operations' | 'transactions' | 'offers' | 'trades',
+	label: string,
+	pageWire: { assert: (value: unknown) => StellarHorizonPage<_Record> },
+	limit: number,
+	cursor?: string
+) => {
+	const parameters = pageParameters(limit, cursor)
+	if (limit === 0)
+		return emptyPage<_Record>()
+	const page = assertEnvelope(
+		label,
+		pageWire,
+		await query(`/${resource}?${parameters.toString()}`)
+	)
+	assertPage(page, limit, cursor)
+	return page
+}
+
+export const getAccounts = async (
+	limit: number,
+	cursor?: string
+) => {
+	const page = await getNetworkPage(
+		'accounts',
+		'account page',
+		stellarHorizonAccountPageWire,
+		limit,
+		cursor
+	)
+	for (const account of page._embedded.records) {
+		assertAccountId(account.account_id)
+		if (account.id !== account.account_id)
+			throw new Error('StellarHorizon_Rest: account page identity mismatch')
+	}
+	return page
+}
+
+export const getTransactions = async (
+	limit: number,
+	cursor?: string
+) => {
+	const page = await getNetworkPage(
+		'transactions',
+		'transaction page',
+		stellarHorizonTransactionPageWire,
+		limit,
+		cursor
+	)
+	for (const transaction of page._embedded.records)
+		assertTransactionDomain(transaction)
+	return page
+}
+
+export const getOperations = async (
+	limit: number,
+	cursor?: string
+) => {
+	const page = await getNetworkPage(
+		'operations',
+		'operation page',
+		stellarHorizonOperationPageWire,
+		limit,
+		cursor
+	)
+	for (const operation of page._embedded.records) {
+		if (!/^[0-9a-f]{64}$/.test(operation.transaction_hash))
+			throw new Error('StellarHorizon_Rest: operation is missing transaction identity')
+		assertUnsignedInteger(operation.type_i, 'operation type index')
+		operationIndexFromHorizonId(operation.id)
+	}
+	return page
+}
+
+export const getOffers = async (
+	limit: number,
+	cursor?: string
+) => {
+	const page = await getNetworkPage(
+		'offers',
+		'offer page',
+		stellarHorizonOfferPageWire,
+		limit,
+		cursor
+	)
+	for (const offer of page._embedded.records)
+		assertOfferDomain(offer)
+	return page
+}
+
+export const getTrades = async (
+	limit: number,
+	cursor?: string
+) => {
+	const page = await getNetworkPage(
+		'trades',
+		'trade page',
+		stellarHorizonTradePageWire,
+		limit,
+		cursor
+	)
+	for (const trade of page._embedded.records)
+		assertTradeDomain(trade)
 	return page
 }
 
