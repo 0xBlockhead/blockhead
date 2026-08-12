@@ -233,6 +233,7 @@ export default {
 							infoHash: normalizedInfoHash,
 							hashVersion,
 						}
+						const timestampMs = Date.now()
 
 						return {
 							...$torrent,
@@ -250,6 +251,31 @@ export default {
 								:
 									torrentPieceReferences($torrent, pieceStates, properties.piece_size, properties.total_size)
 							),
+							$$swarmTimestamps: [
+								{
+									[EntityMetaKey.Selector]: {
+										$torrent,
+										timestampMs,
+										source: Source.qBittorrentWebUi_Rest,
+									},
+									[EntityMetaKey.Fields]: {
+										...(torrent.num_seeds != null && torrent.num_leechs != null && {
+											[entityFieldAddressKey(EntityType.BitTorrentSwarmObservation_Timestamp, [], 'peerCount')]:
+												torrent.num_seeds + torrent.num_leechs,
+										}),
+										...(torrent.num_seeds != null && {
+											[entityFieldAddressKey(EntityType.BitTorrentSwarmObservation_Timestamp, [], 'seedCount')]:
+												torrent.num_seeds,
+										}),
+									},
+								},
+							],
+							$$clientTransfers: [transferReference(
+								torrent,
+								timestampMs,
+								files.flatMap((file) => file.priority === 0 ? [] : [file.index]),
+								pieceStates.filter((pieceState) => pieceState === 2).length
+							)],
 						}
 					},
 				},
@@ -262,6 +288,8 @@ export default {
 			totalLength: (torrent) => torrent.totalLength,
 			$$files: (torrent) => torrent.$$files,
 			$$pieces: (torrent) => torrent.$$pieces,
+			$$swarmTimestamps: (torrent) => torrent.$$swarmTimestamps,
+			$$clientTransfers: (torrent) => torrent.$$clientTransfers,
 		}),
 
 		defineResolver({

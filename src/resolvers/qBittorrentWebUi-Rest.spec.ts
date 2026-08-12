@@ -149,9 +149,13 @@ describe('qBittorrent WebUI native client state', () => {
 	})
 
 	it('materializes torrent metadata and native file hierarchy from the local client', async () => {
+		vi.spyOn(Date, 'now').mockReturnValue(1_786_000_000_000)
 		getTorrentsInfo.mockResolvedValue([{
 			hash: infoHash,
 			name: 'release',
+			state: 'downloading',
+			num_seeds: 4,
+			num_leechs: 6,
 		}])
 		getTorrentProperties.mockResolvedValue({
 			piece_size: 262_144,
@@ -161,6 +165,7 @@ describe('qBittorrent WebUI native client state', () => {
 			index: 0,
 			name: 'release/image.iso',
 			size: 1_048_576,
+			priority: 1,
 		}])
 		getTorrentPieceStates.mockResolvedValue([2, 1, 0, 2])
 
@@ -210,6 +215,36 @@ describe('qBittorrent WebUI native client state', () => {
 					[entityFieldAddressKey(EntityType.BitTorrentPiece, [], 'length')]: 262_144n,
 				},
 			})),
+			$$swarmTimestamps: [{
+				[EntityMetaKey.Selector]: {
+					$torrent: {
+						infoHash,
+						hashVersion: 'v1',
+					},
+					timestampMs: 1_786_000_000_000,
+					source: Source.qBittorrentWebUi_Rest,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.BitTorrentSwarmObservation_Timestamp, [], 'peerCount')]: 10,
+					[entityFieldAddressKey(EntityType.BitTorrentSwarmObservation_Timestamp, [], 'seedCount')]: 4,
+				},
+			}],
+			$$clientTransfers: [{
+				[EntityMetaKey.Selector]: {
+					$client: { clientId: 'qbittorrent-local' },
+					$torrent: {
+						infoHash,
+						hashVersion: 'v1',
+					},
+					timestampMs: 1_786_000_000_000,
+				},
+				[EntityMetaKey.Fields]: expect.objectContaining({
+					[entityFieldAddressKey(EntityType.BlockheadBitTorrentTransfer_Timestamp, [], 'status')]: 'downloading',
+					[entityFieldAddressKey(EntityType.BlockheadBitTorrentTransfer_Timestamp, [], 'selectedFileIndexes')]: [0],
+					[entityFieldAddressKey(EntityType.BlockheadBitTorrentTransfer_Timestamp, [], 'connectedPeerCount')]: 10,
+					[entityFieldAddressKey(EntityType.BlockheadBitTorrentTransfer_Timestamp, [], 'verifiedPieces')]: 2,
+				}),
+			}],
 		})
 
 		await expect(fileResolver.resolve.TorrentFileIndex.resolve({
