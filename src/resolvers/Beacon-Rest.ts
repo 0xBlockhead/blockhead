@@ -515,8 +515,6 @@ export default {
 							indexOrPubkey
 						)
 						const observation = snapshot.timestamps[0]
-						if (observation == null)
-							throw new Error('Beacon_Rest: missing validator observation')
 						if (observation[EntityMetaKey.Selector].slot !== slot)
 							throw new Error(`Beacon_Rest: no validator observation at slot ${String(slot)}`)
 
@@ -857,25 +855,70 @@ export default {
 			resolve: {
 				Caip2: {
 					resolve: async ({ caip2 }, context) => {
-						const { getRecentProposerValidatorIndices } = await import('$/sources/Beacon/Rest/queries.ts')
+						const {
+							getHeadSlot,
+							getRecentProposerValidatorIndices,
+							getValidators,
+						} = await import('$/sources/Beacon/Rest/queries.ts')
 						const limit = resolverContextRowLimit(context)
 						const chainId = Number(caip2.reference)
-						return (
-							(await getRecentProposerValidatorIndices({
-								chainId,
-								limit,
-								slotLookbackCap: Math.min(384, Math.max(limit * 8, slotsPerEpoch)),
-							}))
-								.map((validatorIndex) => ({
-									[EntityMetaKey.Selector]: {
-										$network: { caip2 },
-										indexInNetwork: safeIntegerFromDecimal(
-											validatorIndex,
-											'proposer index'
-										),
-									},
-								}))
+						if (limit === 0)
+							return []
+
+						const headSlot = safeIntegerFromDecimal(
+							await getHeadSlot(chainId),
+							'head slot'
 						)
+						const proposerIndices = await getRecentProposerValidatorIndices({
+							chainId,
+							headSlot,
+							limit,
+							slotLookbackCap: Math.min(384, Math.max(limit * 8, slotsPerEpoch)),
+						})
+						const envelope = await getValidators(
+							chainId,
+							proposerIndices,
+							headSlot
+						)
+						const validatorByIndex = new Map(
+							envelope.validators.map((validator) => [validator.index, validator])
+						)
+						return proposerIndices.flatMap((validatorIndex) => {
+							const validator = validatorByIndex.get(validatorIndex)
+							if (validator == null)
+								return []
+
+							const observation = mapBeaconValidatorObservation({
+								validator,
+								executionOptimistic: envelope.executionOptimistic,
+								finalized: envelope.finalized,
+							})
+							const $validator = {
+								$network: { caip2 },
+								indexInNetwork: safeIntegerFromDecimal(
+									validatorIndex,
+									'proposer index'
+								),
+							}
+							return [{
+								[EntityMetaKey.Selector]: $validator,
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.BeaconValidator, [], 'pubkey')]: validator.validator.pubkey.toLowerCase(),
+									[entityFieldAddressKey(EntityType.BeaconValidator, [], 'balanceGwei')]: observation.balanceGwei,
+									[entityFieldAddressKey(EntityType.BeaconValidator, [], 'effectiveBalanceGwei')]: observation.effectiveBalanceGwei,
+									[entityFieldAddressKey(EntityType.BeaconValidator, [], 'status')]: observation.status,
+									[entityFieldAddressKey(EntityType.BeaconValidator, [], 'slashed')]: observation.slashed,
+									[entityFieldAddressKey(EntityType.BeaconValidator, [], '$$timestamps')]: [{
+										[EntityMetaKey.Selector]: {
+											$validator,
+											slot: headSlot,
+											source: Source.Beacon_Rest,
+										},
+										[EntityMetaKey.Fields]: observationFields(observation),
+									}],
+								},
+							}]
+						})
 					},
 				},
 			},

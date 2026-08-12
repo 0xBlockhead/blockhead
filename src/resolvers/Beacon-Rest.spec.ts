@@ -35,6 +35,8 @@ const getNodeIdentityObservation = vi.hoisted(() => vi.fn())
 const getNodePeerCountObservation = vi.hoisted(() => vi.fn())
 const getNodeSyncingObservation = vi.hoisted(() => vi.fn())
 const getNodeVersionObservation = vi.hoisted(() => vi.fn())
+const getRecentProposerValidatorIndices = vi.hoisted(() => vi.fn())
+const getValidators = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/Beacon/Rest/queries.ts', async (importOriginal) => ({
 	...await importOriginal<typeof import('$/sources/Beacon/Rest/queries.ts')>(),
@@ -51,6 +53,8 @@ vi.mock('$/sources/Beacon/Rest/queries.ts', async (importOriginal) => ({
 	getNodePeerCountObservation,
 	getNodeSyncingObservation,
 	getNodeVersionObservation,
+	getRecentProposerValidatorIndices,
+	getValidators,
 }))
 
 const { default: beaconRest } = await import('$/resolvers/Beacon-Rest.ts')
@@ -90,6 +94,11 @@ const validatorResolver = beaconRest.resolvers.find((resolver) => (
 ))
 const validatorTimestampResolver = beaconRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.BeaconValidator_Timestamp
+))
+const networkValidatorsResolver = beaconRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.Network
+	&& 'Evm' in resolver.projections
+	&& '$$beaconValidators' in resolver.projections.Evm
 ))
 const slashingResolver = beaconRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.BeaconSlashing
@@ -455,6 +464,66 @@ describe('Beacon REST checkpoint and fork projections', () => {
 			9_500_000
 		)
 		expect(getValidator).toHaveBeenCalledOnce()
+	})
+
+	it('materializes recent proposer snapshots from one coordinate-bound validator read', async () => {
+		if (networkValidatorsResolver == null || !('Caip2' in networkValidatorsResolver.resolve))
+			throw new Error('Beacon_Rest: missing network validator collection resolver')
+
+		getHeadSlot.mockResolvedValue('9500000')
+		getRecentProposerValidatorIndices.mockResolvedValue(['12'])
+		getValidators.mockResolvedValue({
+			validators: [tipValidatorEnvelope.validator],
+			executionOptimistic: true,
+			finalized: false,
+		})
+		const context = {
+			filters: [],
+			sorts: [],
+			pagination: {
+				limit: 10,
+			},
+			selectorKeys: [],
+			parentSelectorKeys: [],
+			sources: [],
+			publicEnv: {},
+		}
+
+		const validators = await networkValidatorsResolver.resolve.Caip2.resolve(network, context)
+		expect(validators).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				indexInNetwork: 12,
+			},
+			[EntityMetaKey.Fields]: expect.objectContaining({
+				[entityFieldAddressKey(EntityType.BeaconValidator, [], 'pubkey')]: `0x${'a'.repeat(96)}`,
+				[entityFieldAddressKey(EntityType.BeaconValidator, [], 'balanceGwei')]: 32_000_000_001n,
+				[entityFieldAddressKey(EntityType.BeaconValidator, [], 'status')]: 'active_ongoing',
+				[entityFieldAddressKey(EntityType.BeaconValidator, [], '$$timestamps')]: [{
+					[EntityMetaKey.Selector]: {
+						$validator: {
+							$network: network,
+							indexInNetwork: 12,
+						},
+						slot: 9_500_000,
+						source: Source.Beacon_Rest,
+					},
+					[EntityMetaKey.Fields]: expect.objectContaining({
+						[entityFieldAddressKey(EntityType.BeaconValidator_Timestamp, [], 'finalized')]: false,
+						[entityFieldAddressKey(EntityType.BeaconValidator_Timestamp, [], 'executionOptimistic')]: true,
+					}),
+				}],
+			}),
+		}])
+		expect(getRecentProposerValidatorIndices).toHaveBeenCalledWith({
+			chainId: 1,
+			headSlot: 9_500_000,
+			limit: 10,
+			slotLookbackCap: 80,
+		})
+		expect(getValidators).toHaveBeenCalledWith(1, ['12'], 9_500_000)
+		getValidator.mockReset()
+		expect(getValidator).not.toHaveBeenCalled()
 	})
 
 	it('resolves validators by NetworkPubkey against the tip observation slot', async () => {

@@ -33,6 +33,7 @@ import {
 	getValidatorAtHead,
 	getValidatorEnvelopeFromWire,
 	getValidatorFromWire,
+	getValidatorsEnvelopeFromWire,
 } from '$/sources/Beacon/Rest/queries.ts'
 import bindings from '$/sources/Beacon/bindings.ts'
 import { Source } from '$/sources/Source.ts'
@@ -121,6 +122,35 @@ describe('Beacon REST native checkpoint and fork wires', () => {
 			slotLookbackCap: -1,
 		})).rejects.toThrow('invalid proposer validator lookback')
 		expect(sourceFetch).not.toHaveBeenCalled()
+	})
+
+	it('preserves coordinate-wide finality on bulk validator snapshots', () => {
+		expect(getValidatorsEnvelopeFromWire({
+			execution_optimistic: true,
+			finalized: false,
+			data: [{
+				index: '12',
+				balance: '32000000001',
+				status: 'active_ongoing',
+				validator: {
+					pubkey: `0x${'a'.repeat(96)}`,
+					withdrawal_credentials: `0x${'b'.repeat(64)}`,
+					effective_balance: '32000000000',
+					slashed: false,
+					activation_eligibility_epoch: '10',
+					activation_epoch: '11',
+					exit_epoch: '18446744073709551615',
+					withdrawable_epoch: '18446744073709551615',
+				},
+			}],
+		})).toMatchObject({
+			executionOptimistic: true,
+			finalized: false,
+			validators: [{
+				index: '12',
+				status: 'active_ongoing',
+			}],
+		})
 	})
 
 	it('preserves native finality checkpoint keys and decimal strings', () => {

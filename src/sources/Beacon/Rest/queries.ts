@@ -14,7 +14,7 @@ import type {
 	operations,
 } from '$/sources/Beacon/OpenApi/openapi.d.ts'
 import { Source } from '$/sources/Source.ts'
-import { isJsonObject, type JsonValue } from '$/typescript/JsonValue.ts'
+import { isJsonArray, isJsonObject, type JsonValue } from '$/typescript/JsonValue.ts'
 import { type Type, type as arktype } from 'arktype'
 
 type BeaconHeaderWire = (
@@ -347,10 +347,12 @@ export const getHeader = async (
  */
 export const getRecentProposerValidatorIndices = async ({
 	chainId,
+	headSlot,
 	limit,
 	slotLookbackCap,
 }: {
 	chainId: number
+	headSlot?: number
 	limit: number
 	slotLookbackCap: number
 }) => {
@@ -358,7 +360,7 @@ export const getRecentProposerValidatorIndices = async ({
 		throw new Error(`Beacon: invalid proposer validator limit ${limit}`)
 	if (!Number.isSafeInteger(slotLookbackCap) || slotLookbackCap < 0)
 		throw new Error(`Beacon: invalid proposer validator lookback ${slotLookbackCap}`)
-	const head = Number(await getHeadSlot(chainId))
+	const head = headSlot ?? Number(await getHeadSlot(chainId))
 	if (!Number.isSafeInteger(head))
 		throw new Error('Beacon: head slot must be a safe integer for recent proposer discovery')
 	const seen = new Set<string>()
@@ -440,6 +442,32 @@ export const getValidatorEnvelopeFromWire = (
 	}
 }
 
+export const getValidatorsEnvelopeFromWire = (
+	wire: JsonValue
+) => {
+	if (
+		!isJsonObject(wire)
+		|| !isJsonArray(wire.data)
+		|| typeof wire.execution_optimistic !== 'boolean'
+		|| typeof wire.finalized !== 'boolean'
+	) return undefined
+
+	const validators = wire.data.flatMap((validator) => {
+		const parsed = getValidatorFromWire({
+			data: validator,
+		})
+		return parsed == null ? [] : [parsed]
+	})
+	if (validators.length !== wire.data.length)
+		return undefined
+
+	return {
+		validators,
+		executionOptimistic: wire.execution_optimistic,
+		finalized: wire.finalized,
+	}
+}
+
 const normalizeBeaconValidatorId = (
 	validatorId: number | string
 ) => {
@@ -482,6 +510,46 @@ export const getValidator = async (
 	} else if (envelope.validator.validator.pubkey.toLowerCase() !== normalizedId) {
 		throw new Error('Beacon: validator response does not match the subject')
 	}
+	return envelope
+}
+
+export const getValidators = async (
+	chainId: number,
+	validatorIds: (number | string)[],
+	stateId: string | number = 'head'
+) => {
+	if (validatorIds.length === 0)
+		return {
+			validators: [],
+			executionOptimistic: false,
+			finalized: false,
+		}
+
+	const normalizedStateId = normalizeBeaconStateOrBlockId(stateId)
+	const searchParams = new URLSearchParams()
+	for (const validatorId of validatorIds)
+		searchParams.append('id', normalizeBeaconValidatorId(validatorId))
+
+	const res = await beaconFetch(
+		chainId,
+		`/eth/v1/beacon/states/${normalizedStateId}/validators?${searchParams.toString()}`,
+		{
+			headers: { accept: 'application/json' },
+		}
+	)
+	if (!res.ok) await throwHttpError('Beacon GET validators', res)
+	const envelope = getValidatorsEnvelopeFromWire(await res.json<JsonValue>())
+	if (envelope == null)
+		throw new Error('Beacon: invalid validators response')
+
+	const requestedIds = new Set(validatorIds.map(normalizeBeaconValidatorId))
+	for (const validator of envelope.validators)
+		if (
+			!requestedIds.has(validator.index)
+			&& !requestedIds.has(validator.validator.pubkey.toLowerCase())
+		)
+			throw new Error('Beacon: validators response contains an unrequested subject')
+
 	return envelope
 }
 
