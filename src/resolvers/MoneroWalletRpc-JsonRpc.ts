@@ -12,8 +12,11 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import bindings from '$/sources/MoneroWalletRpc/bindings.ts'
 import type {
+	MoneroWalletOutput,
 	MoneroWalletSubaddress,
 	MoneroWalletSubaddressBalance,
+	MoneroWalletTransfer,
+	MoneroWalletTransfers,
 } from '$/sources/MoneroWalletRpc/JsonRpc/types.ts'
 
 
@@ -34,6 +37,172 @@ const atomicUnits = (
 
 	return BigInt(value)
 }
+
+const timestampMsFromSeconds = (
+	value: number,
+	field: string
+) => {
+	if (value > Math.floor(Number.MAX_SAFE_INTEGER / 1_000))
+		throw new Error(`MoneroWalletRpc_JsonRpc: ${field} exceeds the safe integer range`)
+
+	return value * 1_000
+}
+
+const assertTransactionHash = (txHash: string) => {
+	if (!/^[0-9a-f]{64}$/i.test(txHash))
+		throw new Error('MoneroWalletRpc_JsonRpc: invalid transaction hash')
+
+	return txHash.toLowerCase()
+}
+
+const outputFields = (
+	output: MoneroWalletOutput,
+	timestampMs: number
+) => {
+	const txHash = assertTransactionHash(output.txid)
+	const $outputState = {
+		walletId,
+		txHash,
+		outputIndex: output.amount_index,
+	}
+	return {
+		...$outputState,
+		$network: moneroNetwork,
+		$transaction: {
+			[EntityMetaKey.Selector]: {
+				$network: moneroNetwork.$network,
+				txHash,
+			},
+		},
+		amountAtomicUnits: atomicUnits(output.amount, 'output amount'),
+		...(output.subaddr_index != null && { addressIndex: output.subaddr_index }),
+		...(output.key_image != null && { keyImage: output.key_image }),
+		...(output.global_index != null && {
+			globalOutputIndex: atomicUnits(output.global_index, 'output global index'),
+		}),
+		$$timestamps: [{
+			[EntityMetaKey.Selector]: {
+				$outputState,
+				timestampMs,
+				source: Source.MoneroWalletRpc_JsonRpc,
+			},
+			[EntityMetaKey.Fields]: {
+				...(output.spent != null && {
+					[entityFieldAddressKey(EntityType.BlockheadMoneroOutputState_Timestamp, [], 'spent')]: output.spent,
+				}),
+				...(output.unlocked != null && {
+					[entityFieldAddressKey(EntityType.BlockheadMoneroOutputState_Timestamp, [], 'unlocked')]: output.unlocked,
+				}),
+				...(output.confirmations != null && {
+					[entityFieldAddressKey(EntityType.BlockheadMoneroOutputState_Timestamp, [], 'confirmations')]: output.confirmations,
+				}),
+				...(output.height != null && {
+					[entityFieldAddressKey(EntityType.BlockheadMoneroOutputState_Timestamp, [], 'exportHeight')]: atomicUnits(output.height, 'output height'),
+				}),
+				[entityFieldAddressKey(EntityType.BlockheadMoneroOutputState_Timestamp, [], 'lastCheckedAt')]: timestampMs,
+			},
+		}],
+	}
+}
+
+const transferFields = (
+	transfer: MoneroWalletTransfer,
+	direction: string,
+	transferIndex: number,
+	timestampMs: number
+) => {
+	const txHash = assertTransactionHash(transfer.txid)
+	const $transferState = {
+		walletId,
+		txHash,
+		transferIndex,
+	}
+	return {
+		...$transferState,
+		$network: moneroNetwork,
+		$transaction: {
+			[EntityMetaKey.Selector]: {
+				$network: moneroNetwork.$network,
+				txHash,
+			},
+		},
+		direction,
+		amountAtomicUnits: atomicUnits(transfer.amount, 'transfer amount'),
+		...(transfer.fee != null && { feeAtomicUnits: atomicUnits(transfer.fee, 'transfer fee') }),
+		...(transfer.subaddr_index != null && { addressIndex: transfer.subaddr_index }),
+		...(transfer.payment_id != null && { paymentId: transfer.payment_id }),
+		...(transfer.note != null && transfer.note !== '' && { note: transfer.note }),
+		...(transfer.key_image != null && { keyImage: transfer.key_image }),
+		...(transfer.timestamp != null && {
+			timestampMs: timestampMsFromSeconds(transfer.timestamp, 'transfer timestamp'),
+		}),
+		$$timestamps: [{
+			[EntityMetaKey.Selector]: {
+				$transferState,
+				timestampMs,
+				source: Source.MoneroWalletRpc_JsonRpc,
+			},
+			[EntityMetaKey.Fields]: {
+				...(transfer.confirmations != null && {
+					[entityFieldAddressKey(EntityType.BlockheadMoneroTransferState_Timestamp, [], 'confirmations')]: transfer.confirmations,
+				}),
+				...(transfer.unlock_time != null && {
+					[entityFieldAddressKey(EntityType.BlockheadMoneroTransferState_Timestamp, [], 'unlockTime')]: atomicUnits(transfer.unlock_time, 'transfer unlock time'),
+				}),
+				[entityFieldAddressKey(EntityType.BlockheadMoneroTransferState_Timestamp, [], 'lastCheckedAt')]: timestampMs,
+			},
+		}],
+	}
+}
+
+const transferRows = (
+	transfers: MoneroWalletTransfers,
+	timestampMs: number
+) => {
+	const transferIndexByTxHash = new Map<string, number>()
+	return (
+		[
+			['in', transfers.in],
+			['out', transfers.out],
+			['pending', transfers.pending],
+			['failed', transfers.failed],
+			['pool', transfers.pool],
+		] as const
+	)
+		.flatMap(([direction, rows]) => (
+			(rows ?? []).map((transfer) => {
+				const txHash = assertTransactionHash(transfer.txid)
+				const transferIndex = transferIndexByTxHash.get(txHash) ?? 0
+				transferIndexByTxHash.set(txHash, transferIndex + 1)
+				return transferFields(transfer, direction, transferIndex, timestampMs)
+			})
+		))
+}
+
+const stateReference = <_State extends {
+	walletId: string
+	txHash: string
+}>(
+	state: _State,
+	entityType: EntityType.BlockheadMoneroOutputState | EntityType.BlockheadMoneroTransferState,
+	indexField: 'outputIndex' | 'transferIndex',
+	index: number
+) => ({
+	[EntityMetaKey.Selector]: {
+		walletId: state.walletId,
+		txHash: state.txHash,
+		[indexField]: index,
+	},
+	[EntityMetaKey.Fields]: Object.fromEntries(Object.entries(state).flatMap(([fieldName, value]) => (
+		fieldName === 'walletId' || fieldName === 'txHash' || fieldName === indexField ?
+			[]
+		:
+			[[
+				entityFieldAddressKey(entityType, [], fieldName),
+				value,
+			]]
+	))),
+})
 
 const subaddressFields = (
 	accountIndex: number,
@@ -120,7 +289,14 @@ export default {
 						if (requestedWalletId !== walletId)
 							throw new Error(`MoneroWalletRpc_JsonRpc: unknown local wallet ${requestedWalletId}`)
 
-						const { getAccounts, getAddress, getBalance, getHeight } = await (
+						const {
+							getAccounts,
+							getAddress,
+							getBalance,
+							getHeight,
+							getOutputs,
+							getTransfers,
+						} = await (
 							typeof window === 'undefined' ?
 								import('$/sources/MoneroWalletRpc/JsonRpc/queries.ts')
 							:
@@ -128,10 +304,18 @@ export default {
 						)
 						const binding = bindings[Source.MoneroWalletRpc_JsonRpc][0]
 						const timestampMs = Date.now()
-						const [accounts, balance, height] = await Promise.all([
+						const [
+							accounts,
+							balance,
+							height,
+							outputs,
+							transfers,
+						] = await Promise.all([
 							getAccounts(binding),
 							getBalance(binding),
 							getHeight(binding),
+							getOutputs(binding),
+							getTransfers(binding),
 						])
 						const addressesByAccount = await Promise.all(accounts.subaddress_accounts.map((account) => (
 							getAddress(binding, account.account_index)
@@ -158,6 +342,23 @@ export default {
 							$$subaddresses: subaddresses
 								.slice(0, resolverContextRowLimit(context))
 								.map(subaddressReference),
+							$$outputs: outputs.outputs
+								.map((output) => outputFields(output, timestampMs))
+								.slice(0, resolverContextRowLimit(context))
+								.map((output) => stateReference(
+									output,
+									EntityType.BlockheadMoneroOutputState,
+									'outputIndex',
+									output.outputIndex
+								)),
+							$$transfers: transferRows(transfers, timestampMs)
+								.slice(0, resolverContextRowLimit(context))
+								.map((transfer) => stateReference(
+									transfer,
+									EntityType.BlockheadMoneroTransferState,
+									'transferIndex',
+									transfer.transferIndex
+								)),
 							$$timestamps: [{
 								[EntityMetaKey.Selector]: {
 									$walletState: walletSelector,
@@ -183,6 +384,8 @@ export default {
 			$network: (wallet) => wallet.$network,
 			primaryAddress: (wallet) => wallet.primaryAddress,
 			$$subaddresses: (wallet) => wallet.$$subaddresses,
+			$$outputs: (wallet) => wallet.$$outputs,
+			$$transfers: (wallet) => wallet.$$transfers,
 			$$timestamps: (wallet) => wallet.$$timestamps,
 		}),
 
@@ -229,6 +432,91 @@ export default {
 			address: (subaddress) => subaddress.address,
 			label: (subaddress) => subaddress.label,
 			$$timestamps: (subaddress) => subaddress.$$timestamps,
+		}),
+
+		defineResolver({
+			entityType: EntityType.BlockheadMoneroOutputState,
+			resolve: {
+				WalletIdTxHashOutputIndex: {
+					resolve: async ({ walletId: requestedWalletId, txHash: requestedTxHash, outputIndex }) => {
+						if (requestedWalletId !== walletId)
+							throw new Error(`MoneroWalletRpc_JsonRpc: unknown local wallet ${requestedWalletId}`)
+
+						const { getOutputs } = await (
+							typeof window === 'undefined' ?
+								import('$/sources/MoneroWalletRpc/JsonRpc/queries.ts')
+							:
+								import('$/sources/MoneroWalletRpc/JsonRpc/queries.remote.ts')
+						)
+						const output = (await getOutputs(bindings[Source.MoneroWalletRpc_JsonRpc][0])).outputs.find((candidate) => (
+							assertTransactionHash(candidate.txid) === assertTransactionHash(requestedTxHash)
+							&& candidate.amount_index === outputIndex
+						))
+						if (output == null)
+							throw new Error('MoneroWalletRpc_JsonRpc: output not found')
+
+						return outputFields(output, Date.now())
+					},
+				},
+			},
+		})({
+			walletId: (output) => output.walletId,
+			$network: (output) => output.$network,
+			$transaction: (output) => output.$transaction,
+			txHash: (output) => output.txHash,
+			outputIndex: (output) => output.outputIndex,
+			accountIndex: (output) => output.accountIndex,
+			addressIndex: (output) => output.addressIndex,
+			amountAtomicUnits: (output) => output.amountAtomicUnits,
+			keyImage: (output) => output.keyImage,
+			globalOutputIndex: (output) => output.globalOutputIndex,
+			$$timestamps: (output) => output.$$timestamps,
+		}),
+
+		defineResolver({
+			entityType: EntityType.BlockheadMoneroTransferState,
+			resolve: {
+				WalletIdTxHashTransferIndex: {
+					resolve: async ({ walletId: requestedWalletId, txHash: requestedTxHash, transferIndex }) => {
+						if (requestedWalletId !== walletId)
+							throw new Error(`MoneroWalletRpc_JsonRpc: unknown local wallet ${requestedWalletId}`)
+
+						const { getTransfers } = await (
+							typeof window === 'undefined' ?
+								import('$/sources/MoneroWalletRpc/JsonRpc/queries.ts')
+							:
+								import('$/sources/MoneroWalletRpc/JsonRpc/queries.remote.ts')
+						)
+						const transfer = transferRows(
+							await getTransfers(bindings[Source.MoneroWalletRpc_JsonRpc][0]),
+							Date.now()
+						).find((candidate) => (
+							candidate.txHash === assertTransactionHash(requestedTxHash)
+							&& candidate.transferIndex === transferIndex
+						))
+						if (transfer == null)
+							throw new Error('MoneroWalletRpc_JsonRpc: transfer not found')
+
+						return transfer
+					},
+				},
+			},
+		})({
+			walletId: (transfer) => transfer.walletId,
+			$network: (transfer) => transfer.$network,
+			$transaction: (transfer) => transfer.$transaction,
+			txHash: (transfer) => transfer.txHash,
+			transferIndex: (transfer) => transfer.transferIndex,
+			direction: (transfer) => transfer.direction,
+			accountIndex: (transfer) => transfer.accountIndex,
+			addressIndex: (transfer) => transfer.addressIndex,
+			amountAtomicUnits: (transfer) => transfer.amountAtomicUnits,
+			feeAtomicUnits: (transfer) => transfer.feeAtomicUnits,
+			paymentId: (transfer) => transfer.paymentId,
+			note: (transfer) => transfer.note,
+			keyImage: (transfer) => transfer.keyImage,
+			timestampMs: (transfer) => transfer.timestampMs,
+			$$timestamps: (transfer) => transfer.$$timestamps,
 		}),
 	],
 } satisfies RegisteredSourceResolverModule

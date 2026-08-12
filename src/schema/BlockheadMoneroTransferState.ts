@@ -3,6 +3,7 @@
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export default entity({
@@ -23,10 +24,16 @@ export default entity({
 	$network: {
 		entityType: EntityType.MoneroNetwork,
 		cardinality: EntityFieldCardinality.One,
+		defaultSources: [
+			Source.MoneroWalletRpc_JsonRpc,
+		],
 	},
 	$transaction: {
 		entityType: EntityType.MoneroTransaction,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.MoneroWalletRpc_JsonRpc,
+		],
 	},
 	txHash: {
 		primitiveType: type('string'),
@@ -39,6 +46,9 @@ export default entity({
 	direction: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
+		defaultSources: [
+			Source.MoneroWalletRpc_JsonRpc,
+		],
 	},
 	accountIndex: {
 		primitiveType: type('number'),
@@ -51,10 +61,16 @@ export default entity({
 	amountAtomicUnits: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.MoneroWalletRpc_JsonRpc,
+		],
 	},
 	feeAtomicUnits: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.MoneroWalletRpc_JsonRpc,
+		],
 	},
 	paymentId: {
 		primitiveType: type('string'),
@@ -75,6 +91,9 @@ export default entity({
 	$$timestamps: {
 		entityType: EntityType.BlockheadMoneroTransferState_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.MoneroWalletRpc_JsonRpc,
+		],
 	},
 })({
 	selectors: {

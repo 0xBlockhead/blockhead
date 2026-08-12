@@ -53,6 +53,47 @@ export type MoneroWalletHeight = {
 	height: number
 }
 
+export type MoneroWalletOutput = {
+	amount: number
+	amount_index: number
+	txid: string
+	global_index?: number
+	subaddr_index?: number
+	key_image?: string
+	key_image_known?: boolean
+	key_image_partial?: boolean
+	unlocked?: boolean
+	spent?: boolean
+	confirmations?: number
+	height?: number
+}
+
+export type MoneroWalletOutputs = {
+	outputs: MoneroWalletOutput[]
+}
+
+export type MoneroWalletTransfer = {
+	txid: string
+	amount: number
+	fee?: number
+	subaddr_index?: number
+	payment_id?: string
+	note?: string
+	key_image?: string
+	timestamp?: number
+	confirmations?: number
+	unlock_time?: number
+	double_spend_seen?: boolean
+}
+
+export type MoneroWalletTransfers = {
+	in?: MoneroWalletTransfer[]
+	out?: MoneroWalletTransfer[]
+	pending?: MoneroWalletTransfer[]
+	failed?: MoneroWalletTransfer[]
+	pool?: MoneroWalletTransfer[]
+}
+
 
 const nonNegativeInteger = arktype('number.integer >= 0')
 const walletAccountWire = arktype({
@@ -98,3 +139,41 @@ export const moneroWalletBalanceWire = arktype({
 export const moneroWalletHeightWire = arktype({
 	height: nonNegativeInteger,
 }) satisfies Type<MoneroWalletHeight>
+const walletOutputWire = arktype({
+	amount: nonNegativeInteger,
+	amount_index: nonNegativeInteger,
+	txid: 'string > 0',
+	'global_index?': nonNegativeInteger,
+	'subaddr_index?': nonNegativeInteger,
+	'key_image?': 'string > 0',
+	'key_image_known?': 'boolean',
+	'key_image_partial?': 'boolean',
+	'unlocked?': 'boolean',
+	'spent?': 'boolean',
+	'confirmations?': nonNegativeInteger,
+	'height?': nonNegativeInteger,
+}) satisfies Type<MoneroWalletOutput>
+const walletTransferWire = arktype({
+	txid: 'string > 0',
+	amount: nonNegativeInteger,
+	'fee?': nonNegativeInteger,
+	'subaddr_index?': nonNegativeInteger,
+	'payment_id?': 'string > 0',
+	'note?': 'string',
+	'key_image?': 'string > 0',
+	'timestamp?': nonNegativeInteger,
+	'confirmations?': nonNegativeInteger,
+	'unlock_time?': nonNegativeInteger,
+	'double_spend_seen?': 'boolean',
+}) satisfies Type<MoneroWalletTransfer>
+
+export const moneroWalletOutputsWire = arktype({
+	outputs: walletOutputWire.array(),
+}) satisfies Type<MoneroWalletOutputs>
+export const moneroWalletTransfersWire = arktype({
+	'in?': walletTransferWire.array(),
+	'out?': walletTransferWire.array(),
+	'pending?': walletTransferWire.array(),
+	'failed?': walletTransferWire.array(),
+	'pool?': walletTransferWire.array(),
+}) satisfies Type<MoneroWalletTransfers>

@@ -5,6 +5,8 @@ import {
 	moneroWalletAddressesWire,
 	moneroWalletBalanceWire,
 	moneroWalletHeightWire,
+	moneroWalletOutputsWire,
+	moneroWalletTransfersWire,
 } from '$/sources/MoneroWalletRpc/JsonRpc/types.ts'
 
 const request = async <_Result>(
@@ -53,4 +55,28 @@ export const getHeight = (
 	binding: SourceBinding
 ) => (
 	request(binding, 'get_height', moneroWalletHeightWire)
+)
+
+export const getOutputs = async (
+	binding: SourceBinding
+) => {
+	const outputs = await request(binding, 'get_outputs', moneroWalletOutputsWire, {
+		all: true,
+	})
+	if (new Set(outputs.outputs.map((output) => `${output.txid}:${output.amount_index}`)).size !== outputs.outputs.length)
+		throw new Error('MoneroWalletRpc_JsonRpc: duplicate output identity')
+
+	return outputs
+}
+
+export const getTransfers = (
+	binding: SourceBinding
+) => (
+	request(binding, 'get_transfers', moneroWalletTransfersWire, {
+		in: true,
+		out: true,
+		pending: true,
+		failed: true,
+		pool: true,
+	})
 )

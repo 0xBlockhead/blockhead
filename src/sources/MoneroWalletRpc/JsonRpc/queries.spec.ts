@@ -21,6 +21,8 @@ const {
 	getAddress,
 	getBalance,
 	getHeight,
+	getOutputs,
+	getTransfers,
 } = await import('$/sources/MoneroWalletRpc/JsonRpc/queries.ts')
 const binding = bindings[Source.MoneroWalletRpc_JsonRpc][0]
 
@@ -65,6 +67,41 @@ describe('Monero wallet RPC reads', () => {
 		})
 	})
 
+	it('reads native output and transfer lifecycle rows without requesting mutation authority', async () => {
+		jsonRpc2
+			.mockResolvedValueOnce({
+				outputs: [{
+					amount: 12,
+					amount_index: 0,
+					txid: 'a'.repeat(64),
+					spent: false,
+				}],
+			})
+			.mockResolvedValueOnce({
+				in: [{
+					amount: 12,
+					txid: 'a'.repeat(64),
+				}],
+			})
+
+		await expect(getOutputs(binding)).resolves.toMatchObject({
+			outputs: [{ amount_index: 0 }],
+		})
+		await expect(getTransfers(binding)).resolves.toMatchObject({
+			in: [{ txid: 'a'.repeat(64) }],
+		})
+		expect(jsonRpc2).toHaveBeenNthCalledWith(1, binding, 'get_outputs', {
+			all: true,
+		})
+		expect(jsonRpc2).toHaveBeenNthCalledWith(2, binding, 'get_transfers', {
+			in: true,
+			out: true,
+			pending: true,
+			failed: true,
+			pool: true,
+		})
+	})
+
 	it('fails closed on malformed local wallet data', async () => {
 		jsonRpc2.mockResolvedValue({
 			balance: -1,
@@ -72,5 +109,24 @@ describe('Monero wallet RPC reads', () => {
 		})
 
 		await expect(getBalance(binding)).rejects.toThrow('invalid get_balance response envelope')
+	})
+
+	it('rejects duplicate local output identities', async () => {
+		jsonRpc2.mockResolvedValue({
+			outputs: [
+				{
+					amount: 12,
+					amount_index: 0,
+					txid: 'a'.repeat(64),
+				},
+				{
+					amount: 13,
+					amount_index: 0,
+					txid: 'a'.repeat(64),
+				},
+			],
+		})
+
+		await expect(getOutputs(binding)).rejects.toThrow('duplicate output identity')
 	})
 })

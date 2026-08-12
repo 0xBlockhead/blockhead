@@ -68,10 +68,16 @@ export default entity({
 	$$outputs: {
 		entityType: EntityType.BlockheadMoneroOutputState,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.MoneroWalletRpc_JsonRpc,
+		],
 	},
 	$$transfers: {
 		entityType: EntityType.BlockheadMoneroTransferState,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.MoneroWalletRpc_JsonRpc,
+		],
 	},
 })({
 	selectors: {

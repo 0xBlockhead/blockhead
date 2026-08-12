@@ -27,6 +27,7 @@
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
+			Source.MoneroWalletRpc_JsonRpc,
 		],
 	}))
 	const blockheadMoneroOutputState = $derived(viewSelection({
@@ -43,6 +44,7 @@
 	import BlockheadMoneroOutputState_TimestampsView from '$/views/BlockheadMoneroOutputState_TimestampsView.svelte'
 	import BlockheadWalletView from '$/views/BlockheadWalletView.svelte'
 	import MoneroNetworkView from '$/views/MoneroNetworkView.svelte'
+	import MoneroTransactionView from '$/views/MoneroTransactionView.svelte'
 	import MoneroStealthOutputView from '$/views/MoneroStealthOutputView.svelte'
 </script>
 
@@ -134,6 +136,25 @@
 					</ResourceBoundary>
 				</dd>
 			</div>
+
+			<ResourceBoundary
+				resource={selection.$transaction}
+			>
+				{#snippet children(moneroTransaction)}
+					{#if moneroTransaction != null}
+						{@const moneroTransactionInitial = untrack(() => moneroTransaction)}
+						<div>
+							<dt>transaction</dt>
+							<dd>
+								<MoneroTransactionView
+									selection={select(EntityType.MoneroTransaction, (moneroTransaction ?? moneroTransactionInitial)[EntityMetaKey.Selector])}
+									layout={EntityLayout.Value}
+								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
 			<ResourceBoundary
 				resource={selection.$stealthOutput}

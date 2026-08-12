@@ -20,11 +20,15 @@ const {
 	getAddress,
 	getBalance,
 	getHeight,
+	getOutputs,
+	getTransfers,
 } = vi.hoisted(() => ({
 	getAccounts: vi.fn(),
 	getAddress: vi.fn(),
 	getBalance: vi.fn(),
 	getHeight: vi.fn(),
+	getOutputs: vi.fn(),
+	getTransfers: vi.fn(),
 }))
 
 vi.mock('$/sources/MoneroWalletRpc/JsonRpc/queries.ts', () => ({
@@ -32,12 +36,21 @@ vi.mock('$/sources/MoneroWalletRpc/JsonRpc/queries.ts', () => ({
 	getAddress,
 	getBalance,
 	getHeight,
+	getOutputs,
+	getTransfers,
 }))
 
 const { default: resolverModule } = await import('$/resolvers/MoneroWalletRpc-JsonRpc.ts')
 const walletResolver = resolverModule.resolvers.find(({ entityType }) => entityType === EntityType.BlockheadMoneroWalletState)
 const subaddressResolver = resolverModule.resolvers.find(({ entityType }) => entityType === EntityType.BlockheadMoneroSubaddressState)
-if (walletResolver == null || subaddressResolver == null)
+const outputResolver = resolverModule.resolvers.find(({ entityType }) => entityType === EntityType.BlockheadMoneroOutputState)
+const transferResolver = resolverModule.resolvers.find(({ entityType }) => entityType === EntityType.BlockheadMoneroTransferState)
+if (
+	walletResolver == null
+	|| subaddressResolver == null
+	|| outputResolver == null
+	|| transferResolver == null
+)
 	throw new Error('Monero wallet resolvers missing')
 
 const context = {
@@ -57,6 +70,8 @@ describe('Monero local wallet journey', () => {
 		getAddress.mockReset()
 		getBalance.mockReset()
 		getHeight.mockReset()
+		getOutputs.mockReset()
+		getTransfers.mockReset()
 		getAccounts.mockResolvedValue({
 			subaddress_accounts: [{
 				account_index: 0,
@@ -86,6 +101,8 @@ describe('Monero local wallet journey', () => {
 			}],
 		})
 		getHeight.mockResolvedValue({ height: 100 })
+		getOutputs.mockResolvedValue({ outputs: [] })
+		getTransfers.mockResolvedValue({})
 	})
 
 	it('materializes private wallet sync and native subaddress observations', async () => {
@@ -138,6 +155,72 @@ describe('Monero local wallet journey', () => {
 		expect(snapshot.$$timestamps[0][EntityMetaKey.Fields]).toMatchObject({
 			[entityFieldAddressKey(EntityType.BlockheadMoneroSubaddressState_Timestamp, [], 'used')]: true,
 			[entityFieldAddressKey(EntityType.BlockheadMoneroSubaddressState_Timestamp, [], 'balanceAtomicUnits')]: 12n,
+		})
+	})
+
+	it('materializes native local output and transfer lifecycles without inventing spend authority', async () => {
+		vi.spyOn(Date, 'now').mockReturnValue(1_786_000_000_000)
+		const txHash = 'a'.repeat(64)
+		getOutputs.mockResolvedValue({
+			outputs: [{
+				amount: 12,
+				amount_index: 0,
+				txid: txHash,
+				global_index: 456,
+				subaddr_index: 0,
+				spent: false,
+				unlocked: true,
+				confirmations: 10,
+				height: 90,
+			}],
+		})
+		getTransfers.mockResolvedValue({
+			in: [{
+				amount: 12,
+				txid: txHash,
+				subaddr_index: 0,
+				timestamp: 1_786_000_000,
+				confirmations: 10,
+				unlock_time: 100,
+			}],
+		})
+
+		const wallet = await walletResolver.resolve.WalletId.resolve({
+			walletId: 'monero-wallet-rpc',
+		}, context)
+		expect(wallet.$$outputs[0]).toMatchObject({
+			[EntityMetaKey.Selector]: {
+				walletId: 'monero-wallet-rpc',
+				txHash,
+				outputIndex: 0,
+			},
+		})
+		expect(wallet.$$transfers[0]).toMatchObject({
+			[EntityMetaKey.Selector]: {
+				walletId: 'monero-wallet-rpc',
+				txHash,
+				transferIndex: 0,
+			},
+		})
+
+		await expect(outputResolver.resolve.WalletIdTxHashOutputIndex.resolve({
+			walletId: 'monero-wallet-rpc',
+			txHash,
+			outputIndex: 0,
+		})).resolves.toMatchObject({
+			amountAtomicUnits: 12n,
+			addressIndex: 0,
+			globalOutputIndex: 456n,
+		})
+		await expect(transferResolver.resolve.WalletIdTxHashTransferIndex.resolve({
+			walletId: 'monero-wallet-rpc',
+			txHash,
+			transferIndex: 0,
+		})).resolves.toMatchObject({
+			direction: 'in',
+			amountAtomicUnits: 12n,
+			addressIndex: 0,
+			timestampMs: 1_786_000_000_000,
 		})
 	})
 

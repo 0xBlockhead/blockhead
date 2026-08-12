@@ -15396,17 +15396,18 @@ export const schema = {
 			})({
 				"walletId": { label: "wallet ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"$wallet": { label: "wallet", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.BlockheadWallet },
-				"$network": { label: "network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.MoneroNetwork },
+				"$network": { label: "network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.MoneroNetwork, defaultSources: [Source.MoneroWalletRpc_JsonRpc] },
+				"$transaction": { label: "transaction", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.MoneroTransaction, defaultSources: [Source.MoneroWalletRpc_JsonRpc] },
 				"$stealthOutput": { label: "stealth output", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.MoneroStealthOutput },
 				"txHash": { label: "Transaction hash", description: "The transaction hash in its network.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"outputIndex": { label: "output index", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
-				"accountIndex": { label: "account index", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"addressIndex": { label: "address index", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"amountAtomicUnits": { label: "amount atomic units", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
-				"keyImage": { label: "key image", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+				"accountIndex": { label: "account index", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.MoneroWalletRpc_JsonRpc] },
+				"addressIndex": { label: "address index", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.MoneroWalletRpc_JsonRpc] },
+				"amountAtomicUnits": { label: "amount atomic units", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.MoneroWalletRpc_JsonRpc] },
+				"keyImage": { label: "key image", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.MoneroWalletRpc_JsonRpc] },
 				"keyImageSignature": { label: "key image signature", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"globalOutputIndex": { label: "global output index", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
-				"$$timestamps": { label: "timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadMoneroOutputState_Timestamp },
+				"globalOutputIndex": { label: "global output index", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.MoneroWalletRpc_JsonRpc] },
+				"$$timestamps": { label: "timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadMoneroOutputState_Timestamp, defaultSources: [Source.MoneroWalletRpc_JsonRpc] },
 			})({
 				selectors: {
 					"WalletIdTxHashOutputIndex": ["walletId", "txHash", "outputIndex"],
@@ -15414,14 +15415,14 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Local_Internal],
+							sources: [Source.Local_Internal, Source.MoneroWalletRpc_JsonRpc],
 							openFields: ["accountIndex", "addressIndex", "amountAtomicUnits", "keyImage", "keyImageSignature", "globalOutputIndex"],
 						},
 						summary: { title: ["txHash"], value: [{ field: "outputIndex", format: "number" }], HeadingAfter: [{ field: "amountAtomicUnits", format: "number" }] },
 						closed: ["walletId", "txHash", { field: "outputIndex", format: "number" }],
 						content: {
 							dl: [
-								["walletId", "$wallet", "$network", "$stealthOutput"],
+								["walletId", "$wallet", "$network", "$transaction", "$stealthOutput"],
 								["txHash", { field: "outputIndex", format: "number" }, { field: "accountIndex", format: "number" }, { field: "addressIndex", format: "number" }, { field: "amountAtomicUnits", format: "number" }],
 								["keyImage", "keyImageSignature", { field: "globalOutputIndex", format: "number" }],
 							],
@@ -15456,7 +15457,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Local_Internal],
+							sources: [Source.Local_Internal, Source.MoneroWalletRpc_JsonRpc],
 							openFields: ["spent", "unlocked", "confirmations", "exportHeight", "lastCheckedAt"],
 						},
 						summary: { title: [{ field: "timestampMs", format: "timestamp" }], value: ["spent", "unlocked"], HeadingAfter: [{ field: "confirmations", format: "number" }] },
@@ -15562,20 +15563,20 @@ export const schema = {
 			})({
 				"walletId": { label: "wallet ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"$wallet": { label: "wallet", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.BlockheadWallet },
-				"$network": { label: "network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.MoneroNetwork },
-				"$transaction": { label: "transaction", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.MoneroTransaction },
+				"$network": { label: "network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.MoneroNetwork, defaultSources: [Source.MoneroWalletRpc_JsonRpc] },
+				"$transaction": { label: "transaction", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.MoneroTransaction, defaultSources: [Source.MoneroWalletRpc_JsonRpc] },
 				"txHash": { label: "Transaction hash", description: "The transaction hash in its network.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"transferIndex": { label: "transfer index", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
-				"direction": { label: "direction", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"direction": { label: "direction", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string", defaultSources: [Source.MoneroWalletRpc_JsonRpc] },
 				"accountIndex": { label: "account index", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 				"addressIndex": { label: "address index", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"amountAtomicUnits": { label: "amount atomic units", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
-				"feeAtomicUnits": { label: "fee atomic units", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
+				"amountAtomicUnits": { label: "amount atomic units", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.MoneroWalletRpc_JsonRpc] },
+				"feeAtomicUnits": { label: "fee atomic units", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.MoneroWalletRpc_JsonRpc] },
 				"paymentId": { label: "payment ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"note": { label: "note", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"keyImage": { label: "key image", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"timestampMs": { label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"$$timestamps": { label: "timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadMoneroTransferState_Timestamp },
+				"$$timestamps": { label: "timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadMoneroTransferState_Timestamp, defaultSources: [Source.MoneroWalletRpc_JsonRpc] },
 			})({
 				selectors: {
 					"WalletIdTxHashTransferIndex": ["walletId", "txHash", "transferIndex"],
@@ -15583,7 +15584,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Local_Internal],
+							sources: [Source.Local_Internal, Source.MoneroWalletRpc_JsonRpc],
 							fields: ["direction"],
 							openFields: ["accountIndex", "addressIndex", "amountAtomicUnits", "feeAtomicUnits", "paymentId", "note", "keyImage", "timestampMs"],
 						},
@@ -15625,7 +15626,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Local_Internal],
+							sources: [Source.Local_Internal, Source.MoneroWalletRpc_JsonRpc],
 							openFields: ["confirmations", "unlockTime", "spent", "lastCheckedAt"],
 						},
 						summary: { title: [{ field: "timestampMs", format: "timestamp" }], value: ["spent"], HeadingAfter: [{ field: "confirmations", format: "number" }] },
@@ -15658,8 +15659,8 @@ export const schema = {
 				"spendKeyAvailable": { label: "spend key available", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean" },
 				"$$timestamps": { label: "timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadMoneroWalletState_Timestamp, defaultSources: [Source.MoneroWalletRpc_JsonRpc] },
 				"$$subaddresses": { label: "subaddresses", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadMoneroSubaddressState, defaultSources: [Source.MoneroWalletRpc_JsonRpc] },
-				"$$outputs": { label: "outputs", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadMoneroOutputState },
-				"$$transfers": { label: "transfers", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadMoneroTransferState },
+				"$$outputs": { label: "outputs", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadMoneroOutputState, defaultSources: [Source.MoneroWalletRpc_JsonRpc] },
+				"$$transfers": { label: "transfers", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadMoneroTransferState, defaultSources: [Source.MoneroWalletRpc_JsonRpc] },
 			})({
 				selectors: {
 					"WalletId": ["walletId"],
