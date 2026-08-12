@@ -1,4 +1,11 @@
-import { beforeAll, describe, expect, it } from 'vitest'
+import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+
+const sourceFetch = vi.hoisted(() => vi.fn())
+
+vi.mock('$/sources/_runtime/http.ts', async (importOriginal) => ({
+	...await importOriginal<typeof import('$/sources/_runtime/http.ts')>(),
+	sourceFetch,
+}))
 
 import localInternal from '$/resolvers/Local.ts'
 import { readNormalizedLocalInternal } from '$/resolvers/Local/Internal/catalog.ts'
@@ -49,7 +56,18 @@ describe('Local catalog enrollment policy', () => {
 
 
 describe('Local source capability observations', () => {
+	beforeEach(() => {
+		sourceFetch.mockReset()
+	})
+
 	it('materializes a source-owned availability observation with resolver breadth', async () => {
+		sourceFetch.mockResolvedValue(new Response(null, {
+			status: 200,
+			headers: {
+				'x-ratelimit-remaining': '499',
+				'x-ratelimit-reset': '1800000000',
+			},
+		}))
 		const timestampsResolver = resolver(
 			EntityType.BlockheadSource,
 			'Id',
@@ -74,17 +92,83 @@ describe('Local source capability observations', () => {
 		})
 		expect(observation[EntityMetaKey.Fields]).toMatchObject({
 			[entityFieldAddressKey(EntityType.BlockheadSource_Timestamp, [], 'enabled')]: true,
-			[entityFieldAddressKey(EntityType.BlockheadSource_Timestamp, [], 'health')]: 'Resolver module available',
+			[entityFieldAddressKey(EntityType.BlockheadSource_Timestamp, [], 'health')]: 'HTTP endpoint available',
+			[entityFieldAddressKey(EntityType.BlockheadSource_Timestamp, [], 'statusCode')]: 200,
+			[entityFieldAddressKey(EntityType.BlockheadSource_Timestamp, [], 'rateLimitRemaining')]: 499,
+			[entityFieldAddressKey(EntityType.BlockheadSource_Timestamp, [], 'rateLimitResetMs')]: 1_800_000_000_000,
 		})
 		const detail = await timestampResolver.resolve.SourceTimestampMs.resolve(
 			observation[EntityMetaKey.Selector],
 			context
 		)
 		expect(timestampResolver.projections.enabled(detail)).toBe(true)
-		expect(timestampResolver.projections.health(detail)).toBe('Resolver module available')
+		expect(timestampResolver.projections.health(detail)).toBe('HTTP endpoint available')
 		expect(timestampResolver.projections.latencyMs(detail)).toBeGreaterThanOrEqual(0)
+		expect(timestampResolver.projections.statusCode(detail)).toBe(200)
+		expect(timestampResolver.projections.rateLimitRemaining(detail)).toBe(499)
+		expect(timestampResolver.projections.rateLimitResetMs(detail)).toBe(1_800_000_000_000)
 		expect(timestampResolver.projections.resolverCount(detail)).toBeGreaterThan(0)
 		expect(timestampResolver.projections.error(detail)).toBeUndefined()
+	})
+
+	it('retains a reachable non-success status without calling it available', async () => {
+		sourceFetch.mockResolvedValueOnce(new Response(null, { status: 401 }))
+		const found = resolver(
+			EntityType.BlockheadSource_Timestamp,
+			'SourceTimestampMs',
+			'statusCode'
+		)
+		const observation = await found.resolve.SourceTimestampMs.resolve({
+			$source: {
+				id: Source.MempoolSpace_Rest,
+			},
+			timestampMs: 1,
+		}, context)
+
+		expect(found.projections.enabled(observation)).toBe(true)
+		expect(found.projections.health(observation)).toBe('HTTP endpoint reachable')
+		expect(found.projections.statusCode(observation)).toBe(401)
+	})
+
+	it('separates endpoint failure from resolver availability', async () => {
+		sourceFetch.mockRejectedValueOnce(new Error('connection refused'))
+		const found = resolver(
+			EntityType.BlockheadSource_Timestamp,
+			'SourceTimestampMs',
+			'statusCode'
+		)
+		const observation = await found.resolve.SourceTimestampMs.resolve({
+			$source: {
+				id: Source.MempoolSpace_Rest,
+			},
+			timestampMs: 1,
+		}, context)
+
+		expect(found.projections.enabled(observation)).toBe(true)
+		expect(found.projections.health(observation)).toBe('HTTP endpoint unavailable')
+		expect(found.projections.statusCode(observation)).toBeUndefined()
+		expect(found.projections.error(observation)).toContain('connection refused')
+		expect(found.projections.resolverCount(observation)).toBeGreaterThan(0)
+	})
+
+	it('labels non-HTTP sources as capability-only instead of inventing an endpoint probe', async () => {
+		sourceFetch.mockClear()
+		const found = resolver(
+			EntityType.BlockheadSource_Timestamp,
+			'SourceTimestampMs',
+			'health'
+		)
+		const observation = await found.resolve.SourceTimestampMs.resolve({
+			$source: {
+				id: Source.NostrRelay_WebSocket,
+			},
+			timestampMs: 1,
+		}, context)
+
+		expect(found.projections.enabled(observation)).toBe(true)
+		expect(found.projections.health(observation)).toBe('Resolver module available; no HTTP health probe')
+		expect(found.projections.statusCode(observation)).toBeUndefined()
+		expect(sourceFetch).not.toHaveBeenCalled()
 	})
 
 	it('rejects source identities outside the registered source denominator', async () => {

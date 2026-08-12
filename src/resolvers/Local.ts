@@ -17,6 +17,7 @@ import { EvmAddress, Hash32, ZeroExHex } from '$/schema/ZeroExHex.ts'
 import { BlockheadConnectionStatus } from '$/schema/BlockheadConnectionStatus.ts'
 import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
+import { probeSourceHttpEndpoint } from '$/sources/_runtime/probe.ts'
 import {
 	walletConnectionMethodById,
 	walletConnectionMethodByProtocolDiscoveryKindTransportKind,
@@ -55,15 +56,56 @@ const blockheadSourceTimestampFields = async ({
 		if (loadedResolverModule == null)
 			throw new Error(`resolver module ${source} is not registered`)
 
+		let endpointProbe
+		try {
+			endpointProbe = await (
+				typeof window === 'undefined' ?
+					probeSourceHttpEndpoint(source)
+				:
+					(await import('$/sources/_runtime/probe.remote.ts')).probeSourceHttpEndpointRemote(source)
+			)
+		} catch (error) {
+			return {
+				$source: {
+					id: source,
+				},
+				timestampMs,
+				enabled: true,
+				health: 'HTTP endpoint unavailable',
+				latencyMs: performance.now() - startedAt,
+				error: String(error),
+				statusCode: undefined,
+				rateLimitRemaining: undefined,
+				rateLimitResetMs: undefined,
+				resolverCount: loadedResolverModule.resolvers.length,
+			}
+		}
+		if (endpointProbe == null)
+			return {
+				$source: {
+					id: source,
+				},
+				timestampMs,
+				enabled: true,
+				health: 'Resolver module available; no HTTP health probe',
+				latencyMs: performance.now() - startedAt,
+				error: undefined,
+				statusCode: undefined,
+				rateLimitRemaining: undefined,
+				rateLimitResetMs: undefined,
+				resolverCount: loadedResolverModule.resolvers.length,
+			}
+
 		return {
 			$source: {
 				id: source,
 			},
 			timestampMs,
 			enabled: true,
-			health: 'Resolver module available',
+			health: endpointProbe.ok ? 'HTTP endpoint available' : 'HTTP endpoint reachable',
 			latencyMs: performance.now() - startedAt,
 			error: undefined,
+			...endpointProbe,
 			resolverCount: loadedResolverModule.resolvers.length,
 		}
 	} catch (error) {
@@ -76,6 +118,9 @@ const blockheadSourceTimestampFields = async ({
 			health: 'Resolver module unavailable',
 			latencyMs: performance.now() - startedAt,
 			error: String(error),
+			statusCode: undefined,
+			rateLimitRemaining: undefined,
+			rateLimitResetMs: undefined,
 			resolverCount: 0,
 		}
 	}
@@ -194,10 +239,19 @@ export default {
 								[entityFieldAddressKey(EntityType.BlockheadSource_Timestamp, [], 'enabled')]: timestamp.enabled,
 								[entityFieldAddressKey(EntityType.BlockheadSource_Timestamp, [], 'health')]: timestamp.health,
 								[entityFieldAddressKey(EntityType.BlockheadSource_Timestamp, [], 'latencyMs')]: timestamp.latencyMs,
+								...(timestamp.statusCode != null && {
+									[entityFieldAddressKey(EntityType.BlockheadSource_Timestamp, [], 'statusCode')]: timestamp.statusCode,
+								}),
 								...(timestamp.error != null && {
 									[entityFieldAddressKey(EntityType.BlockheadSource_Timestamp, [], 'error')]: timestamp.error,
 								}),
 								[entityFieldAddressKey(EntityType.BlockheadSource_Timestamp, [], 'resolverCount')]: timestamp.resolverCount,
+								...(timestamp.rateLimitRemaining != null && {
+									[entityFieldAddressKey(EntityType.BlockheadSource_Timestamp, [], 'rateLimitRemaining')]: timestamp.rateLimitRemaining,
+								}),
+								...(timestamp.rateLimitResetMs != null && {
+									[entityFieldAddressKey(EntityType.BlockheadSource_Timestamp, [], 'rateLimitResetMs')]: timestamp.rateLimitResetMs,
+								}),
 							},
 						}]
 					},
@@ -223,7 +277,10 @@ export default {
 			enabled: (timestamp) => timestamp.enabled,
 			health: (timestamp) => timestamp.health,
 			latencyMs: (timestamp) => timestamp.latencyMs,
+			statusCode: (timestamp) => timestamp.statusCode,
 			error: (timestamp) => timestamp.error,
+			rateLimitRemaining: (timestamp) => timestamp.rateLimitRemaining,
+			rateLimitResetMs: (timestamp) => timestamp.rateLimitResetMs,
 			resolverCount: (timestamp) => timestamp.resolverCount,
 		}),
 
