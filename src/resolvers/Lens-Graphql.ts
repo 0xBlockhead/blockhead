@@ -192,6 +192,12 @@ const lensPostCardReferenceFromWire = (
 			commentOn?: {
 				slug?: string | null
 			} | null
+			quoteOf?: {
+				slug?: string | null
+			} | null
+			root?: {
+				slug?: string | null
+			} | null
 			feed?: {
 				address?: string | null
 			} | null
@@ -214,6 +220,8 @@ const lensPostCardReferenceFromWire = (
 	const contentUri = lensPost.__typename === 'Post' ? optionalNonemptyString(lensPost.contentUri) : undefined
 	const repostOfSlug = lensPost.__typename === 'Repost' ? optionalNonemptyString(lensPost.repostOf?.slug) : undefined
 	const commentOnSlug = lensPost.__typename === 'Post' ? optionalNonemptyString(lensPost.commentOn?.slug) : undefined
+	const quoteOfSlug = lensPost.__typename === 'Post' ? optionalNonemptyString(lensPost.quoteOf?.slug) : undefined
+	const rootSlug = lensPost.__typename === 'Post' ? optionalNonemptyString(lensPost.root?.slug) : undefined
 	return {
 		[EntityMetaKey.Selector]: { id },
 		[EntityMetaKey.Fields]: {
@@ -239,6 +247,20 @@ const lensPostCardReferenceFromWire = (
 				[entityFieldAddressKey(EntityType.LensPost, [], '$repostOf')]: {
 					[EntityMetaKey.Selector]: {
 						id: repostOfSlug,
+					},
+				},
+			}),
+			...(quoteOfSlug != null && {
+				[entityFieldAddressKey(EntityType.LensPost, [], '$quoteOf')]: {
+					[EntityMetaKey.Selector]: {
+						id: quoteOfSlug,
+					},
+				},
+			}),
+			...(rootSlug != null && {
+				[entityFieldAddressKey(EntityType.LensPost, [], '$root')]: {
+					[EntityMetaKey.Selector]: {
+						id: rootSlug,
 					},
 				},
 			}),
@@ -1014,7 +1036,6 @@ const lensGraphqlResolvers = {
 							throw new Error('Lens_Graphql: feed response contains duplicate rule identity')
 
 						const rule = matchingRequiredRules[0] ?? matchingAnyOfRules[0]
-						if (rule == null) throw new Error('Lens_Graphql: feed rule not found')
 						return {
 							ruleType: rule.type,
 							address: lensEvmAddressFromWire(rule.address),
@@ -1157,7 +1178,6 @@ const lensGraphqlResolvers = {
 							throw new Error('Lens_Graphql: namespace response contains duplicate rule identity')
 
 						const rule = matchingRequiredRules[0] ?? matchingAnyOfRules[0]
-						if (rule == null) throw new Error('Lens_Graphql: namespace rule not found')
 						return {
 							ruleType: rule.type,
 							address: lensEvmAddressFromWire(rule.address),

@@ -262,6 +262,12 @@ const LensPostCard = graphql(`
 		commentOn {
 			slug
 		}
+		quoteOf {
+			slug
+		}
+		root {
+			slug
+		}
 		feed {
 			address
 			metadata {

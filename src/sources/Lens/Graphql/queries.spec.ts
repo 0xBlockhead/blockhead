@@ -96,7 +96,7 @@ it('requests complete public account and post reading fields', async () => {
 	expect(requestBody(0).variables).toEqual({
 		request: { address: accountAddress },
 	})
-	expect(requestBody(1).query).toMatch(/contentUri[\s\S]*feed[\s\S]*address[\s\S]*metadata/)
+	expect(requestBody(1).query).toMatch(/quoteOf[\s\S]*root[\s\S]*contentUri[\s\S]*feed[\s\S]*address[\s\S]*metadata/)
 	expect(requestBody(1).variables).toEqual({ post: 'post-1' })
 })
 

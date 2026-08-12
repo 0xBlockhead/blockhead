@@ -129,6 +129,12 @@ describe('Lens_Graphql reading relationships', () => {
 			commentOn: {
 				slug: 'parent-post',
 			},
+			quoteOf: {
+				slug: 'quoted-post',
+			},
+			root: {
+				slug: 'root-post',
+			},
 		}
 		const expectedReference = {
 			[EntityMetaKey.Selector]: { id: 'post-one' },
@@ -140,6 +146,16 @@ describe('Lens_Graphql reading relationships', () => {
 				[entityFieldAddressKey(EntityType.LensPost, [], '$commentOn')]: {
 					[EntityMetaKey.Selector]: {
 						id: 'parent-post',
+					},
+				},
+				[entityFieldAddressKey(EntityType.LensPost, [], '$quoteOf')]: {
+					[EntityMetaKey.Selector]: {
+						id: 'quoted-post',
+					},
+				},
+				[entityFieldAddressKey(EntityType.LensPost, [], '$root')]: {
+					[EntityMetaKey.Selector]: {
+						id: 'root-post',
 					},
 				},
 				[entityFieldAddressKey(EntityType.LensPost, [], '$author')]: {
