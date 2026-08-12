@@ -19,6 +19,7 @@
 	const pageSelection = $derived(select(EntityType.BlockheadMoneroSubaddressState, data.selector, {
 		sources: [
 			Source.Local_Internal,
+			Source.MoneroWalletRpc_JsonRpc,
 		],
 		fields: {
 			address: true,

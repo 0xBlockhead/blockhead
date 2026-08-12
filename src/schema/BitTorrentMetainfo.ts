@@ -42,6 +42,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.qBittorrentWebUi_Rest,
+			Source.TransmissionRpc_JsonRpc,
 		],
 	},
 	pieceLength: {
@@ -49,6 +50,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.qBittorrentWebUi_Rest,
+			Source.TransmissionRpc_JsonRpc,
 		],
 	},
 	totalLength: {
@@ -56,6 +58,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.qBittorrentWebUi_Rest,
+			Source.TransmissionRpc_JsonRpc,
 		],
 	},
 	private: {
@@ -67,6 +70,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
 			Source.qBittorrentWebUi_Rest,
+			Source.TransmissionRpc_JsonRpc,
 		],
 	},
 	$$fileTreeEntries: {
@@ -76,6 +80,9 @@ export default entity({
 	$$pieces: {
 		entityType: EntityType.BitTorrentPiece,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.TransmissionRpc_JsonRpc,
+		],
 	},
 	$$trackers: {
 		entityType: EntityType.BitTorrentTracker,

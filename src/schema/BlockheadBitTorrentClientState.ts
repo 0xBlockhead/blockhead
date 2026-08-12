@@ -22,6 +22,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.qBittorrentWebUi_Rest,
+			Source.TransmissionRpc_JsonRpc,
 		],
 	},
 	peerId: {
@@ -37,6 +38,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
 			Source.qBittorrentWebUi_Rest,
+			Source.TransmissionRpc_JsonRpc,
 		],
 	},
 	$$timestamps: {
@@ -44,6 +46,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
 			Source.qBittorrentWebUi_Rest,
+			Source.TransmissionRpc_JsonRpc,
 		],
 	},
 })({

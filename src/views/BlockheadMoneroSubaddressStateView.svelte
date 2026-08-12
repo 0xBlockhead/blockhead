@@ -28,6 +28,7 @@
 	const blockheadMoneroSubaddressState = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
+			Source.MoneroWalletRpc_JsonRpc,
 		],
 		fields: {
 			address: true,

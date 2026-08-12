@@ -6,14 +6,22 @@ import {
 } from '$/sources/_runtime/http.ts'
 import type {
 	TransmissionRequest,
-	TransmissionResponse,
+} from '$/sources/Transmission/Rpc/types.ts'
+import {
+	transmissionSessionResponseWire,
+	transmissionSessionStatsResponseWire,
+	transmissionTorrentsResponseWire,
 } from '$/sources/Transmission/Rpc/types.ts'
 
 const sessionHeader = 'x-transmission-session-id'
 
-const request = async (
+const request = async <_Arguments>(
 	binding: SourceBinding,
-	body: TransmissionRequest
+	body: TransmissionRequest,
+	responseWire: { assert: (value: unknown) => {
+		result: string
+		arguments?: _Arguments
+	} }
 ) => {
 	const response = await sourceFetch(binding, firstHttpUrlForBinding(binding), {
 		method: 'POST',
@@ -41,7 +49,18 @@ const request = async (
 	if (!retryResponse.ok)
 		await throwHttpError(`Transmission ${body.method}`, retryResponse)
 
-	return retryResponse.json<TransmissionResponse>()
+	let transmissionResponse
+	try {
+		transmissionResponse = responseWire.assert(await retryResponse.json())
+	} catch {
+		throw new Error(`Transmission_Rpc: invalid ${body.method} response envelope`)
+	}
+	if (transmissionResponse.result !== 'success')
+		throw new Error(`Transmission_Rpc: ${body.method} failed: ${transmissionResponse.result}`)
+	if (transmissionResponse.arguments == null)
+		throw new Error(`Transmission_Rpc: ${body.method} response missing arguments`)
+
+	return transmissionResponse.arguments
 }
 
 export const torrentGet = (
@@ -53,11 +72,17 @@ export const torrentGet = (
 		arguments: {
 			fields: [...fields],
 		},
-	})
+	}, transmissionTorrentsResponseWire)
 )
 
 export const sessionStats = (binding: SourceBinding) => (
 	request(binding, {
 		method: 'session-stats',
-	})
+	}, transmissionSessionStatsResponseWire)
+)
+
+export const sessionGet = (binding: SourceBinding) => (
+	request(binding, {
+		method: 'session-get',
+	}, transmissionSessionResponseWire)
 )

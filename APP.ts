@@ -12107,9 +12107,9 @@ export const schema = {
 			})({
 				"$torrent": { label: "torrent", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.BitTorrentMetainfo },
 				"fileIndex": { label: "file index", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
-				"path": { label: "path", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string", defaultSources: [Source.qBittorrentWebUi_Rest] },
-				"pathSegments": { label: "path segments", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "string", defaultSources: [Source.qBittorrentWebUi_Rest] },
-				"length": { label: "length", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "bigint", defaultSources: [Source.qBittorrentWebUi_Rest] },
+				"path": { label: "path", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string", defaultSources: [Source.qBittorrentWebUi_Rest, Source.TransmissionRpc_JsonRpc] },
+				"pathSegments": { label: "path segments", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "string", defaultSources: [Source.qBittorrentWebUi_Rest, Source.TransmissionRpc_JsonRpc] },
+				"length": { label: "length", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "bigint", defaultSources: [Source.qBittorrentWebUi_Rest, Source.TransmissionRpc_JsonRpc] },
 				"piecesRoot": { label: "pieces root", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"fileHash": { label: "file hash", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 			})({
@@ -12181,13 +12181,13 @@ export const schema = {
 				"infoHashV2": { label: "info hash v2", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"metainfoHash": { label: "metainfo hash", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"bencodedInfoHash": { label: "bencoded info hash", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"name": { label: "Name", description: "The human-readable name of the subject.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.qBittorrentWebUi_Rest] },
-				"pieceLength": { label: "piece length", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.qBittorrentWebUi_Rest] },
-				"totalLength": { label: "total length", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.qBittorrentWebUi_Rest] },
+				"name": { label: "Name", description: "The human-readable name of the subject.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.qBittorrentWebUi_Rest, Source.TransmissionRpc_JsonRpc] },
+				"pieceLength": { label: "piece length", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.qBittorrentWebUi_Rest, Source.TransmissionRpc_JsonRpc] },
+				"totalLength": { label: "total length", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.qBittorrentWebUi_Rest, Source.TransmissionRpc_JsonRpc] },
 				"private": { label: "private", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean" },
-				"$$files": { label: "files", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BitTorrentFile, defaultSources: [Source.qBittorrentWebUi_Rest] },
+				"$$files": { label: "files", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BitTorrentFile, defaultSources: [Source.qBittorrentWebUi_Rest, Source.TransmissionRpc_JsonRpc] },
 				"$$fileTreeEntries": { label: "file tree entries", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BitTorrentFileTreeEntry },
-				"$$pieces": { label: "pieces", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BitTorrentPiece },
+				"$$pieces": { label: "pieces", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BitTorrentPiece, defaultSources: [Source.TransmissionRpc_JsonRpc] },
 				"$$trackers": { label: "trackers", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BitTorrentTracker },
 				"$$magnets": { label: "magnets", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.MagnetLink },
 				"$$swarmTimestamps": { label: "swarm timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BitTorrentSwarmObservation_Timestamp },
@@ -13252,11 +13252,11 @@ export const schema = {
 				},
 			})({
 				"clientId": { label: "client ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"clientName": { label: "client name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.qBittorrentWebUi_Rest] },
+				"clientName": { label: "client name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.qBittorrentWebUi_Rest, Source.TransmissionRpc_JsonRpc] },
 				"peerId": { label: "peer ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"dhtNodeId": { label: "DHT node ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"$$transfers": { label: "transfers", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadBitTorrentTransfer_Timestamp, defaultSources: [Source.qBittorrentWebUi_Rest] },
-				"$$timestamps": { label: "timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadBitTorrentClientState_Timestamp, defaultSources: [Source.qBittorrentWebUi_Rest] },
+				"$$transfers": { label: "transfers", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadBitTorrentTransfer_Timestamp, defaultSources: [Source.qBittorrentWebUi_Rest, Source.TransmissionRpc_JsonRpc] },
+				"$$timestamps": { label: "timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadBitTorrentClientState_Timestamp, defaultSources: [Source.qBittorrentWebUi_Rest, Source.TransmissionRpc_JsonRpc] },
 			})({
 				selectors: {
 					"ClientId": ["clientId"],
@@ -15476,9 +15476,9 @@ export const schema = {
 				"$network": { label: "network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.MoneroNetwork },
 				"accountIndex": { label: "account index", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
 				"addressIndex": { label: "address index", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
-				"address": { label: "Address", description: "The address or account identifier used by the source protocol.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"label": { label: "Label", description: "A human-readable name for the subject.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"$$timestamps": { label: "timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadMoneroSubaddressState_Timestamp },
+				"address": { label: "Address", description: "The address or account identifier used by the source protocol.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.MoneroWalletRpc_JsonRpc] },
+				"label": { label: "Label", description: "A human-readable name for the subject.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.MoneroWalletRpc_JsonRpc] },
+				"$$timestamps": { label: "timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadMoneroSubaddressState_Timestamp, defaultSources: [Source.MoneroWalletRpc_JsonRpc] },
 			})({
 				selectors: {
 					"WalletIdAccountIndexAddressIndex": ["walletId", "accountIndex", "addressIndex"],
@@ -15486,7 +15486,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Local_Internal],
+							sources: [Source.Local_Internal, Source.MoneroWalletRpc_JsonRpc],
 							openFields: ["address", "label"],
 						},
 						summary: { title: ["address"], titleFallback: ["walletId"], value: [{ field: "accountIndex", format: "number" }, { field: "addressIndex", format: "number" }], HeadingAfter: ["label"] },
@@ -15642,14 +15642,14 @@ export const schema = {
 			})({
 				"walletId": { label: "wallet ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"$wallet": { label: "wallet", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.BlockheadWallet },
-				"$network": { label: "network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.MoneroNetwork },
-				"primaryAddress": { label: "primary address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+				"$network": { label: "network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.MoneroNetwork, defaultSources: [Source.MoneroWalletRpc_JsonRpc] },
+				"primaryAddress": { label: "primary address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.MoneroWalletRpc_JsonRpc] },
 				"viewOnly": { label: "view only", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean" },
 				"trustedDaemon": { label: "trusted daemon", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean" },
 				"viewKeyFingerprint": { label: "view key fingerprint", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"spendKeyAvailable": { label: "spend key available", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean" },
-				"$$timestamps": { label: "timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadMoneroWalletState_Timestamp },
-				"$$subaddresses": { label: "subaddresses", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadMoneroSubaddressState },
+				"$$timestamps": { label: "timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadMoneroWalletState_Timestamp, defaultSources: [Source.MoneroWalletRpc_JsonRpc] },
+				"$$subaddresses": { label: "subaddresses", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadMoneroSubaddressState, defaultSources: [Source.MoneroWalletRpc_JsonRpc] },
 				"$$outputs": { label: "outputs", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadMoneroOutputState },
 				"$$transfers": { label: "transfers", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadMoneroTransferState },
 			})({
@@ -15659,7 +15659,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Local_Internal],
+							sources: [Source.Local_Internal, Source.MoneroWalletRpc_JsonRpc],
 							openFields: ["primaryAddress", "viewOnly", "trustedDaemon", "viewKeyFingerprint", "spendKeyAvailable"],
 						},
 						summary: { title: ["walletId"], value: ["primaryAddress"], HeadingAfter: ["$network"] },
@@ -113987,6 +113987,10 @@ export const app = {
 				path: "src/resolvers/MoneroDaemonRpc-JsonRpc.ts",
 			},
 			{
+				source: Source.MoneroWalletRpc_JsonRpc,
+				path: "src/resolvers/MoneroWalletRpc-JsonRpc.ts",
+			},
+			{
 				source: Source.Morpho_Graphql,
 				path: "src/resolvers/Morpho-Graphql.ts",
 			},
@@ -114204,6 +114208,10 @@ export const app = {
 			{
 				source: Source.TradingView_Rest,
 				path: "src/resolvers/TradingView-Rest.ts",
+			},
+			{
+				source: Source.TransmissionRpc_JsonRpc,
+				path: "src/resolvers/TransmissionRpc-JsonRpc.ts",
 			},
 			{
 				source: Source.TronFullNode_Rest,

@@ -3,6 +3,7 @@
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export default entity({
@@ -23,10 +24,16 @@ export default entity({
 	$network: {
 		entityType: EntityType.MoneroNetwork,
 		cardinality: EntityFieldCardinality.One,
+		defaultSources: [
+			Source.MoneroWalletRpc_JsonRpc,
+		],
 	},
 	primaryAddress: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.MoneroWalletRpc_JsonRpc,
+		],
 	},
 	viewOnly: {
 		primitiveType: type('boolean'),
@@ -47,10 +54,16 @@ export default entity({
 	$$timestamps: {
 		entityType: EntityType.BlockheadMoneroWalletState_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.MoneroWalletRpc_JsonRpc,
+		],
 	},
 	$$subaddresses: {
 		entityType: EntityType.BlockheadMoneroSubaddressState,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.MoneroWalletRpc_JsonRpc,
+		],
 	},
 	$$outputs: {
 		entityType: EntityType.BlockheadMoneroOutputState,

@@ -26,6 +26,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.One,
 		defaultSources: [
 			Source.qBittorrentWebUi_Rest,
+			Source.TransmissionRpc_JsonRpc,
 		],
 	},
 	pathSegments: {
@@ -33,6 +34,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
 			Source.qBittorrentWebUi_Rest,
+			Source.TransmissionRpc_JsonRpc,
 		],
 	},
 	length: {
@@ -40,6 +42,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.One,
 		defaultSources: [
 			Source.qBittorrentWebUi_Rest,
+			Source.TransmissionRpc_JsonRpc,
 		],
 	},
 	piecesRoot: {

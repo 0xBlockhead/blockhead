@@ -28,6 +28,7 @@
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
+			Source.MoneroWalletRpc_JsonRpc,
 		],
 	}))
 	const blockheadMoneroWalletState = $derived(viewSelection({
