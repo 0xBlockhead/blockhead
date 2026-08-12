@@ -2196,6 +2196,14 @@ export const schema = {
 				type: { raw: "type.enumerated('clearinghouseState', 'spotClearinghouseState', 'userFees', 'delegatorSummary', 'userAbstraction', 'userDexAbstraction', 'approvedBuilders', 'borrowLendUserState')" },
 			},
 			{
+				id: "Integer",
+				routeParam: {
+					matcher: "integer",
+					decode: _ExpressionDecode.Number,
+				},
+				type: { raw: "type('number.integer')" },
+			},
+			{
 				id: "IpfsNamespace",
 				routeParam: {
 					matcher: "ipfsNamespace",
@@ -48075,7 +48083,7 @@ export const schema = {
 						"$$jettons": { label: "Jettons", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.TonJetton },
 						"$$nftCollections": { label: "NFT collections", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.TonNftCollection },
 						"$$nftItems": { label: "NFT items", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.TonNftItem },
-						"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.TonNetwork_Timestamp, defaultSources: [Source.TonApi_Rest] },
+						"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.TonNetwork_Timestamp, defaultSources: [Source.TonApi_Rest, Source.TonCenter] },
 					})({
 						singularView: {
 							carousels: [
@@ -48084,7 +48092,7 @@ export const schema = {
 									label: "Chain activity",
 									className: "network-view-collapsible-chain-activity",
 									sections: [
-										{ id: "ton-chain-observations", field: ["Ton", "$$timestamps"], List: "TonNetwork_TimestampsView", label: "Observations", selection: { sources: [Source.TonApi_Rest], limit: 16 } },
+										{ id: "ton-chain-observations", field: ["Ton", "$$timestamps"], List: "TonNetwork_TimestampsView", label: "Observations", selection: { sources: [Source.TonApi_Rest, Source.TonCenter], limit: 16 } },
 									],
 								},
 							],
@@ -61608,7 +61616,7 @@ export const schema = {
 				"workchain": {
 					label: 'workchain',
 					type: EntityFieldType.Primitive,
-					valueType: "NonNegativeInteger",
+					valueType: "Integer",
 					cardinality: EntityFieldCardinality.One,
 				},
 				"shardPrefix": {

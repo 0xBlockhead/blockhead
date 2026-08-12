@@ -18,6 +18,7 @@ import {
 	tonCenterV3Shard,
 } from '$/sources/TonCenter/V3/Rest/normalization.ts'
 import type {
+	TonCenterV3BlockWire,
 	TonCenterV3MessageWire,
 	TonCenterV3Page,
 	TonCenterV3TraceWire,
@@ -162,6 +163,45 @@ const tonMessage = (
 	},
 })
 
+const tonBlock = (
+	block: TonCenterV3BlockWire
+) => ({
+	[EntityMetaKey.Fields]: {
+		[entityFieldAddressKey(EntityType.TonBlock, [], 'rootHash')]: tonCenterV3Hash(
+			block.root_hash,
+			'block root hash'
+		),
+		[entityFieldAddressKey(EntityType.TonBlock, [], 'fileHash')]: tonCenterV3Hash(
+			block.file_hash,
+			'block file hash'
+		),
+		[entityFieldAddressKey(EntityType.TonBlock, [], 'genUtimeMs')]: Number(block.gen_utime) * 1_000,
+		[entityFieldAddressKey(EntityType.TonBlock, [], 'startLt')]: BigInt(block.start_lt),
+		[entityFieldAddressKey(EntityType.TonBlock, [], 'endLt')]: BigInt(block.end_lt),
+		[entityFieldAddressKey(EntityType.TonBlock, [], 'minRefMcSeqno')]: (
+			block.min_ref_mc_seqno == null ?
+				undefined
+			:
+				BigInt(block.min_ref_mc_seqno)
+		),
+	},
+})
+
+const tonNetworkTimestamp = (
+	network: TonNetwork,
+	lastMasterchainBlock: TonCenterV3BlockWire
+) => ({
+	[EntityMetaKey.Selector]: {
+		$network: network,
+		timestampMs: Number(lastMasterchainBlock.gen_utime) * 1_000,
+		source: Source.TonCenter,
+	},
+	[EntityMetaKey.Fields]: {
+		[entityFieldAddressKey(EntityType.TonNetwork_Timestamp, [], 'masterchainSeqno')]: BigInt(lastMasterchainBlock.seqno),
+		[entityFieldAddressKey(EntityType.TonNetwork_Timestamp, [], 'latestBlockUtimeMs')]: Number(lastMasterchainBlock.gen_utime) * 1_000,
+	},
+})
+
 const tonTransaction = (
 	network: TonNetwork,
 	transaction: TonCenterV3TransactionWire
@@ -277,13 +317,7 @@ export const createTonCenterV3Resolvers = () => ({
 							shardPrefix: tonCenterV3Shard(block.shard),
 							seqno: BigInt(block.seqno),
 						},
-						[EntityMetaKey.Fields]: {
-							[entityFieldAddressKey(EntityType.TonBlock, [], 'rootHash')]: tonCenterV3Hash(block.root_hash, 'block root hash'),
-							[entityFieldAddressKey(EntityType.TonBlock, [], 'fileHash')]: tonCenterV3Hash(block.file_hash, 'block file hash'),
-							[entityFieldAddressKey(EntityType.TonBlock, [], 'genUtimeMs')]: Number(block.gen_utime) * 1_000,
-							[entityFieldAddressKey(EntityType.TonBlock, [], 'startLt')]: BigInt(block.start_lt),
-							[entityFieldAddressKey(EntityType.TonBlock, [], 'endLt')]: BigInt(block.end_lt),
-						},
+						...tonBlock(block),
 					})),
 					continuation: (page) => continuation(page.nextOffset, 'blocks'),
 				},
@@ -582,6 +616,84 @@ export const createTonCenterV3Resolvers = () => ({
 					continuation: (page) => continuation(page.nextOffset, 'nft-items'),
 				},
 			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.Network,
+			resolve: tonNetworkSelectors(async (network) => {
+				assertTonMainnet(network)
+				const { getTonCenterV3MasterchainInfo } = await import('$/sources/TonCenter/V3/Rest/queries.ts')
+				return tonNetworkTimestamp(
+					network,
+					(await getTonCenterV3MasterchainInfo()).last
+				)
+			}),
+		})({
+			Ton: {
+				$$timestamps: {
+					select: (timestamp) => [timestamp],
+					resolveCount: () => 1,
+				},
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.TonNetwork_Timestamp,
+			resolve: {
+				NetworkTimestampMsSource: {
+					resolve: async ({ $network, timestampMs, source }) => {
+						assertTonMainnet($network)
+						if (source !== Source.TonCenter)
+							throw new Error(`TON Center v3: unsupported network observation source ${source}`)
+						const { getTonCenterV3MasterchainInfo } = await import('$/sources/TonCenter/V3/Rest/queries.ts')
+						const timestamp = tonNetworkTimestamp(
+							$network,
+							(await getTonCenterV3MasterchainInfo()).last
+						)
+						if (timestamp[EntityMetaKey.Selector].timestampMs !== timestampMs)
+							throw new Error(`TON Center v3: observation ${timestampMs} is no longer the indexed masterchain head`)
+
+						return timestamp[EntityMetaKey.Fields]
+					},
+				},
+			},
+		})({
+			masterchainSeqno: (timestamp) => timestamp[entityFieldAddressKey(EntityType.TonNetwork_Timestamp, [], 'masterchainSeqno')],
+			latestBlockUtimeMs: (timestamp) => timestamp[entityFieldAddressKey(EntityType.TonNetwork_Timestamp, [], 'latestBlockUtimeMs')],
+		}),
+
+		defineResolver({
+			entityType: EntityType.TonBlock,
+			resolve: {
+				NetworkWorkchainShardPrefixSeqno: {
+					resolve: async ({ $network, workchain, shardPrefix, seqno }) => {
+						assertTonMainnet($network)
+						const { getTonCenterV3BlockByWorkchainShardPrefixSeqno } = await import('$/sources/TonCenter/V3/Rest/queries.ts')
+						return tonBlock(await getTonCenterV3BlockByWorkchainShardPrefixSeqno({
+							workchain,
+							shardPrefix,
+							seqno,
+						}))[EntityMetaKey.Fields]
+					},
+				},
+				NetworkRootHashFileHash: {
+					resolve: async ({ $network, rootHash, fileHash }) => {
+						assertTonMainnet($network)
+						const { getTonCenterV3BlockByRootHashFileHash } = await import('$/sources/TonCenter/V3/Rest/queries.ts')
+						return tonBlock(await getTonCenterV3BlockByRootHashFileHash({
+							rootHash,
+							fileHash,
+						}))[EntityMetaKey.Fields]
+					},
+				},
+			},
+		})({
+			rootHash: (block) => block[entityFieldAddressKey(EntityType.TonBlock, [], 'rootHash')],
+			fileHash: (block) => block[entityFieldAddressKey(EntityType.TonBlock, [], 'fileHash')],
+			genUtimeMs: (block) => block[entityFieldAddressKey(EntityType.TonBlock, [], 'genUtimeMs')],
+			startLt: (block) => block[entityFieldAddressKey(EntityType.TonBlock, [], 'startLt')],
+			endLt: (block) => block[entityFieldAddressKey(EntityType.TonBlock, [], 'endLt')],
+			minRefMcSeqno: (block) => block[entityFieldAddressKey(EntityType.TonBlock, [], 'minRefMcSeqno')],
 		}),
 
 		defineResolver({

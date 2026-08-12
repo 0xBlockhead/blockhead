@@ -13,6 +13,7 @@ const tonCenterV3Block = type({
 	start_lt: 'string',
 	end_lt: 'string',
 	tx_count: 'number.integer >= 0',
+	'min_ref_mc_seqno?': 'number.integer >= 0',
 })
 
 export type TonCenterV3BlockWire = typeof tonCenterV3Block.infer
@@ -20,6 +21,13 @@ export type TonCenterV3BlockWire = typeof tonCenterV3Block.infer
 export const tonCenterV3Blocks = type({
 	blocks: tonCenterV3Block.array(),
 })
+
+export const tonCenterV3MasterchainInfo = type({
+	first: tonCenterV3Block,
+	last: tonCenterV3Block,
+})
+
+export type TonCenterV3MasterchainInfoWire = typeof tonCenterV3MasterchainInfo.infer
 
 const tonCenterV3Message = type({
 	hash: 'string',

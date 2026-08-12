@@ -6657,6 +6657,7 @@
 			{#snippet Applicable(projection)}
 				{@const tonChainActivityTonChainObservationsSources = networkApplicableSources([
 						Source.TonApi_Rest,
+						Source.TonCenter,
 					], pendingEntity)}
 
 				{@const tonChainActivitySections = [

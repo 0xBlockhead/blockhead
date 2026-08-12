@@ -13,12 +13,14 @@ import {
 import {
 	tonCenterV3Blocks,
 	tonCenterV3JettonMasters,
+	tonCenterV3MasterchainInfo,
 	tonCenterV3Messages,
 	tonCenterV3NftCollections,
 	tonCenterV3NftItems,
 	tonCenterV3Traces,
 	tonCenterV3Transactions,
 	type TonCenterV3MessageWire,
+	type TonCenterV3BlockWire,
 	type TonCenterV3NftCollectionWire,
 	type TonCenterV3Order,
 } from '$/sources/TonCenter/V3/Rest/types.ts'
@@ -155,14 +157,85 @@ const assertTonCenterV3NftCollectionWire = (wire: TonCenterV3NftCollectionWire) 
 	return address
 }
 
+const blockIdentity = (
+	block: TonCenterV3BlockWire
+) => {
+	const workchain = block.workchain
+	if (!Number.isSafeInteger(workchain) || workchain < -(2 ** 31) || workchain > 2 ** 31 - 1)
+		throw new Error('TON Center v3: malformed block workchain')
+
+	const seqno = tonCenterV3NonnegativeSafeInteger(block.seqno, 'block seqno')
+	const shard = tonCenterV3Shard(block.shard)
+	if (
+		!decimalString.test(block.gen_utime)
+		|| !Number.isSafeInteger(Number(block.gen_utime))
+	)
+		throw new Error('TON Center v3: malformed block generation time')
+
+	const rootHash = tonCenterV3Hash(block.root_hash, 'block root hash')
+	const fileHash = tonCenterV3Hash(block.file_hash, 'block file hash')
+	tonCenterV3NonnegativeInt64(block.start_lt, 'block start logical time')
+	tonCenterV3NonnegativeInt64(block.end_lt, 'block end logical time')
+	tonCenterV3NonnegativeSafeInteger(block.tx_count, 'block transaction count')
+	if (block.min_ref_mc_seqno != null)
+		tonCenterV3NonnegativeSafeInteger(block.min_ref_mc_seqno, 'block minimum referenced masterchain seqno')
+
+	return {
+		workchain,
+		shard,
+		seqno,
+		genUtimeSeconds: Number(block.gen_utime),
+		rootHash,
+		fileHash,
+	}
+}
+
 export const getTonCenterV3Blocks = async (
 	options: {
 		limit: number
 		offset: number
 		order: TonCenterV3Order
+		workchain?: number
+		shardPrefix?: string
+		seqno?: bigint
+		rootHash?: string
+		fileHash?: string
 	}
 ) => {
 	const parameters = pageParameters(options)
+	const hasBlockId = (
+		options.workchain != null
+		|| options.shardPrefix != null
+		|| options.seqno != null
+	)
+	if (
+		hasBlockId
+		&& (
+			options.workchain == null
+			|| options.shardPrefix == null
+			|| options.seqno == null
+		)
+	)
+		throw new Error('TON Center v3: block workchain, shard, and seqno filters must be provided together')
+	if (options.workchain != null) {
+		if (
+			!Number.isSafeInteger(options.workchain)
+			|| options.workchain < -(2 ** 31)
+			|| options.workchain > signedInt32Maximum
+		)
+			throw new Error('TON Center v3: block workchain filter must be an int32')
+		if (options.seqno == null || options.seqno < 0n || options.seqno > BigInt(signedInt32Maximum))
+			throw new Error('TON Center v3: block seqno filter must be a nonnegative int32')
+		parameters.set('workchain', String(options.workchain))
+		parameters.set('shard', tonCenterV3Shard(options.shardPrefix))
+		parameters.set('seqno', options.seqno.toString())
+	}
+	if ((options.rootHash == null) !== (options.fileHash == null))
+		throw new Error('TON Center v3: block root and file hash filters must be provided together')
+	if (options.rootHash != null) {
+		parameters.set('root_hash', tonCenterV3Hash(options.rootHash, 'block root hash'))
+		parameters.set('file_hash', tonCenterV3Hash(options.fileHash, 'block file hash'))
+	}
 	const wire = tonCenterV3Blocks.assert(await getTonCenterV3RestJson<unknown>(
 		`blocks?${parameters.toString()}`
 	))
@@ -170,37 +243,105 @@ export const getTonCenterV3Blocks = async (
 	const hashIdentities = new Set<string>()
 	let previousGenerationTime: number | undefined
 	for (const block of wire.blocks) {
-		const workchain = block.workchain
-		if (!Number.isSafeInteger(workchain) || workchain < -(2 ** 31) || workchain > 2 ** 31 - 1)
-			throw new Error('TON Center v3: malformed block workchain')
-		const seqno = tonCenterV3NonnegativeSafeInteger(block.seqno, 'block seqno')
-		const shard = tonCenterV3Shard(block.shard)
+		const {
+			workchain,
+			shard,
+			seqno,
+			genUtimeSeconds,
+			rootHash,
+			fileHash,
+		} = blockIdentity(block)
 		const identity = `${workchain}:${shard}:${seqno}`
 		if (identities.has(identity))
 			throw new Error('TON Center v3: duplicate block identity')
 		identities.add(identity)
-		if (
-			!decimalString.test(block.gen_utime)
-			|| !Number.isSafeInteger(Number(block.gen_utime))
-		)
-			throw new Error('TON Center v3: malformed block generation time')
-
-		const rootHash = tonCenterV3Hash(block.root_hash, 'block root hash')
-		const fileHash = tonCenterV3Hash(block.file_hash, 'block file hash')
 		const hashIdentity = `${rootHash}:${fileHash}`
 		if (hashIdentities.has(hashIdentity))
 			throw new Error('TON Center v3: duplicate block hash identity')
 		hashIdentities.add(hashIdentity)
-		const genUtimeSeconds = Number(block.gen_utime)
 		assertOrdered(previousGenerationTime, genUtimeSeconds, options.order, 'blocks')
 		previousGenerationTime = genUtimeSeconds
-
-		tonCenterV3NonnegativeInt64(block.start_lt, 'block start logical time')
-		tonCenterV3NonnegativeInt64(block.end_lt, 'block end logical time')
-		tonCenterV3NonnegativeSafeInteger(block.tx_count, 'block transaction count')
 	}
 
 	return page(wire.blocks, options.limit, options.offset)
+}
+
+const getTonCenterV3ExactBlock = async (
+	options: Parameters<typeof getTonCenterV3Blocks>[0],
+	identity: string,
+	matches: (block: TonCenterV3BlockWire) => boolean
+) => {
+	const blocks = await getTonCenterV3Blocks(options)
+	const [block] = blocks.rows
+	if (blocks.rows.length !== 1 || !matches(block))
+		throw new Error(`TON Center v3: block ${identity} was not resolved exactly once`)
+
+	return block
+}
+
+export const getTonCenterV3BlockByWorkchainShardPrefixSeqno = async ({
+	workchain,
+	shardPrefix,
+	seqno,
+}: {
+	workchain: number
+	shardPrefix: string
+	seqno: bigint
+}) => {
+	const normalizedShardPrefix = tonCenterV3Shard(shardPrefix)
+	return getTonCenterV3ExactBlock({
+		limit: 1,
+		offset: 0,
+		order: 'desc',
+		workchain,
+		shardPrefix: normalizedShardPrefix,
+		seqno,
+	}, `${workchain}:${normalizedShardPrefix}:${seqno.toString()}`, (block) => {
+		const identity = blockIdentity(block)
+		return (
+			identity.workchain === workchain
+			&& identity.shard === normalizedShardPrefix
+			&& BigInt(identity.seqno) === seqno
+		)
+	})
+}
+
+export const getTonCenterV3BlockByRootHashFileHash = async ({
+	rootHash,
+	fileHash,
+}: {
+	rootHash: string
+	fileHash: string
+}) => {
+	const normalizedRootHash = tonCenterV3Hash(rootHash, 'block root hash')
+	const normalizedFileHash = tonCenterV3Hash(fileHash, 'block file hash')
+	return getTonCenterV3ExactBlock({
+		limit: 1,
+		offset: 0,
+		order: 'desc',
+		rootHash: normalizedRootHash,
+		fileHash: normalizedFileHash,
+	}, `${normalizedRootHash}:${normalizedFileHash}`, (block) => {
+		const identity = blockIdentity(block)
+		return (
+			identity.rootHash === normalizedRootHash
+			&& identity.fileHash === normalizedFileHash
+		)
+	})
+}
+
+export const getTonCenterV3MasterchainInfo = async () => {
+	const masterchainInfo = tonCenterV3MasterchainInfo.assert(await getTonCenterV3RestJson<unknown>(
+		'masterchainInfo'
+	))
+	const first = blockIdentity(masterchainInfo.first)
+	const last = blockIdentity(masterchainInfo.last)
+	if (first.workchain !== -1 || last.workchain !== -1)
+		throw new Error('TON Center v3: masterchain info contains a non-masterchain block')
+	if (last.seqno < first.seqno || last.genUtimeSeconds < first.genUtimeSeconds)
+		throw new Error('TON Center v3: masterchain index range is reversed')
+
+	return masterchainInfo
 }
 
 export const getTonCenterV3Messages = async (

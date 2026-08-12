@@ -10,11 +10,14 @@ import { Source } from '$/sources/Source.ts'
 
 const sourceQueries = vi.hoisted(() => ({
 	getTonCenterV3Blocks: vi.fn(),
+	getTonCenterV3BlockByRootHashFileHash: vi.fn(),
+	getTonCenterV3BlockByWorkchainShardPrefixSeqno: vi.fn(),
 	getTonCenterV3CompletedTrace: vi.fn(),
 	getTonCenterV3Transactions: vi.fn(),
 	getTonCenterV3TransactionByAccountLt: vi.fn(),
 	getTonCenterV3Messages: vi.fn(),
 	getTonCenterV3MessageByHash: vi.fn(),
+	getTonCenterV3MasterchainInfo: vi.fn(),
 	getTonCenterV3CompletedTraces: vi.fn(),
 	getTonCenterV3JettonMasters: vi.fn(),
 	getTonCenterV3NftCollections: vi.fn(),
@@ -616,5 +619,88 @@ describe('TonCenter v3 network resolver', () => {
 			traceId: '1'.repeat(64),
 			source: Source.TonApi_Rest,
 		})).rejects.toThrow('unsupported trace source')
+	})
+
+	it('projects the indexed masterchain head and resolves direct blocks through exact selectors', async () => {
+		const first = {
+			workchain: -1,
+			shard: '8000000000000000',
+			seqno: 42,
+			root_hash: '1'.repeat(64),
+			file_hash: '2'.repeat(64),
+			gen_utime: '1700000000',
+			start_lt: '100',
+			end_lt: '200',
+			tx_count: 1,
+		}
+		const last = {
+			...first,
+			seqno: 43,
+			root_hash: '3'.repeat(64),
+			file_hash: '4'.repeat(64),
+			gen_utime: '1700000001',
+			min_ref_mc_seqno: 42,
+		}
+		const timestampsResolver = tonCenter.resolvers.at(-6)
+		const timestampResolver = tonCenter.resolvers.at(-5)
+		const blockResolver = tonCenter.resolvers.at(-4)
+		if (timestampsResolver == null || timestampResolver == null || blockResolver == null)
+			throw new Error('TON Center v3 network and block resolvers are missing')
+
+		sourceQueries.getTonCenterV3MasterchainInfo.mockResolvedValueOnce({
+			first,
+			last,
+		})
+		const snapshot = await timestampsResolver.resolve.Caip2.resolve(network, context)
+		const timestampsProjection = timestampsResolver.projections.Ton.$$timestamps
+		if (typeof timestampsProjection === 'function')
+			throw new Error('TON Center v3 spec missing timestamp selection')
+		const [timestamp] = timestampsProjection.select(snapshot)
+		expect(timestamp[EntityMetaKey.Selector]).toEqual({
+			$network: network,
+			timestampMs: 1_700_000_001_000,
+			source: Source.TonCenter,
+		})
+		expect(timestamp[EntityMetaKey.Fields]).toEqual({
+			[entityFieldAddressKey(EntityType.TonNetwork_Timestamp, [], 'masterchainSeqno')]: 43n,
+			[entityFieldAddressKey(EntityType.TonNetwork_Timestamp, [], 'latestBlockUtimeMs')]: 1_700_000_001_000,
+		})
+
+		sourceQueries.getTonCenterV3MasterchainInfo.mockResolvedValueOnce({
+			first,
+			last,
+		})
+		await expect(timestampResolver.resolve.NetworkTimestampMsSource.resolve({
+			$network: network,
+			timestampMs: 1_700_000_001_000,
+			source: Source.TonCenter,
+		})).resolves.toEqual(timestamp[EntityMetaKey.Fields])
+
+		sourceQueries.getTonCenterV3BlockByWorkchainShardPrefixSeqno.mockResolvedValueOnce(last)
+		await expect(blockResolver.resolve.NetworkWorkchainShardPrefixSeqno.resolve({
+			$network: network,
+			workchain: 0,
+			shardPrefix: '8000000000000000',
+			seqno: 43n,
+		})).resolves.toMatchObject({
+			[entityFieldAddressKey(EntityType.TonBlock, [], 'rootHash')]: '3'.repeat(64),
+			[entityFieldAddressKey(EntityType.TonBlock, [], 'fileHash')]: '4'.repeat(64),
+			[entityFieldAddressKey(EntityType.TonBlock, [], 'minRefMcSeqno')]: 42n,
+		})
+		expect(sourceQueries.getTonCenterV3BlockByWorkchainShardPrefixSeqno).toHaveBeenCalledWith({
+			workchain: 0,
+			shardPrefix: '8000000000000000',
+			seqno: 43n,
+		})
+
+		sourceQueries.getTonCenterV3BlockByRootHashFileHash.mockResolvedValueOnce(last)
+		await expect(blockResolver.resolve.NetworkRootHashFileHash.resolve({
+			$network: network,
+			rootHash: '3'.repeat(64),
+			fileHash: '4'.repeat(64),
+		})).resolves.toMatchObject({
+			[entityFieldAddressKey(EntityType.TonBlock, [], 'rootHash')]: '3'.repeat(64),
+			[entityFieldAddressKey(EntityType.TonBlock, [], 'fileHash')]: '4'.repeat(64),
+		})
 	})
 })

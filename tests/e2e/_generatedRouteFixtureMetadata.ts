@@ -11,6 +11,7 @@ import {
 	match as matchEvmTxHashOrSolanaSignatureOrUtxoTxIdOrStringSegment,
 } from '$/params/evmTxHashOrSolanaSignatureOrUtxoTxIdOrStringSegment.ts'
 import { match as matchFarcasterFid } from '$/params/farcasterFid.ts'
+import { match as matchInteger } from '$/params/integer.ts'
 import { match as matchIpfsNamespace } from '$/params/ipfsNamespace.ts'
 import { match as matchIso4217 } from '$/params/iso4217.ts'
 import { match as matchMarketVenueId } from '$/params/marketVenueId.ts'
@@ -57,6 +58,7 @@ export const matchE2eRouteParam = (matcher: string, value: string) => {
 		case 'networkSlug': return matchNetworkSlug(value)
 		case 'evmAddressOrStringSegment': return matchEvmAddressOrStringSegment(value)
 		case 'evmTxHashOrSolanaSignatureOrUtxoTxIdOrStringSegment': return matchEvmTxHashOrSolanaSignatureOrUtxoTxIdOrStringSegment(value)
+		case 'integer': return matchInteger(value)
 		case 'userOperationHash': return matchUserOperationHash(value)
 		case 'nonNegativeIntegerOrSolanaPubkeyOrStringSegment': return matchNonNegativeIntegerOrSolanaPubkeyOrStringSegment(value)
 		case 'evmTopicHash': return matchEvmTopicHash(value)
@@ -6802,7 +6804,7 @@ export const e2eRouteFixtureMetadataByNodeId = {
 		],
 	},
 	'/(explore)/(networks)/network/[network]/block/[workchain]/[shardPrefix]/[seqno]': {
-		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/block/[workchain=nonNegativeInteger]/[shardPrefix=stringSegment]/[seqno=nonNegativeBigInt]',
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/block/[workchain=integer]/[shardPrefix=stringSegment]/[seqno=nonNegativeBigInt]',
 		mappings: [
 			{
 				id: 'TonBlock.NetworkWorkchainShardPrefixSeqno',

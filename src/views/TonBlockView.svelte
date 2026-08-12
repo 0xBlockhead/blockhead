@@ -43,7 +43,7 @@
 				&& 'shardPrefix' in selection.entitySelector
 				&& 'seqno' in selection.entitySelector ?
 					resolve(
-						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/block/[workchain=nonNegativeInteger]/[shardPrefix=stringSegment]/[seqno=nonNegativeBigInt]',
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/block/[workchain=integer]/[shardPrefix=stringSegment]/[seqno=nonNegativeBigInt]',
 						{
 							network: (
 								'caip2' in network ?

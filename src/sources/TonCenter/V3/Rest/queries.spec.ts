@@ -30,10 +30,13 @@ vi.mock('$/sources/_shared/wire/HttpRest/client.ts', () => ({
 
 const {
 	getTonCenterV3Blocks,
+	getTonCenterV3BlockByRootHashFileHash,
+	getTonCenterV3BlockByWorkchainShardPrefixSeqno,
 	getTonCenterV3CompletedTrace,
 	getTonCenterV3CompletedTraces,
 	getTonCenterV3JettonMasters,
 	getTonCenterV3MessageByHash,
+	getTonCenterV3MasterchainInfo,
 	getTonCenterV3Messages,
 	getTonCenterV3NftCollections,
 	getTonCenterV3NftItems,
@@ -216,6 +219,54 @@ describe('TON Center v3 source foundation', () => {
 		expect(getJson).toHaveBeenCalledWith(
 			expect.anything(),
 			'blocks?limit=2&offset=4&sort=desc'
+		)
+	})
+
+	it('resolves exact block selectors and the indexed masterchain head', async () => {
+		getJson
+			.mockResolvedValueOnce({
+				blocks: [block],
+			})
+			.mockResolvedValueOnce({
+				blocks: [block],
+			})
+			.mockResolvedValueOnce({
+				first: {
+					...block,
+					seqno: block.seqno - 1,
+					root_hash: secondHash,
+					file_hash: firstHash,
+				},
+				last: block,
+			})
+
+		await expect(getTonCenterV3BlockByWorkchainShardPrefixSeqno({
+			workchain: -1,
+			shardPrefix: block.shard.toUpperCase(),
+			seqno: BigInt(block.seqno),
+		})).resolves.toEqual(block)
+		await expect(getTonCenterV3BlockByRootHashFileHash({
+			rootHash: firstHash.toUpperCase(),
+			fileHash: secondHash.toUpperCase(),
+		})).resolves.toEqual(block)
+		await expect(getTonCenterV3MasterchainInfo()).resolves.toMatchObject({
+			last: block,
+		})
+
+		expect(getJson).toHaveBeenNthCalledWith(
+			1,
+			expect.anything(),
+			`blocks?limit=1&offset=0&sort=desc&workchain=-1&shard=${block.shard}&seqno=${block.seqno}`
+		)
+		expect(getJson).toHaveBeenNthCalledWith(
+			2,
+			expect.anything(),
+			`blocks?limit=1&offset=0&sort=desc&root_hash=${firstHash}&file_hash=${secondHash}`
+		)
+		expect(getJson).toHaveBeenNthCalledWith(
+			3,
+			expect.anything(),
+			'masterchainInfo'
 		)
 	})
 

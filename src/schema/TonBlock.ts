@@ -17,7 +17,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.One,
 	},
 	workchain: {
-		primitiveType: type('number.integer >= 0'),
+		primitiveType: type('number.integer'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	shardPrefix: {
