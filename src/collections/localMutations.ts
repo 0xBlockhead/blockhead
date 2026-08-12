@@ -257,8 +257,10 @@ type LocalBlockheadSessionSimulationCall = Omit<
 >
 type LocalBlockheadSessionSimulationLog = Omit<
 	EntityFieldValues<typeof schema, EntityType.BlockheadSessionSimulationLog>,
-	'$simulation' | 'simulationId'
->
+	'$simulation' | 'decodedArgs' | 'simulationId'
+> & {
+	decodedArgs?: object
+}
 type LocalBlockheadTransferIntent = Omit<
 	EntityFieldValues<typeof schema, EntityType.BlockheadTransferIntent>,
 	'$sessionAction'
