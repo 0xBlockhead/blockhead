@@ -16,6 +16,7 @@ const getAddressDetails = vi.hoisted(() => vi.fn())
 const getAddressCounters = vi.hoisted(() => vi.fn())
 const getAddressCoinBalanceHistory = vi.hoisted(() => vi.fn())
 const getAddressTokenBalances = vi.hoisted(() => vi.fn())
+const getAddressTransactions = vi.hoisted(() => vi.fn())
 const getBlocks = vi.hoisted(() => vi.fn())
 const getBlockByNumber = vi.hoisted(() => vi.fn())
 const getErc4337BundlerDetail = vi.hoisted(() => vi.fn())
@@ -32,6 +33,7 @@ vi.mock('$/sources/Blockscout/Rest/queries.ts', async (importOriginal) => ({
 	getAddressCounters,
 	getAddressCoinBalanceHistory,
 	getAddressTokenBalances,
+	getAddressTransactions,
 	getBlocks,
 	getBlockByNumber,
 	getErc4337BundlerDetail,
@@ -108,6 +110,46 @@ const receiptLogs = [
 ] as const satisfies BlockscoutTransactionLog[]
 
 describe('Blockscout EVM coin instances', () => {
+	it('materializes stable transaction facts in account activity without detail reads', async () => {
+		getAddressTransactions.mockResolvedValueOnce([{
+			from: { hash: blockscoutAddress.hash },
+			to: { hash: '0x2222222222222222222222222222222222222222' },
+			gas_limit: '21000',
+			gas_price: '1',
+			gas_used: '21000',
+			hash: txHash,
+			nonce: 4,
+			raw_input: '0x',
+			value: '42',
+			type: 2,
+			status: 'ok',
+			block_number: 12,
+			position: 3,
+			created_contract: null,
+		}])
+		const resolver = blockscoutRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.EvmNetworkAccount
+			&& typeof candidate.projections.$$transactions === 'function'
+		))
+		if (resolver == null) throw new Error('missing account transaction resolver')
+		const rows = await resolver.resolve.EvmNetworkEvmAccount.resolve({
+			$actor: { address: blockscoutAddress.hash },
+			$network: network,
+		}, context)
+
+		expect(resolver.projections.$$transactions(rows)[0]).toMatchObject({
+			[EntityMetaKey.Selector]: { $network: network, txHash },
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.EvmTransaction, [], 'envelopeType')]: 'FeeMarket',
+				[entityFieldAddressKey(EntityType.EvmTransaction, [], 'kind')]: 'NativeTransfer',
+				[entityFieldAddressKey(EntityType.EvmTransaction, [], 'value')]: 42n,
+				[entityFieldAddressKey(EntityType.EvmTransaction, [], 'executionStatus')]: 'Success',
+				[entityFieldAddressKey(EntityType.EvmTransaction, [], 'indexInBlock')]: 3,
+			},
+		})
+		expect(getTransactionByHash).not.toHaveBeenCalled()
+	})
+
 	it('indexes only ERC-20 facet parts, leaving native selectors without a Blockscout part', () => {
 		const parts = indexResolvers(
 			schema,

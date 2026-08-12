@@ -399,6 +399,65 @@ const evmBlobEntityRefsFromBlockscoutTx = ({
 	})
 )
 
+const evmTransactionReferenceFromBlockscoutWire = (
+	$network: EvmNetworkId,
+	transaction: BlockscoutTransaction
+) => {
+	const txHash = hexLowerOfByteSize(transaction.hash, 32)
+	const from = hexLowerOfByteSize(transaction.from.hash, 20)
+	const to = hexLowerOfByteSize(transaction.to.hash, 20)
+	const envelopeType = evmTransactionEnvelopeTypeFromRpcTypeByte(
+		nonnegativeIntegerFromWire(transaction.type)
+	)
+	if (txHash == null || from == null || envelopeType == null)
+		return
+
+	const blockNumber = blockscoutQuantityToBigInt(transaction.block_number)
+	const value = blockscoutQuantityToBigInt(transaction.value) ?? 0n
+	const createdContractAddress = transaction.created_contract == null ? undefined : hexLowerOfByteSize(transaction.created_contract.hash, 20)
+	return {
+		[EntityMetaKey.Selector]: {
+			$network,
+			txHash,
+		},
+		[EntityMetaKey.Fields]: {
+			[entityFieldAddressKey(EntityType.EvmTransaction, [], 'envelopeType')]: envelopeType,
+			[entityFieldAddressKey(EntityType.EvmTransaction, [], 'kind')]: evmTransactionKindFromSignedFields({
+				value,
+				toAddress: to,
+				input: transaction.raw_input,
+				createdContractAddress,
+			}),
+			[entityFieldAddressKey(EntityType.EvmTransaction, [], '$from')]: {
+				[EntityMetaKey.Selector]: { address: from },
+			},
+			...(to != null && {
+				[entityFieldAddressKey(EntityType.EvmTransaction, [], '$to')]: {
+					[EntityMetaKey.Selector]: { address: to },
+				},
+			}),
+			[entityFieldAddressKey(EntityType.EvmTransaction, [], 'value')]: value,
+			...(blockNumber != null && {
+				[entityFieldAddressKey(EntityType.EvmTransaction, [], '$block')]: {
+					[EntityMetaKey.Selector]: {
+						$network,
+						blockNumber,
+					},
+				},
+			}),
+			...(nonnegativeIntegerFromWire(transaction.position) != null && {
+				[entityFieldAddressKey(EntityType.EvmTransaction, [], 'indexInBlock')]: nonnegativeIntegerFromWire(transaction.position),
+			}),
+			...(transaction.status === 'ok' && {
+				[entityFieldAddressKey(EntityType.EvmTransaction, [], 'executionStatus')]: EvmTransactionExecutionStatus.Success,
+			}),
+			...(transaction.status === 'error' && {
+				[entityFieldAddressKey(EntityType.EvmTransaction, [], 'executionStatus')]: EvmTransactionExecutionStatus.Failed,
+			}),
+		},
+	}
+}
+
 const evmInternalCallTypeFromWire = (
 	raw: string | undefined
 ): EvmInternalCallType | undefined => (
@@ -1049,7 +1108,7 @@ const blockscoutNativeCoinForChain = async (
 		?? CoinId.ETH
 	)
 	const coin = coinById[nativeCoinId]
-	if (coin == null || coin.symbol.trim() === '')
+	if (coin.symbol.trim() === '')
 		throw new Error(`Blockscout_Rest: native coin missing for chain ${chainId}`)
 
 	return {
@@ -1063,10 +1122,10 @@ const blockscoutTipBlockObservationClock = async (
 	chainId: number
 ) => {
 	const { getBlocks } = await import('$/sources/Blockscout/Rest/queries.ts')
-	const [tip] = await getBlocks({
+	const tip = (await getBlocks({
 		chainId,
 		limit: 1,
-	})
+	})).at(0)
 	if (tip == null || !Number.isSafeInteger(tip.height) || tip.height < 0)
 		throw new Error('Blockscout_Rest: tip block missing for balance observation clock')
 
@@ -2830,8 +2889,8 @@ export default {
 								((clock) => [
 									blockscoutNativeBalanceObservation({
 										actorCoin,
-										value: details.coin_balance!,
-										blockNumber: details.block_number_balance_updated_at!,
+											value: details.coin_balance,
+											blockNumber: details.block_number_balance_updated_at,
 										blockTimestamp: clock.timestamp,
 										exchangeRate: details.exchange_rate,
 									}),
@@ -3171,19 +3230,11 @@ export default {
 						})
 						return (
 							wires.flatMap((wire) => {
-								const txHash = hexLowerOfByteSize(wire.hash, 32)
-
-								return (
-									txHash == null ?
-										[]
-									:
-										[{
-											[EntityMetaKey.Selector]: {
-												$network: evmNetworkSelectorFromChainId(evmChainIdFromNetworkSelector(entitySelector)),
-												txHash,
-											},
-										}]
+								const reference = evmTransactionReferenceFromBlockscoutWire(
+									evmNetworkSelectorFromChainId(evmChainIdFromNetworkSelector(entitySelector)),
+									wire
 								)
+								return reference == null ? [] : [reference]
 							})
 						)
 					},
@@ -3219,19 +3270,11 @@ export default {
 						})
 						return (
 							wires.flatMap((wire) => {
-								const txHash = hexLowerOfByteSize(wire.hash, 32)
-
-								return (
-									txHash == null ?
-										[]
-									:
-										[{
-											[EntityMetaKey.Selector]: {
-												$network: evmNetworkSelectorFromChainId(evmChainIdFromNetworkSelector($network)),
-												txHash,
-											},
-										}]
+								const reference = evmTransactionReferenceFromBlockscoutWire(
+									evmNetworkSelectorFromChainId(evmChainIdFromNetworkSelector($network)),
+									wire
 								)
+								return reference == null ? [] : [reference]
 							})
 						)
 					},
