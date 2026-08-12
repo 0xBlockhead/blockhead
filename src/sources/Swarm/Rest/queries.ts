@@ -10,6 +10,12 @@ import {
 	trimGatewayPathSlashes,
 } from '$/sources/_shared/interfaces/ContentGateway/queries.ts'
 import { ContentGatewayFamily } from '$/sources/_shared/interfaces/ContentGateway/types.ts'
+import { swarmManifestPathPattern } from '$/sources/Swarm/Rest/constants.ts'
+import {
+	swarmManifestWire,
+	swarmReference,
+	type SwarmManifest,
+} from '$/sources/Swarm/Rest/types.ts'
 
 const binding = bindings[Source.Swarm_Rest][0]
 
@@ -27,6 +33,37 @@ export const normalizeSwarmReference = (
 				trimmed
 	)
 	return stripOptionalHexPrefix(trimGatewayPathSlashes(withoutScheme)).toLowerCase()
+}
+
+export const parseSwarmManifest = (text: string): SwarmManifest => {
+	let parsed: unknown
+	try {
+		parsed = JSON.parse(text)
+	} catch {
+		throw new Error('Swarm_Rest: invalid manifest JSON')
+	}
+	let manifest: SwarmManifest
+	try {
+		manifest = swarmManifestWire.assert(parsed)
+	} catch {
+		throw new Error('Swarm_Rest: invalid manifest envelope')
+	}
+	for (const path of [manifest.manifest.indexDocument, manifest.manifest.errorDocument].filter((value) => value != null)) {
+		if (path === '' || !swarmManifestPathPattern.test(path))
+			throw new Error(`Swarm_Rest: invalid manifest document path ${path}`)
+	}
+	for (const entry of manifest.entries) {
+		if (entry.path === '' || !swarmManifestPathPattern.test(entry.path))
+			throw new Error(`Swarm_Rest: invalid manifest entry path ${entry.path}`)
+		try {
+			swarmReference.assert(entry.hash)
+		} catch {
+			throw new Error(`Swarm_Rest: invalid manifest entry hash ${entry.path}`)
+		}
+	}
+	if (new Set(manifest.entries.map((entry) => entry.path)).size !== manifest.entries.length)
+		throw new Error('Swarm_Rest: duplicate manifest entry path')
+	return manifest
 }
 
 export const assertSwarmGatewayReference = (
