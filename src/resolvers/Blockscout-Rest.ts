@@ -553,6 +553,14 @@ const evmTransactionReferenceFromBlockscoutWire = (
 			...(transaction.status === 'error' && {
 				[entityFieldAddressKey(EntityType.EvmTransaction, [], 'executionStatus')]: EvmTransactionExecutionStatus.Failed,
 			}),
+			...(createdContractAddress != null && {
+				[entityFieldAddressKey(EntityType.EvmTransaction, ['ContractCreation'], '$contract')]: {
+					[EntityMetaKey.Selector]: {
+						$network,
+						address: createdContractAddress,
+					},
+				},
+			}),
 		},
 	}
 }

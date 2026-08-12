@@ -112,7 +112,8 @@ const receiptLogs = [
 ] as const satisfies BlockscoutTransactionLog[]
 
 describe('Blockscout EVM coin instances', () => {
-	it('materializes stable transaction facts in account activity without detail reads', async () => {
+	it('materializes stable transaction facts and created contracts in account activity without detail reads', async () => {
+		const createdContract = '0x4444444444444444444444444444444444444444'
 		getAddressTransactions.mockResolvedValueOnce([{
 			from: { hash: blockscoutAddress.hash },
 			to: { hash: '0x2222222222222222222222222222222222222222' },
@@ -127,7 +128,7 @@ describe('Blockscout EVM coin instances', () => {
 			status: 'ok',
 			block_number: 12,
 			position: 3,
-			created_contract: null,
+			created_contract: { hash: createdContract },
 		}])
 		const resolver = blockscoutRest.resolvers.find((candidate) => (
 			candidate.entityType === EntityType.EvmNetworkAccount
@@ -143,10 +144,16 @@ describe('Blockscout EVM coin instances', () => {
 			[EntityMetaKey.Selector]: { $network: network, txHash },
 			[EntityMetaKey.Fields]: {
 				[entityFieldAddressKey(EntityType.EvmTransaction, [], 'envelopeType')]: 'FeeMarket',
-				[entityFieldAddressKey(EntityType.EvmTransaction, [], 'kind')]: 'NativeTransfer',
+				[entityFieldAddressKey(EntityType.EvmTransaction, [], 'kind')]: 'ContractCreation',
 				[entityFieldAddressKey(EntityType.EvmTransaction, [], 'value')]: 42n,
 				[entityFieldAddressKey(EntityType.EvmTransaction, [], 'executionStatus')]: 'Success',
 				[entityFieldAddressKey(EntityType.EvmTransaction, [], 'indexInBlock')]: 3,
+				[entityFieldAddressKey(EntityType.EvmTransaction, ['ContractCreation'], '$contract')]: {
+					[EntityMetaKey.Selector]: {
+						$network: network,
+						address: createdContract,
+					},
+				},
 			},
 		})
 		expect(getTransactionByHash).not.toHaveBeenCalled()

@@ -93,6 +93,10 @@ export const blockscoutAccountAbstractionChainIds = new Set(
 
 const validatedBlockscoutTransactionWire = (wire: BlockscoutTransaction) => {
 	blockscoutTransactionHash(wire.hash, 'transaction')
+	if (
+		wire.created_contract != null
+		&& hexLowerOfByteSize(wire.created_contract.hash, 20) == null
+	) throw new Error('Blockscout_Rest: invalid transaction created contract')
 
 	for (const quantity of [
 		wire.gas_limit,
@@ -578,7 +582,7 @@ export const getAddressCoinBalanceHistory = async ({ chainId, address, limit }: 
 	const seen = new Set<number>()
 	return wire.items.slice(0, limit).map((item) => {
 		BigInt(item.value)
-		if (item.delta != null && item.delta !== '')
+		if (item.delta !== '')
 			BigInt(item.delta)
 		if (!Number.isSafeInteger(item.block_number) || item.block_number < 0)
 			throw new Error('Blockscout_Rest: invalid coin balance history block_number')

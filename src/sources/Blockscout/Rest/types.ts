@@ -61,6 +61,7 @@ export const blockscoutTransactionEnvelope = arktype({
 	'blob_versioned_hashes?': arktype('string').array().or(arktype.null),
 	'block_number?': 'number | null',
 	'position?': 'number | null',
+	'created_contract?': blockscoutAddressEnvelope.or(arktype.null),
 	'authorization_list?': blockscoutSignedAuthorizationEnvelope.array().or(arktype.null),
 })
 export const blockscoutTransactionsPageEnvelope = arktype({

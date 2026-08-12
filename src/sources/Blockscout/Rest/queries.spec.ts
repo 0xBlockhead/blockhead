@@ -372,6 +372,22 @@ describe('Blockscout account-abstraction queries', () => {
 		])
 	})
 
+	it('fails closed when a transaction list carries a malformed created contract', async () => {
+		vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse({
+			items: [{
+				...transaction,
+				created_contract: {
+					hash: 'not-an-address',
+				},
+			}],
+		}))
+
+		await expect(getTransactions({
+			chainId: 1,
+			limit: 1,
+		})).rejects.toThrow('Blockscout_Rest: invalid transaction created contract')
+	})
+
 	it('uses the operation-specific token-transfer query signatures', async () => {
 		const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(async () => jsonResponse({
 			items: [
