@@ -25,6 +25,7 @@ const {
 	getAddressTransactions,
 	getAddressUtxos,
 	getMempoolStats,
+	getMiningHashrate,
 	getRecommendedFees,
 	getTransaction,
 	getTransactionProtocolPayloads,
@@ -71,6 +72,39 @@ describe('mempool.space Bitcoin REST binding', () => {
 				'https://mempool.space/api/v1/fees/recommended',
 			],
 		])
+	})
+
+	it('reads typed current mining hashrate from the canonical Bitcoin API binding', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			hashrates: [
+				{
+					timestamp: 1_786_320_000,
+					avgHashrate: 897_045_400_620_083_300_000,
+				},
+			],
+			difficulty: [],
+			currentHashrate: 886_019_350_377_919_800_000,
+			currentDifficulty: 127_479_855_693_691.4,
+		})
+
+		await expect(getMiningHashrate()).resolves.toMatchObject({
+			currentHashrate: 886_019_350_377_919_800_000,
+		})
+		expect(sourceGetJson).toHaveBeenCalledWith(
+			binding,
+			'https://mempool.space/api/v1/mining/hashrate/3d'
+		)
+	})
+
+	it('fails closed on malformed mining hashrate observations', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			hashrates: [],
+			difficulty: [],
+			currentHashrate: -1,
+			currentDifficulty: 1,
+		})
+
+		await expect(getMiningHashrate()).rejects.toThrow('invalid mining hashrate envelope')
 	})
 
 	it('resolves block hash by height and address UTXOs on hard-fail paths', async () => {

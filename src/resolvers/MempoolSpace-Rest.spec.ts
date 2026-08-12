@@ -421,6 +421,12 @@ describe('MempoolSpace UTXO', () => {
 				total_fee: 1,
 			})
 			.mockResolvedValueOnce({
+				hashrates: [],
+				difficulty: [],
+				currentHashrate: 886_019_350_377_919_800_000,
+				currentDifficulty: 127_479_855_693_691.4,
+			})
+			.mockResolvedValueOnce({
 				fastestFee: 20,
 				halfHourFee: 10,
 				hourFee: 6,
@@ -433,6 +439,7 @@ describe('MempoolSpace UTXO', () => {
 			source: Source.MempoolSpace_Rest,
 		}, resolverContext)
 		expect(networkTimestampResolver.projections.Utxo.bestBlockTimeMs(networkTip)).toBe(1_700_000_000_000)
+		expect(networkTimestampResolver.projections.Utxo.hashrateHashesPerSecond(networkTip)).toBe(886_019_350_377_919_800_000)
 		expect(networkTimestampResolver.projections.Utxo.suggestedTransactionFeePerByteSats(networkTip)).toBe(6)
 	})
 

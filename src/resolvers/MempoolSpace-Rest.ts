@@ -763,11 +763,13 @@ export default {
 						const {
 							getBlocks,
 							getMempoolStats,
+							getMiningHashrate,
 							getRecommendedFees,
 						} = await import('$/sources/MempoolSpace/Rest/queries.ts')
-						const [blocks, mempoolStats, fees] = await Promise.all([
+						const [blocks, mempoolStats, miningHashrate, fees] = await Promise.all([
 							getBlocks(),
 							getMempoolStats(),
+							getMiningHashrate(),
 							getRecommendedFees(),
 						])
 						const block = blocks.at(0)
@@ -785,6 +787,7 @@ export default {
 							bestBlockTimeMs: block.timestamp * 1000,
 							mempoolTransactionCount: mempoolStats.count,
 							mempoolSizeBytes: BigInt(Math.ceil(mempoolStats.vsize)),
+							hashrateHashesPerSecond: miningHashrate.currentHashrate,
 							suggestedTransactionFeePerByteSats: fees.hourFee,
 						}
 					},
@@ -802,6 +805,7 @@ export default {
 					bestBlockTimeMs: (timestamp) => timestamp.bestBlockTimeMs,
 					mempoolTransactionCount: (timestamp) => timestamp.mempoolTransactionCount,
 					mempoolSizeBytes: (timestamp) => timestamp.mempoolSizeBytes,
+					hashrateHashesPerSecond: (timestamp) => timestamp.hashrateHashesPerSecond,
 					suggestedTransactionFeePerByteSats: (timestamp) => timestamp.suggestedTransactionFeePerByteSats,
 				},
 			}),
@@ -826,11 +830,13 @@ export default {
 				const {
 					getBlocks,
 					getMempoolStats,
+					getMiningHashrate,
 					getRecommendedFees,
 				} = await import('$/sources/MempoolSpace/Rest/queries.ts')
-				const [blocks, mempoolStats, fees] = await Promise.all([
+				const [blocks, mempoolStats, miningHashrate, fees] = await Promise.all([
 					getBlocks(),
 					getMempoolStats(),
+					getMiningHashrate(),
 					getRecommendedFees(),
 				])
 				const block = blocks.at(0)
@@ -848,6 +854,7 @@ export default {
 							[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'bestBlockTimeMs')]: block.timestamp * 1000,
 							[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'mempoolTransactionCount')]: mempoolStats.count,
 							[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'mempoolSizeBytes')]: BigInt(Math.ceil(mempoolStats.vsize)),
+							[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'hashrateHashesPerSecond')]: miningHashrate.currentHashrate,
 							[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'suggestedTransactionFeePerByteSats')]: fees.hourFee,
 						},
 					},

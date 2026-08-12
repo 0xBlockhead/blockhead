@@ -15,6 +15,7 @@ import {
 	mempoolSpaceRecommendedFeesWire,
 } from '$/sources/Esplora/Rest/envelopes.ts'
 import bindings from '$/sources/MempoolSpace/bindings.ts'
+import { mempoolSpaceMiningHashrateWire } from '$/sources/MempoolSpace/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 
 const binding = bindings[Source.MempoolSpace_Rest][0]
@@ -229,6 +230,15 @@ export const getRecommendedFees = async () => (
 		mempoolSpaceRecommendedFeesWire,
 		await getMempoolSpaceJson('v1/fees/recommended'),
 		'recommended fees',
+		sourceLabel
+	)
+)
+
+export const getMiningHashrate = async () => (
+	assertEsploraEnvelope(
+		mempoolSpaceMiningHashrateWire,
+		await getMempoolSpaceJson('v1/mining/hashrate/3d'),
+		'mining hashrate',
 		sourceLabel
 	)
 )

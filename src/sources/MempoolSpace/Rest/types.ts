@@ -1,3 +1,15 @@
+import { type as arktype } from 'arktype'
+
+export const mempoolSpaceMiningHashrateWire = arktype({
+	hashrates: arktype({
+		timestamp: 'number.integer >= 0',
+		avgHashrate: 'number >= 0',
+	}).array(),
+	difficulty: 'unknown[]',
+	currentHashrate: 'number >= 0',
+	currentDifficulty: 'number >= 0',
+})
+
 export type MempoolSpaceMempoolStats = {
 	count: number
 	vsize: number
