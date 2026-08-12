@@ -270,4 +270,30 @@ describe('MevRelay REST resolvers', () => {
 
 		await expect(networkPayloadsResolver.resolve.Caip2.resolve(network, context)).rejects.toThrow('ultrasound offline')
 	})
+
+	it('materializes payload cards from the network relay window without detail reads', async () => {
+		getProposerPayloadDeliveredForRelayHost.mockResolvedValue([bidTrace])
+
+		const rows = await networkPayloadsResolver.resolve.Caip2.resolve(network, context)
+
+		expect(rows[0]).toMatchObject({
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				relayHost: expect.any(String),
+				slot: 14_917_871,
+				blockHash: bidTrace.block_hash,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.MevRelay_ProposerPayloadDelivered, [], 'builderPubkey')]: bidTrace.builder_pubkey,
+				[entityFieldAddressKey(EntityType.MevRelay_ProposerPayloadDelivered, [], 'value')]: 5_316_647_666_874_603n,
+				[entityFieldAddressKey(EntityType.MevRelay_ProposerPayloadDelivered, [], 'blockNumber')]: 25_680_883n,
+				[entityFieldAddressKey(EntityType.MevRelay_ProposerPayloadDelivered, [], '$builder')]: {
+					[EntityMetaKey.Selector]: {
+						$network: network,
+						builderPubkey: bidTrace.builder_pubkey,
+					},
+				},
+			},
+		})
+	})
 })

@@ -58,6 +58,23 @@ const deliveredPayloadReference = <_Network>(
 			slot: parsePayloadSlot(payload),
 			blockHash,
 		},
+		[EntityMetaKey.Fields]: {
+			[entityFieldAddressKey(EntityType.MevRelay_ProposerPayloadDelivered, [], 'builderPubkey')]: payload.builder_pubkey,
+			[entityFieldAddressKey(EntityType.MevRelay_ProposerPayloadDelivered, [], '$builder')]: {
+				[EntityMetaKey.Selector]: {
+					$network,
+					builderPubkey: payload.builder_pubkey,
+				},
+			},
+			[entityFieldAddressKey(EntityType.MevRelay_ProposerPayloadDelivered, [], 'value')]: parsePayloadValueWei(payload),
+			[entityFieldAddressKey(EntityType.MevRelay_ProposerPayloadDelivered, [], 'blockNumber')]: parsePayloadBlockNumber(payload),
+			[entityFieldAddressKey(EntityType.MevRelay_ProposerPayloadDelivered, [], '$executionBlock')]: {
+				[EntityMetaKey.Selector]: {
+					$network,
+					blockNumber: parsePayloadBlockNumber(payload),
+				},
+			},
+		},
 	}
 }
 
