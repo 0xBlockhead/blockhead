@@ -371,6 +371,60 @@ describe('MempoolSpace UTXO', () => {
 		}])
 	})
 
+	it('continues block transaction pagination across provider pages and height-only routes', async () => {
+		const blockHash = 'c'.repeat(64)
+		const transactionWire = (index: number) => ({
+			txid: index.toString(16).padStart(64, '0'),
+			vin: [],
+			vout: [],
+			status: {
+				confirmed: true,
+				block_height: 840_000,
+				block_hash: blockHash,
+			},
+		})
+		sourceGetJson
+			.mockResolvedValueOnce(blockHash)
+			.mockResolvedValueOnce(Array.from({ length: 25 }, (_, index) => transactionWire(index)))
+			.mockResolvedValueOnce(Array.from({ length: 5 }, (_, index) => transactionWire(index + 25)))
+
+		const rows = await blockTransactionsResolver.resolve.NetworkHeight.resolve({
+			$network: network,
+			height: 840_000n,
+		}, {
+			...resolverContext,
+			pagination: {
+				limit: 30,
+				offset: 10,
+			},
+		})
+
+		expect(rows).toHaveLength(30)
+		expect(rows[0][EntityMetaKey.Selector]).toEqual({
+			$network: network,
+			txId: '0'.repeat(64),
+		})
+		expect(rows[29][EntityMetaKey.Selector]).toEqual({
+			$network: network,
+			txId: '1d'.padStart(64, '0'),
+		})
+		expect(sourceGetJson).toHaveBeenNthCalledWith(
+			1,
+			binding,
+			`https://mempool.space/api/block-height/840000`
+		)
+		expect(sourceGetJson).toHaveBeenNthCalledWith(
+			2,
+			binding,
+			`https://mempool.space/api/block/${blockHash}/txs/10`
+		)
+		expect(sourceGetJson).toHaveBeenNthCalledWith(
+			3,
+			binding,
+			`https://mempool.space/api/block/${blockHash}/txs/35`
+		)
+	})
+
 	it('projects address tip mempoolTransactionCount and network tip bestBlockTimeMs', async () => {
 		const addressTimestampResolver = mempoolSpaceResolvers.resolvers.find((resolver) => (
 			resolver.entityType === EntityType.UtxoAddress_Timestamp

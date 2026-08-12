@@ -277,6 +277,28 @@ const utxoBlockSnapshot = async (
 	}
 }
 
+const utxoBlockTransactionReferences = async (
+	$network: NetworkId,
+	hash: string,
+	offset: number,
+	limit: number
+) => {
+	const { getBlockTransactions } = await import('$/sources/MempoolSpace/Rest/queries.ts')
+	const transactions: MempoolSpaceTransaction[] = []
+	while (transactions.length < limit) {
+		const page = await getBlockTransactions(
+			hash,
+			offset + transactions.length
+		)
+		transactions.push(...page.slice(0, limit - transactions.length))
+		if (page.length < 25) break
+	}
+	return transactions.map((transaction) => utxoTransactionReferenceFromMempoolSpaceWire(
+		$network,
+		transaction
+	))
+}
+
 export default {
 	source: Source.MempoolSpace_Rest,
 
@@ -956,22 +978,29 @@ export default {
 		defineResolver({
 			entityType: EntityType.UtxoBlock,
 			resolve: {
+				NetworkHeight: {
+					appliesTo: bitcoinNetworkReferenceApplicability,
+					resolve: async ({ $network, height }, context) => {
+						assertBitcoinMainnet($network)
+						const { getBlockHashByHeight } = await import('$/sources/MempoolSpace/Rest/queries.ts')
+						return utxoBlockTransactionReferences(
+							$network,
+							await getBlockHashByHeight(height),
+							context.pagination.offset ?? 0,
+							resolverContextRowLimit(context)
+						)
+					},
+				},
 				NetworkHeightHash: {
 					appliesTo: bitcoinNetworkReferenceApplicability,
-					resolve: async ({ $network, hash }, context) => {
+					resolve: ({ $network, hash }, context) => {
 						assertBitcoinMainnet($network)
-						const { getBlockTransactions } = await import('$/sources/MempoolSpace/Rest/queries.ts')
-						return (
-							await getBlockTransactions(
-								hash,
-								context.pagination.offset ?? 0
-							)
+						return utxoBlockTransactionReferences(
+							$network,
+							hash,
+							context.pagination.offset ?? 0,
+							resolverContextRowLimit(context)
 						)
-							.slice(0, resolverContextRowLimit(context))
-							.map((transaction) => utxoTransactionReferenceFromMempoolSpaceWire(
-								$network,
-								transaction
-							))
 					},
 				}
 			},
