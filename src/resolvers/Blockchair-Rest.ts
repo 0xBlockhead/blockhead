@@ -3,7 +3,10 @@ import {
 	defineResolver,
 	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
-import { EntityMetaKey } from '$/schema/$schema.ts'
+import {
+	entityFieldAddressKey,
+	EntityMetaKey,
+} from '$/schema/$schema.ts'
 import type { EntitySelector } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
@@ -270,6 +273,38 @@ const blockDashboardSnapshot = (
 			$network,
 			txId: transaction.hash,
 		},
+		[EntityMetaKey.Fields]: {
+			[entityFieldAddressKey(EntityType.UtxoTransaction, [], '$block')]: {
+				[EntityMetaKey.Selector]: {
+					$network,
+					height: BigInt(dashboard.block.id),
+					hash,
+				},
+			},
+			...(transaction.version != null && {
+				[entityFieldAddressKey(EntityType.UtxoTransaction, [], 'version')]: transaction.version,
+			}),
+			...(transaction.lock_time != null && {
+				[entityFieldAddressKey(EntityType.UtxoTransaction, [], 'lockTime')]: transaction.lock_time,
+			}),
+			...(transaction.size != null && {
+				[entityFieldAddressKey(EntityType.UtxoTransaction, [], 'sizeBytes')]: transaction.size,
+			}),
+			...((virtualSizeBytes) => virtualSizeBytes != null && {
+				[entityFieldAddressKey(EntityType.UtxoTransaction, [], 'virtualSizeBytes')]: virtualSizeBytes,
+			})(
+				virtualSizeBytesFromWeight(transaction.weight) ?? transaction.size
+			),
+			...(transaction.weight != null && {
+				[entityFieldAddressKey(EntityType.UtxoTransaction, [], 'weightUnits')]: transaction.weight,
+			}),
+			...(transaction.fee != null && {
+				[entityFieldAddressKey(EntityType.UtxoTransaction, [], 'feeSats')]: BigInt(transaction.fee),
+			}),
+			...(transaction.is_coinbase != null && {
+				[entityFieldAddressKey(EntityType.UtxoTransaction, [], 'isCoinbase')]: transaction.is_coinbase,
+			}),
+		},
 	})),
 })
 
@@ -377,16 +412,60 @@ export default {
 								feeSats: BigInt(transactionDashboard.transaction.fee),
 							}),
 							isCoinbase: transactionDashboard.transaction.is_coinbase,
-							$$inputs: transactionDashboard.inputs.map((_input, indexInTransaction) => ({
+							$$inputs: transactionDashboard.inputs.map((input, indexInTransaction) => ({
 								[EntityMetaKey.Selector]: {
 									$transaction: entitySelector,
 									indexInTransaction,
 								},
+								[EntityMetaKey.Fields]: {
+									...(input.transaction_hash != null && input.index != null && {
+										[entityFieldAddressKey(EntityType.UtxoInput, [], '$spentOutput')]: {
+											[EntityMetaKey.Selector]: {
+												$transaction: {
+													$network: entitySelector.$network,
+													txId: input.transaction_hash,
+												},
+												indexInTransaction: input.index,
+											},
+										},
+									}),
+									...(input.script_hex != null && {
+										[entityFieldAddressKey(EntityType.UtxoInput, [], 'scriptSigAsm')]: input.script_hex,
+									}),
+									...(input.spending_sequence != null && {
+										[entityFieldAddressKey(EntityType.UtxoInput, [], 'sequence')]: input.spending_sequence,
+									}),
+									...(input.spending_witness != null && {
+										[entityFieldAddressKey(EntityType.UtxoInput, [], 'witness')]: [
+											input.spending_witness,
+										],
+									}),
+								},
 							})),
-							$$outputs: transactionDashboard.outputs.map((_output, indexInTransaction) => ({
+							$$outputs: transactionDashboard.outputs.map((output, indexInTransaction) => ({
 								[EntityMetaKey.Selector]: {
 									$transaction: entitySelector,
 									indexInTransaction,
+								},
+								[EntityMetaKey.Fields]: {
+									...(output.value != null && {
+										[entityFieldAddressKey(EntityType.UtxoOutput, [], 'valueSats')]: BigInt(output.value),
+									}),
+									...(output.script_hex != null && {
+										[entityFieldAddressKey(EntityType.UtxoOutput, [], 'scriptPubKeyHex')]: output.script_hex,
+									}),
+									...(output.type != null && {
+										[entityFieldAddressKey(EntityType.UtxoOutput, [], 'scriptPubKeyType')]: output.type,
+									}),
+									...(output.recipient != null && {
+										[entityFieldAddressKey(EntityType.UtxoOutput, [], '$address')]: {
+											[EntityMetaKey.Selector]: {
+												$network: entitySelector.$network,
+												address: output.recipient,
+											},
+										},
+									}),
+									[entityFieldAddressKey(EntityType.UtxoOutput, [], 'isSpent')]: output.spending_transaction_hash != null,
 								},
 							})),
 						}
@@ -720,6 +799,54 @@ export default {
 								timestampMs: bestBlockTimeMs ?? Date.now(),
 								source: Source.Blockchair_Rest,
 							},
+							[EntityMetaKey.Fields]: {
+								[entityFieldAddressKey(EntityType.Network_Timestamp, [], 'ledgerModels')]: [
+									NetworkLedgerModel.Utxo,
+								],
+								[entityFieldAddressKey(EntityType.Network_Timestamp, [], 'executionModels')]: [],
+								...(stats.best_block_height != null && {
+									[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'bestBlockHeight')]: BigInt(stats.best_block_height),
+								}),
+								...(stats.best_block_hash != null && {
+									[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'bestBlockHash')]: stats.best_block_hash,
+								}),
+								...(bestBlockTimeMs != null && {
+									[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'bestBlockTimeMs')]: bestBlockTimeMs,
+								}),
+								...(stats.blocks != null && {
+									[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'blockCount')]: BigInt(stats.blocks),
+								}),
+								...(stats.transactions != null && {
+									[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'transactionCount')]: BigInt(stats.transactions),
+								}),
+								...(stats.blocks_24h != null && {
+									[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'blocks24h')]: stats.blocks_24h,
+								}),
+								...(stats.transactions_24h != null && {
+									[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'transactions24h')]: stats.transactions_24h,
+								}),
+								...(stats.mempool_transactions != null && {
+									[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'mempoolTransactionCount')]: stats.mempool_transactions,
+								}),
+								...(stats.mempool_size != null && {
+									[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'mempoolSizeBytes')]: BigInt(stats.mempool_size),
+								}),
+								...(stats.mempool_tps != null && {
+									[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'mempoolTps')]: stats.mempool_tps,
+								}),
+								...(stats.average_transaction_fee_24h != null && {
+									[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'averageTransactionFee24hSats')]: BigInt(stats.average_transaction_fee_24h),
+								}),
+								...(stats.median_transaction_fee_24h != null && {
+									[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'medianTransactionFee24hSats')]: BigInt(stats.median_transaction_fee_24h),
+								}),
+								...(stats.suggested_transaction_fee_per_byte_sat != null && {
+									[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'suggestedTransactionFeePerByteSats')]: stats.suggested_transaction_fee_per_byte_sat,
+								}),
+								...(stats.blockchain_size != null && {
+									[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'blockchainSizeBytes')]: BigInt(stats.blockchain_size),
+								}),
+							},
 						},
 					],
 					blocks: stats.blocks,
@@ -804,6 +931,11 @@ export default {
 								$network: network,
 								timestampMs: bestBlockTimeMs ?? Date.now(),
 								source: Source.Blockchair_Rest,
+							},
+							[EntityMetaKey.Fields]: {
+								...(stats.best_block_height != null && {
+									[entityFieldAddressKey(EntityType.EvmNetwork_Timestamp, [], 'blockHeight')]: BigInt(stats.best_block_height),
+								}),
 							},
 						},
 					],

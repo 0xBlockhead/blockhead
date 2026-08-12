@@ -1,7 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { networkBySlug } from '$/constants/Network.ts'
-import { EntityMetaKey } from '$/schema/$schema.ts'
+import {
+	entityFieldAddressKey,
+	EntityMetaKey,
+} from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
@@ -201,6 +204,16 @@ describe('Blockchair Network selector applicability', () => {
 				timestampMs,
 				source: Source.Blockchair_Rest,
 			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.Network_Timestamp, [], 'ledgerModels')]: [
+					'Utxo',
+				],
+				[entityFieldAddressKey(EntityType.Network_Timestamp, [], 'executionModels')]: [],
+				[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'bestBlockHeight')]: 900_000n,
+				[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'bestBlockTimeMs')]: timestampMs,
+				[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'blockCount')]: 900_001n,
+				[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'transactionCount')]: 1_200_000_000n,
+			},
 		}])
 		if (!('Utxo' in timestampsResolver.projections))
 			throw new Error('Blockchair-Rest spec missing Network.Utxo projections')
@@ -254,6 +267,9 @@ describe('Blockchair Network selector applicability', () => {
 				timestampMs,
 				source: Source.Blockchair_Rest,
 			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.EvmNetwork_Timestamp, [], 'blockHeight')]: 24_999_999n,
+			},
 		}])
 		expect(evmTipResolver.projections.Evm.$$blocks.resolveCount(network)).toBe(25_000_000)
 
@@ -290,6 +306,12 @@ describe('Blockchair Network selector applicability', () => {
 			},
 			transactions: [{
 				hash: 'transaction-hash',
+				version: 2,
+				lock_time: 3,
+				size: 4,
+				weight: 5,
+				fee: 6,
+				is_coinbase: false,
 			}],
 		}
 		getBitcoinLikeBlockDashboard.mockResolvedValue({
@@ -326,6 +348,22 @@ describe('Blockchair Network selector applicability', () => {
 			[EntityMetaKey.Selector]: {
 				$network: network,
 				txId: dashboard.transactions[0].hash,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.UtxoTransaction, [], '$block')]: {
+					[EntityMetaKey.Selector]: {
+						$network: network,
+						height: 900_000n,
+						hash: 'block-hash',
+					},
+				},
+				[entityFieldAddressKey(EntityType.UtxoTransaction, [], 'version')]: 2,
+				[entityFieldAddressKey(EntityType.UtxoTransaction, [], 'lockTime')]: 3,
+				[entityFieldAddressKey(EntityType.UtxoTransaction, [], 'sizeBytes')]: 4,
+				[entityFieldAddressKey(EntityType.UtxoTransaction, [], 'virtualSizeBytes')]: 2,
+				[entityFieldAddressKey(EntityType.UtxoTransaction, [], 'weightUnits')]: 5,
+				[entityFieldAddressKey(EntityType.UtxoTransaction, [], 'feeSats')]: 6n,
+				[entityFieldAddressKey(EntityType.UtxoTransaction, [], 'isCoinbase')]: false,
 			},
 		}])
 
@@ -370,8 +408,23 @@ describe('Blockchair Network selector applicability', () => {
 						fee: 6,
 						is_coinbase: false,
 					},
-					inputs: [{}],
-					outputs: [{}, {}],
+					inputs: [{
+						transaction_hash: 'spent-transaction-hash',
+						index: 3,
+						script_hex: 'input-script',
+						spending_sequence: 4,
+						spending_witness: 'witness-stack',
+					}],
+					outputs: [
+						{
+							value: 7,
+							script_hex: 'output-script',
+							type: 'witness_v1_taproot',
+							recipient: 'bc1precipient',
+							spending_transaction_hash: 'spending-transaction-hash',
+						},
+						{},
+					],
 				},
 			},
 		})
@@ -395,6 +448,20 @@ describe('Blockchair Network selector applicability', () => {
 				$transaction: entitySelector,
 				indexInTransaction: 0,
 			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.UtxoInput, [], '$spentOutput')]: {
+					[EntityMetaKey.Selector]: {
+						$transaction: {
+							$network: entitySelector.$network,
+							txId: 'spent-transaction-hash',
+						},
+						indexInTransaction: 3,
+					},
+				},
+				[entityFieldAddressKey(EntityType.UtxoInput, [], 'scriptSigAsm')]: 'input-script',
+				[entityFieldAddressKey(EntityType.UtxoInput, [], 'sequence')]: 4,
+				[entityFieldAddressKey(EntityType.UtxoInput, [], 'witness')]: ['witness-stack'],
+			},
 		}])
 		expect(transactionResolver.projections.$$outputs(snapshot)).toEqual([
 			{
@@ -402,11 +469,26 @@ describe('Blockchair Network selector applicability', () => {
 					$transaction: entitySelector,
 					indexInTransaction: 0,
 				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.UtxoOutput, [], 'valueSats')]: 7n,
+					[entityFieldAddressKey(EntityType.UtxoOutput, [], 'scriptPubKeyHex')]: 'output-script',
+					[entityFieldAddressKey(EntityType.UtxoOutput, [], 'scriptPubKeyType')]: 'witness_v1_taproot',
+					[entityFieldAddressKey(EntityType.UtxoOutput, [], '$address')]: {
+						[EntityMetaKey.Selector]: {
+							$network: entitySelector.$network,
+							address: 'bc1precipient',
+						},
+					},
+					[entityFieldAddressKey(EntityType.UtxoOutput, [], 'isSpent')]: true,
+				},
 			},
 			{
 				[EntityMetaKey.Selector]: {
 					$transaction: entitySelector,
 					indexInTransaction: 1,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.UtxoOutput, [], 'isSpent')]: false,
 				},
 			},
 		])
