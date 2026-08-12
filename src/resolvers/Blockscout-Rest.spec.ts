@@ -300,6 +300,62 @@ describe('Blockscout Network account abstraction applicability', () => {
 			},
 		}])
 	})
+
+	it('materializes smart-account contract, factory and lifecycle hierarchy from the registry row', async () => {
+		const resolver = blockscoutRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.Network
+			&& '$$erc4337SmartAccounts' in candidate.projections.Evm
+		))
+		if (resolver == null || !('Caip2' in resolver.resolve))
+			throw new Error('Blockscout smart-account registry resolver is not registered')
+
+		getErc4337SmartAccountList.mockResolvedValueOnce([{
+			address: {
+				hash: '0x1111111111111111111111111111111111111111',
+			},
+			creation_op_hash: txHash,
+			creation_timestamp: '2026-07-16T09:30:43.020Z',
+			creation_transaction_hash: txHash,
+			factory: {
+				hash: '0x2222222222222222222222222222222222222222',
+			},
+			total_ops: 17,
+		}])
+
+		await expect(resolver.resolve.Caip2.resolve(network, context)).resolves.toEqual([{
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				address: '0x1111111111111111111111111111111111111111',
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.Erc4337SmartAccount, [], '$contract')]: {
+					[EntityMetaKey.Selector]: {
+						$network: network,
+						address: '0x1111111111111111111111111111111111111111',
+					},
+				},
+				[entityFieldAddressKey(EntityType.Erc4337SmartAccount, [], '$factory')]: {
+					[EntityMetaKey.Selector]: {
+						$network: network,
+						address: '0x2222222222222222222222222222222222222222',
+					},
+				},
+				[entityFieldAddressKey(EntityType.Erc4337SmartAccount, [], '$$timestamps')]: [{
+					[EntityMetaKey.Selector]: {
+						$account: {
+							$network: network,
+							address: '0x1111111111111111111111111111111111111111',
+						},
+						timestampMs: Date.parse('2026-07-16T09:30:43.020Z'),
+						source: Source.Blockscout_Rest,
+					},
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.Erc4337SmartAccount_Timestamp, [], 'userOperationsCount')]: 17,
+					},
+				}],
+			},
+		}])
+	})
 })
 
 describe('Blockscout gas estimate observation identity', () => {

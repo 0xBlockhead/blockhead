@@ -38,7 +38,7 @@ import type {
 	BlockscoutAddress,
 	BlockscoutBlock,
 	BlockscoutInternalTransaction,
-	BlockscoutErc4337RegistryEntry,
+	BlockscoutErc4337Account,
 	BlockscoutRawTrace,
 	BlockscoutSmartContractForList,
 	BlockscoutStats,
@@ -1397,10 +1397,12 @@ const erc4337RegistryEntitiesFromBlockscoutWires = ({
 	items,
 }: {
 	chainId: number
-	items: readonly BlockscoutErc4337RegistryEntry[]
+	items: readonly BlockscoutErc4337Account[]
 }) => (
 	items.flatMap((smartContract) => {
 		const address = hexLowerOfByteSize(smartContract.address.hash, 20)
+		const factoryAddress = hexLowerOfByteSize(smartContract.factory?.hash ?? '', 20)
+		const timestampMs = smartContract.creation_timestamp == null ? undefined : Date.parse(smartContract.creation_timestamp)
 		return address == null ?
 			[]
 		:
@@ -1408,6 +1410,37 @@ const erc4337RegistryEntitiesFromBlockscoutWires = ({
 				[EntityMetaKey.Selector]: {
 					$network: evmNetworkSelectorFromChainId(chainId),
 					address,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.Erc4337SmartAccount, [], '$contract')]: {
+						[EntityMetaKey.Selector]: {
+							$network: evmNetworkSelectorFromChainId(chainId),
+							address,
+						},
+					},
+					...(factoryAddress != null && {
+						[entityFieldAddressKey(EntityType.Erc4337SmartAccount, [], '$factory')]: {
+							[EntityMetaKey.Selector]: {
+								$network: evmNetworkSelectorFromChainId(chainId),
+								address: factoryAddress,
+							},
+						},
+					}),
+					...(timestampMs != null && Number.isFinite(timestampMs) && {
+						[entityFieldAddressKey(EntityType.Erc4337SmartAccount, [], '$$timestamps')]: [{
+							[EntityMetaKey.Selector]: {
+								$account: {
+									$network: evmNetworkSelectorFromChainId(chainId),
+									address,
+								},
+								timestampMs,
+								source: Source.Blockscout_Rest,
+							},
+							[EntityMetaKey.Fields]: {
+								[entityFieldAddressKey(EntityType.Erc4337SmartAccount_Timestamp, [], 'userOperationsCount')]: smartContract.total_ops,
+							},
+						}],
+					}),
 				},
 			}]
 	})
