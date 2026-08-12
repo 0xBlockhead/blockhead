@@ -472,6 +472,26 @@ export const entityHrefFromSearchInput = (query: string) => {
 			}
 		)
 
+	const evmExplorerBlock = query.match(/^https:\/\/([^/?#\s]+)\/block\/([0-9]+|0x[a-f0-9]{64})\/?(?:[?#].*)?$/i)
+
+	if (evmExplorerBlock && evmExplorerNetworkByHost[evmExplorerBlock[1].toLowerCase()] != null)
+		return resolve(
+			evmExplorerBlock[2].startsWith('0x') ?
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(blocks)/block/hash/[blockHash=zeroExHexOrStringSegmentOrUtxoTxId]'
+			:
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(blocks)/block/[blockNumber=nonNegativeBigInt]',
+			evmExplorerBlock[2].startsWith('0x') ?
+				{
+					network: evmExplorerNetworkByHost[evmExplorerBlock[1].toLowerCase()],
+					blockHash: evmExplorerBlock[2].toLowerCase(),
+				}
+			:
+				{
+					network: evmExplorerNetworkByHost[evmExplorerBlock[1].toLowerCase()],
+					blockNumber: evmExplorerBlock[2],
+				}
+		)
+
 	if (/^ip(?:fs|ns):\/\//i.test(query)) {
 		const ipfsResourceAddress = ipfsResourceAddressFromInput({
 			targetInput: query,

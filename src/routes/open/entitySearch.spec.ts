@@ -64,6 +64,8 @@ describe(entityHrefFromSearchInput, () => {
 		[`https://etherscan.io/tx/0x${'AB'.repeat(32)}`, `/network/eip155:1/tx/0x${'ab'.repeat(32)}`],
 		[`https://arbiscan.io/tx/0x${'12'.repeat(32)}#eventlog`, `/network/eip155:42161/tx/0x${'12'.repeat(32)}`],
 		[`https://basescan.org/address/0x${'AB'.repeat(20)}`, `/account/eip155:8453/0x${'AB'.repeat(20)}`],
+		['https://optimistic.etherscan.io/block/123456', '/network/eip155:10/block/123456'],
+		[`https://polygonscan.com/block/0x${'AB'.repeat(32)}`, `/network/eip155:137/block/hash/0x${'ab'.repeat(32)}`],
 		['eip155:1', '/network/eip155:1'],
 		['eip155:1:0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045', '/account/eip155:1/0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045'],
 		['https://example.com/a?b=c', '/url/https%3A%2F%2Fexample.com%2Fa%3Fb%3Dc'],
@@ -180,6 +182,7 @@ describe(entityHrefFromSearchInput, () => {
 		['https://github.com/openai/codex/issues/not-a-number'],
 		[`http://etherscan.io/tx/0x${'12'.repeat(32)}`],
 		[`https://etherscan.io.evil.example/tx/0x${'12'.repeat(32)}`],
+		['https://etherscan.io/block/not-a-block'],
 	])('does not relabel unsafe or incomplete provider URL %s', (query) => {
 		expect(entityHrefFromSearchInput(query)).toBe(`/url/${encodeURIComponent(query)}`)
 	})
