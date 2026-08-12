@@ -61,7 +61,12 @@ const easAttestationResolver = defineResolver({
 		NetworkUid: {
 			resolve: async (entitySelector) => {
 				const network = easScanNetwork(entitySelector.$network)
-				const { getAttestation } = await import('$/sources/EasScan/Graphql/queries.ts')
+				const { getAttestation } = await (
+					typeof window === 'undefined' ?
+						import('$/sources/EasScan/Graphql/queries.ts')
+					:
+						import('$/sources/EasScan/Graphql/queries.remote.ts')
+				)
 				const attestation = await getAttestation({
 					network,
 					uid: entitySelector.uid,
@@ -141,7 +146,12 @@ const easAttestationTimestampResolver = defineResolver({
 					throw new Error('EasScan_Graphql: observation source mismatch')
 
 				const network = easScanNetwork($attestation.$network)
-				const { getAttestation } = await import('$/sources/EasScan/Graphql/queries.ts')
+				const { getAttestation } = await (
+					typeof window === 'undefined' ?
+						import('$/sources/EasScan/Graphql/queries.ts')
+					:
+						import('$/sources/EasScan/Graphql/queries.remote.ts')
+				)
 				const attestation = await getAttestation({
 					network,
 					uid: $attestation.uid,
@@ -182,7 +192,12 @@ const easSchemaResolver = defineResolver({
 		NetworkSchemaUid: {
 			resolve: async (entitySelector) => {
 				const network = easScanNetwork(entitySelector.$network)
-				const { getSchema } = await import('$/sources/EasScan/Graphql/queries.ts')
+				const { getSchema } = await (
+					typeof window === 'undefined' ?
+						import('$/sources/EasScan/Graphql/queries.ts')
+					:
+						import('$/sources/EasScan/Graphql/queries.remote.ts')
+				)
 				const schema = await getSchema({
 					network,
 					schemaUid: entitySelector.schemaUid,
@@ -239,7 +254,12 @@ const easSchemaAttestationsResolver = defineResolver({
 		NetworkSchemaUid: {
 			resolve: async (entitySelector, context) => {
 				const network = easScanNetwork(entitySelector.$network)
-				const { getAttestationsBySchema } = await import('$/sources/EasScan/Graphql/queries.ts')
+				const { getAttestationsBySchema } = await (
+					typeof window === 'undefined' ?
+						import('$/sources/EasScan/Graphql/queries.ts')
+					:
+						import('$/sources/EasScan/Graphql/queries.remote.ts')
+				)
 
 				return {
 					$$attestations: (

@@ -89,6 +89,23 @@ describe('EasScan GraphQL public reads', () => {
 		}))
 	})
 
+	it('keeps attester-supplied time separate from later on-chain creation time', async () => {
+		vi.mocked(graphql).mockResolvedValueOnce({
+			attestation: {
+				...attestation,
+				time: attestation.time - 30,
+			},
+		})
+
+		await expect(getAttestation({
+			network: 'eip155:1',
+			uid,
+		})).resolves.toMatchObject({
+			time: attestation.time - 30,
+			timeCreated: attestation.timeCreated,
+		})
+	})
+
 	it('keeps attester, recipient, and schema pages bounded and exact', async () => {
 		vi.mocked(graphql)
 			.mockResolvedValueOnce({

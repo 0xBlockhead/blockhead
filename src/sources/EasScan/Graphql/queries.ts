@@ -143,7 +143,6 @@ const assertAttestation = (
 	if (
 		(!attestation.revocable && attestation.revocationTime !== 0)
 		|| attestation.revoked !== (attestation.revocationTime !== 0)
-		|| attestation.timeCreated > attestation.time
 	)
 		throw new Error('EasScan returned invalid attestation lifecycle')
 }
