@@ -39,6 +39,70 @@ const assertSafeWireInteger = (
 	return BigInt(value)
 }
 
+const filledSizeFromOrderSizes = (
+	originalSize: string,
+	remainingSize: string
+) => {
+	if (
+		!/^(?:0|[1-9]\d*)(?:\.\d+)?$/.test(originalSize)
+		|| !/^(?:0|[1-9]\d*)(?:\.\d+)?$/.test(remainingSize)
+	)
+		throw new Error('Hyperliquid_Rest: invalid nonnegative order size')
+
+	const [
+		originalWhole,
+		originalFraction = '',
+	] = originalSize.split('.')
+	const [
+		remainingWhole,
+		remainingFraction = '',
+	] = remainingSize.split('.')
+	const decimalPlaces = Math.max(
+		originalFraction.length,
+		remainingFraction.length
+	)
+	const original = BigInt(
+		originalWhole + originalFraction.padEnd(decimalPlaces, '0')
+	)
+	const remaining = BigInt(
+		remainingWhole + remainingFraction.padEnd(decimalPlaces, '0')
+	)
+	if (remaining > original)
+		throw new Error('Hyperliquid_Rest: remaining order size exceeds original size')
+
+	const filled = (original - remaining)
+	if (decimalPlaces === 0)
+		return filled.toString()
+
+	const decimal = filled.toString().padStart(decimalPlaces + 1, '0')
+	const fraction = decimal.slice(-decimalPlaces).replace(/0+$/, '')
+	return fraction === '' ?
+		decimal.slice(0, -decimalPlaces)
+	:
+		`${decimal.slice(0, -decimalPlaces)}.${fraction}`
+}
+
+const hyperliquidOrderTimestampSnapshot = ({
+	order,
+	status,
+	statusTimestamp,
+}: {
+	order: {
+		children: unknown[]
+		origSz: string
+		sz: string
+	}
+	status: string
+	statusTimestamp: number
+}) => ({
+	status,
+	statusTimestampMs: statusTimestamp,
+	size: order.sz,
+	remainingSize: order.sz,
+	filledSize: filledSizeFromOrderSizes(order.origSz, order.sz),
+	children: order.children,
+})
+
 const scaleDecimalString = (
 	value: string,
 	decimals = 8
@@ -985,50 +1049,59 @@ export default {
 			},
 		})({
 			$$orders: {
-				select: (page, account) => page.orders.map(({ order, status, statusTimestamp }) => ({
-					[EntityMetaKey.Selector]: {
-						$account: account,
-						oid: assertSafeWireInteger(order.oid, 'order id'),
-					},
-					[EntityMetaKey.Fields]: {
-						[entityFieldAddressKey(EntityType.HyperliquidOrder, [], 'coin')]: order.coin,
-						[entityFieldAddressKey(EntityType.HyperliquidOrder, [], 'side')]: order.side,
-						[entityFieldAddressKey(EntityType.HyperliquidOrder, [], 'orderType')]: order.orderType,
-						[entityFieldAddressKey(EntityType.HyperliquidOrder, [], 'limitPrice')]: order.limitPx,
-						[entityFieldAddressKey(EntityType.HyperliquidOrder, [], 'originalSize')]: order.origSz,
-						[entityFieldAddressKey(EntityType.HyperliquidOrder, [], 'triggerCondition')]: order.triggerCondition,
-						[entityFieldAddressKey(EntityType.HyperliquidOrder, [], 'triggerPrice')]: order.triggerPx,
-						[entityFieldAddressKey(EntityType.HyperliquidOrder, [], 'reduceOnly')]: order.reduceOnly,
-						...(order.tif != null && {
-							[entityFieldAddressKey(EntityType.HyperliquidOrder, [], 'tif')]: order.tif,
-						}),
-						[entityFieldAddressKey(EntityType.HyperliquidOrder, [], 'isTrigger')]: order.isTrigger,
-						[entityFieldAddressKey(EntityType.HyperliquidOrder, [], 'isPositionTpsl')]: order.isPositionTpsl,
-						...(order.cloid != null && {
-							[entityFieldAddressKey(EntityType.HyperliquidOrder, [], 'cloid')]: order.cloid,
-						}),
-						[entityFieldAddressKey(EntityType.HyperliquidOrder, [], '$$timestamps')]: [{
-							[EntityMetaKey.Selector]: {
-								$order: {
-									$account: account,
-									oid: assertSafeWireInteger(order.oid, 'order id'),
+				select: (page, account) => page.orders.map(({
+					order,
+					status,
+					statusTimestamp,
+				}) => {
+					const orderTimestamp = hyperliquidOrderTimestampSnapshot({
+						order,
+						status,
+						statusTimestamp,
+					})
+					return {
+						[EntityMetaKey.Selector]: {
+							$account: account,
+							oid: assertSafeWireInteger(order.oid, 'order id'),
+						},
+						[EntityMetaKey.Fields]: {
+							[entityFieldAddressKey(EntityType.HyperliquidOrder, [], 'coin')]: order.coin,
+							[entityFieldAddressKey(EntityType.HyperliquidOrder, [], 'side')]: order.side,
+							[entityFieldAddressKey(EntityType.HyperliquidOrder, [], 'orderType')]: order.orderType,
+							[entityFieldAddressKey(EntityType.HyperliquidOrder, [], 'limitPrice')]: order.limitPx,
+							[entityFieldAddressKey(EntityType.HyperliquidOrder, [], 'originalSize')]: order.origSz,
+							[entityFieldAddressKey(EntityType.HyperliquidOrder, [], 'triggerCondition')]: order.triggerCondition,
+							[entityFieldAddressKey(EntityType.HyperliquidOrder, [], 'triggerPrice')]: order.triggerPx,
+							[entityFieldAddressKey(EntityType.HyperliquidOrder, [], 'reduceOnly')]: order.reduceOnly,
+							...(order.tif != null && {
+								[entityFieldAddressKey(EntityType.HyperliquidOrder, [], 'tif')]: order.tif,
+							}),
+							[entityFieldAddressKey(EntityType.HyperliquidOrder, [], 'isTrigger')]: order.isTrigger,
+							[entityFieldAddressKey(EntityType.HyperliquidOrder, [], 'isPositionTpsl')]: order.isPositionTpsl,
+							...(order.cloid != null && {
+								[entityFieldAddressKey(EntityType.HyperliquidOrder, [], 'cloid')]: order.cloid,
+							}),
+							[entityFieldAddressKey(EntityType.HyperliquidOrder, [], '$$timestamps')]: [{
+								[EntityMetaKey.Selector]: {
+									$order: {
+										$account: account,
+										oid: assertSafeWireInteger(order.oid, 'order id'),
+									},
+									timestampMs: statusTimestamp,
+									source: Source.Hyperliquid,
 								},
-								timestampMs: statusTimestamp,
-								source: Source.Hyperliquid,
-							},
-							[EntityMetaKey.Fields]: {
-								[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'status')]: status,
-								[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'statusTimestampMs')]: statusTimestamp,
-								[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'size')]: order.sz,
-								[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'remainingSize')]: order.sz,
-								...(Number.isFinite(Number(order.origSz)) && Number.isFinite(Number(order.sz)) && {
-									[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'filledSize')]: String(Number(order.origSz) - Number(order.sz)),
-								}),
-								[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'children')]: order.children,
-							},
-						}],
-					},
-				})),
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'status')]: orderTimestamp.status,
+									[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'statusTimestampMs')]: orderTimestamp.statusTimestampMs,
+									[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'size')]: orderTimestamp.size,
+									[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'remainingSize')]: orderTimestamp.remainingSize,
+									[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'filledSize')]: orderTimestamp.filledSize,
+									[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'children')]: orderTimestamp.children,
+								},
+							}],
+						},
+					}
+				}),
 				continuation: (page, account) => (
 					page.terminal ?
 						{
@@ -1077,6 +1150,11 @@ export default {
 						assertSafeWireInteger(statusTimestamp, 'order status timestamp')
 						if (order.oid !== oidNumber)
 							throw new Error(`Hyperliquid_Rest: order id mismatch for ${String(oid)}`)
+						const orderTimestamp = hyperliquidOrderTimestampSnapshot({
+							order,
+							status,
+							statusTimestamp,
+						})
 
 						return {
 							coin: order.coin,
@@ -1105,14 +1183,12 @@ export default {
 									source: Source.Hyperliquid,
 								},
 								[EntityMetaKey.Fields]: {
-									[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'status')]: status,
-									[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'statusTimestampMs')]: statusTimestamp,
-									[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'size')]: order.sz,
-									[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'remainingSize')]: order.sz,
-									...(Number.isFinite(Number(order.origSz)) && Number.isFinite(Number(order.sz)) && {
-										[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'filledSize')]: String(Number(order.origSz) - Number(order.sz)),
-									}),
-									[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'children')]: order.children,
+									[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'status')]: orderTimestamp.status,
+									[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'statusTimestampMs')]: orderTimestamp.statusTimestampMs,
+									[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'size')]: orderTimestamp.size,
+									[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'remainingSize')]: orderTimestamp.remainingSize,
+									[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'filledSize')]: orderTimestamp.filledSize,
+									[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'children')]: orderTimestamp.children,
 								},
 							}],
 						}
@@ -1133,6 +1209,62 @@ export default {
 			isPositionTpsl: (snapshot) => snapshot.isPositionTpsl,
 			cloid: (snapshot) => snapshot.cloid,
 			$$timestamps: (snapshot) => snapshot.$$timestamps,
+		}),
+
+		defineResolver({
+			entityType: EntityType.HyperliquidOrder_Timestamp,
+			resolve: {
+				OrderTimestampMsSource: {
+					resolve: async ({
+						$order,
+						timestampMs,
+						source,
+					}) => {
+						assertHyperliquidMainnet($order.$account.$network)
+						assertHyperliquidAddress($order.$account.address)
+						if (source !== Source.Hyperliquid)
+							throw new Error('Hyperliquid_Rest: order observation source mismatch')
+
+						const oid = Number($order.oid)
+						assertSafeWireInteger(oid, 'order id')
+						if (BigInt(oid) !== $order.oid)
+							throw new Error(`Hyperliquid_Rest: invalid order id ${String($order.oid)}`)
+
+						const { getOrderStatus } = await import('$/sources/Hyperliquid/Rest/queries.ts')
+						const response = await getOrderStatus({
+							user: $order.$account.address,
+							oid,
+						})
+						if (response.status !== 'order')
+							throw new Error(`Hyperliquid_Rest: order not found for ${String($order.oid)}`)
+
+						const {
+							order,
+							status,
+							statusTimestamp,
+						} = response.order
+						assertSafeWireInteger(order.oid, 'order id')
+						assertSafeWireInteger(statusTimestamp, 'order status timestamp')
+						if (order.oid !== oid)
+							throw new Error(`Hyperliquid_Rest: order id mismatch for ${String($order.oid)}`)
+						if (statusTimestamp !== timestampMs)
+							throw new Error('Hyperliquid_Rest: order observation timestamp mismatch')
+
+						return hyperliquidOrderTimestampSnapshot({
+							order,
+							status,
+							statusTimestamp,
+						})
+					},
+				},
+			},
+		})({
+			status: (snapshot) => snapshot.status,
+			statusTimestampMs: (snapshot) => snapshot.statusTimestampMs,
+			size: (snapshot) => snapshot.size,
+			remainingSize: (snapshot) => snapshot.remainingSize,
+			filledSize: (snapshot) => snapshot.filledSize,
+			children: (snapshot) => snapshot.children,
 		}),
 
 		defineResolver({

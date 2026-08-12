@@ -517,6 +517,92 @@ describe('Hyperliquid public account resolvers', () => {
 		})
 	})
 
+	it('preserves exact decimal filled size across the account order lifecycle', async () => {
+		corsFetch.mockImplementation(async (_url, options) => {
+			const body = JSON.parse(options.init.body)
+			return {
+				ok: true,
+				json: async () => (
+					body.type === 'historicalOrders' ?
+						[{
+							order: {
+								coin: 'ETH',
+								side: 'B',
+								limitPx: '2000',
+								sz: '9007199254740992.999999999999999999',
+								oid: 21,
+								timestamp: 1_700_000_000_000,
+								triggerCondition: 'N/A',
+								isTrigger: false,
+								triggerPx: '0',
+								children: [],
+								isPositionTpsl: false,
+								reduceOnly: false,
+								orderType: 'Limit',
+								origSz: '9007199254740993.000000000000000001',
+								tif: 'Gtc',
+								cloid: null,
+							},
+							status: 'open',
+							statusTimestamp: 1_700_000_000_001,
+						}]
+					:
+						[]
+				),
+			}
+		})
+
+		const page = await ordersResolver.resolve.NetworkAddress.resolve(account, context)
+		const [order] = ordersResolver.projections.$$orders.select(page, account, context)
+		expect(order?.[EntityMetaKey.Fields]).toMatchObject({
+			[entityFieldAddressKey(EntityType.HyperliquidOrder, [], '$$timestamps')]: [{
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'filledSize')]: '0.000000000000000002',
+				},
+			}],
+		})
+	})
+
+	it('fails closed when a provider lifecycle claims more remaining size than original size', async () => {
+		corsFetch.mockImplementation(async (_url, options) => {
+			const body = JSON.parse(options.init.body)
+			return {
+				ok: true,
+				json: async () => (
+					body.type === 'historicalOrders' ?
+						[{
+							order: {
+								coin: 'ETH',
+								side: 'B',
+								limitPx: '2000',
+								sz: '2',
+								oid: 22,
+								timestamp: 1_700_000_000_000,
+								triggerCondition: 'N/A',
+								isTrigger: false,
+								triggerPx: '0',
+								children: [],
+								isPositionTpsl: false,
+								reduceOnly: false,
+								orderType: 'Limit',
+								origSz: '1',
+								tif: 'Gtc',
+								cloid: null,
+							},
+							status: 'open',
+							statusTimestamp: 1_700_000_000_001,
+						}]
+					:
+						[]
+				),
+			}
+		})
+
+		const page = await ordersResolver.resolve.NetworkAddress.resolve(account, context)
+		expect(() => ordersResolver.projections.$$orders.select(page, account, context))
+			.toThrow('remaining order size exceeds original size')
+	})
+
 	it('does not duplicate an open order already present in historicalOrders', async () => {
 		corsFetch.mockImplementation(async (_url, options) => {
 			const body = JSON.parse(options.init.body)
@@ -609,6 +695,20 @@ describe('Hyperliquid public account resolvers', () => {
 		const fills = fillsResolver.projections.$$fills.select(page, account, context)
 
 		expect(fills.map((fill) => fill[EntityMetaKey.Selector].tid)).toEqual([4n, 6n])
+		expect(fills[0]?.[EntityMetaKey.Fields]).toMatchObject({
+			[entityFieldAddressKey(EntityType.HyperliquidFill, [], '$order')]: {
+				[EntityMetaKey.Selector]: {
+					$account: account,
+					oid: 3n,
+				},
+			},
+			[entityFieldAddressKey(EntityType.HyperliquidFill, [], '$transaction')]: {
+				[EntityMetaKey.Selector]: {
+					$network: account.$network,
+					txHash: `0x${'1'.repeat(64)}`,
+				},
+			},
+		})
 		expect(fillsResolver.projections.$$fills.continuation(
 			{
 				...page,
@@ -722,7 +822,7 @@ describe('Hyperliquid order status resolver', () => {
 						coin: 'ETH',
 						side: 'B',
 						limitPx: '2000',
-						sz: '1',
+						sz: '9007199254740992.999999999999999999',
 						oid: 42,
 						timestamp: 1_700_000_000_000,
 						triggerCondition: 'N/A',
@@ -732,7 +832,7 @@ describe('Hyperliquid order status resolver', () => {
 						isPositionTpsl: false,
 						reduceOnly: false,
 						orderType: 'Limit',
-						origSz: '1',
+						origSz: '9007199254740993.000000000000000001',
 						tif: 'Gtc',
 						cloid: null,
 					},
@@ -759,12 +859,79 @@ describe('Hyperliquid order status resolver', () => {
 			[EntityMetaKey.Fields]: {
 				[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'status')]: 'open',
 				[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'statusTimestampMs')]: 1_700_000_000_000,
-				[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'size')]: '1',
-				[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'remainingSize')]: '1',
-				[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'filledSize')]: '0',
+				[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'size')]: '9007199254740992.999999999999999999',
+				[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'remainingSize')]: '9007199254740992.999999999999999999',
+				[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'filledSize')]: '0.000000000000000002',
 				[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'children')]: [],
 			},
 		}])
+	})
+
+	it('re-resolves an exact order lifecycle observation from its provider clock', async () => {
+		const timestampResolver = hyperliquid.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.HyperliquidOrder_Timestamp
+		))
+		if (timestampResolver == null)
+			throw new Error('Hyperliquid order timestamp resolver missing')
+
+		await expect(timestampResolver.resolve.OrderTimestampMsSource.resolve({
+			$order: {
+				$account: account,
+				oid: 42n,
+			},
+			timestampMs: 1_700_000_000_001,
+			source: Source.DydxIndexer,
+		}, context)).rejects.toThrow('order observation source mismatch')
+		expect(corsFetch).not.toHaveBeenCalled()
+
+		corsFetch.mockImplementation(async () => ({
+			ok: true,
+			json: async () => ({
+				status: 'order',
+				order: {
+					order: {
+						coin: 'ETH',
+						side: 'B',
+						limitPx: '2000',
+						sz: '9007199254740992.999999999999999999',
+						oid: 42,
+						timestamp: 1_700_000_000_000,
+						triggerCondition: 'N/A',
+						isTrigger: false,
+						triggerPx: '0',
+						children: [],
+						isPositionTpsl: false,
+						reduceOnly: false,
+						orderType: 'Limit',
+						origSz: '9007199254740993.000000000000000001',
+						tif: 'Gtc',
+						cloid: null,
+					},
+					status: 'filled',
+					statusTimestamp: 1_700_000_000_001,
+				},
+			}),
+		}))
+
+		const snapshot = await timestampResolver.resolve.OrderTimestampMsSource.resolve({
+			$order: {
+				$account: account,
+				oid: 42n,
+			},
+			timestampMs: 1_700_000_000_001,
+			source: Source.Hyperliquid,
+		}, context)
+		expect(timestampResolver.projections.status(snapshot)).toBe('filled')
+		expect(timestampResolver.projections.filledSize(snapshot)).toBe('0.000000000000000002')
+
+		await expect(timestampResolver.resolve.OrderTimestampMsSource.resolve({
+			$order: {
+				$account: account,
+				oid: 42n,
+			},
+			timestampMs: 1_700_000_000_000,
+			source: Source.Hyperliquid,
+		}, context)).rejects.toThrow('order observation timestamp mismatch')
 	})
 })
 
