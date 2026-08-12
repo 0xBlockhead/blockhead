@@ -11,6 +11,7 @@
 <script lang="ts">
 	// Types/constants
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
+	import { Source } from '$/sources/Source.ts'
 
 	const truncateParamLength = 28
 
@@ -24,12 +25,14 @@
 		hex,
 		kind,
 		resource,
+		source,
 		selectedSignatureIndex = $bindable(0),
 	}: {
 		Address?: Snippet<[address: string]>
 		hex: `0x${string}`
 		kind: CalldataSignatureKind
 		resource: SvelteKitResource<{ values: readonly string[] }>
+		source: Source
 		selectedSignatureIndex?: number
 	} = $props()
 
@@ -57,12 +60,12 @@
 >
 	<p>
 		<strong>Candidate lookup:</strong>
-		Openchain REST is queried first. When it returns no matches, the resolver queries 4byte.directory. Individual candidates are not tagged with their lookup origin.
+		{source} supplied these candidate signatures. They are catalog claims, not verified contract behavior.
 	</p>
 
 	<p>
 		<strong>Interpretation:</strong>
-		Candidate signatures are provider-attributed claims. Decoding is performed locally and is deterministic for the selected candidate.
+		The selected candidate ABI and signature remain sourced. Decoding the supplied hex is performed locally and is deterministic for that exact candidate; it does not prove that a contract intended the call.
 	</p>
 </aside>
 
@@ -100,6 +103,24 @@
 					type: param.type,
 					value: formatDecodedParamValue(param.type, param.value),
 				})),
+			}, null, '\t')}\n`}
+			{@const provenanceManifestJson = `${JSON.stringify({
+				artifactVersion: 1,
+				kind: kind === CalldataSignatureKind.Function ? 'function-calldata' : 'event-data',
+				input: hex,
+				sourceClaim: {
+					source,
+					signature: selectedSignature,
+					abi: abiFragment,
+				},
+				deterministicResult: decoded == null ? null : {
+					name: decoded.name,
+					params: decoded.params.map((param, index) => ({
+						index,
+						type: param.type,
+						value: formatDecodedParamValue(param.type, param.value),
+					})),
+				},
 			}, null, '\t')}\n`}
 			<dl data-definition-list="vertical">
 				<div>
@@ -168,6 +189,13 @@
 					Download decoded JSON
 				</a>
 			{/if}
+
+			<a
+				href={`data:application/json;charset=utf-8,${encodeURIComponent(provenanceManifestJson)}`}
+				download={`evm-${kind === CalldataSignatureKind.Function ? 'function-calldata' : 'event-data'}-provenance.json`}
+			>
+				Download provenance manifest JSON
+			</a>
 		{/if}
 	{/snippet}
 

@@ -45,6 +45,7 @@
 				select(EntityType.EvmTopic, data.selector, {
 					sources: [
 						Source.Openchain_Rest,
+						Source.FourByteDirectory_Rest,
 					],
 				})
 			}

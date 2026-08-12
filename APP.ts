@@ -250,6 +250,7 @@ export enum Source {
 	FilecoinFips_Github = "FilecoinFips_Github",
 	Filfox_Rest = "Filfox_Rest",
 	Forgejo_Rest = "Forgejo_Rest",
+	FourByteDirectory_Rest = "FourByteDirectory_Rest",
 	Freighter_WalletApi = "Freighter_WalletApi",
 	GetBlockRpc_JsonRpc = "GetBlockRpc_JsonRpc",
 	GetBlockYellowstone_Grpc = "GetBlockYellowstone_Grpc",
@@ -531,6 +532,7 @@ export enum SourceProvider {
 	FilecoinFips = "FilecoinFips",
 	Filfox = "Filfox",
 	Forgejo = "Forgejo",
+	FourByteDirectory = "FourByteDirectory",
 	Freighter = "Freighter",
 	FxEmbed = "FxEmbed",
 	GetBlock = "GetBlock",
@@ -28201,7 +28203,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Openchain_Rest],
+							sources: [Source.Openchain_Rest, Source.FourByteDirectory_Rest],
 							fields: ["signatures"],
 						},
 						summary: {
@@ -28274,7 +28276,7 @@ export const schema = {
 					plural: { component: "EvmErrorsView",
 						query: {
 							sources: {
-								default: [Source.Openchain_Rest],
+								default: [Source.Openchain_Rest, Source.FourByteDirectory_Rest],
 							},
 						},
 					},
@@ -28339,7 +28341,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Openchain_Rest],
+							sources: [Source.Openchain_Rest, Source.FourByteDirectory_Rest],
 							fields: [
 								"signatures",
 							],
@@ -28421,7 +28423,7 @@ export const schema = {
 					plural: { component: "EvmError_TimestampsView",
 						query: {
 							sources: {
-								default: [Source.Openchain_Rest],
+								default: [Source.Openchain_Rest, Source.FourByteDirectory_Rest],
 							},
 						},
 					},
@@ -29969,7 +29971,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Openchain_Rest],
+							sources: [Source.Openchain_Rest, Source.FourByteDirectory_Rest],
 							fields: ["signatures"],
 						},
 						summary: {
@@ -30042,7 +30044,7 @@ export const schema = {
 					plural: { component: "EvmSelectorsView",
 						query: {
 							sources: {
-								default: [Source.Openchain_Rest],
+								default: [Source.Openchain_Rest, Source.FourByteDirectory_Rest],
 							},
 						},
 					},
@@ -30107,7 +30109,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Openchain_Rest],
+							sources: [Source.Openchain_Rest, Source.FourByteDirectory_Rest],
 							fields: [
 								"signatures",
 							],
@@ -30189,7 +30191,7 @@ export const schema = {
 					plural: { component: "EvmSelector_TimestampsView",
 						query: {
 							sources: {
-								default: [Source.Openchain_Rest],
+								default: [Source.Openchain_Rest, Source.FourByteDirectory_Rest],
 							},
 						},
 					},
@@ -30500,7 +30502,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Openchain_Rest],
+								sources: [Source.Openchain_Rest, Source.FourByteDirectory_Rest],
 							fields: ["signatures"],
 						},
 						summary: {
@@ -30638,7 +30640,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Openchain_Rest],
+								sources: [Source.Openchain_Rest, Source.FourByteDirectory_Rest],
 							fields: [
 								"signatures",
 							],
@@ -72580,9 +72582,13 @@ export const routes = defineRoutes(schema)({
 
 															let selectedExample = $state<CalldataExample | undefined>(undefined)
 
-															let selectedSignatureIndex = $state(0)
+															let selectedOpenchainFunctionSignatureIndex = $state(0)
 
-															let selectedEventSignatureIndex = $state(0)
+															let selectedFourByteDirectoryFunctionSignatureIndex = $state(0)
+
+															let selectedOpenchainEventSignatureIndex = $state(0)
+
+															let selectedFourByteDirectoryEventSignatureIndex = $state(0)
 
 															afterNavigate(({ to }) => {
 																if (!to) return
@@ -72651,7 +72657,7 @@ export const routes = defineRoutes(schema)({
 																topic ? normalizeEvmTopicHex(topic) : null,
 															)
 
-															const selectorEntity = $derived(select(
+															const selectorOpenchainEntity = $derived(select(
 																EntityType.EvmSelector,
 																selector ?
 																	{ hex: normalizedSelector ?? selector }
@@ -72663,7 +72669,19 @@ export const routes = defineRoutes(schema)({
 																},
 															))
 
-															const topicEntity = $derived(select(
+															const selectorFourByteDirectoryEntity = $derived(select(
+																EntityType.EvmSelector,
+																selector ?
+																	{ hex: normalizedSelector ?? selector }
+																:
+																	{ hex: IDLE_SELECTOR_HEX },
+																{
+																	sources: [Source.FourByteDirectory_Rest],
+																	fields: { signatures: true },
+																},
+															))
+
+															const topicOpenchainEntity = $derived(select(
 																EntityType.EvmTopic,
 																topic ?
 																	{ hex: normalizedTopic ?? topic }
@@ -72671,6 +72689,18 @@ export const routes = defineRoutes(schema)({
 																	{ hex: IDLE_TOPIC_HEX },
 																{
 																	sources: [Source.Openchain_Rest],
+																	fields: { signatures: true },
+																},
+															))
+
+															const topicFourByteDirectoryEntity = $derived(select(
+																EntityType.EvmTopic,
+																topic ?
+																	{ hex: normalizedTopic ?? topic }
+																:
+																	{ hex: IDLE_TOPIC_HEX },
+																{
+																	sources: [Source.FourByteDirectory_Rest],
 																	fields: { signatures: true },
 																},
 															))
@@ -72778,19 +72808,35 @@ export const routes = defineRoutes(schema)({
 																							{/snippet}
 
 																							{#snippet Content()}
-																								<CalldataSignatureResult
-																									hex={ZeroExHex.assert(hexWithPrefix)}
-																									kind={CalldataSignatureKind.Function}
-																									resource={selectorEntity.signatures}
-																									bind:selectedSignatureIndex
-																								>
+																													<CalldataSignatureResult
+																														hex={ZeroExHex.assert(hexWithPrefix)}
+																														kind={CalldataSignatureKind.Function}
+																														source={Source.Openchain_Rest}
+																														resource={selectorOpenchainEntity.signatures}
+																														bind:selectedSignatureIndex={selectedOpenchainFunctionSignatureIndex}
+																													>
 																									{#snippet Address(address)}
 																										<EvmAccountView
 																											selection={select(EntityType.EvmAccount, { address: EvmAddress.assert(address) })}
 																											layout={EntityLayout.Value}
 																										/>
 																									{/snippet}
-																								</CalldataSignatureResult>
+																													</CalldataSignatureResult>
+
+																													<CalldataSignatureResult
+																														hex={ZeroExHex.assert(hexWithPrefix)}
+																														kind={CalldataSignatureKind.Function}
+																														source={Source.FourByteDirectory_Rest}
+																														resource={selectorFourByteDirectoryEntity.signatures}
+																														bind:selectedSignatureIndex={selectedFourByteDirectoryFunctionSignatureIndex}
+																													>
+																														{#snippet Address(address)}
+																															<EvmAccountView
+																																selection={select(EntityType.EvmAccount, { address: EvmAddress.assert(address) })}
+																																layout={EntityLayout.Value}
+																															/>
+																														{/snippet}
+																													</CalldataSignatureResult>
 																							{/snippet}
 																						</EntityView>
 																					</li>
@@ -72840,19 +72886,35 @@ export const routes = defineRoutes(schema)({
 																							{/snippet}
 
 																							{#snippet Content()}
-																								<CalldataSignatureResult
-																									hex={ZeroExHex.assert(hexWithPrefix)}
-																									kind={CalldataSignatureKind.Event}
-																									resource={topicEntity.signatures}
-																									bind:selectedSignatureIndex={selectedEventSignatureIndex}
-																								>
+																													<CalldataSignatureResult
+																														hex={ZeroExHex.assert(hexWithPrefix)}
+																														kind={CalldataSignatureKind.Event}
+																														source={Source.Openchain_Rest}
+																														resource={topicOpenchainEntity.signatures}
+																														bind:selectedSignatureIndex={selectedOpenchainEventSignatureIndex}
+																													>
 																									{#snippet Address(address)}
 																										<EvmAccountView
 																											selection={select(EntityType.EvmAccount, { address: EvmAddress.assert(address) })}
 																											layout={EntityLayout.Value}
 																										/>
 																									{/snippet}
-																								</CalldataSignatureResult>
+																													</CalldataSignatureResult>
+
+																													<CalldataSignatureResult
+																														hex={ZeroExHex.assert(hexWithPrefix)}
+																														kind={CalldataSignatureKind.Event}
+																														source={Source.FourByteDirectory_Rest}
+																														resource={topicFourByteDirectoryEntity.signatures}
+																														bind:selectedSignatureIndex={selectedFourByteDirectoryEventSignatureIndex}
+																													>
+																														{#snippet Address(address)}
+																															<EvmAccountView
+																																selection={select(EntityType.EvmAccount, { address: EvmAddress.assert(address) })}
+																																layout={EntityLayout.Value}
+																															/>
+																														{/snippet}
+																													</CalldataSignatureResult>
 																							{/snippet}
 																						</EntityView>
 																					</li>
@@ -96403,6 +96465,10 @@ export const app = {
 				label: "Forgejo",
 			},
 			{
+				provider: "FourByteDirectory",
+				label: "4byte.directory",
+			},
+			{
 				provider: "Freighter",
 				label: "Freighter",
 			},
@@ -101885,6 +101951,37 @@ export const app = {
 				},
 			},
 			{
+				source: Source.FourByteDirectory_Rest,
+				provider: "FourByteDirectory",
+				label: "4byte.directory REST",
+				binding: {
+					target: {
+						kind: SourceTargetKind.Global,
+						key: "fourbyte-directory",
+					},
+					endpoints: [
+						{
+							endpointKind: SourceEndpointKind.HttpUrl,
+							locator: "https://www.4byte.directory/api/v1",
+							corsEnabled: false,
+						},
+					],
+					wireProtocol: WireProtocol.HttpRest,
+					apiFamily: ApiFamily.RestJson,
+					operationGroups: [
+						SourceOperationGroup.GenericRead,
+					],
+					delivery: SourceDelivery.HttpProxy,
+					credentials: [],
+					artifacts: [
+						{
+							kind: SourceArtifactKind.HandwrittenTypes,
+							path: "src/sources/FourByteDirectory/Rest/types.ts",
+						},
+					],
+				},
+			},
+			{
 				source: Source.Freighter_WalletApi,
 				provider: "Freighter",
 				label: "Freighter wallet API",
@@ -105001,26 +105098,6 @@ export const app = {
 								path: "src/sources/Openchain/Rest/types.ts",
 							},
 						],
-					},
-					{
-						target: {
-							kind: SourceTargetKind.Global,
-							key: "fourbyte-directory",
-						},
-						endpoints: [
-							{
-								endpointKind: SourceEndpointKind.HttpUrl,
-								locator: "https://www.4byte.directory/api/v1",
-								corsEnabled: false,
-							},
-						],
-						wireProtocol: WireProtocol.HttpRest,
-						apiFamily: ApiFamily.RestJson,
-						operationGroups: [
-							SourceOperationGroup.GenericRead,
-						],
-						delivery: SourceDelivery.HttpProxy,
-						credentials: [],
 					},
 				],
 			},
@@ -113389,6 +113466,10 @@ export const app = {
 			{
 				source: Source.Filfox_Rest,
 				path: "src/resolvers/Filfox-Rest.ts",
+			},
+			{
+				source: Source.FourByteDirectory_Rest,
+				path: "src/resolvers/FourByteDirectory-Rest.ts",
 			},
 			{
 				source: Source.GetBlockRpc_JsonRpc,

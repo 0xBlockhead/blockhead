@@ -4,7 +4,7 @@ This file is generated from APP compiler-plane source metadata: the canonical pr
 
 Provider/source identity, target, endpoint reality, protocol, API family, operation groups, delivery, credentials, and artifacts remain independent axes. Artifacts and generated clients are binding metadata. CORS is recorded per HTTP endpoint; proxy and live behavior are recorded as delivery.
 
-254 providers register 286 sources and 513 bindings.
+255 providers register 287 sources and 513 bindings.
 
 ## Providers
 
@@ -100,6 +100,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | FilecoinFips | Filecoin FIPs |
 | Filfox | Filfox |
 | Forgejo | Forgejo |
+| FourByteDirectory | 4byte.directory |
 | Freighter | Freighter |
 | FxEmbed | FxEmbed |
 | GetBlock | GetBlock |
@@ -367,6 +368,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | FilecoinFips_Github | FilecoinFips | Filecoin FIPs GitHub |
 | Filfox_Rest | Filfox | Filfox REST |
 | Forgejo_Rest | Forgejo | Forgejo REST |
+| FourByteDirectory_Rest | FourByteDirectory | 4byte.directory REST |
 | Freighter_WalletApi | Freighter | Freighter wallet API |
 | GetBlockRpc_JsonRpc | GetBlock | GetBlock EVM JSON-RPC |
 | GetBlockYellowstone_Grpc | GetBlock | GetBlock Yellowstone gRPC |
@@ -717,6 +719,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["FilecoinFips_Github","GitRepository","filecoin-project/FIPs@master:FIPS","BrowserDirect","GithubContentsApi"] | FilecoinFips | FilecoinFips_Github | GitRepository | filecoin-project/FIPs@master:FIPS | HttpRest | GithubContentsApi | GithubRepositoryContents | BrowserDirect |
 | ["Filfox_Rest","Global","api","BrowserDirect","RestJson"] | Filfox | Filfox_Rest | Global | api | HttpRest | RestJson | GenericRead | BrowserDirect |
 | ["Forgejo_Rest","Global","forgejo-instance","RemoteQuery","ForgejoRestApi"] | Forgejo | Forgejo_Rest | Global | forgejo-instance | HttpRest | ForgejoRestApi | GitRepositoryContents, IssueTracking, PullRequestReview, ReleaseMetadata, RepositoryMetadata | RemoteQuery |
+| ["FourByteDirectory_Rest","Global","fourbyte-directory","HttpProxy","RestJson"] | FourByteDirectory | FourByteDirectory_Rest | Global | fourbyte-directory | HttpRest | RestJson | GenericRead | HttpProxy |
 | ["Freighter_WalletApi","LocalDevice","freighter","BrowserDirect","WalletApi"] | Freighter | Freighter_WalletApi | LocalDevice | freighter | WalletProvider | WalletApi | WalletAccountRead, WalletSign | BrowserDirect |
 | ["GetBlockRpc_JsonRpc","Eip155Chain","1","HttpProxy","EvmExecutionJsonRpc"] | GetBlock | GetBlockRpc_JsonRpc | Eip155Chain | 1 | JsonRpc2 | EvmExecutionJsonRpc | EvmRpcCore | HttpProxy |
 | ["GetBlockYellowstone_Grpc","Caip2Network","solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp","RemoteLive","GrpcService"] | GetBlock | GetBlockYellowstone_Grpc | Caip2Network | solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp | Grpc | GrpcService | GenericSubscribe | RemoteLive |
@@ -817,7 +820,6 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["OnnxArtifact_Local","LocalDevice","onnx-artifact","LocalOnly","LocalParser"] | Onnx | OnnxArtifact_Local | LocalDevice | onnx-artifact | LocalFile | LocalParser | AiArtifactCatalog, DocumentClaimExtraction | LocalOnly |
 | ["OpenAI_Rest","Global","openai-api","HttpProxy","RestJson"] | OpenAI | OpenAI_Rest | Global | openai-api | HttpRest | RestJson | AiModelCatalog, AiProviderOperationCatalog, GenericRead | HttpProxy |
 | ["Openchain_Rest","Global","openchain-signatures","HttpProxy","RestJson"] | Openchain | Openchain_Rest | Global | openchain-signatures | HttpRest | RestJson | GenericRead | HttpProxy |
-| ["Openchain_Rest","Global","fourbyte-directory","HttpProxy","RestJson"] | Openchain | Openchain_Rest | Global | fourbyte-directory | HttpRest | RestJson | GenericRead | HttpProxy |
 | ["OpenSea_Rest","Global","opensea-api","HttpProxy","OpenApiHttp"] | OpenSea | OpenSea_Rest | Global | opensea-api | HttpRest | OpenApiHttp | GenericRead | HttpProxy |
 | ["Osmosis_LCD_Rest","Caip2Network","cosmos:osmosis-1","HttpProxy","CosmosLcdApi"] | Osmosis | Osmosis_LCD_Rest | Caip2Network | cosmos:osmosis-1 | HttpRest | CosmosLcdApi | GenericRead | HttpProxy |
 | ["Pathfinder","NetworkSlug","starknet","LocalOnly","StarknetJsonRpc"] | Pathfinder | Pathfinder | NetworkSlug | starknet | JsonRpc2 | StarknetJsonRpc | GenericRead | LocalOnly |
@@ -1249,6 +1251,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["FilecoinFips_Github","GitRepository","filecoin-project/FIPs@master:FIPS","BrowserDirect","GithubContentsApi"] | HttpUrl | https://raw.githubusercontent.com | https://raw.githubusercontent.com | true |
 | ["Filfox_Rest","Global","api","BrowserDirect","RestJson"] | HttpUrl | https://filfox.info | https://filfox.info | true |
 | ["Forgejo_Rest","Global","forgejo-instance","RemoteQuery","ForgejoRestApi"] | HttpUrl | https://{forgejo-host}/api/v1 | https://{forgejo-host} | false |
+| ["FourByteDirectory_Rest","Global","fourbyte-directory","HttpProxy","RestJson"] | HttpUrl | https://www.4byte.directory/api/v1 | https://www.4byte.directory | false |
 | ["Freighter_WalletApi","LocalDevice","freighter","BrowserDirect","WalletApi"] | BrowserWalletProvider | freighter |  |  |
 | ["GetBlockRpc_JsonRpc","Eip155Chain","1","HttpProxy","EvmExecutionJsonRpc"] | HttpUrl | https://go.getblock.io/{GETBLOCK_API_KEY}/ | https://go.getblock.io | false |
 | ["GetBlockYellowstone_Grpc","Caip2Network","solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp","RemoteLive","GrpcService"] | HttpUrl | https://go.getblock.io/{GETBLOCK_API_KEY}/ | https://go.getblock.io | false |
@@ -1361,7 +1364,6 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["OnnxArtifact_Local","LocalDevice","onnx-artifact","LocalOnly","LocalParser"] | LocalFilePath | selected-file-or-artifact |  |  |
 | ["OpenAI_Rest","Global","openai-api","HttpProxy","RestJson"] | HttpUrl | https://api.openai.com | https://api.openai.com | false |
 | ["Openchain_Rest","Global","openchain-signatures","HttpProxy","RestJson"] | HttpUrl | https://api.4byte.sourcify.dev/signature-database/v1 | https://api.4byte.sourcify.dev | false |
-| ["Openchain_Rest","Global","fourbyte-directory","HttpProxy","RestJson"] | HttpUrl | https://www.4byte.directory/api/v1 | https://www.4byte.directory | false |
 | ["OpenSea_Rest","Global","opensea-api","HttpProxy","OpenApiHttp"] | HttpUrl | https://api.opensea.io | https://api.opensea.io | false |
 | ["Osmosis_LCD_Rest","Caip2Network","cosmos:osmosis-1","HttpProxy","CosmosLcdApi"] | HttpUrl | https://lcd.osmosis.zone | https://lcd.osmosis.zone | false |
 | ["Pathfinder","NetworkSlug","starknet","LocalOnly","StarknetJsonRpc"] | HttpUrl | http://127.0.0.1:9545/rpc/v0_10 | http://127.0.0.1:9545 | false |
@@ -2011,6 +2013,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["Euler_Rest","Global","euler-v3-api","BrowserDirect","RestJson"] | HandwrittenTypes | src/sources/Euler/Rest/types.ts | no |  | https://docs.euler.finance/developers/data-querying/euler-v3-api |
 | ["Farcaster_Rest","Global","client-api","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/Farcaster/Rest/types.ts | no |  |  |
 | ["Filfox_Rest","Global","api","BrowserDirect","RestJson"] | HandwrittenTypes | src/sources/Filfox/Rest/types.ts | no |  |  |
+| ["FourByteDirectory_Rest","Global","fourbyte-directory","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/FourByteDirectory/Rest/types.ts | no |  |  |
 | ["GetBlockRpc_JsonRpc","Eip155Chain","1","HttpProxy","EvmExecutionJsonRpc"] | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
 | ["GetBlockRpc_JsonRpc","Eip155Chain","1","HttpProxy","EvmExecutionJsonRpc"] | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
 | ["GetBlockYellowstone_Grpc","Caip2Network","solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp","RemoteLive","GrpcService"] | HandwrittenTypes | src/sources/GetBlock/Yellowstone/types.ts | no |  | https://getblock.io/docs/yellowstone-grpc/ |

@@ -19,12 +19,3 @@ export const openchainLookupResponseWire = arktype({
 })
 
 export type OpenchainLookupResponse = typeof openchainLookupResponseWire.infer
-
-/** Ethereum Signature Database `GET /signatures/` or `/event-signatures/` */
-export const fourbyteSignaturesListWire = arktype({
-	results: arktype({
-		text_signature: 'string',
-	}).array(),
-})
-
-export type FourbyteSignaturesList = typeof fourbyteSignaturesListWire.infer

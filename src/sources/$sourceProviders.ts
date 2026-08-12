@@ -90,6 +90,7 @@ import fedimintGatewaydSourceProvider from './FedimintGatewayd/index.ts'
 import filecoinFipsSourceProvider from './FilecoinFips/index.ts'
 import filfoxSourceProvider from './Filfox/index.ts'
 import forgejoSourceProvider from './Forgejo/index.ts'
+import fourByteDirectorySourceProvider from './FourByteDirectory/index.ts'
 import freighterSourceProvider from './Freighter/index.ts'
 import fxEmbedSourceProvider from './FxEmbed/index.ts'
 import getBlockSourceProvider from './GetBlock/index.ts'
@@ -353,6 +354,7 @@ const sourceProviders = [
 	filecoinFipsSourceProvider,
 	filfoxSourceProvider,
 	forgejoSourceProvider,
+	fourByteDirectorySourceProvider,
 	freighterSourceProvider,
 	fxEmbedSourceProvider,
 	getBlockSourceProvider,

@@ -9,7 +9,6 @@ import {
 import bindings from '$/sources/Openchain/bindings.ts'
 import {
 	getEventEntries,
-	getFourbyteFunctionEntries,
 	getFunctionEntries,
 	lookupPath,
 	summarizeOpenchainEntries,
@@ -22,9 +21,6 @@ import {
 
 const openchainBinding = bindings[Source.Openchain_Rest].find((binding) => (
 	binding.target.key === 'openchain-signatures'
-))
-const fourbyteBinding = bindings[Source.Openchain_Rest].find((binding) => (
-	binding.target.key === 'fourbyte-directory'
 ))
 const jsonResponse = (body: unknown, status = 200) => (
 	new Response(JSON.stringify(body), {
@@ -41,17 +37,13 @@ describe('Openchain REST product queries', () => {
 		vi.unstubAllGlobals()
 	})
 
-	it('binds Openchain + 4byte directory over HTTP proxy', () => {
+	it('binds Openchain over HTTP proxy', () => {
 		expect(openchainBinding?.apiFamily).toBe(ApiFamily.RestJson)
 		expect(openchainBinding?.delivery).toBe(SourceDelivery.HttpProxy)
 		expect(openchainBinding?.endpoints[0]?.locator).toBe(
 			'https://api.4byte.sourcify.dev/signature-database/v1'
 		)
 		expect(openchainBinding?.endpoints[0]?.corsEnabled).toBe(false)
-		expect(fourbyteBinding?.endpoints[0]?.locator).toBe(
-			'https://www.4byte.directory/api/v1'
-		)
-		expect(fourbyteBinding?.delivery).toBe(SourceDelivery.HttpProxy)
 	})
 
 	it('encodes unfiltered lookup paths for function and event hex', () => {
@@ -148,16 +140,6 @@ describe('Openchain REST product queries', () => {
 		await expect(getFunctionEntries({
 			hex: '0xa9059cbb',
 		})).rejects.toThrow('404')
-	})
-
-	it('hard-fails 4byte lists that omit results', async () => {
-		vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse({
-			count: 0,
-		}))
-
-		await expect(getFourbyteFunctionEntries({
-			hex: '0xa9059cbb',
-		})).rejects.toThrow('invalid 4byte signatures list response envelope')
 	})
 
 	it('hard-fails Openchain payloads that omit ok', async () => {

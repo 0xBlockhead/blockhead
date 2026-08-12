@@ -88,6 +88,7 @@ const resolverLoaderEntries = [
 	[Source.FedimintGatewayd_Rest, () => import('./FedimintGatewayd-Rest.ts')],
 	[Source.FilecoinFips_Github, () => import('./FilecoinFips-Github.ts')],
 	[Source.Filfox_Rest, () => import('./Filfox-Rest.ts')],
+	[Source.FourByteDirectory_Rest, () => import('./FourByteDirectory-Rest.ts')],
 	[Source.GetBlockRpc_JsonRpc, () => import('./GetBlock-Rpc.ts')],
 	[Source.GetBlockYellowstone_Grpc, () => import('./GetBlock-Yellowstone.ts')],
 	[Source.Gmx_Rest, () => import('./Gmx-Rest.ts')],

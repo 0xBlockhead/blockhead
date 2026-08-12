@@ -41,9 +41,13 @@
 
 	let selectedExample = $state<CalldataExample | undefined>(undefined)
 
-	let selectedSignatureIndex = $state(0)
+	let selectedOpenchainFunctionSignatureIndex = $state(0)
 
-	let selectedEventSignatureIndex = $state(0)
+	let selectedFourByteDirectoryFunctionSignatureIndex = $state(0)
+
+	let selectedOpenchainEventSignatureIndex = $state(0)
+
+	let selectedFourByteDirectoryEventSignatureIndex = $state(0)
 
 	afterNavigate(({ to }) => {
 		if (!to) return
@@ -112,7 +116,7 @@
 		topic ? normalizeEvmTopicHex(topic) : null,
 	)
 
-	const selectorEntity = $derived(select(
+	const selectorOpenchainEntity = $derived(select(
 		EntityType.EvmSelector,
 		selector ?
 			{ hex: normalizedSelector ?? selector }
@@ -124,7 +128,19 @@
 		},
 	))
 
-	const topicEntity = $derived(select(
+	const selectorFourByteDirectoryEntity = $derived(select(
+		EntityType.EvmSelector,
+		selector ?
+			{ hex: normalizedSelector ?? selector }
+		:
+			{ hex: IDLE_SELECTOR_HEX },
+		{
+			sources: [Source.FourByteDirectory_Rest],
+			fields: { signatures: true },
+		},
+	))
+
+	const topicOpenchainEntity = $derived(select(
 		EntityType.EvmTopic,
 		topic ?
 			{ hex: normalizedTopic ?? topic }
@@ -132,6 +148,18 @@
 			{ hex: IDLE_TOPIC_HEX },
 		{
 			sources: [Source.Openchain_Rest],
+			fields: { signatures: true },
+		},
+	))
+
+	const topicFourByteDirectoryEntity = $derived(select(
+		EntityType.EvmTopic,
+		topic ?
+			{ hex: normalizedTopic ?? topic }
+		:
+			{ hex: IDLE_TOPIC_HEX },
+		{
+			sources: [Source.FourByteDirectory_Rest],
 			fields: { signatures: true },
 		},
 	))
@@ -250,19 +278,35 @@
 									{/snippet}
 
 									{#snippet Content()}
-										<CalldataSignatureResult
-											hex={ZeroExHex.assert(hexWithPrefix)}
-											kind={CalldataSignatureKind.Function}
-											resource={selectorEntity.signatures}
-											bind:selectedSignatureIndex
-										>
+															<CalldataSignatureResult
+																hex={ZeroExHex.assert(hexWithPrefix)}
+																kind={CalldataSignatureKind.Function}
+																source={Source.Openchain_Rest}
+																resource={selectorOpenchainEntity.signatures}
+																bind:selectedSignatureIndex={selectedOpenchainFunctionSignatureIndex}
+															>
 											{#snippet Address(address)}
 												<EvmAccountView
 													selection={select(EntityType.EvmAccount, { address: EvmAddress.assert(address) })}
 													layout={EntityLayout.Value}
 												/>
 											{/snippet}
-										</CalldataSignatureResult>
+															</CalldataSignatureResult>
+
+															<CalldataSignatureResult
+																hex={ZeroExHex.assert(hexWithPrefix)}
+																kind={CalldataSignatureKind.Function}
+																source={Source.FourByteDirectory_Rest}
+																resource={selectorFourByteDirectoryEntity.signatures}
+																bind:selectedSignatureIndex={selectedFourByteDirectoryFunctionSignatureIndex}
+															>
+																{#snippet Address(address)}
+																	<EvmAccountView
+																		selection={select(EntityType.EvmAccount, { address: EvmAddress.assert(address) })}
+																		layout={EntityLayout.Value}
+																	/>
+																{/snippet}
+															</CalldataSignatureResult>
 									{/snippet}
 								</EntityView>
 							</li>
@@ -312,19 +356,35 @@
 									{/snippet}
 
 									{#snippet Content()}
-										<CalldataSignatureResult
-											hex={ZeroExHex.assert(hexWithPrefix)}
-											kind={CalldataSignatureKind.Event}
-											resource={topicEntity.signatures}
-											bind:selectedSignatureIndex={selectedEventSignatureIndex}
-										>
+															<CalldataSignatureResult
+																hex={ZeroExHex.assert(hexWithPrefix)}
+																kind={CalldataSignatureKind.Event}
+																source={Source.Openchain_Rest}
+																resource={topicOpenchainEntity.signatures}
+																bind:selectedSignatureIndex={selectedOpenchainEventSignatureIndex}
+															>
 											{#snippet Address(address)}
 												<EvmAccountView
 													selection={select(EntityType.EvmAccount, { address: EvmAddress.assert(address) })}
 													layout={EntityLayout.Value}
 												/>
 											{/snippet}
-										</CalldataSignatureResult>
+															</CalldataSignatureResult>
+
+															<CalldataSignatureResult
+																hex={ZeroExHex.assert(hexWithPrefix)}
+																kind={CalldataSignatureKind.Event}
+																source={Source.FourByteDirectory_Rest}
+																resource={topicFourByteDirectoryEntity.signatures}
+																bind:selectedSignatureIndex={selectedFourByteDirectoryEventSignatureIndex}
+															>
+																{#snippet Address(address)}
+																	<EvmAccountView
+																		selection={select(EntityType.EvmAccount, { address: EvmAddress.assert(address) })}
+																		layout={EntityLayout.Value}
+																	/>
+																{/snippet}
+															</CalldataSignatureResult>
 									{/snippet}
 								</EntityView>
 							</li>

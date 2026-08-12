@@ -91,6 +91,7 @@ export enum SourceProvider {
 	FilecoinFips = 'FilecoinFips',
 	Filfox = 'Filfox',
 	Forgejo = 'Forgejo',
+	FourByteDirectory = 'FourByteDirectory',
 	Freighter = 'Freighter',
 	FxEmbed = 'FxEmbed',
 	GetBlock = 'GetBlock',

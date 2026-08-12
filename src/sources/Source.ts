@@ -99,6 +99,7 @@ export enum Source {
 	FilecoinFips_Github = 'FilecoinFips_Github',
 	Filfox_Rest = 'Filfox_Rest',
 	Forgejo_Rest = 'Forgejo_Rest',
+	FourByteDirectory_Rest = 'FourByteDirectory_Rest',
 	Freighter_WalletApi = 'Freighter_WalletApi',
 	GetBlockRpc_JsonRpc = 'GetBlockRpc_JsonRpc',
 	GetBlockYellowstone_Grpc = 'GetBlockYellowstone_Grpc',

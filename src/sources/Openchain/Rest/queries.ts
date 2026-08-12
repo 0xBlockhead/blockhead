@@ -4,7 +4,6 @@ import {
 	sourceGetJson,
 } from '$/sources/_runtime/http.ts'
 import {
-	fourbyteSignaturesListWire,
 	openchainLookupResponseWire,
 	openchainSignatureEntriesWire,
 	type OpenchainSignatureEntry,
@@ -18,7 +17,6 @@ const bindingByTargetKey = Object.fromEntries(
 	] as const))
 )
 const openchainBinding = bindingByTargetKey['openchain-signatures']
-const fourbyteBinding = bindingByTargetKey['fourbyte-directory']
 
 const omitUndefinedJson = (
 	value: unknown
@@ -67,50 +65,6 @@ const normalizeHex32 = (hex: `0x${string}`): `0x${string}` => {
 			hex.toLowerCase()
 	)
 	return `0x${digits.padStart(64, '0').slice(-64)}`
-}
-
-const fourbyteHex4Query = (hex: `0x${string}`) => (
-	normalizeHex4(hex).slice(2).toLowerCase()
-)
-
-const fourbyteHex32Query = (hex: `0x${string}`) => (
-	normalizeHex32(hex).slice(2).toLowerCase()
-)
-
-const fourbyteResults = (json: unknown) => (
-	assertEnvelope(
-		'4byte signatures list',
-		fourbyteSignaturesListWire,
-		json
-	).results
-)
-
-export const getFourbyteFunctionEntries = async ({
-	hex,
-}: {
-	hex: `0x${string}`
-}) => {
-	const searchParams = new URLSearchParams({ hex_signature: fourbyteHex4Query(hex) })
-	return fourbyteResults(
-		await sourceGetJson(
-			fourbyteBinding,
-			`${firstHttpUrlForBinding(fourbyteBinding)}/signatures/?${searchParams}`
-		)
-	)
-}
-
-export const getFourbyteEventEntries = async ({
-	hex,
-}: {
-	hex: `0x${string}`
-}) => {
-	const searchParams = new URLSearchParams({ hex_signature: fourbyteHex32Query(hex) })
-	return fourbyteResults(
-		await sourceGetJson(
-			fourbyteBinding,
-			`${firstHttpUrlForBinding(fourbyteBinding)}/event-signatures/?${searchParams}`
-		)
-	)
 }
 
 export const lookupPath = (params: {

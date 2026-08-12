@@ -13,14 +13,10 @@ import { Source } from '$/sources/Source.ts'
 
 const {
 	getEventEntries,
-	getFourbyteEventEntries,
-	getFourbyteFunctionEntries,
 	getFunctionEntries,
 	summarizeOpenchainEntries,
 } = vi.hoisted(() => ({
 	getEventEntries: vi.fn(),
-	getFourbyteEventEntries: vi.fn(),
-	getFourbyteFunctionEntries: vi.fn(),
 	getFunctionEntries: vi.fn(),
 	summarizeOpenchainEntries: vi.fn((entries: { name: string, filtered?: boolean, hasVerifiedContract?: boolean }[]) => {
 		const unfiltered = entries.filter((entry) => entry.filtered !== true)
@@ -40,8 +36,6 @@ const {
 
 vi.mock('$/sources/Openchain/Rest/queries.ts', () => ({
 	getEventEntries,
-	getFourbyteEventEntries,
-	getFourbyteFunctionEntries,
 	getFunctionEntries,
 	summarizeOpenchainEntries,
 }))
@@ -78,21 +72,6 @@ describe('Openchain resolver', () => {
 		expect(getFunctionEntries).toHaveBeenCalledWith({
 			hex: '0x12345678',
 		})
-		expect(getFourbyteFunctionEntries).not.toHaveBeenCalled()
-	})
-
-	it('projects native 4byte text signatures only when Openchain has no rows', async () => {
-		getFunctionEntries.mockResolvedValue([])
-		getFourbyteFunctionEntries.mockResolvedValue([{ text_signature: 'fourbyte(address)' }])
-
-		const snapshot = await resolveSelector()
-
-		expect(snapshot.signatures).toEqual([
-			'fourbyte(address)',
-		])
-		expect(getFourbyteFunctionEntries).toHaveBeenCalledWith({
-			hex: '0x12345678',
-		})
 	})
 
 	it('propagates provider failures instead of materializing false empty results', async () => {
@@ -100,8 +79,7 @@ describe('Openchain resolver', () => {
 
 		await expect(resolveSelector()).rejects.toThrow('Openchain unavailable')
 
-		getEventEntries.mockResolvedValueOnce([])
-		getFourbyteEventEntries.mockRejectedValueOnce(new Error('4byte unavailable'))
+		getEventEntries.mockRejectedValueOnce(new Error('Openchain event lookup unavailable'))
 		const resolver = openchain.resolvers.find((candidate) => (
 			candidate.entityType === EntityType.EvmTopic
 		))
@@ -110,7 +88,7 @@ describe('Openchain resolver', () => {
 
 		await expect(resolver.resolve['Hex'].resolve({
 			hex: '0x12345678',
-		})).rejects.toThrow('4byte unavailable')
+		})).rejects.toThrow('Openchain event lookup unavailable')
 	})
 
 	it('materializes complete selector observations in the parent row', async () => {

@@ -31,6 +31,7 @@
 			...{
 				sources: selection.sources ?? [
 					Source.Openchain_Rest,
+					Source.FourByteDirectory_Rest,
 				],
 				fields: {
 					hex: true,

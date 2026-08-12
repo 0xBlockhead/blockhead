@@ -24,6 +24,7 @@
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Openchain_Rest,
+			Source.FourByteDirectory_Rest,
 		],
 	}))
 	const titleFallback = $derived((prefetched.signatures?.values.join(', ') ?? '') || 'EVM error observation')

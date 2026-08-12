@@ -18,22 +18,12 @@ type SignatureObservation = {
 
 const getFunctionObservation = async (hex: `0x${string}`): Promise<SignatureObservation> => {
 	const {
-		getFourbyteFunctionEntries,
 		getFunctionEntries,
 		summarizeOpenchainEntries,
 	} = await import('$/sources/Openchain/Rest/queries.ts')
 	const openchainEntries = await getFunctionEntries({ hex })
-	if (openchainEntries.length > 0)
-		return {
-			...summarizeOpenchainEntries(openchainEntries),
-			reachable: true,
-		}
-
 	return {
-		signatures: (
-			await getFourbyteFunctionEntries({ hex })
-		)
-			.map((signatureEntry) => signatureEntry.text_signature),
+		...summarizeOpenchainEntries(openchainEntries),
 		reachable: true,
 	}
 }
@@ -41,21 +31,11 @@ const getFunctionObservation = async (hex: `0x${string}`): Promise<SignatureObse
 const getEventObservation = async (hex: `0x${string}`): Promise<SignatureObservation> => {
 	const {
 		getEventEntries,
-		getFourbyteEventEntries,
 		summarizeOpenchainEntries,
 	} = await import('$/sources/Openchain/Rest/queries.ts')
 	const openchainEntries = await getEventEntries({ hex })
-	if (openchainEntries.length > 0)
-		return {
-			...summarizeOpenchainEntries(openchainEntries),
-			reachable: true,
-		}
-
 	return {
-		signatures: (
-			await getFourbyteEventEntries({ hex })
-		)
-			.map((signatureEntry) => signatureEntry.text_signature),
+		...summarizeOpenchainEntries(openchainEntries),
 		reachable: true,
 	}
 }
@@ -68,25 +48,14 @@ const isErrorSignature = (signature: string) => (
 
 const getErrorObservation = async (hex: `0x${string}`): Promise<SignatureObservation> => {
 	const {
-		getFourbyteFunctionEntries,
 		getFunctionEntries,
 		summarizeOpenchainEntries,
 	} = await import('$/sources/Openchain/Rest/queries.ts')
 	const openchainEntries = await getFunctionEntries({ hex })
-	if (openchainEntries.length > 0)
-		return {
-			...summarizeOpenchainEntries(
-				openchainEntries.filter((entry) => isErrorSignature(entry.name))
-			),
-			reachable: true,
-		}
-
 	return {
-		signatures: (
-			await getFourbyteFunctionEntries({ hex })
-		)
-			.map((signatureEntry) => signatureEntry.text_signature)
-			.filter(isErrorSignature),
+		...summarizeOpenchainEntries(
+			openchainEntries.filter((entry) => isErrorSignature(entry.name))
+		),
 		reachable: true,
 	}
 }
