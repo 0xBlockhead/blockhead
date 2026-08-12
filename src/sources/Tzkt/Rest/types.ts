@@ -112,6 +112,21 @@ export const tzktContractWire = arktype({
 
 export type TzktContract = typeof tzktContractWire.infer
 
+// https://api.tzkt.io/#tag/Delegates
+export const tzktDelegateWire = arktype({
+	address: 'string > 0',
+	'consensusAddress?': 'string',
+	active: 'boolean',
+	'stakedBalance?': 'number.integer >= 0',
+	'delegatedBalance?': 'number.integer >= 0',
+	'ownDelegatedBalance?': 'number.integer >= 0',
+	'votingPower?': 'number.integer >= 0',
+	'lastActivity?': 'number.integer >= 0',
+	'lastActivityTime?': 'string',
+})
+
+export type TzktDelegate = typeof tzktDelegateWire.infer
+
 export const tzktHeadWire = arktype({
 	chain: 'string > 0',
 	chainId: 'string > 0',
@@ -227,6 +242,7 @@ export const tzktBigMapKey = tzktBigMapKeyWire satisfies Type<TzktBigMapKey>
 export const tzktBigMapUpdate = tzktBigMapUpdateWire satisfies Type<TzktBigMapUpdate>
 export const tzktBlock = tzktBlockWire satisfies Type<TzktBlock>
 export const tzktContract = tzktContractWire satisfies Type<TzktContract>
+export const tzktDelegate = tzktDelegateWire satisfies Type<TzktDelegate>
 export const tzktHead = tzktHeadWire satisfies Type<TzktHead>
 export const tzktStatistics = tzktStatisticsWire satisfies Type<TzktStatistics>
 export const tzktOperation = tzktOperationWire satisfies Type<TzktOperation>

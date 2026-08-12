@@ -6,11 +6,13 @@ import {
 	getBlock,
 	getContract,
 	getCurrentStatistics,
+	getDelegate,
 	getHead,
 	getToken,
 	listAccountOperations,
 	listAccountTokenBalances,
 	listBlocks,
+	listDelegates,
 	listOperationsByHash,
 	listTokens,
 } from '$/sources/Tzkt/Rest/queries.ts'
@@ -73,6 +75,18 @@ const token = {
 		name: 'Example',
 		decimals: '0',
 	},
+}
+
+const delegate = {
+	address: 'tz1baker',
+	consensusAddress: 'tz1consensus',
+	active: true,
+	stakedBalance: 9_007_199_254_740_000,
+	delegatedBalance: 7_000_000,
+	ownDelegatedBalance: 2_000_000,
+	votingPower: 9_007_199_254_740_001,
+	lastActivity: 10,
+	lastActivityTime: '2024-01-02T00:00:00Z',
 }
 
 describe('TzKT REST fail-closed envelopes', () => {
@@ -142,6 +156,28 @@ describe('TzKT REST fail-closed envelopes', () => {
 		await expect(listOperationsByHash({
 			operationHash: 'opHash',
 		})).resolves.toEqual([operation])
+	})
+
+	it('uses delegate detail and ranked baker list endpoints', async () => {
+		sourceGetJsonMock
+			.mockResolvedValueOnce(delegate)
+			.mockResolvedValueOnce([delegate])
+
+		await expect(getDelegate({ address: delegate.address })).resolves.toEqual(delegate)
+		await expect(listDelegates({
+			offset: 0,
+			limit: 1,
+		})).resolves.toEqual([delegate])
+		expect(sourceGetJsonMock).toHaveBeenNthCalledWith(
+			1,
+			expect.anything(),
+			'https://api.tzkt.io/v1/delegates/tz1baker'
+		)
+		expect(sourceGetJsonMock).toHaveBeenNthCalledWith(
+			2,
+			expect.anything(),
+			'https://api.tzkt.io/v1/delegates?offset=0&limit=1&sort.desc=stakingBalance'
+		)
 	})
 
 	it('asserts bigmap and token-balance envelopes', async () => {

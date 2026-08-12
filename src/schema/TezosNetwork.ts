@@ -56,6 +56,9 @@ export default entity({
 	$$bakers: {
 		entityType: EntityType.TezosBaker,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Tzkt_Rest,
+		],
 	},
 	$$cycles: {
 		entityType: EntityType.TezosCycle,

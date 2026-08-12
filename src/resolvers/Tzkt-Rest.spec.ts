@@ -982,6 +982,93 @@ describe('TzKT network accounts / operations leftovers', () => {
 		expect(getJson.mock.calls[0][0]).toContain('/v1/accounts?')
 	})
 
+	it('projects native bakers and source-qualified current stake observations', async () => {
+		const bakerResolver = tzktResolvers.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.TezosBaker
+			&& '$$timestamps' in candidate.projections
+		))
+		const bakerTimestampResolver = tzktResolvers.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.TezosBaker_Timestamp
+		))
+		if (bakerResolver == null || bakerTimestampResolver == null)
+			throw new Error('TzKT REST spec missing Tezos baker resolvers')
+
+		const delegate = {
+			address: 'tz1baker',
+			consensusAddress: 'tz1consensus',
+			active: true,
+			stakedBalance: 9_007_199_254_740_000,
+			delegatedBalance: 7_000_000,
+			ownDelegatedBalance: 2_000_000,
+			votingPower: 9_007_199_254_740_001,
+			lastActivity: 5_000_000,
+			lastActivityTime: '2026-07-16T12:34:56Z',
+		}
+		getJson
+			.mockResolvedValueOnce([delegate])
+			.mockResolvedValueOnce(delegate)
+			.mockResolvedValueOnce(delegate)
+
+		const resolver = networkResolverFor('$$bakers')
+		const tezosNetwork = {
+			$network: { slug: 'tezos' },
+		}
+		const page = await resolver.resolve.Network.resolve(tezosNetwork, context)
+		expect(resolver.projections.$$bakers.select(page, tezosNetwork, context)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$network: tezosNetwork,
+				address: delegate.address,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.TezosBaker, [], '$account')]: {
+					[EntityMetaKey.Selector]: {
+						$network: tezosNetwork,
+						address: delegate.address,
+					},
+				},
+				[entityFieldAddressKey(EntityType.TezosBaker, [], '$$timestamps')]: [
+					expect.objectContaining({
+						[EntityMetaKey.Selector]: {
+							$baker: {
+								$network: tezosNetwork,
+								address: delegate.address,
+							},
+							level: 5_000_000n,
+							source: Source.Tzkt_Rest,
+						},
+						[EntityMetaKey.Fields]: expect.objectContaining({
+							[entityFieldAddressKey(EntityType.TezosBaker_Timestamp, [], 'stakingBalanceMutez')]: 9_007_199_254_740_000n,
+							[entityFieldAddressKey(EntityType.TezosBaker_Timestamp, [], 'delegatedBalanceMutez')]: 7_000_000n,
+							[entityFieldAddressKey(EntityType.TezosBaker_Timestamp, [], 'active')]: true,
+						}),
+					}),
+				],
+			},
+		}])
+
+		const baker = {
+			$network: tezosNetwork,
+			address: delegate.address,
+		}
+		await expect(bakerResolver.resolve.NetworkAddress.resolve(baker, context)).resolves.toMatchObject({
+			$account: {
+				[EntityMetaKey.Selector]: {
+					$network: tezosNetwork,
+					address: delegate.address,
+				},
+			},
+		})
+		await expect(bakerTimestampResolver.resolve.BakerLevelSource.resolve({
+			$baker: baker,
+			level: 5_000_000n,
+			source: Source.Tzkt_Rest,
+		}, context)).resolves.toMatchObject({
+			[entityFieldAddressKey(EntityType.TezosBaker_Timestamp, [], 'votingPower')]: 9_007_199_254_740_001n,
+		})
+		expect(getJson.mock.calls[0][0]).toContain('/v1/delegates?')
+		expect(getJson.mock.calls[1][0]).toContain('/v1/delegates/tz1baker')
+	})
+
 	it('projects Network.$$operationGroups from recent transactions', async () => {
 		getJson.mockResolvedValueOnce([{
 			...accountOperation,

@@ -17,6 +17,7 @@ import type {
 	TzktBigMapUpdate,
 	TzktBlock,
 	TzktContract,
+	TzktDelegate,
 	TzktOperation,
 	TzktAccount,
 	TzktToken,
@@ -97,6 +98,70 @@ const assertAccount = (
 		throw new Error('Tzkt_Rest: account response is malformed')
 	if (!Number.isSafeInteger(timestampMsFromIso(account.lastActivityTime)))
 		throw new Error('Tzkt_Rest: account response has an invalid activity timestamp')
+}
+
+const bakerSnapshot = (
+	$network: { $network: NetworkId },
+	delegate: TzktDelegate
+) => {
+	if (delegate.address.length === 0)
+		throw new Error('Tzkt_Rest: baker response has an empty address')
+	if (
+		delegate.lastActivity != null
+		&& (!Number.isSafeInteger(delegate.lastActivity) || delegate.lastActivity < 0)
+	)
+		throw new Error('Tzkt_Rest: baker response has an invalid activity level')
+	if (
+		delegate.lastActivityTime != null
+		&& !Number.isSafeInteger(timestampMsFromIso(delegate.lastActivityTime))
+	)
+		throw new Error('Tzkt_Rest: baker response has an invalid activity timestamp')
+
+	const $baker = {
+		$network,
+		address: delegate.address,
+	}
+	return {
+		$account: {
+			[EntityMetaKey.Selector]: {
+				$network,
+				address: delegate.address,
+			},
+		},
+		...(
+			delegate.lastActivity != null
+			&& {
+				$$timestamps: [{
+					[EntityMetaKey.Selector]: {
+						$baker,
+						level: BigInt(delegate.lastActivity),
+						source: Source.Tzkt_Rest,
+					},
+					[EntityMetaKey.Fields]: {
+						...(delegate.lastActivityTime != null && {
+							[entityFieldAddressKey(EntityType.TezosBaker_Timestamp, [], 'timestampMs')]: timestampMsFromIso(delegate.lastActivityTime),
+						}),
+						...(delegate.consensusAddress != null && {
+							[entityFieldAddressKey(EntityType.TezosBaker_Timestamp, [], 'consensusKey')]: delegate.consensusAddress,
+						}),
+						...(delegate.stakedBalance != null && {
+							[entityFieldAddressKey(EntityType.TezosBaker_Timestamp, [], 'stakingBalanceMutez')]: BigInt(delegate.stakedBalance),
+						}),
+						...(delegate.delegatedBalance != null && {
+							[entityFieldAddressKey(EntityType.TezosBaker_Timestamp, [], 'delegatedBalanceMutez')]: BigInt(delegate.delegatedBalance),
+						}),
+						...(delegate.ownDelegatedBalance != null && {
+							[entityFieldAddressKey(EntityType.TezosBaker_Timestamp, [], 'ownDelegatedBalanceMutez')]: BigInt(delegate.ownDelegatedBalance),
+						}),
+						...(delegate.votingPower != null && {
+							[entityFieldAddressKey(EntityType.TezosBaker_Timestamp, [], 'votingPower')]: BigInt(delegate.votingPower),
+						}),
+						[entityFieldAddressKey(EntityType.TezosBaker_Timestamp, [], 'active')]: delegate.active,
+					},
+				}],
+			}
+		),
+	}
 }
 
 const bigMapKeyFieldsFromWire = (
@@ -1085,6 +1150,104 @@ export default {
 					page.accounts.length
 				),
 			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.TezosNetwork,
+			resolve: {
+				Network: {
+					resolve: async ({ $network }, context) => {
+						assertTezosMainnet($network)
+						const offset = accountOffset(context.providerContinuationToken)
+						const limit = Math.min(resolverContextRowLimit(context), 1_000)
+						const { listDelegates } = await import('$/sources/Tzkt/Rest/queries.ts')
+						return {
+							delegates: await listDelegates({
+								offset,
+								limit,
+							}),
+							limit,
+							offset,
+						}
+					},
+				},
+			},
+		})({
+			$$bakers: {
+				select: (page, { $network }) => page.delegates.map((delegate: TzktDelegate) => {
+					const baker = bakerSnapshot({ $network }, delegate)
+					return {
+						[EntityMetaKey.Selector]: {
+							$network: { $network },
+							address: delegate.address,
+						},
+						[EntityMetaKey.Fields]: {
+							[entityFieldAddressKey(EntityType.TezosBaker, [], '$account')]: baker.$account,
+							...(baker.$$timestamps != null && {
+								[entityFieldAddressKey(EntityType.TezosBaker, [], '$$timestamps')]: baker.$$timestamps,
+							}),
+						},
+					}
+				}),
+				continuation: (page) => networkContinuation(
+					'network-bakers',
+					page.offset,
+					page.limit,
+					page.delegates.length
+				),
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.TezosBaker,
+			resolve: {
+				NetworkAddress: {
+					resolve: async ({ $network, address }) => {
+						assertTezosMainnet($network.$network)
+						const { getDelegate } = await import('$/sources/Tzkt/Rest/queries.ts')
+						return bakerSnapshot(
+							$network,
+							await getDelegate({ address })
+						)
+					},
+				},
+			},
+		})({
+			$account: (baker) => baker.$account,
+			$$timestamps: (baker) => baker.$$timestamps,
+		}),
+
+		defineResolver({
+			entityType: EntityType.TezosBaker_Timestamp,
+			resolve: {
+				BakerLevelSource: {
+					resolve: async ({ $baker, level, source }) => {
+						assertTezosMainnet($baker.$network.$network)
+						if (source !== Source.Tzkt_Rest)
+							throw new Error(`Tzkt_Rest: unsupported baker observation source ${source}`)
+						const { getDelegate } = await import('$/sources/Tzkt/Rest/queries.ts')
+						const baker = bakerSnapshot(
+							$baker.$network,
+							await getDelegate({ address: $baker.address })
+						)
+						const observation = baker.$$timestamps?.[0]
+						if (
+							observation == null
+							|| observation[EntityMetaKey.Selector].level !== level
+						)
+							throw new Error('Tzkt_Rest: baker observation does not match the requested level')
+						return observation[EntityMetaKey.Fields]
+					},
+				},
+			},
+		})({
+			timestampMs: (observation) => observation[entityFieldAddressKey(EntityType.TezosBaker_Timestamp, [], 'timestampMs')],
+			consensusKey: (observation) => observation[entityFieldAddressKey(EntityType.TezosBaker_Timestamp, [], 'consensusKey')],
+			stakingBalanceMutez: (observation) => observation[entityFieldAddressKey(EntityType.TezosBaker_Timestamp, [], 'stakingBalanceMutez')],
+			delegatedBalanceMutez: (observation) => observation[entityFieldAddressKey(EntityType.TezosBaker_Timestamp, [], 'delegatedBalanceMutez')],
+			ownDelegatedBalanceMutez: (observation) => observation[entityFieldAddressKey(EntityType.TezosBaker_Timestamp, [], 'ownDelegatedBalanceMutez')],
+			votingPower: (observation) => observation[entityFieldAddressKey(EntityType.TezosBaker_Timestamp, [], 'votingPower')],
+			active: (observation) => observation[entityFieldAddressKey(EntityType.TezosBaker_Timestamp, [], 'active')],
 		}),
 
 		defineResolver({

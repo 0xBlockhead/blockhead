@@ -8242,7 +8242,11 @@ export const schema = {
 				"transactionId": { label: "transaction ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"contentPath": { label: "content path", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"canonicalUri": { label: "canonical URI", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"manifestVersion": { label: "manifest version", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Arweave_Rest] },
+				"manifestIndexPath": { label: "manifest index path", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Arweave_Rest] },
+				"manifestFallbackTransactionId": { label: "manifest fallback transaction ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Arweave_Rest] },
 				"$transaction": { label: "transaction", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.ArweaveTransaction },
+				"$$manifestPaths": { label: "manifest paths", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.ArweaveResource, defaultSources: [Source.Arweave_Rest] },
 				"$$timestamps": { label: "timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.ArweaveResource_Timestamp },
 			})({
 				selectors: {
@@ -8257,10 +8261,11 @@ export const schema = {
 						},
 						content: {
 							dl: [
-								[{ field: "transactionId", format: "truncated" }, "contentPath", "canonicalUri", "$transaction"],
+								[{ field: "transactionId", format: "truncated" }, "contentPath", "canonicalUri", "manifestVersion", "manifestIndexPath", { field: "manifestFallbackTransactionId", format: "truncated" }, "$transaction"],
 							],
 						},
 						lists: [
+							{ field: "$$manifestPaths", component: "ArweaveResourcesView", label: "Manifest paths", emptyText: "No manifest paths." },
 							{ field: "$$timestamps", component: "ArweaveResource_TimestampsView", emptyText: "No observations yet." },
 						],
 					},
@@ -59089,6 +59094,7 @@ export const schema = {
 					type: EntityFieldType.EntitiesReference,
 					entityType: EntityType.TezosBaker_Timestamp,
 					cardinality: EntityFieldCardinality.Many,
+					defaultSources: [Source.Tzkt_Rest],
 				},
 			})({
 				selectors: {
@@ -59098,6 +59104,18 @@ export const schema = {
 					],
 				},
 				views: {
+					singular: {
+						carousels: [
+							{
+								id: 'tezos-baker-observations',
+								label: 'Observations',
+								className: 'network-view-collapsible-observations',
+								sections: [
+									{ id: 'tezos-baker-timestamps', field: '$$timestamps', List: 'TezosBaker_TimestampsView', label: 'Timestamps', emptyText: 'No baker observations.' },
+								],
+							},
+						],
+					},
 					plural: { component: "TezosBakersView", },
 				},
 			}),
@@ -60386,6 +60404,7 @@ export const schema = {
 					type: EntityFieldType.EntitiesReference,
 					entityType: EntityType.TezosBaker,
 					cardinality: EntityFieldCardinality.Many,
+					defaultSources: [Source.Tzkt_Rest],
 				},
 				"$$cycles": {
 					label: 'cycles',

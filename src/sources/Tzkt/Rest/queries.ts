@@ -9,6 +9,7 @@ import {
 	tzktBigMapUpdate,
 	tzktBlock,
 	tzktContract,
+	tzktDelegate,
 	tzktHead,
 	tzktOperation,
 	tzktStatistics,
@@ -21,6 +22,7 @@ import {
 	type TzktBigMapUpdate,
 	type TzktBlock,
 	type TzktContract,
+	type TzktDelegate,
 	type TzktHead,
 	type TzktOperation,
 	type TzktStatistics,
@@ -238,6 +240,52 @@ export const getContract = async ({
 			`${baseUrl}/v1/contracts/${encodeURIComponent(address)}`
 		)
 	) as TzktContract
+}
+
+export const getDelegate = async ({
+	address,
+}: {
+	address: string
+}) => {
+	assertNonemptyAddress(address, 'delegate')
+	const delegate = assertEnvelope(
+		'delegate',
+		tzktDelegate,
+		await sourceGetJson<unknown>(
+			binding,
+			`${baseUrl}/v1/delegates/${encodeURIComponent(address)}`
+		)
+	) as TzktDelegate
+	if (delegate.address !== address)
+		throw new Error('TzKT delegate response does not match the subject')
+	return delegate
+}
+
+export const listDelegates = async ({
+	offset,
+	limit,
+}: {
+	offset: number
+	limit: number
+}) => {
+	assertPage(offset, limit, 'delegate')
+	const delegates = assertEnvelopeArray(
+		'delegate',
+		tzktDelegate,
+		await sourceGetJson<unknown>(
+			binding,
+			`${baseUrl}/v1/delegates?${queryString({
+				offset,
+				limit,
+				'sort.desc': 'stakingBalance',
+			})}`
+		)
+	) as TzktDelegate[]
+	if (delegates.length > limit)
+		throw new Error('TzKT delegates exceeded the requested limit')
+	if (new Set(delegates.map((delegate) => delegate.address)).size !== delegates.length)
+		throw new Error('TzKT delegates returned duplicate identities')
+	return delegates
 }
 
 export const listContracts = async ({
