@@ -22,12 +22,20 @@ import type {
 	FedimintGatewayBalancesWire,
 	FedimintGatewayInfoWire,
 } from '$/sources/FedimintGatewayd/Rest/types.ts'
+import { resolvedGatewayApiUrl } from '$/sources/FedimintGatewayd/Rest/queries.ts'
+
+const loadGatewayQueries = () => (
+	typeof window === 'undefined' ?
+		import('$/sources/FedimintGatewayd/Rest/queries.ts')
+	:
+		import('$/sources/FedimintGatewayd/Rest/queries.remote.ts')
+)
 
 const assertLocalGateway = async (
 	gatewayId: string,
 	publicEnv: SourcePublicEnv
 ) => {
-	const { getGatewayId } = await import('$/sources/FedimintGatewayd/Rest/queries.ts')
+	const { getGatewayId } = await loadGatewayQueries()
 	const remoteGatewayId = await getGatewayId({
 		publicEnv,
 	})
@@ -40,9 +48,7 @@ const assertLocalGateway = async (
 const nodePubkeyFromInfo = (
 	info: FedimintGatewayInfoWire
 ) => (
-	typeof info.lightning_info === 'object'
-	&& info.lightning_info !== null
-	&& 'connected' in info.lightning_info ?
+	'connected' in info.lightning_info ?
 		info.lightning_info.connected.public_key
 	:
 		undefined
@@ -51,9 +57,7 @@ const nodePubkeyFromInfo = (
 const lightningAliasFromInfo = (
 	info: FedimintGatewayInfoWire
 ) => (
-	typeof info.lightning_info === 'object'
-	&& info.lightning_info !== null
-	&& 'connected' in info.lightning_info ?
+	'connected' in info.lightning_info ?
 		info.lightning_info.connected.alias
 	:
 		undefined
@@ -62,9 +66,7 @@ const lightningAliasFromInfo = (
 const onlineFromInfo = (
 	info: FedimintGatewayInfoWire
 ) => (
-	typeof info.lightning_info === 'object'
-	&& info.lightning_info !== null
-	&& 'connected' in info.lightning_info
+	'connected' in info.lightning_info
 )
 
 const routingFeesFromFederations = (
@@ -100,10 +102,7 @@ export default {
 				GatewayId: {
 					resolve: async ({ gatewayId }, context) => {
 						await assertLocalGateway(gatewayId, context.publicEnv)
-						const {
-							getGatewayInfo,
-							resolvedGatewayApiUrl,
-						} = await import('$/sources/FedimintGatewayd/Rest/queries.ts')
+						const { getGatewayInfo } = await loadGatewayQueries()
 						const info = await getGatewayInfo({
 							publicEnv: context.publicEnv,
 						})
@@ -112,7 +111,13 @@ export default {
 
 						return {
 							gatewayId,
-							apiUrl: resolvedGatewayApiUrl(context.publicEnv),
+							apiUrl: (
+								typeof window === 'undefined' ?
+									resolvedGatewayApiUrl(context.publicEnv)
+								:
+									await import('$/sources/FedimintGatewayd/Rest/queries.remote.ts')
+										.then(({ getResolvedGatewayApiUrl }) => getResolvedGatewayApiUrl())
+							),
 							...(nodePubkey != null && {
 								nodePubkey,
 							}),
@@ -186,7 +191,7 @@ export default {
 							getGatewayInfo,
 							getPaymentSummary,
 							listChannels,
-						} = await import('$/sources/FedimintGatewayd/Rest/queries.ts')
+						} = await loadGatewayQueries()
 						const [info, balances, channels, paymentSummary] = await Promise.all([
 							getGatewayInfo({
 								publicEnv: context.publicEnv,
@@ -251,7 +256,7 @@ export default {
 						const {
 							getGatewayId,
 							getGatewayInfo,
-						} = await import('$/sources/FedimintGatewayd/Rest/queries.ts')
+						} = await loadGatewayQueries()
 						const info = await getGatewayInfo({
 							publicEnv: context.publicEnv,
 						})
@@ -299,7 +304,7 @@ export default {
 						if (source !== Source.FedimintGatewayd_Rest)
 							throw new Error(`FedimintGatewayd_Rest: unsupported source ${source}`)
 
-						const { getGatewayInfo } = await import('$/sources/FedimintGatewayd/Rest/queries.ts')
+						const { getGatewayInfo } = await loadGatewayQueries()
 						const info = await getGatewayInfo({
 							publicEnv: context.publicEnv,
 						})
