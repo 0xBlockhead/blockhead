@@ -1,0 +1,98 @@
+import {
+	beforeEach,
+	describe,
+	expect,
+	it,
+	vi,
+} from 'vitest'
+
+import {
+	EntityMetaKey,
+	entityFieldAddressKey,
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
+import bindings from '$/sources/WakuNode/bindings.ts'
+
+const {
+	getJson,
+	getText,
+} = vi.hoisted(() => ({
+	getJson: vi.fn(),
+	getText: vi.fn(),
+}))
+
+vi.mock('$/sources/_shared/wire/HttpRest/client.ts', () => ({
+	getJson,
+	getText,
+}))
+
+const resolverModule = (await import('$/resolvers/WakuNode-Rest.ts')).default
+const [nodeStateResolver] = resolverModule.resolvers
+
+const resolveNodeState = nodeStateResolver.resolve.ConnectionIdNodeId.resolve
+
+describe('Waku local node journey', () => {
+	beforeEach(() => {
+		vi.clearAllMocks()
+		getJson.mockResolvedValue({
+			listenAddresses: [
+				'/ip4/127.0.0.1/tcp/60000',
+			],
+			enrUri: 'enr:-waku-node',
+		})
+		getText.mockResolvedValue('Ready')
+	})
+
+	it('materializes the configured node identity and source-clocked health observation', async () => {
+		const snapshot = await resolveNodeState({
+			connectionId: 'waku-node',
+			nodeId: 'enr:-waku-node',
+		})
+
+		expect(snapshot).toMatchObject({
+			connectionId: 'waku-node',
+			nodeId: 'enr:-waku-node',
+			endpoint: bindings[Source.WakuNode][0].endpoints[0].locator,
+		})
+		expect(snapshot.$$timestamps).toHaveLength(1)
+		expect(snapshot.$$timestamps[0]).toMatchObject({
+			[EntityMetaKey.Selector]: {
+				$nodeState: {
+					connectionId: 'waku-node',
+					nodeId: 'enr:-waku-node',
+				},
+				source: Source.WakuNode,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.BlockheadWakuNodeState_Timestamp, [], 'health')]: 'Ready',
+				[entityFieldAddressKey(EntityType.BlockheadWakuNodeState_Timestamp, [], 'listenAddresses')]: [
+					'/ip4/127.0.0.1/tcp/60000',
+				],
+				[entityFieldAddressKey(EntityType.BlockheadWakuNodeState_Timestamp, [], 'enrUri')]: 'enr:-waku-node',
+			},
+		})
+		expect(typeof snapshot.$$timestamps[0][EntityMetaKey.Selector].timestampMs).toBe('number')
+		expect(nodeStateResolver.projections.$$timestamps.resolveCount(snapshot)).toBe(1)
+	})
+
+	it('fails closed when the requested node does not match configured node identity', async () => {
+		await expect(resolveNodeState({
+			connectionId: 'waku-node',
+			nodeId: 'enr:-different-node',
+		})).rejects.toThrow('local node enr:-waku-node does not match enr:-different-node')
+	})
+
+	it('requires the provider to expose an ENR identity', async () => {
+		getJson.mockResolvedValue({
+			listenAddresses: [
+				'/ip4/127.0.0.1/tcp/60000',
+			],
+		})
+
+		await expect(resolveNodeState({
+			connectionId: 'waku-node',
+			nodeId: 'enr:-waku-node',
+		})).rejects.toThrow('debug info does not expose an ENR node identity')
+	})
+})

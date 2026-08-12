@@ -46,6 +46,7 @@
 				select(EntityType.BlockheadWakuNodeState, data.selector, {
 					sources: [
 						Source.Local_Internal,
+						Source.WakuNode,
 					],
 				})
 			}

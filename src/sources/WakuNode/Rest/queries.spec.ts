@@ -51,7 +51,7 @@ describe('WakuNode REST operations', () => {
 		getJson.mockResolvedValue(debugInfo)
 
 		await expect(queries.getDebugInfo(binding)).rejects.toThrow(
-			'WakuNode_Rest: debug info missing listen addresses'
+			'WakuNode_Rest: invalid debug info response envelope'
 		)
 	})
 

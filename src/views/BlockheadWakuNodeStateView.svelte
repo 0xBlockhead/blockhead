@@ -21,6 +21,7 @@
 	const blockheadWakuNodeState = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
+			Source.WakuNode,
 		],
 		fields: {
 			endpoint: true,

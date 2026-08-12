@@ -1,19 +1,18 @@
 import { getJson, getText } from '$/sources/_shared/wire/HttpRest/client.ts'
 import type { SourceBinding } from '$/sources/SourceBinding.ts'
+import { type } from 'arktype'
+
+const debugInfoWire = type({
+	listenAddresses: 'string[] > 0',
+	'enrUri?': 'string > 0',
+})
 
 export const getDebugInfo = async (binding: SourceBinding) => {
-	const debugInfo = await getJson<{
-		listenAddresses: string[]
-		enrUri?: string
-	}>(binding, '/debug/v1/info')
-	if (
-		debugInfo == null
-		|| debugInfo.listenAddresses == null
-		|| debugInfo.listenAddresses.length === 0
-	)
-		throw new Error('WakuNode_Rest: debug info missing listen addresses')
-
-	return debugInfo
+	try {
+		return debugInfoWire.assert(await getJson<unknown>(binding, '/debug/v1/info'))
+	} catch {
+		throw new Error('WakuNode_Rest: invalid debug info response envelope')
+	}
 }
 
 export const getHealth = async (binding: SourceBinding) => {

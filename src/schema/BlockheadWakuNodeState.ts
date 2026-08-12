@@ -4,6 +4,7 @@ import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
+import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export default entity({
@@ -24,10 +25,16 @@ export default entity({
 	endpoint: {
 		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.WakuNode,
+		],
 	},
 	$$timestamps: {
 		entityType: EntityType.BlockheadWakuNodeState_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.WakuNode,
+		],
 	},
 	$$messageObservations: {
 		entityType: EntityType.BlockheadWakuMessageObservation_Timestamp,

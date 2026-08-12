@@ -17457,8 +17457,8 @@ export const schema = {
 			})({
 				"connectionId": { label: "connection ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"nodeId": { label: "node ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"endpoint": { label: "endpoint", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "urlString" },
-				"$$timestamps": { label: "timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadWakuNodeState_Timestamp },
+				"endpoint": { label: "endpoint", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "urlString", defaultSources: [Source.WakuNode] },
+				"$$timestamps": { label: "timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadWakuNodeState_Timestamp, defaultSources: [Source.WakuNode] },
 				"$$messageObservations": { label: "message observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadWakuMessageObservation_Timestamp },
 			})({
 				selectors: {
@@ -17467,7 +17467,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Local_Internal],
+							sources: [Source.Local_Internal, Source.WakuNode],
 							openFields: ["endpoint"],
 						},
 						summary: { title: ["nodeId"], value: ["connectionId"], HeadingAfter: [{ field: "endpoint", format: "url" }] },
@@ -114208,6 +114208,10 @@ export const app = {
 			{
 				source: Source.Voyager,
 				path: "src/resolvers/Voyager-Rest.ts",
+			},
+			{
+				source: Source.WakuNode,
+				path: "src/resolvers/WakuNode-Rest.ts",
 			},
 			{
 				source: Source.Wormholescan,

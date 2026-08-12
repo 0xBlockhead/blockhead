@@ -204,6 +204,7 @@ const resolverLoaderEntries = [
 	[Source.UniswapContracts_Evm, () => import('./UniswapContracts-Evm.ts')],
 	[Source.Voltaire_JsonRpc, () => import('./Voltaire-JsonRpc.ts')],
 	[Source.Voyager, () => import('./Voyager-Rest.ts')],
+	[Source.WakuNode, () => import('./WakuNode-Rest.ts')],
 	[Source.Wormholescan, () => import('./Wormholescan-Rest.ts')],
 	[Source.X_FxEmbed_Rest, () => import('./X-FxEmbed-Rest.ts')],
 	[Source.X_Rest, () => import('./X-Rest.ts')],
