@@ -493,6 +493,7 @@ export const getTonCenterV3Transactions = async (
 		order: TonCenterV3Order
 		account?: string
 		logicalTime?: bigint
+		traceId?: string
 	}
 ) => {
 	const parameters = pageParameters(options)
@@ -500,6 +501,8 @@ export const getTonCenterV3Transactions = async (
 		parameters.set('account', tonCenterV3RawAddress(options.account))
 	if (options.logicalTime != null)
 		parameters.set('lt', options.logicalTime.toString())
+	if (options.traceId != null)
+		parameters.set('trace_id', tonCenterV3Hash(options.traceId, 'trace ID'))
 	const wire = tonCenterV3Transactions.assert(await getTonCenterV3RestJson<unknown>(
 		`transactions?${parameters.toString()}`
 	))
@@ -578,8 +581,15 @@ export const getTonCenterV3Transactions = async (
 				transaction.account_state_after.balance,
 				'transaction balance after'
 			)
-		if (transaction.trace_id != null)
-			tonCenterV3Hash(transaction.trace_id, 'transaction trace ID')
+		if (transaction.trace_id != null) {
+			const traceId = tonCenterV3Hash(transaction.trace_id, 'transaction trace ID')
+			if (
+				options.traceId != null
+				&& traceId !== tonCenterV3Hash(options.traceId, 'trace ID')
+			)
+				throw new Error('TON Center v3: transaction has a foreign trace identity')
+		} else if (options.traceId != null)
+			throw new Error('TON Center v3: trace transaction is missing its trace identity')
 		if (transaction.trace_external_hash != null)
 			tonCenterV3Hash(transaction.trace_external_hash, 'transaction trace external hash')
 	}

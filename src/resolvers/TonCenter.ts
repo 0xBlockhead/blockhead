@@ -292,7 +292,8 @@ const tonTransaction = (
 
 const tonTrace = (
 	network: TonNetwork,
-	trace: TonCenterV3TraceWire
+	trace: TonCenterV3TraceWire,
+	transactions?: TonCenterV3TransactionWire[]
 ) => {
 	const traceSelector = {
 		$network: network,
@@ -300,6 +301,35 @@ const tonTrace = (
 		source: Source.TonCenter,
 	}
 	const rootMessage = tonMessage(network, trace.trace.in_msg)
+	const transactionByHash = new Map(transactions?.map((transaction) => [
+		tonCenterV3Hash(transaction.hash, 'transaction hash'),
+		transaction,
+	]))
+	if (
+		transactions != null
+		&& (
+			transactionByHash.size !== trace.transactions_order.length
+			|| trace.transactions_order.some((hash) => !transactionByHash.has(
+				tonCenterV3Hash(hash, 'trace transaction hash')
+			))
+		)
+	)
+		throw new Error('TON Center v3: trace transaction hierarchy mismatch')
+	const messages = new Map([
+		[tonCenterV3Hash(trace.trace.in_msg.hash, 'message hash'), trace.trace.in_msg],
+		...transactions?.flatMap((transaction) => [
+			...(transaction.in_msg == null ? [] : [[
+				tonCenterV3Hash(transaction.in_msg.hash, 'message hash'),
+				transaction.in_msg,
+			] as const]),
+			...transaction.out_msgs.map((message) => [
+				tonCenterV3Hash(message.hash, 'message hash'),
+				message,
+			] as const),
+		]) ?? [],
+	])
+	if (transactions != null && messages.size !== trace.trace_info.messages)
+		throw new Error('TON Center v3: trace message hierarchy mismatch')
 	return {
 		[EntityMetaKey.Selector]: traceSelector,
 		[EntityMetaKey.Fields]: {
@@ -317,7 +347,14 @@ const tonTrace = (
 					[entityFieldAddressKey(EntityType.TonTrace_Timestamp, [], 'messageCount')]: trace.trace_info.messages,
 				},
 			}],
-			[entityFieldAddressKey(EntityType.TonTrace, [], '$$messages')]: [rootMessage],
+			...(transactions != null && {
+				[entityFieldAddressKey(EntityType.TonTrace, [], '$$transactions')]: [...transactionByHash.values()].map((transaction) => (
+					tonTransaction(network, transaction)
+				)),
+			}),
+			[entityFieldAddressKey(EntityType.TonTrace, [], '$$messages')]: [...messages.values()].map((message) => (
+				tonMessage(network, message)
+			)),
 		},
 	}
 }
@@ -829,10 +866,28 @@ export const createTonCenterV3Resolvers = () => ({
 						assertTonMainnet($network)
 						if (source !== Source.TonCenter)
 							throw new Error(`TON Center v3: unsupported trace source ${source}`)
-						const { getTonCenterV3CompletedTrace } = await import('$/sources/TonCenter/V3/Rest/queries.ts')
+						const {
+							getTonCenterV3CompletedTrace,
+							getTonCenterV3Transactions,
+						} = await import('$/sources/TonCenter/V3/Rest/queries.ts')
+						const trace = await getTonCenterV3CompletedTrace(traceId)
+						if (trace.trace_info.transactions > 1_000)
+							throw new Error('TON Center v3: trace transaction hierarchy exceeds one response page')
+						const transactions = (
+							trace.trace_info.transactions === 0 ?
+								[]
+							:
+								(await getTonCenterV3Transactions({
+									limit: trace.trace_info.transactions,
+									offset: 0,
+									order: 'asc',
+									traceId,
+								})).rows
+						)
 						return tonTrace(
 							$network,
-							await getTonCenterV3CompletedTrace(traceId)
+							trace,
+							transactions
 						)[EntityMetaKey.Fields]
 					},
 				},
@@ -841,6 +896,7 @@ export const createTonCenterV3Resolvers = () => ({
 			$rootMessage: (trace) => trace[entityFieldAddressKey(EntityType.TonTrace, [], '$rootMessage')],
 			startedAtMs: (trace) => trace[entityFieldAddressKey(EntityType.TonTrace, [], 'startedAtMs')],
 			$$timestamps: (trace) => trace[entityFieldAddressKey(EntityType.TonTrace, [], '$$timestamps')],
+			$$transactions: (trace) => trace[entityFieldAddressKey(EntityType.TonTrace, [], '$$transactions')],
 			$$messages: (trace) => trace[entityFieldAddressKey(EntityType.TonTrace, [], '$$messages')],
 		}),
 		] as const,
