@@ -3,6 +3,7 @@ import {
 	EvmTransactionEnvelopeType,
 	EvmTransactionExecutionStatus,
 	EvmTransactionKind,
+	EvmTokenStandard,
 } from '$/constants/Evm.ts'
 import { hexLowerOfByteSize, with0xHex } from '$/lib/hexLowerOfByteSize.ts'
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
@@ -14,10 +15,17 @@ import {
 	type EntitySelector,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { CoinInstanceType } from '$/schema/CoinInstanceType.ts'
 import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
 import { envioHyperRpc } from '$/sources/Envio/HyperRpc/queries.ts'
-import type { RpcBlockWire } from '$/sources/_shared/interfaces/EvmExecutionJsonRpc/types.ts'
+import type {
+	RpcBlockWire,
+	RpcLog,
+} from '$/sources/_shared/interfaces/EvmExecutionJsonRpc/types.ts'
+
+const ercTransferTopic = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef'
+const erc1155TransferSingleTopic = '0xc3d58168c5ae7397731d063d5bbf3d657854427343f4c083240f7aacaa2d0f62'
 
 const {
 	getBlockByHash,
@@ -53,6 +61,17 @@ const safeNumberQuantity = (
 	const number = Number(parsed)
 	if (!Number.isSafeInteger(number))
 		throw new Error(`EnvioHyperRpc_JsonRpc: ${fieldName} exceeds safe integer range`)
+
+	return number
+}
+
+const requiredSafeNumberQuantity = (
+	value: string | null | undefined,
+	fieldName: string
+) => {
+	const number = safeNumberQuantity(value, fieldName)
+	if (number == null)
+		throw new Error(`EnvioHyperRpc_JsonRpc: missing ${fieldName}`)
 
 	return number
 }
@@ -145,6 +164,150 @@ const evmBlockProjections = {
 	$miner: (block: ReturnType<typeof schemaShapedEvmBlock>) => block.$miner,
 	$parent: (block: ReturnType<typeof schemaShapedEvmBlock>) => block.$parent,
 	$$transactions: (block: ReturnType<typeof schemaShapedEvmBlock>) => block.transactions,
+}
+
+const schemaShapedEvmLog = (
+	$transaction: EntitySelector<typeof schema, EntityType.EvmTransaction>,
+	indexInTransaction: number,
+	log: RpcLog
+) => {
+	const transactionHash = hexLowerOfByteSize(log.transactionHash, 32)
+	const emitterAddress = hexLowerOfByteSize(log.address, 20)
+	const topics = (log.topics ?? []).map((topic) => {
+		const normalizedTopic = hexLowerOfByteSize(topic, 32)
+		if (normalizedTopic == null)
+			throw new Error('EnvioHyperRpc_JsonRpc: malformed log topic')
+
+		return normalizedTopic
+	})
+	const data = log.data == null ? undefined : log.data.toLowerCase()
+	if (transactionHash !== $transaction.txHash)
+		throw new Error('EnvioHyperRpc_JsonRpc: receipt log does not match the requested transaction')
+	if (safeNumberQuantity(log.logIndex, 'log index') !== indexInTransaction)
+		throw new Error('EnvioHyperRpc_JsonRpc: receipt log does not match the requested index')
+	if (emitterAddress == null)
+		throw new Error('EnvioHyperRpc_JsonRpc: malformed log emitter address')
+	if (data != null && !/^0x(?:[0-9a-f]{2})*$/.test(data))
+		throw new Error('EnvioHyperRpc_JsonRpc: malformed log data')
+
+	const $log = {
+		$transaction,
+		indexInTransaction,
+	}
+	const tokenTransfer = (() => {
+		const addressFromTopic = (topic: string | undefined) => {
+			if (topic == null)
+				return undefined
+			if (topic.slice(2, 26) !== '0'.repeat(24))
+				throw new Error('EnvioHyperRpc_JsonRpc: malformed address topic')
+
+			return hexLowerOfByteSize(`0x${topic.slice(-40)}`, 20)
+		}
+		const dataWords = data?.match(/^0x([0-9a-f]{64})([0-9a-f]{64})?$/)
+		if (topics[0] === ercTransferTopic && topics.length === 3 && dataWords?.[1] != null)
+			return {
+				standard: EvmTokenStandard.Erc20,
+				amount: BigInt(`0x${dataWords[1]}`),
+				tokenId: undefined,
+				fromAddress: addressFromTopic(topics[1]),
+				toAddress: addressFromTopic(topics[2]),
+			}
+		if (topics[0] === ercTransferTopic && topics.length === 4 && data === '0x')
+			return {
+				standard: EvmTokenStandard.Erc721,
+				amount: 1n,
+				tokenId: BigInt(topics[3]),
+				fromAddress: addressFromTopic(topics[1]),
+				toAddress: addressFromTopic(topics[2]),
+			}
+		if (topics[0] === erc1155TransferSingleTopic && topics.length === 4 && dataWords?.[2] != null)
+			return {
+				standard: EvmTokenStandard.Erc1155,
+				amount: BigInt(`0x${dataWords[2]}`),
+				tokenId: BigInt(`0x${dataWords[1]}`),
+				fromAddress: addressFromTopic(topics[2]),
+				toAddress: addressFromTopic(topics[3]),
+			}
+
+		return undefined
+	})()
+
+	return {
+		[EntityMetaKey.Selector]: {
+			...$log,
+		},
+		$transaction: {
+			[EntityMetaKey.Selector]: $transaction,
+		} satisfies Entity<typeof schema, EntityType.EvmTransaction>,
+		indexInTransaction,
+		...(log.blockNumber != null && {
+			$block: {
+				[EntityMetaKey.Selector]: {
+					$network: $transaction.$network,
+					blockNumber: quantity(log.blockNumber, 'log block number'),
+				},
+			} satisfies Entity<typeof schema, EntityType.EvmBlock>,
+		}),
+		$$topics: topics.map((topic) => ({
+			[EntityMetaKey.Selector]: {
+				hex: topic,
+			},
+		} satisfies Entity<typeof schema, EntityType.EvmTopic>)),
+		topic0: topics.at(0),
+		...(data != null && {
+			data: with0xHex(data),
+		}),
+		removed: log.removed,
+		$emitter: {
+			[EntityMetaKey.Selector]: {
+				$network: $transaction.$network,
+				address: emitterAddress,
+			},
+		} satisfies Entity<typeof schema, EntityType.EvmContract>,
+		...(tokenTransfer != null && {
+			$$tokenTransfers: [{
+				[EntityMetaKey.Selector]: {
+					$log,
+					indexInLog: 0,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.EvmTokenTransfer, [], 'standard')]: tokenTransfer.standard,
+					[entityFieldAddressKey(EntityType.EvmTokenTransfer, [], 'amount')]: tokenTransfer.amount,
+					...(tokenTransfer.tokenId != null && {
+						[entityFieldAddressKey(EntityType.EvmTokenTransfer, ['Nft'], 'tokenId')]: tokenTransfer.tokenId,
+					}),
+					...(tokenTransfer.fromAddress != null && {
+						[entityFieldAddressKey(EntityType.EvmTokenTransfer, [], '$from')]: {
+							[EntityMetaKey.Selector]: { address: tokenTransfer.fromAddress },
+						},
+					}),
+					...(tokenTransfer.toAddress != null && {
+						[entityFieldAddressKey(EntityType.EvmTokenTransfer, [], '$to')]: {
+							[EntityMetaKey.Selector]: { address: tokenTransfer.toAddress },
+						},
+					}),
+					[entityFieldAddressKey(EntityType.EvmTokenTransfer, [], '$tokenContract')]: {
+						[EntityMetaKey.Selector]: {
+							$network: $transaction.$network,
+							address: emitterAddress,
+						},
+					},
+					...(tokenTransfer.standard === EvmTokenStandard.Erc20 && {
+						[entityFieldAddressKey(EntityType.EvmTokenTransfer, [], '$coinInstance')]: {
+							[EntityMetaKey.Selector]: {
+								$network: $transaction.$network,
+								type: CoinInstanceType.Erc20Token,
+								$contract: {
+									$network: $transaction.$network,
+									address: emitterAddress,
+								},
+							},
+						},
+					}),
+				},
+			}],
+		}),
+	}
 }
 
 const tipBlockReferences = async (
@@ -349,15 +512,14 @@ export default {
 							maxPriorityFeePerGas: transaction.maxPriorityFeePerGas == null ? undefined : quantity(transaction.maxPriorityFeePerGas, 'max priority fee per gas'),
 							maxFeePerBlobGas: transaction.maxFeePerBlobGas == null ? undefined : quantity(transaction.maxFeePerBlobGas, 'max fee per blob gas'),
 							blobGasUsed: receipt?.blobGasUsed == null ? undefined : quantity(receipt.blobGasUsed, 'blob gas used'),
-							logs: (receipt?.logs ?? []).map((log) => ({
-								[EntityMetaKey.Selector]: {
-									$transaction: {
-										$network,
-										txHash,
-									},
-									indexInTransaction: safeNumberQuantity(log.logIndex, 'log index'),
+							logs: (receipt?.logs ?? []).map((log) => schemaShapedEvmLog(
+								{
+									$network,
+									txHash,
 								},
-							} satisfies Entity<typeof schema, EntityType.EvmLog>)),
+					requiredSafeNumberQuantity(log.logIndex, 'log index'),
+								log
+							)),
 						}
 					},
 				},
@@ -390,6 +552,99 @@ export default {
 				blobGasUsed: (transaction) => transaction.blobGasUsed,
 			},
 			$$logs: (transaction) => transaction.logs,
+		}),
+
+		defineResolver({
+			entityType: EntityType.EvmLog,
+			resolve: {
+				TransactionIndexInTransaction: {
+					resolve: async ({ $transaction, indexInTransaction }) => {
+						assertEthereumMainnet($transaction.$network)
+						const receipt = await getTransactionReceipt({
+							txHash: $transaction.txHash,
+						})
+						if (receipt == null)
+							throw new Error(`EnvioHyperRpc_JsonRpc: receipt for ${$transaction.txHash} not found`)
+
+						const log = receipt.logs.find((candidate) => (
+							safeNumberQuantity(candidate.logIndex, 'log index') === indexInTransaction
+						))
+						if (log == null)
+							throw new Error(`EnvioHyperRpc_JsonRpc: receipt log ${String(indexInTransaction)} not found`)
+
+						return schemaShapedEvmLog($transaction, indexInTransaction, log)
+					},
+				},
+			},
+		})({
+			$transaction: (log) => log.$transaction,
+			indexInTransaction: (log) => log.indexInTransaction,
+			$$topics: (log) => log.$$topics,
+			topic0: (log) => log.topic0,
+			data: (log) => log.data,
+			removed: (log) => log.removed,
+			$block: (log) => log.$block,
+			$emitter: (log) => log.$emitter,
+			Event: {
+				signatureHash: (log) => {
+					if (log.topic0 == null)
+						throw new Error('EnvioHyperRpc_JsonRpc: event log missing signature topic')
+
+					return log.topic0
+				},
+				TokenTransfer: {
+					$$tokenTransfers: (log) => log.$$tokenTransfers ?? [],
+				},
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.EvmTokenTransfer,
+			resolve: {
+				LogIndexInLog: {
+					resolve: async ({ $log, indexInLog }) => {
+						if (indexInLog !== 0)
+							throw new Error(`EnvioHyperRpc_JsonRpc: token transfer ${String(indexInLog)} not found`)
+
+						assertEthereumMainnet($log.$transaction.$network)
+						const receipt = await getTransactionReceipt({
+							txHash: $log.$transaction.txHash,
+						})
+						if (receipt == null)
+							throw new Error(`EnvioHyperRpc_JsonRpc: receipt for ${$log.$transaction.txHash} not found`)
+
+						const log = receipt.logs.find((candidate) => (
+							safeNumberQuantity(candidate.logIndex, 'log index') === $log.indexInTransaction
+						))
+						if (log == null)
+							throw new Error(`EnvioHyperRpc_JsonRpc: receipt log ${String($log.indexInTransaction)} not found`)
+
+						const transfer = schemaShapedEvmLog(
+							$log.$transaction,
+							$log.indexInTransaction,
+							log
+						).$$tokenTransfers?.[0]
+						if (transfer == null)
+							throw new Error('EnvioHyperRpc_JsonRpc: receipt log is not a supported token transfer')
+
+						return transfer
+					},
+				},
+			},
+		})({
+			$log: (transfer) => ({
+				[EntityMetaKey.Selector]: transfer[EntityMetaKey.Selector].$log,
+			}),
+			indexInLog: (transfer) => transfer[EntityMetaKey.Selector].indexInLog,
+			standard: (transfer) => transfer[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.EvmTokenTransfer, [], 'standard')],
+			amount: (transfer) => transfer[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.EvmTokenTransfer, [], 'amount')],
+			$from: (transfer) => transfer[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.EvmTokenTransfer, [], '$from')],
+			$to: (transfer) => transfer[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.EvmTokenTransfer, [], '$to')],
+			$tokenContract: (transfer) => transfer[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.EvmTokenTransfer, [], '$tokenContract')],
+			$coinInstance: (transfer) => transfer[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.EvmTokenTransfer, [], '$coinInstance')],
+			Nft: {
+				tokenId: (transfer) => transfer[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.EvmTokenTransfer, ['Nft'], 'tokenId')],
+			},
 		}),
 
 		defineResolver({

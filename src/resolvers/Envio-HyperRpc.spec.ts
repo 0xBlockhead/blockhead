@@ -252,6 +252,19 @@ describe('Envio HyperRPC resolver', () => {
 				[EntityMetaKey.Selector]: {
 					indexInTransaction: 2,
 				},
+				$$topics: [{
+					[EntityMetaKey.Selector]: {
+						hex: transactionReceipt.logs[0].topics[0],
+					},
+				}],
+				topic0: transactionReceipt.logs[0].topics[0],
+				data: '0x',
+				removed: false,
+				$emitter: {
+					[EntityMetaKey.Selector]: {
+						address: transactionReceipt.logs[0].address,
+					},
+				},
 			}],
 		})
 		expect(jsonRpc2.mock.calls.every(([binding]) => (
@@ -259,6 +272,132 @@ describe('Envio HyperRPC resolver', () => {
 			&& binding.target.kind === resolverBinding.target.kind
 			&& binding.target.key === resolverBinding.target.key
 		))).toBe(true)
+	})
+
+	it('resolves native receipt logs with block, emitter, topics, and event identity', async () => {
+		jsonRpc2.mockResolvedValueOnce(transactionReceipt)
+		const resolver = resolverFor(EntityType.EvmLog)
+		const resolved = await resolver.resolve['TransactionIndexInTransaction'].resolve({
+			$transaction: {
+				$network: network,
+				txHash: transaction.hash,
+			},
+			indexInTransaction: 2,
+		}, context)
+
+		expect(Object.keys(resolver.projections).sort()).toEqual([
+			'$$topics',
+			'$block',
+			'$emitter',
+			'$transaction',
+			'Event',
+			'data',
+			'indexInTransaction',
+			'removed',
+			'topic0',
+		].sort())
+		expect(resolved).toMatchObject({
+			[EntityMetaKey.Selector]: {
+				indexInTransaction: 2,
+			},
+			$block: {
+				[EntityMetaKey.Selector]: {
+					blockNumber: 19_046_688n,
+				},
+			},
+			$$topics: [{
+				[EntityMetaKey.Selector]: {
+					hex: transactionReceipt.logs[0].topics[0],
+				},
+			}],
+			topic0: transactionReceipt.logs[0].topics[0],
+			data: transactionReceipt.logs[0].data,
+			removed: false,
+			$emitter: {
+				[EntityMetaKey.Selector]: {
+					address: transactionReceipt.logs[0].address,
+				},
+			},
+		})
+		expect(resolver.projections.Event.signatureHash(resolved)).toBe(transactionReceipt.logs[0].topics[0])
+	})
+
+	it('fails closed when a receipt log identity conflicts with its requested transaction', async () => {
+		jsonRpc2.mockResolvedValueOnce({
+			...transactionReceipt,
+			logs: [{
+				...transactionReceipt.logs[0],
+				transactionHash: `0x${'ff'.repeat(32)}`,
+			}],
+		})
+
+		await expect(resolverFor(EntityType.EvmLog).resolve['TransactionIndexInTransaction'].resolve({
+			$transaction: {
+				$network: network,
+				txHash: transaction.hash,
+			},
+			indexInTransaction: 2,
+		}, context)).rejects.toThrow('does not match the requested transaction')
+	})
+
+	it('decodes an ERC-20 receipt event into a native token transfer child', async () => {
+		const transferReceipt = {
+			...transactionReceipt,
+			logs: [{
+				...transactionReceipt.logs[0],
+				topics: [
+					'0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef',
+					`0x${'0'.repeat(24)}${'11'.repeat(20)}`,
+					`0x${'0'.repeat(24)}${'22'.repeat(20)}`,
+				],
+				data: `0x${'0'.repeat(63)}a`,
+			}],
+		}
+		jsonRpc2
+			.mockResolvedValueOnce(transferReceipt)
+			.mockResolvedValueOnce(transferReceipt)
+		const logSelector = {
+			$transaction: {
+				$network: network,
+				txHash: transaction.hash,
+			},
+			indexInTransaction: 2,
+		}
+		const log = await resolverFor(EntityType.EvmLog).resolve['TransactionIndexInTransaction'].resolve(
+			logSelector,
+			context
+		)
+
+		expect(log.$$tokenTransfers).toMatchObject([{
+			[EntityMetaKey.Selector]: {
+				$log: logSelector,
+				indexInLog: 0,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.EvmTokenTransfer, [], 'standard')]: 'ERC-20',
+				[entityFieldAddressKey(EntityType.EvmTokenTransfer, [], 'amount')]: 10n,
+				[entityFieldAddressKey(EntityType.EvmTokenTransfer, [], '$from')]: {
+					[EntityMetaKey.Selector]: { address: `0x${'11'.repeat(20)}` },
+				},
+				[entityFieldAddressKey(EntityType.EvmTokenTransfer, [], '$to')]: {
+					[EntityMetaKey.Selector]: { address: `0x${'22'.repeat(20)}` },
+				},
+			},
+		}])
+
+		await expect(resolverFor(EntityType.EvmTokenTransfer).resolve['LogIndexInLog'].resolve({
+			$log: logSelector,
+			indexInLog: 0,
+		}, context)).resolves.toMatchObject({
+			[EntityMetaKey.Selector]: {
+				$log: logSelector,
+				indexInLog: 0,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.EvmTokenTransfer, [], 'standard')]: 'ERC-20',
+				[entityFieldAddressKey(EntityType.EvmTokenTransfer, [], 'amount')]: 10n,
+			},
+		})
 	})
 
 	it('preserves a Slug network selector through referenced entities', async () => {
