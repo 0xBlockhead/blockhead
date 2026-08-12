@@ -1,6 +1,11 @@
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import { ChainId } from '$/constants/ChainId.ts'
 import { networks } from '$/constants/Network.ts'
+import {
+	Abi,
+	decodeParameters,
+	encodeFunction,
+} from '@tevm/voltaire/Abi'
 import { keccak256, toHex } from '@tevm/voltaire/Hash'
 import { toBytes } from '@tevm/voltaire/Hex'
 import {
@@ -41,6 +46,37 @@ import type { VoltaireCallTraceRpc } from '$/sources/Voltaire/JsonRpc/CallTrace.
 import { voltaireCallTraceError } from '$/sources/Voltaire/JsonRpc/CallTrace.ts'
 
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
+
+const ERC20_ALLOWANCE_ABI = new Abi([
+	{
+		type: 'function',
+		name: 'allowance',
+		stateMutability: 'view',
+		inputs: [
+			{
+				type: 'address',
+				name: 'owner',
+			},
+			{
+				type: 'address',
+				name: 'spender',
+			},
+		],
+		outputs: [
+			{
+				type: 'uint256',
+				name: '',
+			},
+		],
+	},
+])
+
+const erc20AllowanceOutput = [
+	{
+		type: 'uint256' as const,
+		name: '',
+	},
+] as const
 
 const voltaireJsonRpcTransportsByChainId = async () => (
 	voltaireJsonRpcTransports.transportsByChainId
@@ -963,6 +999,67 @@ export default {
 				[EntityMetaKey.Selector]: allowance.$spender,
 			}),
 			interopAddress: (allowance) => allowance.interopAddress,
+		}),
+
+		defineResolver({
+			entityType: EntityType.EvmActorCoinAllowance_Block,
+			resolve: {
+				AllowanceBlockNumberSource: {
+					resolve: async ({
+						$allowance,
+						blockNumber,
+						source,
+					}) => {
+						if (source !== Source.Voltaire_JsonRpc)
+							throw new Error(`Voltaire_JsonRpc: unsupported allowance block source ${source}`)
+
+						const chainId = chainIdFromEvmNetworkId($allowance.$contract.$network)
+						const jsonRpcTransports = (await voltaireJsonRpcHttpTransportsByChainId())[chainId] ?? []
+						if (jsonRpcTransports.length === 0)
+							throw new Error(`Voltaire_JsonRpc: no JSON-RPC URL for EvmActorCoinAllowance_Block on chain ${String(chainId)}`)
+
+						const errors: string[] = []
+						for (const jsonRpcTransport of jsonRpcTransports) {
+							try {
+								const response = await jsonRpcTransport.getCall({
+									to: $allowance.$contract.address,
+									input: encodeFunction(
+										ERC20_ALLOWANCE_ABI,
+										'allowance',
+										[
+											$allowance.$actor.address,
+											$allowance.$spender.address,
+										]
+									),
+									blockTag: `0x${blockNumber.toString(16)}`,
+								})
+								if (response === '0x')
+									throw new Error('ERC-20 allowance call returned empty data')
+
+								return {
+									$allowance,
+									blockNumber,
+									source,
+									allowance: decodeParameters(
+										erc20AllowanceOutput,
+										toBytes(response)
+									)[0],
+								}
+							} catch (error) {
+								errors.push(`${jsonRpcTransport.diagnosticLabel}: ${errorMessage(error)}`)
+							}
+						}
+						throw allJsonRpcEndpointsFailedError(chainId, 'EvmActorCoinAllowance_Block', errors)
+					},
+				},
+			},
+		})({
+			$allowance: (allowanceBlock) => ({
+				[EntityMetaKey.Selector]: allowanceBlock.$allowance,
+			}),
+			blockNumber: (allowanceBlock) => allowanceBlock.blockNumber,
+			source: (allowanceBlock) => allowanceBlock.source,
+			allowance: (allowanceBlock) => allowanceBlock.allowance,
 		}),
 
 		defineResolver({

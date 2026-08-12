@@ -19,6 +19,7 @@ const getSecondPeerCountObservation = vi.hoisted(() => vi.fn())
 const getTransactionByHash = vi.hoisted(() => vi.fn())
 const getTransactionReceipt = vi.hoisted(() => vi.fn())
 const debugTraceTransaction = vi.hoisted(() => vi.fn())
+const getCall = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/Voltaire/JsonRpc/queries.ts', () => ({
 	voltaireJsonRpcTransports: {
@@ -28,6 +29,7 @@ vi.mock('$/sources/Voltaire/JsonRpc/queries.ts', () => ({
 				getTransactionByHash,
 				getTransactionReceipt,
 				debugTraceTransaction,
+				getCall,
 			}],
 			10: [
 				{
@@ -52,6 +54,99 @@ vi.mock('$/sources/Voltaire/JsonRpc/queries.ts', () => ({
 }))
 
 const { default: voltaireJsonRpc } = await import('$/resolvers/Voltaire-JsonRpc.ts')
+
+describe('Voltaire ERC-20 allowance blocks', () => {
+	beforeEach(() => {
+		vi.clearAllMocks()
+	})
+
+	it('reads the exact ERC-20 allowance at the selected immutable block', async () => {
+		const resolver = voltaireJsonRpc.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.EvmActorCoinAllowance_Block
+		))
+		if (resolver == null)
+			throw new Error('Voltaire allowance block resolver is not registered')
+
+		const owner = '0x1111111111111111111111111111111111111111'
+		const token = '0x2222222222222222222222222222222222222222'
+		const spender = '0x3333333333333333333333333333333333333333'
+		getCall.mockResolvedValue(`0x${'0'.repeat(62)}2a`)
+		const selector = {
+			$allowance: {
+				$actor: {
+					address: owner,
+				},
+				$contract: {
+					$network: {
+						caip2: {
+							namespace: 'eip155',
+							reference: '1',
+						},
+					},
+					address: token,
+				},
+				$spender: {
+					address: spender,
+				},
+				interopAddress: owner,
+			},
+			blockNumber: 1_234n,
+			source: Source.Voltaire_JsonRpc,
+		}
+
+		const snapshot = await resolver.resolve.AllowanceBlockNumberSource.resolve(selector)
+		expect(getCall).toHaveBeenCalledWith({
+			to: token,
+			input: `0xdd62ed3e${owner.slice(2).padStart(64, '0')}${spender.slice(2).padStart(64, '0')}`,
+			blockTag: '0x4d2',
+		})
+		expect(resolver.projections.$allowance(snapshot)).toEqual({
+			[EntityMetaKey.Selector]: selector.$allowance,
+		})
+		expect(resolver.projections.blockNumber(snapshot)).toBe(1_234n)
+		expect(resolver.projections.source(snapshot)).toBe(Source.Voltaire_JsonRpc)
+		expect(resolver.projections.allowance(snapshot)).toBe(42n)
+	})
+
+	it('rejects unsupported provenance and unusable ERC-20 responses', async () => {
+		const resolver = voltaireJsonRpc.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.EvmActorCoinAllowance_Block
+		))
+		if (resolver == null)
+			throw new Error('Voltaire allowance block resolver is not registered')
+
+		const selector = {
+			$allowance: {
+				$actor: {
+					address: '0x1111111111111111111111111111111111111111',
+				},
+				$contract: {
+					$network: {
+						caip2: {
+							namespace: 'eip155',
+							reference: '1',
+						},
+					},
+					address: '0x2222222222222222222222222222222222222222',
+				},
+				$spender: {
+					address: '0x3333333333333333333333333333333333333333',
+				},
+				interopAddress: '0x1111111111111111111111111111111111111111',
+			},
+			blockNumber: 1n,
+			source: Source.Voltaire_JsonRpc,
+		}
+		await expect(resolver.resolve.AllowanceBlockNumberSource.resolve({
+			...selector,
+			source: Source.Allium_Rest,
+		})).rejects.toThrow('unsupported allowance block source')
+		expect(getCall).not.toHaveBeenCalled()
+
+		getCall.mockResolvedValue('0x')
+		await expect(resolver.resolve.AllowanceBlockNumberSource.resolve(selector)).rejects.toThrow('ERC-20 allowance call returned empty data')
+	})
+})
 
 describe('Voltaire txpool observation', () => {
 	beforeEach(() => {
