@@ -86,6 +86,13 @@ export default entity({
 			Source.MempoolSpace_Rest,
 		],
 	},
+	$$elementsPegs: {
+		entityType: EntityType.ElementsPeg,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Esplora_Rest,
+		],
+	},
 })({
 	selectors: {
 		NetworkTxId: [

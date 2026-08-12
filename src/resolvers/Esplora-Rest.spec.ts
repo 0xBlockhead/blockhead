@@ -208,6 +208,53 @@ describe('Esplora UTXO', () => {
 		})
 	})
 
+	it('discovers exact native pegs from their owning Liquid transaction', async () => {
+		const txId = 'a'.repeat(64)
+		getTransaction.mockResolvedValueOnce({
+			txid: txId,
+			version: 2,
+			locktime: 0,
+			size: 300,
+			weight: 400,
+			fee: 250,
+			status: { confirmed: false },
+			vin: [{
+				txid: 'b'.repeat(64),
+				vout: 0,
+				is_coinbase: false,
+				is_pegin: true,
+				sequence: 1,
+			}],
+			vout: [{
+				scriptpubkey: '6a',
+				scriptpubkey_type: 'op_return',
+				value: 125_000,
+				pegout: { genesis_hash: 'c'.repeat(64), scriptpubkey: '0014abcd' },
+			}],
+		})
+		const transaction = await transactionResolver.resolve.NetworkTxId.resolve({
+			$network: { slug: 'liquid' },
+			txId,
+		}, resolverContext)
+
+		expect(transactionResolver.projections.$$elementsPegs(transaction)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$network: { $network: { slug: 'liquid' } },
+					pegTransactionId: txId,
+					direction: 'PegIn',
+				},
+			},
+			{
+				[EntityMetaKey.Selector]: {
+					$network: { $network: { slug: 'liquid' } },
+					pegTransactionId: txId,
+					direction: 'PegOut',
+				},
+			},
+		])
+	})
+
 	it('projects child selectors and resolves Elements confidential outputs without inventing valueSats', async () => {
 		const txId = 'c'.repeat(64)
 		getTransaction.mockResolvedValue({

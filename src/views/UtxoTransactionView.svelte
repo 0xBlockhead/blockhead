@@ -47,6 +47,7 @@
 	import UtxoInputsView from '$/views/UtxoInputsView.svelte'
 	import UtxoOutputsView from '$/views/UtxoOutputsView.svelte'
 	import BitcoinOrdinalInscriptionsView from '$/views/BitcoinOrdinalInscriptionsView.svelte'
+	import ElementsPegsView from '$/views/ElementsPegsView.svelte'
 	import ZcashShieldedActionsView from '$/views/ZcashShieldedActionsView.svelte'
 </script>
 
@@ -328,6 +329,10 @@
 						label: 'Ordinal inscriptions',
 					},
 					{
+						id: 'utxo-transaction-elements-pegs',
+						label: 'Liquid pegs',
+					},
+					{
 						id: 'utxo-transaction-zcash-shielded-actions',
 						label: 'Zcash shielded actions',
 					},
@@ -368,6 +373,16 @@
 					collapsible={false}
 					title={label}
 					emptyText='No Ordinal inscriptions.'
+					id={`${id}-list`}
+				/>
+			{/snippet}
+
+			{#snippet SectionUtxoTransactionElementsPegs({ id, label })}
+				<ElementsPegsView
+					selection={selection.$$elementsPegs}
+					collapsible={false}
+					title={label}
+					emptyText='No Liquid peg transition.'
 					id={`${id}-list`}
 				/>
 			{/snippet}

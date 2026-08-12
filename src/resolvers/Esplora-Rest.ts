@@ -314,6 +314,10 @@ export default {
 								[]
 						)
 						const $bitcoinRunestone = bitcoinRunestoneRefFromPayloads(entitySelector, payloads)
+						const elementsPegDirections = target === 'liquid' ? [
+							...(transaction.vin.filter((input) => input.is_pegin === true).length === 1 ? [ElementsPegDirection.PegIn] : []),
+							...(transaction.vout.filter((output) => output.pegout != null).length === 1 ? [ElementsPegDirection.PegOut] : []),
+						] : []
 						return {
 							...(transaction.status.block_height != null && transaction.status.block_hash != null && {
 								$block: {
@@ -346,6 +350,13 @@ export default {
 								},
 							})),
 							$$bitcoinOrdinalInscriptions: bitcoinOrdinalInscriptionRefsFromPayloads($network, payloads),
+							$$elementsPegs: elementsPegDirections.map((direction) => ({
+								[EntityMetaKey.Selector]: {
+									$network: { $network },
+									pegTransactionId: txId,
+									direction,
+								},
+							})),
 							...($bitcoinRunestone != null && {
 								$bitcoinRunestone,
 							}),
@@ -365,6 +376,7 @@ export default {
 				$$inputs: (snapshot) => snapshot.$$inputs,
 				$$outputs: (snapshot) => snapshot.$$outputs,
 				$$bitcoinOrdinalInscriptions: (snapshot) => snapshot.$$bitcoinOrdinalInscriptions,
+				$$elementsPegs: (snapshot) => snapshot.$$elementsPegs,
 				$bitcoinRunestone: (snapshot) => snapshot.$bitcoinRunestone,
 			}),
 
@@ -522,7 +534,7 @@ export default {
 						const input = (await getTransaction({
 							target: 'liquid',
 							txId: $transaction.txId,
-						})).vin[inputIndex]
+						})).vin.at(inputIndex)
 						if (input == null)
 							throw new Error(`Esplora_Rest: transaction input ${inputIndex} not found`)
 						if (input.issuance == null)
@@ -590,7 +602,7 @@ export default {
 								txId: parsed.txId,
 							})
 						)
-						const payload = payloads[parsed.inscriptionIndex]
+						const payload = payloads.at(parsed.inscriptionIndex)
 						if (payload == null)
 							throw new Error(`Esplora_Rest: inscription ${inscriptionId} not found in reveal transaction`)
 

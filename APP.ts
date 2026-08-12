@@ -64891,6 +64891,7 @@ export const schema = {
 				"$$zcashShieldedActions": { label: "Zcash shielded actions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.ZcashShieldedAction, defaultSources: [Source.Zcashd_JsonRpc] },
 				"$$bitcoinOrdinalInscriptions": { label: "Bitcoin Ordinal inscriptions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BitcoinOrdinalInscription, defaultSources: [Source.BitcoinCore_JsonRpc, Source.Esplora_Rest, Source.MempoolSpace_Rest] },
 				"$bitcoinRunestone": { label: "Bitcoin runestone", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.BitcoinRunestone, defaultSources: [Source.BitcoinCore_JsonRpc, Source.Esplora_Rest, Source.MempoolSpace_Rest] },
+				"$$elementsPegs": { label: "Elements pegs", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.ElementsPeg, defaultSources: [Source.Esplora_Rest] },
 			})({
 				selectors: {
 					"NetworkTxId": ["$network", "txId"],
@@ -64913,6 +64914,7 @@ export const schema = {
 									{ id: "utxo-transaction-inputs", field: "$$inputs", List: "UtxoInputsView", label: "Inputs", emptyText: "No inputs." },
 									{ id: "utxo-transaction-outputs", field: "$$outputs", List: "UtxoOutputsView", label: "Outputs", emptyText: "No outputs." },
 									{ id: "utxo-transaction-ordinal-inscriptions", field: "$$bitcoinOrdinalInscriptions", List: "BitcoinOrdinalInscriptionsView", label: "Ordinal inscriptions", emptyText: "No Ordinal inscriptions." },
+									{ id: "utxo-transaction-elements-pegs", field: "$$elementsPegs", List: "ElementsPegsView", label: "Liquid pegs", emptyText: "No Liquid peg transition." },
 									{ id: "utxo-transaction-zcash-shielded-actions", field: "$$zcashShieldedActions", List: "ZcashShieldedActionsView", label: "Zcash shielded actions", emptyText: "No Zcash shielded actions." },
 								],
 							},
