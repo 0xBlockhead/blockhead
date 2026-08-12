@@ -11,6 +11,7 @@ const getBlockCount = vi.fn()
 const getBlockHash = vi.fn()
 const getMempoolInfo = vi.fn()
 const getMempoolTransactionIds = vi.fn()
+const getMempoolEntry = vi.fn()
 const getBlockTemplate = vi.fn()
 const getNetworkHashrate = vi.fn()
 const estimateSmartFee = vi.fn()
@@ -24,6 +25,7 @@ vi.mock('$/sources/BitcoinCore/JsonRpc/queries.ts', () => ({
 	getBlockHash,
 	getMempoolInfo,
 	getMempoolTransactionIds,
+	getMempoolEntry,
 	getBlockTemplate,
 	getNetworkHashrate,
 	estimateSmartFee,
@@ -68,6 +70,10 @@ const tipBlock = {
 const transactionResolver = bitcoinCoreResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.UtxoTransaction
 ))
+const transactionMempoolFeeResolver = bitcoinCoreResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.UtxoTransaction
+	&& 'feeSats' in resolver.projections
+))
 const inputResolver = bitcoinCoreResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.UtxoInput
 ))
@@ -108,6 +114,9 @@ const networkTimestampsResolver = bitcoinCoreResolvers.resolvers.find((resolver)
 
 if (transactionResolver == null)
 	throw new Error('BitcoinCore-JsonRpc spec missing UtxoTransaction resolver')
+
+if (transactionMempoolFeeResolver == null)
+	throw new Error('BitcoinCore-JsonRpc spec missing UTXO mempool fee resolver')
 
 if (inputResolver == null || outputResolver == null)
 	throw new Error('BitcoinCore-JsonRpc spec missing child input/output resolver')
@@ -213,6 +222,24 @@ describe('BitcoinCore UTXO', () => {
 		expect(getRawTransaction).toHaveBeenCalledWith({
 			txId,
 		})
+	})
+
+	it('projects a Bitcoin Core mempool entry fee without inventing a confirmed transaction fee', async () => {
+		const txId = 'a'.repeat(64)
+		getMempoolEntry.mockResolvedValueOnce({
+			fees: {
+				base: 0.00012345,
+			},
+		})
+
+		const transaction = await transactionMempoolFeeResolver.resolve.NetworkTxId.resolve({
+			$network: network,
+			txId,
+		})
+
+		expect(transactionMempoolFeeResolver.projections.feeSats(transaction)).toBe(12_345n)
+		expect(getMempoolEntry).toHaveBeenCalledWith({ txId })
+		expect(getRawTransaction).not.toHaveBeenCalled()
 	})
 
 	it('resolves input and output fields from the same transaction response', async () => {

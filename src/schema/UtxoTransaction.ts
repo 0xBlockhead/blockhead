@@ -48,6 +48,12 @@ export default entity({
 	feeSats: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.BitcoinCore_JsonRpc,
+			Source.Blockchair_Rest,
+			Source.Esplora_Rest,
+			Source.MempoolSpace_Rest,
+		],
 	},
 	isCoinbase: {
 		primitiveType: type('boolean'),

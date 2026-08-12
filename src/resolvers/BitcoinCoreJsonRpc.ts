@@ -512,6 +512,25 @@ export const bitcoinCoreJsonRpcResolvers = <
 			}),
 
 			defineResolver({
+				entityType: EntityType.UtxoTransaction,
+				resolve: {
+					NetworkTxId: {
+						resolve: async ({ $network, txId }) => {
+							assertNetwork($network)
+							const { getMempoolEntry } = await loadQueries()
+							return {
+								feeSats: BigInt(Math.round(
+									(await getMempoolEntry({ txId })).fees.base * 100_000_000
+								)),
+							}
+						},
+					},
+				},
+			})({
+				feeSats: (snapshot) => snapshot.feeSats,
+			}),
+
+			defineResolver({
 				entityType: EntityType.UtxoInput,
 				resolve: {
 					TransactionIndexInTransaction: {

@@ -65074,7 +65074,7 @@ export const schema = {
 				"sizeBytes": { label: "Size", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 				"virtualSizeBytes": { label: "Virtual size", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 				"weightUnits": { label: "Weight", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"feeSats": { label: "Fee", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
+				"feeSats": { label: "Fee", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.BitcoinCore_JsonRpc, Source.Blockchair_Rest, Source.Esplora_Rest, Source.MempoolSpace_Rest] },
 				"isCoinbase": { label: "Coinbase", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean" },
 				"$$inputs": { label: "Inputs", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.UtxoInput },
 				"$$outputs": { label: "Outputs", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.UtxoOutput },
