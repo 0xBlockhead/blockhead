@@ -14,6 +14,7 @@ const getDomainsByOwner = vi.fn()
 const getDomainsByResolvedAddress = vi.fn()
 const getDomainsContaining = vi.fn()
 const getEnsSubgraphReachability = vi.fn()
+const getReverseRecord = vi.fn()
 
 vi.mock('@tevm/voltaire/Ens', () => ({
 	normalize: (name: string) => name,
@@ -27,6 +28,7 @@ vi.mock('$/sources/TheGraph/Graphql/Ens/queries.ts', () => ({
 		getDomainsByResolvedAddress,
 		getDomainsContaining,
 		getEnsSubgraphReachability,
+		getReverseRecord,
 	},
 }))
 
@@ -818,5 +820,77 @@ describe('Ens-TheGraph BlockheadEnsNameSearch $$matchingNames field resolver', (
 				},
 			},
 		])
+	})
+})
+
+const ensReverseRecordResolver = ensTheGraphResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.EnsReverseRecord
+))
+
+describe('Ens-TheGraph reverse record resolver', () => {
+	it('materializes one verified source observation from matching forward and reverse records', async () => {
+		if (ensReverseRecordResolver == null || !('AccountName' in ensReverseRecordResolver.resolve))
+			throw new Error('Ens-TheGraph spec missing EnsReverseRecord resolver')
+
+		vi.spyOn(Date, 'now').mockReturnValue(1_800_000_000_000)
+		getReverseRecord.mockResolvedValueOnce({
+			forward: vitalikDomainWire,
+			reverse: {
+				...vitalikDomainWire,
+				name: 'd8da6bf26964af9d7eed9e03e53415d37aa96045.addr.reverse',
+				resolvedAddress: null,
+				resolver: {
+					...vitalikDomainWire.resolver,
+					address: '0x0000000000000000000000000000000000000002',
+				},
+			},
+		})
+		const selector = {
+			$account: {
+				caip10: {
+					namespace: 'eip155',
+					reference: '1',
+					accountAddress: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
+				},
+			},
+			$name: {
+				name: 'vitalik.eth',
+			},
+		}
+		const resolved = await ensReverseRecordResolver.resolve.AccountName.resolve(selector, resolverContext)
+
+		expect(ensReverseRecordResolver.projections.$account(resolved)).toEqual({
+			[EntityMetaKey.Selector]: selector.$account,
+		})
+		expect(ensReverseRecordResolver.projections.$$timestamps(resolved)).toMatchObject([{
+			[EntityMetaKey.Selector]: {
+				$reverseRecord: selector,
+				timestampMs: 1_800_000_000_000,
+				source: Source.TheGraph_Graphql,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.EnsReverseRecord_Timestamp, [], 'verified')]: true,
+			},
+		}])
+	})
+
+	it('rejects non-EVM reverse records before transport', async () => {
+		if (ensReverseRecordResolver == null || !('AccountName' in ensReverseRecordResolver.resolve))
+			throw new Error('Ens-TheGraph spec missing EnsReverseRecord resolver')
+		getReverseRecord.mockClear()
+
+		await expect(ensReverseRecordResolver.resolve.AccountName.resolve({
+			$account: {
+				caip10: {
+					namespace: 'solana',
+					reference: 'mainnet',
+					accountAddress: 'not-evm',
+				},
+			},
+			$name: {
+				name: 'vitalik.eth',
+			},
+		}, resolverContext)).rejects.toThrow('requires an EVM account')
+		expect(getReverseRecord).not.toHaveBeenCalled()
 	})
 })

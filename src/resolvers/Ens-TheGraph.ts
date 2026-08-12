@@ -20,8 +20,9 @@ const {
 	getDomainsContaining,
 	getEnsSubgraphReachability,
 	getName,
+	getReverseRecord,
 } = ensQueries
-import { hexLowerOfByteSize, zeroExLowerCase } from '$/lib/hexLowerOfByteSize.ts'
+import { hexLowerOfByteSize, with0xHex, zeroExLowerCase } from '$/lib/hexLowerOfByteSize.ts'
 const normalizedEnsSearchQuery = (query: string) => {
 	const trimmedQuery = query.trim()
 	if (trimmedQuery === '') throw new Error('TheGraph_Graphql: empty ENS search query')
@@ -639,5 +640,79 @@ export default {
 		})({
 				$$matchingNames: (matchingNames) => matchingNames,
 			}),
+
+		defineResolver({
+			entityType: EntityType.EnsReverseRecord,
+			resolve: {
+				AccountName: {
+					resolve: async ({ $account, $name }, context) => {
+						const { caip10 } = $account
+						if (caip10.namespace !== 'eip155')
+							throw new Error('TheGraph_Graphql: ENS reverse record requires an EVM account')
+
+						const normalizedAddress = hexLowerOfByteSize(with0xHex(caip10.accountAddress), 20)
+						if (normalizedAddress == null)
+							throw new Error('TheGraph_Graphql: ENS reverse record requires a 20-byte EVM address')
+
+						const normalizedName = ensToString(ensNormalizeNode($name.name))
+						const { forward, reverse } = await getReverseRecord({
+							publicEnv: context.publicEnv,
+							name: normalizedName,
+							accountAddress: normalizedAddress,
+						})
+						const forwardResolvedId = forward?.resolvedAddress.id ?? forward?.resolver.addr.id
+						const resolverAddress = reverse?.resolver.address ?? forward?.resolver.address
+						const resolverContractAddress = hexLowerOfByteSize(String(resolverAddress ?? ''), 20)
+
+						return {
+							accountSelector: $account,
+							name: normalizedName,
+							$$timestamps: [{
+								[EntityMetaKey.Selector]: {
+									$reverseRecord: {
+										$account,
+										$name: {
+											name: normalizedName,
+										},
+									},
+									timestampMs: Date.now(),
+									source: Source.TheGraph_Graphql,
+								},
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.EnsReverseRecord_Timestamp, [], 'verified')]: (
+										forwardResolvedId != null
+										&& with0xHex(String(forwardResolvedId)) === normalizedAddress
+										&& reverse?.resolver.address != null
+									),
+									...(resolverContractAddress != null && {
+										[entityFieldAddressKey(EntityType.EnsReverseRecord_Timestamp, [], 'resolverSelector')]: {
+											[EntityMetaKey.Selector]: {
+												$network: {
+													caip2: {
+														namespace: 'eip155',
+														reference: '1',
+													},
+												},
+												address: resolverContractAddress,
+											},
+										},
+									}),
+								},
+							}],
+						}
+					},
+				},
+			},
+		})({
+			$account: (snapshot) => ({
+				[EntityMetaKey.Selector]: snapshot.accountSelector,
+			}),
+			$name: (snapshot) => ({
+				[EntityMetaKey.Selector]: {
+					name: snapshot.name,
+				},
+			}),
+			$$timestamps: (snapshot) => snapshot.$$timestamps,
+		}),
 	],
 } satisfies RegisteredSourceResolverModule

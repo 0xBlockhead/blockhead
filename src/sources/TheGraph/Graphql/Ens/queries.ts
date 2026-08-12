@@ -1,4 +1,5 @@
 import type { SourcePublicEnv } from '$/sources/$sources.ts'
+import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
 import bindings from '$/sources/TheGraph/bindings.ts'
 import { graphql, queryEns as executeEnsQuery } from '$/sources/TheGraph/Graphql/Ens/client.ts'
 import { Source } from '$/sources/Source.ts'
@@ -6,6 +7,7 @@ import {
 	EnsDomainFragment,
 	type EnsSubgraphDomain,
 } from '$/sources/TheGraph/Graphql/Ens/types.ts'
+import { normalize as ensNormalizeNode, toString as ensToString } from '@tevm/voltaire/Ens'
 
 /** Graph Node default page is 100; tip text/coin values need a larger ordered window. */
 const resolverTipEventPageSize = 1000
@@ -266,11 +268,47 @@ const hydrateResolverTipEvents = async ({
 	).domains
 )
 
+	const getReverseRecord = async ({
+		publicEnv,
+		name,
+		accountAddress,
+	}: {
+		publicEnv: SourcePublicEnv
+		name: string
+		accountAddress: string
+	}) => {
+		const normalizedAddress = hexLowerOfByteSize(accountAddress, 20)
+		if (normalizedAddress == null)
+			throw new Error('TheGraph_Graphql: reverse record requires a 20-byte EVM address')
+
+		const normalizedName = ensToString(ensNormalizeNode(name))
+		const reverseName = `${normalizedAddress.slice(2)}.addr.reverse`
+		const [
+			forwardDomains,
+			reverseDomains,
+		] = await Promise.all([
+			getName({
+				publicEnv,
+				name: normalizedName,
+			}),
+			getName({
+				publicEnv,
+				name: reverseName,
+			}),
+		])
+
+		return {
+			forward: forwardDomains.find((domain) => domain.name === normalizedName),
+			reverse: reverseDomains.find((domain) => domain.name === reverseName),
+		}
+	}
+
 	return {
 		getDomainsByOwner,
 		getDomainsByResolvedAddress,
 		getDomainsContaining,
 		getEnsSubgraphReachability,
 		getName,
+		getReverseRecord,
 	}
 })()

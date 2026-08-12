@@ -15,7 +15,7 @@ vi.mock('$/sources/TheGraph/Graphql/client.ts', () => ({
 }))
 
 const { ensQueries } = await import('$/sources/TheGraph/Graphql/Ens/queries.ts')
-const { getName } = ensQueries
+const { getName, getReverseRecord } = ensQueries
 
 const publicEnv = {
 	PUBLIC_THEGRAPH_API_KEY: 'test',
@@ -141,5 +141,45 @@ describe('TheGraph ENS GraphQL tip event hydration', () => {
 			resolver: null,
 		}])
 		expect(queryTheGraph).toHaveBeenCalledTimes(1)
+	})
+})
+
+describe('TheGraph ENS reverse records', () => {
+	it('loads the normalized forward name and address-derived reverse node', async () => {
+		const forward = {
+			...domain,
+			resolver: null,
+		}
+		const reverse = {
+			...domain,
+			id: '0xreverse',
+			name: 'd8da6bf26964af9d7eed9e03e53415d37aa96045.addr.reverse',
+			resolver: null,
+		}
+		queryTheGraph
+			.mockResolvedValueOnce({ domains: [forward] })
+			.mockResolvedValueOnce({ domains: [reverse] })
+
+		await expect(getReverseRecord({
+			publicEnv,
+			name: 'vitalik.eth',
+			accountAddress: '0xD8dA6BF26964aF9D7eEd9e03E53415D37aA96045',
+		})).resolves.toEqual({
+			forward,
+			reverse,
+		})
+		expect(queryTheGraph.mock.calls.map((call) => call[0].variables.name)).toEqual([
+			'vitalik.eth',
+			'd8da6bf26964af9d7eed9e03e53415d37aa96045.addr.reverse',
+		])
+	})
+
+	it('rejects an invalid account coordinate before transport', async () => {
+		await expect(getReverseRecord({
+			publicEnv,
+			name: 'vitalik.eth',
+			accountAddress: 'not-an-address',
+		})).rejects.toThrow('requires a 20-byte EVM address')
+		expect(queryTheGraph).not.toHaveBeenCalled()
 	})
 })
