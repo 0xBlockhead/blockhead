@@ -15,6 +15,13 @@ import type {
 	AcpRegistryDistribution,
 } from '$/sources/Acp/Rest/types.ts'
 
+const fetchAcpRegistry = async () => (
+	typeof window === 'undefined' ?
+		await import('$/sources/Acp/Rest/queries.ts').then(({ fetchRegistry }) => fetchRegistry())
+	:
+		await import('$/sources/Acp/Rest/queries.remote.ts').then(({ fetchRegistryRemote }) => fetchRegistryRemote())
+)
+
 const packageNameFromDistribution = (
 	distribution: AcpRegistryDistribution
 ) => {
@@ -105,8 +112,7 @@ export default {
 					resolve: async ({
 						registryAgentId,
 					}) => {
-						const { fetchRegistry } = await import('$/sources/Acp/Rest/queries.ts')
-						const agent = findRegistryAgent(await fetchRegistry(), registryAgentId)
+						const agent = findRegistryAgent(await fetchAcpRegistry(), registryAgentId)
 						if (agent == null)
 							throw new Error(`AcpRegistry_Rest: registry agent ${registryAgentId} was not found`)
 
@@ -117,8 +123,7 @@ export default {
 					resolve: async ({
 						packageName,
 					}) => {
-						const { fetchRegistry } = await import('$/sources/Acp/Rest/queries.ts')
-						const agent = (await fetchRegistry()).agents.find((candidate) => (
+						const agent = (await fetchAcpRegistry()).agents.find((candidate) => (
 							packageNameFromDistribution(candidate.distribution) === packageName
 						))
 						if (agent == null)
@@ -131,8 +136,7 @@ export default {
 					resolve: async ({
 						repositoryUrl,
 					}) => {
-						const { fetchRegistry } = await import('$/sources/Acp/Rest/queries.ts')
-						const agent = (await fetchRegistry()).agents.find((candidate) => (
+						const agent = (await fetchAcpRegistry()).agents.find((candidate) => (
 							candidate.repository === repositoryUrl
 						))
 						if (agent == null)
@@ -171,9 +175,8 @@ export default {
 						if (!('registryAgentId' in $program))
 							throw new Error('AcpRegistry_Rest: program selector must identify a registry agent')
 
-						const { fetchRegistry } = await import('$/sources/Acp/Rest/queries.ts')
 						const agent = findRegistryAgent(
-							await fetchRegistry(),
+							await fetchAcpRegistry(),
 							$program.registryAgentId,
 							version
 						)
@@ -253,10 +256,8 @@ export default {
 						networkId,
 					}) => {
 						const timestampMs = Date.now()
-						try {
-							const { fetchRegistry } = await import('$/sources/Acp/Rest/queries.ts')
-							const registry = await fetchRegistry()
-							return {
+						const registry = await fetchAcpRegistry()
+						return {
 								networkId,
 								agentCount: registry.agents.length,
 								$$acpPrograms: registry.agents.map(programReference),
@@ -282,36 +283,6 @@ export default {
 									},
 								}],
 							}
-						} catch (error) {
-							return {
-								networkId,
-								agentCount: 0,
-								$$acpPrograms: [],
-								$$timestamps: [{
-									[EntityMetaKey.Selector]: {
-										$network: {
-											networkId,
-										},
-										timestampMs,
-										source: Source.AcpRegistry_Rest,
-									},
-									[EntityMetaKey.Fields]: {
-										[entityFieldAddressKey(EntityType._GlobalAgentNetwork_Timestamp, [], 'sourceReportedAgentCount')]:
-											0,
-										[entityFieldAddressKey(EntityType._GlobalAgentNetwork_Timestamp, [], 'seededAgentCount')]:
-											0,
-										[entityFieldAddressKey(EntityType._GlobalAgentNetwork_Timestamp, [], 'declaredEndpointCount')]:
-											1,
-										[entityFieldAddressKey(EntityType._GlobalAgentNetwork_Timestamp, [], 'reachableEndpointCount')]:
-											0,
-										[entityFieldAddressKey(EntityType._GlobalAgentNetwork_Timestamp, [], 'status')]:
-											'error',
-										[entityFieldAddressKey(EntityType._GlobalAgentNetwork_Timestamp, [], 'error')]:
-											error instanceof Error ? error.message : String(error),
-									},
-								}],
-							}
-						}
 					},
 				},
 			},
@@ -335,8 +306,7 @@ export default {
 						if (source !== Source.AcpRegistry_Rest)
 							throw new Error('AcpRegistry_Rest: global agent observation source mismatch')
 
-						const { fetchRegistry } = await import('$/sources/Acp/Rest/queries.ts')
-						const registry = await fetchRegistry()
+						const registry = await fetchAcpRegistry()
 						return {
 							$network: {
 								[EntityMetaKey.Selector]: $network,

@@ -265,6 +265,15 @@ describe('ACP registry resolver', () => {
 		])
 	})
 
+	it('fails the global catalog closed when the registry is unavailable', async () => {
+		fetchRegistry.mockRejectedValueOnce(new Error('registry unavailable'))
+		const { default: acpRegistry } = await import('$/resolvers/AcpRegistry-Rest.ts')
+
+		await expect(acpRegistry.resolvers[2].resolve.NetworkId.resolve({
+			networkId: 'acp',
+		}, resolverContext)).rejects.toThrow('registry unavailable')
+	})
+
 	it('reuses hub tip fields on NetworkTimestampMsSource', async () => {
 		const { default: acpRegistry } = await import('$/resolvers/AcpRegistry-Rest.ts')
 		const resolver = acpRegistry.resolvers[3]
