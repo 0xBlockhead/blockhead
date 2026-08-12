@@ -12,6 +12,7 @@ const {
 	getAccountByLocalAccountId,
 	getStatus,
 	getStatusByActivityStreamsUri,
+	getStatusContext,
 	listAccountStatusesPageByLocalAccountId,
 	listInstanceModeratedDomains,
 	listInstancePeerDomains,
@@ -27,6 +28,7 @@ const {
 	getAccountByLocalAccountId: vi.fn(),
 	getStatus: vi.fn(),
 	getStatusByActivityStreamsUri: vi.fn(),
+	getStatusContext: vi.fn(),
 	listAccountStatusesPageByLocalAccountId: vi.fn(),
 	listInstanceModeratedDomains: vi.fn(),
 	listInstancePeerDomains: vi.fn(),
@@ -62,6 +64,7 @@ vi.mock('$/sources/Mastodon/Rest/queries.ts', () => ({
 	getInstanceV2,
 	getStatus,
 	getStatusByActivityStreamsUri,
+	getStatusContext,
 	listAccountStatusesPageByLocalAccountId,
 	listInstanceModeratedDomains,
 	listInstancePeerDomains,
@@ -103,6 +106,7 @@ describe('Mastodon ActivityPub observations', () => {
 		getInstanceV2.mockReset()
 		getStatus.mockReset()
 		getStatusByActivityStreamsUri.mockReset()
+		getStatusContext.mockReset()
 		listAccountStatusesPageByLocalAccountId.mockReset()
 		listInstanceModeratedDomains.mockReset()
 		listInstancePeerDomains.mockReset()
@@ -204,10 +208,12 @@ describe('Mastodon ActivityPub observations', () => {
 		const projectedNotes = notes(timeline)
 		expect(projectedNotes.map((note) => note[EntityMetaKey.Selector])).toEqual([
 			{
-				activityStreamsUri: 'https://remote.example/users/alice/statuses/3',
+				instanceOrigin: 'https://fosstodon.org',
+				localStatusId: '114000000000000003',
 			},
 			{
-				activityStreamsUri: 'https://fosstodon.org/users/bob/statuses/4',
+				instanceOrigin: 'https://fosstodon.org',
+				localStatusId: '114000000000000004',
 			},
 		])
 		expect(projectedNotes[0][EntityMetaKey.Fields]).toMatchObject({
@@ -686,6 +692,93 @@ describe('Mastodon ActivityPub observations', () => {
 		}, context)).rejects.toThrow('unknown ActivityStreams note request')
 	})
 
+	it('materializes thread context as immediately renderable canonical note observations', async () => {
+		vi.spyOn(Date, 'now').mockReturnValue(1_785_507_628_671)
+		getStatusContext.mockResolvedValueOnce({
+			ancestors: [{
+				id: 'note-8',
+				uri: 'https://remote.example/users/bob/statuses/note-8',
+				content: '<p>Parent note</p>',
+				created_at: '2026-07-16T11:00:00.000Z',
+				account: {
+					id: 'bob-local-id',
+					uri: 'https://remote.example/users/bob',
+					acct: 'bob@remote.example',
+				},
+				favourites_count: 2,
+			}],
+			descendants: [{
+				id: 'note-10',
+				uri: 'https://fosstodon.org/users/carol/statuses/note-10',
+				content: '<p>Reply note</p>',
+				created_at: '2026-07-16T13:00:00.000Z',
+				account: {
+					id: 'carol-local-id',
+					uri: 'https://fosstodon.org/users/carol',
+					acct: 'carol',
+				},
+				replies_count: 4,
+			}],
+		})
+
+		const thread = await resolver(
+			EntityType.ActivityPubNote,
+			'$$thread'
+		).resolve['InstanceOriginLocalStatusId'].resolve({
+			instanceOrigin: 'https://fosstodon.org',
+			localStatusId: 'note-9',
+		}, context)
+
+		expect(getStatusContext).toHaveBeenCalledWith(
+			expect.objectContaining({ requestOwner: 'fosstodon-instance' }),
+			'https://fosstodon.org',
+			'note-9'
+		)
+		expect(thread.map((note) => note[EntityMetaKey.Selector])).toEqual([
+			{
+				instanceOrigin: 'https://fosstodon.org',
+				localStatusId: 'note-8',
+			},
+			{
+				instanceOrigin: 'https://fosstodon.org',
+				localStatusId: 'note-10',
+			},
+		])
+		expect(thread[0]?.[EntityMetaKey.Fields]).toMatchObject({
+			[entityFieldAddressKey(EntityType.ActivityPubNote, [], 'content')]: '<p>Parent note</p>',
+			[entityFieldAddressKey(EntityType.ActivityPubNote, [], 'activityStreamsUri')]: 'https://remote.example/users/bob/statuses/note-8',
+			[entityFieldAddressKey(EntityType.ActivityPubNote, [], '$author')]: {
+				[EntityMetaKey.Selector]: {
+					activityStreamsUri: 'https://remote.example/users/bob',
+				},
+			},
+			[entityFieldAddressKey(EntityType.ActivityPubNote, [], '$$timestamps')]: [
+				expect.objectContaining({
+					[EntityMetaKey.Selector]: {
+						$note: {
+							activityStreamsUri: 'https://remote.example/users/bob/statuses/note-8',
+						},
+						timestampMs: 1_785_507_628_671,
+						source: Source.Mastodon_Rest,
+					},
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.ActivityPubNote_Timestamp, [], 'favouriteCount')]: 2,
+					},
+				}),
+			],
+		})
+		expect(thread[1]?.[EntityMetaKey.Fields]).toMatchObject({
+			[entityFieldAddressKey(EntityType.ActivityPubNote, [], 'content')]: '<p>Reply note</p>',
+			[entityFieldAddressKey(EntityType.ActivityPubNote, [], '$$timestamps')]: [
+				expect.objectContaining({
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.ActivityPubNote_Timestamp, [], 'replyCount')]: 4,
+					},
+				}),
+			],
+		})
+	})
+
 	it('rejects notes with an invalid creation timestamp', async () => {
 		getStatus.mockResolvedValueOnce({
 			id: 'note-invalid-time',
@@ -821,7 +914,8 @@ describe('Mastodon ActivityPub observations', () => {
 		expect(listAccountStatusesPageByLocalAccountId).toHaveBeenCalledTimes(1)
 		expect(notes).toEqual([{
 			[EntityMetaKey.Selector]: {
-				activityStreamsUri: 'https://mastodon.social/users/alice/statuses/note-1',
+				instanceOrigin: 'https://mastodon.social',
+				localStatusId: 'note-1',
 			},
 			[EntityMetaKey.Fields]: expect.objectContaining({
 				[entityFieldAddressKey(EntityType.ActivityPubNote, [], 'content')]: 'Authored note',
@@ -839,17 +933,6 @@ describe('Mastodon ActivityPub observations', () => {
 					}),
 				],
 			}),
-		}, {
-			[EntityMetaKey.Selector]: {
-				activityStreamsUri: 'https://mastodon.social/users/alice/statuses/malformed',
-			},
-			[EntityMetaKey.Fields]: {},
-		}, {
-			[EntityMetaKey.Selector]: {
-				instanceOrigin: 'https://mastodon.social',
-				localStatusId: 'local-only',
-			},
-			[EntityMetaKey.Fields]: {},
 		}])
 		expect(definition.projections.$$notes.continuation?.(page, {
 			instanceOrigin: 'https://mastodon.social',

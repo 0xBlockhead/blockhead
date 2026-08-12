@@ -84,7 +84,7 @@ const activityPubNoteFieldsFromMastodonStatus = (
 	const editedAt = optionalTimestampMs(status.edited_at ?? undefined)
 	const content = optionalNonemptyString(status.content)
 	const language = optionalNonemptyString(status.language ?? undefined)
-	const spoilerText = optionalNonemptyString(status.spoiler_text)
+	const spoilerText = status.spoiler_text
 	const statusUrl = optionalNonemptyString(status.url)
 	const activityStreamsUri = optionalNonemptyString(status.uri)
 	if (activityStreamsUri == null)
@@ -188,22 +188,16 @@ const activityPubNoteCardReferenceFromMastodonStatus = (
 	instanceOrigin: string,
 	resolvedAtMs: number
 ) => {
-	const activityStreamsUri = optionalNonemptyString(status.uri)
-	if (activityStreamsUri == null && status.id == null)
+	if (status.id == null)
 		return undefined
 
 	return {
-		[EntityMetaKey.Selector]: (
-			activityStreamsUri != null ?
-				{ activityStreamsUri }
-			:
-				{
-					instanceOrigin,
-					localStatusId: String(status.id),
-				}
-		),
+		[EntityMetaKey.Selector]: {
+			instanceOrigin,
+			localStatusId: String(status.id),
+		},
 		[EntityMetaKey.Fields]: (
-			activityStreamsUri == null || status.id == null ?
+			optionalNonemptyString(status.uri) == null ?
 				{}
 			:
 				{
@@ -453,6 +447,7 @@ export default {
 										resolvedAtMs
 									),
 									actorActivityStreamsUri: String(status.account?.uri),
+									noteActivityStreamsUri: optionalNonemptyString(status.uri),
 									note: activityPubNoteCardReferenceFromMastodonStatus(
 										status,
 										instanceOrigin,
@@ -474,15 +469,15 @@ export default {
 						}, new Map<string, ReturnType<typeof activityPubActorCardReferenceFromMastodonStatus>>())
 						return {
 							actors: [...actorByActivityStreamsUri.values()].slice(0, limit),
-							notes: [...new Map(timelineEntries.flatMap(({ note }) => (
-								note == null ?
+							notes: [...new Map(timelineEntries.flatMap(({
+								note,
+								noteActivityStreamsUri,
+							}) => (
+								note == null || noteActivityStreamsUri == null ?
 									[]
 								:
 									[[
-										'activityStreamsUri' in note[EntityMetaKey.Selector] ?
-											note[EntityMetaKey.Selector].activityStreamsUri
-										:
-											`${note[EntityMetaKey.Selector].instanceOrigin}\n${note[EntityMetaKey.Selector].localStatusId}`,
+										noteActivityStreamsUri,
 										note,
 									] as const]
 							)).toReversed()).values()].toReversed().slice(0, limit),
@@ -1017,11 +1012,9 @@ export default {
 							page.instanceOrigin,
 							page.resolvedAtMs
 						)
-						return reference == null ? [] : [[
-							'activityStreamsUri' in reference[EntityMetaKey.Selector] ?
-								reference[EntityMetaKey.Selector].activityStreamsUri
-							:
-								`${reference[EntityMetaKey.Selector].instanceOrigin}:${reference[EntityMetaKey.Selector].localStatusId}`,
+						const activityStreamsUri = optionalNonemptyString(status.uri)
+						return reference == null || activityStreamsUri == null ? [] : [[
+							activityStreamsUri,
 							reference,
 						] as const]
 					}).toReversed()).values()].toReversed().slice(0, resolverContextRowLimit(context)),
@@ -1057,6 +1050,7 @@ export default {
 							throw new Error(`Mastodon_Rest: entity instance binding is missing for ${instanceOrigin}`)
 						assertInstanceMatches(binding, instanceOrigin)
 						const { ancestors = [], descendants = [] } = await getStatusContext(binding, instanceOrigin, localStatusId)
+						const resolvedAtMs = Date.now()
 						return (
 							[
 								...ancestors,
@@ -1066,14 +1060,11 @@ export default {
 								s.id == null || String(s.id) === localStatusId ?
 									[]
 								:
-									[
-										{
-											[EntityMetaKey.Selector]: {
-												instanceOrigin,
-												localStatusId: String(s.id),
-											},
-										},
-									]
+									[activityPubNoteCardReferenceFromMastodonStatus(
+										s,
+										instanceOrigin,
+										resolvedAtMs
+									)]
 								))
 						)
 					},
@@ -1090,7 +1081,9 @@ export default {
 						const status = await getStatusByActivityStreamsUri(binding, activityStreamsUri)
 						if (status.id == null)
 							return []
-						const { ancestors = [], descendants = [] } = await getStatusContext(binding, new URL(activityStreamsUri).origin, String(status.id))
+						const instanceOrigin = new URL(activityStreamsUri).origin
+						const { ancestors = [], descendants = [] } = await getStatusContext(binding, instanceOrigin, String(status.id))
+						const resolvedAtMs = Date.now()
 						return (
 							[
 								...ancestors,
@@ -1100,14 +1093,11 @@ export default {
 								s.id == null || String(s.id) === String(status.id) ?
 									[]
 								:
-									[
-										{
-											[EntityMetaKey.Selector]: {
-												instanceOrigin: new URL(activityStreamsUri).origin,
-												localStatusId: String(s.id),
-											},
-										},
-									]
+									[activityPubNoteCardReferenceFromMastodonStatus(
+										s,
+										instanceOrigin,
+										resolvedAtMs
+									)]
 								))
 						)
 					},
