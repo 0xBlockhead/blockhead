@@ -36,6 +36,12 @@ const esploraOutputWire = arktype({
 	'noncecommitment?': 'string',
 	'surjection_proof?': 'string',
 	'range_proof?': 'string',
+	'pegout?': {
+		genesis_hash: elementsHex32Wire,
+		scriptpubkey: 'string',
+		'scriptpubkey_asm?': 'string',
+		'scriptpubkey_address?': 'string',
+	},
 })
 
 const esploraInputWire = arktype({
@@ -46,6 +52,7 @@ const esploraInputWire = arktype({
 	'scriptsig_asm?': 'string',
 	'witness?': 'string[]',
 	'is_coinbase?': 'boolean',
+	'is_pegin?': 'boolean',
 	'sequence?': unsignedSafe,
 	'issuance?': {
 		asset_id: elementsHex32Wire,

@@ -155,6 +155,37 @@ describe('Esplora REST binding selection', () => {
 		})).rejects.toThrow('invalid transaction envelope')
 	})
 
+	it('preserves authoritative Liquid peg markers and peg-out scripts', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			txid: 'a'.repeat(64),
+			status: { confirmed: false },
+			vin: [{
+				txid: 'b'.repeat(64),
+				vout: 0,
+				is_coinbase: false,
+				is_pegin: true,
+				sequence: 1,
+			}],
+			vout: [{
+				scriptpubkey: '6a',
+				scriptpubkey_type: 'op_return',
+				value: 10,
+				pegout: {
+					genesis_hash: 'c'.repeat(64),
+					scriptpubkey: '0014abcd',
+				},
+			}],
+		})
+
+		await expect(getTransaction({
+			target: 'liquid',
+			txId: 'a'.repeat(64),
+		})).resolves.toMatchObject({
+			vin: [{ is_pegin: true }],
+			vout: [{ pegout: { scriptpubkey: '0014abcd' } }],
+		})
+	})
+
 	it('accepts the genesis block null previous hash', async () => {
 		sourceGetJson.mockResolvedValueOnce({
 			...validBlock,

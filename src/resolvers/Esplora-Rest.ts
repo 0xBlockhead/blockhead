@@ -21,6 +21,7 @@ import {
 	type EntitySelector,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { ElementsPegDirection } from '$/schema/ElementsPegDirection.ts'
 import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
 import type { EsploraAsset } from '$/sources/Esplora/Rest/types.ts'
@@ -172,6 +173,64 @@ export default {
 	source: Source.Esplora_Rest,
 
 	resolvers: [
+		defineResolver({
+			entityType: EntityType.ElementsPeg,
+			resolve: {
+				ElementsNetworkPegTransactionIdDirection: {
+					resolve: async (selector) => {
+						const transaction = await (await import('$/sources/Esplora/Rest/queries.ts')).getTransaction({
+							target: esploraTargetForNetwork(selector.$network.$network),
+							txId: selector.pegTransactionId,
+						})
+						const input = selector.direction === ElementsPegDirection.PegIn ? transaction.vin.filter((candidate) => candidate.is_pegin === true) : []
+						const output = selector.direction === ElementsPegDirection.PegOut ? transaction.vout.filter((candidate) => candidate.pegout != null) : []
+						if (input.length + output.length !== 1)
+							throw new Error(`Esplora_Rest: expected one ${selector.direction} row, received ${String(input.length + output.length)}`)
+
+						const amount = input[0]?.prevout?.value ?? output[0]?.value
+						const timestampMs = transaction.status.block_time == null ? Date.now() : transaction.status.block_time * 1000
+						return {
+							$elementsTransaction: {
+								[EntityMetaKey.Selector]: {
+									$network: selector.$network.$network,
+									txId: transaction.txid,
+								},
+							},
+							...(input[0]?.txid != null && {
+								$bitcoinTransaction: {
+									[EntityMetaKey.Selector]: {
+										$network: { slug: 'bitcoin' },
+										txId: input[0].txid,
+									},
+								},
+							}),
+							...(amount != null && { amountSats: BigInt(amount) }),
+							...(output[0]?.pegout?.scriptpubkey != null && { claimScript: output[0].pegout.scriptpubkey }),
+							$$timestamps: [{
+								[EntityMetaKey.Selector]: {
+									$peg: selector,
+									timestampMs,
+									source: Source.Esplora_Rest,
+								},
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.ElementsPeg_Timestamp, [], 'status')]: transaction.status.confirmed ? 'confirmed' : 'mempool',
+									...(transaction.status.block_height != null && {
+										[entityFieldAddressKey(EntityType.ElementsPeg_Timestamp, [], 'observedElementsHeight')]: BigInt(transaction.status.block_height),
+									}),
+								},
+							}],
+						}
+					},
+				},
+			},
+		})({
+			$bitcoinTransaction: (snapshot) => snapshot.$bitcoinTransaction,
+			$elementsTransaction: (snapshot) => snapshot.$elementsTransaction,
+			amountSats: (snapshot) => snapshot.amountSats,
+			claimScript: (snapshot) => snapshot.claimScript,
+			$$timestamps: (snapshot) => snapshot.$$timestamps,
+		}),
+
 		defineResolver({
 			entityType: EntityType.UtxoBlock,
 			resolve: {

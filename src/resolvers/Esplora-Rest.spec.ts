@@ -66,6 +66,9 @@ const outputResolver = esploraResolvers.resolvers.find((resolver) => (
 const issuanceResolver = esploraResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.ElementsIssuance
 ))
+const pegResolver = esploraResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.ElementsPeg
+))
 const assetResolver = esploraResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.ElementsAsset
 	&& 'name' in resolver.projections
@@ -168,6 +171,41 @@ describe('Esplora UTXO', () => {
 		getAddressUtxos.mockReset()
 		getAddressTransactions.mockReset()
 		getAsset.mockReset()
+	})
+
+	it('resolves one native Liquid peg-out into a clocked Elements hierarchy', async () => {
+		if (pegResolver == null) throw new Error('Esplora-Rest missing ElementsPeg resolver')
+		getTransaction.mockResolvedValueOnce({
+			txid: 'a'.repeat(64),
+			status: { confirmed: true, block_height: 3_500_000, block_time: 1_800_000_000 },
+			vin: [],
+			vout: [{
+				scriptpubkey: '6a',
+				scriptpubkey_type: 'op_return',
+				value: 125_000,
+				pegout: { genesis_hash: 'b'.repeat(64), scriptpubkey: '0014abcd' },
+			}],
+		})
+		const selector = {
+			$network: { $network: { slug: 'liquid' } },
+			pegTransactionId: 'a'.repeat(64),
+			direction: 'PegOut' as const,
+		}
+		const snapshot = await pegResolver.resolve.ElementsNetworkPegTransactionIdDirection.resolve(selector, resolverContext)
+
+		expect(pegResolver.projections.amountSats(snapshot)).toBe(125_000n)
+		expect(pegResolver.projections.claimScript(snapshot)).toBe('0014abcd')
+		expect(pegResolver.projections.$$timestamps(snapshot)[0]).toMatchObject({
+			[EntityMetaKey.Selector]: {
+				$peg: selector,
+				timestampMs: 1_800_000_000_000,
+				source: Source.Esplora_Rest,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.ElementsPeg_Timestamp, [], 'status')]: 'confirmed',
+				[entityFieldAddressKey(EntityType.ElementsPeg_Timestamp, [], 'observedElementsHeight')]: 3_500_000n,
+			},
+		})
 	})
 
 	it('projects child selectors and resolves Elements confidential outputs without inventing valueSats', async () => {
