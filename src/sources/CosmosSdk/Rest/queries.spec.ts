@@ -973,6 +973,92 @@ describe('Cosmos SDK IBC queries', () => {
 		])
 	})
 
+	it('reads exact packet commitment, receipt and acknowledgement state', async () => {
+		const {
+			getIbcPacketAcknowledgement,
+			getIbcPacketCommitment,
+			getIbcPacketReceipt,
+		} = await import('$/sources/CosmosSdk/Rest/queries.ts')
+		getJson
+			.mockResolvedValueOnce({
+				commitment: 'AQID',
+				proof: 'proof',
+				proof_height: {
+					revision_number: '4',
+					revision_height: '22000000',
+				},
+			})
+			.mockResolvedValueOnce({
+				received: true,
+				proof: 'proof',
+				proof_height: {
+					revision_number: '4',
+					revision_height: '22000000',
+				},
+			})
+			.mockResolvedValueOnce({
+				acknowledgement: 'BAUG',
+				proof: 'proof',
+				proof_height: {
+					revision_number: '4',
+					revision_height: '22000000',
+				},
+			})
+
+		await expect(getIbcPacketCommitment({
+			portId: 'transfer',
+			channelId: 'channel-141',
+			sequence: 42n,
+		})).resolves.toMatchObject({ commitment: 'AQID' })
+		await expect(getIbcPacketReceipt({
+			portId: 'transfer',
+			channelId: 'channel-141',
+			sequence: 42n,
+		})).resolves.toMatchObject({ received: true })
+		await expect(getIbcPacketAcknowledgement({
+			portId: 'transfer',
+			channelId: 'channel-141',
+			sequence: 42n,
+		})).resolves.toMatchObject({ acknowledgement: 'BAUG' })
+
+		expect(getJson.mock.calls.map((call) => call[0])).toEqual([
+			'https://rest.cosmos.directory/cosmoshub/ibc/core/channel/v1/channels/channel-141/ports/transfer/packet_commitments/42',
+			'https://rest.cosmos.directory/cosmoshub/ibc/core/channel/v1/channels/channel-141/ports/transfer/packet_receipts/42',
+			'https://rest.cosmos.directory/cosmoshub/ibc/core/channel/v1/channels/channel-141/ports/transfer/packet_acks/42',
+		])
+	})
+
+	it('rejects malformed packet identity and packet-state envelopes', async () => {
+		const {
+			getIbcPacketCommitment,
+			getIbcPacketReceipt,
+		} = await import('$/sources/CosmosSdk/Rest/queries.ts')
+		expect(() => getIbcPacketCommitment({
+			portId: 'transfer/escape',
+			channelId: 'channel-141',
+			sequence: 42n,
+		})).toThrow('invalid port id')
+		expect(() => getIbcPacketCommitment({
+			portId: 'transfer',
+			channelId: 'channel-141',
+			sequence: -1n,
+		})).toThrow('invalid IBC packet sequence -1')
+
+		getJson.mockResolvedValueOnce({
+			received: 'yes',
+			proof: 'proof',
+			proof_height: {
+				revision_number: '4',
+				revision_height: '22000000',
+			},
+		})
+		await expect(getIbcPacketReceipt({
+			portId: 'transfer',
+			channelId: 'channel-141',
+			sequence: 42n,
+		})).rejects.toThrow()
+	})
+
 	it('fail-closes malformed IBC channel envelopes', async () => {
 		const {
 			getIbcChannel,

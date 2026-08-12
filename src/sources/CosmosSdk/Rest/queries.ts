@@ -23,6 +23,9 @@ import type {
 	CosmosSdkDepositsResponse,
 	CosmosSdkModuleAccountResponse,
 	CosmosSdkNodeInfoResponse,
+	CosmosSdkIbcPacketAcknowledgementResponse,
+	CosmosSdkIbcPacketCommitmentResponse,
+	CosmosSdkIbcPacketReceiptResponse,
 	CosmosSdkProposalResponse,
 	CosmosSdkProposalsResponse,
 	CosmosSdkStakingPoolResponse,
@@ -658,6 +661,24 @@ const cosmosSdkIbcNextSequenceReceiveResponseWire = arktype({
 	next_sequence_receive: '/^(0|[1-9][0-9]*)$/',
 })
 
+const cosmosSdkIbcPacketCommitmentResponseWire = arktype({
+	commitment: 'string',
+	proof: 'string',
+	proof_height: cosmosSdkIbcHeightWire,
+})
+
+const cosmosSdkIbcPacketReceiptResponseWire = arktype({
+	received: 'boolean',
+	proof: 'string',
+	proof_height: cosmosSdkIbcHeightWire,
+})
+
+const cosmosSdkIbcPacketAcknowledgementResponseWire = arktype({
+	acknowledgement: 'string',
+	proof: 'string',
+	proof_height: cosmosSdkIbcHeightWire,
+})
+
 const assertIbcIdentity = (
 	value: string,
 	name: string
@@ -884,4 +905,64 @@ export const getIbcNextSequenceReceive = ({
 	).then((response) => (
 		cosmosSdkIbcNextSequenceReceiveResponseWire.assert(response)
 	))
+}
+
+export const getIbcPacketCommitment = ({
+	portId,
+	channelId,
+	sequence,
+}: {
+	portId: string
+	channelId: string
+	sequence: bigint
+}) => {
+	assertIbcIdentity(portId, 'port id')
+	assertIbcIdentity(channelId, 'channel id')
+	if (sequence < 0n)
+		throw new Error(`CosmosSdk_Rest: invalid IBC packet sequence ${sequence}`)
+
+	return sourceGetJson<CosmosSdkIbcPacketCommitmentResponse>(
+		binding,
+		`${base(binding)}/ibc/core/channel/v1/channels/${encodeURIComponent(channelId)}/ports/${encodeURIComponent(portId)}/packet_commitments/${sequence}`
+	).then((response) => cosmosSdkIbcPacketCommitmentResponseWire.assert(response))
+}
+
+export const getIbcPacketReceipt = ({
+	portId,
+	channelId,
+	sequence,
+}: {
+	portId: string
+	channelId: string
+	sequence: bigint
+}) => {
+	assertIbcIdentity(portId, 'port id')
+	assertIbcIdentity(channelId, 'channel id')
+	if (sequence < 0n)
+		throw new Error(`CosmosSdk_Rest: invalid IBC packet sequence ${sequence}`)
+
+	return sourceGetJson<CosmosSdkIbcPacketReceiptResponse>(
+		binding,
+		`${base(binding)}/ibc/core/channel/v1/channels/${encodeURIComponent(channelId)}/ports/${encodeURIComponent(portId)}/packet_receipts/${sequence}`
+	).then((response) => cosmosSdkIbcPacketReceiptResponseWire.assert(response))
+}
+
+export const getIbcPacketAcknowledgement = ({
+	portId,
+	channelId,
+	sequence,
+}: {
+	portId: string
+	channelId: string
+	sequence: bigint
+}) => {
+	assertIbcIdentity(portId, 'port id')
+	assertIbcIdentity(channelId, 'channel id')
+	if (sequence < 0n)
+		throw new Error(`CosmosSdk_Rest: invalid IBC packet sequence ${sequence}`)
+
+	return sourceGetJson<CosmosSdkIbcPacketAcknowledgementResponse>(
+		binding,
+		`${base(binding)}/ibc/core/channel/v1/channels/${encodeURIComponent(channelId)}/ports/${encodeURIComponent(portId)}/packet_acks/${sequence}`
+	).then((response) => cosmosSdkIbcPacketAcknowledgementResponseWire.assert(response))
 }

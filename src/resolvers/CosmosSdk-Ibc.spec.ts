@@ -21,6 +21,9 @@ const getIbcConnectionChannels = vi.hoisted(() => vi.fn())
 const getIbcDenomTrace = vi.hoisted(() => vi.fn())
 const getIbcNextSequenceReceive = vi.hoisted(() => vi.fn())
 const getIbcNextSequenceSend = vi.hoisted(() => vi.fn())
+const getIbcPacketAcknowledgement = vi.hoisted(() => vi.fn())
+const getIbcPacketCommitment = vi.hoisted(() => vi.fn())
+const getIbcPacketReceipt = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/CosmosSdk/Rest/queries.ts', async (importOriginal) => ({
 	...await importOriginal<typeof import('$/sources/CosmosSdk/Rest/queries.ts')>(),
@@ -35,6 +38,9 @@ vi.mock('$/sources/CosmosSdk/Rest/queries.ts', async (importOriginal) => ({
 	getIbcDenomTrace,
 	getIbcNextSequenceReceive,
 	getIbcNextSequenceSend,
+	getIbcPacketAcknowledgement,
+	getIbcPacketCommitment,
+	getIbcPacketReceipt,
 }))
 
 const { default: cosmosSdk } = await import('$/resolvers/CosmosSdk-Rest.ts')
@@ -67,6 +73,10 @@ const ibcClientResolver = cosmosSdk.resolvers.find((resolver) => (
 ))
 const ibcDenomTraceResolver = cosmosSdk.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.IbcDenomTrace
+))
+const ibcPacketResolver = cosmosSdk.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.IbcPacket
+	&& 'status' in resolver.projections
 ))
 const ibcChannelsListResolver = cosmosSdk.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.Network
@@ -116,6 +126,7 @@ if (
 	|| ibcConnectionResolver == null
 	|| ibcClientResolver == null
 	|| ibcDenomTraceResolver == null
+	|| ibcPacketResolver == null
 	|| ibcChannelsListResolver == null
 	|| ibcClientsListResolver == null
 	|| ibcConnectionsListResolver == null
@@ -137,9 +148,105 @@ beforeEach(() => {
 	getIbcDenomTrace.mockReset()
 	getIbcNextSequenceReceive.mockReset()
 	getIbcNextSequenceSend.mockReset()
+	getIbcPacketAcknowledgement.mockReset()
+	getIbcPacketCommitment.mockReset()
+	getIbcPacketReceipt.mockReset()
 })
 
 describe('CosmosSdk IBC resolvers', () => {
+	it('projects exact source commitment state without inventing settlement', async () => {
+		getIbcPacketCommitment.mockResolvedValue({
+			commitment: 'AQID',
+			proof: 'proof',
+			proof_height: {
+				revision_number: '4',
+				revision_height: '22000000',
+			},
+		})
+
+		const snapshot = await ibcPacketResolver.resolve.ChannelSequenceDirection.resolve({
+			$channel: {
+				$network: cosmosNetwork,
+				portId: 'transfer',
+				channelId: 'channel-141',
+			},
+			sequence: 42n,
+			direction: 'source',
+		}, context)
+
+		expect(ibcPacketResolver.projections.sourcePort(snapshot)).toBe('transfer')
+		expect(ibcPacketResolver.projections.sourceChannel(snapshot)).toBe('channel-141')
+		expect(ibcPacketResolver.projections.commitmentHash(snapshot)).toBe('base64:AQID')
+		expect(ibcPacketResolver.projections.status(snapshot)).toBe('committed')
+		expect(getIbcPacketCommitment).toHaveBeenCalledWith({
+			portId: 'transfer',
+			channelId: 'channel-141',
+			sequence: 42n,
+		})
+	})
+
+	it('projects destination receipt and acknowledgement observations', async () => {
+		getIbcPacketAcknowledgement.mockResolvedValue({
+			acknowledgement: 'eyJyZXN1bHQiOiJBUUlkIn0=',
+			proof: 'proof',
+			proof_height: {
+				revision_number: '1',
+				revision_height: '20000000',
+			},
+		})
+		getIbcPacketReceipt.mockResolvedValue({
+			received: true,
+			proof: 'proof',
+			proof_height: {
+				revision_number: '1',
+				revision_height: '20000000',
+			},
+		})
+
+		const snapshot = await ibcPacketResolver.resolve.ChannelSequenceDirection.resolve({
+			$channel: {
+				$network: cosmosNetwork,
+				portId: 'transfer',
+				channelId: 'channel-0',
+			},
+			sequence: 42n,
+			direction: 'destination',
+		}, context)
+
+		expect(ibcPacketResolver.projections.destinationPort(snapshot)).toBe('transfer')
+		expect(ibcPacketResolver.projections.destinationChannel(snapshot)).toBe('channel-0')
+		expect(ibcPacketResolver.projections.receiptExists(snapshot)).toBe(true)
+		expect(ibcPacketResolver.projections.status(snapshot)).toBe('acknowledgement-written')
+	})
+
+	it('preserves absent source commitment and rejects ambiguous direction labels', async () => {
+		getIbcPacketCommitment.mockResolvedValue({
+			commitment: '',
+			proof: 'proof',
+			proof_height: {
+				revision_number: '4',
+				revision_height: '22000000',
+			},
+		})
+		const selector = {
+			$channel: {
+				$network: cosmosNetwork,
+				portId: 'transfer',
+				channelId: 'channel-141',
+			},
+			sequence: 42n,
+			direction: 'source',
+		}
+		const snapshot = await ibcPacketResolver.resolve.ChannelSequenceDirection.resolve(selector, context)
+		expect(ibcPacketResolver.projections.commitmentHash(snapshot)).toBeUndefined()
+		expect(ibcPacketResolver.projections.status(snapshot)).toBe('commitment-absent')
+
+		await expect(ibcPacketResolver.resolve.ChannelSequenceDirection.resolve({
+			...selector,
+			direction: 'send',
+		}, context)).rejects.toThrow('invalid IBC packet direction send')
+	})
+
 	it('projects an IBC channel with connection/client hops and sequences', async () => {
 		getIbcChannel.mockResolvedValue({
 			channel: {

@@ -1407,6 +1407,92 @@ export default {
 			}),
 
 		defineResolver({
+			entityType: EntityType.IbcPacket,
+			resolve: {
+				ChannelSequenceDirection: {
+					appliesTo: cosmosNetworkReferenceApplicability.map(($network) => ({
+						$channel: $network,
+					})),
+					resolve: async ({
+						$channel,
+						sequence,
+						direction,
+					}) => {
+						assertCosmosHub($channel.$network)
+						if (direction === 'source') {
+							const {
+								getIbcPacketCommitment,
+							} = await import('$/sources/CosmosSdk/Rest/queries.ts')
+							const commitment = await getIbcPacketCommitment({
+								portId: $channel.portId,
+								channelId: $channel.channelId,
+								sequence,
+							})
+							return {
+								sourcePort: $channel.portId,
+								sourceChannel: $channel.channelId,
+								...(commitment.commitment !== '' && {
+									commitmentHash: `base64:${commitment.commitment}`,
+								}),
+								status: (
+									commitment.commitment === '' ?
+										'commitment-absent'
+									:
+										'committed'
+								),
+							}
+						}
+
+						if (direction === 'destination') {
+							const {
+								getIbcPacketAcknowledgement,
+								getIbcPacketReceipt,
+							} = await import('$/sources/CosmosSdk/Rest/queries.ts')
+							const [
+								acknowledgement,
+								receipt,
+							] = await Promise.all([
+								getIbcPacketAcknowledgement({
+									portId: $channel.portId,
+									channelId: $channel.channelId,
+									sequence,
+								}),
+								getIbcPacketReceipt({
+									portId: $channel.portId,
+									channelId: $channel.channelId,
+									sequence,
+								}),
+							])
+							return {
+								destinationPort: $channel.portId,
+								destinationChannel: $channel.channelId,
+								receiptExists: receipt.received,
+								status: (
+									acknowledgement.acknowledgement !== '' ?
+										'acknowledgement-written'
+									: receipt.received ?
+										'received'
+									:
+										'not-received'
+								),
+							}
+						}
+
+						throw new Error(`CosmosSdk_Rest: invalid IBC packet direction ${direction}`)
+					},
+				},
+			},
+		})({
+			sourcePort: (packet) => packet.sourcePort,
+			sourceChannel: (packet) => packet.sourceChannel,
+			destinationPort: (packet) => packet.destinationPort,
+			destinationChannel: (packet) => packet.destinationChannel,
+			commitmentHash: (packet) => packet.commitmentHash,
+			receiptExists: (packet) => packet.receiptExists,
+			status: (packet) => packet.status,
+		}),
+
+		defineResolver({
 			entityType: EntityType.IbcChannel,
 			resolve: {
 				NetworkPortIdChannelId: {

@@ -400,3 +400,21 @@ export type CosmosSdkIbcNextSequenceSendResponse = {
 export type CosmosSdkIbcNextSequenceReceiveResponse = {
 	next_sequence_receive: string
 }
+
+export type CosmosSdkIbcPacketCommitmentResponse = {
+	commitment: string
+	proof: string
+	proof_height: CosmosSdkIbcHeight
+}
+
+export type CosmosSdkIbcPacketReceiptResponse = {
+	received: boolean
+	proof: string
+	proof_height: CosmosSdkIbcHeight
+}
+
+export type CosmosSdkIbcPacketAcknowledgementResponse = {
+	acknowledgement: string
+	proof: string
+	proof_height: CosmosSdkIbcHeight
+}
