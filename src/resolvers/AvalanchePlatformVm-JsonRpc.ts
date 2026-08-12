@@ -212,6 +212,23 @@ const validatorFields = (
 				slug: networkBySlug['avalanche-p-chain'].slug,
 			},
 		},
+		$$delegators: (validator.delegators ?? []).map((delegator) => {
+			const fields = delegatorFields(delegator, validator, subnetId)
+			return {
+				[EntityMetaKey.Selector]: {
+					$validator: validatorSelector(validator, subnetId),
+					txId: delegator.txID,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.AvalancheDelegator, [], 'delegatorAddress')]: fields.delegatorAddress,
+					[entityFieldAddressKey(EntityType.AvalancheDelegator, [], 'stakeAmountNavax')]: fields.stakeAmountNavax,
+					[entityFieldAddressKey(EntityType.AvalancheDelegator, [], 'startTimeMs')]: fields.startTimeMs,
+					[entityFieldAddressKey(EntityType.AvalancheDelegator, [], 'endTimeMs')]: fields.endTimeMs,
+					[entityFieldAddressKey(EntityType.AvalancheDelegator, [], 'rewardOwnerAddresses')]: fields.rewardOwnerAddresses,
+					[entityFieldAddressKey(EntityType.AvalancheDelegator, [], 'potentialRewardNavax')]: fields.potentialRewardNavax,
+				},
+			}
+		}),
 	}
 }
 
@@ -497,6 +514,7 @@ export default {
 			delegationFeePercent: (validator) => validator.delegationFeePercent,
 			$subnet: (validator) => validator.$subnet,
 			$network: (validator) => validator.$network,
+			$$delegators: (validator) => validator.$$delegators,
 		}),
 
 		defineResolver({

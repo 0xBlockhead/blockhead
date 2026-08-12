@@ -121,6 +121,19 @@ it('projects enrolled blockchain, subnet, validator, and P-Chain block fields', 
 				},
 				delegationFee: '2.0000',
 				connected: true,
+				delegators: [{
+					txID: 'tx-delegator',
+					startTime: '1601000000',
+					endTime: '1701000000',
+					weight: '300000000000',
+					nodeID: 'NodeID-validator',
+					rewardOwner: {
+						locktime: '0',
+						threshold: '1',
+						addresses: ['P-avax1delegator'],
+					},
+					potentialReward: '1000000000',
+				}],
 			}],
 		})
 		.mockResolvedValueOnce({
@@ -158,6 +171,24 @@ it('projects enrolled blockchain, subnet, validator, and P-Chain block fields', 
 	expect(validator.stakeAmountNavax).toBe(2000000000000n)
 	expect(validator.delegationFeePercent).toBe(2)
 	expect(validator.rewardOwnerAddresses).toEqual(['P-avax1owner'])
+	expect(validatorResolver.projections.$$delegators(validator)).toEqual([{
+		[EntityMetaKey.Selector]: {
+			$validator: {
+				nodeId: 'NodeID-validator',
+				subnetId: avalanchePrimaryNetworkSubnetId,
+				startTimeMs: 1_600_000_000_000,
+			},
+			txId: 'tx-delegator',
+		},
+		[EntityMetaKey.Fields]: {
+			[entityFieldAddressKey(EntityType.AvalancheDelegator, [], 'delegatorAddress')]: 'P-avax1delegator',
+			[entityFieldAddressKey(EntityType.AvalancheDelegator, [], 'stakeAmountNavax')]: 300000000000n,
+			[entityFieldAddressKey(EntityType.AvalancheDelegator, [], 'startTimeMs')]: 1_601_000_000_000,
+			[entityFieldAddressKey(EntityType.AvalancheDelegator, [], 'endTimeMs')]: 1_701_000_000_000,
+			[entityFieldAddressKey(EntityType.AvalancheDelegator, [], 'rewardOwnerAddresses')]: ['P-avax1delegator'],
+			[entityFieldAddressKey(EntityType.AvalancheDelegator, [], 'potentialRewardNavax')]: 1000000000n,
+		},
+	}])
 
 	const block = await blockResolver.resolve.NetworkHeight.resolve({
 		$network: {

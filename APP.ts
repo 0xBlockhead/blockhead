@@ -10090,6 +10090,7 @@ export const schema = {
 				"delegationFeePercent": { label: "delegation fee percent", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
 				"$subnet": { label: "subnet", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.AvalancheSubnet, defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
 				"$network": { label: "network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.Network, defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
+				"$$delegators": { label: "delegators", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.AvalancheDelegator, defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
 				"$$timestamps": { label: "timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.AvalancheValidator_Timestamp },
 			})({
 				selectors: {
@@ -10110,6 +10111,7 @@ export const schema = {
 							],
 						},
 						lists: [
+							{ field: "$$delegators", component: "AvalancheDelegatorsView", emptyText: "No active delegators found." },
 							{ field: "$$timestamps", component: "AvalancheValidator_TimestampsView", emptyText: "No observations yet." },
 						],
 					},

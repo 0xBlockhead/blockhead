@@ -35,6 +35,7 @@
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
+	import AvalancheDelegatorsView from '$/views/AvalancheDelegatorsView.svelte'
 	import AvalancheValidator_TimestampsView from '$/views/AvalancheValidator_TimestampsView.svelte'
 	import AvalancheSubnetView from '$/views/AvalancheSubnetView.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
@@ -261,6 +262,21 @@
 	{/snippet}
 
 	{#snippet Details()}
+		{@const delegatorsResource = selection.$$delegators}
+		<ResourceBoundary
+			resource={delegatorsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<AvalancheDelegatorsView
+						selection={delegatorsResource}
+						countResource={delegatorsResource.count}
+						title='delegators'
+						id='delegators'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
 			resource={timestampsResource}

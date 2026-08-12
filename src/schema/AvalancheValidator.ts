@@ -81,6 +81,13 @@ export default entity({
 			Source.AvalanchePlatformVm_JsonRpc,
 		],
 	},
+	$$delegators: {
+		entityType: EntityType.AvalancheDelegator,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.AvalanchePlatformVm_JsonRpc,
+		],
+	},
 	$$timestamps: {
 		entityType: EntityType.AvalancheValidator_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
