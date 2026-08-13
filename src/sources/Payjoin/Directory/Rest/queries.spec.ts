@@ -46,6 +46,7 @@ describe('Payjoin directory OHTTP keys', () => {
 				headers: {
 					accept: 'application/ohttp-keys',
 				},
+				redirect: 'manual',
 			}
 		)
 	})
@@ -61,5 +62,22 @@ describe('Payjoin directory OHTTP keys', () => {
 		await expect(getOhttpKeyConfigBase64({
 			directoryUrl: 'https://payjo.in',
 		})).rejects.toThrow('503')
+	})
+
+	it.each([
+		'http://payjo.in/',
+		'https://payjo.in:8443/',
+		'https://user:password@payjo.in/',
+		'https://payjo.in/directory',
+		'https://payjo.in/?directory=other',
+		'https://directory.example/',
+		'http://127.0.0.1:8080/',
+		'http://localhost:8080/',
+	])('rejects noncanonical or local directory authority %s before transport', async (directoryUrl) => {
+		await expect(getOhttpKeyConfigBase64({
+			directoryUrl,
+		})).rejects.toThrow('directory URL must be a registered public HTTPS origin')
+
+		expect(sourceFetch).not.toHaveBeenCalled()
 	})
 })

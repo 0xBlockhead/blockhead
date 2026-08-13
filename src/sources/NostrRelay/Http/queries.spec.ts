@@ -61,6 +61,17 @@ describe('NostrRelay NIP-11 Http transport', () => {
 				max_limit: 500,
 			},
 		})
+		expect(sourceFetch).toHaveBeenCalledWith(
+			bindings[Source.NostrRelay_Nip11_Http][0],
+			expect.any(String),
+			{
+				headers: {
+					accept: 'application/nostr+json',
+				},
+				redirect: 'manual',
+				signal: undefined,
+			}
+		)
 	})
 
 	it('accepts NIP-11 transport leftovers without requiring enrolled projection', async () => {

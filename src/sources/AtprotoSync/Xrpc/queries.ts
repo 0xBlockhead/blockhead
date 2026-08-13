@@ -148,7 +148,10 @@ export const getRepo = async ({
 	if (since != null)
 		url.searchParams.set('since', since)
 
-	const response = await sourceFetch(resolvedBinding, url.toString(), { signal })
+	const response = await sourceFetch(resolvedBinding, url.toString(), {
+		redirect: 'manual',
+		signal,
+	})
 	if (!response.ok)
 		throw new Error(`AtprotoSync_Xrpc: ${await fetchFailedMessage(url.toString(), response)}`)
 
@@ -188,7 +191,10 @@ export const getBlocks = async ({
 	for (const cid of canonicalCids)
 		url.searchParams.append('cids', cid)
 
-	const response = await sourceFetch(resolvedBinding, url.toString(), { signal })
+	const response = await sourceFetch(resolvedBinding, url.toString(), {
+		redirect: 'manual',
+		signal,
+	})
 	if (!response.ok)
 		throw new Error(`AtprotoSync_Xrpc: ${await fetchFailedMessage(url.toString(), response)}`)
 
@@ -216,7 +222,10 @@ export const getLatestCommit = async ({
 	const url = new URL('/xrpc/com.atproto.sync.getLatestCommit', validatedOrigin)
 	url.searchParams.set('did', did)
 
-	const response = await sourceFetch(resolvedBinding, url.toString(), { signal })
+	const response = await sourceFetch(resolvedBinding, url.toString(), {
+		redirect: 'manual',
+		signal,
+	})
 	if (!response.ok)
 		throw new Error(`AtprotoSync_Xrpc: ${await fetchFailedMessage(url.toString(), response)}`)
 
@@ -244,7 +253,10 @@ export const getRepoStatus = async ({
 	const url = new URL('/xrpc/com.atproto.sync.getRepoStatus', validatedOrigin)
 	url.searchParams.set('did', did)
 
-	const response = await sourceFetch(resolvedBinding, url.toString(), { signal })
+	const response = await sourceFetch(resolvedBinding, url.toString(), {
+		redirect: 'manual',
+		signal,
+	})
 	if (!response.ok)
 		throw new Error(`AtprotoSync_Xrpc: ${await fetchFailedMessage(url.toString(), response)}`)
 
@@ -283,7 +295,10 @@ export const listRepos = async ({
 	if (cursor != null && cursor !== '')
 		url.searchParams.set('cursor', cursor)
 
-	const response = await sourceFetch(resolvedBinding, url.toString(), { signal })
+	const response = await sourceFetch(resolvedBinding, url.toString(), {
+		redirect: 'manual',
+		signal,
+	})
 	if (!response.ok)
 		throw new Error(`AtprotoSync_Xrpc: ${await fetchFailedMessage(url.toString(), response)}`)
 
@@ -322,7 +337,10 @@ export const listHosts = async ({
 	if (cursor != null && cursor !== '')
 		url.searchParams.set('cursor', cursor)
 
-	const response = await sourceFetch(resolvedBinding, url.toString(), { signal })
+	const response = await sourceFetch(resolvedBinding, url.toString(), {
+		redirect: 'manual',
+		signal,
+	})
 	if (!response.ok)
 		throw new Error(`AtprotoSync_Xrpc: ${await fetchFailedMessage(url.toString(), response)}`)
 
@@ -353,7 +371,10 @@ export const getHostStatus = async ({
 	const url = new URL('/xrpc/com.atproto.sync.getHostStatus', validatedOrigin)
 	url.searchParams.set('hostname', hostname)
 
-	const response = await sourceFetch(resolvedBinding, url.toString(), { signal })
+	const response = await sourceFetch(resolvedBinding, url.toString(), {
+		redirect: 'manual',
+		signal,
+	})
 	if (!response.ok)
 		throw new Error(`AtprotoSync_Xrpc: ${await fetchFailedMessage(url.toString(), response)}`)
 

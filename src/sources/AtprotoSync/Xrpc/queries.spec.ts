@@ -91,7 +91,10 @@ describe('AtprotoSync_Xrpc getRepo RemoteQuery transport', () => {
 		expect(sourceFetch).toHaveBeenCalledWith(
 			resolvedRemoteQueryBinding,
 			'https://pds.example/xrpc/com.atproto.sync.getRepo?did=did%3Aplc%3Aexample&since=3jzfcijpj2z2a',
-			{ signal: undefined }
+			{
+				redirect: 'manual',
+				signal: undefined,
+			}
 		)
 		expect(resolvedRemoteQueryBinding.delivery).toBe(SourceDelivery.RemoteQuery)
 		expect(remoteQueryBinding.endpoints[0].locator).toBe('https://{pds-host}')
@@ -109,7 +112,10 @@ describe('AtprotoSync_Xrpc getRepo RemoteQuery transport', () => {
 		expect(sourceFetch).toHaveBeenCalledWith(
 			resolvedRemoteQueryBinding,
 			'https://pds.example/xrpc/com.atproto.sync.getBlocks?did=did%3Aplc%3Aexample&cids=bafyreigbtj4x7ip5legnfznufuopld32owlx3aujofcjblvhwdcxxwrtya',
-			{ signal: undefined }
+			{
+				redirect: 'manual',
+				signal: undefined,
+			}
 		)
 	})
 
@@ -208,7 +214,10 @@ describe('AtprotoSync_Xrpc getLatestCommit / getRepoStatus', () => {
 		expect(sourceFetch).toHaveBeenCalledWith(
 			resolvedRemoteQueryBinding,
 			'https://pds.example/xrpc/com.atproto.sync.getLatestCommit?did=did%3Aplc%3Aexample',
-			{ signal: undefined }
+			{
+				redirect: 'manual',
+				signal: undefined,
+			}
 		)
 	})
 
@@ -313,7 +322,10 @@ describe('AtprotoSync_Xrpc getLatestCommit / getRepoStatus', () => {
 			1,
 			resolvedRemoteQueryBinding,
 			'https://pds.example/xrpc/com.atproto.sync.listRepos?limit=10&cursor=prev',
-			{ signal: undefined }
+			{
+				redirect: 'manual',
+				signal: undefined,
+			}
 		)
 
 		await expect(listHosts({
@@ -332,7 +344,10 @@ describe('AtprotoSync_Xrpc getLatestCommit / getRepoStatus', () => {
 			2,
 			resolvedRemoteQueryBinding,
 			'https://pds.example/xrpc/com.atproto.sync.listHosts?limit=5',
-			{ signal: undefined }
+			{
+				redirect: 'manual',
+				signal: undefined,
+			}
 		)
 
 		await expect(getHostStatus({
@@ -348,7 +363,10 @@ describe('AtprotoSync_Xrpc getLatestCommit / getRepoStatus', () => {
 			3,
 			resolvedRemoteQueryBinding,
 			'https://pds.example/xrpc/com.atproto.sync.getHostStatus?hostname=pds.example',
-			{ signal: undefined }
+			{
+				redirect: 'manual',
+				signal: undefined,
+			}
 		)
 	})
 

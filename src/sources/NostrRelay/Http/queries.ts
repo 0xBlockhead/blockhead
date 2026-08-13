@@ -45,6 +45,7 @@ export const fetchRelayInformation = async ({
 		headers: {
 			accept: 'application/nostr+json',
 		},
+		redirect: 'manual',
 		signal,
 	})
 	if (!response.ok)
