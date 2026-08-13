@@ -15,6 +15,7 @@ import { Source } from '$/sources/Source.ts'
 
 const getBlock = vi.hoisted(() => vi.fn())
 const getBlockHash = vi.hoisted(() => vi.fn())
+const getDataProof = vi.hoisted(() => vi.fn())
 const getFinalizedHead = vi.hoisted(() => vi.fn())
 const getHeader = vi.hoisted(() => vi.fn())
 const getHeaderByBlockNumber = vi.hoisted(() => vi.fn())
@@ -25,6 +26,7 @@ const getSystemSyncState = vi.hoisted(() => vi.fn())
 vi.mock('$/sources/Avail/JsonRpc/queries.ts', () => ({
 	getBlock,
 	getBlockHash,
+	getDataProof,
 	getFinalizedHead,
 	getHeader,
 	getHeaderByBlockNumber,
@@ -69,12 +71,16 @@ const timestampResolver = avail.resolvers.find((resolver) => (
 const blockResolver = avail.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.AvailBlock
 ))
+const dataSubmissionResolver = avail.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.AvailDataSubmission
+))
 
 if (
 	networkTimestampsResolver == null
 	|| networkBlocksResolver == null
 	|| timestampResolver == null
 	|| blockResolver == null
+	|| dataSubmissionResolver == null
 )
 	throw new Error('Avail-JsonRpc spec missing resolvers')
 
@@ -93,6 +99,7 @@ const header = {
 beforeEach(() => {
 	getBlock.mockReset()
 	getBlockHash.mockReset()
+	getDataProof.mockReset()
 	getFinalizedHead.mockReset()
 	getHeader.mockReset()
 	getHeaderByBlockNumber.mockReset()
@@ -102,6 +109,57 @@ beforeEach(() => {
 })
 
 describe('Avail JsonRpc resolver', () => {
+	it('materializes exact block proof under the native submission owner', async () => {
+		getHeaderByBlockNumber.mockResolvedValue(header)
+		getDataProof.mockResolvedValue({
+			dataProof: {
+				roots: {
+					dataRoot: `0x${'e'.repeat(64)}`,
+					blobRoot: `0x${'f'.repeat(64)}`,
+					bridgeRoot: `0x${'0'.repeat(64)}`,
+				},
+				proof: [
+					`0x${'1'.repeat(64)}`,
+				],
+				numberOfLeaves: 2,
+				leafIndex: 1,
+				leaf: `0x${'2'.repeat(64)}`,
+			},
+		})
+
+		const snapshot = await dataSubmissionResolver.resolve.NetworkSourceSubmissionKey.resolve({
+			$network: availNetwork,
+			source: Source.Avail,
+			submissionKey: '100:1',
+		}, context)
+
+		expect(dataSubmissionResolver.projections.$block(snapshot)).toEqual({
+			[EntityMetaKey.Selector]: {
+				$network: availNetwork,
+				blockNumber: 100n,
+			},
+		})
+		expect(dataSubmissionResolver.projections.extrinsicIndex(snapshot)).toBe(1)
+		expect(dataSubmissionResolver.projections.dataHash(snapshot)).toBe(`0x${'2'.repeat(64)}`)
+		expect(dataSubmissionResolver.projections.commitment(snapshot)).toBe(`0x${'f'.repeat(64)}`)
+		expect(dataSubmissionResolver.projections.proofAvailable(snapshot)).toBe(true)
+		expect(getDataProof).toHaveBeenCalledWith(context.publicEnv, hash, 1)
+	})
+
+	it('rejects malformed or out-of-range submission coordinates', async () => {
+		await expect(dataSubmissionResolver.resolve.NetworkSourceSubmissionKey.resolve({
+			$network: availNetwork,
+			source: Source.Avail,
+			submissionKey: 'latest:1',
+		}, context)).rejects.toThrow('blockNumber:extrinsicIndex')
+		await expect(dataSubmissionResolver.resolve.NetworkSourceSubmissionKey.resolve({
+			$network: availNetwork,
+			source: Source.CelestiaNode,
+			submissionKey: '100:1',
+		}, context)).rejects.toThrow('unsupported data submission source')
+		expect(getDataProof).not.toHaveBeenCalled()
+	})
+
 	it('projects tip timestamps and tip-walked blocks', async () => {
 		getNetworkIdentity.mockResolvedValue({
 			chainName: 'Avail DA Mainnet',

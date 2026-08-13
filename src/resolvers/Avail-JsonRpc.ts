@@ -14,6 +14,26 @@ import { Source } from '$/sources/Source.ts'
 
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 
+const availSubmissionCoordinates = (submissionKey: string) => {
+	const match = /^(0|[1-9][0-9]*):(0|[1-9][0-9]*)$/.exec(submissionKey)
+	if (match == null)
+		throw new Error('Avail: submission key must be blockNumber:extrinsicIndex')
+
+	const blockNumber = BigInt(match[1])
+	const extrinsicIndex = Number(match[2])
+	if (
+		blockNumber > 4_294_967_295n
+		|| !Number.isSafeInteger(extrinsicIndex)
+		|| extrinsicIndex > 4_294_967_295
+	)
+		throw new Error('Avail: submission coordinates must be unsigned 32-bit integers')
+
+	return {
+		blockNumber,
+		extrinsicIndex,
+	}
+}
+
 const assertAvailMainnet = (network: NetworkId) => {
 	if (!('slug' in network) || network.slug !== 'avail')
 		throw new Error('Avail: unsupported network')
@@ -23,6 +43,68 @@ export default {
 	source: Source.Avail,
 
 	resolvers: [
+		defineResolver({
+			entityType: EntityType.AvailDataSubmission,
+			resolve: {
+				NetworkSourceSubmissionKey: {
+					resolve: async ({
+						$network,
+						source,
+						submissionKey,
+					}, context) => {
+						assertAvailMainnet($network.$network)
+						if (source !== Source.Avail)
+							throw new Error(`Avail: unsupported data submission source ${source}`)
+
+						const {
+							blockNumber,
+							extrinsicIndex,
+						} = availSubmissionCoordinates(submissionKey)
+						const {
+							getDataProof,
+							getHeaderByBlockNumber,
+						} = await import('$/sources/Avail/JsonRpc/queries.ts')
+						const header = await getHeaderByBlockNumber(context.publicEnv, blockNumber)
+						const proof = await getDataProof(
+							context.publicEnv,
+							header.hash,
+							extrinsicIndex
+						)
+						return {
+							$network: {
+								[EntityMetaKey.Selector]: $network,
+							},
+							source,
+							submissionKey,
+							blockNumber,
+							extrinsicIndex,
+							$block: {
+								[EntityMetaKey.Selector]: {
+									$network,
+									blockNumber,
+								},
+							},
+							dataHash: proof.dataProof.leaf.toLowerCase(),
+							commitment: proof.dataProof.roots.blobRoot.toLowerCase(),
+							proof,
+							proofAvailable: true,
+						}
+					},
+				},
+			},
+		})({
+			$network: (submission) => submission.$network,
+			source: (submission) => submission.source,
+			submissionKey: (submission) => submission.submissionKey,
+			blockNumber: (submission) => submission.blockNumber,
+			extrinsicIndex: (submission) => submission.extrinsicIndex,
+			$block: (submission) => submission.$block,
+			dataHash: (submission) => submission.dataHash,
+			commitment: (submission) => submission.commitment,
+			proof: (submission) => submission.proof,
+			proofAvailable: (submission) => submission.proofAvailable,
+		}),
+
 		defineResolver({
 			entityType: EntityType.AvailNetwork,
 			resolve: {

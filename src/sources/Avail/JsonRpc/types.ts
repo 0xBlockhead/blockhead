@@ -29,6 +29,24 @@ export const availBlockWire = arktype({
 
 export type AvailBlock = typeof availBlockWire.infer
 
+/** Fail-closed `kate_queryDataProof` envelope. */
+export const availDataProofWire = arktype({
+	dataProof: {
+		roots: {
+			dataRoot: 'string',
+			blobRoot: 'string',
+			bridgeRoot: 'string',
+		},
+		proof: 'string[]',
+		numberOfLeaves: 'number.integer >= 0',
+		leafIndex: 'number.integer >= 0',
+		leaf: 'string',
+	},
+	'message?': 'unknown',
+})
+
+export type AvailDataProof = typeof availDataProofWire.infer
+
 /** Fail-closed `system_health` envelope. */
 export const availSystemHealthWire = arktype({
 	peers: 'number.integer >= 0',

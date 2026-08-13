@@ -8,6 +8,7 @@ import bindings from '$/sources/Avail/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 import {
 	availBlockWire,
+	availDataProofWire,
 	availHeaderWire,
 	availSystemHealthWire,
 	availSystemSyncStateWire,
@@ -228,6 +229,46 @@ export const getBlock = async (
 		extrinsicCount: wire.block.extrinsics.length,
 		extrinsics: wire.block.extrinsics,
 	}
+}
+
+export const getDataProof = async (
+	publicEnv: SourcePublicEnv,
+	blockHash: string,
+	extrinsicIndex: number
+) => {
+	assertHash(blockHash, 'data proof block hash')
+	if (!Number.isSafeInteger(extrinsicIndex) || extrinsicIndex < 0 || extrinsicIndex > 4_294_967_295)
+		throw new Error('Avail: data proof extrinsic index must be an unsigned 32-bit integer')
+
+	const proof = assertEnvelope(
+		'kate_queryDataProof',
+		availDataProofWire,
+		await request(binding, publicEnv, 'kate_queryDataProof', [
+			extrinsicIndex,
+			blockHash,
+		])
+	)
+	if (proof.message != null)
+		throw new Error('Avail: bridge proof is not a data submission')
+
+	for (const [hash, label] of [
+		[proof.dataProof.roots.dataRoot, 'data root'],
+		[proof.dataProof.roots.blobRoot, 'blob root'],
+		[proof.dataProof.roots.bridgeRoot, 'bridge root'],
+		[proof.dataProof.leaf, 'data proof leaf'],
+	])
+		assertHash(hash, label)
+	for (const proofItem of proof.dataProof.proof)
+		assertHash(proofItem, 'data proof item')
+	if (
+		proof.dataProof.numberOfLeaves > 4_294_967_295
+		|| proof.dataProof.leafIndex > 4_294_967_295
+		|| proof.dataProof.leafIndex >= proof.dataProof.numberOfLeaves
+		|| proof.dataProof.proof.length > 32
+	)
+		throw new Error('Avail: invalid data proof tree coordinates')
+
+	return proof
 }
 
 export const getHeaderByBlockNumber = async (

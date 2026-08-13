@@ -5,6 +5,7 @@ import { Source } from '$/sources/Source.ts'
 import {
 	getBlock,
 	getBlockHash,
+	getDataProof,
 	getFinalizedHead,
 	getHeader,
 	getHeaderByBlockNumber,
@@ -187,6 +188,84 @@ describe('Avail mainnet read-only JSON-RPC contracts', () => {
 			currentBlock: 10n,
 			highestBlock: 12n,
 		})
+	})
+
+	it('loads an exact finalized data proof for a block extrinsic', async () => {
+		const proof = {
+			dataProof: {
+				roots: {
+					dataRoot: hash,
+					blobRoot: parentHash,
+					bridgeRoot: `0x${'c'.repeat(64)}`,
+				},
+				proof: [
+					`0x${'d'.repeat(64)}`,
+				],
+				numberOfLeaves: 3,
+				leafIndex: 1,
+				leaf: `0x${'e'.repeat(64)}`,
+			},
+		}
+		jsonRpc2Mock.mockResolvedValueOnce(proof)
+
+		await expect(getDataProof(
+			publicEnv,
+			hash,
+			1
+		)).resolves.toEqual(proof)
+		expect(jsonRpc2Mock).toHaveBeenCalledWith(
+			resolvedBinding,
+			'kate_queryDataProof',
+			[
+				1,
+				hash,
+			]
+		)
+	})
+
+	it('rejects contradictory data-proof tree coordinates', async () => {
+		jsonRpc2Mock.mockResolvedValueOnce({
+			dataProof: {
+				roots: {
+					dataRoot: hash,
+					blobRoot: parentHash,
+					bridgeRoot: `0x${'c'.repeat(64)}`,
+				},
+				proof: [],
+				numberOfLeaves: 1,
+				leafIndex: 1,
+				leaf: `0x${'e'.repeat(64)}`,
+			},
+		})
+
+		await expect(getDataProof(
+			publicEnv,
+			hash,
+			1
+		)).rejects.toThrow('invalid data proof tree coordinates')
+	})
+
+	it('does not materialize bridge proofs as data submissions', async () => {
+		jsonRpc2Mock.mockResolvedValueOnce({
+			dataProof: {
+				roots: {
+					dataRoot: hash,
+					blobRoot: parentHash,
+					bridgeRoot: `0x${'c'.repeat(64)}`,
+				},
+				proof: [],
+				numberOfLeaves: 1,
+				leafIndex: 0,
+				leaf: `0x${'e'.repeat(64)}`,
+			},
+			message: {},
+		})
+
+		await expect(getDataProof(
+			publicEnv,
+			hash,
+			1
+		)).rejects.toThrow('bridge proof is not a data submission')
 	})
 
 	it('resolves headers by block number through hash then header', async () => {
