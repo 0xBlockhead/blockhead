@@ -13,7 +13,13 @@ import { Source } from '$/sources/Source.ts'
 
 const gitlabCoordinatesFromRemoteUrl = (canonicalRemoteUrl: string) => {
 	const remoteUrl = new URL(canonicalRemoteUrl)
-	if (remoteUrl.hostname !== 'gitlab.com') return undefined
+	if (
+		remoteUrl.origin !== 'https://gitlab.com'
+		|| remoteUrl.username !== ''
+		|| remoteUrl.password !== ''
+		|| remoteUrl.search !== ''
+		|| remoteUrl.hash !== ''
+	) return undefined
 
 	const pathSegments = remoteUrl.pathname
 		.replace(/\.git$/, '')

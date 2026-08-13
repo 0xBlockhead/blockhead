@@ -481,6 +481,21 @@ describe('GitLab repository journey', () => {
 		expect(getProject).not.toHaveBeenCalled()
 	})
 
+	it('does not collapse noncanonical GitLab transport identities into the public repository owner', async () => {
+		for (const canonicalRemoteUrl of [
+			'http://gitlab.com/gitlab-org/gitlab.git',
+			'https://gitlab.com:8443/gitlab-org/gitlab.git',
+			'https://user:password@gitlab.com/gitlab-org/gitlab.git',
+			'https://gitlab.com/gitlab-org/gitlab.git?ref=main',
+			'https://gitlab.com/gitlab-org/gitlab.git#readme',
+		])
+			await expect(repositoryResolver.resolve.CanonicalRemoteUrl.resolve({
+				canonicalRemoteUrl,
+			})).resolves.toBeUndefined()
+
+		expect(getProject).not.toHaveBeenCalled()
+	})
+
 	it('resolves branch and tag routes into current native ref observations', async () => {
 		const $repository = {
 			canonicalRemoteUrl: project.http_url_to_repo,
