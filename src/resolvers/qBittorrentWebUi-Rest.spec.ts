@@ -14,6 +14,7 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
 const {
+	getApplicationPreferences,
 	getApplicationVersion,
 	getTorrentFiles,
 	getTorrentPeers,
@@ -23,6 +24,7 @@ const {
 	getTorrentsInfo,
 	getTransferInfo,
 } = vi.hoisted(() => ({
+	getApplicationPreferences: vi.fn(),
 	getApplicationVersion: vi.fn(),
 	getTorrentFiles: vi.fn(),
 	getTorrentPeers: vi.fn(),
@@ -34,6 +36,7 @@ const {
 }))
 
 vi.mock('$/sources/qBittorrentWebUi/Rest/queries.ts', () => ({
+	getApplicationPreferences,
 	getApplicationVersion,
 	getTorrentFiles,
 	getTorrentPeers,
@@ -73,6 +76,8 @@ const infoHash = '0123456789abcdef0123456789abcdef01234567'
 describe('qBittorrent WebUI native client state', () => {
 	beforeEach(() => {
 		vi.restoreAllMocks()
+		getApplicationPreferences.mockReset()
+		getApplicationPreferences.mockResolvedValue({})
 		getApplicationVersion.mockReset()
 		getTorrentFiles.mockReset()
 		getTorrentPeers.mockReset()
@@ -90,6 +95,10 @@ describe('qBittorrent WebUI native client state', () => {
 
 	it('materializes local client health and source-clocked native transfers', async () => {
 		vi.spyOn(Date, 'now').mockReturnValue(1_786_000_000_000)
+		getApplicationPreferences.mockResolvedValue({
+			listen_port: 51_413,
+			current_interface_address: '192.0.2.44',
+		})
 		getApplicationVersion.mockResolvedValue('v5.1.2')
 		getTorrentsInfo.mockResolvedValue([{
 			hash: infoHash.toUpperCase(),
@@ -141,6 +150,8 @@ describe('qBittorrent WebUI native client state', () => {
 			},
 			[EntityMetaKey.Fields]: expect.objectContaining({
 				[entityFieldAddressKey(EntityType.BlockheadBitTorrentClientState_Timestamp, [], 'clientVersion')]: 'v5.1.2',
+				[entityFieldAddressKey(EntityType.BlockheadBitTorrentClientState_Timestamp, [], 'listenAddresses')]: ['192.0.2.44'],
+				[entityFieldAddressKey(EntityType.BlockheadBitTorrentClientState_Timestamp, [], 'port')]: 51_413,
 				[entityFieldAddressKey(EntityType.BlockheadBitTorrentClientState_Timestamp, [], 'downloadedBytes')]: 4_096n,
 				[entityFieldAddressKey(EntityType.BlockheadBitTorrentClientState_Timestamp, [], 'activeTorrentCount')]: 1,
 			}),

@@ -16,6 +16,11 @@ export type QBittorrentTransferInfo = {
 	up_info_data?: number
 }
 
+export type QBittorrentApplicationPreferences = {
+	listen_port?: number
+	current_interface_address?: string
+}
+
 export type QBittorrentTorrentInfo = {
 	hash: string
 	name?: string
@@ -76,6 +81,11 @@ export type QBittorrentTorrentPeers = {
 
 
 const nonNegativeNumber = arktype('number >= 0')
+
+const qBittorrentApplicationPreferencesWire = arktype({
+	'listen_port?': 'number.integer >= 1 <= 65535',
+	'current_interface_address?': 'string',
+}) satisfies Type<QBittorrentApplicationPreferences>
 
 const qBittorrentTransferInfoWire = arktype({
 	'dl_info_speed?': nonNegativeNumber,
@@ -169,6 +179,17 @@ export const getApplicationVersion = (binding: SourceBinding) => (
 
 			return normalizedVersion
 		})
+)
+
+export const getApplicationPreferences = (
+	binding: SourceBinding
+) => (
+	getJson<unknown>(binding, '/api/v2/app/preferences')
+		.then((response) => assertEnvelope(
+			'application preferences',
+			qBittorrentApplicationPreferencesWire,
+			response
+		))
 )
 
 export const getTorrentsInfo = (

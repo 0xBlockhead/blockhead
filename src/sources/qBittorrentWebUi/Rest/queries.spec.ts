@@ -22,6 +22,7 @@ vi.mock('$/sources/_shared/wire/HttpRest/client.ts', () => ({
 }))
 
 const {
+	getApplicationPreferences,
 	getApplicationVersion,
 	getTorrentFiles,
 	getTorrentPeers,
@@ -70,6 +71,22 @@ describe('qBittorrent WebUI REST envelopes', () => {
 			priority: 2,
 			ratio: 0.75,
 		})])
+	})
+
+	it('reads configured native listen endpoint preferences', async () => {
+		getJson.mockResolvedValueOnce({
+			listen_port: 51_413,
+			current_interface_address: '192.0.2.44',
+		})
+
+		await expect(getApplicationPreferences(binding)).resolves.toEqual({
+			listen_port: 51_413,
+			current_interface_address: '192.0.2.44',
+		})
+		expect(getJson).toHaveBeenCalledWith(binding, '/api/v2/app/preferences')
+
+		getJson.mockResolvedValueOnce({ listen_port: 70_000 })
+		await expect(getApplicationPreferences(binding)).rejects.toThrow('invalid application preferences response envelope')
 	})
 
 	it('validates native file, piece-state, and properties responses', async () => {

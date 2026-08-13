@@ -4,6 +4,7 @@ import { type } from 'arktype'
 import { Source } from '$/sources/Source.ts'
 import bindings from '$/sources/qBittorrentWebUi/bindings.ts'
 import {
+	getApplicationPreferences as getApplicationPreferencesFromClient,
 	getApplicationVersion as getApplicationVersionFromClient,
 	getTorrentFiles as getTorrentFilesFromClient,
 	getTorrentPeers as getTorrentPeersFromClient,
@@ -18,6 +19,7 @@ import {
 const binding = bindings[Source.qBittorrentWebUi_Rest][0]
 
 export const getApplicationVersion = query(() => getApplicationVersionFromClient(binding))
+export const getApplicationPreferences = query(() => getApplicationPreferencesFromClient(binding))
 export const getTorrentsInfo = query(() => getTorrentsInfoFromClient(binding))
 export const getTransferInfo = query(() => getTransferInfoFromClient(binding))
 

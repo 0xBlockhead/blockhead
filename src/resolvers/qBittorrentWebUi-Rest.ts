@@ -23,6 +23,7 @@ const loadQBittorrentQueries = async () => {
 	if (typeof window !== 'undefined') {
 		const queries = await import('$/sources/qBittorrentWebUi/Rest/queries.remote.ts')
 		return {
+			getApplicationPreferences: () => queries.getApplicationPreferences(),
 			getApplicationVersion: () => queries.getApplicationVersion(),
 			getTorrentFiles: (infoHash: string) => queries.getTorrentFiles({ infoHash }),
 			getTorrentPeers: (infoHash: string) => queries.getTorrentPeers({ infoHash }),
@@ -36,6 +37,7 @@ const loadQBittorrentQueries = async () => {
 
 	const queries = await import('$/sources/qBittorrentWebUi/Rest/queries.ts')
 	return {
+		getApplicationPreferences: () => queries.getApplicationPreferences(binding),
 		getApplicationVersion: () => queries.getApplicationVersion(binding),
 		getTorrentFiles: (infoHash: string) => queries.getTorrentFiles(binding, infoHash),
 		getTorrentPeers: (infoHash: string) => queries.getTorrentPeers(binding, infoHash),
@@ -443,9 +445,10 @@ export default {
 						if (requestedClientId !== clientId)
 							throw new Error(`qBittorrentWebUi_Rest: unknown local client ${requestedClientId}`)
 
-						const { getApplicationVersion, getTorrentFiles, getTorrentPieceStates, getTorrentsInfo, getTransferInfo } = await loadQBittorrentQueries()
+						const { getApplicationPreferences, getApplicationVersion, getTorrentFiles, getTorrentPieceStates, getTorrentsInfo, getTransferInfo } = await loadQBittorrentQueries()
 						const timestampMs = Date.now()
-						const [clientVersion, torrents, transfer] = await Promise.all([
+						const [clientPreferences, clientVersion, torrents, transfer] = await Promise.all([
+							getApplicationPreferences(),
 							getApplicationVersion(),
 							getTorrentsInfo(),
 							getTransferInfo(),
@@ -479,7 +482,16 @@ export default {
 								},
 								[EntityMetaKey.Fields]: {
 									[entityFieldAddressKey(EntityType.BlockheadBitTorrentClientState_Timestamp, [], 'clientVersion')]: clientVersion,
-									[entityFieldAddressKey(EntityType.BlockheadBitTorrentClientState_Timestamp, [], 'listenAddresses')]: [],
+									[entityFieldAddressKey(EntityType.BlockheadBitTorrentClientState_Timestamp, [], 'listenAddresses')]: (
+										clientPreferences.current_interface_address == null
+										|| clientPreferences.current_interface_address === '' ?
+											[]
+										:
+											[clientPreferences.current_interface_address]
+									),
+									...(clientPreferences.listen_port != null && {
+										[entityFieldAddressKey(EntityType.BlockheadBitTorrentClientState_Timestamp, [], 'port')]: clientPreferences.listen_port,
+									}),
 									...(transfer.dl_info_speed != null && {
 										[entityFieldAddressKey(EntityType.BlockheadBitTorrentClientState_Timestamp, [], 'downloadRate')]: transfer.dl_info_speed,
 									}),
