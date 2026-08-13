@@ -99,6 +99,13 @@ export default entity({
 			Source.Esplora_Rest,
 		],
 	},
+	$$mempoolTimestamps: {
+		entityType: EntityType.UtxoTransaction_Mempool_Timestamp,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.BitcoinCore_JsonRpc,
+		],
+	},
 })({
 	selectors: {
 		NetworkTxId: [

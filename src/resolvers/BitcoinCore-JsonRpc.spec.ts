@@ -227,9 +227,24 @@ describe('BitcoinCore UTXO', () => {
 	it('projects a Bitcoin Core mempool entry fee without inventing a confirmed transaction fee', async () => {
 		const txId = 'a'.repeat(64)
 		getMempoolEntry.mockResolvedValueOnce({
+			vsize: 200,
+			weight: 800,
+			descendantcount: 2,
+			descendantsize: 300,
+			ancestorcount: 2,
+			ancestorsize: 400,
+			wtxid: 'b'.repeat(64),
 			fees: {
 				base: 0.00012345,
+				modified: 0.00012345,
+				ancestor: 0.0002,
+				descendant: 0.0003,
 			},
+			depends: ['c'.repeat(64)],
+			spentby: ['d'.repeat(64)],
+			'bip125-replaceable': true,
+			unbroadcast: false,
+			observedAtMs: 1_750_000_000_000,
 		})
 
 		const transaction = await transactionMempoolFeeResolver.resolve.NetworkTxId.resolve({
@@ -238,6 +253,32 @@ describe('BitcoinCore UTXO', () => {
 		})
 
 		expect(transactionMempoolFeeResolver.projections.feeSats(transaction)).toBe(12_345n)
+		expect(transactionMempoolFeeResolver.projections.$$mempoolTimestamps(transaction)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$transaction: {
+					$network: network,
+					txId,
+				},
+				timestampMs: 1_750_000_000_000,
+				source: Source.BitcoinCore_JsonRpc,
+			},
+			[EntityMetaKey.Fields]: expect.objectContaining({
+				[entityFieldAddressKey(EntityType.UtxoTransaction_Mempool_Timestamp, [], 'bip125Replaceable')]: true,
+				[entityFieldAddressKey(EntityType.UtxoTransaction_Mempool_Timestamp, [], 'ancestorFeeSats')]: 20_000n,
+				[entityFieldAddressKey(EntityType.UtxoTransaction_Mempool_Timestamp, [], '$$dependsOnTransactions')]: [{
+					[EntityMetaKey.Selector]: {
+						$network: network,
+						txId: 'c'.repeat(64),
+					},
+				}],
+				[entityFieldAddressKey(EntityType.UtxoTransaction_Mempool_Timestamp, [], '$$spentByTransactions')]: [{
+					[EntityMetaKey.Selector]: {
+						$network: network,
+						txId: 'd'.repeat(64),
+					},
+				}],
+			}),
+		}])
 		expect(getMempoolEntry).toHaveBeenCalledWith({ txId })
 		expect(getRawTransaction).not.toHaveBeenCalled()
 	})

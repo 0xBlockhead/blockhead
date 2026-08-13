@@ -241,6 +241,7 @@ describe('Bitcoin Core JSON-RPC', () => {
 	})
 
 	it('preserves native RBF and CPFP mempool ancestry', async () => {
+		vi.spyOn(Date, 'now').mockReturnValue(1_750_000_000_000)
 		const entry = {
 			vsize: 200,
 			weight: 800,
@@ -264,7 +265,10 @@ describe('Bitcoin Core JSON-RPC', () => {
 		}
 		jsonRpc2.mockResolvedValueOnce(entry)
 
-		await expect(getMempoolEntry({ txId })).resolves.toEqual(entry)
+		await expect(getMempoolEntry({ txId })).resolves.toEqual({
+			...entry,
+			observedAtMs: 1_750_000_000_000,
+		})
 		expect(jsonRpc2).toHaveBeenCalledWith(
 			bitcoinMainnetBinding,
 			'getmempoolentry',

@@ -1007,6 +1007,7 @@ import UtxoAddressSchema from '$/schema/UtxoAddress.ts'
 import UtxoBlockSchema from '$/schema/UtxoBlock.ts'
 import UtxoInputSchema from '$/schema/UtxoInput.ts'
 import UtxoOutputSchema from '$/schema/UtxoOutput.ts'
+import UtxoTransaction_Mempool_TimestampSchema from '$/schema/UtxoTransaction_Mempool_Timestamp.ts'
 import UtxoTransactionSchema from '$/schema/UtxoTransaction.ts'
 import WalletConnectionMethodSchema from '$/schema/WalletConnectionMethod.ts'
 import WormholeVaaSchema from '$/schema/WormholeVaa.ts'
@@ -2128,6 +2129,7 @@ const schemaChunk20 = [
 	UtxoInputSchema,
 	UtxoOutputSchema,
 	UtxoTransactionSchema,
+	UtxoTransaction_Mempool_TimestampSchema,
 	WalletConnectionMethodSchema,
 	WormholeVaaSchema,
 	XmtpConversationSchema,
@@ -2170,10 +2172,10 @@ const schemaChunk20 = [
 	ZeroGDataBlobSchema,
 	ZeroGDataChunkSchema,
 	ZeroGKvEntrySchema,
-	ZeroGNetworkSchema,
 ] as const
 
 const schemaChunk21 = [
+	ZeroGNetworkSchema,
 	ZeroGNetwork_TimestampSchema,
 	ZeroGServiceProviderSchema,
 	ZeroGServiceRequestSchema,

@@ -48,6 +48,7 @@
 	import UtxoOutputsView from '$/views/UtxoOutputsView.svelte'
 	import BitcoinOrdinalInscriptionsView from '$/views/BitcoinOrdinalInscriptionsView.svelte'
 	import ElementsPegsView from '$/views/ElementsPegsView.svelte'
+	import UtxoTransaction_Mempool_TimestampsView from '$/views/UtxoTransaction_Mempool_TimestampsView.svelte'
 	import ZcashShieldedActionsView from '$/views/ZcashShieldedActionsView.svelte'
 </script>
 
@@ -333,6 +334,10 @@
 						label: 'Liquid pegs',
 					},
 					{
+						id: 'utxo-transaction-mempool-observations',
+						label: 'Mempool observations',
+					},
+					{
 						id: 'utxo-transaction-zcash-shielded-actions',
 						label: 'Zcash shielded actions',
 					},
@@ -383,6 +388,16 @@
 					collapsible={false}
 					title={label}
 					emptyText='No Liquid peg transition.'
+					id={`${id}-list`}
+				/>
+			{/snippet}
+
+			{#snippet SectionUtxoTransactionMempoolObservations({ id, label })}
+				<UtxoTransaction_Mempool_TimestampsView
+					selection={selection.$$mempoolTimestamps}
+					collapsible={false}
+					title={label}
+					emptyText='No mempool observation.'
 					id={`${id}-list`}
 				/>
 			{/snippet}

@@ -1008,6 +1008,7 @@ export enum EntityType {
 	UtxoInput = 'UtxoInput',
 	UtxoOutput = 'UtxoOutput',
 	UtxoTransaction = 'UtxoTransaction',
+	UtxoTransaction_Mempool_Timestamp = 'UtxoTransaction_Mempool_Timestamp',
 	WalletConnectionMethod = 'WalletConnectionMethod',
 	WormholeVaa = 'WormholeVaa',
 	XmtpConversation = 'XmtpConversation',

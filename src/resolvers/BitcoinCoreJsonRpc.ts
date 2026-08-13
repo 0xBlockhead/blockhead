@@ -518,16 +518,55 @@ export const bitcoinCoreJsonRpcResolvers = <
 						resolve: async ({ $network, txId }) => {
 							assertNetwork($network)
 							const { getMempoolEntry } = await loadQueries()
+							const entry = await getMempoolEntry({ txId })
 							return {
-								feeSats: BigInt(Math.round(
-									(await getMempoolEntry({ txId })).fees.base * 100_000_000
-								)),
+								feeSats: BigInt(Math.round(entry.fees.base * 100_000_000)),
+								$$mempoolTimestamps: [{
+									[EntityMetaKey.Selector]: {
+										$transaction: {
+											$network,
+											txId,
+										},
+										timestampMs: entry.observedAtMs,
+										source,
+									},
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.UtxoTransaction_Mempool_Timestamp, [], 'witnessTransactionId')]: entry.wtxid,
+										[entityFieldAddressKey(EntityType.UtxoTransaction_Mempool_Timestamp, [], 'virtualSizeBytes')]: entry.vsize,
+										[entityFieldAddressKey(EntityType.UtxoTransaction_Mempool_Timestamp, [], 'weightUnits')]: entry.weight,
+										[entityFieldAddressKey(EntityType.UtxoTransaction_Mempool_Timestamp, [], 'ancestorCount')]: entry.ancestorcount,
+										[entityFieldAddressKey(EntityType.UtxoTransaction_Mempool_Timestamp, [], 'ancestorSizeBytes')]: entry.ancestorsize,
+										[entityFieldAddressKey(EntityType.UtxoTransaction_Mempool_Timestamp, [], 'descendantCount')]: entry.descendantcount,
+										[entityFieldAddressKey(EntityType.UtxoTransaction_Mempool_Timestamp, [], 'descendantSizeBytes')]: entry.descendantsize,
+										[entityFieldAddressKey(EntityType.UtxoTransaction_Mempool_Timestamp, [], 'baseFeeSats')]: BigInt(Math.round(entry.fees.base * 100_000_000)),
+										[entityFieldAddressKey(EntityType.UtxoTransaction_Mempool_Timestamp, [], 'modifiedFeeSats')]: BigInt(Math.round(entry.fees.modified * 100_000_000)),
+										[entityFieldAddressKey(EntityType.UtxoTransaction_Mempool_Timestamp, [], 'ancestorFeeSats')]: BigInt(Math.round(entry.fees.ancestor * 100_000_000)),
+										[entityFieldAddressKey(EntityType.UtxoTransaction_Mempool_Timestamp, [], 'descendantFeeSats')]: BigInt(Math.round(entry.fees.descendant * 100_000_000)),
+										[entityFieldAddressKey(EntityType.UtxoTransaction_Mempool_Timestamp, [], 'bip125Replaceable')]: entry['bip125-replaceable'],
+										...(entry.unbroadcast != null && {
+											[entityFieldAddressKey(EntityType.UtxoTransaction_Mempool_Timestamp, [], 'unbroadcast')]: entry.unbroadcast,
+										}),
+										[entityFieldAddressKey(EntityType.UtxoTransaction_Mempool_Timestamp, [], '$$dependsOnTransactions')]: entry.depends.map((relatedTransactionId) => ({
+											[EntityMetaKey.Selector]: {
+												$network,
+												txId: relatedTransactionId,
+											},
+										})),
+										[entityFieldAddressKey(EntityType.UtxoTransaction_Mempool_Timestamp, [], '$$spentByTransactions')]: entry.spentby.map((relatedTransactionId) => ({
+											[EntityMetaKey.Selector]: {
+												$network,
+												txId: relatedTransactionId,
+											},
+										})),
+									},
+								}],
 							}
 						},
 					},
 				},
 			})({
 				feeSats: (snapshot) => snapshot.feeSats,
+				$$mempoolTimestamps: (snapshot) => snapshot.$$mempoolTimestamps,
 			}),
 
 			defineResolver({

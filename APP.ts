@@ -1707,6 +1707,7 @@ export enum EntityType {
 	UtxoInput = "UtxoInput",
 	UtxoOutput = "UtxoOutput",
 	UtxoTransaction = "UtxoTransaction",
+	UtxoTransaction_Mempool_Timestamp = "UtxoTransaction_Mempool_Timestamp",
 	WalletConnectionMethod = "WalletConnectionMethod",
 	WormholeVaa = "WormholeVaa",
 	XmtpConversation = "XmtpConversation",
@@ -65194,6 +65195,7 @@ export const schema = {
 				"$$bitcoinOrdinalInscriptions": { label: "Bitcoin Ordinal inscriptions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BitcoinOrdinalInscription, defaultSources: [Source.BitcoinCore_JsonRpc, Source.Esplora_Rest, Source.MempoolSpace_Rest] },
 				"$bitcoinRunestone": { label: "Bitcoin runestone", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.BitcoinRunestone, defaultSources: [Source.BitcoinCore_JsonRpc, Source.Esplora_Rest, Source.MempoolSpace_Rest] },
 				"$$elementsPegs": { label: "Elements pegs", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.ElementsPeg, defaultSources: [Source.Esplora_Rest] },
+				"$$mempoolTimestamps": { label: "Mempool observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.UtxoTransaction_Mempool_Timestamp, defaultSources: [Source.BitcoinCore_JsonRpc] },
 			})({
 				selectors: {
 					"NetworkTxId": ["$network", "txId"],
@@ -65217,12 +65219,66 @@ export const schema = {
 									{ id: "utxo-transaction-outputs", field: "$$outputs", List: "UtxoOutputsView", label: "Outputs", emptyText: "No outputs." },
 									{ id: "utxo-transaction-ordinal-inscriptions", field: "$$bitcoinOrdinalInscriptions", List: "BitcoinOrdinalInscriptionsView", label: "Ordinal inscriptions", emptyText: "No Ordinal inscriptions." },
 									{ id: "utxo-transaction-elements-pegs", field: "$$elementsPegs", List: "ElementsPegsView", label: "Liquid pegs", emptyText: "No Liquid peg transition." },
+									{ id: "utxo-transaction-mempool-observations", field: "$$mempoolTimestamps", List: "UtxoTransaction_Mempool_TimestampsView", label: "Mempool observations", emptyText: "No mempool observation." },
 									{ id: "utxo-transaction-zcash-shielded-actions", field: "$$zcashShieldedActions", List: "ZcashShieldedActionsView", label: "Zcash shielded actions", emptyText: "No Zcash shielded actions." },
 								],
 							},
 						],
 					},
 					plural: { component: "UtxoTransactionsView", },
+				},
+			}),
+
+			entity({
+				entityType: EntityType.UtxoTransaction_Mempool_Timestamp,
+				labels: {
+					singular: "UTXO transaction mempool observation",
+					plural: "UTXO transaction mempool observations",
+				},
+			})({
+				"$transaction": { label: "Transaction", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.UtxoTransaction },
+				"timestampMs": { label: "Observed", description: "The source retrieval time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
+				"source": { label: "Source", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"witnessTransactionId": { label: "Witness transaction ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"virtualSizeBytes": { label: "Virtual size", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
+				"weightUnits": { label: "Weight", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
+				"ancestorCount": { label: "Ancestors", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
+				"ancestorSizeBytes": { label: "Ancestor size", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
+				"descendantCount": { label: "Descendants", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
+				"descendantSizeBytes": { label: "Descendant size", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
+				"baseFeeSats": { label: "Base fee", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "bigint" },
+				"modifiedFeeSats": { label: "Modified fee", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "bigint" },
+				"ancestorFeeSats": { label: "Ancestor fees", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "bigint" },
+				"descendantFeeSats": { label: "Descendant fees", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "bigint" },
+				"bip125Replaceable": { label: "BIP-125 replaceable", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "boolean" },
+				"unbroadcast": { label: "Unbroadcast", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean" },
+				"$$dependsOnTransactions": { label: "Depends on", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.UtxoTransaction },
+				"$$spentByTransactions": { label: "Spent by", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.UtxoTransaction },
+			})({
+				selectors: {
+					"TransactionTimestampMsSource": ["$transaction", "timestampMs", "source"],
+				},
+				views: {
+					singular: {
+						summary: {
+							title: ["bip125Replaceable"],
+							value: [{ field: "timestampMs", format: "timestamp" }],
+							HeadingAfter: ["$transaction", "source"],
+						},
+						content: {
+							dl: [
+								["witnessTransactionId", "bip125Replaceable", "unbroadcast"],
+								["virtualSizeBytes", "weightUnits", "ancestorCount", "ancestorSizeBytes", "descendantCount", "descendantSizeBytes"],
+								[{ field: "baseFeeSats", format: "numberValue" }, { field: "modifiedFeeSats", format: "numberValue" }, { field: "ancestorFeeSats", format: "numberValue" }, { field: "descendantFeeSats", format: "numberValue" }],
+								[{ field: "timestampMs", format: "timestamp" }, "source", "$transaction"],
+							],
+						},
+						lists: [
+							{ field: "$$dependsOnTransactions", component: "UtxoTransactionsView", label: "Depends on", emptyText: "No mempool ancestors." },
+							{ field: "$$spentByTransactions", component: "UtxoTransactionsView", label: "Spent by", emptyText: "No mempool descendants." },
+						],
+					},
+					plural: { component: "UtxoTransaction_Mempool_TimestampsView" },
 				},
 			}),
 
@@ -77644,11 +77700,22 @@ export const routes = defineRoutes(schema)({
 																							"TransactionTimestampMsSource": {
 																								when: { path: ["namespace"], is: "Hyperliquid" },
 																								projection: { entityType: EntityType.Network, facetPath: ["Hyperliquid"] },
-														derivations: {
-															"timestampMs": { kind: "param", name: "timestampMs" },
-															"source": { kind: "param", name: "source" },
-														},
-														page: false,
+																								derivations: {
+																									"timestampMs": { kind: "param", name: "timestampMs" },
+																									"source": { kind: "param", name: "source" },
+																								},
+																								page: false,
+																							},
+																						},
+																						[EntityType.UtxoTransaction_Mempool_Timestamp]: {
+																							"TransactionTimestampMsSource": {
+																								when: { path: ["namespace"], isOneOf: ["Bitcoin", "BitcoinCash", "Dogecoin", "Elements", "Litecoin", "Zcash"] },
+																								projection: { entityType: EntityType.Network, facetPath: ["Utxo"] },
+																								derivations: {
+																									"timestampMs": { kind: "param", name: "timestampMs" },
+																									"source": { kind: "param", name: "source" },
+																								},
+																								page: false,
 																							},
 																						},
 																					},

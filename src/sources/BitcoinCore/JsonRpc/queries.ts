@@ -202,7 +202,10 @@ export const getMempoolEntry = async ({
 	for (const [feeKind, fee] of Object.entries(entry.fees))
 		satoshisFromBtc(fee, `mempool ${feeKind} fee`)
 
-	return entry
+	return {
+		...entry,
+		observedAtMs: Date.now(),
+	}
 }
 
 export const getBlockTemplate = async () => {
