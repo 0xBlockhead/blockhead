@@ -331,11 +331,103 @@ describe('EigenExplorer delegation resolver', () => {
 		expect(delegationResolver.projections.withdrawalCompleted(delegation)).toBe(true)
 	})
 
-	it('fails closed when delegation lifecycle pagination is incomplete', async () => {
+	it('walks every authoritative lifecycle page before selecting current strategy state', async () => {
 		getStakerDeposits.mockResolvedValueOnce({
+			data: [{
+				transactionHash,
+				stakerAddress,
+				tokenAddress,
+				strategyAddress,
+				shares: '1',
+				createdAtBlock: 100,
+				createdAt: '2026-01-01T00:00:00.000Z',
+			}],
+			meta: {
+				total: 2,
+				skip: 0,
+				take: 100,
+			},
+		})
+		getStakerDeposits.mockResolvedValueOnce({
+			data: [{
+				transactionHash: `0x${'7'.repeat(64)}`,
+				stakerAddress,
+				tokenAddress,
+				strategyAddress,
+				shares: '2',
+				createdAtBlock: 102,
+				createdAt: '2026-01-03T00:00:00.000Z',
+			}],
+			meta: {
+				total: 2,
+				skip: 1,
+				take: 100,
+			},
+		})
+		getStakerWithdrawals.mockResolvedValueOnce({
+			data: [{
+				withdrawalRoot,
+				nonce: 7,
+				stakerAddress,
+				delegatedTo: operatorAddress,
+				withdrawerAddress: stakerAddress,
+				shares: [{ strategyAddress, shares: '42' }],
+				createdAtBlock: 100,
+				createdAt: '2026-01-01T00:00:00.000Z',
+				updatedAtBlock: 101,
+				updatedAt: '2026-01-02T00:00:00.000Z',
+				isCompleted: false,
+			}],
+			meta: {
+				total: 2,
+				skip: 0,
+				take: 100,
+			},
+		})
+		getStakerWithdrawals.mockResolvedValueOnce({
+			data: [{
+				withdrawalRoot: `0x${'8'.repeat(64)}`,
+				nonce: 8,
+				stakerAddress,
+				delegatedTo: operatorAddress,
+				withdrawerAddress: stakerAddress,
+				shares: [{ strategyAddress, shares: '42' }],
+				createdAtBlock: 102,
+				createdAt: '2026-01-03T00:00:00.000Z',
+				updatedAtBlock: 103,
+				updatedAt: '2026-01-04T00:00:00.000Z',
+				isCompleted: true,
+			}],
+			meta: {
+				total: 2,
+				skip: 1,
+				take: 100,
+			},
+		})
+
+		const delegation = await delegationResolver.resolve.StakerOperatorStrategyTimestampMsSource.resolve(
+			selector,
+			context
+		)
+
+		expect(delegationResolver.projections.depositRoot(delegation)).toBe(`0x${'7'.repeat(64)}`)
+		expect(delegationResolver.projections.withdrawalRoot(delegation)).toBe(`0x${'8'.repeat(64)}`)
+		expect(delegationResolver.projections.withdrawalCompleted(delegation)).toBe(true)
+		expect(getStakerDeposits).toHaveBeenNthCalledWith(2, stakerAddress, {
+			skip: 1,
+			take: 100,
+		})
+		expect(getStakerWithdrawals).toHaveBeenNthCalledWith(2, stakerAddress, {
+			skip: 1,
+			take: 100,
+		})
+	})
+
+	it('fails closed when a lifecycle page cannot make progress', async () => {
+		getStakerDeposits.mockResolvedValue({
 			data: [],
 			meta: {
-				total: 101,
+				total: 1,
 				skip: 0,
 				take: 100,
 			},
@@ -344,7 +436,7 @@ describe('EigenExplorer delegation resolver', () => {
 		await expect(delegationResolver.resolve.StakerOperatorStrategyTimestampMsSource.resolve(
 			selector,
 			context
-		)).rejects.toThrow('lifecycle exceeds the authoritative page')
+		)).rejects.toThrow('deposit lifecycle pagination stalled')
 	})
 
 	it('rejects non-mainnet selectors before transport', async () => {

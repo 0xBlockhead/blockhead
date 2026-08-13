@@ -287,19 +287,40 @@ export default {
 							throw new Error('EigenExplorer_Rest: delegation strategy mismatch')
 
 						const [
-							deposits,
-							withdrawals,
+							depositPage,
+							withdrawalPage,
 						] = await Promise.all([
 							getStakerDeposits($staker.$actor.address),
 							getStakerWithdrawals($staker.$actor.address),
 						])
-						if (
-							deposits.meta.total !== deposits.data.length
-							|| withdrawals.meta.total !== withdrawals.data.length
-						)
-							throw new Error('EigenExplorer_Rest: delegation lifecycle exceeds the authoritative page')
+						const deposits = [...depositPage.data]
+						const withdrawals = [...withdrawalPage.data]
+
+						for (let skip = deposits.length; skip < depositPage.meta.total;) {
+							const page = await getStakerDeposits($staker.$actor.address, {
+								skip,
+								take: 100,
+							})
+							if (page.data.length === 0)
+								throw new Error('EigenExplorer_Rest: deposit lifecycle pagination stalled')
+
+							deposits.push(...page.data)
+							skip += page.data.length
+						}
+
+						for (let skip = withdrawals.length; skip < withdrawalPage.meta.total;) {
+							const page = await getStakerWithdrawals($staker.$actor.address, {
+								skip,
+								take: 100,
+							})
+							if (page.data.length === 0)
+								throw new Error('EigenExplorer_Rest: withdrawal lifecycle pagination stalled')
+
+							withdrawals.push(...page.data)
+							skip += page.data.length
+						}
 						const depositRoot = hexLowerOfByteSize(
-							deposits.data
+							deposits
 								.filter(({ strategyAddress }) => (
 									strategyAddress.toLowerCase() === $strategy.strategyAddress.toLowerCase()
 								))
@@ -307,7 +328,7 @@ export default {
 								?.transactionHash ?? '',
 							32
 						)
-						const withdrawal = withdrawals.data
+						const withdrawal = withdrawals
 							.filter(({
 								shares,
 								delegatedTo,
