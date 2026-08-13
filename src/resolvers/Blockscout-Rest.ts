@@ -1975,6 +1975,42 @@ export default {
 		}),
 
 		defineResolver({
+			entityType: EntityType.EvmBlob,
+			resolve: {
+				TransactionIndexInTransaction: {
+					resolve: async (entitySelector) => {
+						const { getTransactionByHash } = await import('$/sources/Blockscout/Rest/queries.ts')
+						const transaction = await getTransactionByHash({
+							chainId: evmChainIdFromNetworkSelector(entitySelector.$transaction.$network),
+							txHash: entitySelector.$transaction.txHash,
+						})
+						if (transaction == null)
+							throw new Error('Blockscout_Rest: blob transaction not found')
+
+						const txHash = hexLowerOfByteSize(transaction.hash, 32)
+						if (txHash !== entitySelector.$transaction.txHash)
+							throw new Error('Blockscout_Rest: blob transaction identity does not match request')
+
+						const blob = evmBlobEntityRefsFromBlockscoutTx({
+							$network: entitySelector.$transaction.$network,
+							txHash,
+							blobVersionedHashes: transaction.blob_versioned_hashes,
+							blockNumber: blockscoutQuantityToBigInt(transaction.block_number) ?? undefined,
+						}).at(entitySelector.indexInTransaction)
+						if (blob == null || blob.$block == null)
+							throw new Error('Blockscout_Rest: blob is missing from a confirmed transaction')
+
+						return blob
+					},
+				},
+			},
+		})({
+			versionedHash: (blob) => blob.versionedHash,
+			$transaction: (blob) => blob.$transaction,
+			$block: (blob) => blob.$block,
+		}),
+
+		defineResolver({
 			entityType: EntityType.EvmLog,
 			resolve: {
 				TransactionIndexInTransaction: {

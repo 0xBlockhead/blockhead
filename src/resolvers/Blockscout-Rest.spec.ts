@@ -1516,4 +1516,43 @@ describe('Blockscout EvmBlock / Blob enrolled leftovers', () => {
 		expect(resolver.projections.Blob.blobGasUsed(entity)).toBe(131072n)
 		expect(resolver.projections.Blob.maxFeePerBlobGas(entity)).toBe(5n)
 	})
+
+	it('resolves an addressable blob back to its transaction and confirmed block', async () => {
+		const versionedHash = '0x01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+		getTransactionByHash.mockResolvedValue({
+			hash: txHash,
+			block_number: 12,
+			blob_versioned_hashes: [versionedHash],
+		})
+		const resolver = blockscoutRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.EvmBlob
+			&& 'TransactionIndexInTransaction' in candidate.resolve
+		))
+		if (
+			resolver == null
+			|| !('TransactionIndexInTransaction' in resolver.resolve)
+		)
+			throw new Error('Blockscout_Rest: missing EvmBlob direct resolver')
+
+		const blob = await resolver.resolve.TransactionIndexInTransaction.resolve({
+			$transaction: {
+				$network: network,
+				txHash,
+			},
+			indexInTransaction: 0,
+		}, context)
+		expect(resolver.projections.versionedHash(blob)).toBe(versionedHash)
+		expect(resolver.projections.$transaction(blob)).toEqual({
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				txHash,
+			},
+		})
+		expect(resolver.projections.$block(blob)).toEqual({
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				blockNumber: 12n,
+			},
+		})
+	})
 })
