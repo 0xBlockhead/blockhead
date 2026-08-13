@@ -266,7 +266,37 @@ describe('Axelarscan BridgeTransfer resolvers', () => {
 		expect(bridgeTransferTimestampResolver.projections.fillGasFeeUsd(observation)).toBeUndefined()
 	})
 
-	it('lists EvmAccount.$$bridgeTransfers by senderAddress with offset continuation', async () => {
+	it('materializes express execution as the destination lifecycle', async () => {
+		getGmpMessages.mockResolvedValueOnce({
+			data: [{
+				...message,
+				executed: undefined,
+				express_executed: message.executed,
+				status: 'express_executed',
+			}],
+			total: 1,
+			time_spent: 1,
+		})
+
+		const snapshot = await bridgeTransferResolver.resolve.SourceTransferId.resolve({
+			source: Source.Axelarscan_Rest,
+			transferId: message.message_id,
+		}, resolverContext)
+		expect(bridgeTransferResolver.projections.$destinationTx(snapshot)).toEqual({
+			[EntityMetaKey.Selector]: {
+				$network: {
+					caip2: {
+						namespace: 'eip155',
+						reference: '8453',
+					},
+				},
+				txHash: executionTransactionHash,
+			},
+		})
+		expect(bridgeTransferResolver.projections.destinationTransactionAtMs(snapshot)).toBe(1_784_780_004_000)
+	})
+
+	it('composes outgoing and incoming EvmAccount bridge transfers with independent continuation', async () => {
 		getGmpMessages.mockResolvedValueOnce({
 			data: [message, {
 				...message,
@@ -282,6 +312,10 @@ describe('Axelarscan BridgeTransfer resolvers', () => {
 			}],
 			total: 42,
 			time_spent: 1,
+		}).mockResolvedValueOnce({
+			data: [],
+			total: 7,
+			time_spent: 1,
 		})
 
 		const snapshot = await evmAccountResolver.resolve.AddressInteropAddress.resolve({
@@ -294,11 +328,18 @@ describe('Axelarscan BridgeTransfer resolvers', () => {
 			},
 		})
 
-		expect(getGmpMessages).toHaveBeenCalledWith({
-			senderAddress: sourceAddress,
-			from: 0,
-			size: 25,
-		})
+		expect(getGmpMessages.mock.calls).toEqual([
+			[{
+				senderAddress: sourceAddress,
+				from: 0,
+				size: 25,
+			}],
+			[{
+				destinationContractAddress: sourceAddress,
+				from: 0,
+				size: 25,
+			}],
+		])
 		expect(evmAccountResolver.projections.$$bridgeTransfers.select(snapshot)).toEqual([{
 			[EntityMetaKey.Selector]: {
 				source: Source.Axelarscan_Rest,
@@ -310,7 +351,59 @@ describe('Axelarscan BridgeTransfer resolvers', () => {
 			operation: 'account-bridge-transfers',
 			target: 'axelarscan',
 			terminal: false,
-			token: '25',
+			token: '2:0',
+		})
+
+		getGmpMessages.mockReset()
+		getGmpMessages.mockResolvedValueOnce({
+			data: [],
+			total: 42,
+			time_spent: 1,
+		}).mockResolvedValueOnce({
+			data: [{
+				...message,
+				call: {
+					...message.call,
+					transactionHash: `0x${'6'.repeat(64)}`,
+					returnValues: {
+						...message.call.returnValues,
+						sender: destinationAddress,
+						destinationContractAddress: sourceAddress,
+					},
+				},
+				message_id: `0x${'6'.repeat(64)}-1`,
+			}],
+			total: 7,
+			time_spent: 1,
+		})
+		const incomingSnapshot = await evmAccountResolver.resolve.Address.resolve({
+			address: sourceAddress,
+		}, {
+			...resolverContext,
+			pagination: {},
+			providerContinuationToken: '2:0',
+		})
+		expect(evmAccountResolver.projections.$$bridgeTransfers.select(incomingSnapshot)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				source: Source.Axelarscan_Rest,
+				transferId: `0x${'6'.repeat(64)}-1`,
+			},
+		}])
+		expect(getGmpMessages.mock.calls).toEqual([
+			[{
+				senderAddress: sourceAddress,
+				from: 2,
+				size: 25,
+			}],
+			[{
+				destinationContractAddress: sourceAddress,
+				from: 0,
+				size: 25,
+			}],
+		])
+		expect(evmAccountResolver.projections.$$bridgeTransfers.continuation(incomingSnapshot)).toMatchObject({
+			terminal: false,
+			token: '2:1',
 		})
 	})
 

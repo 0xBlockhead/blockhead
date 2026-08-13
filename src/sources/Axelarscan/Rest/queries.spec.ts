@@ -225,6 +225,36 @@ describe('Axelarscan GMP queries', () => {
 		})
 	})
 
+	it('accepts source-authoritative express executions and large hex payloads', async () => {
+		const {
+			executed,
+			...expressMessageBase
+		} = structuredClone(message)
+		const expressMessage: AxelarscanGmpMessage = {
+			...expressMessageBase,
+			call: {
+				...expressMessageBase.call,
+				returnValues: {
+					...expressMessageBase.call.returnValues,
+					payload: `0x${'ab'.repeat(2_048)}`,
+				},
+			},
+			express_executed: executed,
+			status: 'express_executed',
+		}
+		getJson.mockResolvedValue(response([expressMessage]))
+
+		await expect(getGmpMessages({
+			size: 1,
+		})).resolves.toMatchObject({
+			data: [{
+				express_executed: {
+					transactionHash: executionTransactionHash,
+				},
+			}],
+		})
+	})
+
 	it('fail-closes arktype envelopes for searchGMP pages', async () => {
 		getJson.mockResolvedValueOnce({
 			data: 'nope',

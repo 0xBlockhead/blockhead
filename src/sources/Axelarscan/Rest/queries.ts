@@ -21,6 +21,7 @@ const binding = bindings[Source.Axelarscan_Rest][0]
 
 const integerStringPattern = /^(?:0|[1-9]\d*)$/
 const bytes32Pattern = /^0x[0-9a-fA-F]{64}$/
+const hexDataPattern = /^0x(?:[0-9a-fA-F]{2})*$/
 const omitUndefinedJson = (
 	value: unknown
 ): unknown => {
@@ -101,17 +102,21 @@ const assertEvent = (event: AxelarscanEvent, role: string) => {
 }
 
 const assertMessage = (message: AxelarscanGmpMessage) => {
+	const destinationExecution = message.executed ?? message.express_executed
 	assertEvent(message.call, 'call')
 	for (const [name, value] of Object.entries({
 		sender: message.call.returnValues.sender,
 		'destination chain': message.call.returnValues.destinationChain,
 		'destination address': message.call.returnValues.destinationContractAddress,
-		payload: message.call.returnValues.payload ?? '',
 	}))
-		if (name !== 'payload' || value !== '')
-			assertOpaqueIdentity(value, name)
+		assertOpaqueIdentity(value, name)
 	if (!bytes32Pattern.test(message.call.returnValues.payloadHash))
 		throw new Error('Axelarscan_Rest: invalid payload hash')
+	if (
+		message.call.returnValues.payload != null
+		&& !hexDataPattern.test(message.call.returnValues.payload)
+	)
+		throw new Error('Axelarscan_Rest: invalid payload')
 
 	const messageLogIndex = axelarscanMessageLogIndex(message.call)
 	if (messageLogIndex == null)
@@ -192,38 +197,44 @@ const assertMessage = (message: AxelarscanGmpMessage) => {
 			throw new Error('Axelarscan_Rest: mismatched approval')
 	}
 
-	if (message.executed != null) {
-		assertEvent(message.executed, 'execution')
+	for (const execution of [
+		message.express_executed,
+		message.executed,
+	]) {
+		if (execution == null)
+			continue
+
+		assertEvent(execution, 'execution')
 		if (
-			!sameIdentity(message.executed.chain, message.call.returnValues.destinationChain)
-			|| !sameIdentity(message.executed.sourceTransactionHash, message.call.transactionHash)
+			!sameIdentity(execution.chain, message.call.returnValues.destinationChain)
+			|| !sameIdentity(execution.sourceTransactionHash, message.call.transactionHash)
 		)
 			throw new Error('Axelarscan_Rest: mismatched destination execution')
 		if (
-			message.executed.sourceTransactionIndex != null
+			execution.sourceTransactionIndex != null
 			&& message.call.transactionIndex != null
-			&& message.executed.sourceTransactionIndex !== message.call.transactionIndex
+			&& execution.sourceTransactionIndex !== message.call.transactionIndex
 		)
 			throw new Error('Axelarscan_Rest: mismatched destination execution')
 		if (
-			message.executed.sourceTransactionLogIndex != null
+			execution.sourceTransactionLogIndex != null
 			&& message.call.logIndex != null
-			&& message.executed.sourceTransactionLogIndex !== message.call.logIndex
-			&& message.executed.sourceTransactionLogIndex !== messageLogIndex
+			&& execution.sourceTransactionLogIndex !== message.call.logIndex
+			&& execution.sourceTransactionLogIndex !== messageLogIndex
 		)
 			throw new Error('Axelarscan_Rest: mismatched destination execution')
 	}
 
 	if (
 		message.simplified_status === 'received'
-		&& message.executed == null
+		&& destinationExecution == null
 	)
 		throw new Error('Axelarscan_Rest: received message has no destination execution')
 	if (
 		message.approved != null
 		&& message.approved.block_timestamp < message.call.block_timestamp
-		|| message.executed != null
-		&& message.executed.block_timestamp < (message.approved?.block_timestamp ?? message.call.block_timestamp)
+		|| destinationExecution != null
+		&& destinationExecution.block_timestamp < (message.approved?.block_timestamp ?? message.call.block_timestamp)
 	)
 		throw new Error('Axelarscan_Rest: reversed message lifecycle')
 	for (const [name, value] of Object.entries(message.time_spent ?? {}))
@@ -369,6 +380,7 @@ export const getGmpMessages = (query: AxelarscanGmpSearchQuery) => {
 					message.gas_paid?.transactionHash,
 					message.approved?.transactionHash,
 					message.executed?.transactionHash,
+					message.express_executed?.transactionHash,
 				].some((candidate) => candidate != null && sameIdentity(candidate, query.transactionHash)))
 			)
 				throw new Error('Axelarscan_Rest: foreign transaction message')

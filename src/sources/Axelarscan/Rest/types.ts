@@ -143,6 +143,7 @@ export const axelarscanGmpMessageEnvelope = arktype({
 	'confirm?': axelarscanConfirmationEnvelope,
 	'approved?': axelarscanApprovedEnvelope,
 	'executed?': axelarscanExecutedEnvelope,
+	'express_executed?': axelarscanExecutedEnvelope,
 	'error?': axelarscanGmpDataErrorEnvelope,
 	status: 'string',
 	simplified_status: 'string',
@@ -308,6 +309,7 @@ export type AxelarscanGmpMessage = {
 	confirm?: AxelarscanConfirmation
 	approved?: AxelarscanApproved
 	executed?: AxelarscanExecuted
+	express_executed?: AxelarscanExecuted
 	error?: AxelarscanGmpDataError
 	status: string
 	simplified_status: string

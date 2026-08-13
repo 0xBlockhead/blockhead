@@ -24,6 +24,10 @@ const axelarscanMessageLogIndex = (
 	event._logIndex ?? event.logIndex
 )
 
+const axelarscanDestinationExecution = (message: AxelarscanGmpMessage) => (
+	message.executed ?? message.express_executed
+)
+
 
 const axelarscanEvmNetworkRef = (chainKey: string) => {
 	const chainId = axelarscanEvmChainIdByChainKey[chainKey.toLowerCase()]
@@ -68,15 +72,15 @@ const axelarscanEvmTxHash = (
 
 const axelarscanObservationMs = (message: AxelarscanGmpMessage) => (
 	(
-		message.executed?.block_timestamp
+		axelarscanDestinationExecution(message)?.block_timestamp
 		?? message.approved?.block_timestamp
 		?? message.call.block_timestamp
 	) * 1_000
 )
 
 const axelarscanFillGasFee = (message: AxelarscanGmpMessage) => {
-	const gasUsed = message.executed?.receipt?.gasUsed
-	const effectiveGasPrice = message.executed?.receipt?.effectiveGasPrice
+	const gasUsed = axelarscanDestinationExecution(message)?.receipt?.gasUsed
+	const effectiveGasPrice = axelarscanDestinationExecution(message)?.receipt?.effectiveGasPrice
 	if (gasUsed == null || effectiveGasPrice == null)
 		return undefined
 	if (!/^(?:0|[1-9]\d*)$/.test(gasUsed) || !/^(?:0|[1-9]\d*)$/.test(effectiveGasPrice))
@@ -131,10 +135,11 @@ const axelarscanObservationError = (message: AxelarscanGmpMessage) => {
 }
 
 const axelarscanRelayer = (message: AxelarscanGmpMessage) => {
+	const destinationExecution = axelarscanDestinationExecution(message)
 	for (const candidate of [
-		message.executed?.relayerAddress,
-		message.executed?.from,
-		message.executed?.receipt?.from,
+		destinationExecution?.relayerAddress,
+		destinationExecution?.from,
+		destinationExecution?.receipt?.from,
 	]) {
 		if (candidate == null)
 			continue
@@ -148,21 +153,22 @@ const axelarscanBridgeTransferSnapshot = (
 	transfer: EntitySelector<typeof schema, EntityType.BridgeTransfer>,
 	message: AxelarscanGmpMessage
 ) => {
+	const destinationExecution = axelarscanDestinationExecution(message)
 	const fromNetwork = axelarscanEvmNetworkRef(message.call.chain)
 	const toNetwork = axelarscanEvmNetworkRef(message.call.returnValues.destinationChain)
 	const sourceTxHash = axelarscanEvmTxHash(message.call.transactionHash, 'source transaction hash')
 	const destinationTxHash = (
-		message.executed == null ?
+		destinationExecution == null ?
 			undefined
 		:
-			axelarscanEvmTxHash(message.executed.transactionHash, 'destination transaction hash')
+			axelarscanEvmTxHash(destinationExecution.transactionHash, 'destination transaction hash')
 	)
 	const timestampMs = axelarscanObservationMs(message)
 	const sourceTransactionAtMs = message.call.block_timestamp * 1_000
-	const destinationTransactionAtMs = message.executed?.block_timestamp == null ?
+	const destinationTransactionAtMs = destinationExecution?.block_timestamp == null ?
 		undefined
 	:
-		message.executed.block_timestamp * 1_000
+		destinationExecution.block_timestamp * 1_000
 	if (
 		destinationTransactionAtMs != null
 		&& destinationTransactionAtMs < sourceTransactionAtMs
@@ -256,17 +262,120 @@ const loadAxelarscanMessage = async (
 	return message
 }
 
-const axelarscanPaginationSkip = (
+const axelarscanAccountPaginationOffsets = (
 	context: ResolverContext
 ) => {
-	const skip = context.providerContinuationToken == null ?
-		context.pagination.offset ?? 0
-	:
-		Number(context.providerContinuationToken)
-	if (!Number.isSafeInteger(skip) || skip < 0)
-		throw new Error('Axelarscan_Rest: invalid pagination offset')
+	if (context.providerContinuationToken == null) {
+		const offset = context.pagination.offset ?? 0
+		if (!Number.isSafeInteger(offset) || offset < 0)
+			throw new Error('Axelarscan_Rest: invalid pagination offset')
+		if (offset !== 0)
+			throw new Error('Axelarscan_Rest: combined account pagination requires provider continuation')
 
-	return skip
+		return {
+			senderOffset: 0,
+			recipientOffset: 0,
+		}
+	}
+
+	const match = /^(0|[1-9][0-9]*):(0|[1-9][0-9]*)$/.exec(context.providerContinuationToken)
+	if (match == null)
+		throw new Error('Axelarscan_Rest: invalid account continuation')
+
+	const senderOffset = Number(match[1])
+	const recipientOffset = Number(match[2])
+	if (!Number.isSafeInteger(senderOffset) || !Number.isSafeInteger(recipientOffset))
+		throw new Error('Axelarscan_Rest: invalid account continuation')
+
+	return {
+		senderOffset,
+		recipientOffset,
+	}
+}
+
+const axelarscanAccountBridgeTransfers = async (
+	address: string,
+	context: ResolverContext
+) => {
+	const {
+		senderOffset,
+		recipientOffset,
+	} = axelarscanAccountPaginationOffsets(context)
+	const limit = Math.min(resolverContextRowLimit(context), 25)
+	const { getGmpMessages } = await import('$/sources/Axelarscan/Rest/queries.ts')
+	const [
+		senderPage,
+		recipientPage,
+	] = await Promise.all([
+		getGmpMessages({
+			senderAddress: address,
+			from: senderOffset,
+			size: limit,
+		}),
+		getGmpMessages({
+			destinationContractAddress: address,
+			from: recipientOffset,
+			size: limit,
+		}),
+	])
+	const messageById = new Map<string, {
+		message: AxelarscanGmpMessage
+		recipient: boolean
+		sender: boolean
+	}>()
+	for (const [messages, role] of [
+		[senderPage.data, 'sender'],
+		[recipientPage.data, 'recipient'],
+	] as const)
+		for (const message of messages) {
+			const existing = messageById.get(message.message_id)
+			messageById.set(message.message_id, {
+				message,
+				recipient: existing?.recipient === true || role === 'recipient',
+				sender: existing?.sender === true || role === 'sender',
+			})
+		}
+
+	let consumedSender = 0
+	let consumedRecipient = 0
+	const rows: {
+		[EntityMetaKey.Selector]: {
+			source: Source.Axelarscan_Rest
+			transferId: string
+		}
+	}[] = []
+	for (const candidate of [...messageById.values()].toSorted((left, right) => (
+		axelarscanObservationMs(right.message) - axelarscanObservationMs(left.message)
+		|| left.message.message_id.localeCompare(right.message.message_id)
+	))) {
+		if (rows.length >= limit)
+			break
+
+		if (candidate.sender)
+			consumedSender += 1
+		if (candidate.recipient)
+			consumedRecipient += 1
+		if (
+			axelarscanEvmChainIdByChainKey[candidate.message.call.chain.toLowerCase()] == null
+			|| axelarscanEvmChainIdByChainKey[candidate.message.call.returnValues.destinationChain.toLowerCase()] == null
+		)
+			continue
+
+		rows.push({
+			[EntityMetaKey.Selector]: {
+				source: Source.Axelarscan_Rest,
+				transferId: candidate.message.message_id,
+			},
+		})
+	}
+
+	return {
+		rows,
+		senderOffset: senderOffset + consumedSender,
+		recipientOffset: recipientOffset + consumedRecipient,
+		senderTotal: senderPage.total,
+		recipientTotal: recipientPage.total,
+	}
 }
 
 
@@ -353,11 +462,12 @@ export default {
 						if (observedAtMs !== timestampMs)
 							throw new Error('Axelarscan_Rest: observation clock mismatch')
 
+						const destinationExecution = axelarscanDestinationExecution(message)
 						const destinationTxHash = (
-							message.executed == null ?
+							destinationExecution == null ?
 								undefined
 							:
-								axelarscanEvmTxHash(message.executed.transactionHash, 'destination transaction hash')
+								axelarscanEvmTxHash(destinationExecution.transactionHash, 'destination transaction hash')
 						)
 						const relayer = axelarscanRelayer(message)
 						const fillGasFee = axelarscanFillGasFee(message)
@@ -413,79 +523,31 @@ export default {
 			entityType: EntityType.EvmAccount,
 			resolve: {
 				Address: {
-					resolve: async ({ address }, context) => {
-						const skip = axelarscanPaginationSkip(context)
-						const limit = Math.min(resolverContextRowLimit(context), 25)
-						const { getGmpMessages } = await import('$/sources/Axelarscan/Rest/queries.ts')
-						const page = await getGmpMessages({
-							senderAddress: address,
-							from: skip,
-							size: limit,
-						})
-
-						return {
-							skip,
-							limit,
-							total: page.total,
-							rows: page.data.flatMap((message) => (
-								axelarscanEvmChainIdByChainKey[message.call.chain.toLowerCase()] == null
-								|| axelarscanEvmChainIdByChainKey[message.call.returnValues.destinationChain.toLowerCase()] == null ?
-									[]
-								:
-									[{
-										[EntityMetaKey.Selector]: {
-											source: Source.Axelarscan_Rest,
-											transferId: message.message_id,
-										},
-									}]
-							)),
-						}
-					},
+					resolve: async ({ address }, context) => (
+						axelarscanAccountBridgeTransfers(address, context)
+					),
 				},
 				AddressInteropAddress: {
-					resolve: async ({ address }, context) => {
-						const skip = axelarscanPaginationSkip(context)
-						const limit = Math.min(resolverContextRowLimit(context), 25)
-						const { getGmpMessages } = await import('$/sources/Axelarscan/Rest/queries.ts')
-						const page = await getGmpMessages({
-							senderAddress: address,
-							from: skip,
-							size: limit,
-						})
-
-						return {
-							skip,
-							limit,
-							total: page.total,
-							rows: page.data.flatMap((message) => (
-								axelarscanEvmChainIdByChainKey[message.call.chain.toLowerCase()] == null
-								|| axelarscanEvmChainIdByChainKey[message.call.returnValues.destinationChain.toLowerCase()] == null ?
-									[]
-								:
-									[{
-										[EntityMetaKey.Selector]: {
-											source: Source.Axelarscan_Rest,
-											transferId: message.message_id,
-										},
-									}]
-							)),
-						}
-					},
+					resolve: async ({ address }, context) => (
+						axelarscanAccountBridgeTransfers(address, context)
+					),
 				},
 			},
 		})({
 			$$bridgeTransfers: {
 				select: (snapshot) => snapshot.rows,
 				continuation: (snapshot) => {
-					const nextSkip = snapshot.skip + snapshot.limit
-					const terminal = nextSkip >= snapshot.total
+					const terminal = (
+						snapshot.senderOffset >= snapshot.senderTotal
+						&& snapshot.recipientOffset >= snapshot.recipientTotal
+					)
 
 					return {
 						operation: 'account-bridge-transfers',
 						target: 'axelarscan',
 						terminal,
 						...(!terminal && {
-							token: String(nextSkip),
+							token: `${snapshot.senderOffset}:${snapshot.recipientOffset}`,
 						}),
 					}
 				},
