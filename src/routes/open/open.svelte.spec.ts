@@ -41,6 +41,17 @@ it('does not render hash coordinates for other unresolved input', async () => {
 	await expect.element(page.getByRole('alert')).toHaveTextContent('is unsupported')
 })
 
+it('advertises typed asset and catalog-backed explorer ingress', async () => {
+	await render(OpenEntityPage, {
+		data: {
+			query: '',
+		},
+	})
+
+	await expect.element(page.getByText(/CAIP-19 ERC-20 assets/)).toBeVisible()
+	await expect.element(page.getByText(/checked-in explorer transaction, address, token and block URLs/)).toBeVisible()
+})
+
 it('identifies a bare EVM address as incomplete rather than unsupported', async () => {
 	await render(OpenEntityPage, {
 		data: {

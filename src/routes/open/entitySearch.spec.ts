@@ -72,10 +72,12 @@ describe(entityHrefFromSearchInput, () => {
 		[`https://etherscan.io/tx/0x${'AB'.repeat(32)}`, `/network/eip155:1/tx/0x${'ab'.repeat(32)}`],
 		[`https://arbiscan.io/tx/0x${'12'.repeat(32)}#eventlog`, `/network/eip155:42161/tx/0x${'12'.repeat(32)}`],
 		[`https://basescan.org/address/0x${'AB'.repeat(20)}`, `/account/eip155:8453/0x${'AB'.repeat(20)}`],
+		[`https://etherscan.io/token/0x${'AB'.repeat(20)}?a=0x${'12'.repeat(20)}`, `/coin-instance/1/0x${'ab'.repeat(20)}`],
 		['https://optimistic.etherscan.io/block/123456', '/network/eip155:10/block/123456'],
 		[`https://polygonscan.com/block/0x${'AB'.repeat(32)}`, `/network/eip155:137/block/hash/0x${'ab'.repeat(32)}`],
 		['eip155:1', '/network/eip155:1'],
 		['eip155:1:0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045', '/account/eip155:1/0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045'],
+		[`eip155:8453/erc20:0x${'AB'.repeat(20)}`, `/coin-instance/8453/0x${'ab'.repeat(20)}`],
 		['https://example.com/a?b=c', '/url/https%3A%2F%2Fexample.com%2Fa%3Fb%3Dc'],
 		['vitalik.eth', '/ens/name/vitalik.eth'],
 		['ipfs://bafybeigdyrzt5sfp7udm7hu76f7lz4gf5o7vsvixd3rqfwxq6c6azp7j7m/folder/file.json', '/ipfs/ipfs/bafybeigdyrzt5sfp7udm7hu76f7lz4gf5o7vsvixd3rqfwxq6c6azp7j7m/path/folder/file.json'],
@@ -92,6 +94,22 @@ describe(entityHrefFromSearchInput, () => {
 
 	it('does not guess the network for a bare address', () => {
 		expect(entityHrefFromSearchInput('0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045')).toBeUndefined()
+	})
+
+	it.each([
+		[`eip155:999999999/erc20:0x${'12'.repeat(20)}`],
+		['eip155:999999999/slip44:60'],
+		['eip155:1/slip44:60'],
+		['eip155:1/slip44:0'],
+		[`EIP155:1/erc20:0x${'12'.repeat(20)}`],
+		[`eip155:1/ERC20:0x${'12'.repeat(20)}`],
+		[`eip155:1/erc721:0x${'12'.repeat(20)}`],
+		[`https://example.com/token/0x${'12'.repeat(20)}`],
+		[`http://etherscan.io/token/0x${'12'.repeat(20)}`],
+	])('does not fabricate an asset owner for unsupported authority %s', (query) => {
+		expect(entityHrefFromSearchInput(query)).toBe(
+			query.startsWith('http') ? `/url/${encodeURIComponent(query)}` : undefined
+		)
 	})
 
 	it('does not relabel a Solana public key as a transaction signature', () => {

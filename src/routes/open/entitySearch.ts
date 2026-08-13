@@ -124,6 +124,22 @@ const evmExplorerNetworkByHost = Object.fromEntries(
 	})
 )
 
+const evmErc20CoinInstanceHref = (
+	networkCaip2: string,
+	contractAddress: string
+) => {
+	const network = evmNetworkChoices.find((candidate) => candidate.caip2 === networkCaip2)
+	if (network == null) return
+
+	return resolve(
+		'/(assets)/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug=nativeCurrencySlugOrEvmAddress]',
+		{
+			chainId: network.reference,
+			coinInstanceSlug: contractAddress.toLowerCase(),
+		}
+	)
+}
+
 const farcasterHrefFromSearchInput = (query: string) => {
 	if (!/^https:\/\/(?:farcaster\.xyz|warpcast\.com)\//i.test(query)) return
 
@@ -449,6 +465,14 @@ export const entityHrefFromSearchInput = (query: string) => {
 			}
 		)
 
+	const caip19Erc20Asset = query.match(/^eip155:([0-9]+)\/erc20:(0x[a-fA-F0-9]{40})$/)
+
+	if (caip19Erc20Asset)
+		return evmErc20CoinInstanceHref(
+			`eip155:${caip19Erc20Asset[1]}`,
+			caip19Erc20Asset[2]
+		)
+
 	const mempoolSpaceResource = query.match(/^https:\/\/(?:www\.)?mempool\.space\/(?:(testnet)\/)?(tx|block|address)\/([^/?#\s]+)\/?(?:[?#].*)?$/i)
 
 	if (mempoolSpaceResource) {
@@ -561,6 +585,14 @@ export const entityHrefFromSearchInput = (query: string) => {
 				reference: evmExplorerNetworkByHost[evmExplorerAddress[1].toLowerCase()].slice('eip155:'.length),
 				accountAddress: evmExplorerAddress[2],
 			}
+		)
+
+	const evmExplorerToken = query.match(/^https:\/\/([^/?#\s]+)\/token\/(0x[a-f0-9]{40})\/?(?:[?#].*)?$/i)
+
+	if (evmExplorerToken && evmExplorerNetworkByHost[evmExplorerToken[1].toLowerCase()] != null)
+		return evmErc20CoinInstanceHref(
+			evmExplorerNetworkByHost[evmExplorerToken[1].toLowerCase()],
+			evmExplorerToken[2]
 		)
 
 	const evmExplorerBlock = query.match(/^https:\/\/([^/?#\s]+)\/block\/([0-9]+|0x[a-f0-9]{64})\/?(?:[?#].*)?$/i)
