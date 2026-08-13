@@ -29,6 +29,7 @@ const getProposerDuties = vi.hoisted(() => vi.fn())
 const getSyncCommittee = vi.hoisted(() => vi.fn())
 const getValidator = vi.hoisted(() => vi.fn())
 const getBlockDutySummary = vi.hoisted(() => vi.fn())
+const getBeaconBlockSnapshot = vi.hoisted(() => vi.fn())
 const getBlockRewards = vi.hoisted(() => vi.fn())
 const getAttestationRewards = vi.hoisted(() => vi.fn())
 const getSyncCommitteeRewards = vi.hoisted(() => vi.fn())
@@ -53,6 +54,7 @@ vi.mock('$/sources/Beacon/Rest/queries.ts', async (importOriginal) => ({
 	getSyncCommittee,
 	getValidator,
 	getBlockDutySummary,
+	getBeaconBlockSnapshot,
 	getBlockRewards,
 	getAttestationRewards,
 	getSyncCommitteeRewards,
@@ -130,6 +132,14 @@ const blockRewardsResolver = beaconRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.BeaconSlot
 	&& 'rewardTotalGwei' in resolver.projections
 ))
+const slotBlocksResolver = beaconRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.BeaconSlot
+	&& '$$blocks' in resolver.projections
+))
+const beaconBlockResolver = beaconRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.BeaconBlock
+	&& 'root' in resolver.projections
+))
 const headSlotResolver = beaconRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.Network
 	&& 'Evm' in resolver.projections
@@ -174,6 +184,8 @@ if (
 	|| slashingResolver == null
 	|| headerResolver == null
 	|| blockRewardsResolver == null
+	|| slotBlocksResolver == null
+	|| beaconBlockResolver == null
 	|| headSlotResolver == null
 	|| epochSlotsResolver == null
 	|| committeesListResolver == null
@@ -653,6 +665,70 @@ describe('Beacon REST checkpoint and fork projections', () => {
 			1,
 			64
 		)
+	})
+
+	it('materializes a fork-root block and source-clocked canonicality observation', async () => {
+		vi.spyOn(Date, 'now').mockReturnValue(1_750_000_000_000)
+		getBeaconBlockSnapshot.mockResolvedValue({
+			version: 'electra',
+			root: `0x${'a'.repeat(64)}`,
+			slot: 64,
+			proposerIndex: 12,
+			parentRoot: `0x${'b'.repeat(64)}`,
+			stateRoot: `0x${'c'.repeat(64)}`,
+			bodyRoot: `0x${'d'.repeat(64)}`,
+			signature: `0x${'e'.repeat(192)}`,
+			canonical: true,
+			executionOptimistic: false,
+			finalized: true,
+			executionBlockHash: `0x${'f'.repeat(64)}`,
+			deposits: [],
+			attestations: [],
+			withdrawals: [],
+			slashings: [],
+		})
+		const selector = {
+			$network: network,
+			root: `0x${'a'.repeat(64)}`,
+		}
+		const block = await beaconBlockResolver.resolve.NetworkRoot.resolve(selector)
+		const blocks = await slotBlocksResolver.resolve.EvmNetworkSlot.resolve({
+			$network: network,
+			slot: 64,
+		})
+
+		expect(block).toMatchObject({
+			root: selector.root,
+			version: 'electra',
+			$slot: {
+				[EntityMetaKey.Selector]: {
+					slot: 64,
+				},
+			},
+			$executionBlock: {
+				[EntityMetaKey.Selector]: {
+					hash: `0x${'f'.repeat(64)}`,
+				},
+			},
+		})
+		expect(block?.$$timestamps[0]).toMatchObject({
+			[EntityMetaKey.Selector]: {
+				timestampMs: 1_750_000_000_000,
+				source: Source.Beacon_Rest,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.BeaconBlock_Timestamp, [], 'canonical')]: true,
+				[entityFieldAddressKey(EntityType.BeaconBlock_Timestamp, [], 'finalized')]: true,
+			},
+		})
+		expect(blocks[0]).toMatchObject({
+			[EntityMetaKey.Selector]: { root: selector.root },
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.BeaconBlock, [], 'version')]: 'electra',
+			},
+		})
+		expect(getBeaconBlockSnapshot).toHaveBeenNthCalledWith(1, 1, selector.root)
+		expect(getBeaconBlockSnapshot).toHaveBeenNthCalledWith(2, 1, 64)
 	})
 
 	it('rejects a native uint64 header index that cannot be represented by the schema number', async () => {
