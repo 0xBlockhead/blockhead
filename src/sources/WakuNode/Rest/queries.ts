@@ -22,3 +22,11 @@ export const getHealth = async (binding: SourceBinding) => {
 
 	return health
 }
+
+export const getVersion = async (binding: SourceBinding) => {
+	const version = await getText(binding, '/debug/v1/version')
+	if (version.trim() === '')
+		throw new Error('WakuNode_Rest: version response is empty')
+
+	return version.trim()
+}

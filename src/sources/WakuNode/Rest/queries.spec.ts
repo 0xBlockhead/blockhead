@@ -69,4 +69,19 @@ describe('WakuNode REST operations', () => {
 			'WakuNode_Rest: health response is empty'
 		)
 	})
+
+	it('loads and normalizes the native nwaku version', async () => {
+		getText.mockResolvedValue(' nwaku/v0.35.0\n')
+
+		await expect(queries.getVersion(binding)).resolves.toBe('nwaku/v0.35.0')
+		expect(getText).toHaveBeenCalledWith(binding, '/debug/v1/version')
+	})
+
+	it('fails closed when the version envelope is empty', async () => {
+		getText.mockResolvedValue('  ')
+
+		await expect(queries.getVersion(binding)).rejects.toThrow(
+			'WakuNode_Rest: version response is empty'
+		)
+	})
 })

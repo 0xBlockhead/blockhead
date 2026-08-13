@@ -21,6 +21,7 @@ const loadWakuQueries = async () => {
 	return {
 		getDebugInfo: () => queries.getDebugInfo(binding),
 		getHealth: () => queries.getHealth(binding),
+		getVersion: () => queries.getVersion(binding),
 	}
 }
 
@@ -36,11 +37,12 @@ export default {
 						if (requestedConnectionId !== connectionId)
 							throw new Error(`WakuNode_Rest: unsupported connection ${requestedConnectionId}`)
 
-						const { getDebugInfo, getHealth } = await loadWakuQueries()
+						const { getDebugInfo, getHealth, getVersion } = await loadWakuQueries()
 						const timestampMs = Date.now()
-						const [debugInfo, health] = await Promise.all([
+						const [debugInfo, health, version] = await Promise.all([
 							getDebugInfo(),
 							getHealth(),
+							getVersion(),
 						])
 						if (debugInfo.enrUri == null)
 							throw new Error('WakuNode_Rest: debug info does not expose an ENR node identity')
@@ -64,6 +66,7 @@ export default {
 									},
 									[EntityMetaKey.Fields]: {
 										[entityFieldAddressKey(EntityType.BlockheadWakuNodeState_Timestamp, [], 'health')]: health,
+										[entityFieldAddressKey(EntityType.BlockheadWakuNodeState_Timestamp, [], 'version')]: version,
 										[entityFieldAddressKey(EntityType.BlockheadWakuNodeState_Timestamp, [], 'listenAddresses')]: debugInfo.listenAddresses,
 										[entityFieldAddressKey(EntityType.BlockheadWakuNodeState_Timestamp, [], 'enrUri')]: debugInfo.enrUri,
 									},
@@ -89,10 +92,11 @@ export default {
 
 						let timeout: ReturnType<typeof setTimeout> | undefined
 						const poll = async () => {
-							const { getDebugInfo, getHealth } = await loadWakuQueries()
-							const [debugInfo, health] = await Promise.all([
+							const { getDebugInfo, getHealth, getVersion } = await loadWakuQueries()
+							const [debugInfo, health, version] = await Promise.all([
 								getDebugInfo(),
 								getHealth(),
+								getVersion(),
 							])
 							if (signal.aborted)
 								return
@@ -111,6 +115,7 @@ export default {
 									},
 									[EntityMetaKey.Fields]: {
 										[entityFieldAddressKey(EntityType.BlockheadWakuNodeState_Timestamp, [], 'health')]: health,
+										[entityFieldAddressKey(EntityType.BlockheadWakuNodeState_Timestamp, [], 'version')]: version,
 										[entityFieldAddressKey(EntityType.BlockheadWakuNodeState_Timestamp, [], 'listenAddresses')]: debugInfo.listenAddresses,
 										[entityFieldAddressKey(EntityType.BlockheadWakuNodeState_Timestamp, [], 'enrUri')]: debugInfo.enrUri,
 									},

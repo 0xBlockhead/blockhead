@@ -46,7 +46,12 @@ describe('Waku local node journey', () => {
 			],
 			enrUri: 'enr:-waku-node',
 		})
-		getText.mockResolvedValue('Ready')
+		getText.mockImplementation(async (_binding, path) => (
+			path === '/debug/v1/version' ?
+				'nwaku/v0.35.0'
+			:
+				'Ready'
+		))
 	})
 
 	it('materializes the configured node identity and source-clocked health observation', async () => {
@@ -71,6 +76,7 @@ describe('Waku local node journey', () => {
 			},
 			[EntityMetaKey.Fields]: {
 				[entityFieldAddressKey(EntityType.BlockheadWakuNodeState_Timestamp, [], 'health')]: 'Ready',
+				[entityFieldAddressKey(EntityType.BlockheadWakuNodeState_Timestamp, [], 'version')]: 'nwaku/v0.35.0',
 				[entityFieldAddressKey(EntityType.BlockheadWakuNodeState_Timestamp, [], 'listenAddresses')]: [
 					'/ip4/127.0.0.1/tcp/60000',
 				],
@@ -123,7 +129,8 @@ describe('Waku local node journey', () => {
 			})],
 		}])
 
-		getText.mockResolvedValueOnce('Not Ready')
+		getText.mockImplementationOnce(async () => 'Not Ready')
+		getText.mockImplementationOnce(async () => 'nwaku/v0.35.0')
 		await vi.advanceTimersByTimeAsync(10_000)
 		await vi.waitFor(() => expect(replaceTimestamps).toHaveBeenCalledTimes(2))
 		expect(replaceTimestamps.mock.calls[1][0][0].value[0][EntityMetaKey.Fields]).toMatchObject({
@@ -133,7 +140,7 @@ describe('Waku local node journey', () => {
 		abortController.abort()
 		cleanup()
 		await vi.advanceTimersByTimeAsync(10_000)
-		expect(getText).toHaveBeenCalledTimes(2)
+		expect(getText).toHaveBeenCalledTimes(4)
 	})
 
 	it('fails closed when the requested node does not match configured node identity', async () => {
