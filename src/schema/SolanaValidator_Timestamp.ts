@@ -17,17 +17,13 @@ export default entity({
 		entityType: EntityType.SolanaValidator,
 		cardinality: EntityFieldCardinality.One,
 	},
-	slot: {
-		primitiveType: type('bigint').narrow((value) => value >= 0n),
-		cardinality: EntityFieldCardinality.One,
-	},
 	source: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	timestampMs: {
-		primitiveType: type('number'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		primitiveType: type('number.integer >= 0'),
+		cardinality: EntityFieldCardinality.One,
 	},
 	nodePubkey: {
 		primitiveType: type('string'),
@@ -80,9 +76,9 @@ export default entity({
 	},
 })({
 	selectors: {
-		ValidatorSlotSource: [
+		ValidatorTimestampMsSource: [
 			'$validator',
-			'slot',
+			'timestampMs',
 			'source',
 		],
 	},

@@ -757,8 +757,8 @@ export const getVoteAccounts = async ({
 	votePubkey,
 }: {
 	votePubkey?: string
-}) => (
-	assertEnvelope(
+}) => ({
+	...(assertEnvelope(
 		'vote accounts',
 		solanaVoteAccountsWire,
 		await jsonRpc2<unknown>(binding, 'getVoteAccounts', [
@@ -769,8 +769,9 @@ export const getVoteAccounts = async ({
 				}),
 			},
 		])
-	) as SolanaRpcVoteAccounts
-)
+	) as SolanaRpcVoteAccounts),
+	observedAtMs: Date.now(),
+})
 
 // slotSubscribe — https://solana.com/docs/rpc/websocket/slotsubscribe
 // PublicNode RemoteLive wss://solana-rpc.publicnode.com

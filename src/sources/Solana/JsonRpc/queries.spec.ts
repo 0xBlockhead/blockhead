@@ -582,7 +582,9 @@ describe('Solana account / validator / epoch JSON-RPC envelopes', () => {
 			}],
 			delinquent: [],
 		}))
+		vi.spyOn(Date, 'now').mockReturnValueOnce(1_784_678_400_000)
 		await expect(getVoteAccounts({})).resolves.toMatchObject({
+			observedAtMs: 1_784_678_400_000,
 			current: [
 				{
 					commission: 5,

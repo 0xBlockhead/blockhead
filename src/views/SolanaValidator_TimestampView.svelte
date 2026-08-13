@@ -2,10 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -16,23 +14,13 @@
 	let {
 		selection,
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.SolanaValidator_Timestamp>, 'prefetched'> = $props()
 
-	const validator = $derived(selection.entitySelector.$validator)
-	const solanaValidatorTimestamp = $derived(selection({
-		fields: {
-			delinquent: true,
-			timestampMs: true,
-		},
-	}))
-
 
 	// Components
-	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import SolanaValidatorView from '$/views/SolanaValidatorView.svelte'
@@ -42,53 +30,27 @@
 <EntityView
 	entityType={EntityType.SolanaValidator_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? String(selection.entitySelector.slot)}
-	href={
-		href === undefined ?
-			resolve(
-				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/validator/[validatorId=nonNegativeIntegerOrSolanaPubkeyOrStringSegment]/(selection)/observations/[slot=nonNegativeInteger]/[source=stringSegment]',
-				{
-					network: (
-						'caip2' in validator.$network ?
-							caip2StringFromValue(validator.$network.caip2)
-						:
-							validator.$network.slug
-					),
-					validatorId: validator.votePubkey,
-					slot: String(selection.entitySelector.slot),
-					source: selection.entitySelector.source,
-				}
-			)
-		:
-			href ?? undefined
-	}
+	title={title ?? String(selection.entitySelector.timestampMs)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<NumberValue
-			value={selection.entitySelector.slot}
-		/>
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={solanaValidatorTimestamp}>
+		<ResourceBoundary
+			resource={
+				selection({
+					fields: {
+						delinquent: true,
+					},
+				})
+			}
+		>
 			{#snippet children(entity)}
-				{String(entity.delinquent ?? '') || String(selection.entitySelector.slot)}
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={solanaValidatorTimestamp}>
-			{#snippet children(entity)}
-				{@const timestampMs = entity.timestampMs}
-				{#if timestampMs != null}
-					<span data-text="muted">
-						<Timestamp timestamp={timestampMs} />
-					</span>
-				{/if}
+				{String(entity.delinquent ?? '') || String(selection.entitySelector.timestampMs)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}

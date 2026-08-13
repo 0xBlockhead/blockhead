@@ -9797,15 +9797,6 @@ export const e2eRouteFixtureMetadataByNodeId = {
 					'Evm',
 				],
 			},
-			{
-				id: 'SolanaValidator_Timestamp.ValidatorSlotSource',
-				projectionEntity: 'Network',
-				probeAtomPrefixes: ['/network/[network]/validator/[validatorId]/observations/[slot]/[source]:SolanaValidator_Timestamp.ValidatorSlotSource'],
-				probeCases: [[[0, '1', ['source', 'slot', 'validatorId', 'network']]]],
-				projectionPath: [
-					'Solana',
-				],
-			},
 		],
 	},
 	'/(explore)/(networks)/network/[network]/validator/[validatorId]/timestamp/[timestampMs]/[source]': {

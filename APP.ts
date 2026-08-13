@@ -54090,9 +54090,8 @@ export const schema = {
 				},
 			})({
 				"$validator": { label: "Validator", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.SolanaValidator },
-				"slot": { label: "Slot", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeBigInt" },
 				"source": { label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"timestampMs": { label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+				"timestampMs": { label: "Timestamp", description: "The retrieval time in Unix milliseconds. Solana getVoteAccounts does not expose a bank-slot context.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
 				"nodePubkey": { label: "Node public key", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "SolanaPubkey", defaultSources: [Source.Solana_JsonRpc] },
 				"activatedStakeLamports": { label: "Activated stake", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Solana_JsonRpc] },
 				"commission": { label: "Commission", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Solana_JsonRpc] },
@@ -54102,11 +54101,11 @@ export const schema = {
 				"epochCredits": { label: "Epoch credits", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "unknown", defaultSources: [Source.Solana_JsonRpc] },
 			})({
 				selectors: {
-					"ValidatorSlotSource": ["$validator", "slot", "source"],
+					"ValidatorTimestampMsSource": ["$validator", "timestampMs", "source"],
 				},
 				views: {
 					singular: {
-						summary: { title: [{ field: "slot", format: "number" }], value: ["delinquent"], HeadingAfter: [{ field: "timestampMs", format: "timestamp" }] },
+						summary: { title: [{ field: "timestampMs", format: "timestamp" }], value: ["delinquent"] },
 					},
 					plural: { component: "SolanaValidator_TimestampsView", },
 				},
@@ -79230,15 +79229,6 @@ export const routes = defineRoutes(schema)({
 																						page: {}
 																					}
 																				},
-																				[EntityType.SolanaValidator_Timestamp]: {
-																					"ValidatorSlotSource": {
-																						when: { path: ["namespace"], is: "Solana" },
-																						projection: { entityType: EntityType.Network, facetPath: ["Solana"] },
-																						params: { "source": ["source"] },
-																						derivations: { "slot": { kind: "param", name: "slot" } },
-																						page: {},
-																					},
-																				}
 																			},
 																		}
 																	}
@@ -79259,6 +79249,15 @@ export const routes = defineRoutes(schema)({
 																						params: { "source": ["source"] },
 																						derivations: { "timestampMs": { kind: "param", name: "timestampMs" } },
 																						page: {},
+																					},
+																				},
+																				[EntityType.SolanaValidator_Timestamp]: {
+																					"ValidatorTimestampMsSource": {
+																						when: { path: ["namespace"], is: "Solana" },
+																						projection: { entityType: EntityType.Network, facetPath: ["Solana"] },
+																						params: { "source": ["source"] },
+																						derivations: { "timestampMs": { kind: "param", name: "timestampMs" } },
+																						page: false,
 																					},
 																				}
 																			}

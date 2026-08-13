@@ -47,6 +47,7 @@ const {
 	getProgramInfo: vi.fn(),
 	getTokenAccountsByOwner: vi.fn(),
 	getVoteAccounts: vi.fn().mockResolvedValue({
+		observedAtMs: 1_784_678_400_000,
 		current: [{
 			activatedStake: 1_000,
 			commission: 5,
@@ -273,9 +274,11 @@ describe('Solana JSON-RPC network state lists', () => {
 		))
 		if (resolver == null) throw new Error('Solana validator resolver is missing')
 
+		getSlot.mockClear()
 		const validators = resolver.projections.Solana.$$validators(
 			await resolver.resolve['Caip2'].resolve(networkSelector, context)
 		)
+		expect(getSlot).not.toHaveBeenCalled()
 		expect(validators).toHaveLength(1)
 		expect(Object.keys(validators[0])).toEqual([
 			EntityMetaKey.Selector,
@@ -298,9 +301,20 @@ describe('Solana JSON-RPC network state lists', () => {
 		const timestampFields = validators[0][EntityMetaKey.Fields][
 			entityFieldAddressKey(EntityType.SolanaValidator, [], '$$timestamps')
 		][0][EntityMetaKey.Fields]
+		expect(validators[0][EntityMetaKey.Fields][
+			entityFieldAddressKey(EntityType.SolanaValidator, [], '$$timestamps')
+		][0][EntityMetaKey.Selector]).toEqual({
+			$validator: {
+				$network: networkSelector,
+				votePubkey: 'vote-current',
+			},
+			timestampMs: 1_784_678_400_000,
+			source: Source.Solana_JsonRpc,
+		})
 		expect(timestampFields).not.toHaveProperty(entityFieldAddressKey(EntityType.SolanaValidator_Timestamp, [], '$validator'))
-		expect(timestampFields).not.toHaveProperty(entityFieldAddressKey(EntityType.SolanaValidator_Timestamp, [], 'slot'))
+		expect(timestampFields).not.toHaveProperty(entityFieldAddressKey(EntityType.SolanaValidator_Timestamp, [], 'timestampMs'))
 		expect(timestampFields).not.toHaveProperty(entityFieldAddressKey(EntityType.SolanaValidator_Timestamp, [], 'source'))
+		expect(solanaJsonRpc.resolvers.some((candidate) => candidate.entityType === EntityType.SolanaValidator_Timestamp)).toBe(false)
 	})
 })
 

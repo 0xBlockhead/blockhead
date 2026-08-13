@@ -317,13 +317,13 @@ const solanaAccountTimestampSnapshot = (
 const solanaValidatorTimestampSnapshot = (
 	validatorId: SolanaValidatorSelector,
 	voteAccount: SolanaRpcVoteAccount,
-	slot: bigint,
+	timestampMs: number,
 	delinquent: boolean
 ) => ({
 	$validator: {
 		[EntityMetaKey.Selector]: validatorId,
 	},
-	slot,
+	timestampMs,
 	source: Source.Solana_JsonRpc,
 	nodePubkey: voteAccount.nodePubkey,
 	activatedStakeLamports: BigInt(voteAccount.activatedStake),
@@ -356,13 +356,14 @@ const getSolanaVoteAccount = async (votePubkey: string) => {
 	return {
 		voteAccount,
 		delinquent: delinquent != null,
+		observedAtMs: voteAccounts.observedAtMs,
 	}
 }
 
 const solanaValidatorRows = (
 	network: SolanaNetworkSelector,
 	voteAccounts: SolanaRpcVoteAccounts,
-	slot: bigint
+	observedAtMs: number
 ) => (
 	[
 		...voteAccounts.current.map((voteAccount) => ({
@@ -382,7 +383,7 @@ const solanaValidatorRows = (
 			const timestamp = solanaValidatorTimestampSnapshot(
 				validator,
 				voteAccount,
-				slot,
+				observedAtMs,
 				delinquent
 			)
 			return {
@@ -392,7 +393,7 @@ const solanaValidatorRows = (
 						{
 							[EntityMetaKey.Selector]: {
 								$validator: validator,
-								slot,
+								timestampMs: observedAtMs,
 								source: Source.Solana_JsonRpc,
 							},
 							[EntityMetaKey.Fields]: {
@@ -1090,8 +1091,11 @@ export default {
 				NetworkVotePubkey: {
 					resolve: async ({ $network, votePubkey }) => {
 						assertSolanaMainnet($network)
-						const { getSlot } = await import('$/sources/Solana/JsonRpc/queries.ts')
-						await getSolanaVoteAccount(votePubkey)
+						const {
+							voteAccount,
+							delinquent,
+							observedAtMs,
+						} = await getSolanaVoteAccount(votePubkey)
 						return {
 							$$timestamps: [
 								{
@@ -1100,8 +1104,19 @@ export default {
 											$network,
 											votePubkey,
 										},
-										slot: BigInt(await getSlot()),
+										timestampMs: observedAtMs,
 										source: Source.Solana_JsonRpc,
+									},
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.SolanaValidator_Timestamp, [], 'nodePubkey')]: voteAccount.nodePubkey,
+										[entityFieldAddressKey(EntityType.SolanaValidator_Timestamp, [], 'activatedStakeLamports')]: BigInt(voteAccount.activatedStake),
+										[entityFieldAddressKey(EntityType.SolanaValidator_Timestamp, [], 'commission')]: voteAccount.commission,
+										[entityFieldAddressKey(EntityType.SolanaValidator_Timestamp, [], 'delinquent')]: delinquent,
+										[entityFieldAddressKey(EntityType.SolanaValidator_Timestamp, [], 'lastVoteSlot')]: BigInt(voteAccount.lastVote),
+										[entityFieldAddressKey(EntityType.SolanaValidator_Timestamp, [], 'rootSlot')]: BigInt(voteAccount.rootSlot),
+										...(voteAccount.epochCredits != null && {
+											[entityFieldAddressKey(EntityType.SolanaValidator_Timestamp, [], 'epochCredits')]: voteAccount.epochCredits,
+										}),
 									},
 								},
 							],
@@ -1111,39 +1126,6 @@ export default {
 			},
 		})({
 				$$timestamps: (validator) => validator.$$timestamps,
-			}),
-
-		defineResolver({
-			entityType: EntityType.SolanaValidator_Timestamp,
-			resolve: {
-				ValidatorSlotSource: {
-					resolve: async ({ $validator, slot, source }) => {
-						if (source !== Source.Solana_JsonRpc) throw new Error(`Solana_JsonRpc: unsupported source ${source}`)
-						assertSolanaMainnet($validator.$network)
-						const {
-							voteAccount,
-							delinquent,
-						} = await getSolanaVoteAccount($validator.votePubkey)
-						return solanaValidatorTimestampSnapshot(
-							$validator,
-							voteAccount,
-							slot,
-							delinquent
-						)
-					},
-				}
-			},
-		})({
-				$validator: (timestamp) => timestamp.$validator,
-				slot: (timestamp) => timestamp.slot,
-				source: (timestamp) => timestamp.source,
-				nodePubkey: (timestamp) => timestamp.nodePubkey,
-				activatedStakeLamports: (timestamp) => timestamp.activatedStakeLamports,
-				commission: (timestamp) => timestamp.commission,
-				delinquent: (timestamp) => timestamp.delinquent,
-				lastVoteSlot: (timestamp) => timestamp.lastVoteSlot,
-				rootSlot: (timestamp) => timestamp.rootSlot,
-				epochCredits: (timestamp) => timestamp.epochCredits,
 			}),
 
 		defineResolver({
@@ -1241,11 +1223,12 @@ export default {
 				Caip2: {
 					resolve: async ({ caip2 }) => {
 						assertSolanaMainnet({ caip2 })
-						const { getSlot, getVoteAccounts } = await import('$/sources/Solana/JsonRpc/queries.ts')
+						const { getVoteAccounts } = await import('$/sources/Solana/JsonRpc/queries.ts')
+						const voteAccounts = await getVoteAccounts({})
 						return solanaValidatorRows(
 							{ caip2 },
-							await getVoteAccounts({}),
-							BigInt(await getSlot())
+							voteAccounts,
+							voteAccounts.observedAtMs
 						)
 					},
 				}
