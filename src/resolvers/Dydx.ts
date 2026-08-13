@@ -327,6 +327,18 @@ export const dydxChainNetworkResolver = defineResolver({
 			appliesTo: dydxNetworkApplicability,
 			resolve: async (entitySelector, context) => {
 				assertDydxMainnet(entitySelector.$network)
+				const marketOffset = (
+					context.providerContinuationToken == null ?
+						0
+					:
+						Number(context.providerContinuationToken)
+				)
+				if (
+					(context.providerContinuationToken != null && !/^(0|[1-9]\d*)$/.test(context.providerContinuationToken))
+					|| !Number.isSafeInteger(marketOffset)
+					|| marketOffset < 0
+				)
+					throw new Error('DydxIndexer_Rest: invalid markets continuation')
 				const {
 					getHeight,
 					getPerpetualMarkets,
@@ -340,10 +352,12 @@ export const dydxChainNetworkResolver = defineResolver({
 				])
 
 				const blockHeight = BigInt(heightObservation.value.height)
+				const markets = Object.values(marketsObservation.value.markets)
+					.sort((marketA, marketB) => marketA.ticker.localeCompare(marketB.ticker))
 				return {
-					markets: Object.values(marketsObservation.value.markets)
-						.slice(0, resolverContextRowLimit(context)),
-					marketCount: Object.keys(marketsObservation.value.markets).length,
+					markets: markets.slice(marketOffset, marketOffset + resolverContextRowLimit(context)),
+					marketCount: markets.length,
+					marketOffset,
 					blockHeight,
 					indexerHeight: blockHeight,
 					observedAtMs: parseTimestampMs(heightObservation.value.time, 'height time'),
@@ -365,6 +379,18 @@ export const dydxChainNetworkResolver = defineResolver({
 				trigger,
 			}) => {
 				assertDydxMainnet(parentEntitySelector.$network)
+				const marketOffset = (
+					trigger.providerContinuationToken == null ?
+						0
+					:
+						Number(trigger.providerContinuationToken)
+				)
+				if (
+					(trigger.providerContinuationToken != null && !/^(0|[1-9]\d*)$/.test(trigger.providerContinuationToken))
+					|| !Number.isSafeInteger(marketOffset)
+					|| marketOffset < 0
+				)
+					throw new Error('DydxIndexer_Rest: invalid markets continuation')
 				const { subscribeDydxIndexer } = await import('$/sources/Dydx/WebSocket/queries.ts')
 				const trackedMarketByTicker = new Map<string, DydxLiveMarket>()
 				const streamsAbortController = new AbortController()
@@ -481,7 +507,8 @@ export const dydxChainNetworkResolver = defineResolver({
 									const timestampMs = Date.now()
 									const observationsByTicker = new Map<string, Map<number, DydxLiveMarketObservation>>()
 									for (const [ticker, market] of Object.entries(message.contents.markets)
-										.slice(0, resolverContextRowLimit(trigger))) {
+										.sort(([tickerA], [tickerB]) => tickerA.localeCompare(tickerB))
+										.slice(marketOffset, marketOffset + resolverContextRowLimit(trigger))) {
 										trackedMarketByTicker.set(ticker, {
 											marketKind: market.marketType,
 										})
@@ -609,24 +636,40 @@ export const dydxChainNetworkResolver = defineResolver({
 		},
 	},
 })({
-	$$markets: (snapshot, network) => snapshot.markets.map((market) => {
-		const {
-			baseAsset,
-			quoteAsset,
-		} = assetsFromTicker(market.ticker)
+	$$markets: {
+		select: (snapshot, network) => snapshot.markets.map((market) => {
+			const {
+				baseAsset,
+				quoteAsset,
+			} = assetsFromTicker(market.ticker)
 
-		return {
-			[EntityMetaKey.Selector]: {
-				$network: network,
-				ticker: market.ticker,
-			},
-			[EntityMetaKey.Fields]: {
-				[entityFieldAddressKey(EntityType.DydxChainMarket, [], 'baseAsset')]: baseAsset,
-				[entityFieldAddressKey(EntityType.DydxChainMarket, [], 'quoteAsset')]: quoteAsset,
-				[entityFieldAddressKey(EntityType.DydxChainMarket, [], 'marketKind')]: market.marketType,
-			},
-		}
-	}),
+			return {
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					ticker: market.ticker,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.DydxChainMarket, [], 'baseAsset')]: baseAsset,
+					[entityFieldAddressKey(EntityType.DydxChainMarket, [], 'quoteAsset')]: quoteAsset,
+					[entityFieldAddressKey(EntityType.DydxChainMarket, [], 'marketKind')]: market.marketType,
+				},
+			}
+		}),
+		continuation: (snapshot) => (
+			snapshot.marketOffset + snapshot.markets.length >= snapshot.marketCount ?
+				{
+					operation: 'dydx-markets',
+					terminal: true,
+				}
+			:
+				{
+					operation: 'dydx-markets',
+					terminal: false,
+					token: String(snapshot.marketOffset + snapshot.markets.length),
+				}
+		),
+		resolveCount: (snapshot) => snapshot.marketCount,
+	},
 	$$timestamps: (snapshot, network) => [{
 		[EntityMetaKey.Selector]: {
 			$network: network,

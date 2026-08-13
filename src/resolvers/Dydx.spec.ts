@@ -345,7 +345,10 @@ describe('dYdX Indexer resolvers', () => {
 		expect(snapshot.marketCount).toBe(2)
 		expect(snapshot.blockHeight).toBe(12345678901234567890n)
 		expect(snapshot.observedAtMs).toBe(Date.parse(heightResponse.time))
-		expect(dydxChainNetworkResolver.projections.$$markets(snapshot, network)).toEqual([{
+		const marketProjection = dydxChainNetworkResolver.projections.$$markets
+		if (typeof marketProjection === 'function' || marketProjection.select == null || marketProjection.continuation == null)
+			throw new Error('dYdX market directory is missing pagination projection')
+		expect(marketProjection.select(snapshot, network)).toEqual([{
 			[EntityMetaKey.Selector]: {
 				$network: network,
 				ticker: 'BTC-USD',
@@ -356,6 +359,27 @@ describe('dYdX Indexer resolvers', () => {
 				[entityFieldAddressKey(EntityType.DydxChainMarket, [], 'marketKind')]: 'CROSS',
 			},
 		}])
+		expect(marketProjection.continuation(snapshot, network, context)).toEqual({
+			operation: 'dydx-markets',
+			terminal: false,
+			token: '1',
+		})
+		expect(marketProjection.resolveCount(snapshot, network, context)).toBe(2)
+
+		const finalMarketPage = await dydxChainNetworkResolver.resolve.Network.resolve(network, {
+			...context,
+			providerContinuationToken: '1',
+		})
+		expect(marketProjection.select(finalMarketPage, network)).toMatchObject([{
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				ticker: 'ETH-USD',
+			},
+		}])
+		expect(marketProjection.continuation(finalMarketPage, network, context)).toEqual({
+			operation: 'dydx-markets',
+			terminal: true,
+		})
 		expect(dydxChainNetworkResolver.projections.$$timestamps(snapshot, network)).toEqual([{
 			[EntityMetaKey.Selector]: {
 				$network: network,
@@ -372,6 +396,14 @@ describe('dYdX Indexer resolvers', () => {
 			expect.anything(),
 			'https://indexer.dydx.trade/v4/height'
 		)
+	})
+
+	it('rejects malformed dYdX market directory continuation before transport', async () => {
+		await expect(dydxChainNetworkResolver.resolve.Network.resolve(network, {
+			...context,
+			providerContinuationToken: '1.5',
+		})).rejects.toThrow('invalid markets continuation')
+		expect(sourceGetJson).not.toHaveBeenCalled()
 	})
 
 	it('publishes the bounded market snapshot, actual count, and exact upstream block height observation', async () => {
