@@ -22,6 +22,8 @@ export type TransmissionSession = {
 	'version'?: string
 	'peer-port'?: number
 	'download-dir'?: string
+	'bind-address-ipv4'?: string
+	'bind-address-ipv6'?: string
 }
 
 export type TransmissionSessionStats = {
@@ -86,6 +88,8 @@ const transmissionSessionWire = arktype({
 	'version?': 'string',
 	'peer-port?': nonNegativeInteger,
 	'download-dir?': 'string',
+	'bind-address-ipv4?': 'string',
+	'bind-address-ipv6?': 'string',
 }) satisfies Type<TransmissionSession>
 const transmissionSessionStatsWire = arktype({
 	'activeTorrentCount?': nonNegativeInteger,

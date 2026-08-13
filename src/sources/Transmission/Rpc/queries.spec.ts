@@ -109,6 +109,8 @@ describe('Transmission RPC reads', () => {
 				arguments: {
 					version: '4.0.6',
 					'peer-port': 51_413,
+					'bind-address-ipv4': '0.0.0.0',
+					'bind-address-ipv6': '::',
 				},
 			}))
 			.mockResolvedValueOnce(response({
@@ -125,6 +127,8 @@ describe('Transmission RPC reads', () => {
 		await expect(sessionGet(binding)).resolves.toMatchObject({
 			version: '4.0.6',
 			'peer-port': 51_413,
+			'bind-address-ipv4': '0.0.0.0',
+			'bind-address-ipv6': '::',
 		})
 		await expect(sessionStats(binding)).resolves.toMatchObject({
 			activeTorrentCount: 2,
