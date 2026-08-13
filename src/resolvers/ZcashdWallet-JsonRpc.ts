@@ -2,8 +2,14 @@ import {
 	defineResolver,
 	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
-import { EntityMetaKey } from '$/schema/$schema.ts'
+import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
+import {
+	entityFieldAddressKey,
+	EntityMetaKey,
+} from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { ZcashShieldedActionKind } from '$/schema/ZcashShieldedActionKind.ts'
+import { ZcashShieldedPoolKind } from '$/schema/ZcashShieldedPoolKind.ts'
 import { Source } from '$/sources/Source.ts'
 
 
@@ -20,6 +26,72 @@ const assertWallet = (requestedWalletId: string) => {
 const walletObservation = async () => {
 	const { getWalletObservation } = await import('$/sources/Zcashd/WalletJsonRpc/queries.ts')
 	return getWalletObservation()
+}
+
+const noteReference = (
+	note: Awaited<ReturnType<typeof import('$/sources/Zcashd/WalletJsonRpc/queries.ts')['getWalletNotes']>>[number]
+) => {
+	const pool = (
+		note.pool === 'sprout' ?
+			ZcashShieldedPoolKind.Sprout
+		: note.pool === 'sapling' ?
+			ZcashShieldedPoolKind.Sapling
+		:
+			ZcashShieldedPoolKind.Orchard
+	)
+	const actionKind = (
+		pool === ZcashShieldedPoolKind.Sprout ?
+			ZcashShieldedActionKind.JoinSplit
+		: pool === ZcashShieldedPoolKind.Sapling ?
+			ZcashShieldedActionKind.Output
+		:
+			ZcashShieldedActionKind.Action
+	)
+	const indexInTransaction = pool === ZcashShieldedPoolKind.Sprout ? note.jsindex : note.outindex
+	if (indexInTransaction == null)
+		throw new Error(`${Source.ZcashdWallet_JsonRpc}: note action coordinate is absent`)
+
+	const noteSelector = {
+		walletId,
+		pool,
+		noteCommitment: note.noteCommitment,
+	}
+	return {
+		[EntityMetaKey.Selector]: noteSelector,
+		[EntityMetaKey.Fields]: {
+			[entityFieldAddressKey(EntityType.BlockheadZcashNoteState, [], '$shieldedAction')]: {
+				[EntityMetaKey.Selector]: {
+					$transaction: {
+						$network: zcashNetwork,
+						txId: note.txid,
+					},
+					pool,
+					actionKind,
+					indexInTransaction,
+				},
+			},
+			[entityFieldAddressKey(EntityType.BlockheadZcashNoteState, [], 'valueZatoshis')]: note.valueZatoshis,
+			[entityFieldAddressKey(EntityType.BlockheadZcashNoteState, [], 'memo')]: note.memoStr ?? note.memo,
+			...(note.address != null && {
+				[entityFieldAddressKey(EntityType.BlockheadZcashNoteState, [], 'recipientAddress')]: note.address,
+			}),
+			[entityFieldAddressKey(EntityType.BlockheadZcashNoteState, [], 'receivedTransactionId')]: note.txid,
+			...(note.receivedAtHeight != null && {
+				[entityFieldAddressKey(EntityType.BlockheadZcashNoteState, [], 'receivedAtHeight')]: note.receivedAtHeight,
+			}),
+			[entityFieldAddressKey(EntityType.BlockheadZcashNoteState, [], '$$timestamps')]: [{
+				[EntityMetaKey.Selector]: {
+					$noteState: noteSelector,
+					timestampMs: note.observedAtMs,
+					source: Source.ZcashdWallet_JsonRpc,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.BlockheadZcashNoteState_Timestamp, [], 'spent')]: false,
+					[entityFieldAddressKey(EntityType.BlockheadZcashNoteState_Timestamp, [], 'confirmations')]: note.confirmations,
+				},
+			}],
+		},
+	}
 }
 
 export default {
@@ -53,6 +125,21 @@ export default {
 			walletId: (wallet) => wallet.walletId,
 			$network: (wallet) => wallet.$network,
 			$$timestamps: (wallet) => wallet.$$timestamps,
+		}),
+
+		defineResolver({
+			entityType: EntityType.BlockheadZcashWalletState,
+			resolve: {
+				WalletId: {
+					resolve: async ({ walletId: requestedWalletId }, context) => {
+						assertWallet(requestedWalletId)
+						const { getWalletNotes } = await import('$/sources/Zcashd/WalletJsonRpc/queries.ts')
+						return getWalletNotes(resolverContextRowLimit(context))
+					},
+				},
+			},
+		})({
+			$$notes: (notes) => notes.map(noteReference),
 		}),
 
 		defineResolver({
