@@ -13639,7 +13639,6 @@ export const schema = {
 				"source": { label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"state": { label: "state", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"expiryMs": { label: "expiry ms", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"paymentPreimage": { label: "payment preimage", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"subscriptionId": { label: "subscription ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 			})({
 				selectors: {
@@ -13655,7 +13654,7 @@ export const schema = {
 						content: {
 							dl: [
 								["$meltQuote", { field: "timestampMs", format: "timestamp" }, "source", "state"],
-								[{ field: "expiryMs", format: "timestamp" }, "paymentPreimage", "subscriptionId"],
+								[{ field: "expiryMs", format: "timestamp" }, "subscriptionId"],
 							],
 						},
 					},

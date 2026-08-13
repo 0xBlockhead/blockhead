@@ -376,7 +376,6 @@ it('projects an exact BOLT11 melt quote read without owning the mutation', async
 		source: Source.CashuMint_Rest,
 		state: 'PAID',
 		expiryMs: 1_700_000_000_000,
-		paymentPreimage: 'preimage',
 	})
 	expect(getMeltQuoteBolt11).toHaveBeenCalledTimes(2)
 	expect(getMeltQuoteBolt11).toHaveBeenCalledWith(

@@ -144,28 +144,6 @@
 				resource={
 					selection({
 						fields: {
-							paymentPreimage: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const paymentPreimage = entity.paymentPreimage}
-					{#if paymentPreimage != null}
-						<div>
-							<dt>payment preimage</dt>
-							<dd>
-								{paymentPreimage}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
 							subscriptionId: true,
 						},
 					})

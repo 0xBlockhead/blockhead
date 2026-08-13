@@ -319,9 +319,6 @@ export default {
 							source,
 							state: quote.state,
 							expiryMs: cashuMillisecondsFromSeconds(quote.expiry, 'melt quote expiry'),
-							...(quote.payment_preimage != null && {
-								paymentPreimage: quote.payment_preimage,
-							}),
 						}
 					},
 				},
@@ -332,7 +329,6 @@ export default {
 			source: (snapshot) => snapshot.source,
 			state: (snapshot) => snapshot.state,
 			expiryMs: (snapshot) => snapshot.expiryMs,
-			paymentPreimage: (snapshot) => snapshot.paymentPreimage,
 		}),
 
 		defineResolver({
