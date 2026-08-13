@@ -111,8 +111,10 @@ import { schema } from '$/schema/index.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { EvmAddress } from '$/schema/ZeroExHex.ts'
 import { Source } from '$/sources/Source.ts'
-import sourceProviders, { sourceBindingsBySource } from '$/sources/$sourceProviders.ts'
-import { SourceEndpointKind, sourceBindingId } from '$/sources/SourceBinding.ts'
+import sourceProviders, {
+	sourceBindingIdsBySource,
+	sourceBindingsBySource,
+} from '$/sources/$sourceProviders.ts'
 import type { Entity } from '$/schema/$schema.ts'
 import {
 	precompilesByChainId,
@@ -126,8 +128,8 @@ const blockheadSources = sourceProviders.flatMap(({ provider, sources }) => (
 		const bindings = sourceBindingsBySource[source]
 		const endpointUrls = [...new Set(bindings.flatMap(({ endpoints }) => (
 			endpoints.flatMap(({ endpointKind, locator }) => (
-				endpointKind === SourceEndpointKind.HttpUrl
-				|| endpointKind === SourceEndpointKind.WebSocketUrl ?
+				endpointKind === 'HttpUrl'
+				|| endpointKind === 'WebSocketUrl' ?
 					[locator]
 				:
 					[]
@@ -156,14 +158,14 @@ const blockheadSources = sourceProviders.flatMap(({ provider, sources }) => (
 			)))].join(', '),
 			proxyMode: [...new Set(bindings.map(({ delivery }) => delivery))].join(', '),
 			environmentScope: [...new Set(bindings.map(({ target }) => target.kind))].join(', '),
-			endpoints: bindings.flatMap((binding) => (
+			endpoints: bindings.flatMap((binding, bindingIndex) => (
 				binding.endpoints.flatMap((endpoint, endpointIndex) => (
 					(
-						endpoint.endpointKind === SourceEndpointKind.HttpUrl
-						|| endpoint.endpointKind === SourceEndpointKind.WebSocketUrl
+						endpoint.endpointKind === 'HttpUrl'
+						|| endpoint.endpointKind === 'WebSocketUrl'
 					) && !endpoint.locator.includes('{') && URL.canParse(endpoint.locator) ?
 						[{
-							bindingId: sourceBindingId(binding),
+							bindingId: sourceBindingIdsBySource[source][bindingIndex],
 							endpointIndex,
 							endpointUrl: endpoint.locator,
 							targetKind: binding.target.kind,
