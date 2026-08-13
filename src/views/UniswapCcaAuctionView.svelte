@@ -40,6 +40,7 @@
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
+	import UniswapCcaAuction_EvmBlocksView from '$/views/UniswapCcaAuction_EvmBlocksView.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
 	import EvmContractView from '$/views/EvmContractView.svelte'
 	import EvmCoinInstanceView from '$/views/EvmCoinInstanceView.svelte'
@@ -333,5 +334,28 @@
 				</dd>
 			</div>
 		</dl>
+	{/snippet}
+
+	{#snippet Details()}
+		{@const blocksResource = selection
+			.$$blocks({
+				sources: [
+					Source.UniswapContracts_Evm,
+				],
+			})}
+		<ResourceBoundary
+			resource={blocksResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<UniswapCcaAuction_EvmBlocksView
+						selection={blocksResource}
+						countResource={blocksResource.count}
+						title='Clearing state'
+						id='blocks'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

@@ -984,6 +984,16 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
+	'/(assets)/uniswap-cca/auction/[chainId]/[auctionAddress]/block/[blockNumber]': {
+		routeId: '/(assets)/uniswap-cca/auction/[chainId=eip155ChainId]/[auctionAddress=evmAddress]/(uniswapCcaAuction)/block/[blockNumber=nonNegativeBigInt]',
+		mappings: [
+			{
+				id: 'UniswapCcaAuction_EvmBlock.AuctionBlockNumber',
+				probeAtomPrefixes: ['/uniswap-cca/auction/[chainId]/[auctionAddress]/block/[blockNumber]:UniswapCcaAuction_EvmBlock.AuctionBlockNumber'],
+				probeCases: [[[0, '1', ['blockNumber', 'chainId', 'auctionAddress']]]],
+			},
+		],
+	},
 	'/(assets)/uniswap-v3/pool/[chainId]/[poolAddress]': {
 		routeId: '/(assets)/uniswap-v3/pool/[chainId=eip155ChainId]/[poolAddress=evmAddress]',
 		mappings: [

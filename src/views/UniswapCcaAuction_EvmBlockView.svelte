@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -16,11 +17,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.UniswapCcaAuction_EvmBlock>, 'prefetched'> = $props()
 
+	const auction = $derived(selection.entitySelector.$auction)
 	const uniswapCcaAuctionEvmBlock = $derived(selection({
 		fields: {
 			schedulePhase: true,
@@ -41,6 +44,24 @@
 	entityType={EntityType.UniswapCcaAuction_EvmBlock}
 	entitySelector={selection.entitySelector}
 	title={title ?? String(selection.entitySelector.blockNumber)}
+	href={
+		href === undefined ?
+			(
+				'caip2' in auction.$network ?
+					resolve(
+						'/(assets)/uniswap-cca/auction/[chainId=eip155ChainId]/[auctionAddress=evmAddress]/(uniswapCcaAuction)/block/[blockNumber=nonNegativeBigInt]',
+						{
+							chainId: auction.$network.caip2.reference,
+							auctionAddress: auction.auctionAddress,
+							blockNumber: String(selection.entitySelector.blockNumber),
+						}
+					)
+				:
+					undefined
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
