@@ -853,6 +853,7 @@ export enum EntityType {
 	BalancerGauge = "BalancerGauge",
 	BalancerPool = "BalancerPool",
 	BalancerPoolAprItem = "BalancerPoolAprItem",
+	BalancerPoolEvent = "BalancerPoolEvent",
 	BalancerPoolToken = "BalancerPoolToken",
 	BalancerVeBalBalance = "BalancerVeBalBalance",
 	BeaconAttestation = "BeaconAttestation",
@@ -10333,6 +10334,7 @@ export const schema = {
 				"$gauge": { label: "Gauge", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.BalancerGauge, defaultSources: [Source.Balancer_Rest] },
 				"$$tokens": { label: "Reserve tokens", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BalancerPoolToken, defaultSources: [Source.Balancer_Rest] },
 				"$$aprItems": { label: "APR items", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BalancerPoolAprItem, defaultSources: [Source.Balancer_Rest] },
+				"$$events": { label: "Activity", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BalancerPoolEvent, defaultSources: [Source.Balancer_Rest] },
 			})({
 				selectors: {
 					"NetworkPoolId": ["$network", "poolId"],
@@ -10358,6 +10360,7 @@ export const schema = {
 						lists: [
 							{ field: "$$tokens", component: "BalancerPoolTokensView", label: "Reserve tokens", emptyText: "No source-reported reserve tokens." },
 							{ field: "$$aprItems", component: "BalancerPoolAprItemsView", label: "APR items", emptyText: "No APR items." },
+							{ field: "$$events", component: "BalancerPoolEventsView", label: "Activity", emptyText: "No source-reported pool activity." },
 						],
 					},
 					plural: { component: "BalancerPoolsView", title: "Balancer pools" },
@@ -10398,7 +10401,46 @@ export const schema = {
 					},
 					plural: { component: "BalancerPoolAprItemsView", title: "Balancer pool APR items" },
 				},
-				}),
+			}),
+
+			entity({
+				entityType: EntityType.BalancerPoolEvent,
+				labels: {
+					singular: "Balancer pool event",
+					plural: "Balancer pool events",
+				},
+				description: "A source-indexed swap, join, or exit event in a Balancer pool lifecycle.",
+			})({
+				"$pool": { label: "Pool", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.BalancerPool },
+				"eventId": { label: "Event ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "opaqueRouteIdentifier" },
+				"eventType": { label: "Event type", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string", defaultSources: [Source.Balancer_Rest] },
+				"$transaction": { label: "Transaction", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EvmTransaction, defaultSources: [Source.Balancer_Rest] },
+				"$user": { label: "User", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EvmNetworkAccount, defaultSources: [Source.Balancer_Rest] },
+				"$block": { label: "Block", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EvmBlock, defaultSources: [Source.Balancer_Rest] },
+				"occurredAtMs": { label: "Occurred at", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger", defaultSources: [Source.Balancer_Rest] },
+				"valueUsd": { label: "Value (USD)", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number", defaultSources: [Source.Balancer_Rest] },
+			})({
+				selectors: {
+					"PoolEventId": ["$pool", "eventId"],
+				},
+				views: {
+					singular: {
+						query: { sources: [Source.Balancer_Rest] },
+						summary: {
+							title: ["eventType"],
+							value: ["valueUsd"],
+							HeadingAfter: ["$pool"],
+						},
+						content: {
+							dl: [
+								["$pool", "eventType", { field: "eventId", format: "truncated" }],
+								["$transaction", "$user", "$block", { field: "occurredAtMs", format: "timestamp" }, "valueUsd"],
+							],
+						},
+					},
+					plural: { component: "BalancerPoolEventsView", title: "Balancer pool activity" },
+				},
+			}),
 
 			entity({
 				entityType: EntityType.BalancerPoolToken,
@@ -82569,6 +82611,20 @@ export const routes = defineRoutes(schema)({
 																					},
 																				}
 																			}
+																		}
+																	}
+																}
+															},
+														},
+														"event": {
+															children: {
+																"[eventId]": {
+																	selectors: {
+																		[EntityType.BalancerPoolEvent]: {
+																			"PoolEventId": {
+																				params: { "eventId": ["eventId"] },
+																				page: {},
+																			},
 																		}
 																	}
 																}

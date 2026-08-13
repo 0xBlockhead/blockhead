@@ -47,6 +47,7 @@
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import BalancerPoolTokensView from '$/views/BalancerPoolTokensView.svelte'
 	import BalancerPoolAprItemsView from '$/views/BalancerPoolAprItemsView.svelte'
+	import BalancerPoolEventsView from '$/views/BalancerPoolEventsView.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
 	import BalancerGaugeView from '$/views/BalancerGaugeView.svelte'
 </script>
@@ -336,6 +337,21 @@
 						countResource={aprItemsResource.count}
 						title='APR items'
 						id='apr-items'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+		{@const eventsResource = selection.$$events}
+		<ResourceBoundary
+			resource={eventsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<BalancerPoolEventsView
+						selection={eventsResource}
+						countResource={eventsResource.count}
+						title='Activity'
+						id='events'
 					/>
 				{/if}
 			{/snippet}

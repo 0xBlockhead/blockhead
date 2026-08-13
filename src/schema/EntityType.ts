@@ -154,6 +154,7 @@ export enum EntityType {
 	BalancerGauge = 'BalancerGauge',
 	BalancerPool = 'BalancerPool',
 	BalancerPoolAprItem = 'BalancerPoolAprItem',
+	BalancerPoolEvent = 'BalancerPoolEvent',
 	BalancerPoolToken = 'BalancerPoolToken',
 	BalancerVeBalBalance = 'BalancerVeBalBalance',
 	BeaconAttestation = 'BeaconAttestation',

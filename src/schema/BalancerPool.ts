@@ -108,6 +108,13 @@ export default entity({
 			Source.Balancer_Rest,
 		],
 	},
+	$$events: {
+		entityType: EntityType.BalancerPoolEvent,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Balancer_Rest,
+		],
+	},
 })({
 	selectors: {
 		NetworkPoolId: [

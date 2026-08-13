@@ -15,12 +15,14 @@ import { schema } from '$/schema/index.ts'
 import type {
 	BalancerAccountPoolBalance,
 	BalancerPool,
+	BalancerPoolEvent,
 	BalancerVotingGauge,
 } from '$/sources/Balancer/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 type BalancerPoolId = EntitySelector<typeof schema, EntityType.BalancerPool>
+type BalancerPoolEventId = EntitySelector<typeof schema, EntityType.BalancerPoolEvent>
 type BalancerGaugeId = EntitySelector<typeof schema, EntityType.BalancerGauge>
 type BalancerAccountPoolBalanceId = EntitySelector<typeof schema, EntityType.BalancerAccountPoolBalance>
 type BalancerVeBalBalanceId = EntitySelector<typeof schema, EntityType.BalancerVeBalBalance>
@@ -129,6 +131,39 @@ const mapBalancerPoolSnapshot = (
 	}
 }
 
+const mapBalancerPoolEventSnapshot = (
+	pool: BalancerPoolId,
+	event: BalancerPoolEvent
+) => ({
+	$pool: {
+		[EntityMetaKey.Selector]: pool,
+	},
+	eventId: event.id,
+	eventType: event.type,
+	$transaction: {
+		[EntityMetaKey.Selector]: {
+			$network: pool.$network,
+			txHash: event.txHash,
+		},
+	},
+	$user: {
+		[EntityMetaKey.Selector]: {
+			$network: pool.$network,
+			$actor: {
+				address: event.userAddress,
+			},
+		},
+	},
+	$block: {
+		[EntityMetaKey.Selector]: {
+			$network: pool.$network,
+			blockNumber: BigInt(event.blockNumber),
+		},
+	},
+	occurredAtMs: event.blockTimestampMs,
+	valueUsd: event.valueUsd,
+})
+
 const mapVotingGaugeSnapshot = (
 	gauge: BalancerVotingGauge,
 	gaugeVersion?: number
@@ -209,20 +244,41 @@ export default {
 					resolve: async ({
 						$network,
 						poolId,
-					}: BalancerPoolId) => {
+					}: BalancerPoolId, context) => {
 						const chainId = eip155ChainId($network)
 						const { balancerChainByChainId } = await import('$/sources/Balancer/Rest/constants.ts')
 						if (balancerChainByChainId[chainId] == null)
 							throw new Error(`${Source.Balancer_Rest}: unsupported chain id ${String(chainId)}`)
 
-						const { getPool } = await import('$/sources/Balancer/Rest/queries.ts')
-						return mapBalancerPoolSnapshot(
-							$network,
-							await getPool({
+						const { balancerPoolEventListMaxLimit } = await import('$/sources/Balancer/Rest/constants.ts')
+						const {
+							getPool,
+							listPoolEvents,
+						} = await import('$/sources/Balancer/Rest/queries.ts')
+						const [
+							pool,
+							events,
+						] = await Promise.all([
+							getPool({
 								chainId,
 								poolId,
-							})
-						)
+							}),
+							listPoolEvents({
+								chainId,
+								poolId,
+								limit: Math.min(resolverContextRowLimit(context), balancerPoolEventListMaxLimit),
+							}),
+						])
+						return {
+							...mapBalancerPoolSnapshot(
+								$network,
+								pool
+							),
+							$$events: events.map((event) => mapBalancerPoolEventSnapshot({
+								$network,
+								poolId,
+							}, event)),
+						}
 					},
 				},
 			},
@@ -240,7 +296,45 @@ export default {
 			totalShares: (pool) => pool.totalShares,
 			$gauge: (pool) => pool.$gauge,
 			$$aprItems: (pool) => pool.$$aprItems,
+			$$events: (pool) => pool.$$events,
 			$$tokens: (pool) => pool.$$tokens,
+		}),
+
+		defineResolver({
+			entityType: EntityType.BalancerPoolEvent,
+			resolve: {
+				PoolEventId: {
+					resolve: async ({
+						$pool,
+						eventId,
+					}: BalancerPoolEventId) => {
+						const chainId = eip155ChainId($pool.$network)
+						const { balancerChainByChainId, balancerPoolEventListMaxLimit } = await import('$/sources/Balancer/Rest/constants.ts')
+						if (balancerChainByChainId[chainId] == null)
+							throw new Error(`${Source.Balancer_Rest}: unsupported chain id ${String(chainId)}`)
+
+						const { listPoolEvents } = await import('$/sources/Balancer/Rest/queries.ts')
+						const event = (await listPoolEvents({
+							chainId,
+							poolId: $pool.poolId,
+							limit: balancerPoolEventListMaxLimit,
+						})).find((candidate) => candidate.id === eventId)
+						if (event == null)
+							throw new Error(`${Source.Balancer_Rest}: pool event not found ${eventId}`)
+
+						return mapBalancerPoolEventSnapshot($pool, event)
+					},
+				},
+			},
+		})({
+			$pool: (event) => event.$pool,
+			eventId: (event) => event.eventId,
+			eventType: (event) => event.eventType,
+			$transaction: (event) => event.$transaction,
+			$user: (event) => event.$user,
+			$block: (event) => event.$block,
+			occurredAtMs: (event) => event.occurredAtMs,
+			valueUsd: (event) => event.valueUsd,
 		}),
 
 		defineResolver({

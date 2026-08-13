@@ -6780,6 +6780,19 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
+	'/(explore)/(networks)/network/[network]/balancer-pool/[poolId]/event/[eventId]': {
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/balancer-pool/[poolId=stringSegment]/(balancerPool)/event/[eventId=stringSegment]',
+		parameterEncodingByName: {
+			eventId: 'Opaque',
+		},
+		mappings: [
+			{
+				id: 'BalancerPoolEvent.PoolEventId',
+				probeAtomPrefixes: ['/network/[network]/balancer-pool/[poolId]/event/[eventId]:BalancerPoolEvent.PoolEventId'],
+				probeCases: [[[0, '1', ['eventId', 'poolId', 'network']]]],
+			},
+		],
+	},
 	'/(explore)/(networks)/network/[network]/balancer-pool/[poolId]/token/[index]': {
 		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/balancer-pool/[poolId=stringSegment]/(balancerPool)/token/[index=nonNegativeInteger]',
 		mappings: [

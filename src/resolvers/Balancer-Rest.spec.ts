@@ -47,6 +47,9 @@ const balancerPoolResolver = balancerRest.resolvers.find((resolver) => (
 const balancerPoolTokenResolver = balancerRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.BalancerPoolToken
 ))
+const balancerPoolEventResolver = balancerRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.BalancerPoolEvent
+))
 
 const networkBalancerPoolsResolver = balancerRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.Network
@@ -60,6 +63,7 @@ const evmNetworkAccountResolver = balancerRest.resolvers.find((resolver) => (
 ))
 
 const weightedV2PoolId = '0x3de27efa2f1aa663ae5d458857e731c129069f29000200000000000000000588'
+const weightedV2PoolEventId = '0xd80ee5aeb80511d3a4a96503b44ccfa3f2af0c113daa42691bfc0f1baf43961dd4000000'
 
 const weightedV2Pool = {
 	id: weightedV2PoolId,
@@ -92,6 +96,18 @@ const weightedV2Pool = {
 	},
 } as const
 
+const weightedV2PoolEvent = {
+	id: weightedV2PoolEventId,
+	type: 'SWAP',
+	chain: 'MAINNET',
+	poolId: weightedV2PoolId,
+	valueUSD: 6.26,
+	blockNumber: 25698468,
+	blockTimestamp: 1786050083,
+	tx: '0xd80ee5aeb80511d3a4a96503b44ccfa3f2af0c113daa42691bfc0f1baf43961d',
+	userAddress: '0xa99b2d5cc6847849f9b9c051474964acf1cac543',
+} as const
+
 describe('Balancer Rest resolver module', () => {
 	beforeEach(() => {
 		graphql.mockReset()
@@ -101,6 +117,7 @@ describe('Balancer Rest resolver module', () => {
 		expect(balancerRest.source).toBe(Source.Balancer_Rest)
 		expect(balancerPoolResolver).toBeDefined()
 		expect(balancerPoolTokenResolver).toBeDefined()
+		expect(balancerPoolEventResolver).toBeDefined()
 	})
 
 	it('rejects non-eip155 networks before transport', async () => {
@@ -161,6 +178,9 @@ describe('Balancer Rest resolver module', () => {
 		graphql.mockResolvedValueOnce({
 			poolGetPool: weightedV2Pool,
 		})
+		graphql.mockResolvedValueOnce({
+			poolEvents: [],
+		})
 
 		await expect(
 			balancerPoolResolver.resolve.NetworkPoolId.resolve({
@@ -182,6 +202,7 @@ describe('Balancer Rest resolver module', () => {
 			totalLiquidity: '11356688.22',
 			totalShares: '78351.308448723247365152',
 			$$aprItems: [],
+			$$events: [],
 			$$tokens: expect.arrayContaining([
 				expect.objectContaining({
 					[EntityMetaKey.Selector]: {
@@ -193,6 +214,96 @@ describe('Balancer Rest resolver module', () => {
 					},
 				}),
 			]),
+		})
+	})
+
+	it('projects source-indexed pool events with transaction, user, block, and event-time ownership', async () => {
+		if (balancerPoolResolver == null)
+			throw new Error('missing BalancerPool resolver')
+
+		graphql
+			.mockResolvedValueOnce({
+				poolGetPool: weightedV2Pool,
+			})
+			.mockResolvedValueOnce({
+				poolEvents: [
+					weightedV2PoolEvent,
+				],
+			})
+
+		const snapshot = await balancerPoolResolver.resolve.NetworkPoolId.resolve({
+			$network: ethereumNetwork,
+			poolId: weightedV2PoolId,
+		}, context)
+		expect(balancerPoolResolver.projections.$$events(snapshot)).toEqual([
+			{
+				$pool: {
+					[EntityMetaKey.Selector]: {
+						$network: ethereumNetwork,
+						poolId: weightedV2PoolId,
+					},
+				},
+				eventId: weightedV2PoolEventId,
+				eventType: 'SWAP',
+				$transaction: {
+					[EntityMetaKey.Selector]: {
+						$network: ethereumNetwork,
+						txHash: weightedV2PoolEvent.tx,
+					},
+				},
+				$user: {
+					[EntityMetaKey.Selector]: {
+						$network: ethereumNetwork,
+						$actor: {
+							address: weightedV2PoolEvent.userAddress,
+						},
+					},
+				},
+				$block: {
+					[EntityMetaKey.Selector]: {
+						$network: ethereumNetwork,
+						blockNumber: 25698468n,
+					},
+				},
+				occurredAtMs: 1786050083000,
+				valueUsd: 6.26,
+			},
+		])
+		expect(graphql.mock.calls[1]?.[0].variables).toEqual({
+			chain: 'MAINNET',
+			first: 16,
+			poolIdIn: [weightedV2PoolId],
+		})
+	})
+
+	it('resolves an event route from the pool-scoped source activity window', async () => {
+		if (balancerPoolEventResolver == null)
+			throw new Error('missing BalancerPoolEvent resolver')
+
+		graphql.mockResolvedValueOnce({
+			poolEvents: [
+				weightedV2PoolEvent,
+			],
+		})
+
+		const event = await balancerPoolEventResolver.resolve.PoolEventId.resolve({
+			$pool: {
+				$network: ethereumNetwork,
+				poolId: weightedV2PoolId,
+			},
+			eventId: weightedV2PoolEventId,
+		}, context)
+		expect(balancerPoolEventResolver.projections.$transaction(event)).toEqual({
+			[EntityMetaKey.Selector]: {
+				$network: ethereumNetwork,
+				txHash: weightedV2PoolEvent.tx,
+			},
+		})
+		expect(balancerPoolEventResolver.projections.occurredAtMs(event)).toBe(1786050083000)
+		expect(graphql.mock.calls[0]?.[0].variables).toEqual({
+			chain: 'MAINNET',
+			first: 100,
+			poolIdIn: [weightedV2PoolId],
 		})
 	})
 
