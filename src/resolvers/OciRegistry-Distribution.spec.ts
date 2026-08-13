@@ -149,6 +149,34 @@ it('resolves an indexed child-manifest descriptor and rejects absent indices', a
 	}, context)).rejects.toThrow('descriptor not found')
 })
 
+it('withholds credentialed and signed descriptor URLs from the visible artifact view', async () => {
+	getManifest.mockResolvedValue({
+		schemaVersion: 2,
+		manifests: [{
+			mediaType: 'application/vnd.oci.image.manifest.v1+json',
+			digest,
+			size: 42,
+			urls: [
+				'https://registry.example/manifest',
+				'https://reader:token@registry.example/manifest',
+				'https://registry.example/manifest?signature=secret',
+				'file:///private/manifest',
+				'not-a-url',
+			],
+		}],
+	})
+
+	const descriptor = await descriptorResolver.resolve.ManifestKindIndex.resolve({
+		$manifest: selector,
+		descriptorKind: 'manifest',
+		descriptorIndex: 0,
+	}, context)
+
+	expect(descriptorResolver.projections.urls(descriptor)).toEqual([
+		'https://registry.example/manifest',
+	])
+})
+
 it('discovers typed attestation and signature referrers and resolves their native descriptor route', async () => {
 	const signatureDigest = `sha256:${'b'.repeat(64)}`
 	const digestSelector = {

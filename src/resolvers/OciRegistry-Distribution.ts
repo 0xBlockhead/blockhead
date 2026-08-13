@@ -29,7 +29,20 @@ const descriptorReference = (
 		[entityFieldAddressKey(EntityType.OciDescriptor, [], 'mediaType')]: descriptor.mediaType,
 		[entityFieldAddressKey(EntityType.OciDescriptor, [], 'digest')]: descriptor.digest,
 		[entityFieldAddressKey(EntityType.OciDescriptor, [], 'sizeBytes')]: descriptor.size,
-		[entityFieldAddressKey(EntityType.OciDescriptor, [], 'urls')]: descriptor.urls ?? [],
+		[entityFieldAddressKey(EntityType.OciDescriptor, [], 'urls')]: (descriptor.urls ?? []).flatMap((value) => {
+			try {
+				const url = new URL(value)
+				return (
+					(url.protocol === 'http:' || url.protocol === 'https:')
+					&& url.username === ''
+					&& url.password === ''
+					&& url.search === ''
+					&& url.hash === ''
+				) ? [url.href] : []
+			} catch {
+				return []
+			}
+		}),
 		...(descriptor.artifactType != null && {
 			[entityFieldAddressKey(EntityType.OciDescriptor, [], 'artifactType')]: descriptor.artifactType,
 		}),
