@@ -48,6 +48,16 @@ const relayHostsForChainId = async (chainId: number) => {
 	return hosts
 }
 
+const executionBlockReference = <_Network>(
+	$network: _Network,
+	blockHash: string
+) => ({
+	[EntityMetaKey.Selector]: {
+		$network,
+		hash: blockHash,
+	},
+})
+
 const deliveredPayloadReference = <_Network>(
 	$network: _Network,
 	relayHost: string,
@@ -73,12 +83,7 @@ const deliveredPayloadReference = <_Network>(
 			},
 			[entityFieldAddressKey(EntityType.MevRelay_ProposerPayloadDelivered, [], 'value')]: parsePayloadValueWei(payload),
 			[entityFieldAddressKey(EntityType.MevRelay_ProposerPayloadDelivered, [], 'blockNumber')]: parsePayloadBlockNumber(payload),
-			[entityFieldAddressKey(EntityType.MevRelay_ProposerPayloadDelivered, [], '$executionBlock')]: {
-				[EntityMetaKey.Selector]: {
-					$network,
-					blockNumber: parsePayloadBlockNumber(payload),
-				},
-			},
+			[entityFieldAddressKey(EntityType.MevRelay_ProposerPayloadDelivered, [], '$executionBlock')]: executionBlockReference($network, blockHash),
 		},
 	}
 }
@@ -117,12 +122,6 @@ const receivedBidReference = <_Network>(
 			[entityFieldAddressKey(EntityType.MevRelay_BuilderBlockReceived, [], 'gasUsed')]: BigInt(payload.gas_used),
 			[entityFieldAddressKey(EntityType.MevRelay_BuilderBlockReceived, [], 'transactionCount')]: parsePayloadSafeInteger('transaction count', payload.num_tx),
 			[entityFieldAddressKey(EntityType.MevRelay_BuilderBlockReceived, [], 'blockNumber')]: blockNumber,
-			[entityFieldAddressKey(EntityType.MevRelay_BuilderBlockReceived, [], '$executionBlock')]: {
-				[EntityMetaKey.Selector]: {
-					$network,
-					blockNumber,
-				},
-			},
 			...(payload.timestamp_ms != null && {
 				[entityFieldAddressKey(EntityType.MevRelay_BuilderBlockReceived, [], 'receivedAtMs')]: parsePayloadSafeInteger('receipt timestamp', payload.timestamp_ms),
 			}),
@@ -201,12 +200,7 @@ export default {
 							},
 							value: valueWei,
 							blockNumber,
-							$executionBlock: {
-								[EntityMetaKey.Selector]: {
-									$network: entitySelector.$network,
-									blockNumber,
-								},
-							},
+							$executionBlock: executionBlockReference(entitySelector.$network, wantHash),
 						}
 					},
 				},

@@ -147,7 +147,7 @@ describe('MevRelay REST resolvers', () => {
 		expect(payloadResolver.projections.$executionBlock(snapshot)).toEqual({
 			[EntityMetaKey.Selector]: {
 				$network: network,
-				blockNumber: 25680883n,
+				hash: bidTrace.block_hash,
 			},
 		})
 		expect(payloadResolver.projections.$builder(snapshot)).toEqual({
@@ -180,13 +180,9 @@ describe('MevRelay REST resolvers', () => {
 			[entityFieldAddressKey(EntityType.MevRelay_BuilderBlockReceived, [], 'transactionCount')]: 483,
 			[entityFieldAddressKey(EntityType.MevRelay_BuilderBlockReceived, [], 'receivedAtMs')]: 1786068803855,
 			[entityFieldAddressKey(EntityType.MevRelay_BuilderBlockReceived, [], 'optimisticSubmission')]: true,
-			[entityFieldAddressKey(EntityType.MevRelay_BuilderBlockReceived, [], '$executionBlock')]: {
-				[EntityMetaKey.Selector]: {
-					$network: network,
-					blockNumber: 25680883n,
-				},
-			},
 		})
+		expect(snapshot[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.MevRelay_BuilderBlockReceived, [], '$executionBlock')]).toBeUndefined()
+		expect(receivedBidResolver.projections.$executionBlock(snapshot)).toBeUndefined()
 	})
 
 	it('connects builder and network received-bid journeys to source-filtered relay reads', async () => {
@@ -376,6 +372,12 @@ describe('MevRelay REST resolvers', () => {
 					[EntityMetaKey.Selector]: {
 						$network: network,
 						builderPubkey: bidTrace.builder_pubkey,
+					},
+				},
+				[entityFieldAddressKey(EntityType.MevRelay_ProposerPayloadDelivered, [], '$executionBlock')]: {
+					[EntityMetaKey.Selector]: {
+						$network: network,
+						hash: bidTrace.block_hash,
 					},
 				},
 			},
