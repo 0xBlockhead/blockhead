@@ -19763,6 +19763,11 @@ export const schema = {
 					],
 				},
 				views: {
+					singular: {
+						summary: { title: [{ field: 'hash', format: 'truncated' }], value: ['slot'], HeadingAfter: ['blockNo'] },
+						content: { dl: [['$network', { field: 'hash', format: 'truncated' }, 'slot', 'blockNo'], ['epoch', 'era', 'issuerVkey']] },
+						lists: [{ field: '$$transactions', component: 'CardanoTransactionsView', emptyText: 'No transactions found.' }],
+					},
 					plural: { component: "CardanoBlocksView", },
 				},
 			}),
@@ -56389,6 +56394,14 @@ export const schema = {
 					],
 				},
 				views: {
+					singular: {
+						summary: { title: [{ field: 'sequence', format: 'numberValue' }], value: [{ field: 'closeTimeMs', format: 'timestamp' }], HeadingAfter: ['hash'] },
+						content: { dl: [['$network', { field: 'sequence', format: 'numberValue' }, { field: 'hash', format: 'truncated' }], [{ field: 'closeTimeMs', format: 'timestamp' }, 'protocolVersion'], ['transactionCount', 'operationCount', 'successfulTransactionCount', 'failedTransactionCount']] },
+						lists: [
+							{ field: '$$transactions', component: 'StellarTransactionsView', emptyText: 'No transactions found.' },
+							{ field: '$$operations', component: 'StellarOperationsView', emptyText: 'No operations found.' },
+						],
+					},
 					plural: { component: "StellarLedgersView", },
 				},
 			}),

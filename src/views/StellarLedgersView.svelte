@@ -26,7 +26,17 @@
 	{...EntitiesListProps}
 	entityType={EntityType.StellarLedger}
 	bind:open
-	resource={selection()}
+	resource={
+		selection({
+			...{
+				fields: {
+					sequence: true,
+					closeTimeMs: true,
+					hash: true,
+				},
+			},
+		})
+	}
 >
 	{#snippet Item({ item: stellarLedger })}
 		{@const stellarLedgerSelector = stellarLedger[EntityMetaKey.Selector]}
@@ -47,6 +57,18 @@
 					}
 				)
 			}
-		/>
+		>
+			{#snippet Title()}
+				{stellarLedgerSelector.sequence}
+			{/snippet}
+
+			{#snippet Value()}
+				{stellarLedger.closeTimeMs ?? ''}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{stellarLedger.hash ?? ''}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

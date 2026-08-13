@@ -15,19 +15,28 @@
 	// State
 	let {
 		selection,
+		prefetched = {},
 		title,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: Omit<EntitySelectionViewProps<EntityType.CardanoBlock>, 'prefetched'> = $props()
+	}: EntitySelectionViewProps<EntityType.CardanoBlock> = $props()
 
 	const network = $derived(selection.entitySelector.$network)
+	const cardanoBlock = $derived(selection({
+		fields: {
+			hash: true,
+			slot: true,
+			blockNo: true,
+		},
+	}))
 
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
+	import CardanoTransactionsView from '$/views/CardanoTransactionsView.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
 </script>
 
@@ -35,7 +44,7 @@
 <EntityView
 	entityType={EntityType.CardanoBlock}
 	entitySelector={selection.entitySelector}
-	title={title ?? 'Cardano block'}
+	title={title ?? ((prefetched.hash ?? '') || 'Cardano block')}
 	href={
 		href === undefined ?
 			(
@@ -90,6 +99,32 @@
 	bind:open
 	{...EntityViewProps}
 >
+	{#snippet Title()}
+		<ResourceBoundary resource={cardanoBlock}>
+			{#snippet children(entity)}
+				<TruncatedValue value={entity.hash} />
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Value()}
+		<ResourceBoundary resource={cardanoBlock}>
+			{#snippet children(entity)}
+				{String(entity.slot)}
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet HeadingAfter()}
+		<ResourceBoundary resource={cardanoBlock}>
+			{#snippet children(entity)}
+				<span data-text="muted">
+					{entity.blockNo}
+				</span>
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
 	{#snippet Content()}
 		<dl data-column-item="center">
 			<div>
@@ -106,13 +141,7 @@
 				<dt>Hash</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								fields: {
-									hash: true,
-								},
-							})
-						}
+						resource={cardanoBlock}
 					>
 						{#snippet children(entity)}
 							<TruncatedValue value={entity.hash} />
@@ -125,13 +154,7 @@
 				<dt>slot</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								fields: {
-									slot: true,
-								},
-							})
-						}
+						resource={cardanoBlock}
 					>
 						{#snippet children(entity)}
 							{entity.slot}
@@ -144,13 +167,7 @@
 				<dt>block no</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								fields: {
-									blockNo: true,
-								},
-							})
-						}
+						resource={cardanoBlock}
 					>
 						{#snippet children(entity)}
 							{entity.blockNo}
@@ -158,7 +175,9 @@
 					</ResourceBoundary>
 				</dd>
 			</div>
+		</dl>
 
+		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
 					selection({
@@ -225,5 +244,23 @@
 				{/snippet}
 			</ResourceBoundary>
 		</dl>
+	{/snippet}
+
+	{#snippet Details()}
+		{@const transactionsResource = selection.$$transactions}
+		<ResourceBoundary
+			resource={transactionsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<CardanoTransactionsView
+						selection={transactionsResource}
+						countResource={transactionsResource.count}
+						title='transactions'
+						id='transactions'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

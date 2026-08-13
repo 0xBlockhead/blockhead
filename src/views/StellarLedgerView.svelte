@@ -15,16 +15,28 @@
 	// State
 	let {
 		selection,
+		title,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.StellarLedger>, 'prefetched'> = $props()
 
+	const stellarLedger = $derived(selection({
+		fields: {
+			closeTimeMs: true,
+			hash: true,
+		},
+	}))
+
 
 	// Components
+	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
+	import StellarTransactionsView from '$/views/StellarTransactionsView.svelte'
+	import StellarOperationsView from '$/views/StellarOperationsView.svelte'
 	import StellarNetworkView from '$/views/StellarNetworkView.svelte'
 </script>
 
@@ -32,6 +44,7 @@
 <EntityView
 	entityType={EntityType.StellarLedger}
 	entitySelector={selection.entitySelector}
+	title={title ?? String(selection.entitySelector.sequence)}
 	href={
 		href === undefined ?
 			resolve(
@@ -53,6 +66,36 @@
 	bind:open
 	{...EntityViewProps}
 >
+	{#snippet Title()}
+		<NumberValue
+			value={selection.entitySelector.sequence}
+		/>
+	{/snippet}
+
+	{#snippet Value()}
+		<ResourceBoundary resource={stellarLedger}>
+			{#snippet children(entity)}
+				{@const closeTimeMs = entity.closeTimeMs}
+				{#if closeTimeMs != null}
+					<Timestamp timestamp={closeTimeMs} />
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet HeadingAfter()}
+		<ResourceBoundary resource={stellarLedger}>
+			{#snippet children(entity)}
+				{@const hash = entity.hash}
+				{#if hash != null}
+					<span data-text="muted">
+						<TruncatedValue value={hash} />
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
 	{#snippet Content()}
 		<dl data-column-item="center">
 			<div>
@@ -68,18 +111,14 @@
 			<div>
 				<dt>sequence</dt>
 				<dd>
-					{selection.entitySelector.sequence}
+					<NumberValue
+						value={selection.entitySelector.sequence}
+					/>
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							hash: true,
-						},
-					})
-				}
+				resource={stellarLedger}
 			>
 				{#snippet children(entity)}
 					{@const hash = entity.hash}
@@ -93,15 +132,11 @@
 					{/if}
 				{/snippet}
 			</ResourceBoundary>
+		</dl>
 
+		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							closeTimeMs: true,
-						},
-					})
-				}
+				resource={stellarLedger}
 			>
 				{#snippet children(entity)}
 					{@const closeTimeMs = entity.closeTimeMs}
@@ -109,7 +144,7 @@
 						<div>
 							<dt>close time ms</dt>
 							<dd>
-								{closeTimeMs}
+								<Timestamp timestamp={closeTimeMs} />
 							</dd>
 						</div>
 					{/if}
@@ -137,7 +172,9 @@
 					{/if}
 				{/snippet}
 			</ResourceBoundary>
+		</dl>
 
+		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
 					selection({
@@ -226,5 +263,38 @@
 				{/snippet}
 			</ResourceBoundary>
 		</dl>
+	{/snippet}
+
+	{#snippet Details()}
+		{@const transactionsResource = selection.$$transactions}
+		<ResourceBoundary
+			resource={transactionsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<StellarTransactionsView
+						selection={transactionsResource}
+						countResource={transactionsResource.count}
+						title='transactions'
+						id='transactions'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+		{@const operationsResource = selection.$$operations}
+		<ResourceBoundary
+			resource={operationsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<StellarOperationsView
+						selection={operationsResource}
+						countResource={operationsResource.count}
+						title='operations'
+						id='operations'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

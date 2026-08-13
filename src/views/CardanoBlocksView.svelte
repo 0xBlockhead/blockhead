@@ -26,7 +26,17 @@
 	{...EntitiesListProps}
 	entityType={EntityType.CardanoBlock}
 	bind:open
-	resource={selection()}
+	resource={
+		selection({
+			...{
+				fields: {
+					hash: true,
+					slot: true,
+					blockNo: true,
+				},
+			},
+		})
+	}
 >
 	{#snippet Item({ item: cardanoBlock })}
 		{@const cardanoBlockSelector = cardanoBlock[EntityMetaKey.Selector]}
@@ -81,7 +91,15 @@
 			}
 		>
 			{#snippet Title()}
-				Cardano block
+				{cardanoBlock.hash || 'Cardano block'}
+			{/snippet}
+
+			{#snippet Value()}
+				{cardanoBlock.slot}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{cardanoBlock.blockNo}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

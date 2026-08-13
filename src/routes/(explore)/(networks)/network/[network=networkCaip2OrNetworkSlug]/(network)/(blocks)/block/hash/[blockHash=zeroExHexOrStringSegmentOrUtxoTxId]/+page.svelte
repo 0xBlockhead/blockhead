@@ -79,7 +79,7 @@
 				(pageSelection.entity == null ? (data.selector.indepHash ?? '') || 'arweave block' : String(pageSelection.entity.height) || data.selector.indepHash || 'arweave block') + ' • arweave block • Blockhead'
 			:
 			data.entityType === EntityType.CardanoBlock ?
-				('Cardano block') + ' • Cardano block • Blockhead'
+				(data.selector.hash || 'Cardano block') + ' • Cardano block • Blockhead'
 			:
 			data.entityType === EntityType.CosmosBlock ?
 				(pageSelection.entity == null ? 'Cosmos block' : (String(pageSelection.entity.height ?? '') ? 'Block #' + String(pageSelection.entity.height ?? '') : '') || (data.selector.hash ?? '') || 'Cosmos block') + ' • Cosmos block • Blockhead'
