@@ -114,6 +114,10 @@ const networkTransactionsResolver = algorandIndexerResolvers.resolvers.find((res
 	resolver.entityType === EntityType.AlgorandNetwork
 	&& '$$transactions' in resolver.projections
 ))
+const transactionGroupResolver = algorandIndexerResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.AlgorandTransactionGroup
+	&& '$$transactions' in resolver.projections
+))
 const networkRoundsResolver = algorandIndexerResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.AlgorandNetwork
 	&& '$$rounds' in resolver.projections
@@ -134,6 +138,7 @@ if (
 	|| roundResolver == null
 	|| networkTimestampsResolver == null
 	|| networkTransactionsResolver == null
+	|| transactionGroupResolver == null
 	|| networkRoundsResolver == null
 )
 	throw new Error('AlgorandIndexer-Rest spec missing deepened resolvers')
@@ -176,6 +181,46 @@ describe('Algorand Indexer deepened resolvers', () => {
 			},
 		}])
 		expect(algorandIndexerResolvers.source).toBe(Source.Nodely)
+	})
+
+	it('resolves paginated transaction group members through the native group hierarchy', async () => {
+		const group = {
+			$network: network,
+			group: `0x${'00'.repeat(32)}`,
+		}
+		listTransactions.mockResolvedValueOnce({
+			'current-round': 100,
+			'next-token': 'next-group-page',
+			transactions: [{
+				id: 'grouped-tx',
+				sender: account.address,
+				fee: 1000,
+				group: 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=',
+				'tx-type': 'pay',
+			}],
+		})
+
+		const page = await transactionGroupResolver.resolve.NetworkGroup.resolve(group, resolverContext)
+		expect(listTransactions).toHaveBeenCalledWith({
+			groupId: 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=',
+			limit: 2,
+			next: 'opaque-current',
+		})
+		const projection = transactionGroupResolver.projections.$$transactions
+		if (typeof projection === 'function' || projection.select == null || projection.continuation == null)
+			throw new Error('missing transaction group projection')
+		expect(projection.select(page, group, resolverContext)[0]).toMatchObject({
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				txId: 'grouped-tx',
+			},
+		})
+		expect(projection.continuation(page, group, resolverContext)).toEqual({
+			operation: 'transaction-group-transactions',
+			target: group.group,
+			terminal: false,
+			token: 'next-group-page',
+		})
 	})
 
 	it('materializes paginated asset holding observations with exact identity and provenance', async () => {

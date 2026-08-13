@@ -327,6 +327,48 @@ describe('Algorand Indexer transport', () => {
 		})
 	})
 
+	it('filters network transactions by a canonical group ID', async () => {
+		const groupId = 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA='
+		getJson.mockResolvedValueOnce({
+			'current-round': 100,
+			transactions: [{
+				id: 'grouped-tx',
+				sender: account,
+				fee: 1000,
+				group: groupId,
+				'tx-type': 'pay',
+			}],
+		})
+
+		await expect(listTransactions({
+			groupId,
+			limit: 10,
+		})).resolves.toMatchObject({
+			transactions: [{
+				id: 'grouped-tx',
+			}],
+		})
+		expect(getJson).toHaveBeenCalledWith(
+			expect.anything(),
+			'/v2/transactions?limit=10&group-id=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA%3D'
+		)
+
+		getJson.mockResolvedValueOnce({
+			'current-round': 100,
+			transactions: [{
+				id: 'foreign-grouped-tx',
+				sender: account,
+				fee: 1000,
+				group: '//////////////////////////////////////////8=',
+				'tx-type': 'pay',
+			}],
+		})
+		await expect(listTransactions({
+			groupId,
+			limit: 10,
+		})).rejects.toThrow('foreign transaction group row')
+	})
+
 	it('rejects lossy uint64 values and stalled continuations', async () => {
 		getJson.mockResolvedValueOnce({
 			assets: [{

@@ -63,6 +63,19 @@ const base64ToZeroExHex = (
 	}
 }
 
+const zeroExHexToBase64 = (
+	value: string,
+	label: string
+) => {
+	try {
+		if (!/^0x[\da-f]{64}$/i.test(value))
+			throw new Error('expected 32-byte digest')
+		return globalThis.btoa(value.slice(2).replace(/../g, (byte) => String.fromCharCode(Number.parseInt(byte, 16))))
+	} catch {
+		throw new Error(`AlgorandIndexer_Rest: malformed ${label}`)
+	}
+}
+
 const algorandBase32DigestToZeroExHex = (
 	value: string,
 	label: string
@@ -801,6 +814,49 @@ export default {
 					:
 						{
 							operation: 'network-transactions',
+							terminal: false,
+							token: page['next-token'],
+						}
+				),
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.AlgorandTransactionGroup,
+			resolve: {
+				NetworkGroup: {
+					appliesTo: algorandNestedNetworkApplicability,
+					resolve: async (group, context) => {
+						assertAlgorandMainnet(group.$network)
+						const { listTransactions } = await import('$/sources/AlgorandIndexer/Rest/queries.ts')
+						return listTransactions({
+							groupId: zeroExHexToBase64(group.group, 'transaction group'),
+							limit: Math.min(resolverContextRowLimit(context), 1_000),
+							next: context.providerContinuationToken,
+						})
+					},
+				},
+			},
+		})({
+			$$transactions: {
+				select: (page, group) => page.transactions.map((transaction) => ({
+					[EntityMetaKey.Selector]: {
+						$network: group.$network,
+						txId: transaction.id,
+					},
+					[EntityMetaKey.Fields]: transactionFields(transaction, group.$network),
+				})),
+				continuation: (page, group) => (
+					page['next-token'] == null ?
+						{
+							operation: 'transaction-group-transactions',
+							target: group.group,
+							terminal: true,
+						}
+					:
+						{
+							operation: 'transaction-group-transactions',
+							target: group.group,
 							terminal: false,
 							token: page['next-token'],
 						}

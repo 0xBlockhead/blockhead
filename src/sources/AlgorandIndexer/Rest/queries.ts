@@ -313,6 +313,17 @@ const assertTransactionRow = (
 		assertTransactionRow(innerTransaction)
 }
 
+const assertGroupId = (
+	groupId: string
+) => {
+	try {
+		if (Uint8Array.from(globalThis.atob(groupId), (character) => character.charCodeAt(0)).length !== 32)
+			throw new Error('expected 32-byte digest')
+	} catch {
+		throw new Error('AlgorandIndexer_Rest: invalid transaction group ID')
+	}
+}
+
 export const getAccountAssets = async (
 	{
 		address,
@@ -405,14 +416,20 @@ export const getAccountTransactions = async (
 
 export const listTransactions = async (
 	{
+		groupId,
 		limit,
 		next,
 	}: {
+		groupId?: string
 		limit: number
 		next?: string
 	}
 ): Promise<AlgorandIndexerTransactionsPage> => {
 	const parameters = pageParameters(limit, next)
+	if (groupId != null) {
+		assertGroupId(groupId)
+		parameters.set('group-id', groupId)
+	}
 	if (limit === 0)
 		return {
 			'current-round': 0,
@@ -432,6 +449,8 @@ export const listTransactions = async (
 			throw new Error('AlgorandIndexer_Rest: invalid or duplicate transaction ID')
 		transactionIds.add(transaction.id)
 		assertTransactionRow(transaction)
+		if (groupId != null && transaction.group !== groupId)
+			throw new Error('AlgorandIndexer_Rest: transaction page contains a foreign transaction group row')
 	}
 	assertPageContinuation(page, next, 'transaction')
 	return page
