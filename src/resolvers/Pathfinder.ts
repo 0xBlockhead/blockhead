@@ -17,6 +17,7 @@ import type {
 	BlockWithTxHashes,
 	Event,
 	ReceiptEvent,
+	StateUpdate,
 	StarknetClassDefinition,
 	TransactionReceiptWithBlockInfo,
 	TransactionWithHash,
@@ -29,6 +30,7 @@ type StarknetBlockIdentity = EntitySelector<typeof schema, EntityType.StarknetBl
 type StarknetTransactionIdentity = EntitySelector<typeof schema, EntityType.StarknetTransaction>
 type StarknetClassIdentity = EntitySelector<typeof schema, EntityType.StarknetClass>
 type StarknetStorageEntryIdentity = EntitySelector<typeof schema, EntityType.StarknetStorageEntry>
+type StarknetStateUpdateIdentity = EntitySelector<typeof schema, EntityType.StarknetStateUpdate>
 
 const starknetNetworkApplicability = [
 	{
@@ -338,6 +340,63 @@ const resolveBlock = async (
 		throw new Error('Pathfinder: block hash mismatch')
 
 	return fields
+}
+
+const stateUpdateFields = (
+	stateUpdate: StateUpdate,
+	block: StarknetBlockIdentity
+) => {
+	if (!('block_hash' in stateUpdate))
+		throw new Error('Pathfinder: state update does not identify a finalized block')
+
+	const blockHash = validatedFelt(stateUpdate.block_hash, 'state update block hash')
+	if (BigInt(blockHash) !== BigInt(validatedFelt(block.blockHash, 'block hash')))
+		throw new Error('Pathfinder: state update block hash mismatch')
+
+	const oldRoot = validatedFelt(stateUpdate.old_root, 'state update old root')
+	const newRoot = validatedFelt(stateUpdate.new_root, 'state update new root')
+	return {
+		$block: {
+			[EntityMetaKey.Selector]: {
+				$network: block.$network,
+				blockHash,
+			},
+		},
+		oldRoot,
+		newRoot,
+		storageDiffs: stateUpdate.state_diff.storage_diffs,
+		deprecatedDeclaredClassHashes: stateUpdate.state_diff.deprecated_declared_classes.map((classHash) => (
+			validatedFelt(classHash, 'deprecated declared class hash')
+		)),
+		declaredClasses: stateUpdate.state_diff.declared_classes,
+		deployedContracts: stateUpdate.state_diff.deployed_contracts,
+		replacedClasses: stateUpdate.state_diff.replaced_classes,
+		nonces: stateUpdate.state_diff.nonces,
+	}
+}
+
+const resolveStateUpdateForBlock = async (
+	block: StarknetBlockIdentity,
+	blockId: BlockId
+) => {
+	const fields = await resolveBlock(block, blockId)
+	const { default: { getStateUpdate } } = await import('$/sources/Pathfinder/JsonRpc/queries.ts')
+	const stateUpdate = stateUpdateFields(
+		await getStateUpdate({
+			block_hash: fields.blockHash,
+		}),
+		{
+			$network: block.$network,
+			blockHash: fields.blockHash,
+		}
+	)
+	if (BigInt(stateUpdate.newRoot) !== BigInt(fields.newRoot))
+		throw new Error('Pathfinder: state update root does not match block root')
+
+	return {
+		blockHash: fields.blockHash,
+		stateUpdate,
+	}
 }
 
 const resolveStorageAt = async (
@@ -747,6 +806,116 @@ export default {
 			l1DataGasPrice: (snapshot) => snapshot.l1DataGasPrice,
 			status: (snapshot) => snapshot.status,
 			$$transactions: (snapshot) => snapshot.$$transactions,
+		}),
+
+		defineResolver({
+			entityType: EntityType.StarknetBlock,
+			resolve: {
+				NetworkBlockNumber: {
+					appliesTo: starknetNestedNetworkApplicability,
+					resolve: async (block) => {
+						if (block.blockNumber > BigInt(Number.MAX_SAFE_INTEGER))
+							throw new Error('Pathfinder: block number is too large')
+
+						return resolveStateUpdateForBlock(block, {
+							block_number: Number(block.blockNumber),
+						})
+					},
+				},
+				NetworkBlockHash: {
+					appliesTo: starknetNestedNetworkApplicability,
+					resolve: async (block) => {
+						return resolveStateUpdateForBlock(block, {
+							block_hash: validatedFelt(block.blockHash, 'block hash'),
+						})
+					},
+				},
+			},
+		})({
+			$$stateUpdates: (snapshot, block) => [{
+				[EntityMetaKey.Selector]: {
+					$network: block.$network,
+					blockHash: snapshot.blockHash,
+					source: Source.Pathfinder,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.StarknetStateUpdate, [], '$block')]: snapshot.stateUpdate.$block,
+					[entityFieldAddressKey(EntityType.StarknetStateUpdate, [], 'oldRoot')]: snapshot.stateUpdate.oldRoot,
+					[entityFieldAddressKey(EntityType.StarknetStateUpdate, [], 'newRoot')]: snapshot.stateUpdate.newRoot,
+					[entityFieldAddressKey(EntityType.StarknetStateUpdate, [], 'storageDiffs')]: snapshot.stateUpdate.storageDiffs,
+					[entityFieldAddressKey(EntityType.StarknetStateUpdate, [], 'deprecatedDeclaredClassHashes')]: snapshot.stateUpdate.deprecatedDeclaredClassHashes,
+					[entityFieldAddressKey(EntityType.StarknetStateUpdate, [], 'declaredClasses')]: snapshot.stateUpdate.declaredClasses,
+					[entityFieldAddressKey(EntityType.StarknetStateUpdate, [], 'deployedContracts')]: snapshot.stateUpdate.deployedContracts,
+					[entityFieldAddressKey(EntityType.StarknetStateUpdate, [], 'replacedClasses')]: snapshot.stateUpdate.replacedClasses,
+					[entityFieldAddressKey(EntityType.StarknetStateUpdate, [], 'nonces')]: snapshot.stateUpdate.nonces,
+				},
+			}],
+		}),
+
+		defineResolver({
+			entityType: EntityType.StarknetStateUpdate,
+			resolve: {
+				NetworkBlockHashSource: {
+					appliesTo: [
+						{
+							$network: starknetNestedNetworkApplicability[0],
+							source: Source.Pathfinder,
+						},
+						{
+							$network: starknetNestedNetworkApplicability[1],
+							source: Source.Pathfinder,
+						},
+					],
+					resolve: async ({
+						$network,
+						blockHash,
+						source,
+					}: StarknetStateUpdateIdentity) => {
+						if (source !== Source.Pathfinder)
+							throw new Error('Pathfinder: state update source does not match')
+
+						assertStarknetMainnet($network.$network)
+						const expectedBlockHash = validatedFelt(blockHash, 'state update block hash')
+						const { default: {
+							getBlockWithTxHashes,
+							getStateUpdate,
+						} } = await import('$/sources/Pathfinder/JsonRpc/queries.ts')
+						const [
+							block,
+							stateUpdate,
+						] = await Promise.all([
+							getBlockWithTxHashes({
+								block_hash: expectedBlockHash,
+							}),
+							getStateUpdate({
+								block_hash: expectedBlockHash,
+							}),
+						])
+						const fields = blockFields(block, $network)
+						if (BigInt(fields.blockHash) !== BigInt(expectedBlockHash))
+							throw new Error('Pathfinder: state update block response does not match requested block')
+
+						const snapshot = stateUpdateFields(stateUpdate, {
+							$network,
+							blockHash: expectedBlockHash,
+						})
+						if (BigInt(snapshot.newRoot) !== BigInt(fields.newRoot))
+							throw new Error('Pathfinder: state update root does not match block root')
+
+						return snapshot
+					},
+				},
+			},
+		})({
+			$block: (snapshot) => snapshot.$block,
+			oldRoot: (snapshot) => snapshot.oldRoot,
+			newRoot: (snapshot) => snapshot.newRoot,
+			storageDiffs: (snapshot) => snapshot.storageDiffs,
+			deprecatedDeclaredClassHashes: (snapshot) => snapshot.deprecatedDeclaredClassHashes,
+			declaredClasses: (snapshot) => snapshot.declaredClasses,
+			deployedContracts: (snapshot) => snapshot.deployedContracts,
+			replacedClasses: (snapshot) => snapshot.replacedClasses,
+			nonces: (snapshot) => snapshot.nonces,
 		}),
 
 		defineResolver({

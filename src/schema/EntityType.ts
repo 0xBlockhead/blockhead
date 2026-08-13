@@ -878,6 +878,7 @@ export enum EntityType {
 	StarknetEvent = 'StarknetEvent',
 	StarknetNetwork = 'StarknetNetwork',
 	StarknetNetwork_Timestamp = 'StarknetNetwork_Timestamp',
+	StarknetStateUpdate = 'StarknetStateUpdate',
 	StarknetStorageEntry = 'StarknetStorageEntry',
 	StarknetStorageEntry_Timestamp = 'StarknetStorageEntry_Timestamp',
 	StarknetTokenHolding = 'StarknetTokenHolding',

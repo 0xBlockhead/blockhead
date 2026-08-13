@@ -43,6 +43,7 @@
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
+	import StarknetStateUpdatesView from '$/views/StarknetStateUpdatesView.svelte'
 	import StarknetTransactionsView from '$/views/StarknetTransactionsView.svelte'
 </script>
 
@@ -261,6 +262,21 @@
 	{/snippet}
 
 	{#snippet Details()}
+		{@const stateUpdatesResource = selection.$$stateUpdates}
+		<ResourceBoundary
+			resource={stateUpdatesResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<StarknetStateUpdatesView
+						selection={stateUpdatesResource}
+						countResource={stateUpdatesResource.count}
+						title='state updates'
+						id='state-updates'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 		{@const transactionsResource = selection.$$transactions}
 		<ResourceBoundary
 			resource={transactionsResource}

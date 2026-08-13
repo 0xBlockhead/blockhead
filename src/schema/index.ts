@@ -878,6 +878,7 @@ import StarknetContractSchema from '$/schema/StarknetContract.ts'
 import StarknetEventSchema from '$/schema/StarknetEvent.ts'
 import StarknetNetwork_TimestampSchema from '$/schema/StarknetNetwork_Timestamp.ts'
 import StarknetNetworkSchema from '$/schema/StarknetNetwork.ts'
+import StarknetStateUpdateSchema from '$/schema/StarknetStateUpdate.ts'
 import StarknetStorageEntry_TimestampSchema from '$/schema/StarknetStorageEntry_Timestamp.ts'
 import StarknetStorageEntrySchema from '$/schema/StarknetStorageEntry.ts'
 import StarknetTokenHolding_TimestampSchema from '$/schema/StarknetTokenHolding_Timestamp.ts'
@@ -1997,6 +1998,7 @@ const schemaChunk17 = [
 	StarknetEventSchema,
 	StarknetNetworkSchema,
 	StarknetNetwork_TimestampSchema,
+	StarknetStateUpdateSchema,
 	StarknetStorageEntrySchema,
 	StarknetStorageEntry_TimestampSchema,
 	StarknetTokenHoldingSchema,
@@ -2019,10 +2021,10 @@ const schemaChunk17 = [
 	StellarOffer_TimestampSchema,
 	StellarOperationSchema,
 	StellarTradeSchema,
-	StellarTransactionSchema,
 ] as const
 
 const schemaChunk18 = [
+	StellarTransactionSchema,
 	StellarTransaction_TimestampSchema,
 	StellarTrustlineSchema,
 	StellarTrustline_TimestampSchema,
@@ -2072,10 +2074,10 @@ const schemaChunk18 = [
 	TezosInternalOperationSchema,
 	TezosMichelsonScriptSchema,
 	TezosNetworkSchema,
-	TezosNetwork_TimestampSchema,
 ] as const
 
 const schemaChunk19 = [
+	TezosNetwork_TimestampSchema,
 	TezosOperationSchema,
 	TezosOperationGroupSchema,
 	TezosTokenSchema,
@@ -2125,10 +2127,10 @@ const schemaChunk19 = [
 	TronWitnessSchema,
 	TronWitness_TimestampSchema,
 	TrustedIssuerSchema,
-	UniswapCcaAuctionSchema,
 ] as const
 
 const schemaChunk20 = [
+	UniswapCcaAuctionSchema,
 	UniswapCcaAuction_EvmBlockSchema,
 	UniswapV3PoolSchema,
 	UniswapV3Pool_BlockSchema,
@@ -2178,10 +2180,10 @@ const schemaChunk20 = [
 	YoutubeVideo_TimestampSchema,
 	ZcashShieldedActionSchema,
 	ZcashShieldedPoolSchema,
-	ZcashShieldedPoolBlockStateSchema,
 ] as const
 
 const schemaChunk21 = [
+	ZcashShieldedPoolBlockStateSchema,
 	ZeroGConsensusNetworkSchema,
 	ZeroGConsensusNetwork_TimestampSchema,
 	ZeroGDaNodeSchema,

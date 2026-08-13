@@ -5191,6 +5191,20 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
+	'/(explore)/(networks)/network/[network]/(starknet)/state-update/[blockHash]/[source]': {
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(starknet)/state-update/[blockHash=stringSegment]/[source=stringSegment]',
+		mappings: [
+			{
+				id: 'StarknetStateUpdate.NetworkBlockHashSource',
+				projectionEntity: 'Network',
+				probeAtomPrefixes: ['/network/[network]/state-update/[blockHash]/[source]:StarknetStateUpdate.NetworkBlockHashSource'],
+				probeCases: [[[0, '1', ['blockHash', 'source', 'network']]]],
+				projectionPath: [
+					'Starknet',
+				],
+			},
+		],
+	},
 	'/(explore)/(networks)/network/[network]/(transactions)/tx/[transactionId]': {
 		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxIdOrStringSegment]',
 		mappings: [

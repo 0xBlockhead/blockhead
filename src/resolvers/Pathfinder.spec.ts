@@ -25,6 +25,7 @@ const getClassHashAt = vi.fn()
 const getEvents = vi.fn()
 const getNonce = vi.fn()
 const getSpecVersion = vi.fn()
+const getStateUpdate = vi.fn()
 const getStorageAt = vi.fn()
 const getSyncing = vi.fn()
 const getTransactionByBlockIdAndIndex = vi.fn()
@@ -42,6 +43,7 @@ vi.mock('$/sources/Pathfinder/JsonRpc/queries.ts', () => ({
 		getEvents,
 		getNonce,
 		getSpecVersion,
+		getStateUpdate,
 		getStorageAt,
 		getSyncing,
 		getTransactionByBlockIdAndIndex,
@@ -66,6 +68,13 @@ const networkTransactionsResolver = pathfinder.resolvers.find((resolver) => (
 ))
 const blockResolver = pathfinder.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.StarknetBlock
+))
+const blockStateUpdatesResolver = pathfinder.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.StarknetBlock
+	&& '$$stateUpdates' in resolver.projections
+))
+const stateUpdateResolver = pathfinder.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.StarknetStateUpdate
 ))
 const transactionResolver = pathfinder.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.StarknetTransaction
@@ -96,6 +105,8 @@ if (
 	|| networkBlocksResolver == null
 	|| networkTransactionsResolver == null
 	|| blockResolver == null
+	|| blockStateUpdatesResolver == null
+	|| stateUpdateResolver == null
 	|| transactionResolver == null
 	|| classResolver == null
 	|| contractAccountResolver == null
@@ -167,6 +178,38 @@ const blockWire = {
 	transactions: ['0x4'],
 }
 
+const stateUpdateWire = {
+	block_hash: blockWire.block_hash,
+	old_root: '0x98',
+	new_root: blockWire.new_root,
+	state_diff: {
+		storage_diffs: [{
+			address: contract.address,
+			storage_entries: [{
+				key: '0x1',
+				value: '0x2',
+			}],
+		}],
+		deprecated_declared_classes: ['0x3'],
+		declared_classes: [{
+			class_hash: '0x4',
+			compiled_class_hash: '0x5',
+		}],
+		deployed_contracts: [{
+			address: '0x6',
+			class_hash: '0x7',
+		}],
+		replaced_classes: [{
+			contract_address: '0x8',
+			class_hash: '0x9',
+		}],
+		nonces: [{
+			contract_address: '0xa',
+			nonce: '0xb',
+		}],
+	},
+} as const
+
 describe('Pathfinder Starknet JSON-RPC account resolver', () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
@@ -186,6 +229,7 @@ describe('Pathfinder Starknet JSON-RPC account resolver', () => {
 		getBlockWithTxHashes.mockResolvedValue(blockWire)
 		getBlockTransactionCount.mockResolvedValue(2)
 		getStorageAt.mockResolvedValue('0x55')
+		getStateUpdate.mockResolvedValue(stateUpdateWire)
 		getClass.mockResolvedValue({
 			sierra_program: ['0x1'],
 			contract_class_version: '0.1.0',
@@ -385,6 +429,60 @@ describe('Pathfinder Starknet JSON-RPC account resolver', () => {
 		})
 		expect(getTransactionByHash).toHaveBeenCalledWith('0x4')
 		expect(getTransactionReceipt).toHaveBeenCalledWith('0x4')
+	})
+
+	it('materializes block-qualified state updates and their complete source-native diff arrays', async () => {
+		const block = {
+			$network: contract.$network,
+			blockHash: blockWire.block_hash,
+		}
+		const stateUpdateSnapshot = await blockStateUpdatesResolver.resolve.NetworkBlockHash.resolve(block, context)
+		expect(blockStateUpdatesResolver.projections.$$stateUpdates(stateUpdateSnapshot, block, context)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$network: contract.$network,
+				blockHash: blockWire.block_hash,
+				source: Source.Pathfinder,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.StarknetStateUpdate, [], '$block')]: {
+					[EntityMetaKey.Selector]: block,
+				},
+				[entityFieldAddressKey(EntityType.StarknetStateUpdate, [], 'oldRoot')]: '0x98',
+				[entityFieldAddressKey(EntityType.StarknetStateUpdate, [], 'newRoot')]: blockWire.new_root,
+				[entityFieldAddressKey(EntityType.StarknetStateUpdate, [], 'storageDiffs')]: stateUpdateWire.state_diff.storage_diffs,
+				[entityFieldAddressKey(EntityType.StarknetStateUpdate, [], 'deprecatedDeclaredClassHashes')]: ['0x3'],
+				[entityFieldAddressKey(EntityType.StarknetStateUpdate, [], 'declaredClasses')]: stateUpdateWire.state_diff.declared_classes,
+				[entityFieldAddressKey(EntityType.StarknetStateUpdate, [], 'deployedContracts')]: stateUpdateWire.state_diff.deployed_contracts,
+				[entityFieldAddressKey(EntityType.StarknetStateUpdate, [], 'replacedClasses')]: stateUpdateWire.state_diff.replaced_classes,
+				[entityFieldAddressKey(EntityType.StarknetStateUpdate, [], 'nonces')]: stateUpdateWire.state_diff.nonces,
+			},
+		}])
+
+		const direct = await stateUpdateResolver.resolve.NetworkBlockHashSource.resolve({
+			$network: contract.$network,
+			blockHash: blockWire.block_hash,
+			source: Source.Pathfinder,
+		}, context)
+		expect(direct).toMatchObject({
+			oldRoot: '0x98',
+			newRoot: blockWire.new_root,
+			storageDiffs: stateUpdateWire.state_diff.storage_diffs,
+		})
+		expect(getStateUpdate).toHaveBeenCalledWith({
+			block_hash: blockWire.block_hash,
+		})
+	})
+
+	it('fails closed when a state update root differs from its block', async () => {
+		getStateUpdate.mockResolvedValueOnce({
+			...stateUpdateWire,
+			new_root: '0x97',
+		})
+
+		await expect(blockStateUpdatesResolver.resolve.NetworkBlockHash.resolve({
+			$network: contract.$network,
+			blockHash: blockWire.block_hash,
+		}, context)).rejects.toThrow('state update root does not match block root')
 	})
 
 	it('materializes sierra class definitions from starknet_getClass', async () => {

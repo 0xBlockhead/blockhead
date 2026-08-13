@@ -1577,6 +1577,7 @@ export enum EntityType {
 	StarknetEvent = "StarknetEvent",
 	StarknetNetwork = "StarknetNetwork",
 	StarknetNetwork_Timestamp = "StarknetNetwork_Timestamp",
+	StarknetStateUpdate = "StarknetStateUpdate",
 	StarknetStorageEntry = "StarknetStorageEntry",
 	StarknetStorageEntry_Timestamp = "StarknetStorageEntry_Timestamp",
 	StarknetTokenHolding = "StarknetTokenHolding",
@@ -55295,6 +55296,7 @@ export const schema = {
 				"l1GasPrice": { label: "l1 gas price", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"l1DataGasPrice": { label: "l1 data gas price", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"status": { label: "status", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+				"$$stateUpdates": { label: "state updates", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.StarknetStateUpdate, defaultSources: [Source.Pathfinder] },
 				"$$transactions": { label: "transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.StarknetTransaction },
 			})({
 				selectors: {
@@ -55313,6 +55315,7 @@ export const schema = {
 							],
 						},
 						lists: [
+							{ field: "$$stateUpdates", component: "StarknetStateUpdatesView", emptyText: "No Starknet state updates." },
 							{ field: "$$transactions", component: "StarknetTransactionsView", emptyText: "No Starknet transactions." },
 						],
 					},
@@ -55533,6 +55536,57 @@ export const schema = {
 						},
 					},
 					plural: { component: "StarknetNetwork_TimestampsView", },
+				},
+			}),
+
+			entity({
+				entityType: EntityType.StarknetStateUpdate,
+				labels: { singular: "Starknet state update", plural: "Starknet state updates" },
+				description: "A source-qualified global state transition committed by a Starknet block.",
+			})({
+				"$network": { label: "Network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.StarknetNetwork },
+				"blockHash": { label: "Block hash", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"source": { label: "Source", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"$block": { label: "Block", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.StarknetBlock, defaultSources: [Source.Pathfinder] },
+				"oldRoot": { label: "Old state root", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string", defaultSources: [Source.Pathfinder] },
+				"newRoot": { label: "New state root", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string", defaultSources: [Source.Pathfinder] },
+				"storageDiffs": { label: "Storage diffs", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "unknown", defaultSources: [Source.Pathfinder] },
+				"deprecatedDeclaredClassHashes": { label: "Deprecated declared class hashes", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "string", defaultSources: [Source.Pathfinder] },
+				"declaredClasses": { label: "Declared classes", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "unknown", defaultSources: [Source.Pathfinder] },
+				"deployedContracts": { label: "Deployed contracts", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "unknown", defaultSources: [Source.Pathfinder] },
+				"replacedClasses": { label: "Replaced classes", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "unknown", defaultSources: [Source.Pathfinder] },
+				"nonces": { label: "Nonce changes", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "unknown", defaultSources: [Source.Pathfinder] },
+			})({
+				selectors: { "NetworkBlockHashSource": ["$network", "blockHash", "source"] },
+				views: {
+					singular: {
+						summary: { title: [{ field: "blockHash", format: "truncated" }], value: ["$block"], HeadingAfter: ["source"] },
+						content: { dl: [
+							["$network", "$block", "source"],
+							["oldRoot", "newRoot"],
+							["deprecatedDeclaredClassHashes"],
+							[
+								{
+									kind: _ViewItemKind.Block,
+									id: "state-diff",
+									fields: ["storageDiffs", "declaredClasses", "deployedContracts", "replacedClasses", "nonces"],
+									Content: dedent `
+																												<div>
+																													<dt>State diff</dt>
+																													<dd><pre>{JSON.stringify({
+																														storageDiffs: entity.storageDiffs.values,
+																														declaredClasses: entity.declaredClasses.values,
+																														deployedContracts: entity.deployedContracts.values,
+																														replacedClasses: entity.replacedClasses.values,
+																														nonces: entity.nonces.values,
+																													}, null, 2)}</pre></dd>
+																												</div>
+																											`,
+								},
+							],
+						] },
+					},
+					plural: { component: "StarknetStateUpdatesView" },
 				},
 			}),
 
@@ -82875,8 +82929,42 @@ export const routes = defineRoutes(schema)({
 												},
 											},
 										},
-										"(starknet)": {},
-										"(protocol-networks)": { selectors: {
+										"(starknet)": {
+											children: {
+												"state-update": {
+													children: {
+														"[blockHash]": {
+															params: { "blockHash": ["string"] },
+															children: {
+																"[source]": {
+																	params: { "source": ["string"] },
+																	selectors: {
+																		[EntityType.StarknetStateUpdate]: {
+																			"NetworkBlockHashSource": {
+																				when: { path: ["namespace"], is: "Starknet" },
+																				projection: { entityType: EntityType.Network, facetPath: ["Starknet"] },
+																				derivations: {
+																					"$network": {
+																						kind: "selector",
+																						entity: EntityType.StarknetNetwork,
+																						selector: "Network",
+																						params: [{ field: "$network", value: { kind: "pageSelector" } }],
+																					},
+																					"blockHash": { kind: "param", name: "blockHash" },
+																					"source": { kind: "param", name: "source" },
+																				},
+																				page: {},
+																			},
+																		},
+																	},
+																},
+															},
+														},
+													},
+													},
+												},
+											},
+											"(protocol-networks)": { selectors: {
 												[EntityType.AptosNetwork]: {
 													"Network": {
 														when: { path: ["namespace"], is: "Aptos" },

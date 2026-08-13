@@ -3,6 +3,7 @@
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export default entity({
@@ -51,6 +52,13 @@ export default entity({
 	status: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	$$stateUpdates: {
+		entityType: EntityType.StarknetStateUpdate,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Pathfinder,
+		],
 	},
 	$$transactions: {
 		entityType: EntityType.StarknetTransaction,
