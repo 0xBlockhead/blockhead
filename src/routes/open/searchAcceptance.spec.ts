@@ -47,7 +47,7 @@ describe('universal search acceptance matrix', () => {
 		['Tally proposal URL', 'https://www.tally.xyz/gov/uniswap/proposal/2207450143689540901', '/~/tally/proposal/2207450143689540901'],
 		['EVM explorer transaction URL', `https://etherscan.io/tx/0x${'12'.repeat(32)}`, `/network/eip155:1/tx/0x${'12'.repeat(32)}`],
 		['EVM explorer address URL', `https://basescan.org/address/0x${'AB'.repeat(20)}`, `/account/eip155:8453/0x${'AB'.repeat(20)}`],
-		['EVM explorer token URL', `https://etherscan.io/token/0x${'AB'.repeat(20)}`, `/coin-instance/1/0x${'ab'.repeat(20)}`],
+		['EVM explorer token URL', `https://etherscan.io/token/0x${'AB'.repeat(20)}`, `/network/eip155:1/contract/0x${'AB'.repeat(20)}`],
 		['EVM explorer block URL', 'https://optimistic.etherscan.io/block/123456', '/network/eip155:10/block/123456'],
 		['IPFS URI', 'ipfs://bafybeigdyrzt5sfp7udm7hu76f7lz4gf5o7vsvixd3rqfwxq6c6azp7j7m/folder/file.json', '/ipfs/ipfs/bafybeigdyrzt5sfp7udm7hu76f7lz4gf5o7vsvixd3rqfwxq6c6azp7j7m/path/folder/file.json'],
 		['IPNS URI', 'ipns://docs.ipfs.tech/concepts', '/ipfs/ipns/docs.ipfs.tech/path/concepts'],

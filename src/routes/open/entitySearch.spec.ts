@@ -72,7 +72,7 @@ describe(entityHrefFromSearchInput, () => {
 		[`https://etherscan.io/tx/0x${'AB'.repeat(32)}`, `/network/eip155:1/tx/0x${'ab'.repeat(32)}`],
 		[`https://arbiscan.io/tx/0x${'12'.repeat(32)}#eventlog`, `/network/eip155:42161/tx/0x${'12'.repeat(32)}`],
 		[`https://basescan.org/address/0x${'AB'.repeat(20)}`, `/account/eip155:8453/0x${'AB'.repeat(20)}`],
-		[`https://etherscan.io/token/0x${'AB'.repeat(20)}?a=0x${'12'.repeat(20)}`, `/coin-instance/1/0x${'ab'.repeat(20)}`],
+		[`https://etherscan.io/token/0x${'AB'.repeat(20)}?a=0x${'12'.repeat(20)}`, `/network/eip155:1/contract/0x${'AB'.repeat(20)}`],
 		['https://optimistic.etherscan.io/block/123456', '/network/eip155:10/block/123456'],
 		[`https://polygonscan.com/block/0x${'AB'.repeat(32)}`, `/network/eip155:137/block/hash/0x${'ab'.repeat(32)}`],
 		['eip155:1', '/network/eip155:1'],

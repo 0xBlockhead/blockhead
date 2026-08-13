@@ -590,9 +590,12 @@ export const entityHrefFromSearchInput = (query: string) => {
 	const evmExplorerToken = query.match(/^https:\/\/([^/?#\s]+)\/token\/(0x[a-f0-9]{40})\/?(?:[?#].*)?$/i)
 
 	if (evmExplorerToken && evmExplorerNetworkByHost[evmExplorerToken[1].toLowerCase()] != null)
-		return evmErc20CoinInstanceHref(
-			evmExplorerNetworkByHost[evmExplorerToken[1].toLowerCase()],
-			evmExplorerToken[2]
+		return resolve(
+			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(contracts)/contract/[address=evmAddressOrStringSegment]',
+			{
+				network: evmExplorerNetworkByHost[evmExplorerToken[1].toLowerCase()],
+				address: evmExplorerToken[2],
+			}
 		)
 
 	const evmExplorerBlock = query.match(/^https:\/\/([^/?#\s]+)\/block\/([0-9]+|0x[a-f0-9]{64})\/?(?:[?#].*)?$/i)
