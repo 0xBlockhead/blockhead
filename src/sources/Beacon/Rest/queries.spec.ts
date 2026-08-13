@@ -14,6 +14,10 @@ import {
 	getDataColumnSidecarsFromWire,
 	getBlockDutySummary,
 	getBlockDutySummaryFromWire,
+	getBeaconBlockSnapshot,
+	getBeaconBlockSnapshotFromWire,
+	getExecutionPayloadEnvelope,
+	getExecutionPayloadEnvelopeFromWire,
 	getBlockRewards,
 	getBlockRewardsFromWire,
 	getAttestationRewards,
@@ -326,6 +330,7 @@ describe('Beacon REST native checkpoint and fork wires', () => {
 		})).toEqual({
 			deposits: [{
 				index: 0,
+				indexInBlock: 0,
 				pubkey: `0x${'22'.repeat(48)}`,
 				withdrawalCredentials: `0x${'33'.repeat(32)}`,
 				amountGwei: 32000000000n,
@@ -334,11 +339,14 @@ describe('Beacon REST native checkpoint and fork wires', () => {
 			}],
 			attestations: [{
 				index: 0,
+				indexInBlock: 0,
 				committeeIndex: 7,
 				aggregationBits: '0x03',
 			}],
 			withdrawals: [{
 				index: 2,
+				withdrawalIndex: 2,
+				indexInBlock: 0,
 				validatorIndex: 31,
 				address: `0x${'ab'.repeat(20)}`,
 				amountGwei: 32000000000n,
@@ -346,31 +354,279 @@ describe('Beacon REST native checkpoint and fork wires', () => {
 			slashings: [
 				{
 					index: 0,
+					indexInKind: 0,
 					kind: 'proposer',
 				},
 				{
 					index: 0,
+					indexInKind: 0,
 					kind: 'attester',
 				},
 			],
 		})
 
-		for (const wire of [
-			{},
-			{
-				data: {
-					message: {
-						body: {
-							deposits: [],
-							attestations: [{ data: { index: 'not-a-number' } }],
-							proposer_slashings: [],
-							attester_slashings: [],
-						},
+		expect(() => getBlockDutySummaryFromWire({})).toThrow('Beacon: invalid block duty summary')
+		expect(() => getBlockDutySummaryFromWire({
+			data: {
+				message: {
+					body: {
+						deposits: [],
+						attestations: [{ data: { index: 'not-a-number' } }],
+						proposer_slashings: [],
+						attester_slashings: [],
 					},
 				},
 			},
+		})).toThrow('Beacon: invalid block duty summary')
+	})
+
+	it('binds a block body and pre-Gloas execution hash to the exact fork root', async () => {
+		const header = {
+			root: `0x${'aa'.repeat(32)}`,
+			canonical: false,
+			header: {
+				message: {
+					slot: '64',
+					proposer_index: '12',
+					parent_root: `0x${'bb'.repeat(32)}`,
+					state_root: `0x${'cc'.repeat(32)}`,
+					body_root: `0x${'dd'.repeat(32)}`,
+				},
+				signature: `0x${'ee'.repeat(96)}`,
+			},
+		}
+		const block = {
+			version: 'electra',
+			execution_optimistic: true,
+			finalized: false,
+			data: {
+				message: {
+					slot: '64',
+					proposer_index: '12',
+					parent_root: `0x${'bb'.repeat(32)}`,
+					state_root: `0x${'cc'.repeat(32)}`,
+					body: {
+						deposits: [],
+						attestations: [],
+						proposer_slashings: [],
+						attester_slashings: [],
+						execution_payload: {
+							block_hash: `0x${'11'.repeat(32)}`,
+							withdrawals: [
+								{
+									index: '7',
+									validator_index: '31',
+									address: `0x${'12'.repeat(20)}`,
+									amount: '1',
+								},
+								{
+									index: '9',
+									validator_index: '32',
+									address: `0x${'13'.repeat(20)}`,
+									amount: '2',
+								},
+							],
+						},
+					},
+				},
+				signature: `0x${'ee'.repeat(96)}`,
+			},
+		}
+		expect(getBeaconBlockSnapshotFromWire(
+			block,
+			header
+		)).toMatchObject({
+			root: header.root,
+			slot: 64,
+			canonical: false,
+			executionOptimistic: true,
+			finalized: false,
+			executionBlockHash: `0x${'11'.repeat(32)}`,
+			withdrawals: [
+				{
+					withdrawalIndex: 7,
+					indexInBlock: 0,
+				},
+				{
+					withdrawalIndex: 9,
+					indexInBlock: 1,
+				},
+			],
+		})
+
+		const sourceFetch = vi.spyOn(sourceHttp, 'sourceFetch')
+			.mockResolvedValueOnce(new Response(JSON.stringify({ data: header })))
+			.mockResolvedValueOnce(new Response(JSON.stringify(block)))
+		await expect(getBeaconBlockSnapshot(
+			1,
+			64
+		)).resolves.toMatchObject({ root: header.root })
+		expect(sourceFetch.mock.calls.map((call) => String(call[1]))).toEqual([
+			expect.stringContaining('/eth/v1/beacon/headers/64'),
+			expect.stringContaining(`/eth/v2/beacon/blocks/${header.root}`),
 		])
-			expect(() => getBlockDutySummaryFromWire(wire)).toThrow('Beacon: invalid block duty summary')
+		expect(() => getBeaconBlockSnapshotFromWire(
+			{
+				...block,
+				data: {
+					...block.data,
+					message: {
+						...block.data.message,
+						parent_root: `0x${'ff'.repeat(32)}`,
+					},
+				},
+			},
+			header
+		)).toThrow('block body does not match exact header')
+	})
+
+	it('retains the selected Gloas execution payload bid owned by a fork-qualified block', () => {
+		const parentRoot = `0x${'22'.repeat(32)}`
+		const signature = `0x${'33'.repeat(96)}`
+		expect(getBeaconBlockSnapshotFromWire(
+			{
+				version: 'gloas',
+				execution_optimistic: false,
+				finalized: true,
+				data: {
+					message: {
+						slot: '65',
+						proposer_index: '13',
+						parent_root: parentRoot,
+						state_root: `0x${'44'.repeat(32)}`,
+						body: {
+							deposits: [],
+							attestations: [],
+							proposer_slashings: [],
+							attester_slashings: [],
+							signed_execution_payload_bid: {
+								message: {
+									parent_block_hash: `0x${'55'.repeat(32)}`,
+									parent_block_root: parentRoot,
+									block_hash: `0x${'66'.repeat(32)}`,
+									prev_randao: `0x${'77'.repeat(32)}`,
+									fee_recipient: `0x${'88'.repeat(20)}`,
+									gas_limit: '30000000',
+									builder_index: '9',
+									slot: '65',
+									value: '123',
+									execution_payment: '7',
+									blob_kzg_commitments: [`0x${'99'.repeat(48)}`],
+									execution_requests_root: `0x${'aa'.repeat(32)}`,
+								},
+								signature: `0x${'bb'.repeat(96)}`,
+							},
+						},
+					},
+					signature,
+				},
+			},
+			{
+				root: `0x${'11'.repeat(32)}`,
+				canonical: true,
+				header: {
+					message: {
+						slot: '65',
+						proposer_index: '13',
+						parent_root: parentRoot,
+						state_root: `0x${'44'.repeat(32)}`,
+						body_root: `0x${'cc'.repeat(32)}`,
+					},
+					signature,
+				},
+			}
+		)).toMatchObject({
+			executionPayloadBid: {
+				builderIndex: 9,
+				slot: 65,
+				executionBlockHash: `0x${'66'.repeat(32)}`,
+				gasLimit: 30000000n,
+				valueGwei: 123n,
+				executionPaymentGwei: 7n,
+			},
+		})
+	})
+
+	it('parses an exact-root Gloas execution payload envelope and native requests', async () => {
+		const beaconBlockRoot = `0x${'11'.repeat(32)}`
+		const wire = {
+			version: 'gloas',
+			execution_optimistic: true,
+			finalized: false,
+			data: {
+				message: {
+					builder_index: '9',
+					beacon_block_root: beaconBlockRoot,
+					parent_beacon_block_root: `0x${'22'.repeat(32)}`,
+					payload: {
+						parent_hash: `0x${'33'.repeat(32)}`,
+						fee_recipient: `0x${'44'.repeat(20)}`,
+						state_root: `0x${'55'.repeat(32)}`,
+						receipts_root: `0x${'66'.repeat(32)}`,
+						logs_bloom: `0x${'00'.repeat(256)}`,
+						prev_randao: `0x${'77'.repeat(32)}`,
+						block_number: '1234',
+						gas_limit: '30000000',
+						gas_used: '21000',
+						timestamp: '1700000000',
+						extra_data: '0x',
+						base_fee_per_gas: '1000000000',
+						blob_gas_used: '0',
+						excess_blob_gas: '0',
+						block_hash: `0x${'88'.repeat(32)}`,
+						transactions: [
+							'0x01',
+							'0x02',
+						],
+						withdrawals: [],
+						block_access_list: '0xc0',
+						slot_number: '65',
+					},
+					execution_requests: {
+						deposits: [{
+							pubkey: `0x${'99'.repeat(48)}`,
+							withdrawal_credentials: `0x${'aa'.repeat(32)}`,
+							amount: '32000000000',
+							signature: `0x${'bb'.repeat(96)}`,
+							index: '7',
+						}],
+						withdrawals: [{
+							source_address: `0x${'cc'.repeat(20)}`,
+							validator_pubkey: `0x${'dd'.repeat(48)}`,
+							amount: '1',
+						}],
+						consolidations: [{
+							source_address: `0x${'ee'.repeat(20)}`,
+							source_pubkey: `0x${'12'.repeat(48)}`,
+							target_pubkey: `0x${'13'.repeat(48)}`,
+						}],
+					},
+				},
+				signature: `0x${'ff'.repeat(96)}`,
+			},
+		}
+		expect(getExecutionPayloadEnvelopeFromWire(wire)).toMatchObject({
+			beaconBlockRoot,
+			builderIndex: 9,
+			executionBlockHash: `0x${'88'.repeat(32)}`,
+			blockNumber: 1234n,
+			transactionCount: 2,
+			executionRequests: {
+				deposits: [{ requestIndex: 7n }],
+				withdrawals: [{ amountGwei: 1n }],
+				consolidations: [{ targetPubkey: `0x${'13'.repeat(48)}` }],
+			},
+		})
+		const sourceFetch = vi.spyOn(sourceHttp, 'sourceFetch').mockResolvedValue(
+			new Response(JSON.stringify(wire))
+		)
+		await expect(getExecutionPayloadEnvelope(
+			1,
+			beaconBlockRoot.toUpperCase().replace('0X', '0x')
+		)).resolves.toMatchObject({ beaconBlockRoot })
+		expect(String(sourceFetch.mock.calls[0]?.[1])).toContain(
+			`/eth/v1/beacon/execution_payload_envelopes/${beaconBlockRoot}`
+		)
 	})
 
 	it('rejects invalid proposer discovery bounds before transport', async () => {

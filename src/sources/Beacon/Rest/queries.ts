@@ -9,8 +9,12 @@ import {
 } from '$/sources/_runtime/http.ts'
 import bindings from '$/sources/Beacon/bindings.ts'
 import type {
+	BeaconBlockSnapshot,
 	BeaconBlockDutySummary,
 	BeaconDataColumnSidecars,
+	BeaconExecutionPayloadBid,
+	BeaconExecutionPayloadEnvelope,
+	BeaconExecutionRequests,
 	BeaconValidatorAttestationReward,
 	BeaconValidatorSyncCommitteeReward,
 } from '$/sources/Beacon/Rest/types.ts'
@@ -820,6 +824,114 @@ export const getSyncCommittee = async (
 	return getSyncCommitteeFromWire(await res.json<JsonValue>())
 }
 
+const requiredUint64BigInt = (
+	value: JsonValue | undefined,
+	description: string
+) => {
+	if (typeof value !== 'string' || !isUint64Wire(value))
+		throw new Error(`Beacon: invalid ${description}`)
+	return BigInt(value)
+}
+
+const requiredNonNegativeBigInt = (
+	value: JsonValue | undefined,
+	description: string
+) => {
+	if (typeof value !== 'string' || !/^[0-9]+$/.test(value))
+		throw new Error(`Beacon: invalid ${description}`)
+	return BigInt(value)
+}
+
+const requiredUint64SafeInteger = (
+	value: JsonValue | undefined,
+	description: string
+) => {
+	const number = Number(requiredUint64BigInt(value, description))
+	if (!Number.isSafeInteger(number))
+		throw new Error(`Beacon: unsafe ${description}`)
+	return number
+}
+
+const requiredHex = (
+	value: JsonValue | undefined,
+	byteSize: number,
+	description: string
+) => {
+	if (
+		typeof value !== 'string'
+		|| !new RegExp(`^0x[0-9a-fA-F]{${String(byteSize * 2)}}$`).test(value)
+	) throw new Error(`Beacon: invalid ${description}`)
+	return value
+}
+
+const beaconExecutionPayloadBidFromWire = (
+	wire: JsonValue
+): BeaconExecutionPayloadBid => {
+	if (!isJsonObject(wire) || !isJsonObject(wire.message))
+		throw new Error('Beacon: invalid signed execution payload bid')
+	if (!Array.isArray(wire.message.blob_kzg_commitments))
+		throw new Error('Beacon: invalid execution payload bid commitments')
+	return {
+		builderIndex: requiredUint64SafeInteger(wire.message.builder_index, 'execution payload bid builder index'),
+		slot: requiredUint64SafeInteger(wire.message.slot, 'execution payload bid slot'),
+		parentExecutionBlockHash: requiredHex(wire.message.parent_block_hash, 32, 'execution payload bid parent block hash'),
+		parentBeaconBlockRoot: requiredHex(wire.message.parent_block_root, 32, 'execution payload bid parent beacon block root'),
+		executionBlockHash: requiredHex(wire.message.block_hash, 32, 'execution payload bid block hash'),
+		prevRandao: requiredHex(wire.message.prev_randao, 32, 'execution payload bid prev_randao'),
+		feeRecipient: requiredHex(wire.message.fee_recipient, 20, 'execution payload bid fee recipient'),
+		gasLimit: requiredUint64BigInt(wire.message.gas_limit, 'execution payload bid gas limit'),
+		valueGwei: requiredUint64BigInt(wire.message.value, 'execution payload bid value'),
+		executionPaymentGwei: requiredUint64BigInt(wire.message.execution_payment, 'execution payload bid payment'),
+		blobKzgCommitments: wire.message.blob_kzg_commitments.map((commitment) => (
+			requiredHex(commitment, 48, 'execution payload bid blob KZG commitment')
+		)),
+		executionRequestsRoot: requiredHex(wire.message.execution_requests_root, 32, 'execution payload bid execution requests root'),
+		signature: requiredHex(wire.signature, 96, 'execution payload bid signature'),
+	}
+}
+
+const beaconExecutionRequestsFromWire = (
+	wire: JsonValue
+): BeaconExecutionRequests => {
+	if (
+		!isJsonObject(wire)
+		|| !Array.isArray(wire.deposits)
+		|| !Array.isArray(wire.withdrawals)
+		|| !Array.isArray(wire.consolidations)
+	) throw new Error('Beacon: invalid execution requests')
+	return {
+		deposits: wire.deposits.map((request) => {
+			if (!isJsonObject(request))
+				throw new Error('Beacon: invalid deposit execution request')
+			return {
+				pubkey: requiredHex(request.pubkey, 48, 'deposit request pubkey'),
+				withdrawalCredentials: requiredHex(request.withdrawal_credentials, 32, 'deposit request withdrawal credentials'),
+				amountGwei: requiredUint64BigInt(request.amount, 'deposit request amount'),
+				signature: requiredHex(request.signature, 96, 'deposit request signature'),
+				requestIndex: requiredUint64BigInt(request.index, 'deposit request index'),
+			}
+		}),
+		withdrawals: wire.withdrawals.map((request) => {
+			if (!isJsonObject(request))
+				throw new Error('Beacon: invalid withdrawal execution request')
+			return {
+				sourceAddress: requiredHex(request.source_address, 20, 'withdrawal request source address'),
+				validatorPubkey: requiredHex(request.validator_pubkey, 48, 'withdrawal request validator pubkey'),
+				amountGwei: requiredUint64BigInt(request.amount, 'withdrawal request amount'),
+			}
+		}),
+		consolidations: wire.consolidations.map((request) => {
+			if (!isJsonObject(request))
+				throw new Error('Beacon: invalid consolidation execution request')
+			return {
+				sourceAddress: requiredHex(request.source_address, 20, 'consolidation request source address'),
+				sourcePubkey: requiredHex(request.source_pubkey, 48, 'consolidation request source pubkey'),
+				targetPubkey: requiredHex(request.target_pubkey, 48, 'consolidation request target pubkey'),
+			}
+		}),
+	}
+}
+
 export const getBlockDutySummaryFromWire = (wire: JsonValue): BeaconBlockDutySummary => {
 	if (!isJsonObject(wire))
 		throw new Error('Beacon: invalid block duty summary response')
@@ -853,6 +965,7 @@ export const getBlockDutySummaryFromWire = (wire: JsonValue): BeaconBlockDutySum
 		) throw new Error('Beacon: invalid block duty summary attestation aggregation bits')
 		return {
 			index,
+			indexInBlock: index,
 			committeeIndex,
 			...(attestationWire.aggregation_bits != null && {
 				aggregationBits: attestationWire.aggregation_bits,
@@ -877,6 +990,7 @@ export const getBlockDutySummaryFromWire = (wire: JsonValue): BeaconBlockDutySum
 			throw new Error('Beacon: invalid block duty summary deposit amount')
 		return {
 			index,
+			indexInBlock: index,
 			pubkey: depositWire.data.pubkey,
 			withdrawalCredentials: depositWire.data.withdrawal_credentials,
 			amountGwei,
@@ -889,7 +1003,7 @@ export const getBlockDutySummaryFromWire = (wire: JsonValue): BeaconBlockDutySum
 		throw new Error('Beacon: invalid block duty summary execution payload')
 	if (executionPayload?.withdrawals != null && !Array.isArray(executionPayload.withdrawals))
 		throw new Error('Beacon: invalid block duty summary withdrawals')
-	const withdrawals = (executionPayload?.withdrawals ?? []).map((withdrawalWire) => {
+	const withdrawals = (executionPayload?.withdrawals ?? []).map((withdrawalWire, indexInBlock) => {
 		if (!isJsonObject(withdrawalWire))
 			throw new Error('Beacon: invalid block duty summary withdrawal')
 		const index = Number(withdrawalWire.index)
@@ -907,6 +1021,8 @@ export const getBlockDutySummaryFromWire = (wire: JsonValue): BeaconBlockDutySum
 			throw new Error('Beacon: invalid block duty summary withdrawal amount')
 		return {
 			index,
+			withdrawalIndex: index,
+			indexInBlock,
 			validatorIndex,
 			address: withdrawalWire.address,
 			amountGwei,
@@ -914,10 +1030,12 @@ export const getBlockDutySummaryFromWire = (wire: JsonValue): BeaconBlockDutySum
 	})
 	const proposerSlashings = body.proposer_slashings.map<BeaconBlockDutySummary['slashings'][number]>((_slashing, index) => ({
 		index,
+		indexInKind: index,
 		kind: 'proposer',
 	}))
 	const attesterSlashings = body.attester_slashings.map<BeaconBlockDutySummary['slashings'][number]>((_slashing, index) => ({
 		index,
+		indexInKind: index,
 		kind: 'attester',
 	}))
 	return {
@@ -929,6 +1047,179 @@ export const getBlockDutySummaryFromWire = (wire: JsonValue): BeaconBlockDutySum
 			...attesterSlashings,
 		],
 	}
+}
+
+export const getBeaconBlockSnapshotFromWire = (
+	wire: JsonValue,
+	headerWire: BeaconHeaderWire
+): BeaconBlockSnapshot => {
+	const header = getHeaderFromWire({ data: headerWire })
+	if (header == null || !isJsonObject(wire))
+		throw new Error('Beacon: invalid block snapshot response')
+	if (
+		typeof wire.version !== 'string'
+		|| wire.version.length === 0
+		|| typeof wire.execution_optimistic !== 'boolean'
+		|| typeof wire.finalized !== 'boolean'
+	) throw new Error('Beacon: invalid block snapshot response')
+	const data = wire.data
+	if (!isJsonObject(data))
+		throw new Error('Beacon: invalid block snapshot response')
+	const message = data.message
+	if (!isJsonObject(message))
+		throw new Error('Beacon: invalid block snapshot response')
+	const body = message.body
+	if (!isJsonObject(body))
+		throw new Error('Beacon: invalid block snapshot response')
+	const slot = requiredUint64SafeInteger(message.slot, 'block slot')
+	const proposerIndex = requiredUint64SafeInteger(message.proposer_index, 'block proposer index')
+	const parentRoot = requiredHex(message.parent_root, 32, 'block parent root')
+	const stateRoot = requiredHex(message.state_root, 32, 'block state root')
+	const signature = requiredHex(data.signature, 96, 'block signature')
+	if (
+		String(slot) !== header.header.message.slot
+		|| String(proposerIndex) !== header.header.message.proposer_index
+		|| parentRoot.toLowerCase() !== header.header.message.parent_root.toLowerCase()
+		|| stateRoot.toLowerCase() !== header.header.message.state_root.toLowerCase()
+		|| signature.toLowerCase() !== header.header.signature.toLowerCase()
+	) throw new Error('Beacon: block body does not match exact header')
+
+	const executionPayload = body.execution_payload
+	if (executionPayload != null && !isJsonObject(executionPayload))
+		throw new Error('Beacon: invalid block execution payload')
+	const executionBlockHash = (
+		executionPayload == null ?
+			undefined
+		:
+			requiredHex(executionPayload.block_hash, 32, 'execution payload block hash')
+	)
+	const executionPayloadBid = (
+		body.signed_execution_payload_bid == null ?
+			undefined
+		:
+			beaconExecutionPayloadBidFromWire(body.signed_execution_payload_bid)
+	)
+	if (
+		executionPayloadBid != null
+		&& (
+			wire.version !== 'gloas'
+			|| executionPayloadBid.slot !== slot
+			|| executionPayloadBid.parentBeaconBlockRoot.toLowerCase() !== parentRoot.toLowerCase()
+		)
+	) throw new Error('Beacon: execution payload bid does not match beacon block')
+
+	return {
+		...getBlockDutySummaryFromWire(wire),
+		version: wire.version,
+		root: header.root,
+		slot,
+		proposerIndex,
+		parentRoot,
+		stateRoot,
+		bodyRoot: header.header.message.body_root,
+		signature,
+		canonical: header.canonical,
+		executionOptimistic: wire.execution_optimistic,
+		finalized: wire.finalized,
+		...(executionBlockHash != null && { executionBlockHash }),
+		...(executionPayloadBid != null && { executionPayloadBid }),
+	}
+}
+
+export const getBeaconBlockSnapshot = async (
+	chainId: number,
+	blockId: string | number
+) => {
+	const normalizedBlockId = normalizeBeaconStateOrBlockId(blockId)
+	const header = await getHeader(chainId, normalizedBlockId)
+	if (
+		normalizedBlockId.startsWith('0x')
+		&& header.root.toLowerCase() !== normalizedBlockId
+	) throw new Error('Beacon: header does not match requested block root')
+	const response = await beaconFetch(chainId, `/eth/v2/beacon/blocks/${header.root.toLowerCase()}`, {
+		headers: { accept: 'application/json' },
+	})
+	if (!response.ok) await throwHttpError('Beacon GET exact block', response)
+	return getBeaconBlockSnapshotFromWire(
+		await response.json<JsonValue>(),
+		header
+	)
+}
+
+export const getExecutionPayloadEnvelopeFromWire = (
+	wire: JsonValue
+): BeaconExecutionPayloadEnvelope => {
+	if (
+		!isJsonObject(wire)
+		|| wire.version !== 'gloas'
+		|| typeof wire.execution_optimistic !== 'boolean'
+		|| typeof wire.finalized !== 'boolean'
+	) throw new Error('Beacon: invalid execution payload envelope response')
+	const data = wire.data
+	if (!isJsonObject(data))
+		throw new Error('Beacon: invalid execution payload envelope response')
+	const message = data.message
+	if (!isJsonObject(message))
+		throw new Error('Beacon: invalid execution payload envelope response')
+	const payload = message.payload
+	if (!isJsonObject(payload))
+		throw new Error('Beacon: invalid execution payload envelope response')
+	if (
+		!Array.isArray(payload.transactions)
+		|| !payload.transactions.every((transaction) => (
+			typeof transaction === 'string'
+			&& /^0x(?:[0-9a-fA-F]{2})*$/.test(transaction)
+		))
+		|| !Array.isArray(payload.withdrawals)
+		|| typeof payload.block_access_list !== 'string'
+		|| !/^0x(?:[0-9a-fA-F]{2})*$/.test(payload.block_access_list)
+	) throw new Error('Beacon: invalid execution payload envelope payload')
+
+	return {
+		version: 'gloas',
+		executionOptimistic: wire.execution_optimistic,
+		finalized: wire.finalized,
+		beaconBlockRoot: requiredHex(message.beacon_block_root, 32, 'execution payload envelope beacon block root'),
+		parentBeaconBlockRoot: requiredHex(message.parent_beacon_block_root, 32, 'execution payload envelope parent beacon block root'),
+		builderIndex: requiredUint64SafeInteger(message.builder_index, 'execution payload envelope builder index'),
+		signature: requiredHex(data.signature, 96, 'execution payload envelope signature'),
+		executionBlockHash: requiredHex(payload.block_hash, 32, 'execution payload envelope block hash'),
+		parentExecutionBlockHash: requiredHex(payload.parent_hash, 32, 'execution payload envelope parent block hash'),
+		blockNumber: requiredUint64BigInt(payload.block_number, 'execution payload envelope block number'),
+		feeRecipient: requiredHex(payload.fee_recipient, 20, 'execution payload envelope fee recipient'),
+		gasLimit: requiredUint64BigInt(payload.gas_limit, 'execution payload envelope gas limit'),
+		gasUsed: requiredUint64BigInt(payload.gas_used, 'execution payload envelope gas used'),
+		timestampSeconds: requiredUint64BigInt(payload.timestamp, 'execution payload envelope timestamp'),
+		slotNumber: requiredUint64SafeInteger(payload.slot_number, 'execution payload envelope slot number'),
+		baseFeePerGas: requiredNonNegativeBigInt(payload.base_fee_per_gas, 'execution payload envelope base fee'),
+		blobGasUsed: requiredUint64BigInt(payload.blob_gas_used, 'execution payload envelope blob gas used'),
+		excessBlobGas: requiredUint64BigInt(payload.excess_blob_gas, 'execution payload envelope excess blob gas'),
+		blockAccessList: payload.block_access_list,
+		transactionCount: payload.transactions.length,
+		executionRequests: beaconExecutionRequestsFromWire(message.execution_requests),
+	}
+}
+
+export const getExecutionPayloadEnvelope = async (
+	chainId: number,
+	beaconBlockRoot: string
+) => {
+	if (!/^0x[0-9a-fA-F]{64}$/.test(beaconBlockRoot))
+		throw new Error('Beacon: execution payload envelope requires an exact block root')
+	const normalizedRoot = beaconBlockRoot.toLowerCase()
+	const response = await beaconFetch(
+		chainId,
+		`/eth/v1/beacon/execution_payload_envelopes/${normalizedRoot}`,
+		{
+			headers: { accept: 'application/json' },
+		}
+	)
+	if (response.status === 404) return null
+	if (!response.ok) await throwHttpError('Beacon GET execution payload envelope', response)
+	const envelope = getExecutionPayloadEnvelopeFromWire(await response.json<JsonValue>())
+	if (envelope.beaconBlockRoot.toLowerCase() !== normalizedRoot)
+		throw new Error('Beacon: execution payload envelope does not match requested block root')
+	return envelope
 }
 
 export const getBlockDutySummary = async (
