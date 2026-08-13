@@ -17,13 +17,25 @@ import type { NostrRelaySubscriptionEvent } from '$/sources/NostrRelay/WebSocket
 import { nostrEventId } from '$/sources/NostrRelay/Nip01/event.ts'
 
 const openNostrRelaySubscription = vi.hoisted(() => vi.fn())
+const openNostrRelaySubscriptionsForOperationGroup = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/NostrRelay/WebSocket/queries.ts', () => ({
 	openNostrRelaySubscription,
+	openNostrRelaySubscriptionsForOperationGroup,
 }))
 
 const { default: nostrRelayWebSocket } = await import('$/resolvers/NostrRelay-WebSocket.ts')
 const resolver = nostrRelayWebSocket.resolvers[0]
+const noteRepliesResolver = nostrRelayWebSocket.resolvers.find((candidate) => (
+	candidate.entityType === EntityType.NostrNote
+	&& 'resolveLive' in candidate
+	&& 'replies' in candidate.resolveLive
+))
+const noteReactionsResolver = nostrRelayWebSocket.resolvers.find((candidate) => (
+	candidate.entityType === EntityType.NostrNote
+	&& 'resolveLive' in candidate
+	&& 'reactions' in candidate.resolveLive
+))
 
 describe('Nostr relay live note resolver', () => {
 	it('publishes bounded signed notes and preserves lifecycle ownership', async () => {
@@ -176,5 +188,160 @@ describe('Nostr relay live note resolver', () => {
 
 		cleanup()
 		expect(close).toHaveBeenCalledOnce()
+	})
+
+	it('streams signed direct replies and reactions into an open note journey', async () => {
+		if (
+			noteRepliesResolver == null
+			|| !('resolveLive' in noteRepliesResolver)
+			|| noteReactionsResolver == null
+			|| !('resolveLive' in noteReactionsResolver)
+		)
+			throw new Error('Nostr note live resolver missing')
+
+		const onEvents: ((event: NostrRelaySubscriptionEvent) => void)[] = []
+		const closes = [vi.fn(), vi.fn()]
+		openNostrRelaySubscriptionsForOperationGroup.mockImplementation((options) => {
+			onEvents.push(options.onEvent)
+			return { close: closes[onEvents.length - 1] }
+		})
+		const replaceReplyRows = vi.fn()
+		const replaceReplyCountRows = vi.fn()
+		const replaceReactionRows = vi.fn()
+		const replaceReactionCountRows = vi.fn()
+		const signal = new AbortController().signal
+		const targetEventId = 'a'.repeat(64)
+		const cleanupReplies = await noteRepliesResolver.resolveLive.replies.start({
+			parentEntitySelector: { eventId: targetEventId },
+			queryClient: {},
+			signal,
+			trigger: {
+				filters: [],
+				sorts: [],
+				pagination: { limit: 2 },
+				selectorKeys: [],
+				parentSelectorKeys: [],
+				sources: [Source.NostrRelay_WebSocket],
+			},
+			fields: {
+				$$replies: {
+					replaceRows: replaceReplyRows,
+					invalidate: vi.fn(),
+					count: {
+						replaceRows: replaceReplyCountRows,
+						invalidate: vi.fn(),
+					},
+				},
+				invalidate: vi.fn(),
+			},
+		})
+		const cleanupReactions = await noteReactionsResolver.resolveLive.reactions.start({
+			parentEntitySelector: { eventId: targetEventId },
+			queryClient: {},
+			signal,
+			trigger: {
+				filters: [],
+				sorts: [],
+				pagination: { limit: 2 },
+				selectorKeys: [],
+				parentSelectorKeys: [],
+				sources: [Source.NostrRelay_WebSocket],
+			},
+			fields: {
+				$$reactions: {
+					replaceRows: replaceReactionRows,
+					invalidate: vi.fn(),
+					count: {
+						replaceRows: replaceReactionCountRows,
+						invalidate: vi.fn(),
+					},
+				},
+				invalidate: vi.fn(),
+			},
+		})
+
+		expect(openNostrRelaySubscriptionsForOperationGroup).toHaveBeenNthCalledWith(
+			1,
+			expect.objectContaining({
+				filters: [{
+					'#e': [targetEventId],
+					kinds: [1],
+					limit: 2,
+				}],
+				signal,
+			})
+		)
+		expect(openNostrRelaySubscriptionsForOperationGroup).toHaveBeenNthCalledWith(
+			2,
+			expect.objectContaining({
+				filters: [{
+					'#e': [targetEventId],
+					kinds: [7],
+					limit: 2,
+				}],
+				signal,
+			})
+		)
+		if (onEvents.length !== 2)
+			throw new Error('Nostr note live callback missing')
+
+		const secretKey = Hex.toBytes(`0x${'05'.repeat(32)}`)
+		const emit = (
+			kind: number,
+			tags: string[][],
+			content: string
+		) => {
+			const unsignedEvent = {
+				pubkey: Hex.fromBytes(schnorr.getPublicKey(secretKey)).slice(2),
+				kind,
+				created_at: 1_700_000_000 + kind,
+				content,
+				tags,
+			}
+			const id = nostrEventId(unsignedEvent)
+			for (const onEvent of onEvents)
+				onEvent({
+					type: 'event',
+					relayUrl: 'wss://relay.example',
+					subscriptionId: 'thread',
+					event: {
+						...unsignedEvent,
+						id,
+						sig: Hex.fromBytes(schnorr.sign(Hex.toBytes(`0x${id}`), secretKey, new Uint8Array(32))).slice(2),
+					},
+				})
+			return id
+		}
+
+		const replyEventId = emit(1, [['e', targetEventId, '', 'reply']], 'Direct reply')
+		const reactionEventId = emit(7, [['e', targetEventId]], '+')
+		emit(1, [['e', targetEventId, '', 'root'], ['e', 'b'.repeat(64), '', 'reply']], 'Nested reply')
+
+		expect(replaceReplyRows).toHaveBeenCalledTimes(1)
+		expect(replaceReplyRows).toHaveBeenLastCalledWith([{
+			source: Source.NostrRelay_WebSocket,
+			value: [expect.objectContaining({
+				[EntityMetaKey.Selector]: { eventId: replyEventId },
+			})],
+		}])
+		expect(replaceReplyCountRows).toHaveBeenLastCalledWith([{
+			source: Source.NostrRelay_WebSocket,
+			value: 1,
+		}])
+		expect(replaceReactionRows).toHaveBeenLastCalledWith([{
+			source: Source.NostrRelay_WebSocket,
+			value: [{
+				[EntityMetaKey.Selector]: { eventId: reactionEventId },
+			}],
+		}])
+		expect(replaceReactionCountRows).toHaveBeenLastCalledWith([{
+			source: Source.NostrRelay_WebSocket,
+			value: 1,
+		}])
+
+		cleanupReplies()
+		cleanupReactions()
+		expect(closes[0]).toHaveBeenCalledOnce()
+		expect(closes[1]).toHaveBeenCalledOnce()
 	})
 })

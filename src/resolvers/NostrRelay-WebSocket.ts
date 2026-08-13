@@ -31,6 +31,7 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { SourceOperationGroup } from '$/sources/SourceBinding.ts'
 import {
+	type NostrEventEnvelope,
 	type NostrEventExpectation,
 	validateNostrEvent,
 	validatedNostrEventFromContent,
@@ -39,6 +40,7 @@ import {
 	listNostrRelayEventsForOperationGroup,
 	nostrSearchTargetKey,
 	openNostrRelaySubscription,
+	openNostrRelaySubscriptionsForOperationGroup,
 } from '$/sources/NostrRelay/WebSocket/queries.ts'
 import type { NostrRelayEvent } from '$/sources/NostrRelay/WebSocket/types.ts'
 
@@ -326,7 +328,7 @@ export default {
 							throw new Error('NostrRelay_WebSocket: note event id mismatch')
 						return nostrNoteFieldValues(event)
 					},
-				}
+				},
 			},
 		})({
 				eventId: (note) => note.eventId,
@@ -399,7 +401,7 @@ export default {
 							targetEvent
 						)
 					},
-				}
+				},
 			},
 		})({
 				eventId: (repost) => repost.eventId,
@@ -670,7 +672,66 @@ export default {
 								.map(nostrNoteReference)
 						)
 					},
-				}
+				},
+			},
+			resolveLive: {
+				replies: {
+					facetPath: [],
+					publishes: {
+						'$$replies': true,
+					},
+					start: async ({
+						fields,
+						parentEntitySelector,
+						signal,
+						trigger,
+					}) => {
+						const repliesByEventId = new Map<string, NostrEventEnvelope>()
+						const limit = resolverContextRowLimit(trigger)
+						const subscription = openNostrRelaySubscriptionsForOperationGroup({
+							operationGroup: SourceOperationGroup.NostrRelayRead,
+							subscriptionId: `blockhead-note-replies-${parentEntitySelector.eventId}`,
+							filters: [{
+								'#e': [parentEntitySelector.eventId],
+								kinds: [1],
+								limit,
+							}],
+							signal,
+							maxSeenEventIds: Math.max(limit * 16, 1_024),
+							onEvent: (subscriptionEvent) => {
+								if (subscriptionEvent.type !== 'event')
+									return
+
+								let event
+								try {
+									event = validateNostrEvent(subscriptionEvent.event, { kinds: [1] })
+								} catch {
+									return
+								}
+								if (
+									nostrReplyToEventId(event.tags) !== parentEntitySelector.eventId
+									|| repliesByEventId.has(event.id)
+								)
+									return
+
+								repliesByEventId.set(event.id, event)
+								const replies = nostrEventsNewestFirst([...repliesByEventId.values()])
+									.slice(0, limit)
+									.map(nostrNoteReference)
+								fields.$$replies.replaceRows([{
+									source: Source.NostrRelay_WebSocket,
+									value: replies,
+								}])
+								fields.$$replies.count.replaceRows([{
+									source: Source.NostrRelay_WebSocket,
+									value: replies.length,
+								}])
+							},
+						})
+
+						return subscription.close
+					},
+				},
 			},
 		})({
 				$$replies: {
@@ -702,7 +763,68 @@ export default {
 								}))
 						)
 					},
-				}
+				},
+			},
+			resolveLive: {
+				reactions: {
+					facetPath: [],
+					publishes: {
+						'$$reactions': true,
+					},
+					start: async ({
+						fields,
+						parentEntitySelector,
+						signal,
+						trigger,
+					}) => {
+						const reactionsByEventId = new Map<string, NostrEventEnvelope>()
+						const limit = resolverContextRowLimit(trigger)
+						const subscription = openNostrRelaySubscriptionsForOperationGroup({
+							operationGroup: SourceOperationGroup.NostrRelayRead,
+							subscriptionId: `blockhead-note-reactions-${parentEntitySelector.eventId}`,
+							filters: [{
+								'#e': [parentEntitySelector.eventId],
+								kinds: [7],
+								limit,
+							}],
+							signal,
+							maxSeenEventIds: Math.max(limit * 16, 1_024),
+							onEvent: (subscriptionEvent) => {
+								if (subscriptionEvent.type !== 'event')
+									return
+
+								let event
+								try {
+									event = validateNostrEvent(subscriptionEvent.event, { kinds: [7] })
+								} catch {
+									return
+								}
+								if (
+									nostrReactionTargetEventId(event.tags) !== parentEntitySelector.eventId
+									|| reactionsByEventId.has(event.id)
+								)
+									return
+
+								reactionsByEventId.set(event.id, event)
+								const reactions = nostrEventsNewestFirst([...reactionsByEventId.values()])
+									.slice(0, limit)
+									.map((reaction) => ({
+										[EntityMetaKey.Selector]: { eventId: reaction.id },
+									}))
+								fields.$$reactions.replaceRows([{
+									source: Source.NostrRelay_WebSocket,
+									value: reactions,
+								}])
+								fields.$$reactions.count.replaceRows([{
+									source: Source.NostrRelay_WebSocket,
+									value: reactions.length,
+								}])
+							},
+						})
+
+						return subscription.close
+					},
+				},
 			},
 		})({
 				$$reactions: {
@@ -710,6 +832,5 @@ export default {
 					resolveCount: (reactions) => reactions.length,
 				},
 			}),
-
 	],
 } satisfies RegisteredSourceResolverModule

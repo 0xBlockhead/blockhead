@@ -763,6 +763,43 @@ export const openNostrRelaySubscription = ({
 	maxSeenEventIds,
 })
 
+export const openNostrRelaySubscriptionsForOperationGroup = ({
+	operationGroup,
+	subscriptionId,
+	filters,
+	signal,
+	onEvent,
+	maxSeenEventIds,
+}: {
+	operationGroup: SourceOperationGroup.NostrRelayRead | SourceOperationGroup.NostrSearch
+	subscriptionId: string
+	filters: readonly NostrRelayFilter[]
+	signal?: AbortSignal
+	onEvent: (event: NostrRelaySubscriptionEvent) => void
+	maxSeenEventIds?: number
+}) => {
+	const selectedBindings = bindings[Source.NostrRelay_WebSocket].filter((binding) => (
+		binding.operationGroups.includes(operationGroup)
+	))
+	if (selectedBindings.length === 0)
+		throw new Error('Nostr relay subscription has no selected WebSocket bindings')
+
+	const subscriptions = selectedBindings.map((binding, bindingIndex) => openRelaySubscription({
+		binding,
+		subscriptionId: `${subscriptionId}-${bindingIndex}`,
+		filters,
+		signal,
+		onEvent,
+		maxSeenEventIds,
+	}))
+	return {
+		close: () => {
+			for (const subscription of subscriptions)
+				subscription.close()
+		},
+	}
+}
+
 export const openRelaySubscription = ({
 	binding,
 	subscriptionId,
