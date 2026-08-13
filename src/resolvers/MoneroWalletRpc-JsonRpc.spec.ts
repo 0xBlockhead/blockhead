@@ -1,4 +1,5 @@
 import {
+	afterEach,
 	beforeEach,
 	describe,
 	expect,
@@ -65,6 +66,10 @@ const context = {
 	sources: [],
 	publicEnv: {},
 }
+
+afterEach(() => {
+	vi.useRealTimers()
+})
 
 describe('Monero local wallet journey', () => {
 	beforeEach(() => {
@@ -261,5 +266,94 @@ describe('Monero local wallet journey', () => {
 			accountIndex: 0,
 			addressIndex: 0,
 		}, context)).rejects.toThrow('subaddress identity mismatch')
+	})
+})
+
+describe('Monero live wallet synchronization', () => {
+	beforeEach(() => {
+		getBalance.mockReset()
+		getHeight.mockReset()
+		getBalance.mockResolvedValue({
+			balance: 12,
+			unlocked_balance: 10,
+			multisig_import_needed: false,
+		})
+		getHeight.mockResolvedValue({ height: 100 })
+		vi.useFakeTimers()
+	})
+
+	it('publishes source-clocked wallet height and balances until abort cleanup', async () => {
+		const replaceTimestamps = vi.fn()
+		const abortController = new AbortController()
+		const cleanup = await walletResolver.resolveLive.walletSynchronization.start({
+			parentEntitySelector: { walletId: 'monero-wallet-rpc' },
+			queryClient: {},
+			signal: abortController.signal,
+			trigger: context,
+			fields: {
+				$$timestamps: {
+					replaceRows: replaceTimestamps,
+					invalidate: vi.fn(),
+					count: {
+						replaceRows: vi.fn(),
+						invalidate: vi.fn(),
+					},
+				},
+			},
+		})
+		await vi.waitFor(() => expect(replaceTimestamps).toHaveBeenCalledOnce())
+
+		expect(replaceTimestamps).toHaveBeenLastCalledWith([{
+			source: Source.MoneroWalletRpc_JsonRpc,
+			value: [expect.objectContaining({
+				[EntityMetaKey.Selector]: {
+					$walletState: { walletId: 'monero-wallet-rpc' },
+					timestampMs: expect.any(Number),
+					source: Source.MoneroWalletRpc_JsonRpc,
+				},
+				[EntityMetaKey.Fields]: expect.objectContaining({
+					[entityFieldAddressKey(EntityType.BlockheadMoneroWalletState_Timestamp, [], 'height')]: 100n,
+					[entityFieldAddressKey(EntityType.BlockheadMoneroWalletState_Timestamp, [], 'balanceAtomicUnits')]: 12n,
+					[entityFieldAddressKey(EntityType.BlockheadMoneroWalletState_Timestamp, [], 'unlockedBalanceAtomicUnits')]: 10n,
+				}),
+			})],
+		}])
+
+		getBalance.mockResolvedValueOnce({
+			balance: 15,
+			unlocked_balance: 14,
+		})
+		getHeight.mockResolvedValueOnce({ height: 101 })
+		await vi.advanceTimersByTimeAsync(10_000)
+		await vi.waitFor(() => expect(replaceTimestamps).toHaveBeenCalledTimes(2))
+		expect(replaceTimestamps.mock.calls[1][0][0].value[0][EntityMetaKey.Fields]).toMatchObject({
+			[entityFieldAddressKey(EntityType.BlockheadMoneroWalletState_Timestamp, [], 'height')]: 101n,
+			[entityFieldAddressKey(EntityType.BlockheadMoneroWalletState_Timestamp, [], 'balanceAtomicUnits')]: 15n,
+		})
+
+		abortController.abort()
+		cleanup?.()
+		await vi.advanceTimersByTimeAsync(10_000)
+		expect(getHeight).toHaveBeenCalledTimes(2)
+	})
+
+	it('rejects a foreign local wallet before reading private authority', () => {
+		expect(() => walletResolver.resolveLive.walletSynchronization.start({
+			parentEntitySelector: { walletId: 'another-wallet' },
+			queryClient: {},
+			signal: new AbortController().signal,
+			trigger: context,
+			fields: {
+				$$timestamps: {
+					replaceRows: vi.fn(),
+					invalidate: vi.fn(),
+					count: {
+						replaceRows: vi.fn(),
+						invalidate: vi.fn(),
+					},
+				},
+			},
+		})).toThrow('unknown local wallet')
+		expect(getHeight).not.toHaveBeenCalled()
 	})
 })

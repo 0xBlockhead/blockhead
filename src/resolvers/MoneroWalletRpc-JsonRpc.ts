@@ -10,7 +10,6 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
-import bindings from '$/sources/MoneroWalletRpc/bindings.ts'
 import type {
 	MoneroWalletOutput,
 	MoneroWalletSubaddress,
@@ -21,11 +20,17 @@ import type {
 
 
 const loadMoneroWalletQueries = async () => {
-	const binding = bindings[Source.MoneroWalletRpc_JsonRpc][0]
 	if (typeof window !== 'undefined')
 		return import('$/sources/MoneroWalletRpc/JsonRpc/queries.remote.ts')
 
-	const queries = await import('$/sources/MoneroWalletRpc/JsonRpc/queries.ts')
+	const [
+		{ default: bindings },
+		queries,
+	] = await Promise.all([
+		import('$/sources/MoneroWalletRpc/bindings.ts'),
+		import('$/sources/MoneroWalletRpc/JsonRpc/queries.ts'),
+	])
+	const binding = bindings[Source.MoneroWalletRpc_JsonRpc][0]
 	return {
 		getAccounts: () => queries.getAccounts(binding),
 		getAddress: (accountIndex: number) => queries.getAddress(binding, accountIndex),
@@ -402,6 +407,71 @@ export default {
 					},
 				},
 			},
+			resolveLive: {
+				walletSynchronization: {
+					facetPath: [],
+					publishes: {
+						'$$timestamps': true,
+					},
+					start: ({
+						fields,
+						parentEntitySelector,
+						signal,
+					}) => {
+						if (parentEntitySelector.walletId !== walletId)
+							throw new Error(`MoneroWalletRpc_JsonRpc: unknown local wallet ${parentEntitySelector.walletId}`)
+
+						let timeout: ReturnType<typeof setTimeout> | undefined
+						const poll = async () => {
+							const {
+								getBalance,
+								getHeight,
+							} = await loadMoneroWalletQueries()
+							const [
+								balance,
+								height,
+							] = await Promise.all([
+								getBalance(),
+								getHeight(),
+							])
+							if (signal.aborted)
+								return
+
+							const timestampMs = Date.now()
+							fields.$$timestamps.replaceRows([{
+								source: Source.MoneroWalletRpc_JsonRpc,
+								value: [{
+									[EntityMetaKey.Selector]: {
+										$walletState: parentEntitySelector,
+										timestampMs,
+										source: Source.MoneroWalletRpc_JsonRpc,
+									},
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.BlockheadMoneroWalletState_Timestamp, [], 'height')]: atomicUnits(height.height, 'wallet height'),
+										[entityFieldAddressKey(EntityType.BlockheadMoneroWalletState_Timestamp, [], 'balanceAtomicUnits')]: atomicUnits(balance.balance, 'wallet balance'),
+										[entityFieldAddressKey(EntityType.BlockheadMoneroWalletState_Timestamp, [], 'unlockedBalanceAtomicUnits')]: atomicUnits(balance.unlocked_balance, 'wallet unlocked balance'),
+										...(balance.multisig_import_needed != null && {
+											[entityFieldAddressKey(EntityType.BlockheadMoneroWalletState_Timestamp, [], 'multisigImportNeeded')]: balance.multisig_import_needed,
+										}),
+										[entityFieldAddressKey(EntityType.BlockheadMoneroWalletState_Timestamp, [], 'lastSyncedAt')]: timestampMs,
+									},
+								}],
+							}])
+							timeout = setTimeout(() => { void poll() }, 10_000)
+						}
+						const abort = () => {
+							if (timeout != null)
+								clearTimeout(timeout)
+						}
+						signal.addEventListener('abort', abort, { once: true })
+						void poll()
+						return () => {
+							signal.removeEventListener('abort', abort)
+							abort()
+						}
+					},
+				},
+			},
 		})({
 			walletId: (wallet) => wallet.walletId,
 			$network: (wallet) => wallet.$network,
@@ -411,7 +481,10 @@ export default {
 			$$subaddresses: (wallet) => wallet.$$subaddresses,
 			$$outputs: (wallet) => wallet.$$outputs,
 			$$transfers: (wallet) => wallet.$$transfers,
-			$$timestamps: (wallet) => wallet.$$timestamps,
+			$$timestamps: {
+				select: (wallet) => wallet.$$timestamps,
+				resolveCount: (wallet) => wallet.$$timestamps.length,
+			},
 		}),
 
 		defineResolver({

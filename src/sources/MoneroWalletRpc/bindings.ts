@@ -5,8 +5,8 @@ import {
 	SourceCredentialScope,
 	SourceDelivery,
 	SourceEndpointKind,
+	SourceOperationGroup,
 	SourceTargetKind,
-	walletReadAndSignOperationGroups,
 	WireProtocol,
 } from '$/sources/SourceBinding.ts'
 
@@ -26,7 +26,7 @@ export default indexSourceBindings([
 		],
 		wireProtocol: WireProtocol.JsonRpc2,
 		apiFamily: ApiFamily.JsonRpcApi,
-		operationGroups: walletReadAndSignOperationGroups,
+		operationGroups: [SourceOperationGroup.WalletAccountRead],
 		delivery: SourceDelivery.LocalOnly,
 		credentials: [
 			{
