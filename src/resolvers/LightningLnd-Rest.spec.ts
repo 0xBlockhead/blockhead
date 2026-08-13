@@ -14,6 +14,7 @@ const {
 	getInvoice,
 	getNetworkInfo,
 	getNodeInfo,
+	getPayment,
 	getWalletBalance,
 	listChannels,
 	listInvoices,
@@ -25,6 +26,7 @@ const {
 	getInvoice: vi.fn(),
 	getNetworkInfo: vi.fn(),
 	getNodeInfo: vi.fn(),
+	getPayment: vi.fn(),
 	getWalletBalance: vi.fn(),
 	listChannels: vi.fn(),
 	listInvoices: vi.fn(),
@@ -38,6 +40,7 @@ vi.mock('$/sources/LightningLnd/Rest/queries.ts', () => ({
 	getInvoice,
 	getNetworkInfo,
 	getNodeInfo,
+	getPayment,
 	getWalletBalance,
 	listChannels,
 	listInvoices,
@@ -605,7 +608,7 @@ describe('Lightning LND resolver ownership', () => {
 	})
 
 	it('prefers nanosecond payment time and preserves observations', async () => {
-		listPayments.mockResolvedValue({ payments: [payment] })
+		getPayment.mockResolvedValue(payment)
 		const paymentSelector = {
 			$network: lightningNetwork,
 			paymentHash: payment.payment_hash,
@@ -623,6 +626,12 @@ describe('Lightning LND resolver ownership', () => {
 			status: 'Succeeded',
 			failureReason: '',
 			preimage: 'preimage',
+		})
+		expect(getPayment).toHaveBeenNthCalledWith(1, {
+			paymentHash: payment.payment_hash,
+		})
+		expect(getPayment).toHaveBeenNthCalledWith(2, {
+			paymentHash: payment.payment_hash,
 		})
 	})
 

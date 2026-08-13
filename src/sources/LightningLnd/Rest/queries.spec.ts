@@ -23,6 +23,7 @@ import {
 	getInvoice,
 	getNetworkInfo,
 	getNodeInfo,
+	getPayment,
 	getWalletBalance,
 	listInvoices,
 	listPayments,
@@ -157,7 +158,7 @@ describe('LND server-authenticated public graph reads', () => {
 		})
 		expect(sourceFetch).toHaveBeenLastCalledWith(
 			binding,
-			'https://127.0.0.1:8080/v1/payments?index_offset=9007199254740993&max_payments=25'
+			'https://127.0.0.1:8080/v1/payments?index_offset=9007199254740993&max_payments=25&include_incomplete=true'
 		)
 	})
 
@@ -257,7 +258,7 @@ describe('LND server-authenticated public graph reads', () => {
 		await expect(listPayments()).resolves.toEqual({})
 		expect(sourceFetch).toHaveBeenLastCalledWith(
 			binding,
-			'https://127.0.0.1:8080/v1/payments?max_payments=100'
+			'https://127.0.0.1:8080/v1/payments?max_payments=100&include_incomplete=true'
 		)
 
 		sourceFetch.mockReset()
@@ -269,6 +270,41 @@ describe('LND server-authenticated public graph reads', () => {
 		])
 			await expect(query()).rejects.toThrow('page size must be a positive safe integer no greater than 100')
 		expect(sourceFetch).not.toHaveBeenCalled()
+	})
+
+	it('finds an exact older or in-flight payment across bounded history pages', async () => {
+		sourceFetch.mockClear()
+		respond({
+			payments: Array.from({ length: 100 }, (_value, index) => ({
+				payment_hash: `other-${String(index)}`,
+			})),
+			last_index_offset: '100',
+		})
+		respond({
+			payments: [{
+				payment_hash: 'target-payment',
+				status: 'IN_FLIGHT',
+				value_msat: '9007199254740993000',
+			}],
+			last_index_offset: '101',
+		})
+
+		await expect(getPayment({
+			paymentHash: 'target-payment',
+		})).resolves.toMatchObject({
+			status: 'IN_FLIGHT',
+			value_msat: '9007199254740993000',
+		})
+		expect(sourceFetch).toHaveBeenNthCalledWith(
+			1,
+			binding,
+			'https://127.0.0.1:8080/v1/payments?max_payments=100&include_incomplete=true'
+		)
+		expect(sourceFetch).toHaveBeenNthCalledWith(
+			2,
+			binding,
+			'https://127.0.0.1:8080/v1/payments?index_offset=100&max_payments=100&include_incomplete=true'
+		)
 	})
 
 	it('rejects duplicate channel, invoice, and payment identities', async () => {

@@ -3,7 +3,10 @@ import bindings from '$/sources/LightningLnd/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 import { httpUrl } from '$/sources/_shared/wire/HttpRest/client.ts'
 import { sourceFetch } from '$/sources/_runtime/http.ts'
-import type { LndChannelEdge } from '$/sources/LightningLnd/Rest/types.ts'
+import type {
+	LndChannelEdge,
+	LndPayment,
+} from '$/sources/LightningLnd/Rest/types.ts'
 import { type as arktype } from 'arktype'
 
 const binding = bindings[Source.LightningLnd_Rest][0]
@@ -435,9 +438,11 @@ export const listInvoices = async ({
 export const listPayments = async ({
 	indexOffset,
 	maxPayments = 100,
+	includeIncomplete = true,
 }: {
 	indexOffset?: string
 	maxPayments?: number
+	includeIncomplete?: boolean
 } = {}) => {
 	if (indexOffset != null && !losslessUnsignedString.allows(indexOffset))
 		throw new Error('LightningLnd_Rest: payment index offset must be an unsigned integer string')
@@ -448,6 +453,7 @@ export const listPayments = async ({
 			index_offset: indexOffset,
 		}),
 		max_payments: String(maxPayments),
+		include_incomplete: String(includeIncomplete),
 	})
 	const page = assertEnvelope(
 		listPaymentsWire,
@@ -463,6 +469,35 @@ export const listPayments = async ({
 		paymentHashes.add(payment.payment_hash)
 	}
 	return page
+}
+
+export const getPayment = async ({
+	paymentHash,
+}: {
+	paymentHash: string
+}): Promise<LndPayment> => {
+	if (!nonEmptyString.allows(paymentHash))
+		throw new Error('LightningLnd_Rest: payment hash must not be empty')
+
+	for (let indexOffset: string | undefined; ;) {
+		const page = await listPayments({
+			indexOffset,
+			maxPayments: 100,
+			includeIncomplete: true,
+		})
+		const payment = (page.payments ?? []).find((candidate) => candidate.payment_hash === paymentHash)
+		if (payment != null)
+			return payment
+
+		if (
+			page.last_index_offset == null
+			|| page.last_index_offset === indexOffset
+			|| (page.payments ?? []).length < 100
+		)
+			throw new Error(`LightningLnd_Rest: payment not found ${paymentHash}`)
+
+		indexOffset = page.last_index_offset
+	}
 }
 
 export const listPeers = async () => {

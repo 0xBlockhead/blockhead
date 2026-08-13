@@ -1043,12 +1043,8 @@ export default {
 				NetworkPaymentHash: {
 					resolve: async ({ $network, paymentHash }) => {
 						assertLightningNetwork($network)
-						const { listPayments } = await import('$/sources/LightningLnd/Rest/queries.ts')
-						const payment = ((await listPayments()).payments ?? [])
-							.find((payment) => payment.payment_hash === paymentHash)
-						if (payment == null)
-							throw new Error(`LightningLnd_Rest: payment not found ${paymentHash}`)
-						return paymentFieldsFromLndPayment(payment)
+						const { getPayment } = await import('$/sources/LightningLnd/Rest/queries.ts')
+						return paymentFieldsFromLndPayment(await getPayment({ paymentHash }))
 					},
 				},
 			},
@@ -1067,12 +1063,10 @@ export default {
 					resolve: async ({ $payment, source }) => {
 						if (source !== Source.LightningLnd_Rest) throw new Error(`LightningLnd_Rest: unsupported source ${source}`)
 						assertLightningNetwork($payment.$network)
-						const { listPayments } = await import('$/sources/LightningLnd/Rest/queries.ts')
-						const payment = ((await listPayments()).payments ?? [])
-							.find((payment) => payment.payment_hash === $payment.paymentHash)
-						if (payment == null)
-							throw new Error(`LightningLnd_Rest: payment not found ${$payment.paymentHash}`)
-						return paymentTimestampFieldsFromLndPayment(payment)
+						const { getPayment } = await import('$/sources/LightningLnd/Rest/queries.ts')
+						return paymentTimestampFieldsFromLndPayment(await getPayment({
+							paymentHash: $payment.paymentHash,
+						}))
 					},
 				},
 			},
