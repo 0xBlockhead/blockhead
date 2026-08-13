@@ -932,6 +932,8 @@ export default {
 						} = await import('$/sources/Lotus/JsonRpc/queries.ts')
 						const head = await getHead()
 						const headBlock = head.Blocks.at(0)
+						if (headBlock?.Timestamp == null)
+							throw new Error('Lotus_JsonRpc: head is missing a source timestamp')
 						const deal = await getMarketStorageDeal({
 							dealId,
 							tipsetKey: head.Cids,
@@ -963,10 +965,7 @@ export default {
 										$network,
 										dealId,
 									},
-									timestampMs: headBlock?.Timestamp != null ?
-										headBlock.Timestamp * 1000
-									:
-										Date.now(),
+									timestampMs: headBlock.Timestamp * 1000,
 									source: Source.Lotus_JsonRpc,
 								},
 								[EntityMetaKey.Fields]: {
@@ -1029,6 +1028,12 @@ export default {
 							getMarketStorageDeal,
 						} = await import('$/sources/Lotus/JsonRpc/queries.ts')
 						const head = await getHead()
+						const headBlock = head.Blocks.at(0)
+						if (headBlock?.Timestamp == null)
+							throw new Error('Lotus_JsonRpc: head is missing a source timestamp')
+						const headTimestampMs = headBlock.Timestamp * 1000
+						if (headTimestampMs !== timestampMs)
+							throw new Error('Lotus_JsonRpc: deal observation timestamp does not match current head')
 						const deal = await getMarketStorageDeal({
 							dealId: $deal.dealId,
 							tipsetKey: head.Cids,

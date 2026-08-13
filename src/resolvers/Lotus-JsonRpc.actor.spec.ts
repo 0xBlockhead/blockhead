@@ -15,6 +15,7 @@ const getHead = vi.fn()
 const getIdAddress = vi.fn()
 const getMinerPower = vi.fn()
 const getMinerSectors = vi.fn()
+const getMarketStorageDeal = vi.fn()
 const getNetworkVersion = vi.fn()
 const getTipSet = vi.fn()
 const getTipSetByHeight = vi.fn()
@@ -27,6 +28,7 @@ vi.mock('$/sources/Lotus/JsonRpc/queries.ts', () => ({
 	getIdAddress,
 	getMinerPower,
 	getMinerSectors,
+	getMarketStorageDeal,
 	getNetworkVersion,
 	getTipSet,
 	getTipSetByHeight,
@@ -67,13 +69,15 @@ const blockResolver = lotusResolvers?.resolvers.find(({ entityType }) => entityT
 const networkTimestampResolver = lotusResolvers?.resolvers.find(({ entityType }) => entityType === EntityType.FilecoinNetwork_Timestamp)
 const tipsetResolver = lotusResolvers?.resolvers.find(({ entityType }) => entityType === EntityType.FilecoinTipset)
 const minerResolver = lotusResolvers?.resolvers.find(({ entityType }) => entityType === EntityType.FilecoinMiner)
+const dealResolver = lotusResolvers?.resolvers.find(({ entityType }) => entityType === EntityType.FilecoinDeal)
+const dealTimestampResolver = lotusResolvers?.resolvers.find(({ entityType }) => entityType === EntityType.FilecoinDeal_Timestamp)
 const networkTipsetsResolver = lotusResolvers?.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.Network
 	&& 'Filecoin' in resolver.projections
 	&& '$$tipsets' in resolver.projections.Filecoin
 ))
 
-if (indexedActorResolver == null || actorResolver == null || actorTimestampResolver == null || blockResolver == null || networkTimestampResolver == null || tipsetResolver == null || minerResolver == null || networkTipsetsResolver == null)
+if (indexedActorResolver == null || actorResolver == null || actorTimestampResolver == null || blockResolver == null || networkTimestampResolver == null || tipsetResolver == null || minerResolver == null || dealResolver == null || dealTimestampResolver == null || networkTipsetsResolver == null)
 	throw new Error('missing indexed Lotus actor resolvers')
 
 beforeEach(() => {
@@ -83,10 +87,58 @@ beforeEach(() => {
 	getIdAddress.mockReset()
 	getMinerPower.mockReset()
 	getMinerSectors.mockReset()
+	getMarketStorageDeal.mockReset()
 	getNetworkVersion.mockReset()
 	getTipSet.mockReset()
 	getTipSetByHeight.mockReset()
 	getVersion.mockReset()
+})
+
+it('keys deal observations only by the Lotus head source clock', async () => {
+	getHead.mockResolvedValue({
+		Height: 123,
+		Cids: [{ '/': 'bafy-head' }],
+		Blocks: [{
+			Timestamp: 1_750_000_000,
+		}],
+	})
+	getMarketStorageDeal.mockResolvedValue({
+		Proposal: {
+			Provider: 'f01234',
+			Client: 'f05678',
+			PieceCID: { '/': 'bafy-piece' },
+			PieceSize: 128,
+			VerifiedDeal: true,
+			StartEpoch: 100,
+			EndEpoch: 200,
+			StoragePricePerEpoch: '3',
+			ProviderCollateral: '4',
+			ClientCollateral: '5',
+		},
+		State: {
+			SectorStartEpoch: 110,
+			LastUpdatedEpoch: 120,
+			SlashEpoch: -1,
+		},
+	})
+	const selector = {
+		$network: network,
+		dealId: 7n,
+	}
+
+	const deal = await dealResolver.resolve.NetworkDealId.resolve(selector, context)
+	const observation = dealResolver.projections.$$timestamps(deal)[0][EntityMetaKey.Selector]
+	await expect(dealTimestampResolver.resolve.DealTimestampMsSource.resolve(
+		observation,
+		context
+	)).resolves.toMatchObject({
+		timestampMs: 1_750_000_000_000,
+		height: 123n,
+	})
+	await expect(dealTimestampResolver.resolve.DealTimestampMsSource.resolve({
+		...observation,
+		timestampMs: observation.timestampMs - 1,
+	}, context)).rejects.toThrow('timestamp does not match current head')
 })
 
 it('paginates native tipset and miner-sector hierarchies without repeating the first page', async () => {
