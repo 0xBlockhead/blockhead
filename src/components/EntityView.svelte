@@ -146,6 +146,9 @@
 
 	const entityDefinition = $derived(entityDefinitionByType[entityType])
 	const entityTitle = $derived(title ?? entityDefinition.labels.singular)
+	let copyLinkStatus = $state(
+		'',
+	)
 
 
 	// Functions
@@ -156,7 +159,7 @@
 	import Collapsible from '$/components/Collapsible.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import Tooltip from '$/components/Tooltip.svelte'
-	import EntityId from './EntityId.svelte'
+	import EntityId, { entityDragDataType } from './EntityId.svelte'
 </script>
 
 
@@ -301,6 +304,44 @@
 			data-card={undefined}
 			data-scroll-container={undefined}
 		>
+			{#snippet Toolbar()}
+				{#if !isInsideEntityList}
+					{#if href}
+						<button
+							type="button"
+							onclick={async (event) => {
+								event.preventDefault()
+								event.stopPropagation()
+								copyLinkStatus = 'Copying link…'
+								try {
+									await navigator.clipboard.writeText(new URL(href, window.location.href).href)
+									copyLinkStatus = 'Link copied'
+								} catch {
+									copyLinkStatus = 'Copy failed'
+								}
+							}}
+						>
+							Copy link
+						</button>
+					{/if}
+
+					<a
+						href={`data:${entityDragDataType};charset=utf-8,${encodeURIComponent(stringify({
+							entityType,
+							entitySelector,
+						}))}`}
+						download={`${entityType}-identity.devalue.json`}
+						onclick={(event) => event.stopPropagation()}
+					>
+						Download identity
+					</a>
+
+					{#if href && copyLinkStatus}
+						<span role="status" data-text="annotation">{copyLinkStatus}</span>
+					{/if}
+				{/if}
+			{/snippet}
+
 			{#snippet Summary({ open })}
 				{@render CardSummaryHeader({
 					summaryOpen: open ?? false,
