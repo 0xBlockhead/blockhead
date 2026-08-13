@@ -49,6 +49,7 @@ describe('universal search acceptance matrix', () => {
 		['EVM explorer address URL', `https://basescan.org/address/0x${'AB'.repeat(20)}`, `/account/eip155:8453/0x${'AB'.repeat(20)}`],
 		['EVM explorer token URL', `https://etherscan.io/token/0x${'AB'.repeat(20)}`, `/network/eip155:1/contract/0x${'AB'.repeat(20)}`],
 		['EVM explorer block URL', 'https://optimistic.etherscan.io/block/123456', '/network/eip155:10/block/123456'],
+		['Holesky Beaconcha.in validator URL', 'https://holesky.beaconcha.in/validator/123456', '/network/eip155:17000/validator/123456'],
 		['IPFS URI', 'ipfs://bafybeigdyrzt5sfp7udm7hu76f7lz4gf5o7vsvixd3rqfwxq6c6azp7j7m/folder/file.json', '/ipfs/ipfs/bafybeigdyrzt5sfp7udm7hu76f7lz4gf5o7vsvixd3rqfwxq6c6azp7j7m/path/folder/file.json'],
 		['IPNS URI', 'ipns://docs.ipfs.tech/concepts', '/ipfs/ipns/docs.ipfs.tech/path/concepts'],
 		['magnet URI', 'magnet:?xt=urn:btih:0123456789abcdef0123456789abcdef01234567', '/magnet/magnet%3A%3Fxt%3Durn%3Abtih%3A0123456789abcdef0123456789abcdef01234567'],

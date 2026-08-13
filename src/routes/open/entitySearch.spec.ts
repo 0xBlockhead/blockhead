@@ -69,6 +69,8 @@ describe(entityHrefFromSearchInput, () => {
 		['https://beaconcha.in/validator/123456', '/network/eip155:1/validator/123456'],
 		['https://beaconcha.in/epoch/234567', '/network/eip155:1/epoch/234567'],
 		['https://beaconcha.in/slot/7654321?tab=attestations', '/network/eip155:1/slot/7654321'],
+		['https://holesky.beaconcha.in/validator/123456', '/network/eip155:17000/validator/123456'],
+		['https://hoodi.beaconcha.in/slot/7654321', '/network/eip155:560048/slot/7654321'],
 		[`https://etherscan.io/tx/0x${'AB'.repeat(32)}`, `/network/eip155:1/tx/0x${'ab'.repeat(32)}`],
 		[`https://arbiscan.io/tx/0x${'12'.repeat(32)}#eventlog`, `/network/eip155:42161/tx/0x${'12'.repeat(32)}`],
 		[`https://basescan.org/address/0x${'AB'.repeat(20)}`, `/account/eip155:8453/0x${'AB'.repeat(20)}`],
@@ -106,6 +108,7 @@ describe(entityHrefFromSearchInput, () => {
 		[`eip155:1/erc721:0x${'12'.repeat(20)}`],
 		[`https://example.com/token/0x${'12'.repeat(20)}`],
 		[`http://etherscan.io/token/0x${'12'.repeat(20)}`],
+		['https://sepolia.beaconcha.in/validator/123456'],
 	])('does not fabricate an asset owner for unsupported authority %s', (query) => {
 		expect(entityHrefFromSearchInput(query)).toBe(
 			query.startsWith('http') ? `/url/${encodeURIComponent(query)}` : undefined

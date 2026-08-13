@@ -12,6 +12,8 @@ import {
 import { ipfsResourceAddressFromInput, ipfsResourceHref } from '$/lib/ipfs.ts'
 import { swarmResourceHrefFromInput } from '$/lib/swarm.ts'
 import { parseFarcasterUrlIngress } from '$/routes/(social)/(farcaster)/farcaster/farcasterUrlIngress.ts'
+import beaconchaInBindings from '$/sources/BeaconchaIn/bindings.ts'
+import { Source } from '$/sources/Source.ts'
 
 
 export const evmNetworkChoices = networks.flatMap((network) => (
@@ -122,6 +124,15 @@ const evmExplorerNetworkByHost = Object.fromEntries(
 				[]
 		)
 	})
+)
+
+const beaconchaInNetworkByHost = Object.fromEntries(
+	beaconchaInBindings[Source.BeaconchaIn_Rest].flatMap((binding) => (
+		binding.endpoints.map((endpoint) => [
+			new URL(endpoint.locator).hostname,
+			`eip155:${binding.target.key}`,
+		])
+	))
 )
 
 const evmErc20CoinInstanceHref = (
@@ -534,32 +545,32 @@ export const entityHrefFromSearchInput = (query: string) => {
 			}
 		)
 
-	const beaconchaInResource = query.match(/^https:\/\/(?:www\.)?beaconcha\.in\/(validator|epoch|slot)\/([0-9]+)\/?(?:[?#].*)?$/i)
+	const beaconchaInResource = query.match(/^https:\/\/([^/?#\s]+)\/(validator|epoch|slot)\/([0-9]+)\/?(?:[?#].*)?$/i)
 
-	if (beaconchaInResource)
+	if (beaconchaInResource && beaconchaInNetworkByHost[beaconchaInResource[1].toLowerCase()] != null)
 		return (
-			beaconchaInResource[1] === 'validator' ?
+			beaconchaInResource[2] === 'validator' ?
 				resolve(
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/validator/[validatorId=nonNegativeIntegerOrSolanaPubkeyOrStringSegment]',
 					{
-						network: 'eip155:1',
-						validatorId: beaconchaInResource[2],
+						network: beaconchaInNetworkByHost[beaconchaInResource[1].toLowerCase()],
+						validatorId: beaconchaInResource[3],
 					}
 				)
-			: beaconchaInResource[1] === 'epoch' ?
+			: beaconchaInResource[2] === 'epoch' ?
 				resolve(
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/epoch/[epoch=nonNegativeInteger]',
 					{
-						network: 'eip155:1',
-						epoch: beaconchaInResource[2],
+						network: beaconchaInNetworkByHost[beaconchaInResource[1].toLowerCase()],
+						epoch: beaconchaInResource[3],
 					}
 				)
 			:
 				resolve(
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/slot/[slot=nonNegativeInteger]',
 					{
-						network: 'eip155:1',
-						slot: beaconchaInResource[2],
+						network: beaconchaInNetworkByHost[beaconchaInResource[1].toLowerCase()],
+						slot: beaconchaInResource[3],
 					}
 				)
 		)
