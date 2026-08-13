@@ -24,8 +24,24 @@ import {
 	gmxPositionsInfoEnvelope,
 } from '$/sources/Gmx/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
-import { sourceGetJson } from '$/sources/_runtime/http.ts'
-import { httpUrl } from '$/sources/_shared/wire/HttpRest/client.ts'
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
+import {
+	firstHttpUrlForBinding,
+	sourceGetJson,
+} from '$/sources/_runtime/http.ts'
+
+const gmxHttpUrl = (
+	binding: SourceBinding,
+	path: string,
+	query?: Record<string, string | boolean | undefined>
+) => {
+	const url = new URL(`${firstHttpUrlForBinding(binding).replace(/\/$/, '')}/${path}`)
+	for (const [key, value] of Object.entries(query ?? {}))
+		if (value != null)
+			url.searchParams.set(key, String(value))
+
+	return url.toString()
+}
 
 const assertEnvelope = <_Value>(
 	label: string,
@@ -567,7 +583,7 @@ export const getMarketsInfo = async ({
 
 	const response = await sourceGetJson<GmxMarketInfoWire[]>(
 		binding,
-		httpUrl(binding, '/markets/info')
+		gmxHttpUrl(binding, 'markets/info')
 	)
 	const wires = assertEnvelope('markets/info', gmxMarketsInfoEnvelope, response)
 	if (wires.length > gmxMarketsInfoResponseMax)
@@ -603,7 +619,7 @@ export const getPositionsInfo = async ({
 	const account = assertAddress(address, 'account')
 	const response = await sourceGetJson<GmxPositionInfoWire[]>(
 		binding,
-		httpUrl(binding, '/positions', {
+		gmxHttpUrl(binding, 'positions', {
 			address: account,
 			includeRelatedOrders,
 		})
@@ -643,7 +659,7 @@ export const getPositionByKey = async ({
 	const normalizedContractKey = assertBytes32(contractKey, 'contractKey')
 	const response = await sourceGetJson<GmxPositionInfoWire>(
 		binding,
-		httpUrl(binding, `/positions/${normalizedContractKey}`, {
+		gmxHttpUrl(binding, `positions/${normalizedContractKey}`, {
 			includeRelatedOrders,
 		})
 	)

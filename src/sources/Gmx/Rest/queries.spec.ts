@@ -19,7 +19,6 @@ import {
 	WireProtocol,
 } from '$/sources/SourceBinding.ts'
 import { Source } from '$/sources/Source.ts'
-import { httpUrl } from '$/sources/_shared/wire/HttpRest/client.ts'
 
 const sourceGetJson = vi.hoisted(() => vi.fn())
 
@@ -128,7 +127,7 @@ describe('GMX markets/info operation', () => {
 
 		expect(sourceGetJson).toHaveBeenCalledWith(
 			arbitrumBinding,
-			httpUrl(arbitrumBinding!, '/markets/info')
+			'https://arbitrum.gmxapi.io/v1/markets/info'
 		)
 	})
 
@@ -168,7 +167,7 @@ describe('GMX markets/info operation', () => {
 
 		expect(sourceGetJson).toHaveBeenCalledWith(
 			binding,
-			httpUrl(binding!, '/markets/info')
+			`${binding!.endpoints[0]!.locator}/markets/info`
 		)
 	})
 
@@ -637,10 +636,7 @@ describe('GMX positions operations', () => {
 
 		expect(sourceGetJson).toHaveBeenCalledWith(
 			arbitrumBinding,
-			httpUrl(arbitrumBinding!, '/positions', {
-				address: '0xd2c66b256eb277cba30b6fccf4ab5f871452da77',
-				includeRelatedOrders: true,
-			})
+			'https://arbitrum.gmxapi.io/v1/positions?address=0xd2c66b256eb277cba30b6fccf4ab5f871452da77&includeRelatedOrders=true'
 		)
 	})
 
@@ -658,7 +654,7 @@ describe('GMX positions operations', () => {
 
 		expect(sourceGetJson).toHaveBeenCalledWith(
 			arbitrumBinding,
-			httpUrl(arbitrumBinding!, `/positions/${normalizedHypePosition.contractKey}`)
+			`https://arbitrum.gmxapi.io/v1/positions/${normalizedHypePosition.contractKey}`
 		)
 	})
 

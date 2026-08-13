@@ -1,5 +1,8 @@
 import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
-import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
+import {
+	resolverContextRowLimit,
+	type ResolverContext,
+} from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
@@ -19,6 +22,19 @@ type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 type GmxMarketId = EntitySelector<typeof schema, EntityType.GmxMarket>
 type GmxPositionId = EntitySelector<typeof schema, EntityType.GmxPosition>
 type EvmNetworkAccountId = EntitySelector<typeof schema, EntityType.EvmNetworkAccount>
+
+const gmxPaginationWindow = (
+	context: ResolverContext
+) => {
+	const offset = context.pagination.offset ?? 0
+	if (!Number.isSafeInteger(offset) || offset < 0)
+		throw new Error(`${Source.Gmx_Rest}: invalid pagination offset`)
+
+	return {
+		limit: resolverContextRowLimit(context),
+		offset,
+	}
+}
 
 const eip155ChainId = (network: NetworkId) => {
 	if (!('caip2' in network) || network.caip2.namespace !== 'eip155')
@@ -123,9 +139,13 @@ export default {
 							chainId,
 							address: $actor.address,
 						})
+						const {
+							limit,
+							offset,
+						} = gmxPaginationWindow(context)
 						return {
 							positions: positions
-								.slice(0, resolverContextRowLimit(context))
+								.slice(offset, offset + limit)
 								.map((position) => ({
 									[EntityMetaKey.Selector]: {
 										$account,
@@ -162,12 +182,19 @@ export default {
 							throw new Error(`${Source.Gmx_Rest}: invalid contract key ${contractKey}`)
 
 						const { getPositionByKey } = await import('$/sources/Gmx/Rest/queries.ts')
+						const position = await getPositionByKey({
+							chainId,
+							contractKey: normalizedContractKey,
+						})
+						const normalizedAccountAddress = hexLowerOfByteSize($account.$actor.address, 20)
+						if (normalizedAccountAddress == null)
+							throw new Error(`${Source.Gmx_Rest}: invalid position account ${$account.$actor.address}`)
+						if (position.account !== normalizedAccountAddress)
+							throw new Error(`${Source.Gmx_Rest}: position belongs to a different account`)
+
 						return mapGmxPositionSnapshot(
 							$account,
-							await getPositionByKey({
-								chainId,
-								contractKey: normalizedContractKey,
-							})
+							position
 						)
 					},
 				},
@@ -258,9 +285,13 @@ export default {
 						const markets = await getMarketsInfo({
 							chainId,
 						})
+						const {
+							limit,
+							offset,
+						} = gmxPaginationWindow(context)
 						return {
 							markets: markets
-								.slice(0, resolverContextRowLimit(context))
+								.slice(offset, offset + limit)
 								.map((market) => ({
 									[EntityMetaKey.Selector]: {
 										$network: network,

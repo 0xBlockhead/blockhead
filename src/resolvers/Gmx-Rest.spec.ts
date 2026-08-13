@@ -123,6 +123,45 @@ describe('GMX Rest resolver module', () => {
 		})
 	})
 
+	it('pages the complete GMX account position composition', async () => {
+		if (evmNetworkAccountResolver == null)
+			throw new Error('missing GMX account resolver')
+
+		const accountSelector = {
+			$network: baseNetwork,
+			$actor: {
+				address: '0xd2c66b256eb277cba30b6fccf4ab5f871452da77',
+			},
+		}
+		getPositionsInfo.mockResolvedValue([
+			{
+				contractKey: `0x${'1'.repeat(64)}`,
+			},
+			{
+				contractKey: `0x${'2'.repeat(64)}`,
+			},
+		])
+
+		const account = await evmNetworkAccountResolver.resolve.EvmNetworkEvmAccount.resolve(
+			accountSelector,
+			{
+				...context,
+				pagination: {
+					limit: 1,
+					offset: 1,
+				},
+			}
+		)
+
+		expect(evmNetworkAccountResolver.projections.$$gmxPositions.select(account)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$account: accountSelector,
+				contractKey: `0x${'2'.repeat(64)}`,
+			},
+		}])
+		expect(evmNetworkAccountResolver.projections.$$gmxPositions.resolveCount(account)).toBe(2)
+	})
+
 	it('resolves a GMX position by account + contract key', async () => {
 		if (gmxPositionResolver == null)
 			throw new Error('missing GmxPosition resolver')
@@ -217,6 +256,24 @@ describe('GMX Rest resolver module', () => {
 		})
 	})
 
+	it('rejects a position detail that belongs to another account', async () => {
+		if (gmxPositionResolver == null)
+			throw new Error('missing GmxPosition resolver')
+
+		getPositionByKey.mockResolvedValue({
+			account: '0x0000000000000000000000000000000000000001',
+		})
+		await expect(gmxPositionResolver.resolve.AccountContractKey.resolve({
+			$account: {
+				$network: baseNetwork,
+				$actor: {
+					address: '0xd2c66b256eb277cba30b6fccf4ab5f871452da77',
+				},
+			},
+			contractKey: `0x${'1'.repeat(64)}`,
+		}, context)).rejects.toThrow(`${Source.Gmx_Rest}: position belongs to a different account`)
+	})
+
 	it('rejects unsupported GMX chains on account positions before transport', async () => {
 		if (evmNetworkAccountResolver == null)
 			throw new Error('missing GMX account resolver')
@@ -254,7 +311,7 @@ describe('GMX Rest resolver module', () => {
 		expect(evmNetworkAccountResolver.projections.$$gmxPositions.resolveCount(account)).toBe(0)
 	})
 
-	it('lists Network $$gmxMarkets with authoritative resolveCount from markets/info', async () => {
+	it('pages Network $$gmxMarkets with authoritative resolveCount from markets/info', async () => {
 		const networkGmxMarketsResolver = gmxRest.resolvers.find((resolver) => (
 			resolver.entityType === EntityType.Network
 			&& 'Evm' in resolver.projections
@@ -274,15 +331,15 @@ describe('GMX Rest resolver module', () => {
 
 		const snapshot = await networkGmxMarketsResolver.resolve.Caip2.resolve(
 			baseNetwork,
-			context
+			{
+				...context,
+				pagination: {
+					limit: 1,
+					offset: 1,
+				},
+			}
 		)
 		expect(networkGmxMarketsResolver.projections.Evm.$$gmxMarkets.select(snapshot)).toEqual([
-			{
-				[EntityMetaKey.Selector]: {
-					$network: baseNetwork,
-					marketTokenAddress: '0x70d95587d40a2caf56bd97485ab3eec10bee6336',
-				},
-			},
 			{
 				[EntityMetaKey.Selector]: {
 					$network: baseNetwork,
