@@ -412,14 +412,75 @@ const cosmosProposalTimestampReference = (
 	},
 })
 
+const cosmosMessageTypeLabels = (
+	typeUrl: string
+) => {
+	const messageType = (
+		typeUrl.startsWith('/') ?
+			typeUrl.slice(1)
+		:
+			typeUrl
+	)
+	const segments = messageType.split('.')
+	if (segments.length < 2)
+		return {}
+
+	const moduleName = segments[1]
+	const messageName = segments.at(-1)
+	if (messageName == null)
+		return {}
+
+	return {
+		moduleName,
+		messageName,
+	}
+}
+
+const cosmosMessageEventTypes = (
+	events: NonNullable<CosmosSdkTxResponse['tx_response']['events']>,
+	indexInTransaction: number
+) => [...new Set(
+	events.flatMap((event) => {
+		const messageIndex = event.attributes?.find((attribute) => attribute.key === 'msg_index')?.value
+		if (messageIndex == null || messageIndex !== String(indexInTransaction))
+			return []
+
+		return [event.type]
+	})
+)]
+
+const cosmosMessageTypeUrl = (
+	message: NonNullable<NonNullable<CosmosSdkTx['body']>['messages']>[number],
+	txHash: string,
+	indexInTransaction: number
+) => {
+	const typeUrl = message['@type']
+	if (typeUrl == null || typeUrl === '')
+		throw new Error(`CosmosSdk_Rest: message @type is missing for ${txHash}:${indexInTransaction}`)
+
+	return typeUrl
+}
+
 const cosmosMessageFields = (
 	network: NetworkId,
-	message: NonNullable<NonNullable<CosmosSdkTx['body']>['messages']>[number]
+	message: NonNullable<NonNullable<CosmosSdkTx['body']>['messages']>[number],
+	txHash: string,
+	indexInTransaction: number,
+	wireTransaction?: CosmosSdkTxResponse
 ) => {
-	const signerAddress = message.signer ?? message.sender ?? message.from_address
+	const typeUrl = cosmosMessageTypeUrl(message, txHash, indexInTransaction)
+	const {
+		moduleName,
+		messageName,
+	} = cosmosMessageTypeLabels(typeUrl)
+	const senderAddress = message.sender ?? message.from_address
+	const signerAddress = message.signer ?? senderAddress
 	return {
-		typeUrl: message['@type'] ?? 'unknown',
+		typeUrl,
+		...(moduleName != null && { moduleName }),
+		...(messageName != null && { messageName }),
 		...(signerAddress != null && {
+			signerAddress,
 			$signer: {
 				[EntityMetaKey.Selector]: {
 					$network: network,
@@ -427,13 +488,29 @@ const cosmosMessageFields = (
 				},
 			},
 		}),
+		...(senderAddress != null && { senderAddress }),
+		...(message.grantee != null && { granteeAddress: message.grantee }),
+		...(message.granter != null && { granterAddress: message.granter }),
 		...(message.contract != null && {
+			contractAddress: message.contract,
 			$contract: {
 				[EntityMetaKey.Selector]: {
 					$network: network,
 					address: message.contract,
 				},
 			},
+		}),
+		...(message.funds != null && message.funds.length > 0 && {
+			funds: message.funds.map((fund) => ({
+				denom: fund.denom,
+				amount: cosmosUnsignedInteger(fund.amount, 'message fund amount'),
+			})),
+		}),
+		...(wireTransaction?.tx_response.events != null && {
+			eventTypes: cosmosMessageEventTypes(
+				wireTransaction.tx_response.events,
+				indexInTransaction
+			),
 		}),
 	}
 }
@@ -446,7 +523,13 @@ const cosmosMessageRows = (
 	wireTransaction: CosmosSdkTxResponse
 ) => (
 	(wireTransaction.tx?.body?.messages ?? []).map((message, indexInTransaction) => {
-		const fields = cosmosMessageFields(entitySelector.$network, message)
+		const fields = cosmosMessageFields(
+			entitySelector.$network,
+			message,
+			entitySelector.txHash,
+			indexInTransaction,
+			wireTransaction
+		)
 		return {
 			[EntityMetaKey.Selector]: {
 				$transaction: entitySelector,
@@ -454,6 +537,33 @@ const cosmosMessageRows = (
 			},
 			[EntityMetaKey.Fields]: {
 				[entityFieldAddressKey(EntityType.CosmosMessage, [], 'typeUrl')]: fields.typeUrl,
+				...(fields.moduleName != null && {
+					[entityFieldAddressKey(EntityType.CosmosMessage, [], 'moduleName')]: fields.moduleName,
+				}),
+				...(fields.messageName != null && {
+					[entityFieldAddressKey(EntityType.CosmosMessage, [], 'messageName')]: fields.messageName,
+				}),
+				...(fields.signerAddress != null && {
+					[entityFieldAddressKey(EntityType.CosmosMessage, [], 'signerAddress')]: fields.signerAddress,
+				}),
+				...(fields.senderAddress != null && {
+					[entityFieldAddressKey(EntityType.CosmosMessage, [], 'senderAddress')]: fields.senderAddress,
+				}),
+				...(fields.granteeAddress != null && {
+					[entityFieldAddressKey(EntityType.CosmosMessage, [], 'granteeAddress')]: fields.granteeAddress,
+				}),
+				...(fields.granterAddress != null && {
+					[entityFieldAddressKey(EntityType.CosmosMessage, [], 'granterAddress')]: fields.granterAddress,
+				}),
+				...(fields.contractAddress != null && {
+					[entityFieldAddressKey(EntityType.CosmosMessage, [], 'contractAddress')]: fields.contractAddress,
+				}),
+				...(fields.funds != null && {
+					[entityFieldAddressKey(EntityType.CosmosMessage, [], 'funds')]: fields.funds,
+				}),
+				...(fields.eventTypes != null && {
+					[entityFieldAddressKey(EntityType.CosmosMessage, [], 'eventTypes')]: fields.eventTypes,
+				}),
 				...(fields.$signer != null && {
 					[entityFieldAddressKey(EntityType.CosmosMessage, [], '$signer')]: fields.$signer,
 				}),
@@ -967,18 +1077,32 @@ export default {
 					appliesTo: cosmosTransactionReferenceApplicability,
 					resolve: async ({ $transaction, indexInTransaction }) => {
 						const { getTx } = await import('$/sources/CosmosSdk/Rest/queries.ts')
-						const message = (
-							await getTx({
-								txHash: $transaction.txHash,
-							})
-						).tx?.body?.messages?.at(indexInTransaction)
+						const wireTransaction = await getTx({
+							txHash: $transaction.txHash,
+						})
+						const message = wireTransaction.tx?.body?.messages?.at(indexInTransaction)
 						if (message == null) throw new Error(`CosmosSdk_Rest: message not found for ${$transaction.txHash}:${indexInTransaction}`)
-						return cosmosMessageFields($transaction.$network, message)
+						return cosmosMessageFields(
+							$transaction.$network,
+							message,
+							$transaction.txHash,
+							indexInTransaction,
+							wireTransaction
+						)
 					},
 				}
 			},
 		})({
 				typeUrl: (message) => message.typeUrl,
+				moduleName: (message) => message.moduleName,
+				messageName: (message) => message.messageName,
+				signerAddress: (message) => message.signerAddress,
+				senderAddress: (message) => message.senderAddress,
+				granteeAddress: (message) => message.granteeAddress,
+				granterAddress: (message) => message.granterAddress,
+				contractAddress: (message) => message.contractAddress,
+				funds: (message) => message.funds,
+				eventTypes: (message) => message.eventTypes,
 				$signer: (message) => message.$signer,
 				$contract: (message) => message.$contract,
 			}),

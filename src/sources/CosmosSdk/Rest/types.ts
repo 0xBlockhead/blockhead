@@ -43,7 +43,13 @@ export type CosmosSdkTx = {
 			signer?: string
 			sender?: string
 			from_address?: string
+			grantee?: string
+			granter?: string
 			contract?: string
+			funds?: {
+				denom: string
+				amount: string
+			}[]
 		}[]
 	}
 	auth_info?: {
@@ -71,6 +77,10 @@ export type CosmosSdkTxResponse = {
 		timestamp?: string
 		events?: {
 			type: string
+			attributes?: {
+				key: string
+				value: string
+			}[]
 		}[]
 	}
 }

@@ -88,6 +88,10 @@ const messageResolver = cosmosSdk.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.CosmosMessage
 	&& 'TransactionIndexInTransaction' in resolver.resolve
 ))
+const transactionResolver = cosmosSdk.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.CosmosTransaction
+	&& 'NetworkTxHash' in resolver.resolve
+))
 const governanceProposalsListResolver = cosmosSdk.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.Network
 	&& 'Cosmos' in resolver.projections
@@ -118,6 +122,7 @@ if (
 	|| validatorsListResolver == null
 	|| validatorTimestampResolver == null
 	|| messageResolver == null
+	|| transactionResolver == null
 	|| governanceProposalsListResolver == null
 	|| governanceProposalResolver == null
 	|| accountTransactionsResolver == null
@@ -617,11 +622,38 @@ describe('Cosmos SDK message resolver', () => {
 						'@type': '/cosmwasm.wasm.v1.MsgExecuteContract',
 						sender: 'cosmos1signer',
 						contract: 'cosmos1contract',
+						funds: [{
+							denom: 'uatom',
+							amount: '500',
+						}],
 					}],
 				},
 			},
 			tx_response: {
 				txhash: 'ABC123',
+				events: [
+					{
+						type: 'message',
+						attributes: [{
+							key: 'msg_index',
+							value: '0',
+						}],
+					},
+					{
+						type: 'execute',
+						attributes: [{
+							key: 'msg_index',
+							value: '0',
+						}],
+					},
+					{
+						type: 'transfer',
+						attributes: [{
+							key: 'msg_index',
+							value: '1',
+						}],
+					},
+				],
 			},
 		})
 		const transactionSelector = {
@@ -649,12 +681,109 @@ describe('Cosmos SDK message resolver', () => {
 
 		expect(snapshot).toEqual({
 			typeUrl: '/cosmwasm.wasm.v1.MsgExecuteContract',
+			moduleName: 'wasm',
+			messageName: 'MsgExecuteContract',
+			signerAddress: 'cosmos1signer',
+			senderAddress: 'cosmos1signer',
+			contractAddress: 'cosmos1contract',
+			funds: [{
+				denom: 'uatom',
+				amount: 500n,
+			}],
+			eventTypes: [
+				'message',
+				'execute',
+			],
 			$signer: signer,
 			$contract: contract,
 		})
 		expect(messageResolver.projections.typeUrl(snapshot)).toBe('/cosmwasm.wasm.v1.MsgExecuteContract')
+		expect(messageResolver.projections.moduleName(snapshot)).toBe('wasm')
+		expect(messageResolver.projections.messageName(snapshot)).toBe('MsgExecuteContract')
+		expect(messageResolver.projections.signerAddress(snapshot)).toBe('cosmos1signer')
+		expect(messageResolver.projections.senderAddress(snapshot)).toBe('cosmos1signer')
+		expect(messageResolver.projections.contractAddress(snapshot)).toBe('cosmos1contract')
+		expect(messageResolver.projections.funds(snapshot)).toEqual([{
+			denom: 'uatom',
+			amount: 500n,
+		}])
+		expect(messageResolver.projections.eventTypes(snapshot)).toEqual([
+			'message',
+			'execute',
+		])
 		expect(messageResolver.projections.$signer(snapshot)).toEqual(signer)
 		expect(messageResolver.projections.$contract(snapshot)).toEqual(contract)
+	})
+
+	it('rejects direct message resolution when @type is missing or empty', async () => {
+		const transactionSelector = {
+			$network: {
+				slug: 'cosmos',
+			},
+			txHash: 'ABC123',
+		}
+
+		getJson.mockResolvedValueOnce({
+			tx: {
+				body: {
+					messages: [{
+						sender: 'cosmos1signer',
+					}],
+				},
+			},
+			tx_response: {
+				txhash: 'ABC123',
+			},
+		})
+		await expect(messageResolver.resolve.TransactionIndexInTransaction.resolve({
+			$transaction: transactionSelector,
+			indexInTransaction: 0,
+		}, context)).rejects.toThrow('CosmosSdk_Rest: message @type is missing for ABC123:0')
+
+		getJson.mockResolvedValueOnce({
+			tx: {
+				body: {
+					messages: [{
+						'@type': '',
+						sender: 'cosmos1signer',
+					}],
+				},
+			},
+			tx_response: {
+				txhash: 'ABC123',
+			},
+		})
+		await expect(messageResolver.resolve.TransactionIndexInTransaction.resolve({
+			$transaction: transactionSelector,
+			indexInTransaction: 0,
+		}, context)).rejects.toThrow('CosmosSdk_Rest: message @type is missing for ABC123:0')
+	})
+
+	it('rejects transaction list rows when a message @type is missing or empty', async () => {
+		getJson.mockResolvedValueOnce({
+			tx: {
+				body: {
+					messages: [{
+						from_address: 'cosmos1sender',
+					}],
+				},
+			},
+			tx_response: {
+				height: '100',
+				txhash: 'MISSING-TYPE',
+				code: 0,
+				gas_wanted: '100000',
+				gas_used: '90000',
+				raw_log: '',
+			},
+		})
+
+		await expect(transactionResolver.resolve.NetworkTxHash.resolve({
+			$network: {
+				slug: 'cosmos',
+			},
+			txHash: 'MISSING-TYPE',
+		}, context)).rejects.toThrow('CosmosSdk_Rest: message @type is missing for MISSING-TYPE:0')
 	})
 })
 
