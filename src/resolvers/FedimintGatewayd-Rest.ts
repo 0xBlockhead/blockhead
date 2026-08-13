@@ -269,17 +269,13 @@ export default {
 						const {
 							getGatewayId,
 							getGatewayInfo,
-						} = await loadGatewayQueries()
-						const info = await getGatewayInfo({
-							publicEnv: context.publicEnv,
-						})
+						} = await loadGatewayQueries(context.publicEnv)
+						const info = await getGatewayInfo()
 						const federation = info.federations.find((row) => row.federation_id === federationId)
 						if (federation == null)
 							throw new Error(`FedimintGatewayd_Rest: federation not found for ${federationId}`)
 
-						const gatewayId = await getGatewayId({
-							publicEnv: context.publicEnv,
-						})
+						const gatewayId = await getGatewayId()
 						const timestampMs = Date.now()
 						return {
 							federationId,
@@ -317,10 +313,8 @@ export default {
 						if (source !== Source.FedimintGatewayd_Rest)
 							throw new Error(`FedimintGatewayd_Rest: unsupported source ${source}`)
 
-						const { getGatewayInfo } = await loadGatewayQueries()
-						const info = await getGatewayInfo({
-							publicEnv: context.publicEnv,
-						})
+						const { getGatewayInfo } = await loadGatewayQueries(context.publicEnv)
+						const info = await getGatewayInfo()
 						const federation = info.federations.find((row) => row.federation_id === $federation.federationId)
 						if (federation == null)
 							throw new Error(`FedimintGatewayd_Rest: federation not found for ${$federation.federationId}`)
