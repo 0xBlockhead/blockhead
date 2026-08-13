@@ -322,25 +322,38 @@ const assertListLimit = (
 	return limit
 }
 
+const assertListSkip = (
+	skip: number
+) => {
+	if (!Number.isSafeInteger(skip) || skip < 0)
+		throw new Error(`${Source.Balancer_Rest}: skip must be a nonnegative safe integer`)
+
+	return skip
+}
+
 /** List Balancer v2/v3 pool snapshots for one EIP-155 chain, ordered by liquidity. */
 export const listPools = async ({
 	binding: sourceBinding = binding,
 	chainId,
 	limit = balancerPoolListDefaultLimit,
+	skip = 0,
 }: {
 	binding?: SourceBinding
 	chainId: number
 	limit?: number
+	skip?: number
 }) => {
 	const chain = assertChainId(chainId)
 	assertListLimit(limit, balancerPoolListMaxLimit, 'limit')
+	assertListSkip(skip)
 
 	const data = await graphql<BalancerPoolsData>({
 		binding: sourceBinding,
 		query: `
-			query PoolGetPools($chain: GqlChain!, $first: Int!) {
+			query PoolGetPools($chain: GqlChain!, $first: Int!, $skip: Int!) {
 				poolGetPools(
 					first: $first
+					skip: $skip
 					orderBy: totalLiquidity
 					where: {
 						chainIn: [$chain]
@@ -353,6 +366,7 @@ export const listPools = async ({
 		variables: {
 			chain: chain.gqlChain,
 			first: limit,
+			skip,
 		},
 	})
 	if (data == null)
@@ -472,22 +486,26 @@ export const getAccountPoolBalances = async ({
 	chainId,
 	account,
 	limit = balancerPoolListMaxLimit,
+	skip = 0,
 }: {
 	binding?: SourceBinding
 	chainId: number
 	account: string
 	limit?: number
+	skip?: number
 }) => {
 	const chain = assertChainId(chainId)
 	const normalizedAccount = assertAddress(account, 'account')
 	assertListLimit(limit, balancerPoolListMaxLimit, 'limit')
+	assertListSkip(skip)
 
 	const data = await graphql<BalancerPoolsData>({
 		binding: sourceBinding,
 		query: `
-			query AccountPoolBalances($chain: GqlChain!, $userAddress: String!, $first: Int!) {
+			query AccountPoolBalances($chain: GqlChain!, $userAddress: String!, $first: Int!, $skip: Int!) {
 				poolGetPools(
 					first: $first
+					skip: $skip
 					where: {
 						chainIn: [$chain]
 						userAddress: $userAddress
@@ -502,6 +520,7 @@ export const getAccountPoolBalances = async ({
 			chain: chain.gqlChain,
 			userAddress: normalizedAccount,
 			first: limit,
+			skip,
 		},
 	})
 	if (data == null)

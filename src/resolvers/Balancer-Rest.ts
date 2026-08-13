@@ -1,4 +1,7 @@
-import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
+import {
+	resolverContextRowLimit,
+	type ResolverContext,
+} from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
@@ -39,6 +42,19 @@ const accountAddress = (account: EvmNetworkAccountId) => {
 	if (address.length < 1)
 		throw new Error(`${Source.Balancer_Rest}: account address missing`)
 	return address
+}
+
+const balancerPaginationSkip = (
+	context: ResolverContext
+) => {
+	const skip = context.providerContinuationToken == null ?
+		context.pagination.offset ?? 0
+	:
+		Number(context.providerContinuationToken)
+	if (!Number.isSafeInteger(skip) || skip < 0)
+		throw new Error(`${Source.Balancer_Rest}: invalid pagination skip`)
+
+	return skip
 }
 
 const mapBalancerPoolSnapshot = (
@@ -475,6 +491,8 @@ export default {
 							$network,
 							$actor,
 						}
+						const skip = balancerPaginationSkip(context)
+						const limit = resolverContextRowLimit(context)
 						const {
 							getAccountPoolBalances,
 							getPoolsCount,
@@ -483,7 +501,8 @@ export default {
 						const balances = await getAccountPoolBalances({
 							chainId,
 							account: $actor.address,
-							limit: resolverContextRowLimit(context),
+							limit,
+							skip,
 						})
 						const balanceCount = await getPoolsCount({
 							chainId,
@@ -494,6 +513,8 @@ export default {
 							account: $actor.address,
 						}).catch(() => undefined)
 						return {
+							skip,
+							limit,
 							$$balancerPoolBalances: balances.map((balance) => ({
 								[EntityMetaKey.Selector]: {
 									$account: account,
@@ -544,6 +565,19 @@ export default {
 			$$balancerPoolBalances: {
 				select: (snapshot) => snapshot.$$balancerPoolBalances,
 				resolveCount: (snapshot) => snapshot.balancerPoolBalanceCount,
+				continuation: (snapshot) => {
+					const nextSkip = snapshot.skip + snapshot.$$balancerPoolBalances.length
+					const terminal = nextSkip >= snapshot.balancerPoolBalanceCount
+
+					return {
+						operation: 'account-balancer-pool-balances',
+						target: 'balancer',
+						terminal,
+						...(!terminal && {
+							token: String(nextSkip),
+						}),
+					}
+				},
 			},
 			$veBal: (snapshot) => snapshot.$veBal,
 		}),
@@ -564,9 +598,11 @@ export default {
 							listVotingGauges,
 						} = await import('$/sources/Balancer/Rest/queries.ts')
 						const limit = resolverContextRowLimit(context)
+						const skip = balancerPaginationSkip(context)
 						const pools = await listPools({
 							chainId,
 							limit,
+							skip,
 						})
 						const poolCount = await getPoolsCount({
 							chainId,
@@ -576,6 +612,8 @@ export default {
 						}))
 							.filter((gauge) => gauge.chainId === chainId)
 						return {
+							poolSkip: skip,
+							poolLimit: limit,
 							pools: pools.map((pool) => ({
 								[EntityMetaKey.Selector]: {
 									$network: network,
@@ -653,6 +691,19 @@ export default {
 				$$balancerPools: {
 					select: (snapshot) => snapshot.pools,
 					resolveCount: (snapshot) => snapshot.poolCount,
+					continuation: (snapshot) => {
+						const nextSkip = snapshot.poolSkip + snapshot.pools.length
+						const terminal = nextSkip >= snapshot.poolCount
+
+						return {
+							operation: 'network-balancer-pools',
+							target: 'balancer',
+							terminal,
+							...(!terminal && {
+								token: String(nextSkip),
+							}),
+						}
+					},
 				},
 				$$balancerGauges: {
 					select: (snapshot) => snapshot.gauges,

@@ -279,6 +279,17 @@ describe('Balancer Rest resolver module', () => {
 			},
 		])
 		expect(networkBalancerPoolsResolver.projections.Evm.$$balancerPools.resolveCount(snapshot)).toBe(2355)
+		expect(networkBalancerPoolsResolver.projections.Evm.$$balancerPools.continuation(snapshot)).toEqual({
+			operation: 'network-balancer-pools',
+			target: 'balancer',
+			terminal: false,
+			token: '1',
+		})
+		expect(graphql.mock.calls[0]?.[0].variables).toEqual({
+			chain: 'MAINNET',
+			first: 16,
+			skip: 0,
+		})
 		expect(networkBalancerPoolsResolver.projections.Evm.$$balancerGauges.select(snapshot)).toEqual([])
 		expect(networkBalancerPoolsResolver.projections.Evm.$$balancerGauges.resolveCount(snapshot)).toBe(0)
 	})
@@ -413,6 +424,18 @@ describe('Balancer Rest resolver module', () => {
 			},
 		])
 		expect(evmNetworkAccountResolver.projections.$$balancerPoolBalances.resolveCount(snapshot)).toBe(7)
+		expect(evmNetworkAccountResolver.projections.$$balancerPoolBalances.continuation(snapshot)).toEqual({
+			operation: 'account-balancer-pool-balances',
+			target: 'balancer',
+			terminal: false,
+			token: '1',
+		})
+		expect(graphql.mock.calls[0]?.[0].variables).toEqual({
+			chain: 'MAINNET',
+			first: 16,
+			skip: 0,
+			userAddress: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
+		})
 		expect(graphql.mock.calls[1][0].variables).toEqual({
 			chain: 'MAINNET',
 			userAddress: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',

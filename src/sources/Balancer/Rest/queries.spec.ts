@@ -347,6 +347,7 @@ describe('Balancer poolGetPools operation', () => {
 			variables: {
 				chain: 'MAINNET',
 				first: 2,
+				skip: 0,
 			},
 		}))
 	})
@@ -600,6 +601,7 @@ describe('Balancer account pool balances operation', () => {
 				chain: 'MAINNET',
 				userAddress: account,
 				first: 2,
+				skip: 0,
 			},
 		}))
 	})
