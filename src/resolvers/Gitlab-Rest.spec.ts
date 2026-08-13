@@ -492,6 +492,24 @@ describe('GitLab repository journey', () => {
 	})
 
 	it('resolves the canonical repository into native branch refs and targets', async () => {
+		getBranches.mockResolvedValueOnce([
+			{
+				name: 'master',
+				protected: true,
+				developers_can_push: false,
+				developers_can_merge: true,
+				commit: {
+					id: 'a'.repeat(40),
+				},
+			},
+			{
+				name: 'stable',
+				protected: false,
+				commit: {
+					id: 'b'.repeat(40),
+				},
+			},
+		])
 		const snapshot = await repositoryResolver.resolve.CanonicalRemoteUrl.resolve({
 			canonicalRemoteUrl: project.http_url_to_repo,
 		})
@@ -512,6 +530,11 @@ describe('GitLab repository journey', () => {
 				},
 				refKind: 'branch',
 				targetObjectId: `0x${'a'.repeat(40)}`,
+				protection: {
+					protected: true,
+					developersCanPush: false,
+					developersCanMerge: true,
+				},
 			},
 			{
 				[EntityMetaKey.Selector]: {
@@ -522,6 +545,9 @@ describe('GitLab repository journey', () => {
 				},
 				refKind: 'branch',
 				targetObjectId: `0x${'b'.repeat(40)}`,
+				protection: {
+					protected: false,
+				},
 			},
 			{
 				[EntityMetaKey.Selector]: {
@@ -536,6 +562,30 @@ describe('GitLab repository journey', () => {
 		])
 		if (snapshot == null)
 			throw new Error('GitLab repository snapshot must resolve')
+		const refs = repositoryResolver.projections.$$refs.select(snapshot)
+		expect(refs[0][EntityMetaKey.Fields][
+			entityFieldAddressKey(EntityType.GitRef, [], '$$observations')
+		][0]).toMatchObject({
+			[EntityMetaKey.Selector]: {
+				$ref: {
+					$repository: {
+						canonicalRemoteUrl: project.http_url_to_repo,
+					},
+					refName: 'refs/heads/master',
+				},
+				timestampMs: expect.any(Number),
+				source: Source.Gitlab_Rest,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.GitRefObservation_Timestamp, [], 'targetObjectId')]: `0x${'a'.repeat(40)}`,
+				[entityFieldAddressKey(EntityType.GitRefObservation_Timestamp, [], 'advertised')]: true,
+				[entityFieldAddressKey(EntityType.GitRefObservation_Timestamp, [], 'protection')]: {
+					protected: true,
+					developersCanPush: false,
+					developersCanMerge: true,
+				},
+			},
+		})
 		expect(repositoryResolver.projections.$$refs.resolveCount(snapshot)).toBe(3)
 		expect(repositoryResolver.projections.$$objects.resolveCount(snapshot)).toBe(6)
 		expect(repositoryResolver.projections.$$objects.select(snapshot)).toEqual(expect.arrayContaining([

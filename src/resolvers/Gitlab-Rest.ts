@@ -487,11 +487,13 @@ export default {
 						if (project.path !== coordinates.repositoryName || project.path_with_namespace !== coordinates.projectId)
 							throw new Error('Gitlab_Rest: project identity does not match remote URL')
 
+						const timestampMs = Date.now()
 						const objectFormat = [...branches, ...tags].some(({ commit }) => commit.id.length === 64) ? 'sha256' : 'sha1'
 						return {
 							repositoryId: project.http_url_to_repo,
 							canonicalRemoteUrl: project.http_url_to_repo,
 							objectFormat,
+							timestampMs,
 							...(project.default_branch != null && { defaultRefName: `refs/heads/${project.default_branch}` }),
 							$$refs: [
 								...branches.map((branch) => ({
@@ -503,6 +505,17 @@ export default {
 									},
 									refKind: 'branch',
 									targetObjectId: `0x${branch.commit.id}`,
+									...(branch.protected != null && {
+										protection: {
+											protected: branch.protected,
+											...(branch.developers_can_push != null && {
+												developersCanPush: branch.developers_can_push,
+											}),
+											...(branch.developers_can_merge != null && {
+												developersCanMerge: branch.developers_can_merge,
+											}),
+										},
+									}),
 								})),
 								...tags.map((tag) => ({
 									[EntityMetaKey.Selector]: {
@@ -513,6 +526,11 @@ export default {
 									},
 									refKind: 'tag',
 									targetObjectId: `0x${tag.target}`,
+									...(tag.protected != null && {
+										protection: {
+											protected: tag.protected,
+										},
+									}),
 								})),
 							],
 							$$objects: [...new Map([
@@ -547,6 +565,20 @@ export default {
 					[EntityMetaKey.Fields]: {
 						[entityFieldAddressKey(EntityType.GitRef, [], 'refKind')]: ref.refKind,
 						[entityFieldAddressKey(EntityType.GitRef, [], 'targetObjectId')]: ref.targetObjectId,
+						[entityFieldAddressKey(EntityType.GitRef, [], '$$observations')]: [{
+							[EntityMetaKey.Selector]: {
+								$ref: ref[EntityMetaKey.Selector],
+								timestampMs: repository.timestampMs,
+								source: Source.Gitlab_Rest,
+							},
+							[EntityMetaKey.Fields]: {
+								[entityFieldAddressKey(EntityType.GitRefObservation_Timestamp, [], 'targetObjectId')]: ref.targetObjectId,
+								[entityFieldAddressKey(EntityType.GitRefObservation_Timestamp, [], 'advertised')]: true,
+								...(ref.protection != null && {
+									[entityFieldAddressKey(EntityType.GitRefObservation_Timestamp, [], 'protection')]: ref.protection,
+								}),
+							},
+						}],
 					},
 				})),
 				resolveCount: (repository) => repository.$$refs.length,
