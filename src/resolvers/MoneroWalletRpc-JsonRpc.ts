@@ -358,6 +358,7 @@ export default {
 							...(primaryAccount?.base_address != null && {
 								primaryAddress: primaryAccount.base_address,
 							}),
+							viewOnly: !keyStatus.spendKeyAvailable,
 							viewKeyFingerprint: keyStatus.viewKeyFingerprint,
 							spendKeyAvailable: keyStatus.spendKeyAvailable,
 							$$subaddresses: subaddresses
@@ -469,6 +470,7 @@ export default {
 			walletId: (wallet) => wallet.walletId,
 			$network: (wallet) => wallet.$network,
 			primaryAddress: (wallet) => wallet.primaryAddress,
+			viewOnly: (wallet) => wallet.viewOnly,
 			viewKeyFingerprint: (wallet) => wallet.viewKeyFingerprint,
 			spendKeyAvailable: (wallet) => wallet.spendKeyAvailable,
 			$$subaddresses: (wallet) => wallet.$$subaddresses,

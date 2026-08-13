@@ -133,6 +133,7 @@ describe('Monero local wallet journey', () => {
 				},
 			},
 			primaryAddress: '48primary',
+			viewOnly: true,
 			viewKeyFingerprint: 'b'.repeat(64),
 			spendKeyAvailable: false,
 		})
