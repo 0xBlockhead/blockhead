@@ -50,6 +50,11 @@ const moneroNetworkTimestampsResolver = moneroDaemonRpc.resolvers.find((resolver
 	resolver.entityType === EntityType.MoneroNetwork
 	&& '$$timestamps' in resolver.projections
 ))
+const moneroNetworkLiveResolver = moneroDaemonRpc.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.Network
+	&& resolver.resolveLive != null
+	&& 'operatorState' in resolver.resolveLive
+))
 
 if (
 	blockResolver == null
@@ -59,6 +64,7 @@ if (
 	|| stealthOutputResolver == null
 	|| moneroNetworkBlocksResolver == null
 	|| moneroNetworkTimestampsResolver == null
+	|| moneroNetworkLiveResolver == null
 )
 	throw new Error('MoneroDaemonRpc-JsonRpc spec missing required resolvers')
 
@@ -379,5 +385,88 @@ describe('Monero daemon tip / ring / stealth leftovers', () => {
 		})
 		expect(stealthOutputResolver.projections.publicKey(stealthOutput)).toBe('tagged-output-public-key')
 		expect(stealthOutputResolver.projections.commitment(stealthOutput)).toBe('commitment-1')
+	})
+})
+
+describe('Monero live operator state', () => {
+	beforeEach(() => {
+		getInfo.mockReset()
+		getInfo.mockResolvedValue(info)
+		vi.useFakeTimers()
+	})
+
+	it('publishes daemon state and exact head until abort cleanup', async () => {
+		const replaceTimestamps = vi.fn()
+		const replaceBlocks = vi.fn()
+		const abortController = new AbortController()
+		const cleanup = await moneroNetworkLiveResolver.resolveLive.operatorState.start({
+			parentEntitySelector: network,
+			queryClient: {},
+			signal: abortController.signal,
+			trigger: resolverContext,
+			fields: {
+				$$timestamps: {
+					replaceRows: replaceTimestamps,
+					invalidate: vi.fn(),
+					count: {
+						replaceRows: vi.fn(),
+						invalidate: vi.fn(),
+					},
+				},
+				$$blocks: {
+					replaceRows: replaceBlocks,
+					invalidate: vi.fn(),
+					count: {
+						replaceRows: vi.fn(),
+						invalidate: vi.fn(),
+					},
+				},
+			},
+		})
+		await vi.waitFor(() => expect(replaceBlocks).toHaveBeenCalledOnce())
+
+		expect(replaceTimestamps).toHaveBeenCalledWith([{
+			source: Source.MoneroDaemonRpc_JsonRpc,
+			value: [expect.objectContaining({
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					timestampMs: expect.any(Number),
+					source: Source.MoneroDaemonRpc_JsonRpc,
+				},
+			})],
+		}])
+		expect(replaceBlocks).toHaveBeenCalledWith([{
+			source: Source.MoneroDaemonRpc_JsonRpc,
+			value: [{
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					height: 3_400_000n,
+					hash: 'top-block-hash',
+				},
+			}],
+		}])
+
+		getInfo.mockResolvedValueOnce({
+			...info,
+			height: 3_400_002,
+			top_block_hash: 'next-block-hash',
+		})
+		await vi.advanceTimersByTimeAsync(10_000)
+		await vi.waitFor(() => expect(replaceBlocks).toHaveBeenCalledTimes(2))
+		expect(replaceBlocks).toHaveBeenLastCalledWith([{
+			source: Source.MoneroDaemonRpc_JsonRpc,
+			value: [{
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					height: 3_400_001n,
+					hash: 'next-block-hash',
+				},
+			}],
+		}])
+
+		abortController.abort()
+		cleanup?.()
+		await vi.advanceTimersByTimeAsync(10_000)
+		expect(getInfo).toHaveBeenCalledTimes(2)
 	})
 })

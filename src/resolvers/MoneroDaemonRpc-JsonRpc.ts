@@ -350,9 +350,76 @@ export default {
 					},
 				}
 			},
+			resolveLive: {
+				operatorState: {
+					facetPath: [
+						'Monero',
+					],
+					publishes: {
+						'$$timestamps': true,
+						'$$blocks': true,
+					},
+					start: ({
+						fields,
+						parentEntitySelector,
+						signal,
+					}) => {
+						assertMoneroMainnet(parentEntitySelector)
+						let timeout: ReturnType<typeof setTimeout> | undefined
+						const poll = async () => {
+							const { getInfo } = await import('$/sources/MoneroDaemonRpc/JsonRpc/queries.ts')
+							const info = await getInfo()
+							if (signal.aborted)
+								return
+							if (info.height < 1)
+								throw new Error('MoneroDaemonRpc_JsonRpc: daemon height has no head block')
+
+							fields.$$timestamps.replaceRows([{
+								source: Source.MoneroDaemonRpc_JsonRpc,
+								value: [{
+									[EntityMetaKey.Selector]: {
+										$network: parentEntitySelector,
+										timestampMs: Date.now(),
+										source: Source.MoneroDaemonRpc_JsonRpc,
+									},
+									[EntityMetaKey.Fields]: Object.fromEntries(
+										Object.entries(moneroNetworkTimestampFields(info)).map(([fieldName, value]) => [
+											entityFieldAddressKey(EntityType.MoneroNetwork_Timestamp, [], fieldName),
+											value,
+										])
+									),
+								}],
+							}])
+							fields.$$blocks.replaceRows([{
+								source: Source.MoneroDaemonRpc_JsonRpc,
+								value: [{
+									[EntityMetaKey.Selector]: {
+										$network: parentEntitySelector,
+										height: BigInt(info.height - 1),
+										hash: info.top_block_hash,
+									},
+								}],
+							}])
+							timeout = setTimeout(() => { void poll() }, 10_000)
+						}
+						const abort = () => {
+							if (timeout != null)
+								clearTimeout(timeout)
+						}
+						signal.addEventListener('abort', abort, { once: true })
+						void poll()
+						return () => {
+							signal.removeEventListener('abort', abort)
+							abort()
+						}
+					},
+				},
+			},
 		})({
 				Monero: {
 					rpcEndpoints: (network) => network.moneroRpcEndpoints,
+					'$$timestamps': {},
+					'$$blocks': {},
 				},
 			}),
 
