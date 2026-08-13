@@ -37,6 +37,15 @@ const readNormalizedLocalInternal = async () => (
 	(await normalizedLocalInternalModule).readNormalizedLocalInternal()
 )
 
+const probeBlockheadSourceEndpoints = (source: Source) => (
+	typeof window === 'undefined' ?
+		probeSourceHttpEndpoint(source)
+	:
+		import('$/sources/_runtime/probe.remote.ts').then(({ probeSourceHttpEndpointRemote }) => (
+			probeSourceHttpEndpointRemote(source)
+		))
+)
+
 const blockheadSourceTimestampFields = async ({
 	sourceId,
 	timestampMs,
@@ -58,12 +67,7 @@ const blockheadSourceTimestampFields = async ({
 
 		let endpointProbe
 		try {
-			endpointProbe = await (
-				typeof window === 'undefined' ?
-					probeSourceHttpEndpoint(source)
-				:
-					(await import('$/sources/_runtime/probe.remote.ts')).probeSourceHttpEndpointRemote(source)
-			)
+			endpointProbe = await probeBlockheadSourceEndpoints(source)
 		} catch (error) {
 			return {
 				$source: {
@@ -260,6 +264,61 @@ export default {
 								}),
 								...(timestamp.rateLimitResetMs != null && {
 									[entityFieldAddressKey(EntityType.BlockheadSource_Timestamp, [], 'rateLimitResetMs')]: timestamp.rateLimitResetMs,
+								}),
+							},
+						}]
+					},
+				},
+			},
+		})({
+			$$timestamps: (timestamps) => timestamps,
+		}),
+
+		defineResolver({
+			entityType: EntityType.BlockheadSourceEndpoint,
+			resolve: {
+				SourceBindingIdEndpointIndex: {
+					resolve: async ({ $source, bindingId, endpointIndex }) => {
+						const source = Object.values(Source).find((candidate) => candidate === $source.id)
+						if (source == null)
+							throw new Error(`Local_Internal: unsupported Blockhead source ${$source.id}`)
+
+						const endpoint = (await probeBlockheadSourceEndpoints(source))?.endpoints.find((candidate) => (
+							candidate.bindingId === bindingId
+							&& candidate.endpointIndex === endpointIndex
+						))
+						if (endpoint == null)
+							return []
+
+						const timestampMs = Date.now()
+						return [{
+							[EntityMetaKey.Selector]: {
+								$endpoint: {
+									$source: {
+										id: source,
+									},
+									bindingId,
+									endpointIndex,
+								},
+								timestampMs,
+							},
+							[EntityMetaKey.Fields]: {
+								[entityFieldAddressKey(EntityType.BlockheadSourceEndpoint_Timestamp, [], 'available')]: endpoint.available,
+								[entityFieldAddressKey(EntityType.BlockheadSourceEndpoint_Timestamp, [], 'reachable')]: endpoint.reachable,
+								...(endpoint.latencyMs != null && {
+									[entityFieldAddressKey(EntityType.BlockheadSourceEndpoint_Timestamp, [], 'latencyMs')]: endpoint.latencyMs,
+								}),
+								...(endpoint.statusCode != null && {
+									[entityFieldAddressKey(EntityType.BlockheadSourceEndpoint_Timestamp, [], 'statusCode')]: endpoint.statusCode,
+								}),
+								...(endpoint.error != null && {
+									[entityFieldAddressKey(EntityType.BlockheadSourceEndpoint_Timestamp, [], 'error')]: endpoint.error,
+								}),
+								...(endpoint.rateLimitRemaining != null && {
+									[entityFieldAddressKey(EntityType.BlockheadSourceEndpoint_Timestamp, [], 'rateLimitRemaining')]: endpoint.rateLimitRemaining,
+								}),
+								...(endpoint.rateLimitResetMs != null && {
+									[entityFieldAddressKey(EntityType.BlockheadSourceEndpoint_Timestamp, [], 'rateLimitResetMs')]: endpoint.rateLimitResetMs,
 								}),
 							},
 						}]

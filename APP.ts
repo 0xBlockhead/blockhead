@@ -996,6 +996,8 @@ export enum EntityType {
 	BlockheadSocialPostSession = "BlockheadSocialPostSession",
 	BlockheadSource = "BlockheadSource",
 	BlockheadSource_Timestamp = "BlockheadSource_Timestamp",
+	BlockheadSourceEndpoint = "BlockheadSourceEndpoint",
+	BlockheadSourceEndpoint_Timestamp = "BlockheadSourceEndpoint_Timestamp",
 	BlockheadStateChannel = "BlockheadStateChannel",
 	BlockheadStateChannel_Timestamp = "BlockheadStateChannel_Timestamp",
 	BlockheadStateChannelDeposit = "BlockheadStateChannelDeposit",
@@ -16999,6 +17001,7 @@ export const schema = {
 				"corsMode": { label: "CORS", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"proxyMode": { label: "Proxy", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"environmentScope": { label: "Environment", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+				"$$endpoints": { label: "Endpoints", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadSourceEndpoint, defaultSources: [Source.Constants_Internal] },
 				"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadSource_Timestamp },
 			})({
 				selectors: {
@@ -17036,7 +17039,10 @@ export const schema = {
 								["transportKind", "authKind", "corsMode", "proxyMode", "environmentScope"],
 							],
 						},
-						lists: [{ field: "$$timestamps", component: "BlockheadSource_TimestampsView", emptyText: "No observations yet." }],
+						lists: [
+							{ field: "$$endpoints", component: "BlockheadSourceEndpointsView", label: "Executable endpoints", query: { sources: [Source.Constants_Internal] }, emptyText: "This source has no concrete HTTP endpoint." },
+							{ field: "$$timestamps", component: "BlockheadSource_TimestampsView", emptyText: "No observations yet." },
+						],
 					},
 					plural: { component: "BlockheadSourcesView",
 						title: "Sources",
@@ -17085,6 +17091,70 @@ export const schema = {
 						},
 					},
 					plural: { component: "BlockheadSource_TimestampsView", title: "Source observations", },
+				},
+			}),
+
+			entity({
+				entityType: EntityType.BlockheadSourceEndpoint,
+				labels: {
+					singular: "source endpoint",
+					plural: "source endpoints",
+				},
+				description: "One concrete executable endpoint belonging to a registered source binding.",
+			})({
+				"$source": { label: "Source", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.BlockheadSource },
+				"bindingId": { label: "Binding ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "opaqueRouteIdentifier" },
+				"endpointIndex": { label: "Endpoint index", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
+				"endpointUrl": { label: "Endpoint URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "urlString" },
+				"targetKind": { label: "Target kind", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"targetKey": { label: "Target", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"wireProtocol": { label: "Wire protocol", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"apiFamily": { label: "API family", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"delivery": { label: "Delivery", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"corsEnabled": { label: "Browser CORS", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean" },
+				"$$timestamps": { label: "Health history", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadSourceEndpoint_Timestamp, defaultSources: [Source.Local_Internal] },
+			})({
+				selectors: {
+					"SourceBindingIdEndpointIndex": ["$source", "bindingId", "endpointIndex"],
+				},
+				views: {
+					singular: {
+						query: { sources: [Source.Constants_Internal, Source.Local_Internal] },
+						latest: [{ field: "$$timestamps", label: "Latest health", query: { sources: [Source.Local_Internal], limit: 1 }, fields: ["timestampMs", "available", "reachable", "latencyMs", "statusCode", "error", "rateLimitRemaining", "rateLimitResetMs"], sort: "timestampMs", direction: "desc", view: "BlockheadSourceEndpoint_TimestampView" }],
+						summary: { title: ["endpointUrl"], value: ["apiFamily", "wireProtocol"], HeadingAfter: ["targetKey"] },
+						content: { dl: [["$source", "endpointUrl", "bindingId", { field: "endpointIndex", format: "number" }], ["targetKind", "targetKey", "wireProtocol", "apiFamily", "delivery", "corsEnabled"]] },
+						lists: [{ field: "$$timestamps", component: "BlockheadSourceEndpoint_TimestampsView", emptyText: "No endpoint observations yet." }],
+					},
+					plural: { component: "BlockheadSourceEndpointsView", title: "Source endpoints", query: { sources: [Source.Constants_Internal, Source.Local_Internal] }, row: { title: ["endpointUrl"], value: ["apiFamily", "wireProtocol"], HeadingAfter: ["targetKey"] } },
+				},
+			}),
+
+			entity({
+				entityType: EntityType.BlockheadSourceEndpoint_Timestamp,
+				labels: {
+					singular: "source endpoint observation",
+					plural: "source endpoint observations",
+				},
+			})({
+				"$endpoint": { label: "Endpoint", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.BlockheadSourceEndpoint },
+				"timestampMs": { label: "Retrieved at", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
+				"available": { label: "Available", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "boolean" },
+				"reachable": { label: "Reachable", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "boolean" },
+				"latencyMs": { label: "Latency ms", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+				"statusCode": { label: "Status code", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+				"error": { label: "Error", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+				"rateLimitRemaining": { label: "Rate limit remaining", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+				"rateLimitResetMs": { label: "Rate limit reset", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeInteger" },
+			})({
+				selectors: {
+					"EndpointTimestampMs": ["$endpoint", "timestampMs"],
+				},
+				views: {
+					singular: {
+						summary: { title: [{ field: "timestampMs", format: "timestamp" }], value: ["available", "reachable"], HeadingAfter: ["latencyMs"] },
+						content: { dl: [["$endpoint", { field: "timestampMs", format: "timestamp" }, "available", "reachable", "latencyMs", "statusCode"], ["error", "rateLimitRemaining", { field: "rateLimitResetMs", format: "timestamp" }]] },
+					},
+					plural: { component: "BlockheadSourceEndpoint_TimestampsView", title: "Endpoint observations" },
 				},
 			}),
 
@@ -69487,6 +69557,46 @@ export const routes = defineRoutes(schema)({
 										}
 									},
 									children: {
+										"endpoint": {
+											children: {
+												"[bindingId]": {
+											params: { "bindingId": ["opaqueRouteIdentifier"] },
+													children: {
+														"[endpointIndex]": {
+															params: { "endpointIndex": ["NonNegativeInteger"] },
+															selectors: {
+																[EntityType.BlockheadSourceEndpoint]: {
+																	"SourceBindingIdEndpointIndex": {
+																		derivations: {
+																			"bindingId": { kind: "param", name: "bindingId" },
+																			"endpointIndex": { kind: "param", name: "endpointIndex" },
+																		},
+																		page: {},
+																	},
+																},
+															},
+															children: {
+																"observation": {
+																	children: {
+																		"[timestampMs]": {
+																			params: { "timestampMs": ["NonNegativeInteger"] },
+																			selectors: {
+																				[EntityType.BlockheadSourceEndpoint_Timestamp]: {
+																					"EndpointTimestampMs": {
+																						derivations: { "timestampMs": { kind: "param", name: "timestampMs" } },
+																						page: false,
+																					},
+																				},
+																			},
+																		},
+																	},
+																},
+															},
+														},
+													},
+												},
+											},
+										},
 										"observations": {
 											children: {
 												"[timestampMs]": {

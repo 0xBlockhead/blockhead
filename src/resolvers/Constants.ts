@@ -112,7 +112,7 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { EvmAddress } from '$/schema/ZeroExHex.ts'
 import { Source } from '$/sources/Source.ts'
 import sourceProviders, { sourceBindingsBySource } from '$/sources/$sourceProviders.ts'
-import { SourceEndpointKind } from '$/sources/SourceBinding.ts'
+import { SourceEndpointKind, sourceBindingId } from '$/sources/SourceBinding.ts'
 import type { Entity } from '$/schema/$schema.ts'
 import {
 	precompilesByChainId,
@@ -156,10 +156,42 @@ const blockheadSources = sourceProviders.flatMap(({ provider, sources }) => (
 			)))].join(', '),
 			proxyMode: [...new Set(bindings.map(({ delivery }) => delivery))].join(', '),
 			environmentScope: [...new Set(bindings.map(({ target }) => target.kind))].join(', '),
+			endpoints: bindings.flatMap((binding) => (
+				binding.endpoints.flatMap((endpoint, endpointIndex) => (
+					(
+						endpoint.endpointKind === SourceEndpointKind.HttpUrl
+						|| endpoint.endpointKind === SourceEndpointKind.WebSocketUrl
+					) && !endpoint.locator.includes('{') && URL.canParse(endpoint.locator) ?
+						[{
+							bindingId: sourceBindingId(binding),
+							endpointIndex,
+							endpointUrl: endpoint.locator,
+							targetKind: binding.target.kind,
+							targetKey: binding.target.key,
+							wireProtocol: binding.wireProtocol,
+							apiFamily: binding.apiFamily,
+							delivery: binding.delivery,
+							...('corsEnabled' in endpoint && endpoint.corsEnabled != null && {
+								corsEnabled: endpoint.corsEnabled,
+							}),
+						}]
+					:
+						[]
+				))
+			)),
 		}
 	})
 )).toSorted((sourceA, sourceB) => sourceA.id.localeCompare(sourceB.id))
 const blockheadSourceById = Object.fromEntries(blockheadSources.map((source) => [source.id, source]))
+const blockheadSourceEndpointByKey = Object.fromEntries(blockheadSources.flatMap((source) => (
+	source.endpoints.map((endpoint) => [
+		JSON.stringify([source.id, endpoint.bindingId, endpoint.endpointIndex]),
+		{
+			...endpoint,
+			sourceId: source.id,
+		},
+	])
+)))
 
 const zeroGChainId = 16661
 
@@ -438,6 +470,56 @@ export default {
 			),
 			proxyMode: (blockheadSource) => blockheadSource.proxyMode,
 			environmentScope: (blockheadSource) => blockheadSource.environmentScope,
+			$$endpoints: (blockheadSource) => blockheadSource.endpoints.map((endpoint) => ({
+				[EntityMetaKey.Selector]: {
+					$source: {
+						id: blockheadSource.id,
+					},
+					bindingId: endpoint.bindingId,
+					endpointIndex: endpoint.endpointIndex,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.BlockheadSourceEndpoint, [], 'endpointUrl')]: endpoint.endpointUrl,
+					[entityFieldAddressKey(EntityType.BlockheadSourceEndpoint, [], 'targetKind')]: endpoint.targetKind,
+					[entityFieldAddressKey(EntityType.BlockheadSourceEndpoint, [], 'targetKey')]: endpoint.targetKey,
+					[entityFieldAddressKey(EntityType.BlockheadSourceEndpoint, [], 'wireProtocol')]: endpoint.wireProtocol,
+					[entityFieldAddressKey(EntityType.BlockheadSourceEndpoint, [], 'apiFamily')]: endpoint.apiFamily,
+					[entityFieldAddressKey(EntityType.BlockheadSourceEndpoint, [], 'delivery')]: endpoint.delivery,
+					...(endpoint.corsEnabled != null && {
+						[entityFieldAddressKey(EntityType.BlockheadSourceEndpoint, [], 'corsEnabled')]: endpoint.corsEnabled,
+					}),
+				},
+			})),
+		}),
+
+		defineResolver({
+			entityType: EntityType.BlockheadSourceEndpoint,
+			resolve: {
+				SourceBindingIdEndpointIndex: {
+					resolve: ({ $source, bindingId, endpointIndex }) => {
+						const endpoint = blockheadSourceEndpointByKey[JSON.stringify([
+							$source.id,
+							bindingId,
+							endpointIndex,
+						])]
+						if (endpoint == null)
+							throw new Error('Constants_Internal: BlockheadSourceEndpoint not present in catalog')
+
+						return endpoint
+					},
+				},
+			},
+		})({
+			$source: (endpoint) => ({ id: endpoint.sourceId }),
+			bindingId: (endpoint) => endpoint.bindingId,
+			endpointIndex: (endpoint) => endpoint.endpointIndex,
+			endpointUrl: (endpoint) => endpoint.endpointUrl,
+			targetKind: (endpoint) => endpoint.targetKind,
+			targetKey: (endpoint) => endpoint.targetKey,
+			wireProtocol: (endpoint) => endpoint.wireProtocol,
+			apiFamily: (endpoint) => endpoint.apiFamily,
+			delivery: (endpoint) => endpoint.delivery,
+			corsEnabled: (endpoint) => endpoint.corsEnabled,
 		}),
 
 		defineResolver({

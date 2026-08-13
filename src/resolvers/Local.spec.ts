@@ -16,6 +16,8 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 import { XmtpConversationConsentState } from '$/schema/XmtpConversationConsentState.ts'
 import { Source } from '$/sources/Source.ts'
+import bindings from '$/sources/MempoolSpace/bindings.ts'
+import { sourceBindingId } from '$/sources/SourceBinding.ts'
 
 
 const context = {
@@ -109,6 +111,46 @@ describe('Local source capability observations', () => {
 		expect(timestampResolver.projections.rateLimitResetMs(detail)).toBe(1_800_000_000_000)
 		expect(timestampResolver.projections.resolverCount(detail)).toBeGreaterThan(0)
 		expect(timestampResolver.projections.error(detail)).toBeUndefined()
+	})
+
+	it('retains endpoint-specific health on the native endpoint owner', async () => {
+		sourceFetch.mockResolvedValue(new Response(null, {
+			status: 429,
+			headers: {
+				'x-ratelimit-remaining': '0',
+			},
+		}))
+		const found = resolver(
+			EntityType.BlockheadSourceEndpoint,
+			'SourceBindingIdEndpointIndex',
+			'$$timestamps'
+		)
+		const observations = await found.resolve.SourceBindingIdEndpointIndex.resolve({
+			$source: {
+				id: Source.MempoolSpace_Rest,
+			},
+			bindingId: sourceBindingId(bindings[Source.MempoolSpace_Rest][0]),
+			endpointIndex: 0,
+		}, context)
+		const observation = observations[0]
+		if (observation == null)
+			throw new Error('Local source endpoint observation is missing')
+
+		expect(observation[EntityMetaKey.Selector]).toMatchObject({
+			$endpoint: {
+				$source: {
+					id: Source.MempoolSpace_Rest,
+				},
+				bindingId: sourceBindingId(bindings[Source.MempoolSpace_Rest][0]),
+				endpointIndex: 0,
+			},
+		})
+		expect(observation[EntityMetaKey.Fields]).toMatchObject({
+			[entityFieldAddressKey(EntityType.BlockheadSourceEndpoint_Timestamp, [], 'available')]: false,
+			[entityFieldAddressKey(EntityType.BlockheadSourceEndpoint_Timestamp, [], 'reachable')]: true,
+			[entityFieldAddressKey(EntityType.BlockheadSourceEndpoint_Timestamp, [], 'statusCode')]: 429,
+			[entityFieldAddressKey(EntityType.BlockheadSourceEndpoint_Timestamp, [], 'rateLimitRemaining')]: 0,
+		})
 	})
 
 	it('retains a reachable non-success status without calling it available', async () => {

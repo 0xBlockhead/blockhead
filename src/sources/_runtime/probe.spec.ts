@@ -31,8 +31,18 @@ describe('source HTTP endpoint probes', () => {
 				status: 206,
 			})
 
-		await expect(probeSourceHttpEndpoint(Source.MempoolSpace_Rest)).resolves.toEqual({
+		await expect(probeSourceHttpEndpoint(Source.MempoolSpace_Rest)).resolves.toMatchObject({
 			availableEndpointCount: 1,
+			endpoints: [{
+				available: true,
+				bindingId: expect.any(String),
+				endpointIndex: 0,
+				endpointUrl: expect.any(String),
+				latencyMs: expect.any(Number),
+				rateLimitRemaining: 17,
+				reachable: true,
+				statusCode: 206,
+			}],
 			endpointCount: 1,
 			rateLimitRemaining: 17,
 			reachableEndpointCount: 1,
@@ -55,8 +65,17 @@ describe('source HTTP endpoint probes', () => {
 			status: 503,
 		}))
 
-		await expect(probeSourceHttpEndpoint(Source.MempoolSpace_Rest)).resolves.toEqual({
+		await expect(probeSourceHttpEndpoint(Source.MempoolSpace_Rest)).resolves.toMatchObject({
 			availableEndpointCount: 0,
+			endpoints: [{
+				available: false,
+				bindingId: expect.any(String),
+				endpointIndex: 0,
+				endpointUrl: expect.any(String),
+				latencyMs: expect.any(Number),
+				reachable: true,
+				statusCode: 503,
+			}],
 			endpointCount: 1,
 			reachableEndpointCount: 1,
 			statusCode: 503,

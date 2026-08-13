@@ -68,6 +68,7 @@
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
+	import BlockheadSourceEndpointsView from '$/views/BlockheadSourceEndpointsView.svelte'
 	import BlockheadSource_TimestampsView from '$/views/BlockheadSource_TimestampsView.svelte'
 	import BlockheadSource_TimestampView from '$/views/BlockheadSource_TimestampView.svelte'
 </script>
@@ -308,6 +309,26 @@
 	{/snippet}
 
 	{#snippet Details()}
+		{@const endpointsResource = selection
+			.$$endpoints({
+				sources: [
+					Source.Constants_Internal,
+				],
+			})}
+		<ResourceBoundary
+			resource={endpointsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<BlockheadSourceEndpointsView
+						selection={endpointsResource}
+						countResource={endpointsResource.count}
+						title='Executable endpoints'
+						id='endpoints'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
 			resource={timestampsResource}

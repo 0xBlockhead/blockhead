@@ -3,6 +3,7 @@
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export default entity({
@@ -51,6 +52,13 @@ export default entity({
 	environmentScope: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	$$endpoints: {
+		entityType: EntityType.BlockheadSourceEndpoint,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Constants_Internal,
+		],
 	},
 	$$timestamps: {
 		entityType: EntityType.BlockheadSource_Timestamp,

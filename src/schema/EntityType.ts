@@ -297,6 +297,8 @@ export enum EntityType {
 	BlockheadSocialPostSession = 'BlockheadSocialPostSession',
 	BlockheadSource = 'BlockheadSource',
 	BlockheadSource_Timestamp = 'BlockheadSource_Timestamp',
+	BlockheadSourceEndpoint = 'BlockheadSourceEndpoint',
+	BlockheadSourceEndpoint_Timestamp = 'BlockheadSourceEndpoint_Timestamp',
 	BlockheadStateChannel = 'BlockheadStateChannel',
 	BlockheadStateChannel_Timestamp = 'BlockheadStateChannel_Timestamp',
 	BlockheadStateChannelDeposit = 'BlockheadStateChannelDeposit',

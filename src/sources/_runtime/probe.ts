@@ -1,25 +1,28 @@
 import { sourceBindingsBySource } from '$/sources/$sourceProviders.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceEndpointKind } from '$/sources/SourceBinding.ts'
+import { SourceEndpointKind, sourceBindingId } from '$/sources/SourceBinding.ts'
 import { sourceFetch } from '$/sources/_runtime/http.ts'
 
 
 export const probeSourceHttpEndpoint = async (source: Source) => {
 	const endpoints = sourceBindingsBySource[source]?.flatMap((binding) => (
-		binding.endpoints
-			.filter(({ endpointKind, locator }) => (
-				endpointKind === SourceEndpointKind.HttpUrl
-				&& !locator.includes('{')
-			))
-			.map((endpoint) => ({
-				binding,
-				endpoint,
-			}))
+		binding.endpoints.flatMap((endpoint, endpointIndex) => (
+			endpoint.endpointKind === SourceEndpointKind.HttpUrl
+				&& !endpoint.locator.includes('{') ?
+				[{
+					binding,
+					endpoint,
+					endpointIndex,
+				}]
+			:
+				[]
+		))
 	)) ?? []
 	if (endpoints.length === 0)
 		return undefined
 
-	const results = await Promise.allSettled(endpoints.map(async ({ binding, endpoint }) => {
+	const results = await Promise.allSettled(endpoints.map(async ({ binding, endpoint, endpointIndex }) => {
+		const startedAt = performance.now()
 		let response = await sourceFetch(binding, endpoint.locator, {
 			method: 'HEAD',
 			signal: AbortSignal.timeout(10_000),
@@ -37,6 +40,10 @@ export const probeSourceHttpEndpoint = async (source: Source) => {
 		const rateLimitRemaining = response.headers.get('ratelimit-remaining') ?? response.headers.get('x-ratelimit-remaining')
 		const rateLimitReset = response.headers.get('ratelimit-reset') ?? response.headers.get('x-ratelimit-reset')
 		return {
+			bindingId: sourceBindingId(binding),
+			endpointIndex,
+			endpointUrl: endpoint.locator,
+			latencyMs: performance.now() - startedAt,
 			response,
 			rateLimitRemaining: rateLimitRemaining == null || rateLimitRemaining.trim() === '' ? undefined : Number(rateLimitRemaining),
 			rateLimitReset: rateLimitReset == null || rateLimitReset.trim() === '' ? undefined : Number(rateLimitReset),
@@ -51,6 +58,31 @@ export const probeSourceHttpEndpoint = async (source: Source) => {
 		.map((result) => result.rateLimitReset)
 		.filter(Number.isFinite)
 	return {
+		endpoints: results.map((result, endpointIndex) => (
+			result.status === 'fulfilled' ?
+				{
+					bindingId: result.value.bindingId,
+					endpointIndex: result.value.endpointIndex,
+					endpointUrl: result.value.endpointUrl,
+					available: result.value.response.ok,
+					reachable: true,
+					latencyMs: result.value.latencyMs,
+					statusCode: result.value.response.status,
+					...(Number.isFinite(result.value.rateLimitRemaining) && { rateLimitRemaining: result.value.rateLimitRemaining }),
+					...(Number.isFinite(result.value.rateLimitReset) && {
+						rateLimitResetMs: result.value.rateLimitReset > 10_000_000_000 ? result.value.rateLimitReset : result.value.rateLimitReset * 1_000,
+					}),
+				}
+			:
+				{
+					bindingId: sourceBindingId(endpoints[endpointIndex].binding),
+					endpointIndex: endpoints[endpointIndex].endpointIndex,
+					endpointUrl: endpoints[endpointIndex].endpoint.locator,
+					available: false,
+					reachable: false,
+					error: String(result.reason),
+				}
+		)),
 		endpointCount: endpoints.length,
 		availableEndpointCount: available.length,
 		reachableEndpointCount: reachable.length,

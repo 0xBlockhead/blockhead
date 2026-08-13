@@ -11869,6 +11869,19 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
+	'/~/manage/source/[sourceId]/endpoint/[bindingId]/[endpointIndex]': {
+		routeId: '/~/manage/source/[sourceId=stringSegment]/(blockheadSource)/endpoint/[bindingId=stringSegment]/[endpointIndex=nonNegativeInteger]',
+		parameterEncodingByName: {
+			bindingId: 'Opaque',
+		},
+		mappings: [
+			{
+				id: 'BlockheadSourceEndpoint.SourceBindingIdEndpointIndex',
+				probeAtomPrefixes: ['/~/manage/source/[sourceId]/endpoint/[bindingId]/[endpointIndex]:BlockheadSourceEndpoint.SourceBindingIdEndpointIndex'],
+				probeCases: [[[0, '1', ['bindingId', 'endpointIndex', 'sourceId']]]],
+			},
+		],
+	},
 	'/~/manage/source/[sourceId]/observations/[timestampMs]': {
 		routeId: '/~/manage/source/[sourceId=stringSegment]/(blockheadSource)/observations/[timestampMs=nonNegativeInteger]',
 		mappings: [

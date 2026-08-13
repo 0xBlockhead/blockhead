@@ -104,6 +104,9 @@ const xPostUrlResolver = constantsResolvers.resolvers.find((resolver) => (
 const blockheadSourceResolver = constantsResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.BlockheadSource
 ))
+const blockheadSourceEndpointResolver = constantsResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.BlockheadSourceEndpoint
+))
 const blockheadSourcesResolver = constantsResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType._Global
 	&& '$$blockheadSources' in resolver.projections
@@ -154,10 +157,39 @@ if (nostrProfileResolver == null)
 if (xPostUrlResolver == null)
 	throw new Error('Constants spec missing XPost URL resolver')
 
-if (blockheadSourceResolver == null || blockheadSourcesResolver == null)
+if (blockheadSourceResolver == null || blockheadSourceEndpointResolver == null || blockheadSourcesResolver == null)
 	throw new Error('Constants spec missing Blockhead source catalog resolvers')
 
 describe('Constants resolver projections', () => {
+	it('enrolls every concrete source endpoint with its binding authority', async () => {
+		const blockheadSource = await blockheadSourceResolver.resolve.Id.resolve({
+			id: Source.MempoolSpace_Rest,
+		}, resolverContext)
+		const endpoints = blockheadSourceResolver.projections.$$endpoints(blockheadSource)
+		expect(endpoints).toHaveLength(1)
+		const endpointReference = endpoints[0]
+		if (endpointReference == null)
+			throw new Error('Constants source catalog omitted MempoolSpace endpoint')
+
+		const endpoint = await blockheadSourceEndpointResolver.resolve.SourceBindingIdEndpointIndex.resolve(
+			endpointReference[EntityMetaKey.Selector],
+			resolverContext
+		)
+		expect({
+			endpointUrl: blockheadSourceEndpointResolver.projections.endpointUrl(endpoint),
+			targetKind: blockheadSourceEndpointResolver.projections.targetKind(endpoint),
+			targetKey: blockheadSourceEndpointResolver.projections.targetKey(endpoint),
+			apiFamily: blockheadSourceEndpointResolver.projections.apiFamily(endpoint),
+			delivery: blockheadSourceEndpointResolver.projections.delivery(endpoint),
+		}).toEqual({
+			endpointUrl: 'https://mempool.space/api',
+			targetKind: 'Caip2Network',
+			targetKey: 'bip122:000000000019d6689c085ae165831e93',
+			apiFamily: 'RestJson',
+			delivery: 'BrowserDirect',
+		})
+	})
+
 	it('resolves the canonical source registry without displacing editable local rows', async () => {
 		const snapshot = await blockheadSourcesResolver.resolve.Scope.resolve({
 			scope: '$$blockheadSources',
