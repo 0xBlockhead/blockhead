@@ -113,27 +113,39 @@ describe('Mastodon ActivityPub observations', () => {
 		listPublicTimelinePage.mockReset()
 	})
 
-	it('materializes public timeline identities only from declared anonymous feeds', async () => {
+	it('materializes and continues public timeline cards only from declared anonymous feeds', async () => {
+		vi.spyOn(Date, 'now').mockReturnValue(1_700_000_000_300)
 		listPublicTimelinePage.mockResolvedValueOnce({
 			statuses: [
-				{ id: '114000000000000002' },
+				{
+					id: '114000000000000002',
+					uri: 'https://fosstodon.org/users/alice/statuses/2',
+					content: 'Hello from the continued timeline',
+				},
 				{},
 			],
-			continuationToken: undefined,
+			continuationToken: 'https://fosstodon.org/api/v1/timelines/public?limit=25&max_id=opaque',
 		})
 
-		const notes = await resolver(
+		const definition = resolver(
 			EntityType.ActivityPubNetwork,
 			'$$activityPubNotes'
-		).resolve['Scope'].resolve({ scope: 'ActivityPubNetwork' }, {
+		)
+		const page = await definition.resolve['Scope'].resolve({ scope: 'ActivityPubNetwork' }, {
 			...context,
 			pagination: { limit: 25 },
+			providerContinuationToken: 'https://fosstodon.org/api/v1/timelines/public?limit=25&max_id=previous',
 		})
+		const notesProjection = definition.projections.$$activityPubNotes
+		if (typeof notesProjection === 'function')
+			throw new Error('Mastodon-Rest spec missing ActivityPub network continuation projection')
+		const notes = notesProjection.select(page)
 
-	expect(listPublicTimelinePage).toHaveBeenCalledWith(
-		expect.objectContaining({ requestOwner: 'fosstodon-public-timeline' }),
-		'https://fosstodon.org',
-			25
+		expect(listPublicTimelinePage).toHaveBeenCalledWith(
+			expect.objectContaining({ requestOwner: 'fosstodon-public-timeline' }),
+			'https://fosstodon.org',
+			25,
+			'https://fosstodon.org/api/v1/timelines/public?limit=25&max_id=previous'
 		)
 		expect(listPublicTimelinePage).toHaveBeenCalledTimes(1)
 		expect(notes.map((note) => note[EntityMetaKey.Selector])).toEqual([
@@ -142,6 +154,16 @@ describe('Mastodon ActivityPub observations', () => {
 				localStatusId: '114000000000000002',
 			},
 		])
+		expect(notes[0][EntityMetaKey.Fields]).toMatchObject({
+			[entityFieldAddressKey(EntityType.ActivityPubNote, [], 'content')]: 'Hello from the continued timeline',
+			[entityFieldAddressKey(EntityType.ActivityPubNote, [], 'activityStreamsUri')]: 'https://fosstodon.org/users/alice/statuses/2',
+		})
+		expect(notesProjection.continuation?.(page)).toEqual({
+			operation: 'activitypub-network-notes',
+			target: 'https://fosstodon.org',
+			terminal: false,
+			token: 'https://fosstodon.org/api/v1/timelines/public?limit=25&max_id=opaque',
+		})
 	})
 
 	it('materializes the routed global timeline with canonical configured identities', async () => {

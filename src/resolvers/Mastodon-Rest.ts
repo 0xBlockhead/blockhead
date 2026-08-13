@@ -773,29 +773,57 @@ export default {
 					resolve: async (_selector, context) => {
 						const { listPublicTimelinePage } = await import('$/sources/Mastodon/Rest/queries.ts')
 						const limit = resolverContextRowLimit(context)
-						return (
-							await Promise.all(
-								mastodonPublicTimelines.map(async ({ binding, instanceOrigin }) => (
-									(await listPublicTimelinePage(binding, instanceOrigin, limit)).statuses
-										.flatMap((status) => (
-										status.id == null ?
-											[]
-										:
-											[{
-												[EntityMetaKey.Selector]: {
-													instanceOrigin,
-													localStatusId: String(status.id),
-												},
-											}]
-										))
-								))
-							)
-						).flat()
+						if (context.providerContinuationToken != null && mastodonPublicTimelines.length !== 1)
+							throw new Error('Mastodon_Rest: ActivityPub network continuation requires one declared public timeline')
+						const pages = await Promise.all(mastodonPublicTimelines.map(async ({
+							binding,
+							instanceOrigin,
+						}) => ({
+							...await listPublicTimelinePage(
+								binding,
+								instanceOrigin,
+								limit,
+								context.providerContinuationToken
+							),
+							instanceOrigin,
+						})))
+
+						return {
+							entries: pages.flatMap((page) => page.statuses.map((status) => ({
+								instanceOrigin: page.instanceOrigin,
+								status,
+							}))),
+							continuationToken: pages.length === 1 ? pages[0].continuationToken : undefined,
+							continuationTarget: pages.length === 1 ? pages[0].instanceOrigin : 'declared-public-timelines',
+							resolvedAtMs: Date.now(),
+						}
 					},
 				},
 			},
 		})({
-				$$activityPubNotes: (notes) => notes,
+				$$activityPubNotes: {
+					select: (page) => page.entries.flatMap(({ instanceOrigin, status }) => {
+						const reference = activityPubNoteCardReferenceFromMastodonStatus(
+							status,
+							instanceOrigin,
+							page.resolvedAtMs
+						)
+						return reference == null ? [] : [reference]
+					}),
+					continuation: (page) => page.continuationToken == null ?
+						{
+							operation: 'activitypub-network-notes',
+							target: page.continuationTarget,
+							terminal: true,
+						}
+					:
+						{
+							operation: 'activitypub-network-notes',
+							target: page.continuationTarget,
+							terminal: false,
+							token: page.continuationToken,
+						},
+				},
 			}),
 
 		defineResolver({
