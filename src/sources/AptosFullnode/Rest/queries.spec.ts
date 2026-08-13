@@ -167,6 +167,43 @@ describe('AptosFullnode Rest arktype envelopes', () => {
 		await expect(getTransactionByVersion(binding, 42n)).rejects.toThrow('invalid transaction response envelope')
 	})
 
+	it('fail-closes malformed committed transaction effects before resolver materialization', async () => {
+		sourceFetch
+			.mockResolvedValueOnce(jsonResponse({
+				type: 'user_transaction',
+				version: '42',
+				hash: '0x42',
+				changes: [{
+					type: 'write_resource',
+					address: '0xa11ce',
+					state_key_hash: '0xstate',
+					data: {
+						type: '0x1::coin::CoinStore',
+						// missing resource data
+					},
+				}],
+				events: [],
+			}))
+			.mockResolvedValueOnce(jsonResponse({
+				type: 'user_transaction',
+				version: '42',
+				hash: '0x42',
+				changes: [],
+				events: [{
+					guid: {
+						creation_number: '0',
+						account_address: '0xa11ce',
+					},
+					sequence_number: 'not-a-u64',
+					type: '0x1::event::Malformed',
+					data: {},
+				}],
+			}))
+
+		await expect(getTransactionByVersion(binding, 42n)).rejects.toThrow('invalid transaction state change response envelope')
+		await expect(getTransactionByVersion(binding, 42n)).rejects.toThrow('invalid transaction event response envelope')
+	})
+
 	it('rejects substituted block and transaction coordinates', async () => {
 		sourceFetch
 			.mockResolvedValueOnce(jsonResponse({

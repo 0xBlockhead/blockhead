@@ -131,6 +131,56 @@ export const aptosMoveModuleBytecodeWire = arktype({
 	'abi?': aptosMoveModuleAbiWire,
 })
 
+const aptosDeletedTableDataWire = arktype({
+	key: 'unknown',
+	key_type: 'string',
+})
+
+const aptosDecodedTableDataWire = arktype({
+	key: 'unknown',
+	key_type: 'string',
+	value: 'unknown',
+	value_type: 'string',
+})
+
+export const aptosWriteSetChangeWire = arktype({
+	type: "'delete_module'",
+	address: 'string',
+	state_key_hash: 'string',
+	module: 'string',
+}).or({
+	type: "'delete_resource'",
+	address: 'string',
+	state_key_hash: 'string',
+	resource: 'string',
+}).or({
+	type: "'delete_table_item'",
+	state_key_hash: 'string',
+	handle: 'string',
+	key: 'string',
+	'data?': aptosDeletedTableDataWire,
+}).or({
+	type: "'write_module'",
+	address: 'string',
+	state_key_hash: 'string',
+	data: {
+		bytecode: 'string',
+		'abi?': aptosMoveModuleAbiWire,
+	},
+}).or({
+	type: "'write_resource'",
+	address: 'string',
+	state_key_hash: 'string',
+	data: aptosMoveResourceWire,
+}).or({
+	type: "'write_table_item'",
+	state_key_hash: 'string',
+	handle: 'string',
+	key: 'string',
+	value: 'string',
+	'data?': aptosDecodedTableDataWire,
+})
+
 export const aptosTableItemRequestWire = arktype({
 	key_type: 'string',
 	value_type: 'string',
@@ -142,9 +192,4 @@ export const aptosTableItemValueWire = arktype(
 	'string | number | boolean | null | unknown[] | Record<string, unknown>'
 )
 
-export const aptosDecodedTableDataWire = arktype({
-	key: 'unknown',
-	key_type: 'string',
-	value: 'unknown',
-	value_type: 'string',
-})
+export { aptosDecodedTableDataWire }

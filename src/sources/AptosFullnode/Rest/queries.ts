@@ -13,6 +13,7 @@ import {
 	aptosTableItemRequestWire,
 	aptosTableItemValueWire,
 	aptosTransactionWire,
+	aptosWriteSetChangeWire,
 	type AptosAccount,
 	type AptosBlock,
 	type AptosEvent,
@@ -57,6 +58,17 @@ const assertEnvelope = <_Value>(
 	} catch {
 		throw new Error(`AptosFullnode_Rest: invalid ${label} response envelope`)
 	}
+}
+
+const assertTransactionEffects = (transaction: AptosTransaction) => {
+	if (transaction.type === 'pending_transaction')
+		return
+
+	for (const change of transaction.changes)
+		assertEnvelope('transaction state change', aptosWriteSetChangeWire, change)
+	if ('events' in transaction)
+		for (const event of transaction.events)
+			assertEnvelope('transaction event', aptosEventWire, event)
 }
 
 const request = async (
@@ -324,6 +336,7 @@ export const getTransactionByHash = async (
 	const transaction = assertEnvelope('transaction', aptosTransactionWire, response.body) as AptosTransaction
 	if (transaction.hash.toLowerCase() !== hash.toLowerCase())
 		throw new Error('AptosFullnode_Rest: transaction hash response does not match request')
+	assertTransactionEffects(transaction)
 	return {
 		body: transaction,
 		metadata: response.metadata,
@@ -338,6 +351,7 @@ export const getTransactionByVersion = async (
 	const transaction = assertEnvelope('transaction', aptosTransactionWire, response.body) as AptosTransaction
 	if (transaction.version !== version.toString())
 		throw new Error('AptosFullnode_Rest: transaction version response does not match request')
+	assertTransactionEffects(transaction)
 	return {
 		body: transaction,
 		metadata: response.metadata,
