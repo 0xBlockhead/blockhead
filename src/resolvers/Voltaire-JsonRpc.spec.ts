@@ -21,6 +21,7 @@ const getTransactionReceipt = vi.hoisted(() => vi.fn())
 const debugTraceTransaction = vi.hoisted(() => vi.fn())
 const getCall = vi.hoisted(() => vi.fn())
 const getBalance = vi.hoisted(() => vi.fn())
+const getBlockNumber = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/Voltaire/JsonRpc/queries.ts', () => ({
 	voltaireJsonRpcTransports: {
@@ -32,6 +33,7 @@ vi.mock('$/sources/Voltaire/JsonRpc/queries.ts', () => ({
 				debugTraceTransaction,
 				getCall,
 				getBalance,
+				getBlockNumber,
 			}],
 			10: [
 				{
@@ -108,6 +110,43 @@ describe('Voltaire ERC-20 allowance blocks', () => {
 		expect(resolver.projections.blockNumber(snapshot)).toBe(1_234n)
 		expect(resolver.projections.source(snapshot)).toBe(Source.Voltaire_JsonRpc)
 		expect(resolver.projections.allowance(snapshot)).toBe(42n)
+	})
+
+	it('attaches the current immutable block observation to the allowance owner', async () => {
+		const resolver = voltaireJsonRpc.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.EvmActorCoinAllowance
+		))
+		if (resolver == null)
+			throw new Error('Voltaire allowance resolver is not registered')
+
+		getBlockNumber.mockResolvedValue(1_234n)
+		const selector = {
+			$actor: {
+				address: '0x1111111111111111111111111111111111111111',
+			},
+			$contract: {
+				$network: {
+					caip2: {
+						namespace: 'eip155',
+						reference: '1',
+					},
+				},
+				address: '0x2222222222222222222222222222222222222222',
+			},
+			$spender: {
+				address: '0x3333333333333333333333333333333333333333',
+			},
+			interopAddress: 'eip155:1:0x1111111111111111111111111111111111111111',
+		}
+		const snapshot = await resolver.resolve.EvmAccountEvmContractSpenderInteropAddress.resolve(selector)
+
+		expect(resolver.projections.$$blocks(snapshot)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$allowance: selector,
+				blockNumber: 1_234n,
+				source: Source.Voltaire_JsonRpc,
+			},
+		}])
 	})
 
 	it('rejects unsupported provenance and unusable ERC-20 responses', async () => {
@@ -212,6 +251,63 @@ describe('Voltaire exact EVM coin balances', () => {
 			blockTag: '0x4d2',
 		})
 		expect(resolver.projections.balance(erc20)).toBe(42n)
+	})
+
+	it('attaches current immutable block observations to native and ERC-20 balance owners', async () => {
+		const resolver = voltaireJsonRpc.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.EvmNetworkActorCoinBalance
+		))
+		if (resolver == null)
+			throw new Error('Voltaire actor coin owner resolver is not registered')
+
+		getBlockNumber.mockResolvedValue(1_234n)
+		const network = {
+			caip2: {
+				namespace: 'eip155',
+				reference: '1',
+			},
+		}
+		const actor = {
+			address: '0x1111111111111111111111111111111111111111',
+		}
+		const native = await resolver.resolve.EvmAccountNativeCoinInstance.resolve({
+			$actor: actor,
+			$network: network,
+		})
+		expect(resolver.projections.$$blocks(native)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$actorCoin: {
+					$actor: actor,
+					$network: network,
+				},
+				$block: {
+					$network: network,
+					blockNumber: 1_234n,
+				},
+			},
+		}])
+
+		const contract = {
+			$network: network,
+			address: '0x2222222222222222222222222222222222222222',
+		}
+		const erc20 = await resolver.resolve.EvmAccountErc20CoinInstance.resolve({
+			$actor: actor,
+			$contract: contract,
+		})
+		expect(resolver.projections.$$blocks(erc20)[0]).toEqual({
+			[EntityMetaKey.Selector]: {
+				$actorCoin: {
+					$actor: actor,
+					$network: network,
+					$contract: contract,
+				},
+				$block: {
+					$network: network,
+					blockNumber: 1_234n,
+				},
+			},
+		})
 	})
 })
 

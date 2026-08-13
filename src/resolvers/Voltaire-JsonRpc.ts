@@ -600,6 +600,26 @@ const allJsonRpcEndpointsFailedError = (
 	new Error(`Voltaire_JsonRpc: all JSON-RPC endpoints failed for Network.${fieldName} on chain ${String(chainId)}${errors.length > 0 ? `: ${errors.join('; ')}` : ''}`)
 )
 
+const currentEvmBlockNumber = async (
+	$network: NetworkId,
+	fieldName: string
+) => {
+	const chainId = chainIdFromEvmNetworkId($network)
+	const jsonRpcTransports = (await voltaireJsonRpcHttpTransportsByChainId())[chainId] ?? []
+	if (jsonRpcTransports.length === 0)
+		throw new Error(`Voltaire_JsonRpc: no JSON-RPC URL for ${fieldName} on chain ${String(chainId)}`)
+
+	const errors: string[] = []
+	for (const jsonRpcTransport of jsonRpcTransports) {
+		try {
+			return await jsonRpcTransport.getBlockNumber()
+		} catch (error) {
+			errors.push(`${jsonRpcTransport.diagnosticLabel}: ${errorMessage(error)}`)
+		}
+	}
+	throw allJsonRpcEndpointsFailedError(chainId, fieldName, errors)
+}
+
 const evmTransactionRefsForTxHashes = (
 	chainId: number,
 	transactions: readonly (string | RpcTransactionWire)[] | undefined
@@ -1103,18 +1123,33 @@ export default {
 			entityType: EntityType.EvmActorCoinAllowance,
 			resolve: {
 				EvmAccountEvmContractSpenderInteropAddress: {
-					resolve: async ({ $actor, $contract, $spender, interopAddress }) => ({
-						$actor,
-						$contract,
-						$actorCoin: {
-							[EntityMetaKey.Selector]: {
-								$actor,
-								$contract,
+					resolve: async ({ $actor, $contract, $spender, interopAddress }) => {
+						const $allowance = {
+							$actor,
+							$contract,
+							$spender,
+							interopAddress,
+						}
+						return {
+							...$allowance,
+							$actorCoin: {
+								[EntityMetaKey.Selector]: {
+									$actor,
+									$contract,
+								},
 							},
-						},
-						$spender,
-						interopAddress,
-					}),
+							$$blocks: [{
+								[EntityMetaKey.Selector]: {
+									$allowance,
+									blockNumber: await currentEvmBlockNumber(
+										$contract.$network,
+										'EvmActorCoinAllowance.$$blocks'
+									),
+									source: Source.Voltaire_JsonRpc,
+								},
+							}],
+						}
+					},
 				}
 			},
 		})({
@@ -1129,6 +1164,50 @@ export default {
 				[EntityMetaKey.Selector]: allowance.$spender,
 			}),
 			interopAddress: (allowance) => allowance.interopAddress,
+			$$blocks: (allowance) => allowance.$$blocks,
+		}),
+
+		defineResolver({
+			entityType: EntityType.EvmNetworkActorCoinBalance,
+			resolve: {
+				EvmAccountNativeCoinInstance: {
+					resolve: async ({ $actor, $network }) => [{
+						[EntityMetaKey.Selector]: {
+							$actorCoin: {
+								$actor,
+								$network,
+							},
+							$block: {
+								$network,
+								blockNumber: await currentEvmBlockNumber(
+									$network,
+									'EvmNetworkActorCoinBalance.$$blocks'
+								),
+							},
+						},
+					}],
+				},
+				EvmAccountErc20CoinInstance: {
+					resolve: async ({ $actor, $contract }) => [{
+						[EntityMetaKey.Selector]: {
+							$actorCoin: {
+								$actor,
+								$network: $contract.$network,
+								$contract,
+							},
+							$block: {
+								$network: $contract.$network,
+								blockNumber: await currentEvmBlockNumber(
+									$contract.$network,
+									'EvmNetworkActorCoinBalance.$$blocks'
+								),
+							},
+						},
+					}],
+				},
+			},
+		})({
+			$$blocks: (blocks) => blocks,
 		}),
 
 		defineResolver({
