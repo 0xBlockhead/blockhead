@@ -212,6 +212,54 @@ describe('Morpho GraphQL resolver module', () => {
 		})
 	})
 
+	it('pages Morpho account positions without losing the authoritative local count', async () => {
+		if (morphoMarketPositionsResolver == null)
+			throw new Error('missing Morpho market positions resolver')
+
+		const accountSelector = {
+			$network: {
+				caip2: {
+					namespace: 'eip155',
+					reference: '1',
+				},
+			},
+			$actor: {
+				address: '0x821880a3e2bac432d67e5155e72bb655ef65fa5e',
+			},
+		}
+		getAccountPositions.mockResolvedValue([
+			{
+				kind: 'market',
+				marketId: `0x${'1'.repeat(64)}`,
+			},
+			{
+				kind: 'market',
+				marketId: `0x${'2'.repeat(64)}`,
+			},
+		])
+
+		const snapshot = await morphoMarketPositionsResolver.resolve.EvmNetworkEvmAccount.resolve(
+			accountSelector,
+			{
+				...context,
+				pagination: {
+					limit: 1,
+					offset: 1,
+				},
+			}
+		)
+		expect(morphoMarketPositionsResolver.projections.$$morphoMarketPositions.select(snapshot)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$account: accountSelector,
+				$market: {
+					$network: accountSelector.$network,
+					marketId: `0x${'2'.repeat(64)}`,
+				},
+			},
+		}])
+		expect(morphoMarketPositionsResolver.projections.$$morphoMarketPositions.resolveCount(snapshot)).toBe(2)
+	})
+
 	it('rejects unsupported Morpho chains on account positions before transport', async () => {
 		if (morphoMarketPositionsResolver == null)
 			throw new Error('missing Morpho market positions resolver')
@@ -280,7 +328,13 @@ describe('Morpho GraphQL resolver module', () => {
 			},
 		}
 
-		const snapshot = await networkResolver.resolve.Caip2.resolve(network, context)
+		const snapshot = await networkResolver.resolve.Caip2.resolve(network, {
+			...context,
+			pagination: {
+				limit: 16,
+				offset: 3,
+			},
+		})
 		expect(networkResolver.projections.Evm.$$morphoMarkets.select(snapshot)).toEqual([
 			{
 				[EntityMetaKey.Selector]: {
@@ -292,6 +346,7 @@ describe('Morpho GraphQL resolver module', () => {
 		expect(networkResolver.projections.Evm.$$morphoMarkets.resolveCount(snapshot)).toBe(42)
 		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).variables).toMatchObject({
 			limit: 16,
+			offset: 3,
 		})
 		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('countTotal')
 	})
@@ -323,7 +378,13 @@ describe('Morpho GraphQL resolver module', () => {
 			},
 		}
 
-		const snapshot = await networkResolver.resolve.Caip2.resolve(network, context)
+		const snapshot = await networkResolver.resolve.Caip2.resolve(network, {
+			...context,
+			pagination: {
+				limit: 16,
+				offset: 4,
+			},
+		})
 		expect(networkResolver.projections.Evm.$$morphoVaults.select(snapshot)).toEqual([
 			{
 				[EntityMetaKey.Selector]: {
@@ -333,6 +394,10 @@ describe('Morpho GraphQL resolver module', () => {
 			},
 		])
 		expect(networkResolver.projections.Evm.$$morphoVaults.resolveCount(snapshot)).toBe(17)
+		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).variables).toMatchObject({
+			limit: 16,
+			offset: 4,
+		})
 	})
 
 	it('resolves MorphoMarket snapshot with enrolled config + tip state fields', async () => {

@@ -1,5 +1,8 @@
 import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
-import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
+import {
+	resolverContextRowLimit,
+	type ResolverContext,
+} from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
@@ -23,6 +26,19 @@ type MorphoVaultId = EntitySelector<typeof schema, EntityType.MorphoVault>
 type MorphoMarketPositionId = EntitySelector<typeof schema, EntityType.MorphoMarketPosition>
 type MorphoVaultPositionId = EntitySelector<typeof schema, EntityType.MorphoVaultPosition>
 type EvmNetworkAccountId = EntitySelector<typeof schema, EntityType.EvmNetworkAccount>
+
+const morphoPaginationWindow = (
+	context: ResolverContext
+) => {
+	const offset = context.pagination.offset ?? 0
+	if (!Number.isSafeInteger(offset) || offset < 0)
+		throw new Error(`${Source.Morpho_Graphql}: invalid pagination offset`)
+
+	return {
+		limit: resolverContextRowLimit(context),
+		offset,
+	}
+}
 
 const eip155ChainId = (network: NetworkId) => {
 	if (!('caip2' in network) || network.caip2.namespace !== 'eip155')
@@ -190,7 +206,10 @@ export default {
 							$actor,
 							$network,
 						}
-						const limit = resolverContextRowLimit(context)
+						const {
+							limit,
+							offset,
+						} = morphoPaginationWindow(context)
 						const marketPositions = (
 							await getAccountPositions({
 								chainId,
@@ -200,7 +219,7 @@ export default {
 							.filter((position) => position.kind === 'market')
 						return {
 							positions: marketPositions
-								.slice(0, limit)
+								.slice(offset, offset + limit)
 								.map((position) => ({
 									[EntityMetaKey.Selector]: {
 										$account,
@@ -237,7 +256,10 @@ export default {
 							$actor,
 							$network,
 						}
-						const limit = resolverContextRowLimit(context)
+						const {
+							limit,
+							offset,
+						} = morphoPaginationWindow(context)
 						const vaultPositions = (
 							await getAccountPositions({
 								chainId,
@@ -247,7 +269,7 @@ export default {
 							.filter((position) => position.kind === 'vault')
 						return {
 							positions: vaultPositions
-								.slice(0, limit)
+								.slice(offset, offset + limit)
 								.map((position) => ({
 									[EntityMetaKey.Selector]: {
 										$account,
@@ -467,12 +489,17 @@ export default {
 				Caip2: {
 					resolve: async (network, context) => {
 						const chainId = eip155ChainId(network)
+						const {
+							limit,
+							offset,
+						} = morphoPaginationWindow(context)
 						const { listMarkets } = await import('$/sources/Morpho/Graphql/queries.ts')
 						const page = await listMarkets({
 							chainIds: [
 								chainId,
 							],
-							limit: resolverContextRowLimit(context),
+							limit,
+							offset,
 						})
 						return {
 							markets: page.items.map((market) => ({
@@ -501,12 +528,17 @@ export default {
 				Caip2: {
 					resolve: async (network, context) => {
 						const chainId = eip155ChainId(network)
+						const {
+							limit,
+							offset,
+						} = morphoPaginationWindow(context)
 						const { listVaults } = await import('$/sources/Morpho/Graphql/queries.ts')
 						const page = await listVaults({
 							chainIds: [
 								chainId,
 							],
-							limit: resolverContextRowLimit(context),
+							limit,
+							offset,
 						})
 						return {
 							vaults: page.items.map((vault) => ({

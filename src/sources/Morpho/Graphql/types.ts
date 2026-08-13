@@ -19,14 +19,15 @@ const morphoGraphqlVaultAssetWire = arktype({
 
 /** GraphQL BigInt scalars arrive as number when safe, else decimal string. */
 const morphoGraphqlAmountWire = arktype('number | string')
+const morphoGraphqlNullableNumberWire = arktype('number').or(arktype('null'))
 
 const morphoGraphqlRewardWire = arktype({
 	asset: {
 		address: 'string',
 		chain: morphoGraphqlChainWire,
 	},
-	'supplyApr?': 'number',
-	'borrowApr?': 'number',
+	'supplyApr?': morphoGraphqlNullableNumberWire,
+	'borrowApr?': morphoGraphqlNullableNumberWire,
 })
 
 export const morphoGraphqlMarketStateWire = arktype({
@@ -43,16 +44,16 @@ export const morphoGraphqlMarketStateWire = arktype({
 	borrowApy: 'number',
 	liquidityAssets: morphoGraphqlAmountWire,
 	'collateralAssets?': morphoGraphqlAmountWire.or(arktype('null')),
-	'supplyAssetsUsd?': 'number',
-	'borrowAssetsUsd?': 'number',
-	'collateralAssetsUsd?': 'number',
-	'liquidityAssetsUsd?': 'number',
-	'netSupplyApy?': 'number',
-	'netBorrowApy?': 'number',
-	'avgSupplyApy?': 'number',
-	'avgBorrowApy?': 'number',
-	'avgNetSupplyApy?': 'number',
-	'avgNetBorrowApy?': 'number',
+	'supplyAssetsUsd?': morphoGraphqlNullableNumberWire,
+	'borrowAssetsUsd?': morphoGraphqlNullableNumberWire,
+	'collateralAssetsUsd?': morphoGraphqlNullableNumberWire,
+	'liquidityAssetsUsd?': morphoGraphqlNullableNumberWire,
+	'netSupplyApy?': morphoGraphqlNullableNumberWire,
+	'netBorrowApy?': morphoGraphqlNullableNumberWire,
+	'avgSupplyApy?': morphoGraphqlNullableNumberWire,
+	'avgBorrowApy?': morphoGraphqlNullableNumberWire,
+	'avgNetSupplyApy?': morphoGraphqlNullableNumberWire,
+	'avgNetBorrowApy?': morphoGraphqlNullableNumberWire,
 	'rewards?': morphoGraphqlRewardWire.array(),
 })
 
@@ -91,15 +92,15 @@ export const morphoGraphqlVaultStateWire = arktype({
 	timestamp: 'number.integer >= 0',
 	blockNumber: morphoGraphqlAmountWire,
 	/** Float tip metrics — transport-only until APP enrolls MorphoVault observation fields. */
-	'totalAssetsUsd?': 'number',
-	'apy?': 'number',
-	'netApy?': 'number',
-	'netApyExcludingRewards?': 'number',
-	'avgNetApy?': 'number',
-	'avgNetApyExcludingRewards?': 'number',
-	'fee?': 'number',
-	'sharePriceUsd?': 'number',
-	'sharePriceNumber?': 'number',
+	'totalAssetsUsd?': morphoGraphqlNullableNumberWire,
+	'apy?': morphoGraphqlNullableNumberWire,
+	'netApy?': morphoGraphqlNullableNumberWire,
+	'netApyExcludingRewards?': morphoGraphqlNullableNumberWire,
+	'avgNetApy?': morphoGraphqlNullableNumberWire,
+	'avgNetApyExcludingRewards?': morphoGraphqlNullableNumberWire,
+	'fee?': morphoGraphqlNullableNumberWire,
+	'sharePriceUsd?': morphoGraphqlNullableNumberWire,
+	'sharePriceNumber?': morphoGraphqlNullableNumberWire,
 	'allRewards?': morphoGraphqlRewardWire.array(),
 })
 
@@ -134,9 +135,9 @@ export const morphoGraphqlAccountMarketPositionWire = arktype({
 		borrowAssets: morphoGraphqlAmountWire,
 		borrowShares: morphoGraphqlAmountWire,
 		collateral: morphoGraphqlAmountWire,
-		'supplyAssetsUsd?': 'number',
-		'borrowAssetsUsd?': 'number',
-		'collateralUsd?': 'number',
+		'supplyAssetsUsd?': morphoGraphqlNullableNumberWire,
+		'borrowAssetsUsd?': morphoGraphqlNullableNumberWire,
+		'collateralUsd?': morphoGraphqlNullableNumberWire,
 	},
 })
 
@@ -149,7 +150,7 @@ export const morphoGraphqlAccountVaultPositionWire = arktype({
 	state: {
 		assets: morphoGraphqlAmountWire,
 		shares: morphoGraphqlAmountWire,
-		'assetsUsd?': 'number',
+		'assetsUsd?': morphoGraphqlNullableNumberWire,
 	},
 })
 

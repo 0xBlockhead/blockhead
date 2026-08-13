@@ -173,7 +173,7 @@ const assertGraphqlAmount = (
 }
 
 const assertOptionalFiniteNumber = (
-	value: number | undefined,
+	value: number | null | undefined,
 	label: string
 ) => {
 	if (value == null)
@@ -192,8 +192,8 @@ const normalizeReward = (
 				id: number
 			}
 		}
-		supplyApr?: number
-		borrowApr?: number
+		supplyApr?: number | null
+		borrowApr?: number | null
 	}
 ) => {
 	if (!Number.isSafeInteger(wire.asset.chain.id) || wire.asset.chain.id < 1)
@@ -472,8 +472,11 @@ const normalizeVault = (
 export const listMarkets = async ({
 	chainIds,
 	limit = morphoMarketPageLimit,
-}: {	chainIds: readonly number[]
+	offset = 0,
+}: {
+	chainIds: readonly number[]
 	limit?: number
+	offset?: number
 }) => {
 	if (chainIds.length < 1)
 		throw new Error(`${Source.Morpho_Graphql}: chainIds required`)
@@ -483,6 +486,8 @@ export const listMarkets = async ({
 		assertChainId(chainId)
 	if (!Number.isSafeInteger(limit) || limit < 1 || limit > morphoMarketPageLimit)
 		throw new Error(`${Source.Morpho_Graphql}: limit must be between 1 and ${String(morphoMarketPageLimit)}`)
+	if (!Number.isSafeInteger(offset) || offset < 0)
+		throw new Error(`${Source.Morpho_Graphql}: invalid market offset`)
 
 	const data = assertEnvelope(
 		'markets',
@@ -490,10 +495,12 @@ export const listMarkets = async ({
 		await queryMorpho(binding, `
 		query MorphoMarkets(
 			$chainIds: [Int!],
-			$limit: Int!
+			$limit: Int!,
+			$offset: Int!
 		) {
 			markets(
 				first: $limit
+				skip: $offset
 				orderBy: SupplyAssetsUsd
 				orderDirection: Desc
 				where: {
@@ -513,11 +520,15 @@ export const listMarkets = async ({
 				...chainIds,
 			],
 			limit,
+			offset,
 		})
 	)
 	if (data.markets.items.length > limit)
 		throw new Error(`${Source.Morpho_Graphql}: markets response exceeds page limit`)
-	if (data.markets.pageInfo.countTotal < data.markets.items.length)
+	if (
+		data.markets.items.length > 0
+		&& offset + data.markets.items.length > data.markets.pageInfo.countTotal
+	)
 		throw new Error(`${Source.Morpho_Graphql}: markets countTotal below page length`)
 
 	const items = data.markets.items.map((market) => (
@@ -577,8 +588,11 @@ export const getMarket = async ({
 export const listVaults = async ({
 	chainIds,
 	limit = morphoVaultPageLimit,
-}: {	chainIds: readonly number[]
+	offset = 0,
+}: {
+	chainIds: readonly number[]
 	limit?: number
+	offset?: number
 }) => {
 	if (chainIds.length < 1)
 		throw new Error(`${Source.Morpho_Graphql}: chainIds required`)
@@ -588,6 +602,8 @@ export const listVaults = async ({
 		assertChainId(chainId)
 	if (!Number.isSafeInteger(limit) || limit < 1 || limit > morphoVaultPageLimit)
 		throw new Error(`${Source.Morpho_Graphql}: limit must be between 1 and ${String(morphoVaultPageLimit)}`)
+	if (!Number.isSafeInteger(offset) || offset < 0)
+		throw new Error(`${Source.Morpho_Graphql}: invalid vault offset`)
 
 	const data = assertEnvelope(
 		'vaults',
@@ -595,10 +611,12 @@ export const listVaults = async ({
 		await queryMorpho(binding, `
 		query MorphoVaults(
 			$chainIds: [Int!],
-			$limit: Int!
+			$limit: Int!,
+			$offset: Int!
 		) {
 			vaults(
 				first: $limit
+				skip: $offset
 				orderBy: TotalAssetsUsd
 				orderDirection: Desc
 				where: {
@@ -618,11 +636,15 @@ export const listVaults = async ({
 				...chainIds,
 			],
 			limit,
+			offset,
 		})
 	)
 	if (data.vaults.items.length > limit)
 		throw new Error(`${Source.Morpho_Graphql}: vaults response exceeds page limit`)
-	if (data.vaults.pageInfo.countTotal < data.vaults.items.length)
+	if (
+		data.vaults.items.length > 0
+		&& offset + data.vaults.items.length > data.vaults.pageInfo.countTotal
+	)
 		throw new Error(`${Source.Morpho_Graphql}: vaults countTotal below page length`)
 
 	const items = data.vaults.items.map((vault) => (

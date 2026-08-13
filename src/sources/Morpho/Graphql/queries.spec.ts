@@ -135,7 +135,7 @@ describe('Morpho GraphQL market enumeration', () => {
 						market,
 					],
 					pageInfo: {
-						countTotal: 1,
+						countTotal: 8,
 					},
 				},
 			},
@@ -146,6 +146,7 @@ describe('Morpho GraphQL market enumeration', () => {
 				8453,
 			],
 			limit: 16,
+			offset: 7,
 		})).resolves.toEqual({
 			items: [
 				{
@@ -184,7 +185,7 @@ describe('Morpho GraphQL market enumeration', () => {
 					},
 				},
 			],
-			countTotal: 1,
+			countTotal: 8,
 		})
 	expect(sourceFetch).toHaveBeenCalledWith(
 		binding,
@@ -199,10 +200,12 @@ describe('Morpho GraphQL market enumeration', () => {
 					8453,
 				],
 				limit: 16,
+				offset: 7,
 			},
 		})
 		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('chainId_in: $chainIds')
 		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('first: $limit')
+		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('skip: $offset')
 		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('countTotal')
 		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('utilization')
 		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('supplyApy')
@@ -500,6 +503,26 @@ describe('Morpho GraphQL market enumeration', () => {
 		})
 	})
 
+	it('preserves a market when optional source metrics are null', async () => {
+		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+			data: {
+				marketById: {
+					...market,
+					state: {
+						...market.state,
+						collateralAssetsUsd: null,
+					},
+				},
+			},
+		})))
+
+		const result = await getMarket({
+			chainId: 8453,
+			marketId: market.marketId,
+		})
+		expect(result.state).not.toHaveProperty('collateralAssetsUsd')
+	})
+
 	it('normalizes string creationBlockNumber and BigInt decimal strings', async () => {
 		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
 			data: {
@@ -567,7 +590,7 @@ describe('Morpho GraphQL MetaMorpho vault enumeration', () => {
 						vault,
 					],
 					pageInfo: {
-						countTotal: 1,
+						countTotal: 9,
 					},
 				},
 			},
@@ -578,6 +601,7 @@ describe('Morpho GraphQL MetaMorpho vault enumeration', () => {
 				1,
 			],
 			limit: 16,
+			offset: 8,
 		})).resolves.toEqual({
 			items: [
 				{
@@ -601,7 +625,7 @@ describe('Morpho GraphQL MetaMorpho vault enumeration', () => {
 					},
 				},
 			],
-			countTotal: 1,
+			countTotal: 9,
 		})
 	expect(sourceFetch).toHaveBeenCalledWith(
 		binding,
@@ -616,10 +640,12 @@ describe('Morpho GraphQL MetaMorpho vault enumeration', () => {
 					1,
 				],
 				limit: 16,
+				offset: 8,
 			},
 		})
 		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('chainId_in: $chainIds')
 		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('first: $limit')
+		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('skip: $offset')
 		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('orderBy: TotalAssetsUsd')
 		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('totalAssets')
 		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('totalSupply')
