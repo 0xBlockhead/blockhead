@@ -50,6 +50,23 @@ test('keeps pending, ready-empty, late decoded data, and failure distinct withou
 	await expect.element(page.getByText('Not applicable to a signature catalog claim')).toBeVisible()
 	await expect.element(page.getByText('Not declared by the source')).toBeVisible()
 	await expect.element(page.getByText('No catalog signatures matched this function selector.')).toBeInTheDocument()
+	await expect.element(page.getByRole('link', { name: 'Download provenance manifest JSON' })).toHaveAttribute(
+		'download',
+		'evm-function-calldata-provenance.json'
+	)
+	const noMatchManifestHref = page.getByRole('link', {
+		name: 'Download provenance manifest JSON',
+	}).element().getAttribute('href')
+	if (noMatchManifestHref == null)
+		throw new Error('Missing no-match provenance manifest href')
+	expect(JSON.parse(decodeURIComponent(noMatchManifestHref.split(',')[1] ?? ''))).toMatchObject({
+		sourceClaim: {
+			outcome: 'no-matching-claim',
+			candidateSignatures: [],
+			selectedCandidateIndex: null,
+		},
+		deterministicResult: null,
+	})
 	await expect.element(page.getByText(signature)).not.toBeInTheDocument()
 
 	resource.set({ values: [signature] })

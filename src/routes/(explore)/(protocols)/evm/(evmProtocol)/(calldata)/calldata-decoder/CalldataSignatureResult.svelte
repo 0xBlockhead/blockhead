@@ -83,10 +83,42 @@
 	placeholderText={`Loading ${kind === CalldataSignatureKind.Function ? 'function' : 'event'} signature...`}
 >
 	{#snippet children(signatures)}
-		{@const selectedCandidateIndex = Math.min(selectedSignatureIndex, signatures.values.length - 1)}
+		{@const selectedCandidateIndex = signatures.values.length === 0 ? null : Math.min(selectedSignatureIndex, signatures.values.length - 1)}
 		{@const selectedSignature = signatures.values[selectedCandidateIndex]}
 		{@const decoded = selectedSignature == null ? null : kind === CalldataSignatureKind.Function ? decodeCalldataWithSignature(selectedSignature, ZeroExHex.assert(hex)) : decodeEventDataWithSignature(selectedSignature, ZeroExHex.assert(hex))}
 		{@const lookupHex = kind === CalldataSignatureKind.Function ? hex.slice(0, 10) : hex.slice(0, 66)}
+		{@const provenanceManifestJson = `${JSON.stringify({
+			artifactVersion: 1,
+			kind: kind === CalldataSignatureKind.Function ? 'function-calldata' : 'event-data',
+			input: hex,
+			sourceClaim: {
+				source,
+				lookupHex,
+				role: 'hosted-signature-catalog',
+				retrievalTimestampMs: null,
+				finality: null,
+				confidence: null,
+				retention: null,
+				outcome: signatures.values.length === 0 ? 'no-matching-claim' : signatures.values.length === 1 ? 'single-claim' : 'ambiguous-claims',
+				candidateSignatures: signatures.values,
+				selectedCandidateIndex,
+				...(selectedSignature != null && {
+					signature: selectedSignature,
+					abi: abiFragmentFromSignature(
+						selectedSignature,
+						kind === CalldataSignatureKind.Function ? 'function' : 'event'
+					),
+				}),
+			},
+			deterministicResult: decoded == null ? null : {
+				name: decoded.name,
+				params: decoded.params.map((param, index) => ({
+					index,
+					type: param.type,
+					value: formatDecodedParamValue(param.type, param.value),
+				})),
+			},
+		}, null, '\t')}\n`}
 
 		<section aria-label={`${source} claim status`} data-card="padding-2" data-column="gap-1">
 			<h3>{source} claim status</h3>
@@ -132,6 +164,13 @@
 			{/if}
 		</section>
 
+		<a
+			href={`data:application/json;charset=utf-8,${encodeURIComponent(provenanceManifestJson)}`}
+			download={`evm-${kind === CalldataSignatureKind.Function ? 'function-calldata' : 'event-data'}-provenance.json`}
+		>
+			Download provenance manifest JSON
+		</a>
+
 		{#if selectedSignature == null}
 			<p data-text="muted">No catalog signatures matched this {kind === CalldataSignatureKind.Function ? 'function selector' : 'event topic'}.</p>
 		{:else}
@@ -151,33 +190,6 @@
 					type: param.type,
 					value: formatDecodedParamValue(param.type, param.value),
 				})),
-			}, null, '\t')}\n`}
-			{@const provenanceManifestJson = `${JSON.stringify({
-				artifactVersion: 1,
-				kind: kind === CalldataSignatureKind.Function ? 'function-calldata' : 'event-data',
-				input: hex,
-				sourceClaim: {
-					source,
-					lookupHex,
-					role: 'hosted-signature-catalog',
-					retrievalTimestampMs: null,
-					finality: null,
-					confidence: null,
-					retention: null,
-					outcome: signatures.values.length === 1 ? 'single-claim' : 'ambiguous-claims',
-					candidateSignatures: signatures.values,
-					selectedCandidateIndex,
-					signature: selectedSignature,
-					abi: abiFragment,
-				},
-				deterministicResult: decoded == null ? null : {
-					name: decoded.name,
-					params: decoded.params.map((param, index) => ({
-						index,
-						type: param.type,
-						value: formatDecodedParamValue(param.type, param.value),
-					})),
-				},
 			}, null, '\t')}\n`}
 			<dl data-definition-list="vertical">
 				<div>
@@ -247,12 +259,6 @@
 				</a>
 			{/if}
 
-			<a
-				href={`data:application/json;charset=utf-8,${encodeURIComponent(provenanceManifestJson)}`}
-				download={`evm-${kind === CalldataSignatureKind.Function ? 'function-calldata' : 'event-data'}-provenance.json`}
-			>
-				Download provenance manifest JSON
-			</a>
 		{/if}
 	{/snippet}
 
