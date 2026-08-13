@@ -918,12 +918,32 @@ export default {
 					resolve: async ({ $network, cid }, context) => {
 						assertFilecoinMainnet($network)
 						const { getBlockMessages } = await import('$/sources/Filfox/Rest/queries.ts')
+						const pageSize = resolverContextRowLimit(context)
+						const continuationMatch = context.providerContinuationToken == null ?
+							undefined
+						:
+							/^(\d+):(\d+)$/.exec(context.providerContinuationToken)
+						if (
+							context.providerContinuationToken != null
+							&& (
+								continuationMatch == null
+								|| Number(continuationMatch[2]) !== pageSize
+								|| !Number.isSafeInteger(Number(continuationMatch[1]))
+							)
+						)
+							throw new Error('Filfox_Rest: invalid block messages continuation')
+
+						const pageNumber = continuationMatch == null ? 0 : Number(continuationMatch[1])
 						const page = await getBlockMessages({
 							blockCid: cid,
-							pageSize: resolverContextRowLimit(context),
+							page: pageNumber,
+							pageSize,
 						})
 						return {
+							blockCid: cid,
 							messageCount: page.totalCount,
+							pageNumber,
+							pageSize,
 							messages: page.messages.map((message) => ({
 								[EntityMetaKey.Selector]: {
 									$network,
@@ -962,6 +982,22 @@ export default {
 			$$messages: {
 				select: (snapshot) => snapshot.messages,
 				resolveCount: (snapshot) => snapshot.messageCount,
+				continuation: (snapshot) => (
+					snapshot.messages.length === 0
+					|| snapshot.pageNumber * snapshot.pageSize + snapshot.messages.length >= snapshot.messageCount ?
+						{
+							operation: 'block-messages',
+							target: snapshot.blockCid,
+							terminal: true,
+						}
+					:
+						{
+							operation: 'block-messages',
+							target: snapshot.blockCid,
+							terminal: false,
+							token: `${(snapshot.pageNumber + 1).toString()}:${snapshot.pageSize.toString()}`,
+						}
+				),
 			},
 		}),
 

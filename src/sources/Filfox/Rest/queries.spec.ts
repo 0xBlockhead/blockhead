@@ -194,6 +194,7 @@ describe('Filfox REST queries', () => {
 		})
 		await getBlockMessages({
 			blockCid: 'bafy-block',
+			page: 2,
 			pageSize: 16,
 		})
 		await getAddress({
@@ -240,7 +241,7 @@ describe('Filfox REST queries', () => {
 			],
 			[
 				binding,
-				'https://filfox.info/api/v1/block/bafy-block/messages?pageSize=16',
+				'https://filfox.info/api/v1/block/bafy-block/messages?pageSize=16&page=2',
 			],
 			[
 				binding,
@@ -488,6 +489,7 @@ describe('Filfox REST queries', () => {
 		})).resolves.toEqual(listPage)
 		await expect(getBlockMessages({
 			blockCid: 'bafy-block',
+			page: 0,
 			pageSize: 1,
 		})).resolves.toEqual(listPage)
 	})
@@ -529,8 +531,14 @@ describe('Filfox REST queries', () => {
 		})).toThrow(`${Source.Filfox_Rest}: invalid pageSize 0`)
 		expect(() => getBlockMessages({
 			blockCid: 'bafy-block',
+			page: 0,
 			pageSize: 101,
 		})).toThrow(`${Source.Filfox_Rest}: invalid pageSize 101`)
+		expect(() => getBlockMessages({
+			blockCid: 'bafy-block',
+			page: -1,
+			pageSize: 1,
+		})).toThrow(`${Source.Filfox_Rest}: invalid page -1`)
 		expect(sourceGetJson).not.toHaveBeenCalled()
 	})
 

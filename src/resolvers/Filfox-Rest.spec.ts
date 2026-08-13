@@ -779,7 +779,7 @@ describe('Filfox REST resolvers', () => {
 
 	it('lists block messages with nested field enrichment and authoritative resolveCount', async () => {
 		getBlockMessages.mockResolvedValueOnce({
-			totalCount: 9,
+			totalCount: 25,
 			messages: [{
 				cid: 'bafy-msg',
 				from: 'f1from',
@@ -793,7 +793,10 @@ describe('Filfox REST resolvers', () => {
 		const snapshot = await blockMessagesResolver.resolve.NetworkCid.resolve({
 			$network: network,
 			cid: 'bafy-block',
-		}, context)
+		}, {
+			...context,
+			providerContinuationToken: '2:8',
+		})
 
 		expect(blockMessagesResolver.projections.$$messages.select(snapshot)).toEqual([
 			{
@@ -819,11 +822,29 @@ describe('Filfox REST resolvers', () => {
 				},
 			},
 		])
-		expect(blockMessagesResolver.projections.$$messages.resolveCount?.(snapshot)).toBe(9)
+		expect(blockMessagesResolver.projections.$$messages.resolveCount?.(snapshot)).toBe(25)
 		expect(getBlockMessages).toHaveBeenCalledWith({
 			blockCid: 'bafy-block',
+			page: 2,
 			pageSize: 8,
 		})
+		expect(blockMessagesResolver.projections.$$messages.continuation?.(snapshot)).toEqual({
+			operation: 'block-messages',
+			target: 'bafy-block',
+			terminal: false,
+			token: '3:8',
+		})
+	})
+
+	it('rejects block message continuation that changes the page size', async () => {
+		await expect(blockMessagesResolver.resolve.NetworkCid.resolve({
+			$network: network,
+			cid: 'bafy-block',
+		}, {
+			...context,
+			providerContinuationToken: '2:16',
+		})).rejects.toThrow('Filfox_Rest: invalid block messages continuation')
+		expect(getBlockMessages).not.toHaveBeenCalled()
 	})
 
 	it('resolves block tipset and miner from block + tipset fetches', async () => {

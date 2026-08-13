@@ -347,15 +347,18 @@ export const getBlock = ({
 
 export const getBlockMessages = ({
 	blockCid,
+	page = 0,
 	pageSize,
 }: {
 	blockCid: string
+	page?: number
 	pageSize: number
 }) => {
+	assertPage(page)
 	assertPageSize(pageSize)
 	return sourceGetJson<unknown>(
 		binding,
-		`${baseUrl}/block/${blockCid}/messages?pageSize=${pageSize.toString()}`
+		`${baseUrl}/block/${blockCid}/messages?pageSize=${pageSize.toString()}&page=${page.toString()}`
 	)
 		.then(assertMessagesPageEnvelope)
 }
