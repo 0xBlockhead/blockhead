@@ -386,8 +386,8 @@ describe('Mastodon ActivityPub observations', () => {
 			'peer-two.example',
 		])
 		listInstanceModeratedDomains.mockResolvedValueOnce([
-			{ domain: 'blocked.example', severity: 'suspend' },
-			{ severity: 'silence' },
+			{ domain: 'blocked.example', digest: 'a'.repeat(64), severity: 'suspend' },
+			{ domain: 'blocked-two.example', digest: 'b'.repeat(64), severity: 'silence' },
 		])
 		listPublicTimelinePage.mockResolvedValueOnce({
 			statuses: [
@@ -465,7 +465,7 @@ describe('Mastodon ActivityPub observations', () => {
 			[entityFieldAddressKey(EntityType._GlobalActivityPubNetwork_Timestamp, [], 'observedNoteCount')]: 2,
 			[entityFieldAddressKey(EntityType._GlobalActivityPubNetwork_Timestamp, [], 'seededInstanceCount')]: 2,
 			[entityFieldAddressKey(EntityType._GlobalActivityPubNetwork_Timestamp, [], 'knownPeerDomainCount')]: 2,
-			[entityFieldAddressKey(EntityType._GlobalActivityPubNetwork_Timestamp, [], 'moderatedDomainCount')]: 1,
+			[entityFieldAddressKey(EntityType._GlobalActivityPubNetwork_Timestamp, [], 'moderatedDomainCount')]: 2,
 			[entityFieldAddressKey(EntityType._GlobalActivityPubNetwork_Timestamp, [], 'reachable')]: true,
 		})
 	})
@@ -507,6 +507,7 @@ describe('Mastodon ActivityPub observations', () => {
 		])
 		listInstanceModeratedDomains.mockResolvedValueOnce([{
 			domain: 'blocked.example',
+			digest: 'a'.repeat(64),
 			severity: 'suspend',
 		}])
 
@@ -539,7 +540,7 @@ describe('Mastodon ActivityPub observations', () => {
 			expect.arrayContaining([
 				expect.objectContaining({
 					[EntityMetaKey.Selector]: expect.objectContaining({
-						domain: 'blocked.example',
+						digest: 'a'.repeat(64),
 					}),
 				}),
 			]),
@@ -1022,6 +1023,7 @@ describe('Mastodon ActivityPub observations', () => {
 		listInstanceModeratedDomains
 			.mockResolvedValueOnce([{
 				domain: 'formerly-blocked.example',
+				digest: 'c'.repeat(64),
 				severity: 'suspend',
 			}])
 			.mockResolvedValueOnce([])
@@ -1054,7 +1056,7 @@ describe('Mastodon ActivityPub observations', () => {
 			expect.arrayContaining([
 				expect.objectContaining({
 					[EntityMetaKey.Selector]: expect.objectContaining({
-						domain: 'formerly-blocked.example',
+						digest: 'c'.repeat(64),
 					}),
 				}),
 			]),

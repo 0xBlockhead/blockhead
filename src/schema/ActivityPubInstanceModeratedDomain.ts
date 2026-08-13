@@ -17,13 +17,17 @@ export default entity({
 		entityType: EntityType.ActivityPubInstance_Timestamp,
 		cardinality: EntityFieldCardinality.One,
 	},
+	digest: {
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.One,
+	},
 	domain: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	severity: {
 		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		cardinality: EntityFieldCardinality.One,
 	},
 	comment: {
 		primitiveType: type('string'),
@@ -31,9 +35,9 @@ export default entity({
 	},
 })({
 	selectors: {
-		ObservationDomain: [
+		ObservationDigest: [
 			'$observation',
-			'domain',
+			'digest',
 		],
 	},
 })

@@ -630,7 +630,7 @@ export default {
 										[entityFieldAddressKey(EntityType._GlobalActivityPubNetwork_Timestamp, [], 'knownPeerDomainCount')]: peerDomains.length,
 									}),
 									...(moderatedDomains != null && {
-										[entityFieldAddressKey(EntityType._GlobalActivityPubNetwork_Timestamp, [], 'moderatedDomainCount')]: moderatedDomains.filter((domainBlock) => domainBlock.domain != null).length,
+										[entityFieldAddressKey(EntityType._GlobalActivityPubNetwork_Timestamp, [], 'moderatedDomainCount')]: moderatedDomains.length,
 									}),
 									[entityFieldAddressKey(EntityType._GlobalActivityPubNetwork_Timestamp, [], 'reachable')]: true,
 								},
@@ -711,25 +711,19 @@ export default {
 										peerDomain,
 									},
 								})),
-								[entityFieldAddressKey(EntityType.ActivityPubInstance_Timestamp, [], '$$moderatedDomains')]: moderatedDomains.flatMap((domainBlock) => (
-									domainBlock.domain == null ?
-										[]
-									:
-										[{
+								[entityFieldAddressKey(EntityType.ActivityPubInstance_Timestamp, [], '$$moderatedDomains')]: moderatedDomains.map((domainBlock) => ({
 											[EntityMetaKey.Selector]: {
 												$observation,
-												domain: domainBlock.domain,
+												digest: domainBlock.digest.toLowerCase(),
 											},
 											[EntityMetaKey.Fields]: {
-												...(domainBlock.severity != null && {
-													[entityFieldAddressKey(EntityType.ActivityPubInstanceModeratedDomain, [], 'severity')]: domainBlock.severity,
-												}),
+												[entityFieldAddressKey(EntityType.ActivityPubInstanceModeratedDomain, [], 'domain')]: domainBlock.domain,
+												[entityFieldAddressKey(EntityType.ActivityPubInstanceModeratedDomain, [], 'severity')]: domainBlock.severity,
 												...(domainBlock.comment != null && {
 													[entityFieldAddressKey(EntityType.ActivityPubInstanceModeratedDomain, [], 'comment')]: domainBlock.comment,
 												}),
 											},
-										}]
-								)),
+								})),
 							},
 						}]
 					},
@@ -753,7 +747,7 @@ export default {
 		defineResolver({
 			entityType: EntityType.ActivityPubInstanceModeratedDomain,
 			resolve: {
-				ObservationDomain: {
+				ObservationDigest: {
 					resolve: (selector) => {
 						if (selector.$observation.source !== Source.Mastodon_Rest)
 							throw new Error('Mastodon_Rest: ActivityPub moderated domain source mismatch')
@@ -762,9 +756,9 @@ export default {
 				},
 			},
 		})({
-				$observation: (domain) => domain.$observation,
-				domain: (domain) => domain.domain,
-			}),
+			$observation: (domain) => domain.$observation,
+			digest: (domain) => domain.digest,
+		}),
 
 		defineResolver({
 			entityType: EntityType.ActivityPubNetwork,

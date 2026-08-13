@@ -109,9 +109,9 @@ export type MastodonApiV2Instance = {
 }
 
 export type MastodonApiV1DomainBlock = {
-	domain?: string
-	digest?: string
-	severity?: string
+	domain: string
+	digest: string
+	severity: string
 	comment?: string
 }
 
@@ -232,9 +232,9 @@ export const mastodonApiV2InstanceWire = arktype({
 }) satisfies Type<MastodonApiV2Instance>
 
 export const mastodonApiV1DomainBlockWire = arktype({
-	'domain?': 'string',
-	'digest?': 'string',
-	'severity?': 'string',
+	domain: 'string > 0',
+	digest: '/^[0-9a-fA-F]{64}$/',
+	severity: 'string > 0',
 	'comment?': 'string',
 }) satisfies Type<MastodonApiV1DomainBlock>
 

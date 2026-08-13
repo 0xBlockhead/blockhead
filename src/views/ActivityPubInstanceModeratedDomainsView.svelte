@@ -52,18 +52,18 @@
 			entitySelector={activityPubInstanceModeratedDomainSelector}
 			href={
 				resolve(
-					'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/instance/[instanceOrigin=absoluteUrl]/(activityPubInstance)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]/moderated-domain/[domain=stringSegment]',
+					'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/instance/[instanceOrigin=absoluteUrl]/(activityPubInstance)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]/moderated-domain/[digest=stringSegment]',
 					{
 						instanceOrigin: encodeURIComponent(observation.$instance.instanceOrigin),
 						timestampMs: String(observation.timestampMs),
 						source: observation.source,
-						domain: activityPubInstanceModeratedDomainSelector.domain,
+						digest: activityPubInstanceModeratedDomainSelector.digest,
 					}
 				)
 			}
 		>
 			{#snippet Title()}
-				{[activityPubInstanceModeratedDomainSelector.domain, (activityPubInstanceModeratedDomain.severity ?? ''), (activityPubInstanceModeratedDomain.comment ?? '')].filter(Boolean).join(' ') || 'ActivityPub instance moderated domain'}
+				{[activityPubInstanceModeratedDomain.domain, activityPubInstanceModeratedDomain.severity, (activityPubInstanceModeratedDomain.comment ?? '')].filter(Boolean).join(' ') || 'ActivityPub instance moderated domain'}
 			{/snippet}
 
 			{#snippet Value()}

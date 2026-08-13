@@ -306,7 +306,7 @@ describe('Mastodon Rest arktype envelopes', () => {
 			})
 		mastodonFetch
 			.mockResolvedValueOnce(new Response('["peer.example"]'))
-			.mockResolvedValueOnce(new Response('[{"domain":"blocked.example","severity":"suspend"}]'))
+			.mockResolvedValueOnce(new Response(`[{"domain":"blocked.example","digest":"${'a'.repeat(64)}","severity":"suspend"}]`))
 		mastodonFetchPublicTimelineUrl.mockResolvedValueOnce(new Response('[{"id":"1","uri":"https://fosstodon.org/users/a/statuses/1"}]'))
 
 		await expect(getAccountByLocalAccountId(mastodonSocialBinding, 'https://mastodon.social', '1')).resolves.toMatchObject({
@@ -333,7 +333,7 @@ describe('Mastodon Rest arktype envelopes', () => {
 			'peer.example',
 		])
 		await expect(listInstanceModeratedDomains(mastodonSocialBinding, 'https://mastodon.social')).resolves.toEqual([
-			{ domain: 'blocked.example', severity: 'suspend' },
+			{ domain: 'blocked.example', digest: 'a'.repeat(64), severity: 'suspend' },
 		])
 		await expect(listPublicTimelinePage(fosstodonPublicTimeline.binding, 'https://fosstodon.org', 10)).resolves.toMatchObject({
 			statuses: [{ id: '1' }],

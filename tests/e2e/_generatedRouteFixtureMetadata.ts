@@ -10232,16 +10232,16 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
-	'/(social)/(activitypub)/activitypub/instance/[instanceOrigin]/observations/[timestampMs]/[source]/moderated-domain/[domain]': {
-		routeId: '/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/instance/[instanceOrigin=absoluteUrl]/(activityPubInstance)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]/moderated-domain/[domain=stringSegment]',
+	'/(social)/(activitypub)/activitypub/instance/[instanceOrigin]/observations/[timestampMs]/[source]/moderated-domain/[digest]': {
+		routeId: '/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/instance/[instanceOrigin=absoluteUrl]/(activityPubInstance)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]/moderated-domain/[digest=stringSegment]',
 		parameterEncodingByName: {
 			instanceOrigin: 'Opaque',
 		},
 		mappings: [
 			{
-				id: 'ActivityPubInstanceModeratedDomain.ObservationDomain',
-				probeAtomPrefixes: ['/activitypub/instance/[instanceOrigin]/observations/[timestampMs]/[source]/moderated-domain/[domain]:ActivityPubInstanceModeratedDomain.ObservationDomain'],
-				probeCases: [[[0, '1', ['domain', 'timestampMs', 'source', 'instanceOrigin']]]],
+				id: 'ActivityPubInstanceModeratedDomain.ObservationDigest',
+				probeAtomPrefixes: ['/activitypub/instance/[instanceOrigin]/observations/[timestampMs]/[source]/moderated-domain/[digest]:ActivityPubInstanceModeratedDomain.ObservationDigest'],
+				probeCases: [[[0, '1', ['digest', 'timestampMs', 'source', 'instanceOrigin']]]],
 			},
 		],
 	},

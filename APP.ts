@@ -6074,18 +6074,19 @@ export const schema = {
 				description: "A domain that a declared ActivityPub instance reports in its public moderation-domain list.",
 			})({
 				"$observation": { label: "Observation", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.ActivityPubInstance_Timestamp },
+				"digest": { label: "Digest", description: "The source-native SHA-256 identity for this moderated-domain claim.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"domain": { label: "Domain", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"severity": { label: "Severity", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+				"severity": { label: "Severity", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"comment": { label: "Comment", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 			})({
 				selectors: {
-					"ObservationDomain": ["$observation", "domain"],
+					"ObservationDigest": ["$observation", "digest"],
 				},
 				views: {
 					singular: {
 						query: {
 							sources: [Source.Mastodon_Rest],
-							fields: ["severity", "comment"],
+							fields: ["domain", "severity", "comment"],
 						},
 						summary: {
 							title: ["domain", "severity", "comment"],
@@ -6093,7 +6094,7 @@ export const schema = {
 						},
 						content: {
 							dl: [
-								["$observation", "domain", "severity"],
+								["$observation", "digest", "domain", "severity"],
 								["comment"],
 							],
 						},
@@ -91394,11 +91395,11 @@ export const routes = defineRoutes(schema)({
 																	children: {
 																		"moderated-domain": {
 																			children: {
-																				"[domain]": {
-																					selectors: {
-																						[EntityType.ActivityPubInstanceModeratedDomain]: {
-																							"ObservationDomain": {
-																								params: { "domain": ["domain"] },
+																"[digest]": {
+																	selectors: {
+																		[EntityType.ActivityPubInstanceModeratedDomain]: {
+																			"ObservationDigest": {
+																				params: { "digest": ["digest"] },
 																								page: {},
 																							}
 																						}

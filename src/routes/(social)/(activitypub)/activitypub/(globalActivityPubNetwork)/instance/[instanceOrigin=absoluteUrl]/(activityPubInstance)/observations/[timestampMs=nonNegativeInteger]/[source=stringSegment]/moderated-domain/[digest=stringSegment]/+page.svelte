@@ -19,12 +19,13 @@
 
 	const pageSelection = $derived(select(EntityType.ActivityPubInstanceModeratedDomain, {
 		$observation: data.selector,
-		domain: params.domain,
+		digest: params.digest,
 	}, {
 		sources: [
 			Source.Mastodon_Rest,
 		],
 		fields: {
+			domain: true,
 			severity: true,
 			comment: true,
 		},
@@ -38,7 +39,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.domain ?? '') || 'ActivityPub instance moderated domain' : [pageSelection.entitySelector.domain, (pageSelection.entity.severity ?? ''), (pageSelection.entity.comment ?? '')].filter(Boolean).join(' ') || 'ActivityPub instance moderated domain')} • ActivityPub instance moderated domain • Blockhead</title>
+	<title>{data.title ?? (pageSelection.entity == null ? 'ActivityPub instance moderated domain' : [pageSelection.entity.domain, pageSelection.entity.severity, (pageSelection.entity.comment ?? '')].filter(Boolean).join(' ') || 'ActivityPub instance moderated domain')} • ActivityPub instance moderated domain • Blockhead</title>
 </svelte:head>
 
 

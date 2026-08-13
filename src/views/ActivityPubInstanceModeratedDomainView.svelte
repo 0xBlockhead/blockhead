@@ -29,15 +29,17 @@
 			Source.Mastodon_Rest,
 		],
 		fields: {
+			domain: true,
 			severity: true,
 			comment: true,
 		},
 	}))
-	const titleFallback = $derived([selection.entitySelector.domain, (prefetched.severity ?? ''), (prefetched.comment ?? '')].filter(Boolean).join(' ') || 'ActivityPub instance moderated domain')
+	const titleFallback = $derived([(prefetched.domain ?? ''), (prefetched.severity ?? ''), (prefetched.comment ?? '')].filter(Boolean).join(' ') || 'ActivityPub instance moderated domain')
 
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import ActivityPubInstance_TimestampView from '$/views/ActivityPubInstance_TimestampView.svelte'
 </script>
 
@@ -49,12 +51,12 @@
 	href={
 		href === undefined ?
 			resolve(
-				'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/instance/[instanceOrigin=absoluteUrl]/(activityPubInstance)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]/moderated-domain/[domain=stringSegment]',
+				'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/instance/[instanceOrigin=absoluteUrl]/(activityPubInstance)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]/moderated-domain/[digest=stringSegment]',
 				{
 					instanceOrigin: encodeURIComponent(observation.$instance.instanceOrigin),
 					timestampMs: String(observation.timestampMs),
 					source: observation.source,
-					domain: selection.entitySelector.domain,
+					digest: selection.entitySelector.digest,
 				}
 			)
 		:
@@ -67,7 +69,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={activityPubInstanceModeratedDomain}>
 			{#snippet children(entity)}
-				{[selection.entitySelector.domain, (entity.severity ?? ''), (entity.comment ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{[entity.domain, entity.severity, (entity.comment ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -92,27 +94,37 @@
 			</div>
 
 			<div>
-				<dt>Domain</dt>
+				<dt>Digest</dt>
 				<dd>
-					{selection.entitySelector.domain}
+					<TruncatedValue value={selection.entitySelector.digest} />
 				</dd>
 			</div>
 
-			<ResourceBoundary
-				resource={activityPubInstanceModeratedDomain}
-			>
-				{#snippet children(entity)}
-					{@const severity = entity.severity}
-					{#if severity != null}
-						<div>
-							<dt>Severity</dt>
-							<dd>
-								{severity}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+			<div>
+				<dt>Domain</dt>
+				<dd>
+					<ResourceBoundary
+						resource={activityPubInstanceModeratedDomain}
+					>
+						{#snippet children(entity)}
+							{entity.domain}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<div>
+				<dt>Severity</dt>
+				<dd>
+					<ResourceBoundary
+						resource={activityPubInstanceModeratedDomain}
+					>
+						{#snippet children(entity)}
+							{entity.severity}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 		</dl>
 
 		<dl data-column-item="center">
