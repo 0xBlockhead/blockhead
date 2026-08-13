@@ -20,6 +20,24 @@ import type {
 } from '$/sources/MoneroWalletRpc/JsonRpc/types.ts'
 
 
+const loadMoneroWalletQueries = async () => {
+	const binding = bindings[Source.MoneroWalletRpc_JsonRpc][0]
+	if (typeof window !== 'undefined')
+		return import('$/sources/MoneroWalletRpc/JsonRpc/queries.remote.ts')
+
+	const queries = await import('$/sources/MoneroWalletRpc/JsonRpc/queries.ts')
+	return {
+		getAccounts: () => queries.getAccounts(binding),
+		getAddress: (accountIndex: number) => queries.getAddress(binding, accountIndex),
+		getBalance: () => queries.getBalance(binding),
+		getHeight: () => queries.getHeight(binding),
+		getKeyStatus: () => queries.getKeyStatus(binding),
+		getOutputs: () => queries.getOutputs(binding),
+		getTransfers: () => queries.getTransfers(binding),
+	}
+}
+
+
 const walletId = 'monero-wallet-rpc'
 const walletSelector = { walletId }
 const moneroNetwork = {
@@ -303,13 +321,7 @@ export default {
 							getKeyStatus,
 							getOutputs,
 							getTransfers,
-						} = await (
-							typeof window === 'undefined' ?
-								import('$/sources/MoneroWalletRpc/JsonRpc/queries.ts')
-							:
-								import('$/sources/MoneroWalletRpc/JsonRpc/queries.remote.ts')
-						)
-						const binding = bindings[Source.MoneroWalletRpc_JsonRpc][0]
+						} = await loadMoneroWalletQueries()
 						const timestampMs = Date.now()
 						const [
 							accounts,
@@ -319,15 +331,15 @@ export default {
 							outputs,
 							transfers,
 						] = await Promise.all([
-							getAccounts(binding),
-							getBalance(binding),
-							getHeight(binding),
-							getKeyStatus(binding),
-							getOutputs(binding),
-							getTransfers(binding),
+							getAccounts(),
+							getBalance(),
+							getHeight(),
+							getKeyStatus(),
+							getOutputs(),
+							getTransfers(),
 						])
 						const addressesByAccount = await Promise.all(accounts.subaddress_accounts.map((account) => (
-							getAddress(binding, account.account_index)
+							getAddress(account.account_index)
 						)))
 						const subaddresses = addressesByAccount.flatMap((addresses, accountOffset) => (
 							addresses.addresses.map((address) => subaddressFields(
@@ -410,16 +422,10 @@ export default {
 						if (requestedWalletId !== walletId)
 							throw new Error(`MoneroWalletRpc_JsonRpc: unknown local wallet ${requestedWalletId}`)
 
-						const { getAddress, getBalance } = await (
-							typeof window === 'undefined' ?
-								import('$/sources/MoneroWalletRpc/JsonRpc/queries.ts')
-							:
-								import('$/sources/MoneroWalletRpc/JsonRpc/queries.remote.ts')
-						)
-						const binding = bindings[Source.MoneroWalletRpc_JsonRpc][0]
+						const { getAddress, getBalance } = await loadMoneroWalletQueries()
 						const [addresses, balance] = await Promise.all([
-							getAddress(binding, accountIndex),
-							getBalance(binding),
+							getAddress(accountIndex),
+							getBalance(),
 						])
 						const address = addresses.addresses.find((candidate) => candidate.address_index === addressIndex)
 						if (address == null)
@@ -455,13 +461,8 @@ export default {
 						if (requestedWalletId !== walletId)
 							throw new Error(`MoneroWalletRpc_JsonRpc: unknown local wallet ${requestedWalletId}`)
 
-						const { getOutputs } = await (
-							typeof window === 'undefined' ?
-								import('$/sources/MoneroWalletRpc/JsonRpc/queries.ts')
-							:
-								import('$/sources/MoneroWalletRpc/JsonRpc/queries.remote.ts')
-						)
-						const output = (await getOutputs(bindings[Source.MoneroWalletRpc_JsonRpc][0])).outputs.find((candidate) => (
+						const { getOutputs } = await loadMoneroWalletQueries()
+						const output = (await getOutputs()).outputs.find((candidate) => (
 							assertTransactionHash(candidate.txid) === assertTransactionHash(requestedTxHash)
 							&& candidate.amount_index === outputIndex
 						))
@@ -494,14 +495,9 @@ export default {
 						if (requestedWalletId !== walletId)
 							throw new Error(`MoneroWalletRpc_JsonRpc: unknown local wallet ${requestedWalletId}`)
 
-						const { getTransfers } = await (
-							typeof window === 'undefined' ?
-								import('$/sources/MoneroWalletRpc/JsonRpc/queries.ts')
-							:
-								import('$/sources/MoneroWalletRpc/JsonRpc/queries.remote.ts')
-						)
+						const { getTransfers } = await loadMoneroWalletQueries()
 						const transfer = transferRows(
-							await getTransfers(bindings[Source.MoneroWalletRpc_JsonRpc][0]),
+							await getTransfers(),
 							Date.now()
 						).find((candidate) => (
 							candidate.txHash === assertTransactionHash(requestedTxHash)

@@ -18,6 +18,36 @@ import type {
 } from '$/sources/qBittorrentWebUi/Rest/queries.ts'
 
 
+const loadQBittorrentQueries = async () => {
+	const binding = bindings[Source.qBittorrentWebUi_Rest][0]
+	if (typeof window !== 'undefined') {
+		const queries = await import('$/sources/qBittorrentWebUi/Rest/queries.remote.ts')
+		return {
+			getApplicationVersion: () => queries.getApplicationVersion(),
+			getTorrentFiles: (infoHash: string) => queries.getTorrentFiles({ infoHash }),
+			getTorrentPeers: (infoHash: string) => queries.getTorrentPeers({ infoHash }),
+			getTorrentPieceStates: (infoHash: string) => queries.getTorrentPieceStates({ infoHash }),
+			getTorrentProperties: (infoHash: string) => queries.getTorrentProperties({ infoHash }),
+			getTorrentTrackers: (infoHash: string) => queries.getTorrentTrackers({ infoHash }),
+			getTorrentsInfo: () => queries.getTorrentsInfo(),
+			getTransferInfo: () => queries.getTransferInfo(),
+		}
+	}
+
+	const queries = await import('$/sources/qBittorrentWebUi/Rest/queries.ts')
+	return {
+		getApplicationVersion: () => queries.getApplicationVersion(binding),
+		getTorrentFiles: (infoHash: string) => queries.getTorrentFiles(binding, infoHash),
+		getTorrentPeers: (infoHash: string) => queries.getTorrentPeers(binding, infoHash),
+		getTorrentPieceStates: (infoHash: string) => queries.getTorrentPieceStates(binding, infoHash),
+		getTorrentProperties: (infoHash: string) => queries.getTorrentProperties(binding, infoHash),
+		getTorrentTrackers: (infoHash: string) => queries.getTorrentTrackers(binding, infoHash),
+		getTorrentsInfo: () => queries.getTorrentsInfo(binding),
+		getTransferInfo: () => queries.getTransferInfo(binding),
+	}
+}
+
+
 const clientId = 'qbittorrent-local'
 const clientSelector = { clientId }
 
@@ -292,16 +322,9 @@ export default {
 				TorrentFileIndex: {
 					resolve: async ({ $torrent: torrentIdentity, fileIndex }) => {
 						const $torrent = normalizedTorrentIdentity(torrentIdentity)
-						const { getTorrentFiles } = await (
-							typeof window === 'undefined' ?
-								import('$/sources/qBittorrentWebUi/Rest/queries.ts')
-							:
-								import('$/sources/qBittorrentWebUi/Rest/queries.remote.ts')
-						)
-						const file = (await getTorrentFiles(
-							bindings[Source.qBittorrentWebUi_Rest][0],
-							$torrent.infoHash
-						)).find((candidate) => candidate.index === fileIndex)
+						const { getTorrentFiles } = await loadQBittorrentQueries()
+						const file = (await getTorrentFiles($torrent.infoHash))
+							.find((candidate) => candidate.index === fileIndex)
 						if (file == null)
 							throw new Error('qBittorrentWebUi_Rest: torrent file not found')
 
@@ -327,24 +350,18 @@ export default {
 				InfoHashHashVersion: {
 					resolve: async (torrentIdentity, context) => {
 						const { infoHash: normalizedInfoHash, hashVersion } = normalizedTorrentIdentity(torrentIdentity)
-						const { getTorrentFiles, getTorrentPeers, getTorrentPieceStates, getTorrentProperties, getTorrentTrackers, getTorrentsInfo } = await (
-							typeof window === 'undefined' ?
-								import('$/sources/qBittorrentWebUi/Rest/queries.ts')
-							:
-								import('$/sources/qBittorrentWebUi/Rest/queries.remote.ts')
-						)
-						const binding = bindings[Source.qBittorrentWebUi_Rest][0]
-						const torrents = await getTorrentsInfo(binding)
+						const { getTorrentFiles, getTorrentPeers, getTorrentPieceStates, getTorrentProperties, getTorrentTrackers, getTorrentsInfo } = await loadQBittorrentQueries()
+						const torrents = await getTorrentsInfo()
 						const torrent = torrents.find((candidate) => candidate.hash.toLowerCase() === normalizedInfoHash)
 						if (torrent == null)
 							throw new Error('qBittorrentWebUi_Rest: torrent not found in the configured local client')
 
 						const [files, peers, pieceStates, properties, trackers] = await Promise.all([
-							getTorrentFiles(binding, normalizedInfoHash),
-							getTorrentPeers(binding, normalizedInfoHash),
-							getTorrentPieceStates(binding, normalizedInfoHash),
-							getTorrentProperties(binding, normalizedInfoHash),
-							getTorrentTrackers(binding, normalizedInfoHash),
+							getTorrentFiles(normalizedInfoHash),
+							getTorrentPeers(normalizedInfoHash),
+							getTorrentPieceStates(normalizedInfoHash),
+							getTorrentProperties(normalizedInfoHash),
+							getTorrentTrackers(normalizedInfoHash),
 						])
 						const $torrent = {
 							infoHash: normalizedInfoHash,
@@ -426,18 +443,12 @@ export default {
 						if (requestedClientId !== clientId)
 							throw new Error(`qBittorrentWebUi_Rest: unknown local client ${requestedClientId}`)
 
-						const { getApplicationVersion, getTorrentFiles, getTorrentPieceStates, getTorrentsInfo, getTransferInfo } = await (
-							typeof window === 'undefined' ?
-								import('$/sources/qBittorrentWebUi/Rest/queries.ts')
-							:
-								import('$/sources/qBittorrentWebUi/Rest/queries.remote.ts')
-						)
-						const binding = bindings[Source.qBittorrentWebUi_Rest][0]
+						const { getApplicationVersion, getTorrentFiles, getTorrentPieceStates, getTorrentsInfo, getTransferInfo } = await loadQBittorrentQueries()
 						const timestampMs = Date.now()
 						const [clientVersion, torrents, transfer] = await Promise.all([
-							getApplicationVersion(binding),
-							getTorrentsInfo(binding),
-							getTransferInfo(binding),
+							getApplicationVersion(),
+							getTorrentsInfo(),
+							getTransferInfo(),
 						])
 						const selectedTorrents = torrents.slice(0, resolverContextRowLimit(context))
 						const downloadedBytes = transfer.dl_info_data == null ? undefined : byteCount(transfer.dl_info_data, 'session downloaded bytes')
@@ -448,8 +459,8 @@ export default {
 							clientName: 'qBittorrent',
 							$$transfers: await Promise.all(selectedTorrents.map(async (torrent) => {
 								const [files, pieceStates] = await Promise.all([
-									getTorrentFiles(binding, torrent.hash),
-									getTorrentPieceStates(binding, torrent.hash),
+									getTorrentFiles(torrent.hash),
+									getTorrentPieceStates(torrent.hash),
 								])
 
 								return transferReference(

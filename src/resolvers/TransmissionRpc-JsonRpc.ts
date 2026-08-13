@@ -17,6 +17,20 @@ import type {
 } from '$/sources/Transmission/Rpc/types.ts'
 
 
+const loadTransmissionQueries = async () => {
+	const binding = bindings[Source.TransmissionRpc_JsonRpc][0]
+	if (typeof window !== 'undefined')
+		return import('$/sources/Transmission/Rpc/queries.remote.ts')
+
+	const queries = await import('$/sources/Transmission/Rpc/queries.ts')
+	return {
+		sessionGet: () => queries.sessionGet(binding),
+		sessionStats: () => queries.sessionStats(binding),
+		torrentGet: (fields: readonly string[]) => queries.torrentGet(binding, fields),
+	}
+}
+
+
 const clientId = 'transmission-local'
 const clientSelector = { clientId }
 const torrentFields = [
@@ -208,15 +222,9 @@ export default {
 				TorrentFileIndex: {
 					resolve: async ({ $torrent: torrent, fileIndex }) => {
 						const $torrent = normalizedTorrent(torrent.infoHash, torrent.hashVersion)
-						const { torrentGet } = await (
-							typeof window === 'undefined' ?
-								import('$/sources/Transmission/Rpc/queries.ts')
-							:
-								import('$/sources/Transmission/Rpc/queries.remote.ts')
-						)
+						const { torrentGet } = await loadTransmissionQueries()
 						const resolvedTorrent = (await torrentGet(
-							bindings[Source.TransmissionRpc_JsonRpc][0],
-							torrentFields
+							[...torrentFields]
 						)).torrents.find((candidate) => candidate.hashString.toLowerCase() === $torrent.infoHash)
 						const file = resolvedTorrent?.files?.[fileIndex]
 						if (file == null)
@@ -244,15 +252,9 @@ export default {
 				InfoHashHashVersion: {
 					resolve: async ({ infoHash, hashVersion }, context) => {
 						const $torrent = normalizedTorrent(infoHash, hashVersion)
-						const { torrentGet } = await (
-							typeof window === 'undefined' ?
-								import('$/sources/Transmission/Rpc/queries.ts')
-							:
-								import('$/sources/Transmission/Rpc/queries.remote.ts')
-						)
+						const { torrentGet } = await loadTransmissionQueries()
 						const torrent = (await torrentGet(
-							bindings[Source.TransmissionRpc_JsonRpc][0],
-							torrentFields
+							[...torrentFields]
 						)).torrents.find((candidate) => candidate.hashString.toLowerCase() === $torrent.infoHash)
 						if (torrent == null)
 							throw new Error('TransmissionRpc_JsonRpc: torrent not found in the configured local client')
@@ -296,18 +298,12 @@ export default {
 						if (requestedClientId !== clientId)
 							throw new Error(`TransmissionRpc_JsonRpc: unknown local client ${requestedClientId}`)
 
-						const { sessionGet, sessionStats, torrentGet } = await (
-							typeof window === 'undefined' ?
-								import('$/sources/Transmission/Rpc/queries.ts')
-							:
-								import('$/sources/Transmission/Rpc/queries.remote.ts')
-						)
-						const binding = bindings[Source.TransmissionRpc_JsonRpc][0]
+						const { sessionGet, sessionStats, torrentGet } = await loadTransmissionQueries()
 						const timestampMs = Date.now()
 						const [session, stats, torrents] = await Promise.all([
-							sessionGet(binding),
-							sessionStats(binding),
-							torrentGet(binding, torrentFields),
+							sessionGet(),
+							sessionStats(),
+							torrentGet([...torrentFields]),
 						])
 
 						return {

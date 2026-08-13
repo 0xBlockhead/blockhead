@@ -12,7 +12,9 @@ import {
 } from '$/sources/XrplClio/JsonRpc/queries.ts'
 import type { XrplClioMarker } from '$/sources/XrplClio/JsonRpc/types.ts'
 
-const ledgerSpecifier = type('number | "validated" | { ledgerHash: string }')
+const ledgerSpecifier = type('number | "validated"').or({
+	ledgerHash: 'string',
+})
 
 export const getServerInfo = query(() => getServerInfoFromClio())
 export const getValidatedLedger = query(() => getValidatedLedgerFromClio())
@@ -21,7 +23,7 @@ export const getRecentLedgers = query(type('number'), (limit) => getRecentLedger
 export const getLedgerTransactions = query(ledgerSpecifier, (specifier) => getLedgerTransactionsFromClio(specifier))
 export const getTransaction = query(type('string'), (hash) => getTransactionFromClio(hash))
 
-const getLedgerDataRemote = query(
+export const getLedgerData = query(
 	type({
 		ledgerIndex: 'number | "validated"',
 		limit: 'number',
@@ -34,13 +36,3 @@ const getLedgerDataRemote = query(
 		marker as XrplClioMarker | undefined
 	)
 )
-
-export const getLedgerData = (
-	limit: number,
-	ledgerIndex: number | 'validated',
-	marker?: XrplClioMarker
-) => getLedgerDataRemote({
-	ledgerIndex,
-	limit,
-	marker,
-})

@@ -13,6 +13,17 @@ import bindings from '$/sources/WakuNode/bindings.ts'
 const connectionId = 'waku-node'
 const binding = bindings[Source.WakuNode][0]
 
+const loadWakuQueries = async () => {
+	if (typeof window !== 'undefined')
+		return import('$/sources/WakuNode/Rest/queries.remote.ts')
+
+	const queries = await import('$/sources/WakuNode/Rest/queries.ts')
+	return {
+		getDebugInfo: () => queries.getDebugInfo(binding),
+		getHealth: () => queries.getHealth(binding),
+	}
+}
+
 export default {
 	source: Source.WakuNode,
 
@@ -25,16 +36,11 @@ export default {
 						if (requestedConnectionId !== connectionId)
 							throw new Error(`WakuNode_Rest: unsupported connection ${requestedConnectionId}`)
 
-						const { getDebugInfo, getHealth } = await (
-							typeof window === 'undefined' ?
-								import('$/sources/WakuNode/Rest/queries.ts')
-							:
-								import('$/sources/WakuNode/Rest/queries.remote.ts')
-						)
+						const { getDebugInfo, getHealth } = await loadWakuQueries()
 						const timestampMs = Date.now()
 						const [debugInfo, health] = await Promise.all([
-							getDebugInfo(binding),
-							getHealth(binding),
+							getDebugInfo(),
+							getHealth(),
 						])
 						if (debugInfo.enrUri == null)
 							throw new Error('WakuNode_Rest: debug info does not expose an ENR node identity')

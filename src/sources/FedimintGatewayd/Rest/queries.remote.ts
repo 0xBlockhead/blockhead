@@ -2,7 +2,6 @@ import { query } from '$app/server'
 import { env } from '$env/dynamic/private'
 import { type } from 'arktype'
 
-import type { SourcePublicEnv } from '$/sources/$sources.ts'
 import {
 	getGatewayBalances as getGatewayBalancesFromGateway,
 	getGatewayId as getGatewayIdFromGateway,
@@ -17,15 +16,10 @@ const privateEnv = {
 	FEDIMINT_GATEWAYD_URL: env.FEDIMINT_GATEWAYD_URL ?? '',
 }
 
-const gatewayIdRemote = query(() => getGatewayIdFromGateway({ publicEnv: privateEnv }))
-const gatewayInfoRemote = query(() => getGatewayInfoFromGateway({ publicEnv: privateEnv }))
-const gatewayBalancesRemote = query(() => getGatewayBalancesFromGateway({ publicEnv: privateEnv }))
-const channelsRemote = query(() => listChannelsFromGateway({ publicEnv: privateEnv }))
-
-export const getGatewayId = (_input: { publicEnv: SourcePublicEnv }) => gatewayIdRemote()
-export const getGatewayInfo = (_input: { publicEnv: SourcePublicEnv }) => gatewayInfoRemote()
-export const getGatewayBalances = (_input: { publicEnv: SourcePublicEnv }) => gatewayBalancesRemote()
-export const listChannels = (_input: { publicEnv: SourcePublicEnv }) => channelsRemote()
+export const getGatewayId = query(() => getGatewayIdFromGateway({ publicEnv: privateEnv }))
+export const getGatewayInfo = query(() => getGatewayInfoFromGateway({ publicEnv: privateEnv }))
+export const getGatewayBalances = query(() => getGatewayBalancesFromGateway({ publicEnv: privateEnv }))
+export const listChannels = query(() => listChannelsFromGateway({ publicEnv: privateEnv }))
 
 const paymentSummaryRemote = query(
 	type({
@@ -39,16 +33,6 @@ const paymentSummaryRemote = query(
 	})
 )
 
-export const getPaymentSummary = ({
-	endMs,
-	startMs,
-}: {
-	publicEnv: SourcePublicEnv
-	endMs: number
-	startMs: number
-}) => paymentSummaryRemote({
-	endMs,
-	startMs,
-})
+export const getPaymentSummary = paymentSummaryRemote
 
 export const getResolvedGatewayApiUrl = query(() => resolvedGatewayApiUrl(privateEnv))

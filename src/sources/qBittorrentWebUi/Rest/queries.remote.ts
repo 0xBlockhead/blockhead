@@ -2,7 +2,6 @@ import { query } from '$app/server'
 import { type } from 'arktype'
 
 import { Source } from '$/sources/Source.ts'
-import type { SourceBinding } from '$/sources/SourceBinding.ts'
 import bindings from '$/sources/qBittorrentWebUi/bindings.ts'
 import {
 	getApplicationVersion as getApplicationVersionFromClient,
@@ -18,40 +17,31 @@ import {
 
 const binding = bindings[Source.qBittorrentWebUi_Rest][0]
 
-const applicationVersionRemote = query(() => getApplicationVersionFromClient(binding))
-const torrentsInfoRemote = query(() => getTorrentsInfoFromClient(binding))
-const transferInfoRemote = query(() => getTransferInfoFromClient(binding))
+export const getApplicationVersion = query(() => getApplicationVersionFromClient(binding))
+export const getTorrentsInfo = query(() => getTorrentsInfoFromClient(binding))
+export const getTransferInfo = query(() => getTransferInfoFromClient(binding))
 
 const torrentIdentity = type({
 	infoHash: '/^[0-9a-fA-F]{40}$|^[0-9a-fA-F]{64}$/',
 })
 
-const torrentFilesRemote = query(
+export const getTorrentFiles = query(
 	torrentIdentity,
 	({ infoHash }) => getTorrentFilesFromClient(binding, infoHash)
 )
-const torrentPieceStatesRemote = query(
+export const getTorrentPieceStates = query(
 	torrentIdentity,
 	({ infoHash }) => getTorrentPieceStatesFromClient(binding, infoHash)
 )
-const torrentPropertiesRemote = query(
+export const getTorrentProperties = query(
 	torrentIdentity,
 	({ infoHash }) => getTorrentPropertiesFromClient(binding, infoHash)
 )
-const torrentTrackersRemote = query(
+export const getTorrentTrackers = query(
 	torrentIdentity,
 	({ infoHash }) => getTorrentTrackersFromClient(binding, infoHash)
 )
-const torrentPeersRemote = query(
+export const getTorrentPeers = query(
 	torrentIdentity,
 	({ infoHash }) => getTorrentPeersFromClient(binding, infoHash)
 )
-
-export const getApplicationVersion = (_binding: SourceBinding) => applicationVersionRemote()
-export const getTorrentsInfo = (_binding: SourceBinding) => torrentsInfoRemote()
-export const getTransferInfo = (_binding: SourceBinding) => transferInfoRemote()
-export const getTorrentFiles = (_binding: SourceBinding, infoHash: string) => torrentFilesRemote({ infoHash })
-export const getTorrentPieceStates = (_binding: SourceBinding, infoHash: string) => torrentPieceStatesRemote({ infoHash })
-export const getTorrentProperties = (_binding: SourceBinding, infoHash: string) => torrentPropertiesRemote({ infoHash })
-export const getTorrentTrackers = (_binding: SourceBinding, infoHash: string) => torrentTrackersRemote({ infoHash })
-export const getTorrentPeers = (_binding: SourceBinding, infoHash: string) => torrentPeersRemote({ infoHash })

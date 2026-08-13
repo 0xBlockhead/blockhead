@@ -24,21 +24,43 @@ import type {
 } from '$/sources/FedimintGatewayd/Rest/types.ts'
 import { resolvedGatewayApiUrl } from '$/sources/FedimintGatewayd/Rest/queries.ts'
 
-const loadGatewayQueries = () => (
-	typeof window === 'undefined' ?
-		import('$/sources/FedimintGatewayd/Rest/queries.ts')
-	:
-		import('$/sources/FedimintGatewayd/Rest/queries.remote.ts')
-)
+const loadGatewayQueries = async (publicEnv: SourcePublicEnv) => {
+	if (typeof window !== 'undefined')
+		return import('$/sources/FedimintGatewayd/Rest/queries.remote.ts')
+
+	const {
+		getGatewayBalances,
+		getGatewayId,
+		getGatewayInfo,
+		getPaymentSummary,
+		listChannels,
+	} = await import('$/sources/FedimintGatewayd/Rest/queries.ts')
+
+	return {
+		getGatewayBalances: () => getGatewayBalances({ publicEnv }),
+		getGatewayId: () => getGatewayId({ publicEnv }),
+		getGatewayInfo: () => getGatewayInfo({ publicEnv }),
+		getPaymentSummary: ({
+			endMs,
+			startMs,
+		}: {
+			endMs: number
+			startMs: number
+		}) => getPaymentSummary({
+			endMs,
+			publicEnv,
+			startMs,
+		}),
+		listChannels: () => listChannels({ publicEnv }),
+	}
+}
 
 const assertLocalGateway = async (
 	gatewayId: string,
 	publicEnv: SourcePublicEnv
 ) => {
-	const { getGatewayId } = await loadGatewayQueries()
-	const remoteGatewayId = await getGatewayId({
-		publicEnv,
-	})
+	const { getGatewayId } = await loadGatewayQueries(publicEnv)
+	const remoteGatewayId = await getGatewayId()
 	if (gatewayId !== remoteGatewayId)
 		throw new Error(`FedimintGatewayd_Rest: gateway id mismatch (requested ${gatewayId}, remote ${remoteGatewayId})`)
 
@@ -102,10 +124,8 @@ export default {
 				GatewayId: {
 					resolve: async ({ gatewayId }, context) => {
 						await assertLocalGateway(gatewayId, context.publicEnv)
-						const { getGatewayInfo } = await loadGatewayQueries()
-						const info = await getGatewayInfo({
-							publicEnv: context.publicEnv,
-						})
+						const { getGatewayInfo } = await loadGatewayQueries(context.publicEnv)
+						const info = await getGatewayInfo()
 						const timestampMs = Date.now()
 						const nodePubkey = nodePubkeyFromInfo(info)
 
@@ -191,19 +211,12 @@ export default {
 							getGatewayInfo,
 							getPaymentSummary,
 							listChannels,
-						} = await loadGatewayQueries()
+						} = await loadGatewayQueries(context.publicEnv)
 						const [info, balances, channels, paymentSummary] = await Promise.all([
-							getGatewayInfo({
-								publicEnv: context.publicEnv,
-							}),
-							getGatewayBalances({
-								publicEnv: context.publicEnv,
-							}),
-							listChannels({
-								publicEnv: context.publicEnv,
-							}),
+							getGatewayInfo(),
+							getGatewayBalances(),
+							listChannels(),
 							getPaymentSummary({
-								publicEnv: context.publicEnv,
 								startMs: timestampMs - 30 * 24 * 60 * 60 * 1000,
 								endMs: timestampMs,
 							}),

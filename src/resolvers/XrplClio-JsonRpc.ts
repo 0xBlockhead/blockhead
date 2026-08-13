@@ -13,7 +13,6 @@ import { Source } from '$/sources/Source.ts'
 import { countCompleteLedgers } from '$/sources/XrplClio/JsonRpc/queries.ts'
 import {
 	XRPL_RIPPLE_EPOCH_OFFSET_SECONDS,
-	type XrplClioLedgerDataResult,
 	type XrplClioLedgerResult,
 	type XrplClioLedgerWithTransactionsResult,
 	type XrplClioMarker,
@@ -24,12 +23,25 @@ import {
 	isJsonString,
 } from '$/typescript/JsonValue.ts'
 
-const loadXrplQueries = () => (
-	typeof window === 'undefined' ?
-		import('$/sources/XrplClio/JsonRpc/queries.ts')
-	:
-		import('$/sources/XrplClio/JsonRpc/queries.remote.ts')
-)
+const loadXrplQueries = async () => {
+	if (typeof window !== 'undefined') {
+		const queries = await import('$/sources/XrplClio/JsonRpc/queries.remote.ts')
+		return {
+			...queries,
+			getLedgerData: (
+				limit: number,
+				ledgerIndex: number | 'validated',
+				marker?: XrplClioMarker
+			) => queries.getLedgerData({
+				ledgerIndex,
+				limit,
+				marker,
+			}),
+		}
+	}
+
+	return import('$/sources/XrplClio/JsonRpc/queries.ts')
+}
 
 const assertXrplMainnet = (network: {
 	caip2?: {
@@ -390,7 +402,7 @@ const validatedLedgerDataPage = async (
 		limit,
 		Number(ledgerIndex),
 		marker
-	) as XrplClioLedgerDataResult
+	)
 	if (ledgerData.ledger_index !== Number(ledgerIndex))
 		throw new Error('XrplClio_JsonRpc: ledger data index does not match')
 
