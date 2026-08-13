@@ -19,6 +19,9 @@ const { default: mempoolSpaceResolvers } = await import('$/resolvers/MempoolSpac
 const networkResolvers = mempoolSpaceResolvers.resolvers.filter((resolver) => (
 	resolver.entityType === EntityType.Network
 ))
+const networkTimestampsResolver = networkResolvers.find((resolver) => (
+	'$$timestamps' in resolver.projections
+))
 const blocksResolver = networkResolvers.find((resolver) => (
 	'Utxo' in resolver.projections
 	&& '$$blocks' in resolver.projections.Utxo
@@ -58,6 +61,9 @@ const outputResolver = mempoolSpaceResolvers.resolvers.find((resolver) => (
 
 if (blocksResolver == null)
 	throw new Error('MempoolSpace-Rest spec missing Network.Utxo.$$blocks resolver')
+
+if (networkTimestampsResolver == null)
+	throw new Error('MempoolSpace-Rest spec missing Network.$$timestamps resolver')
 
 if (mempoolTransactionsResolver == null)
 	throw new Error('MempoolSpace-Rest spec missing Network.Utxo.$$transactions resolver')
@@ -495,6 +501,113 @@ describe('MempoolSpace UTXO', () => {
 		expect(networkTimestampResolver.projections.Utxo.bestBlockTimeMs(networkTip)).toBe(1_700_000_000_000)
 		expect(networkTimestampResolver.projections.Utxo.hashrateHashesPerSecond(networkTip)).toBe(886_019_350_377_919_800_000)
 		expect(networkTimestampResolver.projections.Utxo.suggestedTransactionFeePerByteSats(networkTip)).toBe(6)
+	})
+
+	it('materializes bounded provider-clocked hashrate history and resolves exact observations', async () => {
+		const networkTimestampResolver = mempoolSpaceResolvers.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.Network_Timestamp
+		))
+		if (networkTimestampResolver == null)
+			throw new Error('MempoolSpace-Rest missing Network_Timestamp resolver')
+
+		sourceGetJson
+			.mockResolvedValueOnce([{
+				id: 'a'.repeat(64),
+				height: 840_000,
+				timestamp: 1_700_000_000,
+				tx_count: 1,
+			}])
+			.mockResolvedValueOnce({
+				count: 9,
+				vsize: 1800,
+				total_fee: 1,
+			})
+			.mockResolvedValueOnce({
+				hashrates: [
+					{
+						timestamp: 100,
+						avgHashrate: 1000,
+					},
+					{
+						timestamp: 300,
+						avgHashrate: 3000,
+					},
+					{
+						timestamp: 200,
+						avgHashrate: 2000,
+					},
+				],
+				difficulty: [],
+				currentHashrate: 4000,
+				currentDifficulty: 1,
+			})
+			.mockResolvedValueOnce({
+				fastestFee: 20,
+				halfHourFee: 10,
+				hourFee: 6,
+				economyFee: 2,
+				minimumFee: 1,
+			})
+
+		const rows = await networkTimestampsResolver.resolve.Caip2.resolve(network, {
+			...resolverContext,
+			pagination: {
+				limit: 3,
+			},
+		})
+		const projection = networkTimestampsResolver.projections.$$timestamps
+		if (typeof projection !== 'function')
+			throw new Error('MempoolSpace-Rest Network.$$timestamps projection is not direct')
+		expect(projection(rows).slice(1)).toEqual([
+			expect.objectContaining({
+				[EntityMetaKey.Selector]: expect.objectContaining({ timestampMs: 300_000 }),
+				[EntityMetaKey.Fields]: expect.objectContaining({
+					[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'hashrateHashesPerSecond')]: 3000,
+				}),
+			}),
+			expect.objectContaining({
+				[EntityMetaKey.Selector]: expect.objectContaining({ timestampMs: 200_000 }),
+				[EntityMetaKey.Fields]: expect.objectContaining({
+					[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'hashrateHashesPerSecond')]: 2000,
+				}),
+			}),
+		])
+
+		sourceGetJson
+			.mockResolvedValueOnce([{
+				id: 'a'.repeat(64),
+				height: 840_000,
+				timestamp: 1_700_000_000,
+				tx_count: 1,
+			}])
+			.mockResolvedValueOnce({
+				count: 9,
+				vsize: 1800,
+				total_fee: 1,
+			})
+			.mockResolvedValueOnce({
+				hashrates: [{
+					timestamp: 300,
+					avgHashrate: 3000,
+				}],
+				difficulty: [],
+				currentHashrate: 4000,
+				currentDifficulty: 1,
+			})
+			.mockResolvedValueOnce({
+				fastestFee: 20,
+				halfHourFee: 10,
+				hourFee: 6,
+				economyFee: 2,
+				minimumFee: 1,
+			})
+		const historical = await networkTimestampResolver.resolve.NetworkTimestampMsSource.resolve({
+			$network: network,
+			timestampMs: 300_000,
+			source: Source.MempoolSpace_Rest,
+		}, resolverContext)
+		expect(networkTimestampResolver.projections.Utxo.hashrateHashesPerSecond(historical)).toBe(3000)
+		expect(sourceGetJson).toHaveBeenCalledTimes(8)
 	})
 
 	it('limits every selector to canonical Bitcoin subjects', () => {

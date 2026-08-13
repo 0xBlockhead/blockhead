@@ -794,6 +794,22 @@ export default {
 							getMiningHashrate(),
 							getRecommendedFees(),
 						])
+						const historicalHashrate = miningHashrate.hashrates.find((hashrate) => hashrate.timestamp * 1_000 === timestampMs)
+						if (historicalHashrate != null)
+							return {
+								$network: {
+									[EntityMetaKey.Selector]: $network,
+								},
+								timestampMs,
+								source,
+								ledgerModels: [NetworkLedgerModel.Utxo],
+								executionModels: [] satisfies NetworkExecutionModel[],
+								hashrateHashesPerSecond: historicalHashrate.avgHashrate,
+							}
+
+						if (miningHashrate.hashrates.some((hashrate) => hashrate.timestamp * 1_000 >= timestampMs))
+							throw new Error(`MempoolSpace_Rest: no mining hashrate observation at ${String(timestampMs)}`)
+
 						const block = blocks.at(0)
 						if (block == null) throw new Error('MempoolSpace_Rest: no blocks returned')
 						return {
@@ -847,7 +863,7 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.Network,
-			resolve: bitcoinNetworkSelectors(async (network) => {
+			resolve: bitcoinNetworkSelectors(async (network, context) => {
 				assertBitcoinMainnet(network)
 				const {
 					getBlocks,
@@ -863,14 +879,17 @@ export default {
 				])
 				const block = blocks.at(0)
 				if (block == null) throw new Error('MempoolSpace_Rest: no blocks returned')
+				const timestampMs = Date.now()
 				return [
 					{
 						[EntityMetaKey.Selector]: {
 							$network: network,
-							timestampMs: Date.now(),
+							timestampMs,
 							source: Source.MempoolSpace_Rest,
 						},
 						[EntityMetaKey.Fields]: {
+							[entityFieldAddressKey(EntityType.Network_Timestamp, [], 'ledgerModels')]: [NetworkLedgerModel.Utxo],
+							[entityFieldAddressKey(EntityType.Network_Timestamp, [], 'executionModels')]: [],
 							[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'bestBlockHeight')]: BigInt(block.height),
 							[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'bestBlockHash')]: block.id,
 							[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'bestBlockTimeMs')]: block.timestamp * 1000,
@@ -880,6 +899,22 @@ export default {
 							[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'suggestedTransactionFeePerByteSats')]: fees.hourFee,
 						},
 					},
+					...[...miningHashrate.hashrates]
+						.sort((left, right) => right.timestamp - left.timestamp)
+						.filter(({ timestamp }) => timestamp * 1_000 !== timestampMs)
+						.slice(0, Math.max(0, resolverContextRowLimit(context) - 1))
+						.map(({ timestamp, avgHashrate }) => ({
+							[EntityMetaKey.Selector]: {
+								$network: network,
+								timestampMs: timestamp * 1_000,
+								source: Source.MempoolSpace_Rest,
+							},
+							[EntityMetaKey.Fields]: {
+								[entityFieldAddressKey(EntityType.Network_Timestamp, [], 'ledgerModels')]: [NetworkLedgerModel.Utxo],
+								[entityFieldAddressKey(EntityType.Network_Timestamp, [], 'executionModels')]: [],
+								[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'hashrateHashesPerSecond')]: avgHashrate,
+							},
+						})),
 				]
 			}),
 		})({

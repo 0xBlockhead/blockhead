@@ -234,11 +234,15 @@ export const getRecommendedFees = async () => (
 	)
 )
 
-export const getMiningHashrate = async () => (
-	assertEsploraEnvelope(
+export const getMiningHashrate = async () => {
+	const miningHashrate = assertEsploraEnvelope(
 		mempoolSpaceMiningHashrateWire,
 		await getMempoolSpaceJson('v1/mining/hashrate/3d'),
 		'mining hashrate',
 		sourceLabel
 	)
-)
+	if (new Set(miningHashrate.hashrates.map(({ timestamp }) => timestamp)).size !== miningHashrate.hashrates.length)
+		throw new Error(`${sourceLabel}: mining hashrate contains duplicate observation timestamps`)
+
+	return miningHashrate
+}

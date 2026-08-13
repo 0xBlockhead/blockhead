@@ -107,6 +107,26 @@ describe('mempool.space Bitcoin REST binding', () => {
 		await expect(getMiningHashrate()).rejects.toThrow('invalid mining hashrate envelope')
 	})
 
+	it('rejects duplicate mining hashrate observation clocks', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			hashrates: [
+				{
+					timestamp: 1_786_320_000,
+					avgHashrate: 897_045_400_620_083_300_000,
+				},
+				{
+					timestamp: 1_786_320_000,
+					avgHashrate: 898_045_400_620_083_300_000,
+				},
+			],
+			difficulty: [],
+			currentHashrate: 886_019_350_377_919_800_000,
+			currentDifficulty: 127_479_855_693_691.4,
+		})
+
+		await expect(getMiningHashrate()).rejects.toThrow('duplicate observation timestamps')
+	})
+
 	it('resolves block hash by height and address UTXOs on hard-fail paths', async () => {
 		sourceGetJson
 			.mockResolvedValueOnce('a'.repeat(64))

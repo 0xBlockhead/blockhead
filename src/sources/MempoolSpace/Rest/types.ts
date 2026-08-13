@@ -2,7 +2,7 @@ import { type as arktype } from 'arktype'
 
 export const mempoolSpaceMiningHashrateWire = arktype({
 	hashrates: arktype({
-		timestamp: 'number.integer >= 0',
+		timestamp: 'number.integer >= 0 <= 9007199254740',
 		avgHashrate: 'number >= 0',
 	}).array(),
 	difficulty: 'unknown[]',
