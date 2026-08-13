@@ -45,7 +45,9 @@ test('MEV received-bid list connects relay intake to builder and execution block
 	const relayRequests: string[] = []
 	for (const binding of bindings[Source.MevRelay_Rest])
 		await page.route(
-			new RegExp(`/api-proxy/${encodeURIComponent(sourceBindingId(binding))}/0/`),
+			(url) => decodeURIComponent(url.pathname).startsWith(
+				`/api-proxy/${sourceBindingId(binding)}/0/`
+			),
 			async (route) => {
 				const providerUrl = new URL(decodeURIComponent(
 					new URL(route.request().url()).pathname.split('/').at(-1) ?? ''
@@ -67,6 +69,8 @@ test('MEV received-bid list connects relay intake to builder and execution block
 	const main = page.locator('#main')
 	await expect(main).toContainText('Slot 14917871', { timeout: 120_000 })
 	await expect(main).toContainText('5316647666874603 wei')
+	await main.getByRole('link', { name: /Slot 14917871/ }).first().click()
+	await expect(page).toHaveURL(/\/mev\/payload\/received-bid\//)
 	await expect(main).toContainText('Received at')
 	await expect(main.locator('[data-error], [role="alert"]')).toHaveCount(0)
 	await expect.poll(() => relayRequests.filter((request) => request.includes('builder_blocks_received')).length).toBe(2)
