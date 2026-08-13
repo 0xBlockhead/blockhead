@@ -680,6 +680,7 @@ describe('Cosmos SDK governance proposal resolver', () => {
 					}],
 				}],
 				pagination: {
+					next_key: 'next+/=',
 					total: '1',
 				},
 			})
@@ -739,6 +740,19 @@ describe('Cosmos SDK governance proposal resolver', () => {
 			},
 			context
 		)).toBe(1)
+		expect(governanceProposalsListResolver.projections.Cosmos.$$governanceProposals.continuation(
+			proposalSnapshot,
+			{
+				slug: 'cosmos',
+			},
+			context
+		)).toEqual({
+			operation: 'cosmos-governance-proposals',
+			target: 'cosmos-sdk',
+			terminal: false,
+			token: 'next+/=',
+		})
+
 		await expect(governanceProposalResolver.resolve.NetworkProposalId.resolve({
 			$network: {
 				slug: 'cosmos',
@@ -763,6 +777,32 @@ describe('Cosmos SDK governance proposal resolver', () => {
 			},
 			proposalId: '4',
 		}, context)).rejects.toThrow('governance proposal response does not match the subject')
+
+		getJson.mockResolvedValueOnce({
+			proposals: [{
+				id: '2',
+			}],
+			pagination: {
+				total: '2',
+			},
+		})
+		const terminalProposalSnapshot = await governanceProposalsListResolver.resolve.Slug.resolve({
+			slug: 'cosmos',
+		}, {
+			...context,
+			providerContinuationToken: 'next+/=',
+		})
+		expect(governanceProposalsListResolver.projections.Cosmos.$$governanceProposals.continuation(
+			terminalProposalSnapshot,
+			{
+				slug: 'cosmos',
+			},
+			context
+		)).toEqual({
+			operation: 'cosmos-governance-proposals',
+			target: 'cosmos-sdk',
+			terminal: true,
+		})
 	})
 
 	it('rejects duplicate governance proposal identities from a provider page', async () => {
@@ -783,6 +823,25 @@ describe('Cosmos SDK governance proposal resolver', () => {
 		await expect(governanceProposalsListResolver.resolve.Slug.resolve({
 			slug: 'cosmos',
 		}, context)).rejects.toThrow('CosmosSdk_Rest: governance proposal list contains duplicate identities')
+	})
+
+	it('rejects a non-advancing governance proposal continuation', async () => {
+		getJson.mockResolvedValueOnce({
+			proposals: [{
+				id: '17',
+			}],
+			pagination: {
+				next_key: 'opaque-page',
+				total: '2',
+			},
+		})
+
+		await expect(governanceProposalsListResolver.resolve.Slug.resolve({
+			slug: 'cosmos',
+		}, {
+			...context,
+			providerContinuationToken: 'opaque-page',
+		})).rejects.toThrow('governance proposal continuation did not advance')
 	})
 
 	it('embeds the current status without exposing an arbitrary timestamp refetch', async () => {

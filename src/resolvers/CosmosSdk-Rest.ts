@@ -592,16 +592,20 @@ const getCosmosValidatorSnapshot = async (
 
 const getCosmosProposalSnapshot = async (
 	network: NetworkId,
-	limit: number
+	limit: number,
+	paginationKey?: string
 ) => {
 	assertCosmosHub(network)
 	const { getProposals } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 	const response = await getProposals({
 		limit,
+		paginationKey,
 	})
 	const proposalIds = response.proposals.map((proposal) => proposal.id)
 	if (new Set(proposalIds).size !== proposalIds.length)
 		throw new Error('CosmosSdk_Rest: governance proposal list contains duplicate identities')
+	if (response.pagination?.next_key === paginationKey)
+		throw new Error('CosmosSdk_Rest: governance proposal continuation did not advance')
 
 	return {
 		rows: proposalIds.map((proposalId) => ({
@@ -610,6 +614,7 @@ const getCosmosProposalSnapshot = async (
 				proposalId,
 			},
 		})),
+		nextPaginationKey: response.pagination?.next_key,
 		totalCount: cosmosPaginationCount(response.pagination?.total, 'governance proposal'),
 	}
 }
@@ -1172,7 +1177,8 @@ export default {
 				async (network, context) => (
 					getCosmosProposalSnapshot(
 						network,
-						resolverContextRowLimit(context)
+						resolverContextRowLimit(context),
+						context.providerContinuationToken
 					)
 				)
 			),
@@ -1181,6 +1187,21 @@ export default {
 					$$governanceProposals: {
 						select: (snapshot) => snapshot.rows,
 						resolveCount: (snapshot) => snapshot.totalCount,
+						continuation: (snapshot) => (
+							snapshot.nextPaginationKey == null ?
+								{
+									operation: 'cosmos-governance-proposals',
+									target: 'cosmos-sdk',
+									terminal: true,
+								}
+							:
+								{
+									operation: 'cosmos-governance-proposals',
+									target: 'cosmos-sdk',
+									terminal: false,
+									token: snapshot.nextPaginationKey,
+								}
+						),
 					},
 				},
 			}),
