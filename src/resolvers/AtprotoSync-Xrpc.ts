@@ -7,14 +7,13 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import {
+	defaultAtprotoSyncRelayOrigin,
 	getBlocks,
 	getLatestCommit,
 	getRepoStatus,
 } from '$/sources/AtprotoSync/Xrpc/queries.ts'
 import { Source } from '$/sources/Source.ts'
 import { projectAtprotoRepoCommitBlock } from '$/sources/AtprotoSync/Xrpc/commit.ts'
-
-const defaultAtprotoSyncRelayOrigin = 'https://bsky.network'
 
 const getAtprotoLatestCommit = async (did: string) => (
 	typeof window === 'undefined' ?

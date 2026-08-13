@@ -22,6 +22,9 @@ import { atprotoCidString } from '$/sources/AtprotoSync/Xrpc/cid.ts'
 import type { AtprotoSyncSubscribeReposMessage } from '$/sources/AtprotoSync/Xrpc/types.ts'
 
 
+export const defaultAtprotoSyncRelayOrigin = 'https://bsky.network'
+
+
 const remoteQueryBinding = bindings[Source.AtprotoSync_Xrpc].find((binding) => (
 	binding.delivery === SourceDelivery.RemoteQuery
 ))
