@@ -34,7 +34,7 @@ test.beforeEach(async ({ page }, testInfo) => {
 })
 
 
-test('transaction hierarchy renders receipt logs and nested traces from one Voltaire read', async ({ page }) => {
+test('transaction hierarchy renders indexed state changes, receipt logs and nested traces', async ({ page }) => {
 	const voltaireMethods: string[] = []
 	await page.route('**/api-proxy/**', async (route) => {
 		const providerUrl = new URL(decodeURIComponent(
@@ -51,6 +51,19 @@ test('transaction hierarchy renders receipt logs and nested traces from one Volt
 						raw_input: '0x1234',
 						to: { hash: to },
 						value: '1',
+					}
+				: providerUrl.pathname.endsWith('/state-changes') ?
+					{
+						items: [{
+							address: { hash: from },
+							balance_after: '7',
+							balance_before: '5',
+							change: '2',
+							is_miner: false,
+							token: null,
+							type: 'coin',
+						}],
+						next_page_params: null,
 					}
 				: providerUrl.pathname.endsWith('/raw-trace') ?
 					[]
@@ -148,6 +161,10 @@ test('transaction hierarchy renders receipt logs and nested traces from one Volt
 	await page.goto(transactionPath, { waitUntil: 'load' })
 	await expectMainVisible(page)
 	const main = page.locator('#main')
+	await expect(main.getByRole('link', { name: 'State changes' })).toBeVisible({ timeout: 120_000 })
+	await main.getByRole('link', { name: 'State changes' }).click()
+	await expect(main).toContainText('State changes (1)', { timeout: 120_000 })
+	await expect(main).toContainText('Coin', { timeout: 120_000 })
 	await expect(main.getByRole('link', { name: 'Logs' })).toBeVisible({ timeout: 120_000 })
 	await main.getByRole('link', { name: 'Logs' }).click()
 	await expect(main).toContainText('Log #0')

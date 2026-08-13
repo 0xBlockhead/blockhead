@@ -6,8 +6,10 @@ import {
 } from '../../../../../../../../tests/_e2eBrowserHelpers.ts'
 
 
-const networkPath = '/network/eip155:1/withdrawals'
+const withdrawalPath = '/network/eip155:1/withdrawals'
 const beaconRestOrigin = 'https://ethereum-beacon-api.publicnode.com'
+
+test.setTimeout(180_000)
 
 test.beforeEach(async ({ page }, testInfo) => {
 	await page.addInitScript(({ name, schemaVersion }) => {
@@ -22,7 +24,7 @@ test.beforeEach(async ({ page }, testInfo) => {
 	await installChainlistRpcsJsonStub(page)
 })
 
-test('Beacon withdrawal list renders the source-owned head-duty card without a child fetch', async ({ page }) => {
+test('Beacon operation lists render source-owned head-duty cards without child fetches', async ({ page }) => {
 	const beaconRequests: string[] = []
 	await page.route(`${beaconRestOrigin}/**`, async (route) => {
 		const url = new URL(route.request().url())
@@ -54,14 +56,15 @@ test('Beacon withdrawal list renders the source-owned head-duty card without a c
 					data: {
 						message: {
 							body: {
+								deposits: [],
 								attestations: [{
 									aggregation_bits: '0x03',
 									data: {
 										index: '4',
 									},
 								}],
-								proposer_slashings: [],
-								attester_slashings: [],
+								proposer_slashings: [{}],
+								attester_slashings: [{}],
 								execution_payload: {
 									withdrawals: [{
 										index: '7',
@@ -81,12 +84,22 @@ test('Beacon withdrawal list renders the source-owned head-duty card without a c
 		throw new Error(`Unexpected Beacon REST request ${url.pathname}`)
 	})
 
-	await page.goto(networkPath, { waitUntil: 'load' })
+	await page.goto(withdrawalPath, { waitUntil: 'load' })
 	await expectMainVisible(page)
-	const main = page.locator('#main')
-	await expect(main).toContainText('Withdrawal #7', { timeout: 120_000 })
-	await expect(main.locator('[data-error], [role="alert"]')).toHaveCount(0)
+	await expect(page.locator('#main')).toContainText('Withdrawal #7', { timeout: 120_000 })
+
+	await page.goto('/network/eip155:1/attestations', { waitUntil: 'load' })
+	await expect(page.locator('#main')).toContainText('Attestation #0', { timeout: 120_000 })
+
+	await page.goto('/network/eip155:1/slashings', { waitUntil: 'load' })
+	await expect(page.locator('#main').getByText('Slashing #0', { exact: true })).toHaveCount(2, { timeout: 120_000 })
+
+	await expect(page.locator('#main [data-error], #main [role="alert"]')).toHaveCount(0)
 	await expect.poll(() => beaconRequests).toEqual([
+		'/eth/v1/beacon/headers/head',
+		'/eth/v2/beacon/blocks/123',
+		'/eth/v1/beacon/headers/head',
+		'/eth/v2/beacon/blocks/123',
 		'/eth/v1/beacon/headers/head',
 		'/eth/v2/beacon/blocks/123',
 	])
