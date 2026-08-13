@@ -63,14 +63,18 @@ test('uses the registered HttpProxy binding', async () => {
 })
 
 test('encodes an arbitrary feed URL as one reserved query value', async () => {
+	const requestedFeedUrl = (
+		'https://example.com/feed.xml?topic=a+b&redirect=https%3A%2F%2Fother.example%2Fx%3Fy%3D1%26z%3D2#latest'
+	)
 	sourceGetJson.mockResolvedValueOnce({
 		status: 'ok',
+		feed: {
+			url: requestedFeedUrl,
+		},
 		items: [],
 	})
 
-	await getFeed(
-		'https://example.com/feed.xml?topic=a+b&redirect=https%3A%2F%2Fother.example%2Fx%3Fy%3D1%26z%3D2#latest'
-	)
+	await getFeed(requestedFeedUrl)
 
 	const requestUrl = new URL(sourceGetJson.mock.calls[0][1])
 	expect(requestUrl.origin).toBe('https://api.rss2json.com')

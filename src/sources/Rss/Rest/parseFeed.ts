@@ -1,4 +1,7 @@
-import { rssTimestampMs } from '$/sources/_shared/interfaces/Rss/constants.ts'
+import {
+	rssPublicHttpUrl,
+	rssTimestampMs,
+} from '$/sources/_shared/interfaces/Rss/constants.ts'
 
 const decodeXmlEntities = (value: string) => (
 	value
@@ -10,22 +13,6 @@ const decodeXmlEntities = (value: string) => (
 		.replace(/&#39;/g, '\'')
 		.trim()
 )
-
-const publicHttpUrl = (value: string | undefined) => {
-	if (value == null)
-		return undefined
-
-	try {
-		const url = new URL(value)
-		return (
-			(url.protocol === 'http:' || url.protocol === 'https:')
-			&& url.username === ''
-			&& url.password === ''
-		) ? url.href : undefined
-	} catch {
-		return undefined
-	}
-}
 
 const firstTagText = (
 	block: string,
@@ -169,12 +156,12 @@ const parseItemBlock = (
 	:
 		undefined
 	const categories = categoriesFromBlock(block)
-	const enclosureUrl = publicHttpUrl(enclosureUrlFromBlock(block))
-	const commentsUrl = publicHttpUrl(commentsUrlFromBlock(block))
+	const enclosureUrl = rssPublicHttpUrl(enclosureUrlFromBlock(block))
+	const commentsUrl = rssPublicHttpUrl(commentsUrlFromBlock(block))
 	return {
 		...(guid != null && guid.trim() !== '' && { guid: guid.trim() }),
 		...(title != null && { title }),
-		...(publicHttpUrl(link) != null && { link: publicHttpUrl(link) }),
+		...(rssPublicHttpUrl(link) != null && { link: rssPublicHttpUrl(link) }),
 		...(firstTagText(block, ['description', 'summary']) != null && {
 			description: firstTagText(block, ['description', 'summary']),
 		}),
@@ -217,8 +204,8 @@ export const parseRssFeedXml = (xml: string) => {
 		...(firstTagText(channelBlock, ['description', 'subtitle']) != null && {
 			description: firstTagText(channelBlock, ['description', 'subtitle']),
 		}),
-		...(publicHttpUrl(websiteUrl) != null && {
-			siteUrl: publicHttpUrl(websiteUrl),
+		...(rssPublicHttpUrl(websiteUrl) != null && {
+			siteUrl: rssPublicHttpUrl(websiteUrl),
 		}),
 		...(firstTagText(channelBlock, ['language']) != null && {
 			language: firstTagText(channelBlock, ['language']),
@@ -226,7 +213,7 @@ export const parseRssFeedXml = (xml: string) => {
 		...(lastBuildDate != null && {
 			lastBuildDate,
 		}),
-		...(publicHttpUrl(imageUrl) != null && { imageUrl: publicHttpUrl(imageUrl) }),
+		...(rssPublicHttpUrl(imageUrl) != null && { imageUrl: rssPublicHttpUrl(imageUrl) }),
 		items: itemBlocksFromXml(xml)
 			.map((block) => (
 				parseItemBlock(block, {

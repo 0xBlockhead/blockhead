@@ -25,16 +25,21 @@ export const getFeed = async (feedUrl: string) => {
 	if (response.status !== 'ok') {
 		throw new Error(`Rss2Json_Rest: feed fetch failed for ${feedUrl}`)
 	}
+	if (response.feed == null)
+		throw new Error('Rss2Json_Rest: feed response is missing feed')
+
 	if (
-		response.feed == null
-		|| response.feed.url == null
+		response.feed.url == null
 		|| response.feed.url.trim() === ''
 		|| normalizeRssFeedUrl(response.feed.url) !== normalizedFeedUrl
 	)
 		throw new Error('Rss2Json_Rest: feed response does not match requested identity')
 
+	if (response.items == null)
+		throw new Error('Rss2Json_Rest: feed response is missing items')
+
 	const itemIdentities = new Set<string>()
-	for (const item of response.items ?? []) {
+	for (const item of response.items) {
 		const itemIdentity = rssItemIdentityFromParts(item.guid, item.link)
 		if (itemIdentity == null)
 			continue

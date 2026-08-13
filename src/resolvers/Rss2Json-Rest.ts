@@ -1,7 +1,10 @@
 import { optionalNonemptyString } from '$/lib/string.ts'
 import { rssResolvers } from '$/resolvers/Rss.ts'
 import { Source } from '$/sources/Source.ts'
-import { rssTimestampMs } from '$/sources/_shared/interfaces/Rss/constants.ts'
+import {
+	rssPublicHttpUrl,
+	rssTimestampMs,
+} from '$/sources/_shared/interfaces/Rss/constants.ts'
 
 export default rssResolvers({
 	loadFeed: async (feedUrl) => {
@@ -14,8 +17,8 @@ export default rssResolvers({
 
 		const feedTitle = optionalNonemptyString(feed.title)
 		const feedDescription = optionalNonemptyString(feed.description)
-		const feedSiteUrl = optionalNonemptyString(feed.link)
-		const feedImageUrl = optionalNonemptyString(feed.image)
+		const feedSiteUrl = rssPublicHttpUrl(feed.link)
+		const feedImageUrl = rssPublicHttpUrl(feed.image)
 		return {
 			...(feedTitle != null && {
 				title: feedTitle,
@@ -29,14 +32,14 @@ export default rssResolvers({
 			...(feedImageUrl != null && {
 				imageUrl: feedImageUrl,
 			}),
-			items: (response.items ?? []).map((feedItem) => {
+			items: response.items.map((feedItem) => {
 				const itemTitle = optionalNonemptyString(feedItem.title)
-				const itemLink = optionalNonemptyString(feedItem.link)
+				const itemLink = rssPublicHttpUrl(feedItem.link)
 				const itemDescription = optionalNonemptyString(feedItem.description)
 				const itemContent = optionalNonemptyString(feedItem.content)
 				const itemAuthor = optionalNonemptyString(feedItem.author)
 				const itemPublishedAt = rssTimestampMs(feedItem.pubDate)
-				const itemEnclosureUrl = optionalNonemptyString(feedItem.enclosure?.[0]?.url)
+				const itemEnclosureUrl = rssPublicHttpUrl(feedItem.enclosure?.[0]?.url)
 				return {
 					...(feedItem.guid != null && { guid: feedItem.guid }),
 					...(itemTitle != null && {

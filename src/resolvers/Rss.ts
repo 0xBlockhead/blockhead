@@ -238,23 +238,12 @@ export const rssResolvers = <_Source extends Source.Rss_Rest | Source.Rss2Json_R
 								throw new Error(`${source}: unsupported source ${selectorSource}`)
 
 							const feedUrl = normalizeRssFeedUrl($feed.feedUrl)
-							try {
-								return {
-									$feed: { [EntityMetaKey.Selector]: { feedUrl } },
-									timestampMs,
-									source: selectorSource,
-									reachable: true,
-									observedItemCount: (await loadFeed(feedUrl)).items.length,
-								}
-							} catch (error) {
-								return {
-									$feed: { [EntityMetaKey.Selector]: { feedUrl } },
-									timestampMs,
-									source: selectorSource,
-									reachable: false,
-									observedItemCount: 0,
-									error: error instanceof Error ? error.message : String(error),
-								}
+							return {
+								$feed: { [EntityMetaKey.Selector]: { feedUrl } },
+								timestampMs,
+								source: selectorSource,
+								reachable: true,
+								observedItemCount: (await loadFeed(feedUrl)).items.length,
 							}
 						},
 					},
@@ -265,7 +254,6 @@ export const rssResolvers = <_Source extends Source.Rss_Rest | Source.Rss2Json_R
 				source: (snapshot) => snapshot.source,
 				reachable: (snapshot) => snapshot.reachable,
 				observedItemCount: (snapshot) => snapshot.observedItemCount,
-				error: (snapshot) => snapshot.error,
 			}),
 
 			defineResolver({
@@ -281,30 +269,19 @@ export const rssResolvers = <_Source extends Source.Rss_Rest | Source.Rss2Json_R
 								throw new Error(`${source}: unsupported source ${selectorSource}`)
 
 							const feedUrl = normalizeRssFeedUrl($item.$feed.feedUrl)
-							try {
-								const feedItem = (await loadFeed(feedUrl)).items.find((candidate) => {
-									const identity = rssItemIdentityFromParts(candidate.guid, candidate.link)
-									return (
-										identity?.itemIdentityKind === $item.itemIdentityKind
-										&& identity.itemIdentity === $item.itemIdentity
-									)
-								})
-								return {
-									$item: { [EntityMetaKey.Selector]: $item },
-									timestampMs,
-									source: selectorSource,
-									observed: feedItem != null,
-									reachable: true,
-								}
-							} catch (error) {
-								return {
-									$item: { [EntityMetaKey.Selector]: $item },
-									timestampMs,
-									source: selectorSource,
-									observed: false,
-									reachable: false,
-									error: error instanceof Error ? error.message : String(error),
-								}
+							const feedItem = (await loadFeed(feedUrl)).items.find((candidate) => {
+								const identity = rssItemIdentityFromParts(candidate.guid, candidate.link)
+								return (
+									identity?.itemIdentityKind === $item.itemIdentityKind
+									&& identity.itemIdentity === $item.itemIdentity
+								)
+							})
+							return {
+								$item: { [EntityMetaKey.Selector]: $item },
+								timestampMs,
+								source: selectorSource,
+								observed: feedItem != null,
+								reachable: true,
 							}
 						},
 					}
@@ -315,7 +292,6 @@ export const rssResolvers = <_Source extends Source.Rss_Rest | Source.Rss2Json_R
 				source: (snapshot) => snapshot.source,
 				observed: (snapshot) => snapshot.observed,
 				reachable: (snapshot) => snapshot.reachable,
-				error: (snapshot) => snapshot.error,
 			}),
 		],
 	}

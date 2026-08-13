@@ -54,6 +54,28 @@ it('fails closed when the provider returns a different feed identity', async () 
 	)
 })
 
+it('fails closed when the success envelope is missing feed', async () => {
+	sourceGetJson.mockResolvedValueOnce({
+		status: 'ok',
+		items: [],
+	})
+
+	await expect(getFeed('https://example.com/feed.xml')).rejects.toThrow(
+		'Rss2Json_Rest: feed response is missing feed'
+	)
+})
+
+it('fails closed when the success envelope is missing items', async () => {
+	sourceGetJson.mockResolvedValueOnce({
+		status: 'ok',
+		feed: { url: 'https://example.com/feed.xml' },
+	})
+
+	await expect(getFeed('https://example.com/feed.xml')).rejects.toThrow(
+		'Rss2Json_Rest: feed response is missing items'
+	)
+})
+
 it('fails closed on duplicate feed item identities', async () => {
 	sourceGetJson.mockResolvedValueOnce({
 		status: 'ok',

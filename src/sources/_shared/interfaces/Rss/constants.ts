@@ -2,6 +2,22 @@ export const normalizeRssFeedUrl = (feedUrl: string) => (
 	new URL(feedUrl.trim()).href
 )
 
+export const rssPublicHttpUrl = (value: string | undefined) => {
+	if (value == null)
+		return undefined
+
+	try {
+		const url = new URL(value)
+		return (
+			(url.protocol === 'http:' || url.protocol === 'https:')
+			&& url.username === ''
+			&& url.password === ''
+		) ? url.href : undefined
+	} catch {
+		return undefined
+	}
+}
+
 export const rssItemIdentityFromParts = (
 	guid: string | undefined,
 	link: string | undefined
