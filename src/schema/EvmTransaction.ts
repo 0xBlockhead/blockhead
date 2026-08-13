@@ -5,6 +5,7 @@ import { entity, facet } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Hash32, lowercaseHexIdentityValue, ZeroExHex } from '$/schema/ZeroExHex.ts'
+import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export default entity({
@@ -103,6 +104,13 @@ export default entity({
 	$$internalTransfers: {
 		entityType: EntityType.EvmInternalTransfer,
 		cardinality: EntityFieldCardinality.Many,
+	},
+	$$stateChanges: {
+		entityType: EntityType.EvmStateChange,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Blockscout_Rest,
+		],
 	},
 	$$tokenTransfers: {
 		entityType: EntityType.EvmTokenTransfer,

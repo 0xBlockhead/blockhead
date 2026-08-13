@@ -57,6 +57,7 @@
 	import EvmContractView from '$/views/EvmContractView.svelte'
 	import EvmTokenTransfersView from '$/views/EvmTokenTransfersView.svelte'
 	import EvmInternalTransfersView from '$/views/EvmInternalTransfersView.svelte'
+	import EvmStateChangesView from '$/views/EvmStateChangesView.svelte'
 	import EvmLogsView from '$/views/EvmLogsView.svelte'
 	import EvmTracesView from '$/views/EvmTracesView.svelte'
 	import EvmUserOperationsView from '$/views/EvmUserOperationsView.svelte'
@@ -665,6 +666,10 @@
 			sections={
 				[
 					{
+						id: 'evm-tx-state-changes',
+						label: 'State changes',
+					},
+					{
 						id: 'evm-tx-logs',
 						label: 'Logs',
 					},
@@ -681,6 +686,16 @@
 				<header data-row-item="flexible" data-row="wrap gap-4">
 					<HeadingComponent>Execution</HeadingComponent>
 				</header>
+			{/snippet}
+
+			{#snippet SectionEvmTxStateChanges({ id, label })}
+				<EvmStateChangesView
+					selection={selection.$$stateChanges}
+					collapsible={false}
+					title={label}
+					emptyText='No indexed state changes.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
 			{#snippet SectionEvmTxLogs({ id, label })}

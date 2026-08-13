@@ -1212,6 +1212,7 @@ export enum EntityType {
 	EvmRollup_Timestamp = "EvmRollup_Timestamp",
 	EvmSelector = "EvmSelector",
 	EvmSelector_Timestamp = "EvmSelector_Timestamp",
+	EvmStateChange = "EvmStateChange",
 	EvmStorageRead_Timestamp = "EvmStorageRead_Timestamp",
 	EvmTokenTransfer = "EvmTokenTransfer",
 	EvmTopic = "EvmTopic",
@@ -2068,6 +2069,18 @@ export const schema = {
 					},
 				],
 				type: { enum: "EvmNftStandard" },
+			},
+			{
+				id: "EvmStateChangeKind",
+				enumConstantMap: {
+					from: "$/constants/Evm.ts",
+					name: "evmStateChangeKindByKind",
+				},
+				imports: [{
+					from: "$/constants/Evm.ts",
+					names: ["EvmStateChangeKind"],
+				}],
+				type: { enum: "EvmStateChangeKind" },
 			},
 			{
 				id: "evmStorageSlotRead",
@@ -30588,6 +30601,47 @@ export const schema = {
 			}),
 
 			entity({
+				entityType: EntityType.EvmStateChange,
+				labels: {
+					singular: "EVM state change",
+					plural: "EVM state changes",
+				},
+				description: "A transaction-anchored account balance effect reported by a source indexer.",
+			})({
+				"$transaction": { label: "Transaction", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EvmTransaction },
+				"stateChangeKey": { label: "State change key", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "opaqueRouteIdentifier" },
+				"$account": { label: "Account", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EvmAccount, defaultSources: [Source.Blockscout_Rest] },
+				"kind": { label: "Kind", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "EvmStateChangeKind", defaultSources: [Source.Blockscout_Rest] },
+				"$tokenContract": { label: "Token contract", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.EvmContract, defaultSources: [Source.Blockscout_Rest] },
+				"tokenId": { label: "Token ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Blockscout_Rest] },
+				"balanceBefore": { label: "Balance before", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Blockscout_Rest] },
+				"balanceAfter": { label: "Balance after", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Blockscout_Rest] },
+				"delta": { label: "Delta", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Blockscout_Rest] },
+				"isMiner": { label: "Miner", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "boolean", defaultSources: [Source.Blockscout_Rest] },
+			})({
+				selectors: {
+					"TransactionStateChangeKey": ["$transaction", "stateChangeKey"],
+				},
+				views: {
+					singular: {
+						summary: {
+							title: ["kind"],
+							value: [{ field: "stateChangeKey", format: "truncated" }],
+							HeadingAfter: [{ field: "isMiner", format: "boolean" }],
+						},
+						closed: ["$account", "kind", { field: "delta", format: "numberValue" }],
+						content: {
+							dl: [
+								["$transaction", "$account", "kind", "$tokenContract", { field: "tokenId", format: "numberValue" }],
+								[{ field: "balanceBefore", format: "numberValue" }, { field: "balanceAfter", format: "numberValue" }, { field: "delta", format: "numberValue" }, { field: "isMiner", format: "boolean" }],
+							],
+						},
+					},
+					plural: { component: "EvmStateChangesView", title: "State changes" },
+				},
+			}),
+
+			entity({
 				entityType: EntityType.EvmStorageRead_Timestamp,
 				labels: {
 					singular: "EVM storage read timestamp",
@@ -31311,6 +31365,13 @@ export const schema = {
 					cardinality: EntityFieldCardinality.Many,
 					entityType: EntityType.EvmInternalTransfer,
 				},
+				"$$stateChanges": {
+					label: "State changes",
+					type: EntityFieldType.EntitiesReference,
+					cardinality: EntityFieldCardinality.Many,
+					entityType: EntityType.EvmStateChange,
+					defaultSources: [Source.Blockscout_Rest],
+				},
 				"$$tokenTransfers": {
 					label: "Token transfers",
 					type: EntityFieldType.EntitiesReference,
@@ -31599,6 +31660,7 @@ export const schema = {
 								label: "Execution",
 								className: "network-view-collapsible-execution",
 								sections: [
+									{ id: "evm-tx-state-changes", field: "$$stateChanges", List: "EvmStateChangesView", label: "State changes", emptyText: "No indexed state changes." },
 									{ id: "evm-tx-logs", field: "$$logs", List: "EvmLogsView", label: "Logs", emptyText: "No logs." },
 									{ id: "evm-tx-traces", field: "$$traces", List: "EvmTracesView", label: "Traces", emptyText: "No traces." },
 								],
@@ -77905,6 +77967,23 @@ export const routes = defineRoutes(schema)({
 																						params: {
 																							"traceAddress": ["traceAddress"],
 																						},
+																						page: {},
+																					},
+																				},
+																			},
+																		},
+																	},
+																},
+																"state-change": {
+																	children: {
+																		"[stateChangeKey]": {
+																			params: { "stateChangeKey": ["opaqueRouteIdentifier"] },
+																			selectors: {
+																				[EntityType.EvmStateChange]: {
+																					"TransactionStateChangeKey": {
+																						when: { path: ["namespace"], is: "Evm" },
+																						projection: { entityType: EntityType.Network, facetPath: ["Evm"] },
+																						derivations: { "stateChangeKey": { kind: "param", name: "stateChangeKey" } },
 																						page: {},
 																					},
 																				},

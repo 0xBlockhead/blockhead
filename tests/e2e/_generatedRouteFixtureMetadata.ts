@@ -5997,6 +5997,23 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
+	'/(explore)/(networks)/network/[network]/(transactions)/tx/[transactionId]/state-change/[stateChangeKey]': {
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxIdOrStringSegment]/(selection)/state-change/[stateChangeKey=stringSegment]',
+		parameterEncodingByName: {
+			stateChangeKey: 'Opaque',
+		},
+		mappings: [
+			{
+				id: 'EvmStateChange.TransactionStateChangeKey',
+				projectionEntity: 'Network',
+				probeAtomPrefixes: ['/network/[network]/tx/[transactionId]/state-change/[stateChangeKey]:EvmStateChange.TransactionStateChangeKey'],
+				probeCases: [[[0, '1', ['stateChangeKey', 'transactionId', 'network']]]],
+				projectionPath: [
+					'Evm',
+				],
+			},
+		],
+	},
 	'/(explore)/(networks)/network/[network]/(transactions)/tx/[transactionId]/stealth-output/[outputIndex]': {
 		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxIdOrStringSegment]/(selection)/stealth-output/[outputIndex=nonNegativeInteger]',
 		mappings: [

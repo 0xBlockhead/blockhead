@@ -33,6 +33,11 @@ export enum EvmInternalCallType {
 	Unknown = 'Unknown',
 }
 
+export enum EvmStateChangeKind {
+	Coin = 'Coin',
+	Token = 'Token',
+}
+
 export enum EvmTokenStandard {
 	Erc20 = 'ERC-20',
 	Erc721 = 'ERC-721',
@@ -160,6 +165,20 @@ const evmInternalCallTypes = [
 	label: string
 }[]
 
+const evmStateChangeKinds = [
+	{
+		kind: EvmStateChangeKind.Coin,
+		label: 'Coin balance',
+	},
+	{
+		kind: EvmStateChangeKind.Token,
+		label: 'Token balance',
+	},
+] as const satisfies readonly {
+	kind: EvmStateChangeKind
+	label: string
+}[]
+
 const evmTokenStandards = [
 	{
 		standard: EvmTokenStandard.Erc20,
@@ -205,6 +224,13 @@ export const evmTransactionKindByKind = Object.fromEntries(
 export const evmInternalCallTypeByCallType = Object.fromEntries(
 	evmInternalCallTypes.map((row) => [
 		row.callType,
+		row,
+	])
+)
+
+export const evmStateChangeKindByKind = Object.fromEntries(
+	evmStateChangeKinds.map((row) => [
+		row.kind,
 		row,
 	])
 )
