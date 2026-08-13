@@ -292,25 +292,6 @@
 				{/snippet}
 			</ResourceBoundary>
 		</dl>
-
-		<ResourceBoundary
-			resource={
-				selection({
-					fields: {
-						encodedToken: true,
-					},
-				})
-			}
-		>
-			{#snippet children(entity)}
-				{@const encodedToken = entity.encodedToken}
-				{#if encodedToken != null && encodedToken !== ''}
-					<code>{encodedToken}</code>
-				{:else}
-					<p data-text="muted">No encoded token available.</p>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Details()}

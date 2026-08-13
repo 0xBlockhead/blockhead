@@ -13764,7 +13764,6 @@ export const schema = {
 				"$keyset": { label: "keyset", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.CashuKeyset },
 				"keysetId": { label: "keyset ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"secretHash": { label: "secret hash", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"secret": { label: "secret", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"amount": {
 					label: "amount",
 					type: EntityFieldType.Primitive,
@@ -13859,7 +13858,6 @@ export const schema = {
 			})({
 				"id": { label: "ID", description: "The identifier assigned by the source domain.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"tokenVersion": { label: "token version", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"encodedToken": { label: "encoded token", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"unit": { label: "unit", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"memo": { label: "memo", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"mintUrl": { label: "mint URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "urlString" },
@@ -13886,11 +13884,6 @@ export const schema = {
 								["mintUrl", "$mint", { field: "proofCount", format: "number" }, { field: "totalAmount", format: "numberValue", suffix: routeField("unit") }],
 								[{ field: "importedAt", format: "timestamp" }, { field: "redeemedAt", format: "timestamp" }],
 							],
-							body: {
-								field: "encodedToken",
-								format: "code",
-								emptyText: "No encoded token available.",
-							},
 						},
 						lists: [
 							{ field: "$$proofs", component: "BlockheadCashuProofsView", emptyText: "No proofs found." },

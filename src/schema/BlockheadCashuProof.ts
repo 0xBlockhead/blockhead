@@ -37,10 +37,6 @@ export default entity({
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
-	secret: {
-		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
 	amount: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.One,
