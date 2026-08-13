@@ -4,7 +4,10 @@ import {
 	EvmTransactionKind,
 } from '$/constants/Evm.ts'
 import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
-import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
+import {
+	resolverContextRowLimit,
+	type ResolverContext,
+} from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
 	type RegisteredSourceResolverModule,
@@ -21,6 +24,19 @@ import { Source } from '$/sources/Source.ts'
 import type { SafeMultisigTransaction } from '$/sources/SafeTransactionService/Rest/types.ts'
 
 const zeroAddress = `0x${'0'.repeat(40)}`
+
+const safeTransactionPaginationOffset = (
+	context: ResolverContext
+) => {
+	const offset = context.providerContinuationToken == null ?
+		context.pagination.offset ?? 0
+	:
+		Number(context.providerContinuationToken)
+	if (!Number.isSafeInteger(offset) || offset < 0)
+		throw new Error('SafeTransactionService_Rest: invalid transaction pagination offset')
+
+	return offset
+}
 
 const contractRef = (
 	chainId: number,
@@ -267,7 +283,7 @@ export default {
 							chainId,
 							safeAddress: address,
 							limit: Math.min(100, Math.max(1, resolverContextRowLimit(context))),
-							offset: context.pagination.offset ?? 0,
+							offset: safeTransactionPaginationOffset(context),
 							executed: true,
 						})
 						return page.count
@@ -302,11 +318,12 @@ export default {
 							chainId,
 							safeAddress: address,
 							limit: Math.min(100, Math.max(1, resolverContextRowLimit(context))),
-							offset: context.pagination.offset ?? 0,
+							offset: safeTransactionPaginationOffset(context),
 							executed: true,
 						})
-						return (
-							page.results.map((transaction) => {
+						return {
+							nextOffset: page.nextOffset,
+							transactions: page.results.map((transaction) => {
 								const txHash = hexLowerOfByteSize(transaction.transactionHash ?? '', 32)
 								if (txHash == null)
 									throw new Error('SafeTransactionService_Rest: executed transaction missing execution hash')
@@ -317,13 +334,23 @@ export default {
 										txHash,
 									},
 								}
-							})
-						)
+							}),
+						}
 					},
 				},
 			},
 		})({
-			$$transactions: (transactions) => transactions,
+			$$transactions: {
+				select: (snapshot) => snapshot.transactions,
+				continuation: (snapshot) => ({
+					operation: 'safe-executed-transactions',
+					target: 'safe-transaction-service',
+					terminal: snapshot.nextOffset == null,
+					...(snapshot.nextOffset != null && {
+						token: String(snapshot.nextOffset),
+					}),
+				}),
+			},
 		}),
 
 		defineResolver({
@@ -348,7 +375,7 @@ export default {
 							chainId,
 							safeAddress: address,
 							limit: Math.min(100, Math.max(1, resolverContextRowLimit(context))),
-							offset: context.pagination.offset ?? 0,
+							offset: safeTransactionPaginationOffset(context),
 							executed: false,
 						})
 						return page.count
@@ -383,11 +410,12 @@ export default {
 							chainId,
 							safeAddress: address,
 							limit: Math.min(100, Math.max(1, resolverContextRowLimit(context))),
-							offset: context.pagination.offset ?? 0,
+							offset: safeTransactionPaginationOffset(context),
 							executed: false,
 						})
-						return (
-							page.results.map((transaction) => {
+						return {
+							nextOffset: page.nextOffset,
+							transactions: page.results.map((transaction) => {
 								const txHash = hexLowerOfByteSize(transaction.safeTxHash, 32)
 								if (txHash == null)
 									throw new Error('SafeTransactionService_Rest: queued transaction missing Safe tx hash')
@@ -398,13 +426,23 @@ export default {
 										txHash,
 									},
 								}
-							})
-						)
+							}),
+						}
 					},
 				},
 			},
 		})({
-			$$queuedTransactions: (transactions) => transactions,
+			$$queuedTransactions: {
+				select: (snapshot) => snapshot.transactions,
+				continuation: (snapshot) => ({
+					operation: 'safe-queued-transactions',
+					target: 'safe-transaction-service',
+					terminal: snapshot.nextOffset == null,
+					...(snapshot.nextOffset != null && {
+						token: String(snapshot.nextOffset),
+					}),
+				}),
+			},
 		}),
 
 		defineResolver({

@@ -6,6 +6,8 @@ import {
 	vi,
 } from 'vitest'
 
+import * as Address from 'ox/Address'
+
 import { EntityMetaKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
@@ -234,7 +236,7 @@ describe('Safe Transaction Service resolver module', () => {
 	it('maps executed Safe multisig transactions onto EvmNetworkAccount $$transactions', async () => {
 		sourceGetJson.mockResolvedValue({
 			count: 1,
-			next: null,
+			next: `https://api.safe.global/tx-service/base/api/v2/safes/${Address.checksum(safeAddress)}/multisig-transactions/?limit=16&offset=16&executed=true`,
 			previous: null,
 			results: [
 				{
@@ -272,7 +274,9 @@ describe('Safe Transaction Service resolver module', () => {
 			&& '$$transactions' in resolver.projections
 		))
 		const listResolver = accountResolvers.find((resolver) => (
-			typeof resolver.projections.$$transactions === 'function'
+			typeof resolver.projections.$$transactions === 'object'
+			&& resolver.projections.$$transactions != null
+			&& 'select' in resolver.projections.$$transactions
 		))
 		const countResolver = accountResolvers.find((resolver) => (
 			typeof resolver.projections.$$transactions === 'object'
@@ -288,7 +292,7 @@ describe('Safe Transaction Service resolver module', () => {
 				address: safeAddress,
 			},
 		}, context)
-		expect(listResolver.projections.$$transactions(listSnapshot)).toEqual([
+		expect(listResolver.projections.$$transactions.select(listSnapshot)).toEqual([
 			{
 				[EntityMetaKey.Selector]: {
 					$network: network,
@@ -296,6 +300,12 @@ describe('Safe Transaction Service resolver module', () => {
 				},
 			},
 		])
+		expect(listResolver.projections.$$transactions.continuation(listSnapshot)).toEqual({
+			operation: 'safe-executed-transactions',
+			target: 'safe-transaction-service',
+			terminal: false,
+			token: '16',
+		})
 
 		const countSnapshot = await countResolver.resolve.EvmNetworkEvmAccount.resolve({
 			$network: network,
@@ -304,6 +314,37 @@ describe('Safe Transaction Service resolver module', () => {
 			},
 		}, context)
 		expect(countResolver.projections.$$transactions.resolveCount(countSnapshot)).toBe(1)
+	})
+
+	it('uses the Safe continuation offset for later executed transaction pages', async () => {
+		sourceGetJson.mockResolvedValue({
+			count: 24,
+			next: null,
+			previous: null,
+			results: [],
+		})
+
+		const listResolver = safeRest.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.EvmNetworkAccount
+			&& '$$transactions' in resolver.projections
+			&& typeof resolver.projections.$$transactions === 'object'
+			&& resolver.projections.$$transactions != null
+			&& 'select' in resolver.projections.$$transactions
+		))
+		if (listResolver == null)
+			throw new Error('missing EvmNetworkAccount transactions list resolver')
+
+		await listResolver.resolve.EvmNetworkEvmAccount.resolve({
+			$network: network,
+			$actor: {
+				address: safeAddress,
+			},
+		}, {
+			...context,
+			providerContinuationToken: '16',
+		})
+
+		expect(sourceGetJson.mock.calls[0]?.[1]).toContain('offset=16')
 	})
 
 	it('maps queued Safe multisig transactions onto EvmNetworkAccount $$queuedTransactions', async () => {
@@ -347,7 +388,9 @@ describe('Safe Transaction Service resolver module', () => {
 			&& '$$queuedTransactions' in resolver.projections
 		))
 		const listResolver = accountResolvers.find((resolver) => (
-			typeof resolver.projections.$$queuedTransactions === 'function'
+			typeof resolver.projections.$$queuedTransactions === 'object'
+			&& resolver.projections.$$queuedTransactions != null
+			&& 'select' in resolver.projections.$$queuedTransactions
 		))
 		const countResolver = accountResolvers.find((resolver) => (
 			typeof resolver.projections.$$queuedTransactions === 'object'
@@ -363,7 +406,7 @@ describe('Safe Transaction Service resolver module', () => {
 				address: safeAddress,
 			},
 		}, context)
-		expect(listResolver.projections.$$queuedTransactions(listSnapshot)).toEqual([
+		expect(listResolver.projections.$$queuedTransactions.select(listSnapshot)).toEqual([
 			{
 				[EntityMetaKey.Selector]: {
 					$network: network,
@@ -371,6 +414,11 @@ describe('Safe Transaction Service resolver module', () => {
 				},
 			},
 		])
+		expect(listResolver.projections.$$queuedTransactions.continuation(listSnapshot)).toEqual({
+			operation: 'safe-queued-transactions',
+			target: 'safe-transaction-service',
+			terminal: true,
+		})
 		expect(sourceGetJson.mock.calls[0]?.[1]).toContain('executed=false')
 
 		const countSnapshot = await countResolver.resolve.EvmNetworkEvmAccount.resolve({

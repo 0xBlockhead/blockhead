@@ -268,8 +268,21 @@ export const getSafeMultisigTransactions = async ({
 	)
 	if (page.results.length > limit)
 		throw new Error('SafeTransactionService_Rest: transaction page exceeds requested limit')
+	if (page.next != null && page.results.length === 0)
+		throw new Error('SafeTransactionService_Rest: transaction pagination cannot advance')
 	assertContinuation(page.next, binding, pathPrefix)
 	assertContinuation(page.previous, binding, pathPrefix)
+	const nextOffset = (
+		page.next == null ?
+			undefined
+		:
+			Number(new URL(page.next).searchParams.get('offset'))
+	)
+	if (
+		nextOffset != null
+		&& (!Number.isSafeInteger(nextOffset) || nextOffset <= offset)
+	)
+		throw new Error('SafeTransactionService_Rest: invalid transaction continuation offset')
 	const hashes = new Set<string>()
 	for (const transaction of page.results) {
 		assertTransactionSubject(transaction, checksummedSafeAddress)
@@ -303,7 +316,12 @@ export const getSafeMultisigTransactions = async ({
 		&& page.countUniqueNonce > page.count
 	)
 		throw new Error('SafeTransactionService_Rest: countUniqueNonce exceeds page count')
-	return page
+	return {
+		...page,
+		...(nextOffset != null && {
+			nextOffset,
+		}),
+	}
 }
 
 export const getSafeMultisigTransaction = async ({

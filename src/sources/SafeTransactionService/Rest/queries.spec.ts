@@ -334,6 +334,22 @@ describe('Safe Transaction Service public multisig queries', () => {
 		})).rejects.toThrow('invalid transaction page response envelope')
 	})
 
+	it('fails closed when a Safe transaction continuation cannot advance', async () => {
+		sourceGetJson.mockResolvedValue({
+			count: 2,
+			next: `https://api.safe.global/tx-service/base/api/v2/safes/${checksummedSafeAddress}/multisig-transactions/?limit=20&offset=20`,
+			previous: null,
+			results: [],
+		})
+
+		await expect(getSafeMultisigTransactions({
+			chainId,
+			safeAddress,
+			limit: 20,
+			offset: 0,
+		})).rejects.toThrow('transaction pagination cannot advance')
+	})
+
 	it('accepts multisig page/tx fee and decoder leftovers without projecting them', async () => {
 		sourceGetJson.mockResolvedValue({
 			count: 1,
