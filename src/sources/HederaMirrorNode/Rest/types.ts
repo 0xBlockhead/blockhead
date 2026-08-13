@@ -508,3 +508,33 @@ export type HederaMirrorNodeContractResult = {
 	type: number | null
 	v: number | null
 }
+
+// https://docs.hedera.com/api-reference/contracts/list-contract-results-from-a-contract-on-the-network
+export type HederaMirrorNodeContractResults = {
+	results: HederaMirrorNodeContractResult[]
+	links: {
+		next: string | null
+	}
+}
+
+// https://docs.hedera.com/api-reference/contracts/list-contract-logs-from-a-contract-on-the-network
+export type HederaMirrorNodeContractLog = {
+	address: string
+	bloom: string | null
+	contract_id: string
+	data: string | null
+	index: number
+	timestamp: string
+	topics: string[]
+	transaction_hash: string
+	transaction_index: number | null
+	block_hash: string
+	block_number: number
+}
+
+export type HederaMirrorNodeContractLogs = {
+	logs: HederaMirrorNodeContractLog[]
+	links: {
+		next: string | null
+	}
+}

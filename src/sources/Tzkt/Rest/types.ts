@@ -75,6 +75,18 @@ export const tzktBigMapUpdateWire = arktype({
 
 export type TzktBigMapUpdate = typeof tzktBigMapUpdateWire.infer
 
+export const tzktEntrypointWire = arktype({
+	name: 'string > 0',
+	'jsonParameters?': 'unknown',
+	'michelineParameters?': {
+		'annots?': 'string[]',
+		'[string]': 'unknown',
+	},
+	'unused?': 'boolean',
+})
+
+export type TzktEntrypoint = typeof tzktEntrypointWire.infer
+
 export const tzktBlockWire = arktype({
 	level: 'number.integer >= 0',
 	timestamp: 'string',
@@ -240,6 +252,7 @@ export const tzktAccount = tzktAccountWire satisfies Type<TzktAccount>
 export const tzktBigMap = tzktBigMapWire satisfies Type<TzktBigMap>
 export const tzktBigMapKey = tzktBigMapKeyWire satisfies Type<TzktBigMapKey>
 export const tzktBigMapUpdate = tzktBigMapUpdateWire satisfies Type<TzktBigMapUpdate>
+export const tzktEntrypoint = tzktEntrypointWire satisfies Type<TzktEntrypoint>
 export const tzktBlock = tzktBlockWire satisfies Type<TzktBlock>
 export const tzktContract = tzktContractWire satisfies Type<TzktContract>
 export const tzktDelegate = tzktDelegateWire satisfies Type<TzktDelegate>

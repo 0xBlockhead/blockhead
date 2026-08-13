@@ -13,6 +13,7 @@ import {
 	listAccountTokenBalances,
 	listBlocks,
 	listDelegates,
+	listEntrypoints,
 	listOperationsByHash,
 	listTokens,
 } from '$/sources/Tzkt/Rest/queries.ts'
@@ -221,6 +222,38 @@ describe('TzKT REST fail-closed envelopes', () => {
 			offset: 0,
 			limit: 1,
 		})).resolves.toEqual([block])
+	})
+
+	it('asserts contract entrypoint envelopes', async () => {
+		sourceGetJsonMock.mockResolvedValueOnce([{
+			name: 'transfer',
+			jsonParameters: {
+				prim: 'pair',
+			},
+			michelineParameters: {
+				annots: [
+					'%transfer',
+				],
+			},
+		}])
+
+		await expect(listEntrypoints({
+			address: 'KT1contract',
+		})).resolves.toEqual([{
+			name: 'transfer',
+			jsonParameters: {
+				prim: 'pair',
+			},
+			michelineParameters: {
+				annots: [
+					'%transfer',
+				],
+			},
+		}])
+		expect(sourceGetJsonMock).toHaveBeenCalledWith(
+			expect.anything(),
+			'https://api.tzkt.io/v1/contracts/KT1contract/entrypoints?json=true&micheline=true'
+		)
 	})
 
 	it('fails closed on malformed envelopes and foreign account operations', async () => {

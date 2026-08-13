@@ -12,6 +12,7 @@ import { Source } from '$/sources/Source.ts'
 import type {
 	HederaMirrorNodeBlock,
 	HederaMirrorNodeContract,
+	HederaMirrorNodeContractLog,
 	HederaMirrorNodeContractResult,
 	HederaMirrorNodeCustomFees,
 	HederaMirrorNodeNetworkExchangeRate,
@@ -557,6 +558,89 @@ const contractResultRow = (
 			...(result.bloom != null && {
 				[entityFieldAddressKey(EntityType.HederaContractResult, [], 'bloom')]: result.bloom,
 			}),
+		},
+	}
+}
+
+const contractResultRef = (
+	network: EntitySelector<typeof schema, EntityType.Network>,
+	contract: EntitySelector<typeof schema, EntityType.HederaContract>,
+	result: HederaMirrorNodeContractResult
+) => {
+	if (
+		result.contract_id != null
+		&& result.contract_id !== contract.contractId
+	)
+		throw new Error('HederaMirrorNode_Rest: response contract result does not match request')
+
+	const transactionSelector = {
+		$network: network,
+		consensusTimestamp: result.timestamp,
+	}
+
+	return contractResultRow(
+		network,
+		transactionSelector,
+		result
+	)
+}
+
+const contractLogRef = (
+	network: EntitySelector<typeof schema, EntityType.Network>,
+	contract: EntitySelector<typeof schema, EntityType.HederaContract>,
+	log: HederaMirrorNodeContractLog
+) => {
+	if (log.contract_id !== contract.contractId)
+		throw new Error('HederaMirrorNode_Rest: response contract log does not match request')
+
+	timestampMs(log.timestamp, 'contract log timestamp')
+	nonnegativeSafeInteger(log.index, 'contract log index')
+	if (log.block_hash.length === 0)
+		throw new Error('HederaMirrorNode_Rest: malformed contract log block hash')
+	nonnegativeSafeInteger(log.block_number, 'contract log block number')
+	if (log.transaction_hash.length === 0)
+		throw new Error('HederaMirrorNode_Rest: malformed contract log transaction hash')
+	if (log.transaction_index != null)
+		nonnegativeSafeInteger(log.transaction_index, 'contract log transaction index')
+	if (log.bloom != null && log.bloom.length === 0)
+		throw new Error('HederaMirrorNode_Rest: malformed contract log bloom')
+	if (log.data != null && log.data.length === 0)
+		throw new Error('HederaMirrorNode_Rest: malformed contract log data')
+
+	const contractSelector = {
+		$network: network,
+		contractId: contract.contractId,
+	}
+	const transactionSelector = {
+		$network: network,
+		consensusTimestamp: log.timestamp,
+	}
+
+	return {
+		[EntityMetaKey.Selector]: {
+			$contract: contractSelector,
+			consensusTimestamp: log.timestamp,
+			logIndex: log.index,
+		},
+		[EntityMetaKey.Fields]: {
+			[entityFieldAddressKey(EntityType.HederaContractLog, [], '$result')]: {
+				[EntityMetaKey.Selector]: {
+					$transaction: transactionSelector,
+				},
+			},
+			[entityFieldAddressKey(EntityType.HederaContractLog, [], '$contract')]: {
+				[EntityMetaKey.Selector]: contractSelector,
+			},
+			...(log.address != null && {
+				[entityFieldAddressKey(EntityType.HederaContractLog, [], 'address')]: normalizeEvmAddress(log.address, 'contract log address'),
+			}),
+			...(log.bloom != null && {
+				[entityFieldAddressKey(EntityType.HederaContractLog, [], 'bloom')]: log.bloom,
+			}),
+			...(log.data != null && {
+				[entityFieldAddressKey(EntityType.HederaContractLog, [], 'data')]: log.data,
+			}),
+			[entityFieldAddressKey(EntityType.HederaContractLog, [], 'topics')]: log.topics,
 		},
 	}
 }
@@ -2641,6 +2725,72 @@ export default {
 			evmAddress: (contract) => contract.evmAddress,
 			createdTimestamp: (contract) => contract.createdTimestamp,
 			$$timestamps: (contract) => contract.$$timestamps,
+		}),
+
+		defineResolver({
+			entityType: EntityType.HederaContract,
+			resolve: {
+				NetworkContractId: {
+					resolve: async (contract, context) => {
+						assertHederaMainnet(contract.$network)
+						const { getContractResults } = await import('$/sources/HederaMirrorNode/Rest/queries.ts')
+						return getContractResults(
+							contract.contractId,
+							resolverContextRowLimit(context),
+							context.providerContinuationToken
+						)
+					},
+				},
+			},
+		})({
+			$$results: {
+				select: (page, contract) => page.results.map((result) => (
+					contractResultRef(
+						contract.$network,
+						contract,
+						result
+					)
+				)),
+				continuation: (page, contract, context) => hederaContinuation(
+					page.links.next,
+					context.providerContinuationToken,
+					'contract-results',
+					contract.contractId
+				),
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.HederaContract,
+			resolve: {
+				NetworkContractId: {
+					resolve: async (contract, context) => {
+						assertHederaMainnet(contract.$network)
+						const { getContractLogs } = await import('$/sources/HederaMirrorNode/Rest/queries.ts')
+						return getContractLogs(
+							contract.contractId,
+							resolverContextRowLimit(context),
+							context.providerContinuationToken
+						)
+					},
+				},
+			},
+		})({
+			$$logs: {
+				select: (page, contract) => page.logs.map((log) => (
+					contractLogRef(
+						contract.$network,
+						contract,
+						log
+					)
+				)),
+				continuation: (page, contract, context) => hederaContinuation(
+					page.links.next,
+					context.providerContinuationToken,
+					'contract-logs',
+					contract.contractId
+				),
+			},
 		}),
 	],
 } satisfies RegisteredSourceResolverModule

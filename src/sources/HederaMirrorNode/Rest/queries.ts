@@ -12,7 +12,9 @@ import {
 	type HederaMirrorNodeBlock,
 	type HederaMirrorNodeBlocks,
 	type HederaMirrorNodeContract,
+	type HederaMirrorNodeContractLogs,
 	type HederaMirrorNodeContractResult,
+	type HederaMirrorNodeContractResults,
 	type HederaMirrorNodeCryptoAllowances,
 	type HederaMirrorNodeNetworkExchangeRate,
 	type HederaMirrorNodeNetworkFees,
@@ -800,6 +802,83 @@ export const getTokenNft = async (
 		throw new Error('HederaMirrorNode_Rest: token NFT response does not match request')
 	return nft
 }
+
+const contractCollectionUrl = (
+	contractId: string,
+	collectionPath: string,
+	limit: number,
+	order: 'asc' | 'desc',
+	continuationKeys: readonly string[],
+	continuationToken?: string
+) => {
+	if (!accountIdPattern.test(contractId))
+		throw new Error('HederaMirrorNode_Rest: invalid contract selector')
+	if (!Number.isSafeInteger(limit) || limit < 1 || limit > 100)
+		throw new Error('HederaMirrorNode_Rest: invalid contract collection limit')
+
+	const url = paginatedUrl(
+		`/api/v1/contracts/${encodeURIComponent(contractId)}/${collectionPath}`,
+		continuationToken
+	)
+	if (continuationToken == null) {
+		url.searchParams.set('limit', String(limit))
+		url.searchParams.set('order', order)
+	} else if (
+		url.searchParams.getAll('limit').length !== 1
+		|| url.searchParams.get('limit') !== String(limit)
+		|| url.searchParams.getAll('order').length !== 1
+		|| url.searchParams.get('order') !== order
+		|| !continuationKeys.some((key) => url.searchParams.has(key))
+		|| continuationKeys.some((key) => url.searchParams.getAll(key).length > 1)
+		|| continuationKeys.some((key) => url.searchParams.getAll(key).some((value) => (
+			key === 'index' ?
+				!/^(?:(?:eq|gt|gte|lt|lte):)?\d{1,10}$/.test(value)
+			:
+				!/^(?:(?:eq|gt|gte|lt|lte|ne):)?\d{1,10}(?:\.\d{1,9})?$/.test(value)
+		)))
+		|| [...url.searchParams.keys()].some((key) => ![
+			...continuationKeys,
+			'limit',
+			'order',
+		].includes(key))
+	)
+		throw new Error('HederaMirrorNode_Rest: invalid contract collection continuation')
+
+	return url
+}
+
+export const getContractResults = (
+	contractId: string,
+	limit: number,
+	continuationToken?: string
+) => sourceGetHederaJson<HederaMirrorNodeContractResults>(
+	contractCollectionUrl(
+		contractId,
+		'results',
+		limit,
+		'desc',
+		['timestamp'],
+		continuationToken
+	).toString()
+)
+
+export const getContractLogs = (
+	contractId: string,
+	limit: number,
+	continuationToken?: string
+) => sourceGetHederaJson<HederaMirrorNodeContractLogs>(
+	contractCollectionUrl(
+		contractId,
+		'results/logs',
+		limit,
+		'desc',
+		[
+			'timestamp',
+			'index',
+		],
+		continuationToken
+	).toString()
+)
 
 export const getContract = async (
 	contractId: string

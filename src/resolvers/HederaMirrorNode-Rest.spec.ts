@@ -398,6 +398,130 @@ describe('Hedera Mirror Node contract hierarchy', () => {
 			},
 		}])
 	})
+
+	it('materializes contract results and logs with parent identity checks', async () => {
+		const resultsResolver = hederaMirrorNode.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.HederaContract
+			&& '$$results' in candidate.projections
+		))
+		const logsResolver = hederaMirrorNode.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.HederaContract
+			&& '$$logs' in candidate.projections
+		))
+		if (
+			resultsResolver == null
+			|| logsResolver == null
+		)
+			throw new Error('missing HederaContract activity resolvers')
+
+		const contract = {
+			$network: network,
+			contractId: '0.0.359',
+		}
+		const contractResultFixture = {
+			access_list: null,
+			address: '0x0000000000000000000000000000000000000167',
+			amount: '9007199254740993',
+			block_gas_used: 300000,
+			block_hash: '0x553f9311833391c0a3b2f9ed64540a89f2190a511986cd94889f1c0cf7fa63e898b1c6730f14a61755d1fb4ca05fb073',
+			block_number: 88,
+			bloom: '0x00',
+			call_result: '0x01',
+			chain_id: '0x127',
+			contract_id: '0.0.359',
+			created_contract_ids: null,
+			error_message: null,
+			failed_initcode: null,
+			from: '0x0000000000000000000000000000000000000062',
+			function_parameters: '0xbb9f02dc',
+			gas_consumed: 35000,
+			gas_limit: 100000,
+			gas_price: '0x4a817c800',
+			gas_used: 80000,
+			hash: '0xfebbaa29c513d124a6377246ea3506ad917d740c21a88f61a1c55ba338fc2bb1',
+			logs: [],
+			max_fee_per_gas: '0x5',
+			max_priority_fee_per_gas: '0x100',
+			nonce: 0,
+			r: '0xd693b532a80fed6392b428604171fb32fdbf953728a3a7ecc7d4062b1652c043',
+			result: 'SUCCESS',
+			s: '0x24e9c602ac800b983b035700a14b23f78a253ab762deab5dc27e3555a750b355',
+			state_changes: [],
+			status: '0x1',
+			timestamp: '1710000001.000000007',
+			to: '0x0000000000000000000000000000000000000167',
+			transaction_index: 1,
+			type: 2,
+			v: 1,
+		} satisfies HederaMirrorNodeContractResult
+		const contractLogFixture = {
+			address: '0x0000000000000000000000000000000000000167',
+			bloom: '0x549358c4c2e573e02410ef7b5a5ffa5f36dd7398',
+			contract_id: '0.0.359',
+			data: '0x00000000000000000000000000000000000000000000000000000000000000fa',
+			index: 0,
+			timestamp: '1710000001.000000007',
+			topics: [
+				'0xf4757a49b326036464bec6fe419a4ae38c8a02ce3e68bf0809674f6aab8ad300',
+			],
+			transaction_hash: '0x397022d1e5baeb89d0ab66e6bf602640610e6fb7e55d78638db861e2c6339aa9',
+			transaction_index: 1,
+			block_hash: '0x553f9311833391c0a3b2f9ed64540a89f2190a511986cd94889f1c0cf7fa63e898b1c6730f14a61755d1fb4ca05fb073',
+			block_number: 88,
+		}
+
+		sourceFetch
+			.mockResolvedValueOnce(new Response(JSON.stringify({
+				results: [contractResultFixture],
+				links: {
+					next: '/api/v1/contracts/0.0.359/results?limit=1&order=desc&timestamp=lt:1710000001.000000007',
+				},
+			})))
+			.mockResolvedValueOnce(new Response(JSON.stringify({
+				logs: [contractLogFixture],
+				links: {
+					next: '/api/v1/contracts/0.0.359/results/logs?limit=1&order=desc&timestamp=lt:1710000001.000000007&index=lt:0',
+				},
+			})))
+
+		const resultsPage = await resultsResolver.resolve.NetworkContractId.resolve(contract, context)
+		expect(resultsResolver.projections.$$results.select(resultsPage, contract, context)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$transaction: {
+					$network: network,
+					consensusTimestamp: '1710000001.000000007',
+				},
+			},
+			[EntityMetaKey.Fields]: expect.objectContaining({
+				[entityFieldAddressKey(EntityType.HederaContractResult, [], 'contractId')]: '0.0.359',
+				[entityFieldAddressKey(EntityType.HederaContractResult, [], 'status')]: '0x1',
+			}),
+		}])
+		expect(resultsResolver.projections.$$results.continuation(resultsPage, contract, context)).toEqual({
+			operation: 'contract-results',
+			target: '0.0.359',
+			terminal: false,
+			token: '/api/v1/contracts/0.0.359/results?limit=1&order=desc&timestamp=lt:1710000001.000000007',
+		})
+
+		const logsPage = await logsResolver.resolve.NetworkContractId.resolve(contract, context)
+		expect(logsResolver.projections.$$logs.select(logsPage, contract, context)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$contract: contract,
+				consensusTimestamp: '1710000001.000000007',
+				logIndex: 0,
+			},
+			[EntityMetaKey.Fields]: expect.objectContaining({
+				[entityFieldAddressKey(EntityType.HederaContractLog, [], 'topics')]: contractLogFixture.topics,
+			}),
+		}])
+		expect(logsResolver.projections.$$logs.continuation(logsPage, contract, context)).toEqual({
+			operation: 'contract-logs',
+			target: '0.0.359',
+			terminal: false,
+			token: '/api/v1/contracts/0.0.359/results/logs?limit=1&order=desc&timestamp=lt:1710000001.000000007&index=lt:0',
+		})
+	})
 })
 
 describe('Hedera Mirror Node topic lifecycle', () => {

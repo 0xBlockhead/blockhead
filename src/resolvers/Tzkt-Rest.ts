@@ -1666,6 +1666,37 @@ export default {
 			}),
 
 		defineResolver({
+			entityType: EntityType.TezosContract,
+			resolve: {
+				NetworkAddress: {
+					resolve: async ({ $network, address }) => {
+						assertTezosMainnet($network.$network)
+						const { listEntrypoints } = await import('$/sources/Tzkt/Rest/queries.ts')
+						return (await listEntrypoints({
+							address,
+						})).map((entrypoint) => ({
+							[EntityMetaKey.Selector]: {
+								$contract: {
+									$network: $network,
+									address,
+								},
+								entrypointName: entrypoint.name,
+							},
+							[EntityMetaKey.Fields]: {
+								...(entrypoint.jsonParameters != null && {
+									[entityFieldAddressKey(EntityType.TezosEntrypoint, [], 'parameterType')]: entrypoint.jsonParameters,
+								}),
+								[entityFieldAddressKey(EntityType.TezosEntrypoint, [], 'annotations')]: entrypoint.michelineParameters?.annots ?? [],
+							},
+						}))
+					},
+				},
+			},
+		})({
+				$$entrypoints: (entrypoints) => entrypoints,
+			}),
+
+		defineResolver({
 			entityType: EntityType.TezosOperationGroup,
 			resolve: {
 				NetworkOperationHash: {

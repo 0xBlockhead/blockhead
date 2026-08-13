@@ -1105,4 +1105,53 @@ describe('TzKT network accounts / operations leftovers', () => {
 		})
 		expect(getJson.mock.calls[0][0]).toContain('/v1/blocks/BLzyx')
 	})
+
+	it('materializes contract entrypoints with selector fields', async () => {
+		const entrypointsResolver = tzktResolvers.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.TezosContract
+			&& '$$entrypoints' in candidate.projections
+		))
+		if (entrypointsResolver == null)
+			throw new Error('TzKT REST spec missing TezosContract entrypoints resolver')
+
+		getJson.mockResolvedValueOnce([{
+			name: 'transfer',
+			jsonParameters: {
+				prim: 'pair',
+			},
+			michelineParameters: {
+				annots: [
+					'%transfer',
+				],
+			},
+		}])
+
+		const contract = {
+			$network: {
+				$network: {
+					slug: 'tezos',
+				},
+			},
+			address: 'KT1contract',
+		}
+		const page = await entrypointsResolver.resolve.NetworkAddress.resolve(contract, {})
+		expect(entrypointsResolver.projections.$$entrypoints(page)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$contract: {
+					$network: contract.$network,
+					address: contract.address,
+				},
+				entrypointName: 'transfer',
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.TezosEntrypoint, [], 'parameterType')]: {
+					prim: 'pair',
+				},
+				[entityFieldAddressKey(EntityType.TezosEntrypoint, [], 'annotations')]: [
+					'%transfer',
+				],
+			},
+		}])
+		expect(getJson.mock.calls.at(-1)?.[0]).toContain('/v1/contracts/KT1contract/entrypoints')
+	})
 })

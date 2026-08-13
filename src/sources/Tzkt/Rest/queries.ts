@@ -10,6 +10,7 @@ import {
 	tzktBlock,
 	tzktContract,
 	tzktDelegate,
+	tzktEntrypoint,
 	tzktHead,
 	tzktOperation,
 	tzktStatistics,
@@ -23,6 +24,7 @@ import {
 	type TzktBlock,
 	type TzktContract,
 	type TzktDelegate,
+	type TzktEntrypoint,
 	type TzktHead,
 	type TzktOperation,
 	type TzktStatistics,
@@ -225,6 +227,25 @@ export const listBigMapUpdates = async ({
 		)
 	) as TzktBigMapUpdate[]
 )
+
+export const listEntrypoints = async ({
+	address,
+}: {
+	address: string
+}) => {
+	assertNonemptyAddress(address, 'contract')
+	return assertEnvelopeArray(
+		'entrypoint',
+		tzktEntrypoint,
+		await sourceGetJson<unknown>(
+			binding,
+			`${baseUrl}/v1/contracts/${encodeURIComponent(address)}/entrypoints?${queryString({
+				json: 'true',
+				micheline: 'true',
+			})}`
+		)
+	) as TzktEntrypoint[]
+}
 
 export const getContract = async ({
 	address,

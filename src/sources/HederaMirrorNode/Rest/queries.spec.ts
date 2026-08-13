@@ -23,6 +23,8 @@ vi.mock('$/sources/_runtime/http.ts', async (importOriginal) => ({
 const {
 	getBlock,
 	getContract,
+	getContractLogs,
+	getContractResults,
 	getNetworkExchangeRate,
 	getNetworkFees,
 	getNetworkStake,
@@ -353,5 +355,94 @@ describe('Hedera Mirror contract detail', () => {
 		sourceGetText.mockResolvedValueOnce('{"contract_id":"0.0.360"}')
 
 		await expect(getContract('0.0.359')).rejects.toThrow('contract response does not match request')
+	})
+})
+
+describe('Hedera Mirror contract collections', () => {
+	beforeEach(() => {
+		sourceGetText.mockReset()
+	})
+
+	const cases = [
+		{
+			getPage: (continuationToken?: string) => getContractResults('0.0.359', 2, continuationToken),
+			path: '/api/v1/contracts/0.0.359/results',
+			order: 'desc',
+			rowsKey: 'results',
+			identityKey: 'timestamp',
+			identities: [
+				'1710000001.000000007',
+				'1710000000.500000000',
+			],
+			continuation: '/api/v1/contracts/0.0.359/results?limit=2&order=desc&timestamp=lt:1710000000.500000000',
+		},
+		{
+			getPage: (continuationToken?: string) => getContractLogs('0.0.359', 2, continuationToken),
+			path: '/api/v1/contracts/0.0.359/results/logs',
+			order: 'desc',
+			rowsKey: 'logs',
+			identityKey: 'index',
+			identities: [
+				0,
+				1,
+			],
+			continuation: '/api/v1/contracts/0.0.359/results/logs?limit=2&order=desc&timestamp=lt:1710000000.500000000&index=lt:1',
+		},
+	] as const
+
+	it.each(cases)('preserves $rowsKey identities and next links', async ({
+		getPage,
+		path,
+		order,
+		rowsKey,
+		identityKey,
+		identities,
+		continuation,
+	}) => {
+		const row = (
+			identity: string | number
+		) => rowsKey === 'results' ?
+			{
+				contract_id: '0.0.359',
+				gas_limit: 100000,
+				hash: '0xfebbaa29c513d124a6377246ea3506ad917d740c21a88f61a1c55ba338fc2bb1',
+				result: 'SUCCESS',
+				status: '0x1',
+				timestamp: identity,
+			}
+		:
+			{
+				address: '0x0000000000000000000000000000000000000167',
+				block_hash: '0x553f9311833391c0a3b2f9ed64540a89f2190a511986cd94889f1c0cf7fa63e898b1c6730f14a61755d1fb4ca05fb073',
+				block_number: 88,
+				contract_id: '0.0.359',
+				index: identity,
+				timestamp: '1710000001.000000007',
+				topics: [],
+				transaction_hash: '0x397022d1e5baeb89d0ab66e6bf602640610e6fb7e55d78638db861e2c6339aa9',
+			}
+
+		sourceGetText.mockResolvedValueOnce(`{"${rowsKey}":[${JSON.stringify(row(identities[0]))},${JSON.stringify(row(identities[1]))}],"links":{"next":"${continuation}"}}`)
+
+		const page = await getPage()
+		expect(page).toMatchObject({
+			[rowsKey]: [
+				{ [identityKey]: identities[0] },
+				{ [identityKey]: identities[1] },
+			],
+			links: { next: continuation },
+		})
+		expect(sourceGetText).toHaveBeenCalledWith(
+			binding,
+			`https://mainnet-public.mirrornode.hedera.com${path}?limit=2&order=${order}`
+		)
+	})
+
+	it('rejects stale contract collection continuations', () => {
+		expect(() => getContractResults(
+			'0.0.359',
+			2,
+			'/api/v1/contracts/0.0.359/results?limit=2&order=desc'
+		)).toThrow('invalid contract collection continuation')
 	})
 })
