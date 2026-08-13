@@ -12998,6 +12998,26 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
+	'/git/forge/[forgeHost]/[owner]/[repositoryName]/pipeline/[pipelineId]': {
+		routeId: '/git/forge/[forgeHost=stringSegment]/[owner=stringSegment]/[repositoryName=stringSegment]/(gitForgeMirror)/pipeline/[pipelineId=nonNegativeInteger]',
+		mappings: [
+			{
+				id: 'GitForgePipeline.ForgeMirrorPipelineId',
+				probeAtomPrefixes: ['/git/forge/[forgeHost]/[owner]/[repositoryName]/pipeline/[pipelineId]:GitForgePipeline.ForgeMirrorPipelineId'],
+				probeCases: [[[0, '1', ['pipelineId', 'forgeHost', 'owner', 'repositoryName']]]],
+			},
+		],
+	},
+	'/git/forge/[forgeHost]/[owner]/[repositoryName]/pipeline/[pipelineId]/job/[jobId]': {
+		routeId: '/git/forge/[forgeHost=stringSegment]/[owner=stringSegment]/[repositoryName=stringSegment]/(gitForgeMirror)/pipeline/[pipelineId=nonNegativeInteger]/(gitForgePipeline)/job/[jobId=nonNegativeInteger]',
+		mappings: [
+			{
+				id: 'GitForgeJob.PipelineJobId',
+				probeAtomPrefixes: ['/git/forge/[forgeHost]/[owner]/[repositoryName]/pipeline/[pipelineId]/job/[jobId]:GitForgeJob.PipelineJobId'],
+				probeCases: [[[0, '1', ['jobId', 'pipelineId', 'forgeHost', 'owner', 'repositoryName']]]],
+			},
+		],
+	},
 	'/git/forge/[forgeHost]/[owner]/[repositoryName]/pull-request/[pullRequestNumber]': {
 		routeId: '/git/forge/[forgeHost=stringSegment]/[owner=stringSegment]/[repositoryName=stringSegment]/(gitForgeMirror)/pull-request/[pullRequestNumber=nonNegativeInteger]',
 		mappings: [

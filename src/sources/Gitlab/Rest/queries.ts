@@ -10,10 +10,12 @@ import {
 	gitlabCommitWire,
 	gitlabIssueWire,
 	gitlabIssuesWire,
+	gitlabJobWire,
 	gitlabJobsWire,
 	gitlabMergeRequestWire,
 	gitlabMergeRequestsWire,
 	gitlabProjectWire,
+	gitlabPipelineWire,
 	gitlabPipelinesWire,
 	gitlabReleaseWire,
 	gitlabReleasesWire,
@@ -235,6 +237,26 @@ export const getPipelines = ({
 		})
 )
 
+export const getPipeline = ({
+	projectId,
+	pipelineId,
+}: {
+	projectId: string
+	pipelineId: number
+}) => {
+	if (!Number.isSafeInteger(pipelineId) || pipelineId < 0)
+		throw new Error('Gitlab_Rest: invalid pipeline ID')
+
+	return getJson<JsonValue>(binding, `/api/v4/projects/${encodeURIComponent(projectId)}/pipelines/${pipelineId}`)
+		.then((pipeline) => {
+			try {
+				return gitlabPipelineWire.assert(pipeline)
+			} catch {
+				throw new Error('Gitlab_Rest: invalid pipeline response')
+			}
+		})
+}
+
 export const getPipelineJobs = ({
 	projectId,
 	pipelineId,
@@ -257,6 +279,26 @@ export const getPipelineJobs = ({
 				return gitlabJobsWire.assert(jobs)
 			} catch {
 				throw new Error('Gitlab_Rest: invalid pipeline jobs response')
+			}
+		})
+}
+
+export const getJob = ({
+	projectId,
+	jobId,
+}: {
+	projectId: string
+	jobId: number
+}) => {
+	if (!Number.isSafeInteger(jobId) || jobId < 0)
+		throw new Error('Gitlab_Rest: invalid job ID')
+
+	return getJson<JsonValue>(binding, `/api/v4/projects/${encodeURIComponent(projectId)}/jobs/${jobId}`)
+		.then((job) => {
+			try {
+				return gitlabJobWire.assert(job)
+			} catch {
+				throw new Error('Gitlab_Rest: invalid job response')
 			}
 		})
 }

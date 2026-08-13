@@ -29,6 +29,7 @@
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
+	import GitForgePipelinesView from '$/views/GitForgePipelinesView.svelte'
 	import GitForgeIssuesView from '$/views/GitForgeIssuesView.svelte'
 	import GitForgePullRequestsView from '$/views/GitForgePullRequestsView.svelte'
 	import GitForgeReleasesView from '$/views/GitForgeReleasesView.svelte'
@@ -244,6 +245,21 @@
 	{/snippet}
 
 	{#snippet Details()}
+		{@const pipelinesResource = selection.$$pipelines}
+		<ResourceBoundary
+			resource={pipelinesResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<GitForgePipelinesView
+						selection={pipelinesResource}
+						countResource={pipelinesResource.count}
+						title='Pipelines'
+						id='pipelines'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 		{@const issuesResource = selection.$$issues}
 		<ResourceBoundary
 			resource={issuesResource}

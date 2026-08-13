@@ -19,6 +19,8 @@ const {
 	getIssues,
 	getMergeRequest,
 	getMergeRequests,
+	getJob,
+	getPipeline,
 	getPipelineJobs,
 	getPipelines,
 	getProject,
@@ -475,5 +477,53 @@ describe('GitLab REST wires', () => {
 			projectId: 'group/project',
 			pipelineId: -1,
 		})).toThrow('invalid pipeline ID')
+	})
+
+	it('reads exact pipeline and job identities from their native endpoints', async () => {
+		sourceGetJson
+			.mockResolvedValueOnce({
+				id: 91,
+				iid: 7,
+				project_id: 42,
+				sha: 'a'.repeat(40),
+				ref: 'main',
+				status: 'success',
+				source: 'push',
+				created_at: '2026-08-12T00:02:00Z',
+				updated_at: '2026-08-12T00:04:00Z',
+				web_url: 'https://gitlab.com/group/project/-/pipelines/91',
+			})
+			.mockResolvedValueOnce({
+				id: 123,
+				name: 'test',
+				stage: 'verify',
+				status: 'success',
+				created_at: '2026-08-12T00:02:00Z',
+				started_at: null,
+				finished_at: null,
+				duration: null,
+				queued_duration: null,
+				web_url: 'https://gitlab.com/group/project/-/jobs/123',
+				commit: { id: 'a'.repeat(40) },
+				pipeline: {
+					id: 91,
+					sha: 'a'.repeat(40),
+					ref: 'main',
+					status: 'success',
+				},
+			})
+
+		await expect(getPipeline({
+			projectId: 'group/project',
+			pipelineId: 91,
+		})).resolves.toMatchObject({ id: 91 })
+		await expect(getJob({
+			projectId: 'group/project',
+			jobId: 123,
+		})).resolves.toMatchObject({ id: 123 })
+		expect(sourceGetJson.mock.calls.map(([, path]) => path)).toEqual([
+			'https://gitlab.com/api/v4/projects/group%2Fproject/pipelines/91',
+			'https://gitlab.com/api/v4/projects/group%2Fproject/jobs/123',
+		])
 	})
 })

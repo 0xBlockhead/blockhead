@@ -1260,7 +1260,9 @@ export enum EntityType {
 	GitCommit = "GitCommit",
 	GitFetchObservation = "GitFetchObservation",
 	GitForgeIssue = "GitForgeIssue",
+	GitForgeJob = "GitForgeJob",
 	GitForgeMirror = "GitForgeMirror",
+	GitForgePipeline = "GitForgePipeline",
 	GitForgePullRequest = "GitForgePullRequest",
 	GitForgeRelease = "GitForgeRelease",
 	GitLooseObject = "GitLooseObject",
@@ -34111,6 +34113,39 @@ export const schema = {
 			}),
 
 			entity({
+				entityType: EntityType.GitForgeJob,
+				labels: {
+					singular: "Git forge job",
+					plural: "Git forge jobs",
+				},
+			})({
+				"$pipeline": { label: "pipeline", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.GitForgePipeline },
+				"jobId": { label: "job ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
+				"name": { label: "name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"stage": { label: "stage", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"status": { label: "status", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"commitObjectId": { label: "commit object ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "zeroExHex" },
+				"url": { label: "URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "urlString" },
+				"createdAt": { label: "Created", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
+				"startedAt": { label: "Started", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+				"finishedAt": { label: "Finished", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+				"durationSeconds": { label: "duration", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+				"queuedDurationSeconds": { label: "queued duration", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+			})({
+				selectors: {
+					"PipelineJobId": ["$pipeline", "jobId"],
+				},
+				views: {
+					singular: {
+						summary: { title: ["name"], value: ["status"], HeadingAfter: ["stage"] },
+						closed: ["$pipeline", { field: "jobId", format: "number" }, "status"],
+						content: { dl: [["$pipeline", { field: "jobId", format: "number" }, "name", "stage", "status", { field: "commitObjectId", format: "truncated" }, { field: "url", format: "url" }], [{ field: "createdAt", format: "timestamp" }, { field: "startedAt", format: "timestamp" }, { field: "finishedAt", format: "timestamp" }, { field: "durationSeconds", format: "number", suffix: " s" }, { field: "queuedDurationSeconds", format: "number", suffix: " s" }]] },
+					},
+					plural: { component: "GitForgeJobsView", title: "Git forge jobs" },
+				},
+			}),
+
+			entity({
 				entityType: EntityType.GitForgeMirror,
 				labels: {
 					singular: "Git forge mirror",
@@ -34128,6 +34163,7 @@ export const schema = {
 				"providerRepositoryId": { label: "provider repository ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"source": { label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"$$issues": { label: "issues", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.GitForgeIssue, defaultSources: [Source.Gitlab_Rest] },
+				"$$pipelines": { label: "pipelines", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.GitForgePipeline, defaultSources: [Source.Gitlab_Rest] },
 				"$$pullRequests": { label: "merge requests", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.GitForgePullRequest, defaultSources: [Source.Gitlab_Rest] },
 				"$$releases": { label: "releases", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.GitForgeRelease, defaultSources: [Source.Gitlab_Rest] },
 			})({
@@ -34141,6 +34177,7 @@ export const schema = {
 						content: {
 							dl: [["forgeHost", "owner", "repositoryName", "$gitRepository", "defaultBranch", "visibility", { field: "htmlUrl", format: "url" }, "providerRepositoryId", "source"], ["cloneUrls"]],
 							lists: [
+								{ field: "$$pipelines", component: "GitForgePipelinesView", label: "Pipelines", emptyText: "No pipelines." },
 								{ field: "$$issues", component: "GitForgeIssuesView", label: "Issues", emptyText: "No issues." },
 								{ field: "$$pullRequests", component: "GitForgePullRequestsView", label: "Merge requests", emptyText: "No merge requests." },
 								{ field: "$$releases", component: "GitForgeReleasesView", label: "Releases", emptyText: "No releases." },
@@ -34148,6 +34185,38 @@ export const schema = {
 						},
 					},
 					plural: { component: "GitForgeMirrorsView", title: "Git forge mirrors", },
+				},
+			}),
+
+			entity({
+				entityType: EntityType.GitForgePipeline,
+				labels: {
+					singular: "Git forge pipeline",
+					plural: "Git forge pipelines",
+				},
+			})({
+				"$forgeMirror": { label: "forge mirror", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.GitForgeMirror },
+				"pipelineId": { label: "pipeline ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
+				"pipelineIid": { label: "pipeline IID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
+				"ref": { label: "ref", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"commitObjectId": { label: "commit object ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "zeroExHex" },
+				"status": { label: "status", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"source": { label: "pipeline source", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"url": { label: "URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "urlString" },
+				"createdAt": { label: "Created", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
+				"updatedAt": { label: "Updated", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
+				"$$jobs": { label: "jobs", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.GitForgeJob, defaultSources: [Source.Gitlab_Rest] },
+			})({
+				selectors: {
+					"ForgeMirrorPipelineId": ["$forgeMirror", "pipelineId"],
+				},
+				views: {
+					singular: {
+						summary: { title: [{ field: "pipelineIid", format: "number", prefix: "Pipeline #" }], value: ["status"], HeadingAfter: ["ref"] },
+						closed: ["$forgeMirror", { field: "pipelineId", format: "number" }, "status"],
+						content: { dl: [["$forgeMirror", { field: "pipelineId", format: "number" }, { field: "pipelineIid", format: "number" }, "ref", { field: "commitObjectId", format: "truncated" }, "status", "source", { field: "url", format: "url" }], [{ field: "createdAt", format: "timestamp" }, { field: "updatedAt", format: "timestamp" }]], lists: [{ field: "$$jobs", component: "GitForgeJobsView", label: "Jobs", emptyText: "No jobs." }] },
+					},
+					plural: { component: "GitForgePipelinesView", title: "Git forge pipelines" },
 				},
 			}),
 
@@ -69095,22 +69164,22 @@ export const routes = defineRoutes(schema)({
 															},
 															children: {
 																"block": {
-																	children: {
-																		"[blockNumber]": {
-																			children: {
-																				"[source]": {
-																					selectors: {
-																						[EntityType.EvmActorCoinAllowance_Block]: {
-																							"AllowanceBlockNumberSource": {
-																								params: { "blockNumber": ["blockNumber"], "source": ["source"] },
-																								page: {},
+																		children: {
+																			"[blockNumber]": {
+																				children: {
+																					"[source]": {
+																						selectors: {
+																							[EntityType.EvmActorCoinAllowance_Block]: {
+																								"AllowanceBlockNumberSource": {
+																									params: { "blockNumber": ["blockNumber"], "source": ["source"] },
+																									page: {},
+																								}
 																							}
 																						}
 																					}
 																				}
 																			}
 																		}
-																	}
 																}
 															}
 														}
@@ -69541,9 +69610,9 @@ export const routes = defineRoutes(schema)({
 																			"TurnIndexInTurn": {
 																				params: { "indexInTurn": ["indexInTurn"] },
 																				page: {},
-																			}
-																		}
-																	}
+																								}
+																							}
+																							}
 																}
 															}
 														}
@@ -94583,6 +94652,36 @@ export const routes = defineRoutes(schema)({
 																	"ForgeMirrorPullRequestNumber": {
 																		params: { "pullRequestNumber": ["pullRequestNumber"] },
 																		page: {},
+																	}
+																}
+															}
+														}
+													}
+												},
+												"pipeline": {
+													children: {
+														"[pipelineId]": {
+															selectors: {
+																[EntityType.GitForgePipeline]: {
+																	"ForgeMirrorPipelineId": {
+																		params: { "pipelineId": ["pipelineId"] },
+																		page: {},
+																	}
+																}
+															},
+															children: {
+																"job": {
+																	children: {
+																		"[jobId]": {
+																			selectors: {
+																				[EntityType.GitForgeJob]: {
+																					"PipelineJobId": {
+																						params: { "jobId": ["jobId"] },
+																						page: {},
+																					}
+																				}
+																			}
+																		}
 																	}
 																}
 															}

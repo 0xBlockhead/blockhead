@@ -214,6 +214,74 @@ export default {
 
 						const page = gitlabPage(context.providerContinuationToken)
 						const perPage = resolverContextRowLimit(context)
+						const {
+							getPipelines,
+							getProject,
+						} = await import('$/sources/Gitlab/Rest/queries.ts')
+						const [project, pipelines] = await Promise.all([
+							getProject({ projectId }),
+							(
+								perPage === 0 ?
+									[]
+								:
+									getPipelines({
+										projectId,
+										page,
+										perPage,
+									})
+							),
+						])
+						if (pipelines.some((pipeline) => pipeline.project_id !== project.id))
+							throw new Error('Gitlab_Rest: pipeline project identity does not match selector')
+
+						return {
+							page,
+							perPage,
+							pipelines,
+						}
+					},
+				},
+			},
+		})({
+			$$pipelines: {
+				select: ({ pipelines }, mirror) => pipelines.map((pipeline) => ({
+					[EntityMetaKey.Selector]: {
+						$forgeMirror: mirror,
+						pipelineId: pipeline.id,
+					},
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.GitForgePipeline, [], 'pipelineIid')]: pipeline.iid,
+						[entityFieldAddressKey(EntityType.GitForgePipeline, [], 'ref')]: pipeline.ref,
+						[entityFieldAddressKey(EntityType.GitForgePipeline, [], 'commitObjectId')]: `0x${pipeline.sha}`,
+						[entityFieldAddressKey(EntityType.GitForgePipeline, [], 'status')]: pipeline.status,
+						[entityFieldAddressKey(EntityType.GitForgePipeline, [], 'source')]: pipeline.source,
+						[entityFieldAddressKey(EntityType.GitForgePipeline, [], 'url')]: pipeline.web_url,
+						[entityFieldAddressKey(EntityType.GitForgePipeline, [], 'createdAt')]: gitlabTimestampMs(pipeline.created_at),
+						[entityFieldAddressKey(EntityType.GitForgePipeline, [], 'updatedAt')]: gitlabTimestampMs(pipeline.updated_at),
+					},
+				})),
+				continuation: ({
+					page,
+					perPage,
+					pipelines,
+				}) => ({
+					operation: 'gitlab-pipelines',
+					terminal: perPage === 0 || pipelines.length < perPage,
+					...(pipelines.length === perPage && { token: String(page + 1) }),
+				}),
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.GitForgeMirror,
+			resolve: {
+				ForgeHostOwnerRepositoryName: {
+					resolve: async (mirror, context) => {
+						const projectId = gitlabProjectIdFromMirror(mirror)
+						if (projectId == null) return undefined
+
+						const page = gitlabPage(context.providerContinuationToken)
+						const perPage = resolverContextRowLimit(context)
 						const { getIssues } = await import('$/sources/Gitlab/Rest/queries.ts')
 						return {
 							page,
@@ -671,6 +739,183 @@ export default {
 			blobObjectId: (resolution) => resolution.blobObjectId,
 			submoduleCommitId: (resolution) => resolution.submoduleCommitId,
 			status: (resolution) => resolution.status,
+		}),
+
+		defineResolver({
+			entityType: EntityType.GitForgePipeline,
+			resolve: {
+				ForgeMirrorPipelineId: {
+					resolve: async ({
+						$forgeMirror,
+						pipelineId,
+					}) => {
+						const projectId = gitlabProjectIdFromMirror($forgeMirror)
+						if (projectId == null) return undefined
+
+						const {
+							getPipeline,
+							getProject,
+						} = await import('$/sources/Gitlab/Rest/queries.ts')
+						const [project, pipeline] = await Promise.all([
+							getProject({ projectId }),
+							getPipeline({
+								projectId,
+								pipelineId,
+							}),
+						])
+						if (pipeline.id !== pipelineId || pipeline.project_id !== project.id)
+							throw new Error('Gitlab_Rest: pipeline identity does not match selector')
+
+						return {
+							$forgeMirror,
+							pipelineId,
+							pipelineIid: pipeline.iid,
+							ref: pipeline.ref,
+							commitObjectId: `0x${pipeline.sha}`,
+							status: pipeline.status,
+							source: pipeline.source,
+							url: pipeline.web_url,
+							createdAt: gitlabTimestampMs(pipeline.created_at),
+							updatedAt: gitlabTimestampMs(pipeline.updated_at),
+						}
+					},
+				},
+			},
+		})({
+			$forgeMirror: (pipeline) => pipeline.$forgeMirror,
+			pipelineId: (pipeline) => pipeline.pipelineId,
+			pipelineIid: (pipeline) => pipeline.pipelineIid,
+			ref: (pipeline) => pipeline.ref,
+			commitObjectId: (pipeline) => pipeline.commitObjectId,
+			status: (pipeline) => pipeline.status,
+			source: (pipeline) => pipeline.source,
+			url: (pipeline) => pipeline.url,
+			createdAt: (pipeline) => pipeline.createdAt,
+			updatedAt: (pipeline) => pipeline.updatedAt,
+		}),
+
+		defineResolver({
+			entityType: EntityType.GitForgePipeline,
+			resolve: {
+				ForgeMirrorPipelineId: {
+					resolve: async (pipeline, context) => {
+						const projectId = gitlabProjectIdFromMirror(pipeline.$forgeMirror)
+						if (projectId == null) return undefined
+
+						const page = gitlabPage(context.providerContinuationToken)
+						const perPage = resolverContextRowLimit(context)
+						const { getPipelineJobs } = await import('$/sources/Gitlab/Rest/queries.ts')
+						const jobs = (
+							perPage === 0 ?
+								[]
+							:
+								await getPipelineJobs({
+									projectId,
+									pipelineId: pipeline.pipelineId,
+									page,
+									perPage,
+								})
+						)
+						if (jobs.some((job) => job.pipeline.id !== pipeline.pipelineId))
+							throw new Error('Gitlab_Rest: job pipeline identity does not match selector')
+
+						return {
+							jobs,
+							page,
+							perPage,
+						}
+					},
+				},
+			},
+		})({
+			$$jobs: {
+				select: ({ jobs }, pipeline) => jobs.map((job) => ({
+					[EntityMetaKey.Selector]: {
+						$pipeline: pipeline,
+						jobId: job.id,
+					},
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.GitForgeJob, [], 'name')]: job.name,
+						[entityFieldAddressKey(EntityType.GitForgeJob, [], 'stage')]: job.stage,
+						[entityFieldAddressKey(EntityType.GitForgeJob, [], 'status')]: job.status,
+						[entityFieldAddressKey(EntityType.GitForgeJob, [], 'commitObjectId')]: `0x${job.commit.id}`,
+						[entityFieldAddressKey(EntityType.GitForgeJob, [], 'url')]: job.web_url,
+						[entityFieldAddressKey(EntityType.GitForgeJob, [], 'createdAt')]: gitlabTimestampMs(job.created_at),
+						...(job.started_at != null && {
+							[entityFieldAddressKey(EntityType.GitForgeJob, [], 'startedAt')]: gitlabTimestampMs(job.started_at),
+						}),
+						...(job.finished_at != null && {
+							[entityFieldAddressKey(EntityType.GitForgeJob, [], 'finishedAt')]: gitlabTimestampMs(job.finished_at),
+						}),
+						...(job.duration != null && {
+							[entityFieldAddressKey(EntityType.GitForgeJob, [], 'durationSeconds')]: job.duration,
+						}),
+						...(job.queued_duration != null && {
+							[entityFieldAddressKey(EntityType.GitForgeJob, [], 'queuedDurationSeconds')]: job.queued_duration,
+						}),
+					},
+				})),
+				continuation: ({
+					jobs,
+					page,
+					perPage,
+				}) => ({
+					operation: 'gitlab-pipeline-jobs',
+					terminal: perPage === 0 || jobs.length < perPage,
+					...(jobs.length === perPage && { token: String(page + 1) }),
+				}),
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.GitForgeJob,
+			resolve: {
+				PipelineJobId: {
+					resolve: async ({
+						$pipeline,
+						jobId,
+					}) => {
+						const projectId = gitlabProjectIdFromMirror($pipeline.$forgeMirror)
+						if (projectId == null) return undefined
+
+						const { getJob } = await import('$/sources/Gitlab/Rest/queries.ts')
+						const job = await getJob({
+							projectId,
+							jobId,
+						})
+						if (job.id !== jobId || job.pipeline.id !== $pipeline.pipelineId)
+							throw new Error('Gitlab_Rest: job identity does not match selector')
+
+						return {
+							$pipeline,
+							jobId,
+							name: job.name,
+							stage: job.stage,
+							status: job.status,
+							commitObjectId: `0x${job.commit.id}`,
+							url: job.web_url,
+							createdAt: gitlabTimestampMs(job.created_at),
+							...(job.started_at != null && { startedAt: gitlabTimestampMs(job.started_at) }),
+							...(job.finished_at != null && { finishedAt: gitlabTimestampMs(job.finished_at) }),
+							...(job.duration != null && { durationSeconds: job.duration }),
+							...(job.queued_duration != null && { queuedDurationSeconds: job.queued_duration }),
+						}
+					},
+				},
+			},
+		})({
+			$pipeline: (job) => job.$pipeline,
+			jobId: (job) => job.jobId,
+			name: (job) => job.name,
+			stage: (job) => job.stage,
+			status: (job) => job.status,
+			commitObjectId: (job) => job.commitObjectId,
+			url: (job) => job.url,
+			createdAt: (job) => job.createdAt,
+			startedAt: (job) => job.startedAt,
+			finishedAt: (job) => job.finishedAt,
+			durationSeconds: (job) => job.durationSeconds,
+			queuedDurationSeconds: (job) => job.queuedDurationSeconds,
 		}),
 
 		defineResolver({

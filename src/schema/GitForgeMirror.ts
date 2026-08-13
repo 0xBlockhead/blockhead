@@ -61,6 +61,13 @@ export default entity({
 			Source.Gitlab_Rest,
 		],
 	},
+	$$pipelines: {
+		entityType: EntityType.GitForgePipeline,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Gitlab_Rest,
+		],
+	},
 	$$pullRequests: {
 		entityType: EntityType.GitForgePullRequest,
 		cardinality: EntityFieldCardinality.Many,

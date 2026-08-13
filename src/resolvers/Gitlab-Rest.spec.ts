@@ -17,6 +17,10 @@ const {
 	getIssues,
 	getMergeRequest,
 	getMergeRequests,
+	getJob,
+	getPipeline,
+	getPipelineJobs,
+	getPipelines,
 	getProject,
 	getRelease,
 	getReleases,
@@ -32,6 +36,10 @@ const {
 	getIssues: vi.fn(),
 	getMergeRequest: vi.fn(),
 	getMergeRequests: vi.fn(),
+	getJob: vi.fn(),
+	getPipeline: vi.fn(),
+	getPipelineJobs: vi.fn(),
+	getPipelines: vi.fn(),
 	getProject: vi.fn(),
 	getRelease: vi.fn(),
 	getReleases: vi.fn(),
@@ -49,6 +57,10 @@ vi.mock('$/sources/Gitlab/Rest/queries.ts', () => ({
 	getIssues,
 	getMergeRequest,
 	getMergeRequests,
+	getJob,
+	getPipeline,
+	getPipelineJobs,
+	getPipelines,
 	getProject,
 	getRelease,
 	getReleases,
@@ -60,6 +72,7 @@ vi.mock('$/sources/Gitlab/Rest/queries.ts', () => ({
 const resolverModule = (await import('$/resolvers/Gitlab-Rest.ts')).default
 const mirrorResolver = resolverModule.resolvers.find((resolver) => resolver.entityType === EntityType.GitForgeMirror)
 const mirrorIssuesResolver = resolverModule.resolvers.find((resolver) => '$$issues' in resolver.projections)
+const mirrorPipelinesResolver = resolverModule.resolvers.find((resolver) => '$$pipelines' in resolver.projections)
 const mirrorPullRequestsResolver = resolverModule.resolvers.find((resolver) => '$$pullRequests' in resolver.projections)
 const mirrorReleasesResolver = resolverModule.resolvers.find((resolver) => '$$releases' in resolver.projections)
 const repositoryResolver = resolverModule.resolvers.find((resolver) => resolver.entityType === EntityType.GitRepository)
@@ -67,18 +80,25 @@ const refResolver = resolverModule.resolvers.find((resolver) => resolver.entityT
 const pathResolutionResolver = resolverModule.resolvers.find((resolver) => resolver.entityType === EntityType.GitTreePathResolution)
 const issueResolver = resolverModule.resolvers.find((resolver) => resolver.entityType === EntityType.GitForgeIssue)
 const pullRequestResolver = resolverModule.resolvers.find((resolver) => resolver.entityType === EntityType.GitForgePullRequest)
+const pipelineResolver = resolverModule.resolvers.find((resolver) => resolver.entityType === EntityType.GitForgePipeline && 'pipelineIid' in resolver.projections)
+const pipelineJobsResolver = resolverModule.resolvers.find((resolver) => '$$jobs' in resolver.projections)
+const jobResolver = resolverModule.resolvers.find((resolver) => resolver.entityType === EntityType.GitForgeJob)
 const releaseResolver = resolverModule.resolvers.find((resolver) => resolver.entityType === EntityType.GitForgeRelease)
 const signatureResolver = resolverModule.resolvers.find((resolver) => resolver.entityType === EntityType.GitSignature)
 if (
 	mirrorResolver == null
 	|| repositoryResolver == null
 	|| mirrorIssuesResolver == null
+	|| mirrorPipelinesResolver == null
 	|| mirrorPullRequestsResolver == null
 	|| mirrorReleasesResolver == null
 	|| refResolver == null
 	|| pathResolutionResolver == null
 	|| issueResolver == null
 	|| pullRequestResolver == null
+	|| pipelineResolver == null
+	|| pipelineJobsResolver == null
+	|| jobResolver == null
 	|| releaseResolver == null
 	|| signatureResolver == null
 )
@@ -250,6 +270,39 @@ describe('GitLab repository journey', () => {
 			},
 		})
 		getReleases.mockResolvedValue([])
+		getPipeline.mockResolvedValue({
+			id: 91,
+			iid: 17,
+			project_id: project.id,
+			sha: 'a'.repeat(40),
+			ref: 'master',
+			status: 'success',
+			source: 'push',
+			created_at: '2026-08-12T00:00:00Z',
+			updated_at: '2026-08-12T00:01:00Z',
+			web_url: 'https://gitlab.com/gitlab-org/gitlab/-/pipelines/91',
+		})
+		getPipelines.mockResolvedValue([])
+		getJob.mockResolvedValue({
+			id: 123,
+			name: 'test',
+			stage: 'verify',
+			status: 'success',
+			created_at: '2026-08-12T00:02:00Z',
+			started_at: '2026-08-12T00:02:30Z',
+			finished_at: '2026-08-12T00:03:30Z',
+			duration: 60,
+			queued_duration: 30,
+			web_url: 'https://gitlab.com/gitlab-org/gitlab/-/jobs/123',
+			commit: { id: 'a'.repeat(40) },
+			pipeline: {
+				id: 91,
+				sha: 'a'.repeat(40),
+				ref: 'master',
+				status: 'success',
+			},
+		})
+		getPipelineJobs.mockResolvedValue([])
 	})
 
 	it('links the forge mirror to its canonical repository with provider provenance', async () => {
@@ -366,6 +419,73 @@ describe('GitLab repository journey', () => {
 		})
 		expect(mirrorReleasesResolver.projections.$$releases.continuation?.(releasePage, selector, pageContext)).toEqual({
 			operation: 'gitlab-releases',
+			terminal: false,
+			token: '2',
+		})
+	})
+
+	it('materializes the pipeline and job hierarchy from GitLab lifecycle authority', async () => {
+		getPipelines.mockResolvedValueOnce([await getPipeline()])
+		getPipelineJobs.mockResolvedValueOnce([await getJob()])
+		const mirror = {
+			forgeHost: 'gitlab.com',
+			owner: 'gitlab-org',
+			repositoryName: 'gitlab',
+		}
+		const context = {
+			filters: [],
+			sorts: [],
+			pagination: { limit: 1 },
+			selectorKeys: [],
+			parentSelectorKeys: [],
+			sources: [],
+			publicEnv: {},
+		}
+		const pipelinePage = await mirrorPipelinesResolver.resolve.ForgeHostOwnerRepositoryName.resolve(mirror, context)
+		if (pipelinePage == null)
+			throw new Error('GitLab pipeline page must resolve')
+		const pipelineReference = mirrorPipelinesResolver.projections.$$pipelines.select(pipelinePage, mirror, context)[0]
+		const pipelineSelector = {
+			$forgeMirror: mirror,
+			pipelineId: 91,
+		}
+		const pipeline = await pipelineResolver.resolve.ForgeMirrorPipelineId.resolve(pipelineSelector)
+		const jobPage = await pipelineJobsResolver.resolve.ForgeMirrorPipelineId.resolve(pipelineSelector, context)
+		if (jobPage == null)
+			throw new Error('GitLab job page must resolve')
+		const jobReference = pipelineJobsResolver.projections.$$jobs.select(jobPage, pipelineSelector, context)[0]
+		const job = await jobResolver.resolve.PipelineJobId.resolve({
+			$pipeline: pipelineSelector,
+			jobId: 123,
+		})
+
+		expect(pipelineReference).toMatchObject({
+			[EntityMetaKey.Selector]: { pipelineId: 91 },
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.GitForgePipeline, [], 'status')]: 'success',
+				[entityFieldAddressKey(EntityType.GitForgePipeline, [], 'commitObjectId')]: `0x${'a'.repeat(40)}`,
+			},
+		})
+		expect(pipeline).toMatchObject({
+			pipelineId: 91,
+			pipelineIid: 17,
+			status: 'success',
+		})
+		expect(jobReference).toMatchObject({
+			[EntityMetaKey.Selector]: { jobId: 123 },
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.GitForgeJob, [], 'name')]: 'test',
+				[entityFieldAddressKey(EntityType.GitForgeJob, [], 'durationSeconds')]: 60,
+			},
+		})
+		expect(job).toMatchObject({
+			jobId: 123,
+			name: 'test',
+			stage: 'verify',
+			status: 'success',
+		})
+		expect(mirrorPipelinesResolver.projections.$$pipelines.continuation?.(pipelinePage, mirror, context)).toEqual({
+			operation: 'gitlab-pipelines',
 			terminal: false,
 			token: '2',
 		})
