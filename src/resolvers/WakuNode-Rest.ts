@@ -73,6 +73,64 @@ export default {
 					},
 				},
 			},
+			resolveLive: {
+				operatorState: {
+					facetPath: [],
+					publishes: {
+						'$$timestamps': true,
+					},
+					start: ({
+						fields,
+						parentEntitySelector,
+						signal,
+					}) => {
+						if (parentEntitySelector.connectionId !== connectionId)
+							throw new Error(`WakuNode_Rest: unsupported connection ${parentEntitySelector.connectionId}`)
+
+						let timeout: ReturnType<typeof setTimeout> | undefined
+						const poll = async () => {
+							const { getDebugInfo, getHealth } = await loadWakuQueries()
+							const [debugInfo, health] = await Promise.all([
+								getDebugInfo(),
+								getHealth(),
+							])
+							if (signal.aborted)
+								return
+							if (debugInfo.enrUri == null)
+								throw new Error('WakuNode_Rest: debug info does not expose an ENR node identity')
+							if (parentEntitySelector.nodeId !== debugInfo.enrUri)
+								throw new Error(`WakuNode_Rest: local node ${debugInfo.enrUri} does not match ${parentEntitySelector.nodeId}`)
+
+							fields.$$timestamps.replaceRows([{
+								source: Source.WakuNode,
+								value: [{
+									[EntityMetaKey.Selector]: {
+										$nodeState: parentEntitySelector,
+										timestampMs: Date.now(),
+										source: Source.WakuNode,
+									},
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.BlockheadWakuNodeState_Timestamp, [], 'health')]: health,
+										[entityFieldAddressKey(EntityType.BlockheadWakuNodeState_Timestamp, [], 'listenAddresses')]: debugInfo.listenAddresses,
+										[entityFieldAddressKey(EntityType.BlockheadWakuNodeState_Timestamp, [], 'enrUri')]: debugInfo.enrUri,
+									},
+								}],
+							}])
+							timeout = setTimeout(() => { void poll() }, 10_000)
+						}
+						const abort = () => {
+							if (timeout != null)
+								clearTimeout(timeout)
+						}
+						signal.addEventListener('abort', abort, { once: true })
+						void poll()
+						return () => {
+							signal.removeEventListener('abort', abort)
+							abort()
+						}
+					},
+				},
+			},
 		})({
 			connectionId: (nodeState) => nodeState.connectionId,
 			nodeId: (nodeState) => nodeState.nodeId,

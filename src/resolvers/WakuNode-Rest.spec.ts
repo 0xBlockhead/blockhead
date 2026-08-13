@@ -1,4 +1,5 @@
 import {
+	afterEach,
 	beforeEach,
 	describe,
 	expect,
@@ -33,6 +34,10 @@ const [nodeStateResolver] = resolverModule.resolvers
 const resolveNodeState = nodeStateResolver.resolve.ConnectionIdNodeId.resolve
 
 describe('Waku local node journey', () => {
+	afterEach(() => {
+		vi.useRealTimers()
+	})
+
 	beforeEach(() => {
 		vi.clearAllMocks()
 		getJson.mockResolvedValue({
@@ -74,6 +79,61 @@ describe('Waku local node journey', () => {
 		})
 		expect(typeof snapshot.$$timestamps[0][EntityMetaKey.Selector].timestampMs).toBe('number')
 		expect(nodeStateResolver.projections.$$timestamps.resolveCount(snapshot)).toBe(1)
+	})
+
+	it('keeps local node health current until the owner is released', async () => {
+		vi.useFakeTimers()
+		const replaceTimestamps = vi.fn()
+		const abortController = new AbortController()
+		const cleanup = nodeStateResolver.resolveLive.operatorState.start({
+			parentEntitySelector: {
+				connectionId: 'waku-node',
+				nodeId: 'enr:-waku-node',
+			},
+			queryClient: {},
+			signal: abortController.signal,
+			trigger: {
+				publicEnv: {},
+				pagination: { limit: 25 },
+			},
+			fields: {
+				$$timestamps: {
+					replaceRows: replaceTimestamps,
+					invalidate: vi.fn(),
+					count: {
+						replaceRows: vi.fn(),
+						invalidate: vi.fn(),
+					},
+				},
+			},
+		})
+		await vi.waitFor(() => expect(replaceTimestamps).toHaveBeenCalledOnce())
+
+		expect(replaceTimestamps).toHaveBeenCalledWith([{
+			source: Source.WakuNode,
+			value: [expect.objectContaining({
+				[EntityMetaKey.Selector]: {
+					$nodeState: {
+						connectionId: 'waku-node',
+						nodeId: 'enr:-waku-node',
+					},
+					timestampMs: expect.any(Number),
+					source: Source.WakuNode,
+				},
+			})],
+		}])
+
+		getText.mockResolvedValueOnce('Not Ready')
+		await vi.advanceTimersByTimeAsync(10_000)
+		await vi.waitFor(() => expect(replaceTimestamps).toHaveBeenCalledTimes(2))
+		expect(replaceTimestamps.mock.calls[1][0][0].value[0][EntityMetaKey.Fields]).toMatchObject({
+			[entityFieldAddressKey(EntityType.BlockheadWakuNodeState_Timestamp, [], 'health')]: 'Not Ready',
+		})
+
+		abortController.abort()
+		cleanup()
+		await vi.advanceTimersByTimeAsync(10_000)
+		expect(getText).toHaveBeenCalledTimes(2)
 	})
 
 	it('fails closed when the requested node does not match configured node identity', async () => {
