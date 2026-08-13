@@ -106,6 +106,8 @@ export const getRawTransaction = async ({
 	if (transaction.txid.toLowerCase() !== txId.toLowerCase())
 		throw new Error(`${Source.BitcoinCore_JsonRpc}: transaction id does not match request`)
 	assertHash(transaction.hash, 'transaction witness hash')
+	if (transaction.blockhash != null)
+		assertHash(transaction.blockhash, 'transaction block hash')
 	const spentOutpoints = new Set<string>()
 	for (const input of transaction.vin) {
 		if (input.txid == null || input.vout == null)

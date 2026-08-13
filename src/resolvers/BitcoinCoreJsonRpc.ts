@@ -104,6 +104,17 @@ export const bitcoinCoreJsonRpcResolvers = <
 			virtualSizeBytes: transaction.vsize,
 			weightUnits: transaction.weight,
 			isCoinbase: transaction.vin.some((input) => input.coinbase != null),
+			...(transaction.blockhash != null && {
+				$block: {
+					[EntityMetaKey.Selector]: {
+						$network: entitySelector.$network,
+						height: BigInt((await (await loadQueries()).getBlock({
+							blockHash: transaction.blockhash,
+						})).height),
+						hash: transaction.blockhash,
+					},
+				},
+			}),
 			$$inputs: transaction.vin.map((input, indexInTransaction) => ({
 				[EntityMetaKey.Selector]: {
 					$transaction: entitySelector,
@@ -505,6 +516,7 @@ export const bitcoinCoreJsonRpcResolvers = <
 				virtualSizeBytes: (snapshot) => snapshot.virtualSizeBytes,
 				weightUnits: (snapshot) => snapshot.weightUnits,
 				isCoinbase: (snapshot) => snapshot.isCoinbase,
+				$block: (snapshot) => snapshot.$block,
 				$$inputs: (snapshot) => snapshot.$$inputs,
 				$$outputs: (snapshot) => snapshot.$$outputs,
 				$$bitcoinOrdinalInscriptions: (snapshot) => snapshot.$$bitcoinOrdinalInscriptions,

@@ -224,6 +224,40 @@ describe('BitcoinCore UTXO', () => {
 		})
 	})
 
+	it('materializes a confirmed transaction block relationship from the node block authority', async () => {
+		const txId = 'b'.repeat(64)
+		getRawTransaction.mockResolvedValueOnce({
+			txid: txId,
+			blockhash: blockHash,
+			version: 2,
+			locktime: 0,
+			size: 200,
+			vsize: 100,
+			weight: 400,
+			vin: [],
+			vout: [],
+		})
+		getBlock.mockResolvedValueOnce(tipBlock)
+
+		const transaction = await transactionResolver.resolve[
+			'NetworkTxId'
+		].resolve({
+			$network: network,
+			txId,
+		})
+
+		expect(transactionResolver.projections.$block(transaction)).toEqual({
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				height: 850_000n,
+				hash: blockHash,
+			},
+		})
+		expect(getBlock).toHaveBeenCalledWith({
+			blockHash,
+		})
+	})
+
 	it('projects a Bitcoin Core mempool entry fee without inventing a confirmed transaction fee', async () => {
 		const txId = 'a'.repeat(64)
 		getMempoolEntry.mockResolvedValueOnce({

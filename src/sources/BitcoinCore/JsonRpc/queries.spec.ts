@@ -118,6 +118,14 @@ describe('Bitcoin Core JSON-RPC', () => {
 		await expect(getRawTransaction({
 			txId,
 		})).rejects.toThrow('invalid transaction response envelope')
+
+		jsonRpc2.mockResolvedValueOnce({
+			...transaction,
+			blockhash: 'not-a-hash',
+		})
+		await expect(getRawTransaction({
+			txId,
+		})).rejects.toThrow('invalid transaction block hash')
 	})
 
 	it('rejects transaction rows that cannot safely become UTXO input and output identities', async () => {
