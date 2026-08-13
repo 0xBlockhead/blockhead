@@ -61,10 +61,25 @@ export default {
 							extrinsicIndex,
 						} = availSubmissionCoordinates(submissionKey)
 						const {
+							getBlock,
 							getDataProof,
+							getFinalizedHead,
 							getHeaderByBlockNumber,
 						} = await import('$/sources/Avail/JsonRpc/queries.ts')
-						const header = await getHeaderByBlockNumber(context.publicEnv, blockNumber)
+						const [
+							header,
+							finalized,
+						] = await Promise.all([
+							getHeaderByBlockNumber(context.publicEnv, blockNumber),
+							getFinalizedHead(context.publicEnv),
+						])
+						if (blockNumber > finalized.blockNumber)
+							throw new Error('Avail: data submission block is not finalized')
+
+						const block = await getBlock(context.publicEnv, header.hash)
+						if (extrinsicIndex >= block.extrinsics.length)
+							throw new Error('Avail: data submission extrinsic is absent from block')
+
 						const proof = await getDataProof(
 							context.publicEnv,
 							header.hash,

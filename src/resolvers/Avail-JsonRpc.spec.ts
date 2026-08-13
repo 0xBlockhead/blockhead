@@ -111,6 +111,18 @@ beforeEach(() => {
 describe('Avail JsonRpc resolver', () => {
 	it('materializes exact block proof under the native submission owner', async () => {
 		getHeaderByBlockNumber.mockResolvedValue(header)
+		getFinalizedHead.mockResolvedValue({
+			...header,
+			finalized: true,
+		})
+		getBlock.mockResolvedValue({
+			...header,
+			extrinsicCount: 2,
+			extrinsics: [
+				'0x00',
+				'0x01',
+			],
+		})
 		getDataProof.mockResolvedValue({
 			dataProof: {
 				roots: {
@@ -144,6 +156,40 @@ describe('Avail JsonRpc resolver', () => {
 		expect(dataSubmissionResolver.projections.commitment(snapshot)).toBe(`0x${'f'.repeat(64)}`)
 		expect(dataSubmissionResolver.projections.proofAvailable(snapshot)).toBe(true)
 		expect(getDataProof).toHaveBeenCalledWith(context.publicEnv, hash, 1)
+	})
+
+	it('rejects unfinalized or absent submission coordinates before requesting a proof', async () => {
+		getHeaderByBlockNumber.mockResolvedValue(header)
+		getFinalizedHead.mockResolvedValue({
+			...header,
+			blockNumber: 99n,
+			finalized: true,
+		})
+
+		await expect(dataSubmissionResolver.resolve.NetworkSourceSubmissionKey.resolve({
+			$network: availNetwork,
+			source: Source.Avail,
+			submissionKey: '100:1',
+		}, context)).rejects.toThrow('data submission block is not finalized')
+		expect(getBlock).not.toHaveBeenCalled()
+		expect(getDataProof).not.toHaveBeenCalled()
+
+		getFinalizedHead.mockResolvedValue({
+			...header,
+			finalized: true,
+		})
+		getBlock.mockResolvedValue({
+			...header,
+			extrinsicCount: 1,
+			extrinsics: ['0x00'],
+		})
+
+		await expect(dataSubmissionResolver.resolve.NetworkSourceSubmissionKey.resolve({
+			$network: availNetwork,
+			source: Source.Avail,
+			submissionKey: '100:1',
+		}, context)).rejects.toThrow('data submission extrinsic is absent from block')
+		expect(getDataProof).not.toHaveBeenCalled()
 	})
 
 	it('rejects malformed or out-of-range submission coordinates', async () => {
