@@ -168,8 +168,14 @@ const bearerAuthorization = async (response: Response) => {
 		throw new Error('OciRegistry_Distribution: bearer challenge is missing a realm')
 
 	const realm = new URL(realmParameter)
-	if (realm.protocol !== 'https:')
-		throw new Error('OciRegistry_Distribution: bearer realm must use HTTPS')
+	if (
+		realm.protocol !== 'https:'
+		|| realm.origin !== ociRegistryOrigin(realm.host)
+		|| realm.username !== ''
+		|| realm.password !== ''
+		|| realm.hash !== ''
+	)
+		throw new Error('OciRegistry_Distribution: bearer realm must be a canonical public HTTPS URL')
 
 	const tokenUrl = new URL(realm)
 	const service = challengeParameter('service')
@@ -179,7 +185,9 @@ const bearerAuthorization = async (response: Response) => {
 	if (scope != null)
 		tokenUrl.searchParams.set('scope', scope)
 
-	const tokenResponse = await sourceFetch(bindingForHttpUrl(tokenUrl.origin), tokenUrl.href)
+	const tokenResponse = await sourceFetch(bindingForHttpUrl(tokenUrl.origin), tokenUrl.href, {
+		redirect: 'manual',
+	})
 	if (!tokenResponse.ok)
 		throw new Error(`OciRegistry_Distribution: bearer token request failed: ${tokenResponse.status} ${tokenResponse.statusText}`)
 
@@ -198,6 +206,7 @@ const registryGet = async (
 ) => {
 	let response = await sourceFetch(registryBinding, url, {
 		headers: { accept },
+		redirect: 'manual',
 	})
 	if (response.status === 401)
 		response = await sourceFetch(registryBinding, url, {
@@ -205,6 +214,7 @@ const registryGet = async (
 				accept,
 				authorization: await bearerAuthorization(response),
 			},
+			redirect: 'manual',
 		})
 
 	return response
@@ -266,7 +276,7 @@ const nextReferrersUrl = (
 	})
 	if (nextUrls.length > 1)
 		throw new Error('OciRegistry_Distribution: ambiguous referrers continuation')
-	const [nextUrl] = nextUrls
+	const nextUrl = nextUrls.at(0)
 	if (nextUrl == null)
 		return undefined
 	if (

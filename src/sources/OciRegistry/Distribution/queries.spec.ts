@@ -71,6 +71,7 @@ describe('OCI distribution manifest transport', () => {
 				headers: {
 					accept: expect.stringContaining('application/vnd.oci.image.manifest.v1+json'),
 				},
+				redirect: 'manual',
 			}
 		)
 	})
@@ -246,7 +247,10 @@ describe('OCI distribution manifest transport', () => {
 					locator: 'https://auth.example',
 				}],
 			},
-			'https://auth.example/token?service=registry.example&scope=repository%3Ateam%2Fimage%3Apull'
+			'https://auth.example/token?service=registry.example&scope=repository%3Ateam%2Fimage%3Apull',
+			{
+				redirect: 'manual',
+			}
 		)
 		expect(sourceFetch).toHaveBeenNthCalledWith(
 			3,
@@ -263,8 +267,33 @@ describe('OCI distribution manifest transport', () => {
 					accept: expect.any(String),
 					authorization: 'Bearer public-pull-token',
 				},
+				redirect: 'manual',
 			}
 		)
+	})
+
+	it('rejects bearer challenges that redirect server-owned transport to local or credential-bearing realms', async () => {
+		for (const realm of [
+			'https://127.0.0.1/token',
+			'https://169.254.169.254/token',
+			'https://user:password@auth.example/token',
+			'http://auth.example/token',
+		]) {
+			sourceFetch.mockReset()
+			sourceFetch.mockResolvedValueOnce(new Response(null, {
+				status: 401,
+				headers: {
+					'WWW-Authenticate': `Bearer realm="${realm}"`,
+				},
+			}))
+
+			await expect(getManifest({
+				registry: 'registry.example',
+				repository: 'team/image',
+				reference: 'latest',
+			})).rejects.toThrow(/bearer realm|local network host/)
+			expect(sourceFetch).toHaveBeenCalledTimes(1)
+		}
 	})
 
 	it('paginates typed attestation and signature referrers without leaving the repository', async () => {
@@ -328,6 +357,7 @@ describe('OCI distribution manifest transport', () => {
 				headers: {
 					accept: 'application/vnd.oci.image.index.v1+json',
 				},
+				redirect: 'manual',
 			}
 		)
 	})
@@ -368,6 +398,7 @@ describe('OCI distribution manifest transport', () => {
 				headers: {
 					accept: expect.stringContaining('application/vnd.oci.image.index.v1+json'),
 				},
+				redirect: 'manual',
 			}
 		)
 
