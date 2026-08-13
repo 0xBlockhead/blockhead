@@ -46,6 +46,7 @@
 	import BeaconCommitteesView from '$/views/BeaconCommitteesView.svelte'
 	import BeaconDepositsView from '$/views/BeaconDepositsView.svelte'
 	import BeaconAttestationsView from '$/views/BeaconAttestationsView.svelte'
+	import BeaconDataColumnsView from '$/views/BeaconDataColumnsView.svelte'
 	import BeaconWithdrawalsView from '$/views/BeaconWithdrawalsView.svelte'
 	import BeaconSlashingsView from '$/views/BeaconSlashingsView.svelte'
 </script>
@@ -506,6 +507,10 @@
 						id: 'beacon-slot-attestations',
 						label: 'Attestations',
 					},
+					{
+						id: 'beacon-slot-data-columns',
+						label: 'Data availability columns',
+					},
 				]
 			}
 			data-card
@@ -562,6 +567,23 @@
 					}
 					collapsible={false}
 					title={label}
+					id={`${id}-list`}
+				/>
+			{/snippet}
+
+			{#snippet SectionBeaconSlotDataColumns({ id, label })}
+				<BeaconDataColumnsView
+					selection={
+						selection
+						.$$dataColumns({
+							sources: [
+								Source.Beacon_Rest,
+							],
+						})
+					}
+					collapsible={false}
+					title={label}
+					emptyText='No data columns were returned by this beacon node.'
 					id={`${id}-list`}
 				/>
 			{/snippet}

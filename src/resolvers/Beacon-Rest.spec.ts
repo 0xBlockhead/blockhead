@@ -32,6 +32,7 @@ const getBlockDutySummary = vi.hoisted(() => vi.fn())
 const getBlockRewards = vi.hoisted(() => vi.fn())
 const getAttestationRewards = vi.hoisted(() => vi.fn())
 const getSyncCommitteeRewards = vi.hoisted(() => vi.fn())
+const getDataColumnSidecars = vi.hoisted(() => vi.fn())
 const getHeader = vi.hoisted(() => vi.fn())
 const getHeadersAtSlot = vi.hoisted(() => vi.fn())
 const getHeadSlot = vi.hoisted(() => vi.fn())
@@ -55,6 +56,7 @@ vi.mock('$/sources/Beacon/Rest/queries.ts', async (importOriginal) => ({
 	getBlockRewards,
 	getAttestationRewards,
 	getSyncCommitteeRewards,
+	getDataColumnSidecars,
 	getHeader,
 	getHeadersAtSlot,
 	getHeadSlot,
@@ -831,6 +833,88 @@ describe('Beacon REST checkpoint and fork projections', () => {
 		expect(getProposerDuties).toHaveBeenCalledWith(1, 2)
 		expect(getBlockRewards).toHaveBeenNthCalledWith(1, 1, 64)
 		expect(getBlockRewards).toHaveBeenNthCalledWith(2, 1, 65)
+	})
+
+	it('materializes source-owned PeerDAS columns and custody observations from one slot read', async () => {
+		getDataColumnSidecars.mockResolvedValue({
+			version: 'fulu',
+			executionOptimistic: false,
+			finalized: true,
+			endpointUrl: 'https://ethereum-beacon-api.publicnode.com',
+			sidecars: [{
+				index: 7,
+				columns: [`0x${'ab'.repeat(2_048)}`],
+				kzgProofs: [`0x${'cd'.repeat(48)}`],
+				kzgCommitments: [`0x${'ef'.repeat(48)}`],
+				beaconBlockRoot: undefined,
+				slot: 64,
+			}],
+		})
+		const slotColumnsResolver = beaconRest.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.BeaconSlot
+			&& '$$dataColumns' in resolver.projections
+		))
+		const dataColumnResolver = beaconRest.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.BeaconDataColumn
+		))
+		if (slotColumnsResolver == null || dataColumnResolver == null)
+			throw new Error('Beacon REST data-column resolvers are not registered')
+
+		const columns = await slotColumnsResolver.resolve.EvmNetworkSlot.resolve({
+			$network: network,
+			slot: 64,
+		}, {
+			filters: [],
+			sorts: [],
+			pagination: { limit: 1 },
+			selectorKeys: [],
+			parentSelectorKeys: [],
+			publicEnv: {},
+		})
+		expect(columns).toMatchObject([{
+			[EntityMetaKey.Selector]: {
+				$slot: {
+					$network: network,
+					slot: 64,
+				},
+				columnIndex: 7,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.BeaconDataColumn, [], 'forkVersion')]: 'fulu',
+				[entityFieldAddressKey(EntityType.BeaconDataColumn, [], 'columnCount')]: 1,
+				[entityFieldAddressKey(EntityType.BeaconDataColumn, [], '$$timestamps')]: [{
+					[EntityMetaKey.Selector]: {
+						$dataColumn: {
+							$slot: {
+								$network: network,
+								slot: 64,
+							},
+							columnIndex: 7,
+						},
+						timestampMs: expect.any(Number),
+						source: Source.Beacon_Rest,
+					},
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.BeaconDataColumn_Timestamp, [], 'endpointUrl')]: 'https://ethereum-beacon-api.publicnode.com',
+						[entityFieldAddressKey(EntityType.BeaconDataColumn_Timestamp, [], 'finalized')]: true,
+					},
+				}],
+			},
+		}])
+
+		await expect(dataColumnResolver.resolve.SlotColumnIndex.resolve({
+			$slot: {
+				$network: network,
+				slot: 64,
+			},
+			columnIndex: 7,
+		})).resolves.toMatchObject({
+			columnIndex: 7,
+			forkVersion: 'fulu',
+			columnCount: 1,
+		})
+		expect(getDataColumnSidecars).toHaveBeenNthCalledWith(1, 1, 64)
+		expect(getDataColumnSidecars).toHaveBeenNthCalledWith(2, 1, 64, [7])
 	})
 
 	it('preserves missed proposer duties as native slot identities', async () => {

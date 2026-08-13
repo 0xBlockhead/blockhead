@@ -857,6 +857,8 @@ export enum EntityType {
 	BalancerVeBalBalance = "BalancerVeBalBalance",
 	BeaconAttestation = "BeaconAttestation",
 	BeaconCommittee = "BeaconCommittee",
+	BeaconDataColumn = "BeaconDataColumn",
+	BeaconDataColumn_Timestamp = "BeaconDataColumn_Timestamp",
 	BeaconDeposit = "BeaconDeposit",
 	BeaconEpoch = "BeaconEpoch",
 	BeaconSlashing = "BeaconSlashing",
@@ -10568,6 +10570,65 @@ export const schema = {
 			}),
 
 			entity({
+				entityType: EntityType.BeaconDataColumn,
+				labels: {
+					singular: "beacon data column",
+					plural: "Beacon data columns",
+				},
+				description: "A PeerDAS data column and its KZG material, keyed by its owning beacon slot and protocol column index.",
+			})({
+				"$slot": { label: "Slot", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.BeaconSlot },
+				"columnIndex": { label: "Column index", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
+				"forkVersion": { label: "Fork version", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string", defaultSources: [Source.Beacon_Rest] },
+				"columnCount": { label: "Cells", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number", defaultSources: [Source.Beacon_Rest] },
+				"columns": { label: "Column cells", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "string", defaultSources: [Source.Beacon_Rest] },
+				"kzgProofs": { label: "KZG proofs", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "string", defaultSources: [Source.Beacon_Rest] },
+				"kzgCommitments": { label: "KZG commitments", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "string", defaultSources: [Source.Beacon_Rest] },
+				"beaconBlockRoot": { label: "Beacon block root", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Beacon_Rest] },
+				"$$timestamps": { label: "Custody observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BeaconDataColumn_Timestamp, defaultSources: [Source.Beacon_Rest] },
+			})({
+				selectors: {
+					"SlotColumnIndex": ["$slot", "columnIndex"],
+				},
+				views: {
+					singular: {
+						query: { sources: [Source.Beacon_Rest] },
+						summary: { serial: { field: "columnIndex", label: "Data column" }, value: ["forkVersion", { field: "columnCount", format: "number" }], HeadingAfter: ["$slot"] },
+						content: { dl: [["$slot", { field: "columnIndex", format: "number" }, "forkVersion", { field: "columnCount", format: "number" }, { field: "beaconBlockRoot", format: "truncated" }], ["columns", "kzgProofs", "kzgCommitments"]] },
+						lists: [{ field: "$$timestamps", component: "BeaconDataColumn_TimestampsView", label: "Custody and finality observations", query: { sources: [Source.Beacon_Rest] } }],
+					},
+					plural: { component: "BeaconDataColumnsView", title: "Data columns" },
+				},
+			}),
+
+			entity({
+				entityType: EntityType.BeaconDataColumn_Timestamp,
+				labels: {
+					singular: "beacon data column custody observation",
+					plural: "Beacon data column custody observations",
+				},
+			})({
+				"$dataColumn": { label: "Data column", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.BeaconDataColumn },
+				"timestampMs": { label: "Retrieved at", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
+				"source": { label: "Source", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"endpointUrl": { label: "Beacon endpoint", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "urlString" },
+				"executionOptimistic": { label: "Execution optimistic", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "boolean" },
+				"finalized": { label: "Finalized", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "boolean" },
+			})({
+				selectors: {
+					"DataColumnTimestampMsSource": ["$dataColumn", "timestampMs", "source"],
+				},
+				views: {
+					singular: {
+						query: { sources: [Source.Beacon_Rest] },
+						summary: { title: [{ field: "timestampMs", format: "timestamp" }], value: ["finalized", "executionOptimistic"], HeadingAfter: ["source"] },
+						content: { dl: [["$dataColumn", { field: "timestampMs", format: "timestamp" }, "source", "endpointUrl", "finalized", "executionOptimistic"]] },
+					},
+					plural: { component: "BeaconDataColumn_TimestampsView", title: "Custody observations" },
+				},
+			}),
+
+			entity({
 				entityType: EntityType.BeaconDeposit,
 				labels: {
 					singular: "beacon deposit",
@@ -10902,6 +10963,13 @@ export const schema = {
 					entityType: EntityType.BeaconSlashing,
 					defaultSources: [Source.Beacon_Rest, Source.BeaconchaIn_Rest],
 				},
+				"$$dataColumns": {
+					label: "Data columns",
+					type: EntityFieldType.EntitiesReference,
+					cardinality: EntityFieldCardinality.Many,
+					entityType: EntityType.BeaconDataColumn,
+					defaultSources: [Source.Beacon_Rest],
+				},
 			})({
 				selectors: {
 					"EvmNetworkSlot": ["$network", "slot"],
@@ -10957,6 +11025,7 @@ export const schema = {
 									{ id: "beacon-slot-committees", field: "$$beaconCommittees", List: "BeaconCommitteesView", label: "Committees", selection: { sources: [Source.Beacon_Rest] } },
 									{ id: "beacon-slot-deposits", field: "$$beaconDeposits", List: "BeaconDepositsView", label: "Deposits", selection: { sources: [Source.Beacon_Rest] } },
 									{ id: "beacon-slot-attestations", field: "$$beaconAttestations", List: "BeaconAttestationsView", label: "Attestations", selection: { sources: [Source.Beacon_Rest, Source.BeaconchaIn_Rest] } },
+									{ id: "beacon-slot-data-columns", field: "$$dataColumns", List: "BeaconDataColumnsView", label: "Data availability columns", selection: { sources: [Source.Beacon_Rest] }, emptyText: "No data columns were returned by this beacon node." },
 								],
 							},
 							{
@@ -79068,6 +79137,47 @@ export const routes = defineRoutes(schema)({
 														}
 													},
 													children: {
+														"data-column": {
+															children: {
+																"[columnIndex]": {
+																	params: { "columnIndex": ["NonNegativeInteger"] },
+																	selectors: {
+																		[EntityType.BeaconDataColumn]: {
+																			"SlotColumnIndex": {
+																				projection: { entityType: EntityType.Network, facetPath: ["Evm"] },
+																				derivations: { "columnIndex": { kind: "param", name: "columnIndex" } },
+																				page: {},
+																			},
+																		},
+																	},
+																	children: {
+																		"observation": {
+																			children: {
+																				"[timestampMs]": {
+																					params: { "timestampMs": ["NonNegativeInteger"] },
+																					children: {
+																						"[source]": {
+																							params: { "source": ["string"] },
+																							selectors: {
+																								[EntityType.BeaconDataColumn_Timestamp]: {
+																									"DataColumnTimestampMsSource": {
+																										derivations: {
+																											"timestampMs": { kind: "param", name: "timestampMs" },
+																											"source": { kind: "param", name: "source" },
+																										},
+																										page: {},
+																									},
+																								},
+																							},
+																						},
+																					},
+																				},
+																			},
+																		},
+																	},
+																},
+															},
+														},
 														"committee": {
 															children: {
 																"[index]": {

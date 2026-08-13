@@ -141,6 +141,13 @@ export default entity({
 			Source.BeaconchaIn_Rest,
 		],
 	},
+	$$dataColumns: {
+		entityType: EntityType.BeaconDataColumn,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Beacon_Rest,
+		],
+	},
 })({
 	selectors: {
 		EvmNetworkSlot: [

@@ -27,7 +27,10 @@ import { ApiFamily } from '$/sources/SourceBinding.ts'
 import {
 	beaconRestByChainId,
 } from '$/sources/Beacon/Rest/queries.ts'
-import type { BeaconBlockDutySummary } from '$/sources/Beacon/Rest/types.ts'
+import type {
+	BeaconBlockDutySummary,
+	BeaconDataColumnSidecars,
+} from '$/sources/Beacon/Rest/types.ts'
 
 const beaconNetworkApplicability = [...beaconRestByChainId.values()].map(({ chainId }) => ({
 	caip2: {
@@ -61,6 +64,73 @@ const eip155ChainId = (
 		throw new Error('Beacon_Rest: network must have a positive safe eip155 chain ID')
 	return chainId
 }
+
+const beaconDataColumnSnapshot = (
+	$network: EntitySelector<typeof schema, EntityType.Network>,
+	slot: number,
+	sidecars: BeaconDataColumnSidecars & { endpointUrl: string },
+	sidecar: BeaconDataColumnSidecars['sidecars'][number],
+	timestampMs: number
+) => {
+	if (sidecar.slot !== slot)
+		throw new Error(`Beacon_Rest: data column slot ${String(sidecar.slot)} does not match requested slot ${String(slot)}`)
+
+	const $slot = {
+		$network,
+		slot,
+	}
+	const $dataColumn = {
+		$slot,
+		columnIndex: sidecar.index,
+	}
+	return {
+		$slot: {
+			[EntityMetaKey.Selector]: $slot,
+		},
+		columnIndex: sidecar.index,
+		forkVersion: sidecars.version,
+		columnCount: sidecar.columns.length,
+		columns: sidecar.columns,
+		kzgProofs: sidecar.kzgProofs,
+		kzgCommitments: sidecar.kzgCommitments,
+		...(sidecar.beaconBlockRoot != null && {
+			beaconBlockRoot: sidecar.beaconBlockRoot,
+		}),
+		$$timestamps: [{
+			[EntityMetaKey.Selector]: {
+				$dataColumn,
+				timestampMs,
+				source: Source.Beacon_Rest,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.BeaconDataColumn_Timestamp, [], 'endpointUrl')]: sidecars.endpointUrl,
+				[entityFieldAddressKey(EntityType.BeaconDataColumn_Timestamp, [], 'executionOptimistic')]: sidecars.executionOptimistic,
+				[entityFieldAddressKey(EntityType.BeaconDataColumn_Timestamp, [], 'finalized')]: sidecars.finalized,
+			},
+		}],
+	}
+}
+
+const beaconDataColumnReference = (
+	snapshot: ReturnType<typeof beaconDataColumnSnapshot>
+) => ({
+	[EntityMetaKey.Selector]: {
+		$slot: snapshot.$slot[EntityMetaKey.Selector],
+		columnIndex: snapshot.columnIndex,
+	},
+	[EntityMetaKey.Fields]: {
+		[entityFieldAddressKey(EntityType.BeaconDataColumn, [], '$slot')]: snapshot.$slot,
+		[entityFieldAddressKey(EntityType.BeaconDataColumn, [], 'forkVersion')]: snapshot.forkVersion,
+		[entityFieldAddressKey(EntityType.BeaconDataColumn, [], 'columnCount')]: snapshot.columnCount,
+		[entityFieldAddressKey(EntityType.BeaconDataColumn, [], 'columns')]: snapshot.columns,
+		[entityFieldAddressKey(EntityType.BeaconDataColumn, [], 'kzgProofs')]: snapshot.kzgProofs,
+		[entityFieldAddressKey(EntityType.BeaconDataColumn, [], 'kzgCommitments')]: snapshot.kzgCommitments,
+		...(snapshot.beaconBlockRoot != null && {
+			[entityFieldAddressKey(EntityType.BeaconDataColumn, [], 'beaconBlockRoot')]: snapshot.beaconBlockRoot,
+		}),
+		[entityFieldAddressKey(EntityType.BeaconDataColumn, [], '$$timestamps')]: snapshot.$$timestamps,
+	},
+})
 
 const safeIntegerFromDecimal = (
 	value: string,
@@ -464,6 +534,70 @@ export default {
 			entityType: EntityType.BeaconSlot,
 			resolve: {
 				EvmNetworkSlot: {
+					appliesTo: eip155NetworkApplicability,
+					resolve: async ({ $network, slot }, context) => {
+						const { getDataColumnSidecars } = await import('$/sources/Beacon/Rest/queries.ts')
+						const sidecars = await getDataColumnSidecars(
+							eip155ChainId($network),
+							slot
+						)
+						const timestampMs = Date.now()
+						return sidecars.sidecars
+							.slice(0, resolverContextRowLimit(context))
+							.map((sidecar) => beaconDataColumnReference(beaconDataColumnSnapshot(
+								$network,
+								slot,
+								sidecars,
+								sidecar,
+								timestampMs
+							)))
+					},
+				},
+			},
+		})({
+				$$dataColumns: (slot) => slot,
+			}),
+
+		defineResolver({
+			entityType: EntityType.BeaconDataColumn,
+			resolve: {
+				SlotColumnIndex: {
+					resolve: async ({ $slot, columnIndex }) => {
+						const { getDataColumnSidecars } = await import('$/sources/Beacon/Rest/queries.ts')
+						const sidecars = await getDataColumnSidecars(
+							eip155ChainId($slot.$network),
+							$slot.slot,
+							[columnIndex]
+						)
+						if (sidecars.sidecars.length !== 1 || sidecars.sidecars[0].index !== columnIndex)
+							throw new Error(`Beacon_Rest: data column ${String(columnIndex)} not found`)
+
+						return beaconDataColumnSnapshot(
+							$slot.$network,
+							$slot.slot,
+							sidecars,
+							sidecars.sidecars[0],
+							Date.now()
+						)
+					},
+				},
+			},
+		})({
+				$slot: (column) => column.$slot,
+				columnIndex: (column) => column.columnIndex,
+				forkVersion: (column) => column.forkVersion,
+				columnCount: (column) => column.columnCount,
+				columns: (column) => column.columns,
+				kzgProofs: (column) => column.kzgProofs,
+				kzgCommitments: (column) => column.kzgCommitments,
+				beaconBlockRoot: (column) => column.beaconBlockRoot,
+				$$timestamps: (column) => column.$$timestamps,
+			}),
+
+		defineResolver({
+			entityType: EntityType.BeaconSlot,
+			resolve: {
+				EvmNetworkSlot: {
 					resolve: async ({ slot }) => ({
 						epoch: Math.floor(slot / slotsPerEpoch),
 					}),
@@ -663,7 +797,7 @@ export default {
 							getAttestationRewards(eip155ChainId($validator.$network), Math.floor(slot / slotsPerEpoch), [validatorId]),
 							getSyncCommitteeRewards(eip155ChainId($validator.$network), slot, [validatorId]),
 						])
-						const attestationReward = attestationResponse.rewards[0]
+							const attestationReward = attestationResponse.rewards.at(0)
 						if (attestationReward == null)
 							throw new Error('Beacon_Rest: validator attestation reward not found')
 						if (
@@ -671,13 +805,14 @@ export default {
 							|| attestationResponse.executionOptimistic !== syncResponse.executionOptimistic
 						)
 							throw new Error('Beacon_Rest: validator reward finality conflict')
-						return {
+							const syncCommitteeReward = syncResponse.rewards.at(0)
+							return {
 							attestationHeadRewardGwei: attestationReward.headGwei,
 							attestationTargetRewardGwei: attestationReward.targetGwei,
 							attestationSourceRewardGwei: attestationReward.sourceGwei,
 							...(attestationReward.inclusionDelayGwei != null && { attestationInclusionDelayRewardGwei: attestationReward.inclusionDelayGwei }),
 							attestationInactivityRewardGwei: attestationReward.inactivityGwei,
-							...(syncResponse.rewards[0] != null && { syncCommitteeRewardGwei: syncResponse.rewards[0].rewardGwei }),
+								...(syncCommitteeReward != null && { syncCommitteeRewardGwei: syncCommitteeReward.rewardGwei }),
 							rewardFinalized: attestationResponse.finalized,
 							rewardExecutionOptimistic: attestationResponse.executionOptimistic,
 						}

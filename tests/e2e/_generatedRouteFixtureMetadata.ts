@@ -9175,6 +9175,30 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
+	'/(explore)/(networks)/network/[network]/slot/[slot]/data-column/[columnIndex]': {
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/slot/[slot=nonNegativeInteger]/(beaconSlot)/data-column/[columnIndex=nonNegativeInteger]',
+		mappings: [
+			{
+				id: 'BeaconDataColumn.SlotColumnIndex',
+				projectionEntity: 'Network',
+				probeAtomPrefixes: ['/network/[network]/slot/[slot]/data-column/[columnIndex]:BeaconDataColumn.SlotColumnIndex'],
+				probeCases: [[[0, '1', ['columnIndex', 'slot', 'network']]]],
+				projectionPath: [
+					'Evm',
+				],
+			},
+		],
+	},
+	'/(explore)/(networks)/network/[network]/slot/[slot]/data-column/[columnIndex]/observation/[timestampMs]/[source]': {
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/slot/[slot=nonNegativeInteger]/(beaconSlot)/data-column/[columnIndex=nonNegativeInteger]/(beaconDataColumn)/observation/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+		mappings: [
+			{
+				id: 'BeaconDataColumn_Timestamp.DataColumnTimestampMsSource',
+				probeAtomPrefixes: ['/network/[network]/slot/[slot]/data-column/[columnIndex]/observation/[timestampMs]/[source]:BeaconDataColumn_Timestamp.DataColumnTimestampMsSource'],
+				probeCases: [[[0, '1', ['timestampMs', 'source', 'columnIndex', 'slot', 'network']]]],
+			},
+		],
+	},
 	'/(explore)/(networks)/network/[network]/slot/[slot]/deposit/[index]': {
 		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/slot/[slot=nonNegativeInteger]/(beaconSlot)/deposit/[index=nonNegativeInteger]',
 		mappings: [

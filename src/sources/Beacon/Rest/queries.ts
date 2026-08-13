@@ -1221,5 +1221,12 @@ export const getDataColumnSidecars = async (
 		}
 	)
 	if (!res.ok) await throwHttpError('Beacon GET data column sidecars', res)
-	return getDataColumnSidecarsFromWire(await res.json<JsonValue>())
+	const beaconRest = beaconRestByChainId.get(chainId)
+	if (beaconRest == null)
+		throw new Error(`Beacon_Rest: no binding for chain ${String(chainId)}`)
+
+	return {
+		...getDataColumnSidecarsFromWire(await res.json<JsonValue>()),
+		endpointUrl: firstHttpUrlForBinding(beaconRest.binding),
+	}
 }

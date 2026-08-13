@@ -115,6 +115,7 @@ describe('Beacon REST native checkpoint and fork wires', () => {
 			version: 'gloas',
 			executionOptimistic: true,
 			finalized: false,
+			endpointUrl: bindings[Source.Beacon_Rest][0].endpoints[0].locator,
 			sidecars: [{
 				index: 7,
 				slot: 43,
