@@ -35,11 +35,43 @@ const ociIndexMediaType = 'application/vnd.oci.image.index.v1+json'
 
 
 // Functions
+const isLocalNetworkHost = (hostname: string) => {
+	if (hostname === 'localhost' || hostname.endsWith('.localhost'))
+		return true
+	if (
+		hostname === '[::]'
+		|| hostname === '[::1]'
+		|| /^\[(?:fc|fd)[0-9a-f:]*\]$/i.test(hostname)
+		|| /^\[fe[89ab][0-9a-f:]*\]$/i.test(hostname)
+	)
+		return true
+
+	const ipv4 = hostname.match(/^(\d+)\.(\d+)\.(\d+)\.(\d+)$/)
+	if (ipv4 == null)
+		return false
+
+	const [first, second] = ipv4.slice(1).map(Number)
+	return (
+		first === 0
+		|| first === 10
+		|| first === 127
+		|| (first === 100 && second >= 64 && second <= 127)
+		|| (first === 169 && second === 254)
+		|| (first === 172 && second >= 16 && second <= 31)
+		|| (first === 192 && second === 168)
+		|| (first === 198 && second >= 18 && second <= 19)
+	)
+}
+
 export const ociRegistryOrigin = (registry: string) => {
 	if (/[\u0000-\u001f\u007f/\\?#@]/.test(registry))
 		throw new Error('OciRegistry_Distribution: registry must be a host or host:port')
 
-	const origin = new URL(`https://${registry}`).origin
+	const url = new URL(`https://${registry}`)
+	if (isLocalNetworkHost(url.hostname))
+		throw new Error('OciRegistry_Distribution: registry must not address a local network host')
+
+	const origin = url.origin
 	if (new URL(origin).host !== registry.toLowerCase())
 		throw new Error('OciRegistry_Distribution: registry identity is not canonical')
 

@@ -100,6 +100,19 @@ describe('OCI distribution manifest transport', () => {
 
 	it('fails closed before transport for noncanonical registry, repository, and reference identities', async () => {
 		expect(() => ociRegistryOrigin('ghcr.io/path')).toThrow('host or host:port')
+		for (const registry of [
+			'localhost',
+			'registry.localhost',
+			'127.1',
+			'10.0.0.1',
+			'169.254.169.254',
+			'172.16.0.1',
+			'192.168.0.1',
+			'[::1]',
+			'[fc00::1]',
+			'[fe80::1]',
+		])
+			expect(() => ociRegistryOrigin(registry)).toThrow('must not address a local network host')
 		expect(() => manifestPath({
 			repository: 'OpenAI/blockhead',
 			reference: 'latest',
