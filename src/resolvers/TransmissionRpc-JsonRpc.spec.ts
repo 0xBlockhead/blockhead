@@ -92,6 +92,8 @@ describe('Transmission native client journey', () => {
 		sessionGet.mockResolvedValue({
 			version: '4.0.6',
 			'peer-port': 51_413,
+			'bind-address-ipv4': '0.0.0.0',
+			'bind-address-ipv6': '::',
 		})
 		sessionStats.mockResolvedValue({
 			activeTorrentCount: 1,
@@ -116,6 +118,10 @@ describe('Transmission native client journey', () => {
 			},
 			[EntityMetaKey.Fields]: {
 				[entityFieldAddressKey(EntityType.BlockheadBitTorrentClientState_Timestamp, [], 'clientVersion')]: '4.0.6',
+				[entityFieldAddressKey(EntityType.BlockheadBitTorrentClientState_Timestamp, [], 'listenAddresses')]: [
+					'0.0.0.0',
+					'::',
+				],
 				[entityFieldAddressKey(EntityType.BlockheadBitTorrentClientState_Timestamp, [], 'port')]: 51_413,
 				[entityFieldAddressKey(EntityType.BlockheadBitTorrentClientState_Timestamp, [], 'downloadedBytes')]: 4_096n,
 			},
@@ -188,6 +194,42 @@ describe('Transmission native client journey', () => {
 				[entityFieldAddressKey(EntityType.BitTorrentPeer_Timestamp, [], 'completedPercent')]: 75,
 			},
 		}])
+		expect(snapshot.$$swarmTimestamps).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$torrent: {
+					infoHash,
+					hashVersion: 'v1',
+				},
+				timestampMs: 1_786_000_000_000,
+				source: Source.TransmissionRpc_JsonRpc,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.BitTorrentSwarmObservation_Timestamp, [], 'peerCount')]: 3,
+			},
+		}])
+		expect(snapshot.$$clientTransfers).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$client: { clientId: 'transmission-local' },
+				$torrent: {
+					infoHash,
+					hashVersion: 'v1',
+				},
+				timestampMs: 1_786_000_000_000,
+			},
+			[EntityMetaKey.Fields]: expect.objectContaining({
+				[entityFieldAddressKey(EntityType.BlockheadBitTorrentTransfer_Timestamp, [], 'status')]: 'downloading',
+				[entityFieldAddressKey(EntityType.BlockheadBitTorrentTransfer_Timestamp, [], 'selectedFileIndexes')]: [0],
+				[entityFieldAddressKey(EntityType.BlockheadBitTorrentTransfer_Timestamp, [], 'queuePosition')]: 2,
+				[entityFieldAddressKey(EntityType.BlockheadBitTorrentTransfer_Timestamp, [], 'ratio')]: 1.25,
+				[entityFieldAddressKey(EntityType.BlockheadBitTorrentTransfer_Timestamp, [], 'connectedPeerCount')]: 3,
+			}),
+		}])
+		expect(snapshot.$$clientTransfers[0][EntityMetaKey.Selector].timestampMs).toBe(
+			snapshot.$$swarmTimestamps[0][EntityMetaKey.Selector].timestampMs
+		)
+		expect(snapshot.$$clientTransfers[0][EntityMetaKey.Selector].$torrent).toEqual(
+			snapshot.$$swarmTimestamps[0][EntityMetaKey.Selector].$torrent
+		)
 
 		await expect(fileResolver.resolve.TorrentFileIndex.resolve({
 			$torrent: {
@@ -200,6 +242,42 @@ describe('Transmission native client journey', () => {
 			path: 'release/image.iso',
 			length: 1_024n,
 		})
+	})
+
+	it('omits swarm observation when peersConnected is absent but still yields the transfer', async () => {
+		vi.spyOn(Date, 'now').mockReturnValue(1_786_000_000_000)
+		torrentGet.mockResolvedValue({
+			torrents: [{
+				...torrent,
+				peersConnected: undefined,
+			}],
+		})
+
+		const snapshot = await torrentResolver.resolve.InfoHashHashVersion.resolve({
+			infoHash,
+			hashVersion: 'v1',
+		}, context)
+
+		expect(snapshot.$$swarmTimestamps).toEqual([])
+		expect(snapshot.$$clientTransfers).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$client: { clientId: 'transmission-local' },
+				$torrent: {
+					infoHash,
+					hashVersion: 'v1',
+				},
+				timestampMs: 1_786_000_000_000,
+			},
+			[EntityMetaKey.Fields]: expect.objectContaining({
+				[entityFieldAddressKey(EntityType.BlockheadBitTorrentTransfer_Timestamp, [], 'status')]: 'downloading',
+				[entityFieldAddressKey(EntityType.BlockheadBitTorrentTransfer_Timestamp, [], 'selectedFileIndexes')]: [0],
+				[entityFieldAddressKey(EntityType.BlockheadBitTorrentTransfer_Timestamp, [], 'queuePosition')]: 2,
+				[entityFieldAddressKey(EntityType.BlockheadBitTorrentTransfer_Timestamp, [], 'ratio')]: 1.25,
+			}),
+		}])
+		expect(snapshot.$$clientTransfers[0][EntityMetaKey.Fields]).not.toHaveProperty(
+			entityFieldAddressKey(EntityType.BlockheadBitTorrentTransfer_Timestamp, [], 'connectedPeerCount')
+		)
 	})
 
 	it('rejects foreign clients, v2 identities, and unsafe provider paths', async () => {

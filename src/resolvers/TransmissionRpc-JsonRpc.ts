@@ -275,6 +275,24 @@ export default {
 							$$peerTimestamps: (torrent.peers ?? [])
 								.slice(0, resolverContextRowLimit(context))
 								.map((peer) => torrentPeerReference($torrent, peer, timestampMs)),
+							$$swarmTimestamps: (
+								torrent.peersConnected != null ?
+									[
+										{
+											[EntityMetaKey.Selector]: {
+												$torrent,
+												timestampMs,
+												source: Source.TransmissionRpc_JsonRpc,
+											},
+											[EntityMetaKey.Fields]: {
+												[entityFieldAddressKey(EntityType.BitTorrentSwarmObservation_Timestamp, [], 'peerCount')]: torrent.peersConnected,
+											},
+										},
+									]
+								:
+									[]
+							),
+							$$clientTransfers: [transferReference(torrent, timestampMs)],
 						}
 					},
 				},
@@ -288,6 +306,8 @@ export default {
 			$$files: (torrent) => torrent.$$files,
 			$$pieces: (torrent) => torrent.$$pieces,
 			$$peerTimestamps: (torrent) => torrent.$$peerTimestamps,
+			$$swarmTimestamps: (torrent) => torrent.$$swarmTimestamps,
+			$$clientTransfers: (torrent) => torrent.$$clientTransfers,
 		}),
 
 		defineResolver({
@@ -322,7 +342,10 @@ export default {
 									...(session.version != null && {
 										[entityFieldAddressKey(EntityType.BlockheadBitTorrentClientState_Timestamp, [], 'clientVersion')]: session.version,
 									}),
-									[entityFieldAddressKey(EntityType.BlockheadBitTorrentClientState_Timestamp, [], 'listenAddresses')]: [],
+									[entityFieldAddressKey(EntityType.BlockheadBitTorrentClientState_Timestamp, [], 'listenAddresses')]: [
+										session['bind-address-ipv4'],
+										session['bind-address-ipv6'],
+									].filter((address) => address != null && address !== ''),
 									...(session['peer-port'] != null && {
 										[entityFieldAddressKey(EntityType.BlockheadBitTorrentClientState_Timestamp, [], 'port')]: session['peer-port'],
 									}),
