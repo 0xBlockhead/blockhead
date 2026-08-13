@@ -23,22 +23,15 @@ const loadMoneroWalletQueries = async () => {
 	if (typeof window !== 'undefined')
 		return import('$/sources/MoneroWalletRpc/JsonRpc/queries.remote.ts')
 
-	const [
-		{ default: bindings },
-		queries,
-	] = await Promise.all([
-		import('$/sources/MoneroWalletRpc/bindings.ts'),
-		import('$/sources/MoneroWalletRpc/JsonRpc/queries.ts'),
-	])
-	const binding = bindings[Source.MoneroWalletRpc_JsonRpc][0]
+	const queries = await import('$/sources/MoneroWalletRpc/JsonRpc/queries.ts')
 	return {
-		getAccounts: () => queries.getAccounts(binding),
-		getAddress: (accountIndex: number) => queries.getAddress(binding, accountIndex),
-		getBalance: () => queries.getBalance(binding),
-		getHeight: () => queries.getHeight(binding),
-		getKeyStatus: () => queries.getKeyStatus(binding),
-		getOutputs: () => queries.getOutputs(binding),
-		getTransfers: () => queries.getTransfers(binding),
+		getAccounts: () => queries.getAccounts(),
+		getAddress: (accountIndex: number) => queries.getAddress(accountIndex),
+		getBalance: () => queries.getBalance(),
+		getHeight: () => queries.getHeight(),
+		getKeyStatus: () => queries.getKeyStatus(),
+		getOutputs: () => queries.getOutputs(),
+		getTransfers: () => queries.getTransfers(),
 	}
 }
 

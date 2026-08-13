@@ -24,5 +24,5 @@ export const getOutputs = query(() => getOutputsFromClient(binding))
 export const getTransfers = query(() => getTransfersFromClient(binding))
 export const getAddress = query(
 	type('number.integer >= 0'),
-	(accountIndex) => getAddressFromClient(binding, accountIndex)
+	(accountIndex) => getAddressFromClient(accountIndex, binding)
 )

@@ -57,7 +57,7 @@ describe('Monero wallet RPC reads', () => {
 			subaddress_accounts: [{ account_index: 0 }],
 		})
 		await expect(getBalance(binding)).resolves.toMatchObject({ balance: 12 })
-		await expect(getAddress(binding, 0)).resolves.toMatchObject({ address: '48primary' })
+		await expect(getAddress(0, binding)).resolves.toMatchObject({ address: '48primary' })
 		await expect(getHeight(binding)).resolves.toEqual({ height: 100 })
 		expect(jsonRpc2).toHaveBeenNthCalledWith(1, binding, 'get_accounts', {
 			strict_balances: true,

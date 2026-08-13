@@ -1,5 +1,7 @@
 import type { SourceBinding } from '$/sources/SourceBinding.ts'
+import { Source } from '$/sources/Source.ts'
 import { jsonRpc2 } from '$/sources/_shared/wire/JsonRpc2/client.ts'
+import bindings from '$/sources/MoneroWalletRpc/bindings.ts'
 import {
 	moneroWalletAccountsWire,
 	moneroWalletAddressesWire,
@@ -9,6 +11,8 @@ import {
 	moneroWalletOutputsWire,
 	moneroWalletTransfersWire,
 } from '$/sources/MoneroWalletRpc/JsonRpc/types.ts'
+
+const sourceBinding = bindings[Source.MoneroWalletRpc_JsonRpc][0]
 
 const request = async <_Result>(
 	binding: SourceBinding,
@@ -27,7 +31,7 @@ const request = async <_Result>(
 }
 
 export const getAccounts = (
-	binding: SourceBinding
+	binding: SourceBinding = sourceBinding
 ) => (
 	request(binding, 'get_accounts', moneroWalletAccountsWire, {
 		strict_balances: true,
@@ -35,7 +39,7 @@ export const getAccounts = (
 )
 
 export const getBalance = (
-	binding: SourceBinding
+	binding: SourceBinding = sourceBinding
 ) => (
 	request(binding, 'get_balance', moneroWalletBalanceWire, {
 		all_accounts: true,
@@ -44,8 +48,8 @@ export const getBalance = (
 )
 
 export const getAddress = (
-	binding: SourceBinding,
-	accountIndex: number
+	accountIndex: number,
+	binding: SourceBinding = sourceBinding
 ) => (
 	request(binding, 'get_address', moneroWalletAddressesWire, {
 		account_index: accountIndex,
@@ -53,13 +57,13 @@ export const getAddress = (
 )
 
 export const getHeight = (
-	binding: SourceBinding
+	binding: SourceBinding = sourceBinding
 ) => (
 	request(binding, 'get_height', moneroWalletHeightWire)
 )
 
 export const getKeyStatus = async (
-	binding: SourceBinding
+	binding: SourceBinding = sourceBinding
 ) => {
 	const [viewKey, spendKey] = await Promise.all([
 		request(binding, 'query_key', moneroWalletKeyWire, { key_type: 'view_key' }),
@@ -78,7 +82,7 @@ export const getKeyStatus = async (
 }
 
 export const getOutputs = async (
-	binding: SourceBinding
+	binding: SourceBinding = sourceBinding
 ) => {
 	const outputs = await request(binding, 'get_outputs', moneroWalletOutputsWire, {
 		all: true,
@@ -90,7 +94,7 @@ export const getOutputs = async (
 }
 
 export const getTransfers = (
-	binding: SourceBinding
+	binding: SourceBinding = sourceBinding
 ) => (
 	request(binding, 'get_transfers', moneroWalletTransfersWire, {
 		in: true,
