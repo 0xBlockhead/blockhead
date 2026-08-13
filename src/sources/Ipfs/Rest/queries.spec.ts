@@ -70,7 +70,7 @@ describe('IPFS gateway binding transport', () => {
 			namespace: 'ipns',
 			target: 'bad\nname',
 			gatewayOrigin: 'https://ipfs.io',
-		})).toThrow('IPNS target contains control characters')
+		})).toThrow('IPNS target contains URL delimiters')
 	})
 
 	it('fails closed on content paths with control characters before transport', async () => {
@@ -158,14 +158,21 @@ describe('IPFS gateway binding transport', () => {
 		])
 	})
 
-	it('rejects blank and control-character IPNS targets', () => {
+	it('rejects blank and URL-delimiting IPNS targets', () => {
 		expect(() => assertIpfsGatewayTarget({
 			namespace: 'ipns',
 			target: '   ',
 		})).toThrow('empty content target')
-		expect(() => assertIpfsGatewayTarget({
-			namespace: 'ipns',
-			target: 'bad\nname',
-		})).toThrow('control characters')
+		for (const target of [
+			'bad\nname',
+			'name/path',
+			'name?query',
+			'name#fragment',
+			'name\\path',
+		])
+			expect(() => assertIpfsGatewayTarget({
+				namespace: 'ipns',
+				target,
+			})).toThrow('URL delimiters')
 	})
 })

@@ -46,8 +46,8 @@ export const assertIpfsGatewayTarget = ({
 	if (namespace === 'ipfs' && parseIpfsCid(trimmedTarget) == null)
 		throw new Error(`Ipfs_Rest: invalid IPFS CID target ${trimmedTarget}`)
 
-	if (namespace === 'ipns' && /[\u0000-\u001f\u007f]/.test(trimmedTarget))
-		throw new Error('Ipfs_Rest: IPNS target contains control characters')
+	if (namespace === 'ipns' && /[\u0000-\u001f\u007f/\\?#]/.test(trimmedTarget))
+		throw new Error('Ipfs_Rest: IPNS target contains URL delimiters')
 
 	return trimmedTarget
 }
