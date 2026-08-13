@@ -8,7 +8,9 @@ import { type as arktype } from 'arktype'
 
 
 const nonnegativeDecimal = arktype('/^[0-9]+$/')
-const zeroExHex = arktype('/^0[xX][\\da-fA-F]+$/')
+const blockHash = arktype('/^0[xX][\\da-fA-F]{64}$/')
+const blsPubkey = arktype('/^0[xX][\\da-fA-F]{96}$/')
+const evmAddress = arktype('/^0[xX][\\da-fA-F]{40}$/')
 
 
 /**
@@ -17,11 +19,11 @@ const zeroExHex = arktype('/^0[xX][\\da-fA-F]+$/')
  */
 export const bidTraceWire = arktype({
 	slot: nonnegativeDecimal,
-	parent_hash: zeroExHex,
-	block_hash: zeroExHex,
-	builder_pubkey: zeroExHex,
-	proposer_pubkey: zeroExHex,
-	proposer_fee_recipient: zeroExHex,
+	parent_hash: blockHash,
+	block_hash: blockHash,
+	builder_pubkey: blsPubkey,
+	proposer_pubkey: blsPubkey,
+	proposer_fee_recipient: evmAddress,
 	gas_limit: nonnegativeDecimal,
 	gas_used: nonnegativeDecimal,
 	value: nonnegativeDecimal,

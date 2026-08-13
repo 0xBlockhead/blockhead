@@ -48,6 +48,12 @@ const bidTrace = {
 	num_tx: '483',
 	block_number: '25680883',
 } as const
+const builderTipBidTrace = {
+	...bidTrace,
+	timestamp: '1786068803',
+	timestamp_ms: '1786068803855',
+	optimistic_submission: true,
+} as const
 const context = {
 	filters: [],
 	sorts: [],
@@ -63,6 +69,9 @@ const context = {
 
 const payloadResolver = mevRelayRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.MevRelay_ProposerPayloadDelivered
+))
+const receivedBidResolver = mevRelayRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.MevRelay_BuilderBlockReceived
 ))
 const relayUrlResolver = mevRelayRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.MevRelay
@@ -86,14 +95,26 @@ const networkBuildersResolver = mevRelayRest.resolvers.find((resolver) => (
 	&& 'Evm' in resolver.projections
 	&& '$$mevBuilders' in resolver.projections.Evm
 ))
+const builderReceivedBidsResolver = mevRelayRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.MevBuilder
+	&& '$$receivedBids' in resolver.projections
+))
+const networkReceivedBidsResolver = mevRelayRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.Network
+	&& 'Evm' in resolver.projections
+	&& '$$mevBuilderBlocksReceived' in resolver.projections.Evm
+))
 
 if (
 	payloadResolver == null
+	|| receivedBidResolver == null
 	|| relayUrlResolver == null
 	|| relayObservationResolver == null
 	|| builderResolver == null
 	|| networkPayloadsResolver == null
 	|| networkBuildersResolver == null
+	|| builderReceivedBidsResolver == null
+	|| networkReceivedBidsResolver == null
 )
 	throw new Error('MevRelay-Rest spec missing expected resolvers')
 
@@ -134,6 +155,59 @@ describe('MevRelay REST resolvers', () => {
 				$network: network,
 				builderPubkey: bidTrace.builder_pubkey,
 			},
+		})
+	})
+
+	it('resolves relay-received builder bids with native lifecycle and execution relationships', async () => {
+		getBuilderBlocksReceivedForRelayHost.mockResolvedValueOnce([builderTipBidTrace])
+
+		const snapshot = await receivedBidResolver.resolve.EvmNetworkRelayHostSlotBlockHashBuilderPubkey.resolve({
+			$network: network,
+			relayHost: 'boost-relay.flashbots.net',
+			slot: 14917871,
+			blockHash: bidTrace.block_hash,
+			builderPubkey: bidTrace.builder_pubkey,
+		}, context)
+
+		expect(getBuilderBlocksReceivedForRelayHost).toHaveBeenCalledWith('boost-relay.flashbots.net', {
+			limit: 1,
+			slot: 14917871,
+			block_hash: bidTrace.block_hash,
+			builder_pubkey: bidTrace.builder_pubkey,
+		})
+		expect(snapshot[EntityMetaKey.Fields]).toMatchObject({
+			[entityFieldAddressKey(EntityType.MevRelay_BuilderBlockReceived, [], 'valueWei')]: 5316647666874603n,
+			[entityFieldAddressKey(EntityType.MevRelay_BuilderBlockReceived, [], 'transactionCount')]: 483,
+			[entityFieldAddressKey(EntityType.MevRelay_BuilderBlockReceived, [], 'receivedAtMs')]: 1786068803855,
+			[entityFieldAddressKey(EntityType.MevRelay_BuilderBlockReceived, [], 'optimisticSubmission')]: true,
+			[entityFieldAddressKey(EntityType.MevRelay_BuilderBlockReceived, [], '$executionBlock')]: {
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					blockNumber: 25680883n,
+				},
+			},
+		})
+	})
+
+	it('connects builder and network received-bid journeys to source-filtered relay reads', async () => {
+		getBuilderBlocksReceivedForRelayHost
+			.mockResolvedValueOnce([builderTipBidTrace])
+			.mockResolvedValueOnce([])
+		const builderBids = await builderReceivedBidsResolver.resolve.EvmNetworkBuilderPubkey.resolve({
+			$network: network,
+			builderPubkey: bidTrace.builder_pubkey,
+		}, context)
+		expect(builderBids).toHaveLength(1)
+
+		getProposerPayloadDeliveredForRelayHost
+			.mockResolvedValueOnce([bidTrace])
+			.mockResolvedValueOnce([])
+		getBuilderBlocksReceivedForRelayHost.mockResolvedValueOnce([builderTipBidTrace])
+		const networkBids = await networkReceivedBidsResolver.resolve.Caip2.resolve(network, context)
+		expect(networkBids).toHaveLength(1)
+		expect(getBuilderBlocksReceivedForRelayHost).toHaveBeenLastCalledWith('boost-relay.flashbots.net', {
+			limit: 16,
+			slot: bidTrace.slot,
 		})
 	})
 

@@ -723,6 +723,7 @@ export enum EntityType {
 	MevBuilder = 'MevBuilder',
 	MevBuilder_Timestamp = 'MevBuilder_Timestamp',
 	MevRelay = 'MevRelay',
+	MevRelay_BuilderBlockReceived = 'MevRelay_BuilderBlockReceived',
 	MevRelay_ProposerPayloadDelivered = 'MevRelay_ProposerPayloadDelivered',
 	MevRelay_Timestamp = 'MevRelay_Timestamp',
 	MoneroBlock = 'MoneroBlock',

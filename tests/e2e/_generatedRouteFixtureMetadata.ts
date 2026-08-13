@@ -8170,8 +8170,37 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
+	'/(explore)/(networks)/network/[network]/mev/payload/received-bid/[relayHost]/[slot]/[blockHash]/[builderPubkey]': {
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/mev/payload/received-bid/[relayHost=stringSegment]/[slot=nonNegativeInteger]/[blockHash=zeroExHex]/[builderPubkey=stringSegment]',
+		mappings: [
+			{
+				id: 'MevRelay_BuilderBlockReceived.EvmNetworkRelayHostSlotBlockHashBuilderPubkey',
+				projectionEntity: 'Network',
+				probeAtomPrefixes: ['/network/[network]/mev/payload/received-bid/[relayHost]/[slot]/[blockHash]/[builderPubkey]:MevRelay_BuilderBlockReceived.EvmNetworkRelayHostSlotBlockHashBuilderPubkey'],
+				probeCases: [[[0, '1', ['relayHost', 'slot', 'blockHash', 'builderPubkey', 'network']]]],
+				projectionPath: [
+					'Evm',
+				],
+			},
+		],
+	},
 	'/(explore)/(networks)/network/[network]/mev/payloads': {
 		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/mev/payloads',
+		mappings: [
+			{
+				id: 'Network.Caip2',
+				probeAtomPrefixes: ['/network/[network]:Network.Caip2'],
+				probeCases: [[[0, '1', ['network']]]],
+			},
+			{
+				id: 'Network.Slug',
+				probeAtomPrefixes: ['/network/[network]:Network.Slug'],
+				probeCases: [[[0, '1', ['network']]], [[0, '2', ['network']]], [[0, '3', ['network']]], [[0, '4', ['network']]], [[0, '5', ['network']]], [[0, '6', ['network']]], [[0, '7', ['network']]], [[0, '8', ['network']]], [[0, '9', ['network']]], [[0, '10', ['network']]], [[0, '11', ['network']]], [[0, '12', ['network']]], [[0, '13', ['network']]], [[0, '14', ['network']]], [[0, '15', ['network']]]],
+			},
+		],
+	},
+	'/(explore)/(networks)/network/[network]/mev/received-bids': {
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/mev/received-bids',
 		mappings: [
 			{
 				id: 'Network.Caip2',

@@ -229,7 +229,7 @@ describe('MevRelay REST bidtrace queries', () => {
 	it('fail-closes builder_blocks_received rows that do not match the requested builder_pubkey', async () => {
 		const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(jsonResponse([{
 			...builderTipBidTrace,
-			builder_pubkey: '0x0000000000000000000000000000000000000000000000000000000000000001',
+			builder_pubkey: `0x${'00'.repeat(47)}01`,
 		}]))
 		vi.stubGlobal('fetch', fetchMock)
 		vi.stubGlobal('window', {})

@@ -375,6 +375,7 @@
 	import BeaconSlotsView from '$/views/BeaconSlotsView.svelte'
 	import MevRelaysView from '$/views/MevRelaysView.svelte'
 	import MevBuildersView from '$/views/MevBuildersView.svelte'
+	import MevRelay_BuilderBlockReceivedsView from '$/views/MevRelay_BuilderBlockReceivedsView.svelte'
 	import MevRelay_ProposerPayloadDeliveredsView from '$/views/MevRelay_ProposerPayloadDeliveredsView.svelte'
 	import EvmContractsView from '$/views/EvmContractsView.svelte'
 	import Erc4337SmartAccountsView from '$/views/Erc4337SmartAccountsView.svelte'
@@ -2155,6 +2156,10 @@
 									label: 'Builders',
 								},
 								{
+									id: 'evm-consensus-mev-received-bids',
+									label: 'Received bids',
+								},
+								{
 									id: 'evm-consensus-mev-boost',
 									label: 'MEV-Boost',
 								},
@@ -2360,6 +2365,23 @@
 										selection={
 											selection.Evm
 											.$$mevBuilders({
+												sources: [
+													Source.MevRelay_Rest,
+												],
+												limit: 16,
+											})
+										}
+										collapsible={false}
+										title={label}
+										id={`${id}-list`}
+									/>
+								{/snippet}
+
+								{#snippet SectionEvmConsensusMevReceivedBids({ id, label })}
+									<MevRelay_BuilderBlockReceivedsView
+										selection={
+											selection.Evm
+											.$$mevBuilderBlocksReceived({
 												sources: [
 													Source.MevRelay_Rest,
 												],

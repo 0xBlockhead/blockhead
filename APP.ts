@@ -1422,6 +1422,7 @@ export enum EntityType {
 	MevBuilder = "MevBuilder",
 	MevBuilder_Timestamp = "MevBuilder_Timestamp",
 	MevRelay = "MevRelay",
+	MevRelay_BuilderBlockReceived = "MevRelay_BuilderBlockReceived",
 	MevRelay_ProposerPayloadDelivered = "MevRelay_ProposerPayloadDelivered",
 	MevRelay_Timestamp = "MevRelay_Timestamp",
 	MoneroBlock = "MoneroBlock",
@@ -44804,6 +44805,13 @@ export const schema = {
 					entityType: EntityType.MevRelay_ProposerPayloadDelivered,
 					defaultSources: [Source.MevRelay_Rest],
 				},
+				"$$receivedBids": {
+					label: "Received bids",
+					type: EntityFieldType.EntitiesReference,
+					cardinality: EntityFieldCardinality.Many,
+					entityType: EntityType.MevRelay_BuilderBlockReceived,
+					defaultSources: [Source.MevRelay_Rest],
+				},
 			})({
 				selectors: {
 					"EvmNetworkBuilderPubkey": ["$network", "builderPubkey"],
@@ -44833,6 +44841,11 @@ export const schema = {
 									field: "$$deliveredPayloads",
 									component: "MevRelay_ProposerPayloadDeliveredsView",
 									emptyText: "No delivered payloads for this builder yet.",
+								},
+								{
+									field: "$$receivedBids",
+									component: "MevRelay_BuilderBlockReceivedsView",
+									emptyText: "No received bids for this builder yet.",
 								},
 							],
 						},
@@ -44982,6 +44995,44 @@ export const schema = {
 					},
 					plural: { component: "MevRelaysView",
 					},
+				},
+			}),
+
+			entity({
+				entityType: EntityType.MevRelay_BuilderBlockReceived,
+				labels: {
+					singular: "MEV relay builder block received",
+					plural: "MEV relay builder blocks received",
+				},
+			})({
+				"$network": { label: "Network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
+				"relayHost": { label: "Relay host", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"slot": { label: "Slot", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
+				"blockHash": { label: "Block hash", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "zeroExHex" },
+				"builderPubkey": { label: "Builder public key", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"$builder": { label: "Builder", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.MevBuilder },
+				"parentHash": { label: "Parent hash", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "zeroExHex" },
+				"proposerPubkey": { label: "Proposer public key", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+				"proposerFeeRecipient": { label: "Proposer fee recipient", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "evmAddress" },
+				"valueWei": { label: "Bid value", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
+				"gasLimit": { label: "Gas limit", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
+				"gasUsed": { label: "Gas used", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
+				"transactionCount": { label: "Transaction count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeInteger" },
+				"blockNumber": { label: "Block number", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
+				"$executionBlock": { label: "Execution block", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.EvmBlock },
+				"receivedAtMs": { label: "Received at", description: "The relay-reported bid receipt time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeInteger" },
+				"optimisticSubmission": { label: "Optimistic submission", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean" },
+			})({
+				selectors: {
+					"EvmNetworkRelayHostSlotBlockHashBuilderPubkey": ["$network", "relayHost", "slot", "blockHash", "builderPubkey"],
+				},
+				views: {
+					singular: {
+						summary: { title: [{ field: "slot", format: "number", prefix: "Slot " }, { field: "valueWei", format: "numberValue", suffix: " wei" }], value: [{ field: "valueWei", format: "numberValue", suffix: " wei" }], HeadingAfter: ["$builder"] },
+						closed: ["relayHost", { field: "blockHash", format: "truncated" }],
+						content: { dl: [["relayHost", { field: "slot", format: "number" }, { field: "blockHash", format: "truncated" }, { field: "parentHash", format: "truncated" }], [{ field: "builderPubkey", format: "truncated" }, { field: "proposerPubkey", format: "truncated" }, { field: "proposerFeeRecipient", format: "address" }, "$builder"], [{ field: "valueWei", format: "numberValue", suffix: " wei" }, { field: "gasLimit", format: "numberValue" }, { field: "gasUsed", format: "numberValue" }, { field: "transactionCount", format: "number" }], [{ field: "blockNumber", format: "numberValue" }, "$executionBlock", { field: "receivedAtMs", format: "timestamp" }, "optimisticSubmission", "$network"]] },
+					},
+					plural: { component: "MevRelay_BuilderBlockReceivedsView" },
 				},
 			}),
 
@@ -47045,6 +47096,7 @@ export const schema = {
 						"$$beaconValidators": { label: "Beacon validators", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BeaconValidator, defaultSources: [Source.Beacon_Rest] },
 						"$$mevRelays": { label: "MEV relays", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.MevRelay, defaultSources: [Source.Constants_Internal] },
 						"$$mevBuilders": { label: "MEV builders", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.MevBuilder, defaultSources: [Source.MevRelay_Rest] },
+						"$$mevBuilderBlocksReceived": { label: "MEV builder blocks received", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.MevRelay_BuilderBlockReceived, defaultSources: [Source.MevRelay_Rest] },
 						"$$mevProposerPayloadDelivered": { label: "MEV proposer payloads delivered", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.MevRelay_ProposerPayloadDelivered, defaultSources: [Source.MevRelay_Rest] },
 						"$$blobs": { label: "Blobs", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmBlob, defaultSources: [Source.Voltaire_JsonRpc, Source.Blobscan_Rest] },
 						"$$contracts": { label: "Contracts", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmContract, defaultSources: [Source.Blockscout_Rest, Source.Sourcify_Rest] },
@@ -47134,8 +47186,9 @@ export const schema = {
 												{ id: "evm-consensus-epochs", field: ["Evm", "$$beaconEpochs"], List: "BeaconEpochsView", label: "Epochs", selection: { sources: [Source.Beacon_Rest], limit: 16 } },
 												{ id: "evm-consensus-slots", field: ["Evm", "$$beaconSlots"], List: "BeaconSlotsView", label: "Slots", selection: { sources: [Source.Beacon_Rest], limit: 16 } },
 												{ id: "evm-consensus-mev-relays", field: ["Evm", "$$mevRelays"], List: "MevRelaysView", label: "Relays", selection: { sources: [Source.Constants_Internal], limit: 64 } },
-												{ id: "evm-consensus-mev-builders", field: ["Evm", "$$mevBuilders"], List: "MevBuildersView", label: "Builders", selection: { sources: [Source.MevRelay_Rest], limit: 16 } },
-												{ id: "evm-consensus-mev-boost", field: ["Evm", "$$mevProposerPayloadDelivered"], List: "MevRelay_ProposerPayloadDeliveredsView", label: "MEV-Boost", selection: { sources: [Source.MevRelay_Rest], limit: 16 } },
+														{ id: "evm-consensus-mev-builders", field: ["Evm", "$$mevBuilders"], List: "MevBuildersView", label: "Builders", selection: { sources: [Source.MevRelay_Rest], limit: 16 } },
+														{ id: "evm-consensus-mev-received-bids", field: ["Evm", "$$mevBuilderBlocksReceived"], List: "MevRelay_BuilderBlockReceivedsView", label: "Received bids", selection: { sources: [Source.MevRelay_Rest], limit: 16 } },
+														{ id: "evm-consensus-mev-boost", field: ["Evm", "$$mevProposerPayloadDelivered"], List: "MevRelay_ProposerPayloadDeliveredsView", label: "MEV-Boost", selection: { sources: [Source.MevRelay_Rest], limit: 16 } },
 												{
 													id: "evm-consensus-endpoints",
 													field: ["Evm", "consensusEndpoints"],
@@ -78780,8 +78833,8 @@ export const routes = defineRoutes(schema)({
 														},
 													],
 												},
-												"payloads": {
-													collections: [
+														"payloads": {
+															collections: [
 														{
 															field: [
 																EntityType.Network,
@@ -78791,9 +78844,17 @@ export const routes = defineRoutes(schema)({
 																view: { component: "MevRelay_ProposerPayloadDeliveredsView" },
 																text: { title: "MEV payloads" }
 															}
+																},
+															],
 														},
-													],
-												},
+														"received-bids": {
+															collections: [
+																{
+																	field: [EntityType.Network, ["Evm", "$$mevBuilderBlocksReceived"]],
+																	page: { view: { component: "MevRelay_BuilderBlockReceivedsView" }, text: { title: "MEV received bids" } },
+																},
+															],
+														},
 												"relay": {
 													children: {
 														"[host]": {
@@ -78900,7 +78961,7 @@ export const routes = defineRoutes(schema)({
 														}
 													}
 												},
-												"payload": {
+														"payload": {
 													children: {
 														"[relayHost]": {
 															children: {
@@ -78933,7 +78994,34 @@ export const routes = defineRoutes(schema)({
 																	}
 																}
 															}
-														}
+														},
+														"received-bid": {
+															children: {
+																"[relayHost]": {
+																	children: {
+																		"[slot]": {
+																			children: {
+																				"[blockHash]": {
+																					children: {
+																						"[builderPubkey]": {
+																							selectors: {
+																								[EntityType.MevRelay_BuilderBlockReceived]: {
+																									"EvmNetworkRelayHostSlotBlockHashBuilderPubkey": {
+																										projection: { entityType: EntityType.Network, facetPath: ["Evm"] },
+																										params: { "relayHost": ["relayHost"], "slot": ["slot"], "blockHash": ["blockHash"], "builderPubkey": ["builderPubkey"] },
+																										page: {},
+																									},
+																								},
+																							},
+																						},
+																					},
+																				},
+																			},
+																		},
+																	},
+																},
+															},
+														},
 													}
 												}
 											}

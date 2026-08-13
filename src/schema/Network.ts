@@ -384,6 +384,13 @@ export default entity({
 					Source.MevRelay_Rest,
 				],
 			},
+			$$mevBuilderBlocksReceived: {
+				entityType: EntityType.MevRelay_BuilderBlockReceived,
+				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.MevRelay_Rest,
+				],
+			},
 			$$mevProposerPayloadDelivered: {
 				entityType: EntityType.MevRelay_ProposerPayloadDelivered,
 				cardinality: EntityFieldCardinality.Many,

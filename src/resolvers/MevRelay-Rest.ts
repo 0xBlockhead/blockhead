@@ -12,12 +12,17 @@ import { EntityType } from '$/schema/EntityType.ts'
 import type { BidTrace } from '$/sources/MevRelay/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 
-const parsePayloadSlot = (payload: BidTrace) => {
-	const slot = Number(payload.slot)
-	if (!Number.isSafeInteger(slot) || slot < 0)
-		throw new Error(`MevRelay_Rest: invalid BidTrace slot ${payload.slot}`)
-	return slot
+const parsePayloadSafeInteger = (
+	label: string,
+	value: string
+) => {
+	const number = Number(value)
+	if (!Number.isSafeInteger(number) || number < 0)
+		throw new Error(`MevRelay_Rest: invalid BidTrace ${label} ${value}`)
+	return number
 }
+
+const parsePayloadSlot = (payload: BidTrace) => parsePayloadSafeInteger('slot', payload.slot)
 
 const parsePayloadValueWei = (payload: BidTrace) => {
 	const valueWei = BigInt(payload.value)
@@ -78,10 +83,94 @@ const deliveredPayloadReference = <_Network>(
 	}
 }
 
+const receivedBidReference = <_Network>(
+	$network: _Network,
+	relayHost: string,
+	payload: BidTrace
+) => {
+	const blockHash = hexLowerOfByteSize(payload.block_hash, 32)
+	const parentHash = hexLowerOfByteSize(payload.parent_hash, 32)
+	if (blockHash == null || parentHash == null)
+		throw new Error('MevRelay_Rest: invalid received bid block identity')
+
+	const blockNumber = parsePayloadBlockNumber(payload)
+	return {
+		[EntityMetaKey.Selector]: {
+			$network,
+			relayHost,
+			slot: parsePayloadSlot(payload),
+			blockHash,
+			builderPubkey: payload.builder_pubkey,
+		},
+		[EntityMetaKey.Fields]: {
+			[entityFieldAddressKey(EntityType.MevRelay_BuilderBlockReceived, [], '$builder')]: {
+				[EntityMetaKey.Selector]: {
+					$network,
+					builderPubkey: payload.builder_pubkey,
+				},
+			},
+			[entityFieldAddressKey(EntityType.MevRelay_BuilderBlockReceived, [], 'parentHash')]: parentHash,
+			[entityFieldAddressKey(EntityType.MevRelay_BuilderBlockReceived, [], 'proposerPubkey')]: payload.proposer_pubkey,
+			[entityFieldAddressKey(EntityType.MevRelay_BuilderBlockReceived, [], 'proposerFeeRecipient')]: payload.proposer_fee_recipient,
+			[entityFieldAddressKey(EntityType.MevRelay_BuilderBlockReceived, [], 'valueWei')]: parsePayloadValueWei(payload),
+			[entityFieldAddressKey(EntityType.MevRelay_BuilderBlockReceived, [], 'gasLimit')]: BigInt(payload.gas_limit),
+			[entityFieldAddressKey(EntityType.MevRelay_BuilderBlockReceived, [], 'gasUsed')]: BigInt(payload.gas_used),
+			[entityFieldAddressKey(EntityType.MevRelay_BuilderBlockReceived, [], 'transactionCount')]: parsePayloadSafeInteger('transaction count', payload.num_tx),
+			[entityFieldAddressKey(EntityType.MevRelay_BuilderBlockReceived, [], 'blockNumber')]: blockNumber,
+			[entityFieldAddressKey(EntityType.MevRelay_BuilderBlockReceived, [], '$executionBlock')]: {
+				[EntityMetaKey.Selector]: {
+					$network,
+					blockNumber,
+				},
+			},
+			...(payload.timestamp_ms != null && {
+				[entityFieldAddressKey(EntityType.MevRelay_BuilderBlockReceived, [], 'receivedAtMs')]: parsePayloadSafeInteger('receipt timestamp', payload.timestamp_ms),
+			}),
+			...(payload.optimistic_submission != null && {
+				[entityFieldAddressKey(EntityType.MevRelay_BuilderBlockReceived, [], 'optimisticSubmission')]: payload.optimistic_submission,
+			}),
+		},
+	}
+}
+
 export default {
 	source: Source.MevRelay_Rest,
 
 	resolvers: [
+		defineResolver({
+			entityType: EntityType.MevRelay_BuilderBlockReceived,
+			resolve: {
+				EvmNetworkRelayHostSlotBlockHashBuilderPubkey: {
+					resolve: async (entitySelector) => {
+						const { getBuilderBlocksReceivedForRelayHost } = await import('$/sources/MevRelay/Rest/queries.ts')
+						const bid = (await getBuilderBlocksReceivedForRelayHost(entitySelector.relayHost, {
+							limit: 1,
+							slot: entitySelector.slot,
+							block_hash: entitySelector.blockHash,
+							builder_pubkey: entitySelector.builderPubkey,
+						})).at(0)
+						if (bid == null)
+							throw new Error('MevRelay_Rest: received builder block not found')
+
+						return receivedBidReference(entitySelector.$network, entitySelector.relayHost, bid)
+					},
+				},
+			},
+		})({
+				$builder: (bid) => bid[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.MevRelay_BuilderBlockReceived, [], '$builder')],
+				parentHash: (bid) => bid[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.MevRelay_BuilderBlockReceived, [], 'parentHash')],
+				proposerPubkey: (bid) => bid[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.MevRelay_BuilderBlockReceived, [], 'proposerPubkey')],
+				proposerFeeRecipient: (bid) => bid[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.MevRelay_BuilderBlockReceived, [], 'proposerFeeRecipient')],
+				valueWei: (bid) => bid[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.MevRelay_BuilderBlockReceived, [], 'valueWei')],
+				gasLimit: (bid) => bid[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.MevRelay_BuilderBlockReceived, [], 'gasLimit')],
+				gasUsed: (bid) => bid[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.MevRelay_BuilderBlockReceived, [], 'gasUsed')],
+				transactionCount: (bid) => bid[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.MevRelay_BuilderBlockReceived, [], 'transactionCount')],
+				blockNumber: (bid) => bid[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.MevRelay_BuilderBlockReceived, [], 'blockNumber')],
+				$executionBlock: (bid) => bid[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.MevRelay_BuilderBlockReceived, [], '$executionBlock')],
+				receivedAtMs: (bid) => bid[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.MevRelay_BuilderBlockReceived, [], 'receivedAtMs')],
+				optimisticSubmission: (bid) => bid[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.MevRelay_BuilderBlockReceived, [], 'optimisticSubmission')],
+			}),
+
 		defineResolver({
 			entityType: EntityType.MevRelay_ProposerPayloadDelivered,
 			resolve: {
@@ -283,6 +372,76 @@ export default {
 			},
 		})({
 				$$deliveredPayloads: (snapshot) => snapshot,
+			}),
+
+		defineResolver({
+			entityType: EntityType.MevBuilder,
+			resolve: {
+				EvmNetworkBuilderPubkey: {
+					resolve: async (entitySelector, context) => {
+						const { getBuilderBlocksReceivedForRelayHost } = await import('$/sources/MevRelay/Rest/queries.ts')
+						const entityLimit = resolverContextRowLimit(context)
+						const receivedBidPages = await Promise.all(
+							(await relayHostsForChainId(Number(entitySelector.$network.caip2.reference))).map((relayHost) => (
+								getBuilderBlocksReceivedForRelayHost(relayHost, {
+									limit: Math.min(entityLimit, 200),
+									builder_pubkey: entitySelector.builderPubkey,
+								}).then((receivedBids) => ({
+									relayHost,
+									receivedBids,
+								}))
+							))
+						)
+						return receivedBidPages
+							.flatMap(({ relayHost, receivedBids }) => receivedBids.map((bid) => receivedBidReference(entitySelector.$network, relayHost, bid)))
+							.slice(0, entityLimit)
+					},
+				},
+			},
+		})({
+				$$receivedBids: (bids) => bids,
+			}),
+
+		defineResolver({
+			entityType: EntityType.Network,
+			resolve: {
+				Caip2: {
+					resolve: async (entitySelector, context) => {
+						const {
+							getBuilderBlocksReceivedForRelayHost,
+							getProposerPayloadDeliveredForRelayHost,
+						} = await import('$/sources/MevRelay/Rest/queries.ts')
+						const entityLimit = resolverContextRowLimit(context)
+						const relayHosts = await relayHostsForChainId(Number(entitySelector.caip2.reference))
+						const deliveredPayloadPages = await Promise.all(relayHosts.map((relayHost) => (
+							getProposerPayloadDeliveredForRelayHost(relayHost, {
+								limit: Math.min(entityLimit, 200),
+							}).then((deliveredPayloads) => ({
+								relayHost,
+								deliveredPayloads,
+							}))
+						)))
+						const receivedBidPages = await Promise.all(deliveredPayloadPages.flatMap(({ relayHost, deliveredPayloads }) => (
+							[...new Set(deliveredPayloads.map((payload) => payload.slot))].map((slot) => (
+								getBuilderBlocksReceivedForRelayHost(relayHost, {
+									limit: Math.min(entityLimit, 200),
+									slot,
+								}).then((receivedBids) => ({
+									relayHost,
+									receivedBids,
+								}))
+							))
+						)))
+						return receivedBidPages
+							.flatMap(({ relayHost, receivedBids }) => receivedBids.map((bid) => receivedBidReference(entitySelector, relayHost, bid)))
+							.slice(0, entityLimit)
+					},
+				},
+			},
+		})({
+				Evm: {
+					$$mevBuilderBlocksReceived: (bids) => bids,
+				},
 			}),
 
 		defineResolver({

@@ -722,6 +722,7 @@ import McpToolCallSchema from '$/schema/McpToolCall.ts'
 import MediaSchema from '$/schema/Media.ts'
 import MevBuilder_TimestampSchema from '$/schema/MevBuilder_Timestamp.ts'
 import MevBuilderSchema from '$/schema/MevBuilder.ts'
+import MevRelay_BuilderBlockReceivedSchema from '$/schema/MevRelay_BuilderBlockReceived.ts'
 import MevRelay_ProposerPayloadDeliveredSchema from '$/schema/MevRelay_ProposerPayloadDelivered.ts'
 import MevRelay_TimestampSchema from '$/schema/MevRelay_Timestamp.ts'
 import MevRelaySchema from '$/schema/MevRelay.ts'
@@ -1826,6 +1827,7 @@ const schemaChunk14 = [
 	MevBuilderSchema,
 	MevBuilder_TimestampSchema,
 	MevRelaySchema,
+	MevRelay_BuilderBlockReceivedSchema,
 	MevRelay_ProposerPayloadDeliveredSchema,
 	MevRelay_TimestampSchema,
 	MoneroBlockSchema,
@@ -1853,10 +1855,10 @@ const schemaChunk14 = [
 	NearChunkSchema,
 	NearContractSchema,
 	NearContract_TimestampSchema,
-	NearContractStorageEntrySchema,
 ] as const
 
 const schemaChunk15 = [
+	NearContractStorageEntrySchema,
 	NearExecutionOutcomeSchema,
 	NearNetworkSchema,
 	NearNetwork_TimestampSchema,
@@ -1906,10 +1908,10 @@ const schemaChunk15 = [
 	PolkadotAsset_TimestampSchema,
 	PolkadotAssetBalance_TimestampSchema,
 	PolkadotBlockSchema,
-	PolkadotEventSchema,
 ] as const
 
 const schemaChunk16 = [
+	PolkadotEventSchema,
 	PolkadotExtrinsicSchema,
 	PolkadotPalletSchema,
 	PolkadotReferendumSchema,
@@ -1959,10 +1961,10 @@ const schemaChunk16 = [
 	SolanaTokenAccountSchema,
 	SolanaTokenAccount_TimestampSchema,
 	SolanaTokenMintSchema,
-	SolanaTokenMint_TimestampSchema,
 ] as const
 
 const schemaChunk17 = [
+	SolanaTokenMint_TimestampSchema,
 	SolanaTransactionSchema,
 	SolanaTransaction_TimestampSchema,
 	SolanaValidatorSchema,
@@ -2012,10 +2014,10 @@ const schemaChunk17 = [
 	SuiAccountSchema,
 	SuiBalanceChangeSchema,
 	SuiCheckpointSchema,
-	SuiCoinBalance_TimestampSchema,
 ] as const
 
 const schemaChunk18 = [
+	SuiCoinBalance_TimestampSchema,
 	SuiCoinTypeSchema,
 	SuiDynamicFieldEdgeSchema,
 	SuiDynamicFieldEdge_TimestampSchema,
@@ -2065,10 +2067,10 @@ const schemaChunk18 = [
 	TezosToken_TimestampSchema,
 	TezosTokenBalance_TimestampSchema,
 	TezosTokenTransferSchema,
-	TokenMetadataDocumentSchema,
 ] as const
 
 const schemaChunk19 = [
+	TokenMetadataDocumentSchema,
 	TokenProgramExtension_TimestampSchema,
 	TonAccountSchema,
 	TonAccount_TimestampSchema,
@@ -2118,10 +2120,10 @@ const schemaChunk19 = [
 	UniswapV3PositionSchema,
 	UniswapV3Position_BlockSchema,
 	UrlSchema,
-	UrlPreview_TimestampSchema,
 ] as const
 
 const schemaChunk20 = [
+	UrlPreview_TimestampSchema,
 	UsageRight_TimestampSchema,
 	UtxoAddressSchema,
 	UtxoAddress_TimestampSchema,
@@ -2171,10 +2173,10 @@ const schemaChunk20 = [
 	ZeroGDaQuorumSchema,
 	ZeroGDataBlobSchema,
 	ZeroGDataChunkSchema,
-	ZeroGKvEntrySchema,
 ] as const
 
 const schemaChunk21 = [
+	ZeroGKvEntrySchema,
 	ZeroGNetworkSchema,
 	ZeroGNetwork_TimestampSchema,
 	ZeroGServiceProviderSchema,
