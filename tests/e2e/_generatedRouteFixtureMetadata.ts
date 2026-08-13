@@ -6817,6 +6817,30 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
+	'/(explore)/(networks)/network/[network]/beacon-block/[root]': {
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/beacon-block/[root=zeroExHex]',
+		mappings: [
+			{
+				id: 'BeaconBlock.NetworkRoot',
+				projectionEntity: 'Network',
+				probeAtomPrefixes: ['/network/[network]/beacon-block/[root]:BeaconBlock.NetworkRoot'],
+				probeCases: [[[0, '1', ['root', 'network']]]],
+				projectionPath: [
+					'Evm',
+				],
+			},
+		],
+	},
+	'/(explore)/(networks)/network/[network]/beacon-block/[root]/observation/[timestampMs]/[source]': {
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/beacon-block/[root=zeroExHex]/(beaconBlock)/observation/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+		mappings: [
+			{
+				id: 'BeaconBlock_Timestamp.BlockTimestampMsSource',
+				probeAtomPrefixes: ['/network/[network]/beacon-block/[root]/observation/[timestampMs]/[source]:BeaconBlock_Timestamp.BlockTimestampMsSource'],
+				probeCases: [[[0, '1', ['timestampMs', 'source', 'root', 'network']]]],
+			},
+		],
+	},
 	'/(explore)/(networks)/network/[network]/bitcoin-cash/metadata/[categoryId]/[registryUrl]': {
 		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/bitcoin-cash/metadata/[categoryId=stringSegment]/[registryUrl=stringSegment]',
 		mappings: [

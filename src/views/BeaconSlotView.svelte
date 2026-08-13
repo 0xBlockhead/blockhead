@@ -43,6 +43,7 @@
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import BeaconEpochView from '$/views/BeaconEpochView.svelte'
+	import BeaconBlocksView from '$/views/BeaconBlocksView.svelte'
 	import BeaconCommitteesView from '$/views/BeaconCommitteesView.svelte'
 	import BeaconDepositsView from '$/views/BeaconDepositsView.svelte'
 	import BeaconAttestationsView from '$/views/BeaconAttestationsView.svelte'
@@ -490,6 +491,43 @@
 	{/snippet}
 
 	{#snippet Details()}
+		<CollapsibleTabs
+			id={viewDomId + '-carousel-beacon-slot-blocks'}
+			sectionIdPrefix={viewDomId}
+			sections={
+				[
+					{
+						id: 'beacon-slot-blocks',
+						label: 'Fork blocks',
+					},
+				]
+			}
+			data-card
+		>
+			{#snippet Summary()}
+				<header data-row-item="flexible" data-row="wrap gap-4">
+					<HeadingComponent>Blocks</HeadingComponent>
+				</header>
+			{/snippet}
+
+			{#snippet SectionBeaconSlotBlocks({ id, label })}
+				<BeaconBlocksView
+					selection={
+						selection
+						.$$blocks({
+							sources: [
+								Source.Beacon_Rest,
+							],
+						})
+					}
+					collapsible={false}
+					title={label}
+					id={`${id}-list`}
+				/>
+			{/snippet}
+
+		</CollapsibleTabs>
+
 		<CollapsibleTabs
 			id={viewDomId + '-carousel-beacon-slot-consensus'}
 			sectionIdPrefix={viewDomId}

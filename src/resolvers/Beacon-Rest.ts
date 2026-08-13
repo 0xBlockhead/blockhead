@@ -535,6 +535,147 @@ export default {
 			resolve: {
 				EvmNetworkSlot: {
 					appliesTo: eip155NetworkApplicability,
+					resolve: async ({ $network, slot }) => {
+						const { getBeaconBlockSnapshot } = await import('$/sources/Beacon/Rest/queries.ts')
+						const block = await getBeaconBlockSnapshot(
+							eip155ChainId($network),
+							slot
+						)
+						return [{
+							[EntityMetaKey.Selector]: {
+								$network,
+								root: block.root,
+							},
+							[EntityMetaKey.Fields]: {
+								[entityFieldAddressKey(EntityType.BeaconBlock, [], '$slot')]: {
+									[EntityMetaKey.Selector]: {
+										$network,
+										slot: block.slot,
+									},
+								},
+								[entityFieldAddressKey(EntityType.BeaconBlock, [], '$proposer')]: {
+									[EntityMetaKey.Selector]: {
+										$network,
+										indexInNetwork: block.proposerIndex,
+									},
+								},
+								...(block.slot > 0 && {
+									[entityFieldAddressKey(EntityType.BeaconBlock, [], '$parent')]: {
+										[EntityMetaKey.Selector]: {
+											$network,
+											root: block.parentRoot,
+										},
+									},
+								}),
+								[entityFieldAddressKey(EntityType.BeaconBlock, [], 'version')]: block.version,
+								[entityFieldAddressKey(EntityType.BeaconBlock, [], 'stateRoot')]: block.stateRoot,
+								[entityFieldAddressKey(EntityType.BeaconBlock, [], 'bodyRoot')]: block.bodyRoot,
+								[entityFieldAddressKey(EntityType.BeaconBlock, [], 'signature')]: block.signature,
+								...(block.executionBlockHash != null && {
+									[entityFieldAddressKey(EntityType.BeaconBlock, [], '$executionBlock')]: {
+										[EntityMetaKey.Selector]: {
+											$network,
+											hash: block.executionBlockHash,
+										},
+									},
+								}),
+							},
+						}]
+					},
+				},
+			},
+		})({
+			$$blocks: (blocks) => blocks,
+		}),
+
+		defineResolver({
+			entityType: EntityType.BeaconBlock,
+			resolve: {
+				NetworkRoot: {
+					appliesTo: eip155NetworkApplicability,
+					resolve: async ({ $network, root }) => {
+						const { getBeaconBlockSnapshot } = await import('$/sources/Beacon/Rest/queries.ts')
+						const block = await getBeaconBlockSnapshot(
+							eip155ChainId($network),
+							root
+						)
+						if (block.root.toLowerCase() !== root.toLowerCase())
+							throw new Error('Beacon_Rest: block root does not match selector')
+
+						const timestampMs = Date.now()
+						return {
+							$network,
+							root: block.root,
+							$slot: {
+								[EntityMetaKey.Selector]: {
+									$network,
+									slot: block.slot,
+								},
+							},
+							$proposer: {
+								[EntityMetaKey.Selector]: {
+									$network,
+									indexInNetwork: block.proposerIndex,
+								},
+							},
+							...(block.slot > 0 && {
+								$parent: {
+									[EntityMetaKey.Selector]: {
+										$network,
+										root: block.parentRoot,
+									},
+								},
+							}),
+							version: block.version,
+							stateRoot: block.stateRoot,
+							bodyRoot: block.bodyRoot,
+							signature: block.signature,
+							...(block.executionBlockHash != null && {
+								$executionBlock: {
+									[EntityMetaKey.Selector]: {
+										$network,
+										hash: block.executionBlockHash,
+									},
+								},
+							}),
+							$$timestamps: [{
+								[EntityMetaKey.Selector]: {
+									$block: {
+										$network,
+										root: block.root,
+									},
+									timestampMs,
+									source: Source.Beacon_Rest,
+								},
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.BeaconBlock_Timestamp, [], 'canonical')]: block.canonical,
+									[entityFieldAddressKey(EntityType.BeaconBlock_Timestamp, [], 'executionOptimistic')]: block.executionOptimistic,
+									[entityFieldAddressKey(EntityType.BeaconBlock_Timestamp, [], 'finalized')]: block.finalized,
+								},
+							}],
+						}
+					},
+				},
+			},
+		})({
+			$network: (block) => block.$network,
+			root: (block) => block.root,
+			$slot: (block) => block.$slot,
+			$proposer: (block) => block.$proposer,
+			$parent: (block) => block.$parent,
+			version: (block) => block.version,
+			stateRoot: (block) => block.stateRoot,
+			bodyRoot: (block) => block.bodyRoot,
+			signature: (block) => block.signature,
+			$executionBlock: (block) => block.$executionBlock,
+			$$timestamps: (block) => block.$$timestamps,
+		}),
+
+		defineResolver({
+			entityType: EntityType.BeaconSlot,
+			resolve: {
+				EvmNetworkSlot: {
+					appliesTo: eip155NetworkApplicability,
 					resolve: async ({ $network, slot }, context) => {
 						const { getDataColumnSidecars } = await import('$/sources/Beacon/Rest/queries.ts')
 						const sidecars = await getDataColumnSidecars(

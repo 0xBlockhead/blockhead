@@ -857,6 +857,8 @@ export enum EntityType {
 	BalancerPoolToken = "BalancerPoolToken",
 	BalancerVeBalBalance = "BalancerVeBalBalance",
 	BeaconAttestation = "BeaconAttestation",
+	BeaconBlock = "BeaconBlock",
+	BeaconBlock_Timestamp = "BeaconBlock_Timestamp",
 	BeaconCommittee = "BeaconCommittee",
 	BeaconDataColumn = "BeaconDataColumn",
 	BeaconDataColumn_Timestamp = "BeaconDataColumn_Timestamp",
@@ -10581,6 +10583,66 @@ export const schema = {
 			}),
 
 			entity({
+				entityType: EntityType.BeaconBlock,
+				labels: {
+					singular: "beacon block",
+					plural: "Beacon blocks",
+				},
+				description: "A signed consensus block occurrence identified by its fork root.",
+			})({
+				"$network": { label: "Network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
+				"root": { label: "Block root", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "zeroExHex" },
+				"$slot": { label: "Slot", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.BeaconSlot },
+				"$proposer": { label: "Proposer", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.BeaconValidator },
+				"$parent": { label: "Parent block", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.BeaconBlock },
+				"version": { label: "Fork version", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"stateRoot": { label: "State root", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "zeroExHex" },
+				"bodyRoot": { label: "Body root", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "zeroExHex" },
+				"signature": { label: "Signature", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "zeroExHex" },
+				"$executionBlock": { label: "Execution block", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.EvmBlock },
+				"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BeaconBlock_Timestamp, defaultSources: [Source.Beacon_Rest] },
+			})({
+				selectors: {
+					"NetworkRoot": ["$network", "root"],
+				},
+				views: {
+					singular: {
+						query: { sources: [Source.Beacon_Rest] },
+						summary: { title: [{ field: "root", format: "truncated" }], value: ["version"], HeadingAfter: ["$slot"] },
+						content: { dl: [["$slot", "$proposer", "$parent", "version", { field: "root", format: "truncated" }, { field: "stateRoot", format: "truncated" }, { field: "bodyRoot", format: "truncated" }, { field: "signature", format: "truncated" }, "$executionBlock"]], lists: [{ field: "$$timestamps", component: "BeaconBlock_TimestampsView", label: "Observations" }] },
+					},
+					plural: { component: "BeaconBlocksView", title: "Beacon blocks" },
+				},
+			}),
+
+			entity({
+				entityType: EntityType.BeaconBlock_Timestamp,
+				labels: {
+					singular: "beacon block observation",
+					plural: "Beacon block observations",
+				},
+			})({
+				"$block": { label: "Block", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.BeaconBlock },
+				"timestampMs": { label: "Retrieved at", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
+				"source": { label: "Source", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"canonical": { label: "Canonical", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "boolean" },
+				"executionOptimistic": { label: "Execution optimistic", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "boolean" },
+				"finalized": { label: "Finalized", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "boolean" },
+			})({
+				selectors: {
+					"BlockTimestampMsSource": ["$block", "timestampMs", "source"],
+				},
+				views: {
+					singular: {
+						query: { sources: [Source.Beacon_Rest] },
+						summary: { title: [{ field: "timestampMs", format: "timestamp" }], value: ["finalized", "executionOptimistic"], HeadingAfter: ["source"] },
+						content: { dl: [["$block", { field: "timestampMs", format: "timestamp" }, "source", "canonical", "executionOptimistic", "finalized"]] },
+					},
+					plural: { component: "BeaconBlock_TimestampsView", title: "Beacon block observations" },
+				},
+			}),
+
+			entity({
 				entityType: EntityType.BeaconCommittee,
 				labels: {
 					singular: "beacon committee",
@@ -10990,6 +11052,7 @@ export const schema = {
 				"rewardAttesterSlashingsGwei": { label: "Attester slashing reward", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Beacon_Rest] },
 				"rewardExecutionOptimistic": { label: "Reward execution optimistic", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean", defaultSources: [Source.Beacon_Rest] },
 				"rewardFinalized": { label: "Reward finalized", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean", defaultSources: [Source.Beacon_Rest] },
+				"$$blocks": { label: "Blocks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BeaconBlock, defaultSources: [Source.Beacon_Rest] },
 				"$$beaconCommittees": {
 					label: "Beacon committees",
 					type: EntityFieldType.EntitiesReference,
@@ -11078,6 +11141,11 @@ export const schema = {
 							],
 						},
 						carousels: [
+							{
+								id: "beacon-slot-blocks",
+								label: "Blocks",
+								sections: [{ id: "beacon-slot-blocks", field: "$$blocks", List: "BeaconBlocksView", label: "Fork blocks", selection: { sources: [Source.Beacon_Rest] } }],
+							},
 							{
 								id: "beacon-slot-consensus",
 								label: "Consensus",
@@ -79452,6 +79520,41 @@ export const routes = defineRoutes(schema)({
 																},
 															},
 														},
+													}
+												}
+											}
+										},
+										"beacon-block": {
+											children: {
+												"[root]": {
+													selectors: {
+														[EntityType.BeaconBlock]: {
+															"NetworkRoot": {
+																projection: { entityType: EntityType.Network, facetPath: ["Evm"] },
+																params: { "root": ["root"] },
+																page: {},
+															}
+														}
+													},
+													children: {
+														"observation": {
+															children: {
+																"[timestampMs]": {
+																	children: {
+																		"[source]": {
+																			selectors: {
+																				[EntityType.BeaconBlock_Timestamp]: {
+																					"BlockTimestampMsSource": {
+																						params: { "timestampMs": ["timestampMs"], "source": ["source"] },
+																						page: {},
+																					}
+																				}
+																			}
+																		}
+																	}
+																}
+															}
+														}
 													}
 												}
 											}

@@ -106,6 +106,13 @@ export default entity({
 			Source.Beacon_Rest,
 		],
 	},
+	$$blocks: {
+		entityType: EntityType.BeaconBlock,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Beacon_Rest,
+		],
+	},
 	$$beaconCommittees: {
 		entityType: EntityType.BeaconCommittee,
 		cardinality: EntityFieldCardinality.Many,
