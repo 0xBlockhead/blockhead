@@ -172,7 +172,22 @@ export const mlflowResolvers = [
 		})({
 			$provider: () => providerReference,
 			providerArtifactId: (_artifact, selector) => selector.providerArtifactId,
-			uri: (artifact) => artifact.listing.root_uri?.startsWith('http://') === true || artifact.listing.root_uri?.startsWith('https://') === true ? `${artifact.listing.root_uri.replace(/\/$/, '')}/${artifact.path}` : undefined,
+			uri: (artifact) => {
+				try {
+					const rootUri = new URL(artifact.listing.root_uri ?? '')
+					if (
+						(rootUri.protocol !== 'http:' && rootUri.protocol !== 'https:')
+						|| rootUri.username !== ''
+						|| rootUri.password !== ''
+						|| rootUri.search !== ''
+						|| rootUri.hash !== ''
+					) return undefined
+
+					return `${rootUri.toString().replace(/\/$/, '')}/${artifact.path}`
+				} catch {
+					return undefined
+				}
+			},
 			artifactType: (artifact) => artifact.listing.files?.find((file) => file.path === artifact.path)?.is_dir === true ? 'mlflow-artifact-directory' : 'mlflow-artifact',
 			size: (artifact) => artifact.listing.files?.find((file) => file.path === artifact.path)?.file_size,
 			$$documents: (artifact) => /(^|\/)(MLmodel|README\.md|model-card\.md)$/i.test(artifact.path) ? [{

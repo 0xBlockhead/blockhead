@@ -121,7 +121,27 @@ describe('MLflow resolver mappings', () => {
 			providerArtifactId: 'run-123::model/MLmodel',
 		}, context)
 		expect(mlflowResolvers[2].projections.size(artifact)).toBe(128)
+		expect(mlflowResolvers[2].projections.uri(artifact)).toBe('https://mlflow.example/artifacts/run-123/model/MLmodel')
 		expect(mlflowResolvers[2].projections.$$documents(artifact)).toHaveLength(1)
+	})
+
+	it('withholds credentialed and non-navigable MLflow artifact roots', async () => {
+		const { mlflowResolvers } = await import('$/resolvers/Mlflow-Rest.ts')
+		const uri = mlflowResolvers[2].projections.uri
+
+		for (const root_uri of [
+			'https://reader:token@mlflow.example/artifacts/run-123',
+			'https://mlflow.example/artifacts/run-123?signature=secret',
+			'file:///private/mlflow-artifacts/run-123',
+			'not-a-url',
+		]) {
+			expect(uri({
+				path: 'model/MLmodel',
+				listing: {
+					root_uri,
+				},
+			})).toBeUndefined()
+		}
 	})
 
 	it('passes public endpoint configuration to the MLflow source', async () => {
