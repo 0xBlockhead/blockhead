@@ -26,6 +26,7 @@ const getSmartContracts = vi.hoisted(() => vi.fn())
 const getTransactionByHash = vi.hoisted(() => vi.fn())
 const getTransactionLogs = vi.hoisted(() => vi.fn())
 const getTransactionRawTrace = vi.hoisted(() => vi.fn())
+const getTransactionStateChanges = vi.hoisted(() => vi.fn())
 const getUserOperationsPage = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/Blockscout/Rest/queries.ts', async (importOriginal) => ({
@@ -44,6 +45,7 @@ vi.mock('$/sources/Blockscout/Rest/queries.ts', async (importOriginal) => ({
 	getTransactionByHash,
 	getTransactionLogs,
 	getTransactionRawTrace,
+	getTransactionStateChanges,
 	getUserOperationsPage,
 }))
 
@@ -209,6 +211,110 @@ describe('Blockscout EVM coin instances', () => {
 		expect(resolver.projections.Erc20Token.symbol(resolved, resolved[EntityMetaKey.Selector], context)).toBe('USDC')
 	})
 
+})
+
+describe('Blockscout EVM state changes', () => {
+	beforeEach(() => {
+		getTransactionStateChanges.mockReset()
+	})
+
+	it('materializes bounded native coin and token effects from the owning transaction', async () => {
+		const coinAddress = '0x1111111111111111111111111111111111111111'
+		const tokenAddress = '0x2222222222222222222222222222222222222222'
+		const tokenContractAddress = '0x3333333333333333333333333333333333333333'
+		getTransactionStateChanges.mockResolvedValueOnce([
+			{
+				address: { hash: coinAddress },
+				balance_after: '7',
+				balance_before: '5',
+				change: '2',
+				is_miner: true,
+				token: null,
+				type: 'coin',
+			},
+			{
+				address: { hash: tokenAddress },
+				balance_after: '9',
+				balance_before: '10',
+				change: '-1',
+				is_miner: false,
+				token: { address: tokenContractAddress },
+				token_id: '4',
+				type: 'token',
+			},
+		])
+		const resolver = blockscoutRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.EvmTransaction
+			&& typeof candidate.projections.$$stateChanges === 'function'
+		))
+		if (resolver == null)
+			throw new Error('Blockscout EvmTransaction state changes resolver is not registered')
+
+		const rows = await resolver.resolve.EvmNetworkTxHash.resolve({
+			$network: network,
+			txHash,
+		}, context)
+		expect(getTransactionStateChanges).toHaveBeenCalledWith({
+			chainId: 1,
+			txHash,
+			limit: 50,
+		})
+		expect(resolver.projections.$$stateChanges(rows)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$transaction: {
+						$network: network,
+						txHash,
+					},
+					stateChangeKey: `coin-${coinAddress}`,
+				},
+			},
+			{
+				[EntityMetaKey.Selector]: {
+					$transaction: {
+						$network: network,
+						txHash,
+					},
+					stateChangeKey: `token-${tokenContractAddress}-4-${tokenAddress}`,
+				},
+			},
+		])
+
+		const stateChangeResolver = blockscoutRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.EvmStateChange
+		))
+		if (stateChangeResolver == null)
+			throw new Error('Blockscout EvmStateChange resolver is not registered')
+		getTransactionStateChanges.mockResolvedValueOnce([{
+			address: { hash: tokenAddress },
+			balance_after: '9',
+			balance_before: '10',
+			change: '-1',
+			is_miner: false,
+			token: { address: tokenContractAddress },
+			token_id: '4',
+			type: 'token',
+		}])
+		const stateChange = await stateChangeResolver.resolve.TransactionStateChangeKey.resolve({
+			$transaction: {
+				$network: network,
+				txHash,
+			},
+			stateChangeKey: `token-${tokenContractAddress}-4-${tokenAddress}`,
+		})
+		expect(stateChangeResolver.projections).toMatchObject({
+			kind: expect.any(Function),
+			delta: expect.any(Function),
+		})
+		expect(stateChangeResolver.projections.kind(stateChange)).toBe('Token')
+		expect(stateChangeResolver.projections.delta(stateChange)).toBe(-1n)
+		expect(stateChangeResolver.projections.$tokenContract(stateChange)).toMatchObject({
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				address: tokenContractAddress,
+			},
+		})
+	})
 })
 
 describe('Blockscout Network account abstraction applicability', () => {

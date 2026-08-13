@@ -133,6 +133,25 @@ export const blockscoutCoinBalanceEnvelope = arktype({
 export const blockscoutCoinBalanceHistoryPageEnvelope = arktype({
 	items: blockscoutCoinBalanceEnvelope.array(),
 })
+export const blockscoutStateChangeEnvelope = arktype({
+	address: blockscoutAddressEnvelope,
+	balance_after: 'string | null',
+	balance_before: 'string | null',
+	change: 'string | null',
+	is_miner: 'boolean',
+	token: arktype({
+		address: 'string',
+	}).or(arktype.null),
+	'token_id?': 'string | null',
+	type: '"coin" | "token"',
+})
+export const blockscoutTransactionStateChangesPageEnvelope = arktype({
+	items: blockscoutStateChangeEnvelope.array(),
+	'next_page_params?': arktype({
+		'state_changes?': 'string | null',
+		'items_count?': 'number',
+	}).or(arktype.null),
+})
 
 type Response<_Path extends keyof paths> = paths[_Path] extends {
 	get: {
@@ -226,6 +245,17 @@ export type BlockscoutTransactionLogsPage = Omit<
 		items_count?: number
 	} | null
 }
+// The upstream schema leaves state-change keyset cursor values as an untyped record.
+export type BlockscoutTransactionStateChangesPage = Omit<
+	Response<'/v2/transactions/{transaction_hash_param}/state-changes'>,
+	'next_page_params'
+> & {
+	next_page_params: {
+		state_changes?: string | null
+		items_count?: number
+	} | null
+}
+export type BlockscoutStateChange = components['schemas']['StateChange']
 export type BlockscoutSmartContractsPage = Response<'/v2/smart-contracts/'>
 export type BlockscoutUserOperationsPage = Response<'/v2/proxy/account-abstraction/operations'>
 export type BlockscoutErc4337AccountsPage = Response<'/v2/proxy/account-abstraction/accounts'>

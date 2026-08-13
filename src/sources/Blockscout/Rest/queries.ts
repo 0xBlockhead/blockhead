@@ -18,6 +18,7 @@ import {
 	blockscoutBlocksPageEnvelope,
 	blockscoutCoinBalanceHistoryPageEnvelope,
 	blockscoutRawTraceEnvelope,
+	blockscoutTransactionStateChangesPageEnvelope,
 	blockscoutTokenBalancesEnvelope,
 	blockscoutTokenTransfersPageEnvelope,
 	blockscoutTransactionEnvelope,
@@ -51,11 +52,13 @@ import type {
 	BlockscoutSmartContractForList,
 	BlockscoutSmartContractsPage,
 	BlockscoutStats,
+	BlockscoutStateChange,
 	BlockscoutTokenBalance,
 	BlockscoutTokenTransfersPage,
 	BlockscoutTransaction,
 	BlockscoutTransactionInternalTransactionsPage,
 	BlockscoutTransactionLogsPage,
+	BlockscoutTransactionStateChangesPage,
 	BlockscoutTransactionsPage,
 	BlockscoutTransactionTokenTransfersPage,
 	BlockscoutUserOperationDetail,
@@ -201,6 +204,41 @@ const blockscoutTransactionHash = (value: string, label: string) => {
 		throw new Error(`Blockscout_Rest: invalid ${label} transaction hash`)
 
 	return normalized
+}
+
+const blockscoutStateChangeAmount = (
+	value: string | null | undefined,
+	label: string
+) => {
+	if (value == null || value === '')
+		return undefined
+
+	try {
+		return BigInt(value)
+	} catch {
+		throw new Error(`Blockscout_Rest: invalid state change ${label}`)
+	}
+}
+
+export const blockscoutStateChangeKey = (stateChange: BlockscoutStateChange) => {
+	const accountAddress = blockscoutAddressHash(stateChange.address.hash, 'state change account')
+	blockscoutStateChangeAmount(stateChange.balance_before, 'balance before')
+	blockscoutStateChangeAmount(stateChange.balance_after, 'balance after')
+	blockscoutStateChangeAmount(stateChange.change, 'delta')
+
+	if (stateChange.type === 'coin') {
+		if (stateChange.token != null || stateChange.token_id != null)
+			throw new Error('Blockscout_Rest: coin state change unexpectedly includes token identity')
+
+		return `coin-${accountAddress}`
+	}
+
+	if (stateChange.token == null)
+		throw new Error('Blockscout_Rest: token state change is missing token identity')
+
+	const tokenAddress = blockscoutAddressHash(stateChange.token.address, 'state change token')
+	const tokenId = blockscoutStateChangeAmount(stateChange.token_id, 'token ID')
+	return `token-${tokenAddress}-${tokenId?.toString() ?? 'all'}-${accountAddress}`
 }
 
 /**
@@ -828,6 +866,68 @@ export const getTransactionLogs = async ({ chainId, txHash }: {
 	} while (nextPageParams != null)
 
 	return logs
+}
+
+export const getTransactionStateChanges = async ({ chainId, txHash, limit }: {
+	chainId: number
+	txHash: string
+	limit: number
+}) => {
+	if (limit <= 0)
+		return []
+
+	const normalized = hexLowerOfByteSize(txHash, 32)
+	if (normalized == null)
+		return []
+
+	const stateChanges: BlockscoutStateChange[] = []
+	const stateChangeKeys = new Set<string>()
+	const cursors = new Set<string>()
+	let nextPageParams: NonNullable<BlockscoutTransactionStateChangesPage['next_page_params']> | undefined
+	do {
+		const wire = await getBlockscoutJson<BlockscoutTransactionStateChangesPage>({
+			binding: requireBlockscoutBinding(chainId, ApiFamily.BlockscoutRestV2),
+			path: `/transactions/${normalized}/state-changes`,
+			searchParams: nextPageParams,
+		})
+		assertBlockscoutEnvelope(blockscoutTransactionStateChangesPageEnvelope, wire, 'transaction state changes')
+		for (const stateChange of wire.items) {
+			const stateChangeKey = blockscoutStateChangeKey(stateChange)
+			if (stateChangeKeys.has(stateChangeKey))
+				throw new Error('Blockscout_Rest: transaction state changes contain duplicate identities')
+
+			stateChangeKeys.add(stateChangeKey)
+			stateChanges.push(stateChange)
+			if (stateChanges.length >= limit)
+				return stateChanges
+		}
+
+		if (wire.next_page_params == null) {
+			nextPageParams = undefined
+			continue
+		}
+
+		const {
+			state_changes: cursor,
+			items_count: itemsCount,
+		} = wire.next_page_params
+		if (
+			cursor == null
+			|| cursor.length === 0
+			|| itemsCount == null
+			|| !Number.isSafeInteger(itemsCount)
+			|| itemsCount < stateChanges.length
+			|| cursors.has(cursor)
+		) throw new Error('Blockscout_Rest: transaction state changes pagination cursor did not progress')
+
+		cursors.add(cursor)
+		nextPageParams = {
+			state_changes: cursor,
+			items_count: itemsCount,
+		}
+	} while (nextPageParams != null)
+
+	return stateChanges
 }
 
 export const normalizeAddressFromContractListWire = (wire: BlockscoutSmartContractForList) => {

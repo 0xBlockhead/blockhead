@@ -18,6 +18,7 @@ import {
 	getTransactionByHash,
 	getTransactionLogs,
 	getTransactionRawTrace,
+	getTransactionStateChanges,
 	getTransactionTokenTransfers,
 	getTransactions,
 	getUserOperationsPage,
@@ -452,6 +453,59 @@ describe('Blockscout account-abstraction queries', () => {
 		])
 	})
 
+	it('preserves bounded transaction state changes across keyset pages', async () => {
+		const coinStateChange = {
+			address: {
+				hash: hex('1', 40),
+			},
+			balance_after: '7',
+			balance_before: '5',
+			change: '2',
+			is_miner: false,
+			token: null,
+			type: 'coin',
+		} as const
+		const tokenStateChange = {
+			address: {
+				hash: hex('2', 40),
+			},
+			balance_after: '9',
+			balance_before: '10',
+			change: '-1',
+			is_miner: false,
+			token: {
+				address: hex('3', 40),
+			},
+			token_id: '4',
+			type: 'token',
+		} as const
+		const fetchMock = vi.spyOn(globalThis, 'fetch')
+			.mockResolvedValueOnce(jsonResponse({
+				items: [coinStateChange],
+				next_page_params: {
+					state_changes: 'next',
+					items_count: 1,
+				},
+			}))
+			.mockResolvedValueOnce(jsonResponse({
+				items: [tokenStateChange],
+				next_page_params: null,
+			}))
+
+		await expect(getTransactionStateChanges({
+			chainId: 1,
+			txHash: hex('A', 64),
+			limit: 2,
+		})).resolves.toEqual([
+			coinStateChange,
+			tokenStateChange,
+		])
+		expect(fetchMock.mock.calls.map(([url]) => decodeURIComponent(String(url)))).toEqual([
+			expect.stringContaining(`/transactions/${hex('a', 64)}/state-changes`),
+			expect.stringContaining(`/transactions/${hex('a', 64)}/state-changes?state_changes=next&items_count=1`),
+		])
+	})
+
 	it('validates and returns the native raw trace tree for a transaction', async () => {
 		const rawTrace = [
 			{
@@ -794,6 +848,46 @@ describe('Blockscout account-abstraction queries', () => {
 			chainId: 1,
 			txHash: hex('A', 64),
 		})).rejects.toThrow('cursor did not progress')
+	})
+
+	it('rejects duplicate and malformed transaction state changes', async () => {
+		const stateChange = {
+			address: {
+				hash: hex('1', 40),
+			},
+			balance_after: '7',
+			balance_before: '5',
+			change: '2',
+			is_miner: false,
+			token: null,
+			type: 'coin',
+		}
+		vi.spyOn(globalThis, 'fetch')
+			.mockResolvedValueOnce(jsonResponse({
+				items: [stateChange, stateChange],
+				next_page_params: null,
+			}))
+
+		await expect(getTransactionStateChanges({
+			chainId: 1,
+			txHash: hex('A', 64),
+			limit: 2,
+		})).rejects.toThrow('duplicate identities')
+
+		vi.restoreAllMocks()
+		vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse({
+			items: [{
+				...stateChange,
+				change: 'not-an-integer',
+			}],
+			next_page_params: null,
+		}))
+
+		await expect(getTransactionStateChanges({
+			chainId: 1,
+			txHash: hex('A', 64),
+			limit: 1,
+		})).rejects.toThrow('invalid state change delta')
 	})
 
 	it('rejects user operations whose transaction hash does not match the filter', async () => {

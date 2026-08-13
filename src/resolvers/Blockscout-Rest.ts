@@ -23,10 +23,12 @@ import { EntityType } from '$/schema/EntityType.ts'
 import {
 	blockscoutGenericReadChainIds,
 	blockscoutAccountAbstractionChainIds,
+	blockscoutStateChangeKey,
 } from '$/sources/Blockscout/Rest/queries.ts'
 import { Source } from '$/sources/Source.ts'
 import {
 	EvmInternalCallType,
+	EvmStateChangeKind,
 	EvmTokenStandard,
 	EvmTransactionEnvelopeType,
 	EvmTransactionExecutionStatus,
@@ -41,6 +43,7 @@ import type {
 	BlockscoutErc4337Account,
 	BlockscoutRawTrace,
 	BlockscoutSmartContractForList,
+	BlockscoutStateChange,
 	BlockscoutStats,
 	BlockscoutTokenTransfer,
 	BlockscoutTransaction,
@@ -678,6 +681,73 @@ const evmInternalTransferEntitiesFromBlockscoutWires = ({
 		return entity == null ? [] : [entity]
 	})
 )
+
+const evmStateChangeEntityFromBlockscoutWire = ({
+	$network,
+	txHash,
+	wire,
+}: {
+	$network: EvmNetworkId
+	txHash: string
+	wire: BlockscoutStateChange
+}) => {
+	const normalizedTxHash = hexLowerOfByteSize(txHash, 32)
+	const accountAddress = hexLowerOfByteSize(wire.address.hash, 20)
+	if (normalizedTxHash == null || accountAddress == null)
+		return undefined
+
+	const stateChangeKey = blockscoutStateChangeKey(wire)
+	const $transaction = {
+		$network,
+		txHash: normalizedTxHash,
+	}
+	const kind = (
+		wire.type === 'coin' ?
+			EvmStateChangeKind.Coin
+		:
+			EvmStateChangeKind.Token
+	)
+	const tokenAddress = wire.token == null ? undefined : hexLowerOfByteSize(wire.token.address, 20)
+	if (kind === EvmStateChangeKind.Token && tokenAddress == null)
+		return undefined
+
+	return {
+		[EntityMetaKey.Selector]: {
+			$transaction,
+			stateChangeKey,
+		},
+		$transaction: {
+			[EntityMetaKey.Selector]: $transaction,
+		} satisfies Entity<typeof schema, EntityType.EvmTransaction>,
+		$account: {
+			[EntityMetaKey.Selector]: {
+				address: accountAddress,
+			},
+		} satisfies Entity<typeof schema, EntityType.EvmAccount>,
+		kind,
+		...(tokenAddress != null && {
+			$tokenContract: {
+				[EntityMetaKey.Selector]: {
+					$network,
+					address: tokenAddress,
+				},
+			} satisfies Entity<typeof schema, EntityType.EvmContract>,
+		}),
+		...(wire.token_id != null && {
+			tokenId: BigInt(wire.token_id),
+		}),
+		...(wire.balance_before != null && {
+			balanceBefore: BigInt(wire.balance_before),
+		}),
+		...(wire.balance_after != null && {
+			balanceAfter: BigInt(wire.balance_after),
+		}),
+		...(wire.change != null && {
+			delta: BigInt(wire.change),
+		}),
+		isMiner: wire.is_miner,
+	}
+}
 
 const evmInternalTransferEntitiesFromBlockscoutAddressWires = ({
 	$network,
@@ -2143,6 +2213,93 @@ export default {
 			},
 		})({
 			$contract: (account) => account.$contract,
+		}),
+
+		defineResolver({
+			entityType: EntityType.EvmStateChange,
+			resolve: {
+				TransactionStateChangeKey: {
+					resolve: async (entitySelector) => {
+						const {
+							blockscoutV2ItemsCountMax,
+						} = await import('$/sources/Blockscout/Rest/constants.ts')
+						const {
+							getTransactionStateChanges,
+						} = await import('$/sources/Blockscout/Rest/queries.ts')
+						const wires = await getTransactionStateChanges({
+							chainId: evmChainIdFromNetworkSelector(entitySelector.$transaction.$network),
+							txHash: entitySelector.$transaction.txHash,
+							limit: blockscoutV2ItemsCountMax,
+						})
+						const entity = wires
+							.flatMap((wire) => {
+								const stateChange = evmStateChangeEntityFromBlockscoutWire({
+									$network: entitySelector.$transaction.$network,
+									txHash: entitySelector.$transaction.txHash,
+									wire,
+								})
+								return stateChange == null ? [] : [stateChange]
+							})
+							.find((stateChange) => (
+								stateChange[EntityMetaKey.Selector].stateChangeKey
+								=== entitySelector.stateChangeKey
+							))
+						if (entity == null)
+							throw new Error('Blockscout_Rest: state change not found for EvmStateChange')
+
+						return entity
+					},
+				},
+			},
+		})({
+			$transaction: (stateChange) => stateChange.$transaction,
+			stateChangeKey: (stateChange) => stateChange[EntityMetaKey.Selector].stateChangeKey,
+			$account: (stateChange) => stateChange.$account,
+			kind: (stateChange) => stateChange.kind,
+			$tokenContract: (stateChange) => stateChange.$tokenContract,
+			tokenId: (stateChange) => stateChange.tokenId,
+			balanceBefore: (stateChange) => stateChange.balanceBefore,
+			balanceAfter: (stateChange) => stateChange.balanceAfter,
+			delta: (stateChange) => stateChange.delta,
+			isMiner: (stateChange) => stateChange.isMiner,
+		}),
+
+		defineResolver({
+			entityType: EntityType.EvmTransaction,
+			resolve: {
+				EvmNetworkTxHash: {
+					resolve: async ({ $network, txHash }, context) => {
+						const {
+							blockscoutV2ItemsCountMax,
+						} = await import('$/sources/Blockscout/Rest/constants.ts')
+						const {
+							getTransactionStateChanges,
+						} = await import('$/sources/Blockscout/Rest/queries.ts')
+						return (
+							await getTransactionStateChanges({
+								chainId: evmChainIdFromNetworkSelector($network),
+								txHash,
+								limit: Math.min(
+									resolverContextRowLimit(context),
+									blockscoutV2ItemsCountMax
+								),
+							})
+						)
+							.flatMap((wire) => {
+								const stateChange = evmStateChangeEntityFromBlockscoutWire({
+									$network,
+									txHash,
+									wire,
+								})
+								return stateChange == null ? [] : [stateChange]
+							})
+					},
+				},
+			},
+		})({
+			$$stateChanges: (stateChanges) => stateChanges.map((stateChange) => ({
+				[EntityMetaKey.Selector]: stateChange[EntityMetaKey.Selector],
+			})),
 		}),
 
 		defineResolver({
