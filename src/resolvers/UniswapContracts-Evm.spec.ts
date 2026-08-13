@@ -27,6 +27,7 @@ const getPoolFeeGrowthGlobal0X128 = vi.hoisted(() => vi.fn())
 const getPoolFeeGrowthGlobal1X128 = vi.hoisted(() => vi.fn())
 const getPoolProtocolFees = vi.hoisted(() => vi.fn())
 const getCcaAuctionConfiguration = vi.hoisted(() => vi.fn())
+const getCcaAuctionState = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/Voltaire/JsonRpc/queries.ts', () => ({
 	voltaireJsonRpcTransports: {
@@ -54,6 +55,7 @@ vi.mock('$/sources/Uniswap/Contracts/queries.ts', async () => {
 		getPoolFeeGrowthGlobal1X128,
 		getPoolProtocolFees,
 		getCcaAuctionConfiguration,
+		getCcaAuctionState,
 	}
 })
 
@@ -95,6 +97,20 @@ const ccaConfiguration = {
 	tickSpacingQ96: 5n,
 }
 
+const ccaState = {
+	auctionAddress: ccaConfiguration.auctionAddress,
+	blockNumber: ccaConfiguration.blockNumber,
+	clearingPriceQ96: 200n,
+	currencyRaisedAtClearingPriceQ96X7: 300n,
+	cumulativeMpsPerPrice: 400n,
+	cumulativeMps: 5_000_000,
+	previousCheckpointBlock: 12_345_600n,
+	nextCheckpointBlock: 12_345_700n,
+	currencyRaised: 500n,
+	totalCleared: 600n,
+	isGraduated: false,
+}
+
 
 describe('UniswapContracts_Evm resolver', () => {
 	beforeEach(() => {
@@ -110,9 +126,11 @@ describe('UniswapContracts_Evm resolver', () => {
 		getPoolFeeGrowthGlobal1X128.mockReset()
 		getPoolProtocolFees.mockReset()
 		getCcaAuctionConfiguration.mockReset()
+		getCcaAuctionState.mockReset()
 		getLogs.mockResolvedValue([])
 		getBlockNumber.mockResolvedValue(12_345_678n)
 		getCcaAuctionConfiguration.mockResolvedValue(ccaConfiguration)
+		getCcaAuctionState.mockResolvedValue(ccaState)
 	})
 
 	it('registers global hub + pool + tip block resolvers', () => {
@@ -120,6 +138,8 @@ describe('UniswapContracts_Evm resolver', () => {
 		expect(uniswapContractsEvm.resolvers.map((resolver) => resolver.entityType)).toEqual([
 			EntityType._Global,
 			EntityType.UniswapCcaAuction,
+			EntityType.UniswapCcaAuction,
+			EntityType.UniswapCcaAuction_EvmBlock,
 			EntityType.UniswapV3Pool,
 			EntityType.UniswapV3Pool,
 			EntityType.UniswapV3Pool,
@@ -128,6 +148,74 @@ describe('UniswapContracts_Evm resolver', () => {
 			EntityType.UniswapV3Position,
 			EntityType.UniswapV3Position_Block,
 		])
+	})
+
+	it('attaches the validated current CCA block observation to its auction', async () => {
+		const resolver = uniswapContractsEvm.resolvers.find(({ entityType, projections }) => (
+			entityType === EntityType.UniswapCcaAuction
+			&& '$$blocks' in projections
+		))
+		if (resolver == null)
+			throw new Error('missing UniswapCcaAuction block-list resolver')
+
+		const blocks = await resolver.resolve.NetworkAuctionAddress.resolve({
+			$network: ethereumNetwork,
+			auctionAddress: ccaConfiguration.auctionAddress,
+		}, context)
+
+		expect(getCcaAuctionState).toHaveBeenCalledWith({
+			getCall,
+			lensAddress: '0xc3c65f5453a3674adb693cbda3c842545cd30f53',
+			auctionAddress: ccaConfiguration.auctionAddress,
+			blockNumber: ccaConfiguration.blockNumber,
+		})
+		expect(resolver.projections.$$blocks.select(blocks)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$auction: {
+					$network: ethereumNetwork,
+					auctionAddress: ccaConfiguration.auctionAddress,
+				},
+				blockNumber: ccaConfiguration.blockNumber,
+			},
+		}])
+		expect(resolver.projections.$$blocks.resolveCount(blocks)).toBe(1)
+	})
+
+	it('resolves exact CCA clearing state and schedule at one block', async () => {
+		const resolver = uniswapContractsEvm.resolvers.find(({ entityType }) => (
+			entityType === EntityType.UniswapCcaAuction_EvmBlock
+		))
+		if (resolver == null)
+			throw new Error('missing UniswapCcaAuction_EvmBlock resolver')
+
+		const snapshot = await resolver.resolve.AuctionBlockNumber.resolve({
+			$auction: {
+				$network: ethereumNetwork,
+				auctionAddress: ccaConfiguration.auctionAddress,
+			},
+			blockNumber: ccaConfiguration.blockNumber,
+		}, context)
+
+		expect(resolver.projections.$block(snapshot)).toEqual({
+			[EntityMetaKey.Selector]: {
+				$network: ethereumNetwork,
+				blockNumber: ccaConfiguration.blockNumber,
+			},
+		})
+		expect(resolver.projections.clearingPriceQ96(snapshot)).toBe(ccaState.clearingPriceQ96)
+		expect(resolver.projections.$previousCheckpoint(snapshot)).toEqual({
+			[EntityMetaKey.Selector]: {
+				$network: ethereumNetwork,
+				blockNumber: ccaState.previousCheckpointBlock,
+			},
+		})
+		expect(resolver.projections.$nextCheckpoint(snapshot)).toEqual({
+			[EntityMetaKey.Selector]: {
+				$network: ethereumNetwork,
+				blockNumber: ccaState.nextCheckpointBlock,
+			},
+		})
+		expect(resolver.projections.schedulePhase(snapshot)).toBe('BiddingWindow')
 	})
 
 	it('resolves native-currency CCA configuration at one current transport block', async () => {

@@ -6,6 +6,9 @@ import { hexLowerOfByteSize, zeroExLowerCase } from '$/lib/hexLowerOfByteSize.ts
 
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
 
+/** Canonical v2.0.0 CCALens published by Uniswap at contract revision `aee9bca51c92c24eb24a00d75ad98e678bac61d3`. */
+export const uniswapCcaLensAddress = '0xc3c65f5453a3674adb693cbda3c842545cd30f53' as const
+
 const ADDRESS_OUTPUT = [{ type: 'address' as const, name: '' }] as const
 const UINT24_OUTPUT = [{ type: 'uint24' as const, name: '' }] as const
 const UINT64_OUTPUT = [{ type: 'uint64' as const, name: '' }] as const
@@ -614,7 +617,7 @@ export const getCcaAuctionConfiguration = async ({
 		}),
 	])
 
-	return {
+	const configuration = {
 		auctionAddress: normalizedAuctionAddress,
 		blockNumber,
 		currencyAddress: decodeAddressResult(currencyResponse, 'CCA currency', true),
@@ -629,6 +632,13 @@ export const getCcaAuctionConfiguration = async ({
 		floorPriceQ96: decodeUint256(floorPriceResponse, 'CCA floor price'),
 		tickSpacingQ96: decodeUint256(tickSpacingResponse, 'CCA tick spacing'),
 	}
+	if (
+		configuration.endBlock < configuration.startBlock
+		|| configuration.claimBlock < configuration.endBlock
+	)
+		throw new Error('UniswapContracts_Evm: reversed CCA lifecycle blocks')
+
+	return configuration
 }
 
 

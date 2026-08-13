@@ -16,6 +16,7 @@ import {
 	getPoolTickSpacing,
 	getPosition,
 	normalizeUniswapAddress,
+	uniswapCcaLensAddress,
 } from '$/sources/Uniswap/Contracts/queries.ts'
 
 const word = (value: bigint) => value.toString(16).padStart(64, '0')
@@ -66,7 +67,7 @@ describe('Uniswap Contracts eth_call helpers', () => {
 
 		await expect(getCcaAuctionState({
 			getCall,
-			lensAddress: '0xc3c65f5453a3674adb693cbda3c842545cd30f53',
+			lensAddress: uniswapCcaLensAddress,
 			auctionAddress: '0x1234567890abcdef1234567890abcdef12345678',
 			blockNumber: 20_000_000n,
 		})).resolves.toEqual({
@@ -189,10 +190,31 @@ describe('Uniswap Contracts eth_call helpers', () => {
 		})).rejects.toThrow('empty CCA currency result')
 	})
 
+	it('fail-closes reversed CCA lifecycle blocks', async () => {
+		const getCall = vi.fn()
+			.mockResolvedValueOnce(hexWords([0n]))
+			.mockResolvedValueOnce(`0x${addressWord('0x1111111111111111111111111111111111111111')}`)
+			.mockResolvedValueOnce(hexWords([1n]))
+			.mockResolvedValueOnce(`0x${addressWord('0x2222222222222222222222222222222222222222')}`)
+			.mockResolvedValueOnce(`0x${addressWord('0x3333333333333333333333333333333333333333')}`)
+			.mockResolvedValueOnce(hexWords([30n]))
+			.mockResolvedValueOnce(hexWords([20n]))
+			.mockResolvedValueOnce(hexWords([10n]))
+			.mockResolvedValueOnce(hexWords([0n]))
+			.mockResolvedValueOnce(hexWords([1n]))
+			.mockResolvedValueOnce(hexWords([1n]))
+
+		await expect(getCcaAuctionConfiguration({
+			getCall,
+			auctionAddress: '0x1234567890abcdef1234567890abcdef12345678',
+			blockNumber: 20_000_000n,
+		})).rejects.toThrow('reversed CCA lifecycle blocks')
+	})
+
 	it('fail-closes empty CCA lens state without inventing an auction status', async () => {
 		await expect(getCcaAuctionState({
 			getCall: vi.fn().mockResolvedValue('0x'),
-			lensAddress: '0xc3c65f5453a3674adb693cbda3c842545cd30f53',
+			lensAddress: uniswapCcaLensAddress,
 			auctionAddress: '0x1234567890abcdef1234567890abcdef12345678',
 			blockNumber: 20_000_000n,
 		})).rejects.toThrow('empty CCA auction state result')

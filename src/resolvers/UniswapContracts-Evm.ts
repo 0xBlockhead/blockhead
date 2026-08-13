@@ -53,6 +53,97 @@ const evmContractRef = (
 })
 
 
+const ccaAuctionBlockSnapshot = async ({
+	$network,
+	auctionAddress,
+	blockNumber,
+	getCall,
+}: {
+	$network: NetworkId
+	auctionAddress: `0x${string}`
+	blockNumber: bigint
+	getCall: (call: {
+		to: `0x${string}`
+		input: `0x${string}`
+		blockTag?: `0x${string}` | 'latest' | 'pending' | 'safe' | 'finalized'
+	}) => Promise<`0x${string}`>
+}) => {
+	const {
+		getCcaAuctionConfiguration,
+		getCcaAuctionState,
+		uniswapCcaLensAddress,
+	} = await import('$/sources/Uniswap/Contracts/queries.ts')
+	const [
+		configuration,
+		state,
+	] = await Promise.all([
+		getCcaAuctionConfiguration({
+			getCall,
+			auctionAddress,
+			blockNumber,
+		}),
+		getCcaAuctionState({
+			getCall,
+			lensAddress: uniswapCcaLensAddress,
+			auctionAddress,
+			blockNumber,
+		}),
+	])
+	if (
+		configuration.auctionAddress !== auctionAddress
+		|| state.auctionAddress !== auctionAddress
+	)
+		throw new Error('UniswapContracts_Evm: CCA block snapshot auction identity mismatch')
+	if (
+		configuration.blockNumber !== blockNumber
+		|| state.blockNumber !== blockNumber
+	)
+		throw new Error('UniswapContracts_Evm: CCA block snapshot block identity mismatch')
+
+	return {
+		$block: {
+			[EntityMetaKey.Selector]: {
+				$network,
+				blockNumber,
+			},
+		},
+		clearingPriceQ96: state.clearingPriceQ96,
+		currencyRaisedAtClearingPriceQ96X7: state.currencyRaisedAtClearingPriceQ96X7,
+		cumulativeMpsPerPrice: state.cumulativeMpsPerPrice,
+		cumulativeMps: state.cumulativeMps,
+		...(state.previousCheckpointBlock !== 0n && {
+			$previousCheckpoint: {
+				[EntityMetaKey.Selector]: {
+					$network,
+					blockNumber: state.previousCheckpointBlock,
+				},
+			},
+		}),
+		...(state.nextCheckpointBlock !== 0n && {
+			$nextCheckpoint: {
+				[EntityMetaKey.Selector]: {
+					$network,
+					blockNumber: state.nextCheckpointBlock,
+				},
+			},
+		}),
+		currencyRaised: state.currencyRaised,
+		totalCleared: state.totalCleared,
+		isGraduated: state.isGraduated,
+		schedulePhase: (
+			blockNumber < configuration.startBlock ?
+				'BeforeStart' as const
+			: blockNumber < configuration.endBlock ?
+				'BiddingWindow' as const
+			: blockNumber < configuration.claimBlock ?
+				'AfterBiddingBeforeClaim' as const
+			:
+				'ClaimWindow' as const
+		),
+	}
+}
+
+
 export default {
 	source: Source.UniswapContracts_Evm,
 	resolvers: [
@@ -202,6 +293,102 @@ export default {
 			$validationHook: (entity) => entity.$validationHook,
 			floorPriceQ96: (entity) => entity.floorPriceQ96,
 			tickSpacingQ96: (entity) => entity.tickSpacingQ96,
+		}),
+
+		defineResolver({
+			entityType: EntityType.UniswapCcaAuction,
+			resolve: {
+				NetworkAuctionAddress: {
+					resolve: async ({
+						$network,
+						auctionAddress,
+					}) => {
+						const { normalizeUniswapAddress } = await import('$/sources/Uniswap/Contracts/queries.ts')
+						const chainId = chainIdFromNetwork($network)
+						const address = normalizeUniswapAddress(auctionAddress)
+						const voltaireTransports = (await import('$/sources/Voltaire/JsonRpc/queries.ts')).voltaireJsonRpcTransports.httpTransportsByChainId[chainId] ?? []
+						if (voltaireTransports.length === 0)
+							throw new Error(`UniswapContracts_Evm: no JSON-RPC URL for UniswapCcaAuction.$$blocks on chain ${String(chainId)}`)
+
+						const errors: string[] = []
+						for (const transport of voltaireTransports) {
+							try {
+								const blockNumber = await transport.getBlockNumber()
+								await ccaAuctionBlockSnapshot({
+									$network,
+									auctionAddress: address,
+									blockNumber,
+									getCall: transport.getCall,
+								})
+
+								return [{
+									[EntityMetaKey.Selector]: {
+										$auction: {
+											$network,
+											auctionAddress: address,
+										},
+										blockNumber,
+									},
+								}]
+							} catch (error) {
+								errors.push(`${transport.diagnosticLabel}: ${error instanceof Error ? error.message : String(error)}`)
+							}
+						}
+						throw new Error(`UniswapContracts_Evm: all CCA tip snapshot endpoints failed for ${address} on chain ${String(chainId)}${errors.length > 0 ? `: ${errors.join('; ')}` : ''}`)
+					},
+				},
+			},
+		})({
+			$$blocks: {
+				select: (blocks) => blocks,
+				resolveCount: (blocks) => blocks.length,
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.UniswapCcaAuction_EvmBlock,
+			resolve: {
+				AuctionBlockNumber: {
+					resolve: async ({
+						$auction,
+						blockNumber,
+					}) => {
+						const { normalizeUniswapAddress } = await import('$/sources/Uniswap/Contracts/queries.ts')
+						const chainId = chainIdFromNetwork($auction.$network)
+						const auctionAddress = normalizeUniswapAddress($auction.auctionAddress)
+						const voltaireTransports = (await import('$/sources/Voltaire/JsonRpc/queries.ts')).voltaireJsonRpcTransports.httpTransportsByChainId[chainId] ?? []
+						if (voltaireTransports.length === 0)
+							throw new Error(`UniswapContracts_Evm: no JSON-RPC URL for UniswapCcaAuction_EvmBlock on chain ${String(chainId)}`)
+
+						const errors: string[] = []
+						for (const transport of voltaireTransports) {
+							try {
+								return await ccaAuctionBlockSnapshot({
+									$network: $auction.$network,
+									auctionAddress,
+									blockNumber,
+									getCall: transport.getCall,
+								})
+							} catch (error) {
+								errors.push(`${transport.diagnosticLabel}: ${error instanceof Error ? error.message : String(error)}`)
+							}
+						}
+						throw new Error(`UniswapContracts_Evm: all CCA block snapshot endpoints failed for ${auctionAddress}/${String(blockNumber)} on chain ${String(chainId)}${errors.length > 0 ? `: ${errors.join('; ')}` : ''}`)
+					},
+				},
+			},
+		})({
+			$block: (snapshot) => snapshot.$block,
+			clearingPriceQ96: (snapshot) => snapshot.clearingPriceQ96,
+			currencyRaisedAtClearingPriceQ96X7: (snapshot) => snapshot.currencyRaisedAtClearingPriceQ96X7,
+			cumulativeMpsPerPrice: (snapshot) => snapshot.cumulativeMpsPerPrice,
+			cumulativeMps: (snapshot) => snapshot.cumulativeMps,
+			$previousCheckpoint: (snapshot) => snapshot.$previousCheckpoint,
+			$nextCheckpoint: (snapshot) => snapshot.$nextCheckpoint,
+			currencyRaised: (snapshot) => snapshot.currencyRaised,
+			totalCleared: (snapshot) => snapshot.totalCleared,
+			isGraduated: (snapshot) => snapshot.isGraduated,
+			schedulePhase: (snapshot) => snapshot.schedulePhase,
 		}),
 
 		defineResolver({
