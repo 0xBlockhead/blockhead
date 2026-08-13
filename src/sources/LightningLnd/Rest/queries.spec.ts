@@ -196,6 +196,8 @@ describe('LND server-authenticated public graph reads', () => {
 				amt_in_msat: '9007199254740993000',
 				amt_out_msat: '9007199254740992000',
 				fee_msat: '1000',
+				incoming_htlc_id: '9007199254740997',
+				outgoing_htlc_id: '9007199254740998',
 			}],
 			last_offset_index: 8,
 		})
@@ -209,6 +211,8 @@ describe('LND server-authenticated public graph reads', () => {
 				chan_id_in: '123',
 				chan_id_out: '456',
 				fee_msat: '1000',
+				incoming_htlc_id: '9007199254740997',
+				outgoing_htlc_id: '9007199254740998',
 			}],
 			last_offset_index: 8,
 		})
@@ -238,6 +242,24 @@ describe('LND server-authenticated public graph reads', () => {
 				chan_id_in: '123',
 				chan_id_out: '456',
 			}],
+		})
+		await expect(getForwardingHistory()).rejects.toThrow('ambiguous or duplicate event')
+
+		respond({
+			forwarding_events: [
+				{
+					chan_id_in: '123',
+					chan_id_out: '456',
+					incoming_htlc_id: '7',
+					outgoing_htlc_id: '8',
+				},
+				{
+					chan_id_in: '123',
+					chan_id_out: '456',
+					incoming_htlc_id: '7',
+					outgoing_htlc_id: '8',
+				},
+			],
 		})
 		await expect(getForwardingHistory()).rejects.toThrow('ambiguous or duplicate event')
 		await expect(getForwardingHistory({

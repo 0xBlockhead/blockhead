@@ -142,6 +142,8 @@ export type LndForwardingEvent = {
 	amt_out_msat?: string
 	fee_msat?: string
 	timestamp_ns?: string
+	incoming_htlc_id?: string
+	outgoing_htlc_id?: string
 }
 
 export type LndForwardingHistoryResponse = {
