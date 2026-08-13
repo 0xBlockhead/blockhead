@@ -19,6 +19,8 @@ import type {
 import { Source } from '$/sources/Source.ts'
 
 const getTransactionInfo = vi.fn()
+const getBlockInfo = vi.fn()
+const getBlockTransactions = vi.fn()
 const getCommittee = vi.fn()
 const getLatestProtocolParameters = vi.fn()
 const getTip = vi.fn()
@@ -29,6 +31,8 @@ const listGovernanceProposals = vi.fn()
 const listStakePools = vi.fn()
 
 vi.mock('$/sources/CardanoKoios/Rest/queries.ts', () => ({
+	getBlockInfo,
+	getBlockTransactions,
 	getCommittee,
 	getLatestProtocolParameters,
 	getTip,
@@ -238,6 +242,16 @@ const cardanoTransactionRelationshipResolver = cardanoKoiosResolvers.resolvers.f
 if (cardanoTransactionRelationshipResolver == null)
 	throw new Error('CardanoKoios-Rest spec missing CardanoTransaction relationship resolver')
 
+const cardanoBlockResolver = cardanoKoiosResolvers.resolvers.find((
+	resolver
+): resolver is Extract<
+	typeof cardanoKoiosResolvers.resolvers[number],
+	{ entityType: EntityType.CardanoBlock }
+> => resolver.entityType === EntityType.CardanoBlock)
+
+if (cardanoBlockResolver == null)
+	throw new Error('CardanoKoios-Rest spec missing CardanoBlock resolver')
+
 const cardanoTxInputResolver = cardanoKoiosResolvers.resolvers.find((
 	resolver
 ): resolver is Extract<
@@ -277,6 +291,82 @@ const cardanoGovernanceVoteResolver = cardanoKoiosResolvers.resolvers.find((
 
 if (cardanoGovernanceVoteResolver == null)
 	throw new Error('CardanoKoios-Rest spec missing CardanoGovernanceVote resolver')
+
+describe('Cardano Koios block hierarchy', () => {
+	beforeEach(() => {
+		vi.clearAllMocks()
+	})
+
+	it('materializes an exact block and its complete native transaction identities', async () => {
+		const cardanoBlock = {
+			$network: cardanoNetwork,
+			hash: 'block-hash',
+		}
+		getBlockInfo.mockResolvedValueOnce({
+			hash: cardanoBlock.hash,
+			epoch_no: 500,
+			era: 'Conway',
+			abs_slot: 130_000_000,
+			block_height: 100,
+			block_time: 1_700_000_000,
+			tx_count: 2,
+			vrf_key: 'vrf-key',
+		})
+		getBlockTransactions.mockResolvedValueOnce([
+			{ tx_hash: 'transaction-0' },
+			{ tx_hash: 'transaction-1' },
+		])
+
+		const snapshot = await cardanoBlockResolver.resolve.NetworkHash.resolve(
+			cardanoBlock,
+			resolverContext
+		)
+
+		expect(getBlockInfo).toHaveBeenCalledWith(cardanoBlock.hash)
+		expect(getBlockTransactions).toHaveBeenCalledWith(cardanoBlock.hash)
+		expect(cardanoBlockResolver.projections.slot(snapshot)).toBe(130_000_000n)
+		expect(cardanoBlockResolver.projections.blockNo(snapshot)).toBe(100n)
+		expect(cardanoBlockResolver.projections.epoch(snapshot)).toBe(500)
+		expect(cardanoBlockResolver.projections.era(snapshot)).toBe('Conway')
+		expect(cardanoBlockResolver.projections.issuerVkey(snapshot)).toBe('vrf-key')
+		expect(cardanoBlockResolver.projections.$$transactions(snapshot)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$network: cardanoNetwork,
+					hash: 'transaction-0',
+				},
+			},
+			{
+				[EntityMetaKey.Selector]: {
+					$network: cardanoNetwork,
+					hash: 'transaction-1',
+				},
+			},
+		])
+	})
+
+	it('rejects a block snapshot whose native transaction count is inconsistent', async () => {
+		getBlockInfo.mockResolvedValueOnce({
+			hash: 'block-hash',
+			epoch_no: 500,
+			era: 'Conway',
+			abs_slot: 130_000_000,
+			block_height: 100,
+			block_time: 1_700_000_000,
+			tx_count: 1,
+			vrf_key: null,
+		})
+		getBlockTransactions.mockResolvedValueOnce([])
+
+		await expect(cardanoBlockResolver.resolve.NetworkHash.resolve(
+			{
+				$network: cardanoNetwork,
+				hash: 'block-hash',
+			},
+			resolverContext
+		)).rejects.toThrow('block transaction count does not match block info')
+	})
+})
 
 describe('Cardano Koios transaction relationships', () => {
 	beforeEach(() => {

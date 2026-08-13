@@ -1016,6 +1016,51 @@ export default {
 		}),
 
 		defineResolver({
+			entityType: EntityType.StellarLedger,
+			resolve: {
+				NetworkSequence: {
+					resolve: async (ledger, context) => {
+						assertStellarPublicNetwork(ledger.$network)
+						const limit = Math.min(resolverContextRowLimit(context), 200)
+						const {
+							getLedgerOperations,
+							operationIndexFromHorizonId,
+						} = await import('$/sources/StellarHorizon/Rest/queries.ts')
+						return {
+							limit,
+							operationIndexFromHorizonId,
+							page: await getLedgerOperations(
+								ledger.sequence,
+								limit,
+								context.providerContinuationToken
+							),
+						}
+					},
+				},
+			},
+		})({
+			$$operations: {
+				select: ({ page, operationIndexFromHorizonId }, ledger) => (
+					page._embedded.records.map((operation) => (
+						operationFromWire(
+							ledger.$network,
+							operation,
+							operationIndexFromHorizonId
+						)
+					))
+				),
+				continuation: ({ limit, page }, ledger) => (
+					stellarContinuation(
+						'ledger-operations',
+						ledger.sequence.toString(),
+						limit,
+						page._embedded.records
+					)
+				),
+			},
+		}),
+
+		defineResolver({
 			entityType: EntityType.StellarTransaction,
 			resolve: {
 				NetworkHash: {

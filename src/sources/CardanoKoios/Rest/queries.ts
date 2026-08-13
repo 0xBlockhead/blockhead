@@ -11,6 +11,7 @@ import {
 import {
 	cardanoKoiosAsset,
 	cardanoKoiosBlock,
+	cardanoKoiosBlockInfo,
 	cardanoKoiosBlockTransaction,
 	cardanoKoiosCommittee,
 	cardanoKoiosDRep,
@@ -119,6 +120,57 @@ export const listBlocks = async (
 	return blocks
 }
 
+export const getBlockInfo = async (
+	blockHash: string
+) => {
+	if (blockHash.length === 0)
+		throw new Error('CardanoKoios_Rest: block hash must not be empty')
+	const blocks = cardanoKoiosBlockInfo.array().assert(await cardanoKoiosPostJson<JsonValue>({
+		path: '/api/v1/block_info',
+		body: {
+			_block_hashes: [blockHash],
+		},
+	}))
+	if (blocks.length !== 1)
+		throw new Error(
+			blocks.length === 0 ?
+				'CardanoKoios_Rest: block response is missing'
+			:
+				'CardanoKoios_Rest: block response is ambiguous'
+		)
+	if (blocks[0].hash !== blockHash)
+		throw new Error('CardanoKoios_Rest: block response does not match the subject')
+	if (
+		[
+			blocks[0].epoch_no,
+			blocks[0].abs_slot,
+			blocks[0].block_height,
+			blocks[0].block_time,
+			blocks[0].tx_count,
+		].some((value) => !Number.isSafeInteger(value))
+	)
+		throw new Error('CardanoKoios_Rest: block contains an unsafe integer')
+
+	return blocks[0]
+}
+
+export const getBlockTransactions = async (
+	blockHash: string
+) => {
+	if (blockHash.length === 0)
+		throw new Error('CardanoKoios_Rest: block hash must not be empty')
+	const transactions = cardanoKoiosBlockTransaction.array().assert(await cardanoKoiosPostJson<JsonValue>({
+		path: '/api/v1/block_txs',
+		body: {
+			_block_hashes: [blockHash],
+		},
+	}))
+	if (new Set(transactions.map((transaction) => transaction.tx_hash)).size !== transactions.length)
+		throw new Error('CardanoKoios_Rest: block transactions contain duplicate identities')
+
+	return transactions
+}
+
 export const listLatestBlockTransactions = async (
 	count: number
 ) => {
@@ -128,16 +180,7 @@ export const listLatestBlockTransactions = async (
 		return []
 
 	const [tip] = await getTip()
-	const transactions = cardanoKoiosBlockTransaction.array().assert(await cardanoKoiosPostJson<JsonValue>({
-		path: '/api/v1/block_txs',
-		body: {
-			_block_hashes: [tip.hash],
-		},
-	}))
-	if (new Set(transactions.map((transaction) => transaction.tx_hash)).size !== transactions.length)
-		throw new Error('CardanoKoios_Rest: block_txs contains duplicate identities')
-
-	return transactions.slice(0, count)
+	return (await getBlockTransactions(tip.hash)).slice(0, count)
 }
 
 export const getTransactionInfo = async (

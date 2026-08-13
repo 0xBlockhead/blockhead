@@ -30,6 +30,8 @@ vi.mock('$/sources/_runtime/http.ts', async (importOriginal) => ({
 
 const {
 	getCommittee,
+	getBlockInfo,
+	getBlockTransactions,
 	getLatestProtocolParameters,
 	getTip,
 	getTransactionInfo,
@@ -647,6 +649,120 @@ describe('Cardano Koios REST network tip, block, and transaction wire validation
 				}),
 			}
 		)
+	})
+
+	it('loads one exact block and its complete transaction identities', async () => {
+		const block = {
+			hash: 'block-hash',
+			epoch_no: 500,
+			era: 'Conway',
+			abs_slot: 130_000_000,
+			block_height: 100,
+			block_time: 1_700_000_000,
+			tx_count: 2,
+			vrf_key: 'vrf-key',
+		}
+		sourceFetch
+			.mockResolvedValueOnce(Response.json([block]))
+			.mockResolvedValueOnce(Response.json([
+				{ tx_hash: 'transaction-0' },
+				{ tx_hash: 'transaction-1' },
+			]))
+
+		await expect(getBlockInfo(block.hash)).resolves.toEqual(block)
+		await expect(getBlockTransactions(block.hash)).resolves.toEqual([
+			{ tx_hash: 'transaction-0' },
+			{ tx_hash: 'transaction-1' },
+		])
+		expect(sourceFetch).toHaveBeenNthCalledWith(
+			1,
+			binding,
+			'https://api.koios.rest/api/v1/block_info',
+			{
+				method: 'POST',
+				headers: {
+					'content-type': 'application/json',
+				},
+				body: JSON.stringify({
+					_block_hashes: [block.hash],
+				}),
+			}
+		)
+		expect(sourceFetch).toHaveBeenNthCalledWith(
+			2,
+			binding,
+			'https://api.koios.rest/api/v1/block_txs',
+			{
+				method: 'POST',
+				headers: {
+					'content-type': 'application/json',
+				},
+				body: JSON.stringify({
+					_block_hashes: [block.hash],
+				}),
+			}
+		)
+	})
+
+	it('rejects missing, foreign, ambiguous, unsafe, and duplicate direct block responses', async () => {
+		sourceFetch
+			.mockResolvedValueOnce(Response.json([]))
+			.mockResolvedValueOnce(Response.json([
+				{
+					hash: 'foreign-block',
+					epoch_no: 500,
+					era: 'Conway',
+					abs_slot: 130_000_000,
+					block_height: 100,
+					block_time: 1_700_000_000,
+					tx_count: 0,
+					vrf_key: null,
+				},
+			]))
+			.mockResolvedValueOnce(Response.json([
+				{
+					hash: 'block-hash',
+					epoch_no: 500,
+					era: 'Conway',
+					abs_slot: 130_000_000,
+					block_height: 100,
+					block_time: 1_700_000_000,
+					tx_count: 0,
+					vrf_key: null,
+				},
+				{
+					hash: 'block-hash',
+					epoch_no: 500,
+					era: 'Conway',
+					abs_slot: 130_000_000,
+					block_height: 100,
+					block_time: 1_700_000_000,
+					tx_count: 0,
+					vrf_key: null,
+				},
+			]))
+			.mockResolvedValueOnce(Response.json([
+				{
+					hash: 'block-hash',
+					epoch_no: Number.MAX_SAFE_INTEGER + 1,
+					era: 'Conway',
+					abs_slot: 130_000_000,
+					block_height: 100,
+					block_time: 1_700_000_000,
+					tx_count: 0,
+					vrf_key: null,
+				},
+			]))
+			.mockResolvedValueOnce(Response.json([
+				{ tx_hash: 'transaction-0' },
+				{ tx_hash: 'transaction-0' },
+			]))
+
+		await expect(getBlockInfo('block-hash')).rejects.toThrow('block response is missing')
+		await expect(getBlockInfo('block-hash')).rejects.toThrow('does not match the subject')
+		await expect(getBlockInfo('block-hash')).rejects.toThrow('block response is ambiguous')
+		await expect(getBlockInfo('block-hash')).rejects.toThrow('block contains an unsafe integer')
+		await expect(getBlockTransactions('block-hash')).rejects.toThrow('duplicate identities')
 	})
 
 	it('rejects malformed and duplicate latest-block transactions', async () => {

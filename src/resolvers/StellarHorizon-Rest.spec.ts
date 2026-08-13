@@ -34,6 +34,10 @@ const resolverFor = (
 			fieldName !== '$$trades'
 			|| candidate.entityType === EntityType.StellarAccount
 		)
+		&& (
+			fieldName !== '$$operations'
+			|| candidate.entityType === EntityType.StellarTransaction
+		)
 	))
 	if (resolver == null)
 		throw new Error(`Stellar Horizon spec missing ${fieldName} resolver`)
@@ -52,13 +56,18 @@ const offerTradesResolver = stellarHorizonResolvers.resolvers.find((resolver) =>
 const offerTimestampResolver = stellarHorizonResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.StellarOffer_Timestamp
 ))
+const ledgerOperationsResolver = stellarHorizonResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.StellarLedger
+	&& '$$operations' in resolver.projections
+))
 
 if (
 	directOfferResolver == null
 	|| offerTradesResolver == null
 	|| offerTimestampResolver == null
+	|| ledgerOperationsResolver == null
 )
-	throw new Error('Stellar Horizon spec missing direct offer lifecycle resolvers')
+	throw new Error('Stellar Horizon spec missing direct offer or ledger-operation resolvers')
 
 const accountId = `G${'A'.repeat(55)}`
 const otherAccountId = `G${'B'.repeat(55)}`
@@ -823,6 +832,76 @@ describe('Stellar Horizon public-account resolver', () => {
 			},
 			[entityFieldAddressKey(EntityType.StellarOperation, [], 'resultCode')]: 'successful',
 		})
+	})
+})
+
+describe('Stellar Horizon ledger hierarchy', () => {
+	beforeEach(() => {
+		vi.clearAllMocks()
+	})
+
+	it('pages ledger operations into their native transaction-owned identities', async () => {
+		const ledger = {
+			$network: account.$network,
+			sequence: 100n,
+		}
+		getJson.mockResolvedValueOnce(page([{
+			id: '273998503801384961',
+			paging_token: '273998503801384961',
+			transaction_successful: true,
+			source_account: accountId,
+			type: 'payment',
+			type_i: 1,
+			created_at: '2026-07-22T00:00:00Z',
+			transaction_hash: 'd'.repeat(64),
+			from: accountId,
+			to: otherAccountId,
+			amount: '1.0000000',
+			asset_type: 'native',
+		}]))
+
+		const snapshot = await ledgerOperationsResolver.resolve.NetworkSequence.resolve(
+			ledger,
+			context
+		)
+
+		expect(ledgerOperationsResolver.projections.$$operations.select(
+			snapshot,
+			ledger,
+			context
+		)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$transaction: {
+					$network: ledger.$network,
+					hash: 'd'.repeat(64),
+				},
+				operationIndex: 1,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.StellarOperation, [], 'operationType')]: 'payment',
+				[entityFieldAddressKey(EntityType.StellarOperation, [], 'sourceAccount')]: accountId,
+				[entityFieldAddressKey(EntityType.StellarOperation, [], 'body')]: {
+					from: accountId,
+					to: otherAccountId,
+					amount: '1.0000000',
+					asset_type: 'native',
+				},
+				[entityFieldAddressKey(EntityType.StellarOperation, [], 'resultCode')]: 'successful',
+			},
+		}])
+		expect(ledgerOperationsResolver.projections.$$operations.continuation(
+			snapshot,
+			ledger,
+			context
+		)).toEqual({
+			operation: 'ledger-operations',
+			target: '100',
+			terminal: true,
+		})
+		expect(getJson).toHaveBeenLastCalledWith(
+			expect.anything(),
+			'/ledgers/100/operations?limit=2&order=desc'
+		)
 	})
 })
 

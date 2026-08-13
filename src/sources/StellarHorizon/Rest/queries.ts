@@ -767,6 +767,30 @@ export const getLedgerTransactions = async (
 	return page
 }
 
+export const getLedgerOperations = async (
+	sequence: bigint,
+	limit: number,
+	cursor?: string
+) => {
+	if (sequence < 0n)
+		throw new Error('StellarHorizon_Rest: ledger sequence must be nonnegative')
+	const parameters = pageParameters(limit, cursor)
+	if (limit === 0)
+		return emptyPage<StellarHorizonOperation>()
+	const page = assertEnvelope(
+		'ledger operation page',
+		stellarHorizonOperationPageWire,
+		await query(`/ledgers/${sequence.toString()}/operations?${parameters.toString()}`)
+	)
+	assertPage(page, limit, cursor)
+	for (const operation of page._embedded.records) {
+		if (operation.transaction_hash.length === 0)
+			throw new Error('StellarHorizon_Rest: operation is missing transaction identity')
+		assertUnsignedInteger(operation.type_i, 'operation type index')
+	}
+	return page
+}
+
 export const operationIndexFromHorizonId = (
 	operationId: string
 ) => {

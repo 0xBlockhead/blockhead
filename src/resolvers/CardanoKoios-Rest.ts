@@ -227,6 +227,48 @@ export default {
 		}),
 
 		defineResolver({
+			entityType: EntityType.CardanoBlock,
+			resolve: {
+				NetworkHash: {
+					resolve: async (cardanoBlock) => {
+						assertCardanoMainnet(cardanoBlock.$network)
+						const {
+							getBlockInfo,
+							getBlockTransactions,
+						} = await import('$/sources/CardanoKoios/Rest/queries.ts')
+						const [
+							block,
+							transactions,
+						] = await Promise.all([
+							getBlockInfo(cardanoBlock.hash),
+							getBlockTransactions(cardanoBlock.hash),
+						])
+						if (transactions.length !== block.tx_count)
+							throw new Error('CardanoKoios_Rest: block transaction count does not match block info')
+
+						return {
+							cardanoBlock,
+							block,
+							transactions,
+						}
+					},
+				},
+			},
+		})({
+			slot: ({ block }) => BigInt(block.abs_slot),
+			blockNo: ({ block }) => BigInt(block.block_height),
+			epoch: ({ block }) => block.epoch_no,
+			era: ({ block }) => block.era,
+			issuerVkey: ({ block }) => block.vrf_key ?? undefined,
+			$$transactions: ({ cardanoBlock, transactions }) => transactions.map(({ tx_hash }) => ({
+				[EntityMetaKey.Selector]: {
+					$network: cardanoBlock.$network,
+					hash: tx_hash,
+				},
+			})),
+		}),
+
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: cardanoNetworkSelectors(
 				async (network, context) => {

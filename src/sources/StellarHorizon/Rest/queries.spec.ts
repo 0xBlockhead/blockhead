@@ -20,6 +20,7 @@ const {
 	getAccountTransactions,
 	getLiquidityPool,
 	getLiquidityPools,
+	getLedgerOperations,
 	getLedgerTransactions,
 	getOffer,
 	getOfferTrades,
@@ -323,6 +324,49 @@ describe('Stellar Horizon account transport', () => {
 			memo_type: 'none',
 		}]))
 		await expect(getLedgerTransactions(100n, 10)).rejects.toThrow('foreign ledger')
+	})
+
+	it('loads the ledger-scoped native operation page with continuation identity', async () => {
+		getJson.mockResolvedValueOnce(page([{
+			id: '273998503801384961',
+			paging_token: '273998503801384961',
+			transaction_successful: true,
+			source_account: accountId,
+			type: 'payment',
+			type_i: 1,
+			created_at: '2026-07-22T00:00:00Z',
+			transaction_hash: 'd'.repeat(64),
+			from: accountId,
+			to: otherAccountId,
+			amount: '1.0000000',
+			asset_type: 'native',
+		}]))
+
+		await expect(getLedgerOperations(100n, 10, '200')).resolves.toMatchObject({
+			_embedded: {
+				records: [{
+					transaction_hash: 'd'.repeat(64),
+				}],
+			},
+		})
+		expect(getJson).toHaveBeenLastCalledWith(
+			binding,
+			'/ledgers/100/operations?limit=10&order=desc&cursor=200'
+		)
+	})
+
+	it('rejects invalid ledger operation identity and page bounds', async () => {
+		getJson.mockResolvedValueOnce(page([{
+			id: '273998503801384961',
+			paging_token: '273998503801384961',
+			type: 'payment',
+			type_i: 1,
+			created_at: '2026-07-22T00:00:00Z',
+			transaction_hash: '',
+		}]))
+
+		await expect(getLedgerOperations(100n, 10)).rejects.toThrow('invalid ledger operation page response envelope')
+		await expect(getLedgerOperations(-1n, 10)).rejects.toThrow('ledger sequence must be nonnegative')
 	})
 
 	it('fails closed on foreign, duplicate, malformed, stalled, and oversized pages', async () => {
