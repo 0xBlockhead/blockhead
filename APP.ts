@@ -5121,6 +5121,7 @@ export const schema = {
 				"availableLiquidity": { label: "Available liquidity", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Aave_Rest] },
 				"supplyApy": { label: "Supply APY", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeDecimalString", defaultSources: [Source.Aave_Rest] },
 				"borrowApy": { label: "Borrow APY", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Aave_Rest] },
+				"liquidationThreshold": { label: "Liquidation threshold", description: "The current reserve collateral liquidation threshold reported by Aave.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Aave_Rest] },
 				"frozen": { label: "Frozen", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "boolean", defaultSources: [Source.Aave_Rest] },
 				"paused": { label: "Paused", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "boolean", defaultSources: [Source.Aave_Rest] },
 			})({
@@ -5139,7 +5140,7 @@ export const schema = {
 						content: {
 							dl: [
 								["$market", { field: "underlyingTokenAddress", format: "address" }, "symbol", "name", "imageUrl", "decimals"],
-								["totalSupplied", "availableLiquidity", "supplyApy", "borrowApy", "frozen", "paused"],
+								["totalSupplied", "availableLiquidity", "supplyApy", "borrowApy", "liquidationThreshold", "frozen", "paused"],
 							],
 						},
 					},

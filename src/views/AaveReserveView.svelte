@@ -264,6 +264,28 @@
 				{/snippet}
 			</ResourceBoundary>
 
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							liquidationThreshold: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const liquidationThreshold = entity.liquidationThreshold}
+					{#if liquidationThreshold != null}
+						<div>
+							<dt>Liquidation threshold</dt>
+							<dd>
+								{liquidationThreshold}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
 			<div>
 				<dt>Frozen</dt>
 				<dd>

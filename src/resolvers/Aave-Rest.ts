@@ -380,6 +380,9 @@ export default {
 								borrowApy: reserve.borrowInfo.apy.value,
 							}),
 							supplyApy: reserve.supplyInfo.apy.value,
+							...(reserve.supplyInfo.liquidationThreshold != null && {
+								liquidationThreshold: reserve.supplyInfo.liquidationThreshold.value,
+							}),
 							frozen: reserve.isFrozen,
 							paused: reserve.isPaused,
 						}
@@ -397,6 +400,7 @@ export default {
 			availableLiquidity: (reserve) => reserve.availableLiquidity,
 			supplyApy: (reserve) => reserve.supplyApy,
 			borrowApy: (reserve) => reserve.borrowApy,
+			liquidationThreshold: (reserve) => reserve.liquidationThreshold,
 			frozen: (reserve) => reserve.frozen,
 			paused: (reserve) => reserve.paused,
 		}),
