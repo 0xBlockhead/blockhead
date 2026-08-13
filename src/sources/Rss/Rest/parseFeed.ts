@@ -11,6 +11,22 @@ const decodeXmlEntities = (value: string) => (
 		.trim()
 )
 
+const publicHttpUrl = (value: string | undefined) => {
+	if (value == null)
+		return undefined
+
+	try {
+		const url = new URL(value)
+		return (
+			(url.protocol === 'http:' || url.protocol === 'https:')
+			&& url.username === ''
+			&& url.password === ''
+		) ? url.href : undefined
+	} catch {
+		return undefined
+	}
+}
+
 const firstTagText = (
 	block: string,
 	tagNames: readonly string[]
@@ -153,12 +169,12 @@ const parseItemBlock = (
 	:
 		undefined
 	const categories = categoriesFromBlock(block)
-	const enclosureUrl = enclosureUrlFromBlock(block)
-	const commentsUrl = commentsUrlFromBlock(block)
+	const enclosureUrl = publicHttpUrl(enclosureUrlFromBlock(block))
+	const commentsUrl = publicHttpUrl(commentsUrlFromBlock(block))
 	return {
 		...(guid != null && guid.trim() !== '' && { guid: guid.trim() }),
 		...(title != null && { title }),
-		...(link != null && { link }),
+		...(publicHttpUrl(link) != null && { link: publicHttpUrl(link) }),
 		...(firstTagText(block, ['description', 'summary']) != null && {
 			description: firstTagText(block, ['description', 'summary']),
 		}),
@@ -201,8 +217,8 @@ export const parseRssFeedXml = (xml: string) => {
 		...(firstTagText(channelBlock, ['description', 'subtitle']) != null && {
 			description: firstTagText(channelBlock, ['description', 'subtitle']),
 		}),
-		...(websiteUrl != null && {
-			siteUrl: websiteUrl,
+		...(publicHttpUrl(websiteUrl) != null && {
+			siteUrl: publicHttpUrl(websiteUrl),
 		}),
 		...(firstTagText(channelBlock, ['language']) != null && {
 			language: firstTagText(channelBlock, ['language']),
@@ -210,7 +226,7 @@ export const parseRssFeedXml = (xml: string) => {
 		...(lastBuildDate != null && {
 			lastBuildDate,
 		}),
-		...(imageUrl != null && { imageUrl }),
+		...(publicHttpUrl(imageUrl) != null && { imageUrl: publicHttpUrl(imageUrl) }),
 		items: itemBlocksFromXml(xml)
 			.map((block) => (
 				parseItemBlock(block, {

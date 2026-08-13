@@ -127,6 +127,36 @@ test('materializes native enclosure URLs across RSS, Atom, Media RSS, and Podcas
 	}
 })
 
+test('withholds credentialed and non-HTTP feed metadata URLs from visible fields', async () => {
+	sourceFetch.mockResolvedValueOnce(new Response(`
+		<rss>
+			<channel>
+				<link>https://reader:token@example.com/site</link>
+				<image><url>data:image/png;base64,secret</url></image>
+				<item>
+					<guid>fixture-item</guid>
+					<link>https://example.com/article?edition=weekly</link>
+					<enclosure url="https://reader:token@example.com/podcast.mp3" />
+					<comments>javascript:alert(1)</comments>
+				</item>
+			</channel>
+		</rss>
+	`))
+
+	const feed = await rssFetchFeed(hnrssBinding, 'https://hnrss.org/frontpage')
+
+	expect(feed).toMatchObject({
+		items: [{
+			guid: 'fixture-item',
+			link: 'https://example.com/article?edition=weekly',
+		}],
+	})
+	expect(feed.siteUrl).toBeUndefined()
+	expect(feed.imageUrl).toBeUndefined()
+	expect(feed.items[0]?.enclosureUrl).toBeUndefined()
+	expect(feed.items[0]?.commentsUrl).toBeUndefined()
+})
+
 test('rejects credentials in a same-origin feed URL before transport', async () => {
 	await expect(rssFetchFeed(
 		hnrssBinding,
