@@ -108,7 +108,7 @@ const tradeAssetSelector = (
 	})
 )
 
-const accountContinuation = (
+const stellarContinuation = (
 	operation: string,
 	accountId: string,
 	limit: number,
@@ -797,7 +797,7 @@ export default {
 					page._embedded.records.map((offer) => offerFromWire(account.$network, offer))
 				),
 				continuation: ({ limit, page }, account) => (
-					accountContinuation(
+					stellarContinuation(
 						'account-offers',
 						account.accountId,
 						limit,
@@ -850,7 +850,7 @@ export default {
 					page._embedded.records.map((trade) => tradeFromWire($network, trade))
 				),
 				continuation: ({ limit, page }, { offerId }) => (
-					accountContinuation(
+					stellarContinuation(
 						'offer-trades',
 						offerId,
 						limit,
@@ -920,7 +920,7 @@ export default {
 					page._embedded.records.map((trade) => tradeFromWire(account.$network, trade))
 				),
 				continuation: ({ limit, page }, account) => (
-					accountContinuation(
+					stellarContinuation(
 						'account-trades',
 						account.accountId,
 						limit,
@@ -968,9 +968,46 @@ export default {
 					}
 				}),
 				continuation: ({ limit, page }, account) => (
-					accountContinuation(
+					stellarContinuation(
 						'account-transactions',
 						account.accountId,
+						limit,
+						page._embedded.records
+					)
+				),
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.StellarLedger,
+			resolve: {
+				NetworkSequence: {
+					resolve: async (ledger, context) => {
+						assertStellarPublicNetwork(ledger.$network)
+						const limit = Math.min(resolverContextRowLimit(context), 200)
+						const { getLedgerTransactions } = await import('$/sources/StellarHorizon/Rest/queries.ts')
+						return {
+							limit,
+							page: await getLedgerTransactions(
+								ledger.sequence,
+								limit,
+								context.providerContinuationToken
+							),
+						}
+					},
+				},
+			},
+		})({
+			$$transactions: {
+				select: ({ page }, ledger) => (
+					page._embedded.records.map((transaction) => (
+						transactionFromWire(ledger.$network, transaction)
+					))
+				),
+				continuation: ({ limit, page }, ledger) => (
+					stellarContinuation(
+						'ledger-transactions',
+						ledger.sequence.toString(),
 						limit,
 						page._embedded.records
 					)
@@ -1124,7 +1161,7 @@ export default {
 						accountId: account.account_id,
 					},
 				})),
-				continuation: ({ limit, page }, $network) => accountContinuation(
+				continuation: ({ limit, page }, $network) => stellarContinuation(
 					'network-accounts',
 					$network.$network.slug,
 					limit,
@@ -1153,7 +1190,7 @@ export default {
 				select: ({ page }, $network) => page._embedded.records.map((transaction) => (
 					transactionFromWire($network, transaction)
 				)),
-				continuation: ({ limit, page }, $network) => accountContinuation(
+				continuation: ({ limit, page }, $network) => stellarContinuation(
 					'network-transactions',
 					$network.$network.slug,
 					limit,
@@ -1186,7 +1223,7 @@ export default {
 				select: ({ page, operationIndexFromHorizonId }, $network) => page._embedded.records.map((operation) => (
 					operationFromWire($network, operation, operationIndexFromHorizonId)
 				)),
-				continuation: ({ limit, page }, $network) => accountContinuation(
+				continuation: ({ limit, page }, $network) => stellarContinuation(
 					'network-operations',
 					$network.$network.slug,
 					limit,
@@ -1215,7 +1252,7 @@ export default {
 				select: ({ page }, $network) => page._embedded.records.map((offer) => (
 					offerFromWire($network, offer)
 				)),
-				continuation: ({ limit, page }, $network) => accountContinuation(
+				continuation: ({ limit, page }, $network) => stellarContinuation(
 					'network-offers',
 					$network.$network.slug,
 					limit,
@@ -1244,7 +1281,7 @@ export default {
 				select: ({ page }, $network) => page._embedded.records.map((trade) => (
 					tradeFromWire($network, trade)
 				)),
-				continuation: ({ limit, page }, $network) => accountContinuation(
+				continuation: ({ limit, page }, $network) => stellarContinuation(
 					'network-trades',
 					$network.$network.slug,
 					limit,

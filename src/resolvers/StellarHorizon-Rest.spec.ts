@@ -171,6 +171,47 @@ describe('Stellar Horizon public-account resolver', () => {
 		])
 	})
 
+	it('materializes ledger-owned transactions through the native ledger hierarchy', async () => {
+		getJson.mockResolvedValueOnce(page([{
+			id: 'ledger-transaction',
+			paging_token: '200',
+			successful: true,
+			hash: 'c'.repeat(64),
+			ledger: 100,
+			created_at: '2026-07-22T00:00:00Z',
+			source_account: accountId,
+			source_account_sequence: '1',
+			fee_account: accountId,
+			fee_charged: '100',
+			max_fee: '100',
+			operation_count: 1,
+			memo_type: 'none',
+		}]))
+		const resolver = stellarHorizonResolvers.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.StellarLedger
+			&& '$$transactions' in candidate.projections
+		))
+		if (resolver == null)
+			throw new Error('Stellar Horizon spec missing ledger transaction resolver')
+		const ledger = {
+			$network: account.$network,
+			sequence: 100n,
+		}
+		const snapshot = await resolver.resolve.NetworkSequence.resolve(ledger, context)
+		if (typeof resolver.projections.$$transactions === 'function')
+			throw new Error('Stellar Horizon ledger transactions require a paginated projection')
+
+		expect(resolver.projections.$$transactions.select(snapshot, ledger, context)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$network: account.$network,
+				hash: 'c'.repeat(64),
+			},
+			[EntityMetaKey.Fields]: expect.objectContaining({
+				[entityFieldAddressKey(EntityType.StellarTransaction, [], 'sourceAccount')]: accountId,
+			}),
+		}])
+	})
+
 	it('rejects malformed account thresholds before projecting schema fields', async () => {
 		getJson.mockResolvedValueOnce({
 			id: accountId,

@@ -20,6 +20,7 @@ const {
 	getAccountTransactions,
 	getLiquidityPool,
 	getLiquidityPools,
+	getLedgerTransactions,
 	getOffer,
 	getOfferTrades,
 	getTransaction,
@@ -275,6 +276,53 @@ describe('Stellar Horizon account transport', () => {
 				}],
 			},
 		})
+	})
+
+	it('loads only transactions owned by the requested ledger', async () => {
+		getJson.mockResolvedValueOnce(page([{
+			id: 'transaction-id',
+			paging_token: '200',
+			successful: true,
+			hash: 'c'.repeat(64),
+			ledger: 100,
+			created_at: '2026-07-22T00:00:00Z',
+			source_account: otherAccountId,
+			source_account_sequence: '1',
+			fee_account: otherAccountId,
+			fee_charged: '100',
+			max_fee: '100',
+			operation_count: 1,
+			memo_type: 'none',
+		}]))
+
+		await expect(getLedgerTransactions(100n, 10)).resolves.toMatchObject({
+			_embedded: {
+				records: [{
+					ledger: 100,
+				}],
+			},
+		})
+		expect(getJson).toHaveBeenLastCalledWith(
+			binding,
+			'/ledgers/100/transactions?limit=10&order=desc'
+		)
+
+		getJson.mockResolvedValueOnce(page([{
+			id: 'transaction-id',
+			paging_token: '200',
+			successful: true,
+			hash: 'c'.repeat(64),
+			ledger: 101,
+			created_at: '2026-07-22T00:00:00Z',
+			source_account: otherAccountId,
+			source_account_sequence: '1',
+			fee_account: otherAccountId,
+			fee_charged: '100',
+			max_fee: '100',
+			operation_count: 1,
+			memo_type: 'none',
+		}]))
+		await expect(getLedgerTransactions(100n, 10)).rejects.toThrow('foreign ledger')
 	})
 
 	it('fails closed on foreign, duplicate, malformed, stalled, and oversized pages', async () => {

@@ -743,6 +743,30 @@ export const getTransactionOperations = async (
 	return page
 }
 
+export const getLedgerTransactions = async (
+	sequence: bigint,
+	limit: number,
+	cursor?: string
+) => {
+	if (sequence < 0n)
+		throw new Error('StellarHorizon_Rest: ledger sequence must be nonnegative')
+	const parameters = pageParameters(limit, cursor)
+	if (limit === 0)
+		return emptyPage<StellarHorizonTransaction>()
+	const page = assertEnvelope(
+		'ledger transaction page',
+		stellarHorizonTransactionPageWire,
+		await query(`/ledgers/${sequence.toString()}/transactions?${parameters.toString()}`)
+	)
+	assertPage(page, limit, cursor)
+	for (const transaction of page._embedded.records) {
+		assertTransactionDomain(transaction)
+		if (BigInt(transaction.ledger) !== sequence)
+			throw new Error('StellarHorizon_Rest: transaction page contains a foreign ledger')
+	}
+	return page
+}
+
 export const operationIndexFromHorizonId = (
 	operationId: string
 ) => {
