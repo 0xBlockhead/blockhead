@@ -657,7 +657,6 @@ export const dydxChainMarketResolver = defineResolver({
 
 				return {
 					market: observation.value.markets[entitySelector.ticker],
-					observedAtMs: observation.observedAtMs,
 				}
 			},
 		},
@@ -666,6 +665,38 @@ export const dydxChainMarketResolver = defineResolver({
 	baseAsset: (snapshot) => assetsFromTicker(snapshot.market.ticker).baseAsset,
 	quoteAsset: (snapshot) => assetsFromTicker(snapshot.market.ticker).quoteAsset,
 	marketKind: (snapshot) => snapshot.market.marketType,
+})
+
+export const dydxChainMarketFundingHistoryResolver = defineResolver({
+	entityType: EntityType.DydxChainMarket,
+	resolve: {
+		NetworkTicker: {
+			appliesTo: dydxMarketApplicability,
+			resolve: async (entitySelector, context) => {
+				assertDydxMainnet(entitySelector.$network.$network)
+				const {
+					getHistoricalFunding,
+					getPerpetualMarkets,
+				} = await import('$/sources/Dydx/Rest/queries.ts')
+				const [marketObservation, fundingHistory] = await Promise.all([
+					getPerpetualMarkets({ ticker: entitySelector.ticker }),
+					getHistoricalFunding({
+						ticker: entitySelector.ticker,
+						limit: resolverContextRowLimit(context),
+					}),
+				])
+				if (!Object.hasOwn(marketObservation.value.markets, entitySelector.ticker))
+					throw new Error(`DydxIndexer_Rest: market not found for ${entitySelector.ticker}`)
+
+				return {
+					fundingHistory: fundingHistory.value,
+					market: marketObservation.value.markets[entitySelector.ticker],
+					observedAtMs: marketObservation.observedAtMs,
+				}
+			},
+		},
+	},
+})({
 	$$timestamps: (snapshot, market) => [{
 		[EntityMetaKey.Selector]: {
 			$market: market,
@@ -679,27 +710,7 @@ export const dydxChainMarketResolver = defineResolver({
 			[entityFieldAddressKey(EntityType.DydxChainMarket_Timestamp, [], 'oraclePrice')]: snapshot.market.oraclePrice,
 			[entityFieldAddressKey(EntityType.DydxChainMarket_Timestamp, [], 'status')]: snapshot.market.status,
 		},
-	}],
-})
-
-export const dydxChainMarketFundingHistoryResolver = defineResolver({
-	entityType: EntityType.DydxChainMarket,
-	resolve: {
-		NetworkTicker: {
-			appliesTo: dydxMarketApplicability,
-			resolve: async (entitySelector, context) => {
-				assertDydxMainnet(entitySelector.$network.$network)
-				const { getHistoricalFunding } = await import('$/sources/Dydx/Rest/queries.ts')
-
-				return getHistoricalFunding({
-					ticker: entitySelector.ticker,
-					limit: resolverContextRowLimit(context),
-				})
-			},
-		},
-	},
-})({
-	$$timestamps: (observation, market) => observation.value.map((funding) => ({
+	}, ...snapshot.fundingHistory.map((funding) => ({
 		[EntityMetaKey.Selector]: {
 			$market: market,
 			timestampMs: parseTimestampMs(funding.effectiveAt, 'funding effectiveAt'),
@@ -709,7 +720,7 @@ export const dydxChainMarketFundingHistoryResolver = defineResolver({
 			[entityFieldAddressKey(EntityType.DydxChainMarket_Timestamp, [], 'fundingRate')]: funding.rate,
 			[entityFieldAddressKey(EntityType.DydxChainMarket_Timestamp, [], 'oraclePrice')]: funding.price,
 		},
-	})),
+	}))],
 })
 
 export const dydxChainSubaccountResolver = defineResolver({

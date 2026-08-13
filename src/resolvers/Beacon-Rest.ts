@@ -664,7 +664,6 @@ export default {
 				},
 			},
 		})({
-				proposerIndex: (rewards) => rewards.proposerIndex,
 				rewardTotalGwei: (rewards) => rewards.totalGwei,
 				rewardAttestationsGwei: (rewards) => rewards.attestationsGwei,
 				rewardSyncAggregateGwei: (rewards) => rewards.syncAggregateGwei,

@@ -964,7 +964,6 @@ describe('Beacon REST checkpoint and fork projections', () => {
 			$network: network,
 			slot: 64,
 		})
-		expect(blockRewardsResolver.projections.proposerIndex(rewards)).toBe(12)
 		expect(blockRewardsResolver.projections.rewardTotalGwei(rewards)).toBe(1000n)
 		expect(blockRewardsResolver.projections.rewardAttestationsGwei(rewards)).toBe(700n)
 		expect(blockRewardsResolver.projections.rewardSyncAggregateGwei(rewards)).toBe(200n)

@@ -740,7 +740,19 @@ describe('dYdX Indexer resolvers', () => {
 		expect(dydxChainMarketResolver.projections.baseAsset(snapshot)).toBe('BTC')
 		expect(dydxChainMarketResolver.projections.quoteAsset(snapshot)).toBe('USD')
 		expect(dydxChainMarketResolver.projections.marketKind(snapshot)).toBe('CROSS')
-		expect(dydxChainMarketResolver.projections.$$timestamps(snapshot, market)).toEqual([{
+	})
+
+	it('materializes current and historical market observations under one field owner', async () => {
+		const observation = await dydxChainMarketFundingHistoryResolver.resolve.NetworkTicker.resolve(
+			market,
+			context
+		)
+
+		expect(sourceGetJson.mock.calls.map(([, url]) => url)).toEqual(expect.arrayContaining([
+			expect.stringContaining('/v4/perpetualMarkets?ticker=BTC-USD'),
+			expect.stringContaining('/v4/historicalFunding/BTC-USD?limit=1'),
+		]))
+		expect(dydxChainMarketFundingHistoryResolver.projections.$$timestamps(observation, market)).toEqual([{
 			[EntityMetaKey.Selector]: {
 				$market: market,
 				timestampMs: observedAtMs,
@@ -753,17 +765,7 @@ describe('dYdX Indexer resolvers', () => {
 				[entityFieldAddressKey(EntityType.DydxChainMarket_Timestamp, [], 'oraclePrice')]: '65554.247690000000000001',
 				[entityFieldAddressKey(EntityType.DydxChainMarket_Timestamp, [], 'status')]: 'ACTIVE',
 			},
-		}])
-	})
-
-	it('materializes authority-timestamped historical funding observations', async () => {
-		const observation = await dydxChainMarketFundingHistoryResolver.resolve.NetworkTicker.resolve(
-			market,
-			context
-		)
-
-		expect(sourceGetJson.mock.calls[0][1]).toContain('/v4/historicalFunding/BTC-USD?limit=1')
-		expect(dydxChainMarketFundingHistoryResolver.projections.$$timestamps(observation, market)).toEqual([{
+		}, {
 			[EntityMetaKey.Selector]: {
 				$market: market,
 				timestampMs: Date.parse(historicalFunding[0].effectiveAt),
