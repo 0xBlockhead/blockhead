@@ -9,6 +9,7 @@ export const listModels = async (binding: SourceBinding, {
 	credential: string
 }) => {
 	const response = await sourceFetch(binding, new URL('/v1/models', firstHttpUrlForBinding(binding)).toString(), {
+		redirect: 'manual',
 		headers: {
 			'authorization': `Bearer ${credential}`,
 		},

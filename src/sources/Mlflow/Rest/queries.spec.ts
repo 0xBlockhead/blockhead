@@ -45,7 +45,9 @@ describe('MLflow typed queries', () => {
 		expect(sourceFetch).toHaveBeenLastCalledWith(
 			binding,
 			'https://mlflow.example/api/2.0/mlflow/registered-models/get?name=fraud-detector',
-			{}
+			{
+				redirect: 'manual',
+			}
 		)
 
 		await getModelVersion({
@@ -56,7 +58,9 @@ describe('MLflow typed queries', () => {
 		expect(sourceFetch).toHaveBeenLastCalledWith(
 			binding,
 			'https://mlflow.example/api/2.0/mlflow/model-versions/get?name=fraud-detector&version=7',
-			{}
+			{
+				redirect: 'manual',
+			}
 		)
 	})
 
@@ -69,7 +73,9 @@ describe('MLflow typed queries', () => {
 		expect(sourceFetch).toHaveBeenLastCalledWith(
 			binding,
 			'https://mlflow.example/api/2.0/mlflow/artifacts/list?run_id=run-123&path=model%2FMLmodel',
-			{}
+			{
+				redirect: 'manual',
+			}
 		)
 	})
 

@@ -37,6 +37,7 @@ const requestHuggingFaceJson = async <_Result>({
 	credential?: string
 }) => {
 	const response = await sourceFetch(binding, new URL(path, firstHttpUrlForBinding(binding)).toString(), {
+		redirect: 'manual',
 		...(credential != null && credential !== '' && {
 			headers: {
 				'authorization': `Bearer ${credential}`,

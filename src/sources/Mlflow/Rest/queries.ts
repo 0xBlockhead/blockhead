@@ -31,6 +31,7 @@ const fetchMlflowJson = async <_Result>({
 		})),
 	}
 	const response = await sourceFetch(resolvedBinding, httpUrl(resolvedBinding, path), {
+		redirect: 'manual',
 		...(credential != null && credential !== '' && {
 			headers: {
 				'authorization': `Bearer ${credential}`,

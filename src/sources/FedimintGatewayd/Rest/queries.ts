@@ -99,6 +99,7 @@ const requestGatewayJson = async ({
 		httpUrl(resolved, path),
 		{
 			method,
+			redirect: 'manual',
 			headers: {
 				...(authenticated && {
 					authorization: `Bearer ${adminPassword(publicEnv)}`,

@@ -12,5 +12,11 @@ it('executes with the selected Cohere binding', async () => {
 	const binding = bindings[Source.Cohere_Rest][0]
 	const { listModels } = await import('./queries.ts')
 	await listModels(binding, { credential: 'secret' })
-	expect(sourceFetch).toHaveBeenCalledWith(binding, 'https://api.cohere.com/v1/models', expect.any(Object))
+	expect(sourceFetch).toHaveBeenCalledWith(
+		binding,
+		'https://api.cohere.com/v1/models',
+		expect.objectContaining({
+			redirect: 'manual',
+		})
+	)
 })

@@ -14,6 +14,7 @@ const requestAnthropicJson = async (binding: SourceBinding, {
 	anthropicVersion: string
 }) => {
 	const response = await sourceFetch(binding, new URL(path, firstHttpUrlForBinding(binding)).toString(), {
+		redirect: 'manual',
 		headers: {
 			'anthropic-version': anthropicVersion,
 			'x-api-key': credential,

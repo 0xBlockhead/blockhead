@@ -127,6 +127,7 @@ it('reads authenticated info / balances / channels with Bearer and fails closed 
 	})).rejects.toThrow('FedimintGatewayd_Rest: invalid gateway info response envelope')
 
 	expect(sourceFetch.mock.calls[0]?.[1]).toBe('http://127.0.0.1:8175/v1/info')
+	expect(sourceFetch.mock.calls[0]?.[2]?.redirect).toBe('manual')
 	expect(sourceFetch.mock.calls[0]?.[2]?.headers?.authorization).toBe('Bearer gateway-pass')
 	expect(sourceFetch.mock.calls[1]?.[1]).toBe('http://127.0.0.1:8175/v1/balances')
 	expect(sourceFetch.mock.calls[2]?.[1]).toBe('http://127.0.0.1:8175/v1/list_channels')

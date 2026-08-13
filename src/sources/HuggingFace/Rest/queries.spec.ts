@@ -47,7 +47,9 @@ describe('Hugging Face typed queries', () => {
 		expect(sourceFetch).toHaveBeenCalledWith(
 			binding,
 			'https://huggingface.co/api/models?search=model',
-			{}
+			{
+				redirect: 'manual',
+			}
 		)
 
 		sourceFetch.mockResolvedValue({
@@ -66,6 +68,7 @@ describe('Hugging Face typed queries', () => {
 			binding,
 			'https://huggingface.co/api/models/org/model?revision=abc123',
 			{
+				redirect: 'manual',
 				headers: {
 					authorization: 'Bearer token',
 				},

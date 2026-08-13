@@ -32,4 +32,7 @@ it('passes only the caller-provided noncanonical binding and endpoint to transpo
 	expect(sourceFetch).toHaveBeenCalledOnce()
 	expect(sourceFetch.mock.calls[0][0]).toBe(modifiedBinding)
 	expect(sourceFetch.mock.calls[0][1]).toBe('https://noncanonical.example/v1/models')
+	expect(sourceFetch.mock.calls[0][2]).toMatchObject({
+		redirect: 'manual',
+	})
 })
