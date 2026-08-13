@@ -48,6 +48,7 @@ const {
 	getGatewayInfo,
 	getPaymentSummary,
 	listChannels,
+	resolvedGatewayApiUrl,
 } = await import('$/sources/FedimintGatewayd/Rest/queries.ts')
 
 const publicEnv = {
@@ -252,4 +253,22 @@ it('fails closed when admin password env is missing', async () => {
 			FEDIMINT_GATEWAYD_URL: 'http://127.0.0.1:8175',
 		},
 	})).rejects.toThrow('FedimintGatewayd_Rest: missing FEDIMINT_GATEWAYD_PASSWORD')
+})
+
+it('rejects credentialed and non-HTTP gateway URLs before a remote request or visible API projection', async () => {
+	for (const gatewayUrl of [
+		'http://operator:password@127.0.0.1:8175',
+		'ftp://127.0.0.1:8175',
+	]) {
+		await expect(getGatewayId({
+			publicEnv: {
+				FEDIMINT_GATEWAYD_URL: gatewayUrl,
+			},
+		})).rejects.toThrow('gateway URL must be an unauthenticated HTTP URL')
+		expect(() => resolvedGatewayApiUrl({
+			FEDIMINT_GATEWAYD_URL: gatewayUrl,
+		})).toThrow('gateway URL must be an unauthenticated HTTP URL')
+	}
+
+	expect(sourceFetch).not.toHaveBeenCalled()
 })

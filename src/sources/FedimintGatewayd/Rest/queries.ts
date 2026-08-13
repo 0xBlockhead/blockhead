@@ -32,11 +32,27 @@ export const localGatewayBindingKey = binding.target.key
 const gatewayIdWire = arktype('string > 0')
 const nonNegativeSafeInteger = arktype(`number.integer >= 0 <= ${Number.MAX_SAFE_INTEGER}`)
 
+export const resolvedGatewayApiUrl = (
+	publicEnv: SourcePublicEnv
+) => {
+	const url = new URL(
+		resolveEnvLocator(binding.endpoints[0].locator, publicEnv)
+	)
+	if (
+		(url.protocol !== 'http:' && url.protocol !== 'https:')
+		|| url.username !== ''
+		|| url.password !== ''
+	)
+		throw new Error('FedimintGatewayd_Rest: gateway URL must be an unauthenticated HTTP URL')
+
+	return url.toString().replace(/\/$/, '')
+}
+
 const configuredBinding = (publicEnv: SourcePublicEnv) => ({
 	...binding,
 	endpoints: binding.endpoints.map((endpoint) => ({
 		...endpoint,
-		locator: resolveEnvLocator(endpoint.locator, publicEnv),
+		locator: resolvedGatewayApiUrl(publicEnv),
 	})),
 })
 
@@ -101,12 +117,6 @@ const requestGatewayJson = async ({
 
 	return response.json()
 }
-
-export const resolvedGatewayApiUrl = (
-	publicEnv: SourcePublicEnv
-) => (
-	resolveEnvLocator(binding.endpoints[0].locator, publicEnv).replace(/\/$/, '')
-)
 
 /**
  * GET /v1/id — public LNv1 gateway identity (no admin Bearer).
