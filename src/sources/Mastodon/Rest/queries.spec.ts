@@ -440,3 +440,36 @@ describe('Mastodon Rest arktype envelopes', () => {
 		)
 	})
 })
+
+describe('Mastodon instance peer domains', () => {
+	beforeEach(() => {
+		mastodonFetch.mockReset()
+	})
+
+	it('rejects a peer request for a mismatched instance origin', async () => {
+		await expect(listInstancePeerDomains(mastodonSocialBinding, 'https://evil.example')).rejects.toThrow(
+			'entity instance binding is missing for https://evil.example'
+		)
+	})
+
+	it('normalizes uppercase and whitespace in peer domains', async () => {
+		mastodonFetch.mockResolvedValueOnce(new Response('[" PEER.Example "]'))
+		await expect(listInstancePeerDomains(mastodonSocialBinding, 'https://mastodon.social')).resolves.toEqual([
+			'peer.example',
+		])
+	})
+
+	it('rejects a malformed peer domain', async () => {
+		mastodonFetch.mockResolvedValueOnce(new Response('["https://evil.example/"]'))
+		await expect(listInstancePeerDomains(mastodonSocialBinding, 'https://mastodon.social')).rejects.toThrow(
+			'Mastodon_Rest: peer domain is not a plain host'
+		)
+	})
+
+	it('rejects duplicate peer domains after normalization', async () => {
+		mastodonFetch.mockResolvedValueOnce(new Response('["peer.example"," PEER.Example "]'))
+		await expect(listInstancePeerDomains(mastodonSocialBinding, 'https://mastodon.social')).rejects.toThrow(
+			'duplicate peer domain'
+		)
+	})
+})

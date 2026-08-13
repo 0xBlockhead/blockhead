@@ -132,6 +132,17 @@ const assertUniqueStatusIds = (
 	}
 }
 
+const canonicalActivityPubHost = (label: string, value: string) => {
+	const host = value.trim().toLowerCase()
+	if (host.length === 0)
+		throw new Error(`Mastodon_Rest: ${label} is empty`)
+	if (/[\/:@\s]/.test(host))
+		throw new Error(`Mastodon_Rest: ${label} is not a plain host: ${value}`)
+	if (!/^[a-z0-9][a-z0-9-]*(\.[a-z0-9][a-z0-9-]*)*$/.test(host))
+		throw new Error(`Mastodon_Rest: ${label} has invalid host characters: ${value}`)
+	return host
+}
+
 export const getAccountByLocalAccountId = async (
 	binding: (typeof bindings)[Source.Mastodon_Rest][number],
 	instanceOrigin: string,
@@ -385,14 +396,23 @@ export const listInstancePeerDomains = async (
 	binding: (typeof bindings)[Source.Mastodon_Rest][number],
 	instanceOrigin: string
 ): Promise<string[]> => {
+	assertInstanceMatches(binding, instanceOrigin)
 	const response = await mastodonFetch(binding, '/instance/peers')
 	if (!response.ok)
 		throw new Error(`Mastodon_Rest: instance peers failed for ${instanceOrigin}: ${response.status} ${response.statusText}`)
-	return assertEnvelope(
+	const peerDomains = assertEnvelope(
 		'instance-peers',
 		mastodonApiV1PeerDomainListWire,
 		await response.json()
 	)
+	const seen = new Set<string>()
+	return peerDomains.map((peerDomain) => {
+		const canonical = canonicalActivityPubHost('peer domain', peerDomain)
+		if (seen.has(canonical))
+			throw new Error(`Mastodon_Rest: instance peer response contains a duplicate peer domain: ${canonical}`)
+		seen.add(canonical)
+		return canonical
+	})
 }
 
 export const listInstanceModeratedDomains = async (
