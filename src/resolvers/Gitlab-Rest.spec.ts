@@ -870,7 +870,7 @@ describe('GitLab repository journey', () => {
 		})
 		if (branch == null)
 			throw new Error('GitLab branch must resolve')
-		expect(refResolver.projections.$$observations(branch)[0]).toMatchObject({
+		expect(refResolver.projections.$$observations.select(branch)[0]).toMatchObject({
 			[EntityMetaKey.Selector]: {
 				timestampMs: observationTimestampMs,
 				source: Source.Gitlab_Rest,
@@ -883,6 +883,7 @@ describe('GitLab repository journey', () => {
 				},
 			},
 		})
+		expect(refResolver.projections.$$observations.resolveCount(branch)).toBe(1)
 	})
 
 	it('resolves a commit path through native tree ancestry to its blob identity', async () => {

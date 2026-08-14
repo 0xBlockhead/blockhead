@@ -938,7 +938,10 @@ export default {
 			refName: (ref) => ref.refName,
 			refKind: (ref) => ref.refKind,
 			targetObjectId: (ref) => ref.targetObjectId,
-			$$observations: (ref) => ref.$$observations,
+			$$observations: {
+				select: (ref) => ref.$$observations,
+				resolveCount: (ref) => ref.$$observations.length,
+			},
 		}),
 
 		defineResolver({
