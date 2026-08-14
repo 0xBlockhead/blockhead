@@ -23,6 +23,7 @@
 	}, {
 		sources: [
 			Source.Beacon_Rest,
+			Source.BeaconchaIn_Rest,
 		],
 	}))
 

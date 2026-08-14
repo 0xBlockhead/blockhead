@@ -122,6 +122,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
 			Source.Beacon_Rest,
+			Source.BeaconchaIn_Rest,
 		],
 	},
 	$$beaconAttestations: {
@@ -129,6 +130,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
 			Source.Beacon_Rest,
+			Source.BeaconchaIn_Rest,
 		],
 	},
 	$$beaconWithdrawals: {
@@ -136,6 +138,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
 			Source.Beacon_Rest,
+			Source.BeaconchaIn_Rest,
 		],
 	},
 	$$beaconSlashings: {
@@ -143,6 +146,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
 			Source.Beacon_Rest,
+			Source.BeaconchaIn_Rest,
 		],
 	},
 	$$dataColumns: {

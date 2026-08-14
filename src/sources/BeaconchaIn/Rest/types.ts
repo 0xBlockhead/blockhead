@@ -161,6 +161,21 @@ export const beaconchaInAttesterSlashingEnvelope = arktype({
 export type BeaconchaInAttesterSlashing = typeof beaconchaInAttesterSlashingEnvelope.infer
 
 
+/** @see https://docs.beaconcha.in/api-reference/slots/deposits-for-a-slot */
+export const beaconchaInDepositEnvelope = arktype({
+	amount: unsignedSafe,
+	block_index: unsignedSafe,
+	block_slot: unsignedSafe,
+	publickey: nonEmptyString,
+	signature: nonEmptyString,
+	withdrawalcredentials: nonEmptyString,
+	'block_root?': 'string',
+	'proof?': 'string | null',
+}).onUndeclaredKey('delete')
+
+export type BeaconchaInDeposit = typeof beaconchaInDepositEnvelope.infer
+
+
 /** @see https://docs.beaconcha.in/api-reference/slots/proposer-slashings */
 export const beaconchaInProposerSlashingEnvelope = arktype({
 	block_index: unsignedSafe,

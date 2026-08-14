@@ -6,6 +6,7 @@ import {
 	vi,
 } from 'vitest'
 
+import { with0xHex } from '$/lib/hexLowerOfByteSize.ts'
 import bindings from '$/sources/BeaconchaIn/bindings.ts'
 import { bindingByChainId } from '$/sources/BeaconchaIn/Rest/constants.ts'
 import {
@@ -14,6 +15,7 @@ import {
 	getSlot,
 	getSlotAttestations,
 	getSlotAttesterSlashings,
+	getSlotDeposits,
 	getSlotProposerSlashings,
 	getSlotWithdrawals,
 	getValidator,
@@ -261,6 +263,89 @@ describe('BeaconchaIn REST queries', () => {
 			chainId: 1,
 			slot: 9600000,
 		})).rejects.toThrow('returned no data')
+	})
+
+	it('loads slot deposits through complete pages and fail-closes duplicate identities', async () => {
+		const depositWire = {
+			amount: 32000000000,
+			block_index: 0,
+			block_slot: 9600000,
+			publickey: '0x' + 'aa'.repeat(48),
+			signature: '0x' + 'bb'.repeat(96),
+			withdrawalcredentials: '0x' + 'cc'.repeat(32),
+			block_root: slotWire.blockroot,
+			proof: '0x' + '11'.repeat(32) + '22'.repeat(32),
+		}
+		const fetchMock = vi.fn<typeof fetch>()
+			.mockResolvedValueOnce(jsonResponse({
+				status: 'OK',
+				data: Array.from(
+					{ length: 100 },
+					(_, blockIndex) => ({
+						...depositWire,
+						block_index: blockIndex,
+					})
+				),
+			}))
+			.mockResolvedValueOnce(jsonResponse({
+				status: 'OK',
+				data: [{
+					...depositWire,
+					block_index: 100,
+				}],
+			}))
+			.mockResolvedValueOnce(jsonResponse({
+				status: 'OK',
+				data: [depositWire, depositWire],
+			}))
+		vi.stubGlobal('fetch', fetchMock)
+		vi.stubGlobal('window', {})
+
+		await expect(getSlotDeposits(publicEnv, {
+			chainId: 1,
+			slot: 9600000,
+		})).resolves.toHaveLength(101)
+		expect(fetchMock).toHaveBeenCalledWith(
+			expect.stringMatching(/slot%2F9600000%2Fdeposits%3Foffset%3D0%26limit%3D100$/),
+			expect.anything()
+		)
+		expect(fetchMock).toHaveBeenCalledWith(
+			expect.stringMatching(/slot%2F9600000%2Fdeposits%3Foffset%3D100%26limit%3D100$/),
+			expect.anything()
+		)
+
+		await expect(getSlotDeposits(publicEnv, {
+			chainId: 1,
+			slot: 9600000,
+		})).rejects.toThrow('duplicate identities')
+	})
+
+	it('resolves a slot by consensus block root and rejects a mismatched root', async () => {
+		const fetchMock = vi.fn<typeof fetch>()
+			.mockResolvedValueOnce(jsonResponse({
+				status: 'OK',
+				data: slotWire,
+			}))
+			.mockResolvedValueOnce(jsonResponse({
+				status: 'OK',
+				data: slotWire,
+			}))
+		vi.stubGlobal('fetch', fetchMock)
+		vi.stubGlobal('window', {})
+
+		await expect(getSlot(publicEnv, {
+			chainId: 1,
+			slot: with0xHex(slotWire.blockroot),
+		})).resolves.toEqual(slotWire)
+		expect(fetchMock).toHaveBeenCalledWith(
+			expect.stringMatching(new RegExp(`slot%2F${slotWire.blockroot}$`)),
+			expect.anything()
+		)
+
+		await expect(getSlot(publicEnv, {
+			chainId: 1,
+			slot: with0xHex(`0x${'99'.repeat(32)}`),
+		})).rejects.toThrow('does not match the requested block root')
 	})
 
 	it('hard-fails non-list duty payloads', async () => {

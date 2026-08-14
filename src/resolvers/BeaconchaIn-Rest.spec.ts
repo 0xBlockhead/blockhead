@@ -15,6 +15,11 @@ import { Source } from '$/sources/Source.ts'
 const getEpoch = vi.hoisted(() => vi.fn())
 const getEpochSlots = vi.hoisted(() => vi.fn())
 const getSlot = vi.hoisted(() => vi.fn())
+const getSlotAttestations = vi.hoisted(() => vi.fn())
+const getSlotAttesterSlashings = vi.hoisted(() => vi.fn())
+const getSlotDeposits = vi.hoisted(() => vi.fn())
+const getSlotProposerSlashings = vi.hoisted(() => vi.fn())
+const getSlotWithdrawals = vi.hoisted(() => vi.fn())
 const getValidator = vi.hoisted(() => vi.fn())
 const getValidatorAttestations = vi.hoisted(() => vi.fn())
 
@@ -23,6 +28,11 @@ vi.mock('$/sources/BeaconchaIn/Rest/queries.ts', async (importOriginal) => ({
 	getEpoch,
 	getEpochSlots,
 	getSlot,
+	getSlotAttestations,
+	getSlotAttesterSlashings,
+	getSlotDeposits,
+	getSlotProposerSlashings,
+	getSlotWithdrawals,
 	getValidator,
 	getValidatorAttestations,
 }))
@@ -68,6 +78,28 @@ const validatorAttestationDutiesResolver = beaconchaInRest.resolvers.find((resol
 	resolver.entityType === EntityType.BeaconValidator
 	&& 'attestationDuties' in resolver.projections
 ))
+const slotDutyResolver = beaconchaInRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.BeaconSlot
+	&& '$$beaconAttestations' in resolver.projections
+	&& '$$beaconDeposits' in resolver.projections
+))
+const blockDutyResolver = beaconchaInRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.BeaconBlock
+	&& '$$attestations' in resolver.projections
+	&& '$$deposits' in resolver.projections
+))
+const attestationResolver = beaconchaInRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.BeaconAttestation
+))
+const depositResolver = beaconchaInRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.BeaconDeposit
+))
+const withdrawalResolver = beaconchaInRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.BeaconWithdrawal
+))
+const slashingResolver = beaconchaInRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.BeaconSlashing
+))
 
 if (
 	epochResolver == null
@@ -76,6 +108,12 @@ if (
 	|| validatorResolver == null
 	|| validatorTimestampResolver == null
 	|| validatorAttestationDutiesResolver == null
+	|| slotDutyResolver == null
+	|| blockDutyResolver == null
+	|| attestationResolver == null
+	|| depositResolver == null
+	|| withdrawalResolver == null
+	|| slashingResolver == null
 )
 	throw new Error('BeaconchaIn resolver facets missing')
 
@@ -85,6 +123,11 @@ describe('BeaconchaIn-Rest resolvers', () => {
 		getEpoch.mockReset()
 		getEpochSlots.mockReset()
 		getSlot.mockReset()
+		getSlotAttestations.mockReset()
+		getSlotAttesterSlashings.mockReset()
+		getSlotDeposits.mockReset()
+		getSlotProposerSlashings.mockReset()
+		getSlotWithdrawals.mockReset()
 		getValidator.mockReset()
 		getValidatorAttestations.mockReset()
 	})
@@ -507,6 +550,277 @@ describe('BeaconchaIn-Rest resolvers', () => {
 			{ [EntityMetaKey.Selector]: { $network: network, slot: 399 } },
 			{ [EntityMetaKey.Selector]: { $network: network, slot: 398 } },
 		])
+	})
+
+	it('keys slot and block body occurrences by the provider block root', async () => {
+		const root = with0xHex(`0x${'11'.repeat(32)}`)
+		const $block = {
+			$network: network,
+			root,
+		}
+		getSlot.mockResolvedValue({
+			slot: 320,
+			epoch: 10,
+			blockroot: root,
+			parentroot: `0x${'22'.repeat(32)}`,
+			stateroot: `0x${'33'.repeat(32)}`,
+			signature: `0x${'44'.repeat(96)}`,
+			proposer: 7,
+			status: '1',
+		})
+		getSlotAttestations.mockResolvedValue([
+			{
+				aggregationbits: '0xff',
+				block_index: 2,
+				committeeindex: 4,
+				slot: 319,
+				block_slot: 320,
+				block_root: root,
+			},
+		])
+		getSlotDeposits.mockResolvedValue([
+			{
+				amount: 32_000_000_000,
+				block_index: 0,
+				block_slot: 320,
+				publickey: `0x${'aa'.repeat(48)}`,
+				signature: `0x${'bb'.repeat(96)}`,
+				withdrawalcredentials: `0x${'cc'.repeat(32)}`,
+				block_root: root,
+				proof: `0x${'11'.repeat(32)}${'22'.repeat(32)}`,
+			},
+		])
+		getSlotWithdrawals.mockResolvedValue([
+			{
+				address: `0x${'dd'.repeat(20)}`,
+				amount: 1,
+				block_slot: 320,
+				validatorindex: 12,
+				withdrawalindex: 100,
+			},
+		])
+		getSlotProposerSlashings.mockResolvedValue([
+			{
+				block_index: 0,
+				block_slot: 320,
+				proposerindex: 9,
+			},
+		])
+		getSlotAttesterSlashings.mockResolvedValue([])
+
+		const slotDuties = await slotDutyResolver.resolve.EvmNetworkSlot.resolve({
+			$network: network,
+			slot: 320,
+		}, context)
+		expect(slotDutyResolver.projections.$$beaconAttestations.select(slotDuties)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$block,
+					indexInBlock: 2,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.BeaconAttestation, [], 'committeeIndex')]: 4,
+					[entityFieldAddressKey(EntityType.BeaconAttestation, [], 'aggregationBits')]: '0xff',
+				},
+			},
+		])
+		expect(slotDutyResolver.projections.$$beaconDeposits.select(slotDuties)[0]).toMatchObject({
+			[EntityMetaKey.Selector]: {
+				$block,
+				indexInBlock: 0,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.BeaconDeposit, [], 'pubkey')]: `0x${'aa'.repeat(48)}`,
+				[entityFieldAddressKey(EntityType.BeaconDeposit, [], 'amountGwei')]: 32_000_000_000n,
+				[entityFieldAddressKey(EntityType.BeaconDeposit, [], 'proof')]: [
+					`0x${'11'.repeat(32)}`,
+					`0x${'22'.repeat(32)}`,
+				],
+			},
+		})
+		expect(slotDutyResolver.projections.$$beaconWithdrawals.select(slotDuties)).toMatchObject([{
+			[EntityMetaKey.Selector]: {
+				$block,
+				withdrawalIndex: 100,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.BeaconWithdrawal, [], 'indexInBlock')]: 0,
+				[entityFieldAddressKey(EntityType.BeaconWithdrawal, [], 'amountGwei')]: 1n,
+			},
+		}])
+		expect(slotDutyResolver.projections.$$beaconSlashings.select(slotDuties)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$block,
+					kind: 'proposer',
+					indexInKind: 0,
+				},
+			},
+		])
+		expect(slotDutyResolver.projections.$$beaconAttestations.resolveCount(slotDuties)).toBe(1)
+		expect(slotDutyResolver.projections.$$beaconDeposits.resolveCount(slotDuties)).toBe(1)
+
+		const blockDuties = await blockDutyResolver.resolve.NetworkRoot.resolve({
+			$network: network,
+			root,
+		}, context)
+		expect(getSlot).toHaveBeenCalledWith(context.publicEnv, {
+			chainId: 1,
+			slot: root,
+		})
+		expect(blockDutyResolver.projections.$$attestations.select(blockDuties)[0][EntityMetaKey.Selector]).toEqual({
+			$block,
+			indexInBlock: 2,
+		})
+		expect(blockDutyResolver.projections.$$deposits.resolveCount(blockDuties)).toBe(1)
+	})
+
+	it('resolves fork-root attestation and deposit cards and rejects mismatched roots', async () => {
+		const root = with0xHex(`0x${'11'.repeat(32)}`)
+		getSlot.mockResolvedValue({
+			slot: 320,
+			epoch: 10,
+			blockroot: root,
+			parentroot: `0x${'22'.repeat(32)}`,
+			stateroot: `0x${'33'.repeat(32)}`,
+			signature: `0x${'44'.repeat(96)}`,
+			proposer: 7,
+			status: '1',
+		})
+		getSlotAttestations.mockResolvedValue([
+			{
+				aggregationbits: '03',
+				block_index: 2,
+				committeeindex: 4,
+				slot: 319,
+				block_slot: 320,
+				block_root: root,
+			},
+		])
+		getSlotDeposits.mockResolvedValue([
+			{
+				amount: 32_000_000_000,
+				block_index: 0,
+				block_slot: 320,
+				publickey: `${'aa'.repeat(48)}`,
+				signature: `${'bb'.repeat(96)}`,
+				withdrawalcredentials: `${'cc'.repeat(32)}`,
+				proof: null,
+			},
+		])
+
+		const attestation = await attestationResolver.resolve.BlockIndexInBlock.resolve({
+			$block: {
+				$network: network,
+				root,
+			},
+			indexInBlock: 2,
+		}, context)
+		expect(attestationResolver.projections.committeeIndex(attestation)).toBe(4)
+		expect(attestationResolver.projections.aggregationBits(attestation)).toBe('0x03')
+
+		const deposit = await depositResolver.resolve.BlockIndexInBlock.resolve({
+			$block: {
+				$network: network,
+				root,
+			},
+			indexInBlock: 0,
+		}, context)
+		expect(depositResolver.projections.amountGwei(deposit)).toBe(32_000_000_000n)
+		expect(depositResolver.projections.proof(deposit)).toEqual([])
+		expect(depositResolver.projections.$validator(deposit)).toEqual({
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				pubkey: `0x${'aa'.repeat(48)}`,
+			},
+		})
+
+		getSlotAttestations.mockResolvedValueOnce([
+			{
+				aggregationbits: '0xff',
+				block_index: 2,
+				committeeindex: 4,
+				slot: 319,
+				block_slot: 320,
+				block_root: `0x${'99'.repeat(32)}`,
+			},
+		])
+		await expect(attestationResolver.resolve.BlockIndexInBlock.resolve({
+			$block: {
+				$network: network,
+				root,
+			},
+			indexInBlock: 2,
+		}, context)).rejects.toThrow('block root does not match the selected block')
+	})
+
+	it('resolves withdrawals and slashings from the slot owned by a block root', async () => {
+		const root = with0xHex(`0x${'11'.repeat(32)}`)
+		getSlot.mockResolvedValue({
+			slot: 320,
+			epoch: 10,
+			blockroot: root,
+			parentroot: `0x${'22'.repeat(32)}`,
+			stateroot: `0x${'33'.repeat(32)}`,
+			signature: `0x${'44'.repeat(96)}`,
+			proposer: 7,
+			status: '1',
+		})
+		getSlotWithdrawals.mockResolvedValue([
+			{
+				address: `${'dd'.repeat(20)}`,
+				amount: 8,
+				block_slot: 320,
+				validatorindex: 12,
+				withdrawalindex: 100,
+			},
+		])
+		getSlotProposerSlashings.mockResolvedValue([])
+		getSlotAttesterSlashings.mockResolvedValue([
+			{
+				block_index: 1,
+				block_slot: 320,
+				block_root: root,
+			},
+		])
+
+		const withdrawal = await withdrawalResolver.resolve.BlockWithdrawalIndex.resolve({
+			$block: {
+				$network: network,
+				root,
+			},
+			withdrawalIndex: 100,
+		}, context)
+		expect(withdrawalResolver.projections.indexInBlock(withdrawal)).toBe(0)
+		expect(withdrawalResolver.projections.amountGwei(withdrawal)).toBe(8n)
+		expect(withdrawalResolver.projections.$account(withdrawal)).toEqual({
+			[EntityMetaKey.Selector]: {
+				address: `0x${'dd'.repeat(20)}`,
+			},
+		})
+
+		const slashing = await slashingResolver.resolve.BlockKindIndexInKind.resolve({
+			$block: {
+				$network: network,
+				root,
+			},
+			kind: 'attester',
+			indexInKind: 1,
+		}, context)
+		expect(slashingResolver.projections.kind(slashing)).toBe('attester')
+		expect(slashingResolver.projections.indexInKind(slashing)).toBe(1)
+
+		getSlotAttestations.mockResolvedValue([])
+		getSlotDeposits.mockResolvedValue([])
+		getSlotWithdrawals.mockResolvedValue([])
+		getSlotProposerSlashings.mockResolvedValue([])
+		getSlotAttesterSlashings.mockResolvedValue([])
+		const empty = await slotDutyResolver.resolve.EvmNetworkSlot.resolve({
+			$network: network,
+			slot: 320,
+		}, context)
+		expect(slotDutyResolver.projections.$$beaconAttestations.select(empty)).toEqual([])
+		expect(slotDutyResolver.projections.$$beaconAttestations.resolveCount(empty)).toBe(0)
 	})
 
 	it('omits unsupported committee facets', () => {

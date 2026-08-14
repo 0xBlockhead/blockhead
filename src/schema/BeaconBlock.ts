@@ -74,6 +74,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
 			Source.Beacon_Rest,
+			Source.BeaconchaIn_Rest,
 		],
 	},
 	$$deposits: {
@@ -81,6 +82,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
 			Source.Beacon_Rest,
+			Source.BeaconchaIn_Rest,
 		],
 	},
 	$$slashings: {
@@ -88,6 +90,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
 			Source.Beacon_Rest,
+			Source.BeaconchaIn_Rest,
 		],
 	},
 	$$timestamps: {
@@ -102,6 +105,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
 			Source.Beacon_Rest,
+			Source.BeaconchaIn_Rest,
 		],
 	},
 })({

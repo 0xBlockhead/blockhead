@@ -11,6 +11,7 @@ import { bindingByChainId } from '$/sources/BeaconchaIn/Rest/constants.ts'
 import {
 	beaconchaInAttestationEnvelope,
 	beaconchaInAttesterSlashingEnvelope,
+	beaconchaInDepositEnvelope,
 	beaconchaInEpochEnvelope,
 	beaconchaInProposerSlashingEnvelope,
 	beaconchaInSlotEnvelope,
@@ -183,6 +184,15 @@ export const getEpochSlots = async (
 	return slots
 }
 
+const beaconchaInSlotRoot = (value: string) => (
+	(
+		value.startsWith('0x') || value.startsWith('0X') ?
+			value
+		:
+			`0x${value}`
+	).toLowerCase()
+)
+
 export const getSlot = async (
 	publicEnv: SourcePublicEnv,
 	{
@@ -190,7 +200,7 @@ export const getSlot = async (
 		slot,
 	}: {
 		chainId: number
-		slot: number | 'latest' | 'head'
+		slot: number | 'latest' | 'head' | `0x${string}`
 	}
 ) => {
 	const wire = assertEnvelope(
@@ -199,7 +209,7 @@ export const getSlot = async (
 			publicEnv,
 			{
 				chainId,
-				path: `/slot/${String(slot)}`,
+				path: `/slot/${encodeURIComponent(String(slot))}`,
 				label: 'BeaconchaIn GET slot',
 			}
 		),
@@ -207,6 +217,8 @@ export const getSlot = async (
 	)
 	if (typeof slot === 'number' && wire.slot !== slot)
 		throw new Error(`${Source.BeaconchaIn_Rest}: slot response does not match the requested slot`)
+	if (typeof slot === 'string' && slot !== 'latest' && slot !== 'head' && beaconchaInSlotRoot(wire.blockroot) !== beaconchaInSlotRoot(slot))
+		throw new Error(`${Source.BeaconchaIn_Rest}: slot response does not match the requested block root`)
 
 	return wire
 }
@@ -360,6 +372,46 @@ export const getSlotWithdrawals = async (
 	}
 
 	return withdrawals
+}
+
+/** @see https://docs.beaconcha.in/api-reference/slots/deposits-for-a-slot */
+export const getSlotDeposits = async (
+	publicEnv: SourcePublicEnv,
+	{
+		chainId,
+		slot,
+	}: {
+		chainId: number
+		slot: number | 'latest'
+	}
+) => {
+	const requestedSlot = typeof slot === 'number' ? slot : undefined
+	const deposits: (typeof beaconchaInDepositEnvelope.infer)[] = []
+	const seen = new Set<number>()
+	for (let offset = 0; offset <= 1_000_000; offset += 100) {
+		const page = await beaconchaInGetList(
+			publicEnv,
+			{
+				chainId,
+				path: `/slot/${encodeURIComponent(String(slot))}/deposits?offset=${String(offset)}&limit=100`,
+				label: 'BeaconchaIn GET slot deposits',
+				itemEnvelope: beaconchaInDepositEnvelope,
+			}
+		)
+		for (const deposit of page) {
+			if (requestedSlot != null && deposit.block_slot !== requestedSlot)
+				throw new Error(`${Source.BeaconchaIn_Rest}: slot deposit does not match the requested slot`)
+			if (seen.has(deposit.block_index))
+				throw new Error(`${Source.BeaconchaIn_Rest}: slot deposits contain duplicate identities`)
+
+			seen.add(deposit.block_index)
+			deposits.push(deposit)
+		}
+		if (page.length < 100)
+			return deposits
+	}
+
+	throw new Error(`${Source.BeaconchaIn_Rest}: slot deposits did not complete`)
 }
 
 export const getSlotAttesterSlashings = async (
