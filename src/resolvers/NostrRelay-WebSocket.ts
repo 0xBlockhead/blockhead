@@ -761,10 +761,6 @@ export default {
 									source: Source.NostrRelay_WebSocket,
 									value: replies,
 								}])
-								fields.$$replies.count.replaceRows([{
-									source: Source.NostrRelay_WebSocket,
-									value: replies.length,
-								}])
 							},
 						})
 
@@ -773,10 +769,7 @@ export default {
 				},
 			},
 		})({
-				$$replies: {
-					select: (replies) => replies,
-					resolveCount: (replies) => replies.length,
-				},
+				$$replies: (replies) => replies,
 			}),
 
 		defineResolver({
@@ -850,10 +843,6 @@ export default {
 									source: Source.NostrRelay_WebSocket,
 									value: reactions,
 								}])
-								fields.$$reactions.count.replaceRows([{
-									source: Source.NostrRelay_WebSocket,
-									value: reactions.length,
-								}])
 							},
 						})
 
@@ -862,10 +851,7 @@ export default {
 				},
 			},
 		})({
-				$$reactions: {
-					select: (reactions) => reactions,
-					resolveCount: (reactions) => reactions.length,
-				},
+				$$reactions: (reactions) => reactions,
 			}),
 	],
 } satisfies RegisteredSourceResolverModule

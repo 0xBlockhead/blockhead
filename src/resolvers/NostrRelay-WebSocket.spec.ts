@@ -324,10 +324,8 @@ describe('Nostr relay live note resolver', () => {
 				[EntityMetaKey.Selector]: { eventId: replyEventId },
 			})],
 		}])
-		expect(replaceReplyCountRows).toHaveBeenLastCalledWith([{
-			source: Source.NostrRelay_WebSocket,
-			value: 1,
-		}])
+		expect(replaceReplyCountRows).not.toHaveBeenCalled()
+		expect(noteRepliesResolver.projections.$$replies.resolveCount).toBeUndefined()
 		expect(replaceReactionRows).toHaveBeenLastCalledWith([{
 			source: Source.NostrRelay_WebSocket,
 			value: [expect.objectContaining({
@@ -340,10 +338,8 @@ describe('Nostr relay live note resolver', () => {
 				}),
 			})],
 		}])
-		expect(replaceReactionCountRows).toHaveBeenLastCalledWith([{
-			source: Source.NostrRelay_WebSocket,
-			value: 1,
-		}])
+		expect(replaceReactionCountRows).not.toHaveBeenCalled()
+		expect(noteReactionsResolver.projections.$$reactions.resolveCount).toBeUndefined()
 
 		cleanupReplies()
 		cleanupReactions()

@@ -91,7 +91,7 @@ beforeEach(() => {
 })
 
 describe('Primal Rest enrolled leftovers', () => {
-	it('exposes authoritative reply/reaction counts from complete windows', async () => {
+	it('maps windowed reply/reaction rows without claiming an authoritative count', async () => {
 		const noteId = '3'.repeat(64)
 		const reply = signedEvent([
 			['e', noteId, '', 'reply'],
@@ -156,8 +156,8 @@ describe('Primal Rest enrolled leftovers', () => {
 				},
 			},
 		}])
-		expect(replies.projections.$$replies.resolveCount(replyRows)).toBe(1)
-		expect(reactions.projections.$$reactions.resolveCount(reactionRows)).toBe(1)
+		expect(replies.projections.$$replies.resolveCount).toBeUndefined()
+		expect(reactions.projections.$$reactions.resolveCount).toBeUndefined()
 	})
 
 	it('materializes profile note cards from the bounded source timeline', async () => {
