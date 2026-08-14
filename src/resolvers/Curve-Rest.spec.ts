@@ -522,6 +522,12 @@ describe('Curve Rest resolver module', () => {
 			},
 		])
 		expect(networkCurvePoolsResolver.projections.Evm.$$curvePools.resolveCount(snapshot)).toBe(2)
+		expect(networkCurvePoolsResolver.projections.Evm.$$curvePools.continuation(snapshot)).toEqual({
+			operation: 'network-curve-pools',
+			target: 'curve',
+			terminal: false,
+			token: '1',
+		})
 		expect(networkCurvePoolsResolver.projections.Evm.$$curveLendingVaults.select(snapshot)).toEqual([
 			{
 				[EntityMetaKey.Selector]: {
@@ -531,6 +537,12 @@ describe('Curve Rest resolver module', () => {
 			},
 		])
 		expect(networkCurvePoolsResolver.projections.Evm.$$curveLendingVaults.resolveCount(snapshot)).toBe(2)
+		expect(networkCurvePoolsResolver.projections.Evm.$$curveLendingVaults.continuation(snapshot)).toEqual({
+			operation: 'network-curve-lending-vaults',
+			target: 'curve',
+			terminal: false,
+			token: '1',
+		})
 	})
 
 	it('maps a Curve Lend vault snapshot from getLendingVaults', async () => {

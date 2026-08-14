@@ -414,7 +414,19 @@ export default {
 							listLendingVaults,
 							listPools,
 						} = await import('$/sources/Curve/Rest/queries.ts')
+						if (
+							context.providerContinuationToken != null
+							&& !/^(0|[1-9][0-9]*)$/.test(context.providerContinuationToken)
+						)
+							throw new Error(`${Source.Curve_Rest}: invalid pagination continuation`)
+
 						const limit = resolverContextRowLimit(context)
+						const offset = context.providerContinuationToken == null ?
+							context.pagination.offset ?? 0
+						:
+							Number(context.providerContinuationToken)
+						if (!Number.isSafeInteger(offset) || offset < 0)
+							throw new Error(`${Source.Curve_Rest}: invalid pagination offset`)
 						const [
 							pools,
 							lendingVaults,
@@ -427,8 +439,9 @@ export default {
 							}),
 						])
 						return {
+							offset,
 							pools: pools
-								.slice(0, limit)
+								.slice(offset, offset + limit)
 								.map((pool) => ({
 									[EntityMetaKey.Selector]: {
 										$network: network,
@@ -437,7 +450,7 @@ export default {
 								})),
 							poolCount: pools.length,
 							lendingVaults: lendingVaults
-								.slice(0, limit)
+								.slice(offset, offset + limit)
 								.map((vault) => ({
 									[EntityMetaKey.Selector]: {
 										$network: network,
@@ -454,10 +467,34 @@ export default {
 				$$curvePools: {
 					select: (snapshot) => snapshot.pools,
 					resolveCount: (snapshot) => snapshot.poolCount,
+					continuation: (snapshot) => {
+						const nextOffset = snapshot.offset + snapshot.pools.length
+
+						return {
+							operation: 'network-curve-pools',
+							target: 'curve',
+							terminal: nextOffset >= snapshot.poolCount,
+							...(nextOffset < snapshot.poolCount && {
+								token: String(nextOffset),
+							}),
+						}
+					},
 				},
 				$$curveLendingVaults: {
 					select: (snapshot) => snapshot.lendingVaults,
 					resolveCount: (snapshot) => snapshot.lendingVaultCount,
+					continuation: (snapshot) => {
+						const nextOffset = snapshot.offset + snapshot.lendingVaults.length
+
+						return {
+							operation: 'network-curve-lending-vaults',
+							target: 'curve',
+							terminal: nextOffset >= snapshot.lendingVaultCount,
+							...(nextOffset < snapshot.lendingVaultCount && {
+								token: String(nextOffset),
+							}),
+						}
+					},
 				},
 			},
 		}),

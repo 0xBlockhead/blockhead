@@ -26,7 +26,16 @@ type EvmNetworkAccountId = EntitySelector<typeof schema, EntityType.EvmNetworkAc
 const gmxPaginationWindow = (
 	context: ResolverContext
 ) => {
-	const offset = context.pagination.offset ?? 0
+	if (
+		context.providerContinuationToken != null
+		&& !/^(0|[1-9][0-9]*)$/.test(context.providerContinuationToken)
+	)
+		throw new Error(`${Source.Gmx_Rest}: invalid pagination continuation`)
+
+	const offset = context.providerContinuationToken == null ?
+		context.pagination.offset ?? 0
+	:
+		Number(context.providerContinuationToken)
 	if (!Number.isSafeInteger(offset) || offset < 0)
 		throw new Error(`${Source.Gmx_Rest}: invalid pagination offset`)
 
@@ -144,6 +153,7 @@ export default {
 							offset,
 						} = gmxPaginationWindow(context)
 						return {
+							positionOffset: offset,
 							positions: positions
 								.slice(offset, offset + limit)
 								.map((position) => ({
@@ -161,6 +171,18 @@ export default {
 			$$gmxPositions: {
 				select: (snapshot) => snapshot.positions,
 				resolveCount: (snapshot) => snapshot.positionCount,
+				continuation: (snapshot) => {
+					const nextOffset = snapshot.positionOffset + snapshot.positions.length
+
+					return {
+						operation: 'account-gmx-positions',
+						target: 'gmx',
+						terminal: nextOffset >= snapshot.positionCount,
+						...(nextOffset < snapshot.positionCount && {
+							token: String(nextOffset),
+						}),
+					}
+				},
 			},
 		}),
 
@@ -290,6 +312,7 @@ export default {
 							offset,
 						} = gmxPaginationWindow(context)
 						return {
+							marketOffset: offset,
 							markets: markets
 								.slice(offset, offset + limit)
 								.map((market) => ({
@@ -308,6 +331,18 @@ export default {
 				$$gmxMarkets: {
 					select: (snapshot) => snapshot.markets,
 					resolveCount: (snapshot) => snapshot.marketCount,
+					continuation: (snapshot) => {
+						const nextOffset = snapshot.marketOffset + snapshot.markets.length
+
+						return {
+							operation: 'network-gmx-markets',
+							target: 'gmx',
+							terminal: nextOffset >= snapshot.marketCount,
+							...(nextOffset < snapshot.marketCount && {
+								token: String(nextOffset),
+							}),
+						}
+					},
 				},
 			},
 		}),

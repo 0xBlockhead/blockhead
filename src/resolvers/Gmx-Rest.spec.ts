@@ -140,15 +140,18 @@ describe('GMX Rest resolver module', () => {
 			{
 				contractKey: `0x${'2'.repeat(64)}`,
 			},
+			{
+				contractKey: `0x${'3'.repeat(64)}`,
+			},
 		])
 
 		const account = await evmNetworkAccountResolver.resolve.EvmNetworkEvmAccount.resolve(
 			accountSelector,
 			{
 				...context,
+				providerContinuationToken: '1',
 				pagination: {
 					limit: 1,
-					offset: 1,
 				},
 			}
 		)
@@ -159,7 +162,13 @@ describe('GMX Rest resolver module', () => {
 				contractKey: `0x${'2'.repeat(64)}`,
 			},
 		}])
-		expect(evmNetworkAccountResolver.projections.$$gmxPositions.resolveCount(account)).toBe(2)
+		expect(evmNetworkAccountResolver.projections.$$gmxPositions.resolveCount(account)).toBe(3)
+		expect(evmNetworkAccountResolver.projections.$$gmxPositions.continuation(account)).toEqual({
+			operation: 'account-gmx-positions',
+			target: 'gmx',
+			terminal: false,
+			token: '2',
+		})
 	})
 
 	it('resolves a GMX position by account + contract key', async () => {
@@ -309,6 +318,11 @@ describe('GMX Rest resolver module', () => {
 
 		expect(evmNetworkAccountResolver.projections.$$gmxPositions.select(account)).toEqual([])
 		expect(evmNetworkAccountResolver.projections.$$gmxPositions.resolveCount(account)).toBe(0)
+		expect(evmNetworkAccountResolver.projections.$$gmxPositions.continuation(account)).toEqual({
+			operation: 'account-gmx-positions',
+			target: 'gmx',
+			terminal: true,
+		})
 	})
 
 	it('pages Network $$gmxMarkets with authoritative resolveCount from markets/info', async () => {
@@ -348,6 +362,11 @@ describe('GMX Rest resolver module', () => {
 			},
 		])
 		expect(networkGmxMarketsResolver.projections.Evm.$$gmxMarkets.resolveCount(snapshot)).toBe(2)
+		expect(networkGmxMarketsResolver.projections.Evm.$$gmxMarkets.continuation(snapshot)).toEqual({
+			operation: 'network-gmx-markets',
+			target: 'gmx',
+			terminal: true,
+		})
 	})
 
 	it('registers under Gmx_Rest for GmxMarket', () => {
