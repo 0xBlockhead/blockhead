@@ -408,6 +408,7 @@ describe('Sui GraphQL network / checkpoint / transaction resolvers', () => {
 		executeSui.mockResolvedValueOnce({
 			coinMetadata: {
 				address: '0xabc',
+				iconUrl: 'https://sui.example/icon.png',
 				regulatedState: 'REGULATED',
 				allowGlobalPause: true,
 				denyCap: {
@@ -422,6 +423,11 @@ describe('Sui GraphQL network / checkpoint / transaction resolvers', () => {
 			coinType: '0x2::sui::SUI',
 		}
 		const snapshot = await coinTypeResolver.resolve.NetworkCoinType.resolve(selector, context)
+		expect(coinTypeResolver.projections.$icon(snapshot)).toMatchObject({
+			[EntityMetaKey.Selector]: {
+				url: 'https://sui.example/icon.png',
+			},
+		})
 
 		expect(coinTypeResolver.projections.$$regulatedStates(snapshot)).toEqual([{
 			[EntityMetaKey.Selector]: {

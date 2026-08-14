@@ -1,6 +1,7 @@
 import { networkBySlug } from '$/constants/Network.ts'
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import { defineResolver, type RegisteredSourceResolverModule } from '$/resolvers/defineResolver.ts'
+import { mediaFromUrl } from '$/resolvers/media.ts'
 import {
 	type EntitySelector,
 	entityFieldAddressKey,
@@ -8,6 +9,7 @@ import {
 } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { MediaType } from '$/schema/MediaType.ts'
 import { normalizeSuiAddress } from '$/sources/Sui/Graphql/queries.ts'
 import { Source } from '$/sources/Source.ts'
 
@@ -980,6 +982,7 @@ export default {
 			name: ({ coin }) => coin.name,
 			description: ({ coin }) => coin.description,
 			iconUrl: ({ coin }) => coin.iconUrl,
+			$icon: ({ coin }) => mediaFromUrl(coin.iconUrl, MediaType.Image),
 			$$regulatedStates: ({
 				$network,
 				coin,

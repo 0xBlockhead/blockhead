@@ -263,6 +263,11 @@ describe('SnapshotHub GraphQL resolvers', () => {
 			},
 			spaceId,
 			name: 'ENS',
+			$avatar: {
+				[EntityMetaKey.Selector]: {
+					url: 'https://ipfs.io/ipfs/avatar',
+				},
+			},
 			cover: 'ipfs://cover',
 			website: 'https://ens.domains',
 			twitter: 'ensdomains',

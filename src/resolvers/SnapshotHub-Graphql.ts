@@ -2,8 +2,10 @@ import type { ResolverContext } from '$/resolvers/$resolvers.ts'
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import { defineResolver } from '$/resolvers/defineResolver.ts'
 import type { RegisteredSourceResolverModule } from '$/resolvers/defineResolver.ts'
+import { mediaFromUrl } from '$/resolvers/media.ts'
 import { EntityMetaKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { MediaType } from '$/schema/MediaType.ts'
 import type {
 	SnapshotHubProposal,
 	SnapshotHubProposalState,
@@ -125,6 +127,7 @@ export const snapshotSpaceFields = (
 		}),
 		...(space.avatar != null && {
 			avatar: space.avatar,
+			$avatar: mediaFromUrl(space.avatar, MediaType.Image),
 		}),
 		...(space.cover != null && {
 			cover: space.cover,
@@ -494,6 +497,7 @@ export default {
 			name: (space) => space.name,
 			about: (space) => space.about,
 			avatar: (space) => space.avatar,
+			$avatar: (space) => space.$avatar,
 			symbol: (space) => space.symbol,
 			$network: (space) => space.$network,
 			proposalsCount: (space) => space.proposalsCount,

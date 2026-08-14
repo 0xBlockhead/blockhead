@@ -6,11 +6,13 @@ import {
 import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
+import { mediaFromUrl } from '$/resolvers/media.ts'
 import {
 	EntityMetaKey,
 	type EntitySelector,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { MediaType } from '$/schema/MediaType.ts'
 import { schema } from '$/schema/index.ts'
 import type {
 	AaveAccountPosition,
@@ -64,6 +66,7 @@ const mapAaveMarketSnapshot = (
 		name: market.name,
 		...(market.icon.length > 0 && {
 			icon: market.icon,
+			$icon: mediaFromUrl(market.icon, MediaType.Image),
 		}),
 		totalMarketSize: market.totalMarketSize,
 		totalAvailableLiquidity: market.totalAvailableLiquidity,
@@ -353,6 +356,7 @@ export default {
 			poolAddress: (market) => market.poolAddress,
 			name: (market) => market.name,
 			icon: (market) => market.icon,
+			$icon: (market) => market.$icon,
 			totalMarketSize: (market) => market.totalMarketSize,
 			totalAvailableLiquidity: (market) => market.totalAvailableLiquidity,
 			$$reserves: {
@@ -403,6 +407,7 @@ export default {
 							decimals: reserve.underlyingToken.decimals,
 							...(reserve.underlyingToken.imageUrl.length > 0 && {
 								imageUrl: reserve.underlyingToken.imageUrl,
+								$image: mediaFromUrl(reserve.underlyingToken.imageUrl, MediaType.Image),
 							}),
 							totalSupplied: reserve.size.amount.value,
 							...(reserve.borrowInfo != null && {
@@ -426,6 +431,7 @@ export default {
 			symbol: (reserve) => reserve.symbol,
 			decimals: (reserve) => reserve.decimals,
 			imageUrl: (reserve) => reserve.imageUrl,
+			$image: (reserve) => reserve.$image,
 			totalSupplied: (reserve) => reserve.totalSupplied,
 			availableLiquidity: (reserve) => reserve.availableLiquidity,
 			supplyApy: (reserve) => reserve.supplyApy,

@@ -39,6 +39,13 @@ export default entity({
 			Source.SnapshotHub_Graphql,
 		],
 	},
+	$avatar: {
+		entityType: EntityType.Media,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.SnapshotHub_Graphql,
+		],
+	},
 	symbol: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,

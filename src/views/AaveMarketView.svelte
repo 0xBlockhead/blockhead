@@ -4,6 +4,8 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -45,6 +47,7 @@
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import AaveReservesView from '$/views/AaveReservesView.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
+	import MediaView from '$/views/MediaView.svelte'
 </script>
 
 
@@ -73,6 +76,21 @@
 	bind:open
 	{...EntityViewProps}
 >
+	{#snippet Icon()}
+		<ResourceBoundary resource={aaveMarket}>
+			{#snippet children(entity)}
+				{@const reference = entity.$icon}
+				{#if reference != null}
+					<MediaView
+						selection={select(EntityType.Media, reference[EntityMetaKey.Selector])}
+						prefetched={reference}
+						layout={EntityLayout.Value}
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
 	{#snippet Title()}
 		<ResourceBoundary resource={aaveMarket}>
 			{#snippet children(entity)}

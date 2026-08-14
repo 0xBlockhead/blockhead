@@ -30,6 +30,7 @@
 		selection({
 			...{
 				fields: {
+					$icon: true,
 					name: true,
 					impliedApy: true,
 					underlyingApy: true,

@@ -44,6 +44,7 @@
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import SnapshotProposalsView from '$/views/SnapshotProposalsView.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
+	import MediaView from '$/views/MediaView.svelte'
 </script>
 
 
@@ -66,6 +67,21 @@
 	bind:open
 	{...EntityViewProps}
 >
+	{#snippet Icon()}
+		<ResourceBoundary resource={snapshotSpace}>
+			{#snippet children(entity)}
+				{@const reference = entity.$avatar}
+				{#if reference != null}
+					<MediaView
+						selection={select(EntityType.Media, reference[EntityMetaKey.Selector])}
+						prefetched={reference}
+						layout={EntityLayout.Value}
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
 	{#snippet Title()}
 		<ResourceBoundary resource={snapshotSpace}>
 			{#snippet children(entity)}

@@ -44,6 +44,13 @@ export default entity({
 			Source.Pendle_Rest,
 		],
 	},
+	$icon: {
+		entityType: EntityType.Media,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Pendle_Rest,
+		],
+	},
 	expiryTimestampMs: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,

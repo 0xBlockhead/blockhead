@@ -30,6 +30,7 @@
 		selection({
 			...{
 				fields: {
+					$icon: true,
 					coinType: true,
 					$network: true,
 				},

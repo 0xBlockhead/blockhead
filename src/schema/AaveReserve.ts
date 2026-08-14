@@ -53,6 +53,13 @@ export default entity({
 			Source.Aave_Rest,
 		],
 	},
+	$image: {
+		entityType: EntityType.Media,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Aave_Rest,
+		],
+	},
 	totalSupplied: {
 		primitiveType: NonNegativeDecimalString,
 		cardinality: EntityFieldCardinality.One,

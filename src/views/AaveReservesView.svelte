@@ -30,6 +30,7 @@
 		selection({
 			...{
 				fields: {
+					$image: true,
 					symbol: true,
 					name: true,
 				},

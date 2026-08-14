@@ -425,6 +425,11 @@ describe('Aave Rest resolver module', () => {
 		}, context)
 
 		expect(aaveMarketResolver.projections.name(snapshot)).toBe('AaveV3Ethereum')
+		expect(aaveMarketResolver.projections.$icon(snapshot)).toMatchObject({
+			[EntityMetaKey.Selector]: {
+				url: ethereumMarket.icon,
+			},
+		})
 		expect(aaveMarketResolver.projections.poolAddress(snapshot)).toBe(
 			'0x87870bca3f3fd6335c3f4ce8392d69350b4fa4e2'
 		)
@@ -502,6 +507,11 @@ describe('Aave Rest resolver module', () => {
 		}, context)
 
 		expect(aaveReserveResolver.projections.symbol(snapshot)).toBe('USDC')
+		expect(aaveReserveResolver.projections.$image(snapshot)).toMatchObject({
+			[EntityMetaKey.Selector]: {
+				url: ethereumMarket.reserves[0].underlyingToken.imageUrl,
+			},
+		})
 		expect(aaveReserveResolver.projections.totalSupplied(snapshot)).toBe('1000')
 		expect(aaveReserveResolver.projections.availableLiquidity(snapshot)).toBe('750')
 		expect(aaveReserveResolver.projections.supplyApy(snapshot)).toBe('0.03')
@@ -672,6 +682,7 @@ describe('Aave Rest resolver module', () => {
 		}, context)
 
 		expect(aaveReserveResolver.projections.imageUrl(snapshot)).toBeUndefined()
+		expect(aaveReserveResolver.projections.$image(snapshot)).toBeUndefined()
 		expect(aaveReserveResolver.projections.symbol(snapshot)).toBe('USDC')
 	})
 

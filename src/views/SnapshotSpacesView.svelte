@@ -29,6 +29,7 @@
 		selection({
 			...{
 				fields: {
+					$avatar: true,
 					name: true,
 					symbol: true,
 					proposalsCount: true,

@@ -486,6 +486,11 @@ describe('Pendle Rest resolver module', () => {
 		expect(pendleMarketResolver.projections.name(snapshot)).toBe('USD0++')
 		expect(pendleMarketResolver.projections.protocol(snapshot)).toBe('Usual')
 		expect(pendleMarketResolver.projections.icon(snapshot)).toBe(baseMarketWire.icon)
+		expect(pendleMarketResolver.projections.$icon(snapshot)).toMatchObject({
+			[EntityMetaKey.Selector]: {
+				url: baseMarketWire.icon,
+			},
+		})
 		expect(pendleMarketResolver.projections.expiryTimestampMs(snapshot)).toBe(
 			Date.parse(baseMarketWire.expiry)
 		)
@@ -551,6 +556,7 @@ describe('Pendle Rest resolver module', () => {
 		}, context)
 
 		expect(pendleMarketResolver.projections.icon(snapshot)).toBe(undefined)
+		expect(pendleMarketResolver.projections.$icon(snapshot)).toBe(undefined)
 	})
 
 	it('fails closed when markets/all omits enrolled details fields', async () => {

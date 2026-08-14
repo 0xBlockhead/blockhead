@@ -38,6 +38,13 @@ export default entity({
 			Source.Aave_Rest,
 		],
 	},
+	$icon: {
+		entityType: EntityType.Media,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Aave_Rest,
+		],
+	},
 	totalMarketSize: {
 		primitiveType: NonNegativeDecimalString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,

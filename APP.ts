@@ -5099,6 +5099,7 @@ export const schema = {
 				"poolAddress": { label: "Pool address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "evmAddress" },
 				"name": { label: "Name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string", defaultSources: [Source.Aave_Rest] },
 				"icon": { label: "Icon", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Aave_Rest] },
+				"$icon": { label: "Icon", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.Media, defaultSources: [Source.Aave_Rest] },
 				"totalMarketSize": { label: "Total market size", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Aave_Rest] },
 				"totalAvailableLiquidity": { label: "Total available liquidity", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Aave_Rest] },
 				"$$reserves": { label: "Reserves", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.AaveReserve, defaultSources: [Source.Aave_Rest] },
@@ -5112,6 +5113,7 @@ export const schema = {
 							sources: [Source.Aave_Rest],
 						},
 						summary: {
+							icon: "$icon",
 							title: ["name"],
 							value: ["totalMarketSize", "totalAvailableLiquidity"],
 							HeadingAfter: ["$network"],
@@ -5145,6 +5147,7 @@ export const schema = {
 				"symbol": { label: "Symbol", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string", defaultSources: [Source.Aave_Rest] },
 				"decimals": { label: "Decimals", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number", defaultSources: [Source.Aave_Rest] },
 				"imageUrl": { label: "Image", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "urlString", defaultSources: [Source.Aave_Rest] },
+				"$image": { label: "Image", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.Media, defaultSources: [Source.Aave_Rest] },
 				"totalSupplied": { label: "Total supplied", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeDecimalString", defaultSources: [Source.Aave_Rest] },
 				"availableLiquidity": { label: "Available liquidity", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Aave_Rest] },
 				"supplyApy": { label: "Supply APY", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeDecimalString", defaultSources: [Source.Aave_Rest] },
@@ -5162,6 +5165,7 @@ export const schema = {
 							sources: [Source.Aave_Rest],
 						},
 						summary: {
+							icon: "$image",
 							title: ["symbol"],
 							value: ["name"],
 						},
@@ -51448,6 +51452,7 @@ export const schema = {
 				"name": { label: "Name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string", defaultSources: [Source.Pendle_Rest] },
 				"protocol": { label: "Protocol", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string", defaultSources: [Source.Pendle_Rest] },
 				"icon": { label: "Icon", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Pendle_Rest] },
+				"$icon": { label: "Icon", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.Media, defaultSources: [Source.Pendle_Rest] },
 				"expiryTimestampMs": { label: "Expiry", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number", defaultSources: [Source.Pendle_Rest] },
 				"ptAddress": { label: "PT address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "evmAddress", defaultSources: [Source.Pendle_Rest] },
 				"ytAddress": { label: "YT address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "evmAddress", defaultSources: [Source.Pendle_Rest] },
@@ -51475,6 +51480,7 @@ export const schema = {
 							sources: [Source.Pendle_Rest],
 						},
 						summary: {
+							icon: "$icon",
 							title: ["name"],
 							value: ["impliedApy", "underlyingApy"],
 							HeadingAfter: ["$network"],
@@ -54413,6 +54419,7 @@ export const schema = {
 				"name": { label: "Name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.SnapshotHub_Graphql] },
 				"about": { label: "About", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.SnapshotHub_Graphql] },
 				"avatar": { label: "Avatar", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.SnapshotHub_Graphql] },
+				"$avatar": { label: "Avatar", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.Media, defaultSources: [Source.SnapshotHub_Graphql] },
 				"symbol": { label: "Symbol", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.SnapshotHub_Graphql] },
 				"$network": { label: "Network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.Network, defaultSources: [Source.SnapshotHub_Graphql] },
 				"proposalsCount": { label: "Proposals", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.SnapshotHub_Graphql] },
@@ -54428,6 +54435,7 @@ export const schema = {
 					singular: {
 						query: { sources: [Source.SnapshotHub_Graphql] },
 						summary: {
+							icon: "$avatar",
 							title: ["name"],
 							titleFallback: ["spaceId"],
 							value: ["symbol", "proposalsCount"],
@@ -58289,6 +58297,13 @@ export const schema = {
 					valueType: "string",
 					cardinality: EntityFieldCardinality.ZeroOrOne,
 				},
+				"$icon": {
+					label: 'Icon',
+					type: EntityFieldType.EntityReference,
+					entityType: EntityType.Media,
+					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Sui],
+				},
 			})({
 				selectors: {
 					"NetworkCoinType": [
@@ -58299,6 +58314,7 @@ export const schema = {
 				views: {
 					singular: {
 						summary: {
+							icon: "$icon",
 							title: ['coinType'],
 							HeadingAfter: ['$network'],
 						},

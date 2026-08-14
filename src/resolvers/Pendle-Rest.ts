@@ -3,11 +3,13 @@ import { resolverContextRowLimit, type ResolverContext } from '$/resolvers/$reso
 import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
+import { mediaFromUrl } from '$/resolvers/media.ts'
 import {
 	EntityMetaKey,
 	type EntitySelector,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { MediaType } from '$/schema/MediaType.ts'
 import { schema } from '$/schema/index.ts'
 import type { PendleAccountPosition } from '$/sources/Pendle/Contracts/types.ts'
 import type { PendleMarket } from '$/sources/Pendle/Rest/types.ts'
@@ -101,7 +103,10 @@ const mapPendleMarketSnapshot = (
 	marketAddress: market.marketAddress,
 	name: market.name,
 	protocol: market.protocol,
-	...(market.icon.length > 0 && { icon: market.icon }),
+	...(market.icon.length > 0 && {
+		icon: market.icon,
+		$icon: mediaFromUrl(market.icon, MediaType.Image),
+	}),
 	expiryTimestampMs: market.expiryTimestampMs,
 	ptAddress: market.ptAddress,
 	ytAddress: market.ytAddress,
@@ -258,6 +263,7 @@ export default {
 			name: (market) => market.name,
 			protocol: (market) => market.protocol,
 			icon: (market) => market.icon,
+			$icon: (market) => market.$icon,
 			expiryTimestampMs: (market) => market.expiryTimestampMs,
 			ptAddress: (market) => market.ptAddress,
 			ytAddress: (market) => market.ytAddress,
