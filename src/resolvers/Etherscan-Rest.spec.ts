@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { EntityMetaKey } from '$/schema/$schema.ts'
+import { EntityMetaKey, entityFieldAddressKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
@@ -528,5 +528,91 @@ describe('Etherscan EvmTransaction SetCode leftovers', () => {
 		expect(authorizations[0]?.nonce).toBe(7n)
 		expect(authorizations[0]?.yParity).toBe(1)
 		expect(resolver.projections.SetCode.$$authorizations.resolveCount(entity)).toBe(1)
+	})
+})
+
+describe('Etherscan token approvals', () => {
+	beforeEach(() => {
+		vi.clearAllMocks()
+	})
+
+	it('materializes one native token approval from its exact receipt log', async () => {
+		const contract = '0x3333333333333333333333333333333333333333'
+		getTransactionByHash.mockResolvedValue({
+			hash: txHash,
+			blockNumber: '0xc',
+			from: '0x1111111111111111111111111111111111111111',
+			to: contract,
+			type: '0x2',
+			transactionIndex: '0x0',
+			value: '0x0',
+			nonce: '0x1',
+			input: '0x',
+			r: '0x01',
+			s: '0x02',
+			gas: '0x5208',
+			gasPrice: '0x3b9aca00',
+			maxFeePerGas: '0x77359400',
+			maxPriorityFeePerGas: '0x3b9aca00',
+		})
+		getTransactionReceipt.mockResolvedValue({
+			status: '0x1',
+			gasUsed: '0x5208',
+			cumulativeGasUsed: '0x5208',
+			effectiveGasPrice: '0x3b9aca00',
+			logs: [{
+				address: contract,
+				blockHash: '0xcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc',
+				blockNumber: '0xc',
+				data: `0x${'0'.repeat(63)}a`,
+				logIndex: '0x0',
+				removed: false,
+				topics: [
+					'0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925',
+					`0x${'00'.repeat(12)}${'11'.repeat(20)}`,
+					`0x${'00'.repeat(12)}${'22'.repeat(20)}`,
+				],
+				transactionHash: txHash,
+			}],
+		})
+		const transactionResolver = etherscanRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.EvmTransaction
+			&& '$$tokenApprovals' in candidate.projections
+			&& 'value' in candidate.projections
+		))
+		const approvalResolver = etherscanRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.EvmTokenApproval
+			&& 'Log' in candidate.resolve
+		))
+		if (
+			transactionResolver == null
+			|| approvalResolver == null
+			|| !('Log' in approvalResolver.resolve)
+		)
+			throw new Error('Etherscan token approval resolvers are not registered')
+
+		const $network = {
+			slug: 'ethereum',
+		} as const
+		const transaction = await transactionResolver.resolve.EvmNetworkTxHash.resolve({
+			$network,
+			txHash,
+		}, context)
+		expect(transactionResolver.projections.$$tokenApprovals.select(transaction)).toMatchObject([{
+			[EntityMetaKey.Selector]: {
+				$log: {
+					$transaction: {
+						$network,
+						txHash,
+					},
+					indexInTransaction: 0,
+				},
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.EvmTokenApproval, [], 'approvalKind')]: 'Allowance',
+				[entityFieldAddressKey(EntityType.EvmTokenApproval, [], 'standard')]: 'ERC-20',
+				[entityFieldAddressKey(EntityType.EvmTokenApproval, ['Allowance'], 'amount')]: 10n,
+			},
+		}])
 	})
 })

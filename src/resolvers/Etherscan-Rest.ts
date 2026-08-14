@@ -20,6 +20,11 @@ import {
 	evmNetworkSelectorFromChainId,
 } from '$/resolvers/evm.ts'
 import {
+	evmTokenApprovalEntityFromLog,
+	evmTokenApprovalReference,
+} from '$/resolvers/evmTokenApproval.ts'
+import {
+	entityFieldAddressKey,
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
@@ -733,6 +738,12 @@ const evmLogEntityFromRpcWire = (
 				return normalized == null ? [] : [normalized]
 			})
 	)
+	const $tokenApproval = evmTokenApprovalEntityFromLog({
+		$log: entitySelector,
+		topics,
+		data: data ?? '0x',
+		emitterAddress: address,
+	})
 	return {
 		[EntityMetaKey.Selector]: entitySelector,
 		$transaction: {
@@ -764,6 +775,9 @@ const evmLogEntityFromRpcWire = (
 					address,
 				},
 			} satisfies Entity<typeof schema, EntityType.EvmContract>,
+		}),
+		...($tokenApproval != null && {
+			$tokenApproval,
 		}),
 	}
 }
@@ -1381,6 +1395,63 @@ export default {
 				})),
 				resolveCount: (transaction) => transaction.$$logs.length,
 			},
+			$$tokenApprovals: {
+				select: (transaction) => transaction.$$logs.flatMap((log) => (
+					log.$tokenApproval == null ?
+						[]
+					:
+						[evmTokenApprovalReference(log.$tokenApproval)]
+				)),
+				resolveCount: (transaction) => transaction.$$logs.filter((log) => log.$tokenApproval != null).length,
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.EvmTokenApproval,
+			resolve: {
+				Log: {
+					resolve: async ({ $log }, context) => {
+						const chainId = evmChainIdFromNetworkSelector($log.$transaction.$network)
+						const txHash = hexLowerOfByteSize($log.$transaction.txHash, 32)
+						if (txHash == null)
+							throw new Error('Etherscan_Rest: invalid approval transaction hash')
+						const receipt = await getTransactionReceipt({
+							publicEnv: context.publicEnv,
+							chainId,
+							txHash,
+						})
+						if (receipt == null)
+							throw new Error('Etherscan_Rest: transaction receipt not found for EvmTokenApproval')
+						const log = (receipt.logs ?? []).find((row) => (
+							evmLogIndexFromRpcWire(row.logIndex) === $log.indexInTransaction
+						))
+						if (log == null)
+							throw new Error('Etherscan_Rest: receipt log not found for EvmTokenApproval')
+
+						const approval = evmLogEntityFromRpcWire($log, log).$tokenApproval
+						if (approval == null)
+							throw new Error('Etherscan_Rest: receipt log is not an exact token approval')
+
+						return approval
+					},
+				},
+			},
+		})({
+			$log: (approval) => approval.$log,
+			$tokenContract: (approval) => approval.$tokenContract,
+			$owner: (approval) => approval.$owner,
+			$approvedActor: (approval) => approval.$approvedActor,
+			approvalKind: (approval) => approval.approvalKind,
+			standard: (approval) => approval.standard,
+			Allowance: {
+				amount: (approval) => approval.amount,
+			},
+			Token: {
+				tokenId: (approval) => approval.tokenId,
+			},
+			Operator: {
+				approved: (approval) => approval.approved,
+			},
 		}),
 
 		defineResolver({
@@ -1441,6 +1512,14 @@ export default {
 						throw new Error('Etherscan_Rest: event log missing signature topic')
 
 					return entity.topic0
+				},
+				TokenApproval: {
+					$tokenApproval: (entity) => {
+						if (entity.$tokenApproval == null)
+							throw new Error('Etherscan_Rest: approval event has invalid topics or data')
+
+						return entity.$tokenApproval
+					},
 				},
 			},
 		}),

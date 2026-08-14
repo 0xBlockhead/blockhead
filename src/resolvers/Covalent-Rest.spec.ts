@@ -7,7 +7,7 @@ import {
 } from 'vitest'
 
 import { EvmTransactionExecutionStatus } from '$/constants/Evm.ts'
-import { EntityMetaKey } from '$/schema/$schema.ts'
+import { entityFieldAddressKey, EntityMetaKey } from '$/schema/$schema.ts'
 import { CoinInstanceType } from '$/schema/CoinInstanceType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import bindings from '$/sources/Covalent/bindings.ts'
@@ -573,11 +573,80 @@ describe('Covalent GoldRush product entity types', () => {
 		expect(covalentResolvers.resolvers.map((resolver) => resolver.entityType)).toEqual([
 			EntityType.EvmTransaction,
 			EntityType.EvmLog,
+			EntityType.EvmTokenApproval,
+			EntityType.EvmTokenTransfer,
 			EntityType.EvmInternalTransfer,
 			EntityType.EvmNetworkAccount,
 			EntityType.EvmNetworkAccount,
 			EntityType.EvmNetworkActorCoinBalance,
 			EntityType.EvmNetworkActorCoinBalance_Timestamp,
 		])
+	})
+
+	it('materializes receipt-log token approvals and transfers on the parent transaction', async () => {
+		const contract = '0x4444444444444444444444444444444444444444'
+		sourceGetJson.mockResolvedValueOnce({
+			...transactionFixture,
+			data: {
+				...transactionFixture.data,
+				items: [{
+					...transactionFixture.data.items[0],
+					log_events: [{
+						block_signed_at: '2026-07-14T11:59:48Z',
+						block_height: 22_900_000,
+						tx_offset: 7,
+						log_offset: 0,
+						tx_hash: transactionFixture.data.items[0].tx_hash,
+						raw_log_topics: [
+							'0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925',
+							`0x${'00'.repeat(12)}${'11'.repeat(20)}`,
+							`0x${'00'.repeat(12)}${'22'.repeat(20)}`,
+						],
+						sender_address: contract,
+						raw_log_data: `0x${'0'.repeat(63)}a`,
+					}, {
+						block_signed_at: '2026-07-14T11:59:48Z',
+						block_height: 22_900_000,
+						tx_offset: 7,
+						log_offset: 1,
+						tx_hash: transactionFixture.data.items[0].tx_hash,
+						raw_log_topics: [
+							'0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef',
+							`0x${'00'.repeat(12)}${'11'.repeat(20)}`,
+							`0x${'00'.repeat(12)}${'33'.repeat(20)}`,
+						],
+						sender_address: contract,
+						raw_log_data: `0x${'0'.repeat(63)}5`,
+					}],
+				}],
+			},
+		})
+
+		const transaction = await transactionResolver.resolve.EvmNetworkTxHash.resolve(
+			{
+				$network: {
+					caip2: {
+						namespace: 'eip155',
+						reference: '1',
+					},
+				},
+				txHash: transactionFixture.data.items[0].tx_hash,
+			},
+			emptyContext
+		)
+		expect(transactionResolver.projections.$$tokenApprovals.select(transaction)).toMatchObject([{
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.EvmTokenApproval, [], 'approvalKind')]: 'Allowance',
+				[entityFieldAddressKey(EntityType.EvmTokenApproval, ['Allowance'], 'amount')]: 10n,
+			},
+		}])
+		expect(transactionResolver.projections.$$tokenTransfers.select(transaction)).toMatchObject([{
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.EvmTokenTransfer, [], 'standard')]: 'ERC-20',
+				[entityFieldAddressKey(EntityType.EvmTokenTransfer, [], 'amount')]: 5n,
+			},
+		}])
+		expect(transactionResolver.projections.$$tokenApprovals.resolveCount(transaction)).toBe(1)
+		expect(transactionResolver.projections.$$tokenTransfers.resolveCount(transaction)).toBe(1)
 	})
 })

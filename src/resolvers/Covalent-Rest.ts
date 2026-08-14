@@ -1,5 +1,6 @@
 import {
 	EvmInternalCallType,
+	EvmTokenStandard,
 	EvmTransactionExecutionStatus,
 } from '$/constants/Evm.ts'
 import {
@@ -9,10 +10,15 @@ import {
 import { defineResolver, type RegisteredSourceResolverModule } from '$/resolvers/defineResolver.ts'
 import { evmChainIdFromNetworkSelector, evmNetworkSelectorFromChainId } from '$/resolvers/evm.ts'
 import {
+	evmTokenApprovalEntityFromLog,
+	evmTokenApprovalReference,
+} from '$/resolvers/evmTokenApproval.ts'
+import {
 	resolverContextRowLimit,
 	type ResolverContext,
 } from '$/resolvers/$resolvers.ts'
 import {
+	entityFieldAddressKey,
 	EntityMetaKey,
 	type Entity,
 	type EntitySelector,
@@ -28,6 +34,128 @@ import type {
 	GoldRushTransactionItem,
 } from '$/sources/Covalent/GoldRush/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
+
+const erc20OrErc721TransferTopic = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef'
+const erc1155TransferSingleTopic = '0xc3d58168c5ae7397731d063d5bbf3d657854427343f4c083240f7aacaa2d0f62'
+
+const addressFromTopic = (topic: `0x${string}` | undefined) => (
+	topic != null && /^0x0{24}[0-9a-f]{40}$/.test(topic) ?
+		hexLowerOfByteSize(`0x${topic.slice(-40)}`, 20)
+	:
+		undefined
+)
+
+const evmTokenTransferEntitiesFromLog = ({
+	$log,
+	topics,
+	data,
+	emitterAddress,
+}: {
+	$log: Entity<typeof schema, EntityType.EvmLog>[typeof EntityMetaKey.Selector]
+	topics: readonly `0x${string}`[]
+	data: `0x${string}`
+	emitterAddress: `0x${string}` | undefined
+}) => {
+	if (emitterAddress == null)
+		return []
+
+	const $network = $log.$transaction.$network
+	const $tokenContract = {
+		[EntityMetaKey.Selector]: {
+			$network,
+			address: emitterAddress,
+		},
+	}
+	const transfer = (
+		topics.at(0) === erc20OrErc721TransferTopic && topics.length === 3 && /^0x[0-9a-f]{64}$/.test(data) ?
+			{
+				standard: EvmTokenStandard.Erc20,
+				amount: BigInt(data),
+				fromAddress: addressFromTopic(topics.at(1)),
+				toAddress: addressFromTopic(topics.at(2)),
+			}
+		: topics.at(0) === erc20OrErc721TransferTopic && topics.length === 4 && data === '0x' ?
+			{
+				standard: EvmTokenStandard.Erc721,
+				amount: 1n,
+				tokenId: BigInt(topics[3]),
+				fromAddress: addressFromTopic(topics.at(1)),
+				toAddress: addressFromTopic(topics.at(2)),
+			}
+		: topics.at(0) === erc1155TransferSingleTopic && topics.length === 4 && /^0x[0-9a-f]{128}$/.test(data) ?
+			{
+				standard: EvmTokenStandard.Erc1155,
+				amount: BigInt(`0x${data.slice(66)}`),
+				tokenId: BigInt(`0x${data.slice(2, 66)}`),
+				fromAddress: addressFromTopic(topics.at(2)),
+				toAddress: addressFromTopic(topics.at(3)),
+			}
+		:
+			undefined
+	)
+	if (transfer == null)
+		return []
+
+	return [{
+		[EntityMetaKey.Selector]: {
+			$log,
+			indexInLog: 0,
+		},
+		$log: {
+			[EntityMetaKey.Selector]: $log,
+		},
+		standard: transfer.standard,
+		amount: transfer.amount,
+		...(transfer.tokenId != null && { tokenId: transfer.tokenId }),
+		...(transfer.fromAddress != null && {
+			$from: {
+				[EntityMetaKey.Selector]: { address: transfer.fromAddress },
+			},
+		}),
+		...(transfer.toAddress != null && {
+			$to: {
+				[EntityMetaKey.Selector]: { address: transfer.toAddress },
+			},
+		}),
+		$tokenContract,
+		...(transfer.standard === EvmTokenStandard.Erc20 && {
+			$coinInstance: {
+				[EntityMetaKey.Selector]: {
+					$network,
+					type: CoinInstanceType.Erc20Token,
+					$contract: {
+						$network,
+						address: emitterAddress,
+					},
+				},
+			},
+		}),
+	}]
+}
+
+const evmTokenTransferReference = (
+	transfer: ReturnType<typeof evmTokenTransferEntitiesFromLog>[number]
+) => ({
+	[EntityMetaKey.Selector]: transfer[EntityMetaKey.Selector],
+	[EntityMetaKey.Fields]: {
+		[entityFieldAddressKey(EntityType.EvmTokenTransfer, [], '$log')]: transfer.$log,
+		[entityFieldAddressKey(EntityType.EvmTokenTransfer, [], 'standard')]: transfer.standard,
+		[entityFieldAddressKey(EntityType.EvmTokenTransfer, [], 'amount')]: transfer.amount,
+		...(transfer.tokenId != null && {
+			[entityFieldAddressKey(EntityType.EvmTokenTransfer, ['Nft'], 'tokenId')]: transfer.tokenId,
+		}),
+		...(transfer.$from != null && {
+			[entityFieldAddressKey(EntityType.EvmTokenTransfer, [], '$from')]: transfer.$from,
+		}),
+		...(transfer.$to != null && {
+			[entityFieldAddressKey(EntityType.EvmTokenTransfer, [], '$to')]: transfer.$to,
+		}),
+		[entityFieldAddressKey(EntityType.EvmTokenTransfer, [], '$tokenContract')]: transfer.$tokenContract,
+		...(transfer.$coinInstance != null && {
+			[entityFieldAddressKey(EntityType.EvmTokenTransfer, [], '$coinInstance')]: transfer.$coinInstance,
+		}),
+	},
+})
 
 
 const nonnegativeBigInt = (
@@ -122,14 +250,29 @@ const goldRushLogEntity = (
 	if (emitterAddress == null)
 		throw new Error('GoldRushFoundational_Rest: invalid log emitter')
 
-	return {
-		[EntityMetaKey.Selector]: {
-			$transaction: {
-				$network,
-				txHash,
-			},
-			indexInTransaction: log.log_offset,
+	const logSelector = {
+		$transaction: {
+			$network,
+			txHash,
 		},
+		indexInTransaction: log.log_offset,
+	}
+	const data = log.raw_log_data == null ? '0x' : with0xHex(log.raw_log_data)
+	const $tokenApproval = evmTokenApprovalEntityFromLog({
+		$log: logSelector,
+		topics,
+		data,
+		emitterAddress,
+	})
+	const $$tokenTransfers = evmTokenTransferEntitiesFromLog({
+		$log: logSelector,
+		topics,
+		data,
+		emitterAddress,
+	})
+
+	return {
+		[EntityMetaKey.Selector]: logSelector,
 		$transaction: {
 			[EntityMetaKey.Selector]: {
 				$network,
@@ -159,6 +302,10 @@ const goldRushLogEntity = (
 				address: emitterAddress,
 			},
 		} satisfies Entity<typeof schema, EntityType.EvmContract>,
+		...($tokenApproval != null && {
+			$tokenApproval,
+		}),
+		$$tokenTransfers,
 	}
 }
 
@@ -314,6 +461,19 @@ export default {
 			$$logs: (transaction) => transaction.$$logs.map((log) => ({
 				[EntityMetaKey.Selector]: log[EntityMetaKey.Selector],
 			})),
+			$$tokenApprovals: {
+				select: (transaction) => transaction.$$logs.flatMap((log) => (
+					log.$tokenApproval == null ?
+						[]
+					:
+						[evmTokenApprovalReference(log.$tokenApproval)]
+				)),
+				resolveCount: (transaction) => transaction.$$logs.filter((log) => log.$tokenApproval != null).length,
+			},
+			$$tokenTransfers: {
+				select: (transaction) => transaction.$$logs.flatMap((log) => log.$$tokenTransfers.map(evmTokenTransferReference)),
+				resolveCount: (transaction) => transaction.$$logs.reduce((count, log) => count + log.$$tokenTransfers.length, 0),
+			},
 			$$internalTransfers: (transaction) => transaction.$$internalTransfers.map((transfer) => ({
 				[EntityMetaKey.Selector]: transfer[EntityMetaKey.Selector],
 			})),
@@ -360,6 +520,110 @@ export default {
 						throw new Error('GoldRushFoundational_Rest: event log is missing topic 0')
 
 					return log.topic0
+				},
+				TokenApproval: {
+					$tokenApproval: (log) => {
+						if (log.$tokenApproval == null)
+							throw new Error('GoldRushFoundational_Rest: approval event has invalid topics or data')
+
+						return log.$tokenApproval
+					},
+				},
+				TokenTransfer: {
+					$$tokenTransfers: (log) => log.$$tokenTransfers.map(evmTokenTransferReference),
+				},
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.EvmTokenApproval,
+			resolve: {
+				Log: {
+					resolve: async ({ $log }) => {
+						const { getTransaction, goldRushChainName } = await import('$/sources/Covalent/GoldRush/Rest/queries.ts')
+						const { chainId, $network: network } = goldRushChainForNetwork($log.$transaction.$network)
+						const txHash = hexLowerOfByteSize($log.$transaction.txHash, 32)
+						if (txHash == null)
+							throw new Error('GoldRushFoundational_Rest: invalid transaction hash')
+						const log = (await getTransaction({
+							chainId,
+							chainName: goldRushChainName(chainId),
+							txHash,
+						})).items[0].log_events.find((candidate) => (
+							candidate.log_offset === $log.indexInTransaction
+						))
+						if (log == null)
+							throw new Error('GoldRushFoundational_Rest: receipt log not found for EvmTokenApproval')
+
+						const approval = goldRushLogEntity(log, network, txHash).$tokenApproval
+						if (approval == null)
+							throw new Error('GoldRushFoundational_Rest: receipt log is not an exact token approval')
+
+						return approval
+					},
+				},
+			},
+		})({
+			$log: (approval) => approval.$log,
+			$tokenContract: (approval) => approval.$tokenContract,
+			$owner: (approval) => approval.$owner,
+			$approvedActor: (approval) => approval.$approvedActor,
+			approvalKind: (approval) => approval.approvalKind,
+			standard: (approval) => approval.standard,
+			Allowance: {
+				amount: (approval) => approval.amount,
+			},
+			Token: {
+				tokenId: (approval) => approval.tokenId,
+			},
+			Operator: {
+				approved: (approval) => approval.approved,
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.EvmTokenTransfer,
+			resolve: {
+				LogIndexInLog: {
+					resolve: async ({ $log, indexInLog }) => {
+						const { getTransaction, goldRushChainName } = await import('$/sources/Covalent/GoldRush/Rest/queries.ts')
+						const { chainId, $network: network } = goldRushChainForNetwork($log.$transaction.$network)
+						const txHash = hexLowerOfByteSize($log.$transaction.txHash, 32)
+						if (txHash == null)
+							throw new Error('GoldRushFoundational_Rest: invalid transaction hash')
+						const log = (await getTransaction({
+							chainId,
+							chainName: goldRushChainName(chainId),
+							txHash,
+						})).items[0].log_events.find((candidate) => (
+							candidate.log_offset === $log.indexInTransaction
+						))
+						if (log == null)
+							throw new Error('GoldRushFoundational_Rest: receipt log not found for EvmTokenTransfer')
+
+						const transfer = goldRushLogEntity(log, network, txHash).$$tokenTransfers.at(indexInLog)
+						if (transfer == null)
+							throw new Error('GoldRushFoundational_Rest: receipt log is not an exact token transfer')
+
+						return transfer
+					},
+				},
+			},
+		})({
+			$log: (transfer) => transfer.$log,
+			standard: (transfer) => transfer.standard,
+			indexInLog: (transfer) => transfer[EntityMetaKey.Selector].indexInLog,
+			$from: (transfer) => transfer.$from,
+			$to: (transfer) => transfer.$to,
+			$tokenContract: (transfer) => transfer.$tokenContract,
+			$coinInstance: (transfer) => transfer.$coinInstance,
+			amount: (transfer) => transfer.amount,
+			Nft: {
+				tokenId: (transfer) => {
+					if (transfer.tokenId == null)
+						throw new Error('GoldRushFoundational_Rest: NFT transfer is missing token id')
+
+					return transfer.tokenId
 				},
 			},
 		}),
