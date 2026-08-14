@@ -14,6 +14,7 @@ import { EntityType } from '$/schema/EntityType.ts'
 const getAllChannels = vi.hoisted(() => vi.fn())
 const getChannel = vi.hoisted(() => vi.fn())
 const getChannelMember = vi.hoisted(() => vi.fn())
+const getUserFollowingChannelsCount = vi.hoisted(() => vi.fn())
 const getUserFollowingChannelsPage = vi.hoisted(() => vi.fn())
 const getUserThreadCastsByClientUrl = vi.hoisted(() => vi.fn())
 const getUserThreadCasts = vi.hoisted(() => vi.fn())
@@ -22,6 +23,7 @@ vi.mock('$/sources/Farcaster/Rest/queries.ts', () => ({
 	getAllChannels,
 	getChannel,
 	getChannelMember,
+	getUserFollowingChannelsCount,
 	getUserFollowingChannelsPage,
 	getUserThreadCastsByClientUrl,
 	getUserThreadCasts,
@@ -56,6 +58,13 @@ const channelResolver = farcasterRest.resolvers.find((resolver) => (
 const channelViewerResolver = farcasterRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.FarcasterUser
 	&& '$$channelViewerTimestamps' in resolver.projections
+	&& 'select' in resolver.projections.$$channelViewerTimestamps
+))
+const channelViewerCountResolver = farcasterRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.FarcasterUser
+	&& '$$channelViewerTimestamps' in resolver.projections
+	&& 'resolveCount' in resolver.projections.$$channelViewerTimestamps
+	&& !('select' in resolver.projections.$$channelViewerTimestamps)
 ))
 
 if (
@@ -65,6 +74,8 @@ if (
 	|| !('ParentUrl' in channelResolver.resolve)
 	|| channelViewerResolver == null
 	|| !('Fid' in channelViewerResolver.resolve)
+	|| channelViewerCountResolver == null
+	|| !('Fid' in channelViewerCountResolver.resolve)
 )
 	throw new Error('Farcaster_Rest spec missing channel resolvers')
 
@@ -226,6 +237,15 @@ describe('Farcaster channel directory', () => {
 			channelId: 'dev',
 			fid: 42,
 		})
+	})
+
+	it('resolves the independent following-channel count without coupling it to page rows', async () => {
+		getUserFollowingChannelsCount.mockResolvedValue(3)
+
+		const count = await channelViewerCountResolver.resolve.Fid.resolve({ fid: 42 }, {})
+
+		expect(channelViewerCountResolver.projections.$$channelViewerTimestamps.resolveCount(count)).toBe(3)
+		expect(getUserFollowingChannelsCount).toHaveBeenCalledWith({ fid: 42 })
 	})
 })
 

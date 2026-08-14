@@ -410,12 +410,15 @@ describe('Aptos Fullnode resolver materialization', () => {
 				[entityFieldAddressKey(EntityType.AptosAccount_Timestamp, [], 'timestampMs')]: 1_720_000_000_123,
 			},
 		}])
-		expect(accountSnapshots).toContainEqual([{
-			[EntityMetaKey.Selector]: {
-				$account: aptosAccount,
-				resourceType: '0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>',
-			},
-		}])
+		expect(accountSnapshots).toContainEqual({
+			cursor: undefined,
+			resources: [{
+				[EntityMetaKey.Selector]: {
+					$account: aptosAccount,
+					resourceType: '0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>',
+				},
+			}],
+		})
 		await expect(resolverFor(EntityType.AptosAccount_Timestamp).resolve[
 			'AccountLedgerVersionSource'
 		].resolve({
@@ -430,6 +433,51 @@ describe('Aptos Fullnode resolver materialization', () => {
 			epoch: 8n,
 		})
 		expect(getBlockByVersion).toHaveBeenCalledWith(selectedAptosFullnodeBinding, 42n, false)
+	})
+
+	it('preserves native account resource cursors through resolver continuation', async () => {
+		const getAccountResources = vi.spyOn(queries, 'getAccountResources').mockResolvedValue({
+			body: [{
+				type: '0x1::resource::Value',
+				data: {},
+			}],
+			metadata: {
+				...metadata,
+				cursor: 'opaque+/=',
+			},
+		})
+		const resourceResolver = aptosFullnodeResolvers.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.AptosAccount
+			&& '$$resources' in candidate.projections
+		))
+		if (resourceResolver == null || !('$$resources' in resourceResolver.projections))
+			throw new Error('AptosFullnode-Rest spec missing account resource resolver')
+
+		const snapshot = await resourceResolver.resolve['NetworkAddress'].resolve(
+			aptosAccount,
+			{
+				...resolverContext,
+				pagination: {
+					limit: 1,
+				},
+				providerContinuationToken: 'prior+/=',
+			}
+		)
+
+		expect(getAccountResources).toHaveBeenCalledWith(
+			selectedAptosFullnodeBinding,
+			'0xa11ce',
+			undefined,
+			'prior+/=',
+			1
+		)
+		expect(resourceResolver.projections.$$resources.select(snapshot)).toHaveLength(1)
+		expect(resourceResolver.projections.$$resources.continuation(snapshot, aptosAccount, resolverContext)).toEqual({
+			operation: 'account-resources',
+			target: '0xa11ce',
+			terminal: false,
+			token: 'opaque+/=',
+		})
 	})
 
 	it('accepts canonical Aptos identities and rejects unsupported networks before transport', async () => {

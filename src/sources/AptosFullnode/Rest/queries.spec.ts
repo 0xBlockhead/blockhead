@@ -265,6 +265,49 @@ describe('AptosFullnode Rest arktype envelopes', () => {
 		await expect(getAccountResources(binding, '0xa11ce')).rejects.toThrow('duplicate account resource type')
 	})
 
+	it('preserves opaque account resource cursors and rejects cursor cycles', async () => {
+		sourceFetch
+			.mockResolvedValueOnce(jsonResponse(
+				[{
+					type: '0x1::resource::Value',
+					data: {},
+				}],
+				{
+					...metadataHeaders,
+					'x-aptos-cursor': 'opaque+/=',
+				}
+			))
+			.mockResolvedValueOnce(jsonResponse(
+				[],
+				{
+					...metadataHeaders,
+					'x-aptos-cursor': 'opaque+/=',
+				}
+			))
+
+		await expect(getAccountResources(
+			binding,
+			'0xa11ce',
+			42n,
+			'prior+/=',
+			1
+		)).resolves.toMatchObject({
+			metadata: {
+				cursor: 'opaque+/=',
+			},
+		})
+		expect(sourceFetch.mock.calls[0][1]).toBe(
+			'https://fullnode.test/v1/accounts/0xa11ce/resources?ledger_version=42&start=prior%2B%2F%3D&limit=1'
+		)
+		await expect(getAccountResources(
+			binding,
+			'0xa11ce',
+			undefined,
+			'opaque+/=',
+			1
+		)).rejects.toThrow('resource cursor did not advance')
+	})
+
 	it('accepts Move-module bytecode and table-item value envelopes', async () => {
 		const moduleBody = {
 			bytecode: '0xabcdef',

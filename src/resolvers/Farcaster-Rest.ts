@@ -557,6 +557,23 @@ export default {
 		}),
 
 		defineResolver({
+			entityType: EntityType.FarcasterUser,
+			resolve: {
+				Fid: {
+					resolve: async ({ fid }) => {
+						const { getUserFollowingChannelsCount } = await import('$/sources/Farcaster/Rest/queries.ts')
+
+						return getUserFollowingChannelsCount({ fid })
+					},
+				},
+			},
+		})({
+			$$channelViewerTimestamps: {
+				resolveCount: (count) => count,
+			},
+		}),
+
+		defineResolver({
 			entityType: EntityType.FarcasterChannel,
 			resolve: {
 				Id: {

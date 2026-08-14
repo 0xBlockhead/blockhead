@@ -352,6 +352,24 @@ describe.each([
 	})
 })
 
+describe('YouTube exact list counts', () => {
+	it('preserves the exact official channel playlist count', async () => {
+		youtubeQueries.listChannelPlaylists.mockResolvedValueOnce({
+			items: [],
+			pageInfo: { totalResults: 7 },
+		})
+
+		const resolver = youtubeResolvers.resolvers[5]
+		const snapshot = await resolver.resolve['ChannelId'].resolve(
+			{ channelId: 'channel-1' },
+			resolverContext
+		)
+
+		expect(resolver.projections.$$playlists.resolveCount(snapshot)).toBe(7)
+	})
+})
+
+
 describe('YouTube observation provenance', () => {
 	it('requests observed playlists only for channels returned by the live source snapshot', async () => {
 		youtubeQueries.listPopularVideos.mockClear()

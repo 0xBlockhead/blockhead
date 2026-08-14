@@ -535,6 +535,12 @@ export default {
 								[youtubePlaylistReference(playlist.id, playlist.snippet)]
 						))
 					),
+					resolveCount: (page) => {
+						const count = page.pageInfo?.totalResults
+						if (count == null)
+							throw new Error('Youtube_Rest: channel playlist count not found')
+						return count
+					},
 					continuation: (page, { channelId }) => (
 						page.nextPageToken == null || page.nextPageToken === '' ?
 							{

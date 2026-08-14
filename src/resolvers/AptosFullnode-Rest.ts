@@ -1,5 +1,8 @@
 import { networkBySlug } from '$/constants/Network.ts'
-import { resolverSourceBinding } from '$/resolvers/$resolvers.ts'
+import {
+	resolverContextRowLimit,
+	resolverSourceBinding,
+} from '$/resolvers/$resolvers.ts'
 import { defineResolver, type RegisteredSourceResolverModule } from '$/resolvers/defineResolver.ts'
 import {
 	EntityMetaKey,
@@ -688,19 +691,52 @@ export default {
 					appliesTo: aptosNetworkReferenceApplicability,
 					resolve: async (entitySelector, context) => {
 						assertAptosMainnet(entitySelector.$network.$network)
-						const { getAccountResources } = await import('$/sources/AptosFullnode/Rest/queries.ts')
+						const limit = Math.min(resolverContextRowLimit(context), 1_000)
+						if (limit === 0)
+							return {
+								cursor: undefined,
+								resources: [],
+							}
 
-						return (await getAccountResources(resolverSourceBinding(context), entitySelector.address)).body.map((resource) => ({
-							[EntityMetaKey.Selector]: {
-								$account: entitySelector,
-								resourceType: resource.type,
-							},
-						}))
+						const { getAccountResources } = await import('$/sources/AptosFullnode/Rest/queries.ts')
+						const response = await getAccountResources(
+							resolverSourceBinding(context),
+							entitySelector.address,
+							undefined,
+							context.providerContinuationToken,
+							limit
+						)
+						return {
+							cursor: response.metadata.cursor,
+							resources: response.body.map((resource) => ({
+								[EntityMetaKey.Selector]: {
+									$account: entitySelector,
+									resourceType: resource.type,
+								},
+							})),
+						}
 					},
 				},
 			},
 		})({
-			$$resources: (resources) => resources,
+			$$resources: {
+				select: (snapshot) => snapshot.resources,
+				continuation: (snapshot, account) => (
+					snapshot.cursor == null ?
+						{
+							operation: 'account-resources',
+							target: account.address,
+							terminal: true,
+						}
+					:
+						{
+							operation: 'account-resources',
+							target: account.address,
+							terminal: false,
+							token: snapshot.cursor,
+						}
+				),
+			},
 		}),
 
 		defineResolver({
