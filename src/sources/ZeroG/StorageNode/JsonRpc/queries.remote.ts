@@ -10,6 +10,9 @@ import {
 } from '$/sources/ZeroG/StorageNode/JsonRpc/queries.ts'
 
 
+const nonnegativeIntegerWire = type('number.integer >= 0').or(type('bigint').narrow((value) => value >= 0n))
+
+
 export const getEndpoint = query(() => endpoint)
 export const getStatus = query(() => getStatusFromNode())
 export const getFileInfo = query(
@@ -21,13 +24,13 @@ export const getFileInfo = query(
 )
 export const getFileInfoByTxSeq = query(
 	type({
-		txSeq: 'number.integer >= 0 | bigint >= 0',
+		txSeq: nonnegativeIntegerWire,
 	}),
 	(input) => getFileInfoByTxSeqFromNode(input)
 )
 export const getSectorProof = query(
 	type({
-		sectorIndex: 'number.integer >= 0 | bigint >= 0',
+		sectorIndex: nonnegativeIntegerWire,
 		'root?': 'string > 0',
 	}),
 	(input) => getSectorProofFromNode(input)
