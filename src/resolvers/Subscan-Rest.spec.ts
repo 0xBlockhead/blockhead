@@ -610,6 +610,27 @@ describe('Subscan Network.Polkadot.$$referenda index walk', () => {
 					},
 					referendumId: '1284',
 				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.PolkadotReferendum, [], 'track')]: 'root',
+					[entityFieldAddressKey(EntityType.PolkadotReferendum, [], 'submittedAtBlockNumber')]: 32_440_000n,
+					[entityFieldAddressKey(EntityType.PolkadotReferendum, [], '$$timestamps')]: [{
+						[EntityMetaKey.Selector]: {
+							$referendum: {
+								$network: {
+									slug: 'polkadot',
+									caip2: polkadotNetwork.caip2,
+								},
+									referendumId: '1284',
+							},
+							timestampMs: 1_753_000_100_000,
+							source: Source.Subscan_Rest,
+						},
+						[EntityMetaKey.Fields]: {
+							[entityFieldAddressKey(EntityType.PolkadotReferendum_Timestamp, [], 'blockNumber')]: 32_442_435n,
+							[entityFieldAddressKey(EntityType.PolkadotReferendum_Timestamp, [], 'status')]: 'Ongoing',
+						},
+					}],
+				},
 			},
 			{
 				[EntityMetaKey.Selector]: {
@@ -618,6 +639,27 @@ describe('Subscan Network.Polkadot.$$referenda index walk', () => {
 						caip2: polkadotNetwork.caip2,
 					},
 					referendumId: '1283',
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.PolkadotReferendum, [], 'track')]: 'treasurer',
+					[entityFieldAddressKey(EntityType.PolkadotReferendum, [], 'submittedAtBlockNumber')]: 32_430_000n,
+					[entityFieldAddressKey(EntityType.PolkadotReferendum, [], '$$timestamps')]: [{
+						[EntityMetaKey.Selector]: {
+							$referendum: {
+								$network: {
+									slug: 'polkadot',
+									caip2: polkadotNetwork.caip2,
+								},
+									referendumId: '1283',
+							},
+							timestampMs: 1_753_000_000_000,
+							source: Source.Subscan_Rest,
+						},
+						[EntityMetaKey.Fields]: {
+							[entityFieldAddressKey(EntityType.PolkadotReferendum_Timestamp, [], 'blockNumber')]: 32_442_400n,
+							[entityFieldAddressKey(EntityType.PolkadotReferendum_Timestamp, [], 'status')]: 'Approved',
+						},
+					}],
 				},
 			},
 		])

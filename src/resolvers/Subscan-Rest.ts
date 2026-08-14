@@ -413,12 +413,31 @@ export default {
 							page,
 							row,
 							count: referenda.data.count,
-							$$referenda: referenda.data.list.map((referendum) => ({
-								[EntityMetaKey.Selector]: {
+							$$referenda: referenda.data.list.map((referendum) => {
+								const referendumSelector = {
 									$network: network,
 									referendumId: String(referendum.referendum_index),
-								},
-							})),
+								}
+
+								return {
+									[EntityMetaKey.Selector]: referendumSelector,
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.PolkadotReferendum, [], 'track')]: referendum.origins,
+										[entityFieldAddressKey(EntityType.PolkadotReferendum, [], 'submittedAtBlockNumber')]: BigInt(referendum.created_block),
+										[entityFieldAddressKey(EntityType.PolkadotReferendum, [], '$$timestamps')]: [{
+											[EntityMetaKey.Selector]: {
+												$referendum: referendumSelector,
+												timestampMs: referendum.latest_block_timestamp * 1_000,
+												source: Source.Subscan_Rest,
+											},
+											[EntityMetaKey.Fields]: {
+												[entityFieldAddressKey(EntityType.PolkadotReferendum_Timestamp, [], 'blockNumber')]: BigInt(referendum.latest_block_num),
+												[entityFieldAddressKey(EntityType.PolkadotReferendum_Timestamp, [], 'status')]: referendum.status,
+											},
+										}],
+									},
+								}
+							}),
 						}
 					},
 				},

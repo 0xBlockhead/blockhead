@@ -1717,13 +1717,26 @@ export default {
 
 						return (await getBlocks(
 							Math.min(resolverContextRowLimit(context), 100)
-						)).blocks.map((block) => ({
-							[EntityMetaKey.Selector]: {
-								$network: network,
-								blockNumber: BigInt(nonnegativeSafeInteger(block.number, 'block number')),
-							},
-							...blockFields(block),
-						}))
+						)).blocks.map((block) => {
+							const fields = blockFields(block)
+
+							return {
+								[EntityMetaKey.Selector]: {
+									$network: network,
+									blockNumber: fields.blockNumber,
+								},
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.HederaBlock, [], 'blockHash')]: fields.blockHash,
+									[entityFieldAddressKey(EntityType.HederaBlock, [], 'consensusStartTimestamp')]: fields.consensusStartTimestamp,
+									[entityFieldAddressKey(EntityType.HederaBlock, [], 'consensusEndTimestamp')]: fields.consensusEndTimestamp,
+									...(fields.gasUsed != null && {
+										[entityFieldAddressKey(EntityType.HederaBlock, [], 'gasUsed')]: fields.gasUsed,
+									}),
+									[entityFieldAddressKey(EntityType.HederaBlock, [], 'recordFileName')]: fields.recordFileName,
+									[entityFieldAddressKey(EntityType.HederaBlock, [], 'transactionCount')]: fields.transactionCount,
+								},
+							}
+						})
 					},
 				},
 			},

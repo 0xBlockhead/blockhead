@@ -7,6 +7,7 @@ import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
 import {
+	entityFieldAddressKey,
 	EntityMetaKey,
 	type EntitySelector,
 } from '$/schema/$schema.ts'
@@ -315,12 +316,23 @@ export default {
 							marketOffset: offset,
 							markets: markets
 								.slice(offset, offset + limit)
-								.map((market) => ({
-									[EntityMetaKey.Selector]: {
-										$network: network,
-										marketTokenAddress: market.marketTokenAddress,
-									},
-								})),
+								.map((market) => {
+									const fields = mapGmxMarketSnapshot(network, market)
+
+									return {
+										[EntityMetaKey.Selector]: {
+											$network: network,
+											marketTokenAddress: fields.marketTokenAddress,
+										},
+										[EntityMetaKey.Fields]: {
+											[entityFieldAddressKey(EntityType.GmxMarket, [], 'name')]: fields.name,
+											[entityFieldAddressKey(EntityType.GmxMarket, [], 'indexTokenAddress')]: fields.indexTokenAddress,
+											[entityFieldAddressKey(EntityType.GmxMarket, [], 'longTokenAddress')]: fields.longTokenAddress,
+											[entityFieldAddressKey(EntityType.GmxMarket, [], 'shortTokenAddress')]: fields.shortTokenAddress,
+											[entityFieldAddressKey(EntityType.GmxMarket, [], 'isSpotOnly')]: fields.isSpotOnly,
+										},
+									}
+								}),
 							marketCount: markets.length,
 						}
 					},

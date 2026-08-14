@@ -6,7 +6,10 @@ import {
 	vi,
 } from 'vitest'
 
-import { EntityMetaKey } from '$/schema/$schema.ts'
+import {
+	entityFieldAddressKey,
+	EntityMetaKey,
+} from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
@@ -358,6 +361,13 @@ describe('GMX Rest resolver module', () => {
 				[EntityMetaKey.Selector]: {
 					$network: baseNetwork,
 					marketTokenAddress: '0x47c031236e19d380fff9b6545fba11ae962da90d',
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.GmxMarket, [], 'name')]: 'BTC/USD [WBTC-USDC]',
+					[entityFieldAddressKey(EntityType.GmxMarket, [], 'indexTokenAddress')]: ethMarketInfoWire.indexTokenAddress.toLowerCase(),
+					[entityFieldAddressKey(EntityType.GmxMarket, [], 'longTokenAddress')]: ethMarketInfoWire.longTokenAddress.toLowerCase(),
+					[entityFieldAddressKey(EntityType.GmxMarket, [], 'shortTokenAddress')]: ethMarketInfoWire.shortTokenAddress.toLowerCase(),
+					[entityFieldAddressKey(EntityType.GmxMarket, [], 'isSpotOnly')]: false,
 				},
 			},
 		])

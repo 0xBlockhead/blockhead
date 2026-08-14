@@ -2555,13 +2555,14 @@ describe('Hedera Mirror Node network blocks resolver', () => {
 					},
 					blockNumber: 77n,
 				},
-				blockNumber: 77n,
-				blockHash: fixture.hash,
-				consensusStartTimestamp: fixture.timestamp.from,
-				consensusEndTimestamp: fixture.timestamp.to,
-				gasUsed: 300000n,
-				recordFileName: fixture.name,
-				transactionCount: 3,
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.HederaBlock, [], 'blockHash')]: fixture.hash,
+					[entityFieldAddressKey(EntityType.HederaBlock, [], 'consensusStartTimestamp')]: fixture.timestamp.from,
+					[entityFieldAddressKey(EntityType.HederaBlock, [], 'consensusEndTimestamp')]: fixture.timestamp.to,
+					[entityFieldAddressKey(EntityType.HederaBlock, [], 'gasUsed')]: 300000n,
+					[entityFieldAddressKey(EntityType.HederaBlock, [], 'recordFileName')]: fixture.name,
+					[entityFieldAddressKey(EntityType.HederaBlock, [], 'transactionCount')]: 3,
+				},
 			},
 		])
 		expect(Object.keys(hederaMirrorNode.resolvers[1].projections)).toEqual([
