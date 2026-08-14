@@ -21,13 +21,58 @@ import {
 	type BskyAppViewThreadViewPost,
 } from '$/sources/_shared/interfaces/BskyAppViewXrpc/types.ts'
 
-const atprotoActorReference = (profile: BskyAppViewProfile) => ({
-	[EntityMetaKey.Selector]: { did: profile.did },
-	[EntityMetaKey.Fields]: {
-		[entityFieldAddressKey(EntityType.AtprotoActor, [], 'did')]: profile.did,
-		[entityFieldAddressKey(EntityType.AtprotoActor, [], 'handle')]: profile.handle,
-	},
-})
+const atprotoActorReference = (
+	profile: BskyAppViewProfile,
+	source: Source.Atproto_Xrpc | Source.Atproto_BskySocial_Xrpc
+) => {
+	const displayName = optionalNonemptyString(profile.displayName)
+	const description = optionalNonemptyString(profile.description)
+	const indexedAt = optionalTimestampMs(profile.indexedAt)
+	const icon = mediaFromUrl(profile.avatar, MediaType.Image)
+	const banner = mediaFromUrl(profile.banner, MediaType.Image)
+	return {
+		[EntityMetaKey.Selector]: { did: profile.did },
+		[EntityMetaKey.Fields]: {
+			[entityFieldAddressKey(EntityType.AtprotoActor, [], 'did')]: profile.did,
+			[entityFieldAddressKey(EntityType.AtprotoActor, [], 'handle')]: profile.handle,
+			[entityFieldAddressKey(EntityType.AtprotoActor, [], '$$timestamps')]: [{
+				[EntityMetaKey.Selector]: {
+					$actor: { did: profile.did },
+					timestampMs: Date.now(),
+					source,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.AtprotoActor_Timestamp, [], 'source')]: source,
+					[entityFieldAddressKey(EntityType.AtprotoActor_Timestamp, [], 'handle')]: profile.handle,
+					...(displayName != null && {
+						[entityFieldAddressKey(EntityType.AtprotoActor_Timestamp, [], 'displayName')]: displayName,
+					}),
+					...(description != null && {
+						[entityFieldAddressKey(EntityType.AtprotoActor_Timestamp, [], 'description')]: description,
+					}),
+					...(indexedAt != null && {
+						[entityFieldAddressKey(EntityType.AtprotoActor_Timestamp, [], 'indexedAt')]: indexedAt,
+					}),
+					...(icon != null && {
+						[entityFieldAddressKey(EntityType.AtprotoActor_Timestamp, [], '$icon')]: icon,
+					}),
+					...(banner != null && {
+						[entityFieldAddressKey(EntityType.AtprotoActor_Timestamp, [], '$banner')]: banner,
+					}),
+					...(profile.followersCount != null && {
+						[entityFieldAddressKey(EntityType.AtprotoActor_Timestamp, [], 'followersCount')]: profile.followersCount,
+					}),
+					...(profile.followsCount != null && {
+						[entityFieldAddressKey(EntityType.AtprotoActor_Timestamp, [], 'followsCount')]: profile.followsCount,
+					}),
+					...(profile.postsCount != null && {
+						[entityFieldAddressKey(EntityType.AtprotoActor_Timestamp, [], 'postsCount')]: profile.postsCount,
+					}),
+				},
+			}],
+		},
+	}
+}
 
 const atprotoActorListContinuation = ({
 	operation,
@@ -222,7 +267,7 @@ export const bskyAppViewResolvers = (
 						if (response.subject.did !== did)
 							throw new Error(`${source}: followers response subject mismatch for ${did}`)
 						return {
-							rows: response.actors.map(atprotoActorReference),
+							rows: response.actors.map((actor) => atprotoActorReference(actor, source)),
 							nextCursor: response.cursor,
 						}
 					},
@@ -253,7 +298,7 @@ export const bskyAppViewResolvers = (
 						if (response.subject.did !== did)
 							throw new Error(`${source}: follows response subject mismatch for ${did}`)
 						return {
-							rows: response.actors.map(atprotoActorReference),
+							rows: response.actors.map((actor) => atprotoActorReference(actor, source)),
 							nextCursor: response.cursor,
 						}
 					},
@@ -302,7 +347,7 @@ export const bskyAppViewResolvers = (
 						if (response.uri !== uri)
 							throw new Error(`${source}: likes response subject mismatch for ${uri}`)
 						return {
-							rows: response.likes.map(({ actor }) => atprotoActorReference(actor)),
+							rows: response.likes.map(({ actor }) => atprotoActorReference(actor, source)),
 							nextCursor: response.cursor,
 						}
 					},
@@ -333,7 +378,7 @@ export const bskyAppViewResolvers = (
 						if (response.uri !== uri)
 							throw new Error(`${source}: reposted-by response subject mismatch for ${uri}`)
 						return {
-							rows: response.repostedBy.map(atprotoActorReference),
+							rows: response.repostedBy.map((actor) => atprotoActorReference(actor, source)),
 							nextCursor: response.cursor,
 						}
 					},
@@ -388,46 +433,13 @@ export const bskyAppViewResolvers = (
 						})
 						return {
 							rows: (response.actors ?? [])
-								.flatMap((actor) => {
-									const did = optionalNonemptyString(actor.did)
-									const handle = optionalNonemptyString(actor.handle)
-									if (did == null || handle == null)
-										return []
-									const displayName = optionalNonemptyString(actor.displayName)
-									const description = optionalNonemptyString(actor.description)
-									const indexedAt = optionalTimestampMs(actor.indexedAt)
-									const icon = mediaFromUrl(actor.avatar, MediaType.Image)
-									return [{
-										[EntityMetaKey.Selector]: { did },
-										[EntityMetaKey.Fields]: {
-											[entityFieldAddressKey(EntityType.AtprotoActor, [], 'did')]: did,
-											[entityFieldAddressKey(EntityType.AtprotoActor, [], 'handle')]: handle,
-											[entityFieldAddressKey(EntityType.AtprotoActor, [], '$$timestamps')]: [{
-												[EntityMetaKey.Selector]: {
-													$actor: { did },
-													timestampMs: Date.now(),
-													source,
-												},
-												[EntityMetaKey.Fields]: {
-													[entityFieldAddressKey(EntityType.AtprotoActor_Timestamp, [], 'source')]: source,
-													[entityFieldAddressKey(EntityType.AtprotoActor_Timestamp, [], 'handle')]: handle,
-													...(displayName != null && {
-														[entityFieldAddressKey(EntityType.AtprotoActor_Timestamp, [], 'displayName')]: displayName,
-													}),
-													...(description != null && {
-														[entityFieldAddressKey(EntityType.AtprotoActor_Timestamp, [], 'description')]: description,
-													}),
-													...(indexedAt != null && {
-														[entityFieldAddressKey(EntityType.AtprotoActor_Timestamp, [], 'indexedAt')]: indexedAt,
-													}),
-													...(icon != null && {
-														[entityFieldAddressKey(EntityType.AtprotoActor_Timestamp, [], '$icon')]: icon,
-													}),
-												},
-											}],
-										},
-									}]
-								})
+								.flatMap((actor) => (
+									optionalNonemptyString(actor.did) == null
+									|| optionalNonemptyString(actor.handle) == null ?
+										[]
+									:
+										[atprotoActorReference(actor, source)]
+								))
 								.slice(0, limit),
 							nextCursor: response.cursor,
 						}

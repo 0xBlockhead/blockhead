@@ -139,6 +139,12 @@ describe('Atproto_Xrpc APP-free social deepenings', () => {
 		expect(followerRows.rows[0][EntityMetaKey.Fields]).toMatchObject({
 			[entityFieldAddressKey(EntityType.AtprotoActor, [], 'handle')]: 'bob.test',
 		})
+		expect(followerRows.rows[0][EntityMetaKey.Fields][
+			entityFieldAddressKey(EntityType.AtprotoActor, [], '$$timestamps')
+		][0][EntityMetaKey.Fields]).toMatchObject({
+			[entityFieldAddressKey(EntityType.AtprotoActor_Timestamp, [], 'source')]: Source.Atproto_Xrpc,
+			[entityFieldAddressKey(EntityType.AtprotoActor_Timestamp, [], 'handle')]: 'bob.test',
+		})
 		expect(followRows.rows[0][EntityMetaKey.Selector]).toEqual({ did: 'did:plc:carol' })
 		expect(followerRows.nextCursor).toBe('followers-next')
 		expect(getFollowers).toHaveBeenCalledWith(context.sourceBinding, {
