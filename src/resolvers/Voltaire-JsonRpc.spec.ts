@@ -650,6 +650,30 @@ describe('Voltaire transaction execution hierarchy', () => {
 		expect(internalTransferResolver.projections.success(internalTransfer)).toBe(true)
 		expect(debugTraceTransaction).toHaveBeenCalledOnce()
 		expect(getTransactionReceipt).toHaveBeenCalledTimes(1)
+
+		const traceResolver = voltaireJsonRpc.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.EvmTrace
+		))
+		if (traceResolver == null)
+			throw new Error('Voltaire trace resolver is not registered')
+		debugTraceTransaction.mockClear()
+		const childTrace = await traceResolver.resolve.TransactionTraceAddress.resolve({
+			$transaction: {
+				$network: {
+					caip2: {
+						namespace: 'eip155',
+						reference: '1',
+					},
+				},
+				txHash,
+			},
+			traceAddress: '0',
+		})
+		expect(traceResolver.projections.traceAddress(childTrace)).toBe('0')
+		expect(traceResolver.projections.type(childTrace)).toBe('DelegateCall')
+		expect(traceResolver.projections.input(childTrace)).toBe('0xabcd')
+		expect(traceResolver.projections.$$children(childTrace)).toEqual([])
+		expect(debugTraceTransaction).toHaveBeenCalledOnce()
 	})
 
 	it('materializes SetCode authorizations and resolves the native child from its transaction index', async () => {
@@ -798,5 +822,203 @@ describe('Voltaire transaction execution hierarchy', () => {
 			},
 			txHash,
 		})).rejects.toThrow('invalid EIP-7702 authorization at index 0')
+	})
+
+	it('materializes exact ERC-20, ERC-721, and ERC-1155 TransferSingle logs without inferring other standards', async () => {
+		const txHash = '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+		const from = '0x1111111111111111111111111111111111111111'
+		const to = '0x2222222222222222222222222222222222222222'
+		const token = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'
+		const nft = '0xb0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'
+		const erc1155 = '0xc0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'
+		const paddedFrom = `0x${'0'.repeat(24)}${from.slice(2)}`
+		const paddedTo = `0x${'0'.repeat(24)}${to.slice(2)}`
+		const transferTopic = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef'
+		const transferSingleTopic = '0xc3d58168c5ae7397731d063d5bbf3d657854427343f4c083240f7aacaa2d0f62'
+		const operator = `0x${'0'.repeat(24)}${'3'.repeat(40)}`
+		getTransactionByHash.mockResolvedValue({
+			hash: txHash,
+			blockNumber: '0x10',
+			from,
+			to,
+			type: '0x2',
+			transactionIndex: '0x0',
+			value: '0x0',
+			nonce: '0x2',
+			input: '0xa9059cbb',
+			r: '0x01',
+			s: '0x02',
+			gas: '0x5208',
+			gasPrice: '0x3b9aca00',
+			maxFeePerGas: '0x3b9aca00',
+			maxPriorityFeePerGas: '0x3b9aca00',
+		})
+		getTransactionReceipt.mockResolvedValue({
+			status: '0x1',
+			gasUsed: '0x5208',
+			cumulativeGasUsed: '0x5208',
+			effectiveGasPrice: '0x3b9aca00',
+			logs: [
+				{
+					address: token,
+					logIndex: '0x0',
+					blockNumber: '0x10',
+					blockHash: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+					topics: [
+						transferTopic,
+						paddedFrom,
+						paddedTo,
+					],
+					data: `0x${'0'.repeat(63)}a`,
+				},
+				{
+					address: nft,
+					logIndex: '0x1',
+					blockNumber: '0x10',
+					blockHash: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+					topics: [
+						transferTopic,
+						paddedFrom,
+						paddedTo,
+						`0x${'0'.repeat(63)}7`,
+					],
+					data: '0x',
+				},
+				{
+					address: erc1155,
+					logIndex: '0x2',
+					blockNumber: '0x10',
+					blockHash: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+					topics: [
+						transferSingleTopic,
+						operator,
+						paddedFrom,
+						paddedTo,
+					],
+					data: `0x${'0'.repeat(63)}3${'0'.repeat(63)}5`,
+				},
+				{
+					address: token,
+					logIndex: '0x3',
+					blockNumber: '0x10',
+					blockHash: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+					topics: [
+						transferTopic,
+						paddedFrom,
+						paddedTo,
+					],
+					data: '0x',
+				},
+			],
+		})
+		debugTraceTransaction.mockResolvedValue(undefined)
+		const resolver = voltaireJsonRpc.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.EvmTransaction
+			&& '$$tokenTransfers' in candidate.projections
+		))
+		if (resolver == null)
+			throw new Error('Voltaire token transfer transaction resolver is not registered')
+
+		const network = {
+			caip2: {
+				namespace: 'eip155',
+				reference: '1',
+			},
+		}
+		const transaction = await resolver.resolve.EvmNetworkTxHash.resolve({
+			$network: network,
+			txHash,
+		})
+		const transfers = resolver.projections.$$tokenTransfers.select(transaction)
+		expect(resolver.projections.$$tokenTransfers.resolveCount(transaction)).toBe(3)
+		expect(transfers).toMatchObject([
+			{
+				[EntityMetaKey.Selector]: {
+					$log: {
+						$transaction: {
+							txHash,
+						},
+						indexInTransaction: 0,
+					},
+					indexInLog: 0,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.EvmTokenTransfer, [], 'standard')]: 'ERC-20',
+					[entityFieldAddressKey(EntityType.EvmTokenTransfer, [], 'amount')]: 10n,
+				},
+			},
+			{
+				[EntityMetaKey.Selector]: {
+					indexInLog: 0,
+					$log: {
+						indexInTransaction: 1,
+					},
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.EvmTokenTransfer, [], 'standard')]: 'ERC-721',
+					[entityFieldAddressKey(EntityType.EvmTokenTransfer, [], 'amount')]: 1n,
+					[entityFieldAddressKey(EntityType.EvmTokenTransfer, ['Nft'], 'tokenId')]: 7n,
+				},
+			},
+			{
+				[EntityMetaKey.Selector]: {
+					indexInLog: 0,
+					$log: {
+						indexInTransaction: 2,
+					},
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.EvmTokenTransfer, [], 'standard')]: 'ERC-1155',
+					[entityFieldAddressKey(EntityType.EvmTokenTransfer, [], 'amount')]: 5n,
+					[entityFieldAddressKey(EntityType.EvmTokenTransfer, ['Nft'], 'tokenId')]: 3n,
+				},
+			},
+		])
+
+		const transferResolver = voltaireJsonRpc.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.EvmTokenTransfer
+		))
+		const logResolver = voltaireJsonRpc.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.EvmLog
+		))
+		if (transferResolver == null || logResolver == null)
+			throw new Error('Voltaire log token-transfer hierarchy is not registered')
+
+		const erc20 = await transferResolver.resolve.LogIndexInLog.resolve({
+			$log: {
+				$transaction: {
+					$network: network,
+					txHash,
+				},
+				indexInTransaction: 0,
+			},
+			indexInLog: 0,
+		})
+		expect(transferResolver.projections.standard(erc20)).toBe('ERC-20')
+		expect(transferResolver.projections.amount(erc20)).toBe(10n)
+
+		const log = await logResolver.resolve.TransactionIndexInTransaction.resolve({
+			$transaction: {
+				$network: network,
+				txHash,
+			},
+			indexInTransaction: 1,
+		})
+		expect(logResolver.projections.Event.TokenTransfer.$$tokenTransfers(log)).toMatchObject([{
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.EvmTokenTransfer, [], 'standard')]: 'ERC-721',
+			},
+		}])
+
+		await expect(transferResolver.resolve.LogIndexInLog.resolve({
+			$log: {
+				$transaction: {
+					$network: network,
+					txHash,
+				},
+				indexInTransaction: 3,
+			},
+			indexInLog: 0,
+		})).rejects.toThrow('receipt log is not an exact token transfer')
 	})
 })

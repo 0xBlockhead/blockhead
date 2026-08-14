@@ -10,6 +10,7 @@ import { keccak256, toHex } from '@tevm/voltaire/Hash'
 import { toBytes } from '@tevm/voltaire/Hex'
 import {
 	EvmInternalCallType,
+	EvmTokenStandard,
 	EvmTransactionEnvelopeType,
 	EvmTransactionExecutionStatus,
 	EvmTransactionKind,
@@ -36,6 +37,7 @@ import {
 	type EntitySelector,
 } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
+import { CoinInstanceType } from '$/schema/CoinInstanceType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { MediaType } from '$/schema/MediaType.ts'
 import { Source } from '$/sources/Source.ts'
@@ -329,6 +331,165 @@ const evmLogIndexFromWire = (
 				)
 )
 
+const erc20OrErc721TransferTopic = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef'
+const erc1155TransferSingleTopic = '0xc3d58168c5ae7397731d063d5bbf3d657854427343f4c083240f7aacaa2d0f62'
+
+const addressFromTopic = (topic: `0x${string}` | undefined) => (
+	topic != null && /^0x0{24}[0-9a-f]{40}$/.test(topic) ?
+		hexLowerOfByteSize(`0x${topic.slice(-40)}`, 20)
+	:
+		undefined
+)
+
+const evmTokenTransferEntitiesFromVoltaireLog = ({
+	$log,
+	topics,
+	data,
+	emitterAddress,
+}: {
+	$log: Entity<typeof schema, EntityType.EvmLog>[typeof EntityMetaKey.Selector]
+	topics: readonly `0x${string}`[]
+	data: `0x${string}`
+	emitterAddress: `0x${string}` | undefined
+}) => {
+	if (emitterAddress == null)
+		return []
+
+	const $network = $log.$transaction.$network
+	const $tokenContract = {
+		[EntityMetaKey.Selector]: {
+			$network,
+			address: emitterAddress,
+		},
+	}
+	const transfer = (
+		topics.at(0) === erc20OrErc721TransferTopic && topics.length === 3 && /^0x[0-9a-f]{64}$/.test(data) ?
+			{
+				standard: EvmTokenStandard.Erc20,
+				amount: BigInt(data),
+				fromAddress: addressFromTopic(topics.at(1)),
+				toAddress: addressFromTopic(topics.at(2)),
+			}
+		: topics.at(0) === erc20OrErc721TransferTopic && topics.length === 4 && data === '0x' ?
+			{
+				standard: EvmTokenStandard.Erc721,
+				amount: 1n,
+				tokenId: BigInt(topics[3]),
+				fromAddress: addressFromTopic(topics.at(1)),
+				toAddress: addressFromTopic(topics.at(2)),
+			}
+		: topics.at(0) === erc1155TransferSingleTopic && topics.length === 4 && /^0x[0-9a-f]{128}$/.test(data) ?
+			{
+				standard: EvmTokenStandard.Erc1155,
+				amount: BigInt(`0x${data.slice(66)}`),
+				tokenId: BigInt(`0x${data.slice(2, 66)}`),
+				fromAddress: addressFromTopic(topics.at(2)),
+				toAddress: addressFromTopic(topics.at(3)),
+			}
+		:
+			undefined
+	)
+	if (transfer == null)
+		return []
+
+	return [{
+		[EntityMetaKey.Selector]: {
+			$log,
+			indexInLog: 0,
+		},
+		$log: {
+			[EntityMetaKey.Selector]: $log,
+		},
+		standard: transfer.standard,
+		amount: transfer.amount,
+		...(transfer.tokenId != null && { tokenId: transfer.tokenId }),
+		...(transfer.fromAddress != null && {
+			$from: {
+				[EntityMetaKey.Selector]: { address: transfer.fromAddress },
+			},
+		}),
+		...(transfer.toAddress != null && {
+			$to: {
+				[EntityMetaKey.Selector]: { address: transfer.toAddress },
+			},
+		}),
+		$tokenContract,
+		...(transfer.standard === EvmTokenStandard.Erc20 && {
+			$coinInstance: {
+				[EntityMetaKey.Selector]: {
+					$network,
+					type: CoinInstanceType.Erc20Token,
+					$contract: {
+						$network,
+						address: emitterAddress,
+					},
+				},
+			},
+		}),
+	}]
+}
+
+const evmTokenTransferReference = (
+	transfer: ReturnType<typeof evmTokenTransferEntitiesFromVoltaireLog>[number]
+) => ({
+	[EntityMetaKey.Selector]: transfer[EntityMetaKey.Selector],
+	[EntityMetaKey.Fields]: {
+		[entityFieldAddressKey(EntityType.EvmTokenTransfer, [], '$log')]: transfer.$log,
+		[entityFieldAddressKey(EntityType.EvmTokenTransfer, [], 'standard')]: transfer.standard,
+		[entityFieldAddressKey(EntityType.EvmTokenTransfer, [], 'amount')]: transfer.amount,
+		...(transfer.tokenId != null && {
+			[entityFieldAddressKey(EntityType.EvmTokenTransfer, ['Nft'], 'tokenId')]: transfer.tokenId,
+		}),
+		...(transfer.$from != null && {
+			[entityFieldAddressKey(EntityType.EvmTokenTransfer, [], '$from')]: transfer.$from,
+		}),
+		...(transfer.$to != null && {
+			[entityFieldAddressKey(EntityType.EvmTokenTransfer, [], '$to')]: transfer.$to,
+		}),
+		[entityFieldAddressKey(EntityType.EvmTokenTransfer, [], '$tokenContract')]: transfer.$tokenContract,
+		...(transfer.$coinInstance != null && {
+			[entityFieldAddressKey(EntityType.EvmTokenTransfer, [], '$coinInstance')]: transfer.$coinInstance,
+		}),
+	},
+})
+
+const evmTraceReference = (
+	trace: Entity<typeof schema, EntityType.EvmTrace>
+) => ({
+	[EntityMetaKey.Selector]: trace[EntityMetaKey.Selector],
+	[EntityMetaKey.Fields]: {
+		[entityFieldAddressKey(EntityType.EvmTrace, [], '$transaction')]: trace.$transaction,
+		[entityFieldAddressKey(EntityType.EvmTrace, [], 'traceAddress')]: trace.traceAddress,
+		[entityFieldAddressKey(EntityType.EvmTrace, [], 'index')]: trace.index,
+		[entityFieldAddressKey(EntityType.EvmTrace, [], 'type')]: trace.type,
+		...(trace.$from != null && {
+			[entityFieldAddressKey(EntityType.EvmTrace, [], '$from')]: trace.$from,
+		}),
+		...(trace.$to != null && {
+			[entityFieldAddressKey(EntityType.EvmTrace, [], '$to')]: trace.$to,
+		}),
+		...(trace.value != null && {
+			[entityFieldAddressKey(EntityType.EvmTrace, [], 'value')]: trace.value,
+		}),
+		...(trace.gas != null && {
+			[entityFieldAddressKey(EntityType.EvmTrace, [], 'gas')]: trace.gas,
+		}),
+		...(trace.gasUsed != null && {
+			[entityFieldAddressKey(EntityType.EvmTrace, [], 'gasUsed')]: trace.gasUsed,
+		}),
+		...(trace.input != null && {
+			[entityFieldAddressKey(EntityType.EvmTrace, [], 'input')]: trace.input,
+		}),
+		...(trace.output != null && {
+			[entityFieldAddressKey(EntityType.EvmTrace, [], 'output')]: trace.output,
+		}),
+		...(trace.error != null && {
+			[entityFieldAddressKey(EntityType.EvmTrace, [], 'error')]: trace.error,
+		}),
+		[entityFieldAddressKey(EntityType.EvmTrace, [], '$$children')]: trace.$$children,
+	},
+})
+
 const rpcQuantityToBigInt = (
 	raw: string | null | undefined
 ) => {
@@ -398,6 +559,15 @@ const evmLogEntityFromIdAndWire = (
 		data: data ?? '0x',
 		emitterAddress: address,
 	})
+	const $$tokenTransfers = evmTokenTransferEntitiesFromVoltaireLog({
+		$log: {
+			$transaction,
+			indexInTransaction,
+		},
+		topics,
+		data: data ?? '0x',
+		emitterAddress: address,
+	})
 	return {
 		[EntityMetaKey.Selector]: {
 			$transaction,
@@ -436,6 +606,7 @@ const evmLogEntityFromIdAndWire = (
 		...($tokenApproval != null && {
 			$tokenApproval,
 		}),
+		$$tokenTransfers,
 	}
 }
 
@@ -1611,41 +1782,12 @@ export default {
 				)),
 				resolveCount: (entity) => entity.$$logs.filter((log) => log.$tokenApproval != null).length,
 			},
+			$$tokenTransfers: {
+				select: (entity) => entity.$$logs.flatMap((log) => log.$$tokenTransfers.map(evmTokenTransferReference)),
+				resolveCount: (entity) => entity.$$logs.reduce((count, log) => count + log.$$tokenTransfers.length, 0),
+			},
 			$$traces: {
-				select: (entity) => entity.$$traces.map((trace) => ({
-					[EntityMetaKey.Selector]: trace[EntityMetaKey.Selector],
-					[EntityMetaKey.Fields]: {
-						[entityFieldAddressKey(EntityType.EvmTrace, [], '$transaction')]: trace.$transaction,
-						[entityFieldAddressKey(EntityType.EvmTrace, [], 'traceAddress')]: trace.traceAddress,
-						[entityFieldAddressKey(EntityType.EvmTrace, [], 'index')]: trace.index,
-						[entityFieldAddressKey(EntityType.EvmTrace, [], 'type')]: trace.type,
-						...(trace.$from != null && {
-							[entityFieldAddressKey(EntityType.EvmTrace, [], '$from')]: trace.$from,
-						}),
-						...(trace.$to != null && {
-							[entityFieldAddressKey(EntityType.EvmTrace, [], '$to')]: trace.$to,
-						}),
-						...(trace.value != null && {
-							[entityFieldAddressKey(EntityType.EvmTrace, [], 'value')]: trace.value,
-						}),
-						...(trace.gas != null && {
-							[entityFieldAddressKey(EntityType.EvmTrace, [], 'gas')]: trace.gas,
-						}),
-						...(trace.gasUsed != null && {
-							[entityFieldAddressKey(EntityType.EvmTrace, [], 'gasUsed')]: trace.gasUsed,
-						}),
-						...(trace.input != null && {
-							[entityFieldAddressKey(EntityType.EvmTrace, [], 'input')]: trace.input,
-						}),
-						...(trace.output != null && {
-							[entityFieldAddressKey(EntityType.EvmTrace, [], 'output')]: trace.output,
-						}),
-						...(trace.error != null && {
-							[entityFieldAddressKey(EntityType.EvmTrace, [], 'error')]: trace.error,
-						}),
-						[entityFieldAddressKey(EntityType.EvmTrace, [], '$$children')]: trace.$$children,
-					},
-				})),
+				select: (entity) => entity.$$traces.map(evmTraceReference),
 				resolveCount: (entity) => entity.$$traces.length,
 			},
 			$$internalTransfers: {
@@ -1778,6 +1920,59 @@ export default {
 		}),
 
 		defineResolver({
+			entityType: EntityType.EvmTrace,
+			resolve: {
+				TransactionTraceAddress: {
+					resolve: async ({ $transaction, traceAddress }) => {
+						const chainId = chainIdFromEvmNetworkId($transaction.$network)
+						const txHash = hexLowerOfByteSize($transaction.txHash, 32)
+						if (txHash == null)
+							throw new Error('Voltaire_JsonRpc: invalid trace transaction hash')
+
+						const jsonRpcTransports = (await voltaireJsonRpcHttpTransportsByChainId())[chainId] ?? []
+						if (jsonRpcTransports.length === 0)
+							throw new Error(`Voltaire_JsonRpc: no JSON-RPC URL for EvmTrace on chain ${String(chainId)}`)
+
+						const errors: string[] = []
+						for (const jsonRpcTransport of jsonRpcTransports) {
+							try {
+								const rawCallTrace = await jsonRpcTransport.debugTraceTransaction({ txHash })
+								if (rawCallTrace == null)
+									throw new Error('transaction call trace not returned from RPC')
+
+								const trace = evmTraceEntitiesFromVoltaireCallTrace({
+									call: rawCallTrace,
+									$transaction,
+								}).find((candidate) => candidate.traceAddress === traceAddress)
+								if (trace == null)
+									throw new Error('Voltaire_JsonRpc: trace not found for EvmTrace')
+
+								return trace
+							} catch (error) {
+								errors.push(`${jsonRpcTransport.diagnosticLabel}: ${errorMessage(error)}`)
+							}
+						}
+						throw allJsonRpcEndpointsFailedError(chainId, 'EvmTrace', errors)
+					},
+				},
+			},
+		})({
+			$transaction: (trace) => trace.$transaction,
+			traceAddress: (trace) => trace.traceAddress,
+			index: (trace) => trace.index,
+			type: (trace) => trace.type,
+			$from: (trace) => trace.$from,
+			$to: (trace) => trace.$to,
+			value: (trace) => trace.value,
+			gas: (trace) => trace.gas,
+			gasUsed: (trace) => trace.gasUsed,
+			input: (trace) => trace.input,
+			output: (trace) => trace.output,
+			error: (trace) => trace.error,
+			$$children: (trace) => trace.$$children,
+		}),
+
+		defineResolver({
 			entityType: EntityType.EvmLog,
 			resolve: {
 				TransactionIndexInTransaction: {
@@ -1852,6 +2047,9 @@ export default {
 						return entity.$tokenApproval
 					},
 				},
+				TokenTransfer: {
+					$$tokenTransfers: (entity) => entity.$$tokenTransfers.map(evmTokenTransferReference),
+				},
 			},
 		}),
 		defineResolver({
@@ -1907,6 +2105,62 @@ export default {
 				approved: (approval) => approval.approved,
 			},
 		}),
+
+		defineResolver({
+			entityType: EntityType.EvmTokenTransfer,
+			resolve: {
+				LogIndexInLog: {
+					resolve: async ({ $log, indexInLog }) => {
+						const chainId = chainIdFromEvmNetworkId($log.$transaction.$network)
+						const jsonRpcTransports = (await voltaireJsonRpcHttpTransportsByChainId())[chainId] ?? []
+						if (jsonRpcTransports.length === 0)
+							throw new Error(`Voltaire_JsonRpc: no JSON-RPC URL for EvmTokenTransfer on chain ${String(chainId)}`)
+
+						const errors: string[] = []
+						for (const jsonRpcTransport of jsonRpcTransports) {
+							try {
+								const receiptWire = await jsonRpcTransport.getTransactionReceipt({
+									txHash: $log.$transaction.txHash,
+								})
+								const log = findReceiptLogWireForEvmLogId(
+									receiptWire?.logs,
+									$log.indexInTransaction
+								)
+								if (log == null)
+									throw new Error('receipt log not found')
+
+								const transfer = evmLogEntityFromIdAndWire($log, log).$$tokenTransfers.at(indexInLog)
+								if (transfer == null)
+									throw new Error('Voltaire_JsonRpc: receipt log is not an exact token transfer')
+
+								return transfer
+							} catch (error) {
+								errors.push(`${jsonRpcTransport.diagnosticLabel}: ${errorMessage(error)}`)
+							}
+						}
+						throw allJsonRpcEndpointsFailedError(chainId, 'EvmTokenTransfer', errors)
+					},
+				},
+			},
+		})({
+			$log: (transfer) => transfer.$log,
+			standard: (transfer) => transfer.standard,
+			indexInLog: (transfer) => transfer[EntityMetaKey.Selector].indexInLog,
+			$from: (transfer) => transfer.$from,
+			$to: (transfer) => transfer.$to,
+			$tokenContract: (transfer) => transfer.$tokenContract,
+			$coinInstance: (transfer) => transfer.$coinInstance,
+			amount: (transfer) => transfer.amount,
+			Nft: {
+				tokenId: (transfer) => {
+					if (transfer.tokenId == null)
+						throw new Error('Voltaire_JsonRpc: NFT transfer is missing token id')
+
+					return transfer.tokenId
+				},
+			},
+		}),
+
 		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
