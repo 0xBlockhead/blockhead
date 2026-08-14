@@ -524,6 +524,52 @@ export default {
 					resolve: resolveUtxoBlocks,
 				},
 			},
+			resolveLive: {
+				utxoHead: {
+					facetPath: ['Utxo'],
+					publishes: {
+						'$$blocks': true,
+					},
+					start: ({
+						fields,
+						parentEntitySelector,
+						signal,
+					}) => {
+						assertBitcoinCashMainnet(parentEntitySelector)
+						let timeout: ReturnType<typeof setTimeout> | undefined
+						let lastHeight: number | undefined
+						const poll = async () => {
+							try {
+								if (signal.aborted)
+									return
+								const { getBlockCount } = await import('$/sources/BitcoinCashNode/JsonRpc/queries.ts')
+								const tipHeight = await getBlockCount()
+								if (signal.aborted)
+									return
+								if (lastHeight !== tipHeight) {
+									lastHeight = tipHeight
+									fields.$$blocks.invalidate()
+								}
+							} catch (error) {
+								console.error('BitcoinCashNode_JsonRpc live UTXO head failed', error)
+							}
+							if (signal.aborted)
+								return
+							timeout = setTimeout(() => { void poll() }, 15_000)
+						}
+						const abort = () => {
+							if (timeout != null)
+								clearTimeout(timeout)
+						}
+						signal.addEventListener('abort', abort, { once: true })
+						void poll()
+						return () => {
+							signal.removeEventListener('abort', abort)
+							abort()
+						}
+					},
+				},
+			},
 		})({
 			Utxo: {
 				$$blocks: {
@@ -541,6 +587,61 @@ export default {
 				},
 				Slug: {
 					resolve: resolveNetworkTipTimestamps,
+				},
+			},
+			resolveLive: {
+				networkHead: {
+					facetPath: [],
+					publishes: {
+						'$$timestamps': true,
+					},
+					start: ({
+						fields,
+						parentEntitySelector,
+						signal,
+					}) => {
+						assertBitcoinCashMainnet(parentEntitySelector)
+						let timeout: ReturnType<typeof setTimeout> | undefined
+						const poll = async () => {
+							try {
+								if (signal.aborted)
+									return
+								const { getBlockCount } = await import('$/sources/BitcoinCashNode/JsonRpc/queries.ts')
+								const tipHeight = await getBlockCount()
+								if (signal.aborted)
+									return
+								fields.$$timestamps.replaceRows([{
+									source: Source.BitcoinCashNode_JsonRpc,
+									value: [{
+										[EntityMetaKey.Selector]: {
+											$network: parentEntitySelector,
+											timestampMs: Date.now(),
+											source: Source.BitcoinCashNode_JsonRpc,
+										},
+										[EntityMetaKey.Fields]: {
+											[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'bestBlockHeight')]: BigInt(tipHeight),
+											[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'blockCount')]: BigInt(tipHeight) + 1n,
+										},
+									}],
+								}])
+							} catch (error) {
+								console.error('BitcoinCashNode_JsonRpc live network head failed', error)
+							}
+							if (signal.aborted)
+								return
+							timeout = setTimeout(() => { void poll() }, 15_000)
+						}
+						const abort = () => {
+							if (timeout != null)
+								clearTimeout(timeout)
+						}
+						signal.addEventListener('abort', abort, { once: true })
+						void poll()
+						return () => {
+							signal.removeEventListener('abort', abort)
+							abort()
+						}
+					},
 				},
 			},
 		})({

@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { networkBySlug } from '$/constants/Network.ts'
 import { entityFieldAddressKey, EntityMetaKey } from '$/schema/$schema.ts'
@@ -411,5 +411,136 @@ describe('LitecoinCore UTXO', () => {
 			height: 1n,
 			hash: blockHash,
 		}, resolverContext)).rejects.toThrow('LitecoinCore_JsonRpc: unsupported Litecoin network')
+	})
+})
+
+describe('LitecoinCore live network head', () => {
+	const network = {
+		slug: networkBySlug.litecoin.slug,
+	}
+
+	beforeEach(() => {
+		getRawTransaction.mockReset()
+		getBlock.mockReset()
+		getBlockCount.mockReset()
+		getBlockHash.mockReset()
+		getMempoolInfo.mockReset()
+		getTransparentAddressUtxos.mockReset()
+		vi.useFakeTimers()
+		getBlockCount.mockResolvedValue(2_700_000)
+	})
+
+	afterEach(() => {
+		vi.useRealTimers()
+	})
+
+	it('publishes retrieval-clock Network_Timestamp rows from getblockcount only', async () => {
+		if (networkTimestampsResolver.resolveLive?.networkHead == null)
+			throw new Error('LitecoinCore-JsonRpc missing Network networkHead resolveLive')
+
+		const replaceTimestamps = vi.fn()
+		const abortController = new AbortController()
+		const stop = networkTimestampsResolver.resolveLive.networkHead.start({
+			fields: {
+				'$$timestamps': {
+					replaceRows: replaceTimestamps,
+					invalidate: vi.fn(),
+					count: {
+						replaceRows: vi.fn(),
+						invalidate: vi.fn(),
+					},
+				},
+			},
+			parentEntitySelector: network,
+			queryClient: {},
+			signal: abortController.signal,
+			trigger: resolverContext,
+		})
+		await vi.waitFor(() => expect(replaceTimestamps).toHaveBeenCalledOnce())
+
+		const row = replaceTimestamps.mock.calls[0]?.[0]?.[0]?.value[0]
+		if (row == null)
+			throw new Error('LitecoinCore live network head did not publish a row')
+
+		expect(row[EntityMetaKey.Selector]).toMatchObject({
+			$network: network,
+			source: Source.LitecoinCore_JsonRpc,
+		})
+		expect(row[EntityMetaKey.Fields]).toEqual({
+			[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'bestBlockHeight')]: 2_700_000n,
+			[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'blockCount')]: 2_700_001n,
+		})
+		expect(getBlockCount).toHaveBeenCalledOnce()
+		expect(getBlockHash).not.toHaveBeenCalled()
+		expect(getBlock).not.toHaveBeenCalled()
+		expect(getMempoolInfo).not.toHaveBeenCalled()
+
+		abortController.abort()
+		stop()
+		await vi.advanceTimersByTimeAsync(15_000)
+		expect(getBlockCount).toHaveBeenCalledOnce()
+	})
+
+	it('rejects unsupported networks before polling', () => {
+		if (networkTimestampsResolver.resolveLive?.networkHead == null)
+			throw new Error('LitecoinCore-JsonRpc missing Network networkHead resolveLive')
+
+		expect(() => networkTimestampsResolver.resolveLive.networkHead.start({
+			fields: {
+				'$$timestamps': {
+					replaceRows: vi.fn(),
+					invalidate: vi.fn(),
+					count: {
+						replaceRows: vi.fn(),
+						invalidate: vi.fn(),
+					},
+				},
+			},
+			parentEntitySelector: {
+				slug: networkBySlug.bitcoin.slug,
+			},
+			queryClient: {},
+			signal: new AbortController().signal,
+			trigger: resolverContext,
+		})).toThrow('LitecoinCore_JsonRpc: unsupported Litecoin network')
+		expect(getBlockCount).not.toHaveBeenCalled()
+	})
+
+	it('invalidates Network.Utxo.$$blocks only when height changes', async () => {
+		if (networkBlocksResolver.resolveLive?.utxoHead == null)
+			throw new Error('LitecoinCore-JsonRpc missing Network.Utxo utxoHead resolveLive')
+
+		getBlockCount
+			.mockResolvedValueOnce(2_700_000)
+			.mockResolvedValueOnce(2_700_000)
+			.mockResolvedValueOnce(2_700_001)
+		const invalidateBlocks = vi.fn()
+		const abortController = new AbortController()
+		const stop = networkBlocksResolver.resolveLive.utxoHead.start({
+			fields: {
+				'$$blocks': {
+					replaceRows: vi.fn(),
+					invalidate: invalidateBlocks,
+					count: {
+						replaceRows: vi.fn(),
+						invalidate: vi.fn(),
+					},
+				},
+			},
+			parentEntitySelector: network,
+			queryClient: {},
+			signal: abortController.signal,
+			trigger: resolverContext,
+		})
+		await vi.waitFor(() => expect(invalidateBlocks).toHaveBeenCalledOnce())
+		await vi.advanceTimersByTimeAsync(15_000)
+		expect(invalidateBlocks).toHaveBeenCalledOnce()
+		await vi.advanceTimersByTimeAsync(15_000)
+		expect(invalidateBlocks).toHaveBeenCalledTimes(2)
+
+		abortController.abort()
+		stop()
+		await vi.advanceTimersByTimeAsync(15_000)
+		expect(getBlockCount).toHaveBeenCalledTimes(3)
 	})
 })
