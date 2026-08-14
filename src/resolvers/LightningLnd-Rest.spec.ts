@@ -851,6 +851,19 @@ describe('Lightning LND resolver ownership', () => {
 		})
 	})
 
+	it('reports payment list total from provider count', async () => {
+		listPayments.mockResolvedValue({
+			payments: [payment],
+			last_index_offset: '100',
+			total_num_payments: '1234',
+		})
+		const paymentPage = await paymentListResolver.resolve.Network.resolve(
+			{ $network: lightningNetwork },
+			context
+		)
+		expect(paymentListResolver.projections.$$payments.resolveCount(paymentPage)).toBe(1234n)
+	})
+
 	it('prefers nanosecond payment time and preserves observations', async () => {
 		getPayment.mockResolvedValue(payment)
 		const paymentSelector = {

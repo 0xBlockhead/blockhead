@@ -252,6 +252,20 @@ const assertChannelPoint = (channelPoint: string) => {
 		throw new Error('LightningLnd_Rest: invalid channel funding point')
 }
 
+const assertLndPageOffset = (
+	indexOffset: string | number | undefined,
+	lastOffset: string | number | undefined,
+	pageLength: number,
+	label: string
+) => {
+	if (pageLength === 0)
+		return
+	if (lastOffset == null)
+		throw new Error(`LightningLnd_Rest: ${label} page is missing continuation offset`)
+	if (indexOffset != null && BigInt(lastOffset) <= BigInt(indexOffset))
+		throw new Error(`LightningLnd_Rest: ${label} page offset did not advance`)
+}
+
 const requestLightningLndRestJson = async ({
 	path,
 }: {
@@ -452,8 +466,10 @@ export const listInvoices = async ({
 		}),
 		'list invoices'
 	)
+	const invoices = page.invoices ?? []
+	assertLndPageOffset(indexOffset, page.last_index_offset, invoices.length, 'invoice')
 	const paymentHashes = new Set<string>()
-	for (const invoice of page.invoices ?? []) {
+	for (const invoice of invoices) {
 		const paymentHash = invoice.r_hash_str ?? invoice.r_hash
 		if (paymentHash == null)
 			continue
@@ -491,8 +507,10 @@ export const listPayments = async ({
 		}),
 		'list payments'
 	)
+	const payments = page.payments ?? []
+	assertLndPageOffset(indexOffset, page.last_index_offset, payments.length, 'payment')
 	const paymentHashes = new Set<string>()
-	for (const payment of page.payments ?? []) {
+	for (const payment of payments) {
 		if (paymentHashes.has(payment.payment_hash))
 			throw new Error('LightningLnd_Rest: payment page contains a duplicate payment')
 		paymentHashes.add(payment.payment_hash)
@@ -585,8 +603,10 @@ export const getForwardingHistory = async ({
 		}),
 		'forwarding history'
 	)
+	const forwardingEvents = page.forwarding_events ?? []
+	assertLndPageOffset(indexOffset, page.last_offset_index, forwardingEvents.length, 'forwarding')
 	const eventIdentities = new Set<string>()
-	for (const event of page.forwarding_events ?? []) {
+	for (const event of forwardingEvents) {
 		const identity = `${event.chan_id_in}:${event.incoming_htlc_id}`
 		if (eventIdentities.has(identity))
 			throw new Error('LightningLnd_Rest: forwarding page contains an ambiguous or duplicate event')

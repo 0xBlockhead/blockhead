@@ -281,6 +281,7 @@ describe('LND server-authenticated public graph reads', () => {
 				duplicateForward,
 				duplicateForward,
 			],
+			last_offset_index: 1,
 		})
 		await expect(getForwardingHistory()).rejects.toThrow('ambiguous or duplicate event')
 
@@ -294,6 +295,7 @@ describe('LND server-authenticated public graph reads', () => {
 					timestamp_ns: '1700000000000000001',
 				},
 			],
+			last_offset_index: 2,
 		})
 		await expect(getForwardingHistory()).rejects.toThrow('ambiguous or duplicate event')
 		await expect(getForwardingHistory({
@@ -386,6 +388,7 @@ describe('LND server-authenticated public graph reads', () => {
 				{ r_hash_str: 'invoice-hash' },
 				{ r_hash_str: 'invoice-hash' },
 			],
+			last_index_offset: '1',
 		})
 		await expect(listInvoices()).rejects.toThrow('duplicate invoice')
 
@@ -394,6 +397,7 @@ describe('LND server-authenticated public graph reads', () => {
 				{ payment_hash: 'payment-hash' },
 				{ payment_hash: 'payment-hash' },
 			],
+			last_index_offset: '1',
 		})
 		await expect(listPayments()).rejects.toThrow('duplicate payment')
 	})
@@ -482,5 +486,72 @@ describe('LND server-authenticated public graph reads', () => {
 			},
 		})
 		await expect(getChannelBalance()).rejects.toThrow('invalid channel balance envelope')
+	})
+
+	it('rejects paged list offsets that do not advance', async () => {
+		respond({
+			invoices: [{
+				r_hash_str: 'invoice-hash',
+			}],
+		})
+		await expect(listInvoices()).rejects.toThrow('invoice page is missing continuation offset')
+
+		respond({
+			payments: [{
+				payment_hash: 'payment-hash',
+			}],
+		})
+		await expect(listPayments()).rejects.toThrow('payment page is missing continuation offset')
+
+		respond({
+			forwarding_events: [{
+				chan_id_in: '123',
+				chan_id_out: '456',
+				amt_in_msat: '1000',
+				amt_out_msat: '900',
+				fee_msat: '100',
+				timestamp_ns: '1700000000000000000',
+				incoming_htlc_id: '7',
+				outgoing_htlc_id: '8',
+			}],
+		})
+		await expect(getForwardingHistory()).rejects.toThrow('forwarding page is missing continuation offset')
+
+		respond({
+			invoices: [{
+				r_hash_str: 'invoice-hash',
+			}],
+			last_index_offset: '0',
+		})
+		await expect(listInvoices({
+			indexOffset: '0',
+		})).rejects.toThrow('invoice page offset did not advance')
+
+		respond({
+			payments: [{
+				payment_hash: 'payment-hash',
+			}],
+			last_index_offset: '1',
+		})
+		await expect(listPayments({
+			indexOffset: '2',
+		})).rejects.toThrow('payment page offset did not advance')
+
+		respond({
+			forwarding_events: [{
+				chan_id_in: '123',
+				chan_id_out: '456',
+				amt_in_msat: '1000',
+				amt_out_msat: '900',
+				fee_msat: '100',
+				timestamp_ns: '1700000000000000000',
+				incoming_htlc_id: '7',
+				outgoing_htlc_id: '8',
+			}],
+			last_offset_index: 1,
+		})
+		await expect(getForwardingHistory({
+			indexOffset: 2,
+		})).rejects.toThrow('forwarding page offset did not advance')
 	})
 })

@@ -1702,6 +1702,12 @@ export default {
 						}
 					})
 				},
+				resolveCount: ({ page }) => (
+					page.total_num_payments == null ?
+						undefined
+					:
+						BigInt(page.total_num_payments)
+				),
 				continuation: ({ page }, _network, context) => lndIndexPageContinuation({
 					operation: 'payments',
 					target: 'lightning',
