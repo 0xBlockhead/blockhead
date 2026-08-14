@@ -46,27 +46,27 @@ const assertSolanaMainnet = (network: SolanaNetworkSelector) => {
 
 const getSolanaNetworkHead = async () => {
 	const {
-		getBlock,
 		getBlockHeight,
+		getBlockTime,
 		getSlot,
 	} = await import('$/sources/Solana/JsonRpc/queries.ts')
 	const slot = await getSlot()
 	const [
 		blockHeight,
-		block,
+		blockTime,
 	] = await Promise.all([
 		getBlockHeight(),
-		getBlock({
+		getBlockTime({
 			slot: BigInt(slot),
 		}),
 	])
-	if (block?.blockTime == null)
+	if (blockTime == null)
 		throw new Error('Solana_JsonRpc: finalized head block has no blockTime')
 
 	return {
 		absoluteSlot: BigInt(slot),
 		blockHeight: BigInt(blockHeight),
-		timestampMs: block.blockTime * 1000,
+		timestampMs: blockTime * 1000,
 	}
 }
 
@@ -1163,17 +1163,17 @@ export default {
 					}) => {
 						assertSolanaMainnet(parentEntitySelector)
 						const {
-							getBlock,
+							getBlockTime,
 							subscribeSlot,
 						} = await import('$/sources/Solana/JsonRpc/queries.ts')
 						for await (const notification of subscribeSlot(trigger.sourceBinding, signal)) {
 							if (signal.aborted)
 								return
 
-							const block = await getBlock({
+							const blockTime = await getBlockTime({
 								slot: BigInt(notification.slot),
 							})
-							if (block?.blockTime == null)
+							if (blockTime == null)
 								continue
 
 							fields.$$timestamps.replaceRows([{
@@ -1181,7 +1181,7 @@ export default {
 								value: [{
 									[EntityMetaKey.Selector]: {
 										$network: parentEntitySelector,
-										timestampMs: block.blockTime * 1000,
+										timestampMs: blockTime * 1000,
 										source: Source.Solana_JsonRpc,
 									},
 									[EntityMetaKey.Fields]: {

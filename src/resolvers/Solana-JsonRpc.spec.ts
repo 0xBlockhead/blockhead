@@ -18,6 +18,7 @@ import { Source } from '$/sources/Source.ts'
 const {
 	getAccountInfo,
 	getBlock,
+	getBlockTime,
 	getBlocks,
 	getParsedTokenAccountInfo,
 	getParsedTokenMintAccountInfo,
@@ -115,6 +116,7 @@ const {
 			},
 		}],
 	}),
+	getBlockTime: vi.fn().mockResolvedValue(1_784_678_400),
 	subscribeSlot: vi.fn(),
 }))
 
@@ -129,6 +131,7 @@ vi.mock('$/sources/Solana/JsonRpc/queries.ts', () => ({
 	getVoteAccounts,
 	getBlocks,
 	getBlock,
+	getBlockTime,
 	getBlockHeight: vi.fn().mockResolvedValue(90),
 	subscribeSlot,
 }))
@@ -196,25 +199,20 @@ const startSlotStreamLive = (
 describe('Solana JSON-RPC network state lists', () => {
 	beforeEach(() => {
 		getBlock.mockClear()
+		getBlockTime.mockClear()
 		getSlot.mockClear()
 		getBlocks.mockClear()
 	})
 
 	it('anchors network head observations to finalized head blockTime', async () => {
 		getSlot.mockResolvedValueOnce(4242)
-		vi.mocked(getBlock).mockResolvedValueOnce({
-			blockhash: 'head-hash',
-			blockTime: 1_784_678_401,
-			parentSlot: 4241,
-			previousBlockhash: 'parent-hash',
-			transactions: [],
-		})
+		getBlockTime.mockResolvedValueOnce(1_784_678_401)
 
 		const timestamps = networkTimestampsResolver.projections.$$timestamps(
 			await networkTimestampsResolver.resolve['Caip2'].resolve(networkSelector, context)
 		)
 
-		expect(getBlock).toHaveBeenCalledWith({
+		expect(getBlockTime).toHaveBeenCalledWith({
 			slot: 4242n,
 		})
 		expect(timestamps).toEqual([{
@@ -547,6 +545,7 @@ describe('SolanaAccount.$$tokenAccounts from getTokenAccountsByOwner', () => {
 describe('Solana JSON-RPC Network slotSubscribe resolveLive canary', () => {
 	beforeEach(() => {
 		getBlock.mockClear()
+		getBlockTime.mockClear()
 		getSlot.mockClear()
 		subscribeSlot.mockClear()
 	})
@@ -562,13 +561,7 @@ describe('Solana JSON-RPC Network slotSubscribe resolveLive canary', () => {
 	})
 
 	it('publishes $$timestamps absoluteSlot from slotSubscribe push only', async () => {
-		getBlock.mockImplementation(async ({ slot }) => ({
-			blockhash: `block-${slot.toString()}`,
-			blockTime: Number(slot) + 1_784_678_000,
-			parentSlot: Number(slot) - 1,
-			previousBlockhash: 'parent-hash',
-			transactions: [],
-		}))
+		getBlockTime.mockImplementation(async ({ slot }) => Number(slot) + 1_784_678_000)
 		getSlot.mockClear()
 		subscribeSlot.mockImplementation(async function* () {
 			yield {
@@ -592,7 +585,7 @@ describe('Solana JSON-RPC Network slotSubscribe resolveLive canary', () => {
 		})
 		expect(subscribeSlot.mock.calls[0][1]).toBeInstanceOf(AbortSignal)
 		expect(getSlot).not.toHaveBeenCalled()
-		expect(getBlock).toHaveBeenCalledTimes(2)
+		expect(getBlockTime).toHaveBeenCalledTimes(2)
 		expect(fields.$$timestamps.replaceRows).toHaveBeenCalledTimes(2)
 		expect(fields.$$timestamps.replaceRows).toHaveBeenNthCalledWith(1, [{
 			source: Source.Solana_JsonRpc,

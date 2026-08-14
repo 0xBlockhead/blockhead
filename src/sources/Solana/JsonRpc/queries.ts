@@ -283,6 +283,18 @@ export const getBlock = async ({
 	return assertEnvelope('block', solanaBlockWire, block) as SolanaRpcBlock
 }
 
+export const getBlockTime = async ({
+	slot,
+}: {
+	slot: bigint
+}) => (
+	assertEnvelope(
+		'block time',
+		arktype(nonNegativeSafeInteger).or('null'),
+		await jsonRpc2<unknown>(binding, 'getBlockTime', [Number(slot)])
+	)
+)
+
 export const getSlot = async () => (
 	assertEnvelope(
 		'slot',
@@ -776,15 +788,15 @@ export const getVoteAccounts = async ({
 		) as SolanaRpcVoteAccounts,
 		getSlot(),
 	])
-	const block = await getBlock({
+	const blockTime = await getBlockTime({
 		slot: BigInt(slot),
 	})
-	if (block?.blockTime == null)
+	if (blockTime == null)
 		throw new Error(`${Source.Solana_JsonRpc}: finalized head block has no blockTime`)
 
 	return {
 		...voteAccounts,
-		observedAtMs: block.blockTime * 1000,
+		observedAtMs: blockTime * 1000,
 	}
 }
 
