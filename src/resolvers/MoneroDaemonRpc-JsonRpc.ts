@@ -282,38 +282,6 @@ const moneroNetworkTimestampFields = (info: MoneroRpcInfo) => ({
 	status: info.status,
 })
 
-const moneroNetworkTimestampFieldResolvers = {
-	height: (timestamp: ReturnType<typeof moneroNetworkTimestampFields>) => timestamp.height,
-	targetHeight: (timestamp: ReturnType<typeof moneroNetworkTimestampFields>) => timestamp.targetHeight,
-	topBlockHash: (timestamp: ReturnType<typeof moneroNetworkTimestampFields>) => timestamp.topBlockHash,
-	difficulty: (timestamp: ReturnType<typeof moneroNetworkTimestampFields>) => timestamp.difficulty,
-	wideDifficulty: (timestamp: ReturnType<typeof moneroNetworkTimestampFields>) => timestamp.wideDifficulty,
-	cumulativeDifficulty: (timestamp: ReturnType<typeof moneroNetworkTimestampFields>) => timestamp.cumulativeDifficulty,
-	wideCumulativeDifficulty: (timestamp: ReturnType<typeof moneroNetworkTimestampFields>) => timestamp.wideCumulativeDifficulty,
-	blockSizeLimit: (timestamp: ReturnType<typeof moneroNetworkTimestampFields>) => timestamp.blockSizeLimit,
-	blockSizeMedian: (timestamp: ReturnType<typeof moneroNetworkTimestampFields>) => timestamp.blockSizeMedian,
-	blockWeightLimit: (timestamp: ReturnType<typeof moneroNetworkTimestampFields>) => timestamp.blockWeightLimit,
-	blockWeightMedian: (timestamp: ReturnType<typeof moneroNetworkTimestampFields>) => timestamp.blockWeightMedian,
-	databaseSize: (timestamp: ReturnType<typeof moneroNetworkTimestampFields>) => timestamp.databaseSize,
-	freeSpace: (timestamp: ReturnType<typeof moneroNetworkTimestampFields>) => timestamp.freeSpace,
-	greyPeerlistSize: (timestamp: ReturnType<typeof moneroNetworkTimestampFields>) => timestamp.greyPeerlistSize,
-	whitePeerlistSize: (timestamp: ReturnType<typeof moneroNetworkTimestampFields>) => timestamp.whitePeerlistSize,
-	incomingConnections: (timestamp: ReturnType<typeof moneroNetworkTimestampFields>) => timestamp.incomingConnections,
-	outgoingConnections: (timestamp: ReturnType<typeof moneroNetworkTimestampFields>) => timestamp.outgoingConnections,
-	txCount: (timestamp: ReturnType<typeof moneroNetworkTimestampFields>) => timestamp.txCount,
-	txPoolSize: (timestamp: ReturnType<typeof moneroNetworkTimestampFields>) => timestamp.txPoolSize,
-	altBlocksCount: (timestamp: ReturnType<typeof moneroNetworkTimestampFields>) => timestamp.altBlocksCount,
-	targetSeconds: (timestamp: ReturnType<typeof moneroNetworkTimestampFields>) => timestamp.targetSeconds,
-	rpcConnections: (timestamp: ReturnType<typeof moneroNetworkTimestampFields>) => timestamp.rpcConnections,
-	mainnet: (timestamp: ReturnType<typeof moneroNetworkTimestampFields>) => timestamp.mainnet,
-	nettype: (timestamp: ReturnType<typeof moneroNetworkTimestampFields>) => timestamp.nettype,
-	offline: (timestamp: ReturnType<typeof moneroNetworkTimestampFields>) => timestamp.offline,
-	synchronized: (timestamp: ReturnType<typeof moneroNetworkTimestampFields>) => timestamp.synchronized,
-	wasBootstrapEverUsed: (timestamp: ReturnType<typeof moneroNetworkTimestampFields>) => timestamp.wasBootstrapEverUsed,
-	version: (timestamp: ReturnType<typeof moneroNetworkTimestampFields>) => timestamp.version,
-	status: (timestamp: ReturnType<typeof moneroNetworkTimestampFields>) => timestamp.status,
-}
-
 export default {
 	source: Source.MoneroDaemonRpc_JsonRpc,
 
@@ -635,19 +603,6 @@ export default {
 					},
 				},
 			}),
-
-		defineResolver({
-			entityType: EntityType.MoneroNetwork_Timestamp,
-			resolve: {
-				NetworkTimestampMsSource: {
-					resolve: async ({ $network }) => {
-						assertMoneroMainnet($network)
-						const { getInfo } = await import('$/sources/MoneroDaemonRpc/JsonRpc/queries.ts')
-						return moneroNetworkTimestampFields(await getInfo())
-					},
-				}
-			},
-		})(moneroNetworkTimestampFieldResolvers),
 
 		defineResolver({
 			entityType: EntityType.MoneroNetwork,

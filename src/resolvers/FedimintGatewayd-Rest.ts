@@ -114,6 +114,20 @@ const totalEcashBalanceMsat = (
 	)
 )
 
+const federationTimestampFields = (
+	federation: FedimintFederationInfoWire,
+	info: FedimintGatewayInfoWire
+) => ({
+	[entityFieldAddressKey(EntityType.FedimintFederation_Timestamp, [], 'reachable')]: true,
+	[entityFieldAddressKey(EntityType.FedimintFederation_Timestamp, [], 'health')]: info.gateway_state,
+	[entityFieldAddressKey(EntityType.FedimintFederation_Timestamp, [], 'gatewayCount')]: 1,
+	[entityFieldAddressKey(EntityType.FedimintFederation_Timestamp, [], 'inviteCodeObserved')]: federation.config.invite_code.length > 0,
+	[entityFieldAddressKey(EntityType.FedimintFederation_Timestamp, [], 'metaJson')]: JSON.stringify({
+		federationIndex: federation.config.federation_index,
+		balanceMsat: federation.balance_msat,
+	}),
+})
+
 export default {
 	source: Source.FedimintGatewayd_Rest,
 
@@ -124,10 +138,24 @@ export default {
 				GatewayId: {
 					resolve: async ({ gatewayId }, context) => {
 						await assertLocalGateway(gatewayId, context.publicEnv)
-						const { getGatewayInfo } = await loadGatewayQueries(context.publicEnv)
-						const info = await getGatewayInfo()
+						const {
+							getGatewayBalances,
+							getGatewayInfo,
+							getPaymentSummary,
+							listChannels,
+						} = await loadGatewayQueries(context.publicEnv)
 						const timestampMs = Date.now()
+						const [info, balances, channels, paymentSummary] = await Promise.all([
+							getGatewayInfo(),
+							getGatewayBalances(),
+							listChannels(),
+							getPaymentSummary({
+								startMs: timestampMs - 30 * 24 * 60 * 60 * 1000,
+								endMs: timestampMs,
+							}),
+						])
 						const nodePubkey = nodePubkeyFromInfo(info)
+						const lightningAlias = lightningAliasFromInfo(info)
 
 						return {
 							gatewayId,
@@ -164,16 +192,7 @@ export default {
 													timestampMs,
 													source: Source.FedimintGatewayd_Rest,
 												},
-												[EntityMetaKey.Fields]: {
-													[entityFieldAddressKey(EntityType.FedimintFederation_Timestamp, [], 'reachable')]: true,
-													[entityFieldAddressKey(EntityType.FedimintFederation_Timestamp, [], 'health')]: info.gateway_state,
-													[entityFieldAddressKey(EntityType.FedimintFederation_Timestamp, [], 'gatewayCount')]: 1,
-													[entityFieldAddressKey(EntityType.FedimintFederation_Timestamp, [], 'inviteCodeObserved')]: federation.config.invite_code.length > 0,
-													[entityFieldAddressKey(EntityType.FedimintFederation_Timestamp, [], 'metaJson')]: JSON.stringify({
-														federationIndex: federation.config.federation_index,
-														balanceMsat: federation.balance_msat,
-													}),
-												},
+												[EntityMetaKey.Fields]: federationTimestampFields(federation, info),
 											}],
 										},
 									}
@@ -183,6 +202,21 @@ export default {
 									$gateway: { gatewayId },
 									timestampMs,
 									source: Source.FedimintGatewayd_Rest,
+								},
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.FedimintGateway_Timestamp, [], 'reachable')]: true,
+									[entityFieldAddressKey(EntityType.FedimintGateway_Timestamp, [], 'online')]: onlineFromInfo(info),
+									[entityFieldAddressKey(EntityType.FedimintGateway_Timestamp, [], 'version')]: info.version_hash,
+									...(lightningAlias != null && lightningAlias !== '' && {
+										[entityFieldAddressKey(EntityType.FedimintGateway_Timestamp, [], 'lightningAlias')]: lightningAlias,
+									}),
+									[entityFieldAddressKey(EntityType.FedimintGateway_Timestamp, [], 'routingFeesJson')]: routingFeesFromFederations(info.federations),
+									[entityFieldAddressKey(EntityType.FedimintGateway_Timestamp, [], 'federationsCount')]: info.federations.length,
+									[entityFieldAddressKey(EntityType.FedimintGateway_Timestamp, [], 'lightningBalanceMsat')]: BigInt(balances.lightning_balance_msats),
+									[entityFieldAddressKey(EntityType.FedimintGateway_Timestamp, [], 'ecashBalanceMsat')]: totalEcashBalanceMsat(balances),
+									[entityFieldAddressKey(EntityType.FedimintGateway_Timestamp, [], 'onchainBalanceSats')]: BigInt(balances.onchain_balance_sats),
+									[entityFieldAddressKey(EntityType.FedimintGateway_Timestamp, [], 'channelsJson')]: JSON.stringify(channels),
+									[entityFieldAddressKey(EntityType.FedimintGateway_Timestamp, [], 'paymentSummaryJson')]: JSON.stringify(paymentSummary),
 								},
 							}],
 						}
@@ -198,70 +232,6 @@ export default {
 		}),
 
 		defineResolver({
-			entityType: EntityType.FedimintGateway_Timestamp,
-			resolve: {
-				GatewayTimestampMsSource: {
-					resolve: async ({ $gateway, timestampMs, source }, context) => {
-						if (source !== Source.FedimintGatewayd_Rest)
-							throw new Error(`FedimintGatewayd_Rest: unsupported source ${source}`)
-
-						await assertLocalGateway($gateway.gatewayId, context.publicEnv)
-						const {
-							getGatewayBalances,
-							getGatewayInfo,
-							getPaymentSummary,
-							listChannels,
-						} = await loadGatewayQueries(context.publicEnv)
-						const [info, balances, channels, paymentSummary] = await Promise.all([
-							getGatewayInfo(),
-							getGatewayBalances(),
-							listChannels(),
-							getPaymentSummary({
-								startMs: timestampMs - 30 * 24 * 60 * 60 * 1000,
-								endMs: timestampMs,
-							}),
-						])
-						const lightningAlias = lightningAliasFromInfo(info)
-
-						return {
-							$gateway: { [EntityMetaKey.Selector]: $gateway },
-							timestampMs,
-							source,
-							reachable: true,
-							online: onlineFromInfo(info),
-							version: info.version_hash,
-							...(lightningAlias != null && lightningAlias !== '' && {
-								lightningAlias,
-							}),
-							routingFeesJson: routingFeesFromFederations(info.federations),
-							federationsCount: info.federations.length,
-							lightningBalanceMsat: BigInt(balances.lightning_balance_msats),
-							ecashBalanceMsat: totalEcashBalanceMsat(balances),
-							onchainBalanceSats: BigInt(balances.onchain_balance_sats),
-							channelsJson: JSON.stringify(channels),
-							paymentSummaryJson: JSON.stringify(paymentSummary),
-						}
-					},
-				},
-			},
-		})({
-			$gateway: (snapshot) => snapshot.$gateway,
-			timestampMs: (snapshot) => snapshot.timestampMs,
-			source: (snapshot) => snapshot.source,
-			reachable: (snapshot) => snapshot.reachable,
-			online: (snapshot) => snapshot.online,
-			version: (snapshot) => snapshot.version,
-			lightningAlias: (snapshot) => snapshot.lightningAlias,
-			routingFeesJson: (snapshot) => snapshot.routingFeesJson,
-			federationsCount: (snapshot) => snapshot.federationsCount,
-			lightningBalanceMsat: (snapshot) => snapshot.lightningBalanceMsat,
-			ecashBalanceMsat: (snapshot) => snapshot.ecashBalanceMsat,
-			onchainBalanceSats: (snapshot) => snapshot.onchainBalanceSats,
-			channelsJson: (snapshot) => snapshot.channelsJson,
-			paymentSummaryJson: (snapshot) => snapshot.paymentSummaryJson,
-		}),
-
-		defineResolver({
 			entityType: EntityType.FedimintFederation,
 			resolve: {
 				FederationId: {
@@ -270,12 +240,14 @@ export default {
 							getGatewayId,
 							getGatewayInfo,
 						} = await loadGatewayQueries(context.publicEnv)
-						const info = await getGatewayInfo()
+						const [info, gatewayId] = await Promise.all([
+							getGatewayInfo(),
+							getGatewayId(),
+						])
 						const federation = info.federations.find((row) => row.federation_id === federationId)
 						if (federation == null)
 							throw new Error(`FedimintGatewayd_Rest: federation not found for ${federationId}`)
 
-						const gatewayId = await getGatewayId()
 						const timestampMs = Date.now()
 						return {
 							federationId,
@@ -293,6 +265,7 @@ export default {
 									timestampMs,
 									source: Source.FedimintGatewayd_Rest,
 								},
+								[EntityMetaKey.Fields]: federationTimestampFields(federation, info),
 							}],
 						}
 					},
@@ -303,47 +276,6 @@ export default {
 			name: (snapshot) => snapshot.name,
 			$$gateways: (snapshot) => snapshot.$$gateways,
 			$$timestamps: (snapshot) => snapshot.$$timestamps,
-		}),
-
-		defineResolver({
-			entityType: EntityType.FedimintFederation_Timestamp,
-			resolve: {
-				FederationTimestampMsSource: {
-					resolve: async ({ $federation, timestampMs, source }, context) => {
-						if (source !== Source.FedimintGatewayd_Rest)
-							throw new Error(`FedimintGatewayd_Rest: unsupported source ${source}`)
-
-						const { getGatewayInfo } = await loadGatewayQueries(context.publicEnv)
-						const info = await getGatewayInfo()
-						const federation = info.federations.find((row) => row.federation_id === $federation.federationId)
-						if (federation == null)
-							throw new Error(`FedimintGatewayd_Rest: federation not found for ${$federation.federationId}`)
-
-						return {
-							$federation: { [EntityMetaKey.Selector]: $federation },
-							timestampMs,
-							source,
-							reachable: true,
-							health: info.gateway_state,
-							gatewayCount: 1,
-							inviteCodeObserved: federation.config.invite_code.length > 0,
-							metaJson: JSON.stringify({
-								federationIndex: federation.config.federation_index,
-								balanceMsat: federation.balance_msat,
-							}),
-						}
-					},
-				},
-			},
-		})({
-			$federation: (snapshot) => snapshot.$federation,
-			timestampMs: (snapshot) => snapshot.timestampMs,
-			source: (snapshot) => snapshot.source,
-			reachable: (snapshot) => snapshot.reachable,
-			health: (snapshot) => snapshot.health,
-			gatewayCount: (snapshot) => snapshot.gatewayCount,
-			inviteCodeObserved: (snapshot) => snapshot.inviteCodeObserved,
-			metaJson: (snapshot) => snapshot.metaJson,
 		}),
 	],
 } satisfies RegisteredSourceResolverModule

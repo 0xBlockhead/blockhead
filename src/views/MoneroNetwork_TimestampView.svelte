@@ -6,7 +6,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -24,12 +23,7 @@
 	}: Omit<EntitySelectionViewProps<EntityType.MoneroNetwork_Timestamp>, 'prefetched'> = $props()
 
 	const network = $derived(selection.entitySelector.$network)
-	const viewSelection = $derived(selection({
-		sources: selection.sources ?? [
-			Source.MoneroDaemonRpc_JsonRpc,
-		],
-	}))
-	const moneroNetworkTimestamp = $derived(viewSelection({
+	const moneroNetworkTimestamp = $derived(selection({
 		fields: {
 			height: true,
 			status: true,
@@ -155,7 +149,7 @@
 
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
 						fields: {
 							targetHeight: true,
 						},
@@ -179,7 +173,7 @@
 
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
 						fields: {
 							topBlockHash: true,
 						},
@@ -201,7 +195,7 @@
 
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
 						fields: {
 							difficulty: true,
 						},
@@ -225,7 +219,7 @@
 
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
 						fields: {
 							wideDifficulty: true,
 						},
@@ -249,7 +243,7 @@
 
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
 						fields: {
 							cumulativeDifficulty: true,
 						},
@@ -273,7 +267,7 @@
 
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
 						fields: {
 							wideCumulativeDifficulty: true,
 						},
@@ -299,7 +293,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
 						fields: {
 							blockSizeLimit: true,
 						},
@@ -323,7 +317,7 @@
 
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
 						fields: {
 							blockSizeMedian: true,
 						},
@@ -347,7 +341,7 @@
 
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
 						fields: {
 							blockWeightLimit: true,
 						},
@@ -371,7 +365,7 @@
 
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
 						fields: {
 							blockWeightMedian: true,
 						},
@@ -395,7 +389,7 @@
 
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
 						fields: {
 							databaseSize: true,
 						},
@@ -419,7 +413,7 @@
 
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
 						fields: {
 							freeSpace: true,
 						},
@@ -443,7 +437,7 @@
 
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
 						fields: {
 							greyPeerlistSize: true,
 						},
@@ -467,7 +461,7 @@
 
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
 						fields: {
 							whitePeerlistSize: true,
 						},
@@ -493,7 +487,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
 						fields: {
 							incomingConnections: true,
 						},
@@ -517,7 +511,7 @@
 
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
 						fields: {
 							outgoingConnections: true,
 						},
@@ -541,7 +535,7 @@
 
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
 						fields: {
 							txCount: true,
 						},
@@ -565,7 +559,7 @@
 
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
 						fields: {
 							txPoolSize: true,
 						},
@@ -589,7 +583,7 @@
 
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
 						fields: {
 							altBlocksCount: true,
 						},
@@ -613,7 +607,7 @@
 
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
 						fields: {
 							targetSeconds: true,
 						},
@@ -637,7 +631,7 @@
 
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
 						fields: {
 							rpcConnections: true,
 						},
@@ -663,7 +657,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
 						fields: {
 							mainnet: true,
 						},
@@ -685,7 +679,7 @@
 
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
 						fields: {
 							nettype: true,
 						},
@@ -707,7 +701,7 @@
 
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
 						fields: {
 							offline: true,
 						},
@@ -745,7 +739,7 @@
 
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
 						fields: {
 							wasBootstrapEverUsed: true,
 						},
@@ -767,7 +761,7 @@
 
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
 						fields: {
 							version: true,
 						},

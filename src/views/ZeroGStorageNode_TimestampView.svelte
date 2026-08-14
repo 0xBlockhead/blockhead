@@ -6,7 +6,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -24,11 +23,6 @@
 	}: Omit<EntitySelectionViewProps<EntityType.ZeroGStorageNode_Timestamp>, 'prefetched'> = $props()
 
 	const storageNode = $derived(selection.entitySelector.$storageNode)
-	const viewSelection = $derived(selection({
-		sources: selection.sources ?? [
-			Source.ZeroGStorageScan_Rest,
-		],
-	}))
 
 
 	// Components
@@ -108,7 +102,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
 						fields: {
 							balance: true,
 						},
@@ -130,7 +124,7 @@
 
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
 						fields: {
 							totalReward: true,
 						},
@@ -152,7 +146,7 @@
 
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
 						fields: {
 							winCount: true,
 						},
@@ -176,7 +170,7 @@
 
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
 						fields: {
 							miningAttempts: true,
 						},

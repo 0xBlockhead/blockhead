@@ -60,16 +60,6 @@ const ensNamesOwnedResolver = ensTheGraphResolvers.resolvers.find((
 if (ensNameResolver == null)
 	throw new Error('Ens-TheGraph spec missing EnsName resolver')
 
-const ensNameTimestampResolver = ensTheGraphResolvers.resolvers.find((
-	resolver
-): resolver is Extract<
-	typeof ensTheGraphResolvers.resolvers[number],
-	{ entityType: EntityType.EnsName_Timestamp }
-> => resolver.entityType === EntityType.EnsName_Timestamp)
-
-if (ensNameTimestampResolver == null)
-	throw new Error('Ens-TheGraph spec missing EnsName_Timestamp resolver')
-
 if (ensNamesOwnedResolver == null)
 	throw new Error('Ens-TheGraph spec missing EvmAccount $$ensNamesOwned resolver')
 
@@ -269,6 +259,34 @@ describe('Ens-TheGraph entity resolver', () => {
 						timestampMs: 1_800_000_000_000,
 						source: Source.TheGraph_Graphql,
 					},
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.EnsName_Timestamp, [], '$resolvedActor')]: {
+							[EntityMetaKey.Selector]: {
+								address: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
+							},
+						},
+						[entityFieldAddressKey(EntityType.EnsName_Timestamp, [], '$resolverContract')]: {
+							[EntityMetaKey.Selector]: {
+								$network: {
+									caip2: {
+										namespace: 'eip155',
+										reference: '1',
+									},
+								},
+								address: '0x0000000000000000000000000000000000000001',
+							},
+						},
+						[entityFieldAddressKey(EntityType.EnsName_Timestamp, [], '$ownerActor')]: {
+							[EntityMetaKey.Selector]: {
+								address: '0x000000000000000000000000000000000000dead',
+							},
+						},
+						[entityFieldAddressKey(EntityType.EnsName_Timestamp, [], 'subdomainCount')]: 1,
+						[entityFieldAddressKey(EntityType.EnsName_Timestamp, [], 'resolverTextKeys')]: ['url'],
+						[entityFieldAddressKey(EntityType.EnsName_Timestamp, [], 'resolverCoinTypes')]: ['60'],
+						[entityFieldAddressKey(EntityType.EnsName_Timestamp, [], 'ttl')]: 300n,
+						[entityFieldAddressKey(EntityType.EnsName_Timestamp, [], 'isMigrated')]: true,
+					},
 				},
 			],
 			subdomainCount: 1,
@@ -276,6 +294,9 @@ describe('Ens-TheGraph entity resolver', () => {
 		expect(ensNameResolver.projections.$$subdomains.resolveCount(resolvedEntity)).toBe(1)
 		expect(ensNameResolver.projections.$$records.resolveCount(resolvedEntity)).toBe(2)
 		expect(ensNameResolver.projections.$$timestamps.resolveCount(resolvedEntity)).toBe(1)
+		expect(ensTheGraphResolvers.resolvers.some((resolver) => (
+			resolver.entityType === EntityType.EnsName_Timestamp
+		))).toBe(false)
 	})
 
 	it('omits invalid subgraph account references', async () => {
@@ -371,80 +392,6 @@ describe('Ens-TheGraph global observation resolver', () => {
 	})
 })
 
-describe('Ens-TheGraph ENS name observation resolver', () => {
-	it('materializes source-backed observation fields under the requested selector identity', async () => {
-		getName.mockResolvedValueOnce([vitalikDomainWire])
-
-		await expect(
-			ensNameTimestampResolver.resolve[
-				'NameTimestampMsSource'
-			].resolve(
-				{
-					$name: {
-						name: 'vitalik.eth',
-					},
-					timestampMs: 1_700_000_000_000,
-					source: Source.TheGraph_Graphql,
-				},
-				resolverContext
-			)
-		).resolves.toMatchObject({
-			$name: {
-				[EntityMetaKey.Selector]: {
-					name: 'vitalik.eth',
-				},
-			},
-			timestampMs: 1_700_000_000_000,
-			source: Source.TheGraph_Graphql,
-			$resolvedActor: {
-				[EntityMetaKey.Selector]: {
-					address: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
-				},
-			},
-			$ownerActor: {
-				[EntityMetaKey.Selector]: {
-					address: '0x000000000000000000000000000000000000dead',
-				},
-			},
-			subdomainCount: 1,
-			resolverTextKeys: ['url'],
-			resolverCoinTypes: ['60'],
-			ttl: 300n,
-			isMigrated: true,
-		})
-	})
-
-	it('rejects selectors owned by another source before querying the subgraph', async () => {
-		vi.clearAllMocks()
-
-		await expect(
-			ensNameTimestampResolver.resolve[
-				'NameTimestampMsSource'
-			].resolve(
-				{
-					$name: {
-						name: 'vitalik.eth',
-					},
-					timestampMs: 1_700_000_000_000,
-					source: Source.Voltaire_JsonRpc,
-				},
-				resolverContext
-			)
-		).rejects.toThrow('selector source mismatch')
-		expect(getName).not.toHaveBeenCalled()
-	})
-})
-
-const ensRecordTimestampResolver = ensTheGraphResolvers.resolvers.find((
-	resolver
-): resolver is Extract<
-	typeof ensTheGraphResolvers.resolvers[number],
-	{ entityType: EntityType.EnsRecord_Timestamp }
-> => resolver.entityType === EntityType.EnsRecord_Timestamp)
-
-if (ensRecordTimestampResolver == null)
-	throw new Error('Ens-TheGraph spec missing EnsRecord_Timestamp resolver')
-
 describe('Ens-TheGraph EnsRecord resolver', () => {
 	it('derives text/coin fields and tip $$timestamps from subgraph record keys', async () => {
 		vi.spyOn(Date, 'now').mockReturnValue(1_800_000_000_000)
@@ -477,6 +424,9 @@ describe('Ens-TheGraph EnsRecord resolver', () => {
 					},
 					timestampMs: 1_800_000_000_000,
 					source: Source.TheGraph_Graphql,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.EnsRecord_Timestamp, [], 'value')]: 'https://vitalik.ca',
 				},
 			}],
 		})
@@ -512,74 +462,15 @@ describe('Ens-TheGraph EnsRecord resolver', () => {
 					timestampMs: 1_800_000_000_000,
 					source: Source.TheGraph_Graphql,
 				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.EnsRecord_Timestamp, [], 'value')]: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
+				},
 			}],
 		})
-	})
-})
+		expect(ensTheGraphResolvers.resolvers.some((resolver) => (
+			resolver.entityType === EntityType.EnsRecord_Timestamp
+		))).toBe(false)
 
-describe('Ens-TheGraph EnsRecord_Timestamp resolver', () => {
-	it('projects tip record values from TextChanged / MulticoinAddrChanged events', async () => {
-		getName.mockResolvedValueOnce([vitalikDomainWire])
-
-		await expect(
-			ensRecordTimestampResolver.resolve['RecordTimestampMsSource'].resolve(
-				{
-					$record: {
-						$name: {
-							name: 'vitalik.eth',
-						},
-						recordKey: 'text:url',
-					},
-					timestampMs: 1_700_000_000_000,
-					source: Source.TheGraph_Graphql,
-				},
-				resolverContext
-			)
-		).resolves.toEqual({
-			$record: {
-				[EntityMetaKey.Selector]: {
-					$name: {
-						name: 'vitalik.eth',
-					},
-					recordKey: 'text:url',
-				},
-			},
-			timestampMs: 1_700_000_000_000,
-			source: Source.TheGraph_Graphql,
-			value: 'https://vitalik.ca',
-		})
-
-		getName.mockResolvedValueOnce([vitalikDomainWire])
-		await expect(
-			ensRecordTimestampResolver.resolve['RecordTimestampMsSource'].resolve(
-				{
-					$record: {
-						$name: {
-							name: 'vitalik.eth',
-						},
-						recordKey: 'coin:60',
-					},
-					timestampMs: 1_700_000_000_000,
-					source: Source.TheGraph_Graphql,
-				},
-				resolverContext
-			)
-		).resolves.toEqual({
-			$record: {
-				[EntityMetaKey.Selector]: {
-					$name: {
-						name: 'vitalik.eth',
-					},
-					recordKey: 'coin:60',
-				},
-			},
-			timestampMs: 1_700_000_000_000,
-			source: Source.TheGraph_Graphql,
-			value: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
-		})
-	})
-
-	it('falls back to resolver.addr tip for coin:60 when MulticoinAddrChanged is absent', async () => {
 		getName.mockResolvedValueOnce([{
 			...vitalikDomainWire,
 			resolver: {
@@ -604,45 +495,18 @@ describe('Ens-TheGraph EnsRecord_Timestamp resolver', () => {
 				],
 			},
 		}])
-
-		await expect(
-			ensRecordTimestampResolver.resolve['RecordTimestampMsSource'].resolve(
-				{
-					$record: {
-						$name: {
-							name: 'vitalik.eth',
-						},
-						recordKey: 'coin:60',
-					},
-					timestampMs: 1_700_000_000_000,
-					source: Source.TheGraph_Graphql,
+		const legacyCoinRecord = await ensRecordResolver.resolve['NameRecordKey'].resolve(
+			{
+				$name: {
+					name: 'vitalik.eth',
 				},
-				resolverContext
-			)
-		).resolves.toMatchObject({
-			value: '0xD8dA6BF26964aF9D7eEd9e03E53415D37aA96045',
+				recordKey: 'coin:60',
+			},
+			resolverContext
+		)
+		expect(legacyCoinRecord.$$timestamps[0][EntityMetaKey.Fields]).toEqual({
+			[entityFieldAddressKey(EntityType.EnsRecord_Timestamp, [], 'value')]: '0xD8dA6BF26964aF9D7eEd9e03E53415D37aA96045',
 		})
-	})
-
-	it('rejects foreign source selectors before querying the subgraph', async () => {
-		vi.clearAllMocks()
-
-		await expect(
-			ensRecordTimestampResolver.resolve['RecordTimestampMsSource'].resolve(
-				{
-					$record: {
-						$name: {
-							name: 'vitalik.eth',
-						},
-						recordKey: 'text:url',
-					},
-					timestampMs: 1_700_000_000_000,
-					source: Source.Voltaire_JsonRpc,
-				},
-				resolverContext
-			)
-		).rejects.toThrow('selector source mismatch')
-		expect(getName).not.toHaveBeenCalled()
 	})
 })
 

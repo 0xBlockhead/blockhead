@@ -1,4 +1,5 @@
 import {
+	afterEach,
 	expect,
 	it,
 	vi,
@@ -36,34 +37,26 @@ vi.mock('$/sources/FedimintGatewayd/Rest/queries.ts', () => ({
 	resolvedGatewayApiUrl,
 }))
 
+afterEach(() => {
+	vi.restoreAllMocks()
+})
+
 const { default: fedimintGatewayd } = await import('$/resolvers/FedimintGatewayd-Rest.ts')
 
 const gatewayResolver = fedimintGatewayd.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.FedimintGateway
 	&& 'GatewayId' in resolver.resolve
 ))
-const gatewayTimestampResolver = fedimintGatewayd.resolvers.find((resolver) => (
-	resolver.entityType === EntityType.FedimintGateway_Timestamp
-	&& 'GatewayTimestampMsSource' in resolver.resolve
-))
 const federationResolver = fedimintGatewayd.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.FedimintFederation
 	&& 'FederationId' in resolver.resolve
-))
-const federationTimestampResolver = fedimintGatewayd.resolvers.find((resolver) => (
-	resolver.entityType === EntityType.FedimintFederation_Timestamp
-	&& 'FederationTimestampMsSource' in resolver.resolve
 ))
 
 if (
 	gatewayResolver == null
 	|| !('GatewayId' in gatewayResolver.resolve)
-	|| gatewayTimestampResolver == null
-	|| !('GatewayTimestampMsSource' in gatewayTimestampResolver.resolve)
 	|| federationResolver == null
 	|| !('FederationId' in federationResolver.resolve)
-	|| federationTimestampResolver == null
-	|| !('FederationTimestampMsSource' in federationTimestampResolver.resolve)
 )
 	throw new Error('FedimintGatewayd-Rest spec missing resolvers')
 
@@ -102,14 +95,58 @@ const info = {
 	registrations: {},
 }
 
-it('projects enrolled gateway identity leftovers from /info', async () => {
+const balances = {
+	onchain_balance_sats: 4,
+	lightning_balance_msats: 5,
+	ecash_balances: [{
+		federation_id: 'fed-1',
+		ecash_balance_msats: 6,
+	}],
+	inbound_lightning_liquidity_msats: 7,
+}
+
+const channels = [{
+	remote_pubkey: '03peer',
+	channel_size_sats: 100,
+	outbound_liquidity_sats: 40,
+	inbound_liquidity_sats: 60,
+	is_active: true,
+}]
+
+const paymentSummary = {
+	outgoing: {
+		total_fees: 0,
+		total_success: 1,
+		total_failure: 0,
+	},
+	incoming: {
+		total_fees: 0,
+		total_success: 0,
+		total_failure: 0,
+	},
+}
+
+const publicEnv = {
+	FEDIMINT_GATEWAYD_PASSWORD: 'secret-password',
+}
+
+const mockGatewayObservation = () => {
 	getGatewayId.mockResolvedValue('02pubkey')
 	getGatewayInfo.mockResolvedValue(info)
+	getGatewayBalances.mockResolvedValue(balances)
+	listChannels.mockResolvedValue(channels)
+	getPaymentSummary.mockResolvedValue(paymentSummary)
+}
+
+it('projects enrolled gateway identity and current observation leftovers from one coherent read', async () => {
+	const timestampMs = 1_700_000_000_000
+	vi.spyOn(Date, 'now').mockReturnValue(timestampMs)
+	mockGatewayObservation()
 
 	const snapshot = await gatewayResolver.resolve.GatewayId.resolve({
 		gatewayId: '02pubkey',
 	}, {
-		publicEnv: {},
+		publicEnv,
 		pagination: {
 			limit: 50,
 		},
@@ -119,6 +156,13 @@ it('projects enrolled gateway identity leftovers from /info', async () => {
 		gatewayId: '02pubkey',
 		apiUrl: 'http://127.0.0.1:8175',
 		nodePubkey: '02pubkey',
+	})
+	expect(snapshot).not.toHaveProperty('publicEnv')
+	expect(snapshot).not.toHaveProperty('FEDIMINT_GATEWAYD_PASSWORD')
+	expect(getPaymentSummary).toHaveBeenCalledWith({
+		endMs: timestampMs,
+		publicEnv,
+		startMs: timestampMs - 30 * 24 * 60 * 60 * 1000,
 	})
 	expect(snapshot.$$federations).toEqual([{
 		[EntityMetaKey.Selector]: {
@@ -133,104 +177,100 @@ it('projects enrolled gateway identity leftovers from /info', async () => {
 			}],
 			[entityFieldAddressKey(EntityType.FedimintFederation, [], '$$timestamps')]: [
 				expect.objectContaining({
-					[EntityMetaKey.Selector]: expect.objectContaining({
+					[EntityMetaKey.Selector]: {
 						$federation: {
 							federationId: 'fed-1',
 						},
+						timestampMs,
 						source: Source.FedimintGatewayd_Rest,
-					}),
-					[EntityMetaKey.Fields]: expect.objectContaining({
+					},
+					[EntityMetaKey.Fields]: {
 						[entityFieldAddressKey(EntityType.FedimintFederation_Timestamp, [], 'reachable')]: true,
 						[entityFieldAddressKey(EntityType.FedimintFederation_Timestamp, [], 'health')]: 'running',
 						[entityFieldAddressKey(EntityType.FedimintFederation_Timestamp, [], 'gatewayCount')]: 1,
 						[entityFieldAddressKey(EntityType.FedimintFederation_Timestamp, [], 'inviteCodeObserved')]: true,
-					}),
+						[entityFieldAddressKey(EntityType.FedimintFederation_Timestamp, [], 'metaJson')]: JSON.stringify({
+							federationIndex: 0,
+							balanceMsat: 1_000,
+						}),
+					},
 				}),
 			],
 		},
 	}])
-	expect(snapshot.$$timestamps[0]?.[EntityMetaKey.Selector]).toMatchObject({
-		$gateway: { gatewayId: '02pubkey' },
-		source: Source.FedimintGatewayd_Rest,
-	})
-})
-
-it('projects enrolled gateway observation leftovers including balances and channels', async () => {
-	getGatewayId.mockResolvedValue('02pubkey')
-	getGatewayInfo.mockResolvedValue(info)
-	getGatewayBalances.mockResolvedValue({
-		onchain_balance_sats: 4,
-		lightning_balance_msats: 5,
-		ecash_balances: [{
-			federation_id: 'fed-1',
-			ecash_balance_msats: 6,
-		}],
-		inbound_lightning_liquidity_msats: 7,
-	})
-	listChannels.mockResolvedValue([{
-		remote_pubkey: '03peer',
-		channel_size_sats: 100,
-		outbound_liquidity_sats: 40,
-		inbound_liquidity_sats: 60,
-		is_active: true,
+	expect(snapshot.$$timestamps).toEqual([{
+		[EntityMetaKey.Selector]: {
+			$gateway: { gatewayId: '02pubkey' },
+			timestampMs,
+			source: Source.FedimintGatewayd_Rest,
+		},
+		[EntityMetaKey.Fields]: {
+			[entityFieldAddressKey(EntityType.FedimintGateway_Timestamp, [], 'reachable')]: true,
+			[entityFieldAddressKey(EntityType.FedimintGateway_Timestamp, [], 'online')]: true,
+			[entityFieldAddressKey(EntityType.FedimintGateway_Timestamp, [], 'version')]: 'deadbeef',
+			[entityFieldAddressKey(EntityType.FedimintGateway_Timestamp, [], 'lightningAlias')]: 'gw-alias',
+			[entityFieldAddressKey(EntityType.FedimintGateway_Timestamp, [], 'routingFeesJson')]: JSON.stringify([{
+				federationId: 'fed-1',
+				lightningFee: {
+					base: 1,
+					parts_per_million: 2,
+				},
+				transactionFee: {
+					base: 0,
+					parts_per_million: 0,
+				},
+			}]),
+			[entityFieldAddressKey(EntityType.FedimintGateway_Timestamp, [], 'federationsCount')]: 1,
+			[entityFieldAddressKey(EntityType.FedimintGateway_Timestamp, [], 'lightningBalanceMsat')]: 5n,
+			[entityFieldAddressKey(EntityType.FedimintGateway_Timestamp, [], 'ecashBalanceMsat')]: 6n,
+			[entityFieldAddressKey(EntityType.FedimintGateway_Timestamp, [], 'onchainBalanceSats')]: 4n,
+			[entityFieldAddressKey(EntityType.FedimintGateway_Timestamp, [], 'channelsJson')]: JSON.stringify(channels),
+			[entityFieldAddressKey(EntityType.FedimintGateway_Timestamp, [], 'paymentSummaryJson')]: JSON.stringify(paymentSummary),
+		},
 	}])
-	getPaymentSummary.mockResolvedValue({
-		outgoing: {
-			total_fees: 0,
-			total_success: 1,
-			total_failure: 0,
-		},
-		incoming: {
-			total_fees: 0,
-			total_success: 0,
-			total_failure: 0,
-		},
-	})
-
-	expect(await gatewayTimestampResolver.resolve.GatewayTimestampMsSource.resolve({
-		$gateway: { gatewayId: '02pubkey' },
-		timestampMs: 1_000,
-		source: Source.FedimintGatewayd_Rest,
-	}, {
-		publicEnv: {},
-		pagination: { limit: 25 },
-	})).toMatchObject({
-		reachable: true,
-		online: true,
-		version: 'deadbeef',
-		lightningAlias: 'gw-alias',
-		federationsCount: 1,
-		lightningBalanceMsat: 5n,
-		ecashBalanceMsat: 6n,
-		onchainBalanceSats: 4n,
-	})
 })
 
-it('projects enrolled federation leftovers from gateway info', async () => {
+it('projects enrolled federation leftovers from current gateway info', async () => {
+	const timestampMs = 1_700_000_000_000
+	vi.spyOn(Date, 'now').mockReturnValue(timestampMs)
 	getGatewayId.mockResolvedValue('02pubkey')
 	getGatewayInfo.mockResolvedValue(info)
 
-	expect(await federationResolver.resolve.FederationId.resolve({
+	const snapshot = await federationResolver.resolve.FederationId.resolve({
 		federationId: 'fed-1',
 	}, {
-		publicEnv: {},
+		publicEnv,
 		pagination: { limit: 25 },
-	})).toMatchObject({
+	})
+
+	expect(snapshot).toMatchObject({
 		federationId: 'fed-1',
 		name: 'Test Fed',
 	})
+	expect(snapshot).not.toHaveProperty('publicEnv')
+	expect(snapshot).not.toHaveProperty('FEDIMINT_GATEWAYD_PASSWORD')
+	expect(snapshot.$$timestamps).toEqual([{
+		[EntityMetaKey.Selector]: {
+			$federation: { federationId: 'fed-1' },
+			timestampMs,
+			source: Source.FedimintGatewayd_Rest,
+		},
+		[EntityMetaKey.Fields]: {
+			[entityFieldAddressKey(EntityType.FedimintFederation_Timestamp, [], 'reachable')]: true,
+			[entityFieldAddressKey(EntityType.FedimintFederation_Timestamp, [], 'health')]: 'running',
+			[entityFieldAddressKey(EntityType.FedimintFederation_Timestamp, [], 'gatewayCount')]: 1,
+			[entityFieldAddressKey(EntityType.FedimintFederation_Timestamp, [], 'inviteCodeObserved')]: true,
+			[entityFieldAddressKey(EntityType.FedimintFederation_Timestamp, [], 'metaJson')]: JSON.stringify({
+				federationIndex: 0,
+				balanceMsat: 1_000,
+			}),
+		},
+	}])
+})
 
-	expect(await federationTimestampResolver.resolve.FederationTimestampMsSource.resolve({
-		$federation: { federationId: 'fed-1' },
-		timestampMs: 1_000,
-		source: Source.FedimintGatewayd_Rest,
-	}, {
-		publicEnv: {},
-		pagination: { limit: 25 },
-	})).toMatchObject({
-		reachable: true,
-		health: 'running',
-		gatewayCount: 1,
-		inviteCodeObserved: true,
-	})
+it('does not replay current gateway or federation observations at an arbitrary timestamp', () => {
+	expect(fedimintGatewayd.resolvers.some((resolver) => (
+		resolver.entityType === EntityType.FedimintGateway_Timestamp
+		|| resolver.entityType === EntityType.FedimintFederation_Timestamp
+	))).toBe(false)
 })

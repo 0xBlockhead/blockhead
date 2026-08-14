@@ -51,6 +51,65 @@ const arweaveCanonicalUri = (
 		`ar://${transactionId}/${contentPath.replace(/^\/+/, '')}`
 )
 
+const arweaveResourceTimestampFieldRowsFromBrowseResult = (
+	browseResult: Awaited<ReturnType<typeof import('$/sources/Arweave/Rest/queries.ts')['fetchBrowseResult']>>
+) => {
+	const mediaEntity = ((
+		type
+	) => (
+		browseResult.displayType === 'image'
+		|| browseResult.displayType === 'video'
+		|| browseResult.displayType === 'audio' ?
+			((media) => (
+				media == null ?
+					undefined
+				:
+					{
+						...media,
+						$original: {
+							[EntityMetaKey.Selector]: {
+								url: browseResult.gatewayUrl,
+							},
+							...(browseResult.contentType != null && { mimeType: browseResult.contentType }),
+							size: browseResult.contentLength,
+						},
+					}
+			))(mediaFromUrl(browseResult.gatewayUrl, type))
+		:
+			undefined
+	))(
+		browseResult.displayType === 'image' ?
+			MediaType.Image
+		: browseResult.displayType === 'video' ?
+			MediaType.Video
+		:
+			MediaType.Audio
+	)
+	return {
+		[entityFieldAddressKey(EntityType.ArweaveResource_Timestamp, [], 'gatewayOrigin')]: browseResult.gatewayOrigin,
+		[entityFieldAddressKey(EntityType.ArweaveResource_Timestamp, [], 'gatewayUrl')]: browseResult.gatewayUrl,
+		[entityFieldAddressKey(EntityType.ArweaveResource_Timestamp, [], 'reachable')]: true as const,
+		...(browseResult.fileName != null && {
+			[entityFieldAddressKey(EntityType.ArweaveResource_Timestamp, [], 'fileName')]: browseResult.fileName,
+		}),
+		...(browseResult.extension != null && {
+			[entityFieldAddressKey(EntityType.ArweaveResource_Timestamp, [], 'extension')]: browseResult.extension,
+		}),
+		...(browseResult.contentType != null && {
+			[entityFieldAddressKey(EntityType.ArweaveResource_Timestamp, [], 'contentType')]: browseResult.contentType,
+		}),
+		[entityFieldAddressKey(EntityType.ArweaveResource_Timestamp, [], 'contentLength')]: browseResult.contentLength,
+		[entityFieldAddressKey(EntityType.ArweaveResource_Timestamp, [], 'displayType')]: browseResult.displayType,
+		[entityFieldAddressKey(EntityType.ArweaveResource_Timestamp, [], 'isContentTypeInferred')]: browseResult.isContentTypeInferred,
+		...(browseResult.text != null && {
+			[entityFieldAddressKey(EntityType.ArweaveResource_Timestamp, [], 'text')]: browseResult.text,
+		}),
+		...(mediaEntity != null && {
+			[entityFieldAddressKey(EntityType.ArweaveResource_Timestamp, [], '$media')]: mediaEntity,
+		}),
+	}
+}
+
 const bigintFromWire = (
 	value: string | number | undefined
 ) => (
@@ -418,6 +477,7 @@ export default {
 								undefined
 						)
 
+						const timestampMs = Date.now()
 						return {
 							transactionId,
 							contentPath: normalizedContentPath,
@@ -464,9 +524,10 @@ export default {
 										transactionId,
 										contentPath: normalizedContentPath,
 									},
-									timestampMs: Date.now(),
+									timestampMs,
 									source: Source.Arweave_Rest,
 								},
+								[EntityMetaKey.Fields]: arweaveResourceTimestampFieldRowsFromBrowseResult(browseResult),
 							}],
 						}
 					},
@@ -527,104 +588,6 @@ export default {
 		})({
 			targetTransactionId: (manifestPath) => manifestPath.targetTransactionId,
 			$resource: (manifestPath) => manifestPath.$resource,
-		}),
-
-		defineResolver({
-			entityType: EntityType.ArweaveResource_Timestamp,
-			resolve: {
-				ResourceTimestampMsSource: {
-					resolve: async ({
-						$resource,
-						timestampMs,
-						source,
-					}) => {
-						if (source !== Source.Arweave_Rest)
-							throw new Error(`Arweave_Rest: unsupported source ${source}`)
-
-						const { fetchBrowseResult } = await import('$/sources/Arweave/Rest/queries.ts')
-						let browseResult
-						try {
-							browseResult = await fetchBrowseResult({
-								transactionId: $resource.transactionId,
-								contentPath: $resource.contentPath,
-							})
-						} catch (error) {
-							throw new Error(
-								`Arweave_Rest: unable to load ${arweaveCanonicalUri($resource.transactionId, $resource.contentPath)}`,
-								{
-									cause: error,
-								}
-							)
-						}
-
-						const mediaEntity = ((
-							type
-						) => (
-							browseResult.displayType === 'image'
-							|| browseResult.displayType === 'video'
-							|| browseResult.displayType === 'audio' ?
-								((media) => (
-									media == null ?
-										undefined
-									:
-										{
-											...media,
-											$original: {
-											[EntityMetaKey.Selector]: {
-												url: browseResult.gatewayUrl,
-											},
-											...(browseResult.contentType != null && { mimeType: browseResult.contentType }),
-											size: browseResult.contentLength,
-											},
-										}
-								))(mediaFromUrl(browseResult.gatewayUrl, type))
-							:
-								undefined
-						))(
-							browseResult.displayType === 'image' ?
-								MediaType.Image
-							: browseResult.displayType === 'video' ?
-								MediaType.Video
-							:
-								MediaType.Audio
-						)
-
-						return {
-							$resource: {
-								[EntityMetaKey.Selector]: $resource,
-							},
-							timestampMs,
-							source,
-							gatewayOrigin: browseResult.gatewayOrigin,
-							gatewayUrl: browseResult.gatewayUrl,
-							reachable: true,
-							...(browseResult.fileName != null && { fileName: browseResult.fileName }),
-							...(browseResult.extension != null && { extension: browseResult.extension }),
-							...(browseResult.contentType != null && { contentType: browseResult.contentType }),
-							contentLength: browseResult.contentLength,
-							displayType: browseResult.displayType,
-							isContentTypeInferred: browseResult.isContentTypeInferred,
-							...(browseResult.text != null && { text: browseResult.text }),
-							...(mediaEntity != null && { $media: mediaEntity }),
-						}
-					},
-				},
-			},
-		})({
-			$resource: (observation) => observation.$resource,
-			timestampMs: (observation) => observation.timestampMs,
-			source: (observation) => observation.source,
-			gatewayOrigin: (observation) => observation.gatewayOrigin,
-			gatewayUrl: (observation) => observation.gatewayUrl,
-			reachable: (observation) => observation.reachable,
-			fileName: (observation) => observation.fileName,
-			extension: (observation) => observation.extension,
-			contentType: (observation) => observation.contentType,
-			contentLength: (observation) => observation.contentLength,
-			displayType: (observation) => observation.displayType,
-			isContentTypeInferred: (observation) => observation.isContentTypeInferred,
-			text: (observation) => observation.text,
-			$media: (observation) => observation.$media,
 		}),
 	],
 } satisfies RegisteredSourceResolverModule

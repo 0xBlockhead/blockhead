@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { networkBySlug } from '$/constants/Network.ts'
-import { EntityMetaKey } from '$/schema/$schema.ts'
+import { EntityMetaKey, entityFieldAddressKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import type {
 	MoneroRpcBlock,
@@ -297,16 +297,41 @@ describe('Monero daemon tip / ring / stealth leftovers', () => {
 		})
 
 		expect(moneroNetworkTimestampsResolver.projections.$$timestamps.select(timestamps)).toEqual([
-			expect.objectContaining({
+			{
 				[EntityMetaKey.Selector]: {
 					$network: network,
 					timestampMs: expect.any(Number),
 					source: Source.MoneroDaemonRpc_JsonRpc,
 				},
-			}),
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.MoneroNetwork_Timestamp, [], 'height')]: 3_400_001n,
+					[entityFieldAddressKey(EntityType.MoneroNetwork_Timestamp, [], 'targetHeight')]: 3_400_001n,
+					[entityFieldAddressKey(EntityType.MoneroNetwork_Timestamp, [], 'topBlockHash')]: 'top-block-hash',
+					[entityFieldAddressKey(EntityType.MoneroNetwork_Timestamp, [], 'difficulty')]: 2_500n,
+					[entityFieldAddressKey(EntityType.MoneroNetwork_Timestamp, [], 'cumulativeDifficulty')]: 2_000n,
+					[entityFieldAddressKey(EntityType.MoneroNetwork_Timestamp, [], 'greyPeerlistSize')]: 1_000,
+					[entityFieldAddressKey(EntityType.MoneroNetwork_Timestamp, [], 'whitePeerlistSize')]: 2_000,
+					[entityFieldAddressKey(EntityType.MoneroNetwork_Timestamp, [], 'incomingConnections')]: 8,
+					[entityFieldAddressKey(EntityType.MoneroNetwork_Timestamp, [], 'outgoingConnections')]: 8,
+					[entityFieldAddressKey(EntityType.MoneroNetwork_Timestamp, [], 'txCount')]: 90_000_000n,
+					[entityFieldAddressKey(EntityType.MoneroNetwork_Timestamp, [], 'txPoolSize')]: 12,
+					[entityFieldAddressKey(EntityType.MoneroNetwork_Timestamp, [], 'altBlocksCount')]: 0,
+					[entityFieldAddressKey(EntityType.MoneroNetwork_Timestamp, [], 'targetSeconds')]: 120,
+					[entityFieldAddressKey(EntityType.MoneroNetwork_Timestamp, [], 'mainnet')]: true,
+					[entityFieldAddressKey(EntityType.MoneroNetwork_Timestamp, [], 'nettype')]: 'mainnet',
+					[entityFieldAddressKey(EntityType.MoneroNetwork_Timestamp, [], 'offline')]: false,
+					[entityFieldAddressKey(EntityType.MoneroNetwork_Timestamp, [], 'synchronized')]: true,
+					[entityFieldAddressKey(EntityType.MoneroNetwork_Timestamp, [], 'wasBootstrapEverUsed')]: false,
+					[entityFieldAddressKey(EntityType.MoneroNetwork_Timestamp, [], 'version')]: '0.18.3.4',
+					[entityFieldAddressKey(EntityType.MoneroNetwork_Timestamp, [], 'status')]: 'OK',
+				},
+			},
 		])
 		expect(moneroNetworkTimestampsResolver.projections.$$timestamps.resolveCount(timestamps)).toBe(1)
 		expect(getInfo).toHaveBeenCalledOnce()
+		expect(moneroDaemonRpc.resolvers.some((resolver) => (
+			resolver.entityType === EntityType.MoneroNetwork_Timestamp
+		))).toBe(false)
 	})
 
 	it('projects absolute ring member globalOutputIndex from relative key_offsets', async () => {

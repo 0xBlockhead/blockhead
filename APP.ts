@@ -16463,7 +16463,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Local_Internal, Source.QuilibriumNodeRpc_Grpc],
+							sources: [Source.Local_Internal],
 							openFields: ["balance", "balanceObservedAt"],
 						},
 						summary: { title: [{ field: "timestampMs", format: "timestamp" }], value: [{ field: "balance", format: "number" }], HeadingAfter: ["source"] },
@@ -26456,7 +26456,7 @@ export const schema = {
 				},
 				views: {
 					singular: {
-						query: { sources: [Source.TheGraph_Graphql, Source.Voltaire_JsonRpc] },
+						query: { sources: [Source.Voltaire_JsonRpc] },
 						summary: {
 							title: [{ field: "$name" }],
 							value: [{ field: "timestampMs", format: "timestamp" }],
@@ -26536,7 +26536,7 @@ export const schema = {
 				},
 				views: {
 					singular: {
-						query: { sources: [Source.TheGraph_Graphql, Source.Voltaire_JsonRpc] },
+						query: { sources: [Source.Voltaire_JsonRpc] },
 						summary: {
 							title: [{ field: "$record" }],
 							value: [{ field: "timestampMs", format: "timestamp" }],
@@ -46199,9 +46199,6 @@ export const schema = {
 				},
 				views: {
 					singular: {
-						query: {
-							sources: [Source.MoneroDaemonRpc_JsonRpc],
-						},
 						summary: {
 							title: [{ field: "timestampMs", format: "timestamp" }],
 							value: [{ field: "height", format: "number" }],
@@ -69266,7 +69263,6 @@ export const schema = {
 				},
 				views: {
 					singular: {
-						query: { sources: [Source.ZeroGStorageScan_Rest] },
 						summary: { title: ["$network"], value: [{ field: "timestampMs", format: "timestamp" }], HeadingAfter: [{ field: "storageTransactionCount", format: "number" }] },
 						content: {
 							dl: [
@@ -69484,7 +69480,6 @@ export const schema = {
 				},
 				views: {
 					singular: {
-						query: { sources: [Source.ZeroGStorageScan_Rest] },
 						summary: { title: ["$storageNode"], value: [{ field: "timestampMs", format: "timestamp" }] },
 						content: {
 							dl: [

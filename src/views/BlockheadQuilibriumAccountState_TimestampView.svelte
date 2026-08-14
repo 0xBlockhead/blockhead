@@ -27,7 +27,6 @@
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
-			Source.QuilibriumNodeRpc_Grpc,
 		],
 	}))
 	const blockheadQuilibriumAccountStateTimestamp = $derived(viewSelection({

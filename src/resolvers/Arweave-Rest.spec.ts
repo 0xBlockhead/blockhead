@@ -58,9 +58,6 @@ const transactionResolver = arweaveRest.resolvers.find((resolver) => (
 const resourceResolver = arweaveRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.ArweaveResource
 ))
-const resourceTimestampResolver = arweaveRest.resolvers.find((resolver) => (
-	resolver.entityType === EntityType.ArweaveResource_Timestamp
-))
 
 if (
 	networkResolver == null
@@ -68,7 +65,6 @@ if (
 	|| blockResolver == null
 	|| transactionResolver == null
 	|| resourceResolver == null
-	|| resourceTimestampResolver == null
 )
 	throw new Error('Arweave-Rest spec missing resolvers')
 
@@ -458,7 +454,20 @@ describe('Arweave_Rest block / info / resource browse resolvers', () => {
 		)).rejects.toThrow('unsupported network')
 	})
 
-	it('projects resource identity and loads gateway observations', async () => {
+	it('projects resource identity and embeds gateway observations from the same browse read', async () => {
+		fetchBrowseResult.mockResolvedValueOnce({
+			transactionId,
+			contentPath: '',
+			gatewayOrigin: 'https://arweave.net',
+			gatewayUrl: `https://arweave.net/${transactionId}`,
+			fileName: transactionId,
+			extension: undefined,
+			contentType: 'text/plain',
+			contentLength: 4,
+			displayType: 'text',
+			isContentTypeInferred: false,
+			text: 'demo',
+		})
 		const resource = await resourceResolver.resolve.TransactionIdContentPath.resolve(
 			{
 				transactionId,
@@ -477,41 +486,24 @@ describe('Arweave_Rest block / info / resource browse resolvers', () => {
 						},
 						source: Source.Arweave_Rest,
 					},
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.ArweaveResource_Timestamp, [], 'gatewayOrigin')]: 'https://arweave.net',
+						[entityFieldAddressKey(EntityType.ArweaveResource_Timestamp, [], 'gatewayUrl')]: `https://arweave.net/${transactionId}`,
+						[entityFieldAddressKey(EntityType.ArweaveResource_Timestamp, [], 'contentType')]: 'text/plain',
+						[entityFieldAddressKey(EntityType.ArweaveResource_Timestamp, [], 'contentLength')]: 4,
+						[entityFieldAddressKey(EntityType.ArweaveResource_Timestamp, [], 'text')]: 'demo',
+						[entityFieldAddressKey(EntityType.ArweaveResource_Timestamp, [], 'reachable')]: true,
+					},
 				},
 			],
 		})
+		expect(fetchBrowseResult).toHaveBeenCalledTimes(1)
+	})
 
-		fetchBrowseResult.mockResolvedValueOnce({
-			transactionId,
-			contentPath: '',
-			gatewayOrigin: 'https://arweave.net',
-			gatewayUrl: `https://arweave.net/${transactionId}`,
-			fileName: transactionId,
-			extension: undefined,
-			contentType: 'text/plain',
-			contentLength: 4,
-			displayType: 'text',
-			isContentTypeInferred: false,
-			text: 'demo',
-		})
-		await expect(resourceTimestampResolver.resolve.ResourceTimestampMsSource.resolve(
-			{
-				$resource: {
-					transactionId,
-					contentPath: '',
-				},
-				timestampMs: 1_700_000_000_000,
-				source: Source.Arweave_Rest,
-			},
-			context
-		)).resolves.toMatchObject({
-			gatewayOrigin: 'https://arweave.net',
-			gatewayUrl: `https://arweave.net/${transactionId}`,
-			contentType: 'text/plain',
-			contentLength: 4,
-			text: 'demo',
-			reachable: true,
-		})
+	it('does not register a direct ArweaveResource_Timestamp resolver', () => {
+		expect(arweaveRest.resolvers.some((resolver) => (
+			resolver.entityType === EntityType.ArweaveResource_Timestamp
+		))).toBe(false)
 	})
 
 	it('normalizes nested resource paths before emitting the source-owned observation selector', async () => {

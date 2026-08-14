@@ -5,7 +5,6 @@
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -22,12 +21,7 @@
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.ZeroGNetwork_Timestamp>, 'prefetched'> = $props()
 
-	const viewSelection = $derived(selection({
-		sources: selection.sources ?? [
-			Source.ZeroGStorageScan_Rest,
-		],
-	}))
-	const zeroGNetworkTimestamp = $derived(viewSelection({
+	const zeroGNetworkTimestamp = $derived(selection({
 		fields: {
 			storageTransactionCount: true,
 		},
@@ -121,7 +115,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
 						fields: {
 							storageLogSyncHeight: true,
 						},
@@ -145,7 +139,7 @@
 
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
 						fields: {
 							storageLayer1LogSyncHeight: true,
 						},
@@ -189,7 +183,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
 						fields: {
 							latestDataRoot: true,
 						},
@@ -211,7 +205,7 @@
 
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
 						fields: {
 							latestDataSizeBytes: true,
 						},
@@ -235,7 +229,7 @@
 
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
 						fields: {
 							latestStorageTxHash: true,
 						},
@@ -259,7 +253,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
 						fields: {
 							storageMinerCount: true,
 						},
@@ -283,7 +277,7 @@
 
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
 						fields: {
 							latestStorageMiner: true,
 						},
@@ -305,7 +299,7 @@
 
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
 						fields: {
 							storageFeeTotal: true,
 						},
@@ -327,7 +321,7 @@
 
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
 						fields: {
 							storageRewardTotal: true,
 						},
@@ -349,7 +343,7 @@
 
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
 						fields: {
 							storageTotalWinCount: true,
 						},
@@ -375,7 +369,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
 						fields: {
 							expiredFileCount: true,
 						},
@@ -399,7 +393,7 @@
 
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
 						fields: {
 							prunedFileCount: true,
 						},

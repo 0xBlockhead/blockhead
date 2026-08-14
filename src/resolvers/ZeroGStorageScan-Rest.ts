@@ -97,6 +97,46 @@ const zeroGStorageTimestampFields = async () => {
 	}
 }
 
+const zeroGStorageTimestampFieldRows = (
+	fields: Awaited<ReturnType<typeof zeroGStorageTimestampFields>>
+) => ({
+	[entityFieldAddressKey(EntityType.ZeroGNetwork_Timestamp, [], 'storageLogSyncHeight')]: fields.storageLogSyncHeight,
+	[entityFieldAddressKey(EntityType.ZeroGNetwork_Timestamp, [], 'storageLayer1LogSyncHeight')]: fields.storageLayer1LogSyncHeight,
+	[entityFieldAddressKey(EntityType.ZeroGNetwork_Timestamp, [], 'storageTransactionCount')]: fields.storageTransactionCount,
+	...(fields.latestDataRoot != null && {
+		[entityFieldAddressKey(EntityType.ZeroGNetwork_Timestamp, [], 'latestDataRoot')]: fields.latestDataRoot,
+	}),
+	...(fields.latestDataSizeBytes != null && {
+		[entityFieldAddressKey(EntityType.ZeroGNetwork_Timestamp, [], 'latestDataSizeBytes')]: fields.latestDataSizeBytes,
+	}),
+	...(fields.latestStorageTxHash != null && {
+		[entityFieldAddressKey(EntityType.ZeroGNetwork_Timestamp, [], 'latestStorageTxHash')]: fields.latestStorageTxHash,
+	}),
+	[entityFieldAddressKey(EntityType.ZeroGNetwork_Timestamp, [], 'storageMinerCount')]: fields.storageMinerCount,
+	...(fields.latestStorageMiner != null && {
+		[entityFieldAddressKey(EntityType.ZeroGNetwork_Timestamp, [], 'latestStorageMiner')]: fields.latestStorageMiner,
+	}),
+	[entityFieldAddressKey(EntityType.ZeroGNetwork_Timestamp, [], 'storageFeeTotal')]: fields.storageFeeTotal,
+	[entityFieldAddressKey(EntityType.ZeroGNetwork_Timestamp, [], 'storageRewardTotal')]: fields.storageRewardTotal,
+	[entityFieldAddressKey(EntityType.ZeroGNetwork_Timestamp, [], 'storageTotalWinCount')]: fields.storageTotalWinCount,
+	[entityFieldAddressKey(EntityType.ZeroGNetwork_Timestamp, [], 'expiredFileCount')]: fields.expiredFileCount,
+	[entityFieldAddressKey(EntityType.ZeroGNetwork_Timestamp, [], 'prunedFileCount')]: fields.prunedFileCount,
+})
+
+const zeroGStorageTimestampRefs = async (
+	network: NetworkId
+) => {
+	const fields = await zeroGStorageTimestampFields()
+	return [{
+		[EntityMetaKey.Selector]: {
+			$network: network,
+			timestampMs: Date.now(),
+			source: Source.ZeroGStorageScan_Rest,
+		},
+		[EntityMetaKey.Fields]: zeroGStorageTimestampFieldRows(fields),
+	}]
+}
+
 const dataBlobFromTransaction = ({
 	network,
 	transaction,
@@ -166,62 +206,12 @@ export default {
 
 	resolvers: [
 		defineResolver({
-			entityType: EntityType.ZeroGNetwork_Timestamp,
-			resolve: {
-				NetworkTimestampMsSource: {
-					resolve: async ({
-						$network,
-						timestampMs,
-						source,
-					}) => {
-						if (source !== Source.ZeroGStorageScan_Rest)
-							throw new Error('ZeroGStorageScan_Rest: unsupported timestamp source')
-						assertZeroGMainnet($network)
-						return {
-							$network: {
-								[EntityMetaKey.Selector]: $network,
-							},
-							timestampMs,
-							source,
-							...(await zeroGStorageTimestampFields()),
-						}
-					},
-				},
-			},
-		})({
-				$network: (snapshot) => snapshot.$network,
-				timestampMs: (snapshot) => snapshot.timestampMs,
-				source: (snapshot) => snapshot.source,
-				storageLogSyncHeight: (snapshot) => snapshot.storageLogSyncHeight,
-				storageLayer1LogSyncHeight: (snapshot) => snapshot.storageLayer1LogSyncHeight,
-				storageTransactionCount: (snapshot) => snapshot.storageTransactionCount,
-				latestDataRoot: (snapshot) => snapshot.latestDataRoot,
-				latestDataSizeBytes: (snapshot) => snapshot.latestDataSizeBytes,
-				latestStorageTxHash: (snapshot) => snapshot.latestStorageTxHash,
-				storageMinerCount: (snapshot) => snapshot.storageMinerCount,
-				latestStorageMiner: (snapshot) => snapshot.latestStorageMiner,
-				storageFeeTotal: (snapshot) => snapshot.storageFeeTotal,
-				storageRewardTotal: (snapshot) => snapshot.storageRewardTotal,
-				storageTotalWinCount: (snapshot) => snapshot.storageTotalWinCount,
-				expiredFileCount: (snapshot) => snapshot.expiredFileCount,
-				prunedFileCount: (snapshot) => snapshot.prunedFileCount,
-			}),
-
-		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Slug: {
 					resolve: async (network) => {
 						assertZeroGMainnet(network)
-						return [
-							{
-								[EntityMetaKey.Selector]: {
-									$network: network,
-									timestampMs: Date.now(),
-									source: Source.ZeroGStorageScan_Rest,
-								},
-							},
-						]
+						return zeroGStorageTimestampRefs(network)
 					},
 				},
 			},
@@ -237,15 +227,7 @@ export default {
 				Slug: {
 					resolve: async (network) => {
 						assertZeroGMainnet(network)
-						return [
-							{
-								[EntityMetaKey.Selector]: {
-									$network: network,
-									timestampMs: Date.now(),
-									source: Source.ZeroGStorageScan_Rest,
-								},
-							},
-						]
+						return zeroGStorageTimestampRefs(network)
 					},
 				},
 			},
@@ -295,42 +277,6 @@ export default {
 		})({
 				$operator: (snapshot) => snapshot.$operator,
 				$$timestamps: (snapshot) => snapshot.$$timestamps,
-			}),
-
-		defineResolver({
-			entityType: EntityType.ZeroGStorageNode_Timestamp,
-			resolve: {
-				StorageNodeTimestampMsSource: {
-					resolve: async ({
-						$storageNode,
-						timestampMs,
-						source,
-					}) => {
-						if (source !== Source.ZeroGStorageScan_Rest)
-							throw new Error('ZeroGStorageScan_Rest: unsupported storage node timestamp source')
-						assertZeroGMainnet($storageNode.$network)
-						const { getStorageMiner } = await import('$/sources/ZeroG/StorageScan/Rest/queries.ts')
-						const miner = await getStorageMiner({
-							address: EvmAddress.assert($storageNode.nodeId),
-						})
-						return {
-							$storageNode: {
-								[EntityMetaKey.Selector]: $storageNode,
-							},
-							timestampMs,
-							source: Source.ZeroGStorageScan_Rest,
-							balance: miner.balance,
-							totalReward: miner.totalReward,
-						}
-					},
-				},
-			},
-		})({
-				$storageNode: (snapshot) => snapshot.$storageNode,
-				timestampMs: (snapshot) => snapshot.timestampMs,
-				source: (snapshot) => snapshot.source,
-				balance: (snapshot) => snapshot.balance,
-				totalReward: (snapshot) => snapshot.totalReward,
 			}),
 
 		defineResolver({

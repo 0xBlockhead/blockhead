@@ -199,18 +199,57 @@ describe('ZeroGStorageScan_Rest resolver leftovers', () => {
 		})
 	})
 
-	it('projects ZeroGNetwork_Timestamp tip storage fields', async () => {
-		const timestampResolver = resolverFor(EntityType.ZeroGNetwork_Timestamp, 'storageLogSyncHeight')
-		await expect(timestampResolver.resolve.NetworkTimestampMsSource.resolve({
-			$network: network,
-			timestampMs: 1,
-			source: Source.ZeroGStorageScan_Rest,
-		}, context)).resolves.toMatchObject({
-			storageLogSyncHeight: 9,
-			storageTransactionCount: 185009,
-			storageMinerCount: 149,
-			latestDataRoot: '0xe544394edc2172a48434739594fd295221bcc36339777ab39e2375baf393721e',
-			prunedFileCount: 1,
+	it('does not register a direct ZeroGNetwork_Timestamp resolver', () => {
+		expect(zeroGStorageScan.resolvers.some((resolver) => (
+			resolver.entityType === EntityType.ZeroGNetwork_Timestamp
+		))).toBe(false)
+	})
+
+	it('embeds current storage summary fields on Network.ZeroG and ZeroGNetwork timestamp refs', async () => {
+		const networkTimestampsResolver = resolverFor(EntityType.Network, '$$timestamps')
+		const networkTimestamps = await networkTimestampsResolver.resolve.Slug.resolve(network, context)
+		expect(networkTimestampsResolver.projections.ZeroG.$$timestamps(networkTimestamps)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				timestampMs: expect.any(Number),
+				source: Source.ZeroGStorageScan_Rest,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.ZeroGNetwork_Timestamp, [], 'storageLogSyncHeight')]: 9,
+				[entityFieldAddressKey(EntityType.ZeroGNetwork_Timestamp, [], 'storageLayer1LogSyncHeight')]: 10,
+				[entityFieldAddressKey(EntityType.ZeroGNetwork_Timestamp, [], 'storageTransactionCount')]: 185009,
+				[entityFieldAddressKey(EntityType.ZeroGNetwork_Timestamp, [], 'latestDataRoot')]: '0xe544394edc2172a48434739594fd295221bcc36339777ab39e2375baf393721e',
+				[entityFieldAddressKey(EntityType.ZeroGNetwork_Timestamp, [], 'latestDataSizeBytes')]: 3170n,
+				[entityFieldAddressKey(EntityType.ZeroGNetwork_Timestamp, [], 'latestStorageTxHash')]: '0xc0096b77649851f5b2dcb484175fbcf727e71ce56ac7d692092dd5e4775187b8',
+				[entityFieldAddressKey(EntityType.ZeroGNetwork_Timestamp, [], 'storageMinerCount')]: 149,
+				[entityFieldAddressKey(EntityType.ZeroGNetwork_Timestamp, [], 'latestStorageMiner')]: '0x4D19F72978eaF45F6B0dC4db43f15B4a39D65bfD',
+				[entityFieldAddressKey(EntityType.ZeroGNetwork_Timestamp, [], 'storageFeeTotal')]: '1',
+				[entityFieldAddressKey(EntityType.ZeroGNetwork_Timestamp, [], 'storageRewardTotal')]: '2',
+				[entityFieldAddressKey(EntityType.ZeroGNetwork_Timestamp, [], 'storageTotalWinCount')]: 3,
+				[entityFieldAddressKey(EntityType.ZeroGNetwork_Timestamp, [], 'expiredFileCount')]: 0,
+				[entityFieldAddressKey(EntityType.ZeroGNetwork_Timestamp, [], 'prunedFileCount')]: 1,
+			},
+		}])
+		expect(queries.getStorageSummary).toHaveBeenCalledTimes(1)
+		expect(queries.listStorageMiners).toHaveBeenCalledWith({
+			limit: 1,
 		})
+		expect(queries.listStorageTransactions).toHaveBeenCalledWith({
+			limit: 1,
+		})
+
+		const zeroGNetworkTimestampsResolver = resolverFor(EntityType.ZeroGNetwork, '$$timestamps')
+		const zeroGNetworkTimestamps = await zeroGNetworkTimestampsResolver.resolve.Slug.resolve(network, context)
+		expect(
+			zeroGNetworkTimestampsResolver.projections.$$timestamps(zeroGNetworkTimestamps)[0][EntityMetaKey.Fields]
+		).toEqual(
+			networkTimestampsResolver.projections.ZeroG.$$timestamps(networkTimestamps)[0][EntityMetaKey.Fields]
+		)
+	})
+
+	it('does not expose an arbitrary current-state ZeroGStorageNode_Timestamp facet', () => {
+		expect(zeroGStorageScan.resolvers.some((resolver) => (
+			resolver.entityType === EntityType.ZeroGStorageNode_Timestamp
+		))).toBe(false)
 	})
 })

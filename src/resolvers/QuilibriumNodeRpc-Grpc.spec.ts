@@ -10,7 +10,10 @@ import {
 	bigintFromBalanceBytes,
 	hexAddressFromBytes,
 } from '$/sources/QuilibriumNodeRpc/Grpc/types.ts'
-import { EntityMetaKey } from '$/schema/$schema.ts'
+import {
+	EntityMetaKey,
+	entityFieldAddressKey,
+} from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
@@ -20,9 +23,6 @@ const accountResolver = quilibriumNodeRpc.resolvers.find((resolver) => resolver.
 const accountStateResolver = quilibriumNodeRpc.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.BlockheadQuilibriumAccountState
 	&& '$$timestamps' in resolver.projections
-))
-const accountStateTimestampResolver = quilibriumNodeRpc.resolvers.find((resolver) => (
-	resolver.entityType === EntityType.BlockheadQuilibriumAccountState_Timestamp
 ))
 const pendingListResolver = quilibriumNodeRpc.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.BlockheadQuilibriumAccountState
@@ -35,7 +35,6 @@ const pendingTransactionResolver = quilibriumNodeRpc.resolvers.find((resolver) =
 if (
 	accountResolver == null
 	|| accountStateResolver == null
-	|| accountStateTimestampResolver == null
 	|| pendingListResolver == null
 	|| pendingTransactionResolver == null
 )
@@ -48,6 +47,7 @@ const network = {
 } as const
 
 afterEach(() => {
+	vi.restoreAllMocks()
 	setQuilibriumNodeRpcGrpcUnaryCall(undefined)
 	setQuilibriumNodeRpcAccountAuthResolver(undefined)
 })
@@ -152,56 +152,54 @@ describe('Quilibrium node RPC BlockheadQuilibrium account projections', () => {
 		},
 	}
 
-	it('projects account-state tip selectors and authority metadata', async () => {
-		setQuilibriumNodeRpcAccountAuthResolver(() => emptyAuth)
-
-		await expect(
-			accountStateResolver.resolve.ConnectionIdNetworkAccountAddress.resolve({
-				connectionId,
-				$network: network,
-				accountAddress,
-			})
-		).resolves.toMatchObject({
-			connectionId,
-			accountAddress,
-			accountKind: 'implicit',
-			keyRingRefCount: 0,
-			$$timestamps: [
-				{
-					[EntityMetaKey.Selector]: {
-						$accountState: {
-							connectionId,
-							$network: network,
-							accountAddress,
-						},
-						source: Source.QuilibriumNodeRpc_Grpc,
-					},
-				},
-			],
-		})
-	})
-
-	it('projects balance tip observations through GetBalance', async () => {
+	it('projects account-state tip selectors, authority metadata, and current balance observation', async () => {
+		const timestampMs = 1_700_000_000_000
+		vi.spyOn(Date, 'now').mockReturnValue(timestampMs)
 		setQuilibriumNodeRpcAccountAuthResolver(() => emptyAuth)
 		setQuilibriumNodeRpcGrpcUnaryCall(vi.fn().mockResolvedValue({
 			balance: new Uint8Array([0x01, 0x00]),
 		}))
 
-		await expect(
-			accountStateTimestampResolver.resolve.AccountStateTimestampMsSource.resolve({
-				$accountState: {
-					connectionId,
-					$network: network,
-					accountAddress,
-				},
-				timestampMs: 1,
-				source: Source.QuilibriumNodeRpc_Grpc,
-			})
-		).resolves.toMatchObject({
-			balance: 0x100n,
-			balanceObservedAt: expect.any(Number),
+		const snapshot = await accountStateResolver.resolve.ConnectionIdNetworkAccountAddress.resolve({
+			connectionId,
+			$network: network,
+			accountAddress,
 		})
+
+		expect(snapshot).toMatchObject({
+			connectionId,
+			accountAddress,
+			accountKind: 'implicit',
+			keyRingRefCount: 0,
+		})
+		expect(snapshot).not.toHaveProperty('keyRing')
+		expect(snapshot).not.toHaveProperty('allowance')
+		expect(snapshot).not.toHaveProperty('signature')
+		expect(snapshot).not.toHaveProperty('publicEnv')
+		expect(snapshot.$$timestamps).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$accountState: {
+						connectionId,
+						$network: network,
+						accountAddress,
+					},
+					timestampMs,
+					source: Source.QuilibriumNodeRpc_Grpc,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.BlockheadQuilibriumAccountState_Timestamp, [], 'balance')]: 0x100n,
+					[entityFieldAddressKey(EntityType.BlockheadQuilibriumAccountState_Timestamp, [], 'balanceObservedAt')]: timestampMs,
+				},
+			},
+		])
 		expect(bigintFromBalanceBytes(new Uint8Array([0x01, 0x00]))).toBe(0x100n)
+	})
+
+	it('does not replay the current account balance at an arbitrary observation timestamp', () => {
+		expect(quilibriumNodeRpc.resolvers.some((resolver) => (
+			resolver.entityType === EntityType.BlockheadQuilibriumAccountState_Timestamp
+		))).toBe(false)
 	})
 
 	it('projects pending queue rows and singular pending transaction fields', async () => {

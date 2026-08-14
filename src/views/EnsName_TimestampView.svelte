@@ -24,7 +24,6 @@
 
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
-			Source.TheGraph_Graphql,
 			Source.Voltaire_JsonRpc,
 		],
 	}))

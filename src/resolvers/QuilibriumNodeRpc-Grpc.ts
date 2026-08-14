@@ -5,6 +5,7 @@ import {
 } from '$/resolvers/defineResolver.ts'
 import {
 	EntityMetaKey,
+	entityFieldAddressKey,
 	type EntitySelector,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
@@ -60,16 +61,28 @@ export default {
 						assertQuilibriumMainnet($network)
 						const {
 							accountReferenceForAddress,
+							getAccountBalance,
 							requireAccountAuth,
 						} = await import('$/sources/QuilibriumNodeRpc/Grpc/queries.ts')
 						const {
 							accountAddressFromAccountReference,
+							bigintFromBalanceBytes,
 							hexAddressFromBytes,
 						} = await import('$/sources/QuilibriumNodeRpc/Grpc/types.ts')
 						const account = accountReferenceForAddress(accountAddress)
 						const auth = requireAccountAuth({
 							connectionId,
 							accountAddress,
+						})
+						const response = await getAccountBalance({
+							request: {
+								request: {
+									account,
+									...(auth.allowance != null && { allowance: auth.allowance }),
+									...(auth.signature != null && { signature: auth.signature }),
+								},
+								keyRing: auth.keyRing,
+							},
 						})
 						const timestampMs = Date.now()
 						return {
@@ -109,6 +122,10 @@ export default {
 										timestampMs,
 										source: Source.QuilibriumNodeRpc_Grpc,
 									},
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.BlockheadQuilibriumAccountState_Timestamp, [], 'balance')]: bigintFromBalanceBytes(response.balance),
+										[entityFieldAddressKey(EntityType.BlockheadQuilibriumAccountState_Timestamp, [], 'balanceObservedAt')]: timestampMs,
+									},
 								},
 							],
 						}
@@ -125,47 +142,6 @@ export default {
 			signatureKeyAddress: (state) => state.signatureKeyAddress,
 			keyRingRefCount: (state) => state.keyRingRefCount,
 			$$timestamps: (state) => state.$$timestamps,
-		}),
-
-		defineResolver({
-			entityType: EntityType.BlockheadQuilibriumAccountState_Timestamp,
-			resolve: {
-				AccountStateTimestampMsSource: {
-					resolve: async ({ $accountState, source }) => {
-						if (source !== Source.QuilibriumNodeRpc_Grpc)
-							throw new Error(`QuilibriumNodeRpc_Grpc: unsupported source ${source}`)
-						assertQuilibriumMainnet($accountState.$network)
-						const {
-							accountReferenceForAddress,
-							getAccountBalance,
-							requireAccountAuth,
-						} = await import('$/sources/QuilibriumNodeRpc/Grpc/queries.ts')
-						const { bigintFromBalanceBytes } = await import('$/sources/QuilibriumNodeRpc/Grpc/types.ts')
-						const auth = requireAccountAuth({
-							connectionId: $accountState.connectionId,
-							accountAddress: $accountState.accountAddress,
-						})
-						const balanceObservedAt = Date.now()
-						const response = await getAccountBalance({
-							request: {
-								request: {
-									account: accountReferenceForAddress($accountState.accountAddress),
-									...(auth.allowance != null && { allowance: auth.allowance }),
-									...(auth.signature != null && { signature: auth.signature }),
-								},
-								keyRing: auth.keyRing,
-							},
-						})
-						return {
-							balance: bigintFromBalanceBytes(response.balance),
-							balanceObservedAt,
-						}
-					},
-				},
-			},
-		})({
-			balance: (snapshot) => snapshot.balance,
-			balanceObservedAt: (snapshot) => snapshot.balanceObservedAt,
 		}),
 
 		defineResolver({

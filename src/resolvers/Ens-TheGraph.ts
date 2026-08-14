@@ -195,6 +195,7 @@ export default {
 						const resolverCoinTypes = matchingEnsDomain.resolver?.coinTypes
 							?.filter((coinType) => coinType != null)
 							.map(String) ?? []
+						const ttl = bigintFromSubgraphScalar(matchingEnsDomain.ttl)
 						const subdomainEnsNameEntities = matchingEnsDomain.subdomains.flatMap((subdomain) => (
 							subdomain.name != null && subdomain.name !== '' ?
 								[{
@@ -327,6 +328,38 @@ export default {
 									timestampMs: observedAtMs,
 									source: Source.TheGraph_Graphql,
 								},
+								[EntityMetaKey.Fields]: {
+									...(resolvedActor != null && {
+										[entityFieldAddressKey(EntityType.EnsName_Timestamp, [], '$resolvedActor')]: resolvedActor,
+									}),
+									...(resolverAddress != null && {
+										[entityFieldAddressKey(EntityType.EnsName_Timestamp, [], '$resolverContract')]: {
+											[EntityMetaKey.Selector]: {
+												$network: {
+													caip2: {
+														namespace: 'eip155',
+														reference: '1',
+													},
+												},
+												address: resolverAddress,
+											},
+										},
+									}),
+									...(ownerActor != null && {
+										[entityFieldAddressKey(EntityType.EnsName_Timestamp, [], '$ownerActor')]: ownerActor,
+									}),
+									[entityFieldAddressKey(EntityType.EnsName_Timestamp, [], 'subdomainCount')]: matchingEnsDomain.subdomainCount,
+									...(resolverTextKeys.length > 0 && {
+										[entityFieldAddressKey(EntityType.EnsName_Timestamp, [], 'resolverTextKeys')]: resolverTextKeys,
+									}),
+									...(resolverCoinTypes.length > 0 && {
+										[entityFieldAddressKey(EntityType.EnsName_Timestamp, [], 'resolverCoinTypes')]: resolverCoinTypes,
+									}),
+									...(ttl != null && {
+										[entityFieldAddressKey(EntityType.EnsName_Timestamp, [], 'ttl')]: ttl,
+									}),
+									[entityFieldAddressKey(EntityType.EnsName_Timestamp, [], 'isMigrated')]: matchingEnsDomain.isMigrated,
+								},
 							}],
 						}
 					},
@@ -357,92 +390,6 @@ export default {
 					select: (ensName) => ensName.$$timestamps,
 					resolveCount: (ensName) => ensName.$$timestamps.length,
 				},
-			}),
-
-		defineResolver({
-			entityType: EntityType.EnsName_Timestamp,
-			resolve: {
-				NameTimestampMsSource: {
-					resolve: async ({ $name, timestampMs, source }, context) => {
-						if (source !== Source.TheGraph_Graphql)
-							throw new Error('TheGraph_Graphql: EnsName_Timestamp selector source mismatch')
-
-						const normalizedName = ensToString(ensNormalizeNode($name.name))
-						const matchingEnsDomain = (
-							await getName({
-								publicEnv: context.publicEnv,
-								name: normalizedName,
-							})
-						).find((candidate) => candidate.name === normalizedName)
-						if (matchingEnsDomain == null)
-							throw new Error('TheGraph_Graphql: ENS name observation not in subgraph')
-
-						const resolverAddress = hexLowerOfByteSize(
-							String(matchingEnsDomain.resolver?.address ?? ''),
-							20
-						)
-						const resolvedActor = evmAccountFromSubgraphAccount(
-							matchingEnsDomain.resolvedAddress
-							?? matchingEnsDomain.resolver?.addr
-						)
-						const ownerActor = evmAccountFromSubgraphAccount(matchingEnsDomain.owner)
-						const resolverTextKeys = matchingEnsDomain.resolver?.texts?.map(String) ?? []
-						const resolverCoinTypes = matchingEnsDomain.resolver?.coinTypes
-							?.filter((coinType) => coinType != null)
-							.map(String) ?? []
-
-						return {
-							$name: {
-								[EntityMetaKey.Selector]: {
-									name: normalizedName,
-								},
-							},
-							timestampMs,
-							source,
-							...(resolvedActor != null && {
-								$resolvedActor: resolvedActor,
-							}),
-							...(resolverAddress != null && {
-								$resolverContract: {
-									[EntityMetaKey.Selector]: {
-										$network: {
-											caip2: {
-												namespace: 'eip155',
-												reference: '1',
-											},
-										},
-										address: resolverAddress,
-									},
-								},
-							}),
-							...(ownerActor != null && {
-								$ownerActor: ownerActor,
-							}),
-							subdomainCount: matchingEnsDomain.subdomainCount,
-							...(resolverTextKeys.length > 0 && {
-								resolverTextKeys,
-							}),
-							...(resolverCoinTypes.length > 0 && {
-								resolverCoinTypes,
-							}),
-							ttl: bigintFromSubgraphScalar(matchingEnsDomain.ttl),
-							isMigrated: matchingEnsDomain.isMigrated,
-						}
-					},
-				},
-			},
-		})({
-				$name: (ensNameTimestamp) => ensNameTimestamp.$name,
-				timestampMs: (ensNameTimestamp) => ensNameTimestamp.timestampMs,
-				source: (ensNameTimestamp) => ensNameTimestamp.source,
-				$resolvedActor: (ensNameTimestamp) => ensNameTimestamp.$resolvedActor,
-				$resolverContract: (ensNameTimestamp) => ensNameTimestamp.$resolverContract,
-				$ownerActor: (ensNameTimestamp) => ensNameTimestamp.$ownerActor,
-				subdomainCount: (ensNameTimestamp) => ensNameTimestamp.subdomainCount,
-				resolverTextKeys: (ensNameTimestamp) => ensNameTimestamp.resolverTextKeys,
-				resolverCoinTypes: (ensNameTimestamp) => ensNameTimestamp.resolverCoinTypes,
-				ttl: (ensNameTimestamp) => ensNameTimestamp.ttl,
-				isMigrated: (ensNameTimestamp) => ensNameTimestamp.isMigrated,
 			}),
 
 		defineResolver({
@@ -530,6 +477,7 @@ export default {
 						:
 							undefined
 						const observedAtMs = Date.now()
+						const value = ensRecordTipValueFromDomain(matchingEnsDomain, recordKey)
 
 						return {
 							$name: {
@@ -551,6 +499,11 @@ export default {
 									timestampMs: observedAtMs,
 									source: Source.TheGraph_Graphql,
 								},
+								[EntityMetaKey.Fields]: {
+									...(value !== undefined && {
+										[entityFieldAddressKey(EntityType.EnsRecord_Timestamp, [], 'value')]: value,
+									}),
+								},
 							}],
 						}
 					},
@@ -565,49 +518,6 @@ export default {
 					select: (ensRecord) => ensRecord.$$timestamps,
 					resolveCount: (ensRecord) => ensRecord.$$timestamps.length,
 				},
-			}),
-
-		defineResolver({
-			entityType: EntityType.EnsRecord_Timestamp,
-			resolve: {
-				RecordTimestampMsSource: {
-					resolve: async ({ $record, timestampMs, source }, context) => {
-						if (source !== Source.TheGraph_Graphql)
-							throw new Error('TheGraph_Graphql: EnsRecord_Timestamp selector source mismatch')
-
-						const normalizedName = ensToString(ensNormalizeNode($record.$name.name))
-						const domains = await getName({
-							publicEnv: context.publicEnv,
-							name: normalizedName,
-						})
-						if (domains == null)
-							throw new Error('TheGraph_Graphql: ENS record observation name not in subgraph')
-						const matchingEnsDomain = domains.find((candidate) => candidate.name === normalizedName)
-						if (matchingEnsDomain == null)
-							throw new Error('TheGraph_Graphql: ENS record observation name not in subgraph')
-
-						const value = ensRecordTipValueFromDomain(matchingEnsDomain, $record.recordKey)
-						return {
-							$record: {
-								[EntityMetaKey.Selector]: {
-									$name: {
-										name: normalizedName,
-									},
-									recordKey: $record.recordKey,
-								},
-							},
-							timestampMs,
-							source,
-							...(value !== undefined && { value }),
-						}
-					},
-				},
-			},
-		})({
-				$record: (observation) => observation.$record,
-				timestampMs: (observation) => observation.timestampMs,
-				source: (observation) => observation.source,
-				value: (observation) => observation.value,
 			}),
 
 		defineResolver({
