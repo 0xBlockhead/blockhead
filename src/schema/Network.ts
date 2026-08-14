@@ -1362,6 +1362,7 @@ export default entity({
 				cardinality: EntityFieldCardinality.Many,
 				defaultSources: [
 					Source.Xrpl_Rippled,
+					Source.Bithomp,
 				],
 			},
 			$$ledgerEntries: {

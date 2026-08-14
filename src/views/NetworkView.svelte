@@ -6887,6 +6887,11 @@
 
 					</CollapsibleTabs>
 				{/if}
+				{@const xrplProtocolLiquidityXrplLiquidityAmmsSources = networkApplicableSources([
+						Source.Xrpl_Rippled,
+						Source.Bithomp,
+					], pendingEntity)}
+
 				{@const xrplProtocolLiquiditySections = [
 						...(
 							xrplRippledSources.length > 0 ?
@@ -6900,7 +6905,7 @@
 								[]
 						),
 						...(
-							xrplRippledSources.length > 0 ?
+							xrplProtocolLiquidityXrplLiquidityAmmsSources.length > 0 ?
 								[
 									{
 										id: 'xrpl-liquidity-amms',
@@ -6947,7 +6952,7 @@
 								selection={
 									projection
 									.$$amms({
-										sources: xrplRippledSources,
+										sources: xrplProtocolLiquidityXrplLiquidityAmmsSources,
 										limit: 16,
 									})
 								}

@@ -35,6 +35,7 @@ export default entity({
 		defaultSources: [
 			Source.Xrpl_Rippled,
 			Source.XrpScan_Rest,
+			Source.Bithomp,
 		],
 	},
 	asset2Amount: {
@@ -43,6 +44,7 @@ export default entity({
 		defaultSources: [
 			Source.Xrpl_Rippled,
 			Source.XrpScan_Rest,
+			Source.Bithomp,
 		],
 	},
 	lpTokenBalance: {
@@ -51,6 +53,7 @@ export default entity({
 		defaultSources: [
 			Source.Xrpl_Rippled,
 			Source.XrpScan_Rest,
+			Source.Bithomp,
 		],
 	},
 	tradingFee: {
@@ -59,6 +62,7 @@ export default entity({
 		defaultSources: [
 			Source.Xrpl_Rippled,
 			Source.XrpScan_Rest,
+			Source.Bithomp,
 		],
 	},
 	auctionSlot: {
@@ -67,6 +71,7 @@ export default entity({
 		defaultSources: [
 			Source.Xrpl_Rippled,
 			Source.XrpScan_Rest,
+			Source.Bithomp,
 		],
 	},
 	voteSlots: {
@@ -75,6 +80,7 @@ export default entity({
 		defaultSources: [
 			Source.Xrpl_Rippled,
 			Source.XrpScan_Rest,
+			Source.Bithomp,
 		],
 	},
 	$ledgerEntry: {

@@ -27,6 +27,7 @@ export default entity({
 		defaultSources: [
 			Source.Xrpl_Rippled,
 			Source.XrpScan_Rest,
+			Source.Bithomp,
 		],
 	},
 	assetIssuer: {
@@ -35,6 +36,7 @@ export default entity({
 		defaultSources: [
 			Source.Xrpl_Rippled,
 			Source.XrpScan_Rest,
+			Source.Bithomp,
 		],
 	},
 	asset2Currency: {
@@ -43,6 +45,7 @@ export default entity({
 		defaultSources: [
 			Source.Xrpl_Rippled,
 			Source.XrpScan_Rest,
+			Source.Bithomp,
 		],
 	},
 	asset2Issuer: {
@@ -51,6 +54,7 @@ export default entity({
 		defaultSources: [
 			Source.Xrpl_Rippled,
 			Source.XrpScan_Rest,
+			Source.Bithomp,
 		],
 	},
 	lpTokenCurrency: {
@@ -59,6 +63,7 @@ export default entity({
 		defaultSources: [
 			Source.Xrpl_Rippled,
 			Source.XrpScan_Rest,
+			Source.Bithomp,
 		],
 	},
 	$$timestamps: {
@@ -67,6 +72,7 @@ export default entity({
 		defaultSources: [
 			Source.Xrpl_Rippled,
 			Source.XrpScan_Rest,
+			Source.Bithomp,
 		],
 	},
 })({

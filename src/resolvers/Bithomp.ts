@@ -127,6 +127,47 @@ const projectAmmObservationFields = (response: BithompAmm) => {
 	}
 }
 
+const ammObservationClock = (response: BithompAmm) => {
+	if (response.updatedLedgerIndex == null && response.updatedAt == null)
+		return undefined
+	if (response.updatedLedgerIndex == null)
+		throw new Error('Bithomp: malformed amm ledger index')
+	if (response.updatedAt == null)
+		throw new Error('Bithomp: malformed amm timestamp')
+	if (!Number.isSafeInteger(response.updatedLedgerIndex) || response.updatedLedgerIndex < 0)
+		throw new Error('Bithomp: malformed amm ledger index')
+	if (
+		!Number.isSafeInteger(response.updatedAt)
+		|| response.updatedAt < 0
+		|| !Number.isSafeInteger(response.updatedAt * 1_000)
+	)
+		throw new Error('Bithomp: malformed amm timestamp')
+	return {
+		ledgerIndex: BigInt(response.updatedLedgerIndex),
+		timestampMs: response.updatedAt * 1_000,
+	}
+}
+
+const ammLedgerEntryReference = (
+	network: {
+		caip2?: {
+			namespace: string
+			reference: string
+		}
+		slug?: string
+	},
+	ledgerIndex: bigint,
+	ammID: string
+) => ({
+	[EntityMetaKey.Selector]: {
+		$ledger: {
+			$network: network,
+			ledgerIndex,
+		},
+		entryHash: ammID,
+	},
+})
+
 const tipAccountLedger = async (
 	publicEnv: {
 		PUBLIC_BITHOMP_API_KEY?: string
@@ -526,23 +567,11 @@ export default {
 						})
 						if (response.account !== amm.ammAccount)
 							throw new Error('Bithomp: amm response does not match the subject')
-						if (
-							response.updatedLedgerIndex == null
-							|| !Number.isSafeInteger(response.updatedLedgerIndex)
-							|| response.updatedLedgerIndex < 0
-						)
-							throw new Error('Bithomp: malformed amm ledger index')
-						if (
-							response.updatedAt == null
-							|| !Number.isSafeInteger(response.updatedAt)
-							|| response.updatedAt < 0
-							|| !Number.isSafeInteger(response.updatedAt * 1_000)
-						)
-							throw new Error('Bithomp: malformed amm timestamp')
 
 						const identity = projectAmmIdentity(response)
-						const ledgerIndex = validatedLedgerIndex(response.updatedLedgerIndex)
-						const timestampMs = response.updatedAt * 1_000
+						const observationClock = ammObservationClock(response)
+						if (observationClock == null)
+							throw new Error('Bithomp: amm response is missing its observation clock')
 
 						return {
 							assetCurrency: identity.assetCurrency,
@@ -559,12 +588,19 @@ export default {
 							$$timestamps: [{
 								[EntityMetaKey.Selector]: {
 									$amm: amm,
-									ledgerIndex,
+									ledgerIndex: observationClock.ledgerIndex,
 									source: Source.Bithomp,
 								},
 								[EntityMetaKey.Fields]: {
-									[entityFieldAddressKey(EntityType.XrplAmm_Timestamp, [], 'timestampMs')]: timestampMs,
+									[entityFieldAddressKey(EntityType.XrplAmm_Timestamp, [], 'timestampMs')]: observationClock.timestampMs,
 									...projectAmmObservationFields(response),
+									...(response.ammID != null && response.ammID.length > 0 && {
+										[entityFieldAddressKey(EntityType.XrplAmm_Timestamp, [], '$ledgerEntry')]: ammLedgerEntryReference(
+											amm.$network,
+											observationClock.ledgerIndex,
+											response.ammID
+										),
+									}),
 								},
 							}],
 						}
@@ -595,21 +631,15 @@ export default {
 						})
 						if (response.account !== $amm.ammAccount)
 							throw new Error('Bithomp: amm response does not match the subject')
-						if (response.updatedLedgerIndex == null)
-							throw new Error('Bithomp: malformed amm ledger index')
-						if (validatedLedgerIndex(response.updatedLedgerIndex) !== ledgerIndex)
+						const observationClock = ammObservationClock(response)
+						if (observationClock == null)
+							throw new Error('Bithomp: amm response is missing its observation clock')
+						if (observationClock.ledgerIndex !== ledgerIndex)
 							throw new Error('Bithomp: AMM observation is not the tip ledger')
-						if (
-							response.updatedAt == null
-							|| !Number.isSafeInteger(response.updatedAt)
-							|| response.updatedAt < 0
-							|| !Number.isSafeInteger(response.updatedAt * 1_000)
-						)
-							throw new Error('Bithomp: malformed amm timestamp')
 
 						const identity = projectAmmIdentity(response)
 						return {
-							timestampMs: response.updatedAt * 1_000,
+							timestampMs: observationClock.timestampMs,
 							assetAmount: identity.assetAmount,
 							asset2Amount: identity.asset2Amount,
 							...(response.lpTokenBalance?.value != null && {
@@ -624,6 +654,13 @@ export default {
 							...(response.voteSlots != null && {
 								voteSlots: response.voteSlots,
 							}),
+							...(response.ammID != null && response.ammID.length > 0 && {
+								$ledgerEntry: ammLedgerEntryReference(
+									$amm.$network,
+									observationClock.ledgerIndex,
+									response.ammID
+								),
+							}),
 						}
 					},
 				},
@@ -636,6 +673,7 @@ export default {
 			tradingFee: (observation) => observation.tradingFee,
 			auctionSlot: (observation) => observation.auctionSlot,
 			voteSlots: (observation) => observation.voteSlots,
+			$ledgerEntry: (observation) => observation.$ledgerEntry,
 		}),
 
 		defineResolver({
@@ -657,11 +695,13 @@ export default {
 								.slice(0, limit)
 								.map((amm) => {
 									const identity = projectAmmIdentity(amm)
+									const observationClock = ammObservationClock(amm)
+									const ammSelector = {
+										$network: network,
+										ammAccount: amm.account,
+									}
 									return {
-										[EntityMetaKey.Selector]: {
-											$network: network,
-											ammAccount: amm.account,
-										},
+										[EntityMetaKey.Selector]: ammSelector,
 										[EntityMetaKey.Fields]: {
 											[entityFieldAddressKey(EntityType.XrplAmm, [], 'assetCurrency')]: identity.assetCurrency,
 											...(identity.assetIssuer != null && {
@@ -673,6 +713,26 @@ export default {
 											}),
 											...(identity.lpTokenCurrency != null && {
 												[entityFieldAddressKey(EntityType.XrplAmm, [], 'lpTokenCurrency')]: identity.lpTokenCurrency,
+											}),
+											...(observationClock != null && {
+												[entityFieldAddressKey(EntityType.XrplAmm, [], '$$timestamps')]: [{
+													[EntityMetaKey.Selector]: {
+														$amm: ammSelector,
+														ledgerIndex: observationClock.ledgerIndex,
+														source: Source.Bithomp,
+													},
+													[EntityMetaKey.Fields]: {
+														[entityFieldAddressKey(EntityType.XrplAmm_Timestamp, [], 'timestampMs')]: observationClock.timestampMs,
+														...projectAmmObservationFields(amm),
+														...(amm.ammID != null && amm.ammID.length > 0 && {
+															[entityFieldAddressKey(EntityType.XrplAmm_Timestamp, [], '$ledgerEntry')]: ammLedgerEntryReference(
+																network,
+																observationClock.ledgerIndex,
+																amm.ammID
+															),
+														}),
+													},
+												}],
 											}),
 										},
 									}

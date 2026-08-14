@@ -421,6 +421,15 @@ describe('Bithomp XRPL AMM resolver', () => {
 					tradingFee: 300,
 					voteWeight: 17_649,
 				}],
+				[entityFieldAddressKey(EntityType.XrplAmm_Timestamp, [], '$ledgerEntry')]: {
+					[EntityMetaKey.Selector]: {
+						$ledger: {
+							$network: amm.$network,
+							ledgerIndex: 87_461_194n,
+						},
+						entryHash: 'C55741BDA5F2590DD0F0EF7F620F133C0B73C382A8987068CA2DD886D99FD3B5',
+					},
+				},
 			},
 		}])
 		expect(getAmm).toHaveBeenCalledOnce()
@@ -438,6 +447,15 @@ describe('Bithomp XRPL AMM resolver', () => {
 
 		expect(ammTipResolver.projections.assetAmount(observation)).toBe('13820630640')
 		expect(ammTipResolver.projections.tradingFee(observation)).toBe(290)
+		expect(ammTipResolver.projections.$ledgerEntry(observation)).toEqual({
+			[EntityMetaKey.Selector]: {
+				$ledger: {
+					$network: amm.$network,
+					ledgerIndex: 87_461_194n,
+				},
+				entryHash: 'C55741BDA5F2590DD0F0EF7F620F133C0B73C382A8987068CA2DD886D99FD3B5',
+			},
+		})
 	})
 
 	it('rejects every network except xrpl:0 before transport', async () => {
@@ -524,6 +542,7 @@ describe('Bithomp network AMM list and ledger entry', () => {
 		getAmms.mockResolvedValue({
 			marker: 'NEXT',
 			amms: [{
+				ammID: 'C55741BDA5F2590DD0F0EF7F620F133C0B73C382A8987068CA2DD886D99FD3B5',
 				account: amm.ammAccount,
 				amount: '10',
 				amount2: {
@@ -536,6 +555,9 @@ describe('Bithomp network AMM list and ledger entry', () => {
 					issuer: amm.ammAccount,
 					value: '3',
 				},
+				updatedAt: 1_713_700_900,
+				updatedLedgerIndex: 87_461_194,
+				tradingFee: 290,
 			}],
 		})
 
@@ -550,6 +572,32 @@ describe('Bithomp network AMM list and ledger entry', () => {
 				[entityFieldAddressKey(EntityType.XrplAmm, [], 'asset2Currency')]: 'USD',
 				[entityFieldAddressKey(EntityType.XrplAmm, [], 'asset2Issuer')]: 'rIssuer',
 				[entityFieldAddressKey(EntityType.XrplAmm, [], 'lpTokenCurrency')]: 'LP',
+				[entityFieldAddressKey(EntityType.XrplAmm, [], '$$timestamps')]: [{
+					[EntityMetaKey.Selector]: {
+						$amm: {
+							$network: account.$network,
+							ammAccount: amm.ammAccount,
+						},
+						ledgerIndex: 87_461_194n,
+						source: Source.Bithomp,
+					},
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.XrplAmm_Timestamp, [], 'timestampMs')]: 1_713_700_900_000,
+						[entityFieldAddressKey(EntityType.XrplAmm_Timestamp, [], 'assetAmount')]: '10',
+						[entityFieldAddressKey(EntityType.XrplAmm_Timestamp, [], 'asset2Amount')]: '2',
+						[entityFieldAddressKey(EntityType.XrplAmm_Timestamp, [], 'lpTokenBalance')]: '3',
+						[entityFieldAddressKey(EntityType.XrplAmm_Timestamp, [], 'tradingFee')]: 290,
+						[entityFieldAddressKey(EntityType.XrplAmm_Timestamp, [], '$ledgerEntry')]: {
+							[EntityMetaKey.Selector]: {
+								$ledger: {
+									$network: account.$network,
+									ledgerIndex: 87_461_194n,
+								},
+								entryHash: 'C55741BDA5F2590DD0F0EF7F620F133C0B73C382A8987068CA2DD886D99FD3B5',
+							},
+						},
+					},
+				}],
 			},
 		}])
 		expect(networkAmmsResolver.projections.Xrpl.$$amms.continuation(page, account.$network, context)).toEqual({
