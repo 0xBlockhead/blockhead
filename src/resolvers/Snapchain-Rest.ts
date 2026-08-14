@@ -1054,10 +1054,18 @@ export default {
 						const { snapchainMaxPageSize } = await import('$/sources/Snapchain/Rest/constants.ts')
 
 						const subsetRowLimit = resolverContextRowLimit(context)
+						if (context.providerContinuationToken === '')
+							throw new Error('Snapchain_Rest: invalid following-feed continuation')
 
 						const { getCastsByFid, getLinksByFid } = await import('$/sources/Snapchain/Rest/queries.ts')
 						const followedFids: number[] = []
-						let linksPageToken: string | undefined
+						const seenPageTokens = new Set(
+							context.providerContinuationToken == null ?
+								[]
+							:
+								[context.providerContinuationToken]
+						)
+						let linksPageToken = context.providerContinuationToken
 						const maxFollowedFids = Math.min(subsetRowLimit, 12)
 						do {
 							const remaining = Math.max(maxFollowedFids - followedFids.length, 0)
@@ -1074,16 +1082,22 @@ export default {
 								if (targetFid != null) followedFids.push(targetFid)
 							}
 							linksPageToken = page.nextPageToken
+							if (linksPageToken != null && linksPageToken !== '') {
+								if (seenPageTokens.has(linksPageToken))
+									throw new Error('Snapchain_Rest: following-feed continuation did not advance')
+								seenPageTokens.add(linksPageToken)
+							}
 						} while (
 							linksPageToken != null
+							&& linksPageToken !== ''
 							&& followedFids.length < maxFollowedFids
 						)
 						const perAuthor = Math.max(
 							1,
 							Math.ceil(subsetRowLimit / Math.max(followedFids.length, 1))
 						)
-						return (
-							(await Promise.all(
+						return {
+							entries: (await Promise.all(
 								followedFids.map(async (fid) => (
 									await getCastsByFid({
 										fid,
@@ -1094,13 +1108,26 @@ export default {
 							))
 								.flatMap((page) => page.messages ?? [])
 								.flatMap((cast) => snapchainCastEntity(cast) ?? [])
-								.slice(0, subsetRowLimit)
-						)
+								.slice(0, subsetRowLimit),
+							...(linksPageToken != null && linksPageToken !== '' && {
+								nextPageToken: linksPageToken,
+							}),
+						}
 					},
 				},
 			},
 		})({
-				$$entries: (entries) => entries,
+				$$entries: {
+					select: (snapshot) => snapshot.entries,
+					continuation: (snapshot, feed) => ({
+						operation: 'following-feed',
+						target: String(feed.viewerFid),
+						terminal: snapshot.nextPageToken == null,
+						...(snapshot.nextPageToken != null && {
+							token: snapshot.nextPageToken,
+						}),
+					}),
+				},
 			}),
 
 	],

@@ -16,6 +16,7 @@ import { Source } from '$/sources/Source.ts'
 const getCastsByParent = vi.hoisted(() => vi.fn())
 const getCastById = vi.hoisted(() => vi.fn())
 const getCastsByFid = vi.hoisted(() => vi.fn())
+const getLinksByFid = vi.hoisted(() => vi.fn())
 const countLinksByFid = vi.hoisted(() => vi.fn())
 const countLinksByTargetFid = vi.hoisted(() => vi.fn())
 const getUserDataByFid = vi.hoisted(() => vi.fn())
@@ -30,6 +31,7 @@ vi.mock('$/sources/Snapchain/Rest/queries.ts', () => ({
 	getCastEngagementCountsForCast,
 	getCastsByFid,
 	getCastsByParent,
+	getLinksByFid,
 	getUserDataByFid,
 	getUsernameProofsByFid,
 	getVerificationsByFid,
@@ -480,6 +482,52 @@ describe('Snapchain Farcaster observations', () => {
 			url: 'https://farcaster.xyz/~/channel/design',
 			pageSize: 2,
 			pageToken: undefined,
+		})
+	})
+
+	it('preserves native following-feed cursors across followed-author pages', async () => {
+		getLinksByFid.mockResolvedValueOnce({
+			messages: [
+				{ data: { linkBody: { targetFid: 7 } } },
+				{ data: { linkBody: { targetFid: 8 } } },
+			],
+			nextPageToken: 'opaque+/=',
+		})
+		getCastsByFid.mockResolvedValue({ messages: [] })
+		const feedResolver = snapchainResolvers.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.FarcasterFeed
+			&& 'Following' in resolver.resolve
+		))
+		if (feedResolver == null || typeof feedResolver.projections.$$entries === 'function')
+			throw new Error('Snapchain spec missing paginated following-feed resolver')
+
+		const snapshot = await feedResolver.resolve.Following.resolve(
+			{
+				variant: 'following',
+				viewerFid: 42,
+			},
+			{
+				...context,
+				providerContinuationToken: 'prior+/=',
+			}
+		)
+
+		expect(getLinksByFid).toHaveBeenCalledWith({
+			fid: 42,
+			linkType: 'follow',
+			pageSize: 2,
+			pageToken: 'prior+/=',
+			reverse: true,
+		})
+		expect(feedResolver.projections.$$entries.select(snapshot)).toEqual([])
+		expect(feedResolver.projections.$$entries.continuation(snapshot, {
+			variant: 'following',
+			viewerFid: 42,
+		}, context)).toEqual({
+			operation: 'following-feed',
+			target: '42',
+			terminal: false,
+			token: 'opaque+/=',
 		})
 	})
 })

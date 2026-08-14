@@ -252,22 +252,28 @@ describe('Lens_Graphql reading relationships', () => {
 		await expect(lensGraphql.resolvers[0].resolve.Scope.resolve({
 			scope: 'LensNetwork',
 		}, context)).resolves.toEqual([expectedReference])
-		await expect(lensGraphql.resolvers[4].resolve['Address'].resolve({
+		expect(lensGraphql.resolvers[4].projections.$$posts.select(
+			await lensGraphql.resolvers[4].resolve['Address'].resolve({
 			address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
-		}, context)).resolves.toEqual([expectedReference])
-		await expect(lensGraphql.resolvers[3].resolve['Id'].resolve({
+			}, context)
+		)).toEqual([expectedReference])
+		expect(lensGraphql.resolvers[3].projections.$$comments.select(
+			await lensGraphql.resolvers[3].resolve['Id'].resolve({
 			id: 'parent-post',
-		}, context)).resolves.toEqual([expectedReference])
+			}, context)
+		)).toEqual([expectedReference])
 		expect(queryLatestPosts).toHaveBeenCalledWith(
 			64
 		)
 		expect(queryPostsByAuthor).toHaveBeenCalledWith(
 			'0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
-			64
+			64,
+			undefined
 		)
 		expect(queryPostComments).toHaveBeenCalledWith(
 			'parent-post',
-			64
+			64,
+			undefined
 		)
 		expect(queryPost).not.toHaveBeenCalled()
 		expect(lensGraphql.source).toBe(Source.Lens_Graphql)
@@ -625,12 +631,14 @@ describe('Lens_Graphql reading relationships', () => {
 			},
 		})
 
-		await expect(lensGraphql.resolvers[10].resolve.Address.resolve({
+		expect(lensGraphql.resolvers[10].projections.$$posts.select(
+			await lensGraphql.resolvers[10].resolve.Address.resolve({
 			address: '0x1111111111111111111111111111111111111111',
 		}, {
 			...context,
 			pagination: { limit: 7 },
-		})).resolves.toEqual([
+			})
+		)).toEqual([
 			{
 				[EntityMetaKey.Selector]: { id: 'feed-post' },
 				[EntityMetaKey.Fields]: expect.objectContaining({
@@ -646,8 +654,46 @@ describe('Lens_Graphql reading relationships', () => {
 		])
 		expect(queryFeedPosts).toHaveBeenCalledWith(
 			'0x1111111111111111111111111111111111111111',
-			7
+			7,
+			undefined
 		)
+	})
+
+	it('preserves opaque and partial-page Lens feed continuations', async () => {
+		queryFeedPosts.mockResolvedValueOnce({
+			posts: {
+				continuation: {
+					cursor: 'opaque+/=',
+					offset: 9,
+					pageSize: 'FIFTY',
+				},
+				items: [],
+			},
+		})
+		const snapshot = await lensGraphql.resolvers[10].resolve.Address.resolve({
+			address: '0x1111111111111111111111111111111111111111',
+		}, {
+			...context,
+			providerContinuationToken: 'lens-offset:cursor=prior%2B%2F%3D&offset=7&pageSize=FIFTY',
+		})
+
+		expect(queryFeedPosts).toHaveBeenCalledWith(
+			'0x1111111111111111111111111111111111111111',
+			64,
+			{
+				cursor: 'prior+/=',
+				offset: 7,
+				pageSize: 'FIFTY',
+			}
+		)
+		expect(lensGraphql.resolvers[10].projections.$$posts.continuation(snapshot, {
+			address: '0x1111111111111111111111111111111111111111',
+		}, context)).toEqual({
+			operation: 'feed-posts',
+			target: '0x1111111111111111111111111111111111111111',
+			terminal: false,
+			token: 'lens-offset:cursor=opaque%2B%2F%3D&offset=9&pageSize=FIFTY',
+		})
 	})
 
 	it('resolves author posts through localName and legacyProfileId without forking identity', async () => {
@@ -689,12 +735,14 @@ describe('Lens_Graphql reading relationships', () => {
 			},
 		})
 
-		await expect(lensGraphql.resolvers[4].resolve.LocalName.resolve({
+		expect(lensGraphql.resolvers[4].projections.$$posts.select(
+			await lensGraphql.resolvers[4].resolve.LocalName.resolve({
 			localName: 'alice',
 		}, {
 			...context,
 			pagination: { limit: 3 },
-		})).resolves.toEqual([
+			})
+		)).toEqual([
 			{
 				[EntityMetaKey.Selector]: { id: 'post-one' },
 				[EntityMetaKey.Fields]: expect.objectContaining({
@@ -708,19 +756,22 @@ describe('Lens_Graphql reading relationships', () => {
 				}),
 			},
 		])
-		await expect(lensGraphql.resolvers[4].resolve.LegacyProfileId.resolve({
+		expect(lensGraphql.resolvers[4].projections.$$posts.select(
+			await lensGraphql.resolvers[4].resolve.LegacyProfileId.resolve({
 			legacyProfileId: '0x01',
 		}, {
 			...context,
 			pagination: { limit: 3 },
-		})).resolves.toHaveLength(1)
+			})
+		)).toHaveLength(1)
 		expect(queryAccount.mock.calls).toEqual([
 			[{ username: { localName: 'alice' } }],
 			[{ legacyProfileId: '0x01' }],
 		])
 		expect(queryPostsByAuthor).toHaveBeenCalledWith(
 			'0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
-			3
+			3,
+			undefined
 		)
 	})
 

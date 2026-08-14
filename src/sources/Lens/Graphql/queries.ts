@@ -16,6 +16,11 @@ type LensPageInfo = {
 	prev?: string | null
 	next?: string | null
 }
+type LensPageContinuation = {
+	cursor?: string
+	offset?: number
+	pageSize?: LensPageSize
+}
 
 const queryLensPages = async <_Item>(
 	limit: number,
@@ -26,24 +31,71 @@ const queryLensPages = async <_Item>(
 		items: readonly _Item[]
 		pageInfo: LensPageInfo
 	}>,
-	itemKey: (item: _Item) => string
+	itemKey: (item: _Item) => string,
+	continuation: LensPageContinuation = {}
 ) => {
 	if (!Number.isSafeInteger(limit) || limit < 0)
 		throw new Error('Lens_Graphql: page limit must be a nonnegative safe integer')
+	if (continuation.cursor === '')
+		throw new Error('Lens_Graphql: page cursor must not be empty')
+	if (
+		continuation.offset != null
+		&& (!Number.isSafeInteger(continuation.offset) || continuation.offset < 0)
+	)
+		throw new Error('Lens_Graphql: page offset must be a nonnegative safe integer')
+	if (continuation.offset != null && continuation.pageSize == null)
+		throw new Error('Lens_Graphql: page offset requires its provider page size')
+	if (continuation.offset == null && continuation.pageSize != null)
+		throw new Error('Lens_Graphql: provider page size requires a page offset')
 
 	const itemByKey = new Map<string, _Item>()
-	const seenCursors = new Set<string>()
-	let cursor: string | undefined
+	const seenCursors = new Set(continuation.cursor == null ? [] : [continuation.cursor])
+	let cursor = continuation.cursor
+	let offset = continuation.offset ?? 0
+	let replayPageSize = continuation.pageSize
 	let pageInfo: LensPageInfo = {}
+	let nextContinuation: LensPageContinuation | undefined
 	let nonProgressPageCount = 0
 	while (itemByKey.size < limit) {
 		const previousItemCount = itemByKey.size
-		const page = await loadPage(limit - itemByKey.size > 10 ? 'FIFTY' : 'TEN', cursor)
+		const pageCursor = cursor
+		const pageSize = replayPageSize ?? (limit - itemByKey.size > 10 ? 'FIFTY' : 'TEN')
+		const page = await loadPage(pageSize, cursor)
 		pageInfo = page.pageInfo
-		for (const item of page.items)
-			if (itemByKey.size < limit)
-				itemByKey.set(itemKey(item), item)
+		if (offset > page.items.length)
+			throw new Error('Lens_Graphql: page offset exceeds page length')
+
+		let consumedItemCount = offset
+		for (const item of page.items.slice(offset)) {
+			consumedItemCount += 1
+			itemByKey.set(itemKey(item), item)
+			if (itemByKey.size >= limit)
+				break
+		}
 		nonProgressPageCount = itemByKey.size === previousItemCount ? nonProgressPageCount + 1 : 0
+		if (itemByKey.size >= limit) {
+			if (
+				consumedItemCount >= page.items.length
+				&& pageInfo.next != null
+				&& pageInfo.next !== ''
+				&& seenCursors.has(pageInfo.next)
+			)
+				throw new Error('Lens_Graphql: repeated page cursor')
+
+			nextContinuation = (
+				consumedItemCount < page.items.length ?
+					{
+						...(pageCursor != null && { cursor: pageCursor }),
+						offset: consumedItemCount,
+						pageSize,
+					}
+				: pageInfo.next == null || pageInfo.next === '' ?
+					undefined
+				:
+					{ cursor: pageInfo.next }
+			)
+			break
+		}
 
 		if (page.items.length === 0 || pageInfo.next == null || pageInfo.next === '')
 			break
@@ -54,9 +106,12 @@ const queryLensPages = async <_Item>(
 
 		seenCursors.add(pageInfo.next)
 		cursor = pageInfo.next
+		offset = 0
+		replayPageSize = undefined
 	}
 
 	return {
+		continuation: nextContinuation,
 		items: [...itemByKey.values()],
 		pageInfo,
 	}
@@ -741,7 +796,8 @@ export const lensQueries = (() => {
 
 	const queryPostsByAuthor = async (
 	address: `0x${string}`,
-	limit: number | LensPageSize = 10
+	limit: number | LensPageSize = 10,
+	continuation?: LensPageContinuation
 ) => ({
 	posts: await queryLensPages(
 		limit === 'TEN' ? 10 : limit === 'FIFTY' ? 50 : limit,
@@ -755,7 +811,8 @@ export const lensQueries = (() => {
 				}
 			)).posts
 		),
-		(post) => post.slug
+		(post) => post.slug,
+		continuation
 	),
 })
 
@@ -779,7 +836,8 @@ export const lensQueries = (() => {
 
 	const queryPostComments = async (
 	postId: string,
-	limit: number | LensPageSize = 10
+	limit: number | LensPageSize = 10,
+	continuation?: LensPageContinuation
 ) => ({
 	postReferences: await queryLensPages(
 		limit === 'TEN' ? 10 : limit === 'FIFTY' ? 50 : limit,
@@ -793,7 +851,8 @@ export const lensQueries = (() => {
 				}
 			)).postReferences
 		),
-		(post) => post.slug
+		(post) => post.slug,
+		continuation
 	),
 })
 
@@ -836,7 +895,8 @@ export const lensQueries = (() => {
 
 	const queryFeedPosts = async (
 	address: `0x${string}`,
-	limit = 10
+	limit = 10,
+	continuation?: LensPageContinuation
 ) => {
 	return {
 		posts: await queryLensPages(
@@ -851,7 +911,8 @@ export const lensQueries = (() => {
 					}
 				)).posts
 			),
-				(post) => post.slug
+				(post) => post.slug,
+				continuation
 			),
 		}
 	}

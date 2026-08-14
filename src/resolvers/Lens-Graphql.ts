@@ -34,6 +34,83 @@ const {
 	queryUsernames,
 } = lensQueries
 
+const lensPageContinuationFromToken = (token?: string) => {
+	if (token == null)
+		return undefined
+	if (!token.startsWith('lens-offset:'))
+		return { cursor: token }
+
+	const parameters = new URLSearchParams(token.slice('lens-offset:'.length))
+	const cursor = parameters.get('cursor')
+	const offset = parameters.get('offset')
+	const pageSize = parameters.get('pageSize')
+	if (
+		offset == null
+		|| (pageSize !== 'TEN' && pageSize !== 'FIFTY')
+		|| !/^\d+$/.test(offset)
+		|| Number(offset) < 1
+		|| !Number.isSafeInteger(Number(offset))
+		|| parameters.getAll('offset').length !== 1
+		|| parameters.getAll('pageSize').length !== 1
+		|| parameters.getAll('cursor').length > 1
+		|| cursor === ''
+		|| [...parameters.keys()].some((key) => key !== 'cursor' && key !== 'offset' && key !== 'pageSize')
+	)
+		throw new Error('Lens_Graphql: invalid page continuation')
+
+	return {
+		...(cursor != null && { cursor }),
+		offset: Number(offset),
+		pageSize,
+	}
+}
+
+const lensPageContinuationToken = (
+	continuation?: {
+		cursor?: string
+		offset?: number
+		pageSize?: 'TEN' | 'FIFTY'
+	}
+) => {
+	if (continuation?.offset == null)
+		return continuation?.cursor
+
+	const parameters = new URLSearchParams()
+	if (continuation.cursor != null)
+		parameters.set('cursor', continuation.cursor)
+	parameters.set('offset', String(continuation.offset))
+	if (continuation.pageSize != null)
+		parameters.set('pageSize', continuation.pageSize)
+	return `lens-offset:${parameters.toString()}`
+}
+
+const lensListContinuation = (
+	snapshot: {
+		continuation?: {
+			cursor?: string
+			offset?: number
+			pageSize?: 'TEN' | 'FIFTY'
+		}
+	},
+	operation: string,
+	target: string
+) => {
+	const token = lensPageContinuationToken(snapshot.continuation)
+	return token == null ?
+		{
+			operation,
+			target,
+			terminal: true,
+		}
+	:
+		{
+			operation,
+			target,
+			terminal: false,
+			token,
+		}
+}
+
 /** Lens / subgraph wire — may omit `0x` or use mixed case. */
 const lensEvmAddressFromWire = (address: string): `0x${string}` => {
 	if (address === '') throw new Error('Lens_Graphql: invalid EVM address')
@@ -748,20 +825,35 @@ const lensGraphqlResolvers = {
 				Id: {
 					resolve: async ({ id }, context) => {
 						const limit = resolverContextRowLimit(context)
-						return (await queryPostComments(id, limit)).postReferences.items.flatMap((lensPost) => {
-							if (
-								lensPost.__typename !== 'Post'
-								|| lensPost.commentOn?.slug !== id
-							)
-								return []
-							const reference = lensPostCardReferenceFromWire(lensPost)
-							return reference == null ? [] : [reference]
-						}).slice(0, limit)
+						const page = (await queryPostComments(
+							id,
+							limit,
+							lensPageContinuationFromToken(context.providerContinuationToken)
+						)).postReferences
+						return {
+							...page,
+							rows: page.items.flatMap((lensPost) => {
+								if (
+									lensPost.__typename !== 'Post'
+									|| lensPost.commentOn?.slug !== id
+								)
+									return []
+								const reference = lensPostCardReferenceFromWire(lensPost)
+								return reference == null ? [] : [reference]
+							}).slice(0, limit),
+						}
 					},
 				}
 			},
 		})({
-				$$comments: (comments) => comments,
+				$$comments: {
+					select: (snapshot) => snapshot.rows,
+					continuation: (snapshot, post) => lensListContinuation(
+						snapshot,
+						'post-comments',
+						post.id
+					),
+				},
 			}),
 
 		defineResolver({
@@ -771,16 +863,24 @@ const lensGraphqlResolvers = {
 					resolve: async ({ address }, context) => {
 						const limit = resolverContextRowLimit(context)
 						const requestedAddress = zeroExLowerCase(address)
-						return (await queryPostsByAuthor(requestedAddress, limit)).posts.items.flatMap((lensPost) => {
-							const reference = lensPostCardReferenceFromWire(lensPost)
-							return (
-								reference != null
-								&& lensEvmAddressFromWire(lensPost.author.address) === requestedAddress ?
-									[reference]
-								:
-									[]
-							)
-						}).slice(0, limit)
+						const page = (await queryPostsByAuthor(
+							requestedAddress,
+							limit,
+							lensPageContinuationFromToken(context.providerContinuationToken)
+						)).posts
+						return {
+							...page,
+							rows: page.items.flatMap((lensPost) => {
+								const reference = lensPostCardReferenceFromWire(lensPost)
+								return (
+									reference != null
+									&& lensEvmAddressFromWire(lensPost.author.address) === requestedAddress ?
+										[reference]
+									:
+										[]
+								)
+							}).slice(0, limit),
+						}
 					},
 				},
 				LocalName: {
@@ -797,16 +897,24 @@ const lensGraphqlResolvers = {
 
 						const limit = resolverContextRowLimit(context)
 						const authorAddress = lensEvmAddressFromWire(account.address)
-						return (await queryPostsByAuthor(authorAddress, limit)).posts.items.flatMap((lensPost) => {
-							const reference = lensPostCardReferenceFromWire(lensPost)
-							return (
-								reference != null
-								&& lensEvmAddressFromWire(lensPost.author.address) === authorAddress ?
-									[reference]
-								:
-									[]
-							)
-						}).slice(0, limit)
+						const page = (await queryPostsByAuthor(
+							authorAddress,
+							limit,
+							lensPageContinuationFromToken(context.providerContinuationToken)
+						)).posts
+						return {
+							...page,
+							rows: page.items.flatMap((lensPost) => {
+								const reference = lensPostCardReferenceFromWire(lensPost)
+								return (
+									reference != null
+									&& lensEvmAddressFromWire(lensPost.author.address) === authorAddress ?
+										[reference]
+									:
+										[]
+								)
+							}).slice(0, limit),
+						}
 					},
 				},
 				LegacyProfileId: {
@@ -819,21 +927,43 @@ const lensGraphqlResolvers = {
 
 						const limit = resolverContextRowLimit(context)
 						const authorAddress = lensEvmAddressFromWire(account.address)
-						return (await queryPostsByAuthor(authorAddress, limit)).posts.items.flatMap((lensPost) => {
-							const reference = lensPostCardReferenceFromWire(lensPost)
-							return (
-								reference != null
-								&& lensEvmAddressFromWire(lensPost.author.address) === authorAddress ?
-									[reference]
-								:
-									[]
-							)
-						}).slice(0, limit)
+						const page = (await queryPostsByAuthor(
+							authorAddress,
+							limit,
+							lensPageContinuationFromToken(context.providerContinuationToken)
+						)).posts
+						return {
+							...page,
+							rows: page.items.flatMap((lensPost) => {
+								const reference = lensPostCardReferenceFromWire(lensPost)
+								return (
+									reference != null
+									&& lensEvmAddressFromWire(lensPost.author.address) === authorAddress ?
+										[reference]
+									:
+										[]
+								)
+							}).slice(0, limit),
+						}
 					},
 				},
 			},
 		})({
-				$$posts: (posts) => posts,
+				$$posts: {
+					select: (snapshot) => snapshot.rows,
+					continuation: (snapshot, account) => lensListContinuation(
+						snapshot,
+						'account-posts',
+						(
+							'address' in account ?
+								account.address
+							: 'localName' in account ?
+								account.localName
+							:
+								account.legacyProfileId
+						)
+					),
+				},
 			}),
 
 		defineResolver({
@@ -1033,23 +1163,36 @@ const lensGraphqlResolvers = {
 			resolve: {
 				Address: {
 					resolve: async ({ address }, context) => {
-						return (await queryFeedPosts(
-							zeroExLowerCase(address),
-							resolverContextRowLimit(context)
-						)).posts.items.flatMap((lensPost) => {
-							if (
-								lensPost.__typename !== 'Post'
-								|| lensEvmAddressFromWire(lensPost.feed.address) !== zeroExLowerCase(address)
-							)
-								return []
-							const reference = lensPostCardReferenceFromWire(lensPost)
-							return reference == null ? [] : [reference]
-						})
+						const requestedAddress = zeroExLowerCase(address)
+						const page = (await queryFeedPosts(
+							requestedAddress,
+							resolverContextRowLimit(context),
+							lensPageContinuationFromToken(context.providerContinuationToken)
+						)).posts
+						return {
+							...page,
+							rows: page.items.flatMap((lensPost) => {
+								if (
+									lensPost.__typename !== 'Post'
+									|| lensEvmAddressFromWire(lensPost.feed.address) !== requestedAddress
+								)
+									return []
+								const reference = lensPostCardReferenceFromWire(lensPost)
+								return reference == null ? [] : [reference]
+							}),
+						}
 					},
 				},
 			},
 		})({
-			$$posts: (posts) => posts,
+			$$posts: {
+				select: (snapshot) => snapshot.rows,
+				continuation: (snapshot, feed) => lensListContinuation(
+					snapshot,
+					'feed-posts',
+					feed.address
+				),
+			},
 		}),
 
 		defineResolver({

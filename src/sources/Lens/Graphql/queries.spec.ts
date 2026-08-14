@@ -431,6 +431,55 @@ it('paginates and deduplicates unsigned posts for one exact feed', async () => {
 	expect(requestBody(0).query).toMatch(/contentUri[\s\S]*repostOf[\s\S]*slug/)
 })
 
+it('replays a partially consumed provider page without skipping posts', async () => {
+	const address = '0x1111111111111111111111111111111111111111'
+	const posts = Array.from({ length: 30 }, (_value, index) => ({
+		__typename: 'Post',
+		slug: `post-${index}`,
+	}))
+	fetchMock
+		.mockResolvedValueOnce(response({
+			posts: {
+				items: posts,
+				pageInfo: { prev: null, next: 'provider-next' },
+			},
+		}))
+		.mockResolvedValueOnce(response({
+			posts: {
+				items: posts,
+				pageInfo: { prev: null, next: 'provider-next' },
+			},
+		}))
+
+	const firstPage = (await queryFeedPosts(address, 25)).posts
+	expect(firstPage.items.map(({ slug }) => slug)).toEqual(
+		posts.slice(0, 25).map(({ slug }) => slug)
+	)
+	expect(firstPage.continuation).toEqual({
+		offset: 25,
+		pageSize: 'FIFTY',
+	})
+	const secondPage = (await queryFeedPosts(
+		address,
+		5,
+		firstPage.continuation
+	)).posts
+	expect(secondPage.items.map(({ slug }) => slug)).toEqual(
+		posts.slice(25).map(({ slug }) => slug)
+	)
+	expect(secondPage.continuation).toEqual({ cursor: 'provider-next' })
+	expect(fetchMock.mock.calls.map((_call, index) => requestBody(index).variables)).toEqual([
+		{
+			feed: address,
+			pageSize: 'FIFTY',
+		},
+		{
+			feed: address,
+			pageSize: 'FIFTY',
+		},
+	])
+})
+
 it('rejects opaque-cursor pagination after repeated pages make no identity progress', async () => {
 	const address = '0x1111111111111111111111111111111111111111'
 	const post = {
