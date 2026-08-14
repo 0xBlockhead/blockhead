@@ -202,6 +202,36 @@ describe('Wormholescan BridgeTransfer resolvers', () => {
 		expect(snapshot.transferId).toBe(transfer.transferId)
 	})
 
+	it('rejects ambiguous operation matches for a source transaction selector', async () => {
+		getOperations.mockResolvedValue([
+			operation,
+			{
+				...operation,
+				id: '2/0000000000000000000000001111111111111111111111111111111111111111/43',
+				sequence: '43',
+			},
+		])
+		const resolver = wormholescanRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.BridgeTransfer
+		))
+		if (resolver == null)
+			throw new Error('Wormholescan BridgeTransfer resolver is not registered')
+
+		await expect(resolver.resolve.SourceTxSourceLogIndex.resolve({
+			source: Source.Wormholescan,
+			$sourceTx: {
+				$network: {
+					caip2: {
+						namespace: 'eip155',
+						reference: '1',
+					},
+				},
+				txHash: sourceTxHash,
+			},
+			logIndex: 0,
+		})).rejects.toThrow(`Wormholescan_Rest: ambiguous operations for source tx ${sourceTxHash}`)
+	})
+
 	it('resolves an official opaque operation sequence', async () => {
 		const sequence = '55ee23ea14ca558ffda4e033257cee58b30db3868bd68bdbb60266f0cf2020ce-0'
 		getOperationById.mockResolvedValue({

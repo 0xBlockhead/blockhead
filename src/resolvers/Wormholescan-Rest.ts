@@ -339,14 +339,16 @@ const loadOperationForTransfer = async (
 
 	const txHash = transfer.$sourceTx.txHash
 	const operations = await getOperations({ txHash })
-	const operation = operations.find((candidate) => (
+	const matchingOperations = operations.filter((candidate) => (
 		candidate.sourceChain?.transaction?.txHash?.toLowerCase() === txHash.toLowerCase()
 		|| candidate.sourceChain?.transaction?.txHash?.toLowerCase() === txHash.slice(2).toLowerCase()
 	))
-	if (operation == null)
+	if (matchingOperations.length === 0)
 		throw new Error(`Wormholescan_Rest: no operation for source tx ${txHash}`)
+	if (matchingOperations.length > 1)
+		throw new Error(`Wormholescan_Rest: ambiguous operations for source tx ${txHash}`)
 
-	return operation
+	return matchingOperations[0]
 }
 
 const wormholeVaaSnapshotFromWire = (
