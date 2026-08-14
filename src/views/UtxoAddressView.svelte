@@ -204,6 +204,8 @@
 								Source.Esplora_Rest,
 								Source.LitecoinCore_JsonRpc,
 								Source.MempoolSpace_Rest,
+								Source.Zcashd_JsonRpc,
+								Source.Zebra_JsonRpc,
 							],
 							limit: 16,
 						})
@@ -268,6 +270,8 @@
 								Source.Esplora_Rest,
 								Source.LitecoinCore_JsonRpc,
 								Source.MempoolSpace_Rest,
+								Source.Zcashd_JsonRpc,
+								Source.Zebra_JsonRpc,
 							],
 							limit: 16,
 						})
