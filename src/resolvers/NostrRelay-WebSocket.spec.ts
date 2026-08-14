@@ -330,9 +330,15 @@ describe('Nostr relay live note resolver', () => {
 		}])
 		expect(replaceReactionRows).toHaveBeenLastCalledWith([{
 			source: Source.NostrRelay_WebSocket,
-			value: [{
+			value: [expect.objectContaining({
 				[EntityMetaKey.Selector]: { eventId: reactionEventId },
-			}],
+				[EntityMetaKey.Fields]: expect.objectContaining({
+					[entityFieldAddressKey(EntityType.NostrReaction, [], 'content')]: '+',
+					[entityFieldAddressKey(EntityType.NostrReaction, [], '$targetNote')]: {
+						[EntityMetaKey.Selector]: { eventId: targetEventId },
+					},
+				}),
+			})],
 		}])
 		expect(replaceReactionCountRows).toHaveBeenLastCalledWith([{
 			source: Source.NostrRelay_WebSocket,

@@ -17,10 +17,12 @@ import {
 	nostrProfileMetadataEventReference,
 	nostrReactionFieldValues,
 	nostrReactionFieldValuesWithTarget,
+	nostrReactionReference,
 	nostrReactionTargetEventId,
 	nostrReplyToEventId,
 	nostrRepostFieldValues,
 	nostrRepostFieldValuesWithTarget,
+	nostrRepostReference,
 	nostrTagValue,
 } from '$/resolvers/Nostr.ts'
 import {
@@ -640,9 +642,7 @@ export default {
 									kinds: [6, 16],
 								}
 							)
-								.map((event) => ({
-									[EntityMetaKey.Selector]: { eventId: event.id },
-								}))
+								.map(nostrRepostReference)
 						)
 					},
 				}
@@ -758,9 +758,7 @@ export default {
 								{ kinds: [7] }
 							)
 								.filter((event) => nostrReactionTargetEventId(event.tags) === eventId)
-								.map((event) => ({
-									[EntityMetaKey.Selector]: { eventId: event.id },
-								}))
+								.map((event) => nostrReactionReference(event, eventId))
 						)
 					},
 				},
@@ -808,9 +806,7 @@ export default {
 								reactionsByEventId.set(event.id, event)
 								const reactions = nostrEventsNewestFirst([...reactionsByEventId.values()])
 									.slice(0, limit)
-									.map((reaction) => ({
-										[EntityMetaKey.Selector]: { eventId: reaction.id },
-									}))
+									.map((reaction) => nostrReactionReference(reaction, parentEntitySelector.eventId))
 								fields.$$reactions.replaceRows([{
 									source: Source.NostrRelay_WebSocket,
 									value: reactions,

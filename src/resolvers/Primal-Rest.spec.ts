@@ -141,9 +141,19 @@ describe('Primal Rest enrolled leftovers', () => {
 				},
 			},
 		}])
-		expect(reactionRows).toEqual([{
+		expect(reactionRows).toMatchObject([{
 			[EntityMetaKey.Selector]: {
 				eventId: reaction.id,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.NostrReaction, [], 'content')]: '+',
+				[entityFieldAddressKey(EntityType.NostrReaction, [], 'createdAt')]: 1_700_000_000_000,
+				[entityFieldAddressKey(EntityType.NostrReaction, [], '$author')]: {
+					[EntityMetaKey.Selector]: { pubkey },
+				},
+				[entityFieldAddressKey(EntityType.NostrReaction, [], '$targetNote')]: {
+					[EntityMetaKey.Selector]: { eventId: noteId },
+				},
 			},
 		}])
 		expect(replies.projections.$$replies.resolveCount(replyRows)).toBe(1)

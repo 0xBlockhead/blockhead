@@ -17,10 +17,12 @@ import {
 	nostrProfileMetadataEventReference,
 	nostrReactionFieldValues,
 	nostrReactionFieldValuesWithTarget,
+	nostrReactionReference,
 	nostrReactionTargetEventId,
 	nostrReplyToEventId,
 	nostrRepostFieldValues,
 	nostrRepostFieldValuesWithTarget,
+	nostrRepostReference,
 	nostrTagValue,
 } from '$/resolvers/Nostr.ts'
 import {
@@ -459,9 +461,7 @@ export default {
 									kinds: [6, 16],
 								}
 							)
-								.map((event) => ({
-									[EntityMetaKey.Selector]: { eventId: event.id },
-								}))
+								.map(nostrRepostReference)
 						)
 					},
 				}
@@ -536,9 +536,7 @@ export default {
 								}
 							)
 								.filter((event) => nostrReactionTargetEventId(event.tags) === eventId)
-								.map((event) => ({
-									[EntityMetaKey.Selector]: { eventId: event.id },
-								}))
+								.map((event) => nostrReactionReference(event, eventId))
 						)
 					},
 				},

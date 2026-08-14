@@ -221,6 +221,67 @@ export const nostrNoteReference = (event: NostrEventEnvelope) => {
 	}
 }
 
+export const nostrRepostReference = (event: NostrEventEnvelope) => {
+	const repost = nostrRepostFieldValues(event)
+	return {
+		[EntityMetaKey.Selector]: {
+			eventId: repost.eventId,
+		},
+		[EntityMetaKey.Fields]: {
+			[entityFieldAddressKey(EntityType.NostrRepost, [], 'eventId')]: repost.eventId,
+			[entityFieldAddressKey(EntityType.NostrRepost, [], 'kind')]: repost.kind,
+			[entityFieldAddressKey(EntityType.NostrRepost, [], 'pubkey')]: repost.pubkey,
+			[entityFieldAddressKey(EntityType.NostrRepost, [], 'tags')]: repost.tags,
+			[entityFieldAddressKey(EntityType.NostrRepost, [], 'createdAt')]: repost.createdAt,
+			[entityFieldAddressKey(EntityType.NostrRepost, [], '$author')]: repost.$author,
+			...(repost.repostedEventId != null && {
+				[entityFieldAddressKey(EntityType.NostrRepost, [], 'repostedEventId')]: repost.repostedEventId,
+			}),
+			...(repost.$repostedNote != null && {
+				[entityFieldAddressKey(EntityType.NostrRepost, [], '$repostedNote')]: repost.$repostedNote,
+			}),
+			...(repost.$repostedArticle != null && {
+				[entityFieldAddressKey(EntityType.NostrRepost, [], '$repostedArticle')]: repost.$repostedArticle,
+			}),
+		},
+	}
+}
+
+export const nostrReactionReference = (
+	event: NostrEventEnvelope,
+	targetNoteEventId?: string
+) => {
+	const reaction = nostrReactionFieldValues(event)
+	return {
+		[EntityMetaKey.Selector]: {
+			eventId: reaction.eventId,
+		},
+		[EntityMetaKey.Fields]: {
+			[entityFieldAddressKey(EntityType.NostrReaction, [], 'eventId')]: reaction.eventId,
+			[entityFieldAddressKey(EntityType.NostrReaction, [], 'kind')]: reaction.kind,
+			[entityFieldAddressKey(EntityType.NostrReaction, [], 'pubkey')]: reaction.pubkey,
+			[entityFieldAddressKey(EntityType.NostrReaction, [], 'tags')]: reaction.tags,
+			[entityFieldAddressKey(EntityType.NostrReaction, [], 'createdAt')]: reaction.createdAt,
+			[entityFieldAddressKey(EntityType.NostrReaction, [], '$author')]: reaction.$author,
+			...(reaction.content != null && {
+				[entityFieldAddressKey(EntityType.NostrReaction, [], 'content')]: reaction.content,
+			}),
+			...(
+				targetNoteEventId != null
+				&& nostrReactionTargetEventId(event.tags) === targetNoteEventId
+				&& {
+					[entityFieldAddressKey(EntityType.NostrReaction, [], '$targetNote')]: {
+						[EntityMetaKey.Selector]: { eventId: targetNoteEventId },
+					},
+				}
+			),
+			...(reaction.$targetArticle != null && {
+				[entityFieldAddressKey(EntityType.NostrReaction, [], '$targetArticle')]: reaction.$targetArticle,
+			}),
+		},
+	}
+}
+
 export const nostrRepostFieldValues = (event: NostrEventEnvelope) => {
 	if (!isNostrRepostKind(event.kind))
 		throw new Error('Nostr event is not a repost')
