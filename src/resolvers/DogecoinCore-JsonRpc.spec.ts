@@ -355,13 +355,15 @@ describe('DogecoinCore UTXO', () => {
 			'NetworkTxId'
 		].resolve(entitySelector, resolverContext)
 
-		expect(transactionResolver.projections.$$inputs(transaction)).toEqual([{
+		expect(transactionResolver.projections.$$inputs.resolveCount(transaction)).toBe(1)
+		expect(transactionResolver.projections.$$inputs.select(transaction)).toEqual([{
 			[EntityMetaKey.Selector]: {
 				$transaction: entitySelector,
 				indexInTransaction: 0,
 			},
 		}])
-		expect(transactionResolver.projections.$$outputs(transaction)).toEqual([{
+		expect(transactionResolver.projections.$$outputs.resolveCount(transaction)).toBe(1)
+		expect(transactionResolver.projections.$$outputs.select(transaction)).toEqual([{
 			[EntityMetaKey.Selector]: {
 				$transaction: entitySelector,
 				indexInTransaction: 0,
@@ -488,6 +490,7 @@ describe('DogecoinCore UTXO', () => {
 		}, resolverContext)
 		expect(blockResolver.projections.hash(block)).toBe('1'.repeat(64))
 		expect(blockResolver.projections.transactionCount(block)).toBe(1)
+		expect(blockResolver.projections.$$transactions.resolveCount(block)).toBe(1)
 		expect(getBlockHash).toHaveBeenCalledWith({
 			height: 5n,
 		})

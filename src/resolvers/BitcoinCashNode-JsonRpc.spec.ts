@@ -132,13 +132,15 @@ describe('BitcoinCashNode UTXO', () => {
 		].resolve(entitySelector, resolverContext)
 
 		expect(transactionResolver.projections.version(transaction)).toBe(2)
-		expect(transactionResolver.projections.$$inputs(transaction)).toEqual([{
+		expect(transactionResolver.projections.$$inputs.resolveCount(transaction)).toBe(1)
+		expect(transactionResolver.projections.$$inputs.select(transaction)).toEqual([{
 			[EntityMetaKey.Selector]: {
 				$transaction: entitySelector,
 				indexInTransaction: 0,
 			},
 		}])
-		expect(transactionResolver.projections.$$outputs(transaction)).toEqual([{
+		expect(transactionResolver.projections.$$outputs.resolveCount(transaction)).toBe(1)
+		expect(transactionResolver.projections.$$outputs.select(transaction)).toEqual([{
 			[EntityMetaKey.Selector]: {
 				$transaction: entitySelector,
 				indexInTransaction: 0,
@@ -292,6 +294,7 @@ describe('BitcoinCashNode UTXO', () => {
 		}, resolverContext)
 		expect(blockResolver.projections.hash(block)).toBe('1'.repeat(64))
 		expect(blockResolver.projections.transactionCount(block)).toBe(2)
+		expect(blockResolver.projections.$$transactions.resolveCount(block)).toBe(2)
 	})
 
 	it('projects address $$outputs and tip balance from CashToken-aware scantxoutset', async () => {
