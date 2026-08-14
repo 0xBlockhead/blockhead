@@ -177,9 +177,79 @@ describe('Aave Rest resolver module', () => {
 			},
 		])
 		expect(evmNetworkAccountResolver.projections.$$aaveReservePositions.resolveCount(account)).toBe(2)
+		expect(evmNetworkAccountResolver.projections.$$aaveReservePositions.continuation(account)).toEqual({
+			operation: 'account-aave-reserve-positions',
+			target: 'aave',
+			terminal: true,
+		})
 		expect(getAccountPositions).toHaveBeenCalledWith({
 			chainId: 1,
 			account: accountSelector.$actor.address,
+		})
+	})
+
+	it('continues Aave account positions from the provider offset', async () => {
+		if (evmNetworkAccountResolver == null)
+			throw new Error('missing Aave account resolver')
+
+		const accountSelector = {
+			$network: ethereumNetwork,
+			$actor: {
+				address: '0x464c71f6c2f760dda6093dcb91c24c39e5d6e18c',
+			},
+		}
+		getAccountPositions.mockResolvedValue([
+			{
+				protocol: 'Aave V3',
+				kind: 'supply',
+				chainId: 1,
+				account: accountSelector.$actor.address,
+				poolAddress: '0x87870bca3f3fd6335c3f4ce8392d69350b4fa4e2',
+				underlyingTokenAddress: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+				symbol: 'USDC',
+				decimals: 6,
+				balance: '1000.5',
+				balanceUsd: '1000.5',
+				apy: '0.03',
+				isCollateral: true,
+				canBeCollateral: true,
+			},
+			{
+				protocol: 'Aave V3',
+				kind: 'borrow',
+				chainId: 1,
+				account: accountSelector.$actor.address,
+				poolAddress: '0x87870bca3f3fd6335c3f4ce8392d69350b4fa4e2',
+				underlyingTokenAddress: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
+				symbol: 'WETH',
+				decimals: 18,
+				debt: '2.5',
+				debtUsd: '5000',
+				apy: '0.05',
+			},
+		])
+
+		const snapshot = await evmNetworkAccountResolver.resolve.EvmNetworkEvmAccount.resolve(
+			accountSelector,
+			{
+				...context,
+				pagination: {
+					limit: 1,
+				},
+				providerContinuationToken: '1',
+			}
+		)
+		expect(evmNetworkAccountResolver.projections.$$aaveReservePositions.select(snapshot)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$account: accountSelector,
+				poolAddress: '0x87870bca3f3fd6335c3f4ce8392d69350b4fa4e2',
+				underlyingTokenAddress: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
+			},
+		}])
+		expect(evmNetworkAccountResolver.projections.$$aaveReservePositions.continuation(snapshot)).toEqual({
+			operation: 'account-aave-reserve-positions',
+			target: 'aave',
+			terminal: true,
 		})
 	})
 
@@ -278,6 +348,50 @@ describe('Aave Rest resolver module', () => {
 			},
 		])
 		expect(networkAaveMarketsResolver.projections.Evm.$$aaveMarkets.resolveCount(snapshot)).toBe(1)
+		expect(networkAaveMarketsResolver.projections.Evm.$$aaveMarkets.continuation(snapshot)).toEqual({
+			operation: 'network-aave-markets',
+			target: 'aave',
+			terminal: true,
+		})
+	})
+
+	it('continues Aave markets from the provider offset', async () => {
+		if (networkAaveMarketsResolver == null)
+			throw new Error('missing Network $$aaveMarkets resolver')
+
+		graphql.mockResolvedValueOnce({
+			markets: [
+				ethereumMarket,
+				{
+					...ethereumMarket,
+					address: '0x1111111111111111111111111111111111111111',
+					name: 'Second market',
+				},
+			],
+		})
+
+		const snapshot = await networkAaveMarketsResolver.resolve.Caip2.resolve(
+			ethereumNetwork,
+			{
+				...context,
+				pagination: {
+					limit: 1,
+				},
+				providerContinuationToken: '1',
+			}
+		)
+		expect(networkAaveMarketsResolver.projections.Evm.$$aaveMarkets.select(snapshot)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$network: ethereumNetwork,
+				poolAddress: '0x1111111111111111111111111111111111111111',
+			},
+		}])
+		expect(networkAaveMarketsResolver.projections.Evm.$$aaveMarkets.resolveCount(snapshot)).toBe(2)
+		expect(networkAaveMarketsResolver.projections.Evm.$$aaveMarkets.continuation(snapshot)).toEqual({
+			operation: 'network-aave-markets',
+			target: 'aave',
+			terminal: true,
+		})
 	})
 
 	it('resolves an Aave market snapshot by network and pool address', async () => {

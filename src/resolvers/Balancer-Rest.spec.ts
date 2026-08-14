@@ -481,6 +481,11 @@ describe('Balancer Rest resolver module', () => {
 			},
 		])
 		expect(networkBalancerPoolsResolver.projections.Evm.$$balancerGauges.resolveCount(snapshot)).toBe(1)
+		expect(networkBalancerPoolsResolver.projections.Evm.$$balancerGauges.continuation(snapshot)).toEqual({
+			operation: 'network-balancer-gauges',
+			target: 'balancer',
+			terminal: true,
+		})
 	})
 
 	it('lists account $$balancerPoolBalances with resolveCount from poolGetPoolsCount(userAddress)', async () => {

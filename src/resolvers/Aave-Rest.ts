@@ -1,5 +1,8 @@
 import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
-import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
+import {
+	resolverContextRowLimit,
+	type ResolverContext,
+} from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
@@ -20,6 +23,19 @@ type AaveMarketId = EntitySelector<typeof schema, EntityType.AaveMarket>
 type AaveReserveId = EntitySelector<typeof schema, EntityType.AaveReserve>
 type AaveReservePositionId = EntitySelector<typeof schema, EntityType.AaveReservePosition>
 type EvmNetworkAccountId = EntitySelector<typeof schema, EntityType.EvmNetworkAccount>
+
+const aavePaginationOffset = (
+	context: ResolverContext
+) => {
+	const offset = context.providerContinuationToken == null ?
+		context.pagination.offset ?? 0
+	:
+		Number(context.providerContinuationToken)
+	if (!Number.isSafeInteger(offset) || offset < 0)
+		throw new Error(`${Source.Aave_Rest}: invalid pagination offset`)
+
+	return offset
+}
 
 const eip155ChainId = (network: NetworkId) => {
 	if (!('caip2' in network) || network.caip2.namespace !== 'eip155')
@@ -67,6 +83,7 @@ const mergeAaveReservePositions = (
 	$account: EvmNetworkAccountId,
 	positions: readonly AaveAccountPosition[],
 	limit: number,
+	offset: number
 ) => {
 	const merged = new Map<string, {
 		poolAddress: `0x${string}`
@@ -106,7 +123,7 @@ const mergeAaveReservePositions = (
 	const rows = [...merged.values()]
 	return {
 		positions: rows
-			.slice(0, limit)
+			.slice(offset, offset + limit)
 			.map((position) => ({
 				[EntityMetaKey.Selector]: {
 					$account,
@@ -115,6 +132,7 @@ const mergeAaveReservePositions = (
 				},
 			})),
 		positionCount: rows.length,
+		offset,
 	}
 }
 
@@ -197,7 +215,8 @@ export default {
 								chainId,
 								account: $actor.address,
 							}),
-							resolverContextRowLimit(context)
+							resolverContextRowLimit(context),
+							aavePaginationOffset(context)
 						)
 					},
 				},
@@ -206,6 +225,17 @@ export default {
 			$$aaveReservePositions: {
 				select: (snapshot) => snapshot.positions,
 				resolveCount: (snapshot) => snapshot.positionCount,
+				continuation: (snapshot) => {
+					const nextOffset = snapshot.offset + snapshot.positions.length
+					const terminal = nextOffset >= snapshot.positionCount
+
+					return {
+						operation: 'account-aave-reserve-positions',
+						target: 'aave',
+						terminal,
+						...(!terminal && { token: String(nextOffset) }),
+					}
+				},
 			},
 		}),
 
@@ -416,6 +446,7 @@ export default {
 							throw new Error(`${Source.Aave_Rest}: unsupported chain id ${String(chainId)}`)
 
 						const { listMarkets } = await import('$/sources/Aave/Rest/queries.ts')
+						const offset = aavePaginationOffset(context)
 						const markets = await listMarkets({
 							chainIds: [
 								chainId,
@@ -423,7 +454,7 @@ export default {
 						})
 						return {
 							markets: markets
-								.slice(0, resolverContextRowLimit(context))
+								.slice(offset, offset + resolverContextRowLimit(context))
 								.map((market) => ({
 									[EntityMetaKey.Selector]: {
 										$network: network,
@@ -431,6 +462,7 @@ export default {
 									},
 								})),
 							marketCount: markets.length,
+							offset,
 						}
 					},
 				},
@@ -440,6 +472,17 @@ export default {
 				$$aaveMarkets: {
 					select: (snapshot) => snapshot.markets,
 					resolveCount: (snapshot) => snapshot.marketCount,
+					continuation: (snapshot) => {
+						const nextOffset = snapshot.offset + snapshot.markets.length
+						const terminal = nextOffset >= snapshot.marketCount
+
+						return {
+							operation: 'network-aave-markets',
+							target: 'aave',
+							terminal,
+							...(!terminal && { token: String(nextOffset) }),
+						}
+					},
 				},
 			},
 		}),

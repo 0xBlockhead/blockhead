@@ -706,7 +706,7 @@ export default {
 						}))
 							.filter((gauge) => gauge.chainId === chainId)
 						return {
-							poolSkip: skip,
+							skip,
 							poolLimit: limit,
 							pools: pools.map((pool) => ({
 								[EntityMetaKey.Selector]: {
@@ -753,7 +753,7 @@ export default {
 							})),
 							poolCount,
 							gauges: gaugesForChain
-								.slice(0, limit)
+								.slice(skip, skip + limit)
 								.map((gauge) => ({
 									[EntityMetaKey.Selector]: {
 										$network: network,
@@ -786,7 +786,7 @@ export default {
 					select: (snapshot) => snapshot.pools,
 					resolveCount: (snapshot) => snapshot.poolCount,
 					continuation: (snapshot) => {
-						const nextSkip = snapshot.poolSkip + snapshot.pools.length
+						const nextSkip = snapshot.skip + snapshot.pools.length
 						const terminal = nextSkip >= snapshot.poolCount
 
 						return {
@@ -802,6 +802,17 @@ export default {
 				$$balancerGauges: {
 					select: (snapshot) => snapshot.gauges,
 					resolveCount: (snapshot) => snapshot.gaugeCount,
+					continuation: (snapshot) => {
+						const nextSkip = snapshot.skip + snapshot.gauges.length
+						const terminal = nextSkip >= snapshot.gaugeCount
+
+						return {
+							operation: 'network-balancer-gauges',
+							target: 'balancer',
+							terminal,
+							...(!terminal && { token: String(nextSkip) }),
+						}
+					},
 				},
 			},
 		}),
