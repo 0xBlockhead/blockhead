@@ -866,27 +866,12 @@ export default {
 			transactionKind: (transaction) => transaction.transactionKind,
 			sender: (transaction) => transaction.sender,
 			$$timestamps: (transaction) => transaction.timestamps,
-			$$stateChanges: (transaction) => transaction.stateChanges,
-			$$events: (transaction) => transaction.events,
-		}),
-
-		defineResolver({
-			entityType: EntityType.AptosTransaction,
-			resolve: {
-				NetworkVersion: {
-					appliesTo: aptosNetworkReferenceApplicability,
-					resolve: transactionByVersion,
-				},
-				NetworkHash: {
-					appliesTo: aptosNetworkReferenceApplicability,
-					resolve: transactionByHash,
-				},
-			},
-		})({
 			$$stateChanges: {
+				select: (transaction) => transaction.stateChanges,
 				resolveCount: (transaction) => transaction.stateChanges.length,
 			},
 			$$events: {
+				select: (transaction) => transaction.events,
 				resolveCount: (transaction) => transaction.events.length,
 			},
 		}),

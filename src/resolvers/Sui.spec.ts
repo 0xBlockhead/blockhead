@@ -980,7 +980,7 @@ describe('Sui GraphQL network / checkpoint / transaction resolvers', () => {
 				[entityFieldAddressKey(EntityType.SuiTransaction_Timestamp, [], 'effectsDigest')]: 'EffectsDigest',
 			},
 		}])
-		expect(transactionResolver.projections.$$commands(transactionSnapshot)).toEqual([{
+		expect(transactionResolver.projections.$$commands.select(transactionSnapshot)).toEqual([{
 			[EntityMetaKey.Selector]: {
 				$transaction: {
 					$network: suiNetwork,
@@ -1000,7 +1000,7 @@ describe('Sui GraphQL network / checkpoint / transaction resolvers', () => {
 				}],
 			},
 		}])
-		expect(transactionResolver.projections.$$balanceChanges(transactionSnapshot)).toEqual([{
+		expect(transactionResolver.projections.$$balanceChanges.select(transactionSnapshot)).toEqual([{
 			[EntityMetaKey.Selector]: {
 				$transaction: {
 					$network: suiNetwork,
@@ -1023,7 +1023,7 @@ describe('Sui GraphQL network / checkpoint / transaction resolvers', () => {
 				},
 			},
 		}])
-		expect(transactionResolver.projections.$$objectChanges(transactionSnapshot)).toEqual([{
+		expect(transactionResolver.projections.$$objectChanges.select(transactionSnapshot)).toEqual([{
 			[EntityMetaKey.Selector]: {
 				$transaction: {
 					$network: suiNetwork,
@@ -1043,7 +1043,7 @@ describe('Sui GraphQL network / checkpoint / transaction resolvers', () => {
 				[entityFieldAddressKey(EntityType.SuiObjectChange, [], 'digest')]: 'ObjectDigest',
 			},
 		}])
-		expect(transactionResolver.projections.$$events(transactionSnapshot)).toEqual([{
+		expect(transactionResolver.projections.$$events.select(transactionSnapshot)).toEqual([{
 			[EntityMetaKey.Selector]: {
 				$network: suiNetwork,
 				transactionDigest: 'TransactionDigest',
@@ -1059,6 +1059,10 @@ describe('Sui GraphQL network / checkpoint / transaction resolvers', () => {
 				},
 			},
 		}])
+		expect(transactionResolver.projections.$$commands.resolveCount(transactionSnapshot)).toBe(1)
+		expect(transactionResolver.projections.$$objectChanges.resolveCount(transactionSnapshot)).toBe(1)
+		expect(transactionResolver.projections.$$balanceChanges.resolveCount(transactionSnapshot)).toBe(1)
+		expect(transactionResolver.projections.$$events.resolveCount(transactionSnapshot)).toBe(1)
 
 		const observation = await transactionTimestampResolver.resolve.TransactionCheckpointSequenceSource.resolve({
 			$transaction: {

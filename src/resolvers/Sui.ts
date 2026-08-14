@@ -609,118 +609,130 @@ export default {
 					}),
 				},
 			}],
-			$$commands: ({
-				$network,
-				transaction,
-			}) => transaction.commands.map((command) => ({
-				[EntityMetaKey.Selector]: {
-					$transaction: {
-						$network,
-						digest: transaction.digest,
-					},
-					commandIndex: command.commandIndex,
-				},
-				[EntityMetaKey.Fields]: {
-					[entityFieldAddressKey(EntityType.SuiProgrammableTransactionCommand, [], 'commandKind')]: command.commandKind,
-					[entityFieldAddressKey(EntityType.SuiProgrammableTransactionCommand, [], 'typeArguments')]: command.typeArguments,
-					...(command.packageId != null && {
-						[entityFieldAddressKey(EntityType.SuiProgrammableTransactionCommand, [], 'packageId')]: command.packageId,
-					}),
-					...(command.moduleName != null && {
-						[entityFieldAddressKey(EntityType.SuiProgrammableTransactionCommand, [], 'moduleName')]: command.moduleName,
-					}),
-					...(command.functionName != null && {
-						[entityFieldAddressKey(EntityType.SuiProgrammableTransactionCommand, [], 'functionName')]: command.functionName,
-					}),
-					...('arguments' in command && command.arguments != null && {
-						[entityFieldAddressKey(EntityType.SuiProgrammableTransactionCommand, [], 'arguments')]: command.arguments,
-					}),
-				},
-			})),
-			$$objectChanges: ({
-				$network,
-				transaction,
-			}) => transaction.objectChanges.map((change) => ({
-				[EntityMetaKey.Selector]: {
-					$transaction: {
-						$network,
-						digest: transaction.digest,
-					},
-					changeIndex: change.changeIndex,
-				},
-				[EntityMetaKey.Fields]: {
-					[entityFieldAddressKey(EntityType.SuiObjectChange, [], 'changeKind')]: change.changeKind,
-					...(change.objectId != null && {
-						[entityFieldAddressKey(EntityType.SuiObjectChange, [], 'objectId')]: change.objectId,
-					}),
-					...(change.objectType != null && {
-						[entityFieldAddressKey(EntityType.SuiObjectChange, [], 'objectType')]: change.objectType,
-					}),
-					...(change.ownerSelector != null && {
-						[entityFieldAddressKey(EntityType.SuiObjectChange, [], 'ownerSelector')]: change.ownerSelector,
-					}),
-					...(change.version != null && {
-						[entityFieldAddressKey(EntityType.SuiObjectChange, [], 'version')]: change.version,
-					}),
-					...(change.digest != null && {
-						[entityFieldAddressKey(EntityType.SuiObjectChange, [], 'digest')]: change.digest,
-					}),
-				},
-			})),
-			$$balanceChanges: ({
-				$network,
-				transaction,
-			}) => transaction.balanceChanges.map((change) => ({
-				[EntityMetaKey.Selector]: {
-					$transaction: {
-						$network,
-						digest: transaction.digest,
-					},
-					changeIndex: change.changeIndex,
-				},
-				[EntityMetaKey.Fields]: {
-					[entityFieldAddressKey(EntityType.SuiBalanceChange, [], 'amountDelta')]: change.amountDelta,
-					...(change.ownerSelector != null && {
-						[entityFieldAddressKey(EntityType.SuiBalanceChange, [], 'ownerSelector')]: change.ownerSelector,
-					}),
-					...(change.coinType != null && {
-						[entityFieldAddressKey(EntityType.SuiBalanceChange, [], 'coinType')]: change.coinType,
-					}),
-					...(change.coinType != null && {
-						[entityFieldAddressKey(EntityType.SuiBalanceChange, [], '$coinType')]: {
-							[EntityMetaKey.Selector]: {
-								$network,
-								coinType: change.coinType,
-							},
-						},
-					}),
-				},
-			})),
-			$$events: ({
-				$network,
-				transaction,
-			}) => transaction.events.map((event) => ({
-				[EntityMetaKey.Selector]: {
+			$$commands: {
+				select: ({
 					$network,
-					transactionDigest: transaction.digest,
-					eventIndex: event.eventIndex,
-				},
-				[EntityMetaKey.Fields]: {
-					[entityFieldAddressKey(EntityType.SuiEvent, [], 'eventType')]: event.eventType,
-					...(event.packageId != null && {
-						[entityFieldAddressKey(EntityType.SuiEvent, [], 'packageId')]: event.packageId,
-					}),
-					...(event.moduleName != null && {
-						[entityFieldAddressKey(EntityType.SuiEvent, [], 'moduleName')]: event.moduleName,
-					}),
-					...(event.sender != null && {
-						[entityFieldAddressKey(EntityType.SuiEvent, [], 'sender')]: event.sender,
-					}),
-					...(event.value != null && {
-						[entityFieldAddressKey(EntityType.SuiEvent, [], 'value')]: event.value,
-					}),
-				},
-			})),
+					transaction,
+				}) => transaction.commands.map((command) => ({
+					[EntityMetaKey.Selector]: {
+						$transaction: {
+							$network,
+							digest: transaction.digest,
+						},
+						commandIndex: command.commandIndex,
+					},
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.SuiProgrammableTransactionCommand, [], 'commandKind')]: command.commandKind,
+						[entityFieldAddressKey(EntityType.SuiProgrammableTransactionCommand, [], 'typeArguments')]: command.typeArguments,
+						...(command.packageId != null && {
+							[entityFieldAddressKey(EntityType.SuiProgrammableTransactionCommand, [], 'packageId')]: command.packageId,
+						}),
+						...(command.moduleName != null && {
+							[entityFieldAddressKey(EntityType.SuiProgrammableTransactionCommand, [], 'moduleName')]: command.moduleName,
+						}),
+						...(command.functionName != null && {
+							[entityFieldAddressKey(EntityType.SuiProgrammableTransactionCommand, [], 'functionName')]: command.functionName,
+						}),
+						...('arguments' in command && command.arguments != null && {
+							[entityFieldAddressKey(EntityType.SuiProgrammableTransactionCommand, [], 'arguments')]: command.arguments,
+						}),
+					},
+				})),
+				resolveCount: ({ transaction }) => transaction.commands.length,
+			},
+			$$objectChanges: {
+				select: ({
+					$network,
+					transaction,
+				}) => transaction.objectChanges.map((change) => ({
+					[EntityMetaKey.Selector]: {
+						$transaction: {
+							$network,
+							digest: transaction.digest,
+						},
+						changeIndex: change.changeIndex,
+					},
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.SuiObjectChange, [], 'changeKind')]: change.changeKind,
+						...(change.objectId != null && {
+							[entityFieldAddressKey(EntityType.SuiObjectChange, [], 'objectId')]: change.objectId,
+						}),
+						...(change.objectType != null && {
+							[entityFieldAddressKey(EntityType.SuiObjectChange, [], 'objectType')]: change.objectType,
+						}),
+						...(change.ownerSelector != null && {
+							[entityFieldAddressKey(EntityType.SuiObjectChange, [], 'ownerSelector')]: change.ownerSelector,
+						}),
+						...(change.version != null && {
+							[entityFieldAddressKey(EntityType.SuiObjectChange, [], 'version')]: change.version,
+						}),
+						...(change.digest != null && {
+							[entityFieldAddressKey(EntityType.SuiObjectChange, [], 'digest')]: change.digest,
+						}),
+					},
+				})),
+				resolveCount: ({ transaction }) => transaction.objectChanges.length,
+			},
+			$$balanceChanges: {
+				select: ({
+					$network,
+					transaction,
+				}) => transaction.balanceChanges.map((change) => ({
+					[EntityMetaKey.Selector]: {
+						$transaction: {
+							$network,
+							digest: transaction.digest,
+						},
+						changeIndex: change.changeIndex,
+					},
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.SuiBalanceChange, [], 'amountDelta')]: change.amountDelta,
+						...(change.ownerSelector != null && {
+							[entityFieldAddressKey(EntityType.SuiBalanceChange, [], 'ownerSelector')]: change.ownerSelector,
+						}),
+						...(change.coinType != null && {
+							[entityFieldAddressKey(EntityType.SuiBalanceChange, [], 'coinType')]: change.coinType,
+						}),
+						...(change.coinType != null && {
+							[entityFieldAddressKey(EntityType.SuiBalanceChange, [], '$coinType')]: {
+								[EntityMetaKey.Selector]: {
+									$network,
+									coinType: change.coinType,
+								},
+							},
+						}),
+					},
+				})),
+				resolveCount: ({ transaction }) => transaction.balanceChanges.length,
+			},
+			$$events: {
+				select: ({
+					$network,
+					transaction,
+				}) => transaction.events.map((event) => ({
+					[EntityMetaKey.Selector]: {
+						$network,
+						transactionDigest: transaction.digest,
+						eventIndex: event.eventIndex,
+					},
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.SuiEvent, [], 'eventType')]: event.eventType,
+						...(event.packageId != null && {
+							[entityFieldAddressKey(EntityType.SuiEvent, [], 'packageId')]: event.packageId,
+						}),
+						...(event.moduleName != null && {
+							[entityFieldAddressKey(EntityType.SuiEvent, [], 'moduleName')]: event.moduleName,
+						}),
+						...(event.sender != null && {
+							[entityFieldAddressKey(EntityType.SuiEvent, [], 'sender')]: event.sender,
+						}),
+						...(event.value != null && {
+							[entityFieldAddressKey(EntityType.SuiEvent, [], 'value')]: event.value,
+						}),
+					},
+				})),
+				resolveCount: ({ transaction }) => transaction.events.length,
+			},
 		}),
 
 		defineResolver({
