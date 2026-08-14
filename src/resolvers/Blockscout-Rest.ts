@@ -46,6 +46,7 @@ import type {
 	BlockscoutInternalTransaction,
 	BlockscoutErc4337Account,
 	BlockscoutRawTrace,
+	BlockscoutSmartContract,
 	BlockscoutSmartContractForList,
 	BlockscoutStateChange,
 	BlockscoutStats,
@@ -153,6 +154,55 @@ const evmContractReferenceFromBlockscoutListWire = ({
 		},
 	}
 }
+
+const getBlockscoutSmartContractForEvmContract = async ({
+	$network,
+	address,
+}: EntitySelector<typeof schema, EntityType.EvmContract>) => {
+	const { getSmartContract } = await import('$/sources/Blockscout/Rest/queries.ts')
+	const normalized = hexLowerOfByteSize(address, 20)
+	if (normalized == null)
+		throw new Error('Blockscout_Rest: contract address not normalized')
+
+	return getSmartContract({
+		chainId: evmChainIdFromNetworkSelector($network),
+		address: normalized,
+	})
+}
+
+const blockscoutVerificationMatchFromSmartContractWire = (
+	wire: BlockscoutSmartContract
+) => (
+	wire.is_fully_verified === true ?
+		'full'
+	:
+		wire.is_partially_verified === true ?
+			'partial'
+		:
+			undefined
+)
+
+const blockscoutSourceFilesFromSmartContractWire = (
+	wire: BlockscoutSmartContract
+) => (
+	Object.fromEntries([
+		...(
+			wire.source_code != null && wire.source_code !== '' ?
+				[[wire.file_path ?? 'contract', wire.source_code]]
+			:
+				[]
+		),
+		...(wire.additional_sources ?? []).flatMap((source) => (
+			source.source_code != null
+			&& source.source_code !== ''
+			&& source.file_path != null
+			&& source.file_path !== '' ?
+				[[source.file_path, source.source_code]]
+			:
+				[]
+		)),
+	])
+)
 
 const evmContractRuntimeCodeFromGetCodeHex = (
 	codeHex: `0x${string}`
@@ -4385,6 +4435,123 @@ export default {
 			},
 		})({
 			storageSlotReads: (entity) => entity,
+		}),
+
+		defineResolver({
+			entityType: EntityType.EvmContractVerification,
+			resolve: {
+				EvmContract: {
+					resolve: async (entitySelector) => {
+						const details = await getBlockscoutSmartContractForEvmContract(entitySelector.$contract)
+						if (details == null)
+							throw new Error('Blockscout_Rest: contract not verified')
+
+						const verifiedAtMs = details.verified_at == null ?
+							undefined
+						:
+							Date.parse(details.verified_at)
+						return {
+							...((match) => (
+								match != null ?
+									{ match }
+								:
+									{}
+							))(blockscoutVerificationMatchFromSmartContractWire(details)),
+							...(verifiedAtMs != null && Number.isFinite(verifiedAtMs) && verifiedAtMs >= 0 && {
+								verifiedAtMs,
+							}),
+							$compilation: {
+								[EntityMetaKey.Selector]: entitySelector,
+							},
+							$sourceBundle: {
+								[EntityMetaKey.Selector]: entitySelector,
+							},
+						}
+					},
+				},
+			},
+		})({
+			match: (verification) => verification.match,
+			creationMatch: (verification) => verification.creationMatch,
+			runtimeMatch: (verification) => verification.runtimeMatch,
+			verifiedAtMs: (verification) => verification.verifiedAtMs,
+			matchId: (verification) => verification.matchId,
+			$compilation: (verification) => verification.$compilation,
+			$sourceBundle: (verification) => verification.$sourceBundle,
+		}),
+
+		defineResolver({
+			entityType: EntityType.EvmContractCompilation,
+			resolve: {
+				EvmContract: {
+					resolve: async ({ $contract }) => {
+						const details = await getBlockscoutSmartContractForEvmContract($contract)
+						if (details == null)
+							throw new Error('Blockscout_Rest: compilation not verified')
+
+						return {
+							...(details.language != null && { language: details.language }),
+							...(details.compiler_version != null && {
+								compilerVersion: details.compiler_version,
+							}),
+							...(details.name != null && details.name !== '' && { name: details.name }),
+							...(details.file_path != null && details.file_path !== '' && {
+								fullyQualifiedName: details.file_path,
+							}),
+							...(details.compiler_settings != null && {
+								compilerSettingsJson: JSON.stringify(details.compiler_settings),
+							}),
+						}
+					},
+				},
+			},
+		})({
+			language: (compilation) => compilation.language,
+			compiler: (compilation) => compilation.compiler,
+			compilerVersion: (compilation) => compilation.compilerVersion,
+			name: (compilation) => compilation.name,
+			fullyQualifiedName: (compilation) => compilation.fullyQualifiedName,
+			compilerSettingsJson: (compilation) => compilation.compilerSettingsJson,
+			storageLayoutJson: (compilation) => compilation.storageLayoutJson,
+		}),
+
+		defineResolver({
+			entityType: EntityType.EvmContractSourceBundle,
+			resolve: {
+				EvmContract: {
+					resolve: async ({ $contract }) => {
+						const details = await getBlockscoutSmartContractForEvmContract($contract)
+						if (details == null)
+							throw new Error('Blockscout_Rest: source bundle not verified')
+
+						return {
+							files: JSON.stringify(blockscoutSourceFilesFromSmartContractWire(details)),
+						}
+					},
+				},
+			},
+		})({
+			files: (sourceBundle) => sourceBundle.files,
+		}),
+
+		defineResolver({
+			entityType: EntityType.EvmContract,
+			resolve: {
+				EvmNetworkAddress: {
+					resolve: async (entitySelector) => {
+						if (await getBlockscoutSmartContractForEvmContract(entitySelector) == null)
+							return undefined
+
+						return {
+							[EntityMetaKey.Selector]: {
+								$contract: entitySelector,
+							},
+						}
+					},
+				},
+			},
+		})({
+			$verification: (verification) => verification,
 		}),
 	],
 } satisfies RegisteredSourceResolverModule

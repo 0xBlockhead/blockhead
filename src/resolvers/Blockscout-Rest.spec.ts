@@ -1213,6 +1213,139 @@ describe('Blockscout_Rest verified contracts', () => {
 	})
 })
 
+describe('Blockscout_Rest smart contract verification detail', () => {
+	const verifiedSmartContract = {
+		additional_sources: [{
+			file_path: 'lib/Ownable.sol',
+			source_code: 'contract Ownable {}',
+		}],
+		compiler_settings: {
+			optimizer: {
+				enabled: true,
+			},
+		},
+		compiler_version: 'v0.8.28+commit.7893614a',
+		file_path: 'contracts/USDC.sol',
+		is_fully_verified: true,
+		language: 'solidity',
+		name: 'USDC',
+		source_code: 'contract USDC {}',
+		verified_at: '2026-07-16T09:30:43.020Z',
+	}
+
+	const verificationResolver = blockscoutRest.resolvers.find((candidate) => (
+		candidate.entityType === EntityType.EvmContractVerification
+		&& 'EvmContract' in candidate.resolve
+	))
+	const compilationResolver = blockscoutRest.resolvers.find((candidate) => (
+		candidate.entityType === EntityType.EvmContractCompilation
+		&& 'EvmContract' in candidate.resolve
+	))
+	const sourceBundleResolver = blockscoutRest.resolvers.find((candidate) => (
+		candidate.entityType === EntityType.EvmContractSourceBundle
+		&& 'EvmContract' in candidate.resolve
+	))
+	const contractVerificationRefResolver = blockscoutRest.resolvers.find((candidate) => (
+		candidate.entityType === EntityType.EvmContract
+		&& 'EvmNetworkAddress' in candidate.resolve
+		&& '$verification' in candidate.projections
+	))
+
+	if (
+		verificationResolver == null
+		|| !('EvmContract' in verificationResolver.resolve)
+		|| compilationResolver == null
+		|| !('EvmContract' in compilationResolver.resolve)
+		|| sourceBundleResolver == null
+		|| !('EvmContract' in sourceBundleResolver.resolve)
+		|| contractVerificationRefResolver == null
+		|| !('EvmNetworkAddress' in contractVerificationRefResolver.resolve)
+	)
+		throw new Error('Blockscout_Rest: missing smart contract verification detail resolvers')
+
+	beforeEach(() => {
+		vi.clearAllMocks()
+	})
+
+	it('projects verification, compilation, and source bundle from smart-contract detail', async () => {
+		getSmartContract.mockResolvedValue(verifiedSmartContract)
+
+		await expect(verificationResolver.resolve.EvmContract.resolve({
+			$contract: contract,
+		})).resolves.toEqual({
+			match: 'full',
+			verifiedAtMs: Date.parse('2026-07-16T09:30:43.020Z'),
+			$compilation: {
+				[EntityMetaKey.Selector]: {
+					$contract: contract,
+				},
+			},
+			$sourceBundle: {
+				[EntityMetaKey.Selector]: {
+					$contract: contract,
+				},
+			},
+		})
+
+		await expect(compilationResolver.resolve.EvmContract.resolve({
+			$contract: contract,
+		})).resolves.toEqual({
+			language: 'solidity',
+			compilerVersion: 'v0.8.28+commit.7893614a',
+			name: 'USDC',
+			fullyQualifiedName: 'contracts/USDC.sol',
+			compilerSettingsJson: JSON.stringify(verifiedSmartContract.compiler_settings),
+		})
+
+		await expect(sourceBundleResolver.resolve.EvmContract.resolve({
+			$contract: contract,
+		})).resolves.toEqual({
+			files: JSON.stringify({
+				'contracts/USDC.sol': 'contract USDC {}',
+				'lib/Ownable.sol': 'contract Ownable {}',
+			}),
+		})
+
+		await expect(contractVerificationRefResolver.resolve.EvmNetworkAddress.resolve(contract, context)).resolves.toEqual({
+			[EntityMetaKey.Selector]: {
+				$contract: contract,
+			},
+		})
+	})
+
+	it('maps partial verification and omits the contract verification ref when detail is absent', async () => {
+		getSmartContract.mockResolvedValue({
+			is_partially_verified: true,
+			language: 'vyper',
+			verified_at: '2026-07-16T09:30:43.020Z',
+		})
+
+		await expect(verificationResolver.resolve.EvmContract.resolve({
+			$contract: contract,
+		})).resolves.toEqual({
+			match: 'partial',
+			verifiedAtMs: Date.parse('2026-07-16T09:30:43.020Z'),
+			$compilation: {
+				[EntityMetaKey.Selector]: {
+					$contract: contract,
+				},
+			},
+			$sourceBundle: {
+				[EntityMetaKey.Selector]: {
+					$contract: contract,
+				},
+			},
+		})
+
+		getSmartContract.mockResolvedValue(null)
+
+		await expect(verificationResolver.resolve.EvmContract.resolve({
+			$contract: contract,
+		})).rejects.toThrow('Blockscout_Rest: contract not verified')
+		await expect(contractVerificationRefResolver.resolve.EvmNetworkAddress.resolve(contract, context)).resolves.toBeUndefined()
+	})
+})
+
 describe('Blockscout EvmNetworkAccount_Timestamp', () => {
 	const address = '0x1111111111111111111111111111111111111111'
 	const tipTimestamp = '2024-01-02T03:04:05.000Z'
