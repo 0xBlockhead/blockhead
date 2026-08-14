@@ -229,6 +229,16 @@ describe('ACP registry resolver', () => {
 	})
 
 	it('projects hub $$acpPrograms and tip observation leftovers', async () => {
+		const dateNow = vi.spyOn(Date, 'now').mockReturnValueOnce(1_700_000_000_300)
+		fetchRegistry.mockImplementationOnce(async () => {
+			expect(dateNow).not.toHaveBeenCalled()
+			return {
+				version: '1.0.0',
+				agents: [
+					binaryAgent,
+				],
+			}
+		})
 		const { default: acpRegistry } = await import('$/resolvers/AcpRegistry-Rest.ts')
 		const resolver = acpRegistry.resolvers[2]
 		const snapshot = await resolver.resolve.NetworkId.resolve({
@@ -249,7 +259,7 @@ describe('ACP registry resolver', () => {
 					$network: {
 						networkId: 'acp',
 					},
-					timestampMs: expect.any(Number),
+					timestampMs: 1_700_000_000_300,
 					source: Source.AcpRegistry_Rest,
 				}),
 				[EntityMetaKey.Fields]: expect.objectContaining({
@@ -264,6 +274,7 @@ describe('ACP registry resolver', () => {
 				}),
 			}),
 		])
+		expect(dateNow).toHaveBeenCalledOnce()
 	})
 
 	it('fails the global catalog closed when the registry is unavailable', async () => {

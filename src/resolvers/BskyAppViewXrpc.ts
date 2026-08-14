@@ -553,13 +553,12 @@ export const bskyAppViewResolvers = (
 			resolve: {
 				Scope: {
 					resolve: async ({ scope }, context) => {
-						const timestampMs = Date.now()
 						const observation = await atprotoNetworkHubObservation(context)
 						return {
 							$$timestamps: [{
 								[EntityMetaKey.Selector]: {
 									$hub: { scope },
-									timestampMs,
+									timestampMs: Date.now(),
 									source,
 								},
 								[EntityMetaKey.Fields]: {

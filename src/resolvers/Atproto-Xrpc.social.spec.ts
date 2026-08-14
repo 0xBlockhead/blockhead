@@ -92,6 +92,7 @@ const postView = {
 
 describe('Atproto_Xrpc APP-free social deepenings', () => {
 	beforeEach(() => {
+		vi.restoreAllMocks()
 		getAuthorFeed.mockReset()
 		getFollowers.mockReset()
 		getFollows.mockReset()
@@ -324,21 +325,24 @@ describe('Atproto_Xrpc APP-free social deepenings', () => {
 	})
 
 	it('projects Did handle from getProfile and hub tip $$timestamps from AppView search windows', async () => {
+		const dateNow = vi.spyOn(Date, 'now').mockReturnValue(1_700_000_000_000)
 		getProfile.mockResolvedValue({
 			did: 'did:plc:alice',
 			handle: 'alice.test',
 			displayName: 'Alice',
 		})
-		searchActors.mockResolvedValue({
-			actors: [{
-				did: 'did:plc:alice',
-				handle: 'alice.test',
-			}],
+		searchActors.mockImplementation(async () => {
+			expect(dateNow).not.toHaveBeenCalled()
+			return {
+				actors: [{
+					did: 'did:plc:alice',
+					handle: 'alice.test',
+				}],
+			}
 		})
 		searchPosts.mockResolvedValue({
 			posts: [postView],
 		})
-		vi.spyOn(Date, 'now').mockReturnValue(1_700_000_000_000)
 
 		const actorDid = atproto.resolvers.find((resolver) => (
 			resolver.entityType === EntityType.AtprotoActor
@@ -370,6 +374,7 @@ describe('Atproto_Xrpc APP-free social deepenings', () => {
 			scope: '_GlobalAtprotoNetwork',
 		}, context)
 		expect(hub.$$timestamps).toHaveLength(1)
+		expect(hub.$$timestamps[0][EntityMetaKey.Selector].timestampMs).toBe(1_700_000_000_000)
 		expect(hub.$$timestamps[0][EntityMetaKey.Fields]).toEqual({
 			[entityFieldAddressKey(EntityType._GlobalAtprotoNetwork_Timestamp, [], 'source')]: Source.Atproto_Xrpc,
 			[entityFieldAddressKey(EntityType._GlobalAtprotoNetwork_Timestamp, [], 'observedActorCount')]: 1,
@@ -377,6 +382,7 @@ describe('Atproto_Xrpc APP-free social deepenings', () => {
 			[entityFieldAddressKey(EntityType._GlobalAtprotoNetwork_Timestamp, [], 'relayHost')]: 'public.api.bsky.app',
 			[entityFieldAddressKey(EntityType._GlobalAtprotoNetwork_Timestamp, [], 'reachable')]: true,
 		})
+		expect(dateNow).toHaveBeenCalledOnce()
 		expect(atproto.resolvers.some((resolver) => (
 			resolver.entityType === EntityType._GlobalAtprotoNetwork_Timestamp
 		))).toBe(false)

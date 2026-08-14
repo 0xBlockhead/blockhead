@@ -55,6 +55,7 @@ const resolver = (
 }
 
 beforeEach(() => {
+	vi.restoreAllMocks()
 	getStream.mockReset()
 	listTrending.mockReset()
 })
@@ -92,21 +93,24 @@ describe('Piped Rest enrolled leftovers', () => {
 	})
 
 	it('projects hub tip observed counts from the trending window', async () => {
-		vi.spyOn(Date, 'now').mockReturnValueOnce(1_700_000_000_100)
-		listTrending.mockResolvedValueOnce([
-			{
-				url: '/watch?v=v1',
-				uploaderUrl: '/channel/UCa',
-			},
-			{
-				url: '/watch?v=v2',
-				uploaderUrl: '/channel/UCa',
-			},
-			{
-				url: '/watch?v=v3',
-				uploaderUrl: '/channel/UCb',
-			},
-		])
+		const dateNow = vi.spyOn(Date, 'now').mockReturnValueOnce(1_700_000_000_100)
+		listTrending.mockImplementationOnce(async () => {
+			expect(dateNow).not.toHaveBeenCalled()
+			return [
+				{
+					url: '/watch?v=v1',
+					uploaderUrl: '/channel/UCa',
+				},
+				{
+					url: '/watch?v=v2',
+					uploaderUrl: '/channel/UCa',
+				},
+				{
+					url: '/watch?v=v3',
+					uploaderUrl: '/channel/UCb',
+				},
+			]
+		})
 
 		const observations = await resolver(
 			EntityType._GlobalYoutubeNetwork,
@@ -127,6 +131,27 @@ describe('Piped Rest enrolled leftovers', () => {
 				[entityFieldAddressKey(EntityType._GlobalYoutubeNetwork_Timestamp, [], 'reachable')]: true,
 			},
 		}])
+		expect(dateNow).toHaveBeenCalledOnce()
+	})
+
+	it('timestamps unreachable observations after the failed request completes', async () => {
+		const dateNow = vi.spyOn(Date, 'now').mockReturnValueOnce(1_700_000_000_101)
+		listTrending.mockImplementationOnce(async () => {
+			expect(dateNow).not.toHaveBeenCalled()
+			throw new Error('Piped unavailable')
+		})
+
+		const observations = await resolver(
+			EntityType._GlobalYoutubeNetwork,
+			'$$timestamps'
+		).resolve.Scope.resolve({
+			scope: '_GlobalYoutubeNetwork',
+		}, context)
+
+		expect(observations[0]?.[EntityMetaKey.Selector].timestampMs).toBe(1_700_000_000_101)
+		expect(observations[0]?.[EntityMetaKey.Fields]).toEqual({
+			[entityFieldAddressKey(EntityType._GlobalYoutubeNetwork_Timestamp, [], 'reachable')]: false,
+		})
 	})
 
 	it('does not register a direct global observation resolver', () => {

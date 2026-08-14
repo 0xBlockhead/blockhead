@@ -255,7 +255,6 @@ export default {
 					resolve: async ({
 						networkId,
 					}) => {
-						const timestampMs = Date.now()
 						const registry = await fetchAcpRegistry()
 						return {
 								networkId,
@@ -266,7 +265,7 @@ export default {
 										$network: {
 											networkId,
 										},
-										timestampMs,
+										timestampMs: Date.now(),
 										source: Source.AcpRegistry_Rest,
 									},
 									[EntityMetaKey.Fields]: {

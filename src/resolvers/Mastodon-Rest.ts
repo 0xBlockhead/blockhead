@@ -237,10 +237,16 @@ const activityPubNoteSnapshotFromMastodonStatus = async (
 	instanceOrigin: string,
 	status: MastodonApiV1Status
 ) => {
-	const resolvedAtMs = Date.now()
 	const {
 		getStatus,
 	} = await import('$/sources/Mastodon/Rest/queries.ts')
+	const parentStatus = (
+		status.in_reply_to_id == null || status.in_reply_to_id === '' ?
+			undefined
+		:
+			await getStatus(binding, instanceOrigin, String(status.in_reply_to_id)).catch(() => undefined)
+	)
+	const resolvedAtMs = Date.now()
 	const note = {
 		...activityPubNoteFieldsFromMastodonStatus(status, instanceOrigin),
 		$$timestamps: [
@@ -250,26 +256,23 @@ const activityPubNoteSnapshotFromMastodonStatus = async (
 			),
 		],
 	}
-	if (status.in_reply_to_id == null || status.in_reply_to_id === '')
-		return note
-
-	try {
-		const parentStatus = await getStatus(binding, instanceOrigin, String(status.in_reply_to_id))
-		const parentReference = activityPubNoteCardReferenceFromMastodonStatus(
+	const parentReference = (
+		parentStatus == null ?
+			undefined
+		:
+			activityPubNoteCardReferenceFromMastodonStatus(
 			parentStatus,
 			instanceOrigin,
 			resolvedAtMs
 		)
-		return parentReference == null ?
-			note
-		:
-			{
-				...note,
-				$inReplyTo: parentReference,
-			}
-	} catch {
-		return note
-	}
+	)
+	return parentReference == null ?
+		note
+	:
+		{
+			...note,
+			$inReplyTo: parentReference,
+		}
 }
 
 const activityPubActorFieldsFromMastodonAccount = (
@@ -588,7 +591,6 @@ export default {
 			resolve: {
 				Scope: {
 					resolve: async ({ scope }) => {
-						const timestampMs = Date.now()
 						const [{ binding, instanceOrigin }] = mastodonInstances
 						const {
 							getInstance,
@@ -664,7 +666,7 @@ export default {
 							return [{
 								[EntityMetaKey.Selector]: {
 									$hub: { scope },
-									timestampMs,
+									timestampMs: Date.now(),
 									source: Source.Mastodon_Rest,
 								},
 								[EntityMetaKey.Fields]: {
@@ -701,7 +703,7 @@ export default {
 							return [{
 								[EntityMetaKey.Selector]: {
 									$hub: { scope },
-									timestampMs,
+									timestampMs: Date.now(),
 									source: Source.Mastodon_Rest,
 								},
 								[EntityMetaKey.Fields]: {
@@ -743,18 +745,17 @@ export default {
 						if (binding == null)
 							throw new Error(`Mastodon_Rest: entity instance binding is missing for ${instanceOrigin}`)
 						assertInstanceMatches(binding, instanceOrigin)
-						const timestampMs = Date.now()
-						const $instance = { instanceOrigin }
-						const $observation = {
-							$instance,
-							timestampMs,
-							source: Source.Mastodon_Rest,
-						}
 						const [instance, peerDomains, moderatedDomains] = await Promise.all([
 							getInstance(binding, instanceOrigin),
 							listInstancePeerDomains(binding, instanceOrigin),
 							listInstanceModeratedDomains(binding, instanceOrigin),
 						])
+						const $instance = { instanceOrigin }
+						const $observation = {
+							$instance,
+							timestampMs: Date.now(),
+							source: Source.Mastodon_Rest,
+						}
 						return [{
 							[EntityMetaKey.Selector]: $observation,
 							[EntityMetaKey.Fields]: {

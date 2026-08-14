@@ -593,7 +593,6 @@ export default {
 				Scope: {
 					resolve: async ({ scope }, context) => {
 						const { listTrending } = await import('$/sources/Piped/Rest/queries.ts')
-						const timestampMs = Date.now()
 						try {
 							const videos = await listTrending(
 								resolverContextRowLimit(context)
@@ -613,7 +612,7 @@ export default {
 							return [{
 								[EntityMetaKey.Selector]: {
 									$hub: { scope },
-									timestampMs,
+									timestampMs: Date.now(),
 									source: Source.Piped_Rest,
 								},
 								[EntityMetaKey.Fields]: {
@@ -629,7 +628,7 @@ export default {
 							return [{
 								[EntityMetaKey.Selector]: {
 									$hub: { scope },
-									timestampMs,
+									timestampMs: Date.now(),
 									source: Source.Piped_Rest,
 								},
 								[EntityMetaKey.Fields]: {

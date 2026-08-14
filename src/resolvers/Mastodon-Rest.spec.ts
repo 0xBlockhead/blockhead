@@ -368,11 +368,14 @@ describe('Mastodon ActivityPub observations', () => {
 	})
 
 	it('materializes a typed global observation from the configured instance', async () => {
-		vi.spyOn(Date, 'now').mockReturnValueOnce(1_700_000_000_100)
-		getInstance.mockResolvedValueOnce({
-			title: 'Mastodon',
-			description: 'Federated social network',
-			version: '4.3.0',
+		const dateNow = vi.spyOn(Date, 'now').mockReturnValueOnce(1_700_000_000_100)
+		getInstance.mockImplementationOnce(async () => {
+			expect(dateNow).not.toHaveBeenCalled()
+			return {
+				title: 'Mastodon',
+				description: 'Federated social network',
+				version: '4.3.0',
+			}
 		})
 		getInstanceV2.mockResolvedValueOnce({
 			usage: {
@@ -468,11 +471,15 @@ describe('Mastodon ActivityPub observations', () => {
 			[entityFieldAddressKey(EntityType._GlobalActivityPubNetwork_Timestamp, [], 'moderatedDomainCount')]: 2,
 			[entityFieldAddressKey(EntityType._GlobalActivityPubNetwork_Timestamp, [], 'reachable')]: true,
 		})
+		expect(dateNow).toHaveBeenCalledOnce()
 	})
 
 	it('records an unreachable global observation without inventing instance metadata', async () => {
-		vi.spyOn(Date, 'now').mockReturnValueOnce(1_700_000_000_101)
-		getInstance.mockRejectedValueOnce(new Error('instance unavailable'))
+		const dateNow = vi.spyOn(Date, 'now').mockReturnValueOnce(1_700_000_000_101)
+		getInstance.mockImplementationOnce(async () => {
+			expect(dateNow).not.toHaveBeenCalled()
+			throw new Error('instance unavailable')
+		})
 
 		const observations = await resolver(
 			EntityType._GlobalActivityPubNetwork,
@@ -481,11 +488,13 @@ describe('Mastodon ActivityPub observations', () => {
 			scope: '_GlobalActivityPubNetwork',
 		}, context)
 
+		expect(observations[0][EntityMetaKey.Selector].timestampMs).toBe(1_700_000_000_101)
 		expect(Object.values(observations[0][EntityMetaKey.Fields])).toEqual([
 			'https://mastodon.social',
 			2,
 			false,
 		])
+		expect(dateNow).toHaveBeenCalledOnce()
 	})
 
 	it('does not register a direct global observation resolver', () => {
@@ -495,11 +504,14 @@ describe('Mastodon ActivityPub observations', () => {
 	})
 
 	it('produces one source-keyed instance observation batch with observation-owned topology', async () => {
-		vi.spyOn(Date, 'now').mockReturnValueOnce(1_700_000_000_000)
-		getInstance.mockResolvedValueOnce({
-			title: 'Alpha',
-			description: 'First observation',
-			version: '4.3.0',
+		const dateNow = vi.spyOn(Date, 'now').mockReturnValueOnce(1_700_000_000_000)
+		getInstance.mockImplementationOnce(async () => {
+			expect(dateNow).not.toHaveBeenCalled()
+			return {
+				title: 'Alpha',
+				description: 'First observation',
+				version: '4.3.0',
+			}
 		})
 		listInstancePeerDomains.mockResolvedValueOnce([
 			'peer-one.example',
@@ -529,6 +541,7 @@ describe('Mastodon ActivityPub observations', () => {
 			timestampMs: 1_700_000_000_000,
 			source: Source.Mastodon_Rest,
 		})
+		expect(dateNow).toHaveBeenCalledOnce()
 		expect(Object.values(observations[0][EntityMetaKey.Fields])).toEqual(expect.arrayContaining([
 			expect.arrayContaining([
 				expect.objectContaining({

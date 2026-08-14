@@ -845,7 +845,6 @@ export default {
 				Scope: {
 					resolve: async ({ scope }, context) => {
 						const { listPopularVideos } = await import('$/sources/Youtube/Rest/queries.ts')
-						const timestampMs = Date.now()
 						try {
 							const videos = (await listPopularVideos(
 								context.publicEnv,
@@ -866,7 +865,7 @@ export default {
 							return [{
 								[EntityMetaKey.Selector]: {
 									$hub: { scope },
-									timestampMs,
+									timestampMs: Date.now(),
 									source: Source.Youtube_Rest,
 								},
 								[EntityMetaKey.Fields]: {
@@ -882,7 +881,7 @@ export default {
 							return [{
 								[EntityMetaKey.Selector]: {
 									$hub: { scope },
-									timestampMs,
+									timestampMs: Date.now(),
 									source: Source.Youtube_Rest,
 								},
 								[EntityMetaKey.Fields]: {
