@@ -337,4 +337,36 @@ describe('Wormholescan OpenAPI operations', () => {
 			},
 		}])
 	})
+
+	it('accepts live base64 vaa.raw strings and null normalizedDecimals', async () => {
+		getJson.mockResolvedValue({
+			operations: [{
+				id: '1/abcdef/1',
+				emitterChain: 1,
+				emitterAddress: { hex: 'abcdef' },
+				sequence: '1',
+				vaa: {
+					raw: 'AQAAAA',
+					guardianSetIndex: 7,
+					isDuplicated: false,
+				},
+				content: {
+					standarizedProperties: {
+						normalizedDecimals: null,
+					},
+				},
+			}],
+		})
+
+		await expect(queries.getOperations()).resolves.toMatchObject([{
+			vaa: {
+				raw: 'AQAAAA',
+			},
+			content: {
+				standarizedProperties: {
+					normalizedDecimals: null,
+				},
+			},
+		}])
+	})
 })
