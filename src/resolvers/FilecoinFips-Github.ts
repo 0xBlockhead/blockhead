@@ -26,6 +26,9 @@ export default {
 			const text = await getMarkdownText({
 				number,
 			})
+			if (text.trim() === '')
+				throw new Error('FilecoinFips_Github: empty proposal markdown')
+
 			const body = stripFrontmatter(text)
 			const frontmatter = parseFrontmatter(text)
 			return {
@@ -38,7 +41,7 @@ export default {
 		resolveProposalIndex: async () => {
 			const { getContents } = await import('$/sources/FilecoinFips/Github/queries.ts')
 			return (await getContents()).flatMap((githubContent) => {
-				const proposalNumberRaw = regex('^fip-(?<proposalNumber>\\d+)\\.md$').exec(githubContent.name)?.groups.proposalNumber
+				const proposalNumberRaw = regex('^fip-(?<proposalNumber>\\d{4})\\.md$').exec(githubContent.name)?.groups.proposalNumber
 				return githubContent.type !== 'file' || proposalNumberRaw == null ?
 					[]
 				:

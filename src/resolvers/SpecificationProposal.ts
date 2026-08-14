@@ -1,7 +1,11 @@
 import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
-import type { ResolverSelectorPattern } from '$/resolvers/$resolvers.ts'
+import {
+	resolverContextRowLimit,
+	type ResolverContext,
+	type ResolverSelectorPattern,
+} from '$/resolvers/$resolvers.ts'
 import {
 	EntityMetaKey,
 	type EntitySelectorForSelectorName,
@@ -22,8 +26,53 @@ type SpecificationProposalDocument = {
 	documentTitle: string | undefined
 }
 
-type SpecificationProposalReference = {
+export type SpecificationProposalReference = {
 	readonly [EntityMetaKey.Selector]: SpecificationProposalSelector
+}
+
+export const specificationProposalIndexRows = (
+	rows: readonly SpecificationProposalReference[],
+	errorPrefix: string
+) => {
+	const sorted = rows.toSorted((left, right) => {
+		const leftSelector = left[EntityMetaKey.Selector]
+		const rightSelector = right[EntityMetaKey.Selector]
+		return (
+			leftSelector.realm !== rightSelector.realm ?
+				leftSelector.realm.localeCompare(rightSelector.realm)
+			: leftSelector.category !== rightSelector.category ?
+				leftSelector.category.localeCompare(rightSelector.category)
+			:
+				leftSelector.number - rightSelector.number
+		)
+	})
+	const seen = new Set<string>()
+	for (const row of sorted) {
+		const { realm, category, number } = row[EntityMetaKey.Selector]
+		const identity = `${realm}:${category}:${number}`
+		if (seen.has(identity))
+			throw new Error(`${errorPrefix}: duplicate proposal identity ${identity}`)
+		seen.add(identity)
+	}
+	return sorted
+}
+
+export const specificationProposalIndexPage = (
+	rows: readonly SpecificationProposalReference[],
+	context: ResolverContext,
+	errorPrefix: string
+) => {
+	const offset = context.pagination.offset ?? 0
+	const limit = resolverContextRowLimit(context)
+	if (!Number.isSafeInteger(offset) || offset < 0)
+		throw new Error(`${errorPrefix}: invalid proposal index offset`)
+	if (!Number.isSafeInteger(limit) || limit < 0)
+		throw new Error(`${errorPrefix}: invalid proposal index limit`)
+
+	return {
+		rows: rows.slice(offset, offset + limit),
+		totalCount: rows.length,
+	}
 }
 
 export default ({
@@ -59,10 +108,20 @@ export default ({
 		entityType: EntityType._Global,
 		resolve: {
 			Scope: {
-				resolve: resolveProposalIndex,
+				resolve: async () => specificationProposalIndexRows(
+					await resolveProposalIndex(),
+					'SpecificationProposal'
+				),
 			},
 		},
 	})({
-		$$proposals: (snapshot) => snapshot,
+		$$proposals: {
+			select: (snapshot, _selector, context) => specificationProposalIndexPage(
+				snapshot,
+				context,
+				'SpecificationProposal'
+			).rows,
+			resolveCount: (snapshot) => snapshot.length,
+		},
 	}),
 ] as const)

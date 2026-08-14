@@ -26,12 +26,16 @@ export default {
 			const text = await getMarkdownText({
 				number,
 			})
+			if (text.trim() === '')
+				throw new Error('NearNeps_Github: empty proposal markdown')
+
+			const body = stripFrontmatter(text)
 			const frontmatter = parseFrontmatter(text)
 			return {
-				documentCategory: frontmatter.category?.trim(),
-				documentTitle: frontmatter.title?.trim(),
-				documentStatus: frontmatter.status?.trim(),
-				documentBody: stripFrontmatter(text),
+				documentCategory: frontmatter.category?.trim() || undefined,
+				documentTitle: frontmatter.title?.trim() || undefined,
+				documentStatus: frontmatter.status?.trim() || undefined,
+				documentBody: body.length > 0 ? body : undefined,
 			}
 		},
 		resolveProposalIndex: async () => {

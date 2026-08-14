@@ -6,10 +6,6 @@ import {
 	defineResolver,
 	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
-import {
-	resolverContextRowLimit,
-	type ResolverContext,
-} from '$/resolvers/$resolvers.ts'
 import { parseFrontmatter, stripFrontmatter } from '$/lib/markdownFrontmatter.ts'
 import { regex } from 'arkregex'
 import {
@@ -17,6 +13,12 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
+import defineSpecificationProposalResolvers, {
+	specificationProposalIndexPage,
+	specificationProposalIndexRows,
+} from '$/resolvers/SpecificationProposal.ts'
+
+
 const ethereumProposalMarkdownBody = (
 	text: string,
 	markdownPageUrl: string
@@ -42,10 +44,9 @@ const ethereumProposalMarkdownBody = (
 		)
 }
 
-const ethereumEipErcProposalRowsFromGithubSpecs = async ({
+const ethereumProposalIndexFromGithubSpecs = async ({
 	category,
 	getContents,
-	context,
 }: {
 	category?: typeof ProposalCategory.Eip
 	| typeof ProposalCategory.Erc
@@ -54,7 +55,6 @@ const ethereumEipErcProposalRowsFromGithubSpecs = async ({
 		name: string
 		download_url?: string | null
 	}[]>
-	context: ResolverContext
 }) => {
 	const ledgers = (
 		category === ProposalCategory.Erc ?
@@ -68,127 +68,92 @@ const ethereumEipErcProposalRowsFromGithubSpecs = async ({
 			] as const
 	)
 	const byLedger = await Promise.all(
-		ledgers.map(async ({ ledger, category: cat }) => ({
+		ledgers.map(async ({ ledger, category: proposalCategory }) => ({
 			ledger,
-			category: cat,
+			category: proposalCategory,
 			data: await getContents({ ledger }),
 		}))
 	)
-	const specificationProposals = [] as {
-		[EntityMetaKey.Selector]: {
-			realm: typeof SpecificationRealm.Ethereum
-			category: typeof ProposalCategory.Eip | typeof ProposalCategory.Erc
-			number: number
-		}
-	}[]
-	for (const { ledger, category: cat, data } of byLedger) {
-		for (const githubContent of data) {
-			if (githubContent.type !== 'file' || !githubContent.name.endsWith('.md')) continue
+
+	return specificationProposalIndexRows(
+		byLedger.flatMap(({ ledger, category: proposalCategory, data }) => (
+			data.flatMap((githubContent) => {
+				if (githubContent.type !== 'file' || !githubContent.name.endsWith('.md'))
+					return []
+
 				const proposalNumberRaw = regex(`^${ledger}-(?<proposalNumber>\\d+)\\.md$`).exec(githubContent.name)?.groups.proposalNumber
-				const proposalNumber = proposalNumberRaw != null ?
-					parseInt(proposalNumberRaw, 10)
+				return proposalNumberRaw == null ?
+					[]
 				:
-					null
-
-				if (proposalNumber == null) continue
-
-				specificationProposals.push({
-					[EntityMetaKey.Selector]: {
-						realm: SpecificationRealm.Ethereum,
-						category: cat,
-						number: proposalNumber,
-					},
-				})
-			}
-	}
-	const sortedProposals = specificationProposals
-		.toSorted((left, right) => left[EntityMetaKey.Selector].number - right[EntityMetaKey.Selector].number)
-	const offset = context.pagination.offset ?? 0
-
-	return {
-		rows: sortedProposals.slice(offset, offset + resolverContextRowLimit(context)),
-		totalCount: sortedProposals.length,
-	}
+					[{
+						[EntityMetaKey.Selector]: {
+							realm: SpecificationRealm.Ethereum,
+							category: proposalCategory,
+							number: parseInt(proposalNumberRaw, 10),
+						},
+					}]
+			})
+		)),
+		'EthereumEips_Github'
+	)
 }
 
 export default {
 	source: Source.EthereumEips_Github,
 
 	resolvers: [
-		defineResolver({
-			entityType: EntityType.SpecificationProposal,
-			resolve: {
-				RealmCategoryNumber: {
-					appliesTo: [
-						{
-							realm: SpecificationRealm.Ethereum,
-							category: ProposalCategory.Eip,
-						},
-						{
-							realm: SpecificationRealm.Ethereum,
-							category: ProposalCategory.Erc,
-						},
-					],
-					resolve: async ({ category, number, realm }) => {
-						const {
-							getProposalMarkdownPageUrl,
-							getProposalMarkdownText,
-						} = await import('$/sources/EthereumEips/Github/queries.ts')
-
-						if (
-							realm !== SpecificationRealm.Ethereum
-							|| (category !== ProposalCategory.Eip && category !== ProposalCategory.Erc)
-						) {
-							throw new Error('EthereumEips_Github: proposal resolver only supports Ethereum EIPs/ERCs')
-						}
-						const text = await getProposalMarkdownText({
-							ledger: category === ProposalCategory.Erc ? 'erc' : 'eip',
-							number,
-						})
-						if (text.trim() === '') throw new Error('EthereumEips_Github: empty proposal markdown')
-						const body = ethereumProposalMarkdownBody(
-							text,
-							getProposalMarkdownPageUrl({
-								ledger: category === ProposalCategory.Erc ? 'erc' : 'eip',
-								number,
-							})
-						)
-						const fm = parseFrontmatter(text)
-						return {
-							documentCategory: fm.category?.trim() || undefined,
-							documentTitle: fm.title?.trim() || undefined,
-							documentStatus: fm.status?.trim() || undefined,
-							documentBody: body.length > 0 ? body : undefined,
-						}
-					}
+		...defineSpecificationProposalResolvers({
+			appliesTo: [
+				{
+					realm: SpecificationRealm.Ethereum,
+					category: ProposalCategory.Eip,
 				},
-			},
-		})({
-			documentCategory: (snapshot) => snapshot.documentCategory,
-			documentTitle: (snapshot) => snapshot.documentTitle,
-			documentStatus: (snapshot) => snapshot.documentStatus,
-			documentBody: (snapshot) => snapshot.documentBody,
-		}),
+				{
+					realm: SpecificationRealm.Ethereum,
+					category: ProposalCategory.Erc,
+				},
+			],
+			resolveProposal: async ({ category, number, realm }) => {
+				const {
+					getProposalMarkdownPageUrl,
+					getProposalMarkdownText,
+				} = await import('$/sources/EthereumEips/Github/queries.ts')
 
-		defineResolver({
-			entityType: EntityType._Global,
-			resolve: {
-				Scope: {
-					resolve: async (_selector, context) => {
-					const { getContents } = await import('$/sources/EthereumEips/Github/queries.ts')
-					return ethereumEipErcProposalRowsFromGithubSpecs({
-						getContents: ({ ledger }) => getContents({
-							ledger,
-						}),
-						context,
+				if (
+					realm !== SpecificationRealm.Ethereum
+					|| (category !== ProposalCategory.Eip && category !== ProposalCategory.Erc)
+				)
+					throw new Error('EthereumEips_Github: proposal resolver only supports Ethereum EIPs/ERCs')
+
+				const text = await getProposalMarkdownText({
+					ledger: category === ProposalCategory.Erc ? 'erc' : 'eip',
+					number,
+				})
+				if (text.trim() === '')
+					throw new Error('EthereumEips_Github: empty proposal markdown')
+
+				const body = ethereumProposalMarkdownBody(
+					text,
+					getProposalMarkdownPageUrl({
+						ledger: category === ProposalCategory.Erc ? 'erc' : 'eip',
+						number,
 					})
-				},
+				)
+				const frontmatter = parseFrontmatter(text)
+				return {
+					documentCategory: frontmatter.category?.trim() || undefined,
+					documentTitle: frontmatter.title?.trim() || undefined,
+					documentStatus: frontmatter.status?.trim() || undefined,
+					documentBody: body.length > 0 ? body : undefined,
 				}
-			}
-		})({
-			$$proposals: {
-				select: (snapshot) => snapshot.rows,
-				resolveCount: (snapshot) => snapshot.totalCount,
+			},
+			resolveProposalIndex: async () => {
+				const { getContents } = await import('$/sources/EthereumEips/Github/queries.ts')
+				return ethereumProposalIndexFromGithubSpecs({
+					getContents: ({ ledger }) => getContents({
+						ledger,
+					}),
+				})
 			},
 		}),
 
@@ -201,24 +166,27 @@ export default {
 						if (
 							realm !== SpecificationRealm.Ethereum
 							|| (category !== ProposalCategory.Eip && category !== ProposalCategory.Erc)
-						) {
+						)
 							throw new Error('EthereumEips_Github: proposal kind resolver only supports Ethereum EIPs/ERCs')
-						}
-						return ethereumEipErcProposalRowsFromGithubSpecs({
-							category,
-							getContents: ({ ledger }) => getContents({
-								ledger,
+
+						return specificationProposalIndexPage(
+							await ethereumProposalIndexFromGithubSpecs({
+								category,
+								getContents: ({ ledger }) => getContents({
+									ledger,
+								}),
 							}),
 							context,
-						})
+							'EthereumEips_Github'
+						)
 					},
-				}
-			}
-		})({
-				$$proposals: {
-					select: (snapshot) => snapshot.rows,
-					resolveCount: (snapshot) => snapshot.totalCount,
 				},
-			}),
+			},
+		})({
+			$$proposals: {
+				select: (snapshot) => snapshot.rows,
+				resolveCount: (snapshot) => snapshot.totalCount,
+			},
+		}),
 	],
 } satisfies RegisteredSourceResolverModule

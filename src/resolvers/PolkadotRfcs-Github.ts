@@ -25,10 +25,13 @@ export default {
 			const text = await getMarkdownText({
 				number,
 			})
+			if (text.trim() === '')
+				throw new Error('PolkadotRfcs_Github: empty proposal markdown')
+
 			return {
 				documentCategory: 'RFC',
-				documentTitle: text.match(/^#\s*(.+)$/m)?.[1]?.trim(),
-				documentStatus: text.match(/^Status:\s*(.+)$/im)?.[1]?.trim(),
+				documentTitle: text.match(/^#\s*(.+)$/m)?.[1]?.trim() || undefined,
+				documentStatus: text.match(/^Status:\s*(.+)$/im)?.[1]?.trim() || undefined,
 				documentBody: text,
 			}
 		},
