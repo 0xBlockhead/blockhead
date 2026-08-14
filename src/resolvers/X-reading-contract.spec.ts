@@ -127,6 +127,8 @@ describe('X reading identity and observation contract', () => {
 			{ id: '1890000000000000000' },
 			context
 		)
+		expect(xResolvers.resolvers[1].projections.$$media.select(xPost)).toEqual([])
+		expect(xResolvers.resolvers[1].projections.$$media.resolveCount(xPost)).toBe(0)
 		expect(xResolvers.resolvers[1].projections.$$timestamps(xPost)).toEqual([{
 			[EntityMetaKey.Selector]: {
 				$post: {

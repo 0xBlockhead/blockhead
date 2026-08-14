@@ -251,7 +251,7 @@ export default {
 									authorId
 								),
 							}),
-							...($$media.length > 0 && { $$media }),
+							$$media,
 							$$timestamps: [{
 								[EntityMetaKey.Selector]: {
 									$post: { id },
@@ -280,7 +280,10 @@ export default {
 			$replyToPost: (snapshot) => snapshot.$replyToPost,
 			$quotedPost: (snapshot) => snapshot.$quotedPost,
 			$author: (snapshot) => snapshot.$author,
-			$$media: (snapshot) => snapshot.$$media,
+			$$media: {
+				select: (snapshot) => snapshot.$$media,
+				resolveCount: (snapshot) => snapshot.$$media.length,
+			},
 			$$timestamps: (snapshot) => snapshot.$$timestamps,
 		}),
 

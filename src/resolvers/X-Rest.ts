@@ -322,7 +322,10 @@ export default {
 			conversationId: (post) => post.conversationId,
 			$replyToPost: (post) => post.$replyToPost,
 			$quotedPost: (post) => post.$quotedPost,
-			$$media: (post) => post.$$media,
+			$$media: {
+				select: (post) => post.$$media,
+				resolveCount: (post) => post.$$media.length,
+			},
 			$author: (post) => post.$author,
 			$$timestamps: (post) => post.$$timestamps,
 		}),

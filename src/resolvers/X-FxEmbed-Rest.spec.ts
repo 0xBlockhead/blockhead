@@ -197,5 +197,7 @@ describe('X FxEmbed post media', () => {
 				},
 			},
 		])
+		expect(fxEmbedResolvers.resolvers[1].projections.$$media.select(snapshot)).toEqual(snapshot.$$media)
+		expect(fxEmbedResolvers.resolvers[1].projections.$$media.resolveCount(snapshot)).toBe(2)
 	})
 })

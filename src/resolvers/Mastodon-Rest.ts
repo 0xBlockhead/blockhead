@@ -1033,7 +1033,10 @@ export default {
 				spoilerText: (note) => note.spoilerText,
 				statusUrl: (note) => note.statusUrl,
 				activityStreamsUri: (note) => note.activityStreamsUri,
-				$$media: (note) => note.$$media,
+				$$media: {
+					select: (note) => note.$$media,
+					resolveCount: (note) => note.$$media.length,
+				},
 				$author: (note) => note.$author,
 				$inReplyTo: (note) => note.$inReplyTo,
 				$reblogOf: (note) => note.$reblogOf,

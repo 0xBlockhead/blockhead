@@ -751,6 +751,8 @@ describe('Mastodon ActivityPub observations', () => {
 				url: 'https://remote.example/files/image.png',
 			},
 		})
+		expect(note.projections.$$media.select(local)).toEqual(local.$$media)
+		expect(note.projections.$$media.resolveCount(local)).toBe(1)
 		expect(getStatus).toHaveBeenCalledTimes(3)
 		expect(getStatusByActivityStreamsUri).toHaveBeenCalledTimes(1)
 		await expect(note.resolve['ActivityStreamsUri'].resolve({
