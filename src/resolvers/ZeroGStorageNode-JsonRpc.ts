@@ -16,13 +16,27 @@ type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 
 const zeroGChainId = 16661
 
+const loadZeroGStorageNodeQueries = async () => {
+	if (typeof window !== 'undefined')
+		return import('$/sources/ZeroG/StorageNode/JsonRpc/queries.remote.ts')
+
+	const queries = await import('$/sources/ZeroG/StorageNode/JsonRpc/queries.ts')
+	return {
+		getEndpoint: async () => queries.endpoint,
+		getFileInfo: (input: Parameters<typeof queries.getFileInfo>[0]) => queries.getFileInfo(input),
+		getFileInfoByTxSeq: (input: Parameters<typeof queries.getFileInfoByTxSeq>[0]) => queries.getFileInfoByTxSeq(input),
+		getSectorProof: (input: Parameters<typeof queries.getSectorProof>[0]) => queries.getSectorProof(input),
+		getStatus: () => queries.getStatus(),
+	}
+}
+
 const assertZeroGMainnet = (network: NetworkId) => {
 	if (!('slug' in network) || network.slug !== networkBySlug['0g'].slug)
 		throw new Error('ZeroGStorageNode_JsonRpc: unsupported network')
 }
 
 const localStorageNodeId = async () => {
-	const { getStatus } = await import('$/sources/ZeroG/StorageNode/JsonRpc/queries.ts')
+	const { getStatus } = await loadZeroGStorageNodeQueries()
 	const status = await getStatus()
 	if (status.networkIdentity.chainId !== zeroGChainId)
 		throw new Error('ZeroGStorageNode_JsonRpc: local node is connected to an unsupported chain')
@@ -37,7 +51,7 @@ const fileInfoForDataBlob = async ({ $network, dataRoot }: {
 	dataRoot: string
 }) => {
 	assertZeroGMainnet($network)
-	const { getFileInfo } = await import('$/sources/ZeroG/StorageNode/JsonRpc/queries.ts')
+	const { getFileInfo } = await loadZeroGStorageNodeQueries()
 	const fileInfo = await getFileInfo({
 		root: dataRoot,
 		needAvailable: true,
@@ -106,7 +120,8 @@ export default {
 						if (source !== Source.ZeroGStorageNode_JsonRpc)
 							throw new Error('ZeroGStorageNode_JsonRpc: unsupported timestamp source')
 						assertZeroGMainnet($network)
-						const status = await import('$/sources/ZeroG/StorageNode/JsonRpc/queries.ts').then(({ getStatus }) => getStatus())
+						const { getStatus } = await loadZeroGStorageNodeQueries()
+						const status = await getStatus()
 						if (status.networkIdentity.chainId !== zeroGChainId)
 							throw new Error('ZeroGStorageNode_JsonRpc: local node is connected to an unsupported chain')
 
@@ -137,10 +152,9 @@ export default {
 						const resolvedNodeId = await localStorageNodeId()
 						if (nodeId.toLowerCase() !== resolvedNodeId)
 							throw new Error(`ZeroGStorageNode_JsonRpc: local node ${resolvedNodeId} does not match ${nodeId}`)
+						const { getEndpoint } = await loadZeroGStorageNodeQueries()
 						return {
-							endpoint: (
-								await import('$/sources/ZeroG/StorageNode/JsonRpc/queries.ts')
-							).endpoint,
+							endpoint: await getEndpoint(),
 						}
 					},
 				},
@@ -159,7 +173,7 @@ export default {
 						assertZeroGMainnet($nodeState.$network)
 						if (await localStorageNodeId() !== zeroExLowerCase($nodeState.nodeId))
 							throw new Error('ZeroGStorageNode_JsonRpc: stored chunk node identity mismatch')
-						const { getFileInfo } = await import('$/sources/ZeroG/StorageNode/JsonRpc/queries.ts')
+						const { getFileInfo } = await loadZeroGStorageNodeQueries()
 						const fileInfo = await getFileInfo({
 							root: dataRoot,
 							needAvailable: true,
@@ -206,7 +220,7 @@ export default {
 				NetworkNodeId: {
 					resolve: async ({ $network, nodeId }) => {
 						assertZeroGMainnet($network)
-						const { getStatus } = await import('$/sources/ZeroG/StorageNode/JsonRpc/queries.ts')
+						const { getEndpoint, getStatus } = await loadZeroGStorageNodeQueries()
 						const status = await getStatus()
 						if (status.networkIdentity.flowAddress !== nodeId)
 							throw new Error(`ZeroGStorageNode_JsonRpc: local node ${status.networkIdentity.flowAddress} does not match ${nodeId}`)
@@ -216,9 +230,7 @@ export default {
 									address: status.networkIdentity.flowAddress,
 								},
 							},
-							endpoint: (
-								await import('$/sources/ZeroG/StorageNode/JsonRpc/queries.ts')
-							).endpoint,
+							endpoint: await getEndpoint(),
 						}
 					},
 				}
@@ -267,7 +279,7 @@ export default {
 						logEntryId,
 					}) => {
 						assertZeroGMainnet($network)
-						const { getFileInfoByTxSeq } = await import('$/sources/ZeroG/StorageNode/JsonRpc/queries.ts')
+						const { getFileInfoByTxSeq } = await loadZeroGStorageNodeQueries()
 						const sequenceNumber = BigInt(logEntryId)
 						const fileInfo = await getFileInfoByTxSeq({
 							txSeq: sequenceNumber,
@@ -309,7 +321,7 @@ export default {
 						if (!Number.isSafeInteger(sectorIndex) || sectorIndex < 0)
 							throw new Error(`ZeroGStorageNode_JsonRpc: invalid sector proof id ${proofId}`)
 
-						const { getSectorProof } = await import('$/sources/ZeroG/StorageNode/JsonRpc/queries.ts')
+						const { getSectorProof } = await loadZeroGStorageNodeQueries()
 						await getSectorProof({
 							sectorIndex,
 						})

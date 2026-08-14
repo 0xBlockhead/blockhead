@@ -945,6 +945,7 @@ export default {
 										},
 									},
 								})),
+							directReplyCount: conversationCast.replies.count,
 						}
 					},
 				},
@@ -984,6 +985,7 @@ export default {
 										},
 									},
 								})),
+							directReplyCount: conversationCast.replies.count,
 						}
 					},
 				},
@@ -1024,6 +1026,7 @@ export default {
 										},
 									},
 								})),
+							directReplyCount: conversationCast.replies.count,
 						}
 					},
 				},
@@ -1070,12 +1073,20 @@ export default {
 										},
 									},
 								})),
+							directReplyCount: conversationCast.replies.count,
 						}
 					},
 				},
 			},
 		})({
-				$$directReplies: (cast) => cast.$$directReplies,
+				$$directReplies: {
+					select: (cast) => cast.$$directReplies,
+					resolveCount: (cast) => {
+						if (cast.directReplyCount == null || cast.directReplyCount < 0)
+							throw new Error('Neynar_Rest: cast direct reply count not found')
+						return cast.directReplyCount
+					},
+				},
 			}),
 
 		defineResolver({

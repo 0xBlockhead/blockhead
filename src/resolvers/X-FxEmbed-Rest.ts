@@ -80,6 +80,44 @@ const xUserReferenceFromFxEmbedUser = (
 	}
 }
 
+const xPostMediaFromFxEmbedStatus = (
+	status: FxEmbedTwitterStatus
+) => (
+	[
+		...(status.media.photos ?? []).flatMap((photo) => {
+			const media = mediaFromUrl(photo.url, MediaType.Image)
+			if (media == null) return []
+			const hash = optionalNonemptyString(photo.id)
+			return [{
+				...media,
+				[EntityMetaKey.Fields]: {
+					...media[EntityMetaKey.Fields],
+					...(hash != null && {
+						[entityFieldAddressKey(EntityType.Media, [], 'hash')]: hash,
+					}),
+				},
+			}]
+		}),
+		...(status.media.videos ?? []).flatMap((video) => {
+			const media = mediaFromUrl(
+				video.transcode_url ?? video.url,
+				MediaType.Video
+			)
+			if (media == null) return []
+			const hash = optionalNonemptyString(video.id)
+			return [{
+				...media,
+				[EntityMetaKey.Fields]: {
+					...media[EntityMetaKey.Fields],
+					...(hash != null && {
+						[entityFieldAddressKey(EntityType.Media, [], 'hash')]: hash,
+					}),
+				},
+			}]
+		}),
+	]
+)
+
 const xPostReferenceFromFxEmbedStatus = (
 	status: FxEmbedTwitterStatus,
 	id: string
@@ -194,6 +232,7 @@ export default {
 						)
 						const authorId = optionalNonemptyString(status.author.id)
 						const text = optionalNonemptyString(status.text)
+						const $$media = xPostMediaFromFxEmbedStatus(status)
 						return {
 							id,
 							...(text != null && { text }),
@@ -212,6 +251,7 @@ export default {
 									authorId
 								),
 							}),
+							...($$media.length > 0 && { $$media }),
 							$$timestamps: [{
 								[EntityMetaKey.Selector]: {
 									$post: { id },
@@ -240,6 +280,7 @@ export default {
 			$replyToPost: (snapshot) => snapshot.$replyToPost,
 			$quotedPost: (snapshot) => snapshot.$quotedPost,
 			$author: (snapshot) => snapshot.$author,
+			$$media: (snapshot) => snapshot.$$media,
 			$$timestamps: (snapshot) => snapshot.$$timestamps,
 		}),
 

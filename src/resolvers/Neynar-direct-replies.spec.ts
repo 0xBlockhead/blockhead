@@ -46,6 +46,7 @@ describe('Neynar Farcaster direct replies', () => {
 			cast: {
 				hash: '0xabcdef',
 				author: { fid: 42 },
+				replies: { count: 1 },
 				direct_replies: [
 					{
 						hash: '0x1111',
@@ -119,7 +120,14 @@ describe('Neynar Farcaster direct replies', () => {
 					},
 				}),
 			}],
+			directReplyCount: 1,
 		})
+		if (typeof castDirectRepliesResolver.projections.$$directReplies === 'function')
+			throw new Error('Neynar spec missing direct replies resolveCount')
+		expect(castDirectRepliesResolver.projections.$$directReplies.resolveCount({
+			$$directReplies: [],
+			directReplyCount: 1,
+		})).toBe(1)
 		expect(getCastConversation).toHaveBeenLastCalledWith({}, {
 			identifier: '0xabcdef',
 			type: 'hash',

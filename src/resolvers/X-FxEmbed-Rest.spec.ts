@@ -140,3 +140,62 @@ describe('X FxEmbed reading materialization', () => {
 		)
 	})
 })
+
+describe('X FxEmbed post media', () => {
+	it('materializes native media attachments on post snapshots', async () => {
+		fxEmbedQueries.getStatus.mockResolvedValueOnce({
+			status: {
+				type: 'status',
+				id: 'post-media',
+				text: 'Photo post',
+				created_timestamp: 1_768_435_200,
+				author: {
+					id: 'user-1',
+				},
+				media: {
+					photos: [{
+						id: 'photo-1',
+						type: 'photo',
+						url: 'https://images.example/photo.jpg',
+						width: 1200,
+						height: 800,
+					}],
+					videos: [{
+						id: 'video-1',
+						type: 'video',
+						url: 'https://video.example/video.mp4',
+						transcode_url: 'https://video.example/video-transcoded.mp4',
+						width: 1280,
+						height: 720,
+						duration: 12,
+						formats: [],
+					}],
+				},
+			},
+		})
+
+		const snapshot = await fxEmbedResolvers.resolvers[1].resolve['Id'].resolve(
+			{ id: 'post-media' },
+			resolverContext
+		)
+
+		expect(snapshot.$$media).toEqual([
+			{
+				[EntityMetaKey.Selector]: { url: 'https://images.example/photo.jpg' },
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.Media, [], 'type')]: MediaType.Image,
+					[entityFieldAddressKey(EntityType.Media, [], 'transport')]: MediaTransport.Http,
+					[entityFieldAddressKey(EntityType.Media, [], 'hash')]: 'photo-1',
+				},
+			},
+			{
+				[EntityMetaKey.Selector]: { url: 'https://video.example/video-transcoded.mp4' },
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.Media, [], 'type')]: MediaType.Video,
+					[entityFieldAddressKey(EntityType.Media, [], 'transport')]: MediaTransport.Http,
+					[entityFieldAddressKey(EntityType.Media, [], 'hash')]: 'video-1',
+				},
+			},
+		])
+	})
+})
