@@ -243,22 +243,22 @@ describe('LND server-authenticated public graph reads', () => {
 				chan_id_out: '456',
 			}],
 		})
-		await expect(getForwardingHistory()).rejects.toThrow('ambiguous or duplicate event')
+		await expect(getForwardingHistory()).rejects.toThrow('invalid forwarding history envelope')
 
+		const duplicateForward = {
+			chan_id_in: '123',
+			chan_id_out: '456',
+			amt_in_msat: '1000',
+			amt_out_msat: '900',
+			fee_msat: '100',
+			timestamp_ns: '1700000000000000000',
+			incoming_htlc_id: '7',
+			outgoing_htlc_id: '8',
+		}
 		respond({
 			forwarding_events: [
-				{
-					chan_id_in: '123',
-					chan_id_out: '456',
-					incoming_htlc_id: '7',
-					outgoing_htlc_id: '8',
-				},
-				{
-					chan_id_in: '123',
-					chan_id_out: '456',
-					incoming_htlc_id: '7',
-					outgoing_htlc_id: '8',
-				},
+				duplicateForward,
+				duplicateForward,
 			],
 		})
 		await expect(getForwardingHistory()).rejects.toThrow('ambiguous or duplicate event')

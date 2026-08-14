@@ -3325,6 +3325,34 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
+	'/(explore)/(networks)/network/[network]/(protocol-networks)/~/lightning/connection/[connectionId]/node-state/forward': {
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/~/lightning/connection/[connectionId=stringSegment]/node-state/(blockheadLightningNodeState)/forward',
+		mappings: [
+			{
+				id: 'BlockheadLightningNodeState.ConnectionIdNetwork',
+				projectionEntity: 'Network',
+				probeAtomPrefixes: ['/network/[network]/~/lightning/connection/[connectionId]/node-state:BlockheadLightningNodeState.ConnectionIdNetwork'],
+				probeCases: [[[0, '1', ['connectionId', 'network']]]],
+				projectionPath: [
+					'Lightning',
+				],
+			},
+		],
+	},
+	'/(explore)/(networks)/network/[network]/(protocol-networks)/~/lightning/connection/[connectionId]/node-state/forward/[incomingChannelId]/[incomingHtlcId]': {
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/~/lightning/connection/[connectionId=stringSegment]/node-state/(blockheadLightningNodeState)/forward/[incomingChannelId=stringSegment]/[incomingHtlcId=nonNegativeBigInt]',
+		mappings: [
+			{
+				id: 'BlockheadLightningForward.LocalNodeStateIncomingChannelIncomingHtlcId',
+				projectionEntity: 'Network',
+				probeAtomPrefixes: ['/network/[network]/~/lightning/connection/[connectionId]/node-state/forward/[incomingChannelId]/[incomingHtlcId]:BlockheadLightningForward.LocalNodeStateIncomingChannelIncomingHtlcId'],
+				probeCases: [[[0, '1', ['incomingChannelId', 'incomingHtlcId', 'connectionId', 'network']]]],
+				projectionPath: [
+					'Lightning',
+				],
+			},
+		],
+	},
 	'/(explore)/(networks)/network/[network]/(protocol-networks)/~/lightning/connection/[connectionId]/node-state/observations/[timestampMs]/[source]': {
 		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/~/lightning/connection/[connectionId=stringSegment]/node-state/(blockheadLightningNodeState)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 		mappings: [
@@ -3333,6 +3361,48 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				projectionEntity: 'Network',
 				probeAtomPrefixes: ['/network/[network]/~/lightning/connection/[connectionId]/node-state/observations/[timestampMs]/[source]:BlockheadLightningNodeState_Timestamp.LocalNodeStateTimestampMsSource'],
 				probeCases: [[[0, '1', ['timestampMs', 'source', 'connectionId', 'network']]]],
+				projectionPath: [
+					'Lightning',
+				],
+			},
+		],
+	},
+	'/(explore)/(networks)/network/[network]/(protocol-networks)/~/lightning/connection/[connectionId]/node-state/peer': {
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/~/lightning/connection/[connectionId=stringSegment]/node-state/(blockheadLightningNodeState)/peer',
+		mappings: [
+			{
+				id: 'BlockheadLightningNodeState.ConnectionIdNetwork',
+				projectionEntity: 'Network',
+				probeAtomPrefixes: ['/network/[network]/~/lightning/connection/[connectionId]/node-state:BlockheadLightningNodeState.ConnectionIdNetwork'],
+				probeCases: [[[0, '1', ['connectionId', 'network']]]],
+				projectionPath: [
+					'Lightning',
+				],
+			},
+		],
+	},
+	'/(explore)/(networks)/network/[network]/(protocol-networks)/~/lightning/connection/[connectionId]/node-state/peer/[publicKey]': {
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/~/lightning/connection/[connectionId=stringSegment]/node-state/(blockheadLightningNodeState)/peer/[publicKey=stringSegment]',
+		mappings: [
+			{
+				id: 'BlockheadLightningPeer.LocalNodeStatePublicKey',
+				projectionEntity: 'Network',
+				probeAtomPrefixes: ['/network/[network]/~/lightning/connection/[connectionId]/node-state/peer/[publicKey]:BlockheadLightningPeer.LocalNodeStatePublicKey'],
+				probeCases: [[[0, '1', ['publicKey', 'connectionId', 'network']]]],
+				projectionPath: [
+					'Lightning',
+				],
+			},
+		],
+	},
+	'/(explore)/(networks)/network/[network]/(protocol-networks)/~/lightning/connection/[connectionId]/node-state/peer/[publicKey]/observations/[timestampMs]/[source]': {
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/~/lightning/connection/[connectionId=stringSegment]/node-state/(blockheadLightningNodeState)/peer/[publicKey=stringSegment]/(blockheadLightningPeer)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+		mappings: [
+			{
+				id: 'BlockheadLightningPeer_Timestamp.PeerTimestampMsSource',
+				projectionEntity: 'Network',
+				probeAtomPrefixes: ['/network/[network]/~/lightning/connection/[connectionId]/node-state/peer/[publicKey]/observations/[timestampMs]/[source]:BlockheadLightningPeer_Timestamp.PeerTimestampMsSource'],
+				probeCases: [[[0, '1', ['timestampMs', 'source', 'publicKey', 'connectionId', 'network']]]],
 				projectionPath: [
 					'Lightning',
 				],

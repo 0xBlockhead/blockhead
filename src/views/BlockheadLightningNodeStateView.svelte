@@ -52,6 +52,8 @@
 	import LightningChannelsView from '$/views/LightningChannelsView.svelte'
 	import BlockheadLightningInvoicesView from '$/views/BlockheadLightningInvoicesView.svelte'
 	import BlockheadLightningPaymentsView from '$/views/BlockheadLightningPaymentsView.svelte'
+	import BlockheadLightningPeersView from '$/views/BlockheadLightningPeersView.svelte'
+	import BlockheadLightningForwardsView from '$/views/BlockheadLightningForwardsView.svelte'
 	import BlockheadLightningNodeState_TimestampsView from '$/views/BlockheadLightningNodeState_TimestampsView.svelte'
 </script>
 
@@ -280,6 +282,52 @@
 					collapsible={false}
 					title={label}
 					emptyText='No local LND payments.'
+					id={`${id}-list`}
+				/>
+			{/snippet}
+
+		</CollapsibleTabs>
+
+		<CollapsibleTabs
+			id={viewDomId + '-carousel-lightning-node-peers-forwards'}
+			sectionIdPrefix={viewDomId}
+			sections={
+				[
+					{
+						id: 'lightning-node-peers',
+						label: 'Local LND peers',
+					},
+					{
+						id: 'lightning-node-forwards',
+						label: 'Local LND forwards',
+					},
+				]
+			}
+			data-card
+			class='network-view-collapsible-peers-forwards'
+		>
+			{#snippet Summary()}
+				<header data-row-item="flexible" data-row="wrap gap-4">
+					<HeadingComponent>Local LND peers and forwards</HeadingComponent>
+				</header>
+			{/snippet}
+
+			{#snippet SectionLightningNodePeers({ id, label })}
+				<BlockheadLightningPeersView
+					selection={selection.$$peers}
+					collapsible={false}
+					title={label}
+					emptyText='No local LND peers.'
+					id={`${id}-list`}
+				/>
+			{/snippet}
+
+			{#snippet SectionLightningNodeForwards({ id, label })}
+				<BlockheadLightningForwardsView
+					selection={selection.$$forwards}
+					collapsible={false}
+					title={label}
+					emptyText='No local LND forwards.'
 					id={`${id}-list`}
 				/>
 			{/snippet}

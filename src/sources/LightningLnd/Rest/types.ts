@@ -138,12 +138,12 @@ export type LndForwardingEvent = {
 	timestamp?: string
 	chan_id_in: string
 	chan_id_out: string
-	amt_in_msat?: string
-	amt_out_msat?: string
-	fee_msat?: string
-	timestamp_ns?: string
-	incoming_htlc_id?: string
-	outgoing_htlc_id?: string
+	amt_in_msat: string
+	amt_out_msat: string
+	fee_msat: string
+	timestamp_ns: string
+	incoming_htlc_id: string
+	outgoing_htlc_id: string
 }
 
 export type LndForwardingHistoryResponse = {

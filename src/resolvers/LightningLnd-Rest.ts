@@ -24,14 +24,17 @@ import type {
 	LndChannel,
 	LndChannelBalanceResponse,
 	LndChannelEdge,
+	LndForwardingEvent,
 	LndGetInfoResponse,
 	LndInvoice,
 	LndNetworkInfoResponse,
 	LndNodeInfoResponse,
 	LndPayment,
+	LndPeer,
 	LndWalletBalanceResponse,
 } from '$/sources/LightningLnd/Rest/types.ts'
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
+type LocalNodeStateId = EntitySelector<typeof schema, EntityType.BlockheadLightningNodeState>
 
 const lightningNetwork = {
 	slug: 'lightning',
@@ -435,6 +438,67 @@ const lndInfo = async () => {
 	return getInfo()
 }
 
+const peerFieldsFromLndPeer = (
+	peer: LndPeer,
+	$localNodeState: LocalNodeStateId,
+	timestampMs: number
+) => ({
+	$$timestamps: [
+		{
+			[EntityMetaKey.Selector]: {
+				$peer: {
+					$localNodeState,
+					publicKey: peer.pub_key,
+				},
+				timestampMs,
+				source: Source.LightningLnd_Rest,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.BlockheadLightningPeer_Timestamp, [], 'address')]: peer.address,
+				...(bigintFromWire(peer.bytes_sent) != null && {
+					[entityFieldAddressKey(EntityType.BlockheadLightningPeer_Timestamp, [], 'bytesSent')]: bigintFromWire(peer.bytes_sent),
+				}),
+				...(bigintFromWire(peer.bytes_recv) != null && {
+					[entityFieldAddressKey(EntityType.BlockheadLightningPeer_Timestamp, [], 'bytesRecv')]: bigintFromWire(peer.bytes_recv),
+				}),
+				...(bigintFromWire(peer.sat_sent) != null && {
+					[entityFieldAddressKey(EntityType.BlockheadLightningPeer_Timestamp, [], 'satsSent')]: bigintFromWire(peer.sat_sent),
+				}),
+				...(bigintFromWire(peer.sat_recv) != null && {
+					[entityFieldAddressKey(EntityType.BlockheadLightningPeer_Timestamp, [], 'satsRecv')]: bigintFromWire(peer.sat_recv),
+				}),
+				...(peer.inbound != null && {
+					[entityFieldAddressKey(EntityType.BlockheadLightningPeer_Timestamp, [], 'inbound')]: peer.inbound,
+				}),
+				...(bigintFromWire(peer.ping_time) != null && {
+					[entityFieldAddressKey(EntityType.BlockheadLightningPeer_Timestamp, [], 'pingTimeMicros')]: bigintFromWire(peer.ping_time),
+				}),
+			},
+		},
+	],
+})
+
+const forwardFieldsFromLndEvent = (event: LndForwardingEvent) => ({
+	$incomingChannel: {
+		[EntityMetaKey.Selector]: {
+			$network: lightningNetwork,
+			channelId: event.chan_id_in,
+		},
+	},
+	incomingHtlcId: BigInt(event.incoming_htlc_id),
+	$outgoingChannel: {
+		[EntityMetaKey.Selector]: {
+			$network: lightningNetwork,
+			channelId: event.chan_id_out,
+		},
+	},
+	outgoingHtlcId: BigInt(event.outgoing_htlc_id),
+	incomingMsat: BigInt(event.amt_in_msat),
+	outgoingMsat: BigInt(event.amt_out_msat),
+	feeMsat: BigInt(event.fee_msat),
+	completionTimestampNs: BigInt(event.timestamp_ns),
+})
+
 const channelStateTimestampFieldsFromLndChannel = (channel: LndChannel) => ({
 	localBalanceSats: bigintFromWire(channel.local_balance),
 	remoteBalanceSats: bigintFromWire(channel.remote_balance),
@@ -615,6 +679,166 @@ export default {
 			alias: (state) => state.alias,
 			$node: (state) => state.$node,
 			$$timestamps: (state) => state.$$timestamps,
+		}),
+
+		defineResolver({
+			entityType: EntityType.BlockheadLightningNodeState,
+			resolve: {
+				ConnectionIdNetwork: {
+					resolve: async ({ connectionId, $network }) => {
+						assertLightningNetwork($network.$network)
+						const { listPeers } = await import('$/sources/LightningLnd/Rest/queries.ts')
+						const $localNodeState = {
+							connectionId,
+							$network,
+						}
+						const timestampMs = Date.now()
+						return (await listPeers()).peers?.map((peer) => ({
+							[EntityMetaKey.Selector]: {
+								$localNodeState,
+								publicKey: peer.pub_key,
+							},
+							[EntityMetaKey.Fields]: {
+								[entityFieldAddressKey(EntityType.BlockheadLightningPeer, [], '$$timestamps')]: peerFieldsFromLndPeer(
+									peer,
+									$localNodeState,
+									timestampMs
+								).$$timestamps,
+							},
+						})) ?? []
+					},
+				},
+			},
+		})({
+			$$peers: (peers) => peers,
+		}),
+
+		defineResolver({
+			entityType: EntityType.BlockheadLightningPeer,
+			resolve: {
+				LocalNodeStatePublicKey: {
+					resolve: async ({ $localNodeState, publicKey }) => {
+						assertLightningNetwork($localNodeState.$network.$network)
+						const { listPeers } = await import('$/sources/LightningLnd/Rest/queries.ts')
+						const peer = (await listPeers()).peers?.find((peer) => peer.pub_key === publicKey)
+						if (peer == null)
+							throw new Error(`LightningLnd_Rest: peer not found ${publicKey}`)
+
+						return peerFieldsFromLndPeer(peer, $localNodeState, Date.now())
+					},
+				},
+			},
+		})({
+			$$timestamps: (peer) => peer.$$timestamps,
+		}),
+
+		defineResolver({
+			entityType: EntityType.BlockheadLightningNodeState,
+			resolve: {
+				ConnectionIdNetwork: {
+					resolve: async ({ connectionId, $network }, context) => {
+						assertLightningNetwork($network.$network)
+						const { getForwardingHistory } = await import('$/sources/LightningLnd/Rest/queries.ts')
+						const pageSize = Math.min(100, resolverContextRowLimit(context))
+						return {
+							$localNodeState: {
+								connectionId,
+								$network,
+							},
+							page: await getForwardingHistory({
+								indexOffset: context.providerContinuationToken,
+								numMaxEvents: pageSize,
+							}),
+							pageSize,
+						}
+					},
+				},
+			},
+		})({
+			$$forwards: {
+				select: ({ $localNodeState, page }) => (page.forwarding_events ?? []).map((event) => {
+					const fields = forwardFieldsFromLndEvent(event)
+					return {
+						[EntityMetaKey.Selector]: {
+							$localNodeState,
+							$incomingChannel: fields.$incomingChannel[EntityMetaKey.Selector],
+							incomingHtlcId: fields.incomingHtlcId,
+						},
+						[EntityMetaKey.Fields]: {
+							[entityFieldAddressKey(EntityType.BlockheadLightningForward, [], '$outgoingChannel')]: fields.$outgoingChannel,
+							[entityFieldAddressKey(EntityType.BlockheadLightningForward, [], 'outgoingHtlcId')]: fields.outgoingHtlcId,
+							[entityFieldAddressKey(EntityType.BlockheadLightningForward, [], 'incomingMsat')]: fields.incomingMsat,
+							[entityFieldAddressKey(EntityType.BlockheadLightningForward, [], 'outgoingMsat')]: fields.outgoingMsat,
+							[entityFieldAddressKey(EntityType.BlockheadLightningForward, [], 'feeMsat')]: fields.feeMsat,
+							[entityFieldAddressKey(EntityType.BlockheadLightningForward, [], 'completionTimestampNs')]: fields.completionTimestampNs,
+						},
+					}
+				}),
+				continuation: ({ $localNodeState, page, pageSize }, _state, context) => (
+					page.last_offset_index == null
+					|| page.last_offset_index === context.providerContinuationToken
+					|| (page.forwarding_events ?? []).length < pageSize ?
+						{
+							operation: 'forwards',
+							target: $localNodeState.connectionId,
+							terminal: true,
+						}
+					:
+						{
+							operation: 'forwards',
+							target: $localNodeState.connectionId,
+							terminal: false,
+							token: page.last_offset_index,
+						}
+				),
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.BlockheadLightningForward,
+			resolve: {
+				LocalNodeStateIncomingChannelIncomingHtlcId: {
+					resolve: async ({ $localNodeState, $incomingChannel, incomingHtlcId }) => {
+						assertLightningNetwork($localNodeState.$network.$network)
+						assertLightningNetwork($incomingChannel.$network)
+						const { getForwardingHistory } = await import('$/sources/LightningLnd/Rest/queries.ts')
+						const visitedOffsets = new Set<number>()
+						let indexOffset: number | undefined
+						for (;;) {
+							const page = await getForwardingHistory({
+								indexOffset,
+								numMaxEvents: 100,
+							})
+							const event = (page.forwarding_events ?? []).find((event) => (
+								event.chan_id_in === $incomingChannel.channelId
+								&& BigInt(event.incoming_htlc_id) === incomingHtlcId
+							))
+							if (event != null)
+								return forwardFieldsFromLndEvent(event)
+
+							if (
+								page.last_offset_index == null
+								|| page.last_offset_index === indexOffset
+								|| (page.forwarding_events ?? []).length < 100
+								|| visitedOffsets.has(page.last_offset_index)
+							)
+								throw new Error(`LightningLnd_Rest: forward not found ${$incomingChannel.channelId}:${incomingHtlcId}`)
+
+							visitedOffsets.add(page.last_offset_index)
+							indexOffset = page.last_offset_index
+						}
+					},
+				},
+			},
+		})({
+			$incomingChannel: (forward) => forward.$incomingChannel,
+			incomingHtlcId: (forward) => forward.incomingHtlcId,
+			$outgoingChannel: (forward) => forward.$outgoingChannel,
+			outgoingHtlcId: (forward) => forward.outgoingHtlcId,
+			incomingMsat: (forward) => forward.incomingMsat,
+			outgoingMsat: (forward) => forward.outgoingMsat,
+			feeMsat: (forward) => forward.feeMsat,
+			completionTimestampNs: (forward) => forward.completionTimestampNs,
 		}),
 
 		defineResolver({

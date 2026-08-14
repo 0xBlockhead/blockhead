@@ -57,6 +57,14 @@ export default entity({
 		entityType: EntityType.BlockheadLightningPayment,
 		cardinality: EntityFieldCardinality.Many,
 	},
+	$$peers: {
+		entityType: EntityType.BlockheadLightningPeer,
+		cardinality: EntityFieldCardinality.Many,
+	},
+	$$forwards: {
+		entityType: EntityType.BlockheadLightningForward,
+		cardinality: EntityFieldCardinality.Many,
+	},
 })({
 	selectors: {
 		ConnectionIdNetwork: [

@@ -206,12 +206,12 @@ const forwardingEventWire = arktype({
 	'timestamp?': losslessUnsignedString,
 	chan_id_in: channelIdWire,
 	chan_id_out: channelIdWire,
-	'amt_in_msat?': losslessUnsignedString,
-	'amt_out_msat?': losslessUnsignedString,
-	'fee_msat?': losslessUnsignedString,
-	'timestamp_ns?': losslessUnsignedString,
-	'incoming_htlc_id?': losslessUnsignedString,
-	'outgoing_htlc_id?': losslessUnsignedString,
+	amt_in_msat: losslessUnsignedString,
+	amt_out_msat: losslessUnsignedString,
+	fee_msat: losslessUnsignedString,
+	timestamp_ns: losslessUnsignedString,
+	incoming_htlc_id: losslessUnsignedString,
+	outgoing_htlc_id: losslessUnsignedString,
 })
 
 const forwardingHistoryWire = arktype({
@@ -560,13 +560,8 @@ export const getForwardingHistory = async ({
 	)
 	const eventIdentities = new Set<string>()
 	for (const event of page.forwarding_events ?? []) {
-		const identity = (
-			event.incoming_htlc_id != null && event.outgoing_htlc_id != null ?
-				`${event.chan_id_in}:${event.incoming_htlc_id}:${event.chan_id_out}:${event.outgoing_htlc_id}`
-				:
-				`${event.timestamp_ns ?? event.timestamp ?? ''}:${event.chan_id_in}:${event.chan_id_out}`
-		)
-		if (identity.startsWith(':') || eventIdentities.has(identity))
+		const identity = `${event.chan_id_in}:${event.incoming_htlc_id}:${event.chan_id_out}:${event.outgoing_htlc_id}`
+		if (eventIdentities.has(identity))
 			throw new Error('LightningLnd_Rest: forwarding page contains an ambiguous or duplicate event')
 
 		eventIdentities.add(identity)

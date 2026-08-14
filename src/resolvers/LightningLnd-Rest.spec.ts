@@ -10,6 +10,7 @@ import { Source } from '$/sources/Source.ts'
 const {
 	getChannelBalance,
 	getChannelInfo,
+	getForwardingHistory,
 	getInfo,
 	getInvoice,
 	getNetworkInfo,
@@ -19,9 +20,11 @@ const {
 	listChannels,
 	listInvoices,
 	listPayments,
+	listPeers,
 } = vi.hoisted(() => ({
 	getChannelBalance: vi.fn(),
 	getChannelInfo: vi.fn(),
+	getForwardingHistory: vi.fn(),
 	getInfo: vi.fn(),
 	getInvoice: vi.fn(),
 	getNetworkInfo: vi.fn(),
@@ -31,11 +34,13 @@ const {
 	listChannels: vi.fn(),
 	listInvoices: vi.fn(),
 	listPayments: vi.fn(),
+	listPeers: vi.fn(),
 }))
 
 vi.mock('$/sources/LightningLnd/Rest/queries.ts', () => ({
 	getChannelBalance,
 	getChannelInfo,
+	getForwardingHistory,
 	getInfo,
 	getInvoice,
 	getNetworkInfo,
@@ -45,6 +50,7 @@ vi.mock('$/sources/LightningLnd/Rest/queries.ts', () => ({
 	listChannels,
 	listInvoices,
 	listPayments,
+	listPeers,
 }))
 
 const { default: lightningLnd } = await import('$/resolvers/LightningLnd-Rest.ts')
@@ -109,6 +115,20 @@ const nodeChannelsResolver = lightningLnd.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.LightningNode
 	&& '$$channels' in resolver.projections
 ))
+const nodePeersResolver = lightningLnd.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.BlockheadLightningNodeState
+	&& '$$peers' in resolver.projections
+))
+const peerResolver = lightningLnd.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.BlockheadLightningPeer
+))
+const nodeForwardsResolver = lightningLnd.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.BlockheadLightningNodeState
+	&& '$$forwards' in resolver.projections
+))
+const forwardResolver = lightningLnd.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.BlockheadLightningForward
+))
 if (
 	nodeStateResolver == null
 	|| nodeStateTimestampResolver == null
@@ -126,6 +146,10 @@ if (
 	|| paymentTimestampResolver == null
 	|| channelListResolver == null
 	|| nodeChannelsResolver == null
+	|| nodePeersResolver == null
+	|| peerResolver == null
+	|| nodeForwardsResolver == null
+	|| forwardResolver == null
 )
 	throw new Error('LightningLnd-Rest spec missing resolver')
 
@@ -197,6 +221,26 @@ const payment = {
 	creation_time_ns: '1700000000123456789',
 	status: 'SUCCEEDED',
 	failure_reason: '',
+}
+const peer = {
+	pub_key: peerPublicKey,
+	address: '127.0.0.1:9735',
+	bytes_sent: '101',
+	bytes_recv: '202',
+	sat_sent: '303',
+	sat_recv: '404',
+	inbound: true,
+	ping_time: '505',
+}
+const forward = {
+	chan_id_in: '42',
+	chan_id_out: '99',
+	amt_in_msat: '1000',
+	amt_out_msat: '900',
+	fee_msat: '100',
+	timestamp_ns: '1700000000123456789',
+	incoming_htlc_id: '7',
+	outgoing_htlc_id: '8',
 }
 
 beforeEach(() => {
@@ -467,6 +511,134 @@ describe('Lightning LND resolver ownership', () => {
 			}),
 		])
 		expect(getChannelInfo).not.toHaveBeenCalled()
+	})
+
+	it('materializes complete local peer snapshots without public-graph fan-out', async () => {
+		vi.spyOn(Date, 'now').mockReturnValue(1_700_000_000_123)
+		listPeers.mockResolvedValue({ peers: [peer] })
+		const $localNodeState = {
+			connectionId: 'local-lnd',
+			$network: {
+				$network: lightningNetwork,
+			},
+		}
+		const peers = await nodePeersResolver.resolve.ConnectionIdNetwork.resolve($localNodeState, context)
+		expect(nodePeersResolver.projections.$$peers(peers)).toEqual([
+			expect.objectContaining({
+				[EntityMetaKey.Selector]: {
+					$localNodeState,
+					publicKey: peerPublicKey,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.BlockheadLightningPeer, [], '$$timestamps')]: [expect.objectContaining({
+						[EntityMetaKey.Selector]: {
+							$peer: {
+								$localNodeState,
+								publicKey: peerPublicKey,
+							},
+							timestampMs: 1_700_000_000_123,
+							source: Source.LightningLnd_Rest,
+						},
+						[EntityMetaKey.Fields]: expect.objectContaining({
+							[entityFieldAddressKey(EntityType.BlockheadLightningPeer_Timestamp, [], 'address')]: peer.address,
+							[entityFieldAddressKey(EntityType.BlockheadLightningPeer_Timestamp, [], 'bytesSent')]: 101n,
+							[entityFieldAddressKey(EntityType.BlockheadLightningPeer_Timestamp, [], 'pingTimeMicros')]: 505n,
+						}),
+					})],
+				},
+			}),
+		])
+		await expect(peerResolver.resolve.LocalNodeStatePublicKey.resolve({
+			$localNodeState,
+			publicKey: peerPublicKey,
+		}, context)).resolves.toMatchObject({
+			$$timestamps: [expect.objectContaining({
+				[EntityMetaKey.Fields]: expect.objectContaining({
+					[entityFieldAddressKey(EntityType.BlockheadLightningPeer_Timestamp, [], 'satsRecv')]: 404n,
+				}),
+			})],
+		})
+		expect(getNodeInfo).not.toHaveBeenCalled()
+	})
+
+	it('pages modern forwarding occurrences and resolves an exact later-page forward', async () => {
+		const $localNodeState = {
+			connectionId: 'local-lnd',
+			$network: {
+				$network: lightningNetwork,
+			},
+		}
+		getForwardingHistory.mockResolvedValueOnce({
+			forwarding_events: [forward],
+			last_offset_index: 1,
+		})
+		const firstPage = await nodeForwardsResolver.resolve.ConnectionIdNetwork.resolve($localNodeState, {
+			...context,
+			pagination: { limit: 1 },
+		})
+		expect(nodeForwardsResolver.projections.$$forwards.select(firstPage)).toEqual([
+			expect.objectContaining({
+				[EntityMetaKey.Selector]: {
+					$localNodeState,
+					$incomingChannel: {
+						$network: lightningNetwork,
+						channelId: '42',
+					},
+					incomingHtlcId: 7n,
+				},
+				[EntityMetaKey.Fields]: expect.objectContaining({
+					[entityFieldAddressKey(EntityType.BlockheadLightningForward, [], '$outgoingChannel')]: {
+						[EntityMetaKey.Selector]: {
+							$network: lightningNetwork,
+							channelId: '99',
+						},
+					},
+					[entityFieldAddressKey(EntityType.BlockheadLightningForward, [], 'outgoingHtlcId')]: 8n,
+					[entityFieldAddressKey(EntityType.BlockheadLightningForward, [], 'feeMsat')]: 100n,
+					[entityFieldAddressKey(EntityType.BlockheadLightningForward, [], 'completionTimestampNs')]: 1_700_000_000_123_456_789n,
+				}),
+			}),
+		])
+		expect(nodeForwardsResolver.projections.$$forwards.continuation(
+			firstPage,
+			$localNodeState,
+			context
+		)).toEqual({
+			operation: 'forwards',
+			target: 'local-lnd',
+			terminal: false,
+			token: 1,
+		})
+
+		getForwardingHistory
+			.mockResolvedValueOnce({
+				forwarding_events: Array.from({ length: 100 }, (_, index) => ({
+					...forward,
+					incoming_htlc_id: String(index + 100),
+				})),
+				last_offset_index: 100,
+			})
+			.mockResolvedValueOnce({
+				forwarding_events: [forward],
+				last_offset_index: 101,
+			})
+		await expect(forwardResolver.resolve.LocalNodeStateIncomingChannelIncomingHtlcId.resolve({
+			$localNodeState,
+			$incomingChannel: {
+				$network: lightningNetwork,
+				channelId: '42',
+			},
+			incomingHtlcId: 7n,
+		}, context)).resolves.toMatchObject({
+			incomingHtlcId: 7n,
+			outgoingHtlcId: 8n,
+			incomingMsat: 1000n,
+			outgoingMsat: 900n,
+		})
+		expect(getForwardingHistory).toHaveBeenLastCalledWith({
+			indexOffset: 100,
+			numMaxEvents: 100,
+		})
 	})
 
 	it('omits hashless invoices and separates stable and observed invoice fields', async () => {

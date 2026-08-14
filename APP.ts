@@ -948,6 +948,7 @@ export enum EntityType {
 	BlockheadKaspaNodeState_Timestamp = "BlockheadKaspaNodeState_Timestamp",
 	BlockheadLightningChannelState = "BlockheadLightningChannelState",
 	BlockheadLightningChannelState_Timestamp = "BlockheadLightningChannelState_Timestamp",
+	BlockheadLightningForward = "BlockheadLightningForward",
 	BlockheadLightningHtlc = "BlockheadLightningHtlc",
 	BlockheadLightningInvoice = "BlockheadLightningInvoice",
 	BlockheadLightningInvoice_Timestamp = "BlockheadLightningInvoice_Timestamp",
@@ -955,6 +956,8 @@ export enum EntityType {
 	BlockheadLightningNodeState_Timestamp = "BlockheadLightningNodeState_Timestamp",
 	BlockheadLightningPayment = "BlockheadLightningPayment",
 	BlockheadLightningPayment_Timestamp = "BlockheadLightningPayment_Timestamp",
+	BlockheadLightningPeer = "BlockheadLightningPeer",
+	BlockheadLightningPeer_Timestamp = "BlockheadLightningPeer_Timestamp",
 	BlockheadLitecoinMwebOutputState = "BlockheadLitecoinMwebOutputState",
 	BlockheadLitecoinMwebOutputState_Timestamp = "BlockheadLitecoinMwebOutputState_Timestamp",
 	BlockheadLitecoinMwebWalletState = "BlockheadLitecoinMwebWalletState",
@@ -14929,6 +14932,46 @@ export const schema = {
 			}),
 
 			entity({
+				entityType: EntityType.BlockheadLightningForward,
+				labels: {
+					singular: "local LND forward",
+					plural: "local LND forwards",
+				},
+				description: "A completed HTLC forward from the configured local LND node's switch history. It is keyed by incoming channel and HTLC id and requires both incoming and outgoing HTLC ids.",
+			})({
+				"$localNodeState": { label: "local LND node state", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.BlockheadLightningNodeState },
+				"$incomingChannel": { label: "incoming channel", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.LightningChannel },
+				"incomingHtlcId": { label: "incoming HTLC id", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeBigInt" },
+				"$outgoingChannel": { label: "outgoing channel", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.LightningChannel },
+				"outgoingHtlcId": { label: "outgoing HTLC id", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeBigInt" },
+				"incomingMsat": { label: "Incoming msat", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "bigint" },
+				"outgoingMsat": { label: "Outgoing msat", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "bigint" },
+				"feeMsat": { label: "Fee msat", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "bigint" },
+				"completionTimestampNs": { label: "Completion timestamp ns", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "bigint" },
+			})({
+				selectors: {
+					"LocalNodeStateIncomingChannelIncomingHtlcId": ["$localNodeState", "$incomingChannel", "incomingHtlcId"],
+				},
+				views: {
+					singular: {
+						query: {
+							sources: [Source.LightningLnd_Rest, Source.Local_Internal],
+							openFields: ["incomingMsat", "outgoingMsat", "feeMsat", "completionTimestampNs"],
+						},
+						summary: { title: ["$incomingChannel"], value: [{ field: "incomingHtlcId", format: "number" }], HeadingAfter: ["$outgoingChannel"] },
+						closed: ["$localNodeState", "$incomingChannel", { field: "incomingHtlcId", format: "number" }],
+						content: {
+							dl: [
+								["$localNodeState", "$incomingChannel", { field: "incomingHtlcId", format: "number" }, "$outgoingChannel", { field: "outgoingHtlcId", format: "number" }],
+								[{ field: "incomingMsat", format: "number" }, { field: "outgoingMsat", format: "number" }, { field: "feeMsat", format: "number" }, { field: "completionTimestampNs", format: "number" }],
+							],
+						},
+					},
+					plural: { component: "BlockheadLightningForwardsView", title: "Local LND forwards", },
+				},
+			}),
+
+			entity({
 				entityType: EntityType.BlockheadLightningHtlc,
 				labels: {
 					singular: "local LND HTLC",
@@ -15066,6 +15109,8 @@ export const schema = {
 				"$$channels": { label: "Public graph channel refs", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.LightningChannel },
 				"$$invoices": { label: "Local LND invoices", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadLightningInvoice },
 				"$$payments": { label: "Local LND payments", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadLightningPayment },
+				"$$peers": { label: "Local LND peers", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadLightningPeer },
+				"$$forwards": { label: "Local LND forwards", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadLightningForward },
 			})({
 				selectors: {
 					"ConnectionIdNetwork": ["connectionId", "$network"],
@@ -15100,6 +15145,15 @@ export const schema = {
 								sections: [
 									{ id: "lightning-node-invoices", field: "$$invoices", List: "BlockheadLightningInvoicesView", label: "Local LND invoices", emptyText: "No local LND invoices." },
 									{ id: "lightning-node-payment-list", field: "$$payments", List: "BlockheadLightningPaymentsView", label: "Local LND payments", emptyText: "No local LND payments." },
+								],
+							},
+							{
+								id: "lightning-node-peers-forwards",
+								label: "Local LND peers and forwards",
+								className: "network-view-collapsible-peers-forwards",
+								sections: [
+									{ id: "lightning-node-peers", field: "$$peers", List: "BlockheadLightningPeersView", label: "Local LND peers", emptyText: "No local LND peers." },
+									{ id: "lightning-node-forwards", field: "$$forwards", List: "BlockheadLightningForwardsView", label: "Local LND forwards", emptyText: "No local LND forwards." },
 								],
 							},
 							{
@@ -15238,6 +15292,81 @@ export const schema = {
 						},
 					},
 					plural: { component: "BlockheadLightningPayment_TimestampsView", },
+				},
+			}),
+
+			entity({
+				entityType: EntityType.BlockheadLightningPeer,
+				labels: {
+					singular: "local LND peer",
+					plural: "local LND peers",
+				},
+				description: "A peer connection observed through the configured local LND node's macaroon-authorized API. Its optional public Lightning node link is set only when the peer appears in the public graph, never fabricated from private channels.",
+			})({
+				"$localNodeState": { label: "local LND node state", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.BlockheadLightningNodeState },
+				"publicKey": { label: "remote public key", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"$node": { label: "public graph node", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.LightningNode },
+				"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadLightningPeer_Timestamp },
+			})({
+				selectors: {
+					"LocalNodeStatePublicKey": ["$localNodeState", "publicKey"],
+				},
+				views: {
+					singular: {
+						query: {
+							sources: [Source.LightningLnd_Rest, Source.Local_Internal],
+						},
+						summary: { title: [{ field: "publicKey", format: "truncated" }], value: ["$localNodeState"], HeadingAfter: ["$node"] },
+						closed: ["$localNodeState", { field: "publicKey", format: "truncated" }],
+						content: {
+							dl: [
+								["$localNodeState", { field: "publicKey", format: "truncated" }, "$node"],
+							],
+						},
+						lists: [{ field: "$$timestamps", component: "BlockheadLightningPeer_TimestampsView", emptyText: "No peer observations yet." }],
+					},
+					plural: { component: "BlockheadLightningPeersView", title: "Local LND peers", },
+				},
+			}),
+
+			entity({
+				entityType: EntityType.BlockheadLightningPeer_Timestamp,
+				labels: {
+					singular: "local LND peer observation",
+					plural: "local LND peer observations",
+				},
+				description: "A timestamped peer snapshot from the configured local LND node's listPeers response; it is private node state, not a public graph observation.",
+			})({
+				"$peer": { label: "peer", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.BlockheadLightningPeer },
+				"timestampMs": { label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
+				"source": { label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"address": { label: "Address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.LightningLnd_Rest] },
+				"bytesSent": { label: "Bytes sent", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.LightningLnd_Rest] },
+				"bytesRecv": { label: "Bytes received", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.LightningLnd_Rest] },
+				"satsSent": { label: "Sats sent", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.LightningLnd_Rest] },
+				"satsRecv": { label: "Sats received", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.LightningLnd_Rest] },
+				"inbound": { label: "Inbound", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean", defaultSources: [Source.LightningLnd_Rest] },
+				"pingTimeMicros": { label: "Ping time microseconds", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.LightningLnd_Rest] },
+			})({
+				selectors: {
+					"PeerTimestampMsSource": ["$peer", "timestampMs", "source"],
+				},
+				views: {
+					singular: {
+						query: {
+							sources: [Source.LightningLnd_Rest, Source.Local_Internal],
+							openFields: ["address", "bytesSent", "bytesRecv", "satsSent", "satsRecv", "inbound", "pingTimeMicros"],
+						},
+						summary: { title: [{ field: "timestampMs", format: "timestamp" }], value: ["address"], HeadingAfter: ["inbound"] },
+						closed: ["$peer", { field: "timestampMs", format: "timestamp" }, "source"],
+						content: {
+							dl: [
+								["$peer", { field: "timestampMs", format: "timestamp" }, "source", "address", "inbound"],
+								[{ field: "bytesSent", format: "number" }, { field: "bytesRecv", format: "number" }, { field: "satsSent", format: "number" }, { field: "satsRecv", format: "number" }, { field: "pingTimeMicros", format: "number" }],
+							],
+						},
+					},
+					plural: { component: "BlockheadLightningPeer_TimestampsView", title: "Local LND peer observations", },
 				},
 			}),
 
@@ -84122,6 +84251,103 @@ export const routes = defineRoutes(schema)({
 																																projection: { entityType: EntityType.Network, facetPath: ["Lightning"] },
 																															}
 																														}
+																													}
+																												}
+																											}
+																										}
+																									}
+																								}
+																							}
+																						},
+																						"peer": {
+																							collections: [
+																								{
+																									field: [
+																										EntityType.BlockheadLightningNodeState,
+																										"$$peers"
+																									],
+																									page: {
+																										view: { component: "BlockheadLightningPeersView" },
+																										text: { title: "Local LND peers" }
+																									}
+																								},
+																							],
+																							children: {
+																								"[publicKey]": {
+																									selectors: {
+																										[EntityType.BlockheadLightningPeer]: {
+																											"LocalNodeStatePublicKey": {
+																												params: { "publicKey": ["publicKey"] },
+																												page: {},
+																												when: { path: ["namespace"], is: "Lightning" },
+																												projection: { entityType: EntityType.Network, facetPath: ["Lightning"] },
+																											}
+																										}
+																									},
+																									children: {
+																										"observations": {
+																											children: {
+																												"[timestampMs]": {
+																													params: { "timestampMs": ["NonNegativeInteger"] },
+																													children: {
+																														"[source]": {
+																															params: { "source": ["string"] },
+																															selectors: {
+																																[EntityType.BlockheadLightningPeer_Timestamp]: {
+																																	"PeerTimestampMsSource": {
+																																		derivations: { "timestampMs": { kind: "param", name: "timestampMs" }, "source": { kind: "param", name: "source" } },
+																																		page: {},
+																																		when: { path: ["namespace"], is: "Lightning" },
+																																		projection: { entityType: EntityType.Network, facetPath: ["Lightning"] },
+																																	}
+																																}
+																															}
+																														}
+																													}
+																												}
+																											}
+																										}
+																									}
+																								}
+																							}
+																						},
+																						"forward": {
+																							collections: [
+																								{
+																									field: [
+																										EntityType.BlockheadLightningNodeState,
+																										"$$forwards"
+																									],
+																									page: {
+																										view: { component: "BlockheadLightningForwardsView" },
+																										text: { title: "Local LND forwards" }
+																									}
+																								},
+																							],
+																							children: {
+																								"[incomingChannelId]": {
+																									params: { "incomingChannelId": ["string"] },
+																									children: {
+																										"[incomingHtlcId]": {
+																											params: { "incomingHtlcId": ["NonNegativeBigInt"] },
+																											selectors: {
+																												[EntityType.BlockheadLightningForward]: {
+																													"LocalNodeStateIncomingChannelIncomingHtlcId": {
+																														derivations: {
+																															"$incomingChannel": {
+																																kind: "selector",
+																																entity: EntityType.LightningChannel,
+																																selector: "NetworkChannelId",
+																																params: [
+																																	{ field: "$network", value: { kind: "property", value: { kind: "property", value: { kind: "field", name: "$localNodeState" }, property: "$network" }, property: "$network" } },
+																																	{ field: "channelId", param: "incomingChannelId" },
+																																],
+																															},
+																															"incomingHtlcId": { kind: "param", name: "incomingHtlcId" },
+																														},
+																														page: {},
+																														when: { path: ["namespace"], is: "Lightning" },
+																														projection: { entityType: EntityType.Network, facetPath: ["Lightning"] },
 																													}
 																												}
 																											}
