@@ -6,7 +6,10 @@ import {
 	vi,
 } from 'vitest'
 
-import { EntityMetaKey } from '$/schema/$schema.ts'
+import {
+	entityFieldAddressKey,
+	EntityMetaKey,
+} from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
@@ -382,10 +385,15 @@ describe('SnapshotHub GraphQL resolvers', () => {
 			spaceId,
 			name: 'ENS',
 		})
-		await expect(resolveSnapshotSpaces(context)).resolves.toEqual([
+		await expect(resolveSnapshotSpaces(context)).resolves.toMatchObject([
 			{
 				[EntityMetaKey.Selector]: {
 					spaceId,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.SnapshotSpace, [], 'name')]: 'ENS',
+					[entityFieldAddressKey(EntityType.SnapshotSpace, [], 'proposalsCount')]: 1,
+					[entityFieldAddressKey(EntityType.SnapshotSpace, [], 'createdAtMs')]: 1_700_000_000_000,
 				},
 			},
 		])
@@ -402,10 +410,15 @@ describe('SnapshotHub GraphQL resolvers', () => {
 		await expect(resolveSnapshotProposals({
 			spaceId,
 			state: 'closed',
-		}, context)).resolves.toEqual([
+		}, context)).resolves.toMatchObject([
 			{
 				[EntityMetaKey.Selector]: {
 					proposalId,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.SnapshotProposal, [], 'title')]: 'Fund public goods',
+					[entityFieldAddressKey(EntityType.SnapshotProposal, [], 'state')]: 'closed',
+					[entityFieldAddressKey(EntityType.SnapshotProposal, [], 'createdAtMs')]: 1_700_000_000_000,
 				},
 			},
 		])
@@ -431,10 +444,15 @@ describe('SnapshotHub GraphQL resolvers', () => {
 		})
 		await expect(resolveSnapshotVotes({
 			proposalId,
-		}, context)).resolves.toEqual([
+		}, context)).resolves.toMatchObject([
 			{
 				[EntityMetaKey.Selector]: {
 					voteId,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.SnapshotVote, [], 'voter')]: voter,
+					[entityFieldAddressKey(EntityType.SnapshotVote, [], 'choice')]: vote.choice,
+					[entityFieldAddressKey(EntityType.SnapshotVote, [], 'createdAtMs')]: 1_700_050_000_000,
 				},
 			},
 		])
@@ -490,12 +508,18 @@ describe('SnapshotHub GraphQL resolvers', () => {
 			limit: 2,
 			offset: 6,
 		})
-		expect(proposalVotesResolver.projections.$$votes.select(page)).toEqual([
+		expect(proposalVotesResolver.projections.$$votes.select(page)).toMatchObject([
 			{
 				[EntityMetaKey.Selector]: { voteId },
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.SnapshotVote, [], 'voter')]: voter,
+				},
 			},
 			{
 				[EntityMetaKey.Selector]: { voteId: `0x${'3'.repeat(64)}` },
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.SnapshotVote, [], 'voter')]: voter,
+				},
 			},
 		])
 		expect(proposalVotesResolver.projections.$$votes.continuation(page)).toEqual({

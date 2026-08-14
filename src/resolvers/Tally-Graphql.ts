@@ -2,7 +2,10 @@ import type { ResolverContext } from '$/resolvers/$resolvers.ts'
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import { defineResolver } from '$/resolvers/defineResolver.ts'
 import type { RegisteredSourceResolverModule } from '$/resolvers/defineResolver.ts'
-import { EntityMetaKey } from '$/schema/$schema.ts'
+import {
+	entityFieldAddressKey,
+	EntityMetaKey,
+} from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import type {
 	TallyGovernor,
@@ -288,9 +291,51 @@ export const resolveTallyProposals = async ({
 		afterCursor: context.providerContinuationToken,
 	})
 	return {
-		rows: page.nodes.map((proposal) => ({
-			[EntityMetaKey.Selector]: proposalSelector(proposal.id),
-		})),
+		count: page.pageInfo.count ?? undefined,
+		rows: page.nodes.map((proposal) => {
+			const fields = tallyProposalFields(proposal)
+			return {
+				[EntityMetaKey.Selector]: proposalSelector(proposal.id),
+				[EntityMetaKey.Fields]: {
+					...(fields.onchainId != null && {
+						[entityFieldAddressKey(EntityType.TallyProposal, [], 'onchainId')]: fields.onchainId,
+					}),
+					[entityFieldAddressKey(EntityType.TallyProposal, [], 'status')]: fields.status,
+					[entityFieldAddressKey(EntityType.TallyProposal, [], '$governor')]: fields.$governor,
+					[entityFieldAddressKey(EntityType.TallyProposal, [], '$network')]: fields.$network,
+					...(fields.$proposer != null && {
+						[entityFieldAddressKey(EntityType.TallyProposal, [], '$proposer')]: fields.$proposer,
+					}),
+					...(fields.title != null && {
+						[entityFieldAddressKey(EntityType.TallyProposal, [], 'title')]: fields.title,
+					}),
+					...(fields.description != null && {
+						[entityFieldAddressKey(EntityType.TallyProposal, [], 'description')]: fields.description,
+					}),
+					...(fields.organizationName != null && {
+						[entityFieldAddressKey(EntityType.TallyProposal, [], 'organizationName')]: fields.organizationName,
+					}),
+					...(fields.quorum != null && {
+						[entityFieldAddressKey(EntityType.TallyProposal, [], 'quorum')]: fields.quorum,
+					}),
+					...(fields.voteStats != null && {
+						[entityFieldAddressKey(EntityType.TallyProposal, [], 'voteStats')]: fields.voteStats,
+					}),
+					...(fields.startAtMs != null && {
+						[entityFieldAddressKey(EntityType.TallyProposal, [], 'startAtMs')]: fields.startAtMs,
+					}),
+					...(fields.endAtMs != null && {
+						[entityFieldAddressKey(EntityType.TallyProposal, [], 'endAtMs')]: fields.endAtMs,
+					}),
+					...(fields.discourseUrl != null && {
+						[entityFieldAddressKey(EntityType.TallyProposal, [], 'discourseUrl')]: fields.discourseUrl,
+					}),
+					...(fields.snapshotUrl != null && {
+						[entityFieldAddressKey(EntityType.TallyProposal, [], 'snapshotUrl')]: fields.snapshotUrl,
+					}),
+				},
+			}
+		}),
 		nextCursor: page.pageInfo.lastCursor,
 	}
 }
@@ -340,6 +385,7 @@ export default {
 		})({
 			$$proposals: {
 				select: (snapshot) => snapshot.rows,
+				resolveCount: (snapshot) => snapshot.count,
 				continuation: (snapshot) => (
 					snapshot.nextCursor == null ?
 						{

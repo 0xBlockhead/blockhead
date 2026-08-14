@@ -3,7 +3,10 @@ import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import { defineResolver } from '$/resolvers/defineResolver.ts'
 import type { RegisteredSourceResolverModule } from '$/resolvers/defineResolver.ts'
 import { mediaFromUrl } from '$/resolvers/media.ts'
-import { EntityMetaKey } from '$/schema/$schema.ts'
+import {
+	entityFieldAddressKey,
+	EntityMetaKey,
+} from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { MediaType } from '$/schema/MediaType.ts'
 import type {
@@ -366,9 +369,42 @@ export const resolveSnapshotSpaces = async (
 		limit: resolverContextRowLimit(context),
 		offset: context.pagination.offset ?? 0,
 	})
-	return spaces.map((space) => ({
-		[EntityMetaKey.Selector]: spaceSelector(space.id),
-	}))
+	return spaces.map((space) => {
+		const fields = snapshotSpaceFields(space)
+		return {
+			[EntityMetaKey.Selector]: spaceSelector(space.id),
+			[EntityMetaKey.Fields]: {
+				...(fields.name != null && {
+					[entityFieldAddressKey(EntityType.SnapshotSpace, [], 'name')]: fields.name,
+				}),
+				...(fields.about != null && {
+					[entityFieldAddressKey(EntityType.SnapshotSpace, [], 'about')]: fields.about,
+				}),
+				...(fields.avatar != null && {
+					[entityFieldAddressKey(EntityType.SnapshotSpace, [], 'avatar')]: fields.avatar,
+				}),
+				...(fields.$avatar != null && {
+					[entityFieldAddressKey(EntityType.SnapshotSpace, [], '$avatar')]: fields.$avatar,
+				}),
+				...(fields.symbol != null && {
+					[entityFieldAddressKey(EntityType.SnapshotSpace, [], 'symbol')]: fields.symbol,
+				}),
+				...(fields.$network != null && {
+					[entityFieldAddressKey(EntityType.SnapshotSpace, [], '$network')]: fields.$network,
+				}),
+				...(fields.proposalsCount != null && {
+					[entityFieldAddressKey(EntityType.SnapshotSpace, [], 'proposalsCount')]: fields.proposalsCount,
+				}),
+				...(fields.votesCount != null && {
+					[entityFieldAddressKey(EntityType.SnapshotSpace, [], 'votesCount')]: fields.votesCount,
+				}),
+				...(fields.followersCount != null && {
+					[entityFieldAddressKey(EntityType.SnapshotSpace, [], 'followersCount')]: fields.followersCount,
+				}),
+				[entityFieldAddressKey(EntityType.SnapshotSpace, [], 'createdAtMs')]: fields.createdAtMs,
+			},
+		}
+	})
 }
 
 export const resolveSnapshotProposal = async ({
@@ -402,9 +438,53 @@ export const resolveSnapshotProposals = async ({
 		limit: resolverContextRowLimit(context),
 		offset: context.pagination.offset ?? 0,
 	})
-	return proposals.map((proposal) => ({
-		[EntityMetaKey.Selector]: proposalSelector(proposal.id),
-	}))
+	return proposals.map((proposal) => {
+		const fields = snapshotProposalFields(proposal)
+		return {
+			[EntityMetaKey.Selector]: proposalSelector(proposal.id),
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.SnapshotProposal, [], '$space')]: fields.$space,
+				[entityFieldAddressKey(EntityType.SnapshotProposal, [], '$network')]: fields.$network,
+				...(fields.$authorAccount != null && {
+					[entityFieldAddressKey(EntityType.SnapshotProposal, [], '$authorAccount')]: fields.$authorAccount,
+				}),
+				[entityFieldAddressKey(EntityType.SnapshotProposal, [], 'author')]: fields.author,
+				[entityFieldAddressKey(EntityType.SnapshotProposal, [], 'title')]: fields.title,
+				...(fields.body != null && {
+					[entityFieldAddressKey(EntityType.SnapshotProposal, [], 'body')]: fields.body,
+				}),
+				[entityFieldAddressKey(EntityType.SnapshotProposal, [], 'discussion')]: fields.discussion,
+				...(fields.type != null && {
+					[entityFieldAddressKey(EntityType.SnapshotProposal, [], 'type')]: fields.type,
+				}),
+				[entityFieldAddressKey(EntityType.SnapshotProposal, [], 'state')]: fields.state,
+				[entityFieldAddressKey(EntityType.SnapshotProposal, [], 'choices')]: fields.choices,
+				[entityFieldAddressKey(EntityType.SnapshotProposal, [], 'labels')]: fields.labels,
+				[entityFieldAddressKey(EntityType.SnapshotProposal, [], 'startAtMs')]: fields.startAtMs,
+				[entityFieldAddressKey(EntityType.SnapshotProposal, [], 'endAtMs')]: fields.endAtMs,
+				[entityFieldAddressKey(EntityType.SnapshotProposal, [], 'createdAtMs')]: fields.createdAtMs,
+				...(fields.updatedAtMs != null && {
+					[entityFieldAddressKey(EntityType.SnapshotProposal, [], 'updatedAtMs')]: fields.updatedAtMs,
+				}),
+				[entityFieldAddressKey(EntityType.SnapshotProposal, [], 'quorum')]: fields.quorum,
+				...(fields.votesCount != null && {
+					[entityFieldAddressKey(EntityType.SnapshotProposal, [], 'votesCount')]: fields.votesCount,
+				}),
+				...(fields.scores != null && {
+					[entityFieldAddressKey(EntityType.SnapshotProposal, [], 'scores')]: fields.scores,
+				}),
+				...(fields.scoresTotal != null && {
+					[entityFieldAddressKey(EntityType.SnapshotProposal, [], 'scoresTotal')]: fields.scoresTotal,
+				}),
+				...(fields.link != null && {
+					[entityFieldAddressKey(EntityType.SnapshotProposal, [], 'link')]: fields.link,
+				}),
+				...(fields.app != null && {
+					[entityFieldAddressKey(EntityType.SnapshotProposal, [], 'app')]: fields.app,
+				}),
+			},
+		}
+	})
 }
 
 export const resolveSnapshotVote = async ({
@@ -435,9 +515,43 @@ export const resolveSnapshotVotes = async ({
 		limit: resolverContextRowLimit(context),
 		offset: context.pagination.offset ?? 0,
 	})
-	return votes.map((vote) => ({
-		[EntityMetaKey.Selector]: voteSelector(vote.id),
-	}))
+	return votes.map((vote) => {
+		const fields = snapshotVoteFields(vote)
+		return {
+			[EntityMetaKey.Selector]: voteSelector(vote.id),
+			[EntityMetaKey.Fields]: {
+				...(fields.ipfs != null && {
+					[entityFieldAddressKey(EntityType.SnapshotVote, [], 'ipfs')]: fields.ipfs,
+				}),
+				[entityFieldAddressKey(EntityType.SnapshotVote, [], '$space')]: fields.$space,
+				[entityFieldAddressKey(EntityType.SnapshotVote, [], '$proposal')]: fields.$proposal,
+				[entityFieldAddressKey(EntityType.SnapshotVote, [], 'voter')]: fields.voter,
+				[entityFieldAddressKey(EntityType.SnapshotVote, [], 'choice')]: fields.choice,
+				...(fields.reason != null && {
+					[entityFieldAddressKey(EntityType.SnapshotVote, [], 'reason')]: fields.reason,
+				}),
+				...(fields.app != null && {
+					[entityFieldAddressKey(EntityType.SnapshotVote, [], 'app')]: fields.app,
+				}),
+				...(fields.votingPower != null && {
+					[entityFieldAddressKey(EntityType.SnapshotVote, [], 'votingPower')]: fields.votingPower,
+				}),
+				...(fields.votingPowerByStrategy != null && {
+					[entityFieldAddressKey(EntityType.SnapshotVote, [], 'votingPowerByStrategy')]: fields.votingPowerByStrategy,
+				}),
+				...(fields.votingPowerState != null && {
+					[entityFieldAddressKey(EntityType.SnapshotVote, [], 'votingPowerState')]: fields.votingPowerState,
+				}),
+				...(fields.votingPowerValue != null && {
+					[entityFieldAddressKey(EntityType.SnapshotVote, [], 'votingPowerValue')]: fields.votingPowerValue,
+				}),
+				...(fields.metadata != null && {
+					[entityFieldAddressKey(EntityType.SnapshotVote, [], 'metadata')]: fields.metadata,
+				}),
+				[entityFieldAddressKey(EntityType.SnapshotVote, [], 'createdAtMs')]: fields.createdAtMs,
+			},
+		}
+	})
 }
 
 export default {

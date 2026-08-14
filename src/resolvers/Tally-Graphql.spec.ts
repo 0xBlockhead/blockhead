@@ -6,7 +6,10 @@ import {
 	vi,
 } from 'vitest'
 
-import { EntityMetaKey } from '$/schema/$schema.ts'
+import {
+	entityFieldAddressKey,
+	EntityMetaKey,
+} from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
@@ -280,10 +283,16 @@ describe('Tally resolver field shaping', () => {
 		})
 		await expect(resolveTallyProposals({
 			governorId,
-		}, context)).resolves.toEqual({
+		}, context)).resolves.toMatchObject({
+			count: 1,
 			rows: [{
 				[EntityMetaKey.Selector]: {
 					proposalId,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.TallyProposal, [], 'status')]: proposal.status,
+					[entityFieldAddressKey(EntityType.TallyProposal, [], 'title')]: 'Fund public goods',
+					[entityFieldAddressKey(EntityType.TallyProposal, [], 'startAtMs')]: 1_700_000_100_000,
 				},
 			}],
 			nextCursor: null,
@@ -352,9 +361,14 @@ describe('Tally resolver field shaping', () => {
 			limit: 10,
 			afterCursor: 'cursor-1',
 		})
-		expect(governorProposalsResolver.projections.$$proposals.select(page)).toEqual([{
+		expect(governorProposalsResolver.projections.$$proposals.select(page)).toMatchObject([{
 			[EntityMetaKey.Selector]: { proposalId },
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.TallyProposal, [], 'status')]: proposal.status,
+				[entityFieldAddressKey(EntityType.TallyProposal, [], 'title')]: 'Fund public goods',
+			},
 		}])
+		expect(governorProposalsResolver.projections.$$proposals.resolveCount(page)).toBe(1)
 		expect(governorProposalsResolver.projections.$$proposals.continuation(page)).toEqual({
 			operation: 'proposals',
 			target: 'tally-api',
@@ -363,6 +377,7 @@ describe('Tally resolver field shaping', () => {
 		})
 
 		expect(governorProposalsResolver.projections.$$proposals.continuation({
+			count: undefined,
 			rows: [],
 			nextCursor: null,
 		})).toEqual({
