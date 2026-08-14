@@ -249,6 +249,7 @@ describe('ACP registry resolver', () => {
 					$network: {
 						networkId: 'acp',
 					},
+					timestampMs: expect.any(Number),
 					source: Source.AcpRegistry_Rest,
 				}),
 				[EntityMetaKey.Fields]: expect.objectContaining({
@@ -274,20 +275,12 @@ describe('ACP registry resolver', () => {
 		}, resolverContext)).rejects.toThrow('registry unavailable')
 	})
 
-	it('reuses hub tip fields on NetworkTimestampMsSource', async () => {
+	it('does not replay the current registry at an arbitrary observation timestamp', async () => {
 		const { default: acpRegistry } = await import('$/resolvers/AcpRegistry-Rest.ts')
-		const resolver = acpRegistry.resolvers[3]
-		const observation = await resolver.resolve.NetworkTimestampMsSource.resolve({
-			$network: {
-				networkId: 'acp',
-			},
-			timestampMs: 1_700_000_000_000,
-			source: Source.AcpRegistry_Rest,
-		}, resolverContext)
 
-		expect(resolver.projections.sourceReportedAgentCount(observation)).toBe(1)
-		expect(resolver.projections.seededAgentCount(observation)).toBe(1)
-		expect(resolver.projections.status(observation)).toBe('ok')
+		expect(acpRegistry.resolvers.some(({ entityType }) => (
+			entityType === EntityType._GlobalAgentNetwork_Timestamp
+		))).toBe(false)
 	})
 
 	it('registers the ACP registry source lazily', async () => {

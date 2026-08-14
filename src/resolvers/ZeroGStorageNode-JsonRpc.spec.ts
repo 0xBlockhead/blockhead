@@ -6,7 +6,10 @@ import {
 	vi,
 } from 'vitest'
 
-import { EntityMetaKey } from '$/schema/$schema.ts'
+import {
+	EntityMetaKey,
+	entityFieldAddressKey,
+} from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
@@ -172,18 +175,13 @@ describe('ZeroGStorageNode_JsonRpc resolver leftovers', () => {
 				timestampMs: expect.any(Number),
 				source: Source.ZeroGStorageNode_JsonRpc,
 			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.ZeroGNetwork_Timestamp, [], 'storageLogSyncHeight')]: 10,
+			},
 		}])
-
-		const timestampResolver = resolverFor(EntityType.ZeroGNetwork_Timestamp, 'storageLogSyncHeight')
-		await expect(timestampResolver.resolve.NetworkTimestampMsSource.resolve({
-			$network: network,
-			timestampMs: 123,
-			source: Source.ZeroGStorageNode_JsonRpc,
-		}, context)).resolves.toMatchObject({
-			timestampMs: 123,
-			source: Source.ZeroGStorageNode_JsonRpc,
-			storageLogSyncHeight: 10,
-		})
+		expect(zeroGStorageNode.resolvers.some((resolver) => (
+			resolver.entityType === EntityType.ZeroGNetwork_Timestamp
+		))).toBe(false)
 	})
 
 	it('resolves the canonical local storage-node state without inventing unsupported local metrics', async () => {

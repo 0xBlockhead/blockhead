@@ -6,18 +6,9 @@ import {
 import {
 	EntityMetaKey,
 	entityFieldAddressKey,
-	type EntitySelector,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
-
-type NetworkId = EntitySelector<typeof schema, EntityType.Network>
-
-const assertAvalanchePChain = (network: NetworkId) => {
-	if (!('slug' in network) || network.slug !== networkBySlug['avalanche-p-chain'].slug)
-		throw new Error('AvalancheInfo_JsonRpc: unsupported network')
-}
 
 const percentFromWire = (
 	value: string,
@@ -42,6 +33,8 @@ export default {
 							getNetworkName,
 							getNodeId,
 							getNodeVersion,
+							getPeers,
+							getUptime,
 						} = await import('$/sources/AvalancheInfo/JsonRpc/queries.ts')
 						const node = await getNodeId()
 						if (node.nodeID !== nodeId)
@@ -49,12 +42,24 @@ export default {
 						const [
 							network,
 							version,
+							peers,
 						] = await Promise.all([
 							getNetworkName(),
 							getNodeVersion(),
+							getPeers(),
 						])
 						if (network.networkName !== 'mainnet')
 							throw new Error(`AvalancheInfo_JsonRpc: unexpected network ${network.networkName}`)
+						let uptimePercent: number | undefined
+						try {
+							uptimePercent = percentFromWire(
+								(await getUptime()).weightedAveragePercentage,
+								'uptime'
+							)
+						} catch {
+							uptimePercent = undefined
+						}
+						const timestampMs = Date.now()
 						return {
 							nodeId: node.nodeID,
 							$network: {
@@ -71,7 +76,7 @@ export default {
 									$nodeState: {
 										nodeId: node.nodeID,
 									},
-									timestampMs: Date.now(),
+									timestampMs,
 									source: Source.AvalancheInfo_JsonRpc,
 								},
 								[EntityMetaKey.Fields]: {
@@ -80,6 +85,10 @@ export default {
 									[entityFieldAddressKey(EntityType.BlockheadAvalancheNodeState_Timestamp, [], 'databaseVersion')]: version.databaseVersion,
 									[entityFieldAddressKey(EntityType.BlockheadAvalancheNodeState_Timestamp, [], 'gitCommit')]: version.gitCommit,
 									[entityFieldAddressKey(EntityType.BlockheadAvalancheNodeState_Timestamp, [], 'rpcProtocolVersion')]: version.rpcProtocolVersion,
+									[entityFieldAddressKey(EntityType.BlockheadAvalancheNodeState_Timestamp, [], 'connectedPeerCount')]: Number(peers.numPeers),
+									...(uptimePercent != null && {
+										[entityFieldAddressKey(EntityType.BlockheadAvalancheNodeState_Timestamp, [], 'uptimePercent')]: uptimePercent,
+									}),
 									[entityFieldAddressKey(EntityType.BlockheadAvalancheNodeState_Timestamp, [], 'vmVersions')]: version.vmVersions,
 								},
 							}],
@@ -93,73 +102,6 @@ export default {
 			nodePopPublicKey: (nodeState) => nodeState.nodePopPublicKey,
 			nodePopProofOfPossession: (nodeState) => nodeState.nodePopProofOfPossession,
 			$$timestamps: (nodeState) => nodeState.$$timestamps,
-		}),
-
-		defineResolver({
-			entityType: EntityType.BlockheadAvalancheNodeState_Timestamp,
-			resolve: {
-				NodeStateTimestampMsSource: {
-					resolve: async ({ $nodeState, source }) => {
-						if (source !== Source.AvalancheInfo_JsonRpc)
-							throw new Error('AvalancheInfo_JsonRpc: observation source mismatch')
-						const {
-							getNetworkName,
-							getNodeId,
-							getNodeVersion,
-							getPeers,
-							getUptime,
-						} = await import('$/sources/AvalancheInfo/JsonRpc/queries.ts')
-						const node = await getNodeId()
-						if (node.nodeID !== $nodeState.nodeId)
-							throw new Error(`AvalancheInfo_JsonRpc: connected node ${node.nodeID} does not match ${$nodeState.nodeId}`)
-						const [
-							network,
-							version,
-							peers,
-						] = await Promise.all([
-							getNetworkName(),
-							getNodeVersion(),
-							getPeers(),
-						])
-						assertAvalanchePChain({
-							slug: networkBySlug['avalanche-p-chain'].slug,
-						})
-						let uptimePercent: number | undefined
-						try {
-							uptimePercent = percentFromWire(
-								(await getUptime()).weightedAveragePercentage,
-								'uptime'
-							)
-						} catch {
-							uptimePercent = undefined
-						}
-						return {
-							timestampMs: Date.now(),
-							source: Source.AvalancheInfo_JsonRpc,
-							networkName: network.networkName,
-							nodeVersion: version.version,
-							databaseVersion: version.databaseVersion,
-							gitCommit: version.gitCommit,
-							rpcProtocolVersion: version.rpcProtocolVersion,
-							connectedPeerCount: Number(peers.numPeers),
-							...(uptimePercent != null && { uptimePercent }),
-							vmVersions: version.vmVersions,
-						}
-					},
-				},
-			},
-		})({
-			timestampMs: (observation) => observation.timestampMs,
-			source: (observation) => observation.source,
-			networkName: (observation) => observation.networkName,
-			nodeVersion: (observation) => observation.nodeVersion,
-			databaseVersion: (observation) => observation.databaseVersion,
-			gitCommit: (observation) => observation.gitCommit,
-			rpcProtocolVersion: (observation) => observation.rpcProtocolVersion,
-			connectedPeerCount: (observation) => observation.connectedPeerCount,
-			uptimePercent: (observation) => observation.uptimePercent,
-			vmVersions: (observation) => observation.vmVersions,
-			lastSyncedAt: () => undefined,
 		}),
 	] as const,
 } satisfies RegisteredSourceResolverModule

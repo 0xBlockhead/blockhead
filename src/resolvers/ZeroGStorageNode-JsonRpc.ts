@@ -6,6 +6,7 @@ import {
 } from '$/resolvers/defineResolver.ts'
 import {
 	EntityMetaKey,
+	entityFieldAddressKey,
 	type EntitySelector,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
@@ -87,8 +88,12 @@ export default {
 				Slug: {
 					resolve: async (network) => {
 						assertZeroGMainnet(network)
+						const { getStatus } = await loadZeroGStorageNodeQueries()
+						const status = await getStatus()
+						if (status.networkIdentity.chainId !== zeroGChainId)
+							throw new Error('ZeroGStorageNode_JsonRpc: local node is connected to an unsupported chain')
 						const timestampMs = Date.now()
-						const nodeId = await localStorageNodeId()
+						const nodeId = zeroExLowerCase(status.networkIdentity.flowAddress)
 						return {
 							$$storageNodes: [{
 								[EntityMetaKey.Selector]: {
@@ -102,6 +107,9 @@ export default {
 									timestampMs,
 									source: Source.ZeroGStorageNode_JsonRpc,
 								},
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.ZeroGNetwork_Timestamp, [], 'storageLogSyncHeight')]: status.logSyncHeight,
+								},
 							}],
 						}
 					},
@@ -110,35 +118,6 @@ export default {
 		})({
 			$$storageNodes: (snapshot) => snapshot.$$storageNodes,
 			$$timestamps: (snapshot) => snapshot.$$timestamps,
-		}),
-
-		defineResolver({
-			entityType: EntityType.ZeroGNetwork_Timestamp,
-			resolve: {
-				NetworkTimestampMsSource: {
-					resolve: async ({ $network, timestampMs, source }) => {
-						if (source !== Source.ZeroGStorageNode_JsonRpc)
-							throw new Error('ZeroGStorageNode_JsonRpc: unsupported timestamp source')
-						assertZeroGMainnet($network)
-						const { getStatus } = await loadZeroGStorageNodeQueries()
-						const status = await getStatus()
-						if (status.networkIdentity.chainId !== zeroGChainId)
-							throw new Error('ZeroGStorageNode_JsonRpc: local node is connected to an unsupported chain')
-
-						return {
-							$network: { [EntityMetaKey.Selector]: $network },
-							timestampMs,
-							source,
-							storageLogSyncHeight: status.logSyncHeight,
-						}
-					},
-				},
-			},
-		})({
-			$network: (snapshot) => snapshot.$network,
-			timestampMs: (snapshot) => snapshot.timestampMs,
-			source: (snapshot) => snapshot.source,
-			storageLogSyncHeight: (snapshot) => snapshot.storageLogSyncHeight,
 		}),
 
 		defineResolver({

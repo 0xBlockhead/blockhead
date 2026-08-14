@@ -23,11 +23,7 @@ const { default: kingnodes } = await import('$/resolvers/Kingnodes-Rest.ts')
 const networkResolver = kingnodes.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.DydxChainNetwork
 ))
-const networkTimestampResolver = kingnodes.resolvers.find((resolver) => (
-	resolver.entityType === EntityType.DydxChainNetwork_Timestamp
-))
-
-if (networkResolver == null || networkTimestampResolver == null)
+if (networkResolver == null)
 	throw new Error('Kingnodes-Rest spec missing resolver')
 
 const network = {
@@ -63,35 +59,13 @@ describe('Kingnodes dYdX LCD tip projections', () => {
 		}])
 	})
 
-	it('re-resolves tip blockHeight for NetworkTimestampMsSource', async () => {
-		getDydxLatestBlock.mockResolvedValue({
-			block: {
-				header: {
-					chain_id: 'dydx-mainnet-1',
-					height: '99785573',
-					time: '2026-07-31T19:32:02.172381662Z',
-				},
-			},
-		})
-
-		await expect(
-			networkTimestampResolver.resolve.NetworkTimestampMsSource.resolve({
-				$network: network,
-				timestampMs: observedAtMs,
-				source: Source.KingnodesDydxNode,
-			})
-		).resolves.toMatchObject({
-			blockHeight: 99785573n,
-		})
-		expect(
-			networkTimestampResolver.projections.blockHeight({
-				blockHeight: 99785573n,
-				observedAtMs,
-			})
-		).toBe(99785573n)
+	it('does not replay the latest block at an arbitrary observation timestamp', () => {
+		expect(kingnodes.resolvers.some((resolver) => (
+			resolver.entityType === EntityType.DydxChainNetwork_Timestamp
+		))).toBe(false)
 	})
 
-	it('rejects foreign networks and non-Kingnodes sources', async () => {
+	it('rejects foreign networks', async () => {
 		await expect(
 			networkResolver.resolve.Network.resolve({
 				$network: {
@@ -99,13 +73,5 @@ describe('Kingnodes dYdX LCD tip projections', () => {
 				},
 			})
 		).rejects.toThrow('unsupported network')
-
-		await expect(
-			networkTimestampResolver.resolve.NetworkTimestampMsSource.resolve({
-				$network: network,
-				timestampMs: observedAtMs,
-				source: Source.DydxIndexer,
-			})
-		).rejects.toThrow('unsupported source')
 	})
 })

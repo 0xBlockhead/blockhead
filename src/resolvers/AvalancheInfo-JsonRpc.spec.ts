@@ -6,7 +6,6 @@ import {
 } from 'vitest'
 import { EntityMetaKey, entityFieldAddressKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { Source } from '$/sources/Source.ts'
 
 const jsonRpc2 = vi.hoisted(() => vi.fn())
 
@@ -38,11 +37,7 @@ const context = {
 const nodeStateResolver = avalancheInfo.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.BlockheadAvalancheNodeState
 ))
-const nodeStateTimestampResolver = avalancheInfo.resolvers.find((resolver) => (
-	resolver.entityType === EntityType.BlockheadAvalancheNodeState_Timestamp
-))
-
-if (nodeStateResolver == null || nodeStateTimestampResolver == null)
+if (nodeStateResolver == null)
 	throw new Error('AvalancheInfo_JsonRpc spec missing node-state resolvers')
 
 it('projects enrolled BlockheadAvalancheNodeState fields from Info node id + version', async () => {
@@ -66,6 +61,14 @@ it('projects enrolled BlockheadAvalancheNodeState fields from Info node id + ver
 				platform: 'avalanchego/1.14.2',
 			},
 		})
+		.mockResolvedValueOnce({
+			numPeers: '3',
+			peers: [],
+		})
+		.mockResolvedValueOnce({
+			rewardingStakePercentage: '99',
+			weightedAveragePercentage: '99.5',
+		})
 
 	const nodeState = await nodeStateResolver.resolve.NodeId.resolve({
 		nodeId: 'NodeID-local',
@@ -75,10 +78,12 @@ it('projects enrolled BlockheadAvalancheNodeState fields from Info node id + ver
 	expect(nodeState.$$timestamps).toHaveLength(1)
 	expect(nodeState.$$timestamps[0][EntityMetaKey.Fields]).toMatchObject({
 		[entityFieldAddressKey(EntityType.BlockheadAvalancheNodeState_Timestamp, [], 'nodeVersion')]: 'avalanchego/1.14.2',
+		[entityFieldAddressKey(EntityType.BlockheadAvalancheNodeState_Timestamp, [], 'connectedPeerCount')]: 3,
+		[entityFieldAddressKey(EntityType.BlockheadAvalancheNodeState_Timestamp, [], 'uptimePercent')]: 99.5,
 	})
 })
 
-it('projects node-state observations including peer count when uptime is unavailable', async () => {
+it('materializes best-effort node observations without arbitrary timestamp replay', async () => {
 	jsonRpc2
 		.mockResolvedValueOnce({
 			nodeID: 'NodeID-local',
@@ -101,15 +106,18 @@ it('projects node-state observations including peer count when uptime is unavail
 		})
 		.mockRejectedValueOnce(new Error('method missing'))
 
-	const observation = await nodeStateTimestampResolver.resolve.NodeStateTimestampMsSource.resolve({
-		$nodeState: {
-			nodeId: 'NodeID-local',
-		},
-		timestampMs: 1,
-		source: Source.AvalancheInfo_JsonRpc,
+	const nodeState = await nodeStateResolver.resolve.NodeId.resolve({
+		nodeId: 'NodeID-local',
 	}, context)
 
-	expect(observation.connectedPeerCount).toBe(3)
-	expect(observation.uptimePercent).toBeUndefined()
-	expect(observation.networkName).toBe('mainnet')
+	expect(nodeState.$$timestamps[0][EntityMetaKey.Fields]).toMatchObject({
+		[entityFieldAddressKey(EntityType.BlockheadAvalancheNodeState_Timestamp, [], 'networkName')]: 'mainnet',
+		[entityFieldAddressKey(EntityType.BlockheadAvalancheNodeState_Timestamp, [], 'connectedPeerCount')]: 3,
+	})
+	expect(nodeState.$$timestamps[0][EntityMetaKey.Fields]).not.toHaveProperty(
+		entityFieldAddressKey(EntityType.BlockheadAvalancheNodeState_Timestamp, [], 'uptimePercent')
+	)
+	expect(avalancheInfo.resolvers.some((resolver) => (
+		resolver.entityType === EntityType.BlockheadAvalancheNodeState_Timestamp
+	))).toBe(false)
 })

@@ -293,44 +293,5 @@ export default {
 			},
 			$$timestamps: (snapshot) => snapshot.$$timestamps,
 		}),
-
-		defineResolver({
-			entityType: EntityType._GlobalAgentNetwork_Timestamp,
-			resolve: {
-				NetworkTimestampMsSource: {
-					resolve: async ({
-						$network,
-						timestampMs,
-						source,
-					}) => {
-						if (source !== Source.AcpRegistry_Rest)
-							throw new Error('AcpRegistry_Rest: global agent observation source mismatch')
-
-						const registry = await fetchAcpRegistry()
-						return {
-							$network: {
-								[EntityMetaKey.Selector]: $network,
-							},
-							timestampMs,
-							source,
-							sourceReportedAgentCount: registry.agents.length,
-							seededAgentCount: registry.agents.length,
-							declaredEndpointCount: 1,
-							reachableEndpointCount: 1,
-							status: 'ok',
-						}
-					},
-				},
-			},
-		})({
-			$network: (observation) => observation.$network,
-			timestampMs: (observation) => observation.timestampMs,
-			source: (observation) => observation.source,
-			sourceReportedAgentCount: (observation) => observation.sourceReportedAgentCount,
-			seededAgentCount: (observation) => observation.seededAgentCount,
-			declaredEndpointCount: (observation) => observation.declaredEndpointCount,
-			reachableEndpointCount: (observation) => observation.reachableEndpointCount,
-			status: (observation) => observation.status,
-		}),
 	],
 } satisfies RegisteredSourceResolverModule

@@ -83,36 +83,5 @@ export default {
 				},
 			}],
 		}),
-
-		defineResolver({
-			entityType: EntityType.DydxChainNetwork_Timestamp,
-			resolve: {
-				NetworkTimestampMsSource: {
-					appliesTo: [
-						{
-							$network: dydxNetworkApplicability[0],
-							source: Source.KingnodesDydxNode,
-						},
-						{
-							$network: dydxNetworkApplicability[1],
-							source: Source.KingnodesDydxNode,
-						},
-					],
-					resolve: async ({ $network, source }) => {
-						if (source !== Source.KingnodesDydxNode)
-							throw new Error(`KingnodesDydxNode: unsupported source ${source}`)
-						assertDydxMainnet($network.$network)
-						const { getDydxLatestBlock } = await import('$/sources/Kingnodes/Rest/queries.ts')
-						const latestBlock = await getDydxLatestBlock()
-						return {
-							blockHeight: BigInt(latestBlock.block.header.height),
-							observedAtMs: parseBlockTimeMs(latestBlock.block.header.time),
-						}
-					},
-				},
-			},
-		})({
-			blockHeight: (snapshot) => snapshot.blockHeight,
-		}),
 	],
 } satisfies RegisteredSourceResolverModule

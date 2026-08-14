@@ -5,7 +5,6 @@
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -22,12 +21,7 @@
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.BlockheadAvalancheNodeState_Timestamp>, 'prefetched'> = $props()
 
-	const viewSelection = $derived(selection({
-		sources: selection.sources ?? [
-			Source.AvalancheInfo_JsonRpc,
-		],
-	}))
-	const blockheadAvalancheNodeStateTimestamp = $derived(viewSelection({
+	const blockheadAvalancheNodeStateTimestamp = $derived(selection({
 		fields: {
 			nodeVersion: true,
 			networkName: true,
@@ -154,7 +148,7 @@
 
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
 						fields: {
 							databaseVersion: true,
 						},
@@ -176,7 +170,7 @@
 
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
 						fields: {
 							gitCommit: true,
 						},
@@ -198,7 +192,7 @@
 
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
 						fields: {
 							rpcProtocolVersion: true,
 						},
@@ -240,7 +234,7 @@
 
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
 						fields: {
 							uptimePercent: true,
 						},
@@ -264,7 +258,7 @@
 
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
 						fields: {
 							lastSyncedAt: true,
 						},

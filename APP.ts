@@ -13646,7 +13646,6 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.AvalancheInfo_JsonRpc],
 							openFields: ["networkName", "nodeVersion", "databaseVersion", "gitCommit", "rpcProtocolVersion", "connectedPeerCount", "uptimePercent", "vmVersions", "lastSyncedAt"],
 						},
 						summary: { title: [{ field: "timestampMs", format: "timestamp" }], value: ["nodeVersion", "networkName"], HeadingAfter: [{ field: "connectedPeerCount", format: "number" }] },
