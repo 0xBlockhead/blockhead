@@ -1105,6 +1105,21 @@ describe('Hyperliquid market catalog resolvers', () => {
 				$network: account.$network,
 				coin: 'ETH',
 			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.HyperliquidPerpMarket, [], '$$timestamps')]: [{
+					[EntityMetaKey.Selector]: {
+						$perpMarket: {
+							$network: account.$network,
+							coin: 'ETH',
+						},
+						timestampMs: 1_700_000_000_999,
+						source: Source.Hyperliquid,
+					},
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.HyperliquidPerpMarket_Timestamp, [], 'maxLeverage')]: 25,
+					},
+				}],
+			},
 		}])
 		expect(networkResolver.projections.$$perpMarkets.resolveCount(snapshot)).toBe(1)
 		expect(networkResolver.projections.$$spotPairs.select(snapshot)).toEqual([{
@@ -1128,6 +1143,40 @@ describe('Hyperliquid market catalog resolvers', () => {
 			},
 		}])
 		expect(networkResolver.projections.$$spotPairs.resolveCount(snapshot)).toBe(1)
+		expect(networkResolver.projections.$$validators.select(snapshot)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$network: account.$network,
+				validator: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.HyperliquidValidator, [], '$$timestamps')]: [{
+					[EntityMetaKey.Selector]: {
+						$validator: {
+							$network: account.$network,
+							validator: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+						},
+						timestampMs: 1_700_000_000_999,
+						source: Source.Hyperliquid,
+					},
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.HyperliquidValidator_Timestamp, [], 'commission')]: '0.01',
+						[entityFieldAddressKey(EntityType.HyperliquidValidator_Timestamp, [], 'recentBlockCount')]: 1,
+						[entityFieldAddressKey(EntityType.HyperliquidValidator_Timestamp, [], 'isActive')]: true,
+						[entityFieldAddressKey(EntityType.HyperliquidValidator_Timestamp, [], 'stake')]: 2n,
+						[entityFieldAddressKey(EntityType.HyperliquidValidator_Timestamp, [], 'isJailed')]: false,
+						[entityFieldAddressKey(EntityType.HyperliquidValidator_Timestamp, [], 'signerAddress')]: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+						[entityFieldAddressKey(EntityType.HyperliquidValidator_Timestamp, [], '$signer')]: {
+							[EntityMetaKey.Selector]: {
+								$network: account.$network,
+								address: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+							},
+						},
+						[entityFieldAddressKey(EntityType.HyperliquidValidator_Timestamp, [], 'name')]: 'v',
+						[entityFieldAddressKey(EntityType.HyperliquidValidator_Timestamp, [], 'description')]: '',
+					},
+				}],
+			},
+		}])
 		expect(networkResolver.projections.$$validators.resolveCount(snapshot)).toBe(1)
 		expect(networkResolver.projections.$$spotAssets.resolveCount(snapshot)).toBe(2)
 		expect(networkResolver.projections.$$vaults.resolveCount(snapshot)).toBe(3)
@@ -1602,6 +1651,42 @@ describe('Hyperliquid market catalog resolvers', () => {
 				[entityFieldAddressKey(EntityType.HyperliquidPerpMarket_Timestamp, [], 'onlyIsolated')]: true,
 			},
 		}])
+	})
+
+	it('enrolls current validator fields on its non-replayable observation', async () => {
+		vi.spyOn(Date, 'now').mockReturnValue(1_700_000_000_999)
+		corsFetch.mockResolvedValue({
+			ok: true,
+			json: async () => [{
+				validator: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+				signer: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+				name: 'v',
+				description: '',
+				nRecentBlocks: 1,
+				stake: 2,
+				isJailed: false,
+				isActive: true,
+				commission: '0.01',
+			}],
+		})
+		const resolver = hyperliquid.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.HyperliquidValidator
+		))
+		if (resolver == null)
+			throw new Error('Hyperliquid validator resolver is missing')
+
+		const observations = await resolver.resolve.NetworkValidator.resolve({
+			$network: {
+				slug: 'hyperliquid',
+			},
+			validator: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+		}, context)
+		expect(resolver.projections.$$timestamps(observations)[0]?.[EntityMetaKey.Fields]).toMatchObject({
+			[entityFieldAddressKey(EntityType.HyperliquidValidator_Timestamp, [], 'commission')]: '0.01',
+			[entityFieldAddressKey(EntityType.HyperliquidValidator_Timestamp, [], 'recentBlockCount')]: 1,
+			[entityFieldAddressKey(EntityType.HyperliquidValidator_Timestamp, [], 'stake')]: 2n,
+			[entityFieldAddressKey(EntityType.HyperliquidValidator_Timestamp, [], 'name')]: 'v',
+		})
 	})
 
 	it('maps candle snapshots onto market observation fields', async () => {

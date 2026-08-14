@@ -6,18 +6,23 @@ import {
 	vi,
 } from 'vitest'
 
-import { EntityMetaKey } from '$/schema/$schema.ts'
+import {
+	EntityMetaKey,
+	entityFieldAddressKey,
+} from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
 const getBlockByNumber = vi.hoisted(() => vi.fn())
 const getBlockNumber = vi.hoisted(() => vi.fn())
 const getTransactionByHash = vi.hoisted(() => vi.fn())
+const getTransactionReceipt = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/Hyperliquid/JsonRpc/queries.ts', () => ({
 	getBlockByNumber,
 	getBlockNumber,
 	getTransactionByHash,
+	getTransactionReceipt,
 }))
 
 const { hyperliquidEvmResolvers } = await import('$/resolvers/HyperliquidEvm.ts')
@@ -25,7 +30,6 @@ const { hyperliquidEvmResolvers } = await import('$/resolvers/HyperliquidEvm.ts'
 const [
 	blockResolver,
 	transactionResolver,
-	transactionTimestampsResolver,
 ] = hyperliquidEvmResolvers
 const network = {
 	slug: 'hyperliquid',
@@ -57,6 +61,10 @@ const block = {
 	gasLimit: '0x0',
 	transactions: [transaction],
 }
+const receipt = {
+	transactionHash,
+	status: '0x1',
+}
 
 describe('Hyperliquid EVM resolvers', () => {
 	beforeEach(() => {
@@ -64,9 +72,11 @@ describe('Hyperliquid EVM resolvers', () => {
 		getBlockByNumber.mockReset()
 		getBlockNumber.mockReset()
 		getTransactionByHash.mockReset()
+		getTransactionReceipt.mockReset()
 		getBlockByNumber.mockResolvedValue(block)
 		getBlockNumber.mockResolvedValue('0x10')
 		getTransactionByHash.mockResolvedValue(transaction)
+		getTransactionReceipt.mockResolvedValue(receipt)
 	})
 
 	it('normalizes block transaction identities only after verifying their block', async () => {
@@ -104,13 +114,14 @@ describe('Hyperliquid EVM resolvers', () => {
 		})).rejects.toThrow('transaction hash does not match request')
 	})
 
-	it('materializes an observed-at transaction selector without arbitrary timestamp resolution', async () => {
+	it('materializes complete transaction state without arbitrary timestamp resolution', async () => {
 		vi.spyOn(Date, 'now').mockReturnValue(1_700_000_000_000)
 
-		await expect(transactionTimestampsResolver.resolve.NetworkTxHash.resolve({
+		const snapshot = await transactionResolver.resolve.NetworkTxHash.resolve({
 			$network: network,
 			txHash: transactionHash,
-		})).resolves.toEqual([{
+		})
+		expect(transactionResolver.projections.$$timestamps(snapshot)).toEqual([{
 			[EntityMetaKey.Selector]: {
 				$transaction: {
 					$network: network,
@@ -118,6 +129,10 @@ describe('Hyperliquid EVM resolvers', () => {
 				},
 				timestampMs: 1_700_000_000_000,
 				source: Source.Hyperliquid,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.HyperliquidTransaction_Timestamp, [], 'status')]: 'success',
+				[entityFieldAddressKey(EntityType.HyperliquidTransaction_Timestamp, [], 'blockNumber')]: 16n,
 			},
 		}])
 		expect(hyperliquidEvmResolvers.find((resolver) => (

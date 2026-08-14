@@ -175,15 +175,28 @@ export const hyperliquidEvmResolvers = [
 			NetworkTxHash: {
 				resolve: async ({ $network, txHash }) => {
 					assertHyperliquidMainnet($network)
-					const { getTransactionByHash } = await import('$/sources/Hyperliquid/JsonRpc/queries.ts')
-					const transaction = await getTransactionByHash({ txHash })
+					const {
+						getTransactionByHash,
+						getTransactionReceipt,
+					} = await import('$/sources/Hyperliquid/JsonRpc/queries.ts')
+					const [transaction, receipt] = await Promise.all([
+						getTransactionByHash({ txHash }),
+						getTransactionReceipt({ txHash }),
+					])
 					if (transaction == null) throw new Error(`Hyperliquid_JsonRpc: transaction not found for ${txHash}`)
 					if (hexLowerOfByteSize(transaction.hash, 32) !== txHash)
 						throw new Error('Hyperliquid_JsonRpc: transaction hash does not match request')
+					if (
+						receipt != null
+						&& hexLowerOfByteSize(receipt.transactionHash, 32) !== txHash
+					)
+						throw new Error('Hyperliquid_JsonRpc: transaction receipt hash does not match request')
 
 					const accountAddress = hexLowerOfByteSize(transaction.from, 20)
 					if (accountAddress == null)
 						throw new Error('Hyperliquid_JsonRpc: transaction account is not normalized')
+					if (receipt?.status != null && receipt.status !== '0x0' && receipt.status !== '0x1')
+						throw new Error('Hyperliquid_JsonRpc: invalid transaction receipt status')
 
 					return {
 						...(transaction.blockNumber != null && {
@@ -201,6 +214,29 @@ export const hyperliquidEvmResolvers = [
 							},
 						},
 						actionType: 'evm',
+						$$timestamps: [{
+							[EntityMetaKey.Selector]: {
+								$transaction: {
+									$network,
+									txHash,
+								},
+								timestampMs: Date.now(),
+								source: Source.Hyperliquid,
+							},
+							[EntityMetaKey.Fields]: {
+								[entityFieldAddressKey(EntityType.HyperliquidTransaction_Timestamp, [], 'status')]: (
+									receipt == null ?
+										'pending'
+									: receipt.status === '0x1' ?
+										'success'
+									:
+										'failed'
+								),
+								...(transaction.blockNumber != null && {
+									[entityFieldAddressKey(EntityType.HyperliquidTransaction_Timestamp, [], 'blockNumber')]: hexToBigInt(transaction.blockNumber, 'transaction block number'),
+								}),
+							},
+						}],
 					}
 				},
 			},
@@ -209,24 +245,7 @@ export const hyperliquidEvmResolvers = [
 		$block: (snapshot) => snapshot.$block,
 		$account: (snapshot) => snapshot.$account,
 		actionType: (snapshot) => snapshot.actionType,
-	}),
-	defineResolver({
-		entityType: EntityType.HyperliquidTransaction,
-		resolve: {
-			NetworkTxHash: {
-				resolve: async (entitySelector) => [
-					{
-						[EntityMetaKey.Selector]: {
-							$transaction: entitySelector,
-							timestampMs: Date.now(),
-							source: Source.Hyperliquid,
-						},
-					},
-				],
-			},
-		},
-	})({
-		$$timestamps: (snapshot) => snapshot,
+		$$timestamps: (snapshot) => snapshot.$$timestamps,
 	}),
 	defineResolver({
 		entityType: EntityType.HyperliquidNetwork,

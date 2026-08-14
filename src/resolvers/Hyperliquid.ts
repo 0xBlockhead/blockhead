@@ -257,6 +257,34 @@ const resolveHyperliquidNetworkMetadata = async (
 					$network: network,
 					validator: validator.validator,
 				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.HyperliquidValidator, [], '$$timestamps')]: [{
+						[EntityMetaKey.Selector]: {
+							$validator: {
+								$network: network,
+								validator: validator.validator,
+							},
+							timestampMs,
+							source: Source.Hyperliquid,
+						},
+						[EntityMetaKey.Fields]: {
+							[entityFieldAddressKey(EntityType.HyperliquidValidator_Timestamp, [], 'commission')]: validator.commission,
+							[entityFieldAddressKey(EntityType.HyperliquidValidator_Timestamp, [], 'recentBlockCount')]: validator.nRecentBlocks,
+							[entityFieldAddressKey(EntityType.HyperliquidValidator_Timestamp, [], 'isActive')]: validator.isActive,
+							[entityFieldAddressKey(EntityType.HyperliquidValidator_Timestamp, [], 'stake')]: BigInt(validator.stake),
+							[entityFieldAddressKey(EntityType.HyperliquidValidator_Timestamp, [], 'isJailed')]: validator.isJailed,
+							[entityFieldAddressKey(EntityType.HyperliquidValidator_Timestamp, [], 'signerAddress')]: validator.signer,
+							[entityFieldAddressKey(EntityType.HyperliquidValidator_Timestamp, [], '$signer')]: {
+								[EntityMetaKey.Selector]: {
+									$network: network,
+									address: validator.signer,
+								},
+							},
+							[entityFieldAddressKey(EntityType.HyperliquidValidator_Timestamp, [], 'name')]: validator.name,
+							[entityFieldAddressKey(EntityType.HyperliquidValidator_Timestamp, [], 'description')]: validator.description,
+						},
+					}],
+				},
 			})),
 		$$perpMarkets: perpMeta.universe
 			.slice(offset, offset + limit)
@@ -264,6 +292,24 @@ const resolveHyperliquidNetworkMetadata = async (
 				[EntityMetaKey.Selector]: {
 					$network: network,
 					coin: market.name,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.HyperliquidPerpMarket, [], '$$timestamps')]: [{
+						[EntityMetaKey.Selector]: {
+							$perpMarket: {
+								$network: network,
+								coin: market.name,
+							},
+							timestampMs,
+							source: Source.Hyperliquid,
+						},
+						[EntityMetaKey.Fields]: {
+							[entityFieldAddressKey(EntityType.HyperliquidPerpMarket_Timestamp, [], 'maxLeverage')]: market.maxLeverage,
+							...(market.onlyIsolated != null && {
+								[entityFieldAddressKey(EntityType.HyperliquidPerpMarket_Timestamp, [], 'onlyIsolated')]: market.onlyIsolated,
+							}),
+						},
+					}],
 				},
 			})),
 		$$spotAssets: spotMeta.tokens
@@ -1497,12 +1543,34 @@ export default {
 					resolve: async (entitySelector) => {
 						const { $network } = entitySelector
 						assertHyperliquidMainnet($network)
+						const { getValidatorSummaries } = await import('$/sources/Hyperliquid/Rest/queries.ts')
+						const validator = (await getValidatorSummaries())
+							.find((candidate) => candidate.validator === entitySelector.validator)
+						if (validator == null)
+							throw new Error(`Hyperliquid_Rest: validator not found for ${entitySelector.validator}`)
+
 						return [
 							{
 								[EntityMetaKey.Selector]: {
 									$validator: entitySelector,
 									timestampMs: Date.now(),
 									source: Source.Hyperliquid,
+								},
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.HyperliquidValidator_Timestamp, [], 'commission')]: validator.commission,
+									[entityFieldAddressKey(EntityType.HyperliquidValidator_Timestamp, [], 'recentBlockCount')]: validator.nRecentBlocks,
+									[entityFieldAddressKey(EntityType.HyperliquidValidator_Timestamp, [], 'isActive')]: validator.isActive,
+									[entityFieldAddressKey(EntityType.HyperliquidValidator_Timestamp, [], 'stake')]: BigInt(validator.stake),
+									[entityFieldAddressKey(EntityType.HyperliquidValidator_Timestamp, [], 'isJailed')]: validator.isJailed,
+									[entityFieldAddressKey(EntityType.HyperliquidValidator_Timestamp, [], 'signerAddress')]: validator.signer,
+									[entityFieldAddressKey(EntityType.HyperliquidValidator_Timestamp, [], '$signer')]: {
+										[EntityMetaKey.Selector]: {
+											$network,
+											address: validator.signer,
+										},
+									},
+									[entityFieldAddressKey(EntityType.HyperliquidValidator_Timestamp, [], 'name')]: validator.name,
+									[entityFieldAddressKey(EntityType.HyperliquidValidator_Timestamp, [], 'description')]: validator.description,
 								},
 							},
 						]
