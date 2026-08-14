@@ -69,13 +69,35 @@ export const gitlabCommitWire = type({
 
 export const gitlabCommitsWire = gitlabCommitWire.array()
 
+const gitlabCommitSignatureSshKeyWire = type({
+	id: 'number.integer >= 0',
+	title: 'string > 0',
+	key: 'string > 0',
+	'usage_type?': 'string | null',
+})
+
+const gitlabCommitSignatureX509IssuerWire = type({
+	id: 'number.integer >= 0',
+	subject: 'string > 0',
+	subject_key_identifier: 'string > 0',
+})
+
+const gitlabCommitSignatureX509CertificateWire = type({
+	id: 'number.integer >= 0',
+	subject: 'string > 0',
+	subject_key_identifier: 'string > 0',
+	'email?': 'string | null',
+	'x509_issuer?': gitlabCommitSignatureX509IssuerWire,
+})
+
 export const gitlabCommitSignatureWire = type({
 	signature_type: 'string > 0',
 	verification_status: 'string > 0',
 	'gpg_key_primary_keyid?': 'string | null',
 	'gpg_key_user_name?': 'string | null',
 	'gpg_key_user_email?': 'string | null',
-	'x509_certificate?': 'string | null',
+	'key?': gitlabCommitSignatureSshKeyWire.or('null'),
+	'x509_certificate?': gitlabCommitSignatureX509CertificateWire.or('null'),
 	'commit_source?': 'string | null',
 })
 

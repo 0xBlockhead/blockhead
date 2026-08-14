@@ -122,6 +122,9 @@ export default {
 							...(signature.gpg_key_user_email != null && {
 								gpgKeyUserEmail: signature.gpg_key_user_email,
 							}),
+							...(signature.key != null && {
+								sshKey: signature.key,
+							}),
 							...(signature.x509_certificate != null && {
 								x509Certificate: signature.x509_certificate,
 							}),

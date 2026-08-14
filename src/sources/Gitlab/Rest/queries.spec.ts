@@ -456,6 +456,53 @@ describe('GitLab REST wires', () => {
 		])
 	})
 
+	it('accepts native SSH and X.509 commit signature evidence objects', async () => {
+		const commitSha = 'e'.repeat(40)
+		sourceGetJson
+			.mockResolvedValueOnce({
+				signature_type: 'SSH',
+				verification_status: 'verified',
+				key: {
+					id: 11,
+					title: 'Key',
+					key: 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILZzYDq6DhLp3aX84DGIV3F6Vf+Ae4yCTTz7RnqMJOlR',
+					usage_type: 'auth_and_signing',
+				},
+				commit_source: 'gitaly',
+			})
+			.mockResolvedValueOnce({
+				signature_type: 'X509',
+				verification_status: 'unverified',
+				x509_certificate: {
+					id: 1,
+					subject: 'CN=gitlab@example.org,OU=Example,O=World',
+					subject_key_identifier: 'BC:BC:BC:BC:BC:BC:BC:BC:BC:BC:BC:BC:BC:BC:BC:BC:BC:BC:BC:BC',
+					email: 'gitlab@example.org',
+					x509_issuer: {
+						id: 1,
+						subject: 'CN=PKI,OU=Example,O=World',
+						subject_key_identifier: 'AB:AB:AB:AB:AB:AB:AB:AB:AB:AB:AB:AB:AB:AB:AB:AB:AB:AB:AB:AB',
+					},
+				},
+				commit_source: 'gitaly',
+			})
+
+		await expect(getCommitSignature({
+			projectId: 'group/project',
+			commitSha,
+		})).resolves.toMatchObject({
+			signature_type: 'SSH',
+			key: { id: 11 },
+		})
+		await expect(getCommitSignature({
+			projectId: 'group/project',
+			commitSha,
+		})).resolves.toMatchObject({
+			signature_type: 'X509',
+			x509_certificate: { subject: 'CN=gitlab@example.org,OU=Example,O=World' },
+		})
+	})
+
 	it('fails closed on incomplete commit and CI payloads and invalid pipeline identity', async () => {
 		sourceGetJson
 			.mockResolvedValueOnce({ id: 'a'.repeat(40) })

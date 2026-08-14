@@ -857,13 +857,19 @@ describe('GitLab repository journey', () => {
 	})
 
 	it('retains X.509 and provider commit-source evidence without inventing key identity', async () => {
+		const x509Certificate = {
+			id: 1,
+			subject: 'CN=gitlab@example.org,OU=Example,O=World',
+			subject_key_identifier: 'BC:BC:BC:BC:BC:BC:BC:BC:BC:BC:BC:BC:BC:BC:BC:BC:BC:BC:BC:BC',
+			email: 'gitlab@example.org',
+		}
 		getCommitSignature.mockResolvedValue({
 			signature_type: 'X509',
 			verification_status: 'unverified',
 			gpg_key_primary_keyid: null,
 			gpg_key_user_name: null,
 			gpg_key_user_email: null,
-			x509_certificate: '-----BEGIN CERTIFICATE-----fixture',
+			x509_certificate: x509Certificate,
 			commit_source: 'unknown',
 		})
 		const commitSha = 'b'.repeat(64)
@@ -874,10 +880,41 @@ describe('GitLab repository journey', () => {
 			subjectObjectId: `0x${commitSha}`,
 			signatureKind: 'X509',
 			signerSelector: {
-				x509Certificate: '-----BEGIN CERTIFICATE-----fixture',
+				x509Certificate,
 				commitSource: 'unknown',
 			},
 			verificationStatus: 'unverified',
+		})
+	})
+
+	it('retains SSH key evidence for SSH-signed commits without inventing verification', async () => {
+		const sshKey = {
+			id: 11,
+			title: 'Key',
+			key: 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILZzYDq6DhLp3aX84DGIV3F6Vf+Ae4yCTTz7RnqMJOlR',
+			usage_type: 'auth_and_signing',
+		}
+		getCommitSignature.mockResolvedValue({
+			signature_type: 'SSH',
+			verification_status: 'verified',
+			gpg_key_primary_keyid: null,
+			gpg_key_user_name: null,
+			gpg_key_user_email: null,
+			key: sshKey,
+			commit_source: 'gitaly',
+		})
+		const commitSha = 'c'.repeat(40)
+
+		await expect(signatureResolver.resolve.SignatureId.resolve({
+			signatureId: `https://gitlab.com/group/project/-/commit/${commitSha}#signature`,
+		})).resolves.toMatchObject({
+			subjectObjectId: `0x${commitSha}`,
+			signatureKind: 'SSH',
+			signerSelector: {
+				sshKey,
+				commitSource: 'gitaly',
+			},
+			verificationStatus: 'verified',
 		})
 	})
 
