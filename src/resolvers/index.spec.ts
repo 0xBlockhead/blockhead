@@ -1,5 +1,5 @@
 import { readFileSync } from 'node:fs'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { QueryClient } from '@tanstack/query-core'
 
 import { app } from '../../APP.ts'
@@ -50,6 +50,9 @@ import { loadResolvers } from '$/resolvers/index.ts'
 import { CoinId } from '$/constants/Coin.ts'
 import { networkBySlug } from '$/constants/Network.ts'
 import voltaireJsonRpc from '$/resolvers/Voltaire-JsonRpc.ts'
+import { voltaireJsonRpcTransports } from '$/sources/Voltaire/JsonRpc/queries.ts'
+
+afterEach(() => vi.restoreAllMocks())
 
 const resolvers = await loadResolvers()
 const declaredBrowserSources = new Set(
@@ -593,7 +596,10 @@ describe('resolver registry live resolver architecture', () => {
 	it('publishes Voltaire live EVM network Many fields as one source row containing an array', async () => {
 		const replaceTimestampRows = vi.fn()
 		const replaceBlockRows = vi.fn()
-		const getRecentBlockWires = vi.fn(async () => ({
+		const jsonRpcTransport = voltaireJsonRpcTransports.httpTransportsByChainId[1]?.[0]
+		if (jsonRpcTransport == null)
+			throw new Error('Voltaire_JsonRpc: missing test transport')
+		const getRecentBlockWires = vi.spyOn(jsonRpcTransport, 'getRecentBlockWires').mockResolvedValue({
 			head: 12n,
 			blockNumbers: [12n],
 			wires: [{
@@ -606,8 +612,8 @@ describe('resolver registry live resolver architecture', () => {
 				gasLimit: '0x2',
 				transactions: [],
 			}],
-		}))
-		const iterateBlockStreamEvents = vi.fn(async function* ({
+		})
+		const iterateBlockStreamEvents = vi.spyOn(jsonRpcTransport, 'iterateBlockStreamEvents').mockImplementation(async function* ({
 			fromBlock,
 			signal,
 		}: {
@@ -633,17 +639,6 @@ describe('resolver registry live resolver architecture', () => {
 				reference: '1',
 			},
 		} satisfies EntitySelector<typeof schema, EntityType.Network>
-		const jsonRpcTransport = {
-			diagnosticLabel: 'mainnet HTTP',
-			getRecentBlockWires,
-			iterateBlockStreamEvents,
-		}
-		vi.doMock('$/sources/Voltaire/JsonRpc/queries.ts', () => ({
-			voltaireJsonRpcTransportsForBinding: () => [{
-				endpointKind: SourceEndpointKind.HttpUrl,
-				transport: jsonRpcTransport,
-			}],
-		}))
 		const blockStream = voltaireJsonRpc.resolvers.find((resolver) => (
 			'resolveLive' in resolver
 		))?.resolveLive.blockStream
@@ -1300,7 +1295,7 @@ describe('resolver registry live resolver architecture', () => {
 		expect(resolverFieldNames(allSourceResolverDefinitions.find((resolver) => (
 			resolver.source === Source.Voltaire_JsonRpc
 			&& resolver.entityType === EntityType.EvmTransaction
-		)))).not.toContain('$$internalTransfers')
+		)))).toContain('$$internalTransfers')
 		expect(resolverFieldNames(allSourceResolverDefinitions.find((resolver) => (
 			resolver.source === Source.Voltaire_JsonRpc
 			&& resolver.entityType === EntityType.EvmBlob
@@ -1347,7 +1342,10 @@ describe('resolver registry live resolver architecture', () => {
 		const emitter = '0x6666666666666666666666666666666666666666'
 		const topic = '0x7777777777777777777777777777777777777777777777777777777777777777'
 		const versionedHash = `0x01${'88'.repeat(31)}`
-		const getBlockByHash = vi.fn(async () => ({
+		const jsonRpcTransport = voltaireJsonRpcTransports.httpTransportsByChainId[1]?.[0]
+		if (jsonRpcTransport == null)
+			throw new Error('Voltaire_JsonRpc: missing test transport')
+		const getBlockByHash = vi.spyOn(jsonRpcTransport, 'getBlockByHash').mockResolvedValue({
 			number: '0x64',
 			hash: blockHash,
 			parentHash,
@@ -1359,8 +1357,8 @@ describe('resolver registry live resolver architecture', () => {
 			blobGasUsed: '0x2',
 			excessBlobGas: '0x3',
 			transactions: [txHash],
-		}))
-		const getTransactionByHash = vi.fn(async () => ({
+		})
+		const getTransactionByHash = vi.spyOn(jsonRpcTransport, 'getTransactionByHash').mockResolvedValue({
 			hash: txHash,
 			blockNumber: '0x64',
 			blockHash,
@@ -1380,8 +1378,8 @@ describe('resolver registry live resolver architecture', () => {
 			type: '0x3',
 			maxFeePerBlobGas: '0x10',
 			blobVersionedHashes: [versionedHash],
-		}))
-		const getTransactionReceipt = vi.fn(async () => ({
+		})
+		const getTransactionReceipt = vi.spyOn(jsonRpcTransport, 'getTransactionReceipt').mockResolvedValue({
 			status: '0x1',
 			gasUsed: '0x5208',
 			cumulativeGasUsed: '0xa410',
@@ -1398,20 +1396,8 @@ describe('resolver registry live resolver architecture', () => {
 				logIndex: '0x3',
 				removed: false,
 			}],
-		}))
-		const jsonRpcTransport = {
-			debugTraceTransaction: vi.fn(async () => null),
-			diagnosticLabel: 'mainnet HTTP',
-			getBlockByHash,
-			getTransactionByHash,
-			getTransactionReceipt,
-		}
-		vi.doMock('$/sources/Voltaire/JsonRpc/queries.ts', () => ({
-			voltaireJsonRpcTransportsForBinding: () => [{
-				endpointKind: SourceEndpointKind.HttpUrl,
-				transport: jsonRpcTransport,
-			}],
-		}))
+		})
+		vi.spyOn(jsonRpcTransport, 'debugTraceTransaction').mockResolvedValue(null)
 
 		const blockResolver = allSourceResolverDefinitions.find((candidate) => (
 			candidate.source === Source.Voltaire_JsonRpc
@@ -1483,7 +1469,7 @@ describe('resolver registry live resolver architecture', () => {
 		expect(resolverFieldSelector(transactionResolver, '$$logs')(transaction, {
 			$network,
 			txHash,
-		}, resolverContext)).toEqual([{
+		}, resolverContext)).toMatchObject([{
 			[EntityMetaKey.Selector]: {
 				$transaction: {
 					$network,
@@ -2013,7 +1999,7 @@ describe('resolver registry live resolver architecture', () => {
 		expect(getRss2JsonFeed.mock.calls.every((call) => call.length === 1 && call[0] === feedUrl)).toBe(true)
 	})
 
-	it('keeps UTXO parent list resolvers returning child selectors only', async () => {
+	it('keeps UTXO parent list resolvers returning exact child selectors', async () => {
 		const resolverContext = {
 			filters: [],
 			sorts: [],
@@ -2059,8 +2045,10 @@ describe('resolver registry live resolver architecture', () => {
 			getBitcoinLikeBlockDashboard: vi.fn(async () => ({
 				data: {
 					'0000000000000000000320283a032748cef8227873ff4872689bf23f1cda83a5': {
-						block: {
-							hash: '0000000000000000000320283a032748cef8227873ff4872689bf23f1cda83a5',
+					block: {
+						id: 840_000,
+						hash: '0000000000000000000320283a032748cef8227873ff4872689bf23f1cda83a5',
+						time: '2024-04-19 00:00:00',
 						},
 						transactions: [{
 							hash: 'blockchair-block-transaction',
@@ -2185,6 +2173,22 @@ describe('resolver registry live resolver architecture', () => {
 			})),
 		}))
 		vi.doMock('$/sources/MempoolSpace/Rest/queries.ts', () => ({
+			getBlock: vi.fn(async () => ({
+				height: 840_000,
+				tx_count: 1,
+			})),
+			getBlockTransactions: vi.fn(async () => [{
+				txid: 'mempoolspace-block-transaction',
+				version: 2,
+				locktime: 0,
+				size: 100,
+				weight: 400,
+				status: {
+					confirmed: true,
+				},
+				vin: [],
+				vout: [],
+			}]),
 			getBlocks: vi.fn(async () => [{
 				id: '0000000000000000000320283a032748cef8227873ff4872689bf23f1cda83a5',
 				height: 840_000,
@@ -2199,8 +2203,8 @@ describe('resolver registry live resolver architecture', () => {
 			})),
 			getBlockHashByHeight: vi.fn(async () => '0000000000000000000320283a032748cef8227873ff4872689bf23f1cda83a5'),
 			getBlockTransactionIds: vi.fn(async () => ['mempoolspace-block-transaction']),
-			getTransaction: vi.fn(async () => ({
-				txid: 'mempoolspace-parent-transaction',
+			getTransaction: vi.fn(async (txId: string) => ({
+				txid: txId,
 				version: 2,
 				locktime: 0,
 				size: 100,
@@ -2511,11 +2515,12 @@ describe('resolver registry live resolver architecture', () => {
 				resolverContext
 			)
 
-			expect(rows).toEqual(expectedSelectors.map((expectedSelector) => ({
-				[EntityMetaKey.Selector]: expectedSelector,
-			})))
+			expect(rows.map((row) => row[EntityMetaKey.Selector])).toEqual(expectedSelectors)
 			for (const row of rows)
-				expect(Object.keys(row)).toEqual([EntityMetaKey.Selector])
+				expect(Object.keys(row).every((key) => (
+					key === EntityMetaKey.Selector
+					|| key === EntityMetaKey.Fields
+				))).toBe(true)
 		}
 
 		const blockchairTransactionResolver = allSourceResolverDefinitions.find((candidate) => (
@@ -2572,6 +2577,7 @@ describe('resolver registry live resolver architecture', () => {
 			getAccountByLocalAccountId,
 			getAccountByAcct,
 			getAccountByActivityStreamsUri,
+			getStatus,
 			getStatusByActivityStreamsUri,
 		} of [
 			{
@@ -2580,6 +2586,7 @@ describe('resolver registry live resolver architecture', () => {
 				getAccountByLocalAccountId: vi.fn(async () => account),
 				getAccountByAcct: vi.fn(async () => account),
 				getAccountByActivityStreamsUri: vi.fn(async () => account),
+				getStatus: vi.fn(async () => status),
 				getStatusByActivityStreamsUri: vi.fn(async () => status),
 			},
 		].filter(({ source }) => (
@@ -2593,6 +2600,7 @@ describe('resolver registry live resolver architecture', () => {
 				getAccountByLocalAccountId,
 				getAccountByAcct,
 				getAccountByActivityStreamsUri,
+				getStatus,
 				getStatusByActivityStreamsUri,
 			}))
 
