@@ -212,6 +212,22 @@ describe('Etherscan Network selectors', () => {
 		expect(entity.$from?.[EntityMetaKey.Selector].address).toBe(address)
 		expect(entity.$$logs).toHaveLength(1)
 		expect(resolver.projections.$$logs.resolveCount(entity)).toBe(1)
+		const logResolver = etherscanRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.EvmLog
+			&& '$$topics' in candidate.projections
+		))
+		if (logResolver == null)
+			throw new Error('Etherscan_Rest: missing EvmLog topic resolver')
+
+		const log = await logResolver.resolve.TransactionIndexInTransaction.resolve({
+			$transaction: {
+				$network,
+				txHash,
+			},
+			indexInTransaction: 0,
+		}, context)
+		expect(logResolver.projections.$$topics.select(log)).toHaveLength(1)
+		expect(logResolver.projections.$$topics.resolveCount(log)).toBe(1)
 	})
 
 	it('throws when EvmLog token-transfer facet cannot load transfers', async () => {

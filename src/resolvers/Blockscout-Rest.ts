@@ -2166,7 +2166,10 @@ export default {
 				}
 			},
 		})({
-			$$topics: (log) => log.$$topics,
+			$$topics: {
+				select: (log) => log.$$topics,
+				resolveCount: (log) => log.$$topics.length,
+			},
 			topic0: (log) => log.topic0,
 			$transaction: (log) => log.$transaction,
 			indexInTransaction: (log) => log[EntityMetaKey.Selector].indexInTransaction,

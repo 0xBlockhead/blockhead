@@ -724,6 +724,8 @@ describe('Blockscout EVM log identity', () => {
 			topic0: receiptLogs[1].topics[0],
 			data: '0x02',
 		})
+		expect(resolver.projections.$$topics.select(resolved)).toHaveLength(1)
+		expect(resolver.projections.$$topics.resolveCount(resolved)).toBe(1)
 	})
 
 	it('materializes one native token approval from its exact receipt log', async () => {

@@ -1008,6 +1008,8 @@ describe('Voltaire transaction execution hierarchy', () => {
 			},
 			indexInTransaction: 1,
 		})
+		expect(logResolver.projections.$$topics.select(log)).toHaveLength(4)
+		expect(logResolver.projections.$$topics.resolveCount(log)).toBe(4)
 		expect(logResolver.projections.Event.TokenTransfer.$$tokenTransfers(log)).toMatchObject([{
 			[EntityMetaKey.Fields]: {
 				[entityFieldAddressKey(EntityType.EvmTokenTransfer, [], 'standard')]: 'ERC-721',

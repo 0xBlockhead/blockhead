@@ -1577,9 +1577,12 @@ export default {
 				}
 			},
 		})({
-			$$topics: (entity) => entity.$$topics.map((topic) => ({
-				[EntityMetaKey.Selector]: topic[EntityMetaKey.Selector],
-			})),
+			$$topics: {
+				select: (entity) => entity.$$topics.map((topic) => ({
+					[EntityMetaKey.Selector]: topic[EntityMetaKey.Selector],
+				})),
+				resolveCount: (entity) => entity.$$topics.length,
+			},
 			topic0: (entity) => entity.topic0,
 			indexInTransaction: (entity) => entity[EntityMetaKey.Selector].indexInTransaction,
 			$transaction: (entity) => ({
