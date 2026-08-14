@@ -46,6 +46,44 @@ vi.mock('$/sources/CardanoKoios/Rest/queries.ts', () => ({
 
 const { default: cardanoKoiosResolvers } = await import('$/resolvers/CardanoKoios-Rest.ts')
 
+const cardanoCommitteeEpochResolver = cardanoKoiosResolvers.resolvers.find((
+	resolver
+): resolver is typeof resolver & {
+	entityType: EntityType.CardanoCommittee_Epoch
+} => resolver.entityType === EntityType.CardanoCommittee_Epoch)
+
+if (cardanoCommitteeEpochResolver == null)
+	throw new Error('CardanoKoios-Rest spec missing CardanoCommittee_Epoch resolver')
+
+const cardanoCommitteeEpochsListResolver = cardanoKoiosResolvers.resolvers.find((candidate) => (
+	candidate.entityType === EntityType.Network
+	&& 'Cardano' in candidate.projections
+	&& '$$committeeEpochs' in candidate.projections.Cardano
+))
+
+if (cardanoCommitteeEpochsListResolver == null)
+	throw new Error('CardanoKoios-Rest spec missing Network.Cardano.$$committeeEpochs resolver')
+
+const committee = {
+	proposal_id: 'gov_action1committee',
+	proposal_tx_hash: 'committee-proposal-transaction-hash',
+	proposal_index: 2,
+	quorum_numerator: 2,
+	quorum_denominator: 3,
+	members: [
+		{
+			status: 'authorized',
+			cc_hot_id: 'cc_hot1example',
+			cc_cold_id: 'cc_cold1example',
+			cc_hot_hex: 'cd',
+			cc_cold_hex: 'ab',
+			expiration_epoch: 600,
+			cc_hot_has_script: false,
+			cc_cold_has_script: false,
+		},
+	],
+}
+
 const resolverContext = {
 	filters: [],
 	sorts: [],
@@ -1286,5 +1324,84 @@ describe('Cardano Koios network relationships', () => {
 				[entityFieldAddressKey(EntityType.CardanoProtocolParameters_Epoch, [], 'maxCollateralInputs')]: 3,
 			},
 		}])
+	})
+
+	it('maps committee epoch governance identity from Koios committee_info', async () => {
+		getCommittee.mockResolvedValueOnce([committee])
+		getTip.mockResolvedValueOnce([{
+			epoch_no: 500,
+		}])
+
+		const snapshot = await cardanoCommitteeEpochsListResolver.resolve['Caip2'].resolve(
+			cardanoNetwork,
+			resolverContext
+		)
+
+		expect(
+			cardanoCommitteeEpochsListResolver.projections.Cardano.$$committeeEpochs(snapshot)
+		).toMatchObject([{
+			[EntityMetaKey.Selector]: {
+				$network: cardanoNetwork,
+				epoch: 500,
+				source: Source.CardanoKoios_Rest,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.CardanoCommittee_Epoch, [], 'govActionId')]: 'gov_action1committee',
+				[entityFieldAddressKey(EntityType.CardanoCommittee_Epoch, [], '$seatingProposal')]: {
+					[EntityMetaKey.Selector]: {
+						$network: cardanoNetwork,
+						proposalTxHash: 'committee-proposal-transaction-hash',
+						proposalIndex: 2,
+					},
+				},
+				[entityFieldAddressKey(EntityType.CardanoCommittee_Epoch, [], 'quorumNumerator')]: 2,
+				[entityFieldAddressKey(EntityType.CardanoCommittee_Epoch, [], 'quorumDenominator')]: 3,
+				[entityFieldAddressKey(EntityType.CardanoCommittee_Epoch, [], 'memberCount')]: 1,
+			},
+		}])
+	})
+
+	it('resolves the current Koios committee epoch through its own selector', async () => {
+		getCommittee.mockResolvedValueOnce([committee])
+		getTip.mockResolvedValueOnce([{
+			epoch_no: 500,
+		}])
+
+		await expect(cardanoCommitteeEpochResolver.resolve[
+			'NetworkEpochSource'
+		].resolve({
+			$network: cardanoNetwork,
+			epoch: 500,
+			source: Source.CardanoKoios_Rest,
+		})).resolves.toMatchObject({
+			epoch: 500,
+			source: Source.CardanoKoios_Rest,
+			govActionId: 'gov_action1committee',
+			memberCount: 1,
+		})
+	})
+
+	it('rejects unsupported and historical Koios committee epoch identities', async () => {
+		await expect(cardanoCommitteeEpochResolver.resolve[
+			'NetworkEpochSource'
+		].resolve({
+			$network: cardanoNetwork,
+			epoch: 500,
+			source: Source.Blockfrost_Rest,
+		})).rejects.toThrow('CardanoKoios_Rest: observation source mismatch')
+		expect(getCommittee).not.toHaveBeenCalled()
+
+		getCommittee.mockResolvedValueOnce([committee])
+		getTip.mockResolvedValueOnce([{
+			epoch_no: 500,
+		}])
+
+		await expect(cardanoCommitteeEpochResolver.resolve[
+			'NetworkEpochSource'
+		].resolve({
+			$network: cardanoNetwork,
+			epoch: 499,
+			source: Source.CardanoKoios_Rest,
+		})).rejects.toThrow('CardanoKoios_Rest: historical committee epoch is unavailable')
 	})
 })

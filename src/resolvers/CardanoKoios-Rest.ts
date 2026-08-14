@@ -10,6 +10,7 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import type {
+	CardanoKoiosCommittee,
 	CardanoKoiosTransactionInfo,
 	CardanoKoiosTransactionProposalProcedure,
 	CardanoKoiosTransactionUtxo,
@@ -45,6 +46,27 @@ const cardanoNetworkSelectors = <const _Snapshot extends object>(
 const listLimit = (context: Parameters<typeof resolverContextRowLimit>[0]) => (
 	Math.min(resolverContextRowLimit(context), 100)
 )
+
+const committeeEpochSnapshot = (
+	network: EntitySelector<typeof schema, EntityType.Network>,
+	epoch: number,
+	committee: CardanoKoiosCommittee
+) => ({
+	epoch,
+	source: Source.CardanoKoios_Rest,
+	govActionId: committee.proposal_id,
+	$seatingProposal: {
+		[EntityMetaKey.Selector]: {
+			$network: network,
+			proposalTxHash: committee.proposal_tx_hash,
+			proposalIndex: committee.proposal_index,
+		},
+	},
+	quorumNumerator: committee.quorum_numerator,
+	quorumDenominator: committee.quorum_denominator,
+	memberCount: committee.members.length,
+	members: committee.members,
+})
 
 const cardanoGovernanceProposalSnapshot = (
 	network: EntitySelector<typeof schema, EntityType.Network>,
@@ -557,20 +579,78 @@ export default {
 			),
 		})({
 			Cardano: {
-				$$committeeEpochs: ({ network, committee, tip }) => [{
-					[EntityMetaKey.Selector]: {
-						$network: network,
-						epoch: tip.epoch_no,
-						source: Source.CardanoKoios_Rest,
-					},
-					[EntityMetaKey.Fields]: {
-						[entityFieldAddressKey(EntityType.CardanoCommittee_Epoch, [], 'quorumNumerator')]: committee.quorum_numerator,
-						[entityFieldAddressKey(EntityType.CardanoCommittee_Epoch, [], 'quorumDenominator')]: committee.quorum_denominator,
-						[entityFieldAddressKey(EntityType.CardanoCommittee_Epoch, [], 'memberCount')]: committee.members.length,
-						[entityFieldAddressKey(EntityType.CardanoCommittee_Epoch, [], 'members')]: committee.members,
-					},
-				}],
+				$$committeeEpochs: ({ network, committee, tip }) => {
+					const snapshot = committeeEpochSnapshot(
+						network,
+						tip.epoch_no,
+						committee
+					)
+
+					return [{
+						[EntityMetaKey.Selector]: {
+							$network: network,
+							epoch: snapshot.epoch,
+							source: snapshot.source,
+						},
+						[EntityMetaKey.Fields]: {
+							[entityFieldAddressKey(EntityType.CardanoCommittee_Epoch, [], 'govActionId')]: snapshot.govActionId,
+							[entityFieldAddressKey(EntityType.CardanoCommittee_Epoch, [], '$seatingProposal')]: snapshot.$seatingProposal,
+							[entityFieldAddressKey(EntityType.CardanoCommittee_Epoch, [], 'quorumNumerator')]: snapshot.quorumNumerator,
+							[entityFieldAddressKey(EntityType.CardanoCommittee_Epoch, [], 'quorumDenominator')]: snapshot.quorumDenominator,
+							[entityFieldAddressKey(EntityType.CardanoCommittee_Epoch, [], 'memberCount')]: snapshot.memberCount,
+							[entityFieldAddressKey(EntityType.CardanoCommittee_Epoch, [], 'members')]: snapshot.members,
+						},
+					}]
+				},
 			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.CardanoCommittee_Epoch,
+			resolve: {
+				NetworkEpochSource: {
+					appliesTo: [{
+						source: Source.CardanoKoios_Rest,
+					}],
+					resolve: async ({
+						$network,
+						epoch,
+						source,
+					}) => {
+						assertCardanoMainnet($network)
+						if (source !== Source.CardanoKoios_Rest)
+							throw new Error('CardanoKoios_Rest: observation source mismatch')
+						const {
+							getCommittee,
+							getTip,
+						} = await import('$/sources/CardanoKoios/Rest/queries.ts')
+						const [
+							[committee],
+							[tip],
+						] = await Promise.all([
+							getCommittee(),
+							getTip(),
+						])
+						if (tip.epoch_no !== epoch)
+							throw new Error('CardanoKoios_Rest: historical committee epoch is unavailable')
+
+						return committeeEpochSnapshot(
+							$network,
+							tip.epoch_no,
+							committee
+						)
+					},
+				},
+			},
+		})({
+			epoch: (committee) => committee.epoch,
+			source: (committee) => committee.source,
+			govActionId: (committee) => committee.govActionId,
+			$seatingProposal: (committee) => committee.$seatingProposal,
+			quorumNumerator: (committee) => committee.quorumNumerator,
+			quorumDenominator: (committee) => committee.quorumDenominator,
+			memberCount: (committee) => committee.memberCount,
+			members: (committee) => committee.members,
 		}),
 
 		defineResolver({
