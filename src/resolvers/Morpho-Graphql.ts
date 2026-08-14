@@ -31,13 +31,35 @@ type EvmNetworkAccountId = EntitySelector<typeof schema, EntityType.EvmNetworkAc
 const morphoPaginationWindow = (
 	context: ResolverContext
 ) => {
-	const offset = context.pagination.offset ?? 0
+	const offset = (
+		context.providerContinuationToken == null ?
+			context.pagination.offset ?? 0
+		:
+			Number(context.providerContinuationToken)
+	)
 	if (!Number.isSafeInteger(offset) || offset < 0)
 		throw new Error(`${Source.Morpho_Graphql}: invalid pagination offset`)
 
 	return {
 		limit: resolverContextRowLimit(context),
 		offset,
+	}
+}
+
+const morphoOffsetContinuation = (
+	operation: string,
+	offset: number,
+	rowCount: number,
+	totalCount: number
+) => {
+	const nextOffset = offset + rowCount
+	const terminal = rowCount === 0 || nextOffset >= totalCount
+
+	return {
+		operation,
+		target: 'morpho-graphql',
+		terminal,
+		...(!terminal && { token: String(nextOffset) }),
 	}
 }
 
@@ -231,6 +253,7 @@ export default {
 									},
 								})),
 							positionCount: marketPositions.length,
+							positionOffset: offset,
 						}
 					},
 				},
@@ -239,6 +262,12 @@ export default {
 			$$morphoMarketPositions: {
 				select: (snapshot) => snapshot.positions,
 				resolveCount: (snapshot) => snapshot.positionCount,
+				continuation: (snapshot) => morphoOffsetContinuation(
+					'account-morpho-market-positions',
+					snapshot.positionOffset,
+					snapshot.positions.length,
+					snapshot.positionCount
+				),
 			},
 		}),
 
@@ -281,6 +310,7 @@ export default {
 									},
 								})),
 							positionCount: vaultPositions.length,
+							positionOffset: offset,
 						}
 					},
 				},
@@ -289,6 +319,12 @@ export default {
 			$$morphoVaultPositions: {
 				select: (snapshot) => snapshot.positions,
 				resolveCount: (snapshot) => snapshot.positionCount,
+				continuation: (snapshot) => morphoOffsetContinuation(
+					'account-morpho-vault-positions',
+					snapshot.positionOffset,
+					snapshot.positions.length,
+					snapshot.positionCount
+				),
 			},
 		}),
 
@@ -523,6 +559,7 @@ export default {
 								}
 							}),
 							marketCount: page.countTotal,
+							marketOffset: offset,
 						}
 					},
 				},
@@ -532,6 +569,12 @@ export default {
 				$$morphoMarkets: {
 					select: (snapshot) => snapshot.markets,
 					resolveCount: (snapshot) => snapshot.marketCount,
+					continuation: (snapshot) => morphoOffsetContinuation(
+						'network-morpho-markets',
+						snapshot.marketOffset,
+						snapshot.markets.length,
+						snapshot.marketCount
+					),
 				},
 			},
 		}),
@@ -571,6 +614,7 @@ export default {
 								}
 							}),
 							vaultCount: page.countTotal,
+							vaultOffset: offset,
 						}
 					},
 				},
@@ -580,6 +624,12 @@ export default {
 				$$morphoVaults: {
 					select: (snapshot) => snapshot.vaults,
 					resolveCount: (snapshot) => snapshot.vaultCount,
+					continuation: (snapshot) => morphoOffsetContinuation(
+						'network-morpho-vaults',
+						snapshot.vaultOffset,
+						snapshot.vaults.length,
+						snapshot.vaultCount
+					),
 				},
 			},
 		}),

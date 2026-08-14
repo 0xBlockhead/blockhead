@@ -133,6 +133,29 @@ const osmosisPaginationCount = (
 	return count
 }
 
+const osmosisIbcContinuation = (
+	operation: string,
+	nextPaginationKey: string | null | undefined,
+	currentPaginationKey: string | undefined
+) => {
+	if (nextPaginationKey != null && nextPaginationKey !== '' && nextPaginationKey === currentPaginationKey)
+		throw new Error(`${Source.Osmosis_LCD_Rest}: ${operation} continuation did not advance`)
+
+	return nextPaginationKey == null || nextPaginationKey === '' ?
+		{
+			operation,
+			target: 'osmosis-lcd-rest',
+			terminal: true,
+		}
+	:
+		{
+			operation,
+			target: 'osmosis-lcd-rest',
+			terminal: false,
+			token: nextPaginationKey,
+		}
+}
+
 const channelPartsFromPath = (path: string) => {
 	const segments = path.split('/')
 	if (segments.length < 2 || segments.length % 2 !== 0)
@@ -1146,9 +1169,11 @@ export default {
 					} = await import('$/sources/Osmosis/Rest/queries.ts')
 					const response = await getIbcChannels({
 						limit: resolverContextRowLimit(context),
+						paginationKey: context.providerContinuationToken,
 					})
 					return {
 						rows: osmosisIbcChannelListRows(network, response.channels),
+						nextPaginationKey: response.pagination?.next_key,
 						totalCount: osmosisPaginationCount(response.pagination?.total, 'IBC channel'),
 					}
 				}
@@ -1158,6 +1183,11 @@ export default {
 				$$ibcChannels: {
 					select: (snapshot) => snapshot.rows,
 					resolveCount: (snapshot) => snapshot.totalCount,
+					continuation: (snapshot, _network, context) => osmosisIbcContinuation(
+						'network-ibc-channels',
+						snapshot.nextPaginationKey,
+						context.providerContinuationToken
+					),
 				},
 			},
 		}),
@@ -1172,6 +1202,7 @@ export default {
 					} = await import('$/sources/Osmosis/Rest/queries.ts')
 					const response = await getIbcClientStates({
 						limit: resolverContextRowLimit(context),
+						paginationKey: context.providerContinuationToken,
 					})
 					return {
 						rows: response.client_states.map((client) => {
@@ -1196,6 +1227,7 @@ export default {
 							}
 						}),
 						totalCount: osmosisPaginationCount(response.pagination?.total, 'IBC client'),
+						nextPaginationKey: response.pagination?.next_key,
 					}
 				}
 			),
@@ -1204,6 +1236,11 @@ export default {
 				$$ibcClients: {
 					select: (snapshot) => snapshot.rows,
 					resolveCount: (snapshot) => snapshot.totalCount,
+					continuation: (snapshot, _network, context) => osmosisIbcContinuation(
+						'network-ibc-clients',
+						snapshot.nextPaginationKey,
+						context.providerContinuationToken
+					),
 				},
 			},
 		}),
@@ -1218,6 +1255,7 @@ export default {
 					} = await import('$/sources/Osmosis/Rest/queries.ts')
 					const response = await getIbcConnections({
 						limit: resolverContextRowLimit(context),
+						paginationKey: context.providerContinuationToken,
 					})
 					return {
 						rows: response.connections.map((connection) => {
@@ -1240,6 +1278,7 @@ export default {
 							}
 						}),
 						totalCount: osmosisPaginationCount(response.pagination?.total, 'IBC connection'),
+						nextPaginationKey: response.pagination?.next_key,
 					}
 				}
 			),
@@ -1248,6 +1287,11 @@ export default {
 				$$ibcConnections: {
 					select: (snapshot) => snapshot.rows,
 					resolveCount: (snapshot) => snapshot.totalCount,
+					continuation: (snapshot, _network, context) => osmosisIbcContinuation(
+						'network-ibc-connections',
+						snapshot.nextPaginationKey,
+						context.providerContinuationToken
+					),
 				},
 			},
 		}),
@@ -1369,9 +1413,11 @@ export default {
 						const response = await getIbcConnectionChannels({
 							connectionId,
 							limit: resolverContextRowLimit(context),
+							paginationKey: context.providerContinuationToken,
 						})
 						return {
 							rows: osmosisIbcChannelListRows($network, response.channels),
+							nextPaginationKey: response.pagination?.next_key,
 							totalCount: osmosisPaginationCount(response.pagination?.total, 'IBC connection channel'),
 						}
 					},
@@ -1381,6 +1427,11 @@ export default {
 			$$channels: {
 				select: (snapshot) => snapshot.rows,
 				resolveCount: (snapshot) => snapshot.totalCount,
+				continuation: (snapshot, _connection, context) => osmosisIbcContinuation(
+					'ibc-connection-channels',
+					snapshot.nextPaginationKey,
+					context.providerContinuationToken
+				),
 			},
 		}),
 

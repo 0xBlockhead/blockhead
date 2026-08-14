@@ -261,6 +261,11 @@ describe('Morpho GraphQL resolver module', () => {
 			},
 		}])
 		expect(morphoMarketPositionsResolver.projections.$$morphoMarketPositions.resolveCount(snapshot)).toBe(2)
+		expect(morphoMarketPositionsResolver.projections.$$morphoMarketPositions.continuation(snapshot)).toEqual({
+			operation: 'account-morpho-market-positions',
+			target: 'morpho-graphql',
+			terminal: true,
+		})
 	})
 
 	it('rejects unsupported Morpho chains on account positions before transport', async () => {
@@ -352,6 +357,12 @@ describe('Morpho GraphQL resolver module', () => {
 			},
 		])
 		expect(networkResolver.projections.Evm.$$morphoMarkets.resolveCount(snapshot)).toBe(42)
+		expect(networkResolver.projections.Evm.$$morphoMarkets.continuation(snapshot)).toEqual({
+			operation: 'network-morpho-markets',
+			target: 'morpho-graphql',
+			terminal: false,
+			token: '4',
+		})
 		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).variables).toMatchObject({
 			limit: 16,
 			offset: 3,
@@ -407,9 +418,49 @@ describe('Morpho GraphQL resolver module', () => {
 			},
 		])
 		expect(networkResolver.projections.Evm.$$morphoVaults.resolveCount(snapshot)).toBe(17)
+		expect(networkResolver.projections.Evm.$$morphoVaults.continuation(snapshot)).toEqual({
+			operation: 'network-morpho-vaults',
+			target: 'morpho-graphql',
+			terminal: false,
+			token: '5',
+		})
 		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).variables).toMatchObject({
 			limit: 16,
 			offset: 4,
+		})
+	})
+
+	it('resumes Morpho network pages from provider continuation tokens', async () => {
+		const networkResolver = networkResolvers.find((resolver) => (
+			resolver.projections.Evm.$$morphoMarkets != null
+		))
+		if (networkResolver == null)
+			throw new Error('missing Network $$morphoMarkets resolver')
+
+		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+			data: {
+				markets: {
+					items: [],
+					pageInfo: {
+						countTotal: 9,
+					},
+				},
+			},
+		})))
+
+		const snapshot = await networkResolver.resolve.Caip2.resolve({
+			caip2: {
+				namespace: 'eip155',
+				reference: '8453',
+			},
+		}, {
+			...context,
+			providerContinuationToken: '8',
+		})
+
+		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).variables.offset).toBe(8)
+		expect(networkResolver.projections.Evm.$$morphoMarkets.continuation(snapshot)).toMatchObject({
+			terminal: true,
 		})
 	})
 

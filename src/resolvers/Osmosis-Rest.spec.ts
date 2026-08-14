@@ -1093,4 +1093,74 @@ describe('Osmosis LCD resolver module', () => {
 		})
 	})
 
+	it('resumes network IBC lists with native LCD pagination keys', async () => {
+		if (
+			networkIbcChannelsResolver == null
+			|| networkIbcClientsResolver == null
+			|| networkIbcConnectionsResolver == null
+		)
+			throw new Error('missing network IBC list resolvers')
+
+		sourceGetJson
+			.mockResolvedValueOnce({
+				channels: [],
+				pagination: {
+					next_key: 'channel-next',
+					total: '3',
+				},
+			})
+			.mockResolvedValueOnce({
+				client_states: [],
+				pagination: {
+					next_key: 'client-next',
+					total: '4',
+				},
+			})
+			.mockResolvedValueOnce({
+				connections: [],
+				pagination: {
+					total: '5',
+				},
+			})
+
+		const continuationContext = {
+			...context,
+			providerContinuationToken: 'current-page',
+		}
+		const channelPage = await networkIbcChannelsResolver.resolve.Caip2.resolve(osmosisNetwork, continuationContext)
+		const clientPage = await networkIbcClientsResolver.resolve.Caip2.resolve(osmosisNetwork, continuationContext)
+		const connectionPage = await networkIbcConnectionsResolver.resolve.Caip2.resolve(osmosisNetwork, continuationContext)
+
+		expect(sourceGetJson.mock.calls.map((call) => call[1])).toEqual([
+			expect.stringContaining('pagination.key=current-page'),
+			expect.stringContaining('pagination.key=current-page'),
+			expect.stringContaining('pagination.key=current-page'),
+		])
+		expect(networkIbcChannelsResolver.projections.Cosmos.$$ibcChannels.continuation(
+			channelPage,
+			osmosisNetwork,
+			continuationContext
+		)).toEqual({
+			operation: 'network-ibc-channels',
+			target: 'osmosis-lcd-rest',
+			terminal: false,
+			token: 'channel-next',
+		})
+		expect(networkIbcClientsResolver.projections.Cosmos.$$ibcClients.continuation(
+			clientPage,
+			osmosisNetwork,
+			continuationContext
+		)).toMatchObject({
+			terminal: false,
+			token: 'client-next',
+		})
+		expect(networkIbcConnectionsResolver.projections.Cosmos.$$ibcConnections.continuation(
+			connectionPage,
+			osmosisNetwork,
+			continuationContext
+		)).toMatchObject({
+			terminal: true,
+		})
+	})
+
 })
