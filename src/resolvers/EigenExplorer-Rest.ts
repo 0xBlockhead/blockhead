@@ -131,6 +131,47 @@ const eigenAvsFields = (avs: EigenExplorerAvs) => {
 	}
 }
 
+const eigenAvsObservationFields = (avs: EigenExplorerAvs) => {
+	const timestampMs = Date.parse(avs.updatedAt)
+	if (!Number.isSafeInteger(timestampMs) || timestampMs < 0)
+		throw new Error('EigenExplorer_Rest: invalid AVS observation timestamp')
+	if (!/^(?:0|[1-9]\d*)$/.test(avs.updatedAtBlock))
+		throw new Error('EigenExplorer_Rest: invalid AVS observation block')
+
+	return {
+		timestampMs,
+		blockNumber: BigInt(avs.updatedAtBlock),
+		operatorCount: avs.totalOperators,
+		strategyCount: avs.shares.length,
+	}
+}
+
+const eigenAvsObservationRow = (
+	avs: EigenExplorerAvs,
+	network: NetworkId
+) => {
+	const avsAddress = hexLowerOfByteSize(avs.address, 20)
+	if (avsAddress == null)
+		throw new Error('EigenExplorer_Rest: AVS address not normalized')
+	const observation = eigenAvsObservationFields(avs)
+
+	return {
+		[EntityMetaKey.Selector]: {
+			$avs: {
+				$network: network,
+				avsAddress,
+			},
+			timestampMs: observation.timestampMs,
+			source: Source.EigenExplorer_Rest,
+		},
+		[EntityMetaKey.Fields]: {
+			[entityFieldAddressKey(EntityType.EigenLayerAvs_Timestamp, [], 'blockNumber')]: observation.blockNumber,
+			[entityFieldAddressKey(EntityType.EigenLayerAvs_Timestamp, [], 'operatorCount')]: observation.operatorCount,
+			[entityFieldAddressKey(EntityType.EigenLayerAvs_Timestamp, [], 'strategyCount')]: observation.strategyCount,
+		},
+	}
+}
+
 const eigenExplorerPaginationSkip = (
 	context: ResolverContext
 ) => {
@@ -794,24 +835,10 @@ export default {
 						assertEthereumMainnet($network)
 
 						const { getAvs } = await import('$/sources/EigenExplorer/Rest/queries.ts')
-						const avs = await getAvs(avsAddress)
-						const address = hexLowerOfByteSize(avs.address, 20)
-						if (address == null)
-							throw new Error('EigenExplorer_Rest: AVS address not normalized')
-						const timestampMs = Date.parse(avs.updatedAt)
-
-						return [{
-							[EntityMetaKey.Selector]: {
-								$avs: {
-									[EntityMetaKey.Selector]: {
-										$network: ethereumNetwork,
-										avsAddress: address,
-									},
-								},
-								timestampMs,
-								source: Source.EigenExplorer_Rest,
-							},
-						}]
+						return [eigenAvsObservationRow(
+							await getAvs(avsAddress),
+							$network
+						)]
 					},
 				},
 			},
@@ -897,17 +924,13 @@ export default {
 							throw new Error('EigenExplorer_Rest: observation source mismatch')
 
 						const { getAvs } = await import('$/sources/EigenExplorer/Rest/queries.ts')
-						const avs = await getAvs($avs.avsAddress)
-						if (Date.parse(avs.updatedAt) !== timestampMs)
+						const observation = eigenAvsObservationFields(
+							await getAvs($avs.avsAddress)
+						)
+						if (observation.timestampMs !== timestampMs)
 							throw new Error('EigenExplorer_Rest: AVS timestamp mismatch')
 
-						const blockNumber = BigInt(avs.updatedAtBlock)
-
-						return {
-							blockNumber,
-							operatorCount: avs.totalOperators,
-							strategyCount: avs.shares.length,
-						}
+						return observation
 					},
 				},
 			},
@@ -1412,6 +1435,9 @@ export default {
 											[entityFieldAddressKey(EntityType.EigenLayerAvs, [], 'metadataUri')]: fields.metadataUri,
 										}),
 										[entityFieldAddressKey(EntityType.EigenLayerAvs, [], '$avsAccount')]: fields.$avsAccount,
+										[entityFieldAddressKey(EntityType.EigenLayerAvs, [], '$$timestamps')]: [
+											eigenAvsObservationRow(avs, ethereumNetwork),
+										],
 									},
 								}
 							}),

@@ -747,13 +747,16 @@ describe('EigenExplorer AVS resolvers', () => {
 		expect(avsTimestampsResolver.projections.$$timestamps(timestamps)).toEqual([{
 			[EntityMetaKey.Selector]: {
 				$avs: {
-					[EntityMetaKey.Selector]: {
-						$network: network,
-						avsAddress,
-					},
+					$network: network,
+					avsAddress,
 				},
 				timestampMs,
 				source: Source.EigenExplorer_Rest,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.EigenLayerAvs_Timestamp, [], 'blockNumber')]: 101n,
+				[entityFieldAddressKey(EntityType.EigenLayerAvs_Timestamp, [], 'operatorCount')]: 3,
+				[entityFieldAddressKey(EntityType.EigenLayerAvs_Timestamp, [], 'strategyCount')]: 2,
 			},
 		}])
 
@@ -1307,6 +1310,21 @@ describe('EigenExplorer protocol hub catalog resolvers', () => {
 						},
 					},
 				},
+				[entityFieldAddressKey(EntityType.EigenLayerAvs, [], '$$timestamps')]: [{
+					[EntityMetaKey.Selector]: {
+						$avs: {
+							$network: network,
+							avsAddress,
+						},
+						timestampMs,
+						source: Source.EigenExplorer_Rest,
+					},
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.EigenLayerAvs_Timestamp, [], 'blockNumber')]: 101n,
+						[entityFieldAddressKey(EntityType.EigenLayerAvs_Timestamp, [], 'operatorCount')]: 3,
+						[entityFieldAddressKey(EntityType.EigenLayerAvs_Timestamp, [], 'strategyCount')]: 1,
+					},
+				}],
 			},
 		}])
 		expect(protocolAvssResolver.projections.$$avss.resolveCount(avss)).toBe(18)
