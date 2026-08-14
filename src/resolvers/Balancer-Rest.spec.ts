@@ -235,6 +235,10 @@ describe('Balancer Rest resolver module', () => {
 			$network: ethereumNetwork,
 			poolId: weightedV2PoolId,
 		}, context)
+		expect(balancerPoolResolver.projections.$$tokens.select(snapshot)).toHaveLength(2)
+		expect(balancerPoolResolver.projections.$$tokens.resolveCount(snapshot)).toBe(2)
+		expect(balancerPoolResolver.projections.$$aprItems.select(snapshot)).toEqual([])
+		expect(balancerPoolResolver.projections.$$aprItems.resolveCount(snapshot)).toBe(0)
 		expect(balancerPoolResolver.projections.$$events(snapshot)).toEqual([
 			{
 				$pool: {

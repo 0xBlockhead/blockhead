@@ -295,9 +295,15 @@ export default {
 			totalLiquidity: (pool) => pool.totalLiquidity,
 			totalShares: (pool) => pool.totalShares,
 			$gauge: (pool) => pool.$gauge,
-			$$aprItems: (pool) => pool.$$aprItems,
+			$$aprItems: {
+				select: (pool) => pool.$$aprItems,
+				resolveCount: (pool) => pool.$$aprItems.length,
+			},
 			$$events: (pool) => pool.$$events,
-			$$tokens: (pool) => pool.$$tokens,
+			$$tokens: {
+				select: (pool) => pool.$$tokens,
+				resolveCount: (pool) => pool.$$tokens.length,
+			},
 		}),
 
 		defineResolver({

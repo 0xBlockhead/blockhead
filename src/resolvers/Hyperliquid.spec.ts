@@ -1100,13 +1100,14 @@ describe('Hyperliquid market catalog resolvers', () => {
 				[entityFieldAddressKey(EntityType.HyperliquidNetwork_Timestamp, [], 'borrowLendReserveCount')]: 2,
 			},
 		}])
-		expect(networkResolver.projections.$$perpMarkets(snapshot)).toEqual([{
+		expect(networkResolver.projections.$$perpMarkets.select(snapshot)).toEqual([{
 			[EntityMetaKey.Selector]: {
 				$network: account.$network,
 				coin: 'ETH',
 			},
 		}])
-		expect(networkResolver.projections.$$spotPairs(snapshot)).toEqual([{
+		expect(networkResolver.projections.$$perpMarkets.resolveCount(snapshot)).toBe(1)
+		expect(networkResolver.projections.$$spotPairs.select(snapshot)).toEqual([{
 			[EntityMetaKey.Selector]: {
 				$network: account.$network,
 				pairIndex: 0,
@@ -1126,7 +1127,16 @@ describe('Hyperliquid market catalog resolvers', () => {
 				},
 			},
 		}])
+		expect(networkResolver.projections.$$spotPairs.resolveCount(snapshot)).toBe(1)
+		expect(networkResolver.projections.$$validators.resolveCount(snapshot)).toBe(1)
+		expect(networkResolver.projections.$$spotAssets.resolveCount(snapshot)).toBe(2)
 		expect(networkResolver.projections.$$vaults.resolveCount(snapshot)).toBe(3)
+		expect(networkResolver.projections.$$vaults.continuation(snapshot)).toEqual({
+			operation: 'hyperliquid-network-vaults',
+			target: 'hyperliquid',
+			terminal: false,
+			token: '2',
+		})
 		expect(networkResolver.projections.$$vaults.select(snapshot).map((vault) => vault[EntityMetaKey.Selector].vaultAddress)).toEqual([
 			'0xdfc24b077bc1425ad1dea75bcb6f8158e10df303',
 			'0x010461c14e146ac35fe42271bdc1134ee31c703a',
@@ -1156,6 +1166,11 @@ describe('Hyperliquid market catalog resolvers', () => {
 			}],
 		})
 		expect(networkResolver.projections.$$borrowLendReserves.resolveCount(snapshot)).toBe(2)
+		expect(networkResolver.projections.$$borrowLendReserves.continuation(snapshot)).toEqual({
+			operation: 'hyperliquid-network-borrow-lend-reserves',
+			target: 'hyperliquid',
+			terminal: true,
+		})
 		expect(networkResolver.projections.$$borrowLendReserves.select(snapshot)).toEqual([
 			{
 				[EntityMetaKey.Selector]: {
@@ -1203,6 +1218,21 @@ describe('Hyperliquid market catalog resolvers', () => {
 			},
 		])
 
+		const nextSnapshot = await networkResolver.resolve.Network.resolve({
+			$network: account.$network,
+		}, {
+			...context,
+			providerContinuationToken: '2',
+		})
+		expect(networkResolver.projections.$$vaults.select(nextSnapshot).map((vault) => vault[EntityMetaKey.Selector].vaultAddress)).toEqual([
+			'0xcccccccccccccccccccccccccccccccccccccccc',
+		])
+		expect(networkResolver.projections.$$vaults.continuation(nextSnapshot)).toEqual({
+			operation: 'hyperliquid-network-vaults',
+			target: 'hyperliquid',
+			terminal: true,
+		})
+
 		const parentNetworkResolver = hyperliquid.resolvers.find((resolver) => (
 			resolver.entityType === EntityType.Network
 			&& 'Hyperliquid' in resolver.projections
@@ -1210,8 +1240,8 @@ describe('Hyperliquid market catalog resolvers', () => {
 		))
 		expect(parentNetworkResolver).toBeTruthy()
 		const parentSnapshot = await parentNetworkResolver.resolve.Slug.resolve(account.$network, context)
-		expect(parentNetworkResolver.projections.Hyperliquid.$$spotPairs(parentSnapshot)).toEqual(
-			networkResolver.projections.$$spotPairs(snapshot)
+		expect(parentNetworkResolver.projections.Hyperliquid.$$spotPairs.select(parentSnapshot)).toEqual(
+			networkResolver.projections.$$spotPairs.select(snapshot)
 		)
 		expect(parentNetworkResolver.projections.Hyperliquid.$$vaults.select(parentSnapshot)).toEqual(
 			networkResolver.projections.$$vaults.select(snapshot)

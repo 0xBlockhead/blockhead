@@ -1,4 +1,7 @@
-import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
+import {
+	resolverContextRowLimit,
+	type ResolverContext,
+} from '$/resolvers/$resolvers.ts'
 import { hyperliquidEvmResolvers } from '$/resolvers/HyperliquidEvm.ts'
 import {
 	defineResolver,
@@ -157,9 +160,23 @@ const assertPerpMarketSnapshot = ([
 
 const resolveHyperliquidNetworkMetadata = async (
 	network: NetworkId,
-	limit: number
+	context: ResolverContext
 ) => {
 	assertHyperliquidMainnet(network)
+	if (
+		context.providerContinuationToken != null
+		&& !/^(0|[1-9][0-9]*)$/.test(context.providerContinuationToken)
+	)
+		throw new Error('Hyperliquid_Rest: invalid network metadata continuation')
+
+	const limit = resolverContextRowLimit(context)
+	const offset = context.providerContinuationToken == null ?
+		context.pagination.offset ?? 0
+	:
+		Number(context.providerContinuationToken)
+	if (!Number.isSafeInteger(offset) || offset < 0)
+		throw new Error('Hyperliquid_Rest: invalid network metadata offset')
+
 	const {
 		getAllBorrowLendReserveStates,
 		getMetaAndAssetCtxs,
@@ -205,6 +222,11 @@ const resolveHyperliquidNetworkMetadata = async (
 
 	const timestampMs = Date.now()
 	return {
+		offset,
+		validatorCount: validators.length,
+		perpMarketCount: perpMeta.universe.length,
+		spotAssetCount: spotMeta.tokens.length,
+		spotPairCount: spotMeta.universe.length,
 		vaultCount: vaultSummaries.length,
 		borrowLendReserveCount: borrowLendReserves.length,
 		$$timestamps: [{
@@ -229,7 +251,7 @@ const resolveHyperliquidNetworkMetadata = async (
 			},
 		}],
 		$$validators: validators
-			.slice(0, limit)
+			.slice(offset, offset + limit)
 			.map((validator) => ({
 				[EntityMetaKey.Selector]: {
 					$network: network,
@@ -237,7 +259,7 @@ const resolveHyperliquidNetworkMetadata = async (
 				},
 			})),
 		$$perpMarkets: perpMeta.universe
-			.slice(0, limit)
+			.slice(offset, offset + limit)
 			.map((market) => ({
 				[EntityMetaKey.Selector]: {
 					$network: network,
@@ -245,7 +267,7 @@ const resolveHyperliquidNetworkMetadata = async (
 				},
 			})),
 		$$spotAssets: spotMeta.tokens
-			.slice(0, limit)
+			.slice(offset, offset + limit)
 			.map((token) => ({
 				[EntityMetaKey.Selector]: {
 					$network: network,
@@ -261,7 +283,7 @@ const resolveHyperliquidNetworkMetadata = async (
 				},
 			})),
 		$$spotPairs: spotMeta.universe
-			.slice(0, limit)
+			.slice(offset, offset + limit)
 			.map((pair) => ({
 				[EntityMetaKey.Selector]: {
 					$network: network,
@@ -283,7 +305,7 @@ const resolveHyperliquidNetworkMetadata = async (
 				},
 			})),
 		$$vaults: vaultSummaries
-			.slice(0, limit)
+			.slice(offset, offset + limit)
 			.map((vault) => ({
 				[EntityMetaKey.Selector]: {
 					$network: network,
@@ -316,7 +338,7 @@ const resolveHyperliquidNetworkMetadata = async (
 				},
 			})),
 		$$borrowLendReserves: borrowLendReserves
-			.slice(0, limit)
+			.slice(offset, offset + limit)
 			.map(([tokenIndex, state]) => ({
 				[EntityMetaKey.Selector]: {
 					$network: network,
@@ -340,6 +362,76 @@ const resolveHyperliquidNetworkMetadata = async (
 				},
 			})),
 	}
+}
+
+type HyperliquidNetworkMetadataSnapshot = Awaited<ReturnType<typeof resolveHyperliquidNetworkMetadata>>
+type HyperliquidNetworkRowsKey =
+	| '$$validators'
+	| '$$perpMarkets'
+	| '$$spotAssets'
+	| '$$spotPairs'
+	| '$$vaults'
+	| '$$borrowLendReserves'
+type HyperliquidNetworkCountKey =
+	| 'validatorCount'
+	| 'perpMarketCount'
+	| 'spotAssetCount'
+	| 'spotPairCount'
+	| 'vaultCount'
+	| 'borrowLendReserveCount'
+
+const hyperliquidNetworkListProjection = <
+	const _RowsKey extends HyperliquidNetworkRowsKey,
+	const _CountKey extends HyperliquidNetworkCountKey,
+>(
+	rowsKey: _RowsKey,
+	countKey: _CountKey,
+	operation: string
+) => ({
+	select: (snapshot: HyperliquidNetworkMetadataSnapshot) => snapshot[rowsKey],
+	resolveCount: (snapshot: HyperliquidNetworkMetadataSnapshot) => snapshot[countKey],
+	continuation: (snapshot: HyperliquidNetworkMetadataSnapshot) => {
+		const nextOffset = snapshot.offset + snapshot[rowsKey].length
+		return {
+			operation,
+			target: 'hyperliquid',
+			terminal: nextOffset >= snapshot[countKey],
+			...(nextOffset < snapshot[countKey] && { token: String(nextOffset) }),
+		}
+	},
+})
+
+const hyperliquidNetworkRelationshipProjections = {
+	$$validators: hyperliquidNetworkListProjection(
+		'$$validators',
+		'validatorCount',
+		'hyperliquid-network-validators'
+	),
+	$$perpMarkets: hyperliquidNetworkListProjection(
+		'$$perpMarkets',
+		'perpMarketCount',
+		'hyperliquid-network-perp-markets'
+	),
+	$$spotAssets: hyperliquidNetworkListProjection(
+		'$$spotAssets',
+		'spotAssetCount',
+		'hyperliquid-network-spot-assets'
+	),
+	$$spotPairs: hyperliquidNetworkListProjection(
+		'$$spotPairs',
+		'spotPairCount',
+		'hyperliquid-network-spot-pairs'
+	),
+	$$vaults: hyperliquidNetworkListProjection(
+		'$$vaults',
+		'vaultCount',
+		'hyperliquid-network-vaults'
+	),
+	$$borrowLendReserves: hyperliquidNetworkListProjection(
+		'$$borrowLendReserves',
+		'borrowLendReserveCount',
+		'hyperliquid-network-borrow-lend-reserves'
+	),
 }
 
 export default {
@@ -1536,24 +1628,13 @@ export default {
 				Network: {
 					resolve: ({ $network }, context) => resolveHyperliquidNetworkMetadata(
 						$network,
-						resolverContextRowLimit(context)
+						context
 					),
 				}
 			},
 		})({
 			$$timestamps: (snapshot) => snapshot.$$timestamps,
-			$$validators: (snapshot) => snapshot.$$validators,
-			$$perpMarkets: (snapshot) => snapshot.$$perpMarkets,
-			$$spotAssets: (snapshot) => snapshot.$$spotAssets,
-			$$spotPairs: (snapshot) => snapshot.$$spotPairs,
-			$$vaults: {
-				select: (snapshot) => snapshot.$$vaults,
-				resolveCount: (snapshot) => snapshot.vaultCount,
-			},
-			$$borrowLendReserves: {
-				select: (snapshot) => snapshot.$$borrowLendReserves,
-				resolveCount: (snapshot) => snapshot.borrowLendReserveCount,
-			},
+			...hyperliquidNetworkRelationshipProjections,
 		}),
 
 		defineResolver({
@@ -1562,25 +1643,14 @@ export default {
 				Slug: {
 					resolve: (network, context) => resolveHyperliquidNetworkMetadata(
 						network,
-						resolverContextRowLimit(context)
+						context
 					),
 				}
 			},
 		})({
 			Hyperliquid: {
 				$$timestamps: (snapshot) => snapshot.$$timestamps,
-				$$validators: (snapshot) => snapshot.$$validators,
-				$$perpMarkets: (snapshot) => snapshot.$$perpMarkets,
-				$$spotAssets: (snapshot) => snapshot.$$spotAssets,
-				$$spotPairs: (snapshot) => snapshot.$$spotPairs,
-				$$vaults: {
-					select: (snapshot) => snapshot.$$vaults,
-					resolveCount: (snapshot) => snapshot.vaultCount,
-				},
-				$$borrowLendReserves: {
-					select: (snapshot) => snapshot.$$borrowLendReserves,
-					resolveCount: (snapshot) => snapshot.borrowLendReserveCount,
-				},
+				...hyperliquidNetworkRelationshipProjections,
 			},
 		}),
 	],
