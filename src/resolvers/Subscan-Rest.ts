@@ -401,6 +401,59 @@ export default {
 				Slug: {
 					resolve: async (network, context) => {
 						assertPolkadotMainnet(network)
+						const { listReferenda } = await import('$/sources/Subscan/Rest/queries.ts')
+						const row = Math.min(resolverContextRowLimit(context), 100)
+						const page = continuationPage(context.providerContinuationToken)
+						const referenda = await listReferenda({
+							page,
+							row,
+							publicEnv: context.publicEnv,
+						})
+						return {
+							page,
+							row,
+							count: referenda.data.count,
+							$$referenda: referenda.data.list.map((referendum) => ({
+								[EntityMetaKey.Selector]: {
+									$network: network,
+									referendumId: String(referendum.referendum_index),
+								},
+							})),
+						}
+					},
+				},
+			},
+		})({
+				Polkadot: {
+					$$referenda: {
+						select: (snapshot) => snapshot.$$referenda,
+						resolveCount: (snapshot) => BigInt(snapshot.count),
+						continuation: (snapshot, network) => (
+							(snapshot.page + 1) * snapshot.row >= snapshot.count
+							|| snapshot.$$referenda.length === 0 ?
+								{
+									operation: 'network-referenda',
+									target: 'slug' in network ? network.slug : 'polkadot',
+									terminal: true,
+								}
+							:
+								{
+									operation: 'network-referenda',
+									target: 'slug' in network ? network.slug : 'polkadot',
+									terminal: false,
+									token: String(snapshot.page + 1),
+								}
+						),
+					},
+				},
+			}),
+
+		defineResolver({
+			entityType: EntityType.Network,
+			resolve: {
+				Slug: {
+					resolve: async (network, context) => {
+						assertPolkadotMainnet(network)
 						const { listBlocks } = await import('$/sources/Subscan/Rest/queries.ts')
 						const row = Math.min(resolverContextRowLimit(context), 100)
 						const page = continuationPage(context.providerContinuationToken)

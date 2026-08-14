@@ -543,3 +543,103 @@ describe('Subscan Network.Polkadot.$$blocks tip walk', () => {
 		)
 	})
 })
+
+describe('Subscan Network.Polkadot.$$referenda index walk', () => {
+	const networkReferendaResolver = subscan.resolvers.find((
+		resolver
+	): resolver is Extract<
+		typeof subscan.resolvers[number],
+		{ entityType: EntityType.Network }
+	> => (
+		resolver.entityType === EntityType.Network
+		&& 'Polkadot' in resolver.projections
+		&& '$$referenda' in resolver.projections.Polkadot
+		&& typeof resolver.projections.Polkadot.$$referenda === 'object'
+		&& 'select' in resolver.projections.Polkadot.$$referenda
+	))
+
+	if (networkReferendaResolver == null)
+		throw new Error('Subscan network referenda resolver is missing')
+
+	beforeEach(() => {
+		corsFetch.mockReset()
+		corsFetch.mockResolvedValue(new Response(JSON.stringify({
+			code: 0,
+			message: 'Success',
+			generated_at: 1_753_000_100,
+			data: {
+				count: 1285,
+				list: [
+					{
+						referendum_index: 1284,
+						origins: 'root',
+						created_block: 32_440_000,
+						latest_block_num: 32_442_435,
+						latest_block_timestamp: 1_753_000_100,
+						status: 'Ongoing',
+					},
+					{
+						referendum_index: 1283,
+						origins: 'treasurer',
+						created_block: 32_430_000,
+						latest_block_num: 32_442_400,
+						latest_block_timestamp: 1_753_000_000,
+						status: 'Approved',
+					},
+				],
+			},
+		})))
+	})
+
+	it('projects referendum ids with authoritative indexed count and continuation', async () => {
+		const snapshot = await networkReferendaResolver.resolve.Slug.resolve({
+			slug: 'polkadot',
+			caip2: polkadotNetwork.caip2,
+		}, {
+			...context,
+			pagination: {
+				limit: 2,
+			},
+		})
+		expect(networkReferendaResolver.projections.Polkadot.$$referenda.select?.(snapshot)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$network: {
+						slug: 'polkadot',
+						caip2: polkadotNetwork.caip2,
+					},
+					referendumId: '1284',
+				},
+			},
+			{
+				[EntityMetaKey.Selector]: {
+					$network: {
+						slug: 'polkadot',
+						caip2: polkadotNetwork.caip2,
+					},
+					referendumId: '1283',
+				},
+			},
+		])
+		expect(networkReferendaResolver.projections.Polkadot.$$referenda.resolveCount?.(snapshot)).toBe(1285n)
+		expect(networkReferendaResolver.projections.Polkadot.$$referenda.continuation?.(snapshot, {
+			slug: 'polkadot',
+		})).toEqual({
+			operation: 'network-referenda',
+			target: 'polkadot',
+			terminal: false,
+			token: '1',
+		})
+		expect(corsFetch).toHaveBeenCalledWith(
+			'https://polkadot.api.subscan.io/api/scan/referenda/referendums',
+			expect.objectContaining({
+				init: expect.objectContaining({
+					body: JSON.stringify({
+						page: 0,
+						row: 2,
+					}),
+				}),
+			})
+		)
+	})
+})

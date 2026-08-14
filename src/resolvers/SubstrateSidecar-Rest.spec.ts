@@ -721,8 +721,10 @@ describe('Substrate Sidecar network observation + validator leftovers', () => {
 				validators: [
 					{
 						address: stashAccountId,
+						controllerId: '13UVJyLnbVp9RBZYFwFGyDvVd1y27Tt8tkntv6Q7JVPhFsTB',
 						status: 'active',
 						commission: '100000000',
+						totalStake: '123456789012345678901234',
 						blocked: false,
 					},
 				],
@@ -746,7 +748,14 @@ describe('Substrate Sidecar network observation + validator leftovers', () => {
 			[EntityMetaKey.Selector]: selector.$validator,
 		})
 		expect(validatorEraResolver.projections.eraIndex(snapshot)).toBe(1702n)
+		expect(validatorEraResolver.projections.$controller(snapshot)).toEqual({
+			[EntityMetaKey.Selector]: {
+				$network: account.$network,
+				accountId: '13UVJyLnbVp9RBZYFwFGyDvVd1y27Tt8tkntv6Q7JVPhFsTB',
+			},
+		})
 		expect(validatorEraResolver.projections.commissionPerBillion(snapshot)).toBe(100_000_000)
+		expect(validatorEraResolver.projections.totalStakePlancks(snapshot)).toBe(123_456_789_012_345_678_901_234n)
 		expect(validatorEraResolver.projections.active(snapshot)).toBe(true)
 		expect(validatorEraResolver.projections.slashed(snapshot)).toBe(true)
 	})
@@ -801,6 +810,32 @@ describe('Substrate Sidecar network observation + validator leftovers', () => {
 				eraIndex: 1702n,
 			}, context)
 		).rejects.toThrow('invalid validator commission')
+
+		sourceFetch
+			.mockResolvedValueOnce(new Response(JSON.stringify({
+				at: {
+					hash: '0xSTAKING_PROGRESS',
+					height: '32442435',
+				},
+				activeEra: '1702',
+				forceEra: 'NotForcing',
+			})))
+			.mockResolvedValueOnce(new Response(JSON.stringify({
+				validators: [
+					{
+						address: stashAccountId,
+						status: 'active',
+						commission: '100000000',
+						totalStake: '1.5',
+					},
+				],
+			})))
+		await expect(
+			validatorEraResolver.resolve.ValidatorEraIndexSource.resolve({
+				...selector,
+				eraIndex: 1702n,
+			}, context)
+		).rejects.toThrow('malformed validator stake')
 	})
 
 	it('resolves ongoing referendum identity and its block-anchored lifecycle observation', async () => {

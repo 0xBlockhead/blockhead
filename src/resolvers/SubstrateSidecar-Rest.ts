@@ -457,6 +457,17 @@ const polkadotAssetTimestampProjectionFields = (
 	[entityFieldAddressKey(EntityType.PolkadotAsset_Timestamp, [], 'freezer')]: timestamp.freezer,
 })
 
+const polkadotValidatorStakePlancks = (
+	totalStake: string | undefined
+) => {
+	if (totalStake == null)
+		return undefined
+	if (!/^\d+$/.test(totalStake))
+		throw new Error('SubstrateSidecar_Rest: malformed validator stake')
+
+	return BigInt(totalStake)
+}
+
 const polkadotAssetBalanceTimestampProjectionFields = (
 	timestamp: ReturnType<typeof polkadotAssetBalanceTimestampFields>
 ) => ({
@@ -1013,6 +1024,19 @@ export default {
 						)
 							throw new Error('SubstrateSidecar_Rest: invalid validator commission')
 
+						const totalStakePlancks = polkadotValidatorStakePlancks(validator.totalStake)
+						const $controller = (
+							validator.controllerId != null && validator.controllerId !== '' ?
+								{
+									[EntityMetaKey.Selector]: {
+										$network: $validator.$network,
+										accountId: validator.controllerId,
+									},
+								}
+							:
+								undefined
+						)
+
 						return {
 							$validator: {
 								[EntityMetaKey.Selector]: $validator,
@@ -1021,6 +1045,12 @@ export default {
 							source,
 							...(commissionPerBillion != null && {
 								commissionPerBillion,
+							}),
+							...($controller != null && {
+								$controller,
+							}),
+							...(totalStakePlancks != null && {
+								totalStakePlancks,
 							}),
 							...(validator.status != null && {
 								active: validator.status === 'active',
@@ -1036,7 +1066,9 @@ export default {
 			$validator: (observation) => observation.$validator,
 			eraIndex: (observation) => observation.eraIndex,
 			source: (observation) => observation.source,
+			$controller: (observation) => observation.$controller,
 			commissionPerBillion: (observation) => observation.commissionPerBillion,
+			totalStakePlancks: (observation) => observation.totalStakePlancks,
 			active: (observation) => observation.active,
 			slashed: (observation) => observation.slashed,
 		}),
