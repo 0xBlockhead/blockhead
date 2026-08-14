@@ -409,6 +409,32 @@ describe('Aave market list/detail operations', () => {
 		})
 	})
 
+	it('accepts current explicit-null borrow and isolation configuration', async () => {
+		graphql.mockResolvedValueOnce({
+			market: {
+				...ethereumMarketSnapshot,
+				reserves: [
+					{
+						...ethereumMarketSnapshot.reserves[0],
+						borrowInfo: null,
+						isolationModeConfig: null,
+					},
+				],
+			},
+		})
+
+		await expect(getMarket({
+			binding,
+			chainId: 1,
+			poolAddress: ethereumMarket.address,
+		})).resolves.toMatchObject({
+			reserves: [{
+				borrowInfo: null,
+				isolationModeConfig: null,
+			}],
+		})
+	})
+
 	it('rejects a malformed reserve envelope', async () => {
 		graphql.mockResolvedValueOnce({
 			market: {

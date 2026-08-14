@@ -64,7 +64,7 @@ type AaveReserveWire = {
 	isPaused: boolean
 	flashLoanEnabled?: boolean
 	permitSupported?: boolean
-	isolationModeConfig?: AaveIsolationModeConfigWire
+	isolationModeConfig?: AaveIsolationModeConfigWire | null
 	usdExchangeRate?: string
 	usdOracleAddress?: string
 	/** Transport-only — not enrolled on `AaveReserve`. */
@@ -92,7 +92,7 @@ type AaveReserveWire = {
 		variableRateSlope1?: AaveAmountWire
 		variableRateSlope2?: AaveAmountWire
 		optimalUsageRate?: AaveAmountWire
-	}
+	} | null
 }
 
 export type AaveMarketSnapshotWire = AaveMarketWire & {
@@ -250,13 +250,13 @@ export const aaveMarketEnvelope = aaveMarketSummaryEnvelope.and({
 		isPaused: 'boolean',
 		'flashLoanEnabled?': 'boolean',
 		'permitSupported?': 'boolean',
-		'isolationModeConfig?': {
+		'isolationModeConfig?': arktype({
 			canBeCollateral: 'boolean',
 			canBeBorrowed: 'boolean',
 			debtCeiling: aaveTokenAmountEnvelope,
 			debtCeilingDecimals: 'number.integer >= 0',
 			'totalBorrows?': aaveTokenAmountEnvelope,
-		},
+		}).or(arktype.null),
 		'usdExchangeRate?': 'string',
 		'usdOracleAddress?': 'string',
 		'interestRateStrategyAddress?': 'string',
@@ -271,7 +271,7 @@ export const aaveMarketEnvelope = aaveMarketSummaryEnvelope.and({
 			'supplyCapReached?': 'boolean',
 			'supplyCap?': aaveTokenAmountEnvelope,
 		},
-		'borrowInfo?': {
+		'borrowInfo?': arktype({
 			apy: aaveAmountEnvelope,
 			availableLiquidity: aaveTokenAmountEnvelope,
 			'utilizationRate?': aaveAmountEnvelope,
@@ -282,7 +282,7 @@ export const aaveMarketEnvelope = aaveMarketSummaryEnvelope.and({
 			'variableRateSlope1?': aaveAmountEnvelope,
 			'variableRateSlope2?': aaveAmountEnvelope,
 			'optimalUsageRate?': aaveAmountEnvelope,
-		},
+		}).or(arktype.null),
 	}).array(),
 })
 export const aaveMarketsEnvelope = aaveMarketSummaryEnvelope.array()
