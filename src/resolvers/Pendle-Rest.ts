@@ -1,5 +1,5 @@
 import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
-import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
+import { resolverContextRowLimit, type ResolverContext } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
@@ -17,6 +17,28 @@ type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 type PendleMarketId = EntitySelector<typeof schema, EntityType.PendleMarket>
 type PendlePositionId = EntitySelector<typeof schema, EntityType.PendlePosition>
 type EvmNetworkAccountId = EntitySelector<typeof schema, EntityType.EvmNetworkAccount>
+
+const pendlePaginationOffset = (
+	context: ResolverContext,
+	label: string
+) => {
+	if (
+		context.providerContinuationToken != null
+		&& !/^(0|[1-9][0-9]*)$/.test(context.providerContinuationToken)
+	)
+		throw new Error(`${Source.Pendle_Rest}: invalid ${label} continuation`)
+
+	const offset = (
+		context.providerContinuationToken == null ?
+			context.pagination.offset ?? 0
+		:
+			Number(context.providerContinuationToken)
+	)
+	if (!Number.isSafeInteger(offset) || offset < 0)
+		throw new Error(`${Source.Pendle_Rest}: invalid ${label} continuation`)
+
+	return offset
+}
 
 const eip155ChainId = (network: NetworkId) => {
 	if (!('caip2' in network) || network.caip2.namespace !== 'eip155')
@@ -118,6 +140,8 @@ export default {
 							$actor,
 							$network,
 						}
+						const positionOffset = pendlePaginationOffset(context, 'positions')
+						const limit = resolverContextRowLimit(context)
 						const positions = (
 							await getAccountPositions({
 								chainId,
@@ -126,7 +150,7 @@ export default {
 						).positions
 						return {
 							positions: positions
-								.slice(0, resolverContextRowLimit(context))
+								.slice(positionOffset, positionOffset + limit)
 								.map((position) => ({
 									[EntityMetaKey.Selector]: {
 										$account,
@@ -137,6 +161,7 @@ export default {
 									},
 								})),
 							positionCount: positions.length,
+							positionOffset,
 						}
 					},
 				},
@@ -145,6 +170,17 @@ export default {
 			$$pendlePositions: {
 				select: (snapshot) => snapshot.positions,
 				resolveCount: (snapshot) => snapshot.positionCount,
+				continuation: (snapshot) => {
+					const nextOffset = snapshot.positionOffset + snapshot.positions.length
+					const terminal = snapshot.positions.length === 0 || nextOffset >= snapshot.positionCount
+
+					return {
+						operation: 'account-pendle-positions',
+						target: 'pendle',
+						terminal,
+						...(!terminal && { token: String(nextOffset) }),
+					}
+				},
 			},
 		}),
 
@@ -252,8 +288,10 @@ export default {
 							throw new Error(`${Source.Pendle_Rest}: unsupported chain id ${String(chainId)}`)
 
 						const { listMarkets } = await import('$/sources/Pendle/Rest/queries.ts')
+						const marketOffset = pendlePaginationOffset(context, 'markets')
 						const page = await listMarkets({
 							chainId,
+							skip: marketOffset,
 							limit: resolverContextRowLimit(context),
 						})
 						return {
@@ -264,6 +302,7 @@ export default {
 								},
 							})),
 							marketCount: page.total,
+							marketOffset: page.skip,
 						}
 					},
 				},
@@ -273,6 +312,17 @@ export default {
 				$$pendleMarkets: {
 					select: (snapshot) => snapshot.markets,
 					resolveCount: (snapshot) => snapshot.marketCount,
+					continuation: (snapshot) => {
+						const nextOffset = snapshot.marketOffset + snapshot.markets.length
+						const terminal = snapshot.markets.length === 0 || nextOffset >= snapshot.marketCount
+
+						return {
+							operation: 'network-pendle-markets',
+							target: 'pendle',
+							terminal,
+							...(!terminal && { token: String(nextOffset) }),
+						}
+					},
 				},
 			},
 		}),

@@ -190,6 +190,11 @@ describe('Compound Rest resolver module', () => {
 			},
 		])
 		expect(evmNetworkAccountResolver.projections.$$compoundPositions.resolveCount(positions)).toBe(1)
+		expect(evmNetworkAccountResolver.projections.$$compoundPositions.continuation(positions)).toEqual({
+			operation: 'account-compound-positions',
+			target: 'compound',
+			terminal: true,
+		})
 		expect(getAccountPositions).toHaveBeenCalledWith({
 			chainId: 8453,
 			account: accountSelector.$actor.address,

@@ -240,6 +240,22 @@ export default {
 							$actor,
 							$network,
 						}
+						if (
+							context.providerContinuationToken != null
+							&& !/^(0|[1-9][0-9]*)$/.test(context.providerContinuationToken)
+						)
+							throw new Error(`${Source.Compound_Rest}: invalid positions continuation`)
+
+						const positionOffset = (
+							context.providerContinuationToken == null ?
+								context.pagination.offset ?? 0
+							:
+								Number(context.providerContinuationToken)
+						)
+						if (!Number.isSafeInteger(positionOffset) || positionOffset < 0)
+							throw new Error(`${Source.Compound_Rest}: invalid positions continuation`)
+
+						const limit = resolverContextRowLimit(context)
 						const positions = (
 							await getAccountPositions({
 								chainId,
@@ -248,11 +264,12 @@ export default {
 						).positions
 						return {
 							positions: positions
-								.slice(0, resolverContextRowLimit(context))
+								.slice(positionOffset, positionOffset + limit)
 								.map((position) => ({
 									[EntityMetaKey.Selector]: compoundPositionSelector($account, position.cometAddress),
 								})),
 							positionCount: positions.length,
+							positionOffset,
 						}
 					},
 				},
@@ -261,6 +278,17 @@ export default {
 			$$compoundPositions: {
 				select: (snapshot) => snapshot.positions,
 				resolveCount: (snapshot) => snapshot.positionCount,
+				continuation: (snapshot) => {
+					const nextOffset = snapshot.positionOffset + snapshot.positions.length
+					const terminal = snapshot.positions.length === 0 || nextOffset >= snapshot.positionCount
+
+					return {
+						operation: 'account-compound-positions',
+						target: 'compound',
+						terminal,
+						...(!terminal && { token: String(nextOffset) }),
+					}
+				},
 			},
 		}),
 

@@ -357,6 +357,12 @@ describe('Pendle Rest resolver module', () => {
 			},
 		])
 		expect(evmNetworkAccountResolver.projections.$$pendlePositions.resolveCount(snapshot)).toBe(2)
+		expect(evmNetworkAccountResolver.projections.$$pendlePositions.continuation(snapshot)).toEqual({
+			operation: 'account-pendle-positions',
+			target: 'pendle',
+			terminal: false,
+			token: '1',
+		})
 	})
 
 	it('rejects non-eip155 networks on account positions before transport', async () => {
@@ -624,5 +630,11 @@ describe('Pendle Rest resolver module', () => {
 			},
 		])
 		expect(networkResolver.projections.Evm.$$pendleMarkets.resolveCount(snapshot)).toBe(42)
+		expect(networkResolver.projections.Evm.$$pendleMarkets.continuation(snapshot)).toEqual({
+			operation: 'network-pendle-markets',
+			target: 'pendle',
+			terminal: false,
+			token: '1',
+		})
 	})
 })
