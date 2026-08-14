@@ -46,17 +46,6 @@ const bitcoinNetworkReferenceApplicability = [
 	},
 ] as const
 
-const bitcoinAddressTimestampApplicability = [
-	{
-		$address: bitcoinNetworkReferenceApplicability[0],
-		source: Source.Esplora_Rest,
-	},
-	{
-		$address: bitcoinNetworkReferenceApplicability[1],
-		source: Source.Esplora_Rest,
-	},
-] as const
-
 const bitcoinNetworkSelectors = <_Snapshot extends object>(
 	resolve: (
 		network: NetworkId,
@@ -793,6 +782,12 @@ export default {
 					appliesTo: bitcoinNetworkReferenceApplicability,
 					resolve: async ({ $network, address: addressSelector }) => {
 						assertBitcoinMainnet($network)
+						const { getAddress } = await import('$/sources/Esplora/Rest/queries.ts')
+						const address = await getAddress({
+							address: addressSelector,
+							target: esploraTargetForNetwork($network),
+						})
+						const chainStats = address.chain_stats
 						return {
 							address: addressSelector,
 							$$timestamps: [
@@ -805,11 +800,21 @@ export default {
 										timestampMs: Date.now(),
 										source: Source.Esplora_Rest,
 									},
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.UtxoAddress_Timestamp, [], 'balanceSats')]: BigInt(chainStats.funded_txo_sum - chainStats.spent_txo_sum),
+										[entityFieldAddressKey(EntityType.UtxoAddress_Timestamp, [], 'transactionCount')]: chainStats.tx_count,
+										[entityFieldAddressKey(EntityType.UtxoAddress_Timestamp, [], 'unspentOutputCount')]: chainStats.funded_txo_count - chainStats.spent_txo_count,
+										[entityFieldAddressKey(EntityType.UtxoAddress_Timestamp, [], 'fundedOutputCount')]: chainStats.funded_txo_count,
+										[entityFieldAddressKey(EntityType.UtxoAddress_Timestamp, [], 'spentOutputCount')]: chainStats.spent_txo_count,
+										[entityFieldAddressKey(EntityType.UtxoAddress_Timestamp, [], 'fundedValueSats')]: BigInt(chainStats.funded_txo_sum),
+										[entityFieldAddressKey(EntityType.UtxoAddress_Timestamp, [], 'spentValueSats')]: BigInt(chainStats.spent_txo_sum),
+										[entityFieldAddressKey(EntityType.UtxoAddress_Timestamp, [], 'mempoolTransactionCount')]: address.mempool_stats.tx_count,
+									},
 								},
 							],
 						}
 					},
-				}
+				},
 			},
 		})({
 			address: (address) => address.address,
@@ -900,44 +905,6 @@ export default {
 		})({
 			$$outputs: (outputs) => outputs,
 		}),
-
-		defineResolver({
-			entityType: EntityType.UtxoAddress_Timestamp,
-			resolve: {
-				AddressTimestampMsSource: {
-					appliesTo: bitcoinAddressTimestampApplicability,
-					resolve: async ({ $address }) => {
-						assertBitcoinMainnet($address.$network)
-						const { getAddress } = await import('$/sources/Esplora/Rest/queries.ts')
-						const address = await getAddress({
-							address: $address.address,
-							target: esploraTargetForNetwork($address.$network),
-						})
-						const chainStats = address.chain_stats
-						return {
-							balanceSats: BigInt(chainStats.funded_txo_sum - chainStats.spent_txo_sum),
-							transactionCount: chainStats.tx_count,
-							unspentOutputCount: chainStats.funded_txo_count - chainStats.spent_txo_count,
-							fundedOutputCount: chainStats.funded_txo_count,
-							spentOutputCount: chainStats.spent_txo_count,
-							fundedValueSats: BigInt(chainStats.funded_txo_sum),
-							spentValueSats: BigInt(chainStats.spent_txo_sum),
-							mempoolTransactionCount: address.mempool_stats.tx_count,
-						}
-					},
-				}
-			},
-		})({
-			balanceSats: (address) => address.balanceSats,
-			transactionCount: (address) => address.transactionCount,
-			unspentOutputCount: (address) => address.unspentOutputCount,
-			fundedOutputCount: (address) => address.fundedOutputCount,
-			spentOutputCount: (address) => address.spentOutputCount,
-			fundedValueSats: (address) => address.fundedValueSats,
-			spentValueSats: (address) => address.spentValueSats,
-			mempoolTransactionCount: (address) => address.mempoolTransactionCount,
-		}),
-
 		defineResolver({
 			entityType: EntityType.Network,
 			resolve: bitcoinNetworkSelectors(async (network) => {

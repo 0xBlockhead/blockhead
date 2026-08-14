@@ -101,11 +101,9 @@ const addressOutputsResolver = bitcoinCoreResolvers.resolvers.find((resolver) =>
 	resolver.entityType === EntityType.UtxoAddress
 	&& '$$outputs' in resolver.projections
 ))
-const addressTimestampResolver = bitcoinCoreResolvers.resolvers.find((resolver) => (
-	resolver.entityType === EntityType.UtxoAddress_Timestamp
-))
-const networkTimestampResolver = bitcoinCoreResolvers.resolvers.find((resolver) => (
-	resolver.entityType === EntityType.Network_Timestamp
+const addressTimestampsResolver = bitcoinCoreResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.UtxoAddress
+	&& '$$timestamps' in resolver.projections
 ))
 const networkTimestampsResolver = bitcoinCoreResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.Network
@@ -127,10 +125,10 @@ if (blockResolver == null || networkBlocksResolver == null)
 if (networkMempoolTransactionsResolver == null)
 	throw new Error('BitcoinCore-JsonRpc spec missing native mempool transaction resolver')
 
-if (addressOutputsResolver == null || addressTimestampResolver == null)
+if (addressOutputsResolver == null || addressTimestampsResolver == null)
 	throw new Error('BitcoinCore-JsonRpc spec missing address UTXO resolvers')
 
-if (networkTimestampResolver == null || networkTimestampsResolver == null)
+if (networkTimestampsResolver == null)
 	throw new Error('BitcoinCore-JsonRpc spec missing network tip observation resolvers')
 
 const network = {
@@ -594,19 +592,21 @@ describe('BitcoinCore UTXO', () => {
 			},
 		}])
 
-		const observation = await addressTimestampResolver.resolve.AddressTimestampMsSource.resolve({
-			$address: {
-				$network: network,
-				address,
-			},
-			timestampMs: 1,
-			source: Source.BitcoinCore_JsonRpc,
+		const addressSnapshot = await addressTimestampsResolver.resolve.NetworkAddress.resolve({
+			$network: network,
+			address,
 		}, resolverContext)
-		expect(addressTimestampResolver.projections.balanceSats(observation)).toBe(50_000_000n)
-		expect(addressTimestampResolver.projections.unspentOutputCount(observation)).toBe(1)
+		const addressObservation = addressTimestampsResolver.projections.$$timestamps(addressSnapshot)[0]
+		expect(addressObservation[EntityMetaKey.Fields]).toMatchObject({
+			[entityFieldAddressKey(EntityType.UtxoAddress_Timestamp, [], 'balanceSats')]: 50_000_000n,
+			[entityFieldAddressKey(EntityType.UtxoAddress_Timestamp, [], 'unspentOutputCount')]: 1,
+		})
+		expect(bitcoinCoreResolvers.resolvers.some((resolver) => (
+			resolver.entityType === EntityType.UtxoAddress_Timestamp
+		))).toBe(false)
 	})
 
-	it('projects Network_Timestamp tip fields from block tip + getmempoolinfo', async () => {
+	it('materializes retrieval-clock Network_Timestamp tip fields without claiming exact reread authority', async () => {
 		getBlockCount.mockResolvedValue(850_000)
 		getBlockHash.mockResolvedValue(blockHash)
 		getBlock.mockResolvedValue(tipBlock)
@@ -650,22 +650,6 @@ describe('BitcoinCore UTXO', () => {
 			feerate: confirmationTarget / 100_000,
 			blocks: confirmationTarget,
 		}))
-
-		const tip = await networkTimestampResolver.resolve.NetworkTimestampMsSource.resolve({
-			$network: network,
-			timestampMs: 1_700_000_000_000,
-			source: Source.BitcoinCore_JsonRpc,
-		}, resolverContext)
-
-		expect(networkTimestampResolver.projections.Utxo.bestBlockHeight(tip)).toBe(850_000n)
-		expect(networkTimestampResolver.projections.Utxo.bestBlockHash(tip)).toBe(blockHash)
-		expect(networkTimestampResolver.projections.Utxo.bestBlockTimeMs(tip)).toBe(1_750_000_000_000)
-		expect(networkTimestampResolver.projections.Utxo.blockCount(tip)).toBe(850_001n)
-		expect(networkTimestampResolver.projections.Utxo.mempoolTransactionCount(tip)).toBe(42)
-		expect(networkTimestampResolver.projections.Utxo.mempoolSizeBytes(tip)).toBe(12_345n)
-		expect(networkTimestampResolver.projections.Utxo.hashrateHashesPerSecond(tip)).toBe(600_000_000_000_000_000)
-		expect(networkTimestampResolver.projections.Utxo.miningTemplateHeight(tip)).toBe(850_001n)
-		expect(networkTimestampResolver.projections.Utxo.$$miningTemplateTransactions(tip)).toHaveLength(1)
 
 		const timestamps = await networkTimestampsResolver.resolve.Caip2.resolve(network, resolverContext)
 		expect(networkTimestampsResolver.projections.$$timestamps(timestamps)).toEqual([
@@ -711,6 +695,9 @@ describe('BitcoinCore UTXO', () => {
 				},
 			},
 		])
+		expect(bitcoinCoreResolvers.resolvers.some((resolver) => (
+			resolver.entityType === EntityType.Network_Timestamp
+		))).toBe(false)
 	})
 
 	it('projects Ordinals and Runes refs from the fetched transaction witness/scripts', async () => {

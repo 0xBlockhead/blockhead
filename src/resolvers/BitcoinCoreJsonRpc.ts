@@ -390,26 +390,6 @@ export const bitcoinCoreJsonRpcResolvers = <
 		}),
 	}
 
-	const networkTimestampAppliesTo = [
-		{
-			$network: {
-				caip2: network.caip2,
-			},
-			source,
-		},
-		...(
-			acceptsSlugSelector ?
-				[{
-					$network: {
-						slug: network.slug,
-					},
-					source,
-				}]
-			:
-				[]
-		),
-	]
-
 	return {
 		source,
 
@@ -773,6 +753,11 @@ export const bitcoinCoreJsonRpcResolvers = <
 					NetworkAddress: {
 						resolve: async ({ $network, address: addressSelector }) => {
 							assertNetwork($network)
+							const { getTransparentAddressUtxos } = await loadQueries()
+							const scan = await getTransparentAddressUtxos({
+								address: addressSelector,
+								maxResults: 10_000,
+							})
 							return {
 								address: addressSelector,
 								$$timestamps: [
@@ -785,6 +770,10 @@ export const bitcoinCoreJsonRpcResolvers = <
 											timestampMs: Date.now(),
 											source,
 										},
+										[EntityMetaKey.Fields]: {
+											[entityFieldAddressKey(EntityType.UtxoAddress_Timestamp, [], 'balanceSats')]: scan.totalAmountSatoshis,
+											[entityFieldAddressKey(EntityType.UtxoAddress_Timestamp, [], 'unspentOutputCount')]: scan.unspents.length,
+										},
 									},
 								],
 							}
@@ -794,29 +783,6 @@ export const bitcoinCoreJsonRpcResolvers = <
 			})({
 				address: (address) => address.address,
 				$$timestamps: (address) => address.$$timestamps,
-			}),
-
-			defineResolver({
-				entityType: EntityType.UtxoAddress_Timestamp,
-				resolve: {
-					AddressTimestampMsSource: {
-						resolve: async ({ $address }) => {
-							assertNetwork($address.$network)
-							const { getTransparentAddressUtxos } = await loadQueries()
-							const scan = await getTransparentAddressUtxos({
-								address: $address.address,
-								maxResults: 10_000,
-							})
-							return {
-								balanceSats: scan.totalAmountSatoshis,
-								unspentOutputCount: scan.unspents.length,
-							}
-						},
-					},
-				},
-			})({
-				balanceSats: (observation) => observation.balanceSats,
-				unspentOutputCount: (observation) => observation.unspentOutputCount,
 			}),
 
 			defineResolver({
@@ -836,70 +802,6 @@ export const bitcoinCoreJsonRpcResolvers = <
 				resolve: networkTimestampListResolve,
 			})({
 				$$timestamps: (timestamps) => timestamps,
-			}),
-
-			defineResolver({
-				entityType: EntityType.Network_Timestamp,
-				resolve: {
-					NetworkTimestampMsSource: {
-						appliesTo: networkTimestampAppliesTo,
-						resolve: async ({
-							$network,
-							timestampMs,
-							source: timestampSource,
-						}) => {
-							if (timestampSource !== source)
-								throw new Error(`${source}: unsupported network timestamp source ${timestampSource}`)
-
-							const tip = await resolveNetworkTipObservation($network)
-							return {
-								$network: {
-									[EntityMetaKey.Selector]: $network,
-								},
-								timestampMs,
-								source: timestampSource,
-								ledgerModels: [NetworkLedgerModel.Utxo],
-								executionModels: [] satisfies NetworkExecutionModel[],
-								...tip,
-							}
-						},
-					},
-				},
-			})({
-				$network: (timestamp) => timestamp.$network,
-				timestampMs: (timestamp) => timestamp.timestampMs,
-				source: (timestamp) => timestamp.source,
-				ledgerModels: (timestamp) => timestamp.ledgerModels,
-				executionModels: (timestamp) => timestamp.executionModels,
-				Utxo: {
-					bestBlockHeight: (timestamp) => timestamp.bestBlockHeight,
-					bestBlockHash: (timestamp) => timestamp.bestBlockHash,
-					bestBlockTimeMs: (timestamp) => timestamp.bestBlockTimeMs,
-					blockCount: (timestamp) => timestamp.blockCount,
-					mempoolTransactionCount: (timestamp) => timestamp.mempoolTransactionCount,
-					mempoolSizeBytes: (timestamp) => timestamp.mempoolSizeBytes,
-					hashrateHashesPerSecond: (timestamp) => timestamp.hashrateHashesPerSecond,
-					hashrateBlockWindow: (timestamp) => timestamp.hashrateBlockWindow,
-					conservativeFeeRate2BlocksSatsPerKvb: (timestamp) => timestamp.conservativeFeeRate2BlocksSatsPerKvb,
-					conservativeFeeRate6BlocksSatsPerKvb: (timestamp) => timestamp.conservativeFeeRate6BlocksSatsPerKvb,
-					conservativeFeeRate12BlocksSatsPerKvb: (timestamp) => timestamp.conservativeFeeRate12BlocksSatsPerKvb,
-					conservativeFeeRate24BlocksSatsPerKvb: (timestamp) => timestamp.conservativeFeeRate24BlocksSatsPerKvb,
-					miningTemplateHeight: (timestamp) => timestamp.miningTemplateHeight,
-					miningTemplatePreviousBlockHash: (timestamp) => timestamp.miningTemplatePreviousBlockHash,
-					miningTemplateTarget: (timestamp) => timestamp.miningTemplateTarget,
-					miningTemplateCurrentTimeMs: (timestamp) => timestamp.miningTemplateCurrentTimeMs,
-					miningTemplateMinimumTimeMs: (timestamp) => timestamp.miningTemplateMinimumTimeMs,
-					miningTemplateCoinbaseValueSats: (timestamp) => timestamp.miningTemplateCoinbaseValueSats,
-					miningTemplateTransactionCount: (timestamp) => timestamp.miningTemplateTransactionCount,
-					miningTemplateSizeLimitBytes: (timestamp) => timestamp.miningTemplateSizeLimitBytes,
-					miningTemplateWeightLimit: (timestamp) => timestamp.miningTemplateWeightLimit,
-					miningTemplateSigopLimit: (timestamp) => timestamp.miningTemplateSigopLimit,
-					miningTemplateRules: (timestamp) => timestamp.miningTemplateRules,
-					miningTemplateMutableFields: (timestamp) => timestamp.miningTemplateMutableFields,
-					miningTemplateNonceRange: (timestamp) => timestamp.miningTemplateNonceRange,
-					miningTemplateBits: (timestamp) => timestamp.miningTemplateBits,
-					$$miningTemplateTransactions: (timestamp) => timestamp.$$miningTemplateTransactions,
-				},
 			}),
 		],
 	}

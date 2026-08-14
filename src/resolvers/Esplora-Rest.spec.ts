@@ -98,8 +98,9 @@ const addressOutputsResolver = esploraResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.UtxoAddress
 	&& '$$outputs' in resolver.projections
 ))
-const addressTimestampResolver = esploraResolvers.resolvers.find((resolver) => (
-	resolver.entityType === EntityType.UtxoAddress_Timestamp
+const addressTimestampsResolver = esploraResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.UtxoAddress
+	&& '$$timestamps' in resolver.projections
 ))
 const networkTimestampResolver = esploraResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.Network_Timestamp
@@ -123,7 +124,7 @@ if (blockResolver == null || blockTransactionsResolver == null)
 if (networkBlocksResolver == null)
 	throw new Error('Esplora-Rest spec missing Network.Utxo.$$blocks resolver')
 
-if (addressOutputsResolver == null || addressTimestampResolver == null)
+if (addressOutputsResolver == null || addressTimestampsResolver == null)
 	throw new Error('Esplora-Rest spec missing UtxoAddress resolvers')
 
 if (networkTimestampResolver == null)
@@ -741,16 +742,18 @@ describe('Esplora UTXO', () => {
 			},
 		])
 
-		const tip = await addressTimestampResolver.resolve.AddressTimestampMsSource.resolve({
-			$address: {
-				$network: bitcoinNetwork,
-				address: 'bc1qexample',
-			},
-			timestampMs: 1,
-			source: Source.Esplora_Rest,
+		const tip = await addressTimestampsResolver.resolve.NetworkAddress.resolve({
+			$network: bitcoinNetwork,
+			address: 'bc1qexample',
 		}, resolverContext)
-		expect(addressTimestampResolver.projections.balanceSats(tip)).toBe(1000n)
-		expect(addressTimestampResolver.projections.mempoolTransactionCount(tip)).toBe(2)
+		const addressObservation = addressTimestampsResolver.projections.$$timestamps(tip)[0]
+		expect(addressObservation[EntityMetaKey.Fields]).toMatchObject({
+			[entityFieldAddressKey(EntityType.UtxoAddress_Timestamp, [], 'balanceSats')]: 1000n,
+			[entityFieldAddressKey(EntityType.UtxoAddress_Timestamp, [], 'mempoolTransactionCount')]: 2,
+		})
+		expect(esploraResolvers.resolvers.some((resolver) => (
+			resolver.entityType === EntityType.UtxoAddress_Timestamp
+		))).toBe(false)
 	})
 
 	it('projects Network_Timestamp tip fields including bestBlockTimeMs', async () => {

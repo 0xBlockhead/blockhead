@@ -431,14 +431,15 @@ describe('MempoolSpace UTXO', () => {
 		)
 	})
 
-	it('projects address tip mempoolTransactionCount and network tip bestBlockTimeMs', async () => {
-		const addressTimestampResolver = mempoolSpaceResolvers.resolvers.find((resolver) => (
-			resolver.entityType === EntityType.UtxoAddress_Timestamp
+	it('projects address tip mempoolTransactionCount and rejects fabricated network retrieval clocks', async () => {
+		const addressTimestampsResolver = mempoolSpaceResolvers.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.UtxoAddress
+			&& '$$timestamps' in resolver.projections
 		))
 		const networkTimestampResolver = mempoolSpaceResolvers.resolvers.find((resolver) => (
 			resolver.entityType === EntityType.Network_Timestamp
 		))
-		if (addressTimestampResolver == null || networkTimestampResolver == null)
+		if (addressTimestampsResolver == null || networkTimestampResolver == null)
 			throw new Error('MempoolSpace-Rest missing tip timestamp resolvers')
 
 		sourceGetJson.mockResolvedValueOnce({
@@ -458,49 +459,27 @@ describe('MempoolSpace UTXO', () => {
 				tx_count: 5,
 			},
 		})
-		const addressTip = await addressTimestampResolver.resolve.AddressTimestampMsSource.resolve({
-			$address: address,
-			timestampMs: 1,
-			source: Source.MempoolSpace_Rest,
-		}, resolverContext)
-		expect(addressTimestampResolver.projections.mempoolTransactionCount(addressTip)).toBe(5)
-		expect(addressTimestampResolver.projections.balanceSats(addressTip)).toBe(600n)
+		const addressTip = await addressTimestampsResolver.resolve.NetworkAddress.resolve(address, resolverContext)
+		const addressObservation = addressTimestampsResolver.projections.$$timestamps(addressTip)[0]
+		expect(addressObservation[EntityMetaKey.Fields]).toMatchObject({
+			[entityFieldAddressKey(EntityType.UtxoAddress_Timestamp, [], 'balanceSats')]: 600n,
+			[entityFieldAddressKey(EntityType.UtxoAddress_Timestamp, [], 'mempoolTransactionCount')]: 5,
+		})
+		expect(mempoolSpaceResolvers.resolvers.some((resolver) => (
+			resolver.entityType === EntityType.UtxoAddress_Timestamp
+		))).toBe(false)
 
-		sourceGetJson
-			.mockResolvedValueOnce([
-				{
-					id: 'a'.repeat(64),
-					height: 840_000,
-					timestamp: 1_700_000_000,
-					tx_count: 1,
-				},
-			])
-			.mockResolvedValueOnce({
-				count: 9,
-				vsize: 1800,
-				total_fee: 1,
-			})
-			.mockResolvedValueOnce({
-				hashrates: [],
-				difficulty: [],
-				currentHashrate: 886_019_350_377_919_800_000,
-				currentDifficulty: 127_479_855_693_691.4,
-			})
-			.mockResolvedValueOnce({
-				fastestFee: 20,
-				halfHourFee: 10,
-				hourFee: 6,
-				economyFee: 2,
-				minimumFee: 1,
-			})
-		const networkTip = await networkTimestampResolver.resolve.NetworkTimestampMsSource.resolve({
+		sourceGetJson.mockResolvedValueOnce({
+			hashrates: [],
+			difficulty: [],
+			currentHashrate: 886_019_350_377_919_800_000,
+			currentDifficulty: 127_479_855_693_691.4,
+		})
+		await expect(networkTimestampResolver.resolve.NetworkTimestampMsSource.resolve({
 			$network: network,
 			timestampMs: 2,
 			source: Source.MempoolSpace_Rest,
-		}, resolverContext)
-		expect(networkTimestampResolver.projections.Utxo.bestBlockTimeMs(networkTip)).toBe(1_700_000_000_000)
-		expect(networkTimestampResolver.projections.Utxo.hashrateHashesPerSecond(networkTip)).toBe(886_019_350_377_919_800_000)
-		expect(networkTimestampResolver.projections.Utxo.suggestedTransactionFeePerByteSats(networkTip)).toBe(6)
+		}, resolverContext)).rejects.toThrow('no mining hashrate observation at 2')
 	})
 
 	it('materializes bounded provider-clocked hashrate history and resolves exact observations', async () => {
@@ -573,41 +552,22 @@ describe('MempoolSpace UTXO', () => {
 			}),
 		])
 
-		sourceGetJson
-			.mockResolvedValueOnce([{
-				id: 'a'.repeat(64),
-				height: 840_000,
-				timestamp: 1_700_000_000,
-				tx_count: 1,
-			}])
-			.mockResolvedValueOnce({
-				count: 9,
-				vsize: 1800,
-				total_fee: 1,
-			})
-			.mockResolvedValueOnce({
-				hashrates: [{
-					timestamp: 300,
-					avgHashrate: 3000,
-				}],
-				difficulty: [],
-				currentHashrate: 4000,
-				currentDifficulty: 1,
-			})
-			.mockResolvedValueOnce({
-				fastestFee: 20,
-				halfHourFee: 10,
-				hourFee: 6,
-				economyFee: 2,
-				minimumFee: 1,
-			})
+		sourceGetJson.mockResolvedValueOnce({
+			hashrates: [{
+				timestamp: 300,
+				avgHashrate: 3000,
+			}],
+			difficulty: [],
+			currentHashrate: 4000,
+			currentDifficulty: 1,
+		})
 		const historical = await networkTimestampResolver.resolve.NetworkTimestampMsSource.resolve({
 			$network: network,
 			timestampMs: 300_000,
 			source: Source.MempoolSpace_Rest,
 		}, resolverContext)
 		expect(networkTimestampResolver.projections.Utxo.hashrateHashesPerSecond(historical)).toBe(3000)
-		expect(sourceGetJson).toHaveBeenCalledTimes(8)
+		expect(sourceGetJson).toHaveBeenCalledTimes(5)
 	})
 
 	it('limits every selector to canonical Bitcoin subjects', () => {
