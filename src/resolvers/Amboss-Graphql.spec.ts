@@ -48,27 +48,15 @@ const nodeChannelsResolver = ambossGraphqlResolvers.resolvers.find((resolver) =>
 	&& '$$channels' in resolver.projections
 ))
 
-const nodeTimestampResolver = ambossGraphqlResolvers.resolvers.find((resolver) => (
-	resolver.entityType === EntityType.LightningNode_Timestamp
-	&& 'alias' in resolver.projections
-))
-
 const channelResolver = ambossGraphqlResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.LightningChannel
 	&& '$node1' in resolver.projections
 ))
 
-const channelTimestampResolver = ambossGraphqlResolvers.resolvers.find((resolver) => (
-	resolver.entityType === EntityType.LightningChannel_Timestamp
-	&& 'status' in resolver.projections
-))
-
 if (
 	nodeResolver == null
 	|| nodeChannelsResolver == null
-	|| nodeTimestampResolver == null
 	|| channelResolver == null
-	|| channelTimestampResolver == null
 )
 	throw new Error('Amboss_Graphql spec missing node/channel resolvers')
 
@@ -88,6 +76,13 @@ describe('Amboss GraphQL Lightning node/channel resolvers', () => {
 			publicKey,
 		}, resolverContext)).rejects.toThrow('unsupported Lightning network')
 		expect(getNode).not.toHaveBeenCalled()
+	})
+
+	it('does not register current-state Lightning timestamp replay resolvers', () => {
+		expect(ambossGraphqlResolvers.resolvers.some((resolver) => (
+			resolver.entityType === EntityType.LightningNode_Timestamp
+			|| resolver.entityType === EntityType.LightningChannel_Timestamp
+		))).toBe(false)
 	})
 
 	it('materializes fail-closed node observations from getNode', async () => {
@@ -130,55 +125,23 @@ describe('Amboss GraphQL Lightning node/channel resolvers', () => {
 					timestampMs: 1_700_000_000_000,
 					source: Source.Amboss_Graphql,
 				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.LightningNode_Timestamp, [], 'alias')]: 'self',
+					[entityFieldAddressKey(EntityType.LightningNode_Timestamp, [], 'color')]: '#abcdef',
+					[entityFieldAddressKey(EntityType.LightningNode_Timestamp, [], 'capacitySats')]: 500000000n,
+					[entityFieldAddressKey(EntityType.LightningNode_Timestamp, [], 'channelCount')]: 12,
+					[entityFieldAddressKey(EntityType.LightningNode_Timestamp, [], 'updatedAtMs')]: 1_700_000_000_000,
+					[entityFieldAddressKey(EntityType.LightningNode_Timestamp, [], 'countryCode')]: 'US',
+					[entityFieldAddressKey(EntityType.LightningNode_Timestamp, [], 'city')]: 'Austin',
+					[entityFieldAddressKey(EntityType.LightningNode_Timestamp, [], 'networkAddresses')]: [
+						'1.2.3.4:9735',
+					],
+				},
 			},
 		])
 		expect(getNode).toHaveBeenCalledWith({
 			publicKey,
 		})
-
-		const timestampSnapshot = await nodeTimestampResolver.resolve.NodeTimestampMsSource.resolve({
-			$node: {
-				$network: lightningNetwork,
-				publicKey,
-			},
-			timestampMs: 1_700_000_000_000,
-			source: Source.Amboss_Graphql,
-		}, resolverContext)
-
-		expect(nodeTimestampResolver.projections.alias(timestampSnapshot)).toBe('self')
-		expect(nodeTimestampResolver.projections.capacitySats(timestampSnapshot)).toBe(500000000n)
-		expect(nodeTimestampResolver.projections.channelCount(timestampSnapshot)).toBe(12)
-		expect(nodeTimestampResolver.projections.countryCode(timestampSnapshot)).toBe('US')
-		expect(nodeTimestampResolver.projections.networkAddresses(timestampSnapshot)).toEqual([
-			'1.2.3.4:9735',
-		])
-	})
-
-	it('rejects stale or historical node timestamp selectors the current source cannot honor', async () => {
-		getNode.mockResolvedValue({
-			graph_info: {
-				node: {
-					pub_key: publicKey,
-					alias: 'self',
-					color: '#abcdef',
-					last_update: 1_700_000_000,
-					addresses: [],
-				},
-				channels: {
-					num_channels: 12,
-					total_capacity: '500000000',
-				},
-			},
-		})
-
-		await expect(nodeTimestampResolver.resolve.NodeTimestampMsSource.resolve({
-			$node: {
-				$network: lightningNetwork,
-				publicKey,
-			},
-			timestampMs: 1,
-			source: Source.Amboss_Graphql,
-		}, resolverContext)).rejects.toThrow('node observation clock mismatch')
 	})
 
 	it('lists node channels with enrolled leftovers, resolveCount, and continuation', async () => {
@@ -316,26 +279,16 @@ describe('Amboss GraphQL Lightning node/channel resolvers', () => {
 					timestampMs: 1_700_000_000_000,
 					source: Source.Amboss_Graphql,
 				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'status')]: LightningChannelStatus.Open,
+					[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'capacitySats')]: 1000000n,
+					[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'updatedAtMs')]: 1_700_000_000_000,
+				},
 			},
 		])
 		expect(getEdge).toHaveBeenCalledWith({
 			channelId: '1x2x3',
 		})
-
-		const timestampSnapshot = await channelTimestampResolver.resolve.ChannelTimestampMsSource.resolve({
-			$channel: {
-				$network: lightningNetwork,
-				channelId: '123',
-			},
-			timestampMs: 1_700_000_000_000,
-			source: Source.Amboss_Graphql,
-		}, resolverContext)
-
-		expect(channelTimestampResolver.projections.status(timestampSnapshot)).toBe(LightningChannelStatus.Open)
-		expect(channelTimestampResolver.projections.capacitySats(timestampSnapshot)).toBe(1000000n)
-		expect(channelTimestampResolver.projections.feeRatePpm(timestampSnapshot)).toBeUndefined()
-		expect(channelTimestampResolver.projections.closingTransactionId(timestampSnapshot)).toBeUndefined()
-		expect(channelTimestampResolver.projections.closedAtMs(timestampSnapshot)).toBeUndefined()
 	})
 
 	it('omits channel feeRatePpm when directional policies disagree or one side is absent', async () => {
@@ -363,16 +316,16 @@ describe('Amboss GraphQL Lightning node/channel resolvers', () => {
 			},
 		})
 
-		const timestampSnapshot = await channelTimestampResolver.resolve.ChannelTimestampMsSource.resolve({
-			$channel: {
-				$network: lightningNetwork,
-				channelId: '123',
-			},
-			timestampMs: 1_700_000_000_000,
-			source: Source.Amboss_Graphql,
+		const channelSnapshot = await channelResolver.resolve.NetworkChannelId.resolve({
+			$network: lightningNetwork,
+			channelId: '123',
 		}, resolverContext)
 
-		expect(channelTimestampResolver.projections.feeRatePpm(timestampSnapshot)).toBeUndefined()
+		expect(channelResolver.projections.$$timestamps(channelSnapshot)[0]?.[EntityMetaKey.Fields]).toEqual({
+			[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'status')]: LightningChannelStatus.Open,
+			[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'capacitySats')]: 1000000n,
+			[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'updatedAtMs')]: 1_700_000_000_000,
+		})
 	})
 
 	it('keeps channel feeRatePpm only when both directional policies agree', async () => {
@@ -403,16 +356,29 @@ describe('Amboss GraphQL Lightning node/channel resolvers', () => {
 			},
 		})
 
-		const timestampSnapshot = await channelTimestampResolver.resolve.ChannelTimestampMsSource.resolve({
-			$channel: {
-				$network: lightningNetwork,
-				channelId: '123',
-			},
-			timestampMs: 1_700_000_000_000,
-			source: Source.Amboss_Graphql,
+		const channelSnapshot = await channelResolver.resolve.NetworkChannelId.resolve({
+			$network: lightningNetwork,
+			channelId: '123',
 		}, resolverContext)
 
-		expect(channelTimestampResolver.projections.feeRatePpm(timestampSnapshot)).toBe(250)
+		expect(channelResolver.projections.$$timestamps(channelSnapshot)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$channel: {
+						$network: lightningNetwork,
+						channelId: '123',
+					},
+					timestampMs: 1_700_000_000_000,
+					source: Source.Amboss_Graphql,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'status')]: LightningChannelStatus.Open,
+					[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'capacitySats')]: 1000000n,
+					[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'updatedAtMs')]: 1_700_000_000_000,
+					[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'feeRatePpm')]: 250,
+				},
+			},
+		])
 	})
 
 	it('projects enrolled closing clocks from Amboss closed_info', async () => {
@@ -445,51 +411,31 @@ describe('Amboss GraphQL Lightning node/channel resolvers', () => {
 			},
 		})
 
-		const timestampSnapshot = await channelTimestampResolver.resolve.ChannelTimestampMsSource.resolve({
-			$channel: {
-				$network: lightningNetwork,
-				channelId: '123',
-			},
-			timestampMs: 1_700_000_100_000,
-			source: Source.Amboss_Graphql,
+		const channelSnapshot = await channelResolver.resolve.NetworkChannelId.resolve({
+			$network: lightningNetwork,
+			channelId: '123',
 		}, resolverContext)
 
-		expect(channelTimestampResolver.projections.status(timestampSnapshot)).toBe(LightningChannelStatus.Closed)
-		expect(channelTimestampResolver.projections.closingTransactionId(timestampSnapshot)).toBe('closetxid')
-		expect(channelTimestampResolver.projections.closingFeeSats(timestampSnapshot)).toBe(2500n)
-		expect(channelTimestampResolver.projections.closingReason(timestampSnapshot)).toBe('MUTUAL')
-		expect(channelTimestampResolver.projections.closedAtMs(timestampSnapshot)).toBe(Date.parse('2023-11-14T22:15:00.000Z'))
-	})
-
-	it('rejects stale or historical channel timestamp selectors the current source cannot honor', async () => {
-		getEdge.mockResolvedValue({
-			long_channel_id: '123',
-			short_channel_id: '1x2x3',
-			graph: {
-				info: {
-					capacity: '1000000',
-					is_closed: false,
-					last_update: '1700000000',
-					chan_point: 'abcdef0123456789:1',
-					node1_pub: publicKey,
-					node2_pub: peerPublicKey,
-					node1_policy: null,
-					node2_policy: null,
-					closed_info: null,
-					transactions: {
-						close_transaction: null,
+		expect(channelResolver.projections.$$timestamps(channelSnapshot)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$channel: {
+						$network: lightningNetwork,
+						channelId: '123',
 					},
+					timestampMs: 1_700_000_100_000,
+					source: Source.Amboss_Graphql,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'status')]: LightningChannelStatus.Closed,
+					[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'capacitySats')]: 1000000n,
+					[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'updatedAtMs')]: 1_700_000_100_000,
+					[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'closingTransactionId')]: 'closetxid',
+					[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'closingFeeSats')]: 2500n,
+					[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'closingReason')]: 'MUTUAL',
+					[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'closedAtMs')]: Date.parse('2023-11-14T22:15:00.000Z'),
 				},
 			},
-		})
-
-		await expect(channelTimestampResolver.resolve.ChannelTimestampMsSource.resolve({
-			$channel: {
-				$network: lightningNetwork,
-				channelId: '123',
-			},
-			timestampMs: 1,
-			source: Source.Amboss_Graphql,
-		}, resolverContext)).rejects.toThrow('channel observation clock mismatch')
+		])
 	})
 })

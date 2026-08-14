@@ -171,26 +171,33 @@ const timestampSnapshotFromMempoolSpaceStatistics = (
 	medianFeeRatePpm: statistics.med_fee_rate ?? undefined,
 })
 
-const lightningNetworkTimestampReferenceFromStatistics = (
-	$network: NetworkId,
-	statistics: MempoolSpaceLightningStatistics
-) => {
-	const timestampMs = timestampMsFromIso(statistics.added)
-	if (timestampMs == null)
-		throw new Error(`LightningMempoolSpace_Rest: invalid statistics timestamp ${statistics.added}`)
-
-	return {
-		[EntityMetaKey.Selector]: {
-			$lightningNetwork: {
-				$network,
-			},
-			timestampMs,
-			source: Source.LightningMempoolSpace_Rest,
-		},
+const timestampEntityFields = (
+	entityType: (
+		| EntityType.LightningNetwork_Timestamp
+		| EntityType.LightningNode_Timestamp
+		| EntityType.LightningChannel_Timestamp
+	),
+	snapshot: {
+		readonly [fieldName: string]: (
+			| bigint
+			| number
+			| string
+			| readonly string[]
+			| undefined
+		)
 	}
-}
+) => (
+	Object.fromEntries(
+		Object.entries(snapshot)
+			.filter(([, value]) => value != null)
+			.map(([fieldName, value]) => [
+				entityFieldAddressKey(entityType, [], fieldName),
+				value,
+			])
+	)
+)
 
-const lightningNetworkTimestampLiveRowFromStatistics = (
+const lightningNetworkTimestampRowFromStatistics = (
 	$network: NetworkId,
 	statistics: MempoolSpaceLightningStatistics
 ) => {
@@ -198,7 +205,6 @@ const lightningNetworkTimestampLiveRowFromStatistics = (
 	if (timestampMs == null)
 		throw new Error(`LightningMempoolSpace_Rest: invalid statistics timestamp ${statistics.added}`)
 
-	const snapshot = timestampSnapshotFromMempoolSpaceStatistics(statistics)
 	return {
 		[EntityMetaKey.Selector]: {
 			$lightningNetwork: {
@@ -207,16 +213,30 @@ const lightningNetworkTimestampLiveRowFromStatistics = (
 			timestampMs,
 			source: Source.LightningMempoolSpace_Rest,
 		},
-		[EntityMetaKey.Fields]: Object.fromEntries(
-			Object.entries(snapshot)
-				.filter(([, value]) => value != null)
-				.map(([fieldName, value]) => [
-					entityFieldAddressKey(EntityType.LightningNetwork_Timestamp, [], fieldName),
-					value,
-				])
+		[EntityMetaKey.Fields]: timestampEntityFields(
+			EntityType.LightningNetwork_Timestamp,
+			timestampSnapshotFromMempoolSpaceStatistics(statistics)
 		),
 	}
 }
+
+const lightningChannelTimestampRowFromMempoolSpaceChannel = (
+	channelSelector: {
+		$network: NetworkId
+		channelId: string
+	},
+	channel: MempoolSpaceLightningChannel
+) => ({
+	[EntityMetaKey.Selector]: {
+		$channel: channelSelector,
+		timestampMs: timestampMsFromIso(channel.updated_at),
+		source: Source.LightningMempoolSpace_Rest,
+	},
+	[EntityMetaKey.Fields]: timestampEntityFields(
+		EntityType.LightningChannel_Timestamp,
+		channelTimestampSnapshotFromMempoolSpaceChannel(channel)
+	),
+})
 
 const lightningMempoolSpaceNodeCountFromStatistics = async () => {
 	const { getLightningStatistics } = await import('$/sources/LightningMempoolSpace/Rest/queries.ts')
@@ -288,41 +308,6 @@ export default {
 		}),
 
 		defineResolver({
-			entityType: EntityType.LightningNetwork_Timestamp,
-			resolve: {
-				LightningNetworkTimestampMsSource: {
-					resolve: async ({
-						$lightningNetwork,
-						timestampMs,
-						source,
-					}) => {
-						if (source !== Source.LightningMempoolSpace_Rest)
-							throw new Error(`LightningMempoolSpace_Rest: unsupported source ${source}`)
-
-						assertLightningNetwork($lightningNetwork.$network)
-						const { getLightningStatistics } = await import('$/sources/LightningMempoolSpace/Rest/queries.ts')
-						const statistics = (await getLightningStatistics()).latest
-						if (timestampMsFromIso(statistics.added) !== timestampMs)
-							throw new Error('LightningMempoolSpace_Rest: statistics observation clock mismatch')
-
-						return timestampSnapshotFromMempoolSpaceStatistics(statistics)
-					},
-				}
-			},
-		})({
-			nodeCount: (snapshot) => snapshot.nodeCount,
-			channelCount: (snapshot) => snapshot.channelCount,
-			totalCapacitySats: (snapshot) => snapshot.totalCapacitySats,
-			torNodeCount: (snapshot) => snapshot.torNodeCount,
-			clearnetNodeCount: (snapshot) => snapshot.clearnetNodeCount,
-			unannouncedNodeCount: (snapshot) => snapshot.unannouncedNodeCount,
-			averageCapacitySats: (snapshot) => snapshot.averageCapacitySats,
-			medianCapacitySats: (snapshot) => snapshot.medianCapacitySats,
-			averageFeeRatePpm: (snapshot) => snapshot.averageFeeRatePpm,
-			medianFeeRatePpm: (snapshot) => snapshot.medianFeeRatePpm,
-		}),
-
-		defineResolver({
 			entityType: EntityType.LightningNode,
 			resolve: {
 				NetworkPublicKey: {
@@ -347,6 +332,10 @@ export default {
 												timestampMs: timestampMsFromSeconds(node.updated_at),
 												source: Source.LightningMempoolSpace_Rest,
 											},
+											[EntityMetaKey.Fields]: timestampEntityFields(
+												EntityType.LightningNode_Timestamp,
+												nodeSnapshotFromMempoolSpaceNode(node)
+											),
 										},
 									]
 							),
@@ -356,42 +345,6 @@ export default {
 			},
 		})({
 			$$timestamps: (snapshot) => snapshot.$$timestamps,
-		}),
-
-		defineResolver({
-			entityType: EntityType.LightningNode_Timestamp,
-			resolve: {
-				NodeTimestampMsSource: {
-					resolve: async ({
-						$node,
-						timestampMs,
-						source,
-					}) => {
-						if (source !== Source.LightningMempoolSpace_Rest)
-							throw new Error(`LightningMempoolSpace_Rest: unsupported source ${source}`)
-
-						assertLightningNetwork($node.$network)
-						const { getLightningNode } = await import('$/sources/LightningMempoolSpace/Rest/queries.ts')
-						const node = await getLightningNode({
-							publicKey: $node.publicKey,
-						})
-						if (timestampMsFromSeconds(node.updated_at) !== timestampMs)
-							throw new Error('LightningMempoolSpace_Rest: node observation clock mismatch')
-
-						return nodeSnapshotFromMempoolSpaceNode(node)
-					},
-				}
-			},
-		})({
-			alias: (snapshot) => snapshot.alias,
-			color: (snapshot) => snapshot.color,
-			capacitySats: (snapshot) => snapshot.capacitySats,
-			channelCount: (snapshot) => snapshot.channelCount,
-			firstSeenMs: (snapshot) => snapshot.firstSeenMs,
-			updatedAtMs: (snapshot) => snapshot.updatedAtMs,
-			countryCode: (snapshot) => snapshot.countryCode,
-			city: (snapshot) => snapshot.city,
-			networkAddresses: (snapshot) => snapshot.networkAddresses,
 		}),
 
 		defineResolver({
@@ -411,13 +364,10 @@ export default {
 								channel.updated_at == null ?
 									[]
 								:
-									[{
-										[EntityMetaKey.Selector]: {
-											$channel: channelSelector,
-											timestampMs: timestampMsFromIso(channel.updated_at),
-											source: Source.LightningMempoolSpace_Rest,
-										},
-									}]
+									[lightningChannelTimestampRowFromMempoolSpaceChannel(
+										channelSelector,
+										channel
+									)]
 							),
 						}
 					},
@@ -433,41 +383,6 @@ export default {
 		}),
 
 		defineResolver({
-			entityType: EntityType.LightningChannel_Timestamp,
-			resolve: {
-				ChannelTimestampMsSource: {
-					resolve: async ({
-						$channel,
-						timestampMs,
-						source,
-					}) => {
-						if (source !== Source.LightningMempoolSpace_Rest)
-							throw new Error(`LightningMempoolSpace_Rest: unsupported source ${source}`)
-
-						assertLightningNetwork($channel.$network)
-						const { getLightningChannel } = await import('$/sources/LightningMempoolSpace/Rest/queries.ts')
-						const channel = await getLightningChannel({
-							channelId: $channel.channelId,
-						})
-						if (timestampMsFromIso(channel.updated_at) !== timestampMs)
-							throw new Error('LightningMempoolSpace_Rest: channel observation clock mismatch')
-
-						return channelTimestampSnapshotFromMempoolSpaceChannel(channel)
-					},
-				}
-			},
-		})({
-			status: (snapshot) => snapshot.status,
-			capacitySats: (snapshot) => snapshot.capacitySats,
-			feeRatePpm: (snapshot) => snapshot.feeRatePpm,
-			updatedAtMs: (snapshot) => snapshot.updatedAtMs,
-			closingTransactionId: (snapshot) => snapshot.closingTransactionId,
-			closingFeeSats: (snapshot) => snapshot.closingFeeSats,
-			closingReason: (snapshot) => snapshot.closingReason,
-			closedAtMs: (snapshot) => snapshot.closedAtMs,
-		}),
-
-		defineResolver({
 			entityType: EntityType.LightningNetwork,
 			resolve: {
 				Network: {
@@ -475,7 +390,7 @@ export default {
 						assertLightningNetwork($network)
 						const { getLightningStatistics } = await import('$/sources/LightningMempoolSpace/Rest/queries.ts')
 						return [
-							lightningNetworkTimestampReferenceFromStatistics(
+							lightningNetworkTimestampRowFromStatistics(
 								$network,
 								(await getLightningStatistics()).latest
 							),
@@ -504,7 +419,7 @@ export default {
 								const statistics = (await getLightningStatistics()).latest
 								fields.$$timestamps.replaceRows([{
 									source: Source.LightningMempoolSpace_Rest,
-									value: [lightningNetworkTimestampLiveRowFromStatistics(
+									value: [lightningNetworkTimestampRowFromStatistics(
 										parentEntitySelector.$network,
 										statistics
 									)],
@@ -541,7 +456,7 @@ export default {
 						assertLightningNetwork(network)
 						const { getLightningStatistics } = await import('$/sources/LightningMempoolSpace/Rest/queries.ts')
 						return [
-							lightningNetworkTimestampReferenceFromStatistics(
+							lightningNetworkTimestampRowFromStatistics(
 								network,
 								(await getLightningStatistics()).latest
 							),
@@ -604,7 +519,6 @@ export default {
 							})
 						).slice(0, resolverContextRowLimit(context)).map((channel) => {
 							const snapshot = channelSnapshotFromMempoolSpaceChannel(channel)
-							const timestampSnapshot = channelTimestampSnapshotFromMempoolSpaceChannel(channel)
 
 							return {
 								[EntityMetaKey.Selector]: {
@@ -628,38 +542,15 @@ export default {
 										[entityFieldAddressKey(EntityType.LightningChannel, [], '$node1')]: snapshot.$node1,
 									}),
 									...(channel.updated_at != null && {
-										[entityFieldAddressKey(EntityType.LightningChannel, [], '$$timestamps')]: [{
-											[EntityMetaKey.Selector]: {
-												$channel: {
+										[entityFieldAddressKey(EntityType.LightningChannel, [], '$$timestamps')]: [
+											lightningChannelTimestampRowFromMempoolSpaceChannel(
+												{
 													$network,
 													channelId: String(channel.id),
 												},
-												timestampMs: timestampMsFromIso(channel.updated_at),
-												source: Source.LightningMempoolSpace_Rest,
-											},
-											[EntityMetaKey.Fields]: {
-												[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'status')]: timestampSnapshot.status,
-												...(timestampSnapshot.capacitySats != null && {
-													[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'capacitySats')]: timestampSnapshot.capacitySats,
-												}),
-												...(timestampSnapshot.feeRatePpm != null && {
-													[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'feeRatePpm')]: timestampSnapshot.feeRatePpm,
-												}),
-												[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'updatedAtMs')]: timestampSnapshot.updatedAtMs,
-												...(timestampSnapshot.closingTransactionId != null && {
-													[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'closingTransactionId')]: timestampSnapshot.closingTransactionId,
-												}),
-												...(timestampSnapshot.closingFeeSats != null && {
-													[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'closingFeeSats')]: timestampSnapshot.closingFeeSats,
-												}),
-												...(timestampSnapshot.closingReason != null && {
-													[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'closingReason')]: timestampSnapshot.closingReason,
-												}),
-												...(timestampSnapshot.closedAtMs != null && {
-													[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'closedAtMs')]: timestampSnapshot.closedAtMs,
-												}),
-											},
-										}],
+												channel
+											),
+										],
 									}),
 								},
 							}

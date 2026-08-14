@@ -78,17 +78,6 @@ const cosmosNetworkReferenceApplicability = [
 	},
 ] as const
 
-const cosmosAccountTimestampApplicability = [
-	{
-		$account: cosmosNetworkReferenceApplicability[0],
-		source: Source.Mintscan,
-	},
-	{
-		$account: cosmosNetworkReferenceApplicability[1],
-		source: Source.Mintscan,
-	},
-] as const
-
 const cosmosTransactionReferenceApplicability = [
 	{
 		$transaction: cosmosNetworkReferenceApplicability[0],
@@ -401,18 +390,13 @@ export default {
 							getAccount,
 							getLatestBlock,
 						} = await import('$/sources/Mintscan/Rest/queries.ts')
-						const [
-							{ account },
-							latestBlock,
-						] = await Promise.all([
-							getAccount(context.publicEnv, {
-								network: networkBySlug.cosmos.slug,
-								address: accountSelector.address,
-							}),
-							getLatestBlock(context.publicEnv, {
-								network: networkBySlug.cosmos.slug,
-							}),
-						])
+						const { account } = await getAccount(context.publicEnv, {
+							network: networkBySlug.cosmos.slug,
+							address: accountSelector.address,
+						})
+						const latestBlock = await getLatestBlock(context.publicEnv, {
+							network: networkBySlug.cosmos.slug,
+						})
 
 						const timestampMs = Date.parse(latestBlock.block.header.time)
 						if (!Number.isSafeInteger(timestampMs) || timestampMs < 0)
@@ -446,43 +430,6 @@ export default {
 			},
 		})({
 			$$timestamps: (account) => account.$$timestamps,
-		}),
-
-		defineResolver({
-			entityType: EntityType.CosmosAccount_Timestamp,
-			resolve: {
-				AccountTimestampMsSource: {
-					appliesTo: [
-						...cosmosAccountTimestampApplicability,
-					],
-					resolve: async ({
-						$account,
-						timestampMs,
-						source,
-					}, context) => {
-						assertCosmosHub($account.$network)
-						if (source !== Source.Mintscan)
-							throw new Error(`Mintscan: unsupported account timestamp source ${source}`)
-
-						const { getAccount } = await import('$/sources/Mintscan/Rest/queries.ts')
-						const { account } = await getAccount(context.publicEnv, {
-							network: networkBySlug.cosmos.slug,
-							address: $account.address,
-						})
-						return cosmosAccountTimestampFields(
-							$account,
-							account,
-							timestampMs
-						)
-					},
-				},
-			},
-		})({
-			$account: (account) => account.$account,
-			timestampMs: (account) => account.timestampMs,
-			source: (account) => account.source,
-			accountNumber: (account) => account.accountNumber,
-			sequence: (account) => account.sequence,
 		}),
 
 		defineResolver({

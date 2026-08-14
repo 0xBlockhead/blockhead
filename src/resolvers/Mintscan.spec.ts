@@ -37,7 +37,6 @@ vi.mock('$/sources/Mintscan/Rest/queries.ts', () => ({
 
 const { default: mintscan } = await import('$/resolvers/Mintscan.ts')
 const accountResolver = mintscan.resolvers.find((resolver) => resolver.entityType === EntityType.CosmosAccount)
-const accountTimestampResolver = mintscan.resolvers.find((resolver) => resolver.entityType === EntityType.CosmosAccount_Timestamp)
 const blockResolver = mintscan.resolvers.find((resolver) => resolver.entityType === EntityType.CosmosBlock)
 const transactionResolver = mintscan.resolvers.find((resolver) => resolver.entityType === EntityType.CosmosTransaction)
 const messageResolver = mintscan.resolvers.find((resolver) => resolver.entityType === EntityType.CosmosMessage)
@@ -54,12 +53,6 @@ const networkBlocksResolver = mintscan.resolvers.find((resolver) => (
 const resolveAccount = (
 	accountResolver != null && 'NetworkAddress' in accountResolver.resolve ?
 		accountResolver.resolve.NetworkAddress.resolve
-	:
-		undefined
-)
-const resolveAccountTimestamp = (
-	accountTimestampResolver != null && 'AccountTimestampMsSource' in accountTimestampResolver.resolve ?
-		accountTimestampResolver.resolve.AccountTimestampMsSource.resolve
 	:
 		undefined
 )
@@ -96,8 +89,6 @@ const resolveNetworkBlocks = (
 
 if (resolveAccount == null)
 	throw new Error('Mintscan Cosmos account resolver is not registered')
-if (resolveAccountTimestamp == null)
-	throw new Error('Mintscan Cosmos account timestamp resolver is not registered')
 if (resolveBlock == null)
 	throw new Error('Mintscan Cosmos block resolver is not registered')
 if (resolveTransaction == null)
@@ -157,48 +148,26 @@ describe('Mintscan Cosmos Hub resolvers', () => {
 		expect(mintscan).toMatchObject({
 			source: Source.Mintscan,
 		})
-		expect(mintscan.resolvers).toHaveLength(7)
+		expect(mintscan.resolvers).toHaveLength(6)
 		expect(accountResolver?.entityType).toBe(EntityType.CosmosAccount)
-		expect(accountTimestampResolver?.entityType).toBe(EntityType.CosmosAccount_Timestamp)
 		expect(blockResolver?.entityType).toBe(EntityType.CosmosBlock)
 		expect(transactionResolver?.entityType).toBe(EntityType.CosmosTransaction)
 		expect(messageResolver?.entityType).toBe(EntityType.CosmosMessage)
 		expect(mintscan.resolvers.some((resolver) => resolver.entityType === EntityType.Network_Timestamp)).toBe(false)
+		expect(mintscan.resolvers.some((resolver) => resolver.entityType === EntityType.CosmosAccount_Timestamp)).toBe(false)
 	})
 
-	it('reads account and block concurrently and preserves lossless account counters', async () => {
-		const accountRequest = Promise.withResolvers<{
-			account: {
-				address: string
-				account_number: string
-				sequence: string
-			}
-		}>()
-		const blockRequest = Promise.withResolvers<typeof tipBlock>()
-		getAccount.mockReturnValue(accountRequest.promise)
-		getLatestBlock.mockReturnValue(blockRequest.promise)
-
-		const result = resolveAccount(account, context)
-		await vi.waitFor(() => {
-			expect(getAccount).toHaveBeenCalledWith(context.publicEnv, {
-				network: 'cosmos',
-				address: account.address,
-			})
-			expect(getLatestBlock).toHaveBeenCalledWith(context.publicEnv, {
-				network: 'cosmos',
-			})
-		})
-
-		accountRequest.resolve({
+	it('reads the account before its source-head clock and preserves lossless counters', async () => {
+		getAccount.mockResolvedValueOnce({
 			account: {
 				address: account.address,
 				account_number: '900719925474099312345',
 				sequence: '123456789012345678901',
 			},
 		})
-		blockRequest.resolve(tipBlock)
+		getLatestBlock.mockResolvedValueOnce(tipBlock)
 
-		await expect(result).resolves.toEqual({
+		await expect(resolveAccount(account, context)).resolves.toEqual({
 			$$timestamps: [{
 				[EntityMetaKey.Selector]: {
 					$account: account,
@@ -214,32 +183,7 @@ describe('Mintscan Cosmos Hub resolvers', () => {
 				},
 			}],
 		})
-	})
-
-	it('resolves account timestamp facets without a second latest-block fetch', async () => {
-		getAccount.mockResolvedValue({
-			account: {
-				address: account.address,
-				account_number: '11',
-				sequence: '22',
-			},
-		})
-
-		await expect(resolveAccountTimestamp({
-			$account: account,
-			timestampMs: 1_784_782_088_000,
-			source: Source.Mintscan,
-		}, context)).resolves.toEqual({
-			$account: {
-				[EntityMetaKey.Selector]: account,
-			},
-			timestampMs: 1_784_782_088_000,
-			source: Source.Mintscan,
-			accountNumber: 11n,
-			sequence: 22n,
-		})
-		expect(getLatestBlock).not.toHaveBeenCalled()
-		expect(getBlock).not.toHaveBeenCalled()
+		expect(getAccount.mock.invocationCallOrder[0]).toBeLessThan(getLatestBlock.mock.invocationCallOrder[0])
 	})
 
 	it('maps Cosmos blocks by height through the LCD proxy', async () => {

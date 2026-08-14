@@ -21,11 +21,6 @@ const assertLightningNetwork = (network: NetworkId) => {
 		throw new Error('Amboss_Graphql: unsupported Lightning network')
 }
 
-const assertAmbossSource = (source: string) => {
-	if (source !== Source.Amboss_Graphql)
-		throw new Error(`Amboss_Graphql: unsupported source ${source}`)
-}
-
 const timestampMsFromNodeSeconds = (seconds: number) => (
 	Math.round(seconds) * 1000
 )
@@ -135,6 +130,31 @@ const channelTimestampSnapshotFromAmbossEdge = (
 	}
 }
 
+const timestampEntityFields = (
+	entityType: (
+		| EntityType.LightningNode_Timestamp
+		| EntityType.LightningChannel_Timestamp
+	),
+	snapshot: {
+		readonly [fieldName: string]: (
+			| bigint
+			| number
+			| string
+			| readonly string[]
+			| undefined
+		)
+	}
+) => (
+	Object.fromEntries(
+		Object.entries(snapshot)
+			.filter(([, value]) => value != null)
+			.map(([fieldName, value]) => [
+				entityFieldAddressKey(entityType, [], fieldName),
+				value,
+			])
+	)
+)
+
 const ambossChannelListOffset = (
 	context: import('$/resolvers/$resolvers.ts').ResolverContext
 ) => {
@@ -186,6 +206,10 @@ export default {
 										timestampMs: timestampMsFromNodeSeconds(node.graph_info.node.last_update),
 										source: Source.Amboss_Graphql,
 									},
+									[EntityMetaKey.Fields]: timestampEntityFields(
+										EntityType.LightningNode_Timestamp,
+										nodeSnapshotFromAmbossNode(node)
+									),
 								},
 							],
 						}
@@ -194,36 +218,6 @@ export default {
 			},
 		})({
 			$$timestamps: (snapshot) => snapshot.$$timestamps,
-		}),
-
-		defineResolver({
-			entityType: EntityType.LightningNode_Timestamp,
-			resolve: {
-				NodeTimestampMsSource: {
-					resolve: async ({ $node, source, timestampMs }) => {
-						assertAmbossSource(source)
-						assertLightningNetwork($node.$network)
-						const { getNode } = await import('$/sources/Amboss/Graphql/queries.ts')
-						const node = await getNode({
-							publicKey: $node.publicKey,
-						})
-						const observedTimestampMs = timestampMsFromNodeSeconds(node.graph_info.node.last_update)
-						if (observedTimestampMs !== timestampMs)
-							throw new Error('Amboss_Graphql: node observation clock mismatch')
-
-						return nodeSnapshotFromAmbossNode(node)
-					},
-				}
-			},
-		})({
-			alias: (snapshot) => snapshot.alias,
-			color: (snapshot) => snapshot.color,
-			capacitySats: (snapshot) => snapshot.capacitySats,
-			channelCount: (snapshot) => snapshot.channelCount,
-			updatedAtMs: (snapshot) => snapshot.updatedAtMs,
-			countryCode: (snapshot) => snapshot.countryCode,
-			city: (snapshot) => snapshot.city,
-			networkAddresses: (snapshot) => snapshot.networkAddresses,
 		}),
 
 		defineResolver({
@@ -360,6 +354,10 @@ export default {
 										timestampMs: timestampMsFromChannelWire(edgeInfo.last_update),
 										source: Source.Amboss_Graphql,
 									},
+									[EntityMetaKey.Fields]: timestampEntityFields(
+										EntityType.LightningChannel_Timestamp,
+										channelTimestampSnapshotFromAmbossEdge(edge)
+									),
 								},
 							],
 						}
@@ -372,36 +370,6 @@ export default {
 			fundingOutputIndex: (snapshot) => snapshot.fundingOutputIndex,
 			$node1: (snapshot) => snapshot.$node1,
 			$$timestamps: (snapshot) => snapshot.$$timestamps,
-		}),
-
-		defineResolver({
-			entityType: EntityType.LightningChannel_Timestamp,
-			resolve: {
-				ChannelTimestampMsSource: {
-					resolve: async ({ $channel, source, timestampMs }) => {
-						assertAmbossSource(source)
-						assertLightningNetwork($channel.$network)
-						const { getEdge } = await import('$/sources/Amboss/Graphql/queries.ts')
-						const edge = await getEdge({
-							channelId: $channel.channelId,
-						})
-						const observedTimestampMs = timestampMsFromChannelWire(edge.graph.info.last_update)
-						if (observedTimestampMs !== timestampMs)
-							throw new Error('Amboss_Graphql: channel observation clock mismatch')
-
-						return channelTimestampSnapshotFromAmbossEdge(edge)
-					},
-				}
-			},
-		})({
-			status: (snapshot) => snapshot.status,
-			capacitySats: (snapshot) => snapshot.capacitySats,
-			feeRatePpm: (snapshot) => snapshot.feeRatePpm,
-			updatedAtMs: (snapshot) => snapshot.updatedAtMs,
-			closingTransactionId: (snapshot) => snapshot.closingTransactionId,
-			closingFeeSats: (snapshot) => snapshot.closingFeeSats,
-			closingReason: (snapshot) => snapshot.closingReason,
-			closedAtMs: (snapshot) => snapshot.closedAtMs,
 		}),
 
 		defineResolver({
