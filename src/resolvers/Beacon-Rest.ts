@@ -536,12 +536,17 @@ export default {
 				EvmNetworkSlot: {
 					appliesTo: eip155NetworkApplicability,
 					resolve: async ({ $network, slot }) => {
-						const { getBeaconBlockSnapshot } = await import('$/sources/Beacon/Rest/queries.ts')
-						const block = await getBeaconBlockSnapshot(
-							eip155ChainId($network),
-							slot
-						)
-						return [{
+						const {
+							getBeaconBlockSnapshot,
+							getHeadersAtSlot,
+						} = await import('$/sources/Beacon/Rest/queries.ts')
+						const chainId = eip155ChainId($network)
+						const timestampMs = Date.now()
+						return (await Promise.all((
+							await getHeadersAtSlot(chainId, slot)
+						).map((header) => (
+							getBeaconBlockSnapshot(chainId, header.root)
+						)))).map((block) => ({
 							[EntityMetaKey.Selector]: {
 								$network,
 								root: block.root,
@@ -579,8 +584,23 @@ export default {
 										},
 									},
 								}),
+								[entityFieldAddressKey(EntityType.BeaconBlock, [], '$$timestamps')]: [{
+									[EntityMetaKey.Selector]: {
+										$block: {
+											$network,
+											root: block.root,
+										},
+										timestampMs,
+										source: Source.Beacon_Rest,
+									},
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.BeaconBlock_Timestamp, [], 'canonical')]: block.canonical,
+										[entityFieldAddressKey(EntityType.BeaconBlock_Timestamp, [], 'executionOptimistic')]: block.executionOptimistic,
+										[entityFieldAddressKey(EntityType.BeaconBlock_Timestamp, [], 'finalized')]: block.finalized,
+									},
+								}],
 							},
-						}]
+						}))
 					},
 				},
 			},

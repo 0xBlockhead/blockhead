@@ -669,24 +669,32 @@ describe('Beacon REST checkpoint and fork projections', () => {
 
 	it('materializes a fork-root block and source-clocked canonicality observation', async () => {
 		vi.spyOn(Date, 'now').mockReturnValue(1_750_000_000_000)
-		getBeaconBlockSnapshot.mockResolvedValue({
+		getHeadersAtSlot.mockResolvedValue([
+			{
+				root: `0x${'a'.repeat(64)}`,
+			},
+			{
+				root: `0x${'1'.repeat(64)}`,
+			},
+		])
+		getBeaconBlockSnapshot.mockImplementation(async (_chainId, root) => ({
 			version: 'electra',
-			root: `0x${'a'.repeat(64)}`,
+			root,
 			slot: 64,
 			proposerIndex: 12,
 			parentRoot: `0x${'b'.repeat(64)}`,
 			stateRoot: `0x${'c'.repeat(64)}`,
 			bodyRoot: `0x${'d'.repeat(64)}`,
 			signature: `0x${'e'.repeat(192)}`,
-			canonical: true,
+			canonical: root === `0x${'a'.repeat(64)}`,
 			executionOptimistic: false,
-			finalized: true,
+			finalized: root === `0x${'a'.repeat(64)}`,
 			executionBlockHash: `0x${'f'.repeat(64)}`,
 			deposits: [],
 			attestations: [],
 			withdrawals: [],
 			slashings: [],
-		})
+		}))
 		const selector = {
 			$network: network,
 			root: `0x${'a'.repeat(64)}`,
@@ -721,14 +729,44 @@ describe('Beacon REST checkpoint and fork projections', () => {
 				[entityFieldAddressKey(EntityType.BeaconBlock_Timestamp, [], 'finalized')]: true,
 			},
 		})
+		expect(blocks).toHaveLength(2)
 		expect(blocks[0]).toMatchObject({
 			[EntityMetaKey.Selector]: { root: selector.root },
 			[EntityMetaKey.Fields]: {
 				[entityFieldAddressKey(EntityType.BeaconBlock, [], 'version')]: 'electra',
+				[entityFieldAddressKey(EntityType.BeaconBlock, [], '$$timestamps')]: [{
+					[EntityMetaKey.Selector]: {
+						timestampMs: 1_750_000_000_000,
+						source: Source.Beacon_Rest,
+					},
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.BeaconBlock_Timestamp, [], 'canonical')]: true,
+						[entityFieldAddressKey(EntityType.BeaconBlock_Timestamp, [], 'finalized')]: true,
+					},
+				}],
+			},
+		})
+		expect(blocks[1]).toMatchObject({
+			[EntityMetaKey.Selector]: { root: `0x${'1'.repeat(64)}` },
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.BeaconBlock, [], '$$timestamps')]: [{
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.BeaconBlock_Timestamp, [], 'canonical')]: false,
+						[entityFieldAddressKey(EntityType.BeaconBlock_Timestamp, [], 'finalized')]: false,
+					},
+				}],
 			},
 		})
 		expect(getBeaconBlockSnapshot).toHaveBeenNthCalledWith(1, 1, selector.root)
-		expect(getBeaconBlockSnapshot).toHaveBeenNthCalledWith(2, 1, 64)
+		expect(getBeaconBlockSnapshot).toHaveBeenNthCalledWith(2, 1, selector.root)
+		expect(getBeaconBlockSnapshot).toHaveBeenNthCalledWith(3, 1, `0x${'1'.repeat(64)}`)
+		expect(getHeadersAtSlot).toHaveBeenCalledWith(1, 64)
+
+		getHeadersAtSlot.mockResolvedValue([])
+		await expect(slotBlocksResolver.resolve.EvmNetworkSlot.resolve({
+			$network: network,
+			slot: 65,
+		})).resolves.toEqual([])
 	})
 
 	it('rejects a native uint64 header index that cannot be represented by the schema number', async () => {
