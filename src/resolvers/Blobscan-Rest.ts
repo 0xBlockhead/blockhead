@@ -272,7 +272,10 @@ export default {
 			blobGasUsed: (block) => block.blobGasUsed,
 			excessBlobGas: (block) => block.excessBlobGas,
 			transactionCount: (block) => block.transactionCount,
-			$$transactions: (block) => block.transactions,
+			$$transactions: {
+				select: (block) => block.transactions,
+				resolveCount: (block) => block.transactions.length,
+			},
 		}),
 
 		defineResolver({
@@ -377,7 +380,10 @@ export default {
 			Blob: {
 				blobGasUsed: (transaction) => transaction.blobGasUsed,
 				maxFeePerBlobGas: (transaction) => transaction.maxFeePerBlobGas,
-				$$blobs: (transaction) => transaction.blobs,
+				$$blobs: {
+					select: (transaction) => transaction.blobs,
+					resolveCount: (transaction) => transaction.blobs.length,
+				},
 			},
 		}),
 

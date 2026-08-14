@@ -154,7 +154,7 @@ describe('Blobscan EVM blob resolvers', () => {
 			$network: network,
 			txHash,
 		}, context)
-		expect(transactionBlobsResolver.projections.Blob.$$blobs(rows, context)).toEqual([{
+		expect(transactionBlobsResolver.projections.Blob.$$blobs.select(rows, context)).toEqual([{
 			[EntityMetaKey.Selector]: {
 				$transaction: {
 					$network: network,
@@ -185,6 +185,7 @@ describe('Blobscan EVM blob resolvers', () => {
 			},
 		})
 		expect(getTransaction).toHaveBeenCalledOnce()
+		expect(transactionBlobsResolver.projections.Blob.$$blobs.resolveCount(rows, context)).toBe(1)
 	})
 
 	it('lists Network.Evm.$$blobs from Blobscan recent blobs', async () => {
@@ -234,6 +235,7 @@ describe('Blobscan EVM blob resolvers', () => {
 			limit: 16,
 			offset: 0,
 		})
+		expect(networkBlobsResolver.projections.Evm.$$blobs.resolveCount).toBeUndefined()
 	})
 
 	it('projects enrolled EvmBlock blob-gas fields and $$transactions from getBlock', async () => {
@@ -264,7 +266,7 @@ describe('Blobscan EVM blob resolvers', () => {
 		expect(blockResolver.projections.blobGasUsed(block, context)).toBe(131072n)
 		expect(blockResolver.projections.excessBlobGas(block, context)).toBe(0n)
 		expect(blockResolver.projections.transactionCount(block, context)).toBe(1)
-		expect(blockResolver.projections.$$transactions(block, context)).toEqual([{
+		expect(blockResolver.projections.$$transactions.select(block, context)).toEqual([{
 			[EntityMetaKey.Selector]: {
 				$network: network,
 				txHash,
@@ -291,6 +293,7 @@ describe('Blobscan EVM blob resolvers', () => {
 				}],
 			},
 		}])
+		expect(blockResolver.projections.$$transactions.resolveCount(block, context)).toBe(1)
 	})
 
 	it('resolves EvmBlock by hash and projects enrolled Blobscan transaction fields', async () => {
@@ -447,6 +450,7 @@ describe('Blobscan EVM blob resolvers', () => {
 				})],
 			},
 		}])
+		expect(networkBlocksResolver.projections.Evm.$$blocks.resolveCount).toBeUndefined()
 	})
 
 	it('hard-fails missing Blobscan blocks instead of soft-emptying EvmBlock', async () => {

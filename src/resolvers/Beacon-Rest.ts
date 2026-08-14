@@ -400,14 +400,46 @@ const beaconEpochReference = (
 	},
 })
 
+const descendingIntegerContinuation = (
+	operation: string,
+	last: number | undefined
+) => (
+	last == null || last === 0 ?
+		{
+			operation,
+			terminal: true as const,
+		}
+	:
+		{
+			operation,
+			terminal: false as const,
+			token: String(last - 1),
+		}
+)
+
+const continuationStartInteger = (
+	token: string | undefined,
+	fallback: number,
+	description: string
+) => {
+	if (token == null)
+		return fallback
+	if (!/^(0|[1-9][0-9]*)$/.test(token))
+		throw new Error(`Beacon_Rest: invalid ${description} continuation`)
+	const start = Number(token)
+	if (!Number.isSafeInteger(start))
+		throw new Error(`Beacon_Rest: invalid ${description} continuation`)
+	return start
+}
+
 const beaconRecentEpochReferences = (
 	$network: EntitySelector<typeof schema, EntityType.Network>,
-	headEpoch: number,
-	limit: number,
+	startEpoch: number,
+	limit: number
 ) => (
 	Array.from(
 		{ length: limit },
-		(_, index) => headEpoch - index
+		(_, index) => startEpoch - index
 	)
 		.flatMap((epoch) => (
 			epoch < 0 ?
@@ -422,16 +454,20 @@ const beaconRecentSlotReferencesFromHead = async (
 	chainId: number,
 	headHeader: Awaited<ReturnType<typeof import('$/sources/Beacon/Rest/queries.ts').getHeader>>,
 	limit: number,
+	startSlot?: number
 ) => {
 	const { getHeader } = await import('$/sources/Beacon/Rest/queries.ts')
 	const headSlot = safeIntegerFromDecimal(
 		headHeader.header.message.slot,
 		'head slot'
 	)
+	const fromSlot = startSlot ?? headSlot
+	if (fromSlot > headSlot)
+		throw new Error('Beacon_Rest: slots continuation exceeds head')
 	return Promise.all(
 		Array.from(
 			{ length: limit },
-			(_, index) => headSlot - index
+			(_, index) => fromSlot - index
 		)
 			.flatMap((slot) => (
 				slot < 0 ?
@@ -729,7 +765,10 @@ export default {
 				},
 			},
 		})({
-			$$blocks: (blocks) => blocks,
+			$$blocks: {
+				select: (blocks) => blocks,
+				resolveCount: (blocks) => blocks.length,
+			},
 		}),
 
 		defineResolver({
@@ -857,11 +896,23 @@ export default {
 			$executionBlock: (block) => block.$executionBlock,
 			$executionPayloadBid: (block) => block.$executionPayloadBid,
 			$executionPayloadEnvelope: (block) => block.$executionPayloadEnvelope,
-			$$attestations: (block) => block.$$attestations,
-			$$deposits: (block) => block.$$deposits,
-			$$slashings: (block) => block.$$slashings,
+			$$attestations: {
+				select: (block) => block.$$attestations,
+				resolveCount: (block) => block.$$attestations.length,
+			},
+			$$deposits: {
+				select: (block) => block.$$deposits,
+				resolveCount: (block) => block.$$deposits.length,
+			},
+			$$slashings: {
+				select: (block) => block.$$slashings,
+				resolveCount: (block) => block.$$slashings.length,
+			},
 			$$timestamps: (block) => block.$$timestamps,
-			$$withdrawals: (block) => block.$$withdrawals,
+			$$withdrawals: {
+				select: (block) => block.$$withdrawals,
+				resolveCount: (block) => block.$$withdrawals.length,
+			},
 		}),
 
 		defineResolver({
@@ -1043,9 +1094,18 @@ export default {
 			excessBlobGas: (envelope) => envelope.excessBlobGas,
 			blockAccessList: (envelope) => envelope.blockAccessList,
 			transactionCount: (envelope) => envelope.transactionCount,
-			$$consolidationRequests: (envelope) => envelope.$$consolidationRequests,
-			$$depositRequests: (envelope) => envelope.$$depositRequests,
-			$$withdrawalRequests: (envelope) => envelope.$$withdrawalRequests,
+			$$consolidationRequests: {
+				select: (envelope) => envelope.$$consolidationRequests,
+				resolveCount: (envelope) => envelope.$$consolidationRequests.length,
+			},
+			$$depositRequests: {
+				select: (envelope) => envelope.$$depositRequests,
+				resolveCount: (envelope) => envelope.$$depositRequests.length,
+			},
+			$$withdrawalRequests: {
+				select: (envelope) => envelope.$$withdrawalRequests,
+				resolveCount: (envelope) => envelope.$$withdrawalRequests.length,
+			},
 			$$timestamps: (envelope) => envelope.$$timestamps,
 		}),
 
@@ -1140,7 +1200,7 @@ export default {
 						const chainId = eip155ChainId($network)
 						const headers = await getHeadersAtSlot(chainId, slot)
 						const timestampMs = Date.now()
-						return (await Promise.all(headers.map(async (header) => {
+						const columns = (await Promise.all(headers.map(async (header) => {
 							const sidecars = await getDataColumnSidecars(chainId, header.root)
 							return sidecars.sidecars.map((sidecar) => {
 								if (sidecar.slot !== slot)
@@ -1158,12 +1218,18 @@ export default {
 							})
 						})))
 							.flat()
-							.slice(0, resolverContextRowLimit(context))
+						return {
+							columns: columns.slice(0, resolverContextRowLimit(context)),
+							columnCount: columns.length,
+						}
 					},
 				},
 			},
 		})({
-				$$dataColumns: (slot) => slot,
+				$$dataColumns: {
+					select: (slot) => slot.columns,
+					resolveCount: (slot) => slot.columnCount,
+				},
 			}),
 
 		defineResolver({
@@ -1638,47 +1704,53 @@ export default {
 							|| Number(duty.slot) >= (epoch + 1) * slotsPerEpoch
 						)))
 							throw new Error(`Beacon_Rest: proposer duty outside epoch ${String(epoch)}`)
-						return Promise.all(
-							duties
-								.slice(0, Math.min(resolverContextRowLimit(context), slotsPerEpoch))
-								.map(async (duty) => {
-									const slot = Number(duty.slot)
-									const headers = await getHeadersAtSlot(chainId, slot)
-									if (headers.length > 1)
-										throw new Error(`Beacon_Rest: multiple canonical headers returned for slot ${String(slot)}`)
-									if (headers.length === 0)
+						return {
+							slots: await Promise.all(
+								duties
+									.slice(0, Math.min(resolverContextRowLimit(context), slotsPerEpoch))
+									.map(async (duty) => {
+										const slot = Number(duty.slot)
+										const headers = await getHeadersAtSlot(chainId, slot)
+										if (headers.length > 1)
+											throw new Error(`Beacon_Rest: multiple canonical headers returned for slot ${String(slot)}`)
+										if (headers.length === 0)
+											return {
+												[EntityMetaKey.Selector]: {
+													$network,
+													slot,
+												},
+												[EntityMetaKey.Fields]: {
+													[entityFieldAddressKey(EntityType.BeaconSlot, [], 'epoch')]: epoch,
+													[entityFieldAddressKey(EntityType.BeaconSlot, [], 'proposerIndex')]: Number(duty.validator_index),
+												},
+											}
+										const rewards = await getBlockRewards(chainId, slot)
+										const slotReference = beaconSlotReferenceFromHeader($network, headers[0])
 										return {
-											[EntityMetaKey.Selector]: {
-												$network,
-												slot,
-											},
+											...slotReference,
 											[EntityMetaKey.Fields]: {
-												[entityFieldAddressKey(EntityType.BeaconSlot, [], 'epoch')]: epoch,
-												[entityFieldAddressKey(EntityType.BeaconSlot, [], 'proposerIndex')]: Number(duty.validator_index),
+												...slotReference[EntityMetaKey.Fields],
+												[entityFieldAddressKey(EntityType.BeaconSlot, [], 'rewardTotalGwei')]: rewards.totalGwei,
+												[entityFieldAddressKey(EntityType.BeaconSlot, [], 'rewardAttestationsGwei')]: rewards.attestationsGwei,
+												[entityFieldAddressKey(EntityType.BeaconSlot, [], 'rewardSyncAggregateGwei')]: rewards.syncAggregateGwei,
+												[entityFieldAddressKey(EntityType.BeaconSlot, [], 'rewardProposerSlashingsGwei')]: rewards.proposerSlashingsGwei,
+												[entityFieldAddressKey(EntityType.BeaconSlot, [], 'rewardAttesterSlashingsGwei')]: rewards.attesterSlashingsGwei,
+												[entityFieldAddressKey(EntityType.BeaconSlot, [], 'rewardExecutionOptimistic')]: rewards.executionOptimistic,
+												[entityFieldAddressKey(EntityType.BeaconSlot, [], 'rewardFinalized')]: rewards.finalized,
 											},
 										}
-									const rewards = await getBlockRewards(chainId, slot)
-									const slotReference = beaconSlotReferenceFromHeader($network, headers[0])
-									return {
-										...slotReference,
-										[EntityMetaKey.Fields]: {
-											...slotReference[EntityMetaKey.Fields],
-											[entityFieldAddressKey(EntityType.BeaconSlot, [], 'rewardTotalGwei')]: rewards.totalGwei,
-											[entityFieldAddressKey(EntityType.BeaconSlot, [], 'rewardAttestationsGwei')]: rewards.attestationsGwei,
-											[entityFieldAddressKey(EntityType.BeaconSlot, [], 'rewardSyncAggregateGwei')]: rewards.syncAggregateGwei,
-											[entityFieldAddressKey(EntityType.BeaconSlot, [], 'rewardProposerSlashingsGwei')]: rewards.proposerSlashingsGwei,
-											[entityFieldAddressKey(EntityType.BeaconSlot, [], 'rewardAttesterSlashingsGwei')]: rewards.attesterSlashingsGwei,
-											[entityFieldAddressKey(EntityType.BeaconSlot, [], 'rewardExecutionOptimistic')]: rewards.executionOptimistic,
-											[entityFieldAddressKey(EntityType.BeaconSlot, [], 'rewardFinalized')]: rewards.finalized,
-										},
-									}
-								})
-						)
+									})
+							),
+							slotCount: duties.length,
+						}
 					},
 				},
 			},
 		})({
-				$$beaconSlots: (epoch) => epoch,
+				$$beaconSlots: {
+					select: (epoch) => epoch.slots,
+					resolveCount: (epoch) => epoch.slotCount,
+				},
 			}),
 
 		defineResolver({
@@ -1694,17 +1766,40 @@ export default {
 								'head slot'
 							) / slotsPerEpoch
 						)
-						return beaconRecentEpochReferences(
-							{ caip2 },
-							headEpoch,
-							resolverContextRowLimit(context)
+						const offset = context.pagination.offset ?? 0
+						if (!Number.isSafeInteger(offset) || offset < 0)
+							throw new Error('Beacon_Rest: invalid epochs offset')
+						const startEpoch = continuationStartInteger(
+							context.providerContinuationToken,
+							headEpoch - offset,
+							'epochs'
 						)
+						if (startEpoch > headEpoch)
+							throw new Error('Beacon_Rest: epochs continuation exceeds head')
+						return {
+							epochs: startEpoch < 0 ?
+								[]
+							:
+								beaconRecentEpochReferences(
+									{ caip2 },
+									startEpoch,
+									resolverContextRowLimit(context)
+								),
+							epochCount: headEpoch + 1,
+						}
 					},
 				},
 			},
 		})({
 				Evm: {
-					$$beaconEpochs: (network) => network,
+					$$beaconEpochs: {
+						select: (network) => network.epochs,
+						resolveCount: (network) => network.epochCount,
+						continuation: (network) => descendingIntegerContinuation(
+							'network-beacon-epochs',
+							network.epochs.at(-1)?.[EntityMetaKey.Selector].epoch
+						),
+					},
 				},
 			}),
 
@@ -1716,12 +1811,31 @@ export default {
 						const { getHeader } = await import('$/sources/Beacon/Rest/queries.ts')
 						const chainId = Number(caip2.reference)
 						const headHeader = await getHeader(chainId, 'head')
-						return beaconRecentSlotReferencesFromHead(
-							{ caip2 },
-							chainId,
-							headHeader,
-							resolverContextRowLimit(context)
+						const headSlot = safeIntegerFromDecimal(
+							headHeader.header.message.slot,
+							'head slot'
 						)
+						const offset = context.pagination.offset ?? 0
+						if (!Number.isSafeInteger(offset) || offset < 0)
+							throw new Error('Beacon_Rest: invalid slots offset')
+						const startSlot = continuationStartInteger(
+							context.providerContinuationToken,
+							headSlot - offset,
+							'slots'
+						)
+						return {
+							slots: startSlot < 0 ?
+								[]
+							:
+								await beaconRecentSlotReferencesFromHead(
+									{ caip2 },
+									chainId,
+									headHeader,
+									resolverContextRowLimit(context),
+									startSlot
+								),
+							slotCount: headSlot + 1,
+						}
 					},
 				},
 			},
@@ -1795,6 +1909,10 @@ export default {
 										source: Source.Beacon_Rest,
 										value: recentSlots,
 									}])
+									fields.$$beaconSlots.count.replaceRows([{
+										source: Source.Beacon_Rest,
+										value: headSlot + 1,
+									}])
 									lastHeadSlot = headSlot
 									lastHeadRoot = headRoot
 								}
@@ -1807,6 +1925,10 @@ export default {
 											headEpoch,
 											limit
 										),
+									}])
+									fields.$$beaconEpochs.count.replaceRows([{
+										source: Source.Beacon_Rest,
+										value: headEpoch + 1,
 									}])
 								}
 								if (checkpoints == null)
@@ -1842,7 +1964,14 @@ export default {
 			},
 		})({
 				Evm: {
-					$$beaconSlots: (network) => network,
+					$$beaconSlots: {
+						select: (network) => network.slots,
+						resolveCount: (network) => network.slotCount,
+						continuation: (network) => descendingIntegerContinuation(
+							'network-beacon-slots',
+							network.slots.at(-1)?.[EntityMetaKey.Selector].slot
+						),
+					},
 					$$beaconEpochs: {},
 					$$beaconFinalityTimestamps: {},
 				},
@@ -1933,12 +2062,11 @@ export default {
 					appliesTo: eip155NetworkApplicability,
 					resolve: async ({ $network, slot }, context) => {
 						const { getCommittees } = await import('$/sources/Beacon/Rest/queries.ts')
-						return (
+						const committees = (
 							(await getCommittees(
 								eip155ChainId($network),
 								String(slot)
 							))
-								.slice(0, resolverContextRowLimit(context))
 								.map((committee) => ({
 									[EntityMetaKey.Selector]: {
 										$network,
@@ -1950,11 +2078,18 @@ export default {
 									},
 								}))
 						)
+						return {
+							committees: committees.slice(0, resolverContextRowLimit(context)),
+							committeeCount: committees.length,
+						}
 					},
 				},
 			},
 		})({
-				$$beaconCommittees: (slot) => slot,
+				$$beaconCommittees: {
+					select: (slot) => slot.committees,
+					resolveCount: (slot) => slot.committeeCount,
+				},
 			}),
 
 		defineResolver({
@@ -1977,24 +2112,40 @@ export default {
 							deposits: block.deposits
 								.slice(0, limit)
 								.map((deposit) => beaconDepositReference(blockSelector, deposit)),
+							depositCount: block.deposits.length,
 							attestations: block.attestations
 								.slice(0, limit)
 								.map((attestation) => beaconAttestationReference(blockSelector, attestation)),
+							attestationCount: block.attestations.length,
 							withdrawals: block.withdrawals
 								.slice(0, limit)
 								.map((withdrawal) => beaconWithdrawalReference(blockSelector, withdrawal)),
+							withdrawalCount: block.withdrawals.length,
 							slashings: block.slashings
 								.slice(0, limit)
 								.map((slashing) => beaconSlashingReference(blockSelector, slashing)),
+							slashingCount: block.slashings.length,
 						}
 					},
 				},
 			},
 		})({
-				$$beaconDeposits: (slot) => slot.deposits,
-				$$beaconAttestations: (slot) => slot.attestations,
-				$$beaconWithdrawals: (slot) => slot.withdrawals,
-				$$beaconSlashings: (slot) => slot.slashings,
+				$$beaconDeposits: {
+					select: (slot) => slot.deposits,
+					resolveCount: (slot) => slot.depositCount,
+				},
+				$$beaconAttestations: {
+					select: (slot) => slot.attestations,
+					resolveCount: (slot) => slot.attestationCount,
+				},
+				$$beaconWithdrawals: {
+					select: (slot) => slot.withdrawals,
+					resolveCount: (slot) => slot.withdrawalCount,
+				},
+				$$beaconSlashings: {
+					select: (slot) => slot.slashings,
+					resolveCount: (slot) => slot.slashingCount,
+				},
 			}),
 
 		defineResolver({
@@ -2004,9 +2155,8 @@ export default {
 					resolve: async ({ caip2 }, context) => {
 						const { getCommittees } = await import('$/sources/Beacon/Rest/queries.ts')
 						const chainId = Number(caip2.reference)
-						return (
+						const committees = (
 							(await getCommittees(chainId))
-								.slice(0, resolverContextRowLimit(context))
 								.map((committee) => ({
 									[EntityMetaKey.Selector]: {
 										$network: { caip2 },
@@ -2018,6 +2168,7 @@ export default {
 									},
 								}))
 						)
+						return committees.slice(0, resolverContextRowLimit(context))
 					},
 				},
 			},
@@ -2042,10 +2193,20 @@ export default {
 								) / slotsPerEpoch
 							) / epochsPerSyncCommitteePeriod
 						)
-						return Promise.all(
+						const offset = context.pagination.offset ?? 0
+						if (!Number.isSafeInteger(offset) || offset < 0)
+							throw new Error('Beacon_Rest: invalid sync committees offset')
+						const startPeriod = continuationStartInteger(
+							context.providerContinuationToken,
+							headPeriod - offset,
+							'sync committees'
+						)
+						if (startPeriod > headPeriod)
+							throw new Error('Beacon_Rest: sync committees continuation exceeds head')
+						const committees = await Promise.all(
 							Array.from(
 								{ length: resolverContextRowLimit(context) },
-								(_, i) => headPeriod - i
+								(_, i) => startPeriod - i
 							)
 								.flatMap((period) => (
 									period < 0 ?
@@ -2070,12 +2231,23 @@ export default {
 											})]
 								))
 						)
+						return {
+							committees,
+							periodCount: headPeriod + 1,
+						}
 					},
 				},
 			},
 		})({
 				Evm: {
-					$$beaconSyncCommittees: (network) => network,
+					$$beaconSyncCommittees: {
+						select: (network) => network.committees,
+						resolveCount: (network) => network.periodCount,
+						continuation: (network) => descendingIntegerContinuation(
+							'network-beacon-sync-committees',
+							network.committees.at(-1)?.[EntityMetaKey.Selector].period
+						),
+					},
 				},
 			}),
 
