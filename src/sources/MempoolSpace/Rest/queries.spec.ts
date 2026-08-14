@@ -26,6 +26,7 @@ const {
 	getAddressUtxos,
 	getMempoolStats,
 	getMiningHashrate,
+	getOutspend,
 	getRecommendedFees,
 	getTransaction,
 	getTransactionProtocolPayloads,
@@ -144,10 +145,23 @@ describe('mempool.space Bitcoin REST binding', () => {
 		await expect(getBlockHashByHeight(840_000n)).resolves.toBe('a'.repeat(64))
 		await expect(getAddressUtxos('bc1qexample')).resolves.toHaveLength(1)
 
+		sourceGetJson.mockResolvedValueOnce([{
+			txid: 'b'.repeat(64),
+			vout: 1,
+			status: {
+				confirmed: false,
+			},
+		}])
+		await expect(getAddressUtxos('bc1qexample')).rejects.toThrow('Bitcoin address UTXO is missing value')
+
 		expect(sourceGetJson.mock.calls).toEqual([
 			[
 				binding,
 				'https://mempool.space/api/block-height/840000',
+			],
+			[
+				binding,
+				'https://mempool.space/api/address/bc1qexample/utxo',
 			],
 			[
 				binding,
@@ -370,5 +384,37 @@ describe('mempool.space Bitcoin REST binding', () => {
 			payloadHex: '020100',
 			isCenotaph: false,
 		})
+	})
+
+	it('preserves unspent and spent outspend envelopes', async () => {
+		const txId = 'aa'.repeat(32)
+		sourceGetJson
+			.mockResolvedValueOnce({
+				spent: false,
+			})
+			.mockResolvedValueOnce({
+				spent: true,
+				txid: 'bb'.repeat(32),
+				vin: 0,
+			})
+			.mockResolvedValueOnce({
+				spent: true,
+			})
+
+		await expect(getOutspend(txId, 0)).resolves.toEqual({
+			spent: false,
+		})
+		await expect(getOutspend(txId, 1)).resolves.toMatchObject({
+			spent: true,
+			txid: 'bb'.repeat(32),
+			vin: 0,
+		})
+		await expect(getOutspend(txId, 1)).rejects.toThrow('spent outspend is missing spending identity')
+		await expect(getOutspend(txId, -1)).rejects.toThrow('outspend output index must be a non-negative safe integer')
+		expect(sourceGetJson.mock.calls.map(([, url]) => url)).toEqual([
+			`https://mempool.space/api/tx/${txId}/outspend/0`,
+			`https://mempool.space/api/tx/${txId}/outspend/1`,
+			`https://mempool.space/api/tx/${txId}/outspend/1`,
+		])
 	})
 })

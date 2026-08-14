@@ -22,7 +22,9 @@ const {
 	getBlockTransactionIds,
 	getBlockTransactions,
 	getAddress,
+	getAddressUtxos,
 	getMempoolStats,
+	getOutspend,
 	getSuggestedFeePerByteSats,
 	getTransaction,
 	getTransactionProtocolPayloads,
@@ -451,5 +453,98 @@ describe('Esplora REST binding selection', () => {
 			total_fee: 1,
 		})
 		await expect(getMempoolStats(bitcoinBinding.target.key)).rejects.toThrow('invalid mempool stats envelope')
+	})
+
+	it('preserves unspent and spent outspend envelopes and confidential address UTXOs', async () => {
+		const txId = 'aa'.repeat(32)
+		sourceGetJson
+			.mockResolvedValueOnce({
+				spent: false,
+			})
+			.mockResolvedValueOnce({
+				spent: true,
+				txid: 'bb'.repeat(32),
+				vin: 1,
+				status: {
+					confirmed: true,
+					block_height: 840_001,
+				},
+			})
+			.mockResolvedValueOnce({
+				spent: true,
+			})
+			.mockResolvedValueOnce([
+				{
+					txid: txId,
+					vout: 0,
+					status: {
+						confirmed: true,
+					},
+					valuecommitment: 'valuecommit',
+					assetcommitment: 'assetcommit',
+				},
+			])
+
+		await expect(getOutspend({
+			target: bitcoinBinding.target.key,
+			txId,
+			vout: 0,
+		})).resolves.toEqual({
+			spent: false,
+		})
+		await expect(getOutspend({
+			target: liquidBinding.target.key,
+			txId,
+			vout: 1,
+		})).resolves.toMatchObject({
+			spent: true,
+			txid: 'bb'.repeat(32),
+			vin: 1,
+		})
+		await expect(getOutspend({
+			target: bitcoinBinding.target.key,
+			txId,
+			vout: 0,
+		})).rejects.toThrow('spent outspend is missing spending identity')
+		await expect(getAddressUtxos({
+			address: 'ex1qexample',
+			target: liquidBinding.target.key,
+		})).resolves.toEqual([
+			{
+				txid: txId,
+				vout: 0,
+				status: {
+					confirmed: true,
+				},
+				valuecommitment: 'valuecommit',
+				assetcommitment: 'assetcommit',
+			},
+		])
+
+		sourceGetJson.mockResolvedValueOnce([{
+			txid: txId,
+			vout: 0,
+			status: {
+				confirmed: false,
+			},
+		}])
+		await expect(getAddressUtxos({
+			address: 'bc1qexample',
+			target: bitcoinBinding.target.key,
+		})).rejects.toThrow('Bitcoin address UTXO is missing value')
+
+		expect(sourceGetJson.mock.calls.map(([, url]) => url)).toEqual([
+			`https://blockstream.info/api/tx/${txId}/outspend/0`,
+			`https://blockstream.info/liquid/api/tx/${txId}/outspend/1`,
+			`https://blockstream.info/api/tx/${txId}/outspend/0`,
+			'https://blockstream.info/liquid/api/address/ex1qexample/utxo',
+			'https://blockstream.info/api/address/bc1qexample/utxo',
+		])
+
+		await expect(getOutspend({
+			target: bitcoinBinding.target.key,
+			txId,
+			vout: -1,
+		})).rejects.toThrow('outspend output index must be a non-negative safe integer')
 	})
 })

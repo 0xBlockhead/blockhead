@@ -123,6 +123,12 @@ const utxoTransactionReferenceFromMempoolSpaceWire = (
 							},
 						},
 					}),
+					...(input.is_coinbase && input.scriptsig != null && {
+						[entityFieldAddressKey(EntityType.UtxoInput, [], 'coinbaseScript')]: input.scriptsig,
+					}),
+					...(!input.is_coinbase && input.scriptsig_asm != null && {
+						[entityFieldAddressKey(EntityType.UtxoInput, [], 'scriptSigAsm')]: input.scriptsig_asm,
+					}),
 					[entityFieldAddressKey(EntityType.UtxoInput, [], 'sequence')]: input.sequence,
 					[entityFieldAddressKey(EntityType.UtxoInput, [], 'witness')]: input.witness ?? [],
 				},
@@ -135,6 +141,9 @@ const utxoTransactionReferenceFromMempoolSpaceWire = (
 				[EntityMetaKey.Fields]: {
 					...(output.value != null && {
 						[entityFieldAddressKey(EntityType.UtxoOutput, [], 'valueSats')]: BigInt(output.value),
+					}),
+					...(output.scriptpubkey_asm != null && {
+						[entityFieldAddressKey(EntityType.UtxoOutput, [], 'scriptPubKeyAsm')]: output.scriptpubkey_asm,
 					}),
 					[entityFieldAddressKey(EntityType.UtxoOutput, [], 'scriptPubKeyHex')]: output.scriptpubkey,
 					...(output.scriptpubkey_type != null && {
@@ -672,6 +681,29 @@ export default {
 				$address: (output) => output.$address,
 				$bitcoinRunestone: (output) => output.$bitcoinRunestone,
 			}),
+
+		defineResolver({
+			entityType: EntityType.UtxoOutput,
+			resolve: {
+				TransactionIndexInTransaction: {
+					appliesTo: bitcoinTransactionReferenceApplicability,
+					resolve: async ({ $transaction, indexInTransaction }) => {
+						assertBitcoinMainnet($transaction.$network)
+						const { getOutspend } = await import('$/sources/MempoolSpace/Rest/queries.ts')
+						return {
+							isSpent: (
+								await getOutspend(
+									$transaction.txId,
+									indexInTransaction
+								)
+							).spent,
+						}
+					},
+				},
+			},
+		})({
+			isSpent: (snapshot) => snapshot.isSpent,
+		}),
 
 		defineResolver({
 			entityType: EntityType.BitcoinOrdinalInscription,

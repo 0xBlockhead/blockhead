@@ -12,6 +12,7 @@ import {
 	esploraBlockWire,
 	esploraFeeEstimatesWire,
 	esploraMempoolStatsWire,
+	esploraOutspendWire,
 	esploraTransactionWire,
 	esploraTxIdListWire,
 } from '$/sources/Esplora/Rest/envelopes.ts'
@@ -143,6 +144,29 @@ export const getTransaction = async ({
 	return transaction
 }
 
+export const getOutspend = async ({
+	target,
+	txId,
+	vout,
+}: {
+	target: EsploraTarget
+	txId: string
+	vout: number
+}) => {
+	if (!Number.isSafeInteger(vout) || vout < 0)
+		throw new Error('Esplora_Rest: outspend output index must be a non-negative safe integer')
+
+	const outspend = assertEsploraEnvelope(
+		esploraOutspendWire,
+		await getEsploraJson(target, `/tx/${encodeURIComponent(txId)}/outspend/${String(vout)}`),
+		'outspend'
+	)
+	if (outspend.spent && (outspend.txid == null || outspend.vin == null))
+		throw new Error('Esplora_Rest: spent outspend is missing spending identity')
+
+	return outspend
+}
+
 /**
  * Extract Ordinals envelopes + Runestone from an Esplora transaction wire.
  * @see https://docs.ordinals.com/inscriptions.html
@@ -231,13 +255,17 @@ export const getAddressUtxos = async ({
 }: {
 	address: string
 	target: EsploraTarget
-}) => (
-	assertEsploraEnvelope(
+}) => {
+	const addressUtxos = assertEsploraEnvelope(
 		esploraAddressUtxoWire.array(),
 		await getEsploraJson(target, `/address/${encodeURIComponent(address)}/utxo`),
 		'address utxos'
 	)
-)
+	if (target !== 'liquid' && addressUtxos.some(({ value }) => value == null))
+		throw new Error('Esplora_Rest: Bitcoin address UTXO is missing value')
+
+	return addressUtxos
+}
 
 export const getAddressTransactions = async ({
 	address,

@@ -18,6 +18,7 @@ const getAddress = vi.fn()
 const getAddressUtxos = vi.fn()
 const getAddressTransactions = vi.fn()
 const getAsset = vi.fn()
+const getOutspend = vi.fn()
 
 vi.mock('$/sources/Esplora/Rest/queries.ts', async (importOriginal) => {
 	const actual = await importOriginal<typeof import('$/sources/Esplora/Rest/queries.ts')>()
@@ -36,6 +37,7 @@ vi.mock('$/sources/Esplora/Rest/queries.ts', async (importOriginal) => {
 		getAddressUtxos,
 		getAddressTransactions,
 		getAsset,
+		getOutspend,
 		getTransactionProtocolPayloads: async ({
 			target,
 			txId,
@@ -64,6 +66,12 @@ const inputResolver = esploraResolvers.resolvers.find((resolver) => (
 ))
 const outputResolver = esploraResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.UtxoOutput
+	&& 'valueSats' in resolver.projections
+))
+const outputSpentResolver = esploraResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.UtxoOutput
+	&& 'isSpent' in resolver.projections
+	&& !('valueSats' in resolver.projections)
 ))
 const issuanceResolver = esploraResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.ElementsIssuance
@@ -126,7 +134,7 @@ const networkTimestampsResolver = esploraResolvers.resolvers.find((resolver) => 
 if (transactionResolver == null)
 	throw new Error('Esplora-Rest spec missing UtxoTransaction resolver')
 
-if (inputResolver == null || outputResolver == null)
+if (inputResolver == null || outputResolver == null || outputSpentResolver == null)
 	throw new Error('Esplora-Rest spec missing child input/output resolver')
 
 if (issuanceResolver == null || assetResolver == null || assetTimestampsResolver == null)
@@ -193,6 +201,7 @@ describe('Esplora UTXO', () => {
 		getAddressUtxos.mockReset()
 		getAddressTransactions.mockReset()
 		getAsset.mockReset()
+		getOutspend.mockReset()
 	})
 
 	it('resolves one native Liquid peg-out into a clocked Elements hierarchy', async () => {
@@ -357,6 +366,12 @@ describe('Esplora UTXO', () => {
 							address: 'ex1qexample',
 						},
 					},
+					[entityFieldAddressKey(EntityType.UtxoOutput, [], 'isConfidential')]: true,
+					[entityFieldAddressKey(EntityType.UtxoOutput, ['Confidential'], 'valueCommitment')]: 'valuecommit',
+					[entityFieldAddressKey(EntityType.UtxoOutput, ['Confidential'], 'assetCommitment')]: 'assetcommit',
+					[entityFieldAddressKey(EntityType.UtxoOutput, ['Confidential'], 'nonceCommitment')]: 'noncecommit',
+					[entityFieldAddressKey(EntityType.UtxoOutput, ['Confidential'], 'surjectionProof')]: 'surj',
+					[entityFieldAddressKey(EntityType.UtxoOutput, ['Confidential'], 'rangeProof')]: 'range',
 				},
 			},
 		])
@@ -383,6 +398,28 @@ describe('Esplora UTXO', () => {
 		expect(outputResolver.projections.isConfidential(output)).toBe(true)
 		expect(outputResolver.projections.Confidential.valueCommitment(output)).toBe('valuecommit')
 		expect(outputResolver.projections.Confidential.assetCommitment(output)).toBe('assetcommit')
+		expect(outputResolver.projections.Confidential.nonceCommitment(output)).toBe('noncecommit')
+		expect(outputResolver.projections.Confidential.surjectionProof(output)).toBe('surj')
+		expect(outputResolver.projections.Confidential.rangeProof(output)).toBe('range')
+
+		getOutspend.mockResolvedValueOnce({
+			spent: true,
+			txid: 'e'.repeat(64),
+			vin: 0,
+		})
+		expect(
+			outputSpentResolver.projections.isSpent(
+				await outputSpentResolver.resolve.TransactionIndexInTransaction.resolve({
+					$transaction: entitySelector,
+					indexInTransaction: 0,
+				}, resolverContext)
+			)
+		).toBe(true)
+		expect(getOutspend).toHaveBeenCalledWith({
+			target: 'liquid',
+			txId,
+			vout: 0,
+		})
 	})
 
 	it('resolves native Liquid issuance and reissuance-token relationships', async () => {
@@ -997,5 +1034,112 @@ describe('Esplora UTXO', () => {
 		expect(esploraResolvers.resolvers.some((resolver) => (
 			resolver.entityType === EntityType.Network_Timestamp
 		))).toBe(false)
+	})
+
+	it('projects Liquid address UTXOs, retrieval clocks, and network mempool observations', async () => {
+		vi.spyOn(Date, 'now').mockReturnValue(1_700_000_111_000)
+		getAddressUtxos.mockResolvedValueOnce([
+			{
+				txid: 'a'.repeat(64),
+				vout: 0,
+				status: {
+					confirmed: true,
+				},
+				valuecommitment: 'valuecommit',
+				assetcommitment: 'assetcommit',
+			},
+		])
+		getAddress.mockResolvedValueOnce({
+			address: 'ex1qexample',
+			chain_stats: {
+				funded_txo_count: 1,
+				funded_txo_sum: 0,
+				spent_txo_count: 0,
+				spent_txo_sum: 0,
+				tx_count: 1,
+			},
+			mempool_stats: {
+				funded_txo_count: 0,
+				funded_txo_sum: 0,
+				spent_txo_count: 0,
+				spent_txo_sum: 0,
+				tx_count: 2,
+			},
+		})
+		getBlocks.mockResolvedValueOnce([
+			{
+				id: 'b'.repeat(64),
+				height: 3_500_000,
+				timestamp: 1_800_000_000,
+				tx_count: 8,
+			},
+		])
+		getMempoolStats.mockResolvedValueOnce({
+			count: 4,
+			vsize: 800,
+			total_fee: 1,
+		})
+		getSuggestedFeePerByteSats.mockResolvedValueOnce(2)
+
+		const outputs = await addressOutputsResolver.resolve.NetworkAddress.resolve({
+			$network: liquidNetwork,
+			address: 'ex1qexample',
+		}, {
+			...resolverContext,
+			pagination: {
+				limit: 10,
+			},
+		})
+		expect(addressOutputsResolver.projections.$$outputs(outputs)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$transaction: {
+						$network: liquidNetwork,
+						txId: 'a'.repeat(64),
+					},
+					indexInTransaction: 0,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.UtxoOutput, [], 'isSpent')]: false,
+					[entityFieldAddressKey(EntityType.UtxoOutput, [], 'isConfidential')]: true,
+					[entityFieldAddressKey(EntityType.UtxoOutput, ['Confidential'], 'valueCommitment')]: 'valuecommit',
+					[entityFieldAddressKey(EntityType.UtxoOutput, ['Confidential'], 'assetCommitment')]: 'assetcommit',
+				},
+			},
+		])
+
+		const tip = await addressTimestampsResolver.resolve.NetworkAddress.resolve({
+			$network: liquidNetwork,
+			address: 'ex1qexample',
+		}, resolverContext)
+		expect(addressTimestampsResolver.projections.$$timestamps(tip)[0][EntityMetaKey.Selector]).toMatchObject({
+			timestampMs: 1_700_000_111_000,
+			source: Source.Esplora_Rest,
+		})
+		expect(addressTimestampsResolver.projections.$$timestamps(tip)[0][EntityMetaKey.Fields]).toMatchObject({
+			[entityFieldAddressKey(EntityType.UtxoAddress_Timestamp, [], 'mempoolTransactionCount')]: 2,
+		})
+
+		const timestamps = await networkTimestampsResolver.resolve.Slug.resolve(liquidNetwork, resolverContext)
+		expect(timestamps[0][EntityMetaKey.Selector]).toMatchObject({
+			$network: liquidNetwork,
+			timestampMs: 1_700_000_111_000,
+			source: Source.Esplora_Rest,
+		})
+		expect(timestamps[0][EntityMetaKey.Fields]).toMatchObject({
+			[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'bestBlockHeight')]: 3_500_000n,
+			[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'bestBlockHash')]: 'b'.repeat(64),
+			[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'bestBlockTimeMs')]: 1_800_000_000_000,
+			[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'mempoolTransactionCount')]: 4,
+			[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'suggestedTransactionFeePerByteSats')]: 2,
+		})
+		expect(getAddressUtxos).toHaveBeenCalledWith({
+			address: 'ex1qexample',
+			target: 'liquid',
+		})
+		expect(getBlocks).toHaveBeenCalledWith({
+			target: 'liquid',
+		})
+		expect(getMempoolStats).toHaveBeenCalledWith('liquid')
 	})
 })

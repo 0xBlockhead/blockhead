@@ -133,7 +133,26 @@ export const esploraAddressUtxoWire = arktype({
 		'block_hash?': esploraBlockHashWire,
 		'block_time?': unsignedSafe,
 	},
-	value: unsignedSafe,
+	'value?': unsignedSafe,
+	'valuecommitment?': 'string',
+	'assetcommitment?': 'string',
+	'noncecommitment?': 'string',
+})
+
+/**
+ * Esplora `/tx/:txid/outspend/:vout` spending status.
+ * @see https://github.com/Blockstream/esplora/blob/master/API.md#get-txtxidoutspendvout
+ */
+export const esploraOutspendWire = arktype({
+	spent: 'boolean',
+	'txid?': esploraTxIdWire,
+	'vin?': unsignedSafe,
+	'status?': {
+		confirmed: 'boolean',
+		'block_height?': unsignedSafe,
+		'block_hash?': esploraBlockHashWire,
+		'block_time?': unsignedSafe,
+	},
 })
 
 export const esploraMempoolStatsWire = arktype({

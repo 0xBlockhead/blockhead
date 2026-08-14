@@ -9,6 +9,7 @@ import {
 	esploraBlockHashWire,
 	esploraBlockWire,
 	esploraMempoolStatsWire,
+	esploraOutspendWire,
 	esploraTransactionWire,
 	esploraTxIdWire,
 	esploraTxIdListWire,
@@ -125,6 +126,26 @@ export const getTransaction = async (
 	return transaction
 }
 
+export const getOutspend = async (
+	txId: string,
+	vout: number
+) => {
+	assertTransactionId(txId)
+	if (!Number.isSafeInteger(vout) || vout < 0)
+		throw new Error(`${sourceLabel}: outspend output index must be a non-negative safe integer`)
+
+	const outspend = assertEsploraEnvelope(
+		esploraOutspendWire,
+		await getMempoolSpaceJson(`tx/${encodeURIComponent(txId)}/outspend/${String(vout)}`),
+		'outspend',
+		sourceLabel
+	)
+	if (outspend.spent && (outspend.txid == null || outspend.vin == null))
+		throw new Error(`${sourceLabel}: spent outspend is missing spending identity`)
+
+	return outspend
+}
+
 /**
  * Extract Ordinals envelopes + Runestone from a mempool.space (Esplora-compatible) transaction.
  * @see https://mempool.space/docs/api/rest
@@ -195,12 +216,16 @@ export const getAddressUtxos = async (
 	address: string
 ) => {
 	assertAddress(address)
-	return assertEsploraEnvelope(
+	const addressUtxos = assertEsploraEnvelope(
 		esploraAddressUtxoWire.array(),
 		await getMempoolSpaceJson(`address/${encodeURIComponent(address)}/utxo`),
 		'address utxos',
 		sourceLabel
 	)
+	if (addressUtxos.some(({ value }) => value == null))
+		throw new Error(`${sourceLabel}: Bitcoin address UTXO is missing value`)
+
+	return addressUtxos
 }
 
 export const getAddressTransactions = async (

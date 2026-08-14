@@ -57,6 +57,12 @@ const inputResolver = mempoolSpaceResolvers.resolvers.find((resolver) => (
 ))
 const outputResolver = mempoolSpaceResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.UtxoOutput
+	&& 'valueSats' in resolver.projections
+))
+const outputSpentResolver = mempoolSpaceResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.UtxoOutput
+	&& 'isSpent' in resolver.projections
+	&& !('valueSats' in resolver.projections)
 ))
 
 if (blocksResolver == null)
@@ -83,7 +89,7 @@ if (addressOutputsResolver == null)
 if (transactionResolver == null)
 	throw new Error('MempoolSpace-Rest spec missing UtxoTransaction same-response resolver')
 
-if (inputResolver == null || outputResolver == null)
+if (inputResolver == null || outputResolver == null || outputSpentResolver == null)
 	throw new Error('MempoolSpace-Rest spec missing independently addressable child resolver')
 
 const binding = bindings[Source.MempoolSpace_Rest][0]
@@ -1135,5 +1141,27 @@ describe('MempoolSpace UTXO', () => {
 			outputIndex: 0,
 		}, resolverContext)
 		expect(runestoneResolver.projections.isCenotaph(runestone)).toBe(true)
+	})
+
+	it('resolves independently addressable output spent status from native outspend', async () => {
+		const txId = 'b'.repeat(64)
+		sourceGetJson.mockResolvedValueOnce({
+			spent: false,
+		})
+		expect(
+			outputSpentResolver.projections.isSpent(
+				await outputSpentResolver.resolve.TransactionIndexInTransaction.resolve({
+					$transaction: {
+						$network: network,
+						txId,
+					},
+					indexInTransaction: 1,
+				}, resolverContext)
+			)
+		).toBe(false)
+		expect(sourceGetJson).toHaveBeenCalledWith(
+			binding,
+			`https://mempool.space/api/tx/${txId}/outspend/1`
+		)
 	})
 })

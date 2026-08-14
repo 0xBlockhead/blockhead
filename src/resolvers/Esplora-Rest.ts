@@ -37,6 +37,16 @@ const bitcoinNetworkApplicability = [
 	},
 ] as const
 
+const liquidNetworkApplicability = {
+	slug: 'liquid',
+} as const
+
+const esploraNetworkApplicability = [
+	bitcoinNetworkApplicability[0],
+	bitcoinNetworkApplicability[1],
+	liquidNetworkApplicability,
+] as const
+
 const bitcoinNetworkReferenceApplicability = [
 	{
 		$network: bitcoinNetworkApplicability[0],
@@ -46,18 +56,28 @@ const bitcoinNetworkReferenceApplicability = [
 	},
 ] as const
 
-const bitcoinNetworkSelectors = <_Snapshot extends object>(
+const esploraNetworkReferenceApplicability = [
+	...bitcoinNetworkReferenceApplicability,
+	{
+		$network: liquidNetworkApplicability,
+	},
+] as const
+
+const esploraNetworkSelectors = <_Snapshot extends object>(
 	resolve: (
 		network: NetworkId,
 		context: ResolverContext
 	) => Promise<_Snapshot>
 ) => ({
 	Caip2: {
-		appliesTo: [bitcoinNetworkApplicability[0]],
+		appliesTo: [esploraNetworkApplicability[0]],
 		resolve,
 	},
 	Slug: {
-		appliesTo: [bitcoinNetworkApplicability[1]],
+		appliesTo: [
+			esploraNetworkApplicability[1],
+			esploraNetworkApplicability[2],
+		],
 		resolve,
 	},
 })
@@ -81,16 +101,53 @@ const esploraTargetForNetwork = (network: NetworkId) => {
 	return target
 }
 
-const assertBitcoinMainnet = (network: NetworkId) => {
-	if (esploraTargetForNetwork(network) !== 'bip122:000000000019d6689c085ae165831e93')
-		throw new Error('Esplora_Rest: unsupported Bitcoin network')
-}
-
 type EsploraTransaction = Awaited<ReturnType<
 	typeof import('$/sources/Esplora/Rest/queries.ts').getTransaction
 >>
 type EsploraTransactionInput = EsploraTransaction['vin'][number]
 type EsploraTransactionOutput = EsploraTransaction['vout'][number]
+
+const esploraOutputIsConfidential = (
+	output: {
+		valuecommitment?: string
+		assetcommitment?: string
+	}
+) => (
+	output.valuecommitment != null
+	|| output.assetcommitment != null
+)
+
+const utxoOutputConfidentialFieldEntries = (
+	output: {
+		valuecommitment?: string
+		assetcommitment?: string
+		noncecommitment?: string
+		surjection_proof?: string
+		range_proof?: string
+	}
+) => {
+	if (!esploraOutputIsConfidential(output))
+		return {}
+
+	return {
+		[entityFieldAddressKey(EntityType.UtxoOutput, [], 'isConfidential')]: true,
+		...(output.valuecommitment != null && {
+			[entityFieldAddressKey(EntityType.UtxoOutput, ['Confidential'], 'valueCommitment')]: output.valuecommitment,
+		}),
+		...(output.assetcommitment != null && {
+			[entityFieldAddressKey(EntityType.UtxoOutput, ['Confidential'], 'assetCommitment')]: output.assetcommitment,
+		}),
+		...(output.noncecommitment != null && {
+			[entityFieldAddressKey(EntityType.UtxoOutput, ['Confidential'], 'nonceCommitment')]: output.noncecommitment,
+		}),
+		...(output.surjection_proof != null && {
+			[entityFieldAddressKey(EntityType.UtxoOutput, ['Confidential'], 'surjectionProof')]: output.surjection_proof,
+		}),
+		...(output.range_proof != null && {
+			[entityFieldAddressKey(EntityType.UtxoOutput, ['Confidential'], 'rangeProof')]: output.range_proof,
+		}),
+	}
+}
 
 const utxoInputReferenceFromEsploraWire = (
 	$transaction: {
@@ -160,6 +217,7 @@ const utxoOutputReferenceFromEsploraWire = (
 				},
 			},
 		}),
+		...utxoOutputConfidentialFieldEntries(output),
 	},
 })
 
@@ -514,7 +572,10 @@ export default {
 						const input = (await getTransaction({
 							target: esploraTargetForNetwork($transaction.$network),
 							txId: $transaction.txId,
-						})).vin[indexInTransaction]
+						})).vin.at(indexInTransaction)
+						if (input == null)
+							throw new Error(`Esplora_Rest: transaction input ${indexInTransaction} not found`)
+
 						return {
 							[EntityMetaKey.Selector]: {
 								$transaction: $transaction,
@@ -534,7 +595,7 @@ export default {
 							...(input.is_coinbase && input.scriptsig != null && {
 								coinbaseScript: input.scriptsig,
 							}),
-							...(input.scriptsig_asm != null && {
+							...(!input.is_coinbase && input.scriptsig_asm != null && {
 								scriptSigAsm: input.scriptsig_asm,
 							}),
 							sequence: input.sequence,
@@ -564,11 +625,11 @@ export default {
 							target,
 							txId: $transaction.txId,
 						})
-						const output = transaction.vout[indexInTransaction]
-						const isConfidential = (
-							output.valuecommitment != null
-							|| output.assetcommitment != null
-						)
+						const output = transaction.vout.at(indexInTransaction)
+						if (output == null)
+							throw new Error(`Esplora_Rest: transaction output ${indexInTransaction} not found`)
+
+						const isConfidential = esploraOutputIsConfidential(output)
 						const runestone = (
 							target === 'bip122:000000000019d6689c085ae165831e93' ?
 								runestonePayload(
@@ -645,6 +706,28 @@ export default {
 					surjectionProof: (snapshot) => snapshot.surjectionProof,
 					rangeProof: (snapshot) => snapshot.rangeProof,
 				},
+		}),
+
+		defineResolver({
+			entityType: EntityType.UtxoOutput,
+			resolve: {
+				TransactionIndexInTransaction: {
+					resolve: async ({ $transaction, indexInTransaction }) => {
+						const { getOutspend } = await import('$/sources/Esplora/Rest/queries.ts')
+						return {
+							isSpent: (
+								await getOutspend({
+									target: esploraTargetForNetwork($transaction.$network),
+									txId: $transaction.txId,
+									vout: indexInTransaction,
+								})
+							).spent,
+						}
+					},
+				},
+			},
+		})({
+			isSpent: (snapshot) => snapshot.isSpent,
 		}),
 
 		defineResolver({
@@ -910,9 +993,8 @@ export default {
 			entityType: EntityType.UtxoAddress,
 			resolve: {
 				NetworkAddress: {
-					appliesTo: bitcoinNetworkReferenceApplicability,
+					appliesTo: esploraNetworkReferenceApplicability,
 					resolve: async ({ $network, address: addressSelector }) => {
-						assertBitcoinMainnet($network)
 						const { getAddress } = await import('$/sources/Esplora/Rest/queries.ts')
 						const address = await getAddress({
 							address: addressSelector,
@@ -956,9 +1038,8 @@ export default {
 			entityType: EntityType.UtxoAddress,
 			resolve: {
 				NetworkAddress: {
-					appliesTo: bitcoinNetworkReferenceApplicability,
+					appliesTo: esploraNetworkReferenceApplicability,
 					resolve: async (utxoAddress, context) => {
-						assertBitcoinMainnet(utxoAddress.$network)
 						const limit = Math.min(resolverContextRowLimit(context), 25)
 						if (!Number.isSafeInteger(limit) || limit < 1)
 							throw new Error('Esplora_Rest: invalid address transaction limit')
@@ -1010,9 +1091,8 @@ export default {
 			entityType: EntityType.UtxoAddress,
 			resolve: {
 				NetworkAddress: {
-					appliesTo: bitcoinNetworkReferenceApplicability,
+					appliesTo: esploraNetworkReferenceApplicability,
 					resolve: async ({ $network, address }, context) => {
-						assertBitcoinMainnet($network)
 						const { getAddressUtxos } = await import('$/sources/Esplora/Rest/queries.ts')
 						return (
 							await getAddressUtxos({
@@ -1030,8 +1110,11 @@ export default {
 									indexInTransaction: utxo.vout,
 								},
 								[EntityMetaKey.Fields]: {
-									[entityFieldAddressKey(EntityType.UtxoOutput, [], 'valueSats')]: BigInt(utxo.value),
+									...(utxo.value != null && {
+										[entityFieldAddressKey(EntityType.UtxoOutput, [], 'valueSats')]: BigInt(utxo.value),
+									}),
 									[entityFieldAddressKey(EntityType.UtxoOutput, [], 'isSpent')]: false,
+									...utxoOutputConfidentialFieldEntries(utxo),
 								},
 							}))
 					},
@@ -1042,21 +1125,17 @@ export default {
 		}),
 		defineResolver({
 			entityType: EntityType.Network,
-			resolve: bitcoinNetworkSelectors(async (network) => {
-				assertBitcoinMainnet(network)
-				return {
-					[EntityMetaKey.Selector]: network,
-					slug: 'bitcoin',
-				}
-			}),
+			resolve: esploraNetworkSelectors(async (network) => ({
+				[EntityMetaKey.Selector]: network,
+				slug: esploraTargetForNetwork(network) === 'liquid' ? 'liquid' : 'bitcoin',
+			})),
 		})({
 			slug: (network) => network.slug,
 		}),
 
 		defineResolver({
 			entityType: EntityType.Network,
-			resolve: bitcoinNetworkSelectors(async (network) => {
-				assertBitcoinMainnet(network)
+			resolve: esploraNetworkSelectors(async (network) => {
 				const target = esploraTargetForNetwork(network)
 				const {
 					getBlocks,
@@ -1094,8 +1173,7 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.Network,
-			resolve: bitcoinNetworkSelectors(async (network, context) => {
-				assertBitcoinMainnet(network)
+			resolve: esploraNetworkSelectors(async (network, context) => {
 				const { getBlocks } = await import('$/sources/Esplora/Rest/queries.ts')
 				const target = esploraTargetForNetwork(network)
 				const tipBlocks = await getBlocks({ target })
@@ -1132,8 +1210,7 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.Network,
-			resolve: bitcoinNetworkSelectors(async (network) => {
-				assertBitcoinMainnet(network)
+			resolve: esploraNetworkSelectors(async (network) => {
 				const target = esploraTargetForNetwork(network)
 				const {
 					getBlocks,
@@ -1165,8 +1242,7 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.Network,
-			resolve: bitcoinNetworkSelectors(async (network, context) => {
-				assertBitcoinMainnet(network)
+			resolve: esploraNetworkSelectors(async (network, context) => {
 				const {
 					getMempoolTransactionIds,
 					getTransaction,
