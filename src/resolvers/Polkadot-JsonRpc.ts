@@ -260,12 +260,15 @@ export default {
 				$parent: (block) => block.$parent,
 				stateRoot: (block) => block.stateRoot,
 				extrinsicsRoot: (block) => block.extrinsicsRoot,
-				$$extrinsics: (block) => block.$$extrinsics.map((extrinsic) => ({
-					[EntityMetaKey.Selector]: extrinsic[EntityMetaKey.Selector],
-					[EntityMetaKey.Fields]: {
-						[entityFieldAddressKey(EntityType.PolkadotExtrinsic, [], 'hash')]: extrinsic.hash,
-					},
-				})),
+				$$extrinsics: {
+					select: (block) => block.$$extrinsics.map((extrinsic) => ({
+						[EntityMetaKey.Selector]: extrinsic[EntityMetaKey.Selector],
+						[EntityMetaKey.Fields]: {
+							[entityFieldAddressKey(EntityType.PolkadotExtrinsic, [], 'hash')]: extrinsic.hash,
+						},
+					})),
+					resolveCount: (block) => block.$$extrinsics.length,
+				},
 			}),
 
 		defineResolver({

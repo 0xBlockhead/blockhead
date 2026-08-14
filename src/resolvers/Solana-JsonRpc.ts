@@ -651,7 +651,10 @@ export default {
 				$feePayer: (transaction) => transaction.$feePayer,
 				slot: (transaction) => transaction.slot,
 				$$timestamps: (transaction) => transaction.$$timestamps,
-				$$instructions: (transaction) => transaction.$$instructions,
+				$$instructions: {
+					select: (transaction) => transaction.$$instructions,
+					resolveCount: (transaction) => transaction.$$instructions.length,
+				},
 			}),
 
 		defineResolver({

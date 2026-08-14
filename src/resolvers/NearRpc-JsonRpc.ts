@@ -568,7 +568,10 @@ export default {
 			$parent: (block) => block.$parent,
 			epochId: (block) => block.epochId,
 			timestampMs: (block) => block.timestampMs,
-			$$chunks: (block) => block.$$chunks,
+			$$chunks: {
+				select: (block) => block.$$chunks,
+				resolveCount: (block) => block.$$chunks.length,
+			},
 		}),
 		defineResolver({
 			entityType: EntityType.NearChunk,
@@ -615,7 +618,10 @@ export default {
 			$block: (chunk) => chunk.$block,
 			shardId: (chunk) => chunk.shardId,
 			gasUsed: (chunk) => chunk.gasUsed,
-			$$transactions: (chunk) => chunk.$$transactions,
+			$$transactions: {
+				select: (chunk) => chunk.$$transactions,
+				resolveCount: (chunk) => chunk.$$transactions.length,
+			},
 		}),
 		defineResolver({
 			entityType: EntityType.NearTransaction,
@@ -658,8 +664,14 @@ export default {
 			$signer: (transaction) => transaction.$signer,
 			$receiver: (transaction) => transaction.$receiver,
 			nonce: (transaction) => transaction.nonce,
-			$$actions: (transaction) => transaction.$$actions,
-			$$executionOutcomes: (transaction) => transaction.$$executionOutcomes,
+			$$actions: {
+				select: (transaction) => transaction.$$actions,
+				resolveCount: (transaction) => transaction.$$actions.length,
+			},
+			$$executionOutcomes: {
+				select: (transaction) => transaction.$$executionOutcomes,
+				resolveCount: (transaction) => transaction.$$executionOutcomes.length,
+			},
 		}),
 		defineResolver({
 			entityType: EntityType.NearAction,

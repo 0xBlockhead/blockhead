@@ -295,7 +295,7 @@ describe('Near block selectors', () => {
 				hash: wireBlock.header.prev_hash,
 			},
 		})
-		expect(blockResolver.projections.$$chunks(byHeight)).toEqual([
+		expect(blockResolver.projections.$$chunks.select(byHeight)).toEqual([
 			expect.objectContaining({
 				[EntityMetaKey.Selector]: {
 					$network: network,
@@ -303,6 +303,7 @@ describe('Near block selectors', () => {
 				},
 			}),
 		])
+		expect(blockResolver.projections.$$chunks.resolveCount(byHeight)).toBe(1)
 
 		corsFetch.mockResolvedValueOnce(jsonRpcResult(wireBlock))
 		expect(await blockResolver.resolve.NetworkHeightHash.resolve({
@@ -413,7 +414,7 @@ describe('Near chunk hierarchy', () => {
 				height: BigInt(wireChunk.header.height_included),
 			},
 		})
-		expect(chunkResolver.projections.$$transactions(chunk)).toEqual([
+		expect(chunkResolver.projections.$$transactions.select(chunk)).toEqual([
 			expect.objectContaining({
 				[EntityMetaKey.Selector]: {
 					$network: network,
@@ -422,6 +423,7 @@ describe('Near chunk hierarchy', () => {
 				},
 			}),
 		])
+		expect(chunkResolver.projections.$$transactions.resolveCount(chunk)).toBe(1)
 	})
 
 	it('rejects a chunk payload for a different requested hash', async () => {
@@ -856,6 +858,10 @@ describe('NEAR receipts and tx status projection', () => {
 			hash: 'tx-hash',
 			signerAccountId: 'signer.near',
 		}, context)
+		expect(transactionResolver.projections.$$actions.select(transaction)).toHaveLength(1)
+		expect(transactionResolver.projections.$$actions.resolveCount(transaction)).toBe(1)
+		expect(transactionResolver.projections.$$executionOutcomes.select(transaction)).toHaveLength(1)
+		expect(transactionResolver.projections.$$executionOutcomes.resolveCount(transaction)).toBe(1)
 		const receipts = transaction.$$executionOutcomes[0][EntityMetaKey.Fields][entityFieldAddressKey(EntityType.NearExecutionOutcome, [], '$$receipts')]
 		expect(receipts).toEqual([{
 			[EntityMetaKey.Selector]: {

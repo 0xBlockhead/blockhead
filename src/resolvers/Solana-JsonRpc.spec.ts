@@ -23,6 +23,7 @@ const {
 	getParsedTokenAccountInfo,
 	getParsedTokenMintAccountInfo,
 	getProgramInfo,
+	getTransaction,
 	getSlot,
 	getTokenAccountsByOwner,
 	getVoteAccounts,
@@ -46,6 +47,7 @@ const {
 	getParsedTokenAccountInfo: vi.fn(),
 	getParsedTokenMintAccountInfo: vi.fn(),
 	getProgramInfo: vi.fn(),
+	getTransaction: vi.fn(),
 	getTokenAccountsByOwner: vi.fn(),
 	getVoteAccounts: vi.fn().mockResolvedValue({
 		observedAtMs: 1_784_678_400_000,
@@ -127,6 +129,7 @@ vi.mock('$/sources/Solana/JsonRpc/queries.ts', () => ({
 	getParsedTokenAccountInfo,
 	getParsedTokenMintAccountInfo,
 	getProgramInfo,
+	getTransaction,
 	getTokenAccountsByOwner,
 	getVoteAccounts,
 	getBlocks,
@@ -539,6 +542,55 @@ describe('SolanaAccount.$$tokenAccounts from getTokenAccountsByOwner', () => {
 				},
 			],
 		})
+	})
+})
+
+describe('Solana transaction instruction hierarchy', () => {
+	beforeEach(() => {
+		getTransaction.mockReset()
+	})
+
+	it('counts every outer and inner instruction returned by getTransaction', async () => {
+		const transactionResolver = solanaJsonRpc.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.SolanaTransaction
+		))
+		if (transactionResolver == null)
+			throw new Error('missing Solana transaction resolver')
+
+		getTransaction.mockResolvedValue({
+			slot: 100,
+			transaction: {
+				signatures: ['signature'],
+				message: {
+					accountKeys: [],
+					instructions: [
+						{
+							programId: 'program-one',
+						},
+						{
+							programId: 'program-two',
+						},
+					],
+				},
+			},
+			meta: {
+				err: null,
+				fee: 5000,
+				innerInstructions: [{
+					index: 0,
+					instructions: [{
+						programId: 'inner-program',
+					}],
+				}],
+			},
+		})
+
+		const snapshot = await transactionResolver.resolve.NetworkSignature.resolve({
+			$network: networkSelector,
+			signature: 'signature',
+		}, context)
+		expect(transactionResolver.projections.$$instructions.select(snapshot)).toHaveLength(3)
+		expect(transactionResolver.projections.$$instructions.resolveCount(snapshot)).toBe(3)
 	})
 })
 

@@ -103,8 +103,9 @@ describe('Polkadot JsonRpc block leftovers', () => {
 		}, context)
 
 		expect(blockResolver.projections.hash(snapshot)).toBe('0xddd4')
-		const extrinsics = blockResolver.projections.$$extrinsics(snapshot)
+		const extrinsics = blockResolver.projections.$$extrinsics.select(snapshot)
 		expect(extrinsics).toHaveLength(2)
+		expect(blockResolver.projections.$$extrinsics.resolveCount(snapshot)).toBe(2)
 		expect(extrinsics[0][EntityMetaKey.Fields]).toMatchObject({
 			[entityFieldAddressKey(EntityType.PolkadotExtrinsic, [], 'hash')]: expect.stringMatching(/^0x[0-9a-f]{64}$/),
 		})
