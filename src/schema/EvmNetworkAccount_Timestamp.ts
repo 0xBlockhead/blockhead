@@ -3,6 +3,7 @@
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export default entity({
@@ -27,14 +28,24 @@ export default entity({
 	blockNumber: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Blockscout_Rest,
+			Source.Etherscan_Rest,
+		],
 	},
 	transactionCount: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Blockscout_Rest,
+		],
 	},
 	tokenTransferCount: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Blockscout_Rest,
+		],
 	},
 	internalTransferCount: {
 		primitiveType: type('number'),
@@ -55,6 +66,10 @@ export default entity({
 	isContract: {
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Blockscout_Rest,
+			Source.Etherscan_Rest,
+		],
 	},
 	contractPositions: {
 		primitiveType: type('unknown'),

@@ -23,6 +23,10 @@ export default entity({
 	$$timestamps: {
 		entityType: EntityType.EvmNetworkAccount_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Blockscout_Rest,
+			Source.Etherscan_Rest,
+		],
 	},
 	$$transactions: {
 		entityType: EntityType.EvmTransaction,

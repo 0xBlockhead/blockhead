@@ -43,6 +43,7 @@ export default entity({
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
+			Source.TronGrid_Rest,
 			Source.TronScan_Rest,
 		],
 	},
@@ -50,6 +51,7 @@ export default entity({
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
+			Source.TronGrid_Rest,
 			Source.TronScan_Rest,
 		],
 	},

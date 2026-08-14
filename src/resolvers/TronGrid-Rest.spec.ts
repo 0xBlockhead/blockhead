@@ -13,6 +13,8 @@ const {
 	getAccountResource,
 	getAccountTransactions,
 	getBlockByNumber,
+	getChainParameters,
+	getNodeInfo,
 	getNowBlock,
 	getTransactionInfoById,
 	listWitnesses,
@@ -21,6 +23,8 @@ const {
 	getAccountResource: vi.fn(),
 	getAccountTransactions: vi.fn(),
 	getBlockByNumber: vi.fn(),
+	getChainParameters: vi.fn(),
+	getNodeInfo: vi.fn(),
 	getNowBlock: vi.fn(),
 	getTransactionInfoById: vi.fn(),
 	listWitnesses: vi.fn(),
@@ -36,6 +40,8 @@ vi.mock('$/sources/TronGrid/Rest/queries.ts', () => ({
 	getAccountResource,
 	getAccountTransactions,
 	getBlockByNumber,
+	getChainParameters,
+	getNodeInfo,
 	getNowBlock,
 	getTransactionInfoById,
 	listWitnesses,
@@ -95,6 +101,83 @@ describe('TronGrid REST network relationships', () => {
 				slug: networkBySlug.tron.slug,
 			}, resolverContext)
 		)
+	})
+
+	it('embeds the full current network observation and exposes no timestamp replay resolvers', async () => {
+		getNowBlock.mockResolvedValueOnce({
+			blockID: 'tip-hash',
+			block_header: {
+				raw_data: {
+					number: 124,
+					timestamp: 1_720_000_000_000,
+				},
+			},
+			transactions: [{
+				txID: 'transaction-id',
+			}],
+		})
+		listWitnesses.mockResolvedValueOnce({
+			witnesses: [
+				{
+					isJobs: true,
+				},
+				{},
+			],
+		})
+		getChainParameters.mockResolvedValueOnce({
+			chainParameter: [
+				{
+					key: 'getMaintenanceTimeInterval',
+					value: 21_600_000,
+				},
+				{
+					key: 'getTransactionFee',
+					value: 1_000,
+				},
+			],
+		})
+		getNodeInfo.mockResolvedValueOnce({
+			block: 'Num:124,ID:tip-hash',
+			solidityBlock: 'Num:122,ID:solid-hash',
+			currentConnectCount: 8,
+		})
+
+		const resolver = tronGridRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.Network
+			&& 'Tron' in candidate.projections
+			&& '$$timestamps' in candidate.projections.Tron
+		))
+		if (resolver == null) throw new Error('Tron network observation resolver is missing')
+
+		const network = {
+			caip2: networkBySlug.tron.caip2,
+		}
+		expect(resolver.projections.Tron.$$timestamps(
+			await resolver.resolve.Caip2.resolve(network, resolverContext)
+		)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				timestampMs: 1_720_000_000_000,
+				source: Source.TronGrid_Rest,
+			},
+			[EntityMetaKey.Fields]: expect.objectContaining({
+				[entityFieldAddressKey(EntityType.TronNetwork_Timestamp, [], 'latestBlockHeight')]: 124n,
+				[entityFieldAddressKey(EntityType.TronNetwork_Timestamp, [], 'latestBlockHash')]: 'tip-hash',
+				[entityFieldAddressKey(EntityType.TronNetwork_Timestamp, [], 'latestBlockTransactionCount')]: 1,
+				[entityFieldAddressKey(EntityType.TronNetwork_Timestamp, [], 'witnessCount')]: 2,
+				[entityFieldAddressKey(EntityType.TronNetwork_Timestamp, [], 'activeWitnessCount')]: 1,
+				[entityFieldAddressKey(EntityType.TronNetwork_Timestamp, [], 'nodeBlockHeight')]: 124n,
+				[entityFieldAddressKey(EntityType.TronNetwork_Timestamp, [], 'solidityBlockHeight')]: 122n,
+				[entityFieldAddressKey(EntityType.TronNetwork_Timestamp, [], 'currentPeerCount')]: 8,
+				[entityFieldAddressKey(EntityType.TronNetwork_Timestamp, [], 'maintenanceIntervalMs')]: 21_600_000,
+				[entityFieldAddressKey(EntityType.TronNetwork_Timestamp, [], 'transactionFeeSun')]: 1_000n,
+			}),
+		}])
+		expect(tronGridRest.resolvers.some((candidate) => (
+			candidate.entityType === EntityType.TronNetwork_Timestamp
+			|| candidate.entityType === EntityType.TronAccount_Timestamp
+			|| candidate.entityType === EntityType.TronWitness_Timestamp
+		))).toBe(false)
 	})
 
 	it('rejects a block returned by height when its hash disagrees with the exact selector', async () => {
@@ -175,6 +258,7 @@ describe('TronGrid REST network relationships', () => {
 	})
 
 	it('embeds enrolled account tip Fields from account + resource wires', async () => {
+		vi.clearAllMocks()
 		getAccount.mockResolvedValueOnce({
 			account_name: 'tip-account',
 			balance: 42,
@@ -188,6 +272,14 @@ describe('TronGrid REST network relationships', () => {
 			NetLimit: 3,
 			EnergyUsed: 4,
 			EnergyLimit: 5,
+		})
+		getNowBlock.mockResolvedValueOnce({
+			block_header: {
+				raw_data: {
+					number: 124,
+					timestamp: 1_720_000_000_500,
+				},
+			},
 		})
 
 		const resolver = tronGridRest.resolvers.find((candidate) => (
@@ -207,7 +299,7 @@ describe('TronGrid REST network relationships', () => {
 		expect(resolver.projections.$$timestamps(resolved)).toEqual([{
 			[EntityMetaKey.Selector]: {
 				$account: account,
-				timestampMs: 1_720_000_000_123,
+				timestampMs: 1_720_000_000_500,
 				source: Source.TronGrid_Rest,
 			},
 			[EntityMetaKey.Fields]: {
@@ -222,13 +314,23 @@ describe('TronGrid REST network relationships', () => {
 				[entityFieldAddressKey(EntityType.TronAccount_Timestamp, [], 'energyLimit')]: 5n,
 			},
 		}])
+		expect(getAccount.mock.invocationCallOrder[0]).toBeLessThan(getNowBlock.mock.invocationCallOrder[0])
+		expect(getAccountResource.mock.invocationCallOrder[0]).toBeLessThan(getNowBlock.mock.invocationCallOrder[0])
 	})
 
-	it('omits account observations when TronGrid returns no authoritative clock', async () => {
+	it('uses the source head clock when account lifecycle timestamps are absent', async () => {
 		getAccount.mockResolvedValueOnce({
 			balance: 42,
 		})
 		getAccountResource.mockResolvedValueOnce({})
+		getNowBlock.mockResolvedValueOnce({
+			block_header: {
+				raw_data: {
+					number: 124,
+					timestamp: 1_720_000_000_500,
+				},
+			},
+		})
 
 		const resolver = tronGridRest.resolvers.find((candidate) => (
 			candidate.entityType === EntityType.TronAccount
@@ -244,7 +346,16 @@ describe('TronGrid REST network relationships', () => {
 		}
 		const resolved = await resolver.resolve['NetworkAddress'].resolve(account, resolverContext)
 
-		expect(resolver.projections.$$timestamps(resolved)).toEqual([])
+		expect(resolver.projections.$$timestamps(resolved)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$account: account,
+				timestampMs: 1_720_000_000_500,
+				source: Source.TronGrid_Rest,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.TronAccount_Timestamp, [], 'balanceSun')]: 42n,
+			},
+		}])
 	})
 
 	it('embeds witness observations through canonical field addresses', async () => {
@@ -408,15 +519,12 @@ describe('TronGrid REST network relationships', () => {
 		})
 	})
 
-	it('pins witness direct reads to the source head clock and rejects stale or impossible observations', async () => {
+	it('embeds individual witness state at the source head without direct timestamp replay', async () => {
 		const witnessResolver = tronGridRest.resolvers.find((resolver) => (
 			resolver.entityType === EntityType.TronWitness
 		))
-		const timestampResolver = tronGridRest.resolvers.find((resolver) => (
-			resolver.entityType === EntityType.TronWitness_Timestamp
-		))
-		if (witnessResolver == null || timestampResolver == null)
-			throw new Error('Tron witness hierarchy resolver is missing')
+		if (witnessResolver == null)
+			throw new Error('Tron witness resolver is missing')
 
 		const network = {
 			caip2: networkBySlug.tron.caip2,
@@ -448,22 +556,16 @@ describe('TronGrid REST network relationships', () => {
 					timestampMs: 1_720_000_000_000,
 					source: Source.TronGrid_Rest,
 				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.TronWitness_Timestamp, [], 'voteCount')]: 42n,
+					[entityFieldAddressKey(EntityType.TronWitness_Timestamp, [], 'latestBlockHeight')]: 99n,
+					[entityFieldAddressKey(EntityType.TronWitness_Timestamp, [], 'latestSlotNumber')]: 99n,
+				},
 			}],
 		})
-		expect(await timestampResolver.resolve.WitnessTimestampMsSource.resolve({
-			$witness: witness,
-			timestampMs: 1_720_000_000_000,
-			source: Source.TronGrid_Rest,
-		}, resolverContext)).toMatchObject({
-			latestBlockHeight: 99n,
-			voteCount: 42n,
-		})
-
-		await expect(timestampResolver.resolve.WitnessTimestampMsSource.resolve({
-			$witness: witness,
-			timestampMs: 1_719_999_999_999,
-			source: Source.TronGrid_Rest,
-		}, resolverContext)).rejects.toThrow('witness observation timestamp does not match head block')
+		expect(tronGridRest.resolvers.some((resolver) => (
+			resolver.entityType === EntityType.TronWitness_Timestamp
+		))).toBe(false)
 
 		listWitnesses.mockResolvedValueOnce({
 			witnesses: [{

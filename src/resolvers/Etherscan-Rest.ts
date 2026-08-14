@@ -208,19 +208,17 @@ const etherscanEvmNetworkAccountObservation = async ({
 		throw new Error('Etherscan_Rest: EvmNetworkAccount wallet address not normalized')
 
 	const chainId = evmChainIdFromNetworkSelector($network)
-	const [codeHex, tipClock] = await Promise.all([
-		getCode({
-			publicEnv,
-			chainId,
-			address,
-		}),
-		etherscanTipBlockObservationClock({
-			publicEnv,
-			chainId,
-		}),
-	])
+	const codeHex = await getCode({
+		publicEnv,
+		chainId,
+		address,
+	})
 	if (codeHex == null)
 		throw new Error('Etherscan_Rest: eth_getCode returned no result')
+	const tipClock = await etherscanTipBlockObservationClock({
+		publicEnv,
+		chainId,
+	})
 
 	return {
 		[EntityMetaKey.Selector]: {
@@ -231,8 +229,10 @@ const etherscanEvmNetworkAccountObservation = async ({
 			timestampMs: tipClock.timestampMs,
 			source: Source.Etherscan_Rest,
 		},
-		blockNumber: tipClock.blockNumber,
-		isContract: codeHex !== '0x' && codeHex !== '0x0',
+		[EntityMetaKey.Fields]: {
+			[entityFieldAddressKey(EntityType.EvmNetworkAccount_Timestamp, [], 'blockNumber')]: tipClock.blockNumber,
+			[entityFieldAddressKey(EntityType.EvmNetworkAccount_Timestamp, [], 'isContract')]: codeHex !== '0x' && codeHex !== '0x0',
+		},
 	}
 }
 
@@ -1779,65 +1779,19 @@ export default {
 			entityType: EntityType.EvmNetworkAccount,
 			resolve: {
 				EvmNetworkEvmAccount: {
-					resolve: async ({ $actor, $network }, context) => {
-						const address = hexLowerOfByteSize($actor.address, 20)
-						if (address == null)
-							throw new Error('Etherscan_Rest: EvmNetworkAccount wallet address not normalized')
-
-						const tipClock = await etherscanTipBlockObservationClock({
-							publicEnv: context.publicEnv,
-							chainId: evmChainIdFromNetworkSelector($network),
-						})
-						return {
-							$$timestamps: [
-								{
-									[EntityMetaKey.Selector]: {
-										$account: {
-											$network,
-											$actor,
-										},
-										timestampMs: tipClock.timestampMs,
-										source: Source.Etherscan_Rest,
-									},
-								},
-							],
-						}
-					},
+					resolve: async ({ $actor, $network }, context) => ({
+						$$timestamps: [
+							await etherscanEvmNetworkAccountObservation({
+								publicEnv: context.publicEnv,
+								$network,
+								$actor,
+							}),
+						],
+					}),
 				}
 			},
 		})({
 			$$timestamps: (account) => account.$$timestamps,
-		}),
-
-		defineResolver({
-			entityType: EntityType.EvmNetworkAccount_Timestamp,
-			resolve: {
-				AccountTimestampMsSource: {
-					resolve: async ({
-						$account,
-						timestampMs,
-						source,
-					}, context) => {
-						if (source !== Source.Etherscan_Rest)
-							throw new Error(`Etherscan_Rest: unsupported account observation source ${source}`)
-						if (!Number.isSafeInteger(timestampMs) || timestampMs < 0)
-							throw new Error('Etherscan_Rest: invalid account observation timestamp')
-
-						const observation = await etherscanEvmNetworkAccountObservation({
-							publicEnv: context.publicEnv,
-							$network: $account.$network,
-							$actor: $account.$actor,
-						})
-						if (observation[EntityMetaKey.Selector].timestampMs !== timestampMs)
-							throw new Error('Etherscan_Rest: account observation timestamp does not match request')
-
-						return observation
-					},
-				}
-			},
-		})({
-			blockNumber: (observation) => observation.blockNumber,
-			isContract: (observation) => observation.isContract,
 		}),
 
 		defineResolver({

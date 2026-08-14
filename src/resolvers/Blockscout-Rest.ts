@@ -1469,7 +1469,7 @@ const blockscoutEvmNetworkAccountObservation = async ({
 		getAddressCounters,
 		getAddressDetails,
 	} = await import('$/sources/Blockscout/Rest/queries.ts')
-	const [counters, details, tipClock] = await Promise.all([
+	const [counters, details] = await Promise.all([
 		getAddressCounters({
 			chainId,
 			address,
@@ -1478,8 +1478,8 @@ const blockscoutEvmNetworkAccountObservation = async ({
 			chainId,
 			address,
 		}),
-		blockscoutTipBlockObservationClock(chainId),
 	])
+	const tipClock = await blockscoutTipBlockObservationClock(chainId)
 
 	return {
 		[EntityMetaKey.Selector]: {
@@ -1490,18 +1490,20 @@ const blockscoutEvmNetworkAccountObservation = async ({
 			timestampMs: tipClock.timestampMs,
 			source: Source.Blockscout_Rest,
 		},
-		blockNumber: tipClock.blockNumber,
-		transactionCount: BigInt(blockscoutCountFromDecimalString(
-			counters.transactions_count,
-			'transactions_count'
-		)),
-		tokenTransferCount: blockscoutCountFromDecimalString(
-			counters.token_transfers_count,
-			'token_transfers_count'
-		),
-		...(details.is_contract != null && {
-			isContract: details.is_contract,
-		}),
+		[EntityMetaKey.Fields]: {
+			[entityFieldAddressKey(EntityType.EvmNetworkAccount_Timestamp, [], 'blockNumber')]: tipClock.blockNumber,
+			[entityFieldAddressKey(EntityType.EvmNetworkAccount_Timestamp, [], 'transactionCount')]: BigInt(blockscoutCountFromDecimalString(
+				counters.transactions_count,
+				'transactions_count'
+			)),
+			[entityFieldAddressKey(EntityType.EvmNetworkAccount_Timestamp, [], 'tokenTransferCount')]: blockscoutCountFromDecimalString(
+				counters.token_transfers_count,
+				'token_transfers_count'
+			),
+			...(details.is_contract != null && {
+				[entityFieldAddressKey(EntityType.EvmNetworkAccount_Timestamp, [], 'isContract')]: details.is_contract,
+			}),
+		},
 	}
 }
 
@@ -3148,65 +3150,18 @@ export default {
 			entityType: EntityType.EvmNetworkAccount,
 			resolve: {
 				EvmNetworkEvmAccount: {
-					resolve: async ({ $actor, $network }) => {
-						const address = hexLowerOfByteSize($actor.address, 20)
-						if (address == null)
-							throw new Error('Blockscout_Rest: EvmNetworkAccount wallet address not normalized')
-
-						const tipClock = await blockscoutTipBlockObservationClock(
-							evmChainIdFromNetworkSelector($network)
-						)
-						return {
-							$$timestamps: [
-								{
-									[EntityMetaKey.Selector]: {
-										$account: {
-											$network,
-											$actor,
-										},
-										timestampMs: tipClock.timestampMs,
-										source: Source.Blockscout_Rest,
-									},
-								},
-							],
-						}
-					},
+					resolve: async ({ $actor, $network }) => ({
+						$$timestamps: [
+							await blockscoutEvmNetworkAccountObservation({
+								$network,
+								$actor,
+							}),
+						],
+					}),
 				},
 			},
 		})({
 			$$timestamps: (account) => account.$$timestamps,
-		}),
-
-		defineResolver({
-			entityType: EntityType.EvmNetworkAccount_Timestamp,
-			resolve: {
-				AccountTimestampMsSource: {
-					resolve: async ({
-						$account,
-						timestampMs,
-						source,
-					}) => {
-						if (source !== Source.Blockscout_Rest)
-							throw new Error(`Blockscout_Rest: unsupported account observation source ${source}`)
-						if (!Number.isSafeInteger(timestampMs) || timestampMs < 0)
-							throw new Error('Blockscout_Rest: invalid account observation timestamp')
-
-						const observation = await blockscoutEvmNetworkAccountObservation({
-							$network: $account.$network,
-							$actor: $account.$actor,
-						})
-						if (observation[EntityMetaKey.Selector].timestampMs !== timestampMs)
-							throw new Error('Blockscout_Rest: account observation timestamp does not match request')
-
-						return observation
-					},
-				},
-			},
-		})({
-			blockNumber: (observation) => observation.blockNumber,
-			transactionCount: (observation) => observation.transactionCount,
-			tokenTransferCount: (observation) => observation.tokenTransferCount,
-			isContract: (observation) => observation.isContract,
 		}),
 
 		defineResolver({

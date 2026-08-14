@@ -1418,7 +1418,7 @@ describe('Blockscout_Rest smart contract verification detail', () => {
 	})
 })
 
-describe('Blockscout EvmNetworkAccount_Timestamp', () => {
+describe('Blockscout EvmNetworkAccount timestamps', () => {
 	const address = '0x1111111111111111111111111111111111111111'
 	const tipTimestamp = '2024-01-02T03:04:05.000Z'
 	const tipTimestampMs = Math.floor(Date.parse(tipTimestamp) / 1_000) * 1_000
@@ -1427,17 +1427,10 @@ describe('Blockscout EvmNetworkAccount_Timestamp', () => {
 		candidate.entityType === EntityType.EvmNetworkAccount
 		&& '$$timestamps' in candidate.projections
 	))
-	const accountTimestampResolver = blockscoutRest.resolvers.find((candidate) => (
-		candidate.entityType === EntityType.EvmNetworkAccount_Timestamp
-		&& 'isContract' in candidate.projections
-		&& 'transactionCount' in candidate.projections
-	))
 
 	if (
 		accountTimestampsResolver == null
 		|| !('EvmNetworkEvmAccount' in accountTimestampsResolver.resolve)
-		|| accountTimestampResolver == null
-		|| !('AccountTimestampMsSource' in accountTimestampResolver.resolve)
 	)
 		throw new Error('Blockscout_Rest: missing EvmNetworkAccount timestamp resolvers')
 
@@ -1489,61 +1482,21 @@ describe('Blockscout EvmNetworkAccount_Timestamp', () => {
 				timestampMs: tipTimestampMs,
 				source: Source.Blockscout_Rest,
 			},
-		}])
-
-		const observation = await accountTimestampResolver.resolve.AccountTimestampMsSource.resolve({
-			$account: {
-				$network: network,
-				$actor: {
-					address,
-				},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.EvmNetworkAccount_Timestamp, [], 'blockNumber')]: 22_800_001n,
+				[entityFieldAddressKey(EntityType.EvmNetworkAccount_Timestamp, [], 'transactionCount')]: 12n,
+				[entityFieldAddressKey(EntityType.EvmNetworkAccount_Timestamp, [], 'tokenTransferCount')]: 4,
+				[entityFieldAddressKey(EntityType.EvmNetworkAccount_Timestamp, [], 'isContract')]: true,
 			},
-			timestampMs: tipTimestampMs,
-			source: Source.Blockscout_Rest,
-		}, context)
-		expect(accountTimestampResolver.projections.blockNumber(observation)).toBe(22_800_001n)
-		expect(accountTimestampResolver.projections.transactionCount(observation)).toBe(12n)
-		expect(accountTimestampResolver.projections.tokenTransferCount(observation)).toBe(4)
-		expect(accountTimestampResolver.projections.isContract(observation)).toBe(true)
+		}])
+		expect(getAddressCounters.mock.invocationCallOrder[0]).toBeLessThan(getBlocks.mock.invocationCallOrder[0])
+		expect(getAddressDetails.mock.invocationCallOrder[0]).toBeLessThan(getBlocks.mock.invocationCallOrder[0])
 	})
 
-	it('fail-closes singular account observations on tip-clock mismatch', async () => {
-		getBlocks.mockResolvedValue({
-			items: [{
-				height: 22_800_001,
-			}],
-			nextPageParams: undefined,
-		})
-		getBlockByNumber.mockResolvedValue({
-			hash: txHash,
-			height: 22_800_001,
-			miner: {
-				hash: address,
-			},
-			parent_hash: txHash,
-			timestamp: tipTimestamp,
-			transactions_count: 1,
-		})
-		getAddressCounters.mockResolvedValue({
-			gas_usage_count: '0',
-			token_transfers_count: '0',
-			transactions_count: '0',
-			validations_count: '0',
-		})
-		getAddressDetails.mockResolvedValue({
-			is_contract: false,
-		})
-
-		await expect(accountTimestampResolver.resolve.AccountTimestampMsSource.resolve({
-			$account: {
-				$network: network,
-				$actor: {
-					address,
-				},
-			},
-			timestampMs: tipTimestampMs + 1_000,
-			source: Source.Blockscout_Rest,
-		}, context)).rejects.toThrow('account observation timestamp does not match request')
+	it('does not register a direct EvmNetworkAccount_Timestamp resolver', () => {
+		expect(blockscoutRest.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.EvmNetworkAccount_Timestamp
+		))).toBeUndefined()
 	})
 })
 

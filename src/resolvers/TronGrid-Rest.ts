@@ -63,45 +63,12 @@ const tronNetworkReferenceApplicability = [
 	},
 ] as const
 
-const tronNetworkTimestampApplicability = [
-	{
-		...tronNetworkReferenceApplicability[0],
-		source: Source.TronGrid_Rest,
-	},
-	{
-		...tronNetworkReferenceApplicability[1],
-		source: Source.TronGrid_Rest,
-	},
-] as const
-
-const tronAccountTimestampApplicability = [
-	{
-		$account: tronNetworkReferenceApplicability[0],
-		source: Source.TronGrid_Rest,
-	},
-	{
-		$account: tronNetworkReferenceApplicability[1],
-		source: Source.TronGrid_Rest,
-	},
-] as const
-
 const tronTransactionReferenceApplicability = [
 	{
 		$transaction: tronNetworkReferenceApplicability[0],
 	},
 	{
 		$transaction: tronNetworkReferenceApplicability[1],
-	},
-] as const
-
-const tronWitnessTimestampApplicability = [
-	{
-		$witness: tronNetworkReferenceApplicability[0],
-		source: Source.TronGrid_Rest,
-	},
-	{
-		$witness: tronNetworkReferenceApplicability[1],
-		source: Source.TronGrid_Rest,
 	},
 ] as const
 
@@ -389,59 +356,6 @@ export default {
 			}),
 
 		defineResolver({
-			entityType: EntityType.TronNetwork_Timestamp,
-			resolve: {
-				NetworkTimestampMsSource: {
-					appliesTo: tronNetworkTimestampApplicability,
-					resolve: async ({ $network, timestampMs, source }) => {
-						assertTronMainnet($network)
-						if (source !== Source.TronGrid_Rest)
-							throw new Error('TronGrid_Rest: unsupported observation source')
-						const {
-							getChainParameters,
-							getNodeInfo,
-							getNowBlock,
-							listWitnesses,
-						} = await import('$/sources/TronGrid/Rest/queries.ts')
-						const block = await getNowBlock()
-						if (observationCoordinate(block).timestampMs !== timestampMs)
-							throw new Error('TronGrid_Rest: network observation timestamp does not match head block')
-						const witnesses = await listWitnesses()
-						const chainParameters = await getChainParameters()
-						const nodeInfo = await getNodeInfo()
-						return {
-							latestBlockHeight: BigInt(block.block_header?.raw_data?.number ?? 0),
-							latestBlockHash: block.blockID,
-							latestBlockTimeMs: block.block_header?.raw_data?.timestamp,
-							latestBlockTransactionCount: block.transactions?.length ?? 0,
-							witnessCount: witnesses.witnesses.length,
-							activeWitnessCount: witnesses.witnesses.filter((witness) => witness.isJobs).length,
-							nodeBlockHeight: heightFromNodeInfoBlock(nodeInfo.block),
-							solidityBlockHeight: heightFromNodeInfoBlock(nodeInfo.solidityBlock),
-							currentPeerCount: nodeInfo.currentConnectCount,
-							maintenanceIntervalMs: Number(chainParameterValue(chainParameters.chainParameter, 'getMaintenanceTimeInterval') ?? 0n),
-							transactionFeeSun: chainParameterValue(chainParameters.chainParameter, 'getTransactionFee'),
-							createAccountFeeSun: chainParameterValue(chainParameters.chainParameter, 'getCreateAccountFee'),
-						}
-					},
-				}
-			},
-		})({
-				latestBlockHeight: (timestamp) => timestamp.latestBlockHeight,
-				latestBlockHash: (timestamp) => timestamp.latestBlockHash,
-				latestBlockTimeMs: (timestamp) => timestamp.latestBlockTimeMs,
-				latestBlockTransactionCount: (timestamp) => timestamp.latestBlockTransactionCount,
-				witnessCount: (timestamp) => timestamp.witnessCount,
-				activeWitnessCount: (timestamp) => timestamp.activeWitnessCount,
-				nodeBlockHeight: (timestamp) => timestamp.nodeBlockHeight,
-				solidityBlockHeight: (timestamp) => timestamp.solidityBlockHeight,
-				currentPeerCount: (timestamp) => timestamp.currentPeerCount,
-				maintenanceIntervalMs: (timestamp) => timestamp.maintenanceIntervalMs,
-				transactionFeeSun: (timestamp) => timestamp.transactionFeeSun,
-				createAccountFeeSun: (timestamp) => timestamp.createAccountFeeSun,
-			}),
-
-		defineResolver({
 			entityType: EntityType.TronBlock,
 			resolve: {
 				NetworkHeightHash: {
@@ -535,6 +449,7 @@ export default {
 						const {
 							getAccount,
 							getAccountResource,
+							getNowBlock,
 						} = await import('$/sources/TronGrid/Rest/queries.ts')
 						const [
 							account,
@@ -547,6 +462,7 @@ export default {
 								address: address,
 							}),
 						])
+						const observationTimestampMs = observationCoordinate(await getNowBlock()).timestampMs
 						const balanceSun = (
 							account.balance != null ?
 								BigInt(account.balance)
@@ -555,7 +471,6 @@ export default {
 						)
 						const createdTimestampMs = account.create_time
 						const latestOperationTimestampMs = account.latest_opration_time
-						const observationTimestampMs = latestOperationTimestampMs ?? createdTimestampMs
 						const freeNetUsed = bigintFromNumberOrString(accountResource.freeNetUsed)
 						const freeNetLimit = bigintFromNumberOrString(accountResource.freeNetLimit)
 						const netUsed = bigintFromNumberOrString(accountResource.NetUsed)
@@ -564,50 +479,47 @@ export default {
 						const energyLimit = bigintFromNumberOrString(accountResource.EnergyLimit)
 						return {
 							name: account.account_name,
-							$$timestamps: observationTimestampMs == null ?
-								[]
-							:
-								[
-									{
-										[EntityMetaKey.Selector]: {
-											$account: {
-												$network,
-												address,
-											},
-											timestampMs: observationTimestampMs,
-											source: Source.TronGrid_Rest,
+							$$timestamps: [
+								{
+									[EntityMetaKey.Selector]: {
+										$account: {
+											$network,
+											address,
 										},
-										[EntityMetaKey.Fields]: {
-											...(balanceSun != null && {
-												[entityFieldAddressKey(EntityType.TronAccount_Timestamp, [], 'balanceSun')]: balanceSun,
-											}),
-											...(createdTimestampMs != null && {
-												[entityFieldAddressKey(EntityType.TronAccount_Timestamp, [], 'createdTimestampMs')]: createdTimestampMs,
-											}),
-											...(latestOperationTimestampMs != null && {
-												[entityFieldAddressKey(EntityType.TronAccount_Timestamp, [], 'latestOperationTimestampMs')]: latestOperationTimestampMs,
-											}),
-											...(freeNetUsed != null && {
-												[entityFieldAddressKey(EntityType.TronAccount_Timestamp, [], 'freeNetUsed')]: freeNetUsed,
-											}),
-											...(freeNetLimit != null && {
-												[entityFieldAddressKey(EntityType.TronAccount_Timestamp, [], 'freeNetLimit')]: freeNetLimit,
-											}),
-											...(netUsed != null && {
-												[entityFieldAddressKey(EntityType.TronAccount_Timestamp, [], 'netUsed')]: netUsed,
-											}),
-											...(netLimit != null && {
-												[entityFieldAddressKey(EntityType.TronAccount_Timestamp, [], 'netLimit')]: netLimit,
-											}),
-											...(energyUsed != null && {
-												[entityFieldAddressKey(EntityType.TronAccount_Timestamp, [], 'energyUsed')]: energyUsed,
-											}),
-											...(energyLimit != null && {
-												[entityFieldAddressKey(EntityType.TronAccount_Timestamp, [], 'energyLimit')]: energyLimit,
-											}),
-										},
+										timestampMs: observationTimestampMs,
+										source: Source.TronGrid_Rest,
 									},
-								],
+									[EntityMetaKey.Fields]: {
+										...(balanceSun != null && {
+											[entityFieldAddressKey(EntityType.TronAccount_Timestamp, [], 'balanceSun')]: balanceSun,
+										}),
+										...(createdTimestampMs != null && {
+											[entityFieldAddressKey(EntityType.TronAccount_Timestamp, [], 'createdTimestampMs')]: createdTimestampMs,
+										}),
+										...(latestOperationTimestampMs != null && {
+											[entityFieldAddressKey(EntityType.TronAccount_Timestamp, [], 'latestOperationTimestampMs')]: latestOperationTimestampMs,
+										}),
+										...(freeNetUsed != null && {
+											[entityFieldAddressKey(EntityType.TronAccount_Timestamp, [], 'freeNetUsed')]: freeNetUsed,
+										}),
+										...(freeNetLimit != null && {
+											[entityFieldAddressKey(EntityType.TronAccount_Timestamp, [], 'freeNetLimit')]: freeNetLimit,
+										}),
+										...(netUsed != null && {
+											[entityFieldAddressKey(EntityType.TronAccount_Timestamp, [], 'netUsed')]: netUsed,
+										}),
+										...(netLimit != null && {
+											[entityFieldAddressKey(EntityType.TronAccount_Timestamp, [], 'netLimit')]: netLimit,
+										}),
+										...(energyUsed != null && {
+											[entityFieldAddressKey(EntityType.TronAccount_Timestamp, [], 'energyUsed')]: energyUsed,
+										}),
+										...(energyLimit != null && {
+											[entityFieldAddressKey(EntityType.TronAccount_Timestamp, [], 'energyLimit')]: energyLimit,
+										}),
+									},
+								},
+							],
 						}
 					},
 				}
@@ -615,56 +527,6 @@ export default {
 		})({
 				name: (account) => account.name,
 				$$timestamps: (account) => account.$$timestamps,
-			}),
-
-		defineResolver({
-			entityType: EntityType.TronAccount_Timestamp,
-			resolve: {
-				AccountTimestampMsSource: {
-					appliesTo: tronAccountTimestampApplicability,
-					resolve: async ({ $account }) => {
-						assertTronMainnet($account.$network)
-						const {
-							getAccount,
-							getAccountResource,
-						} = await import('$/sources/TronGrid/Rest/queries.ts')
-						const [
-							account,
-							accountResource,
-						] = await Promise.all([
-							getAccount({
-								address: $account.address,
-							}),
-							getAccountResource({
-								address: $account.address,
-							}),
-						])
-						return {
-							...(account.balance != null && {
-								balanceSun: BigInt(account.balance),
-							}),
-							createdTimestampMs: account.create_time,
-							latestOperationTimestampMs: account.latest_opration_time,
-							freeNetUsed: bigintFromNumberOrString(accountResource.freeNetUsed),
-							freeNetLimit: bigintFromNumberOrString(accountResource.freeNetLimit),
-							netUsed: bigintFromNumberOrString(accountResource.NetUsed),
-							netLimit: bigintFromNumberOrString(accountResource.NetLimit),
-							energyUsed: bigintFromNumberOrString(accountResource.EnergyUsed),
-							energyLimit: bigintFromNumberOrString(accountResource.EnergyLimit),
-						}
-					},
-				}
-			},
-		})({
-				balanceSun: (account) => account.balanceSun,
-				createdTimestampMs: (account) => account.createdTimestampMs,
-				latestOperationTimestampMs: (account) => account.latestOperationTimestampMs,
-				freeNetUsed: (account) => account.freeNetUsed,
-				freeNetLimit: (account) => account.freeNetLimit,
-				netUsed: (account) => account.netUsed,
-				netLimit: (account) => account.netLimit,
-				energyUsed: (account) => account.energyUsed,
-				energyLimit: (account) => account.energyLimit,
 			}),
 
 		defineResolver({
@@ -709,10 +571,8 @@ export default {
 							getNowBlock,
 							listWitnesses,
 						} = await import('$/sources/TronGrid/Rest/queries.ts')
-						const [block, witnesses] = await Promise.all([
-							getNowBlock(),
-							listWitnesses(),
-						])
+						const witnesses = await listWitnesses()
+						const block = await getNowBlock()
 						const coordinate = observationCoordinate(block)
 						const witness = witnesses.witnesses
 							.find((tronAccount) => tronAccount.address === address)
@@ -730,6 +590,17 @@ export default {
 										timestampMs: coordinate.timestampMs,
 										source: Source.TronGrid_Rest,
 									},
+									[EntityMetaKey.Fields]: Object.fromEntries(
+										Object.entries(witnessFields(witness)).flatMap(([fieldName, value]) => (
+											value == null ?
+												[]
+											:
+												[[
+													entityFieldAddressKey(EntityType.TronWitness_Timestamp, [], fieldName),
+													value,
+												]]
+										))
+									),
 								},
 							],
 						}
@@ -741,56 +612,66 @@ export default {
 			}),
 
 		defineResolver({
-			entityType: EntityType.TronWitness_Timestamp,
-			resolve: {
-				WitnessTimestampMsSource: {
-					appliesTo: tronWitnessTimestampApplicability,
-					resolve: async ({ $witness, timestampMs, source }) => {
-						assertTronMainnet($witness.$network)
-						if (source !== Source.TronGrid_Rest)
-							throw new Error('TronGrid_Rest: unsupported observation source')
-						const {
-							getNowBlock,
-							listWitnesses,
-						} = await import('$/sources/TronGrid/Rest/queries.ts')
-						const [block, witnesses] = await Promise.all([
-							getNowBlock(),
-							listWitnesses(),
-						])
-						const coordinate = observationCoordinate(block)
-						if (coordinate.timestampMs !== timestampMs)
-							throw new Error('TronGrid_Rest: witness observation timestamp does not match head block')
-						const witness = witnesses.witnesses
-							.find((tronAccount) => tronAccount.address === $witness.address)
-						if (witness == null) throw new Error(`TronGrid_Rest: witness not found for ${$witness.address}`)
-						if (witness.latestBlockNum != null && BigInt(witness.latestBlockNum) > coordinate.height)
-							throw new Error('TronGrid_Rest: witness latest block exceeds observed head')
-						return witnessFields(witness)
-					},
-				}
-			},
-		})({
-				url: (timestamp) => timestamp.url,
-				voteCount: (timestamp) => timestamp.voteCount,
-				totalProduced: (timestamp) => timestamp.totalProduced,
-				totalMissed: (timestamp) => timestamp.totalMissed,
-				latestBlockHeight: (timestamp) => timestamp.latestBlockHeight,
-				latestSlotNumber: (timestamp) => timestamp.latestSlotNumber,
-				active: (timestamp) => timestamp.active,
-			}),
-
-		defineResolver({
 			entityType: EntityType.Network,
 			resolve: tronNetworkResolverSelectors(
 				async (network) => {
 					assertTronMainnet(network)
-					const { getNowBlock } = await import('$/sources/TronGrid/Rest/queries.ts')
+					const {
+						getChainParameters,
+						getNodeInfo,
+						getNowBlock,
+						listWitnesses,
+					} = await import('$/sources/TronGrid/Rest/queries.ts')
+					const [
+						witnesses,
+						chainParameters,
+						nodeInfo,
+					] = await Promise.all([
+						listWitnesses(),
+						getChainParameters(),
+						getNodeInfo(),
+					])
+					const block = await getNowBlock()
+					const coordinate = observationCoordinate(block)
+					const nodeBlockHeight = heightFromNodeInfoBlock(nodeInfo.block)
+					const solidityBlockHeight = heightFromNodeInfoBlock(nodeInfo.solidityBlock)
+					const maintenanceIntervalMs = chainParameterValue(chainParameters.chainParameter, 'getMaintenanceTimeInterval')
+					const transactionFeeSun = chainParameterValue(chainParameters.chainParameter, 'getTransactionFee')
+					const createAccountFeeSun = chainParameterValue(chainParameters.chainParameter, 'getCreateAccountFee')
 					return [
 						{
 							[EntityMetaKey.Selector]: {
 								$network: network,
-								timestampMs: observationCoordinate(await getNowBlock()).timestampMs,
+								timestampMs: coordinate.timestampMs,
 								source: Source.TronGrid_Rest,
+							},
+							[EntityMetaKey.Fields]: {
+								[entityFieldAddressKey(EntityType.TronNetwork_Timestamp, [], 'latestBlockHeight')]: coordinate.height,
+								...(block.blockID != null && {
+									[entityFieldAddressKey(EntityType.TronNetwork_Timestamp, [], 'latestBlockHash')]: block.blockID,
+								}),
+								[entityFieldAddressKey(EntityType.TronNetwork_Timestamp, [], 'latestBlockTimeMs')]: coordinate.timestampMs,
+								[entityFieldAddressKey(EntityType.TronNetwork_Timestamp, [], 'latestBlockTransactionCount')]: block.transactions?.length ?? 0,
+								[entityFieldAddressKey(EntityType.TronNetwork_Timestamp, [], 'witnessCount')]: witnesses.witnesses.length,
+								[entityFieldAddressKey(EntityType.TronNetwork_Timestamp, [], 'activeWitnessCount')]: witnesses.witnesses.filter((witness) => witness.isJobs).length,
+								...(nodeBlockHeight != null && {
+									[entityFieldAddressKey(EntityType.TronNetwork_Timestamp, [], 'nodeBlockHeight')]: nodeBlockHeight,
+								}),
+								...(solidityBlockHeight != null && {
+									[entityFieldAddressKey(EntityType.TronNetwork_Timestamp, [], 'solidityBlockHeight')]: solidityBlockHeight,
+								}),
+								...(nodeInfo.currentConnectCount != null && {
+									[entityFieldAddressKey(EntityType.TronNetwork_Timestamp, [], 'currentPeerCount')]: nodeInfo.currentConnectCount,
+								}),
+								...(maintenanceIntervalMs != null && {
+									[entityFieldAddressKey(EntityType.TronNetwork_Timestamp, [], 'maintenanceIntervalMs')]: Number(maintenanceIntervalMs),
+								}),
+								...(transactionFeeSun != null && {
+									[entityFieldAddressKey(EntityType.TronNetwork_Timestamp, [], 'transactionFeeSun')]: transactionFeeSun,
+								}),
+								...(createAccountFeeSun != null && {
+									[entityFieldAddressKey(EntityType.TronNetwork_Timestamp, [], 'createAccountFeeSun')]: createAccountFeeSun,
+								}),
 							},
 						},
 					]
@@ -812,10 +693,8 @@ export default {
 						listWitnesses,
 					} = await import('$/sources/TronGrid/Rest/queries.ts')
 					const offset = context.pagination.offset ?? 0
-					const [block, witnesses] = await Promise.all([
-						getNowBlock(),
-						listWitnesses(),
-					])
+					const witnesses = await listWitnesses()
+					const block = await getNowBlock()
 					return witnessRows(
 						network,
 						witnesses.witnesses

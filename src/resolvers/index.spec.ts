@@ -1112,7 +1112,7 @@ describe('resolver registry live resolver architecture', () => {
 			&& sourceClaimParentMaterializers(claim).length > 0
 		))
 
-		expect(parentOwnedClaims).toHaveLength(269)
+		expect(parentOwnedClaims).toHaveLength(303)
 		expect(Object.entries(Object.groupBy(
 			parentOwnedClaims,
 			(claim) => claim.entityType
@@ -1135,6 +1135,7 @@ describe('resolver registry live resolver architecture', () => {
 			[EntityType.CashuKeyset_Timestamp, 2],
 			[EntityType.CashuMint_Timestamp, 6],
 			[EntityType.Erc4337SmartAccount_Timestamp, 1],
+			[EntityType.EvmNetworkAccount_Timestamp, 6],
 			[EntityType.EvmNetworkActorCoinBalance_Timestamp, 1],
 			[EntityType.HederaContract_Timestamp, 3],
 			[EntityType.HyperliquidPerpMarket_Timestamp, 2],
@@ -1146,10 +1147,12 @@ describe('resolver registry live resolver architecture', () => {
 			[EntityType.PolkadotAsset_Timestamp, 13],
 			[EntityType.PolkadotAssetBalance_Timestamp, 4],
 			[EntityType.SolanaValidator_Timestamp, 7],
-			[EntityType.TronAccount_Timestamp, 5],
+			[EntityType.TronAccount_Timestamp, 14],
 			[EntityType.TronAccountTokenBalance_Timestamp, 5],
 			[EntityType.TronContract_Timestamp, 4],
+			[EntityType.TronNetwork_Timestamp, 12],
 			[EntityType.TronToken_Timestamp, 5],
+			[EntityType.TronWitness_Timestamp, 7],
 			[EntityType.UtxoAddress_Timestamp, 34],
 			[EntityType.XrplLedger, 1],
 			[EntityType.XrplTransaction, 4],

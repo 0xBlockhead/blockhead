@@ -408,15 +408,9 @@ describe('Etherscan Network selectors', () => {
 			candidate.entityType === EntityType.EvmNetworkAccount
 			&& '$$timestamps' in candidate.projections
 		))
-		const timestampResolver = etherscanRest.resolvers.find((candidate) => (
-			candidate.entityType === EntityType.EvmNetworkAccount_Timestamp
-			&& 'isContract' in candidate.projections
-		))
 		if (
 			accountResolver == null
 			|| !('EvmNetworkEvmAccount' in accountResolver.resolve)
-			|| timestampResolver == null
-			|| !('AccountTimestampMsSource' in timestampResolver.resolve)
 		)
 			throw new Error('Etherscan_Rest: missing EvmNetworkAccount timestamp resolvers')
 
@@ -440,20 +434,15 @@ describe('Etherscan Network selectors', () => {
 				timestampMs: 0x65a4b665 * 1_000,
 				source: Source.Etherscan_Rest,
 			},
-		}])
-
-		const observation = await timestampResolver.resolve.AccountTimestampMsSource.resolve({
-			$account: {
-				$network,
-				$actor: {
-					address,
-				},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.EvmNetworkAccount_Timestamp, [], 'blockNumber')]: 0x159a91n,
+				[entityFieldAddressKey(EntityType.EvmNetworkAccount_Timestamp, [], 'isContract')]: true,
 			},
-			timestampMs: 0x65a4b665 * 1_000,
-			source: Source.Etherscan_Rest,
-		}, context)
-		expect(timestampResolver.projections.blockNumber(observation)).toBe(0x159a91n)
-		expect(timestampResolver.projections.isContract(observation)).toBe(true)
+		}])
+		expect(getCode.mock.invocationCallOrder[0]).toBeLessThan(getBlockNumber.mock.invocationCallOrder[0])
+		expect(etherscanRest.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.EvmNetworkAccount_Timestamp
+		))).toBeUndefined()
 	})
 
 	it('projects enrolled blob gas fields on EvmBlock', async () => {
