@@ -4,7 +4,6 @@
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -19,13 +18,6 @@
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.RssFeed_Timestamp>, 'prefetched'> = $props()
-
-	const viewSelection = $derived(selection({
-		sources: selection.sources ?? [
-			Source.Rss_Rest,
-			Source.Rss2Json_Rest,
-		],
-	}))
 
 
 	// Components
@@ -93,7 +85,7 @@
 				<dd>
 					<ResourceBoundary
 						resource={
-							viewSelection({
+							selection({
 								fields: {
 									reachable: true,
 								},
@@ -114,7 +106,7 @@
 				<dd>
 					<ResourceBoundary
 						resource={
-							viewSelection({
+							selection({
 								fields: {
 									observedItemCount: true,
 								},
@@ -134,7 +126,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
 						fields: {
 							error: true,
 						},

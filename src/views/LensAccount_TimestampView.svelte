@@ -4,7 +4,6 @@
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -19,12 +18,6 @@
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.LensAccount_Timestamp>, 'prefetched'> = $props()
-
-	const viewSelection = $derived(selection({
-		sources: selection.sources ?? [
-			Source.Lens_Graphql,
-		],
-	}))
 
 
 	// Components
@@ -80,7 +73,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
 						fields: {
 							followerCount: true,
 						},
@@ -106,7 +99,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
 						fields: {
 							followingCount: true,
 						},

@@ -798,40 +798,6 @@ export default {
 		}),
 
 		defineResolver({
-			entityType: EntityType.FarcasterUser_Timestamp,
-			resolve: {
-				UserTimestampMsSource: {
-					resolve: async ({ $user, timestampMs, source }) => {
-						if (source !== Source.Snapchain_Rest)
-							throw new Error(`Snapchain_Rest: unsupported user timestamp source ${source}`)
-						if (!('fid' in $user))
-							throw new Error('Snapchain_Rest: user timestamp requires fid')
-
-						const {
-							followerCount,
-							followingCount,
-						} = await getSnapchainUserCounts($user.fid)
-						return {
-							$user: {
-								[EntityMetaKey.Selector]: $user,
-							},
-							timestampMs,
-							source,
-							followerCount,
-							followingCount,
-						}
-					},
-				},
-			},
-		})({
-			$user: (observation) => observation.$user,
-			timestampMs: (observation) => observation.timestampMs,
-			source: (observation) => observation.source,
-			followerCount: (observation) => observation.followerCount,
-			followingCount: (observation) => observation.followingCount,
-		}),
-
-		defineResolver({
 			entityType: EntityType.FarcasterUser,
 			resolve: {
 				Fid: {
@@ -893,42 +859,6 @@ export default {
 				select: (timestamps) => timestamps,
 				resolveCount: (timestamps) => timestamps.length,
 			},
-		}),
-
-		defineResolver({
-			entityType: EntityType.FarcasterCast_Timestamp,
-			resolve: {
-				CastTimestampMsSource: {
-					resolve: async ({ $cast, timestampMs, source }) => {
-						if (source !== Source.Snapchain_Rest)
-							throw new Error(`Snapchain_Rest: unsupported cast timestamp source ${source}`)
-						if (!('fid' in $cast) || !('hash' in $cast))
-							throw new Error('Snapchain_Rest: cast timestamp requires cast fid and hash')
-
-						const counts = await getSnapchainCastCounts({
-							fid: $cast.fid,
-							hash: $cast.hash,
-						})
-						return {
-							$cast: {
-								[EntityMetaKey.Selector]: $cast,
-							},
-							timestampMs,
-							source,
-							likeCount: counts.likeCount,
-							recastCount: counts.recastCount,
-							replyCount: counts.replyCount,
-						}
-					},
-				},
-			},
-		})({
-			$cast: (observation) => observation.$cast,
-			timestampMs: (observation) => observation.timestampMs,
-			source: (observation) => observation.source,
-			likeCount: (observation) => observation.likeCount,
-			recastCount: (observation) => observation.recastCount,
-			replyCount: (observation) => observation.replyCount,
 		}),
 
 		defineResolver({

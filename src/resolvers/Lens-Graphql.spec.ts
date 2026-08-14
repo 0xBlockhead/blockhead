@@ -252,10 +252,10 @@ describe('Lens_Graphql reading relationships', () => {
 		await expect(lensGraphql.resolvers[0].resolve.Scope.resolve({
 			scope: 'LensNetwork',
 		}, context)).resolves.toEqual([expectedReference])
-		await expect(lensGraphql.resolvers[6].resolve['Address'].resolve({
+		await expect(lensGraphql.resolvers[4].resolve['Address'].resolve({
 			address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
 		}, context)).resolves.toEqual([expectedReference])
-		await expect(lensGraphql.resolvers[5].resolve['Id'].resolve({
+		await expect(lensGraphql.resolvers[3].resolve['Id'].resolve({
 			id: 'parent-post',
 		}, context)).resolves.toEqual([expectedReference])
 		expect(queryLatestPosts).toHaveBeenCalledWith(
@@ -328,13 +328,9 @@ describe('Lens_Graphql reading relationships', () => {
 		expect(queryAccount).toHaveBeenCalledWith({
 			address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
 		})
-		await expect(lensGraphql.resolvers[3].resolve.LensAccountTimestampMs.resolve(
-			resolvedAccount.$$timestamps[0][EntityMetaKey.Selector],
-			context
-		)).resolves.toEqual({
-			followerCount: 42,
-			followingCount: 7,
-		})
+		expect(lensGraphql.resolvers.some(({ entityType }) => (
+			entityType === EntityType.LensAccount_Timestamp
+		))).toBe(false)
 		expect(queryAccountStats).toHaveBeenCalledWith(
 			'0xabcdefabcdefabcdefabcdefabcdefabcdefabcd'
 		)
@@ -481,17 +477,9 @@ describe('Lens_Graphql reading relationships', () => {
 				},
 			],
 		})
-		await expect(lensGraphql.resolvers[4].resolve.LensPostTimestampMs.resolve(
-			resolvedPost.$$timestamps[0][EntityMetaKey.Selector],
-			context
-		)).resolves.toEqual({
-			commentCount: 3,
-			repostCount: 2,
-			quoteCount: 1,
-			bookmarkCount: 4,
-			collectCount: 5,
-			reactionCount: 6,
-		})
+		expect(lensGraphql.resolvers.some(({ entityType }) => (
+			entityType === EntityType.LensPost_Timestamp
+		))).toBe(false)
 	})
 
 	it('materializes the public account directory and direct feed fields without fabricating absent values', async () => {
@@ -529,7 +517,7 @@ describe('Lens_Graphql reading relationships', () => {
 			},
 		})
 
-		await expect(lensGraphql.resolvers[7].resolve.Scope.resolve({
+		await expect(lensGraphql.resolvers[5].resolve.Scope.resolve({
 			scope: 'LensNetwork',
 		}, context)).resolves.toEqual([{
 			[EntityMetaKey.Selector]: {
@@ -547,7 +535,7 @@ describe('Lens_Graphql reading relationships', () => {
 		expect(queryAccounts).toHaveBeenCalledWith(
 			64
 		)
-		await expect(lensGraphql.resolvers[10].resolve.Address.resolve({
+		await expect(lensGraphql.resolvers[8].resolve.Address.resolve({
 			address: '0x2222222222222222222222222222222222222222',
 		}, context)).resolves.toEqual({
 			address: '0x2222222222222222222222222222222222222222',
@@ -595,7 +583,7 @@ describe('Lens_Graphql reading relationships', () => {
 				address: '0x3333333333333333333333333333333333333333',
 			},
 		})
-		await expect(lensGraphql.resolvers[10].resolve.Address.resolve({
+		await expect(lensGraphql.resolvers[8].resolve.Address.resolve({
 			address: '0x2222222222222222222222222222222222222222',
 		}, context)).rejects.toThrow('feed response does not match request')
 	})
@@ -637,7 +625,7 @@ describe('Lens_Graphql reading relationships', () => {
 			},
 		})
 
-		await expect(lensGraphql.resolvers[12].resolve.Address.resolve({
+		await expect(lensGraphql.resolvers[10].resolve.Address.resolve({
 			address: '0x1111111111111111111111111111111111111111',
 		}, {
 			...context,
@@ -701,7 +689,7 @@ describe('Lens_Graphql reading relationships', () => {
 			},
 		})
 
-		await expect(lensGraphql.resolvers[6].resolve.LocalName.resolve({
+		await expect(lensGraphql.resolvers[4].resolve.LocalName.resolve({
 			localName: 'alice',
 		}, {
 			...context,
@@ -720,7 +708,7 @@ describe('Lens_Graphql reading relationships', () => {
 				}),
 			},
 		])
-		await expect(lensGraphql.resolvers[6].resolve.LegacyProfileId.resolve({
+		await expect(lensGraphql.resolvers[4].resolve.LegacyProfileId.resolve({
 			legacyProfileId: '0x01',
 		}, {
 			...context,
@@ -779,7 +767,7 @@ describe('Lens_Graphql reading relationships', () => {
 			},
 		})
 
-		await expect(lensGraphql.resolvers[13].resolve.Id.resolve({
+		await expect(lensGraphql.resolvers[11].resolve.Id.resolve({
 			id: 'username-1',
 		}, context)).resolves.toEqual({
 			id: 'username-1',
@@ -805,14 +793,14 @@ describe('Lens_Graphql reading relationships', () => {
 				},
 			},
 		})
-		await expect(lensGraphql.resolvers[13].resolve.NamespaceLocalName.resolve({
+		await expect(lensGraphql.resolvers[11].resolve.NamespaceLocalName.resolve({
 			namespace: namespaceAddress,
 			localName: 'alice',
 		}, context)).resolves.toMatchObject({
 			id: 'username-1',
 			localName: 'alice',
 		})
-		await expect(lensGraphql.resolvers[14].resolve.Address.resolve({
+		await expect(lensGraphql.resolvers[12].resolve.Address.resolve({
 			address: namespaceAddress,
 		}, context)).resolves.toEqual({
 			address: namespaceAddress,
@@ -830,7 +818,7 @@ describe('Lens_Graphql reading relationships', () => {
 			totalUsernames: 9,
 			$$rules: [],
 		})
-		await expect(lensGraphql.resolvers[16].resolve.Address.resolve({
+		await expect(lensGraphql.resolvers[14].resolve.Address.resolve({
 			address: namespaceAddress,
 		}, {
 			...context,
@@ -864,7 +852,7 @@ describe('Lens_Graphql reading relationships', () => {
 				ownedBy: '0x1111111111111111111111111111111111111111',
 			},
 		})
-		await expect(lensGraphql.resolvers[13].resolve.Id.resolve({
+		await expect(lensGraphql.resolvers[11].resolve.Id.resolve({
 			id: 'username-1',
 		}, context)).rejects.toThrow('username response does not match request')
 
@@ -874,7 +862,7 @@ describe('Lens_Graphql reading relationships', () => {
 				namespace: 'lens',
 			},
 		})
-		await expect(lensGraphql.resolvers[14].resolve.Address.resolve({
+		await expect(lensGraphql.resolvers[12].resolve.Address.resolve({
 			address: '0x2222222222222222222222222222222222222222',
 		}, context)).rejects.toThrow('namespace response does not match request')
 	})

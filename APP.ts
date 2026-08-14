@@ -32714,7 +32714,6 @@ export const schema = {
 				},
 				views: {
 					singular: {
-						query: { sources: [Source.Snapchain_Rest, Source.Neynar_Rest] },
 						summary: {
 							title: [{ field: "$cast" }],
 							value: [{ field: "timestampMs", format: "timestamp" }],
@@ -33174,7 +33173,6 @@ export const schema = {
 				},
 				views: {
 					singular: {
-						query: { sources: [Source.Snapchain_Rest, Source.Neynar_Rest] },
 							summary: {
 								title: [{ field: "$user" }],
 								value: [{ field: "timestampMs", format: "timestamp" }],
@@ -42646,7 +42644,6 @@ export const schema = {
 				},
 				views: {
 					singular: {
-						query: { sources: [Source.Lens_Graphql] },
 						summary: {
 							title: [{ field: "$account" }],
 							value: [{ field: "timestampMs", format: "timestamp" }],
@@ -42953,7 +42950,6 @@ export const schema = {
 				},
 				views: {
 					singular: {
-						query: { sources: [Source.Lens_Graphql] },
 						summary: {
 							title: [{ field: "$post" }],
 							value: [{ field: "timestampMs", format: "timestamp" }],
@@ -53836,7 +53832,6 @@ export const schema = {
 				},
 				views: {
 					singular: {
-						query: { sources: [Source.Rss_Rest, Source.Rss2Json_Rest] },
 						summary: {
 							title: [{ field: "$feed" }],
 							value: [{ field: "timestampMs", format: "timestamp" }],
@@ -53941,7 +53936,6 @@ export const schema = {
 				},
 				views: {
 					singular: {
-						query: { sources: [Source.Rss_Rest, Source.Rss2Json_Rest] },
 						summary: {
 							title: [{ field: "$item" }],
 							value: [{ field: "timestampMs", format: "timestamp" }],

@@ -743,59 +743,6 @@ const lensGraphqlResolvers = {
 			}),
 
 		defineResolver({
-			entityType: EntityType.LensAccount_Timestamp,
-			resolve: {
-				LensAccountTimestampMs: {
-					resolve: async ({ $account }) => {
-						if ('address' in $account)
-							return lensAccountTimestampFieldsFromWire(
-								await queryAccountStats(zeroExLowerCase($account.address))
-							)
-
-						const account = (
-							'localName' in $account ?
-								await queryAccount({
-									username: { localName: $account.localName },
-								})
-							:
-								await queryAccount({
-									legacyProfileId: $account.legacyProfileId,
-								})
-						).account
-						if (account == null) throw new Error('Lens_Graphql: account not found')
-						return lensAccountTimestampFieldsFromWire(
-							await queryAccountStats(lensEvmAddressFromWire(account.address))
-						)
-					},
-				}
-			},
-		})({
-				followerCount: (timestamp) => timestamp.followerCount,
-				followingCount: (timestamp) => timestamp.followingCount,
-			}),
-
-		defineResolver({
-			entityType: EntityType.LensPost_Timestamp,
-			resolve: {
-				LensPostTimestampMs: {
-					resolve: async ({ $post }) => {
-						const p = (await queryPost($post.id)).post
-						if (p == null) throw new Error('Lens_Graphql: post not found')
-						if (p.__typename !== 'Post') return {}
-						return lensPostTimestampFieldsFromWire(p)
-					},
-				}
-			},
-		})({
-				commentCount: (timestamp) => timestamp.commentCount,
-				repostCount: (timestamp) => timestamp.repostCount,
-				quoteCount: (timestamp) => timestamp.quoteCount,
-				bookmarkCount: (timestamp) => timestamp.bookmarkCount,
-				collectCount: (timestamp) => timestamp.collectCount,
-				reactionCount: (timestamp) => timestamp.reactionCount,
-			}),
-
-		defineResolver({
 			entityType: EntityType.LensPost,
 			resolve: {
 				Id: {

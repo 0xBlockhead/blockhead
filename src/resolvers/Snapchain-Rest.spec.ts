@@ -318,7 +318,7 @@ describe('Snapchain Farcaster cast identity', () => {
 })
 
 describe('Snapchain Farcaster observations', () => {
-	it('materializes zero counts with source identity and expose singular observation resolvers', async () => {
+	it('materializes zero counts with source identity without arbitrary timestamp replay', async () => {
 		countLinksByTargetFid.mockResolvedValueOnce(0)
 		countLinksByFid.mockResolvedValueOnce(0)
 
@@ -349,11 +349,11 @@ describe('Snapchain Farcaster observations', () => {
 		expect(snapchainResolvers.resolvers.some((resolver) => (
 			resolver.entityType === EntityType.FarcasterUser_Timestamp
 			&& 'UserTimestampMsSource' in resolver.resolve
-		))).toBe(true)
+		))).toBe(false)
 		expect(snapchainResolvers.resolvers.some((resolver) => (
 			resolver.entityType === EntityType.FarcasterCast_Timestamp
 			&& 'CastTimestampMsSource' in resolver.resolve
-		))).toBe(true)
+		))).toBe(false)
 	})
 
 	it('queries casts by the selected protocol parent URL', async () => {
@@ -411,7 +411,7 @@ describe('Snapchain Farcaster observations', () => {
 	})
 })
 
-describe('Snapchain Farcaster embeds and singular timestamps', () => {
+describe('Snapchain Farcaster embeds', () => {
 	beforeEach(() => {
 		getCastById.mockReset()
 		getUsernameProofsByFid.mockReset()
@@ -521,55 +521,6 @@ describe('Snapchain Farcaster embeds and singular timestamps', () => {
 		})
 	})
 
-	it('resolves singular cast and user timestamp observations', async () => {
-		getCastById.mockResolvedValueOnce({
-			hash: parentHash,
-			data: {
-				fid: 42,
-				timestamp: 1_752_840_001,
-				castAddBody: {
-					text: 'cast',
-				},
-			},
-		})
-		getCastEngagementCountsForCast.mockResolvedValueOnce({
-			likeCount: 3,
-			recastCount: 1,
-			replyCount: 2,
-		})
-		countLinksByTargetFid.mockResolvedValueOnce(11)
-		countLinksByFid.mockResolvedValueOnce(7)
-
-		const castTimestampResolver = snapchainResolvers.resolvers.find((resolver) => (
-			resolver.entityType === EntityType.FarcasterCast_Timestamp
-		))
-		const userTimestampResolver = snapchainResolvers.resolvers.find((resolver) => (
-			resolver.entityType === EntityType.FarcasterUser_Timestamp
-		))
-		if (castTimestampResolver == null || userTimestampResolver == null)
-			throw new Error('Snapchain spec missing singular timestamp resolvers')
-
-		await expect(castTimestampResolver.resolve.CastTimestampMsSource.resolve({
-			$cast: {
-				fid: 42,
-				hash: parentHash,
-			},
-			timestampMs: 1_700_000_000_000,
-			source: Source.Snapchain_Rest,
-		})).resolves.toMatchObject({
-			likeCount: 3,
-			recastCount: 1,
-			replyCount: 2,
-		})
-		await expect(userTimestampResolver.resolve.UserTimestampMsSource.resolve({
-			$user: { fid: 42 },
-			timestampMs: 1_700_000_000_000,
-			source: Source.Snapchain_Rest,
-		})).resolves.toMatchObject({
-			followerCount: 11,
-			followingCount: 7,
-		})
-	})
 })
 
 describe('Snapchain Farcaster account ownership', () => {

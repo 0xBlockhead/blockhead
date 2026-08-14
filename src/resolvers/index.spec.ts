@@ -1951,6 +1951,8 @@ describe('resolver registry live resolver architecture', () => {
 			const [feedItemsResolver] = feedResolvers
 			expect(feedItemsResolver.projections).toHaveProperty('title')
 			expect(feedItemsResolver.projections).toHaveProperty('$$items')
+			expect(feedItemsResolver.projections).toHaveProperty('$$timestamps')
+			expect(itemResolver?.projections).toHaveProperty('$$timestamps')
 			if (source === Source.Rss_Rest) {
 				expect(feedItemsResolver.projections).toHaveProperty('language')
 				expect(feedItemsResolver.projections).toHaveProperty('lastBuildDate')
@@ -1962,28 +1964,16 @@ describe('resolver registry live resolver architecture', () => {
 				expect(itemResolver?.projections).not.toHaveProperty('updatedAt')
 				expect(itemResolver?.projections).not.toHaveProperty('commentsUrl')
 			}
-			const feedObservationResolver = allSourceResolverDefinitions.find((resolver) => (
+			expect(allSourceResolverDefinitions.some((resolver) => (
 				resolver.source === source
-				&& resolver.entityType === EntityType.RssFeed_Timestamp
-			))
-			const itemObservationResolver = allSourceResolverDefinitions.find((resolver) => (
-				resolver.source === source
-				&& resolver.entityType === EntityType.RssItem_Timestamp
-			))
+				&& (
+					resolver.entityType === EntityType.RssFeed_Timestamp
+					|| resolver.entityType === EntityType.RssItem_Timestamp
+				)
+			))).toBe(false)
 			const resolveItem = itemResolver?.resolve['FeedIdentity']
 			const resolveFeedItems = feedItemsResolver.resolve['FeedUrl']
-			const resolveFeedObservation = feedObservationResolver?.resolve[
-				'FeedTimestampMsSource'
-			]
-			const resolveItemObservation = itemObservationResolver?.resolve[
-				'ItemTimestampMsSource'
-			]
-			if (
-				resolveItem == null
-				|| resolveFeedItems == null
-				|| resolveFeedObservation == null
-				|| resolveItemObservation == null
-			)
+			if (resolveItem == null || resolveFeedItems == null)
 				throw new Error(`missing ${source} RSS resolver`)
 
 			const feedSnapshot = await resolveFeedItems({ feedUrl }, resolverContext)
@@ -2016,53 +2006,20 @@ describe('resolver registry live resolver architecture', () => {
 				itemIdentityKind: 'Guid',
 				itemIdentity: 'publisher-guid',
 			})
-
-			const timestampMs = 1_720_000_000_000
-			await expect(resolveFeedObservation({
-				$feed: { feedUrl },
-				timestampMs,
-				source,
-			}, resolverContext)).resolves.toMatchObject({
-				reachable: true,
-				observedItemCount: 2,
-			})
-			await expect(resolveItemObservation({
-				$item: {
+			expect(resolverFieldSelector(feedItemsResolver, '$$timestamps')(
+				feedSnapshot,
+				{ feedUrl },
+				resolverContext
+			)).toMatchObject([{
+				[EntityMetaKey.Selector]: {
 					$feed: { feedUrl },
-					itemIdentityKind: 'Link',
-					itemIdentity: 'https://example.com/posts/2',
+					timestampMs: expect.any(Number),
+					source,
 				},
-				timestampMs,
-				source,
-			}, resolverContext)).resolves.toMatchObject({
-				observed: true,
-				reachable: true,
-			})
-			await expect(resolveFeedObservation({
-				$feed: { feedUrl },
-				timestampMs,
-				source: source === Source.Rss_Rest ? Source.Rss2Json_Rest : Source.Rss_Rest,
-			}, resolverContext)).rejects.toThrow('unsupported source')
+			}])
 		}
 		expect(getNativeFeed.mock.calls.every((call) => call[0] === rssBinding && call[1] === feedUrl)).toBe(true)
 		expect(getRss2JsonFeed.mock.calls.every((call) => call.length === 1 && call[0] === feedUrl)).toBe(true)
-
-		getNativeFeed.mockRejectedValueOnce(new Error('native feed unavailable'))
-		const nativeFeedObservationResolver = allSourceResolverDefinitions.find((resolver) => (
-			resolver.source === Source.Rss_Rest
-			&& resolver.entityType === EntityType.RssFeed_Timestamp
-		))
-		await expect(nativeFeedObservationResolver?.resolve[
-			'FeedTimestampMsSource'
-		]({
-			$feed: { feedUrl },
-			timestampMs: 1_720_000_000_001,
-			source: Source.Rss_Rest,
-		}, resolverContext)).resolves.toMatchObject({
-			reachable: false,
-			observedItemCount: 0,
-			error: 'native feed unavailable',
-		})
 	})
 
 	it('keeps UTXO parent list resolvers returning child selectors only', async () => {
