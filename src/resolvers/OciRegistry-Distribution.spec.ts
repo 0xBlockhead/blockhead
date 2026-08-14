@@ -114,6 +114,8 @@ it('projects image config, layers, and subject as native OCI descriptor referenc
 			},
 		},
 	})
+	expect(manifestResolver.projections.$$layers.resolveCount?.(manifest)).toBe(1)
+	expect(manifestResolver.projections.$$manifests.resolveCount?.(manifest)).toBe(0)
 })
 
 it('resolves an indexed child-manifest descriptor and rejects absent indices', async () => {
@@ -126,6 +128,10 @@ it('resolves an indexed child-manifest descriptor and rejects absent indices', a
 			urls: ['https://registry.example/manifest'],
 		}],
 	})
+
+	const indexManifest = await manifestResolver.resolve.RegistryRepositoryReference.resolve(selector, context)
+	expect(manifestResolver.projections.$$manifests.resolveCount?.(indexManifest)).toBe(1)
+	expect(manifestResolver.projections.$$layers.resolveCount?.(indexManifest)).toBe(0)
 
 	const descriptor = await descriptorResolver.resolve.ManifestKindIndex.resolve({
 		$manifest: selector,

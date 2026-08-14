@@ -152,8 +152,14 @@ export default {
 			artifactType: (manifest) => manifest.artifactType,
 			$config: (manifest) => manifest.$config,
 			$subject: (manifest) => manifest.$subject,
-			$$layers: (manifest) => manifest.$$layers ?? [],
-			$$manifests: (manifest) => manifest.$$manifests ?? [],
+			$$layers: {
+				select: (manifest) => manifest.$$layers ?? [],
+				resolveCount: (manifest) => manifest.$$layers?.length ?? 0,
+			},
+			$$manifests: {
+				select: (manifest) => manifest.$$manifests ?? [],
+				resolveCount: (manifest) => manifest.$$manifests?.length ?? 0,
+			},
 		}),
 
 		defineResolver({
