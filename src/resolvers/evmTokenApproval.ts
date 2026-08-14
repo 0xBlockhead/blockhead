@@ -3,6 +3,7 @@ import {
 	EvmTokenStandard,
 } from '$/constants/Evm.ts'
 import {
+	entityFieldAddressKey,
 	EntityMetaKey,
 	type Entity,
 } from '$/schema/$schema.ts'
@@ -115,3 +116,28 @@ export const evmTokenApprovalEntityFromLog = ({
 		approved: approvedValue === 1n,
 	}
 }
+
+export const evmTokenApprovalReference = (
+	approval: Entity<typeof schema, EntityType.EvmTokenApproval>
+) => ({
+	[EntityMetaKey.Selector]: approval[EntityMetaKey.Selector],
+	[EntityMetaKey.Fields]: {
+		[entityFieldAddressKey(EntityType.EvmTokenApproval, [], '$log')]: approval.$log,
+		[entityFieldAddressKey(EntityType.EvmTokenApproval, [], '$tokenContract')]: approval.$tokenContract,
+		[entityFieldAddressKey(EntityType.EvmTokenApproval, [], '$owner')]: approval.$owner,
+		[entityFieldAddressKey(EntityType.EvmTokenApproval, [], '$approvedActor')]: approval.$approvedActor,
+		[entityFieldAddressKey(EntityType.EvmTokenApproval, [], 'approvalKind')]: approval.approvalKind,
+		...(approval.standard != null && {
+			[entityFieldAddressKey(EntityType.EvmTokenApproval, [], 'standard')]: approval.standard,
+		}),
+		...(approval.approvalKind === EvmTokenApprovalKind.Allowance && {
+			[entityFieldAddressKey(EntityType.EvmTokenApproval, ['Allowance'], 'amount')]: approval.amount,
+		}),
+		...(approval.approvalKind === EvmTokenApprovalKind.Token && {
+			[entityFieldAddressKey(EntityType.EvmTokenApproval, ['Token'], 'tokenId')]: approval.tokenId,
+		}),
+		...(approval.approvalKind === EvmTokenApprovalKind.Operator && {
+			[entityFieldAddressKey(EntityType.EvmTokenApproval, ['Operator'], 'approved')]: approval.approved,
+		}),
+	},
+})

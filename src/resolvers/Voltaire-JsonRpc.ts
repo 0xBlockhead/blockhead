@@ -21,7 +21,10 @@ import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
 import { evmNetworkSelectorFromChainId } from '$/resolvers/evm.ts'
-import { evmTokenApprovalEntityFromLog } from '$/resolvers/evmTokenApproval.ts'
+import {
+	evmTokenApprovalEntityFromLog,
+	evmTokenApprovalReference,
+} from '$/resolvers/evmTokenApproval.ts'
 import { uniswapV3Resolvers } from '$/resolvers/Voltaire/Uniswap.ts'
 import { erc4626Resolvers } from '$/resolvers/Voltaire/Erc4626.ts'
 import {
@@ -1604,7 +1607,7 @@ export default {
 					log.$tokenApproval == null ?
 						[]
 					:
-						[log.$tokenApproval]
+						[evmTokenApprovalReference(log.$tokenApproval)]
 				)),
 				resolveCount: (entity) => entity.$$logs.filter((log) => log.$tokenApproval != null).length,
 			},

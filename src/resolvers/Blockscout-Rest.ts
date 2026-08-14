@@ -12,7 +12,10 @@ import {
 	evmChainIdFromNetworkSelector,
 	evmNetworkSelectorFromChainId,
 } from '$/resolvers/evm.ts'
-import { evmTokenApprovalEntityFromLog } from '$/resolvers/evmTokenApproval.ts'
+import {
+	evmTokenApprovalEntityFromLog,
+	evmTokenApprovalReference,
+} from '$/resolvers/evmTokenApproval.ts'
 import { isSeededCoinCurrencyMarket } from '$/resolvers/market.ts'
 import {
 	entityFieldAddressKey,
@@ -1941,7 +1944,7 @@ export default {
 					log.$tokenApproval == null ?
 						[]
 					:
-						[log.$tokenApproval]
+						[evmTokenApprovalReference(log.$tokenApproval)]
 				)),
 				resolveCount: (transaction) => transaction.$$logs.filter((log) => log.$tokenApproval != null).length,
 			},

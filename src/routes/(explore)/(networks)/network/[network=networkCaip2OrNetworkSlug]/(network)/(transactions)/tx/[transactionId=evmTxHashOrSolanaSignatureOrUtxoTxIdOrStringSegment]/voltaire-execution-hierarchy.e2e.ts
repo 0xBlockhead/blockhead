@@ -118,12 +118,16 @@ test('transaction hierarchy renders indexed state changes, receipt logs and nest
 						address: to,
 						blockHash: '0xcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc',
 						blockNumber: '0x10',
-						data: '0xdeadbeef',
+						data: `0x${'0'.repeat(63)}a`,
 						logIndex: '0x0',
 						removed: false,
 						transactionHash,
 						transactionIndex: '0x0',
-						topics: ['0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'],
+						topics: [
+							'0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925',
+							`0x${'00'.repeat(12)}${from.slice(2)}`,
+							`0x${'00'.repeat(12)}${to.slice(2)}`,
+						],
 					}],
 				}
 			: request.method === 'debug_traceTransaction' ?
@@ -165,6 +169,10 @@ test('transaction hierarchy renders indexed state changes, receipt logs and nest
 	await main.getByRole('link', { name: 'State changes' }).click()
 	await expect(main).toContainText('State changes (1)', { timeout: 120_000 })
 	await expect(main).toContainText('Coin', { timeout: 120_000 })
+	await expect(main.getByRole('link', { name: 'Token approvals' })).toBeVisible({ timeout: 120_000 })
+	await main.getByRole('link', { name: 'Token approvals' }).click()
+	await expect(main).toContainText('Allowance', { timeout: 120_000 })
+	await expect(main).toContainText('ERC-20', { timeout: 120_000 })
 	await expect(main.getByRole('link', { name: 'Logs' })).toBeVisible({ timeout: 120_000 })
 	await main.getByRole('link', { name: 'Logs' }).click()
 	await expect(main).toContainText('Log #0')

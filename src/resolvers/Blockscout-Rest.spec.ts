@@ -713,9 +713,11 @@ describe('Blockscout EVM log identity', () => {
 					indexInTransaction: 0,
 				},
 			},
-			approvalKind: 'Allowance',
-			standard: 'ERC-20',
-			amount: 10n,
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.EvmTokenApproval, [], 'approvalKind')]: 'Allowance',
+				[entityFieldAddressKey(EntityType.EvmTokenApproval, [], 'standard')]: 'ERC-20',
+				[entityFieldAddressKey(EntityType.EvmTokenApproval, ['Allowance'], 'amount')]: 10n,
+			},
 		}])
 
 		const approval = await approvalResolver.resolve.Log.resolve({
