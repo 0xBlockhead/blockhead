@@ -190,14 +190,12 @@ const safeIntegerFromDecimal = (
 }
 
 const beaconAttestationReference = (
-	$network: EntitySelector<typeof schema, EntityType.Network>,
-	slot: number,
+	$block: EntitySelector<typeof schema, EntityType.BeaconBlock>,
 	attestation: BeaconBlockDutySummary['attestations'][number]
 ) => ({
 	[EntityMetaKey.Selector]: {
-		$network,
-		slot,
-		indexInSlot: attestation.index,
+		$block,
+		indexInBlock: attestation.indexInBlock,
 	},
 	[EntityMetaKey.Fields]: {
 		...(attestation.committeeIndex != null && {
@@ -210,21 +208,20 @@ const beaconAttestationReference = (
 })
 
 const beaconWithdrawalReference = (
-	$network: EntitySelector<typeof schema, EntityType.Network>,
-	slot: number,
+	$block: EntitySelector<typeof schema, EntityType.BeaconBlock>,
 	withdrawal: BeaconBlockDutySummary['withdrawals'][number]
 ) => ({
 	[EntityMetaKey.Selector]: {
-		$network,
-		slot,
-		indexInSlot: withdrawal.index,
+		$block,
+		withdrawalIndex: withdrawal.withdrawalIndex,
 	},
 	[EntityMetaKey.Fields]: {
+		[entityFieldAddressKey(EntityType.BeaconWithdrawal, [], 'indexInBlock')]: withdrawal.indexInBlock,
 		...(withdrawal.validatorIndex != null && {
 			[entityFieldAddressKey(EntityType.BeaconWithdrawal, [], 'validatorIndex')]: withdrawal.validatorIndex,
 			[entityFieldAddressKey(EntityType.BeaconWithdrawal, [], '$validator')]: {
 				[EntityMetaKey.Selector]: {
-					$network,
+					$network: $block.$network,
 					indexInNetwork: withdrawal.validatorIndex,
 				},
 			},
@@ -243,20 +240,18 @@ const beaconWithdrawalReference = (
 })
 
 const beaconDepositReference = (
-	$network: EntitySelector<typeof schema, EntityType.Network>,
-	slot: number,
+	$block: EntitySelector<typeof schema, EntityType.BeaconBlock>,
 	deposit: BeaconBlockDutySummary['deposits'][number]
 ) => ({
 	[EntityMetaKey.Selector]: {
-		$network,
-		slot,
-		indexInSlot: deposit.index,
+		$block,
+		indexInBlock: deposit.indexInBlock,
 	},
 	[EntityMetaKey.Fields]: {
 		[entityFieldAddressKey(EntityType.BeaconDeposit, [], 'pubkey')]: deposit.pubkey,
 		[entityFieldAddressKey(EntityType.BeaconDeposit, [], '$validator')]: {
 			[EntityMetaKey.Selector]: {
-				$network,
+				$network: $block.$network,
 				pubkey: deposit.pubkey,
 			},
 		},
@@ -268,23 +263,13 @@ const beaconDepositReference = (
 })
 
 const beaconSlashingReference = (
-	$network: EntitySelector<typeof schema, EntityType.Network>,
-	slot: number,
+	$block: EntitySelector<typeof schema, EntityType.BeaconBlock>,
 	slashing: BeaconBlockDutySummary['slashings'][number]
 ) => ({
 	[EntityMetaKey.Selector]: {
-		$network,
-		slot,
+		$block,
 		kind: slashing.kind,
-		indexInSlot: slashing.index,
-	},
-	[EntityMetaKey.Fields]: {
-		[entityFieldAddressKey(EntityType.BeaconSlashing, [], '$network')]: {
-			[EntityMetaKey.Selector]: $network,
-		},
-		[entityFieldAddressKey(EntityType.BeaconSlashing, [], 'slot')]: slot,
-		[entityFieldAddressKey(EntityType.BeaconSlashing, [], 'kind')]: slashing.kind,
-		[entityFieldAddressKey(EntityType.BeaconSlashing, [], 'indexInSlot')]: slashing.index,
+		indexInKind: slashing.indexInKind,
 	},
 })
 
@@ -695,6 +680,10 @@ export default {
 							assertExecutionPayloadEnvelopeMatchesBlock(block, envelope)
 
 						const timestampMs = Date.now()
+						const blockSelector = {
+							$network,
+							root: block.root,
+						}
 						return {
 							$network,
 							root: block.root,
@@ -750,6 +739,9 @@ export default {
 									},
 								},
 							}),
+							$$attestations: block.attestations.map((attestation) => beaconAttestationReference(blockSelector, attestation)),
+							$$deposits: block.deposits.map((deposit) => beaconDepositReference(blockSelector, deposit)),
+							$$slashings: block.slashings.map((slashing) => beaconSlashingReference(blockSelector, slashing)),
 							$$timestamps: [{
 								[EntityMetaKey.Selector]: {
 									$block: {
@@ -765,6 +757,7 @@ export default {
 									[entityFieldAddressKey(EntityType.BeaconBlock_Timestamp, [], 'finalized')]: block.finalized,
 								},
 							}],
+							$$withdrawals: block.withdrawals.map((withdrawal) => beaconWithdrawalReference(blockSelector, withdrawal)),
 						}
 					},
 				},
@@ -782,7 +775,11 @@ export default {
 			$executionBlock: (block) => block.$executionBlock,
 			$executionPayloadBid: (block) => block.$executionPayloadBid,
 			$executionPayloadEnvelope: (block) => block.$executionPayloadEnvelope,
+			$$attestations: (block) => block.$$attestations,
+			$$deposits: (block) => block.$$deposits,
+			$$slashings: (block) => block.$$slashings,
 			$$timestamps: (block) => block.$$timestamps,
+			$$withdrawals: (block) => block.$$withdrawals,
 		}),
 
 		defineResolver({
@@ -1396,11 +1393,16 @@ export default {
 		defineResolver({
 			entityType: EntityType.BeaconDeposit,
 			resolve: {
-				EvmNetworkSlotIndexInSlot: {
+				BlockIndexInBlock: {
 					appliesTo: eip155NetworkApplicability,
-					resolve: async ({ $network, slot, indexInSlot }) => {
+					resolve: async ({ $block, indexInBlock }) => {
 						const { getBlockDutySummary } = await import('$/sources/Beacon/Rest/queries.ts')
-						const deposit = (await getBlockDutySummary(eip155ChainId($network), slot)).deposits.at(indexInSlot)
+						const deposit = (
+							await getBlockDutySummary(
+								eip155ChainId($block.$network),
+								$block.root
+							)
+						).deposits.find((candidate) => candidate.indexInBlock === indexInBlock)
 						if (deposit == null)
 							throw new Error('Beacon_Rest: deposit not found')
 
@@ -1408,7 +1410,7 @@ export default {
 							pubkey: deposit.pubkey,
 							$validator: {
 								[EntityMetaKey.Selector]: {
-									$network,
+									$network: $block.$network,
 									pubkey: deposit.pubkey,
 								},
 							},
@@ -1432,16 +1434,16 @@ export default {
 		defineResolver({
 			entityType: EntityType.BeaconAttestation,
 			resolve: {
-				EvmNetworkSlotIndexInSlot: {
+				BlockIndexInBlock: {
 					appliesTo: eip155NetworkApplicability,
-					resolve: async ({ $network, slot, indexInSlot }) => {
+					resolve: async ({ $block, indexInBlock }) => {
 						const { getBlockDutySummary } = await import('$/sources/Beacon/Rest/queries.ts')
 						const attestation = (
 							await getBlockDutySummary(
-								eip155ChainId($network),
-								slot
+								eip155ChainId($block.$network),
+								$block.root
 							)
-						).attestations.find((committee) => committee.index === indexInSlot)
+						).attestations.find((candidate) => candidate.indexInBlock === indexInBlock)
 						if (attestation == null) throw new Error('Beacon_Rest: attestation not found')
 						return {
 							...(attestation.committeeIndex != null && { committeeIndex: attestation.committeeIndex }),
@@ -1458,23 +1460,24 @@ export default {
 		defineResolver({
 			entityType: EntityType.BeaconWithdrawal,
 			resolve: {
-				EvmNetworkSlotIndexInSlot: {
+				BlockWithdrawalIndex: {
 					appliesTo: eip155NetworkApplicability,
-					resolve: async ({ $network, slot, indexInSlot }) => {
+					resolve: async ({ $block, withdrawalIndex }) => {
 						const { getBlockDutySummary } = await import('$/sources/Beacon/Rest/queries.ts')
 						const withdrawal = (
 							await getBlockDutySummary(
-								eip155ChainId($network),
-								slot
+								eip155ChainId($block.$network),
+								$block.root
 							)
-						).withdrawals.find((committee) => committee.index === indexInSlot)
+						).withdrawals.find((candidate) => candidate.withdrawalIndex === withdrawalIndex)
 						if (withdrawal == null) throw new Error('Beacon_Rest: withdrawal not found')
 						return {
+							indexInBlock: withdrawal.indexInBlock,
 							...(withdrawal.validatorIndex != null && {
 								validatorIndex: withdrawal.validatorIndex,
 								$validator: {
 									[EntityMetaKey.Selector]: {
-										$network,
+										$network: $block.$network,
 										indexInNetwork: withdrawal.validatorIndex,
 									},
 								},
@@ -1492,6 +1495,7 @@ export default {
 				},
 			},
 		})({
+				indexInBlock: (withdrawal) => withdrawal.indexInBlock,
 				validatorIndex: (withdrawal) => withdrawal.validatorIndex,
 				$validator: (withdrawal) => withdrawal.$validator,
 				$account: (withdrawal) => withdrawal.$account,
@@ -1501,36 +1505,27 @@ export default {
 		defineResolver({
 			entityType: EntityType.BeaconSlashing,
 			resolve: {
-				EvmNetworkSlotKindIndexInSlot: {
+				BlockKindIndexInKind: {
 					appliesTo: eip155NetworkApplicability,
-					resolve: async ({ $network, slot, kind, indexInSlot }) => {
+					resolve: async ({ $block, kind, indexInKind }) => {
 						const { getBlockDutySummary } = await import('$/sources/Beacon/Rest/queries.ts')
 						const slashing = (
 							await getBlockDutySummary(
-								eip155ChainId($network),
-								slot
+								eip155ChainId($block.$network),
+								$block.root
 							)
 						).slashings.find((candidate) => (
 							candidate.kind === kind
-							&& candidate.index === indexInSlot
+							&& candidate.indexInKind === indexInKind
 						))
 						if (slashing == null) throw new Error('Beacon_Rest: slashing not found')
-						return {
-							$network,
-							slot,
-							kind: slashing.kind,
-							indexInSlot: slashing.index,
-						}
+						return slashing
 					},
 				},
 			},
 		})({
-				$network: (slashing) => ({
-					[EntityMetaKey.Selector]: slashing.$network,
-				}),
-				slot: (slashing) => slashing.slot,
 				kind: (slashing) => slashing.kind,
-				indexInSlot: (slashing) => slashing.indexInSlot,
+				indexInKind: (slashing) => slashing.indexInKind,
 			}),
 
 		defineResolver({
@@ -1784,37 +1779,29 @@ export default {
 				EvmNetworkSlot: {
 					appliesTo: eip155NetworkApplicability,
 					resolve: async ({ $network, slot }, context) => {
-						const { getBlockDutySummary } = await import('$/sources/Beacon/Rest/queries.ts')
-						const summary = await getBlockDutySummary(
+						const { getBeaconBlockSnapshot } = await import('$/sources/Beacon/Rest/queries.ts')
+						const block = await getBeaconBlockSnapshot(
 							eip155ChainId($network),
 							slot
 						)
 						const limit = resolverContextRowLimit(context)
+						const blockSelector = {
+							$network,
+							root: block.root,
+						}
 						return {
-							deposits: summary.deposits
+							deposits: block.deposits
 								.slice(0, limit)
-								.map((deposit) => beaconDepositReference($network, slot, deposit)),
-							attestations: summary.attestations
+								.map((deposit) => beaconDepositReference(blockSelector, deposit)),
+							attestations: block.attestations
 								.slice(0, limit)
-								.map((attestation) => beaconAttestationReference(
-									$network,
-									slot,
-									attestation
-								)),
-							withdrawals: summary.withdrawals
+								.map((attestation) => beaconAttestationReference(blockSelector, attestation)),
+							withdrawals: block.withdrawals
 								.slice(0, limit)
-								.map((withdrawal) => beaconWithdrawalReference(
-									$network,
-									slot,
-									withdrawal
-								)),
-							slashings: summary.slashings
+								.map((withdrawal) => beaconWithdrawalReference(blockSelector, withdrawal)),
+							slashings: block.slashings
 								.slice(0, limit)
-								.map((slashing) => beaconSlashingReference(
-									$network,
-									slot,
-									slashing
-								)),
+								.map((slashing) => beaconSlashingReference(blockSelector, slashing)),
 						}
 					},
 				},
@@ -1913,36 +1900,28 @@ export default {
 			resolve: {
 				Caip2: {
 					resolve: async ({ caip2 }, context) => {
-						const { getBlockDutySummary, getHeadSlot } = await import('$/sources/Beacon/Rest/queries.ts')
+						const { getBeaconBlockSnapshot, getHeadSlot } = await import('$/sources/Beacon/Rest/queries.ts')
 						const chainId = Number(caip2.reference)
 						const slot = safeIntegerFromDecimal(
 							await getHeadSlot(chainId),
 							'head slot'
 						)
-						const summary = await getBlockDutySummary(chainId, slot)
+						const block = await getBeaconBlockSnapshot(chainId, slot)
 						const limit = resolverContextRowLimit(context)
+						const blockSelector = {
+							$network: { caip2 },
+							root: block.root,
+						}
 						return {
-							attestations: summary.attestations
+							attestations: block.attestations
 								.slice(0, limit)
-								.map((attestation) => beaconAttestationReference(
-									{ caip2 },
-									slot,
-									attestation
-								)),
-							withdrawals: summary.withdrawals
+								.map((attestation) => beaconAttestationReference(blockSelector, attestation)),
+							withdrawals: block.withdrawals
 								.slice(0, limit)
-								.map((withdrawal) => beaconWithdrawalReference(
-									{ caip2 },
-									slot,
-									withdrawal
-								)),
-							slashings: summary.slashings
+								.map((withdrawal) => beaconWithdrawalReference(blockSelector, withdrawal)),
+							slashings: block.slashings
 								.slice(0, limit)
-								.map((slashing) => beaconSlashingReference(
-									{ caip2 },
-									slot,
-									slashing
-								)),
+								.map((slashing) => beaconSlashingReference(blockSelector, slashing)),
 						}
 					},
 				},

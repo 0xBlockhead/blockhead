@@ -17,10 +17,9 @@
 	}: PageProps = $props()
 
 	const pageSelection = $derived(select(EntityType.BeaconSlashing, {
-		$network: data.selector,
-		slot: Number(params.slot),
+		$block: data.selector,
 		kind: params.kind,
-		indexInSlot: Number(params.index),
+		indexInKind: Number(params.indexInKind),
 	}))
 
 
@@ -31,7 +30,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? ((String(pageSelection.entitySelector.indexInSlot ?? '') ? 'Slashing #' + String(pageSelection.entitySelector.indexInSlot ?? '') : '') || 'beacon slashing')} • beacon slashing • Blockhead</title>
+	<title>{data.title ?? ((String(pageSelection.entitySelector.indexInKind ?? '') ? 'Slashing #' + String(pageSelection.entitySelector.indexInKind ?? '') : '') || 'beacon slashing')} • beacon slashing • Blockhead</title>
 </svelte:head>
 
 

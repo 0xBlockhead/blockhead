@@ -32,9 +32,18 @@
 		selection({
 			...{
 				fields: {
-					indexInSlot: true,
+					indexInKind: true,
 					kind: true,
-					slot: true,
+					$block: {
+						fields: {
+							version: true,
+							$slot: {
+								fields: {
+									$epoch: true,
+								},
+							},
+						},
+					},
 				},
 			},
 		})
@@ -42,29 +51,29 @@
 >
 	{#snippet Item({ item: beaconSlashing })}
 		{@const beaconSlashingSelector = beaconSlashing[EntityMetaKey.Selector]}
-		{@const network = beaconSlashingSelector.$network}
+		{@const block = beaconSlashingSelector.$block}
 		<EntityView
 			entityType={EntityType.BeaconSlashing}
 			entitySelector={beaconSlashingSelector}
 			href={
 				resolve(
-					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/slot/[slot=nonNegativeInteger]/(beaconSlot)/slashing/[kind=stringSegment]/[index=nonNegativeInteger]',
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/beacon-block/[root=zeroExHex]/(beaconBlock)/slashing/[kind=stringSegment]/[indexInKind=nonNegativeInteger]',
 					{
 						network: (
-							'caip2' in network ?
-								caip2StringFromValue(network.caip2)
+							'caip2' in block.$network ?
+								caip2StringFromValue(block.$network.caip2)
 							:
-								network.slug
+								block.$network.slug
 						),
-						slot: String(beaconSlashingSelector.slot),
+						root: block.root,
 						kind: beaconSlashingSelector.kind,
-						index: String(beaconSlashingSelector.indexInSlot),
+						indexInKind: String(beaconSlashingSelector.indexInKind),
 					}
 				)
 			}
 		>
 			{#snippet Title()}
-				{`Slashing #${beaconSlashingSelector.indexInSlot}`}
+				{`Slashing #${beaconSlashingSelector.indexInKind}`}
 			{/snippet}
 
 			{#snippet Value()}
@@ -72,7 +81,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{'Slot ' + beaconSlashingSelector.slot}</span>
+				<span data-text="annotation">{beaconSlashingSelector.$block.root || 'beacon block'}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

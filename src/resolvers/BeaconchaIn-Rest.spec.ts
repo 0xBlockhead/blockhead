@@ -15,10 +15,6 @@ import { Source } from '$/sources/Source.ts'
 const getEpoch = vi.hoisted(() => vi.fn())
 const getEpochSlots = vi.hoisted(() => vi.fn())
 const getSlot = vi.hoisted(() => vi.fn())
-const getSlotAttestations = vi.hoisted(() => vi.fn())
-const getSlotWithdrawals = vi.hoisted(() => vi.fn())
-const getSlotAttesterSlashings = vi.hoisted(() => vi.fn())
-const getSlotProposerSlashings = vi.hoisted(() => vi.fn())
 const getValidator = vi.hoisted(() => vi.fn())
 const getValidatorAttestations = vi.hoisted(() => vi.fn())
 
@@ -27,10 +23,6 @@ vi.mock('$/sources/BeaconchaIn/Rest/queries.ts', async (importOriginal) => ({
 	getEpoch,
 	getEpochSlots,
 	getSlot,
-	getSlotAttestations,
-	getSlotWithdrawals,
-	getSlotAttesterSlashings,
-	getSlotProposerSlashings,
 	getValidator,
 	getValidatorAttestations,
 }))
@@ -65,27 +57,6 @@ const slotResolver = beaconchaInRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.BeaconSlot
 	&& 'canonical' in resolver.projections
 ))
-const slotAttestationsResolver = beaconchaInRest.resolvers.find((resolver) => (
-	resolver.entityType === EntityType.BeaconSlot
-	&& '$$beaconAttestations' in resolver.projections
-))
-const slotWithdrawalsResolver = beaconchaInRest.resolvers.find((resolver) => (
-	resolver.entityType === EntityType.BeaconSlot
-	&& '$$beaconWithdrawals' in resolver.projections
-))
-const slotSlashingsResolver = beaconchaInRest.resolvers.find((resolver) => (
-	resolver.entityType === EntityType.BeaconSlot
-	&& '$$beaconSlashings' in resolver.projections
-))
-const attestationResolver = beaconchaInRest.resolvers.find((resolver) => (
-	resolver.entityType === EntityType.BeaconAttestation
-))
-const withdrawalResolver = beaconchaInRest.resolvers.find((resolver) => (
-	resolver.entityType === EntityType.BeaconWithdrawal
-))
-const slashingResolver = beaconchaInRest.resolvers.find((resolver) => (
-	resolver.entityType === EntityType.BeaconSlashing
-))
 const validatorResolver = beaconchaInRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.BeaconValidator
 	&& 'indexInNetwork' in resolver.projections
@@ -102,12 +73,6 @@ if (
 	epochResolver == null
 	|| epochSlotsResolver == null
 	|| slotResolver == null
-	|| slotAttestationsResolver == null
-	|| slotWithdrawalsResolver == null
-	|| slotSlashingsResolver == null
-	|| attestationResolver == null
-	|| withdrawalResolver == null
-	|| slashingResolver == null
 	|| validatorResolver == null
 	|| validatorTimestampResolver == null
 	|| validatorAttestationDutiesResolver == null
@@ -120,10 +85,6 @@ describe('BeaconchaIn-Rest resolvers', () => {
 		getEpoch.mockReset()
 		getEpochSlots.mockReset()
 		getSlot.mockReset()
-		getSlotAttestations.mockReset()
-		getSlotWithdrawals.mockReset()
-		getSlotAttesterSlashings.mockReset()
-		getSlotProposerSlashings.mockReset()
 		getValidator.mockReset()
 		getValidatorAttestations.mockReset()
 	})
@@ -408,182 +369,6 @@ describe('BeaconchaIn-Rest resolvers', () => {
 		}, context)
 		expect(epochSlotsResolver.projections.$$beaconSlots.select(snapshot)).toEqual([])
 		expect(epochSlotsResolver.projections.$$beaconSlots.resolveCount(snapshot)).toBe(0)
-	})
-
-	it('projects slot duties with inline fields, resolveCount, and hard-fails missing duty rows', async () => {
-		getSlotAttestations
-			.mockResolvedValueOnce([
-				{
-					aggregationbits: '0xff',
-					block_index: 2,
-					committeeindex: 4,
-					slot: 319,
-					block_slot: 320,
-				},
-			])
-			.mockResolvedValueOnce([])
-		getSlotWithdrawals
-			.mockResolvedValueOnce([
-				{
-					address: '0x' + 'cc'.repeat(20),
-					amount: 42,
-					block_slot: 320,
-					validatorindex: 7,
-					withdrawalindex: 100,
-				},
-			])
-			.mockResolvedValueOnce([])
-		getSlotProposerSlashings.mockResolvedValueOnce([
-			{ block_index: 0, block_slot: 320, proposerindex: 1 },
-		])
-		getSlotAttesterSlashings.mockResolvedValueOnce([])
-
-		const attestations = await slotAttestationsResolver.resolve.EvmNetworkSlot.resolve({
-			$network: network,
-			slot: 320,
-		}, context)
-		expect(slotAttestationsResolver.projections.$$beaconAttestations.select(attestations)).toEqual([
-			{
-				[EntityMetaKey.Selector]: {
-					$network: network,
-					slot: 320,
-					indexInSlot: 2,
-				},
-				[EntityMetaKey.Fields]: {
-					[entityFieldAddressKey(EntityType.BeaconAttestation, [], 'committeeIndex')]: 4,
-					[entityFieldAddressKey(EntityType.BeaconAttestation, [], 'aggregationBits')]: '0xff',
-				},
-			},
-		])
-		expect(slotAttestationsResolver.projections.$$beaconAttestations.resolveCount(attestations)).toBe(1)
-
-		const withdrawals = await slotWithdrawalsResolver.resolve.EvmNetworkSlot.resolve({
-			$network: network,
-			slot: 320,
-		}, context)
-		expect(slotWithdrawalsResolver.projections.$$beaconWithdrawals.select(withdrawals)).toEqual([
-			{
-				[EntityMetaKey.Selector]: {
-					$network: network,
-					slot: 320,
-					indexInSlot: 100,
-				},
-				[EntityMetaKey.Fields]: {
-					[entityFieldAddressKey(EntityType.BeaconWithdrawal, [], 'validatorIndex')]: 7,
-					[entityFieldAddressKey(EntityType.BeaconWithdrawal, [], 'amountGwei')]: 42n,
-					[entityFieldAddressKey(EntityType.BeaconWithdrawal, [], '$validator')]: {
-						[EntityMetaKey.Selector]: {
-							$network: network,
-							indexInNetwork: 7,
-						},
-					},
-					[entityFieldAddressKey(EntityType.BeaconWithdrawal, [], '$account')]: {
-						[EntityMetaKey.Selector]: {
-							address: `0x${'cc'.repeat(20)}`,
-						},
-					},
-				},
-			},
-		])
-		expect(slotWithdrawalsResolver.projections.$$beaconWithdrawals.resolveCount(withdrawals)).toBe(1)
-
-		const slashings = await slotSlashingsResolver.resolve.EvmNetworkSlot.resolve({
-			$network: network,
-			slot: 320,
-		}, context)
-		expect(slotSlashingsResolver.projections.$$beaconSlashings.select(slashings)).toEqual([
-			{
-				[EntityMetaKey.Selector]: {
-					$network: network,
-					slot: 320,
-					kind: 'proposer',
-					indexInSlot: 0,
-				},
-			},
-		])
-		expect(slotSlashingsResolver.projections.$$beaconSlashings.resolveCount(slashings)).toBe(1)
-
-		await expect(attestationResolver.resolve.EvmNetworkSlotIndexInSlot.resolve({
-			$network: network,
-			slot: 320,
-			indexInSlot: 2,
-		}, context)).rejects.toThrow('attestation not found')
-
-		await expect(withdrawalResolver.resolve.EvmNetworkSlotIndexInSlot.resolve({
-			$network: network,
-			slot: 320,
-			indexInSlot: 100,
-		}, context)).rejects.toThrow('withdrawal not found')
-	})
-
-	it('maps withdrawal and attestation detail fields', async () => {
-		getSlotWithdrawals.mockResolvedValue([
-			{
-				address: '0x' + 'dd'.repeat(20),
-				amount: 99,
-				block_slot: 320,
-				validatorindex: 8,
-				withdrawalindex: 101,
-			},
-		])
-		getSlotAttestations.mockResolvedValueOnce([
-			{
-				aggregationbits: 'ff',
-				block_index: 1,
-				committeeindex: 3,
-				slot: 319,
-				block_slot: 320,
-			},
-		])
-		getSlotAttesterSlashings.mockResolvedValueOnce([
-			{ block_index: 1, block_slot: 320 },
-		])
-
-		await expect(withdrawalResolver.resolve.EvmNetworkSlotIndexInSlot.resolve({
-			$network: network,
-			slot: 320,
-			indexInSlot: 101,
-		}, context)).resolves.toMatchObject({
-			validatorIndex: 8,
-			amountGwei: 99n,
-			$validator: {
-				[EntityMetaKey.Selector]: {
-					$network: network,
-					indexInNetwork: 8,
-				},
-			},
-			$account: {
-				[EntityMetaKey.Selector]: {
-					address: `0x${'dd'.repeat(20)}`,
-				},
-			},
-		})
-
-		await expect(withdrawalResolver.resolve.EvmNetworkSlotIndexInSlot.resolve({
-			$network: network,
-			slot: 320,
-			indexInSlot: 0,
-		}, context)).rejects.toThrow('withdrawal not found')
-
-		await expect(attestationResolver.resolve.EvmNetworkSlotIndexInSlot.resolve({
-			$network: network,
-			slot: 320,
-			indexInSlot: 1,
-		}, context)).resolves.toEqual({
-			committeeIndex: 3,
-			aggregationBits: '0xff',
-		})
-
-		await expect(slashingResolver.resolve.EvmNetworkSlotKindIndexInSlot.resolve({
-			$network: network,
-			slot: 320,
-			kind: 'attester',
-			indexInSlot: 1,
-		}, context)).resolves.toMatchObject({
-			kind: 'attester',
-			indexInSlot: 1,
-			slot: 320,
-		})
 	})
 
 	it('maps validator attestation duties and hard-fails HTTP errors', async () => {

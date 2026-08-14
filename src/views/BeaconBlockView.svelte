@@ -42,6 +42,10 @@
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
+	import BeaconDepositsView from '$/views/BeaconDepositsView.svelte'
+	import BeaconAttestationsView from '$/views/BeaconAttestationsView.svelte'
+	import BeaconWithdrawalsView from '$/views/BeaconWithdrawalsView.svelte'
+	import BeaconSlashingsView from '$/views/BeaconSlashingsView.svelte'
 	import BeaconBlock_TimestampsView from '$/views/BeaconBlock_TimestampsView.svelte'
 	import BeaconSlotView from '$/views/BeaconSlotView.svelte'
 	import BeaconValidatorView from '$/views/BeaconValidatorView.svelte'
@@ -301,6 +305,66 @@
 	{/snippet}
 
 	{#snippet Details()}
+		{@const depositsResource = selection.$$deposits}
+		<ResourceBoundary
+			resource={depositsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<BeaconDepositsView
+						selection={depositsResource}
+						countResource={depositsResource.count}
+						title='Deposits'
+						id='deposits'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+		{@const attestationsResource = selection.$$attestations}
+		<ResourceBoundary
+			resource={attestationsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<BeaconAttestationsView
+						selection={attestationsResource}
+						countResource={attestationsResource.count}
+						title='Attestations'
+						id='attestations'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+		{@const withdrawalsResource = selection.$$withdrawals}
+		<ResourceBoundary
+			resource={withdrawalsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<BeaconWithdrawalsView
+						selection={withdrawalsResource}
+						countResource={withdrawalsResource.count}
+						title='Withdrawals'
+						id='withdrawals'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+		{@const slashingsResource = selection.$$slashings}
+		<ResourceBoundary
+			resource={slashingsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<BeaconSlashingsView
+						selection={slashingsResource}
+						countResource={slashingsResource.count}
+						title='Slashings'
+						id='slashings'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
 			resource={timestampsResource}

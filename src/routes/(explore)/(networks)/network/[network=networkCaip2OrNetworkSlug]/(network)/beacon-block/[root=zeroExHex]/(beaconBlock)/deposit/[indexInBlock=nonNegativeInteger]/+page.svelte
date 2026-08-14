@@ -17,9 +17,8 @@
 	}: PageProps = $props()
 
 	const pageSelection = $derived(select(EntityType.BeaconDeposit, {
-		$network: data.selector,
-		slot: Number(params.slot),
-		indexInSlot: Number(params.index),
+		$block: data.selector,
+		indexInBlock: Number(params.indexInBlock),
 	}, {
 		fields: {
 			pubkey: true,
@@ -34,7 +33,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? `Deposit #${pageSelection.entitySelector.indexInSlot}` : (String(pageSelection.entitySelector.indexInSlot ?? '') ? 'Deposit #' + String(pageSelection.entitySelector.indexInSlot ?? '') : '') || 'beacon deposit')} • beacon deposit • Blockhead</title>
+	<title>{data.title ?? (pageSelection.entity == null ? `Deposit #${pageSelection.entitySelector.indexInBlock}` : (String(pageSelection.entitySelector.indexInBlock ?? '') ? 'Deposit #' + String(pageSelection.entitySelector.indexInBlock ?? '') : '') || 'beacon deposit')} • beacon deposit • Blockhead</title>
 </svelte:head>
 
 

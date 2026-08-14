@@ -18,14 +18,16 @@
 	// State
 	let {
 		selection,
+		prefetched = {},
 		title,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: Omit<EntitySelectionViewProps<EntityType.BeaconWithdrawal>, 'prefetched'> = $props()
+	}: EntitySelectionViewProps<EntityType.BeaconWithdrawal> = $props()
 
-	const network = $derived(selection.entitySelector.$network)
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const block = $derived(selection.entitySelector.$block)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Beacon_Rest,
@@ -33,6 +35,7 @@
 	}))
 	const beaconWithdrawal = $derived(viewSelection({
 		fields: {
+			indexInBlock: true,
 			amountGwei: true,
 		},
 	}))
@@ -43,28 +46,28 @@
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import BeaconValidatorView from '$/views/BeaconValidatorView.svelte'
 	import EvmAccountView from '$/views/EvmAccountView.svelte'
-	import NetworkView from '$/views/NetworkView.svelte'
+	import BeaconBlockView from '$/views/BeaconBlockView.svelte'
 </script>
 
 
 <EntityView
 	entityType={EntityType.BeaconWithdrawal}
 	entitySelector={selection.entitySelector}
-	title={title ?? `Withdrawal #${selection.entitySelector.indexInSlot}`}
-	idDragPlainText={String(selection.entitySelector.indexInSlot)}
+	title={title ?? `Withdrawal #${pendingEntity.indexInBlock}`}
+	idDragPlainText={String(pendingEntity.indexInBlock ?? '')}
 	href={
 		href === undefined ?
 			resolve(
-				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/slot/[slot=nonNegativeInteger]/(beaconSlot)/withdrawal/[index=nonNegativeInteger]',
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/beacon-block/[root=zeroExHex]/(beaconBlock)/withdrawal/[withdrawalIndex=nonNegativeInteger]',
 				{
 					network: (
-						'caip2' in network ?
-							caip2StringFromValue(network.caip2)
+						'caip2' in block.$network ?
+							caip2StringFromValue(block.$network.caip2)
 						:
-							network.slug
+							block.$network.slug
 					),
-					slot: String(selection.entitySelector.slot),
-					index: String(selection.entitySelector.indexInSlot),
+					root: block.root,
+					withdrawalIndex: String(selection.entitySelector.withdrawalIndex),
 				}
 			)
 		:
@@ -75,12 +78,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<span data-row="inline align-center gap-2 wrap">
-			<span>Withdrawal </span>
-			<span data-badge="small">
-				#{selection.entitySelector.indexInSlot}
-			</span>
-		</span>
+		<ResourceBoundary resource={beaconWithdrawal}>
+			{#snippet children(entity)}
+				<span data-row="inline align-center gap-2 wrap">
+					<span>Withdrawal </span>
+					<span data-badge="small">
+						#{entity.indexInBlock}
+					</span>
+				</span>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
@@ -100,9 +107,9 @@
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
-			<span>Slot </span>
-			<NumberValue
-				value={selection.entitySelector.slot}
+			<BeaconBlockView
+				selection={select(EntityType.BeaconBlock, selection.entitySelector.$block)}
+				layout={EntityLayout.Title}
 			/>
 		</span>
 	{/snippet}
@@ -110,20 +117,26 @@
 	{#snippet Content()}
 		<dl data-column-item="center">
 			<div>
-				<dt>Index in slot</dt>
+				<dt>Withdrawal index</dt>
 				<dd>
 					<NumberValue
-						value={selection.entitySelector.indexInSlot}
+						value={selection.entitySelector.withdrawalIndex}
 					/>
 				</dd>
 			</div>
 
 			<div>
-				<dt>Slot</dt>
+				<dt>Index in block</dt>
 				<dd>
-					<NumberValue
-						value={selection.entitySelector.slot}
-					/>
+					<ResourceBoundary
+						resource={beaconWithdrawal}
+					>
+						{#snippet children(entity)}
+							<NumberValue
+								value={entity.indexInBlock}
+							/>
+						{/snippet}
+					</ResourceBoundary>
 				</dd>
 			</div>
 
@@ -213,10 +226,10 @@
 			</ResourceBoundary>
 
 			<div>
-				<dt>Network</dt>
+				<dt>Beacon block</dt>
 				<dd>
-					<NetworkView
-						selection={select(EntityType.Network, selection.entitySelector.$network)}
+					<BeaconBlockView
+						selection={select(EntityType.BeaconBlock, selection.entitySelector.$block)}
 						layout={EntityLayout.Value}
 					/>
 				</dd>

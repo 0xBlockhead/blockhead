@@ -6915,6 +6915,26 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
+	'/(explore)/(networks)/network/[network]/beacon-block/[root]/attestation/[indexInBlock]': {
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/beacon-block/[root=zeroExHex]/(beaconBlock)/attestation/[indexInBlock=nonNegativeInteger]',
+		mappings: [
+			{
+				id: 'BeaconAttestation.BlockIndexInBlock',
+				probeAtomPrefixes: ['/network/[network]/beacon-block/[root]/attestation/[indexInBlock]:BeaconAttestation.BlockIndexInBlock'],
+				probeCases: [[[0, '1', ['indexInBlock', 'root', 'network']]]],
+			},
+		],
+	},
+	'/(explore)/(networks)/network/[network]/beacon-block/[root]/deposit/[indexInBlock]': {
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/beacon-block/[root=zeroExHex]/(beaconBlock)/deposit/[indexInBlock=nonNegativeInteger]',
+		mappings: [
+			{
+				id: 'BeaconDeposit.BlockIndexInBlock',
+				probeAtomPrefixes: ['/network/[network]/beacon-block/[root]/deposit/[indexInBlock]:BeaconDeposit.BlockIndexInBlock'],
+				probeCases: [[[0, '1', ['indexInBlock', 'root', 'network']]]],
+			},
+		],
+	},
 	'/(explore)/(networks)/network/[network]/beacon-block/[root]/execution-payload-bid': {
 		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/beacon-block/[root=zeroExHex]/(beaconBlock)/execution-payload-bid',
 		mappings: [
@@ -6990,6 +7010,26 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				id: 'BeaconBlock_Timestamp.BlockTimestampMsSource',
 				probeAtomPrefixes: ['/network/[network]/beacon-block/[root]/observation/[timestampMs]/[source]:BeaconBlock_Timestamp.BlockTimestampMsSource'],
 				probeCases: [[[0, '1', ['timestampMs', 'source', 'root', 'network']]]],
+			},
+		],
+	},
+	'/(explore)/(networks)/network/[network]/beacon-block/[root]/slashing/[kind]/[indexInKind]': {
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/beacon-block/[root=zeroExHex]/(beaconBlock)/slashing/[kind=stringSegment]/[indexInKind=nonNegativeInteger]',
+		mappings: [
+			{
+				id: 'BeaconSlashing.BlockKindIndexInKind',
+				probeAtomPrefixes: ['/network/[network]/beacon-block/[root]/slashing/[kind]/[indexInKind]:BeaconSlashing.BlockKindIndexInKind'],
+				probeCases: [[[0, '1', ['kind', 'indexInKind', 'root', 'network']]]],
+			},
+		],
+	},
+	'/(explore)/(networks)/network/[network]/beacon-block/[root]/withdrawal/[withdrawalIndex]': {
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/beacon-block/[root=zeroExHex]/(beaconBlock)/withdrawal/[withdrawalIndex=nonNegativeInteger]',
+		mappings: [
+			{
+				id: 'BeaconWithdrawal.BlockWithdrawalIndex',
+				probeAtomPrefixes: ['/network/[network]/beacon-block/[root]/withdrawal/[withdrawalIndex]:BeaconWithdrawal.BlockWithdrawalIndex'],
+				probeCases: [[[0, '1', ['withdrawalIndex', 'root', 'network']]]],
 			},
 		],
 	},
@@ -9377,20 +9417,6 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
-	'/(explore)/(networks)/network/[network]/slot/[slot]/attestation/[index]': {
-		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/slot/[slot=nonNegativeInteger]/(beaconSlot)/attestation/[index=nonNegativeInteger]',
-		mappings: [
-			{
-				id: 'BeaconAttestation.EvmNetworkSlotIndexInSlot',
-				projectionEntity: 'Network',
-				probeAtomPrefixes: ['/network/[network]/slot/[slot]/attestation/[index]:BeaconAttestation.EvmNetworkSlotIndexInSlot'],
-				probeCases: [[[0, '1', ['slot', 'index', 'network']]]],
-				projectionPath: [
-					'Evm',
-				],
-			},
-		],
-	},
 	'/(explore)/(networks)/network/[network]/slot/[slot]/committee/[index]': {
 		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/slot/[slot=nonNegativeInteger]/(beaconSlot)/committee/[index=nonNegativeInteger]',
 		mappings: [
@@ -9426,48 +9452,6 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				id: 'BeaconDataColumn_Timestamp.DataColumnTimestampMsSource',
 				probeAtomPrefixes: ['/network/[network]/slot/[slot]/data-column/[columnIndex]/observation/[timestampMs]/[source]:BeaconDataColumn_Timestamp.DataColumnTimestampMsSource'],
 				probeCases: [[[0, '1', ['timestampMs', 'source', 'columnIndex', 'slot', 'network']]]],
-			},
-		],
-	},
-	'/(explore)/(networks)/network/[network]/slot/[slot]/deposit/[index]': {
-		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/slot/[slot=nonNegativeInteger]/(beaconSlot)/deposit/[index=nonNegativeInteger]',
-		mappings: [
-			{
-				id: 'BeaconDeposit.EvmNetworkSlotIndexInSlot',
-				projectionEntity: 'Network',
-				probeAtomPrefixes: ['/network/[network]/slot/[slot]/deposit/[index]:BeaconDeposit.EvmNetworkSlotIndexInSlot'],
-				probeCases: [[[0, '1', ['slot', 'index', 'network']]]],
-				projectionPath: [
-					'Evm',
-				],
-			},
-		],
-	},
-	'/(explore)/(networks)/network/[network]/slot/[slot]/slashing/[kind]/[index]': {
-		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/slot/[slot=nonNegativeInteger]/(beaconSlot)/slashing/[kind=stringSegment]/[index=nonNegativeInteger]',
-		mappings: [
-			{
-				id: 'BeaconSlashing.EvmNetworkSlotKindIndexInSlot',
-				projectionEntity: 'Network',
-				probeAtomPrefixes: ['/network/[network]/slot/[slot]/slashing/[kind]/[index]:BeaconSlashing.EvmNetworkSlotKindIndexInSlot'],
-				probeCases: [[[0, '1', ['slot', 'kind', 'index', 'network']]]],
-				projectionPath: [
-					'Evm',
-				],
-			},
-		],
-	},
-	'/(explore)/(networks)/network/[network]/slot/[slot]/withdrawal/[index]': {
-		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/slot/[slot=nonNegativeInteger]/(beaconSlot)/withdrawal/[index=nonNegativeInteger]',
-		mappings: [
-			{
-				id: 'BeaconWithdrawal.EvmNetworkSlotIndexInSlot',
-				projectionEntity: 'Network',
-				probeAtomPrefixes: ['/network/[network]/slot/[slot]/withdrawal/[index]:BeaconWithdrawal.EvmNetworkSlotIndexInSlot'],
-				probeCases: [[[0, '1', ['slot', 'index', 'network']]]],
-				projectionPath: [
-					'Evm',
-				],
 			},
 		],
 	},

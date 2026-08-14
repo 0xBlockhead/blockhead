@@ -1380,37 +1380,41 @@ describe('Beacon REST checkpoint and fork projections', () => {
 		expect(getHeadSlot).not.toHaveBeenCalled()
 	})
 
-	it('projects a slashing network as an entity reference', async () => {
+	it('resolves a slashing by its fork-safe block identity', async () => {
 		getBlockDutySummary.mockResolvedValue({
 			deposits: [],
 			attestations: [],
 			withdrawals: [],
 			slashings: [{
 				index: 0,
+				indexInBlock: 0,
+				indexInKind: 0,
 				kind: 'proposer',
 			}],
 		})
 
-		const slashing = await slashingResolver.resolve.EvmNetworkSlotKindIndexInSlot.resolve({
-			$network: network,
-			slot: 64,
+		const slashing = await slashingResolver.resolve.BlockKindIndexInKind.resolve({
+			$block: {
+				$network: network,
+				root: `0x${'11'.repeat(32)}`,
+			},
 			kind: 'proposer',
-			indexInSlot: 0,
+			indexInKind: 0,
 		})
 
-		expect(slashingResolver.projections.$network(slashing)).toEqual({
-			[EntityMetaKey.Selector]: network,
-		})
+		expect(slashingResolver.projections.kind(slashing)).toBe('proposer')
+		expect(slashingResolver.projections.indexInKind(slashing)).toBe(0)
 		expect(getBlockDutySummary).toHaveBeenCalledWith(
 			1,
-			64
+			`0x${'11'.repeat(32)}`
 		)
 	})
 
-	it('resolves a deposit route from its slot-local index', async () => {
+	it('resolves a deposit route from its fork-safe block index', async () => {
 		getBlockDutySummary.mockResolvedValue({
 			deposits: [{
 				index: 0,
+				indexInBlock: 0,
 				pubkey: `0x${'22'.repeat(48)}`,
 				withdrawalCredentials: `0x${'33'.repeat(32)}`,
 				amountGwei: 32_000_000_000n,
@@ -1422,10 +1426,12 @@ describe('Beacon REST checkpoint and fork projections', () => {
 			slashings: [],
 		})
 
-		const deposit = await depositResolver.resolve.EvmNetworkSlotIndexInSlot.resolve({
-			$network: network,
-			slot: 64,
-			indexInSlot: 0,
+		const deposit = await depositResolver.resolve.BlockIndexInBlock.resolve({
+			$block: {
+				$network: network,
+				root: `0x${'11'.repeat(32)}`,
+			},
+			indexInBlock: 0,
 		})
 
 		expect(depositResolver.projections.$validator(deposit)).toEqual({
@@ -1437,14 +1443,16 @@ describe('Beacon REST checkpoint and fork projections', () => {
 		expect(depositResolver.projections.amountGwei(deposit)).toBe(32_000_000_000n)
 		expect(getBlockDutySummary).toHaveBeenCalledWith(
 			1,
-			64
+			`0x${'11'.repeat(32)}`
 		)
 	})
 
 	it('materializes native duty cards from one block summary', async () => {
-		getBlockDutySummary.mockResolvedValue({
+		getBeaconBlockSnapshot.mockResolvedValue({
+			root: `0x${'11'.repeat(32)}`,
 			deposits: [{
 				index: 0,
+				indexInBlock: 0,
 				pubkey: `0x${'22'.repeat(48)}`,
 				withdrawalCredentials: `0x${'33'.repeat(32)}`,
 				amountGwei: 32_000_000_000n,
@@ -1453,17 +1461,22 @@ describe('Beacon REST checkpoint and fork projections', () => {
 			}],
 			attestations: [{
 				index: 2,
+				indexInBlock: 2,
 				committeeIndex: 4,
 				aggregationBits: '0x03',
 			}],
 			withdrawals: [{
 				index: 5,
+				indexInBlock: 5,
+				withdrawalIndex: 100,
 				validatorIndex: 12,
 				address: '0000000000000000000000000000000000000001',
 				amountGwei: 32_000_000_000n,
 			}],
 			slashings: [{
 				index: 1,
+				indexInBlock: 1,
+				indexInKind: 0,
 				kind: 'attester',
 			}],
 		})
@@ -1493,9 +1506,11 @@ describe('Beacon REST checkpoint and fork projections', () => {
 		})
 		expect(dutySummaryResolver.projections.$$beaconDeposits(dutySummary)).toMatchObject([{
 			[EntityMetaKey.Selector]: {
-				$network: network,
-				slot: 64,
-				indexInSlot: 0,
+				$block: {
+					$network: network,
+					root: `0x${'11'.repeat(32)}`,
+				},
+				indexInBlock: 0,
 			},
 			[EntityMetaKey.Fields]: {
 				[entityFieldAddressKey(EntityType.BeaconDeposit, [], 'pubkey')]: `0x${'22'.repeat(48)}`,
@@ -1511,9 +1526,11 @@ describe('Beacon REST checkpoint and fork projections', () => {
 
 		expect(dutySummaryResolver.projections.$$beaconAttestations(dutySummary)).toMatchObject([{
 			[EntityMetaKey.Selector]: {
-				$network: network,
-				slot: 64,
-				indexInSlot: 2,
+				$block: {
+					$network: network,
+					root: `0x${'11'.repeat(32)}`,
+				},
+				indexInBlock: 2,
 			},
 			[EntityMetaKey.Fields]: {
 				[entityFieldAddressKey(EntityType.BeaconAttestation, [], 'committeeIndex')]: 4,
@@ -1522,11 +1539,14 @@ describe('Beacon REST checkpoint and fork projections', () => {
 		}])
 		expect(dutySummaryResolver.projections.$$beaconWithdrawals(dutySummary)).toMatchObject([{
 			[EntityMetaKey.Selector]: {
-				$network: network,
-				slot: 64,
-				indexInSlot: 5,
+				$block: {
+					$network: network,
+					root: `0x${'11'.repeat(32)}`,
+				},
+				withdrawalIndex: 100,
 			},
 			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.BeaconWithdrawal, [], 'indexInBlock')]: 5,
 				[entityFieldAddressKey(EntityType.BeaconWithdrawal, [], 'validatorIndex')]: 12,
 				[entityFieldAddressKey(EntityType.BeaconWithdrawal, [], 'amountGwei')]: 32_000_000_000n,
 				[entityFieldAddressKey(EntityType.BeaconWithdrawal, [], '$validator')]: {
@@ -1539,13 +1559,12 @@ describe('Beacon REST checkpoint and fork projections', () => {
 		}])
 		expect(dutySummaryResolver.projections.$$beaconSlashings(dutySummary)).toMatchObject([{
 			[EntityMetaKey.Selector]: {
-				$network: network,
-				slot: 64,
+				$block: {
+					$network: network,
+					root: `0x${'11'.repeat(32)}`,
+				},
 				kind: 'attester',
-				indexInSlot: 1,
-			},
-			[EntityMetaKey.Fields]: {
-				[entityFieldAddressKey(EntityType.BeaconSlashing, [], 'kind')]: 'attester',
+				indexInKind: 0,
 			},
 		}])
 	})

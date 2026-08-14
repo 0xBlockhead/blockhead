@@ -12,15 +12,15 @@ export default entity({
 		plural: 'Beacon withdrawals',
 	},
 })({
-	$network: {
-		entityType: EntityType.Network,
+	$block: {
+		entityType: EntityType.BeaconBlock,
 		cardinality: EntityFieldCardinality.One,
 	},
-	slot: {
+	withdrawalIndex: {
 		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.One,
 	},
-	indexInSlot: {
+	indexInBlock: {
 		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.One,
 	},
@@ -42,10 +42,9 @@ export default entity({
 	},
 })({
 	selectors: {
-		EvmNetworkSlotIndexInSlot: [
-			'$network',
-			'slot',
-			'indexInSlot',
+		BlockWithdrawalIndex: [
+			'$block',
+			'withdrawalIndex',
 		],
 	},
 })

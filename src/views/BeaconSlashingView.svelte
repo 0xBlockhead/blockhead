@@ -22,13 +22,13 @@
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.BeaconSlashing>, 'prefetched'> = $props()
 
-	const network = $derived(selection.entitySelector.$network)
-	const titleFallback = $derived(`Slashing #${selection.entitySelector.indexInSlot}`)
+	const block = $derived(selection.entitySelector.$block)
+	const titleFallback = $derived(`Slashing #${selection.entitySelector.indexInKind}`)
 
 
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
-	import NetworkView from '$/views/NetworkView.svelte'
+	import BeaconBlockView from '$/views/BeaconBlockView.svelte'
 </script>
 
 
@@ -36,21 +36,21 @@
 	entityType={EntityType.BeaconSlashing}
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	idDragPlainText={String(selection.entitySelector.indexInSlot)}
+	idDragPlainText={String(selection.entitySelector.indexInKind)}
 	href={
 		href === undefined ?
 			resolve(
-				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/slot/[slot=nonNegativeInteger]/(beaconSlot)/slashing/[kind=stringSegment]/[index=nonNegativeInteger]',
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/beacon-block/[root=zeroExHex]/(beaconBlock)/slashing/[kind=stringSegment]/[indexInKind=nonNegativeInteger]',
 				{
 					network: (
-						'caip2' in network ?
-							caip2StringFromValue(network.caip2)
+						'caip2' in block.$network ?
+							caip2StringFromValue(block.$network.caip2)
 						:
-							network.slug
+							block.$network.slug
 					),
-					slot: String(selection.entitySelector.slot),
+					root: block.root,
 					kind: selection.entitySelector.kind,
-					index: String(selection.entitySelector.indexInSlot),
+					indexInKind: String(selection.entitySelector.indexInKind),
 				}
 			)
 		:
@@ -61,14 +61,14 @@
 	{...EntityViewProps}
 >
 	{#snippet Value()}
-		{selection.entitySelector.kind || [selection.entitySelector.kind, ' #' + String(selection.entitySelector.indexInSlot)].filter(Boolean).join(' ') || titleFallback}
+		{selection.entitySelector.kind || [selection.entitySelector.kind, ' #' + String(selection.entitySelector.indexInKind)].filter(Boolean).join(' ') || titleFallback}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
-			<span>Slot </span>
-			<NumberValue
-				value={selection.entitySelector.slot}
+			<BeaconBlockView
+				selection={select(EntityType.BeaconBlock, selection.entitySelector.$block)}
+				layout={EntityLayout.Title}
 			/>
 		</span>
 	{/snippet}
@@ -83,28 +83,19 @@
 			</div>
 
 			<div>
-				<dt>Index in slot</dt>
+				<dt>Index in kind</dt>
 				<dd>
 					<NumberValue
-						value={selection.entitySelector.indexInSlot}
+						value={selection.entitySelector.indexInKind}
 					/>
 				</dd>
 			</div>
 
 			<div>
-				<dt>Slot</dt>
+				<dt>Beacon block</dt>
 				<dd>
-					<NumberValue
-						value={selection.entitySelector.slot}
-					/>
-				</dd>
-			</div>
-
-			<div>
-				<dt>Network</dt>
-				<dd>
-					<NetworkView
-						selection={select(EntityType.Network, selection.entitySelector.$network)}
+					<BeaconBlockView
+						selection={select(EntityType.BeaconBlock, selection.entitySelector.$block)}
 						layout={EntityLayout.Value}
 					/>
 				</dd>

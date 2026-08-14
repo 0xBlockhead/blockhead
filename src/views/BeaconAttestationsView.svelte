@@ -32,8 +32,17 @@
 		selection({
 			...{
 				fields: {
-					indexInSlot: true,
-					slot: true,
+					indexInBlock: true,
+					$block: {
+						fields: {
+							version: true,
+							$slot: {
+								fields: {
+									$epoch: true,
+								},
+							},
+						},
+					},
 				},
 			},
 		})
@@ -41,32 +50,32 @@
 >
 	{#snippet Item({ item: beaconAttestation })}
 		{@const beaconAttestationSelector = beaconAttestation[EntityMetaKey.Selector]}
-		{@const network = beaconAttestationSelector.$network}
+		{@const block = beaconAttestationSelector.$block}
 		<EntityView
 			entityType={EntityType.BeaconAttestation}
 			entitySelector={beaconAttestationSelector}
 			href={
 				resolve(
-					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/slot/[slot=nonNegativeInteger]/(beaconSlot)/attestation/[index=nonNegativeInteger]',
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/beacon-block/[root=zeroExHex]/(beaconBlock)/attestation/[indexInBlock=nonNegativeInteger]',
 					{
 						network: (
-							'caip2' in network ?
-								caip2StringFromValue(network.caip2)
+							'caip2' in block.$network ?
+								caip2StringFromValue(block.$network.caip2)
 							:
-								network.slug
+								block.$network.slug
 						),
-						slot: String(beaconAttestationSelector.slot),
-						index: String(beaconAttestationSelector.indexInSlot),
+						root: block.root,
+						indexInBlock: String(beaconAttestationSelector.indexInBlock),
 					}
 				)
 			}
 		>
 			{#snippet Title()}
-				{`Attestation #${beaconAttestationSelector.indexInSlot}`}
+				{`Attestation #${beaconAttestationSelector.indexInBlock}`}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{'Slot ' + beaconAttestationSelector.slot}</span>
+				<span data-text="annotation">{beaconAttestationSelector.$block.root || 'beacon block'}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

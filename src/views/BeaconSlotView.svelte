@@ -599,7 +599,6 @@
 						.$$beaconAttestations({
 							sources: [
 								Source.Beacon_Rest,
-								Source.BeaconchaIn_Rest,
 							],
 						})
 					}
@@ -659,7 +658,6 @@
 						.$$beaconWithdrawals({
 							sources: [
 								Source.Beacon_Rest,
-								Source.BeaconchaIn_Rest,
 							],
 						})
 					}
@@ -676,7 +674,6 @@
 						.$$beaconSlashings({
 							sources: [
 								Source.Beacon_Rest,
-								Source.BeaconchaIn_Rest,
 							],
 						})
 					}

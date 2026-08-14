@@ -32,9 +32,18 @@
 		selection({
 			...{
 				fields: {
-					indexInSlot: true,
+					indexInBlock: true,
 					amountGwei: true,
-					slot: true,
+					$block: {
+						fields: {
+							version: true,
+							$slot: {
+								fields: {
+									$epoch: true,
+								},
+							},
+						},
+					},
 				},
 			},
 		})
@@ -42,28 +51,28 @@
 >
 	{#snippet Item({ item: beaconWithdrawal })}
 		{@const beaconWithdrawalSelector = beaconWithdrawal[EntityMetaKey.Selector]}
-		{@const network = beaconWithdrawalSelector.$network}
+		{@const block = beaconWithdrawalSelector.$block}
 		<EntityView
 			entityType={EntityType.BeaconWithdrawal}
 			entitySelector={beaconWithdrawalSelector}
 			href={
 				resolve(
-					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/slot/[slot=nonNegativeInteger]/(beaconSlot)/withdrawal/[index=nonNegativeInteger]',
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/beacon-block/[root=zeroExHex]/(beaconBlock)/withdrawal/[withdrawalIndex=nonNegativeInteger]',
 					{
 						network: (
-							'caip2' in network ?
-								caip2StringFromValue(network.caip2)
+							'caip2' in block.$network ?
+								caip2StringFromValue(block.$network.caip2)
 							:
-								network.slug
+								block.$network.slug
 						),
-						slot: String(beaconWithdrawalSelector.slot),
-						index: String(beaconWithdrawalSelector.indexInSlot),
+						root: block.root,
+						withdrawalIndex: String(beaconWithdrawalSelector.withdrawalIndex),
 					}
 				)
 			}
 		>
 			{#snippet Title()}
-				{`Withdrawal #${beaconWithdrawalSelector.indexInSlot}`}
+				{`Withdrawal #${beaconWithdrawal.indexInBlock}`}
 			{/snippet}
 
 			{#snippet Value()}
@@ -71,7 +80,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{'Slot ' + beaconWithdrawalSelector.slot}</span>
+				<span data-text="annotation">{beaconWithdrawalSelector.$block.root || 'beacon block'}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

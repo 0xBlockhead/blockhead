@@ -69,8 +69,36 @@ export default entity({
 			Source.Beacon_Rest,
 		],
 	},
+	$$attestations: {
+		entityType: EntityType.BeaconAttestation,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Beacon_Rest,
+		],
+	},
+	$$deposits: {
+		entityType: EntityType.BeaconDeposit,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Beacon_Rest,
+		],
+	},
+	$$slashings: {
+		entityType: EntityType.BeaconSlashing,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Beacon_Rest,
+		],
+	},
 	$$timestamps: {
 		entityType: EntityType.BeaconBlock_Timestamp,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Beacon_Rest,
+		],
+	},
+	$$withdrawals: {
+		entityType: EntityType.BeaconWithdrawal,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
 			Source.Beacon_Rest,

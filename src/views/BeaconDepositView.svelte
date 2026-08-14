@@ -24,22 +24,22 @@
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.BeaconDeposit>, 'prefetched'> = $props()
 
-	const network = $derived(selection.entitySelector.$network)
+	const block = $derived(selection.entitySelector.$block)
 	const beaconDeposit = $derived(selection({
 		fields: {
 			pubkey: true,
 			amountGwei: true,
 		},
 	}))
-	const titleFallback = $derived(`Deposit #${selection.entitySelector.indexInSlot}`)
+	const titleFallback = $derived(`Deposit #${selection.entitySelector.indexInBlock}`)
 
 
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
+	import BeaconBlockView from '$/views/BeaconBlockView.svelte'
 	import BeaconValidatorView from '$/views/BeaconValidatorView.svelte'
-	import NetworkView from '$/views/NetworkView.svelte'
 </script>
 
 
@@ -47,20 +47,20 @@
 	entityType={EntityType.BeaconDeposit}
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	idDragPlainText={String(selection.entitySelector.indexInSlot)}
+	idDragPlainText={String(selection.entitySelector.indexInBlock)}
 	href={
 		href === undefined ?
 			resolve(
-				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/slot/[slot=nonNegativeInteger]/(beaconSlot)/deposit/[index=nonNegativeInteger]',
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/beacon-block/[root=zeroExHex]/(beaconBlock)/deposit/[indexInBlock=nonNegativeInteger]',
 				{
 					network: (
-						'caip2' in network ?
-							caip2StringFromValue(network.caip2)
+						'caip2' in block.$network ?
+							caip2StringFromValue(block.$network.caip2)
 						:
-							network.slug
+							block.$network.slug
 					),
-					slot: String(selection.entitySelector.slot),
-					index: String(selection.entitySelector.indexInSlot),
+					root: block.root,
+					indexInBlock: String(selection.entitySelector.indexInBlock),
 				}
 			)
 		:
@@ -92,15 +92,34 @@
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
-			<span>Slot </span>
-			<NumberValue
-				value={selection.entitySelector.slot}
+			<BeaconBlockView
+				selection={select(EntityType.BeaconBlock, selection.entitySelector.$block)}
+				layout={EntityLayout.Title}
 			/>
 		</span>
 	{/snippet}
 
 	{#snippet Content()}
 		<dl data-column-item="center">
+			<div>
+				<dt>Beacon block</dt>
+				<dd>
+					<BeaconBlockView
+						selection={select(EntityType.BeaconBlock, selection.entitySelector.$block)}
+						layout={EntityLayout.Value}
+					/>
+				</dd>
+			</div>
+
+			<div>
+				<dt>Index in block</dt>
+				<dd>
+					<NumberValue
+						value={selection.entitySelector.indexInBlock}
+					/>
+				</dd>
+			</div>
+
 			<div>
 				<dt>Validator</dt>
 				<dd>
@@ -205,16 +224,6 @@
 							{entity.proof.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
-				</dd>
-			</div>
-
-			<div>
-				<dt>Network</dt>
-				<dd>
-					<NetworkView
-						selection={select(EntityType.Network, selection.entitySelector.$network)}
-						layout={EntityLayout.Value}
-					/>
 				</dd>
 			</div>
 		</dl>

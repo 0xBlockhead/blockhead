@@ -17,9 +17,8 @@
 	}: PageProps = $props()
 
 	const pageSelection = $derived(select(EntityType.BeaconAttestation, {
-		$network: data.selector,
-		slot: Number(params.slot),
-		indexInSlot: Number(params.index),
+		$block: data.selector,
+		indexInBlock: Number(params.indexInBlock),
 	}))
 
 
@@ -30,7 +29,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? ((String(pageSelection.entitySelector.indexInSlot ?? '') ? 'Attestation #' + String(pageSelection.entitySelector.indexInSlot ?? '') : '') || 'beacon attestation')} • beacon attestation • Blockhead</title>
+	<title>{data.title ?? ((String(pageSelection.entitySelector.indexInBlock ?? '') ? 'Attestation #' + String(pageSelection.entitySelector.indexInBlock ?? '') : '') || 'beacon attestation')} • beacon attestation • Blockhead</title>
 </svelte:head>
 
 

@@ -12,29 +12,24 @@ export default entity({
 		plural: 'Beacon slashings',
 	},
 })({
-	$network: {
-		entityType: EntityType.Network,
-		cardinality: EntityFieldCardinality.One,
-	},
-	slot: {
-		primitiveType: type('number.integer >= 0'),
+	$block: {
+		entityType: EntityType.BeaconBlock,
 		cardinality: EntityFieldCardinality.One,
 	},
 	kind: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
-	indexInSlot: {
+	indexInKind: {
 		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.One,
 	},
 })({
 	selectors: {
-		EvmNetworkSlotKindIndexInSlot: [
-			'$network',
-			'slot',
+		BlockKindIndexInKind: [
+			'$block',
 			'kind',
-			'indexInSlot',
+			'indexInKind',
 		],
 	},
 })

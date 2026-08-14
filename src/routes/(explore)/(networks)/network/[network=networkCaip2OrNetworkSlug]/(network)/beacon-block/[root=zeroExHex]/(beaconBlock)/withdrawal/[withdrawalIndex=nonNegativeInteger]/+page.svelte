@@ -18,13 +18,15 @@
 	}: PageProps = $props()
 
 	const pageSelection = $derived(select(EntityType.BeaconWithdrawal, {
-		$network: data.selector,
-		slot: Number(params.slot),
-		indexInSlot: Number(params.index),
+		$block: data.selector,
+		withdrawalIndex: Number(params.withdrawalIndex),
 	}, {
 		sources: [
 			Source.Beacon_Rest,
 		],
+		fields: {
+			indexInBlock: true,
+		},
 	}))
 
 
@@ -35,7 +37,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? ((String(pageSelection.entitySelector.indexInSlot ?? '') ? 'Withdrawal #' + String(pageSelection.entitySelector.indexInSlot ?? '') : '') || 'beacon withdrawal')} • beacon withdrawal • Blockhead</title>
+	<title>{data.title ?? (pageSelection.entity == null ? 'beacon withdrawal' : (String(pageSelection.entity.indexInBlock ?? '') ? 'Withdrawal #' + String(pageSelection.entity.indexInBlock ?? '') : '') || 'beacon withdrawal')} • beacon withdrawal • Blockhead</title>
 </svelte:head>
 
 

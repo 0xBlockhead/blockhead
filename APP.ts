@@ -10555,19 +10555,13 @@ export const schema = {
 					plural: "Beacon attestations",
 				},
 			})({
-				"$network": {
-					label: "Network",
-					type: EntityFieldType.EntityReference,
-					cardinality: EntityFieldCardinality.One,
-					entityType: EntityType.Network,
-				},
-				"slot": { label: "Slot", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
-				"indexInSlot": { label: "Index in slot", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
+				"$block": { label: "Beacon block", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.BeaconBlock },
+				"indexInBlock": { label: "Index in block", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
 				"committeeIndex": { label: "Committee index", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 				"aggregationBits": { label: "Aggregation bits", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 			})({
 				selectors: {
-					"EvmNetworkSlotIndexInSlot": ["$network", "slot", "indexInSlot"],
+					"BlockIndexInBlock": ["$block", "indexInBlock"],
 				},
 				views: {
 					singular: {
@@ -10580,21 +10574,20 @@ export const schema = {
 						},
 						summary: {
 							serial: {
-								field: "indexInSlot",
+								field: "indexInBlock",
 								label: "Attestation",
 							},
-							HeadingAfter: [{ field: "slot", format: "number", prefix: "Slot " }],
+							HeadingAfter: ["$block"],
 						},
 						content: {
 							dl: [
 								[
-									{ field: "indexInSlot", format: "number" },
-									{ field: "slot", format: "number" },
+									{ field: "indexInBlock", format: "number" },
 									{ field: "committeeIndex", format: "number" },
 								],
 								[
 									{ field: "aggregationBits", format: "truncated" },
-									"$network",
+									"$block",
 								],
 							],
 						},
@@ -10625,7 +10618,11 @@ export const schema = {
 				"$executionBlock": { label: "Execution block", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.EvmBlock },
 				"$executionPayloadBid": { label: "Selected execution payload bid", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.BeaconExecutionPayloadBid, defaultSources: [Source.Beacon_Rest] },
 				"$executionPayloadEnvelope": { label: "Delivered execution payload envelope", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.BeaconExecutionPayloadEnvelope, defaultSources: [Source.Beacon_Rest] },
+				"$$attestations": { label: "Attestations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BeaconAttestation, defaultSources: [Source.Beacon_Rest] },
+				"$$deposits": { label: "Deposits", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BeaconDeposit, defaultSources: [Source.Beacon_Rest] },
+				"$$slashings": { label: "Slashings", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BeaconSlashing, defaultSources: [Source.Beacon_Rest] },
 				"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BeaconBlock_Timestamp, defaultSources: [Source.Beacon_Rest] },
+				"$$withdrawals": { label: "Withdrawals", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BeaconWithdrawal, defaultSources: [Source.Beacon_Rest] },
 			})({
 				selectors: {
 					"NetworkRoot": ["$network", "root"],
@@ -10634,7 +10631,7 @@ export const schema = {
 					singular: {
 						query: { sources: [Source.Beacon_Rest] },
 						summary: { title: [{ field: "root", format: "truncated" }], value: ["version"], HeadingAfter: ["$slot"] },
-						content: { dl: [["$slot", "$proposer", "$parent", "version", { field: "root", format: "truncated" }, { field: "stateRoot", format: "truncated" }, { field: "bodyRoot", format: "truncated" }, { field: "signature", format: "truncated" }, "$executionBlock", "$executionPayloadBid", "$executionPayloadEnvelope"]], lists: [{ field: "$$timestamps", component: "BeaconBlock_TimestampsView", label: "Observations" }] },
+						content: { dl: [["$slot", "$proposer", "$parent", "version", { field: "root", format: "truncated" }, { field: "stateRoot", format: "truncated" }, { field: "bodyRoot", format: "truncated" }, { field: "signature", format: "truncated" }, "$executionBlock", "$executionPayloadBid", "$executionPayloadEnvelope"]], lists: [{ field: "$$deposits", component: "BeaconDepositsView", label: "Deposits" }, { field: "$$attestations", component: "BeaconAttestationsView", label: "Attestations" }, { field: "$$withdrawals", component: "BeaconWithdrawalsView", label: "Withdrawals" }, { field: "$$slashings", component: "BeaconSlashingsView", label: "Slashings" }, { field: "$$timestamps", component: "BeaconBlock_TimestampsView", label: "Observations" }] },
 					},
 					plural: { component: "BeaconBlocksView", title: "Beacon blocks" },
 				},
@@ -10784,9 +10781,8 @@ export const schema = {
 				},
 				description: "A validator deposit included in an Ethereum beacon block.",
 			})({
-				"$network": { label: "Network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
-				"slot": { label: "Slot", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
-				"indexInSlot": { label: "Index in slot", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
+				"$block": { label: "Beacon block", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.BeaconBlock },
+				"indexInBlock": { label: "Index in block", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
 				"pubkey": { label: "Validator pubkey", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"$validator": { label: "Validator", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.BeaconValidator },
 				"withdrawalCredentials": { label: "Withdrawal credentials", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
@@ -10794,11 +10790,11 @@ export const schema = {
 				"signature": { label: "Signature", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"proof": { label: "Merkle proof", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "string" },
 			})({
-				selectors: { "EvmNetworkSlotIndexInSlot": ["$network", "slot", "indexInSlot"] },
+				selectors: { "BlockIndexInBlock": ["$block", "indexInBlock"] },
 				views: {
 					singular: {
-						summary: { serial: { field: "indexInSlot", label: "Deposit" }, title: ["pubkey"], value: [{ field: "amountGwei", format: "numberValue", suffix: " gwei" }], HeadingAfter: [{ field: "slot", format: "number", prefix: "Slot " }] },
-						content: { dl: [["$validator", "pubkey", "withdrawalCredentials", { field: "amountGwei", format: "numberValue", suffix: " gwei" }], ["signature", "proof", "$network"]] },
+						summary: { serial: { field: "indexInBlock", label: "Deposit" }, title: ["pubkey"], value: [{ field: "amountGwei", format: "numberValue", suffix: " gwei" }], HeadingAfter: ["$block"] },
+						content: { dl: [["$block", { field: "indexInBlock", format: "number" }, "$validator", "pubkey", "withdrawalCredentials", { field: "amountGwei", format: "numberValue", suffix: " gwei" }], ["signature", "proof"]] },
 					},
 					plural: { component: "BeaconDepositsView", title: "Deposits" },
 				},
@@ -11141,37 +11137,30 @@ export const schema = {
 					plural: "Beacon slashings",
 				},
 			})({
-				"$network": {
-					label: "Network",
-					type: EntityFieldType.EntityReference,
-					cardinality: EntityFieldCardinality.One,
-					entityType: EntityType.Network,
-				},
-				"slot": { label: "Slot", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
+				"$block": { label: "Beacon block", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.BeaconBlock },
 				"kind": { label: "Kind", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"indexInSlot": { label: "Index in slot", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
+				"indexInKind": { label: "Index in kind", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
 			})({
 				selectors: {
-					"EvmNetworkSlotKindIndexInSlot": ["$network", "slot", "kind", "indexInSlot"],
+					"BlockKindIndexInKind": ["$block", "kind", "indexInKind"],
 				},
 				views: {
 					singular: {
 						summary: {
 							serial: {
-								field: "indexInSlot",
+								field: "indexInKind",
 								label: "Slashing",
 							},
-							title: ["kind", { field: "indexInSlot", format: "number", prefix: " #" }],
+							title: ["kind", { field: "indexInKind", format: "number", prefix: " #" }],
 							value: ["kind"],
-							HeadingAfter: [{ field: "slot", format: "number", prefix: "Slot " }],
+							HeadingAfter: ["$block"],
 						},
 						content: {
 							dl: [
 								[
 									"kind",
-									{ field: "indexInSlot", format: "number" },
-									{ field: "slot", format: "number" },
-									"$network",
+									{ field: "indexInKind", format: "number" },
+									"$block",
 								],
 							],
 						},
@@ -11281,21 +11270,21 @@ export const schema = {
 					type: EntityFieldType.EntitiesReference,
 					cardinality: EntityFieldCardinality.Many,
 					entityType: EntityType.BeaconAttestation,
-					defaultSources: [Source.Beacon_Rest, Source.BeaconchaIn_Rest],
+					defaultSources: [Source.Beacon_Rest],
 				},
 				"$$beaconWithdrawals": {
 					label: "Beacon withdrawals",
 					type: EntityFieldType.EntitiesReference,
 					cardinality: EntityFieldCardinality.Many,
 					entityType: EntityType.BeaconWithdrawal,
-					defaultSources: [Source.Beacon_Rest, Source.BeaconchaIn_Rest],
+					defaultSources: [Source.Beacon_Rest],
 				},
 				"$$beaconSlashings": {
 					label: "Beacon slashings",
 					type: EntityFieldType.EntitiesReference,
 					cardinality: EntityFieldCardinality.Many,
 					entityType: EntityType.BeaconSlashing,
-					defaultSources: [Source.Beacon_Rest, Source.BeaconchaIn_Rest],
+					defaultSources: [Source.Beacon_Rest],
 				},
 				"$$dataColumns": {
 					label: "Data columns",
@@ -11363,7 +11352,7 @@ export const schema = {
 								sections: [
 									{ id: "beacon-slot-committees", field: "$$beaconCommittees", List: "BeaconCommitteesView", label: "Committees", selection: { sources: [Source.Beacon_Rest] } },
 									{ id: "beacon-slot-deposits", field: "$$beaconDeposits", List: "BeaconDepositsView", label: "Deposits", selection: { sources: [Source.Beacon_Rest] } },
-									{ id: "beacon-slot-attestations", field: "$$beaconAttestations", List: "BeaconAttestationsView", label: "Attestations", selection: { sources: [Source.Beacon_Rest, Source.BeaconchaIn_Rest] } },
+									{ id: "beacon-slot-attestations", field: "$$beaconAttestations", List: "BeaconAttestationsView", label: "Attestations", selection: { sources: [Source.Beacon_Rest] } },
 									{ id: "beacon-slot-data-columns", field: "$$dataColumns", List: "BeaconDataColumnsView", label: "Data availability columns", selection: { sources: [Source.Beacon_Rest] }, emptyText: "No data columns were returned by this beacon node." },
 								],
 							},
@@ -11372,8 +11361,8 @@ export const schema = {
 								label: "Withdrawals and slashings",
 								className: "network-view-collapsible-exits",
 								sections: [
-									{ id: "beacon-slot-withdrawals", field: "$$beaconWithdrawals", List: "BeaconWithdrawalsView", label: "Withdrawals", selection: { sources: [Source.Beacon_Rest, Source.BeaconchaIn_Rest] } },
-									{ id: "beacon-slot-slashings", field: "$$beaconSlashings", List: "BeaconSlashingsView", label: "Slashings", selection: { sources: [Source.Beacon_Rest, Source.BeaconchaIn_Rest] } },
+									{ id: "beacon-slot-withdrawals", field: "$$beaconWithdrawals", List: "BeaconWithdrawalsView", label: "Withdrawals", selection: { sources: [Source.Beacon_Rest] } },
+									{ id: "beacon-slot-slashings", field: "$$beaconSlashings", List: "BeaconSlashingsView", label: "Slashings", selection: { sources: [Source.Beacon_Rest] } },
 								],
 							},
 						],
@@ -11682,14 +11671,9 @@ export const schema = {
 					plural: "Beacon withdrawals",
 				},
 			})({
-				"$network": {
-					label: "Network",
-					type: EntityFieldType.EntityReference,
-					cardinality: EntityFieldCardinality.One,
-					entityType: EntityType.Network,
-				},
-				"slot": { label: "Slot", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
-				"indexInSlot": { label: "Index in slot", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
+				"$block": { label: "Beacon block", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.BeaconBlock },
+				"withdrawalIndex": { label: "Withdrawal index", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
+				"indexInBlock": { label: "Index in block", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
 				"validatorIndex": { label: "Validator index", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 				"$validator": {
 					label: "Validator",
@@ -11706,7 +11690,7 @@ export const schema = {
 				"amountGwei": { label: "Amount", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
 			})({
 				selectors: {
-					"EvmNetworkSlotIndexInSlot": ["$network", "slot", "indexInSlot"],
+					"BlockWithdrawalIndex": ["$block", "withdrawalIndex"],
 				},
 				views: {
 					singular: {
@@ -11718,23 +11702,23 @@ export const schema = {
 						},
 						summary: {
 							serial: {
-								field: "indexInSlot",
+								field: "indexInBlock",
 								label: "Withdrawal",
 							}, value: [{ field: "amountGwei", format: "numberValue", suffix: " gwei" }],
-							HeadingAfter: [{ field: "slot", format: "number", prefix: "Slot " }],
+							HeadingAfter: ["$block"],
 						},
 						content: {
 							dl: [
 								[
-									{ field: "indexInSlot", format: "number" },
-									{ field: "slot", format: "number" },
+									{ field: "withdrawalIndex", format: "number" },
+									{ field: "indexInBlock", format: "number" },
 									{ field: "validatorIndex", format: "number" },
 									{ field: "amountGwei", format: "numberValue", suffix: " gwei" },
 								],
 								[
 									"$validator",
 									"$account",
-									"$network",
+									"$block",
 								],
 							],
 						},
@@ -79985,8 +79969,32 @@ export const routes = defineRoutes(schema)({
 															}
 														}
 													},
-													children: {
-														"execution-payload-bid": {
+															children: {
+																"attestation": {
+																	children: {
+																		"[indexInBlock]": {
+																			params: { "indexInBlock": ["NonNegativeInteger"] },
+																			selectors: {
+																				[EntityType.BeaconAttestation]: {
+																					"BlockIndexInBlock": { derivations: { "indexInBlock": { kind: "param", name: "indexInBlock" } }, page: {} }
+																				}
+																			}
+																		}
+																	}
+																},
+																"deposit": {
+																	children: {
+																		"[indexInBlock]": {
+																			params: { "indexInBlock": ["NonNegativeInteger"] },
+																			selectors: {
+																				[EntityType.BeaconDeposit]: {
+																					"BlockIndexInBlock": { derivations: { "indexInBlock": { kind: "param", name: "indexInBlock" } }, page: {} }
+																				}
+																			}
+																		}
+																	}
+																},
+																"execution-payload-bid": {
 															selectors: {
 																[EntityType.BeaconExecutionPayloadBid]: {
 																	"BeaconBlock": {
@@ -80057,6 +80065,35 @@ export const routes = defineRoutes(schema)({
 																					"EnvelopeIndexInEnvelope": { derivations: { "indexInEnvelope": { kind: "param", name: "indexInEnvelope" } }, page: {} }
 																				}
 																			}
+																		}
+																	}
+																}
+															}
+														},
+														"slashing": {
+															children: {
+																"[kind]": {
+																	params: { "kind": ["string"] },
+																	children: {
+																		"[indexInKind]": {
+																			params: { "indexInKind": ["NonNegativeInteger"] },
+																			selectors: {
+																				[EntityType.BeaconSlashing]: {
+																					"BlockKindIndexInKind": { derivations: { "kind": { kind: "param", name: "kind" }, "indexInKind": { kind: "param", name: "indexInKind" } }, page: {} }
+																				}
+																			}
+																		}
+																	}
+																}
+															}
+														},
+														"withdrawal": {
+															children: {
+																"[withdrawalIndex]": {
+																	params: { "withdrawalIndex": ["NonNegativeInteger"] },
+																	selectors: {
+																		[EntityType.BeaconWithdrawal]: {
+																			"BlockWithdrawalIndex": { derivations: { "withdrawalIndex": { kind: "param", name: "withdrawalIndex" } }, page: {} }
 																		}
 																	}
 																}
@@ -80192,113 +80229,6 @@ export const routes = defineRoutes(schema)({
 																}
 															}
 														},
-														"attestation": {
-															children: {
-																"[index]": {
-																	selectors: {
-																		[EntityType.BeaconAttestation]: {
-																			"EvmNetworkSlotIndexInSlot": {
-																				projection: {
-																					entityType: EntityType.Network,
-																					facetPath: ["Evm"]
-																				},
-																				params: {
-																					"slot": [
-																						"slot"
-																					],
-																					"index": [
-																						"indexInSlot"
-																					]
-																				},
-																				page: {}
-																			}
-																		}
-																	},
-																}
-															}
-														},
-														"withdrawal": {
-															children: {
-																"[index]": {
-																	selectors: {
-																		[EntityType.BeaconWithdrawal]: {
-																			"EvmNetworkSlotIndexInSlot": {
-																				projection: {
-																					entityType: EntityType.Network,
-																					facetPath: ["Evm"]
-																				},
-																				params: {
-																					"slot": [
-																						"slot"
-																					],
-																					"index": [
-																						"indexInSlot"
-																					]
-																				},
-																				page: {}
-																			}
-																		}
-																	},
-																}
-															}
-														},
-														"deposit": {
-															children: {
-																"[index]": {
-																	selectors: {
-																		[EntityType.BeaconDeposit]: {
-																			"EvmNetworkSlotIndexInSlot": {
-																				projection: {
-																					entityType: EntityType.Network,
-																					facetPath: ["Evm"]
-																				},
-																				params: {
-																					"slot": [
-																						"slot"
-																					],
-																					"index": [
-																						"indexInSlot"
-																					]
-																				},
-																				page: {}
-																			}
-																		}
-																	},
-																}
-															}
-														},
-														"slashing": {
-															children: {
-																"[kind]": {
-																	children: {
-																		"[index]": {
-																			selectors: {
-																				[EntityType.BeaconSlashing]: {
-																					"EvmNetworkSlotKindIndexInSlot": {
-																						projection: {
-																							entityType: EntityType.Network,
-																							facetPath: ["Evm"]
-																						},
-																						params: {
-																							"slot": [
-																								"slot"
-																							],
-																							"kind": [
-																								"kind"
-																							],
-																							"index": [
-																								"indexInSlot"
-																							]
-																						},
-																						page: {}
-																					}
-																				}
-																			},
-																		}
-																	}
-																}
-															}
-														}
 													}
 												}
 											}
