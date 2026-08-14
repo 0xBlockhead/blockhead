@@ -6,7 +6,10 @@ import {
 	vi,
 } from 'vitest'
 
-import { EntityMetaKey } from '$/schema/$schema.ts'
+import {
+	entityFieldAddressKey,
+	EntityMetaKey,
+} from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
@@ -519,6 +522,9 @@ describe('Curve Rest resolver module', () => {
 					$network: baseNetwork,
 					poolAddress: '0xbebc44782c7db0a1a60cb6fe97d0b483032ff1c7',
 				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.CurvePool, [], 'registryId')]: 'main',
+				},
 			},
 		])
 		expect(networkCurvePoolsResolver.projections.Evm.$$curvePools.resolveCount(snapshot)).toBe(2)
@@ -534,6 +540,12 @@ describe('Curve Rest resolver module', () => {
 					$network: baseNetwork,
 					vaultAddress: '0x8cf1de26729cfb7137af1a6b2a665e099ec319b5',
 				},
+				[EntityMetaKey.Fields]: expect.objectContaining({
+					[entityFieldAddressKey(EntityType.CurveLendingVault, [], 'name')]: 'Borrow crvUSD (wstETH collateral)',
+					[entityFieldAddressKey(EntityType.CurveLendingVault, [], 'controllerAddress')]: '0x1e0165dbd2019441ab7927c018701f3138114d71',
+					[entityFieldAddressKey(EntityType.CurveLendingVault, [], 'borrowedAssetAddress')]: '0xf939e0a03fb07f59a73314e73794be0e57ac1b4e',
+					[entityFieldAddressKey(EntityType.CurveLendingVault, [], 'collateralAssetAddress')]: '0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0',
+				}),
 			},
 		])
 		expect(networkCurvePoolsResolver.projections.Evm.$$curveLendingVaults.resolveCount(snapshot)).toBe(2)

@@ -4,6 +4,7 @@ import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
 import {
+	entityFieldAddressKey,
 	EntityMetaKey,
 	type EntitySelector,
 } from '$/schema/$schema.ts'
@@ -12,6 +13,7 @@ import { schema } from '$/schema/index.ts'
 import type {
 	EulerAccountPosition,
 	EulerEvkVaultDetail,
+	EulerEvkVaultSummary,
 } from '$/sources/Euler/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 
@@ -44,9 +46,9 @@ const eulerPositionForVault = (
 	return positionsForVault[0]
 }
 
-const mapEulerEvkVaultSnapshot = (
+const mapEulerEvkVaultStableFields = (
 	network: NetworkId,
-	vault: EulerEvkVaultDetail
+	vault: EulerEvkVaultSummary
 ) => ({
 	$network: {
 		[EntityMetaKey.Selector]: network,
@@ -57,6 +59,14 @@ const mapEulerEvkVaultSnapshot = (
 	decimals: vault.decimals,
 	assetAddress: vault.assetAddress,
 	assetSymbol: vault.assetSymbol,
+	createdAt: vault.createdAt,
+})
+
+const mapEulerEvkVaultSnapshot = (
+	network: NetworkId,
+	vault: EulerEvkVaultDetail
+) => ({
+	...mapEulerEvkVaultStableFields(network, vault),
 	totalAssets: vault.totalAssets,
 	totalBorrows: vault.totalBorrows,
 	totalSupplyUsd: vault.totalSupplyUsd,
@@ -64,7 +74,6 @@ const mapEulerEvkVaultSnapshot = (
 	utilization: vault.utilization,
 	supplyApy: vault.supplyApy,
 	borrowApy: vault.borrowApy,
-	createdAt: vault.createdAt,
 	...(vault.dTokenAddress != null && {
 		dTokenAddress: vault.dTokenAddress,
 	}),
@@ -196,6 +205,10 @@ export default {
 											vaultAddress: position.vaultAddress,
 										},
 									},
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.EulerEvkVaultPosition, [], 'vaultType')]: position.vaultType,
+										[entityFieldAddressKey(EntityType.EulerEvkVaultPosition, [], 'assetAddress')]: position.assetAddress,
+									},
 								})),
 							positionCount: positions.length,
 						}
@@ -281,12 +294,24 @@ export default {
 						return {
 							skip,
 							totalCount: page.totalCount,
-							rows: page.vaults.map((vault) => ({
-								[EntityMetaKey.Selector]: {
-									$network: network,
-									vaultAddress: vault.vaultAddress,
-								},
-							})),
+							rows: page.vaults.map((vault) => {
+								const fields = mapEulerEvkVaultStableFields(network, vault)
+
+								return {
+									[EntityMetaKey.Selector]: {
+										$network: network,
+										vaultAddress: vault.vaultAddress,
+									},
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.EulerEvkVault, [], 'name')]: fields.name,
+										[entityFieldAddressKey(EntityType.EulerEvkVault, [], 'symbol')]: fields.symbol,
+										[entityFieldAddressKey(EntityType.EulerEvkVault, [], 'decimals')]: fields.decimals,
+										[entityFieldAddressKey(EntityType.EulerEvkVault, [], 'assetAddress')]: fields.assetAddress,
+										[entityFieldAddressKey(EntityType.EulerEvkVault, [], 'assetSymbol')]: fields.assetSymbol,
+										[entityFieldAddressKey(EntityType.EulerEvkVault, [], 'createdAt')]: fields.createdAt,
+									},
+								}
+							}),
 						}
 					},
 				},

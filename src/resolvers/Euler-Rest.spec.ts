@@ -6,7 +6,10 @@ import {
 	vi,
 } from 'vitest'
 
-import { EntityMetaKey } from '$/schema/$schema.ts'
+import {
+	entityFieldAddressKey,
+	EntityMetaKey,
+} from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
@@ -110,6 +113,7 @@ describe('Euler Rest resolver module', () => {
 				account: accountSelector.$actor.address,
 				vaultAddress,
 				vaultType: 'evk',
+				assetAddress: baseVaultDetail.assetAddress,
 				assets: '627',
 				borrowed: '0',
 			},
@@ -128,6 +132,10 @@ describe('Euler Rest resolver module', () => {
 						$network: baseNetwork,
 						vaultAddress,
 					},
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.EulerEvkVaultPosition, [], 'vaultType')]: 'evk',
+					[entityFieldAddressKey(EntityType.EulerEvkVaultPosition, [], 'assetAddress')]: baseVaultDetail.assetAddress,
 				},
 			},
 		])
@@ -424,6 +432,14 @@ describe('Euler Rest resolver module', () => {
 				[EntityMetaKey.Selector]: {
 					$network: baseNetwork,
 					vaultAddress: '0x00011d9a1eb3d7278b8df2391e2e32f6f9bcf293',
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.EulerEvkVault, [], 'name')]: baseVaultDetail.name,
+					[entityFieldAddressKey(EntityType.EulerEvkVault, [], 'symbol')]: baseVaultDetail.symbol,
+					[entityFieldAddressKey(EntityType.EulerEvkVault, [], 'decimals')]: baseVaultDetail.decimals,
+					[entityFieldAddressKey(EntityType.EulerEvkVault, [], 'assetAddress')]: baseVaultDetail.assetAddress,
+					[entityFieldAddressKey(EntityType.EulerEvkVault, [], 'assetSymbol')]: baseVaultDetail.assetSymbol,
+					[entityFieldAddressKey(EntityType.EulerEvkVault, [], 'createdAt')]: baseVaultDetail.createdAt,
 				},
 			},
 		])

@@ -4,6 +4,7 @@ import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
 import {
+	entityFieldAddressKey,
 	EntityMetaKey,
 	type EntitySelector,
 } from '$/schema/$schema.ts'
@@ -447,16 +448,39 @@ export default {
 										$network: network,
 										poolAddress: pool.poolAddress,
 									},
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.CurvePool, [], 'registryId')]: pool.registryId,
+									},
 								})),
 							poolCount: pools.length,
 							lendingVaults: lendingVaults
 								.slice(offset, offset + limit)
-								.map((vault) => ({
-									[EntityMetaKey.Selector]: {
-										$network: network,
-										vaultAddress: vault.vaultAddress,
-									},
-								})),
+								.map((vault) => {
+									const fields = mapCurveLendingVaultSnapshot(network, vault)
+
+									return {
+										[EntityMetaKey.Selector]: {
+											$network: network,
+											vaultAddress: vault.vaultAddress,
+										},
+										[EntityMetaKey.Fields]: {
+											[entityFieldAddressKey(EntityType.CurveLendingVault, [], 'name')]: fields.name,
+											[entityFieldAddressKey(EntityType.CurveLendingVault, [], 'registryId')]: fields.registryId,
+											[entityFieldAddressKey(EntityType.CurveLendingVault, [], 'controllerAddress')]: fields.controllerAddress,
+											[entityFieldAddressKey(EntityType.CurveLendingVault, [], 'ammAddress')]: fields.ammAddress,
+											[entityFieldAddressKey(EntityType.CurveLendingVault, [], 'monetaryPolicyAddress')]: fields.monetaryPolicyAddress,
+											[entityFieldAddressKey(EntityType.CurveLendingVault, [], 'borrowedAssetAddress')]: fields.borrowedAssetAddress,
+											[entityFieldAddressKey(EntityType.CurveLendingVault, [], 'borrowedAssetSymbol')]: fields.borrowedAssetSymbol,
+											[entityFieldAddressKey(EntityType.CurveLendingVault, [], 'borrowedAssetDecimals')]: fields.borrowedAssetDecimals,
+											[entityFieldAddressKey(EntityType.CurveLendingVault, [], 'collateralAssetAddress')]: fields.collateralAssetAddress,
+											[entityFieldAddressKey(EntityType.CurveLendingVault, [], 'collateralAssetSymbol')]: fields.collateralAssetSymbol,
+											[entityFieldAddressKey(EntityType.CurveLendingVault, [], 'collateralAssetDecimals')]: fields.collateralAssetDecimals,
+											...(fields.$gauge != null && {
+												[entityFieldAddressKey(EntityType.CurveLendingVault, [], '$gauge')]: fields.$gauge,
+											}),
+										},
+									}
+								}),
 							lendingVaultCount: lendingVaults.length,
 						}
 					},
