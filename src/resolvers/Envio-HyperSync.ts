@@ -50,23 +50,62 @@ const assertEthereumMainnet = (network: EntitySelector<typeof schema, EntityType
 
 const tipBlockReferences = async (
 	$network: EntitySelector<typeof schema, EntityType.Network>,
-	limit: number
+	context: Parameters<typeof resolverContextRowLimit>[0]
 ) => {
 	assertEthereumMainnet($network)
 	const { getHeight } = await import('$/sources/Envio/HyperSync/queries.ts')
 	const { height } = await getHeight()
 	const tip = BigInt(height)
-	return Array.from({
-		length: Math.min(
-			Number(tip + 1n),
-			Math.max(1, limit)
-		),
-	}, (_value, blockOffset) => ({
-		[EntityMetaKey.Selector]: {
-			$network,
-			blockNumber: tip - BigInt(blockOffset),
-		},
-	} satisfies Entity<typeof schema, EntityType.EvmBlock>))
+	if (
+		context.providerContinuationToken != null
+		&& !/^(0|[1-9][0-9]*)$/.test(context.providerContinuationToken)
+	)
+		throw new Error(`${Source.EnvioHyperSync_RawHttp}: invalid blocks continuation`)
+
+	const firstBlockNumber = context.providerContinuationToken == null ?
+		tip - BigInt(context.pagination.offset ?? 0)
+	:
+		BigInt(context.providerContinuationToken)
+	if (firstBlockNumber > tip)
+		throw new Error(`${Source.EnvioHyperSync_RawHttp}: blocks continuation exceeds head`)
+
+	return {
+		blocks: Array.from({
+			length: Math.min(
+				Math.max(
+					Number(firstBlockNumber + 1n),
+					0
+				),
+				Math.max(1, resolverContextRowLimit(context))
+			),
+		}, (_value, blockOffset) => ({
+			[EntityMetaKey.Selector]: {
+				$network,
+				blockNumber: firstBlockNumber - BigInt(blockOffset),
+			},
+		} satisfies Entity<typeof schema, EntityType.EvmBlock>)),
+	}
+}
+
+const hyperSyncTipBlockObservationClock = async () => {
+	const { getHeight, getEvmBlockRangePage } = await import('$/sources/Envio/HyperSync/queries.ts')
+	const { height } = await getHeight()
+	const blockHeight = BigInt(height)
+	const result = await getEvmBlockRangePage({
+		fromBlock: blockHeight,
+		toBlock: blockHeight + 1n,
+	})
+	if (result.resolution !== EnvioHyperSyncResolution.Complete)
+		throw new Error(`EnvioHyperSync_RawHttp: ${result.resolution} tip block ${blockHeight.toString()}`)
+
+	const block = result.data.blocks.find((candidate) => candidate.number === height)
+	if (block == null)
+		throw new Error('EnvioHyperSync_RawHttp: tip block missing for network observation clock')
+
+	return {
+		blockHeight,
+		timestampMs: block.timestamp * 1_000,
+	}
 }
 
 const networkTipResolvers = {
@@ -74,19 +113,13 @@ const networkTipResolvers = {
 		resolve: async (
 			network: EntitySelector<typeof schema, EntityType.Network>,
 			context: Parameters<typeof resolverContextRowLimit>[0]
-		) => tipBlockReferences(
-			network,
-			resolverContextRowLimit(context)
-		),
+		) => tipBlockReferences(network, context),
 	},
 	Slug: {
 		resolve: async (
 			network: EntitySelector<typeof schema, EntityType.Network>,
 			context: Parameters<typeof resolverContextRowLimit>[0]
-		) => tipBlockReferences(
-			network,
-			resolverContextRowLimit(context)
-		),
+		) => tipBlockReferences(network, context),
 	},
 } as const
 
@@ -111,16 +144,15 @@ const networkTimestampListResolvers = {
 	Caip2: {
 		resolve: async (network: EntitySelector<typeof schema, EntityType.Network>) => {
 			assertEthereumMainnet(network)
-			const { getHeight } = await import('$/sources/Envio/HyperSync/queries.ts')
-			const { height } = await getHeight()
+			const tipClock = await hyperSyncTipBlockObservationClock()
 			return [{
 				[EntityMetaKey.Selector]: {
 					$network: network,
-					timestampMs: Date.now(),
+					timestampMs: tipClock.timestampMs,
 					source: Source.EnvioHyperSync_RawHttp,
 				},
 				[EntityMetaKey.Fields]: {
-					[entityFieldAddressKey(EntityType.EvmNetwork_Timestamp, [], 'blockHeight')]: BigInt(height),
+					[entityFieldAddressKey(EntityType.EvmNetwork_Timestamp, [], 'blockHeight')]: tipClock.blockHeight,
 				},
 			}]
 		},
@@ -128,16 +160,15 @@ const networkTimestampListResolvers = {
 	Slug: {
 		resolve: async (network: EntitySelector<typeof schema, EntityType.Network>) => {
 			assertEthereumMainnet(network)
-			const { getHeight } = await import('$/sources/Envio/HyperSync/queries.ts')
-			const { height } = await getHeight()
+			const tipClock = await hyperSyncTipBlockObservationClock()
 			return [{
 				[EntityMetaKey.Selector]: {
 					$network: network,
-					timestampMs: Date.now(),
+					timestampMs: tipClock.timestampMs,
 					source: Source.EnvioHyperSync_RawHttp,
 				},
 				[EntityMetaKey.Fields]: {
-					[entityFieldAddressKey(EntityType.EvmNetwork_Timestamp, [], 'blockHeight')]: BigInt(height),
+					[entityFieldAddressKey(EntityType.EvmNetwork_Timestamp, [], 'blockHeight')]: tipClock.blockHeight,
 				},
 			}]
 		},
@@ -238,7 +269,19 @@ export default {
 			resolve: networkTipResolvers,
 		})({
 			Evm: {
-				$$blocks: (blocks) => blocks,
+				$$blocks: {
+					select: (snapshot) => snapshot.blocks,
+					continuation: (snapshot) => {
+						const lastBlockNumber = snapshot.blocks.at(-1)?.[EntityMetaKey.Selector].blockNumber
+						return {
+							operation: 'network-blocks',
+							terminal: lastBlockNumber == null || lastBlockNumber === 0n,
+							...(lastBlockNumber != null && lastBlockNumber > 0n && {
+								token: String(lastBlockNumber - 1n),
+							}),
+						}
+					},
+				},
 			},
 		}),
 

@@ -317,27 +317,48 @@ describe('Envio HyperSync resolver', () => {
 		sourceFetch.mockResolvedValueOnce(Response.json({
 			height: 19_000_020,
 		}))
-		const blocks = await resolverFor(EntityType.Network).resolve.Caip2.resolve(network, context)
-		expect(blocks).toEqual([
-			{
-				[EntityMetaKey.Selector]: {
-					$network: network,
-					blockNumber: 19_000_020n,
-				},
+		const blocksResolver = resolverFor(EntityType.Network)
+		const blocks = await blocksResolver.resolve.Caip2.resolve(network, {
+			...context,
+			pagination: {
+				limit: 3,
+				offset: 2,
 			},
-			{
-				[EntityMetaKey.Selector]: {
-					$network: network,
-					blockNumber: 19_000_019n,
-				},
-			},
+		})
+		expect(blocksResolver.projections.Evm.$$blocks.select(blocks)).toEqual([
 			{
 				[EntityMetaKey.Selector]: {
 					$network: network,
 					blockNumber: 19_000_018n,
 				},
 			},
+			{
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					blockNumber: 19_000_017n,
+				},
+			},
+			{
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					blockNumber: 19_000_016n,
+				},
+			},
 		])
+		expect(blocksResolver.projections.Evm.$$blocks.continuation(blocks).token).toBe('19000015')
+
+		sourceFetch.mockResolvedValueOnce(Response.json({
+			height: 19_000_022,
+		}))
+		const continuedBlocks = await blocksResolver.resolve.Caip2.resolve(network, {
+			...context,
+			pagination: {
+				limit: 1,
+			},
+			providerContinuationToken: '19000015',
+		})
+		expect(blocksResolver.projections.Evm.$$blocks.select(continuedBlocks)[0][EntityMetaKey.Selector].blockNumber).toBe(19_000_015n)
+		expect(blocksResolver.projections.Evm.$$blocks.continuation(continuedBlocks).token).toBe('19000014')
 
 		sourceFetch.mockResolvedValueOnce(Response.json({
 			height: 19_000_020,
@@ -350,9 +371,21 @@ describe('Envio HyperSync resolver', () => {
 		))
 		await expect(countResolver.resolve.Caip2.resolve(network, context)).resolves.toBe(19_000_021)
 
-		sourceFetch.mockResolvedValueOnce(Response.json({
-			height: 19_000_020,
-		}))
+		sourceFetch
+			.mockResolvedValueOnce(Response.json({
+				height: 19_000_020,
+			}))
+			.mockResolvedValueOnce(Response.json({
+				...evmBlockPage,
+				next_block: 19_000_021,
+				data: {
+					blocks: [{
+						...evmBlockPage.data.blocks[0],
+						number: 19_000_020,
+					}],
+					transactions: [],
+				},
+			}))
 		const timestamps = await envioHyperSync.resolvers.find((resolver) => (
 			resolver.entityType === EntityType.Network
 			&& resolver.projections.Evm?.$$timestamps != null
@@ -361,6 +394,7 @@ describe('Envio HyperSync resolver', () => {
 		expect(timestamps[0]).toMatchObject({
 			[EntityMetaKey.Selector]: {
 				$network: network,
+				timestampMs: 1_700_000_000_000,
 				source: Source.EnvioHyperSync_RawHttp,
 			},
 			[EntityMetaKey.Fields]: {

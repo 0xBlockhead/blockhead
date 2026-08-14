@@ -507,14 +507,15 @@ describe('Envio HyperRPC resolver', () => {
 
 	it('projects Network.Evm tip $$blocks / resolveCount / $$timestamps from eth_blockNumber', async () => {
 		jsonRpc2.mockResolvedValueOnce('0x122a134')
-		const blocks = await resolverFor(EntityType.Network).resolve.Caip2.resolve(network, {
+		const blocksResolver = resolverFor(EntityType.Network)
+		const blocks = await blocksResolver.resolve.Caip2.resolve(network, {
 			...context,
 			pagination: {
 				limit: 3,
 				offset: 2,
 			},
 		})
-		expect(blocks).toEqual([
+		expect(blocksResolver.projections.Evm.$$blocks.select(blocks)).toEqual([
 			{
 				[EntityMetaKey.Selector]: {
 					$network: network,
@@ -534,6 +535,18 @@ describe('Envio HyperRPC resolver', () => {
 				},
 			},
 		])
+		expect(blocksResolver.projections.Evm.$$blocks.continuation(blocks).token).toBe('19046703')
+
+		jsonRpc2.mockResolvedValueOnce('0x122a136')
+		const continuedBlocks = await blocksResolver.resolve.Caip2.resolve(network, {
+			...context,
+			pagination: {
+				limit: 1,
+			},
+			providerContinuationToken: '19046703',
+		})
+		expect(blocksResolver.projections.Evm.$$blocks.select(continuedBlocks)[0][EntityMetaKey.Selector].blockNumber).toBe(19_046_703n)
+		expect(blocksResolver.projections.Evm.$$blocks.continuation(continuedBlocks).token).toBe('19046702')
 
 		jsonRpc2.mockResolvedValueOnce('0x122a134')
 		const countResolver = envioHyperRpc.resolvers.find((resolver) => (
@@ -544,7 +557,12 @@ describe('Envio HyperRPC resolver', () => {
 		))
 		await expect(countResolver.resolve.Caip2.resolve(network, context)).resolves.toBe(19_046_709)
 
-		jsonRpc2.mockResolvedValueOnce('0x122a134')
+		jsonRpc2
+			.mockResolvedValueOnce('0x122a134')
+			.mockResolvedValueOnce({
+				...block,
+				number: '0x122a134',
+			})
 		const timestamps = await envioHyperRpc.resolvers.find((resolver) => (
 			resolver.entityType === EntityType.Network
 			&& resolver.projections.Evm?.$$timestamps != null
@@ -553,6 +571,7 @@ describe('Envio HyperRPC resolver', () => {
 		expect(timestamps[0]).toMatchObject({
 			[EntityMetaKey.Selector]: {
 				$network: network,
+				timestampMs: 1_700_000_000_000,
 				source: Source.EnvioHyperRpc_JsonRpc,
 			},
 			[EntityMetaKey.Fields]: {

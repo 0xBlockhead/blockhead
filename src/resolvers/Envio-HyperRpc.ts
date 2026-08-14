@@ -312,25 +312,58 @@ const schemaShapedEvmLog = (
 
 const tipBlockReferences = async (
 	$network: EntitySelector<typeof schema, EntityType.Network>,
-	limit: number,
-	offset: number
+	context: Parameters<typeof resolverContextRowLimit>[0]
 ) => {
 	assertEthereumMainnet($network)
 	const tip = await getBlockNumber()
-	return Array.from({
-		length: Math.min(
-			Math.max(
-				Number(tip + 1n - BigInt(offset)),
-				0
+	if (
+		context.providerContinuationToken != null
+		&& !/^(0|[1-9][0-9]*)$/.test(context.providerContinuationToken)
+	)
+		throw new Error(`${Source.EnvioHyperRpc_JsonRpc}: invalid blocks continuation`)
+
+	const firstBlockNumber = context.providerContinuationToken == null ?
+		tip - BigInt(context.pagination.offset ?? 0)
+	:
+		BigInt(context.providerContinuationToken)
+	if (firstBlockNumber > tip)
+		throw new Error(`${Source.EnvioHyperRpc_JsonRpc}: blocks continuation exceeds head`)
+
+	return {
+		blocks: Array.from({
+			length: Math.min(
+				Math.max(
+					Number(firstBlockNumber + 1n),
+					0
+				),
+				Math.max(1, resolverContextRowLimit(context))
 			),
-			Math.max(1, limit)
-		),
-	}, (_value, blockOffset) => ({
-		[EntityMetaKey.Selector]: {
-			$network,
-			blockNumber: tip - BigInt(offset + blockOffset),
-		},
-	} satisfies Entity<typeof schema, EntityType.EvmBlock>))
+		}, (_value, blockOffset) => ({
+			[EntityMetaKey.Selector]: {
+				$network,
+				blockNumber: firstBlockNumber - BigInt(blockOffset),
+			},
+		} satisfies Entity<typeof schema, EntityType.EvmBlock>)),
+	}
+}
+
+const hyperRpcTipBlockObservationClock = async () => {
+	const blockHeight = await getBlockNumber()
+	const wire = await getBlockByNumber({
+		blockNumber: blockHeight,
+		txObjects: false,
+	})
+	if (wire == null)
+		throw new Error('EnvioHyperRpc_JsonRpc: tip block missing for network observation clock')
+
+	const timestampSeconds = Number(wire.timestamp)
+	if (!Number.isFinite(timestampSeconds) || timestampSeconds < 0)
+		throw new Error('EnvioHyperRpc_JsonRpc: tip block timestamp missing for network observation clock')
+
+	return {
+		blockHeight,
+		timestampMs: timestampSeconds * 1_000,
+	}
 }
 
 const networkTipResolvers = {
@@ -338,21 +371,13 @@ const networkTipResolvers = {
 		resolve: async (
 			network: EntitySelector<typeof schema, EntityType.Network>,
 			context: Parameters<typeof resolverContextRowLimit>[0]
-		) => tipBlockReferences(
-			network,
-			resolverContextRowLimit(context),
-			context.pagination.offset ?? 0
-		),
+		) => tipBlockReferences(network, context),
 	},
 	Slug: {
 		resolve: async (
 			network: EntitySelector<typeof schema, EntityType.Network>,
 			context: Parameters<typeof resolverContextRowLimit>[0]
-		) => tipBlockReferences(
-			network,
-			resolverContextRowLimit(context),
-			context.pagination.offset ?? 0
-		),
+		) => tipBlockReferences(network, context),
 	},
 } as const
 
@@ -375,15 +400,15 @@ const networkTimestampListResolvers = {
 	Caip2: {
 		resolve: async (network: EntitySelector<typeof schema, EntityType.Network>) => {
 			assertEthereumMainnet(network)
-			const blockHeight = await getBlockNumber()
+			const tipClock = await hyperRpcTipBlockObservationClock()
 			return [{
 				[EntityMetaKey.Selector]: {
 					$network: network,
-					timestampMs: Date.now(),
+					timestampMs: tipClock.timestampMs,
 					source: Source.EnvioHyperRpc_JsonRpc,
 				},
 				[EntityMetaKey.Fields]: {
-					[entityFieldAddressKey(EntityType.EvmNetwork_Timestamp, [], 'blockHeight')]: blockHeight,
+					[entityFieldAddressKey(EntityType.EvmNetwork_Timestamp, [], 'blockHeight')]: tipClock.blockHeight,
 				},
 			}]
 		},
@@ -391,15 +416,15 @@ const networkTimestampListResolvers = {
 	Slug: {
 		resolve: async (network: EntitySelector<typeof schema, EntityType.Network>) => {
 			assertEthereumMainnet(network)
-			const blockHeight = await getBlockNumber()
+			const tipClock = await hyperRpcTipBlockObservationClock()
 			return [{
 				[EntityMetaKey.Selector]: {
 					$network: network,
-					timestampMs: Date.now(),
+					timestampMs: tipClock.timestampMs,
 					source: Source.EnvioHyperRpc_JsonRpc,
 				},
 				[EntityMetaKey.Fields]: {
-					[entityFieldAddressKey(EntityType.EvmNetwork_Timestamp, [], 'blockHeight')]: blockHeight,
+					[entityFieldAddressKey(EntityType.EvmNetwork_Timestamp, [], 'blockHeight')]: tipClock.blockHeight,
 				},
 			}]
 		},
@@ -684,7 +709,19 @@ export default {
 			resolve: networkTipResolvers,
 		})({
 			Evm: {
-				$$blocks: (blocks) => blocks,
+				$$blocks: {
+					select: (snapshot) => snapshot.blocks,
+					continuation: (snapshot) => {
+						const lastBlockNumber = snapshot.blocks.at(-1)?.[EntityMetaKey.Selector].blockNumber
+						return {
+							operation: 'network-blocks',
+							terminal: lastBlockNumber == null || lastBlockNumber === 0n,
+							...(lastBlockNumber != null && lastBlockNumber > 0n && {
+								token: String(lastBlockNumber - 1n),
+							}),
+						}
+					},
+				},
 			},
 		}),
 
