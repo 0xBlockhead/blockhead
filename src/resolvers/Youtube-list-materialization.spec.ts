@@ -565,6 +565,7 @@ describe('YouTube reading-card continuation and identity', () => {
 						videoId: 'video-1',
 						parentId: 'parent-1',
 						authorChannelId: { value: 'channel-1' },
+						authorProfileImageUrl: 'https://yt3.ggpht.com/channel-1=s48',
 						textOriginal: 'First reply',
 						publishedAt: '2026-01-02T03:04:05Z',
 					},
@@ -613,6 +614,13 @@ describe('YouTube reading-card continuation and identity', () => {
 					[entityFieldAddressKey(EntityType.YoutubeComment, [], 'text')]: 'First reply',
 					[entityFieldAddressKey(EntityType.YoutubeComment, [], '$author')]: {
 						[EntityMetaKey.Selector]: { channelId: 'channel-1' },
+						[EntityMetaKey.Fields]: {
+							[entityFieldAddressKey(EntityType.YoutubeChannel, [], '$icon')]: {
+								[EntityMetaKey.Selector]: {
+									url: 'https://yt3.ggpht.com/channel-1=s48',
+								},
+							},
+						},
 					},
 					[entityFieldAddressKey(EntityType.YoutubeComment, [], '$video')]: {
 						[EntityMetaKey.Selector]: { videoId: 'video-1' },

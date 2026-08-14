@@ -106,6 +106,10 @@ const youtubeCommentReference = (
 	comment: YoutubeApiComment
 ) => {
 	const authorChannelId = optionalNonemptyString(comment.snippet?.authorChannelId?.value)
+	const authorIcon = mediaFromUrl(
+		optionalNonemptyString(comment.snippet?.authorProfileImageUrl),
+		MediaType.Image
+	)
 	const parentCommentId = optionalNonemptyString(comment.snippet?.parentId)
 
 	return {
@@ -124,6 +128,11 @@ const youtubeCommentReference = (
 				:
 					{
 						[EntityMetaKey.Selector]: { channelId: authorChannelId },
+						...(authorIcon != null && {
+							[EntityMetaKey.Fields]: {
+								[entityFieldAddressKey(EntityType.YoutubeChannel, [], '$icon')]: authorIcon,
+							},
+						}),
 					}
 			),
 			[entityFieldAddressKey(EntityType.YoutubeComment, [], '$video')]: {
@@ -409,6 +418,10 @@ export default {
 						const parentId = optionalNonemptyString(snippet?.parentId)
 						const authorChannelId = optionalNonemptyString(snippet?.authorChannelId?.value)
 						const authorDisplayName = optionalNonemptyString(snippet?.authorDisplayName)
+						const authorIcon = mediaFromUrl(
+							optionalNonemptyString(snippet?.authorProfileImageUrl),
+							MediaType.Image
+						)
 						const publishedAt = optionalNonemptyString(snippet?.publishedAt)
 						const publishedAtMs = optionalTimestampMs(snippet?.publishedAt)
 						return {
@@ -417,6 +430,11 @@ export default {
 							...(authorChannelId != null && {
 								$author: {
 									[EntityMetaKey.Selector]: { channelId: authorChannelId },
+									...(authorIcon != null && {
+										[EntityMetaKey.Fields]: {
+											[entityFieldAddressKey(EntityType.YoutubeChannel, [], '$icon')]: authorIcon,
+										},
+									}),
 								},
 							}),
 							...(publishedAt != null && { publishedAt }),

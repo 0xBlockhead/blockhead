@@ -129,6 +129,8 @@ export const huggingFaceHubResolvers = [
 				},
 			}),
 			versionId: (model) => model.sha,
+			huggingFaceRepo: (_model, selector) => selector.huggingFaceRepo,
+			revision: (_model, selector) => selector.revision,
 			$artifact: (model, selector) => artifactReference(model.id, selector.revision),
 			createdAt: (model) => model.createdAt == null ? undefined : Date.parse(model.createdAt),
 			$$documents: (model, selector) => [documentReference(model.id, selector.revision)],
@@ -156,6 +158,7 @@ export const huggingFaceHubResolvers = [
 			},
 		})({
 			$provider: () => providerReference,
+			providerArtifactId: (_artifact, selector) => selector.providerArtifactId,
 			gitObject: (artifact) => artifact.path == null ? artifact.revision : artifact.model.siblings?.find((sibling) => sibling.rfilename === artifact.path)?.blobId,
 			digestAlgorithm: (artifact) => artifact.model.siblings?.find((sibling) => sibling.rfilename === artifact.path)?.lfs == null ? undefined : 'sha256',
 			digest: (artifact) => {
@@ -192,6 +195,7 @@ export const huggingFaceHubResolvers = [
 			},
 		})({
 			documentKind: (document) => document.path.toLowerCase() === 'readme.md' ? 'model-card' : 'repository-document',
+			documentUrl: (_document, selector) => selector.documentUrl,
 			$artifact: (document) => artifactReference(document.repoId, document.revision, document.path),
 			mediaType: (document) => document.path.toLowerCase().endsWith('.md') ? 'text/markdown' : undefined,
 			sourceFormat: (document) => document.path.toLowerCase().endsWith('.md') ? 'markdown' : undefined,

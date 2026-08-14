@@ -81,6 +81,14 @@ describe('HuggingFace resolver mappings', () => {
 				[entityFieldAddressKey(EntityType.AiDocument, [], 'sourceFormat')]: 'markdown',
 			},
 		}])
+		expect(huggingFaceHubResolvers[1].projections.huggingFaceRepo(model, {
+			huggingFaceRepo: 'org/model',
+			revision: 'abcdef',
+		})).toBe('org/model')
+		expect(huggingFaceHubResolvers[1].projections.revision(model, {
+			huggingFaceRepo: 'org/model',
+			revision: 'abcdef',
+		})).toBe('abcdef')
 
 		const artifact = await huggingFaceHubResolvers[2].resolve.ProviderArtifactId.resolve({
 			$provider: {
@@ -97,6 +105,19 @@ describe('HuggingFace resolver mappings', () => {
 		})
 		expect(huggingFaceHubResolvers[2].projections.digest(artifact)).toBe('0x0123456789abcdef')
 		expect(huggingFaceHubResolvers[2].projections.size(artifact)).toBe(42)
+		expect(huggingFaceHubResolvers[2].projections.providerArtifactId(artifact, {
+			$provider: {
+				providerId: 'huggingface',
+			},
+			providerArtifactId: 'org/model@abcdef:model.safetensors',
+		})).toBe('org/model@abcdef:model.safetensors')
+		expect(huggingFaceHubResolvers[3].projections.documentUrl({
+			repoId: 'org/model',
+			revision: 'abcdef',
+			path: 'README.md',
+		}, {
+			documentUrl: 'https://huggingface.co/org/model/blob/abcdef/README.md',
+		})).toBe('https://huggingface.co/org/model/blob/abcdef/README.md')
 	})
 
 	it('rejects a model selector owned by another provider', async () => {
