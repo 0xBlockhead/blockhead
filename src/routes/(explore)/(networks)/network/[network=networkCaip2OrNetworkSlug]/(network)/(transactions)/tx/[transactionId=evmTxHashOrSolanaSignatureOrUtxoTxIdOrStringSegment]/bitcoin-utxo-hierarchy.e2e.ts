@@ -6,6 +6,7 @@ import { expectMainVisible } from '../../../../../../../../../../tests/_e2eBrows
 const transactionId = 'a'.repeat(64)
 const spentTransactionId = 'b'.repeat(64)
 const transactionPath = `/network/bitcoin/tx/${transactionId}`
+const testnetTransactionPath = `/network/bitcoin-testnet/tx/${transactionId}`
 const transactionWire = {
 	txid: transactionId,
 	version: 2,
@@ -75,4 +76,23 @@ test('Bitcoin transaction renders materialized native input and output facts', a
 	await main.getByRole('link', { name: /Output #0/ }).click()
 	await expect(main).toContainText('98,800')
 	await expect(main).toContainText('v0_p2wpkh')
+})
+
+test('Bitcoin Testnet transaction renders through the native Esplora hierarchy', async ({ page }) => {
+	await page.route(`**/testnet/api/tx/${transactionId}`, async (route) => {
+		await route.fulfill({
+			json: transactionWire,
+		})
+	})
+
+	await page.goto(testnetTransactionPath, { waitUntil: 'load' })
+	await expectMainVisible(page)
+	const main = page.locator('#main')
+	await expect(main).toContainText('Bitcoin Testnet', { timeout: 120_000 })
+	await expect(main).toContainText('UTXO transaction')
+	await expect(main.getByRole('link', { name: /Input #0/ })).toBeAttached()
+	await expect(main.getByRole('link', { name: /Output #0/ })).toBeAttached({ timeout: 120_000 })
+	await main.getByRole('link', { name: /Input #0/ }).click()
+	await expect(main).toContainText('30440220deadbeef')
+	await expect(main.locator('[data-resource-state="failed"]')).toHaveCount(0)
 })

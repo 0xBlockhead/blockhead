@@ -20,6 +20,7 @@ vi.mock('$/sources/_runtime/http.ts', () => ({
 const {
 	getAsset,
 	getBlock,
+	getBlockHashByHeight,
 	getBlocks,
 	getBlockTransactionIds,
 	getBlockTransactions,
@@ -36,12 +37,17 @@ const {
 
 const bitcoinBinding = bindings[Source.Esplora_Rest].find(({ target }) => (
 	target.kind === SourceTargetKind.Caip2Network
+	&& target.key === 'bip122:000000000019d6689c085ae165831e93'
+))
+const bitcoinTestnetBinding = bindings[Source.Esplora_Rest].find(({ target }) => (
+	target.kind === SourceTargetKind.Caip2Network
+	&& target.key === 'bip122:000000000933ea01ad0ee984209779ba'
 ))
 const liquidBinding = bindings[Source.Esplora_Rest].find(({ target }) => (
 	target.kind === SourceTargetKind.NetworkSlug
 ))
-if (bitcoinBinding == null || liquidBinding == null)
-	throw new Error('Esplora spec requires Bitcoin and Liquid bindings')
+if (bitcoinBinding == null || bitcoinTestnetBinding == null || liquidBinding == null)
+	throw new Error('Esplora spec requires Bitcoin, Bitcoin Testnet, and Liquid bindings')
 
 const validBlock = {
 	id: 'a'.repeat(64),
@@ -80,6 +86,19 @@ describe('Esplora REST binding selection', () => {
 				`https://blockstream.info/liquid/api/block/${validBlock.id}`,
 			],
 		])
+	})
+
+	it('binds the Bitcoin Testnet genesis coordinate to the official testnet API', async () => {
+		sourceGetJson.mockResolvedValueOnce('000000000933ea01ad0ee984209779baaec3ced90fa3f408719526f8d77f4943')
+
+		await expect(getBlockHashByHeight({
+			height: 0n,
+			target: bitcoinTestnetBinding.target.key,
+		})).resolves.toBe('000000000933ea01ad0ee984209779baaec3ced90fa3f408719526f8d77f4943')
+		expect(sourceGetJson).toHaveBeenCalledWith(
+			bitcoinTestnetBinding,
+			'https://blockstream.info/testnet/api/block-height/0'
+		)
 	})
 
 	it('rejects substituted block and transaction identities', async () => {

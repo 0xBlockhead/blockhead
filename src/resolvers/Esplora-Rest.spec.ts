@@ -200,6 +200,10 @@ const bitcoinNetwork = {
 	caip2: networkBySlug.bitcoin.caip2,
 }
 
+const bitcoinTestnetNetwork = {
+	caip2: networkBySlug['bitcoin-testnet'].caip2,
+}
+
 const helloWorldInscriptionHex = (
 	'0063'
 	+ '036f7264'
@@ -228,6 +232,52 @@ describe('Esplora UTXO', () => {
 		getAssetTransactions.mockReset()
 		listRegistryAssets.mockReset()
 		getOutspend.mockReset()
+	})
+
+	it('materializes Bitcoin Testnet transactions through their native CAIP-2 source target', async () => {
+		getTransaction.mockResolvedValue({
+			txid: 'a'.repeat(64),
+			version: 2,
+			locktime: 0,
+			size: 100,
+			weight: 400,
+			status: {
+				confirmed: false,
+			},
+			vin: [{
+				txid: 'b'.repeat(64),
+				vout: 1,
+				is_coinbase: false,
+				sequence: 4_294_967_293,
+			}],
+			vout: [{
+				scriptpubkey: '0014',
+				value: 10_000,
+			}],
+		})
+
+		const transaction = await transactionResolver.resolve.NetworkTxId.resolve({
+			$network: bitcoinTestnetNetwork,
+			txId: 'a'.repeat(64),
+		}, resolverContext)
+		expect(getTransaction).toHaveBeenCalledWith({
+			target: 'bip122:000000000933ea01ad0ee984209779ba',
+			txId: 'a'.repeat(64),
+		})
+		expect(transactionResolver.projections.$$inputs.resolveCount(transaction)).toBe(1)
+		expect(transactionResolver.projections.$$outputs.resolveCount(transaction)).toBe(1)
+		expect(transactionResolver.projections.$$outputs.select(transaction, {
+			$network: bitcoinTestnetNetwork,
+			txId: 'a'.repeat(64),
+		}, resolverContext)[0]).toMatchObject({
+			[EntityMetaKey.Selector]: {
+				$transaction: {
+					$network: bitcoinTestnetNetwork,
+					txId: 'a'.repeat(64),
+				},
+				indexInTransaction: 0,
+			},
+		})
 	})
 
 	it('resolves one native Liquid peg-out into a clocked Elements hierarchy', async () => {

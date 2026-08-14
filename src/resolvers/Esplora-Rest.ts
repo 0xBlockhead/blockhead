@@ -39,13 +39,22 @@ const bitcoinNetworkApplicability = [
 	},
 ] as const
 
+const bitcoinTestnetNetworkApplicability = [
+	{
+		caip2: networkBySlug['bitcoin-testnet'].caip2,
+	},
+	{
+		slug: 'bitcoin-testnet',
+	},
+] as const
+
 const liquidNetworkApplicability = {
 	slug: 'liquid',
 } as const
 
 const esploraNetworkApplicability = [
-	bitcoinNetworkApplicability[0],
-	bitcoinNetworkApplicability[1],
+	...bitcoinNetworkApplicability,
+	...bitcoinTestnetNetworkApplicability,
 	liquidNetworkApplicability,
 ] as const
 
@@ -61,6 +70,12 @@ const bitcoinNetworkReferenceApplicability = [
 const esploraNetworkReferenceApplicability = [
 	...bitcoinNetworkReferenceApplicability,
 	{
+		$network: bitcoinTestnetNetworkApplicability[0],
+	},
+	{
+		$network: bitcoinTestnetNetworkApplicability[1],
+	},
+	{
 		$network: liquidNetworkApplicability,
 	},
 ] as const
@@ -72,13 +87,17 @@ const esploraNetworkSelectors = <_Snapshot extends object>(
 	) => Promise<_Snapshot>
 ) => ({
 	Caip2: {
-		appliesTo: [esploraNetworkApplicability[0]],
+		appliesTo: [
+			esploraNetworkApplicability[0],
+			esploraNetworkApplicability[2],
+		],
 		resolve,
 	},
 	Slug: {
 		appliesTo: [
 			esploraNetworkApplicability[1],
-			esploraNetworkApplicability[2],
+			esploraNetworkApplicability[3],
+			esploraNetworkApplicability[4],
 		],
 		resolve,
 	},
@@ -90,8 +109,14 @@ const esploraTargetForNetwork = (network: NetworkId) => {
 		&& network.caip2.namespace === 'bip122'
 		&& network.caip2.reference === '000000000019d6689c085ae165831e93' ?
 			'bip122:000000000019d6689c085ae165831e93'
+		: 'caip2' in network
+		&& network.caip2.namespace === 'bip122'
+		&& network.caip2.reference === '000000000933ea01ad0ee984209779ba' ?
+			'bip122:000000000933ea01ad0ee984209779ba'
 		: 'slug' in network && network.slug === 'bitcoin' ?
 			'bip122:000000000019d6689c085ae165831e93'
+		: 'slug' in network && network.slug === 'bitcoin-testnet' ?
+			'bip122:000000000933ea01ad0ee984209779ba'
 		: 'slug' in network && network.slug === 'liquid' ?
 			'liquid'
 		:
