@@ -15,7 +15,12 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
-import { osmosisLcdRestEndpoints } from '$/sources/Osmosis/Rest/queries.ts'
+import {
+	type getIbcChannels,
+	type getIbcClientStates,
+	type getIbcConnections,
+	osmosisLcdRestEndpoints,
+} from '$/sources/Osmosis/Rest/queries.ts'
 import type {
 	OsmosisFullPositionBreakdown,
 	OsmosisPoolManagerPool,
@@ -26,6 +31,9 @@ type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 type OsmosisPoolId = EntitySelector<typeof schema, EntityType.OsmosisPool>
 type OsmosisPositionId = EntitySelector<typeof schema, EntityType.OsmosisPosition>
 type CosmosAccountId = EntitySelector<typeof schema, EntityType.CosmosAccount>
+type OsmosisIbcChannel = Awaited<ReturnType<typeof getIbcChannels>>['channels'][number]
+type OsmosisIbcClient = Awaited<ReturnType<typeof getIbcClientStates>>['client_states'][number]
+type OsmosisIbcConnection = Awaited<ReturnType<typeof getIbcConnections>>['connections'][number]
 
 const osmosisCaip2 = {
 	namespace: 'cosmos',
@@ -169,10 +177,7 @@ const osmosisCounterpartyNetworkReference = (
 
 const osmosisIbcChannelListRows = (
 	network: NetworkId,
-	channels: {
-		port_id?: string
-		channel_id?: string
-	}[]
+	channels: OsmosisIbcChannel[]
 ) => (
 	channels.map((channel) => {
 		const portId = channel.port_id
@@ -185,6 +190,24 @@ const osmosisIbcChannelListRows = (
 				$network: network,
 				portId,
 				channelId,
+			},
+			[EntityMetaKey.Fields]: {
+				...(channel.connection_hops.length === 1 && {
+					[entityFieldAddressKey(EntityType.IbcChannel, [], '$connection')]: {
+						[EntityMetaKey.Selector]: {
+							$network: network,
+							connectionId: channel.connection_hops[0],
+						},
+					},
+				}),
+				[entityFieldAddressKey(EntityType.IbcChannel, [], 'counterpartyPortId')]: channel.counterparty.port_id,
+				...(channel.counterparty.channel_id !== '' && {
+					[entityFieldAddressKey(EntityType.IbcChannel, [], 'counterpartyChannelId')]: channel.counterparty.channel_id,
+				}),
+				[entityFieldAddressKey(EntityType.IbcChannel, [], 'ordering')]: channel.ordering,
+				...(channel.version !== '' && {
+					[entityFieldAddressKey(EntityType.IbcChannel, [], 'version')]: channel.version,
+				}),
 			},
 		}
 	})
@@ -212,6 +235,60 @@ const osmosisDurationToNs = (
 	const fraction = match[2] ?? ''
 	const nanos = BigInt(fraction.padEnd(9, '0'))
 	return wholeSeconds * 1_000_000_000n + nanos
+}
+
+const osmosisIbcConnectionStableFields = (
+	network: NetworkId,
+	connection: Omit<OsmosisIbcConnection, 'id'>
+) => ({
+	clientId: connection.client_id,
+	$client: {
+		[EntityMetaKey.Selector]: {
+			$network: network,
+			clientId: connection.client_id,
+		},
+	},
+	counterpartyClientId: connection.counterparty.client_id,
+	...(connection.counterparty.connection_id !== '' && {
+		counterpartyConnectionId: connection.counterparty.connection_id,
+	}),
+	delayPeriodNs: osmosisUnsignedInteger(
+		connection.delay_period,
+		'delay period'
+	),
+})
+
+const osmosisIbcClientStableFields = (
+	network: NetworkId,
+	clientState: OsmosisIbcClient['client_state']
+) => {
+	const $counterpartyNetwork = osmosisCounterpartyNetworkReference(clientState.chain_id)
+
+	return {
+		clientType: (
+			clientState['@type'].includes('tendermint') ?
+				'07-tendermint'
+			:
+				clientState['@type']
+		),
+		trustLevel: `${clientState.trust_level.numerator}/${clientState.trust_level.denominator}`,
+		trustingPeriodNs: osmosisDurationToNs(
+			clientState.trusting_period,
+			'trusting period'
+		),
+		unbondingPeriodNs: osmosisDurationToNs(
+			clientState.unbonding_period,
+			'unbonding period'
+		),
+		maxClockDriftNs: osmosisDurationToNs(
+			clientState.max_clock_drift,
+			'max clock drift'
+		),
+		counterpartyChainId: clientState.chain_id,
+		...($counterpartyNetwork != null && {
+			$counterpartyNetwork,
+		}),
+	}
 }
 
 const getOsmosisBlockReferences = async (
@@ -1097,12 +1174,27 @@ export default {
 						limit: resolverContextRowLimit(context),
 					})
 					return {
-						rows: response.client_states.map((client) => ({
-							[EntityMetaKey.Selector]: {
-								$network: network,
-								clientId: client.client_id,
-							},
-						})),
+						rows: response.client_states.map((client) => {
+							const fields = osmosisIbcClientStableFields(network, client.client_state)
+
+							return {
+								[EntityMetaKey.Selector]: {
+									$network: network,
+									clientId: client.client_id,
+								},
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.IbcClient, [], 'clientType')]: fields.clientType,
+									[entityFieldAddressKey(EntityType.IbcClient, [], 'trustLevel')]: fields.trustLevel,
+									[entityFieldAddressKey(EntityType.IbcClient, [], 'trustingPeriodNs')]: fields.trustingPeriodNs,
+									[entityFieldAddressKey(EntityType.IbcClient, [], 'unbondingPeriodNs')]: fields.unbondingPeriodNs,
+									[entityFieldAddressKey(EntityType.IbcClient, [], 'maxClockDriftNs')]: fields.maxClockDriftNs,
+									[entityFieldAddressKey(EntityType.IbcClient, [], 'counterpartyChainId')]: fields.counterpartyChainId,
+									...(fields.$counterpartyNetwork != null && {
+										[entityFieldAddressKey(EntityType.IbcClient, [], '$counterpartyNetwork')]: fields.$counterpartyNetwork,
+									}),
+								},
+							}
+						}),
 						totalCount: osmosisPaginationCount(response.pagination?.total, 'IBC client'),
 					}
 				}
@@ -1128,12 +1220,25 @@ export default {
 						limit: resolverContextRowLimit(context),
 					})
 					return {
-						rows: response.connections.map((connection) => ({
-							[EntityMetaKey.Selector]: {
-								$network: network,
-								connectionId: connection.id,
-							},
-						})),
+						rows: response.connections.map((connection) => {
+							const fields = osmosisIbcConnectionStableFields(network, connection)
+
+							return {
+								[EntityMetaKey.Selector]: {
+									$network: network,
+									connectionId: connection.id,
+								},
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.IbcConnection, [], 'clientId')]: fields.clientId,
+									[entityFieldAddressKey(EntityType.IbcConnection, [], '$client')]: fields.$client,
+									[entityFieldAddressKey(EntityType.IbcConnection, [], 'counterpartyClientId')]: fields.counterpartyClientId,
+									...(fields.counterpartyConnectionId != null && {
+										[entityFieldAddressKey(EntityType.IbcConnection, [], 'counterpartyConnectionId')]: fields.counterpartyConnectionId,
+									}),
+									[entityFieldAddressKey(EntityType.IbcConnection, [], 'delayPeriodNs')]: fields.delayPeriodNs,
+								},
+							}
+						}),
 						totalCount: osmosisPaginationCount(response.pagination?.total, 'IBC connection'),
 					}
 				}
@@ -1298,22 +1403,8 @@ export default {
 							connectionId,
 						})
 						return {
-							clientId: connection.client_id,
-							$client: {
-								[EntityMetaKey.Selector]: {
-									$network,
-									clientId: connection.client_id,
-								},
-							},
-							counterpartyClientId: connection.counterparty.client_id,
-							...(connection.counterparty.connection_id !== '' && {
-								counterpartyConnectionId: connection.counterparty.connection_id,
-							}),
+							...osmosisIbcConnectionStableFields($network, connection),
 							state: connection.state,
-							delayPeriodNs: osmosisUnsignedInteger(
-								connection.delay_period,
-								'delay period'
-							),
 						}
 					},
 				},
@@ -1441,34 +1532,10 @@ export default {
 						} = await getIbcClientState({
 							clientId,
 						})
-						const clientType = (
-							clientState['@type'].includes('tendermint') ?
-								'07-tendermint'
-							:
-								clientState['@type']
-						)
-						const $counterpartyNetwork = osmosisCounterpartyNetworkReference(clientState.chain_id)
 						return {
-							clientType,
+							...osmosisIbcClientStableFields($network, clientState),
 							latestHeight: clientState.latest_height,
 							frozenHeight: clientState.frozen_height,
-							trustLevel: `${clientState.trust_level.numerator}/${clientState.trust_level.denominator}`,
-							trustingPeriodNs: osmosisDurationToNs(
-								clientState.trusting_period,
-								'trusting period'
-							),
-							unbondingPeriodNs: osmosisDurationToNs(
-								clientState.unbonding_period,
-								'unbonding period'
-							),
-							maxClockDriftNs: osmosisDurationToNs(
-								clientState.max_clock_drift,
-								'max clock drift'
-							),
-							counterpartyChainId: clientState.chain_id,
-							...($counterpartyNetwork != null && {
-								$counterpartyNetwork,
-							}),
 						}
 					},
 				},

@@ -58,6 +58,21 @@ const networkOsmosisPoolsResolver = osmosisRest.resolvers.find((resolver) => (
 	&& 'Cosmos' in resolver.projections
 	&& '$$osmosisPools' in resolver.projections.Cosmos
 ))
+const networkIbcChannelsResolver = osmosisRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.Network
+	&& 'Cosmos' in resolver.projections
+	&& '$$ibcChannels' in resolver.projections.Cosmos
+))
+const networkIbcClientsResolver = osmosisRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.Network
+	&& 'Cosmos' in resolver.projections
+	&& '$$ibcClients' in resolver.projections.Cosmos
+))
+const networkIbcConnectionsResolver = osmosisRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.Network
+	&& 'Cosmos' in resolver.projections
+	&& '$$ibcConnections' in resolver.projections.Cosmos
+))
 const timestampResolver = osmosisRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.Network_Timestamp
 ))
@@ -974,6 +989,108 @@ describe('Osmosis LCD resolver module', () => {
 		expect(ibcClientResolver.projections.trustingPeriodNs(snapshot)).toBe(1209600n * 1_000_000_000n)
 		expect(ibcClientResolver.projections.unbondingPeriodNs(snapshot)).toBe(1814400n * 1_000_000_000n)
 		expect(ibcClientResolver.projections.maxClockDriftNs(snapshot)).toBe(600n * 1_000_000_000n)
+	})
+
+	it('materializes stable IBC hierarchy and configuration from network lists', async () => {
+		if (
+			networkIbcChannelsResolver == null
+			|| networkIbcClientsResolver == null
+			|| networkIbcConnectionsResolver == null
+		)
+			throw new Error('missing network IBC list resolvers')
+
+		sourceGetJson
+			.mockResolvedValueOnce({
+				channels: [{
+					state: 'STATE_OPEN',
+					ordering: 'ORDER_UNORDERED',
+					counterparty: {
+						port_id: 'transfer',
+						channel_id: 'channel-141',
+					},
+					connection_hops: ['connection-0'],
+					version: 'ics20-1',
+					port_id: 'transfer',
+					channel_id: 'channel-0',
+				}],
+				pagination: {
+					total: '1',
+				},
+			})
+			.mockResolvedValueOnce({
+				client_states: [{
+					client_id: '07-tendermint-0',
+					client_state: {
+						'@type': '/ibc.lightclients.tendermint.v1.ClientState',
+						chain_id: 'cosmoshub-4',
+						trust_level: {
+							numerator: '1',
+							denominator: '3',
+						},
+						trusting_period: '1209600s',
+						unbonding_period: '1814400s',
+						max_clock_drift: '600s',
+						frozen_height: {
+							revision_number: '0',
+							revision_height: '0',
+						},
+						latest_height: {
+							revision_number: '1',
+							revision_height: '9',
+						},
+					},
+				}],
+				pagination: {
+					total: '1',
+				},
+			})
+			.mockResolvedValueOnce({
+				connections: [{
+					id: 'connection-0',
+					client_id: '07-tendermint-0',
+					state: 'STATE_OPEN',
+					counterparty: {
+						client_id: '07-tendermint-1',
+						connection_id: 'connection-141',
+					},
+					delay_period: '0',
+				}],
+				pagination: {
+					total: '1',
+				},
+			})
+
+		const channelPage = await networkIbcChannelsResolver.resolve.Caip2.resolve(osmosisNetwork, context)
+		const clientPage = await networkIbcClientsResolver.resolve.Caip2.resolve(osmosisNetwork, context)
+		const connectionPage = await networkIbcConnectionsResolver.resolve.Caip2.resolve(osmosisNetwork, context)
+
+		expect(networkIbcChannelsResolver.projections.Cosmos.$$ibcChannels.select(channelPage)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$network: osmosisNetwork,
+				portId: 'transfer',
+				channelId: 'channel-0',
+			},
+			[EntityMetaKey.Fields]: expect.objectContaining({
+				[entityFieldAddressKey(EntityType.IbcChannel, [], '$connection')]: {
+					[EntityMetaKey.Selector]: {
+						$network: osmosisNetwork,
+						connectionId: 'connection-0',
+					},
+				},
+				[entityFieldAddressKey(EntityType.IbcChannel, [], 'counterpartyChannelId')]: 'channel-141',
+				[entityFieldAddressKey(EntityType.IbcChannel, [], 'version')]: 'ics20-1',
+			}),
+		}])
+		expect(networkIbcClientsResolver.projections.Cosmos.$$ibcClients.select(clientPage)[0]?.[EntityMetaKey.Fields]).toMatchObject({
+			[entityFieldAddressKey(EntityType.IbcClient, [], 'clientType')]: '07-tendermint',
+			[entityFieldAddressKey(EntityType.IbcClient, [], 'counterpartyChainId')]: 'cosmoshub-4',
+			[entityFieldAddressKey(EntityType.IbcClient, [], 'trustingPeriodNs')]: 1209600n * 1_000_000_000n,
+		})
+		expect(networkIbcConnectionsResolver.projections.Cosmos.$$ibcConnections.select(connectionPage)[0]?.[EntityMetaKey.Fields]).toMatchObject({
+			[entityFieldAddressKey(EntityType.IbcConnection, [], 'clientId')]: '07-tendermint-0',
+			[entityFieldAddressKey(EntityType.IbcConnection, [], 'counterpartyConnectionId')]: 'connection-141',
+			[entityFieldAddressKey(EntityType.IbcConnection, [], 'delayPeriodNs')]: 0n,
+		})
 	})
 
 })

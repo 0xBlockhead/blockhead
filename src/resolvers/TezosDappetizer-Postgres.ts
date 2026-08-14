@@ -404,11 +404,18 @@ export default {
 		})({
 			$$contracts: {
 				select: (page, { $network }) => page.contracts.map((contract: DappetizerContract) => ({
-					[EntityMetaKey.Selector]: {
-						$network: { $network },
-						address: contract.address,
-					},
-				})),
+						[EntityMetaKey.Selector]: {
+							$network: { $network },
+							address: contract.address,
+						},
+						[EntityMetaKey.Fields]: {
+							[entityFieldAddressKey(EntityType.TezosContract, [], '$account')]: contractFieldsFromWire(
+								{ $network },
+								contract.address,
+								contract
+							).$account,
+						},
+					})),
 				continuation: (page) => pageContinuation(
 					'network-contracts',
 					page.offset,
@@ -789,13 +796,25 @@ export default {
 			},
 		})({
 			$$tokens: {
-				select: (page, { $network }) => page.tokens.map((token: DappetizerToken) => ({
-					[EntityMetaKey.Selector]: {
-						$network: { $network },
-						contractAddress: token.contractAddress,
-						tokenId: bigintFromWire(token.id, 'token id'),
-					},
-				})),
+				select: (page, { $network }) => page.tokens.map((token: DappetizerToken) => {
+					const tokenId = bigintFromWire(token.id, 'token id')
+
+					return {
+						[EntityMetaKey.Selector]: {
+							$network: { $network },
+							contractAddress: token.contractAddress,
+							tokenId,
+						},
+						[EntityMetaKey.Fields]: {
+							[entityFieldAddressKey(EntityType.TezosToken, [], '$contract')]: tokenFieldsFromWire(
+								{ $network },
+								token.contractAddress,
+								tokenId,
+								token
+							).$contract,
+						},
+					}
+				}),
 				continuation: (page) => pageContinuation(
 					'network-tokens',
 					page.offset,

@@ -28,6 +28,18 @@ const networkBlocksResolver = dappetizerResolvers.resolvers.find((candidate) => 
 if (networkBlocksResolver == null)
 	throw new Error('TezosDappetizer Postgres spec missing TezosNetwork.$$blocks resolver')
 
+const networkContractsResolver = dappetizerResolvers.resolvers.find((candidate) => (
+	candidate.entityType === EntityType.TezosNetwork
+	&& '$$contracts' in candidate.projections
+))
+const networkTokensResolver = dappetizerResolvers.resolvers.find((candidate) => (
+	candidate.entityType === EntityType.TezosNetwork
+	&& '$$tokens' in candidate.projections
+))
+
+if (networkContractsResolver == null || networkTokensResolver == null)
+	throw new Error('TezosDappetizer Postgres spec missing network contract or token resolver')
+
 const contractResolver = dappetizerResolvers.resolvers.find((candidate) => (
 	candidate.entityType === EntityType.TezosContract
 ))
@@ -186,6 +198,46 @@ describe('TezosDappetizer Postgres entity projections', () => {
 			address: 'KT1contract',
 		}, context)
 		expect(accountResolver.projections.accountKind(account)).toBe('contract')
+	})
+
+	it('embeds native contract and account hierarchy in network lists', async () => {
+		sqlExecutor
+			.mockResolvedValueOnce([{
+				address: 'KT1contract',
+				name: null,
+				description: null,
+				firstOperationGroupHash: 'opGroup',
+				firstBlockHash: 'BLockHash',
+			}])
+			.mockResolvedValueOnce([{
+				id: '0',
+				contractAddress: 'KT1contract',
+				name: 'Example',
+				symbol: 'EX',
+				decimals: 0,
+				firstOperationGroupHash: 'opGroup',
+				firstBlockHash: 'BLockHash',
+			}])
+
+		const contractPage = await networkContractsResolver.resolve.Network.resolve(tezosNetwork, context)
+		const tokenPage = await networkTokensResolver.resolve.Network.resolve(tezosNetwork, context)
+
+		expect(networkContractsResolver.projections.$$contracts.select(contractPage, tezosNetwork, context)[0]?.[EntityMetaKey.Fields]).toEqual({
+			[entityFieldAddressKey(EntityType.TezosContract, [], '$account')]: {
+				[EntityMetaKey.Selector]: {
+					$network: tezosNetwork,
+					address: 'KT1contract',
+				},
+			},
+		})
+		expect(networkTokensResolver.projections.$$tokens.select(tokenPage, tezosNetwork, context)[0]?.[EntityMetaKey.Fields]).toEqual({
+			[entityFieldAddressKey(EntityType.TezosToken, [], '$contract')]: {
+				[EntityMetaKey.Selector]: {
+					$network: tezosNetwork,
+					address: 'KT1contract',
+				},
+			},
+		})
 	})
 
 	it('rejects non-mainnet selectors', async () => {
