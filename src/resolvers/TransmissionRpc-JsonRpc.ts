@@ -319,12 +319,12 @@ export default {
 							throw new Error(`TransmissionRpc_JsonRpc: unknown local client ${requestedClientId}`)
 
 						const { sessionGet, sessionStats, torrentGet } = await loadTransmissionQueries()
-						const timestampMs = Date.now()
 						const [session, stats, torrents] = await Promise.all([
 							sessionGet(),
 							sessionStats(),
 							torrentGet([...torrentFields]),
 						])
+						const timestampMs = Date.now()
 
 						return {
 							clientId,

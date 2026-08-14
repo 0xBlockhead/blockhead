@@ -88,21 +88,30 @@ describe('Transmission native client journey', () => {
 	})
 
 	it('materializes client health and source-clocked native transfers', async () => {
-		vi.spyOn(Date, 'now').mockReturnValue(1_786_000_000_000)
+		let sessionStatsRead = false
+		vi.spyOn(Date, 'now').mockImplementation(() => {
+			if (!sessionStatsRead)
+				throw new Error('Transmission observation clock sampled before session stats')
+			return 1_786_000_000_000
+		})
 		sessionGet.mockResolvedValue({
 			version: '4.0.6',
 			'peer-port': 51_413,
 			'bind-address-ipv4': '0.0.0.0',
 			'bind-address-ipv6': '::',
 		})
-		sessionStats.mockResolvedValue({
-			activeTorrentCount: 1,
-			downloadSpeed: 512,
-			uploadSpeed: 8,
-			'cumulative-stats': {
-				downloadedBytes: 4_096,
-				uploadedBytes: 128,
-			},
+		sessionStats.mockImplementation(async () => {
+			await Promise.resolve()
+			sessionStatsRead = true
+			return {
+				activeTorrentCount: 1,
+				downloadSpeed: 512,
+				uploadSpeed: 8,
+				'cumulative-stats': {
+					downloadedBytes: 4_096,
+					uploadedBytes: 128,
+				},
+			}
 		})
 
 		const snapshot = await clientResolver.resolve.ClientId.resolve({

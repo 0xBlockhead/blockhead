@@ -446,7 +446,6 @@ export default {
 							throw new Error(`qBittorrentWebUi_Rest: unknown local client ${requestedClientId}`)
 
 						const { getApplicationPreferences, getApplicationVersion, getTorrentFiles, getTorrentPieceStates, getTorrentsInfo, getTransferInfo } = await loadQBittorrentQueries()
-						const timestampMs = Date.now()
 						const [clientPreferences, clientVersion, torrents, transfer] = await Promise.all([
 							getApplicationPreferences(),
 							getApplicationVersion(),
@@ -454,18 +453,21 @@ export default {
 							getTransferInfo(),
 						])
 						const selectedTorrents = torrents.slice(0, resolverContextRowLimit(context))
+						const selectedTorrentFilesAndPieceStates = await Promise.all(selectedTorrents.map((torrent) => (
+							Promise.all([
+								getTorrentFiles(torrent.hash),
+								getTorrentPieceStates(torrent.hash),
+							])
+						)))
+						const timestampMs = Date.now()
 						const downloadedBytes = transfer.dl_info_data == null ? undefined : byteCount(transfer.dl_info_data, 'session downloaded bytes')
 						const uploadedBytes = transfer.up_info_data == null ? undefined : byteCount(transfer.up_info_data, 'session uploaded bytes')
 
 						return {
 							clientId,
 							clientName: 'qBittorrent',
-							$$transfers: await Promise.all(selectedTorrents.map(async (torrent) => {
-								const [files, pieceStates] = await Promise.all([
-									getTorrentFiles(torrent.hash),
-									getTorrentPieceStates(torrent.hash),
-								])
-
+							$$transfers: selectedTorrents.map((torrent, torrentIndex) => {
+								const [files, pieceStates] = selectedTorrentFilesAndPieceStates[torrentIndex]
 								return transferReference(
 									torrent,
 									timestampMs,
@@ -473,7 +475,7 @@ export default {
 									files.every((file) => file.priority != null) ? files.map((file) => file.priority ?? 0) : undefined,
 									pieceStates.filter((pieceState) => pieceState === 2).length
 								)
-							})),
+							}),
 							$$timestamps: [{
 								[EntityMetaKey.Selector]: {
 									$clientState: clientSelector,

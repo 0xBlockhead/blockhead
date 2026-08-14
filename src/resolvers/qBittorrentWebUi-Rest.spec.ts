@@ -94,7 +94,12 @@ describe('qBittorrent WebUI native client state', () => {
 	})
 
 	it('materializes local client health and source-clocked native transfers', async () => {
-		vi.spyOn(Date, 'now').mockReturnValue(1_786_000_000_000)
+		let selectedTorrentStateRead = false
+		vi.spyOn(Date, 'now').mockImplementation(() => {
+			if (!selectedTorrentStateRead)
+				throw new Error('qBittorrent observation clock sampled before selected torrent state')
+			return 1_786_000_000_000
+		})
 		getApplicationPreferences.mockResolvedValue({
 			listen_port: 51_413,
 			current_interface_address: '192.0.2.44',
@@ -134,7 +139,11 @@ describe('qBittorrent WebUI native client state', () => {
 				priority: 0,
 			},
 		])
-		getTorrentPieceStates.mockResolvedValue([2, 2, 1, 0])
+		getTorrentPieceStates.mockImplementation(async () => {
+			await Promise.resolve()
+			selectedTorrentStateRead = true
+			return [2, 2, 1, 0]
+		})
 		getTorrentTrackers.mockResolvedValue([])
 
 		const snapshot = await clientResolver.resolve.ClientId.resolve({
