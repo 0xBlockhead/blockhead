@@ -28,6 +28,8 @@ import type { EsploraAsset } from '$/sources/Esplora/Rest/types.ts'
 
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 
+const liquidBitcoinAssetId = '6f0279e9ed041c3d710a9f57d0c02928416460c4b722ae3457a11eec381c526d'
+
 const bitcoinNetworkApplicability = [
 	{
 		caip2: networkBySlug.bitcoin.caip2,
@@ -374,6 +376,20 @@ const elementsAssetReferenceFromWire = (
 			},
 		},
 		assetId: asset.asset_id,
+	},
+	[EntityMetaKey.Fields]: {
+		...(asset.name != null && {
+			[entityFieldAddressKey(EntityType.ElementsAsset, [], 'name')]: asset.name,
+		}),
+		...(asset.ticker != null && {
+			[entityFieldAddressKey(EntityType.ElementsAsset, [], 'ticker')]: asset.ticker,
+		}),
+		...(asset.precision != null && {
+			[entityFieldAddressKey(EntityType.ElementsAsset, [], 'precision')]: asset.precision,
+		}),
+		...(asset.entity?.domain != null && {
+			[entityFieldAddressKey(EntityType.ElementsAsset, [], 'entityDomain')]: asset.entity.domain,
+		}),
 	},
 })
 
@@ -1046,6 +1062,14 @@ export default {
 				ElementsNetworkAssetId: {
 					resolve: async (entitySelector, context) => {
 						const $network = assertLiquidElementsAssetSelector(entitySelector.$network)
+						if (entitySelector.assetId === liquidBitcoinAssetId)
+							return {
+								$network,
+								assetId: entitySelector.assetId,
+								terminal: true,
+								transactions: [],
+							}
+
 						const limit = Math.min(resolverContextRowLimit(context), 25)
 						if (!Number.isSafeInteger(limit) || limit < 1)
 							throw new Error('Esplora_Rest: invalid asset issuance limit')
@@ -1107,6 +1131,9 @@ export default {
 				ElementsNetworkAssetId: {
 					resolve: async (entitySelector) => {
 						assertLiquidElementsAssetSelector(entitySelector.$network)
+						if (entitySelector.assetId === liquidBitcoinAssetId)
+							return 0
+
 						const { getAsset } = await import('$/sources/Esplora/Rest/queries.ts')
 						const asset = await getAsset({
 							assetId: entitySelector.assetId,
@@ -1140,11 +1167,16 @@ export default {
 
 						const { getAsset } = await import('$/sources/Esplora/Rest/queries.ts')
 						const asset = await getAsset({
-							assetId: '6f0279e9ed041c3d710a9f57d0c02928416460c4b722ae3457a11eec381c526d',
+							assetId: liquidBitcoinAssetId,
 							target: 'liquid',
 						})
 
-						return elementsAssetReferenceFromWire(asset)
+						return elementsAssetReferenceFromWire({
+							...asset,
+							name: 'Liquid Bitcoin',
+							ticker: 'LBTC',
+							precision: 8,
+						})
 					},
 				}
 			},
@@ -1164,16 +1196,19 @@ export default {
 							throw new Error('Esplora_Rest: unsupported Elements network')
 
 						const { listRegistryAssets } = await import('$/sources/Esplora/Rest/queries.ts')
-						return (await listRegistryAssets({
+						return listRegistryAssets({
+							limit: Math.min(resolverContextRowLimit(context), 100),
+							startIndex: context.pagination.offset ?? 0,
 							target: 'liquid',
-						}))
-							.slice(0, resolverContextRowLimit(context))
-							.map(elementsAssetReferenceFromWire)
+						})
 					},
 				}
 			},
 		})({
-			$$assets: (assetReferences) => assetReferences,
+			$$assets: {
+				select: (page) => page.assets.map(elementsAssetReferenceFromWire),
+				resolveCount: (page) => page.total,
+			},
 		}),
 
 		defineResolver({

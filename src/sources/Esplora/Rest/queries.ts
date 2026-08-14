@@ -1,5 +1,7 @@
+import { throwHttpError } from '$/lib/http.ts'
 import {
 	firstHttpUrlForBinding,
+	sourceFetch,
 	sourceGetJson,
 } from '$/sources/_runtime/http.ts'
 import bindings from '$/sources/Esplora/bindings.ts'
@@ -310,16 +312,44 @@ export const getAsset = async ({
 }
 
 export const listRegistryAssets = async ({
+	limit,
+	startIndex,
 	target,
 }: {
+	limit: number
+	startIndex: number
 	target: EsploraTarget
-}) => (
-	assertEsploraEnvelope(
-		esploraAssetWire.array(),
-		await getEsploraJson(target, '/assets/registry'),
-		'asset registry'
-	)
-)
+}) => {
+	if (!Number.isSafeInteger(limit) || limit < 1 || limit > 100)
+		throw new Error('Esplora_Rest: asset registry limit must be a safe integer from 1 through 100')
+	if (!Number.isSafeInteger(startIndex) || startIndex < 0)
+		throw new Error('Esplora_Rest: asset registry start index must be a nonnegative safe integer')
+
+	const binding = bindingByTarget.get(target)
+	if (binding == null)
+		throw new Error(`Esplora_Rest: unsupported source target ${target}`)
+
+	const url = new URL(`${firstHttpUrlForBinding(binding).replace(/\/$/, '')}/assets/registry`)
+	url.searchParams.set('start_index', String(startIndex))
+	url.searchParams.set('limit', String(limit))
+	const response = await sourceFetch(binding, url.toString())
+	if (!response.ok)
+		await throwHttpError('Esplora_Rest asset registry', response)
+
+	const totalHeader = response.headers.get('x-total-results')
+	const total = Number(totalHeader)
+	if (totalHeader == null || !Number.isSafeInteger(total) || total < 0)
+		throw new Error('Esplora_Rest: asset registry response is missing a valid x-total-results header')
+
+	return {
+		assets: assertEsploraEnvelope(
+			esploraAssetWire.array(),
+			await response.json<unknown>(),
+			'asset registry'
+		),
+		total,
+	}
+}
 
 /**
  * Confirmed issuance, reissuance, and burn transactions for a Liquid asset.

@@ -5,6 +5,7 @@ import { Source } from '$/sources/Source.ts'
 import { SourceTargetKind } from '$/sources/SourceBinding.ts'
 
 const sourceGetJson = vi.hoisted(() => vi.fn())
+const sourceFetch = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/_runtime/http.ts', () => ({
 	firstHttpUrlForBinding: (binding: {
@@ -12,6 +13,7 @@ vi.mock('$/sources/_runtime/http.ts', () => ({
 			locator: string
 		}[]
 	}) => binding.endpoints[0]?.locator,
+	sourceFetch,
 	sourceGetJson,
 }))
 
@@ -29,6 +31,7 @@ const {
 	getSuggestedFeePerByteSats,
 	getTransaction,
 	getTransactionProtocolPayloads,
+	listRegistryAssets,
 } = await import('$/sources/Esplora/Rest/queries.ts')
 
 const bitcoinBinding = bindings[Source.Esplora_Rest].find(({ target }) => (
@@ -49,6 +52,7 @@ const validBlock = {
 
 describe('Esplora REST binding selection', () => {
 	beforeEach(() => {
+		sourceFetch.mockReset()
 		sourceGetJson.mockReset()
 	})
 
@@ -157,6 +161,52 @@ describe('Esplora REST binding selection', () => {
 			target: liquidBinding.target.key,
 			txId,
 		})).rejects.toThrow('invalid transaction envelope')
+	})
+
+	it('preserves Liquid registry paging metadata from the exposed total header', async () => {
+		const assetId = 'ab'.repeat(32)
+		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify([{
+			asset_id: assetId,
+			name: 'Registered asset',
+			ticker: 'REG',
+			precision: 8,
+			entity: {
+				domain: 'issuer.example',
+			},
+			chain_stats: {
+				tx_count: 1,
+			},
+			mempool_stats: {
+				tx_count: 0,
+			},
+		}]), {
+			headers: {
+				'x-total-results': '14221',
+			},
+		}))
+
+		await expect(listRegistryAssets({
+			limit: 20,
+			startIndex: 40,
+			target: liquidBinding.target.key,
+		})).resolves.toMatchObject({
+			assets: [{
+				asset_id: assetId,
+				name: 'Registered asset',
+			}],
+			total: 14_221,
+		})
+		expect(sourceFetch).toHaveBeenCalledWith(
+			liquidBinding,
+			'https://blockstream.info/liquid/api/assets/registry?start_index=40&limit=20'
+		)
+
+		sourceFetch.mockResolvedValueOnce(new Response('[]'))
+		await expect(listRegistryAssets({
+			limit: 25,
+			startIndex: 0,
+			target: liquidBinding.target.key,
+		})).rejects.toThrow('missing a valid x-total-results header')
 	})
 
 	it('preserves authoritative Liquid peg markers and peg-out scripts', async () => {

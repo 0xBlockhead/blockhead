@@ -19,6 +19,7 @@ const getAddressUtxos = vi.fn()
 const getAddressTransactions = vi.fn()
 const getAsset = vi.fn()
 const getAssetTransactions = vi.fn()
+const listRegistryAssets = vi.fn()
 const getOutspend = vi.fn()
 
 vi.mock('$/sources/Esplora/Rest/queries.ts', async (importOriginal) => {
@@ -39,6 +40,7 @@ vi.mock('$/sources/Esplora/Rest/queries.ts', async (importOriginal) => {
 		getAddressTransactions,
 		getAsset,
 		getAssetTransactions,
+		listRegistryAssets,
 		getOutspend,
 		getTransactionProtocolPayloads: async ({
 			target,
@@ -101,6 +103,14 @@ const assetIssuanceCountResolver = esploraResolvers.resolvers.find((resolver) =>
 	&& typeof resolver.projections.$$issuances === 'object'
 	&& 'resolveCount' in resolver.projections.$$issuances
 ))
+const nativeAssetResolver = esploraResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.ElementsNetwork
+	&& '$nativeAsset' in resolver.projections
+))
+const registryAssetsResolver = esploraResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.ElementsNetwork
+	&& '$$assets' in resolver.projections
+))
 const inscriptionResolver = esploraResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.BitcoinOrdinalInscription
 ))
@@ -151,7 +161,7 @@ if (transactionResolver == null)
 if (inputResolver == null || outputResolver == null || outputSpentResolver == null)
 	throw new Error('Esplora-Rest spec missing child input/output resolver')
 
-if (issuanceResolver == null || assetResolver == null || assetTimestampsResolver == null || assetIssuancesResolver == null || assetIssuanceCountResolver == null)
+if (issuanceResolver == null || assetResolver == null || assetTimestampsResolver == null || assetIssuancesResolver == null || assetIssuanceCountResolver == null || nativeAssetResolver == null || registryAssetsResolver == null)
 	throw new Error('Esplora-Rest spec missing Elements issuance/asset resolver')
 
 if (inscriptionResolver == null || runestoneResolver == null)
@@ -216,6 +226,7 @@ describe('Esplora UTXO', () => {
 		getAddressTransactions.mockReset()
 		getAsset.mockReset()
 		getAssetTransactions.mockReset()
+		listRegistryAssets.mockReset()
 		getOutspend.mockReset()
 	})
 
@@ -544,6 +555,107 @@ describe('Esplora UTXO', () => {
 		expect(esploraResolvers.resolvers.some((resolver) => (
 			resolver.entityType === EntityType.ElementsAsset_Timestamp
 		))).toBe(false)
+	})
+
+	it('materializes native LBTC and paged registry summaries for the visible asset hierarchy', async () => {
+		const nativeAssetId = '6f0279e9ed041c3d710a9f57d0c02928416460c4b722ae3457a11eec381c526d'
+		getAsset.mockResolvedValueOnce({
+			asset_id: nativeAssetId,
+			chain_stats: {
+				tx_count: 1,
+			},
+			mempool_stats: {
+				tx_count: 0,
+			},
+		})
+		const nativeAsset = nativeAssetResolver.projections.$nativeAsset(
+			await nativeAssetResolver.resolve.Network.resolve({
+				$network: liquidNetwork,
+			})
+		)
+		expect(nativeAsset).toMatchObject({
+			[EntityMetaKey.Selector]: {
+				assetId: nativeAssetId,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.ElementsAsset, [], 'name')]: 'Liquid Bitcoin',
+				[entityFieldAddressKey(EntityType.ElementsAsset, [], 'ticker')]: 'LBTC',
+				[entityFieldAddressKey(EntityType.ElementsAsset, [], 'precision')]: 8,
+			},
+		})
+
+		const assetId = 'a'.repeat(64)
+		listRegistryAssets.mockResolvedValueOnce({
+			assets: [{
+				asset_id: assetId,
+				name: 'Registered asset',
+				ticker: 'REG',
+				precision: 2,
+				entity: {
+					domain: 'issuer.example',
+				},
+				chain_stats: {
+					tx_count: 1,
+				},
+				mempool_stats: {
+					tx_count: 0,
+				},
+			}],
+			total: 14_221,
+		})
+		const page = await registryAssetsResolver.resolve.Network.resolve(
+			{
+				$network: liquidNetwork,
+			},
+			{
+				...resolverContext,
+				pagination: {
+					limit: 20,
+					offset: 40,
+				},
+			}
+		)
+		expect(registryAssetsResolver.projections.$$assets.select(page)).toMatchObject([{
+			[EntityMetaKey.Selector]: {
+				assetId,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.ElementsAsset, [], 'name')]: 'Registered asset',
+				[entityFieldAddressKey(EntityType.ElementsAsset, [], 'ticker')]: 'REG',
+				[entityFieldAddressKey(EntityType.ElementsAsset, [], 'precision')]: 2,
+				[entityFieldAddressKey(EntityType.ElementsAsset, [], 'entityDomain')]: 'issuer.example',
+			},
+		}])
+		expect(registryAssetsResolver.projections.$$assets.resolveCount(page)).toBe(14_221)
+		expect(listRegistryAssets).toHaveBeenCalledWith({
+			limit: 20,
+			startIndex: 40,
+			target: 'liquid',
+		})
+	})
+
+	it('does not misclassify native LBTC peg and burn history as asset issuances', async () => {
+		const assetSelector = {
+			$network: {
+				$network: liquidNetwork,
+			},
+			assetId: '6f0279e9ed041c3d710a9f57d0c02928416460c4b722ae3457a11eec381c526d',
+		}
+		const page = await assetIssuancesResolver.resolve.ElementsNetworkAssetId.resolve(
+			assetSelector,
+			resolverContext
+		)
+		expect(assetIssuancesResolver.projections.$$issuances.select(page)).toEqual([])
+		expect(assetIssuancesResolver.projections.$$issuances.continuation(page)).toMatchObject({
+			terminal: true,
+		})
+		expect(
+			assetIssuanceCountResolver.projections.$$issuances.resolveCount(
+				await assetIssuanceCountResolver.resolve.ElementsNetworkAssetId.resolve(assetSelector)
+			)
+		).toBe(0)
+		expect(getAssetTransactions).not.toHaveBeenCalled()
+		expect(getAsset).not.toHaveBeenCalled()
 	})
 
 	it('pages native Liquid asset issuances and preserves issuance_count', async () => {
