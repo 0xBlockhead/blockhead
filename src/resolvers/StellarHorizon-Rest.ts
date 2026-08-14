@@ -820,7 +820,10 @@ export default {
 				},
 			},
 		})({
-			$$trustlines: (trustlines) => trustlines,
+			$$trustlines: {
+				select: (trustlines) => trustlines,
+				resolveCount: (trustlines) => trustlines.length,
+			},
 		}),
 
 		defineResolver({
@@ -865,7 +868,10 @@ export default {
 				},
 			},
 		})({
-			$$signers: (signers) => signers,
+			$$signers: {
+				select: (signers) => signers,
+				resolveCount: (signers) => signers.length,
+			},
 		}),
 
 		defineResolver({

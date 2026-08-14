@@ -476,7 +476,10 @@ export default {
 				txTrieRoot: (block) => block.txTrieRoot,
 				version: (block) => block.version,
 				transactionCount: (block) => block.transactionCount,
-				$$transactions: (block) => block.$$transactions,
+				$$transactions: {
+					select: (block) => block.$$transactions,
+					resolveCount: (block) => block.$$transactions.length,
+				},
 			}),
 
 		defineResolver({

@@ -143,6 +143,37 @@ describe('TronGrid REST network relationships', () => {
 		).rejects.toThrow('block height does not match selector 123')
 	})
 
+	it('exposes the exact materialized transaction count for a block', async () => {
+		getBlockByNumber.mockResolvedValueOnce({
+			blockID: 'block-hash',
+			block_header: {
+				raw_data: {
+					number: 123,
+					timestamp: 1_720_000_000_000,
+				},
+			},
+			transactions: [{
+				txID: 'transaction-id',
+				raw_data: {},
+			}],
+		})
+
+		const resolver = tronGridRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.TronBlock
+		))
+		if (resolver == null) throw new Error('Tron block resolver is missing')
+
+		const block = await resolver.resolve.NetworkHeightHash.resolve({
+			$network: {
+				caip2: networkBySlug.tron.caip2,
+			},
+			height: 123n,
+			hash: 'block-hash',
+		}, resolverContext)
+		expect(resolver.projections.$$transactions.select(block)).toHaveLength(1)
+		expect(resolver.projections.$$transactions.resolveCount(block)).toBe(1)
+	})
+
 	it('embeds enrolled account tip Fields from account + resource wires', async () => {
 		getAccount.mockResolvedValueOnce({
 			account_name: 'tip-account',

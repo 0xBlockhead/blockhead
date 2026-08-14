@@ -461,7 +461,7 @@ describe('Stellar Horizon public-account resolver', () => {
 			context
 		)
 
-		expect(trustlineResolver.projections.$$trustlines(trustlines)).toEqual([{
+		expect(trustlineResolver.projections.$$trustlines.select(trustlines)).toEqual([{
 			[EntityMetaKey.Selector]: {
 				$account: account,
 				$asset: {
@@ -508,6 +508,7 @@ describe('Stellar Horizon public-account resolver', () => {
 				}],
 			},
 		}])
+		expect(trustlineResolver.projections.$$trustlines.resolveCount(trustlines)).toBe(1)
 
 		getJson.mockResolvedValueOnce({
 			id: accountId,
@@ -545,7 +546,7 @@ describe('Stellar Horizon public-account resolver', () => {
 			context
 		)
 
-		expect(signerResolver.projections.$$signers(signers).map((signer) => signer[EntityMetaKey.Selector])).toEqual([
+		expect(signerResolver.projections.$$signers.select(signers).map((signer) => signer[EntityMetaKey.Selector])).toEqual([
 			{
 				$account: account,
 				signerKey: accountId,
@@ -557,6 +558,7 @@ describe('Stellar Horizon public-account resolver', () => {
 				signerType: 'ed25519_public_key',
 			},
 		])
+		expect(signerResolver.projections.$$signers.resolveCount(signers)).toBe(2)
 	})
 
 	it('resolves direct trustline and signer routes from exact account state', async () => {
