@@ -926,6 +926,50 @@ describe('Blockfrost Cardano network facet', () => {
 		])
 	})
 
+	it('continues Network.Cardano.$$blocks from the last native block hash', async () => {
+		const resolver = blockfrostResolvers.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.Network
+			&& 'Cardano' in candidate.projections
+			&& '$$blocks' in candidate.projections.Cardano
+		))
+		if (resolver == null)
+			throw new Error('Blockfrost-Rest spec missing Network.Cardano.$$blocks resolver')
+
+		listBlocks.mockResolvedValueOnce([latestBlock])
+		const context = {
+			...resolverContext,
+			pagination: {
+				limit: 1,
+			},
+		}
+		const page = await resolver.resolve.Caip2.resolve(cardanoNetwork, context)
+		expect(listBlocks).toHaveBeenCalledWith(1, undefined)
+		expect(resolver.projections.Cardano.$$blocks.select(page)).toHaveLength(1)
+		expect(resolver.projections.Cardano.$$blocks.continuation(
+			page,
+			cardanoNetwork,
+			context
+		)).toEqual({
+			operation: 'network-blocks',
+			target: 'cardano',
+			terminal: false,
+			token: latestBlock.hash,
+		})
+
+		listBlocks.mockResolvedValueOnce([latestBlock])
+		const repeatedContext = {
+			...context,
+			providerContinuationToken: latestBlock.hash,
+		}
+		const repeatedPage = await resolver.resolve.Caip2.resolve(cardanoNetwork, repeatedContext)
+		expect(listBlocks).toHaveBeenLastCalledWith(1, latestBlock.hash)
+		expect(() => resolver.projections.Cardano.$$blocks.continuation(
+			repeatedPage,
+			cardanoNetwork,
+			repeatedContext
+		)).toThrow('block continuation did not advance')
+	})
+
 	it('maps a nonempty $$stakePools source-shaped result', async () => {
 		listStakePools.mockResolvedValueOnce(stakePools)
 

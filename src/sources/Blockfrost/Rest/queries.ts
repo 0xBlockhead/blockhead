@@ -230,26 +230,54 @@ export const getTransactionUtxos = async (hash: string) => {
 	return transactionUtxos
 }
 
-export const listBlocks = async (count: number) => {
+export const listBlocks = async (
+	count: number,
+	beforeBlock?: string
+) => {
 	if (!Number.isSafeInteger(count) || count < 0 || count > 100)
 		throw new Error('Blockfrost_Rest: block list count must be an integer from 0 through 100')
+	if (beforeBlock != null && beforeBlock === '')
+		throw new Error('Blockfrost_Rest: block continuation anchor is empty')
 
 	if (count === 0)
 		return []
+	if (beforeBlock != null) {
+		const blocks = assertBlockfrostEnvelope(
+			blockfrostBlockWire.array(),
+			await get(
+				`blocks/${encodeURIComponent(beforeBlock)}/previous?count=${count.toString()}`
+			),
+			'blocks'
+		)
+		if (blocks.length > count)
+			throw new Error('Blockfrost_Rest: previous block page exceeds requested count')
+		if (new Set(blocks.map((block) => block.hash)).size !== blocks.length)
+			throw new Error('Blockfrost_Rest: previous block page contains duplicate identities')
+
+		return blocks
+	}
 
 	const latestBlock = await getLatestBlock()
 	if (count === 1)
 		return [latestBlock]
+	const previousBlocks = assertBlockfrostEnvelope(
+		blockfrostBlockWire.array(),
+		await get(
+			`blocks/${encodeURIComponent(latestBlock.hash)}/previous?count=${(count - 1).toString()}`
+		),
+		'blocks'
+	)
+	if (previousBlocks.length > count - 1)
+		throw new Error('Blockfrost_Rest: previous block page exceeds requested count')
+	if (new Set([
+		latestBlock.hash,
+		...previousBlocks.map((block) => block.hash),
+	]).size !== previousBlocks.length + 1)
+		throw new Error('Blockfrost_Rest: previous block page contains duplicate identities')
 
 	return [
 		latestBlock,
-		...assertBlockfrostEnvelope(
-			blockfrostBlockWire.array(),
-			await get(
-				`blocks/${encodeURIComponent(latestBlock.hash)}/previous?count=${(count - 1).toString()}`
-			),
-			'blocks'
-		),
+		...previousBlocks,
 	]
 }
 

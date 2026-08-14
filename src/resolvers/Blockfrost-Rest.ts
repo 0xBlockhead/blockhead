@@ -865,35 +865,68 @@ export default {
 			resolve: cardanoNetworkSelectors(
 				async (network, context) => {
 					assertCardanoMainnet(network)
+					if (
+						context.providerContinuationToken == null
+						&& (context.pagination.offset ?? 0) !== 0
+					)
+						throw new Error('Blockfrost_Rest: block pagination requires provider continuation')
+
 					const { listBlocks } = await import('$/sources/Blockfrost/Rest/queries.ts')
+					const limit = Math.min(resolverContextRowLimit(context), 100)
 
-					return (await listBlocks(
-						Math.min(resolverContextRowLimit(context), 100)
-					)).map((block) => {
-						const fields = blockFields(block)
+					return {
+						limit,
+						previousBlockHash: context.providerContinuationToken,
+						blocks: (await listBlocks(
+							limit,
+							context.providerContinuationToken
+						)).map((block) => {
+							const fields = blockFields(block)
 
-						return {
-							[EntityMetaKey.Selector]: {
-								$network: network,
-								hash: fields.hash,
-							},
-							[EntityMetaKey.Fields]: {
-								[entityFieldAddressKey(EntityType.CardanoBlock, [], 'slot')]: fields.slot,
-								[entityFieldAddressKey(EntityType.CardanoBlock, [], 'blockNo')]: fields.blockNo,
-								...(fields.epoch != null && {
-									[entityFieldAddressKey(EntityType.CardanoBlock, [], 'epoch')]: fields.epoch,
-								}),
-								...(fields.issuerVkey != null && {
-									[entityFieldAddressKey(EntityType.CardanoBlock, [], 'issuerVkey')]: fields.issuerVkey,
-								}),
-							},
-						}
-					})
+							return {
+								[EntityMetaKey.Selector]: {
+									$network: network,
+									hash: fields.hash,
+								},
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.CardanoBlock, [], 'slot')]: fields.slot,
+									[entityFieldAddressKey(EntityType.CardanoBlock, [], 'blockNo')]: fields.blockNo,
+									...(fields.epoch != null && {
+										[entityFieldAddressKey(EntityType.CardanoBlock, [], 'epoch')]: fields.epoch,
+									}),
+									...(fields.issuerVkey != null && {
+										[entityFieldAddressKey(EntityType.CardanoBlock, [], 'issuerVkey')]: fields.issuerVkey,
+									}),
+								},
+							}
+						}),
+					}
 				}
 				),
 		})({
 			Cardano: {
-				$$blocks: (blocks) => blocks,
+				$$blocks: {
+					select: (page) => page.blocks,
+					continuation: (page) => {
+						if (page.blocks.length < page.limit)
+							return {
+								operation: 'network-blocks',
+								target: 'cardano',
+								terminal: true,
+							}
+
+						const nextBlockHash = page.blocks.at(-1)?.[EntityMetaKey.Selector].hash
+						if (nextBlockHash == null || nextBlockHash === page.previousBlockHash)
+							throw new Error('Blockfrost_Rest: block continuation did not advance')
+
+						return {
+							operation: 'network-blocks',
+							target: 'cardano',
+							terminal: false,
+							token: nextBlockHash,
+						}
+					},
+				},
 			},
 		}),
 

@@ -122,7 +122,8 @@ const cosmosBlockListFields = (
 
 const getCometBlockReferences = async (
 	network: NetworkId,
-	limit: number
+	limit: number,
+	context: ResolverContext
 ) => {
 	assertCosmosHub(network)
 	const {
@@ -131,17 +132,36 @@ const getCometBlockReferences = async (
 	} = await import('$/sources/CometBft/Rest/queries.ts')
 	const status = await getStatus()
 	const latestBlockHeight = BigInt(status.result.sync_info.latest_block_height)
+	const earliestBlockHeight = BigInt(status.result.sync_info.earliest_block_height ?? '1')
+	const offset = context.pagination.offset ?? 0
+	if (!Number.isSafeInteger(offset) || offset < 0)
+		throw new Error('CometBft_Rest: invalid block pagination offset')
+	if (
+		context.providerContinuationToken != null
+		&& !/^[1-9]\d*$/.test(context.providerContinuationToken)
+	)
+		throw new Error('CometBft_Rest: invalid block continuation')
+
+	const maxHeight = context.providerContinuationToken == null ?
+		latestBlockHeight - BigInt(offset)
+	:
+		BigInt(context.providerContinuationToken)
+	if (maxHeight > latestBlockHeight)
+		throw new Error('CometBft_Rest: block continuation exceeds current tip')
+	if (maxHeight < earliestBlockHeight || limit === 0)
+		return {
+			blocks: [],
+			earliestBlockHeight,
+		}
+
 	const rowCount = Math.min(
-		Number(latestBlockHeight + 1n),
+		Number(maxHeight - earliestBlockHeight + 1n),
 		limit
 	)
-	if (rowCount === 0)
-		return []
-
-	const minHeight = latestBlockHeight - BigInt(rowCount - 1)
+	const minHeight = maxHeight - BigInt(rowCount - 1)
 	const blockMetas: CometBftBlockchainResponse['result']['block_metas'] = []
 	for (
-		let windowMaxHeight = latestBlockHeight;
+		let windowMaxHeight = maxHeight;
 		windowMaxHeight >= minHeight;
 		windowMaxHeight -= 100n
 	) {
@@ -159,9 +179,19 @@ const getCometBlockReferences = async (
 		if (windowMinHeight === minHeight)
 			break
 	}
+	const blockHeights = new Set(blockMetas.map((meta) => meta.header.height))
+	if (
+		blockMetas.length !== rowCount
+		|| blockHeights.size !== rowCount
+		|| blockMetas.some((meta) => (
+			BigInt(meta.header.height) < minHeight
+			|| BigInt(meta.header.height) > maxHeight
+		))
+	)
+		throw new Error('CometBft_Rest: incomplete blockchain height window')
 
-	return (
-		[...blockMetas]
+	return {
+		blocks: [...blockMetas]
 			.sort((left, right) => (
 				Number(BigInt(right.header.height) - BigInt(left.header.height))
 			))
@@ -181,8 +211,9 @@ const getCometBlockReferences = async (
 							])
 					),
 				}
-			})
-	)
+			}),
+		earliestBlockHeight,
+	}
 }
 
 export default {
@@ -313,14 +344,41 @@ export default {
 		defineResolver({
 			entityType: EntityType.Network,
 			resolve: cosmosNetworkResolverSelectors(async (network, context) => (
-				getCometBlockReferences(
-					network,
-					resolverContextRowLimit(context)
-				)
+				{
+					limit: resolverContextRowLimit(context),
+					previousMaxHeight: context.providerContinuationToken,
+					...await getCometBlockReferences(
+						network,
+						resolverContextRowLimit(context),
+						context
+					),
+				}
 			)),
 		})({
 			Cosmos: {
-				$$blocks: (blocks) => blocks,
+				$$blocks: {
+					select: (page) => page.blocks,
+					continuation: (page) => {
+						const lastHeight = page.blocks.at(-1)?.[EntityMetaKey.Selector].height
+						if (page.blocks.length < page.limit || lastHeight == null || lastHeight <= page.earliestBlockHeight)
+							return {
+								operation: 'network-blocks',
+								target: 'cosmoshub-4',
+								terminal: true,
+							}
+
+						const nextMaxHeight = lastHeight - 1n
+						if (nextMaxHeight.toString() === page.previousMaxHeight)
+							throw new Error('CometBft_Rest: block continuation did not advance')
+
+						return {
+							operation: 'network-blocks',
+							target: 'cosmoshub-4',
+							terminal: false,
+							token: nextMaxHeight.toString(),
+						}
+					},
+				},
 			},
 		}),
 	],

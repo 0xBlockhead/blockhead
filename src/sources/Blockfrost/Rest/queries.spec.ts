@@ -138,16 +138,47 @@ describe('Blockfrost REST transport', () => {
 					slot: block.slot - 1,
 				},
 			]))
+			.mockResolvedValueOnce(Response.json([
+				{
+					...block,
+					hash: 'older-block-hash',
+					height: block.height - 2,
+					slot: block.slot - 2,
+				},
+			]))
 
 		await expect(listBlocks(2)).resolves.toMatchObject([
 			{ hash: 'block-hash' },
 			{ hash: 'previous-block-hash' },
+		])
+		await expect(listBlocks(1, 'previous/block hash')).resolves.toMatchObject([
+			{ hash: 'older-block-hash' },
 		])
 		expect(sourceFetch).toHaveBeenNthCalledWith(
 			2,
 			binding,
 			'https://cardano-mainnet.blockfrost.io/api/v0/blocks/block-hash/previous?count=1'
 		)
+		expect(sourceFetch).toHaveBeenNthCalledWith(
+			3,
+			binding,
+			'https://cardano-mainnet.blockfrost.io/api/v0/blocks/previous%2Fblock%20hash/previous?count=1'
+		)
+	})
+
+	it('fail-closes an overfull or duplicate previous-block page', async () => {
+		sourceFetch
+			.mockResolvedValueOnce(Response.json([
+				block,
+				block,
+			]))
+			.mockResolvedValueOnce(Response.json([
+				block,
+				block,
+			]))
+
+		await expect(listBlocks(1, 'anchor')).rejects.toThrow('exceeds requested count')
+		await expect(listBlocks(2, 'anchor')).rejects.toThrow('duplicate identities')
 	})
 
 	it('loads encoded address detail, totals, newest transactions, and UTXOs', async () => {

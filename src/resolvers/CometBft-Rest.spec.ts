@@ -303,20 +303,21 @@ describe('CometBFT resolver binding', () => {
 			},
 		})
 
+		const pageContext = {
+			...context,
+			pagination: {
+				limit: 3,
+			},
+		}
 		const snapshot = await networkBlocksResolver.resolve.Caip2.resolve(
 			cosmosNetwork,
-			{
-				...context,
-				pagination: {
-					limit: 3,
-				},
-			}
+			pageContext
 		)
 		expect(getBlockchain).toHaveBeenCalledWith({
 			minHeight: 3n,
 			maxHeight: 5n,
 		})
-		expect(networkBlocksResolver.projections.Cosmos.$$blocks(snapshot)).toEqual([
+		expect(networkBlocksResolver.projections.Cosmos.$$blocks.select(snapshot)).toEqual([
 			{
 				[EntityMetaKey.Selector]: {
 					$network: cosmosNetwork,
@@ -354,6 +355,120 @@ describe('CometBFT resolver binding', () => {
 				},
 			},
 		])
+		expect(networkBlocksResolver.projections.Cosmos.$$blocks.continuation(
+			snapshot,
+			cosmosNetwork,
+			pageContext
+		)).toEqual({
+			operation: 'network-blocks',
+			target: 'cosmoshub-4',
+			terminal: false,
+			token: '2',
+		})
+	})
+
+	it('continues Network.Cosmos.$$blocks within the node pruning window', async () => {
+		getStatus.mockResolvedValue({
+			result: {
+				node_info: {
+					network: 'cosmoshub-4',
+				},
+				sync_info: {
+					latest_block_hash: 'TIPHASH',
+					latest_block_height: '5',
+					latest_block_time: '2026-01-01T00:00:00.000Z',
+					earliest_block_height: '1',
+					catching_up: false,
+				},
+			},
+		})
+		getBlockchain.mockResolvedValue({
+			result: {
+				last_height: '5',
+				block_metas: [
+					{
+						block_id: { hash: 'HASH2' },
+						header: {
+							height: '2',
+							time: '2026-01-01T00:00:02.000Z',
+							proposer_address: 'proposer-2',
+						},
+						num_txs: '0',
+					},
+					{
+						block_id: { hash: 'HASH1' },
+						header: {
+							height: '1',
+							time: '2026-01-01T00:00:01.000Z',
+							proposer_address: 'proposer-1',
+						},
+						num_txs: '0',
+					},
+				],
+			},
+		})
+		const pageContext = {
+			...context,
+			pagination: {
+				limit: 3,
+			},
+			providerContinuationToken: '2',
+		}
+		const snapshot = await networkBlocksResolver.resolve.Caip2.resolve(
+			cosmosNetwork,
+			pageContext
+		)
+		expect(getBlockchain).toHaveBeenCalledWith({
+			minHeight: 1n,
+			maxHeight: 2n,
+		})
+		expect(networkBlocksResolver.projections.Cosmos.$$blocks.select(snapshot)).toHaveLength(2)
+		expect(networkBlocksResolver.projections.Cosmos.$$blocks.continuation(
+			snapshot,
+			cosmosNetwork,
+			pageContext
+		)).toEqual({
+			operation: 'network-blocks',
+			target: 'cosmoshub-4',
+			terminal: true,
+		})
+	})
+
+	it('fail-closes an incomplete CometBFT blockchain height window', async () => {
+		getStatus.mockResolvedValue({
+			result: {
+				node_info: { network: 'cosmoshub-4' },
+				sync_info: {
+					latest_block_hash: 'TIPHASH',
+					latest_block_height: '3',
+					latest_block_time: '2026-01-01T00:00:00.000Z',
+					earliest_block_height: '1',
+					catching_up: false,
+				},
+			},
+		})
+		getBlockchain.mockResolvedValue({
+			result: {
+				last_height: '3',
+				block_metas: [{
+					block_id: { hash: 'HASH3' },
+					header: {
+						height: '3',
+						time: '2026-01-01T00:00:03.000Z',
+						proposer_address: 'proposer-3',
+					},
+					num_txs: '0',
+				}],
+			},
+		})
+
+		await expect(networkBlocksResolver.resolve.Caip2.resolve(
+			cosmosNetwork,
+			{
+				...context,
+				pagination: { limit: 3 },
+			}
+		)).rejects.toThrow('incomplete blockchain height window')
 	})
 
 	it('registers CometBft_Rest source', () => {
