@@ -832,5 +832,27 @@ export default {
 				),
 			},
 		}),
+
+		defineResolver({
+			entityType: EntityType.StarknetClass,
+			resolve: {
+				NetworkClassHash: {
+					appliesTo: starknetNestedNetworkApplicability,
+					resolve: async (klass) => {
+						assertStarknetMainnet(klass.$network.$network)
+						const { getClass } = await import('$/sources/Starkscan/Rest/queries.ts')
+
+						return (await getClass({
+							classHash: canonicalFelt(klass.classHash, 'class hash'),
+							limit: 1,
+						})).class.instanceCount
+					},
+				},
+			},
+		})({
+			$$contracts: {
+				resolveCount: (count) => count,
+			},
+		}),
 	],
 } satisfies RegisteredSourceResolverModule

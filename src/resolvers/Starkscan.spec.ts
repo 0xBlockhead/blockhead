@@ -61,6 +61,14 @@ const transactionResolver = starkscanResolvers.resolvers.find((resolver) => (
 ))
 const classResolver = starkscanResolvers.resolvers.find((resolver) => (
 	'NetworkClassHash' in resolver.resolve
+	&& 'classHash' in resolver.projections
+))
+const classContractCountResolver = starkscanResolvers.resolvers.find((resolver) => (
+	'NetworkClassHash' in resolver.resolve
+	&& '$$contracts' in resolver.projections
+	&& typeof resolver.projections.$$contracts === 'object'
+	&& resolver.projections.$$contracts != null
+	&& 'resolveCount' in resolver.projections.$$contracts
 ))
 
 if (accountStatesResolver == null)
@@ -79,6 +87,8 @@ if (transactionResolver == null)
 	throw new Error('Starkscan spec missing transaction resolver')
 if (classResolver == null)
 	throw new Error('Starkscan spec missing class resolver')
+if (classContractCountResolver == null)
+	throw new Error('Starkscan spec missing class contract count resolver')
 
 
 const contract = {
@@ -750,5 +760,37 @@ describe('Starkscan block transaction and class resolvers', () => {
 			terminal: false,
 			token: '0x02',
 		})
+	})
+
+	it('resolves indexed class association counts independently from instance pages', async () => {
+		getClass.mockResolvedValueOnce({
+			class: {
+				chainId: 'SN_MAIN',
+				classHash: '0x0abc',
+				instanceCount: 12,
+			},
+			instances: [{
+				address: '0x01',
+			}],
+			nextInstanceCursor: '0x02',
+		})
+		const klass = {
+			$network: {
+				$network: {
+					caip2: networkBySlug.starknet.caip2,
+				},
+			},
+			classHash: '0x0abc',
+		}
+		const count = await classContractCountResolver.resolve.NetworkClassHash.resolve(
+			klass,
+			resolverContext
+		)
+
+		expect(getClass).toHaveBeenCalledWith({
+			classHash: '0xabc',
+			limit: 1,
+		})
+		expect(classContractCountResolver.projections.$$contracts.resolveCount(count)).toBe(12)
 	})
 })

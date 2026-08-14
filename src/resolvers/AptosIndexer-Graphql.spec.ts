@@ -312,6 +312,67 @@ describe('Aptos Indexer resolver materialization', () => {
 		})).toHaveLength(1)
 	})
 
+	it('continues account transactions with the provider offset', async () => {
+		vi.spyOn(queries, 'getAccountTransactions').mockResolvedValue([
+			{
+				account_address: aptosAccount.address,
+				transaction_version: '42',
+				user_transaction: userTransaction,
+			},
+			{
+				account_address: aptosAccount.address,
+				transaction_version: '43',
+				user_transaction: {
+					...userTransaction,
+					version: '43',
+				},
+			},
+		])
+		const pageContext = {
+			...resolverContext,
+			pagination: {
+				limit: 2,
+				offset: 99,
+			},
+			providerContinuationToken: '5',
+		}
+		const transactions = await aptosAccountTransactionsResolver.resolve.NetworkAddress.resolve(
+			aptosAccount,
+			pageContext
+		)
+		const projection = aptosAccountTransactionsResolver.projections.$$transactions
+		if (typeof projection === 'function')
+			throw new Error('AptosIndexer_Graphql account transactions pagination is missing')
+
+		expect(queries.getAccountTransactions).toHaveBeenCalledWith(
+			aptosAccount.address,
+			2,
+			5
+		)
+		expect(projection.select(transactions, aptosAccount, pageContext)).toHaveLength(2)
+		expect(projection.continuation(transactions, aptosAccount, pageContext)).toEqual({
+			operation: 'account-transactions',
+			target: 'aptos-indexer',
+			terminal: false,
+			token: '7',
+		})
+		expect(projection.continuation(transactions.slice(0, 1), aptosAccount, {
+			...pageContext,
+			providerContinuationToken: '7',
+		})).toEqual({
+			operation: 'account-transactions',
+			target: 'aptos-indexer',
+			terminal: true,
+		})
+		await expect(aptosAccountTransactionsResolver.resolve.NetworkAddress.resolve(
+			aptosAccount,
+			{
+				...pageContext,
+				providerContinuationToken: '1e2',
+			}
+		)).rejects.toThrow('invalid account transactions continuation')
+	})
+
 	it('accepts canonical Aptos identities and rejects unsupported networks before transport', async () => {
 		const resolveAccountTransactions = aptosAccountTransactionsResolver.resolve[
 			'NetworkAddress'

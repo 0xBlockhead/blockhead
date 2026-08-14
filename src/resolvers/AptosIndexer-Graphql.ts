@@ -1,5 +1,5 @@
 import { networkBySlug } from '$/constants/Network.ts'
-import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
+import { resolverContextRowLimit, type ResolverContext } from '$/resolvers/$resolvers.ts'
 import { defineResolver, type RegisteredSourceResolverModule } from '$/resolvers/defineResolver.ts'
 import { EntityMetaKey, entityFieldAddressKey, type EntitySelector } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
@@ -86,6 +86,19 @@ const assertSource = (source: string) => {
 		throw new Error('AptosIndexer_Graphql: observation source mismatch')
 }
 
+const aptosIndexerOffset = (context: ResolverContext) => {
+	if (context.providerContinuationToken == null)
+		return context.pagination.offset ?? 0
+	if (!/^(0|[1-9][0-9]*)$/.test(context.providerContinuationToken))
+		throw new Error('AptosIndexer_Graphql: invalid account transactions continuation')
+
+	const offset = Number(context.providerContinuationToken)
+	if (!Number.isSafeInteger(offset))
+		throw new Error('AptosIndexer_Graphql: account transactions continuation is too large')
+
+	return offset
+}
+
 const aptosIndexerResolver = <const _Resolver extends object>(_resolver: _Resolver) => ({
 	..._resolver,
 	source: Source.AptosIndexer_Graphql,
@@ -104,7 +117,7 @@ export const aptosAccountTransactionsResolver = aptosIndexerResolver(
 					return (await getAccountTransactions(
 						entitySelector.address,
 						resolverContextRowLimit(context),
-						context.pagination.offset ?? 0
+						aptosIndexerOffset(context)
 					)).map((transaction) => {
 						const version = bigintFromWire(transaction.transaction_version, 'transaction version')
 
@@ -136,7 +149,21 @@ export const aptosAccountTransactionsResolver = aptosIndexerResolver(
 			},
 		},
 	})({
-		$$transactions: (transactions) => transactions,
+		$$transactions: {
+			select: (transactions) => transactions,
+			continuation: (transactions, _account, context) => {
+				const limit = resolverContextRowLimit(context)
+				const nextOffset = aptosIndexerOffset(context) + transactions.length
+				const terminal = limit === 0 || transactions.length < limit
+
+				return {
+					operation: 'account-transactions',
+					target: 'aptos-indexer',
+					terminal,
+					...(!terminal && { token: String(nextOffset) }),
+				}
+			},
+		},
 	})
 )
 
