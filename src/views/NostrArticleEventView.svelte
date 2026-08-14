@@ -55,6 +55,7 @@
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import NostrArticleView from '$/views/NostrArticleView.svelte'
 	import NostrProfileView from '$/views/NostrProfileView.svelte'
+	import MediaView from '$/views/MediaView.svelte'
 </script>
 
 
@@ -77,6 +78,21 @@
 	bind:open
 	{...EntityViewProps}
 >
+	{#snippet Icon()}
+		<ResourceBoundary resource={nostrArticleEvent}>
+			{#snippet children(entity)}
+				{@const reference = entity.$image}
+				{#if reference != null}
+					<MediaView
+						selection={select(EntityType.Media, reference[EntityMetaKey.Selector])}
+						prefetched={reference}
+						layout={EntityLayout.Value}
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
 	{#snippet Title()}
 		<ResourceBoundary resource={nostrArticleEvent}>
 			{#snippet children(entity)}

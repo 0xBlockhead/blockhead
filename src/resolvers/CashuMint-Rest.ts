@@ -1,4 +1,5 @@
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
+import { mediaFromUrl } from '$/resolvers/media.ts'
 import {
 	defineResolver,
 	type RegisteredSourceResolverModule,
@@ -8,6 +9,7 @@ import {
 	entityFieldAddressKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { MediaType } from '$/schema/MediaType.ts'
 import { Source } from '$/sources/Source.ts'
 
 const cashuMillisecondsFromSeconds = (
@@ -149,6 +151,7 @@ export default {
 							...(info.description_long != null && { descriptionLong: info.description_long }),
 							...(info.motd != null && { motd: info.motd }),
 							...(info.icon_url != null && { iconUrl: info.icon_url }),
+							...(info.icon_url != null && { $icon: mediaFromUrl(info.icon_url, MediaType.Image) }),
 							...(info.tos_url != null && { tosUrl: info.tos_url }),
 							...(info.time != null && { serverTimeMs: cashuMillisecondsFromSeconds(info.time, 'mint server time') }),
 							...(info.contact != null && { contactJson: JSON.stringify(info.contact) }),
@@ -175,6 +178,7 @@ export default {
 			descriptionLong: (snapshot) => snapshot.descriptionLong,
 			motd: (snapshot) => snapshot.motd,
 			iconUrl: (snapshot) => snapshot.iconUrl,
+			$icon: (snapshot) => snapshot.$icon,
 			tosUrl: (snapshot) => snapshot.tosUrl,
 			serverTimeMs: (snapshot) => snapshot.serverTimeMs,
 			contactJson: (snapshot) => snapshot.contactJson,

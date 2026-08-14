@@ -441,8 +441,8 @@ describe('Nostr thread references', () => {
 
 	it('Nostr relay materializes signed latest profile and article events', async () => {
 		const articleVersions = [
-			signedEvent([['d', 'target'], ['title', 'Version B']], 30_023, 'article B', 1_700_000_010),
-			signedEvent([['d', 'target'], ['title', 'Version A']], 30_023, 'article A'),
+			signedEvent([['d', 'target'], ['title', 'Version B'], ['image', 'https://images.example/article-b.png']], 30_023, 'article B', 1_700_000_010),
+			signedEvent([['d', 'target'], ['title', 'Version A'], ['image', 'https://images.example/article-b.png']], 30_023, 'article A'),
 		].sort((left, right) => (
 			right.created_at - left.created_at
 			|| left.id.localeCompare(right.id)
@@ -501,6 +501,11 @@ describe('Nostr thread references', () => {
 			signature: articleVersions[0].sig,
 			content: articleVersions[0].content,
 			tags: articleVersions[0].tags,
+			$image: expect.objectContaining({
+				[EntityMetaKey.Selector]: {
+					url: 'https://images.example/article-b.png',
+				},
+			}),
 		}))
 
 		listNostrRelayEvents.mockResolvedValueOnce(profileVersions.toReversed())
@@ -531,8 +536,8 @@ describe('Nostr thread references', () => {
 
 	it('Primal materializes signed profile and article versions with deterministic latest references', async () => {
 		const articleVersions = [
-			signedEvent([['d', 'target'], ['title', 'Version B']], 30_023, 'article B'),
-			signedEvent([['d', 'target'], ['title', 'Version A']], 30_023, 'article A'),
+			signedEvent([['d', 'target'], ['title', 'Version B'], ['image', 'https://images.example/article-b.png']], 30_023, 'article B'),
+			signedEvent([['d', 'target'], ['title', 'Version A'], ['image', 'https://images.example/article-b.png']], 30_023, 'article A'),
 		].sort((left, right) => left.id.localeCompare(right.id))
 		const profileVersions = [
 			signedEvent([], 0, JSON.stringify({
@@ -587,6 +592,11 @@ describe('Nostr thread references', () => {
 			signature: articleVersions[0].sig,
 			content: articleVersions[0].content,
 			tags: articleVersions[0].tags,
+			$image: expect.objectContaining({
+				[EntityMetaKey.Selector]: {
+					url: 'https://images.example/article-b.png',
+				},
+			}),
 			title: articleVersions[0].tags.find((tag) => tag[0] === 'title')?.[1],
 		}))
 

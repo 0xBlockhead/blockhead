@@ -10568,7 +10568,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							openSources: [Source.Beacon_Rest],
+							openSources: [Source.Beacon_Rest, Source.BeaconchaIn_Rest],
 							openFields: [
 								"committeeIndex",
 								"aggregationBits",
@@ -10620,11 +10620,11 @@ export const schema = {
 				"$executionBlock": { label: "Execution block", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.EvmBlock },
 				"$executionPayloadBid": { label: "Selected execution payload bid", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.BeaconExecutionPayloadBid, defaultSources: [Source.Beacon_Rest] },
 				"$executionPayloadEnvelope": { label: "Delivered execution payload envelope", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.BeaconExecutionPayloadEnvelope, defaultSources: [Source.Beacon_Rest] },
-				"$$attestations": { label: "Attestations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BeaconAttestation, defaultSources: [Source.Beacon_Rest] },
-				"$$deposits": { label: "Deposits", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BeaconDeposit, defaultSources: [Source.Beacon_Rest] },
-				"$$slashings": { label: "Slashings", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BeaconSlashing, defaultSources: [Source.Beacon_Rest] },
+				"$$attestations": { label: "Attestations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BeaconAttestation, defaultSources: [Source.Beacon_Rest, Source.BeaconchaIn_Rest] },
+				"$$deposits": { label: "Deposits", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BeaconDeposit, defaultSources: [Source.Beacon_Rest, Source.BeaconchaIn_Rest] },
+				"$$slashings": { label: "Slashings", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BeaconSlashing, defaultSources: [Source.Beacon_Rest, Source.BeaconchaIn_Rest] },
 				"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BeaconBlock_Timestamp, defaultSources: [Source.Beacon_Rest] },
-				"$$withdrawals": { label: "Withdrawals", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BeaconWithdrawal, defaultSources: [Source.Beacon_Rest] },
+				"$$withdrawals": { label: "Withdrawals", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BeaconWithdrawal, defaultSources: [Source.Beacon_Rest, Source.BeaconchaIn_Rest] },
 			})({
 				selectors: {
 					"NetworkRoot": ["$network", "root"],
@@ -11264,28 +11264,28 @@ export const schema = {
 					type: EntityFieldType.EntitiesReference,
 					cardinality: EntityFieldCardinality.Many,
 					entityType: EntityType.BeaconDeposit,
-					defaultSources: [Source.Beacon_Rest],
+					defaultSources: [Source.Beacon_Rest, Source.BeaconchaIn_Rest],
 				},
 				"$$beaconAttestations": {
 					label: "Beacon attestations",
 					type: EntityFieldType.EntitiesReference,
 					cardinality: EntityFieldCardinality.Many,
 					entityType: EntityType.BeaconAttestation,
-					defaultSources: [Source.Beacon_Rest],
+					defaultSources: [Source.Beacon_Rest, Source.BeaconchaIn_Rest],
 				},
 				"$$beaconWithdrawals": {
 					label: "Beacon withdrawals",
 					type: EntityFieldType.EntitiesReference,
 					cardinality: EntityFieldCardinality.Many,
 					entityType: EntityType.BeaconWithdrawal,
-					defaultSources: [Source.Beacon_Rest],
+					defaultSources: [Source.Beacon_Rest, Source.BeaconchaIn_Rest],
 				},
 				"$$beaconSlashings": {
 					label: "Beacon slashings",
 					type: EntityFieldType.EntitiesReference,
 					cardinality: EntityFieldCardinality.Many,
 					entityType: EntityType.BeaconSlashing,
-					defaultSources: [Source.Beacon_Rest],
+					defaultSources: [Source.Beacon_Rest, Source.BeaconchaIn_Rest],
 				},
 				"$$dataColumns": {
 					label: "Data columns",
@@ -11352,8 +11352,8 @@ export const schema = {
 								className: "network-view-collapsible-consensus",
 								sections: [
 									{ id: "beacon-slot-committees", field: "$$beaconCommittees", List: "BeaconCommitteesView", label: "Committees", selection: { sources: [Source.Beacon_Rest] } },
-									{ id: "beacon-slot-deposits", field: "$$beaconDeposits", List: "BeaconDepositsView", label: "Deposits", selection: { sources: [Source.Beacon_Rest] } },
-									{ id: "beacon-slot-attestations", field: "$$beaconAttestations", List: "BeaconAttestationsView", label: "Attestations", selection: { sources: [Source.Beacon_Rest] } },
+									{ id: "beacon-slot-deposits", field: "$$beaconDeposits", List: "BeaconDepositsView", label: "Deposits", selection: { sources: [Source.Beacon_Rest, Source.BeaconchaIn_Rest] } },
+									{ id: "beacon-slot-attestations", field: "$$beaconAttestations", List: "BeaconAttestationsView", label: "Attestations", selection: { sources: [Source.Beacon_Rest, Source.BeaconchaIn_Rest] } },
 									{ id: "beacon-slot-data-columns", field: "$$dataColumns", List: "BeaconDataColumnsView", label: "Data availability columns", selection: { sources: [Source.Beacon_Rest] }, emptyText: "No data columns were returned by this beacon node." },
 								],
 							},
@@ -11362,8 +11362,8 @@ export const schema = {
 								label: "Withdrawals and slashings",
 								className: "network-view-collapsible-exits",
 								sections: [
-									{ id: "beacon-slot-withdrawals", field: "$$beaconWithdrawals", List: "BeaconWithdrawalsView", label: "Withdrawals", selection: { sources: [Source.Beacon_Rest] } },
-									{ id: "beacon-slot-slashings", field: "$$beaconSlashings", List: "BeaconSlashingsView", label: "Slashings", selection: { sources: [Source.Beacon_Rest] } },
+									{ id: "beacon-slot-withdrawals", field: "$$beaconWithdrawals", List: "BeaconWithdrawalsView", label: "Withdrawals", selection: { sources: [Source.Beacon_Rest, Source.BeaconchaIn_Rest] } },
+									{ id: "beacon-slot-slashings", field: "$$beaconSlashings", List: "BeaconSlashingsView", label: "Slashings", selection: { sources: [Source.Beacon_Rest, Source.BeaconchaIn_Rest] } },
 								],
 							},
 						],
@@ -11696,7 +11696,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Beacon_Rest],
+							sources: [Source.Beacon_Rest, Source.BeaconchaIn_Rest],
 							openFields: [
 								"validatorIndex",
 							],
@@ -22485,6 +22485,7 @@ export const schema = {
 				"descriptionLong": { label: "description long", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"motd": { label: "motd", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"iconUrl": { label: "icon URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+				"$icon": { label: "Icon", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.Media, defaultSources: [Source.CashuMint_Rest] },
 				"tosUrl": { label: "tos URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"serverTimeMs": { label: "server time ms", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 				"contactJson": { label: "contact JSON", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
@@ -22500,6 +22501,7 @@ export const schema = {
 				views: {
 					singular: {
 						summary: {
+							icon: "$icon",
 							title: [{ field: "timestampMs", format: "timestamp" }],
 							value: ["name", "version"],
 							HeadingAfter: ["reachable"],
@@ -49907,6 +49909,7 @@ export const schema = {
 				"title": { label: "Title", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"summary": { label: "Summary", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"imageUrl": { label: "Image URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "urlString" },
+				"$image": { label: "Image", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.Media, defaultSources: [Source.NostrRelay_WebSocket, Source.Primal_Rest] },
 				"content": { label: "Content", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"sensitive": { label: "Sensitive", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean" },
 				"contentWarning": { label: "Content warning", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
@@ -49928,6 +49931,7 @@ export const schema = {
 							openFields: ["content", "tags"],
 						},
 						summary: {
+							icon: "$image",
 							title: ["title", "identifier"],
 							titleFallback: [{ field: "eventId", format: "truncated" }],
 							value: [{ field: "eventId", format: "truncated" }],
@@ -53747,6 +53751,7 @@ export const schema = {
 				"language": { label: "Language", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"lastBuildDate": { label: "Last build", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 				"imageUrl": { label: "Image URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "urlString" },
+				"$image": { label: "Image", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.Media, defaultSources: [Source.Rss_Rest, Source.Rss2Json_Rest] },
 				"$$items": {
 					label: "Items",
 					type: EntityFieldType.EntitiesReference,
@@ -53771,6 +53776,7 @@ export const schema = {
 							fields: ["title", "description", "siteUrl", "language", "lastBuildDate", "imageUrl"],
 						},
 						summary: {
+							icon: "$image",
 							title: [{ field: "title" }, { field: "feedUrl" }],
 							value: [{ field: "feedUrl", format: "truncated" }],
 							HeadingAfter: [{ field: "lastBuildDate", format: "timestamp" }],
@@ -65840,8 +65846,8 @@ export const schema = {
 			})({
 				"$network": { label: "Network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
 				"address": { label: "Address", description: "The address or account identifier used by the source protocol.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.UtxoAddress_Timestamp, defaultSources: [Source.BitcoinCashNode_JsonRpc, Source.Blockchair_Rest, Source.DogecoinCore_JsonRpc, Source.Esplora_Rest, Source.LitecoinCore_JsonRpc, Source.MempoolSpace_Rest] },
-				"$$outputs": { label: "Outputs", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.UtxoOutput, defaultSources: [Source.BitcoinCashNode_JsonRpc, Source.Blockchair_Rest, Source.DogecoinCore_JsonRpc, Source.Esplora_Rest, Source.LitecoinCore_JsonRpc, Source.MempoolSpace_Rest] },
+				"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.UtxoAddress_Timestamp, defaultSources: [Source.BitcoinCashNode_JsonRpc, Source.Blockchair_Rest, Source.DogecoinCore_JsonRpc, Source.Esplora_Rest, Source.LitecoinCore_JsonRpc, Source.MempoolSpace_Rest, Source.Zcashd_JsonRpc, Source.Zebra_JsonRpc] },
+				"$$outputs": { label: "Outputs", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.UtxoOutput, defaultSources: [Source.BitcoinCashNode_JsonRpc, Source.Blockchair_Rest, Source.DogecoinCore_JsonRpc, Source.Esplora_Rest, Source.LitecoinCore_JsonRpc, Source.MempoolSpace_Rest, Source.Zcashd_JsonRpc, Source.Zebra_JsonRpc] },
 				"$$transactions": { label: "Transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.UtxoTransaction, defaultSources: [Source.Esplora_Rest, Source.MempoolSpace_Rest] },
 				"$$bitcoinOrdinalInscriptions": { label: "Bitcoin Ordinal inscriptions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BitcoinOrdinalInscription, defaultSources: [Source.UniSat_Rest] },
 				"$$bitcoinRuneBalances": { label: "Bitcoin Rune balances", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BitcoinRuneBalance, defaultSources: [Source.UniSat_Rest] },
@@ -65872,7 +65878,7 @@ export const schema = {
 								label: "Activity",
 								className: "network-view-collapsible-activity",
 								sections: [
-									{ id: "utxo-address-outputs", field: "$$outputs", List: "UtxoOutputsView", label: "Outputs", emptyText: "No outputs.", selection: { sources: [Source.BitcoinCashNode_JsonRpc, Source.Blockchair_Rest, Source.DogecoinCore_JsonRpc, Source.Esplora_Rest, Source.LitecoinCore_JsonRpc, Source.MempoolSpace_Rest], limit: 16 } },
+									{ id: "utxo-address-outputs", field: "$$outputs", List: "UtxoOutputsView", label: "Outputs", emptyText: "No outputs.", selection: { sources: [Source.BitcoinCashNode_JsonRpc, Source.Blockchair_Rest, Source.DogecoinCore_JsonRpc, Source.Esplora_Rest, Source.LitecoinCore_JsonRpc, Source.MempoolSpace_Rest, Source.Zcashd_JsonRpc, Source.Zebra_JsonRpc], limit: 16 } },
 									{ id: "utxo-address-transactions", field: "$$transactions", List: "UtxoTransactionsView", label: "Transactions", emptyText: "No transactions.", selection: { sources: [Source.Esplora_Rest, Source.MempoolSpace_Rest], limit: 16 } },
 								],
 							},
@@ -65881,7 +65887,7 @@ export const schema = {
 								label: "Observations",
 								className: "network-view-collapsible-observations",
 								sections: [
-									{ id: "utxo-address-timestamps", field: "$$timestamps", List: "UtxoAddress_TimestampsView", label: "Timestamps", emptyText: "No timestamps.", selection: { sources: [Source.BitcoinCashNode_JsonRpc, Source.Blockchair_Rest, Source.DogecoinCore_JsonRpc, Source.Esplora_Rest, Source.LitecoinCore_JsonRpc, Source.MempoolSpace_Rest], limit: 16 } },
+									{ id: "utxo-address-timestamps", field: "$$timestamps", List: "UtxoAddress_TimestampsView", label: "Timestamps", emptyText: "No timestamps.", selection: { sources: [Source.BitcoinCashNode_JsonRpc, Source.Blockchair_Rest, Source.DogecoinCore_JsonRpc, Source.Esplora_Rest, Source.LitecoinCore_JsonRpc, Source.MempoolSpace_Rest, Source.Zcashd_JsonRpc, Source.Zebra_JsonRpc], limit: 16 } },
 								],
 							},
 						],
@@ -65900,13 +65906,13 @@ export const schema = {
 				"$address": { label: "Address", description: "The address or account identifier used by the source protocol.", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.UtxoAddress },
 				"timestampMs": { label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
 				"source": { label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"balanceSats": { label: "Balance", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.BitcoinCashNode_JsonRpc, Source.Blockchair_Rest, Source.DogecoinCore_JsonRpc, Source.Esplora_Rest, Source.LitecoinCore_JsonRpc, Source.MempoolSpace_Rest] },
+				"balanceSats": { label: "Balance", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.BitcoinCashNode_JsonRpc, Source.Blockchair_Rest, Source.DogecoinCore_JsonRpc, Source.Esplora_Rest, Source.LitecoinCore_JsonRpc, Source.MempoolSpace_Rest, Source.Zcashd_JsonRpc, Source.Zebra_JsonRpc] },
 				"fundedOutputCount": { label: "Funded output count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Blockchair_Rest, Source.Esplora_Rest, Source.MempoolSpace_Rest] },
 				"fundedValueSats": { label: "Funded value", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Blockchair_Rest, Source.Esplora_Rest, Source.MempoolSpace_Rest] },
 				"spentOutputCount": { label: "Spent output count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Blockchair_Rest, Source.Esplora_Rest, Source.MempoolSpace_Rest] },
 				"spentValueSats": { label: "Spent value", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Blockchair_Rest, Source.Esplora_Rest, Source.MempoolSpace_Rest] },
 				"transactionCount": { label: "Transaction count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Blockchair_Rest, Source.Esplora_Rest, Source.MempoolSpace_Rest] },
-				"unspentOutputCount": { label: "Unspent output count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.BitcoinCashNode_JsonRpc, Source.Blockchair_Rest, Source.DogecoinCore_JsonRpc, Source.Esplora_Rest, Source.LitecoinCore_JsonRpc, Source.MempoolSpace_Rest] },
+				"unspentOutputCount": { label: "Unspent output count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.BitcoinCashNode_JsonRpc, Source.Blockchair_Rest, Source.DogecoinCore_JsonRpc, Source.Esplora_Rest, Source.LitecoinCore_JsonRpc, Source.MempoolSpace_Rest, Source.Zcashd_JsonRpc, Source.Zebra_JsonRpc] },
 				"mempoolTransactionCount": { label: "Mempool transaction count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Blockchair_Rest, Source.Esplora_Rest, Source.MempoolSpace_Rest] },
 			})({
 				selectors: {

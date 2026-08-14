@@ -28,12 +28,7 @@
 		selection({
 			...{
 				fields: {
-					$feed: {
-						fields: {
-							title: true,
-							lastBuildDate: true,
-						},
-					},
+					$feed: true,
 					timestampMs: true,
 				},
 			},

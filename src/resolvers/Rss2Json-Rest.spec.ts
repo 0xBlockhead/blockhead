@@ -58,6 +58,11 @@ it('materializes source-owned feed and item observations from a healthy envelope
 	const snapshot = await resolver.resolve.FeedUrl.resolve({ feedUrl: 'https://example.com/feed.xml' }, resolverContext)
 	expect(resolver.projections.title(snapshot)).toBe('Example Feed')
 	expect(resolver.projections.siteUrl(snapshot)).toBe('https://example.com/')
+	expect(resolver.projections.$image(snapshot)).toMatchObject({
+		[EntityMetaKey.Selector]: {
+			url: 'https://example.com/banner.png',
+		},
+	})
 	expect(resolver.projections.$$timestamps(snapshot)).toEqual([{
 		[EntityMetaKey.Selector]: {
 			$feed: { feedUrl: 'https://example.com/feed.xml' },

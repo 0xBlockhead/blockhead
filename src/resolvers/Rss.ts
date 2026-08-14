@@ -1,10 +1,12 @@
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import { defineResolver } from '$/resolvers/defineResolver.ts'
+import { mediaFromUrl } from '$/resolvers/media.ts'
 import {
 	EntityMetaKey,
 	entityFieldAddressKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { MediaType } from '$/schema/MediaType.ts'
 import { Source } from '$/sources/Source.ts'
 import {
 	normalizeRssFeedUrl,
@@ -44,6 +46,7 @@ export const rssResolvers = <_Source extends Source.Rss_Rest | Source.Rss2Json_R
 									lastBuildDate: feed.lastBuildDate,
 								}),
 								...(feed.imageUrl != null && { imageUrl: feed.imageUrl }),
+								...(feed.imageUrl != null && { $image: mediaFromUrl(feed.imageUrl, MediaType.Image) }),
 								items: feed.items
 									.slice(0, resolverContextRowLimit(context))
 									.flatMap((feedItem) => {
@@ -139,6 +142,7 @@ export const rssResolvers = <_Source extends Source.Rss_Rest | Source.Rss2Json_R
 					lastBuildDate: (snapshot) => snapshot.lastBuildDate,
 				}),
 				imageUrl: (snapshot) => snapshot.imageUrl,
+				$image: (snapshot) => snapshot.$image,
 				$$items: (snapshot) => snapshot.items,
 				$$timestamps: (snapshot) => snapshot.$$timestamps,
 			}),

@@ -418,7 +418,10 @@ export const nostrArticleFieldValues = (event: NostrEventEnvelope) => {
 		identifier,
 		title: optionalNonemptyString(nostrTagValue(event.tags, 'title')),
 		summary: optionalNonemptyString(nostrTagValue(event.tags, 'summary')),
-		imageUrl: imageUrl != null && UrlString.allows(imageUrl) ? imageUrl : undefined,
+		...(imageUrl != null && UrlString.allows(imageUrl) && {
+			imageUrl,
+			$image: mediaFromUrl(imageUrl, MediaType.Image),
+		}),
 		content: optionalNonemptyString(event.content),
 		sensitive: event.tags.some((tag) => tag[0] === 'content-warning'),
 		contentWarning: optionalNonemptyString(nostrTagValue(event.tags, 'content-warning')),

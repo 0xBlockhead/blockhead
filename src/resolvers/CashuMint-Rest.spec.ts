@@ -104,6 +104,7 @@ it('projects the current NUT-06 and NUT-02 contracts', async () => {
 	}
 	getMintInfo.mockResolvedValue({
 		description_long: 'Long',
+		icon_url: 'https://mint.example/icon.png',
 		contact,
 		urls: ['https://mint.example'],
 		nuts,
@@ -143,6 +144,11 @@ it('projects the current NUT-06 and NUT-02 contracts', async () => {
 			5,
 			7,
 		],
+		$icon: {
+			[EntityMetaKey.Selector]: {
+				url: 'https://mint.example/icon.png',
+			},
+		},
 	})
 	expect(await keysetTimestampResolver.resolve.KeysetTimestampMsSource.resolve({
 		$keyset: {

@@ -42,6 +42,14 @@ export default entity({
 		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
+	$image: {
+		entityType: EntityType.Media,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Rss_Rest,
+			Source.Rss2Json_Rest,
+		],
+	},
 	$$items: {
 		entityType: EntityType.RssItem,
 		cardinality: EntityFieldCardinality.Many,

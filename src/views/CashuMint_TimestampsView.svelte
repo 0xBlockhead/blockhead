@@ -29,6 +29,7 @@
 		selection({
 			...{
 				fields: {
+					$icon: true,
 					timestampMs: true,
 					name: true,
 					version: true,

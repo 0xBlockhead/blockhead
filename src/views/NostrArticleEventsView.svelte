@@ -29,6 +29,7 @@
 		selection({
 			...{
 				fields: {
+					$image: true,
 					title: true,
 					identifier: true,
 					eventId: true,

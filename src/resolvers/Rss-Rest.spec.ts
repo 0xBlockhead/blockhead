@@ -10,6 +10,7 @@ import { Source } from '$/sources/Source.ts'
 const { binding, getFeed } = vi.hoisted(() => ({
 	binding: { requestOwner: 'hnrss-binding' },
 	getFeed: vi.fn().mockResolvedValue({
+		imageUrl: 'https://example.com/feed.png',
 		items: [{
 			guid: 'item-1',
 			title: 'Item one',
@@ -79,6 +80,11 @@ it('materializes source-owned feed and item observations from successful reads',
 			[entityFieldAddressKey(EntityType.RssFeed_Timestamp, [], 'observedItemCount')]: 1,
 		},
 	}])
+	expect(feedResolver.projections.$image(feedSnapshot)).toMatchObject({
+		[EntityMetaKey.Selector]: {
+			url: 'https://example.com/feed.png',
+		},
+	})
 	expect(itemResolver.projections.$$timestamps(itemSnapshot)).toEqual([{
 		[EntityMetaKey.Selector]: {
 			$item: {

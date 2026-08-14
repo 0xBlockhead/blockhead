@@ -334,6 +334,7 @@ export default {
 				title: (event) => event.title,
 				summary: (event) => event.summary,
 				imageUrl: (event) => event.imageUrl,
+				$image: (event) => event.$image,
 				content: (event) => event.content,
 				sensitive: (event) => event.sensitive,
 				contentWarning: (event) => event.contentWarning,

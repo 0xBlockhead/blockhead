@@ -4,8 +4,14 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
+
+
+	// Context
+	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
@@ -42,6 +48,7 @@
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import RssItemsView from '$/views/RssItemsView.svelte'
 	import RssFeed_TimestampsView from '$/views/RssFeed_TimestampsView.svelte'
+	import MediaView from '$/views/MediaView.svelte'
 </script>
 
 
@@ -64,6 +71,21 @@
 	bind:open
 	{...EntityViewProps}
 >
+	{#snippet Icon()}
+		<ResourceBoundary resource={rssFeed}>
+			{#snippet children(entity)}
+				{@const reference = entity.$image}
+				{#if reference != null}
+					<MediaView
+						selection={select(EntityType.Media, reference[EntityMetaKey.Selector])}
+						prefetched={reference}
+						layout={EntityLayout.Value}
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
 	{#snippet Title()}
 		<ResourceBoundary resource={rssFeed}>
 			{#snippet children(entity)}
