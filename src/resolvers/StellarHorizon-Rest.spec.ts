@@ -36,7 +36,11 @@ const resolverFor = (
 		)
 		&& (
 			fieldName !== '$$operations'
-			|| candidate.entityType === EntityType.StellarTransaction
+			|| (
+				candidate.entityType === EntityType.StellarTransaction
+				&& typeof candidate.projections.$$operations !== 'function'
+				&& candidate.projections.$$operations.select != null
+			)
 		)
 	))
 	if (resolver == null)
@@ -863,6 +867,16 @@ describe('Stellar Horizon public-account resolver', () => {
 		)
 
 		expect(headerResolver.projections.sourceAccount(header)).toBe(accountId)
+		if (
+			typeof headerResolver.projections.$$operations === 'function'
+			|| headerResolver.projections.$$operations.resolveCount == null
+		)
+			throw new Error('Stellar Horizon transaction header requires an operation count projection')
+		expect(headerResolver.projections.$$operations.resolveCount(
+			header,
+			transaction,
+			context
+		)).toBe(1)
 		expect(headerResolver.projections.$$timestamps(header)).toEqual([{
 			[EntityMetaKey.Selector]: {
 				$transaction: transaction,

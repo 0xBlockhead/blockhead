@@ -1191,6 +1191,7 @@ export default {
 
 						return {
 							sourceAccount: transaction.source_account,
+							operationCount: transaction.operation_count,
 							$$timestamps: [
 								transactionTimestampFields(transaction, transactionSelector),
 							],
@@ -1200,6 +1201,9 @@ export default {
 			},
 		})({
 			sourceAccount: (snapshot) => snapshot.sourceAccount,
+			$$operations: {
+				resolveCount: (snapshot) => snapshot.operationCount,
+			},
 			$$timestamps: (snapshot) => snapshot.$$timestamps,
 		}),
 

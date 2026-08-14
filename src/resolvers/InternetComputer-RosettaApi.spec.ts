@@ -70,6 +70,15 @@ const blocksResolver = internetComputerRosettaResolvers.resolvers.find((resolver
 const transactionsResolver = internetComputerRosettaResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.IcpLedgerCanister
 	&& '$$transactions' in resolver.projections
+	&& typeof resolver.projections.$$transactions !== 'function'
+	&& resolver.projections.$$transactions.select != null
+))
+const transactionCountResolver = internetComputerRosettaResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.IcpLedgerCanister
+	&& '$$transactions' in resolver.projections
+	&& typeof resolver.projections.$$transactions !== 'function'
+	&& resolver.projections.$$transactions.resolveCount != null
+	&& resolver.projections.$$transactions.select == null
 ))
 const singularBlockResolver = internetComputerRosettaResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.IcpLedgerBlock
@@ -86,6 +95,7 @@ if (
 	|| accountTimestampsResolver == null
 	|| blocksResolver == null
 	|| transactionsResolver == null
+	|| transactionCountResolver == null
 	|| singularBlockResolver == null
 	|| singularTransactionResolver == null
 )
@@ -430,6 +440,46 @@ describe('Internet Computer Rosetta ledger resolvers', () => {
 			accountIdentifier,
 		}))
 
+		searchTransactions.mockResolvedValueOnce({
+			transactions: [],
+			total_count: 42,
+		})
+		const transactionCount = await transactionCountResolver.resolve.Canister.resolve(
+			ledger,
+			resolverContext
+		)
+		const transactionCountProjection = transactionCountResolver.projections.$$transactions
+		if (
+			typeof transactionCountProjection === 'function'
+			|| transactionCountProjection.resolveCount == null
+		)
+			throw new Error('missing transaction count projection')
+		expect(transactionCountProjection.resolveCount(
+			transactionCount,
+			ledger,
+			resolverContext
+		)).toBe(42)
+		expect(searchTransactions).toHaveBeenLastCalledWith({
+			limit: 1,
+		})
+
+		getAccountTransactions.mockResolvedValueOnce({
+			transactions: [],
+			total_count: 7,
+		})
+		expect(await transactionCountResolver.resolve.Canister.resolve(ledger, {
+			...resolverContext,
+			filters: [{
+				fieldPath: ['owner'],
+				operator: 'eq',
+				value: accountIdentifier,
+			}],
+		})).toBe(7)
+		expect(getAccountTransactions).toHaveBeenLastCalledWith({
+			accountIdentifier,
+			limit: 1,
+		})
+
 		getBlock.mockResolvedValueOnce({
 			block: blockWire,
 		})
@@ -440,7 +490,7 @@ describe('Internet Computer Rosetta ledger resolvers', () => {
 			},
 			transactionIndex: 0,
 		}, resolverContext)
-		expect(singularTransactionResolver.projections.amount?.(singular, {
+		expect(singularTransactionResolver.projections.amount(singular, {
 			$block: {
 				$ledger: ledger,
 				blockIndex: 100n,

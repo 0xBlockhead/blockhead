@@ -547,6 +547,38 @@ export default {
 		}),
 
 		defineResolver({
+			entityType: EntityType.IcpLedgerCanister,
+			resolve: {
+				Canister: {
+					appliesTo: icpLedgerCanisterApplicability,
+					resolve: async (ledger, context) => {
+						assertIcpLedgerCanister(ledger)
+						const owner = ownerEqualityFilter(context)
+						const {
+							getAccountTransactions,
+							searchTransactions,
+						} = await loadRosettaQueries()
+						return (
+							owner == null ?
+								await searchTransactions({
+									limit: 1,
+								})
+							:
+								await getAccountTransactions({
+									accountIdentifier: owner,
+									limit: 1,
+								})
+						).total_count
+					},
+				},
+			},
+		})({
+			$$transactions: {
+				resolveCount: (count) => count,
+			},
+		}),
+
+		defineResolver({
 			entityType: EntityType.IcpLedgerBlock,
 			resolve: {
 				LedgerBlockIndex: {
