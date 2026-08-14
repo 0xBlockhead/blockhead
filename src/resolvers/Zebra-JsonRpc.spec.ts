@@ -73,8 +73,10 @@ const addressOutputsResolver = zebraResolvers.resolvers.find((resolver) => (
 	&& '$$outputs' in resolver.projections
 ))
 
-const addressTimestampResolver = zebraResolvers.resolvers.find((resolver) => (
-	resolver.entityType === EntityType.UtxoAddress_Timestamp
+const addressResolver = zebraResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.UtxoAddress
+	&& 'address' in resolver.projections
+	&& '$$timestamps' in resolver.projections
 ))
 
 const networkTimestampResolver = zebraResolvers.resolvers.find((resolver) => (
@@ -93,7 +95,7 @@ const transactionResolver = zebraResolvers.resolvers.find((resolver) => (
 if (blockResolver == null || networkBlocksResolver == null)
 	throw new Error('Zebra-JsonRpc spec missing UTXO block / network list resolvers')
 
-if (addressOutputsResolver == null || addressTimestampResolver == null)
+if (addressOutputsResolver == null || addressResolver == null)
 	throw new Error('Zebra-JsonRpc spec missing address UTXO resolvers')
 
 if (networkTimestampResolver == null || networkTimestampsResolver == null)
@@ -202,16 +204,17 @@ describe('Zebra UTXO tip leftovers', () => {
 			},
 		}])
 
-		const observation = await addressTimestampResolver.resolve.AddressTimestampMsSource.resolve({
-			$address: {
-				$network: network,
-				address,
-			},
-			timestampMs: 1,
-			source: Source.Zebra_JsonRpc,
+		const snapshot = await addressResolver.resolve.NetworkAddress.resolve({
+			$network: network,
+			address,
 		}, resolverContext)
-		expect(addressTimestampResolver.projections.balanceSats(observation)).toBe(50_000_000n)
-		expect(addressTimestampResolver.projections.unspentOutputCount(observation)).toBe(1)
+		expect(addressResolver.projections.$$timestamps(snapshot)[0]?.[EntityMetaKey.Fields]).toEqual({
+			[entityFieldAddressKey(EntityType.UtxoAddress_Timestamp, [], 'balanceSats')]: 50_000_000n,
+			[entityFieldAddressKey(EntityType.UtxoAddress_Timestamp, [], 'unspentOutputCount')]: 1,
+		})
+		expect(zebraResolvers.resolvers.some((resolver) => (
+			resolver.entityType === EntityType.UtxoAddress_Timestamp
+		))).toBe(false)
 	})
 
 	it('projects Network_Timestamp tip fields from block tip + getmempoolinfo', async () => {

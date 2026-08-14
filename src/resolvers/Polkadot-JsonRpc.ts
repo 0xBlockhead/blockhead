@@ -104,17 +104,11 @@ export default {
 			}),
 
 		defineResolver({
-			entityType: EntityType.Network_Timestamp,
+			entityType: EntityType.Network,
 			resolve: {
-				NetworkTimestampMsSource: {
-					resolve: async ({
-						$network,
-						timestampMs,
-						source,
-					}) => {
-						if (source !== Source.Polkadot_JsonRpc)
-							throw new Error(`Polkadot_JsonRpc: unsupported source ${source}`)
-						assertPolkadotMainnet($network)
+				Slug: {
+					resolve: async (network) => {
+						assertPolkadotMainnet(network)
 						const {
 							getBlock,
 							getFinalizedHead,
@@ -138,46 +132,32 @@ export default {
 							getRuntimeVersion(),
 							getSystemHealth(),
 						])
-						return {
-							$network: {
-								[EntityMetaKey.Selector]: $network,
+						return [{
+							[EntityMetaKey.Selector]: {
+								$network: network,
+								timestampMs: Date.now(),
+								source: Source.Polkadot_JsonRpc,
 							},
-							timestampMs,
-							source,
-							ledgerModels: [NetworkLedgerModel.Account],
-							executionModels: [NetworkExecutionModel.PolkadotRuntime],
-							finalizedBlockNumber: blockNumberFromHeader(header),
-							finalizedBlockHash,
-							finalizedExtrinsicCount: block.block.extrinsics.length,
-							runtimeSpecName: runtimeVersion.specName,
-							runtimeSpecVersion: runtimeVersion.specVersion,
-							transactionVersion: runtimeVersion.transactionVersion,
-							stateVersion: runtimeVersion.stateVersion,
-							peerCount: systemHealth.peers,
-							isSyncing: systemHealth.isSyncing,
-							shouldHavePeers: systemHealth.shouldHavePeers,
-						}
+							[EntityMetaKey.Fields]: {
+								[entityFieldAddressKey(EntityType.Network_Timestamp, [], 'ledgerModels')]: [NetworkLedgerModel.Account],
+								[entityFieldAddressKey(EntityType.Network_Timestamp, [], 'executionModels')]: [NetworkExecutionModel.PolkadotRuntime],
+								[entityFieldAddressKey(EntityType.Network_Timestamp, ['Polkadot'], 'finalizedBlockNumber')]: blockNumberFromHeader(header),
+								[entityFieldAddressKey(EntityType.Network_Timestamp, ['Polkadot'], 'finalizedBlockHash')]: finalizedBlockHash,
+								[entityFieldAddressKey(EntityType.Network_Timestamp, ['Polkadot'], 'finalizedExtrinsicCount')]: block.block.extrinsics.length,
+								[entityFieldAddressKey(EntityType.Network_Timestamp, ['Polkadot'], 'runtimeSpecName')]: runtimeVersion.specName,
+								[entityFieldAddressKey(EntityType.Network_Timestamp, ['Polkadot'], 'runtimeSpecVersion')]: runtimeVersion.specVersion,
+								[entityFieldAddressKey(EntityType.Network_Timestamp, ['Polkadot'], 'transactionVersion')]: runtimeVersion.transactionVersion,
+								[entityFieldAddressKey(EntityType.Network_Timestamp, ['Polkadot'], 'stateVersion')]: runtimeVersion.stateVersion,
+								[entityFieldAddressKey(EntityType.Network_Timestamp, ['Polkadot'], 'peerCount')]: systemHealth.peers,
+								[entityFieldAddressKey(EntityType.Network_Timestamp, ['Polkadot'], 'isSyncing')]: systemHealth.isSyncing,
+								[entityFieldAddressKey(EntityType.Network_Timestamp, ['Polkadot'], 'shouldHavePeers')]: systemHealth.shouldHavePeers,
+							},
+						}]
 					},
 				}
 			},
 		})({
-				$network: (timestamp) => timestamp.$network,
-				timestampMs: (timestamp) => timestamp.timestampMs,
-				source: (timestamp) => timestamp.source,
-				ledgerModels: (timestamp) => timestamp.ledgerModels,
-				executionModels: (timestamp) => timestamp.executionModels,
-				Polkadot: {
-					finalizedBlockNumber: (timestamp) => timestamp.finalizedBlockNumber,
-					finalizedBlockHash: (timestamp) => timestamp.finalizedBlockHash,
-					finalizedExtrinsicCount: (timestamp) => timestamp.finalizedExtrinsicCount,
-					runtimeSpecName: (timestamp) => timestamp.runtimeSpecName,
-					runtimeSpecVersion: (timestamp) => timestamp.runtimeSpecVersion,
-					transactionVersion: (timestamp) => timestamp.transactionVersion,
-					stateVersion: (timestamp) => timestamp.stateVersion,
-					peerCount: (timestamp) => timestamp.peerCount,
-					isSyncing: (timestamp) => timestamp.isSyncing,
-					shouldHavePeers: (timestamp) => timestamp.shouldHavePeers,
-				},
+				$$timestamps: (timestamps) => timestamps,
 			}),
 
 		defineResolver({
@@ -299,28 +279,6 @@ export default {
 			},
 		})({
 				hash: (extrinsic) => extrinsic.hash,
-			}),
-
-		defineResolver({
-			entityType: EntityType.Network,
-			resolve: {
-				Slug: {
-					resolve: async (network) => {
-						assertPolkadotMainnet(network)
-						return [
-							{
-								[EntityMetaKey.Selector]: {
-									$network: network,
-									timestampMs: Date.now(),
-									source: Source.Polkadot_JsonRpc,
-								},
-							},
-						]
-					},
-				}
-			},
-		})({
-				$$timestamps: (timestamps) => timestamps,
 			}),
 
 		defineResolver({

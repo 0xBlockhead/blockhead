@@ -661,8 +661,11 @@ describe('Substrate Sidecar network observation + validator leftovers', () => {
 		resolver
 	): resolver is Extract<
 		typeof sidecar.resolvers[number],
-		{ entityType: EntityType.Network_Timestamp }
-	> => resolver.entityType === EntityType.Network_Timestamp)
+		{ entityType: EntityType.Network }
+	> => (
+		resolver.entityType === EntityType.Network
+		&& '$$timestamps' in resolver.projections
+	))
 
 	const validatorResolver = sidecar.resolvers.find((
 		resolver
@@ -705,25 +708,27 @@ describe('Substrate Sidecar network observation + validator leftovers', () => {
 				peersInfo: 'Cannot query system_peers from node.',
 			})))
 
-		const snapshot = await networkTimestampResolver.resolve.NetworkTimestampMsSource.resolve({
-			$network: account.$network,
-			timestampMs: 1_753_000_100_000,
-			source: Source.SubstrateSidecar_Rest,
-		}, context)
+		const snapshot = await networkTimestampResolver.resolve.Slug.resolve(account.$network, context)
+		const observation = networkTimestampResolver.projections.$$timestamps(snapshot)[0]
 
 		expect(sourceFetch.mock.calls[0][1]).toBe('http://127.0.0.1:8080/blocks/head?finalized=true')
 		expect(sourceFetch.mock.calls[1][1]).toBe('http://127.0.0.1:8080/runtime')
 		expect(sourceFetch.mock.calls[2][1]).toBe('http://127.0.0.1:8080/node/network')
-		expect(networkTimestampResolver.projections.Polkadot.finalizedBlockNumber(snapshot)).toBe(10n)
-		expect(networkTimestampResolver.projections.Polkadot.finalizedBlockHash(snapshot)).toBe(block.hash)
-		expect(networkTimestampResolver.projections.Polkadot.finalizedExtrinsicCount(snapshot)).toBe(1)
-		expect(networkTimestampResolver.projections.Polkadot.runtimeSpecName(snapshot)).toBe('polkadot')
-		expect(networkTimestampResolver.projections.Polkadot.runtimeSpecVersion(snapshot)).toBe(1007001)
-		expect(networkTimestampResolver.projections.Polkadot.transactionVersion(snapshot)).toBe(26)
-		expect(networkTimestampResolver.projections.Polkadot.stateVersion(snapshot)).toBe(1)
-		expect(networkTimestampResolver.projections.Polkadot.peerCount(snapshot)).toBe(42)
-		expect(networkTimestampResolver.projections.Polkadot.isSyncing(snapshot)).toBe(false)
-		expect(networkTimestampResolver.projections.Polkadot.shouldHavePeers(snapshot)).toBe(true)
+		expect(observation?.[EntityMetaKey.Fields]).toMatchObject({
+			[entityFieldAddressKey(EntityType.Network_Timestamp, ['Polkadot'], 'finalizedBlockNumber')]: 10n,
+			[entityFieldAddressKey(EntityType.Network_Timestamp, ['Polkadot'], 'finalizedBlockHash')]: block.hash,
+			[entityFieldAddressKey(EntityType.Network_Timestamp, ['Polkadot'], 'finalizedExtrinsicCount')]: 1,
+			[entityFieldAddressKey(EntityType.Network_Timestamp, ['Polkadot'], 'runtimeSpecName')]: 'polkadot',
+			[entityFieldAddressKey(EntityType.Network_Timestamp, ['Polkadot'], 'runtimeSpecVersion')]: 1007001,
+			[entityFieldAddressKey(EntityType.Network_Timestamp, ['Polkadot'], 'transactionVersion')]: 26,
+			[entityFieldAddressKey(EntityType.Network_Timestamp, ['Polkadot'], 'stateVersion')]: 1,
+			[entityFieldAddressKey(EntityType.Network_Timestamp, ['Polkadot'], 'peerCount')]: 42,
+			[entityFieldAddressKey(EntityType.Network_Timestamp, ['Polkadot'], 'isSyncing')]: false,
+			[entityFieldAddressKey(EntityType.Network_Timestamp, ['Polkadot'], 'shouldHavePeers')]: true,
+		})
+		expect(sidecar.resolvers.some((resolver) => (
+			resolver.entityType === EntityType.Network_Timestamp
+		))).toBe(false)
 	})
 
 	it('resolves active validator-era commission, activity, and pending slashing state', async () => {

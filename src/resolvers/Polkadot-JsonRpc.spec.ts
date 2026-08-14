@@ -39,10 +39,16 @@ const networkBlockCountResolver = polkadot.resolvers.find((resolver) => (
 	&& 'resolveCount' in resolver.projections.Polkadot.$$blocks
 ))
 
+const networkTimestampsResolver = polkadot.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.Network
+	&& '$$timestamps' in resolver.projections
+))
+
 if (
 	blockResolver == null
 	|| networkBlockListResolver == null
 	|| networkBlockCountResolver == null
+	|| networkTimestampsResolver == null
 )
 	throw new Error('Polkadot JsonRpc resolvers are missing')
 
@@ -120,6 +126,47 @@ describe('Polkadot JsonRpc block leftovers', () => {
 				hash: '0xaaa1',
 			},
 		})
+	})
+
+	it('embeds finalized runtime and health state on the network observation read', async () => {
+		vi.spyOn(Date, 'now').mockReturnValue(1_700_000_000_000)
+		sourceFetch
+			.mockResolvedValueOnce(jsonRpcResult('0xddd4'))
+			.mockResolvedValueOnce(jsonRpcResult(header))
+			.mockResolvedValueOnce(jsonRpcResult({
+				block: {
+					header,
+					extrinsics: ['0x01'],
+				},
+			}))
+			.mockResolvedValueOnce(jsonRpcResult({
+				specName: 'polkadot',
+				implName: 'parity-polkadot',
+				authoringVersion: 0,
+				specVersion: 1007001,
+				implVersion: 0,
+				transactionVersion: 26,
+				stateVersion: 1,
+			}))
+			.mockResolvedValueOnce(jsonRpcResult({
+				peers: 40,
+				isSyncing: false,
+				shouldHavePeers: true,
+			}))
+
+		const observations = await networkTimestampsResolver.resolve.Slug.resolve({
+			slug: networkBySlug.polkadot.slug,
+		}, context)
+		expect(networkTimestampsResolver.projections.$$timestamps(observations)[0]?.[EntityMetaKey.Fields]).toMatchObject({
+			[entityFieldAddressKey(EntityType.Network_Timestamp, ['Polkadot'], 'finalizedBlockNumber')]: 10n,
+			[entityFieldAddressKey(EntityType.Network_Timestamp, ['Polkadot'], 'finalizedBlockHash')]: '0xddd4',
+			[entityFieldAddressKey(EntityType.Network_Timestamp, ['Polkadot'], 'finalizedExtrinsicCount')]: 1,
+			[entityFieldAddressKey(EntityType.Network_Timestamp, ['Polkadot'], 'runtimeSpecName')]: 'polkadot',
+			[entityFieldAddressKey(EntityType.Network_Timestamp, ['Polkadot'], 'peerCount')]: 40,
+		})
+		expect(polkadot.resolvers.some((resolver) => (
+			resolver.entityType === EntityType.Network_Timestamp
+		))).toBe(false)
 	})
 
 	it('resolves PolkadotExtrinsic.BlockIndexInBlock blake2-256 hash', async () => {

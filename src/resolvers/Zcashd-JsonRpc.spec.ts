@@ -59,8 +59,10 @@ const addressOutputsResolver = zcashdResolvers.resolvers.find((resolver) => (
 	&& '$$outputs' in resolver.projections
 ))
 
-const addressTimestampResolver = zcashdResolvers.resolvers.find((resolver) => (
-	resolver.entityType === EntityType.UtxoAddress_Timestamp
+const addressResolver = zcashdResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.UtxoAddress
+	&& 'address' in resolver.projections
+	&& '$$timestamps' in resolver.projections
 ))
 
 const transactionResolver = zcashdResolvers.resolvers.find((resolver) => (
@@ -92,7 +94,7 @@ if (utxoBlockResolver == null || networkBlocksResolver == null)
 if (networkTimestampResolver == null || networkTimestampsResolver == null)
 	throw new Error('Zcashd-JsonRpc spec missing network tip observation resolvers')
 
-if (addressOutputsResolver == null || addressTimestampResolver == null)
+if (addressOutputsResolver == null || addressResolver == null)
 	throw new Error('Zcashd-JsonRpc spec missing address UTXO resolvers')
 
 if (transactionResolver == null)
@@ -425,16 +427,17 @@ describe('Zcashd transparent UTXO', () => {
 			},
 		}])
 
-		const observation = await addressTimestampResolver.resolve.AddressTimestampMsSource.resolve({
-			$address: {
-				$network: network,
-				address,
-			},
-			timestampMs: 1,
-			source: Source.Zcashd_JsonRpc,
+		const snapshot = await addressResolver.resolve.NetworkAddress.resolve({
+			$network: network,
+			address,
 		}, resolverContext)
-		expect(addressTimestampResolver.projections.balanceSats(observation)).toBe(50_000_000n)
-		expect(addressTimestampResolver.projections.unspentOutputCount(observation)).toBe(1)
+		expect(addressResolver.projections.$$timestamps(snapshot)[0]?.[EntityMetaKey.Fields]).toEqual({
+			[entityFieldAddressKey(EntityType.UtxoAddress_Timestamp, [], 'balanceSats')]: 50_000_000n,
+			[entityFieldAddressKey(EntityType.UtxoAddress_Timestamp, [], 'unspentOutputCount')]: 1,
+		})
+		expect(zcashdResolvers.resolvers.some((resolver) => (
+			resolver.entityType === EntityType.UtxoAddress_Timestamp
+		))).toBe(false)
 	})
 
 	it('projects Network_Timestamp tip fields from block tip + getmempoolinfo', async () => {

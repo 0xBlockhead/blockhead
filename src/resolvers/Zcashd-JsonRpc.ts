@@ -572,6 +572,11 @@ export default {
 					appliesTo: zcashNetworkApplicability,
 					resolve: async ({ $network, address: addressSelector }) => {
 						assertZcashMainnet($network)
+						const { getTransparentAddressUtxos } = await import('$/sources/Zcashd/JsonRpc/queries.ts')
+						const scan = await getTransparentAddressUtxos({
+							address: addressSelector,
+							maxResults: 10_000,
+						})
 						return {
 							address: addressSelector,
 							$$timestamps: [
@@ -584,6 +589,10 @@ export default {
 										timestampMs: Date.now(),
 										source: Source.Zcashd_JsonRpc,
 									},
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.UtxoAddress_Timestamp, [], 'balanceSats')]: scan.totalAmountSatoshis,
+										[entityFieldAddressKey(EntityType.UtxoAddress_Timestamp, [], 'unspentOutputCount')]: scan.unspents.length,
+									},
 								},
 							],
 						}
@@ -593,39 +602,6 @@ export default {
 		})({
 			address: (address) => address.address,
 			$$timestamps: (address) => address.$$timestamps,
-		}),
-
-		defineResolver({
-			entityType: EntityType.UtxoAddress_Timestamp,
-			resolve: {
-				AddressTimestampMsSource: {
-					appliesTo: [
-						{
-							$address: zcashNetworkApplicability[0],
-							source: Source.Zcashd_JsonRpc,
-						},
-						{
-							$address: zcashNetworkApplicability[1],
-							source: Source.Zcashd_JsonRpc,
-						},
-					],
-					resolve: async ({ $address }) => {
-						assertZcashMainnet($address.$network)
-						const { getTransparentAddressUtxos } = await import('$/sources/Zcashd/JsonRpc/queries.ts')
-						const scan = await getTransparentAddressUtxos({
-							address: $address.address,
-							maxResults: 10_000,
-						})
-						return {
-							balanceSats: scan.totalAmountSatoshis,
-							unspentOutputCount: scan.unspents.length,
-						}
-					},
-				},
-			},
-		})({
-			balanceSats: (observation) => observation.balanceSats,
-			unspentOutputCount: (observation) => observation.unspentOutputCount,
 		}),
 
 		defineResolver({

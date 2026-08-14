@@ -1117,7 +1117,7 @@ describe('resolver registry live resolver architecture', () => {
 			&& sourceClaimParentMaterializers(claim).length > 0
 		))
 
-		expect(parentOwnedClaims).toHaveLength(236)
+		expect(parentOwnedClaims).toHaveLength(240)
 		expect(Object.entries(Object.groupBy(
 			parentOwnedClaims,
 			(claim) => claim.entityType
@@ -1150,7 +1150,7 @@ describe('resolver registry live resolver architecture', () => {
 			[EntityType.SolanaValidator_Timestamp, 7],
 			[EntityType.TronContract_Timestamp, 4],
 			[EntityType.TronToken_Timestamp, 5],
-			[EntityType.UtxoAddress_Timestamp, 30],
+			[EntityType.UtxoAddress_Timestamp, 34],
 			[EntityType.XrplLedger, 1],
 			[EntityType.XrplTransaction, 4],
 		])

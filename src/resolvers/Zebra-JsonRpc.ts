@@ -367,6 +367,11 @@ export default {
 				NetworkAddress: {
 					resolve: async ({ $network, address: addressSelector }) => {
 						assertZcashMainnet($network)
+						const { getTransparentAddressUtxos } = await import('$/sources/Zebra/JsonRpc/queries.ts')
+						const scan = await getTransparentAddressUtxos({
+							address: addressSelector,
+							maxResults: 10_000,
+						})
 						return {
 							address: addressSelector,
 							$$timestamps: [
@@ -379,6 +384,12 @@ export default {
 										timestampMs: Date.now(),
 										source: Source.Zebra_JsonRpc,
 									},
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.UtxoAddress_Timestamp, [], 'balanceSats')]: BigInt(
+											scan.utxos.reduce((total, utxo) => total + utxo.satoshis, 0)
+										),
+										[entityFieldAddressKey(EntityType.UtxoAddress_Timestamp, [], 'unspentOutputCount')]: scan.utxos.length,
+									},
 								},
 							],
 						}
@@ -388,49 +399,6 @@ export default {
 		})({
 			address: (address) => address.address,
 			$$timestamps: (address) => address.$$timestamps,
-		}),
-
-		defineResolver({
-			entityType: EntityType.UtxoAddress_Timestamp,
-			resolve: {
-				AddressTimestampMsSource: {
-					appliesTo: [
-						{
-							$address: {
-								$network: {
-									caip2: networkBySlug.zcash.caip2,
-								},
-							},
-							source: Source.Zebra_JsonRpc,
-						},
-						{
-							$address: {
-								$network: {
-									slug: networkBySlug.zcash.slug,
-								},
-							},
-							source: Source.Zebra_JsonRpc,
-						},
-					],
-					resolve: async ({ $address }) => {
-						assertZcashMainnet($address.$network)
-						const { getTransparentAddressUtxos } = await import('$/sources/Zebra/JsonRpc/queries.ts')
-						const scan = await getTransparentAddressUtxos({
-							address: $address.address,
-							maxResults: 10_000,
-						})
-						return {
-							balanceSats: BigInt(
-								scan.utxos.reduce((total, utxo) => total + utxo.satoshis, 0)
-							),
-							unspentOutputCount: scan.utxos.length,
-						}
-					},
-				},
-			},
-		})({
-			balanceSats: (observation) => observation.balanceSats,
-			unspentOutputCount: (observation) => observation.unspentOutputCount,
 		}),
 
 		defineResolver({
