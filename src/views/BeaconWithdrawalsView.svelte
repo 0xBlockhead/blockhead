@@ -32,7 +32,7 @@
 		selection({
 			...{
 				fields: {
-					indexInBlock: true,
+					withdrawalIndex: true,
 					amountGwei: true,
 					$block: {
 						fields: {
@@ -72,7 +72,7 @@
 			}
 		>
 			{#snippet Title()}
-				{`Withdrawal #${beaconWithdrawal.indexInBlock}`}
+				{`Withdrawal #${beaconWithdrawalSelector.withdrawalIndex}`}
 			{/snippet}
 
 			{#snippet Value()}

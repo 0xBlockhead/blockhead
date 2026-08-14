@@ -11702,7 +11702,7 @@ export const schema = {
 						},
 						summary: {
 							serial: {
-								field: "indexInBlock",
+								field: "withdrawalIndex",
 								label: "Withdrawal",
 							}, value: [{ field: "amountGwei", format: "numberValue", suffix: " gwei" }],
 							HeadingAfter: ["$block"],

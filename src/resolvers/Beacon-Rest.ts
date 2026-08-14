@@ -55,6 +55,16 @@ const eip155NetworkApplicability = [{
 	>>,
 ]
 
+const eip155BeaconBlockApplicability = [{
+	$block: {
+		$network: {
+			caip2: {
+				namespace: 'eip155',
+			},
+		},
+	},
+}] as const
+
 const eip155ChainId = (
 	network: EntitySelector<typeof schema, EntityType.Network>
 ) => {
@@ -1394,7 +1404,7 @@ export default {
 			entityType: EntityType.BeaconDeposit,
 			resolve: {
 				BlockIndexInBlock: {
-					appliesTo: eip155NetworkApplicability,
+					appliesTo: eip155BeaconBlockApplicability,
 					resolve: async ({ $block, indexInBlock }) => {
 						const { getBlockDutySummary } = await import('$/sources/Beacon/Rest/queries.ts')
 						const deposit = (
@@ -1435,7 +1445,7 @@ export default {
 			entityType: EntityType.BeaconAttestation,
 			resolve: {
 				BlockIndexInBlock: {
-					appliesTo: eip155NetworkApplicability,
+					appliesTo: eip155BeaconBlockApplicability,
 					resolve: async ({ $block, indexInBlock }) => {
 						const { getBlockDutySummary } = await import('$/sources/Beacon/Rest/queries.ts')
 						const attestation = (
@@ -1461,7 +1471,7 @@ export default {
 			entityType: EntityType.BeaconWithdrawal,
 			resolve: {
 				BlockWithdrawalIndex: {
-					appliesTo: eip155NetworkApplicability,
+					appliesTo: eip155BeaconBlockApplicability,
 					resolve: async ({ $block, withdrawalIndex }) => {
 						const { getBlockDutySummary } = await import('$/sources/Beacon/Rest/queries.ts')
 						const withdrawal = (
@@ -1506,7 +1516,7 @@ export default {
 			entityType: EntityType.BeaconSlashing,
 			resolve: {
 				BlockKindIndexInKind: {
-					appliesTo: eip155NetworkApplicability,
+					appliesTo: eip155BeaconBlockApplicability,
 					resolve: async ({ $block, kind, indexInKind }) => {
 						const { getBlockDutySummary } = await import('$/sources/Beacon/Rest/queries.ts')
 						const slashing = (

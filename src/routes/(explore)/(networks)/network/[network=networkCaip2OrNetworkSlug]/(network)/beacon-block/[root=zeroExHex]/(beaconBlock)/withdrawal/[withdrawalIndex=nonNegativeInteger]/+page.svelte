@@ -24,9 +24,6 @@
 		sources: [
 			Source.Beacon_Rest,
 		],
-		fields: {
-			indexInBlock: true,
-		},
 	}))
 
 
@@ -37,7 +34,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? 'beacon withdrawal' : (String(pageSelection.entity.indexInBlock ?? '') ? 'Withdrawal #' + String(pageSelection.entity.indexInBlock ?? '') : '') || 'beacon withdrawal')} • beacon withdrawal • Blockhead</title>
+	<title>{data.title ?? ((String(pageSelection.entitySelector.withdrawalIndex ?? '') ? 'Withdrawal #' + String(pageSelection.entitySelector.withdrawalIndex ?? '') : '') || 'beacon withdrawal')} • beacon withdrawal • Blockhead</title>
 </svelte:head>
 
 

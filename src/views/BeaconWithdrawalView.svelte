@@ -18,15 +18,13 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.BeaconWithdrawal> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.BeaconWithdrawal>, 'prefetched'> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const block = $derived(selection.entitySelector.$block)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
@@ -35,7 +33,6 @@
 	}))
 	const beaconWithdrawal = $derived(viewSelection({
 		fields: {
-			indexInBlock: true,
 			amountGwei: true,
 		},
 	}))
@@ -53,8 +50,8 @@
 <EntityView
 	entityType={EntityType.BeaconWithdrawal}
 	entitySelector={selection.entitySelector}
-	title={title ?? `Withdrawal #${pendingEntity.indexInBlock}`}
-	idDragPlainText={String(pendingEntity.indexInBlock ?? '')}
+	title={title ?? `Withdrawal #${selection.entitySelector.withdrawalIndex}`}
+	idDragPlainText={String(selection.entitySelector.withdrawalIndex)}
 	href={
 		href === undefined ?
 			resolve(
@@ -78,16 +75,12 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={beaconWithdrawal}>
-			{#snippet children(entity)}
-				<span data-row="inline align-center gap-2 wrap">
-					<span>Withdrawal </span>
-					<span data-badge="small">
-						#{entity.indexInBlock}
-					</span>
-				</span>
-			{/snippet}
-		</ResourceBoundary>
+		<span data-row="inline align-center gap-2 wrap">
+			<span>Withdrawal </span>
+			<span data-badge="small">
+				#{selection.entitySelector.withdrawalIndex}
+			</span>
+		</span>
 	{/snippet}
 
 	{#snippet Value()}
@@ -129,7 +122,13 @@
 				<dt>Index in block</dt>
 				<dd>
 					<ResourceBoundary
-						resource={beaconWithdrawal}
+						resource={
+							viewSelection({
+								fields: {
+									indexInBlock: true,
+								},
+							})
+						}
 					>
 						{#snippet children(entity)}
 							<NumberValue

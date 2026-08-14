@@ -29,7 +29,10 @@ test('Beacon operation lists render source-owned head-duty cards without child f
 	await page.route(`${beaconRestOrigin}/**`, async (route) => {
 		const url = new URL(route.request().url())
 		beaconRequests.push(url.pathname)
-		if (url.pathname === '/eth/v1/beacon/headers/head') {
+		if (
+			url.pathname === '/eth/v1/beacon/headers/head'
+			|| url.pathname === '/eth/v1/beacon/headers/123'
+		) {
 			await route.fulfill({
 				json: {
 					data: {
@@ -50,11 +53,19 @@ test('Beacon operation lists render source-owned head-duty cards without child f
 			})
 			return
 		}
-		if (url.pathname === '/eth/v2/beacon/blocks/123') {
+		if (url.pathname === `/eth/v2/beacon/blocks/0x${'11'.repeat(32)}`) {
 			await route.fulfill({
 				json: {
+					version: 'electra',
+					execution_optimistic: false,
+					finalized: true,
 					data: {
+						signature: `0x${'55'.repeat(96)}`,
 						message: {
+							slot: '123',
+							proposer_index: '12',
+							parent_root: `0x${'22'.repeat(32)}`,
+							state_root: `0x${'33'.repeat(32)}`,
 							body: {
 								deposits: [],
 								attestations: [{
@@ -66,6 +77,7 @@ test('Beacon operation lists render source-owned head-duty cards without child f
 								proposer_slashings: [{}],
 								attester_slashings: [{}],
 								execution_payload: {
+									block_hash: `0x${'66'.repeat(32)}`,
 									withdrawals: [{
 										index: '7',
 										validator_index: '12',
@@ -97,10 +109,13 @@ test('Beacon operation lists render source-owned head-duty cards without child f
 	await expect(page.locator('#main [data-error], #main [role="alert"]')).toHaveCount(0)
 	await expect.poll(() => beaconRequests).toEqual([
 		'/eth/v1/beacon/headers/head',
-		'/eth/v2/beacon/blocks/123',
+		'/eth/v1/beacon/headers/123',
+		`/eth/v2/beacon/blocks/0x${'11'.repeat(32)}`,
 		'/eth/v1/beacon/headers/head',
-		'/eth/v2/beacon/blocks/123',
+		'/eth/v1/beacon/headers/123',
+		`/eth/v2/beacon/blocks/0x${'11'.repeat(32)}`,
 		'/eth/v1/beacon/headers/head',
-		'/eth/v2/beacon/blocks/123',
+		'/eth/v1/beacon/headers/123',
+		`/eth/v2/beacon/blocks/0x${'11'.repeat(32)}`,
 	])
 })
