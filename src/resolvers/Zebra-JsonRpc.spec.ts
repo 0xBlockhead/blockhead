@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { networkBySlug } from '$/constants/Network.ts'
+import { networkBySlug, NetworkLedgerModel } from '$/constants/Network.ts'
 import { entityFieldAddressKey, EntityMetaKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
@@ -280,5 +280,130 @@ describe('Zebra UTXO tip leftovers', () => {
 			height: 1n,
 			hash: blockHash,
 		}, resolverContext)).rejects.toThrow('Zebra_JsonRpc: unsupported Zcash network')
+	})
+})
+
+describe('Zebra live network head', () => {
+	beforeEach(() => {
+		getBlockCount.mockReset()
+		getBlockHash.mockReset()
+		getBlock.mockReset()
+		getMempoolInfo.mockReset()
+		vi.useFakeTimers()
+	})
+
+	it('polls block tip and mempool into a live Network_Timestamp', async () => {
+		const network = {
+			slug: networkBySlug.zcash.slug,
+		}
+		const networkHeadResolver = zebraResolvers.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.Network
+			&& 'networkHead' in resolver.resolveLive
+		))
+		if (networkHeadResolver == null)
+			throw new Error('Zebra-JsonRpc missing Network networkHead resolveLive')
+
+		getBlockCount.mockResolvedValue(2_800_000)
+		getBlockHash.mockResolvedValue(blockHash)
+		getBlock.mockResolvedValue(tipBlock)
+		getMempoolInfo.mockResolvedValue({
+			loaded: true,
+			size: 17,
+			bytes: 9_001,
+			usage: 10_000,
+			total_fee: 0.05,
+			maxmempool: 300_000_000,
+			mempoolminfee: 0.00001,
+			minrelaytxfee: 0.00001,
+		})
+
+		const replaceTimestamps = vi.fn()
+		const abortController = new AbortController()
+		const stop = networkHeadResolver.resolveLive.networkHead.start({
+			fields: {
+				'$$timestamps': {
+					replaceRows: replaceTimestamps,
+					invalidate: vi.fn(),
+					count: {
+						replaceRows: vi.fn(),
+						invalidate: vi.fn(),
+					},
+				},
+			},
+			parentEntitySelector: network,
+			queryClient: {},
+			signal: abortController.signal,
+			trigger: resolverContext,
+		})
+		await vi.waitFor(() => expect(replaceTimestamps).toHaveBeenCalledOnce())
+
+		const row = replaceTimestamps.mock.calls[0]?.[0]?.[0]?.value[0]
+		if (row == null)
+			throw new Error('Zebra live network head did not publish a row')
+
+		expect(row[EntityMetaKey.Selector]).toMatchObject({
+			$network: network,
+			source: Source.Zebra_JsonRpc,
+		})
+		expect(row[EntityMetaKey.Fields]).toMatchObject({
+			[entityFieldAddressKey(EntityType.Network_Timestamp, [], 'ledgerModels')]: [NetworkLedgerModel.Utxo],
+			[entityFieldAddressKey(EntityType.Network_Timestamp, [], 'executionModels')]: [],
+			[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'bestBlockHeight')]: 2_800_000n,
+			[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'bestBlockHash')]: blockHash,
+			[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'bestBlockTimeMs')]: 1_750_000_000_000,
+			[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'blockCount')]: 2_800_001n,
+			[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'mempoolTransactionCount')]: 17,
+			[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'mempoolSizeBytes')]: 9_001n,
+		})
+		expect(getBlockCount).toHaveBeenCalled()
+		expect(getBlockHash).toHaveBeenCalledWith({
+			height: 2_800_000n,
+		})
+		expect(getBlock).toHaveBeenCalledWith({
+			blockHash,
+		})
+		expect(getMempoolInfo).toHaveBeenCalled()
+
+		abortController.abort()
+		stop()
+	})
+
+	it('invalidates Network.Utxo.$$blocks only when the tip height changes', async () => {
+		const network = {
+			slug: networkBySlug.zcash.slug,
+		}
+		if (!('utxoHead' in networkBlocksResolver.resolveLive))
+			throw new Error('Zebra-JsonRpc missing Network.Utxo utxoHead resolveLive')
+
+		getBlockCount
+			.mockResolvedValueOnce(2_800_000)
+			.mockResolvedValueOnce(2_800_000)
+			.mockResolvedValueOnce(2_800_001)
+		const invalidateBlocks = vi.fn()
+		const abortController = new AbortController()
+		const stop = networkBlocksResolver.resolveLive.utxoHead.start({
+			fields: {
+				'$$blocks': {
+					replaceRows: vi.fn(),
+					invalidate: invalidateBlocks,
+					count: {
+						replaceRows: vi.fn(),
+						invalidate: vi.fn(),
+					},
+				},
+			},
+			parentEntitySelector: network,
+			queryClient: {},
+			signal: abortController.signal,
+			trigger: resolverContext,
+		})
+		await vi.waitFor(() => expect(invalidateBlocks).toHaveBeenCalledOnce())
+		await vi.advanceTimersByTimeAsync(15_000)
+		expect(invalidateBlocks).toHaveBeenCalledOnce()
+		await vi.advanceTimersByTimeAsync(15_000)
+		expect(invalidateBlocks).toHaveBeenCalledTimes(2)
+
+		abortController.abort()
+		stop()
 	})
 })

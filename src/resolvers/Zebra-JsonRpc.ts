@@ -443,6 +443,50 @@ export default {
 					resolve: resolveUtxoBlocks,
 				},
 			},
+			resolveLive: {
+				utxoHead: {
+					facetPath: ['Utxo'],
+					publishes: {
+						'$$blocks': true,
+					},
+					start: ({
+						fields,
+						parentEntitySelector,
+						signal,
+					}) => {
+						assertZcashMainnet(parentEntitySelector)
+						let timeout: ReturnType<typeof setTimeout> | undefined
+						let lastHeight: number | undefined
+						const poll = async () => {
+							try {
+								if (signal.aborted)
+									return
+								const { getBlockCount } = await import('$/sources/Zebra/JsonRpc/queries.ts')
+								const tipHeight = await getBlockCount()
+								if (lastHeight !== tipHeight) {
+									lastHeight = tipHeight
+									fields.$$blocks.invalidate()
+								}
+							} catch (error) {
+								console.error('Zebra_JsonRpc live UTXO head failed', error)
+							}
+							if (signal.aborted)
+								return
+							timeout = setTimeout(() => { void poll() }, 15_000)
+						}
+						const abort = () => {
+							if (timeout != null)
+								clearTimeout(timeout)
+						}
+						signal.addEventListener('abort', abort, { once: true })
+						void poll()
+						return () => {
+							signal.removeEventListener('abort', abort)
+							abort()
+						}
+					},
+				},
+			},
 		})({
 			Utxo: {
 				$$blocks: {
@@ -460,6 +504,64 @@ export default {
 				},
 				Slug: {
 					resolve: resolveNetworkTipTimestamps,
+				},
+			},
+			resolveLive: {
+				networkHead: {
+					facetPath: [],
+					publishes: {
+						'$$timestamps': true,
+					},
+					start: ({
+						fields,
+						parentEntitySelector,
+						signal,
+					}) => {
+						assertZcashMainnet(parentEntitySelector)
+						let timeout: ReturnType<typeof setTimeout> | undefined
+						const poll = async () => {
+							try {
+								if (signal.aborted)
+									return
+								const tip = await resolveNetworkTipObservation(parentEntitySelector)
+								fields.$$timestamps.replaceRows([{
+									source: Source.Zebra_JsonRpc,
+									value: [{
+										[EntityMetaKey.Selector]: {
+											$network: parentEntitySelector,
+											timestampMs: Date.now(),
+											source: Source.Zebra_JsonRpc,
+										},
+										[EntityMetaKey.Fields]: {
+											[entityFieldAddressKey(EntityType.Network_Timestamp, [], 'ledgerModels')]: [NetworkLedgerModel.Utxo],
+											[entityFieldAddressKey(EntityType.Network_Timestamp, [], 'executionModels')]: [],
+											[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'bestBlockHeight')]: tip.bestBlockHeight,
+											[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'bestBlockHash')]: tip.bestBlockHash,
+											[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'bestBlockTimeMs')]: tip.bestBlockTimeMs,
+											[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'blockCount')]: tip.blockCount,
+											[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'mempoolTransactionCount')]: tip.mempoolTransactionCount,
+											[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'mempoolSizeBytes')]: tip.mempoolSizeBytes,
+										},
+									}],
+								}])
+							} catch (error) {
+								console.error('Zebra_JsonRpc live network head failed', error)
+							}
+							if (signal.aborted)
+								return
+							timeout = setTimeout(() => { void poll() }, 15_000)
+						}
+						const abort = () => {
+							if (timeout != null)
+								clearTimeout(timeout)
+						}
+						signal.addEventListener('abort', abort, { once: true })
+						void poll()
+						return () => {
+							signal.removeEventListener('abort', abort)
+							abort()
+						}
+					},
 				},
 			},
 		})({
