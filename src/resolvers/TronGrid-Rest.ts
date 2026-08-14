@@ -552,6 +552,7 @@ export default {
 						)
 						const createdTimestampMs = account.create_time
 						const latestOperationTimestampMs = account.latest_opration_time
+						const observationTimestampMs = latestOperationTimestampMs ?? createdTimestampMs
 						const freeNetUsed = bigintFromNumberOrString(accountResource.freeNetUsed)
 						const freeNetLimit = bigintFromNumberOrString(accountResource.freeNetLimit)
 						const netUsed = bigintFromNumberOrString(accountResource.NetUsed)
@@ -560,47 +561,50 @@ export default {
 						const energyLimit = bigintFromNumberOrString(accountResource.EnergyLimit)
 						return {
 							name: account.account_name,
-							$$timestamps: [
-								{
-									[EntityMetaKey.Selector]: {
-										$account: {
-											$network,
-											address,
+							$$timestamps: observationTimestampMs == null ?
+								[]
+							:
+								[
+									{
+										[EntityMetaKey.Selector]: {
+											$account: {
+												$network,
+												address,
+											},
+											timestampMs: observationTimestampMs,
+											source: Source.TronGrid_Rest,
 										},
-										timestampMs: latestOperationTimestampMs ?? createdTimestampMs ?? Date.now(),
-										source: Source.TronGrid_Rest,
+										[EntityMetaKey.Fields]: {
+											...(balanceSun != null && {
+												[entityFieldAddressKey(EntityType.TronAccount_Timestamp, [], 'balanceSun')]: balanceSun,
+											}),
+											...(createdTimestampMs != null && {
+												[entityFieldAddressKey(EntityType.TronAccount_Timestamp, [], 'createdTimestampMs')]: createdTimestampMs,
+											}),
+											...(latestOperationTimestampMs != null && {
+												[entityFieldAddressKey(EntityType.TronAccount_Timestamp, [], 'latestOperationTimestampMs')]: latestOperationTimestampMs,
+											}),
+											...(freeNetUsed != null && {
+												[entityFieldAddressKey(EntityType.TronAccount_Timestamp, [], 'freeNetUsed')]: freeNetUsed,
+											}),
+											...(freeNetLimit != null && {
+												[entityFieldAddressKey(EntityType.TronAccount_Timestamp, [], 'freeNetLimit')]: freeNetLimit,
+											}),
+											...(netUsed != null && {
+												[entityFieldAddressKey(EntityType.TronAccount_Timestamp, [], 'netUsed')]: netUsed,
+											}),
+											...(netLimit != null && {
+												[entityFieldAddressKey(EntityType.TronAccount_Timestamp, [], 'netLimit')]: netLimit,
+											}),
+											...(energyUsed != null && {
+												[entityFieldAddressKey(EntityType.TronAccount_Timestamp, [], 'energyUsed')]: energyUsed,
+											}),
+											...(energyLimit != null && {
+												[entityFieldAddressKey(EntityType.TronAccount_Timestamp, [], 'energyLimit')]: energyLimit,
+											}),
+										},
 									},
-									[EntityMetaKey.Fields]: {
-										...(balanceSun != null && {
-											[entityFieldAddressKey(EntityType.TronAccount_Timestamp, [], 'balanceSun')]: balanceSun,
-										}),
-										...(createdTimestampMs != null && {
-											[entityFieldAddressKey(EntityType.TronAccount_Timestamp, [], 'createdTimestampMs')]: createdTimestampMs,
-										}),
-										...(latestOperationTimestampMs != null && {
-											[entityFieldAddressKey(EntityType.TronAccount_Timestamp, [], 'latestOperationTimestampMs')]: latestOperationTimestampMs,
-										}),
-										...(freeNetUsed != null && {
-											[entityFieldAddressKey(EntityType.TronAccount_Timestamp, [], 'freeNetUsed')]: freeNetUsed,
-										}),
-										...(freeNetLimit != null && {
-											[entityFieldAddressKey(EntityType.TronAccount_Timestamp, [], 'freeNetLimit')]: freeNetLimit,
-										}),
-										...(netUsed != null && {
-											[entityFieldAddressKey(EntityType.TronAccount_Timestamp, [], 'netUsed')]: netUsed,
-										}),
-										...(netLimit != null && {
-											[entityFieldAddressKey(EntityType.TronAccount_Timestamp, [], 'netLimit')]: netLimit,
-										}),
-										...(energyUsed != null && {
-											[entityFieldAddressKey(EntityType.TronAccount_Timestamp, [], 'energyUsed')]: energyUsed,
-										}),
-										...(energyLimit != null && {
-											[entityFieldAddressKey(EntityType.TronAccount_Timestamp, [], 'energyLimit')]: energyLimit,
-										}),
-									},
-								},
-							],
+								],
 						}
 					},
 				}

@@ -193,6 +193,29 @@ describe('TronGrid REST network relationships', () => {
 		}])
 	})
 
+	it('omits account observations when TronGrid returns no authoritative clock', async () => {
+		getAccount.mockResolvedValueOnce({
+			balance: 42,
+		})
+		getAccountResource.mockResolvedValueOnce({})
+
+		const resolver = tronGridRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.TronAccount
+			&& '$$timestamps' in candidate.projections
+		))
+		if (resolver == null) throw new Error('Tron account resolver is missing')
+
+		const account = {
+			$network: {
+				caip2: networkBySlug.tron.caip2,
+			},
+			address: 'TExampleAccount',
+		}
+		const resolved = await resolver.resolve['NetworkAddress'].resolve(account, resolverContext)
+
+		expect(resolver.projections.$$timestamps(resolved)).toEqual([])
+	})
+
 	it('embeds witness observations through canonical field addresses', async () => {
 		getNowBlock.mockResolvedValueOnce({
 			block_header: {

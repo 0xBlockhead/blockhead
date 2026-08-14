@@ -1991,15 +1991,25 @@ export default {
 				NetworkAccountId: {
 					resolve: async (hederaAccount, context) => {
 						assertHederaMainnet(hederaAccount.$network)
-						const { getAccountTokens } = await import('$/sources/HederaMirrorNode/Rest/queries.ts')
-
-						return {
-							page: await getAccountTokens(
+						const {
+							getAccount,
+							getAccountTokens,
+						} = await import('$/sources/HederaMirrorNode/Rest/queries.ts')
+						const [
+							page,
+							account,
+						] = await Promise.all([
+							getAccountTokens(
 								hederaAccount.accountId,
 								Math.min(resolverContextRowLimit(context), 100),
 								context.providerContinuationToken
 							),
-							resolvedAtMs: Date.now(),
+							getAccount(hederaAccount.accountId),
+						])
+
+						return {
+							page,
+							resolvedAtMs: timestampMs(account.balance.timestamp, 'account balance timestamp'),
 						}
 					},
 				},
@@ -2918,14 +2928,24 @@ export default {
 					resolve: async (associationSelector) => {
 						assertHederaMainnet(associationSelector.$account.$network)
 						assertHederaMainnet(associationSelector.$token.$network)
-						const { getAccountToken } = await import('$/sources/HederaMirrorNode/Rest/queries.ts')
-						return hederaTokenAssociationSnapshot(
-							associationSelector,
-							await getAccountToken(
+						const {
+							getAccount,
+							getAccountToken,
+						} = await import('$/sources/HederaMirrorNode/Rest/queries.ts')
+						const [
+							token,
+							account,
+						] = await Promise.all([
+							getAccountToken(
 								associationSelector.$account.accountId,
 								associationSelector.$token.tokenId
 							),
-							Date.now()
+							getAccount(associationSelector.$account.accountId),
+						])
+						return hederaTokenAssociationSnapshot(
+							associationSelector,
+							token,
+							timestampMs(account.balance.timestamp, 'account balance timestamp')
 						)
 					},
 				},

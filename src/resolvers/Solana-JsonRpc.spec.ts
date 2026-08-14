@@ -62,6 +62,7 @@ const {
 	getBlocks: vi.fn().mockResolvedValue([100]),
 	getBlock: vi.fn().mockResolvedValue({
 		blockhash: 'block-hash',
+		blockTime: 1_784_678_400,
 		parentSlot: 99,
 		previousBlockhash: 'parent-hash',
 		transactions: [{
@@ -193,6 +194,42 @@ const startSlotStreamLive = (
 })
 
 describe('Solana JSON-RPC network state lists', () => {
+	beforeEach(() => {
+		getBlock.mockClear()
+		getSlot.mockClear()
+		getBlocks.mockClear()
+	})
+
+	it('anchors network head observations to finalized head blockTime', async () => {
+		getSlot.mockResolvedValueOnce(4242)
+		vi.mocked(getBlock).mockResolvedValueOnce({
+			blockhash: 'head-hash',
+			blockTime: 1_784_678_401,
+			parentSlot: 4241,
+			previousBlockhash: 'parent-hash',
+			transactions: [],
+		})
+
+		const timestamps = networkTimestampsResolver.projections.$$timestamps(
+			await networkTimestampsResolver.resolve['Caip2'].resolve(networkSelector, context)
+		)
+
+		expect(getBlock).toHaveBeenCalledWith({
+			slot: 4242n,
+		})
+		expect(timestamps).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$network: networkSelector,
+				timestampMs: 1_784_678_401_000,
+				source: Source.Solana_JsonRpc,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.Network_Timestamp, ['Solana'], 'absoluteSlot')]: 4242n,
+				[entityFieldAddressKey(EntityType.Network_Timestamp, ['Solana'], 'blockHeight')]: 90n,
+			},
+		}])
+	})
+
 	it('projects native program-account and upgrade-authority relationships', async () => {
 		vi.mocked(getProgramInfo).mockResolvedValueOnce({
 			loaderAddress: 'loader',
@@ -508,7 +545,11 @@ describe('SolanaAccount.$$tokenAccounts from getTokenAccountsByOwner', () => {
 })
 
 describe('Solana JSON-RPC Network slotSubscribe resolveLive canary', () => {
-	const observedAtMs = 1_784_678_400_000
+	beforeEach(() => {
+		getBlock.mockClear()
+		getSlot.mockClear()
+		subscribeSlot.mockClear()
+	})
 
 	it('declares slotStream publishing $$timestamps only', () => {
 		expect(networkTimestampsResolver.resolveLive.slotStream).toMatchObject({
@@ -521,7 +562,13 @@ describe('Solana JSON-RPC Network slotSubscribe resolveLive canary', () => {
 	})
 
 	it('publishes $$timestamps absoluteSlot from slotSubscribe push only', async () => {
-		vi.spyOn(Date, 'now').mockReturnValue(observedAtMs)
+		getBlock.mockImplementation(async ({ slot }) => ({
+			blockhash: `block-${slot.toString()}`,
+			blockTime: Number(slot) + 1_784_678_000,
+			parentSlot: Number(slot) - 1,
+			previousBlockhash: 'parent-hash',
+			transactions: [],
+		}))
 		getSlot.mockClear()
 		subscribeSlot.mockImplementation(async function* () {
 			yield {
@@ -545,13 +592,14 @@ describe('Solana JSON-RPC Network slotSubscribe resolveLive canary', () => {
 		})
 		expect(subscribeSlot.mock.calls[0][1]).toBeInstanceOf(AbortSignal)
 		expect(getSlot).not.toHaveBeenCalled()
+		expect(getBlock).toHaveBeenCalledTimes(2)
 		expect(fields.$$timestamps.replaceRows).toHaveBeenCalledTimes(2)
 		expect(fields.$$timestamps.replaceRows).toHaveBeenNthCalledWith(1, [{
 			source: Source.Solana_JsonRpc,
 			value: [{
 				[EntityMetaKey.Selector]: {
 					$network: networkSelector,
-					timestampMs: observedAtMs,
+					timestampMs: 1_784_678_373_000,
 					source: Source.Solana_JsonRpc,
 				},
 				[EntityMetaKey.Fields]: {
@@ -564,7 +612,7 @@ describe('Solana JSON-RPC Network slotSubscribe resolveLive canary', () => {
 			value: [{
 				[EntityMetaKey.Selector]: {
 					$network: networkSelector,
-					timestampMs: observedAtMs,
+					timestampMs: 1_784_678_374_000,
 					source: Source.Solana_JsonRpc,
 				},
 				[EntityMetaKey.Fields]: {

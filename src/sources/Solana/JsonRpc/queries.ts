@@ -757,21 +757,36 @@ export const getVoteAccounts = async ({
 	votePubkey,
 }: {
 	votePubkey?: string
-}) => ({
-	...(assertEnvelope(
-		'vote accounts',
-		solanaVoteAccountsWire,
-		await jsonRpc2<unknown>(binding, 'getVoteAccounts', [
-			{
-				commitment: 'finalized',
-				...(votePubkey != null && {
-					votePubkey,
-				}),
-			},
-		])
-	) as SolanaRpcVoteAccounts),
-	observedAtMs: Date.now(),
-})
+}) => {
+	const [
+		voteAccounts,
+		slot,
+	] = await Promise.all([
+		assertEnvelope(
+			'vote accounts',
+			solanaVoteAccountsWire,
+			await jsonRpc2<unknown>(binding, 'getVoteAccounts', [
+				{
+					commitment: 'finalized',
+					...(votePubkey != null && {
+						votePubkey,
+					}),
+				},
+			])
+		) as SolanaRpcVoteAccounts,
+		getSlot(),
+	])
+	const block = await getBlock({
+		slot: BigInt(slot),
+	})
+	if (block?.blockTime == null)
+		throw new Error(`${Source.Solana_JsonRpc}: finalized head block has no blockTime`)
+
+	return {
+		...voteAccounts,
+		observedAtMs: block.blockTime * 1000,
+	}
+}
 
 // slotSubscribe — https://solana.com/docs/rpc/websocket/slotsubscribe
 // PublicNode RemoteLive wss://solana-rpc.publicnode.com

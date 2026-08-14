@@ -582,7 +582,14 @@ describe('Solana account / validator / epoch JSON-RPC envelopes', () => {
 			}],
 			delinquent: [],
 		}))
-		vi.spyOn(Date, 'now').mockReturnValueOnce(1_784_678_400_000)
+		sourceFetch.mockResolvedValueOnce(rpcResponse(4242))
+		sourceFetch.mockResolvedValueOnce(rpcResponse({
+			blockhash: 'head-hash',
+			blockTime: 1_784_678_400,
+			parentSlot: 4241,
+			previousBlockhash: 'parent-hash',
+			transactions: [],
+		}))
 		await expect(getVoteAccounts({})).resolves.toMatchObject({
 			observedAtMs: 1_784_678_400_000,
 			current: [

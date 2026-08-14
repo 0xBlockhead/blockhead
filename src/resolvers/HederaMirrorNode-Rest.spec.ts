@@ -1721,7 +1721,7 @@ describe('Hedera Mirror Node account assets and allowances', () => {
 			[entityFieldAddressKey(EntityType.HederaAllowance_Timestamp, [], 'amount')]: 9_007_199_254_740_993n,
 		})
 
-		vi.spyOn(Date, 'now').mockReturnValueOnce(1_784_678_400_000)
+		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify(accountFixture)))
 		const associationSelector = {
 			$account: allowanceSelector.$owner,
 			$token: {
@@ -1737,7 +1737,7 @@ describe('Hedera Mirror Node account assets and allowances', () => {
 			associationSelector,
 			context
 		)[0][EntityMetaKey.Selector]).toMatchObject({
-			timestampMs: 1_784_678_400_000,
+			timestampMs: 1_710_000_000_123,
 			source: Source.HederaMirrorNode_Rest,
 		})
 	})
@@ -1750,12 +1750,14 @@ describe('Hedera Mirror Node account assets and allowances', () => {
 					next: null,
 				},
 			} satisfies HederaMirrorNodeAccountTokens)))
+			.mockResolvedValueOnce(new Response(JSON.stringify(accountFixture)))
 			.mockResolvedValueOnce(new Response(JSON.stringify({
 				tokens: [],
 				links: {
 					next: null,
 				},
 			} satisfies HederaMirrorNodeAccountTokens)))
+			.mockResolvedValueOnce(new Response(JSON.stringify(accountFixture)))
 			.mockResolvedValueOnce(new Response(JSON.stringify({
 				nfts: [nftFixture],
 				links: {
@@ -1788,6 +1790,12 @@ describe('Hedera Mirror Node account assets and allowances', () => {
 				$network: network,
 				tokenId: '0.0.700',
 			},
+		})
+		expect(tokenRows[0][EntityMetaKey.Fields]?.[
+			entityFieldAddressKey(EntityType.HederaTokenAssociation, [], '$$timestamps')
+		]?.[0][EntityMetaKey.Selector]).toMatchObject({
+			timestampMs: 1_710_000_000_123,
+			source: Source.HederaMirrorNode_Rest,
 		})
 		expect(tokenRows[0][EntityMetaKey.Fields]?.[
 			entityFieldAddressKey(EntityType.HederaTokenAssociation, [], '$$timestamps')
