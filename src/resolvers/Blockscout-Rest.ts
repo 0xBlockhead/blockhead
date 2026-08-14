@@ -1155,6 +1155,43 @@ const evmTraceEntitiesFromBlockscoutRawTrace = ({
 	})
 }
 
+const evmTraceReference = (
+	trace: Entity<typeof schema, EntityType.EvmTrace>
+) => ({
+	[EntityMetaKey.Selector]: trace[EntityMetaKey.Selector],
+	[EntityMetaKey.Fields]: {
+		[entityFieldAddressKey(EntityType.EvmTrace, [], '$transaction')]: trace.$transaction,
+		[entityFieldAddressKey(EntityType.EvmTrace, [], 'traceAddress')]: trace.traceAddress,
+		[entityFieldAddressKey(EntityType.EvmTrace, [], 'index')]: trace.index,
+		[entityFieldAddressKey(EntityType.EvmTrace, [], 'type')]: trace.type,
+		...(trace.$from != null && {
+			[entityFieldAddressKey(EntityType.EvmTrace, [], '$from')]: trace.$from,
+		}),
+		...(trace.$to != null && {
+			[entityFieldAddressKey(EntityType.EvmTrace, [], '$to')]: trace.$to,
+		}),
+		...(trace.value != null && {
+			[entityFieldAddressKey(EntityType.EvmTrace, [], 'value')]: trace.value,
+		}),
+		...(trace.gas != null && {
+			[entityFieldAddressKey(EntityType.EvmTrace, [], 'gas')]: trace.gas,
+		}),
+		...(trace.gasUsed != null && {
+			[entityFieldAddressKey(EntityType.EvmTrace, [], 'gasUsed')]: trace.gasUsed,
+		}),
+		...(trace.input != null && {
+			[entityFieldAddressKey(EntityType.EvmTrace, [], 'input')]: trace.input,
+		}),
+		...(trace.output != null && {
+			[entityFieldAddressKey(EntityType.EvmTrace, [], 'output')]: trace.output,
+		}),
+		...(trace.error != null && {
+			[entityFieldAddressKey(EntityType.EvmTrace, [], 'error')]: trace.error,
+		}),
+		[entityFieldAddressKey(EntityType.EvmTrace, [], '$$children')]: trace.$$children,
+	},
+})
+
 const evmTokenTransferReference = (
 	entity: NonNullable<ReturnType<typeof evmTokenTransferEntityFromWire>>
 ) => ({
@@ -3704,9 +3741,67 @@ export default {
 				},
 			},
 		})({
-			$$traces: (entity) => entity.map((trace) => ({
-				[EntityMetaKey.Selector]: trace[EntityMetaKey.Selector],
-			})),
+			$$traces: (entity) => entity.map(evmTraceReference),
+		}),
+
+		defineResolver({
+			entityType: EntityType.EvmTrace,
+			resolve: {
+				TransactionTraceAddress: {
+					resolve: async ({ $transaction, traceAddress }) => {
+						const {
+							getTransactionByHash,
+							getTransactionRawTrace,
+						} = await import('$/sources/Blockscout/Rest/queries.ts')
+						const chainId = evmChainIdFromNetworkSelector($transaction.$network)
+						const [transaction, wires] = await Promise.all([
+							getTransactionByHash({
+								chainId,
+								txHash: $transaction.txHash,
+							}),
+							getTransactionRawTrace({
+								chainId,
+								txHash: $transaction.txHash,
+							}),
+						])
+						const revertReason = transaction?.revert_reason
+						const trace = evmTraceEntitiesFromBlockscoutRawTrace({
+							$network: $transaction.$network,
+							txHash: $transaction.txHash,
+							wires,
+							rootError: (
+								revertReason == null ?
+									transaction?.status === 'error' ?
+										'Execution reverted'
+									:
+										undefined
+								: 'raw' in revertReason ?
+									revertReason.raw ?? undefined
+								:
+									revertReason.method_call ?? revertReason.method_id ?? 'Reverted'
+							),
+						}).find((candidate) => candidate.traceAddress === traceAddress)
+						if (trace == null)
+							throw new Error('Blockscout_Rest: trace not found for EvmTrace')
+
+						return trace
+					},
+				},
+			},
+		})({
+			$transaction: (trace) => trace.$transaction,
+			traceAddress: (trace) => trace.traceAddress,
+			index: (trace) => trace.index,
+			type: (trace) => trace.type,
+			$from: (trace) => trace.$from,
+			$to: (trace) => trace.$to,
+			value: (trace) => trace.value,
+			gas: (trace) => trace.gas,
+			gasUsed: (trace) => trace.gasUsed,
+			input: (trace) => trace.input,
+			output: (trace) => trace.output,
+			error: (trace) => trace.error,
+			$$children: (trace) => trace.$$children,
 		}),
 
 		defineResolver({

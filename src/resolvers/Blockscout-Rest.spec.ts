@@ -1631,3 +1631,49 @@ describe('Blockscout EvmBlock / Blob enrolled leftovers', () => {
 		})
 	})
 })
+
+describe('Blockscout EvmTrace embedding', () => {
+	it('projects full Blockscout trace fields onto EvmTransaction.$$traces', async () => {
+		getTransactionByHash.mockResolvedValue({
+			status: 'ok',
+		})
+		getTransactionRawTrace.mockResolvedValue([
+			{
+				action: {
+					from: '0x1111111111111111111111111111111111111111',
+					gas: '0x5208',
+					input: '0x',
+					to: '0x2222222222222222222222222222222222222222',
+					value: '0x0',
+				},
+				result: {
+					gasUsed: '0x5208',
+					output: '0x',
+				},
+				subtraces: 0,
+				traceAddress: [],
+				type: 'call',
+			},
+		])
+		const resolver = blockscoutRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.EvmTransaction
+			&& '$$traces' in candidate.projections
+		))
+		if (resolver == null)
+			throw new Error('Blockscout EvmTransaction trace resolver is not registered')
+
+		const traces = await resolver.resolve.EvmNetworkTxHash.resolve({
+			$network: network,
+			txHash,
+		}, context)
+		expect(resolver.projections.$$traces(traces)).toMatchObject([{
+			[EntityMetaKey.Selector]: {
+				traceAddress: 'root',
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.EvmTrace, [], 'type')]: 'Call',
+				[entityFieldAddressKey(EntityType.EvmTrace, [], 'gas')]: 21_000n,
+			},
+		}])
+	})
+})
