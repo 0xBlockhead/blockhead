@@ -5,6 +5,7 @@ import {
 } from '$/resolvers/defineResolver.ts'
 import { mediaFromUrl } from '$/resolvers/media.ts'
 import {
+	entityFieldAddressKey,
 	EntityMetaKey,
 	type EntitySelector,
 } from '$/schema/$schema.ts'
@@ -301,12 +302,30 @@ export default {
 							limit: resolverContextRowLimit(context),
 						})
 						return {
-							markets: page.markets.map((market) => ({
-								[EntityMetaKey.Selector]: {
-									$network: network,
-									marketAddress: market.marketAddress,
-								},
-							})),
+							markets: page.markets.map((market) => {
+								const fields = mapPendleMarketSnapshot(network, market)
+								return {
+									[EntityMetaKey.Selector]: {
+										$network: network,
+										marketAddress: market.marketAddress,
+									},
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.PendleMarket, [], 'name')]: fields.name,
+										[entityFieldAddressKey(EntityType.PendleMarket, [], 'protocol')]: fields.protocol,
+										...(fields.icon != null && {
+											[entityFieldAddressKey(EntityType.PendleMarket, [], 'icon')]: fields.icon,
+										}),
+										...(fields.$icon != null && {
+											[entityFieldAddressKey(EntityType.PendleMarket, [], '$icon')]: fields.$icon,
+										}),
+										[entityFieldAddressKey(EntityType.PendleMarket, [], 'expiryTimestampMs')]: fields.expiryTimestampMs,
+										[entityFieldAddressKey(EntityType.PendleMarket, [], 'ptAddress')]: fields.ptAddress,
+										[entityFieldAddressKey(EntityType.PendleMarket, [], 'ytAddress')]: fields.ytAddress,
+										[entityFieldAddressKey(EntityType.PendleMarket, [], 'syAddress')]: fields.syAddress,
+										[entityFieldAddressKey(EntityType.PendleMarket, [], 'underlyingAssetAddress')]: fields.underlyingAssetAddress,
+									},
+								}
+							}),
 							marketCount: page.total,
 							marketOffset: page.skip,
 						}

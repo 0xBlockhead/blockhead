@@ -6,7 +6,10 @@ import {
 	vi,
 } from 'vitest'
 
-import { EntityMetaKey } from '$/schema/$schema.ts'
+import {
+	entityFieldAddressKey,
+	EntityMetaKey,
+} from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import bindings from '$/sources/Pendle/bindings.ts'
 import { Source } from '$/sources/Source.ts'
@@ -627,11 +630,16 @@ describe('Pendle Rest resolver module', () => {
 
 		const snapshot = await networkResolver.resolve.Caip2.resolve(baseNetwork, context)
 
-		expect(networkResolver.projections.Evm.$$pendleMarkets.select(snapshot)).toEqual([
+		expect(networkResolver.projections.Evm.$$pendleMarkets.select(snapshot)).toMatchObject([
 			{
 				[EntityMetaKey.Selector]: {
 					$network: baseNetwork,
 					marketAddress: baseMarketAddress,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.PendleMarket, [], 'name')]: 'USD0++',
+					[entityFieldAddressKey(EntityType.PendleMarket, [], 'protocol')]: 'Usual',
+					[entityFieldAddressKey(EntityType.PendleMarket, [], 'expiryTimestampMs')]: Date.parse(baseMarketWire.expiry),
 				},
 			},
 		])

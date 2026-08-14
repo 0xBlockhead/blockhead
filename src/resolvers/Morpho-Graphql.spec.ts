@@ -6,7 +6,10 @@ import {
 	vi,
 } from 'vitest'
 
-import { EntityMetaKey } from '$/schema/$schema.ts'
+import {
+	entityFieldAddressKey,
+	EntityMetaKey,
+} from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
@@ -335,11 +338,16 @@ describe('Morpho GraphQL resolver module', () => {
 				offset: 3,
 			},
 		})
-		expect(networkResolver.projections.Evm.$$morphoMarkets.select(snapshot)).toEqual([
+		expect(networkResolver.projections.Evm.$$morphoMarkets.select(snapshot)).toMatchObject([
 			{
 				[EntityMetaKey.Selector]: {
 					$network: network,
 					marketId: market.marketId,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.MorphoMarket, [], 'loanAssetAddress')]: '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913',
+					[entityFieldAddressKey(EntityType.MorphoMarket, [], 'lltvWad')]: '860000000000000000',
+					[entityFieldAddressKey(EntityType.MorphoMarket, [], 'creationBlockNumber')]: '19326981',
 				},
 			},
 		])
@@ -385,11 +393,16 @@ describe('Morpho GraphQL resolver module', () => {
 				offset: 4,
 			},
 		})
-		expect(networkResolver.projections.Evm.$$morphoVaults.select(snapshot)).toEqual([
+		expect(networkResolver.projections.Evm.$$morphoVaults.select(snapshot)).toMatchObject([
 			{
 				[EntityMetaKey.Selector]: {
 					$network: network,
 					vaultAddress: '0xbeef000000000000000000000000000000000001',
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.MorphoVault, [], 'name')]: 'MetaMorpho USDC',
+					[entityFieldAddressKey(EntityType.MorphoVault, [], 'symbol')]: 'mvUSDC',
+					[entityFieldAddressKey(EntityType.MorphoVault, [], 'assetAddress')]: '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913',
 				},
 			},
 		])

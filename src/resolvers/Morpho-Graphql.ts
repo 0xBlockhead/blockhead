@@ -7,6 +7,7 @@ import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
 import {
+	entityFieldAddressKey,
 	EntityMetaKey,
 	type EntitySelector,
 } from '$/schema/$schema.ts'
@@ -502,12 +503,25 @@ export default {
 							offset,
 						})
 						return {
-							markets: page.items.map((market) => ({
-								[EntityMetaKey.Selector]: {
-									$network: network,
-									marketId: market.marketId,
-								},
-							})),
+							markets: page.items.map((market) => {
+								const fields = mapMorphoMarketSnapshot(network, market)
+								return {
+									[EntityMetaKey.Selector]: {
+										$network: network,
+										marketId: market.marketId,
+									},
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.MorphoMarket, [], 'loanAssetAddress')]: fields.loanAssetAddress,
+										[entityFieldAddressKey(EntityType.MorphoMarket, [], 'collateralAssetAddress')]: fields.collateralAssetAddress,
+										[entityFieldAddressKey(EntityType.MorphoMarket, [], 'oracleAddress')]: fields.oracleAddress,
+										[entityFieldAddressKey(EntityType.MorphoMarket, [], 'irmAddress')]: fields.irmAddress,
+										[entityFieldAddressKey(EntityType.MorphoMarket, [], 'lltvWad')]: fields.lltvWad,
+										...(fields.creationBlockNumber != null && {
+											[entityFieldAddressKey(EntityType.MorphoMarket, [], 'creationBlockNumber')]: fields.creationBlockNumber,
+										}),
+									},
+								}
+							}),
 							marketCount: page.countTotal,
 						}
 					},
@@ -541,12 +555,21 @@ export default {
 							offset,
 						})
 						return {
-							vaults: page.items.map((vault) => ({
-								[EntityMetaKey.Selector]: {
-									$network: network,
-									vaultAddress: vault.address,
-								},
-							})),
+							vaults: page.items.map((vault) => {
+								const fields = mapMorphoVaultSnapshot(network, vault)
+								return {
+									[EntityMetaKey.Selector]: {
+										$network: network,
+										vaultAddress: vault.address,
+									},
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.MorphoVault, [], 'name')]: fields.name,
+										[entityFieldAddressKey(EntityType.MorphoVault, [], 'symbol')]: fields.symbol,
+										[entityFieldAddressKey(EntityType.MorphoVault, [], 'assetAddress')]: fields.assetAddress,
+										[entityFieldAddressKey(EntityType.MorphoVault, [], 'assetDecimals')]: fields.assetDecimals,
+									},
+								}
+							}),
 							vaultCount: page.countTotal,
 						}
 					},
