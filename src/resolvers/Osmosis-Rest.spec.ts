@@ -340,7 +340,7 @@ describe('Osmosis LCD resolver module', () => {
 			throw new Error('missing Network $$blocks resolver')
 
 		const snapshot = await networkBlocksResolver.resolve.Caip2.resolve(osmosisNetwork, context)
-		expect(networkBlocksResolver.projections.Cosmos.$$blocks(snapshot)).toEqual([
+		expect(networkBlocksResolver.projections.Cosmos.$$blocks.select(snapshot)).toEqual([
 			{
 				[EntityMetaKey.Selector]: {
 					$network: osmosisNetwork,
@@ -366,6 +366,11 @@ describe('Osmosis LCD resolver module', () => {
 				},
 			},
 		])
+		expect(networkBlocksResolver.projections.Cosmos.$$blocks.resolveCount(snapshot)).toBe(4n)
+		expect(networkBlocksResolver.projections.Cosmos.$$blocks.continuation(snapshot)).toEqual({
+			operation: 'network-blocks',
+			terminal: true,
+		})
 	})
 
 	it('walks disjoint Cosmos block pages and stops at genesis', async () => {
@@ -384,11 +389,18 @@ describe('Osmosis LCD resolver module', () => {
 					},
 				},
 			})
+			.mockResolvedValueOnce({
+				block: {
+					header: {
+						height: '3',
+					},
+				},
+			})
 
 		if (networkBlocksResolver == null)
 			throw new Error('missing Network $$blocks resolver')
 
-		expect(networkBlocksResolver.projections.Cosmos.$$blocks(
+		expect(networkBlocksResolver.projections.Cosmos.$$blocks.select(
 			await networkBlocksResolver.resolve.Caip2.resolve(osmosisNetwork, {
 				...context,
 				pagination: {
@@ -410,7 +422,7 @@ describe('Osmosis LCD resolver module', () => {
 				},
 			},
 		])
-		expect(networkBlocksResolver.projections.Cosmos.$$blocks(
+		expect(networkBlocksResolver.projections.Cosmos.$$blocks.select(
 			await networkBlocksResolver.resolve.Caip2.resolve(osmosisNetwork, {
 				...context,
 				pagination: {
@@ -419,6 +431,19 @@ describe('Osmosis LCD resolver module', () => {
 				},
 			})
 		)).toEqual([])
+		const continuedPage = await networkBlocksResolver.resolve.Caip2.resolve(osmosisNetwork, {
+			...context,
+			pagination: {
+				limit: 1,
+			},
+			providerContinuationToken: '2',
+		})
+		expect(networkBlocksResolver.projections.Cosmos.$$blocks.select(continuedPage)[0][EntityMetaKey.Selector].height).toBe(2n)
+		expect(networkBlocksResolver.projections.Cosmos.$$blocks.continuation(continuedPage)).toEqual({
+			operation: 'network-blocks',
+			terminal: false,
+			token: '1',
+		})
 	})
 
 	it('lists all OsmosisPool kinds from poolmanager all-pools with nested fields', async () => {

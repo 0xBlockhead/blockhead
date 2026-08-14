@@ -194,8 +194,6 @@ export default {
 					resolve: async ({ $network }, context) => {
 						assertAvailMainnet($network)
 						const limit = resolverContextRowLimit(context)
-						if (limit === 0)
-							return []
 
 						const {
 							getBlock,
@@ -207,55 +205,82 @@ export default {
 						const tipHash = await getBlockHash(publicEnv)
 						const tip = await getHeader(publicEnv, tipHash)
 						const tipNumber = tip.blockNumber
-						const blockNumbers = Array.from({
-							length: Math.min(Number(tipNumber + 1n), limit),
-						}, (_value, blockOffset) => (
-							tipNumber - BigInt(blockOffset)
-						))
-						return await Promise.all(
-							blockNumbers.map(async (blockNumber) => {
-								const header = (
-									blockNumber === tipNumber && tip.hash != null ?
-										{
-											...tip,
-											hash: tip.hash,
-										}
-									:
-										await getHeaderByBlockNumber(publicEnv, blockNumber)
-								)
-								const block = await getBlock(publicEnv, header.hash)
-								return {
-									[EntityMetaKey.Selector]: {
-										$network: {
-											$network,
-										},
-										blockNumber,
-									},
-									[EntityMetaKey.Fields]: {
-										[entityFieldAddressKey(EntityType.AvailBlock, [], 'blockHash')]: header.hash,
-										[entityFieldAddressKey(EntityType.AvailBlock, [], 'parentHash')]: header.parentHash,
-										[entityFieldAddressKey(EntityType.AvailBlock, [], 'stateRoot')]: header.stateRoot,
-										[entityFieldAddressKey(EntityType.AvailBlock, [], 'extrinsicsRoot')]: header.extrinsicsRoot,
-										[entityFieldAddressKey(EntityType.AvailBlock, [], 'extrinsicCount')]: block.extrinsicCount,
-										...(blockNumber > 0n && {
-											[entityFieldAddressKey(EntityType.AvailBlock, [], '$parent')]: {
-												[EntityMetaKey.Selector]: {
-													$network: {
-														$network,
-													},
-													blockNumber: blockNumber - 1n,
-												},
-											},
-										}),
-									},
-								}
-							})
+						if (
+							context.providerContinuationToken != null
+							&& !/^(0|[1-9][0-9]*)$/.test(context.providerContinuationToken)
 						)
+							throw new Error(`${Source.Avail_JsonRpc}: invalid blocks continuation`)
+
+						const cursorNumber = context.providerContinuationToken == null ?
+							tipNumber
+						:
+							BigInt(context.providerContinuationToken)
+						if (cursorNumber > tipNumber)
+							throw new Error(`${Source.Avail_JsonRpc}: blocks continuation exceeds tip`)
+
+						const blockNumbers = Array.from({
+							length: Math.min(Number(cursorNumber + 1n), limit),
+						}, (_value, blockOffset) => (
+							cursorNumber - BigInt(blockOffset)
+						))
+						return {
+							blocks: await Promise.all(
+								blockNumbers.map(async (blockNumber) => {
+									const header = (
+										blockNumber === tipNumber && tip.hash != null ?
+											{
+												...tip,
+												hash: tip.hash,
+											}
+										:
+											await getHeaderByBlockNumber(publicEnv, blockNumber)
+									)
+									const block = await getBlock(publicEnv, header.hash)
+									return {
+										[EntityMetaKey.Selector]: {
+											$network: {
+												$network,
+											},
+											blockNumber,
+										},
+										[EntityMetaKey.Fields]: {
+											[entityFieldAddressKey(EntityType.AvailBlock, [], 'blockHash')]: header.hash,
+											[entityFieldAddressKey(EntityType.AvailBlock, [], 'parentHash')]: header.parentHash,
+											[entityFieldAddressKey(EntityType.AvailBlock, [], 'stateRoot')]: header.stateRoot,
+											[entityFieldAddressKey(EntityType.AvailBlock, [], 'extrinsicsRoot')]: header.extrinsicsRoot,
+											[entityFieldAddressKey(EntityType.AvailBlock, [], 'extrinsicCount')]: block.extrinsicCount,
+											...(blockNumber > 0n && {
+												[entityFieldAddressKey(EntityType.AvailBlock, [], '$parent')]: {
+													[EntityMetaKey.Selector]: {
+														$network: {
+															$network,
+														},
+														blockNumber: blockNumber - 1n,
+													},
+												},
+											}),
+										},
+									}
+								})
+							),
+						}
 					},
 				},
 			},
 		})({
-			$$blocks: (blocks) => blocks,
+			$$blocks: {
+				select: (snapshot) => snapshot.blocks,
+				continuation: (snapshot) => {
+					const lastBlockNumber = snapshot.blocks.at(-1)?.[EntityMetaKey.Selector].blockNumber
+					return {
+						operation: 'network-blocks',
+						terminal: lastBlockNumber == null || lastBlockNumber === 0n,
+						...(lastBlockNumber != null && lastBlockNumber > 0n && {
+							token: String(lastBlockNumber - 1n),
+						}),
+					}
+				},
+			},
 		}),
 
 		defineResolver({

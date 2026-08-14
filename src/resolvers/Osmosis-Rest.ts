@@ -217,26 +217,34 @@ const osmosisDurationToNs = (
 const getOsmosisBlockReferences = async (
 	network: NetworkId,
 	limit: number,
-	offset: number
+	offset: number,
+	cursorHeight?: bigint
 ) => {
 	assertOsmosisNetwork(network)
 	const { getLatestBlock } = await import('$/sources/Osmosis/Rest/queries.ts')
 	const latestBlock = await getLatestBlock()
 	const latestBlockHeight = BigInt(latestBlock.block.header.height)
-	return Array.from({
-		length: Math.min(
-			Math.max(
-				Number(latestBlockHeight + 1n - BigInt(offset)),
-				0
+	if (cursorHeight != null && cursorHeight > latestBlockHeight)
+		throw new Error(`${Source.Osmosis_LCD_Rest}: blocks continuation exceeds tip`)
+
+	const firstBlockHeight = cursorHeight ?? latestBlockHeight - BigInt(offset)
+	return {
+		rows: Array.from({
+			length: Math.min(
+				Math.max(
+					Number(firstBlockHeight + 1n),
+					0
+				),
+				limit
 			),
-			limit
-		),
-	}, (_value, blockOffset) => ({
-		[EntityMetaKey.Selector]: {
-			$network: network,
-			height: latestBlockHeight - BigInt(offset + blockOffset),
-		},
-	}))
+		}, (_value, blockOffset) => ({
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				height: firstBlockHeight - BigInt(blockOffset),
+			},
+		})),
+		totalCount: latestBlockHeight + 1n,
+	}
 }
 
 const osmosisPoolAssetsFromWire = (wire: OsmosisPoolManagerPool) => (
@@ -974,17 +982,38 @@ export default {
 		defineResolver({
 			entityType: EntityType.Network,
 			resolve: osmosisNetworkResolverSelectors(
-				async (network, context) => (
-					getOsmosisBlockReferences(
+				async (network, context) => {
+					const offset = context.pagination.offset ?? 0
+					if (!Number.isSafeInteger(offset) || offset < 0)
+						throw new Error(`${Source.Osmosis_LCD_Rest}: invalid blocks offset`)
+
+					return getOsmosisBlockReferences(
 						network,
 						resolverContextRowLimit(context),
-						context.pagination.offset ?? 0
+						offset,
+						context.providerContinuationToken == null ?
+							undefined
+						:
+							osmosisUnsignedInteger(context.providerContinuationToken, 'blocks continuation')
 					)
-				)
+				}
 			),
 		})({
 			Cosmos: {
-				$$blocks: (blocks) => blocks,
+				$$blocks: {
+					select: (snapshot) => snapshot.rows,
+					resolveCount: (snapshot) => snapshot.totalCount,
+					continuation: (snapshot) => {
+						const lastBlockHeight = snapshot.rows.at(-1)?.[EntityMetaKey.Selector].height
+						return {
+							operation: 'network-blocks',
+							terminal: lastBlockHeight == null || lastBlockHeight === 0n,
+							...(lastBlockHeight != null && lastBlockHeight > 0n && {
+								token: String(lastBlockHeight - 1n),
+							}),
+						}
+					},
+				},
 			},
 		}),
 

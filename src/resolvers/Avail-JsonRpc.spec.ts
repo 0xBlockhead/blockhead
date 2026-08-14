@@ -274,7 +274,7 @@ describe('Avail JsonRpc resolver', () => {
 		const blocks = await networkBlocksResolver.resolve.Network.resolve({
 			$network: network,
 		}, context)
-		expect(networkBlocksResolver.projections.$$blocks(blocks)).toEqual([
+		expect(networkBlocksResolver.projections.$$blocks.select(blocks)).toEqual([
 			{
 				[EntityMetaKey.Selector]: {
 					$network: availNetwork,
@@ -314,6 +314,36 @@ describe('Avail JsonRpc resolver', () => {
 				},
 			},
 		])
+		expect(networkBlocksResolver.projections.$$blocks.continuation(blocks)).toEqual({
+			operation: 'network-blocks',
+			terminal: false,
+			token: '98',
+		})
+
+		getBlock.mockResolvedValue({
+			extrinsicCount: 0,
+		})
+		getHeaderByBlockNumber.mockImplementation(async (_publicEnv, blockNumber: bigint) => ({
+			...header,
+			blockNumber,
+			hash: `0x${blockNumber.toString()}`,
+		}))
+		const nextBlocks = await networkBlocksResolver.resolve.Network.resolve({
+			$network: network,
+		}, {
+			...context,
+			pagination: {
+				limit: 2,
+			},
+			providerContinuationToken: '98',
+		})
+		expect(networkBlocksResolver.projections.$$blocks.select(nextBlocks).map((block) => (
+			block[EntityMetaKey.Selector].blockNumber
+		))).toEqual([
+			98n,
+			97n,
+		])
+		expect(networkBlocksResolver.projections.$$blocks.continuation(nextBlocks).token).toBe('96')
 
 		const blocksCountResolver = avail.resolvers.find((resolver) => (
 			resolver.entityType === EntityType.AvailNetwork
