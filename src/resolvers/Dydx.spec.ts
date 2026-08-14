@@ -1060,5 +1060,14 @@ describe('dYdX Indexer resolvers', () => {
 				[entityFieldAddressKey(EntityType.DydxChainOrder_Timestamp, [], 'totalFilled')]: '0.1',
 			},
 		}])
+
+		sourceGetJson.mockResolvedValue({
+			...orders[0],
+			subaccountId: `dydx1${'p'.repeat(38)}/0`,
+		})
+		await expect(dydxChainOrderResolver.resolve.SubaccountOrderId.resolve(
+			orderSelector,
+			context
+		)).rejects.toThrow('foreign subaccount order')
 	})
 })

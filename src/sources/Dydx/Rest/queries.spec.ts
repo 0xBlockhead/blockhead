@@ -311,6 +311,8 @@ describe('dYdX v4 read-only public transport', () => {
 		sourceGetJson.mockResolvedValue(orderRow)
 
 		await expect(getOrder({
+			address,
+			subaccountNumber: 7,
 			orderId: 'order-1',
 		})).resolves.toMatchObject({
 			value: {
@@ -329,8 +331,20 @@ describe('dYdX v4 read-only public transport', () => {
 			id: 'other',
 		})
 		await expect(getOrder({
+			address,
+			subaccountNumber: 7,
 			orderId: 'order-1',
 		})).rejects.toThrow('mismatched order identity')
+
+		sourceGetJson.mockResolvedValue({
+			...orderRow,
+			subaccountId: `dydx1${'p'.repeat(38)}/7`,
+		})
+		await expect(getOrder({
+			address,
+			subaccountNumber: 7,
+			orderId: 'order-1',
+		})).rejects.toThrow('foreign subaccount order')
 	})
 
 	it('loads historical funding with ticker identity fail-closed', async () => {
@@ -416,6 +430,15 @@ describe('dYdX v4 read-only public transport', () => {
 		await expect(getOrders({
 			address,
 			subaccountNumber: 0,
+		})).rejects.toThrow('foreign subaccount order')
+
+		sourceGetJson.mockResolvedValue([{
+			...orderRow,
+			subaccountId: `dydx1${'p'.repeat(38)}/7`,
+		}])
+		await expect(getOrders({
+			address,
+			subaccountNumber: 7,
 		})).rejects.toThrow('foreign subaccount order')
 
 		sourceGetJson.mockResolvedValue([

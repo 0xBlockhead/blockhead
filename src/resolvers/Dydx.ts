@@ -952,9 +952,14 @@ export const dydxChainOrderResolver = defineResolver({
 				assertDydxSubaccount(entitySelector.$subaccount)
 				const { getOrder } = await import('$/sources/Dydx/Rest/queries.ts')
 				const observation = await getOrder({
+					address: entitySelector.$subaccount.$account.address,
+					subaccountNumber: entitySelector.$subaccount.subaccountNumber,
 					orderId: entitySelector.orderId,
 				})
-				if (observation.value.subaccountNumber !== entitySelector.$subaccount.subaccountNumber)
+				if (
+					observation.value.subaccountId !== `${entitySelector.$subaccount.$account.address}/${entitySelector.$subaccount.subaccountNumber}`
+					|| observation.value.subaccountNumber !== entitySelector.$subaccount.subaccountNumber
+				)
 					throw new Error('DydxIndexer_Rest: foreign subaccount order')
 
 				return observation

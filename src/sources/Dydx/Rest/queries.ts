@@ -152,6 +152,18 @@ const assertOrderDecimals = (
 		assertNonNegativeDecimal(value, field)
 }
 
+const assertOrderSubaccount = (
+	order: typeof dydxOrderResponseWire.infer,
+	address: string,
+	subaccountNumber: number
+) => {
+	if (
+		order.subaccountId !== `${address}/${subaccountNumber}`
+		|| order.subaccountNumber !== subaccountNumber
+	)
+		throw new Error('DydxIndexer_Rest: foreign subaccount order')
+}
+
 const assertFillDecimals = (
 	fill: typeof dydxFillResponseWire.infer
 ) => {
@@ -367,8 +379,7 @@ export const getOrders = async ({
 		throw new Error('DydxIndexer_Rest: order response exceeds requested limit')
 
 	for (const order of observation.value) {
-		if (order.subaccountNumber !== subaccountNumber)
-			throw new Error('DydxIndexer_Rest: foreign subaccount order')
+		assertOrderSubaccount(order, address, subaccountNumber)
 		assertOrderDecimals(order)
 	}
 	if (new Set(observation.value.map((order) => order.id)).size !== observation.value.length)
@@ -378,10 +389,18 @@ export const getOrders = async ({
 }
 
 export const getOrder = async ({
+	address,
+	subaccountNumber,
 	orderId,
 }: {
+	address: string
+	subaccountNumber: number
 	orderId: string
 }) => {
+	assertSubaccount({
+		address,
+		subaccountNumber,
+	})
 	if (orderId === '')
 		throw new Error('DydxIndexer_Rest: invalid order id')
 
@@ -400,6 +419,7 @@ export const getOrder = async ({
 	)
 	if (observation.value.id !== orderId)
 		throw new Error('DydxIndexer_Rest: mismatched order identity')
+	assertOrderSubaccount(observation.value, address, subaccountNumber)
 	assertOrderDecimals(observation.value)
 
 	return observation
