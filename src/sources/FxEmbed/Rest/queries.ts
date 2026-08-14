@@ -4,8 +4,9 @@ import type { components } from '$/sources/FxEmbed/OpenApi/openapi.d.ts'
 export type FxEmbedUser = components['schemas']['APIUser']
 export type FxEmbedTwitterStatus = Omit<
 	components['schemas']['APITwitterStatus'],
-	'quote'
+	'quote' | 'media'
 > & {
+	media?: components['schemas']['APITwitterStatus']['media']
 	quote?:
 		| FxEmbedTwitterStatus
 		| components['schemas']['APIStatusTombstone']

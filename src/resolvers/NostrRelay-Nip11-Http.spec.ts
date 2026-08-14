@@ -139,11 +139,28 @@ describe('NostrRelay NIP-11 Http resolver', () => {
 		expect(Object.keys(snapshot[EntityMetaKey.Fields])).not.toContain('tags')
 	})
 
-	it('propagates NIP-11 transport failures', async () => {
-		fetchRelayInformation.mockRejectedValue(new Error('NostrRelay_Nip11_Http: invalid NIP-11 response envelope'))
+	it('does not register a direct NostrRelay_Timestamp resolver', () => {
+		expect(nostrRelayNip11Http.resolvers.some((candidate) => (
+			candidate.entityType === EntityType.NostrRelay_Timestamp
+		))).toBe(false)
+	})
 
-		await expect(relayResolver.resolve.RelayUrl.resolve({
-			relayUrl: boundRelayUrl,
-		})).rejects.toThrow('NostrRelay_Nip11_Http: invalid NIP-11 response envelope')
+	it('embeds unreachable failure evidence on the parent relay read', async () => {
+		fetchRelayInformation.mockRejectedValue(new Error('relay unavailable'))
+
+		const relay = await relayResolver.resolve.RelayUrl.resolve({ relayUrl: boundRelayUrl })
+		expect(relay.$$timestamps).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$relay: {
+					relayUrl: boundRelayUrl.replace(/\/$/, ''),
+				},
+				timestampMs: expect.any(Number),
+				source: Source.NostrRelay_Nip11_Http,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.NostrRelay_Timestamp, [], 'reachable')]: false,
+				[entityFieldAddressKey(EntityType.NostrRelay_Timestamp, [], 'error')]: 'relay unavailable',
+			},
+		}])
 	})
 })

@@ -1794,7 +1794,6 @@ describe('resolver registry live resolver architecture', () => {
 			publicEnv: {},
 		}
 		const relayUrl = 'wss://relay.damus.io'
-		const timestampMs = 1_720_000_000_000
 		const fetchRelayInformation = vi.fn(async () => ({
 			name: 'Example relay',
 			supported_nips: [1, 11],
@@ -1815,74 +1814,53 @@ describe('resolver registry live resolver architecture', () => {
 			resolver.source === Source.NostrRelay_Nip11_Http
 			&& resolver.entityType === EntityType.NostrRelay
 		))
-		const nip11ObservationResolver = allSourceResolverDefinitions.find((resolver) => (
+		const resolveNip11Relay = nip11RelayResolver?.resolve['RelayUrl']
+		if (resolveNip11Relay == null)
+			throw new Error('missing NIP-11 relay resolver')
+
+		expect(allSourceResolverDefinitions.some((resolver) => (
 			resolver.source === Source.NostrRelay_Nip11_Http
 			&& resolver.entityType === EntityType.NostrRelay_Timestamp
-		))
-		const resolveNip11Relay = nip11RelayResolver?.resolve['RelayUrl']
-		const resolveNip11Observation = nip11ObservationResolver?.resolve['RelayTimestampMsSource']
-		if (
-			resolveNip11Relay == null
-			|| resolveNip11Observation == null
-		)
-			throw new Error('missing NIP-11 relay observation resolver')
+		))).toBe(false)
 
-		expect(nip11ObservationResolver.appliesTo(
-			'RelayTimestampMsSource',
-			{
-				$relay: { relayUrl },
-				timestampMs,
-				source: Source.NostrRelay_WebSocket,
-			}
-		)).toBe(false)
-
-		expect(resolverFieldSelector(nip11RelayResolver, '$$timestamps')(
-			await resolveNip11Relay({ relayUrl }, resolverContext),
+		const relaySnapshot = await resolveNip11Relay({ relayUrl }, resolverContext)
+		const nip11Observation = resolverFieldSelector(nip11RelayResolver, '$$timestamps')(
+			relaySnapshot,
 			{ relayUrl },
 			resolverContext
-		)[0][EntityMetaKey.Selector]).toMatchObject({
+		)[0]
+		expect(nip11Observation[EntityMetaKey.Selector]).toMatchObject({
 			$relay: { relayUrl },
 			source: Source.NostrRelay_Nip11_Http,
 		})
-		const nip11Observation = await resolveNip11Observation({
-			$relay: { relayUrl },
-			timestampMs,
-			source: Source.NostrRelay_Nip11_Http,
-		}, resolverContext)
-		expect(nip11Observation).toMatchObject({
-			timestampMs,
-			source: Source.NostrRelay_Nip11_Http,
-			name: 'Example relay',
-			supportedNips: [1, 11],
-			limitation: {
+		expect(nip11Observation[EntityMetaKey.Fields]).toMatchObject({
+			[entityFieldAddressKey(EntityType.NostrRelay_Timestamp, [], 'reachable')]: true,
+			[entityFieldAddressKey(EntityType.NostrRelay_Timestamp, [], 'name')]: 'Example relay',
+			[entityFieldAddressKey(EntityType.NostrRelay_Timestamp, [], 'supportedNips')]: [1, 11],
+			[entityFieldAddressKey(EntityType.NostrRelay_Timestamp, [], 'limitation')]: {
 				maxLimit: 500,
 				paymentRequired: true,
 			},
-			fees: {
+			[entityFieldAddressKey(EntityType.NostrRelay_Timestamp, [], 'fees')]: {
 				admission: [{
 					amount: 1_000,
 					unit: 'msats',
 				}],
 			},
-			isPaid: true,
-			reachable: true,
+			[entityFieldAddressKey(EntityType.NostrRelay_Timestamp, [], 'isPaid')]: true,
 		})
 		expect(fetchRelayInformation).toHaveBeenCalledWith({
 			relayUrl,
 		})
-		await expect(resolveNip11Observation({
-			$relay: { relayUrl },
-			timestampMs,
-			source: Source.NostrRelay_WebSocket,
-		}, resolverContext)).rejects.toThrow('unsupported source')
 		fetchRelayInformation.mockRejectedValueOnce(new Error('relay unavailable'))
-		await expect(resolveNip11Observation({
-			$relay: { relayUrl },
-			timestampMs: timestampMs + 1,
-			source: Source.NostrRelay_Nip11_Http,
-		}, resolverContext)).resolves.toMatchObject({
-			reachable: false,
-			error: 'relay unavailable',
+		const failedRelaySnapshot = await resolveNip11Relay({ relayUrl }, resolverContext)
+		expect(resolverFieldSelector(nip11RelayResolver, '$$timestamps')(
+			failedRelaySnapshot,
+			{ relayUrl },
+			resolverContext
+		)[0][EntityMetaKey.Fields]).toMatchObject({
+			[entityFieldAddressKey(EntityType.NostrRelay_Timestamp, [], 'reachable')]: false,
+			[entityFieldAddressKey(EntityType.NostrRelay_Timestamp, [], 'error')]: 'relay unavailable',
 		})
 	})
 

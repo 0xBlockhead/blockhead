@@ -84,7 +84,7 @@ const xPostMediaFromFxEmbedStatus = (
 	status: FxEmbedTwitterStatus
 ) => (
 	[
-		...(status.media.photos ?? []).flatMap((photo) => {
+		...(status.media?.photos ?? []).flatMap((photo) => {
 			const media = mediaFromUrl(photo.url, MediaType.Image)
 			if (media == null) return []
 			const hash = optionalNonemptyString(photo.id)
@@ -98,7 +98,7 @@ const xPostMediaFromFxEmbedStatus = (
 				},
 			}]
 		}),
-		...(status.media.videos ?? []).flatMap((video) => {
+		...(status.media?.videos ?? []).flatMap((video) => {
 			const media = mediaFromUrl(
 				video.transcode_url ?? video.url,
 				MediaType.Video
