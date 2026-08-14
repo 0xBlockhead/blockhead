@@ -50,11 +50,6 @@ const blockchairNetworkTimestampApplicability = blockchairNetworkReferenceApplic
 	source: Source.Blockchair_Rest,
 }))
 
-const blockchairAddressTimestampApplicability = blockchairNetworkReferenceApplicability.map(($network) => ({
-	$address: $network,
-	source: Source.Blockchair_Rest,
-}))
-
 const blockchairTransactionReferenceApplicability = blockchairNetworkReferenceApplicability.map(($network) => ({
 	$transaction: $network,
 }))
@@ -489,21 +484,62 @@ export default {
 			resolve: {
 				NetworkAddress: {
 					appliesTo: blockchairNetworkReferenceApplicability,
-					resolve: async ({ $network, address }) => ({
-						address,
-						$$timestamps: [
-							{
-								[EntityMetaKey.Selector]: {
-									$address: {
-										$network,
-										address,
-									},
-									timestampMs: Date.now(),
-									source: Source.Blockchair_Rest,
+					resolve: async ({ $network, address }, context) => {
+						const dashboardAddress = (
+							await getAddressDashboard({
+								$network,
+								address,
+								context,
+								params: {
+									limit: 1,
 								},
-							},
-						],
-					}),
+							})
+						).address
+						return {
+							address,
+							$$timestamps: [
+								{
+									[EntityMetaKey.Selector]: {
+										$address: {
+											$network,
+											address,
+										},
+										timestampMs: Date.now(),
+										source: Source.Blockchair_Rest,
+									},
+									[EntityMetaKey.Fields]: {
+										...(bigintFromNumber(dashboardAddress.balance) != null && {
+											[entityFieldAddressKey(EntityType.UtxoAddress_Timestamp, [], 'balanceSats')]: bigintFromNumber(dashboardAddress.balance),
+										}),
+										...(dashboardAddress.transaction_count != null && {
+											[entityFieldAddressKey(EntityType.UtxoAddress_Timestamp, [], 'transactionCount')]: dashboardAddress.transaction_count,
+										}),
+										...(dashboardAddress.unspent_output_count != null && {
+											[entityFieldAddressKey(EntityType.UtxoAddress_Timestamp, [], 'unspentOutputCount')]: dashboardAddress.unspent_output_count,
+										}),
+										...(dashboardAddress.output_count != null && {
+											[entityFieldAddressKey(EntityType.UtxoAddress_Timestamp, [], 'fundedOutputCount')]: dashboardAddress.output_count,
+										}),
+										...(
+											dashboardAddress.output_count != null
+											&& dashboardAddress.unspent_output_count != null
+											&& {
+												[entityFieldAddressKey(EntityType.UtxoAddress_Timestamp, [], 'spentOutputCount')]: (
+													dashboardAddress.output_count - dashboardAddress.unspent_output_count
+												),
+											}
+										),
+										...(bigintFromNumber(dashboardAddress.received) != null && {
+											[entityFieldAddressKey(EntityType.UtxoAddress_Timestamp, [], 'fundedValueSats')]: bigintFromNumber(dashboardAddress.received),
+										}),
+										...(bigintFromNumber(dashboardAddress.spent) != null && {
+											[entityFieldAddressKey(EntityType.UtxoAddress_Timestamp, [], 'spentValueSats')]: bigintFromNumber(dashboardAddress.spent),
+										}),
+									},
+								},
+							],
+						}
+					},
 				},
 			},
 		})({
@@ -614,34 +650,6 @@ export default {
 		})({
 			$$transactions: (address) => address.$$transactions,
 			$$outputs: (address) => address.$$outputs,
-		}),
-
-		defineResolver({
-			entityType: EntityType.UtxoAddress_Timestamp,
-			resolve: {
-				AddressTimestampMsSource: {
-					appliesTo: blockchairAddressTimestampApplicability,
-					resolve: async ({ $address }, context) => (
-						await getAddressDashboard({
-							...$address,
-							context,
-						})
-					).address,
-				},
-			},
-		})({
-			balanceSats: (address) => bigintFromNumber(address.balance),
-			transactionCount: (address) => address.transaction_count,
-			unspentOutputCount: (address) => address.unspent_output_count,
-			fundedOutputCount: (address) => address.output_count,
-			spentOutputCount: (address) => (
-				address.output_count == null || address.unspent_output_count == null ?
-					undefined
-				:
-					address.output_count - address.unspent_output_count
-			),
-			fundedValueSats: (address) => bigintFromNumber(address.received),
-			spentValueSats: (address) => bigintFromNumber(address.spent),
 		}),
 
 		defineResolver({

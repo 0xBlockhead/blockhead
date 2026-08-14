@@ -463,6 +463,11 @@ export default {
 								},
 								indexInTransaction: utxo.vout,
 							},
+							[EntityMetaKey.Fields]: {
+								[entityFieldAddressKey(EntityType.UtxoOutput, [], 'valueSats')]: utxo.valueZatoshis,
+								[entityFieldAddressKey(EntityType.UtxoOutput, [], 'scriptPubKeyHex')]: utxo.scriptPubKey,
+								[entityFieldAddressKey(EntityType.UtxoOutput, [], 'isSpent')]: false,
+							},
 						}))
 					},
 				},
@@ -477,6 +482,11 @@ export default {
 				NetworkAddress: {
 					resolve: async ({ $network, address: addressSelector }) => {
 						assertBitcoinCashMainnet($network)
+						const { getTransparentAddressUtxos } = await import('$/sources/BitcoinCashNode/JsonRpc/queries.ts')
+						const scan = await getTransparentAddressUtxos({
+							address: addressSelector,
+							maxResults: 10_000,
+						})
 						return {
 							address: addressSelector,
 							$$timestamps: [
@@ -489,6 +499,10 @@ export default {
 										timestampMs: Date.now(),
 										source: Source.BitcoinCashNode_JsonRpc,
 									},
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.UtxoAddress_Timestamp, [], 'balanceSats')]: scan.totalAmountZatoshis,
+										[entityFieldAddressKey(EntityType.UtxoAddress_Timestamp, [], 'unspentOutputCount')]: scan.unspents.length,
+									},
 								},
 							],
 						}
@@ -498,29 +512,6 @@ export default {
 		})({
 			address: (address) => address.address,
 			$$timestamps: (address) => address.$$timestamps,
-		}),
-
-		defineResolver({
-			entityType: EntityType.UtxoAddress_Timestamp,
-			resolve: {
-				AddressTimestampMsSource: {
-					resolve: async ({ $address }) => {
-						assertBitcoinCashMainnet($address.$network)
-						const { getTransparentAddressUtxos } = await import('$/sources/BitcoinCashNode/JsonRpc/queries.ts')
-						const scan = await getTransparentAddressUtxos({
-							address: $address.address,
-							maxResults: 10_000,
-						})
-						return {
-							balanceSats: scan.totalAmountZatoshis,
-							unspentOutputCount: scan.unspents.length,
-						}
-					},
-				},
-			},
-		})({
-			balanceSats: (observation) => observation.balanceSats,
-			unspentOutputCount: (observation) => observation.unspentOutputCount,
 		}),
 
 		defineResolver({
@@ -582,17 +573,7 @@ export default {
 						if (source !== Source.BitcoinCashNode_JsonRpc)
 							throw new Error(`BitcoinCashNode_JsonRpc: unsupported network timestamp source ${source}`)
 
-						const tip = await resolveNetworkTipObservation($network)
-						return {
-							$network: {
-								[EntityMetaKey.Selector]: $network,
-							},
-							timestampMs,
-							source,
-							ledgerModels: [NetworkLedgerModel.Utxo],
-							executionModels: [] satisfies NetworkExecutionModel[],
-							...tip,
-						}
+						throw new Error(`BitcoinCashNode_JsonRpc: no network observation at ${String(timestampMs)}`)
 					},
 				},
 			},

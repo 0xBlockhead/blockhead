@@ -68,8 +68,8 @@ const addressResolvers = blockchairResolvers.resolvers.filter((resolver) => (
 const addressRelationsResolver = addressResolvers.find((resolver) => (
 	'$$transactions' in resolver.projections
 ))
-const addressTimestampResolver = blockchairResolvers.resolvers.find((resolver) => (
-	resolver.entityType === EntityType.UtxoAddress_Timestamp
+const addressTimestampsResolver = addressResolvers.find((resolver) => (
+	'$$timestamps' in resolver.projections
 ))
 
 if (blocksResolver == null)
@@ -90,8 +90,8 @@ if (transactionResolver == null)
 	throw new Error('Blockchair-Rest spec missing UtxoTransaction resolver')
 if (addressRelationsResolver == null)
 	throw new Error('Blockchair-Rest spec missing UtxoAddress $$transactions resolver')
-if (addressTimestampResolver == null)
-	throw new Error('Blockchair-Rest spec missing UtxoAddress_Timestamp resolver')
+if (addressTimestampsResolver == null)
+	throw new Error('Blockchair-Rest spec missing UtxoAddress $$timestamps resolver')
 
 const resolverContext = {
 	filters: [],
@@ -717,13 +717,21 @@ describe('Blockchair Network selector applicability', () => {
 			},
 		}])
 
-		const addressObservation = await addressTimestampResolver.resolve.AddressTimestampMsSource.resolve({
-			$address: entitySelector,
-			timestampMs: Date.now(),
-			source: Source.Blockchair_Rest,
-		}, resolverContext)
-		expect(addressTimestampResolver.projections.fundedOutputCount(addressObservation)).toBe(4)
-		expect(addressTimestampResolver.projections.spentOutputCount(addressObservation)).toBe(3)
-		expect(addressTimestampResolver.projections.unspentOutputCount(addressObservation)).toBe(1)
+		const addressTip = await addressTimestampsResolver.resolve.NetworkAddress.resolve(
+			entitySelector,
+			resolverContext
+		)
+		expect(addressTimestampsResolver.projections.$$timestamps(addressTip)[0]?.[EntityMetaKey.Fields]).toEqual({
+			[entityFieldAddressKey(EntityType.UtxoAddress_Timestamp, [], 'balanceSats')]: 10n,
+			[entityFieldAddressKey(EntityType.UtxoAddress_Timestamp, [], 'transactionCount')]: 2,
+			[entityFieldAddressKey(EntityType.UtxoAddress_Timestamp, [], 'unspentOutputCount')]: 1,
+			[entityFieldAddressKey(EntityType.UtxoAddress_Timestamp, [], 'fundedOutputCount')]: 4,
+			[entityFieldAddressKey(EntityType.UtxoAddress_Timestamp, [], 'spentOutputCount')]: 3,
+			[entityFieldAddressKey(EntityType.UtxoAddress_Timestamp, [], 'fundedValueSats')]: 20n,
+			[entityFieldAddressKey(EntityType.UtxoAddress_Timestamp, [], 'spentValueSats')]: 10n,
+		})
+		expect(blockchairResolvers.resolvers.some((resolver) => (
+			resolver.entityType === EntityType.UtxoAddress_Timestamp
+		))).toBe(false)
 	})
 })

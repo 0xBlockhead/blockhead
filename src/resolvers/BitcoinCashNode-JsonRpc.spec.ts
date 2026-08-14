@@ -47,8 +47,9 @@ const addressOutputsResolver = bitcoinCashNodeResolvers.resolvers.find((resolver
 	resolver.entityType === EntityType.UtxoAddress
 	&& '$$outputs' in resolver.projections
 ))
-const addressTimestampResolver = bitcoinCashNodeResolvers.resolvers.find((resolver) => (
-	resolver.entityType === EntityType.UtxoAddress_Timestamp
+const addressTimestampsResolver = bitcoinCashNodeResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.UtxoAddress
+	&& '$$timestamps' in resolver.projections
 ))
 const networkTimestampResolver = bitcoinCashNodeResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.Network_Timestamp
@@ -67,7 +68,7 @@ if (inputResolver == null || outputResolver == null)
 if (blockResolver == null || networkBlocksResolver == null)
 	throw new Error('BitcoinCashNode-JsonRpc spec missing UTXO block / network list resolvers')
 
-if (addressOutputsResolver == null || addressTimestampResolver == null)
+if (addressOutputsResolver == null || addressTimestampsResolver == null)
 	throw new Error('BitcoinCashNode-JsonRpc spec missing address UTXO resolvers')
 
 if (networkTimestampResolver == null || networkTimestampsResolver == null)
@@ -300,6 +301,7 @@ describe('BitcoinCashNode UTXO', () => {
 				txid: '6'.repeat(64),
 				vout: 0,
 				valueZatoshis: 12_345n,
+				scriptPubKey: '76a91400',
 			}],
 			totalAmountZatoshis: 12_345n,
 			tokenTotalAmountByCategory: {},
@@ -317,18 +319,24 @@ describe('BitcoinCashNode UTXO', () => {
 				},
 				indexInTransaction: 0,
 			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.UtxoOutput, [], 'valueSats')]: 12_345n,
+				[entityFieldAddressKey(EntityType.UtxoOutput, [], 'scriptPubKeyHex')]: '76a91400',
+				[entityFieldAddressKey(EntityType.UtxoOutput, [], 'isSpent')]: false,
+			},
 		}])
 
-		const observation = await addressTimestampResolver.resolve.AddressTimestampMsSource.resolve({
-			$address: {
-				$network: network,
-				address,
-			},
-			timestampMs: 1,
-			source: Source.BitcoinCashNode_JsonRpc,
+		const addressTip = await addressTimestampsResolver.resolve.NetworkAddress.resolve({
+			$network: network,
+			address,
 		}, resolverContext)
-		expect(addressTimestampResolver.projections.balanceSats(observation)).toBe(12_345n)
-		expect(addressTimestampResolver.projections.unspentOutputCount(observation)).toBe(1)
+		expect(addressTimestampsResolver.projections.$$timestamps(addressTip)[0]?.[EntityMetaKey.Fields]).toEqual({
+			[entityFieldAddressKey(EntityType.UtxoAddress_Timestamp, [], 'balanceSats')]: 12_345n,
+			[entityFieldAddressKey(EntityType.UtxoAddress_Timestamp, [], 'unspentOutputCount')]: 1,
+		})
+		expect(bitcoinCashNodeResolvers.resolvers.some((resolver) => (
+			resolver.entityType === EntityType.UtxoAddress_Timestamp
+		))).toBe(false)
 	})
 
 	it('projects Network_Timestamp tip fields from block tip + getmempoolinfo', async () => {
@@ -361,18 +369,11 @@ describe('BitcoinCashNode UTXO', () => {
 			minrelaytxfee: 0.00001,
 		})
 
-		const tip = await networkTimestampResolver.resolve.NetworkTimestampMsSource.resolve({
+		await expect(networkTimestampResolver.resolve.NetworkTimestampMsSource.resolve({
 			$network: network,
 			timestampMs: 1_700_000_000_000,
 			source: Source.BitcoinCashNode_JsonRpc,
-		}, resolverContext)
-
-		expect(networkTimestampResolver.projections.Utxo.bestBlockHeight(tip)).toBe(850_000n)
-		expect(networkTimestampResolver.projections.Utxo.bestBlockHash(tip)).toBe(tipHash)
-		expect(networkTimestampResolver.projections.Utxo.bestBlockTimeMs(tip)).toBe(1_700_000_000_000)
-		expect(networkTimestampResolver.projections.Utxo.blockCount(tip)).toBe(850_001n)
-		expect(networkTimestampResolver.projections.Utxo.mempoolTransactionCount(tip)).toBe(17)
-		expect(networkTimestampResolver.projections.Utxo.mempoolSizeBytes(tip)).toBe(9_001n)
+		}, resolverContext)).rejects.toThrow('no network observation at 1700000000000')
 
 		const timestamps = await networkTimestampsResolver.resolve.Caip2.resolve(network, resolverContext)
 		expect(networkTimestampsResolver.projections.$$timestamps(timestamps)).toEqual([
