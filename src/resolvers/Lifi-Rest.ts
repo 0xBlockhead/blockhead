@@ -18,6 +18,7 @@ import {
 import { coinInstanceRefFromLifiToken } from '$/resolvers/Lifi/Rest/bridgeRouteSteps.ts'
 import { mediaFromUrl } from '$/resolvers/media.ts'
 import {
+	entityFieldAddressKey,
 	EntityMetaKey,
 	parseEntitySelector,
 } from '$/schema/$schema.ts'
@@ -538,6 +539,24 @@ export default {
 				$$steps: {
 					select: (route) => route.$$steps.map((step) => ({
 						[EntityMetaKey.Selector]: step[EntityMetaKey.Selector],
+						[EntityMetaKey.Fields]: {
+							[entityFieldAddressKey(EntityType.BridgeRouteStep, [], 'stepType')]: step.stepType,
+							[entityFieldAddressKey(EntityType.BridgeRouteStep, [], 'tool')]: step.tool,
+							[entityFieldAddressKey(EntityType.BridgeRouteStep, [], '$fromNetwork')]: step.$fromNetwork,
+							[entityFieldAddressKey(EntityType.BridgeRouteStep, [], '$toNetwork')]: step.$toNetwork,
+							...(step.$fromToken != null && {
+								[entityFieldAddressKey(EntityType.BridgeRouteStep, [], '$fromToken')]: step.$fromToken,
+							}),
+							...(step.$toToken != null && {
+								[entityFieldAddressKey(EntityType.BridgeRouteStep, [], '$toToken')]: step.$toToken,
+							}),
+							...(step.railId != null && {
+								[entityFieldAddressKey(EntityType.BridgeRouteStep, [], 'railId')]: step.railId,
+								[entityFieldAddressKey(EntityType.BridgeRouteStep, [], 'settlementModel')]: step.settlementModel,
+								[entityFieldAddressKey(EntityType.BridgeRouteStep, [], 'verificationModel')]: step.verificationModel,
+								[entityFieldAddressKey(EntityType.BridgeRouteStep, [], 'assetOutcome')]: step.assetOutcome,
+							}),
+						},
 					})),
 					resolveCount: (route) => route.$$steps.length,
 				},

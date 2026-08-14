@@ -6,7 +6,11 @@ import {
 	vi,
 } from 'vitest'
 
-import { EntityMetaKey } from '$/schema/$schema.ts'
+import {
+	entityFieldAddressKey,
+	EntityMetaKey,
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
 const {
@@ -219,7 +223,7 @@ describe('EasScan GraphQL resolvers', () => {
 		expect(getAttestationsBySchema).not.toHaveBeenCalled()
 	})
 
-	it('loads bounded schema attestation references without schema registration I/O', async () => {
+	it('loads bounded native schema attestations without schema registration I/O', async () => {
 		getAttestationsBySchema.mockResolvedValue([attestation])
 
 		await expect(easSchemaAttestationsResolver.resolve.NetworkSchemaUid.resolve({
@@ -230,6 +234,37 @@ describe('EasScan GraphQL resolvers', () => {
 				[EntityMetaKey.Selector]: {
 					$network: network,
 					uid,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.EasAttestation, [], 'schemaUid')]: schemaUid,
+					[entityFieldAddressKey(EntityType.EasAttestation, [], '$schema')]: {
+						[EntityMetaKey.Selector]: {
+							$network: network,
+							schemaUid,
+						},
+					},
+					[entityFieldAddressKey(EntityType.EasAttestation, [], 'recipient')]: recipient,
+					[entityFieldAddressKey(EntityType.EasAttestation, [], '$recipientAccount')]: {
+						[EntityMetaKey.Selector]: {
+							$network: network,
+							$actor: {
+								address: recipient,
+							},
+						},
+					},
+					[entityFieldAddressKey(EntityType.EasAttestation, [], 'attester')]: attester,
+					[entityFieldAddressKey(EntityType.EasAttestation, [], '$attesterAccount')]: {
+						[EntityMetaKey.Selector]: {
+							$network: network,
+							$actor: {
+								address: attester,
+							},
+						},
+					},
+					[entityFieldAddressKey(EntityType.EasAttestation, [], 'attestedAt')]: 1_700_000_000,
+					[entityFieldAddressKey(EntityType.EasAttestation, [], 'expirationTime')]: 1_700_000_200,
+					[entityFieldAddressKey(EntityType.EasAttestation, [], 'revocable')]: true,
+					[entityFieldAddressKey(EntityType.EasAttestation, [], 'data')]: '0x1234',
 				},
 			}],
 		})

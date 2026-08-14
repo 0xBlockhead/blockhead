@@ -2,11 +2,13 @@ import { networks } from '$/constants/Network.ts'
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import { defineResolver, type RegisteredSourceResolverModule } from '$/resolvers/defineResolver.ts'
 import {
+	entityFieldAddressKey,
 	EntityMetaKey,
 	type EntitySelector,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import type { schema } from '$/schema/index.ts'
+import type { EasScanAttestation } from '$/sources/EasScan/Graphql/types.ts'
 import { Source } from '$/sources/Source.ts'
 type NetworkSelector = EntitySelector<typeof schema, EntityType.Network>
 
@@ -55,6 +57,45 @@ const evmNetworkAccount = (
 	},
 })
 
+const easAttestationFields = (
+	$network: NetworkSelector,
+	attestation: EasScanAttestation
+) => {
+	const schemaUid = zeroExHex(attestation.schemaId)
+	const recipient = zeroExHex(attestation.recipient)
+	const attester = zeroExHex(attestation.attester)
+	const refUid = zeroExHex(attestation.refUID)
+
+	return {
+		schemaUid,
+		$schema: {
+			[EntityMetaKey.Selector]: {
+				$network,
+				schemaUid,
+			},
+		},
+		recipient,
+		$recipientAccount: evmNetworkAccount($network, recipient),
+		attester,
+		$attesterAccount: evmNetworkAccount($network, attester),
+		...(refUid !== zeroUid && {
+			refUid,
+			$refAttestation: {
+				[EntityMetaKey.Selector]: {
+					$network,
+					uid: refUid,
+				},
+			},
+		}),
+		attestedAt: attestation.time,
+		...(attestation.expirationTime !== 0 && {
+			expirationTime: attestation.expirationTime,
+		}),
+		revocable: attestation.revocable,
+		data: zeroExHex(attestation.data),
+	}
+}
+
 const easAttestationResolver = defineResolver({
 	entityType: EntityType.EasAttestation,
 	resolve: {
@@ -74,38 +115,8 @@ const easAttestationResolver = defineResolver({
 				if (attestation == null)
 					throw new Error('EasScan_Graphql: attestation not found')
 
-				const schemaUid = zeroExHex(attestation.schemaId)
-				const recipient = zeroExHex(attestation.recipient)
-				const attester = zeroExHex(attestation.attester)
-				const refUid = zeroExHex(attestation.refUID)
-
 				return {
-					schemaUid,
-					$schema: {
-						[EntityMetaKey.Selector]: {
-							$network: entitySelector.$network,
-							schemaUid,
-						},
-					},
-					recipient,
-					$recipientAccount: evmNetworkAccount(entitySelector.$network, recipient),
-					attester,
-					$attesterAccount: evmNetworkAccount(entitySelector.$network, attester),
-					...(refUid !== zeroUid && {
-						refUid,
-						$refAttestation: {
-							[EntityMetaKey.Selector]: {
-								$network: entitySelector.$network,
-								uid: refUid,
-							},
-						},
-					}),
-					attestedAt: attestation.time,
-					...(attestation.expirationTime !== 0 && {
-						expirationTime: attestation.expirationTime,
-					}),
-					revocable: attestation.revocable,
-					data: zeroExHex(attestation.data),
+					...easAttestationFields(entitySelector.$network, attestation),
 					$$timestamps: [{
 						[EntityMetaKey.Selector]: {
 							$attestation: entitySelector,
@@ -269,12 +280,34 @@ const easSchemaAttestationsResolver = defineResolver({
 							skip: context.pagination.offset ?? 0,
 							take: Math.min(resolverContextRowLimit(context), 100),
 						})
-					).map((attestation) => ({
-						[EntityMetaKey.Selector]: {
+					).map((attestation) => {
+						const selector = {
 							$network: entitySelector.$network,
 							uid: zeroExHex(attestation.id),
-						},
-					})),
+						}
+						const fields = easAttestationFields(entitySelector.$network, attestation)
+						return {
+							[EntityMetaKey.Selector]: selector,
+							[EntityMetaKey.Fields]: {
+								[entityFieldAddressKey(EntityType.EasAttestation, [], 'schemaUid')]: fields.schemaUid,
+								[entityFieldAddressKey(EntityType.EasAttestation, [], '$schema')]: fields.$schema,
+								[entityFieldAddressKey(EntityType.EasAttestation, [], 'recipient')]: fields.recipient,
+								[entityFieldAddressKey(EntityType.EasAttestation, [], '$recipientAccount')]: fields.$recipientAccount,
+								[entityFieldAddressKey(EntityType.EasAttestation, [], 'attester')]: fields.attester,
+								[entityFieldAddressKey(EntityType.EasAttestation, [], '$attesterAccount')]: fields.$attesterAccount,
+								...('refUid' in fields && {
+									[entityFieldAddressKey(EntityType.EasAttestation, [], 'refUid')]: fields.refUid,
+									[entityFieldAddressKey(EntityType.EasAttestation, [], '$refAttestation')]: fields.$refAttestation,
+								}),
+								[entityFieldAddressKey(EntityType.EasAttestation, [], 'attestedAt')]: fields.attestedAt,
+								...('expirationTime' in fields && {
+									[entityFieldAddressKey(EntityType.EasAttestation, [], 'expirationTime')]: fields.expirationTime,
+								}),
+								[entityFieldAddressKey(EntityType.EasAttestation, [], 'revocable')]: fields.revocable,
+								[entityFieldAddressKey(EntityType.EasAttestation, [], 'data')]: fields.data,
+							},
+						}
+					}),
 				}
 			},
 		},

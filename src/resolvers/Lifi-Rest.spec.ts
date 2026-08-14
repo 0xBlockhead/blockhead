@@ -6,7 +6,16 @@ import {
 	vi,
 } from 'vitest'
 
-import { EntityMetaKey } from '$/schema/$schema.ts'
+import {
+	BridgeAssetOutcome,
+	BridgeRailId,
+	BridgeSettlementModel,
+	BridgeVerificationModel,
+} from '$/constants/Bridge.ts'
+import {
+	entityFieldAddressKey,
+	EntityMetaKey,
+} from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import { indexResolvers } from '$/resolvers/$resolvers.ts'
@@ -485,7 +494,7 @@ describe('LI.FI network applicability', () => {
 	})
 })
 
-describe('LI.FI bridge route step counts', () => {
+describe('LI.FI bridge route step projections', () => {
 	it('exposes authoritative $$steps resolveCount from the quote bundle', () => {
 		const resolver = lifiRest.resolvers.find((candidate) => (
 			candidate.entityType === EntityType.BridgeRoute
@@ -528,5 +537,83 @@ describe('LI.FI bridge route step counts', () => {
 				},
 			],
 		})).toBe(2)
+
+		expect(resolver.projections.$$steps.select({
+			$$steps: [{
+				[EntityMetaKey.Selector]: {
+					$route: {
+						fromChainId: 1,
+						toChainId: 10,
+						fromToken: '0x0',
+						toToken: '0x1',
+						fromAmount: 1n,
+						fromAddress: '0x2',
+						slippage: 0.005,
+						toAddress: '0x3',
+					},
+					indexInRoute: 0,
+				},
+				stepType: 'cross',
+				tool: 'across',
+				$fromNetwork: {
+					[EntityMetaKey.Selector]: {
+						caip2: {
+							namespace: 'eip155',
+							reference: '1',
+						},
+					},
+				},
+				$toNetwork: {
+					[EntityMetaKey.Selector]: {
+						caip2: {
+							namespace: 'eip155',
+							reference: '10',
+						},
+					},
+				},
+				railId: BridgeRailId.Across,
+				settlementModel: BridgeSettlementModel.IntentFill,
+				verificationModel: BridgeVerificationModel.External,
+				assetOutcome: BridgeAssetOutcome.LiquidityPoolNative,
+			}],
+		})).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$route: {
+					fromChainId: 1,
+					toChainId: 10,
+					fromToken: '0x0',
+					toToken: '0x1',
+					fromAmount: 1n,
+					fromAddress: '0x2',
+					slippage: 0.005,
+					toAddress: '0x3',
+				},
+				indexInRoute: 0,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.BridgeRouteStep, [], 'stepType')]: 'cross',
+				[entityFieldAddressKey(EntityType.BridgeRouteStep, [], 'tool')]: 'across',
+				[entityFieldAddressKey(EntityType.BridgeRouteStep, [], '$fromNetwork')]: {
+					[EntityMetaKey.Selector]: {
+						caip2: {
+							namespace: 'eip155',
+							reference: '1',
+						},
+					},
+				},
+				[entityFieldAddressKey(EntityType.BridgeRouteStep, [], '$toNetwork')]: {
+					[EntityMetaKey.Selector]: {
+						caip2: {
+							namespace: 'eip155',
+							reference: '10',
+						},
+					},
+				},
+				[entityFieldAddressKey(EntityType.BridgeRouteStep, [], 'railId')]: BridgeRailId.Across,
+				[entityFieldAddressKey(EntityType.BridgeRouteStep, [], 'settlementModel')]: BridgeSettlementModel.IntentFill,
+				[entityFieldAddressKey(EntityType.BridgeRouteStep, [], 'verificationModel')]: BridgeVerificationModel.External,
+				[entityFieldAddressKey(EntityType.BridgeRouteStep, [], 'assetOutcome')]: BridgeAssetOutcome.LiquidityPoolNative,
+			},
+		}])
 	})
 })
