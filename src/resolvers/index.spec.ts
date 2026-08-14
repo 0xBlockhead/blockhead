@@ -1180,7 +1180,7 @@ describe('resolver registry live resolver architecture', () => {
 			|| claim.source === Source.Local_Internal
 		))
 
-		expect(catalogOwnedClaims).toHaveLength(99)
+		expect(catalogOwnedClaims).toHaveLength(100)
 		expect(Object.entries(Object.groupBy(
 			catalogOwnedClaims,
 			(claim) => claim.source
@@ -1189,7 +1189,7 @@ describe('resolver registry live resolver architecture', () => {
 			(claims ?? []).length,
 		])).toEqual([
 			[Source.Constants_Internal, 15],
-			[Source.Local_Internal, 84],
+			[Source.Local_Internal, 85],
 		])
 		for (const source of [
 			Source.Constants_Internal,
