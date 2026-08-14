@@ -843,6 +843,35 @@ describe('Mastodon ActivityPub observations', () => {
 				}),
 			],
 		})
+		const threadProjection = resolver(
+			EntityType.ActivityPubNote,
+			'$$thread'
+		).projections.$$thread
+		if (typeof threadProjection === 'function' || threadProjection.continuation == null)
+			throw new Error('Mastodon spec missing ActivityPub thread continuation')
+		expect(threadProjection.continuation(thread)).toEqual({
+			operation: 'activitypub-note-thread',
+			target: 'mastodon-compatible-activitypub',
+			terminal: true,
+		})
+	})
+
+	it('fails closed when a thread relative is missing portable identity', async () => {
+		getStatusContext.mockResolvedValueOnce({
+			ancestors: [{
+				id: 'note-8',
+				content: '<p>Parent without a URI</p>',
+			}],
+			descendants: [],
+		})
+
+		await expect(resolver(
+			EntityType.ActivityPubNote,
+			'$$thread'
+		).resolve['InstanceOriginLocalStatusId'].resolve({
+			instanceOrigin: 'https://fosstodon.org',
+			localStatusId: 'note-9',
+		}, context)).rejects.toThrow('missing ActivityStreams URI')
 	})
 
 	it('rejects notes with an invalid creation timestamp', async () => {

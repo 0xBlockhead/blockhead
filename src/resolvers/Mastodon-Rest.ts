@@ -448,6 +448,28 @@ const activityPubNoteTimestampReferenceFromMastodonStatus = (
 	}
 }
 
+const activityPubThreadNoteReferenceFromMastodonStatus = (
+	status: MastodonApiV1Status,
+	instanceOrigin: string,
+	focalLocalStatusId: string,
+	resolvedAtMs: number
+) => {
+	if (status.id == null)
+		throw new Error('Mastodon_Rest: ActivityPub thread relative missing local status id')
+	if (String(status.id) === focalLocalStatusId)
+		throw new Error('Mastodon_Rest: ActivityPub thread relative repeats the focal note')
+	if (optionalNonemptyString(status.uri) == null)
+		throw new Error('Mastodon_Rest: ActivityPub thread relative missing ActivityStreams URI')
+	const reference = activityPubNoteCardReferenceFromMastodonStatus(
+		status,
+		instanceOrigin,
+		resolvedAtMs
+	)
+	if (reference == null)
+		throw new Error('Mastodon_Rest: ActivityPub thread relative missing canonical identity')
+	return reference
+}
+
 const mastodonAvatarUrl = (
 	value: string | null | undefined,
 	options?: { siteOrigin?: string }
@@ -1120,15 +1142,16 @@ export default {
 								...ancestors,
 								...descendants,
 							]
-								.flatMap((s) => (
-								s.id == null || String(s.id) === localStatusId ?
-									[]
-								:
-									[activityPubNoteCardReferenceFromMastodonStatus(
-										s,
-										instanceOrigin,
-										resolvedAtMs
-									)]
+								.flatMap((status) => (
+									status.id != null && String(status.id) === localStatusId ?
+										[]
+									:
+										[activityPubThreadNoteReferenceFromMastodonStatus(
+											status,
+											instanceOrigin,
+											localStatusId,
+											resolvedAtMs
+										)]
 								))
 						)
 					},
@@ -1144,31 +1167,40 @@ export default {
 							throw new Error(`Mastodon_Rest: entity instance binding is missing for ${activityStreamsUri}`)
 						const status = await getStatusByActivityStreamsUri(binding, activityStreamsUri)
 						if (status.id == null)
-							return []
+							throw new Error('Mastodon_Rest: ActivityPub note thread is missing the local status id')
 						const instanceOrigin = new URL(activityStreamsUri).origin
-						const { ancestors = [], descendants = [] } = await getStatusContext(binding, instanceOrigin, String(status.id))
+						const localStatusId = String(status.id)
+						const { ancestors = [], descendants = [] } = await getStatusContext(binding, instanceOrigin, localStatusId)
 						const resolvedAtMs = Date.now()
 						return (
 							[
 								...ancestors,
 								...descendants,
 							]
-								.flatMap((s) => (
-								s.id == null || String(s.id) === String(status.id) ?
-									[]
-								:
-									[activityPubNoteCardReferenceFromMastodonStatus(
-										s,
-										instanceOrigin,
-										resolvedAtMs
-									)]
+								.flatMap((threadStatus) => (
+									threadStatus.id != null && String(threadStatus.id) === localStatusId ?
+										[]
+									:
+										[activityPubThreadNoteReferenceFromMastodonStatus(
+											threadStatus,
+											instanceOrigin,
+											localStatusId,
+											resolvedAtMs
+										)]
 								))
 						)
 					},
 				},
 			},
 		})({
-				$$thread: (note) => note,
+				$$thread: {
+					select: (notes) => notes,
+					continuation: () => ({
+						operation: 'activitypub-note-thread',
+						target: 'mastodon-compatible-activitypub',
+						terminal: true,
+					}),
+				},
 			}),
 	],
 } satisfies RegisteredSourceResolverModule

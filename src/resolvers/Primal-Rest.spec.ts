@@ -187,6 +187,33 @@ describe('Primal Rest enrolled leftovers', () => {
 		expect(getProfileNotes).toHaveBeenCalledWith(pubkey, 16)
 	})
 
+	it('fails closed when a timeline window has items but no valid signed events', async () => {
+		getProfileNotes.mockResolvedValueOnce({
+			notes: [{
+				id: 'not-a-signed-event',
+				kind: 1,
+				content: 'garbage',
+			}],
+		})
+		await expect(resolver(
+			EntityType.NostrProfile,
+			'$$notes'
+		).resolve.CanonicalPubkey.resolve({
+			pubkey,
+		}, context)).rejects.toThrow('contained no valid signed events')
+	})
+
+	it('fails closed on duplicate signed events in a timeline window', async () => {
+		const note = signedEvent([], 1, 'duplicate')
+		getProfileNotes.mockResolvedValueOnce({ notes: [note, note] })
+		await expect(resolver(
+			EntityType.NostrProfile,
+			'$$notes'
+		).resolve.CanonicalPubkey.resolve({
+			pubkey,
+		}, context)).rejects.toThrow('contains a duplicate event')
+	})
+
 	it('projects hub tip observed counts from the search window', async () => {
 		vi.spyOn(Date, 'now').mockReturnValueOnce(1_700_000_000_100)
 		const note = signedEvent([], 1, 'note')

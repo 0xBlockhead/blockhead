@@ -103,39 +103,48 @@ const eventFromWire = (
 
 const eventsFromTimelineResponse = (
 	response: unknown,
-	expectation: NostrEventExpectation = {}
+	expectation: NostrEventExpectation = {},
+	sourceLabel = 'timeline'
 ) => {
-	if (Array.isArray(response))
-		return response.flatMap((noteEvent) => {
-			try {
-				const event = noteEventFromWire(noteEvent)
-				return event == null ? [] : [validateNostrEvent(event, expectation)]
-			} catch {
-				return []
-			}
-		})
-	if (response == null || !isJsonObject(response)) return []
-	for (const key of [
-		'notes',
-		'posts',
-		'events',
-		'items',
-		'reposts',
-		'articles',
-		'actions',
-	] as const) {
-		const noteEvents = response[key]
-		if (!Array.isArray(noteEvents)) continue
-		return noteEvents.flatMap((noteEvent) => {
-			try {
-				const event = noteEventFromWire(noteEvent)
-				return event == null ? [] : [validateNostrEvent(event, expectation)]
-			} catch {
-				return []
-			}
-		})
-	}
-	return []
+	const wireEvents = (
+		Array.isArray(response) ?
+			response
+		: response == null || !isJsonObject(response) ?
+			undefined
+		:
+			(
+				[
+					'notes',
+					'posts',
+					'events',
+					'items',
+					'reposts',
+					'articles',
+					'actions',
+				] as const
+			).flatMap((key) => {
+				const noteEvents = response[key]
+				return Array.isArray(noteEvents) ? [noteEvents] : []
+			}).at(0)
+	)
+	if (wireEvents == null)
+		return []
+
+	const events = wireEvents.flatMap((noteEvent) => {
+		try {
+			const event = noteEventFromWire(noteEvent)
+			return event == null ? [] : [validateNostrEvent(event, expectation)]
+		} catch {
+			return []
+		}
+	})
+	if (wireEvents.length > 0 && events.length === 0)
+		throw new Error(`Primal_Rest: ${sourceLabel} contained no valid signed events`)
+
+	const uniqueEvents = nostrEventsNewestFirst(events)
+	if (uniqueEvents.length !== events.length)
+		throw new Error(`Primal_Rest: ${sourceLabel} contains a duplicate event`)
+	return uniqueEvents
 }
 
 export default {

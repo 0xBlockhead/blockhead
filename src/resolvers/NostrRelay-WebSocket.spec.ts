@@ -18,8 +18,13 @@ import { nostrEventId } from '$/sources/NostrRelay/Nip01/event.ts'
 
 const openNostrRelaySubscription = vi.hoisted(() => vi.fn())
 const openNostrRelaySubscriptionsForOperationGroup = vi.hoisted(() => vi.fn())
+const listNostrRelayEventsForOperationGroup = vi.hoisted(() => vi.fn())
+const listNostrRelayEventSnapshotForOperationGroup = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/NostrRelay/WebSocket/queries.ts', () => ({
+	listNostrRelayEventSnapshotForOperationGroup,
+	listNostrRelayEventsForOperationGroup,
+	nostrSearchTargetKey: 'wss://relay.nostr.band',
 	openNostrRelaySubscription,
 	openNostrRelaySubscriptionsForOperationGroup,
 }))
@@ -341,9 +346,68 @@ describe('Nostr relay live note resolver', () => {
 		expect(replaceReactionCountRows).not.toHaveBeenCalled()
 		expect(noteReactionsResolver.projections.$$reactions.resolveCount).toBeUndefined()
 
+		onEvents[0]({
+			type: 'eose',
+			relayUrl: 'wss://relay.example',
+			subscriptionId: 'thread',
+		})
+		onEvents[1]({
+			type: 'eose',
+			relayUrl: 'wss://relay.example',
+			subscriptionId: 'thread',
+		})
+		expect(replaceReplyRows).toHaveBeenLastCalledWith([{
+			source: Source.NostrRelay_WebSocket,
+			value: [expect.objectContaining({
+				[EntityMetaKey.Selector]: { eventId: replyEventId },
+			})],
+		}])
+		expect(replaceReactionRows).toHaveBeenLastCalledWith([{
+			source: Source.NostrRelay_WebSocket,
+			value: [expect.objectContaining({
+				[EntityMetaKey.Selector]: { eventId: reactionEventId },
+			})],
+		}])
+
 		cleanupReplies()
 		cleanupReactions()
 		expect(closes[0]).toHaveBeenCalledOnce()
 		expect(closes[1]).toHaveBeenCalledOnce()
+	})
+})
+
+describe('Nostr relay public search completion', () => {
+	it('records completion only from selected-relay EOSE', async () => {
+		listNostrRelayEventSnapshotForOperationGroup.mockResolvedValueOnce({
+			events: [],
+			selectedBindingCount: 2,
+			completedBindingCount: 1,
+			completed: false,
+		})
+		const searchResolver = nostrRelayWebSocket.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.NostrSearchQuery
+		))
+		if (searchResolver == null)
+			throw new Error('Nostr search resolver missing')
+
+		await expect(searchResolver.resolve.Query.resolve({
+			query: 'alice',
+		}, {
+			filters: [],
+			sorts: [],
+			pagination: {
+				limit: 2,
+				offset: 0,
+			},
+			selectorKeys: [],
+			parentSelectorKeys: [],
+			sources: [],
+			publicEnv: {},
+		})).resolves.toMatchObject({
+			query: 'alice',
+			profiles: [],
+			resultCount: 0,
+			completed: false,
+		})
 	})
 })

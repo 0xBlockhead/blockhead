@@ -40,6 +40,7 @@ import {
 	validatedNostrEventFromContent,
 } from '$/sources/NostrRelay/Nip01/event.ts'
 import {
+	listNostrRelayEventSnapshotForOperationGroup,
 	listNostrRelayEventsForOperationGroup,
 	nostrSearchTargetKey,
 	openNostrRelaySubscription,
@@ -176,16 +177,17 @@ export default {
 						if (normalizedQuery.length > 64)
 							throw new Error('Nostr profile search query exceeds 64 characters')
 
+						const snapshot = await listNostrRelayEventSnapshotForOperationGroup({
+							operationGroup: SourceOperationGroup.NostrSearch,
+							filters: [{
+								kinds: [0],
+								limit: resolverContextRowLimit(context),
+								search: normalizedQuery,
+							}],
+						})
 						const profiles = [...new Map(
 							validatedNostrEvents(
-								await listNostrRelayEventsForOperationGroup({
-									operationGroup: SourceOperationGroup.NostrSearch,
-									filters: [{
-										kinds: [0],
-										limit: resolverContextRowLimit(context),
-										search: normalizedQuery,
-									}],
-								}),
+								snapshot.events,
 								{ kinds: [0] }
 							)
 								.flatMap((event) => {
@@ -205,7 +207,7 @@ export default {
 							query: normalizedQuery,
 							profiles,
 							resultCount: profiles.length,
-							completed: true,
+							completed: snapshot.completed,
 						}
 					},
 				},
@@ -727,6 +729,14 @@ export default {
 					}) => {
 						const repliesByEventId = new Map<string, NostrEventEnvelope>()
 						const limit = resolverContextRowLimit(trigger)
+						const publish = () => {
+							fields.$$replies.replaceRows([{
+								source: Source.NostrRelay_WebSocket,
+								value: nostrEventsNewestFirst([...repliesByEventId.values()])
+									.slice(0, limit)
+									.map(nostrNoteReference),
+							}])
+						}
 						const subscription = openNostrRelaySubscriptionsForOperationGroup({
 							operationGroup: SourceOperationGroup.NostrRelayRead,
 							subscriptionId: `blockhead-note-replies-${parentEntitySelector.eventId}`,
@@ -738,6 +748,10 @@ export default {
 							signal,
 							maxSeenEventIds: Math.max(limit * 16, 1_024),
 							onEvent: (subscriptionEvent) => {
+								if (subscriptionEvent.type === 'eose') {
+									publish()
+									return
+								}
 								if (subscriptionEvent.type !== 'event')
 									return
 
@@ -754,13 +768,7 @@ export default {
 									return
 
 								repliesByEventId.set(event.id, event)
-								const replies = nostrEventsNewestFirst([...repliesByEventId.values()])
-									.slice(0, limit)
-									.map(nostrNoteReference)
-								fields.$$replies.replaceRows([{
-									source: Source.NostrRelay_WebSocket,
-									value: replies,
-								}])
+								publish()
 							},
 						})
 
@@ -809,6 +817,14 @@ export default {
 					}) => {
 						const reactionsByEventId = new Map<string, NostrEventEnvelope>()
 						const limit = resolverContextRowLimit(trigger)
+						const publish = () => {
+							fields.$$reactions.replaceRows([{
+								source: Source.NostrRelay_WebSocket,
+								value: nostrEventsNewestFirst([...reactionsByEventId.values()])
+									.slice(0, limit)
+									.map((reaction) => nostrReactionReference(reaction, parentEntitySelector.eventId)),
+							}])
+						}
 						const subscription = openNostrRelaySubscriptionsForOperationGroup({
 							operationGroup: SourceOperationGroup.NostrRelayRead,
 							subscriptionId: `blockhead-note-reactions-${parentEntitySelector.eventId}`,
@@ -820,6 +836,10 @@ export default {
 							signal,
 							maxSeenEventIds: Math.max(limit * 16, 1_024),
 							onEvent: (subscriptionEvent) => {
+								if (subscriptionEvent.type === 'eose') {
+									publish()
+									return
+								}
 								if (subscriptionEvent.type !== 'event')
 									return
 
@@ -836,13 +856,7 @@ export default {
 									return
 
 								reactionsByEventId.set(event.id, event)
-								const reactions = nostrEventsNewestFirst([...reactionsByEventId.values()])
-									.slice(0, limit)
-									.map((reaction) => nostrReactionReference(reaction, parentEntitySelector.eventId))
-								fields.$$reactions.replaceRows([{
-									source: Source.NostrRelay_WebSocket,
-									value: reactions,
-								}])
+								publish()
 							},
 						})
 

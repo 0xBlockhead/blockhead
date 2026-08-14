@@ -7,6 +7,7 @@ import type {
 } from '$/sources/NostrRelay/WebSocket/types.ts'
 import {
 	latestNostrRelayListFromEvents,
+	listNostrRelayEventSnapshot,
 	listNostrRelayEvents,
 	listRelayEvents,
 	nostrCommentFromEvent,
@@ -850,6 +851,42 @@ describe('Nostr relay WebSocket subscriptions', () => {
 			readRelayEvents,
 		})).rejects.toThrow('All Nostr relay snapshot bindings failed')
 		expect(readRelayEvents).toHaveBeenCalledTimes(relayCount)
+	})
+
+	it('marks a merged snapshot incomplete when any selected relay fails to EOSE', async () => {
+		const readBindings = webSocketBindings.filter((binding) => (
+			binding.operationGroups.includes(SourceOperationGroup.NostrRelayRead)
+		))
+		const readRelayEvents = vi.fn<typeof listRelayEvents>(({ binding }) => (
+			binding.endpoints[0].locator === readBindings[0].endpoints[0].locator ?
+				Promise.resolve([
+					{
+						id: 'event-a',
+						created_at: 20,
+					},
+				])
+			:
+				Promise.reject(new Error('relay unavailable'))
+		))
+
+		await expect(listNostrRelayEventSnapshot({
+			bindings: readBindings,
+			filters: [{
+				kinds: [1],
+				limit: 8,
+			}],
+			readRelayEvents,
+		})).resolves.toEqual({
+			events: [
+				{
+					id: 'event-a',
+					created_at: 20,
+				},
+			],
+			selectedBindingCount: readBindings.length,
+			completedBindingCount: 1,
+			completed: false,
+		})
 	})
 
 	it('reconnects once, resumes inclusively, and cancels the active subscription', async () => {

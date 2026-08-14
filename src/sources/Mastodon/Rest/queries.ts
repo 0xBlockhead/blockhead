@@ -320,24 +320,26 @@ export const listAccountStatusesPageByLocalAccountId = async (
 export const getInstance = async (
 	binding: (typeof bindings)[Source.Mastodon_Rest][number],
 	instanceOrigin: string
-): Promise<MastodonApiV1Instance> => (
-	assertEnvelope(
+): Promise<MastodonApiV1Instance> => {
+	assertInstanceMatches(binding, instanceOrigin)
+	return assertEnvelope(
 		'instance',
 		mastodonApiV1InstanceWire,
 		await mastodonGet(binding, '/instance')
 	)
-)
+}
 
 export const getInstanceV2 = async (
 	binding: (typeof bindings)[Source.Mastodon_Rest][number],
 	instanceOrigin: string
-): Promise<MastodonApiV2Instance> => (
-	assertEnvelope(
+): Promise<MastodonApiV2Instance> => {
+	assertInstanceMatches(binding, instanceOrigin)
+	return assertEnvelope(
 		'instance-v2',
 		mastodonApiV2InstanceWire,
 		await mastodonGet(binding, '/instance', undefined, 'v2')
 	)
-)
+}
 
 export const listPublicTimelinePage = async (
 	binding: (typeof bindings)[Source.Mastodon_Rest][number],
@@ -419,14 +421,37 @@ export const listInstanceModeratedDomains = async (
 	binding: (typeof bindings)[Source.Mastodon_Rest][number],
 	instanceOrigin: string
 ): Promise<MastodonApiV1DomainBlock[]> => {
+	assertInstanceMatches(binding, instanceOrigin)
 	const response = await mastodonFetch(binding, '/instance/domain_blocks')
 	if (!response.ok)
 		throw new Error(`Mastodon_Rest: instance domain blocks failed for ${instanceOrigin}: ${response.status} ${response.statusText}`)
-	return assertEnvelope(
+	const domainBlocks = assertEnvelope(
 		'instance-domain-blocks',
 		mastodonApiV1DomainBlockListWire,
 		await response.json()
 	)
+	const seenDigests = new Set<string>()
+	const seenDomains = new Set<string>()
+	return domainBlocks.map((domainBlock) => {
+		const digest = domainBlock.digest.toLowerCase()
+		const domain = canonicalActivityPubHost('moderated domain', domainBlock.domain)
+		const severity = domainBlock.severity.trim().toLowerCase()
+		if (severity !== 'silence' && severity !== 'suspend')
+			throw new Error(`Mastodon_Rest: instance domain block has an unknown severity: ${domainBlock.severity}`)
+		if (seenDigests.has(digest))
+			throw new Error(`Mastodon_Rest: instance domain block response contains a duplicate digest: ${digest}`)
+		if (seenDomains.has(domain))
+			throw new Error(`Mastodon_Rest: instance domain block response contains a duplicate domain: ${domain}`)
+		seenDigests.add(digest)
+		seenDomains.add(domain)
+		const comment = domainBlock.comment?.trim()
+		return {
+			domain,
+			digest,
+			severity,
+			...(comment != null && comment !== '' && { comment }),
+		}
+	})
 }
 
 export const assertInstanceMatches = (

@@ -473,3 +473,114 @@ describe('Mastodon instance peer domains', () => {
 		)
 	})
 })
+
+describe('Mastodon instance moderated domains', () => {
+	beforeEach(() => {
+		mastodonFetch.mockReset()
+		mastodonGet.mockReset()
+	})
+
+	it('rejects instance and domain-block reads for a mismatched origin before transport', async () => {
+		await expect(getInstance(mastodonSocialBinding, 'https://evil.example')).rejects.toThrow(
+			'entity instance binding is missing for https://evil.example'
+		)
+		await expect(getInstanceV2(mastodonSocialBinding, 'https://evil.example')).rejects.toThrow(
+			'entity instance binding is missing for https://evil.example'
+		)
+		await expect(listInstanceModeratedDomains(mastodonSocialBinding, 'https://evil.example')).rejects.toThrow(
+			'entity instance binding is missing for https://evil.example'
+		)
+		expect(mastodonGet).not.toHaveBeenCalled()
+		expect(mastodonFetch).not.toHaveBeenCalled()
+	})
+
+	it('canonicalizes public domain-block identity and known severities', async () => {
+		mastodonFetch.mockResolvedValueOnce(new Response(JSON.stringify([
+			{
+				domain: ' BLOCKED.Example ',
+				digest: 'A'.repeat(64),
+				severity: 'Suspend',
+				comment: ' phishing ',
+			},
+		])))
+
+		await expect(listInstanceModeratedDomains(mastodonSocialBinding, 'https://mastodon.social')).resolves.toEqual([
+			{
+				domain: 'blocked.example',
+				digest: 'a'.repeat(64),
+				severity: 'suspend',
+				comment: 'phishing',
+			},
+		])
+	})
+
+	it.each([
+		['silence', 'silence'],
+		['suspend', 'suspend'],
+	])('accepts public severity %s', async (severity, canonical) => {
+		mastodonFetch.mockResolvedValueOnce(new Response(JSON.stringify([
+			{
+				domain: 'blocked.example',
+				digest: 'b'.repeat(64),
+				severity,
+			},
+		])))
+
+		await expect(listInstanceModeratedDomains(mastodonSocialBinding, 'https://mastodon.social')).resolves.toEqual([
+			{
+				domain: 'blocked.example',
+				digest: 'b'.repeat(64),
+				severity: canonical,
+			},
+		])
+	})
+
+	it('rejects an unknown domain-block severity', async () => {
+		mastodonFetch.mockResolvedValueOnce(new Response(JSON.stringify([
+			{
+				domain: 'blocked.example',
+				digest: 'c'.repeat(64),
+				severity: 'noop',
+			},
+		])))
+
+		await expect(listInstanceModeratedDomains(mastodonSocialBinding, 'https://mastodon.social')).rejects.toThrow(
+			'unknown severity'
+		)
+	})
+
+	it('rejects duplicate domain-block digests and domains', async () => {
+		mastodonFetch
+			.mockResolvedValueOnce(new Response(JSON.stringify([
+				{
+					domain: 'one.example',
+					digest: 'd'.repeat(64),
+					severity: 'silence',
+				},
+				{
+					domain: 'two.example',
+					digest: 'D'.repeat(64),
+					severity: 'suspend',
+				},
+			])))
+			.mockResolvedValueOnce(new Response(JSON.stringify([
+				{
+					domain: 'same.example',
+					digest: 'e'.repeat(64),
+					severity: 'silence',
+				},
+				{
+					domain: ' SAME.example ',
+					digest: 'f'.repeat(64),
+					severity: 'suspend',
+				},
+			])))
+
+		await expect(listInstanceModeratedDomains(mastodonSocialBinding, 'https://mastodon.social')).rejects.toThrow(
+			'duplicate digest'
+		)
+		await expect(listInstanceModeratedDomains(mastodonSocialBinding, 'https://mastodon.social')).rejects.toThrow(
+			'duplicate domain'
+		)
+	})
+})

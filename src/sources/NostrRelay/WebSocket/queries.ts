@@ -639,7 +639,7 @@ export const listRelayEvents = ({
 	})
 }
 
-export const listNostrRelayEvents = async ({
+export const listNostrRelayEventSnapshot = async ({
 	bindings,
 	filters,
 	signal,
@@ -680,7 +680,7 @@ export const listNostrRelayEvents = async ({
 				eventById.set(event.id, event)
 	}
 
-	return (
+	const events = (
 		[...eventById.values()]
 			.sort((left, right) => (
 				right.created_at - left.created_at
@@ -693,7 +693,57 @@ export const listNostrRelayEvents = async ({
 					limit + filter.limit
 			), 0))
 	)
+
+	return {
+		events,
+		selectedBindingCount: bindings.length,
+		completedBindingCount: results.length - failures.length,
+		completed: failures.length === 0,
+	}
 }
+
+export const listNostrRelayEvents = async ({
+	bindings,
+	filters,
+	signal,
+	timeoutMs = 10_000,
+	readRelayEvents = listRelayEvents,
+}: {
+	bindings: readonly SourceBinding[]
+	filters: readonly NostrRelayFilter[]
+	signal?: AbortSignal
+	timeoutMs?: number
+	readRelayEvents?: typeof listRelayEvents
+}) => (
+	(
+		await listNostrRelayEventSnapshot({
+			bindings,
+			filters,
+			signal,
+			timeoutMs,
+			readRelayEvents,
+		})
+	).events
+)
+
+export const listNostrRelayEventSnapshotForOperationGroup = ({
+	operationGroup,
+	filters,
+	signal,
+	timeoutMs,
+}: {
+	operationGroup: SourceOperationGroup.NostrRelayRead | SourceOperationGroup.NostrSearch
+	filters: readonly NostrRelayFilter[]
+	signal?: AbortSignal
+	timeoutMs?: number
+}) => listNostrRelayEventSnapshot({
+	bindings: bindings[Source.NostrRelay_WebSocket].filter((binding) => (
+		binding.operationGroups.includes(operationGroup)
+	)),
+	filters,
+	signal,
+	timeoutMs,
+})
 
 export const listNostrRelayEventsForOperationGroup = ({
 	operationGroup,
