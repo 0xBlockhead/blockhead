@@ -19,6 +19,9 @@ export const blockscoutBlockDetailEnvelope = arktype({
 	'blob_gas_used?': 'string | null',
 	'excess_blob_gas?': 'string | null',
 })
+export const blockscoutCursorEnvelope = arktype({
+	'[string]': 'string | number | null',
+})
 export const blockscoutBlocksPageEnvelope = arktype({
 	items: arktype({
 		base_fee_per_gas: 'string | null',
@@ -31,6 +34,7 @@ export const blockscoutBlocksPageEnvelope = arktype({
 		timestamp: 'string',
 		transactions_count: 'number',
 	}).array(),
+	'next_page_params?': blockscoutCursorEnvelope.or(arktype.null),
 })
 export const blockscoutSignedAuthorizationEnvelope = arktype({
 	address_hash: 'string',
@@ -73,6 +77,7 @@ export const blockscoutTransactionEnvelope = arktype({
 })
 export const blockscoutTransactionsPageEnvelope = arktype({
 	items: blockscoutTransactionEnvelope.array(),
+	'next_page_params?': blockscoutCursorEnvelope.or(arktype.null),
 })
 export const blockscoutRawTraceEnvelope = arktype({
 	action: {
@@ -105,6 +110,7 @@ export const blockscoutTokenTransferEnvelope = arktype({
 })
 export const blockscoutTokenTransfersPageEnvelope = arktype({
 	items: blockscoutTokenTransferEnvelope.array(),
+	'next_page_params?': blockscoutCursorEnvelope.or(arktype.null),
 })
 export const blockscoutTokenBalanceEnvelope = arktype({
 	token: arktype({

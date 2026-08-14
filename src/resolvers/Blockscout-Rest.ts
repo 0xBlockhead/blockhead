@@ -1,4 +1,7 @@
-import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
+import {
+	resolverContextRowLimit,
+	type ProviderContinuation,
+} from '$/resolvers/$resolvers.ts'
 import { keccak256, toHex } from '@tevm/voltaire/Hash'
 import { toBytes } from '@tevm/voltaire/Hex'
 import { evmAbiFromJsonString } from '$/lib/evmAbi.ts'
@@ -1405,7 +1408,7 @@ const blockscoutTipBlockObservationClock = async (
 	const tip = (await getBlocks({
 		chainId,
 		limit: 1,
-	})).at(0)
+	})).items.at(0)
 	if (tip == null || !Number.isSafeInteger(tip.height) || tip.height < 0)
 		throw new Error('Blockscout_Rest: tip block missing for balance observation clock')
 
@@ -1423,6 +1426,32 @@ const blockscoutTipBlockObservationClock = async (
 		timestampMs,
 	}
 }
+
+const blockscoutHistoryContinuation = ({
+	operation,
+	target,
+	nextPageParams,
+}: {
+	operation: string
+	target: string
+	nextPageParams: {
+		readonly [key: string]: string | number | null
+	} | undefined
+}): ProviderContinuation => (
+	nextPageParams == null || Object.keys(nextPageParams).length === 0 ?
+		{
+			operation,
+			target,
+			terminal: true,
+		}
+	:
+		{
+			operation,
+			target,
+			terminal: false,
+			token: JSON.stringify(nextPageParams),
+		}
+)
 
 const blockscoutEvmNetworkAccountObservation = async ({
 	$network,
@@ -3581,28 +3610,41 @@ export default {
 						const {
 							blockscoutV2ItemsCountMax,
 						} = await import('$/sources/Blockscout/Rest/constants.ts')
+						const chainId = evmChainIdFromNetworkSelector(entitySelector)
 						const limit = Math.min(
 							resolverContextRowLimit(context),
 							blockscoutV2ItemsCountMax
 						)
 						const { getBlocks } = await import('$/sources/Blockscout/Rest/queries.ts')
-						const wires = await getBlocks({
-							chainId: evmChainIdFromNetworkSelector(entitySelector),
+						const page = await getBlocks({
+							chainId,
 							limit,
+							continuation: context.providerContinuationToken,
 						})
-						return wires.flatMap((wire) => {
-							const reference = evmBlockReferenceFromBlockscoutWire({
-								$network: evmNetworkSelectorFromChainId(evmChainIdFromNetworkSelector(entitySelector)),
-								wire,
-							})
-							return reference == null ? [] : [reference]
-						})
+						return {
+							target: `eip155:${chainId}`,
+							nextPageParams: page.nextPageParams,
+							rows: page.items.flatMap((wire) => {
+								const reference = evmBlockReferenceFromBlockscoutWire({
+									$network: evmNetworkSelectorFromChainId(chainId),
+									wire,
+								})
+								return reference == null ? [] : [reference]
+							}),
+						}
 					},
 				}
 			},
 		})({
 			Evm: {
-				$$blocks: (entity) => entity,
+				$$blocks: {
+					select: (page) => page.rows,
+					continuation: (page) => blockscoutHistoryContinuation({
+						operation: 'network-blocks',
+						target: page.target,
+						nextPageParams: page.nextPageParams,
+					}),
+				},
 			},
 		}),
 
@@ -3614,30 +3656,41 @@ export default {
 						const {
 							blockscoutV2ItemsCountMax,
 						} = await import('$/sources/Blockscout/Rest/constants.ts')
+						const chainId = evmChainIdFromNetworkSelector(entitySelector)
 						const limit = Math.min(
 							resolverContextRowLimit(context),
 							blockscoutV2ItemsCountMax
 						)
 						const { getTransactions } = await import('$/sources/Blockscout/Rest/queries.ts')
-						const wires = await getTransactions({
-							chainId: evmChainIdFromNetworkSelector(entitySelector),
+						const page = await getTransactions({
+							chainId,
 							limit,
+							continuation: context.providerContinuationToken,
 						})
-						return (
-							wires.flatMap((wire) => {
+						return {
+							target: `eip155:${chainId}`,
+							nextPageParams: page.nextPageParams,
+							rows: page.items.flatMap((wire) => {
 								const reference = evmTransactionReferenceFromBlockscoutWire(
-									evmNetworkSelectorFromChainId(evmChainIdFromNetworkSelector(entitySelector)),
+									evmNetworkSelectorFromChainId(chainId),
 									wire
 								)
 								return reference == null ? [] : [reference]
-							})
-						)
+							}),
+						}
 					},
 				},
 			},
 		})({
 			Evm: {
-				$$transactions: (entity) => entity,
+				$$transactions: {
+					select: (page) => page.rows,
+					continuation: (page) => blockscoutHistoryContinuation({
+						operation: 'network-transactions',
+						target: page.target,
+						nextPageParams: page.nextPageParams,
+					}),
+				},
 			},
 		}),
 
@@ -3658,25 +3711,35 @@ export default {
 						if (address == null)
 							throw new Error('Blockscout_Rest: EvmNetworkAccount wallet address not normalized')
 
-						const wires = await getAddressTransactions({
+						const page = await getAddressTransactions({
 							chainId: evmChainIdFromNetworkSelector($network),
 							address,
 							limit,
+							continuation: context.providerContinuationToken,
 						})
-						return (
-							wires.flatMap((wire) => {
+						return {
+							target: address,
+							nextPageParams: page.nextPageParams,
+							rows: page.items.flatMap((wire) => {
 								const reference = evmTransactionReferenceFromBlockscoutWire(
 									evmNetworkSelectorFromChainId(evmChainIdFromNetworkSelector($network)),
 									wire
 								)
 								return reference == null ? [] : [reference]
-							})
-						)
+							}),
+						}
 					},
 				},
 			},
 		})({
-			$$transactions: (entity) => entity,
+			$$transactions: {
+				select: (page) => page.rows,
+				continuation: (page) => blockscoutHistoryContinuation({
+					operation: 'account-transactions',
+					target: page.target,
+					nextPageParams: page.nextPageParams,
+				}),
+			},
 		}),
 
 		defineResolver({
@@ -3698,21 +3761,33 @@ export default {
 						if (address == null)
 							throw new Error('Blockscout_Rest: EvmNetworkAccount wallet address not normalized')
 
-						const wires = await getAddressTokenTransfers({
+						const page = await getAddressTokenTransfers({
 							chainId: evmChainIdFromNetworkSelector($network),
 							address,
 							limit,
+							continuation: context.providerContinuationToken,
 						})
-						return evmTokenTransferEntitiesFromBlockscoutAddressWires({
-							$network,
-							chainId: evmChainIdFromNetworkSelector($network),
-							wires,
-						})
+						return {
+							target: address,
+							nextPageParams: page.nextPageParams,
+							rows: evmTokenTransferEntitiesFromBlockscoutAddressWires({
+								$network,
+								chainId: evmChainIdFromNetworkSelector($network),
+								wires: page.items,
+							}),
+						}
 					},
 				},
 			},
 		})({
-			$$tokenTransfers: (entity) => entity.map(evmTokenTransferReference),
+			$$tokenTransfers: {
+				select: (page) => page.rows.map(evmTokenTransferReference),
+				continuation: (page) => blockscoutHistoryContinuation({
+					operation: 'account-token-transfers',
+					target: page.target,
+					nextPageParams: page.nextPageParams,
+				}),
+			},
 		}),
 
 		defineResolver({
@@ -3734,20 +3809,32 @@ export default {
 						if (address == null)
 							throw new Error('Blockscout_Rest: EvmNetworkAccount wallet address not normalized')
 
-						const wires = await getAddressInternalTransactions({
+						const page = await getAddressInternalTransactions({
 							chainId: evmChainIdFromNetworkSelector($network),
 							address,
 							limit,
+							continuation: context.providerContinuationToken,
 						})
-						return evmInternalTransferEntitiesFromBlockscoutAddressWires({
-							$network,
-							wires,
-						})
+						return {
+							target: address,
+							nextPageParams: page.nextPageParams,
+							rows: evmInternalTransferEntitiesFromBlockscoutAddressWires({
+								$network,
+								wires: page.items,
+							}),
+						}
 					},
 				},
 			},
 		})({
-			$$internalTransfers: (entity) => entity.map(evmInternalTransferReference),
+			$$internalTransfers: {
+				select: (page) => page.rows.map(evmInternalTransferReference),
+				continuation: (page) => blockscoutHistoryContinuation({
+					operation: 'account-internal-transfers',
+					target: page.target,
+					nextPageParams: page.nextPageParams,
+				}),
+			},
 		}),
 
 		defineResolver({
@@ -4256,32 +4343,42 @@ export default {
 							blockscoutV2ItemsCountMax
 						)
 						const { getBlockTransactions } = await import('$/sources/Blockscout/Rest/queries.ts')
-						const wires = await getBlockTransactions({
-							chainId: evmChainIdFromNetworkSelector($network),
+						const chainId = evmChainIdFromNetworkSelector($network)
+						const page = await getBlockTransactions({
+							chainId,
 							blockNumber,
 							limit,
+							continuation: context.providerContinuationToken,
 						})
-						return (
-							wires
-								.flatMap((w) => {
-									const txHash = hexLowerOfByteSize(w.hash, 32)
+						return {
+							target: `eip155:${chainId}:${blockNumber}`,
+							nextPageParams: page.nextPageParams,
+							rows: page.items.flatMap((wire) => {
+								const txHash = hexLowerOfByteSize(wire.hash, 32)
 
-									return txHash == null ?
-										[]
-									:
-										[{
-											[EntityMetaKey.Selector]: {
-												$network: evmNetworkSelectorFromChainId(evmChainIdFromNetworkSelector($network)),
-												txHash,
-											},
-										}]
-								})
-						)
+								return txHash == null ?
+									[]
+								:
+									[{
+										[EntityMetaKey.Selector]: {
+											$network: evmNetworkSelectorFromChainId(chainId),
+											txHash,
+										},
+									}]
+							}),
+						}
 					},
 				}
 			},
 		})({
-			$$transactions: (entity) => entity,
+			$$transactions: {
+				select: (page) => page.rows,
+				continuation: (page) => blockscoutHistoryContinuation({
+					operation: 'block-transactions',
+					target: page.target,
+					nextPageParams: page.nextPageParams,
+				}),
+			},
 		}),
 
 		defineResolver({

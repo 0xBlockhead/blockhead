@@ -285,7 +285,10 @@ describe('Blockscout account-abstraction queries', () => {
 		await expect(getBlocks({
 			chainId: 1,
 			limit: 1,
-		})).resolves.toEqual([block])
+		})).resolves.toEqual({
+			items: [block],
+			nextPageParams: undefined,
+		})
 	})
 
 	it('fails closed for malformed block and transaction detail envelopes', async () => {
@@ -403,17 +406,26 @@ describe('Blockscout account-abstraction queries', () => {
 		await expect(getTransactions({
 			chainId: 1,
 			limit: 1,
-		})).resolves.toEqual([transaction])
+		})).resolves.toEqual({
+			items: [transaction],
+			nextPageParams: undefined,
+		})
 		await expect(getAddressTransactions({
 			chainId: 1,
 			address: hex('A', 40),
 			limit: 1,
-		})).resolves.toEqual([transaction])
+		})).resolves.toEqual({
+			items: [transaction],
+			nextPageParams: undefined,
+		})
 		await expect(getBlockTransactions({
 			chainId: 1,
 			blockNumber: 12n,
 			limit: 1,
-		})).resolves.toEqual([transaction])
+		})).resolves.toEqual({
+			items: [transaction],
+			nextPageParams: undefined,
+		})
 
 		expect(fetchMock.mock.calls.map(([url]) => decodeURIComponent(String(url)))).toEqual([
 			expect.stringContaining(`/transactions/${requestedTxHash.toLowerCase()}`),
@@ -421,6 +433,93 @@ describe('Blockscout account-abstraction queries', () => {
 			expect.stringContaining(`/addresses/${hex('a', 40)}/transactions?items_count=1`),
 			expect.stringContaining('/blocks/12/transactions?items_count=1'),
 		])
+	})
+
+	it('preserves native next_page_params as history continuation coordinates', async () => {
+		const block = {
+			base_fee_per_gas: '1000000000',
+			gas_limit: '30000000',
+			gas_used: '15000000',
+			hash: hex('1', 64),
+			height: 12,
+			miner: {
+				hash: hex('2', 40),
+			},
+			parent_hash: hex('3', 64),
+			timestamp: '2026-07-16T09:30:43.020Z',
+			transactions_count: 3,
+		}
+		const nextPageParams = {
+			block_number: 11,
+			items_count: 1,
+		}
+		const fetchMock = vi.spyOn(globalThis, 'fetch')
+			.mockResolvedValueOnce(jsonResponse({
+				items: [block],
+				next_page_params: nextPageParams,
+			}))
+			.mockResolvedValueOnce(jsonResponse({
+				items: [block],
+				next_page_params: null,
+			}))
+			.mockResolvedValueOnce(jsonResponse({
+				items: [transaction],
+				next_page_params: {
+					block_number: 11,
+					index: 3,
+					items_count: 1,
+				},
+			}))
+
+		await expect(getBlocks({
+			chainId: 1,
+			limit: 1,
+		})).resolves.toEqual({
+			items: [block],
+			nextPageParams,
+		})
+		await expect(getBlocks({
+			chainId: 1,
+			limit: 1,
+			continuation: JSON.stringify(nextPageParams),
+		})).resolves.toEqual({
+			items: [block],
+			nextPageParams: undefined,
+		})
+		await expect(getAddressTransactions({
+			chainId: 1,
+			address: hex('A', 40),
+			limit: 1,
+		})).resolves.toEqual({
+			items: [transaction],
+			nextPageParams: {
+				block_number: 11,
+				index: 3,
+				items_count: 1,
+			},
+		})
+		expect(fetchMock.mock.calls.map(([url]) => decodeURIComponent(String(url)))).toEqual([
+			expect.stringContaining('/blocks?items_count=1'),
+			expect.stringContaining('/blocks?items_count=1&block_number=11'),
+			expect.stringContaining(`/addresses/${hex('a', 40)}/transactions?items_count=1`),
+		])
+	})
+
+	it('rejects a blocks continuation that does not advance', async () => {
+		const nextPageParams = {
+			block_number: 11,
+			items_count: 1,
+		}
+		vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse({
+			items: [],
+			next_page_params: nextPageParams,
+		}))
+
+		await expect(getBlocks({
+			chainId: 1,
+			limit: 1,
+			continuation: JSON.stringify(nextPageParams),
+		})).rejects.toThrow('blocks continuation did not advance')
 	})
 
 	it('fails closed when a transaction list carries a malformed created contract', async () => {

@@ -120,7 +120,8 @@ const receiptLogs = [
 describe('Blockscout EVM coin instances', () => {
 	it('materializes stable transaction facts and created contracts in account activity without detail reads', async () => {
 		const createdContract = '0x4444444444444444444444444444444444444444'
-		getAddressTransactions.mockResolvedValueOnce([{
+		getAddressTransactions.mockResolvedValueOnce({
+			items: [{
 			from: { hash: blockscoutAddress.hash },
 			to: { hash: '0x2222222222222222222222222222222222222222' },
 			gas_limit: '21000',
@@ -135,18 +136,22 @@ describe('Blockscout EVM coin instances', () => {
 			block_number: 12,
 			position: 3,
 			created_contract: { hash: createdContract },
-		}])
+			}],
+			nextPageParams: undefined,
+		})
 		const resolver = blockscoutRest.resolvers.find((candidate) => (
 			candidate.entityType === EntityType.EvmNetworkAccount
-			&& typeof candidate.projections.$$transactions === 'function'
+			&& '$$transactions' in candidate.projections
+			&& typeof candidate.projections.$$transactions !== 'function'
+			&& 'select' in candidate.projections.$$transactions
 		))
 		if (resolver == null) throw new Error('missing account transaction resolver')
-		const rows = await resolver.resolve.EvmNetworkEvmAccount.resolve({
+		const page = await resolver.resolve.EvmNetworkEvmAccount.resolve({
 			$actor: { address: blockscoutAddress.hash },
 			$network: network,
 		}, context)
 
-		expect(resolver.projections.$$transactions(rows)[0]).toMatchObject({
+		expect(resolver.projections.$$transactions.select(page)[0]).toMatchObject({
 			[EntityMetaKey.Selector]: { $network: network, txHash },
 			[EntityMetaKey.Fields]: {
 				[entityFieldAddressKey(EntityType.EvmTransaction, [], 'envelopeType')]: 'FeeMarket',
@@ -163,6 +168,47 @@ describe('Blockscout EVM coin instances', () => {
 			},
 		})
 		expect(getTransactionByHash).not.toHaveBeenCalled()
+		expect(resolver.projections.$$transactions.continuation?.(page)).toEqual({
+			operation: 'account-transactions',
+			target: blockscoutAddress.hash,
+			terminal: true,
+		})
+	})
+
+	it('forwards native address-transaction continuation tokens', async () => {
+		const resolver = blockscoutRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.EvmNetworkAccount
+			&& '$$transactions' in candidate.projections
+			&& typeof candidate.projections.$$transactions !== 'function'
+			&& 'select' in candidate.projections.$$transactions
+		))
+		if (resolver == null) throw new Error('missing account transaction resolver')
+
+		getAddressTransactions.mockResolvedValueOnce({
+			items: [],
+			nextPageParams: undefined,
+		})
+		const continuation = JSON.stringify({
+			block_number: 11,
+			index: 3,
+			items_count: 1,
+		})
+		await resolver.resolve.EvmNetworkEvmAccount.resolve(
+			{
+				$actor: { address: blockscoutAddress.hash },
+				$network: network,
+			},
+			{
+				...context,
+				providerContinuationToken: continuation,
+			}
+		)
+		expect(getAddressTransactions).toHaveBeenCalledWith({
+			chainId: 1,
+			address: blockscoutAddress.hash,
+			limit: 50,
+			continuation,
+		})
 	})
 
 	it('indexes only ERC-20 facet parts, leaving native selectors without a Blockscout part', () => {
@@ -952,11 +998,14 @@ describe('Blockscout_Rest balance observations', () => {
 				value: '2000000000000000000',
 			},
 		])
-		getBlocks.mockResolvedValue([
-			{
-				height: 22_800_001,
-			},
-		])
+		getBlocks.mockResolvedValue({
+			items: [
+				{
+					height: 22_800_001,
+				},
+			],
+			nextPageParams: undefined,
+		})
 		getBlockByNumber.mockResolvedValue({
 			hash: txHash,
 			height: 22_800_001,
@@ -1080,7 +1129,10 @@ describe('Blockscout_Rest balance observations', () => {
 				value: '1',
 			},
 		])
-		getBlocks.mockResolvedValue([])
+		getBlocks.mockResolvedValue({
+			items: [],
+			nextPageParams: undefined,
+		})
 
 		await expect(balanceResolver.resolve.EvmAccountErc20CoinInstance.resolve({
 			$actor: {
@@ -1099,7 +1151,8 @@ describe('Blockscout_Rest network blocks', () => {
 		candidate.entityType === EntityType.Network
 		&& 'Evm' in candidate.projections
 		&& '$$blocks' in candidate.projections.Evm
-		&& typeof candidate.projections.Evm.$$blocks === 'function'
+		&& typeof candidate.projections.Evm.$$blocks !== 'function'
+		&& 'select' in candidate.projections.Evm.$$blocks
 		&& 'Caip2' in candidate.resolve
 	))
 
@@ -1111,22 +1164,28 @@ describe('Blockscout_Rest network blocks', () => {
 	})
 
 	it('materializes endpoint-native block facts without block detail reads', async () => {
-		getBlocks.mockResolvedValue([{
-			base_fee_per_gas: '1000000000',
-			gas_limit: '30000000',
-			gas_used: '15000000',
-			hash: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-			height: 12,
-			miner: {
-				hash: '0x1111111111111111111111111111111111111111',
+		getBlocks.mockResolvedValue({
+			items: [{
+				base_fee_per_gas: '1000000000',
+				gas_limit: '30000000',
+				gas_used: '15000000',
+				hash: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+				height: 12,
+				miner: {
+					hash: '0x1111111111111111111111111111111111111111',
+				},
+				parent_hash: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+				timestamp: '2024-01-02T03:04:05.432Z',
+				transactions_count: 3,
+			}],
+			nextPageParams: {
+				block_number: 11,
+				items_count: 1,
 			},
-			parent_hash: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
-			timestamp: '2024-01-02T03:04:05.432Z',
-			transactions_count: 3,
-		}])
+		})
 
-		const blocks = await blocksResolver.resolve.Caip2.resolve(network, context)
-		expect(blocks).toEqual([{
+		const page = await blocksResolver.resolve.Caip2.resolve(network, context)
+		expect(blocksResolver.projections.Evm.$$blocks.select(page)).toEqual([{
 			[EntityMetaKey.Selector]: {
 				$network: network,
 				blockNumber: 12n,
@@ -1147,6 +1206,15 @@ describe('Blockscout_Rest network blocks', () => {
 				[entityFieldAddressKey(EntityType.EvmBlock, [], 'transactionCount')]: 3,
 			},
 		}])
+		expect(blocksResolver.projections.Evm.$$blocks.continuation?.(page)).toEqual({
+			operation: 'network-blocks',
+			target: 'eip155:1',
+			terminal: false,
+			token: JSON.stringify({
+				block_number: 11,
+				items_count: 1,
+			}),
+		})
 		expect(getBlockByNumber).not.toHaveBeenCalled()
 	})
 })
@@ -1376,9 +1444,12 @@ describe('Blockscout EvmNetworkAccount_Timestamp', () => {
 	})
 
 	it('projects tip account observations from counters + address details', async () => {
-		getBlocks.mockResolvedValue([{
-			height: 22_800_001,
-		}])
+		getBlocks.mockResolvedValue({
+			items: [{
+				height: 22_800_001,
+			}],
+			nextPageParams: undefined,
+		})
 		getBlockByNumber.mockResolvedValue({
 			hash: txHash,
 			height: 22_800_001,
@@ -1435,9 +1506,12 @@ describe('Blockscout EvmNetworkAccount_Timestamp', () => {
 	})
 
 	it('fail-closes singular account observations on tip-clock mismatch', async () => {
-		getBlocks.mockResolvedValue([{
-			height: 22_800_001,
-		}])
+		getBlocks.mockResolvedValue({
+			items: [{
+				height: 22_800_001,
+			}],
+			nextPageParams: undefined,
+		})
 		getBlockByNumber.mockResolvedValue({
 			hash: txHash,
 			height: 22_800_001,
@@ -1849,11 +1923,14 @@ describe('Blockscout EVM storage read observations', () => {
 		getBlocks.mockReset()
 		getBlockByNumber.mockReset()
 		getStorageAt.mockReset()
-		getBlocks.mockResolvedValue([
-			{
-				height: 22_800_001,
-			},
-		])
+		getBlocks.mockResolvedValue({
+			items: [
+				{
+					height: 22_800_001,
+				},
+			],
+			nextPageParams: undefined,
+		})
 		getBlockByNumber.mockResolvedValue({
 			timestamp: tipTimestamp,
 		})
