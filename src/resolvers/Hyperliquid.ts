@@ -535,12 +535,23 @@ export default {
 					resolve: async (entitySelector) => {
 						const { $network } = entitySelector
 						assertHyperliquidMainnet($network)
+						const { getMetaAndAssetCtxs } = await import('$/sources/Hyperliquid/Rest/queries.ts')
+						const market = assertPerpMarketSnapshot(await getMetaAndAssetCtxs()).universe
+							.find((candidate) => candidate.name === entitySelector.coin)
+						if (market == null)
+							throw new Error(`Hyperliquid_Rest: perp market not found for ${entitySelector.coin}`)
 						return [
 							{
 								[EntityMetaKey.Selector]: {
 									$perpMarket: entitySelector,
 									timestampMs: Date.now(),
 									source: Source.Hyperliquid,
+								},
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.HyperliquidPerpMarket_Timestamp, [], 'maxLeverage')]: market.maxLeverage,
+									...(market.onlyIsolated != null && {
+										[entityFieldAddressKey(EntityType.HyperliquidPerpMarket_Timestamp, [], 'onlyIsolated')]: market.onlyIsolated,
+									}),
 								},
 							},
 						]

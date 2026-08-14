@@ -172,6 +172,8 @@ it('projects enrolled blockchain, subnet, validator, and P-Chain block fields', 
 	}, context)
 	expect(subnet.$$validators).toHaveLength(1)
 	expect(subnet.$$blockchains).toHaveLength(1)
+	expect(subnetResolver.projections.$$validators.resolveCount(subnet)).toBe(1)
+	expect(subnetResolver.projections.$$blockchains.resolveCount(subnet)).toBe(1)
 
 	const validator = await validatorResolver.resolve.NodeIdSubnetIdStartTimeMs.resolve({
 		nodeId: 'NodeID-validator',

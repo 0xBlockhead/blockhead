@@ -514,8 +514,14 @@ export default {
 			ownerAddresses: (subnet) => subnet.ownerAddresses,
 			threshold: (subnet) => subnet.threshold,
 			controlKeys: (subnet) => subnet.controlKeys,
-			$$blockchains: (subnet) => subnet.$$blockchains,
-			$$validators: (subnet) => subnet.$$validators,
+			$$blockchains: {
+				select: (subnet) => subnet.$$blockchains,
+				resolveCount: (subnet) => subnet.$$blockchains.length,
+			},
+			$$validators: {
+				select: (subnet) => subnet.$$validators,
+				resolveCount: (subnet) => subnet.$$validators.length,
+			},
 			$$delegators: (subnet) => subnet.$$delegators,
 		}),
 

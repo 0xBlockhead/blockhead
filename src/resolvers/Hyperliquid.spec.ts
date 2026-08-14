@@ -1548,6 +1548,62 @@ describe('Hyperliquid market catalog resolvers', () => {
 		))).toBeUndefined()
 	})
 
+	it('enrolls current perp market fields on its non-replayable observation', async () => {
+		vi.spyOn(Date, 'now').mockReturnValue(1_700_000_000_999)
+		corsFetch.mockResolvedValue({
+			ok: true,
+			json: async () => [{
+				universe: [{
+					name: 'ETH',
+					szDecimals: 4,
+					maxLeverage: 25,
+					onlyIsolated: true,
+				}],
+			}, [{
+				funding: '0.0001',
+				openInterest: '1',
+				prevDayPx: '1900',
+				dayNtlVlm: '1000',
+				premium: '0.0001',
+				oraclePx: '2000',
+				markPx: '2000',
+				midPx: '2000',
+				impactPxs: [
+					'1999',
+					'2001',
+				],
+			}]],
+		})
+		const resolver = hyperliquid.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.HyperliquidPerpMarket
+		))
+		if (resolver == null)
+			throw new Error('Hyperliquid perp market resolver is missing')
+
+		const observations = await resolver.resolve.NetworkCoin.resolve({
+			$network: {
+				slug: 'hyperliquid',
+			},
+			coin: 'ETH',
+		}, context)
+		expect(resolver.projections.$$timestamps(observations)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$perpMarket: {
+					$network: {
+						slug: 'hyperliquid',
+					},
+					coin: 'ETH',
+				},
+				timestampMs: 1_700_000_000_999,
+				source: Source.Hyperliquid,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.HyperliquidPerpMarket_Timestamp, [], 'maxLeverage')]: 25,
+				[entityFieldAddressKey(EntityType.HyperliquidPerpMarket_Timestamp, [], 'onlyIsolated')]: true,
+			},
+		}])
+	})
+
 	it('maps candle snapshots onto market observation fields', async () => {
 		const candleResolver = hyperliquid.resolvers.find((resolver) => (
 			resolver.entityType === EntityType.HyperliquidMarket_TimeInterval_Timestamp
