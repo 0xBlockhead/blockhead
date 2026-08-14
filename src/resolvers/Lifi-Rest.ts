@@ -151,10 +151,25 @@ const lifiTransferStatusSnapshot = async (
 	)
 		throw new Error('Lifi_Rest: invalid recipient address')
 
+	const sourceTransactionAtMs = status.sending.timestamp * 1_000
+	const destinationTransactionAtMs = (
+		status.receiving?.timestamp == null ?
+			undefined
+		:
+			status.receiving.timestamp * 1_000
+	)
+	if (
+		destinationTransactionAtMs != null
+		&& destinationTransactionAtMs < sourceTransactionAtMs
+	)
+		throw new Error('Lifi_Rest: destination transaction precedes source transaction')
+
+	const observedAtMs = destinationTransactionAtMs ?? sourceTransactionAtMs
+
 	return {
 		status,
 		transferId,
-		observedAtMs: Date.now(),
+		observedAtMs,
 		fromNetwork,
 		toNetwork,
 	}
@@ -692,9 +707,12 @@ export default {
 						const {
 							status,
 							toNetwork,
+							observedAtMs,
 						} = await lifiTransferStatusSnapshot(
 							$transfer
 						)
+						if (observedAtMs !== timestampMs)
+							throw new Error('Lifi_Rest: observation clock mismatch')
 						const destinationTxHash = (
 							status.receiving == null || toNetwork == null ?
 								undefined

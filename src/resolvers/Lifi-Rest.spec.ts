@@ -117,7 +117,6 @@ describe('LI.FI transfer status resolvers', () => {
 	})
 
 	it('materializes the transfer and one current observation from official status fields', async () => {
-		vi.spyOn(Date, 'now').mockReturnValue(1_700_000_200_000)
 		fetchChains.mockResolvedValue(chains)
 		fetchTransferStatus.mockResolvedValue(status)
 		const resolver = lifiRest.resolvers.find((candidate) => (
@@ -165,7 +164,7 @@ describe('LI.FI transfer status resolvers', () => {
 		expect(resolver.projections.$$timestamps.select(snapshot)).toEqual([{
 			[EntityMetaKey.Selector]: {
 				$transfer: transfer,
-				timestampMs: 1_700_000_200_000,
+				timestampMs: 1_700_000_100_000,
 				source: Source.Lifi_Rest,
 			},
 		}])
@@ -283,7 +282,7 @@ describe('LI.FI transfer status resolvers', () => {
 
 		const snapshot = await resolver.resolve.TransferTimestampMsSource.resolve({
 			$transfer: transfer,
-			timestampMs: 1_700_000_200_000,
+			timestampMs: 1_700_000_100_000,
 			source: Source.Lifi_Rest,
 		})
 
