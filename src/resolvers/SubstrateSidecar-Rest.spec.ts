@@ -90,7 +90,9 @@ const networkBlockListResolver = sidecar.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.Network
 	&& 'Polkadot' in resolver.projections
 	&& '$$blocks' in resolver.projections.Polkadot
-	&& typeof resolver.projections.Polkadot.$$blocks === 'function'
+	&& typeof resolver.projections.Polkadot.$$blocks === 'object'
+	&& resolver.projections.Polkadot.$$blocks != null
+	&& 'select' in resolver.projections.Polkadot.$$blocks
 ))
 
 const networkReferendumListResolver = sidecar.resolvers.find((resolver) => (
@@ -604,7 +606,7 @@ describe('Substrate Sidecar Polkadot block / pallet projections', () => {
 				},
 			}
 		)
-		expect(networkBlockListResolver.projections.Polkadot.$$blocks(snapshot)).toEqual([
+		expect(networkBlockListResolver.projections.Polkadot.$$blocks.select(snapshot)).toEqual([
 			{
 				[EntityMetaKey.Selector]: {
 					$network: account.$network,
@@ -620,8 +622,37 @@ describe('Substrate Sidecar Polkadot block / pallet projections', () => {
 				},
 			},
 		])
+		expect(networkBlockListResolver.projections.Polkadot.$$blocks.continuation(snapshot).token).toBe('6')
 		expect(sourceFetch.mock.calls[0][1]).toBe('http://127.0.0.1:8080/blocks/head/header?finalized=true')
 		expect(sourceFetch.mock.calls[1][1]).toBe('http://127.0.0.1:8080/blocks?range=7-8')
+
+		sourceFetch
+			.mockResolvedValueOnce(new Response(JSON.stringify({
+				...block,
+				number: '12',
+			})))
+			.mockResolvedValueOnce(new Response(JSON.stringify([{
+				...block,
+				number: '6',
+				hash: '0xBLOCK_6',
+			}])))
+		const continuedSnapshot = await networkBlockListResolver.resolve.Slug.resolve(
+			account.$network,
+			{
+				...context,
+				pagination: {
+					limit: 1,
+				},
+				providerContinuationToken: '6',
+			}
+		)
+		expect(networkBlockListResolver.projections.Polkadot.$$blocks.select(continuedSnapshot)[0][EntityMetaKey.Selector]).toEqual({
+			$network: account.$network,
+			blockNumber: 6n,
+			hash: '0xBLOCK_6',
+		})
+		expect(networkBlockListResolver.projections.Polkadot.$$blocks.continuation(continuedSnapshot).token).toBe('5')
+		expect(sourceFetch.mock.calls[3][1]).toBe('http://127.0.0.1:8080/blocks?range=6-6')
 	})
 })
 

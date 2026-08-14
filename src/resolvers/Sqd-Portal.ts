@@ -50,27 +50,41 @@ const assertEthereumMainnet = (network: EntitySelector<typeof schema, EntityType
 
 const tipBlockReferences = async (
 	$network: EntitySelector<typeof schema, EntityType.Network>,
-	limit: number,
-	offset: number
+	context: Parameters<typeof resolverContextRowLimit>[0]
 ) => {
 	assertEthereumMainnet($network)
 	const { getFinalizedHead } = await import('$/sources/Sqd/Portal/queries.ts')
 	const { number } = await getFinalizedHead()
 	const tip = BigInt(number)
-	return Array.from({
-		length: Math.min(
-			Math.max(
-				Number(tip + 1n - BigInt(offset)),
-				0
+	if (
+		context.providerContinuationToken != null
+		&& !/^(0|[1-9][0-9]*)$/.test(context.providerContinuationToken)
+	)
+		throw new Error(`${Source.SqdPortal_RawHttp}: invalid blocks continuation`)
+
+	const firstBlockNumber = context.providerContinuationToken == null ?
+		tip - BigInt(context.pagination.offset ?? 0)
+	:
+		BigInt(context.providerContinuationToken)
+	if (firstBlockNumber > tip)
+		throw new Error(`${Source.SqdPortal_RawHttp}: blocks continuation exceeds finalized head`)
+
+	return {
+		blocks: Array.from({
+			length: Math.min(
+				Math.max(
+					Number(firstBlockNumber + 1n),
+					0
+				),
+				Math.max(1, resolverContextRowLimit(context))
 			),
-			Math.max(1, limit)
-		),
-	}, (_value, blockOffset) => ({
-		[EntityMetaKey.Selector]: {
-			$network,
-			blockNumber: tip - BigInt(offset + blockOffset),
-		},
-	} satisfies Entity<typeof schema, EntityType.EvmBlock>))
+		}, (_value, blockOffset) => ({
+			[EntityMetaKey.Selector]: {
+				$network,
+				blockNumber: firstBlockNumber - BigInt(blockOffset),
+			},
+		} satisfies Entity<typeof schema, EntityType.EvmBlock>)),
+	}
 }
 
 const networkTipResolvers = {
@@ -78,21 +92,13 @@ const networkTipResolvers = {
 		resolve: async (
 			network: EntitySelector<typeof schema, EntityType.Network>,
 			context: Parameters<typeof resolverContextRowLimit>[0]
-		) => tipBlockReferences(
-			network,
-			resolverContextRowLimit(context),
-			context.pagination.offset ?? 0
-		),
+		) => tipBlockReferences(network, context),
 	},
 	Slug: {
 		resolve: async (
 			network: EntitySelector<typeof schema, EntityType.Network>,
 			context: Parameters<typeof resolverContextRowLimit>[0]
-		) => tipBlockReferences(
-			network,
-			resolverContextRowLimit(context),
-			context.pagination.offset ?? 0
-		),
+		) => tipBlockReferences(network, context),
 	},
 } as const
 
@@ -234,7 +240,19 @@ export default {
 			resolve: networkTipResolvers,
 		})({
 			Evm: {
-				$$blocks: (blocks) => blocks,
+				$$blocks: {
+					select: (snapshot) => snapshot.blocks,
+					continuation: (snapshot) => {
+						const lastBlockNumber = snapshot.blocks.at(-1)?.[EntityMetaKey.Selector].blockNumber
+						return {
+							operation: 'network-blocks',
+							terminal: lastBlockNumber == null || lastBlockNumber === 0n,
+							...(lastBlockNumber != null && lastBlockNumber > 0n && {
+								token: String(lastBlockNumber - 1n),
+							}),
+						}
+					},
+				},
 			},
 		}),
 

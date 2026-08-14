@@ -73,7 +73,9 @@ const timestampResolver = celeniumRest.resolvers.find((resolver) => (
 const blocksResolver = celeniumRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.CelestiaNetwork
 	&& '$$blocks' in resolver.projections
-	&& typeof resolver.projections.$$blocks === 'function'
+	&& typeof resolver.projections.$$blocks === 'object'
+	&& resolver.projections.$$blocks != null
+	&& 'select' in resolver.projections.$$blocks
 ))
 const blocksCountResolver = celeniumRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.CelestiaNetwork
@@ -345,7 +347,7 @@ describe('Celenium REST head projection', () => {
 			},
 		])
 
-		await expect(resolveBlocks(
+		const snapshot = await resolveBlocks(
 			{
 				$network: network,
 			},
@@ -356,7 +358,8 @@ describe('Celenium REST head projection', () => {
 					offset: 2,
 				},
 			}
-		)).resolves.toEqual([
+		)
+		expect(blocksResolver.projections.$$blocks.select(snapshot)).toEqual([
 			{
 				[EntityMetaKey.Selector]: {
 					$network: celestiaNetwork,
@@ -373,10 +376,45 @@ describe('Celenium REST head projection', () => {
 				},
 			},
 		])
+		expect(blocksResolver.projections.$$blocks.continuation(snapshot).token).toBe('12424719')
 		expect(listBlocks).toHaveBeenCalledWith({
 			limit: 1,
 			offset: 2,
 		})
+
+		getBlock.mockResolvedValueOnce({
+			height: 12_424_719,
+			hash: 'F'.repeat(64),
+			parent_hash: 'G'.repeat(64),
+			app_hash: 'H'.repeat(64),
+			data_hash: 'I'.repeat(64),
+			time: '2026-07-23T04:48:07Z',
+			proposer: {
+				cons_address: 'J'.repeat(40),
+			},
+			stats: {
+				tx_count: 3,
+				blobs_count: 2,
+				blobs_size: 12_000,
+				fee: '500',
+				bytes_in_block: 25_000,
+			},
+		})
+		const continuedSnapshot = await resolveBlocks(
+			{
+				$network: network,
+			},
+			{
+				...context,
+				pagination: {
+					limit: 1,
+				},
+				providerContinuationToken: '12424719',
+			}
+		)
+		expect(blocksResolver.projections.$$blocks.select(continuedSnapshot)[0][EntityMetaKey.Selector].height).toBe(12_424_719n)
+		expect(blocksResolver.projections.$$blocks.continuation(continuedSnapshot).token).toBe('12424718')
+		expect(getBlock).toHaveBeenCalledWith(12_424_719n)
 	})
 
 	it('projects the native block row at the schema boundary', async () => {

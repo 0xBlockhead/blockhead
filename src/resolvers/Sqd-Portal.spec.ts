@@ -301,14 +301,15 @@ describe('SQD Portal resolver', () => {
 
 	it('projects Network.Evm tip $$blocks / resolveCount / $$timestamps from /finalized-head', async () => {
 		sourceFetch.mockResolvedValueOnce(Response.json(finalizedHead))
-		const blocks = await resolverFor(EntityType.Network).resolve.Caip2.resolve(network, {
+		const blocksResolver = resolverFor(EntityType.Network)
+		const blocks = await blocksResolver.resolve.Caip2.resolve(network, {
 			...context,
 			pagination: {
 				limit: 3,
 				offset: 2,
 			},
 		})
-		expect(blocks).toEqual([
+		expect(blocksResolver.projections.Evm.$$blocks.select(blocks)).toEqual([
 			{
 				[EntityMetaKey.Selector]: {
 					$network: network,
@@ -328,6 +329,21 @@ describe('SQD Portal resolver', () => {
 				},
 			},
 		])
+		expect(blocksResolver.projections.Evm.$$blocks.continuation(blocks).token).toBe('17999985')
+
+		sourceFetch.mockResolvedValueOnce(Response.json({
+			...finalizedHead,
+			number: finalizedHead.number + 2,
+		}))
+		const continuedBlocks = await blocksResolver.resolve.Caip2.resolve(network, {
+			...context,
+			pagination: {
+				limit: 1,
+			},
+			providerContinuationToken: '17999985',
+		})
+		expect(blocksResolver.projections.Evm.$$blocks.select(continuedBlocks)[0][EntityMetaKey.Selector].blockNumber).toBe(17_999_985n)
+		expect(blocksResolver.projections.Evm.$$blocks.continuation(continuedBlocks).token).toBe('17999984')
 
 		sourceFetch.mockResolvedValueOnce(Response.json(finalizedHead))
 		const countResolver = sqdPortal.resolvers.find((resolver) => (

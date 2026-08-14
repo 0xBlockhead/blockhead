@@ -180,39 +180,79 @@ export default {
 						assertCelestiaMainnet($network)
 						const limit = Math.min(resolverContextRowLimit(context), 100)
 						if (limit === 0)
-							return []
-
-						const { listBlocks } = await import('$/sources/Celenium/Rest/queries.ts')
-						return (
-							await listBlocks({
-								limit,
-								offset: context.pagination.offset ?? 0,
-							})
-						).map((block) => {
-							const fields = blockFieldsFromWire(block)
 							return {
-								[EntityMetaKey.Selector]: {
-									$network: {
-										$network,
-									},
-									height: BigInt(block.height),
-								},
-								[EntityMetaKey.Fields]: {
-									[entityFieldAddressKey(EntityType.CelestiaBlock, [], 'hash')]: fields.hash,
-									[entityFieldAddressKey(EntityType.CelestiaBlock, [], 'appHash')]: fields.appHash,
-									[entityFieldAddressKey(EntityType.CelestiaBlock, [], 'dataHash')]: fields.dataHash,
-									[entityFieldAddressKey(EntityType.CelestiaBlock, [], 'proposerAddress')]: fields.proposerAddress,
-									[entityFieldAddressKey(EntityType.CelestiaBlock, [], 'timestampMs')]: fields.timestampMs,
-									[entityFieldAddressKey(EntityType.CelestiaBlock, [], 'blobCount')]: fields.blobCount,
-									[entityFieldAddressKey(EntityType.CelestiaBlock, [], 'transactionCount')]: fields.transactionCount,
-								},
+								blocks: [],
 							}
-						})
+
+						if (
+							context.providerContinuationToken != null
+							&& !/^[1-9][0-9]*$/.test(context.providerContinuationToken)
+						)
+							throw new Error(`${Source.Celenium_Rest}: invalid blocks continuation`)
+
+						const cursorHeight = context.providerContinuationToken == null ?
+							undefined
+						:
+							BigInt(context.providerContinuationToken)
+
+						const {
+							getBlock,
+							listBlocks,
+						} = await import('$/sources/Celenium/Rest/queries.ts')
+						return {
+							blocks: (
+								cursorHeight == null ?
+									await listBlocks({
+										limit,
+										offset: context.pagination.offset ?? 0,
+									})
+								:
+									await Promise.all(Array.from({
+										length: Math.min(
+											Number(cursorHeight),
+											limit
+										),
+									}, (_value, blockOffset) => getBlock(
+										cursorHeight - BigInt(blockOffset)
+									)))
+							).map((block) => {
+								const fields = blockFieldsFromWire(block)
+								return {
+									[EntityMetaKey.Selector]: {
+										$network: {
+											$network,
+										},
+										height: BigInt(block.height),
+									},
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.CelestiaBlock, [], 'hash')]: fields.hash,
+										[entityFieldAddressKey(EntityType.CelestiaBlock, [], 'appHash')]: fields.appHash,
+										[entityFieldAddressKey(EntityType.CelestiaBlock, [], 'dataHash')]: fields.dataHash,
+										[entityFieldAddressKey(EntityType.CelestiaBlock, [], 'proposerAddress')]: fields.proposerAddress,
+										[entityFieldAddressKey(EntityType.CelestiaBlock, [], 'timestampMs')]: fields.timestampMs,
+										[entityFieldAddressKey(EntityType.CelestiaBlock, [], 'blobCount')]: fields.blobCount,
+										[entityFieldAddressKey(EntityType.CelestiaBlock, [], 'transactionCount')]: fields.transactionCount,
+									},
+								}
+							}),
+						}
 					},
 				},
 			},
 		})({
-				$$blocks: (blocks) => blocks,
+				$$blocks: {
+					select: (snapshot) => snapshot.blocks,
+					continuation: (snapshot) => {
+						const lastBlockHeight = snapshot.blocks.at(-1)?.[EntityMetaKey.Selector].height
+						return {
+							operation: 'network-blocks',
+							terminal: lastBlockHeight == null || lastBlockHeight === 1n,
+							...(lastBlockHeight != null && lastBlockHeight > 1n && {
+								token: String(lastBlockHeight - 1n),
+							}),
+						}
+					},
+				},
 			}),
 
 		defineResolver({

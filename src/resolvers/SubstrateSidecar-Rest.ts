@@ -1335,37 +1335,64 @@ export default {
 						const head = await getBlockHeadHeader()
 						const limit = resolverContextRowLimit(context)
 						const headNumber = BigInt(head.number)
-						const offset = BigInt(context.pagination.offset ?? 0)
+						if (
+							context.providerContinuationToken != null
+							&& !/^(0|[1-9][0-9]*)$/.test(context.providerContinuationToken)
+						)
+							throw new Error(`${Source.SubstrateSidecar_Rest}: invalid blocks continuation`)
+
+						const firstBlockNumber = context.providerContinuationToken == null ?
+							headNumber - BigInt(context.pagination.offset ?? 0)
+						:
+							BigInt(context.providerContinuationToken)
+						if (firstBlockNumber > headNumber)
+							throw new Error(`${Source.SubstrateSidecar_Rest}: blocks continuation exceeds finalized head`)
+
 						const rowCount = Math.min(
 							limit,
 							Math.max(
-								Number(headNumber + 1n - offset),
+								Number(firstBlockNumber + 1n),
 								0
 							)
 						)
 						if (rowCount === 0)
-							return []
+							return {
+								blocks: [],
+							}
 
-						const to = headNumber - offset
 						const blocks = await getBlocks({
-							from: to - BigInt(rowCount - 1),
-							to,
+							from: firstBlockNumber - BigInt(rowCount - 1),
+							to: firstBlockNumber,
 						})
-						return [...blocks]
-							.reverse()
-							.map((block) => ({
-								[EntityMetaKey.Selector]: {
-									$network: network,
-									blockNumber: BigInt(block.number),
-									hash: block.hash,
-								},
-							}))
+						return {
+							blocks: [...blocks]
+								.reverse()
+								.map((block) => ({
+									[EntityMetaKey.Selector]: {
+										$network: network,
+										blockNumber: BigInt(block.number),
+										hash: block.hash,
+									},
+								})),
+						}
 					},
 				},
 			},
 		})({
 				Polkadot: {
-					$$blocks: (blocks) => blocks,
+					$$blocks: {
+						select: (snapshot) => snapshot.blocks,
+						continuation: (snapshot) => {
+							const lastBlockNumber = snapshot.blocks.at(-1)?.[EntityMetaKey.Selector].blockNumber
+							return {
+								operation: 'network-blocks',
+								terminal: lastBlockNumber == null || lastBlockNumber === 0n,
+								...(lastBlockNumber != null && lastBlockNumber > 0n && {
+									token: String(lastBlockNumber - 1n),
+								}),
+							}
+						},
+					},
 				},
 			}),
 
