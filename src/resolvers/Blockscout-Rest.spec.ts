@@ -916,6 +916,14 @@ describe('Blockscout raw EVM trace hierarchy', () => {
 			type: 'DelegateCall',
 			input: '0x1234',
 		})
+		const traceResolver = blockscoutRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.EvmTrace
+		))
+		if (traceResolver == null)
+			throw new Error('Blockscout EvmTrace resolver is not registered')
+
+		expect(traceResolver.projections.$$children.select(resolved[0])).toEqual(resolved[0].$$children)
+		expect(traceResolver.projections.$$children.resolveCount(resolved[0])).toBe(1)
 	})
 
 	it('retains a decoded root revert label without assigning it to successful child frames', async () => {

@@ -3948,7 +3948,10 @@ export default {
 			input: (trace) => trace.input,
 			output: (trace) => trace.output,
 			error: (trace) => trace.error,
-			$$children: (trace) => trace.$$children,
+			$$children: {
+				select: (trace) => trace.$$children,
+				resolveCount: (trace) => trace.$$children.length,
+			},
 		}),
 
 		defineResolver({

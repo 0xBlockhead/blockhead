@@ -676,7 +676,8 @@ describe('Voltaire transaction execution hierarchy', () => {
 		expect(traceResolver.projections.traceAddress(childTrace)).toBe('0')
 		expect(traceResolver.projections.type(childTrace)).toBe('DelegateCall')
 		expect(traceResolver.projections.input(childTrace)).toBe('0xabcd')
-		expect(traceResolver.projections.$$children(childTrace)).toEqual([])
+		expect(traceResolver.projections.$$children.select(childTrace)).toEqual([])
+		expect(traceResolver.projections.$$children.resolveCount(childTrace)).toBe(0)
 		expect(debugTraceTransaction).toHaveBeenCalledOnce()
 	})
 
