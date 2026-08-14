@@ -104,28 +104,6 @@ const cosmosNetworkTimestampApplicability = [
 	},
 ] as const
 
-const cosmosAccountTimestampApplicability = [
-	{
-		$account: cosmosNetworkReferenceApplicability[0],
-		source: Source.CosmosSdk_Rest,
-	},
-	{
-		$account: cosmosNetworkReferenceApplicability[1],
-		source: Source.CosmosSdk_Rest,
-	},
-] as const
-
-const cosmosValidatorTimestampApplicability = [
-	{
-		$validator: cosmosNetworkReferenceApplicability[0],
-		source: Source.CosmosSdk_Rest,
-	},
-	{
-		$validator: cosmosNetworkReferenceApplicability[1],
-		source: Source.CosmosSdk_Rest,
-	},
-] as const
-
 const cosmosTransactionReferenceApplicability = [
 	{
 		$transaction: cosmosNetworkReferenceApplicability[0],
@@ -981,22 +959,16 @@ export default {
 							getAccount,
 							getLatestBlock,
 						} = await import('$/sources/CosmosSdk/Rest/queries.ts')
-						const [
-							{ account },
-							latestBlock,
-						] = await Promise.all([
-							getAccount({
-								address: address,
-							}),
-							getLatestBlock(),
-						])
+						const { account } = await getAccount({
+							address: address,
+						})
 						if (account == null)
 							throw new Error('CosmosSdk_Rest: account response is missing')
 
 						if (cosmosAccountBaseFields(account).address !== address)
 							throw new Error('CosmosSdk_Rest: account response does not match the subject')
 
-						const timestampMs = cosmosLatestBlockTimestampMs(latestBlock)
+						const timestampMs = cosmosLatestBlockTimestampMs(await getLatestBlock())
 
 						const timestamp = cosmosAccountTimestampFields(entitySelector, account, timestampMs)
 						return {
@@ -1025,57 +997,6 @@ export default {
 			}),
 
 		defineResolver({
-			entityType: EntityType.CosmosAccount_Timestamp,
-			resolve: {
-				AccountTimestampMsSource: {
-					appliesTo: cosmosAccountTimestampApplicability,
-					resolve: async ({
-						$account,
-						timestampMs,
-						source,
-					}) => {
-						assertCosmosHub($account.$network)
-						if (source !== Source.CosmosSdk_Rest)
-							throw new Error(`CosmosSdk_Rest: unsupported account timestamp source ${source}`)
-
-						const {
-							getAccount,
-							getLatestBlock,
-						} = await import('$/sources/CosmosSdk/Rest/queries.ts')
-						const [
-							{ account },
-							latestBlock,
-						] = await Promise.all([
-							getAccount({
-								address: $account.address,
-							}),
-							getLatestBlock(),
-						])
-						if (account == null)
-							throw new Error('CosmosSdk_Rest: account response is missing')
-
-						if (cosmosAccountBaseFields(account).address !== $account.address)
-							throw new Error('CosmosSdk_Rest: account response does not match the subject')
-						if (cosmosLatestBlockTimestampMs(latestBlock) !== timestampMs)
-							throw new Error('CosmosSdk_Rest: account observation clock mismatch')
-
-						return cosmosAccountTimestampFields(
-							$account,
-							account,
-							timestampMs
-						)
-					},
-				},
-			},
-		})({
-				$account: (account) => account.$account,
-				timestampMs: (account) => account.timestampMs,
-				source: (account) => account.source,
-				accountNumber: (account) => account.accountNumber,
-				sequence: (account) => account.sequence,
-			}),
-
-		defineResolver({
 			entityType: EntityType.CosmosValidator,
 			resolve: {
 				NetworkOperatorAddress: {
@@ -1087,15 +1008,9 @@ export default {
 							getLatestBlock,
 							getValidator,
 						} = await import('$/sources/CosmosSdk/Rest/queries.ts')
-						const [
-							latestBlock,
-							{ validator },
-						] = await Promise.all([
-							getLatestBlock(),
-							getValidator({
-								operatorAddress: operatorAddress,
-							}),
-						])
+						const { validator } = await getValidator({
+							operatorAddress: operatorAddress,
+						})
 						if (validator.operator_address !== operatorAddress)
 							throw new Error('CosmosSdk_Rest: validator response does not match the subject')
 
@@ -1105,7 +1020,7 @@ export default {
 								cosmosValidatorTimestampReference(
 									entitySelector,
 									validator,
-									cosmosLatestBlockTimestampMs(latestBlock)
+									cosmosLatestBlockTimestampMs(await getLatestBlock())
 								),
 							],
 						}
@@ -1120,57 +1035,6 @@ export default {
 				securityContact: (validator) => validator.securityContact,
 				details: (validator) => validator.details,
 				$$timestamps: (validator) => validator.$$timestamps,
-			}),
-
-		defineResolver({
-			entityType: EntityType.CosmosValidator_Timestamp,
-			resolve: {
-				ValidatorTimestampMsSource: {
-					appliesTo: cosmosValidatorTimestampApplicability,
-					resolve: async ({
-						$validator,
-						timestampMs,
-						source,
-					}) => {
-						assertCosmosHub($validator.$network)
-						if (source !== Source.CosmosSdk_Rest)
-							throw new Error(`CosmosSdk_Rest: unsupported validator timestamp source ${source}`)
-						const {
-							getLatestBlock,
-							getValidator,
-						} = await import('$/sources/CosmosSdk/Rest/queries.ts')
-						const [
-							latestBlock,
-							{ validator },
-						] = await Promise.all([
-							getLatestBlock(),
-							getValidator({
-								operatorAddress: $validator.operatorAddress,
-							}),
-						])
-						if (validator.operator_address !== $validator.operatorAddress)
-							throw new Error('CosmosSdk_Rest: validator response does not match the subject')
-						if (cosmosLatestBlockTimestampMs(latestBlock) !== timestampMs)
-							throw new Error('CosmosSdk_Rest: validator observation clock mismatch')
-
-						return cosmosValidatorTimestampFields(
-							$validator,
-							validator,
-							timestampMs
-						)
-					},
-				},
-			},
-		})({
-				$validator: (validator) => validator.$validator,
-				timestampMs: (validator) => validator.timestampMs,
-				source: (validator) => validator.source,
-				jailed: (validator) => validator.jailed,
-				status: (validator) => validator.status,
-				tokens: (validator) => validator.tokens,
-				delegatorShares: (validator) => validator.delegatorShares,
-				commissionRate: (validator) => validator.commissionRate,
-				minSelfDelegation: (validator) => validator.minSelfDelegation,
 			}),
 
 		defineResolver({

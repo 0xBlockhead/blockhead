@@ -417,40 +417,5 @@ export default {
 			$$timestamps: (account) => account.$$timestamps,
 		}),
 
-		defineResolver({
-			entityType: EntityType.SolanaAccount_Timestamp,
-			resolve: {
-				AccountSlotSource: {
-					resolve: async ({ $account, slot, source }, context) => {
-						if (source !== Source.Helius) throw new Error(`Helius: unsupported source ${source}`)
-						assertSolanaMainnet($account.$network)
-						const page = await getAssetsByOwner({
-							ownerAddress: $account.pubkey,
-							limit: 1,
-							publicEnv: context.publicEnv,
-						})
-						if (requireIndexedSlot(page.last_indexed_slot, 'getAssetsByOwner') !== slot)
-							throw new Error('Helius: SolanaAccount_Timestamp id does not match last_indexed_slot')
-						return {
-							$account: {
-								[EntityMetaKey.Selector]: $account,
-							},
-							slot,
-							source,
-						}
-					},
-				},
-			},
-		})({
-			$account: (timestamp) => timestamp.$account,
-			slot: (timestamp) => timestamp.slot,
-			source: (timestamp) => timestamp.source,
-			lamports: () => undefined,
-			$ownerProgram: () => undefined,
-			rentEpoch: () => undefined,
-			executable: () => undefined,
-			dataEncoding: () => undefined,
-		}),
-
 	],
 } satisfies RegisteredSourceResolverModule

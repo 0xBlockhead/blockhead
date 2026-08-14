@@ -38,13 +38,6 @@ const suiNetworkApplicability = [
 	},
 ] as const
 
-const suiNetworkTimestampApplicability = [
-	{
-		$network: suiNetworkApplicability[0],
-		source: Source.Sui,
-	},
-] as const
-
 const suiCheckpointSequenceApplicability = [{
 	$network: suiNetworkApplicability[0],
 }] as const
@@ -481,42 +474,6 @@ export default {
 					),
 				},
 			},
-		}),
-
-		defineResolver({
-			entityType: EntityType.SuiNetwork_Timestamp,
-			resolve: {
-				NetworkTimestampMsSource: {
-					appliesTo: suiNetworkTimestampApplicability,
-					resolve: async ({
-						$network,
-						timestampMs,
-						source,
-					}) => {
-						assertSuiNetworkEntity($network)
-						assertSource(source)
-						const { getLatestCheckpoint } = await loadSuiQueries()
-						const checkpoint = await getLatestCheckpoint()
-						if (timestampMs !== checkpoint.timestampMs)
-							throw new Error('Sui: network observation timestamp mismatch')
-						return {
-							timestampMs: checkpoint.timestampMs,
-							latestCheckpointSequence: checkpoint.sequence,
-							latestCheckpointDigest: checkpoint.digest,
-							...(checkpoint.epoch != null && { epoch: checkpoint.epoch }),
-							...(checkpoint.protocolVersion != null && { protocolVersion: checkpoint.protocolVersion }),
-							...(checkpoint.totalTransactionCount != null && { totalTransactionCount: checkpoint.totalTransactionCount }),
-						}
-					},
-				},
-			},
-		})({
-			timestampMs: (snapshot) => snapshot.timestampMs,
-			latestCheckpointSequence: (snapshot) => snapshot.latestCheckpointSequence,
-			latestCheckpointDigest: (snapshot) => snapshot.latestCheckpointDigest,
-			epoch: (snapshot) => snapshot.epoch,
-			protocolVersion: (snapshot) => snapshot.protocolVersion,
-			totalTransactionCount: (snapshot) => snapshot.totalTransactionCount,
 		}),
 
 		defineResolver({

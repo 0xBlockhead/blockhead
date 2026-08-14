@@ -270,4 +270,10 @@ describe('Helius resolver source binding', () => {
 			},
 		])
 	})
+
+	it('does not register a direct SolanaAccount_Timestamp resolver', () => {
+		expect(helius.resolvers.some((resolver) => (
+			resolver.entityType === EntityType.SolanaAccount_Timestamp
+		))).toBe(false)
+	})
 })

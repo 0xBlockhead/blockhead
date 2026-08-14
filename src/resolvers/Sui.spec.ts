@@ -403,6 +403,12 @@ describe('Sui GraphQL network / checkpoint / transaction resolvers', () => {
 		}])
 	})
 
+	it('does not register a direct SuiNetwork_Timestamp resolver', () => {
+		expect(suiResolvers.resolvers.some((resolver) => (
+			resolver.entityType === EntityType.SuiNetwork_Timestamp
+		))).toBe(false)
+	})
+
 	it('projects deny-cap metadata into the existing regulated-state observation without fabricating pause state', async () => {
 		vi.spyOn(Date, 'now').mockReturnValue(1_752_624_000_123)
 		executeSui.mockResolvedValueOnce({

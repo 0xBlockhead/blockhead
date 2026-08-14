@@ -54495,7 +54495,7 @@ export const schema = {
 			})({
 				"$network": { label: "Network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
 				"pubkey": { label: "Public key", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "SolanaPubkey" },
-				"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.SolanaAccount_Timestamp, defaultSources: [Source.Solana_JsonRpc] },
+				"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.SolanaAccount_Timestamp, defaultSources: [Source.Helius, Source.Solana_JsonRpc] },
 				"$$tokenAccounts": { label: "Token accounts", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.SolanaTokenAccount, defaultSources: [Source.Solana_JsonRpc] },
 			})({
 				selectors: {

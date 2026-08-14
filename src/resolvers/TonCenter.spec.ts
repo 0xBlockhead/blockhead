@@ -670,10 +670,15 @@ describe('TonCenter v3 network resolver', () => {
 			gen_utime: '1700000001',
 			min_ref_mc_seqno: 42,
 		}
-		const timestampsResolver = tonCenter.resolvers.at(-7)
-		const timestampResolver = tonCenter.resolvers.at(-6)
-		const blockResolver = tonCenter.resolvers.at(-5)
-		if (timestampsResolver == null || timestampResolver == null || blockResolver == null)
+		const timestampsResolver = tonCenter.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.Network
+			&& 'Ton' in resolver.projections
+			&& '$$timestamps' in resolver.projections.Ton
+		))
+		const blockResolver = tonCenter.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.TonBlock
+		))
+		if (timestampsResolver == null || blockResolver == null)
 			throw new Error('TON Center v3 network and block resolvers are missing')
 
 		sourceQueries.getTonCenterV3MasterchainInfo.mockResolvedValueOnce({
@@ -694,16 +699,7 @@ describe('TonCenter v3 network resolver', () => {
 			[entityFieldAddressKey(EntityType.TonNetwork_Timestamp, [], 'masterchainSeqno')]: 43n,
 			[entityFieldAddressKey(EntityType.TonNetwork_Timestamp, [], 'latestBlockUtimeMs')]: 1_700_000_001_000,
 		})
-
-		sourceQueries.getTonCenterV3MasterchainInfo.mockResolvedValueOnce({
-			first,
-			last,
-		})
-		await expect(timestampResolver.resolve.NetworkTimestampMsSource.resolve({
-			$network: network,
-			timestampMs: 1_700_000_001_000,
-			source: Source.TonCenter,
-		})).resolves.toEqual(timestamp[EntityMetaKey.Fields])
+		expect(sourceQueries.getTonCenterV3MasterchainInfo).toHaveBeenCalledTimes(1)
 
 		sourceQueries.getTonCenterV3BlockByWorkchainShardPrefixSeqno.mockResolvedValueOnce(last)
 		await expect(blockResolver.resolve.NetworkWorkchainShardPrefixSeqno.resolve({
@@ -731,6 +727,12 @@ describe('TonCenter v3 network resolver', () => {
 			[entityFieldAddressKey(EntityType.TonBlock, [], 'rootHash')]: '3'.repeat(64),
 			[entityFieldAddressKey(EntityType.TonBlock, [], 'fileHash')]: '4'.repeat(64),
 		})
+	})
+
+	it('does not register a direct TonNetwork_Timestamp resolver', () => {
+		expect(tonCenter.resolvers.some((resolver) => (
+			resolver.entityType === EntityType.TonNetwork_Timestamp
+		))).toBe(false)
 	})
 
 	it('executes a native contract get method into a source-clocked observation', async () => {

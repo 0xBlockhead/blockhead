@@ -707,31 +707,6 @@ export const createTonCenterV3Resolvers = () => ({
 		}),
 
 		defineResolver({
-			entityType: EntityType.TonNetwork_Timestamp,
-			resolve: {
-				NetworkTimestampMsSource: {
-					resolve: async ({ $network, timestampMs, source }) => {
-						assertTonMainnet($network)
-						if (source !== Source.TonCenter)
-							throw new Error(`TON Center v3: unsupported network observation source ${source}`)
-						const { getTonCenterV3MasterchainInfo } = await import('$/sources/TonCenter/V3/Rest/queries.ts')
-						const timestamp = tonNetworkTimestamp(
-							$network,
-							(await getTonCenterV3MasterchainInfo()).last
-						)
-						if (timestamp[EntityMetaKey.Selector].timestampMs !== timestampMs)
-							throw new Error(`TON Center v3: observation ${timestampMs} is no longer the indexed masterchain head`)
-
-						return timestamp[EntityMetaKey.Fields]
-					},
-				},
-			},
-		})({
-			masterchainSeqno: (timestamp) => timestamp[entityFieldAddressKey(EntityType.TonNetwork_Timestamp, [], 'masterchainSeqno')],
-			latestBlockUtimeMs: (timestamp) => timestamp[entityFieldAddressKey(EntityType.TonNetwork_Timestamp, [], 'latestBlockUtimeMs')],
-		}),
-
-		defineResolver({
 			entityType: EntityType.TonBlock,
 			resolve: {
 				NetworkWorkchainShardPrefixSeqno: {

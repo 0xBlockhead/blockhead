@@ -74,9 +74,6 @@ const accountResolver = tonApiResolvers.resolvers.find((resolver) => (
 const networkResolver = tonApiResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.Network
 ))
-const networkTimestampResolver = tonApiResolvers.resolvers.find((resolver) => (
-	resolver.entityType === EntityType.TonNetwork_Timestamp
-))
 const jettonResolver = tonApiResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.TonJetton
 ))
@@ -86,7 +83,6 @@ const transactionResolver = tonApiResolvers.resolvers.find((resolver) => (
 
 if (
 	networkResolver == null
-	|| networkTimestampResolver == null
 	|| accountResolver == null
 	|| jettonResolver == null
 	|| transactionResolver == null
@@ -191,28 +187,10 @@ describe('TonAPI network observation resolver', () => {
 		expect(sourceGetJson).toHaveBeenCalledTimes(1)
 	})
 
-	it('resolves only the exact current masterchain observation coordinate', async () => {
-		sourceGetJson.mockResolvedValueOnce(masterchainHeadFixture)
-		await expect(networkTimestampResolver.resolve.NetworkTimestampMsSource.resolve({
-			$network: {
-				slug: 'ton',
-			},
-			timestampMs: 1_750_000_000_000,
-			source: Source.TonApi_Rest,
-		})).resolves.toEqual({
-			timestampMs: 1_750_000_000_000,
-			masterchainSeqno: 45_678_901n,
-			latestBlockUtimeMs: 1_750_000_000_000,
-		})
-
-		sourceGetJson.mockResolvedValueOnce(masterchainHeadFixture)
-		await expect(networkTimestampResolver.resolve.NetworkTimestampMsSource.resolve({
-			$network: {
-				slug: 'ton',
-			},
-			timestampMs: 0,
-			source: Source.TonApi_Rest,
-		})).rejects.toThrow('network observation timestamp mismatch')
+	it('does not register a direct TonNetwork_Timestamp resolver', () => {
+		expect(tonApiResolvers.resolvers.some((resolver) => (
+			resolver.entityType === EntityType.TonNetwork_Timestamp
+		))).toBe(false)
 	})
 
 	it('rejects unsupported networks before transport', async () => {

@@ -81,10 +81,6 @@ const accountDetailResolver = cosmosSdk.resolvers.find((resolver) => (
 	&& 'NetworkAddress' in resolver.resolve
 	&& '$$timestamps' in resolver.projections
 ))
-const accountTimestampResolver = cosmosSdk.resolvers.find((resolver) => (
-	resolver.entityType === EntityType.CosmosAccount_Timestamp
-	&& 'AccountTimestampMsSource' in resolver.resolve
-))
 const validatorResolver = cosmosSdk.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.CosmosValidator
 	&& 'NetworkOperatorAddress' in resolver.resolve
@@ -97,10 +93,6 @@ const validatorsListResolver = cosmosSdk.resolvers.find((resolver) => (
 	&& typeof resolver.projections.Cosmos.$$validators === 'object'
 	&& resolver.projections.Cosmos.$$validators != null
 	&& 'select' in resolver.projections.Cosmos.$$validators
-))
-const validatorTimestampResolver = cosmosSdk.resolvers.find((resolver) => (
-	resolver.entityType === EntityType.CosmosValidator_Timestamp
-	&& 'ValidatorTimestampMsSource' in resolver.resolve
 ))
 const messageResolver = cosmosSdk.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.CosmosMessage
@@ -136,10 +128,8 @@ if (
 	|| networkTimestampsResolver == null
 	|| accountsListResolver == null
 	|| accountDetailResolver == null
-	|| accountTimestampResolver == null
 	|| validatorResolver == null
 	|| validatorsListResolver == null
-	|| validatorTimestampResolver == null
 	|| messageResolver == null
 	|| transactionResolver == null
 	|| governanceProposalsListResolver == null
@@ -471,64 +461,11 @@ describe('Cosmos SDK account detail resolver', () => {
 		})).toHaveLength(1)
 	})
 
-	it('projects one account timestamp snapshot without duplicating its account reference', async () => {
-		getJson.mockResolvedValueOnce({
-			account: {
-				address: 'cosmos1account',
-				account_number: '13',
-				sequence: '8',
-			},
-		}).mockResolvedValueOnce(latestBlock)
-		const accountSelector = {
-			$network: {
-				slug: 'cosmos',
-			},
-			address: 'cosmos1account',
-		}
-		const timestampMs = Date.parse('2026-07-20T12:34:56.000Z')
-		const snapshot = await accountTimestampResolver.resolve.AccountTimestampMsSource.resolve({
-			$account: accountSelector,
-			timestampMs,
-			source: Source.CosmosSdk_Rest,
-		}, context)
-
-		expect(snapshot).toEqual({
-			$account: {
-				[EntityMetaKey.Selector]: accountSelector,
-			},
-			timestampMs,
-			source: Source.CosmosSdk_Rest,
-			accountNumber: 13n,
-			sequence: 8n,
-		})
-		expect(accountTimestampResolver.projections.$account(snapshot)).toEqual({
-			[EntityMetaKey.Selector]: accountSelector,
-		})
-		expect(accountTimestampResolver.projections.timestampMs(snapshot)).toBe(timestampMs)
-		expect(accountTimestampResolver.projections.source(snapshot)).toBe(Source.CosmosSdk_Rest)
-		expect(accountTimestampResolver.projections.accountNumber(snapshot)).toBe(13n)
-		expect(accountTimestampResolver.projections.sequence(snapshot)).toBe(8n)
-	})
-
-	it('rejects refetching current account state under a stale observation clock', async () => {
-		getJson.mockResolvedValueOnce({
-			account: {
-				address: 'cosmos1account',
-				account_number: '13',
-				sequence: '8',
-			},
-		}).mockResolvedValueOnce(latestBlock)
-
-		await expect(accountTimestampResolver.resolve.AccountTimestampMsSource.resolve({
-			$account: {
-				$network: {
-					slug: 'cosmos',
-				},
-				address: 'cosmos1account',
-			},
-			timestampMs: Date.parse(latestBlock.block.header.time) - 1,
-			source: Source.CosmosSdk_Rest,
-		}, context)).rejects.toThrow('account observation clock mismatch')
+	it('does not register direct account or validator timestamp replay resolvers', () => {
+		expect(cosmosSdk.resolvers.some((resolver) => (
+			resolver.entityType === EntityType.CosmosAccount_Timestamp
+			|| resolver.entityType === EntityType.CosmosValidator_Timestamp
+		))).toBe(false)
 	})
 
 	it('rejects an unsupported network before transport', async () => {
@@ -606,10 +543,8 @@ describe('Cosmos SDK validator timestamp resolver', () => {
 			},
 		}
 		getJson
-			.mockResolvedValueOnce(latestBlock)
 			.mockResolvedValueOnce(validatorWire)
 			.mockResolvedValueOnce(latestBlock)
-			.mockResolvedValueOnce(validatorWire)
 		const validatorSelector = {
 			$network: {
 				slug: 'cosmos',
@@ -617,37 +552,6 @@ describe('Cosmos SDK validator timestamp resolver', () => {
 			operatorAddress: 'cosmosvaloper1validator',
 		}
 		const timestampMs = Date.parse('2026-07-20T12:34:56.000Z')
-		const snapshot = await validatorTimestampResolver.resolve.ValidatorTimestampMsSource.resolve({
-			$validator: validatorSelector,
-			timestampMs,
-			source: Source.CosmosSdk_Rest,
-		}, context)
-
-		expect(snapshot).toEqual({
-			$validator: {
-				[EntityMetaKey.Selector]: validatorSelector,
-			},
-			timestampMs,
-			source: Source.CosmosSdk_Rest,
-			jailed: false,
-			status: 'BOND_STATUS_BONDED',
-			tokens: 9_007_199_254_740_993n,
-			delegatorShares: '9007199254740993.000000000000000000',
-			commissionRate: '0.050000000000000000',
-			minSelfDelegation: 1n,
-		})
-		expect(validatorTimestampResolver.projections.$validator(snapshot)).toEqual({
-			[EntityMetaKey.Selector]: validatorSelector,
-		})
-		expect(validatorTimestampResolver.projections.timestampMs(snapshot)).toBe(timestampMs)
-		expect(validatorTimestampResolver.projections.source(snapshot)).toBe(Source.CosmosSdk_Rest)
-		expect(validatorTimestampResolver.projections.jailed(snapshot)).toBe(false)
-		expect(validatorTimestampResolver.projections.status(snapshot)).toBe('BOND_STATUS_BONDED')
-		expect(validatorTimestampResolver.projections.tokens(snapshot)).toBe(9_007_199_254_740_993n)
-		expect(validatorTimestampResolver.projections.delegatorShares(snapshot)).toBe('9007199254740993.000000000000000000')
-		expect(validatorTimestampResolver.projections.commissionRate(snapshot)).toBe('0.050000000000000000')
-		expect(validatorTimestampResolver.projections.minSelfDelegation(snapshot)).toBe(1n)
-
 		const validatorSnapshot = await validatorResolver.resolve.NetworkOperatorAddress.resolve(
 			validatorSelector,
 			context
@@ -657,7 +561,24 @@ describe('Cosmos SDK validator timestamp resolver', () => {
 		expect(validatorResolver.projections.website(validatorSnapshot)).toBe('https://validator.example')
 		expect(validatorResolver.projections.securityContact(validatorSnapshot)).toBe('sec@validator.example')
 		expect(validatorResolver.projections.details(validatorSnapshot)).toBe('Hub validator')
-		expect(validatorSnapshot.$$timestamps[0][EntityMetaKey.Selector].timestampMs).toBe(timestampMs)
+		expect(validatorResolver.projections.$$timestamps(validatorSnapshot)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$validator: validatorSelector,
+				timestampMs,
+				source: Source.CosmosSdk_Rest,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.CosmosValidator_Timestamp, [], '$validator')]: {
+					[EntityMetaKey.Selector]: validatorSelector,
+				},
+				[entityFieldAddressKey(EntityType.CosmosValidator_Timestamp, [], 'jailed')]: false,
+				[entityFieldAddressKey(EntityType.CosmosValidator_Timestamp, [], 'status')]: 'BOND_STATUS_BONDED',
+				[entityFieldAddressKey(EntityType.CosmosValidator_Timestamp, [], 'tokens')]: 9_007_199_254_740_993n,
+				[entityFieldAddressKey(EntityType.CosmosValidator_Timestamp, [], 'delegatorShares')]: '9007199254740993.000000000000000000',
+				[entityFieldAddressKey(EntityType.CosmosValidator_Timestamp, [], 'commissionRate')]: '0.050000000000000000',
+				[entityFieldAddressKey(EntityType.CosmosValidator_Timestamp, [], 'minSelfDelegation')]: 1n,
+			},
+		}])
 	})
 
 	it('rejects duplicate validator identities from a provider page', async () => {

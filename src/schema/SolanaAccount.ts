@@ -25,6 +25,7 @@ export default entity({
 		entityType: EntityType.SolanaAccount_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
+			Source.Helius,
 			Source.Solana_JsonRpc,
 		],
 	},
