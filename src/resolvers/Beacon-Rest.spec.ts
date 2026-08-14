@@ -91,6 +91,7 @@ const finalityTimestampsResolver = beaconRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.Network
 	&& 'Evm' in resolver.projections
 	&& '$$beaconFinalityTimestamps' in resolver.projections.Evm
+	&& resolver.resolveLive == null
 ))
 const previousForkVersionResolver = beaconRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.EthereumConsensusUpgrade
@@ -1788,5 +1789,354 @@ describe('Beacon endpoint observation', () => {
 			sources: [],
 			publicEnv: {},
 		})).rejects.toThrow('version unavailable')
+	})
+})
+
+describe('Beacon live consensus head', () => {
+	const headHeaderWire = (slot: number, rootSuffix: string) => ({
+		root: `0x${rootSuffix.repeat(64)}`,
+		canonical: true,
+		header: {
+			message: {
+				slot: String(slot),
+				proposer_index: '12',
+				parent_root: `0x${'b'.repeat(64)}`,
+				state_root: `0x${'c'.repeat(64)}`,
+				body_root: `0x${'d'.repeat(64)}`,
+			},
+			signature: `0x${'e'.repeat(192)}`,
+		},
+	})
+	const finalityCheckpointsWire = {
+		previous_justified: {
+			epoch: '100',
+			root: '0xAABBCCDDEEFF00112233445566778899AABBCCDDEEFF00112233445566778899',
+		},
+		current_justified: {
+			epoch: '101',
+			root: '0x112233445566778899AABBCCDDEEFF00112233445566778899AABBCCDDEEFF00',
+		},
+		finalized: {
+			epoch: '99',
+			root: '0xFFEEDDCCBBAA99887766554433221100FFEEDDCCBBAA99887766554433221100',
+		},
+	}
+	const resolverContext = {
+		filters: [],
+		sorts: [],
+		pagination: {
+			limit: 2,
+		},
+		selectorKeys: [],
+		parentSelectorKeys: [],
+		sources: [],
+		publicEnv: {},
+	}
+
+	beforeEach(() => {
+		vi.clearAllMocks()
+		vi.useFakeTimers()
+	})
+
+	it('publishes native head slot, derived epoch, and retrieval-clock finality rows', async () => {
+		if (headSlotResolver.resolveLive?.beaconHead == null)
+			throw new Error('Beacon_Rest missing Network.Evm beaconHead resolveLive')
+
+		vi.spyOn(Date, 'now').mockReturnValue(1_800_000_000_000)
+		getHeader.mockImplementation(async (_chainId, slot) => (
+			slot === 'head' || slot === 64 ?
+				headHeaderWire(64, 'a')
+			:
+				headHeaderWire(Number(slot), String(Number(slot)).padStart(64, '0'))
+		))
+		getFinalityCheckpoints.mockResolvedValue(finalityCheckpointsWire)
+		const replaceSlots = vi.fn()
+		const replaceEpochs = vi.fn()
+		const replaceFinality = vi.fn()
+		const abortController = new AbortController()
+		const stop = headSlotResolver.resolveLive.beaconHead.start({
+			fields: {
+				'$$beaconSlots': {
+					replaceRows: replaceSlots,
+					invalidate: vi.fn(),
+					count: {
+						replaceRows: vi.fn(),
+						invalidate: vi.fn(),
+					},
+				},
+				'$$beaconEpochs': {
+					replaceRows: replaceEpochs,
+					invalidate: vi.fn(),
+					count: {
+						replaceRows: vi.fn(),
+						invalidate: vi.fn(),
+					},
+				},
+				'$$beaconFinalityTimestamps': {
+					replaceRows: replaceFinality,
+					invalidate: vi.fn(),
+					count: {
+						replaceRows: vi.fn(),
+						invalidate: vi.fn(),
+					},
+				},
+				invalidate: vi.fn(),
+			},
+			parentEntitySelector: network,
+			queryClient: {},
+			signal: abortController.signal,
+			trigger: resolverContext,
+		})
+		await vi.waitFor(() => {
+			expect(replaceSlots).toHaveBeenCalledOnce()
+			expect(replaceEpochs).toHaveBeenCalledOnce()
+			expect(replaceFinality).toHaveBeenCalledOnce()
+		})
+
+		const slotRows = replaceSlots.mock.calls[0]?.[0]?.[0]?.value
+		const epochRows = replaceEpochs.mock.calls[0]?.[0]?.[0]?.value
+		const finalityRow = replaceFinality.mock.calls[0]?.[0]?.[0]?.value[0]
+		if (slotRows == null || epochRows == null || finalityRow == null)
+			throw new Error('Beacon live head did not publish rows')
+
+		expect(slotRows).toHaveLength(2)
+		expect(slotRows[0]).toMatchObject({
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				slot: 64,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.BeaconSlot, [], 'epoch')]: 2,
+				[entityFieldAddressKey(EntityType.BeaconSlot, [], 'root')]: `0x${'a'.repeat(64)}`,
+				[entityFieldAddressKey(EntityType.BeaconSlot, [], '$epoch')]: {
+					[EntityMetaKey.Selector]: {
+						$network: network,
+						epoch: 2,
+					},
+				},
+			},
+		})
+		expect(epochRows).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					epoch: 2,
+				},
+			},
+			{
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					epoch: 1,
+				},
+			},
+		])
+		expect(finalityRow).toEqual({
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				timestampMs: 1_800_000_000_000,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.EthereumBeaconFinality_Timestamp, [], 'currentJustifiedCheckpointEpoch')]: 101,
+				[entityFieldAddressKey(EntityType.EthereumBeaconFinality_Timestamp, [], 'currentJustifiedCheckpointRoot')]: '0x112233445566778899aabbccddeeff00112233445566778899aabbccddeeff00',
+				[entityFieldAddressKey(EntityType.EthereumBeaconFinality_Timestamp, [], 'previousJustifiedCheckpointEpoch')]: 100,
+				[entityFieldAddressKey(EntityType.EthereumBeaconFinality_Timestamp, [], 'previousJustifiedCheckpointRoot')]: '0xaabbccddeeff00112233445566778899aabbccddeeff00112233445566778899',
+				[entityFieldAddressKey(EntityType.EthereumBeaconFinality_Timestamp, [], 'finalizedCheckpointEpoch')]: 99,
+				[entityFieldAddressKey(EntityType.EthereumBeaconFinality_Timestamp, [], 'finalizedCheckpointRoot')]: '0xffeeddccbbaa99887766554433221100ffeeddccbbaa99887766554433221100',
+			},
+		})
+		expect(getHeader).toHaveBeenCalledWith(1, 'head')
+		expect(getHeader).toHaveBeenCalledWith(1, 63)
+		expect(getFinalityCheckpoints).toHaveBeenCalledWith(1)
+
+		abortController.abort()
+		stop()
+		vi.useRealTimers()
+	})
+
+	it('replaces head slots on reorg and epochs only when the head epoch advances', async () => {
+		if (headSlotResolver.resolveLive?.beaconHead == null)
+			throw new Error('Beacon_Rest missing Network.Evm beaconHead resolveLive')
+
+		getHeader
+			.mockResolvedValueOnce(headHeaderWire(63, 'a'))
+			.mockResolvedValueOnce(headHeaderWire(62, '2'))
+			.mockResolvedValueOnce(headHeaderWire(63, 'b'))
+			.mockResolvedValueOnce(headHeaderWire(62, '2'))
+			.mockResolvedValueOnce(headHeaderWire(64, 'c'))
+			.mockResolvedValueOnce(headHeaderWire(63, 'd'))
+		getFinalityCheckpoints.mockResolvedValue(finalityCheckpointsWire)
+		const replaceSlots = vi.fn()
+		const replaceEpochs = vi.fn()
+		const replaceFinality = vi.fn()
+		const abortController = new AbortController()
+		const stop = headSlotResolver.resolveLive.beaconHead.start({
+			fields: {
+				'$$beaconSlots': {
+					replaceRows: replaceSlots,
+					invalidate: vi.fn(),
+					count: {
+						replaceRows: vi.fn(),
+						invalidate: vi.fn(),
+					},
+				},
+				'$$beaconEpochs': {
+					replaceRows: replaceEpochs,
+					invalidate: vi.fn(),
+					count: {
+						replaceRows: vi.fn(),
+						invalidate: vi.fn(),
+					},
+				},
+				'$$beaconFinalityTimestamps': {
+					replaceRows: replaceFinality,
+					invalidate: vi.fn(),
+					count: {
+						replaceRows: vi.fn(),
+						invalidate: vi.fn(),
+					},
+				},
+				invalidate: vi.fn(),
+			},
+			parentEntitySelector: network,
+			queryClient: {},
+			signal: abortController.signal,
+			trigger: resolverContext,
+		})
+		await vi.waitFor(() => expect(replaceSlots).toHaveBeenCalledOnce())
+		expect(replaceEpochs).toHaveBeenCalledOnce()
+		expect(replaceSlots.mock.calls[0]?.[0]?.[0]?.value[0]).toMatchObject({
+			[EntityMetaKey.Selector]: { slot: 63 },
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.BeaconSlot, [], 'root')]: `0x${'a'.repeat(64)}`,
+			},
+		})
+
+		await vi.advanceTimersByTimeAsync(12_000)
+		await vi.waitFor(() => expect(replaceSlots).toHaveBeenCalledTimes(2))
+		expect(replaceEpochs).toHaveBeenCalledOnce()
+		expect(replaceSlots.mock.calls[1]?.[0]?.[0]?.value[0]).toMatchObject({
+			[EntityMetaKey.Selector]: { slot: 63 },
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.BeaconSlot, [], 'root')]: `0x${'b'.repeat(64)}`,
+			},
+		})
+
+		await vi.advanceTimersByTimeAsync(12_000)
+		await vi.waitFor(() => expect(replaceSlots).toHaveBeenCalledTimes(3))
+		expect(replaceEpochs).toHaveBeenCalledTimes(2)
+		expect(replaceEpochs.mock.calls[1]?.[0]?.[0]?.value[0]).toMatchObject({
+			[EntityMetaKey.Selector]: { epoch: 2 },
+		})
+
+		abortController.abort()
+		stop()
+		vi.useRealTimers()
+	})
+
+	it('publishes a fresh retrieval-clock finality row on every poll without replaying history', async () => {
+		if (headSlotResolver.resolveLive?.beaconHead == null)
+			throw new Error('Beacon_Rest missing Network.Evm beaconHead resolveLive')
+
+		vi.spyOn(Date, 'now')
+			.mockReturnValueOnce(1_800_000_000_000)
+			.mockReturnValueOnce(1_800_000_012_001)
+		getHeader.mockResolvedValue(headHeaderWire(64, 'a'))
+		getFinalityCheckpoints.mockResolvedValue(finalityCheckpointsWire)
+		const replaceFinality = vi.fn()
+		const abortController = new AbortController()
+		const stop = headSlotResolver.resolveLive.beaconHead.start({
+			fields: {
+				'$$beaconSlots': {
+					replaceRows: vi.fn(),
+					invalidate: vi.fn(),
+					count: {
+						replaceRows: vi.fn(),
+						invalidate: vi.fn(),
+					},
+				},
+				'$$beaconEpochs': {
+					replaceRows: vi.fn(),
+					invalidate: vi.fn(),
+					count: {
+						replaceRows: vi.fn(),
+						invalidate: vi.fn(),
+					},
+				},
+				'$$beaconFinalityTimestamps': {
+					replaceRows: replaceFinality,
+					invalidate: vi.fn(),
+					count: {
+						replaceRows: vi.fn(),
+						invalidate: vi.fn(),
+					},
+				},
+				invalidate: vi.fn(),
+			},
+			parentEntitySelector: network,
+			queryClient: {},
+			signal: abortController.signal,
+			trigger: resolverContext,
+		})
+		await vi.waitFor(() => expect(replaceFinality).toHaveBeenCalledOnce())
+		await vi.advanceTimersByTimeAsync(12_000)
+		await vi.waitFor(() => expect(replaceFinality).toHaveBeenCalledTimes(2))
+		expect(replaceFinality.mock.calls[0]?.[0]?.[0]?.value[0][EntityMetaKey.Selector].timestampMs).toBe(1_800_000_000_000)
+		expect(replaceFinality.mock.calls[1]?.[0]?.[0]?.value[0][EntityMetaKey.Selector].timestampMs).toBe(1_800_000_012_001)
+		expect(replaceFinality.mock.calls[1]?.[0]?.[0]?.value).toHaveLength(1)
+
+		abortController.abort()
+		stop()
+		vi.useRealTimers()
+	})
+
+	it('stops polling after abort cleanup', async () => {
+		if (headSlotResolver.resolveLive?.beaconHead == null)
+			throw new Error('Beacon_Rest missing Network.Evm beaconHead resolveLive')
+
+		getHeader.mockResolvedValue(headHeaderWire(64, 'a'))
+		getFinalityCheckpoints.mockResolvedValue(finalityCheckpointsWire)
+		const abortController = new AbortController()
+		const stop = headSlotResolver.resolveLive.beaconHead.start({
+			fields: {
+				'$$beaconSlots': {
+					replaceRows: vi.fn(),
+					invalidate: vi.fn(),
+					count: {
+						replaceRows: vi.fn(),
+						invalidate: vi.fn(),
+					},
+				},
+				'$$beaconEpochs': {
+					replaceRows: vi.fn(),
+					invalidate: vi.fn(),
+					count: {
+						replaceRows: vi.fn(),
+						invalidate: vi.fn(),
+					},
+				},
+				'$$beaconFinalityTimestamps': {
+					replaceRows: vi.fn(),
+					invalidate: vi.fn(),
+					count: {
+						replaceRows: vi.fn(),
+						invalidate: vi.fn(),
+					},
+				},
+				invalidate: vi.fn(),
+			},
+			parentEntitySelector: network,
+			queryClient: {},
+			signal: abortController.signal,
+			trigger: resolverContext,
+		})
+		await vi.waitFor(() => expect(getFinalityCheckpoints).toHaveBeenCalledOnce())
+		getHeader.mockClear()
+		getFinalityCheckpoints.mockClear()
+		abortController.abort()
+		stop()
+		await vi.advanceTimersByTimeAsync(24_000)
+		expect(getHeader).not.toHaveBeenCalled()
+		expect(getFinalityCheckpoints).not.toHaveBeenCalled()
+		vi.useRealTimers()
 	})
 })

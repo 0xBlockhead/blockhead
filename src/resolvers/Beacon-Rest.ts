@@ -390,6 +390,87 @@ const beaconSlotReferenceFromHeader = (
 	}
 }
 
+const beaconEpochReference = (
+	$network: EntitySelector<typeof schema, EntityType.Network>,
+	epoch: number,
+) => ({
+	[EntityMetaKey.Selector]: {
+		$network,
+		epoch,
+	},
+})
+
+const beaconRecentEpochReferences = (
+	$network: EntitySelector<typeof schema, EntityType.Network>,
+	headEpoch: number,
+	limit: number,
+) => (
+	Array.from(
+		{ length: limit },
+		(_, index) => headEpoch - index
+	)
+		.flatMap((epoch) => (
+			epoch < 0 ?
+				[]
+			:
+				[beaconEpochReference($network, epoch)]
+		))
+)
+
+const beaconRecentSlotReferencesFromHead = async (
+	$network: EntitySelector<typeof schema, EntityType.Network>,
+	chainId: number,
+	headHeader: Awaited<ReturnType<typeof import('$/sources/Beacon/Rest/queries.ts').getHeader>>,
+	limit: number,
+) => {
+	const { getHeader } = await import('$/sources/Beacon/Rest/queries.ts')
+	const headSlot = safeIntegerFromDecimal(
+		headHeader.header.message.slot,
+		'head slot'
+	)
+	return Promise.all(
+		Array.from(
+			{ length: limit },
+			(_, index) => headSlot - index
+		)
+			.flatMap((slot) => (
+				slot < 0 ?
+					[]
+				:
+					[(slot === headSlot ?
+						Promise.resolve(headHeader)
+					:
+						getHeader(chainId, slot)
+					).then((header) => beaconSlotReferenceFromHeader($network, header))]
+			))
+	)
+}
+
+const beaconFinalityTimestampReference = (
+	$network: EntitySelector<typeof schema, EntityType.Network>,
+	checkpoints: NonNullable<
+		Awaited<
+			ReturnType<
+				typeof import('$/sources/Beacon/Rest/queries.ts').getFinalityCheckpoints
+			>
+		>
+	>,
+	timestampMs: number,
+) => ({
+	[EntityMetaKey.Selector]: {
+		$network,
+		timestampMs,
+	},
+	[EntityMetaKey.Fields]: {
+		[entityFieldAddressKey(EntityType.EthereumBeaconFinality_Timestamp, [], 'currentJustifiedCheckpointEpoch')]: Number.parseInt(checkpoints.current_justified.epoch, 10),
+		[entityFieldAddressKey(EntityType.EthereumBeaconFinality_Timestamp, [], 'currentJustifiedCheckpointRoot')]: with0xHex(checkpoints.current_justified.root),
+		[entityFieldAddressKey(EntityType.EthereumBeaconFinality_Timestamp, [], 'previousJustifiedCheckpointEpoch')]: Number.parseInt(checkpoints.previous_justified.epoch, 10),
+		[entityFieldAddressKey(EntityType.EthereumBeaconFinality_Timestamp, [], 'previousJustifiedCheckpointRoot')]: with0xHex(checkpoints.previous_justified.root),
+		[entityFieldAddressKey(EntityType.EthereumBeaconFinality_Timestamp, [], 'finalizedCheckpointEpoch')]: Number.parseInt(checkpoints.finalized.epoch, 10),
+		[entityFieldAddressKey(EntityType.EthereumBeaconFinality_Timestamp, [], 'finalizedCheckpointRoot')]: with0xHex(checkpoints.finalized.root),
+	},
+})
+
 const mapBeaconValidatorSnapshot = async (
 	$network: EntitySelector<typeof schema, EntityType.Network>,
 	indexOrPubkey: number | string,
@@ -1613,24 +1694,10 @@ export default {
 								'head slot'
 							) / slotsPerEpoch
 						)
-						return (
-							Array.from(
-								{ length: resolverContextRowLimit(context) },
-								(_, i) => headEpoch - i
-							)
-								.flatMap((epoch) => (
-									epoch < 0 ?
-										[]
-									:
-										[
-											{
-												[EntityMetaKey.Selector]: {
-													$network: { caip2 },
-													epoch,
-												},
-											},
-										]
-								))
+						return beaconRecentEpochReferences(
+							{ caip2 },
+							headEpoch,
+							resolverContextRowLimit(context)
 						)
 					},
 				},
@@ -1649,29 +1716,135 @@ export default {
 						const { getHeader } = await import('$/sources/Beacon/Rest/queries.ts')
 						const chainId = Number(caip2.reference)
 						const headHeader = await getHeader(chainId, 'head')
-						const headSlot = safeIntegerFromDecimal(
-							headHeader.header.message.slot,
-							'head slot'
+						return beaconRecentSlotReferencesFromHead(
+							{ caip2 },
+							chainId,
+							headHeader,
+							resolverContextRowLimit(context)
 						)
-						return Promise.all(
-							Array.from(
-								{ length: resolverContextRowLimit(context) },
-								(_, i) => headSlot - i
-							)
-								.flatMap((slot) => (
-									slot < 0 ?
-										[]
-									:
-											[(slot === headSlot ? Promise.resolve(headHeader) : getHeader(chainId, slot))
-												.then((header) => beaconSlotReferenceFromHeader({ caip2 }, header))]
-								))
-						)
+					},
+				},
+			},
+			resolveLive: {
+				beaconHead: {
+					facetPath: [
+						'Evm',
+					],
+					publishes: {
+						'$$beaconSlots': true,
+						'$$beaconEpochs': true,
+						'$$beaconFinalityTimestamps': true,
+					},
+					start: ({
+						fields,
+						parentEntitySelector,
+						signal,
+						trigger,
+					}) => {
+						if (!('caip2' in parentEntitySelector))
+							return
+
+						const chainId = Number(parentEntitySelector.caip2.reference)
+						if (!beaconRestByChainId.has(chainId))
+							return
+
+						let timeout: ReturnType<typeof setTimeout> | undefined
+						let lastHeadSlot: number | undefined
+						let lastHeadRoot: string | undefined
+						let lastHeadEpoch: number | undefined
+						const poll = async () => {
+							try {
+								if (signal.aborted)
+									return
+
+								const {
+									getFinalityCheckpoints,
+									getHeader,
+								} = await import('$/sources/Beacon/Rest/queries.ts')
+								const limit = resolverContextRowLimit(trigger)
+								const [
+									headHeader,
+									checkpoints,
+								] = await Promise.all([
+									getHeader(chainId, 'head'),
+									getFinalityCheckpoints(chainId),
+								])
+								if (signal.aborted)
+									return
+
+								const headSlot = safeIntegerFromDecimal(
+									headHeader.header.message.slot,
+									'head slot'
+								)
+								const headRoot = with0xHex(headHeader.root)
+								const headEpoch = Math.floor(headSlot / slotsPerEpoch)
+								if (
+									lastHeadSlot !== headSlot
+									|| lastHeadRoot !== headRoot
+								) {
+									const recentSlots = await beaconRecentSlotReferencesFromHead(
+										parentEntitySelector,
+										chainId,
+										headHeader,
+										limit
+									)
+									if (signal.aborted)
+										return
+
+									fields.$$beaconSlots.replaceRows([{
+										source: Source.Beacon_Rest,
+										value: recentSlots,
+									}])
+									lastHeadSlot = headSlot
+									lastHeadRoot = headRoot
+								}
+								if (lastHeadEpoch !== headEpoch) {
+									lastHeadEpoch = headEpoch
+									fields.$$beaconEpochs.replaceRows([{
+										source: Source.Beacon_Rest,
+										value: beaconRecentEpochReferences(
+											parentEntitySelector,
+											headEpoch,
+											limit
+										),
+									}])
+								}
+								if (checkpoints == null)
+									throw new Error(`Beacon_Rest: finality checkpoints not returned for chain ${String(chainId)}`)
+
+								fields.$$beaconFinalityTimestamps.replaceRows([{
+									source: Source.Beacon_Rest,
+									value: [beaconFinalityTimestampReference(
+										parentEntitySelector,
+										checkpoints,
+										Date.now()
+									)],
+								}])
+							} catch (error) {
+								console.error('Beacon_Rest live beacon head failed', error)
+							}
+							if (signal.aborted)
+								return
+							timeout = setTimeout(() => { void poll() }, 12_000)
+						}
+						const abort = () => {
+							if (timeout != null)
+								clearTimeout(timeout)
+						}
+						signal.addEventListener('abort', abort, { once: true })
+						void poll()
+						return () => {
+							signal.removeEventListener('abort', abort)
+							abort()
+						}
 					},
 				},
 			},
 		})({
 				Evm: {
 					$$beaconSlots: (network) => network,
+					$$beaconEpochs: {},
+					$$beaconFinalityTimestamps: {},
 				},
 			}),
 
@@ -1960,20 +2133,11 @@ export default {
 							throw new Error(`Beacon_Rest: finality checkpoints not returned for chain ${String(chainId)}`)
 
 						return [
-							{
-								[EntityMetaKey.Selector]: {
-									$network: { caip2 },
-									timestampMs: Date.now(),
-								},
-								[EntityMetaKey.Fields]: {
-									[entityFieldAddressKey(EntityType.EthereumBeaconFinality_Timestamp, [], 'currentJustifiedCheckpointEpoch')]: Number.parseInt(checkpoints.current_justified.epoch, 10),
-									[entityFieldAddressKey(EntityType.EthereumBeaconFinality_Timestamp, [], 'currentJustifiedCheckpointRoot')]: with0xHex(checkpoints.current_justified.root),
-									[entityFieldAddressKey(EntityType.EthereumBeaconFinality_Timestamp, [], 'previousJustifiedCheckpointEpoch')]: Number.parseInt(checkpoints.previous_justified.epoch, 10),
-									[entityFieldAddressKey(EntityType.EthereumBeaconFinality_Timestamp, [], 'previousJustifiedCheckpointRoot')]: with0xHex(checkpoints.previous_justified.root),
-									[entityFieldAddressKey(EntityType.EthereumBeaconFinality_Timestamp, [], 'finalizedCheckpointEpoch')]: Number.parseInt(checkpoints.finalized.epoch, 10),
-									[entityFieldAddressKey(EntityType.EthereumBeaconFinality_Timestamp, [], 'finalizedCheckpointRoot')]: with0xHex(checkpoints.finalized.root),
-								},
-							},
+							beaconFinalityTimestampReference(
+								{ caip2 },
+								checkpoints,
+								Date.now()
+							),
 						]
 					},
 				},
