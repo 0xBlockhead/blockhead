@@ -661,6 +661,27 @@ export default {
 		}),
 
 		defineResolver({
+			entityType: EntityType.SnapshotSpace,
+			resolve: {
+				SpaceId: {
+					resolve: async ({ spaceId }) => {
+						const proposalsCount = (await resolveSnapshotSpace({
+							spaceId,
+						})).proposalsCount
+						if (proposalsCount == null)
+							throw new Error('SnapshotHub_Graphql: space proposal count is unavailable')
+
+						return proposalsCount
+					},
+				},
+			},
+		})({
+			$$proposals: {
+				resolveCount: (count) => count,
+			},
+		}),
+
+		defineResolver({
 			entityType: EntityType.SnapshotProposal,
 			resolve: {
 				ProposalId: {
@@ -733,6 +754,27 @@ export default {
 						}),
 					}
 				},
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.SnapshotProposal,
+			resolve: {
+				ProposalId: {
+					resolve: async ({ proposalId }) => {
+						const votesCount = (await resolveSnapshotProposal({
+							proposalId,
+						})).votesCount
+						if (votesCount == null)
+							throw new Error('SnapshotHub_Graphql: proposal vote count is unavailable')
+
+						return votesCount
+					},
+				},
+			},
+		})({
+			$$votes: {
+				resolveCount: (count) => count,
 			},
 		}),
 

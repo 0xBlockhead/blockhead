@@ -227,6 +227,8 @@ describe('SnapshotHub GraphQL resolvers', () => {
 			EntityType._Global,
 			EntityType.SnapshotSpace,
 			EntityType.SnapshotSpace,
+			EntityType.SnapshotSpace,
+			EntityType.SnapshotProposal,
 			EntityType.SnapshotProposal,
 			EntityType.SnapshotProposal,
 			EntityType.SnapshotVote,
@@ -544,6 +546,40 @@ describe('SnapshotHub GraphQL resolvers', () => {
 			target: 'snapshot-hub',
 			terminal: true,
 		})
+	})
+
+	it('resolves proposal and vote counts independently from their pages', async () => {
+		const spaceProposalCountResolver = snapshotHubGraphql.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.SnapshotSpace
+			&& '$$proposals' in resolver.projections
+			&& typeof resolver.projections.$$proposals === 'object'
+			&& resolver.projections.$$proposals != null
+			&& 'resolveCount' in resolver.projections.$$proposals
+		))
+		const proposalVoteCountResolver = snapshotHubGraphql.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.SnapshotProposal
+			&& '$$votes' in resolver.projections
+			&& typeof resolver.projections.$$votes === 'object'
+			&& resolver.projections.$$votes != null
+			&& 'resolveCount' in resolver.projections.$$votes
+		))
+		if (
+			spaceProposalCountResolver == null
+			|| !('SpaceId' in spaceProposalCountResolver.resolve)
+			|| proposalVoteCountResolver == null
+			|| !('ProposalId' in proposalVoteCountResolver.resolve)
+		)
+			throw new Error('SnapshotHub_Graphql count resolvers are missing')
+
+		getSpace.mockResolvedValueOnce(space)
+		getProposal.mockResolvedValueOnce(proposal)
+		const proposalCount = await spaceProposalCountResolver.resolve.SpaceId.resolve({ spaceId })
+		const voteCount = await proposalVoteCountResolver.resolve.ProposalId.resolve({ proposalId })
+
+		expect(spaceProposalCountResolver.projections.$$proposals.resolveCount(proposalCount)).toBe(1)
+		expect(proposalVoteCountResolver.projections.$$votes.resolveCount(voteCount)).toBe(3)
+		expect(getProposalsPage).not.toHaveBeenCalled()
+		expect(getVotesPage).not.toHaveBeenCalled()
 	})
 
 	it('continues Snapshot space and proposal entry lists with opaque offsets', async () => {

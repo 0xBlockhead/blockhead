@@ -309,6 +309,7 @@ describe('Tally resolver field shaping', () => {
 		expect(tally.resolvers.map((resolver) => resolver.entityType)).toEqual([
 			EntityType.TallyGovernor,
 			EntityType.TallyGovernor,
+			EntityType.TallyGovernor,
 			EntityType.TallyProposal,
 		])
 		const governorResolver = tally.resolvers.find((resolver) => (
@@ -346,7 +347,7 @@ describe('Tally resolver field shaping', () => {
 			pageInfo: {
 				firstCursor: 'cursor-2',
 				lastCursor: 'cursor-2',
-				count: 1,
+				count: null,
 			},
 		})
 		const page = await governorProposalsResolver.resolve.GovernorId.resolve({
@@ -368,7 +369,6 @@ describe('Tally resolver field shaping', () => {
 				[entityFieldAddressKey(EntityType.TallyProposal, [], 'title')]: 'Fund public goods',
 			},
 		}])
-		expect(governorProposalsResolver.projections.$$proposals.resolveCount(page)).toBe(1)
 		expect(governorProposalsResolver.projections.$$proposals.continuation(page)).toEqual({
 			operation: 'proposals',
 			target: 'tally-api',
@@ -385,6 +385,34 @@ describe('Tally resolver field shaping', () => {
 			target: 'tally-api',
 			terminal: true,
 		})
+	})
+
+	it('resolves the proposal count independently from proposal rows', async () => {
+		const governorProposalCountResolver = tally.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.TallyGovernor
+			&& '$$proposals' in resolver.projections
+			&& typeof resolver.projections.$$proposals === 'object'
+			&& resolver.projections.$$proposals != null
+			&& 'resolveCount' in resolver.projections.$$proposals
+		))
+		if (governorProposalCountResolver == null || !('GovernorId' in governorProposalCountResolver.resolve))
+			throw new Error('Tally spec missing governor proposal count resolver')
+
+		getProposalsPage.mockResolvedValueOnce({
+			nodes: [],
+			pageInfo: {
+				firstCursor: null,
+				lastCursor: null,
+				count: 10,
+			},
+		})
+		const count = await governorProposalCountResolver.resolve.GovernorId.resolve({ governorId })
+
+		expect(getProposalsPage).toHaveBeenCalledWith({
+			governorId,
+			limit: 1,
+		})
+		expect(governorProposalCountResolver.projections.$$proposals.resolveCount(count)).toBe(10)
 	})
 
 	it('preserves an upstream proposal failure instead of materializing an empty proposal', async () => {

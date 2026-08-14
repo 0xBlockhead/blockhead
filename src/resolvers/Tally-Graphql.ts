@@ -385,7 +385,6 @@ export default {
 		})({
 			$$proposals: {
 				select: (snapshot) => snapshot.rows,
-				resolveCount: (snapshot) => snapshot.count,
 				continuation: (snapshot) => (
 					snapshot.nextCursor == null ?
 						{
@@ -401,6 +400,29 @@ export default {
 							token: snapshot.nextCursor,
 						}
 				),
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.TallyGovernor,
+			resolve: {
+				GovernorId: {
+					resolve: async ({ governorId }) => {
+						const { getProposalsPage } = await import('$/sources/Tally/Graphql/queries.ts')
+						const count = (await getProposalsPage({
+							governorId,
+							limit: 1,
+						})).pageInfo.count
+						if (count == null)
+							throw new Error('Tally: proposal count is unavailable')
+
+						return count
+					},
+				},
+			},
+		})({
+			$$proposals: {
+				resolveCount: (count) => count,
 			},
 		}),
 
