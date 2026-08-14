@@ -154,6 +154,33 @@ describe('Amboss GraphQL Lightning node/channel resolvers', () => {
 		])
 	})
 
+	it('rejects stale or historical node timestamp selectors the current source cannot honor', async () => {
+		getNode.mockResolvedValue({
+			graph_info: {
+				node: {
+					pub_key: publicKey,
+					alias: 'self',
+					color: '#abcdef',
+					last_update: 1_700_000_000,
+					addresses: [],
+				},
+				channels: {
+					num_channels: 12,
+					total_capacity: '500000000',
+				},
+			},
+		})
+
+		await expect(nodeTimestampResolver.resolve.NodeTimestampMsSource.resolve({
+			$node: {
+				$network: lightningNetwork,
+				publicKey,
+			},
+			timestampMs: 1,
+			source: Source.Amboss_Graphql,
+		}, resolverContext)).rejects.toThrow('node observation clock mismatch')
+	})
+
 	it('lists node channels with enrolled leftovers, resolveCount, and continuation', async () => {
 		getNodeChannels.mockResolvedValue({
 			num_channels: 2,
@@ -423,7 +450,7 @@ describe('Amboss GraphQL Lightning node/channel resolvers', () => {
 				$network: lightningNetwork,
 				channelId: '123',
 			},
-			timestampMs: 1,
+			timestampMs: 1_700_000_100_000,
 			source: Source.Amboss_Graphql,
 		}, resolverContext)
 
@@ -432,5 +459,37 @@ describe('Amboss GraphQL Lightning node/channel resolvers', () => {
 		expect(channelTimestampResolver.projections.closingFeeSats(timestampSnapshot)).toBe(2500n)
 		expect(channelTimestampResolver.projections.closingReason(timestampSnapshot)).toBe('MUTUAL')
 		expect(channelTimestampResolver.projections.closedAtMs(timestampSnapshot)).toBe(Date.parse('2023-11-14T22:15:00.000Z'))
+	})
+
+	it('rejects stale or historical channel timestamp selectors the current source cannot honor', async () => {
+		getEdge.mockResolvedValue({
+			long_channel_id: '123',
+			short_channel_id: '1x2x3',
+			graph: {
+				info: {
+					capacity: '1000000',
+					is_closed: false,
+					last_update: '1700000000',
+					chan_point: 'abcdef0123456789:1',
+					node1_pub: publicKey,
+					node2_pub: peerPublicKey,
+					node1_policy: null,
+					node2_policy: null,
+					closed_info: null,
+					transactions: {
+						close_transaction: null,
+					},
+				},
+			},
+		})
+
+		await expect(channelTimestampResolver.resolve.ChannelTimestampMsSource.resolve({
+			$channel: {
+				$network: lightningNetwork,
+				channelId: '123',
+			},
+			timestampMs: 1,
+			source: Source.Amboss_Graphql,
+		}, resolverContext)).rejects.toThrow('channel observation clock mismatch')
 	})
 })

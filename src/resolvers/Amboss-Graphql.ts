@@ -200,15 +200,18 @@ export default {
 			entityType: EntityType.LightningNode_Timestamp,
 			resolve: {
 				NodeTimestampMsSource: {
-					resolve: async ({ $node, source }) => {
+					resolve: async ({ $node, source, timestampMs }) => {
 						assertAmbossSource(source)
 						assertLightningNetwork($node.$network)
 						const { getNode } = await import('$/sources/Amboss/Graphql/queries.ts')
-						return nodeSnapshotFromAmbossNode(
-							await getNode({
-								publicKey: $node.publicKey,
-							})
-						)
+						const node = await getNode({
+							publicKey: $node.publicKey,
+						})
+						const observedTimestampMs = timestampMsFromNodeSeconds(node.graph_info.node.last_update)
+						if (observedTimestampMs !== timestampMs)
+							throw new Error('Amboss_Graphql: node observation clock mismatch')
+
+						return nodeSnapshotFromAmbossNode(node)
 					},
 				}
 			},
@@ -375,15 +378,18 @@ export default {
 			entityType: EntityType.LightningChannel_Timestamp,
 			resolve: {
 				ChannelTimestampMsSource: {
-					resolve: async ({ $channel, source }) => {
+					resolve: async ({ $channel, source, timestampMs }) => {
 						assertAmbossSource(source)
 						assertLightningNetwork($channel.$network)
 						const { getEdge } = await import('$/sources/Amboss/Graphql/queries.ts')
-						return channelTimestampSnapshotFromAmbossEdge(
-							await getEdge({
-								channelId: $channel.channelId,
-							})
-						)
+						const edge = await getEdge({
+							channelId: $channel.channelId,
+						})
+						const observedTimestampMs = timestampMsFromChannelWire(edge.graph.info.last_update)
+						if (observedTimestampMs !== timestampMs)
+							throw new Error('Amboss_Graphql: channel observation clock mismatch')
+
+						return channelTimestampSnapshotFromAmbossEdge(edge)
 					},
 				}
 			},
