@@ -645,51 +645,181 @@ export default {
 			medianCapacitySats: (snapshot) => snapshot.medianCapacitySats,
 		}),
 
-		defineResolver({
-			entityType: EntityType.BlockheadLightningNodeState,
-			resolve: {
-				ConnectionIdNetwork: {
-					resolve: async ({ connectionId, $network }) => {
-						assertLightningNetwork($network.$network)
-						const info = await lndInfo()
-						const timestampMs = Date.now()
-						return {
-							connectionId,
-							$network: {
-								[EntityMetaKey.Selector]: $network,
-							},
-							lndPubkey: info.identity_pubkey,
-							alias: info.alias,
-							$node: {
-								[EntityMetaKey.Selector]: {
-									$network: $network.$network,
-									publicKey: info.identity_pubkey,
+		{
+			...defineResolver({
+				entityType: EntityType.BlockheadLightningNodeState,
+				resolve: {
+					ConnectionIdNetwork: {
+						resolve: async ({ connectionId, $network }) => {
+							assertLightningNetwork($network.$network)
+							const info = await lndInfo()
+							const timestampMs = Date.now()
+							return {
+								connectionId,
+								$network: {
+									[EntityMetaKey.Selector]: $network,
 								},
-							},
-							$$timestamps: [
-								{
+								lndPubkey: info.identity_pubkey,
+								alias: info.alias,
+								$node: {
 									[EntityMetaKey.Selector]: {
-										$localNodeState: {
-											connectionId,
-											$network,
-										},
-										timestampMs,
-										source: Source.LightningLnd_Rest,
+										$network: $network.$network,
+										publicKey: info.identity_pubkey,
 									},
 								},
-							],
+								$$timestamps: [
+									{
+										[EntityMetaKey.Selector]: {
+											$localNodeState: {
+												connectionId,
+												$network,
+											},
+											timestampMs,
+											source: Source.LightningLnd_Rest,
+										},
+									},
+								],
+							}
+						},
+					},
+				},
+			})({
+				connectionId: (state) => state.connectionId,
+				$network: (state) => state.$network,
+				lndPubkey: (state) => state.lndPubkey,
+				alias: (state) => state.alias,
+				$node: (state) => state.$node,
+				$$timestamps: (state) => state.$$timestamps,
+				$$peers: {},
+				$$channelStates: {},
+			}),
+			resolveLive: {
+				operatorState: {
+					facetPath: [],
+					publishes: {
+						'$$timestamps': true,
+						'$$peers': true,
+						'$$channelStates': true,
+					},
+					start: ({
+						fields,
+						parentEntitySelector,
+						signal,
+					}: {
+						fields: {
+							$$timestamps: {
+								replaceRows: (rows: readonly {
+									source: string
+									value: unknown
+								}[]) => void
+							}
+							$$peers: {
+								invalidate: () => void
+							}
+							$$channelStates: {
+								invalidate: () => void
+							}
+						}
+						parentEntitySelector: LocalNodeStateId
+						queryClient: object
+						signal: AbortSignal
+						trigger: object
+					}) => {
+						assertLightningNetwork(parentEntitySelector.$network.$network)
+						let timeout: ReturnType<typeof setTimeout> | undefined
+						let cancelled = false
+						let lastPeerCount: number | undefined
+						let lastOpenChannelCount: number | undefined
+						const isStopped = () => signal.aborted || cancelled
+						const poll = async () => {
+							try {
+								if (isStopped())
+									return
+								const {
+									getChannelBalance,
+									getInfo,
+									getWalletBalance,
+								} = await import('$/sources/LightningLnd/Rest/queries.ts')
+								const [info, walletBalance, channelBalance] = await Promise.all([
+									getInfo(),
+									getWalletBalance(),
+									getChannelBalance(),
+								])
+								if (isStopped())
+									return
+
+								const observation = nodeStateTimestampFieldsFromLndInfo(
+									info,
+									walletBalance,
+									channelBalance
+								)
+								fields.$$timestamps.replaceRows([{
+									source: Source.LightningLnd_Rest,
+									value: [{
+										[EntityMetaKey.Selector]: {
+											$localNodeState: parentEntitySelector,
+											timestampMs: Date.now(),
+											source: Source.LightningLnd_Rest,
+										},
+										[EntityMetaKey.Fields]: Object.fromEntries(
+											Object.entries(observation).flatMap(([fieldName, value]) => (
+												value == null ?
+													[]
+												:
+													[[
+														entityFieldAddressKey(EntityType.BlockheadLightningNodeState_Timestamp, [], fieldName),
+														value,
+													]]
+											))
+										),
+									}],
+								}])
+								if (
+									lastPeerCount !== undefined
+									&& observation.peerCount !== undefined
+									&& lastPeerCount !== observation.peerCount
+								)
+									fields.$$peers.invalidate()
+								if (observation.peerCount !== undefined)
+									lastPeerCount = observation.peerCount
+
+								const openChannelCount = (
+									observation.activeChannelCount !== undefined
+									&& observation.inactiveChannelCount !== undefined ?
+										observation.activeChannelCount + observation.inactiveChannelCount
+									:
+										undefined
+								)
+								if (
+									lastOpenChannelCount !== undefined
+									&& openChannelCount !== undefined
+									&& lastOpenChannelCount !== openChannelCount
+								)
+									fields.$$channelStates.invalidate()
+								if (openChannelCount !== undefined)
+									lastOpenChannelCount = openChannelCount
+							} catch (error) {
+								console.error('LightningLnd_Rest live node state failed', error)
+							}
+							if (isStopped())
+								return
+							timeout = setTimeout(() => { void poll() }, 10_000)
+						}
+						const abort = () => {
+							cancelled = true
+							if (timeout != null)
+								clearTimeout(timeout)
+						}
+						signal.addEventListener('abort', abort, { once: true })
+						void poll()
+						return () => {
+							signal.removeEventListener('abort', abort)
+							abort()
 						}
 					},
 				},
 			},
-		})({
-			connectionId: (state) => state.connectionId,
-			$network: (state) => state.$network,
-			lndPubkey: (state) => state.lndPubkey,
-			alias: (state) => state.alias,
-			$node: (state) => state.$node,
-			$$timestamps: (state) => state.$$timestamps,
-		}),
+		},
 
 		defineResolver({
 			entityType: EntityType.BlockheadLightningNodeState,

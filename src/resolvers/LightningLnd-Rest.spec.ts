@@ -1,4 +1,11 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import {
+	afterEach,
+	beforeEach,
+	describe,
+	expect,
+	it,
+	vi,
+} from 'vitest'
 
 import {
 	entityFieldAddressKey,
@@ -81,6 +88,7 @@ const nodeStateTimestampResolver = lightningLnd.resolvers.find((resolver) => (
 const nodeChannelStatesResolver = lightningLnd.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.BlockheadLightningNodeState
 	&& '$$channelStates' in resolver.projections
+	&& !('lndPubkey' in resolver.projections)
 ))
 const channelStateResolver = lightningLnd.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.BlockheadLightningChannelState
@@ -118,6 +126,7 @@ const nodeChannelsResolver = lightningLnd.resolvers.find((resolver) => (
 const nodePeersResolver = lightningLnd.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.BlockheadLightningNodeState
 	&& '$$peers' in resolver.projections
+	&& !('lndPubkey' in resolver.projections)
 ))
 const peerResolver = lightningLnd.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.BlockheadLightningPeer
@@ -150,6 +159,10 @@ if (
 	|| nodeForwardsResolver == null
 	|| forwardResolver == null
 )
+	throw new Error('LightningLnd-Rest spec missing resolver')
+if (!('resolveLive' in nodeStateResolver))
+	throw new Error('LightningLnd-Rest spec missing resolver')
+if (!('operatorState' in nodeStateResolver.resolveLive))
 	throw new Error('LightningLnd-Rest spec missing resolver')
 
 const lightningNetwork = {
@@ -1084,5 +1097,265 @@ describe('Lightning LND resolver ownership', () => {
 			averageCapacitySats: 62500n,
 			medianCapacitySats: 50000n,
 		})
+	})
+})
+
+describe('Lightning LND BlockheadLightningNodeState $$timestamps resolveLive', () => {
+	const localNodeState = {
+		connectionId: 'local-lnd',
+		$network: {
+			$network: lightningNetwork,
+		},
+	} as const
+	const liveFieldHandle = () => ({
+		replaceRows: vi.fn(),
+		invalidate: vi.fn(),
+		count: {
+			replaceRows: vi.fn(),
+			invalidate: vi.fn(),
+		},
+	})
+	const liveFields = () => ({
+		$$timestamps: liveFieldHandle(),
+		$$peers: liveFieldHandle(),
+		$$channelStates: liveFieldHandle(),
+	})
+	const mockLndNodeObservation = ({
+		num_peers = 4,
+		num_active_channels = 1,
+		num_inactive_channels = 0,
+		num_pending_channels = 2,
+	} = {}) => {
+		getInfo.mockResolvedValue({
+			version: '0.18.5-beta',
+			identity_pubkey: localPublicKey,
+			alias: 'Local',
+			synced_to_chain: true,
+			synced_to_graph: false,
+			block_height: 800_000,
+			best_header_timestamp: '1700000111',
+			num_peers,
+			num_active_channels,
+			num_inactive_channels,
+			num_pending_channels,
+		})
+		getWalletBalance.mockResolvedValue({
+			total_balance: '500000',
+			confirmed_balance: '499000',
+		})
+		getChannelBalance.mockResolvedValue({
+			local_balance: {
+				sat: '250000',
+			},
+			pending_open_local_balance: {
+				sat: '10000',
+			},
+		})
+	}
+	const startOperatorState = (
+		fields = liveFields(),
+		signal = new AbortController().signal
+	) => ({
+		fields,
+		cleanup: nodeStateResolver.resolveLive.operatorState.start({
+			parentEntitySelector: localNodeState,
+			queryClient: {},
+			signal,
+			trigger: context,
+			fields,
+		}),
+	})
+
+	afterEach(() => {
+		vi.useRealTimers()
+	})
+
+	it('polls getinfo, walletbalance, and channelbalance into one native retrieval-clock timestamp row', async () => {
+		vi.useFakeTimers()
+		vi.spyOn(Date, 'now').mockReturnValue(1_700_000_111_000)
+		mockLndNodeObservation()
+		const { fields, cleanup } = startOperatorState()
+		await vi.waitFor(() => expect(fields.$$timestamps.replaceRows).toHaveBeenCalledOnce())
+
+		expect(getInfo).toHaveBeenCalledOnce()
+		expect(getWalletBalance).toHaveBeenCalledOnce()
+		expect(getChannelBalance).toHaveBeenCalledOnce()
+		expect(getNetworkInfo).not.toHaveBeenCalled()
+		expect(listChannels).not.toHaveBeenCalled()
+		expect(listPeers).not.toHaveBeenCalled()
+		expect(fields.$$timestamps.replaceRows).toHaveBeenCalledWith([{
+			source: Source.LightningLnd_Rest,
+			value: [{
+				[EntityMetaKey.Selector]: {
+					$localNodeState: localNodeState,
+					timestampMs: 1_700_000_111_000,
+					source: Source.LightningLnd_Rest,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.BlockheadLightningNodeState_Timestamp, [], 'nodeVersion')]: '0.18.5-beta',
+					[entityFieldAddressKey(EntityType.BlockheadLightningNodeState_Timestamp, [], 'syncedToChain')]: true,
+					[entityFieldAddressKey(EntityType.BlockheadLightningNodeState_Timestamp, [], 'syncedToGraph')]: false,
+					[entityFieldAddressKey(EntityType.BlockheadLightningNodeState_Timestamp, [], 'blockHeight')]: 800000n,
+					[entityFieldAddressKey(EntityType.BlockheadLightningNodeState_Timestamp, [], 'bestHeaderTimestampMs')]: 1_700_000_111_000,
+					[entityFieldAddressKey(EntityType.BlockheadLightningNodeState_Timestamp, [], 'walletBalanceSats')]: 500000n,
+					[entityFieldAddressKey(EntityType.BlockheadLightningNodeState_Timestamp, [], 'channelBalanceSats')]: 250000n,
+					[entityFieldAddressKey(EntityType.BlockheadLightningNodeState_Timestamp, [], 'pendingChannelBalanceSats')]: 10000n,
+					[entityFieldAddressKey(EntityType.BlockheadLightningNodeState_Timestamp, [], 'peerCount')]: 4,
+					[entityFieldAddressKey(EntityType.BlockheadLightningNodeState_Timestamp, [], 'activeChannelCount')]: 1,
+					[entityFieldAddressKey(EntityType.BlockheadLightningNodeState_Timestamp, [], 'inactiveChannelCount')]: 0,
+					[entityFieldAddressKey(EntityType.BlockheadLightningNodeState_Timestamp, [], 'pendingChannelCount')]: 2,
+				},
+			}],
+		}])
+		expect(fields.$$peers.invalidate).not.toHaveBeenCalled()
+		expect(fields.$$channelStates.invalidate).not.toHaveBeenCalled()
+		expect(nodeStateResolver.resolveLive.operatorState.publishes).toEqual({
+			$$timestamps: true,
+			$$peers: true,
+			$$channelStates: true,
+		})
+
+		cleanup()
+	})
+
+	it('leaves the prior timestamp row intact when a later coherent poll fails, then resumes', async () => {
+		vi.useFakeTimers()
+		vi.spyOn(console, 'error').mockImplementation(() => {})
+		mockLndNodeObservation()
+		const abortController = new AbortController()
+		const { fields, cleanup } = startOperatorState(liveFields(), abortController.signal)
+		await vi.waitFor(() => expect(fields.$$timestamps.replaceRows).toHaveBeenCalledOnce())
+
+		getInfo.mockRejectedValueOnce(new Error('lnd unavailable'))
+		await vi.advanceTimersByTimeAsync(10_000)
+		expect(fields.$$timestamps.replaceRows).toHaveBeenCalledOnce()
+		expect(fields.$$peers.invalidate).not.toHaveBeenCalled()
+		expect(fields.$$channelStates.invalidate).not.toHaveBeenCalled()
+		expect(console.error).toHaveBeenCalledWith(
+			'LightningLnd_Rest live node state failed',
+			expect.objectContaining({
+				message: 'lnd unavailable',
+			})
+		)
+
+		await vi.advanceTimersByTimeAsync(10_000)
+		await vi.waitFor(() => expect(fields.$$timestamps.replaceRows).toHaveBeenCalledTimes(2))
+
+		abortController.abort()
+		cleanup()
+	})
+
+	it('stops polling after abort and cleanup, including an in-flight three-call snapshot', async () => {
+		vi.useFakeTimers()
+		mockLndNodeObservation()
+		const abortController = new AbortController()
+		const { fields, cleanup } = startOperatorState(liveFields(), abortController.signal)
+		await vi.waitFor(() => expect(fields.$$timestamps.replaceRows).toHaveBeenCalledOnce())
+
+		abortController.abort()
+		cleanup()
+		await vi.advanceTimersByTimeAsync(10_000)
+		expect(getInfo).toHaveBeenCalledTimes(1)
+		expect(getWalletBalance).toHaveBeenCalledTimes(1)
+		expect(getChannelBalance).toHaveBeenCalledTimes(1)
+
+		const inFlightInfo = Promise.withResolvers()
+		getInfo.mockImplementationOnce(() => inFlightInfo.promise)
+		const inFlightAbort = new AbortController()
+		const inFlight = startOperatorState(liveFields(), inFlightAbort.signal)
+		inFlightAbort.abort()
+		inFlight.cleanup()
+		inFlightInfo.resolve({
+			identity_pubkey: localPublicKey,
+			num_peers: 9,
+			num_active_channels: 3,
+			num_inactive_channels: 1,
+		})
+		await Promise.resolve()
+		expect(inFlight.fields.$$timestamps.replaceRows).not.toHaveBeenCalled()
+	})
+
+	it('invalidates $$peers only when a later poll proves peerCount changed', async () => {
+		vi.useFakeTimers()
+		mockLndNodeObservation({
+			num_peers: 4,
+		})
+		const abortController = new AbortController()
+		const { fields, cleanup } = startOperatorState(liveFields(), abortController.signal)
+		await vi.waitFor(() => expect(fields.$$timestamps.replaceRows).toHaveBeenCalledOnce())
+		expect(fields.$$peers.invalidate).not.toHaveBeenCalled()
+
+		mockLndNodeObservation({
+			num_peers: 4,
+		})
+		await vi.advanceTimersByTimeAsync(10_000)
+		await vi.waitFor(() => expect(fields.$$timestamps.replaceRows).toHaveBeenCalledTimes(2))
+		expect(fields.$$peers.invalidate).not.toHaveBeenCalled()
+
+		mockLndNodeObservation({
+			num_peers: 5,
+		})
+		await vi.advanceTimersByTimeAsync(10_000)
+		await vi.waitFor(() => expect(fields.$$timestamps.replaceRows).toHaveBeenCalledTimes(3))
+		expect(fields.$$peers.invalidate).toHaveBeenCalledOnce()
+		expect(fields.$$channelStates.invalidate).not.toHaveBeenCalled()
+
+		abortController.abort()
+		cleanup()
+	})
+
+	it('invalidates $$channelStates only when open-channel membership count changes, not equal active/inactive splits or pending-only drift', async () => {
+		vi.useFakeTimers()
+		mockLndNodeObservation({
+			num_active_channels: 1,
+			num_inactive_channels: 0,
+			num_pending_channels: 2,
+		})
+		const abortController = new AbortController()
+		const { fields, cleanup } = startOperatorState(liveFields(), abortController.signal)
+		await vi.waitFor(() => expect(fields.$$timestamps.replaceRows).toHaveBeenCalledOnce())
+		expect(fields.$$channelStates.invalidate).not.toHaveBeenCalled()
+
+		mockLndNodeObservation({
+			num_active_channels: 0,
+			num_inactive_channels: 1,
+			num_pending_channels: 9,
+		})
+		await vi.advanceTimersByTimeAsync(10_000)
+		await vi.waitFor(() => expect(fields.$$timestamps.replaceRows).toHaveBeenCalledTimes(2))
+		expect(fields.$$channelStates.invalidate).not.toHaveBeenCalled()
+		expect(fields.$$peers.invalidate).not.toHaveBeenCalled()
+
+		mockLndNodeObservation({
+			num_active_channels: 2,
+			num_inactive_channels: 1,
+			num_pending_channels: 9,
+		})
+		await vi.advanceTimersByTimeAsync(10_000)
+		await vi.waitFor(() => expect(fields.$$timestamps.replaceRows).toHaveBeenCalledTimes(3))
+		expect(fields.$$channelStates.invalidate).toHaveBeenCalledOnce()
+
+		abortController.abort()
+		cleanup()
+	})
+
+	it('rejects a non-Lightning parent before the three LND retrievals', () => {
+		expect(() => nodeStateResolver.resolveLive.operatorState.start({
+			parentEntitySelector: {
+				connectionId: 'local-lnd',
+				$network: {
+					$network: {
+						slug: 'bitcoin',
+					},
+				},
+			},
+			queryClient: {},
+			signal: new AbortController().signal,
+			trigger: context,
+			fields: liveFields(),
+		})).toThrow('unsupported Lightning network')
+		expect(getInfo).not.toHaveBeenCalled()
+		expect(getWalletBalance).not.toHaveBeenCalled()
+		expect(getChannelBalance).not.toHaveBeenCalled()
 	})
 })

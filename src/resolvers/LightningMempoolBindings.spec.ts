@@ -143,12 +143,19 @@ describe('Lightning and mempool resolver bindings', () => {
 		expect(lndEntityTypes.has(EntityType.LightningChannel)).toBe(true)
 	})
 
-	it('declares no resolveLive publishers on either Lightning surface', () => {
-		for (const resolver of [
-			...lightningLnd.resolvers,
-			...lightningMempoolSpace.resolvers,
-		])
-			expect(resolver.resolveLive).toBeUndefined()
+	it('keeps live publishers on their source-owned Lightning surfaces', () => {
+		expect(lightningLnd.resolvers.flatMap((resolver) => (
+			'resolveLive' in resolver ?
+				Object.keys(resolver.resolveLive)
+			:
+				[]
+		))).toEqual(['operatorState'])
+		expect(lightningMempoolSpace.resolvers.flatMap((resolver) => (
+			'resolveLive' in resolver ?
+				Object.keys(resolver.resolveLive)
+			:
+				[]
+		))).toEqual(['networkStats'])
 	})
 
 	it('fail-closes Mempool public tip when stamped as LND before transport', async () => {
