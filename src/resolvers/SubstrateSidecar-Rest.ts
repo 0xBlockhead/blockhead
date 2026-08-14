@@ -524,24 +524,30 @@ export default {
 			$parent: (block) => block.$parent,
 			stateRoot: (block) => block.stateRoot,
 			extrinsicsRoot: (block) => block.extrinsicsRoot,
-			$$extrinsics: (block) => block.$$extrinsics.map((extrinsic) => ({
-				[EntityMetaKey.Selector]: extrinsic[EntityMetaKey.Selector],
-				[EntityMetaKey.Fields]: {
-					[entityFieldAddressKey(EntityType.PolkadotExtrinsic, [], 'hash')]: extrinsic.hash,
-					[entityFieldAddressKey(EntityType.PolkadotExtrinsic, [], '$signer')]: extrinsic.$signer,
-					[entityFieldAddressKey(EntityType.PolkadotExtrinsic, [], '$pallet')]: extrinsic.$pallet,
-					[entityFieldAddressKey(EntityType.PolkadotExtrinsic, [], 'callName')]: extrinsic.callName,
-					[entityFieldAddressKey(EntityType.PolkadotExtrinsic, [], 'success')]: extrinsic.success,
-				},
-			})),
-			$$events: (block) => block.$$events.map((event) => ({
-				[EntityMetaKey.Selector]: event[EntityMetaKey.Selector],
-				[EntityMetaKey.Fields]: {
-					[entityFieldAddressKey(EntityType.PolkadotEvent, [], '$extrinsic')]: event.$extrinsic,
-					[entityFieldAddressKey(EntityType.PolkadotEvent, [], '$pallet')]: event.$pallet,
-					[entityFieldAddressKey(EntityType.PolkadotEvent, [], 'eventName')]: event.eventName,
-				},
-			})),
+			$$extrinsics: {
+				select: (block) => block.$$extrinsics.map((extrinsic) => ({
+					[EntityMetaKey.Selector]: extrinsic[EntityMetaKey.Selector],
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.PolkadotExtrinsic, [], 'hash')]: extrinsic.hash,
+						[entityFieldAddressKey(EntityType.PolkadotExtrinsic, [], '$signer')]: extrinsic.$signer,
+						[entityFieldAddressKey(EntityType.PolkadotExtrinsic, [], '$pallet')]: extrinsic.$pallet,
+						[entityFieldAddressKey(EntityType.PolkadotExtrinsic, [], 'callName')]: extrinsic.callName,
+						[entityFieldAddressKey(EntityType.PolkadotExtrinsic, [], 'success')]: extrinsic.success,
+					},
+				})),
+				resolveCount: (block) => block.$$extrinsics.length,
+			},
+			$$events: {
+				select: (block) => block.$$events.map((event) => ({
+					[EntityMetaKey.Selector]: event[EntityMetaKey.Selector],
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.PolkadotEvent, [], '$extrinsic')]: event.$extrinsic,
+						[entityFieldAddressKey(EntityType.PolkadotEvent, [], '$pallet')]: event.$pallet,
+						[entityFieldAddressKey(EntityType.PolkadotEvent, [], 'eventName')]: event.eventName,
+					},
+				})),
+				resolveCount: (block) => block.$$events.length,
+			},
 		}),
 
 		defineResolver({

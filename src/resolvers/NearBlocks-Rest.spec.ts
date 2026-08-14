@@ -409,7 +409,7 @@ describe('NearBlocks schema-shaped resolvers', () => {
 			},
 		})
 		expect(transactionResolver.projections.nonce(snapshot)).toBe(7n)
-		expect(transactionResolver.projections.$$actions(snapshot)).toEqual([{
+		expect(transactionResolver.projections.$$actions.select(snapshot)).toEqual([{
 			[EntityMetaKey.Selector]: {
 				$transaction: {
 					$network: network,
@@ -424,7 +424,8 @@ describe('NearBlocks schema-shaped resolvers', () => {
 				[entityFieldAddressKey(EntityType.NearAction, [], 'depositYoctoNear')]: 42n,
 			},
 		}])
-		expect(transactionResolver.projections.$$executionOutcomes(snapshot)).toEqual([{
+		expect(transactionResolver.projections.$$actions.resolveCount(snapshot)).toBe(1)
+		expect(transactionResolver.projections.$$executionOutcomes.select(snapshot)).toEqual([{
 			[EntityMetaKey.Selector]: {
 				$transaction: {
 					$network: network,
@@ -438,6 +439,7 @@ describe('NearBlocks schema-shaped resolvers', () => {
 				[entityFieldAddressKey(EntityType.NearExecutionOutcome, [], 'gasBurnt')]: 1900000000000n,
 			},
 		}])
+		expect(transactionResolver.projections.$$executionOutcomes.resolveCount(snapshot)).toBe(1)
 	})
 
 	it('rejects transaction signer selector drift', async () => {

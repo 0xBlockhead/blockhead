@@ -374,8 +374,14 @@ export default {
 			$signer: (snapshot) => snapshot.$signer,
 			$receiver: (snapshot) => snapshot.$receiver,
 			nonce: (snapshot) => snapshot.nonce,
-			$$actions: (snapshot) => snapshot.$$actions,
-			$$executionOutcomes: (snapshot) => snapshot.$$executionOutcomes,
+			$$actions: {
+				select: (snapshot) => snapshot.$$actions,
+				resolveCount: (snapshot) => snapshot.$$actions.length,
+			},
+			$$executionOutcomes: {
+				select: (snapshot) => snapshot.$$executionOutcomes,
+				resolveCount: (snapshot) => snapshot.$$executionOutcomes.length,
+			},
 		}),
 	],
 } satisfies RegisteredSourceResolverModule

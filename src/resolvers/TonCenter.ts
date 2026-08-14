@@ -896,8 +896,14 @@ export const createTonCenterV3Resolvers = () => ({
 			$rootMessage: (trace) => trace[entityFieldAddressKey(EntityType.TonTrace, [], '$rootMessage')],
 			startedAtMs: (trace) => trace[entityFieldAddressKey(EntityType.TonTrace, [], 'startedAtMs')],
 			$$timestamps: (trace) => trace[entityFieldAddressKey(EntityType.TonTrace, [], '$$timestamps')],
-			$$transactions: (trace) => trace[entityFieldAddressKey(EntityType.TonTrace, [], '$$transactions')],
-			$$messages: (trace) => trace[entityFieldAddressKey(EntityType.TonTrace, [], '$$messages')],
+			$$transactions: {
+				select: (trace) => trace[entityFieldAddressKey(EntityType.TonTrace, [], '$$transactions')],
+				resolveCount: (trace) => trace[entityFieldAddressKey(EntityType.TonTrace, [], '$$transactions')].length,
+			},
+			$$messages: {
+				select: (trace) => trace[entityFieldAddressKey(EntityType.TonTrace, [], '$$messages')],
+				resolveCount: (trace) => trace[entityFieldAddressKey(EntityType.TonTrace, [], '$$messages')].length,
+			},
 		}),
 		] as const,
 	}) satisfies RegisteredSourceResolverModule

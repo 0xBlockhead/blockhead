@@ -527,11 +527,11 @@ describe('Substrate Sidecar Polkadot block / pallet projections', () => {
 			$network: account.$network,
 			blockNumber: 10n,
 		}, context)
-		const events = blockResolver.projections.$$events(snapshot)
+		const events = blockResolver.projections.$$events.select(snapshot)
 
 		expect(sourceFetch.mock.calls[0][1]).toBe('http://127.0.0.1:8080/blocks/10')
 		expect(blockResolver.projections.hash(snapshot)).toBe(block.hash)
-		expect(blockResolver.projections.$$extrinsics(snapshot)[0][EntityMetaKey.Fields]).toMatchObject({
+		expect(blockResolver.projections.$$extrinsics.select(snapshot)[0][EntityMetaKey.Fields]).toMatchObject({
 			[entityFieldAddressKey(EntityType.PolkadotExtrinsic, [], '$signer')]: {
 				[EntityMetaKey.Selector]: account,
 			},
@@ -543,6 +543,8 @@ describe('Substrate Sidecar Polkadot block / pallet projections', () => {
 			'Transfer',
 			'ExtrinsicSuccess',
 		])
+		expect(blockResolver.projections.$$extrinsics.resolveCount(snapshot)).toBe(1)
+		expect(blockResolver.projections.$$events.resolveCount(snapshot)).toBe(2)
 	})
 
 	it('normalizes v14 metadata pallet indexes', async () => {

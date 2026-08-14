@@ -599,11 +599,12 @@ describe('TonCenter v3 network resolver', () => {
 		sourceQueries.getTonCenterV3Transactions.mockResolvedValueOnce({
 			rows: [transaction],
 		})
-		await expect(traceResolver.resolve.NetworkTraceIdSource.resolve({
+		const resolvedTrace = await traceResolver.resolve.NetworkTraceIdSource.resolve({
 			$network: network,
 			traceId: '1'.repeat(64),
 			source: Source.TonCenter,
-		})).resolves.toMatchObject({
+		})
+		expect(resolvedTrace).toMatchObject({
 			[entityFieldAddressKey(EntityType.TonTrace, [], '$rootMessage')]: {
 				[EntityMetaKey.Selector]: {
 					$network: network,
@@ -632,6 +633,10 @@ describe('TonCenter v3 network resolver', () => {
 				},
 			}],
 		})
+		expect(traceResolver.projections.$$transactions.select(resolvedTrace)).toHaveLength(1)
+		expect(traceResolver.projections.$$transactions.resolveCount(resolvedTrace)).toBe(1)
+		expect(traceResolver.projections.$$messages.select(resolvedTrace)).toHaveLength(1)
+		expect(traceResolver.projections.$$messages.resolveCount(resolvedTrace)).toBe(1)
 		expect(sourceQueries.getTonCenterV3Transactions).toHaveBeenCalledWith({
 			limit: 1,
 			offset: 0,
