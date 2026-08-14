@@ -230,6 +230,15 @@ describe('specification proposal source applicability', () => {
 		})
 	})
 
+	it('preserves Hyperliquid HIP titles on the global index rows', async () => {
+		const rows = await hyperliquidDocs.resolvers[1].resolve.Scope.resolve()
+		expect(rows[0]?.[EntityMetaKey.Fields]).toEqual({
+			[entityFieldAddressKey(EntityType.SpecificationProposal, [], 'documentCategory')]: 'HIP',
+			[entityFieldAddressKey(EntityType.SpecificationProposal, [], 'documentStatus')]: 'Documented',
+			[entityFieldAddressKey(EntityType.SpecificationProposal, [], 'documentTitle')]: 'Native token standard and spot deploys',
+		})
+	})
+
 	it('admits only the provider that owns each realm and category before resolution', () => {
 		const modules = [...new Set(proposalResolvers.map(([module]) => module))]
 		const indexed = indexResolvers(

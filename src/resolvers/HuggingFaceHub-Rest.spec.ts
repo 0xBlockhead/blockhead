@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 
-import { EntityMetaKey } from '$/schema/$schema.ts'
+import { EntityMetaKey, entityFieldAddressKey } from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
 import { indexResolvers } from '$/resolvers/$resolvers.ts'
 import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
@@ -73,6 +74,11 @@ describe('HuggingFace resolver mappings', () => {
 		expect(huggingFaceHubResolvers[0].projections.$$documents(model)).toEqual([{
 			[EntityMetaKey.Selector]: {
 				documentUrl: 'https://huggingface.co/org/model/blob/abcdef/README.md',
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.AiDocument, [], 'documentKind')]: 'model-card',
+				[entityFieldAddressKey(EntityType.AiDocument, [], 'mediaType')]: 'text/markdown',
+				[entityFieldAddressKey(EntityType.AiDocument, [], 'sourceFormat')]: 'markdown',
 			},
 		}])
 

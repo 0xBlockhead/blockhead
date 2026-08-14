@@ -5,6 +5,7 @@ import {
 } from '$/resolvers/defineResolver.ts'
 import {
 	EntityMetaKey,
+	entityFieldAddressKey,
 	type EntitySelector,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
@@ -47,6 +48,62 @@ export default {
 									},
 								},
 							],
+						}
+					},
+				},
+			},
+			resolveLive: {
+				operatorState: {
+					facetPath: [],
+					publishes: {
+						'$$timestamps': true,
+					},
+					start: ({
+						fields,
+						parentEntitySelector,
+						signal,
+					}) => {
+						assertQuilibriumMainnet(parentEntitySelector.$network)
+						let timeout: ReturnType<typeof setTimeout> | undefined
+						const poll = async () => {
+							const { getMetrics } = await (
+								typeof window === 'undefined' ?
+									import('$/sources/QuilibriumNodeMetrics/Prometheus/queries.ts')
+								:
+									import('$/sources/QuilibriumNodeMetrics/Prometheus/queries.remote.ts')
+							)
+							const text = await getMetrics()
+							if (signal.aborted)
+								return
+							const timestampMs = Date.now()
+							const observation = nodeStateObservationFromPrometheusText(text, timestampMs)
+							fields.$$timestamps.replaceRows([{
+								source: Source.QuilibriumNodeMetrics_Prometheus,
+								value: [{
+									[EntityMetaKey.Selector]: {
+										$nodeState: parentEntitySelector,
+										timestampMs,
+										source: Source.QuilibriumNodeMetrics_Prometheus,
+									},
+									[EntityMetaKey.Fields]: Object.fromEntries(
+										Object.entries(observation).map(([fieldName, value]) => [
+											entityFieldAddressKey(EntityType.BlockheadQuilibriumNodeState_Timestamp, [], fieldName),
+											value,
+										])
+									),
+								}],
+							}])
+							timeout = setTimeout(() => { void poll() }, 10_000)
+						}
+						const abort = () => {
+							if (timeout != null)
+								clearTimeout(timeout)
+						}
+						signal.addEventListener('abort', abort, { once: true })
+						void poll()
+						return () => {
+							signal.removeEventListener('abort', abort)
+							abort()
 						}
 					},
 				},

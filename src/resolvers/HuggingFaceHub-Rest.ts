@@ -1,5 +1,8 @@
 import { defineResolver, type RegisteredSourceResolverModule } from '$/resolvers/defineResolver.ts'
-import { EntityMetaKey } from '$/schema/$schema.ts'
+import {
+	EntityMetaKey,
+	entityFieldAddressKey,
+} from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
@@ -43,6 +46,11 @@ const documentReference = (
 ) => ({
 	[EntityMetaKey.Selector]: {
 		documentUrl: `https://huggingface.co/${repoId}/blob/${revision}/README.md`,
+	},
+	[EntityMetaKey.Fields]: {
+		[entityFieldAddressKey(EntityType.AiDocument, [], 'documentKind')]: 'model-card',
+		[entityFieldAddressKey(EntityType.AiDocument, [], 'mediaType')]: 'text/markdown',
+		[entityFieldAddressKey(EntityType.AiDocument, [], 'sourceFormat')]: 'markdown',
 	},
 })
 

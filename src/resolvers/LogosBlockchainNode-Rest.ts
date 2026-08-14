@@ -158,6 +158,58 @@ export default {
 					},
 				},
 			},
+			resolveLive: {
+				operatorState: {
+					facetPath: [],
+					publishes: {
+						'$$timestamps': true,
+					},
+					start: ({
+						fields,
+						parentEntitySelector,
+						signal,
+					}) => {
+						let timeout: ReturnType<typeof setTimeout> | undefined
+						const poll = async () => {
+							const { getNetworkInfo } = await import('$/sources/LogosBlockchainNode/Rest/queries.ts')
+							const info = await getNetworkInfo()
+							if (signal.aborted)
+								return
+							if (info.peer_id !== parentEntitySelector.peerId)
+								throw new Error(`LogosBlockchainNode_Rest: peer id mismatch (expected ${parentEntitySelector.peerId}, got ${info.peer_id})`)
+							const timestampMs = Date.now()
+							const observation = networkInfoObservationFields(info)
+							fields.$$timestamps.replaceRows([{
+								source: Source.LogosBlockchainNode_Rest,
+								value: [{
+									[EntityMetaKey.Selector]: {
+										$nodeState: parentEntitySelector,
+										timestampMs,
+										source: Source.LogosBlockchainNode_Rest,
+									},
+									[EntityMetaKey.Fields]: Object.fromEntries(
+										Object.entries(observation).map(([fieldName, value]) => [
+											entityFieldAddressKey(EntityType.BlockheadLogosBlockchainNodeState_Timestamp, [], fieldName),
+											value,
+										])
+									),
+								}],
+							}])
+							timeout = setTimeout(() => { void poll() }, 10_000)
+						}
+						const abort = () => {
+							if (timeout != null)
+								clearTimeout(timeout)
+						}
+						signal.addEventListener('abort', abort, { once: true })
+						void poll()
+						return () => {
+							signal.removeEventListener('abort', abort)
+							abort()
+						}
+					},
+				},
+			},
 		})({
 			connectionId: (state) => state.connectionId,
 			peerId: (state) => state.peerId,
