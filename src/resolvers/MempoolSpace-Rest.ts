@@ -163,6 +163,8 @@ const utxoTransactionReferenceFromMempoolSpaceWire = (
 	}
 }
 
+const bitcoinMainnetCaip2 = 'bip122:000000000019d6689c085ae165831e93' as const
+
 const bitcoinNetworkApplicability = [
 	{
 		caip2: networkBySlug.bitcoin.caip2,
@@ -172,12 +174,31 @@ const bitcoinNetworkApplicability = [
 	},
 ] as const
 
+const bitcoinTestnetNetworkApplicability = [
+	{
+		caip2: networkBySlug['bitcoin-testnet'].caip2,
+	},
+	{
+		slug: 'bitcoin-testnet',
+	},
+] as const
+
 const bitcoinNetworkReferenceApplicability = [
 	{
 		$network: bitcoinNetworkApplicability[0],
 	},
 	{
 		$network: bitcoinNetworkApplicability[1],
+	},
+] as const
+
+const bitcoinHierarchyNetworkReferenceApplicability = [
+	...bitcoinNetworkReferenceApplicability,
+	{
+		$network: bitcoinTestnetNetworkApplicability[0],
+	},
+	{
+		$network: bitcoinTestnetNetworkApplicability[1],
 	},
 ] as const
 
@@ -192,7 +213,7 @@ const bitcoinNetworkTimestampApplicability = [
 	},
 ] as const
 
-const bitcoinTransactionReferenceApplicability = [
+const bitcoinMainnetTransactionReferenceApplicability = [
 	{
 		$transaction: bitcoinNetworkReferenceApplicability[0],
 	},
@@ -201,24 +222,48 @@ const bitcoinTransactionReferenceApplicability = [
 	},
 ] as const
 
-const assertBitcoinMainnet = (network: NetworkId) => {
-	if (
-		(
-			!('caip2' in network)
-			|| network.caip2.namespace !== networkBySlug.bitcoin.caip2.namespace
-			|| network.caip2.reference !== networkBySlug.bitcoin.caip2.reference
-		)
-		&& (
-			!('slug' in network)
-			|| network.slug !== 'bitcoin'
-		)
+const bitcoinHierarchyTransactionReferenceApplicability = [
+	{
+		$transaction: bitcoinHierarchyNetworkReferenceApplicability[0],
+	},
+	{
+		$transaction: bitcoinHierarchyNetworkReferenceApplicability[1],
+	},
+	{
+		$transaction: bitcoinHierarchyNetworkReferenceApplicability[2],
+	},
+	{
+		$transaction: bitcoinHierarchyNetworkReferenceApplicability[3],
+	},
+] as const
+
+const mempoolSpaceTargetForNetwork = (network: NetworkId) => {
+	const target = (
+		'caip2' in network
+		&& network.caip2.namespace === 'bip122'
+		&& network.caip2.reference === '000000000019d6689c085ae165831e93' ?
+			bitcoinMainnetCaip2
+		: 'caip2' in network
+		&& network.caip2.namespace === 'bip122'
+		&& network.caip2.reference === '000000000933ea01ad0ee984209779ba' ?
+			'bip122:000000000933ea01ad0ee984209779ba'
+		: 'slug' in network && network.slug === 'bitcoin' ?
+			bitcoinMainnetCaip2
+		: 'slug' in network && network.slug === 'bitcoin-testnet' ?
+			'bip122:000000000933ea01ad0ee984209779ba'
+		:
+			undefined
 	)
+	if (target == null)
 		throw new Error('MempoolSpace_Rest: unsupported Bitcoin network')
+
+	return target
 }
 
-const bitcoinMainnet = {
-	caip2: networkBySlug.bitcoin.caip2,
-} as const
+const assertBitcoinMainnet = (network: NetworkId) => {
+	if (mempoolSpaceTargetForNetwork(network) !== bitcoinMainnetCaip2)
+		throw new Error('MempoolSpace_Rest: unsupported Bitcoin network')
+}
 
 const bitcoinNetworkSelectors = <_Snapshot extends object>(
 	resolve: (
@@ -240,20 +285,21 @@ const getTransaction = async ({ $network, txId }: {
 	$network: NetworkId
 	txId: string
 }) => {
-	assertBitcoinMainnet($network)
 	const { getTransaction } = await import('$/sources/MempoolSpace/Rest/queries.ts')
-	return getTransaction(txId)
+	return getTransaction(txId, mempoolSpaceTargetForNetwork($network))
 }
 
 const utxoBlockSnapshot = async (
 	$network: NetworkId,
 	hash: string
 ) => {
-	assertBitcoinMainnet($network)
 	const {
 		getBlock,
 	} = await import('$/sources/MempoolSpace/Rest/queries.ts')
-	const block = await getBlock(hash)
+	const block = await getBlock({
+		blockHash: hash,
+		target: mempoolSpaceTargetForNetwork($network),
+	})
 	return {
 		hash: block.id,
 		...(block.previousblockhash != null && {
@@ -281,22 +327,26 @@ const utxoBlockTransactionPage = async (
 	offset: number,
 	limit: number
 ) => {
-	assertBitcoinMainnet($network)
+	const target = mempoolSpaceTargetForNetwork($network)
 	const {
 		getBlock,
 		getBlockTransactions,
 	} = await import('$/sources/MempoolSpace/Rest/queries.ts')
-	const block = await getBlock(hash)
+	const block = await getBlock({
+		blockHash: hash,
+		target,
+	})
 	const transactionCount = block.tx_count
 	const transactions: MempoolSpaceTransaction[] = []
 	while (
 		transactions.length < limit
 		&& offset + transactions.length < transactionCount
 	) {
-		const page = await getBlockTransactions(
-			hash,
-			offset + transactions.length
-		)
+		const page = await getBlockTransactions({
+			blockHash: hash,
+			startIndex: offset + transactions.length,
+			target,
+		})
 		if (page.length === 0)
 			throw new Error('MempoolSpace_Rest: block transaction page ended before authoritative total')
 
@@ -328,20 +378,22 @@ export default {
 			entityType: EntityType.UtxoBlock,
 			resolve: {
 				NetworkHeight: {
-					appliesTo: bitcoinNetworkReferenceApplicability,
+					appliesTo: bitcoinHierarchyNetworkReferenceApplicability,
 					resolve: async ({ $network, height }) => {
-						assertBitcoinMainnet($network)
 						const {
 							getBlockHashByHeight,
 						} = await import('$/sources/MempoolSpace/Rest/queries.ts')
 						return utxoBlockSnapshot(
 							$network,
-							await getBlockHashByHeight(height)
+							await getBlockHashByHeight({
+								height,
+								target: mempoolSpaceTargetForNetwork($network),
+							})
 						)
 					},
 				},
 				NetworkHeightHash: {
-					appliesTo: bitcoinNetworkReferenceApplicability,
+					appliesTo: bitcoinHierarchyNetworkReferenceApplicability,
 					resolve: async ({ $network, hash }) => (
 						utxoBlockSnapshot($network, hash)
 					),
@@ -363,12 +415,18 @@ export default {
 			entityType: EntityType.UtxoTransaction,
 			resolve: {
 				NetworkTxId: {
-					appliesTo: bitcoinNetworkReferenceApplicability,
+					appliesTo: bitcoinHierarchyNetworkReferenceApplicability,
 					resolve: async (entitySelector) => {
 						const transaction = await getTransaction(entitySelector)
+						const target = mempoolSpaceTargetForNetwork(entitySelector.$network)
 						const payloads = (
-							await import('$/sources/BitcoinCore/JsonRpc/protocol.ts')
-						).extractEsploraProtocolPayloads(transaction)
+							target === bitcoinMainnetCaip2 ?
+								(
+									await import('$/sources/BitcoinCore/JsonRpc/protocol.ts')
+								).extractEsploraProtocolPayloads(transaction)
+							:
+								[]
+						)
 						const $bitcoinRunestone = bitcoinRunestoneRefFromPayloads(entitySelector, payloads)
 						return {
 							[EntityMetaKey.Selector]: {
@@ -478,7 +536,7 @@ export default {
 			entityType: EntityType.UtxoInput,
 			resolve: {
 				TransactionIndexInTransaction: {
-					appliesTo: bitcoinTransactionReferenceApplicability,
+					appliesTo: bitcoinHierarchyTransactionReferenceApplicability,
 					resolve: async ({ $transaction, indexInTransaction }) => {
 						const input = (await getTransaction($transaction)).vin.at(indexInTransaction)
 						if (input == null)
@@ -530,7 +588,10 @@ export default {
 					resolve: async ({ $network, address: addressSelector }) => {
 						assertBitcoinMainnet($network)
 						const { getAddress } = await import('$/sources/MempoolSpace/Rest/queries.ts')
-						const address = await getAddress(addressSelector)
+						const address = await getAddress({
+							address: addressSelector,
+							target: mempoolSpaceTargetForNetwork($network),
+						})
 						const chainStats = address.chain_stats
 						return {
 							address: addressSelector,
@@ -577,10 +638,11 @@ export default {
 							throw new Error('MempoolSpace_Rest: invalid address transaction limit')
 
 						const { getAddressTransactions } = await import('$/sources/MempoolSpace/Rest/queries.ts')
-						const transactions = await getAddressTransactions(
-							utxoAddress.address,
-							context.providerContinuationToken
-						)
+						const transactions = await getAddressTransactions({
+							address: utxoAddress.address,
+							lastSeenTransactionId: context.providerContinuationToken,
+							target: mempoolSpaceTargetForNetwork(utxoAddress.$network),
+						})
 
 						return {
 							terminal: transactions.length < 25 && transactions.length <= limit,
@@ -627,7 +689,10 @@ export default {
 						assertBitcoinMainnet($network)
 						const { getAddressUtxos } = await import('$/sources/MempoolSpace/Rest/queries.ts')
 						return (
-							await getAddressUtxos(address)
+							await getAddressUtxos({
+								address,
+								target: mempoolSpaceTargetForNetwork($network),
+							})
 						)
 							.slice(0, resolverContextRowLimit(context))
 							.map((utxo) => ({
@@ -653,17 +718,22 @@ export default {
 			entityType: EntityType.UtxoOutput,
 			resolve: {
 				TransactionIndexInTransaction: {
-					appliesTo: bitcoinTransactionReferenceApplicability,
+					appliesTo: bitcoinHierarchyTransactionReferenceApplicability,
 					resolve: async ({ $transaction, indexInTransaction }) => {
 						const transaction = await getTransaction($transaction)
 						const output = transaction.vout.at(indexInTransaction)
 						if (output == null)
 							throw new Error(`MempoolSpace_Rest: transaction output ${indexInTransaction} not found`)
 
-						const runestone = runestonePayload(
-							(
-								await import('$/sources/BitcoinCore/JsonRpc/protocol.ts')
-							).extractEsploraProtocolPayloads(transaction)
+						const runestone = (
+							mempoolSpaceTargetForNetwork($transaction.$network) === bitcoinMainnetCaip2 ?
+								runestonePayload(
+									(
+										await import('$/sources/BitcoinCore/JsonRpc/protocol.ts')
+									).extractEsploraProtocolPayloads(transaction)
+								)
+							:
+								null
 						)
 						return {
 							[EntityMetaKey.Selector]: {
@@ -709,16 +779,16 @@ export default {
 			entityType: EntityType.UtxoOutput,
 			resolve: {
 				TransactionIndexInTransaction: {
-					appliesTo: bitcoinTransactionReferenceApplicability,
+					appliesTo: bitcoinHierarchyTransactionReferenceApplicability,
 					resolve: async ({ $transaction, indexInTransaction }) => {
-						assertBitcoinMainnet($transaction.$network)
 						const { getOutspend } = await import('$/sources/MempoolSpace/Rest/queries.ts')
 						return {
 							isSpent: (
-								await getOutspend(
-									$transaction.txId,
-									indexInTransaction
-								)
+								await getOutspend({
+									txId: $transaction.txId,
+									vout: indexInTransaction,
+									target: mempoolSpaceTargetForNetwork($transaction.$network),
+								})
 							).spent,
 						}
 					},
@@ -734,14 +804,19 @@ export default {
 				NetworkInscriptionId: {
 					appliesTo: bitcoinNetworkReferenceApplicability,
 					resolve: async ({ $network, inscriptionId }) => {
-						assertBitcoinMainnet($network)
+						if (mempoolSpaceTargetForNetwork($network) !== bitcoinMainnetCaip2)
+							throw new Error('MempoolSpace_Rest: Ordinals only on Bitcoin mainnet')
+
 						const parsed = parseBitcoinInscriptionId(inscriptionId)
 						if (parsed == null)
 							throw new Error(`MempoolSpace_Rest: invalid inscription id ${inscriptionId}`)
 
 						const { getTransactionProtocolPayloads } = await import('$/sources/MempoolSpace/Rest/queries.ts')
 						const payloads = ordinalsPayloads(
-							await getTransactionProtocolPayloads(parsed.txId)
+							await getTransactionProtocolPayloads({
+								txId: parsed.txId,
+								target: bitcoinMainnetCaip2,
+							})
 						)
 						const payload = payloads.at(parsed.inscriptionIndex)
 						if (payload == null)
@@ -770,12 +845,17 @@ export default {
 			entityType: EntityType.BitcoinRunestone,
 			resolve: {
 				TransactionOutputIndex: {
-					appliesTo: bitcoinTransactionReferenceApplicability,
+					appliesTo: bitcoinMainnetTransactionReferenceApplicability,
 					resolve: async ({ $transaction, outputIndex }) => {
-						assertBitcoinMainnet($transaction.$network)
+						if (mempoolSpaceTargetForNetwork($transaction.$network) !== bitcoinMainnetCaip2)
+							throw new Error('MempoolSpace_Rest: Runes only on Bitcoin mainnet')
+
 						const { getTransactionProtocolPayloads } = await import('$/sources/MempoolSpace/Rest/queries.ts')
 						const runestone = runestonePayload(
-							await getTransactionProtocolPayloads($transaction.txId)
+							await getTransactionProtocolPayloads({
+								txId: $transaction.txId,
+								target: bitcoinMainnetCaip2,
+							})
 						)
 						if (runestone == null || runestone.location.outputIndex !== outputIndex)
 							throw new Error(`MempoolSpace_Rest: runestone not found at output ${outputIndex}`)
@@ -805,7 +885,9 @@ export default {
 
 						assertBitcoinMainnet($network)
 						const { getMiningHashrate } = await import('$/sources/MempoolSpace/Rest/queries.ts')
-						const miningHashrate = await getMiningHashrate()
+						const miningHashrate = await getMiningHashrate({
+							target: bitcoinMainnetCaip2,
+						})
 						const historicalHashrate = miningHashrate.hashrates.find((hashrate) => hashrate.timestamp * 1_000 === timestampMs)
 						if (historicalHashrate == null)
 							throw new Error(`MempoolSpace_Rest: no mining hashrate observation at ${String(timestampMs)}`)
@@ -858,10 +940,18 @@ export default {
 					getRecommendedFees,
 				} = await import('$/sources/MempoolSpace/Rest/queries.ts')
 				const [blocks, mempoolStats, miningHashrate, fees] = await Promise.all([
-					getBlocks(),
-					getMempoolStats(),
-					getMiningHashrate(),
-					getRecommendedFees(),
+					getBlocks({
+						target: bitcoinMainnetCaip2,
+					}),
+					getMempoolStats({
+						target: bitcoinMainnetCaip2,
+					}),
+					getMiningHashrate({
+						target: bitcoinMainnetCaip2,
+					}),
+					getRecommendedFees({
+						target: bitcoinMainnetCaip2,
+					}),
 				])
 				const block = blocks.at(0)
 				if (block == null) throw new Error('MempoolSpace_Rest: no blocks returned')
@@ -926,9 +1016,15 @@ export default {
 									getRecommendedFees,
 								} = await import('$/sources/MempoolSpace/Rest/queries.ts')
 								const [tipHeight, mempoolStats, fees] = await Promise.all([
-									getTipHeight(),
-									getMempoolStats(),
-									getRecommendedFees(),
+									getTipHeight({
+										target: bitcoinMainnetCaip2,
+									}),
+									getMempoolStats({
+										target: bitcoinMainnetCaip2,
+									}),
+									getRecommendedFees({
+										target: bitcoinMainnetCaip2,
+									}),
 								])
 								fields.$$timestamps.replaceRows([{
 									source: Source.MempoolSpace_Rest,
@@ -977,7 +1073,9 @@ export default {
 			resolve: bitcoinNetworkSelectors(async (network, context) => {
 				assertBitcoinMainnet(network)
 				const { getBlocks } = await import('$/sources/MempoolSpace/Rest/queries.ts')
-				const tipBlocks = await getBlocks()
+				const tipBlocks = await getBlocks({
+					target: bitcoinMainnetCaip2,
+				})
 				const offset = context.pagination.offset ?? 0
 				const tip = tipBlocks.at(0)
 				if (tip == null)
@@ -990,7 +1088,10 @@ export default {
 					offset === 0 ?
 						tipBlocks
 					:
-						await getBlocks(BigInt(tip.height) - BigInt(offset))
+						await getBlocks({
+							target: bitcoinMainnetCaip2,
+							startHeight: BigInt(tip.height) - BigInt(offset),
+						})
 				)
 				return blocks
 					.slice(0, resolverContextRowLimit(context))
@@ -1015,7 +1116,9 @@ export default {
 								if (signal.aborted)
 									return
 								const { getTipHeight } = await import('$/sources/MempoolSpace/Rest/queries.ts')
-								const tipHeight = await getTipHeight()
+								const tipHeight = await getTipHeight({
+									target: bitcoinMainnetCaip2,
+								})
 								if (lastHeight !== tipHeight) {
 									lastHeight = tipHeight
 									fields.$$blocks.invalidate()
@@ -1055,8 +1158,12 @@ export default {
 					getMempoolStats,
 				} = await import('$/sources/MempoolSpace/Rest/queries.ts')
 				const [blocks, mempoolStats] = await Promise.all([
-					getBlocks(),
-					getMempoolStats(),
+					getBlocks({
+						target: bitcoinMainnetCaip2,
+					}),
+					getMempoolStats({
+						target: bitcoinMainnetCaip2,
+					}),
 				])
 				const latestBlock = blocks.at(0)
 				if (latestBlock == null)
@@ -1082,11 +1189,10 @@ export default {
 			entityType: EntityType.Network,
 			resolve: bitcoinNetworkSelectors(async (network, context) => {
 				assertBitcoinMainnet(network)
-				const {
-					getMempoolTxids,
-					getTransaction,
-				} = await import('$/sources/MempoolSpace/Rest/queries.ts')
-				const txids = await getMempoolTxids()
+				const { getMempoolTxids } = await import('$/sources/MempoolSpace/Rest/queries.ts')
+				const txids = await getMempoolTxids({
+					target: bitcoinMainnetCaip2,
+				})
 				return Promise.all(
 					txids
 						.slice(
@@ -1095,7 +1201,10 @@ export default {
 						)
 						.map(async (txId) => utxoTransactionReferenceFromMempoolSpaceWire(
 							network,
-							await getTransaction(txId)
+							await getTransaction({
+								$network: network,
+								txId,
+							})
 						))
 				)
 			}),
@@ -1109,20 +1218,23 @@ export default {
 			entityType: EntityType.UtxoBlock,
 			resolve: {
 				NetworkHeight: {
-					appliesTo: bitcoinNetworkReferenceApplicability,
+					appliesTo: bitcoinHierarchyNetworkReferenceApplicability,
 					resolve: async ({ $network, height }, context) => (
 						utxoBlockTransactionPage(
 							$network,
 							await (
 								await import('$/sources/MempoolSpace/Rest/queries.ts')
-							).getBlockHashByHeight(height),
+							).getBlockHashByHeight({
+								height,
+								target: mempoolSpaceTargetForNetwork($network),
+							}),
 							context.pagination.offset ?? 0,
 							resolverContextRowLimit(context)
 						)
 					),
 				},
 				NetworkHeightHash: {
-					appliesTo: bitcoinNetworkReferenceApplicability,
+					appliesTo: bitcoinHierarchyNetworkReferenceApplicability,
 					resolve: ({ $network, hash }, context) => (
 						utxoBlockTransactionPage(
 							$network,

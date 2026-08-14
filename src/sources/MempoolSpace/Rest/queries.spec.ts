@@ -33,7 +33,10 @@ const {
 	getTransactionProtocolPayloads,
 } = await import('$/sources/MempoolSpace/Rest/queries.ts')
 
-const binding = bindings[Source.MempoolSpace_Rest][0]
+const [bitcoinBinding, bitcoinTestnetBinding] = bindings[Source.MempoolSpace_Rest]
+
+const bitcoinTarget = bitcoinBinding.target.key
+const bitcoinTestnetTarget = bitcoinTestnetBinding.target.key
 
 const validBlock = {
 	id: 'a'.repeat(64),
@@ -52,9 +55,13 @@ describe('mempool.space Bitcoin REST binding', () => {
 			.mockResolvedValueOnce(840_000)
 			.mockResolvedValueOnce(-1)
 
-		await expect(getTipHeight()).resolves.toBe(840_000)
-		await expect(getTipHeight()).rejects.toThrow('invalid tip height')
-		expect(sourceGetJson).toHaveBeenCalledWith(binding, 'https://mempool.space/api/blocks/tip/height')
+		await expect(getTipHeight({
+			target: bitcoinTarget,
+		})).resolves.toBe(840_000)
+		await expect(getTipHeight({
+			target: bitcoinTarget,
+		})).rejects.toThrow('invalid tip height')
+		expect(sourceGetJson).toHaveBeenCalledWith(bitcoinBinding, 'https://mempool.space/api/blocks/tip/height')
 	})
 
 	it('preserves the Bitcoin API prefix and does not recover binding identity from the shared origin', async () => {
@@ -68,20 +75,64 @@ describe('mempool.space Bitcoin REST binding', () => {
 				minimumFee: 1,
 			})
 
-		await getBlock('a'.repeat(64))
-		await getRecommendedFees()
+		await getBlock({
+			blockHash: 'a'.repeat(64),
+			target: bitcoinTarget,
+		})
+		await getRecommendedFees({
+			target: bitcoinTarget,
+		})
 
-		expect(binding).not.toBe(
+		expect(bitcoinBinding).not.toBe(
 			lightningBindings[Source.LightningMempoolSpace_Rest][0]
 		)
 		expect(sourceGetJson.mock.calls).toEqual([
 			[
-				binding,
+				bitcoinBinding,
 				`https://mempool.space/api/block/${'a'.repeat(64)}`,
 			],
 			[
-				binding,
+				bitcoinBinding,
 				'https://mempool.space/api/v1/fees/recommended',
+			],
+		])
+	})
+
+	it('binds the Bitcoin Testnet genesis coordinate to the official testnet API', async () => {
+		sourceGetJson.mockResolvedValueOnce('000000000933ea01ad0ee984209779baaec3ced90fa3f408719526f8d77f4943')
+
+		await expect(getBlockHashByHeight({
+			height: 0n,
+			target: bitcoinTestnetTarget,
+		})).resolves.toBe('000000000933ea01ad0ee984209779baaec3ced90fa3f408719526f8d77f4943')
+		expect(sourceGetJson).toHaveBeenCalledWith(
+			bitcoinTestnetBinding,
+			'https://mempool.space/testnet/api/block-height/0'
+		)
+	})
+
+	it('selects the exact target binding and preserves its API prefix', async () => {
+		sourceGetJson
+			.mockResolvedValueOnce(validBlock)
+			.mockResolvedValueOnce(validBlock)
+
+		await getBlock({
+			blockHash: validBlock.id,
+			target: bitcoinTarget,
+		})
+		await getBlock({
+			blockHash: validBlock.id,
+			target: bitcoinTestnetTarget,
+		})
+
+		expect(sourceGetJson.mock.calls).toEqual([
+			[
+				bitcoinBinding,
+				`https://mempool.space/api/block/${validBlock.id}`,
+			],
+			[
+				bitcoinTestnetBinding,
+				`https://mempool.space/testnet/api/block/${validBlock.id}`,
 			],
 		])
 	})
@@ -99,11 +150,13 @@ describe('mempool.space Bitcoin REST binding', () => {
 			currentDifficulty: 127_479_855_693_691.4,
 		})
 
-		await expect(getMiningHashrate()).resolves.toMatchObject({
+		await expect(getMiningHashrate({
+			target: bitcoinTarget,
+		})).resolves.toMatchObject({
 			currentHashrate: 886_019_350_377_919_800_000,
 		})
 		expect(sourceGetJson).toHaveBeenCalledWith(
-			binding,
+			bitcoinBinding,
 			'https://mempool.space/api/v1/mining/hashrate/3d'
 		)
 	})
@@ -116,7 +169,9 @@ describe('mempool.space Bitcoin REST binding', () => {
 			currentDifficulty: 1,
 		})
 
-		await expect(getMiningHashrate()).rejects.toThrow('invalid mining hashrate envelope')
+		await expect(getMiningHashrate({
+			target: bitcoinTarget,
+		})).rejects.toThrow('invalid mining hashrate envelope')
 	})
 
 	it('rejects duplicate mining hashrate observation clocks', async () => {
@@ -136,7 +191,9 @@ describe('mempool.space Bitcoin REST binding', () => {
 			currentDifficulty: 127_479_855_693_691.4,
 		})
 
-		await expect(getMiningHashrate()).rejects.toThrow('duplicate observation timestamps')
+		await expect(getMiningHashrate({
+			target: bitcoinTarget,
+		})).rejects.toThrow('duplicate observation timestamps')
 	})
 
 	it('resolves block hash by height and address UTXOs on hard-fail paths', async () => {
@@ -153,8 +210,14 @@ describe('mempool.space Bitcoin REST binding', () => {
 				},
 			])
 
-		await expect(getBlockHashByHeight(840_000n)).resolves.toBe('a'.repeat(64))
-		await expect(getAddressUtxos('bc1qexample')).resolves.toHaveLength(1)
+		await expect(getBlockHashByHeight({
+			height: 840_000n,
+			target: bitcoinTarget,
+		})).resolves.toBe('a'.repeat(64))
+		await expect(getAddressUtxos({
+			address: 'bc1qexample',
+			target: bitcoinTarget,
+		})).resolves.toHaveLength(1)
 
 		sourceGetJson.mockResolvedValueOnce([{
 			txid: 'b'.repeat(64),
@@ -163,19 +226,22 @@ describe('mempool.space Bitcoin REST binding', () => {
 				confirmed: false,
 			},
 		}])
-		await expect(getAddressUtxos('bc1qexample')).rejects.toThrow('Bitcoin address UTXO is missing value')
+		await expect(getAddressUtxos({
+			address: 'bc1qexample',
+			target: bitcoinTarget,
+		})).rejects.toThrow('Bitcoin address UTXO is missing value')
 
 		expect(sourceGetJson.mock.calls).toEqual([
 			[
-				binding,
+				bitcoinBinding,
 				'https://mempool.space/api/block-height/840000',
 			],
 			[
-				binding,
+				bitcoinBinding,
 				'https://mempool.space/api/address/bc1qexample/utxo',
 			],
 			[
-				binding,
+				bitcoinBinding,
 				'https://mempool.space/api/address/bc1qexample/utxo',
 			],
 		])
@@ -188,7 +254,10 @@ describe('mempool.space Bitcoin REST binding', () => {
 			previousblockhash: null,
 		})
 
-		await expect(getBlock('a'.repeat(64))).resolves.toMatchObject({
+		await expect(getBlock({
+			blockHash: 'a'.repeat(64),
+			target: bitcoinTarget,
+		})).resolves.toMatchObject({
 			height: 0,
 			previousblockhash: null,
 		})
@@ -210,9 +279,13 @@ describe('mempool.space Bitcoin REST binding', () => {
 			},
 		}])
 
-		await expect(getBlockTransactions('a'.repeat(64), 25)).resolves.toHaveLength(1)
+		await expect(getBlockTransactions({
+			blockHash: 'a'.repeat(64),
+			startIndex: 25,
+			target: bitcoinTarget,
+		})).resolves.toHaveLength(1)
 		expect(sourceGetJson).toHaveBeenCalledWith(
-			binding,
+			bitcoinBinding,
 			`https://mempool.space/api/block/${'a'.repeat(64)}/txs/25`
 		)
 	})
@@ -228,7 +301,11 @@ describe('mempool.space Bitcoin REST binding', () => {
 			},
 		}])
 
-		await expect(getBlockTransactions('a'.repeat(64), 0)).rejects.toThrow(
+		await expect(getBlockTransactions({
+			blockHash: 'a'.repeat(64),
+			startIndex: 0,
+			target: bitcoinTarget,
+		})).rejects.toThrow(
 			'block transactions contain mismatched block identity'
 		)
 	})
@@ -238,7 +315,10 @@ describe('mempool.space Bitcoin REST binding', () => {
 			...validBlock,
 			id: 'b'.repeat(64),
 		})
-		await expect(getBlock('a'.repeat(64))).rejects.toThrow('block response has mismatched identity')
+		await expect(getBlock({
+			blockHash: 'a'.repeat(64),
+			target: bitcoinTarget,
+		})).rejects.toThrow('block response has mismatched identity')
 
 		sourceGetJson.mockResolvedValueOnce({
 			txid: 'b'.repeat(64),
@@ -246,7 +326,10 @@ describe('mempool.space Bitcoin REST binding', () => {
 			vin: [],
 			vout: [],
 		})
-		await expect(getTransaction('a'.repeat(64))).rejects.toThrow('transaction response has mismatched identity')
+		await expect(getTransaction(
+			'a'.repeat(64),
+			bitcoinTarget
+		)).rejects.toThrow('transaction response has mismatched identity')
 
 		sourceGetJson.mockResolvedValueOnce({
 			address: 'bc1qother',
@@ -265,20 +348,53 @@ describe('mempool.space Bitcoin REST binding', () => {
 				tx_count: 0,
 			},
 		})
-		await expect(getAddress('bc1qrequested')).rejects.toThrow('address response has mismatched identity')
+		await expect(getAddress({
+			address: 'bc1qrequested',
+			target: bitcoinTarget,
+		})).rejects.toThrow('address response has mismatched identity')
 
 		sourceGetJson.mockReset()
 		for (const query of [
-			() => getBlock('not-a-hash'),
-			() => getBlockTransactionIds('not-a-hash'),
-			() => getBlockTransactions('not-a-hash', 0),
-			() => getBlockTransactions('a'.repeat(64), -1),
-			() => getTransaction('not-a-transaction'),
-			() => getBlockHashByHeight(-1n),
-			() => getBlocks(-1n),
-			() => getAddress(''),
-			() => getAddressUtxos(''),
-			() => getAddressTransactions('bc1qrequested', 'not-a-transaction'),
+			() => getBlock({
+				blockHash: 'not-a-hash',
+				target: bitcoinTarget,
+			}),
+			() => getBlockTransactionIds({
+				blockHash: 'not-a-hash',
+				target: bitcoinTarget,
+			}),
+			() => getBlockTransactions({
+				blockHash: 'not-a-hash',
+				startIndex: 0,
+				target: bitcoinTarget,
+			}),
+			() => getBlockTransactions({
+				blockHash: 'a'.repeat(64),
+				startIndex: -1,
+				target: bitcoinTarget,
+			}),
+			() => getTransaction('not-a-transaction', bitcoinTarget),
+			() => getBlockHashByHeight({
+				height: -1n,
+				target: bitcoinTarget,
+			}),
+			() => getBlocks({
+				target: bitcoinTarget,
+				startHeight: -1n,
+			}),
+			() => getAddress({
+				address: '',
+				target: bitcoinTarget,
+			}),
+			() => getAddressUtxos({
+				address: '',
+				target: bitcoinTarget,
+			}),
+			() => getAddressTransactions({
+				address: 'bc1qrequested',
+				target: bitcoinTarget,
+				lastSeenTransactionId: 'not-a-transaction',
+			}),
 		])
 			await expect(query()).rejects.toThrow('MempoolSpace_Rest:')
 		expect(sourceGetJson).not.toHaveBeenCalled()
@@ -290,7 +406,9 @@ describe('mempool.space Bitcoin REST binding', () => {
 			vsize: 1,
 			total_fee: 1,
 		})
-		await expect(getMempoolStats()).rejects.toThrow('invalid mempool stats envelope')
+		await expect(getMempoolStats({
+			target: bitcoinTarget,
+		})).rejects.toThrow('invalid mempool stats envelope')
 
 		sourceGetJson.mockResolvedValueOnce({
 			fastestFee: 1,
@@ -299,7 +417,9 @@ describe('mempool.space Bitcoin REST binding', () => {
 			economyFee: 1,
 			minimumFee: 1,
 		})
-		await expect(getRecommendedFees()).rejects.toThrow('invalid recommended fees envelope')
+		await expect(getRecommendedFees({
+			target: bitcoinTarget,
+		})).rejects.toThrow('invalid recommended fees envelope')
 	})
 
 	it('getTransactionProtocolPayloads extracts Runestone from the Esplora-compatible tx wire', async () => {
@@ -325,7 +445,10 @@ describe('mempool.space Bitcoin REST binding', () => {
 		})
 
 		await expect(
-			getTransactionProtocolPayloads(txId)
+			getTransactionProtocolPayloads({
+				txId,
+				target: bitcoinTarget,
+			})
 		).resolves.toEqual([
 			{
 				protocol: 'Runes',
@@ -389,7 +512,10 @@ describe('mempool.space Bitcoin REST binding', () => {
 			},
 		})
 
-		const payloads = await getTransactionProtocolPayloads(txId)
+		const payloads = await getTransactionProtocolPayloads({
+			txId,
+			target: bitcoinTarget,
+		})
 		expect(payloads.filter((payload) => payload.protocol === 'Ordinals')).toHaveLength(2)
 		expect(payloads.find((payload) => payload.protocol === 'Runes')).toMatchObject({
 			payloadHex: '020100',
@@ -412,16 +538,32 @@ describe('mempool.space Bitcoin REST binding', () => {
 				spent: true,
 			})
 
-		await expect(getOutspend(txId, 0)).resolves.toEqual({
+		await expect(getOutspend({
+			txId,
+			vout: 0,
+			target: bitcoinTarget,
+		})).resolves.toEqual({
 			spent: false,
 		})
-		await expect(getOutspend(txId, 1)).resolves.toMatchObject({
+		await expect(getOutspend({
+			txId,
+			vout: 1,
+			target: bitcoinTarget,
+		})).resolves.toMatchObject({
 			spent: true,
 			txid: 'bb'.repeat(32),
 			vin: 0,
 		})
-		await expect(getOutspend(txId, 1)).rejects.toThrow('spent outspend is missing spending identity')
-		await expect(getOutspend(txId, -1)).rejects.toThrow('outspend output index must be a non-negative safe integer')
+		await expect(getOutspend({
+			txId,
+			vout: 1,
+			target: bitcoinTarget,
+		})).rejects.toThrow('spent outspend is missing spending identity')
+		await expect(getOutspend({
+			txId,
+			vout: -1,
+			target: bitcoinTarget,
+		})).rejects.toThrow('outspend output index must be a non-negative safe integer')
 		expect(sourceGetJson.mock.calls.map(([, url]) => url)).toEqual([
 			`https://mempool.space/api/tx/${txId}/outspend/0`,
 			`https://mempool.space/api/tx/${txId}/outspend/1`,

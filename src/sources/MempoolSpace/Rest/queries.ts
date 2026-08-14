@@ -22,22 +22,41 @@ import {
 } from '$/sources/MempoolSpace/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 
-const binding = bindings[Source.MempoolSpace_Rest][0]
+type MempoolSpaceTarget = typeof bindings[Source.MempoolSpace_Rest][number]['target']['key']
+
+const bindingByTarget = new Map(
+	bindings[Source.MempoolSpace_Rest].map((binding) => [binding.target.key, binding] as const)
+)
+
 const sourceLabel = 'MempoolSpace_Rest'
 
 const mempoolSpaceRestUrl = (
+	target: MempoolSpaceTarget,
 	path: string
-) => new URL(
-	path,
-	`${firstHttpUrlForBinding(binding).replace(/\/$/, '')}/`
-).toString()
+) => {
+	const binding = bindingByTarget.get(target)
+	if (binding == null)
+		throw new Error(`${sourceLabel}: unsupported source target ${target}`)
+
+	return new URL(
+		path,
+		`${firstHttpUrlForBinding(binding).replace(/\/$/, '')}/`
+	).toString()
+}
 
 const getMempoolSpaceJson = <_Response>(
+	target: MempoolSpaceTarget,
 	path: string
-) => sourceGetJson<_Response>(
-	binding,
-	mempoolSpaceRestUrl(path)
-)
+) => {
+	const binding = bindingByTarget.get(target)
+	if (binding == null)
+		throw new Error(`${sourceLabel}: unsupported source target ${target}`)
+
+	return sourceGetJson<_Response>(
+		binding,
+		mempoolSpaceRestUrl(target, path)
+	)
+}
 
 const assertBlockHash = (blockHash: string) => {
 	if (!esploraBlockHashWire.allows(blockHash))
@@ -54,13 +73,17 @@ const assertAddress = (address: string) => {
 		throw new Error(`${sourceLabel}: address is empty`)
 }
 
-export const getBlock = async (
+export const getBlock = async ({
+	blockHash,
+	target,
+}: {
 	blockHash: string
-) => {
+	target: MempoolSpaceTarget
+}) => {
 	assertBlockHash(blockHash)
 	const block = assertEsploraEnvelope(
 		esploraBlockWire,
-		await getMempoolSpaceJson(`block/${encodeURIComponent(blockHash)}`),
+		await getMempoolSpaceJson(target, `block/${encodeURIComponent(blockHash)}`),
 		'block',
 		sourceLabel
 	)
@@ -69,40 +92,53 @@ export const getBlock = async (
 	return block
 }
 
-export const getBlockHashByHeight = async (
+export const getBlockHashByHeight = async ({
+	height,
+	target,
+}: {
 	height: bigint
-) => {
+	target: MempoolSpaceTarget
+}) => {
 	if (height < 0n)
 		throw new Error(`${sourceLabel}: block height must be non-negative`)
-	const hash = await getMempoolSpaceJson<unknown>(`block-height/${height.toString()}`)
+	const hash = await getMempoolSpaceJson<unknown>(target, `block-height/${height.toString()}`)
 	if (!esploraBlockHashWire.allows(hash))
 		throw new Error(`${sourceLabel}: invalid block hash envelope`)
 	return hash
 }
 
-export const getBlockTransactionIds = async (
+export const getBlockTransactionIds = async ({
+	blockHash,
+	target,
+}: {
 	blockHash: string
-) => {
+	target: MempoolSpaceTarget
+}) => {
 	assertBlockHash(blockHash)
 	return assertEsploraEnvelope(
 		esploraTxIdListWire,
-		await getMempoolSpaceJson(`block/${encodeURIComponent(blockHash)}/txids`),
+		await getMempoolSpaceJson(target, `block/${encodeURIComponent(blockHash)}/txids`),
 		'block txids',
 		sourceLabel
 	)
 }
 
-export const getBlockTransactions = async (
-	blockHash: string,
+export const getBlockTransactions = async ({
+	blockHash,
+	startIndex,
+	target,
+}: {
+	blockHash: string
 	startIndex: number
-) => {
+	target: MempoolSpaceTarget
+}) => {
 	assertBlockHash(blockHash)
 	if (!Number.isSafeInteger(startIndex) || startIndex < 0)
 		throw new Error(`${sourceLabel}: block transaction start index must be a non-negative safe integer`)
 
 	const transactions = assertEsploraEnvelope(
 		esploraTransactionWire.array(),
-		await getMempoolSpaceJson(`block/${encodeURIComponent(blockHash)}/txs/${String(startIndex)}`),
+		await getMempoolSpaceJson(target, `block/${encodeURIComponent(blockHash)}/txs/${String(startIndex)}`),
 		'block transactions',
 		sourceLabel
 	)
@@ -115,12 +151,13 @@ export const getBlockTransactions = async (
 }
 
 export const getTransaction = async (
-	txId: string
+	txId: string,
+	target: MempoolSpaceTarget
 ) => {
 	assertTransactionId(txId)
 	const transaction = assertEsploraEnvelope(
 		esploraTransactionWire,
-		await getMempoolSpaceJson(`tx/${encodeURIComponent(txId)}`),
+		await getMempoolSpaceJson(target, `tx/${encodeURIComponent(txId)}`),
 		'transaction',
 		sourceLabel
 	)
@@ -129,17 +166,22 @@ export const getTransaction = async (
 	return transaction
 }
 
-export const getOutspend = async (
-	txId: string,
+export const getOutspend = async ({
+	txId,
+	vout,
+	target,
+}: {
+	txId: string
 	vout: number
-) => {
+	target: MempoolSpaceTarget
+}) => {
 	assertTransactionId(txId)
 	if (!Number.isSafeInteger(vout) || vout < 0)
 		throw new Error(`${sourceLabel}: outspend output index must be a non-negative safe integer`)
 
 	const outspend = assertEsploraEnvelope(
 		esploraOutspendWire,
-		await getMempoolSpaceJson(`tx/${encodeURIComponent(txId)}/outspend/${String(vout)}`),
+		await getMempoolSpaceJson(target, `tx/${encodeURIComponent(txId)}/outspend/${String(vout)}`),
 		'outspend',
 		sourceLabel
 	)
@@ -155,23 +197,32 @@ export const getOutspend = async (
  * @see https://docs.ordinals.com/inscriptions.html
  * @see https://docs.ordinals.com/runes/specification.html
  */
-export const getTransactionProtocolPayloads = async (
+export const getTransactionProtocolPayloads = async ({
+	txId,
+	target,
+}: {
 	txId: string
-) => {
+	target: MempoolSpaceTarget
+}) => {
 	const { extractEsploraProtocolPayloads } = await import('$/sources/BitcoinCore/JsonRpc/protocol.ts')
 	return extractEsploraProtocolPayloads(
-		await getTransaction(txId)
+		await getTransaction(txId, target)
 	)
 }
 
-export const getBlocks = async (
+export const getBlocks = async ({
+	target,
+	startHeight,
+}: {
+	target: MempoolSpaceTarget
 	startHeight?: bigint
-) => {
+}) => {
 	if (startHeight != null && startHeight < 0n)
 		throw new Error(`${sourceLabel}: block height must be non-negative`)
 	return assertEsploraEnvelope(
 		esploraBlockWire.array(),
 		await getMempoolSpaceJson(
+			target,
 			startHeight == null ?
 				'v1/blocks'
 			:
@@ -182,31 +233,43 @@ export const getBlocks = async (
 	)
 }
 
-export const getMempoolStats = async () => (
+export const getMempoolStats = async ({
+	target,
+}: {
+	target: MempoolSpaceTarget
+}) => (
 	assertEsploraEnvelope(
 		esploraMempoolStatsWire,
-		await getMempoolSpaceJson('mempool'),
+		await getMempoolSpaceJson(target, 'mempool'),
 		'mempool stats',
 		sourceLabel
 	)
 )
 
-export const getMempoolTxids = async () => (
+export const getMempoolTxids = async ({
+	target,
+}: {
+	target: MempoolSpaceTarget
+}) => (
 	assertEsploraEnvelope(
 		esploraTxIdListWire,
-		await getMempoolSpaceJson('mempool/txids'),
+		await getMempoolSpaceJson(target, 'mempool/txids'),
 		'mempool txids',
 		sourceLabel
 	)
 )
 
-export const getAddress = async (
+export const getAddress = async ({
+	address,
+	target,
+}: {
 	address: string
-) => {
+	target: MempoolSpaceTarget
+}) => {
 	assertAddress(address)
 	const addressResponse = assertEsploraEnvelope(
 		esploraAddressWire,
-		await getMempoolSpaceJson(`address/${encodeURIComponent(address)}`),
+		await getMempoolSpaceJson(target, `address/${encodeURIComponent(address)}`),
 		'address',
 		sourceLabel
 	)
@@ -215,13 +278,17 @@ export const getAddress = async (
 	return addressResponse
 }
 
-export const getAddressUtxos = async (
+export const getAddressUtxos = async ({
+	address,
+	target,
+}: {
 	address: string
-) => {
+	target: MempoolSpaceTarget
+}) => {
 	assertAddress(address)
 	const addressUtxos = assertEsploraEnvelope(
 		esploraAddressUtxoWire.array(),
-		await getMempoolSpaceJson(`address/${encodeURIComponent(address)}/utxo`),
+		await getMempoolSpaceJson(target, `address/${encodeURIComponent(address)}/utxo`),
 		'address utxos',
 		sourceLabel
 	)
@@ -231,16 +298,22 @@ export const getAddressUtxos = async (
 	return addressUtxos
 }
 
-export const getAddressTransactions = async (
-	address: string,
+export const getAddressTransactions = async ({
+	address,
+	target,
+	lastSeenTransactionId,
+}: {
+	address: string
+	target: MempoolSpaceTarget
 	lastSeenTransactionId?: string
-) => {
+}) => {
 	assertAddress(address)
 	if (lastSeenTransactionId != null)
 		assertTransactionId(lastSeenTransactionId)
 	return assertEsploraEnvelope(
 		esploraTransactionWire.array(),
 		await getMempoolSpaceJson(
+			target,
 			`address/${encodeURIComponent(address)}/txs/chain${
 				lastSeenTransactionId == null ?
 					''
@@ -253,19 +326,27 @@ export const getAddressTransactions = async (
 	)
 }
 
-export const getRecommendedFees = async () => (
+export const getRecommendedFees = async ({
+	target,
+}: {
+	target: MempoolSpaceTarget
+}) => (
 	assertEsploraEnvelope(
 		mempoolSpaceRecommendedFeesWire,
-		await getMempoolSpaceJson('v1/fees/recommended'),
+		await getMempoolSpaceJson(target, 'v1/fees/recommended'),
 		'recommended fees',
 		sourceLabel
 	)
 )
 
-export const getMiningHashrate = async () => {
+export const getMiningHashrate = async ({
+	target,
+}: {
+	target: MempoolSpaceTarget
+}) => {
 	const miningHashrate = assertEsploraEnvelope(
 		mempoolSpaceMiningHashrateWire,
-		await getMempoolSpaceJson('v1/mining/hashrate/3d'),
+		await getMempoolSpaceJson(target, 'v1/mining/hashrate/3d'),
 		'mining hashrate',
 		sourceLabel
 	)
@@ -275,8 +356,12 @@ export const getMiningHashrate = async () => {
 	return miningHashrate
 }
 
-export const getTipHeight = async () => {
-	const height = await getMempoolSpaceJson<unknown>('blocks/tip/height')
+export const getTipHeight = async ({
+	target,
+}: {
+	target: MempoolSpaceTarget
+}) => {
+	const height = await getMempoolSpaceJson<unknown>(target, 'blocks/tip/height')
 	if (!mempoolSpaceTipHeightWire.allows(height))
 		throw new Error(`${sourceLabel}: invalid tip height`)
 

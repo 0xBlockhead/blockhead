@@ -96,3 +96,47 @@ test('Bitcoin Testnet transaction renders through the native Esplora hierarchy',
 	await expect(main).toContainText('30440220deadbeef')
 	await expect(main.locator('[data-resource-state="failed"]')).toHaveCount(0)
 })
+
+test('Bitcoin Testnet transaction executes the mempool.space source beside Esplora', async ({ page }) => {
+	const providerRequests: string[] = []
+	page.on('request', (request) => {
+		if (['fetch', 'xhr'].includes(request.resourceType()))
+			providerRequests.push(request.url())
+	})
+	await page.route('**/*', async (route) => {
+		const url = route.request().url()
+		if (
+			url.includes('/testnet/api/')
+			&& new URL(url).pathname.endsWith(`/tx/${transactionId}`)
+		)
+			await route.fulfill({
+				json: transactionWire,
+			})
+		else if (
+			url.includes('/testnet/api/')
+			&& new URL(url).pathname.endsWith(`/tx/${transactionId}/outspend/0`)
+		)
+			await route.fulfill({
+				json: {
+					spent: false,
+				},
+			})
+		else
+			await route.continue()
+	})
+
+	await page.goto(testnetTransactionPath, { waitUntil: 'load' })
+	await expectMainVisible(page)
+	const main = page.locator('#main')
+	await expect(main).toContainText('Bitcoin Testnet', { timeout: 120_000 })
+	await expect(main).toContainText('UTXO transaction', { timeout: 120_000 })
+	await expect.poll(
+		() => providerRequests.some((url) => url.includes(`mempool.space/testnet/api/tx/${transactionId}`)),
+		{
+			message: 'Bitcoin Testnet transaction did not execute the mempool.space testnet transport',
+			timeout: 120_000,
+		}
+	).toBe(true)
+	await expect(main.getByRole('link', { name: /Input #0/ })).toBeAttached({ timeout: 120_000 })
+	await expect(main.getByRole('link', { name: /Output #0/ })).toBeAttached({ timeout: 120_000 })
+})

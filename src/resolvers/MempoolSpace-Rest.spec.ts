@@ -5,7 +5,6 @@ import { entityFieldAddressKey, EntityMetaKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import bindings from '$/sources/MempoolSpace/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceTargetKind } from '$/sources/SourceBinding.ts'
 
 const sourceGetJson = vi.fn()
 
@@ -93,7 +92,7 @@ if (transactionResolver == null)
 if (inputResolver == null || outputResolver == null || outputSpentResolver == null)
 	throw new Error('MempoolSpace-Rest spec missing independently addressable child resolver')
 
-const binding = bindings[Source.MempoolSpace_Rest][0]
+const [bitcoinBinding, bitcoinTestnetBinding] = bindings[Source.MempoolSpace_Rest]
 
 const resolverContext = {
 	filters: [],
@@ -108,6 +107,9 @@ const resolverContext = {
 }
 const network = {
 	caip2: networkBySlug.bitcoin.caip2,
+}
+const bitcoinTestnetNetwork = {
+	caip2: networkBySlug['bitcoin-testnet'].caip2,
 }
 const address = {
 	$network: network,
@@ -204,12 +206,70 @@ describe('MempoolSpace UTXO', () => {
 		}])
 		expect(sourceGetJson).toHaveBeenCalledOnce()
 		expect(sourceGetJson).toHaveBeenCalledWith(
-			binding,
+			bitcoinBinding,
 			`https://mempool.space/api/tx/${txId}`
 		)
 		expect(mempoolSpaceResolvers.resolvers.filter((resolver) => (
 			resolver.entityType === EntityType.UtxoTransaction
 		))).toEqual([transactionResolver])
+	})
+
+	it('materializes Bitcoin Testnet transactions through their native CAIP-2 source target', async () => {
+		const txId = 'f'.repeat(64)
+		sourceGetJson.mockResolvedValueOnce({
+			txid: txId,
+			version: 2,
+			locktime: 0,
+			size: 100,
+			weight: 400,
+			status: {
+				confirmed: false,
+			},
+			vin: [{
+				txid: 'e'.repeat(64),
+				vout: 1,
+				is_coinbase: false,
+				sequence: 4_294_967_293,
+			}],
+			vout: [{
+				scriptpubkey: '0014',
+				scriptpubkey_type: 'v0_p2wpkh',
+				value: 10_000,
+			}],
+		})
+
+		const entitySelector = {
+			$network: bitcoinTestnetNetwork,
+			txId,
+		}
+		const transaction = await transactionResolver.resolve[
+			'NetworkTxId'
+		].resolve(entitySelector)
+
+		expect(sourceGetJson).toHaveBeenCalledWith(
+			bitcoinTestnetBinding,
+			`https://mempool.space/testnet/api/tx/${txId}`
+		)
+		expect(transactionResolver.projections.$$inputs(transaction)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$transaction: entitySelector,
+				indexInTransaction: 0,
+			},
+			[EntityMetaKey.Fields]: expect.objectContaining({
+				[entityFieldAddressKey(EntityType.UtxoInput, [], 'sequence')]: 4_294_967_293,
+			}),
+		}])
+		expect(transactionResolver.projections.$$outputs(transaction)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$transaction: entitySelector,
+				indexInTransaction: 0,
+			},
+			[EntityMetaKey.Fields]: expect.objectContaining({
+				[entityFieldAddressKey(EntityType.UtxoOutput, [], 'valueSats')]: 10_000n,
+			}),
+		}])
+		expect(transactionResolver.projections.$$bitcoinOrdinalInscriptions(transaction)).toEqual([])
+		expect(transactionResolver.projections.$bitcoinRunestone(transaction)).toBeUndefined()
 	})
 
 	it('materializes a paged block transaction hierarchy without child refetches', async () => {
@@ -293,12 +353,12 @@ describe('MempoolSpace UTXO', () => {
 		}, resolverContext)).toBe(26)
 		expect(sourceGetJson).toHaveBeenNthCalledWith(
 			1,
-			binding,
+			bitcoinBinding,
 			`https://mempool.space/api/block/${blockHash}`
 		)
 		expect(sourceGetJson).toHaveBeenNthCalledWith(
 			2,
-			binding,
+			bitcoinBinding,
 			`https://mempool.space/api/block/${blockHash}/txs/25`
 		)
 	})
@@ -376,11 +436,11 @@ describe('MempoolSpace UTXO', () => {
 
 		expect(sourceGetJson.mock.calls).toEqual([
 			[
-				binding,
+				bitcoinBinding,
 				'https://mempool.space/api/block-height/840000',
 			],
 			[
-				binding,
+				bitcoinBinding,
 				`https://mempool.space/api/block/${hash}`,
 			],
 		])
@@ -414,7 +474,7 @@ describe('MempoolSpace UTXO', () => {
 		)
 
 		expect(sourceGetJson).toHaveBeenCalledWith(
-			binding,
+			bitcoinBinding,
 			`https://mempool.space/api/address/${address.address}/utxo`
 		)
 		expect(addressOutputsResolver.projections.$$outputs(outputs)).toEqual([{
@@ -489,22 +549,22 @@ describe('MempoolSpace UTXO', () => {
 		}, resolverContext)).toBe(50)
 		expect(sourceGetJson).toHaveBeenNthCalledWith(
 			1,
-			binding,
+			bitcoinBinding,
 			`https://mempool.space/api/block-height/840000`
 		)
 		expect(sourceGetJson).toHaveBeenNthCalledWith(
 			2,
-			binding,
+			bitcoinBinding,
 			`https://mempool.space/api/block/${blockHash}`
 		)
 		expect(sourceGetJson).toHaveBeenNthCalledWith(
 			3,
-			binding,
+			bitcoinBinding,
 			`https://mempool.space/api/block/${blockHash}/txs/10`
 		)
 		expect(sourceGetJson).toHaveBeenNthCalledWith(
 			4,
-			binding,
+			bitcoinBinding,
 			`https://mempool.space/api/block/${blockHash}/txs/35`
 		)
 	})
@@ -679,7 +739,7 @@ describe('MempoolSpace UTXO', () => {
 
 		await expect(blocksResolver.resolve['Caip2'].resolve(network, resolverContext)).resolves.toHaveLength(1)
 		expect(sourceGetJson).toHaveBeenCalledWith(
-			binding,
+			bitcoinBinding,
 			'https://mempool.space/api/v1/blocks'
 		)
 
@@ -805,12 +865,12 @@ describe('MempoolSpace UTXO', () => {
 		}])
 		expect(sourceGetJson).toHaveBeenNthCalledWith(
 			1,
-			binding,
+			bitcoinBinding,
 			'https://mempool.space/api/mempool/txids'
 		)
 		expect(sourceGetJson).toHaveBeenNthCalledWith(
 			2,
-			binding,
+			bitcoinBinding,
 			`https://mempool.space/api/tx/${'b'.repeat(64)}`
 		)
 	})
@@ -860,11 +920,11 @@ describe('MempoolSpace UTXO', () => {
 		])
 		expect(sourceGetJson.mock.calls).toEqual([
 			[
-				binding,
+				bitcoinBinding,
 				'https://mempool.space/api/v1/blocks',
 			],
 			[
-				binding,
+				bitcoinBinding,
 				'https://mempool.space/api/v1/blocks/1',
 			],
 		])
@@ -903,7 +963,7 @@ describe('MempoolSpace UTXO', () => {
 			throw new Error('MempoolSpace-Rest spec missing address transaction pagination')
 
 		expect(sourceGetJson).toHaveBeenCalledWith(
-			binding,
+			bitcoinBinding,
 			`https://mempool.space/api/address/${address.address}/txs/chain`
 		)
 		expect(projection.continuation(page, address, resolverContext)).toEqual({
@@ -921,7 +981,7 @@ describe('MempoolSpace UTXO', () => {
 			providerContinuationToken: transactions[0].txid,
 		})
 		expect(sourceGetJson).toHaveBeenLastCalledWith(
-			binding,
+			bitcoinBinding,
 			`https://mempool.space/api/address/${address.address}/txs/chain/${transactions[0].txid}`
 		)
 		expect(projection.continuation(terminalPage, address, resolverContext)).toEqual({
@@ -1232,7 +1292,7 @@ describe('MempoolSpace UTXO', () => {
 			)
 		).toBe(false)
 		expect(sourceGetJson).toHaveBeenCalledWith(
-			binding,
+			bitcoinBinding,
 			`https://mempool.space/api/tx/${txId}/outspend/1`
 		)
 	})
@@ -1302,9 +1362,9 @@ describe('MempoolSpace live network head', () => {
 			[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'mempoolSizeBytes')]: 1_800n,
 			[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'suggestedTransactionFeePerByteSats')]: 6,
 		})
-		expect(sourceGetJson).toHaveBeenCalledWith(binding, 'https://mempool.space/api/blocks/tip/height')
-		expect(sourceGetJson).toHaveBeenCalledWith(binding, 'https://mempool.space/api/mempool')
-		expect(sourceGetJson).toHaveBeenCalledWith(binding, 'https://mempool.space/api/v1/fees/recommended')
+		expect(sourceGetJson).toHaveBeenCalledWith(bitcoinBinding, 'https://mempool.space/api/blocks/tip/height')
+		expect(sourceGetJson).toHaveBeenCalledWith(bitcoinBinding, 'https://mempool.space/api/mempool')
+		expect(sourceGetJson).toHaveBeenCalledWith(bitcoinBinding, 'https://mempool.space/api/v1/fees/recommended')
 
 		abortController.abort()
 		stop()
