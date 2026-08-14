@@ -924,7 +924,10 @@ export default {
 				signatures: (transaction) => transaction.signatures,
 				rawLog: (transaction) => transaction.rawLog,
 				eventTypes: (transaction) => transaction.eventTypes,
-				$$messages: (transaction) => transaction.$$messages,
+				$$messages: {
+					select: (transaction) => transaction.$$messages,
+					resolveCount: (transaction) => transaction.$$messages.length,
+				},
 			}),
 
 		defineResolver({

@@ -787,6 +787,36 @@ describe('Cosmos SDK message resolver', () => {
 		expect(messageResolver.projections.$contract(snapshot)).toEqual(contract)
 	})
 
+	it('counts every native message in a transaction body', async () => {
+		getJson.mockResolvedValueOnce({
+			tx: {
+				body: {
+					messages: [{
+						'@type': '/cosmos.bank.v1beta1.MsgSend',
+						from_address: 'cosmos1sender',
+					}],
+				},
+			},
+			tx_response: {
+				height: '100',
+				txhash: 'ABC123',
+				code: 0,
+				gas_wanted: '100',
+				gas_used: '90',
+				raw_log: '',
+			},
+		})
+
+		const snapshot = await transactionResolver.resolve.NetworkTxHash.resolve({
+			$network: {
+				slug: 'cosmos',
+			},
+			txHash: 'ABC123',
+		}, context)
+		expect(transactionResolver.projections.$$messages.select(snapshot)).toHaveLength(1)
+		expect(transactionResolver.projections.$$messages.resolveCount(snapshot)).toBe(1)
+	})
+
 	it('rejects direct message resolution when @type is missing or empty', async () => {
 		const transactionSelector = {
 			$network: {

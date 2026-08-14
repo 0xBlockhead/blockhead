@@ -842,7 +842,10 @@ export default {
 			firstVersion: (block) => block.firstVersion,
 			lastVersion: (block) => block.lastVersion,
 			timestampMs: (block) => block.timestampMs,
-			$$transactions: (block) => block.transactions,
+			$$transactions: {
+				select: (block) => block.transactions,
+				resolveCount: (block) => block.transactions.length,
+			},
 		}),
 
 		defineResolver({

@@ -209,6 +209,8 @@ it('projects enrolled blockchain, subnet, validator, and P-Chain block fields', 
 	expect(block.blockId).toBe('block-7')
 	expect(block.txCount).toBe(1)
 	expect(block.timestampMs).toBe(1_600_740_000_000)
+	expect(blockResolver.projections.$$transactions.resolveCount(block)).toBe(1)
+	expect(blockResolver.projections.$$transactions.select(block)).toEqual(block.$$transactions)
 	expect(block.$$transactions).toEqual([{
 		[EntityMetaKey.Selector]: {
 			$network: {

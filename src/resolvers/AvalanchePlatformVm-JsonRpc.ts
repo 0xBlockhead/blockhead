@@ -715,7 +715,10 @@ export default {
 			timestampMs: (block) => block.timestampMs,
 			encoding: (block) => block.encoding,
 			txCount: (block) => block.txCount,
-			$$transactions: (block) => block.$$transactions,
+			$$transactions: {
+				select: (block) => block.$$transactions,
+				resolveCount: (block) => block.$$transactions.length,
+			},
 		}),
 
 		defineResolver({

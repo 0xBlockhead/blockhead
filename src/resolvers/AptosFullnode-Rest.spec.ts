@@ -512,6 +512,8 @@ describe('Aptos Fullnode resolver materialization', () => {
 			...heightBlock,
 			version: 42n,
 		})
+		expect(blockResolver.projections.$$transactions.select(heightBlock)).toEqual(heightBlock.transactions)
+		expect(blockResolver.projections.$$transactions.resolveCount(heightBlock)).toBe(1)
 
 		const transactionResolver = resolverFor(EntityType.AptosTransaction)
 		const byVersion = await transactionResolver.resolve['NetworkVersion'].resolve(aptosTransaction, resolverContext)
