@@ -40,12 +40,20 @@ describe('Waku local node journey', () => {
 
 	beforeEach(() => {
 		vi.clearAllMocks()
-		getJson.mockResolvedValue({
-			listenAddresses: [
-				'/ip4/127.0.0.1/tcp/60000',
-			],
-			enrUri: 'enr:-waku-node',
-		})
+		getJson.mockImplementation(async (_binding, path) => (
+			path === '/admin/v1/peers' ?
+				[
+					{ connectedness: 'Connected' },
+					{ connectedness: 'CanConnect' },
+				]
+			:
+				{
+					listenAddresses: [
+						'/ip4/127.0.0.1/tcp/60000',
+					],
+					enrUri: 'enr:-waku-node',
+				}
+		))
 		getText.mockImplementation(async (_binding, path) => (
 			path === '/debug/v1/version' ?
 				'nwaku/v0.35.0'
@@ -77,6 +85,7 @@ describe('Waku local node journey', () => {
 			[EntityMetaKey.Fields]: {
 				[entityFieldAddressKey(EntityType.BlockheadWakuNodeState_Timestamp, [], 'health')]: 'Ready',
 				[entityFieldAddressKey(EntityType.BlockheadWakuNodeState_Timestamp, [], 'version')]: 'nwaku/v0.35.0',
+				[entityFieldAddressKey(EntityType.BlockheadWakuNodeState_Timestamp, [], 'peerCount')]: 1,
 				[entityFieldAddressKey(EntityType.BlockheadWakuNodeState_Timestamp, [], 'listenAddresses')]: [
 					'/ip4/127.0.0.1/tcp/60000',
 				],
@@ -141,6 +150,7 @@ describe('Waku local node journey', () => {
 		cleanup()
 		await vi.advanceTimersByTimeAsync(10_000)
 		expect(getText).toHaveBeenCalledTimes(4)
+		expect(getJson).toHaveBeenCalledTimes(4)
 	})
 
 	it('fails closed when the requested node does not match configured node identity', async () => {
@@ -151,11 +161,16 @@ describe('Waku local node journey', () => {
 	})
 
 	it('requires the provider to expose an ENR identity', async () => {
-		getJson.mockResolvedValue({
-			listenAddresses: [
-				'/ip4/127.0.0.1/tcp/60000',
-			],
-		})
+		getJson.mockImplementation(async (_binding, path) => (
+			path === '/admin/v1/peers' ?
+				[]
+			:
+				{
+					listenAddresses: [
+						'/ip4/127.0.0.1/tcp/60000',
+					],
+				}
+		))
 
 		await expect(resolveNodeState({
 			connectionId: 'waku-node',

@@ -62,6 +62,29 @@ describe('WakuNode REST operations', () => {
 		expect(getText).toHaveBeenCalledWith(binding, '/health')
 	})
 
+	it('counts only peers the operator reports as connected', async () => {
+		getJson.mockResolvedValue([
+			{ connectedness: 'Connected' },
+			{ connectedness: 'CanConnect' },
+			{ connectedness: 'Connected' },
+		])
+
+		await expect(queries.getConnectedPeerCount(binding)).resolves.toBe(2)
+		expect(getJson).toHaveBeenCalledWith(binding, '/admin/v1/peers')
+	})
+
+	it.each([
+		null,
+		{},
+		[{ peerId: '16Uiu2HAm' }],
+	])('fails closed when peers have no connectedness envelope: %j', async (peers) => {
+		getJson.mockResolvedValue(peers)
+
+		await expect(queries.getConnectedPeerCount(binding)).rejects.toThrow(
+			'WakuNode_Rest: invalid peer response envelope'
+		)
+	})
+
 	it('fails closed when the health envelope is empty', async () => {
 		getText.mockResolvedValue('  ')
 

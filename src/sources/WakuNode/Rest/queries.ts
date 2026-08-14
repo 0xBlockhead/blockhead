@@ -7,6 +7,12 @@ const debugInfoWire = type({
 	'enrUri?': 'string > 0',
 })
 
+const peerWire = type({
+	connectedness: 'string',
+})
+
+const peersWire = peerWire.array()
+
 export const getDebugInfo = async (binding: SourceBinding) => {
 	try {
 		return debugInfoWire.assert(await getJson<unknown>(binding, '/debug/v1/info'))
@@ -21,6 +27,16 @@ export const getHealth = async (binding: SourceBinding) => {
 		throw new Error('WakuNode_Rest: health response is empty')
 
 	return health
+}
+
+export const getConnectedPeerCount = async (binding: SourceBinding) => {
+	try {
+		return peersWire.assert(await getJson<unknown>(binding, '/admin/v1/peers'))
+			.filter((peer) => peer.connectedness === 'Connected')
+			.length
+	} catch {
+		throw new Error('WakuNode_Rest: invalid peer response envelope')
+	}
 }
 
 export const getVersion = async (binding: SourceBinding) => {

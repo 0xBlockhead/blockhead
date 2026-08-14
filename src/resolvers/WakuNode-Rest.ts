@@ -19,6 +19,7 @@ const loadWakuQueries = async () => {
 
 	const queries = await import('$/sources/WakuNode/Rest/queries.ts')
 	return {
+		getConnectedPeerCount: () => queries.getConnectedPeerCount(binding),
 		getDebugInfo: () => queries.getDebugInfo(binding),
 		getHealth: () => queries.getHealth(binding),
 		getVersion: () => queries.getVersion(binding),
@@ -37,12 +38,13 @@ export default {
 						if (requestedConnectionId !== connectionId)
 							throw new Error(`WakuNode_Rest: unsupported connection ${requestedConnectionId}`)
 
-						const { getDebugInfo, getHealth, getVersion } = await loadWakuQueries()
+						const { getConnectedPeerCount, getDebugInfo, getHealth, getVersion } = await loadWakuQueries()
 						const timestampMs = Date.now()
-						const [debugInfo, health, version] = await Promise.all([
+						const [debugInfo, health, version, peerCount] = await Promise.all([
 							getDebugInfo(),
 							getHealth(),
 							getVersion(),
+							getConnectedPeerCount(),
 						])
 						if (debugInfo.enrUri == null)
 							throw new Error('WakuNode_Rest: debug info does not expose an ENR node identity')
@@ -67,6 +69,7 @@ export default {
 									[EntityMetaKey.Fields]: {
 										[entityFieldAddressKey(EntityType.BlockheadWakuNodeState_Timestamp, [], 'health')]: health,
 										[entityFieldAddressKey(EntityType.BlockheadWakuNodeState_Timestamp, [], 'version')]: version,
+										[entityFieldAddressKey(EntityType.BlockheadWakuNodeState_Timestamp, [], 'peerCount')]: peerCount,
 										[entityFieldAddressKey(EntityType.BlockheadWakuNodeState_Timestamp, [], 'listenAddresses')]: debugInfo.listenAddresses,
 										[entityFieldAddressKey(EntityType.BlockheadWakuNodeState_Timestamp, [], 'enrUri')]: debugInfo.enrUri,
 									},
@@ -92,11 +95,12 @@ export default {
 
 						let timeout: ReturnType<typeof setTimeout> | undefined
 						const poll = async () => {
-							const { getDebugInfo, getHealth, getVersion } = await loadWakuQueries()
-							const [debugInfo, health, version] = await Promise.all([
+							const { getConnectedPeerCount, getDebugInfo, getHealth, getVersion } = await loadWakuQueries()
+							const [debugInfo, health, version, peerCount] = await Promise.all([
 								getDebugInfo(),
 								getHealth(),
 								getVersion(),
+								getConnectedPeerCount(),
 							])
 							if (signal.aborted)
 								return
@@ -116,6 +120,7 @@ export default {
 									[EntityMetaKey.Fields]: {
 										[entityFieldAddressKey(EntityType.BlockheadWakuNodeState_Timestamp, [], 'health')]: health,
 										[entityFieldAddressKey(EntityType.BlockheadWakuNodeState_Timestamp, [], 'version')]: version,
+										[entityFieldAddressKey(EntityType.BlockheadWakuNodeState_Timestamp, [], 'peerCount')]: peerCount,
 										[entityFieldAddressKey(EntityType.BlockheadWakuNodeState_Timestamp, [], 'listenAddresses')]: debugInfo.listenAddresses,
 										[entityFieldAddressKey(EntityType.BlockheadWakuNodeState_Timestamp, [], 'enrUri')]: debugInfo.enrUri,
 									},
