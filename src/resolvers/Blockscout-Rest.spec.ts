@@ -376,8 +376,16 @@ describe('Blockscout Network account abstraction applicability', () => {
 				timestampMs: expect.any(Number),
 				source: Source.Blockscout_Rest,
 			},
-			userOperationsCount: 9,
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.Erc4337Bundler_Timestamp, [], 'userOperationsCount')]: 9,
+			},
 		}])
+		expect(blockscoutRest.resolvers.some((candidate) => (
+			candidate.entityType === EntityType.Erc4337Bundler_Timestamp
+			|| candidate.entityType === EntityType.Erc4337SmartAccount_Timestamp
+			|| candidate.entityType === EntityType.Erc4337Paymaster_Timestamp
+			|| candidate.entityType === EntityType.Erc4337AccountFactory_Timestamp
+		))).toBe(false)
 	})
 
 	it('materializes the official user-operation list response', async () => {

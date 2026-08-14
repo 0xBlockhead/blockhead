@@ -131,20 +131,6 @@ const elementsAssetFieldsFromWire = (
 	}),
 })
 
-const elementsAssetTimestampFieldsFromWire = (
-	asset: EsploraAsset
-) => ({
-	...(asset.chain_stats.issued_amount != null && {
-		issuedAmount: BigInt(asset.chain_stats.issued_amount),
-	}),
-	...(asset.chain_stats.burned_amount != null && {
-		burnedAmount: BigInt(asset.chain_stats.burned_amount),
-	}),
-	...(asset.chain_stats.reissuance_tokens != null && {
-		reissuanceTokenCount: asset.chain_stats.reissuance_tokens,
-	}),
-})
-
 const elementsAssetReferenceFromWire = (
 	asset: EsploraAsset
 ) => ({
@@ -680,50 +666,45 @@ export default {
 			entityType: EntityType.ElementsAsset,
 			resolve: {
 				ElementsNetworkAssetId: {
-					resolve: async (entitySelector) => [
-						{
-							[EntityMetaKey.Selector]: {
-								$asset: entitySelector,
-								timestampMs: Date.now(),
-								source: Source.Esplora_Rest,
-							},
-						},
-					],
-				},
-			},
-		})({
-				$$timestamps: (snapshot) => snapshot,
-			}),
-
-		defineResolver({
-			entityType: EntityType.ElementsAsset_Timestamp,
-			resolve: {
-				AssetTimestampMsSource: {
-					resolve: async ({ $asset }) => {
+					resolve: async (entitySelector) => {
 						if (
-							!('$network' in $asset)
-							|| !('$network' in $asset.$network)
-							|| !('slug' in $asset.$network.$network)
-							|| $asset.$network.$network.slug !== 'liquid'
+							!('$network' in entitySelector.$network)
+							|| !('slug' in entitySelector.$network.$network)
+							|| entitySelector.$network.$network.slug !== 'liquid'
 						)
 							throw new Error('Esplora_Rest: unsupported Elements network')
 
 						const { getAsset } = await import('$/sources/Esplora/Rest/queries.ts')
 						const asset = await getAsset({
-							assetId: $asset.assetId,
+							assetId: entitySelector.assetId,
 							target: 'liquid',
 						})
-						if (asset.asset_id !== $asset.assetId)
-							throw new Error(`Esplora_Rest: asset id mismatch for ${$asset.assetId}`)
+						if (asset.asset_id !== entitySelector.assetId)
+							throw new Error(`Esplora_Rest: asset id mismatch for ${entitySelector.assetId}`)
 
-						return elementsAssetTimestampFieldsFromWire(asset)
+						return [{
+							[EntityMetaKey.Selector]: {
+								$asset: entitySelector,
+								timestampMs: Date.now(),
+								source: Source.Esplora_Rest,
+							},
+							[EntityMetaKey.Fields]: {
+								...(asset.chain_stats.issued_amount != null && {
+									[entityFieldAddressKey(EntityType.ElementsAsset_Timestamp, [], 'issuedAmount')]: BigInt(asset.chain_stats.issued_amount),
+								}),
+								...(asset.chain_stats.burned_amount != null && {
+									[entityFieldAddressKey(EntityType.ElementsAsset_Timestamp, [], 'burnedAmount')]: BigInt(asset.chain_stats.burned_amount),
+								}),
+								...(asset.chain_stats.reissuance_tokens != null && {
+									[entityFieldAddressKey(EntityType.ElementsAsset_Timestamp, [], 'reissuanceTokenCount')]: asset.chain_stats.reissuance_tokens,
+								}),
+							},
+						}]
 					},
 				},
 			},
 		})({
-				issuedAmount: (snapshot) => snapshot.issuedAmount,
-				burnedAmount: (snapshot) => snapshot.burnedAmount,
-				reissuanceTokenCount: (snapshot) => snapshot.reissuanceTokenCount,
+				$$timestamps: (snapshot) => snapshot,
 			}),
 
 		defineResolver({
@@ -1047,70 +1028,5 @@ export default {
 			},
 		}),
 
-		defineResolver({
-			entityType: EntityType.Network_Timestamp,
-			resolve: {
-				NetworkTimestampMsSource: {
-					appliesTo: [
-						{
-							$network: bitcoinNetworkApplicability[0],
-							source: Source.Esplora_Rest,
-						},
-						{
-							$network: bitcoinNetworkApplicability[1],
-							source: Source.Esplora_Rest,
-						},
-					],
-					resolve: async ({
-						$network,
-						timestampMs,
-						source,
-					}) => {
-						if (source !== Source.Esplora_Rest)
-							throw new Error(`Esplora_Rest: unsupported network timestamp source ${source}`)
-
-						assertBitcoinMainnet($network)
-						const target = esploraTargetForNetwork($network)
-						const {
-							getBlocks,
-							getMempoolStats,
-							getSuggestedFeePerByteSats,
-						} = await import('$/sources/Esplora/Rest/queries.ts')
-						const [blocks, mempoolStats, suggestedFee] = await Promise.all([
-							getBlocks({ target }),
-							getMempoolStats(target),
-							getSuggestedFeePerByteSats(target),
-						])
-						const block = blocks.at(0)
-						if (block == null) throw new Error('Esplora_Rest: no blocks returned')
-						return {
-							$network: {
-								[EntityMetaKey.Selector]: $network,
-							},
-							timestampMs,
-							source,
-							bestBlockHeight: BigInt(block.height),
-							bestBlockHash: block.id,
-							bestBlockTimeMs: block.timestamp * 1000,
-							mempoolTransactionCount: mempoolStats.count,
-							mempoolSizeBytes: BigInt(Math.ceil(mempoolStats.vsize)),
-							suggestedTransactionFeePerByteSats: suggestedFee,
-						}
-					},
-				},
-			},
-		})({
-			$network: (timestamp) => timestamp.$network,
-			timestampMs: (timestamp) => timestamp.timestampMs,
-			source: (timestamp) => timestamp.source,
-			Utxo: {
-				bestBlockHeight: (timestamp) => timestamp.bestBlockHeight,
-				bestBlockHash: (timestamp) => timestamp.bestBlockHash,
-				bestBlockTimeMs: (timestamp) => timestamp.bestBlockTimeMs,
-				mempoolTransactionCount: (timestamp) => timestamp.mempoolTransactionCount,
-				mempoolSizeBytes: (timestamp) => timestamp.mempoolSizeBytes,
-				suggestedTransactionFeePerByteSats: (timestamp) => timestamp.suggestedTransactionFeePerByteSats,
-			},
-		}),
 	],
 } satisfies RegisteredSourceResolverModule

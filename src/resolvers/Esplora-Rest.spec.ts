@@ -73,6 +73,10 @@ const assetResolver = esploraResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.ElementsAsset
 	&& 'name' in resolver.projections
 ))
+const assetTimestampsResolver = esploraResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.ElementsAsset
+	&& '$$timestamps' in resolver.projections
+))
 const inscriptionResolver = esploraResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.BitcoinOrdinalInscription
 ))
@@ -102,8 +106,9 @@ const addressTimestampsResolver = esploraResolvers.resolvers.find((resolver) => 
 	resolver.entityType === EntityType.UtxoAddress
 	&& '$$timestamps' in resolver.projections
 ))
-const networkTimestampResolver = esploraResolvers.resolvers.find((resolver) => (
-	resolver.entityType === EntityType.Network_Timestamp
+const networkTimestampsResolver = esploraResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.Network
+	&& '$$timestamps' in resolver.projections
 ))
 
 if (transactionResolver == null)
@@ -112,7 +117,7 @@ if (transactionResolver == null)
 if (inputResolver == null || outputResolver == null)
 	throw new Error('Esplora-Rest spec missing child input/output resolver')
 
-if (issuanceResolver == null || assetResolver == null)
+if (issuanceResolver == null || assetResolver == null || assetTimestampsResolver == null)
 	throw new Error('Esplora-Rest spec missing Elements issuance/asset resolver')
 
 if (inscriptionResolver == null || runestoneResolver == null)
@@ -127,8 +132,8 @@ if (networkBlocksResolver == null)
 if (addressOutputsResolver == null || addressTimestampsResolver == null)
 	throw new Error('Esplora-Rest spec missing UtxoAddress resolvers')
 
-if (networkTimestampResolver == null)
-	throw new Error('Esplora-Rest spec missing Network_Timestamp resolver')
+if (networkTimestampsResolver == null)
+	throw new Error('Esplora-Rest spec missing Network.$$timestamps resolver')
 
 const resolverContext = {
 	filters: [],
@@ -417,6 +422,33 @@ describe('Esplora UTXO', () => {
 			assetId,
 			target: 'liquid',
 		})
+
+		getAsset.mockResolvedValueOnce({
+			asset_id: assetId,
+			chain_stats: {
+				issued_amount: 125_000,
+				burned_amount: 1_000,
+				reissuance_tokens: 2,
+				tx_count: 1,
+			},
+			mempool_stats: {
+				tx_count: 0,
+			},
+		})
+		const assetTimestamps = await assetTimestampsResolver.resolve.ElementsNetworkAssetId.resolve({
+			$network: {
+				$network: liquidNetwork,
+			},
+			assetId,
+		}, resolverContext)
+		expect(assetTimestampsResolver.projections.$$timestamps(assetTimestamps)[0][EntityMetaKey.Fields]).toEqual({
+			[entityFieldAddressKey(EntityType.ElementsAsset_Timestamp, [], 'issuedAmount')]: 125_000n,
+			[entityFieldAddressKey(EntityType.ElementsAsset_Timestamp, [], 'burnedAmount')]: 1_000n,
+			[entityFieldAddressKey(EntityType.ElementsAsset_Timestamp, [], 'reissuanceTokenCount')]: 2,
+		})
+		expect(esploraResolvers.resolvers.some((resolver) => (
+			resolver.entityType === EntityType.ElementsAsset_Timestamp
+		))).toBe(false)
 	})
 
 	it('rejects absent issuance and non-Liquid issuance selectors', async () => {
@@ -772,42 +804,13 @@ describe('Esplora UTXO', () => {
 		})
 		getSuggestedFeePerByteSats.mockResolvedValueOnce(7)
 
-		const tip = await networkTimestampResolver.resolve.NetworkTimestampMsSource.resolve({
-			$network: bitcoinNetwork,
-			timestampMs: 42,
-			source: Source.Esplora_Rest,
-		}, resolverContext)
-		expect(networkTimestampResolver.projections.Utxo.bestBlockHeight(tip)).toBe(900_000n)
-		expect(networkTimestampResolver.projections.Utxo.bestBlockHash(tip)).toBe('f'.repeat(64))
-		expect(networkTimestampResolver.projections.Utxo.bestBlockTimeMs(tip)).toBe(1_800_000_000_000)
-		expect(networkTimestampResolver.projections.Utxo.mempoolTransactionCount(tip)).toBe(11)
-		expect(networkTimestampResolver.projections.Utxo.suggestedTransactionFeePerByteSats(tip)).toBe(7)
-
-		const networkTipResolver = esploraResolvers.resolvers.find((resolver) => (
-			resolver.entityType === EntityType.Network
-			&& '$$timestamps' in resolver.projections
-		))
-		if (networkTipResolver == null)
-			throw new Error('Esplora-Rest missing Network.$$timestamps resolver')
-
-		getBlocks.mockResolvedValueOnce([
-			{
-				id: 'f'.repeat(64),
-				height: 900_000,
-				timestamp: 1_800_000_000,
-				tx_count: 1,
-			},
-		])
-		getMempoolStats.mockResolvedValueOnce({
-			count: 11,
-			vsize: 2200,
-			total_fee: 1,
-		})
-		getSuggestedFeePerByteSats.mockResolvedValueOnce(7)
-		const timestamps = await networkTipResolver.resolve.Caip2.resolve(bitcoinNetwork, resolverContext)
+		const timestamps = await networkTimestampsResolver.resolve.Caip2.resolve(bitcoinNetwork, resolverContext)
 		expect(timestamps[0][EntityMetaKey.Fields]).toMatchObject({
 			[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'bestBlockTimeMs')]: 1_800_000_000_000,
 			[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'suggestedTransactionFeePerByteSats')]: 7,
 		})
+		expect(esploraResolvers.resolvers.some((resolver) => (
+			resolver.entityType === EntityType.Network_Timestamp
+		))).toBe(false)
 	})
 })

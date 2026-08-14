@@ -1177,40 +1177,6 @@ export default {
 			}),
 
 		defineResolver({
-			entityType: EntityType.EthereumBeaconFinality_Timestamp,
-			resolve: {
-				EvmNetworkTimestampMs: {
-					appliesTo: eip155NetworkApplicability,
-					resolve: async ({ $network }) => {
-						const chainId = eip155ChainId($network)
-						const { getFinalityCheckpoints } = await import('$/sources/Beacon/Rest/queries.ts')
-						const checkpoints = await getFinalityCheckpoints(chainId)
-						if (checkpoints == null) {
-							throw new Error(
-								`Beacon_Rest: finality checkpoints not returned for chain ${String(chainId)}`
-							)
-						}
-						return {
-							currentJustifiedCheckpointEpoch: Number.parseInt(checkpoints.current_justified.epoch, 10),
-							currentJustifiedCheckpointRoot: with0xHex(checkpoints.current_justified.root),
-							previousJustifiedCheckpointEpoch: Number.parseInt(checkpoints.previous_justified.epoch, 10),
-							previousJustifiedCheckpointRoot: with0xHex(checkpoints.previous_justified.root),
-							finalizedCheckpointEpoch: Number.parseInt(checkpoints.finalized.epoch, 10),
-							finalizedCheckpointRoot: with0xHex(checkpoints.finalized.root),
-						}
-					},
-				},
-			},
-		})({
-				currentJustifiedCheckpointEpoch: (timestamp) => timestamp.currentJustifiedCheckpointEpoch,
-				currentJustifiedCheckpointRoot: (timestamp) => timestamp.currentJustifiedCheckpointRoot,
-				previousJustifiedCheckpointEpoch: (timestamp) => timestamp.previousJustifiedCheckpointEpoch,
-				previousJustifiedCheckpointRoot: (timestamp) => timestamp.previousJustifiedCheckpointRoot,
-				finalizedCheckpointEpoch: (timestamp) => timestamp.finalizedCheckpointEpoch,
-				finalizedCheckpointRoot: (timestamp) => timestamp.finalizedCheckpointRoot,
-			}),
-
-		defineResolver({
 			entityType: EntityType.BeaconEpoch,
 			resolve: {
 				EvmNetworkEpoch: {
@@ -1637,14 +1603,28 @@ export default {
 			resolve: {
 				Caip2: {
 					resolve: async ({ caip2 }) => {
-						if (!beaconRestByChainId.has(Number(caip2.reference)))
+						const chainId = Number(caip2.reference)
+						if (!beaconRestByChainId.has(chainId))
 							return []
+
+						const { getFinalityCheckpoints } = await import('$/sources/Beacon/Rest/queries.ts')
+						const checkpoints = await getFinalityCheckpoints(chainId)
+						if (checkpoints == null)
+							throw new Error(`Beacon_Rest: finality checkpoints not returned for chain ${String(chainId)}`)
 
 						return [
 							{
 								[EntityMetaKey.Selector]: {
 									$network: { caip2 },
 									timestampMs: Date.now(),
+								},
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.EthereumBeaconFinality_Timestamp, [], 'currentJustifiedCheckpointEpoch')]: Number.parseInt(checkpoints.current_justified.epoch, 10),
+									[entityFieldAddressKey(EntityType.EthereumBeaconFinality_Timestamp, [], 'currentJustifiedCheckpointRoot')]: with0xHex(checkpoints.current_justified.root),
+									[entityFieldAddressKey(EntityType.EthereumBeaconFinality_Timestamp, [], 'previousJustifiedCheckpointEpoch')]: Number.parseInt(checkpoints.previous_justified.epoch, 10),
+									[entityFieldAddressKey(EntityType.EthereumBeaconFinality_Timestamp, [], 'previousJustifiedCheckpointRoot')]: with0xHex(checkpoints.previous_justified.root),
+									[entityFieldAddressKey(EntityType.EthereumBeaconFinality_Timestamp, [], 'finalizedCheckpointEpoch')]: Number.parseInt(checkpoints.finalized.epoch, 10),
+									[entityFieldAddressKey(EntityType.EthereumBeaconFinality_Timestamp, [], 'finalizedCheckpointRoot')]: with0xHex(checkpoints.finalized.root),
 								},
 							},
 						]

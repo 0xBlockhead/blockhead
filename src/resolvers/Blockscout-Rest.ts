@@ -2434,7 +2434,9 @@ export default {
 										timestampMs: Date.now(),
 										source: Source.Blockscout_Rest,
 									},
-									userOperationsCount: wire.total_ops,
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.Erc4337SmartAccount_Timestamp, [], 'userOperationsCount')]: wire.total_ops,
+									},
 								},
 							],
 						}
@@ -2443,9 +2445,7 @@ export default {
 			},
 		})({
 			$factory: (account) => account.$factory,
-			$$timestamps: (account) => account.$$timestamps.map((timestamp) => ({
-				[EntityMetaKey.Selector]: timestamp[EntityMetaKey.Selector],
-			})),
+			$$timestamps: (account) => account.$$timestamps,
 		}),
 
 		defineResolver({
@@ -2464,36 +2464,6 @@ export default {
 			},
 		})({
 			$$userOperations: (entity) => entity,
-		}),
-
-		defineResolver({
-			entityType: EntityType.Erc4337SmartAccount_Timestamp,
-			resolve: {
-				AccountTimestampMsSource: {
-					resolve: async ({ $account, timestampMs, source }) => {
-						if (source !== Source.Blockscout_Rest)
-							throw new Error(`Blockscout_Rest: unsupported source ${source}`)
-						const { getErc4337SmartAccountDetail } = await import('$/sources/Blockscout/Rest/queries.ts')
-
-						return {
-							$account,
-							timestampMs,
-							source,
-							userOperationsCount: (await getErc4337SmartAccountDetail({
-								chainId: evmChainIdFromNetworkSelector($account.$network),
-								address: $account.address,
-							})).total_ops,
-						}
-					},
-				},
-			},
-		})({
-			$account: (timestamp) => ({
-				[EntityMetaKey.Selector]: timestamp.$account,
-			}),
-			timestampMs: (timestamp) => timestamp.timestampMs,
-			source: (timestamp) => timestamp.source,
-			userOperationsCount: (timestamp) => timestamp.userOperationsCount,
 		}),
 
 		defineResolver({
@@ -2525,7 +2495,9 @@ export default {
 										timestampMs: Date.now(),
 										source: Source.Blockscout_Rest,
 									},
-									userOperationsCount: wire.total_ops,
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.Erc4337Bundler_Timestamp, [], 'userOperationsCount')]: wire.total_ops,
+									},
 								},
 							],
 						}
@@ -2533,9 +2505,7 @@ export default {
 				},
 			},
 		})({
-			$$timestamps: (bundler) => bundler.$$timestamps.map((timestamp) => ({
-				[EntityMetaKey.Selector]: timestamp[EntityMetaKey.Selector],
-			})),
+			$$timestamps: (bundler) => bundler.$$timestamps,
 		}),
 
 		defineResolver({
@@ -2554,36 +2524,6 @@ export default {
 			},
 		})({
 			$$userOperations: (entity) => entity,
-		}),
-
-		defineResolver({
-			entityType: EntityType.Erc4337Bundler_Timestamp,
-			resolve: {
-				BundlerTimestampMsSource: {
-					resolve: async ({ $bundler, timestampMs, source }) => {
-						if (source !== Source.Blockscout_Rest)
-							throw new Error(`Blockscout_Rest: unsupported source ${source}`)
-						const { getErc4337BundlerDetail } = await import('$/sources/Blockscout/Rest/queries.ts')
-
-						return {
-							$bundler,
-							timestampMs,
-							source,
-							userOperationsCount: (await getErc4337BundlerDetail({
-								chainId: evmChainIdFromNetworkSelector($bundler.$network),
-								address: $bundler.address,
-							})).total_ops,
-						}
-					},
-				},
-			},
-		})({
-			$bundler: (timestamp) => ({
-				[EntityMetaKey.Selector]: timestamp.$bundler,
-			}),
-			timestampMs: (timestamp) => timestamp.timestampMs,
-			source: (timestamp) => timestamp.source,
-			userOperationsCount: (timestamp) => timestamp.userOperationsCount,
 		}),
 
 		defineResolver({
@@ -2615,7 +2555,9 @@ export default {
 										timestampMs: Date.now(),
 										source: Source.Blockscout_Rest,
 									},
-									userOperationsCount: wire.total_ops,
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.Erc4337Paymaster_Timestamp, [], 'userOperationsCount')]: wire.total_ops,
+									},
 								},
 							],
 						}
@@ -2623,9 +2565,7 @@ export default {
 				},
 			},
 		})({
-			$$timestamps: (paymaster) => paymaster.$$timestamps.map((timestamp) => ({
-				[EntityMetaKey.Selector]: timestamp[EntityMetaKey.Selector],
-			})),
+			$$timestamps: (paymaster) => paymaster.$$timestamps,
 		}),
 
 		defineResolver({
@@ -2644,36 +2584,6 @@ export default {
 			},
 		})({
 			$$userOperations: (entity) => entity,
-		}),
-
-		defineResolver({
-			entityType: EntityType.Erc4337Paymaster_Timestamp,
-			resolve: {
-				PaymasterTimestampMsSource: {
-					resolve: async ({ $paymaster, timestampMs, source }) => {
-						if (source !== Source.Blockscout_Rest)
-							throw new Error(`Blockscout_Rest: unsupported source ${source}`)
-						const { getErc4337PaymasterDetail } = await import('$/sources/Blockscout/Rest/queries.ts')
-
-						return {
-							$paymaster,
-							timestampMs,
-							source,
-							userOperationsCount: (await getErc4337PaymasterDetail({
-								chainId: evmChainIdFromNetworkSelector($paymaster.$network),
-								address: $paymaster.address,
-							})).total_ops,
-						}
-					},
-				},
-			},
-		})({
-			$paymaster: (timestamp) => ({
-				[EntityMetaKey.Selector]: timestamp.$paymaster,
-			}),
-			timestampMs: (timestamp) => timestamp.timestampMs,
-			source: (timestamp) => timestamp.source,
-			userOperationsCount: (timestamp) => timestamp.userOperationsCount,
 		}),
 
 		defineResolver({
@@ -2705,7 +2615,9 @@ export default {
 										timestampMs: Date.now(),
 										source: Source.Blockscout_Rest,
 									},
-									smartAccountsCount: wire.total_accounts,
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.Erc4337AccountFactory_Timestamp, [], 'smartAccountsCount')]: wire.total_accounts,
+									},
 								},
 							],
 						}
@@ -2713,9 +2625,7 @@ export default {
 				},
 			},
 		})({
-			$$timestamps: (factory) => factory.$$timestamps.map((timestamp) => ({
-				[EntityMetaKey.Selector]: timestamp[EntityMetaKey.Selector],
-			})),
+			$$timestamps: (factory) => factory.$$timestamps,
 		}),
 
 		defineResolver({
@@ -2766,36 +2676,6 @@ export default {
 			},
 		})({
 			$$smartAccounts: (entity) => entity,
-		}),
-
-		defineResolver({
-			entityType: EntityType.Erc4337AccountFactory_Timestamp,
-			resolve: {
-				FactoryTimestampMsSource: {
-					resolve: async ({ $factory, timestampMs, source }) => {
-						if (source !== Source.Blockscout_Rest)
-							throw new Error(`Blockscout_Rest: unsupported source ${source}`)
-						const { getErc4337AccountFactoryDetail } = await import('$/sources/Blockscout/Rest/queries.ts')
-
-						return {
-							$factory,
-							timestampMs,
-							source,
-							smartAccountsCount: (await getErc4337AccountFactoryDetail({
-								chainId: evmChainIdFromNetworkSelector($factory.$network),
-								address: $factory.address,
-							})).total_accounts,
-						}
-					},
-				},
-			},
-		})({
-			$factory: (timestamp) => ({
-				[EntityMetaKey.Selector]: timestamp.$factory,
-			}),
-			timestampMs: (timestamp) => timestamp.timestampMs,
-			source: (timestamp) => timestamp.source,
-			smartAccountsCount: (timestamp) => timestamp.smartAccountsCount,
 		}),
 
 		defineResolver({

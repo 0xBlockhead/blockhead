@@ -85,8 +85,10 @@ const consensusUpgrade = networkConsensusUpgrades.find((upgrade) => (
 	&& upgrade.activationEpoch != null
 ))
 const activationEpoch = consensusUpgrade?.activationEpoch
-const finalityResolver = beaconRest.resolvers.find((resolver) => (
-	resolver.entityType === EntityType.EthereumBeaconFinality_Timestamp
+const finalityTimestampsResolver = beaconRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.Network
+	&& 'Evm' in resolver.projections
+	&& '$$beaconFinalityTimestamps' in resolver.projections.Evm
 ))
 const previousForkVersionResolver = beaconRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.EthereumConsensusUpgrade
@@ -172,7 +174,7 @@ const consensusEndpointsResolver = beaconRest.resolvers.find((resolver) => (
 if (
 	consensusUpgrade == null
 	|| activationEpoch == null
-	|| finalityResolver == null
+	|| finalityTimestampsResolver == null
 	|| previousForkVersionResolver == null
 	|| currentForkVersionResolver == null
 	|| committeeResolver == null
@@ -346,17 +348,23 @@ describe('Beacon REST checkpoint and fork projections', () => {
 			},
 		})
 
-		await expect(finalityResolver.resolve.EvmNetworkTimestampMs.resolve({
-			$network: network,
-			timestampMs: 1_725_000_000_000,
-		})).resolves.toEqual({
-			currentJustifiedCheckpointEpoch: 101,
-			currentJustifiedCheckpointRoot: '0xccdd',
-			previousJustifiedCheckpointEpoch: 100,
-			previousJustifiedCheckpointRoot: '0xaabb',
-			finalizedCheckpointEpoch: 99,
-			finalizedCheckpointRoot: '0xeeff',
-		})
+		await expect(finalityTimestampsResolver.resolve.Caip2.resolve(network)).resolves.toEqual([{
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				timestampMs: expect.any(Number),
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.EthereumBeaconFinality_Timestamp, [], 'currentJustifiedCheckpointEpoch')]: 101,
+				[entityFieldAddressKey(EntityType.EthereumBeaconFinality_Timestamp, [], 'currentJustifiedCheckpointRoot')]: '0xccdd',
+				[entityFieldAddressKey(EntityType.EthereumBeaconFinality_Timestamp, [], 'previousJustifiedCheckpointEpoch')]: 100,
+				[entityFieldAddressKey(EntityType.EthereumBeaconFinality_Timestamp, [], 'previousJustifiedCheckpointRoot')]: '0xaabb',
+				[entityFieldAddressKey(EntityType.EthereumBeaconFinality_Timestamp, [], 'finalizedCheckpointEpoch')]: 99,
+				[entityFieldAddressKey(EntityType.EthereumBeaconFinality_Timestamp, [], 'finalizedCheckpointRoot')]: '0xeeff',
+			},
+		}])
+		expect(beaconRest.resolvers.some((resolver) => (
+			resolver.entityType === EntityType.EthereumBeaconFinality_Timestamp
+		))).toBe(false)
 		expect(getFinalityCheckpoints).toHaveBeenCalledWith(1)
 	})
 
@@ -1437,10 +1445,7 @@ describe('Beacon REST checkpoint and fork projections', () => {
 		getFinalityCheckpoints.mockResolvedValue(undefined)
 		getForkSchedule.mockResolvedValue([])
 
-		await expect(finalityResolver.resolve.EvmNetworkTimestampMs.resolve({
-			$network: network,
-			timestampMs: 1_725_000_000_000,
-		})).rejects.toThrow('finality checkpoints not returned')
+		await expect(finalityTimestampsResolver.resolve.Caip2.resolve(network)).rejects.toThrow('finality checkpoints not returned')
 		await expect(
 			resolveForkVersionsByUpgradeId({
 				$network: network,
