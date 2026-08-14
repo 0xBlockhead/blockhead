@@ -807,6 +807,45 @@ const currentEvmBlockNumber = async (
 	throw allJsonRpcEndpointsFailedError(chainId, fieldName, errors)
 }
 
+const voltaireTipBlockObservationClock = async (
+	chainId: number,
+	fieldName: string
+) => {
+	const jsonRpcTransports = (await voltaireJsonRpcHttpTransportsByChainId())[chainId] ?? []
+	if (jsonRpcTransports.length === 0)
+		throw new Error(`Voltaire_JsonRpc: no JSON-RPC URL for ${fieldName} on chain ${String(chainId)}`)
+
+	const errors: string[] = []
+	for (const jsonRpcTransport of jsonRpcTransports) {
+		try {
+			const blockNumber = await jsonRpcTransport.getBlockNumber()
+			const wire = await jsonRpcTransport.getBlockByNumber({
+				blockNumber,
+				txObjects: false,
+			})
+			if (wire == null)
+				throw new Error('tip block missing')
+
+			const timestampSeconds = nonNegativeBigIntFromHex(wire.timestamp)
+			if (timestampSeconds == null)
+				throw new Error('tip block timestamp missing')
+
+			const timestampMs = Number(timestampSeconds) * 1_000
+			if (!Number.isSafeInteger(timestampMs) || timestampMs < 0)
+				throw new Error('tip block timestamp missing')
+
+			return {
+				jsonRpcTransport,
+				blockNumber,
+				timestampMs,
+			}
+		} catch (error) {
+			errors.push(`${jsonRpcTransport.diagnosticLabel}: ${errorMessage(error)}`)
+		}
+	}
+	throw allJsonRpcEndpointsFailedError(chainId, fieldName, errors)
+}
+
 const evmTransactionRefsForTxHashes = (
 	chainId: number,
 	transactions: readonly (string | RpcTransactionWire)[] | undefined
@@ -2834,6 +2873,51 @@ export default {
 			},
 		})({
 			storageSlotReads: (entity) => entity,
+		}),
+
+		defineResolver({
+			entityType: EntityType.EvmContract,
+			resolve: {
+				EvmNetworkAddress: {
+					resolve: async ({ $network, address }, context) => {
+						const chainId = chainIdFromEvmNetworkId($network)
+						const tipClock = await voltaireTipBlockObservationClock(
+							chainId,
+							'EvmContract.$$storageReads'
+						)
+						const depth = Math.min(32, Math.max(1, resolverContextRowLimit(context)))
+						return (
+							await evmContractStorageSlotReadsFromEthGetStorageAt({
+								address,
+								depth,
+								getStorageAt: (slotQuantityHex) => (
+									tipClock.jsonRpcTransport.getStorageAt({
+										address,
+										slotQuantityHex,
+										blockTag: `0x${tipClock.blockNumber.toString(16)}`,
+									})
+								),
+							})
+						).map(({ slot, value }) => ({
+							[EntityMetaKey.Selector]: {
+								$contract: {
+									$network,
+									address,
+								},
+								slot,
+								timestampMs: tipClock.timestampMs,
+								source: Source.Voltaire_JsonRpc,
+							},
+							[EntityMetaKey.Fields]: {
+								[entityFieldAddressKey(EntityType.EvmStorageRead_Timestamp, [], 'value')]: value,
+								[entityFieldAddressKey(EntityType.EvmStorageRead_Timestamp, [], 'blockNumber')]: tipClock.blockNumber,
+							},
+						}))
+					},
+				}
+			},
+		})({
+			$$storageReads: (entity) => entity,
 		}),
 
 		defineResolver({

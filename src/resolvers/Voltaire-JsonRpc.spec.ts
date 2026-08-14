@@ -21,7 +21,9 @@ const getTransactionReceipt = vi.hoisted(() => vi.fn())
 const debugTraceTransaction = vi.hoisted(() => vi.fn())
 const getCall = vi.hoisted(() => vi.fn())
 const getBalance = vi.hoisted(() => vi.fn())
+const getBlockByNumber = vi.hoisted(() => vi.fn())
 const getBlockNumber = vi.hoisted(() => vi.fn())
+const getStorageAt = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/Voltaire/JsonRpc/queries.ts', () => ({
 	voltaireJsonRpcTransports: {
@@ -33,7 +35,9 @@ vi.mock('$/sources/Voltaire/JsonRpc/queries.ts', () => ({
 				debugTraceTransaction,
 				getCall,
 				getBalance,
+				getBlockByNumber,
 				getBlockNumber,
+				getStorageAt,
 			}],
 			10: [
 				{
@@ -1020,5 +1024,96 @@ describe('Voltaire transaction execution hierarchy', () => {
 			},
 			indexInLog: 0,
 		})).rejects.toThrow('receipt log is not an exact token transfer')
+	})
+})
+
+describe('Voltaire EVM storage read observations', () => {
+	const storageContext = {
+		filters: [],
+		sorts: [],
+		pagination: {
+			limit: 2,
+		},
+		selectorKeys: [],
+		parentSelectorKeys: [],
+		sources: [],
+		publicEnv: {},
+	}
+	const network = {
+		caip2: {
+			namespace: 'eip155',
+			reference: '1',
+		},
+	} as const
+	const address = '0x1111111111111111111111111111111111111111'
+	const $contract = {
+		$network: network,
+		address,
+	}
+	const tipTimestampMs = 0x65a4b665 * 1_000
+	const slot0 = `0x${'0'.repeat(64)}`
+	const slot1 = `0x${'0'.repeat(63)}1`
+	const storageValue = `0x${'ab'.repeat(32)}`
+	const listResolver = voltaireJsonRpc.resolvers.find((candidate) => (
+		candidate.entityType === EntityType.EvmContract
+		&& '$$storageReads' in candidate.projections
+	))
+
+	beforeEach(() => {
+		vi.clearAllMocks()
+		getBlockNumber.mockResolvedValue(0x159a91n)
+		getBlockByNumber.mockResolvedValue({
+			timestamp: '0x65a4b665',
+		})
+		getStorageAt.mockResolvedValue(storageValue)
+	})
+
+	it('lists sequential slot observations against the tip block clock', async () => {
+		if (
+			listResolver == null
+			|| !('EvmNetworkAddress' in listResolver.resolve)
+		)
+			throw new Error('Voltaire_JsonRpc: missing EvmContract $$storageReads resolver')
+
+		const reads = await listResolver.resolve.EvmNetworkAddress.resolve({
+			$network: network,
+			address,
+		}, storageContext)
+		expect(getStorageAt).toHaveBeenNthCalledWith(1, {
+			address,
+			slotQuantityHex: slot0,
+			blockTag: '0x159a91',
+		})
+		expect(getStorageAt).toHaveBeenNthCalledWith(2, {
+			address,
+			slotQuantityHex: slot1,
+			blockTag: '0x159a91',
+		})
+		expect(listResolver.projections.$$storageReads(reads)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$contract,
+					slot: slot0,
+					timestampMs: tipTimestampMs,
+					source: Source.Voltaire_JsonRpc,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.EvmStorageRead_Timestamp, [], 'value')]: storageValue,
+					[entityFieldAddressKey(EntityType.EvmStorageRead_Timestamp, [], 'blockNumber')]: 0x159a91n,
+				},
+			},
+			{
+				[EntityMetaKey.Selector]: {
+					$contract,
+					slot: slot1,
+					timestampMs: tipTimestampMs,
+					source: Source.Voltaire_JsonRpc,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.EvmStorageRead_Timestamp, [], 'value')]: storageValue,
+					[entityFieldAddressKey(EntityType.EvmStorageRead_Timestamp, [], 'blockNumber')]: 0x159a91n,
+				},
+			},
+		])
 	})
 })

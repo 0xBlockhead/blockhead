@@ -11,6 +11,7 @@ const getTransactionReceipt = vi.hoisted(() => vi.fn())
 const getBlockNumber = vi.hoisted(() => vi.fn())
 const getBlockByNumber = vi.hoisted(() => vi.fn())
 const getCode = vi.hoisted(() => vi.fn())
+const getStorageAt = vi.hoisted(() => vi.fn())
 const getTransactionsByAddress = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/Etherscan/Rest/queries.ts', async (importOriginal) => {
@@ -26,6 +27,7 @@ vi.mock('$/sources/Etherscan/Rest/queries.ts', async (importOriginal) => {
 			getBlockNumber,
 			getBlockByNumber,
 			getCode,
+			getStorageAt,
 			getTransactionsByAddress,
 		},
 	}
@@ -614,5 +616,92 @@ describe('Etherscan token approvals', () => {
 				[entityFieldAddressKey(EntityType.EvmTokenApproval, ['Allowance'], 'amount')]: 10n,
 			},
 		}])
+	})
+})
+
+describe('Etherscan EVM storage read observations', () => {
+	const storageContext = {
+		...context,
+		pagination: {
+			limit: 2,
+		},
+	}
+	const $network = {
+		slug: 'ethereum',
+	} as const
+	const $contract = {
+		$network,
+		address,
+	}
+	const tipTimestampMs = 0x65a4b665 * 1_000
+	const slot0 = `0x${'0'.repeat(64)}`
+	const slot1 = `0x${'0'.repeat(63)}1`
+	const storageValue = `0x${'ab'.repeat(32)}`
+	const listResolver = etherscanRest.resolvers.find((candidate) => (
+		candidate.entityType === EntityType.EvmContract
+		&& '$$storageReads' in candidate.projections
+	))
+
+	beforeEach(() => {
+		vi.clearAllMocks()
+		getBlockNumber.mockResolvedValue('0x159a91')
+		getBlockByNumber.mockResolvedValue({
+			number: '0x159a91',
+			timestamp: '0x65a4b665',
+		})
+		getStorageAt.mockResolvedValue(storageValue)
+	})
+
+	it('lists sequential slot observations against the tip block clock', async () => {
+		if (
+			listResolver == null
+			|| !('EvmNetworkAddress' in listResolver.resolve)
+		)
+			throw new Error('Etherscan_Rest: missing EvmContract $$storageReads resolver')
+
+		const reads = await listResolver.resolve.EvmNetworkAddress.resolve({
+			$network,
+			address,
+		}, storageContext)
+		expect(getStorageAt).toHaveBeenNthCalledWith(1, {
+			publicEnv: {},
+			chainId: 1,
+			address,
+			slotQuantityHex: slot0,
+			blockNumber: 0x159a91n,
+		})
+		expect(getStorageAt).toHaveBeenNthCalledWith(2, {
+			publicEnv: {},
+			chainId: 1,
+			address,
+			slotQuantityHex: slot1,
+			blockNumber: 0x159a91n,
+		})
+		expect(listResolver.projections.$$storageReads(reads)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$contract,
+					slot: slot0,
+					timestampMs: tipTimestampMs,
+					source: Source.Etherscan_Rest,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.EvmStorageRead_Timestamp, [], 'value')]: storageValue,
+					[entityFieldAddressKey(EntityType.EvmStorageRead_Timestamp, [], 'blockNumber')]: 0x159a91n,
+				},
+			},
+			{
+				[EntityMetaKey.Selector]: {
+					$contract,
+					slot: slot1,
+					timestampMs: tipTimestampMs,
+					source: Source.Etherscan_Rest,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.EvmStorageRead_Timestamp, [], 'value')]: storageValue,
+					[entityFieldAddressKey(EntityType.EvmStorageRead_Timestamp, [], 'blockNumber')]: 0x159a91n,
+				},
+			},
+		])
 	})
 })

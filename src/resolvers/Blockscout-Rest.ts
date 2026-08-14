@@ -4438,6 +4438,57 @@ export default {
 		}),
 
 		defineResolver({
+			entityType: EntityType.EvmContract,
+			resolve: {
+				EvmNetworkAddress: {
+					resolve: async ({ $network, address: addressSelector }, context) => {
+						const address = hexLowerOfByteSize(addressSelector, 20)
+						if (address == null)
+							throw new Error('Blockscout_Rest: EvmContract address not normalized')
+
+						const chainId = evmChainIdFromNetworkSelector($network)
+						const tipClock = await blockscoutTipBlockObservationClock(chainId)
+						const depth = Math.min(32, Math.max(1, resolverContextRowLimit(context)))
+						const { getStorageAt } = await import('$/sources/Blockscout/Rest/queries.ts')
+						return (
+							await evmContractStorageSlotReadsFromEthGetStorageAt({
+								address,
+								depth,
+								getStorageAt: (slotQuantityHex) => getStorageAt({
+									chainId,
+									address,
+									slotQuantityHex,
+									blockTag: `0x${tipClock.blockNumber.toString(16)}`,
+								}).then((valueHex) => {
+									if (valueHex == null)
+										throw new Error('Blockscout_Rest: eth_getStorageAt returned no result')
+
+									return valueHex
+								}),
+							})
+						).map(({ slot, value }) => ({
+							[EntityMetaKey.Selector]: {
+								$contract: {
+									$network,
+									address,
+								},
+								slot,
+								timestampMs: tipClock.timestampMs,
+								source: Source.Blockscout_Rest,
+							},
+							[EntityMetaKey.Fields]: {
+								[entityFieldAddressKey(EntityType.EvmStorageRead_Timestamp, [], 'value')]: value,
+								[entityFieldAddressKey(EntityType.EvmStorageRead_Timestamp, [], 'blockNumber')]: tipClock.blockNumber,
+							},
+						}))
+					},
+				},
+			},
+		})({
+			$$storageReads: (entity) => entity,
+		}),
+
+		defineResolver({
 			entityType: EntityType.EvmContractVerification,
 			resolve: {
 				EvmContract: {

@@ -23,6 +23,7 @@ const {
 const {
 	getBlockByNumber,
 	getInternalTransactionsByTxHash,
+	getStorageAt,
 	getTokenTransfersByAddress,
 	getTokenTransfersByTransaction,
 	getTransactionByHash,
@@ -208,6 +209,27 @@ describe('Etherscan transaction hash query boundaries', () => {
 			chainId: 1,
 			txHash: normalizedTxHash,
 		})).rejects.toThrow('transaction receipt subject mismatch')
+	})
+
+	it('pins eth_getStorageAt to the requested block tag', async () => {
+		etherscanV2GetJson.mockResolvedValue({
+			result: `0x${'ab'.repeat(32)}`,
+		})
+		await expect(getStorageAt({
+			publicEnv,
+			chainId: 1,
+			address: '0x1111111111111111111111111111111111111111',
+			slotQuantityHex: `0x${'0'.repeat(64)}`,
+			blockNumber: 0x15c4b1n,
+		})).resolves.toBe(`0x${'ab'.repeat(32)}`)
+		expect(etherscanV2GetJson).toHaveBeenCalledWith(expect.objectContaining({
+			query: expect.objectContaining({
+				module: 'proxy',
+				action: 'eth_getStorageAt',
+				position: `0x${'0'.repeat(64)}`,
+				tag: '0x15c4b1',
+			}),
+		}))
 	})
 
 	it('rejects substituted and malformed block-number responses', async () => {

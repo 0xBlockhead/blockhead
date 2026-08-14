@@ -14,6 +14,7 @@ import {
 	getErc4337SmartAccountList,
 	getSmartContract,
 	getStats,
+	getStorageAt,
 	getTokenTransfers,
 	getTransactionByHash,
 	getTransactionLogs,
@@ -191,6 +192,40 @@ describe('Blockscout account-abstraction queries', () => {
 					params: [
 						hex('a', 40),
 						'latest',
+					],
+				}),
+			})
+		)
+	})
+
+	it('pins eth_getStorageAt to the requested block tag', async () => {
+		const fetchMock = vi.fn<typeof fetch>()
+			.mockResolvedValueOnce(jsonResponse({
+				jsonrpc: '2.0',
+				id: 1,
+				result: hex('ab', 64),
+			}))
+		vi.stubGlobal('fetch', fetchMock)
+		vi.stubGlobal('window', {})
+
+		await expect(getStorageAt({
+			chainId: 1,
+			address: hex('A', 40),
+			slotQuantityHex: hex('0', 64),
+			blockTag: '0x15c4b1',
+		})).resolves.toBe(hex('ab', 64))
+		expect(fetchMock).toHaveBeenCalledWith(
+			expect.stringMatching(/https%3A%2F%2Feth\.blockscout\.com%2Fapi%2Feth-rpc$/),
+			expect.objectContaining({
+				method: 'POST',
+				body: JSON.stringify({
+					jsonrpc: '2.0',
+					id: 1,
+					method: 'eth_getStorageAt',
+					params: [
+						hex('a', 40),
+						hex('0', 64),
+						'0x15c4b1',
 					],
 				}),
 			})

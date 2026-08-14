@@ -1004,10 +1004,16 @@ export const getCode = async ({ chainId, address }: {
 	}).getCode({ address: normalized })
 }
 
-export const getStorageAt = async ({ chainId, address, slotQuantityHex }: {
+export const getStorageAt = async ({
+	chainId,
+	address,
+	slotQuantityHex,
+	blockTag = 'latest',
+}: {
 	chainId: number
 	address: `0x${string}`
 	slotQuantityHex: `0x${string}`
+	blockTag?: `0x${string}` | 'latest' | 'pending' | 'safe' | 'finalized'
 }) => {
 	const {
 		evmExecutionJsonRpc,
@@ -1021,6 +1027,7 @@ export const getStorageAt = async ({ chainId, address, slotQuantityHex }: {
 	}).getStorageAt({
 		address: normalized,
 		slotQuantityHex,
+		blockTag,
 	})
 }
 

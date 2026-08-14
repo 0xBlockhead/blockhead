@@ -414,11 +414,13 @@ export const etherscanQueries = (() => {
 	chainId,
 	address,
 	slotQuantityHex,
+	blockNumber,
 }: {
 	publicEnv: SourcePublicEnv
 	chainId: number
 	address: `0x${string}`
 	slotQuantityHex: `0x${string}`
+	blockNumber?: bigint
 }) => (
 	etherscanV2GetProxyResult<`0x${string}`>({
 		chainId,
@@ -428,7 +430,12 @@ export const etherscanQueries = (() => {
 			action: 'eth_getStorageAt',
 			address,
 			position: slotQuantityHex,
-			tag: 'latest',
+			tag: (
+				blockNumber == null ?
+					'latest'
+				:
+					`0x${blockNumber.toString(16)}`
+			),
 		},
 	})
 )

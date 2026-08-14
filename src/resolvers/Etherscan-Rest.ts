@@ -174,7 +174,7 @@ const etherscanTipBlockObservationClock = async ({
 		publicEnv,
 		chainId,
 	})
-	const blockNumber = etherscanQuantityToBigInt(headHex ?? undefined)
+	const blockNumber = etherscanQuantityToBigInt(headHex)
 	if (blockNumber == null)
 		throw new Error('Etherscan_Rest: tip block missing for account observation clock')
 
@@ -1056,6 +1056,56 @@ export default {
 			}),
 
 		defineResolver({
+			entityType: EntityType.EvmContract,
+			resolve: {
+				EvmNetworkAddress: {
+					resolve: async ({ $network, address }, context) => {
+						const chainId = evmChainIdFromNetworkSelector($network)
+						const tipClock = await etherscanTipBlockObservationClock({
+							publicEnv: context.publicEnv,
+							chainId,
+						})
+						const depth = Math.min(32, Math.max(1, resolverContextRowLimit(context)))
+						return (
+							await evmContractStorageSlotReadsFromEthGetStorageAt({
+								address,
+								depth,
+								getStorageAt: (slotQuantityHex) => getStorageAt({
+									publicEnv: context.publicEnv,
+									chainId,
+									address,
+									slotQuantityHex,
+									blockNumber: tipClock.blockNumber,
+								}).then((valueHex) => {
+									if (valueHex == null)
+										throw new Error('Etherscan_Rest: eth_getStorageAt returned no result')
+
+									return valueHex
+								}),
+							})
+						).map(({ slot, value }) => ({
+							[EntityMetaKey.Selector]: {
+								$contract: {
+									$network,
+									address,
+								},
+								slot,
+								timestampMs: tipClock.timestampMs,
+								source: Source.Etherscan_Rest,
+							},
+							[EntityMetaKey.Fields]: {
+								[entityFieldAddressKey(EntityType.EvmStorageRead_Timestamp, [], 'value')]: value,
+								[entityFieldAddressKey(EntityType.EvmStorageRead_Timestamp, [], 'blockNumber')]: tipClock.blockNumber,
+							},
+						}))
+					},
+				}
+			},
+		})({
+				$$storageReads: (contract) => contract,
+			}),
+
+		defineResolver({
 			entityType: EntityType.EvmNetworkAccount,
 			resolve: {
 				EvmNetworkEvmAccount: {
@@ -1633,7 +1683,7 @@ export default {
 							publicEnv: context.publicEnv,
 							chainId,
 						})
-						const head = etherscanQuantityToBigInt(headHex ?? undefined)
+						const head = etherscanQuantityToBigInt(headHex)
 						if (head == null)
 							throw new Error('Etherscan_Rest: eth_blockNumber returned no result')
 						const limit = Math.min(Math.max(1, resolverContextRowLimit(context)), 32)
@@ -1669,7 +1719,7 @@ export default {
 							publicEnv: context.publicEnv,
 							chainId,
 						})
-						const head = etherscanQuantityToBigInt(headHex ?? undefined)
+						const head = etherscanQuantityToBigInt(headHex)
 						if (head == null)
 							throw new Error('Etherscan_Rest: eth_blockNumber returned no result')
 						return Number(head) + 1

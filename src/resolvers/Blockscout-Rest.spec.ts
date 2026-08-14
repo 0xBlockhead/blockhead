@@ -24,6 +24,7 @@ const getErc4337SmartAccountList = vi.hoisted(() => vi.fn())
 const getStats = vi.hoisted(() => vi.fn())
 const getSmartContract = vi.hoisted(() => vi.fn())
 const getSmartContracts = vi.hoisted(() => vi.fn())
+const getStorageAt = vi.hoisted(() => vi.fn())
 const getTransactionByHash = vi.hoisted(() => vi.fn())
 const getTransactionLogs = vi.hoisted(() => vi.fn())
 const getTransactionRawTrace = vi.hoisted(() => vi.fn())
@@ -44,6 +45,7 @@ vi.mock('$/sources/Blockscout/Rest/queries.ts', async (importOriginal) => ({
 	getStats,
 	getSmartContract,
 	getSmartContracts,
+	getStorageAt,
 	getTransactionByHash,
 	getTransactionLogs,
 	getTransactionRawTrace,
@@ -1823,5 +1825,89 @@ describe('Blockscout EvmTrace embedding', () => {
 				[entityFieldAddressKey(EntityType.EvmTrace, [], 'gas')]: 21_000n,
 			},
 		}])
+	})
+})
+
+describe('Blockscout EVM storage read observations', () => {
+	const storageContext = {
+		...context,
+		pagination: {
+			limit: 2,
+		},
+	}
+	const tipTimestamp = '2026-01-01T00:00:00.000Z'
+	const tipTimestampMs = Math.floor(Date.parse(tipTimestamp) / 1_000) * 1_000
+	const slot0 = `0x${'0'.repeat(64)}`
+	const slot1 = `0x${'0'.repeat(63)}1`
+	const storageValue = `0x${'ab'.repeat(32)}`
+	const listResolver = blockscoutRest.resolvers.find((candidate) => (
+		candidate.entityType === EntityType.EvmContract
+		&& '$$storageReads' in candidate.projections
+	))
+
+	beforeEach(() => {
+		getBlocks.mockReset()
+		getBlockByNumber.mockReset()
+		getStorageAt.mockReset()
+		getBlocks.mockResolvedValue([
+			{
+				height: 22_800_001,
+			},
+		])
+		getBlockByNumber.mockResolvedValue({
+			timestamp: tipTimestamp,
+		})
+		getStorageAt.mockResolvedValue(storageValue)
+	})
+
+	it('lists sequential slot observations against the tip block clock', async () => {
+		if (
+			listResolver == null
+			|| !('EvmNetworkAddress' in listResolver.resolve)
+		)
+			throw new Error('Blockscout_Rest: missing EvmContract $$storageReads resolver')
+
+		const reads = await listResolver.resolve.EvmNetworkAddress.resolve({
+			$network: network,
+			address: contract.address,
+		}, storageContext)
+		expect(getStorageAt).toHaveBeenNthCalledWith(1, {
+			chainId: 1,
+			address: contract.address,
+			slotQuantityHex: slot0,
+			blockTag: `0x${(22_800_001).toString(16)}`,
+		})
+		expect(getStorageAt).toHaveBeenNthCalledWith(2, {
+			chainId: 1,
+			address: contract.address,
+			slotQuantityHex: slot1,
+			blockTag: `0x${(22_800_001).toString(16)}`,
+		})
+		expect(listResolver.projections.$$storageReads(reads)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$contract: contract,
+					slot: slot0,
+					timestampMs: tipTimestampMs,
+					source: Source.Blockscout_Rest,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.EvmStorageRead_Timestamp, [], 'value')]: storageValue,
+					[entityFieldAddressKey(EntityType.EvmStorageRead_Timestamp, [], 'blockNumber')]: 22_800_001n,
+				},
+			},
+			{
+				[EntityMetaKey.Selector]: {
+					$contract: contract,
+					slot: slot1,
+					timestampMs: tipTimestampMs,
+					source: Source.Blockscout_Rest,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.EvmStorageRead_Timestamp, [], 'value')]: storageValue,
+					[entityFieldAddressKey(EntityType.EvmStorageRead_Timestamp, [], 'blockNumber')]: 22_800_001n,
+				},
+			},
+		])
 	})
 })
