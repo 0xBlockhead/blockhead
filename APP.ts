@@ -48446,7 +48446,7 @@ export const schema = {
 						path: ["ledgerModels"],
 						includes: "Utxo",
 					})({
-						"$$blocks": { label: "Blocks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.UtxoBlock, defaultSources: [Source.BitcoinCashNode_JsonRpc, Source.Blockchair_Rest, Source.DogecoinCore_JsonRpc, Source.Esplora_Rest, Source.MempoolSpace_Rest] },
+						"$$blocks": { label: "Blocks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.UtxoBlock, defaultSources: [Source.BitcoinCashNode_JsonRpc, Source.Blockchair_Rest, Source.DogecoinCore_JsonRpc, Source.Esplora_Rest, Source.LitecoinCore_JsonRpc, Source.MempoolSpace_Rest] },
 						"$$transactions": { label: "Transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.UtxoTransaction, defaultSources: [Source.Blockchair_Rest, Source.Esplora_Rest, Source.MempoolSpace_Rest] }
 					})({
 						singularView: {
@@ -48457,7 +48457,7 @@ export const schema = {
 									className: "network-view-collapsible-chain-activity",
 									sections: [
 										{ id: "utxo-consensus-observations", field: "$$timestamps", List: "Network_TimestampsView", label: "Observations", selection: { sources: [Source.Blockchair_Rest, Source.Esplora_Rest, Source.MempoolSpace_Rest], limit: 16 } },
-										{ id: "utxo-consensus-blocks", field: ["Utxo", "$$blocks"], List: "UtxoBlocksView", label: "Blocks", selection: { sources: [Source.BitcoinCashNode_JsonRpc, Source.Blockchair_Rest, Source.DogecoinCore_JsonRpc, Source.Esplora_Rest, Source.MempoolSpace_Rest], limit: 16 } },
+										{ id: "utxo-consensus-blocks", field: ["Utxo", "$$blocks"], List: "UtxoBlocksView", label: "Blocks", selection: { sources: [Source.BitcoinCashNode_JsonRpc, Source.Blockchair_Rest, Source.DogecoinCore_JsonRpc, Source.Esplora_Rest, Source.LitecoinCore_JsonRpc, Source.MempoolSpace_Rest], limit: 16 } },
 									],
 								},
 								{
@@ -65840,8 +65840,8 @@ export const schema = {
 			})({
 				"$network": { label: "Network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
 				"address": { label: "Address", description: "The address or account identifier used by the source protocol.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.UtxoAddress_Timestamp, defaultSources: [Source.BitcoinCashNode_JsonRpc, Source.Blockchair_Rest, Source.DogecoinCore_JsonRpc, Source.Esplora_Rest, Source.MempoolSpace_Rest] },
-				"$$outputs": { label: "Outputs", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.UtxoOutput, defaultSources: [Source.BitcoinCashNode_JsonRpc, Source.Blockchair_Rest, Source.DogecoinCore_JsonRpc, Source.Esplora_Rest, Source.MempoolSpace_Rest] },
+				"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.UtxoAddress_Timestamp, defaultSources: [Source.BitcoinCashNode_JsonRpc, Source.Blockchair_Rest, Source.DogecoinCore_JsonRpc, Source.Esplora_Rest, Source.LitecoinCore_JsonRpc, Source.MempoolSpace_Rest] },
+				"$$outputs": { label: "Outputs", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.UtxoOutput, defaultSources: [Source.BitcoinCashNode_JsonRpc, Source.Blockchair_Rest, Source.DogecoinCore_JsonRpc, Source.Esplora_Rest, Source.LitecoinCore_JsonRpc, Source.MempoolSpace_Rest] },
 				"$$transactions": { label: "Transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.UtxoTransaction, defaultSources: [Source.Esplora_Rest, Source.MempoolSpace_Rest] },
 				"$$bitcoinOrdinalInscriptions": { label: "Bitcoin Ordinal inscriptions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BitcoinOrdinalInscription, defaultSources: [Source.UniSat_Rest] },
 				"$$bitcoinRuneBalances": { label: "Bitcoin Rune balances", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BitcoinRuneBalance, defaultSources: [Source.UniSat_Rest] },
@@ -65872,7 +65872,7 @@ export const schema = {
 								label: "Activity",
 								className: "network-view-collapsible-activity",
 								sections: [
-									{ id: "utxo-address-outputs", field: "$$outputs", List: "UtxoOutputsView", label: "Outputs", emptyText: "No outputs.", selection: { sources: [Source.BitcoinCashNode_JsonRpc, Source.Blockchair_Rest, Source.DogecoinCore_JsonRpc, Source.Esplora_Rest, Source.MempoolSpace_Rest], limit: 16 } },
+									{ id: "utxo-address-outputs", field: "$$outputs", List: "UtxoOutputsView", label: "Outputs", emptyText: "No outputs.", selection: { sources: [Source.BitcoinCashNode_JsonRpc, Source.Blockchair_Rest, Source.DogecoinCore_JsonRpc, Source.Esplora_Rest, Source.LitecoinCore_JsonRpc, Source.MempoolSpace_Rest], limit: 16 } },
 									{ id: "utxo-address-transactions", field: "$$transactions", List: "UtxoTransactionsView", label: "Transactions", emptyText: "No transactions.", selection: { sources: [Source.Esplora_Rest, Source.MempoolSpace_Rest], limit: 16 } },
 								],
 							},
@@ -65881,7 +65881,7 @@ export const schema = {
 								label: "Observations",
 								className: "network-view-collapsible-observations",
 								sections: [
-									{ id: "utxo-address-timestamps", field: "$$timestamps", List: "UtxoAddress_TimestampsView", label: "Timestamps", emptyText: "No timestamps.", selection: { sources: [Source.BitcoinCashNode_JsonRpc, Source.Blockchair_Rest, Source.DogecoinCore_JsonRpc, Source.Esplora_Rest, Source.MempoolSpace_Rest], limit: 16 } },
+									{ id: "utxo-address-timestamps", field: "$$timestamps", List: "UtxoAddress_TimestampsView", label: "Timestamps", emptyText: "No timestamps.", selection: { sources: [Source.BitcoinCashNode_JsonRpc, Source.Blockchair_Rest, Source.DogecoinCore_JsonRpc, Source.Esplora_Rest, Source.LitecoinCore_JsonRpc, Source.MempoolSpace_Rest], limit: 16 } },
 								],
 							},
 						],
@@ -65900,13 +65900,13 @@ export const schema = {
 				"$address": { label: "Address", description: "The address or account identifier used by the source protocol.", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.UtxoAddress },
 				"timestampMs": { label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
 				"source": { label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"balanceSats": { label: "Balance", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.BitcoinCashNode_JsonRpc, Source.Blockchair_Rest, Source.DogecoinCore_JsonRpc, Source.Esplora_Rest, Source.MempoolSpace_Rest] },
+				"balanceSats": { label: "Balance", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.BitcoinCashNode_JsonRpc, Source.Blockchair_Rest, Source.DogecoinCore_JsonRpc, Source.Esplora_Rest, Source.LitecoinCore_JsonRpc, Source.MempoolSpace_Rest] },
 				"fundedOutputCount": { label: "Funded output count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Blockchair_Rest, Source.Esplora_Rest, Source.MempoolSpace_Rest] },
 				"fundedValueSats": { label: "Funded value", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Blockchair_Rest, Source.Esplora_Rest, Source.MempoolSpace_Rest] },
 				"spentOutputCount": { label: "Spent output count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Blockchair_Rest, Source.Esplora_Rest, Source.MempoolSpace_Rest] },
 				"spentValueSats": { label: "Spent value", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Blockchair_Rest, Source.Esplora_Rest, Source.MempoolSpace_Rest] },
 				"transactionCount": { label: "Transaction count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Blockchair_Rest, Source.Esplora_Rest, Source.MempoolSpace_Rest] },
-				"unspentOutputCount": { label: "Unspent output count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.BitcoinCashNode_JsonRpc, Source.Blockchair_Rest, Source.DogecoinCore_JsonRpc, Source.Esplora_Rest, Source.MempoolSpace_Rest] },
+				"unspentOutputCount": { label: "Unspent output count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.BitcoinCashNode_JsonRpc, Source.Blockchair_Rest, Source.DogecoinCore_JsonRpc, Source.Esplora_Rest, Source.LitecoinCore_JsonRpc, Source.MempoolSpace_Rest] },
 				"mempoolTransactionCount": { label: "Mempool transaction count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Blockchair_Rest, Source.Esplora_Rest, Source.MempoolSpace_Rest] },
 			})({
 				selectors: {

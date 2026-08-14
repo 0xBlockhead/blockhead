@@ -784,6 +784,7 @@ export default entity({
 					Source.Blockchair_Rest,
 					Source.DogecoinCore_JsonRpc,
 					Source.Esplora_Rest,
+					Source.LitecoinCore_JsonRpc,
 					Source.MempoolSpace_Rest,
 				],
 			},
