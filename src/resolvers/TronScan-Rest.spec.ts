@@ -14,6 +14,8 @@ import { Source } from '$/sources/Source.ts'
 import bindings from '$/sources/TronScan/bindings.ts'
 import type { TronScanTransactions } from '$/sources/TronScan/Rest/types.ts'
 
+const getAccount = vi.fn()
+const getAccountTokens = vi.fn()
 const getAccountTransactions = vi.fn()
 const getBlock = vi.fn()
 const getContract = vi.fn()
@@ -21,6 +23,8 @@ const getTokenOverview = vi.fn()
 const getTrc10Token = vi.fn()
 
 vi.mock('$/sources/TronScan/Rest/queries.ts', () => ({
+	getAccount,
+	getAccountTokens,
 	getAccountTransactions,
 	getBlock,
 	getContract,
@@ -92,16 +96,6 @@ describe('TronScan account transaction resolver', () => {
 				},
 			},
 		])
-
-		const accountTokenTimestampResolver = tronScanResolvers.resolvers.find((resolver) => (
-			resolver.entityType === EntityType.TronAccountTokenBalance_Timestamp
-		))
-		if (accountTokenTimestampResolver == null)
-			throw new Error('TronScan-Rest spec missing account token timestamp resolver')
-
-		expect(accountTokenTimestampResolver.resolve[
-			'AccountTokenTimestampMsSource'
-		].appliesTo).toHaveLength(2)
 	})
 
 	it('rejects a block returned by height when its hash disagrees with the exact selector', async () => {
@@ -336,9 +330,111 @@ describe('TronScan native current observations', () => {
 			[entityFieldAddressKey(EntityType.TronToken_Timestamp, [], 'totalSupply')]: 1000000n,
 			[entityFieldAddressKey(EntityType.TronToken_Timestamp, [], 'holderCount')]: 7,
 		})
-		expect(tronScanResolvers.resolvers.some((candidate) => (
-			candidate.entityType === EntityType.TronContract_Timestamp
-			|| candidate.entityType === EntityType.TronToken_Timestamp
-		))).toBe(false)
+	})
+
+	it('embeds TronAccount current state on $$timestamps after the account read', async () => {
+		getAccount.mockResolvedValueOnce({
+			name: 'Alice',
+			balanceStr: '1000',
+			date_created: 1_600_000_000_000,
+			latest_operation_time: 1_650_000_000_000,
+			totalTransactionCount: 12,
+			bandwidth: {
+				netRemaining: 500,
+			},
+			accountResource: {
+				energyRemaining: 7,
+			},
+			contractMap: {
+				[account.address]: false,
+			},
+		})
+		const resolver = tronScanResolvers.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.TronAccount
+			&& '$$timestamps' in candidate.projections
+		))
+		if (resolver == null)
+			throw new Error('TronScan-Rest spec missing TronAccount.$$timestamps resolver')
+
+		const snapshot = await resolver.resolve.NetworkAddress.resolve(account, resolverContext)
+		expect(getAccount).toHaveBeenCalledWith(account.address)
+		expect(resolver.projections.name(snapshot)).toBe('Alice')
+		expect(resolver.projections.$$timestamps(snapshot)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$account: {
+					$network: network,
+					address: account.address,
+				},
+				timestampMs: 1_700_000_000_000,
+				source: Source.TronScan_Rest,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.TronAccount_Timestamp, [], 'balanceSun')]: 1000n,
+				[entityFieldAddressKey(EntityType.TronAccount_Timestamp, [], 'createdTimestampMs')]: 1_600_000_000_000,
+				[entityFieldAddressKey(EntityType.TronAccount_Timestamp, [], 'latestOperationTimestampMs')]: 1_650_000_000_000,
+				[entityFieldAddressKey(EntityType.TronAccount_Timestamp, [], 'totalTransactionCount')]: 12,
+				[entityFieldAddressKey(EntityType.TronAccount_Timestamp, [], 'netLimit')]: 500n,
+				[entityFieldAddressKey(EntityType.TronAccount_Timestamp, [], 'energyLimit')]: 7n,
+				[entityFieldAddressKey(EntityType.TronAccount_Timestamp, [], 'isContract')]: false,
+			},
+		}])
+	})
+
+	it('embeds TronAccount.$$tokenBalanceTimestamps after the token-list read', async () => {
+		getAccountTokens.mockResolvedValueOnce({
+			data: [{
+				contractAddress: 'Ttoken',
+				name: 'Token',
+				symbol: 'TOK',
+				tokenType: 'trc20',
+				balance: '42',
+			}],
+		})
+		const resolver = tronScanResolvers.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.TronAccount
+			&& '$$tokenBalanceTimestamps' in candidate.projections
+		))
+		if (resolver == null)
+			throw new Error('TronScan-Rest spec missing TronAccount.$$tokenBalanceTimestamps resolver')
+
+		const timestamps = await resolver.resolve.NetworkAddress.resolve(account, resolverContext)
+		expect(getAccountTokens).toHaveBeenCalledWith(account.address, 2)
+		expect(resolver.projections.$$tokenBalanceTimestamps(timestamps)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$account: {
+					$network: network,
+					address: account.address,
+				},
+				$token: {
+					$network: network,
+					tokenId: 'Ttoken',
+				},
+				timestampMs: 1_700_000_000_000,
+				source: Source.TronScan_Rest,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.TronAccountTokenBalance_Timestamp, [], '$token')]: {
+					[EntityMetaKey.Selector]: {
+						$network: network,
+						tokenId: 'Ttoken',
+					},
+				},
+				[entityFieldAddressKey(EntityType.TronAccountTokenBalance_Timestamp, [], 'standard')]: 'trc20',
+				[entityFieldAddressKey(EntityType.TronAccountTokenBalance_Timestamp, [], 'balance')]: 42n,
+				[entityFieldAddressKey(EntityType.TronAccountTokenBalance_Timestamp, [], 'tokenId')]: 'Ttoken',
+				[entityFieldAddressKey(EntityType.TronAccountTokenBalance_Timestamp, [], 'tokenName')]: 'Token',
+				[entityFieldAddressKey(EntityType.TronAccountTokenBalance_Timestamp, [], 'tokenSymbol')]: 'TOK',
+			},
+		}])
+	})
+
+	it('does not register direct TronAccount or token-balance timestamp resolvers', () => {
+		const entityTypes = tronScanResolvers.resolvers.map((resolver) => (
+			`${resolver.entityType}`
+		))
+		expect(entityTypes).not.toContain(`${EntityType.TronAccount_Timestamp}`)
+		expect(entityTypes).not.toContain(`${EntityType.TronAccountTokenBalance_Timestamp}`)
+		expect(entityTypes).not.toContain(`${EntityType.TronContract_Timestamp}`)
+		expect(entityTypes).not.toContain(`${EntityType.TronToken_Timestamp}`)
 	})
 })

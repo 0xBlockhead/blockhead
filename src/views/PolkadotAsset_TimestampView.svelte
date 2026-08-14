@@ -4,7 +4,6 @@
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -21,12 +20,7 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.PolkadotAsset_Timestamp> = $props()
 
-	const viewSelection = $derived(selection({
-		sources: selection.sources ?? [
-			Source.SubstrateSidecar_Rest,
-		],
-	}))
-	const polkadotAssetTimestamp = $derived(viewSelection({
+	const polkadotAssetTimestamp = $derived(selection({
 		fields: {
 			symbol: true,
 			name: true,
@@ -103,7 +97,7 @@
 
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
 						fields: {
 							blockNumber: true,
 						},
@@ -127,7 +121,7 @@
 
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
 						fields: {
 							blockHash: true,
 						},
@@ -199,7 +193,7 @@
 
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
 						fields: {
 							decimals: true,
 						},
@@ -225,7 +219,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
 						fields: {
 							supply: true,
 						},
@@ -249,7 +243,7 @@
 
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
 						fields: {
 							holderCount: true,
 						},
@@ -273,7 +267,7 @@
 
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
 						fields: {
 							existentialDepositPlancks: true,
 						},
@@ -299,7 +293,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
 						fields: {
 							owner: true,
 						},
@@ -321,7 +315,7 @@
 
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
 						fields: {
 							issuer: true,
 						},
@@ -343,7 +337,7 @@
 
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
 						fields: {
 							admin: true,
 						},
@@ -365,7 +359,7 @@
 
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
 						fields: {
 							freezer: true,
 						},

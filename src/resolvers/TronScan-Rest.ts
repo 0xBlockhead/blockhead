@@ -49,36 +49,12 @@ const tronNetworkReferenceApplicability = [
 	},
 ] as const
 
-const tronAccountTimestampApplicability = [
-	{
-		$account: tronNetworkReferenceApplicability[0],
-		source: Source.TronScan_Rest,
-	},
-	{
-		$account: tronNetworkReferenceApplicability[1],
-		source: Source.TronScan_Rest,
-	},
-] as const
-
 const tronTransactionReferenceApplicability = [
 	{
 		$transaction: tronNetworkReferenceApplicability[0],
 	},
 	{
 		$transaction: tronNetworkReferenceApplicability[1],
-	},
-] as const
-
-const tronAccountTokenTimestampApplicability = [
-	{
-		$account: tronNetworkReferenceApplicability[0],
-		$token: tronNetworkReferenceApplicability[0],
-		source: Source.TronScan_Rest,
-	},
-	{
-		$account: tronNetworkReferenceApplicability[1],
-		$token: tronNetworkReferenceApplicability[1],
-		source: Source.TronScan_Rest,
 	},
 ] as const
 
@@ -633,37 +609,6 @@ export default {
 		}),
 
 		defineResolver({
-			entityType: EntityType.TronAccount_Timestamp,
-			resolve: {
-				AccountTimestampMsSource: {
-					appliesTo: tronAccountTimestampApplicability,
-					resolve: async ({ $account }) => {
-						assertTronMainnet($account.$network)
-						const { getAccount } = await import('$/sources/TronScan/Rest/queries.ts')
-						const account = await getAccount($account.address)
-						return {
-							balanceSun: bigintFromWire(account.balanceStr ?? account.balance),
-							createdTimestampMs: account.date_created,
-							latestOperationTimestampMs: account.latest_operation_time,
-							totalTransactionCount: account.totalTransactionCount ?? account.transactions,
-							netLimit: bigintFromWire(account.bandwidth?.netRemaining ?? account.bandwidth?.freeNetRemaining),
-							energyLimit: bigintFromWire(account.accountResource?.energyRemaining),
-							isContract: account.contractMap?.[$account.address],
-						}
-					},
-				}
-			},
-		})({
-				balanceSun: (account) => account.balanceSun,
-				createdTimestampMs: (account) => account.createdTimestampMs,
-				latestOperationTimestampMs: (account) => account.latestOperationTimestampMs,
-				totalTransactionCount: (account) => account.totalTransactionCount,
-				netLimit: (account) => account.netLimit,
-				energyLimit: (account) => account.energyLimit,
-				isContract: (account) => account.isContract,
-			}),
-
-		defineResolver({
 			entityType: EntityType.TronTransaction,
 			resolve: {
 				NetworkTransactionId: {
@@ -802,35 +747,6 @@ export default {
 			}),
 
 		defineResolver({
-			entityType: EntityType.TronAccountTokenBalance_Timestamp,
-			resolve: {
-				AccountTokenTimestampMsSource: {
-					appliesTo: tronAccountTokenTimestampApplicability,
-					resolve: async ({ $account, $token }, context) => {
-						assertTronMainnet($token.$network)
-						assertTronMainnet($account.$network)
-						const { getAccountTokens } = await import('$/sources/TronScan/Rest/queries.ts')
-						const token = (await getAccountTokens(
-							$account.address,
-							resolverContextRowLimit(context)
-						)).data.find((accountToken) => (
-							tokenIdFromTronScanToken(accountToken) === $token.tokenId
-						))
-						if (token == null)
-							throw new Error(`TronScan_Rest: account token balance not found for ${$account.address}:${$token.tokenId}`)
-						return accountTokenBalanceTimestampFieldsFromTronScanToken(token)
-					},
-				}
-			},
-		})({
-				standard: (timestamp) => timestamp.standard,
-				balance: (timestamp) => timestamp.balance,
-				tokenId: (timestamp) => timestamp.tokenId,
-				tokenName: (timestamp) => timestamp.tokenName,
-				tokenSymbol: (timestamp) => timestamp.tokenSymbol,
-			}),
-
-		defineResolver({
 			entityType: EntityType.TronAccount,
 			resolve: {
 				NetworkAddress: {
@@ -838,53 +754,55 @@ export default {
 					resolve: async ({ $network, address }, context) => {
 						assertTronMainnet($network)
 						const { getAccountTokens } = await import('$/sources/TronScan/Rest/queries.ts')
-							return (await getAccountTokens(
-								address,
-								resolverContextRowLimit(context)
-							)).data.flatMap((token) => {
-								const tokenId = tokenIdFromTronScanToken(token)
-								return (
-									tokenId == null ?
-										[]
-									:
-										[
-											{
-												[EntityMetaKey.Selector]: {
-													$account: {
-														$network,
-														address,
-													},
-													$token: {
-														$network,
-														tokenId,
-													},
-													timestampMs: Date.now(),
-													source: Source.TronScan_Rest,
+						const accountTokens = await getAccountTokens(
+							address,
+							resolverContextRowLimit(context)
+						)
+						const timestampMs = Date.now()
+						return accountTokens.data.flatMap((token) => {
+							const tokenId = tokenIdFromTronScanToken(token)
+							return (
+								tokenId == null ?
+									[]
+								:
+									[
+										{
+											[EntityMetaKey.Selector]: {
+												$account: {
+													$network,
+													address,
 												},
-												[EntityMetaKey.Fields]: Object.fromEntries(
-													Object.entries({
-														$token: {
-															[EntityMetaKey.Selector]: {
-																$network,
-																tokenId,
-															},
-														},
-														...accountTokenBalanceTimestampFieldsFromTronScanToken(token),
-													}).map(([fieldName, value]) => [
-														entityFieldAddressKey(EntityType.TronAccountTokenBalance_Timestamp, [], fieldName),
-														value,
-													])
-												),
+												$token: {
+													$network,
+													tokenId,
+												},
+												timestampMs,
+												source: Source.TronScan_Rest,
 											},
-										]
-								)
+											[EntityMetaKey.Fields]: Object.fromEntries(
+												Object.entries({
+													$token: {
+														[EntityMetaKey.Selector]: {
+															$network,
+															tokenId,
+														},
+													},
+													...accountTokenBalanceTimestampFieldsFromTronScanToken(token),
+												}).map(([fieldName, value]) => [
+													entityFieldAddressKey(EntityType.TronAccountTokenBalance_Timestamp, [], fieldName),
+													value,
+												])
+											),
+										},
+									]
+							)
 						})
 					},
 				}
 			},
-			})({
-					$$tokenBalanceTimestamps: (timestamps) => timestamps,
-				}),
+		})({
+			$$tokenBalanceTimestamps: (timestamps) => timestamps,
+		}),
 
 		defineResolver({
 			entityType: EntityType.TronTransaction,

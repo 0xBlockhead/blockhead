@@ -4,7 +4,6 @@
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -20,12 +19,7 @@
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.PolkadotAssetBalance_Timestamp>, 'prefetched'> = $props()
 
-	const viewSelection = $derived(selection({
-		sources: selection.sources ?? [
-			Source.SubstrateSidecar_Rest,
-		],
-	}))
-	const polkadotAssetBalanceTimestamp = $derived(viewSelection({
+	const polkadotAssetBalanceTimestamp = $derived(selection({
 		fields: {
 			freeBalancePlancks: true,
 			status: true,
@@ -123,7 +117,7 @@
 
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
 						fields: {
 							blockNumber: true,
 						},
@@ -147,7 +141,7 @@
 
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
 						fields: {
 							blockHash: true,
 						},
@@ -189,7 +183,7 @@
 
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
 						fields: {
 							reservedBalancePlancks: true,
 						},
@@ -213,7 +207,7 @@
 
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
 						fields: {
 							frozenBalancePlancks: true,
 						},
@@ -239,7 +233,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
 						fields: {
 							transferableBalancePlancks: true,
 						},
@@ -263,7 +257,7 @@
 
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
 						fields: {
 							lockedBalancePlancks: true,
 						},
@@ -303,7 +297,7 @@
 
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
 						fields: {
 							reason: true,
 						},

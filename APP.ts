@@ -51625,7 +51625,6 @@ export const schema = {
 				},
 				views: {
 					singular: {
-						query: { sources: [Source.SubstrateSidecar_Rest] },
 						summary: { title: ["symbol", "name"], value: ["status"], HeadingAfter: [{ field: "timestampMs", format: "timestamp" }] },
 						closed: ["$asset", { field: "timestampMs", format: "timestamp" }, "source"],
 						content: {
@@ -51667,7 +51666,6 @@ export const schema = {
 				},
 				views: {
 					singular: {
-						query: { sources: [Source.SubstrateSidecar_Rest] },
 						summary: { title: ["$asset"], value: [{ field: "freeBalancePlancks", format: "number" }], HeadingAfter: ["status"] },
 						closed: ["$account", "$asset", { field: "timestampMs", format: "timestamp" }],
 						content: {

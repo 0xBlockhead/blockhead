@@ -644,33 +644,6 @@ export default {
 			}),
 
 		defineResolver({
-			entityType: EntityType.PolkadotAccount_Timestamp,
-			resolve: {
-				AccountTimestampMsSource: {
-					resolve: async ({ $account, timestampMs, source }) => {
-						if (source !== Source.SubstrateSidecar_Rest) throw new Error(`SubstrateSidecar_Rest: unsupported source ${source}`)
-						assertPolkadotMainnet($account.$network)
-						const { getAccountBalanceInfo } = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
-						const account = await getAccountBalanceInfo({
-							accountId: $account.accountId,
-						})
-						return polkadotAccountTimestampFields(
-							$account,
-							account,
-							timestampMs
-						)
-					},
-				},
-			},
-		})({
-				$account: (timestamp) => timestamp.$account,
-				timestampMs: (timestamp) => timestamp.timestampMs,
-				source: (timestamp) => timestamp.source,
-				nonce: (timestamp) => timestamp.nonce,
-				freeBalancePlancks: (timestamp) => timestamp.freeBalancePlancks,
-			}),
-
-		defineResolver({
 			entityType: EntityType.PolkadotAccount,
 			resolve: {
 				NetworkAccountId: {
@@ -685,7 +658,6 @@ export default {
 							$network,
 							accountId,
 						}
-						const timestampMs = Date.now()
 						const [
 							assetBalances,
 							foreignAssetBalances,
@@ -699,6 +671,7 @@ export default {
 								binding: polkadotAssetHubSidecarBinding,
 							}),
 						])
+						const timestampMs = Date.now()
 						return {
 							$$assetBalanceTimestamps: [
 								...assetBalances.assets.map((asset) => (
@@ -792,142 +765,6 @@ export default {
 				[EntityMetaKey.Selector]: timestamp[EntityMetaKey.Selector],
 				[EntityMetaKey.Fields]: polkadotAssetTimestampProjectionFields(timestamp),
 			})),
-		}),
-
-		defineResolver({
-			entityType: EntityType.PolkadotAsset_Timestamp,
-			resolve: {
-				AssetTimestampMsSource: {
-					resolve: async ({ $asset, timestampMs, source }) => {
-						if (source !== Source.SubstrateSidecar_Rest)
-							throw new Error(`SubstrateSidecar_Rest: unsupported source ${source}`)
-						assertPolkadotMainnet($asset.$network)
-						if (
-							$asset.assetKind !== polkadotAssetKind.assets
-							&& $asset.assetKind !== polkadotAssetKind.foreignAssets
-						)
-							throw new Error(`SubstrateSidecar_Rest: unsupported assetKind ${$asset.assetKind}`)
-						if ($asset.assetId.length === 0)
-							throw new Error('SubstrateSidecar_Rest: asset ID must not be empty')
-
-						const {
-							getAssetInfo,
-							getForeignAssetInfo,
-							polkadotAssetHubSidecarBinding,
-						} = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
-						const asset = (
-							$asset.assetKind === polkadotAssetKind.assets ?
-								await getAssetInfo({
-									assetId: $asset.assetId,
-									binding: polkadotAssetHubSidecarBinding,
-								})
-							:
-								await getForeignAssetInfo({
-									assetId: $asset.assetId,
-									binding: polkadotAssetHubSidecarBinding,
-								})
-						)
-						return polkadotAssetTimestampFields(
-							$asset,
-							asset,
-							timestampMs
-						)
-					},
-				},
-			},
-		})({
-			$asset: (timestamp) => timestamp.$asset,
-			timestampMs: (timestamp) => timestamp.timestampMs,
-			source: (timestamp) => timestamp.source,
-			blockNumber: (timestamp) => timestamp.blockNumber,
-			blockHash: (timestamp) => timestamp.blockHash,
-			supply: (timestamp) => timestamp.supply,
-			holderCount: (timestamp) => timestamp.holderCount,
-			status: (timestamp) => timestamp.status,
-			symbol: (timestamp) => timestamp.symbol,
-			name: (timestamp) => timestamp.name,
-			decimals: (timestamp) => timestamp.decimals,
-			existentialDepositPlancks: (timestamp) => timestamp.existentialDepositPlancks,
-			owner: (timestamp) => timestamp.owner,
-			issuer: (timestamp) => timestamp.issuer,
-			admin: (timestamp) => timestamp.admin,
-			freezer: (timestamp) => timestamp.freezer,
-		}),
-
-		defineResolver({
-			entityType: EntityType.PolkadotAssetBalance_Timestamp,
-			resolve: {
-				AccountAssetTimestampMsSource: {
-					resolve: async ({ $account, $asset, timestampMs, source }) => {
-						if (source !== Source.SubstrateSidecar_Rest)
-							throw new Error(`SubstrateSidecar_Rest: unsupported source ${source}`)
-						assertPolkadotMainnet($account.$network)
-						assertPolkadotMainnet($asset.$network)
-
-						if ($asset.assetKind === polkadotAssetKind.assets) {
-							const {
-								getAccountAssetBalances,
-								polkadotAssetHubSidecarBinding,
-							} = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
-							const balances = await getAccountAssetBalances({
-								accountId: $account.accountId,
-								assets: [
-									$asset.assetId,
-								],
-								binding: polkadotAssetHubSidecarBinding,
-							})
-							const balance = balances.assets.find((asset) => (
-								String(asset.assetId) === $asset.assetId
-							))
-							if (balance == null)
-								throw new Error(`SubstrateSidecar_Rest: asset balance not found for ${$asset.assetId}`)
-
-							return polkadotAssetBalanceTimestampFields(
-								$account,
-								$asset,
-								balances.at,
-								balance,
-								timestampMs
-							)
-						}
-
-						if ($asset.assetKind === polkadotAssetKind.foreignAssets) {
-							const {
-								getAccountForeignAssetBalances,
-								polkadotAssetHubSidecarBinding,
-							} = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
-							const balances = await getAccountForeignAssetBalances({
-								accountId: $account.accountId,
-								binding: polkadotAssetHubSidecarBinding,
-							})
-							const balance = balances.foreignAssets.find((asset) => (
-								foreignAssetId(asset.multiLocation) === $asset.assetId
-							))
-							if (balance == null)
-								throw new Error(`SubstrateSidecar_Rest: foreign asset balance not found for ${$asset.assetId}`)
-
-							return polkadotAssetBalanceTimestampFields(
-								$account,
-								$asset,
-								balances.at,
-								balance,
-								timestampMs
-							)
-						}
-
-						throw new Error(`SubstrateSidecar_Rest: unsupported assetKind ${$asset.assetKind}`)
-					},
-				},
-			},
-		})({
-			$account: (timestamp) => timestamp.$account,
-			$asset: (timestamp) => timestamp.$asset,
-			timestampMs: (timestamp) => timestamp.timestampMs,
-			source: (timestamp) => timestamp.source,
-			blockNumber: (timestamp) => timestamp.blockNumber,
-			blockHash: (timestamp) => timestamp.blockHash,
-			freeBalancePlancks: (timestamp) => timestamp.freeBalancePlancks,
-			status: (timestamp) => timestamp.status,
 		}),
 
 		defineResolver({

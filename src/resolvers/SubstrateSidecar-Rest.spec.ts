@@ -58,20 +58,6 @@ const assetResolver = sidecar.resolvers.find((
 	{ entityType: EntityType.PolkadotAsset }
 > => resolver.entityType === EntityType.PolkadotAsset)
 
-const assetTimestampResolver = sidecar.resolvers.find((
-	resolver
-): resolver is Extract<
-	typeof sidecar.resolvers[number],
-	{ entityType: EntityType.PolkadotAsset_Timestamp }
-> => resolver.entityType === EntityType.PolkadotAsset_Timestamp)
-
-const assetBalanceTimestampResolver = sidecar.resolvers.find((
-	resolver
-): resolver is Extract<
-	typeof sidecar.resolvers[number],
-	{ entityType: EntityType.PolkadotAssetBalance_Timestamp }
-> => resolver.entityType === EntityType.PolkadotAssetBalance_Timestamp)
-
 const blockResolver = sidecar.resolvers.find((
 	resolver
 ): resolver is Extract<
@@ -118,8 +104,6 @@ if (
 	accountResolver == null
 	|| accountAssetBalanceResolver == null
 	|| assetResolver == null
-	|| assetTimestampResolver == null
-	|| assetBalanceTimestampResolver == null
 	|| blockResolver == null
 	|| palletResolver == null
 	|| networkBlockListResolver == null
@@ -226,6 +210,10 @@ describe('Substrate Sidecar Polkadot account resolver', () => {
 		}])
 	})
 
+	it('does not register a direct PolkadotAccount_Timestamp resolver', () => {
+		expect(sidecar.resolvers.map((resolver) => `${resolver.entityType}`)).not.toContain(`${EntityType.PolkadotAccount_Timestamp}`)
+	})
+
 	it('rejects unsupported networks before transport', async () => {
 		await expect(accountResolver.resolve[
 			'NetworkAccountId'
@@ -310,6 +298,36 @@ describe('Substrate Sidecar Asset Hub asset projections', () => {
 	beforeEach(() => {
 		sourceFetch.mockReset()
 		vi.spyOn(Date, 'now').mockReturnValue(1_753_000_100_000)
+	})
+
+	it('stamps asset-balance observations after both Sidecar reads settle', async () => {
+		const assetBalances = Promise.withResolvers<Response>()
+		const foreignAssetBalances = Promise.withResolvers<Response>()
+		sourceFetch
+			.mockReturnValueOnce(assetBalances.promise)
+			.mockReturnValueOnce(foreignAssetBalances.promise)
+
+		const snapshot = accountAssetBalanceResolver.resolve.NetworkAccountId.resolve(account, context)
+		const dateNowCallCountBeforeReadsSettle = vi.mocked(Date.now).mock.calls.length
+		assetBalances.resolve(new Response(JSON.stringify({
+			at: {
+				hash: '0xAH_HASH',
+				height: '19148225',
+			},
+			assets: [],
+		})))
+		await Promise.resolve()
+		expect(Date.now).toHaveBeenCalledTimes(dateNowCallCountBeforeReadsSettle)
+		foreignAssetBalances.resolve(new Response(JSON.stringify({
+			at: {
+				hash: '0xAH_FOREIGN_HASH',
+				height: '19148226',
+			},
+			foreignAssets: [],
+		})))
+
+		await snapshot
+		expect(Date.now).toHaveBeenCalledTimes(dateNowCallCountBeforeReadsSettle + 1)
 	})
 
 	it('projects PolkadotAccount.$$assetBalanceTimestamps from assets + foreign assets', async () => {
@@ -435,47 +453,6 @@ describe('Substrate Sidecar Asset Hub asset projections', () => {
 		}])
 	})
 
-	it('resolves singular PolkadotAsset_Timestamp and PolkadotAssetBalance_Timestamp tips', async () => {
-		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify(assetInfo)))
-		const assetSelector = {
-			$network: account.$network,
-			assetKind: 'assets',
-			assetId: '1984',
-		}
-		const assetTimestamp = await assetTimestampResolver.resolve.AssetTimestampMsSource.resolve({
-			$asset: assetSelector,
-			timestampMs: 1_753_000_100_000,
-			source: Source.SubstrateSidecar_Rest,
-		}, context)
-		expect(assetTimestampResolver.projections.symbol(assetTimestamp)).toBe('USDt')
-		expect(assetTimestampResolver.projections.holderCount(assetTimestamp)).toBe(13_853)
-
-		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
-			at: {
-				hash: '0xAH_HASH',
-				height: '19148225',
-			},
-			assets: [
-				{
-					assetId: '1984',
-					balance: '42',
-					isFrozen: false,
-				},
-			],
-		})))
-		const balanceTimestamp = await assetBalanceTimestampResolver.resolve.AccountAssetTimestampMsSource.resolve({
-			$account: account,
-			$asset: assetSelector,
-			timestampMs: 1_753_000_100_000,
-			source: Source.SubstrateSidecar_Rest,
-		}, context)
-		expect(assetBalanceTimestampResolver.projections.freeBalancePlancks(balanceTimestamp)).toBe(42n)
-		expect(assetBalanceTimestampResolver.projections.status(balanceTimestamp)).toBe('Live')
-		expect(sourceFetch.mock.calls[1][1]).toBe(
-			`http://127.0.0.1:8081/accounts/${account.accountId}/asset-balances?assets%5B%5D=1984`
-		)
-	})
-
 	it('projects foreignAssets PolkadotAsset tip metadata from getForeignAssetInfo', async () => {
 		const foreignAssetId = JSON.stringify(foreignMultiLocation)
 		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
@@ -506,6 +483,12 @@ describe('Substrate Sidecar Asset Hub asset projections', () => {
 			[entityFieldAddressKey(EntityType.PolkadotAsset_Timestamp, [], 'blockHash')]: '0xAH_FOREIGN_HASH',
 			[entityFieldAddressKey(EntityType.PolkadotAsset_Timestamp, [], 'supply')]: 77_998_622_058_218n,
 		})
+	})
+
+	it('does not register direct PolkadotAsset_Timestamp or PolkadotAssetBalance_Timestamp resolvers', () => {
+		const entityTypes = sidecar.resolvers.map((resolver) => `${resolver.entityType}`)
+		expect(entityTypes).not.toContain(`${EntityType.PolkadotAsset_Timestamp}`)
+		expect(entityTypes).not.toContain(`${EntityType.PolkadotAssetBalance_Timestamp}`)
 	})
 
 	it('rejects unknown PolkadotAsset assetKind without transport', async () => {
