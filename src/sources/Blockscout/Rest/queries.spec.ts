@@ -215,6 +215,21 @@ describe('Blockscout account-abstraction queries', () => {
 		)
 	})
 
+	it('treats an absent smart-contract detail as unverified', async () => {
+		vi.spyOn(globalThis, 'fetch')
+			.mockResolvedValueOnce(new Response(null, { status: 404 }))
+			.mockResolvedValueOnce(new Response(null, { status: 500 }))
+
+		await expect(getSmartContract({
+			chainId: 1,
+			address: hex('A', 40),
+		})).resolves.toBeNull()
+		await expect(getSmartContract({
+			chainId: 1,
+			address: hex('A', 40),
+		})).rejects.toThrow('500')
+	})
+
 	it('returns validated endpoint-native block rows', async () => {
 		const block = {
 			base_fee_per_gas: '1000000000',

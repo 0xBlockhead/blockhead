@@ -22,6 +22,7 @@ const getBlockByNumber = vi.hoisted(() => vi.fn())
 const getErc4337BundlerDetail = vi.hoisted(() => vi.fn())
 const getErc4337SmartAccountList = vi.hoisted(() => vi.fn())
 const getStats = vi.hoisted(() => vi.fn())
+const getSmartContract = vi.hoisted(() => vi.fn())
 const getSmartContracts = vi.hoisted(() => vi.fn())
 const getTransactionByHash = vi.hoisted(() => vi.fn())
 const getTransactionLogs = vi.hoisted(() => vi.fn())
@@ -41,6 +42,7 @@ vi.mock('$/sources/Blockscout/Rest/queries.ts', async (importOriginal) => ({
 	getErc4337BundlerDetail,
 	getErc4337SmartAccountList,
 	getStats,
+	getSmartContract,
 	getSmartContracts,
 	getTransactionByHash,
 	getTransactionLogs,
@@ -1195,6 +1197,19 @@ describe('Blockscout_Rest verified contracts', () => {
 				},
 			},
 		}])
+	})
+
+	it('keeps ABI and implementation absent when the address is not a verified contract', async () => {
+		getSmartContract.mockResolvedValue(null)
+		const contractResolver = blockscoutRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.EvmContract
+			&& 'EvmNetworkAddress' in candidate.resolve
+			&& 'abi' in candidate.projections
+		))
+		if (contractResolver == null || !('EvmNetworkAddress' in contractResolver.resolve))
+			throw new Error('Blockscout_Rest: missing contract detail resolver')
+
+		await expect(contractResolver.resolve.EvmNetworkAddress.resolve(contract, context)).resolves.toEqual({})
 	})
 })
 

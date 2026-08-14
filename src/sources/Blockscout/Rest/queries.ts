@@ -966,7 +966,7 @@ export const getSmartContracts = async ({ chainId, limit }: {
 	})
 }
 
-export const getSmartContract = ({
+export const getSmartContract = async ({
 	chainId,
 	address,
 }: {
@@ -977,10 +977,15 @@ export const getSmartContract = ({
 	if (normalized == null)
 		throw new Error('Blockscout smart contract: invalid address')
 
-	return getBlockscoutJson<BlockscoutSmartContract>({
+	const response = await getBlockscoutResponse({
 		binding: requireBlockscoutBinding(chainId, ApiFamily.BlockscoutRestV2),
 		path: `/smart-contracts/${normalized}`,
 	})
+	if (response.status === 404)
+		return null
+
+	await throwIfHttpNotOk(response, response.url)
+	return response.json<BlockscoutSmartContract>()
 }
 
 export const getCode = async ({ chainId, address }: {

@@ -49,17 +49,26 @@ const statusFromAmboss = (isClosed: boolean) => (
 		LightningChannelStatus.Open
 )
 
-const feeRatePpmFromAmbossPolicy = (
-	policy: {
+const agreedChannelFeeRatePpm = (
+	node1Policy: {
+		fee_rate_milli_msat: number | string
+		disabled: boolean
+	} | null | undefined,
+	node2Policy: {
 		fee_rate_milli_msat: number | string
 		disabled: boolean
 	} | null | undefined
-) => (
-	policy == null || policy.disabled ?
-		undefined
-	:
-		Number(policy.fee_rate_milli_msat)
-)
+) => {
+	if (node1Policy == null || node2Policy == null)
+		return undefined
+
+	const node1FeeRate = Number(node1Policy.fee_rate_milli_msat)
+	const node2FeeRate = Number(node2Policy.fee_rate_milli_msat)
+	if (!Number.isFinite(node1FeeRate) || node1FeeRate !== node2FeeRate)
+		return undefined
+
+	return node1FeeRate
+}
 
 const nodeSnapshotFromAmbossNode = (
 	node: Awaited<ReturnType<typeof import('$/sources/Amboss/Graphql/queries.ts').getNode>>
@@ -99,9 +108,9 @@ const channelTimestampSnapshotFromAmbossEdge = (
 		closedInfo?.close_transaction_id
 		?? closeTransaction?.id
 	)
-	const feeRatePpm = (
-		feeRatePpmFromAmbossPolicy(edgeInfo.node1_policy)
-		?? feeRatePpmFromAmbossPolicy(edgeInfo.node2_policy)
+	const feeRatePpm = agreedChannelFeeRatePpm(
+		edgeInfo.node1_policy,
+		edgeInfo.node2_policy
 	)
 
 	return {
@@ -150,27 +159,6 @@ const peerPublicKeyFromAmbossChannel = (
 		channel.node2_pub
 	:
 		channel.node1_pub
-)
-
-const localPolicyFromAmbossChannel = (
-	publicKey: string,
-	channel: {
-		node1_pub: string
-		node2_pub: string
-		node1_policy?: {
-			fee_rate_milli_msat: number | string
-			disabled: boolean
-		} | null
-		node2_policy?: {
-			fee_rate_milli_msat: number | string
-			disabled: boolean
-		} | null
-	}
-) => (
-	channel.node1_pub === publicKey ?
-		channel.node1_policy
-	:
-		channel.node2_policy
 )
 
 export default {
@@ -256,8 +244,9 @@ export default {
 							rows: channels.channel_list.list.map((channel) => {
 								const funding = parseAmbossChannelFundingPoint(channel.chan_point)
 								const peerPublicKey = peerPublicKeyFromAmbossChannel(publicKey, channel)
-								const feeRatePpm = feeRatePpmFromAmbossPolicy(
-									localPolicyFromAmbossChannel(publicKey, channel)
+								const feeRatePpm = agreedChannelFeeRatePpm(
+									channel.node1_policy,
+									channel.node2_policy
 								)
 								const timestampMs = timestampMsFromChannelWire(channel.last_update)
 

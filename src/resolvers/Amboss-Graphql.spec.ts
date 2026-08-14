@@ -220,7 +220,6 @@ describe('Amboss GraphQL Lightning node/channel resolvers', () => {
 							[EntityMetaKey.Fields]: {
 								[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'capacitySats')]: 1000000n,
 								[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'updatedAtMs')]: 1_700_000_000_000,
-								[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'feeRatePpm')]: 250,
 							},
 						},
 					],
@@ -307,12 +306,12 @@ describe('Amboss GraphQL Lightning node/channel resolvers', () => {
 
 		expect(channelTimestampResolver.projections.status(timestampSnapshot)).toBe(LightningChannelStatus.Open)
 		expect(channelTimestampResolver.projections.capacitySats(timestampSnapshot)).toBe(1000000n)
-		expect(channelTimestampResolver.projections.feeRatePpm(timestampSnapshot)).toBe(250)
+		expect(channelTimestampResolver.projections.feeRatePpm(timestampSnapshot)).toBeUndefined()
 		expect(channelTimestampResolver.projections.closingTransactionId(timestampSnapshot)).toBeUndefined()
 		expect(channelTimestampResolver.projections.closedAtMs(timestampSnapshot)).toBeUndefined()
 	})
 
-	it('falls back to node2 policy fee rate when node1 policy is absent', async () => {
+	it('omits channel feeRatePpm when directional policies disagree or one side is absent', async () => {
 		getEdge.mockResolvedValue({
 			long_channel_id: '123',
 			short_channel_id: '1x2x3',
@@ -346,7 +345,47 @@ describe('Amboss GraphQL Lightning node/channel resolvers', () => {
 			source: Source.Amboss_Graphql,
 		}, resolverContext)
 
-		expect(channelTimestampResolver.projections.feeRatePpm(timestampSnapshot)).toBe(400)
+		expect(channelTimestampResolver.projections.feeRatePpm(timestampSnapshot)).toBeUndefined()
+	})
+
+	it('keeps channel feeRatePpm only when both directional policies agree', async () => {
+		getEdge.mockResolvedValue({
+			long_channel_id: '123',
+			short_channel_id: '1x2x3',
+			graph: {
+				info: {
+					capacity: '1000000',
+					is_closed: false,
+					last_update: '1700000000',
+					chan_point: 'abcdef0123456789:1',
+					node1_pub: publicKey,
+					node2_pub: peerPublicKey,
+					node1_policy: {
+						fee_rate_milli_msat: '250',
+						disabled: false,
+					},
+					node2_policy: {
+						fee_rate_milli_msat: '250',
+						disabled: false,
+					},
+					closed_info: null,
+					transactions: {
+						close_transaction: null,
+					},
+				},
+			},
+		})
+
+		const timestampSnapshot = await channelTimestampResolver.resolve.ChannelTimestampMsSource.resolve({
+			$channel: {
+				$network: lightningNetwork,
+				channelId: '123',
+			},
+			timestampMs: 1_700_000_000_000,
+			source: Source.Amboss_Graphql,
+		}, resolverContext)
+
+		expect(channelTimestampResolver.projections.feeRatePpm(timestampSnapshot)).toBe(250)
 	})
 
 	it('projects enrolled closing clocks from Amboss closed_info', async () => {

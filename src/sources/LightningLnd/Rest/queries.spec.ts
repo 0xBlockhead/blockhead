@@ -28,6 +28,7 @@ import {
 	listInvoices,
 	listPayments,
 	listPeers,
+	lookupGraphNode,
 } from '$/sources/LightningLnd/Rest/queries.ts'
 
 const binding = bindings[Source.LightningLnd_Rest][0]
@@ -80,6 +81,26 @@ describe('LND server-authenticated public graph reads', () => {
 			publicKey,
 			includeChannels: true,
 		})).rejects.toThrow('foreign channel')
+	})
+
+	it('treats a missing public-graph node as absent without fabricating an owner', async () => {
+		sourceFetch.mockResolvedValueOnce(new Response('not found', {
+			status: 404,
+		}))
+		await expect(lookupGraphNode({
+			publicKey,
+		})).resolves.toBeUndefined()
+
+		sourceFetch.mockResolvedValueOnce(new Response('not found', {
+			status: 404,
+		}))
+		await expect(getNodeInfo({
+			publicKey,
+		})).rejects.toThrow(`node not found ${publicKey}`)
+		expect(sourceFetch).toHaveBeenLastCalledWith(
+			binding,
+			`https://127.0.0.1:8080/v1/graph/node/${publicKey}?include_channels=false`
+		)
 	})
 
 	it('loads an exact public channel edge without numeric coercion', async () => {
@@ -259,6 +280,19 @@ describe('LND server-authenticated public graph reads', () => {
 			forwarding_events: [
 				duplicateForward,
 				duplicateForward,
+			],
+		})
+		await expect(getForwardingHistory()).rejects.toThrow('ambiguous or duplicate event')
+
+		respond({
+			forwarding_events: [
+				duplicateForward,
+				{
+					...duplicateForward,
+					chan_id_out: '789',
+					outgoing_htlc_id: '9',
+					timestamp_ns: '1700000000000000001',
+				},
 			],
 		})
 		await expect(getForwardingHistory()).rejects.toThrow('ambiguous or duplicate event')

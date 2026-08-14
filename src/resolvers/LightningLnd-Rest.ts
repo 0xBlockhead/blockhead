@@ -81,6 +81,18 @@ const channelPointParts = (channelPoint: string) => {
 	}
 }
 
+const agreedChannelFeeRatePpm = (
+	node1Policy: LndChannelEdge['node1_policy'],
+	node2Policy: LndChannelEdge['node2_policy']
+) => {
+	const node1FeeRate = node1Policy?.fee_rate_milli_msat
+	const node2FeeRate = node2Policy?.fee_rate_milli_msat
+	if (node1FeeRate == null || node2FeeRate == null || node1FeeRate !== node2FeeRate)
+		return undefined
+
+	return Number(node1FeeRate)
+}
+
 const channelStatusFromLndChannel = (channel: LndChannel) => (
 	channel.active === true ?
 		LightningChannelStatus.Active
@@ -141,6 +153,7 @@ const channelFieldsFromLndEdge = (
 		:
 			channelPointParts(edge.chan_point)
 	)
+	const feeRatePpm = agreedChannelFeeRatePpm(edge.node1_policy, edge.node2_policy)
 	return {
 		$node1: {
 			[EntityMetaKey.Selector]: {
@@ -175,8 +188,8 @@ const channelFieldsFromLndEdge = (
 					...(edge.last_update != null && {
 						[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'updatedAtMs')]: edge.last_update * 1000,
 					}),
-					...(edge.node1_policy?.fee_rate_milli_msat != null && {
-						[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'feeRatePpm')]: Number(edge.node1_policy.fee_rate_milli_msat),
+					...(feeRatePpm != null && {
+						[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'feeRatePpm')]: feeRatePpm,
 					}),
 				},
 			},
@@ -274,9 +287,7 @@ const channelTimestampFieldsFromLndEdge = (
 	),
 	capacitySats: bigintFromWire(edge.capacity ?? channel?.capacity),
 	updatedAtMs: edge.last_update == null ? undefined : edge.last_update * 1000,
-	...(edge.node1_policy?.fee_rate_milli_msat != null && {
-		feeRatePpm: Number(edge.node1_policy.fee_rate_milli_msat),
-	}),
+	feeRatePpm: agreedChannelFeeRatePpm(edge.node1_policy, edge.node2_policy),
 })
 
 const channelRowFromLndChannel = (channel: LndChannel) => {
@@ -719,16 +730,30 @@ export default {
 				LocalNodeStatePublicKey: {
 					resolve: async ({ $localNodeState, publicKey }) => {
 						assertLightningNetwork($localNodeState.$network.$network)
-						const { listPeers } = await import('$/sources/LightningLnd/Rest/queries.ts')
+						const { listPeers, lookupGraphNode } = await import('$/sources/LightningLnd/Rest/queries.ts')
 						const peer = (await listPeers()).peers?.find((peer) => peer.pub_key === publicKey)
 						if (peer == null)
 							throw new Error(`LightningLnd_Rest: peer not found ${publicKey}`)
 
-						return peerFieldsFromLndPeer(peer, $localNodeState, Date.now())
+						const graphNode = await lookupGraphNode({
+							publicKey,
+						})
+						return {
+							...peerFieldsFromLndPeer(peer, $localNodeState, Date.now()),
+							...(graphNode != null && {
+								$node: {
+									[EntityMetaKey.Selector]: {
+										$network: $localNodeState.$network.$network,
+										publicKey,
+									},
+								},
+							}),
+						}
 					},
 				},
 			},
 		})({
+			$node: (peer) => peer.$node,
 			$$timestamps: (peer) => peer.$$timestamps,
 		}),
 

@@ -4289,6 +4289,9 @@ export default {
 							chainId: evmChainIdFromNetworkSelector($network),
 							address,
 						})
+						if (details == null)
+							return {}
+
 						const implementationAddress = hexLowerOfByteSize(
 							details.implementations?.at(0)?.address_hash ?? '',
 							20

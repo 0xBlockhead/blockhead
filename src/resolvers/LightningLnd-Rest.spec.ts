@@ -21,6 +21,7 @@ const {
 	listInvoices,
 	listPayments,
 	listPeers,
+	lookupGraphNode,
 } = vi.hoisted(() => ({
 	getChannelBalance: vi.fn(),
 	getChannelInfo: vi.fn(),
@@ -35,6 +36,7 @@ const {
 	listInvoices: vi.fn(),
 	listPayments: vi.fn(),
 	listPeers: vi.fn(),
+	lookupGraphNode: vi.fn(),
 }))
 
 vi.mock('$/sources/LightningLnd/Rest/queries.ts', () => ({
@@ -51,6 +53,7 @@ vi.mock('$/sources/LightningLnd/Rest/queries.ts', () => ({
 	listInvoices,
 	listPayments,
 	listPeers,
+	lookupGraphNode,
 }))
 
 const { default: lightningLnd } = await import('$/resolvers/LightningLnd-Rest.ts')
@@ -349,7 +352,7 @@ describe('Lightning LND resolver ownership', () => {
 		}, context)).rejects.toThrow('node not found')
 	})
 
-	it('resolves public graph channels with feeRatePpm and local fallback funding', async () => {
+	it('resolves public graph channels without collapsing directional fees', async () => {
 		vi.spyOn(Date, 'now').mockReturnValue(1_700_000_000_001)
 		getChannelInfo.mockResolvedValue(edge)
 		listChannels.mockResolvedValue({ channels: [channel] })
@@ -380,6 +383,19 @@ describe('Lightning LND resolver ownership', () => {
 			status: 'Active',
 			capacitySats: 250000n,
 			updatedAtMs: 1_700_000_010_000,
+			feeRatePpm: undefined,
+		})
+
+		getChannelInfo.mockResolvedValueOnce({
+			...edge,
+			node2_policy: {
+				fee_rate_milli_msat: '125',
+				disabled: false,
+			},
+		})
+		await expect(
+			channelTimestampResolver.resolve.ChannelTimestampMsSource.resolve(timestampSelector, context)
+		).resolves.toMatchObject({
 			feeRatePpm: 125,
 		})
 
@@ -427,7 +443,7 @@ describe('Lightning LND resolver ownership', () => {
 				[EntityMetaKey.Fields]: expect.objectContaining({
 					[entityFieldAddressKey(EntityType.LightningChannel, [], '$$timestamps')]: [expect.objectContaining({
 						[EntityMetaKey.Fields]: expect.objectContaining({
-							[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'feeRatePpm')]: 125,
+							[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'capacitySats')]: 250000n,
 						}),
 					})],
 				}),
@@ -548,6 +564,7 @@ describe('Lightning LND resolver ownership', () => {
 				},
 			}),
 		])
+		expect(lookupGraphNode).not.toHaveBeenCalled()
 		await expect(peerResolver.resolve.LocalNodeStatePublicKey.resolve({
 			$localNodeState,
 			publicKey: peerPublicKey,
@@ -558,7 +575,52 @@ describe('Lightning LND resolver ownership', () => {
 				}),
 			})],
 		})
+		expect(lookupGraphNode).toHaveBeenCalledWith({
+			publicKey: peerPublicKey,
+		})
 		expect(getNodeInfo).not.toHaveBeenCalled()
+	})
+
+	it('links a local peer to the public graph only when that node exists there', async () => {
+		listPeers.mockResolvedValue({ peers: [peer] })
+		lookupGraphNode.mockResolvedValueOnce({
+			node: {
+				pub_key: peerPublicKey,
+			},
+		})
+		const $localNodeState = {
+			connectionId: 'local-lnd',
+			$network: {
+				$network: lightningNetwork,
+			},
+		}
+		await expect(peerResolver.resolve.LocalNodeStatePublicKey.resolve({
+			$localNodeState,
+			publicKey: peerPublicKey,
+		}, context)).resolves.toMatchObject({
+			$node: {
+				[EntityMetaKey.Selector]: {
+					$network: lightningNetwork,
+					publicKey: peerPublicKey,
+				},
+			},
+		})
+
+		lookupGraphNode.mockResolvedValueOnce(undefined)
+		expect(
+			peerResolver.projections.$node(
+				await peerResolver.resolve.LocalNodeStatePublicKey.resolve({
+					$localNodeState,
+					publicKey: peerPublicKey,
+				}, context)
+			)
+		).toBeUndefined()
+
+		lookupGraphNode.mockRejectedValueOnce(new Error('graph unavailable'))
+		await expect(peerResolver.resolve.LocalNodeStatePublicKey.resolve({
+			$localNodeState,
+			publicKey: peerPublicKey,
+		}, context)).rejects.toThrow('graph unavailable')
 	})
 
 	it('pages modern forwarding occurrences and resolves an exact later-page forward', async () => {

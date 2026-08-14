@@ -318,7 +318,7 @@ export const getNetworkInfo = async () => (
 	)
 )
 
-export const getNodeInfo = async ({
+export const lookupGraphNode = async ({
 	publicKey,
 	includeChannels = false,
 }: {
@@ -326,11 +326,21 @@ export const getNodeInfo = async ({
 	includeChannels?: boolean
 }) => {
 	assertPublicKey(publicKey)
+	const response = await sourceFetch(
+		binding,
+		httpUrl(
+			binding,
+			`/v1/graph/node/${encodeURIComponent(publicKey)}?include_channels=${includeChannels}`
+		)
+	)
+	if (response.status === 404)
+		return undefined
+	if (!response.ok)
+		await throwHttpError(`${binding.source} /v1/graph/node/${publicKey}`, response)
+
 	const info = assertEnvelope(
 		nodeInfoWire,
-		await requestLightningLndRestJson({
-			path: `/v1/graph/node/${encodeURIComponent(publicKey)}?include_channels=${includeChannels}`,
-		}),
+		await response.json(),
 		'node info'
 	)
 	if (info.node.pub_key !== publicKey)
@@ -340,6 +350,23 @@ export const getNodeInfo = async ({
 		if (channel.node1_pub !== publicKey && channel.node2_pub !== publicKey)
 			throw new Error('LightningLnd_Rest: node graph response contains a foreign channel')
 	}
+	return info
+}
+
+export const getNodeInfo = async ({
+	publicKey,
+	includeChannels = false,
+}: {
+	publicKey: string
+	includeChannels?: boolean
+}) => {
+	const info = await lookupGraphNode({
+		publicKey,
+		includeChannels,
+	})
+	if (info == null)
+		throw new Error(`LightningLnd_Rest: node not found ${publicKey}`)
+
 	return info
 }
 
@@ -560,7 +587,7 @@ export const getForwardingHistory = async ({
 	)
 	const eventIdentities = new Set<string>()
 	for (const event of page.forwarding_events ?? []) {
-		const identity = `${event.chan_id_in}:${event.incoming_htlc_id}:${event.chan_id_out}:${event.outgoing_htlc_id}`
+		const identity = `${event.chan_id_in}:${event.incoming_htlc_id}`
 		if (eventIdentities.has(identity))
 			throw new Error('LightningLnd_Rest: forwarding page contains an ambiguous or duplicate event')
 
