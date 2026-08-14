@@ -114,6 +114,9 @@ export const erc4626Resolvers = [
 		entityType: EntityType.Erc4626Vault_Block,
 		resolve: {
 			VaultBlockNumberSource: {
+				appliesTo: [{
+					source: Source.Voltaire_JsonRpc,
+				}],
 				resolve: async ({
 					$vault,
 					blockNumber,
