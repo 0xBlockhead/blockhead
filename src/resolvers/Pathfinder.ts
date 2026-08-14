@@ -805,7 +805,10 @@ export default {
 			l1GasPrice: (snapshot) => snapshot.l1GasPrice,
 			l1DataGasPrice: (snapshot) => snapshot.l1DataGasPrice,
 			status: (snapshot) => snapshot.status,
-			$$transactions: (snapshot) => snapshot.$$transactions,
+			$$transactions: {
+				select: (snapshot) => snapshot.$$transactions,
+				resolveCount: (snapshot) => snapshot.$$transactions.length,
+			},
 		}),
 
 		defineResolver({

@@ -394,7 +394,10 @@ export default {
 			cumulativeDiff: (block) => block.cumulativeDiff,
 			hashListMerkle: (block) => block.hashListMerkle,
 			transactionCount: (block) => block.transactionCount,
-			$$transactions: (block) => block.transactions,
+			$$transactions: {
+				select: (block) => block.transactions,
+				resolveCount: (block) => block.transactionCount,
+			},
 		}),
 
 		defineResolver({

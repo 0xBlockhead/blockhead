@@ -381,6 +381,8 @@ describe('Pathfinder Starknet JSON-RPC account resolver', () => {
 				transactionHash: '0x4',
 			},
 		}])
+		expect(blockResolver.projections.$$transactions.resolveCount(blockByNumber)).toBe(1)
+		expect(blockResolver.projections.$$transactions.select(blockByNumber)).toEqual(blockByNumber.$$transactions)
 
 		const transactionIdentity = {
 			$network: contract.$network,

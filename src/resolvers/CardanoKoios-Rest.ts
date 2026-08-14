@@ -282,12 +282,15 @@ export default {
 			epoch: ({ block }) => block.epoch_no,
 			era: ({ block }) => block.era,
 			issuerVkey: ({ block }) => block.vrf_key ?? undefined,
-			$$transactions: ({ cardanoBlock, transactions }) => transactions.map(({ tx_hash }) => ({
-				[EntityMetaKey.Selector]: {
-					$network: cardanoBlock.$network,
-					hash: tx_hash,
-				},
-			})),
+			$$transactions: {
+				select: ({ cardanoBlock, transactions }) => transactions.map(({ tx_hash }) => ({
+					[EntityMetaKey.Selector]: {
+						$network: cardanoBlock.$network,
+						hash: tx_hash,
+					},
+				})),
+				resolveCount: ({ block }) => block.tx_count,
+			},
 		}),
 
 		defineResolver({

@@ -367,7 +367,8 @@ describe('Cardano Koios block hierarchy', () => {
 		expect(cardanoBlockResolver.projections.epoch(snapshot)).toBe(500)
 		expect(cardanoBlockResolver.projections.era(snapshot)).toBe('Conway')
 		expect(cardanoBlockResolver.projections.issuerVkey(snapshot)).toBe('vrf-key')
-		expect(cardanoBlockResolver.projections.$$transactions(snapshot)).toEqual([
+		expect(cardanoBlockResolver.projections.$$transactions.resolveCount(snapshot)).toBe(2)
+		expect(cardanoBlockResolver.projections.$$transactions.select(snapshot)).toEqual([
 			{
 				[EntityMetaKey.Selector]: {
 					$network: cardanoNetwork,

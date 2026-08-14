@@ -550,7 +550,8 @@ describe('Arweave_Rest block / info / resource browse resolvers', () => {
 			rewardPoolWinston: 3_026_104_059_201_252n,
 			transactionCount: 1,
 		})
-		expect(blockResolver.projections.$$transactions(snapshot)).toEqual([
+		expect(blockResolver.projections.$$transactions.resolveCount(snapshot)).toBe(1)
+		expect(blockResolver.projections.$$transactions.select(snapshot)).toEqual([
 			{
 				[EntityMetaKey.Selector]: {
 					$network: arweaveNetwork,
