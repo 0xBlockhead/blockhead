@@ -100,7 +100,8 @@ it('materializes source-owned feed and item observations from successful reads',
 			[entityFieldAddressKey(EntityType.RssItem_Timestamp, [], 'reachable')]: true,
 		},
 	}])
-	expect(feedResolver.projections.$$items(feedSnapshot)).toEqual([{
+	expect(feedResolver.projections.$$items.resolveCount(feedSnapshot)).toBe(1)
+	expect(feedResolver.projections.$$items.select(feedSnapshot)).toEqual([{
 		[EntityMetaKey.Selector]: {
 			$feed: { feedUrl: 'https://hnrss.org/frontpage' },
 			itemIdentityKind: 'Guid',

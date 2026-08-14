@@ -99,6 +99,7 @@ it('projects enrolled blockchain, subnet, validator, and P-Chain block fields', 
 				delegationFee: '2.0000',
 				uptime: '99.5',
 				connected: true,
+				delegatorCount: '3',
 				delegators: [],
 			}],
 		})
@@ -119,6 +120,7 @@ it('projects enrolled blockchain, subnet, validator, and P-Chain block fields', 
 				},
 				delegationFee: '2.0000',
 				connected: true,
+				delegatorCount: '3',
 				delegators: [{
 					txID: 'tx-delegator',
 					startTime: '1601000000',
@@ -165,6 +167,7 @@ it('projects enrolled blockchain, subnet, validator, and P-Chain block fields', 
 	expect(subnet.$$blockchains).toHaveLength(1)
 	expect(subnetResolver.projections.$$validators.resolveCount(subnet)).toBe(1)
 	expect(subnetResolver.projections.$$blockchains.resolveCount(subnet)).toBe(1)
+	expect(subnetResolver.projections.$$delegators.resolveCount(subnet)).toBe(3)
 	expect(subnet.$$timestamps[0][EntityMetaKey.Fields]).toMatchObject({
 		[entityFieldAddressKey(EntityType.AvalancheSubnet_Timestamp, [], 'validatorCount')]: 1,
 		[entityFieldAddressKey(EntityType.AvalancheSubnet_Timestamp, [], 'chainCount')]: 1,
@@ -179,7 +182,8 @@ it('projects enrolled blockchain, subnet, validator, and P-Chain block fields', 
 	expect(validator.stakeAmountNavax).toBe(2000000000000n)
 	expect(validator.delegationFeePercent).toBe(2)
 	expect(validator.rewardOwnerAddresses).toEqual(['P-avax1owner'])
-	expect(validatorResolver.projections.$$delegators(validator)).toEqual([{
+	expect(validatorResolver.projections.$$delegators.resolveCount(validator)).toBe(3)
+	expect(validatorResolver.projections.$$delegators.select(validator)).toEqual([{
 		[EntityMetaKey.Selector]: {
 			$validator: {
 				nodeId: 'NodeID-validator',
@@ -197,6 +201,9 @@ it('projects enrolled blockchain, subnet, validator, and P-Chain block fields', 
 			[entityFieldAddressKey(EntityType.AvalancheDelegator, [], 'potentialRewardNavax')]: 1000000000n,
 		},
 	}])
+	expect(validator.$$timestamps[0][EntityMetaKey.Fields]).toMatchObject({
+		[entityFieldAddressKey(EntityType.AvalancheValidator_Timestamp, [], 'observedDelegatorCount')]: 3,
+	})
 
 	const block = await blockResolver.resolve.NetworkHeight.resolve({
 		$network: {

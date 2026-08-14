@@ -140,7 +140,50 @@ describe('Zebra UTXO tip leftovers', () => {
 			hash: blockHash,
 		}, resolverContext)
 		expect(blockResolver.projections.transactionCount(byHash)).toBe(1)
+		expect(blockResolver.projections.$$transactions.resolveCount(byHash)).toBe(1)
 		expect(getBlock).toHaveBeenCalledTimes(2)
+	})
+
+	it('projects exact transaction input and output counts from the native transaction', async () => {
+		const network = {
+			slug: networkBySlug.zcash.slug,
+		}
+		getRawTransaction.mockResolvedValueOnce({
+			txid: 'd'.repeat(64),
+			hash: 'd'.repeat(64),
+			version: 5,
+			locktime: 0,
+			expiryheight: 2_800_040,
+			size: 200,
+			vin: [{
+				coinbase: '00',
+				sequence: 0,
+			}],
+			vout: [{
+				value: 1,
+				n: 0,
+				scriptPubKey: {
+					asm: '',
+					hex: '',
+					type: 'nonstandard',
+				},
+			}, {
+				value: 2,
+				n: 1,
+				scriptPubKey: {
+					asm: '',
+					hex: '',
+					type: 'nonstandard',
+				},
+			}],
+		})
+
+		const transaction = await transactionResolver.resolve.NetworkTxId.resolve({
+			$network: network,
+			txId: 'd'.repeat(64),
+		}, resolverContext)
+		expect(transactionResolver.projections.$$inputs.resolveCount(transaction)).toBe(1)
+		expect(transactionResolver.projections.$$outputs.resolveCount(transaction)).toBe(2)
 	})
 
 	it('projects Network.Utxo.$$blocks tip walk with authoritative resolveCount', async () => {

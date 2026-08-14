@@ -74,7 +74,8 @@ it('materializes source-owned feed and item observations from a healthy envelope
 			[entityFieldAddressKey(EntityType.RssFeed_Timestamp, [], 'observedItemCount')]: 1,
 		},
 	}])
-	expect(resolver.projections.$$items(snapshot)[0]).toMatchObject({
+	expect(resolver.projections.$$items.resolveCount(snapshot)).toBe(1)
+	expect(resolver.projections.$$items.select(snapshot)[0]).toMatchObject({
 		[EntityMetaKey.Selector]: {
 			itemIdentityKind: 'Guid',
 			itemIdentity: 'item-1',
@@ -91,7 +92,8 @@ it('keeps a valid empty feed distinguishable as an empty observation', async () 
 	getFeed.mockResolvedValueOnce({ status: 'ok', feed: { url: 'https://example.com/feed.xml', title: 'Empty Feed' }, items: [] })
 	const resolver = feedResolver()
 	const snapshot = await resolver.resolve.FeedUrl.resolve({ feedUrl: 'https://example.com/feed.xml' }, resolverContext)
-	expect(resolver.projections.$$items(snapshot)).toEqual([])
+	expect(resolver.projections.$$items.resolveCount(snapshot)).toBe(0)
+	expect(resolver.projections.$$items.select(snapshot)).toEqual([])
 	expect(resolver.projections.$$timestamps(snapshot)[0][EntityMetaKey.Fields]).toMatchObject({
 		[entityFieldAddressKey(EntityType.RssFeed_Timestamp, [], 'observedItemCount')]: 0,
 	})
@@ -107,8 +109,8 @@ it('withholds unsafe visible URLs from mapped metadata', async () => {
 	const snapshot = await resolver.resolve.FeedUrl.resolve({ feedUrl: 'https://example.com/feed.xml' }, resolverContext)
 	expect(resolver.projections.siteUrl(snapshot)).toBeUndefined()
 	expect(resolver.projections.imageUrl(snapshot)).toBeUndefined()
-	expect(resolver.projections.$$items(snapshot)[0][EntityMetaKey.Fields]).not.toHaveProperty(entityFieldAddressKey(EntityType.RssItem, [], 'link'))
-	expect(resolver.projections.$$items(snapshot)[0][EntityMetaKey.Fields]).not.toHaveProperty(entityFieldAddressKey(EntityType.RssItem, [], 'enclosureUrl'))
+	expect(resolver.projections.$$items.select(snapshot)[0][EntityMetaKey.Fields]).not.toHaveProperty(entityFieldAddressKey(EntityType.RssItem, [], 'link'))
+	expect(resolver.projections.$$items.select(snapshot)[0][EntityMetaKey.Fields]).not.toHaveProperty(entityFieldAddressKey(EntityType.RssItem, [], 'enclosureUrl'))
 })
 
 it('propagates provider failures instead of materializing a ready-empty feed', async () => {

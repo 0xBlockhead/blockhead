@@ -233,6 +233,19 @@ const blockTimestampMs = (block: AvalanchePlatformVmJsonBlock) => {
 		)
 }
 
+const validatorDelegatorCount = (validator: AvalanchePlatformVmValidator) => {
+	const count = (
+		validator.delegatorCount == null ?
+			validator.delegators?.length ?? 0
+		:
+			Number(validator.delegatorCount)
+	)
+	if (!Number.isSafeInteger(count) || count < 0)
+		throw new Error('AvalanchePlatformVm_JsonRpc: malformed validator delegator count')
+
+	return count
+}
+
 const validatorFields = (
 	validator: AvalanchePlatformVmValidator,
 	subnetId: string
@@ -260,6 +273,7 @@ const validatorFields = (
 		...(validator.delegationFee != null && {
 			delegationFeePercent: Number(validator.delegationFee),
 		}),
+		delegatorCount: validatorDelegatorCount(validator),
 		$subnet: {
 			[EntityMetaKey.Selector]: {
 				subnetId,
@@ -512,6 +526,10 @@ export default {
 									}
 								})
 							)),
+							delegatorCount: validators.reduce(
+								(sum, validator) => sum + validatorDelegatorCount(validator),
+								0
+							),
 							$$timestamps: [{
 								[EntityMetaKey.Selector]: {
 									$subnet: {
@@ -523,13 +541,7 @@ export default {
 								[EntityMetaKey.Fields]: {
 									[entityFieldAddressKey(EntityType.AvalancheSubnet_Timestamp, [], 'validatorCount')]: currentValidators.validators.length,
 									[entityFieldAddressKey(EntityType.AvalancheSubnet_Timestamp, [], 'delegatorCount')]: currentValidators.validators.reduce(
-										(sum, validator) => (
-											sum
-											+ (
-												validator.delegators?.length
-												?? Number(validator.delegatorCount ?? 0)
-											)
-										),
+										(sum, validator) => sum + validatorDelegatorCount(validator),
 										0
 									),
 									[entityFieldAddressKey(EntityType.AvalancheSubnet_Timestamp, [], 'totalStakeNavax')]: currentValidators.validators.reduce(
@@ -557,7 +569,10 @@ export default {
 				select: (subnet) => subnet.$$validators,
 				resolveCount: (subnet) => subnet.$$validators.length,
 			},
-			$$delegators: (subnet) => subnet.$$delegators,
+			$$delegators: {
+				select: (subnet) => subnet.$$delegators,
+				resolveCount: (subnet) => subnet.delegatorCount,
+			},
 			$$timestamps: (subnet) => subnet.$$timestamps,
 		}),
 
@@ -595,10 +610,7 @@ export default {
 									}),
 									[entityFieldAddressKey(EntityType.AvalancheValidator_Timestamp, [], 'validatorSetKind')]: validatorSetKind,
 									[entityFieldAddressKey(EntityType.AvalancheValidator_Timestamp, [], 'observedStakeNavax')]: bigintFromWire(validator.weight, 'validator weight'),
-									[entityFieldAddressKey(EntityType.AvalancheValidator_Timestamp, [], 'observedDelegatorCount')]: (
-										validator.delegators?.length
-										?? Number(validator.delegatorCount ?? 0)
-									),
+									[entityFieldAddressKey(EntityType.AvalancheValidator_Timestamp, [], 'observedDelegatorCount')]: validatorDelegatorCount(validator),
 								},
 							}],
 						}
@@ -614,7 +626,10 @@ export default {
 			delegationFeePercent: (validator) => validator.delegationFeePercent,
 			$subnet: (validator) => validator.$subnet,
 			$network: (validator) => validator.$network,
-			$$delegators: (validator) => validator.$$delegators,
+			$$delegators: {
+				select: (validator) => validator.$$delegators,
+				resolveCount: (validator) => validator.delegatorCount,
+			},
 			$$timestamps: (validator) => validator.$$timestamps,
 		}),
 

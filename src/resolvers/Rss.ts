@@ -143,7 +143,10 @@ export const rssResolvers = <_Source extends Source.Rss_Rest | Source.Rss2Json_R
 				}),
 				imageUrl: (snapshot) => snapshot.imageUrl,
 				$image: (snapshot) => snapshot.$image,
-				$$items: (snapshot) => snapshot.items,
+				$$items: {
+					select: (snapshot) => snapshot.items,
+					resolveCount: (snapshot) => snapshot.items.length,
+				},
 				$$timestamps: (snapshot) => snapshot.$$timestamps,
 			}),
 
