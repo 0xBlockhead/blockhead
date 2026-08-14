@@ -896,7 +896,10 @@ export default {
 				timestamp: (cast) => cast.timestamp,
 				mentionedProfileFids: (cast) => cast.mentionedProfileFids,
 				mentionedChannelIds: (cast) => cast.mentionedChannelIds,
-				$$embeds: (cast) => cast.$$embeds,
+				$$embeds: {
+					select: (cast) => cast.$$embeds,
+					resolveCount: (cast) => cast.$$embeds.length,
+				},
 				$$timestamps: (cast) => cast.$$timestamps,
 				threadHash: (cast) => cast.threadHash,
 				$channel: (cast) => cast.$channel,

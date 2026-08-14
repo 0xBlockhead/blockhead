@@ -561,10 +561,11 @@ describe('Snapchain Farcaster embeds', () => {
 			},
 		})
 
-		await expect(castResolver.resolve.FidHash.resolve({
+		const cast = await castResolver.resolve.FidHash.resolve({
 			fid: 42,
 			hash: parentHash,
-		})).resolves.toMatchObject({
+		})
+		expect(cast).toMatchObject({
 			$$embeds: [
 				{
 					[EntityMetaKey.Selector]: {
@@ -586,6 +587,8 @@ describe('Snapchain Farcaster embeds', () => {
 				},
 			],
 		})
+		expect(castResolver.projections.$$embeds.resolveCount(cast)).toBe(2)
+		expect(castResolver.projections.$$embeds.select(cast)).toHaveLength(2)
 	})
 
 	it('projects quotedPreviewText from the embedded cast body', async () => {

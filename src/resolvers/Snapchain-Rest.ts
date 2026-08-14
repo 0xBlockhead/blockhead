@@ -666,7 +666,10 @@ export default {
 				mentions: (cast) => cast.mentions,
 				mentionedProfileFids: (cast) => cast.mentionedProfileFids,
 				$channel: (cast) => cast.$channel,
-				$$embeds: (cast) => cast.$$embeds,
+				$$embeds: {
+					select: (cast) => cast.$$embeds,
+					resolveCount: (cast) => cast.$$embeds.length,
+				},
 			}),
 
 		defineResolver({

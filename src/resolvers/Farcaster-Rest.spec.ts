@@ -456,7 +456,8 @@ describe('Farcaster public cast direct replies', () => {
 			username: 'alice',
 			hashPrefix: '0xabcdef',
 		})
-		const embeds = castResolver.projections.$$embeds(cast)
+		const embeds = castResolver.projections.$$embeds.select(cast)
+		expect(castResolver.projections.$$embeds.resolveCount(cast)).toBe(2)
 		expect(embeds).toHaveLength(2)
 		expect(embeds[0]?.[EntityMetaKey.Selector]).toEqual({
 			$cast: { fid: 42, hash: '0xabcdef' },

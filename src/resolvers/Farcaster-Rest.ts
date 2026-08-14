@@ -640,7 +640,10 @@ export default {
 			$channel: (cast) => cast.$channel,
 			timestamp: (cast) => cast.timestamp,
 			$$directReplies: (cast) => cast.$$directReplies,
-			$$embeds: (cast) => cast.$$embeds,
+			$$embeds: {
+				select: (cast) => cast.$$embeds,
+				resolveCount: (cast) => cast.$$embeds.length,
+			},
 			$$timestamps: (cast) => cast.$$timestamps,
 			threadHash: (cast) => cast.threadHash,
 		}),

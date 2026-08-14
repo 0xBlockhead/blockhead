@@ -815,6 +815,9 @@ describe('Neynar Farcaster cast resolver', () => {
 				text: 'Counted cast',
 			},
 			{
+				embeds: [{
+					url: 'https://example.com/embed',
+				}],
 				reactions: {
 					likes: [],
 					likes_count: 0,
@@ -829,6 +832,8 @@ describe('Neynar Farcaster cast resolver', () => {
 			fid: 42,
 			hash: '0xabcdef',
 		}, resolverContext)
+		expect(castResolver.projections.$$embeds.resolveCount(cast)).toBe(1)
+		expect(castResolver.projections.$$embeds.select(cast)).toHaveLength(1)
 		expect(castResolver.projections.$$timestamps(cast)).toEqual([{
 			[EntityMetaKey.Selector]: {
 				$cast: {
