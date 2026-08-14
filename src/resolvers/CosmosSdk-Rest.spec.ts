@@ -1055,6 +1055,7 @@ describe('Cosmos SDK governance proposal resolver', () => {
 				status: 'PROPOSAL_STATUS_PASSED',
 				title: 'Passed proposal',
 				summary: 'Passed proposal summary',
+				metadata: 'ipfs://bafyproposal',
 			},
 		})
 
@@ -1067,6 +1068,7 @@ describe('Cosmos SDK governance proposal resolver', () => {
 		expect(snapshot.$$timestamps[0][EntityMetaKey.Fields]).toEqual({
 			[entityFieldAddressKey(EntityType.CosmosGovernanceProposal_Timestamp, [], 'status')]: 'PROPOSAL_STATUS_PASSED',
 		})
+		expect(governanceProposalResolver.projections.metadata(snapshot)).toBe('ipfs://bafyproposal')
 		expect(cosmosSdk.resolvers.some((resolver) => (
 			resolver.entityType === EntityType.CosmosGovernanceProposal_Timestamp
 		))).toBe(false)

@@ -1196,6 +1196,7 @@ export default {
 						return {
 							title: proposal.title,
 							summary: proposal.summary,
+							metadata: proposal.metadata,
 							$$timestamps: [
 								cosmosProposalTimestampReference(
 									entitySelector,
@@ -1210,6 +1211,7 @@ export default {
 		})({
 				title: (proposal) => proposal.title,
 				summary: (proposal) => proposal.summary,
+				metadata: (proposal) => proposal.metadata,
 				$$timestamps: (proposal) => proposal.$$timestamps,
 			}),
 
