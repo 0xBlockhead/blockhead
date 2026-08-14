@@ -63,6 +63,14 @@ describe('Waku local node journey', () => {
 	})
 
 	it('materializes the configured node identity and source-clocked health observation', async () => {
+		const now = vi.spyOn(Date, 'now').mockReturnValue(1_799_000_000_000)
+		getText.mockImplementation(async (_binding, path) => {
+			now.mockReturnValue(1_800_000_000_000)
+			return path === '/debug/v1/version' ?
+				'nwaku/v0.35.0'
+			:
+				'Ready'
+		})
 		const snapshot = await resolveNodeState({
 			connectionId: 'waku-node',
 			nodeId: 'enr:-waku-node',
@@ -81,6 +89,7 @@ describe('Waku local node journey', () => {
 					nodeId: 'enr:-waku-node',
 				},
 				source: Source.WakuNode,
+				timestampMs: 1_800_000_000_000,
 			},
 			[EntityMetaKey.Fields]: {
 				[entityFieldAddressKey(EntityType.BlockheadWakuNodeState_Timestamp, [], 'health')]: 'Ready',

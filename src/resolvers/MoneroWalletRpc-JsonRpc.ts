@@ -320,7 +320,6 @@ export default {
 							getOutputs,
 							getTransfers,
 						} = await loadMoneroWalletQueries()
-						const timestampMs = Date.now()
 						const [
 							accounts,
 							balance,
@@ -339,6 +338,7 @@ export default {
 						const addressesByAccount = await Promise.all(accounts.subaddress_accounts.map((account) => (
 							getAddress(account.account_index)
 						)))
+						const timestampMs = Date.now()
 						const subaddresses = addressesByAccount.flatMap((addresses, accountOffset) => (
 							addresses.addresses.map((address) => subaddressFields(
 								accounts.subaddress_accounts[accountOffset].account_index,

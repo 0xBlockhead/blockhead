@@ -119,7 +119,19 @@ describe('Monero local wallet journey', () => {
 	})
 
 	it('materializes private wallet sync and native subaddress observations', async () => {
-		vi.spyOn(Date, 'now').mockReturnValue(1_786_000_000_000)
+		const now = vi.spyOn(Date, 'now').mockReturnValue(1_785_000_000_000)
+		getAddress.mockImplementationOnce(async () => {
+			now.mockReturnValue(1_786_000_000_000)
+			return {
+				address: '48primary',
+				addresses: [{
+					address: '48primary',
+					address_index: 0,
+					label: 'Primary account',
+					used: true,
+				}],
+			}
+		})
 
 		const snapshot = await walletResolver.resolve.WalletId.resolve({
 			walletId: 'monero-wallet-rpc',

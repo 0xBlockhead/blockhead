@@ -39,7 +39,6 @@ export default {
 							throw new Error(`WakuNode_Rest: unsupported connection ${requestedConnectionId}`)
 
 						const { getConnectedPeerCount, getDebugInfo, getHealth, getVersion } = await loadWakuQueries()
-						const timestampMs = Date.now()
 						const [debugInfo, health, version, peerCount] = await Promise.all([
 							getDebugInfo(),
 							getHealth(),
@@ -50,6 +49,7 @@ export default {
 							throw new Error('WakuNode_Rest: debug info does not expose an ENR node identity')
 						if (nodeId !== debugInfo.enrUri)
 							throw new Error(`WakuNode_Rest: local node ${debugInfo.enrUri} does not match ${nodeId}`)
+						const timestampMs = Date.now()
 
 						const $nodeState = {
 							connectionId,

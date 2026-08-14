@@ -880,8 +880,9 @@ export default {
 							connectionId,
 							$network,
 						}
+						const peerPage = await listPeers()
 						const timestampMs = Date.now()
-						return (await listPeers()).peers?.map((peer) => ({
+						return peerPage.peers?.map((peer) => ({
 							[EntityMetaKey.Selector]: {
 								$localNodeState,
 								publicKey: peer.pub_key,
@@ -1108,8 +1109,9 @@ export default {
 				ConnectionIdNetwork: {
 					resolve: async ({ connectionId, $network }, context) => {
 						assertLightningNetwork($network.$network)
+						const channels = await lndLocalChannels()
 						const timestampMs = Date.now()
-						return (await lndLocalChannels())
+						return channels
 							.slice(0, resolverContextRowLimit(context))
 							.map((channel) => {
 								const $channel = {

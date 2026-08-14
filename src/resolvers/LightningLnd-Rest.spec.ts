@@ -539,8 +539,11 @@ describe('Lightning LND resolver ownership', () => {
 	})
 
 	it('materializes complete local peer snapshots without public-graph fan-out', async () => {
-		vi.spyOn(Date, 'now').mockReturnValue(1_700_000_000_123)
-		listPeers.mockResolvedValue({ peers: [peer] })
+		const now = vi.spyOn(Date, 'now').mockReturnValue(1_700_000_000_000)
+		listPeers.mockImplementation(async () => {
+			now.mockReturnValue(1_700_000_000_123)
+			return { peers: [peer] }
+		})
 		const $localNodeState = {
 			connectionId: 'local-lnd',
 			$network: {
@@ -893,7 +896,7 @@ describe('Lightning LND resolver ownership', () => {
 	})
 
 	it('projects local node tip sync fields and channel state balances including private peers', async () => {
-		vi.spyOn(Date, 'now').mockReturnValue(1_700_000_111_000)
+		const now = vi.spyOn(Date, 'now').mockReturnValue(1_700_000_000_000)
 		getInfo.mockResolvedValue({
 			version: '0.18.5-beta',
 			identity_pubkey: localPublicKey,
@@ -919,16 +922,19 @@ describe('Lightning LND resolver ownership', () => {
 				sat: '10000',
 			},
 		})
-		listChannels.mockResolvedValue({
-			channels: [
-				channel,
-				{
-					...channel,
-					chan_id: '43',
-					private: true,
-					pending_htlcs: [],
-				},
-			],
+		listChannels.mockImplementation(async () => {
+			now.mockReturnValue(1_700_000_111_000)
+			return {
+				channels: [
+					channel,
+					{
+						...channel,
+						chan_id: '43',
+						private: true,
+						pending_htlcs: [],
+					},
+				],
+			}
 		})
 
 		const localNodeState = {
