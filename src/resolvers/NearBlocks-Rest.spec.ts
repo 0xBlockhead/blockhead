@@ -244,6 +244,48 @@ describe('NearBlocks schema-shaped resolvers', () => {
 				hash: 'transaction-hash',
 				signerAccountId: 'bob.near',
 			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.NearTransaction, [], '$signer')]: {
+					[EntityMetaKey.Selector]: {
+						$network: network,
+						accountId: 'bob.near',
+					},
+				},
+				[entityFieldAddressKey(EntityType.NearTransaction, [], '$receiver')]: {
+					[EntityMetaKey.Selector]: {
+						$network: network,
+						accountId: 'alice.near',
+					},
+				},
+				[entityFieldAddressKey(EntityType.NearTransaction, [], '$$actions')]: [{
+					[EntityMetaKey.Selector]: {
+						$transaction: {
+							$network: network,
+							hash: 'transaction-hash',
+							signerAccountId: 'bob.near',
+						},
+						actionIndex: 0,
+					},
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.NearAction, [], 'actionKind')]: 'FUNCTION_CALL',
+						[entityFieldAddressKey(EntityType.NearAction, [], 'methodName')]: 'ft_transfer',
+					},
+				}],
+				[entityFieldAddressKey(EntityType.NearTransaction, [], '$$executionOutcomes')]: [{
+					[EntityMetaKey.Selector]: {
+						$transaction: {
+							$network: network,
+							hash: 'transaction-hash',
+							signerAccountId: 'bob.near',
+						},
+						outcomeId: 'transaction-hash',
+					},
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.NearExecutionOutcome, [], 'status')]: 'SuccessValue',
+						[entityFieldAddressKey(EntityType.NearExecutionOutcome, [], 'gasBurnt')]: 1n,
+					},
+				}],
+			},
 		}])
 		expect(projection.continuation(page, account, context)).toEqual({
 			operation: 'account-transactions',

@@ -19,6 +19,8 @@ import type { EntitySelector } from '$/schema/$schema.ts'
 import type {
 	CosmosSdkAccount,
 	CosmosSdkBlockResponse,
+	CosmosSdkIbcChannel,
+	CosmosSdkIbcConnection,
 	CosmosSdkTx,
 	CosmosSdkTxResponse,
 	CosmosSdkTxsEventResponse,
@@ -231,10 +233,7 @@ const cosmosCounterpartyNetworkReference = (
 
 const cosmosIbcChannelListRows = (
 	network: NetworkId,
-	channels: {
-		port_id?: string
-		channel_id?: string
-	}[]
+	channels: CosmosSdkIbcChannel[]
 ) => (
 	channels.map((channel) => {
 		const portId = channel.port_id
@@ -248,9 +247,48 @@ const cosmosIbcChannelListRows = (
 				portId,
 				channelId,
 			},
+			[EntityMetaKey.Fields]: {
+				...(channel.connection_hops.length === 1 && {
+					[entityFieldAddressKey(EntityType.IbcChannel, [], '$connection')]: {
+						[EntityMetaKey.Selector]: {
+							$network: network,
+							connectionId: channel.connection_hops[0],
+						},
+					},
+				}),
+				[entityFieldAddressKey(EntityType.IbcChannel, [], 'counterpartyPortId')]: channel.counterparty.port_id,
+				...(channel.counterparty.channel_id !== '' && {
+					[entityFieldAddressKey(EntityType.IbcChannel, [], 'counterpartyChannelId')]: channel.counterparty.channel_id,
+				}),
+				[entityFieldAddressKey(EntityType.IbcChannel, [], 'ordering')]: channel.ordering,
+				...(channel.version !== '' && {
+					[entityFieldAddressKey(EntityType.IbcChannel, [], 'version')]: channel.version,
+				}),
+			},
 		}
 	})
 )
+
+const cosmosIbcConnectionStableFields = (
+	network: NetworkId,
+	connection: CosmosSdkIbcConnection
+) => ({
+	clientId: connection.client_id,
+	$client: {
+		[EntityMetaKey.Selector]: {
+			$network: network,
+			clientId: connection.client_id,
+		},
+	},
+	counterpartyClientId: connection.counterparty.client_id,
+	...(connection.counterparty.connection_id !== '' && {
+		counterpartyConnectionId: connection.counterparty.connection_id,
+	}),
+	delayPeriodNs: cosmosUnsignedInteger(
+		connection.delay_period,
+		'delay period'
+	),
+})
 
 const cosmosValidatorFields = (validator: {
 	operator_address?: string
@@ -1426,20 +1464,7 @@ export default {
 						limit: resolverContextRowLimit(context),
 					})
 					return {
-						rows: response.channels.map((channel) => {
-							const portId = channel.port_id
-							const channelId = channel.channel_id
-							if (portId == null || portId === '' || channelId == null || channelId === '')
-								throw new Error('CosmosSdk_Rest: IBC channel list row missing port or channel id')
-
-							return {
-								[EntityMetaKey.Selector]: {
-									$network: network,
-									portId,
-									channelId,
-								},
-							}
-						}),
+						rows: cosmosIbcChannelListRows(network, response.channels),
 						totalCount: cosmosPaginationCount(response.pagination?.total, 'IBC channel'),
 					}
 				}
@@ -1496,12 +1521,25 @@ export default {
 						limit: resolverContextRowLimit(context),
 					})
 					return {
-						rows: response.connections.map((connection) => ({
-							[EntityMetaKey.Selector]: {
+						rows: response.connections.map((connection) => {
+							const fields = cosmosIbcConnectionStableFields(network, connection)
+
+							return {
+								[EntityMetaKey.Selector]: {
 								$network: network,
 								connectionId: connection.id,
 							},
-						})),
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.IbcConnection, [], 'clientId')]: fields.clientId,
+									[entityFieldAddressKey(EntityType.IbcConnection, [], '$client')]: fields.$client,
+									[entityFieldAddressKey(EntityType.IbcConnection, [], 'counterpartyClientId')]: fields.counterpartyClientId,
+									...(fields.counterpartyConnectionId != null && {
+										[entityFieldAddressKey(EntityType.IbcConnection, [], 'counterpartyConnectionId')]: fields.counterpartyConnectionId,
+									}),
+									[entityFieldAddressKey(EntityType.IbcConnection, [], 'delayPeriodNs')]: fields.delayPeriodNs,
+								},
+							}
+						}),
 						totalCount: cosmosPaginationCount(response.pagination?.total, 'IBC connection'),
 					}
 				}
@@ -1873,22 +1911,8 @@ export default {
 							connectionId,
 						})
 						return {
-							clientId: connection.client_id,
-							$client: {
-								[EntityMetaKey.Selector]: {
-									$network,
-									clientId: connection.client_id,
-								},
-							},
-							counterpartyClientId: connection.counterparty.client_id,
-							...(connection.counterparty.connection_id !== '' && {
-								counterpartyConnectionId: connection.counterparty.connection_id,
-							}),
+							...cosmosIbcConnectionStableFields($network, connection),
 							state: connection.state,
-							delayPeriodNs: cosmosUnsignedInteger(
-								connection.delay_period,
-								'delay period'
-							),
 						}
 					},
 				},

@@ -242,13 +242,60 @@ export default {
 		})({
 			$$transactions: {
 				select: ({ page }, { $network }) => (
-					page.transactions.map((transaction) => ({
-						[EntityMetaKey.Selector]: {
+					page.transactions.map((transaction) => {
+						const transactionSelector = {
 							$network,
 							hash: transaction.transaction_hash,
 							signerAccountId: transaction.signer_account_id,
-						},
-					}))
+						}
+
+						return {
+							[EntityMetaKey.Selector]: transactionSelector,
+							[EntityMetaKey.Fields]: {
+								[entityFieldAddressKey(EntityType.NearTransaction, [], '$signer')]: {
+									[EntityMetaKey.Selector]: {
+										$network,
+										accountId: transaction.signer_account_id,
+									},
+								},
+								[entityFieldAddressKey(EntityType.NearTransaction, [], '$receiver')]: {
+									[EntityMetaKey.Selector]: {
+										$network,
+										accountId: transaction.receiver_account_id,
+									},
+								},
+								[entityFieldAddressKey(EntityType.NearTransaction, [], '$$actions')]: transaction.actions.map((action, actionIndex) => ({
+									[EntityMetaKey.Selector]: {
+										$transaction: transactionSelector,
+										actionIndex,
+									},
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.NearAction, [], 'actionKind')]: action.action,
+										...(action.method != null && {
+											[entityFieldAddressKey(EntityType.NearAction, [], 'methodName')]: action.method,
+										}),
+									},
+								})),
+								[entityFieldAddressKey(EntityType.NearTransaction, [], '$$executionOutcomes')]: [{
+									[EntityMetaKey.Selector]: {
+										$transaction: transactionSelector,
+										outcomeId: transaction.transaction_hash,
+									},
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.NearExecutionOutcome, [], 'status')]: (
+											transaction.outcomes.status ?
+												'SuccessValue'
+											:
+												'Failure'
+										),
+										...(transaction.outcomes_agg.gas_used != null && {
+											[entityFieldAddressKey(EntityType.NearExecutionOutcome, [], 'gasBurnt')]: BigInt(transaction.outcomes_agg.gas_used),
+										}),
+									},
+								}],
+							},
+						}
+					})
 				),
 				continuation: ({ limit, page }, { accountId }) => (
 					limit === 0 || page.continuationToken == null ?

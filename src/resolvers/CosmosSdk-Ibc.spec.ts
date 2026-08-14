@@ -7,7 +7,10 @@ import {
 } from 'vitest'
 
 import { networkBySlug } from '$/constants/Network.ts'
-import { EntityMetaKey } from '$/schema/$schema.ts'
+import {
+	entityFieldAddressKey,
+	EntityMetaKey,
+} from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 
 const getIbcChannel = vi.hoisted(() => vi.fn())
@@ -524,6 +527,18 @@ describe('CosmosSdk IBC resolvers', () => {
 					portId: 'transfer',
 					channelId: 'channel-141',
 				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.IbcChannel, [], '$connection')]: {
+						[EntityMetaKey.Selector]: {
+							$network: cosmosNetwork,
+							connectionId: 'connection-0',
+						},
+					},
+					[entityFieldAddressKey(EntityType.IbcChannel, [], 'counterpartyPortId')]: 'transfer',
+					[entityFieldAddressKey(EntityType.IbcChannel, [], 'counterpartyChannelId')]: 'channel-0',
+					[entityFieldAddressKey(EntityType.IbcChannel, [], 'ordering')]: 'ORDER_UNORDERED',
+					[entityFieldAddressKey(EntityType.IbcChannel, [], 'version')]: 'ics20-1',
+				},
 			},
 		])
 		expect(ibcChannelsListResolver.projections.Cosmos.$$ibcChannels.resolveCount(channelsSnapshot)).toBe(42)
@@ -562,6 +577,18 @@ describe('CosmosSdk IBC resolvers', () => {
 					$network: cosmosNetwork,
 					connectionId: 'connection-0',
 				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.IbcConnection, [], 'clientId')]: '07-tendermint-1',
+					[entityFieldAddressKey(EntityType.IbcConnection, [], '$client')]: {
+						[EntityMetaKey.Selector]: {
+							$network: cosmosNetwork,
+							clientId: '07-tendermint-1',
+						},
+					},
+					[entityFieldAddressKey(EntityType.IbcConnection, [], 'counterpartyClientId')]: '07-tendermint-0',
+					[entityFieldAddressKey(EntityType.IbcConnection, [], 'counterpartyConnectionId')]: 'connection-0',
+					[entityFieldAddressKey(EntityType.IbcConnection, [], 'delayPeriodNs')]: 0n,
+				},
 			},
 		])
 		expect(ibcConnectionsListResolver.projections.Cosmos.$$ibcConnections.resolveCount(connectionsSnapshot)).toBe(3)
@@ -595,6 +622,25 @@ describe('CosmosSdk IBC resolvers', () => {
 				'connection-258',
 			],
 		})
+		const expectedChannelRows = [{
+			[EntityMetaKey.Selector]: {
+				$network: cosmosNetwork,
+				portId: 'transfer',
+				channelId: 'channel-141',
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.IbcChannel, [], '$connection')]: {
+					[EntityMetaKey.Selector]: {
+						$network: cosmosNetwork,
+						connectionId: 'connection-257',
+					},
+				},
+				[entityFieldAddressKey(EntityType.IbcChannel, [], 'counterpartyPortId')]: 'transfer',
+				[entityFieldAddressKey(EntityType.IbcChannel, [], 'counterpartyChannelId')]: 'channel-0',
+				[entityFieldAddressKey(EntityType.IbcChannel, [], 'ordering')]: 'ORDER_UNORDERED',
+				[entityFieldAddressKey(EntityType.IbcChannel, [], 'version')]: 'ics20-1',
+			},
+		}]
 
 		const connectionChannels = await ibcConnectionChannelsResolver.resolve.NetworkConnectionId.resolve({
 			$network: cosmosNetwork,
@@ -605,15 +651,7 @@ describe('CosmosSdk IBC resolvers', () => {
 				limit: 16,
 			},
 		})
-		expect(ibcConnectionChannelsResolver.projections.$$channels.select(connectionChannels)).toEqual([
-			{
-				[EntityMetaKey.Selector]: {
-					$network: cosmosNetwork,
-					portId: 'transfer',
-					channelId: 'channel-141',
-				},
-			},
-		])
+		expect(ibcConnectionChannelsResolver.projections.$$channels.select(connectionChannels)).toEqual(expectedChannelRows)
 		expect(ibcConnectionChannelsResolver.projections.$$channels.resolveCount(connectionChannels)).toBe(5)
 
 		const clientConnections = await ibcClientConnectionsResolver.resolve.NetworkClientId.resolve({
@@ -650,15 +688,7 @@ describe('CosmosSdk IBC resolvers', () => {
 				limit: 16,
 			},
 		})
-		expect(ibcClientChannelsResolver.projections.$$channels.select(clientChannels)).toEqual([
-			{
-				[EntityMetaKey.Selector]: {
-					$network: cosmosNetwork,
-					portId: 'transfer',
-					channelId: 'channel-141',
-				},
-			},
-		])
+		expect(ibcClientChannelsResolver.projections.$$channels.select(clientChannels)).toEqual(expectedChannelRows)
 		expect(ibcClientChannelsResolver.projections.$$channels.resolveCount(clientChannels)).toBe(5)
 		expect(getIbcConnectionChannels).toHaveBeenCalledWith({
 			connectionId: 'connection-257',
