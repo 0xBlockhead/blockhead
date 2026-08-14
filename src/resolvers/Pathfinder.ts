@@ -858,11 +858,11 @@ export default {
 				NetworkBlockHashSource: {
 					appliesTo: [
 						{
-							$network: starknetNestedNetworkApplicability[0],
+							...starknetNestedNetworkApplicability[0],
 							source: Source.Pathfinder,
 						},
 						{
-							$network: starknetNestedNetworkApplicability[1],
+							...starknetNestedNetworkApplicability[1],
 							source: Source.Pathfinder,
 						},
 					],
