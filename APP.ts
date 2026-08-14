@@ -15836,7 +15836,6 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.LogosBlockchainNode_Rest],
 							openFields: ["listenAddresses", "peerCount", "connectionCount", "pendingConnectionCount"],
 						},
 						summary: { title: [{ field: "timestampMs", format: "timestamp" }], value: [{ field: "peerCount", format: "number" }], HeadingAfter: ["source"] },
@@ -15902,7 +15901,6 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.LogosBlockchainNode_Rest],
 							openFields: ["tip", "balance", "address"],
 						},
 						summary: { title: [{ field: "timestampMs", format: "timestamp" }], value: [{ field: "balance", format: "number" }], HeadingAfter: ["source"] },
@@ -16562,7 +16560,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Local_Internal, Source.QuilibriumNodeMetrics_Prometheus, Source.QuilibriumNode_Grpc],
+							sources: [Source.Local_Internal, Source.QuilibriumNode_Grpc],
 							openFields: ["nodeVersion", "engineState", "latestFrameNumber", "latestFrameHash", "difficulty", "peerCount", "pendingMessageCount", "frameStoreHead", "lastSyncedAt"],
 						},
 						summary: { title: [{ field: "timestampMs", format: "timestamp" }], value: ["engineState"], HeadingAfter: [{ field: "latestFrameNumber", format: "number" }] },

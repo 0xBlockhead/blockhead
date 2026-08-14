@@ -30,7 +30,15 @@ export default {
 				ConnectionIdNetwork: {
 					resolve: async ({ connectionId, $network }) => {
 						assertQuilibriumMainnet($network)
+						const { getMetrics } = await (
+							typeof window === 'undefined' ?
+								import('$/sources/QuilibriumNodeMetrics/Prometheus/queries.ts')
+							:
+								import('$/sources/QuilibriumNodeMetrics/Prometheus/queries.remote.ts')
+						)
+						const text = await getMetrics()
 						const timestampMs = Date.now()
+						const observation = nodeStateObservationFromPrometheusText(text, timestampMs)
 						return {
 							connectionId,
 							$network: {
@@ -46,6 +54,12 @@ export default {
 										timestampMs,
 										source: Source.QuilibriumNodeMetrics_Prometheus,
 									},
+									[EntityMetaKey.Fields]: Object.fromEntries(
+										Object.entries(observation).map(([fieldName, value]) => [
+											entityFieldAddressKey(EntityType.BlockheadQuilibriumNodeState_Timestamp, [], fieldName),
+											value,
+										])
+									),
 								},
 							],
 						}
@@ -112,35 +126,6 @@ export default {
 			connectionId: (state) => state.connectionId,
 			$network: (state) => state.$network,
 			$$timestamps: (state) => state.$$timestamps,
-		}),
-
-		defineResolver({
-			entityType: EntityType.BlockheadQuilibriumNodeState_Timestamp,
-			resolve: {
-				NodeStateTimestampMsSource: {
-					resolve: async ({ $nodeState, source }) => {
-						if (source !== Source.QuilibriumNodeMetrics_Prometheus)
-							throw new Error(`QuilibriumNodeMetrics_Prometheus: unsupported source ${source}`)
-						assertQuilibriumMainnet($nodeState.$network)
-						const { getMetrics } = await (
-							typeof window === 'undefined' ?
-								import('$/sources/QuilibriumNodeMetrics/Prometheus/queries.ts')
-							:
-								import('$/sources/QuilibriumNodeMetrics/Prometheus/queries.remote.ts')
-						)
-						return nodeStateObservationFromPrometheusText(await getMetrics())
-					},
-				},
-			},
-		})({
-			nodeVersion: (snapshot) => snapshot.nodeVersion,
-			engineState: (snapshot) => snapshot.engineState,
-			latestFrameNumber: (snapshot) => snapshot.latestFrameNumber,
-			difficulty: (snapshot) => snapshot.difficulty,
-			peerCount: (snapshot) => snapshot.peerCount,
-			pendingMessageCount: (snapshot) => snapshot.pendingMessageCount,
-			frameStoreHead: (snapshot) => snapshot.frameStoreHead,
-			lastSyncedAt: (snapshot) => snapshot.lastSyncedAt,
 		}),
 	],
 } satisfies RegisteredSourceResolverModule

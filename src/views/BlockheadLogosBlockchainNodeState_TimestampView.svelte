@@ -5,7 +5,6 @@
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -23,12 +22,7 @@
 	}: Omit<EntitySelectionViewProps<EntityType.BlockheadLogosBlockchainNodeState_Timestamp>, 'prefetched'> = $props()
 
 	const nodeState = $derived(selection.entitySelector.$nodeState)
-	const viewSelection = $derived(selection({
-		sources: selection.sources ?? [
-			Source.LogosBlockchainNode_Rest,
-		],
-	}))
-	const blockheadLogosBlockchainNodeStateTimestamp = $derived(viewSelection({
+	const blockheadLogosBlockchainNodeStateTimestamp = $derived(selection({
 		fields: {
 			peerCount: true,
 		},
@@ -119,7 +113,7 @@
 				<dd>
 					<ResourceBoundary
 						resource={
-							viewSelection({
+							selection({
 								fields: {
 									listenAddresses: true,
 								},
@@ -155,7 +149,7 @@
 
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
 						fields: {
 							connectionCount: true,
 						},
@@ -179,7 +173,7 @@
 
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
 						fields: {
 							pendingConnectionCount: true,
 						},

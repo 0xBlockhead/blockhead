@@ -77,10 +77,9 @@ export default {
 					resolve: async (network) => {
 						assertLogosTestnet(network)
 						const { getCryptarchiaInfo } = await import('$/sources/LogosBlockchainNode/Rest/queries.ts')
-						const observedAtMs = Date.now()
 						return {
 							...cryptarchiaObservationFields(await getCryptarchiaInfo()),
-							observedAtMs,
+							observedAtMs: Date.now(),
 						}
 					},
 				},
@@ -104,28 +103,6 @@ export default {
 		}),
 
 		defineResolver({
-			entityType: EntityType.LogosBlockchainNetwork_Timestamp,
-			resolve: {
-				NetworkTimestampMsSource: {
-					resolve: async ({ $network, source }) => {
-						if (source !== Source.LogosBlockchainNode_Rest)
-							throw new Error(`LogosBlockchainNode_Rest: unsupported source ${source}`)
-						assertLogosTestnet($network)
-						const { getCryptarchiaInfo } = await import('$/sources/LogosBlockchainNode/Rest/queries.ts')
-						return cryptarchiaObservationFields(await getCryptarchiaInfo())
-					},
-				},
-			},
-		})({
-			lib: (snapshot) => snapshot.lib,
-			libSlot: (snapshot) => snapshot.libSlot,
-			tip: (snapshot) => snapshot.tip,
-			slot: (snapshot) => snapshot.slot,
-			height: (snapshot) => snapshot.height,
-			mode: (snapshot) => snapshot.mode,
-		}),
-
-		defineResolver({
 			entityType: EntityType.BlockheadLogosBlockchainNodeState,
 			resolve: {
 				ConnectionIdPeerId: {
@@ -138,6 +115,7 @@ export default {
 						if (info.peer_id !== peerId)
 							throw new Error(`LogosBlockchainNode_Rest: peer id mismatch (expected ${peerId}, got ${info.peer_id})`)
 						const timestampMs = Date.now()
+						const observation = networkInfoObservationFields(info)
 						return {
 							connectionId,
 							peerId,
@@ -151,6 +129,12 @@ export default {
 										},
 										timestampMs,
 										source: Source.LogosBlockchainNode_Rest,
+									},
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.BlockheadLogosBlockchainNodeState_Timestamp, [], 'listenAddresses')]: observation.listenAddresses,
+										[entityFieldAddressKey(EntityType.BlockheadLogosBlockchainNodeState_Timestamp, [], 'peerCount')]: observation.peerCount,
+										[entityFieldAddressKey(EntityType.BlockheadLogosBlockchainNodeState_Timestamp, [], 'connectionCount')]: observation.connectionCount,
+										[entityFieldAddressKey(EntityType.BlockheadLogosBlockchainNodeState_Timestamp, [], 'pendingConnectionCount')]: observation.pendingConnectionCount,
 									},
 								},
 							],
@@ -218,28 +202,6 @@ export default {
 		}),
 
 		defineResolver({
-			entityType: EntityType.BlockheadLogosBlockchainNodeState_Timestamp,
-			resolve: {
-				NodeStateTimestampMsSource: {
-					resolve: async ({ $nodeState, source }) => {
-						if (source !== Source.LogosBlockchainNode_Rest)
-							throw new Error(`LogosBlockchainNode_Rest: unsupported source ${source}`)
-						const { getNetworkInfo } = await import('$/sources/LogosBlockchainNode/Rest/queries.ts')
-						const info = await getNetworkInfo()
-						if (info.peer_id !== $nodeState.peerId)
-							throw new Error(`LogosBlockchainNode_Rest: peer id mismatch (expected ${$nodeState.peerId}, got ${info.peer_id})`)
-						return networkInfoObservationFields(info)
-					},
-				},
-			},
-		})({
-			listenAddresses: (snapshot) => snapshot.listenAddresses,
-			peerCount: (snapshot) => snapshot.peerCount,
-			connectionCount: (snapshot) => snapshot.connectionCount,
-			pendingConnectionCount: (snapshot) => snapshot.pendingConnectionCount,
-		}),
-
-		defineResolver({
 			entityType: EntityType.BlockheadLogosBlockchainWalletKeyState,
 			resolve: {
 				NodeStatePublicKey: {
@@ -249,6 +211,7 @@ export default {
 						if (normalizeZkPublicKeyHex(balance.address) !== normalizeZkPublicKeyHex(publicKey))
 							throw new Error('LogosBlockchainNode_Rest: wallet address mismatch')
 						const timestampMs = Date.now()
+						const observation = walletBalanceObservationFields(balance)
 						return {
 							$nodeState: {
 								[EntityMetaKey.Selector]: $nodeState,
@@ -264,6 +227,11 @@ export default {
 										timestampMs,
 										source: Source.LogosBlockchainNode_Rest,
 									},
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.BlockheadLogosBlockchainWalletKeyState_Timestamp, [], 'tip')]: observation.tip,
+										[entityFieldAddressKey(EntityType.BlockheadLogosBlockchainWalletKeyState_Timestamp, [], 'balance')]: observation.balance,
+										[entityFieldAddressKey(EntityType.BlockheadLogosBlockchainWalletKeyState_Timestamp, [], 'address')]: observation.address,
+									},
 								},
 							],
 						}
@@ -274,27 +242,6 @@ export default {
 			$nodeState: (state) => state.$nodeState,
 			publicKey: (state) => state.publicKey,
 			$$timestamps: (state) => state.$$timestamps,
-		}),
-
-		defineResolver({
-			entityType: EntityType.BlockheadLogosBlockchainWalletKeyState_Timestamp,
-			resolve: {
-				WalletKeyStateTimestampMsSource: {
-					resolve: async ({ $walletKeyState, source }) => {
-						if (source !== Source.LogosBlockchainNode_Rest)
-							throw new Error(`LogosBlockchainNode_Rest: unsupported source ${source}`)
-						const { getWalletBalance } = await import('$/sources/LogosBlockchainNode/Rest/queries.ts')
-						const balance = await getWalletBalance($walletKeyState.publicKey)
-						if (normalizeZkPublicKeyHex(balance.address) !== normalizeZkPublicKeyHex($walletKeyState.publicKey))
-							throw new Error('LogosBlockchainNode_Rest: wallet address mismatch')
-						return walletBalanceObservationFields(balance)
-					},
-				},
-			},
-		})({
-			tip: (snapshot) => snapshot.tip,
-			balance: (snapshot) => snapshot.balance,
-			address: (snapshot) => snapshot.address,
 		}),
 	],
 } satisfies RegisteredSourceResolverModule

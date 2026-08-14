@@ -24,20 +24,11 @@ const { default: logosBlockchainNodeResolvers } = await import('$/resolvers/Logo
 const networkResolver = logosBlockchainNodeResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.LogosBlockchainNetwork
 ))!
-const networkTimestampResolver = logosBlockchainNodeResolvers.resolvers.find((resolver) => (
-	resolver.entityType === EntityType.LogosBlockchainNetwork_Timestamp
-))!
 const nodeStateResolver = logosBlockchainNodeResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.BlockheadLogosBlockchainNodeState
 ))!
-const nodeStateTimestampResolver = logosBlockchainNodeResolvers.resolvers.find((resolver) => (
-	resolver.entityType === EntityType.BlockheadLogosBlockchainNodeState_Timestamp
-))!
 const walletKeyStateResolver = logosBlockchainNodeResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.BlockheadLogosBlockchainWalletKeyState
-))!
-const walletKeyStateTimestampResolver = logosBlockchainNodeResolvers.resolvers.find((resolver) => (
-	resolver.entityType === EntityType.BlockheadLogosBlockchainWalletKeyState_Timestamp
 ))!
 
 const network = {
@@ -120,7 +111,8 @@ describe('Logos Blockchain node Rest deepen', () => {
 		)
 	})
 
-	it('preserves the pre-start chain-service mode on NetworkTimestampMsSource', async () => {
+	it('preserves the pre-start chain-service mode on the current network observation', async () => {
+		vi.spyOn(Date, 'now').mockReturnValue(1_785_556_800_001)
 		getJson.mockResolvedValue({
 			cryptarchia_info: {
 				lib,
@@ -132,18 +124,23 @@ describe('Logos Blockchain node Rest deepen', () => {
 			mode: 'AwaitingStart',
 		})
 
-		await expect(networkTimestampResolver.resolve.NetworkTimestampMsSource.resolve({
-			$network: network,
-			timestampMs: 1,
-			source: Source.LogosBlockchainNode_Rest,
-		}, context)).resolves.toEqual({
-			lib: `0x${lib}`,
-			libSlot: 0n,
-			tip: `0x${tip}`,
-			slot: 0n,
-			height: 0n,
-			mode: 'AwaitingStart',
-		})
+		const snapshot = await networkResolver.resolve.Network.resolve(network, context)
+
+		expect(networkResolver.projections.$$timestamps(snapshot, network)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				timestampMs: 1_785_556_800_001,
+				source: Source.LogosBlockchainNode_Rest,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.LogosBlockchainNetwork_Timestamp, [], 'lib')]: `0x${lib}`,
+				[entityFieldAddressKey(EntityType.LogosBlockchainNetwork_Timestamp, [], 'libSlot')]: 0n,
+				[entityFieldAddressKey(EntityType.LogosBlockchainNetwork_Timestamp, [], 'tip')]: `0x${tip}`,
+				[entityFieldAddressKey(EntityType.LogosBlockchainNetwork_Timestamp, [], 'slot')]: 0n,
+				[entityFieldAddressKey(EntityType.LogosBlockchainNetwork_Timestamp, [], 'height')]: 0n,
+				[entityFieldAddressKey(EntityType.LogosBlockchainNetwork_Timestamp, [], 'mode')]: 'AwaitingStart',
+			},
+		}])
 	})
 
 	it('rejects every network other than logos-testnet before transport', async () => {
@@ -153,6 +150,12 @@ describe('Logos Blockchain node Rest deepen', () => {
 			},
 		}, context)).rejects.toThrow('unsupported network')
 		expect(getJson).not.toHaveBeenCalled()
+	})
+
+	it('does not materialize an empty consensus observation when the current cryptarchia read fails', async () => {
+		getJson.mockRejectedValue(new Error('cryptarchia down'))
+
+		await expect(networkResolver.resolve.Network.resolve(network, context)).rejects.toThrow('cryptarchia down')
 	})
 
 	it('projects enrolled BlockheadLogos node-state leftovers from /network/info', async () => {
@@ -181,22 +184,18 @@ describe('Logos Blockchain node Rest deepen', () => {
 						timestampMs: 1_785_556_800_111,
 						source: Source.LogosBlockchainNode_Rest,
 					},
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.BlockheadLogosBlockchainNodeState_Timestamp, [], 'listenAddresses')]: [
+							'/ip4/127.0.0.1/tcp/3000',
+						],
+						[entityFieldAddressKey(EntityType.BlockheadLogosBlockchainNodeState_Timestamp, [], 'peerCount')]: 4,
+						[entityFieldAddressKey(EntityType.BlockheadLogosBlockchainNodeState_Timestamp, [], 'connectionCount')]: 2,
+						[entityFieldAddressKey(EntityType.BlockheadLogosBlockchainNodeState_Timestamp, [], 'pendingConnectionCount')]: 1,
+					},
 				},
 			],
 		})
-
-		await expect(nodeStateTimestampResolver.resolve.NodeStateTimestampMsSource.resolve({
-			$nodeState: nodeState,
-			timestampMs: 1,
-			source: Source.LogosBlockchainNode_Rest,
-		}, context)).resolves.toEqual({
-			listenAddresses: [
-				'/ip4/127.0.0.1/tcp/3000',
-			],
-			peerCount: 4,
-			connectionCount: 2,
-			pendingConnectionCount: 1,
-		})
+		expect(getJson).toHaveBeenCalledTimes(1)
 		expect(getJson).toHaveBeenCalledWith(
 			expect.objectContaining({
 				source: Source.LogosBlockchainNode_Rest,
@@ -215,6 +214,12 @@ describe('Logos Blockchain node Rest deepen', () => {
 		})
 
 		await expect(nodeStateResolver.resolve.ConnectionIdPeerId.resolve(nodeState, context)).rejects.toThrow('peer id mismatch')
+	})
+
+	it('does not materialize an empty node-state observation when the current network-info read fails', async () => {
+		getJson.mockRejectedValue(new Error('network info down'))
+
+		await expect(nodeStateResolver.resolve.ConnectionIdPeerId.resolve(nodeState, context)).rejects.toThrow('network info down')
 	})
 
 	it('projects enrolled BlockheadLogos wallet-key leftovers from /wallet/:public_key/balance', async () => {
@@ -240,19 +245,15 @@ describe('Logos Blockchain node Rest deepen', () => {
 						timestampMs: 1_785_556_800_222,
 						source: Source.LogosBlockchainNode_Rest,
 					},
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.BlockheadLogosBlockchainWalletKeyState_Timestamp, [], 'tip')]: `0x${tip}`,
+						[entityFieldAddressKey(EntityType.BlockheadLogosBlockchainWalletKeyState_Timestamp, [], 'balance')]: 42n,
+						[entityFieldAddressKey(EntityType.BlockheadLogosBlockchainWalletKeyState_Timestamp, [], 'address')]: publicKey,
+					},
 				},
 			],
 		})
-
-		await expect(walletKeyStateTimestampResolver.resolve.WalletKeyStateTimestampMsSource.resolve({
-			$walletKeyState: walletKeyState,
-			timestampMs: 1,
-			source: Source.LogosBlockchainNode_Rest,
-		}, context)).resolves.toEqual({
-			tip: `0x${tip}`,
-			balance: 42n,
-			address: publicKey,
-		})
+		expect(getJson).toHaveBeenCalledTimes(1)
 		expect(getJson).toHaveBeenCalledWith(
 			expect.objectContaining({
 				source: Source.LogosBlockchainNode_Rest,
@@ -262,6 +263,7 @@ describe('Logos Blockchain node Rest deepen', () => {
 	})
 
 	it('does not freestyle wallet notes onto enrolled observations', async () => {
+		vi.spyOn(Date, 'now').mockReturnValue(1_785_556_800_333)
 		getJson.mockResolvedValue({
 			tip,
 			balance: 7,
@@ -271,28 +273,37 @@ describe('Logos Blockchain node Rest deepen', () => {
 			address,
 		})
 
-		const observation = await walletKeyStateTimestampResolver.resolve.WalletKeyStateTimestampMsSource.resolve({
-			$walletKeyState: walletKeyState,
-			timestampMs: 1,
-			source: Source.LogosBlockchainNode_Rest,
-		}, context)
+		const snapshot = await walletKeyStateResolver.resolve.NodeStatePublicKey.resolve(walletKeyState, context)
+		const observation = snapshot.$$timestamps[0]
 
 		expect(observation).toEqual({
-			tip: `0x${tip}`,
-			balance: 7n,
-			address: publicKey,
+			[EntityMetaKey.Selector]: {
+				$walletKeyState: walletKeyState,
+				timestampMs: 1_785_556_800_333,
+				source: Source.LogosBlockchainNode_Rest,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.BlockheadLogosBlockchainWalletKeyState_Timestamp, [], 'tip')]: `0x${tip}`,
+				[entityFieldAddressKey(EntityType.BlockheadLogosBlockchainWalletKeyState_Timestamp, [], 'balance')]: 7n,
+				[entityFieldAddressKey(EntityType.BlockheadLogosBlockchainWalletKeyState_Timestamp, [], 'address')]: publicKey,
+			},
 		})
-		expect(observation).not.toHaveProperty('notes')
+		expect(observation[EntityMetaKey.Fields]).not.toHaveProperty(
+			entityFieldAddressKey(EntityType.BlockheadLogosBlockchainWalletKeyState_Timestamp, [], 'notes')
+		)
 	})
 
-	it('enrolls only Logos consensus + BlockheadLogos leftovers', () => {
+	it('does not materialize an empty wallet-key observation when the current balance read fails', async () => {
+		getJson.mockRejectedValue(new Error('wallet balance down'))
+
+		await expect(walletKeyStateResolver.resolve.NodeStatePublicKey.resolve(walletKeyState, context)).rejects.toThrow('wallet balance down')
+	})
+
+	it('enrolls only Logos consensus + BlockheadLogos leftovers as current parent reads', () => {
 		expect(logosBlockchainNodeResolvers.resolvers.map((resolver) => resolver.entityType).sort()).toEqual([
 			EntityType.BlockheadLogosBlockchainNodeState,
-			EntityType.BlockheadLogosBlockchainNodeState_Timestamp,
 			EntityType.BlockheadLogosBlockchainWalletKeyState,
-			EntityType.BlockheadLogosBlockchainWalletKeyState_Timestamp,
 			EntityType.LogosBlockchainNetwork,
-			EntityType.LogosBlockchainNetwork_Timestamp,
 		].sort())
 	})
 })

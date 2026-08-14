@@ -27,7 +27,6 @@
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
-			Source.QuilibriumNodeMetrics_Prometheus,
 			Source.QuilibriumNode_Grpc,
 		],
 	}))

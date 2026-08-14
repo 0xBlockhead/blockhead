@@ -5,7 +5,6 @@
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -23,12 +22,7 @@
 	}: Omit<EntitySelectionViewProps<EntityType.BlockheadLogosBlockchainWalletKeyState_Timestamp>, 'prefetched'> = $props()
 
 	const walletKeyState = $derived(selection.entitySelector.$walletKeyState)
-	const viewSelection = $derived(selection({
-		sources: selection.sources ?? [
-			Source.LogosBlockchainNode_Rest,
-		],
-	}))
-	const blockheadLogosBlockchainWalletKeyStateTimestamp = $derived(viewSelection({
+	const blockheadLogosBlockchainWalletKeyStateTimestamp = $derived(selection({
 		fields: {
 			balance: true,
 		},
@@ -118,7 +112,7 @@
 
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
 						fields: {
 							tip: true,
 						},
@@ -160,7 +154,7 @@
 
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
 						fields: {
 							address: true,
 						},

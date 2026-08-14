@@ -1,5 +1,14 @@
-import { describe, expect, it, vi } from 'vitest'
-import { EntityMetaKey } from '$/schema/$schema.ts'
+import {
+	beforeEach,
+	describe,
+	expect,
+	it,
+	vi,
+} from 'vitest'
+import {
+	entityFieldAddressKey,
+	EntityMetaKey,
+} from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
@@ -20,15 +29,7 @@ vi.mock('$/sources/QuilibriumNodeMetrics/Prometheus/queries.ts', async (importOr
 const queries = await import('$/sources/QuilibriumNodeMetrics/Prometheus/queries.ts')
 const { default: quilibriumNodeMetrics } = await import('$/resolvers/QuilibriumNodeMetrics-Prometheus.ts')
 
-const nodeStateResolver = quilibriumNodeMetrics.resolvers.find((resolver) => (
-	resolver.entityType === EntityType.BlockheadQuilibriumNodeState
-))
-const nodeStateTimestampResolver = quilibriumNodeMetrics.resolvers.find((resolver) => (
-	resolver.entityType === EntityType.BlockheadQuilibriumNodeState_Timestamp
-))
-
-if (nodeStateResolver == null || nodeStateTimestampResolver == null)
-	throw new Error('QuilibriumNodeMetrics-Prometheus spec missing resolver')
+const nodeStateResolver = quilibriumNodeMetrics.resolvers[0]
 
 const network = {
 	slug: 'quilibrium',
@@ -67,12 +68,22 @@ quilibrium_build_info{revision="abcdef",version="2.1.0"} 1
 })
 
 describe('Quilibrium node metrics BlockheadQuilibrium node projections', () => {
+	beforeEach(() => {
+		vi.restoreAllMocks()
+		getMetrics.mockReset()
+	})
+
 	it('projects node-state tip timestamps and observation fields from prometheus text', async () => {
+		vi.spyOn(Date, 'now').mockReturnValue(1_785_556_800_444)
 		getMetrics.mockResolvedValue(`
 quilibrium_app_consensus_engine_state 5
 quilibrium_app_consensus_current_frame_number 99
+quilibrium_global_consensus_current_frame_number 80
 quilibrium_app_consensus_current_difficulty 3
 quilibrium_app_consensus_pending_messages_count 1
+blossomsub_peers 42
+quilibrium_app_consensus_time_since_last_proven_frame_seconds 12.5
+quilibrium_build_info{revision="abcdef",version="2.1.0"} 1
 `)
 
 		await expect(
@@ -80,8 +91,11 @@ quilibrium_app_consensus_pending_messages_count 1
 				connectionId: 'node-1',
 				$network: network,
 			})
-		).resolves.toMatchObject({
+		).resolves.toEqual({
 			connectionId: 'node-1',
+			$network: {
+				[EntityMetaKey.Selector]: network,
+			},
 			$$timestamps: [
 				{
 					[EntityMetaKey.Selector]: {
@@ -89,27 +103,34 @@ quilibrium_app_consensus_pending_messages_count 1
 							connectionId: 'node-1',
 							$network: network,
 						},
+						timestampMs: 1_785_556_800_444,
 						source: Source.QuilibriumNodeMetrics_Prometheus,
+					},
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.BlockheadQuilibriumNodeState_Timestamp, [], 'engineState')]: 'publishing',
+						[entityFieldAddressKey(EntityType.BlockheadQuilibriumNodeState_Timestamp, [], 'latestFrameNumber')]: 99n,
+						[entityFieldAddressKey(EntityType.BlockheadQuilibriumNodeState_Timestamp, [], 'frameStoreHead')]: 80n,
+						[entityFieldAddressKey(EntityType.BlockheadQuilibriumNodeState_Timestamp, [], 'difficulty')]: 3n,
+						[entityFieldAddressKey(EntityType.BlockheadQuilibriumNodeState_Timestamp, [], 'pendingMessageCount')]: 1,
+						[entityFieldAddressKey(EntityType.BlockheadQuilibriumNodeState_Timestamp, [], 'peerCount')]: 42,
+						[entityFieldAddressKey(EntityType.BlockheadQuilibriumNodeState_Timestamp, [], 'lastSyncedAt')]: 1_785_556_800_444 - 12_500,
+						[entityFieldAddressKey(EntityType.BlockheadQuilibriumNodeState_Timestamp, [], 'nodeVersion')]: '2.1.0',
 					},
 				},
 			],
 		})
+		expect(getMetrics).toHaveBeenCalledTimes(1)
+	})
+
+	it('does not materialize an empty observation when the current metrics read fails', async () => {
+		getMetrics.mockRejectedValue(new Error('metrics down'))
 
 		await expect(
-			nodeStateTimestampResolver.resolve.NodeStateTimestampMsSource.resolve({
-				$nodeState: {
-					connectionId: 'node-1',
-					$network: network,
-				},
-				timestampMs: 1,
-				source: Source.QuilibriumNodeMetrics_Prometheus,
+			nodeStateResolver.resolve.ConnectionIdNetwork.resolve({
+				connectionId: 'node-1',
+				$network: network,
 			})
-		).resolves.toMatchObject({
-			engineState: 'publishing',
-			latestFrameNumber: 99n,
-			difficulty: 3n,
-			pendingMessageCount: 1,
-		})
+		).rejects.toThrow('metrics down')
 	})
 
 	it('rejects unsupported networks', async () => {
@@ -121,5 +142,12 @@ quilibrium_app_consensus_pending_messages_count 1
 				},
 			})
 		).rejects.toThrow('QuilibriumNodeMetrics_Prometheus: unsupported network')
+		expect(getMetrics).not.toHaveBeenCalled()
+	})
+
+	it('enrolls only BlockheadQuilibrium node-state as a current parent read', () => {
+		expect(quilibriumNodeMetrics.resolvers.map((resolver) => resolver.entityType)).toEqual([
+			EntityType.BlockheadQuilibriumNodeState,
+		])
 	})
 })
