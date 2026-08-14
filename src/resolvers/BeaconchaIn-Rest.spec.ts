@@ -478,14 +478,33 @@ describe('BeaconchaIn-Rest resolvers', () => {
 		const networkEpochsResolver = beaconchaInRest.resolvers.find((resolver) => (
 			resolver.entityType === EntityType.Network
 			&& 'Evm' in resolver.projections
-			&& '$$beaconEpochs' in resolver.projections.Evm
+			&& typeof resolver.projections.Evm.$$beaconEpochs === 'object'
+			&& 'select' in resolver.projections.Evm.$$beaconEpochs
+		))
+		const networkEpochsCountResolver = beaconchaInRest.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.Network
+			&& 'Evm' in resolver.projections
+			&& typeof resolver.projections.Evm.$$beaconEpochs === 'object'
+			&& 'resolveCount' in resolver.projections.Evm.$$beaconEpochs
 		))
 		const networkSlotsResolver = beaconchaInRest.resolvers.find((resolver) => (
 			resolver.entityType === EntityType.Network
 			&& 'Evm' in resolver.projections
-			&& '$$beaconSlots' in resolver.projections.Evm
+			&& typeof resolver.projections.Evm.$$beaconSlots === 'object'
+			&& 'select' in resolver.projections.Evm.$$beaconSlots
 		))
-		if (networkEpochsResolver == null || networkSlotsResolver == null)
+		const networkSlotsCountResolver = beaconchaInRest.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.Network
+			&& 'Evm' in resolver.projections
+			&& typeof resolver.projections.Evm.$$beaconSlots === 'object'
+			&& 'resolveCount' in resolver.projections.Evm.$$beaconSlots
+		))
+		if (
+			networkEpochsResolver == null
+			|| networkEpochsCountResolver == null
+			|| networkSlotsResolver == null
+			|| networkSlotsCountResolver == null
+		)
 			throw new Error('BeaconchaIn network tip facets missing')
 
 		getEpoch.mockResolvedValueOnce({
@@ -515,7 +534,8 @@ describe('BeaconchaIn-Rest resolvers', () => {
 				limit: 3,
 			},
 		}
-		await expect(networkEpochsResolver.resolve.Caip2.resolve(network, tipContext)).resolves.toEqual([
+		const epochsPage = await networkEpochsResolver.resolve.Caip2.resolve(network, tipContext)
+		expect(networkEpochsResolver.projections.Evm.$$beaconEpochs.select(epochsPage)).toEqual([
 			{
 				[EntityMetaKey.Selector]: { $network: network, epoch: 12 },
 				[EntityMetaKey.Fields]: {
@@ -534,7 +554,10 @@ describe('BeaconchaIn-Rest resolvers', () => {
 			{ [EntityMetaKey.Selector]: { $network: network, epoch: 11 } },
 			{ [EntityMetaKey.Selector]: { $network: network, epoch: 10 } },
 		])
-		await expect(networkSlotsResolver.resolve.Caip2.resolve(network, tipContext)).resolves.toEqual([
+		expect(networkEpochsResolver.projections.Evm.$$beaconEpochs.continuation(epochsPage).token).toBe('9')
+
+		const slotsPage = await networkSlotsResolver.resolve.Caip2.resolve(network, tipContext)
+		expect(networkSlotsResolver.projections.Evm.$$beaconSlots.select(slotsPage)).toEqual([
 			{
 				[EntityMetaKey.Selector]: { $network: network, slot: 400 },
 				[EntityMetaKey.Fields]: {
@@ -550,6 +573,110 @@ describe('BeaconchaIn-Rest resolvers', () => {
 			{ [EntityMetaKey.Selector]: { $network: network, slot: 399 } },
 			{ [EntityMetaKey.Selector]: { $network: network, slot: 398 } },
 		])
+		expect(networkSlotsResolver.projections.Evm.$$beaconSlots.continuation(slotsPage).token).toBe('397')
+
+		getEpoch.mockResolvedValueOnce({
+			epoch: 12,
+			finalized: true,
+			globalparticipationrate: 0.9,
+			validatorscount: 1,
+			attestationscount: 1,
+			attesterslashingscount: 0,
+			proposerslashingscount: 0,
+			withdrawalcount: 0,
+		})
+		const continuedEpochsPage = await networkEpochsResolver.resolve.Caip2.resolve(network, {
+			...tipContext,
+			pagination: {
+				limit: 2,
+			},
+			providerContinuationToken: '9',
+		})
+		expect(networkEpochsResolver.projections.Evm.$$beaconEpochs.select(continuedEpochsPage).map((epoch) => (
+			epoch[EntityMetaKey.Selector].epoch
+		))).toEqual([
+			9,
+			8,
+		])
+		expect(networkEpochsResolver.projections.Evm.$$beaconEpochs.continuation(continuedEpochsPage).token).toBe('7')
+
+		getSlot.mockResolvedValueOnce({
+			slot: 400,
+			epoch: 12,
+			blockroot: '11'.repeat(32),
+			parentroot: '22'.repeat(32),
+			stateroot: '33'.repeat(32),
+			signature: '44'.repeat(96),
+			proposer: 1,
+			status: '1',
+		})
+		const terminalSlotsPage = await networkSlotsResolver.resolve.Caip2.resolve(network, {
+			...tipContext,
+			pagination: {
+				limit: 1,
+			},
+			providerContinuationToken: '0',
+		})
+		expect(networkSlotsResolver.projections.Evm.$$beaconSlots.continuation(terminalSlotsPage)).toEqual({
+			operation: 'network-beacon-slots',
+			terminal: true,
+		})
+
+		getEpoch.mockResolvedValueOnce({
+			epoch: 12,
+			finalized: true,
+			globalparticipationrate: 0.9,
+			validatorscount: 1,
+			attestationscount: 1,
+			attesterslashingscount: 0,
+			proposerslashingscount: 0,
+			withdrawalcount: 0,
+		})
+		await expect(networkEpochsResolver.resolve.Caip2.resolve(network, {
+			...tipContext,
+			providerContinuationToken: 'bad-token',
+		})).rejects.toThrow('invalid epochs continuation')
+
+		getEpoch.mockResolvedValueOnce({
+			epoch: 12,
+			finalized: true,
+			globalparticipationrate: 0.9,
+			validatorscount: 1,
+			attestationscount: 1,
+			attesterslashingscount: 0,
+			proposerslashingscount: 0,
+			withdrawalcount: 0,
+		})
+		await expect(networkEpochsResolver.resolve.Caip2.resolve(network, {
+			...tipContext,
+			providerContinuationToken: '13',
+		})).rejects.toThrow('epochs continuation exceeds latest epoch')
+
+		getEpoch.mockResolvedValueOnce({
+			epoch: 12,
+			finalized: true,
+			globalparticipationrate: 0.9,
+			validatorscount: 1,
+			attestationscount: 1,
+			attesterslashingscount: 0,
+			proposerslashingscount: 0,
+			withdrawalcount: 0,
+		})
+		await expect(networkEpochsCountResolver.resolve.Caip2.resolve(network, tipContext)).resolves.toBe(13)
+		expect(networkEpochsCountResolver.projections.Evm.$$beaconEpochs.resolveCount(13)).toBe(13)
+
+		getSlot.mockResolvedValueOnce({
+			slot: 400,
+			epoch: 12,
+			blockroot: '11'.repeat(32),
+			parentroot: '22'.repeat(32),
+			stateroot: '33'.repeat(32),
+			signature: '44'.repeat(96),
+			proposer: 1,
+			status: '1',
+		})
+		await expect(networkSlotsCountResolver.resolve.Caip2.resolve(network, tipContext)).resolves.toBe(401)
+		expect(networkSlotsCountResolver.projections.Evm.$$beaconSlots.resolveCount(401)).toBe(401)
 	})
 
 	it('keys slot and block body occurrences by the provider block root', async () => {

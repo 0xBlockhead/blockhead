@@ -6,6 +6,7 @@ import {
 } from '$/resolvers/defineResolver.ts'
 import {
 	resolverContextRowLimit,
+	type ResolverContext,
 	type ResolverSelectorPattern,
 } from '$/resolvers/$resolvers.ts'
 import {
@@ -287,6 +288,143 @@ const mapValidatorSnapshot = async (
 			},
 			[EntityMetaKey.Fields]: observationFields(observation),
 		}],
+	}
+}
+
+const beaconchaInDescendingCoordinate = (
+	providerContinuationToken: string | undefined,
+	label: string
+) => {
+	if (
+		providerContinuationToken != null
+		&& !/^(0|[1-9][0-9]*)$/.test(providerContinuationToken)
+	)
+		throw new Error(`BeaconchaIn_Rest: invalid ${label} continuation`)
+
+	return providerContinuationToken == null ?
+		undefined
+	:
+		Number(providerContinuationToken)
+}
+
+const beaconchaInNetworkBeaconEpochReferences = async (
+	caip2: EntitySelector<typeof schema, EntityType.Network>['caip2'],
+	context: ResolverContext
+) => {
+	if (caip2.namespace !== 'eip155')
+		throw new Error('BeaconchaIn_Rest: Network.$$beaconEpochs requires eip155')
+
+	const chainId = eip155ChainId({ caip2 })
+	const { getEpoch } = await import('$/sources/BeaconchaIn/Rest/queries.ts')
+	const head = await getEpoch(
+		context.publicEnv,
+		{
+			chainId,
+			epoch: 'latest',
+		}
+	)
+	const continuationEpoch = beaconchaInDescendingCoordinate(
+		context.providerContinuationToken,
+		'epochs'
+	)
+	const firstEpoch = continuationEpoch ?? (
+		head.epoch - (context.pagination.offset ?? 0)
+	)
+	if (firstEpoch > head.epoch)
+		throw new Error('BeaconchaIn_Rest: epochs continuation exceeds latest epoch')
+
+	const limit = resolverContextRowLimit(context)
+	const tipFields = {
+		[entityFieldAddressKey(EntityType.BeaconEpoch, [], 'startSlot')]: head.epoch * slotsPerEpoch,
+		[entityFieldAddressKey(EntityType.BeaconEpoch, [], 'endSlot')]: (head.epoch * slotsPerEpoch) + slotsPerEpoch - 1,
+		[entityFieldAddressKey(EntityType.BeaconEpoch, [], 'slotCount')]: slotsPerEpoch,
+		[entityFieldAddressKey(EntityType.BeaconEpoch, [], 'finalized')]: head.finalized,
+		[entityFieldAddressKey(EntityType.BeaconEpoch, [], 'globalParticipationRate')]: head.globalparticipationrate,
+		[entityFieldAddressKey(EntityType.BeaconEpoch, [], 'validatorsCount')]: head.validatorscount,
+		[entityFieldAddressKey(EntityType.BeaconEpoch, [], 'attestationsCount')]: head.attestationscount,
+		[entityFieldAddressKey(EntityType.BeaconEpoch, [], 'attesterSlashingsCount')]: head.attesterslashingscount,
+		[entityFieldAddressKey(EntityType.BeaconEpoch, [], 'proposerSlashingsCount')]: head.proposerslashingscount,
+		[entityFieldAddressKey(EntityType.BeaconEpoch, [], 'withdrawalsCount')]: head.withdrawalcount,
+	}
+	return {
+		epochs: Array.from({
+			length: Math.min(Math.max(firstEpoch + 1, 0), limit),
+		}, (_value, epochOffset) => (
+			firstEpoch - epochOffset
+		))
+			.flatMap((epoch) => (
+				epoch < 0 ?
+					[]
+				:
+					[{
+						[EntityMetaKey.Selector]: {
+							$network: { caip2 },
+							epoch,
+						},
+						...(epoch === head.epoch && {
+							[EntityMetaKey.Fields]: tipFields,
+						}),
+					}]
+			)),
+	}
+}
+
+const beaconchaInNetworkBeaconSlotReferences = async (
+	caip2: EntitySelector<typeof schema, EntityType.Network>['caip2'],
+	context: ResolverContext
+) => {
+	if (caip2.namespace !== 'eip155')
+		throw new Error('BeaconchaIn_Rest: Network.$$beaconSlots requires eip155')
+
+	const chainId = eip155ChainId({ caip2 })
+	const { getSlot } = await import('$/sources/BeaconchaIn/Rest/queries.ts')
+	const head = await getSlot(
+		context.publicEnv,
+		{
+			chainId,
+			slot: 'latest',
+		}
+	)
+	const continuationSlot = beaconchaInDescendingCoordinate(
+		context.providerContinuationToken,
+		'slots'
+	)
+	const firstSlot = continuationSlot ?? (
+		head.slot - (context.pagination.offset ?? 0)
+	)
+	if (firstSlot > head.slot)
+		throw new Error('BeaconchaIn_Rest: slots continuation exceeds latest slot')
+
+	const limit = resolverContextRowLimit(context)
+	const tipFields = {
+		[entityFieldAddressKey(EntityType.BeaconSlot, [], 'epoch')]: head.epoch,
+		[entityFieldAddressKey(EntityType.BeaconSlot, [], 'proposerIndex')]: head.proposer,
+		[entityFieldAddressKey(EntityType.BeaconSlot, [], 'root')]: with0xHex(head.blockroot),
+		[entityFieldAddressKey(EntityType.BeaconSlot, [], 'parentRoot')]: with0xHex(head.parentroot),
+		[entityFieldAddressKey(EntityType.BeaconSlot, [], 'stateRoot')]: with0xHex(head.stateroot),
+		[entityFieldAddressKey(EntityType.BeaconSlot, [], 'signature')]: with0xHex(head.signature),
+		[entityFieldAddressKey(EntityType.BeaconSlot, [], 'canonical')]: head.status === '1',
+	}
+	return {
+		slots: Array.from({
+			length: Math.min(Math.max(firstSlot + 1, 0), limit),
+		}, (_value, slotOffset) => (
+			firstSlot - slotOffset
+		))
+			.flatMap((slot) => (
+				slot < 0 ?
+					[]
+				:
+					[{
+						[EntityMetaKey.Selector]: {
+							$network: { caip2 },
+							slot,
+						},
+						...(slot === head.slot && {
+							[EntityMetaKey.Fields]: tipFields,
+						}),
+					}]
+			)),
 	}
 }
 
@@ -942,56 +1080,81 @@ export default {
 			entityType: EntityType.Network,
 			resolve: {
 				Caip2: {
+					resolve: async ({ caip2 }, context) => (
+						beaconchaInNetworkBeaconEpochReferences(caip2, context)
+					),
+				},
+			},
+		})({
+			Evm: {
+				$$beaconEpochs: {
+					select: (snapshot) => snapshot.epochs,
+					continuation: (snapshot) => {
+						const lastEpoch = snapshot.epochs.at(-1)?.[EntityMetaKey.Selector].epoch
+						return {
+							operation: 'network-beacon-epochs',
+							terminal: lastEpoch == null || lastEpoch === 0,
+							...(lastEpoch != null && lastEpoch > 0 && {
+								token: String(lastEpoch - 1),
+							}),
+						}
+					},
+				},
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.Network,
+			resolve: {
+				Caip2: {
 					resolve: async ({ caip2 }, context) => {
 						if (caip2.namespace !== 'eip155')
 							throw new Error('BeaconchaIn_Rest: Network.$$beaconEpochs requires eip155')
 
-						const chainId = eip155ChainId({ caip2 })
 						const { getEpoch } = await import('$/sources/BeaconchaIn/Rest/queries.ts')
 						const head = await getEpoch(
 							context.publicEnv,
 							{
-								chainId,
+								chainId: eip155ChainId({ caip2 }),
 								epoch: 'latest',
 							}
 						)
-						const limit = resolverContextRowLimit(context)
-						const tipFields = {
-							[entityFieldAddressKey(EntityType.BeaconEpoch, [], 'startSlot')]: head.epoch * slotsPerEpoch,
-							[entityFieldAddressKey(EntityType.BeaconEpoch, [], 'endSlot')]: (head.epoch * slotsPerEpoch) + slotsPerEpoch - 1,
-							[entityFieldAddressKey(EntityType.BeaconEpoch, [], 'slotCount')]: slotsPerEpoch,
-							[entityFieldAddressKey(EntityType.BeaconEpoch, [], 'finalized')]: head.finalized,
-							[entityFieldAddressKey(EntityType.BeaconEpoch, [], 'globalParticipationRate')]: head.globalparticipationrate,
-							[entityFieldAddressKey(EntityType.BeaconEpoch, [], 'validatorsCount')]: head.validatorscount,
-							[entityFieldAddressKey(EntityType.BeaconEpoch, [], 'attestationsCount')]: head.attestationscount,
-							[entityFieldAddressKey(EntityType.BeaconEpoch, [], 'attesterSlashingsCount')]: head.attesterslashingscount,
-							[entityFieldAddressKey(EntityType.BeaconEpoch, [], 'proposerSlashingsCount')]: head.proposerslashingscount,
-							[entityFieldAddressKey(EntityType.BeaconEpoch, [], 'withdrawalsCount')]: head.withdrawalcount,
-						}
-						return Array.from(
-							{ length: limit },
-							(_, i) => head.epoch - i
-						)
-							.flatMap((epoch, index) => (
-								epoch < 0 ?
-									[]
-								:
-									[{
-										[EntityMetaKey.Selector]: {
-											$network: { caip2 },
-											epoch,
-										},
-										...(index === 0 && {
-											[EntityMetaKey.Fields]: tipFields,
-										}),
-									}]
-							))
+						return head.epoch + 1
 					},
 				},
 			},
 		})({
 			Evm: {
-				$$beaconEpochs: (epochs) => epochs,
+				$$beaconEpochs: {
+					resolveCount: (count) => count,
+				},
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.Network,
+			resolve: {
+				Caip2: {
+					resolve: async ({ caip2 }, context) => (
+						beaconchaInNetworkBeaconSlotReferences(caip2, context)
+					),
+				},
+			},
+		})({
+			Evm: {
+				$$beaconSlots: {
+					select: (snapshot) => snapshot.slots,
+					continuation: (snapshot) => {
+						const lastSlot = snapshot.slots.at(-1)?.[EntityMetaKey.Selector].slot
+						return {
+							operation: 'network-beacon-slots',
+							terminal: lastSlot == null || lastSlot === 0,
+							...(lastSlot != null && lastSlot > 0 && {
+								token: String(lastSlot - 1),
+							}),
+						}
+					},
+				},
 			},
 		}),
 
@@ -1003,49 +1166,23 @@ export default {
 						if (caip2.namespace !== 'eip155')
 							throw new Error('BeaconchaIn_Rest: Network.$$beaconSlots requires eip155')
 
-						const chainId = eip155ChainId({ caip2 })
 						const { getSlot } = await import('$/sources/BeaconchaIn/Rest/queries.ts')
 						const head = await getSlot(
 							context.publicEnv,
 							{
-								chainId,
+								chainId: eip155ChainId({ caip2 }),
 								slot: 'latest',
 							}
 						)
-						const limit = resolverContextRowLimit(context)
-						const tipFields = {
-							[entityFieldAddressKey(EntityType.BeaconSlot, [], 'epoch')]: head.epoch,
-							[entityFieldAddressKey(EntityType.BeaconSlot, [], 'proposerIndex')]: head.proposer,
-							[entityFieldAddressKey(EntityType.BeaconSlot, [], 'root')]: with0xHex(head.blockroot),
-							[entityFieldAddressKey(EntityType.BeaconSlot, [], 'parentRoot')]: with0xHex(head.parentroot),
-							[entityFieldAddressKey(EntityType.BeaconSlot, [], 'stateRoot')]: with0xHex(head.stateroot),
-							[entityFieldAddressKey(EntityType.BeaconSlot, [], 'signature')]: with0xHex(head.signature),
-							[entityFieldAddressKey(EntityType.BeaconSlot, [], 'canonical')]: head.status === '1',
-						}
-						return Array.from(
-							{ length: limit },
-							(_, i) => head.slot - i
-						)
-							.flatMap((slot, index) => (
-								slot < 0 ?
-									[]
-								:
-									[{
-										[EntityMetaKey.Selector]: {
-											$network: { caip2 },
-											slot,
-										},
-										...(index === 0 && {
-											[EntityMetaKey.Fields]: tipFields,
-										}),
-									}]
-							))
+						return head.slot + 1
 					},
 				},
 			},
 		})({
 			Evm: {
-				$$beaconSlots: (slots) => slots,
+				$$beaconSlots: {
+					resolveCount: (count) => count,
+				},
 			},
 		}),
 	],

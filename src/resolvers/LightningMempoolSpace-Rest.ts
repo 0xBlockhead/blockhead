@@ -14,8 +14,10 @@ import { networkBySlug } from '$/constants/Network.ts'
 import {
 	EntityMetaKey,
 	entityFieldAddressKey,
+	type EntitySelector,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { schema } from '$/schema/index.ts'
 import { LightningChannelStatus } from '$/schema/LightningChannelStatus.ts'
 import { Source } from '$/sources/Source.ts'
 import type {
@@ -214,6 +216,27 @@ const lightningNetworkTimestampLiveRowFromStatistics = (
 				])
 		),
 	}
+}
+
+const lightningMempoolSpaceNodeCountFromStatistics = async () => {
+	const { getLightningStatistics } = await import('$/sources/LightningMempoolSpace/Rest/queries.ts')
+	const nodeCount = (await getLightningStatistics()).latest.node_count
+	if (nodeCount == null)
+		throw new Error('LightningMempoolSpace_Rest: statistics missing node_count')
+
+	return nodeCount
+}
+
+const lightningMempoolSpaceChannelCountFromNode = async (publicKey: string) => {
+	const { getLightningNode } = await import('$/sources/LightningMempoolSpace/Rest/queries.ts')
+	const node = await getLightningNode({
+		publicKey,
+	})
+	const channelCount = node.active_channel_count ?? node.channels
+	if (channelCount == null)
+		throw new Error('LightningMempoolSpace_Rest: node detail missing channel count')
+
+	return channelCount
 }
 
 export default {
@@ -646,6 +669,56 @@ export default {
 			},
 		})({
 			$$channels: (snapshot) => snapshot,
+		}),
+
+		defineResolver({
+			entityType: EntityType.LightningNetwork,
+			resolve: {
+				Network: {
+					resolve: async ({ $network }) => {
+						assertLightningNetwork($network)
+						return lightningMempoolSpaceNodeCountFromStatistics()
+					},
+				}
+			},
+		})({
+			$$nodes: {
+				resolveCount: (count) => count,
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.Network,
+			resolve: {
+				Slug: {
+					resolve: async (network) => {
+						assertLightningNetwork(network)
+						return lightningMempoolSpaceNodeCountFromStatistics()
+					},
+				}
+			},
+		})({
+			Lightning: {
+				$$nodes: {
+					resolveCount: (count) => count,
+				},
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.LightningNode,
+			resolve: {
+				NetworkPublicKey: {
+					resolve: async ({ $network, publicKey }) => {
+						assertLightningNetwork($network)
+						return lightningMempoolSpaceChannelCountFromNode(publicKey)
+					},
+				}
+			},
+		})({
+			$$channels: {
+				resolveCount: (count) => count,
+			},
 		}),
 	],
 }

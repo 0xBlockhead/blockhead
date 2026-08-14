@@ -248,15 +248,18 @@ describe('Etherscan Network selectors', () => {
 			&& 'Caip2' in candidate.resolve
 			&& 'Evm' in candidate.projections
 			&& '$$blocks' in candidate.projections.Evm
-			&& typeof candidate.projections.Evm.$$blocks === 'function'
+			&& typeof candidate.projections.Evm.$$blocks === 'object'
+			&& 'select' in candidate.projections.Evm.$$blocks
 		))
 		if (
 			resolver == null
 			|| !('Caip2' in resolver.resolve)
+			|| typeof resolver.projections.Evm.$$blocks !== 'object'
+			|| !('select' in resolver.projections.Evm.$$blocks)
 		)
 			throw new Error('Etherscan_Rest: missing Network.$$blocks resolver')
 
-		const rows = await resolver.resolve.Caip2.resolve({
+		const page = await resolver.resolve.Caip2.resolve({
 			slug: 'ethereum',
 		}, {
 			...context,
@@ -265,7 +268,7 @@ describe('Etherscan Network selectors', () => {
 			},
 		})
 
-		expect(rows).toEqual([
+		expect(resolver.projections.Evm.$$blocks.select(page)).toEqual([
 			{
 				[EntityMetaKey.Selector]: {
 					$network: {
@@ -300,6 +303,81 @@ describe('Etherscan Network selectors', () => {
 				},
 			},
 		])
+		expect(resolver.projections.Evm.$$blocks.continuation(page).token).toBe('7')
+	})
+
+	it('preserves exact descending block continuations and authoritative resolveCount', async () => {
+		getBlockNumber.mockResolvedValue('0xa')
+		const blocksResolver = etherscanRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.Network
+			&& 'Caip2' in candidate.resolve
+			&& 'Evm' in candidate.projections
+			&& typeof candidate.projections.Evm.$$blocks === 'object'
+			&& 'select' in candidate.projections.Evm.$$blocks
+		))
+		const countResolver = etherscanRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.Network
+			&& 'Caip2' in candidate.resolve
+			&& typeof candidate.projections.Evm.$$blocks === 'object'
+			&& 'resolveCount' in candidate.projections.Evm.$$blocks
+		))
+		if (
+			blocksResolver == null
+			|| countResolver == null
+			|| typeof blocksResolver.projections.Evm.$$blocks !== 'object'
+			|| !('select' in blocksResolver.projections.Evm.$$blocks)
+		)
+			throw new Error('Etherscan_Rest: missing Network.$$blocks continuation resolver')
+
+		const continuedPage = await blocksResolver.resolve.Caip2.resolve({
+			slug: 'ethereum',
+		}, {
+			...context,
+			pagination: {
+				limit: 2,
+			},
+			providerContinuationToken: '7',
+		})
+		expect(blocksResolver.projections.Evm.$$blocks.select(continuedPage).map((block) => (
+			block[EntityMetaKey.Selector].blockNumber
+		))).toEqual([
+			7n,
+			6n,
+		])
+		expect(blocksResolver.projections.Evm.$$blocks.continuation(continuedPage).token).toBe('5')
+
+		const terminalPage = await blocksResolver.resolve.Caip2.resolve({
+			slug: 'ethereum',
+		}, {
+			...context,
+			pagination: {
+				limit: 1,
+			},
+			providerContinuationToken: '0',
+		})
+		expect(blocksResolver.projections.Evm.$$blocks.continuation(terminalPage)).toEqual({
+			operation: 'network-blocks',
+			terminal: true,
+		})
+
+		await expect(blocksResolver.resolve.Caip2.resolve({
+			slug: 'ethereum',
+		}, {
+			...context,
+			providerContinuationToken: 'bad-token',
+		})).rejects.toThrow('invalid blocks continuation')
+
+		await expect(blocksResolver.resolve.Caip2.resolve({
+			slug: 'ethereum',
+		}, {
+			...context,
+			providerContinuationToken: '11',
+		})).rejects.toThrow('blocks continuation exceeds head')
+
+		await expect(countResolver.resolve.Caip2.resolve({
+			slug: 'ethereum',
+		}, context)).resolves.toBe(11)
+		expect(countResolver.projections.Evm.$$blocks.resolveCount(11)).toBe(11)
 	})
 
 	it('projects tip EvmNetworkAccount observations from eth_getCode + tip block', async () => {

@@ -1,4 +1,4 @@
-import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
+import { resolverContextRowLimit, type ResolverContext } from '$/resolvers/$resolvers.ts'
 import { keccak256, toHex } from '@tevm/voltaire/Hash'
 import { toBytes } from '@tevm/voltaire/Hex'
 
@@ -722,6 +722,53 @@ const eip7702AuthorizationEntitiesFromEtherscanTx = ({
 		}]
 	})
 )
+
+const etherscanEvmNetworkBlockReferences = async (
+	entitySelector: EntitySelector<typeof schema, EntityType.Network>,
+	context: ResolverContext
+) => {
+	const chainId = evmChainIdFromNetworkSelector(entitySelector)
+	if (!supportsChainId(chainId))
+		throw new Error('Etherscan_Rest: unsupported network')
+	const headHex = await getBlockNumber({
+		publicEnv: context.publicEnv,
+		chainId,
+	})
+	const head = etherscanQuantityToBigInt(headHex)
+	if (head == null)
+		throw new Error('Etherscan_Rest: eth_blockNumber returned no result')
+	if (
+		context.providerContinuationToken != null
+		&& !/^(0|[1-9][0-9]*)$/.test(context.providerContinuationToken)
+	)
+		throw new Error('Etherscan_Rest: invalid blocks continuation')
+
+	const firstBlockNumber = context.providerContinuationToken == null ?
+		head - BigInt(context.pagination.offset ?? 0)
+	:
+		BigInt(context.providerContinuationToken)
+	if (firstBlockNumber > head)
+		throw new Error('Etherscan_Rest: blocks continuation exceeds head')
+
+	const limit = Math.min(Math.max(1, resolverContextRowLimit(context)), 32)
+	return {
+		blocks: Array.from({
+			length: Math.min(
+				Math.max(Number(firstBlockNumber + 1n), 0),
+				limit
+			),
+		}, (_value, blockOffset) => (
+			firstBlockNumber - BigInt(blockOffset)
+		))
+			.filter((blockNumber) => blockNumber >= 0n)
+			.map((blockNumber) => ({
+				[EntityMetaKey.Selector]: {
+					$network: evmNetworkSelectorFromChainId(chainId),
+					blockNumber,
+				},
+			})),
+	}
+}
 
 const evmLogEntityFromRpcWire = (
 	entitySelector: EntitySelector<typeof schema, EntityType.EvmLog>,
@@ -1675,35 +1722,26 @@ export default {
 			entityType: EntityType.Network,
 			resolve: {
 				Caip2: {
-					resolve: async (entitySelector, context) => {
-						const chainId = evmChainIdFromNetworkSelector(entitySelector)
-						if (!supportsChainId(chainId))
-							throw new Error('Etherscan_Rest: unsupported network')
-						const headHex = await getBlockNumber({
-							publicEnv: context.publicEnv,
-							chainId,
-						})
-						const head = etherscanQuantityToBigInt(headHex)
-						if (head == null)
-							throw new Error('Etherscan_Rest: eth_blockNumber returned no result')
-						const limit = Math.min(Math.max(1, resolverContextRowLimit(context)), 32)
-						return Array.from(
-							{ length: limit },
-							(_, index) => head - BigInt(index)
-						)
-							.filter((blockNumber) => blockNumber >= 0n)
-							.map((blockNumber) => ({
-								[EntityMetaKey.Selector]: {
-									$network: evmNetworkSelectorFromChainId(chainId),
-									blockNumber,
-								},
-							}))
-					},
+					resolve: async (entitySelector, context) => (
+						etherscanEvmNetworkBlockReferences(entitySelector, context)
+					),
 				}
 			},
 		})({
 			Evm: {
-				$$blocks: (network) => network,
+				$$blocks: {
+					select: (snapshot) => snapshot.blocks,
+					continuation: (snapshot) => {
+						const lastBlockNumber = snapshot.blocks.at(-1)?.[EntityMetaKey.Selector].blockNumber
+						return {
+							operation: 'network-blocks',
+							terminal: lastBlockNumber == null || lastBlockNumber === 0n,
+							...(lastBlockNumber != null && lastBlockNumber > 0n && {
+								token: String(lastBlockNumber - 1n),
+							}),
+						}
+					},
+				},
 			},
 		}),
 
