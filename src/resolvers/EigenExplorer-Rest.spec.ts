@@ -7,7 +7,10 @@ import {
 } from 'vitest'
 
 import { networkBySlug } from '$/constants/Network.ts'
-import { EntityMetaKey } from '$/schema/$schema.ts'
+import {
+	entityFieldAddressKey,
+	EntityMetaKey,
+} from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
@@ -764,6 +767,17 @@ describe('EigenExplorer AVS resolvers', () => {
 				$network: network,
 				operatorAddress,
 			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.EigenLayerOperator, [], 'name')]: 'Example Operator',
+				[entityFieldAddressKey(EntityType.EigenLayerOperator, [], '$operatorAccount')]: {
+					[EntityMetaKey.Selector]: {
+						$network: network,
+						$actor: {
+							address: operatorAddress,
+						},
+					},
+				},
+			},
 		}])
 		expect(listAvsOperators).toHaveBeenCalledWith(avsAddress, {
 			skip: 0,
@@ -1254,6 +1268,17 @@ describe('EigenExplorer protocol hub catalog resolvers', () => {
 				$network: network,
 				operatorAddress,
 			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.EigenLayerOperator, [], 'name')]: 'Example Operator',
+				[entityFieldAddressKey(EntityType.EigenLayerOperator, [], '$operatorAccount')]: {
+					[EntityMetaKey.Selector]: {
+						$network: network,
+						$actor: {
+							address: operatorAddress,
+						},
+					},
+				},
+			},
 		}])
 		expect(protocolOperatorsResolver.projections.$$operators.resolveCount(operators)).toBe(40)
 		expect(protocolOperatorsResolver.projections.$$operators.continuation(operators)).toEqual({
@@ -1272,6 +1297,17 @@ describe('EigenExplorer protocol hub catalog resolvers', () => {
 				$network: network,
 				avsAddress,
 			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.EigenLayerAvs, [], 'name')]: 'Example AVS',
+				[entityFieldAddressKey(EntityType.EigenLayerAvs, [], '$avsAccount')]: {
+					[EntityMetaKey.Selector]: {
+						$network: network,
+						$actor: {
+							address: avsAddress,
+						},
+					},
+				},
+			},
 		}])
 		expect(protocolAvssResolver.projections.$$avss.resolveCount(avss)).toBe(18)
 
@@ -1283,6 +1319,14 @@ describe('EigenExplorer protocol hub catalog resolvers', () => {
 			[EntityMetaKey.Selector]: {
 				$network: network,
 				strategyAddress,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.EigenLayerStrategy, [], '$strategyContract')]: {
+					[EntityMetaKey.Selector]: {
+						$network: network,
+						address: strategyAddress,
+					},
+				},
 			},
 		}])
 		expect(protocolStrategiesResolver.projections.$$strategies.resolveCount(strategies)).toBe(3)

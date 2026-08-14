@@ -8,7 +8,15 @@ import {
 
 import * as Address from 'ox/Address'
 
-import { EntityMetaKey } from '$/schema/$schema.ts'
+import {
+	EvmTransactionEnvelopeType,
+	EvmTransactionExecutionStatus,
+	EvmTransactionKind,
+} from '$/constants/Evm.ts'
+import {
+	entityFieldAddressKey,
+	EntityMetaKey,
+} from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
@@ -298,6 +306,28 @@ describe('Safe Transaction Service resolver module', () => {
 					$network: network,
 					txHash: executionHash,
 				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.EvmTransaction, [], 'envelopeType')]: EvmTransactionEnvelopeType.Unknown,
+					[entityFieldAddressKey(EntityType.EvmTransaction, [], 'kind')]: EvmTransactionKind.ContractCall,
+					[entityFieldAddressKey(EntityType.EvmTransaction, [], '$from')]: {
+						[EntityMetaKey.Selector]: {
+							address: safeAddress,
+						},
+					},
+					[entityFieldAddressKey(EntityType.EvmTransaction, [], '$to')]: {
+						[EntityMetaKey.Selector]: {
+							address: recipientAddress,
+						},
+					},
+					[entityFieldAddressKey(EntityType.EvmTransaction, [], 'value')]: 0n,
+					[entityFieldAddressKey(EntityType.EvmTransaction, [], 'executionStatus')]: EvmTransactionExecutionStatus.Success,
+					[entityFieldAddressKey(EntityType.EvmTransaction, [], '$block')]: {
+						[EntityMetaKey.Selector]: {
+							$network: network,
+							blockNumber: 1n,
+						},
+					},
+				},
 			},
 		])
 		expect(listResolver.projections.$$transactions.continuation(listSnapshot)).toEqual({
@@ -411,6 +441,22 @@ describe('Safe Transaction Service resolver module', () => {
 				[EntityMetaKey.Selector]: {
 					$network: network,
 					txHash: safeTxHash,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.EvmTransaction, [], 'envelopeType')]: EvmTransactionEnvelopeType.Unknown,
+					[entityFieldAddressKey(EntityType.EvmTransaction, [], 'kind')]: EvmTransactionKind.ContractCall,
+					[entityFieldAddressKey(EntityType.EvmTransaction, [], '$from')]: {
+						[EntityMetaKey.Selector]: {
+							address: safeAddress,
+						},
+					},
+					[entityFieldAddressKey(EntityType.EvmTransaction, [], '$to')]: {
+						[EntityMetaKey.Selector]: {
+							address: recipientAddress,
+						},
+					},
+					[entityFieldAddressKey(EntityType.EvmTransaction, [], 'value')]: 0n,
+					[entityFieldAddressKey(EntityType.EvmTransaction, [], 'executionStatus')]: EvmTransactionExecutionStatus.Pending,
 				},
 			},
 		])

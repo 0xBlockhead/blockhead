@@ -3,11 +3,16 @@ import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
 import { resolverContextRowLimit, type ResolverContext } from '$/resolvers/$resolvers.ts'
 import { defineResolver, type RegisteredSourceResolverModule } from '$/resolvers/defineResolver.ts'
 import {
+	entityFieldAddressKey,
 	EntityMetaKey,
 	type EntitySelector,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
+import type {
+	EigenExplorerAvs,
+	EigenExplorerOperator,
+} from '$/sources/EigenExplorer/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
@@ -45,6 +50,86 @@ const ethereumMainnetApplicability = [
 		},
 	},
 ] as const
+
+const eigenOperatorFields = (operator: EigenExplorerOperator) => {
+	const operatorAddress = hexLowerOfByteSize(operator.address, 20)
+	if (operatorAddress == null)
+		throw new Error('EigenExplorer_Rest: operator address not normalized')
+
+	return {
+		operatorAddress,
+		name: operator.metadataName,
+		...(operator.metadataDescription != null && {
+			description: operator.metadataDescription,
+		}),
+		...(operator.metadataWebsite != null && {
+			website: operator.metadataWebsite,
+		}),
+		...(operator.metadataLogo != null && {
+			metadataUri: operator.metadataLogo,
+		}),
+		$operatorAccount: {
+			[EntityMetaKey.Selector]: {
+				$network: ethereumNetwork,
+				$actor: {
+					address: operatorAddress,
+				},
+			},
+		},
+	}
+}
+
+const eigenOperatorReference = (operator: EigenExplorerOperator) => {
+	const fields = eigenOperatorFields(operator)
+
+	return {
+		[EntityMetaKey.Selector]: {
+			$network: ethereumNetwork,
+			operatorAddress: fields.operatorAddress,
+		},
+		[EntityMetaKey.Fields]: {
+			[entityFieldAddressKey(EntityType.EigenLayerOperator, [], 'name')]: fields.name,
+			...(fields.description != null && {
+				[entityFieldAddressKey(EntityType.EigenLayerOperator, [], 'description')]: fields.description,
+			}),
+			...(fields.website != null && {
+				[entityFieldAddressKey(EntityType.EigenLayerOperator, [], 'website')]: fields.website,
+			}),
+			...(fields.metadataUri != null && {
+				[entityFieldAddressKey(EntityType.EigenLayerOperator, [], 'metadataUri')]: fields.metadataUri,
+			}),
+			[entityFieldAddressKey(EntityType.EigenLayerOperator, [], '$operatorAccount')]: fields.$operatorAccount,
+		},
+	}
+}
+
+const eigenAvsFields = (avs: EigenExplorerAvs) => {
+	const avsAddress = hexLowerOfByteSize(avs.address, 20)
+	if (avsAddress == null)
+		throw new Error('EigenExplorer_Rest: AVS address not normalized')
+
+	return {
+		avsAddress,
+		name: avs.metadataName,
+		...(avs.metadataDescription != null && {
+			description: avs.metadataDescription,
+		}),
+		...(avs.metadataWebsite != null && {
+			website: avs.metadataWebsite,
+		}),
+		...(avs.metadataLogo != null && {
+			metadataUri: avs.metadataLogo,
+		}),
+		$avsAccount: {
+			[EntityMetaKey.Selector]: {
+				$network: ethereumNetwork,
+				$actor: {
+					address: avsAddress,
+				},
+			},
+		},
+	}
+}
 
 const eigenExplorerPaginationSkip = (
 	context: ResolverContext
@@ -455,31 +540,7 @@ export default {
 						assertEthereumMainnet($network)
 
 						const { getOperator } = await import('$/sources/EigenExplorer/Rest/queries.ts')
-						const operator = await getOperator(operatorAddress)
-						const address = hexLowerOfByteSize(operator.address, 20)
-						if (address == null)
-							throw new Error('EigenExplorer_Rest: operator address not normalized')
-
-						return {
-							name: operator.metadataName,
-							...(operator.metadataDescription != null && {
-								description: operator.metadataDescription,
-							}),
-							...(operator.metadataWebsite != null && {
-								website: operator.metadataWebsite,
-							}),
-							...(operator.metadataLogo != null && {
-								metadataUri: operator.metadataLogo,
-							}),
-							$operatorAccount: {
-								[EntityMetaKey.Selector]: {
-									$network: ethereumNetwork,
-									$actor: {
-										address,
-									},
-								},
-							},
-						}
+						return eigenOperatorFields(await getOperator(operatorAddress))
 					},
 				},
 			},
@@ -709,31 +770,7 @@ export default {
 						assertEthereumMainnet($network)
 
 						const { getAvs } = await import('$/sources/EigenExplorer/Rest/queries.ts')
-						const avs = await getAvs(avsAddress)
-						const address = hexLowerOfByteSize(avs.address, 20)
-						if (address == null)
-							throw new Error('EigenExplorer_Rest: AVS address not normalized')
-
-						return {
-							name: avs.metadataName,
-							...(avs.metadataDescription != null && {
-								description: avs.metadataDescription,
-							}),
-							...(avs.metadataWebsite != null && {
-								website: avs.metadataWebsite,
-							}),
-							...(avs.metadataLogo != null && {
-								metadataUri: avs.metadataLogo,
-							}),
-							$avsAccount: {
-								[EntityMetaKey.Selector]: {
-									$network: ethereumNetwork,
-									$actor: {
-										address,
-									},
-								},
-							},
-						}
+						return eigenAvsFields(await getAvs(avsAddress))
 					},
 				},
 			},
@@ -804,18 +841,7 @@ export default {
 						return {
 							skip,
 							totalCount: page.meta.total,
-							rows: page.data.map((operator) => {
-								const operatorAddress = hexLowerOfByteSize(operator.address, 20)
-								if (operatorAddress == null)
-									throw new Error('EigenExplorer_Rest: operator address not normalized')
-
-								return {
-									[EntityMetaKey.Selector]: {
-										$network: ethereumNetwork,
-										operatorAddress,
-									},
-								}
-							}),
+							rows: page.data.map(eigenOperatorReference),
 						}
 					},
 				},
@@ -1321,18 +1347,7 @@ export default {
 						return {
 							skip,
 							totalCount: page.meta.total,
-							rows: page.data.map((operator) => {
-								const operatorAddress = hexLowerOfByteSize(operator.address, 20)
-								if (operatorAddress == null)
-									throw new Error('EigenExplorer_Rest: operator address not normalized')
-
-								return {
-									[EntityMetaKey.Selector]: {
-										$network: ethereumNetwork,
-										operatorAddress,
-									},
-								}
-							}),
+							rows: page.data.map(eigenOperatorReference),
 						}
 					},
 				},
@@ -1378,14 +1393,25 @@ export default {
 							skip,
 							totalCount: page.meta.total,
 							rows: page.data.map((avs) => {
-								const address = hexLowerOfByteSize(avs.address, 20)
-								if (address == null)
-									throw new Error('EigenExplorer_Rest: AVS address not normalized')
+								const fields = eigenAvsFields(avs)
 
 								return {
 									[EntityMetaKey.Selector]: {
 										$network: ethereumNetwork,
-										avsAddress: address,
+										avsAddress: fields.avsAddress,
+									},
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.EigenLayerAvs, [], 'name')]: fields.name,
+										...(fields.description != null && {
+											[entityFieldAddressKey(EntityType.EigenLayerAvs, [], 'description')]: fields.description,
+										}),
+										...(fields.website != null && {
+											[entityFieldAddressKey(EntityType.EigenLayerAvs, [], 'website')]: fields.website,
+										}),
+										...(fields.metadataUri != null && {
+											[entityFieldAddressKey(EntityType.EigenLayerAvs, [], 'metadataUri')]: fields.metadataUri,
+										}),
+										[entityFieldAddressKey(EntityType.EigenLayerAvs, [], '$avsAccount')]: fields.$avsAccount,
 									},
 								}
 							}),
@@ -1442,6 +1468,14 @@ export default {
 									[EntityMetaKey.Selector]: {
 										$network: ethereumNetwork,
 										strategyAddress,
+									},
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.EigenLayerStrategy, [], '$strategyContract')]: {
+											[EntityMetaKey.Selector]: {
+												$network: ethereumNetwork,
+												address: strategyAddress,
+											},
+										},
 									},
 								}
 							}),

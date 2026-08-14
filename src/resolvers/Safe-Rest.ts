@@ -17,6 +17,7 @@ import {
 	evmNetworkSelectorFromChainId,
 } from '$/resolvers/evm.ts'
 import {
+	entityFieldAddressKey,
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
@@ -143,6 +144,38 @@ const evmTransactionSnapshotFromSafeMultisig = ({
 				},
 			},
 		}),
+	}
+}
+
+const evmTransactionReferenceFromSafeMultisig = (
+	chainId: number,
+	txHash: string,
+	transaction: SafeMultisigTransaction
+) => {
+	const snapshot = evmTransactionSnapshotFromSafeMultisig({
+		chainId,
+		txHash,
+		transaction,
+	})
+
+	return {
+		[EntityMetaKey.Selector]: snapshot[EntityMetaKey.Selector],
+		[EntityMetaKey.Fields]: {
+			[entityFieldAddressKey(EntityType.EvmTransaction, [], 'envelopeType')]: snapshot.envelopeType,
+			[entityFieldAddressKey(EntityType.EvmTransaction, [], 'kind')]: snapshot.kind,
+			[entityFieldAddressKey(EntityType.EvmTransaction, [], '$from')]: snapshot.$from,
+			[entityFieldAddressKey(EntityType.EvmTransaction, [], '$to')]: snapshot.$to,
+			[entityFieldAddressKey(EntityType.EvmTransaction, [], 'value')]: snapshot.value,
+			...(snapshot.input != null && {
+				[entityFieldAddressKey(EntityType.EvmTransaction, [], 'input')]: snapshot.input,
+			}),
+			...(snapshot.executionStatus != null && {
+				[entityFieldAddressKey(EntityType.EvmTransaction, [], 'executionStatus')]: snapshot.executionStatus,
+			}),
+			...(snapshot.$block != null && {
+				[entityFieldAddressKey(EntityType.EvmTransaction, [], '$block')]: snapshot.$block,
+			}),
+		},
 	}
 }
 
@@ -328,12 +361,11 @@ export default {
 								if (txHash == null)
 									throw new Error('SafeTransactionService_Rest: executed transaction missing execution hash')
 
-								return {
-									[EntityMetaKey.Selector]: {
-										$network: evmNetworkSelectorFromChainId(chainId),
-										txHash,
-									},
-								}
+								return evmTransactionReferenceFromSafeMultisig(
+									chainId,
+									txHash,
+									transaction
+								)
 							}),
 						}
 					},
@@ -420,12 +452,11 @@ export default {
 								if (txHash == null)
 									throw new Error('SafeTransactionService_Rest: queued transaction missing Safe tx hash')
 
-								return {
-									[EntityMetaKey.Selector]: {
-										$network: evmNetworkSelectorFromChainId(chainId),
-										txHash,
-									},
-								}
+								return evmTransactionReferenceFromSafeMultisig(
+									chainId,
+									txHash,
+									transaction
+								)
 							}),
 						}
 					},
