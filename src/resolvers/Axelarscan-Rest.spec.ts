@@ -7,7 +7,10 @@ import {
 } from 'vitest'
 
 import { BridgeAssetOutcome } from '$/constants/Bridge.ts'
-import { EntityMetaKey } from '$/schema/$schema.ts'
+import {
+	entityFieldAddressKey,
+	EntityMetaKey,
+} from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import type { AxelarscanGmpMessage } from '$/sources/Axelarscan/Rest/types.ts'
@@ -340,10 +343,14 @@ describe('Axelarscan BridgeTransfer resolvers', () => {
 				size: 25,
 			}],
 		])
-		expect(evmAccountResolver.projections.$$bridgeTransfers.select(snapshot)).toEqual([{
+		expect(evmAccountResolver.projections.$$bridgeTransfers.select(snapshot)).toMatchObject([{
 			[EntityMetaKey.Selector]: {
 				source: Source.Axelarscan_Rest,
 				transferId: message.message_id,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.BridgeTransfer, [], 'assetOutcome')]: BridgeAssetOutcome.MessageOnly,
+				[entityFieldAddressKey(EntityType.BridgeTransfer, [], 'sourceTransactionAtMs')]: 1_784_780_000_000,
 			},
 		}])
 		expect(evmAccountResolver.projections.$$bridgeTransfers).not.toHaveProperty('resolveCount')
@@ -383,7 +390,7 @@ describe('Axelarscan BridgeTransfer resolvers', () => {
 			pagination: {},
 			providerContinuationToken: '2:0',
 		})
-		expect(evmAccountResolver.projections.$$bridgeTransfers.select(incomingSnapshot)).toEqual([{
+		expect(evmAccountResolver.projections.$$bridgeTransfers.select(incomingSnapshot)).toMatchObject([{
 			[EntityMetaKey.Selector]: {
 				source: Source.Axelarscan_Rest,
 				transferId: `0x${'6'.repeat(64)}-1`,

@@ -6,7 +6,9 @@ import {
 	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import {
+	entityFieldAddressKey,
 	EntityMetaKey,
+	type EntityReferenceValue,
 	type EntitySelector,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
@@ -338,12 +340,10 @@ const axelarscanAccountBridgeTransfers = async (
 
 	let consumedSender = 0
 	let consumedRecipient = 0
-	const rows: {
-		[EntityMetaKey.Selector]: {
-			source: Source.Axelarscan_Rest
-			transferId: string
-		}
-	}[] = []
+	const rows: EntityReferenceValue<
+		typeof schema,
+		EntityType.BridgeTransfer
+	>[] = []
 	for (const candidate of [...messageById.values()].toSorted((left, right) => (
 		axelarscanObservationMs(right.message) - axelarscanObservationMs(left.message)
 		|| left.message.message_id.localeCompare(right.message.message_id)
@@ -361,10 +361,24 @@ const axelarscanAccountBridgeTransfers = async (
 		)
 			continue
 
+		const transfer = {
+			source: Source.Axelarscan_Rest,
+			transferId: candidate.message.message_id,
+		}
+		const fields = axelarscanBridgeTransferSnapshot(transfer, candidate.message)
 		rows.push({
-			[EntityMetaKey.Selector]: {
-				source: Source.Axelarscan_Rest,
-				transferId: candidate.message.message_id,
+			[EntityMetaKey.Selector]: transfer,
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.BridgeTransfer, [], '$sourceTx')]: fields.$sourceTx,
+				[entityFieldAddressKey(EntityType.BridgeTransfer, [], 'logIndex')]: fields.logIndex,
+				[entityFieldAddressKey(EntityType.BridgeTransfer, [], '$sender')]: fields.$sender,
+				...(fields.$recipient != null && {
+					[entityFieldAddressKey(EntityType.BridgeTransfer, [], '$recipient')]: fields.$recipient,
+				}),
+				[entityFieldAddressKey(EntityType.BridgeTransfer, [], '$fromNetwork')]: fields.$fromNetwork,
+				[entityFieldAddressKey(EntityType.BridgeTransfer, [], '$toNetwork')]: fields.$toNetwork,
+				[entityFieldAddressKey(EntityType.BridgeTransfer, [], 'assetOutcome')]: fields.assetOutcome,
+				[entityFieldAddressKey(EntityType.BridgeTransfer, [], 'sourceTransactionAtMs')]: fields.sourceTransactionAtMs,
 			},
 		})
 	}

@@ -6,7 +6,10 @@ import {
 	vi,
 } from 'vitest'
 
-import { EntityMetaKey } from '$/schema/$schema.ts'
+import {
+	entityFieldAddressKey,
+	EntityMetaKey,
+} from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
@@ -321,10 +324,14 @@ describe('Across BridgeTransfer resolvers', () => {
 				},
 			}
 		)
-		expect(resolver.projections.$$bridgeTransfers.select(byAddress)).toEqual([{
+		expect(resolver.projections.$$bridgeTransfers.select(byAddress)).toMatchObject([{
 			[EntityMetaKey.Selector]: {
 				source: Source.Across_Rest,
 				transferId,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.BridgeTransfer, [], 'amountIn')]: BigInt(deposit.inputAmount),
+				[entityFieldAddressKey(EntityType.BridgeTransfer, [], 'sourceTransactionAtMs')]: Date.parse(deposit.depositBlockTimestamp),
 			},
 		}])
 
@@ -344,10 +351,13 @@ describe('Across BridgeTransfer resolvers', () => {
 			limit: 50,
 			skip: 0,
 		})
-		expect(resolver.projections.$$bridgeTransfers.select(bridgeTransfers)).toEqual([{
+		expect(resolver.projections.$$bridgeTransfers.select(bridgeTransfers)).toMatchObject([{
 			[EntityMetaKey.Selector]: {
 				source: Source.Across_Rest,
 				transferId,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.BridgeTransfer, [], 'amountIn')]: BigInt(deposit.inputAmount),
 			},
 		}])
 		expect(resolver.projections.$$bridgeTransfers).not.toHaveProperty('resolveCount')

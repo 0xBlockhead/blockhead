@@ -10,6 +10,7 @@ import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
 import {
+	entityFieldAddressKey,
 	EntityMetaKey,
 	type EntitySelector,
 } from '$/schema/$schema.ts'
@@ -313,10 +314,30 @@ const acrossAccountBridgeTransfers = async (
 			if (deposit.depositId == null)
 				throw new Error('Across_Rest: deposit missing deposit id')
 
+			const transfer = {
+				source: Source.Across_Rest,
+				transferId: `${deposit.originChainId}/${deposit.depositId}`,
+			}
+			const fields = acrossBridgeTransferSnapshot(transfer, deposit)
 			return {
-				[EntityMetaKey.Selector]: {
-					source: Source.Across_Rest,
-					transferId: `${deposit.originChainId}/${deposit.depositId}`,
+				[EntityMetaKey.Selector]: transfer,
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.BridgeTransfer, [], 'originChainId')]: fields.originChainId,
+					[entityFieldAddressKey(EntityType.BridgeTransfer, [], 'depositId')]: fields.depositId,
+					[entityFieldAddressKey(EntityType.BridgeTransfer, [], '$sourceTx')]: fields.$sourceTx,
+					[entityFieldAddressKey(EntityType.BridgeTransfer, [], '$sender')]: fields.$sender,
+					[entityFieldAddressKey(EntityType.BridgeTransfer, [], '$recipient')]: fields.$recipient,
+					[entityFieldAddressKey(EntityType.BridgeTransfer, [], '$fromNetwork')]: fields.$fromNetwork,
+					[entityFieldAddressKey(EntityType.BridgeTransfer, [], '$toNetwork')]: fields.$toNetwork,
+					[entityFieldAddressKey(EntityType.BridgeTransfer, [], '$fromToken')]: fields.$fromToken,
+					[entityFieldAddressKey(EntityType.BridgeTransfer, [], '$toToken')]: fields.$toToken,
+					[entityFieldAddressKey(EntityType.BridgeTransfer, [], 'amountIn')]: fields.amountIn,
+					[entityFieldAddressKey(EntityType.BridgeTransfer, [], 'amountOut')]: fields.amountOut,
+					[entityFieldAddressKey(EntityType.BridgeTransfer, [], 'sourceTransactionAtMs')]: fields.sourceTransactionAtMs,
+					[entityFieldAddressKey(EntityType.BridgeTransfer, [], 'railId')]: fields.railId,
+					[entityFieldAddressKey(EntityType.BridgeTransfer, [], 'settlementModel')]: fields.settlementModel,
+					[entityFieldAddressKey(EntityType.BridgeTransfer, [], 'verificationModel')]: fields.verificationModel,
+					[entityFieldAddressKey(EntityType.BridgeTransfer, [], 'assetOutcome')]: fields.assetOutcome,
 				},
 			}
 		}),
