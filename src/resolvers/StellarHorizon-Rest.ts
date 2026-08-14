@@ -8,6 +8,7 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 import type {
 	StellarHorizonAssetIdentity,
+	StellarHorizonAccount,
 	StellarHorizonBalance,
 	StellarHorizonClaimableBalance,
 	StellarHorizonOffer,
@@ -38,6 +39,38 @@ const timestampMsFromWire = (
 		throw new Error(`StellarHorizon_Rest: invalid ${label}`)
 
 	return timestampMs
+}
+
+const accountTimestampFromWire = (
+	$network: {
+		$network: {
+			slug: string
+		}
+	},
+	account: StellarHorizonAccount
+) => {
+	const nativeBalances = account.balances.filter((balance) => balance.asset_type === 'native')
+	if (nativeBalances.length !== 1)
+		throw new Error('StellarHorizon_Rest: account must have exactly one native balance')
+
+	return {
+		[EntityMetaKey.Selector]: {
+			$account: {
+				$network,
+				accountId: account.account_id,
+			},
+			timestampMs: timestampMsFromWire(account.last_modified_time, 'account modification time'),
+			source: Source.StellarHorizon_Rest,
+		},
+		[EntityMetaKey.Fields]: {
+			[entityFieldAddressKey(EntityType.StellarAccount_Timestamp, [], 'ledgerSequence')]: BigInt(account.last_modified_ledger),
+			[entityFieldAddressKey(EntityType.StellarAccount_Timestamp, [], 'sequence')]: account.sequence,
+			[entityFieldAddressKey(EntityType.StellarAccount_Timestamp, [], 'nativeBalance')]: nativeBalances[0].balance,
+			[entityFieldAddressKey(EntityType.StellarAccount_Timestamp, [], 'subentryCount')]: account.subentry_count,
+			[entityFieldAddressKey(EntityType.StellarAccount_Timestamp, [], 'thresholds')]: account.thresholds,
+			[entityFieldAddressKey(EntityType.StellarAccount_Timestamp, [], 'signerCount')]: account.signers.length,
+		},
+	}
 }
 
 const assetKeyFromIdentity = (
@@ -716,26 +749,7 @@ export default {
 					resolve: async (account) => {
 						assertStellarPublicNetwork(account.$network)
 						const { getAccount } = await import('$/sources/StellarHorizon/Rest/queries.ts')
-						const snapshot = await getAccount(account.accountId)
-						const nativeBalances = snapshot.balances.filter((balance) => balance.asset_type === 'native')
-						if (nativeBalances.length !== 1)
-							throw new Error('StellarHorizon_Rest: account must have exactly one native balance')
-
-						return [{
-							[EntityMetaKey.Selector]: {
-								$account: account,
-								timestampMs: timestampMsFromWire(snapshot.last_modified_time, 'account modification time'),
-								source: Source.StellarHorizon_Rest,
-							},
-							[EntityMetaKey.Fields]: {
-								[entityFieldAddressKey(EntityType.StellarAccount_Timestamp, [], 'ledgerSequence')]: BigInt(snapshot.last_modified_ledger),
-								[entityFieldAddressKey(EntityType.StellarAccount_Timestamp, [], 'sequence')]: snapshot.sequence,
-								[entityFieldAddressKey(EntityType.StellarAccount_Timestamp, [], 'nativeBalance')]: nativeBalances[0].balance,
-								[entityFieldAddressKey(EntityType.StellarAccount_Timestamp, [], 'subentryCount')]: snapshot.subentry_count,
-								[entityFieldAddressKey(EntityType.StellarAccount_Timestamp, [], 'thresholds')]: snapshot.thresholds,
-								[entityFieldAddressKey(EntityType.StellarAccount_Timestamp, [], 'signerCount')]: snapshot.signers.length,
-							},
-						}]
+						return [accountTimestampFromWire(account.$network, await getAccount(account.accountId))]
 					},
 				},
 			},
@@ -1306,6 +1320,11 @@ export default {
 					[EntityMetaKey.Selector]: {
 						$network,
 						accountId: account.account_id,
+					},
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.StellarAccount, [], '$$timestamps')]: [
+							accountTimestampFromWire($network, account),
+						],
 					},
 				})),
 				continuation: ({ limit, page }, $network) => stellarContinuation(

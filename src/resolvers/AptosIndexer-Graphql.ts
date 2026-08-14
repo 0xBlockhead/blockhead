@@ -105,18 +105,33 @@ export const aptosAccountTransactionsResolver = aptosIndexerResolver(
 						entitySelector.address,
 						resolverContextRowLimit(context),
 						context.pagination.offset ?? 0
-					)).map((transaction) => ({
-						[EntityMetaKey.Selector]: {
-							$network: entitySelector.$network,
-							version: bigintFromWire(transaction.transaction_version, 'transaction version'),
-						},
-						...(transaction.user_transaction != null && {
-							[EntityMetaKey.Fields]: {
-								[entityFieldAddressKey(EntityType.AptosTransaction, [], 'transactionKind')]: 'user_transaction',
-								[entityFieldAddressKey(EntityType.AptosTransaction, [], 'sender')]: transaction.user_transaction.sender,
+					)).map((transaction) => {
+						const version = bigintFromWire(transaction.transaction_version, 'transaction version')
+
+						return {
+							[EntityMetaKey.Selector]: {
+								$network: entitySelector.$network,
+								version,
 							},
-						}),
-					}))
+							...(transaction.user_transaction != null && {
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.AptosTransaction, [], 'transactionKind')]: 'user_transaction',
+									[entityFieldAddressKey(EntityType.AptosTransaction, [], 'sender')]: transaction.user_transaction.sender,
+									[entityFieldAddressKey(EntityType.AptosTransaction, [], '$$timestamps')]: [{
+										[EntityMetaKey.Selector]: {
+											$transaction: {
+												$network: entitySelector.$network,
+												version,
+											},
+											ledgerVersion: version,
+											source: Source.AptosIndexer_Graphql,
+										},
+										[EntityMetaKey.Fields]: aptosTransactionObservationFields(transaction.user_transaction),
+									}],
+								},
+							}),
+						}
+					})
 				},
 			},
 		},

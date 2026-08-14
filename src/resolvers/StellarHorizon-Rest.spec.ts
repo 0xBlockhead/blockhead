@@ -1030,6 +1030,68 @@ describe('Stellar Horizon network history resolver', () => {
 			)
 		}
 	})
+
+	it('embeds the authoritative account observation in network account results', async () => {
+		const network = account.$network
+		getJson.mockResolvedValueOnce(page([{
+			id: accountId,
+			paging_token: '5000000',
+			account_id: accountId,
+			sequence: '9223372036854775807',
+			subentry_count: 3,
+			last_modified_ledger: 5_000_000,
+			last_modified_time: '2026-07-22T00:00:00Z',
+			thresholds: {
+				low_threshold: 1,
+				med_threshold: 2,
+				high_threshold: 3,
+			},
+			balances: [{
+				asset_type: 'native',
+				balance: '12345678901234567890.1234567',
+			}],
+			signers: [{
+				key: accountId,
+				weight: 1,
+				type: 'ed25519_public_key',
+			}],
+		}]))
+		const resolver = stellarHorizonResolvers.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.StellarNetwork
+			&& '$$accounts' in candidate.projections
+		))
+		if (resolver == null)
+			throw new Error('Stellar Horizon spec missing network accounts resolver')
+
+		const snapshot = await resolver.resolve.Network.resolve(network, context)
+		expect(resolver.projections.$$accounts.select(snapshot, network, context)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				accountId,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.StellarAccount, [], '$$timestamps')]: [{
+					[EntityMetaKey.Selector]: {
+						$account: account,
+						timestampMs: Date.parse('2026-07-22T00:00:00Z'),
+						source: 'StellarHorizon_Rest',
+					},
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.StellarAccount_Timestamp, [], 'ledgerSequence')]: 5_000_000n,
+						[entityFieldAddressKey(EntityType.StellarAccount_Timestamp, [], 'sequence')]: '9223372036854775807',
+						[entityFieldAddressKey(EntityType.StellarAccount_Timestamp, [], 'nativeBalance')]: '12345678901234567890.1234567',
+						[entityFieldAddressKey(EntityType.StellarAccount_Timestamp, [], 'subentryCount')]: 3,
+						[entityFieldAddressKey(EntityType.StellarAccount_Timestamp, [], 'thresholds')]: {
+							low_threshold: 1,
+							med_threshold: 2,
+							high_threshold: 3,
+						},
+						[entityFieldAddressKey(EntityType.StellarAccount_Timestamp, [], 'signerCount')]: 1,
+					},
+				}],
+			},
+		}])
+	})
 })
 
 describe('Stellar Horizon liquidity-pool resolver', () => {

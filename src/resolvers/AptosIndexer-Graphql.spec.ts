@@ -229,6 +229,21 @@ describe('Aptos Indexer resolver materialization', () => {
 			[EntityMetaKey.Fields]: {
 				[entityFieldAddressKey(EntityType.AptosTransaction, [], 'transactionKind')]: 'user_transaction',
 				[entityFieldAddressKey(EntityType.AptosTransaction, [], 'sender')]: aptosAccount.address,
+				[entityFieldAddressKey(EntityType.AptosTransaction, [], '$$timestamps')]: [{
+					[EntityMetaKey.Selector]: {
+						$transaction: {
+							$network: aptosNetwork,
+							version: 42n,
+						},
+						ledgerVersion: 42n,
+						source: Source.AptosIndexer_Graphql,
+					},
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.AptosTransaction_Timestamp, [], 'timestampMs')]: 1_784_016_000_000,
+						[entityFieldAddressKey(EntityType.AptosTransaction_Timestamp, [], 'blockHeight')]: 9001n,
+						[entityFieldAddressKey(EntityType.AptosTransaction_Timestamp, [], 'gasUnitPrice')]: 100n,
+					},
+				}],
 			},
 		}])
 		expect(queries.getAccountTransactions).toHaveBeenCalledWith(
