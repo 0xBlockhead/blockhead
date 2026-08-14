@@ -44,11 +44,29 @@ const context = {
 	publicEnv: {},
 }
 
+const latestBlock = {
+	block_id: {
+		hash: 'ABC123',
+	},
+	block: {
+		header: {
+			height: '1234',
+			time: '2026-07-20T12:34:56.000Z',
+			proposer_address: 'validator',
+		},
+		data: {},
+	},
+}
+
 
 const restEndpointsResolver = cosmosSdk.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.Network
 	&& 'Cosmos' in resolver.projections
 	&& 'restEndpoints' in resolver.projections.Cosmos
+))
+const networkTimestampsResolver = cosmosSdk.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.Network
+	&& '$$timestamps' in resolver.projections
 ))
 const accountsListResolver = cosmosSdk.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.Network
@@ -115,6 +133,7 @@ const accountTransactionsResolver = cosmosSdk.resolvers.find((resolver) => (
 
 if (
 	restEndpointsResolver == null
+	|| networkTimestampsResolver == null
 	|| accountsListResolver == null
 	|| accountDetailResolver == null
 	|| accountTimestampResolver == null
@@ -203,6 +222,45 @@ describe('Cosmos SDK endpoint resolver', () => {
 				valueIndex: 0,
 			}),
 		])
+	})
+})
+
+describe('Cosmos SDK network observation discovery', () => {
+	beforeEach(() => {
+		getJson.mockReset()
+	})
+
+	it('discovers the current observation at the authoritative source-head clock', async () => {
+		getJson.mockResolvedValueOnce(latestBlock)
+
+		await expect(networkTimestampsResolver.resolve.Slug.resolve({
+			slug: 'cosmos',
+		}, context)).resolves.toEqual([{
+			[EntityMetaKey.Selector]: {
+				$network: {
+					slug: 'cosmos',
+				},
+				timestampMs: Date.parse(latestBlock.block.header.time),
+				source: Source.CosmosSdk_Rest,
+			},
+		}])
+	})
+
+	it('rejects a source head without a valid observation clock', async () => {
+		getJson.mockResolvedValueOnce({
+			...latestBlock,
+			block: {
+				...latestBlock.block,
+				header: {
+					...latestBlock.block.header,
+					time: 'not-a-timestamp',
+				},
+			},
+		})
+
+		await expect(networkTimestampsResolver.resolve.Slug.resolve({
+			slug: 'cosmos',
+		}, context)).rejects.toThrow('latest block has an invalid timestamp')
 	})
 })
 
@@ -352,19 +410,7 @@ describe('Cosmos SDK account detail resolver', () => {
 				account_number: '13',
 				sequence: '8',
 			},
-		}).mockResolvedValueOnce({
-			block_id: {
-				hash: 'ABC123',
-			},
-			block: {
-				header: {
-					height: '1234',
-					time: '2026-07-20T12:34:56.000Z',
-					proposer_address: 'validator',
-				},
-				data: {},
-			},
-		})
+		}).mockResolvedValueOnce(latestBlock)
 
 		const snapshot = await accountDetailResolver.resolve.NetworkAddress.resolve({
 			$network: {
@@ -432,7 +478,7 @@ describe('Cosmos SDK account detail resolver', () => {
 				account_number: '13',
 				sequence: '8',
 			},
-		})
+		}).mockResolvedValueOnce(latestBlock)
 		const accountSelector = {
 			$network: {
 				slug: 'cosmos',
@@ -462,6 +508,27 @@ describe('Cosmos SDK account detail resolver', () => {
 		expect(accountTimestampResolver.projections.source(snapshot)).toBe(Source.CosmosSdk_Rest)
 		expect(accountTimestampResolver.projections.accountNumber(snapshot)).toBe(13n)
 		expect(accountTimestampResolver.projections.sequence(snapshot)).toBe(8n)
+	})
+
+	it('rejects refetching current account state under a stale observation clock', async () => {
+		getJson.mockResolvedValueOnce({
+			account: {
+				address: 'cosmos1account',
+				account_number: '13',
+				sequence: '8',
+			},
+		}).mockResolvedValueOnce(latestBlock)
+
+		await expect(accountTimestampResolver.resolve.AccountTimestampMsSource.resolve({
+			$account: {
+				$network: {
+					slug: 'cosmos',
+				},
+				address: 'cosmos1account',
+			},
+			timestampMs: Date.parse(latestBlock.block.header.time) - 1,
+			source: Source.CosmosSdk_Rest,
+		}, context)).rejects.toThrow('account observation clock mismatch')
 	})
 
 	it('rejects an unsupported network before transport', async () => {
@@ -538,7 +605,11 @@ describe('Cosmos SDK validator timestamp resolver', () => {
 				unbonding_time: '1970-01-01T00:00:00Z',
 			},
 		}
-		getJson.mockResolvedValue(validatorWire)
+		getJson
+			.mockResolvedValueOnce(latestBlock)
+			.mockResolvedValueOnce(validatorWire)
+			.mockResolvedValueOnce(latestBlock)
+			.mockResolvedValueOnce(validatorWire)
 		const validatorSelector = {
 			$network: {
 				slug: 'cosmos',
@@ -586,6 +657,7 @@ describe('Cosmos SDK validator timestamp resolver', () => {
 		expect(validatorResolver.projections.website(validatorSnapshot)).toBe('https://validator.example')
 		expect(validatorResolver.projections.securityContact(validatorSnapshot)).toBe('sec@validator.example')
 		expect(validatorResolver.projections.details(validatorSnapshot)).toBe('Hub validator')
+		expect(validatorSnapshot.$$timestamps[0][EntityMetaKey.Selector].timestampMs).toBe(timestampMs)
 	})
 
 	it('rejects duplicate validator identities from a provider page', async () => {
@@ -813,6 +885,7 @@ describe('Cosmos SDK governance proposal resolver', () => {
 					total: '1',
 				},
 			})
+			.mockResolvedValueOnce(latestBlock)
 			.mockResolvedValueOnce({
 				proposal: {
 					id: '1',
@@ -828,6 +901,7 @@ describe('Cosmos SDK governance proposal resolver', () => {
 					}],
 				},
 			})
+			.mockResolvedValueOnce(latestBlock)
 			.mockResolvedValueOnce({
 				proposal: {
 					id: '2',
@@ -836,6 +910,7 @@ describe('Cosmos SDK governance proposal resolver', () => {
 					summary: 'Canonical summary',
 				},
 			})
+			.mockResolvedValueOnce(latestBlock)
 			.mockResolvedValueOnce({
 				proposal: {
 					id: '3',
@@ -974,7 +1049,7 @@ describe('Cosmos SDK governance proposal resolver', () => {
 	})
 
 	it('embeds the current status without exposing an arbitrary timestamp refetch', async () => {
-		getJson.mockResolvedValueOnce({
+		getJson.mockResolvedValueOnce(latestBlock).mockResolvedValueOnce({
 			proposal: {
 				id: '9',
 				status: 'PROPOSAL_STATUS_PASSED',
@@ -995,7 +1070,10 @@ describe('Cosmos SDK governance proposal resolver', () => {
 		expect(cosmosSdk.resolvers.some((resolver) => (
 			resolver.entityType === EntityType.CosmosGovernanceProposal_Timestamp
 		))).toBe(false)
-		expect(getJson).toHaveBeenCalledTimes(1)
+		expect(snapshot.$$timestamps[0][EntityMetaKey.Selector].timestampMs).toBe(
+			Date.parse(latestBlock.block.header.time)
+		)
+		expect(getJson).toHaveBeenCalledTimes(2)
 	})
 })
 

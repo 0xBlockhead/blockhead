@@ -18,6 +18,7 @@ import {
 import type { EntitySelector } from '$/schema/$schema.ts'
 import type {
 	CosmosSdkAccount,
+	CosmosSdkBlockResponse,
 	CosmosSdkTx,
 	CosmosSdkTxResponse,
 	CosmosSdkTxsEventResponse,
@@ -44,6 +45,16 @@ const assertCosmosHub = (network: NetworkId) => {
 		return
 
 	throw new Error('CosmosSdk_Rest: unsupported network')
+}
+
+const cosmosLatestBlockTimestampMs = (
+	latestBlock: CosmosSdkBlockResponse
+) => {
+	const timestampMs = Date.parse(latestBlock.block.header.time)
+	if (!Number.isFinite(timestampMs))
+		throw new Error('CosmosSdk_Rest: latest block has an invalid timestamp')
+
+	return timestampMs
 }
 
 const cosmosNetworkApplicability = [
@@ -775,6 +786,9 @@ export default {
 						timestampMs,
 						source,
 					}) => {
+						assertCosmosHub($network)
+						if (source !== Source.CosmosSdk_Rest)
+							throw new Error(`CosmosSdk_Rest: unsupported network timestamp source ${source}`)
 						const {
 							getLatestBlock,
 							getNodeInfo,
@@ -798,6 +812,10 @@ export default {
 							}),
 							getStakingPool(),
 						])
+						const latestBlockTimestampMs = cosmosLatestBlockTimestampMs(latestBlock)
+						if (latestBlockTimestampMs !== timestampMs)
+							throw new Error('CosmosSdk_Rest: network observation clock mismatch')
+
 						return {
 							$network: {
 								[EntityMetaKey.Selector]: $network,
@@ -808,7 +826,7 @@ export default {
 							executionModels: [NetworkExecutionModel.CosmosSdk],
 							latestBlockHeight: BigInt(latestBlock.block.header.height),
 							latestBlockHash: latestBlock.block_id.hash,
-							latestBlockTimeMs: Date.parse(latestBlock.block.header.time),
+							latestBlockTimeMs: latestBlockTimestampMs,
 							latestBlockTransactionCount: latestBlock.block.data.txs?.length ?? 0,
 							chainId: nodeInfo.default_node_info.network,
 							nodeNetwork: nodeInfo.default_node_info.network,
@@ -937,9 +955,7 @@ export default {
 						if (cosmosAccountBaseFields(account).address !== address)
 							throw new Error('CosmosSdk_Rest: account response does not match the subject')
 
-						const timestampMs = Date.parse(latestBlock.block.header.time)
-						if (!Number.isFinite(timestampMs))
-							throw new Error('CosmosSdk_Rest: latest block has an invalid timestamp')
+						const timestampMs = cosmosLatestBlockTimestampMs(latestBlock)
 
 						const timestamp = cosmosAccountTimestampFields(entitySelector, account, timestampMs)
 						return {
@@ -981,15 +997,26 @@ export default {
 						if (source !== Source.CosmosSdk_Rest)
 							throw new Error(`CosmosSdk_Rest: unsupported account timestamp source ${source}`)
 
-						const { getAccount } = await import('$/sources/CosmosSdk/Rest/queries.ts')
-						const account = (await getAccount({
-							address: $account.address,
-						})).account
+						const {
+							getAccount,
+							getLatestBlock,
+						} = await import('$/sources/CosmosSdk/Rest/queries.ts')
+						const [
+							{ account },
+							latestBlock,
+						] = await Promise.all([
+							getAccount({
+								address: $account.address,
+							}),
+							getLatestBlock(),
+						])
 						if (account == null)
 							throw new Error('CosmosSdk_Rest: account response is missing')
 
 						if (cosmosAccountBaseFields(account).address !== $account.address)
 							throw new Error('CosmosSdk_Rest: account response does not match the subject')
+						if (cosmosLatestBlockTimestampMs(latestBlock) !== timestampMs)
+							throw new Error('CosmosSdk_Rest: account observation clock mismatch')
 
 						return cosmosAccountTimestampFields(
 							$account,
@@ -1014,14 +1041,31 @@ export default {
 					appliesTo: cosmosNetworkReferenceApplicability,
 					resolve: async (entitySelector) => {
 						const { $network, operatorAddress } = entitySelector
-						const { getValidator } = await import('$/sources/CosmosSdk/Rest/queries.ts')
-						const validator = (await getValidator({
-							operatorAddress: operatorAddress,
-						})).validator
+						assertCosmosHub($network)
+						const {
+							getLatestBlock,
+							getValidator,
+						} = await import('$/sources/CosmosSdk/Rest/queries.ts')
+						const [
+							latestBlock,
+							{ validator },
+						] = await Promise.all([
+							getLatestBlock(),
+							getValidator({
+								operatorAddress: operatorAddress,
+							}),
+						])
+						if (validator.operator_address !== operatorAddress)
+							throw new Error('CosmosSdk_Rest: validator response does not match the subject')
+
 						return {
 							...cosmosValidatorFields(validator),
 							$$timestamps: [
-								cosmosValidatorTimestampReference(entitySelector, validator, Date.now()),
+								cosmosValidatorTimestampReference(
+									entitySelector,
+									validator,
+									cosmosLatestBlockTimestampMs(latestBlock)
+								),
 							],
 						}
 					},
@@ -1047,12 +1091,30 @@ export default {
 						timestampMs,
 						source,
 					}) => {
-						const { getValidator } = await import('$/sources/CosmosSdk/Rest/queries.ts')
+						assertCosmosHub($validator.$network)
+						if (source !== Source.CosmosSdk_Rest)
+							throw new Error(`CosmosSdk_Rest: unsupported validator timestamp source ${source}`)
+						const {
+							getLatestBlock,
+							getValidator,
+						} = await import('$/sources/CosmosSdk/Rest/queries.ts')
+						const [
+							latestBlock,
+							{ validator },
+						] = await Promise.all([
+							getLatestBlock(),
+							getValidator({
+								operatorAddress: $validator.operatorAddress,
+							}),
+						])
+						if (validator.operator_address !== $validator.operatorAddress)
+							throw new Error('CosmosSdk_Rest: validator response does not match the subject')
+						if (cosmosLatestBlockTimestampMs(latestBlock) !== timestampMs)
+							throw new Error('CosmosSdk_Rest: validator observation clock mismatch')
+
 						return cosmosValidatorTimestampFields(
 							$validator,
-							(await getValidator({
-								operatorAddress: $validator.operatorAddress,
-							})).validator,
+							validator,
 							timestampMs
 						)
 					},
@@ -1114,10 +1176,20 @@ export default {
 					appliesTo: cosmosNetworkReferenceApplicability,
 					resolve: async (entitySelector) => {
 						const { $network, proposalId } = entitySelector
-						const { getProposal } = await import('$/sources/CosmosSdk/Rest/queries.ts')
-						const proposal = (await getProposal({
-							proposalId: proposalId,
-						})).proposal
+						assertCosmosHub($network)
+						const {
+							getLatestBlock,
+							getProposal,
+						} = await import('$/sources/CosmosSdk/Rest/queries.ts')
+						const [
+							latestBlock,
+							{ proposal },
+						] = await Promise.all([
+							getLatestBlock(),
+							getProposal({
+								proposalId: proposalId,
+							}),
+						])
 						if (proposal.id !== proposalId)
 							throw new Error('CosmosSdk_Rest: governance proposal response does not match the subject')
 
@@ -1125,7 +1197,11 @@ export default {
 							title: proposal.title,
 							summary: proposal.summary,
 							$$timestamps: [
-								cosmosProposalTimestampReference(entitySelector, proposal, Date.now()),
+								cosmosProposalTimestampReference(
+									entitySelector,
+									proposal,
+									cosmosLatestBlockTimestampMs(latestBlock)
+								),
 							],
 						}
 					},
@@ -1227,15 +1303,18 @@ export default {
 		defineResolver({
 			entityType: EntityType.Network,
 			resolve: cosmosNetworkResolverSelectors(
-				async (network) => ([
-					{
+				async (network) => {
+					assertCosmosHub(network)
+					const { getLatestBlock } = await import('$/sources/CosmosSdk/Rest/queries.ts')
+
+					return [{
 						[EntityMetaKey.Selector]: {
 							$network: network,
-							timestampMs: Date.now(),
+							timestampMs: cosmosLatestBlockTimestampMs(await getLatestBlock()),
 							source: Source.CosmosSdk_Rest,
 						},
-					},
-				])
+					}]
+				}
 			),
 		})({
 				$$timestamps: (timestamps) => timestamps,
