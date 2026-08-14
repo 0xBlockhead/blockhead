@@ -22,7 +22,7 @@ export default indexSourceBindings([
 		endpoints: [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: 'https://api-v2.pendle.finance/core',
+				locator: 'https://api-v2.pendle.finance/core/',
 				corsEnabled: true,
 			},
 		],
