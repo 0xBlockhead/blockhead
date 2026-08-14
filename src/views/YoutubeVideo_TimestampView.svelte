@@ -23,6 +23,8 @@
 
 
 	// Components
+	import NumberValue from '$/components/NumberValue.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import YoutubeVideoView from '$/views/YoutubeVideoView.svelte'
 </script>
@@ -75,6 +77,78 @@
 					{selection.entitySelector.source}
 				</dd>
 			</div>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							viewCount: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const viewCount = entity.viewCount}
+					{#if viewCount != null}
+						<div>
+							<dt>Views</dt>
+							<dd>
+								<NumberValue
+									value={viewCount}
+								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							likeCount: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const likeCount = entity.likeCount}
+					{#if likeCount != null}
+						<div>
+							<dt>Likes</dt>
+							<dd>
+								<NumberValue
+									value={likeCount}
+								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							commentCount: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const commentCount = entity.commentCount}
+					{#if commentCount != null}
+						<div>
+							<dt>Comments</dt>
+							<dd>
+								<NumberValue
+									value={commentCount}
+								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 		</dl>
 	{/snippet}
 </EntityView>

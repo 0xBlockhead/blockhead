@@ -208,6 +208,74 @@
 					{/if}
 				{/snippet}
 			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							editedAt: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const editedAt = entity.editedAt}
+					{#if editedAt != null}
+						<div>
+							<dt>Edited</dt>
+							<dd>
+								<Timestamp timestamp={editedAt} />
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		</dl>
+
+		<dl data-column-item="center">
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							visibility: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const visibility = entity.visibility}
+					{#if visibility != null}
+						<div>
+							<dt>Visibility</dt>
+							<dd>
+								{visibility}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							language: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const language = entity.language}
+					{#if language != null}
+						<div>
+							<dt>Language</dt>
+							<dd>
+								{language}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 		</dl>
 
 		<dl data-column-item="center">

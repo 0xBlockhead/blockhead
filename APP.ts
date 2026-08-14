@@ -6262,6 +6262,7 @@ export const schema = {
 						query: {
 							sources: [Source.Mastodon_Rest],
 							fields: ["content", "createdAt", "statusUrl", "activityStreamsUri"],
+							openFields: ["editedAt", "visibility", "language"],
 						},
 						contentWarning: {
 							sensitiveField: "sensitive",
@@ -6279,7 +6280,8 @@ export const schema = {
 							},
 							dl: [
 								[{ field: "$author" }],
-								[{ field: "createdAt", format: "timestamp" }],
+								[{ field: "createdAt", format: "timestamp" }, { field: "editedAt", format: "timestamp" }],
+								["visibility", "language"],
 								[{ field: "statusUrl", format: "url" }],
 								[{ field: "activityStreamsUri", format: "url" }],
 							],
@@ -53888,6 +53890,7 @@ export const schema = {
 							dl: [
 								[{ field: "$feed" }],
 								[{ field: "author" }],
+								[{ field: "categories" }],
 								[{ field: "link", format: "url" }],
 								[{ field: "publishedAt", format: "timestamp" }],
 								[{ field: "updatedAt", format: "timestamp" }],
@@ -68669,9 +68672,18 @@ export const schema = {
 										when: "open",
 									},
 								],
+								[
+									{ field: "durationSeconds", format: "number" },
+									"liveBroadcastContent",
+									"categoryId",
+									"tags",
+								],
 							],
 						},
-						lists: [{ field: "$$comments", component: "YoutubeCommentsView" }],
+						lists: [
+							{ field: "$$comments", component: "YoutubeCommentsView" },
+							{ field: "$$timestamps", component: "YoutubeVideo_TimestampsView", emptyText: "No YouTube video observations yet." },
+						],
 					},
 					plural: { component: "YoutubeVideosView",
 						row: {
@@ -68758,6 +68770,9 @@ export const schema = {
 								[
 									{ field: "timestampMs", format: "timestamp" },
 									"source",
+									{ field: "viewCount", format: "number" },
+									{ field: "likeCount", format: "number" },
+									{ field: "commentCount", format: "number" },
 								],
 							],
 						},

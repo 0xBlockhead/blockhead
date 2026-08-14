@@ -133,6 +133,30 @@
 
 		<dl data-column-item="center">
 			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							categories: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const categories = entity.categories}
+					{#if categories != null}
+						<div>
+							<dt>Categories</dt>
+							<dd>
+								{categories.join(', ')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		</dl>
+
+		<dl data-column-item="center">
+			<ResourceBoundary
 				resource={rssItem}
 			>
 				{#snippet children(entity)}

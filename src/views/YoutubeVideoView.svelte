@@ -42,10 +42,12 @@
 
 
 	// Components
+	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import YoutubeCommentsView from '$/views/YoutubeCommentsView.svelte'
+	import YoutubeVideo_TimestampsView from '$/views/YoutubeVideo_TimestampsView.svelte'
 	import YoutubeChannelView from '$/views/YoutubeChannelView.svelte'
 	import MediaView from '$/views/MediaView.svelte'
 </script>
@@ -197,6 +199,98 @@
 				</ResourceBoundary>
 			{/if}
 		</dl>
+
+		<dl data-column-item="center">
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							durationSeconds: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const durationSeconds = entity.durationSeconds}
+					{#if durationSeconds != null}
+						<div>
+							<dt>Duration</dt>
+							<dd>
+								<NumberValue
+									value={durationSeconds}
+								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							liveBroadcastContent: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const liveBroadcastContent = entity.liveBroadcastContent}
+					{#if liveBroadcastContent != null}
+						<div>
+							<dt>Live status</dt>
+							<dd>
+								{liveBroadcastContent}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							categoryId: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const categoryId = entity.categoryId}
+					{#if categoryId != null}
+						<div>
+							<dt>Category</dt>
+							<dd>
+								{categoryId}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							tags: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const tags = entity.tags}
+					{#if tags != null}
+						<div>
+							<dt>Tags</dt>
+							<dd>
+								{tags.join(', ')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		</dl>
 	{/snippet}
 
 	{#snippet Details()}
@@ -219,6 +313,21 @@
 							)
 						}
 						id='comments'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+		{@const timestampsResource = selection.$$timestamps}
+		<ResourceBoundary
+			resource={timestampsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<YoutubeVideo_TimestampsView
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
+						title='Observations'
+						id='timestamps'
 					/>
 				{/if}
 			{/snippet}
