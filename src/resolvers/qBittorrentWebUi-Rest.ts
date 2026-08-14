@@ -429,12 +429,27 @@ export default {
 			name: (torrent) => torrent.name,
 			pieceLength: (torrent) => torrent.pieceLength,
 			totalLength: (torrent) => torrent.totalLength,
-			$$files: (torrent) => torrent.$$files,
-			$$pieces: (torrent) => torrent.$$pieces,
-			$$trackers: (torrent) => torrent.$$trackers,
+			$$files: {
+				select: (torrent) => torrent.$$files,
+				resolveCount: (torrent) => torrent.$$files.length,
+			},
+			$$pieces: {
+				select: (torrent) => torrent.$$pieces,
+				resolveCount: (torrent) => torrent.$$pieces.length,
+			},
+			$$trackers: {
+				select: (torrent) => torrent.$$trackers,
+				resolveCount: (torrent) => torrent.$$trackers.length,
+			},
 			$$peerTimestamps: (torrent) => torrent.$$peerTimestamps,
-			$$swarmTimestamps: (torrent) => torrent.$$swarmTimestamps,
-			$$clientTransfers: (torrent) => torrent.$$clientTransfers,
+			$$swarmTimestamps: {
+				select: (torrent) => torrent.$$swarmTimestamps,
+				resolveCount: (torrent) => torrent.$$swarmTimestamps.length,
+			},
+			$$clientTransfers: {
+				select: (torrent) => torrent.$$clientTransfers,
+				resolveCount: (torrent) => torrent.$$clientTransfers.length,
+			},
 		}),
 
 		defineResolver({

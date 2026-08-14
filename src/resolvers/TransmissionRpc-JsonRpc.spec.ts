@@ -239,6 +239,14 @@ describe('Transmission native client journey', () => {
 		expect(snapshot.$$clientTransfers[0][EntityMetaKey.Selector].$torrent).toEqual(
 			snapshot.$$swarmTimestamps[0][EntityMetaKey.Selector].$torrent
 		)
+		expect(torrentResolver.projections.$$files.select(snapshot)).toEqual(snapshot.$$files)
+		expect(torrentResolver.projections.$$files.resolveCount(snapshot)).toBe(1)
+		expect(torrentResolver.projections.$$pieces.select(snapshot)).toEqual(snapshot.$$pieces)
+		expect(torrentResolver.projections.$$pieces.resolveCount(snapshot)).toBe(2)
+		expect(torrentResolver.projections.$$swarmTimestamps.select(snapshot)).toEqual(snapshot.$$swarmTimestamps)
+		expect(torrentResolver.projections.$$swarmTimestamps.resolveCount(snapshot)).toBe(1)
+		expect(torrentResolver.projections.$$clientTransfers.select(snapshot)).toEqual(snapshot.$$clientTransfers)
+		expect(torrentResolver.projections.$$clientTransfers.resolveCount(snapshot)).toBe(1)
 
 		await expect(fileResolver.resolve.TorrentFileIndex.resolve({
 			$torrent: {
@@ -268,6 +276,7 @@ describe('Transmission native client journey', () => {
 		}, context)
 
 		expect(snapshot.$$swarmTimestamps).toEqual([])
+		expect(torrentResolver.projections.$$swarmTimestamps.resolveCount(snapshot)).toBe(0)
 		expect(snapshot.$$clientTransfers).toEqual([{
 			[EntityMetaKey.Selector]: {
 				$client: { clientId: 'transmission-local' },

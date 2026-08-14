@@ -379,6 +379,16 @@ describe('qBittorrent WebUI native client state', () => {
 			],
 			length: 1_048_576n,
 		})
+		expect(metainfoResolver.projections.$$files.select(snapshot)).toEqual(snapshot.$$files)
+		expect(metainfoResolver.projections.$$files.resolveCount(snapshot)).toBe(1)
+		expect(metainfoResolver.projections.$$pieces.select(snapshot)).toEqual(snapshot.$$pieces)
+		expect(metainfoResolver.projections.$$pieces.resolveCount(snapshot)).toBe(4)
+		expect(metainfoResolver.projections.$$trackers.select(snapshot)).toEqual(snapshot.$$trackers)
+		expect(metainfoResolver.projections.$$trackers.resolveCount(snapshot)).toBe(1)
+		expect(metainfoResolver.projections.$$swarmTimestamps.select(snapshot)).toEqual(snapshot.$$swarmTimestamps)
+		expect(metainfoResolver.projections.$$swarmTimestamps.resolveCount(snapshot)).toBe(1)
+		expect(metainfoResolver.projections.$$clientTransfers.select(snapshot)).toEqual(snapshot.$$clientTransfers)
+		expect(metainfoResolver.projections.$$clientTransfers.resolveCount(snapshot)).toBe(1)
 	})
 
 	it('rejects unknown clients, mismatched hash versions, and unsafe file paths', async () => {
