@@ -55,6 +55,38 @@ const eip155ChainId = (
 	return chainId
 }
 
+const beaconchaInPaginationOffset = (
+	context: ResolverContext
+) => {
+	const offset = (
+		context.providerContinuationToken == null ?
+			context.pagination.offset ?? 0
+		:
+			Number(context.providerContinuationToken)
+	)
+	if (!Number.isSafeInteger(offset) || offset < 0)
+		throw new Error('BeaconchaIn_Rest: invalid collection pagination offset')
+
+	return offset
+}
+
+const beaconchaInCollectionContinuation = (
+	operation: string,
+	offset: number,
+	rowCount: number,
+	totalCount: number
+) => {
+	const nextOffset = offset + rowCount
+	const terminal = rowCount === 0 || nextOffset >= totalCount
+
+	return {
+		operation,
+		target: 'beaconcha-in-rest',
+		terminal,
+		...(!terminal && { token: String(nextOffset) }),
+	}
+}
+
 const eip155BeaconBlockApplicability = [{
 	$block: {
 		$network: {
@@ -488,9 +520,10 @@ export default {
 								epoch: epochSelector,
 							}
 						)
+						const offset = beaconchaInPaginationOffset(context)
 						return {
 							slots: slots
-								.slice(0, resolverContextRowLimit(context))
+								.slice(offset, offset + resolverContextRowLimit(context))
 								.map((slot) => ({
 									[EntityMetaKey.Selector]: {
 										$network,
@@ -507,6 +540,7 @@ export default {
 									},
 								})),
 							slotCount: slots.length,
+							offset,
 						}
 					},
 				},
@@ -515,6 +549,12 @@ export default {
 			$$beaconSlots: {
 				select: (snapshot) => snapshot.slots,
 				resolveCount: (snapshot) => snapshot.slotCount,
+				continuation: (snapshot) => beaconchaInCollectionContinuation(
+					'epoch-beacon-slots',
+					snapshot.offset,
+					snapshot.slots.length,
+					snapshot.slotCount
+				),
 			},
 		}),
 
@@ -590,6 +630,7 @@ export default {
 							getSlotProposerSlashings(context.publicEnv, { chainId, slot }),
 						])
 						const limit = resolverContextRowLimit(context)
+						const offset = beaconchaInPaginationOffset(context)
 						const slashings = [
 							...proposerSlashings.map((slashing) => (
 								beaconchaInSlashingReference($block, 'proposer', slashing.block_index, undefined)
@@ -600,19 +641,20 @@ export default {
 						]
 						return {
 							attestations: attestations
-								.slice(0, limit)
+								.slice(offset, offset + limit)
 								.map((attestation) => beaconchaInAttestationReference($block, attestation)),
 							attestationCount: attestations.length,
 							deposits: deposits
-								.slice(0, limit)
+								.slice(offset, offset + limit)
 								.map((deposit) => beaconchaInDepositReference($block, deposit)),
 							depositCount: deposits.length,
 							withdrawals: withdrawals
-								.slice(0, limit)
-								.map((withdrawal, indexInBlock) => beaconchaInWithdrawalReference($block, withdrawal, indexInBlock)),
+								.slice(offset, offset + limit)
+								.map((withdrawal, indexInPage) => beaconchaInWithdrawalReference($block, withdrawal, offset + indexInPage)),
 							withdrawalCount: withdrawals.length,
-							slashings: slashings.slice(0, limit),
+							slashings: slashings.slice(offset, offset + limit),
 							slashingCount: slashings.length,
+							offset,
 						}
 					},
 				},
@@ -621,18 +663,42 @@ export default {
 			$$beaconAttestations: {
 				select: (snapshot) => snapshot.attestations,
 				resolveCount: (snapshot) => snapshot.attestationCount,
+				continuation: (snapshot) => beaconchaInCollectionContinuation(
+					'slot-beacon-attestations',
+					snapshot.offset,
+					snapshot.attestations.length,
+					snapshot.attestationCount
+				),
 			},
 			$$beaconDeposits: {
 				select: (snapshot) => snapshot.deposits,
 				resolveCount: (snapshot) => snapshot.depositCount,
+				continuation: (snapshot) => beaconchaInCollectionContinuation(
+					'slot-beacon-deposits',
+					snapshot.offset,
+					snapshot.deposits.length,
+					snapshot.depositCount
+				),
 			},
 			$$beaconWithdrawals: {
 				select: (snapshot) => snapshot.withdrawals,
 				resolveCount: (snapshot) => snapshot.withdrawalCount,
+				continuation: (snapshot) => beaconchaInCollectionContinuation(
+					'slot-beacon-withdrawals',
+					snapshot.offset,
+					snapshot.withdrawals.length,
+					snapshot.withdrawalCount
+				),
 			},
 			$$beaconSlashings: {
 				select: (snapshot) => snapshot.slashings,
 				resolveCount: (snapshot) => snapshot.slashingCount,
+				continuation: (snapshot) => beaconchaInCollectionContinuation(
+					'slot-beacon-slashings',
+					snapshot.offset,
+					snapshot.slashings.length,
+					snapshot.slashingCount
+				),
 			},
 		}),
 
@@ -655,6 +721,7 @@ export default {
 							$block,
 						} = await slotBody(context.publicEnv, $network, root)
 						const limit = resolverContextRowLimit(context)
+						const offset = beaconchaInPaginationOffset(context)
 						const [
 							attestations,
 							deposits,
@@ -678,19 +745,20 @@ export default {
 						]
 						return {
 							attestations: attestations
-								.slice(0, limit)
+								.slice(offset, offset + limit)
 								.map((attestation) => beaconchaInAttestationReference($block, attestation)),
 							attestationCount: attestations.length,
 							deposits: deposits
-								.slice(0, limit)
+								.slice(offset, offset + limit)
 								.map((deposit) => beaconchaInDepositReference($block, deposit)),
 							depositCount: deposits.length,
 							withdrawals: withdrawals
-								.slice(0, limit)
-								.map((withdrawal, indexInBlock) => beaconchaInWithdrawalReference($block, withdrawal, indexInBlock)),
+								.slice(offset, offset + limit)
+								.map((withdrawal, indexInPage) => beaconchaInWithdrawalReference($block, withdrawal, offset + indexInPage)),
 							withdrawalCount: withdrawals.length,
-							slashings: slashings.slice(0, limit),
+							slashings: slashings.slice(offset, offset + limit),
 							slashingCount: slashings.length,
+							offset,
 						}
 					},
 				},
@@ -699,18 +767,42 @@ export default {
 			$$attestations: {
 				select: (snapshot) => snapshot.attestations,
 				resolveCount: (snapshot) => snapshot.attestationCount,
+				continuation: (snapshot) => beaconchaInCollectionContinuation(
+					'block-attestations',
+					snapshot.offset,
+					snapshot.attestations.length,
+					snapshot.attestationCount
+				),
 			},
 			$$deposits: {
 				select: (snapshot) => snapshot.deposits,
 				resolveCount: (snapshot) => snapshot.depositCount,
+				continuation: (snapshot) => beaconchaInCollectionContinuation(
+					'block-deposits',
+					snapshot.offset,
+					snapshot.deposits.length,
+					snapshot.depositCount
+				),
 			},
 			$$withdrawals: {
 				select: (snapshot) => snapshot.withdrawals,
 				resolveCount: (snapshot) => snapshot.withdrawalCount,
+				continuation: (snapshot) => beaconchaInCollectionContinuation(
+					'block-withdrawals',
+					snapshot.offset,
+					snapshot.withdrawals.length,
+					snapshot.withdrawalCount
+				),
 			},
 			$$slashings: {
 				select: (snapshot) => snapshot.slashings,
 				resolveCount: (snapshot) => snapshot.slashingCount,
+				continuation: (snapshot) => beaconchaInCollectionContinuation(
+					'block-slashings',
+					snapshot.offset,
+					snapshot.slashings.length,
+					snapshot.slashingCount
+				),
 			},
 		}),
 

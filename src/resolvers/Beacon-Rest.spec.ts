@@ -499,6 +499,11 @@ describe('Beacon REST checkpoint and fork projections', () => {
 		expect(committeesListResolver.projections.Evm.$$beaconCommittees(snapshot)).toEqual([expectedCommittee])
 		expect(slotCommitteesListResolver.projections.$$beaconCommittees.select(slotSnapshot)).toEqual([expectedCommittee])
 		expect(slotCommitteesListResolver.projections.$$beaconCommittees.resolveCount(slotSnapshot)).toBe(1)
+		expect(slotCommitteesListResolver.projections.$$beaconCommittees.continuation(slotSnapshot)).toEqual({
+			operation: 'slot-beacon-committees',
+			target: 'beacon-rest',
+			terminal: true,
+		})
 		expect(getCommittees).toHaveBeenNthCalledWith(1, 1)
 		expect(getCommittees).toHaveBeenNthCalledWith(2, 1, '64')
 	})
@@ -645,15 +650,23 @@ describe('Beacon REST checkpoint and fork projections', () => {
 			pagination: {
 				limit: 1,
 			},
+			providerContinuationToken: '1',
 			selectorKeys: [],
 			parentSelectorKeys: [],
 			sources: [],
 			publicEnv: {},
 		})
 		expect(dutySummaryResolver.projections.$$beaconDeposits.select(dutySummary)).toHaveLength(1)
+		expect(dutySummaryResolver.projections.$$beaconDeposits.select(dutySummary)[0][EntityMetaKey.Selector].indexInBlock).toBe(1)
 		expect(dutySummaryResolver.projections.$$beaconDeposits.resolveCount(dutySummary)).toBe(2)
 		expect(dutySummaryResolver.projections.$$beaconAttestations.select(dutySummary)).toHaveLength(1)
+		expect(dutySummaryResolver.projections.$$beaconAttestations.select(dutySummary)[0][EntityMetaKey.Selector].indexInBlock).toBe(1)
 		expect(dutySummaryResolver.projections.$$beaconAttestations.resolveCount(dutySummary)).toBe(2)
+		expect(dutySummaryResolver.projections.$$beaconDeposits.continuation(dutySummary)).toEqual({
+			operation: 'slot-beacon-deposits',
+			target: 'beacon-rest',
+			terminal: true,
+		})
 	})
 
 	it('counts complete BeaconBlock children from the unsliced block payload', async () => {

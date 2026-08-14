@@ -1,5 +1,6 @@
 import {
 	resolverContextRowLimit,
+	type ResolverContext,
 	type ResolverSelectorPattern,
 } from '$/resolvers/$resolvers.ts'
 import {
@@ -75,6 +76,38 @@ const eip155ChainId = (
 	if (!Number.isSafeInteger(chainId) || chainId < 1)
 		throw new Error('Beacon_Rest: network must have a positive safe eip155 chain ID')
 	return chainId
+}
+
+const beaconPaginationOffset = (
+	context: ResolverContext
+) => {
+	const offset = (
+		context.providerContinuationToken == null ?
+			context.pagination.offset ?? 0
+		:
+			Number(context.providerContinuationToken)
+	)
+	if (!Number.isSafeInteger(offset) || offset < 0)
+		throw new Error('Beacon_Rest: invalid collection pagination offset')
+
+	return offset
+}
+
+const beaconCollectionContinuation = (
+	operation: string,
+	offset: number,
+	rowCount: number,
+	totalCount: number
+) => {
+	const nextOffset = offset + rowCount
+	const terminal = rowCount === 0 || nextOffset >= totalCount
+
+	return {
+		operation,
+		target: 'beacon-rest',
+		terminal,
+		...(!terminal && { token: String(nextOffset) }),
+	}
 }
 
 const assertExecutionPayloadEnvelopeMatchesBlock = (
@@ -2078,9 +2111,11 @@ export default {
 									},
 								}))
 						)
+						const offset = beaconPaginationOffset(context)
 						return {
-							committees: committees.slice(0, resolverContextRowLimit(context)),
+							committees: committees.slice(offset, offset + resolverContextRowLimit(context)),
 							committeeCount: committees.length,
+							offset,
 						}
 					},
 				},
@@ -2089,6 +2124,12 @@ export default {
 				$$beaconCommittees: {
 					select: (slot) => slot.committees,
 					resolveCount: (slot) => slot.committeeCount,
+					continuation: (slot) => beaconCollectionContinuation(
+						'slot-beacon-committees',
+						slot.offset,
+						slot.committees.length,
+						slot.committeeCount
+					),
 				},
 			}),
 
@@ -2104,27 +2145,29 @@ export default {
 							slot
 						)
 						const limit = resolverContextRowLimit(context)
+						const offset = beaconPaginationOffset(context)
 						const blockSelector = {
 							$network,
 							root: block.root,
 						}
 						return {
 							deposits: block.deposits
-								.slice(0, limit)
+								.slice(offset, offset + limit)
 								.map((deposit) => beaconDepositReference(blockSelector, deposit)),
 							depositCount: block.deposits.length,
 							attestations: block.attestations
-								.slice(0, limit)
+								.slice(offset, offset + limit)
 								.map((attestation) => beaconAttestationReference(blockSelector, attestation)),
 							attestationCount: block.attestations.length,
 							withdrawals: block.withdrawals
-								.slice(0, limit)
+								.slice(offset, offset + limit)
 								.map((withdrawal) => beaconWithdrawalReference(blockSelector, withdrawal)),
 							withdrawalCount: block.withdrawals.length,
 							slashings: block.slashings
-								.slice(0, limit)
+								.slice(offset, offset + limit)
 								.map((slashing) => beaconSlashingReference(blockSelector, slashing)),
 							slashingCount: block.slashings.length,
+							offset,
 						}
 					},
 				},
@@ -2133,18 +2176,42 @@ export default {
 				$$beaconDeposits: {
 					select: (slot) => slot.deposits,
 					resolveCount: (slot) => slot.depositCount,
+					continuation: (slot) => beaconCollectionContinuation(
+						'slot-beacon-deposits',
+						slot.offset,
+						slot.deposits.length,
+						slot.depositCount
+					),
 				},
 				$$beaconAttestations: {
 					select: (slot) => slot.attestations,
 					resolveCount: (slot) => slot.attestationCount,
+					continuation: (slot) => beaconCollectionContinuation(
+						'slot-beacon-attestations',
+						slot.offset,
+						slot.attestations.length,
+						slot.attestationCount
+					),
 				},
 				$$beaconWithdrawals: {
 					select: (slot) => slot.withdrawals,
 					resolveCount: (slot) => slot.withdrawalCount,
+					continuation: (slot) => beaconCollectionContinuation(
+						'slot-beacon-withdrawals',
+						slot.offset,
+						slot.withdrawals.length,
+						slot.withdrawalCount
+					),
 				},
 				$$beaconSlashings: {
 					select: (slot) => slot.slashings,
 					resolveCount: (slot) => slot.slashingCount,
+					continuation: (slot) => beaconCollectionContinuation(
+						'slot-beacon-slashings',
+						slot.offset,
+						slot.slashings.length,
+						slot.slashingCount
+					),
 				},
 			}),
 
