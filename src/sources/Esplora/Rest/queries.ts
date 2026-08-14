@@ -81,6 +81,31 @@ export const getBlockTransactionIds = async ({
 	)
 )
 
+export const getBlockTransactions = async ({
+	blockHash,
+	startIndex,
+	target,
+}: {
+	blockHash: string
+	startIndex: number
+	target: EsploraTarget
+}) => {
+	if (!Number.isSafeInteger(startIndex) || startIndex < 0)
+		throw new Error('Esplora_Rest: block transaction start index must be a non-negative safe integer')
+
+	const transactions = assertEsploraEnvelope(
+		esploraTransactionWire.array(),
+		await getEsploraJson(target, `/block/${encodeURIComponent(blockHash)}/txs/${String(startIndex)}`),
+		'block transactions'
+	)
+	if (transactions.some((transaction) => (
+		transaction.status.block_hash?.toLowerCase() !== blockHash.toLowerCase()
+	)))
+		throw new Error('Esplora_Rest: block transactions contain mismatched block identity')
+
+	return transactions
+}
+
 export const getBlocks = async ({
 	startHeight,
 	target,

@@ -86,6 +86,155 @@ const assertBitcoinMainnet = (network: NetworkId) => {
 		throw new Error('Esplora_Rest: unsupported Bitcoin network')
 }
 
+type EsploraTransaction = Awaited<ReturnType<
+	typeof import('$/sources/Esplora/Rest/queries.ts').getTransaction
+>>
+type EsploraTransactionInput = EsploraTransaction['vin'][number]
+type EsploraTransactionOutput = EsploraTransaction['vout'][number]
+
+const utxoInputReferenceFromEsploraWire = (
+	$transaction: {
+		$network: NetworkId
+		txId: string
+	},
+	input: EsploraTransactionInput,
+	indexInTransaction: number
+) => ({
+	[EntityMetaKey.Selector]: {
+		$transaction,
+		indexInTransaction,
+	},
+	[EntityMetaKey.Fields]: {
+		...(input.txid != null && input.vout != null && {
+			[entityFieldAddressKey(EntityType.UtxoInput, [], '$spentOutput')]: {
+				[EntityMetaKey.Selector]: {
+					$transaction: {
+						$network: $transaction.$network,
+						txId: input.txid,
+					},
+					indexInTransaction: input.vout,
+				},
+			},
+		}),
+		...(input.is_coinbase && input.scriptsig != null && {
+			[entityFieldAddressKey(EntityType.UtxoInput, [], 'coinbaseScript')]: input.scriptsig,
+		}),
+		...(!input.is_coinbase && input.scriptsig_asm != null && {
+			[entityFieldAddressKey(EntityType.UtxoInput, [], 'scriptSigAsm')]: input.scriptsig_asm,
+		}),
+		...(input.sequence != null && {
+			[entityFieldAddressKey(EntityType.UtxoInput, [], 'sequence')]: input.sequence,
+		}),
+		[entityFieldAddressKey(EntityType.UtxoInput, [], 'witness')]: input.witness ?? [],
+	},
+})
+
+const utxoOutputReferenceFromEsploraWire = (
+	$transaction: {
+		$network: NetworkId
+		txId: string
+	},
+	output: EsploraTransactionOutput,
+	indexInTransaction: number
+) => ({
+	[EntityMetaKey.Selector]: {
+		$transaction,
+		indexInTransaction,
+	},
+	[EntityMetaKey.Fields]: {
+		...(output.value != null && {
+			[entityFieldAddressKey(EntityType.UtxoOutput, [], 'valueSats')]: BigInt(output.value),
+		}),
+		...(output.scriptpubkey_asm != null && {
+			[entityFieldAddressKey(EntityType.UtxoOutput, [], 'scriptPubKeyAsm')]: output.scriptpubkey_asm,
+		}),
+		[entityFieldAddressKey(EntityType.UtxoOutput, [], 'scriptPubKeyHex')]: output.scriptpubkey,
+		...(output.scriptpubkey_type != null && {
+			[entityFieldAddressKey(EntityType.UtxoOutput, [], 'scriptPubKeyType')]: output.scriptpubkey_type,
+		}),
+		...(output.scriptpubkey_address != null && {
+			[entityFieldAddressKey(EntityType.UtxoOutput, [], '$address')]: {
+				[EntityMetaKey.Selector]: {
+					$network: $transaction.$network,
+					address: output.scriptpubkey_address,
+				},
+			},
+		}),
+	},
+})
+
+const utxoTransactionReferenceFromEsploraWire = (
+	$network: NetworkId,
+	transaction: EsploraTransaction
+) => {
+	const $transaction = {
+		$network,
+		txId: transaction.txid,
+	}
+	return {
+		[EntityMetaKey.Selector]: $transaction,
+		[EntityMetaKey.Fields]: {
+			...(transaction.version != null && {
+				[entityFieldAddressKey(EntityType.UtxoTransaction, [], 'version')]: transaction.version,
+			}),
+			...(transaction.locktime != null && {
+				[entityFieldAddressKey(EntityType.UtxoTransaction, [], 'lockTime')]: transaction.locktime,
+			}),
+			...(transaction.size != null && {
+				[entityFieldAddressKey(EntityType.UtxoTransaction, [], 'sizeBytes')]: transaction.size,
+			}),
+			...(transaction.weight != null && {
+				[entityFieldAddressKey(EntityType.UtxoTransaction, [], 'weightUnits')]: transaction.weight,
+				[entityFieldAddressKey(EntityType.UtxoTransaction, [], 'virtualSizeBytes')]: Math.ceil(transaction.weight / 4),
+			}),
+			...(transaction.fee != null && {
+				[entityFieldAddressKey(EntityType.UtxoTransaction, [], 'feeSats')]: BigInt(transaction.fee),
+			}),
+			[entityFieldAddressKey(EntityType.UtxoTransaction, [], 'isCoinbase')]: transaction.vin.some((input) => input.is_coinbase),
+			...(transaction.status.block_height != null && {
+				[entityFieldAddressKey(EntityType.UtxoTransaction, [], '$block')]: {
+					[EntityMetaKey.Selector]: {
+						$network,
+						height: BigInt(transaction.status.block_height),
+						...(transaction.status.block_hash != null && {
+							hash: transaction.status.block_hash,
+						}),
+					},
+				},
+			}),
+			[entityFieldAddressKey(EntityType.UtxoTransaction, [], '$$inputs')]: transaction.vin.map((input, indexInTransaction) => (
+				utxoInputReferenceFromEsploraWire($transaction, input, indexInTransaction)
+			)),
+			[entityFieldAddressKey(EntityType.UtxoTransaction, [], '$$outputs')]: transaction.vout.map((output, indexInTransaction) => (
+				utxoOutputReferenceFromEsploraWire($transaction, output, indexInTransaction)
+			)),
+		},
+	}
+}
+
+const utxoBlockTransactionReferences = async (
+	$network: NetworkId,
+	hash: string,
+	offset: number,
+	limit: number
+) => {
+	const { getBlockTransactions } = await import('$/sources/Esplora/Rest/queries.ts')
+	const transactions: EsploraTransaction[] = []
+	while (transactions.length < limit) {
+		const page = await getBlockTransactions({
+			blockHash: hash,
+			startIndex: offset + transactions.length,
+			target: esploraTargetForNetwork($network),
+		})
+		transactions.push(...page.slice(0, limit - transactions.length))
+		if (page.length < 25) break
+	}
+	return transactions.map((transaction) => utxoTransactionReferenceFromEsploraWire(
+		$network,
+		transaction
+	))
+}
+
 const utxoBlockSnapshot = async (
 	$network: NetworkId,
 	hash: string
@@ -243,21 +392,28 @@ export default {
 		defineResolver({
 			entityType: EntityType.UtxoBlock,
 			resolve: {
-				NetworkHeightHash: {
-					resolve: async ({ $network, hash }) => (
-						(
-							await (
-								await import('$/sources/Esplora/Rest/queries.ts')
-							).getBlockTransactionIds({
-								blockHash: hash,
+				NetworkHeight: {
+					resolve: async ({ $network, height }, context) => {
+						const { getBlockHashByHeight } = await import('$/sources/Esplora/Rest/queries.ts')
+						return utxoBlockTransactionReferences(
+							$network,
+							await getBlockHashByHeight({
+								height,
 								target: esploraTargetForNetwork($network),
-							})
-						).map((txId) => ({
-							[EntityMetaKey.Selector]: {
-								$network,
-								txId,
-							},
-						}))
+							}),
+							context.pagination.offset ?? 0,
+							resolverContextRowLimit(context)
+						)
+					},
+				},
+				NetworkHeightHash: {
+					resolve: ({ $network, hash }, context) => (
+						utxoBlockTransactionReferences(
+							$network,
+							hash,
+							context.pagination.offset ?? 0,
+							resolverContextRowLimit(context)
+						)
 					),
 				}
 			},
@@ -312,18 +468,12 @@ export default {
 								feeSats: BigInt(transaction.fee),
 							}),
 							isCoinbase: transaction.vin.some((input) => input.is_coinbase),
-							$$inputs: transaction.vin.map((_input, indexInTransaction) => ({
-								[EntityMetaKey.Selector]: {
-									$transaction: entitySelector,
-									indexInTransaction,
-								},
-							})),
-							$$outputs: transaction.vout.map((_output, indexInTransaction) => ({
-								[EntityMetaKey.Selector]: {
-									$transaction: entitySelector,
-									indexInTransaction,
-								},
-							})),
+							$$inputs: transaction.vin.map((input, indexInTransaction) => (
+								utxoInputReferenceFromEsploraWire(entitySelector, input, indexInTransaction)
+							)),
+							$$outputs: transaction.vout.map((output, indexInTransaction) => (
+								utxoOutputReferenceFromEsploraWire(entitySelector, output, indexInTransaction)
+							)),
 							$$bitcoinOrdinalInscriptions: bitcoinOrdinalInscriptionRefsFromPayloads($network, payloads),
 							$$elementsPegs: elementsPegDirections.map((direction) => ({
 								[EntityMetaKey.Selector]: {
@@ -829,12 +979,12 @@ export default {
 			},
 		})({
 			$$transactions: {
-				select: (page, utxoAddress) => page.transactions.map((transaction) => ({
-					[EntityMetaKey.Selector]: {
-						$network: utxoAddress.$network,
-						txId: transaction.txid,
-					},
-				})),
+				select: (page, utxoAddress) => page.transactions.map((transaction) => (
+					utxoTransactionReferenceFromEsploraWire(
+						utxoAddress.$network,
+						transaction
+					)
+				)),
 				continuation: (page, utxoAddress) => {
 					const lastTransaction = page.transactions.at(-1)
 					return (
@@ -878,6 +1028,10 @@ export default {
 										txId: utxo.txid,
 									},
 									indexInTransaction: utxo.vout,
+								},
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.UtxoOutput, [], 'valueSats')]: BigInt(utxo.value),
+									[entityFieldAddressKey(EntityType.UtxoOutput, [], 'isSpent')]: false,
 								},
 							}))
 					},
@@ -1013,14 +1167,26 @@ export default {
 			entityType: EntityType.Network,
 			resolve: bitcoinNetworkSelectors(async (network, context) => {
 				assertBitcoinMainnet(network)
-				const { getMempoolTransactionIds } = await import('$/sources/Esplora/Rest/queries.ts')
-				const txids = await getMempoolTransactionIds(esploraTargetForNetwork(network))
-				return txids.slice(0, resolverContextRowLimit(context)).map((txId) => ({
-					[EntityMetaKey.Selector]: {
-						$network: network,
-						txId,
-					},
-				}))
+				const {
+					getMempoolTransactionIds,
+					getTransaction,
+				} = await import('$/sources/Esplora/Rest/queries.ts')
+				const target = esploraTargetForNetwork(network)
+				const txids = await getMempoolTransactionIds(target)
+				return Promise.all(
+					txids
+						.slice(
+							context.pagination.offset ?? 0,
+							(context.pagination.offset ?? 0) + resolverContextRowLimit(context)
+						)
+						.map(async (txId) => utxoTransactionReferenceFromEsploraWire(
+							network,
+							await getTransaction({
+								target,
+								txId,
+							})
+						))
+				)
 			}),
 		})({
 			Utxo: {

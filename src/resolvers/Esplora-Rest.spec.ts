@@ -9,6 +9,7 @@ const getTransaction = vi.fn()
 const getBlock = vi.fn()
 const getBlockHashByHeight = vi.fn()
 const getBlockTransactionIds = vi.fn()
+const getBlockTransactions = vi.fn()
 const getBlocks = vi.fn()
 const getMempoolStats = vi.fn()
 const getSuggestedFeePerByteSats = vi.fn()
@@ -26,6 +27,7 @@ vi.mock('$/sources/Esplora/Rest/queries.ts', async (importOriginal) => {
 		getBlock,
 		getBlockHashByHeight,
 		getBlockTransactionIds,
+		getBlockTransactions,
 		getBlocks,
 		getMempoolStats,
 		getSuggestedFeePerByteSats,
@@ -98,6 +100,16 @@ const networkBlocksResolver = esploraResolvers.resolvers.find((resolver) => (
 	&& '$$blocks' in resolver.projections.Utxo
 	&& typeof resolver.projections.Utxo.$$blocks === 'function'
 ))
+const addressTransactionsResolver = esploraResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.UtxoAddress
+	&& '$$transactions' in resolver.projections
+))
+const networkMempoolTransactionsResolver = esploraResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.Network
+	&& 'Utxo' in resolver.projections
+	&& '$$transactions' in resolver.projections.Utxo
+	&& typeof resolver.projections.Utxo.$$transactions === 'function'
+))
 const addressOutputsResolver = esploraResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.UtxoAddress
 	&& '$$outputs' in resolver.projections
@@ -129,8 +141,11 @@ if (blockResolver == null || blockTransactionsResolver == null)
 if (networkBlocksResolver == null)
 	throw new Error('Esplora-Rest spec missing Network.Utxo.$$blocks resolver')
 
-if (addressOutputsResolver == null || addressTimestampsResolver == null)
+if (addressOutputsResolver == null || addressTimestampsResolver == null || addressTransactionsResolver == null)
 	throw new Error('Esplora-Rest spec missing UtxoAddress resolvers')
+
+if (networkMempoolTransactionsResolver == null)
+	throw new Error('Esplora-Rest spec missing Network.Utxo.$$transactions resolver')
 
 if (networkTimestampsResolver == null)
 	throw new Error('Esplora-Rest spec missing Network.$$timestamps resolver')
@@ -169,6 +184,7 @@ describe('Esplora UTXO', () => {
 		getBlock.mockReset()
 		getBlockHashByHeight.mockReset()
 		getBlockTransactionIds.mockReset()
+		getBlockTransactions.mockReset()
 		getBlocks.mockReset()
 		getMempoolStats.mockReset()
 		getSuggestedFeePerByteSats.mockReset()
@@ -303,19 +319,44 @@ describe('Esplora UTXO', () => {
 			txId,
 		}
 		const transaction = await transactionResolver.resolve.NetworkTxId.resolve(entitySelector, resolverContext)
-		expect(transactionResolver.projections.$$inputs(transaction)).toEqual([
+		expect(transactionResolver.projections.$$inputs(transaction)).toMatchObject([
 			{
 				[EntityMetaKey.Selector]: {
 					$transaction: entitySelector,
 					indexInTransaction: 0,
 				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.UtxoInput, [], '$spentOutput')]: {
+						[EntityMetaKey.Selector]: {
+							$transaction: {
+								$network: liquidNetwork,
+								txId: 'd'.repeat(64),
+							},
+							indexInTransaction: 1,
+						},
+					},
+					[entityFieldAddressKey(EntityType.UtxoInput, [], 'scriptSigAsm')]: 'input asm',
+					[entityFieldAddressKey(EntityType.UtxoInput, [], 'sequence')]: 1,
+					[entityFieldAddressKey(EntityType.UtxoInput, [], 'witness')]: ['wit'],
+				},
 			},
 		])
-		expect(transactionResolver.projections.$$outputs(transaction)).toEqual([
+		expect(transactionResolver.projections.$$outputs(transaction)).toMatchObject([
 			{
 				[EntityMetaKey.Selector]: {
 					$transaction: entitySelector,
 					indexInTransaction: 0,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.UtxoOutput, [], 'scriptPubKeyAsm')]: 'OP_1',
+					[entityFieldAddressKey(EntityType.UtxoOutput, [], 'scriptPubKeyHex')]: '5120',
+					[entityFieldAddressKey(EntityType.UtxoOutput, [], 'scriptPubKeyType')]: 'v1_p2tr',
+					[entityFieldAddressKey(EntityType.UtxoOutput, [], '$address')]: {
+						[EntityMetaKey.Selector]: {
+							$network: liquidNetwork,
+							address: 'ex1qexample',
+						},
+					},
 				},
 			},
 		])
@@ -613,14 +654,40 @@ describe('Esplora UTXO', () => {
 		expect(runestoneResolver.projections.payloadHex(runestone)).toBe('7e0000')
 	})
 
-	it('resolves NetworkHeight and projects block $$transactions + Network.Utxo.$$blocks', async () => {
+	it('resolves NetworkHeight and paginates block $$transactions with embedded hierarchy', async () => {
 		const hash = 'a'.repeat(64)
+		const blockTransaction = {
+			txid: 'c'.repeat(64),
+			version: 2,
+			locktime: 0,
+			size: 200,
+			weight: 800,
+			fee: 1_000,
+			status: {
+				confirmed: true,
+				block_height: 840_000,
+				block_hash: hash,
+			},
+			vin: [{
+				txid: 'd'.repeat(64),
+				vout: 1,
+				is_coinbase: false,
+				sequence: 4_294_967_293,
+				witness: ['3044'],
+			}],
+			vout: [{
+				scriptpubkey: '0014',
+				scriptpubkey_type: 'v0_p2wpkh',
+				scriptpubkey_address: 'bc1qrecipient',
+				value: 40_000,
+			}],
+		}
 		getBlockHashByHeight.mockResolvedValueOnce(hash)
 		getBlock.mockResolvedValueOnce({
 			id: hash,
 			height: 840_000,
 			timestamp: 1_700_000_000,
-			tx_count: 2,
+			tx_count: 1,
 			size: 1000,
 			weight: 4000,
 			merkle_root: 'm'.repeat(64),
@@ -628,16 +695,13 @@ describe('Esplora UTXO', () => {
 			difficulty: 1,
 			previousblockhash: 'b'.repeat(64),
 		})
-		getBlockTransactionIds.mockResolvedValueOnce([
-			'c'.repeat(64),
-			'd'.repeat(64),
-		])
+		getBlockTransactions.mockResolvedValueOnce([blockTransaction])
 		getBlocks.mockResolvedValueOnce([
 			{
 				id: hash,
 				height: 840_000,
 				timestamp: 1_700_000_000,
-				tx_count: 2,
+				tx_count: 1,
 			},
 		])
 
@@ -653,20 +717,37 @@ describe('Esplora UTXO', () => {
 			height: 840_000n,
 			hash,
 		}, resolverContext)
-		expect(blockTransactionsResolver.projections.$$transactions(txs)).toEqual([
-			{
-				[EntityMetaKey.Selector]: {
-					$network: bitcoinNetwork,
-					txId: 'c'.repeat(64),
-				},
+		expect(blockTransactionsResolver.projections.$$transactions(txs)).toMatchObject([{
+			[EntityMetaKey.Selector]: {
+				$network: bitcoinNetwork,
+				txId: 'c'.repeat(64),
 			},
-			{
-				[EntityMetaKey.Selector]: {
-					$network: bitcoinNetwork,
-					txId: 'd'.repeat(64),
-				},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.UtxoTransaction, [], 'feeSats')]: 1_000n,
+				[entityFieldAddressKey(EntityType.UtxoTransaction, [], '$$inputs')]: [{
+					[EntityMetaKey.Selector]: {
+						$transaction: {
+							$network: bitcoinNetwork,
+							txId: 'c'.repeat(64),
+						},
+						indexInTransaction: 0,
+					},
+				}],
+				[entityFieldAddressKey(EntityType.UtxoTransaction, [], '$$outputs')]: [{
+					[EntityMetaKey.Selector]: {
+						$transaction: {
+							$network: bitcoinNetwork,
+							txId: 'c'.repeat(64),
+						},
+						indexInTransaction: 0,
+					},
+				}],
 			},
-		])
+		}])
+		expect(getBlockTransactions).toHaveBeenCalledWith(expect.objectContaining({
+			blockHash: hash,
+			startIndex: 0,
+		}))
 
 		const blocks = await networkBlocksResolver.resolve.Caip2.resolve(bitcoinNetwork, {
 			...resolverContext,
@@ -724,7 +805,32 @@ describe('Esplora UTXO', () => {
 		}))
 	})
 
-	it('projects address tip stats and outputs from Esplora address wires', async () => {
+	it('projects address tip stats, embedded outputs, and transaction hierarchy from Esplora address wires', async () => {
+		const addressTransaction = {
+			txid: 'f'.repeat(64),
+			version: 2,
+			locktime: 0,
+			size: 141,
+			weight: 561,
+			fee: 250,
+			status: {
+				confirmed: true,
+				block_height: 840_000,
+				block_hash: 'a'.repeat(64),
+			},
+			vin: [{
+				txid: 'g'.repeat(64),
+				vout: 0,
+				is_coinbase: false,
+				sequence: 1,
+				witness: [],
+			}],
+			vout: [{
+				scriptpubkey: '0014',
+				scriptpubkey_type: 'v0_p2wpkh',
+				value: 546,
+			}],
+		}
 		getAddressUtxos.mockResolvedValueOnce([
 			{
 				txid: 'e'.repeat(64),
@@ -735,6 +841,7 @@ describe('Esplora UTXO', () => {
 				value: 546,
 			},
 		])
+		getAddressTransactions.mockResolvedValueOnce([addressTransaction])
 		getAddress.mockResolvedValueOnce({
 			address: 'bc1qexample',
 			chain_stats: {
@@ -771,8 +878,32 @@ describe('Esplora UTXO', () => {
 					},
 					indexInTransaction: 1,
 				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.UtxoOutput, [], 'valueSats')]: 546n,
+					[entityFieldAddressKey(EntityType.UtxoOutput, [], 'isSpent')]: false,
+				},
 			},
 		])
+
+		const page = await addressTransactionsResolver.resolve.NetworkAddress.resolve({
+			$network: bitcoinNetwork,
+			address: 'bc1qexample',
+		}, resolverContext)
+		const addressTransactionsProjection = addressTransactionsResolver.projections.$$transactions
+		if (typeof addressTransactionsProjection !== 'object' || !('select' in addressTransactionsProjection))
+			throw new Error('Esplora-Rest UtxoAddress.$$transactions projection is not paginated')
+		expect(addressTransactionsProjection.select(page, {
+			$network: bitcoinNetwork,
+			address: 'bc1qexample',
+		})).toMatchObject([{
+			[EntityMetaKey.Selector]: {
+				$network: bitcoinNetwork,
+				txId: 'f'.repeat(64),
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.UtxoTransaction, [], 'feeSats')]: 250n,
+			},
+		}])
 
 		const tip = await addressTimestampsResolver.resolve.NetworkAddress.resolve({
 			$network: bitcoinNetwork,
@@ -786,6 +917,60 @@ describe('Esplora UTXO', () => {
 		expect(esploraResolvers.resolvers.some((resolver) => (
 			resolver.entityType === EntityType.UtxoAddress_Timestamp
 		))).toBe(false)
+	})
+
+	it('materializes mempool transaction hierarchy from authoritative transaction reads', async () => {
+		getMempoolTransactionIds.mockResolvedValueOnce([
+			'a'.repeat(64),
+			'b'.repeat(64),
+		])
+		getTransaction.mockResolvedValueOnce({
+			txid: 'b'.repeat(64),
+			version: 2,
+			locktime: 0,
+			size: 141,
+			weight: 561,
+			fee: 1_250,
+			status: {
+				confirmed: false,
+			},
+			vin: [{
+				txid: 'd'.repeat(64),
+				vout: 2,
+				is_coinbase: false,
+				sequence: 4_294_967_293,
+				witness: ['3044'],
+			}],
+			vout: [{
+				scriptpubkey: '0014',
+				scriptpubkey_type: 'v0_p2wpkh',
+				scriptpubkey_address: 'bc1qrecipient',
+				value: 40_000,
+			}],
+		})
+
+		const rows = await networkMempoolTransactionsResolver.resolve.Caip2.resolve(bitcoinNetwork, {
+			...resolverContext,
+			pagination: {
+				limit: 1,
+				offset: 1,
+			},
+		})
+		expect(rows).toMatchObject([{
+			[EntityMetaKey.Selector]: {
+				$network: bitcoinNetwork,
+				txId: 'b'.repeat(64),
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.UtxoTransaction, [], 'virtualSizeBytes')]: 141,
+				[entityFieldAddressKey(EntityType.UtxoTransaction, [], 'feeSats')]: 1_250n,
+				[entityFieldAddressKey(EntityType.UtxoTransaction, [], 'isCoinbase')]: false,
+			},
+		}])
+		expect(getMempoolTransactionIds).toHaveBeenCalledOnce()
+		expect(getTransaction).toHaveBeenCalledWith(expect.objectContaining({
+			txId: 'b'.repeat(64),
+		}))
 	})
 
 	it('projects Network_Timestamp tip fields including bestBlockTimeMs', async () => {

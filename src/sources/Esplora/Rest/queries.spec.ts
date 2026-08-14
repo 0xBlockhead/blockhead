@@ -20,6 +20,7 @@ const {
 	getBlock,
 	getBlocks,
 	getBlockTransactionIds,
+	getBlockTransactions,
 	getAddress,
 	getMempoolStats,
 	getSuggestedFeePerByteSats,
@@ -317,6 +318,69 @@ describe('Esplora REST binding selection', () => {
 				payloadHex: '7e0000',
 				isCenotaph: true,
 			},
+		])
+	})
+
+	it('pages full block transactions and fail-closes mismatched block identity', async () => {
+		const blockHash = 'a'.repeat(64)
+		const firstTransaction = {
+			txid: 'bb'.repeat(32),
+			version: 2,
+			locktime: 0,
+			size: 100,
+			weight: 400,
+			fee: 100,
+			vin: [{
+				txid: 'cc'.repeat(32),
+				vout: 0,
+				is_coinbase: false,
+				sequence: 1,
+				witness: [],
+			}],
+			vout: [{
+				scriptpubkey: '5120',
+				scriptpubkey_asm: 'OP_1',
+				scriptpubkey_type: 'v1_p2tr',
+				scriptpubkey_address: 'bc1qexample',
+				value: 546,
+			}],
+			status: {
+				confirmed: true,
+				block_height: 840_000,
+				block_hash: blockHash,
+			},
+		}
+		sourceGetJson
+			.mockResolvedValueOnce([firstTransaction])
+			.mockResolvedValueOnce([{
+				...firstTransaction,
+				txid: 'dd'.repeat(32),
+				status: {
+					confirmed: true,
+					block_height: 840_000,
+					block_hash: 'e'.repeat(64),
+				},
+			}])
+
+		await expect(getBlockTransactions({
+			blockHash,
+			startIndex: 25,
+			target: bitcoinBinding.target.key,
+		})).resolves.toEqual([firstTransaction])
+		await expect(getBlockTransactions({
+			blockHash,
+			startIndex: 0,
+			target: bitcoinBinding.target.key,
+		})).rejects.toThrow('mismatched block identity')
+		await expect(getBlockTransactions({
+			blockHash,
+			startIndex: -1,
+			target: bitcoinBinding.target.key,
+		})).rejects.toThrow('block transaction start index must be a non-negative safe integer')
+
+		expect(sourceGetJson.mock.calls.map(([, url]) => url)).toEqual([
+			`https://blockstream.info/api/block/${blockHash}/txs/25`,
+			`https://blockstream.info/api/block/${blockHash}/txs/0`,
 		])
 	})
 
