@@ -871,6 +871,27 @@ export default {
 		}),
 
 		defineResolver({
+			entityType: EntityType.AptosTransaction,
+			resolve: {
+				NetworkVersion: {
+					appliesTo: aptosNetworkReferenceApplicability,
+					resolve: transactionByVersion,
+				},
+				NetworkHash: {
+					appliesTo: aptosNetworkReferenceApplicability,
+					resolve: transactionByHash,
+				},
+			},
+		})({
+			$$stateChanges: {
+				resolveCount: (transaction) => transaction.stateChanges.length,
+			},
+			$$events: {
+				resolveCount: (transaction) => transaction.events.length,
+			},
+		}),
+
+		defineResolver({
 			entityType: EntityType.AptosTransaction_Timestamp,
 			resolve: {
 				TransactionLedgerVersionSource: {

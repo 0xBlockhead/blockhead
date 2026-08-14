@@ -596,6 +596,14 @@ describe('Aptos Fullnode resolver materialization', () => {
 				amount: '5',
 			},
 		})
+		const transactionCountResolver = aptosFullnodeResolvers.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.AptosTransaction
+			&& typeof candidate.projections.$$stateChanges === 'object'
+		))
+		if (transactionCountResolver == null)
+			throw new Error('AptosFullnode-Rest spec missing transaction relationship count resolver')
+		expect(transactionCountResolver.projections.$$stateChanges.resolveCount(byVersion)).toBe(6)
+		expect(transactionCountResolver.projections.$$events.resolveCount(byVersion)).toBe(1)
 
 		await expect(resolverFor(EntityType.AptosEvent).resolve[
 			'NetworkTransactionVersionEventIndex'

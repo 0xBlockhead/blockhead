@@ -517,6 +517,18 @@ describe('Cardano Koios transaction relationships', () => {
 				},
 			},
 		])
+		const countResolver = cardanoKoiosResolvers.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.CardanoTransaction
+			&& typeof candidate.projections.$$inputs === 'object'
+		))
+		if (countResolver == null)
+			throw new Error('CardanoKoios-Rest spec missing transaction relationship count resolver')
+		expect(countResolver.projections.$$inputs.resolveCount(snapshot)).toBe(3)
+		expect(countResolver.projections.$$outputs.resolveCount(snapshot)).toBe(1)
+		expect(countResolver.projections.$$certificates.resolveCount(snapshot)).toBe(1)
+		expect(countResolver.projections.$$scripts.resolveCount(snapshot)).toBe(3)
+		expect(countResolver.projections.$$governanceProposals.resolveCount(snapshot)).toBe(1)
+		expect(countResolver.projections.$$governanceVotes.resolveCount(snapshot)).toBe(1)
 	})
 
 	it('materializes transaction inputs and outputs from the exact tx_info snapshot', async () => {

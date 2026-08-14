@@ -2208,9 +2208,18 @@ export default {
 			scheduled: (transaction) => transaction.scheduled,
 			$block: (transaction) => transaction.$block,
 			$schedule: (transaction) => transaction.$schedule,
-			$$hbarTransfers: (transaction) => transaction.$$hbarTransfers,
-			$$tokenTransfers: (transaction) => transaction.$$tokenTransfers,
-			$$contractResults: (transaction) => transaction.$$contractResults,
+			$$hbarTransfers: {
+				select: (transaction) => transaction.$$hbarTransfers,
+				resolveCount: (transaction) => transaction.$$hbarTransfers.length,
+			},
+			$$tokenTransfers: {
+				select: (transaction) => transaction.$$tokenTransfers,
+				resolveCount: (transaction) => transaction.$$tokenTransfers.length,
+			},
+			$$contractResults: {
+				select: (transaction) => transaction.$$contractResults,
+				resolveCount: (transaction) => transaction.$$contractResults.length,
+			},
 		}),
 
 		defineResolver({

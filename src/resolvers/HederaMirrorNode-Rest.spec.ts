@@ -2150,6 +2150,9 @@ describe('Hedera Mirror Node transaction detail', () => {
 				transferIndex: 2,
 			}),
 		])
+		expect(transactionResolver.projections.$$hbarTransfers.resolveCount(snapshot)).toBe(snapshot.$$hbarTransfers.length)
+		expect(transactionResolver.projections.$$tokenTransfers.resolveCount(snapshot)).toBe(3)
+		expect(transactionResolver.projections.$$contractResults.resolveCount(snapshot)).toBe(0)
 		expect(Object.keys(transactionResolver.projections).sort()).toEqual([
 			'$$contractResults',
 			'$$hbarTransfers',
@@ -2221,7 +2224,7 @@ describe('Hedera Mirror Node transaction detail', () => {
 				[entityFieldAddressKey(EntityType.HederaSchedule, [], 'transactionBody')]: 'Kd6tvu8=',
 			},
 		})
-		expect(transactionResolver.projections.$$contractResults(snapshot)).toEqual([{
+		expect(transactionResolver.projections.$$contractResults.select(snapshot)).toEqual([{
 			[EntityMetaKey.Selector]: {
 				$transaction: {
 					$network: network,
@@ -2246,6 +2249,7 @@ describe('Hedera Mirror Node transaction detail', () => {
 				[entityFieldAddressKey(EntityType.HederaContractResult, [], 'bloom')]: '0x00',
 			},
 		}])
+		expect(transactionResolver.projections.$$contractResults.resolveCount(snapshot)).toBe(1)
 		expect(sourceFetch.mock.calls.map(([, url]) => url)).toEqual([
 			'https://mainnet-public.mirrornode.hedera.com/api/v1/transactions?limit=2&order=desc&timestamp=eq%3A1710000001.000000007',
 			'https://mainnet-public.mirrornode.hedera.com/api/v1/transactions/0.0.98-1710000000-000000006?nonce=0&scheduled=false',

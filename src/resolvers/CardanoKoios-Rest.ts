@@ -960,6 +960,34 @@ export default {
 		}),
 
 		defineResolver({
+			entityType: EntityType.CardanoTransaction,
+			resolve: {
+				NetworkHash: {
+					resolve: cardanoKoiosTransactionInfoSnapshot,
+				}
+			},
+		})({
+			$$inputs: {
+				resolveCount: ({ transaction }) => cardanoKoiosTransactionInputRows(transaction).length,
+			},
+			$$outputs: {
+				resolveCount: ({ transaction }) => transaction.outputs.length,
+			},
+			$$certificates: {
+				resolveCount: ({ transaction }) => transaction.certificates.length,
+			},
+			$$scripts: {
+				resolveCount: ({ transaction }) => transaction.native_scripts.length + transaction.plutus_contracts.length,
+			},
+			$$governanceProposals: {
+				resolveCount: ({ transaction }) => transaction.proposal_procedures.length,
+			},
+			$$governanceVotes: {
+				resolveCount: ({ transaction }) => transaction.voting_procedures.length,
+			},
+		}),
+
+		defineResolver({
 			entityType: EntityType.CardanoTxInput,
 			resolve: {
 				TransactionInputIndex: {
