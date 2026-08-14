@@ -169,6 +169,44 @@ const mapBlockWire = (
 	})),
 })
 
+const arweaveRestBlocksStartHeight = (
+	tipHeight: number,
+	context: ResolverContext
+) => {
+	if (
+		context.providerContinuationToken != null
+		&& !/^(0|[1-9][0-9]*)$/.test(context.providerContinuationToken)
+	)
+		throw new Error('Arweave_Rest: invalid blocks continuation')
+
+	const startHeight = context.providerContinuationToken == null ?
+		tipHeight - (context.pagination.offset ?? 0)
+	:
+		Number(context.providerContinuationToken)
+
+	if (!Number.isSafeInteger(startHeight))
+		throw new Error('Arweave_Rest: invalid blocks continuation')
+
+	if (startHeight > tipHeight)
+		throw new Error('Arweave_Rest: blocks continuation exceeds tip')
+
+	return startHeight
+}
+
+const arweaveRestBlockPageContinuation = (
+	blocks: ReturnType<typeof blockEdgeRow>[]
+) => {
+	const lastHeight = blocks.at(-1)?.[EntityMetaKey.Selector].height
+	return {
+		operation: 'blocks',
+		target: 'arweave',
+		terminal: lastHeight == null || lastHeight === 0n,
+		...(lastHeight != null && lastHeight > 0n && {
+			token: String(lastHeight - 1n),
+		}),
+	}
+}
+
 const blockEdgeRow = (
 	network: NetworkId,
 	block: ArweaveBlockWire
@@ -200,9 +238,8 @@ const networkTipSnapshot = async (
 	} = await import('$/sources/Arweave/Rest/queries.ts')
 	const info = await getNetworkInfo()
 	const pageSize = resolverContextRowLimit(context)
-	const offset = context.pagination.offset ?? 0
 	const tipHeight = info.height
-	const startHeight = tipHeight - offset
+	const startHeight = arweaveRestBlocksStartHeight(tipHeight, context)
 	const heights = (
 		pageSize === 0 || startHeight < 0 ?
 			[]
@@ -217,6 +254,7 @@ const networkTipSnapshot = async (
 	const blocks = await Promise.all(
 		heights.map((height) => getBlockByHeight(height))
 	)
+	const timestampMs = Date.now()
 	return {
 		$network: {
 			[EntityMetaKey.Selector]: {
@@ -230,7 +268,7 @@ const networkTipSnapshot = async (
 				$network: {
 					$network: network,
 				},
-				timestampMs: Date.now(),
+				timestampMs,
 				source: Source.Arweave_Rest,
 			},
 			[EntityMetaKey.Fields]: {
@@ -267,6 +305,7 @@ export default {
 			$$blocks: {
 				select: (snapshot) => snapshot.blocks,
 				resolveCount: (snapshot) => snapshot.blockCount,
+				continuation: (snapshot) => arweaveRestBlockPageContinuation(snapshot.blocks),
 			},
 		}),
 
@@ -294,6 +333,7 @@ export default {
 				$$blocks: {
 					select: (snapshot) => snapshot.blocks,
 					resolveCount: (snapshot) => snapshot.blockCount,
+					continuation: (snapshot) => arweaveRestBlockPageContinuation(snapshot.blocks),
 				},
 			},
 		}),

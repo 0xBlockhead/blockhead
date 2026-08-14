@@ -301,6 +301,16 @@ describe('Arweave_Rest block / info / resource browse resolvers', () => {
 			arweaveNetwork,
 			context
 		)).toBe(551_512)
+		expect(networkResolver.projections.$$blocks.continuation(
+			snapshot,
+			arweaveNetwork,
+			context
+		)).toEqual({
+			operation: 'blocks',
+			target: 'arweave',
+			terminal: false,
+			token: '551509',
+		})
 		expect(getBlockByHeight).toHaveBeenNthCalledWith(
 			1,
 			551_511
@@ -311,6 +321,156 @@ describe('Arweave_Rest block / info / resource browse resolvers', () => {
 		)
 		expect(networkResolver.projections).not.toHaveProperty('$$resources')
 		expect(networkResolver.projections).not.toHaveProperty('$$transactions')
+	})
+
+	it('walks later Arweave_Rest block pages from the native height continuation token', async () => {
+		getNetworkInfo.mockResolvedValueOnce({
+			network: 'arweave.N.1',
+			version: 5,
+			release: 43,
+			height: 551_511,
+			current: blockId,
+			blocks: 97_375,
+			peers: 64,
+			queue_length: 0,
+		})
+		getBlockByHeight.mockResolvedValueOnce({
+			...tipBlockWire,
+			height: 551_509,
+			indep_hash: 'H'.repeat(64),
+			previous_block: 'I'.repeat(64),
+			txs: [],
+		})
+
+		const snapshot = await networkResolver.resolve.Network.resolve(
+			{
+				$network: network,
+			},
+			{
+				...context,
+				pagination: {
+					limit: 1,
+				},
+				providerContinuationToken: '551509',
+			}
+		)
+
+		expect(getBlockByHeight).toHaveBeenCalledWith(551_509)
+		expect(networkResolver.projections.$$blocks.select(
+			snapshot,
+			arweaveNetwork,
+			context
+		)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$network: arweaveNetwork,
+					height: 551_509n,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.ArweaveBlock, [], 'indepHash')]: 'H'.repeat(64),
+					[entityFieldAddressKey(EntityType.ArweaveBlock, [], 'previousBlock')]: 'I'.repeat(64),
+					[entityFieldAddressKey(EntityType.ArweaveBlock, [], 'timestampMs')]: 1_720_000_000_000,
+					[entityFieldAddressKey(EntityType.ArweaveBlock, [], 'transactionCount')]: 0,
+				},
+			},
+		])
+		expect(networkResolver.projections.$$blocks.continuation(
+			snapshot,
+			arweaveNetwork,
+			context
+		)).toEqual({
+			operation: 'blocks',
+			target: 'arweave',
+			terminal: false,
+			token: '551508',
+		})
+	})
+
+	it('returns an empty terminal page when the generic offset passes genesis', async () => {
+		getNetworkInfo.mockResolvedValueOnce({
+			network: 'arweave.N.1',
+			version: 5,
+			release: 43,
+			height: 1,
+			current: blockId,
+			blocks: 2,
+			peers: 1,
+			queue_length: 0,
+		})
+
+		const snapshot = await networkResolver.resolve.Network.resolve(
+			{
+				$network: network,
+			},
+			{
+				...context,
+				pagination: {
+					offset: 2,
+				},
+			}
+		)
+
+		expect(networkResolver.projections.$$blocks.select(
+			snapshot,
+			arweaveNetwork,
+			context
+		)).toEqual([])
+		expect(networkResolver.projections.$$blocks.continuation(
+			snapshot,
+			arweaveNetwork,
+			context
+		)).toEqual({
+			operation: 'blocks',
+			target: 'arweave',
+			terminal: true,
+		})
+		expect(getBlockByHeight).not.toHaveBeenCalled()
+	})
+
+	it('stamps Arweave network observations after the gateway info and block reads settle', async () => {
+		let blocksRead = false
+		vi.spyOn(Date, 'now').mockImplementation(() => {
+			if (!blocksRead)
+				throw new Error('Arweave_Rest observation clock sampled before block reads')
+
+			return 1_700_000_000_000
+		})
+		getNetworkInfo.mockResolvedValueOnce({
+			network: 'arweave.N.1',
+			version: 5,
+			release: 43,
+			height: 10,
+			current: blockId,
+			blocks: 10,
+			peers: 1,
+			queue_length: 0,
+		})
+		getBlockByHeight.mockImplementation(async () => {
+			await Promise.resolve()
+			blocksRead = true
+			return {
+				...tipBlockWire,
+				height: 10,
+			}
+		})
+
+		const snapshot = await networkResolver.resolve.Network.resolve(
+			{
+				$network: network,
+			},
+			{
+				...context,
+				pagination: {
+					limit: 1,
+				},
+			}
+		)
+		expect(networkResolver.projections.$$timestamps(snapshot)[0]).toMatchObject({
+			[EntityMetaKey.Selector]: {
+				timestampMs: 1_700_000_000_000,
+				source: Source.Arweave_Rest,
+			},
+		})
 	})
 
 	it('projects Directory Network.Arweave block and timestamp facets', async () => {

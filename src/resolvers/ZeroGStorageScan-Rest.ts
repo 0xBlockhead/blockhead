@@ -201,6 +201,50 @@ const storageLogEntryFromTransaction = ({
 	},
 })
 
+const storageNodeRowsFromMiners = ({
+	network,
+	miners,
+	timestampMs,
+}: {
+	network: NetworkId
+	miners: {
+		miner: string
+		totalReward: string
+		winCount: number
+		miningAttempts: number
+	}[]
+	timestampMs: number
+}) => miners.map((miner) => ({
+	[EntityMetaKey.Selector]: {
+		$network: network,
+		nodeId: miner.miner,
+	},
+	[EntityMetaKey.Fields]: {
+		[entityFieldAddressKey(EntityType.ZeroGStorageNode, [], '$operator')]: {
+			[EntityMetaKey.Selector]: {
+				address: miner.miner,
+			},
+		},
+		[entityFieldAddressKey(EntityType.ZeroGStorageNode, [], '$$timestamps')]: [
+			{
+				[EntityMetaKey.Selector]: {
+					$storageNode: {
+						$network: network,
+						nodeId: miner.miner,
+					},
+					timestampMs,
+					source: Source.ZeroGStorageScan_Rest,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.ZeroGStorageNode_Timestamp, [], 'totalReward')]: miner.totalReward,
+					[entityFieldAddressKey(EntityType.ZeroGStorageNode_Timestamp, [], 'winCount')]: miner.winCount,
+					[entityFieldAddressKey(EntityType.ZeroGStorageNode_Timestamp, [], 'miningAttempts')]: miner.miningAttempts,
+				},
+			},
+		],
+	},
+}))
+
 export default {
 	source: Source.ZeroGStorageScan_Rest,
 
@@ -248,6 +292,7 @@ export default {
 						const miner = await getStorageMiner({
 							address: EvmAddress.assert(nodeId),
 						})
+						const timestampMs = Date.now()
 						return {
 							$operator: {
 								[EntityMetaKey.Selector]: {
@@ -261,7 +306,7 @@ export default {
 											$network,
 											nodeId,
 										},
-										timestampMs: Date.now(),
+										timestampMs,
 										source: Source.ZeroGStorageScan_Rest,
 									},
 									[EntityMetaKey.Fields]: {
@@ -286,7 +331,6 @@ export default {
 					resolve: async (network, context) => {
 						assertZeroGMainnet(network)
 						const { listStorageMiners } = await import('$/sources/ZeroG/StorageScan/Rest/queries.ts')
-						const timestampMs = Date.now()
 						const offset = zeroGStorageScanOffset(
 							context.providerContinuationToken,
 							context.pagination.offset
@@ -295,38 +339,14 @@ export default {
 							limit: resolverContextRowLimit(context),
 							skip: offset,
 						})
+						const timestampMs = Date.now()
 						return {
 							offset,
-							storageNodes: miners.list.map((miner) => ({
-								[EntityMetaKey.Selector]: {
-									$network: network,
-									nodeId: miner.miner,
-								},
-								[EntityMetaKey.Fields]: {
-									[entityFieldAddressKey(EntityType.ZeroGStorageNode, [], '$operator')]: {
-										[EntityMetaKey.Selector]: {
-											address: miner.miner,
-										},
-									},
-									[entityFieldAddressKey(EntityType.ZeroGStorageNode, [], '$$timestamps')]: [
-										{
-											[EntityMetaKey.Selector]: {
-												$storageNode: {
-													$network: network,
-													nodeId: miner.miner,
-												},
-												timestampMs,
-												source: Source.ZeroGStorageScan_Rest,
-											},
-											[EntityMetaKey.Fields]: {
-												[entityFieldAddressKey(EntityType.ZeroGStorageNode_Timestamp, [], 'totalReward')]: miner.totalReward,
-												[entityFieldAddressKey(EntityType.ZeroGStorageNode_Timestamp, [], 'winCount')]: miner.winCount,
-												[entityFieldAddressKey(EntityType.ZeroGStorageNode_Timestamp, [], 'miningAttempts')]: miner.miningAttempts,
-											},
-										},
-									],
-								},
-							})),
+							storageNodes: storageNodeRowsFromMiners({
+								network,
+								miners: miners.list,
+								timestampMs,
+							}),
 							storageNodeCount: unsignedInteger(miners.total),
 						}
 					},
@@ -363,14 +383,14 @@ export default {
 							limit: resolverContextRowLimit(context),
 							skip: offset,
 						})
+						const timestampMs = Date.now()
 						return {
 							offset,
-							storageNodes: miners.list.map((miner) => ({
-								[EntityMetaKey.Selector]: {
-									$network: network,
-									nodeId: miner.miner,
-								},
-							})),
+							storageNodes: storageNodeRowsFromMiners({
+								network,
+								miners: miners.list,
+								timestampMs,
+							}),
 							storageNodeCount: unsignedInteger(miners.total),
 						}
 					},

@@ -137,6 +137,20 @@ describe('ZeroGStorageScan_Rest resolver leftovers', () => {
 				$network: network,
 				nodeId: '0x4D19F72978eaF45F6B0dC4db43f15B4a39D65bfD',
 			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.ZeroGStorageNode, [], '$$timestamps')]: [
+					{
+						[EntityMetaKey.Selector]: {
+							source: Source.ZeroGStorageScan_Rest,
+						},
+						[EntityMetaKey.Fields]: {
+							[entityFieldAddressKey(EntityType.ZeroGStorageNode_Timestamp, [], 'totalReward')]: '1',
+							[entityFieldAddressKey(EntityType.ZeroGStorageNode_Timestamp, [], 'winCount')]: 2,
+							[entityFieldAddressKey(EntityType.ZeroGStorageNode_Timestamp, [], 'miningAttempts')]: 3,
+						},
+					},
+				],
+			},
 		})
 
 		const blobsResolver = resolverFor(EntityType.Network, '$$dataBlobs')
@@ -173,6 +187,65 @@ describe('ZeroGStorageScan_Rest resolver leftovers', () => {
 						consensusNetworkId: '0g',
 					},
 				},
+			},
+		})
+	})
+
+	it('stamps storage-node list observations after StorageScan miner reads settle', async () => {
+		let minersRead = false
+		vi.spyOn(Date, 'now').mockImplementation(() => {
+			if (!minersRead)
+				throw new Error('ZeroGStorageScan observation clock sampled before miner list read')
+
+			return 1_700_000_000_000
+		})
+		queries.listStorageMiners.mockImplementation(async () => {
+			await Promise.resolve()
+			minersRead = true
+			return {
+				total: 149,
+				list: [{
+					miner: '0x4D19F72978eaF45F6B0dC4db43f15B4a39D65bfD',
+					totalReward: '1',
+					winCount: 2,
+					miningAttempts: 3,
+					timestamp: 1,
+				}],
+			}
+		})
+
+		const storageNodesResolver = resolverFor(EntityType.Network, '$$storageNodes')
+		const storageNodesSnapshot = await storageNodesResolver.resolve.Slug.resolve(network, context)
+		expect(storageNodesResolver.projections.ZeroG.$$storageNodes.select(storageNodesSnapshot)[0]).toMatchObject({
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.ZeroGStorageNode, [], '$$timestamps')]: [
+					{
+						[EntityMetaKey.Selector]: {
+							timestampMs: 1_700_000_000_000,
+						},
+					},
+				],
+			},
+		})
+	})
+
+	it('projects ZeroGNetwork storage nodes with the same StorageScan list leftovers as Network.ZeroG', async () => {
+		const zeroGNetworkStorageNodesResolver = resolverFor(EntityType.ZeroGNetwork, '$$storageNodes')
+		const zeroGNetworkStorageNodesSnapshot = await zeroGNetworkStorageNodesResolver.resolve.Slug.resolve(network, context)
+		expect(zeroGNetworkStorageNodesResolver.projections.$$storageNodes.select(zeroGNetworkStorageNodesSnapshot)[0]).toMatchObject({
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.ZeroGStorageNode, [], '$operator')]: {
+					[EntityMetaKey.Selector]: {
+						address: '0x4D19F72978eaF45F6B0dC4db43f15B4a39D65bfD',
+					},
+				},
+				[entityFieldAddressKey(EntityType.ZeroGStorageNode, [], '$$timestamps')]: [
+					{
+						[EntityMetaKey.Fields]: {
+							[entityFieldAddressKey(EntityType.ZeroGStorageNode_Timestamp, [], 'winCount')]: 2,
+						},
+					},
+				],
 			},
 		})
 	})
