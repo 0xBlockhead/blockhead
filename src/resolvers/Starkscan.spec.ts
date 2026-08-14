@@ -389,9 +389,12 @@ describe('Starkscan contract resolvers', () => {
 		getExactTokenHoldings.mockResolvedValueOnce(tokenHoldings)
 		const holdings = await tokenHoldingsResolver.resolve[
 			'NetworkAddress'
-		].resolve(contract, resolverContext)
+		].resolve(contract, {
+			...resolverContext,
+			providerContinuationToken: undefined,
+		})
 		expect(getExactTokenHoldings).toHaveBeenCalledWith('0x1')
-		expect(tokenHoldingsResolver.projections.$$tokenHoldings(
+		expect(tokenHoldingsResolver.projections.$$tokenHoldings.select(
 			holdings,
 			contract,
 			resolverContext
@@ -425,6 +428,12 @@ describe('Starkscan contract resolvers', () => {
 				}],
 			},
 		}])
+		expect(tokenHoldingsResolver.projections.$$tokenHoldings.resolveCount(holdings)).toBe(1)
+		expect(tokenHoldingsResolver.projections.$$tokenHoldings.continuation(holdings)).toEqual({
+			operation: 'contract-token-holdings',
+			target: 'starkscan',
+			terminal: true,
+		})
 	})
 
 	it('resolves one stable holding and rejects missing or foreign identities', async () => {
@@ -563,7 +572,7 @@ describe('Starkscan block transaction and class resolvers', () => {
 			$network: network,
 			blockNumber: 100n,
 		}, resolverContext)).toBe('0xabc')
-		expect(blockResolver.projections.$$transactions(snapshot, {
+		expect(blockResolver.projections.$$transactions.select(snapshot, {
 			$network: network,
 			blockNumber: 100n,
 		}, resolverContext)).toEqual([{
@@ -602,6 +611,7 @@ describe('Starkscan block transaction and class resolvers', () => {
 				}],
 			},
 		}])
+		expect(blockResolver.projections.$$transactions.resolveCount(snapshot)).toBe(1)
 	})
 
 	it('projects transaction detail with events and observation provenance', async () => {
@@ -665,7 +675,7 @@ describe('Starkscan block transaction and class resolvers', () => {
 			$network: network,
 			transactionHash: '0x00abc',
 		}, resolverContext)).toBe('INVOKE')
-		expect(transactionResolver.projections.$$events(snapshot, {
+		expect(transactionResolver.projections.$$events.select(snapshot, {
 			$network: network,
 			transactionHash: '0x00abc',
 		}, resolverContext)).toEqual([{
@@ -687,6 +697,8 @@ describe('Starkscan block transaction and class resolvers', () => {
 				[entityFieldAddressKey(EntityType.StarknetEvent, [], 'data')]: ['0x22'],
 			},
 		}])
+		expect(transactionResolver.projections.$$events.resolveCount(snapshot)).toBe(1)
+		expect(transactionResolver.projections.$$timestamps.resolveCount(snapshot)).toBe(1)
 	})
 
 	it('projects class identity and paginated instances', async () => {

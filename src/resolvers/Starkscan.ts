@@ -262,40 +262,70 @@ export default {
 					appliesTo: starknetContractApplicability,
 					resolve: async (owner, context) => {
 						assertStarknetMainnet(owner.$network.$network)
-						if (resolverContextRowLimit(context) === 0)
-							return []
+						if (
+							context.providerContinuationToken != null
+							&& !/^(0|[1-9][0-9]*)$/.test(context.providerContinuationToken)
+						)
+							throw new Error('Starkscan_Rest: invalid token holdings continuation')
+
+						const offset = (
+							context.providerContinuationToken == null ?
+								context.pagination.offset ?? 0
+							:
+								Number(context.providerContinuationToken)
+						)
+						if (!Number.isSafeInteger(offset) || offset < 0)
+							throw new Error('Starkscan_Rest: invalid token holdings continuation')
 
 						const { getExactTokenHoldings } = await import('$/sources/Starkscan/Rest/queries.ts')
 						const holdings = await getExactTokenHoldings(canonicalFelt(owner.address, 'owner address'))
-						return holdings.items
-							.slice(0, resolverContextRowLimit(context))
-							.map((token) => {
-								const holding = {
-									$owner: owner,
-									$tokenContract: {
-										$network: owner.$network,
-										address: canonicalFelt(token.normalizedTokenAddress, 'token address'),
-									},
-								}
+						return {
+							offset,
+							total: holdings.items.length,
+							rows: holdings.items
+								.slice(offset, offset + resolverContextRowLimit(context))
+								.map((token) => {
+									const holding = {
+										$owner: owner,
+										$tokenContract: {
+											$network: owner.$network,
+											address: canonicalFelt(token.normalizedTokenAddress, 'token address'),
+										},
+									}
 
-								return {
-									[EntityMetaKey.Selector]: holding,
-									[EntityMetaKey.Fields]: {
-										[entityFieldAddressKey(EntityType.StarknetTokenHolding, [], '$$timestamps')]: [
-											starknetTokenHoldingObservation(
-												holding,
-												token,
-												holdings.fetchedAtMs
-											),
-										],
-									},
-								}
-							})
+									return {
+										[EntityMetaKey.Selector]: holding,
+										[EntityMetaKey.Fields]: {
+											[entityFieldAddressKey(EntityType.StarknetTokenHolding, [], '$$timestamps')]: [
+												starknetTokenHoldingObservation(
+													holding,
+													token,
+													holdings.fetchedAtMs
+												),
+											],
+										},
+									}
+								}),
+						}
 					},
 				},
 			},
 		})({
-			$$tokenHoldings: (holdings) => holdings,
+			$$tokenHoldings: {
+				select: (snapshot) => snapshot.rows,
+				resolveCount: (snapshot) => snapshot.total,
+				continuation: (snapshot) => {
+					const nextOffset = snapshot.offset + snapshot.rows.length
+					const terminal = snapshot.rows.length === 0 || nextOffset >= snapshot.total
+
+					return {
+						operation: 'contract-token-holdings',
+						target: 'starkscan',
+						terminal,
+						...(!terminal && { token: String(nextOffset) }),
+					}
+				},
+			},
 		}),
 
 		defineResolver({
@@ -578,7 +608,10 @@ export default {
 			l1GasPrice: (snapshot) => snapshot.l1GasPrice,
 			l1DataGasPrice: (snapshot) => snapshot.l1DataGasPrice,
 			status: (snapshot) => snapshot.status,
-			$$transactions: (snapshot) => snapshot.$$transactions,
+			$$transactions: {
+				select: (snapshot) => snapshot.$$transactions,
+				resolveCount: (snapshot) => snapshot.$$transactions.length,
+			},
 		}),
 
 		defineResolver({
@@ -705,8 +738,14 @@ export default {
 			senderAddress: (snapshot) => snapshot.senderAddress,
 			$senderContract: (snapshot) => snapshot.$senderContract,
 			calldata: (snapshot) => snapshot.calldata,
-			$$events: (snapshot) => snapshot.$$events,
-			$$timestamps: (snapshot) => snapshot.$$timestamps,
+			$$events: {
+				select: (snapshot) => snapshot.$$events,
+				resolveCount: (snapshot) => snapshot.$$events.length,
+			},
+			$$timestamps: {
+				select: (snapshot) => snapshot.$$timestamps,
+				resolveCount: (snapshot) => snapshot.$$timestamps.length,
+			},
 		}),
 
 		defineResolver({
