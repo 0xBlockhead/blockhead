@@ -4,13 +4,16 @@ import { ApiFamily } from '$/sources/SourceBinding.ts'
 import bindings from '$/sources/Nodely/bindings.ts'
 import type {
 	AlgorandIndexerAccountResponse,
+	AlgorandIndexerAccountsPage,
 	AlgorandIndexerApplicationAccountsPage,
 	AlgorandIndexerApplicationBoxesPage,
 	AlgorandIndexerApplicationLocalStatesPage,
 	AlgorandIndexerApplicationResponse,
+	AlgorandIndexerApplicationsPage,
 	AlgorandIndexerAssetBalancesPage,
 	AlgorandIndexerAssetHoldingsPage,
 	AlgorandIndexerAssetResponse,
+	AlgorandIndexerAssetsPage,
 	AlgorandIndexerBlock,
 	AlgorandIndexerHealth,
 	AlgorandIndexerTransaction,
@@ -102,6 +105,30 @@ const accountResponseWire = arktype({
 	},
 	'current-round': unsigned,
 })
+
+const accountsPageWire = arktype({
+	accounts: arktype({
+		address: addressWire,
+	}).onUndeclaredKey('delete').array(),
+	'current-round': unsigned,
+	'next-token?': 'string',
+}).onUndeclaredKey('delete')
+
+const assetsPageWire = arktype({
+	assets: arktype({
+		index: unsigned,
+	}).onUndeclaredKey('delete').array(),
+	'current-round': unsigned,
+	'next-token?': 'string',
+}).onUndeclaredKey('delete')
+
+const applicationsPageWire = arktype({
+	applications: arktype({
+		id: unsigned,
+	}).onUndeclaredKey('delete').array(),
+	'current-round': unsigned,
+	'next-token?': 'string',
+}).onUndeclaredKey('delete')
 
 const assetResponseWire = arktype({
 	asset: {
@@ -687,5 +714,104 @@ export const getAssetBalances = async (
 		addresses.add(balance.address)
 	}
 	assertPageContinuation(page, next, 'asset balances')
+	return page
+}
+
+export const listAccounts = async (
+	{
+		limit,
+		next,
+	}: {
+		limit: number
+		next?: string
+	}
+): Promise<AlgorandIndexerAccountsPage> => {
+	const parameters = pageParameters(limit, next)
+	if (limit === 0)
+		return {
+			accounts: [],
+			'current-round': 0,
+		}
+	const page = assertEnvelope(
+		accountsPageWire,
+		await query(`/v2/accounts?${parameters.toString()}`),
+		'accounts page'
+	)
+	if (page.accounts.length > limit)
+		throw new Error('AlgorandIndexer_Rest: account page exceeds requested limit')
+
+	const addresses = new Set<string>()
+	for (const account of page.accounts) {
+		if (addresses.has(account.address))
+			throw new Error('AlgorandIndexer_Rest: duplicate account address')
+		addresses.add(account.address)
+	}
+	assertPageContinuation(page, next, 'account')
+	return page
+}
+
+export const listAssets = async (
+	{
+		limit,
+		next,
+	}: {
+		limit: number
+		next?: string
+	}
+): Promise<AlgorandIndexerAssetsPage> => {
+	const parameters = pageParameters(limit, next)
+	if (limit === 0)
+		return {
+			assets: [],
+			'current-round': 0,
+		}
+	const page = assertEnvelope(
+		assetsPageWire,
+		await query(`/v2/assets?${parameters.toString()}`),
+		'assets page'
+	)
+	if (page.assets.length > limit)
+		throw new Error('AlgorandIndexer_Rest: asset page exceeds requested limit')
+
+	const assetIds = new Set<number>()
+	for (const asset of page.assets) {
+		if (assetIds.has(asset.index))
+			throw new Error('AlgorandIndexer_Rest: duplicate asset ID')
+		assetIds.add(asset.index)
+	}
+	assertPageContinuation(page, next, 'asset')
+	return page
+}
+
+export const listApplications = async (
+	{
+		limit,
+		next,
+	}: {
+		limit: number
+		next?: string
+	}
+): Promise<AlgorandIndexerApplicationsPage> => {
+	const parameters = pageParameters(limit, next)
+	if (limit === 0)
+		return {
+			applications: [],
+			'current-round': 0,
+		}
+	const page = assertEnvelope(
+		applicationsPageWire,
+		await query(`/v2/applications?${parameters.toString()}`),
+		'applications page'
+	)
+	if (page.applications.length > limit)
+		throw new Error('AlgorandIndexer_Rest: application page exceeds requested limit')
+
+	const applicationIds = new Set<number>()
+	for (const application of page.applications) {
+		if (applicationIds.has(application.id))
+			throw new Error('AlgorandIndexer_Rest: duplicate application ID')
+		applicationIds.add(application.id)
+	}
+	assertPageContinuation(page, next, 'application')
 	return page
 }

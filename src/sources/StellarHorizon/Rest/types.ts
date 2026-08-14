@@ -200,6 +200,26 @@ export const stellarHorizonLiquidityPoolWire = arktype({
 
 export type StellarHorizonLiquidityPool = typeof stellarHorizonLiquidityPoolWire.infer
 
+export const stellarHorizonClaimableBalanceClaimantWire = arktype({
+	destination: 'string > 0',
+	predicate: 'unknown',
+})
+
+export type StellarHorizonClaimableBalanceClaimant = typeof stellarHorizonClaimableBalanceClaimantWire.infer
+
+export const stellarHorizonClaimableBalanceWire = arktype({
+	id: 'string > 0',
+	paging_token: 'string > 0',
+	asset: 'string > 0',
+	amount: 'string > 0',
+	last_modified_ledger: 'number.integer >= 0',
+	last_modified_time: 'string > 0',
+	claimants: stellarHorizonClaimableBalanceClaimantWire.array(),
+	'sponsor?': 'string',
+})
+
+export type StellarHorizonClaimableBalance = typeof stellarHorizonClaimableBalanceWire.infer
+
 export const stellarHorizonPageWire = <_RecordWire extends Type>(
 	recordWire: _RecordWire
 ) => (
@@ -229,6 +249,7 @@ export const stellarHorizonPaymentPageWire = stellarHorizonPageWire(stellarHoriz
 export const stellarHorizonOfferPageWire = stellarHorizonPageWire(stellarHorizonOfferWire)
 export const stellarHorizonTradePageWire = stellarHorizonPageWire(stellarHorizonTradeWire)
 export const stellarHorizonLiquidityPoolPageWire = stellarHorizonPageWire(stellarHorizonLiquidityPoolWire)
+export const stellarHorizonClaimableBalancePageWire = stellarHorizonPageWire(stellarHorizonClaimableBalanceWire)
 
 export const stellarHorizonLink = stellarHorizonLinkWire satisfies Type<StellarHorizonLink>
 export const stellarHorizonBalance = stellarHorizonBalanceWire satisfies Type<StellarHorizonBalance>
@@ -243,3 +264,4 @@ export const stellarHorizonOffer = stellarHorizonOfferWire satisfies Type<Stella
 export const stellarHorizonTrade = stellarHorizonTradeWire satisfies Type<StellarHorizonTrade>
 export const stellarHorizonLiquidityPoolReserve = stellarHorizonLiquidityPoolReserveWire satisfies Type<StellarHorizonLiquidityPoolReserve>
 export const stellarHorizonLiquidityPool = stellarHorizonLiquidityPoolWire satisfies Type<StellarHorizonLiquidityPool>
+export const stellarHorizonClaimableBalance = stellarHorizonClaimableBalanceWire satisfies Type<StellarHorizonClaimableBalance>

@@ -9,6 +9,7 @@ import { EntityType } from '$/schema/EntityType.ts'
 import type {
 	StellarHorizonAssetIdentity,
 	StellarHorizonBalance,
+	StellarHorizonClaimableBalance,
 	StellarHorizonOffer,
 	StellarHorizonOperation,
 	StellarHorizonTrade,
@@ -333,6 +334,101 @@ const offerFields = (
 				},
 			}],
 		}),
+	}
+}
+
+const horizonAssetQueryFromAssetKey = (
+	assetKey: string
+) => {
+	if (assetKey === 'XLM')
+		return 'native'
+	const issued = /^([A-Za-z0-9]{1,12})-(G[A-Z2-7]{55})$/.exec(assetKey)
+	if (issued == null)
+		throw new Error('StellarHorizon_Rest: invalid asset key')
+	return `${issued[1]}:${issued[2]}`
+}
+
+const claimableBalanceAssetIdentity = (
+	asset: string
+) => {
+	if (asset === 'native')
+		return {
+			asset_type: 'native' as const,
+		}
+
+	const assetSeparatorIndex = asset.indexOf(':')
+	if (assetSeparatorIndex < 1)
+		throw new Error('StellarHorizon_Rest: invalid claimable balance asset')
+
+	const assetCode = asset.slice(0, assetSeparatorIndex)
+	const issuer = asset.slice(assetSeparatorIndex + 1)
+	return {
+		asset_type: (
+			assetCode.length <= 4 ?
+				'credit_alphanum4' as const
+			:
+				'credit_alphanum12' as const
+		),
+		asset_code: assetCode,
+		asset_issuer: issuer,
+	}
+}
+
+const claimableBalanceFields = (
+	$network: {
+		$network: {
+			slug: string
+		}
+	},
+	claimableBalance: StellarHorizonClaimableBalance
+) => {
+	const claimableBalanceSelector = {
+		$network,
+		claimableBalanceId: claimableBalance.id,
+	}
+	const timestampMs = timestampMsFromWire(claimableBalance.last_modified_time, 'claimable balance modification time')
+	const asset = claimableBalanceAssetIdentity(claimableBalance.asset)
+
+	return {
+		$$timestamps: [{
+			[EntityMetaKey.Selector]: {
+				$claimableBalance: claimableBalanceSelector,
+				timestampMs,
+				source: Source.StellarHorizon_Rest,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.StellarClaimableBalance_Timestamp, [], 'ledgerSequence')]: BigInt(claimableBalance.last_modified_ledger),
+				[entityFieldAddressKey(EntityType.StellarClaimableBalance_Timestamp, [], '$asset')]: {
+					[EntityMetaKey.Selector]: assetSelector($network, asset),
+					[EntityMetaKey.Fields]: assetFields(asset),
+				},
+				[entityFieldAddressKey(EntityType.StellarClaimableBalance_Timestamp, [], 'amount')]: claimableBalance.amount,
+				[entityFieldAddressKey(EntityType.StellarClaimableBalance_Timestamp, [], 'claimants')]: claimableBalance.claimants,
+				...(claimableBalance.sponsor != null && {
+					[entityFieldAddressKey(EntityType.StellarClaimableBalance_Timestamp, [], 'sponsor')]: claimableBalance.sponsor,
+				}),
+			},
+		}],
+	}
+}
+
+const claimableBalanceFromWire = (
+	$network: {
+		$network: {
+			slug: string
+		}
+	},
+	claimableBalance: StellarHorizonClaimableBalance
+) => {
+	const fields = claimableBalanceFields($network, claimableBalance)
+	return {
+		[EntityMetaKey.Selector]: {
+			$network,
+			claimableBalanceId: claimableBalance.id,
+		},
+		[EntityMetaKey.Fields]: {
+			[entityFieldAddressKey(EntityType.StellarClaimableBalance, [], '$$timestamps')]: fields.$$timestamps,
+		},
 	}
 }
 
@@ -1333,6 +1429,122 @@ export default {
 					page._embedded.records
 				),
 			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.StellarNetwork,
+			resolve: {
+				Network: {
+					resolve: async ($network, context) => {
+						assertStellarPublicNetwork($network)
+						const limit = Math.min(resolverContextRowLimit(context), 200)
+						const { getClaimableBalances } = await import('$/sources/StellarHorizon/Rest/queries.ts')
+						return {
+							limit,
+							page: await getClaimableBalances(limit, context.providerContinuationToken),
+						}
+					},
+				},
+			},
+		})({
+			$$claimableBalances: {
+				select: ({ page }, $network) => page._embedded.records.map((claimableBalance) => (
+					claimableBalanceFromWire($network, claimableBalance)
+				)),
+				continuation: ({ limit, page }, $network) => stellarContinuation(
+					'network-claimableBalances',
+					$network.$network.slug,
+					limit,
+					page._embedded.records
+				),
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.StellarAsset,
+			resolve: {
+				NetworkAssetKey: {
+					resolve: async (asset, context) => {
+						assertStellarPublicNetwork(asset.$network)
+						const limit = Math.min(resolverContextRowLimit(context), 200)
+						const { getClaimableBalances } = await import('$/sources/StellarHorizon/Rest/queries.ts')
+						return {
+							limit,
+							page: await getClaimableBalances(
+								limit,
+								context.providerContinuationToken,
+								horizonAssetQueryFromAssetKey(asset.assetKey)
+							),
+						}
+					},
+				},
+			},
+		})({
+			$$claimableBalances: {
+				select: ({ page }, asset) => page._embedded.records.map((claimableBalance) => (
+					claimableBalanceFromWire(asset.$network, claimableBalance)
+				)),
+				continuation: ({ limit, page }, asset) => stellarContinuation(
+					'asset-claimableBalances',
+					asset.assetKey,
+					limit,
+					page._embedded.records
+				),
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.StellarClaimableBalance,
+			resolve: {
+				NetworkClaimableBalanceId: {
+					resolve: async ({
+						$network,
+						claimableBalanceId,
+					}) => {
+						assertStellarPublicNetwork($network)
+						const { getClaimableBalance } = await import('$/sources/StellarHorizon/Rest/queries.ts')
+						return claimableBalanceFields($network, await getClaimableBalance(claimableBalanceId))
+					},
+				},
+			},
+		})({
+			$$timestamps: (claimableBalance) => claimableBalance.$$timestamps,
+		}),
+
+		defineResolver({
+			entityType: EntityType.StellarClaimableBalance_Timestamp,
+			resolve: {
+				ClaimableBalanceTimestampMsSource: {
+					resolve: async ({
+						$claimableBalance,
+						source,
+						timestampMs,
+					}) => {
+						assertStellarPublicNetwork($claimableBalance.$network)
+						if (source !== Source.StellarHorizon_Rest)
+							throw new Error('StellarHorizon_Rest: claimable balance observation source mismatch')
+						const { getClaimableBalance } = await import('$/sources/StellarHorizon/Rest/queries.ts')
+						const claimableBalance = await getClaimableBalance($claimableBalance.claimableBalanceId)
+						if (
+							timestampMsFromWire(claimableBalance.last_modified_time, 'claimable balance modification time') !== timestampMs
+						)
+							throw new Error('StellarHorizon_Rest: claimable balance observation timestamp mismatch')
+						return claimableBalance
+					},
+				},
+			},
+		})({
+			ledgerSequence: (claimableBalance) => BigInt(claimableBalance.last_modified_ledger),
+			$asset: (claimableBalance, { $claimableBalance }) => {
+				const asset = claimableBalanceAssetIdentity(claimableBalance.asset)
+				return {
+					[EntityMetaKey.Selector]: assetSelector($claimableBalance.$network, asset),
+					[EntityMetaKey.Fields]: assetFields(asset),
+				}
+			},
+			amount: (claimableBalance) => claimableBalance.amount,
+			sponsor: (claimableBalance) => claimableBalance.sponsor,
+			claimants: (claimableBalance) => claimableBalance.claimants,
 		}),
 
 		defineResolver({

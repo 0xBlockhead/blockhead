@@ -928,5 +928,122 @@ export default {
 				},
 			},
 		}),
+
+		defineResolver({
+			entityType: EntityType.AlgorandNetwork,
+			resolve: {
+				Network: {
+					appliesTo: algorandNetworkApplicability,
+					resolve: async (algorandNetwork, context) => {
+						assertAlgorandMainnet(algorandNetwork)
+						const { listAccounts } = await import('$/sources/AlgorandIndexer/Rest/queries.ts')
+						return listAccounts({
+							limit: Math.min(resolverContextRowLimit(context), 1_000),
+							next: context.providerContinuationToken,
+						})
+					},
+				},
+			},
+		})({
+			$$accounts: {
+				select: (page, algorandNetwork) => page.accounts.map((account) => ({
+					[EntityMetaKey.Selector]: {
+						$network: algorandNetwork,
+						address: account.address,
+					},
+				})),
+				continuation: (page) => (
+					page['next-token'] == null ?
+						{
+							operation: 'network-accounts',
+							terminal: true,
+						}
+					:
+						{
+							operation: 'network-accounts',
+							terminal: false,
+							token: page['next-token'],
+						}
+				),
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.AlgorandNetwork,
+			resolve: {
+				Network: {
+					appliesTo: algorandNetworkApplicability,
+					resolve: async (algorandNetwork, context) => {
+						assertAlgorandMainnet(algorandNetwork)
+						const { listAssets } = await import('$/sources/AlgorandIndexer/Rest/queries.ts')
+						return listAssets({
+							limit: Math.min(resolverContextRowLimit(context), 1_000),
+							next: context.providerContinuationToken,
+						})
+					},
+				},
+			},
+		})({
+			$$assets: {
+				select: (page, algorandNetwork) => page.assets.map((asset) => ({
+					[EntityMetaKey.Selector]: {
+						$network: algorandNetwork,
+						assetId: BigInt(asset.index),
+					},
+				})),
+				continuation: (page) => (
+					page['next-token'] == null ?
+						{
+							operation: 'network-assets',
+							terminal: true,
+						}
+					:
+						{
+							operation: 'network-assets',
+							terminal: false,
+							token: page['next-token'],
+						}
+				),
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.AlgorandNetwork,
+			resolve: {
+				Network: {
+					appliesTo: algorandNetworkApplicability,
+					resolve: async (algorandNetwork, context) => {
+						assertAlgorandMainnet(algorandNetwork)
+						const { listApplications } = await import('$/sources/AlgorandIndexer/Rest/queries.ts')
+						return listApplications({
+							limit: Math.min(resolverContextRowLimit(context), 1_000),
+							next: context.providerContinuationToken,
+						})
+					},
+				},
+			},
+		})({
+			$$applications: {
+				select: (page, algorandNetwork) => page.applications.map((application) => ({
+					[EntityMetaKey.Selector]: {
+						$network: algorandNetwork,
+						applicationId: BigInt(application.id),
+					},
+				})),
+				continuation: (page) => (
+					page['next-token'] == null ?
+						{
+							operation: 'network-applications',
+							terminal: true,
+						}
+					:
+						{
+							operation: 'network-applications',
+							terminal: false,
+							token: page['next-token'],
+						}
+				),
+			},
+		}),
 	],
 } satisfies RegisteredSourceResolverModule

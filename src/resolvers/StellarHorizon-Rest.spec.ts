@@ -1005,6 +1005,7 @@ describe('Stellar Horizon network history resolver', () => {
 			['$$operations', '/operations?'],
 			['$$offers', '/offers?'],
 			['$$trades', '/trades?'],
+			['$$claimableBalances', '/claimable_balances?'],
 		] as const) {
 			getJson.mockResolvedValueOnce(page([]))
 			const resolver = stellarHorizonResolvers.resolvers.find((candidate) => (
@@ -1144,5 +1145,175 @@ describe('Stellar Horizon liquidity-pool resolver', () => {
 			timestampMs: 0,
 			source: 'Other_Source',
 		}, context)).rejects.toThrow('liquidity pool observation source mismatch')
+	})
+})
+
+describe('Stellar Horizon claimable-balance resolver', () => {
+	beforeEach(() => {
+		vi.clearAllMocks()
+	})
+
+	it('materializes native claimable-balance lists and the source-clocked observation from the direct route', async () => {
+		const claimableBalanceId = 'a'.repeat(72)
+		const stellarNetwork = {
+			$network: {
+				slug: 'stellar',
+			},
+		}
+		const claimableBalance = {
+			$network: stellarNetwork,
+			claimableBalanceId,
+		}
+		const claimableBalanceWire = {
+			id: 'A'.repeat(72),
+			paging_token: 'A'.repeat(72),
+			asset: 'native',
+			amount: '12.0000000',
+			last_modified_ledger: 63_779_242,
+			last_modified_time: '2026-08-03T11:35:17Z',
+			claimants: [{
+				destination: accountId,
+				predicate: {
+					unconditional: true,
+				},
+			}],
+			sponsor: otherAccountId,
+		}
+		getJson
+			.mockResolvedValueOnce(page([claimableBalanceWire]))
+			.mockResolvedValueOnce(page([claimableBalanceWire]))
+			.mockResolvedValueOnce(claimableBalanceWire)
+			.mockResolvedValueOnce(claimableBalanceWire)
+
+		const networkResolver = stellarHorizonResolvers.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.StellarNetwork
+			&& '$$claimableBalances' in resolver.projections
+		))
+		const assetResolver = stellarHorizonResolvers.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.StellarAsset
+			&& '$$claimableBalances' in resolver.projections
+		))
+		const claimableBalanceResolver = stellarHorizonResolvers.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.StellarClaimableBalance
+		))
+		const claimableBalanceTimestampResolver = stellarHorizonResolvers.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.StellarClaimableBalance_Timestamp
+		))
+		if (
+			networkResolver == null
+			|| assetResolver == null
+			|| claimableBalanceResolver == null
+			|| claimableBalanceTimestampResolver == null
+		)
+			throw new Error('Stellar Horizon spec missing claimable-balance resolvers')
+
+		const networkSnapshot = await networkResolver.resolve.Network.resolve(stellarNetwork, context)
+		const claimableBalances = networkResolver.projections.$$claimableBalances.select(
+			networkSnapshot,
+			stellarNetwork
+		)
+		expect(claimableBalances).toEqual([{
+			[EntityMetaKey.Selector]: claimableBalance,
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.StellarClaimableBalance, [], '$$timestamps')]: [{
+					[EntityMetaKey.Selector]: {
+						$claimableBalance: claimableBalance,
+						timestampMs: Date.parse(claimableBalanceWire.last_modified_time),
+						source: 'StellarHorizon_Rest',
+					},
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.StellarClaimableBalance_Timestamp, [], 'ledgerSequence')]: 63_779_242n,
+						[entityFieldAddressKey(EntityType.StellarClaimableBalance_Timestamp, [], '$asset')]: {
+							[EntityMetaKey.Selector]: {
+								$network: stellarNetwork,
+								assetKey: 'XLM',
+							},
+							[EntityMetaKey.Fields]: {
+								[entityFieldAddressKey(EntityType.StellarAsset, [], 'assetKind')]: 'native',
+								[entityFieldAddressKey(EntityType.StellarAsset, [], 'assetCode')]: 'XLM',
+							},
+						},
+						[entityFieldAddressKey(EntityType.StellarClaimableBalance_Timestamp, [], 'amount')]: '12.0000000',
+						[entityFieldAddressKey(EntityType.StellarClaimableBalance_Timestamp, [], 'claimants')]: claimableBalanceWire.claimants,
+						[entityFieldAddressKey(EntityType.StellarClaimableBalance_Timestamp, [], 'sponsor')]: otherAccountId,
+					},
+				}],
+			},
+		}])
+
+		const asset = {
+			$network: stellarNetwork,
+			assetKey: 'XLM',
+		}
+		const assetSnapshot = await assetResolver.resolve.NetworkAssetKey.resolve(asset, context)
+		expect(assetResolver.projections.$$claimableBalances.select(assetSnapshot, asset)).toHaveLength(1)
+		expect(getJson).toHaveBeenNthCalledWith(
+			2,
+			expect.anything(),
+			expect.stringContaining('/claimable_balances?')
+		)
+		expect(getJson.mock.calls[1][1]).toContain('asset=native')
+
+		const direct = await claimableBalanceResolver.resolve.NetworkClaimableBalanceId.resolve(
+			claimableBalance,
+			context
+		)
+		expect(claimableBalanceResolver.projections.$$timestamps(direct)).toHaveLength(1)
+
+		const observation = await claimableBalanceTimestampResolver.resolve.ClaimableBalanceTimestampMsSource.resolve({
+			$claimableBalance: claimableBalance,
+			timestampMs: Date.parse(claimableBalanceWire.last_modified_time),
+			source: 'StellarHorizon_Rest',
+		}, context)
+		expect(claimableBalanceTimestampResolver.projections.amount(observation)).toBe('12.0000000')
+		expect(claimableBalanceTimestampResolver.projections.ledgerSequence(observation)).toBe(63_779_242n)
+	})
+
+	it('rejects an observation whose source or owner clock cannot be proven', async () => {
+		const claimableBalanceTimestampResolver = stellarHorizonResolvers.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.StellarClaimableBalance_Timestamp
+		))
+		if (claimableBalanceTimestampResolver == null)
+			throw new Error('Stellar Horizon spec missing claimable-balance timestamp resolver')
+
+		await expect(claimableBalanceTimestampResolver.resolve.ClaimableBalanceTimestampMsSource.resolve({
+			$claimableBalance: {
+				$network: {
+					$network: {
+						slug: 'stellar',
+					},
+				},
+				claimableBalanceId: 'a'.repeat(72),
+			},
+			timestampMs: 0,
+			source: 'Other_Source',
+		}, context)).rejects.toThrow('claimable balance observation source mismatch')
+
+		getJson.mockResolvedValueOnce({
+			id: 'a'.repeat(72),
+			paging_token: 'a'.repeat(72),
+			asset: 'native',
+			amount: '12.0000000',
+			last_modified_ledger: 1,
+			last_modified_time: '2026-08-03T11:35:17Z',
+			claimants: [{
+				destination: accountId,
+				predicate: {
+					unconditional: true,
+				},
+			}],
+		})
+		await expect(claimableBalanceTimestampResolver.resolve.ClaimableBalanceTimestampMsSource.resolve({
+			$claimableBalance: {
+				$network: {
+					$network: {
+						slug: 'stellar',
+					},
+				},
+				claimableBalanceId: 'a'.repeat(72),
+			},
+			timestampMs: 0,
+			source: 'StellarHorizon_Rest',
+		}, context)).rejects.toThrow('claimable balance observation timestamp mismatch')
 	})
 })

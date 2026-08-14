@@ -20,6 +20,8 @@ const {
 	getAccountTransactions,
 	getLiquidityPool,
 	getLiquidityPools,
+	getClaimableBalance,
+	getClaimableBalances,
 	getLedgerOperations,
 	getLedgerTransactions,
 	getOffer,
@@ -755,5 +757,90 @@ describe('Stellar Horizon liquidity-pool transport', () => {
 
 		await expect(getLiquidityPool('a'.repeat(64))).rejects.toThrow('liquidity pool response identity mismatch')
 		await expect(getLiquidityPool('b'.repeat(64))).rejects.toThrow('unsupported liquidity pool type')
+	})
+})
+
+describe('Stellar Horizon claimable-balance transport', () => {
+	beforeEach(() => {
+		vi.clearAllMocks()
+	})
+
+	it('canonicalizes claimable-balance identity and pages native plus asset-filtered lists', async () => {
+		const claimableBalanceId = 'a'.repeat(72)
+		const claimableBalanceWire = {
+			id: 'A'.repeat(72),
+			paging_token: 'A'.repeat(72),
+			asset: 'native',
+			amount: '12.0000000',
+			last_modified_ledger: 63_779_242,
+			last_modified_time: '2026-08-03T11:35:17Z',
+			claimants: [{
+				destination: accountId,
+				predicate: {
+					unconditional: true,
+				},
+			}],
+			sponsor: otherAccountId,
+		}
+		getJson
+			.mockResolvedValueOnce(page([claimableBalanceWire]))
+			.mockResolvedValueOnce(page([claimableBalanceWire]))
+			.mockResolvedValueOnce(claimableBalanceWire)
+
+		await expect(getClaimableBalances(2)).resolves.toMatchObject({
+			_embedded: {
+				records: [{
+					id: claimableBalanceId,
+					asset: 'native',
+					amount: '12.0000000',
+					sponsor: otherAccountId,
+				}],
+			},
+		})
+		await expect(getClaimableBalances(2, undefined, 'native')).resolves.toMatchObject({
+			_embedded: {
+				records: [{
+					id: claimableBalanceId,
+				}],
+			},
+		})
+		await expect(getClaimableBalance('A'.repeat(72))).resolves.toMatchObject({
+			id: claimableBalanceId,
+			asset: 'native',
+		})
+		expect(getJson.mock.calls).toEqual([
+			[
+				binding,
+				'/claimable_balances?limit=2&order=desc',
+			],
+			[
+				binding,
+				'/claimable_balances?limit=2&order=desc&asset=native',
+			],
+			[
+				binding,
+				`/claimable_balances/${claimableBalanceId}`,
+			],
+		])
+	})
+
+	it('rejects malformed claimable-balance identities and foreign asset rows', async () => {
+		await expect(getClaimableBalance('a'.repeat(64))).rejects.toThrow('invalid claimable balance ID')
+
+		getJson.mockResolvedValueOnce(page([{
+			id: 'a'.repeat(72),
+			paging_token: 'a'.repeat(72),
+			asset: `USDC:${otherAccountId}`,
+			amount: '1.0000000',
+			last_modified_ledger: 1,
+			last_modified_time: '2026-08-03T11:35:17Z',
+			claimants: [{
+				destination: accountId,
+				predicate: {
+					unconditional: true,
+				},
+			}],
+		}]))
+		await expect(getClaimableBalances(1, undefined, 'native')).rejects.toThrow('foreign asset row')
 	})
 })

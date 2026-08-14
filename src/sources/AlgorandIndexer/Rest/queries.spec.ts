@@ -22,6 +22,9 @@ const {
 	getHealth,
 	getTransaction,
 	listApplicationBoxes,
+	listAccounts,
+	listApplications,
+	listAssets,
 	listTransactions,
 } = await import('$/sources/AlgorandIndexer/Rest/queries.ts')
 
@@ -242,6 +245,65 @@ describe('Algorand Indexer transport', () => {
 			limit: 10,
 		})).resolves.toMatchObject({
 			'next-token': 'n1',
+		})
+
+		getJson.mockResolvedValueOnce({
+			accounts: [{
+				address: account,
+				amount: 1,
+				status: 'Online',
+			}],
+			'current-round': 100,
+			'next-token': 'n-accounts',
+		})
+		await expect(listAccounts({
+			limit: 10,
+		})).resolves.toEqual({
+			accounts: [{
+				address: account,
+			}],
+			'current-round': 100,
+			'next-token': 'n-accounts',
+		})
+
+		getJson.mockResolvedValueOnce({
+			assets: [{
+				index: 42,
+				params: {
+					creator: account,
+					decimals: 6,
+					total: 1,
+				},
+			}],
+			'current-round': 100,
+		})
+		await expect(listAssets({
+			limit: 10,
+		})).resolves.toEqual({
+			assets: [{
+				index: 42,
+			}],
+			'current-round': 100,
+		})
+
+		getJson.mockResolvedValueOnce({
+			applications: [{
+				id: 9,
+				params: {
+					creator: account,
+				},
+			}],
+			'current-round': 100,
+			'next-token': 'n-apps',
+		})
+		await expect(listApplications({
+			limit: 10,
+		})).resolves.toEqual({
+			applications: [{
+				id: 9,
+			}],
+			'current-round': 100,
+			'next-token': 'n-apps',
 		})
 
 		getJson.mockResolvedValueOnce({

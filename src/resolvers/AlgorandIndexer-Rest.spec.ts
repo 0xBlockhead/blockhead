@@ -22,7 +22,10 @@ const {
 	getStatus,
 	getTransaction,
 	getTransactionProof,
+	listAccounts,
+	listApplications,
 	listApplicationBoxes,
+	listAssets,
 	listTransactions,
 } = vi.hoisted(() => ({
 	getAccount: vi.fn(),
@@ -38,7 +41,10 @@ const {
 	getStatus: vi.fn(),
 	getTransaction: vi.fn(),
 	getTransactionProof: vi.fn(),
+	listAccounts: vi.fn(),
+	listApplications: vi.fn(),
 	listApplicationBoxes: vi.fn(),
+	listAssets: vi.fn(),
 	listTransactions: vi.fn(),
 }))
 
@@ -53,7 +59,10 @@ vi.mock('$/sources/AlgorandIndexer/Rest/queries.ts', () => ({
 	getBlock,
 	getHealth,
 	getTransaction,
+	listAccounts,
+	listApplications,
 	listApplicationBoxes,
+	listAssets,
 	listTransactions,
 }))
 
@@ -122,6 +131,18 @@ const networkRoundsResolver = algorandIndexerResolvers.resolvers.find((resolver)
 	resolver.entityType === EntityType.AlgorandNetwork
 	&& '$$rounds' in resolver.projections
 ))
+const networkAccountsResolver = algorandIndexerResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.AlgorandNetwork
+	&& '$$accounts' in resolver.projections
+))
+const networkAssetsResolver = algorandIndexerResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.AlgorandNetwork
+	&& '$$assets' in resolver.projections
+))
+const networkApplicationsResolver = algorandIndexerResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.AlgorandNetwork
+	&& '$$applications' in resolver.projections
+))
 
 if (
 	holdingsResolver == null
@@ -140,6 +161,9 @@ if (
 	|| networkTransactionsResolver == null
 	|| transactionGroupResolver == null
 	|| networkRoundsResolver == null
+	|| networkAccountsResolver == null
+	|| networkAssetsResolver == null
+	|| networkApplicationsResolver == null
 )
 	throw new Error('AlgorandIndexer-Rest spec missing deepened resolvers')
 
@@ -664,6 +688,75 @@ describe('Algorand Indexer deepened resolvers', () => {
 			4n,
 			3n,
 		])
+	})
+
+	it('pages native network accounts, assets, and applications as selector-only rows', async () => {
+		listAccounts.mockResolvedValueOnce({
+			accounts: [{
+				address: account.address,
+			}],
+			'current-round': 100,
+			'next-token': 'more-accounts',
+		})
+		const accountsPage = await networkAccountsResolver.resolve.Network.resolve(network, resolverContext)
+		const accountsProjection = networkAccountsResolver.projections.$$accounts
+		if (typeof accountsProjection === 'function' || accountsProjection.select == null)
+			throw new Error('missing network accounts projection')
+		expect(accountsProjection.select(accountsPage, network, resolverContext)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				address: account.address,
+			},
+		}])
+		expect(accountsProjection.continuation(accountsPage, network, resolverContext)).toEqual({
+			operation: 'network-accounts',
+			terminal: false,
+			token: 'more-accounts',
+		})
+
+		listAssets.mockResolvedValueOnce({
+			assets: [{
+				index: 42,
+			}],
+			'current-round': 100,
+		})
+		const assetsPage = await networkAssetsResolver.resolve.Network.resolve(network, resolverContext)
+		const assetsProjection = networkAssetsResolver.projections.$$assets
+		if (typeof assetsProjection === 'function' || assetsProjection.select == null)
+			throw new Error('missing network assets projection')
+		expect(assetsProjection.select(assetsPage, network, resolverContext)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				assetId: 42n,
+			},
+		}])
+		expect(assetsProjection.continuation(assetsPage, network, resolverContext)).toEqual({
+			operation: 'network-assets',
+			terminal: true,
+		})
+
+		listApplications.mockResolvedValueOnce({
+			applications: [{
+				id: 9,
+			}],
+			'current-round': 100,
+			'next-token': 'more-apps',
+		})
+		const applicationsPage = await networkApplicationsResolver.resolve.Network.resolve(network, resolverContext)
+		const applicationsProjection = networkApplicationsResolver.projections.$$applications
+		if (typeof applicationsProjection === 'function' || applicationsProjection.select == null)
+			throw new Error('missing network applications projection')
+		expect(applicationsProjection.select(applicationsPage, network, resolverContext)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				applicationId: 9n,
+			},
+		}])
+		expect(applicationsProjection.continuation(applicationsPage, network, resolverContext)).toEqual({
+			operation: 'network-applications',
+			terminal: false,
+			token: 'more-apps',
+		})
 	})
 
 	it('rejects a foreign network before invoking provider transport', async () => {

@@ -3,6 +3,8 @@ import bindings from '$/sources/StellarHorizon/bindings.ts'
 import {
 	stellarHorizonAccountWire,
 	stellarHorizonAccountPageWire,
+	stellarHorizonClaimableBalancePageWire,
+	stellarHorizonClaimableBalanceWire,
 	stellarHorizonLiquidityPoolPageWire,
 	stellarHorizonLiquidityPoolWire,
 	stellarHorizonOfferWire,
@@ -14,6 +16,7 @@ import {
 	stellarHorizonTransactionWire,
 	type StellarHorizonAssetIdentity,
 	type StellarHorizonBalance,
+	type StellarHorizonClaimableBalance,
 	type StellarHorizonLiquidityPool,
 	type StellarHorizonLiquidityPoolReserve,
 	type StellarHorizonOffer,
@@ -38,6 +41,13 @@ const assertLiquidityPoolId = (
 ) => {
 	if (!/^[0-9a-f]{64}$/.test(liquidityPoolId))
 		throw new Error('StellarHorizon_Rest: invalid liquidity pool ID')
+}
+
+const assertClaimableBalanceId = (
+	claimableBalanceId: string
+) => {
+	if (!/^[0-9a-f]{72}$/.test(claimableBalanceId))
+		throw new Error('StellarHorizon_Rest: invalid claimable balance ID')
 }
 
 const assertUnsignedInteger = (
@@ -317,6 +327,40 @@ const assertOfferDomain = (
 	assertAssetIdentity(offer.buying, 'buying')
 	if (offer.sponsor != null)
 		assertAccountId(offer.sponsor, 'offer sponsor')
+}
+
+const assertClaimableBalanceDomain = (
+	claimableBalance: StellarHorizonClaimableBalance
+) => {
+	assertClaimableBalanceId(claimableBalance.id.toLowerCase())
+	assertAmount(claimableBalance.amount, 'claimable balance amount')
+	assertUnsignedInteger(claimableBalance.last_modified_ledger, 'claimable balance ledger')
+	if (!Number.isSafeInteger(Date.parse(claimableBalance.last_modified_time)))
+		throw new Error('StellarHorizon_Rest: invalid claimable balance modification time')
+	if (claimableBalance.sponsor != null)
+		assertAccountId(claimableBalance.sponsor, 'claimable balance sponsor')
+	if (claimableBalance.asset !== 'native') {
+		const assetSeparatorIndex = claimableBalance.asset.indexOf(':')
+		if (assetSeparatorIndex < 1)
+			throw new Error('StellarHorizon_Rest: invalid claimable balance asset')
+		const assetCode = claimableBalance.asset.slice(0, assetSeparatorIndex)
+		const issuer = claimableBalance.asset.slice(assetSeparatorIndex + 1)
+		if (!/^[A-Za-z0-9]{1,12}$/.test(assetCode) || issuer.includes(':'))
+			throw new Error('StellarHorizon_Rest: invalid claimable balance asset')
+		assertAccountId(issuer, 'claimable balance asset issuer')
+	}
+	for (const claimant of claimableBalance.claimants)
+		assertAccountId(claimant.destination, 'claimable balance claimant')
+}
+
+const claimableBalanceFromWire = (
+	claimableBalance: StellarHorizonClaimableBalance
+) => {
+	assertClaimableBalanceDomain(claimableBalance)
+	return {
+		...claimableBalance,
+		id: claimableBalance.id.toLowerCase(),
+	}
 }
 
 const assertTradeDomain = (
@@ -789,6 +833,57 @@ export const getLedgerOperations = async (
 		assertUnsignedInteger(operation.type_i, 'operation type index')
 	}
 	return page
+}
+
+export const getClaimableBalance = async (
+	claimableBalanceId: string
+) => {
+	const canonicalId = claimableBalanceId.toLowerCase()
+	assertClaimableBalanceId(canonicalId)
+	const claimableBalance = assertEnvelope(
+		'claimable balance',
+		stellarHorizonClaimableBalanceWire,
+		await query(`/claimable_balances/${encodeURIComponent(canonicalId)}`)
+	)
+	const snapshot = claimableBalanceFromWire(claimableBalance)
+	if (snapshot.id !== canonicalId)
+		throw new Error('StellarHorizon_Rest: claimable balance response identity mismatch')
+	return snapshot
+}
+
+export const getClaimableBalances = async (
+	limit: number,
+	cursor?: string,
+	asset?: string
+) => {
+	const parameters = pageParameters(limit, cursor)
+	if (asset != null)
+		parameters.set('asset', asset)
+	if (limit === 0)
+		return emptyPage<ReturnType<typeof claimableBalanceFromWire>>()
+
+	const page = assertEnvelope(
+		'claimable balance page',
+		stellarHorizonClaimableBalancePageWire,
+		await query(`/claimable_balances?${parameters.toString()}`)
+	)
+	assertPage(page, limit, cursor)
+
+	const records = page._embedded.records.map(claimableBalanceFromWire)
+	if (asset != null) {
+		for (const claimableBalance of records) {
+			if (claimableBalance.asset !== asset)
+				throw new Error('StellarHorizon_Rest: claimable balance page contains a foreign asset row')
+		}
+	}
+
+	return {
+		...page,
+		_embedded: {
+			...page._embedded,
+			records,
+		},
+	}
 }
 
 export const operationIndexFromHorizonId = (

@@ -26,6 +26,14 @@ export type AlgorandIndexerAccountResponse = {
 	'current-round': number
 }
 
+export type AlgorandIndexerAccountsPage = {
+	accounts: {
+		address: string
+	}[]
+	'current-round': number
+	'next-token'?: string
+}
+
 export type AlgorandIndexerTransaction = {
 	id: string
 	sender: string
@@ -96,6 +104,14 @@ export type AlgorandIndexerAssetResponse = {
 	'current-round': number
 }
 
+export type AlgorandIndexerAssetsPage = {
+	assets: {
+		index: number
+	}[]
+	'current-round': number
+	'next-token'?: string
+}
+
 export type AlgorandIndexerApplicationParams = {
 	creator: string
 	'approval-program'?: string
@@ -115,6 +131,14 @@ export type AlgorandIndexerApplication = {
 export type AlgorandIndexerApplicationResponse = {
 	application: AlgorandIndexerApplication
 	'current-round': number
+}
+
+export type AlgorandIndexerApplicationsPage = {
+	applications: {
+		id: number
+	}[]
+	'current-round': number
+	'next-token'?: string
 }
 
 export type AlgorandIndexerApplicationLocalState = {
