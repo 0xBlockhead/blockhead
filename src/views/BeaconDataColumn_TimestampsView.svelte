@@ -49,15 +49,15 @@
 			entitySelector={beaconDataColumnTimestampSelector}
 			href={
 				resolve(
-					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/slot/[slot=nonNegativeInteger]/(beaconSlot)/data-column/[columnIndex=nonNegativeInteger]/(beaconDataColumn)/observation/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/beacon-block/[root=zeroExHex]/(beaconBlock)/data-column/[columnIndex=nonNegativeInteger]/(beaconDataColumn)/observation/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 					{
 						network: (
-							'caip2' in dataColumn.$slot.$network ?
-								caip2StringFromValue(dataColumn.$slot.$network.caip2)
+							'caip2' in dataColumn.$block.$network ?
+								caip2StringFromValue(dataColumn.$block.$network.caip2)
 							:
-								dataColumn.$slot.$network.slug
+								dataColumn.$block.$network.slug
 						),
-						slot: String(dataColumn.$slot.slot),
+						root: dataColumn.$block.root,
 						columnIndex: String(dataColumn.columnIndex),
 						timestampMs: String(beaconDataColumnTimestampSelector.timestampMs),
 						source: beaconDataColumnTimestampSelector.source,

@@ -21,10 +21,10 @@
 
 	const detailHref = $derived(
 		resolve(
-			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/slot/[slot=nonNegativeInteger]/(beaconSlot)/data-column/[columnIndex=nonNegativeInteger]',
+			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/beacon-block/[root=zeroExHex]/(beaconBlock)/data-column/[columnIndex=nonNegativeInteger]',
 			{
 				network: params.network,
-				slot: params.slot,
+				root: params.root,
 				columnIndex: params.columnIndex,
 			}
 		)

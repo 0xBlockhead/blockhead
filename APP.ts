@@ -10720,26 +10720,25 @@ export const schema = {
 					singular: "beacon data column",
 					plural: "Beacon data columns",
 				},
-				description: "A PeerDAS data column and its KZG material, keyed by its owning beacon slot and protocol column index.",
+				description: "A PeerDAS data column and its KZG material, keyed by its owning fork-safe beacon block and protocol column index.",
 			})({
-				"$slot": { label: "Slot", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.BeaconSlot },
+				"$block": { label: "Beacon block", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.BeaconBlock },
 				"columnIndex": { label: "Column index", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
 				"forkVersion": { label: "Fork version", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string", defaultSources: [Source.Beacon_Rest] },
 				"columnCount": { label: "Cells", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number", defaultSources: [Source.Beacon_Rest] },
 				"columns": { label: "Column cells", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "string", defaultSources: [Source.Beacon_Rest] },
 				"kzgProofs": { label: "KZG proofs", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "string", defaultSources: [Source.Beacon_Rest] },
 				"kzgCommitments": { label: "KZG commitments", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "string", defaultSources: [Source.Beacon_Rest] },
-				"beaconBlockRoot": { label: "Beacon block root", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Beacon_Rest] },
 				"$$timestamps": { label: "Custody observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BeaconDataColumn_Timestamp, defaultSources: [Source.Beacon_Rest] },
 			})({
 				selectors: {
-					"SlotColumnIndex": ["$slot", "columnIndex"],
+					"BlockColumnIndex": ["$block", "columnIndex"],
 				},
 				views: {
 					singular: {
 						query: { sources: [Source.Beacon_Rest] },
-						summary: { serial: { field: "columnIndex", label: "Data column" }, value: ["forkVersion", { field: "columnCount", format: "number" }], HeadingAfter: ["$slot"] },
-						content: { dl: [["$slot", { field: "columnIndex", format: "number" }, "forkVersion", { field: "columnCount", format: "number" }, { field: "beaconBlockRoot", format: "truncated" }], ["columns", "kzgProofs", "kzgCommitments"]] },
+						summary: { serial: { field: "columnIndex", label: "Data column" }, value: ["forkVersion", { field: "columnCount", format: "number" }], HeadingAfter: ["$block"] },
+						content: { dl: [["$block", { field: "columnIndex", format: "number" }, "forkVersion", { field: "columnCount", format: "number" }], ["columns", "kzgProofs", "kzgCommitments"]] },
 						lists: [{ field: "$$timestamps", component: "BeaconDataColumn_TimestampsView", label: "Custody and finality observations", query: { sources: [Source.Beacon_Rest] } }],
 					},
 					plural: { component: "BeaconDataColumnsView", title: "Data columns" },
@@ -79994,6 +79993,46 @@ export const routes = defineRoutes(schema)({
 																		}
 																	}
 																},
+																"data-column": {
+																	children: {
+																		"[columnIndex]": {
+																			params: { "columnIndex": ["NonNegativeInteger"] },
+																			selectors: {
+																				[EntityType.BeaconDataColumn]: {
+																					"BlockColumnIndex": {
+																						derivations: { "columnIndex": { kind: "param", name: "columnIndex" } },
+																						page: {},
+																					},
+																				},
+																			},
+																			children: {
+																				"observation": {
+																					children: {
+																						"[timestampMs]": {
+																							params: { "timestampMs": ["NonNegativeInteger"] },
+																							children: {
+																								"[source]": {
+																									params: { "source": ["string"] },
+																									selectors: {
+																										[EntityType.BeaconDataColumn_Timestamp]: {
+																											"DataColumnTimestampMsSource": {
+																												derivations: {
+																													"timestampMs": { kind: "param", name: "timestampMs" },
+																													"source": { kind: "param", name: "source" },
+																												},
+																												page: {},
+																											},
+																										},
+																									},
+																								},
+																							},
+																						},
+																					},
+																				},
+																			},
+																		},
+																	},
+																},
 																"execution-payload-bid": {
 															selectors: {
 																[EntityType.BeaconExecutionPayloadBid]: {
@@ -80163,47 +80202,6 @@ export const routes = defineRoutes(schema)({
 														}
 													},
 													children: {
-														"data-column": {
-															children: {
-																"[columnIndex]": {
-																	params: { "columnIndex": ["NonNegativeInteger"] },
-																	selectors: {
-																		[EntityType.BeaconDataColumn]: {
-																			"SlotColumnIndex": {
-																				projection: { entityType: EntityType.Network, facetPath: ["Evm"] },
-																				derivations: { "columnIndex": { kind: "param", name: "columnIndex" } },
-																				page: {},
-																			},
-																		},
-																	},
-																	children: {
-																		"observation": {
-																			children: {
-																				"[timestampMs]": {
-																					params: { "timestampMs": ["NonNegativeInteger"] },
-																					children: {
-																						"[source]": {
-																							params: { "source": ["string"] },
-																							selectors: {
-																								[EntityType.BeaconDataColumn_Timestamp]: {
-																									"DataColumnTimestampMsSource": {
-																										derivations: {
-																											"timestampMs": { kind: "param", name: "timestampMs" },
-																											"source": { kind: "param", name: "source" },
-																										},
-																										page: {},
-																									},
-																								},
-																							},
-																						},
-																					},
-																				},
-																			},
-																		},
-																	},
-																},
-															},
-														},
 														"committee": {
 															children: {
 																"[index]": {

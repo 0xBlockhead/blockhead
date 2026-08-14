@@ -123,26 +123,23 @@ const getExecutionPayloadEnvelopeForBlock = async (
 }
 
 const beaconDataColumnSnapshot = (
-	$network: EntitySelector<typeof schema, EntityType.Network>,
-	slot: number,
+	$block: EntitySelector<typeof schema, EntityType.BeaconBlock>,
 	sidecars: BeaconDataColumnSidecars & { endpointUrl: string },
 	sidecar: BeaconDataColumnSidecars['sidecars'][number],
 	timestampMs: number
 ) => {
-	if (sidecar.slot !== slot)
-		throw new Error(`Beacon_Rest: data column slot ${String(sidecar.slot)} does not match requested slot ${String(slot)}`)
-
-	const $slot = {
-		$network,
-		slot,
-	}
+	if (
+		sidecar.beaconBlockRoot != null
+		&& sidecar.beaconBlockRoot.toLowerCase() !== $block.root.toLowerCase()
+	)
+		throw new Error('Beacon_Rest: data column does not match requested block root')
 	const $dataColumn = {
-		$slot,
+		$block,
 		columnIndex: sidecar.index,
 	}
 	return {
-		$slot: {
-			[EntityMetaKey.Selector]: $slot,
+		$block: {
+			[EntityMetaKey.Selector]: $block,
 		},
 		columnIndex: sidecar.index,
 		forkVersion: sidecars.version,
@@ -150,9 +147,6 @@ const beaconDataColumnSnapshot = (
 		columns: sidecar.columns,
 		kzgProofs: sidecar.kzgProofs,
 		kzgCommitments: sidecar.kzgCommitments,
-		...(sidecar.beaconBlockRoot != null && {
-			beaconBlockRoot: sidecar.beaconBlockRoot,
-		}),
 		$$timestamps: [{
 			[EntityMetaKey.Selector]: {
 				$dataColumn,
@@ -172,19 +166,16 @@ const beaconDataColumnReference = (
 	snapshot: ReturnType<typeof beaconDataColumnSnapshot>
 ) => ({
 	[EntityMetaKey.Selector]: {
-		$slot: snapshot.$slot[EntityMetaKey.Selector],
+		$block: snapshot.$block[EntityMetaKey.Selector],
 		columnIndex: snapshot.columnIndex,
 	},
 	[EntityMetaKey.Fields]: {
-		[entityFieldAddressKey(EntityType.BeaconDataColumn, [], '$slot')]: snapshot.$slot,
+		[entityFieldAddressKey(EntityType.BeaconDataColumn, [], '$block')]: snapshot.$block,
 		[entityFieldAddressKey(EntityType.BeaconDataColumn, [], 'forkVersion')]: snapshot.forkVersion,
 		[entityFieldAddressKey(EntityType.BeaconDataColumn, [], 'columnCount')]: snapshot.columnCount,
 		[entityFieldAddressKey(EntityType.BeaconDataColumn, [], 'columns')]: snapshot.columns,
 		[entityFieldAddressKey(EntityType.BeaconDataColumn, [], 'kzgProofs')]: snapshot.kzgProofs,
 		[entityFieldAddressKey(EntityType.BeaconDataColumn, [], 'kzgCommitments')]: snapshot.kzgCommitments,
-		...(snapshot.beaconBlockRoot != null && {
-			[entityFieldAddressKey(EntityType.BeaconDataColumn, [], 'beaconBlockRoot')]: snapshot.beaconBlockRoot,
-		}),
 		[entityFieldAddressKey(EntityType.BeaconDataColumn, [], '$$timestamps')]: snapshot.$$timestamps,
 	},
 })
@@ -1061,21 +1052,32 @@ export default {
 				EvmNetworkSlot: {
 					appliesTo: eip155NetworkApplicability,
 					resolve: async ({ $network, slot }, context) => {
-						const { getDataColumnSidecars } = await import('$/sources/Beacon/Rest/queries.ts')
-						const sidecars = await getDataColumnSidecars(
-							eip155ChainId($network),
-							slot
-						)
+						const {
+							getDataColumnSidecars,
+							getHeadersAtSlot,
+						} = await import('$/sources/Beacon/Rest/queries.ts')
+						const chainId = eip155ChainId($network)
+						const headers = await getHeadersAtSlot(chainId, slot)
 						const timestampMs = Date.now()
-						return sidecars.sidecars
+						return (await Promise.all(headers.map(async (header) => {
+							const sidecars = await getDataColumnSidecars(chainId, header.root)
+							return sidecars.sidecars.map((sidecar) => {
+								if (sidecar.slot !== slot)
+									throw new Error(`Beacon_Rest: data column slot ${String(sidecar.slot)} does not match requested slot ${String(slot)}`)
+
+								return beaconDataColumnReference(beaconDataColumnSnapshot(
+									{
+										$network,
+										root: header.root,
+									},
+									sidecars,
+									sidecar,
+									timestampMs
+								))
+							})
+						})))
+							.flat()
 							.slice(0, resolverContextRowLimit(context))
-							.map((sidecar) => beaconDataColumnReference(beaconDataColumnSnapshot(
-								$network,
-								slot,
-								sidecars,
-								sidecar,
-								timestampMs
-							)))
 					},
 				},
 			},
@@ -1086,20 +1088,20 @@ export default {
 		defineResolver({
 			entityType: EntityType.BeaconDataColumn,
 			resolve: {
-				SlotColumnIndex: {
-					resolve: async ({ $slot, columnIndex }) => {
+				BlockColumnIndex: {
+					appliesTo: eip155BeaconBlockApplicability,
+					resolve: async ({ $block, columnIndex }) => {
 						const { getDataColumnSidecars } = await import('$/sources/Beacon/Rest/queries.ts')
 						const sidecars = await getDataColumnSidecars(
-							eip155ChainId($slot.$network),
-							$slot.slot,
+							eip155ChainId($block.$network),
+							$block.root,
 							[columnIndex]
 						)
 						if (sidecars.sidecars.length !== 1 || sidecars.sidecars[0].index !== columnIndex)
 							throw new Error(`Beacon_Rest: data column ${String(columnIndex)} not found`)
 
 						return beaconDataColumnSnapshot(
-							$slot.$network,
-							$slot.slot,
+							$block,
 							sidecars,
 							sidecars.sidecars[0],
 							Date.now()
@@ -1108,14 +1110,13 @@ export default {
 				},
 			},
 		})({
-				$slot: (column) => column.$slot,
+				$block: (column) => column.$block,
 				columnIndex: (column) => column.columnIndex,
 				forkVersion: (column) => column.forkVersion,
 				columnCount: (column) => column.columnCount,
 				columns: (column) => column.columns,
 				kzgProofs: (column) => column.kzgProofs,
 				kzgCommitments: (column) => column.kzgCommitments,
-				beaconBlockRoot: (column) => column.beaconBlockRoot,
 				$$timestamps: (column) => column.$$timestamps,
 			}),
 

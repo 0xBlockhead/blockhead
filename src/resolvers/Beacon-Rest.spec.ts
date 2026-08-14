@@ -1148,6 +1148,9 @@ describe('Beacon REST checkpoint and fork projections', () => {
 	})
 
 	it('materializes source-owned PeerDAS columns and custody observations from one slot read', async () => {
+		getHeadersAtSlot.mockResolvedValue([{
+			root: `0x${'1'.repeat(64)}`,
+		}])
 		getDataColumnSidecars.mockResolvedValue({
 			version: 'fulu',
 			executionOptimistic: false,
@@ -1185,9 +1188,9 @@ describe('Beacon REST checkpoint and fork projections', () => {
 		})
 		expect(columns).toMatchObject([{
 			[EntityMetaKey.Selector]: {
-				$slot: {
+				$block: {
 					$network: network,
-					slot: 64,
+					root: `0x${'1'.repeat(64)}`,
 				},
 				columnIndex: 7,
 			},
@@ -1197,9 +1200,9 @@ describe('Beacon REST checkpoint and fork projections', () => {
 				[entityFieldAddressKey(EntityType.BeaconDataColumn, [], '$$timestamps')]: [{
 					[EntityMetaKey.Selector]: {
 						$dataColumn: {
-							$slot: {
+							$block: {
 								$network: network,
-								slot: 64,
+								root: `0x${'1'.repeat(64)}`,
 							},
 							columnIndex: 7,
 						},
@@ -1214,10 +1217,10 @@ describe('Beacon REST checkpoint and fork projections', () => {
 			},
 		}])
 
-		await expect(dataColumnResolver.resolve.SlotColumnIndex.resolve({
-			$slot: {
+		await expect(dataColumnResolver.resolve.BlockColumnIndex.resolve({
+			$block: {
 				$network: network,
-				slot: 64,
+				root: `0x${'1'.repeat(64)}`,
 			},
 			columnIndex: 7,
 		})).resolves.toMatchObject({
@@ -1225,8 +1228,9 @@ describe('Beacon REST checkpoint and fork projections', () => {
 			forkVersion: 'fulu',
 			columnCount: 1,
 		})
-		expect(getDataColumnSidecars).toHaveBeenNthCalledWith(1, 1, 64)
-		expect(getDataColumnSidecars).toHaveBeenNthCalledWith(2, 1, 64, [7])
+		expect(getHeadersAtSlot).toHaveBeenCalledWith(1, 64)
+		expect(getDataColumnSidecars).toHaveBeenNthCalledWith(1, 1, `0x${'1'.repeat(64)}`)
+		expect(getDataColumnSidecars).toHaveBeenNthCalledWith(2, 1, `0x${'1'.repeat(64)}`, [7])
 	})
 
 	it('preserves missed proposer duties as native slot identities', async () => {

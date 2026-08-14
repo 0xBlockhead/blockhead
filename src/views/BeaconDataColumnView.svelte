@@ -23,7 +23,7 @@
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.BeaconDataColumn>, 'prefetched'> = $props()
 
-	const slot = $derived(selection.entitySelector.$slot)
+	const block = $derived(selection.entitySelector.$block)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Beacon_Rest,
@@ -41,9 +41,8 @@
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import BeaconDataColumn_TimestampsView from '$/views/BeaconDataColumn_TimestampsView.svelte'
-	import BeaconSlotView from '$/views/BeaconSlotView.svelte'
+	import BeaconBlockView from '$/views/BeaconBlockView.svelte'
 </script>
 
 
@@ -55,15 +54,15 @@
 	href={
 		href === undefined ?
 			resolve(
-				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/slot/[slot=nonNegativeInteger]/(beaconSlot)/data-column/[columnIndex=nonNegativeInteger]',
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/beacon-block/[root=zeroExHex]/(beaconBlock)/data-column/[columnIndex=nonNegativeInteger]',
 				{
 					network: (
-						'caip2' in slot.$network ?
-							caip2StringFromValue(slot.$network.caip2)
+						'caip2' in block.$network ?
+							caip2StringFromValue(block.$network.caip2)
 						:
-							slot.$network.slug
+							block.$network.slug
 					),
-					slot: String(slot.slot),
+					root: block.root,
 					columnIndex: String(selection.entitySelector.columnIndex),
 				}
 			)
@@ -93,8 +92,8 @@
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
-			<BeaconSlotView
-				selection={select(EntityType.BeaconSlot, selection.entitySelector.$slot)}
+			<BeaconBlockView
+				selection={select(EntityType.BeaconBlock, selection.entitySelector.$block)}
 				layout={EntityLayout.Title}
 			/>
 		</span>
@@ -103,10 +102,10 @@
 	{#snippet Content()}
 		<dl data-column-item="center">
 			<div>
-				<dt>Slot</dt>
+				<dt>Beacon block</dt>
 				<dd>
-					<BeaconSlotView
-						selection={select(EntityType.BeaconSlot, selection.entitySelector.$slot)}
+					<BeaconBlockView
+						selection={select(EntityType.BeaconBlock, selection.entitySelector.$block)}
 						layout={EntityLayout.Value}
 					/>
 				</dd>
@@ -148,28 +147,6 @@
 					</ResourceBoundary>
 				</dd>
 			</div>
-
-			<ResourceBoundary
-				resource={
-					viewSelection({
-						fields: {
-							beaconBlockRoot: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const beaconBlockRoot = entity.beaconBlockRoot}
-					{#if beaconBlockRoot != null}
-						<div>
-							<dt>Beacon block root</dt>
-							<dd>
-								<TruncatedValue value={beaconBlockRoot} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
 		</dl>
 
 		<dl data-column-item="center">

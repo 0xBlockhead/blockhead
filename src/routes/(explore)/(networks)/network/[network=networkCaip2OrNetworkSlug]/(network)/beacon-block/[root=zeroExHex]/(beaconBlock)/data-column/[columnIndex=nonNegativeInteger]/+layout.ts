@@ -8,32 +8,25 @@ import BeaconDataColumnSchema from '$/schema/BeaconDataColumn.ts'
 import { schema } from '$/schema/index.ts'
 import { type as arktype } from 'arktype'
 
-// Projection eligibility: facetPath=['Evm']
 export const load: LayoutLoad = async ({ params, parent }) => {
 	const parentData = await parent()
 
-	if (!(
-		(
-			parentData.projectionNetwork.executionModels !== undefined
-			&& parentData.projectionNetwork.executionModels.some((value: string | number | boolean | null) => value === 'Evm')
-		)
-		&& matchNonNegativeInteger(params.columnIndex)
-	))
+	if (!(matchNonNegativeInteger(params.columnIndex)))
 		error(404, 'Route mapping not applicable')
 
-	const beaconDataColumnSlotColumnIndexSelector = parseEntitySelector(
+	const beaconDataColumnBlockColumnIndexSelector = parseEntitySelector(
 		schema,
 		BeaconDataColumnSchema,
 		{
-			$slot: parentData.selector,
+			$block: parentData.selector,
 			columnIndex: Number(params.columnIndex),
 		},
-		'SlotColumnIndex'
+		'BlockColumnIndex'
 	)
-	if (beaconDataColumnSlotColumnIndexSelector instanceof arktype.errors)
+	if (beaconDataColumnBlockColumnIndexSelector instanceof arktype.errors)
 		error(404, 'Invalid BeaconDataColumn selector')
 
 	return {
-		selector: beaconDataColumnSlotColumnIndexSelector,
+		selector: beaconDataColumnBlockColumnIndexSelector,
 	}
 }

@@ -3,7 +3,8 @@ import { expect, test } from '@playwright/test'
 import { installChainlistRpcsJsonStub } from '../../../../../../../../../../../../tests/_e2eBrowserHelpers.ts'
 
 
-const routePath = '/network/eip155:1/slot/64/data-column/7'
+const beaconBlockRoot = `0x${'1'.repeat(64)}`
+const routePath = `/network/eip155:1/beacon-block/${beaconBlockRoot}/data-column/7`
 
 test.beforeEach(async ({ page }, testInfo) => {
 	await page.addInitScript(({ name, schemaVersion }) => {
@@ -23,8 +24,54 @@ test('PeerDAS data column renders protocol material and source-owned custody sta
 	const proof = `0x${'cd'.repeat(48)}`
 	const commitment = `0x${'ef'.repeat(48)}`
 	await page.route('**/*', async (route) => {
-		const url = decodeURIComponent(route.request().url())
-		if (!url.includes('/eth/v1/debug/beacon/data_column_sidecars/64?indices=7')) {
+		const url = new URL(decodeURIComponent(route.request().url()))
+		if (url.pathname === `/eth/v1/beacon/headers/${beaconBlockRoot}`) {
+			await route.fulfill({
+				json: {
+					data: {
+						root: beaconBlockRoot,
+						canonical: true,
+						header: {
+							message: {
+								slot: '64',
+								proposer_index: '12',
+								parent_root: `0x${'2'.repeat(64)}`,
+								state_root: `0x${'3'.repeat(64)}`,
+								body_root: `0x${'4'.repeat(64)}`,
+							},
+							signature: `0x${'5'.repeat(192)}`,
+						},
+					},
+				},
+			})
+			return
+		}
+		if (url.pathname === `/eth/v2/beacon/blocks/${beaconBlockRoot}`) {
+			await route.fulfill({
+				json: {
+					version: 'fulu',
+					execution_optimistic: false,
+					finalized: true,
+					data: {
+						signature: `0x${'5'.repeat(192)}`,
+						message: {
+							slot: '64',
+							proposer_index: '12',
+							parent_root: `0x${'2'.repeat(64)}`,
+							state_root: `0x${'3'.repeat(64)}`,
+							body: {
+								attestations: [],
+								deposits: [],
+								proposer_slashings: [],
+								attester_slashings: [],
+							},
+						},
+					},
+				},
+			})
+			return
+		}
+		if (url.pathname !== `/eth/v1/debug/beacon/data_column_sidecars/${beaconBlockRoot}`) {
 			await route.continue()
 			return
 		}

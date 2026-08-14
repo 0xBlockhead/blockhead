@@ -35,9 +35,14 @@
 					columnIndex: true,
 					forkVersion: true,
 					columnCount: true,
-					$slot: {
+					$block: {
 						fields: {
-							$epoch: true,
+							version: true,
+							$slot: {
+								fields: {
+									$epoch: true,
+								},
+							},
 						},
 					},
 				},
@@ -47,21 +52,21 @@
 >
 	{#snippet Item({ item: beaconDataColumn })}
 		{@const beaconDataColumnSelector = beaconDataColumn[EntityMetaKey.Selector]}
-		{@const slot = beaconDataColumnSelector.$slot}
+		{@const block = beaconDataColumnSelector.$block}
 		<EntityView
 			entityType={EntityType.BeaconDataColumn}
 			entitySelector={beaconDataColumnSelector}
 			href={
 				resolve(
-					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/slot/[slot=nonNegativeInteger]/(beaconSlot)/data-column/[columnIndex=nonNegativeInteger]',
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/beacon-block/[root=zeroExHex]/(beaconBlock)/data-column/[columnIndex=nonNegativeInteger]',
 					{
 						network: (
-							'caip2' in slot.$network ?
-								caip2StringFromValue(slot.$network.caip2)
+							'caip2' in block.$network ?
+								caip2StringFromValue(block.$network.caip2)
 							:
-								slot.$network.slug
+								block.$network.slug
 						),
-						slot: String(slot.slot),
+						root: block.root,
 						columnIndex: String(beaconDataColumnSelector.columnIndex),
 					}
 				)
@@ -76,7 +81,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{`Slot #${beaconDataColumnSelector.$slot.slot}`}</span>
+				<span data-text="annotation">{beaconDataColumnSelector.$block.root || 'beacon block'}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

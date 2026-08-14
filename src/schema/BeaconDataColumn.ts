@@ -12,10 +12,10 @@ export default entity({
 		singular: 'beacon data column',
 		plural: 'Beacon data columns',
 	},
-	description: 'A PeerDAS data column and its KZG material, keyed by its owning beacon slot and protocol column index.',
+	description: 'A PeerDAS data column and its KZG material, keyed by its owning fork-safe beacon block and protocol column index.',
 })({
-	$slot: {
-		entityType: EntityType.BeaconSlot,
+	$block: {
+		entityType: EntityType.BeaconBlock,
 		cardinality: EntityFieldCardinality.One,
 	},
 	columnIndex: {
@@ -57,13 +57,6 @@ export default entity({
 			Source.Beacon_Rest,
 		],
 	},
-	beaconBlockRoot: {
-		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Beacon_Rest,
-		],
-	},
 	$$timestamps: {
 		entityType: EntityType.BeaconDataColumn_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
@@ -73,8 +66,8 @@ export default entity({
 	},
 })({
 	selectors: {
-		SlotColumnIndex: [
-			'$slot',
+		BlockColumnIndex: [
+			'$block',
 			'columnIndex',
 		],
 	},
