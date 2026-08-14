@@ -282,7 +282,7 @@ export default {
 						return {
 							$network,
 							checkpoint,
-							timestampMs: checkpoint.timestampMs ?? Date.now(),
+							timestampMs: checkpoint.timestampMs,
 						}
 					},
 				},
@@ -325,9 +325,7 @@ export default {
 					...(checkpoint.epoch != null && {
 						[entityFieldAddressKey(EntityType.SuiCheckpoint, [], 'epoch')]: checkpoint.epoch,
 					}),
-					...(checkpoint.timestampMs != null && {
-						[entityFieldAddressKey(EntityType.SuiCheckpoint, [], 'timestampMs')]: checkpoint.timestampMs,
-					}),
+					[entityFieldAddressKey(EntityType.SuiCheckpoint, [], 'timestampMs')]: checkpoint.timestampMs,
 					...(checkpoint.previousDigest != null && {
 						[entityFieldAddressKey(EntityType.SuiCheckpoint, [], 'previousDigest')]: checkpoint.previousDigest,
 					}),
@@ -355,7 +353,7 @@ export default {
 						const $network = {
 							$network: network,
 						} satisfies SuiNetworkSelector
-						const timestampMs = tip.timestampMs ?? Date.now()
+						const timestampMs = tip.timestampMs
 						const checkpoints = [
 							tip,
 							...await Promise.all(
@@ -414,9 +412,7 @@ export default {
 						...(checkpoint.epoch != null && {
 							[entityFieldAddressKey(EntityType.SuiCheckpoint, [], 'epoch')]: checkpoint.epoch,
 						}),
-						...(checkpoint.timestampMs != null && {
-							[entityFieldAddressKey(EntityType.SuiCheckpoint, [], 'timestampMs')]: checkpoint.timestampMs,
-						}),
+						[entityFieldAddressKey(EntityType.SuiCheckpoint, [], 'timestampMs')]: checkpoint.timestampMs,
 						...(checkpoint.previousDigest != null && {
 							[entityFieldAddressKey(EntityType.SuiCheckpoint, [], 'previousDigest')]: checkpoint.previousDigest,
 						}),
@@ -499,8 +495,10 @@ export default {
 						assertSource(source)
 						const { getLatestCheckpoint } = await loadSuiQueries()
 						const checkpoint = await getLatestCheckpoint()
+						if (timestampMs !== checkpoint.timestampMs)
+							throw new Error('Sui: network observation timestamp mismatch')
 						return {
-							timestampMs,
+							timestampMs: checkpoint.timestampMs,
 							latestCheckpointSequence: checkpoint.sequence,
 							latestCheckpointDigest: checkpoint.digest,
 							...(checkpoint.epoch != null && { epoch: checkpoint.epoch }),

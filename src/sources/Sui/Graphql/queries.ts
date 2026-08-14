@@ -722,6 +722,17 @@ const timestampMsFromWire = (
 	return timestampMs
 }
 
+const requireTimestampMs = (
+	value: string | null | undefined,
+	label: string
+) => {
+	const timestampMs = timestampMsFromWire(value, label)
+	if (timestampMs == null)
+		throw new Error(`Sui GraphQL: missing ${label}`)
+
+	return timestampMs
+}
+
 type SuiCheckpointWire = {
 	sequenceNumber: number | string
 	digest: string | null
@@ -746,7 +757,7 @@ const normalizeCheckpoint = (checkpoint: SuiCheckpointWire) => {
 		...(checkpoint.previousCheckpointDigest != null && checkpoint.previousCheckpointDigest !== '' && {
 			previousDigest: checkpoint.previousCheckpointDigest,
 		}),
-		timestampMs: timestampMsFromWire(checkpoint.timestamp, 'checkpoint timestamp'),
+		timestampMs: requireTimestampMs(checkpoint.timestamp, 'checkpoint timestamp'),
 		...(checkpoint.networkTotalTransactions != null && {
 			totalTransactionCount: bigintFromWire(checkpoint.networkTotalTransactions, 'network total transactions'),
 		}),

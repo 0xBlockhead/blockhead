@@ -197,6 +197,7 @@ describe('TronScan account transaction resolver', () => {
 		expect(transactions.every((transaction) => (
 			Object.hasOwn(transaction, EntityMetaKey.Fields)
 		))).toBe(true)
+		expect(projection.resolveCount(page, account, resolverContext)).toBe(10)
 		expect(projection.continuation(page, account, resolverContext)).toEqual({
 			operation: 'account-transactions',
 			target: account.address,

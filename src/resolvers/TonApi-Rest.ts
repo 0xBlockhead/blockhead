@@ -81,7 +81,7 @@ const tonNetworkTimestamps = async (network: Parameters<typeof assertTonNetwork>
 	assertTonNetwork(network)
 	const { getBlockchainMasterchainHead } = await import('$/sources/TonApi/Rest/queries.ts')
 	const masterchainHead = await getBlockchainMasterchainHead()
-	const timestampMs = Date.now()
+	const timestampMs = masterchainHead.gen_utime * 1_000
 
 	return [{
 		[EntityMetaKey.Selector]: {
@@ -92,7 +92,7 @@ const tonNetworkTimestamps = async (network: Parameters<typeof assertTonNetwork>
 		[EntityMetaKey.Fields]: {
 			[entityFieldAddressKey(EntityType.TonNetwork_Timestamp, [], 'timestampMs')]: timestampMs,
 			[entityFieldAddressKey(EntityType.TonNetwork_Timestamp, [], 'masterchainSeqno')]: BigInt(masterchainHead.seqno),
-			[entityFieldAddressKey(EntityType.TonNetwork_Timestamp, [], 'latestBlockUtimeMs')]: masterchainHead.gen_utime * 1_000,
+			[entityFieldAddressKey(EntityType.TonNetwork_Timestamp, [], 'latestBlockUtimeMs')]: timestampMs,
 		},
 	}]
 }
@@ -204,6 +204,49 @@ export default {
 			workchain: (account) => account.workchain,
 			addressHash: (account) => account.addressHash,
 			$$timestamps: (account) => account.$$timestamps,
+		}),
+
+		defineResolver({
+			entityType: EntityType.TonNetwork_Timestamp,
+			resolve: {
+				NetworkTimestampMsSource: {
+					appliesTo: [
+						{
+							$network: tonNetworkApplicability[0],
+							source: Source.TonApi_Rest,
+						},
+						{
+							$network: tonNetworkApplicability[1],
+							source: Source.TonApi_Rest,
+						},
+					],
+					resolve: async ({
+						$network,
+						timestampMs,
+						source,
+					}) => {
+						assertTonNetwork($network)
+						if (source !== Source.TonApi_Rest)
+							throw new Error('TonApi_Rest: network observation source mismatch')
+
+						const { getBlockchainMasterchainHead } = await import('$/sources/TonApi/Rest/queries.ts')
+						const masterchainHead = await getBlockchainMasterchainHead()
+						const headTimestampMs = masterchainHead.gen_utime * 1_000
+						if (timestampMs !== headTimestampMs)
+							throw new Error('TonApi_Rest: network observation timestamp mismatch')
+
+						return {
+							timestampMs: headTimestampMs,
+							masterchainSeqno: BigInt(masterchainHead.seqno),
+							latestBlockUtimeMs: headTimestampMs,
+						}
+					},
+				},
+			},
+		})({
+			timestampMs: (snapshot) => snapshot.timestampMs,
+			masterchainSeqno: (snapshot) => snapshot.masterchainSeqno,
+			latestBlockUtimeMs: (snapshot) => snapshot.latestBlockUtimeMs,
 		}),
 
 		defineResolver({

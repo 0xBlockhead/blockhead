@@ -74,6 +74,9 @@ const accountResolver = tonApiResolvers.resolvers.find((resolver) => (
 const networkResolver = tonApiResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.Network
 ))
+const networkTimestampResolver = tonApiResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.TonNetwork_Timestamp
+))
 const jettonResolver = tonApiResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.TonJetton
 ))
@@ -83,6 +86,7 @@ const transactionResolver = tonApiResolvers.resolvers.find((resolver) => (
 
 if (
 	networkResolver == null
+	|| networkTimestampResolver == null
 	|| accountResolver == null
 	|| jettonResolver == null
 	|| transactionResolver == null
@@ -170,23 +174,45 @@ describe('TonAPI network observation resolver', () => {
 		],
 	] as const)('maps %s to one canonical embedded observation row', async (selector, network) => {
 		sourceGetJson.mockResolvedValueOnce(masterchainHeadFixture)
-		vi.spyOn(Date, 'now').mockReturnValueOnce(1_750_000_000_123)
-
 		await expect(networkResolver.resolve[selector].resolve(network)).resolves.toEqual([
 			{
 				[EntityMetaKey.Selector]: {
 					$network: network,
-					timestampMs: 1_750_000_000_123,
+					timestampMs: 1_750_000_000_000,
 					source: Source.TonApi_Rest,
 				},
 				[EntityMetaKey.Fields]: {
-					[entityFieldAddressKey(EntityType.TonNetwork_Timestamp, [], 'timestampMs')]: 1_750_000_000_123,
+					[entityFieldAddressKey(EntityType.TonNetwork_Timestamp, [], 'timestampMs')]: 1_750_000_000_000,
 					[entityFieldAddressKey(EntityType.TonNetwork_Timestamp, [], 'masterchainSeqno')]: 45_678_901n,
 					[entityFieldAddressKey(EntityType.TonNetwork_Timestamp, [], 'latestBlockUtimeMs')]: 1_750_000_000_000,
 				},
 			},
 		])
 		expect(sourceGetJson).toHaveBeenCalledTimes(1)
+	})
+
+	it('resolves only the exact current masterchain observation coordinate', async () => {
+		sourceGetJson.mockResolvedValueOnce(masterchainHeadFixture)
+		await expect(networkTimestampResolver.resolve.NetworkTimestampMsSource.resolve({
+			$network: {
+				slug: 'ton',
+			},
+			timestampMs: 1_750_000_000_000,
+			source: Source.TonApi_Rest,
+		})).resolves.toEqual({
+			timestampMs: 1_750_000_000_000,
+			masterchainSeqno: 45_678_901n,
+			latestBlockUtimeMs: 1_750_000_000_000,
+		})
+
+		sourceGetJson.mockResolvedValueOnce(masterchainHeadFixture)
+		await expect(networkTimestampResolver.resolve.NetworkTimestampMsSource.resolve({
+			$network: {
+				slug: 'ton',
+			},
+			timestampMs: 0,
+			source: Source.TonApi_Rest,
+		})).rejects.toThrow('network observation timestamp mismatch')
 	})
 
 	it('rejects unsupported networks before transport', async () => {

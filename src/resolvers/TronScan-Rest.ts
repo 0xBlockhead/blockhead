@@ -594,6 +594,7 @@ export default {
 		})({
 			$$transactions: {
 				select: (page) => page.transactions,
+				resolveCount: (page) => page.total,
 				continuation: (page, account) => {
 					const nextStart = page.start + page.transactions.length
 					return (
