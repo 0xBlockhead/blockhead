@@ -3,6 +3,7 @@ import {
 	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import {
+	entityFieldAddressKey,
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import {
@@ -25,7 +26,101 @@ import {
 	scalingSummarySyncedUntilMs,
 } from '$/sources/L2Beat/Rest/constants.ts'
 import { Source } from '$/sources/Source.ts'
+import type { L2BeatScalingSummaryProject } from '$/sources/L2Beat/Rest/types.ts'
 import { type as arktype } from 'arktype'
+
+const l2BeatRollupTimestampRef = ({
+	$network,
+	projectId,
+	timestampMs,
+	project,
+}: {
+	$network: {
+		caip2: {
+			namespace: 'eip155'
+			reference: string
+		}
+	} | {
+		slug: string
+	}
+	projectId: string
+	timestampMs: number
+	project: L2BeatScalingSummaryProject
+}) => ({
+	[EntityMetaKey.Selector]: {
+		$rollup: {
+			$network,
+			projectId,
+		},
+		timestampMs,
+		source: Source.L2Beat_Rest,
+	},
+	[EntityMetaKey.Fields]: {
+		...(project.isArchived != null && {
+			[entityFieldAddressKey(EntityType.EvmRollup_Timestamp, [], 'isArchived')]: project.isArchived,
+		}),
+		...(project.isUpcoming != null && {
+			[entityFieldAddressKey(EntityType.EvmRollup_Timestamp, [], 'isUpcoming')]: project.isUpcoming,
+		}),
+		...(project.isUnderReview != null && {
+			[entityFieldAddressKey(EntityType.EvmRollup_Timestamp, [], 'isUnderReview')]: project.isUnderReview,
+		}),
+		...(project.stage != null && {
+			[entityFieldAddressKey(EntityType.EvmRollup_Timestamp, [], 'listingStage')]: project.stage,
+		}),
+		[entityFieldAddressKey(EntityType.EvmRollup_Timestamp, [], 'sourceUpdatedAt')]: timestampMs,
+	},
+})
+
+const l2BeatRollupListRef = ({
+	$network,
+	projectId,
+	project,
+}: {
+	$network: {
+		caip2: {
+			namespace: 'eip155'
+			reference: string
+		}
+	}
+	projectId: string
+	project: L2BeatScalingSummaryProject
+}) => ({
+	[EntityMetaKey.Selector]: {
+		$network,
+		projectId,
+	},
+	[EntityMetaKey.Fields]: {
+		[entityFieldAddressKey(EntityType.EvmRollup, [], 'name')]: project.name,
+		[entityFieldAddressKey(EntityType.EvmRollup, [], 'slug')]: project.slug,
+		[entityFieldAddressKey(EntityType.EvmRollup, [], 'type')]: project.type,
+		...(project.category != null && {
+			[entityFieldAddressKey(EntityType.EvmRollup, [], 'category')]: project.category,
+		}),
+		[entityFieldAddressKey(EntityType.EvmRollup, [], 'hostChain')]: project.hostChain,
+	},
+})
+
+const l2BeatChildNetworkListRef = ({
+	chainId,
+	project,
+}: {
+	chainId: number
+	project: L2BeatScalingSummaryProject
+}) => ({
+	[EntityMetaKey.Selector]: {
+		caip2: {
+			namespace: 'eip155' as const,
+			reference: String(chainId),
+		},
+	},
+	[EntityMetaKey.Fields]: {
+		[entityFieldAddressKey(EntityType.Network, [], 'name')]: project.name,
+		[entityFieldAddressKey(EntityType.Network, [], 'slug')]: project.slug,
+	},
+})
+
+
 export default {
 	source: Source.L2Beat_Rest,
 
@@ -125,16 +220,14 @@ export default {
 									},
 								},
 							},
-							$$timestamps: [{
-								[EntityMetaKey.Selector]: {
-									$rollup: {
-										$network,
-										projectId,
-									},
+							$$timestamps: [
+								l2BeatRollupTimestampRef({
+									$network,
+									projectId,
 									timestampMs: scalingSummarySyncedUntilMs(summary.chart.syncedUntil),
-									source: Source.L2Beat_Rest,
-								},
-							}],
+									project,
+								}),
+							],
 						}
 					},
 				},
@@ -146,7 +239,10 @@ export default {
 			category: (snapshot) => snapshot.category,
 			hostChain: (snapshot) => snapshot.hostChain,
 			$settlementNetwork: (snapshot) => snapshot.$settlementNetwork,
-			$$timestamps: (snapshot) => snapshot.$$timestamps,
+			$$timestamps: {
+				select: (snapshot) => snapshot.$$timestamps,
+				resolveCount: (snapshot) => snapshot.$$timestamps.length,
+			},
 		}),
 
 		defineResolver({
@@ -180,6 +276,7 @@ export default {
 							...(project.stage != null && {
 								listingStage: project.stage,
 							}),
+							sourceUpdatedAt: observationMs,
 						}
 					},
 				},
@@ -189,6 +286,7 @@ export default {
 			isUpcoming: (snapshot) => snapshot.isUpcoming,
 			isUnderReview: (snapshot) => snapshot.isUnderReview,
 			listingStage: (snapshot) => snapshot.listingStage,
+			sourceUpdatedAt: (snapshot) => snapshot.sourceUpdatedAt,
 		}),
 
 		defineResolver({
@@ -263,12 +361,11 @@ export default {
 							rollup: project == null || project.isArchived === true ?
 								undefined
 							:
-								{
-									[EntityMetaKey.Selector]: {
-										$network: entitySelector,
-										projectId,
-									},
-								},
+								l2BeatRollupListRef({
+									$network: entitySelector,
+									projectId,
+									project,
+								}),
 							settledRollups: Object.entries(summary.projects).flatMap(([
 								childProjectId,
 								childProject,
@@ -279,20 +376,19 @@ export default {
 								) ?
 									[]
 								:
-									[{
-										[EntityMetaKey.Selector]: {
-											$network: {
-												caip2: {
-													namespace: 'eip155' as const,
-													reference: String(
-														l2BeatChainIdByProjectId.get(childProjectId)
-														?? chainId
-													),
-												},
+									[l2BeatRollupListRef({
+										$network: {
+											caip2: {
+												namespace: 'eip155' as const,
+												reference: String(
+													l2BeatChainIdByProjectId.get(childProjectId)
+													?? chainId
+												),
 											},
-											projectId: childProjectId,
 										},
-									}]
+										projectId: childProjectId,
+										project: childProject,
+									})]
 							)),
 							childLayers: l2BeatProjectChainIds.flatMap(({
 								projectId: childProjectId,
@@ -307,14 +403,10 @@ export default {
 								) ?
 									[]
 								:
-									[{
-										[EntityMetaKey.Selector]: {
-											caip2: {
-												namespace: 'eip155' as const,
-												reference: String(childChainId),
-											},
-										},
-									}]
+									[l2BeatChildNetworkListRef({
+										chainId: childChainId,
+										project: childProject,
+									})]
 							}),
 						}
 					},
@@ -324,8 +416,14 @@ export default {
 			Evm: {
 				$parent: (snapshot) => snapshot.parent,
 				$rollup: (snapshot) => snapshot.rollup,
-				$$settledRollups: (snapshot) => snapshot.settledRollups,
-				$$childLayers: (snapshot) => snapshot.childLayers,
+				$$settledRollups: {
+					select: (snapshot) => snapshot.settledRollups,
+					resolveCount: (snapshot) => snapshot.settledRollups.length,
+				},
+				$$childLayers: {
+					select: (snapshot) => snapshot.childLayers,
+					resolveCount: (snapshot) => snapshot.childLayers.length,
+				},
 			},
 		}),
 	],

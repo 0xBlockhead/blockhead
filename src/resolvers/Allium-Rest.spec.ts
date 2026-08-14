@@ -6,7 +6,7 @@ import {
 	vi,
 } from 'vitest'
 
-import { EntityMetaKey } from '$/schema/$schema.ts'
+import { EntityMetaKey, entityFieldAddressKey } from '$/schema/$schema.ts'
 import { CoinInstanceType } from '$/schema/CoinInstanceType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
@@ -66,7 +66,11 @@ const balanceTimestampResolver = alliumRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.EvmNetworkActorCoinBalance_Timestamp
 ))
 
-if (balanceResolver == null || balanceTimestampResolver == null)
+if (
+	balanceResolver == null
+	|| typeof balanceResolver.projections.$$timestamps === 'function'
+	|| balanceTimestampResolver == null
+)
 	throw new Error('Allium_Rest spec missing balance observation resolvers')
 
 describe('Allium_Rest balance observations', () => {
@@ -96,7 +100,7 @@ describe('Allium_Rest balance observations', () => {
 				},
 			},
 		})
-		expect(balanceResolver.projections.$$timestamps(snapshot)).toEqual([{
+		expect(balanceResolver.projections.$$timestamps.select(snapshot)).toEqual([{
 			[EntityMetaKey.Selector]: {
 				$actorCoin: {
 					$actor: {
@@ -107,7 +111,14 @@ describe('Allium_Rest balance observations', () => {
 				timestampMs: Date.parse('2026-01-01T00:00:00.000Z'),
 				source: Source.Allium_Rest,
 			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.EvmNetworkActorCoinBalance_Timestamp, [], 'balance')]: 1_000_000_000_000_000_000n,
+				[entityFieldAddressKey(EntityType.EvmNetworkActorCoinBalance_Timestamp, [], 'blockNumber')]: 22_800_000n,
+				[entityFieldAddressKey(EntityType.EvmNetworkActorCoinBalance_Timestamp, [], 'usdValue')]: 3200,
+				[entityFieldAddressKey(EntityType.EvmNetworkActorCoinBalance_Timestamp, [], 'priceUsd')]: 3200,
+			},
 		}])
+		expect(balanceResolver.projections.$$timestamps.resolveCount(snapshot)).toBe(1)
 
 		const observation = await balanceTimestampResolver.resolve.ActorCoinTimestampMsSource.resolve({
 			$actorCoin: {
@@ -152,6 +163,34 @@ describe('Allium_Rest balance observations', () => {
 					address,
 				},
 				$network: network,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.EvmNetworkActorCoinBalance, [], 'symbol')]: 'ETH',
+				[entityFieldAddressKey(EntityType.EvmNetworkActorCoinBalance, [], 'decimals')]: 18,
+				[entityFieldAddressKey(EntityType.EvmNetworkActorCoinBalance, [], '$coinInstance')]: {
+					[EntityMetaKey.Selector]: {
+						$network: network,
+						type: CoinInstanceType.NativeCurrency,
+					},
+				},
+				[entityFieldAddressKey(EntityType.EvmNetworkActorCoinBalance, [], '$$timestamps')]: [{
+					[EntityMetaKey.Selector]: {
+						$actorCoin: {
+							$actor: {
+								address,
+							},
+							$network: network,
+						},
+						timestampMs: Date.parse('2026-01-01T00:00:00.000Z'),
+						source: Source.Allium_Rest,
+					},
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.EvmNetworkActorCoinBalance_Timestamp, [], 'balance')]: 1_000_000_000_000_000_000n,
+						[entityFieldAddressKey(EntityType.EvmNetworkActorCoinBalance_Timestamp, [], 'blockNumber')]: 22_800_000n,
+						[entityFieldAddressKey(EntityType.EvmNetworkActorCoinBalance_Timestamp, [], 'usdValue')]: 3200,
+						[entityFieldAddressKey(EntityType.EvmNetworkActorCoinBalance_Timestamp, [], 'priceUsd')]: 3200,
+					},
+				}],
 			},
 		}])
 		expect(ownedCoinsResolver.projections.$$ownedCoins.continuation?.(page)).toEqual({
@@ -240,6 +279,39 @@ describe('Allium_Rest balance observations', () => {
 					$network: network,
 					address: tokenAddress,
 				},
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.EvmNetworkActorCoinBalance, [], 'symbol')]: 'USDC',
+				[entityFieldAddressKey(EntityType.EvmNetworkActorCoinBalance, [], 'decimals')]: 6,
+				[entityFieldAddressKey(EntityType.EvmNetworkActorCoinBalance, [], '$coinInstance')]: {
+					[EntityMetaKey.Selector]: {
+						$network: network,
+						type: CoinInstanceType.Erc20Token,
+						$contract: {
+							$network: network,
+							address: tokenAddress,
+						},
+					},
+				},
+				[entityFieldAddressKey(EntityType.EvmNetworkActorCoinBalance, [], '$$timestamps')]: [{
+					[EntityMetaKey.Selector]: {
+						$actorCoin: {
+							$actor: {
+								address,
+							},
+							$contract: {
+								$network: network,
+								address: tokenAddress,
+							},
+						},
+						timestampMs: Date.parse('2026-01-01T00:00:00.000Z'),
+						source: Source.Allium_Rest,
+					},
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.EvmNetworkActorCoinBalance_Timestamp, [], 'balance')]: 2_500_000n,
+						[entityFieldAddressKey(EntityType.EvmNetworkActorCoinBalance_Timestamp, [], 'blockNumber')]: 22_800_000n,
+					},
+				}],
 			},
 		}])
 		expect(ownedCoinsResolver.projections.$$ownedCoins.continuation?.(secondPage)).toEqual({

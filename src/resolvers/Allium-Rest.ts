@@ -9,6 +9,7 @@ import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
 import { mediaFromUrl } from '$/resolvers/media.ts'
 import { evmNetworkSelectorFromChainId } from '$/resolvers/evm.ts'
 import {
+	entityFieldAddressKey,
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import type { EntitySelector } from '$/schema/$schema.ts'
@@ -48,14 +49,9 @@ const alliumNetworkForSelector = (
 	}
 }
 
-const alliumBalanceObservation = (
-	walletTokenBalance: AlliumWalletBalance,
-	actorCoin: EntitySelector<typeof schema, EntityType.EvmNetworkActorCoinBalance>
+const alliumWalletBalanceClock = (
+	walletTokenBalance: AlliumWalletBalance
 ) => {
-	const balanceText = walletTokenBalance.raw_balance_str
-	if (balanceText == null || !/^(0|[1-9][0-9]*)$/.test(balanceText))
-		throw new Error('Allium_Rest: wallet token balance amount missing')
-
 	const timestampMs = (
 		walletTokenBalance.block_timestamp == null || walletTokenBalance.block_timestamp === '' ?
 			undefined
@@ -65,6 +61,28 @@ const alliumBalanceObservation = (
 	if (timestampMs == null || !Number.isFinite(timestampMs) || timestampMs < 0)
 		throw new Error('Allium_Rest: wallet token balance timestamp missing')
 
+	return {
+		timestampMs,
+		blockNumber: (
+			walletTokenBalance.block_number != null
+			&& Number.isSafeInteger(walletTokenBalance.block_number)
+			&& walletTokenBalance.block_number >= 0 ?
+				BigInt(walletTokenBalance.block_number)
+			:
+				undefined
+		),
+	}
+}
+
+const alliumBalanceObservation = (
+	walletTokenBalance: AlliumWalletBalance,
+	actorCoin: EntitySelector<typeof schema, EntityType.EvmNetworkActorCoinBalance>
+) => {
+	const balanceText = walletTokenBalance.raw_balance_str
+	if (balanceText == null || !/^(0|[1-9][0-9]*)$/.test(balanceText))
+		throw new Error('Allium_Rest: wallet token balance amount missing')
+
+	const clock = alliumWalletBalanceClock(walletTokenBalance)
 	const balance = BigInt(balanceText)
 	const decimals = walletTokenBalance.token?.decimals
 	const priceUsd = walletTokenBalance.token?.price
@@ -90,18 +108,13 @@ const alliumBalanceObservation = (
 	return {
 		[EntityMetaKey.Selector]: {
 			$actorCoin: actorCoin,
-			timestampMs,
+			timestampMs: clock.timestampMs,
 			source: Source.Allium_Rest,
 		},
 		balance,
-		...(
-			walletTokenBalance.block_number != null
-			&& Number.isSafeInteger(walletTokenBalance.block_number)
-			&& walletTokenBalance.block_number >= 0
-			&& {
-				blockNumber: BigInt(walletTokenBalance.block_number),
-			}
-		),
+		...(clock.blockNumber != null && {
+			blockNumber: clock.blockNumber,
+		}),
 		...(
 			priceUsd != null
 			&& Number.isFinite(priceUsd)
@@ -113,6 +126,125 @@ const alliumBalanceObservation = (
 			usdValue,
 		}),
 	}
+}
+
+const alliumBalanceTimestampRef = (
+	observation: ReturnType<typeof alliumBalanceObservation>
+) => ({
+	[EntityMetaKey.Selector]: observation[EntityMetaKey.Selector],
+	[EntityMetaKey.Fields]: {
+		[entityFieldAddressKey(EntityType.EvmNetworkActorCoinBalance_Timestamp, [], 'balance')]: observation.balance,
+		...(observation.blockNumber != null && {
+			[entityFieldAddressKey(EntityType.EvmNetworkActorCoinBalance_Timestamp, [], 'blockNumber')]: observation.blockNumber,
+		}),
+		...(observation.usdValue != null && {
+			[entityFieldAddressKey(EntityType.EvmNetworkActorCoinBalance_Timestamp, [], 'usdValue')]: observation.usdValue,
+		}),
+		...(observation.priceUsd != null && {
+			[entityFieldAddressKey(EntityType.EvmNetworkActorCoinBalance_Timestamp, [], 'priceUsd')]: observation.priceUsd,
+		}),
+	},
+})
+
+const alliumActorCoinRow = (
+	balanceRow: AlliumWalletBalance,
+	$actor: EntitySelector<typeof schema, EntityType.EvmAccount>,
+	$network: EntitySelector<typeof schema, EntityType.Network>
+) => {
+	if (balanceRow.token?.type === 'native') {
+		const actorCoin = {
+			$actor,
+			$network,
+		} satisfies EntitySelector<typeof schema, EntityType.EvmNetworkActorCoinBalance>
+		const symbol = balanceRow.token.info?.symbol.trim().toUpperCase()
+
+		return [{
+			[EntityMetaKey.Selector]: actorCoin,
+			[EntityMetaKey.Fields]: {
+				...(symbol != null && symbol !== '' && {
+					[entityFieldAddressKey(EntityType.EvmNetworkActorCoinBalance, [], 'symbol')]: symbol,
+				}),
+				...(balanceRow.token.decimals != null && {
+					[entityFieldAddressKey(EntityType.EvmNetworkActorCoinBalance, [], 'decimals')]: balanceRow.token.decimals,
+				}),
+				[entityFieldAddressKey(EntityType.EvmNetworkActorCoinBalance, [], '$coinInstance')]: {
+					[EntityMetaKey.Selector]: {
+						$network,
+						type: CoinInstanceType.NativeCurrency,
+					},
+				},
+				...(
+					balanceRow.raw_balance_str != null
+					&& /^(0|[1-9][0-9]*)$/.test(balanceRow.raw_balance_str)
+					&& balanceRow.block_timestamp != null
+					&& balanceRow.block_timestamp !== ''
+					&& Number.isFinite(Date.parse(balanceRow.block_timestamp))
+					&& {
+						[entityFieldAddressKey(EntityType.EvmNetworkActorCoinBalance, [], '$$timestamps')]: [
+							alliumBalanceTimestampRef(
+								alliumBalanceObservation(balanceRow, actorCoin)
+							),
+						],
+					}
+				),
+			},
+		}]
+	}
+
+	if (
+		balanceRow.token?.type === 'evm_erc20'
+		&& Hex.isHex(balanceRow.token.address)
+		&& Hex.size(balanceRow.token.address) === 20
+	) {
+		const address = hexLowerOfByteSize(balanceRow.token.address.toLowerCase(), 20)
+		if (address == null)
+			return []
+
+		const $contract = {
+			$network,
+			address,
+		}
+		const actorCoin = {
+			$actor,
+			$contract,
+		} satisfies EntitySelector<typeof schema, EntityType.EvmNetworkActorCoinBalance>
+		const symbol = balanceRow.token.info?.symbol.trim().toUpperCase()
+
+		return [{
+			[EntityMetaKey.Selector]: actorCoin,
+			[EntityMetaKey.Fields]: {
+				...(symbol != null && symbol !== '' && {
+					[entityFieldAddressKey(EntityType.EvmNetworkActorCoinBalance, [], 'symbol')]: symbol,
+				}),
+				...(balanceRow.token.decimals != null && {
+					[entityFieldAddressKey(EntityType.EvmNetworkActorCoinBalance, [], 'decimals')]: balanceRow.token.decimals,
+				}),
+				[entityFieldAddressKey(EntityType.EvmNetworkActorCoinBalance, [], '$coinInstance')]: {
+					[EntityMetaKey.Selector]: {
+						$network,
+						type: CoinInstanceType.Erc20Token,
+						$contract,
+					},
+				},
+				...(
+					balanceRow.raw_balance_str != null
+					&& /^(0|[1-9][0-9]*)$/.test(balanceRow.raw_balance_str)
+					&& balanceRow.block_timestamp != null
+					&& balanceRow.block_timestamp !== ''
+					&& Number.isFinite(Date.parse(balanceRow.block_timestamp))
+					&& {
+						[entityFieldAddressKey(EntityType.EvmNetworkActorCoinBalance, [], '$$timestamps')]: [
+							alliumBalanceTimestampRef(
+								alliumBalanceObservation(balanceRow, actorCoin)
+							),
+						],
+					}
+				),
+			},
+		}]
+	}
+
+	return []
 }
 
 const alliumOwnedCoinsContinuation = (
@@ -277,7 +409,9 @@ export default {
 							symbol: token.info.symbol.toUpperCase(),
 							decimals: token.decimals,
 							$$timestamps: [
-								alliumBalanceObservation(walletTokenBalance, actorCoin),
+								alliumBalanceTimestampRef(
+									alliumBalanceObservation(walletTokenBalance, actorCoin)
+								),
 							],
 						}
 					},
@@ -327,7 +461,9 @@ export default {
 							symbol: token.info.symbol.toUpperCase(),
 							decimals: token.decimals,
 							$$timestamps: [
-								alliumBalanceObservation(walletTokenBalance, actorCoin),
+								alliumBalanceTimestampRef(
+									alliumBalanceObservation(walletTokenBalance, actorCoin)
+								),
 							],
 						}
 					},
@@ -353,9 +489,10 @@ export default {
 			$coinInstance: (balance) => balance.$coinInstance,
 			symbol: (balance) => balance.symbol,
 			decimals: (balance) => balance.decimals,
-			$$timestamps: (balance) => balance.$$timestamps.map((timestamp) => ({
-				[EntityMetaKey.Selector]: timestamp[EntityMetaKey.Selector],
-			})),
+			$$timestamps: {
+				select: (balance) => balance.$$timestamps,
+				resolveCount: (balance) => balance.$$timestamps.length,
+			},
 		}),
 
 		defineResolver({
@@ -432,10 +569,6 @@ export default {
 				EvmNetworkEvmAccount: {
 					resolve: async ({ $actor, $network }, context) => {
 						const { getLatestWalletBalances } = await import('$/sources/Allium/Rest/queries.ts')
-						type EvmNetworkActorCoinBalanceEntitySelector = import('$/schema/$schema.ts').EntitySelector<
-							typeof import('$/schema/index.ts').schema,
-							EntityType.EvmNetworkActorCoinBalance
-						>
 
 						const alliumNetwork = alliumNetworkForSelector($network)
 						const {
@@ -452,40 +585,9 @@ export default {
 							}),
 						})
 						const limit = resolverContextRowLimit(context)
-						const mapped = (
-							page.items
-								.flatMap<{ [EntityMetaKey.Selector]: EvmNetworkActorCoinBalanceEntitySelector }>((balanceRow) => (
-									balanceRow.token?.type === 'native' ?
-										[{
-											[EntityMetaKey.Selector]: {
-												$actor,
-												$network,
-											},
-										} satisfies { [EntityMetaKey.Selector]: EvmNetworkActorCoinBalanceEntitySelector }]
-									:
-										(
-											balanceRow.token?.type === 'evm_erc20'
-											&& Hex.isHex(balanceRow.token.address)
-											&& Hex.size(balanceRow.token.address) === 20
-										) ?
-											((address) => (
-												address == null ?
-													[]
-												:
-													[{
-														[EntityMetaKey.Selector]: {
-															$actor,
-															$contract: {
-																$network,
-																address,
-															},
-														},
-													} satisfies { [EntityMetaKey.Selector]: EvmNetworkActorCoinBalanceEntitySelector }]
-											))(hexLowerOfByteSize(balanceRow.token.address.toLowerCase(), 20))
-										:
-											[]
-								))
-						)
+						const mapped = page.items.flatMap((balanceRow) => (
+							alliumActorCoinRow(balanceRow, $actor, $network)
+						))
 						const rows = mapped.slice(skip, skip + limit)
 
 						return {
@@ -552,10 +654,9 @@ export default {
 					resolve: async (_globalScopeEntitySelector, context) => {
 						const { readNormalizedLocalInternal } = await import('$/resolvers/Local/Internal/catalog.ts')
 						const { getLatestWalletBalances } = await import('$/sources/Allium/Rest/queries.ts')
-						type EvmNetworkActorCoinBalanceEntitySelector = EntitySelector<typeof schema, EntityType.EvmNetworkActorCoinBalance>
 
 						const subsetRowLimit = resolverContextRowLimit(context)
-						const evmNetworkActorCoinBalanceRows: { [EntityMetaKey.Selector]: EvmNetworkActorCoinBalanceEntitySelector }[] = []
+						const evmNetworkActorCoinBalanceRows = []
 
 						for (const actor of readNormalizedLocalInternal().actors) {
 							if (evmNetworkActorCoinBalanceRows.length >= subsetRowLimit) break
@@ -573,38 +674,16 @@ export default {
 										withLiquidityInfo: false,
 									}))
 										.items
-										.flatMap<{ [EntityMetaKey.Selector]: EvmNetworkActorCoinBalanceEntitySelector }>((balanceRow) => (
-											balanceRow.token?.type === 'native' ?
-											[{
-												[EntityMetaKey.Selector]: {
-													$actor: { address: actor.address },
-													$network: networkSelector,
+										.flatMap((balanceRow) => (
+											alliumActorCoinRow(
+												balanceRow,
+												{
+													address: actor.address,
 												},
-											} satisfies { [EntityMetaKey.Selector]: EvmNetworkActorCoinBalanceEntitySelector }]
-										:
-											(
-												balanceRow.token?.type === 'evm_erc20'
-												&& Hex.isHex(balanceRow.token.address)
-												&& Hex.size(balanceRow.token.address) === 20
-											) ?
-												((address) => (
-													address == null ?
-														[]
-													:
-														[{
-															[EntityMetaKey.Selector]: {
-																$actor: { address: actor.address },
-																$contract: {
-																	$network: networkSelector,
-																	address,
-																},
-															},
-														} satisfies { [EntityMetaKey.Selector]: EvmNetworkActorCoinBalanceEntitySelector }]
-												))(hexLowerOfByteSize(balanceRow.token.address.toLowerCase(), 20))
-											:
-												[]
+												networkSelector
+											)
 										))
-							)
+								)
 							}
 						}
 

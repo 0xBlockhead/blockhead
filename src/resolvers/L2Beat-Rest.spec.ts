@@ -5,7 +5,7 @@ import {
 	vi,
 } from 'vitest'
 
-import { EntityMetaKey } from '$/schema/$schema.ts'
+import { EntityMetaKey, entityFieldAddressKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
@@ -63,7 +63,7 @@ describe('L2Beat resolver', () => {
 			candidate.entityType === EntityType.EvmRollup
 			&& '$$timestamps' in candidate.projections
 		))
-		if (rollupResolver == null)
+		if (rollupResolver == null || typeof rollupResolver.projections.$$timestamps === 'function')
 			throw new Error('L2Beat_Rest: missing EvmRollup $$timestamps resolver')
 
 		const rollup = await rollupResolver.resolve.EvmNetworkProjectId.resolve({
@@ -75,7 +75,7 @@ describe('L2Beat resolver', () => {
 		expect(rollup.category).toBe('Optimistic Rollup')
 		expect(rollup.$settlementNetwork[EntityMetaKey.Selector].caip2.reference).toBe('1')
 		expect(EntityMetaKey.Fields in rollup).toBe(false)
-		expect(rollupResolver.projections.$$timestamps(rollup)).toEqual([{
+		expect(rollupResolver.projections.$$timestamps.select(rollup)).toEqual([{
 			[EntityMetaKey.Selector]: {
 				$rollup: {
 					$network: networkSelector,
@@ -84,7 +84,14 @@ describe('L2Beat resolver', () => {
 				timestampMs: 1_785_830_400_000,
 				source: Source.L2Beat_Rest,
 			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.EvmRollup_Timestamp, [], 'isArchived')]: false,
+				[entityFieldAddressKey(EntityType.EvmRollup_Timestamp, [], 'isUnderReview')]: false,
+				[entityFieldAddressKey(EntityType.EvmRollup_Timestamp, [], 'listingStage')]: 'Stage 1',
+				[entityFieldAddressKey(EntityType.EvmRollup_Timestamp, [], 'sourceUpdatedAt')]: 1_785_830_400_000,
+			},
 		}])
+		expect(rollupResolver.projections.$$timestamps.resolveCount(rollup)).toBe(1)
 
 		const relationshipResolver = l2Beat.resolvers.find((candidate) => (
 			candidate.entityType === EntityType.Network
@@ -97,6 +104,13 @@ describe('L2Beat resolver', () => {
 			[EntityMetaKey.Selector]: {
 				$network: networkSelector,
 				projectId: 'arbitrum',
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.EvmRollup, [], 'name')]: 'Arbitrum One',
+				[entityFieldAddressKey(EntityType.EvmRollup, [], 'slug')]: 'arbitrum',
+				[entityFieldAddressKey(EntityType.EvmRollup, [], 'type')]: 'layer2',
+				[entityFieldAddressKey(EntityType.EvmRollup, [], 'category')]: 'Optimistic Rollup',
+				[entityFieldAddressKey(EntityType.EvmRollup, [], 'hostChain')]: 'Ethereum',
 			},
 		})
 	})
@@ -130,8 +144,10 @@ describe('L2Beat resolver', () => {
 			isArchived: false,
 			isUnderReview: false,
 			listingStage: 'Stage 1',
+			sourceUpdatedAt: 1_785_830_400_000,
 		})
 		expect(timestampResolver.projections.listingStage(observation)).toBe('Stage 1')
+		expect(timestampResolver.projections.sourceUpdatedAt(observation)).toBe(1_785_830_400_000)
 	})
 
 	it('fails closed on unknown host chains and observation clock mismatch', async () => {
@@ -274,6 +290,13 @@ describe('L2Beat resolver', () => {
 					},
 					projectId: 'arbitrum',
 				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.EvmRollup, [], 'name')]: 'Arbitrum One',
+					[entityFieldAddressKey(EntityType.EvmRollup, [], 'slug')]: 'arbitrum',
+					[entityFieldAddressKey(EntityType.EvmRollup, [], 'type')]: 'layer2',
+					[entityFieldAddressKey(EntityType.EvmRollup, [], 'category')]: 'Optimistic Rollup',
+					[entityFieldAddressKey(EntityType.EvmRollup, [], 'hostChain')]: 'Ethereum',
+				},
 			},
 			{
 				[EntityMetaKey.Selector]: {
@@ -284,6 +307,12 @@ describe('L2Beat resolver', () => {
 						},
 					},
 					projectId: 'aevo',
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.EvmRollup, [], 'name')]: 'Aevo',
+					[entityFieldAddressKey(EntityType.EvmRollup, [], 'slug')]: 'aevo',
+					[entityFieldAddressKey(EntityType.EvmRollup, [], 'type')]: 'layer2',
+					[entityFieldAddressKey(EntityType.EvmRollup, [], 'hostChain')]: 'Ethereum',
 				},
 			},
 		]))
@@ -310,8 +339,16 @@ describe('L2Beat resolver', () => {
 					},
 					projectId: 'lighter-robinhood',
 				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.EvmRollup, [], 'name')]: 'Lighter on Robinhood',
+					[entityFieldAddressKey(EntityType.EvmRollup, [], 'slug')]: 'lighter-robinhood',
+					[entityFieldAddressKey(EntityType.EvmRollup, [], 'type')]: 'layer3',
+					[entityFieldAddressKey(EntityType.EvmRollup, [], 'hostChain')]: 'Robinhood Chain',
+				},
 			},
 		])
 		expect(robinhood.childLayers).toEqual([])
+		expect(relationshipResolver.projections.Evm.$$settledRollups.resolveCount(robinhood)).toBe(1)
+		expect(relationshipResolver.projections.Evm.$$childLayers.resolveCount(robinhood)).toBe(0)
 	})
 })
