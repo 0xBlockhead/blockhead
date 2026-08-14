@@ -441,4 +441,58 @@ describe('Across public bridge queries', () => {
 		expect('getDepositByTransaction' in queries).toBe(false)
 		expect('query' in queries).toBe(false)
 	})
+
+	it('accepts TRON and Solana spoke-pool chain ids from the live chains catalog', async () => {
+		sourceGetJson.mockResolvedValue([{
+			...deposit,
+			originChainId: 8453,
+			destinationChainId: 728126428,
+			recipient: 'TUDxsoCwBcmnjfkzqE2z4jQQ9nbAf6TYRJ',
+			outputToken: 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t',
+			status: 'refunded',
+			fillTxnRef: null,
+			fillBlockTimestamp: null,
+			depositRefundTxnRef: '0xb35ff250d45a7d3f481e6157c760a5fe79d7d7f4b14079bb54328b226b3ce58d',
+		}])
+
+		await expect(getDeposits({
+			depositor,
+		})).resolves.toHaveLength(1)
+	})
+
+	it('normalizes deposit detail wire with string chain ids and omitted fillTxnRef', async () => {
+		const {
+			fillTxnRef: _fillTxnRef,
+			speedups: _speedups,
+			...depositDetail
+		} = deposit
+		sourceGetJson.mockResolvedValue({
+			deposit: {
+				...depositDetail,
+				originChainId: '8453',
+				destinationChainId: '728126428',
+				fillTx: null,
+				status: 'refunded',
+				fillBlockTimestamp: null,
+				depositRefundTxnRef: '0xb35ff250d45a7d3f481e6157c760a5fe79d7d7f4b14079bb54328b226b3ce58d',
+			},
+			pagination: {
+				currentIndex: 0,
+				maxIndex: 0,
+			},
+		})
+
+		await expect(getDeposit({
+			originChainId: 8453,
+			depositId,
+		})).resolves.toMatchObject({
+			deposit: {
+				originChainId: 8453,
+				destinationChainId: 728126428,
+				fillTxnRef: null,
+				speedups: [],
+				status: 'refunded',
+			},
+		})
+	})
 })

@@ -14,6 +14,8 @@ import type {
 	AcrossSuggestedFees,
 } from '$/sources/Across/Rest/types.ts'
 import {
+	acrossDepositDetailResponseEnvelope,
+	acrossDepositEnvelope,
 	acrossDepositResponseEnvelope,
 	acrossDepositStatusResponseEnvelope,
 	acrossDepositsEnvelope,
@@ -27,15 +29,15 @@ const fetchAcrossJson = <_Json>(binding: SourceBinding, path: string) => (
 	sourceGetJson<_Json>(binding, httpUrl(binding, path))
 )
 
-const assertEnvelope = (
+const assertEnvelope = <_Value>(
 	envelope: {
-		assert: (value: unknown) => unknown
+		assert: (value: unknown) => _Value
 	},
 	value: unknown,
 	label: string
 ) => {
 	try {
-		envelope.assert(value)
+		return envelope.assert(value)
 	} catch {
 		throw new Error(`Across_Rest: invalid ${label} response envelope`)
 	}
@@ -84,6 +86,32 @@ const assertOpaqueIdentity = (value: string, name: string) => {
 const assertTimestamp = (value: string, name: string) => {
 	if (!Number.isFinite(Date.parse(value)))
 		throw new Error(`Across_Rest: invalid ${name}`)
+}
+
+const normalizeChainId = (
+	value: number | string,
+	name: string
+) => {
+	const chainId = Number(value)
+	if (!Number.isSafeInteger(chainId) || chainId < 1)
+		throw new Error(`Across_Rest: invalid ${name}`)
+
+	return chainId
+}
+
+const normalizeDepositWire = (
+	wire: typeof acrossDepositDetailResponseEnvelope.infer.deposit
+) => {
+	const deposit = {
+		...wire,
+		originChainId: normalizeChainId(wire.originChainId, 'origin chain id'),
+		destinationChainId: normalizeChainId(wire.destinationChainId, 'destination chain id'),
+		depositTxnRef: wire.depositTxnRef ?? wire.depositTxHash,
+		fillTxnRef: wire.fillTxnRef ?? wire.fillTx ?? null,
+		depositRefundTxnRef: wire.depositRefundTxnRef ?? wire.depositRefundTxHash ?? null,
+		speedups: wire.speedups ?? [],
+	}
+	return assertEnvelope(acrossDepositEnvelope, deposit, 'deposit')
 }
 
 const assertDeposit = (deposit: AcrossDeposit) => {
@@ -173,19 +201,25 @@ export const getDeposit = async (query: (
 	} else
 		assertOpaqueIdentity(query.depositTxnRef, 'deposit transaction reference')
 
-	const response = assertDepositResponse(
-		await fetchAcrossJson<AcrossDepositResponse>(
+	const wire = assertEnvelope(
+		acrossDepositDetailResponseEnvelope,
+		await fetchAcrossJson(
 			binding, `/api/deposit?${new URLSearchParams({
-				...(query.depositTxnRef == null ? {
-					originChainId: String(query.originChainId),
-					depositId: query.depositId,
-				} : {
-					depositTxnRef: query.depositTxnRef,
-				}),
-				index: String(index),
+			...(query.depositTxnRef == null ? {
+				originChainId: String(query.originChainId),
+				depositId: query.depositId,
+			} : {
+				depositTxnRef: query.depositTxnRef,
+			}),
+			index: String(index),
 			})}`
-		)
+		),
+		'deposit'
 	)
+	const response = assertDepositResponse({
+		...wire,
+		deposit: normalizeDepositWire(wire.deposit),
+	})
 	assertDeposit(response.deposit)
 	if (query.depositTxnRef == null) {
 		if (

@@ -52,7 +52,7 @@ export const wormholescanStandardizedPropertiesEnvelope = arktype({
 	'feeChain?': 'number.integer >= 0',
 	'fromAddress?': 'string',
 	'fromChain?': 'number.integer >= 0',
-	'normalizedDecimals?': 'number.integer >= 0',
+	'normalizedDecimals?': 'number.integer >= 0 | null',
 	'toAddress?': 'string',
 	'toChain?': 'number.integer >= 0',
 	'tokenAddress?': 'string',
@@ -80,7 +80,7 @@ export const wormholescanOperationEnvelope = arktype({
 	'vaa?': {
 		'guardianSetIndex?': 'number.integer >= 0',
 		'isDuplicated?': 'boolean',
-		'raw?': 'number.integer[]',
+		'raw?': 'string > 0 | number.integer[]',
 	},
 	'data?': 'Record<string, unknown>',
 })

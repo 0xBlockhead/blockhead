@@ -54,8 +54,11 @@ const acrossTransferIdParts = (
 const acrossEvmNetworkRef = (
 	chainId: number
 ) => {
-	if (acrossChainByChainId[chainId] == null)
+	const chain = acrossChainByChainId[chainId]
+	if (chain == null)
 		throw new Error(`Across_Rest: unsupported chain id ${chainId}`)
+	if (!chain.isEvm)
+		return undefined
 
 	return {
 		[EntityMetaKey.Selector]: {
@@ -68,12 +71,11 @@ const acrossEvmNetworkRef = (
 }
 
 const acrossEvmAddressRef = (
-	address: string,
-	role: string
+	address: string
 ) => {
 	const normalized = hexLowerOfByteSize(address, 20)
 	if (normalized == null)
-		throw new Error(`Across_Rest: invalid ${role} address`)
+		return undefined
 
 	return {
 		[EntityMetaKey.Selector]: {
@@ -83,12 +85,11 @@ const acrossEvmAddressRef = (
 }
 
 const acrossEvmTxHash = (
-	value: string,
-	role: string
+	value: string
 ) => {
 	const normalized = hexLowerOfByteSize(value, 32)
 	if (normalized == null)
-		throw new Error(`Across_Rest: invalid ${role}`)
+		return undefined
 
 	return normalized
 }
@@ -120,19 +121,19 @@ const acrossTransactionTimestampMs = (
 
 const acrossCoinInstanceRef = (
 	chainId: number,
-	tokenAddress: string,
-	role: string
+	tokenAddress: string
 ) => {
+	const network = acrossEvmNetworkRef(chainId)
 	const address = hexLowerOfByteSize(tokenAddress, 20)
-	if (address == null)
-		throw new Error(`Across_Rest: invalid ${role} token`)
+	if (network == null || address == null)
+		return undefined
 
 	return {
 		[EntityMetaKey.Selector]: {
-			$network: acrossEvmNetworkRef(chainId)[EntityMetaKey.Selector],
+			$network: network[EntityMetaKey.Selector],
 			type: CoinInstanceType.Erc20Token,
 			$contract: {
-				$network: acrossEvmNetworkRef(chainId)[EntityMetaKey.Selector],
+				$network: network[EntityMetaKey.Selector],
 				address,
 			},
 		},
@@ -149,13 +150,29 @@ const acrossBridgeTransferSnapshot = (
 	const transferId = `${deposit.originChainId}/${deposit.depositId}`
 	const fromNetwork = acrossEvmNetworkRef(deposit.originChainId)
 	const toNetwork = acrossEvmNetworkRef(deposit.destinationChainId)
-	const sourceTxHash = acrossEvmTxHash(deposit.depositTxnRef, 'deposit transaction hash')
+	const sourceTxHash = acrossEvmTxHash(deposit.depositTxnRef)
+	if (fromNetwork != null && sourceTxHash == null)
+		throw new Error('Across_Rest: invalid deposit transaction hash')
 	const destinationTxHash = (
 		deposit.fillTxnRef == null ?
 			undefined
 		:
-			acrossEvmTxHash(deposit.fillTxnRef, 'fill transaction hash')
+			acrossEvmTxHash(deposit.fillTxnRef)
 	)
+	if (deposit.fillTxnRef != null && toNetwork != null && destinationTxHash == null)
+		throw new Error('Across_Rest: invalid fill transaction hash')
+	const sender = acrossEvmAddressRef(deposit.depositor)
+	if (fromNetwork != null && sender == null)
+		throw new Error('Across_Rest: invalid depositor address')
+	const recipient = acrossEvmAddressRef(deposit.recipient)
+	if (toNetwork != null && recipient == null)
+		throw new Error('Across_Rest: invalid recipient address')
+	const fromToken = acrossCoinInstanceRef(deposit.originChainId, deposit.inputToken)
+	if (fromNetwork != null && fromToken == null)
+		throw new Error('Across_Rest: invalid input token address')
+	const toToken = acrossCoinInstanceRef(deposit.destinationChainId, deposit.outputToken)
+	if (toNetwork != null && toToken == null)
+		throw new Error('Across_Rest: invalid output token address')
 	const timestampMs = acrossObservationMs(deposit)
 	const sourceTransactionAtMs = acrossTransactionTimestampMs(
 		deposit.depositBlockTimestamp,
@@ -181,7 +198,7 @@ const acrossBridgeTransferSnapshot = (
 		:
 			hexLowerOfByteSize(deposit.exclusiveRelayer, 20)
 	)
-	if (deposit.exclusiveRelayer != null && exclusiveRelayer == null)
+	if (deposit.exclusiveRelayer != null && toNetwork != null && exclusiveRelayer == null)
 		throw new Error('Across_Rest: invalid exclusive relayer address')
 
 	return {
@@ -189,13 +206,15 @@ const acrossBridgeTransferSnapshot = (
 		transferId,
 		originChainId: deposit.originChainId,
 		depositId: Number(deposit.depositId),
-		$sourceTx: {
-			[EntityMetaKey.Selector]: {
-				$network: fromNetwork[EntityMetaKey.Selector],
-				txHash: sourceTxHash,
+		...(sourceTxHash != null && fromNetwork != null && {
+			$sourceTx: {
+				[EntityMetaKey.Selector]: {
+					$network: fromNetwork[EntityMetaKey.Selector],
+					txHash: sourceTxHash,
+				},
 			},
-		},
-		...(destinationTxHash != null && {
+		}),
+		...(destinationTxHash != null && toNetwork != null && {
 			$destinationTx: {
 				[EntityMetaKey.Selector]: {
 					$network: toNetwork[EntityMetaKey.Selector],
@@ -203,12 +222,24 @@ const acrossBridgeTransferSnapshot = (
 				},
 			},
 		}),
-		$sender: acrossEvmAddressRef(deposit.depositor, 'depositor'),
-		$recipient: acrossEvmAddressRef(deposit.recipient, 'recipient'),
-		$fromNetwork: fromNetwork,
-		$toNetwork: toNetwork,
-		$fromToken: acrossCoinInstanceRef(deposit.originChainId, deposit.inputToken, 'input'),
-		$toToken: acrossCoinInstanceRef(deposit.destinationChainId, deposit.outputToken, 'output'),
+		...(sender != null && {
+			$sender: sender,
+		}),
+		...(recipient != null && {
+			$recipient: recipient,
+		}),
+		...(fromNetwork != null && {
+			$fromNetwork: fromNetwork,
+		}),
+		...(toNetwork != null && {
+			$toNetwork: toNetwork,
+		}),
+		...(fromToken != null && {
+			$fromToken: fromToken,
+		}),
+		...(toToken != null && {
+			$toToken: toToken,
+		}),
 		amountIn: BigInt(deposit.inputAmount),
 		amountOut: BigInt(deposit.outputAmount),
 		sourceTransactionAtMs,
@@ -429,18 +460,20 @@ export default {
 						const observedAtMs = acrossObservationMs(deposit)
 						if (observedAtMs !== timestampMs)
 							throw new Error('Across_Rest: observation clock mismatch')
+						const fromNetwork = acrossEvmNetworkRef(deposit.originChainId)
+						const toNetwork = acrossEvmNetworkRef(deposit.destinationChainId)
 
 						const destinationTxHash = (
 							deposit.fillTxnRef == null ?
 								undefined
 							:
-								acrossEvmTxHash(deposit.fillTxnRef, 'fill transaction hash')
+								acrossEvmTxHash(deposit.fillTxnRef)
 						)
 						const refundTxHash = (
 							deposit.depositRefundTxnRef == null ?
 								undefined
 							:
-								acrossEvmTxHash(deposit.depositRefundTxnRef, 'refund transaction hash')
+								acrossEvmTxHash(deposit.depositRefundTxnRef)
 						)
 						const relayer = (
 							deposit.relayer == null ?
@@ -448,7 +481,11 @@ export default {
 							:
 								hexLowerOfByteSize(deposit.relayer, 20)
 						)
-						if (deposit.relayer != null && relayer == null)
+						if (deposit.fillTxnRef != null && toNetwork != null && destinationTxHash == null)
+							throw new Error('Across_Rest: invalid fill transaction hash')
+						if (deposit.depositRefundTxnRef != null && fromNetwork != null && refundTxHash == null)
+							throw new Error('Across_Rest: invalid refund transaction hash')
+						if (deposit.relayer != null && toNetwork != null && relayer == null)
 							throw new Error('Across_Rest: invalid relayer address')
 
 						const fillDeadlineMs = (
@@ -470,13 +507,13 @@ export default {
 							timestampMs,
 							source,
 							status: deposit.status,
-							...(destinationTxHash != null && {
+							...(destinationTxHash != null && toNetwork != null && {
 								destinationTxHash,
 							}),
-							...(relayer != null && {
+							...(relayer != null && toNetwork != null && {
 								relayer,
 							}),
-							...(refundTxHash != null && {
+							...(refundTxHash != null && fromNetwork != null && {
 								refundTxHash,
 							}),
 							...(

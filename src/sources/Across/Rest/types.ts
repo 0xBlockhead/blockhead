@@ -152,6 +152,31 @@ export const acrossDepositEnvelope = arktype({
 	speedups: 'object[]',
 })
 
+export const acrossDepositDetailResponseEnvelope = arktype({
+	deposit: acrossDepositEnvelope.omit(
+		'originChainId',
+		'destinationChainId',
+		'depositTxnRef',
+		'fillTxnRef',
+		'depositRefundTxnRef',
+		'speedups'
+	).and({
+		originChainId: 'number | string',
+		destinationChainId: 'number | string',
+		'depositTxnRef?': 'string',
+		'depositTxHash?': 'string',
+		'fillTxnRef?': 'string | null',
+		'fillTx?': 'string | null',
+		'depositRefundTxnRef?': 'string | null',
+		'depositRefundTxHash?': 'string | null',
+		'speedups?': 'object[]',
+	}),
+	pagination: {
+		currentIndex: 'number',
+		maxIndex: 'number',
+	},
+})
+
 export const acrossDepositResponseEnvelope = arktype({
 	deposit: acrossDepositEnvelope,
 	pagination: {

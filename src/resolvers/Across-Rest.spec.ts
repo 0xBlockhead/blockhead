@@ -155,6 +155,57 @@ describe('Across BridgeTransfer resolvers', () => {
 		expect(resolver.projections.$$timestamps.resolveCount(snapshot)).toBe(1)
 	})
 
+	it('omits non-EVM destination refs for TRON spoke-pool deposits', async () => {
+		const tronDeposit = {
+			...deposit,
+			destinationChainId: 728126428,
+			recipient: 'TUDxsoCwBcmnjfkzqE2z4jQQ9nbAf6TYRJ',
+			outputToken: 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t',
+			status: 'refunded',
+			fillTxnRef: null,
+			fillBlockTimestamp: null,
+			fillBlockNumber: null,
+			relayer: null,
+			depositRefundTxnRef: `0x${'b'.repeat(64)}`,
+			exclusiveRelayer: 'T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb',
+		}
+		getDeposit.mockResolvedValue({
+			deposit: tronDeposit,
+			pagination: {
+				currentIndex: 0,
+				maxIndex: 0,
+			},
+		})
+		const resolver = across.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.BridgeTransfer
+		))
+		if (resolver == null)
+			throw new Error('Across_Rest: BridgeTransfer resolver missing')
+
+		const snapshot = await resolver.resolve.SourceTransferId.resolve({
+			source: Source.Across_Rest,
+			transferId: `${tronDeposit.originChainId}/${tronDeposit.depositId}`,
+		})
+
+		expect(snapshot).toMatchObject({
+			$fromNetwork: {
+				[EntityMetaKey.Selector]: {
+					caip2: {
+						namespace: 'eip155',
+						reference: '8453',
+					},
+				},
+			},
+			amountIn: BigInt(tronDeposit.inputAmount),
+			amountOut: BigInt(tronDeposit.outputAmount),
+		})
+		expect(snapshot.$toNetwork).toBeUndefined()
+		expect(snapshot.$toToken).toBeUndefined()
+		expect(snapshot.$recipient).toBeUndefined()
+		expect(snapshot.$destinationTx).toBeUndefined()
+		expect(snapshot.exclusiveRelayer).toBeUndefined()
+	})
+
 	it('projects fill status, relayer, and destination hash from deposit lifecycle', async () => {
 		getDeposit.mockResolvedValue({
 			deposit,
