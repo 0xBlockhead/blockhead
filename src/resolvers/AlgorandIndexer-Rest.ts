@@ -872,8 +872,6 @@ export default {
 					resolve: async (algorandNetwork, context) => {
 						assertAlgorandMainnet(algorandNetwork)
 						const limit = Math.min(resolverContextRowLimit(context), 1_000)
-						if (limit === 0)
-							return []
 
 						const {
 							getHealth,
@@ -912,6 +910,7 @@ export default {
 						round,
 					},
 				})),
+				resolveCount: ({ tipRound }) => tipRound + 1n,
 				continuation: ({ rounds }) => {
 					const lastRound = rounds.at(-1)
 					if (lastRound == null || lastRound === 0n)

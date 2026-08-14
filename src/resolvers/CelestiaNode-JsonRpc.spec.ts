@@ -183,7 +183,7 @@ describe('CelestiaNode JsonRpc resolver', () => {
 		const blocks = await networkBlocksResolver.resolve.Network.resolve({
 			$network: network,
 		}, context)
-		expect(networkBlocksResolver.projections.$$blocks(blocks)).toEqual([
+		expect(networkBlocksResolver.projections.$$blocks.select(blocks)).toEqual([
 			{
 				[EntityMetaKey.Selector]: {
 					$network: celestiaNetwork,
@@ -224,7 +224,29 @@ describe('CelestiaNode JsonRpc resolver', () => {
 				},
 			},
 		])
+		expect(networkBlocksResolver.projections.$$blocks.continuation(blocks)).toEqual({
+			operation: 'network-blocks',
+			terminal: false,
+			token: '97',
+		})
 		expect(getHeaderByHeight).toHaveBeenCalledTimes(2)
+
+		getHeaderLocalHead.mockResolvedValueOnce(header)
+		const nextBlocks = await networkBlocksResolver.resolve.Network.resolve({
+			$network: network,
+		}, {
+			...context,
+			pagination: {
+				limit: 2,
+			},
+			providerContinuationToken: '97',
+		})
+		expect(networkBlocksResolver.projections.$$blocks.select(nextBlocks).map((block) => (
+			block[EntityMetaKey.Selector].height
+		))).toEqual([
+			97n,
+			96n,
+		])
 
 		const blocksCountResolver = celestiaNode.resolvers.find((resolver) => (
 			resolver.entityType === EntityType.CelestiaNetwork

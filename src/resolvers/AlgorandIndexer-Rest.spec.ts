@@ -688,6 +688,20 @@ describe('Algorand Indexer deepened resolvers', () => {
 			4n,
 			3n,
 		])
+		expect(roundsProjection.resolveCount(roundsPage)).toBe(6n)
+
+		getHealth.mockResolvedValueOnce({
+			round: 5,
+		})
+		const roundsCountSnapshot = await networkRoundsResolver.resolve.Network.resolve(network, {
+			...resolverContext,
+			pagination: {
+				limit: 0,
+			},
+			providerContinuationToken: undefined,
+		})
+		expect(roundsProjection.select(roundsCountSnapshot, network, resolverContext)).toEqual([])
+		expect(roundsProjection.resolveCount(roundsCountSnapshot)).toBe(6n)
 	})
 
 	it('pages native network accounts, assets, and applications as selector-only rows', async () => {

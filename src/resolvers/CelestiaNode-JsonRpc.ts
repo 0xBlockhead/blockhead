@@ -149,7 +149,9 @@ export default {
 						assertCelestiaMainnet($network)
 						const limit = resolverContextRowLimit(context)
 						if (limit === 0)
-							return []
+							return {
+								headers: [],
+							}
 
 						const {
 							getHeaderByHeight,
@@ -157,10 +159,23 @@ export default {
 						} = await import('$/sources/Celestia/JsonRpc/queries.ts')
 						const publicEnv = context.publicEnv
 						const localHead = await getHeaderLocalHead(publicEnv)
+						if (
+							context.providerContinuationToken != null
+							&& !/^[1-9][0-9]*$/.test(context.providerContinuationToken)
+						)
+							throw new Error(`${Source.CelestiaNode}: invalid blocks continuation`)
+
+						const cursorHeight = context.providerContinuationToken == null ?
+							localHead.height
+						:
+							BigInt(context.providerContinuationToken)
+						if (cursorHeight > localHead.height)
+							throw new Error(`${Source.CelestiaNode}: blocks continuation exceeds local head`)
+
 						const heights = Array.from({
-							length: Math.min(Number(localHead.height), limit),
+							length: Math.min(Number(cursorHeight), limit),
 						}, (_value, blockOffset) => (
-							localHead.height - BigInt(blockOffset)
+							cursorHeight - BigInt(blockOffset)
 						))
 						const headers = await Promise.all(
 							heights.map((height) => (
@@ -170,33 +185,47 @@ export default {
 									getHeaderByHeight(publicEnv, height)
 							))
 						)
-						return headers.map((header) => {
-							const fields = headerFields(header)
-							return {
-								[EntityMetaKey.Selector]: {
-									$network: {
-										$network,
+						return {
+							headers: headers.map((header) => {
+								const fields = headerFields(header)
+								return {
+									[EntityMetaKey.Selector]: {
+										$network: {
+											$network,
+										},
+										height: header.height,
 									},
-									height: header.height,
-								},
-								[EntityMetaKey.Fields]: {
-									[entityFieldAddressKey(EntityType.CelestiaBlock, [], 'hash')]: fields.hash,
-									...(fields.appHash != null && {
-										[entityFieldAddressKey(EntityType.CelestiaBlock, [], 'appHash')]: fields.appHash,
-									}),
-									...(fields.dataHash != null && {
-										[entityFieldAddressKey(EntityType.CelestiaBlock, [], 'dataHash')]: fields.dataHash,
-									}),
-									[entityFieldAddressKey(EntityType.CelestiaBlock, [], 'proposerAddress')]: fields.proposerAddress,
-									[entityFieldAddressKey(EntityType.CelestiaBlock, [], 'timestampMs')]: fields.timestampMs,
-								},
-							}
-						})
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.CelestiaBlock, [], 'hash')]: fields.hash,
+										...(fields.appHash != null && {
+											[entityFieldAddressKey(EntityType.CelestiaBlock, [], 'appHash')]: fields.appHash,
+										}),
+										...(fields.dataHash != null && {
+											[entityFieldAddressKey(EntityType.CelestiaBlock, [], 'dataHash')]: fields.dataHash,
+										}),
+										[entityFieldAddressKey(EntityType.CelestiaBlock, [], 'proposerAddress')]: fields.proposerAddress,
+										[entityFieldAddressKey(EntityType.CelestiaBlock, [], 'timestampMs')]: fields.timestampMs,
+									},
+								}
+							}),
+						}
 					},
 				},
 			},
 		})({
-			$$blocks: (blocks) => blocks,
+			$$blocks: {
+				select: (snapshot) => snapshot.headers,
+				continuation: (snapshot) => {
+					const lastHeight = snapshot.headers.at(-1)?.[EntityMetaKey.Selector].height
+					return {
+						operation: 'network-blocks',
+						terminal: lastHeight == null || lastHeight === 1n,
+						...(lastHeight != null && lastHeight > 1n && {
+							token: String(lastHeight - 1n),
+						}),
+					}
+				},
+			},
 		}),
 
 		defineResolver({
