@@ -12,6 +12,7 @@ import {
 	nostrArticleReferencesFromEvent,
 	nostrEventsNewestFirst,
 	nostrNoteFieldValues,
+	nostrNoteFieldValuesWithThreadTargets,
 	nostrNoteReference,
 	nostrProfileMetadataEventFieldValues,
 	nostrProfileMetadataEventReference,
@@ -156,7 +157,36 @@ export default {
 						const eventId = normalizeNostrEventId(event.id)
 						if (eventId == null || eventId !== eventIdSelector)
 							throw new Error('Primal_Rest: note event id mismatch')
-						return nostrNoteFieldValues(event)
+						const note = nostrNoteFieldValues(event)
+						const threadTargetIds = [...new Set(
+							[note.replyToEventId, note.rootEventId].filter((targetEventId) => targetEventId != null)
+						)]
+						const threadTargetsByEventId = new Map<string, NonNullable<ReturnType<typeof eventFromWire>>>()
+						for (const targetEventId of threadTargetIds) {
+							try {
+								const targetEvent = eventFromWire(await getEventById(targetEventId), {
+									eventId: targetEventId,
+									kinds: [1],
+								})
+								if (targetEvent?.kind === 1)
+									threadTargetsByEventId.set(targetEventId, targetEvent)
+							} catch {
+							}
+						}
+						return nostrNoteFieldValuesWithThreadTargets(note, {
+							replyToEvent: (
+								note.replyToEventId == null ?
+									undefined
+								:
+									threadTargetsByEventId.get(note.replyToEventId)
+							),
+							rootEvent: (
+								note.rootEventId == null ?
+									undefined
+								:
+									threadTargetsByEventId.get(note.rootEventId)
+							),
+						})
 					},
 				}
 			},

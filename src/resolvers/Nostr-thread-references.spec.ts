@@ -7,7 +7,7 @@ import {
 import { schnorr } from '@noble/curves/secp256k1.js'
 import * as Hex from 'ox/Hex'
 
-import { EntityMetaKey } from '$/schema/$schema.ts'
+import { EntityMetaKey, entityFieldAddressKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { nostrEventId } from '$/sources/NostrRelay/Nip01/event.ts'
 
@@ -235,9 +235,12 @@ describe('Nostr thread references', () => {
 			await expect(repostResolver.resolve['CanonicalEventId'].resolve({
 				eventId: genericRepost.id,
 			}, resolverContext)).resolves.toEqual(expect.objectContaining({
-				$repostedNote: {
+				$repostedNote: expect.objectContaining({
 					[EntityMetaKey.Selector]: { eventId: targetNote.id },
-				},
+					[EntityMetaKey.Fields]: expect.objectContaining({
+						[entityFieldAddressKey(EntityType.NostrNote, [], 'content')]: 'target note',
+					}),
+				}),
 			}))
 
 			const noteRepost = signedEvent([['e', targetNote.id]], 6, '')

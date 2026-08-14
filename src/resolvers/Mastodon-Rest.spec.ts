@@ -670,10 +670,26 @@ describe('Mastodon ActivityPub observations', () => {
 				remote_url: 'https://remote.example/files/image.png',
 			}],
 		}
+		const parentStatus = {
+			id: 'note-8',
+			uri: 'https://fosstodon.org/users/alice/statuses/note-8',
+			content: '<p>Parent note</p>',
+			created_at: '2026-07-16T11:00:00.000Z',
+			account: {
+				id: 'actor-17',
+				uri: 'https://mastodon.social/users/alice',
+				username: 'alice',
+				acct: 'alice@federation.example',
+			},
+		}
 		getStatus.mockImplementation(async (_binding, instanceOrigin, localStatusId) => {
-			if (instanceOrigin !== 'https://fosstodon.org' || localStatusId !== 'note-9')
+			if (instanceOrigin !== 'https://fosstodon.org')
 				throw new Error('unknown local note request')
-			return status
+			if (localStatusId === 'note-9')
+				return status
+			if (localStatusId === 'note-8')
+				return parentStatus
+			throw new Error('unknown local note request')
 		})
 		getStatusByActivityStreamsUri.mockImplementation(async (_binding, activityStreamsUri) => {
 			if (activityStreamsUri !== status.uri)
@@ -704,10 +720,14 @@ describe('Mastodon ActivityPub observations', () => {
 				[entityFieldAddressKey(EntityType.ActivityPubActor, [], '$icon')]: expect.any(Object),
 			},
 		})
-		expect(local.$inReplyTo).toEqual({
+		expect(local.$inReplyTo).toMatchObject({
 			[EntityMetaKey.Selector]: {
 				instanceOrigin: 'https://fosstodon.org',
 				localStatusId: 'note-8',
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.ActivityPubNote, [], 'content')]: '<p>Parent note</p>',
+				[entityFieldAddressKey(EntityType.ActivityPubNote, [], 'activityStreamsUri')]: 'https://fosstodon.org/users/alice/statuses/note-8',
 			},
 		})
 		expect(local.editedAt).toBe(1_784_205_000_000)
@@ -731,7 +751,7 @@ describe('Mastodon ActivityPub observations', () => {
 				url: 'https://remote.example/files/image.png',
 			},
 		})
-		expect(getStatus).toHaveBeenCalledTimes(1)
+		expect(getStatus).toHaveBeenCalledTimes(3)
 		expect(getStatusByActivityStreamsUri).toHaveBeenCalledTimes(1)
 		await expect(note.resolve['ActivityStreamsUri'].resolve({
 			activityStreamsUri: 'https://fosstodon.org/users/mallory/statuses/1',

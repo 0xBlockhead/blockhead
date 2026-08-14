@@ -228,6 +228,39 @@ export const bskyAppViewResolvers = (
 		}
 	}
 
+	const atprotoPostSnapshotFromPostView = async (
+		binding: Awaited<ReturnType<typeof resolverSourceBinding>>,
+		getPosts: Awaited<ReturnType<typeof loadQueries>>['getPosts'],
+		postView: BskyAppViewPostView
+	) => {
+		const fields = atprotoPostFieldsFromPostView(postView)
+		const parentUri = optionalNonemptyString(postView.record.reply?.parent?.uri)
+		const rootUri = optionalNonemptyString(postView.record.reply?.root?.uri)
+		const relatedUris = [...new Set(
+			[parentUri, rootUri].filter((uri) => uri != null)
+		)]
+		if (relatedUris.length === 0)
+			return fields
+
+		const relatedPostsByUri = new Map(
+			(await getPosts(binding, relatedUris)).posts.map((relatedPost) => [
+				relatedPost.uri,
+				relatedPost,
+			] as const)
+		)
+		const parentPost = parentUri == null ? undefined : relatedPostsByUri.get(parentUri)
+		const rootPost = rootUri == null ? undefined : relatedPostsByUri.get(rootUri)
+		return {
+			...fields,
+			...(parentPost != null && {
+				$parent: atprotoPostReferenceFromPostView(parentPost),
+			}),
+			...(rootPost != null && {
+				$root: atprotoPostReferenceFromPostView(rootPost),
+			}),
+		}
+	}
+
 	return {
 		source,
 
@@ -403,7 +436,7 @@ export const bskyAppViewResolvers = (
 						const [binding, { getPosts }] = await loadBindingAndQueries(context)
 						const postView = (await getPosts(binding, [uri])).posts.find((post) => post.uri === uri)
 						if (postView == null) throw new Error(`${source}: post not found`)
-						return atprotoPostFieldsFromPostView(postView)
+						return atprotoPostSnapshotFromPostView(binding, getPosts, postView)
 					},
 				}
 			},

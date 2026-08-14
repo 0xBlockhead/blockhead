@@ -185,6 +185,22 @@ export const nostrNoteFieldValues = (event: NostrEventEnvelope) => {
 	}
 }
 
+export const nostrNoteFieldValuesWithThreadTargets = (
+	note: ReturnType<typeof nostrNoteFieldValues>,
+	targets: {
+		replyToEvent?: NostrEventEnvelope
+		rootEvent?: NostrEventEnvelope
+	}
+) => ({
+	...note,
+	...(note.replyToEventId != null && targets.replyToEvent?.kind === 1 && {
+		$replyToNote: nostrNoteReference(targets.replyToEvent),
+	}),
+	...(note.rootEventId != null && targets.rootEvent?.kind === 1 && {
+		$rootNote: nostrNoteReference(targets.rootEvent),
+	}),
+})
+
 export const nostrNoteReference = (event: NostrEventEnvelope) => {
 	const note = nostrNoteFieldValues(event)
 	return {
@@ -319,14 +335,12 @@ export const nostrRepostFieldValuesWithTarget = (
 	repostValues: ReturnType<typeof nostrRepostFieldValues>,
 	targetEvent: NostrEventEnvelope | undefined
 ) => {
-	if (repostValues.kind === 6 || targetEvent == null)
+	if (targetEvent == null)
 		return repostValues
 	if (targetEvent.kind === 1)
 		return {
 			...repostValues,
-			$repostedNote: {
-				[EntityMetaKey.Selector]: { eventId: targetEvent.id },
-			},
+			$repostedNote: nostrNoteReference(targetEvent),
 		}
 	if (targetEvent.kind !== 30_023)
 		return repostValues
@@ -370,9 +384,7 @@ export const nostrReactionFieldValuesWithTarget = (
 	if (targetEvent?.kind === 1)
 		return {
 			...reactionValues,
-			$targetNote: {
-				[EntityMetaKey.Selector]: { eventId: targetEvent.id },
-			},
+			$targetNote: nostrNoteReference(targetEvent),
 		}
 	if (targetEvent?.kind !== 30_023)
 		return reactionValues

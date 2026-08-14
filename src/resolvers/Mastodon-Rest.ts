@@ -232,6 +232,46 @@ const activityPubNoteCardReferenceFromMastodonStatus = (
 	}
 }
 
+const activityPubNoteSnapshotFromMastodonStatus = async (
+	binding: NonNullable<ReturnType<typeof mastodonInstanceBindingByOrigin.get>>,
+	instanceOrigin: string,
+	status: MastodonApiV1Status
+) => {
+	const resolvedAtMs = Date.now()
+	const {
+		getStatus,
+	} = await import('$/sources/Mastodon/Rest/queries.ts')
+	const note = {
+		...activityPubNoteFieldsFromMastodonStatus(status, instanceOrigin),
+		$$timestamps: [
+			activityPubNoteTimestampReferenceFromMastodonStatus(
+				status,
+				resolvedAtMs
+			),
+		],
+	}
+	if (status.in_reply_to_id == null || status.in_reply_to_id === '')
+		return note
+
+	try {
+		const parentStatus = await getStatus(binding, instanceOrigin, String(status.in_reply_to_id))
+		const parentReference = activityPubNoteCardReferenceFromMastodonStatus(
+			parentStatus,
+			instanceOrigin,
+			resolvedAtMs
+		)
+		return parentReference == null ?
+			note
+		:
+			{
+				...note,
+				$inReplyTo: parentReference,
+			}
+	} catch {
+		return note
+	}
+}
+
 const activityPubActorFieldsFromMastodonAccount = (
 	account: MastodonApiV1Account,
 	instanceOrigin: string,
@@ -936,15 +976,7 @@ export default {
 						if (String(s.id) !== localStatusId)
 							throw new Error('Mastodon_Rest: ActivityPub note response does not match the local status subject')
 
-						return {
-							...activityPubNoteFieldsFromMastodonStatus(s, instanceOrigin),
-							$$timestamps: [
-								activityPubNoteTimestampReferenceFromMastodonStatus(
-									s,
-									Date.now()
-								),
-							],
-						}
+						return activityPubNoteSnapshotFromMastodonStatus(binding, instanceOrigin, s)
 					},
 				},
 				ActivityStreamsUri: {
@@ -959,15 +991,11 @@ export default {
 						if (s.uri !== activityStreamsUri)
 							throw new Error('Mastodon_Rest: ActivityPub note response does not match the ActivityStreams subject')
 
-						return {
-							...activityPubNoteFieldsFromMastodonStatus(s, new URL(activityStreamsUri).origin),
-							$$timestamps: [
-								activityPubNoteTimestampReferenceFromMastodonStatus(
-									s,
-									Date.now()
-								),
-							],
-						}
+						return activityPubNoteSnapshotFromMastodonStatus(
+							binding,
+							new URL(activityStreamsUri).origin,
+							s
+						)
 					},
 				},
 			},

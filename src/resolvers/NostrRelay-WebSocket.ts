@@ -12,6 +12,7 @@ import {
 	nostrArticleReferencesFromEvent,
 	nostrEventsNewestFirst,
 	nostrNoteFieldValues,
+	nostrNoteFieldValuesWithThreadTargets,
 	nostrNoteReference,
 	nostrProfileMetadataEventFieldValues,
 	nostrProfileMetadataEventReference,
@@ -328,7 +329,44 @@ export default {
 						const eventId = normalizeNostrEventId(String(event.id))
 						if (eventId == null || eventId !== eventIdSelector)
 							throw new Error('NostrRelay_WebSocket: note event id mismatch')
-						return nostrNoteFieldValues(event)
+						const note = nostrNoteFieldValues(event)
+						const threadTargetIds = [...new Set(
+							[note.replyToEventId, note.rootEventId].filter((targetEventId) => targetEventId != null)
+						)]
+						const threadTargetsByEventId = new Map<string, NonNullable<typeof event>>()
+						if (threadTargetIds.length > 0) {
+							try {
+								for (const [
+									targetEventId,
+									targetEvent,
+								] of validatedNostrEvents(
+									await listNostrRelayEvents({
+										filters: [{
+											ids: threadTargetIds,
+											kinds: [1],
+											limit: threadTargetIds.length,
+										}],
+									}),
+									{ kinds: [1] }
+								).map((targetEvent) => [targetEvent.id, targetEvent] as const))
+									threadTargetsByEventId.set(targetEventId, targetEvent)
+							} catch {
+							}
+						}
+						return nostrNoteFieldValuesWithThreadTargets(note, {
+							replyToEvent: (
+								note.replyToEventId == null ?
+									undefined
+								:
+									threadTargetsByEventId.get(note.replyToEventId)
+							),
+							rootEvent: (
+								note.rootEventId == null ?
+									undefined
+								:
+									threadTargetsByEventId.get(note.rootEventId)
+							),
+						})
 					},
 				},
 			},
