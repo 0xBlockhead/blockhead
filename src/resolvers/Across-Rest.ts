@@ -464,6 +464,7 @@ export default {
 							throw new Error(`Across_Rest: ${deposit.status} status has no authoritative observation clock`)
 						if (observedAtMs !== timestampMs)
 							throw new Error('Across_Rest: observation clock mismatch')
+						const fromNetwork = acrossEvmNetworkRef(deposit.originChainId)
 						const toNetwork = acrossEvmNetworkRef(deposit.destinationChainId)
 
 						const destinationTxHash = (
@@ -471,6 +472,12 @@ export default {
 								undefined
 							:
 								acrossEvmTxHash(deposit.fillTxnRef)
+						)
+						const refundTxHash = (
+							deposit.depositRefundTxnRef == null ?
+								undefined
+							:
+								acrossEvmTxHash(deposit.depositRefundTxnRef)
 						)
 						const relayer = (
 							deposit.relayer == null ?
@@ -480,8 +487,22 @@ export default {
 						)
 						if (deposit.fillTxnRef != null && toNetwork != null && destinationTxHash == null)
 							throw new Error('Across_Rest: invalid fill transaction hash')
+						if (deposit.depositRefundTxnRef != null && fromNetwork != null && refundTxHash == null)
+							throw new Error('Across_Rest: invalid refund transaction hash')
 						if (deposit.relayer != null && toNetwork != null && relayer == null)
 							throw new Error('Across_Rest: invalid relayer address')
+
+						const fillDeadlineMs = (
+							deposit.fillDeadline == null ?
+								undefined
+							:
+								Date.parse(deposit.fillDeadline)
+						)
+						if (
+							deposit.fillDeadline != null
+							&& !Number.isFinite(fillDeadlineMs)
+						)
+							throw new Error('Across_Rest: invalid fill deadline')
 
 						return {
 							$transfer: {
@@ -496,6 +517,17 @@ export default {
 							...(relayer != null && toNetwork != null && {
 								relayer,
 							}),
+							...(refundTxHash != null && fromNetwork != null && {
+								refundTxHash,
+							}),
+							...(
+								fillDeadlineMs != null
+								&& deposit.status !== 'filled'
+								&& deposit.status !== 'refunded'
+								&& {
+									estimatedCompletionMs: fillDeadlineMs,
+								}
+							),
 							...(deposit.fillGasFee != null && {
 								fillGasFee: BigInt(deposit.fillGasFee),
 							}),
