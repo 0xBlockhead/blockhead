@@ -372,7 +372,10 @@ export default {
 			sizeBytes: (block) => block.sizeBytes,
 			weightUnits: (block) => block.weightUnits,
 			transactionCount: (block) => block.transactionCount,
-			$$transactions: (block) => block.$$transactions,
+			$$transactions: {
+				select: (block) => block.$$transactions,
+				resolveCount: (block) => block.$$transactions.length,
+			},
 		}),
 
 		defineResolver({
@@ -475,8 +478,14 @@ export default {
 			weightUnits: (transaction) => transaction.weightUnits,
 			feeSats: (transaction) => transaction.feeSats,
 			isCoinbase: (transaction) => transaction.isCoinbase,
-			$$inputs: (transaction) => transaction.$$inputs,
-			$$outputs: (transaction) => transaction.$$outputs,
+			$$inputs: {
+				select: (transaction) => transaction.$$inputs,
+				resolveCount: (transaction) => transaction.$$inputs.length,
+			},
+			$$outputs: {
+				select: (transaction) => transaction.$$outputs,
+				resolveCount: (transaction) => transaction.$$outputs.length,
+			},
 		}),
 
 		defineResolver({

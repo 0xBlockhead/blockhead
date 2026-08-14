@@ -650,8 +650,14 @@ export default {
 				virtualSizeBytes: (snapshot) => snapshot.virtualSizeBytes,
 				feeSats: (snapshot) => snapshot.feeSats,
 				isCoinbase: (snapshot) => snapshot.isCoinbase,
-				$$inputs: (snapshot) => snapshot.$$inputs,
-				$$outputs: (snapshot) => snapshot.$$outputs,
+				$$inputs: {
+					select: (snapshot) => snapshot.$$inputs,
+					resolveCount: (snapshot) => snapshot.$$inputs.length,
+				},
+				$$outputs: {
+					select: (snapshot) => snapshot.$$outputs,
+					resolveCount: (snapshot) => snapshot.$$outputs.length,
+				},
 				$$bitcoinOrdinalInscriptions: (snapshot) => snapshot.$$bitcoinOrdinalInscriptions,
 				$$elementsPegs: (snapshot) => snapshot.$$elementsPegs,
 				$bitcoinRunestone: (snapshot) => snapshot.$bitcoinRunestone,

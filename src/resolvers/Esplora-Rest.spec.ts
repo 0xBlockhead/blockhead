@@ -343,7 +343,7 @@ describe('Esplora UTXO', () => {
 			txId,
 		}
 		const transaction = await transactionResolver.resolve.NetworkTxId.resolve(entitySelector, resolverContext)
-		expect(transactionResolver.projections.$$inputs(transaction)).toMatchObject([
+		expect(transactionResolver.projections.$$inputs.select(transaction)).toMatchObject([
 			{
 				[EntityMetaKey.Selector]: {
 					$transaction: entitySelector,
@@ -365,7 +365,8 @@ describe('Esplora UTXO', () => {
 				},
 			},
 		])
-		expect(transactionResolver.projections.$$outputs(transaction)).toMatchObject([
+		expect(transactionResolver.projections.$$inputs.resolveCount(transaction)).toBe(1)
+		expect(transactionResolver.projections.$$outputs.select(transaction)).toMatchObject([
 			{
 				[EntityMetaKey.Selector]: {
 					$transaction: entitySelector,
@@ -390,6 +391,7 @@ describe('Esplora UTXO', () => {
 				},
 			},
 		])
+		expect(transactionResolver.projections.$$outputs.resolveCount(transaction)).toBe(1)
 
 		const input = await inputResolver.resolve.TransactionIndexInTransaction.resolve({
 			$transaction: entitySelector,

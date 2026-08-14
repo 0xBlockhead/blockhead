@@ -303,18 +303,20 @@ describe('Zcashd transparent UTXO', () => {
 			entitySelector,
 			resolverContext
 		)
-		expect(transactionResolver.projections.$$inputs(transaction)).toEqual([{
+		expect(transactionResolver.projections.$$inputs.select(transaction)).toEqual([{
 			[EntityMetaKey.Selector]: {
 				$transaction: entitySelector,
 				indexInTransaction: 0,
 			},
 		}])
-		expect(transactionResolver.projections.$$outputs(transaction)).toEqual([{
+		expect(transactionResolver.projections.$$inputs.resolveCount(transaction)).toBe(1)
+		expect(transactionResolver.projections.$$outputs.select(transaction)).toEqual([{
 			[EntityMetaKey.Selector]: {
 				$transaction: entitySelector,
 				indexInTransaction: 0,
 			},
 		}])
+		expect(transactionResolver.projections.$$outputs.resolveCount(transaction)).toBe(1)
 		expect(transactionResolver.projections.isCoinbase(transaction)).toBe(false)
 	})
 
@@ -387,12 +389,13 @@ describe('Zcashd transparent UTXO', () => {
 		}, resolverContext)
 		expect(utxoBlockResolver.projections.hash(block)).toBe(blockHash)
 		expect(utxoBlockResolver.projections.timestampMs(block)).toBe(1_750_000_000_000)
-		expect(utxoBlockResolver.projections.$$transactions(block)).toEqual([{
+		expect(utxoBlockResolver.projections.$$transactions.select(block)).toEqual([{
 			[EntityMetaKey.Selector]: {
 				$network: network,
 				txId: 'd'.repeat(64),
 			},
 		}])
+		expect(utxoBlockResolver.projections.$$transactions.resolveCount(block)).toBe(1)
 
 		getBlockHash
 			.mockResolvedValueOnce('1'.repeat(64))

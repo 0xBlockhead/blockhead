@@ -330,7 +330,10 @@ export default {
 			sizeBytes: (snapshot) => snapshot.sizeBytes,
 			weightUnits: (snapshot) => snapshot.weightUnits,
 			transactionCount: (snapshot) => snapshot.transactionCount,
-			$$transactions: (snapshot) => snapshot.$$transactions,
+			$$transactions: {
+				select: (snapshot) => snapshot.$$transactions,
+				resolveCount: (snapshot) => snapshot.$$transactions.length,
+			},
 		}),
 
 		defineResolver({
@@ -429,8 +432,14 @@ export default {
 			sizeBytes: (snapshot) => snapshot.sizeBytes,
 			virtualSizeBytes: (snapshot) => snapshot.virtualSizeBytes,
 			isCoinbase: (snapshot) => snapshot.isCoinbase,
-			$$inputs: (snapshot) => snapshot.$$inputs,
-			$$outputs: (snapshot) => snapshot.$$outputs,
+			$$inputs: {
+				select: (snapshot) => snapshot.$$inputs,
+				resolveCount: (snapshot) => snapshot.$$inputs.length,
+			},
+			$$outputs: {
+				select: (snapshot) => snapshot.$$outputs,
+				resolveCount: (snapshot) => snapshot.$$outputs.length,
+			},
 			$$zcashShieldedActions: (snapshot) => snapshot.$$shieldedActions,
 		}),
 

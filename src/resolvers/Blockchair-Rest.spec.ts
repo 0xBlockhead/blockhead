@@ -456,7 +456,7 @@ describe('Blockchair Network selector applicability', () => {
 			},
 		})
 		expect(blockResolver.projections.transactionCount(heightSnapshot)).toBe(1)
-		expect(blockResolver.projections.$$transactions(heightSnapshot)).toEqual([{
+		expect(blockResolver.projections.$$transactions.select(heightSnapshot)).toEqual([{
 			[EntityMetaKey.Selector]: {
 				$network: network,
 				txId: dashboard.transactions[0].hash,
@@ -478,6 +478,7 @@ describe('Blockchair Network selector applicability', () => {
 				[entityFieldAddressKey(EntityType.UtxoTransaction, [], 'isCoinbase')]: false,
 			},
 		}])
+		expect(blockResolver.projections.$$transactions.resolveCount(heightSnapshot)).toBe(1)
 
 		const hashSelector = {
 			...heightSelector,
@@ -496,8 +497,8 @@ describe('Blockchair Network selector applicability', () => {
 			},
 		})
 		expect(blockResolver.projections.hash(hashSnapshot)).toBe(hashSelector.hash)
-		expect(blockResolver.projections.$$transactions(hashSnapshot)).toEqual(
-			blockResolver.projections.$$transactions(heightSnapshot)
+		expect(blockResolver.projections.$$transactions.select(hashSnapshot)).toEqual(
+			blockResolver.projections.$$transactions.select(heightSnapshot)
 		)
 	})
 
@@ -555,7 +556,7 @@ describe('Blockchair Network selector applicability', () => {
 		})
 		expect(transactionResolver.projections.version(snapshot)).toBe(2)
 		expect(transactionResolver.projections.virtualSizeBytes(snapshot)).toBe(2)
-		expect(transactionResolver.projections.$$inputs(snapshot)).toEqual([{
+		expect(transactionResolver.projections.$$inputs.select(snapshot)).toEqual([{
 			[EntityMetaKey.Selector]: {
 				$transaction: entitySelector,
 				indexInTransaction: 0,
@@ -575,7 +576,8 @@ describe('Blockchair Network selector applicability', () => {
 				[entityFieldAddressKey(EntityType.UtxoInput, [], 'witness')]: ['witness-stack'],
 			},
 		}])
-		expect(transactionResolver.projections.$$outputs(snapshot)).toEqual([
+		expect(transactionResolver.projections.$$inputs.resolveCount(snapshot)).toBe(1)
+		expect(transactionResolver.projections.$$outputs.select(snapshot)).toEqual([
 			{
 				[EntityMetaKey.Selector]: {
 					$transaction: entitySelector,
@@ -604,6 +606,7 @@ describe('Blockchair Network selector applicability', () => {
 				},
 			},
 		])
+		expect(transactionResolver.projections.$$outputs.resolveCount(snapshot)).toBe(2)
 	})
 
 	it('projects address transactions and unspent outputs from one dashboard response', async () => {
