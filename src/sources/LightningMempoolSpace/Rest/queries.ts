@@ -84,6 +84,13 @@ const assertChannel = (
 			throw new Error(`LightningMempoolSpace_Rest: invalid ${label}`)
 	if (channel.fee_rate != null && (!Number.isFinite(channel.fee_rate) || channel.fee_rate < 0))
 		throw new Error('LightningMempoolSpace_Rest: invalid channel fee rate')
+	for (const [label, node] of [
+		['node_left fee rate', channel.node_left],
+		['node_right fee rate', channel.node_right],
+		['peer fee rate', channel.node],
+	] as const)
+		if (node?.fee_rate != null && (!Number.isFinite(node.fee_rate) || node.fee_rate < 0))
+			throw new Error(`LightningMempoolSpace_Rest: invalid ${label}`)
 }
 
 export const getLightningStatistics = async (

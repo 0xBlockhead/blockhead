@@ -372,14 +372,82 @@ describe('mempool.space public Lightning graph queries', () => {
 						timestampMs: Date.parse(updatedAt),
 						source: Source.LightningMempoolSpace_Rest,
 					}),
-					[EntityMetaKey.Fields]: expect.objectContaining({
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'status')]: 'Open',
 						[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'capacitySats')]: 250000n,
-						[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'feeRatePpm')]: 125,
-					}),
+						[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'updatedAtMs')]: Date.parse(updatedAt),
+					},
 				})],
 			}),
 		}])
 		expect(sourceGetJson).toHaveBeenCalledTimes(1)
+	})
+
+	it('keeps channel feeRatePpm only when both directional policies agree', async () => {
+		const updatedAt = '2026-07-23T05:09:40.000Z'
+		const agreedChannel = {
+			id: '42',
+			updated_at: updatedAt,
+			status: 1,
+			capacity: '250000',
+			fee_rate: 999,
+			node_left: {
+				public_key: publicKey,
+				fee_rate: 125,
+			},
+			node_right: {
+				public_key: peerPublicKey,
+				fee_rate: 125,
+			},
+		}
+		sourceGetJson.mockResolvedValueOnce(agreedChannel)
+		await expect(channelTimestampResolver.resolve.ChannelTimestampMsSource.resolve({
+			$channel: {
+				$network: {
+					slug: 'lightning',
+				},
+				channelId: '42',
+			},
+			timestampMs: Date.parse(updatedAt),
+			source: Source.LightningMempoolSpace_Rest,
+		})).resolves.toMatchObject({
+			capacitySats: 250000n,
+			feeRatePpm: 125,
+		})
+
+		sourceGetJson.mockResolvedValueOnce({
+			...agreedChannel,
+			node_right: {
+				public_key: peerPublicKey,
+				fee_rate: 400,
+			},
+		})
+		await expect(channelTimestampResolver.resolve.ChannelTimestampMsSource.resolve({
+			$channel: {
+				$network: {
+					slug: 'lightning',
+				},
+				channelId: '42',
+			},
+			timestampMs: Date.parse(updatedAt),
+			source: Source.LightningMempoolSpace_Rest,
+		})).resolves.toMatchObject({
+			capacitySats: 250000n,
+			feeRatePpm: undefined,
+		})
+	})
+
+	it('rejects invalid directional fee rates at the source boundary', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			id: '42',
+			node_left: {
+				public_key: publicKey,
+				fee_rate: Number.NaN,
+			},
+		})
+		await expect(getLightningChannel({
+			channelId: '42',
+		})).rejects.toThrow('invalid node_left fee rate')
 	})
 
 	it('rejects invalid provider clocks and fee rates at the source boundary', async () => {

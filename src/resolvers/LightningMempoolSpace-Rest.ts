@@ -126,6 +126,21 @@ const channelSnapshotFromMempoolSpaceChannel = (
 	}
 }
 
+const agreedChannelFeeRatePpm = (
+	nodeLeft: MempoolSpaceLightningChannelNode | null | undefined,
+	nodeRight: MempoolSpaceLightningChannelNode | null | undefined
+) => {
+	if (nodeLeft == null || nodeRight == null)
+		return
+
+	const leftFeeRate = nodeLeft.fee_rate
+	const rightFeeRate = nodeRight.fee_rate
+	if (leftFeeRate == null || rightFeeRate == null || leftFeeRate !== rightFeeRate)
+		return
+
+	return leftFeeRate
+}
+
 const channelTimestampSnapshotFromMempoolSpaceChannel = (
 	channel: MempoolSpaceLightningChannel
 ) => ({
@@ -136,7 +151,7 @@ const channelTimestampSnapshotFromMempoolSpaceChannel = (
 	closingReason: channel.closing_reason == null ? undefined : String(channel.closing_reason),
 	closedAtMs: timestampMsFromIso(channel.closing_date),
 	updatedAtMs: timestampMsFromIso(channel.updated_at),
-	feeRatePpm: channel.fee_rate ?? undefined,
+	feeRatePpm: agreedChannelFeeRatePpm(channel.node_left, channel.node_right),
 })
 
 const timestampSnapshotFromMempoolSpaceStatistics = (
