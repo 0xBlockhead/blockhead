@@ -101,9 +101,14 @@ const assertBidTracesForQuery = (
 		)
 			throw new Error(`MevRelay_Rest: ${path} BidTrace builder_pubkey does not match query`)
 
-		const identity = `${bidTrace.slot}/${bidTrace.block_hash.toLowerCase()}/${bidTrace.builder_pubkey.toLowerCase()}`
+		const identity = (
+			path === 'proposer_payload_delivered' ?
+				`${bidTrace.slot}/${bidTrace.block_hash.toLowerCase()}`
+			:
+				`${bidTrace.slot}/${bidTrace.block_hash.toLowerCase()}/${bidTrace.builder_pubkey.toLowerCase()}`
+		)
 		if (seenIdentities.has(identity))
-			throw new Error(`MevRelay_Rest: ${path} BidTrace list contains duplicate identities`)
+			throw new Error(`MevRelay_Rest: ${path} BidTrace list contains selector collisions`)
 		seenIdentities.add(identity)
 	}
 

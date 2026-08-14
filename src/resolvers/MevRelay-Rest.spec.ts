@@ -135,7 +135,7 @@ describe('MevRelay REST resolvers', () => {
 		}, context)
 
 		expect(getProposerPayloadDeliveredForRelayHost).toHaveBeenCalledWith('boost-relay.flashbots.net', {
-			limit: 1,
+			limit: 2,
 			slot: 14917871,
 			block_hash: bidTrace.block_hash,
 		})
@@ -158,7 +158,24 @@ describe('MevRelay REST resolvers', () => {
 		})
 	})
 
-	it('resolves relay-received builder bids with native lifecycle and execution relationships', async () => {
+	it('rejects conflicting proposer reports instead of choosing one builder attribution', async () => {
+		getProposerPayloadDeliveredForRelayHost.mockResolvedValueOnce([
+			bidTrace,
+			{
+				...bidTrace,
+				builder_pubkey: `0x${'00'.repeat(47)}01`,
+			},
+		])
+
+		await expect(payloadResolver.resolve.EvmNetworkRelayHostSlotBlockHash.resolve({
+			$network: network,
+			relayHost: 'boost-relay.flashbots.net',
+			slot: 14917871,
+			blockHash: bidTrace.block_hash,
+		}, context)).rejects.toThrow('proposer payload selector is ambiguous')
+	})
+
+	it('resolves one relay-received builder bid with native report facts', async () => {
 		getBuilderBlocksReceivedForRelayHost.mockResolvedValueOnce([builderTipBidTrace])
 
 		const snapshot = await receivedBidResolver.resolve.EvmNetworkRelayHostSlotBlockHashBuilderPubkey.resolve({
@@ -170,7 +187,7 @@ describe('MevRelay REST resolvers', () => {
 		}, context)
 
 		expect(getBuilderBlocksReceivedForRelayHost).toHaveBeenCalledWith('boost-relay.flashbots.net', {
-			limit: 1,
+			limit: 2,
 			slot: 14917871,
 			block_hash: bidTrace.block_hash,
 			builder_pubkey: bidTrace.builder_pubkey,
@@ -183,6 +200,24 @@ describe('MevRelay REST resolvers', () => {
 		})
 		expect(snapshot[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.MevRelay_BuilderBlockReceived, [], '$executionBlock')]).toBeUndefined()
 		expect(receivedBidResolver.projections.$executionBlock(snapshot)).toBeUndefined()
+	})
+
+	it('rejects a received-bid selector collision instead of choosing one relay receipt', async () => {
+		getBuilderBlocksReceivedForRelayHost.mockResolvedValueOnce([
+			builderTipBidTrace,
+			{
+				...builderTipBidTrace,
+				timestamp_ms: '1786068803856',
+			},
+		])
+
+		await expect(receivedBidResolver.resolve.EvmNetworkRelayHostSlotBlockHashBuilderPubkey.resolve({
+			$network: network,
+			relayHost: 'boost-relay.flashbots.net',
+			slot: 14917871,
+			blockHash: bidTrace.block_hash,
+			builderPubkey: bidTrace.builder_pubkey,
+		}, context)).rejects.toThrow('received builder block selector is ambiguous without receipt time')
 	})
 
 	it('connects builder and network received-bid journeys to source-filtered relay reads', async () => {

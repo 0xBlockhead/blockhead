@@ -142,14 +142,17 @@ export default {
 				EvmNetworkRelayHostSlotBlockHashBuilderPubkey: {
 					resolve: async (entitySelector) => {
 						const { getBuilderBlocksReceivedForRelayHost } = await import('$/sources/MevRelay/Rest/queries.ts')
-						const bid = (await getBuilderBlocksReceivedForRelayHost(entitySelector.relayHost, {
-							limit: 1,
+						const bids = await getBuilderBlocksReceivedForRelayHost(entitySelector.relayHost, {
+							limit: 2,
 							slot: entitySelector.slot,
 							block_hash: entitySelector.blockHash,
 							builder_pubkey: entitySelector.builderPubkey,
-						})).at(0)
+						})
+						const bid = bids.at(0)
 						if (bid == null)
 							throw new Error('MevRelay_Rest: received builder block not found')
+						if (bids.length > 1)
+							throw new Error('MevRelay_Rest: received builder block selector is ambiguous without receipt time')
 
 						return receivedBidReference(entitySelector.$network, entitySelector.relayHost, bid)
 					},
@@ -179,13 +182,16 @@ export default {
 						if (wantHash == null) throw new Error('MevRelay_Rest: invalid block hash in entity selector')
 
 						const { getProposerPayloadDeliveredForRelayHost } = await import('$/sources/MevRelay/Rest/queries.ts')
-						const payload = (await getProposerPayloadDeliveredForRelayHost(entitySelector.relayHost, {
-							limit: 1,
+						const payloads = await getProposerPayloadDeliveredForRelayHost(entitySelector.relayHost, {
+							limit: 2,
 							slot: entitySelector.slot,
 							block_hash: wantHash,
-						})).at(0)
+						})
+						const payload = payloads.at(0)
 						if (payload == null)
 							throw new Error('MevRelay_Rest: proposer payload not found')
+						if (payloads.length > 1)
+							throw new Error('MevRelay_Rest: proposer payload selector is ambiguous')
 
 						const blockNumber = parsePayloadBlockNumber(payload)
 						const valueWei = parsePayloadValueWei(payload)

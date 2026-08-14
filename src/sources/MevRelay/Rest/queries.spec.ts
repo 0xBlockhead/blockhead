@@ -216,14 +216,30 @@ describe('MevRelay REST bidtrace queries', () => {
 		})).rejects.toThrow('MevRelay_Rest: proposer_payload_delivered BidTrace slot does not match query')
 	})
 
-	it('fail-closes proposer_payload_delivered rows with duplicate identities', async () => {
+	it('fail-closes proposer_payload_delivered rows with selector collisions', async () => {
 		const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(jsonResponse([bidTrace, bidTrace]))
 		vi.stubGlobal('fetch', fetchMock)
 		vi.stubGlobal('window', {})
 
 		await expect(getProposerPayloadDeliveredForRelayHost('boost-relay.flashbots.net', {
 			limit: 2,
-		})).rejects.toThrow('MevRelay_Rest: proposer_payload_delivered BidTrace list contains duplicate identities')
+		})).rejects.toThrow('MevRelay_Rest: proposer_payload_delivered BidTrace list contains selector collisions')
+	})
+
+	it('fail-closes conflicting proposer builder attribution for one delivered payload', async () => {
+		const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(jsonResponse([
+			bidTrace,
+			{
+				...bidTrace,
+				builder_pubkey: `0x${'00'.repeat(47)}01`,
+			},
+		]))
+		vi.stubGlobal('fetch', fetchMock)
+		vi.stubGlobal('window', {})
+
+		await expect(getProposerPayloadDeliveredForRelayHost('boost-relay.flashbots.net', {
+			limit: 2,
+		})).rejects.toThrow('MevRelay_Rest: proposer_payload_delivered BidTrace list contains selector collisions')
 	})
 
 	it('fail-closes builder_blocks_received rows that do not match the requested builder_pubkey', async () => {
@@ -240,7 +256,7 @@ describe('MevRelay REST bidtrace queries', () => {
 		})).rejects.toThrow('MevRelay_Rest: builder_blocks_received BidTrace builder_pubkey does not match query')
 	})
 
-	it('fail-closes builder_blocks_received rows with duplicate identities', async () => {
+	it('fail-closes builder_blocks_received rows with selector collisions', async () => {
 		const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(jsonResponse([builderTipBidTrace, builderTipBidTrace]))
 		vi.stubGlobal('fetch', fetchMock)
 		vi.stubGlobal('window', {})
@@ -248,6 +264,6 @@ describe('MevRelay REST bidtrace queries', () => {
 		await expect(getBuilderBlocksReceivedForRelayHost('boost-relay.flashbots.net', {
 			limit: 2,
 			builder_pubkey: bidTrace.builder_pubkey,
-		})).rejects.toThrow('MevRelay_Rest: builder_blocks_received BidTrace list contains duplicate identities')
+		})).rejects.toThrow('MevRelay_Rest: builder_blocks_received BidTrace list contains selector collisions')
 	})
 })
