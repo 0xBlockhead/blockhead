@@ -45,6 +45,9 @@
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
+	import BeaconExecutionDepositRequestsView from '$/views/BeaconExecutionDepositRequestsView.svelte'
+	import BeaconExecutionWithdrawalRequestsView from '$/views/BeaconExecutionWithdrawalRequestsView.svelte'
+	import BeaconExecutionConsolidationRequestsView from '$/views/BeaconExecutionConsolidationRequestsView.svelte'
 	import BeaconExecutionPayloadEnvelope_TimestampsView from '$/views/BeaconExecutionPayloadEnvelope_TimestampsView.svelte'
 	import BeaconBlockView from '$/views/BeaconBlockView.svelte'
 	import BeaconExecutionPayloadBidView from '$/views/BeaconExecutionPayloadBidView.svelte'
@@ -439,6 +442,51 @@
 	{/snippet}
 
 	{#snippet Details()}
+		{@const depositRequestsResource = selection.$$depositRequests}
+		<ResourceBoundary
+			resource={depositRequestsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<BeaconExecutionDepositRequestsView
+						selection={depositRequestsResource}
+						countResource={depositRequestsResource.count}
+						title='Deposit requests'
+						id='deposit-requests'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+		{@const withdrawalRequestsResource = selection.$$withdrawalRequests}
+		<ResourceBoundary
+			resource={withdrawalRequestsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<BeaconExecutionWithdrawalRequestsView
+						selection={withdrawalRequestsResource}
+						countResource={withdrawalRequestsResource.count}
+						title='Withdrawal requests'
+						id='withdrawal-requests'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+		{@const consolidationRequestsResource = selection.$$consolidationRequests}
+		<ResourceBoundary
+			resource={consolidationRequestsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<BeaconExecutionConsolidationRequestsView
+						selection={consolidationRequestsResource}
+						countResource={consolidationRequestsResource.count}
+						title='Consolidation requests'
+						id='consolidation-requests'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
 			resource={timestampsResource}

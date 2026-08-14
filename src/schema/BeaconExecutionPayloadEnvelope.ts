@@ -83,6 +83,27 @@ export default entity({
 		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.One,
 	},
+	$$depositRequests: {
+		entityType: EntityType.BeaconExecutionDepositRequest,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Beacon_Rest,
+		],
+	},
+	$$withdrawalRequests: {
+		entityType: EntityType.BeaconExecutionWithdrawalRequest,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Beacon_Rest,
+		],
+	},
+	$$consolidationRequests: {
+		entityType: EntityType.BeaconExecutionConsolidationRequest,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Beacon_Rest,
+		],
+	},
 	$$timestamps: {
 		entityType: EntityType.BeaconExecutionPayloadEnvelope_Timestamp,
 		cardinality: EntityFieldCardinality.Many,

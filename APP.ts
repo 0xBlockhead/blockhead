@@ -864,9 +864,12 @@ export enum EntityType {
 	BeaconDataColumn_Timestamp = "BeaconDataColumn_Timestamp",
 	BeaconDeposit = "BeaconDeposit",
 	BeaconEpoch = "BeaconEpoch",
+	BeaconExecutionConsolidationRequest = "BeaconExecutionConsolidationRequest",
+	BeaconExecutionDepositRequest = "BeaconExecutionDepositRequest",
 	BeaconExecutionPayloadBid = "BeaconExecutionPayloadBid",
 	BeaconExecutionPayloadEnvelope = "BeaconExecutionPayloadEnvelope",
 	BeaconExecutionPayloadEnvelope_Timestamp = "BeaconExecutionPayloadEnvelope_Timestamp",
+	BeaconExecutionWithdrawalRequest = "BeaconExecutionWithdrawalRequest",
 	BeaconSlashing = "BeaconSlashing",
 	BeaconSlot = "BeaconSlot",
 	BeaconSyncCommittee = "BeaconSyncCommittee",
@@ -10947,6 +10950,61 @@ export const schema = {
 			}),
 
 			entity({
+				entityType: EntityType.BeaconExecutionConsolidationRequest,
+				labels: {
+					singular: "Beacon execution consolidation request",
+					plural: "Beacon execution consolidation requests",
+				},
+				description: "A consolidation request carried by one delivered Gloas execution payload envelope.",
+			})({
+				"$envelope": { label: "Envelope", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.BeaconExecutionPayloadEnvelope },
+				"indexInEnvelope": { label: "Index in envelope", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
+				"sourceAddress": { label: "Source address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "evmAddress" },
+				"sourcePubkey": { label: "Source validator public key", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "zeroExHex" },
+				"targetPubkey": { label: "Target validator public key", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "zeroExHex" },
+			})({
+				selectors: {
+					"EnvelopeIndexInEnvelope": ["$envelope", "indexInEnvelope"],
+				},
+				views: {
+					singular: {
+						query: { sources: [Source.Beacon_Rest] },
+						summary: { serial: { field: "indexInEnvelope", label: "Consolidation request" }, HeadingAfter: ["$envelope"] },
+						content: { dl: [["$envelope", { field: "indexInEnvelope", format: "number" }, { field: "sourceAddress", format: "address" }], [{ field: "sourcePubkey", format: "truncated" }, { field: "targetPubkey", format: "truncated" }]] },
+					},
+					plural: { component: "BeaconExecutionConsolidationRequestsView", title: "Beacon execution consolidation requests" },
+				},
+			}),
+
+			entity({
+				entityType: EntityType.BeaconExecutionDepositRequest,
+				labels: {
+					singular: "Beacon execution deposit request",
+					plural: "Beacon execution deposit requests",
+				},
+				description: "A deposit request carried by one delivered Gloas execution payload envelope.",
+			})({
+				"$envelope": { label: "Envelope", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.BeaconExecutionPayloadEnvelope },
+				"requestIndex": { label: "Request index", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "bigint" },
+				"pubkey": { label: "Validator public key", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "zeroExHex" },
+				"withdrawalCredentials": { label: "Withdrawal credentials", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "zeroExHex" },
+				"amountGwei": { label: "Amount", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "bigint" },
+				"signature": { label: "Signature", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "zeroExHex" },
+			})({
+				selectors: {
+					"EnvelopeRequestIndex": ["$envelope", "requestIndex"],
+				},
+				views: {
+					singular: {
+						query: { sources: [Source.Beacon_Rest] },
+						summary: { title: [{ field: "requestIndex", format: "numberValue", prefix: "Deposit request " }], value: [{ field: "amountGwei", format: "numberValue", suffix: " Gwei" }], HeadingAfter: ["$envelope"] },
+						content: { dl: [["$envelope", { field: "requestIndex", format: "numberValue" }, { field: "amountGwei", format: "numberValue", suffix: " Gwei" }], [{ field: "pubkey", format: "truncated" }, { field: "withdrawalCredentials", format: "truncated" }, { field: "signature", format: "truncated" }]] },
+					},
+					plural: { component: "BeaconExecutionDepositRequestsView", title: "Beacon execution deposit requests" },
+				},
+			}),
+
+			entity({
 				entityType: EntityType.BeaconExecutionPayloadBid,
 				labels: {
 					singular: "Beacon execution payload bid",
@@ -11005,6 +11063,9 @@ export const schema = {
 				"excessBlobGas": { label: "Excess blob gas", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "bigint" },
 				"blockAccessList": { label: "Block access list", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "zeroExHex" },
 				"transactionCount": { label: "Transaction count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
+				"$$depositRequests": { label: "Deposit requests", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BeaconExecutionDepositRequest, defaultSources: [Source.Beacon_Rest] },
+				"$$withdrawalRequests": { label: "Withdrawal requests", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BeaconExecutionWithdrawalRequest, defaultSources: [Source.Beacon_Rest] },
+				"$$consolidationRequests": { label: "Consolidation requests", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BeaconExecutionConsolidationRequest, defaultSources: [Source.Beacon_Rest] },
 				"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BeaconExecutionPayloadEnvelope_Timestamp, defaultSources: [Source.Beacon_Rest] },
 			})({
 				selectors: {
@@ -11014,7 +11075,7 @@ export const schema = {
 					singular: {
 						query: { sources: [Source.Beacon_Rest] },
 						summary: { title: [{ field: "blockNumber", format: "numberValue", prefix: "Execution block " }], value: [{ field: "transactionCount", format: "number", suffix: " transactions" }], HeadingAfter: ["$beaconBlock"] },
-						content: { dl: [["$beaconBlock", "$bid", "$executionBlock", "$parentExecutionBlock"], [{ field: "builderIndex", format: "number" }, { field: "blockNumber", format: "numberValue" }, { field: "slotNumber", format: "number" }, { field: "executionTimestampMs", format: "timestamp" }], [{ field: "feeRecipient", format: "address" }, { field: "gasLimit", format: "numberValue" }, { field: "gasUsed", format: "numberValue" }, { field: "baseFeePerGas", format: "numberValue" }], [{ field: "blobGasUsed", format: "numberValue" }, { field: "excessBlobGas", format: "numberValue" }, { field: "transactionCount", format: "number" }], [{ field: "blockAccessList", format: "truncated" }, { field: "signature", format: "truncated" }]], lists: [{ field: "$$timestamps", component: "BeaconExecutionPayloadEnvelope_TimestampsView", label: "Observations" }] },
+						content: { dl: [["$beaconBlock", "$bid", "$executionBlock", "$parentExecutionBlock"], [{ field: "builderIndex", format: "number" }, { field: "blockNumber", format: "numberValue" }, { field: "slotNumber", format: "number" }, { field: "executionTimestampMs", format: "timestamp" }], [{ field: "feeRecipient", format: "address" }, { field: "gasLimit", format: "numberValue" }, { field: "gasUsed", format: "numberValue" }, { field: "baseFeePerGas", format: "numberValue" }], [{ field: "blobGasUsed", format: "numberValue" }, { field: "excessBlobGas", format: "numberValue" }, { field: "transactionCount", format: "number" }], [{ field: "blockAccessList", format: "truncated" }, { field: "signature", format: "truncated" }]], lists: [{ field: "$$depositRequests", component: "BeaconExecutionDepositRequestsView", label: "Deposit requests" }, { field: "$$withdrawalRequests", component: "BeaconExecutionWithdrawalRequestsView", label: "Withdrawal requests" }, { field: "$$consolidationRequests", component: "BeaconExecutionConsolidationRequestsView", label: "Consolidation requests" }, { field: "$$timestamps", component: "BeaconExecutionPayloadEnvelope_TimestampsView", label: "Observations" }] },
 					},
 					plural: { component: "BeaconExecutionPayloadEnvelopesView", title: "Beacon execution payload envelopes" },
 				},
@@ -11043,6 +11104,33 @@ export const schema = {
 						content: { dl: [["$envelope", { field: "timestampMs", format: "timestamp" }, "source", "executionOptimistic", "finalized"]] },
 					},
 					plural: { component: "BeaconExecutionPayloadEnvelope_TimestampsView", title: "Beacon execution payload envelope observations" },
+				},
+			}),
+
+			entity({
+				entityType: EntityType.BeaconExecutionWithdrawalRequest,
+				labels: {
+					singular: "Beacon execution withdrawal request",
+					plural: "Beacon execution withdrawal requests",
+				},
+				description: "A withdrawal request carried by one delivered Gloas execution payload envelope.",
+			})({
+				"$envelope": { label: "Envelope", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.BeaconExecutionPayloadEnvelope },
+				"indexInEnvelope": { label: "Index in envelope", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
+				"sourceAddress": { label: "Source address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "evmAddress" },
+				"validatorPubkey": { label: "Validator public key", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "zeroExHex" },
+				"amountGwei": { label: "Amount", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "bigint" },
+			})({
+				selectors: {
+					"EnvelopeIndexInEnvelope": ["$envelope", "indexInEnvelope"],
+				},
+				views: {
+					singular: {
+						query: { sources: [Source.Beacon_Rest] },
+						summary: { serial: { field: "indexInEnvelope", label: "Withdrawal request" }, value: [{ field: "amountGwei", format: "numberValue", suffix: " Gwei" }], HeadingAfter: ["$envelope"] },
+						content: { dl: [["$envelope", { field: "indexInEnvelope", format: "number" }, { field: "sourceAddress", format: "address" }], [{ field: "validatorPubkey", format: "truncated" }, { field: "amountGwei", format: "numberValue", suffix: " Gwei" }]] },
+					},
+					plural: { component: "BeaconExecutionWithdrawalRequestsView", title: "Beacon execution withdrawal requests" },
 				},
 			}),
 
@@ -79918,6 +80006,30 @@ export const routes = defineRoutes(schema)({
 																}
 															},
 															children: {
+																"consolidation-request": {
+																	children: {
+																		"[indexInEnvelope]": {
+																			params: { "indexInEnvelope": ["NonNegativeInteger"] },
+																			selectors: {
+																				[EntityType.BeaconExecutionConsolidationRequest]: {
+																					"EnvelopeIndexInEnvelope": { derivations: { "indexInEnvelope": { kind: "param", name: "indexInEnvelope" } }, page: {} }
+																				}
+																			}
+																		}
+																	}
+																},
+																"deposit-request": {
+																	children: {
+																		"[requestIndex]": {
+																			params: { "requestIndex": ["NonNegativeBigInt"] },
+																			selectors: {
+																				[EntityType.BeaconExecutionDepositRequest]: {
+																					"EnvelopeRequestIndex": { derivations: { "requestIndex": { kind: "param", name: "requestIndex" } }, page: {} }
+																				}
+																			}
+																		}
+																	}
+																},
 																"observation": {
 																	children: {
 																		"[timestampMs]": {
@@ -79931,6 +80043,18 @@ export const routes = defineRoutes(schema)({
 																							}
 																						}
 																					}
+																				}
+																			}
+																		}
+																	}
+																},
+																"withdrawal-request": {
+																	children: {
+																		"[indexInEnvelope]": {
+																			params: { "indexInEnvelope": ["NonNegativeInteger"] },
+																			selectors: {
+																				[EntityType.BeaconExecutionWithdrawalRequest]: {
+																					"EnvelopeIndexInEnvelope": { derivations: { "indexInEnvelope": { kind: "param", name: "indexInEnvelope" } }, page: {} }
 																				}
 																			}
 																		}

@@ -150,6 +150,15 @@ const executionPayloadBidResolver = beaconRest.resolvers.find((resolver) => (
 const executionPayloadEnvelopeResolver = beaconRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.BeaconExecutionPayloadEnvelope
 ))
+const executionConsolidationRequestResolver = beaconRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.BeaconExecutionConsolidationRequest
+))
+const executionDepositRequestResolver = beaconRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.BeaconExecutionDepositRequest
+))
+const executionWithdrawalRequestResolver = beaconRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.BeaconExecutionWithdrawalRequest
+))
 const headSlotResolver = beaconRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.Network
 	&& 'Evm' in resolver.projections
@@ -198,6 +207,9 @@ if (
 	|| beaconBlockResolver == null
 	|| executionPayloadBidResolver == null
 	|| executionPayloadEnvelopeResolver == null
+	|| executionConsolidationRequestResolver == null
+	|| executionDepositRequestResolver == null
+	|| executionWithdrawalRequestResolver == null
 	|| headSlotResolver == null
 	|| epochSlotsResolver == null
 	|| committeesListResolver == null
@@ -847,9 +859,23 @@ describe('Beacon REST checkpoint and fork projections', () => {
 			blockAccessList: '0x1234',
 			transactionCount: 2,
 			executionRequests: {
-				deposits: [],
-				withdrawals: [],
-				consolidations: [],
+				deposits: [{
+					pubkey: `0x${'9'.repeat(96)}`,
+					withdrawalCredentials: `0x${'a'.repeat(64)}`,
+					amountGwei: 32_000_000_000n,
+					signature: `0x${'b'.repeat(192)}`,
+					requestIndex: 41n,
+				}],
+				withdrawals: [{
+					sourceAddress: `0x${'c'.repeat(40)}`,
+					validatorPubkey: `0x${'d'.repeat(96)}`,
+					amountGwei: 1_000_000_000n,
+				}],
+				consolidations: [{
+					sourceAddress: `0x${'e'.repeat(40)}`,
+					sourcePubkey: `0x${'f'.repeat(96)}`,
+					targetPubkey: `0x${'0'.repeat(96)}`,
+				}],
 			},
 		}
 		getExecutionPayloadEnvelope.mockResolvedValue(executionPayloadEnvelope)
@@ -881,6 +907,21 @@ describe('Beacon REST checkpoint and fork projections', () => {
 					hash: `0x${'2'.repeat(64)}`,
 				},
 			},
+			$$consolidationRequests: [{
+				[EntityMetaKey.Selector]: {
+					indexInEnvelope: 0,
+				},
+			}],
+			$$depositRequests: [{
+				[EntityMetaKey.Selector]: {
+					requestIndex: 41n,
+				},
+			}],
+			$$withdrawalRequests: [{
+				[EntityMetaKey.Selector]: {
+					indexInEnvelope: 0,
+				},
+			}],
 		})
 		expect(envelope.$$timestamps[0]).toMatchObject({
 			[EntityMetaKey.Selector]: {
@@ -891,6 +932,31 @@ describe('Beacon REST checkpoint and fork projections', () => {
 				[entityFieldAddressKey(EntityType.BeaconExecutionPayloadEnvelope_Timestamp, [], 'finalized')]: true,
 			},
 		})
+		await expect(executionConsolidationRequestResolver.resolve.EnvelopeIndexInEnvelope.resolve({
+			$envelope: { $beaconBlock: beaconBlockSelector },
+			indexInEnvelope: 0,
+		})).resolves.toMatchObject({
+			sourceAddress: `0x${'e'.repeat(40)}`,
+			targetPubkey: `0x${'0'.repeat(96)}`,
+		})
+		await expect(executionDepositRequestResolver.resolve.EnvelopeRequestIndex.resolve({
+			$envelope: { $beaconBlock: beaconBlockSelector },
+			requestIndex: 41n,
+		})).resolves.toMatchObject({
+			amountGwei: 32_000_000_000n,
+			pubkey: `0x${'9'.repeat(96)}`,
+		})
+		await expect(executionWithdrawalRequestResolver.resolve.EnvelopeIndexInEnvelope.resolve({
+			$envelope: { $beaconBlock: beaconBlockSelector },
+			indexInEnvelope: 0,
+		})).resolves.toMatchObject({
+			amountGwei: 1_000_000_000n,
+			validatorPubkey: `0x${'d'.repeat(96)}`,
+		})
+		await expect(executionDepositRequestResolver.resolve.EnvelopeRequestIndex.resolve({
+			$envelope: { $beaconBlock: beaconBlockSelector },
+			requestIndex: 42n,
+		})).rejects.toThrow('execution deposit request 42 not found')
 
 		getExecutionPayloadEnvelope.mockResolvedValue({
 			...executionPayloadEnvelope,

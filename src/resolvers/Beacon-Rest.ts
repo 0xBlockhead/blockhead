@@ -82,6 +82,36 @@ const assertExecutionPayloadEnvelopeMatchesBlock = (
 	) throw new Error('Beacon_Rest: execution payload envelope does not match selected block bid')
 }
 
+const getExecutionPayloadEnvelopeForBlock = async (
+	$beaconBlock: EntitySelector<typeof schema, EntityType.BeaconBlock>
+) => {
+	const {
+		getBeaconBlockSnapshot,
+		getExecutionPayloadEnvelope,
+	} = await import('$/sources/Beacon/Rest/queries.ts')
+	const [
+		block,
+		envelope,
+	] = await Promise.all([
+		getBeaconBlockSnapshot(
+			eip155ChainId($beaconBlock.$network),
+			$beaconBlock.root
+		),
+		getExecutionPayloadEnvelope(
+			eip155ChainId($beaconBlock.$network),
+			$beaconBlock.root
+		),
+	])
+	if (envelope == null)
+		throw new Error('Beacon_Rest: execution payload envelope not found')
+
+	assertExecutionPayloadEnvelopeMatchesBlock(block, envelope)
+	return {
+		block,
+		envelope,
+	}
+}
+
 const beaconDataColumnSnapshot = (
 	$network: EntitySelector<typeof schema, EntityType.Network>,
 	slot: number,
@@ -813,30 +843,20 @@ export default {
 				BeaconBlock: {
 					resolve: async ({ $beaconBlock }) => {
 						const {
-							getBeaconBlockSnapshot,
-							getExecutionPayloadEnvelope,
-						} = await import('$/sources/Beacon/Rest/queries.ts')
-						const [
 							block,
 							envelope,
-						] = await Promise.all([
-							getBeaconBlockSnapshot(
-								eip155ChainId($beaconBlock.$network),
-								$beaconBlock.root
-							),
-							getExecutionPayloadEnvelope(
-								eip155ChainId($beaconBlock.$network),
-								$beaconBlock.root
-							),
-						])
-						if (envelope == null)
-							throw new Error('Beacon_Rest: execution payload envelope not found')
-						assertExecutionPayloadEnvelopeMatchesBlock(block, envelope)
+						} = await getExecutionPayloadEnvelopeForBlock($beaconBlock)
 						const executionTimestampMs = envelope.timestampSeconds * 1_000n
 						if (executionTimestampMs > BigInt(Number.MAX_SAFE_INTEGER))
 							throw new Error('Beacon_Rest: execution payload timestamp exceeds safe integer range')
 
 						const timestampMs = Date.now()
+						const envelopeSelector = {
+							$beaconBlock: {
+								$network: $beaconBlock.$network,
+								root: block.root,
+							},
+						}
 						return {
 							$beaconBlock: {
 								[EntityMetaKey.Selector]: {
@@ -877,14 +897,43 @@ export default {
 							excessBlobGas: envelope.excessBlobGas,
 							blockAccessList: envelope.blockAccessList,
 							transactionCount: envelope.transactionCount,
+							$$consolidationRequests: envelope.executionRequests.consolidations.map((request, indexInEnvelope) => ({
+								[EntityMetaKey.Selector]: {
+									$envelope: envelopeSelector,
+									indexInEnvelope,
+								},
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.BeaconExecutionConsolidationRequest, [], 'sourceAddress')]: request.sourceAddress,
+									[entityFieldAddressKey(EntityType.BeaconExecutionConsolidationRequest, [], 'sourcePubkey')]: request.sourcePubkey,
+									[entityFieldAddressKey(EntityType.BeaconExecutionConsolidationRequest, [], 'targetPubkey')]: request.targetPubkey,
+								},
+							})),
+							$$depositRequests: envelope.executionRequests.deposits.map((request) => ({
+								[EntityMetaKey.Selector]: {
+									$envelope: envelopeSelector,
+									requestIndex: request.requestIndex,
+								},
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.BeaconExecutionDepositRequest, [], 'pubkey')]: request.pubkey,
+									[entityFieldAddressKey(EntityType.BeaconExecutionDepositRequest, [], 'withdrawalCredentials')]: request.withdrawalCredentials,
+									[entityFieldAddressKey(EntityType.BeaconExecutionDepositRequest, [], 'amountGwei')]: request.amountGwei,
+									[entityFieldAddressKey(EntityType.BeaconExecutionDepositRequest, [], 'signature')]: request.signature,
+								},
+							})),
+							$$withdrawalRequests: envelope.executionRequests.withdrawals.map((request, indexInEnvelope) => ({
+								[EntityMetaKey.Selector]: {
+									$envelope: envelopeSelector,
+									indexInEnvelope,
+								},
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.BeaconExecutionWithdrawalRequest, [], 'sourceAddress')]: request.sourceAddress,
+									[entityFieldAddressKey(EntityType.BeaconExecutionWithdrawalRequest, [], 'validatorPubkey')]: request.validatorPubkey,
+									[entityFieldAddressKey(EntityType.BeaconExecutionWithdrawalRequest, [], 'amountGwei')]: request.amountGwei,
+								},
+							})),
 							$$timestamps: [{
 								[EntityMetaKey.Selector]: {
-									$envelope: {
-										$beaconBlock: {
-											$network: $beaconBlock.$network,
-											root: block.root,
-										},
-									},
+									$envelope: envelopeSelector,
 									timestampMs,
 									source: Source.Beacon_Rest,
 								},
@@ -915,7 +964,88 @@ export default {
 			excessBlobGas: (envelope) => envelope.excessBlobGas,
 			blockAccessList: (envelope) => envelope.blockAccessList,
 			transactionCount: (envelope) => envelope.transactionCount,
+			$$consolidationRequests: (envelope) => envelope.$$consolidationRequests,
+			$$depositRequests: (envelope) => envelope.$$depositRequests,
+			$$withdrawalRequests: (envelope) => envelope.$$withdrawalRequests,
 			$$timestamps: (envelope) => envelope.$$timestamps,
+		}),
+
+		defineResolver({
+			entityType: EntityType.BeaconExecutionConsolidationRequest,
+			resolve: {
+				EnvelopeIndexInEnvelope: {
+					resolve: async ({ $envelope, indexInEnvelope }) => {
+						const { envelope } = await getExecutionPayloadEnvelopeForBlock($envelope.$beaconBlock)
+						const request = envelope.executionRequests.consolidations.at(indexInEnvelope)
+						if (request == null)
+							throw new Error(`Beacon_Rest: execution consolidation request ${String(indexInEnvelope)} not found`)
+
+						return {
+							$envelope: { [EntityMetaKey.Selector]: $envelope },
+							indexInEnvelope,
+							...request,
+						}
+					},
+				},
+			},
+		})({
+			$envelope: (request) => request.$envelope,
+			indexInEnvelope: (request) => request.indexInEnvelope,
+			sourceAddress: (request) => request.sourceAddress,
+			sourcePubkey: (request) => request.sourcePubkey,
+			targetPubkey: (request) => request.targetPubkey,
+		}),
+
+		defineResolver({
+			entityType: EntityType.BeaconExecutionDepositRequest,
+			resolve: {
+				EnvelopeRequestIndex: {
+					resolve: async ({ $envelope, requestIndex }) => {
+						const { envelope } = await getExecutionPayloadEnvelopeForBlock($envelope.$beaconBlock)
+						const request = envelope.executionRequests.deposits.find((candidate) => candidate.requestIndex === requestIndex)
+						if (request == null)
+							throw new Error(`Beacon_Rest: execution deposit request ${String(requestIndex)} not found`)
+
+						return {
+							$envelope: { [EntityMetaKey.Selector]: $envelope },
+							...request,
+						}
+					},
+				},
+			},
+		})({
+			$envelope: (request) => request.$envelope,
+			requestIndex: (request) => request.requestIndex,
+			pubkey: (request) => request.pubkey,
+			withdrawalCredentials: (request) => request.withdrawalCredentials,
+			amountGwei: (request) => request.amountGwei,
+			signature: (request) => request.signature,
+		}),
+
+		defineResolver({
+			entityType: EntityType.BeaconExecutionWithdrawalRequest,
+			resolve: {
+				EnvelopeIndexInEnvelope: {
+					resolve: async ({ $envelope, indexInEnvelope }) => {
+						const { envelope } = await getExecutionPayloadEnvelopeForBlock($envelope.$beaconBlock)
+						const request = envelope.executionRequests.withdrawals.at(indexInEnvelope)
+						if (request == null)
+							throw new Error(`Beacon_Rest: execution withdrawal request ${String(indexInEnvelope)} not found`)
+
+						return {
+							$envelope: { [EntityMetaKey.Selector]: $envelope },
+							indexInEnvelope,
+							...request,
+						}
+					},
+				},
+			},
+		})({
+			$envelope: (request) => request.$envelope,
+			indexInEnvelope: (request) => request.indexInEnvelope,
+			sourceAddress: (request) => request.sourceAddress,
+			validatorPubkey: (request) => request.validatorPubkey,
+			amountGwei: (request) => request.amountGwei,
 		}),
 
 		defineResolver({

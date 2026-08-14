@@ -6943,6 +6943,26 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
+	'/(explore)/(networks)/network/[network]/beacon-block/[root]/execution-payload-envelope/consolidation-request/[indexInEnvelope]': {
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/beacon-block/[root=zeroExHex]/(beaconBlock)/execution-payload-envelope/(beaconExecutionPayloadEnvelope)/consolidation-request/[indexInEnvelope=nonNegativeInteger]',
+		mappings: [
+			{
+				id: 'BeaconExecutionConsolidationRequest.EnvelopeIndexInEnvelope',
+				probeAtomPrefixes: ['/network/[network]/beacon-block/[root]/execution-payload-envelope/consolidation-request/[indexInEnvelope]:BeaconExecutionConsolidationRequest.EnvelopeIndexInEnvelope'],
+				probeCases: [[[0, '1', ['indexInEnvelope', 'root', 'network']]]],
+			},
+		],
+	},
+	'/(explore)/(networks)/network/[network]/beacon-block/[root]/execution-payload-envelope/deposit-request/[requestIndex]': {
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/beacon-block/[root=zeroExHex]/(beaconBlock)/execution-payload-envelope/(beaconExecutionPayloadEnvelope)/deposit-request/[requestIndex=nonNegativeBigInt]',
+		mappings: [
+			{
+				id: 'BeaconExecutionDepositRequest.EnvelopeRequestIndex',
+				probeAtomPrefixes: ['/network/[network]/beacon-block/[root]/execution-payload-envelope/deposit-request/[requestIndex]:BeaconExecutionDepositRequest.EnvelopeRequestIndex'],
+				probeCases: [[[0, '1', ['requestIndex', 'root', 'network']]]],
+			},
+		],
+	},
 	'/(explore)/(networks)/network/[network]/beacon-block/[root]/execution-payload-envelope/observation/[timestampMs]/[source]': {
 		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/beacon-block/[root=zeroExHex]/(beaconBlock)/execution-payload-envelope/(beaconExecutionPayloadEnvelope)/observation/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 		mappings: [
@@ -6950,6 +6970,16 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				id: 'BeaconExecutionPayloadEnvelope_Timestamp.EnvelopeTimestampMsSource',
 				probeAtomPrefixes: ['/network/[network]/beacon-block/[root]/execution-payload-envelope/observation/[timestampMs]/[source]:BeaconExecutionPayloadEnvelope_Timestamp.EnvelopeTimestampMsSource'],
 				probeCases: [[[0, '1', ['timestampMs', 'source', 'root', 'network']]]],
+			},
+		],
+	},
+	'/(explore)/(networks)/network/[network]/beacon-block/[root]/execution-payload-envelope/withdrawal-request/[indexInEnvelope]': {
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/beacon-block/[root=zeroExHex]/(beaconBlock)/execution-payload-envelope/(beaconExecutionPayloadEnvelope)/withdrawal-request/[indexInEnvelope=nonNegativeInteger]',
+		mappings: [
+			{
+				id: 'BeaconExecutionWithdrawalRequest.EnvelopeIndexInEnvelope',
+				probeAtomPrefixes: ['/network/[network]/beacon-block/[root]/execution-payload-envelope/withdrawal-request/[indexInEnvelope]:BeaconExecutionWithdrawalRequest.EnvelopeIndexInEnvelope'],
+				probeCases: [[[0, '1', ['indexInEnvelope', 'root', 'network']]]],
 			},
 		],
 	},
