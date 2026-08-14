@@ -452,6 +452,91 @@ describe('UniSat Rest resolver module', () => {
 		})
 	})
 
+	it('preserves UniSat inscription and rune-balance list continuation tokens', async () => {
+		if (addressInscriptionsResolver == null || addressRuneBalancesResolver == null)
+			throw new Error('missing UtxoAddress UniSat list facets')
+
+		getAddressInscriptions.mockResolvedValueOnce({
+			total: 41,
+			start: 16,
+			detail: [
+				{
+					inscriptionId: `${'cc'.repeat(32)}i0`,
+				},
+			],
+		})
+		getAddressRuneBalances.mockResolvedValueOnce({
+			total: 7,
+			start: 16,
+			detail: [
+				{
+					amount: '1',
+					runeid: '840000:2',
+				},
+			],
+		})
+
+		const addressSelector = {
+			$network: bitcoinNetwork,
+			address: 'bc1qpage',
+		}
+		const inscriptionPage = await addressInscriptionsResolver.resolve.NetworkAddress.resolve(
+			addressSelector,
+			{
+				...context,
+				providerContinuationToken: '16',
+			}
+		)
+		expect(getAddressInscriptions).toHaveBeenCalledWith(context.publicEnv, {
+			address: 'bc1qpage',
+			cursor: 16,
+			size: 16,
+		})
+		expect(
+			addressInscriptionsResolver.projections.$$bitcoinOrdinalInscriptions.continuation?.(inscriptionPage)
+		).toEqual({
+			operation: 'address-inscriptions',
+			target: 'bc1qpage',
+			terminal: false,
+			token: '17',
+		})
+
+		const runePage = await addressRuneBalancesResolver.resolve.NetworkAddress.resolve(
+			addressSelector,
+			{
+				...context,
+				providerContinuationToken: '16',
+			}
+		)
+		expect(getAddressRuneBalances).toHaveBeenCalledWith(context.publicEnv, {
+			address: 'bc1qpage',
+			start: 16,
+			limit: 16,
+		})
+		expect(
+			addressRuneBalancesResolver.projections.$$bitcoinRuneBalances.continuation?.(runePage)
+		).toEqual({
+			operation: 'address-rune-balances',
+			target: 'bc1qpage',
+			terminal: true,
+		})
+	})
+
+	it('fail-closes invalid UniSat list continuation tokens', async () => {
+		if (addressInscriptionsResolver == null)
+			throw new Error('missing UtxoAddress UniSat inscription facets')
+
+		await expect(
+			addressInscriptionsResolver.resolve.NetworkAddress.resolve({
+				$network: bitcoinNetwork,
+				address: 'bc1qbad',
+			}, {
+				...context,
+				providerContinuationToken: 'not-a-number',
+			})
+		).rejects.toThrow(`${Source.UniSat_Rest}: invalid inscription list continuation`)
+	})
+
 	it('projects output inscriptions plus enrolled utxo wire fields from UniSat indexer', async () => {
 		if (outputInscriptionsResolver == null)
 			throw new Error('missing UtxoOutput UniSat inscription facets')

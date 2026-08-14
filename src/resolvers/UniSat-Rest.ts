@@ -39,6 +39,26 @@ const networkFromOutput = (
 	$output.$transaction.$network
 )
 
+const unisatListOffset = (
+	context: {
+		providerContinuationToken?: string | null
+		pagination: {
+			offset?: number
+		}
+	},
+	label: string
+) => {
+	const offset = (
+		context.providerContinuationToken == null ?
+			context.pagination.offset ?? 0
+		:
+			Number(context.providerContinuationToken)
+	)
+	if (!Number.isSafeInteger(offset) || offset < 0)
+		throw new Error(`${source}: invalid ${label} continuation`)
+	return offset
+}
+
 const bitcoinRuneBalanceReference = ({
 	$address,
 	$output,
@@ -378,17 +398,21 @@ export default {
 					resolve: async ({ $network, address }, context) => {
 						assertBitcoinNetwork($network)
 						const { getAddressInscriptions } = await import('$/sources/UniSat/Rest/queries.ts')
+						const cursor = unisatListOffset(context, 'inscription list')
 						const page = await getAddressInscriptions(context.publicEnv, {
 							address,
-							cursor: context.pagination.offset ?? 0,
+							cursor,
 							size: context.pagination.limit,
 						})
 						return {
+							address,
 							inscriptions: bitcoinOrdinalInscriptionRefsFromUtxoInscriptions(
 								$network,
 								page.detail
 							),
 							inscriptionCount: page.total,
+							start: page.start,
+							loaded: page.detail.length,
 						}
 					},
 				},
@@ -397,6 +421,21 @@ export default {
 			$$bitcoinOrdinalInscriptions: {
 				select: (snapshot) => snapshot.inscriptions,
 				resolveCount: (snapshot) => snapshot.inscriptionCount,
+				continuation: (snapshot) => (
+					snapshot.start + snapshot.loaded >= snapshot.inscriptionCount ?
+						{
+							operation: 'address-inscriptions',
+							target: snapshot.address,
+							terminal: true,
+						}
+					:
+						{
+							operation: 'address-inscriptions',
+							target: snapshot.address,
+							terminal: false,
+							token: String(snapshot.start + snapshot.loaded),
+						}
+				),
 			},
 		}),
 
@@ -407,12 +446,14 @@ export default {
 					resolve: async ({ $network, address }, context) => {
 						assertBitcoinNetwork($network)
 						const { getAddressRuneBalances } = await import('$/sources/UniSat/Rest/queries.ts')
+						const start = unisatListOffset(context, 'rune balance list')
 						const page = await getAddressRuneBalances(context.publicEnv, {
 							address,
-							start: context.pagination.offset ?? 0,
+							start,
 							limit: context.pagination.limit,
 						})
 						return {
+							address,
 							runeBalances: page.detail.map((row) => bitcoinRuneBalanceReference({
 								$address: {
 									$network,
@@ -422,6 +463,8 @@ export default {
 								row,
 							})),
 							runeBalanceCount: page.total,
+							start: page.start,
+							loaded: page.detail.length,
 						}
 					},
 				},
@@ -430,6 +473,21 @@ export default {
 			$$bitcoinRuneBalances: {
 				select: (snapshot) => snapshot.runeBalances,
 				resolveCount: (snapshot) => snapshot.runeBalanceCount,
+				continuation: (snapshot) => (
+					snapshot.start + snapshot.loaded >= snapshot.runeBalanceCount ?
+						{
+							operation: 'address-rune-balances',
+							target: snapshot.address,
+							terminal: true,
+						}
+					:
+						{
+							operation: 'address-rune-balances',
+							target: snapshot.address,
+							terminal: false,
+							token: String(snapshot.start + snapshot.loaded),
+						}
+				),
 			},
 		}),
 
