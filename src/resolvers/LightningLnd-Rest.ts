@@ -510,16 +510,15 @@ const forwardFieldsFromLndEvent = (event: LndForwardingEvent) => ({
 	completionTimestampNs: BigInt(event.timestamp_ns),
 })
 
-const channelStateTimestampFieldsFromLndChannel = (channel: LndChannel) => ({
-	localBalanceSats: bigintFromWire(channel.local_balance),
-	remoteBalanceSats: bigintFromWire(channel.remote_balance),
-	unsettledBalanceSats: bigintFromWire(channel.unsettled_balance),
-	active: channel.active,
-	commitFeeSats: bigintFromWire(channel.commit_fee),
-	commitWeight: bigintFromWire(channel.commit_weight),
-	feePerKw: bigintFromWire(channel.fee_per_kw),
-	numUpdates: bigintFromWire(channel.num_updates),
-	lastSyncedAt: Date.now(),
+const channelStateTimestampEntityFields = (channel: LndChannel) => ({
+	[entityFieldAddressKey(EntityType.BlockheadLightningChannelState_Timestamp, [], 'localBalanceSats')]: bigintFromWire(channel.local_balance),
+	[entityFieldAddressKey(EntityType.BlockheadLightningChannelState_Timestamp, [], 'remoteBalanceSats')]: bigintFromWire(channel.remote_balance),
+	[entityFieldAddressKey(EntityType.BlockheadLightningChannelState_Timestamp, [], 'unsettledBalanceSats')]: bigintFromWire(channel.unsettled_balance),
+	[entityFieldAddressKey(EntityType.BlockheadLightningChannelState_Timestamp, [], 'active')]: channel.active,
+	[entityFieldAddressKey(EntityType.BlockheadLightningChannelState_Timestamp, [], 'commitFeeSats')]: bigintFromWire(channel.commit_fee),
+	[entityFieldAddressKey(EntityType.BlockheadLightningChannelState_Timestamp, [], 'commitWeight')]: bigintFromWire(channel.commit_weight),
+	[entityFieldAddressKey(EntityType.BlockheadLightningChannelState_Timestamp, [], 'feePerKw')]: bigintFromWire(channel.fee_per_kw),
+	[entityFieldAddressKey(EntityType.BlockheadLightningChannelState_Timestamp, [], 'numUpdates')]: bigintFromWire(channel.num_updates),
 })
 
 const htlcFieldsFromLndHtlc = (
@@ -934,17 +933,7 @@ export default {
 												timestampMs,
 												source: Source.LightningLnd_Rest,
 											},
-											[EntityMetaKey.Fields]: {
-												[entityFieldAddressKey(EntityType.BlockheadLightningChannelState_Timestamp, [], 'localBalanceSats')]: bigintFromWire(channel.local_balance),
-												[entityFieldAddressKey(EntityType.BlockheadLightningChannelState_Timestamp, [], 'remoteBalanceSats')]: bigintFromWire(channel.remote_balance),
-												[entityFieldAddressKey(EntityType.BlockheadLightningChannelState_Timestamp, [], 'unsettledBalanceSats')]: bigintFromWire(channel.unsettled_balance),
-												[entityFieldAddressKey(EntityType.BlockheadLightningChannelState_Timestamp, [], 'active')]: channel.active,
-												[entityFieldAddressKey(EntityType.BlockheadLightningChannelState_Timestamp, [], 'commitFeeSats')]: bigintFromWire(channel.commit_fee),
-												[entityFieldAddressKey(EntityType.BlockheadLightningChannelState_Timestamp, [], 'commitWeight')]: bigintFromWire(channel.commit_weight),
-												[entityFieldAddressKey(EntityType.BlockheadLightningChannelState_Timestamp, [], 'feePerKw')]: bigintFromWire(channel.fee_per_kw),
-												[entityFieldAddressKey(EntityType.BlockheadLightningChannelState_Timestamp, [], 'numUpdates')]: bigintFromWire(channel.num_updates),
-												[entityFieldAddressKey(EntityType.BlockheadLightningChannelState_Timestamp, [], 'lastSyncedAt')]: timestampMs,
-											},
+											[EntityMetaKey.Fields]: channelStateTimestampEntityFields(channel),
 										}],
 										[entityFieldAddressKey(EntityType.BlockheadLightningChannelState, [], '$$htlcs')]: (channel.pending_htlcs ?? []).map((htlc, index) => {
 											const fields = htlcFieldsFromLndHtlc(channel, htlc, index)
@@ -997,6 +986,7 @@ export default {
 										timestampMs,
 										source: Source.LightningLnd_Rest,
 									},
+									[EntityMetaKey.Fields]: channelStateTimestampEntityFields(channel),
 								},
 							],
 						}
@@ -1007,33 +997,6 @@ export default {
 			private: (state) => state.private,
 			initiator: (state) => state.initiator,
 			$$timestamps: (state) => state.$$timestamps,
-		}),
-
-		defineResolver({
-			entityType: EntityType.BlockheadLightningChannelState_Timestamp,
-			resolve: {
-				ChannelStateTimestampMsSource: {
-					resolve: async ({ $channelState, source }) => {
-						if (source !== Source.LightningLnd_Rest) throw new Error(`LightningLnd_Rest: unsupported source ${source}`)
-						assertLightningNetwork($channelState.$localNodeState.$network.$network)
-						assertLightningNetwork($channelState.$channel.$network)
-						const channel = (await lndLocalChannels()).find((channel) => channel.chan_id === $channelState.$channel.channelId)
-						if (channel == null)
-							throw new Error(`LightningLnd_Rest: channel not found ${$channelState.$channel.channelId}`)
-						return channelStateTimestampFieldsFromLndChannel(channel)
-					},
-				},
-			},
-		})({
-			localBalanceSats: (snapshot) => snapshot.localBalanceSats,
-			remoteBalanceSats: (snapshot) => snapshot.remoteBalanceSats,
-			unsettledBalanceSats: (snapshot) => snapshot.unsettledBalanceSats,
-			active: (snapshot) => snapshot.active,
-			commitFeeSats: (snapshot) => snapshot.commitFeeSats,
-			commitWeight: (snapshot) => snapshot.commitWeight,
-			feePerKw: (snapshot) => snapshot.feePerKw,
-			numUpdates: (snapshot) => snapshot.numUpdates,
-			lastSyncedAt: (snapshot) => snapshot.lastSyncedAt,
 		}),
 
 		defineResolver({

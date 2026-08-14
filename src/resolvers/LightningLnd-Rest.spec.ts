@@ -86,9 +86,6 @@ const channelStateResolver = lightningLnd.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.BlockheadLightningChannelState
 	&& 'private' in resolver.projections
 ))
-const channelStateTimestampResolver = lightningLnd.resolvers.find((resolver) => (
-	resolver.entityType === EntityType.BlockheadLightningChannelState_Timestamp
-))
 const htlcResolver = lightningLnd.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.BlockheadLightningHtlc
 ))
@@ -137,7 +134,6 @@ if (
 	|| nodeStateTimestampResolver == null
 	|| nodeChannelStatesResolver == null
 	|| channelStateResolver == null
-	|| channelStateTimestampResolver == null
 	|| htlcResolver == null
 	|| networkTimestampResolver == null
 	|| nodeTimestampResolver == null
@@ -981,7 +977,6 @@ describe('Lightning LND resolver ownership', () => {
 					[entityFieldAddressKey(EntityType.BlockheadLightningChannelState_Timestamp, [], 'commitWeight')]: 600n,
 					[entityFieldAddressKey(EntityType.BlockheadLightningChannelState_Timestamp, [], 'feePerKw')]: 253n,
 					[entityFieldAddressKey(EntityType.BlockheadLightningChannelState_Timestamp, [], 'numUpdates')]: 69n,
-					[entityFieldAddressKey(EntityType.BlockheadLightningChannelState_Timestamp, [], 'lastSyncedAt')]: 1_700_000_111_000,
 				},
 			}],
 			[entityFieldAddressKey(EntityType.BlockheadLightningChannelState, [], '$$htlcs')]: [{
@@ -1017,29 +1012,30 @@ describe('Lightning LND resolver ownership', () => {
 		}, context)).resolves.toMatchObject({
 			private: true,
 			initiator: true,
-		})
-
-		await expect(channelStateTimestampResolver.resolve.ChannelStateTimestampMsSource.resolve({
-			$channelState: {
-				$localNodeState: localNodeState,
-				$channel: {
-					$network: lightningNetwork,
-					channelId: '42',
+			$$timestamps: [{
+				[EntityMetaKey.Selector]: {
+					$channelState: {
+						$localNodeState: localNodeState,
+						$channel: channelSelector,
+					},
+					timestampMs: 1_700_000_111_000,
+					source: Source.LightningLnd_Rest,
 				},
-			},
-			timestampMs: 1,
-			source: Source.LightningLnd_Rest,
-		}, context)).resolves.toEqual({
-			localBalanceSats: 100000n,
-			remoteBalanceSats: 150000n,
-			unsettledBalanceSats: 0n,
-			active: true,
-			commitFeeSats: 183n,
-			commitWeight: 600n,
-			feePerKw: 253n,
-			numUpdates: 69n,
-			lastSyncedAt: 1_700_000_111_000,
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.BlockheadLightningChannelState_Timestamp, [], 'localBalanceSats')]: 100000n,
+					[entityFieldAddressKey(EntityType.BlockheadLightningChannelState_Timestamp, [], 'remoteBalanceSats')]: 150000n,
+					[entityFieldAddressKey(EntityType.BlockheadLightningChannelState_Timestamp, [], 'unsettledBalanceSats')]: 0n,
+					[entityFieldAddressKey(EntityType.BlockheadLightningChannelState_Timestamp, [], 'active')]: true,
+					[entityFieldAddressKey(EntityType.BlockheadLightningChannelState_Timestamp, [], 'commitFeeSats')]: 183n,
+					[entityFieldAddressKey(EntityType.BlockheadLightningChannelState_Timestamp, [], 'commitWeight')]: 600n,
+					[entityFieldAddressKey(EntityType.BlockheadLightningChannelState_Timestamp, [], 'feePerKw')]: 253n,
+					[entityFieldAddressKey(EntityType.BlockheadLightningChannelState_Timestamp, [], 'numUpdates')]: 69n,
+				},
+			}],
 		})
+		expect(lightningLnd.resolvers.some((resolver) => (
+			resolver.entityType === EntityType.BlockheadLightningChannelState_Timestamp
+		))).toBe(false)
 
 		await expect(htlcResolver.resolve.ChannelStateHtlcIndex.resolve({
 			$channelState: {
