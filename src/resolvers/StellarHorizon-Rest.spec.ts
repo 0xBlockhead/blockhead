@@ -559,6 +559,93 @@ describe('Stellar Horizon public-account resolver', () => {
 		])
 	})
 
+	it('resolves direct trustline and signer routes from exact account state', async () => {
+		const accountSnapshot = {
+			id: accountId,
+			account_id: accountId,
+			sequence: '1',
+			subentry_count: 2,
+			last_modified_ledger: 50,
+			last_modified_time: '2026-07-22T00:00:00Z',
+			thresholds: {
+				low_threshold: 0,
+				med_threshold: 0,
+				high_threshold: 0,
+			},
+			balances: [
+				{
+					asset_type: 'native',
+					balance: '1.0000000',
+				},
+				{
+					asset_type: 'credit_alphanum4',
+					asset_code: 'USDC',
+					asset_issuer: otherAccountId,
+					balance: '12.3456789',
+					limit: '1000.0000000',
+					last_modified_ledger: 49,
+					is_authorized: true,
+				},
+			],
+			signers: [{
+				key: otherAccountId,
+				weight: 2,
+				type: 'ed25519_public_key',
+				sponsor: accountId,
+			}],
+		}
+		getJson
+			.mockResolvedValueOnce(accountSnapshot)
+			.mockResolvedValueOnce(accountSnapshot)
+
+		const trustlineResolver = stellarHorizonResolvers.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.StellarTrustline
+		))
+		const signerResolver = stellarHorizonResolvers.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.StellarAccountSigner
+		))
+		if (trustlineResolver == null || signerResolver == null)
+			throw new Error('Stellar Horizon direct relationship resolvers missing')
+
+		const trustlineSelector = {
+			$account: account,
+			$asset: {
+				$network: account.$network,
+				assetKey: `USDC-${otherAccountId}`,
+			},
+		}
+		const trustline = await trustlineResolver.resolve.AccountAsset.resolve(
+			trustlineSelector,
+			context
+		)
+		expect(trustlineResolver.projections.$$timestamps(
+			trustline,
+			trustlineSelector,
+			context
+		)[0][EntityMetaKey.Fields]).toMatchObject({
+			[entityFieldAddressKey(EntityType.StellarTrustline_Timestamp, [], 'balance')]: '12.3456789',
+			[entityFieldAddressKey(EntityType.StellarTrustline_Timestamp, [], 'ledgerSequence')]: 49n,
+		})
+
+		const signerSelector = {
+			$account: account,
+			signerKey: otherAccountId,
+			signerType: 'ed25519_public_key',
+		}
+		const signer = await signerResolver.resolve.AccountSignerKeySignerType.resolve(
+			signerSelector,
+			context
+		)
+		expect(signerResolver.projections.$$timestamps(
+			signer,
+			signerSelector,
+			context
+		)[0][EntityMetaKey.Fields]).toMatchObject({
+			[entityFieldAddressKey(EntityType.StellarAccountSigner_Timestamp, [], 'weight')]: 2,
+			[entityFieldAddressKey(EntityType.StellarAccountSigner_Timestamp, [], 'sponsor')]: accountId,
+		})
+	})
+
 	it('pages account offers and trades into schema-shaped rows', async () => {
 		getJson.mockResolvedValueOnce(page([{
 			id: '2',

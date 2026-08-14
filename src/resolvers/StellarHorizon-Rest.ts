@@ -1335,5 +1335,106 @@ export default {
 			},
 		}),
 
+		defineResolver({
+			entityType: EntityType.StellarTrustline,
+			resolve: {
+				AccountAsset: {
+					resolve: async (trustline) => {
+						assertStellarPublicNetwork(trustline.$account.$network)
+						assertStellarPublicNetwork(trustline.$asset.$network)
+						const { getAccount } = await import('$/sources/StellarHorizon/Rest/queries.ts')
+						const accountSnapshot = await getAccount(trustline.$account.accountId)
+						const balances = accountSnapshot.balances.filter((balance) => (
+							balance.asset_type !== 'native'
+							&& balance.asset_type !== 'liquidity_pool_shares'
+							&& assetKeyFromIdentity(balance) === trustline.$asset.assetKey
+						))
+						if (balances.length !== 1)
+							throw new Error('StellarHorizon_Rest: trustline not found')
+
+						const balance = balances[0]
+						return {
+							$asset: {
+								[EntityMetaKey.Selector]: trustline.$asset,
+								[EntityMetaKey.Fields]: assetFields(balance),
+							},
+							$$timestamps: [{
+								[EntityMetaKey.Selector]: {
+									$trustline: trustline,
+									timestampMs: timestampMsFromWire(accountSnapshot.last_modified_time, 'account modification time'),
+									source: Source.StellarHorizon_Rest,
+								},
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.StellarTrustline_Timestamp, [], 'balance')]: balance.balance,
+									...(balance.limit != null && {
+										[entityFieldAddressKey(EntityType.StellarTrustline_Timestamp, [], 'limit')]: balance.limit,
+									}),
+									...(balance.last_modified_ledger != null && {
+										[entityFieldAddressKey(EntityType.StellarTrustline_Timestamp, [], 'ledgerSequence')]: BigInt(balance.last_modified_ledger),
+									}),
+									...(balance.buying_liabilities != null && {
+										[entityFieldAddressKey(EntityType.StellarTrustline_Timestamp, [], 'buyingLiabilities')]: balance.buying_liabilities,
+									}),
+									...(balance.selling_liabilities != null && {
+										[entityFieldAddressKey(EntityType.StellarTrustline_Timestamp, [], 'sellingLiabilities')]: balance.selling_liabilities,
+									}),
+									...(balance.is_authorized != null && {
+										[entityFieldAddressKey(EntityType.StellarTrustline_Timestamp, [], 'authorized')]: balance.is_authorized,
+									}),
+									...(balance.is_authorized_to_maintain_liabilities != null && {
+										[entityFieldAddressKey(EntityType.StellarTrustline_Timestamp, [], 'authorizedToMaintainLiabilities')]: balance.is_authorized_to_maintain_liabilities,
+									}),
+									...(balance.is_clawback_enabled != null && {
+										[entityFieldAddressKey(EntityType.StellarTrustline_Timestamp, [], 'clawbackEnabled')]: balance.is_clawback_enabled,
+									}),
+								},
+							}],
+						}
+					},
+				},
+			},
+		})({
+			$asset: (snapshot) => snapshot.$asset,
+			$$timestamps: (snapshot) => snapshot.$$timestamps,
+		}),
+
+		defineResolver({
+			entityType: EntityType.StellarAccountSigner,
+			resolve: {
+				AccountSignerKeySignerType: {
+					resolve: async (signerSelector) => {
+						assertStellarPublicNetwork(signerSelector.$account.$network)
+						const { getAccount } = await import('$/sources/StellarHorizon/Rest/queries.ts')
+						const accountSnapshot = await getAccount(signerSelector.$account.accountId)
+						const signers = accountSnapshot.signers.filter((signer) => (
+							signer.key === signerSelector.signerKey
+							&& signer.type === signerSelector.signerType
+						))
+						if (signers.length !== 1)
+							throw new Error('StellarHorizon_Rest: account signer not found')
+
+						const signer = signers[0]
+						return [{
+							[EntityMetaKey.Selector]: {
+								$signer: signerSelector,
+								timestampMs: timestampMsFromWire(accountSnapshot.last_modified_time, 'account modification time'),
+								source: Source.StellarHorizon_Rest,
+							},
+							[EntityMetaKey.Fields]: {
+								[entityFieldAddressKey(EntityType.StellarAccountSigner_Timestamp, [], 'ledgerSequence')]: BigInt(accountSnapshot.last_modified_ledger),
+								[entityFieldAddressKey(EntityType.StellarAccountSigner_Timestamp, [], 'weight')]: signer.weight,
+								[entityFieldAddressKey(EntityType.StellarAccountSigner_Timestamp, [], 'active')]: true,
+								...(signer.sponsor != null && {
+									[entityFieldAddressKey(EntityType.StellarAccountSigner_Timestamp, [], 'sponsor')]: signer.sponsor,
+								}),
+							},
+						}]
+					},
+				},
+			},
+		})({
+			$$timestamps: (timestamps) => timestamps,
+		}),
+
 	],
 } satisfies RegisteredSourceResolverModule
