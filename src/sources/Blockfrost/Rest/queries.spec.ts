@@ -34,6 +34,7 @@ const {
 	listAddressUtxos,
 	listBlocks,
 	listCommitteeVotes,
+	listDRepVotes,
 	listDReps,
 	listGovernanceProposals,
 	listLatestBlockTransactions,
@@ -480,6 +481,37 @@ describe('Blockfrost REST transport', () => {
 			'https://cardano-mainnet.blockfrost.io/api/v0/governance/proposals/proposal-hash/1/metadata',
 			'https://cardano-mainnet.blockfrost.io/api/v0/governance/dreps/drep1example/metadata',
 			'https://cardano-mainnet.blockfrost.io/api/v0/pools/pool1example/metadata',
+		])
+	})
+
+	it('paginates DRep and committee vote rows with their native identities', async () => {
+		sourceFetch
+			.mockResolvedValueOnce(Response.json([{
+				tx_hash: 'drep-vote-hash',
+				cert_index: 2,
+				proposal_tx_hash: 'proposal-hash',
+				proposal_cert_index: 1,
+				vote: 'yes',
+			}]))
+			.mockResolvedValueOnce(Response.json([{
+				tx_hash: 'committee-vote-hash',
+				voter_hot_id: 'cc_hot1example',
+				proposal_id: 'gov_action1example',
+				proposal_tx_hash: 'proposal-hash',
+				proposal_index: 1,
+				governance_type: 'info_action',
+				vote: 'yes',
+				metadata_url: null,
+				metadata_hash: null,
+				block_height: 1_000,
+				block_time: 1_700_000_000,
+			}]))
+
+		await expect(listDRepVotes('drep1/example', 16, 2)).resolves.toHaveLength(1)
+		await expect(listCommitteeVotes(16, 3)).resolves.toHaveLength(1)
+		expect(sourceFetch.mock.calls.map(([, url]) => url)).toEqual([
+			'https://cardano-mainnet.blockfrost.io/api/v0/governance/dreps/drep1%2Fexample/votes?count=16&page=2',
+			'https://cardano-mainnet.blockfrost.io/api/v0/governance/committee/votes?count=16&page=3',
 		])
 	})
 

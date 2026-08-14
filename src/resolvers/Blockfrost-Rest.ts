@@ -284,7 +284,8 @@ const nativeAssetObservation = async (
 
 const committeeEpoch = async (
 	network: EntitySelector<typeof schema, EntityType.Network>,
-	limit: number
+	limit: number,
+	page = 1
 ) => {
 	const {
 		getCommittee,
@@ -298,11 +299,22 @@ const committeeEpoch = async (
 	] = await Promise.all([
 		getCommittee(),
 		getLatestEpoch(),
-		listCommitteeVotes(limit),
+		listCommitteeVotes(limit, page),
 	])
+	if (new Set(votes.map(({ proposal_tx_hash, proposal_index, voter_hot_id, tx_hash }) => (
+		`${proposal_tx_hash}:${proposal_index.toString()}:${voter_hot_id}:${tx_hash}`
+	))).size !== votes.length)
+		throw new Error('Blockfrost_Rest: committee votes page contains duplicate identities')
+	const lastVote = votes.at(-1)
 
 	return {
 		epoch: epoch.epoch,
+		limit,
+		page,
+		lastVoteIdentity: lastVote == null ?
+			undefined
+		:
+			`${lastVote.proposal_tx_hash}:${lastVote.proposal_index.toString()}:${lastVote.voter_hot_id}:${lastVote.tx_hash}`,
 		source: Source.Blockfrost_Rest,
 		govActionId: committee.gov_action_id ?? undefined,
 		$seatingProposal: committee.proposal_tx_hash != null && committee.proposal_index != null ?
@@ -1196,13 +1208,30 @@ export default {
 						assertCardanoMainnet($network)
 						if (source !== Source.Blockfrost_Rest)
 							throw new Error('Blockfrost_Rest: observation source mismatch')
+						const {
+							page,
+							previousLastIdentity,
+						} = blockfrostPageContinuation(
+							context.providerContinuationToken,
+							'committee votes'
+						)
 
 						const currentCommitteeEpoch = await committeeEpoch(
 							$network,
-							Math.min(resolverContextRowLimit(context), 100)
+							Math.min(resolverContextRowLimit(context), 100),
+							page
 						)
 						if (currentCommitteeEpoch.epoch !== epoch)
 							throw new Error('Blockfrost_Rest: historical committee epoch is unavailable')
+						if (
+							previousLastIdentity != null
+							&& currentCommitteeEpoch.$$votes.some((vote) => {
+								const selector = vote[EntityMetaKey.Selector]
+
+								return `${selector.$proposal.proposalTxHash}:${selector.$proposal.proposalIndex.toString()}:${selector.voterCredential}:${selector.voteTxHash}` === previousLastIdentity
+							})
+						)
+							throw new Error('Blockfrost_Rest: committee votes continuation did not advance')
 
 						return currentCommitteeEpoch
 					},
@@ -1218,7 +1247,32 @@ export default {
 			quorumDenominator: (committee) => committee.quorumDenominator,
 			memberCount: (committee) => committee.memberCount,
 			members: (committee) => committee.members,
-			$$votes: (committee) => committee.$$votes,
+			$$votes: {
+				select: (committee) => committee.$$votes,
+				continuation: ({
+					limit,
+					page,
+					lastVoteIdentity,
+					$$votes,
+				}, committee) => (
+					$$votes.length < limit || lastVoteIdentity == null ?
+						{
+							operation: 'cardano-committee-votes',
+							target: `${committee.epoch.toString()}:${committee.source}`,
+							terminal: true,
+						}
+					:
+						{
+							operation: 'cardano-committee-votes',
+							target: `${committee.epoch.toString()}:${committee.source}`,
+							terminal: false,
+							token: new URLSearchParams({
+								after: lastVoteIdentity,
+								page: (page + 1).toString(),
+							}).toString(),
+						}
+				),
+			},
 		}),
 
 		defineResolver({
@@ -1499,6 +1553,14 @@ export default {
 					resolve: async ({ $network, drepCredential }, context) => {
 						assertCardanoMainnet($network)
 						const {
+							page,
+							previousLastIdentity,
+						} = blockfrostPageContinuation(
+							context.providerContinuationToken,
+							'drep votes'
+						)
+						const limit = Math.min(resolverContextRowLimit(context), 100)
+						const {
 							listDRepVotes,
 						} = await import('$/sources/Blockfrost/Rest/queries.ts')
 						const [
@@ -1506,10 +1568,29 @@ export default {
 							votes,
 						] = await Promise.all([
 							dRepObservation(drepCredential),
-							listDRepVotes(drepCredential, Math.min(resolverContextRowLimit(context), 100)),
+							listDRepVotes(drepCredential, limit, page),
 						])
+						if (new Set(votes.map(({ proposal_tx_hash, proposal_cert_index, tx_hash }) => (
+							`${proposal_tx_hash}:${proposal_cert_index.toString()}:${tx_hash}`
+						))).size !== votes.length)
+							throw new Error('Blockfrost_Rest: drep votes page contains duplicate identities')
+						if (
+							previousLastIdentity != null
+							&& votes.some(({ proposal_tx_hash, proposal_cert_index, tx_hash }) => (
+								`${proposal_tx_hash}:${proposal_cert_index.toString()}:${tx_hash}` === previousLastIdentity
+							))
+						)
+							throw new Error('Blockfrost_Rest: drep votes continuation did not advance')
+						const lastVote = votes.at(-1)
+
 						return {
 							credentialKind: observation.credentialKind,
+							limit,
+							page,
+							lastVoteIdentity: lastVote == null ?
+								undefined
+							:
+								`${lastVote.proposal_tx_hash}:${lastVote.proposal_cert_index.toString()}:${lastVote.tx_hash}`,
 							$$timestamps: [{
 								[EntityMetaKey.Selector]: {
 									$drep: {
@@ -1555,7 +1636,32 @@ export default {
 		})({
 			credentialKind: (drep) => drep.credentialKind,
 			$$timestamps: (drep) => drep.$$timestamps,
-			$$votes: (drep) => drep.$$votes,
+			$$votes: {
+				select: (drep) => drep.$$votes,
+				continuation: ({
+					limit,
+					page,
+					lastVoteIdentity,
+					$$votes,
+				}, drep) => (
+					$$votes.length < limit || lastVoteIdentity == null ?
+						{
+							operation: 'cardano-drep-votes',
+							target: drep.drepCredential,
+							terminal: true,
+						}
+					:
+						{
+							operation: 'cardano-drep-votes',
+							target: drep.drepCredential,
+							terminal: false,
+							token: new URLSearchParams({
+								after: lastVoteIdentity,
+								page: (page + 1).toString(),
+							}).toString(),
+						}
+				),
+			},
 		}),
 
 		defineResolver({

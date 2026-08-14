@@ -2176,7 +2176,7 @@ describe('Blockfrost Cardano governance details', () => {
 		})
 	})
 
-	it('materializes DRep voting-power observations for the current epoch', async () => {
+	it('materializes DRep observations and continues native vote pages', async () => {
 		getDRep.mockResolvedValueOnce({
 			drep_id: 'drep1example',
 			hex: 'ab',
@@ -2191,7 +2191,13 @@ describe('Blockfrost Cardano governance details', () => {
 		getLatestEpoch.mockResolvedValueOnce({
 			epoch: 500,
 		})
-		listDRepVotes.mockResolvedValueOnce([])
+		listDRepVotes.mockResolvedValueOnce([{
+			tx_hash: 'drep-vote-hash',
+			cert_index: 2,
+			proposal_tx_hash: 'proposal-hash',
+			proposal_cert_index: 1,
+			vote: 'yes',
+		}])
 		const drepResolver = blockfrostResolvers.resolvers.find((resolver) => (
 			resolver.entityType === EntityType.CardanoDRep
 			&& '$$timestamps' in resolver.projections
@@ -2199,13 +2205,19 @@ describe('Blockfrost Cardano governance details', () => {
 		if (drepResolver == null)
 			throw new Error('missing Cardano DRep observation resolver')
 
-		await expect(drepResolver.resolve['NetworkDrepCredential'].resolve(
+		const context = {
+			...resolverContext,
+			pagination: { limit: 1 },
+			providerContinuationToken: 'after=previous-proposal%3A0%3Aprevious-vote&page=2',
+		}
+		const snapshot = await drepResolver.resolve['NetworkDrepCredential'].resolve(
 			{
 				$network: cardanoNetwork,
 				drepCredential: 'drep1example',
 			},
-			resolverContext
-		)).resolves.toMatchObject({
+			context
+		)
+		expect(snapshot).toMatchObject({
 			credentialKind: 'key',
 			$$timestamps: [{
 				[EntityMetaKey.Selector]: {
@@ -2218,6 +2230,38 @@ describe('Blockfrost Cardano governance details', () => {
 					[entityFieldAddressKey(EntityType.CardanoDRep_Timestamp, [], 'registered')]: true,
 				},
 			}],
+			$$votes: [{
+				[EntityMetaKey.Selector]: {
+					$proposal: {
+						$network: cardanoNetwork,
+						proposalTxHash: 'proposal-hash',
+						proposalIndex: 1,
+					},
+					voterKind: 'drep',
+					voterCredential: 'drep1example',
+					voteTxHash: 'drep-vote-hash',
+					source: Source.Blockfrost_Rest,
+				},
+			}],
+		})
+		expect(listDRepVotes).toHaveBeenCalledWith('drep1example', 1, 2)
+		if (
+			typeof drepResolver.projections.$$votes === 'function'
+			|| drepResolver.projections.$$votes.continuation == null
+		)
+			throw new Error('missing DRep vote continuation')
+		expect(drepResolver.projections.$$votes.continuation(
+			snapshot,
+			{
+				$network: cardanoNetwork,
+				drepCredential: 'drep1example',
+			},
+			context
+		)).toEqual({
+			operation: 'cardano-drep-votes',
+			target: 'drep1example',
+			terminal: false,
+			token: 'after=proposal-hash%3A1%3Adrep-vote-hash&page=3',
 		})
 	})
 

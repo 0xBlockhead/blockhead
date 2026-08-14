@@ -356,10 +356,14 @@ export const getDRepMetadata = async (drepId: string) => {
 	}
 }
 
-export const listDRepVotes = async (drepId: string, count: number) => (
+export const listDRepVotes = async (
+	drepId: string,
+	count: number,
+	page?: number
+) => (
 	assertBlockfrostEnvelope(
 		blockfrostDRepVoteWire.array(),
-		await listPage(`governance/dreps/${encodeURIComponent(drepId)}/votes`, count),
+		await listPage(`governance/dreps/${encodeURIComponent(drepId)}/votes`, count, undefined, page),
 		'drep votes'
 	)
 )
@@ -467,10 +471,13 @@ export const getCommittee = async () => (
 	)
 )
 
-export const listCommitteeVotes = async (count: number) => (
+export const listCommitteeVotes = async (
+	count: number,
+	page?: number
+) => (
 	assertBlockfrostEnvelope(
 		blockfrostCommitteeVoteWire.array(),
-		await listPage('governance/committee/votes', count),
+		await listPage('governance/committee/votes', count, undefined, page),
 		'committee votes'
 	)
 )

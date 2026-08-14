@@ -287,6 +287,8 @@ export const blockfrostDRepMetadataWire = arktype({
 export const blockfrostDRepVoteWire = arktype({
 	tx_hash: nonEmptyString,
 	cert_index: unsignedSafe,
+	proposal_tx_hash: nonEmptyString,
+	proposal_cert_index: unsignedSafe,
 	vote: "'yes' | 'no' | 'abstain'",
 })
 
