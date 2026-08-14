@@ -5,7 +5,10 @@ import {
 	Caip2Reference,
 	networkBySlug,
 } from '$/constants/Network.ts'
-import { EntityMetaKey } from '$/schema/$schema.ts'
+import {
+	entityFieldAddressKey,
+	EntityMetaKey,
+} from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import bindings from '$/sources/TronScan/bindings.ts'
@@ -13,10 +16,16 @@ import type { TronScanTransactions } from '$/sources/TronScan/Rest/types.ts'
 
 const getAccountTransactions = vi.fn()
 const getBlock = vi.fn()
+const getContract = vi.fn()
+const getTokenOverview = vi.fn()
+const getTrc10Token = vi.fn()
 
 vi.mock('$/sources/TronScan/Rest/queries.ts', () => ({
 	getAccountTransactions,
 	getBlock,
+	getContract,
+	getTokenOverview,
+	getTrc10Token,
 }))
 
 const { default: tronScanResolvers } = await import('$/resolvers/TronScan-Rest.ts')
@@ -247,5 +256,89 @@ describe('TronScan account transaction resolver', () => {
 				address: account.address,
 			}, resolverContext)).rejects.toThrow('TronScan_Rest: unsupported network')
 		expect(getAccountTransactions).not.toHaveBeenCalled()
+	})
+})
+
+describe('TronScan native current observations', () => {
+	beforeEach(() => {
+		vi.clearAllMocks()
+		vi.spyOn(Date, 'now').mockReturnValue(1_700_000_000_000)
+	})
+
+	it('embeds contract verification state on the source read', async () => {
+		getContract.mockResolvedValue({
+			data: [{
+				name: 'Proxy',
+				compiler: 'solc',
+				verifyStatus: 'verified',
+				is_proxy: true,
+				proxy_implementation: 'Timplementation',
+			}],
+		})
+		const resolver = tronScanResolvers.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.TronContract
+		))
+		if (resolver == null)
+			throw new Error('TronScan-Rest spec missing contract resolver')
+
+		const contract = await resolver.resolve.NetworkAddress.resolve({
+			$network: network,
+			address: 'Tcontract',
+		}, resolverContext)
+		expect(resolver.projections.$$timestamps(contract)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$contract: {
+					$network: network,
+					address: 'Tcontract',
+				},
+				timestampMs: 1_700_000_000_000,
+				source: Source.TronScan_Rest,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.TronContract_Timestamp, [], 'compiler')]: 'solc',
+				[entityFieldAddressKey(EntityType.TronContract_Timestamp, [], 'verifyStatus')]: 'verified',
+				[entityFieldAddressKey(EntityType.TronContract_Timestamp, [], 'isProxy')]: true,
+				[entityFieldAddressKey(EntityType.TronContract_Timestamp, [], '$implementation')]: {
+					[EntityMetaKey.Selector]: {
+						$network: network,
+						address: 'Timplementation',
+					},
+				},
+			},
+		}])
+	})
+
+	it('embeds token supply state and removes arbitrary observation replay', async () => {
+		getTokenOverview.mockResolvedValue({
+			tokens: [{
+				contractAddress: 'Ttoken',
+				name: 'Token',
+				symbol: 'TOK',
+				decimals: 6,
+				totalSupply: '1000000',
+				holderCount: 7,
+			}],
+		})
+		const resolver = tronScanResolvers.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.TronToken
+		))
+		if (resolver == null)
+			throw new Error('TronScan-Rest spec missing token resolver')
+
+		const token = await resolver.resolve.NetworkTokenId.resolve({
+			$network: network,
+			tokenId: 'Ttoken',
+		}, resolverContext)
+		expect(resolver.projections.$$timestamps(token)[0]?.[EntityMetaKey.Fields]).toEqual({
+			[entityFieldAddressKey(EntityType.TronToken_Timestamp, [], 'name')]: 'Token',
+			[entityFieldAddressKey(EntityType.TronToken_Timestamp, [], 'symbol')]: 'TOK',
+			[entityFieldAddressKey(EntityType.TronToken_Timestamp, [], 'decimals')]: 6,
+			[entityFieldAddressKey(EntityType.TronToken_Timestamp, [], 'totalSupply')]: 1000000n,
+			[entityFieldAddressKey(EntityType.TronToken_Timestamp, [], 'holderCount')]: 7,
+		})
+		expect(tronScanResolvers.resolvers.some((candidate) => (
+			candidate.entityType === EntityType.TronContract_Timestamp
+			|| candidate.entityType === EntityType.TronToken_Timestamp
+		))).toBe(false)
 	})
 })

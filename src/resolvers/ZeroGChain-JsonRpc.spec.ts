@@ -12,15 +12,21 @@ import {
 	EvmTransactionKind,
 } from '$/constants/Evm.ts'
 import { indexResolvers } from '$/resolvers/$resolvers.ts'
-import { EntityMetaKey } from '$/schema/$schema.ts'
+import {
+	entityFieldAddressKey,
+	EntityMetaKey,
+} from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
 
 const queries = vi.hoisted(() => ({
 	getBlockByNumber: vi.fn(),
+	getBlockNumber: vi.fn(),
 	getBlockWithTransactionsByNumber: vi.fn(),
+	getCode: vi.fn(),
 	getTransactionByHash: vi.fn(),
+	getTransactionCount: vi.fn(),
 	getTransactionReceipt: vi.fn(),
 }))
 
@@ -158,9 +164,12 @@ describe('ZeroGChain JSON-RPC resolver I/O', () => {
 		expect(queries.getBlockByNumber).toHaveBeenCalledWith(1n)
 	})
 
-	it('materializes a current account observation selector without arbitrary timestamp resolution', async () => {
+	it('materializes complete current account state without arbitrary timestamp resolution', async () => {
 		const accountResolver = resolverFor(EntityType.EvmNetworkAccount, '$$timestamps')
 		vi.spyOn(Date, 'now').mockReturnValue(1_700_000_000_000)
+		queries.getBlockNumber.mockResolvedValue('0x10')
+		queries.getCode.mockResolvedValue('0x6000')
+		queries.getTransactionCount.mockResolvedValue(7n)
 
 		await expect(accountResolver.resolve.EvmNetworkEvmAccount.resolve({
 			$network: network,
@@ -174,6 +183,11 @@ describe('ZeroGChain JSON-RPC resolver I/O', () => {
 					},
 					timestampMs: 1_700_000_000_000,
 					source: Source.ZeroGChain_JsonRpc,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.EvmNetworkAccount_Timestamp, [], 'blockNumber')]: 16n,
+					[entityFieldAddressKey(EntityType.EvmNetworkAccount_Timestamp, [], 'transactionCount')]: 7n,
+					[entityFieldAddressKey(EntityType.EvmNetworkAccount_Timestamp, [], 'isContract')]: true,
 				},
 			}],
 		})

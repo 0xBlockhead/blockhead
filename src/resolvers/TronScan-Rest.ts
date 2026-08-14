@@ -60,34 +60,12 @@ const tronAccountTimestampApplicability = [
 	},
 ] as const
 
-const tronContractTimestampApplicability = [
-	{
-		$contract: tronNetworkReferenceApplicability[0],
-		source: Source.TronScan_Rest,
-	},
-	{
-		$contract: tronNetworkReferenceApplicability[1],
-		source: Source.TronScan_Rest,
-	},
-] as const
-
 const tronTransactionReferenceApplicability = [
 	{
 		$transaction: tronNetworkReferenceApplicability[0],
 	},
 	{
 		$transaction: tronNetworkReferenceApplicability[1],
-	},
-] as const
-
-const tronTokenTimestampApplicability = [
-	{
-		$token: tronNetworkReferenceApplicability[0],
-		source: Source.TronScan_Rest,
-	},
-	{
-		$token: tronNetworkReferenceApplicability[1],
-		source: Source.TronScan_Rest,
 	},
 ] as const
 
@@ -287,6 +265,23 @@ const tokenFieldsFromTronScanToken = (
 						timestampMs: Date.now(),
 						source: Source.TronScan_Rest,
 					},
+					[EntityMetaKey.Fields]: {
+						...((name) => name != null && {
+							[entityFieldAddressKey(EntityType.TronToken_Timestamp, [], 'name')]: name,
+						})(token.name ?? token.tokenName),
+						...((symbol) => symbol != null && {
+							[entityFieldAddressKey(EntityType.TronToken_Timestamp, [], 'symbol')]: symbol,
+						})(token.symbol ?? token.abbr ?? token.tokenAbbr),
+						...((decimals) => decimals != null && {
+							[entityFieldAddressKey(EntityType.TronToken_Timestamp, [], 'decimals')]: decimals,
+						})(token.decimals ?? token.precision),
+						...((totalSupply) => totalSupply != null && {
+							[entityFieldAddressKey(EntityType.TronToken_Timestamp, [], 'totalSupply')]: totalSupply,
+						})(bigintFromWire(token.totalSupply ?? token.total_supply)),
+						...(token.holderCount != null && {
+							[entityFieldAddressKey(EntityType.TronToken_Timestamp, [], 'holderCount')]: token.holderCount,
+						}),
+					},
 				},
 			],
 		}),
@@ -327,6 +322,25 @@ const contractFieldsFromTronScanContract = (
 				},
 				timestampMs: Date.now(),
 				source: Source.TronScan_Rest,
+			},
+			[EntityMetaKey.Fields]: {
+				...(contract.compiler != null && {
+					[entityFieldAddressKey(EntityType.TronContract_Timestamp, [], 'compiler')]: contract.compiler,
+				}),
+				...((verifyStatus) => verifyStatus != null && {
+					[entityFieldAddressKey(EntityType.TronContract_Timestamp, [], 'verifyStatus')]: verifyStatus,
+				})(contract.verifyStatus ?? contract.verify_status?.toString()),
+				...(contract.is_proxy != null && {
+					[entityFieldAddressKey(EntityType.TronContract_Timestamp, [], 'isProxy')]: contract.is_proxy,
+				}),
+				...(contract.proxy_implementation != null && {
+					[entityFieldAddressKey(EntityType.TronContract_Timestamp, [], '$implementation')]: {
+						[EntityMetaKey.Selector]: {
+							$network: network,
+							address: contract.proxy_implementation,
+						},
+					},
+				}),
 			},
 		},
 	],
@@ -704,41 +718,6 @@ export default {
 			}),
 
 		defineResolver({
-			entityType: EntityType.TronContract_Timestamp,
-			resolve: {
-				ContractTimestampMsSource: {
-					appliesTo: tronContractTimestampApplicability,
-					resolve: async ({ $contract }) => {
-						assertTronMainnet($contract.$network)
-						const { getContract } = await import('$/sources/TronScan/Rest/queries.ts')
-						const contract = (await getContract(
-							$contract.address
-						)).data.at(0)
-						if (contract == null) throw new Error(`TronScan_Rest: contract not found for ${$contract.address}`)
-						return {
-							compiler: contract.compiler,
-							verifyStatus: contract.verifyStatus ?? contract.verify_status?.toString(),
-							isProxy: contract.is_proxy,
-							...(contract.proxy_implementation != null && {
-								$implementation: {
-									[EntityMetaKey.Selector]: {
-										$network: $contract.$network,
-										address: contract.proxy_implementation,
-									},
-								},
-							}),
-						}
-					},
-				}
-			},
-		})({
-				compiler: (contract) => contract.compiler,
-				verifyStatus: (contract) => contract.verifyStatus,
-				isProxy: (contract) => contract.isProxy,
-				$implementation: (contract) => contract.$implementation,
-			}),
-
-		defineResolver({
 			entityType: EntityType.TronTransactionReceipt,
 			resolve: {
 				Transaction: {
@@ -786,39 +765,6 @@ export default {
 				$contract: (token) => token.$contract,
 				createdTimestampMs: (token) => token.createdTimestampMs,
 				$$timestamps: (token) => token.$$timestamps ?? [],
-			}),
-
-		defineResolver({
-			entityType: EntityType.TronToken_Timestamp,
-			resolve: {
-				TokenTimestampMsSource: {
-					appliesTo: tronTokenTimestampApplicability,
-					resolve: async ({ $token }) => {
-						assertTronMainnet($token.$network)
-						const {
-							getTokenOverview,
-							getTrc10Token,
-						} = await import('$/sources/TronScan/Rest/queries.ts')
-						const token = (
-							(await getTokenOverview($token.tokenId)).tokens[0]
-						?? (await getTrc10Token($token.tokenId)).data.at(0)
-						)
-						return {
-							name: token.name ?? token.tokenName,
-							symbol: token.symbol ?? token.abbr ?? token.tokenAbbr,
-							decimals: token.decimals ?? token.precision,
-							totalSupply: bigintFromWire(token.totalSupply ?? token.total_supply),
-							holderCount: token.holderCount,
-						}
-					},
-				}
-			},
-		})({
-				name: (token) => token.name,
-				symbol: (token) => token.symbol,
-				decimals: (token) => token.decimals,
-				totalSupply: (token) => token.totalSupply,
-				holderCount: (token) => token.holderCount,
 			}),
 
 		defineResolver({

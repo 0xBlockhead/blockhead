@@ -41,7 +41,6 @@ const accountTimestampResolver = mintscan.resolvers.find((resolver) => resolver.
 const blockResolver = mintscan.resolvers.find((resolver) => resolver.entityType === EntityType.CosmosBlock)
 const transactionResolver = mintscan.resolvers.find((resolver) => resolver.entityType === EntityType.CosmosTransaction)
 const messageResolver = mintscan.resolvers.find((resolver) => resolver.entityType === EntityType.CosmosMessage)
-const networkTimestampResolver = mintscan.resolvers.find((resolver) => resolver.entityType === EntityType.Network_Timestamp)
 const networkTimestampListResolver = mintscan.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.Network
 	&& '$$timestamps' in resolver.projections
@@ -82,12 +81,6 @@ const resolveMessage = (
 	:
 		undefined
 )
-const resolveNetworkTimestamp = (
-	networkTimestampResolver != null && 'NetworkTimestampMsSource' in networkTimestampResolver.resolve ?
-		networkTimestampResolver.resolve.NetworkTimestampMsSource.resolve
-	:
-		undefined
-)
 const resolveNetworkTimestamps = (
 	networkTimestampListResolver != null && 'Slug' in networkTimestampListResolver.resolve ?
 		networkTimestampListResolver.resolve.Slug.resolve
@@ -111,8 +104,6 @@ if (resolveTransaction == null)
 	throw new Error('Mintscan Cosmos transaction resolver is not registered')
 if (resolveMessage == null)
 	throw new Error('Mintscan Cosmos message resolver is not registered')
-if (resolveNetworkTimestamp == null)
-	throw new Error('Mintscan Network timestamp resolver is not registered')
 if (resolveNetworkTimestamps == null)
 	throw new Error('Mintscan Network $$timestamps resolver is not registered')
 if (resolveNetworkBlocks == null)
@@ -166,13 +157,13 @@ describe('Mintscan Cosmos Hub resolvers', () => {
 		expect(mintscan).toMatchObject({
 			source: Source.Mintscan,
 		})
-		expect(mintscan.resolvers).toHaveLength(8)
+		expect(mintscan.resolvers).toHaveLength(7)
 		expect(accountResolver?.entityType).toBe(EntityType.CosmosAccount)
 		expect(accountTimestampResolver?.entityType).toBe(EntityType.CosmosAccount_Timestamp)
 		expect(blockResolver?.entityType).toBe(EntityType.CosmosBlock)
 		expect(transactionResolver?.entityType).toBe(EntityType.CosmosTransaction)
 		expect(messageResolver?.entityType).toBe(EntityType.CosmosMessage)
-		expect(networkTimestampResolver?.entityType).toBe(EntityType.Network_Timestamp)
+		expect(mintscan.resolvers.some((resolver) => resolver.entityType === EntityType.Network_Timestamp)).toBe(false)
 	})
 
 	it('reads account and block concurrently and preserves lossless account counters', async () => {
@@ -286,7 +277,7 @@ describe('Mintscan Cosmos Hub resolvers', () => {
 		})
 	})
 
-	it('projects network tip observations from latest block, node info, and syncing', async () => {
+	it('embeds network tip observations from latest block, node info, and syncing', async () => {
 		getLatestBlock.mockResolvedValue(tipBlock)
 		getNodeInfo.mockResolvedValue({
 			default_node_info: {
@@ -302,39 +293,30 @@ describe('Mintscan Cosmos Hub resolvers', () => {
 			syncing: false,
 		})
 
-		await expect(resolveNetworkTimestamp({
-			$network: account.$network,
-			timestampMs: 1_784_782_088_000,
-			source: Source.Mintscan,
-		}, context)).resolves.toEqual({
-			$network: {
-				[EntityMetaKey.Selector]: account.$network,
+		await expect(resolveNetworkTimestamps(account.$network, context)).resolves.toEqual([{
+			[EntityMetaKey.Selector]: {
+				$network: account.$network,
+				timestampMs: 1_784_782_088_000,
+				source: Source.Mintscan,
 			},
-			timestampMs: 1_784_782_088_000,
-			source: Source.Mintscan,
-			ledgerModels: [NetworkLedgerModel.Account],
-			executionModels: [NetworkExecutionModel.CosmosSdk],
-			latestBlockHeight: 24681012n,
-			latestBlockHash: 'A'.repeat(64),
-			latestBlockTimeMs: 1_784_782_088_000,
-			latestBlockTransactionCount: 2,
-			chainId: 'cosmoshub-4',
-			nodeNetwork: 'cosmoshub-4',
-			applicationName: 'gaiad',
-			applicationVersion: 'v15.0.0',
-			cosmosSdkVersion: 'v0.47.0',
-			isSyncing: false,
-		})
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.Network_Timestamp, [], 'ledgerModels')]: [NetworkLedgerModel.Account],
+				[entityFieldAddressKey(EntityType.Network_Timestamp, [], 'executionModels')]: [NetworkExecutionModel.CosmosSdk],
+				[entityFieldAddressKey(EntityType.Network_Timestamp, ['Cosmos'], 'latestBlockHeight')]: 24681012n,
+				[entityFieldAddressKey(EntityType.Network_Timestamp, ['Cosmos'], 'latestBlockHash')]: 'A'.repeat(64),
+				[entityFieldAddressKey(EntityType.Network_Timestamp, ['Cosmos'], 'latestBlockTimeMs')]: 1_784_782_088_000,
+				[entityFieldAddressKey(EntityType.Network_Timestamp, ['Cosmos'], 'latestBlockTransactionCount')]: 2,
+				[entityFieldAddressKey(EntityType.Network_Timestamp, ['Cosmos'], 'chainId')]: 'cosmoshub-4',
+				[entityFieldAddressKey(EntityType.Network_Timestamp, ['Cosmos'], 'nodeNetwork')]: 'cosmoshub-4',
+				[entityFieldAddressKey(EntityType.Network_Timestamp, ['Cosmos'], 'applicationName')]: 'gaiad',
+				[entityFieldAddressKey(EntityType.Network_Timestamp, ['Cosmos'], 'applicationVersion')]: 'v15.0.0',
+				[entityFieldAddressKey(EntityType.Network_Timestamp, ['Cosmos'], 'cosmosSdkVersion')]: 'v0.47.0',
+				[entityFieldAddressKey(EntityType.Network_Timestamp, ['Cosmos'], 'isSyncing')]: false,
+			},
+		}])
 	})
 
-	it('lists Network $$timestamps and tip-enriched $$blocks', async () => {
-		const timestamps = await resolveNetworkTimestamps(account.$network, context)
-		expect(timestamps).toHaveLength(1)
-		expect(timestamps[0]?.[EntityMetaKey.Selector]).toMatchObject({
-			$network: account.$network,
-			source: Source.Mintscan,
-		})
-
+	it('lists tip-enriched Network $$blocks', async () => {
 		getLatestBlock.mockResolvedValue(tipBlock)
 		await expect(resolveNetworkBlocks(account.$network, context)).resolves.toEqual([
 			{

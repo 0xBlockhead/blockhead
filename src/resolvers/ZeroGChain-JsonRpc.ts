@@ -10,6 +10,7 @@ import {
 } from '$/resolvers/defineResolver.ts'
 import { hexLowerOfByteSize, with0xHex } from '$/lib/hexLowerOfByteSize.ts'
 import {
+	entityFieldAddressKey,
 	EntityMetaKey,
 	type EntitySelector,
 } from '$/schema/$schema.ts'
@@ -161,6 +162,20 @@ export default {
 					appliesTo: zeroGNetworkReferenceApplicability,
 					resolve: async ({ $actor, $network }) => {
 						assertZeroGMainnetChain($network)
+						const address = hexLowerOfByteSize($actor.address, 20)
+						if (address == null)
+							throw new Error('ZeroGChain_JsonRpc: EvmNetworkAccount wallet address not normalized')
+
+						const {
+							getBlockNumber,
+							getCode,
+							getTransactionCount,
+						} = await import('$/sources/ZeroG/Chain/JsonRpc/queries.ts')
+						const [blockNumber, code, transactionCount] = await Promise.all([
+							getBlockNumber(),
+							getCode({ address }),
+							getTransactionCount({ address }),
+						])
 						return {
 							$$timestamps: [
 								{
@@ -171,6 +186,11 @@ export default {
 										},
 										timestampMs: Date.now(),
 										source: Source.ZeroGChain_JsonRpc,
+									},
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.EvmNetworkAccount_Timestamp, [], 'blockNumber')]: BigInt(blockNumber),
+										[entityFieldAddressKey(EntityType.EvmNetworkAccount_Timestamp, [], 'transactionCount')]: transactionCount,
+										[entityFieldAddressKey(EntityType.EvmNetworkAccount_Timestamp, [], 'isContract')]: code !== '0x',
 									},
 								},
 							],

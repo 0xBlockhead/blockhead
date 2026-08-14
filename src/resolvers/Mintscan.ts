@@ -3,7 +3,10 @@ import {
 	NetworkLedgerModel,
 	networkBySlug,
 } from '$/constants/Network.ts'
-import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
+import {
+	resolverContextRowLimit,
+	type ResolverContext,
+} from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
 	type RegisteredSourceResolverModule,
@@ -52,7 +55,8 @@ const cosmosNetworkApplicability = [
 
 const cosmosNetworkResolverSelectors = <_Snapshot extends object>(
 	resolve: (
-		network: NetworkId
+		network: NetworkId,
+		context: ResolverContext
 	) => Promise<_Snapshot> | _Snapshot
 ) => ({
 	Caip2: {
@@ -71,17 +75,6 @@ const cosmosNetworkReferenceApplicability = [
 	},
 	{
 		$network: cosmosNetworkApplicability[1],
-	},
-] as const
-
-const cosmosNetworkTimestampApplicability = [
-	{
-		$network: cosmosNetworkApplicability[0],
-		source: Source.Mintscan,
-	},
-	{
-		$network: cosmosNetworkApplicability[1],
-		source: Source.Mintscan,
 	},
 ] as const
 
@@ -309,15 +302,56 @@ export default {
 		defineResolver({
 			entityType: EntityType.Network,
 			resolve: cosmosNetworkResolverSelectors(
-				async (network) => ([
-					{
+				async (network, context) => {
+					assertCosmosHub(network)
+					const {
+						getLatestBlock,
+						getNodeInfo,
+						getSyncing,
+					} = await import('$/sources/Mintscan/Rest/queries.ts')
+					const [latestBlock, nodeInfo, syncing] = await Promise.all([
+						getLatestBlock(context.publicEnv, {
+							network: networkBySlug.cosmos.slug,
+						}),
+						getNodeInfo(context.publicEnv, {
+							network: networkBySlug.cosmos.slug,
+						}),
+						getSyncing(context.publicEnv, {
+							network: networkBySlug.cosmos.slug,
+						}),
+					])
+					const timestampMs = Date.parse(latestBlock.block.header.time)
+					if (!Number.isSafeInteger(timestampMs) || timestampMs < 0)
+						throw new Error('Mintscan: latest block has an invalid timestamp')
+
+					return [{
 						[EntityMetaKey.Selector]: {
 							$network: network,
-							timestampMs: Date.now(),
+							timestampMs,
 							source: Source.Mintscan,
 						},
-					},
-				])
+						[EntityMetaKey.Fields]: {
+							[entityFieldAddressKey(EntityType.Network_Timestamp, [], 'ledgerModels')]: [NetworkLedgerModel.Account],
+							[entityFieldAddressKey(EntityType.Network_Timestamp, [], 'executionModels')]: [NetworkExecutionModel.CosmosSdk],
+							[entityFieldAddressKey(EntityType.Network_Timestamp, ['Cosmos'], 'latestBlockHeight')]: BigInt(latestBlock.block.header.height),
+							[entityFieldAddressKey(EntityType.Network_Timestamp, ['Cosmos'], 'latestBlockHash')]: latestBlock.block_id.hash,
+							[entityFieldAddressKey(EntityType.Network_Timestamp, ['Cosmos'], 'latestBlockTimeMs')]: timestampMs,
+							[entityFieldAddressKey(EntityType.Network_Timestamp, ['Cosmos'], 'latestBlockTransactionCount')]: latestBlock.block.data.txs?.length ?? 0,
+							[entityFieldAddressKey(EntityType.Network_Timestamp, ['Cosmos'], 'chainId')]: nodeInfo.default_node_info.network,
+							[entityFieldAddressKey(EntityType.Network_Timestamp, ['Cosmos'], 'nodeNetwork')]: nodeInfo.default_node_info.network,
+							...((applicationName) => applicationName != null && {
+								[entityFieldAddressKey(EntityType.Network_Timestamp, ['Cosmos'], 'applicationName')]: applicationName,
+							})(nodeInfo.application_version?.app_name ?? nodeInfo.application_version?.name),
+							...(nodeInfo.application_version?.version != null && {
+								[entityFieldAddressKey(EntityType.Network_Timestamp, ['Cosmos'], 'applicationVersion')]: nodeInfo.application_version.version,
+							}),
+							...(nodeInfo.application_version?.cosmos_sdk_version != null && {
+								[entityFieldAddressKey(EntityType.Network_Timestamp, ['Cosmos'], 'cosmosSdkVersion')]: nodeInfo.application_version.cosmos_sdk_version,
+							}),
+							[entityFieldAddressKey(EntityType.Network_Timestamp, ['Cosmos'], 'isSyncing')]: syncing.syncing,
+						},
+					}]
+				}
 			),
 		})({
 			$$timestamps: (timestamps) => timestamps,
@@ -350,89 +384,6 @@ export default {
 		})({
 			Cosmos: {
 				$$blocks: (blocks) => blocks,
-			},
-		}),
-
-		defineResolver({
-			entityType: EntityType.Network_Timestamp,
-			resolve: {
-				NetworkTimestampMsSource: {
-					appliesTo: [
-						...cosmosNetworkTimestampApplicability,
-					],
-					resolve: async ({
-						$network,
-						timestampMs,
-						source,
-					}, context) => {
-						assertCosmosHub($network)
-						if (source !== Source.Mintscan)
-							throw new Error(`Mintscan: unsupported network timestamp source ${source}`)
-
-						const {
-							getLatestBlock,
-							getNodeInfo,
-							getSyncing,
-						} = await import('$/sources/Mintscan/Rest/queries.ts')
-						const [
-							latestBlock,
-							nodeInfo,
-							syncing,
-						] = await Promise.all([
-							getLatestBlock(context.publicEnv, {
-								network: networkBySlug.cosmos.slug,
-							}),
-							getNodeInfo(context.publicEnv, {
-								network: networkBySlug.cosmos.slug,
-							}),
-							getSyncing(context.publicEnv, {
-								network: networkBySlug.cosmos.slug,
-							}),
-						])
-
-						const latestBlockTimeMs = Date.parse(latestBlock.block.header.time)
-						if (!Number.isSafeInteger(latestBlockTimeMs) || latestBlockTimeMs < 0)
-							throw new Error('Mintscan: latest block has an invalid timestamp')
-
-						return {
-							$network: {
-								[EntityMetaKey.Selector]: $network,
-							},
-							timestampMs,
-							source,
-							ledgerModels: [NetworkLedgerModel.Account],
-							executionModels: [NetworkExecutionModel.CosmosSdk],
-							latestBlockHeight: BigInt(latestBlock.block.header.height),
-							latestBlockHash: latestBlock.block_id.hash,
-							latestBlockTimeMs,
-							latestBlockTransactionCount: latestBlock.block.data.txs?.length ?? 0,
-							chainId: nodeInfo.default_node_info.network,
-							nodeNetwork: nodeInfo.default_node_info.network,
-							applicationName: nodeInfo.application_version?.app_name ?? nodeInfo.application_version?.name,
-							applicationVersion: nodeInfo.application_version?.version,
-							cosmosSdkVersion: nodeInfo.application_version?.cosmos_sdk_version,
-							isSyncing: syncing.syncing,
-						}
-					},
-				},
-			},
-		})({
-			$network: (timestamp) => timestamp.$network,
-			timestampMs: (timestamp) => timestamp.timestampMs,
-			source: (timestamp) => timestamp.source,
-			ledgerModels: (timestamp) => timestamp.ledgerModels,
-			executionModels: (timestamp) => timestamp.executionModels,
-			Cosmos: {
-				latestBlockHeight: (timestamp) => timestamp.latestBlockHeight,
-				latestBlockHash: (timestamp) => timestamp.latestBlockHash,
-				latestBlockTimeMs: (timestamp) => timestamp.latestBlockTimeMs,
-				latestBlockTransactionCount: (timestamp) => timestamp.latestBlockTransactionCount,
-				chainId: (timestamp) => timestamp.chainId,
-				nodeNetwork: (timestamp) => timestamp.nodeNetwork,
-				applicationName: (timestamp) => timestamp.applicationName,
-				applicationVersion: (timestamp) => timestamp.applicationVersion,
-				cosmosSdkVersion: (timestamp) => timestamp.cosmosSdkVersion,
-				isSyncing: (timestamp) => timestamp.isSyncing,
 			},
 		}),
 
