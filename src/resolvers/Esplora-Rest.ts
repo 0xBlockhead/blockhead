@@ -270,27 +270,53 @@ const utxoTransactionReferenceFromEsploraWire = (
 	}
 }
 
-const utxoBlockTransactionReferences = async (
+const utxoBlockTransactionPage = async (
 	$network: NetworkId,
 	hash: string,
 	offset: number,
 	limit: number
 ) => {
-	const { getBlockTransactions } = await import('$/sources/Esplora/Rest/queries.ts')
+	const target = esploraTargetForNetwork($network)
+	const {
+		getBlock,
+		getBlockTransactions,
+	} = await import('$/sources/Esplora/Rest/queries.ts')
+	const block = await getBlock({
+		blockHash: hash,
+		target,
+	})
+	const transactionCount = block.tx_count
 	const transactions: EsploraTransaction[] = []
-	while (transactions.length < limit) {
+	while (
+		transactions.length < limit
+		&& offset + transactions.length < transactionCount
+	) {
 		const page = await getBlockTransactions({
 			blockHash: hash,
 			startIndex: offset + transactions.length,
-			target: esploraTargetForNetwork($network),
+			target,
 		})
-		transactions.push(...page.slice(0, limit - transactions.length))
-		if (page.length < 25) break
+		if (page.length === 0)
+			throw new Error('Esplora_Rest: block transaction page ended before authoritative total')
+
+		transactions.push(...page.slice(
+			0,
+			Math.min(
+				limit - transactions.length,
+				transactionCount - offset - transactions.length
+			)
+		))
 	}
-	return transactions.map((transaction) => utxoTransactionReferenceFromEsploraWire(
+	return {
 		$network,
-		transaction
-	))
+		hash,
+		height: BigInt(block.height),
+		transactions: transactions.map((transaction) => utxoTransactionReferenceFromEsploraWire(
+			$network,
+			transaction
+		)),
+		transactionCount,
+	}
 }
 
 const utxoBlockSnapshot = async (
@@ -515,22 +541,23 @@ export default {
 			entityType: EntityType.UtxoBlock,
 			resolve: {
 				NetworkHeight: {
-					resolve: async ({ $network, height }, context) => {
-						const { getBlockHashByHeight } = await import('$/sources/Esplora/Rest/queries.ts')
-						return utxoBlockTransactionReferences(
+					resolve: async ({ $network, height }, context) => (
+						utxoBlockTransactionPage(
 							$network,
-							await getBlockHashByHeight({
+							await (
+								await import('$/sources/Esplora/Rest/queries.ts')
+							).getBlockHashByHeight({
 								height,
 								target: esploraTargetForNetwork($network),
 							}),
 							context.pagination.offset ?? 0,
 							resolverContextRowLimit(context)
 						)
-					},
+					),
 				},
 				NetworkHeightHash: {
 					resolve: ({ $network, hash }, context) => (
-						utxoBlockTransactionReferences(
+						utxoBlockTransactionPage(
 							$network,
 							hash,
 							context.pagination.offset ?? 0,
@@ -540,7 +567,10 @@ export default {
 				}
 			},
 		})({
-				$$transactions: (transactions) => transactions,
+				$$transactions: {
+					select: (page) => page.transactions,
+					resolveCount: (page) => page.transactionCount,
+				},
 			}),
 
 		defineResolver({

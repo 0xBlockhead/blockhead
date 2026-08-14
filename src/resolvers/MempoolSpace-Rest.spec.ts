@@ -214,32 +214,41 @@ describe('MempoolSpace UTXO', () => {
 
 	it('materializes a paged block transaction hierarchy without child refetches', async () => {
 		const blockHash = 'c'.repeat(64)
-		sourceGetJson.mockResolvedValueOnce([{
-			txid: 'b'.repeat(64),
-			version: 2,
-			locktime: 1,
-			size: 200,
-			weight: 800,
-			fee: 1_000,
-			status: {
-				confirmed: true,
-				block_height: 840_000,
-				block_hash: blockHash,
-			},
-			vin: [{
-				txid: 'd'.repeat(64),
-				vout: 1,
-				is_coinbase: false,
-				sequence: 4,
-			}],
-			vout: [{
-				scriptpubkey: '0014',
-				scriptpubkey_type: 'v0_p2wpkh',
-				value: 5_000,
-			}],
-		}])
+		sourceGetJson
+			.mockResolvedValueOnce({
+				id: blockHash,
+				height: 840_000,
+				timestamp: 1_700_000_000,
+				tx_count: 26,
+				size: 1_000,
+				weight: 4_000,
+			})
+			.mockResolvedValueOnce([{
+				txid: 'b'.repeat(64),
+				version: 2,
+				locktime: 1,
+				size: 200,
+				weight: 800,
+				fee: 1_000,
+				status: {
+					confirmed: true,
+					block_height: 840_000,
+					block_hash: blockHash,
+				},
+				vin: [{
+					txid: 'd'.repeat(64),
+					vout: 1,
+					is_coinbase: false,
+					sequence: 4,
+				}],
+				vout: [{
+					scriptpubkey: '0014',
+					scriptpubkey_type: 'v0_p2wpkh',
+					value: 5_000,
+				}],
+			}])
 
-		const rows = await blockTransactionsResolver.resolve.NetworkHeightHash.resolve({
+		const page = await blockTransactionsResolver.resolve.NetworkHeightHash.resolve({
 			$network: network,
 			height: 840_000n,
 			hash: blockHash,
@@ -250,6 +259,12 @@ describe('MempoolSpace UTXO', () => {
 				offset: 25,
 			},
 		})
+
+		const rows = blockTransactionsResolver.projections.$$transactions.select(page, {
+			$network: network,
+			height: 840_000n,
+			hash: blockHash,
+		}, resolverContext)
 
 		expect(rows).toMatchObject([{
 			[EntityMetaKey.Selector]: {
@@ -271,9 +286,42 @@ describe('MempoolSpace UTXO', () => {
 				})],
 			},
 		}])
-		expect(sourceGetJson).toHaveBeenCalledWith(
+		expect(blockTransactionsResolver.projections.$$transactions.resolveCount(page, {
+			$network: network,
+			height: 840_000n,
+			hash: blockHash,
+		}, resolverContext)).toBe(26)
+		expect(sourceGetJson).toHaveBeenNthCalledWith(
+			1,
+			binding,
+			`https://mempool.space/api/block/${blockHash}`
+		)
+		expect(sourceGetJson).toHaveBeenNthCalledWith(
+			2,
 			binding,
 			`https://mempool.space/api/block/${blockHash}/txs/25`
+		)
+	})
+
+	it('fails closed when a block transaction page ends before the authoritative total', async () => {
+		const blockHash = 'c'.repeat(64)
+		sourceGetJson
+			.mockResolvedValueOnce({
+				id: blockHash,
+				height: 840_000,
+				timestamp: 1_700_000_000,
+				tx_count: 1,
+				size: 1_000,
+				weight: 4_000,
+			})
+			.mockResolvedValueOnce([])
+
+		await expect(blockTransactionsResolver.resolve.NetworkHeightHash.resolve({
+			$network: network,
+			height: 840_000n,
+			hash: blockHash,
+		}, resolverContext)).rejects.toThrow(
+			'MempoolSpace_Rest: block transaction page ended before authoritative total'
 		)
 	})
 
@@ -398,10 +446,18 @@ describe('MempoolSpace UTXO', () => {
 		})
 		sourceGetJson
 			.mockResolvedValueOnce(blockHash)
+			.mockResolvedValueOnce({
+				id: blockHash,
+				height: 840_000,
+				timestamp: 1_700_000_000,
+				tx_count: 50,
+				size: 1_000,
+				weight: 4_000,
+			})
 			.mockResolvedValueOnce(Array.from({ length: 25 }, (_, index) => transactionWire(index)))
 			.mockResolvedValueOnce(Array.from({ length: 5 }, (_, index) => transactionWire(index + 25)))
 
-		const rows = await blockTransactionsResolver.resolve.NetworkHeight.resolve({
+		const page = await blockTransactionsResolver.resolve.NetworkHeight.resolve({
 			$network: network,
 			height: 840_000n,
 		}, {
@@ -411,6 +467,11 @@ describe('MempoolSpace UTXO', () => {
 				offset: 10,
 			},
 		})
+		const rows = blockTransactionsResolver.projections.$$transactions.select(page, {
+			$network: network,
+			height: 840_000n,
+			hash: blockHash,
+		}, resolverContext)
 
 		expect(rows).toHaveLength(30)
 		expect(rows[0][EntityMetaKey.Selector]).toEqual({
@@ -421,6 +482,11 @@ describe('MempoolSpace UTXO', () => {
 			$network: network,
 			txId: '1d'.padStart(64, '0'),
 		})
+		expect(blockTransactionsResolver.projections.$$transactions.resolveCount(page, {
+			$network: network,
+			height: 840_000n,
+			hash: blockHash,
+		}, resolverContext)).toBe(50)
 		expect(sourceGetJson).toHaveBeenNthCalledWith(
 			1,
 			binding,
@@ -429,10 +495,15 @@ describe('MempoolSpace UTXO', () => {
 		expect(sourceGetJson).toHaveBeenNthCalledWith(
 			2,
 			binding,
-			`https://mempool.space/api/block/${blockHash}/txs/10`
+			`https://mempool.space/api/block/${blockHash}`
 		)
 		expect(sourceGetJson).toHaveBeenNthCalledWith(
 			3,
+			binding,
+			`https://mempool.space/api/block/${blockHash}/txs/10`
+		)
+		expect(sourceGetJson).toHaveBeenNthCalledWith(
+			4,
 			binding,
 			`https://mempool.space/api/block/${blockHash}/txs/35`
 		)

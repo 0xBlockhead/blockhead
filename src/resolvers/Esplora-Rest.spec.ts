@@ -853,7 +853,7 @@ describe('Esplora UTXO', () => {
 			}],
 		}
 		getBlockHashByHeight.mockResolvedValueOnce(hash)
-		getBlock.mockResolvedValueOnce({
+		getBlock.mockResolvedValue({
 			id: hash,
 			height: 840_000,
 			timestamp: 1_700_000_000,
@@ -882,12 +882,17 @@ describe('Esplora UTXO', () => {
 		expect(blockResolver.projections.hash(byHeight)).toBe(hash)
 		expect(blockResolver.projections.timestampMs(byHeight)).toBe(1_700_000_000_000)
 
-		const txs = await blockTransactionsResolver.resolve.NetworkHeightHash.resolve({
+		const page = await blockTransactionsResolver.resolve.NetworkHeightHash.resolve({
 			$network: bitcoinNetwork,
 			height: 840_000n,
 			hash,
 		}, resolverContext)
-		expect(blockTransactionsResolver.projections.$$transactions(txs)).toMatchObject([{
+		const txs = blockTransactionsResolver.projections.$$transactions.select(page, {
+			$network: bitcoinNetwork,
+			height: 840_000n,
+			hash,
+		}, resolverContext)
+		expect(txs).toMatchObject([{
 			[EntityMetaKey.Selector]: {
 				$network: bitcoinNetwork,
 				txId: 'c'.repeat(64),
@@ -914,6 +919,14 @@ describe('Esplora UTXO', () => {
 				}],
 			},
 		}])
+		expect(blockTransactionsResolver.projections.$$transactions.resolveCount(page, {
+			$network: bitcoinNetwork,
+			height: 840_000n,
+			hash,
+		}, resolverContext)).toBe(1)
+		expect(getBlock).toHaveBeenCalledWith(expect.objectContaining({
+			blockHash: hash,
+		}))
 		expect(getBlockTransactions).toHaveBeenCalledWith(expect.objectContaining({
 			blockHash: hash,
 			startIndex: 0,
@@ -934,6 +947,31 @@ describe('Esplora UTXO', () => {
 				},
 			},
 		])
+	})
+
+	it('fails closed when a block transaction page ends before the authoritative total', async () => {
+		const hash = 'a'.repeat(64)
+		getBlock.mockResolvedValueOnce({
+			id: hash,
+			height: 840_000,
+			timestamp: 1_700_000_000,
+			tx_count: 1,
+			size: 1_000,
+			weight: 4_000,
+			merkle_root: 'm'.repeat(64),
+			nonce: 1,
+			difficulty: 1,
+			previousblockhash: 'b'.repeat(64),
+		})
+		getBlockTransactions.mockResolvedValueOnce([])
+
+		await expect(blockTransactionsResolver.resolve.NetworkHeightHash.resolve({
+			$network: bitcoinNetwork,
+			height: 840_000n,
+			hash,
+		}, resolverContext)).rejects.toThrow(
+			'Esplora_Rest: block transaction page ended before authoritative total'
+		)
 	})
 
 	it('resumes network block pages from the native start height', async () => {

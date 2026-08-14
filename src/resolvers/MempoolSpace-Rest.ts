@@ -275,26 +275,49 @@ const utxoBlockSnapshot = async (
 	}
 }
 
-const utxoBlockTransactionReferences = async (
+const utxoBlockTransactionPage = async (
 	$network: NetworkId,
 	hash: string,
 	offset: number,
 	limit: number
 ) => {
-	const { getBlockTransactions } = await import('$/sources/MempoolSpace/Rest/queries.ts')
+	assertBitcoinMainnet($network)
+	const {
+		getBlock,
+		getBlockTransactions,
+	} = await import('$/sources/MempoolSpace/Rest/queries.ts')
+	const block = await getBlock(hash)
+	const transactionCount = block.tx_count
 	const transactions: MempoolSpaceTransaction[] = []
-	while (transactions.length < limit) {
+	while (
+		transactions.length < limit
+		&& offset + transactions.length < transactionCount
+	) {
 		const page = await getBlockTransactions(
 			hash,
 			offset + transactions.length
 		)
-		transactions.push(...page.slice(0, limit - transactions.length))
-		if (page.length < 25) break
+		if (page.length === 0)
+			throw new Error('MempoolSpace_Rest: block transaction page ended before authoritative total')
+
+		transactions.push(...page.slice(
+			0,
+			Math.min(
+				limit - transactions.length,
+				transactionCount - offset - transactions.length
+			)
+		))
 	}
-	return transactions.map((transaction) => utxoTransactionReferenceFromMempoolSpaceWire(
+	return {
 		$network,
-		transaction
-	))
+		hash,
+		height: BigInt(block.height),
+		transactions: transactions.map((transaction) => utxoTransactionReferenceFromMempoolSpaceWire(
+			$network,
+			transaction
+		)),
+		transactionCount,
+	}
 }
 
 export default {
@@ -1087,32 +1110,34 @@ export default {
 			resolve: {
 				NetworkHeight: {
 					appliesTo: bitcoinNetworkReferenceApplicability,
-					resolve: async ({ $network, height }, context) => {
-						assertBitcoinMainnet($network)
-						const { getBlockHashByHeight } = await import('$/sources/MempoolSpace/Rest/queries.ts')
-						return utxoBlockTransactionReferences(
+					resolve: async ({ $network, height }, context) => (
+						utxoBlockTransactionPage(
 							$network,
-							await getBlockHashByHeight(height),
+							await (
+								await import('$/sources/MempoolSpace/Rest/queries.ts')
+							).getBlockHashByHeight(height),
 							context.pagination.offset ?? 0,
 							resolverContextRowLimit(context)
 						)
-					},
+					),
 				},
 				NetworkHeightHash: {
 					appliesTo: bitcoinNetworkReferenceApplicability,
-					resolve: ({ $network, hash }, context) => {
-						assertBitcoinMainnet($network)
-						return utxoBlockTransactionReferences(
+					resolve: ({ $network, hash }, context) => (
+						utxoBlockTransactionPage(
 							$network,
 							hash,
 							context.pagination.offset ?? 0,
 							resolverContextRowLimit(context)
 						)
-					},
+					),
 				}
 			},
 		})({
-				$$transactions: (transactions) => transactions,
+				$$transactions: {
+					select: (page) => page.transactions,
+					resolveCount: (page) => page.transactionCount,
+				},
 			}),
 
 	],
