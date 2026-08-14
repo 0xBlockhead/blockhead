@@ -104833,11 +104833,6 @@ export const app = {
 							locator: "https://dweb.link",
 							corsEnabled: true,
 						},
-						{
-							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://cloudflare-ipfs.com",
-							corsEnabled: false,
-						},
 					],
 					wireProtocol: WireProtocol.HttpRest,
 					apiFamily: ApiFamily.IpfsGateway,

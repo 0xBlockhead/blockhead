@@ -102,9 +102,28 @@ describe('IPFS gateway binding transport', () => {
 		)
 	})
 
-	it('fails over after network errors and non-OK gateway responses', async () => {
+	it('fails over after a gateway network error', async () => {
 		sourceFetch
 			.mockRejectedValueOnce(new Error('offline'))
+			.mockResolvedValueOnce(new Response('recovered', {
+				status: 200,
+				headers: {
+					'content-type': 'text/plain',
+				},
+			}))
+
+		await expect(fetchBrowseResult({
+			namespace: 'ipfs',
+			target: ipfsGatewaySampleCid,
+		})).resolves.toMatchObject({
+			gatewayOrigin: new URL(binding.endpoints[1].locator).origin,
+			text: 'recovered',
+		})
+		expect(sourceFetch).toHaveBeenCalledTimes(2)
+	})
+
+	it('fails over after a non-OK gateway response', async () => {
+		sourceFetch
 			.mockResolvedValueOnce(new Response('nope', {
 				status: 404,
 				statusText: 'Not Found',
@@ -120,21 +139,19 @@ describe('IPFS gateway binding transport', () => {
 			namespace: 'ipfs',
 			target: ipfsGatewaySampleCid,
 		})).resolves.toMatchObject({
-			gatewayOrigin: new URL(binding.endpoints[2].locator).origin,
+			gatewayOrigin: new URL(binding.endpoints[1].locator).origin,
 			text: 'recovered',
 		})
-		expect(sourceFetch).toHaveBeenCalledTimes(3)
+		expect(sourceFetch).toHaveBeenCalledTimes(2)
 	})
 
 	it('reports declared gateway reachability without inventing endpoints', async () => {
 		sourceFetch
 			.mockResolvedValueOnce({ ok: true })
 			.mockResolvedValueOnce({ ok: false, status: 500 })
-			.mockRejectedValueOnce(new Error('offline'))
-			.mockRejectedValueOnce(new Error('offline get'))
 
 		await expect(getGatewayReachability()).resolves.toEqual({
-			declaredAccessEndpointCount: 3,
+			declaredAccessEndpointCount: 2,
 			reachableAccessEndpointCount: 1,
 			reachable: true,
 		})

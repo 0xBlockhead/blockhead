@@ -1284,7 +1284,6 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["InternetIdentity_Delegation","LocalDevice","user-session","LocalOnly","WalletApi"] | BrowserWalletProvider | internet-identity-delegation |  |  |
 | ["Ipfs_Rest","ContentAddressScheme","ipfs","HttpProxy","IpfsGateway"] | HttpUrl | https://ipfs.io | https://ipfs.io | false |
 | ["Ipfs_Rest","ContentAddressScheme","ipfs","HttpProxy","IpfsGateway"] | HttpUrl | https://dweb.link | https://dweb.link | true |
-| ["Ipfs_Rest","ContentAddressScheme","ipfs","HttpProxy","IpfsGateway"] | HttpUrl | https://cloudflare-ipfs.com | https://cloudflare-ipfs.com | false |
 | ["Juno_JsonRpc","NetworkSlug","starknet","RemoteQuery","StarknetJsonRpc"] | HttpUrl | https://{juno-rpc-host} | https://{juno-rpc-host} | false |
 | ["Kabila_WalletConnect","LocalDevice","kabila-walletconnect","BrowserDirect","WalletApi"] | BrowserWalletProvider | kabila-walletconnect |  |  |
 | ["KaspaExplorer","NetworkSlug","kaspa","BrowserDirect","OpenApiHttp"] | HttpUrl | https://api.kaspa.org | https://api.kaspa.org | true |
