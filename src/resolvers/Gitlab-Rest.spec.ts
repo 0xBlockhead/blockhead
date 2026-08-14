@@ -75,7 +75,10 @@ const mirrorIssuesResolver = resolverModule.resolvers.find((resolver) => '$$issu
 const mirrorPipelinesResolver = resolverModule.resolvers.find((resolver) => '$$pipelines' in resolver.projections)
 const mirrorPullRequestsResolver = resolverModule.resolvers.find((resolver) => '$$pullRequests' in resolver.projections)
 const mirrorReleasesResolver = resolverModule.resolvers.find((resolver) => '$$releases' in resolver.projections)
-const repositoryResolver = resolverModule.resolvers.find((resolver) => resolver.entityType === EntityType.GitRepository)
+const repositoryResolver = resolverModule.resolvers.find((resolver) => resolver.entityType === EntityType.GitRepository && 'objectFormat' in resolver.projections)
+const repositoryRefsResolver = resolverModule.resolvers.find((resolver) => resolver.entityType === EntityType.GitRepository && '$$refs' in resolver.projections)
+const repositoryObjectsResolver = resolverModule.resolvers.find((resolver) => resolver.entityType === EntityType.GitRepository && '$$objects' in resolver.projections)
+const remoteResolver = resolverModule.resolvers.find((resolver) => resolver.entityType === EntityType.GitRemote)
 const refResolver = resolverModule.resolvers.find((resolver) => resolver.entityType === EntityType.GitRef)
 const pathResolutionResolver = resolverModule.resolvers.find((resolver) => resolver.entityType === EntityType.GitTreePathResolution)
 const issueResolver = resolverModule.resolvers.find((resolver) => resolver.entityType === EntityType.GitForgeIssue)
@@ -92,6 +95,9 @@ if (
 	|| mirrorPipelinesResolver == null
 	|| mirrorPullRequestsResolver == null
 	|| mirrorReleasesResolver == null
+	|| repositoryRefsResolver == null
+	|| repositoryObjectsResolver == null
+	|| remoteResolver == null
 	|| refResolver == null
 	|| pathResolutionResolver == null
 	|| issueResolver == null
@@ -113,23 +119,29 @@ const project = {
 	http_url_to_repo: 'https://gitlab.com/gitlab-org/gitlab.git',
 	ssh_url_to_repo: 'git@gitlab.com:gitlab-org/gitlab.git',
 	web_url: 'https://gitlab.com/gitlab-org/gitlab',
+	repository_object_format: 'sha1',
 }
+const observationTimestampMs = Date.parse('2026-08-14T00:00:00Z')
+const dateNow = vi.spyOn(Date, 'now')
 
 describe('GitLab repository journey', () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
+		dateNow.mockReturnValue(observationTimestampMs)
 		getProject.mockResolvedValue(project)
 		getBranches.mockResolvedValue([
 			{
 				name: 'master',
 				commit: {
 					id: 'a'.repeat(40),
+					committed_date: '2026-04-01T00:00:00Z',
 				},
 			},
 			{
 				name: 'stable',
 				commit: {
 					id: 'b'.repeat(40),
+					committed_date: '2026-04-02T00:00:00Z',
 				},
 			},
 		])
@@ -197,6 +209,7 @@ describe('GitLab repository journey', () => {
 				message: 'Version 1.0.0',
 				commit: {
 					id: 'e'.repeat(40),
+					committed_date: '2026-04-03T00:00:00Z',
 				},
 			},
 		])
@@ -207,6 +220,7 @@ describe('GitLab repository journey', () => {
 			developers_can_merge: true,
 			commit: {
 				id: 'a'.repeat(40),
+				committed_date: '2026-04-01T00:00:00Z',
 			},
 		})
 		getTag.mockResolvedValue({
@@ -216,10 +230,12 @@ describe('GitLab repository journey', () => {
 			protected: false,
 			commit: {
 				id: 'e'.repeat(40),
+				committed_date: '2026-04-03T00:00:00Z',
 			},
 		})
 		getIssue.mockResolvedValue({
 			iid: 12,
+			project_id: project.id,
 			title: 'Preserve native repository links',
 			state: 'closed',
 			labels: [
@@ -238,6 +254,7 @@ describe('GitLab repository journey', () => {
 		getIssues.mockResolvedValue([])
 		getMergeRequest.mockResolvedValue({
 			iid: 34,
+			project_id: project.id,
 			title: 'Connect the repository graph',
 			state: 'merged',
 			target_branch: 'master',
@@ -336,6 +353,7 @@ describe('GitLab repository journey', () => {
 	it('materializes lifecycle cards in the repository hierarchy without detail refetches', async () => {
 		getIssues.mockResolvedValueOnce([{
 			iid: 12,
+			project_id: project.id,
 			title: 'Preserve native repository links',
 			state: 'closed',
 			labels: ['architecture'],
@@ -345,6 +363,7 @@ describe('GitLab repository journey', () => {
 		}])
 		getMergeRequests.mockResolvedValueOnce([{
 			iid: 34,
+			project_id: project.id,
 			title: 'Connect the repository graph',
 			state: 'merged',
 			target_branch: 'master',
@@ -491,25 +510,7 @@ describe('GitLab repository journey', () => {
 		})
 	})
 
-	it('resolves the canonical repository into native branch refs and targets', async () => {
-		getBranches.mockResolvedValueOnce([
-			{
-				name: 'master',
-				protected: true,
-				developers_can_push: false,
-				developers_can_merge: true,
-				commit: {
-					id: 'a'.repeat(40),
-				},
-			},
-			{
-				name: 'stable',
-				protected: false,
-				commit: {
-					id: 'b'.repeat(40),
-				},
-			},
-		])
+	it('resolves the canonical repository into provider object format and origin remote', async () => {
 		const snapshot = await repositoryResolver.resolve.CanonicalRemoteUrl.resolve({
 			canonicalRemoteUrl: project.http_url_to_repo,
 		})
@@ -520,60 +521,97 @@ describe('GitLab repository journey', () => {
 			objectFormat: 'sha1',
 			defaultRefName: 'refs/heads/master',
 		})
-		expect(snapshot?.$$refs).toEqual([
-			{
-				[EntityMetaKey.Selector]: {
-					$repository: {
-						canonicalRemoteUrl: project.http_url_to_repo,
-					},
-					refName: 'refs/heads/master',
-				},
-				refKind: 'branch',
-				targetObjectId: `0x${'a'.repeat(40)}`,
-				protection: {
-					protected: true,
-					developersCanPush: false,
-					developersCanMerge: true,
-				},
-			},
-			{
-				[EntityMetaKey.Selector]: {
-					$repository: {
-						canonicalRemoteUrl: project.http_url_to_repo,
-					},
-					refName: 'refs/heads/stable',
-				},
-				refKind: 'branch',
-				targetObjectId: `0x${'b'.repeat(40)}`,
-				protection: {
-					protected: false,
-				},
-			},
-			{
-				[EntityMetaKey.Selector]: {
-					$repository: {
-						canonicalRemoteUrl: project.http_url_to_repo,
-					},
-					refName: 'refs/tags/v1.0.0',
-				},
-				refKind: 'tag',
-				targetObjectId: `0x${'e'.repeat(40)}`,
-			},
-		])
 		if (snapshot == null)
 			throw new Error('GitLab repository snapshot must resolve')
-		const refs = repositoryResolver.projections.$$refs.select(snapshot)
-		expect(refs[0][EntityMetaKey.Fields][
+		expect(repositoryResolver.projections.$$remotes.select(snapshot)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$repository: {
+					canonicalRemoteUrl: project.http_url_to_repo,
+				},
+				remoteName: 'origin',
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.GitRemote, [], 'url')]: project.http_url_to_repo,
+				[entityFieldAddressKey(EntityType.GitRemote, [], 'transportKind')]: 'https',
+				[entityFieldAddressKey(EntityType.GitRemote, [], 'hostKind')]: 'gitlab.com',
+				[entityFieldAddressKey(EntityType.GitRemote, [], 'source')]: Source.Gitlab_Rest,
+			},
+		}])
+		expect(repositoryResolver.projections.$$remotes.resolveCount(snapshot)).toBe(1)
+		expect(getBranches).not.toHaveBeenCalled()
+		expect(getTags).not.toHaveBeenCalled()
+		expect(getCommits).not.toHaveBeenCalled()
+		expect(getRepositoryTree).not.toHaveBeenCalled()
+	})
+
+	it('paginates native branch then tag refs with source-clocked protection observations', async () => {
+		getBranches.mockResolvedValueOnce([
+			{
+				name: 'master',
+				protected: true,
+				developers_can_push: false,
+				developers_can_merge: true,
+				commit: {
+					id: 'a'.repeat(40),
+					committed_date: '2026-04-01T00:00:00Z',
+				},
+			},
+			{
+				name: 'stable',
+				protected: false,
+				commit: {
+					id: 'b'.repeat(40),
+					committed_date: '2026-04-02T00:00:00Z',
+				},
+			},
+		])
+		const selector = {
+			canonicalRemoteUrl: project.http_url_to_repo,
+		}
+		const pageContext = {
+			filters: [],
+			sorts: [],
+			pagination: { limit: 2 },
+			selectorKeys: [],
+			parentSelectorKeys: [],
+			sources: [],
+			publicEnv: {},
+		}
+		const branchPage = await repositoryRefsResolver.resolve.CanonicalRemoteUrl.resolve(selector, pageContext)
+		if (branchPage == null)
+			throw new Error('GitLab branch page must resolve')
+		const branches = repositoryRefsResolver.projections.$$refs.select(branchPage, selector, pageContext)
+		expect(branches).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$repository: selector,
+					refName: 'refs/heads/master',
+				},
+				[EntityMetaKey.Fields]: expect.objectContaining({
+					[entityFieldAddressKey(EntityType.GitRef, [], 'refKind')]: 'branch',
+					[entityFieldAddressKey(EntityType.GitRef, [], 'targetObjectId')]: `0x${'a'.repeat(40)}`,
+				}),
+			},
+			{
+				[EntityMetaKey.Selector]: {
+					$repository: selector,
+					refName: 'refs/heads/stable',
+				},
+				[EntityMetaKey.Fields]: expect.objectContaining({
+					[entityFieldAddressKey(EntityType.GitRef, [], 'refKind')]: 'branch',
+					[entityFieldAddressKey(EntityType.GitRef, [], 'targetObjectId')]: `0x${'b'.repeat(40)}`,
+				}),
+			},
+		])
+		expect(branches[0][EntityMetaKey.Fields][
 			entityFieldAddressKey(EntityType.GitRef, [], '$$observations')
 		][0]).toMatchObject({
 			[EntityMetaKey.Selector]: {
 				$ref: {
-					$repository: {
-						canonicalRemoteUrl: project.http_url_to_repo,
-					},
+					$repository: selector,
 					refName: 'refs/heads/master',
 				},
-				timestampMs: expect.any(Number),
+				timestampMs: observationTimestampMs,
 				source: Source.Gitlab_Rest,
 			},
 			[EntityMetaKey.Fields]: {
@@ -586,9 +624,107 @@ describe('GitLab repository journey', () => {
 				},
 			},
 		})
-		expect(repositoryResolver.projections.$$refs.resolveCount(snapshot)).toBe(3)
-		expect(repositoryResolver.projections.$$objects.resolveCount(snapshot)).toBe(6)
-		expect(repositoryResolver.projections.$$objects.select(snapshot)).toEqual(expect.arrayContaining([
+		expect(repositoryRefsResolver.projections.$$refs.continuation?.(branchPage, selector, pageContext)).toEqual({
+			operation: 'gitlab-refs',
+			terminal: false,
+			token: 'heads:2',
+		})
+
+		getTags.mockResolvedValueOnce([{
+			name: 'v1.0.0',
+			target: 'e'.repeat(40),
+			message: 'Version 1.0.0',
+			protected: true,
+			commit: {
+				id: 'c'.repeat(40),
+				committed_date: '2026-04-03T00:00:00Z',
+			},
+		}])
+		const tagContext = {
+			...pageContext,
+			providerContinuationToken: 'tags:1',
+		}
+		const tagPage = await repositoryRefsResolver.resolve.CanonicalRemoteUrl.resolve(selector, tagContext)
+		if (tagPage == null)
+			throw new Error('GitLab tag page must resolve')
+		const tags = repositoryRefsResolver.projections.$$refs.select(tagPage, selector, tagContext)
+		expect(tags[0]).toMatchObject({
+			[EntityMetaKey.Selector]: {
+				refName: 'refs/tags/v1.0.0',
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.GitRef, [], 'refKind')]: 'tag',
+				[entityFieldAddressKey(EntityType.GitRef, [], 'targetObjectId')]: `0x${'e'.repeat(40)}`,
+			},
+		})
+		expect(tags[0][EntityMetaKey.Fields][
+			entityFieldAddressKey(EntityType.GitRef, [], '$$observations')
+		][0][EntityMetaKey.Fields]).toMatchObject({
+			[entityFieldAddressKey(EntityType.GitRefObservation_Timestamp, [], 'peeledObjectId')]: `0x${'c'.repeat(40)}`,
+			[entityFieldAddressKey(EntityType.GitRefObservation_Timestamp, [], 'protection')]: {
+				protected: true,
+			},
+		})
+		expect(repositoryRefsResolver.projections.$$refs.continuation?.(tagPage, selector, tagContext)).toEqual({
+			operation: 'gitlab-refs',
+			terminal: true,
+		})
+		expect(getBranches).toHaveBeenCalledWith({
+			projectId: 'gitlab-org/gitlab',
+			page: 1,
+			perPage: 2,
+		})
+		expect(getTags).toHaveBeenCalledWith({
+			projectId: 'gitlab-org/gitlab',
+			page: 1,
+			perPage: 2,
+		})
+	})
+
+	it('paginates commit then tree objects without claiming a windowed total', async () => {
+		const selector = {
+			canonicalRemoteUrl: project.http_url_to_repo,
+		}
+		const pageContext = {
+			filters: [],
+			sorts: [],
+			pagination: { limit: 1 },
+			selectorKeys: [],
+			parentSelectorKeys: [],
+			sources: [],
+			publicEnv: {},
+		}
+		const commitPage = await repositoryObjectsResolver.resolve.CanonicalRemoteUrl.resolve(selector, pageContext)
+		if (commitPage == null)
+			throw new Error('GitLab commit page must resolve')
+		expect(repositoryObjectsResolver.projections.$$objects.select(commitPage, selector, pageContext)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					objectId: `0x${'f'.repeat(40)}`,
+					objectFormat: 'sha1',
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.GitObject, [], 'objectKind')]: 'commit',
+					[entityFieldAddressKey(EntityType.GitObject, [], '$repository')]: {
+						[EntityMetaKey.Selector]: selector,
+					},
+				},
+			},
+		])
+		expect(repositoryObjectsResolver.projections.$$objects.continuation?.(commitPage, selector, pageContext)).toEqual({
+			operation: 'gitlab-objects',
+			terminal: false,
+			token: 'commits:2',
+		})
+
+		const treeContext = {
+			...pageContext,
+			providerContinuationToken: 'tree:1',
+		}
+		const treePage = await repositoryObjectsResolver.resolve.CanonicalRemoteUrl.resolve(selector, treeContext)
+		if (treePage == null)
+			throw new Error('GitLab tree page must resolve')
+		expect(repositoryObjectsResolver.projections.$$objects.select(treePage, selector, treeContext)).toEqual(expect.arrayContaining([
 			{
 				[EntityMetaKey.Selector]: {
 					objectId: `0x${'c'.repeat(40)}`,
@@ -604,39 +740,17 @@ describe('GitLab repository journey', () => {
 				[EntityMetaKey.Fields]: expect.any(Object),
 			},
 		]))
-	})
-
-	it('includes ref commit targets in the native repository object graph', async () => {
-		const snapshot = await repositoryResolver.resolve.CanonicalRemoteUrl.resolve({
-			canonicalRemoteUrl: project.http_url_to_repo,
-		})
-
-		expect(snapshot?.$$objects).toEqual(expect.arrayContaining([
-			expect.objectContaining({
-				[EntityMetaKey.Selector]: {
-					objectId: `0x${'a'.repeat(40)}`,
-					objectFormat: 'sha1',
-				},
-				objectKind: 'commit',
-			}),
-			expect.objectContaining({
-				[EntityMetaKey.Selector]: {
-					objectId: `0x${'f'.repeat(40)}`,
-					objectFormat: 'sha1',
-				},
-				objectKind: 'commit',
-			}),
-			expect.objectContaining({
-				[EntityMetaKey.Selector]: {
-					objectId: `0x${'d'.repeat(40)}`,
-					objectFormat: 'sha1',
-				},
-				objectKind: 'blob',
-			}),
-		]))
 		expect(getCommits).toHaveBeenCalledWith({
 			projectId: 'gitlab-org/gitlab',
+			page: 1,
+			perPage: 1,
 		})
+		expect(getRepositoryTree).toHaveBeenCalledWith({
+			page: 1,
+			projectId: 'gitlab-org/gitlab',
+			perPage: 1,
+		})
+		expect('resolveCount' in repositoryObjectsResolver.projections.$$objects).toBe(false)
 	})
 
 	it('does not claim non-GitLab forge or remote authority', async () => {
@@ -666,6 +780,71 @@ describe('GitLab repository journey', () => {
 		expect(getProject).not.toHaveBeenCalled()
 	})
 
+	it('resolves nested GitLab namespaces through exact path identity', async () => {
+		getProject.mockResolvedValueOnce({
+			...project,
+			path: 'project',
+			path_with_namespace: 'gitlab-org/security/project',
+			http_url_to_repo: 'https://gitlab.com/gitlab-org/security/project.git',
+			web_url: 'https://gitlab.com/gitlab-org/security/project',
+		})
+		await expect(mirrorResolver.resolve.ForgeHostOwnerRepositoryName.resolve({
+			forgeHost: 'gitlab.com',
+			owner: 'gitlab-org/security',
+			repositoryName: 'project',
+		})).resolves.toMatchObject({
+			owner: 'gitlab-org/security',
+			repositoryName: 'project',
+			$gitRepository: {
+				[EntityMetaKey.Selector]: {
+					canonicalRemoteUrl: 'https://gitlab.com/gitlab-org/security/project.git',
+				},
+			},
+		})
+		expect(getProject).toHaveBeenCalledWith({ projectId: 'gitlab-org/security/project' })
+	})
+
+	it('resolves the canonical origin remote and rejects unrelated remote names', async () => {
+		const $repository = {
+			canonicalRemoteUrl: project.http_url_to_repo,
+		}
+		await expect(remoteResolver.resolve.RepositoryRemoteName.resolve({
+			$repository,
+			remoteName: 'origin',
+		})).resolves.toMatchObject({
+			remoteName: 'origin',
+			url: project.http_url_to_repo,
+			transportKind: 'https',
+			hostKind: 'gitlab.com',
+			source: Source.Gitlab_Rest,
+		})
+		await expect(remoteResolver.resolve.RepositoryRemoteName.resolve({
+			$repository,
+			remoteName: 'upstream',
+		})).resolves.toBeUndefined()
+	})
+
+	it('fails closed when issue or merge-request project identity does not match the mirror', async () => {
+		getIssue.mockResolvedValueOnce({
+			iid: 12,
+			project_id: 1,
+			title: 'Foreign issue',
+			state: 'opened',
+			labels: [],
+			created_at: '2026-01-01T00:00:00Z',
+			updated_at: '2026-01-01T00:00:00Z',
+			closed_at: null,
+		})
+		await expect(issueResolver.resolve.ForgeMirrorIssueNumber.resolve({
+			$forgeMirror: {
+				forgeHost: 'gitlab.com',
+				owner: 'gitlab-org',
+				repositoryName: 'gitlab',
+			},
+			issueNumber: 12,
+		})).rejects.toThrow('issue identity does not match selector')
+	})
+
 	it('resolves branch and tag routes into current native ref observations', async () => {
 		const $repository = {
 			canonicalRemoteUrl: project.http_url_to_repo,
@@ -691,11 +870,17 @@ describe('GitLab repository journey', () => {
 		})
 		if (branch == null)
 			throw new Error('GitLab branch must resolve')
-		expect(refResolver.projections.$$observations(branch)[0][EntityMetaKey.Fields]).toMatchObject({
-			[entityFieldAddressKey(EntityType.GitRefObservation_Timestamp, [], 'protection')]: {
-				protected: true,
-				developersCanPush: false,
-				developersCanMerge: true,
+		expect(refResolver.projections.$$observations(branch)[0]).toMatchObject({
+			[EntityMetaKey.Selector]: {
+				timestampMs: observationTimestampMs,
+				source: Source.Gitlab_Rest,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.GitRefObservation_Timestamp, [], 'protection')]: {
+					protected: true,
+					developersCanPush: false,
+					developersCanMerge: true,
+				},
 			},
 		})
 	})

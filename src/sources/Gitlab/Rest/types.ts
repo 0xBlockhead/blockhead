@@ -10,18 +10,22 @@ export const gitlabProjectWire = type({
 	http_url_to_repo: 'string.url',
 	ssh_url_to_repo: 'string > 0',
 	web_url: 'string.url',
+	repository_object_format: "'sha1' | 'sha256'",
 })
 
 export type GitlabProject = typeof gitlabProjectWire.infer
+
+const gitlabRefCommitWire = type({
+	id: '/^[0-9a-fA-F]{40}$|^[0-9a-fA-F]{64}$/',
+	committed_date: 'string > 0',
+})
 
 export const gitlabBranchWire = type({
 	name: 'string > 0',
 	'protected?': 'boolean',
 	'developers_can_push?': 'boolean',
 	'developers_can_merge?': 'boolean',
-	commit: {
-		id: '/^[0-9a-fA-F]{40}$|^[0-9a-fA-F]{64}$/',
-	},
+	commit: gitlabRefCommitWire,
 })
 
 export type GitlabBranch = typeof gitlabBranchWire.infer
@@ -32,9 +36,7 @@ export const gitlabTagWire = type({
 	name: 'string > 0',
 	target: '/^[0-9a-fA-F]{40}$|^[0-9a-fA-F]{64}$/',
 	message: 'string | null',
-	commit: {
-		id: '/^[0-9a-fA-F]{40}$|^[0-9a-fA-F]{64}$/',
-	},
+	commit: gitlabRefCommitWire,
 	'protected?': 'boolean',
 })
 
@@ -142,6 +144,7 @@ export const gitlabJobsWire = gitlabJobWire.array()
 
 export const gitlabIssueWire = type({
 	iid: 'number.integer >= 0',
+	project_id: 'number.integer >= 0',
 	title: 'string',
 	state: 'string > 0',
 	labels: 'string[]',
@@ -160,6 +163,7 @@ export const gitlabIssuesWire = gitlabIssueWire.array()
 
 export const gitlabMergeRequestWire = type({
 	iid: 'number.integer >= 0',
+	project_id: 'number.integer >= 0',
 	title: 'string',
 	state: 'string > 0',
 	target_branch: 'string > 0',

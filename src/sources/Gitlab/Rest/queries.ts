@@ -22,8 +22,6 @@ import {
 	gitlabRepositoryTreeWire,
 	gitlabTagsWire,
 	gitlabTagWire,
-	type GitlabBranch,
-	type GitlabTag,
 } from '$/sources/Gitlab/Rest/types.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 
@@ -61,34 +59,24 @@ export const getProject = ({
 
 export const getBranches = ({
 	projectId,
-	maxRows = 100,
+	page = 1,
+	perPage = 100,
 }: {
 	projectId: string
-	maxRows?: number
-}) => {
-	if (!Number.isSafeInteger(maxRows) || maxRows < 1)
-		throw new Error('Gitlab_Rest: invalid branches row limit')
-
-	return (async () => {
-		const branches: GitlabBranch[] = []
-		for (let page = 1; branches.length < maxRows; page++) {
-			const perPage = Math.min(100, maxRows - branches.length)
-			let branchPage
+	page?: number
+	perPage?: number
+}) => (
+	getJson<JsonValue>(binding, `/api/v4/projects/${encodeURIComponent(projectId)}/repository/branches?${new URLSearchParams(
+		gitlabPaginationParams(page, perPage)
+	)}`)
+		.then((branches) => {
 			try {
-				branchPage = gitlabBranchesWire.assert(await getJson<JsonValue>(
-					binding,
-					`/api/v4/projects/${encodeURIComponent(projectId)}/repository/branches?${new URLSearchParams(gitlabPaginationParams(page, perPage))}`
-				))
+				return gitlabBranchesWire.assert(branches)
 			} catch {
 				throw new Error('Gitlab_Rest: invalid branches response')
 			}
-			branches.push(...branchPage)
-			if (branchPage.length < perPage)
-				break
-		}
-		return branches
-	})()
-}
+		})
+)
 
 export const getBranch = ({
 	projectId,
@@ -109,34 +97,24 @@ export const getBranch = ({
 
 export const getTags = ({
 	projectId,
-	maxRows = 100,
+	page = 1,
+	perPage = 100,
 }: {
 	projectId: string
-	maxRows?: number
-}) => {
-	if (!Number.isSafeInteger(maxRows) || maxRows < 1)
-		throw new Error('Gitlab_Rest: invalid tags row limit')
-
-	return (async () => {
-		const tags: GitlabTag[] = []
-		for (let page = 1; tags.length < maxRows; page++) {
-			const perPage = Math.min(100, maxRows - tags.length)
-			let tagPage
+	page?: number
+	perPage?: number
+}) => (
+	getJson<JsonValue>(binding, `/api/v4/projects/${encodeURIComponent(projectId)}/repository/tags?${new URLSearchParams(
+		gitlabPaginationParams(page, perPage)
+	)}`)
+		.then((tags) => {
 			try {
-				tagPage = gitlabTagsWire.assert(await getJson<JsonValue>(
-					binding,
-					`/api/v4/projects/${encodeURIComponent(projectId)}/repository/tags?${new URLSearchParams(gitlabPaginationParams(page, perPage))}`
-				))
+				return gitlabTagsWire.assert(tags)
 			} catch {
 				throw new Error('Gitlab_Rest: invalid tags response')
 			}
-			tags.push(...tagPage)
-			if (tagPage.length < perPage)
-				break
-		}
-		return tags
-	})()
-}
+		})
+)
 
 export const getTag = ({
 	projectId,

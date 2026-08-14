@@ -63,6 +63,128 @@ const gitlabPage = (providerContinuationToken: string | undefined) => {
 	return page
 }
 
+const gitlabCollectionPage = (
+	providerContinuationToken: string | undefined,
+	streams: readonly [string, ...string[]]
+) => {
+	const token = providerContinuationToken ?? `${streams[0]}:1`
+	const match = /^([a-z]+):(\d+)$/.exec(token)
+	const stream = match?.[1]
+	const page = Number(match?.[2])
+	if (
+		stream == null
+		|| !streams.some((value) => value === stream)
+		|| !Number.isSafeInteger(page)
+		|| page < 1
+	)
+		throw new Error('Gitlab_Rest: invalid continuation page')
+
+	return {
+		page,
+		stream,
+	}
+}
+
+const gitlabCollectionContinuation = ({
+	page,
+	perPage,
+	rowCount,
+	stream,
+	streams,
+}: {
+	page: number
+	perPage: number
+	rowCount: number
+	stream: string
+	streams: readonly [string, ...string[]]
+}) => {
+	if (perPage !== 0 && rowCount === perPage)
+		return {
+			terminal: false as const,
+			token: `${stream}:${page + 1}`,
+		}
+
+	const streamIndex = streams.indexOf(stream)
+	return (
+		streamIndex >= 0 && streamIndex < streams.length - 1 ?
+			{
+				terminal: false as const,
+				token: `${streams[streamIndex + 1]}:1`,
+			}
+		:
+			{ terminal: true as const }
+	)
+}
+
+const gitlabCanonicalRemoteUrl = (httpUrlToRepo: string) => {
+	if (gitlabCoordinatesFromRemoteUrl(httpUrlToRepo) == null)
+		throw new Error('Gitlab_Rest: project clone URL is not a canonical GitLab HTTPS remote')
+
+	return httpUrlToRepo
+}
+
+const gitlabRefProtection = (ref: {
+	protected?: boolean
+	developers_can_push?: boolean
+	developers_can_merge?: boolean
+}) => (
+	ref.protected == null ?
+		undefined
+	:
+		{
+			protected: ref.protected,
+			...(ref.developers_can_push != null && {
+				developersCanPush: ref.developers_can_push,
+			}),
+			...(ref.developers_can_merge != null && {
+				developersCanMerge: ref.developers_can_merge,
+			}),
+		}
+)
+
+const gitlabRefObservation = ({
+	$repository,
+	peeledObjectId,
+	protection,
+	refName,
+	targetObjectId,
+	timestampMs,
+}: {
+	$repository: {
+		canonicalRemoteUrl: string
+	} | {
+		repositoryId: string
+	}
+	peeledObjectId?: `0x${string}`
+	protection?: {
+		protected: boolean
+		developersCanPush?: boolean
+		developersCanMerge?: boolean
+	}
+	refName: string
+	targetObjectId: `0x${string}`
+	timestampMs: number
+}) => ({
+	[EntityMetaKey.Selector]: {
+		$ref: {
+			$repository,
+			refName,
+		},
+		timestampMs,
+		source: Source.Gitlab_Rest,
+	},
+	[EntityMetaKey.Fields]: {
+		[entityFieldAddressKey(EntityType.GitRefObservation_Timestamp, [], 'targetObjectId')]: targetObjectId,
+		[entityFieldAddressKey(EntityType.GitRefObservation_Timestamp, [], 'advertised')]: true,
+		...(peeledObjectId != null && {
+			[entityFieldAddressKey(EntityType.GitRefObservation_Timestamp, [], 'peeledObjectId')]: peeledObjectId,
+		}),
+		...(protection != null && {
+			[entityFieldAddressKey(EntityType.GitRefObservation_Timestamp, [], 'protection')]: protection,
+		}),
+	},
+})
+
 const gitlabCommitCoordinatesFromSignatureId = (signatureId: string) => {
 	const signatureUrl = URL.parse(signatureId)
 	if (signatureUrl == null)
@@ -171,6 +293,7 @@ export default {
 						const project = await getProject({ projectId })
 						if (project.path !== repositoryName || project.path_with_namespace !== `${owner}/${repositoryName}`)
 							throw new Error('Gitlab_Rest: project identity does not match selector')
+						const canonicalRemoteUrl = gitlabCanonicalRemoteUrl(project.http_url_to_repo)
 
 						return {
 							forgeHost,
@@ -178,13 +301,13 @@ export default {
 							repositoryName,
 							$gitRepository: {
 								[EntityMetaKey.Selector]: {
-									canonicalRemoteUrl: project.http_url_to_repo,
+									canonicalRemoteUrl,
 								},
 							},
 							...(project.default_branch != null && { defaultBranch: project.default_branch }),
 							visibility: project.visibility,
 							cloneUrls: [
-								project.http_url_to_repo,
+								canonicalRemoteUrl,
 								project.ssh_url_to_repo,
 							],
 							htmlUrl: project.web_url,
@@ -285,20 +408,30 @@ export default {
 
 						const page = gitlabPage(context.providerContinuationToken)
 						const perPage = resolverContextRowLimit(context)
-						const { getIssues } = await import('$/sources/Gitlab/Rest/queries.ts')
-						return {
-							page,
-							perPage,
-							issues: (
+						const {
+							getIssues,
+							getProject,
+						} = await import('$/sources/Gitlab/Rest/queries.ts')
+						const [project, issues] = await Promise.all([
+							getProject({ projectId }),
+							(
 								perPage === 0 ?
 									[]
 								:
-									await getIssues({
+									getIssues({
 										projectId,
 										page,
 										perPage,
 									})
 							),
+						])
+						if (issues.some((issue) => issue.project_id !== project.id))
+							throw new Error('Gitlab_Rest: issue project identity does not match selector')
+
+						return {
+							page,
+							perPage,
+							issues,
 						}
 					},
 				},
@@ -346,20 +479,30 @@ export default {
 
 						const page = gitlabPage(context.providerContinuationToken)
 						const perPage = resolverContextRowLimit(context)
-						const { getMergeRequests } = await import('$/sources/Gitlab/Rest/queries.ts')
-						return {
-							page,
-							perPage,
-							mergeRequests: (
+						const {
+							getMergeRequests,
+							getProject,
+						} = await import('$/sources/Gitlab/Rest/queries.ts')
+						const [project, mergeRequests] = await Promise.all([
+							getProject({ projectId }),
+							(
 								perPage === 0 ?
 									[]
 								:
-									await getMergeRequests({
+									getMergeRequests({
 										projectId,
 										page,
 										perPage,
 									})
 							),
+						])
+						if (mergeRequests.some((mergeRequest) => mergeRequest.project_id !== project.id))
+							throw new Error('Gitlab_Rest: merge request project identity does not match selector')
+
+						return {
+							page,
+							perPage,
+							mergeRequests,
 						}
 					},
 				},
@@ -467,92 +610,29 @@ export default {
 						const coordinates = gitlabCoordinatesFromRemoteUrl(canonicalRemoteUrl)
 						if (coordinates == null) return undefined
 
-						const {
-							getBranches,
-							getCommits,
-							getProject,
-							getRepositoryTree,
-							getTags,
-						} = await import('$/sources/Gitlab/Rest/queries.ts')
-						const [project, branches, tags, commits, repositoryTree] = await Promise.all([
-							getProject({ projectId: coordinates.projectId }),
-							getBranches({
-								projectId: coordinates.projectId,
-								maxRows: 1_000,
-							}),
-							getTags({
-								projectId: coordinates.projectId,
-								maxRows: 1_000,
-							}),
-							getCommits({ projectId: coordinates.projectId }),
-							getRepositoryTree({ projectId: coordinates.projectId }),
-						])
+						const { getProject } = await import('$/sources/Gitlab/Rest/queries.ts')
+						const project = await getProject({ projectId: coordinates.projectId })
 						if (project.path !== coordinates.repositoryName || project.path_with_namespace !== coordinates.projectId)
 							throw new Error('Gitlab_Rest: project identity does not match remote URL')
+						const repositoryRemoteUrl = gitlabCanonicalRemoteUrl(project.http_url_to_repo)
 
-						const timestampMs = Date.now()
-						const objectFormat = [...branches, ...tags].some(({ commit }) => commit.id.length === 64) ? 'sha256' : 'sha1'
 						return {
-							repositoryId: project.http_url_to_repo,
-							canonicalRemoteUrl: project.http_url_to_repo,
-							objectFormat,
-							timestampMs,
+							repositoryId: repositoryRemoteUrl,
+							canonicalRemoteUrl: repositoryRemoteUrl,
+							objectFormat: project.repository_object_format,
 							...(project.default_branch != null && { defaultRefName: `refs/heads/${project.default_branch}` }),
-							$$refs: [
-								...branches.map((branch) => ({
-									[EntityMetaKey.Selector]: {
-										$repository: {
-											canonicalRemoteUrl: project.http_url_to_repo,
-										},
-										refName: `refs/heads/${branch.name}`,
-									},
-									refKind: 'branch',
-									targetObjectId: `0x${branch.commit.id}`,
-									...(branch.protected != null && {
-										protection: {
-											protected: branch.protected,
-											...(branch.developers_can_push != null && {
-												developersCanPush: branch.developers_can_push,
-											}),
-											...(branch.developers_can_merge != null && {
-												developersCanMerge: branch.developers_can_merge,
-											}),
-										},
-									}),
-								})),
-								...tags.map((tag) => ({
-									[EntityMetaKey.Selector]: {
-										$repository: {
-											canonicalRemoteUrl: project.http_url_to_repo,
-										},
-										refName: `refs/tags/${tag.name}`,
-									},
-									refKind: 'tag',
-									targetObjectId: `0x${tag.target}`,
-									...(tag.protected != null && {
-										protection: {
-											protected: tag.protected,
-										},
-									}),
-								})),
-							],
-							$$objects: [...new Map([
-								...branches.map((branch) => [branch.commit.id, 'commit'] as const),
-								...tags.map((tag) => [tag.commit.id, 'commit'] as const),
-								...commits.map((commit) => [commit.id, 'commit'] as const),
-								...repositoryTree.map((object) => [object.id, object.type] as const),
-							]).entries()].map(([objectId, objectKind]) => ({
+							$$remotes: [{
 								[EntityMetaKey.Selector]: {
-									objectId: `0x${objectId}`,
-									objectFormat,
-								},
-								objectKind,
-								$repository: {
-									[EntityMetaKey.Selector]: {
-										canonicalRemoteUrl: project.http_url_to_repo,
+									$repository: {
+										canonicalRemoteUrl: repositoryRemoteUrl,
 									},
+									remoteName: 'origin',
 								},
-							})),
+								url: repositoryRemoteUrl,
+								transportKind: 'https',
+								hostKind: 'gitlab.com',
+								source: Source.Gitlab_Rest,
+							}],
 						}
 					},
 				},
@@ -562,39 +642,224 @@ export default {
 			canonicalRemoteUrl: (repository) => repository.canonicalRemoteUrl,
 			objectFormat: (repository) => repository.objectFormat,
 			defaultRefName: (repository) => repository.defaultRefName,
-			$$refs: {
-				select: (repository) => repository.$$refs.map((ref) => ({
-					[EntityMetaKey.Selector]: ref[EntityMetaKey.Selector],
+			$$remotes: {
+				select: (repository) => repository.$$remotes.map((remote) => ({
+					[EntityMetaKey.Selector]: remote[EntityMetaKey.Selector],
 					[EntityMetaKey.Fields]: {
-						[entityFieldAddressKey(EntityType.GitRef, [], 'refKind')]: ref.refKind,
-						[entityFieldAddressKey(EntityType.GitRef, [], 'targetObjectId')]: ref.targetObjectId,
-						[entityFieldAddressKey(EntityType.GitRef, [], '$$observations')]: [{
-							[EntityMetaKey.Selector]: {
-								$ref: ref[EntityMetaKey.Selector],
-								timestampMs: repository.timestampMs,
-								source: Source.Gitlab_Rest,
-							},
-							[EntityMetaKey.Fields]: {
-								[entityFieldAddressKey(EntityType.GitRefObservation_Timestamp, [], 'targetObjectId')]: ref.targetObjectId,
-								[entityFieldAddressKey(EntityType.GitRefObservation_Timestamp, [], 'advertised')]: true,
-								...(ref.protection != null && {
-									[entityFieldAddressKey(EntityType.GitRefObservation_Timestamp, [], 'protection')]: ref.protection,
-								}),
-							},
-						}],
+						[entityFieldAddressKey(EntityType.GitRemote, [], 'url')]: remote.url,
+						[entityFieldAddressKey(EntityType.GitRemote, [], 'transportKind')]: remote.transportKind,
+						[entityFieldAddressKey(EntityType.GitRemote, [], 'hostKind')]: remote.hostKind,
+						[entityFieldAddressKey(EntityType.GitRemote, [], 'source')]: remote.source,
 					},
 				})),
-				resolveCount: (repository) => repository.$$refs.length,
+				resolveCount: (repository) => repository.$$remotes.length,
 			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.GitRepository,
+			resolve: {
+				CanonicalRemoteUrl: {
+					resolve: async ({ canonicalRemoteUrl }, context) => {
+						const coordinates = gitlabCoordinatesFromRemoteUrl(canonicalRemoteUrl)
+						if (coordinates == null) return undefined
+
+						const {
+							page,
+							stream,
+						} = gitlabCollectionPage(context.providerContinuationToken, ['heads', 'tags'])
+						const perPage = resolverContextRowLimit(context)
+						const {
+							getBranches,
+							getProject,
+							getTags,
+						} = await import('$/sources/Gitlab/Rest/queries.ts')
+						const [project, refs] = await Promise.all([
+							getProject({ projectId: coordinates.projectId }),
+							(
+								perPage === 0 ?
+									[]
+								: stream === 'heads' ?
+									getBranches({
+										projectId: coordinates.projectId,
+										page,
+										perPage,
+									})
+								:
+									getTags({
+										projectId: coordinates.projectId,
+										page,
+										perPage,
+									})
+							),
+						])
+						if (project.path !== coordinates.repositoryName || project.path_with_namespace !== coordinates.projectId)
+							throw new Error('Gitlab_Rest: project identity does not match remote URL')
+
+						return {
+							canonicalRemoteUrl: gitlabCanonicalRemoteUrl(project.http_url_to_repo),
+							page,
+							perPage,
+							refs,
+							stream,
+							timestampMs: Date.now(),
+						}
+					},
+				},
+			},
+		})({
+			$$refs: {
+				select: ({
+					canonicalRemoteUrl,
+					refs,
+					stream,
+					timestampMs,
+				}) => refs.map((ref) => {
+					const refName = `${stream === 'heads' ? 'refs/heads' : 'refs/tags'}/${ref.name}`
+					const targetObjectId = `0x${'target' in ref ? ref.target : ref.commit.id}` as const
+					const peeledObjectId = (
+						'target' in ref && ref.target !== ref.commit.id ?
+							`0x${ref.commit.id}` as const
+						:
+							undefined
+					)
+					const $repository = {
+						canonicalRemoteUrl,
+					}
+					return {
+						[EntityMetaKey.Selector]: {
+							$repository,
+							refName,
+						},
+						[EntityMetaKey.Fields]: {
+							[entityFieldAddressKey(EntityType.GitRef, [], 'refKind')]: stream === 'heads' ? 'branch' : 'tag',
+							[entityFieldAddressKey(EntityType.GitRef, [], 'targetObjectId')]: targetObjectId,
+							[entityFieldAddressKey(EntityType.GitRef, [], '$$observations')]: [
+								gitlabRefObservation({
+									$repository,
+									peeledObjectId,
+									protection: gitlabRefProtection(ref),
+									refName,
+									targetObjectId,
+									timestampMs,
+								}),
+							],
+						},
+					}
+				}),
+				continuation: ({
+					page,
+					perPage,
+					refs,
+					stream,
+				}) => ({
+					operation: 'gitlab-refs',
+					...gitlabCollectionContinuation({
+						page,
+						perPage,
+						rowCount: refs.length,
+						stream,
+						streams: ['heads', 'tags'],
+					}),
+				}),
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.GitRepository,
+			resolve: {
+				CanonicalRemoteUrl: {
+					resolve: async ({ canonicalRemoteUrl }, context) => {
+						const coordinates = gitlabCoordinatesFromRemoteUrl(canonicalRemoteUrl)
+						if (coordinates == null) return undefined
+
+						const {
+							page,
+							stream,
+						} = gitlabCollectionPage(context.providerContinuationToken, ['commits', 'tree'])
+						const perPage = resolverContextRowLimit(context)
+						const {
+							getCommits,
+							getProject,
+							getRepositoryTree,
+						} = await import('$/sources/Gitlab/Rest/queries.ts')
+						const [project, objectPage] = await Promise.all([
+							getProject({ projectId: coordinates.projectId }),
+							(
+								perPage === 0 ?
+									[]
+								: stream === 'commits' ?
+									getCommits({
+										projectId: coordinates.projectId,
+										page,
+										perPage,
+									}).then((commits) => commits.map((commit) => ({
+										objectId: commit.id,
+										objectKind: 'commit',
+									})))
+								:
+									getRepositoryTree({
+										page,
+										projectId: coordinates.projectId,
+										perPage,
+									}).then((entries) => entries.map((entry) => ({
+										objectId: entry.id,
+										objectKind: entry.type,
+									})))
+							),
+						])
+						if (project.path !== coordinates.repositoryName || project.path_with_namespace !== coordinates.projectId)
+							throw new Error('Gitlab_Rest: project identity does not match remote URL')
+
+						return {
+							canonicalRemoteUrl: gitlabCanonicalRemoteUrl(project.http_url_to_repo),
+							objectFormat: project.repository_object_format,
+							objects: objectPage,
+							page,
+							perPage,
+							stream,
+						}
+					},
+				},
+			},
+		})({
 			$$objects: {
-				select: (repository) => repository.$$objects.map((object) => ({
-					[EntityMetaKey.Selector]: object[EntityMetaKey.Selector],
+				select: ({
+					canonicalRemoteUrl,
+					objectFormat,
+					objects,
+				}) => [...new Map(objects.map((object) => [
+					object.objectId,
+					object.objectKind,
+				] as const)).entries()].map(([objectId, objectKind]) => ({
+					[EntityMetaKey.Selector]: {
+						objectId: `0x${objectId}`,
+						objectFormat,
+					},
 					[EntityMetaKey.Fields]: {
-						[entityFieldAddressKey(EntityType.GitObject, [], 'objectKind')]: object.objectKind,
-						[entityFieldAddressKey(EntityType.GitObject, [], '$repository')]: object.$repository,
+						[entityFieldAddressKey(EntityType.GitObject, [], 'objectKind')]: objectKind,
+						[entityFieldAddressKey(EntityType.GitObject, [], '$repository')]: {
+							[EntityMetaKey.Selector]: {
+								canonicalRemoteUrl,
+							},
+						},
 					},
 				})),
-				resolveCount: (repository) => repository.$$objects.length,
+				continuation: ({
+					objects,
+					page,
+					perPage,
+					stream,
+				}) => ({
+					operation: 'gitlab-objects',
+					...gitlabCollectionContinuation({
+						page,
+						perPage,
+						rowCount: objects.length,
+						stream,
+						streams: ['commits', 'tree'],
+					}),
+				}),
 			},
 		}),
 
@@ -640,38 +905,28 @@ export default {
 						if (ref.name !== branchName && ref.name !== tagName)
 							throw new Error('Gitlab_Rest: ref identity does not match selector')
 
-						const targetObjectId = `0x${'target' in ref ? ref.target : ref.commit.id}`
-						const timestampMs = Date.now()
+						const targetObjectId = `0x${'target' in ref ? ref.target : ref.commit.id}` as const
+						const peeledObjectId = (
+							'target' in ref && ref.target !== ref.commit.id ?
+								`0x${ref.commit.id}` as const
+							:
+								undefined
+						)
 						return {
 							$repository,
 							refName,
 							refKind: branchName != null ? 'branch' : 'tag',
 							targetObjectId,
-							$$observations: [{
-								[EntityMetaKey.Selector]: {
-									$ref: {
-										$repository,
-										refName,
-									},
-									timestampMs,
-									source: Source.Gitlab_Rest,
-								},
-								[EntityMetaKey.Fields]: {
-									[entityFieldAddressKey(EntityType.GitRefObservation_Timestamp, [], 'targetObjectId')]: targetObjectId,
-									[entityFieldAddressKey(EntityType.GitRefObservation_Timestamp, [], 'advertised')]: true,
-									...(ref.protected != null && {
-										[entityFieldAddressKey(EntityType.GitRefObservation_Timestamp, [], 'protection')]: {
-											protected: ref.protected,
-											...('developers_can_push' in ref && ref.developers_can_push != null && {
-												developersCanPush: ref.developers_can_push,
-											}),
-											...('developers_can_merge' in ref && ref.developers_can_merge != null && {
-												developersCanMerge: ref.developers_can_merge,
-											}),
-										},
-									}),
-								},
-							}],
+							$$observations: [
+								gitlabRefObservation({
+									$repository,
+									peeledObjectId,
+									protection: gitlabRefProtection(ref),
+									refName,
+									targetObjectId,
+									timestampMs: Date.now(),
+								}),
+							],
 						}
 					},
 				},
@@ -684,6 +939,54 @@ export default {
 			refKind: (ref) => ref.refKind,
 			targetObjectId: (ref) => ref.targetObjectId,
 			$$observations: (ref) => ref.$$observations,
+		}),
+
+		defineResolver({
+			entityType: EntityType.GitRemote,
+			resolve: {
+				RepositoryRemoteName: {
+					resolve: async ({
+						$repository,
+						remoteName,
+					}) => {
+						if (remoteName !== 'origin')
+							return undefined
+
+						const coordinates = gitlabCoordinatesFromRemoteUrl(
+							'canonicalRemoteUrl' in $repository ?
+								$repository.canonicalRemoteUrl
+							:
+								$repository.repositoryId
+						)
+						if (coordinates == null)
+							return undefined
+
+						const { getProject } = await import('$/sources/Gitlab/Rest/queries.ts')
+						const project = await getProject({ projectId: coordinates.projectId })
+						if (project.path !== coordinates.repositoryName || project.path_with_namespace !== coordinates.projectId)
+							throw new Error('Gitlab_Rest: project identity does not match remote URL')
+						const canonicalRemoteUrl = gitlabCanonicalRemoteUrl(project.http_url_to_repo)
+
+						return {
+							$repository,
+							remoteName,
+							url: canonicalRemoteUrl,
+							transportKind: 'https',
+							hostKind: 'gitlab.com',
+							source: Source.Gitlab_Rest,
+						}
+					},
+				},
+			},
+		})({
+			$repository: (remote) => ({
+				[EntityMetaKey.Selector]: remote.$repository,
+			}),
+			remoteName: (remote) => remote.remoteName,
+			url: (remote) => remote.url,
+			transportKind: (remote) => remote.transportKind,
+			hostKind: (remote) => remote.hostKind,
+			source: (remote) => remote.source,
 		}),
 
 		defineResolver({
@@ -964,12 +1267,18 @@ export default {
 						const projectId = gitlabProjectIdFromMirror($forgeMirror)
 						if (projectId == null) return undefined
 
-						const { getIssue } = await import('$/sources/Gitlab/Rest/queries.ts')
-						const issue = await getIssue({
-							projectId,
-							issueNumber,
-						})
-						if (issue.iid !== issueNumber)
+						const {
+							getIssue,
+							getProject,
+						} = await import('$/sources/Gitlab/Rest/queries.ts')
+						const [project, issue] = await Promise.all([
+							getProject({ projectId }),
+							getIssue({
+								projectId,
+								issueNumber,
+							}),
+						])
+						if (issue.iid !== issueNumber || issue.project_id !== project.id)
 							throw new Error('Gitlab_Rest: issue identity does not match selector')
 
 						return {
@@ -1009,12 +1318,18 @@ export default {
 						const projectId = gitlabProjectIdFromMirror($forgeMirror)
 						if (projectId == null) return undefined
 
-						const { getMergeRequest } = await import('$/sources/Gitlab/Rest/queries.ts')
-						const mergeRequest = await getMergeRequest({
-							projectId,
-							pullRequestNumber,
-						})
-						if (mergeRequest.iid !== pullRequestNumber)
+						const {
+							getMergeRequest,
+							getProject,
+						} = await import('$/sources/Gitlab/Rest/queries.ts')
+						const [project, mergeRequest] = await Promise.all([
+							getProject({ projectId }),
+							getMergeRequest({
+								projectId,
+								pullRequestNumber,
+							}),
+						])
+						if (mergeRequest.iid !== pullRequestNumber || mergeRequest.project_id !== project.id)
 							throw new Error('Gitlab_Rest: merge request identity does not match selector')
 
 						return {

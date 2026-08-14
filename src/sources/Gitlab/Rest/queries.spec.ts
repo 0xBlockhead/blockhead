@@ -47,17 +47,20 @@ describe('GitLab REST wires', () => {
 				http_url_to_repo: 'https://gitlab.com/gitlab-org/gitlab.git',
 				ssh_url_to_repo: 'git@gitlab.com:gitlab-org/gitlab.git',
 				web_url: 'https://gitlab.com/gitlab-org/gitlab',
+				repository_object_format: 'sha1',
 			})
 			.mockResolvedValueOnce([
 				{
 					name: 'master',
 					commit: {
 						id: 'a'.repeat(40),
+						committed_date: '2026-04-01T00:00:00Z',
 					},
 				},
 			])
 			.mockResolvedValueOnce({
 				iid: 12,
+				project_id: 278964,
 				title: 'Issue',
 				state: 'opened',
 				labels: [],
@@ -73,6 +76,7 @@ describe('GitLab REST wires', () => {
 			})
 			.mockResolvedValueOnce({
 				iid: 34,
+				project_id: 278964,
 				title: 'Merge request',
 				state: 'opened',
 				target_branch: 'master',
@@ -110,6 +114,7 @@ describe('GitLab REST wires', () => {
 					message: 'Version 1',
 					commit: {
 						id: 'c'.repeat(40),
+						committed_date: '2026-04-02T00:00:00Z',
 					},
 				},
 			])
@@ -145,6 +150,7 @@ describe('GitLab REST wires', () => {
 	it('rejects incomplete lifecycle payloads', async () => {
 		sourceGetJson.mockResolvedValue({
 			iid: 12,
+			project_id: 278964,
 			title: 'Issue without a lifecycle clock',
 			state: 'opened',
 			labels: [],
@@ -165,6 +171,7 @@ describe('GitLab REST wires', () => {
 				developers_can_merge: true,
 				commit: {
 					id: 'a'.repeat(40),
+					committed_date: '2026-04-01T00:00:00Z',
 				},
 			})
 			.mockResolvedValueOnce({
@@ -174,6 +181,7 @@ describe('GitLab REST wires', () => {
 				protected: false,
 				commit: {
 					id: 'b'.repeat(40),
+					committed_date: '2026-04-02T00:00:00Z',
 				},
 			})
 
@@ -193,57 +201,54 @@ describe('GitLab REST wires', () => {
 		})
 	})
 
-	it('materializes branch and tag indexes beyond the first provider page', async () => {
+	it('reads exact branch and tag pages and rejects invalid pagination before transport', async () => {
 		sourceGetJson
-			.mockResolvedValueOnce(Array.from({ length: 100 }, (_, index) => ({
-				name: `branch-${index}`,
-				commit: {
-					id: index.toString(16).padStart(40, '0'),
-				},
-			})))
 			.mockResolvedValueOnce([{
-				name: 'branch-100',
+				name: 'master',
 				commit: {
-					id: 'f'.repeat(40),
+					id: 'a'.repeat(40),
+					committed_date: '2026-04-01T00:00:00Z',
 				},
 			}])
-			.mockResolvedValueOnce(Array.from({ length: 100 }, (_, index) => ({
-				name: `v${index}`,
-				target: index.toString(16).padStart(40, '0'),
-				message: null,
-				commit: {
-					id: index.toString(16).padStart(40, '0'),
-				},
-			})))
 			.mockResolvedValueOnce([{
-				name: 'v100',
-				target: 'f'.repeat(40),
+				name: 'v1',
+				target: 'b'.repeat(40),
 				message: null,
 				commit: {
-					id: 'f'.repeat(40),
+					id: 'b'.repeat(40),
+					committed_date: '2026-04-02T00:00:00Z',
 				},
 			}])
 
 		await expect(getBranches({
 			projectId: 'gitlab-org/gitlab',
-			maxRows: 150,
-		})).resolves.toHaveLength(101)
+			page: 2,
+			perPage: 50,
+		})).resolves.toHaveLength(1)
 		await expect(getTags({
 			projectId: 'gitlab-org/gitlab',
-			maxRows: 150,
-		})).resolves.toHaveLength(101)
+			page: 3,
+			perPage: 25,
+		})).resolves.toHaveLength(1)
 		expect(sourceGetJson.mock.calls.map(([, url]) => url)).toEqual([
-			'https://gitlab.com/api/v4/projects/gitlab-org%2Fgitlab/repository/branches?page=1&per_page=100',
 			'https://gitlab.com/api/v4/projects/gitlab-org%2Fgitlab/repository/branches?page=2&per_page=50',
-			'https://gitlab.com/api/v4/projects/gitlab-org%2Fgitlab/repository/tags?page=1&per_page=100',
-			'https://gitlab.com/api/v4/projects/gitlab-org%2Fgitlab/repository/tags?page=2&per_page=50',
+			'https://gitlab.com/api/v4/projects/gitlab-org%2Fgitlab/repository/tags?page=3&per_page=25',
 		])
+		expect(() => getBranches({
+			projectId: 'gitlab-org/gitlab',
+			page: 0,
+		})).toThrow('invalid page')
+		expect(() => getTags({
+			projectId: 'gitlab-org/gitlab',
+			perPage: 101,
+		})).toThrow('invalid per-page limit')
 	})
 
 	it('accepts bounded native lifecycle indexes', async () => {
 		sourceGetJson
 			.mockResolvedValueOnce([{
 				iid: 12,
+				project_id: 278964,
 				title: 'Issue',
 				state: 'opened',
 				labels: [],
@@ -253,6 +258,7 @@ describe('GitLab REST wires', () => {
 			}])
 			.mockResolvedValueOnce([{
 				iid: 34,
+				project_id: 278964,
 				title: 'Merge request',
 				state: 'opened',
 				target_branch: 'master',
