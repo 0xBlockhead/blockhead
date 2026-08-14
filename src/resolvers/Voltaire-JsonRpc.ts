@@ -21,6 +21,7 @@ import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
 import { evmNetworkSelectorFromChainId } from '$/resolvers/evm.ts'
+import { evmTokenApprovalEntityFromLog } from '$/resolvers/evmTokenApproval.ts'
 import { uniswapV3Resolvers } from '$/resolvers/Voltaire/Uniswap.ts'
 import { erc4626Resolvers } from '$/resolvers/Voltaire/Erc4626.ts'
 import {
@@ -385,6 +386,15 @@ const evmLogEntityFromIdAndWire = (
 				return normalized == null ? [] : [normalized]
 			})
 	)
+	const $tokenApproval = evmTokenApprovalEntityFromLog({
+		$log: {
+			$transaction,
+			indexInTransaction,
+		},
+		topics,
+		data: data ?? '0x',
+		emitterAddress: address,
+	})
 	return {
 		[EntityMetaKey.Selector]: {
 			$transaction,
@@ -419,6 +429,9 @@ const evmLogEntityFromIdAndWire = (
 					address,
 				},
 			} satisfies Entity<typeof schema, EntityType.EvmContract>,
+		}),
+		...($tokenApproval != null && {
+			$tokenApproval,
 		}),
 	}
 }
@@ -1586,6 +1599,15 @@ export default {
 				})),
 				resolveCount: (entity) => entity.$$logs.length,
 			},
+			$$tokenApprovals: {
+				select: (entity) => entity.$$logs.flatMap((log) => (
+					log.$tokenApproval == null ?
+						[]
+					:
+						[log.$tokenApproval]
+				)),
+				resolveCount: (entity) => entity.$$logs.filter((log) => log.$tokenApproval != null).length,
+			},
 			$$traces: {
 				select: (entity) => entity.$$traces.map((trace) => ({
 					[EntityMetaKey.Selector]: trace[EntityMetaKey.Selector],
@@ -1819,6 +1841,67 @@ export default {
 
 					return entity.topic0
 				},
+				TokenApproval: {
+					$tokenApproval: (entity) => {
+						if (entity.$tokenApproval == null)
+							throw new Error('Voltaire_JsonRpc: approval event has invalid topics or data')
+
+						return entity.$tokenApproval
+					},
+				},
+			},
+		}),
+		defineResolver({
+			entityType: EntityType.EvmTokenApproval,
+			resolve: {
+				Log: {
+					resolve: async ({ $log }) => {
+						const chainId = chainIdFromEvmNetworkId($log.$transaction.$network)
+						const jsonRpcTransports = (await voltaireJsonRpcHttpTransportsByChainId())[chainId] ?? []
+						if (jsonRpcTransports.length === 0)
+							throw new Error(`Voltaire_JsonRpc: no JSON-RPC URL for EvmTokenApproval on chain ${String(chainId)}`)
+
+						const errors: string[] = []
+						for (const jsonRpcTransport of jsonRpcTransports) {
+							try {
+								const receiptWire = await jsonRpcTransport.getTransactionReceipt({
+									txHash: $log.$transaction.txHash,
+								})
+								const log = findReceiptLogWireForEvmLogId(
+									receiptWire?.logs,
+									$log.indexInTransaction
+								)
+								if (log == null)
+									throw new Error('receipt log not found')
+
+								const approval = evmLogEntityFromIdAndWire($log, log).$tokenApproval
+								if (approval == null)
+									throw new Error('receipt log is not an exact token approval')
+
+								return approval
+							} catch (error) {
+								errors.push(`${jsonRpcTransport.diagnosticLabel}: ${errorMessage(error)}`)
+							}
+						}
+						throw allJsonRpcEndpointsFailedError(chainId, 'EvmTokenApproval', errors)
+					},
+				},
+			},
+		})({
+			$log: (approval) => approval.$log,
+			$tokenContract: (approval) => approval.$tokenContract,
+			$owner: (approval) => approval.$owner,
+			$approvedActor: (approval) => approval.$approvedActor,
+			approvalKind: (approval) => approval.approvalKind,
+			standard: (approval) => approval.standard,
+			Allowance: {
+				amount: (approval) => approval.amount,
+			},
+			Token: {
+				tokenId: (approval) => approval.tokenId,
+			},
+			Operator: {
+				approved: (approval) => approval.approved,
 			},
 		}),
 		defineResolver({

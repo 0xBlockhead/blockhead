@@ -667,6 +667,71 @@ describe('Blockscout EVM log identity', () => {
 			data: '0x02',
 		})
 	})
+
+	it('materializes one native token approval from its exact receipt log', async () => {
+		getTransactionLogs.mockResolvedValue([{
+			...receiptLogs[0],
+			address: {
+				...receiptLogs[0].address,
+				hash: contract.address,
+			},
+			topics: [
+				'0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925',
+				`0x${'00'.repeat(12)}${'11'.repeat(20)}`,
+				`0x${'00'.repeat(12)}${'22'.repeat(20)}`,
+			],
+			data: `0x${'0'.repeat(63)}a`,
+		}])
+
+		const transactionResolver = blockscoutRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.EvmTransaction
+			&& '$$tokenApprovals' in candidate.projections
+			&& 'value' in candidate.projections
+		))
+		const approvalResolver = blockscoutRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.EvmTokenApproval
+			&& 'Log' in candidate.resolve
+		))
+		if (
+			transactionResolver == null
+			|| approvalResolver == null
+			|| !('Log' in approvalResolver.resolve)
+		)
+			throw new Error('Blockscout token approval resolvers are not registered')
+
+		const transaction = await transactionResolver.resolve.EvmNetworkTxHash.resolve({
+			$network: network,
+			txHash,
+		}, context)
+		expect(transactionResolver.projections.$$tokenApprovals.select(transaction)).toMatchObject([{
+			[EntityMetaKey.Selector]: {
+				$log: {
+					$transaction: {
+						$network: network,
+						txHash,
+					},
+					indexInTransaction: 0,
+				},
+			},
+			approvalKind: 'Allowance',
+			standard: 'ERC-20',
+			amount: 10n,
+		}])
+
+		const approval = await approvalResolver.resolve.Log.resolve({
+			$log: {
+				$transaction: {
+					$network: network,
+					txHash,
+				},
+				indexInTransaction: 0,
+			},
+		}, context)
+		expect(approvalResolver.projections.$tokenContract(approval)).toMatchObject({
+			[EntityMetaKey.Selector]: contract,
+		})
+		expect(approvalResolver.projections.Allowance.amount(approval)).toBe(10n)
+	})
 })
 
 describe('Blockscout raw EVM trace hierarchy', () => {

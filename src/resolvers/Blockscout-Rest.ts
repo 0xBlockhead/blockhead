@@ -12,6 +12,7 @@ import {
 	evmChainIdFromNetworkSelector,
 	evmNetworkSelectorFromChainId,
 } from '$/resolvers/evm.ts'
+import { evmTokenApprovalEntityFromLog } from '$/resolvers/evmTokenApproval.ts'
 import { isSeededCoinCurrencyMarket } from '$/resolvers/market.ts'
 import {
 	entityFieldAddressKey,
@@ -288,6 +289,12 @@ const evmLogEntityFromIdAndWire = (
 			})
 	)
 	const blockNumber = nonnegativeIntegerFromWire(log.block_number)
+	const $tokenApproval = evmTokenApprovalEntityFromLog({
+		$log: entitySelector,
+		topics,
+		data,
+		emitterAddress: address,
+	})
 	return {
 		[EntityMetaKey.Selector]: entitySelector,
 		$transaction: {
@@ -318,6 +325,9 @@ const evmLogEntityFromIdAndWire = (
 					address,
 				},
 			} satisfies Entity<typeof schema, EntityType.EvmContract>,
+		}),
+		...($tokenApproval != null && {
+			$tokenApproval,
 		}),
 	}
 }
@@ -1926,6 +1936,15 @@ export default {
 				})),
 				resolveCount: (transaction) => transaction.$$logs.length,
 			},
+			$$tokenApprovals: {
+				select: (transaction) => transaction.$$logs.flatMap((log) => (
+					log.$tokenApproval == null ?
+						[]
+					:
+						[log.$tokenApproval]
+				)),
+				resolveCount: (transaction) => transaction.$$logs.filter((log) => log.$tokenApproval != null).length,
+			},
 		}),
 
 		defineResolver({
@@ -2042,6 +2061,53 @@ export default {
 
 					return log.topic0
 				},
+				TokenApproval: {
+					$tokenApproval: (log) => {
+						if (log.$tokenApproval == null)
+							throw new Error('Blockscout_Rest: approval event has invalid topics or data')
+
+						return log.$tokenApproval
+					},
+				},
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.EvmTokenApproval,
+			resolve: {
+				Log: {
+					resolve: async ({ $log }) => {
+						const { getTransactionLogs } = await import('$/sources/Blockscout/Rest/queries.ts')
+						const log = (await getTransactionLogs({
+							chainId: evmChainIdFromNetworkSelector($log.$transaction.$network),
+							txHash: $log.$transaction.txHash,
+						})).at($log.indexInTransaction)
+						if (log == null)
+							throw new Error('Blockscout_Rest: receipt log not found for EvmTokenApproval')
+
+						const approval = evmLogEntityFromIdAndWire($log, log).$tokenApproval
+						if (approval == null)
+							throw new Error('Blockscout_Rest: receipt log is not an exact token approval')
+
+						return approval
+					},
+				},
+			},
+		})({
+			$log: (approval) => approval.$log,
+			$tokenContract: (approval) => approval.$tokenContract,
+			$owner: (approval) => approval.$owner,
+			$approvedActor: (approval) => approval.$approvedActor,
+			approvalKind: (approval) => approval.approvalKind,
+			standard: (approval) => approval.standard,
+			Allowance: {
+				amount: (approval) => approval.amount,
+			},
+			Token: {
+				tokenId: (approval) => approval.tokenId,
+			},
+			Operator: {
+				approved: (approval) => approval.approved,
 			},
 		}),
 

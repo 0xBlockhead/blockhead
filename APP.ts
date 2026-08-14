@@ -1217,6 +1217,7 @@ export enum EntityType {
 	EvmSelector_Timestamp = "EvmSelector_Timestamp",
 	EvmStateChange = "EvmStateChange",
 	EvmStorageRead_Timestamp = "EvmStorageRead_Timestamp",
+	EvmTokenApproval = "EvmTokenApproval",
 	EvmTokenTransfer = "EvmTokenTransfer",
 	EvmTopic = "EvmTopic",
 	EvmTopic_Timestamp = "EvmTopic_Timestamp",
@@ -2096,6 +2097,18 @@ export const schema = {
 						{ name: "value", type: { primitive: "string" } },
 					],
 				},
+			},
+			{
+				id: "EvmTokenApprovalKind",
+				enumConstantMap: {
+					from: "$/constants/Evm.ts",
+					name: "evmTokenApprovalKindByKind",
+				},
+				imports: [{
+					from: "$/constants/Evm.ts",
+					names: ["EvmTokenApprovalKind"],
+				}],
+				type: { enum: "EvmTokenApprovalKind" },
 			},
 			{
 				id: "EvmTokenStandard",
@@ -29193,6 +29206,8 @@ export const schema = {
 							"0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
 							"0xc3d58168c5ae7397731d063d5bbf3d657854427343f4c083240f7aacaa2d0f62",
 							"0x4a39dc06d4c0dbc64b70af90fd698a233a518aa5d07e595d983b8c0526c8f7fb",
+							"0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925",
+							"0x17307eab39ab6107e8899845ad3d59bd9653f200f220920489ca2b5937696c31",
 						],
 					})({
 							signatureHash: {
@@ -29216,6 +29231,20 @@ export const schema = {
 									type: EntityFieldType.EntitiesReference,
 									cardinality: EntityFieldCardinality.Many,
 									entityType: EntityType.EvmTokenTransfer,
+								},
+							}),
+							TokenApproval: facet({
+								path: ["Event", "signatureHash"],
+								isOneOf: [
+									"0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925",
+									"0x17307eab39ab6107e8899845ad3d59bd9653f200f220920489ca2b5937696c31",
+								],
+							})({
+								"$tokenApproval": {
+									label: "Token approval",
+									type: EntityFieldType.EntityReference,
+									cardinality: EntityFieldCardinality.One,
+									entityType: EntityType.EvmTokenApproval,
 								},
 							}),
 						},
@@ -30794,6 +30823,83 @@ export const schema = {
 			}),
 
 			entity({
+				entityType: EntityType.EvmTokenApproval,
+				labels: {
+					singular: "Token approval",
+					plural: "Token approvals",
+				},
+				description: "An approval occurrence emitted by one exact EVM receipt log. It records historical approval intent and is not current allowance state.",
+			})({
+				"$log": { label: "Log", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EvmLog },
+				"$tokenContract": { label: "Token contract", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EvmContract },
+				"$owner": { label: "Owner", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EvmAccount },
+				"$approvedActor": { label: "Approved actor", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EvmAccount },
+				"approvalKind": { label: "Approval kind", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "EvmTokenApprovalKind" },
+				"standard": { label: "Token standard", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "EvmTokenStandard" },
+			})({
+				selectors: {
+					"Log": ["$log"],
+				},
+				facets: {
+					Allowance: facet({
+						path: ["approvalKind"],
+						is: "Allowance",
+					})({
+						"amount": { label: "Amount", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "bigint" },
+					}),
+					Token: facet({
+						path: ["approvalKind"],
+						is: "Token",
+					})({
+						"tokenId": { label: "Token ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "bigint" },
+					}),
+					Operator: facet({
+						path: ["approvalKind"],
+						is: "Operator",
+					})({
+						"approved": { label: "Approved", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "boolean" },
+					}),
+				},
+				views: {
+					singular: {
+						query: {
+							sources: [Source.Blockscout_Rest, Source.Voltaire_JsonRpc],
+							fields: ["approvalKind"],
+							openFields: ["standard", ["Allowance", "amount"], ["Token", "tokenId"], ["Operator", "approved"]],
+						},
+						summary: {
+							title: ["approvalKind", "standard"],
+							value: [
+								{ field: ["Allowance", "amount"], format: "numberValue" },
+								{ field: ["Token", "tokenId"], format: "numberValue" },
+								{ field: ["Operator", "approved"], format: "boolean" },
+							],
+							HeadingAfter: ["$approvedActor"],
+						},
+						closed: [
+							"approvalKind",
+							"$owner",
+							"$approvedActor",
+							{ field: ["Allowance", "amount"], format: "numberValue" },
+							{ field: ["Token", "tokenId"], format: "numberValue" },
+							{ field: ["Operator", "approved"], format: "boolean" },
+						],
+						content: {
+							dl: [
+								["$log", "$tokenContract", "$owner", "$approvedActor"],
+								["approvalKind", "standard", { field: ["Allowance", "amount"], format: "numberValue" }, { field: ["Token", "tokenId"], format: "numberValue" }, { field: ["Operator", "approved"], format: "boolean" }],
+							],
+						},
+					},
+					plural: {
+						component: "EvmTokenApprovalsView",
+						title: "Token approvals",
+						query: { sources: { default: [Source.Blockscout_Rest, Source.Voltaire_JsonRpc] } },
+					},
+				},
+			}),
+
+			entity({
 				entityType: EntityType.EvmTokenTransfer,
 				labels: {
 					singular: "Token transfer",
@@ -31498,6 +31604,12 @@ export const schema = {
 					cardinality: EntityFieldCardinality.Many,
 					entityType: EntityType.EvmTokenTransfer,
 				},
+				"$$tokenApprovals": {
+					label: "Token approvals",
+					type: EntityFieldType.EntitiesReference,
+					cardinality: EntityFieldCardinality.Many,
+					entityType: EntityType.EvmTokenApproval,
+				},
 				"$$userOperations": {
 					label: "User operations",
 					type: EntityFieldType.EntitiesReference,
@@ -31772,6 +31884,7 @@ export const schema = {
 								className: "network-view-collapsible-transfers",
 								sections: [
 									{ id: "evm-tx-token-transfers", field: "$$tokenTransfers", List: "EvmTokenTransfersView", label: "Token transfers", emptyText: "No token transfers." },
+									{ id: "evm-tx-token-approvals", field: "$$tokenApprovals", List: "EvmTokenApprovalsView", label: "Token approvals", emptyText: "No token approvals." },
 									{ id: "evm-tx-internal-transfers", field: "$$internalTransfers", List: "EvmInternalTransfersView", label: "Internal transfers", emptyText: "No internal transfers." },
 								],
 							},
@@ -78436,8 +78549,21 @@ export const routes = defineRoutes(schema)({
 																					}
 																				}
 																			},
-																			children: {
-																				"token-transfer": {
+													children: {
+														"token-approval": {
+															selectors: {
+																[EntityType.EvmTokenApproval]: {
+																	"Log": {
+																		projection: {
+																			entityType: EntityType.Network,
+																			facetPath: ["Evm"]
+																		},
+																		page: {}
+																	}
+																}
+															}
+														},
+														"token-transfer": {
 																					children: {
 																						"[transferIndex]": {
 																							selectors: {

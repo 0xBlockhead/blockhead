@@ -5592,6 +5592,20 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
+	'/(explore)/(networks)/network/[network]/(transactions)/tx/[transactionId]/log/[indexInTransaction]/token-approval': {
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxIdOrStringSegment]/(selection)/log/[indexInTransaction=nonNegativeInteger]/(evmLog)/token-approval',
+		mappings: [
+			{
+				id: 'EvmTokenApproval.Log',
+				projectionEntity: 'Network',
+				probeAtomPrefixes: ['/network/[network]/tx/[transactionId]/log/[indexInTransaction]/token-approval:EvmTokenApproval.Log'],
+				probeCases: [[[0, '1', ['indexInTransaction', 'transactionId', 'network']]]],
+				projectionPath: [
+					'Evm',
+				],
+			},
+		],
+	},
 	'/(explore)/(networks)/network/[network]/(transactions)/tx/[transactionId]/log/[indexInTransaction]/token-transfer/[transferIndex]': {
 		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxIdOrStringSegment]/(selection)/log/[indexInTransaction=nonNegativeInteger]/(evmLog)/token-transfer/[transferIndex=nonNegativeInteger]',
 		mappings: [

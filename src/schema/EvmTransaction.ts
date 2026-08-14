@@ -116,6 +116,10 @@ export default entity({
 		entityType: EntityType.EvmTokenTransfer,
 		cardinality: EntityFieldCardinality.Many,
 	},
+	$$tokenApprovals: {
+		entityType: EntityType.EvmTokenApproval,
+		cardinality: EntityFieldCardinality.Many,
+	},
 	$$userOperations: {
 		entityType: EntityType.EvmUserOperation,
 		cardinality: EntityFieldCardinality.Many,

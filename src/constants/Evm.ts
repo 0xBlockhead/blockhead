@@ -38,6 +38,12 @@ export enum EvmStateChangeKind {
 	Token = 'Token',
 }
 
+export enum EvmTokenApprovalKind {
+	Allowance = 'Allowance',
+	Token = 'Token',
+	Operator = 'Operator',
+}
+
 export enum EvmTokenStandard {
 	Erc20 = 'ERC-20',
 	Erc721 = 'ERC-721',
@@ -179,6 +185,24 @@ const evmStateChangeKinds = [
 	label: string
 }[]
 
+const evmTokenApprovalKinds = [
+	{
+		kind: EvmTokenApprovalKind.Allowance,
+		label: 'Allowance',
+	},
+	{
+		kind: EvmTokenApprovalKind.Token,
+		label: 'Token',
+	},
+	{
+		kind: EvmTokenApprovalKind.Operator,
+		label: 'Operator',
+	},
+] as const satisfies readonly {
+	kind: EvmTokenApprovalKind
+	label: string
+}[]
+
 const evmTokenStandards = [
 	{
 		standard: EvmTokenStandard.Erc20,
@@ -230,6 +254,13 @@ export const evmInternalCallTypeByCallType = Object.fromEntries(
 
 export const evmStateChangeKindByKind = Object.fromEntries(
 	evmStateChangeKinds.map((row) => [
+		row.kind,
+		row,
+	])
+)
+
+export const evmTokenApprovalKindByKind = Object.fromEntries(
+	evmTokenApprovalKinds.map((row) => [
 		row.kind,
 		row,
 	])

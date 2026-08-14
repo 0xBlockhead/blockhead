@@ -56,6 +56,7 @@
 	import EvmAccountView from '$/views/EvmAccountView.svelte'
 	import EvmContractView from '$/views/EvmContractView.svelte'
 	import EvmTokenTransfersView from '$/views/EvmTokenTransfersView.svelte'
+	import EvmTokenApprovalsView from '$/views/EvmTokenApprovalsView.svelte'
 	import EvmInternalTransfersView from '$/views/EvmInternalTransfersView.svelte'
 	import EvmStateChangesView from '$/views/EvmStateChangesView.svelte'
 	import EvmLogsView from '$/views/EvmLogsView.svelte'
@@ -624,6 +625,10 @@
 						label: 'Token transfers',
 					},
 					{
+						id: 'evm-tx-token-approvals',
+						label: 'Token approvals',
+					},
+					{
 						id: 'evm-tx-internal-transfers',
 						label: 'Internal transfers',
 					},
@@ -644,6 +649,16 @@
 					collapsible={false}
 					title={label}
 					emptyText='No token transfers.'
+					id={`${id}-list`}
+				/>
+			{/snippet}
+
+			{#snippet SectionEvmTxTokenApprovals({ id, label })}
+				<EvmTokenApprovalsView
+					selection={selection.$$tokenApprovals}
+					collapsible={false}
+					title={label}
+					emptyText='No token approvals.'
 					id={`${id}-list`}
 				/>
 			{/snippet}

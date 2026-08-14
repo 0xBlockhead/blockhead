@@ -518,6 +518,7 @@ export enum EntityType {
 	EvmSelector_Timestamp = 'EvmSelector_Timestamp',
 	EvmStateChange = 'EvmStateChange',
 	EvmStorageRead_Timestamp = 'EvmStorageRead_Timestamp',
+	EvmTokenApproval = 'EvmTokenApproval',
 	EvmTokenTransfer = 'EvmTokenTransfer',
 	EvmTopic = 'EvmTopic',
 	EvmTopic_Timestamp = 'EvmTopic_Timestamp',

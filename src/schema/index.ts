@@ -518,6 +518,7 @@ import EvmSelector_TimestampSchema from '$/schema/EvmSelector_Timestamp.ts'
 import EvmSelectorSchema from '$/schema/EvmSelector.ts'
 import EvmStateChangeSchema from '$/schema/EvmStateChange.ts'
 import EvmStorageRead_TimestampSchema from '$/schema/EvmStorageRead_Timestamp.ts'
+import EvmTokenApprovalSchema from '$/schema/EvmTokenApproval.ts'
 import EvmTokenTransferSchema from '$/schema/EvmTokenTransfer.ts'
 import EvmTopic_TimestampSchema from '$/schema/EvmTopic_Timestamp.ts'
 import EvmTopicSchema from '$/schema/EvmTopic.ts'
@@ -1621,6 +1622,7 @@ const schemaChunk10 = [
 	EvmSelector_TimestampSchema,
 	EvmStateChangeSchema,
 	EvmStorageRead_TimestampSchema,
+	EvmTokenApprovalSchema,
 	EvmTokenTransferSchema,
 	EvmTopicSchema,
 	EvmTopic_TimestampSchema,
@@ -1653,10 +1655,10 @@ const schemaChunk10 = [
 	FilecoinMessageFeeSchema,
 	FilecoinMessageReceiptSchema,
 	FilecoinMessageSubcallSchema,
-	FilecoinMessageTokenTransferSchema,
 ] as const
 
 const schemaChunk11 = [
+	FilecoinMessageTokenTransferSchema,
 	FilecoinMessageTransferSchema,
 	FilecoinMinerSchema,
 	FilecoinMiner_TimestampSchema,
@@ -1706,10 +1708,10 @@ const schemaChunk11 = [
 	HederaNetwork_TimestampSchema,
 	HederaNetworkExchangeRate_TimestampSchema,
 	HederaNetworkFee_TimestampSchema,
-	HederaNetworkStake_TimestampSchema,
 ] as const
 
 const schemaChunk12 = [
+	HederaNetworkStake_TimestampSchema,
 	HederaNetworkSupply_TimestampSchema,
 	HederaNftSchema,
 	HederaNft_TimestampSchema,
@@ -1759,10 +1761,10 @@ const schemaChunk12 = [
 	IcpCanisterSchema,
 	IcpCanister_TimestampSchema,
 	IcpCanisterLog_TimestampSchema,
-	IcpCanisterMetadataSchema,
 ] as const
 
 const schemaChunk13 = [
+	IcpCanisterMetadataSchema,
 	IcpCanisterMetadata_TimestampSchema,
 	IcpCanisterMethodSchema,
 	IcpCanisterMethod_TimestampSchema,
@@ -1812,10 +1814,10 @@ const schemaChunk13 = [
 	LightningNode_TimestampSchema,
 	LiquidityPoolSchema,
 	LiquidityPool_BlockSchema,
-	LiquidityPool_TimestampSchema,
 ] as const
 
 const schemaChunk14 = [
+	LiquidityPool_TimestampSchema,
 	LitecoinMwebBlockSchema,
 	LitecoinMwebOutputSchema,
 	LitecoinMwebPegInSchema,
@@ -1865,10 +1867,10 @@ const schemaChunk14 = [
 	MorphoVaultPositionSchema,
 	MoveFunctionSchema,
 	MoveModuleSchema,
-	MoveModule_TimestampSchema,
 ] as const
 
 const schemaChunk15 = [
+	MoveModule_TimestampSchema,
 	MoveStructSchema,
 	NearAccessKeySchema,
 	NearAccessKey_TimestampSchema,
@@ -1918,10 +1920,10 @@ const schemaChunk15 = [
 	OsmosisPositionSchema,
 	PayjoinDirectorySchema,
 	PayjoinEndpointSchema,
-	PayjoinEndpoint_TimestampSchema,
 ] as const
 
 const schemaChunk16 = [
+	PayjoinEndpoint_TimestampSchema,
 	PayoutSchema,
 	PayoutClaim_TimestampSchema,
 	PendleMarketSchema,
@@ -1971,10 +1973,10 @@ const schemaChunk16 = [
 	RssNetworkSchema,
 	ScalingDeploymentClaimSchema,
 	ScalingDeploymentClaim_TimestampSchema,
-	SnapshotProposalSchema,
 ] as const
 
 const schemaChunk17 = [
+	SnapshotProposalSchema,
 	SnapshotSpaceSchema,
 	SnapshotVoteSchema,
 	SolanaAccountSchema,
@@ -2024,10 +2026,10 @@ const schemaChunk17 = [
 	StellarLiquidityPoolSchema,
 	StellarLiquidityPool_TimestampSchema,
 	StellarNetworkSchema,
-	StellarNetwork_TimestampSchema,
 ] as const
 
 const schemaChunk18 = [
+	StellarNetwork_TimestampSchema,
 	StellarOfferSchema,
 	StellarOffer_TimestampSchema,
 	StellarOperationSchema,
@@ -2077,10 +2079,10 @@ const schemaChunk18 = [
 	TezosBlockSchema,
 	TezosContractSchema,
 	TezosContract_TimestampSchema,
-	TezosCycleSchema,
 ] as const
 
 const schemaChunk19 = [
+	TezosCycleSchema,
 	TezosEntrypointSchema,
 	TezosInternalOperationSchema,
 	TezosMichelsonScriptSchema,
@@ -2130,10 +2132,10 @@ const schemaChunk19 = [
 	TronTokenSchema,
 	TronToken_TimestampSchema,
 	TronTokenTransferSchema,
-	TronTransactionSchema,
 ] as const
 
 const schemaChunk20 = [
+	TronTransactionSchema,
 	TronTransactionReceiptSchema,
 	TronWitnessSchema,
 	TronWitness_TimestampSchema,
@@ -2183,10 +2185,10 @@ const schemaChunk20 = [
 	YoutubeComment_TimestampSchema,
 	YoutubeNetworkSchema,
 	YoutubePlaylistSchema,
-	YoutubePlaylist_TimestampSchema,
 ] as const
 
 const schemaChunk21 = [
+	YoutubePlaylist_TimestampSchema,
 	YoutubeVideoSchema,
 	YoutubeVideo_TimestampSchema,
 	ZcashShieldedActionSchema,
