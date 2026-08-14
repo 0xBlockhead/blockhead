@@ -219,12 +219,16 @@ export const getSafeMultisigTransactions = async ({
 	limit,
 	offset,
 	executed,
+	transactionHash,
+	safeTxHash,
 }: {
 	chainId: number
 	safeAddress: string
 	limit: number
 	offset: number
 	executed?: boolean
+	transactionHash?: string
+	safeTxHash?: string
 }) => {
 	const binding = requireSafeTransactionServiceBinding(chainId)
 	const checksummedSafeAddress = checksumAddress(safeAddress, 'Safe address')
@@ -232,11 +236,21 @@ export const getSafeMultisigTransactions = async ({
 	if (limit < 1)
 		throw new Error('SafeTransactionService_Rest: page limit must be positive')
 	assertPageNumber(offset, 'page offset', Number.MAX_SAFE_INTEGER)
+	if (transactionHash != null)
+		assertHash(transactionHash, 'execution transaction hash')
+	if (safeTxHash != null)
+		assertHash(safeTxHash, 'Safe transaction hash')
 	const parameters = new URLSearchParams({
 		limit: limit.toString(),
 		offset: offset.toString(),
 		...(executed != null && {
 			executed: executed.toString(),
+		}),
+		...(transactionHash != null && {
+			transaction_hash: transactionHash,
+		}),
+		...(safeTxHash != null && {
+			safe_tx_hash: safeTxHash,
 		}),
 	})
 	const pathPrefix = `/api/v2/safes/${encodeURIComponent(checksummedSafeAddress)}/multisig-transactions/`
@@ -274,6 +288,16 @@ export const getSafeMultisigTransactions = async ({
 		hashes.add(hash)
 		if (executed != null && transaction.isExecuted !== executed)
 			throw new Error('SafeTransactionService_Rest: transaction execution filter was violated')
+		if (
+			transactionHash != null
+			&& transaction.transactionHash?.toLowerCase() !== transactionHash.toLowerCase()
+		)
+			throw new Error('SafeTransactionService_Rest: transaction execution filter was violated')
+		if (
+			safeTxHash != null
+			&& transaction.safeTxHash.toLowerCase() !== safeTxHash.toLowerCase()
+		)
+			throw new Error('SafeTransactionService_Rest: Safe transaction hash filter was violated')
 		if (executed === true && transaction.transactionHash == null)
 			throw new Error('SafeTransactionService_Rest: executed transaction missing execution hash')
 		if (
@@ -338,6 +362,63 @@ export const getSafeMultisigTransaction = async ({
 	if (transaction.safeTxHash.toLowerCase() !== safeTxHash.toLowerCase())
 		throw new Error('SafeTransactionService_Rest: Safe transaction hash was substituted')
 	return transaction
+}
+
+export const findSafeMultisigTransaction = async ({
+	chainId,
+	safeAddress,
+	txHash,
+}: {
+	chainId: number
+	safeAddress?: string
+	txHash: string
+}) => {
+	assertHash(txHash, 'transaction hash')
+	try {
+		return await getSafeMultisigTransaction({
+			chainId,
+			safeAddress,
+			safeTxHash: txHash,
+		})
+	} catch (firstError) {
+		if (safeAddress == null)
+			throw firstError
+	}
+
+	const checksummedSafeAddress = checksumAddress(safeAddress, 'Safe address')
+	for (const [
+		label,
+		filter,
+	] of [
+		[
+			'execution hash',
+			{
+				transactionHash: txHash,
+			},
+		],
+		[
+			'Safe tx hash',
+			{
+				safeTxHash: txHash,
+			},
+		],
+	] as const) {
+		const page = await getSafeMultisigTransactions({
+			chainId,
+			safeAddress: checksummedSafeAddress,
+			limit: 2,
+			offset: 0,
+			...filter,
+		})
+		if (page.results.length === 0)
+			continue
+		if (page.results.length > 1)
+			throw new Error(`SafeTransactionService_Rest: ambiguous multisig transaction for ${label}`)
+
+		return page.results[0]
+	}
+
+	throw new Error('SafeTransactionService_Rest: multisig transaction not found')
 }
 
 export const getSafeTransactionConfirmations = async ({

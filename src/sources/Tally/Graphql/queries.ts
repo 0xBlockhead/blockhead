@@ -2,11 +2,13 @@ import {
 	tallyGovernorDataWire,
 	tallyGovernorsPageDataWire,
 	tallyProposalDataWire,
+	tallyProposalEventTypes,
 	tallyProposalStatuses,
 	tallyProposalsPageDataWire,
 	type TallyGovernor,
 	type TallyPageInfo,
 	type TallyProposal,
+	type TallyProposalEventType,
 	type TallyProposalStatus,
 } from '$/sources/Tally/Graphql/types.ts'
 import bindings from '$/sources/Tally/bindings.ts'
@@ -70,6 +72,8 @@ const tallyProposalFields = `
 		title
 		description
 		eta
+		previousEnd
+		timelockId
 		ipfsHash
 		txHash
 		discourseURL
@@ -106,6 +110,12 @@ const tallyProposalFields = `
 		... on BlocklessTimestamp {
 			timestamp
 		}
+	}
+	events {
+		type
+		createdAt
+		txHash
+		chainId
 	}
 	voteStats {
 		type
@@ -175,6 +185,25 @@ const proposalsQuery = `
 `
 
 const proposalStatuses = new Set<TallyProposalStatus>(tallyProposalStatuses)
+const proposalEventTypes = new Set<TallyProposalEventType>(tallyProposalEventTypes)
+
+const compatibleLastEventTypesByStatus: Partial<Record<TallyProposalStatus, ReadonlySet<TallyProposalEventType>>> = {
+	active: new Set(['activated', 'created', 'extended']),
+	archived: new Set(['canceled', 'defeated', 'executed', 'expired', 'callexecuted', 'crosschainexecuted']),
+	canceled: new Set(['canceled']),
+	callexecuted: new Set(['callexecuted', 'executed']),
+	defeated: new Set(['defeated']),
+	draft: new Set(['drafted', 'created']),
+	executed: new Set(['executed', 'callexecuted', 'crosschainexecuted']),
+	expired: new Set(['expired']),
+	extended: new Set(['extended']),
+	pending: new Set(['created', 'drafted', 'pendingexecution']),
+	pendingexecution: new Set(['pendingexecution', 'queued', 'succeeded']),
+	queued: new Set(['queued', 'pendingexecution', 'succeeded']),
+	submitted: new Set(['created', 'drafted']),
+	succeeded: new Set(['succeeded', 'queued', 'pendingexecution']),
+	crosschainexecuted: new Set(['crosschainexecuted', 'executed']),
+}
 
 const assertEnvelope = <_Value>(
 	label: string,
@@ -356,6 +385,13 @@ const assertProposal = (
 		assertOpaqueIdentity(proposal.metadata.description, 'proposal description', 100_000)
 		if (proposal.metadata.eta != null)
 			assertSafeNonnegativeInteger(proposal.metadata.eta, 'proposal eta')
+		if (proposal.metadata.previousEnd != null)
+			assertSafeNonnegativeInteger(proposal.metadata.previousEnd, 'proposal previous end')
+		if (proposal.metadata.timelockId != null) {
+			assertAccountId(proposal.metadata.timelockId, 'proposal timelock ID')
+			if (!proposal.metadata.timelockId.startsWith(`${proposal.chainId}:`))
+				throw new Error('Tally: proposal timelock chain disagrees with proposal')
+		}
 		if (proposal.metadata.ipfsHash != null)
 			assertOpaqueIdentity(proposal.metadata.ipfsHash, 'proposal ipfs hash')
 		if (proposal.metadata.txHash != null) {
@@ -410,6 +446,28 @@ const assertProposal = (
 		if (proposal.voteStats.length > 32)
 			throw new Error('Tally: too many vote stats')
 	}
+	if (proposal.events != null) {
+		let previousCreatedAt = -1
+		for (const event of proposal.events) {
+			if (!proposalEventTypes.has(event.type))
+				throw new Error('Tally: invalid proposal event type')
+			assertCaip2(event.chainId, 'proposal event chain ID')
+			if (event.chainId !== proposal.chainId)
+				throw new Error('Tally: proposal event chain disagrees with proposal')
+			assertSafeNonnegativeInteger(event.createdAt, 'proposal event createdAt')
+			if (event.createdAt < previousCreatedAt)
+				throw new Error('Tally: proposal events are not chronological')
+			previousCreatedAt = event.createdAt
+			if (event.txHash != null && !/^0x[0-9a-fA-F]{64}$/.test(event.txHash))
+				throw new Error('Tally: invalid proposal event tx hash')
+		}
+		if (proposal.events.length > 64)
+			throw new Error('Tally: too many proposal events')
+		const lastEvent = proposal.events.at(-1)
+		const compatibleLastEventTypes = compatibleLastEventTypesByStatus[proposal.status]
+		if (lastEvent != null && compatibleLastEventTypes != null && !compatibleLastEventTypes.has(lastEvent.type))
+			throw new Error('Tally: proposal status disagrees with its latest event')
+	}
 	if (proposal.executableCalls != null) {
 		const indexes = new Set<number>()
 		let previousIndex = -1
@@ -423,6 +481,8 @@ const assertProposal = (
 			previousIndex = call.index
 
 			assertCaip2(call.chainId, 'executable call chain ID')
+			if (call.chainId !== proposal.chainId)
+				throw new Error('Tally: executable call chain disagrees with proposal')
 			if (!/^0x[0-9a-fA-F]{40}$/.test(call.target))
 				throw new Error('Tally: invalid executable call target')
 			if (!/^(0|[1-9][0-9]*)$/.test(call.value) || BigInt(call.value) >= 2n ** 256n)
@@ -434,6 +494,8 @@ const assertProposal = (
 			if (call.type != null)
 				assertOpaqueIdentity(call.type, 'executable call type', 128)
 		}
+		if (proposal.executableCalls.length > 32)
+			throw new Error('Tally: too many executable calls')
 	}
 
 	return normalizedProposal
