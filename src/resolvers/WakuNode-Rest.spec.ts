@@ -13,7 +13,7 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
-import bindings from '$/sources/WakuNode/bindings.ts'
+import { endpoint } from '$/sources/WakuNode/Rest/queries.ts'
 
 const {
 	getJson,
@@ -79,7 +79,7 @@ describe('Waku local node journey', () => {
 		expect(snapshot).toMatchObject({
 			connectionId: 'waku-node',
 			nodeId: 'enr:-waku-node',
-			endpoint: bindings[Source.WakuNode][0].endpoints[0].locator,
+			endpoint,
 		})
 		expect(snapshot.$$timestamps).toHaveLength(1)
 		expect(snapshot.$$timestamps[0]).toMatchObject({

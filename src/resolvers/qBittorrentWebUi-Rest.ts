@@ -9,7 +9,6 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
-import bindings from '$/sources/qBittorrentWebUi/bindings.ts'
 import type {
 	QBittorrentTorrentFile,
 	QBittorrentTorrentInfo,
@@ -19,7 +18,6 @@ import type {
 
 
 const loadQBittorrentQueries = async () => {
-	const binding = bindings[Source.qBittorrentWebUi_Rest][0]
 	if (typeof window !== 'undefined') {
 		const queries = await import('$/sources/qBittorrentWebUi/Rest/queries.remote.ts')
 		return {
@@ -35,18 +33,7 @@ const loadQBittorrentQueries = async () => {
 		}
 	}
 
-	const queries = await import('$/sources/qBittorrentWebUi/Rest/queries.ts')
-	return {
-		getApplicationPreferences: () => queries.getApplicationPreferences(binding),
-		getApplicationVersion: () => queries.getApplicationVersion(binding),
-		getTorrentFiles: (infoHash: string) => queries.getTorrentFiles(binding, infoHash),
-		getTorrentPeers: (infoHash: string) => queries.getTorrentPeers(binding, infoHash),
-		getTorrentPieceStates: (infoHash: string) => queries.getTorrentPieceStates(binding, infoHash),
-		getTorrentProperties: (infoHash: string) => queries.getTorrentProperties(binding, infoHash),
-		getTorrentTrackers: (infoHash: string) => queries.getTorrentTrackers(binding, infoHash),
-		getTorrentsInfo: () => queries.getTorrentsInfo(binding),
-		getTransferInfo: () => queries.getTransferInfo(binding),
-	}
+	return import('$/sources/qBittorrentWebUi/Rest/queries.ts')
 }
 
 

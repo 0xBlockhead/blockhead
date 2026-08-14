@@ -1,5 +1,7 @@
 import { throwHttpError } from '$/lib/http.ts'
 import type { SourceBinding } from '$/sources/SourceBinding.ts'
+import { Source } from '$/sources/Source.ts'
+import bindings from '$/sources/Transmission/bindings.ts'
 import {
 	firstHttpUrlForBinding,
 	sourceFetch,
@@ -12,6 +14,8 @@ import {
 	transmissionSessionStatsResponseWire,
 	transmissionTorrentsResponseWire,
 } from '$/sources/Transmission/Rpc/types.ts'
+
+const binding = bindings[Source.TransmissionRpc_JsonRpc][0]
 
 const sessionHeader = 'x-transmission-session-id'
 
@@ -64,7 +68,6 @@ const request = async <_Arguments>(
 }
 
 export const torrentGet = (
-	binding: SourceBinding,
 	fields: readonly string[]
 ) => (
 	request(binding, {
@@ -75,13 +78,13 @@ export const torrentGet = (
 	}, transmissionTorrentsResponseWire)
 )
 
-export const sessionStats = (binding: SourceBinding) => (
+export const sessionStats = () => (
 	request(binding, {
 		method: 'session-stats',
 	}, transmissionSessionStatsResponseWire)
 )
 
-export const sessionGet = (binding: SourceBinding) => (
+export const sessionGet = () => (
 	request(binding, {
 		method: 'session-get',
 	}, transmissionSessionResponseWire)

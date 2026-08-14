@@ -9,7 +9,6 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
-import bindings from '$/sources/Transmission/bindings.ts'
 import type {
 	TransmissionTorrent,
 	TransmissionTorrentFile,
@@ -18,16 +17,10 @@ import type {
 
 
 const loadTransmissionQueries = async () => {
-	const binding = bindings[Source.TransmissionRpc_JsonRpc][0]
 	if (typeof window !== 'undefined')
 		return import('$/sources/Transmission/Rpc/queries.remote.ts')
 
-	const queries = await import('$/sources/Transmission/Rpc/queries.ts')
-	return {
-		sessionGet: () => queries.sessionGet(binding),
-		sessionStats: () => queries.sessionStats(binding),
-		torrentGet: (fields: readonly string[]) => queries.torrentGet(binding, fields),
-	}
+	return import('$/sources/Transmission/Rpc/queries.ts')
 }
 
 

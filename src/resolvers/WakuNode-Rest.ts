@@ -8,10 +8,8 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
-import bindings from '$/sources/WakuNode/bindings.ts'
 
 const connectionId = 'waku-node'
-const binding = bindings[Source.WakuNode][0]
 
 const loadWakuQueries = async () => {
 	if (typeof window !== 'undefined')
@@ -19,10 +17,11 @@ const loadWakuQueries = async () => {
 
 	const queries = await import('$/sources/WakuNode/Rest/queries.ts')
 	return {
-		getConnectedPeerCount: () => queries.getConnectedPeerCount(binding),
-		getDebugInfo: () => queries.getDebugInfo(binding),
-		getHealth: () => queries.getHealth(binding),
-		getVersion: () => queries.getVersion(binding),
+		getConnectedPeerCount: () => queries.getConnectedPeerCount(),
+		getDebugInfo: () => queries.getDebugInfo(),
+		getEndpoint: async () => queries.endpoint,
+		getHealth: () => queries.getHealth(),
+		getVersion: () => queries.getVersion(),
 	}
 }
 
@@ -38,12 +37,13 @@ export default {
 						if (requestedConnectionId !== connectionId)
 							throw new Error(`WakuNode_Rest: unsupported connection ${requestedConnectionId}`)
 
-						const { getConnectedPeerCount, getDebugInfo, getHealth, getVersion } = await loadWakuQueries()
-						const [debugInfo, health, version, peerCount] = await Promise.all([
+						const { getConnectedPeerCount, getDebugInfo, getEndpoint, getHealth, getVersion } = await loadWakuQueries()
+						const [debugInfo, health, version, peerCount, endpoint] = await Promise.all([
 							getDebugInfo(),
 							getHealth(),
 							getVersion(),
 							getConnectedPeerCount(),
+							getEndpoint(),
 						])
 						if (debugInfo.enrUri == null)
 							throw new Error('WakuNode_Rest: debug info does not expose an ENR node identity')
@@ -58,7 +58,7 @@ export default {
 
 						return {
 							...$nodeState,
-							endpoint: binding.endpoints[0].locator,
+							endpoint,
 							$$timestamps: [
 								{
 									[EntityMetaKey.Selector]: {

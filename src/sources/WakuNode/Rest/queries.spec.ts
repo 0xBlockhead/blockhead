@@ -37,7 +37,7 @@ describe('WakuNode REST operations', () => {
 		}
 		getJson.mockResolvedValue(debugInfo)
 
-		await expect(queries.getDebugInfo(binding)).resolves.toEqual(debugInfo)
+		await expect(queries.getDebugInfo()).resolves.toEqual(debugInfo)
 		expect(getJson).toHaveBeenCalledWith(binding, '/debug/v1/info')
 	})
 
@@ -50,7 +50,7 @@ describe('WakuNode REST operations', () => {
 	])('fails closed when debug info has no listen addresses envelope: %j', async (debugInfo) => {
 		getJson.mockResolvedValue(debugInfo)
 
-		await expect(queries.getDebugInfo(binding)).rejects.toThrow(
+		await expect(queries.getDebugInfo()).rejects.toThrow(
 			'WakuNode_Rest: invalid debug info response envelope'
 		)
 	})
@@ -58,7 +58,7 @@ describe('WakuNode REST operations', () => {
 	it('loads health through the binding-scoped path', async () => {
 		getText.mockResolvedValue('OK')
 
-		await expect(queries.getHealth(binding)).resolves.toBe('OK')
+		await expect(queries.getHealth()).resolves.toBe('OK')
 		expect(getText).toHaveBeenCalledWith(binding, '/health')
 	})
 
@@ -69,7 +69,7 @@ describe('WakuNode REST operations', () => {
 			{ connectedness: 'Connected' },
 		])
 
-		await expect(queries.getConnectedPeerCount(binding)).resolves.toBe(2)
+		await expect(queries.getConnectedPeerCount()).resolves.toBe(2)
 		expect(getJson).toHaveBeenCalledWith(binding, '/admin/v1/peers')
 	})
 
@@ -80,7 +80,7 @@ describe('WakuNode REST operations', () => {
 	])('fails closed when peers have no connectedness envelope: %j', async (peers) => {
 		getJson.mockResolvedValue(peers)
 
-		await expect(queries.getConnectedPeerCount(binding)).rejects.toThrow(
+		await expect(queries.getConnectedPeerCount()).rejects.toThrow(
 			'WakuNode_Rest: invalid peer response envelope'
 		)
 	})
@@ -88,7 +88,7 @@ describe('WakuNode REST operations', () => {
 	it('fails closed when the health envelope is empty', async () => {
 		getText.mockResolvedValue('  ')
 
-		await expect(queries.getHealth(binding)).rejects.toThrow(
+		await expect(queries.getHealth()).rejects.toThrow(
 			'WakuNode_Rest: health response is empty'
 		)
 	})
@@ -96,14 +96,14 @@ describe('WakuNode REST operations', () => {
 	it('loads and normalizes the native nwaku version', async () => {
 		getText.mockResolvedValue(' nwaku/v0.35.0\n')
 
-		await expect(queries.getVersion(binding)).resolves.toBe('nwaku/v0.35.0')
+		await expect(queries.getVersion()).resolves.toBe('nwaku/v0.35.0')
 		expect(getText).toHaveBeenCalledWith(binding, '/debug/v1/version')
 	})
 
 	it('fails closed when the version envelope is empty', async () => {
 		getText.mockResolvedValue('  ')
 
-		await expect(queries.getVersion(binding)).rejects.toThrow(
+		await expect(queries.getVersion()).rejects.toThrow(
 			'WakuNode_Rest: version response is empty'
 		)
 	})

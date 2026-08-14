@@ -67,7 +67,7 @@ describe('Transmission RPC reads', () => {
 				},
 			}))
 
-		await expect(torrentGet(binding, [
+		await expect(torrentGet([
 			'hashString',
 			'name',
 			'files',
@@ -124,13 +124,13 @@ describe('Transmission RPC reads', () => {
 				},
 			}))
 
-		await expect(sessionGet(binding)).resolves.toMatchObject({
+		await expect(sessionGet()).resolves.toMatchObject({
 			version: '4.0.6',
 			'peer-port': 51_413,
 			'bind-address-ipv4': '0.0.0.0',
 			'bind-address-ipv6': '::',
 		})
-		await expect(sessionStats(binding)).resolves.toMatchObject({
+		await expect(sessionStats()).resolves.toMatchObject({
 			activeTorrentCount: 2,
 			downloadSpeed: 512,
 		})
@@ -149,7 +149,7 @@ describe('Transmission RPC reads', () => {
 				},
 			}))
 
-		await expect(sessionGet(binding)).rejects.toThrow('session-get failed: permission denied')
-		await expect(torrentGet(binding, ['hashString'])).rejects.toThrow('invalid torrent-get response envelope')
+		await expect(sessionGet()).rejects.toThrow('session-get failed: permission denied')
+		await expect(torrentGet(['hashString'])).rejects.toThrow('invalid torrent-get response envelope')
 	})
 })

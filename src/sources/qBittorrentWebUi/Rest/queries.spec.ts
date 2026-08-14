@@ -43,7 +43,7 @@ describe('qBittorrent WebUI REST envelopes', () => {
 
 	it('reads the text version and validates client and torrent observations', async () => {
 		getText.mockResolvedValue(' v5.1.2\n')
-		await expect(getApplicationVersion(binding)).resolves.toBe('v5.1.2')
+		await expect(getApplicationVersion()).resolves.toBe('v5.1.2')
 
 		getJson
 			.mockResolvedValueOnce({
@@ -61,11 +61,11 @@ describe('qBittorrent WebUI REST envelopes', () => {
 				ratio: 0.75,
 			}])
 
-		await expect(getTransferInfo(binding)).resolves.toMatchObject({
+		await expect(getTransferInfo()).resolves.toMatchObject({
 			dl_info_speed: 4,
 			up_info_speed: 2,
 		})
-		await expect(getTorrentsInfo(binding)).resolves.toEqual([expect.objectContaining({
+		await expect(getTorrentsInfo()).resolves.toEqual([expect.objectContaining({
 			name: 'release',
 			progress: 0.5,
 			priority: 2,
@@ -79,14 +79,14 @@ describe('qBittorrent WebUI REST envelopes', () => {
 			current_interface_address: '192.0.2.44',
 		})
 
-		await expect(getApplicationPreferences(binding)).resolves.toEqual({
+		await expect(getApplicationPreferences()).resolves.toEqual({
 			listen_port: 51_413,
 			current_interface_address: '192.0.2.44',
 		})
 		expect(getJson).toHaveBeenCalledWith(binding, '/api/v2/app/preferences')
 
 		getJson.mockResolvedValueOnce({ listen_port: 70_000 })
-		await expect(getApplicationPreferences(binding)).rejects.toThrow('invalid application preferences response envelope')
+		await expect(getApplicationPreferences()).rejects.toThrow('invalid application preferences response envelope')
 	})
 
 	it('validates native file, piece-state, and properties responses', async () => {
@@ -103,9 +103,9 @@ describe('qBittorrent WebUI REST envelopes', () => {
 				total_size: 1024,
 			})
 
-		await expect(getTorrentFiles(binding, '0'.repeat(40))).resolves.toHaveLength(1)
-		await expect(getTorrentPieceStates(binding, '0'.repeat(40))).resolves.toEqual([2, 2, 1, 0])
-		await expect(getTorrentProperties(binding, '0'.repeat(40))).resolves.toEqual({
+		await expect(getTorrentFiles('0'.repeat(40))).resolves.toHaveLength(1)
+		await expect(getTorrentPieceStates('0'.repeat(40))).resolves.toEqual([2, 2, 1, 0])
+		await expect(getTorrentProperties('0'.repeat(40))).resolves.toEqual({
 			piece_size: 256,
 			total_size: 1024,
 		})
@@ -124,7 +124,7 @@ describe('qBittorrent WebUI REST envelopes', () => {
 			},
 		])
 
-		await expect(getTorrentTrackers(binding, '0'.repeat(40))).resolves.toEqual([
+		await expect(getTorrentTrackers('0'.repeat(40))).resolves.toEqual([
 			expect.objectContaining({
 				url: 'https://tracker.example/announce',
 				status: 2,
@@ -148,7 +148,7 @@ describe('qBittorrent WebUI REST envelopes', () => {
 			},
 		})
 
-		await expect(getTorrentPeers(binding, '0'.repeat(40))).resolves.toEqual({
+		await expect(getTorrentPeers('0'.repeat(40))).resolves.toEqual({
 			rid: 4,
 			full_update: true,
 			peers: {
@@ -166,22 +166,22 @@ describe('qBittorrent WebUI REST envelopes', () => {
 
 	it('fails closed on malformed identities, counters, and piece states', async () => {
 		getJson.mockResolvedValueOnce([{ hash: 'not-a-hash' }])
-		await expect(getTorrentsInfo(binding)).rejects.toThrow('invalid torrents info response envelope')
+		await expect(getTorrentsInfo()).rejects.toThrow('invalid torrents info response envelope')
 
 		getJson.mockResolvedValueOnce({ dl_info_data: -1 })
-		await expect(getTransferInfo(binding)).rejects.toThrow('invalid transfer info response envelope')
+		await expect(getTransferInfo()).rejects.toThrow('invalid transfer info response envelope')
 
 		getJson.mockResolvedValueOnce([3])
-		await expect(getTorrentPieceStates(binding, '0'.repeat(40))).rejects.toThrow('invalid torrent piece states response envelope')
+		await expect(getTorrentPieceStates('0'.repeat(40))).rejects.toThrow('invalid torrent piece states response envelope')
 
 		getJson.mockResolvedValueOnce([{ url: 'https://tracker.example', num_seeds: -2 }])
-		await expect(getTorrentTrackers(binding, '0'.repeat(40))).rejects.toThrow('invalid torrent trackers response envelope')
+		await expect(getTorrentTrackers('0'.repeat(40))).rejects.toThrow('invalid torrent trackers response envelope')
 
 		getJson.mockResolvedValueOnce({
 			rid: 8,
 			full_update: false,
 			peers: {},
 		})
-		await expect(getTorrentPeers(binding, '0'.repeat(40))).rejects.toThrow('not a complete snapshot')
+		await expect(getTorrentPeers('0'.repeat(40))).rejects.toThrow('not a complete snapshot')
 	})
 })

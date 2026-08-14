@@ -1,4 +1,5 @@
-import type { SourceBinding } from '$/sources/SourceBinding.ts'
+import { Source } from '$/sources/Source.ts'
+import bindings from '$/sources/qBittorrentWebUi/bindings.ts'
 import {
 	getJson,
 	getText,
@@ -8,6 +9,7 @@ import {
 	type Type,
 } from 'arktype'
 
+const binding = bindings[Source.qBittorrentWebUi_Rest][0]
 
 export type QBittorrentTransferInfo = {
 	dl_info_speed?: number
@@ -170,7 +172,7 @@ const assertEnvelope = <_Value>(
 	}
 }
 
-export const getApplicationVersion = (binding: SourceBinding) => (
+export const getApplicationVersion = () => (
 	getText(binding, '/api/v2/app/version')
 		.then((version) => {
 			const normalizedVersion = version.trim()
@@ -181,9 +183,7 @@ export const getApplicationVersion = (binding: SourceBinding) => (
 		})
 )
 
-export const getApplicationPreferences = (
-	binding: SourceBinding
-) => (
+export const getApplicationPreferences = () => (
 	getJson<unknown>(binding, '/api/v2/app/preferences')
 		.then((response) => assertEnvelope(
 			'application preferences',
@@ -192,9 +192,7 @@ export const getApplicationPreferences = (
 		))
 )
 
-export const getTorrentsInfo = (
-	binding: SourceBinding
-) => (
+export const getTorrentsInfo = () => (
 	getJson<unknown>(binding, '/api/v2/torrents/info')
 		.then((response) => assertEnvelope(
 			'torrents info',
@@ -203,9 +201,7 @@ export const getTorrentsInfo = (
 		))
 )
 
-export const getTransferInfo = (
-	binding: SourceBinding
-) => (
+export const getTransferInfo = () => (
 	getJson<unknown>(binding, '/api/v2/transfer/info')
 		.then((response) => assertEnvelope(
 			'transfer info',
@@ -215,7 +211,6 @@ export const getTransferInfo = (
 )
 
 export const getTorrentFiles = (
-	binding: SourceBinding,
 	infoHash: string
 ) => (
 	getJson<unknown>(binding, `/api/v2/torrents/files?hash=${encodeURIComponent(infoHash)}`)
@@ -227,7 +222,6 @@ export const getTorrentFiles = (
 )
 
 export const getTorrentPieceStates = (
-	binding: SourceBinding,
 	infoHash: string
 ) => (
 	getJson<unknown>(binding, `/api/v2/torrents/pieceStates?hash=${encodeURIComponent(infoHash)}`)
@@ -239,7 +233,6 @@ export const getTorrentPieceStates = (
 )
 
 export const getTorrentProperties = (
-	binding: SourceBinding,
 	infoHash: string
 ) => (
 	getJson<unknown>(binding, `/api/v2/torrents/properties?hash=${encodeURIComponent(infoHash)}`)
@@ -251,7 +244,6 @@ export const getTorrentProperties = (
 )
 
 export const getTorrentTrackers = (
-	binding: SourceBinding,
 	infoHash: string
 ) => (
 	getJson<unknown>(binding, `/api/v2/torrents/trackers?hash=${encodeURIComponent(infoHash)}`)
@@ -263,7 +255,6 @@ export const getTorrentTrackers = (
 )
 
 export const getTorrentPeers = (
-	binding: SourceBinding,
 	infoHash: string
 ) => (
 	getJson<unknown>(binding, `/api/v2/sync/torrentPeers?hash=${encodeURIComponent(infoHash)}&rid=0`)

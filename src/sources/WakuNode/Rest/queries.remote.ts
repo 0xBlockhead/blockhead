@@ -1,8 +1,7 @@
 import { query } from '$app/server'
 
-import { Source } from '$/sources/Source.ts'
-import bindings from '$/sources/WakuNode/bindings.ts'
 import {
+	endpoint,
 	getConnectedPeerCount as getConnectedPeerCountFromClient,
 	getDebugInfo as getDebugInfoFromClient,
 	getHealth as getHealthFromClient,
@@ -10,9 +9,8 @@ import {
 } from '$/sources/WakuNode/Rest/queries.ts'
 
 
-const binding = bindings[Source.WakuNode][0]
-
-export const getConnectedPeerCount = query(() => getConnectedPeerCountFromClient(binding))
-export const getDebugInfo = query(() => getDebugInfoFromClient(binding))
-export const getHealth = query(() => getHealthFromClient(binding))
-export const getVersion = query(() => getVersionFromClient(binding))
+export const getEndpoint = query(() => endpoint)
+export const getConnectedPeerCount = query(() => getConnectedPeerCountFromClient())
+export const getDebugInfo = query(() => getDebugInfoFromClient())
+export const getHealth = query(() => getHealthFromClient())
+export const getVersion = query(() => getVersionFromClient())

@@ -1,8 +1,6 @@
 import { query } from '$app/server'
 import { type } from 'arktype'
 
-import { Source } from '$/sources/Source.ts'
-import bindings from '$/sources/qBittorrentWebUi/bindings.ts'
 import {
 	getApplicationPreferences as getApplicationPreferencesFromClient,
 	getApplicationVersion as getApplicationVersionFromClient,
@@ -16,12 +14,10 @@ import {
 } from '$/sources/qBittorrentWebUi/Rest/queries.ts'
 
 
-const binding = bindings[Source.qBittorrentWebUi_Rest][0]
-
-export const getApplicationVersion = query(() => getApplicationVersionFromClient(binding))
-export const getApplicationPreferences = query(() => getApplicationPreferencesFromClient(binding))
-export const getTorrentsInfo = query(() => getTorrentsInfoFromClient(binding))
-export const getTransferInfo = query(() => getTransferInfoFromClient(binding))
+export const getApplicationVersion = query(() => getApplicationVersionFromClient())
+export const getApplicationPreferences = query(() => getApplicationPreferencesFromClient())
+export const getTorrentsInfo = query(() => getTorrentsInfoFromClient())
+export const getTransferInfo = query(() => getTransferInfoFromClient())
 
 const torrentIdentity = type({
 	infoHash: '/^[0-9a-fA-F]{40}$|^[0-9a-fA-F]{64}$/',
@@ -29,21 +25,21 @@ const torrentIdentity = type({
 
 export const getTorrentFiles = query(
 	torrentIdentity,
-	({ infoHash }) => getTorrentFilesFromClient(binding, infoHash)
+	({ infoHash }) => getTorrentFilesFromClient(infoHash)
 )
 export const getTorrentPieceStates = query(
 	torrentIdentity,
-	({ infoHash }) => getTorrentPieceStatesFromClient(binding, infoHash)
+	({ infoHash }) => getTorrentPieceStatesFromClient(infoHash)
 )
 export const getTorrentProperties = query(
 	torrentIdentity,
-	({ infoHash }) => getTorrentPropertiesFromClient(binding, infoHash)
+	({ infoHash }) => getTorrentPropertiesFromClient(infoHash)
 )
 export const getTorrentTrackers = query(
 	torrentIdentity,
-	({ infoHash }) => getTorrentTrackersFromClient(binding, infoHash)
+	({ infoHash }) => getTorrentTrackersFromClient(infoHash)
 )
 export const getTorrentPeers = query(
 	torrentIdentity,
-	({ infoHash }) => getTorrentPeersFromClient(binding, infoHash)
+	({ infoHash }) => getTorrentPeersFromClient(infoHash)
 )
