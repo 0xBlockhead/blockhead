@@ -1065,4 +1065,214 @@ describe('Sui GraphQL network / checkpoint / transaction resolvers', () => {
 		expect(transactionTimestampResolver.projections.status(observation)).toBe('SUCCESS')
 		expect(transactionTimestampResolver.projections.checkpointSequence(observation)).toBe(100n)
 	})
+
+	it('projects package module functions and structs onto existing Move selectors', async () => {
+		const moveModule = {
+			$network: suiNetwork.$network,
+			address: canonicalAddress,
+			moduleName: 'coin',
+		}
+		const moveModuleFunctionResolver = suiResolvers.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.MoveModule
+			&& '$$functions' in resolver.projections
+		))
+		const moveModuleStructResolver = suiResolvers.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.MoveModule
+			&& '$$structs' in resolver.projections
+		))
+		const moveFunctionResolver = suiResolvers.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.MoveFunction
+		))
+		const moveStructResolver = suiResolvers.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.MoveStruct
+		))
+		if (
+			moveModuleFunctionResolver == null
+			|| moveModuleStructResolver == null
+			|| moveFunctionResolver == null
+			|| moveStructResolver == null
+		)
+			throw new Error('Sui spec missing Move module/function/struct resolvers')
+
+		executeSui.mockResolvedValueOnce({
+			package: {
+				address: '0x2',
+				module: {
+					name: 'coin',
+					functions: {
+						pageInfo: {
+							hasNextPage: true,
+							endCursor: 'function-cursor',
+						},
+						nodes: [{
+							name: 'transfer',
+							visibility: 'PUBLIC',
+							isEntry: true,
+							parameters: [{
+								repr: '&mut TxContext',
+							}],
+							return: [],
+							typeParameters: [],
+						}],
+					},
+				},
+			},
+		})
+		const functionSnapshot = await moveModuleFunctionResolver.resolve.NetworkAddressModuleName.resolve(
+			moveModule,
+			{
+				...context,
+				providerContinuationToken: 'previous-function-cursor',
+			}
+		)
+		expect(moveModuleFunctionResolver.projections.$$functions.select(functionSnapshot, moveModule, context)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$module: moveModule,
+				functionName: 'transfer',
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.MoveFunction, [], 'visibility')]: 'PUBLIC',
+				[entityFieldAddressKey(EntityType.MoveFunction, [], 'isEntry')]: true,
+				[entityFieldAddressKey(EntityType.MoveFunction, [], 'parameters')]: [
+					'&mut TxContext',
+				],
+				[entityFieldAddressKey(EntityType.MoveFunction, [], 'returnTypes')]: [],
+				[entityFieldAddressKey(EntityType.MoveFunction, [], 'typeParameters')]: [],
+			},
+		}])
+		expect(moveModuleFunctionResolver.projections.$$functions.continuation(functionSnapshot, moveModule, context)).toEqual({
+			operation: 'module-functions',
+			target: `${canonicalAddress}::coin`,
+			terminal: false,
+			token: 'function-cursor',
+		})
+
+		executeSui.mockResolvedValueOnce({
+			package: {
+				address: '0x2',
+				module: {
+					name: 'coin',
+					structs: {
+						pageInfo: {
+							hasNextPage: false,
+							endCursor: null,
+						},
+						nodes: [{
+							name: 'Coin',
+							abilities: [
+								'KEY',
+								'STORE',
+							],
+							fields: [{
+								name: 'balance',
+								type: {
+									repr: '0x2::balance::Balance<T0>',
+								},
+							}],
+							typeParameters: [{
+								constraints: [
+									'KEY',
+								],
+								isPhantom: false,
+							}],
+						}],
+					},
+				},
+			},
+		})
+		const structSnapshot = await moveModuleStructResolver.resolve.NetworkAddressModuleName.resolve(
+			moveModule,
+			context
+		)
+		expect(moveModuleStructResolver.projections.$$structs.select(structSnapshot, moveModule, context)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$module: moveModule,
+				structName: 'Coin',
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.MoveStruct, [], 'abilities')]: [
+					'KEY',
+					'STORE',
+				],
+				[entityFieldAddressKey(EntityType.MoveStruct, [], 'fields')]: [{
+					name: 'balance',
+					type: '0x2::balance::Balance<T0>',
+				}],
+				[entityFieldAddressKey(EntityType.MoveStruct, [], 'typeParameters')]: [{
+					constraints: [
+						'KEY',
+					],
+					isPhantom: false,
+				}],
+			},
+		}])
+
+		executeSui.mockResolvedValueOnce({
+			package: {
+				address: '0x2',
+				module: {
+					name: 'coin',
+					function: {
+						name: 'transfer',
+						visibility: 'PUBLIC',
+						isEntry: true,
+						parameters: [{
+							repr: '&mut TxContext',
+						}],
+						return: [],
+						typeParameters: [],
+					},
+				},
+			},
+		})
+		await expect(moveFunctionResolver.resolve.ModuleFunctionName.resolve({
+			$module: moveModule,
+			functionName: 'transfer',
+		}, context)).resolves.toEqual({
+			functionName: 'transfer',
+			visibility: 'PUBLIC',
+			isEntry: true,
+			parameters: [
+				'&mut TxContext',
+			],
+			returnTypes: [],
+			typeParameters: [],
+		})
+
+		executeSui.mockResolvedValueOnce({
+			package: {
+				address: '0x2',
+				module: {
+					name: 'coin',
+					struct: {
+						name: 'Coin',
+						abilities: [
+							'KEY',
+						],
+						fields: [{
+							name: 'id',
+							type: {
+								repr: '0x2::object::UID',
+							},
+						}],
+						typeParameters: [],
+					},
+				},
+			},
+		})
+		await expect(moveStructResolver.resolve.ModuleStructName.resolve({
+			$module: moveModule,
+			structName: 'Coin',
+		}, context)).resolves.toEqual({
+			structName: 'Coin',
+			abilities: [
+				'KEY',
+			],
+			fields: [{
+				name: 'id',
+				type: '0x2::object::UID',
+			}],
+			typeParameters: [],
+		})
+	})
 })

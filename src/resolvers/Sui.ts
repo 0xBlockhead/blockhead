@@ -1102,5 +1102,221 @@ export default {
 				),
 			},
 		}),
+
+		defineResolver({
+			entityType: EntityType.MoveModule,
+			resolve: {
+				NetworkAddressModuleName: {
+					appliesTo: [{
+						$network: {
+							slug: networkBySlug.sui.slug,
+						},
+					}],
+					resolve: async (entitySelector, context) => {
+						assertSuiNetwork(entitySelector.$network)
+						const {
+							getModuleFunctions,
+						} = await loadSuiQueries()
+						const address = normalizeSuiAddress(entitySelector.address)
+						if (entitySelector.moduleName.length === 0)
+							throw new Error('Sui: module name must not be empty')
+
+						return {
+							$module: {
+								...entitySelector,
+								address,
+							},
+							page: await getModuleFunctions({
+								packageId: address,
+								moduleName: entitySelector.moduleName,
+								limit: Math.min(resolverContextRowLimit(context), 50),
+								after: context.providerContinuationToken,
+							}),
+						}
+					},
+				},
+			},
+		})({
+			$$functions: {
+				select: ({
+					$module,
+					page,
+				}) => page.functions.map((moveFunction) => ({
+					[EntityMetaKey.Selector]: {
+						$module,
+						functionName: moveFunction.functionName,
+					},
+					[EntityMetaKey.Fields]: {
+						...(moveFunction.visibility != null && {
+							[entityFieldAddressKey(EntityType.MoveFunction, [], 'visibility')]: moveFunction.visibility,
+						}),
+						...(moveFunction.isEntry != null && {
+							[entityFieldAddressKey(EntityType.MoveFunction, [], 'isEntry')]: moveFunction.isEntry,
+						}),
+						[entityFieldAddressKey(EntityType.MoveFunction, [], 'parameters')]: moveFunction.parameters,
+						[entityFieldAddressKey(EntityType.MoveFunction, [], 'returnTypes')]: moveFunction.returnTypes,
+						[entityFieldAddressKey(EntityType.MoveFunction, [], 'typeParameters')]: moveFunction.typeParameters,
+					},
+				})),
+				continuation: ({
+					$module,
+					page,
+				}) => (
+					page.pagination.nextAfter == null ?
+						{
+							operation: 'module-functions',
+							target: `${$module.address}::${$module.moduleName}`,
+							terminal: true,
+						}
+					:
+						{
+							operation: 'module-functions',
+							target: `${$module.address}::${$module.moduleName}`,
+							terminal: false,
+							token: page.pagination.nextAfter,
+						}
+				),
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.MoveModule,
+			resolve: {
+				NetworkAddressModuleName: {
+					appliesTo: [{
+						$network: {
+							slug: networkBySlug.sui.slug,
+						},
+					}],
+					resolve: async (entitySelector, context) => {
+						assertSuiNetwork(entitySelector.$network)
+						const {
+							getModuleStructs,
+						} = await loadSuiQueries()
+						const address = normalizeSuiAddress(entitySelector.address)
+						if (entitySelector.moduleName.length === 0)
+							throw new Error('Sui: module name must not be empty')
+
+						return {
+							$module: {
+								...entitySelector,
+								address,
+							},
+							page: await getModuleStructs({
+								packageId: address,
+								moduleName: entitySelector.moduleName,
+								limit: Math.min(resolverContextRowLimit(context), 50),
+								after: context.providerContinuationToken,
+							}),
+						}
+					},
+				},
+			},
+		})({
+			$$structs: {
+				select: ({
+					$module,
+					page,
+				}) => page.structs.map((moveStruct) => ({
+					[EntityMetaKey.Selector]: {
+						$module,
+						structName: moveStruct.structName,
+					},
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.MoveStruct, [], 'abilities')]: moveStruct.abilities,
+						[entityFieldAddressKey(EntityType.MoveStruct, [], 'fields')]: moveStruct.fields,
+						[entityFieldAddressKey(EntityType.MoveStruct, [], 'typeParameters')]: moveStruct.typeParameters,
+					},
+				})),
+				continuation: ({
+					$module,
+					page,
+				}) => (
+					page.pagination.nextAfter == null ?
+						{
+							operation: 'module-structs',
+							target: `${$module.address}::${$module.moduleName}`,
+							terminal: true,
+						}
+					:
+						{
+							operation: 'module-structs',
+							target: `${$module.address}::${$module.moduleName}`,
+							terminal: false,
+							token: page.pagination.nextAfter,
+						}
+				),
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.MoveFunction,
+			resolve: {
+				ModuleFunctionName: {
+					appliesTo: [{
+						$module: {
+							$network: {
+								slug: networkBySlug.sui.slug,
+							},
+						},
+					}],
+					resolve: async ({
+						$module,
+						functionName,
+					}) => {
+						assertSuiNetwork($module.$network)
+						const {
+							getModuleFunction,
+						} = await loadSuiQueries()
+
+						return getModuleFunction({
+							packageId: $module.address,
+							moduleName: $module.moduleName,
+							functionName,
+						})
+					},
+				},
+			},
+		})({
+			visibility: (moveFunction) => moveFunction.visibility,
+			isEntry: (moveFunction) => moveFunction.isEntry,
+			typeParameters: (moveFunction) => moveFunction.typeParameters,
+			parameters: (moveFunction) => moveFunction.parameters,
+			returnTypes: (moveFunction) => moveFunction.returnTypes,
+		}),
+
+		defineResolver({
+			entityType: EntityType.MoveStruct,
+			resolve: {
+				ModuleStructName: {
+					appliesTo: [{
+						$module: {
+							$network: {
+								slug: networkBySlug.sui.slug,
+							},
+						},
+					}],
+					resolve: async ({
+						$module,
+						structName,
+					}) => {
+						assertSuiNetwork($module.$network)
+						const {
+							getModuleStruct,
+						} = await loadSuiQueries()
+
+						return getModuleStruct({
+							packageId: $module.address,
+							moduleName: $module.moduleName,
+							structName,
+						})
+					},
+				},
+			},
+		})({
+			abilities: (moveStruct) => moveStruct.abilities,
+			typeParameters: (moveStruct) => moveStruct.typeParameters,
+			fields: (moveStruct) => moveStruct.fields,
+		}),
 	] as const,
 } satisfies RegisteredSourceResolverModule

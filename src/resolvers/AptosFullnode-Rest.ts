@@ -14,10 +14,13 @@ import type {
 	AptosAccount,
 	AptosBlock,
 	AptosEvent,
+	AptosMoveModule,
 	AptosResponseMetadata,
 	AptosTransaction,
 	AptosWriteSetChange,
 } from '$/sources/AptosFullnode/Rest/types.ts'
+
+type AptosMoveModuleAbi = NonNullable<AptosMoveModule['abi']>
 
 type AptosNetworkIdentity = EntitySelector<typeof schema, EntityType.AptosNetwork>
 type AptosTransactionIdentity = EntitySelector<typeof schema, EntityType.AptosTransaction>
@@ -31,8 +34,17 @@ type AptosTransactionVersionIdentity = EntitySelectorForSelectorName<
 	EntityType.AptosTransaction,
 	'NetworkVersion'
 >
+
 type AptosCommittedTransaction = Exclude<AptosTransaction, { type: 'pending_transaction' }>
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
+
+const normalizeAptosMoveAddress = (address: string) => {
+	const match = /^0x([0-9a-fA-F]{1,64})$/.exec(address)
+	if (match == null)
+		throw new Error('AptosFullnode_Rest: malformed Move address')
+
+	return `0x${match[1].toLowerCase().padStart(64, '0')}`
+}
 
 const aptosNetworkApplicability = [
 	{
@@ -469,6 +481,103 @@ const transactionByVersion = async (selector: AptosTransactionVersionIdentity, c
 	return transactionFields(committed, selector.$network)
 }
 
+const requiredMoveModuleAbi = (
+	module: AptosMoveModule,
+	moduleAddress: string,
+	moduleName: string
+) => {
+	if (module.abi == null)
+		throw new Error('AptosFullnode_Rest: module ABI is missing')
+	if (normalizeAptosMoveAddress(module.abi.address) !== normalizeAptosMoveAddress(moduleAddress))
+		throw new Error('AptosFullnode_Rest: module address mismatch')
+	if (module.abi.name !== moduleName)
+		throw new Error('AptosFullnode_Rest: module name mismatch')
+
+	return module.abi
+}
+
+const moveFunctionFields = (moveFunction: AptosMoveModuleAbi['exposed_functions'][number]) => {
+	if (moveFunction.name.length === 0)
+		throw new Error('AptosFullnode_Rest: function name must not be empty')
+
+	return {
+		visibility: moveFunction.visibility,
+		isEntry: moveFunction.is_entry,
+		isView: moveFunction.is_view,
+		typeParameters: moveFunction.generic_type_params,
+		parameters: moveFunction.params,
+		returnTypes: moveFunction.return,
+	}
+}
+
+const moveStructFields = (moveStruct: AptosMoveModuleAbi['structs'][number]) => {
+	if (moveStruct.name.length === 0)
+		throw new Error('AptosFullnode_Rest: struct name must not be empty')
+
+	return {
+		isNative: moveStruct.is_native,
+		isEvent: moveStruct.is_event,
+		abilities: moveStruct.abilities,
+		typeParameters: moveStruct.generic_type_params,
+		fields: moveStruct.fields,
+	}
+}
+
+const moveFunctionRows = (
+	$module: EntitySelector<typeof schema, EntityType.MoveModule>,
+	abi: AptosMoveModuleAbi
+) => {
+	const functionNames = new Set<string>()
+	return abi.exposed_functions.map((moveFunction) => {
+		const fields = moveFunctionFields(moveFunction)
+		if (functionNames.has(moveFunction.name))
+			throw new Error('AptosFullnode_Rest: duplicate function name')
+		functionNames.add(moveFunction.name)
+
+		return {
+			[EntityMetaKey.Selector]: {
+				$module,
+				functionName: moveFunction.name,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.MoveFunction, [], 'visibility')]: fields.visibility,
+				[entityFieldAddressKey(EntityType.MoveFunction, [], 'isEntry')]: fields.isEntry,
+				[entityFieldAddressKey(EntityType.MoveFunction, [], 'isView')]: fields.isView,
+				[entityFieldAddressKey(EntityType.MoveFunction, [], 'typeParameters')]: fields.typeParameters,
+				[entityFieldAddressKey(EntityType.MoveFunction, [], 'parameters')]: fields.parameters,
+				[entityFieldAddressKey(EntityType.MoveFunction, [], 'returnTypes')]: fields.returnTypes,
+			},
+		}
+	})
+}
+
+const moveStructRows = (
+	$module: EntitySelector<typeof schema, EntityType.MoveModule>,
+	abi: AptosMoveModuleAbi
+) => {
+	const structNames = new Set<string>()
+	return abi.structs.map((moveStruct) => {
+		const fields = moveStructFields(moveStruct)
+		if (structNames.has(moveStruct.name))
+			throw new Error('AptosFullnode_Rest: duplicate struct name')
+		structNames.add(moveStruct.name)
+
+		return {
+			[EntityMetaKey.Selector]: {
+				$module,
+				structName: moveStruct.name,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.MoveStruct, [], 'isNative')]: fields.isNative,
+				[entityFieldAddressKey(EntityType.MoveStruct, [], 'isEvent')]: fields.isEvent,
+				[entityFieldAddressKey(EntityType.MoveStruct, [], 'abilities')]: fields.abilities,
+				[entityFieldAddressKey(EntityType.MoveStruct, [], 'typeParameters')]: fields.typeParameters,
+				[entityFieldAddressKey(EntityType.MoveStruct, [], 'fields')]: fields.fields,
+			},
+		}
+	})
+}
+
 export default {
 	source: Source.AptosFullnode_Rest,
 
@@ -903,25 +1012,40 @@ export default {
 						const response = await getAccountModule(resolverSourceBinding(context), entitySelector.address, entitySelector.moduleName)
 						if (response.body.abi != null && response.body.abi.name !== entitySelector.moduleName)
 							throw new Error('AptosFullnode_Rest: module name mismatch')
-						const ledger = metadataFields(response.metadata)
 
-						return [{
-							[EntityMetaKey.Selector]: {
-								$module: entitySelector,
-								timestampMs: ledger.timestampMs,
-								source: Source.AptosFullnode_Rest,
-							},
-							[EntityMetaKey.Fields]: {
-								[entityFieldAddressKey(EntityType.MoveModule_Timestamp, [], 'bytecode')]: response.body.bytecode,
-								[entityFieldAddressKey(EntityType.MoveModule_Timestamp, [], 'abi')]: response.body.abi,
-								[entityFieldAddressKey(EntityType.MoveModule_Timestamp, [], 'ledgerVersion')]: ledger.ledgerVersion,
-							},
-						}]
+						return {
+							$module: entitySelector,
+							module: response.body,
+							ledger: metadataFields(response.metadata),
+						}
 					},
 				},
 			},
 		})({
-			$$timestamps: (timestamps) => timestamps,
+			$$timestamps: ({
+				$module,
+				module,
+				ledger,
+			}) => [{
+				[EntityMetaKey.Selector]: {
+					$module,
+					timestampMs: ledger.timestampMs,
+					source: Source.AptosFullnode_Rest,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.MoveModule_Timestamp, [], 'bytecode')]: module.bytecode,
+					[entityFieldAddressKey(EntityType.MoveModule_Timestamp, [], 'abi')]: module.abi,
+					[entityFieldAddressKey(EntityType.MoveModule_Timestamp, [], 'ledgerVersion')]: ledger.ledgerVersion,
+				},
+			}],
+			$$functions: ({
+				$module,
+				module,
+			}) => moveFunctionRows($module, requiredMoveModuleAbi(module, $module.address, $module.moduleName)),
+			$$structs: ({
+				$module,
+				module,
+			}) => moveStructRows($module, requiredMoveModuleAbi(module, $module.address, $module.moduleName)),
 		}),
 
 		defineResolver({
@@ -950,6 +1074,8 @@ export default {
 							throw new Error('AptosFullnode_Rest: module name mismatch')
 
 						return {
+							$module,
+							module: response.body,
 							bytecode: response.body.bytecode,
 							...(response.body.abi != null && { abi: response.body.abi }),
 							ledgerVersion: ledger.ledgerVersion,
@@ -961,6 +1087,91 @@ export default {
 			bytecode: (module) => module.bytecode,
 			abi: (module) => module.abi,
 			ledgerVersion: (module) => module.ledgerVersion,
+			$$functions: ({
+				$module,
+				module,
+			}) => moveFunctionRows($module, requiredMoveModuleAbi(module, $module.address, $module.moduleName)),
+			$$structs: ({
+				$module,
+				module,
+			}) => moveStructRows($module, requiredMoveModuleAbi(module, $module.address, $module.moduleName)),
+		}),
+
+		defineResolver({
+			entityType: EntityType.MoveFunction,
+			resolve: {
+				ModuleFunctionName: {
+					appliesTo: [
+						{
+							$module: aptosNetworkApplicability[0],
+						},
+						{
+							$module: aptosNetworkApplicability[1],
+						},
+					],
+					resolve: async ({ $module, functionName }, context) => {
+						assertAptosMainnet($module.$network)
+						if (functionName.length === 0)
+							throw new Error('AptosFullnode_Rest: function name must not be empty')
+						const { getAccountModule } = await import('$/sources/AptosFullnode/Rest/queries.ts')
+						const abi = requiredMoveModuleAbi(
+							(await getAccountModule(resolverSourceBinding(context), $module.address, $module.moduleName)).body,
+							$module.address,
+							$module.moduleName
+						)
+						const moveFunction = abi.exposed_functions.find((candidate) => candidate.name === functionName)
+						if (moveFunction == null)
+							throw new Error('AptosFullnode_Rest: function is missing')
+
+						return moveFunctionFields(moveFunction)
+					},
+				},
+			},
+		})({
+			visibility: (moveFunction) => moveFunction.visibility,
+			isEntry: (moveFunction) => moveFunction.isEntry,
+			isView: (moveFunction) => moveFunction.isView,
+			typeParameters: (moveFunction) => moveFunction.typeParameters,
+			parameters: (moveFunction) => moveFunction.parameters,
+			returnTypes: (moveFunction) => moveFunction.returnTypes,
+		}),
+
+		defineResolver({
+			entityType: EntityType.MoveStruct,
+			resolve: {
+				ModuleStructName: {
+					appliesTo: [
+						{
+							$module: aptosNetworkApplicability[0],
+						},
+						{
+							$module: aptosNetworkApplicability[1],
+						},
+					],
+					resolve: async ({ $module, structName }, context) => {
+						assertAptosMainnet($module.$network)
+						if (structName.length === 0)
+							throw new Error('AptosFullnode_Rest: struct name must not be empty')
+						const { getAccountModule } = await import('$/sources/AptosFullnode/Rest/queries.ts')
+						const abi = requiredMoveModuleAbi(
+							(await getAccountModule(resolverSourceBinding(context), $module.address, $module.moduleName)).body,
+							$module.address,
+							$module.moduleName
+						)
+						const moveStruct = abi.structs.find((candidate) => candidate.name === structName)
+						if (moveStruct == null)
+							throw new Error('AptosFullnode_Rest: struct is missing')
+
+						return moveStructFields(moveStruct)
+					},
+				},
+			},
+		})({
+			isNative: (moveStruct) => moveStruct.isNative,
+			isEvent: (moveStruct) => moveStruct.isEvent,
+			abilities: (moveStruct) => moveStruct.abilities,
+			typeParameters: (moveStruct) => moveStruct.typeParameters,
+			fields: (moveStruct) => moveStruct.fields,
 		}),
 	].map((resolver) => ({
 		...resolver,

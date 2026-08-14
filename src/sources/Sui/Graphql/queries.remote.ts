@@ -11,6 +11,10 @@ import {
 	getLatestCheckpoint as getLatestCheckpointFromSui,
 	getObject as getObjectFromSui,
 	getPackage as getPackageFromSui,
+	getModuleFunction as getModuleFunctionFromSui,
+	getModuleFunctions as getModuleFunctionsFromSui,
+	getModuleStruct as getModuleStructFromSui,
+	getModuleStructs as getModuleStructsFromSui,
 	getRecentTransactions as getRecentTransactionsFromSui,
 	getTransaction as getTransactionFromSui,
 } from '$/sources/Sui/Graphql/queries.ts'
@@ -42,4 +46,30 @@ export const getPackage = query(
 		packageId: 'string',
 	}),
 	(input) => getPackageFromSui(input)
+)
+
+const modulePageInput = type({
+	'after?': 'string',
+	limit: 'number',
+	moduleName: 'string',
+	packageId: 'string',
+})
+
+export const getModuleFunctions = query(modulePageInput, (input) => getModuleFunctionsFromSui(input))
+export const getModuleStructs = query(modulePageInput, (input) => getModuleStructsFromSui(input))
+export const getModuleFunction = query(
+	type({
+		functionName: 'string',
+		moduleName: 'string',
+		packageId: 'string',
+	}),
+	(input) => getModuleFunctionFromSui(input)
+)
+export const getModuleStruct = query(
+	type({
+		moduleName: 'string',
+		packageId: 'string',
+		structName: 'string',
+	}),
+	(input) => getModuleStructFromSui(input)
 )

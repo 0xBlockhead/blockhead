@@ -108,14 +108,22 @@ const aptosMoveFunctionWire = arktype({
 	return: 'string[]',
 })
 
+const aptosMoveStructFieldWire = arktype({
+	name: 'string',
+	type: 'string',
+})
+
 const aptosMoveStructWire = arktype({
 	name: 'string',
 	is_native: 'boolean',
 	is_event: 'boolean',
 	is_enum: 'boolean',
 	abilities: 'string[]',
-	generic_type_params: 'unknown[]',
-	fields: 'unknown[]',
+	generic_type_params: arktype({
+		constraints: 'string[]',
+	}).array(),
+	fields: aptosMoveStructFieldWire.array(),
+	'variants?': 'unknown[]',
 })
 
 export const aptosMoveModuleAbiWire = arktype({

@@ -765,4 +765,145 @@ describe('Aptos Fullnode resolver materialization', () => {
 			source: Source.Constants_Internal,
 		}, resolverContext)).rejects.toThrow('observation source mismatch')
 	})
+
+	it('projects Move module ABI functions and structs onto existing selectors', async () => {
+		const paymentsModule = {
+			$network: canonicalNetwork,
+			address: '0xa11ce',
+			moduleName: 'payments',
+		}
+		const abi = {
+			address: '0xa11ce',
+			name: 'payments',
+			friends: [],
+			exposed_functions: [{
+				name: 'transfer',
+				visibility: 'public',
+				is_entry: true,
+				is_view: false,
+				generic_type_params: [],
+				params: [
+					'signer',
+					'address',
+					'u64',
+				],
+				return: [],
+			}],
+			structs: [{
+				name: 'CoinStore',
+				is_native: false,
+				is_event: false,
+				is_enum: false,
+				abilities: [
+					'key',
+					'store',
+				],
+				generic_type_params: [{
+					constraints: [],
+				}],
+				fields: [{
+					name: 'coin',
+					type: '0x1::coin::Coin<T0>',
+				}],
+			}],
+		}
+		vi.spyOn(queries, 'getAccountModule').mockResolvedValue(response({
+			bytecode: '0xabcdef',
+			abi,
+		}))
+
+		const moduleSnapshot = await resolverFor(EntityType.MoveModule).resolve.NetworkAddressModuleName.resolve(
+			paymentsModule,
+			resolverContext
+		)
+		expect(resolverFor(EntityType.MoveModule).projections.$$functions(moduleSnapshot)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$module: paymentsModule,
+				functionName: 'transfer',
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.MoveFunction, [], 'visibility')]: 'public',
+				[entityFieldAddressKey(EntityType.MoveFunction, [], 'isEntry')]: true,
+				[entityFieldAddressKey(EntityType.MoveFunction, [], 'isView')]: false,
+				[entityFieldAddressKey(EntityType.MoveFunction, [], 'typeParameters')]: [],
+				[entityFieldAddressKey(EntityType.MoveFunction, [], 'parameters')]: [
+					'signer',
+					'address',
+					'u64',
+				],
+				[entityFieldAddressKey(EntityType.MoveFunction, [], 'returnTypes')]: [],
+			},
+		}])
+		expect(resolverFor(EntityType.MoveModule).projections.$$structs(moduleSnapshot)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$module: paymentsModule,
+				structName: 'CoinStore',
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.MoveStruct, [], 'isNative')]: false,
+				[entityFieldAddressKey(EntityType.MoveStruct, [], 'isEvent')]: false,
+				[entityFieldAddressKey(EntityType.MoveStruct, [], 'abilities')]: [
+					'key',
+					'store',
+				],
+				[entityFieldAddressKey(EntityType.MoveStruct, [], 'typeParameters')]: [{
+					constraints: [],
+				}],
+				[entityFieldAddressKey(EntityType.MoveStruct, [], 'fields')]: [{
+					name: 'coin',
+					type: '0x1::coin::Coin<T0>',
+				}],
+			},
+		}])
+
+		await expect(resolverFor(EntityType.MoveFunction).resolve.ModuleFunctionName.resolve({
+			$module: paymentsModule,
+			functionName: 'transfer',
+		}, resolverContext)).resolves.toEqual({
+			visibility: 'public',
+			isEntry: true,
+			isView: false,
+			typeParameters: [],
+			parameters: [
+				'signer',
+				'address',
+				'u64',
+			],
+			returnTypes: [],
+		})
+		await expect(resolverFor(EntityType.MoveStruct).resolve.ModuleStructName.resolve({
+			$module: paymentsModule,
+			structName: 'CoinStore',
+		}, resolverContext)).resolves.toEqual({
+			isNative: false,
+			isEvent: false,
+			abilities: [
+				'key',
+				'store',
+			],
+			typeParameters: [{
+				constraints: [],
+			}],
+			fields: [{
+				name: 'coin',
+				type: '0x1::coin::Coin<T0>',
+			}],
+		})
+		await expect(resolverFor(EntityType.MoveFunction).resolve.ModuleFunctionName.resolve({
+			$module: paymentsModule,
+			functionName: 'missing',
+		}, resolverContext)).rejects.toThrow('function is missing')
+
+		vi.spyOn(queries, 'getAccountModule').mockResolvedValue(response({
+			bytecode: '0xabcdef',
+			abi: {
+				...abi,
+				address: '0xbeef',
+			},
+		}))
+		await expect(resolverFor(EntityType.MoveFunction).resolve.ModuleFunctionName.resolve({
+			$module: paymentsModule,
+			functionName: 'transfer',
+		}, resolverContext)).rejects.toThrow('module address mismatch')
+	})
 })

@@ -272,8 +272,33 @@ describe('AptosFullnode Rest arktype envelopes', () => {
 				address: '0xa11ce',
 				name: 'payments',
 				friends: [],
-				exposed_functions: [],
-				structs: [],
+				exposed_functions: [{
+					name: 'transfer',
+					visibility: 'public',
+					is_entry: true,
+					is_view: false,
+					generic_type_params: [],
+					params: [
+						'signer',
+					],
+					return: [],
+				}],
+				structs: [{
+					name: 'CoinStore',
+					is_native: false,
+					is_event: false,
+					is_enum: false,
+					abilities: [
+						'key',
+					],
+					generic_type_params: [{
+						constraints: [],
+					}],
+					fields: [{
+						name: 'coin',
+						type: 'u64',
+					}],
+				}],
 			},
 		}
 		sourceFetch

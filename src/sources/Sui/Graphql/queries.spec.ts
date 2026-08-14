@@ -24,6 +24,10 @@ const {
 	getCheckpointBySequence,
 	getCoinMetadata,
 	getLatestCheckpoint,
+	getModuleFunction,
+	getModuleFunctions,
+	getModuleStruct,
+	getModuleStructs,
 	getObject,
 	getPackage,
 	getRecentTransactions,
@@ -762,6 +766,178 @@ describe('Sui GraphQL checkpoint and transaction queries', () => {
 		expect(print(executeSui.mock.calls[2][1])).toContain('regulatedState')
 		expect(print(executeSui.mock.calls[2][1])).toContain('allowGlobalPause')
 		expect(print(executeSui.mock.calls[2][1])).toContain('denyCap')
+
+		executeSui.mockResolvedValueOnce({
+			package: {
+				address: '0x2',
+				module: {
+					name: 'coin',
+					functions: {
+						pageInfo,
+						nodes: [{
+							name: 'transfer',
+							visibility: 'PUBLIC',
+							isEntry: true,
+							parameters: [{
+								repr: '&mut TxContext',
+							}],
+							return: [{
+								repr: 'bool',
+							}],
+							typeParameters: [],
+						}],
+					},
+				},
+			},
+		})
+		await expect(getModuleFunctions({
+			packageId: '0x2',
+			moduleName: 'coin',
+			limit: 1,
+			after: 'current-cursor',
+		})).resolves.toEqual({
+			packageId: `0x${'0'.repeat(63)}2`,
+			moduleName: 'coin',
+			functions: [{
+				functionName: 'transfer',
+				visibility: 'PUBLIC',
+				isEntry: true,
+				parameters: [
+					'&mut TxContext',
+				],
+				returnTypes: [
+					'bool',
+				],
+				typeParameters: [],
+			}],
+			pagination: {
+				limit: 1,
+				after: 'current-cursor',
+				nextAfter: 'next-cursor',
+			},
+		})
+
+		executeSui.mockResolvedValueOnce({
+			package: {
+				address: '0x2',
+				module: {
+					name: 'coin',
+					structs: {
+						pageInfo: {
+							hasNextPage: false,
+							endCursor: null,
+						},
+						nodes: [{
+							name: 'Coin',
+							abilities: [
+								'KEY',
+								'STORE',
+							],
+							fields: [{
+								name: 'balance',
+								type: {
+									repr: '0x2::balance::Balance<T0>',
+								},
+							}],
+							typeParameters: [{
+								constraints: [
+									'KEY',
+								],
+								isPhantom: false,
+							}],
+						}],
+					},
+				},
+			},
+		})
+		await expect(getModuleStructs({
+			packageId: '0x2',
+			moduleName: 'coin',
+			limit: 1,
+		})).resolves.toEqual({
+			packageId: `0x${'0'.repeat(63)}2`,
+			moduleName: 'coin',
+			structs: [{
+				structName: 'Coin',
+				abilities: [
+					'KEY',
+					'STORE',
+				],
+				fields: [{
+					name: 'balance',
+					type: '0x2::balance::Balance<T0>',
+				}],
+				typeParameters: [{
+					constraints: [
+						'KEY',
+					],
+					isPhantom: false,
+				}],
+			}],
+			pagination: {
+				limit: 1,
+			},
+		})
+
+		executeSui.mockResolvedValueOnce({
+			package: {
+				address: '0x2',
+				module: {
+					name: 'coin',
+					function: {
+						name: 'transfer',
+						visibility: 'PUBLIC',
+						isEntry: false,
+						parameters: [],
+						return: [],
+						typeParameters: [],
+					},
+				},
+			},
+		})
+		await expect(getModuleFunction({
+			packageId: '0x2',
+			moduleName: 'coin',
+			functionName: 'transfer',
+		})).resolves.toEqual({
+			functionName: 'transfer',
+			visibility: 'PUBLIC',
+			isEntry: false,
+			parameters: [],
+			returnTypes: [],
+			typeParameters: [],
+		})
+
+		executeSui.mockResolvedValueOnce({
+			package: {
+				address: '0x2',
+				module: {
+					name: 'coin',
+					struct: {
+						name: 'Coin',
+						abilities: [
+							'KEY',
+						],
+						fields: [],
+						typeParameters: [],
+					},
+				},
+			},
+		})
+		await expect(getModuleStruct({
+			packageId: '0x2',
+			moduleName: 'coin',
+			structName: 'Coin',
+		})).resolves.toEqual({
+			structName: 'Coin',
+			abilities: [
+				'KEY',
+			],
+			fields: [],
+			typeParameters: [],
+		})
+		expect(print(executeSui.mock.calls[4][1])).toContain('functions')
+		expect(print(executeSui.mock.calls[5][1])).toContain('structs')
 	})
 
 	it('fail-closes missing checkpoint digests, sequence mismatches, and incomplete transactions', async () => {

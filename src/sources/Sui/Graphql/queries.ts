@@ -180,6 +180,142 @@ const packageDocument = graphql(`
 	}
 `)
 
+const moduleFunctionsDocument = graphql(`
+	query SuiMoveModuleFunctions(
+		$address: SuiAddress!
+		$moduleName: String!
+		$first: Int!
+		$after: String
+	) {
+		package(address: $address) {
+			address
+			module(name: $moduleName) {
+				name
+				functions(
+					first: $first
+					after: $after
+				) {
+					pageInfo {
+						hasNextPage
+						endCursor
+					}
+					nodes {
+						name
+						visibility
+						isEntry
+						parameters {
+							repr
+						}
+						return {
+							repr
+						}
+						typeParameters {
+							constraints
+						}
+					}
+				}
+			}
+		}
+	}
+`)
+
+const moduleStructsDocument = graphql(`
+	query SuiMoveModuleStructs(
+		$address: SuiAddress!
+		$moduleName: String!
+		$first: Int!
+		$after: String
+	) {
+		package(address: $address) {
+			address
+			module(name: $moduleName) {
+				name
+				structs(
+					first: $first
+					after: $after
+				) {
+					pageInfo {
+						hasNextPage
+						endCursor
+					}
+					nodes {
+						name
+						abilities
+						fields {
+							name
+							type {
+								repr
+							}
+						}
+						typeParameters {
+							constraints
+							isPhantom
+						}
+					}
+				}
+			}
+		}
+	}
+`)
+
+const moduleFunctionDocument = graphql(`
+	query SuiMoveModuleFunction(
+		$address: SuiAddress!
+		$moduleName: String!
+		$functionName: String!
+	) {
+		package(address: $address) {
+			address
+			module(name: $moduleName) {
+				name
+				function(name: $functionName) {
+					name
+					visibility
+					isEntry
+					parameters {
+						repr
+					}
+					return {
+						repr
+					}
+					typeParameters {
+						constraints
+					}
+				}
+			}
+		}
+	}
+`)
+
+const moduleStructDocument = graphql(`
+	query SuiMoveModuleStruct(
+		$address: SuiAddress!
+		$moduleName: String!
+		$structName: String!
+	) {
+		package(address: $address) {
+			address
+			module(name: $moduleName) {
+				name
+				struct(name: $structName) {
+					name
+					abilities
+					fields {
+						name
+						type {
+							repr
+						}
+					}
+					typeParameters {
+						constraints
+						isPhantom
+					}
+				}
+			}
+		}
+	}
+`)
+
 const recentTransactionsDocument = graphql(`
 	query SuiRecentTransactions($first: Int!, $after: String) {
 		transactions(
@@ -1457,4 +1593,297 @@ export const getPackage = async ({
 				)
 		),
 	}
+}
+
+const assertMoveModuleName = (moduleName: string) => {
+	if (moduleName.length === 0)
+		throw new Error('Sui GraphQL module name must not be empty')
+}
+
+const assertPackageModule = (
+	result: {
+		package: {
+			address: string
+			module: {
+				name: string
+			} | null
+		} | null
+	},
+	address: string,
+	moduleName: string
+) => {
+	if (result.package == null)
+		throw new Error(`Sui GraphQL package ${address} was not found`)
+	if (normalizeSuiAddress(result.package.address) !== address)
+		throw new Error(`Sui GraphQL package address mismatch for ${address}`)
+	if (result.package.module == null)
+		throw new Error(`Sui GraphQL module ${moduleName} was not found`)
+	if (result.package.module.name !== moduleName)
+		throw new Error('Sui GraphQL module name mismatch')
+
+	return result.package.module
+}
+
+const openMoveTypeReprs = (
+	types: readonly {
+		repr: string
+	}[] | null | undefined,
+	label: string
+) => (types ?? []).map((moveType) => {
+	if (moveType.repr.length === 0)
+		throw new Error(`Sui GraphQL ${label} type must not be empty`)
+
+	return moveType.repr
+})
+
+const suiMoveFunctionFields = (moveFunction: {
+	name: string
+	visibility?: string | null
+	isEntry?: boolean | null
+	parameters?: readonly {
+		repr: string
+	}[] | null
+	return?: readonly {
+		repr: string
+	}[] | null
+	typeParameters?: readonly {
+		constraints: readonly string[]
+	}[] | null
+}) => {
+	if (moveFunction.name.length === 0)
+		throw new Error('Sui GraphQL function name must not be empty')
+
+	return {
+		functionName: moveFunction.name,
+		...(moveFunction.visibility != null && {
+			visibility: moveFunction.visibility,
+		}),
+		...(moveFunction.isEntry != null && {
+			isEntry: moveFunction.isEntry,
+		}),
+		parameters: openMoveTypeReprs(moveFunction.parameters, 'function parameter'),
+		returnTypes: openMoveTypeReprs(moveFunction.return, 'function return'),
+		typeParameters: moveFunction.typeParameters ?? [],
+	}
+}
+
+const suiMoveStructFields = (moveStruct: {
+	name: string
+	abilities?: readonly string[] | null
+	fields?: readonly {
+		name?: string | null
+		type?: {
+			repr: string
+		} | null
+	}[] | null
+	typeParameters?: readonly {
+		constraints: readonly string[]
+		isPhantom: boolean
+	}[] | null
+}) => {
+	if (moveStruct.name.length === 0)
+		throw new Error('Sui GraphQL struct name must not be empty')
+	const fieldNames = new Set<string>()
+
+	return {
+		structName: moveStruct.name,
+		abilities: moveStruct.abilities ?? [],
+		fields: (moveStruct.fields ?? []).map((field) => {
+			if (field.name == null || field.name.length === 0)
+				throw new Error('Sui GraphQL struct field name must not be empty')
+			if (field.type == null || field.type.repr.length === 0)
+				throw new Error('Sui GraphQL struct field type must not be empty')
+			if (fieldNames.has(field.name))
+				throw new Error('Sui GraphQL struct returned a duplicate field name')
+			fieldNames.add(field.name)
+
+			return {
+				name: field.name,
+				type: field.type.repr,
+			}
+		}),
+		typeParameters: moveStruct.typeParameters ?? [],
+	}
+}
+
+export const getModuleFunctions = async ({
+	packageId,
+	moduleName,
+	limit,
+	after,
+}: {
+	packageId: string
+	moduleName: string
+	limit: number
+	after?: string
+}) => {
+	const address = normalizeSuiAddress(packageId)
+	assertMoveModuleName(moduleName)
+	assertPageRequest({
+		address,
+		limit,
+		after,
+	})
+	const result = await executeSui(
+		binding,
+		moduleFunctionsDocument,
+		{
+			address,
+			moduleName,
+			first: limit,
+			...(after != null && { after }),
+		}
+	)
+	const module = assertPackageModule(result, address, moduleName)
+	if (module.functions != null && module.functions.nodes.length > limit)
+		throw new Error('Sui GraphQL module functions exceeded the requested limit')
+	const functionNames = new Set<string>()
+	const functions = (module.functions?.nodes ?? []).map((moveFunction) => {
+		const fields = suiMoveFunctionFields(moveFunction)
+		if (functionNames.has(fields.functionName))
+			throw new Error('Sui GraphQL module returned a duplicate function name')
+		functionNames.add(fields.functionName)
+		return fields
+	})
+
+	return {
+		packageId: address,
+		moduleName,
+		functions,
+		pagination: (
+			module.functions == null ?
+				{
+					limit,
+					...(after != null && { after }),
+				}
+			:
+				pagination(
+					limit,
+					after,
+					module.functions.pageInfo
+				)
+		),
+	}
+}
+
+export const getModuleStructs = async ({
+	packageId,
+	moduleName,
+	limit,
+	after,
+}: {
+	packageId: string
+	moduleName: string
+	limit: number
+	after?: string
+}) => {
+	const address = normalizeSuiAddress(packageId)
+	assertMoveModuleName(moduleName)
+	assertPageRequest({
+		address,
+		limit,
+		after,
+	})
+	const result = await executeSui(
+		binding,
+		moduleStructsDocument,
+		{
+			address,
+			moduleName,
+			first: limit,
+			...(after != null && { after }),
+		}
+	)
+	const module = assertPackageModule(result, address, moduleName)
+	if (module.structs != null && module.structs.nodes.length > limit)
+		throw new Error('Sui GraphQL module structs exceeded the requested limit')
+	const structNames = new Set<string>()
+	const structs = (module.structs?.nodes ?? []).map((moveStruct) => {
+		const fields = suiMoveStructFields(moveStruct)
+		if (structNames.has(fields.structName))
+			throw new Error('Sui GraphQL module returned a duplicate struct name')
+		structNames.add(fields.structName)
+		return fields
+	})
+
+	return {
+		packageId: address,
+		moduleName,
+		structs,
+		pagination: (
+			module.structs == null ?
+				{
+					limit,
+					...(after != null && { after }),
+				}
+			:
+				pagination(
+					limit,
+					after,
+					module.structs.pageInfo
+				)
+		),
+	}
+}
+
+export const getModuleFunction = async ({
+	packageId,
+	moduleName,
+	functionName,
+}: {
+	packageId: string
+	moduleName: string
+	functionName: string
+}) => {
+	const address = normalizeSuiAddress(packageId)
+	assertMoveModuleName(moduleName)
+	if (functionName.length === 0)
+		throw new Error('Sui GraphQL function name must not be empty')
+	const result = await executeSui(
+		binding,
+		moduleFunctionDocument,
+		{
+			address,
+			moduleName,
+			functionName,
+		}
+	)
+	const moveFunction = assertPackageModule(result, address, moduleName).function
+	if (moveFunction == null)
+		throw new Error(`Sui GraphQL function ${functionName} was not found`)
+	if (moveFunction.name !== functionName)
+		throw new Error('Sui GraphQL function name mismatch')
+
+	return suiMoveFunctionFields(moveFunction)
+}
+
+export const getModuleStruct = async ({
+	packageId,
+	moduleName,
+	structName,
+}: {
+	packageId: string
+	moduleName: string
+	structName: string
+}) => {
+	const address = normalizeSuiAddress(packageId)
+	assertMoveModuleName(moduleName)
+	if (structName.length === 0)
+		throw new Error('Sui GraphQL struct name must not be empty')
+	const result = await executeSui(
+		binding,
+		moduleStructDocument,
+		{
+			address,
+			moduleName,
+			structName,
+		}
+	)
+	const moveStruct = assertPackageModule(result, address, moduleName).struct
+	if (moveStruct == null)
+		throw new Error(`Sui GraphQL struct ${structName} was not found`)
+	if (moveStruct.name !== structName)
+		throw new Error('Sui GraphQL struct name mismatch')
+
+	return suiMoveStructFields(moveStruct)
 }
