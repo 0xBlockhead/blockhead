@@ -192,29 +192,46 @@ const getSnapchainCast = async ({
 
 const getSnapchainCastsByFid = async (
 	fid: number,
-	rowLimit: number
+	rowLimit: number,
+	pageToken?: string
 ) => {
+	if (rowLimit === 0)
+		return { casts: [] }
+
 	const { snapchainMaxPageSize } = await import('$/sources/Snapchain/Rest/constants.ts')
 	const { getCastsByFid } = await import('$/sources/Snapchain/Rest/queries.ts')
 	const casts: SnapchainCast[] = []
-	let pageToken: string | undefined
+	const seenPageTokens = new Set(pageToken == null ? [] : [pageToken])
+	let nextPageToken = pageToken
 	do {
 		const remaining = Math.max(rowLimit - casts.length, 0)
 		if (remaining === 0) break
 		const page = await getCastsByFid({
 			fid,
 			pageSize: Math.min(remaining, snapchainMaxPageSize),
-			pageToken,
+			pageToken: nextPageToken,
 			reverse: true,
 		})
 		casts.push(...(page.messages ?? []).slice(0, remaining))
-		pageToken = page.nextPageToken
+		nextPageToken = page.nextPageToken
+		if (nextPageToken != null && nextPageToken !== '') {
+			if (seenPageTokens.has(nextPageToken))
+				throw new Error('Snapchain_Rest: casts-by-fid continuation did not advance')
+			seenPageTokens.add(nextPageToken)
+		}
 	} while (
-		pageToken != null
-		&& pageToken !== ''
+		nextPageToken != null
+		&& nextPageToken !== ''
 		&& casts.length < rowLimit
 	)
-	return casts
+	return {
+		casts,
+		...(
+			nextPageToken != null
+			&& nextPageToken !== ''
+			&& { nextPageToken }
+		),
+	}
 }
 
 const getSnapchainCastsByParent = async (
@@ -227,28 +244,45 @@ const getSnapchainCastsByParent = async (
 			url: string
 		}
 	),
-	rowLimit: number
+	rowLimit: number,
+	pageToken?: string
 ) => {
+	if (rowLimit === 0)
+		return { casts: [] }
+
 	const { snapchainMaxPageSize } = await import('$/sources/Snapchain/Rest/constants.ts')
 	const { getCastsByParent } = await import('$/sources/Snapchain/Rest/queries.ts')
 	const casts: SnapchainCast[] = []
-	let pageToken: string | undefined
+	const seenPageTokens = new Set(pageToken == null ? [] : [pageToken])
+	let nextPageToken = pageToken
 	do {
 		const remaining = Math.max(rowLimit - casts.length, 0)
 		if (remaining === 0) break
 		const page = await getCastsByParent({
 			...parent,
 			pageSize: Math.min(remaining, snapchainMaxPageSize),
-			pageToken,
+			pageToken: nextPageToken,
 		})
 		casts.push(...(page.messages ?? []).slice(0, remaining))
-		pageToken = page.nextPageToken
+		nextPageToken = page.nextPageToken
+		if (nextPageToken != null && nextPageToken !== '') {
+			if (seenPageTokens.has(nextPageToken))
+				throw new Error('Snapchain_Rest: casts-by-parent continuation did not advance')
+			seenPageTokens.add(nextPageToken)
+		}
 	} while (
-		pageToken != null
-		&& pageToken !== ''
+		nextPageToken != null
+		&& nextPageToken !== ''
 		&& casts.length < rowLimit
 	)
-	return casts
+	return {
+		casts,
+		...(
+			nextPageToken != null
+			&& nextPageToken !== ''
+			&& { nextPageToken }
+		),
+	}
 }
 
 const getSnapchainFids = async (rowLimit: number) => {
@@ -558,7 +592,7 @@ export default {
 						)
 						const hashPrefix = (
 							castHash.length >= 12 ?
-								`0x${castHash.slice(2, 12)}` as `0x${string}`
+								`0x${castHash.slice(2, 12)}`
 							:
 								castHash
 						)
@@ -645,39 +679,54 @@ export default {
 						if (parentHash == null)
 							throw new Error('Snapchain_Rest: direct replies require a 20-byte parent cast hash')
 
-						return (await getSnapchainCastsByParent(
+						const page = await getSnapchainCastsByParent(
 							{
 								fid,
 								hash: parentHash,
 							},
-							resolverContextRowLimit(context)
-						)).map((directReply) => {
-							const directReplyEntity = snapchainCastEntity(directReply)
-							const directReplyBody = directReply.data?.castAddBody
-							const directReplyParentHash = (
-								directReplyBody?.parentCastId?.hash == null ?
-									undefined
-								:
-									hexLowerOfByteSize(directReplyBody.parentCastId.hash, 20)
-							)
-							const timestamp = snapchainCastTimestampMs(directReply.data?.timestamp)
-							if (
-								directReplyEntity == null
-								|| hexLowerOfByteSize(directReply.hash, 20) == null
-								|| directReplyBody == null
-								|| directReplyBody.parentCastId?.fid !== fid
-								|| directReplyParentHash !== parentHash
-								|| timestamp == null
-							)
-								throw new Error('Snapchain_Rest: malformed or mismatched direct reply')
+							resolverContextRowLimit(context),
+							context.providerContinuationToken
+						)
+						return {
+							...page,
+							directReplies: page.casts.map((directReply) => {
+								const directReplyEntity = snapchainCastEntity(directReply)
+								const directReplyBody = directReply.data?.castAddBody
+								const directReplyParentHash = (
+									directReplyBody?.parentCastId?.hash == null ?
+										undefined
+									:
+										hexLowerOfByteSize(directReplyBody.parentCastId.hash, 20)
+								)
+								const timestamp = snapchainCastTimestampMs(directReply.data?.timestamp)
+								if (
+									directReplyEntity == null
+									|| hexLowerOfByteSize(directReply.hash, 20) == null
+									|| directReplyBody == null
+									|| directReplyBody.parentCastId?.fid !== fid
+									|| directReplyParentHash !== parentHash
+									|| timestamp == null
+								)
+									throw new Error('Snapchain_Rest: malformed or mismatched direct reply')
 
-							return directReplyEntity satisfies CastEntity
-						})
+								return directReplyEntity satisfies CastEntity
+							}),
+						}
 					},
 				}
 			},
 		})({
-			$$directReplies: (directReplies) => directReplies,
+			$$directReplies: {
+				select: (snapshot) => snapshot.directReplies,
+				continuation: (snapshot, cast) => ({
+					operation: 'cast-direct-replies',
+					target: `${cast.fid}:${cast.hash}`,
+					terminal: snapshot.nextPageToken == null,
+					...(snapshot.nextPageToken != null && {
+						token: snapshot.nextPageToken,
+					}),
+				}),
+			},
 		}),
 
 		defineResolver({
@@ -694,7 +743,7 @@ export default {
 							fid: $cast.fid,
 							hash: $cast.hash,
 						})
-						const embed = snapchainCastEmbedEntries(snapchainCast)[indexInCast]
+						const embed = snapchainCastEmbedEntries(snapchainCast).at(indexInCast)
 						if (embed == null)
 							throw new Error('Snapchain_Rest: cast embed index not found')
 
@@ -802,11 +851,14 @@ export default {
 			resolve: {
 				Fid: {
 					resolve: async ({ fid }, context) => {
-						return (
-							(await getSnapchainCastsByFid(
-								fid,
-								resolverContextRowLimit(context)
-							))
+						const page = await getSnapchainCastsByFid(
+							fid,
+							resolverContextRowLimit(context),
+							context.providerContinuationToken
+						)
+						return {
+							...page,
+							casts: page.casts
 								.flatMap((cast) => {
 									const castEntity = snapchainCastEntity(cast)
 									return (
@@ -816,13 +868,23 @@ export default {
 										:
 											[]
 									)
-								})
-						)
+								}),
+						}
 					},
 				},
 			},
 		})({
-			$$casts: (casts) => casts,
+			$$casts: {
+				select: (snapshot) => snapshot.casts,
+				continuation: (snapshot, user) => ({
+					operation: 'user-casts',
+					target: String(user.fid),
+					terminal: snapshot.nextPageToken == null,
+					...(snapshot.nextPageToken != null && {
+						token: snapshot.nextPageToken,
+					}),
+				}),
+			},
 		}),
 
 		defineResolver({
@@ -898,28 +960,44 @@ export default {
 			entityType: EntityType.FarcasterChannel,
 			resolve: {
 				Id: {
-					resolve: async ({ id }, context) => (
-						(await getSnapchainCastsByParent(
+					resolve: async ({ id }, context) => {
+						const page = await getSnapchainCastsByParent(
 							{ url: snapchainChannelParentUrlFromId(id) },
-							resolverContextRowLimit(context)
-						))
-							.flatMap((cast) => snapchainCastEntity(cast) ?? [])
-					),
+							resolverContextRowLimit(context),
+							context.providerContinuationToken
+						)
+						return {
+							...page,
+							casts: page.casts.flatMap((cast) => snapchainCastEntity(cast) ?? []),
+						}
+					},
 				},
 				ParentUrl: {
 					resolve: async ({ parentUrl }, context) => {
-						return (
-							(await getSnapchainCastsByParent(
-								{ url: parentUrl },
-								resolverContextRowLimit(context)
-							))
-								.flatMap((cast) => snapchainCastEntity(cast) ?? [])
+						const page = await getSnapchainCastsByParent(
+							{ url: parentUrl },
+							resolverContextRowLimit(context),
+							context.providerContinuationToken
 						)
+						return {
+							...page,
+							casts: page.casts.flatMap((cast) => snapchainCastEntity(cast) ?? []),
+						}
 					},
 				},
 			},
 		})({
-			$$casts: (casts) => casts,
+			$$casts: {
+				select: (snapshot) => snapshot.casts,
+				continuation: (snapshot, channel) => ({
+					operation: 'channel-casts',
+					target: 'id' in channel ? channel.id : channel.parentUrl,
+					terminal: snapshot.nextPageToken == null,
+					...(snapshot.nextPageToken != null && {
+						token: snapshot.nextPageToken,
+					}),
+				}),
+			},
 		}),
 
 		defineResolver({
@@ -934,10 +1012,10 @@ export default {
 						const feedCasts: SnapchainCast[] = []
 						fidLoop: for (const fid of await getSnapchainFids(subsetRowLimit)) {
 							if (feedCasts.length >= subsetRowLimit) break fidLoop
-							feedCasts.push(...await getSnapchainCastsByFid(
+							feedCasts.push(...(await getSnapchainCastsByFid(
 								fid,
 								subsetRowLimit - feedCasts.length
-							))
+							)).casts)
 						}
 						return (
 							feedCasts
@@ -951,7 +1029,7 @@ export default {
 							(await getSnapchainCastsByFid(
 								fid,
 								resolverContextRowLimit(context)
-							))
+							)).casts
 								.flatMap((cast) => {
 									const castEntity = snapchainCastEntity(cast)
 									return castEntity?.[EntityMetaKey.Selector].fid === fid ?
@@ -967,7 +1045,7 @@ export default {
 						(await getSnapchainCastsByParent(
 							{ url: snapchainChannelParentUrlFromId(channelId) },
 							resolverContextRowLimit(context)
-						))
+						)).casts
 							.flatMap((cast) => snapchainCastEntity(cast) ?? [])
 					),
 				},

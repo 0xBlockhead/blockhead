@@ -881,22 +881,48 @@ describe('Blockscout account-abstraction queries', () => {
 	})
 
 	it('returns account-abstraction rows from the documented success response', async () => {
-		const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse({
-			items: [userOperation],
-			next_page_params: {
-				page: 2,
-			},
-		}))
+		const fetchMock = vi.spyOn(globalThis, 'fetch')
+			.mockResolvedValueOnce(jsonResponse({
+				items: [userOperation],
+				next_page_params: {
+					page_size: 3,
+					page_token: 'opaque+/=',
+				},
+			}))
+			.mockResolvedValueOnce(jsonResponse({
+				items: [],
+				next_page_params: null,
+			}))
 
 		await expect(getUserOperationsPage({
 			chainId: 1,
 			limit: 3,
 			transactionHash: hex('a', 64),
-		})).resolves.toEqual([userOperation])
+		})).resolves.toEqual({
+			items: [userOperation],
+			nextPageParams: {
+				page_size: 3,
+				page_token: 'opaque+/=',
+			},
+		})
 		expect(fetchMock).toHaveBeenCalledWith(
 			expect.stringContaining(`transaction_hash=${hex('a', 64)}`),
 			expect.any(Object)
 		)
+
+		await expect(getUserOperationsPage({
+			chainId: 1,
+			limit: 3,
+			transactionHash: hex('a', 64),
+			continuation: JSON.stringify({
+				page_size: 3,
+				page_token: 'opaque+/=',
+			}),
+		})).resolves.toEqual({
+			items: [],
+			nextPageParams: undefined,
+		})
+		expect(decodeURIComponent(String(fetchMock.mock.calls[1][0]))).toContain('page_token=opaque+/=')
 	})
 
 	it('forwards account-abstraction address filters on operations and accounts', async () => {
@@ -917,7 +943,10 @@ describe('Blockscout account-abstraction queries', () => {
 			chainId: 1,
 			limit: 3,
 			bundler: hex('c', 40),
-		})).resolves.toEqual([userOperation])
+		})).resolves.toEqual({
+			items: [userOperation],
+			nextPageParams: undefined,
+		})
 		expect(fetchMock).toHaveBeenNthCalledWith(
 			1,
 			expect.stringContaining(`bundler=${hex('c', 40)}`),
@@ -928,12 +957,15 @@ describe('Blockscout account-abstraction queries', () => {
 			chainId: 1,
 			limit: 3,
 			factory: hex('d', 40),
-		})).resolves.toEqual([{
-			address: {
-				hash: hex('b', 40),
-			},
-			total_ops: 1,
-		}])
+		})).resolves.toEqual({
+			items: [{
+				address: {
+					hash: hex('b', 40),
+				},
+				total_ops: 1,
+			}],
+			nextPageParams: undefined,
+		})
 		expect(fetchMock).toHaveBeenNthCalledWith(
 			2,
 			expect.stringContaining(`factory=${hex('d', 40)}`),

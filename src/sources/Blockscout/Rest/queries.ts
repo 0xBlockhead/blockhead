@@ -232,6 +232,32 @@ const blockscoutListRequest = ({
 	}
 }
 
+const blockscoutErc4337ListRequest = ({
+	limit,
+	continuation,
+	label,
+}: {
+	limit: number
+	continuation?: string
+	label: string
+}) => {
+	const requestedContinuation = blockscoutListContinuation(continuation, label)
+	return {
+		requestedContinuation,
+		searchParams: {
+			page_size: blockscoutItemsCount(limit),
+			...Object.fromEntries(
+				Object.entries(requestedContinuation ?? {}).flatMap(([key, value]) => (
+					value == null ?
+						[]
+					:
+						[[key, value]]
+				))
+			),
+		},
+	}
+}
+
 const blockscoutListPage = <Item>(
 	items: Item[],
 	nextPageParams: unknown,
@@ -1213,6 +1239,7 @@ export const getUserOperationsPage = async ({
 	bundler,
 	paymaster,
 	factory,
+	continuation,
 }: {
 	chainId: number
 	limit: number
@@ -1221,9 +1248,15 @@ export const getUserOperationsPage = async ({
 	bundler?: string
 	paymaster?: string
 	factory?: string
+	continuation?: string
 }) => {
+	const request = blockscoutErc4337ListRequest({
+		limit,
+		continuation,
+		label: 'user operations',
+	})
 	if (limit <= 0)
-		return []
+		return blockscoutListPage([], undefined, request.requestedContinuation, 'user operations')
 
 	const requestedTransactionHash = transactionHash != null ? blockscoutErc4337PathHash(
 		transactionHash,
@@ -1236,7 +1269,7 @@ export const getUserOperationsPage = async ({
 		binding: requireBlockscoutBinding(chainId, ApiFamily.BlockscoutRestV2),
 		path: '/proxy/account-abstraction/operations',
 		searchParams: {
-			page_size: blockscoutItemsCount(limit),
+			...request.searchParams,
 			...(transactionHash != null && { transaction_hash: requestedTransactionHash }),
 			...(sender != null && { sender: requestedSender }),
 			...(bundler != null && { bundler: blockscoutErc4337PathHash(bundler, 20, 'Blockscout user operations by bundler') }),
@@ -1247,7 +1280,7 @@ export const getUserOperationsPage = async ({
 	assertBlockscoutEnvelope(blockscoutPageEnvelope, wire, 'user operations')
 
 	const seen = new Set<`0x${string}`>()
-	return wire.items.slice(0, limit).map((item) => {
+	return blockscoutListPage(wire.items.slice(0, limit).map((item) => {
 		const hash = blockscoutTransactionHash(item.hash, 'user operation')
 		if (seen.has(hash))
 			throw new Error('Blockscout_Rest: user operations contain duplicate identities')
@@ -1264,7 +1297,7 @@ export const getUserOperationsPage = async ({
 				throw new Error('Blockscout_Rest: user operation does not match the requested sender')
 		}
 		return item
-	})
+	}), wire.next_page_params, request.requestedContinuation, 'user operations')
 }
 
 export const getUserOperationDetail = ({
@@ -1298,19 +1331,26 @@ export const getErc4337SmartAccountList = async ({
 	chainId,
 	limit,
 	factory,
+	continuation,
 }: {
 	chainId: number
 	limit: number
 	factory?: string
+	continuation?: string
 }) => {
+	const request = blockscoutErc4337ListRequest({
+		limit,
+		continuation,
+		label: 'ERC-4337 accounts',
+	})
 	if (limit <= 0)
-		return []
+		return blockscoutListPage([], undefined, request.requestedContinuation, 'ERC-4337 accounts')
 
 	const wire = await getBlockscoutJson<BlockscoutErc4337AccountsPage>({
 		binding: requireBlockscoutBinding(chainId, ApiFamily.BlockscoutRestV2),
 		path: erc4337RegistryPath.smartAccount,
 		searchParams: {
-			page_size: blockscoutItemsCount(limit),
+			...request.searchParams,
 			...(factory != null && {
 				factory: blockscoutErc4337PathHash(factory, 20, 'Blockscout ERC-4337 accounts by factory'),
 			}),
@@ -1319,14 +1359,14 @@ export const getErc4337SmartAccountList = async ({
 	assertBlockscoutEnvelope(blockscoutPageEnvelope, wire, 'ERC-4337 accounts')
 
 	const seen = new Set<`0x${string}`>()
-	return wire.items.slice(0, limit).map((item) => {
+	return blockscoutListPage(wire.items.slice(0, limit).map((item) => {
 		const address = blockscoutAddressHash(item.address.hash, 'ERC-4337 account')
 		if (seen.has(address))
 			throw new Error('Blockscout_Rest: ERC-4337 accounts contain duplicate identities')
 
 		seen.add(address)
 		return item
-	})
+	}), wire.next_page_params, request.requestedContinuation, 'ERC-4337 accounts')
 }
 
 export const getErc4337SmartAccountDetail = ({

@@ -1741,25 +1741,34 @@ const erc4337UserOperationsForAddressFilter = async ({
 	} = await import('$/sources/Blockscout/Rest/constants.ts')
 	const chainId = evmChainIdFromNetworkSelector($network)
 	if (!blockscoutAccountAbstractionChainIds.has(chainId))
-		return []
+		return {
+			filter,
+			nextPageParams: undefined,
+			rows: [],
+		}
 
 	const limit = Math.min(
 		resolverContextRowLimit(context),
 		blockscoutV2ItemsCountMax
 	)
 	const { getUserOperationsPage } = await import('$/sources/Blockscout/Rest/queries.ts')
-	const wires = await getUserOperationsPage({
+	const page = await getUserOperationsPage({
 		chainId,
 		limit,
 		[filter]: address,
+		continuation: context.providerContinuationToken,
 	})
-	return wires.flatMap((wire) => {
-		const reference = evmUserOperationReferenceFromBlockscoutWire({
-			$network,
-			wire,
-		})
-		return reference == null ? [] : [reference]
-	})
+	return {
+		filter,
+		nextPageParams: page.nextPageParams,
+		rows: page.items.flatMap((wire) => {
+			const reference = evmUserOperationReferenceFromBlockscoutWire({
+				$network,
+				wire,
+			})
+			return reference == null ? [] : [reference]
+		}),
+	}
 }
 
 export default {
@@ -2584,7 +2593,14 @@ export default {
 				},
 			},
 		})({
-			$$userOperations: (entity) => entity,
+			$$userOperations: {
+				select: (snapshot) => snapshot.rows,
+				continuation: (snapshot, account) => blockscoutHistoryContinuation({
+					operation: 'erc4337-user-operations',
+					target: `${snapshot.filter}:${account.address}`,
+					nextPageParams: snapshot.nextPageParams,
+				}),
+			},
 		}),
 
 		defineResolver({
@@ -2644,7 +2660,14 @@ export default {
 				},
 			},
 		})({
-			$$userOperations: (entity) => entity,
+			$$userOperations: {
+				select: (snapshot) => snapshot.rows,
+				continuation: (snapshot, bundler) => blockscoutHistoryContinuation({
+					operation: 'erc4337-user-operations',
+					target: `${snapshot.filter}:${bundler.address}`,
+					nextPageParams: snapshot.nextPageParams,
+				}),
+			},
 		}),
 
 		defineResolver({
@@ -2704,7 +2727,14 @@ export default {
 				},
 			},
 		})({
-			$$userOperations: (entity) => entity,
+			$$userOperations: {
+				select: (snapshot) => snapshot.rows,
+				continuation: (snapshot, paymaster) => blockscoutHistoryContinuation({
+					operation: 'erc4337-user-operations',
+					target: `${snapshot.filter}:${paymaster.address}`,
+					nextPageParams: snapshot.nextPageParams,
+				}),
+			},
 		}),
 
 		defineResolver({
@@ -2764,7 +2794,14 @@ export default {
 				},
 			},
 		})({
-			$$userOperations: (entity) => entity,
+			$$userOperations: {
+				select: (snapshot) => snapshot.rows,
+				continuation: (snapshot, factory) => blockscoutHistoryContinuation({
+					operation: 'erc4337-user-operations',
+					target: `${snapshot.filter}:${factory.address}`,
+					nextPageParams: snapshot.nextPageParams,
+				}),
+			},
 		}),
 
 		defineResolver({
@@ -2777,26 +2814,41 @@ export default {
 						} = await import('$/sources/Blockscout/Rest/constants.ts')
 						const chainId = evmChainIdFromNetworkSelector(entitySelector.$network)
 						if (!blockscoutAccountAbstractionChainIds.has(chainId))
-							return []
+							return {
+								nextPageParams: undefined,
+								rows: [],
+							}
 
 						const limit = Math.min(
 							resolverContextRowLimit(context),
 							blockscoutV2ItemsCountMax
 						)
 						const { getErc4337SmartAccountList } = await import('$/sources/Blockscout/Rest/queries.ts')
-						return erc4337RegistryEntitiesFromBlockscoutWires({
+						const page = await getErc4337SmartAccountList({
 							chainId,
-							items: await getErc4337SmartAccountList({
-								chainId,
-								limit,
-								factory: entitySelector.address,
-							}),
+							limit,
+							factory: entitySelector.address,
+							continuation: context.providerContinuationToken,
 						})
+						return {
+							nextPageParams: page.nextPageParams,
+							rows: erc4337RegistryEntitiesFromBlockscoutWires({
+								chainId,
+								items: page.items,
+							}),
+						}
 					},
 				},
 			},
 		})({
-			$$smartAccounts: (entity) => entity,
+			$$smartAccounts: {
+				select: (snapshot) => snapshot.rows,
+				continuation: (snapshot, factory) => blockscoutHistoryContinuation({
+					operation: 'erc4337-factory-smart-accounts',
+					target: factory.address,
+					nextPageParams: snapshot.nextPageParams,
+				}),
+			},
 		}),
 
 		defineResolver({
@@ -4010,27 +4062,41 @@ export default {
 						} = await import('$/sources/Blockscout/Rest/constants.ts')
 						const chainId = evmChainIdFromNetworkSelector(entitySelector)
 						if (!blockscoutAccountAbstractionChainIds.has(chainId))
-							return []
+							return {
+								nextPageParams: undefined,
+								rows: [],
+							}
 
 						const limit = Math.min(
 							resolverContextRowLimit(context),
 							blockscoutV2ItemsCountMax
 						)
 						const { getErc4337SmartAccountList } = await import('$/sources/Blockscout/Rest/queries.ts')
-						const wires = await getErc4337SmartAccountList({
+						const page = await getErc4337SmartAccountList({
 							chainId,
 							limit,
+							continuation: context.providerContinuationToken,
 						})
-						return erc4337RegistryEntitiesFromBlockscoutWires({
-							chainId,
-							items: wires,
-						})
+						return {
+							nextPageParams: page.nextPageParams,
+							rows: erc4337RegistryEntitiesFromBlockscoutWires({
+								chainId,
+								items: page.items,
+							}),
+						}
 					},
 				}
 			},
 		})({
 			Evm: {
-				$$erc4337SmartAccounts: (entity) => entity,
+				$$erc4337SmartAccounts: {
+					select: (snapshot) => snapshot.rows,
+					continuation: (snapshot, network) => blockscoutHistoryContinuation({
+						operation: 'network-erc4337-smart-accounts',
+						target: `eip155:${evmChainIdFromNetworkSelector(network)}`,
+						nextPageParams: snapshot.nextPageParams,
+					}),
+				},
 			},
 		}),
 
@@ -4044,30 +4110,44 @@ export default {
 						} = await import('$/sources/Blockscout/Rest/constants.ts')
 						const chainId = evmChainIdFromNetworkSelector(entitySelector)
 						if (!blockscoutAccountAbstractionChainIds.has(chainId))
-							return []
+							return {
+								nextPageParams: undefined,
+								rows: [],
+							}
 
 						const limit = Math.min(
 							resolverContextRowLimit(context),
 							blockscoutV2ItemsCountMax
 						)
 						const { getUserOperationsPage } = await import('$/sources/Blockscout/Rest/queries.ts')
-						const wires = await getUserOperationsPage({
+						const page = await getUserOperationsPage({
 							chainId,
 							limit,
+							continuation: context.providerContinuationToken,
 						})
-						return wires.flatMap((wire) => {
-							const reference = evmUserOperationReferenceFromBlockscoutWire({
-								$network: entitySelector,
-								wire,
-							})
-							return reference == null ? [] : [reference]
-						})
+						return {
+							nextPageParams: page.nextPageParams,
+							rows: page.items.flatMap((wire) => {
+								const reference = evmUserOperationReferenceFromBlockscoutWire({
+									$network: entitySelector,
+									wire,
+								})
+								return reference == null ? [] : [reference]
+							}),
+						}
 					},
 				}
 			},
 		})({
 			Evm: {
-				$$userOperations: (entity) => entity,
+				$$userOperations: {
+					select: (snapshot) => snapshot.rows,
+					continuation: (snapshot, network) => blockscoutHistoryContinuation({
+						operation: 'network-erc4337-user-operations',
+						target: `eip155:${evmChainIdFromNetworkSelector(network)}`,
+						nextPageParams: snapshot.nextPageParams,
+					}),
+				},
 			},
 		}),
 
@@ -4263,29 +4343,43 @@ export default {
 							blockscoutV2ItemsCountMax,
 						} = await import('$/sources/Blockscout/Rest/constants.ts')
 						if (!blockscoutAccountAbstractionChainIds.has(evmChainIdFromNetworkSelector($network)))
-							return []
+							return {
+								nextPageParams: undefined,
+								rows: [],
+							}
 						const limit = Math.min(
 							resolverContextRowLimit(context),
 							blockscoutV2ItemsCountMax
 						)
 						const { getUserOperationsPage } = await import('$/sources/Blockscout/Rest/queries.ts')
-						const wires = await getUserOperationsPage({
+						const page = await getUserOperationsPage({
 							chainId: evmChainIdFromNetworkSelector($network),
 							limit,
 							transactionHash: txHash,
+							continuation: context.providerContinuationToken,
 						})
-						return wires.flatMap((wire) => {
-							const reference = evmUserOperationReferenceFromBlockscoutWire({
-								$network,
-								wire,
-							})
-							return reference == null ? [] : [reference]
-						})
+						return {
+							nextPageParams: page.nextPageParams,
+							rows: page.items.flatMap((wire) => {
+								const reference = evmUserOperationReferenceFromBlockscoutWire({
+									$network,
+									wire,
+								})
+								return reference == null ? [] : [reference]
+							}),
+						}
 					},
 				}
 			},
 		})({
-			$$userOperations: (entity) => entity,
+			$$userOperations: {
+				select: (snapshot) => snapshot.rows,
+				continuation: (snapshot, transaction) => blockscoutHistoryContinuation({
+					operation: 'transaction-erc4337-user-operations',
+					target: transaction.txHash,
+					nextPageParams: snapshot.nextPageParams,
+				}),
+			},
 		}),
 
 		defineResolver({

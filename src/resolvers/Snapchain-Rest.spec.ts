@@ -121,20 +121,36 @@ describe('Snapchain Farcaster direct replies', () => {
 	it('pages to the requested bound and embeds card-ready reply summaries', async () => {
 		getCastsByParent
 			.mockResolvedValueOnce({
-				messages: [reply()],
+				messages: [
+					reply(),
+					reply({
+						fid: 8,
+						hash: '0x3333333333333333333333333333333333333333',
+					}),
+				],
 				nextPageToken: 'opaque+/=',
 			})
 			.mockResolvedValueOnce({
 				messages: [reply({
-					fid: 8,
-					hash: '0x3333333333333333333333333333333333333333',
+					fid: 9,
+					hash: '0x4444444444444444444444444444444444444444',
 				})],
 			})
 
-		const directReplies = await directRepliesResolve({
+		const snapshot = await directRepliesResolve({
 			fid: 42,
 			hash: parentHash,
 		}, context)
+		if (typeof directRepliesResolver.projections.$$directReplies === 'function')
+			throw new Error('Snapchain direct replies require a paginated projection')
+		const directReplies = directRepliesResolver.projections.$$directReplies.select(
+			snapshot,
+			{
+				fid: 42,
+				hash: parentHash,
+			},
+			context
+		)
 
 		expect(directReplies).toHaveLength(2)
 		expect(directReplies[0]).toEqual({
@@ -158,15 +174,33 @@ describe('Snapchain Farcaster direct replies', () => {
 				pageToken: undefined,
 			}
 		)
-		expect(getCastsByParent).toHaveBeenNthCalledWith(
-			2,
+		expect(directRepliesResolver.projections.$$directReplies.continuation?.(
+			snapshot,
 			{
 				fid: 42,
 				hash: parentHash,
-				pageSize: 1,
-				pageToken: 'opaque+/=',
-			}
-		)
+			},
+			context
+		)).toEqual({
+			operation: 'cast-direct-replies',
+			target: `42:${parentHash}`,
+			terminal: false,
+			token: 'opaque+/=',
+		})
+
+		await directRepliesResolve({
+			fid: 42,
+			hash: parentHash,
+		}, {
+			...context,
+			providerContinuationToken: 'opaque+/=',
+		})
+		expect(getCastsByParent).toHaveBeenNthCalledWith(2, {
+			fid: 42,
+			hash: parentHash,
+			pageSize: 2,
+			pageToken: 'opaque+/=',
+		})
 		expect(snapchainResolvers.source).toBe(Source.Snapchain_Rest)
 	})
 
@@ -176,11 +210,36 @@ describe('Snapchain Farcaster direct replies', () => {
 			nextPageToken: '',
 		})
 
+		const snapshot = await directRepliesResolve({
+			fid: 42,
+			hash: parentHash,
+		}, context)
+		if (typeof directRepliesResolver.projections.$$directReplies === 'function')
+			throw new Error('Snapchain direct replies require a paginated projection')
+		expect(directRepliesResolver.projections.$$directReplies.select(
+			snapshot,
+			{
+				fid: 42,
+				hash: parentHash,
+			},
+			context
+		)).toEqual([])
+		expect(getCastsByParent).toHaveBeenCalledTimes(1)
+	})
+
+	it('rejects a repeated native reply cursor', async () => {
+		getCastsByParent.mockResolvedValueOnce({
+			messages: [],
+			nextPageToken: 'repeated-token',
+		})
+
 		await expect(directRepliesResolve({
 			fid: 42,
 			hash: parentHash,
-		}, context)).resolves.toEqual([])
-		expect(getCastsByParent).toHaveBeenCalledTimes(1)
+		}, {
+			...context,
+			providerContinuationToken: 'repeated-token',
+		})).rejects.toThrow('continuation did not advance')
 	})
 
 	it.each([
@@ -360,10 +419,17 @@ describe('Snapchain Farcaster observations', () => {
 		getCastsByParent.mockResolvedValueOnce({ messages: [] })
 		const parentUrl = 'https://farcaster.xyz/~/channel/design'
 
-		await expect(channelCastsResolver.resolve.ParentUrl.resolve(
+		const snapshot = await channelCastsResolver.resolve.ParentUrl.resolve(
 			{ parentUrl },
 			context
-		)).resolves.toEqual([])
+		)
+		if (typeof channelCastsResolver.projections.$$casts === 'function')
+			throw new Error('Snapchain channel casts require a paginated projection')
+		expect(channelCastsResolver.projections.$$casts.select(
+			snapshot,
+			{ parentUrl },
+			context
+		)).toEqual([])
 		expect(getCastsByParent).toHaveBeenCalledWith({
 			url: parentUrl,
 			pageSize: 2,
@@ -393,10 +459,17 @@ describe('Snapchain Farcaster observations', () => {
 			{ variant: 'channel', channelId: 'design' },
 			context
 		)).resolves.toEqual([])
-		await expect(channelIdCastsResolver.resolve.Id.resolve(
+		const channelSnapshot = await channelIdCastsResolver.resolve.Id.resolve(
 			{ id: 'design' },
 			context
-		)).resolves.toEqual([])
+		)
+		if (typeof channelIdCastsResolver.projections.$$casts === 'function')
+			throw new Error('Snapchain channel casts require a paginated projection')
+		expect(channelIdCastsResolver.projections.$$casts.select(
+			channelSnapshot,
+			{ id: 'design' },
+			context
+		)).toEqual([])
 		await expect(channelIdResolver.resolve.Id.resolve({
 			id: 'design',
 		})).resolves.toEqual({
@@ -585,10 +658,17 @@ describe('Snapchain Farcaster account ownership', () => {
 				}),
 			],
 		})
-		await expect(userCastsResolver.resolve['Fid'].resolve(
+		const castsSnapshot = await userCastsResolver.resolve['Fid'].resolve(
 			{ fid: 42 },
 			context
-		)).resolves.toEqual([{
+		)
+		if (typeof userCastsResolver.projections.$$casts === 'function')
+			throw new Error('Snapchain user casts require a paginated projection')
+		expect(userCastsResolver.projections.$$casts.select(
+			castsSnapshot,
+			{ fid: 42 },
+			context
+		)).toEqual([{
 			[EntityMetaKey.Selector]: {
 				fid: 42,
 				hash: parentHash,

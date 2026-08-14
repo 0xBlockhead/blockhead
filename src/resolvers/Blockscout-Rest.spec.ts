@@ -384,7 +384,10 @@ describe('Blockscout Network account abstraction applicability', () => {
 				namespace: 'eip155',
 				reference: '5',
 			},
-		}, context)).resolves.toEqual([])
+		}, context)).resolves.toEqual({
+			nextPageParams: undefined,
+			rows: [],
+		})
 	})
 
 	it.each([
@@ -439,8 +442,8 @@ describe('Blockscout Network account abstraction applicability', () => {
 	})
 
 	it('materializes the official user-operation list response', async () => {
-		getUserOperationsPage.mockResolvedValue([
-			{
+		getUserOperationsPage.mockResolvedValue({
+			items: [{
 				address: blockscoutAddress,
 				block_number: '12',
 				entry_point: blockscoutAddress,
@@ -450,8 +453,16 @@ describe('Blockscout Network account abstraction applicability', () => {
 				status: true,
 				timestamp: '2026-07-30T00:00:00.000Z',
 				transaction_hash: txHash,
+			}],
+			nextPageParams: {
+				page_token: 'next-user-operations',
 			},
-		] satisfies BlockscoutUserOperationListItem[])
+		} satisfies {
+			items: BlockscoutUserOperationListItem[]
+			nextPageParams: {
+				page_token: string
+			}
+		})
 		const resolver = blockscoutRest.resolvers.find((candidate) => (
 			candidate.entityType === EntityType.Network
 			&& '$$userOperations' in candidate.projections.Evm
@@ -459,7 +470,14 @@ describe('Blockscout Network account abstraction applicability', () => {
 		if (resolver == null)
 			throw new Error('Blockscout Network user-operation resolver is not registered')
 
-		await expect(resolver.resolve.Caip2.resolve(network, context)).resolves.toEqual([{
+		const snapshot = await resolver.resolve.Caip2.resolve(network, context)
+		if (typeof resolver.projections.Evm.$$userOperations === 'function')
+			throw new Error('Blockscout Network user operations require a paginated projection')
+		expect(resolver.projections.Evm.$$userOperations.select(
+			snapshot,
+			network,
+			context
+		)).toEqual([{
 			[EntityMetaKey.Selector]: {
 				$network: network,
 				hash: txHash,
@@ -495,6 +513,18 @@ describe('Blockscout Network account abstraction applicability', () => {
 				[entityFieldAddressKey(EntityType.EvmUserOperation, [], 'fee')]: '12',
 			},
 		}])
+		expect(resolver.projections.Evm.$$userOperations.continuation?.(
+			snapshot,
+			network,
+			context
+		)).toEqual({
+			operation: 'network-erc4337-user-operations',
+			target: 'eip155:1',
+			terminal: false,
+			token: JSON.stringify({
+				page_token: 'next-user-operations',
+			}),
+		})
 	})
 
 	it('materializes smart-account contract, factory and lifecycle hierarchy from the registry row', async () => {
@@ -505,20 +535,30 @@ describe('Blockscout Network account abstraction applicability', () => {
 		if (resolver == null || !('Caip2' in resolver.resolve))
 			throw new Error('Blockscout smart-account registry resolver is not registered')
 
-		getErc4337SmartAccountList.mockResolvedValueOnce([{
-			address: {
-				hash: '0x1111111111111111111111111111111111111111',
-			},
-			creation_op_hash: txHash,
-			creation_timestamp: '2026-07-16T09:30:43.020Z',
-			creation_transaction_hash: txHash,
-			factory: {
-				hash: '0x2222222222222222222222222222222222222222',
-			},
-			total_ops: 17,
-		}])
+		getErc4337SmartAccountList.mockResolvedValueOnce({
+			items: [{
+				address: {
+					hash: '0x1111111111111111111111111111111111111111',
+				},
+				creation_op_hash: txHash,
+				creation_timestamp: '2026-07-16T09:30:43.020Z',
+				creation_transaction_hash: txHash,
+				factory: {
+					hash: '0x2222222222222222222222222222222222222222',
+				},
+				total_ops: 17,
+			}],
+			nextPageParams: undefined,
+		})
 
-		await expect(resolver.resolve.Caip2.resolve(network, context)).resolves.toEqual([{
+		const snapshot = await resolver.resolve.Caip2.resolve(network, context)
+		if (typeof resolver.projections.Evm.$$erc4337SmartAccounts === 'function')
+			throw new Error('Blockscout smart accounts require a paginated projection')
+		expect(resolver.projections.Evm.$$erc4337SmartAccounts.select(
+			snapshot,
+			network,
+			context
+		)).toEqual([{
 			[EntityMetaKey.Selector]: {
 				$network: network,
 				address: '0x1111111111111111111111111111111111111111',
