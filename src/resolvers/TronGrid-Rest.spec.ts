@@ -372,16 +372,40 @@ describe('TronGrid REST network relationships', () => {
 			$network: network,
 			address: 'TWitness1',
 		}])
-		expect(
-			networkBlocksResolver.projections.Tron.$$blocks(
-				await networkBlocksResolver.resolve.Slug.resolve(network, paginationContext)
-			)
-		).toEqual([{
+		const blockSnapshot = await networkBlocksResolver.resolve.Slug.resolve(network, paginationContext)
+		expect(networkBlocksResolver.projections.Tron.$$blocks.select(blockSnapshot)).toEqual([{
 			[EntityMetaKey.Selector]: {
 				$network: network,
 				height: 9n,
 			},
 		}])
+		expect(networkBlocksResolver.projections.Tron.$$blocks.continuation(blockSnapshot).token).toBe('8')
+
+		getNowBlock.mockResolvedValueOnce({
+			blockID: 'new-head-hash',
+			block_header: {
+				raw_data: {
+					number: 12,
+					timestamp: 1_720_000_001_000,
+				},
+			},
+		})
+		const continuedBlocks = await networkBlocksResolver.resolve.Slug.resolve(network, {
+			...resolverContext,
+			pagination: {
+				limit: 1,
+			},
+			providerContinuationToken: '8',
+		})
+		expect(networkBlocksResolver.projections.Tron.$$blocks.select(continuedBlocks)[0][EntityMetaKey.Selector]).toEqual({
+			$network: network,
+			height: 8n,
+		})
+		expect(networkBlocksResolver.projections.Tron.$$blocks.continuation(continuedBlocks)).toEqual({
+			operation: 'network-blocks',
+			terminal: false,
+			token: '7',
+		})
 	})
 
 	it('pins witness direct reads to the source head clock and rejects stale or impossible observations', async () => {

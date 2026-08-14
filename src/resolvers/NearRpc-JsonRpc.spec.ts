@@ -361,7 +361,7 @@ describe('Near block selectors', () => {
 				finality: 'final',
 			},
 		})
-		expect(networkBlocksResolver.projections.$$blocks(blocks)).toEqual([
+		expect(networkBlocksResolver.projections.$$blocks.select(blocks)).toEqual([
 			{
 				[EntityMetaKey.Selector]: {
 					$network: network,
@@ -381,6 +381,28 @@ describe('Near block selectors', () => {
 				},
 			},
 		])
+		expect(networkBlocksResolver.projections.$$blocks.continuation(blocks)).toEqual({
+			operation: 'network-blocks',
+			terminal: false,
+			token: String(height - 5n),
+		})
+
+		corsFetch.mockResolvedValueOnce(jsonRpcResult({
+			...wireBlock,
+			header: {
+				...wireBlock.header,
+				height: Number(height + 2n),
+			},
+		}))
+		const continuedBlocks = await networkBlocksResolver.resolve.Slug.resolve(network, {
+			...context,
+			pagination: {
+				limit: 1,
+			},
+			providerContinuationToken: String(height - 5n),
+		})
+		expect(networkBlocksResolver.projections.$$blocks.select(continuedBlocks)[0][EntityMetaKey.Selector].height).toBe(height - 5n)
+		expect(networkBlocksResolver.projections.$$blocks.continuation(continuedBlocks).token).toBe(String(height - 6n))
 	})
 })
 

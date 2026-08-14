@@ -453,17 +453,22 @@ const resolveNearBlock = async (entitySelector: NearBlockSelector) => {
 const getNearBlockReferences = async (
 	network: NetworkId,
 	limit: number,
-	offset: number
+	offset: number,
+	cursorHeight?: bigint
 ) => {
 	assertNearMainnet(network)
 	const headBlock = await getBlock({
 		blockId: 'final',
 	})
 	const headBlockHeight = BigInt(headBlock.header.height)
+	if (cursorHeight != null && cursorHeight > headBlockHeight)
+		throw new Error(`${Source.NearRpc_JsonRpc}: blocks continuation exceeds finalized head`)
+
+	const firstBlockHeight = cursorHeight ?? headBlockHeight - BigInt(offset)
 	return Array.from({
 		length: Math.min(
 			Math.max(
-				Number(headBlockHeight + 1n - BigInt(offset)),
+				Number(firstBlockHeight + 1n),
 				0
 			),
 			limit
@@ -471,7 +476,7 @@ const getNearBlockReferences = async (
 	}, (_value, blockOffset) => ({
 		[EntityMetaKey.Selector]: {
 			$network: network,
-			height: headBlockHeight - BigInt(offset + blockOffset),
+			height: firstBlockHeight - BigInt(blockOffset),
 		},
 	}))
 }
@@ -1059,16 +1064,40 @@ export default {
 			resolve: {
 				Slug: {
 					resolve: async (entitySelector, context) => {
-						return getNearBlockReferences(
-							entitySelector,
-							resolverContextRowLimit(context),
-							context.pagination.offset ?? 0
+						if (
+							context.providerContinuationToken != null
+							&& !/^(0|[1-9][0-9]*)$/.test(context.providerContinuationToken)
 						)
+							throw new Error(`${Source.NearRpc_JsonRpc}: invalid blocks continuation`)
+
+						return {
+							blocks: await getNearBlockReferences(
+								entitySelector,
+								resolverContextRowLimit(context),
+								context.pagination.offset ?? 0,
+								context.providerContinuationToken == null ?
+									undefined
+								:
+									BigInt(context.providerContinuationToken)
+							),
+						}
 					},
 				}
 			},
 		})({
-			$$blocks: (blocks) => blocks,
+			$$blocks: {
+				select: (snapshot) => snapshot.blocks,
+				continuation: (snapshot) => {
+					const lastBlockHeight = snapshot.blocks.at(-1)?.[EntityMetaKey.Selector].height
+					return {
+						operation: 'network-blocks',
+						terminal: lastBlockHeight == null || lastBlockHeight === 0n,
+						...(lastBlockHeight != null && lastBlockHeight > 0n && {
+							token: String(lastBlockHeight - 1n),
+						}),
+					}
+				},
+			},
 		}),
 		defineResolver({
 			entityType: EntityType.NearNetwork,

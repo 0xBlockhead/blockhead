@@ -339,34 +339,61 @@ export default {
 							blockHash: finalizedBlockHash,
 						}))
 						const offset = context.pagination.offset ?? 0
-						return Promise.all(Array.from({
-							length: Math.min(
-								Math.max(
-									Number(finalizedBlockNumber + 1n - BigInt(offset)),
-									0
+						if (
+							context.providerContinuationToken != null
+							&& !/^(0|[1-9][0-9]*)$/.test(context.providerContinuationToken)
+						)
+							throw new Error(`${Source.Polkadot_JsonRpc}: invalid blocks continuation`)
+
+						const firstBlockNumber = context.providerContinuationToken == null ?
+							finalizedBlockNumber - BigInt(offset)
+						:
+							BigInt(context.providerContinuationToken)
+						if (firstBlockNumber > finalizedBlockNumber)
+							throw new Error(`${Source.Polkadot_JsonRpc}: blocks continuation exceeds finalized head`)
+
+						return {
+							blocks: await Promise.all(Array.from({
+								length: Math.min(
+									Math.max(
+										Number(firstBlockNumber + 1n),
+										0
+									),
+									resolverContextRowLimit(context)
 								),
-								resolverContextRowLimit(context)
-							),
-						}, async (_value, blockOffset) => ({
-							[EntityMetaKey.Selector]: {
-								$network: network,
-								blockNumber: finalizedBlockNumber - BigInt(offset + blockOffset),
-								hash: (
-									offset === 0 && blockOffset === 0 ?
-										finalizedBlockHash
-									:
-										await getBlockHash({
-											blockNumber: finalizedBlockNumber - BigInt(offset + blockOffset),
-										})
-								),
-							},
-						})))
+							}, async (_value, blockOffset) => ({
+								[EntityMetaKey.Selector]: {
+									$network: network,
+									blockNumber: firstBlockNumber - BigInt(blockOffset),
+									hash: (
+										firstBlockNumber === finalizedBlockNumber && blockOffset === 0 ?
+											finalizedBlockHash
+										:
+											await getBlockHash({
+												blockNumber: firstBlockNumber - BigInt(blockOffset),
+											})
+									),
+								},
+							}))),
+						}
 					},
 				}
 			},
 		})({
 				Polkadot: {
-					$$blocks: (blocks) => blocks,
+					$$blocks: {
+						select: (snapshot) => snapshot.blocks,
+						continuation: (snapshot) => {
+							const lastBlockNumber = snapshot.blocks.at(-1)?.[EntityMetaKey.Selector].blockNumber
+							return {
+								operation: 'network-blocks',
+								terminal: lastBlockNumber == null || lastBlockNumber === 0n,
+								...(lastBlockNumber != null && lastBlockNumber > 0n && {
+									token: String(lastBlockNumber - 1n),
+								}),
+							}
+						},
+					},
 				},
 			}),
 

@@ -25,7 +25,9 @@ const networkBlockListResolver = polkadot.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.Network
 	&& 'Polkadot' in resolver.projections
 	&& '$$blocks' in resolver.projections.Polkadot
-	&& typeof resolver.projections.Polkadot.$$blocks === 'function'
+	&& typeof resolver.projections.Polkadot.$$blocks === 'object'
+	&& resolver.projections.Polkadot.$$blocks != null
+	&& 'select' in resolver.projections.Polkadot.$$blocks
 ))
 
 const networkBlockCountResolver = polkadot.resolvers.find((resolver) => (
@@ -179,7 +181,7 @@ describe('Polkadot JsonRpc block leftovers', () => {
 				offset: 2,
 			},
 		})
-		expect(networkBlockListResolver.projections.Polkadot.$$blocks(snapshot)).toEqual([
+		expect(networkBlockListResolver.projections.Polkadot.$$blocks.select(snapshot)).toEqual([
 			{
 				[EntityMetaKey.Selector]: {
 					$network: network,
@@ -195,5 +197,31 @@ describe('Polkadot JsonRpc block leftovers', () => {
 				},
 			},
 		])
+		expect(networkBlockListResolver.projections.Polkadot.$$blocks.continuation(snapshot)).toEqual({
+			operation: 'network-blocks',
+			terminal: false,
+			token: '6',
+		})
+
+		sourceFetch
+			.mockResolvedValueOnce(jsonRpcResult('0xffff'))
+			.mockResolvedValueOnce(jsonRpcResult({
+				...header,
+				number: '0xc',
+			}))
+			.mockResolvedValueOnce(jsonRpcResult(`0x${'6'.repeat(64)}`))
+		const continuedSnapshot = await networkBlockListResolver.resolve.Slug.resolve(network, {
+			...context,
+			pagination: {
+				limit: 1,
+			},
+			providerContinuationToken: '6',
+		})
+		expect(networkBlockListResolver.projections.Polkadot.$$blocks.select(continuedSnapshot)[0][EntityMetaKey.Selector]).toEqual({
+			$network: network,
+			blockNumber: 6n,
+			hash: `0x${'6'.repeat(64)}`,
+		})
+		expect(networkBlockListResolver.projections.Polkadot.$$blocks.continuation(continuedSnapshot).token).toBe('5')
 	})
 })

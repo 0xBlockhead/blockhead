@@ -835,29 +835,55 @@ export default {
 			resolve: tronNetworkResolverSelectors(
 				async (network, context) => {
 					assertTronMainnet(network)
+					if (
+						context.providerContinuationToken != null
+						&& !/^(0|[1-9][0-9]*)$/.test(context.providerContinuationToken)
+					)
+						throw new Error(`${Source.TronGrid_Rest}: invalid blocks continuation`)
+
 					const { getNowBlock } = await import('$/sources/TronGrid/Rest/queries.ts')
 					const block = await getNowBlock()
 					const headBlockHeight = BigInt(block.block_header?.raw_data?.number ?? 0)
-					const offset = BigInt(context.pagination.offset ?? 0)
-					return Array.from({
-						length: Math.min(
-							Number(headBlockHeight + 1n > offset ? headBlockHeight + 1n - offset : 0n),
-							resolverContextRowLimit(context)
-						),
-					}, (_value, blockOffset) => ({
-						[EntityMetaKey.Selector]: {
-							$network: network,
-							height: headBlockHeight - offset - BigInt(blockOffset),
-							...(offset === 0n && blockOffset === 0 && {
-								hash: block.blockID,
-							}),
-						},
-					}))
+					const firstBlockHeight = context.providerContinuationToken == null ?
+						headBlockHeight - BigInt(context.pagination.offset ?? 0)
+					:
+						BigInt(context.providerContinuationToken)
+					if (firstBlockHeight > headBlockHeight)
+						throw new Error(`${Source.TronGrid_Rest}: blocks continuation exceeds head`)
+
+					return {
+						blocks: Array.from({
+							length: Math.min(
+								Math.max(Number(firstBlockHeight + 1n), 0),
+								resolverContextRowLimit(context)
+							),
+						}, (_value, blockOffset) => ({
+							[EntityMetaKey.Selector]: {
+								$network: network,
+								height: firstBlockHeight - BigInt(blockOffset),
+								...(firstBlockHeight === headBlockHeight && blockOffset === 0 && {
+									hash: block.blockID,
+								}),
+							},
+						})),
+					}
 				}
 			),
 		})({
 				Tron: {
-					$$blocks: (blocks) => blocks,
+					$$blocks: {
+						select: (snapshot) => snapshot.blocks,
+						continuation: (snapshot) => {
+							const lastBlockHeight = snapshot.blocks.at(-1)?.[EntityMetaKey.Selector].height
+							return {
+								operation: 'network-blocks',
+								terminal: lastBlockHeight == null || lastBlockHeight === 0n,
+								...(lastBlockHeight != null && lastBlockHeight > 0n && {
+									token: String(lastBlockHeight - 1n),
+								}),
+							}
+						},
+					},
 				},
 			}),
 
