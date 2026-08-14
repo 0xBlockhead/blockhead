@@ -38,7 +38,33 @@ describe('Bitcoin Cash CHIP GitLab repository tree', () => {
 		}])
 		expect(sourceGetJson).toHaveBeenCalledWith(
 			binding,
-			'https://gitlab.com/api/v4/projects/23431309/repository/tree?ref=master&per_page=100'
+			'https://gitlab.com/api/v4/projects/23431309/repository/tree?ref=master&page=1&per_page=100'
+		)
+	})
+
+	it('paginates repository tree pages until the provider snapshot is complete', async () => {
+		sourceGetJson
+			.mockResolvedValueOnce(Array.from({ length: 100 }, (_, index) => ({
+				type: 'blob',
+				name: `CHIP-2026-08-${index}.md`,
+				path: `spec/CHIP-2026-08-${index}.md`,
+			})))
+			.mockResolvedValueOnce([{
+				type: 'blob',
+				name: 'CHIP-2026-08-final.md',
+				path: 'spec/CHIP-2026-08-final.md',
+			}])
+
+		await expect(getTree()).resolves.toHaveLength(101)
+		expect(sourceGetJson).toHaveBeenNthCalledWith(
+			1,
+			binding,
+			'https://gitlab.com/api/v4/projects/23431309/repository/tree?ref=master&page=1&per_page=100'
+		)
+		expect(sourceGetJson).toHaveBeenNthCalledWith(
+			2,
+			binding,
+			'https://gitlab.com/api/v4/projects/23431309/repository/tree?ref=master&page=2&per_page=100'
 		)
 	})
 
@@ -72,14 +98,14 @@ describe('Bitcoin Cash CHIP GitLab repository tree', () => {
 				path: 'spec/CHIP-2026-08-example.md',
 			},
 		])
-		await expect(getTree()).rejects.toThrow('invalid repository tree response')
+		await expect(getTree()).rejects.toThrow('duplicate repository tree path')
 
 		sourceGetJson.mockResolvedValueOnce([{
 			type: 'blob',
 			name: 'CHIP-2026-08-example.md',
 			path: 'spec/../CHIP-2026-08-example.md',
 		}])
-		await expect(getTree()).rejects.toThrow('invalid repository tree response')
+		await expect(getTree()).rejects.toThrow('invalid repository tree path')
 
 		expect(() => getChipMarkdownText({
 			path: 'spec/../CHIP-2026-08-example.md',

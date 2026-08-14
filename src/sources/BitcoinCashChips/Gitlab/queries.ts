@@ -40,27 +40,36 @@ const assertTreePath = (path: string) => {
 }
 
 export const getTree = async () => {
-	const tree = await sourceGetJson<BitcoinCashChipsGitlabTree>(
-		binding,
-		gitlabProjectUrl(
-			`/repository/tree?ref=${bitcoinCashChipsGitlabRepo.ref}&per_page=100`
-		)
-	)
+	const entries: BitcoinCashChipsGitlabTree = []
+	const paths = new Set<string>()
 
-	try {
-		const entries = bitcoinCashChipsGitlabTreeWire.assert(tree)
-		const paths = new Set<string>()
-		for (const entry of entries) {
+	for (let page = 1; ; page += 1) {
+		const perPage = 100
+		const tree = await sourceGetJson<BitcoinCashChipsGitlabTree>(
+			binding,
+			gitlabProjectUrl(
+				`/repository/tree?ref=${bitcoinCashChipsGitlabRepo.ref}&page=${page}&per_page=${perPage}`
+			)
+		)
+		let treePage: BitcoinCashChipsGitlabTree
+		try {
+			treePage = bitcoinCashChipsGitlabTreeWire.assert(tree)
+		} catch {
+			throw new Error('BitcoinCashChips_Gitlab: invalid repository tree response')
+		}
+
+		for (const entry of treePage) {
 			assertTreePath(entry.path)
 			if (entry.path.split('/').at(-1) !== entry.name)
 				throw new Error('BitcoinCashChips_Gitlab: repository tree name does not match path')
 			if (paths.has(entry.path))
 				throw new Error('BitcoinCashChips_Gitlab: duplicate repository tree path')
 			paths.add(entry.path)
+			entries.push(entry)
 		}
-		return entries
-	} catch {
-		throw new Error('BitcoinCashChips_Gitlab: invalid repository tree response')
+
+		if (treePage.length < perPage)
+			return entries
 	}
 }
 
