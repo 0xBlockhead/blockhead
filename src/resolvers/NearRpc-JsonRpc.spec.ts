@@ -884,7 +884,8 @@ describe('NEAR receipts and tx status projection', () => {
 		expect(transactionResolver.projections.$$actions.resolveCount(transaction)).toBe(1)
 		expect(transactionResolver.projections.$$executionOutcomes.select(transaction)).toHaveLength(1)
 		expect(transactionResolver.projections.$$executionOutcomes.resolveCount(transaction)).toBe(1)
-		const receipts = transaction.$$executionOutcomes[0][EntityMetaKey.Fields][entityFieldAddressKey(EntityType.NearExecutionOutcome, [], '$$receipts')]
+		const outcomeFields = transaction.$$executionOutcomes[0][EntityMetaKey.Fields]
+		const receipts = outcomeFields[entityFieldAddressKey(EntityType.NearExecutionOutcome, [], '$$receipts')]
 		expect(receipts).toEqual([{
 			[EntityMetaKey.Selector]: {
 				$network: network,
@@ -905,5 +906,18 @@ describe('NEAR receipts and tx status projection', () => {
 				},
 			},
 		}])
+		const outcomeResolver = nearRpc.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.NearExecutionOutcome
+		))
+		if (outcomeResolver == null)
+			throw new Error('NearRpc_JsonRpc spec missing NearExecutionOutcome resolver')
+
+		const outcome = {
+			status: outcomeFields[entityFieldAddressKey(EntityType.NearExecutionOutcome, [], 'status')],
+			gasBurnt: outcomeFields[entityFieldAddressKey(EntityType.NearExecutionOutcome, [], 'gasBurnt')],
+			$$receipts: receipts,
+		}
+		expect(outcomeResolver.projections.$$receipts.select(outcome)).toEqual(receipts)
+		expect(outcomeResolver.projections.$$receipts.resolveCount(outcome)).toBe(1)
 	})
 })

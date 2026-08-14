@@ -719,7 +719,10 @@ export default {
 		})({
 			status: (outcome) => outcome.status,
 			gasBurnt: (outcome) => outcome.gasBurnt,
-			$$receipts: (outcome) => outcome.$$receipts,
+			$$receipts: {
+				select: (outcome) => outcome.$$receipts,
+				resolveCount: (outcome) => outcome.$$receipts.length,
+			},
 		}),
 		defineResolver({
 			entityType: EntityType.NearReceipt,

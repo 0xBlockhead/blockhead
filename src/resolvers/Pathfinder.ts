@@ -962,7 +962,10 @@ export default {
 			resourceBounds: (snapshot) => snapshot.resourceBounds,
 			calldata: (snapshot) => snapshot.calldata,
 			signature: (snapshot) => snapshot.signature,
-			$$events: (snapshot) => snapshot.$$events,
+			$$events: {
+				select: (snapshot) => snapshot.$$events,
+				resolveCount: (snapshot) => snapshot.$$events.length,
+			},
 			$$timestamps: (snapshot) => snapshot.$$timestamps,
 		}),
 

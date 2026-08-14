@@ -410,6 +410,8 @@ describe('Pathfinder Starknet JSON-RPC account resolver', () => {
 				[entityFieldAddressKey(EntityType.StarknetEvent, [], 'data')]: ['0x2'],
 			},
 		}])
+		expect(transactionResolver.projections.$$events.select(transaction)).toEqual(transaction.$$events)
+		expect(transactionResolver.projections.$$events.resolveCount(transaction)).toBe(1)
 		expect(transaction.$$timestamps[0]).toMatchObject({
 			[EntityMetaKey.Selector]: {
 				$transaction: {
