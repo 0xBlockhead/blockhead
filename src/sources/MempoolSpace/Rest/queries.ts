@@ -16,7 +16,10 @@ import {
 	mempoolSpaceRecommendedFeesWire,
 } from '$/sources/Esplora/Rest/envelopes.ts'
 import bindings from '$/sources/MempoolSpace/bindings.ts'
-import { mempoolSpaceMiningHashrateWire } from '$/sources/MempoolSpace/Rest/types.ts'
+import {
+	mempoolSpaceMiningHashrateWire,
+	mempoolSpaceTipHeightWire,
+} from '$/sources/MempoolSpace/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 
 const binding = bindings[Source.MempoolSpace_Rest][0]
@@ -270,4 +273,12 @@ export const getMiningHashrate = async () => {
 		throw new Error(`${sourceLabel}: mining hashrate contains duplicate observation timestamps`)
 
 	return miningHashrate
+}
+
+export const getTipHeight = async () => {
+	const height = await getMempoolSpaceJson<unknown>('blocks/tip/height')
+	if (!mempoolSpaceTipHeightWire.allows(height))
+		throw new Error(`${sourceLabel}: invalid tip height`)
+
+	return height
 }

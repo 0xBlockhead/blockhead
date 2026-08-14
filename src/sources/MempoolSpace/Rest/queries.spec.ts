@@ -28,6 +28,7 @@ const {
 	getMiningHashrate,
 	getOutspend,
 	getRecommendedFees,
+	getTipHeight,
 	getTransaction,
 	getTransactionProtocolPayloads,
 } = await import('$/sources/MempoolSpace/Rest/queries.ts')
@@ -44,6 +45,16 @@ const validBlock = {
 describe('mempool.space Bitcoin REST binding', () => {
 	beforeEach(() => {
 		sourceGetJson.mockReset()
+	})
+
+	it('validates the tip height boundary', async () => {
+		sourceGetJson
+			.mockResolvedValueOnce(840_000)
+			.mockResolvedValueOnce(-1)
+
+		await expect(getTipHeight()).resolves.toBe(840_000)
+		await expect(getTipHeight()).rejects.toThrow('invalid tip height')
+		expect(sourceGetJson).toHaveBeenCalledWith(binding, 'https://mempool.space/api/blocks/tip/height')
 	})
 
 	it('preserves the Bitcoin API prefix and does not recover binding identity from the shared origin', async () => {

@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { networkBySlug } from '$/constants/Network.ts'
+import { networkBySlug, NetworkLedgerModel } from '$/constants/Network.ts'
 import { entityFieldAddressKey, EntityMetaKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import bindings from '$/sources/MempoolSpace/bindings.ts'
@@ -15,6 +15,7 @@ vi.mock('$/sources/_runtime/http.ts', async (importOriginal) => ({
 }))
 
 const { default: mempoolSpaceResolvers } = await import('$/resolvers/MempoolSpace-Rest.ts')
+const { default: lightningMempoolSpaceResolvers } = await import('$/resolvers/LightningMempoolSpace-Rest.ts')
 
 const networkResolvers = mempoolSpaceResolvers.resolvers.filter((resolver) => (
 	resolver.entityType === EntityType.Network
@@ -1163,5 +1164,187 @@ describe('MempoolSpace UTXO', () => {
 			binding,
 			`https://mempool.space/api/tx/${txId}/outspend/1`
 		)
+	})
+})
+
+describe('MempoolSpace live network head', () => {
+	beforeEach(() => {
+		vi.clearAllMocks()
+		vi.useFakeTimers()
+		sourceGetJson
+			.mockResolvedValueOnce(840_000)
+			.mockResolvedValueOnce({
+				count: 9,
+				vsize: 1_800,
+				total_fee: 1,
+			})
+			.mockResolvedValueOnce({
+				fastestFee: 20,
+				halfHourFee: 10,
+				hourFee: 6,
+				economyFee: 2,
+				minimumFee: 1,
+			})
+	})
+
+	it('polls mempool, fees, and tip height into a live Network_Timestamp', async () => {
+		const networkHeadResolver = mempoolSpaceResolvers.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.Network
+			&& resolver.resolveLive?.networkHead
+		))
+		if (networkHeadResolver == null)
+			throw new Error('MempoolSpace-Rest missing Network networkHead resolveLive')
+
+		const replaceTimestamps = vi.fn()
+		const abortController = new AbortController()
+		const stop = networkHeadResolver.resolveLive.networkHead.start({
+			fields: {
+				'$$timestamps': {
+					replaceRows: replaceTimestamps,
+					invalidate: vi.fn(),
+					count: {
+						replaceRows: vi.fn(),
+						invalidate: vi.fn(),
+					},
+				},
+			},
+			parentEntitySelector: network,
+			queryClient: {},
+			signal: abortController.signal,
+			trigger: resolverContext,
+		})
+		await vi.waitFor(() => expect(replaceTimestamps).toHaveBeenCalledOnce())
+
+		const row = replaceTimestamps.mock.calls[0]?.[0]?.[0]?.value[0]
+		if (row == null)
+			throw new Error('MempoolSpace live network head did not publish a row')
+
+		expect(row[EntityMetaKey.Selector]).toMatchObject({
+			$network: network,
+			source: Source.MempoolSpace_Rest,
+		})
+		expect(row[EntityMetaKey.Fields]).toMatchObject({
+			[entityFieldAddressKey(EntityType.Network_Timestamp, [], 'ledgerModels')]: [NetworkLedgerModel.Utxo],
+			[entityFieldAddressKey(EntityType.Network_Timestamp, [], 'executionModels')]: [],
+			[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'bestBlockHeight')]: 840_000n,
+			[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'mempoolTransactionCount')]: 9,
+			[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'mempoolSizeBytes')]: 1_800n,
+			[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'suggestedTransactionFeePerByteSats')]: 6,
+		})
+		expect(sourceGetJson).toHaveBeenCalledWith(binding, 'https://mempool.space/api/blocks/tip/height')
+		expect(sourceGetJson).toHaveBeenCalledWith(binding, 'https://mempool.space/api/mempool')
+		expect(sourceGetJson).toHaveBeenCalledWith(binding, 'https://mempool.space/api/v1/fees/recommended')
+
+		abortController.abort()
+		stop()
+	})
+
+	it('invalidates the block list only when the tip height changes', async () => {
+		if (!blocksResolver.resolveLive?.utxoHead)
+			throw new Error('MempoolSpace-Rest missing Network.Utxo utxoHead resolveLive')
+
+		sourceGetJson.mockReset()
+		sourceGetJson
+			.mockResolvedValueOnce(840_000)
+			.mockResolvedValueOnce(840_000)
+			.mockResolvedValueOnce(840_001)
+		const invalidateBlocks = vi.fn()
+		const abortController = new AbortController()
+		const stop = blocksResolver.resolveLive.utxoHead.start({
+			fields: {
+				'$$blocks': {
+					replaceRows: vi.fn(),
+					invalidate: invalidateBlocks,
+					count: {
+						replaceRows: vi.fn(),
+						invalidate: vi.fn(),
+					},
+				},
+			},
+			parentEntitySelector: network,
+			queryClient: {},
+			signal: abortController.signal,
+			trigger: resolverContext,
+		})
+		await vi.waitFor(() => expect(invalidateBlocks).toHaveBeenCalledOnce())
+		await vi.advanceTimersByTimeAsync(15_000)
+		expect(invalidateBlocks).toHaveBeenCalledOnce()
+		await vi.advanceTimersByTimeAsync(15_000)
+		expect(invalidateBlocks).toHaveBeenCalledTimes(2)
+
+		abortController.abort()
+		stop()
+	})
+})
+
+describe('LightningMempoolSpace live network statistics', () => {
+	beforeEach(() => {
+		vi.clearAllMocks()
+		vi.useFakeTimers()
+		sourceGetJson.mockResolvedValue({
+			latest: {
+				added: '2026-01-01T00:00:00.000Z',
+				node_count: 10,
+				channel_count: 20,
+				total_capacity: '3000',
+				avg_fee_rate: 4,
+			},
+		})
+	})
+
+	it('publishes the authoritative statistics clock and fields', async () => {
+		const networkStatsResolver = lightningMempoolSpaceResolvers.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.LightningNetwork
+			&& resolver.resolveLive?.networkStats
+		))
+		if (networkStatsResolver == null)
+			throw new Error('LightningMempoolSpace-Rest missing LightningNetwork networkStats resolveLive')
+
+		const replaceTimestamps = vi.fn()
+		const abortController = new AbortController()
+		const stop = networkStatsResolver.resolveLive.networkStats.start({
+			fields: {
+				'$$timestamps': {
+					replaceRows: replaceTimestamps,
+					invalidate: vi.fn(),
+					count: {
+						replaceRows: vi.fn(),
+						invalidate: vi.fn(),
+					},
+				},
+			},
+			parentEntitySelector: {
+				$network: {
+					slug: 'lightning',
+				},
+			},
+			queryClient: {},
+			signal: abortController.signal,
+			trigger: resolverContext,
+		})
+		await vi.waitFor(() => expect(replaceTimestamps).toHaveBeenCalledOnce())
+
+		const row = replaceTimestamps.mock.calls[0]?.[0]?.[0]?.value[0]
+		if (row == null)
+			throw new Error('LightningMempoolSpace live network statistics did not publish a row')
+
+		expect(row[EntityMetaKey.Selector]).toEqual({
+			$lightningNetwork: {
+				$network: {
+					slug: 'lightning',
+				},
+			},
+			timestampMs: Date.parse('2026-01-01T00:00:00.000Z'),
+			source: Source.LightningMempoolSpace_Rest,
+		})
+		expect(row[EntityMetaKey.Fields]).toMatchObject({
+			[entityFieldAddressKey(EntityType.LightningNetwork_Timestamp, [], 'nodeCount')]: 10,
+			[entityFieldAddressKey(EntityType.LightningNetwork_Timestamp, [], 'channelCount')]: 20,
+			[entityFieldAddressKey(EntityType.LightningNetwork_Timestamp, [], 'totalCapacitySats')]: 3_000n,
+			[entityFieldAddressKey(EntityType.LightningNetwork_Timestamp, [], 'averageFeeRatePpm')]: 4,
+		})
+
+		abortController.abort()
+		stop()
 	})
 })

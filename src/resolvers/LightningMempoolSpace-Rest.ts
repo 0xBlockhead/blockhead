@@ -188,6 +188,34 @@ const lightningNetworkTimestampReferenceFromStatistics = (
 	}
 }
 
+const lightningNetworkTimestampLiveRowFromStatistics = (
+	$network: NetworkId,
+	statistics: MempoolSpaceLightningStatistics
+) => {
+	const timestampMs = timestampMsFromIso(statistics.added)
+	if (timestampMs == null)
+		throw new Error(`LightningMempoolSpace_Rest: invalid statistics timestamp ${statistics.added}`)
+
+	const snapshot = timestampSnapshotFromMempoolSpaceStatistics(statistics)
+	return {
+		[EntityMetaKey.Selector]: {
+			$lightningNetwork: {
+				$network,
+			},
+			timestampMs,
+			source: Source.LightningMempoolSpace_Rest,
+		},
+		[EntityMetaKey.Fields]: Object.fromEntries(
+			Object.entries(snapshot)
+				.filter(([, value]) => value != null)
+				.map(([fieldName, value]) => [
+					entityFieldAddressKey(EntityType.LightningNetwork_Timestamp, [], fieldName),
+					value,
+				])
+		),
+	}
+}
+
 export default {
 	source: Source.LightningMempoolSpace_Rest,
 
@@ -431,6 +459,52 @@ export default {
 						]
 					},
 				}
+			},
+			resolveLive: {
+				networkStats: {
+					facetPath: [],
+					publishes: {
+						'$$timestamps': true,
+					},
+					start: ({
+						fields,
+						parentEntitySelector,
+						signal,
+					}) => {
+						assertLightningNetwork(parentEntitySelector.$network)
+						let timeout: ReturnType<typeof setTimeout> | undefined
+						const poll = async () => {
+							try {
+								if (signal.aborted)
+									return
+								const { getLightningStatistics } = await import('$/sources/LightningMempoolSpace/Rest/queries.ts')
+								const statistics = (await getLightningStatistics()).latest
+								fields.$$timestamps.replaceRows([{
+									source: Source.LightningMempoolSpace_Rest,
+									value: [lightningNetworkTimestampLiveRowFromStatistics(
+										parentEntitySelector.$network,
+										statistics
+									)],
+								}])
+							} catch (error) {
+								console.error('LightningMempoolSpace_Rest live network stats failed', error)
+							}
+							if (signal.aborted)
+								return
+								timeout = setTimeout(() => { void poll() }, 15_000)
+						}
+						const abort = () => {
+							if (timeout != null)
+								clearTimeout(timeout)
+						}
+						signal.addEventListener('abort', abort, { once: true })
+						void poll()
+						return () => {
+							signal.removeEventListener('abort', abort)
+							abort()
+						}
+					},
+				},
 			},
 		})({
 			$$timestamps: (snapshot) => snapshot,

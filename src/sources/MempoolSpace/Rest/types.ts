@@ -1,5 +1,7 @@
 import { type as arktype } from 'arktype'
 
+export const mempoolSpaceTipHeightWire = arktype(`number.integer >= 0 <= ${Number.MAX_SAFE_INTEGER}`)
+
 export const mempoolSpaceMiningHashrateWire = arktype({
 	hashrates: arktype({
 		timestamp: 'number.integer >= 0 <= 9007199254740',

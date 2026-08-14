@@ -880,6 +880,71 @@ export default {
 						})),
 				]
 			}),
+			resolveLive: {
+				networkHead: {
+					facetPath: [],
+					publishes: {
+						'$$timestamps': true,
+					},
+					start: ({
+						fields,
+						parentEntitySelector,
+						signal,
+					}) => {
+						assertBitcoinMainnet(parentEntitySelector)
+						let timeout: ReturnType<typeof setTimeout> | undefined
+						const poll = async () => {
+							try {
+								if (signal.aborted)
+									return
+								const {
+									getTipHeight,
+									getMempoolStats,
+									getRecommendedFees,
+								} = await import('$/sources/MempoolSpace/Rest/queries.ts')
+								const [tipHeight, mempoolStats, fees] = await Promise.all([
+									getTipHeight(),
+									getMempoolStats(),
+									getRecommendedFees(),
+								])
+								fields.$$timestamps.replaceRows([{
+									source: Source.MempoolSpace_Rest,
+									value: [{
+										[EntityMetaKey.Selector]: {
+											$network: parentEntitySelector,
+											timestampMs: Date.now(),
+											source: Source.MempoolSpace_Rest,
+										},
+										[EntityMetaKey.Fields]: {
+											[entityFieldAddressKey(EntityType.Network_Timestamp, [], 'ledgerModels')]: [NetworkLedgerModel.Utxo],
+											[entityFieldAddressKey(EntityType.Network_Timestamp, [], 'executionModels')]: [],
+											[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'bestBlockHeight')]: BigInt(tipHeight),
+											[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'mempoolTransactionCount')]: mempoolStats.count,
+											[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'mempoolSizeBytes')]: BigInt(Math.ceil(mempoolStats.vsize)),
+											[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'suggestedTransactionFeePerByteSats')]: fees.hourFee,
+										},
+									}],
+								}])
+							} catch (error) {
+								console.error('MempoolSpace_Rest live network head failed', error)
+							}
+							if (signal.aborted)
+								return
+							timeout = setTimeout(() => { void poll() }, 15_000)
+						}
+						const abort = () => {
+							if (timeout != null)
+								clearTimeout(timeout)
+						}
+						signal.addEventListener('abort', abort, { once: true })
+						void poll()
+						return () => {
+							signal.removeEventListener('abort', abort)
+							abort()
+						}
+					},
+				},
+			},
 		})({
 			$$timestamps: (timestamps) => timestamps,
 		}),
@@ -908,6 +973,50 @@ export default {
 					.slice(0, resolverContextRowLimit(context))
 					.map((block) => utxoBlockReferenceFromMempoolSpaceWire(network, block))
 			}),
+			resolveLive: {
+				utxoHead: {
+					facetPath: ['Utxo'],
+					publishes: {
+						'$$blocks': true,
+					},
+					start: ({
+						fields,
+						parentEntitySelector,
+						signal,
+					}) => {
+						assertBitcoinMainnet(parentEntitySelector)
+						let timeout: ReturnType<typeof setTimeout> | undefined
+						let lastHeight: number | undefined
+						const poll = async () => {
+							try {
+								if (signal.aborted)
+									return
+								const { getTipHeight } = await import('$/sources/MempoolSpace/Rest/queries.ts')
+								const tipHeight = await getTipHeight()
+								if (lastHeight !== tipHeight) {
+									lastHeight = tipHeight
+									fields.$$blocks.invalidate()
+								}
+							} catch (error) {
+								console.error('MempoolSpace_Rest live UTXO head failed', error)
+							}
+							if (signal.aborted)
+								return
+							timeout = setTimeout(() => { void poll() }, 15_000)
+						}
+						const abort = () => {
+							if (timeout != null)
+								clearTimeout(timeout)
+						}
+						signal.addEventListener('abort', abort, { once: true })
+						void poll()
+						return () => {
+							signal.removeEventListener('abort', abort)
+							abort()
+						}
+					},
+				},
+			},
 		})({
 				Utxo: {
 					$$blocks: (blocks) => blocks,
