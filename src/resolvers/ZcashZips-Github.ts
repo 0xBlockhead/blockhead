@@ -4,7 +4,6 @@ import {
 } from '$/constants/SpecificationProposal.ts'
 import type { RegisteredSourceResolverModule } from '$/resolvers/defineResolver.ts'
 import defineSpecificationProposalResolvers from '$/resolvers/SpecificationProposal.ts'
-import { regex } from 'arkregex'
 import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
@@ -40,28 +39,14 @@ export default {
 			}
 		},
 		resolveProposalIndex: async () => {
-			const { getContents } = await import('$/sources/ZcashZips/Github/queries.ts')
-			return (await getContents())
-				.flatMap((githubContent) => {
-					const proposalNumberRaw = (
-						githubContent.type === 'file' ?
-							regex('^zip-(?<proposalNumber>\\d{4})\\.rst$').exec(githubContent.name)?.groups.proposalNumber
-						:
-							null
-					)
-					return proposalNumberRaw == null ?
-						[]
-					:
-						[
-							{
-								[EntityMetaKey.Selector]: {
-									realm: SpecificationRealm.Zcash,
-									category: ProposalCategory.Zip,
-									number: parseInt(proposalNumberRaw, 10),
-								},
-							},
-						]
-				})
+			const { getProposalFiles } = await import('$/sources/ZcashZips/Github/queries.ts')
+			return (await getProposalFiles()).map(({ number }) => ({
+				[EntityMetaKey.Selector]: {
+					realm: SpecificationRealm.Zcash,
+					category: ProposalCategory.Zip,
+					number,
+				},
+			}))
 		},
 	}),
 } satisfies RegisteredSourceResolverModule
