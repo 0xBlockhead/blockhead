@@ -351,6 +351,70 @@ const elementsAssetReferenceFromWire = (
 	},
 })
 
+const assertLiquidElementsAssetSelector = (
+	$network: EntitySelector<typeof schema, EntityType.ElementsNetwork>
+) => {
+	if (
+		!('$network' in $network)
+		|| !('slug' in $network.$network)
+		|| $network.$network.slug !== 'liquid'
+	)
+		throw new Error('Esplora_Rest: unsupported Elements network')
+
+	return $network.$network
+}
+
+const elementsIssuanceReferenceFromWire = (
+	$network: NetworkId,
+	assetId: string,
+	transaction: EsploraTransaction,
+	input: EsploraTransactionInput,
+	inputIndex: number
+) => {
+	const issuance = input.issuance
+	if (issuance == null || issuance.asset_id !== assetId)
+		return
+
+	return {
+		[EntityMetaKey.Selector]: {
+			$transaction: {
+				$network,
+				txId: transaction.txid,
+			},
+			inputIndex,
+		},
+		[EntityMetaKey.Fields]: {
+			[entityFieldAddressKey(EntityType.ElementsIssuance, [], '$asset')]: {
+				[EntityMetaKey.Selector]: {
+					$network: {
+						$network,
+					},
+					assetId: issuance.asset_id,
+				},
+			},
+			...(issuance.token != null && {
+				[entityFieldAddressKey(EntityType.ElementsIssuance, [], '$reissuanceTokenAsset')]: {
+					[EntityMetaKey.Selector]: {
+						$network: {
+							$network,
+						},
+						assetId: issuance.token,
+					},
+				},
+			}),
+			[entityFieldAddressKey(EntityType.ElementsIssuance, [], 'assetEntropy')]: issuance.asset_entropy,
+			[entityFieldAddressKey(EntityType.ElementsIssuance, [], 'assetBlindingNonce')]: issuance.asset_blinding_nonce,
+			...(issuance.assetamount != null && {
+				[entityFieldAddressKey(EntityType.ElementsIssuance, [], 'issuedAmount')]: BigInt(issuance.assetamount),
+			}),
+			...(issuance.tokenamount != null && {
+				[entityFieldAddressKey(EntityType.ElementsIssuance, [], 'tokenAmount')]: BigInt(issuance.tokenamount),
+			}),
+			[entityFieldAddressKey(EntityType.ElementsIssuance, [], 'isReissuance')]: issuance.is_reissuance,
+		},
+	}
+}
+
 export default {
 	source: Source.Esplora_Rest,
 
@@ -939,6 +1003,93 @@ export default {
 		})({
 				$$timestamps: (snapshot) => snapshot,
 			}),
+
+		defineResolver({
+			entityType: EntityType.ElementsAsset,
+			resolve: {
+				ElementsNetworkAssetId: {
+					resolve: async (entitySelector, context) => {
+						const $network = assertLiquidElementsAssetSelector(entitySelector.$network)
+						const limit = Math.min(resolverContextRowLimit(context), 25)
+						if (!Number.isSafeInteger(limit) || limit < 1)
+							throw new Error('Esplora_Rest: invalid asset issuance limit')
+
+						const { getAssetTransactions } = await import('$/sources/Esplora/Rest/queries.ts')
+						const transactions = await getAssetTransactions({
+							assetId: entitySelector.assetId,
+							lastSeenTransactionId: context.providerContinuationToken,
+							target: 'liquid',
+						})
+
+						return {
+							$network,
+							assetId: entitySelector.assetId,
+							terminal: transactions.length < 25 && transactions.length <= limit,
+							transactions: transactions.slice(0, limit),
+						}
+					},
+				},
+			},
+		})({
+			$$issuances: {
+				select: (page) => page.transactions.flatMap((transaction) => (
+					transaction.vin.flatMap((input, inputIndex) => {
+						const issuance = elementsIssuanceReferenceFromWire(
+							page.$network,
+							page.assetId,
+							transaction,
+							input,
+							inputIndex
+						)
+						return issuance == null ? [] : [issuance]
+					})
+				)),
+				continuation: (page) => {
+					const lastTransaction = page.transactions.at(-1)
+					return (
+						page.terminal || lastTransaction == null ?
+							{
+								operation: 'asset-issuances',
+								target: page.assetId,
+								terminal: true,
+							}
+						:
+							{
+								operation: 'asset-issuances',
+								target: page.assetId,
+								terminal: false,
+								token: lastTransaction.txid,
+							}
+					)
+				},
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.ElementsAsset,
+			resolve: {
+				ElementsNetworkAssetId: {
+					resolve: async (entitySelector) => {
+						assertLiquidElementsAssetSelector(entitySelector.$network)
+						const { getAsset } = await import('$/sources/Esplora/Rest/queries.ts')
+						const asset = await getAsset({
+							assetId: entitySelector.assetId,
+							target: 'liquid',
+						})
+						if (asset.asset_id !== entitySelector.assetId)
+							throw new Error(`Esplora_Rest: asset id mismatch for ${entitySelector.assetId}`)
+						if (asset.chain_stats.issuance_count == null)
+							throw new Error(`Esplora_Rest: asset ${entitySelector.assetId} is missing issuance_count`)
+
+						return asset.chain_stats.issuance_count
+					},
+				},
+			},
+		})({
+			$$issuances: {
+				resolveCount: (issuanceCount) => issuanceCount,
+			},
+		}),
 
 		defineResolver({
 			entityType: EntityType.ElementsNetwork,

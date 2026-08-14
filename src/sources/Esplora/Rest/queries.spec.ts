@@ -23,6 +23,7 @@ const {
 	getBlockTransactions,
 	getAddress,
 	getAddressUtxos,
+	getAssetTransactions,
 	getMempoolStats,
 	getOutspend,
 	getSuggestedFeePerByteSats,
@@ -546,5 +547,73 @@ describe('Esplora REST binding selection', () => {
 			txId,
 			vout: -1,
 		})).rejects.toThrow('outspend output index must be a non-negative safe integer')
+	})
+
+	it('pages Liquid asset transactions without rejecting unrelated issuance inputs', async () => {
+		const assetId = 'aa'.repeat(32)
+		const txId = 'bb'.repeat(32)
+		const issuanceTransaction = {
+			txid: txId,
+			status: {
+				confirmed: true,
+			},
+			vin: [{
+				is_coinbase: false,
+				sequence: 1,
+				issuance: {
+					asset_id: assetId,
+					is_reissuance: false,
+					asset_blinding_nonce: '0'.repeat(64),
+					asset_entropy: 'cc'.repeat(32),
+					assetamount: 1,
+				},
+			}],
+			vout: [],
+		}
+		sourceGetJson
+			.mockResolvedValueOnce([issuanceTransaction])
+			.mockResolvedValueOnce([{
+				...issuanceTransaction,
+				vin: [{
+					...issuanceTransaction.vin[0],
+					issuance: {
+						...issuanceTransaction.vin[0].issuance,
+						asset_id: 'dd'.repeat(32),
+					},
+				}],
+			}])
+
+		await expect(getAssetTransactions({
+			assetId,
+			target: 'liquid',
+		})).resolves.toEqual([issuanceTransaction])
+		await expect(getAssetTransactions({
+			assetId,
+			lastSeenTransactionId: txId,
+			target: 'liquid',
+		})).resolves.toEqual([{
+			...issuanceTransaction,
+			vin: [{
+				...issuanceTransaction.vin[0],
+				issuance: {
+					...issuanceTransaction.vin[0].issuance,
+					asset_id: 'dd'.repeat(32),
+				},
+			}],
+		}])
+		await expect(getAssetTransactions({
+			assetId,
+			target: bitcoinBinding.target.key,
+		})).rejects.toThrow('asset transactions require the Liquid network')
+		await expect(getAssetTransactions({
+			assetId,
+			lastSeenTransactionId: 'not-a-txid',
+			target: 'liquid',
+		})).rejects.toThrow('invalid asset transaction cursor')
+
+		expect(sourceGetJson.mock.calls.map(([, url]) => url)).toEqual([
+			`https://blockstream.info/liquid/api/asset/${assetId}/txs/chain`,
+			`https://blockstream.info/liquid/api/asset/${assetId}/txs/chain/${txId}`,
+		])
 	})
 })

@@ -15,6 +15,7 @@ import {
 	esploraOutspendWire,
 	esploraTransactionWire,
 	esploraTxIdListWire,
+	esploraTxIdWire,
 } from '$/sources/Esplora/Rest/envelopes.ts'
 import { Source } from '$/sources/Source.ts'
 
@@ -319,3 +320,38 @@ export const listRegistryAssets = async ({
 		'asset registry'
 	)
 )
+
+/**
+ * Confirmed issuance, reissuance, and burn transactions for a Liquid asset.
+ * Native L-BTC pages are peg and burn history, not issuances.
+ * @see https://github.com/Blockstream/esplora/blob/master/API.md#get-assetasset_idtxschainlast_seen
+ */
+export const getAssetTransactions = async ({
+	assetId,
+	lastSeenTransactionId,
+	target,
+}: {
+	assetId: string
+	lastSeenTransactionId?: string
+	target: EsploraTarget
+}) => {
+	if (target !== 'liquid')
+		throw new Error('Esplora_Rest: asset transactions require the Liquid network')
+	if (lastSeenTransactionId != null && !esploraTxIdWire.allows(lastSeenTransactionId))
+		throw new Error('Esplora_Rest: invalid asset transaction cursor')
+
+	const transactions = assertEsploraEnvelope(
+		esploraTransactionWire.array(),
+		await getEsploraJson(
+			target,
+			`/asset/${encodeURIComponent(assetId)}/txs/chain${
+				lastSeenTransactionId == null ?
+					''
+				:
+					`/${encodeURIComponent(lastSeenTransactionId)}`
+			}`
+		),
+		'asset transactions'
+	)
+	return transactions
+}

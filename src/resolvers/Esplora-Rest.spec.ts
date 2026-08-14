@@ -18,6 +18,7 @@ const getAddress = vi.fn()
 const getAddressUtxos = vi.fn()
 const getAddressTransactions = vi.fn()
 const getAsset = vi.fn()
+const getAssetTransactions = vi.fn()
 const getOutspend = vi.fn()
 
 vi.mock('$/sources/Esplora/Rest/queries.ts', async (importOriginal) => {
@@ -37,6 +38,7 @@ vi.mock('$/sources/Esplora/Rest/queries.ts', async (importOriginal) => {
 		getAddressUtxos,
 		getAddressTransactions,
 		getAsset,
+		getAssetTransactions,
 		getOutspend,
 		getTransactionProtocolPayloads: async ({
 			target,
@@ -86,6 +88,18 @@ const assetResolver = esploraResolvers.resolvers.find((resolver) => (
 const assetTimestampsResolver = esploraResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.ElementsAsset
 	&& '$$timestamps' in resolver.projections
+))
+const assetIssuancesResolver = esploraResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.ElementsAsset
+	&& '$$issuances' in resolver.projections
+	&& typeof resolver.projections.$$issuances === 'object'
+	&& 'select' in resolver.projections.$$issuances
+))
+const assetIssuanceCountResolver = esploraResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.ElementsAsset
+	&& '$$issuances' in resolver.projections
+	&& typeof resolver.projections.$$issuances === 'object'
+	&& 'resolveCount' in resolver.projections.$$issuances
 ))
 const inscriptionResolver = esploraResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.BitcoinOrdinalInscription
@@ -137,7 +151,7 @@ if (transactionResolver == null)
 if (inputResolver == null || outputResolver == null || outputSpentResolver == null)
 	throw new Error('Esplora-Rest spec missing child input/output resolver')
 
-if (issuanceResolver == null || assetResolver == null || assetTimestampsResolver == null)
+if (issuanceResolver == null || assetResolver == null || assetTimestampsResolver == null || assetIssuancesResolver == null || assetIssuanceCountResolver == null)
 	throw new Error('Esplora-Rest spec missing Elements issuance/asset resolver')
 
 if (inscriptionResolver == null || runestoneResolver == null)
@@ -201,6 +215,7 @@ describe('Esplora UTXO', () => {
 		getAddressUtxos.mockReset()
 		getAddressTransactions.mockReset()
 		getAsset.mockReset()
+		getAssetTransactions.mockReset()
 		getOutspend.mockReset()
 	})
 
@@ -527,6 +542,124 @@ describe('Esplora UTXO', () => {
 		expect(esploraResolvers.resolvers.some((resolver) => (
 			resolver.entityType === EntityType.ElementsAsset_Timestamp
 		))).toBe(false)
+	})
+
+	it('pages native Liquid asset issuances and preserves issuance_count', async () => {
+		const txId = 'c'.repeat(64)
+		const burnTxId = 'd'.repeat(64)
+		const assetId = 'a'.repeat(64)
+		const tokenId = 'b'.repeat(64)
+		const assetSelector = {
+			$network: {
+				$network: liquidNetwork,
+			},
+			assetId,
+		}
+		getAssetTransactions.mockResolvedValueOnce([
+			{
+				txid: txId,
+				status: {
+					confirmed: true,
+				},
+				vin: [{
+					is_coinbase: false,
+					sequence: 1,
+					issuance: {
+						asset_id: assetId,
+						is_reissuance: false,
+						asset_blinding_nonce: '0'.repeat(64),
+						asset_entropy: 'e'.repeat(64),
+						assetamount: 125_000,
+						token: tokenId,
+						tokenamount: 1,
+					},
+				}],
+				vout: [],
+			},
+			{
+				txid: burnTxId,
+				status: {
+					confirmed: true,
+				},
+				vin: [{
+					is_coinbase: false,
+					sequence: 1,
+				}],
+				vout: [],
+			},
+		])
+		const page = await assetIssuancesResolver.resolve.ElementsNetworkAssetId.resolve(
+			assetSelector,
+			resolverContext
+		)
+		expect(assetIssuancesResolver.projections.$$issuances.select(page)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$transaction: {
+					$network: liquidNetwork,
+					txId,
+				},
+				inputIndex: 0,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.ElementsIssuance, [], '$asset')]: {
+					[EntityMetaKey.Selector]: {
+						$network: {
+							$network: liquidNetwork,
+						},
+						assetId,
+					},
+				},
+				[entityFieldAddressKey(EntityType.ElementsIssuance, [], '$reissuanceTokenAsset')]: {
+					[EntityMetaKey.Selector]: {
+						$network: {
+							$network: liquidNetwork,
+						},
+						assetId: tokenId,
+					},
+				},
+				[entityFieldAddressKey(EntityType.ElementsIssuance, [], 'assetEntropy')]: 'e'.repeat(64),
+				[entityFieldAddressKey(EntityType.ElementsIssuance, [], 'assetBlindingNonce')]: '0'.repeat(64),
+				[entityFieldAddressKey(EntityType.ElementsIssuance, [], 'issuedAmount')]: 125_000n,
+				[entityFieldAddressKey(EntityType.ElementsIssuance, [], 'tokenAmount')]: 1n,
+				[entityFieldAddressKey(EntityType.ElementsIssuance, [], 'isReissuance')]: false,
+			},
+		}])
+		expect(assetIssuancesResolver.projections.$$issuances.continuation(page)).toEqual({
+			operation: 'asset-issuances',
+			target: assetId,
+			terminal: true,
+		})
+		expect(getAssetTransactions).toHaveBeenCalledWith({
+			assetId,
+			lastSeenTransactionId: undefined,
+			target: 'liquid',
+		})
+
+		getAsset.mockResolvedValueOnce({
+			asset_id: assetId,
+			chain_stats: {
+				issuance_count: 4,
+				tx_count: 6,
+			},
+			mempool_stats: {
+				tx_count: 0,
+			},
+		})
+		expect(
+			assetIssuanceCountResolver.projections.$$issuances.resolveCount(
+				await assetIssuanceCountResolver.resolve.ElementsNetworkAssetId.resolve(assetSelector)
+			)
+		).toBe(4)
+
+		await expect(assetIssuancesResolver.resolve.ElementsNetworkAssetId.resolve({
+			$network: {
+				$network: {
+					slug: 'bitcoin',
+				},
+			},
+			assetId,
+		}, resolverContext)).rejects.toThrow('unsupported Elements network')
+		expect(getAssetTransactions).toHaveBeenCalledTimes(1)
 	})
 
 	it('rejects absent issuance and non-Liquid issuance selectors', async () => {
