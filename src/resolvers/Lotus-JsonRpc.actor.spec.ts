@@ -246,6 +246,8 @@ it('resolves a block linked by an historical tipset without substituting mutable
 		$network: network,
 		cid: 'bafy-historical-block',
 	}])
+	expect(tipsetResolver.projections.$$blocks.select(tipset)).toHaveLength(1)
+	expect(tipsetResolver.projections.$$blocks.resolveCount(tipset)).toBe(1)
 
 	getBlockHeader.mockResolvedValue({
 		Miner: 'f09876',
@@ -428,18 +430,21 @@ it('resolves a persisted network observation from its immutable tipset', async (
 		},
 	})
 
-	await expect(networkTimestampResolver.resolve['NetworkTimestampMsSource'].resolve({
+	const observation = await networkTimestampResolver.resolve['NetworkTimestampMsSource'].resolve({
 		$network: network,
 		timestampMs: 1_750_000_000_000,
 		height: 123n,
 		tipsetKey: 'bafy-observed',
 		source: Source.Lotus_JsonRpc,
-	}, context)).resolves.toMatchObject({
+	}, context)
+	expect(observation).toMatchObject({
 		headHeight: 123n,
 		headTipsetKey: 'bafy-observed',
 		headTimestampMs: 1_750_000_000_000,
 		networkVersion: 25,
 	})
+	expect(networkTimestampResolver.projections.$$headMiners.select(observation)).toHaveLength(1)
+	expect(networkTimestampResolver.projections.$$headMiners.resolveCount(observation)).toBe(1)
 	expect(getTipSet).toHaveBeenCalledWith({
 		tipsetKey: [{ '/': 'bafy-observed' }],
 	})

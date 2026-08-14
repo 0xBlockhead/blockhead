@@ -143,6 +143,8 @@ describe('Lotus JsonRpc FilecoinMessage', () => {
 				}),
 			})],
 		})
+		expect(messageResolver.projections.$$subcalls.select(snapshot)).toHaveLength(1)
+		expect(messageResolver.projections.$$subcalls.resolveCount(snapshot)).toBe(1)
 		expect(getMessage).toHaveBeenCalledWith({
 			messageCid: 'bafyMessage',
 		})

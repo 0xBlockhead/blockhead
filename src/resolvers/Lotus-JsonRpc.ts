@@ -357,7 +357,10 @@ export default {
 				headBlockCount: (timestamp) => timestamp.headBlockCount,
 				headTimestampMs: (timestamp) => timestamp.headTimestampMs,
 				$headTipset: (timestamp) => timestamp.$headTipset,
-				$$headMiners: (timestamp) => timestamp.$$headMiners,
+				$$headMiners: {
+					select: (timestamp) => timestamp.$$headMiners,
+					resolveCount: (timestamp) => timestamp.$$headMiners.length,
+				},
 				networkVersion: (timestamp) => timestamp.networkVersion,
 				lotusVersion: (timestamp) => timestamp.lotusVersion,
 				lotusAgent: (timestamp) => timestamp.lotusAgent,
@@ -395,7 +398,10 @@ export default {
 				$parent: (tipset) => tipset.$parent,
 				parentWeight: (tipset) => tipset.parentWeight,
 				timestampMs: (tipset) => tipset.timestampMs,
-				$$blocks: (tipset) => tipset.$$blocks,
+				$$blocks: {
+					select: (tipset) => tipset.$$blocks,
+					resolveCount: (tipset) => tipset.$$blocks.length,
+				},
 			}),
 
 		defineResolver({
@@ -518,7 +524,10 @@ export default {
 			valueAttoFil: (message) => message.valueAttoFil,
 			gasLimit: (message) => message.gasLimit,
 			$receipt: (message) => message.$receipt,
-			$$subcalls: (message) => message.$$subcalls,
+			$$subcalls: {
+				select: (message) => message.$$subcalls,
+				resolveCount: (message) => message.$$subcalls.length,
+			},
 		}),
 
 		defineResolver({
