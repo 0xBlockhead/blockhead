@@ -46,8 +46,8 @@ export default indexSourceBindings(mapSourceBindings(
 			locator: 'https://ethereum-sepolia-beacon-api.publicnode.com',
 		},
 		{
-			key: '17000',
-			locator: 'https://ethereum-holesky-beacon-api.publicnode.com',
+			key: '560048',
+			locator: 'https://ethereum-hoodi-beacon-api.publicnode.com',
 		},
 	] as const,
 	({

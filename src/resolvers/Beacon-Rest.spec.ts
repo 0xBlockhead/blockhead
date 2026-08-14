@@ -343,6 +343,21 @@ describe('Beacon REST checkpoint and fork projections', () => {
 		expect(indexedConsensusEndpointsResolver.appliesTo('Caip2', {
 			caip2: {
 				namespace: 'eip155',
+				reference: '560048',
+			},
+		})).toBe(true)
+		expect(beaconRestByChainId.get(560048)?.restBaseUrls).toEqual([
+			'https://ethereum-hoodi-beacon-api.publicnode.com',
+		])
+		expect(indexedConsensusEndpointsResolver.appliesTo('Caip2', {
+			caip2: {
+				namespace: 'eip155',
+				reference: '17000',
+			},
+		})).toBe(false)
+		expect(indexedConsensusEndpointsResolver.appliesTo('Caip2', {
+			caip2: {
+				namespace: 'eip155',
 				reference: '10',
 			},
 		})).toBe(false)

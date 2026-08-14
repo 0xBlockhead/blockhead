@@ -907,6 +907,26 @@ describe('Beacon REST native scalar clocks', () => {
 		await expect(getHeadSlot(1.5)).rejects.toThrow('Beacon_Rest: invalid chain 1.5')
 	})
 
+	it('routes Hoodi consensus reads through the native PublicNode binding', async () => {
+		const sourceFetch = vi.spyOn(sourceHttp, 'sourceFetch').mockResolvedValue(new Response(JSON.stringify({
+			data: {
+				disconnected: '1',
+				connecting: '2',
+				connected: '3',
+				disconnecting: '4',
+			},
+		})))
+
+		await expect(getNodePeerCountObservation(560048)).resolves.toMatchObject({
+			endpointUrl: 'https://ethereum-hoodi-beacon-api.publicnode.com',
+		})
+		expect(sourceFetch).toHaveBeenCalledWith(
+			bindings[Source.Beacon_Rest][2],
+			'https://ethereum-hoodi-beacon-api.publicnode.com/eth/v1/node/peer_count',
+			{ headers: { accept: 'application/json' } }
+		)
+	})
+
 	it('preserves native node peer counts and timestamps only a valid response', async () => {
 		const dateNow = vi.spyOn(Date, 'now').mockReturnValue(1_700_000_000_123)
 		const sourceFetch = vi.spyOn(sourceHttp, 'sourceFetch').mockResolvedValue(new Response(JSON.stringify({

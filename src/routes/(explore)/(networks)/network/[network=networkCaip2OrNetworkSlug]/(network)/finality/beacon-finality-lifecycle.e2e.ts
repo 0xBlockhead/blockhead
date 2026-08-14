@@ -51,6 +51,42 @@ test('Beacon finality route keeps current and finalized checkpoints visibly dist
 	await expect(main.locator('[data-resource-state="failed"]')).toHaveCount(0)
 })
 
+test('Hoodi finality list resolves through the native Beacon binding', async ({ page }) => {
+	test.setTimeout(180_000)
+	await page.route('**/*', async (route) => {
+		if (!decodeURIComponent(route.request().url()).includes('/eth/v1/beacon/states/head/finality_checkpoints')) {
+			await route.continue()
+			return
+		}
+
+		await route.fulfill({
+			json: {
+				data: {
+					previous_justified: {
+						epoch: '123',
+						root: previousJustifiedRoot,
+					},
+					current_justified: {
+						epoch: '124',
+						root: currentJustifiedRoot,
+					},
+					finalized: {
+						epoch: '122',
+						root: finalizedRoot,
+					},
+				},
+			},
+		})
+	})
+
+	await page.goto('/network/eip155:560048/finality', { waitUntil: 'domcontentloaded' })
+
+	const main = page.locator('#main')
+	await expect(main).toContainText('Ethereum Hoodi', { timeout: 120_000 })
+	await expect(main).toContainText('Finalized epoch 122', { timeout: 120_000 })
+	await expect(main.locator('[data-resource-state="failed"]')).toHaveCount(0)
+})
+
 test('Beacon finality route exposes a malformed checkpoint response as failure', async ({ page }) => {
 	test.setTimeout(180_000)
 
