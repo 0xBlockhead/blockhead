@@ -63,6 +63,7 @@ describe('Blobscan REST queries', () => {
 					txHash,
 					index: 0,
 				}],
+				totalBlobs: 12,
 			}))
 			.mockResolvedValueOnce(jsonResponse({
 				hash: blockHash,
@@ -81,6 +82,7 @@ describe('Blobscan REST queries', () => {
 					number: 12,
 					timestamp: '2026-08-05T02:08:35.000Z',
 				}],
+				totalBlocks: 8,
 			}))
 		vi.stubGlobal('fetch', fetchMock)
 		vi.stubGlobal('window', {})
@@ -98,11 +100,14 @@ describe('Blobscan REST queries', () => {
 		await expect(listBlobs('1', {
 			limit: 16,
 			offset: 0,
-		})).resolves.toEqual([{
-			versionedHash,
-			txHash,
-			index: 0,
-		}])
+		})).resolves.toEqual({
+			blobs: [{
+				versionedHash,
+				txHash,
+				index: 0,
+			}],
+			totalBlobs: 12,
+		})
 		await expect(getBlock('1', {
 			blockId: 12,
 		})).resolves.toMatchObject({
@@ -112,18 +117,21 @@ describe('Blobscan REST queries', () => {
 		await expect(listBlocks('1', {
 			limit: 8,
 			offset: 0,
-		})).resolves.toEqual([{
-			hash: blockHash,
-			number: 12,
-			timestamp: '2026-08-05T02:08:35.000Z',
-		}])
+		})).resolves.toEqual({
+			blocks: [{
+				hash: blockHash,
+				number: 12,
+				timestamp: '2026-08-05T02:08:35.000Z',
+			}],
+			totalBlocks: 8,
+		})
 
 		expect(fetchMock.mock.calls.map(([url]) => String(url))).toEqual([
 			expect.stringMatching(/\/api-proxy\/.+\/https%3A%2F%2Fapi\.blobscan\.com%2Ftransactions%2F/),
 			expect.stringMatching(/\/api-proxy\/.+\/https%3A%2F%2Fapi\.blobscan\.com%2Fblobs%2F/),
-			expect.stringMatching(/\/api-proxy\/.+\/https%3A%2F%2Fapi\.blobscan\.com%2Fblobs%3Fps%3D16%26p%3D1$/),
+			expect.stringMatching(/\/api-proxy\/.+\/https%3A%2F%2Fapi\.blobscan\.com%2Fblobs%3Fps%3D16%26p%3D1%26count%3Dtrue$/),
 			expect.stringMatching(/\/api-proxy\/.+\/https%3A%2F%2Fapi\.blobscan\.com%2Fblocks%2F12$/),
-			expect.stringMatching(/\/api-proxy\/.+\/https%3A%2F%2Fapi\.blobscan\.com%2Fblocks%3Fps%3D8%26p%3D1$/),
+			expect.stringMatching(/\/api-proxy\/.+\/https%3A%2F%2Fapi\.blobscan\.com%2Fblocks%3Fps%3D8%26p%3D1%26count%3Dtrue$/),
 		])
 	})
 
@@ -197,6 +205,7 @@ describe('Blobscan REST queries', () => {
 				blobs: [{
 					versionedHash: '0x02deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef',
 				}],
+				totalBlobs: 1,
 			}))
 			.mockResolvedValueOnce(jsonResponse({}))
 			.mockResolvedValueOnce(jsonResponse({
@@ -205,6 +214,7 @@ describe('Blobscan REST queries', () => {
 					number: 12,
 					timestamp: 'not-a-date',
 				}],
+				totalBlocks: 1,
 			}))
 
 		await expect(listBlobs('1', {
@@ -219,6 +229,37 @@ describe('Blobscan REST queries', () => {
 		await expect(listBlocks('1', {
 			limit: 8,
 		})).rejects.toThrow('invalid block list timestamp')
+	})
+
+	it('requires the exact totals requested from Blobscan list endpoints', async () => {
+		vi.spyOn(globalThis, 'fetch')
+			.mockResolvedValueOnce(jsonResponse({
+				blobs: [],
+			}))
+			.mockResolvedValueOnce(jsonResponse({
+				blobs: [],
+				totalBlobs: -1,
+			}))
+			.mockResolvedValueOnce(jsonResponse({
+				blocks: [],
+			}))
+			.mockResolvedValueOnce(jsonResponse({
+				blocks: [],
+				totalBlocks: 1.5,
+			}))
+
+		await expect(listBlobs('1', {
+			limit: 8,
+		})).rejects.toThrow('blob list missing requested total')
+		await expect(listBlobs('1', {
+			limit: 8,
+		})).rejects.toThrow('invalid blob total')
+		await expect(listBlocks('1', {
+			limit: 8,
+		})).rejects.toThrow('block list missing requested total')
+		await expect(listBlocks('1', {
+			limit: 8,
+		})).rejects.toThrow('invalid block total')
 	})
 
 	it('fail-closes duplicate transaction identity in a block hierarchy', async () => {
@@ -257,6 +298,7 @@ describe('Blobscan REST queries', () => {
 						}],
 					}],
 				}],
+				totalBlocks: 1,
 			}))
 			.mockResolvedValueOnce(jsonResponse({
 				blocks: [
@@ -271,6 +313,7 @@ describe('Blobscan REST queries', () => {
 						timestamp: '2026-08-05T02:08:47.000Z',
 					},
 				],
+				totalBlocks: 2,
 			}))
 
 		await expect(listBlocks('1', {

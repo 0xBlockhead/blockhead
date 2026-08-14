@@ -1,4 +1,7 @@
-import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
+import {
+	resolverContextRowLimit,
+	type ProviderContinuation,
+} from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
 	type RegisteredSourceResolverModule,
@@ -102,18 +105,35 @@ export default {
 			resolve: {
 				Caip2: {
 					resolve: async (entitySelector, context) => {
-						if ((context.pagination.offset ?? 0) > 0)
-							return []
-
 						const chainId = evmChainIdFromNetworkSelector(entitySelector)
 						const { listVerifiedContracts } = await import('$/sources/Sourcify/Rest/queries.ts')
-						const results = await listVerifiedContracts({
+						const limit = Math.min(200, resolverContextRowLimit(context))
+						const results = (
+							limit === 0 ?
+								[]
+							:
+								await listVerifiedContracts({
+									chainId,
+									limit,
+									sort: 'desc',
+									afterMatchId: context.providerContinuationToken,
+								})
+						)
+						return {
 							chainId,
-							limit: Math.min(200, Math.max(1, resolverContextRowLimit(context))),
-							sort: 'desc',
-						})
-						if (results == null) return []
-
+							limit,
+							results: results ?? [],
+						}
+					},
+				},
+			},
+		})({
+			Evm: {
+				$$contracts: {
+					select: ({
+						chainId,
+						results,
+					}) => {
 						const $network = evmNetworkSelectorFromChainId(chainId)
 						return results.flatMap((row) => {
 							if (row.address == null) return []
@@ -128,11 +148,32 @@ export default {
 							}]
 						})
 					},
+					continuation: ({
+						chainId,
+						limit,
+						results,
+					}, _network, context): ProviderContinuation => {
+						if (limit === 0 || results.length < limit)
+							return {
+								operation: 'verified-contracts',
+								target: String(chainId),
+								terminal: true,
+							}
+
+						const nextMatchId = results.at(-1)?.matchId
+						if (nextMatchId == null || nextMatchId === '')
+							throw new Error('Sourcify_Rest: full verified contract page missing continuation matchId')
+						if (String(nextMatchId) === context.providerContinuationToken)
+							throw new Error('Sourcify_Rest: verified contract continuation did not advance')
+
+						return {
+							operation: 'verified-contracts',
+							target: String(chainId),
+							terminal: false,
+							token: String(nextMatchId),
+						}
+					},
 				},
-			},
-		})({
-			Evm: {
-				$$contracts: (contracts) => contracts,
 			},
 		}),
 

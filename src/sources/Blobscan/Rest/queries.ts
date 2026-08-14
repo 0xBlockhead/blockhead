@@ -247,6 +247,7 @@ const listPageParams = ({
 	return {
 		ps: limit,
 		p: Math.floor(offset / limit) + 1,
+		count: true,
 	}
 }
 
@@ -311,11 +312,17 @@ export const listBlobs = async (
 		}))
 	)
 	assertEnvelope(blobscanBlobListEnvelope, body, 'blob list')
+	if (body.totalBlobs == null)
+		throw new Error('Blobscan_Rest: blob list missing requested total')
+	assertSafeNonnegativeInteger(body.totalBlobs, 'blob total')
 	if (body.blobs.length > limit)
 		throw new Error('Blobscan_Rest: blob list exceeds requested page size')
 	for (const blob of body.blobs)
 		assertBlobListItem(blob)
-	return body.blobs
+	return {
+		blobs: body.blobs,
+		totalBlobs: body.totalBlobs,
+	}
 }
 
 export const getBlock = async (
@@ -364,6 +371,9 @@ export const listBlocks = async (
 		}))
 	)
 	assertEnvelope(blobscanBlockListEnvelope, body, 'block list')
+	if (body.totalBlocks == null)
+		throw new Error('Blobscan_Rest: block list missing requested total')
+	assertSafeNonnegativeInteger(body.totalBlocks, 'block total')
 	if (body.blocks.length > limit)
 		throw new Error('Blobscan_Rest: block list exceeds requested page size')
 	const blockHashes = new Set<string>()
@@ -376,7 +386,10 @@ export const listBlocks = async (
 		blockHashes.add(blockHash)
 		blockNumbers.add(block.number)
 	}
-	return body.blocks
+	return {
+		blocks: body.blocks,
+		totalBlocks: body.totalBlocks,
+	}
 }
 
 export const getBlobDetail = async (

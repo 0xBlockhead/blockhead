@@ -396,73 +396,78 @@ export default {
 							throw new Error('Blobscan_Rest: Network.$$blobs requires eip155')
 
 						const limit = Math.min(resolverContextRowLimit(context), 100)
-						if (limit === 0)
-							return []
-
 						const { listBlobs } = await import(
 							'$/sources/Blobscan/Rest/queries.ts'
 						)
-						const blobs = await listBlobs(
+						const page = await listBlobs(
 							entitySelector.caip2.reference,
 							{
-								limit,
+								limit: Math.max(limit, 1),
 								offset: context.pagination.offset ?? 0,
 							}
 						)
 
-						return blobs.flatMap((blob) => {
-							const txHash = hexLowerOfByteSize(blob.txHash ?? '', 32)
-							const versionedHash = hexLowerOfByteSize(blob.versionedHash, 32)
-							const blobDataStorageReferences = blobDataStorageReferencesFromWire(
-								blob.dataStorageReferences
-							)
-							if (
-								txHash == null
-								|| versionedHash == null
-								|| !versionedHash.startsWith('0x01')
-								|| blob.index == null
-							)
-								return []
+						return {
+							rows: page.blobs
+								.slice(0, limit)
+								.flatMap((blob) => {
+									const txHash = hexLowerOfByteSize(blob.txHash ?? '', 32)
+									const versionedHash = hexLowerOfByteSize(blob.versionedHash, 32)
+									const blobDataStorageReferences = blobDataStorageReferencesFromWire(
+										blob.dataStorageReferences
+									)
+									if (
+										txHash == null
+										|| versionedHash == null
+										|| !versionedHash.startsWith('0x01')
+										|| blob.index == null
+									)
+										return []
 
-							return [{
-								[EntityMetaKey.Selector]: {
-									$transaction: {
-										$network: entitySelector,
-										txHash,
-									},
-									indexInTransaction: blob.index,
-								},
-								[EntityMetaKey.Fields]: {
-									...(blob.blockNumber != null && {
-										[entityFieldAddressKey(EntityType.EvmBlob, [], '$block')]: {
-											[EntityMetaKey.Selector]: {
-												$network: entitySelector,
-												blockNumber: BigInt(blob.blockNumber),
-											},
-										},
-									}),
-									[entityFieldAddressKey(EntityType.EvmBlob, [], '$transaction')]: {
+									return [{
 										[EntityMetaKey.Selector]: {
-											$network: entitySelector,
-											txHash,
+											$transaction: {
+												$network: entitySelector,
+												txHash,
+											},
+											indexInTransaction: blob.index,
 										},
-									},
-									[entityFieldAddressKey(EntityType.EvmBlob, [], 'versionedHash')]: versionedHash,
-									...(blob.commitment != null && {
-										[entityFieldAddressKey(EntityType.EvmBlob, [], 'kzgCommitment')]: blob.commitment,
-									}),
-									...(blobDataStorageReferences != null && {
-										[entityFieldAddressKey(EntityType.EvmBlob, [], 'blobDataStorageReferences')]: blobDataStorageReferences,
-									}),
-								},
-							}]
-						})
+										[EntityMetaKey.Fields]: {
+											...(blob.blockNumber != null && {
+												[entityFieldAddressKey(EntityType.EvmBlob, [], '$block')]: {
+													[EntityMetaKey.Selector]: {
+														$network: entitySelector,
+														blockNumber: BigInt(blob.blockNumber),
+													},
+												},
+											}),
+											[entityFieldAddressKey(EntityType.EvmBlob, [], '$transaction')]: {
+												[EntityMetaKey.Selector]: {
+													$network: entitySelector,
+													txHash,
+												},
+											},
+											[entityFieldAddressKey(EntityType.EvmBlob, [], 'versionedHash')]: versionedHash,
+											...(blob.commitment != null && {
+												[entityFieldAddressKey(EntityType.EvmBlob, [], 'kzgCommitment')]: blob.commitment,
+											}),
+											...(blobDataStorageReferences != null && {
+												[entityFieldAddressKey(EntityType.EvmBlob, [], 'blobDataStorageReferences')]: blobDataStorageReferences,
+											}),
+										},
+									}]
+								}),
+							totalCount: page.totalBlobs,
+						}
 					},
 				},
 			},
 		})({
 			Evm: {
-				$$blobs: (entity) => entity,
+				$$blobs: {
+					select: (snapshot) => snapshot.rows,
+					resolveCount: (snapshot) => snapshot.totalCount,
+				},
 			},
 		}),
 
@@ -475,76 +480,81 @@ export default {
 							throw new Error('Blobscan_Rest: Network.$$blocks requires eip155')
 
 						const limit = Math.min(resolverContextRowLimit(context), 100)
-						if (limit === 0)
-							return []
-
 						const { listBlocks } = await import(
 							'$/sources/Blobscan/Rest/queries.ts'
 						)
-						const blocks = await listBlocks(
+						const page = await listBlocks(
 							entitySelector.caip2.reference,
 							{
-								limit,
+								limit: Math.max(limit, 1),
 								offset: context.pagination.offset ?? 0,
 							}
 						)
 
-						return blocks.flatMap((block) => {
-							const hash = hexLowerOfByteSize(block.hash, 32)
-							if (hash == null || !Number.isSafeInteger(block.number) || block.number < 1)
-								return []
+						return {
+							rows: page.blocks
+								.slice(0, limit)
+								.flatMap((block) => {
+									const hash = hexLowerOfByteSize(block.hash, 32)
+									if (hash == null || !Number.isSafeInteger(block.number) || block.number < 1)
+										return []
 
-							const timestampMs = Math.floor(Date.parse(block.timestamp) / 1_000) * 1_000
-							const blobGasUsed = (
-								block.blobGasUsed == null || block.blobGasUsed === '' ?
-									undefined
-								:
-									BigInt(block.blobGasUsed)
-							)
-							const excessBlobGas = (
-								block.excessBlobGas == null || block.excessBlobGas === '' ?
-									undefined
-								:
-									BigInt(block.excessBlobGas)
-							)
+									const timestampMs = Math.floor(Date.parse(block.timestamp) / 1_000) * 1_000
+									const blobGasUsed = (
+										block.blobGasUsed == null || block.blobGasUsed === '' ?
+											undefined
+										:
+											BigInt(block.blobGasUsed)
+									)
+									const excessBlobGas = (
+										block.excessBlobGas == null || block.excessBlobGas === '' ?
+											undefined
+										:
+											BigInt(block.excessBlobGas)
+									)
 
-							return [{
-								[EntityMetaKey.Selector]: {
-									$network: entitySelector,
-									blockNumber: BigInt(block.number),
-								},
-								[EntityMetaKey.Fields]: {
-									[entityFieldAddressKey(EntityType.EvmBlock, [], 'hash')]: hash,
-									[entityFieldAddressKey(EntityType.EvmBlock, [], 'blockNumber')]: BigInt(block.number),
-									...(Number.isFinite(timestampMs) && timestampMs >= 0 && {
-										[entityFieldAddressKey(EntityType.EvmBlock, [], 'timestamp')]: timestampMs,
-									}),
-									...(blobGasUsed != null && {
-										[entityFieldAddressKey(EntityType.EvmBlock, [], 'blobGasUsed')]: blobGasUsed,
-									}),
-									...(excessBlobGas != null && {
-										[entityFieldAddressKey(EntityType.EvmBlock, [], 'excessBlobGas')]: excessBlobGas,
-									}),
-									...(block.transactions != null && {
-										[entityFieldAddressKey(EntityType.EvmBlock, [], 'transactionCount')]: block.transactions.length,
-										[entityFieldAddressKey(EntityType.EvmBlock, [], '$$transactions')]: block.transactions.flatMap((transaction) => {
-											const reference = evmTransactionReferenceFromBlobscanBlock({
-												$network: entitySelector,
-												blockNumber: block.number,
-												transaction,
-											})
-											return reference == null ? [] : [reference]
-										}),
-									}),
-								},
-							}]
-						})
+									return [{
+										[EntityMetaKey.Selector]: {
+											$network: entitySelector,
+											blockNumber: BigInt(block.number),
+										},
+										[EntityMetaKey.Fields]: {
+											[entityFieldAddressKey(EntityType.EvmBlock, [], 'hash')]: hash,
+											[entityFieldAddressKey(EntityType.EvmBlock, [], 'blockNumber')]: BigInt(block.number),
+											...(Number.isFinite(timestampMs) && timestampMs >= 0 && {
+												[entityFieldAddressKey(EntityType.EvmBlock, [], 'timestamp')]: timestampMs,
+											}),
+											...(blobGasUsed != null && {
+												[entityFieldAddressKey(EntityType.EvmBlock, [], 'blobGasUsed')]: blobGasUsed,
+											}),
+											...(excessBlobGas != null && {
+												[entityFieldAddressKey(EntityType.EvmBlock, [], 'excessBlobGas')]: excessBlobGas,
+											}),
+											...(block.transactions != null && {
+												[entityFieldAddressKey(EntityType.EvmBlock, [], 'transactionCount')]: block.transactions.length,
+												[entityFieldAddressKey(EntityType.EvmBlock, [], '$$transactions')]: block.transactions.flatMap((transaction) => {
+													const reference = evmTransactionReferenceFromBlobscanBlock({
+														$network: entitySelector,
+														blockNumber: block.number,
+														transaction,
+													})
+													return reference == null ? [] : [reference]
+												}),
+											}),
+										},
+									}]
+								}),
+							totalCount: page.totalBlocks,
+						}
 					},
 				},
 			},
 		})({
 			Evm: {
-				$$blocks: (entity) => entity,
+				$$blocks: {
+					select: (snapshot) => snapshot.rows,
+					resolveCount: (snapshot) => snapshot.totalCount,
+				},
 			},
 		}),
 	],

@@ -55,6 +55,7 @@ export const blobscanBlobListItemEnvelope = arktype({
 
 export const blobscanBlobListEnvelope = arktype({
 	blobs: blobscanBlobListItemEnvelope.array(),
+	'totalBlobs?': 'number',
 }).onUndeclaredKey('delete')
 
 const blockTransactionEnvelope = arktype({
@@ -88,6 +89,7 @@ export const blobscanBlockListItemEnvelope = arktype({
 
 export const blobscanBlockListEnvelope = arktype({
 	blocks: blobscanBlockListItemEnvelope.array(),
+	'totalBlocks?': 'number',
 }).onUndeclaredKey('delete')
 
 export type BlobscanBlobDataStorageReference = typeof blobDataStorageReferenceEnvelope.infer

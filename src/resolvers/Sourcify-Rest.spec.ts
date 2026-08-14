@@ -138,7 +138,7 @@ describe('Sourcify REST resolvers', () => {
 			throw new Error('Sourcify REST spec missing Network.Caip2 $$contracts')
 
 		const contracts = await networkResolver.resolve.Caip2.resolve(network, networkContext)
-		expect(networkResolver.projections.Evm.$$contracts(contracts)).toEqual([
+		expect(networkResolver.projections.Evm.$$contracts.select(contracts)).toEqual([
 			{
 				[EntityMetaKey.Selector]: {
 					$network: network,
@@ -147,27 +147,107 @@ describe('Sourcify REST resolvers', () => {
 			},
 		])
 		expect(listVerifiedContracts).toHaveBeenCalledWith({
+			afterMatchId: undefined,
 			chainId: 1,
 			limit: 16,
 			sort: 'desc',
 		})
+		expect(networkResolver.projections.Evm.$$contracts.continuation(
+			contracts,
+			network,
+			networkContext
+		)).toEqual({
+			operation: 'verified-contracts',
+			target: '1',
+			terminal: true,
+		})
 	})
 
-	it('returns an empty Network.Evm.$$contracts page when offset is nonzero', async () => {
+	it('continues Network.Evm.$$contracts from the last native match ID', async () => {
+		listVerifiedContracts.mockResolvedValue(Array.from({ length: 16 }, (_value, index) => ({
+			match: 'exact_match',
+			chainId: '1',
+			address: `0x${String(index + 1).padStart(40, '0')}`,
+			matchId: String(300 - index),
+		})))
 		const networkResolver = sourcifyRest.resolvers.find((candidate) => (
 			candidate.entityType === EntityType.Network
 		))
 		if (networkResolver == null)
 			throw new Error('Sourcify REST spec missing Network.Caip2 $$contracts')
 
-		await expect(networkResolver.resolve.Caip2.resolve(network, {
+		const context = {
 			...networkContext,
-			pagination: {
-				limit: 16,
-				offset: 16,
-			},
-		})).resolves.toEqual([])
+			providerContinuationToken: '301',
+		}
+		const contracts = await networkResolver.resolve.Caip2.resolve(network, context)
+		expect(listVerifiedContracts).toHaveBeenCalledWith({
+			afterMatchId: '301',
+			chainId: 1,
+			limit: 16,
+			sort: 'desc',
+		})
+		expect(networkResolver.projections.Evm.$$contracts.continuation(
+			contracts,
+			network,
+			context
+		)).toEqual({
+			operation: 'verified-contracts',
+			target: '1',
+			terminal: false,
+			token: '285',
+		})
+	})
+
+	it('returns a terminal empty page without transport for a zero-row request', async () => {
+		const networkResolver = sourcifyRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.Network
+		))
+		if (networkResolver == null)
+			throw new Error('Sourcify REST spec missing Network.Caip2 $$contracts')
+		const context = {
+			...networkContext,
+			pagination: { limit: 0 },
+		}
+		const contracts = await networkResolver.resolve.Caip2.resolve(network, context)
+		expect(networkResolver.projections.Evm.$$contracts.select(contracts)).toEqual([])
+		expect(networkResolver.projections.Evm.$$contracts.continuation(
+			contracts,
+			network,
+			context
+		)).toMatchObject({ terminal: true })
 		expect(listVerifiedContracts).not.toHaveBeenCalled()
+	})
+
+	it('fail-closes a full verified-contract page without an advancing match ID', async () => {
+		const networkResolver = sourcifyRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.Network
+		))
+		if (networkResolver == null)
+			throw new Error('Sourcify REST spec missing Network.Caip2 $$contracts')
+
+		for (const matchId of [undefined, '301']) {
+			listVerifiedContracts.mockResolvedValueOnce(Array.from({ length: 16 }, (_value, index) => ({
+				match: 'exact_match',
+				chainId: '1',
+				address: `0x${String(index + 1).padStart(40, '0')}`,
+				...(index === 15 && matchId != null && { matchId }),
+			})))
+			const context = {
+				...networkContext,
+				providerContinuationToken: '301',
+			}
+			const contracts = await networkResolver.resolve.Caip2.resolve(network, context)
+			expect(() => networkResolver.projections.Evm.$$contracts.continuation(
+				contracts,
+				network,
+				context
+			)).toThrow(matchId == null ?
+				'missing continuation matchId'
+			:
+				'continuation did not advance'
+			)
+		}
 	})
 
 	it('projects verification, compilation, and source bundle from one lookup', async () => {

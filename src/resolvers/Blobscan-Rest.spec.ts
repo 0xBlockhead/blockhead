@@ -189,20 +189,23 @@ describe('Blobscan EVM blob resolvers', () => {
 	})
 
 	it('lists Network.Evm.$$blobs from Blobscan recent blobs', async () => {
-		listBlobs.mockResolvedValueOnce([{
-			versionedHash,
-			txHash,
-			index: 0,
-			blockNumber: 12,
-			commitment: '0xcommit',
-			dataStorageReferences: [{
-				storage: 'ipfs',
-				url: 'https://blobscan.com/ipfs/bafy',
+		listBlobs.mockResolvedValueOnce({
+			blobs: [{
+				versionedHash,
+				txHash,
+				index: 0,
+				blockNumber: 12,
+				commitment: '0xcommit',
+				dataStorageReferences: [{
+					storage: 'ipfs',
+					url: 'https://blobscan.com/ipfs/bafy',
+				}],
 			}],
-		}])
+			totalBlobs: 472,
+		})
 
-		const rows = await networkBlobsResolver.resolve.Caip2.resolve(network, context)
-		expect(networkBlobsResolver.projections.Evm.$$blobs(rows, context)).toEqual([{
+		const snapshot = await networkBlobsResolver.resolve.Caip2.resolve(network, context)
+		expect(networkBlobsResolver.projections.Evm.$$blobs.select(snapshot, context)).toEqual([{
 			[EntityMetaKey.Selector]: {
 				$transaction: {
 					$network: network,
@@ -235,7 +238,7 @@ describe('Blobscan EVM blob resolvers', () => {
 			limit: 16,
 			offset: 0,
 		})
-		expect(networkBlobsResolver.projections.Evm.$$blobs.resolveCount).toBeUndefined()
+		expect(networkBlobsResolver.projections.Evm.$$blobs.resolveCount(snapshot, context)).toBe(472)
 	})
 
 	it('projects enrolled EvmBlock blob-gas fields and $$transactions from getBlock', async () => {
@@ -399,22 +402,25 @@ describe('Blobscan EVM blob resolvers', () => {
 	})
 
 	it('lists Network.Evm.$$blocks from Blobscan recent blocks', async () => {
-		listBlocks.mockResolvedValueOnce([{
-			hash: '0xca22de2c1d7c8ac391921a2e3c96872ecf805a2d398813aa0f8cb995aa85ddea',
-			number: 12,
-			timestamp: '2026-08-05T02:08:35.000Z',
-			blobGasUsed: '131072',
-			excessBlobGas: '0',
-			transactions: [{
-				hash: txHash,
-				blobs: [{
-					versionedHash,
+		listBlocks.mockResolvedValueOnce({
+			blocks: [{
+				hash: '0xca22de2c1d7c8ac391921a2e3c96872ecf805a2d398813aa0f8cb995aa85ddea',
+				number: 12,
+				timestamp: '2026-08-05T02:08:35.000Z',
+				blobGasUsed: '131072',
+				excessBlobGas: '0',
+				transactions: [{
+					hash: txHash,
+					blobs: [{
+						versionedHash,
+					}],
 				}],
 			}],
-		}])
+			totalBlocks: 194,
+		})
 
-		const rows = await networkBlocksResolver.resolve.Caip2.resolve(network, context)
-		expect(networkBlocksResolver.projections.Evm.$$blocks(rows, context)).toEqual([{
+		const snapshot = await networkBlocksResolver.resolve.Caip2.resolve(network, context)
+		expect(networkBlocksResolver.projections.Evm.$$blocks.select(snapshot, context)).toEqual([{
 			[EntityMetaKey.Selector]: {
 				$network: network,
 				blockNumber: 12n,
@@ -450,7 +456,7 @@ describe('Blobscan EVM blob resolvers', () => {
 				})],
 			},
 		}])
-		expect(networkBlocksResolver.projections.Evm.$$blocks.resolveCount).toBeUndefined()
+		expect(networkBlocksResolver.projections.Evm.$$blocks.resolveCount(snapshot, context)).toBe(194)
 	})
 
 	it('hard-fails missing Blobscan blocks instead of soft-emptying EvmBlock', async () => {
