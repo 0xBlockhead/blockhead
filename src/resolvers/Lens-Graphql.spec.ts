@@ -11,6 +11,8 @@ import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { MediaTransport } from '$/schema/MediaTransport.ts'
+import { MediaType } from '$/schema/MediaType.ts'
 import { Source } from '$/sources/Source.ts'
 
 const {
@@ -111,7 +113,7 @@ describe('Lens_Graphql reading relationships', () => {
 				},
 				metadata: {
 					name: 'Alice',
-					picture: null,
+					picture: 'https://images.example/alice.png',
 				},
 			},
 			metadata: {
@@ -166,6 +168,15 @@ describe('Lens_Graphql reading relationships', () => {
 						[entityFieldAddressKey(EntityType.LensAccount, [], 'localName')]: 'alice',
 						[entityFieldAddressKey(EntityType.LensAccount, [], 'displayName')]: 'Alice',
 						[entityFieldAddressKey(EntityType.LensAccount, [], 'createdAt')]: 1_735_787_045_000,
+						[entityFieldAddressKey(EntityType.LensAccount, [], '$icon')]: {
+							[EntityMetaKey.Selector]: {
+								url: 'https://images.example/alice.png',
+							},
+							[EntityMetaKey.Fields]: {
+								[entityFieldAddressKey(EntityType.Media, [], 'type')]: MediaType.Image,
+								[entityFieldAddressKey(EntityType.Media, [], 'transport')]: MediaTransport.Http,
+							},
+						},
 					},
 				},
 				[entityFieldAddressKey(EntityType.LensPost, [], '$$timestamps')]: [
@@ -393,6 +404,14 @@ describe('Lens_Graphql reading relationships', () => {
 				contentUri: 'lens://metadata/post-one',
 				author: {
 					address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
+					createdAt: '2025-01-02T03:04:05.000Z',
+					username: {
+						localName: 'alice',
+					},
+					metadata: {
+						name: 'Alice',
+						picture: 'https://images.example/alice.png',
+					},
 				},
 				commentOn: {
 					slug: 'parent',
@@ -425,6 +444,16 @@ describe('Lens_Graphql reading relationships', () => {
 			$author: {
 				[EntityMetaKey.Selector]: {
 					address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.LensAccount, [], 'localName')]: 'alice',
+					[entityFieldAddressKey(EntityType.LensAccount, [], 'displayName')]: 'Alice',
+					[entityFieldAddressKey(EntityType.LensAccount, [], 'createdAt')]: 1_735_787_045_000,
+					[entityFieldAddressKey(EntityType.LensAccount, [], '$icon')]: {
+						[EntityMetaKey.Selector]: {
+							url: 'https://images.example/alice.png',
+						},
+					},
 				},
 			},
 			$commentOn: {

@@ -158,6 +158,54 @@ const lensAccountTipTimestampReferenceFromWire = (
 	},
 })
 
+const lensAccountAuthorReferenceFromWire = (
+	author:
+		| {
+			address: string
+			createdAt?: string | null
+			username?: {
+				localName?: string | null
+			} | null
+			metadata?: {
+				name?: string | null
+				picture?: string | null
+			} | null
+		}
+		| null
+		| undefined
+) => (
+	author == null ?
+		undefined
+	:
+		{
+			[EntityMetaKey.Selector]: {
+				address: lensEvmAddressFromWire(author.address),
+			},
+			[EntityMetaKey.Fields]: {
+				...((localName) => localName != null && {
+					[entityFieldAddressKey(EntityType.LensAccount, [], 'localName')]: localName,
+				})(optionalNonemptyString(author.username?.localName)),
+				...((displayName) => displayName != null && {
+					[entityFieldAddressKey(EntityType.LensAccount, [], 'displayName')]: displayName,
+				})(optionalNonemptyString(author.metadata?.name)),
+				...((createdAt) => createdAt != null && {
+					[entityFieldAddressKey(EntityType.LensAccount, [], 'createdAt')]: createdAt,
+				})(optionalTimestampMs(author.createdAt)),
+				...((icon) => icon != null && {
+					[entityFieldAddressKey(EntityType.LensAccount, [], '$icon')]: icon,
+				})(mediaFromUrl(
+					optionalNonemptyString(
+						author.metadata?.picture != null ?
+							String(author.metadata.picture)
+						:
+							null
+					),
+					MediaType.Image
+				)),
+			},
+		}
+)
+
 const lensPostCardReferenceFromWire = (
 	lensPost:
 		| {
@@ -174,6 +222,7 @@ const lensPostCardReferenceFromWire = (
 				} | null
 				metadata?: {
 					name?: string | null
+					picture?: string | null
 				} | null
 			} | null
 			metadata?: {
@@ -214,9 +263,6 @@ const lensPostCardReferenceFromWire = (
 
 	const timestamp = optionalTimestampMs(lensPost.timestamp)
 	const text = lensPost.__typename === 'Post' ? lensMetadataTextFromWire(lensPost.metadata) : undefined
-	const localName = optionalNonemptyString(lensPost.author.username?.localName)
-	const displayName = optionalNonemptyString(lensPost.author.metadata?.name)
-	const createdAt = optionalTimestampMs(lensPost.author.createdAt)
 	const contentUri = lensPost.__typename === 'Post' ? optionalNonemptyString(lensPost.contentUri) : undefined
 	const repostOfSlug = lensPost.__typename === 'Repost' ? optionalNonemptyString(lensPost.repostOf?.slug) : undefined
 	const commentOnSlug = lensPost.__typename === 'Post' ? optionalNonemptyString(lensPost.commentOn?.slug) : undefined
@@ -264,22 +310,7 @@ const lensPostCardReferenceFromWire = (
 					},
 				},
 			}),
-			[entityFieldAddressKey(EntityType.LensPost, [], '$author')]: {
-				[EntityMetaKey.Selector]: {
-					address: lensEvmAddressFromWire(lensPost.author.address),
-				},
-				[EntityMetaKey.Fields]: {
-					...(localName != null && {
-						[entityFieldAddressKey(EntityType.LensAccount, [], 'localName')]: localName,
-					}),
-					...(displayName != null && {
-						[entityFieldAddressKey(EntityType.LensAccount, [], 'displayName')]: displayName,
-					}),
-					...(createdAt != null && {
-						[entityFieldAddressKey(EntityType.LensAccount, [], 'createdAt')]: createdAt,
-					}),
-				},
-			},
+			[entityFieldAddressKey(EntityType.LensPost, [], '$author')]: lensAccountAuthorReferenceFromWire(lensPost.author),
 			...(lensPost.__typename === 'Post' && {
 				[entityFieldAddressKey(EntityType.LensPost, [], '$$timestamps')]: [
 					lensPostTipTimestampReferenceFromWire(id, lensPost),
@@ -635,11 +666,7 @@ const lensGraphqlResolvers = {
 								$commentOn: undefined,
 								$quoteOf: undefined,
 								$root: undefined,
-								$author: {
-									[EntityMetaKey.Selector]: {
-										address: lensEvmAddressFromWire(p.author.address),
-									},
-								},
+								$author: lensAccountAuthorReferenceFromWire(p.author),
 								$$timestamps: [
 									{
 										[EntityMetaKey.Selector]: {
@@ -693,11 +720,7 @@ const lensGraphqlResolvers = {
 								null
 						)),
 							$repostOf: undefined,
-							$author: {
-								[EntityMetaKey.Selector]: {
-									address: lensEvmAddressFromWire(p.author.address),
-								},
-							},
+							$author: lensAccountAuthorReferenceFromWire(p.author),
 							$$timestamps: [
 								lensPostTipTimestampReferenceFromWire(id, p),
 							],

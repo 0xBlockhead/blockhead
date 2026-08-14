@@ -245,6 +245,7 @@ const LensPostCard = graphql(`
 			}
 			metadata {
 				name
+				picture
 			}
 		}
 		metadata {
@@ -291,6 +292,7 @@ const LensRepostCard = graphql(`
 			}
 			metadata {
 				name
+				picture
 			}
 		}
 		repostOf {
@@ -307,6 +309,14 @@ const LensPostDetail = graphql(`
 		isDeleted
 		author {
 			address
+			createdAt
+			username {
+				localName
+			}
+			metadata {
+				name
+				picture
+			}
 		}
 		commentOn {
 			slug
@@ -346,6 +356,14 @@ const LensRepostDetail = graphql(`
 		isDeleted
 		author {
 			address
+			createdAt
+			username {
+				localName
+			}
+			metadata {
+				name
+				picture
+			}
 		}
 		repostOf {
 			slug
