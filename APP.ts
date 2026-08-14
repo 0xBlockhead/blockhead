@@ -864,6 +864,9 @@ export enum EntityType {
 	BeaconDataColumn_Timestamp = "BeaconDataColumn_Timestamp",
 	BeaconDeposit = "BeaconDeposit",
 	BeaconEpoch = "BeaconEpoch",
+	BeaconExecutionPayloadBid = "BeaconExecutionPayloadBid",
+	BeaconExecutionPayloadEnvelope = "BeaconExecutionPayloadEnvelope",
+	BeaconExecutionPayloadEnvelope_Timestamp = "BeaconExecutionPayloadEnvelope_Timestamp",
 	BeaconSlashing = "BeaconSlashing",
 	BeaconSlot = "BeaconSlot",
 	BeaconSyncCommittee = "BeaconSyncCommittee",
@@ -10617,6 +10620,8 @@ export const schema = {
 				"bodyRoot": { label: "Body root", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "zeroExHex" },
 				"signature": { label: "Signature", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "zeroExHex" },
 				"$executionBlock": { label: "Execution block", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.EvmBlock },
+				"$executionPayloadBid": { label: "Selected execution payload bid", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.BeaconExecutionPayloadBid, defaultSources: [Source.Beacon_Rest] },
+				"$executionPayloadEnvelope": { label: "Delivered execution payload envelope", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.BeaconExecutionPayloadEnvelope, defaultSources: [Source.Beacon_Rest] },
 				"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BeaconBlock_Timestamp, defaultSources: [Source.Beacon_Rest] },
 			})({
 				selectors: {
@@ -10626,7 +10631,7 @@ export const schema = {
 					singular: {
 						query: { sources: [Source.Beacon_Rest] },
 						summary: { title: [{ field: "root", format: "truncated" }], value: ["version"], HeadingAfter: ["$slot"] },
-						content: { dl: [["$slot", "$proposer", "$parent", "version", { field: "root", format: "truncated" }, { field: "stateRoot", format: "truncated" }, { field: "bodyRoot", format: "truncated" }, { field: "signature", format: "truncated" }, "$executionBlock"]], lists: [{ field: "$$timestamps", component: "BeaconBlock_TimestampsView", label: "Observations" }] },
+						content: { dl: [["$slot", "$proposer", "$parent", "version", { field: "root", format: "truncated" }, { field: "stateRoot", format: "truncated" }, { field: "bodyRoot", format: "truncated" }, { field: "signature", format: "truncated" }, "$executionBlock", "$executionPayloadBid", "$executionPayloadEnvelope"]], lists: [{ field: "$$timestamps", component: "BeaconBlock_TimestampsView", label: "Observations" }] },
 					},
 					plural: { component: "BeaconBlocksView", title: "Beacon blocks" },
 				},
@@ -10938,6 +10943,106 @@ export const schema = {
 					plural: { component: "BeaconEpochsView",
 						title: "Epochs",
 					},
+				},
+			}),
+
+			entity({
+				entityType: EntityType.BeaconExecutionPayloadBid,
+				labels: {
+					singular: "Beacon execution payload bid",
+					plural: "Beacon execution payload bids",
+				},
+				description: "The signed execution-payload commitment selected by one Gloas beacon block.",
+			})({
+				"$beaconBlock": { label: "Beacon block", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.BeaconBlock },
+				"builderIndex": { label: "Builder index", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
+				"parentExecutionBlockHash": { label: "Parent execution block hash", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "zeroExHex" },
+				"executionBlockHash": { label: "Committed execution block hash", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "zeroExHex" },
+				"prevRandao": { label: "Prev RANDAO", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "zeroExHex" },
+				"feeRecipient": { label: "Fee recipient", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "evmAddress" },
+				"gasLimit": { label: "Gas limit", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "bigint" },
+				"valueGwei": { label: "Bid value", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "bigint" },
+				"executionPaymentGwei": { label: "Execution payment", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "bigint" },
+				"blobKzgCommitments": { label: "Blob KZG commitments", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "zeroExHex" },
+				"executionRequestsRoot": { label: "Execution requests root", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "zeroExHex" },
+				"signature": { label: "Signature", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "zeroExHex" },
+			})({
+				selectors: {
+					"BeaconBlock": ["$beaconBlock"],
+				},
+				views: {
+					singular: {
+						query: { sources: [Source.Beacon_Rest] },
+						summary: { title: [{ field: "builderIndex", format: "number", prefix: "Builder " }], value: [{ field: "valueGwei", format: "numberValue", suffix: " Gwei" }], HeadingAfter: ["$beaconBlock"] },
+						content: { dl: [["$beaconBlock", { field: "builderIndex", format: "number" }, { field: "executionBlockHash", format: "truncated" }, { field: "parentExecutionBlockHash", format: "truncated" }], [{ field: "feeRecipient", format: "address" }, { field: "gasLimit", format: "numberValue" }, { field: "valueGwei", format: "numberValue", suffix: " Gwei" }, { field: "executionPaymentGwei", format: "numberValue", suffix: " Gwei" }], [{ field: "prevRandao", format: "truncated" }, { field: "executionRequestsRoot", format: "truncated" }, { field: "signature", format: "truncated" }], ["blobKzgCommitments"]] },
+					},
+					plural: { component: "BeaconExecutionPayloadBidsView", title: "Beacon execution payload bids" },
+				},
+			}),
+
+			entity({
+				entityType: EntityType.BeaconExecutionPayloadEnvelope,
+				labels: {
+					singular: "Beacon execution payload envelope",
+					plural: "Beacon execution payload envelopes",
+				},
+				description: "The separately signed execution payload delivered for one Gloas beacon block.",
+			})({
+				"$beaconBlock": { label: "Beacon block", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.BeaconBlock },
+				"$bid": { label: "Selected bid", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.BeaconExecutionPayloadBid },
+				"$executionBlock": { label: "Execution block", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EvmBlock },
+				"$parentExecutionBlock": { label: "Parent execution block", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EvmBlock },
+				"builderIndex": { label: "Builder index", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
+				"signature": { label: "Signature", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "zeroExHex" },
+				"blockNumber": { label: "Execution block number", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "bigint" },
+				"feeRecipient": { label: "Fee recipient", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "evmAddress" },
+				"gasLimit": { label: "Gas limit", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "bigint" },
+				"gasUsed": { label: "Gas used", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "bigint" },
+				"executionTimestampMs": { label: "Execution timestamp", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
+				"slotNumber": { label: "Payload slot", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
+				"baseFeePerGas": { label: "Base fee per gas", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "bigint" },
+				"blobGasUsed": { label: "Blob gas used", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "bigint" },
+				"excessBlobGas": { label: "Excess blob gas", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "bigint" },
+				"blockAccessList": { label: "Block access list", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "zeroExHex" },
+				"transactionCount": { label: "Transaction count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
+				"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BeaconExecutionPayloadEnvelope_Timestamp, defaultSources: [Source.Beacon_Rest] },
+			})({
+				selectors: {
+					"BeaconBlock": ["$beaconBlock"],
+				},
+				views: {
+					singular: {
+						query: { sources: [Source.Beacon_Rest] },
+						summary: { title: [{ field: "blockNumber", format: "numberValue", prefix: "Execution block " }], value: [{ field: "transactionCount", format: "number", suffix: " transactions" }], HeadingAfter: ["$beaconBlock"] },
+						content: { dl: [["$beaconBlock", "$bid", "$executionBlock", "$parentExecutionBlock"], [{ field: "builderIndex", format: "number" }, { field: "blockNumber", format: "numberValue" }, { field: "slotNumber", format: "number" }, { field: "executionTimestampMs", format: "timestamp" }], [{ field: "feeRecipient", format: "address" }, { field: "gasLimit", format: "numberValue" }, { field: "gasUsed", format: "numberValue" }, { field: "baseFeePerGas", format: "numberValue" }], [{ field: "blobGasUsed", format: "numberValue" }, { field: "excessBlobGas", format: "numberValue" }, { field: "transactionCount", format: "number" }], [{ field: "blockAccessList", format: "truncated" }, { field: "signature", format: "truncated" }]], lists: [{ field: "$$timestamps", component: "BeaconExecutionPayloadEnvelope_TimestampsView", label: "Observations" }] },
+					},
+					plural: { component: "BeaconExecutionPayloadEnvelopesView", title: "Beacon execution payload envelopes" },
+				},
+			}),
+
+			entity({
+				entityType: EntityType.BeaconExecutionPayloadEnvelope_Timestamp,
+				labels: {
+					singular: "Beacon execution payload envelope observation",
+					plural: "Beacon execution payload envelope observations",
+				},
+			})({
+				"$envelope": { label: "Envelope", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.BeaconExecutionPayloadEnvelope },
+				"timestampMs": { label: "Retrieved at", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
+				"source": { label: "Source", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"executionOptimistic": { label: "Execution optimistic", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "boolean" },
+				"finalized": { label: "Finalized", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "boolean" },
+			})({
+				selectors: {
+					"EnvelopeTimestampMsSource": ["$envelope", "timestampMs", "source"],
+				},
+				views: {
+					singular: {
+						query: { sources: [Source.Beacon_Rest] },
+						summary: { title: [{ field: "timestampMs", format: "timestamp" }], value: ["finalized", "executionOptimistic"], HeadingAfter: ["source"] },
+						content: { dl: [["$envelope", { field: "timestampMs", format: "timestamp" }, "source", "executionOptimistic", "finalized"]] },
+					},
+					plural: { component: "BeaconExecutionPayloadEnvelope_TimestampsView", title: "Beacon execution payload envelope observations" },
 				},
 			}),
 
@@ -79793,6 +79898,46 @@ export const routes = defineRoutes(schema)({
 														}
 													},
 													children: {
+														"execution-payload-bid": {
+															selectors: {
+																[EntityType.BeaconExecutionPayloadBid]: {
+																	"BeaconBlock": {
+																		projection: { entityType: EntityType.Network, facetPath: ["Evm"] },
+																		page: {},
+																	}
+																}
+															}
+														},
+														"execution-payload-envelope": {
+															selectors: {
+																[EntityType.BeaconExecutionPayloadEnvelope]: {
+																	"BeaconBlock": {
+																		projection: { entityType: EntityType.Network, facetPath: ["Evm"] },
+																		page: {},
+																	}
+																}
+															},
+															children: {
+																"observation": {
+																	children: {
+																		"[timestampMs]": {
+																			children: {
+																				"[source]": {
+																					selectors: {
+																						[EntityType.BeaconExecutionPayloadEnvelope_Timestamp]: {
+																							"EnvelopeTimestampMsSource": {
+																								params: { "timestampMs": ["timestampMs"], "source": ["source"] },
+																								page: {},
+																							}
+																						}
+																					}
+																				}
+																			}
+																		}
+																	}
+																}
+															}
+														},
 														"observation": {
 															children: {
 																"[timestampMs]": {

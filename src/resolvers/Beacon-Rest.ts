@@ -28,8 +28,10 @@ import {
 	beaconRestByChainId,
 } from '$/sources/Beacon/Rest/queries.ts'
 import type {
+	BeaconBlockSnapshot,
 	BeaconBlockDutySummary,
 	BeaconDataColumnSidecars,
+	BeaconExecutionPayloadEnvelope,
 } from '$/sources/Beacon/Rest/types.ts'
 
 const beaconNetworkApplicability = [...beaconRestByChainId.values()].map(({ chainId }) => ({
@@ -63,6 +65,21 @@ const eip155ChainId = (
 	if (!Number.isSafeInteger(chainId) || chainId < 1)
 		throw new Error('Beacon_Rest: network must have a positive safe eip155 chain ID')
 	return chainId
+}
+
+const assertExecutionPayloadEnvelopeMatchesBlock = (
+	block: BeaconBlockSnapshot,
+	envelope: BeaconExecutionPayloadEnvelope
+) => {
+	if (
+		block.executionPayloadBid == null
+		|| envelope.beaconBlockRoot.toLowerCase() !== block.root.toLowerCase()
+		|| envelope.parentBeaconBlockRoot.toLowerCase() !== block.parentRoot.toLowerCase()
+		|| envelope.builderIndex !== block.executionPayloadBid.builderIndex
+		|| envelope.executionBlockHash.toLowerCase() !== block.executionPayloadBid.executionBlockHash.toLowerCase()
+		|| envelope.parentExecutionBlockHash.toLowerCase() !== block.executionPayloadBid.parentExecutionBlockHash.toLowerCase()
+		|| envelope.slotNumber !== block.slot
+	) throw new Error('Beacon_Rest: execution payload envelope does not match selected block bid')
 }
 
 const beaconDataColumnSnapshot = (
@@ -584,6 +601,16 @@ export default {
 										},
 									},
 								}),
+								...(block.executionPayloadBid != null && {
+									[entityFieldAddressKey(EntityType.BeaconBlock, [], '$executionPayloadBid')]: {
+										[EntityMetaKey.Selector]: {
+											$beaconBlock: {
+												$network,
+												root: block.root,
+											},
+										},
+									},
+								}),
 								[entityFieldAddressKey(EntityType.BeaconBlock, [], '$$timestamps')]: [{
 									[EntityMetaKey.Selector]: {
 										$block: {
@@ -614,13 +641,28 @@ export default {
 				NetworkRoot: {
 					appliesTo: eip155NetworkApplicability,
 					resolve: async ({ $network, root }) => {
-						const { getBeaconBlockSnapshot } = await import('$/sources/Beacon/Rest/queries.ts')
+						const {
+							getBeaconBlockSnapshot,
+							getExecutionPayloadEnvelope,
+						} = await import('$/sources/Beacon/Rest/queries.ts')
 						const block = await getBeaconBlockSnapshot(
 							eip155ChainId($network),
 							root
 						)
 						if (block.root.toLowerCase() !== root.toLowerCase())
 							throw new Error('Beacon_Rest: block root does not match selector')
+
+						const envelope = (
+							block.executionPayloadBid == null ?
+								null
+								:
+								await getExecutionPayloadEnvelope(
+									eip155ChainId($network),
+									block.root
+								)
+						)
+						if (envelope != null)
+							assertExecutionPayloadEnvelopeMatchesBlock(block, envelope)
 
 						const timestampMs = Date.now()
 						return {
@@ -658,6 +700,26 @@ export default {
 									},
 								},
 							}),
+							...(block.executionPayloadBid != null && {
+								$executionPayloadBid: {
+									[EntityMetaKey.Selector]: {
+										$beaconBlock: {
+											$network,
+											root: block.root,
+										},
+									},
+								},
+							}),
+							...(envelope != null && {
+								$executionPayloadEnvelope: {
+									[EntityMetaKey.Selector]: {
+										$beaconBlock: {
+											$network,
+											root: block.root,
+										},
+									},
+								},
+							}),
 							$$timestamps: [{
 								[EntityMetaKey.Selector]: {
 									$block: {
@@ -688,7 +750,172 @@ export default {
 			bodyRoot: (block) => block.bodyRoot,
 			signature: (block) => block.signature,
 			$executionBlock: (block) => block.$executionBlock,
+			$executionPayloadBid: (block) => block.$executionPayloadBid,
+			$executionPayloadEnvelope: (block) => block.$executionPayloadEnvelope,
 			$$timestamps: (block) => block.$$timestamps,
+		}),
+
+		defineResolver({
+			entityType: EntityType.BeaconExecutionPayloadBid,
+			resolve: {
+				BeaconBlock: {
+					resolve: async ({ $beaconBlock }) => {
+						const { getBeaconBlockSnapshot } = await import('$/sources/Beacon/Rest/queries.ts')
+						const block = await getBeaconBlockSnapshot(
+							eip155ChainId($beaconBlock.$network),
+							$beaconBlock.root
+						)
+						if (
+							block.root.toLowerCase() !== $beaconBlock.root.toLowerCase()
+							|| block.executionPayloadBid == null
+						) throw new Error('Beacon_Rest: selected execution payload bid not found')
+
+						return {
+							$beaconBlock: {
+								[EntityMetaKey.Selector]: {
+									$network: $beaconBlock.$network,
+									root: block.root,
+								},
+							},
+							builderIndex: block.executionPayloadBid.builderIndex,
+							parentExecutionBlockHash: block.executionPayloadBid.parentExecutionBlockHash,
+							executionBlockHash: block.executionPayloadBid.executionBlockHash,
+							prevRandao: block.executionPayloadBid.prevRandao,
+							feeRecipient: block.executionPayloadBid.feeRecipient,
+							gasLimit: block.executionPayloadBid.gasLimit,
+							valueGwei: block.executionPayloadBid.valueGwei,
+							executionPaymentGwei: block.executionPayloadBid.executionPaymentGwei,
+							blobKzgCommitments: block.executionPayloadBid.blobKzgCommitments,
+							executionRequestsRoot: block.executionPayloadBid.executionRequestsRoot,
+							signature: block.executionPayloadBid.signature,
+						}
+					},
+				},
+			},
+		})({
+			$beaconBlock: (bid) => bid.$beaconBlock,
+			builderIndex: (bid) => bid.builderIndex,
+			parentExecutionBlockHash: (bid) => bid.parentExecutionBlockHash,
+			executionBlockHash: (bid) => bid.executionBlockHash,
+			prevRandao: (bid) => bid.prevRandao,
+			feeRecipient: (bid) => bid.feeRecipient,
+			gasLimit: (bid) => bid.gasLimit,
+			valueGwei: (bid) => bid.valueGwei,
+			executionPaymentGwei: (bid) => bid.executionPaymentGwei,
+			blobKzgCommitments: (bid) => bid.blobKzgCommitments,
+			executionRequestsRoot: (bid) => bid.executionRequestsRoot,
+			signature: (bid) => bid.signature,
+		}),
+
+		defineResolver({
+			entityType: EntityType.BeaconExecutionPayloadEnvelope,
+			resolve: {
+				BeaconBlock: {
+					resolve: async ({ $beaconBlock }) => {
+						const {
+							getBeaconBlockSnapshot,
+							getExecutionPayloadEnvelope,
+						} = await import('$/sources/Beacon/Rest/queries.ts')
+						const [
+							block,
+							envelope,
+						] = await Promise.all([
+							getBeaconBlockSnapshot(
+								eip155ChainId($beaconBlock.$network),
+								$beaconBlock.root
+							),
+							getExecutionPayloadEnvelope(
+								eip155ChainId($beaconBlock.$network),
+								$beaconBlock.root
+							),
+						])
+						if (envelope == null)
+							throw new Error('Beacon_Rest: execution payload envelope not found')
+						assertExecutionPayloadEnvelopeMatchesBlock(block, envelope)
+						const executionTimestampMs = envelope.timestampSeconds * 1_000n
+						if (executionTimestampMs > BigInt(Number.MAX_SAFE_INTEGER))
+							throw new Error('Beacon_Rest: execution payload timestamp exceeds safe integer range')
+
+						const timestampMs = Date.now()
+						return {
+							$beaconBlock: {
+								[EntityMetaKey.Selector]: {
+									$network: $beaconBlock.$network,
+									root: block.root,
+								},
+							},
+							$bid: {
+								[EntityMetaKey.Selector]: {
+									$beaconBlock: {
+										$network: $beaconBlock.$network,
+										root: block.root,
+									},
+								},
+							},
+							$executionBlock: {
+								[EntityMetaKey.Selector]: {
+									$network: $beaconBlock.$network,
+									hash: envelope.executionBlockHash,
+								},
+							},
+							$parentExecutionBlock: {
+								[EntityMetaKey.Selector]: {
+									$network: $beaconBlock.$network,
+									hash: envelope.parentExecutionBlockHash,
+								},
+							},
+							builderIndex: envelope.builderIndex,
+							signature: envelope.signature,
+							blockNumber: envelope.blockNumber,
+							feeRecipient: envelope.feeRecipient,
+							gasLimit: envelope.gasLimit,
+							gasUsed: envelope.gasUsed,
+							executionTimestampMs: Number(executionTimestampMs),
+							slotNumber: envelope.slotNumber,
+							baseFeePerGas: envelope.baseFeePerGas,
+							blobGasUsed: envelope.blobGasUsed,
+							excessBlobGas: envelope.excessBlobGas,
+							blockAccessList: envelope.blockAccessList,
+							transactionCount: envelope.transactionCount,
+							$$timestamps: [{
+								[EntityMetaKey.Selector]: {
+									$envelope: {
+										$beaconBlock: {
+											$network: $beaconBlock.$network,
+											root: block.root,
+										},
+									},
+									timestampMs,
+									source: Source.Beacon_Rest,
+								},
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.BeaconExecutionPayloadEnvelope_Timestamp, [], 'executionOptimistic')]: envelope.executionOptimistic,
+									[entityFieldAddressKey(EntityType.BeaconExecutionPayloadEnvelope_Timestamp, [], 'finalized')]: envelope.finalized,
+								},
+							}],
+						}
+					},
+				},
+			},
+		})({
+			$beaconBlock: (envelope) => envelope.$beaconBlock,
+			$bid: (envelope) => envelope.$bid,
+			$executionBlock: (envelope) => envelope.$executionBlock,
+			$parentExecutionBlock: (envelope) => envelope.$parentExecutionBlock,
+			builderIndex: (envelope) => envelope.builderIndex,
+			signature: (envelope) => envelope.signature,
+			blockNumber: (envelope) => envelope.blockNumber,
+			feeRecipient: (envelope) => envelope.feeRecipient,
+			gasLimit: (envelope) => envelope.gasLimit,
+			gasUsed: (envelope) => envelope.gasUsed,
+			executionTimestampMs: (envelope) => envelope.executionTimestampMs,
+			slotNumber: (envelope) => envelope.slotNumber,
+			baseFeePerGas: (envelope) => envelope.baseFeePerGas,
+			blobGasUsed: (envelope) => envelope.blobGasUsed,
+			excessBlobGas: (envelope) => envelope.excessBlobGas,
+			blockAccessList: (envelope) => envelope.blockAccessList,
+			transactionCount: (envelope) => envelope.transactionCount,
+			$$timestamps: (envelope) => envelope.$$timestamps,
 		}),
 
 		defineResolver({

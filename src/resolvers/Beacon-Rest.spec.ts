@@ -30,6 +30,7 @@ const getSyncCommittee = vi.hoisted(() => vi.fn())
 const getValidator = vi.hoisted(() => vi.fn())
 const getBlockDutySummary = vi.hoisted(() => vi.fn())
 const getBeaconBlockSnapshot = vi.hoisted(() => vi.fn())
+const getExecutionPayloadEnvelope = vi.hoisted(() => vi.fn())
 const getBlockRewards = vi.hoisted(() => vi.fn())
 const getAttestationRewards = vi.hoisted(() => vi.fn())
 const getSyncCommitteeRewards = vi.hoisted(() => vi.fn())
@@ -55,6 +56,7 @@ vi.mock('$/sources/Beacon/Rest/queries.ts', async (importOriginal) => ({
 	getValidator,
 	getBlockDutySummary,
 	getBeaconBlockSnapshot,
+	getExecutionPayloadEnvelope,
 	getBlockRewards,
 	getAttestationRewards,
 	getSyncCommitteeRewards,
@@ -142,6 +144,12 @@ const beaconBlockResolver = beaconRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.BeaconBlock
 	&& 'root' in resolver.projections
 ))
+const executionPayloadBidResolver = beaconRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.BeaconExecutionPayloadBid
+))
+const executionPayloadEnvelopeResolver = beaconRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.BeaconExecutionPayloadEnvelope
+))
 const headSlotResolver = beaconRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.Network
 	&& 'Evm' in resolver.projections
@@ -188,6 +196,8 @@ if (
 	|| blockRewardsResolver == null
 	|| slotBlocksResolver == null
 	|| beaconBlockResolver == null
+	|| executionPayloadBidResolver == null
+	|| executionPayloadEnvelopeResolver == null
 	|| headSlotResolver == null
 	|| epochSlotsResolver == null
 	|| committeesListResolver == null
@@ -775,6 +785,120 @@ describe('Beacon REST checkpoint and fork projections', () => {
 			$network: network,
 			slot: 65,
 		})).resolves.toEqual([])
+	})
+
+	it('materializes a selected Gloas bid and separately delivered execution envelope', async () => {
+		vi.spyOn(Date, 'now').mockReturnValue(1_760_000_000_000)
+		const beaconBlockSelector = {
+			$network: network,
+			root: `0x${'a'.repeat(64)}`,
+		}
+		getBeaconBlockSnapshot.mockResolvedValue({
+			version: 'gloas',
+			root: beaconBlockSelector.root,
+			slot: 96,
+			proposerIndex: 12,
+			parentRoot: `0x${'b'.repeat(64)}`,
+			stateRoot: `0x${'c'.repeat(64)}`,
+			bodyRoot: `0x${'d'.repeat(64)}`,
+			signature: `0x${'e'.repeat(192)}`,
+			canonical: true,
+			executionOptimistic: false,
+			finalized: true,
+			deposits: [],
+			attestations: [],
+			withdrawals: [],
+			slashings: [],
+			executionPayloadBid: {
+				builderIndex: 7,
+				slot: 96,
+				parentExecutionBlockHash: `0x${'1'.repeat(64)}`,
+				parentBeaconBlockRoot: `0x${'b'.repeat(64)}`,
+				executionBlockHash: `0x${'2'.repeat(64)}`,
+				prevRandao: `0x${'3'.repeat(64)}`,
+				feeRecipient: `0x${'4'.repeat(40)}`,
+				gasLimit: 30_000_000n,
+				valueGwei: 15n,
+				executionPaymentGwei: 5n,
+				blobKzgCommitments: [`0x${'5'.repeat(96)}`],
+				executionRequestsRoot: `0x${'6'.repeat(64)}`,
+				signature: `0x${'7'.repeat(192)}`,
+			},
+		})
+		const executionPayloadEnvelope = {
+			version: 'gloas',
+			executionOptimistic: false,
+			finalized: true,
+			beaconBlockRoot: beaconBlockSelector.root,
+			parentBeaconBlockRoot: `0x${'b'.repeat(64)}`,
+			builderIndex: 7,
+			signature: `0x${'8'.repeat(192)}`,
+			executionBlockHash: `0x${'2'.repeat(64)}`,
+			parentExecutionBlockHash: `0x${'1'.repeat(64)}`,
+			blockNumber: 22_000_000n,
+			feeRecipient: `0x${'4'.repeat(40)}`,
+			gasLimit: 30_000_000n,
+			gasUsed: 25_000_000n,
+			timestampSeconds: 1_760_000_000n,
+			slotNumber: 96,
+			baseFeePerGas: 10n,
+			blobGasUsed: 12n,
+			excessBlobGas: 13n,
+			blockAccessList: '0x1234',
+			transactionCount: 2,
+			executionRequests: {
+				deposits: [],
+				withdrawals: [],
+				consolidations: [],
+			},
+		}
+		getExecutionPayloadEnvelope.mockResolvedValue(executionPayloadEnvelope)
+
+		const block = await beaconBlockResolver.resolve.NetworkRoot.resolve(beaconBlockSelector)
+		expect(block).toMatchObject({
+			$executionPayloadBid: {
+				[EntityMetaKey.Selector]: { $beaconBlock: beaconBlockSelector },
+			},
+			$executionPayloadEnvelope: {
+				[EntityMetaKey.Selector]: { $beaconBlock: beaconBlockSelector },
+			},
+		})
+		await expect(executionPayloadBidResolver.resolve.BeaconBlock.resolve({
+			$beaconBlock: beaconBlockSelector,
+		})).resolves.toMatchObject({
+			builderIndex: 7,
+			executionBlockHash: `0x${'2'.repeat(64)}`,
+			valueGwei: 15n,
+		})
+		const envelope = await executionPayloadEnvelopeResolver.resolve.BeaconBlock.resolve({
+			$beaconBlock: beaconBlockSelector,
+		})
+		expect(envelope).toMatchObject({
+			blockNumber: 22_000_000n,
+			executionTimestampMs: 1_760_000_000_000,
+			$executionBlock: {
+				[EntityMetaKey.Selector]: {
+					hash: `0x${'2'.repeat(64)}`,
+				},
+			},
+		})
+		expect(envelope.$$timestamps[0]).toMatchObject({
+			[EntityMetaKey.Selector]: {
+				timestampMs: 1_760_000_000_000,
+				source: Source.Beacon_Rest,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.BeaconExecutionPayloadEnvelope_Timestamp, [], 'finalized')]: true,
+			},
+		})
+
+		getExecutionPayloadEnvelope.mockResolvedValue({
+			...executionPayloadEnvelope,
+			builderIndex: 8,
+		})
+		await expect(executionPayloadEnvelopeResolver.resolve.BeaconBlock.resolve({
+			$beaconBlock: beaconBlockSelector,
+		})).rejects.toThrow('does not match selected block bid')
 	})
 
 	it('rejects a native uint64 header index that cannot be represented by the schema number', async () => {

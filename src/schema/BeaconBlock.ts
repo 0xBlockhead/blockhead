@@ -55,6 +55,20 @@ export default entity({
 		entityType: EntityType.EvmBlock,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
+	$executionPayloadBid: {
+		entityType: EntityType.BeaconExecutionPayloadBid,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Beacon_Rest,
+		],
+	},
+	$executionPayloadEnvelope: {
+		entityType: EntityType.BeaconExecutionPayloadEnvelope,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Beacon_Rest,
+		],
+	},
 	$$timestamps: {
 		entityType: EntityType.BeaconBlock_Timestamp,
 		cardinality: EntityFieldCardinality.Many,

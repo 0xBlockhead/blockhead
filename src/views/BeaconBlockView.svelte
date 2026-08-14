@@ -47,6 +47,8 @@
 	import BeaconValidatorView from '$/views/BeaconValidatorView.svelte'
 	import BeaconBlockView from '$/views/BeaconBlockView.svelte'
 	import EvmBlockView from '$/views/EvmBlockView.svelte'
+	import BeaconExecutionPayloadBidView from '$/views/BeaconExecutionPayloadBidView.svelte'
+	import BeaconExecutionPayloadEnvelopeView from '$/views/BeaconExecutionPayloadEnvelopeView.svelte'
 </script>
 
 
@@ -248,6 +250,46 @@
 								<EvmBlockView
 									selection={select(EntityType.EvmBlock, (evmBlock ?? evmBlockInitial)[EntityMetaKey.Selector])}
 									prefetched={evmBlock ?? evmBlockInitial}
+									layout={EntityLayout.Value}
+								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={selection.$executionPayloadBid}
+			>
+				{#snippet children(beaconExecutionPayloadBid)}
+					{#if beaconExecutionPayloadBid != null}
+						{@const beaconExecutionPayloadBidInitial = untrack(() => beaconExecutionPayloadBid)}
+						<div>
+							<dt>Selected execution payload bid</dt>
+							<dd>
+								<BeaconExecutionPayloadBidView
+									selection={select(EntityType.BeaconExecutionPayloadBid, (beaconExecutionPayloadBid ?? beaconExecutionPayloadBidInitial)[EntityMetaKey.Selector])}
+									prefetched={beaconExecutionPayloadBid ?? beaconExecutionPayloadBidInitial}
+									layout={EntityLayout.Value}
+								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={selection.$executionPayloadEnvelope}
+			>
+				{#snippet children(beaconExecutionPayloadEnvelope)}
+					{#if beaconExecutionPayloadEnvelope != null}
+						{@const beaconExecutionPayloadEnvelopeInitial = untrack(() => beaconExecutionPayloadEnvelope)}
+						<div>
+							<dt>Delivered execution payload envelope</dt>
+							<dd>
+								<BeaconExecutionPayloadEnvelopeView
+									selection={select(EntityType.BeaconExecutionPayloadEnvelope, (beaconExecutionPayloadEnvelope ?? beaconExecutionPayloadEnvelopeInitial)[EntityMetaKey.Selector])}
+									prefetched={beaconExecutionPayloadEnvelope ?? beaconExecutionPayloadEnvelopeInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

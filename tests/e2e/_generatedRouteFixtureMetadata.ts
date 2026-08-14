@@ -6915,6 +6915,44 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
+	'/(explore)/(networks)/network/[network]/beacon-block/[root]/execution-payload-bid': {
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/beacon-block/[root=zeroExHex]/(beaconBlock)/execution-payload-bid',
+		mappings: [
+			{
+				id: 'BeaconExecutionPayloadBid.BeaconBlock',
+				projectionEntity: 'Network',
+				probeAtomPrefixes: ['/network/[network]/beacon-block/[root]/execution-payload-bid:BeaconExecutionPayloadBid.BeaconBlock'],
+				probeCases: [[[0, '1', ['root', 'network']]]],
+				projectionPath: [
+					'Evm',
+				],
+			},
+		],
+	},
+	'/(explore)/(networks)/network/[network]/beacon-block/[root]/execution-payload-envelope': {
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/beacon-block/[root=zeroExHex]/(beaconBlock)/execution-payload-envelope',
+		mappings: [
+			{
+				id: 'BeaconExecutionPayloadEnvelope.BeaconBlock',
+				projectionEntity: 'Network',
+				probeAtomPrefixes: ['/network/[network]/beacon-block/[root]/execution-payload-envelope:BeaconExecutionPayloadEnvelope.BeaconBlock'],
+				probeCases: [[[0, '1', ['root', 'network']]]],
+				projectionPath: [
+					'Evm',
+				],
+			},
+		],
+	},
+	'/(explore)/(networks)/network/[network]/beacon-block/[root]/execution-payload-envelope/observation/[timestampMs]/[source]': {
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/beacon-block/[root=zeroExHex]/(beaconBlock)/execution-payload-envelope/(beaconExecutionPayloadEnvelope)/observation/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+		mappings: [
+			{
+				id: 'BeaconExecutionPayloadEnvelope_Timestamp.EnvelopeTimestampMsSource',
+				probeAtomPrefixes: ['/network/[network]/beacon-block/[root]/execution-payload-envelope/observation/[timestampMs]/[source]:BeaconExecutionPayloadEnvelope_Timestamp.EnvelopeTimestampMsSource'],
+				probeCases: [[[0, '1', ['timestampMs', 'source', 'root', 'network']]]],
+			},
+		],
+	},
 	'/(explore)/(networks)/network/[network]/beacon-block/[root]/observation/[timestampMs]/[source]': {
 		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/beacon-block/[root=zeroExHex]/(beaconBlock)/observation/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 		mappings: [
