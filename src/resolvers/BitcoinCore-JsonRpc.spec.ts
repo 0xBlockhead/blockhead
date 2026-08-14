@@ -573,6 +573,7 @@ describe('BitcoinCore UTXO', () => {
 			unspents: [{
 				txid: '4'.repeat(64),
 				vout: 1,
+				scriptPubKey: '0014abcd',
 				valueSatoshis: 50_000_000n,
 			}],
 			totalAmountSatoshis: 50_000_000n,
@@ -589,6 +590,11 @@ describe('BitcoinCore UTXO', () => {
 					txId: '4'.repeat(64),
 				},
 				indexInTransaction: 1,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.UtxoOutput, [], 'valueSats')]: 50_000_000n,
+				[entityFieldAddressKey(EntityType.UtxoOutput, [], 'scriptPubKeyHex')]: '0014abcd',
+				[entityFieldAddressKey(EntityType.UtxoOutput, [], 'isSpent')]: false,
 			},
 		}])
 

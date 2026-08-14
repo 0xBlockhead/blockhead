@@ -739,6 +739,11 @@ export const bitcoinCoreJsonRpcResolvers = <
 									},
 									indexInTransaction: utxo.vout,
 								},
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.UtxoOutput, [], 'valueSats')]: utxo.valueSatoshis,
+									[entityFieldAddressKey(EntityType.UtxoOutput, [], 'scriptPubKeyHex')]: utxo.scriptPubKey,
+									[entityFieldAddressKey(EntityType.UtxoOutput, [], 'isSpent')]: false,
+								},
 							}))
 						},
 					},
