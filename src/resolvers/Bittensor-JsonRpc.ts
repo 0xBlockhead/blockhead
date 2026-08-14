@@ -5,6 +5,7 @@ import {
 } from '$/resolvers/defineResolver.ts'
 import {
 	EntityMetaKey,
+	entityFieldAddressKey,
 } from '$/schema/$schema.ts'
 import type { EntitySelector } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
@@ -48,6 +49,107 @@ const compactLengthFromScaleBytes = (bytes: readonly number[]) => {
 	)
 }
 
+const bittensorNetworkTimestampEntityFields = (
+	snapshot: {
+		finalizedBlockHash: string
+		finalizedBlockNumber: bigint
+		runtimeSpecName: string
+		runtimeSpecVersion: number
+		runtimeImplVersion: number
+		peerCount: number
+		isSyncing: boolean
+		shouldHavePeers: boolean
+		subnetCount: number | undefined
+		subnetsInfoByteLength: number
+		dynamicInfoByteLength: number
+		metagraphsByteLength: number
+	}
+) => ({
+	[entityFieldAddressKey(EntityType.BittensorNetwork_Timestamp, [], 'finalizedBlockHash')]: snapshot.finalizedBlockHash,
+	[entityFieldAddressKey(EntityType.BittensorNetwork_Timestamp, [], 'finalizedBlockNumber')]: snapshot.finalizedBlockNumber,
+	[entityFieldAddressKey(EntityType.BittensorNetwork_Timestamp, [], 'runtimeSpecName')]: snapshot.runtimeSpecName,
+	[entityFieldAddressKey(EntityType.BittensorNetwork_Timestamp, [], 'runtimeSpecVersion')]: snapshot.runtimeSpecVersion,
+	[entityFieldAddressKey(EntityType.BittensorNetwork_Timestamp, [], 'runtimeImplVersion')]: snapshot.runtimeImplVersion,
+	[entityFieldAddressKey(EntityType.BittensorNetwork_Timestamp, [], 'peerCount')]: snapshot.peerCount,
+	[entityFieldAddressKey(EntityType.BittensorNetwork_Timestamp, [], 'isSyncing')]: snapshot.isSyncing,
+	[entityFieldAddressKey(EntityType.BittensorNetwork_Timestamp, [], 'shouldHavePeers')]: snapshot.shouldHavePeers,
+	...(snapshot.subnetCount != null && {
+		[entityFieldAddressKey(EntityType.BittensorNetwork_Timestamp, [], 'subnetCount')]: snapshot.subnetCount,
+	}),
+	[entityFieldAddressKey(EntityType.BittensorNetwork_Timestamp, [], 'subnetsInfoByteLength')]: snapshot.subnetsInfoByteLength,
+	[entityFieldAddressKey(EntityType.BittensorNetwork_Timestamp, [], 'dynamicInfoByteLength')]: snapshot.dynamicInfoByteLength,
+	[entityFieldAddressKey(EntityType.BittensorNetwork_Timestamp, [], 'metagraphsByteLength')]: snapshot.metagraphsByteLength,
+})
+
+const bittensorNetworkTimestampRefs = async (
+	network: EntitySelector<typeof schema, EntityType.Network>
+) => {
+	const {
+		getAllDynamicInfo,
+		getAllMetagraphs,
+		getFinalizedHead,
+		getHeader,
+		getRuntimeVersion,
+		getSubnetsInfo,
+		getSystemHealth,
+	} = await import('$/sources/Bittensor/JsonRpc/queries.ts')
+	const finalizedBlockHash = await getFinalizedHead()
+	const [
+		runtimeVersion,
+		systemHealth,
+		subnetsInfo,
+		dynamicInfo,
+		metagraphs,
+	] = await Promise.all([
+		getRuntimeVersion(),
+		getSystemHealth(),
+		getSubnetsInfo({
+			blockHash: finalizedBlockHash,
+		}),
+		getAllDynamicInfo({
+			blockHash: finalizedBlockHash,
+		}),
+		getAllMetagraphs({
+			blockHash: finalizedBlockHash,
+		}),
+	])
+	const timestampMs = Date.now()
+	const fields = bittensorNetworkTimestampEntityFields({
+		finalizedBlockHash,
+		finalizedBlockNumber: blockNumberFromHeader(await getHeader({
+			blockHash: finalizedBlockHash,
+		})),
+		runtimeSpecName: runtimeVersion.specName,
+		runtimeSpecVersion: runtimeVersion.specVersion,
+		runtimeImplVersion: runtimeVersion.implVersion,
+		peerCount: systemHealth.peers,
+		isSyncing: systemHealth.isSyncing,
+		shouldHavePeers: systemHealth.shouldHavePeers,
+		subnetCount: compactLengthFromScaleBytes(dynamicInfo),
+		subnetsInfoByteLength: subnetsInfo.length,
+		dynamicInfoByteLength: dynamicInfo.length,
+		metagraphsByteLength: metagraphs.length,
+	})
+	return [{
+		[EntityMetaKey.Selector]: {
+			$network: network,
+			timestampMs,
+			source: Source.Bittensor_JsonRpc,
+		},
+		[EntityMetaKey.Fields]: fields,
+	}]
+}
+
+const bittensorMetagraphTimestampEntityFields = (
+	metagraphByteLength: number,
+	neuronsLite: readonly number[]
+) => ({
+	[entityFieldAddressKey(EntityType.BittensorMetagraph_Timestamp, [], 'metagraphByteLength')]: metagraphByteLength,
+	...(compactLengthFromScaleBytes(neuronsLite) != null && {
+		[entityFieldAddressKey(EntityType.BittensorMetagraph_Timestamp, [], 'neuronCount')]: compactLengthFromScaleBytes(neuronsLite),
+	}),
+})
+
 export default {
 	source: Source.Bittensor_JsonRpc,
 
@@ -68,75 +170,6 @@ export default {
 			}
 		})({
 					$network: (network) => network.$network,
-				}),
-
-		defineResolver({
-			entityType: EntityType.BittensorNetwork_Timestamp,
-			resolve: {
-				NetworkTimestampMsSource: {
-					resolve: async ({ $network }) => {
-						assertBittensorMainnet($network)
-						const {
-							getAllDynamicInfo,
-							getAllMetagraphs,
-							getFinalizedHead,
-							getHeader,
-							getRuntimeVersion,
-							getSubnetsInfo,
-							getSystemHealth,
-						} = await import('$/sources/Bittensor/JsonRpc/queries.ts')
-						const finalizedBlockHash = await getFinalizedHead()
-						const [
-							runtimeVersion,
-							systemHealth,
-							subnetsInfo,
-							dynamicInfo,
-							metagraphs,
-						] = await Promise.all([
-							getRuntimeVersion(),
-							getSystemHealth(),
-							getSubnetsInfo({
-								blockHash: finalizedBlockHash,
-							}),
-							getAllDynamicInfo({
-								blockHash: finalizedBlockHash,
-							}),
-							getAllMetagraphs({
-								blockHash: finalizedBlockHash,
-							}),
-						])
-						return {
-							finalizedBlockHash,
-							finalizedBlockNumber: blockNumberFromHeader(await getHeader({
-								blockHash: finalizedBlockHash,
-							})),
-							runtimeSpecName: runtimeVersion.specName,
-							runtimeSpecVersion: runtimeVersion.specVersion,
-							runtimeImplVersion: runtimeVersion.implVersion,
-							peerCount: systemHealth.peers,
-							isSyncing: systemHealth.isSyncing,
-							shouldHavePeers: systemHealth.shouldHavePeers,
-							subnetCount: compactLengthFromScaleBytes(dynamicInfo),
-							subnetsInfoByteLength: subnetsInfo.length,
-							dynamicInfoByteLength: dynamicInfo.length,
-							metagraphsByteLength: metagraphs.length,
-						}
-					},
-				}
-			}
-		})({
-					finalizedBlockHash: (timestamp) => timestamp.finalizedBlockHash,
-					finalizedBlockNumber: (timestamp) => timestamp.finalizedBlockNumber,
-					runtimeSpecName: (timestamp) => timestamp.runtimeSpecName,
-					runtimeSpecVersion: (timestamp) => timestamp.runtimeSpecVersion,
-					runtimeImplVersion: (timestamp) => timestamp.runtimeImplVersion,
-					peerCount: (timestamp) => timestamp.peerCount,
-					isSyncing: (timestamp) => timestamp.isSyncing,
-					shouldHavePeers: (timestamp) => timestamp.shouldHavePeers,
-					subnetCount: (timestamp) => timestamp.subnetCount,
-					subnetsInfoByteLength: (timestamp) => timestamp.subnetsInfoByteLength,
-					dynamicInfoByteLength: (timestamp) => timestamp.dynamicInfoByteLength,
-					metagraphsByteLength: (timestamp) => timestamp.metagraphsByteLength,
 				}),
 
 		defineResolver({
@@ -182,11 +215,13 @@ export default {
 			entityType: EntityType.BittensorSubnet,
 			resolve: {
 				NetworkNetuid: {
-					resolve: async ({ $network, netuid }) => {
-						assertBittensorMainnet($network)
+					resolve: async (entitySelector) => {
+						assertBittensorMainnet(entitySelector.$network)
 						const {
 							getDynamicInfo,
 							getFinalizedHead,
+							getMetagraph,
+							getNeuronsLite,
 							getSubnetHyperparams,
 							getSubnetInfo,
 						} = await import('$/sources/Bittensor/JsonRpc/queries.ts')
@@ -195,25 +230,47 @@ export default {
 							subnetInfo,
 							dynamicInfo,
 							hyperparams,
+							metagraph,
+							neuronsLite,
 						] = await Promise.all([
 							getSubnetInfo({
-								netuid,
+								netuid: entitySelector.netuid,
 								blockHash: finalizedBlockHash,
 							}),
 							getDynamicInfo({
-								netuid,
+								netuid: entitySelector.netuid,
 								blockHash: finalizedBlockHash,
 							}),
 							getSubnetHyperparams({
-								netuid,
+								netuid: entitySelector.netuid,
+								blockHash: finalizedBlockHash,
+							}),
+							getMetagraph({
+								netuid: entitySelector.netuid,
+								blockHash: finalizedBlockHash,
+							}),
+							getNeuronsLite({
+								netuid: entitySelector.netuid,
 								blockHash: finalizedBlockHash,
 							}),
 						])
+						const timestampMs = Date.now()
 						return {
-							netuid,
+							netuid: entitySelector.netuid,
 							subnetInfoByteLength: subnetInfo.length,
 							dynamicInfoByteLength: dynamicInfo.length,
 							hyperparamsByteLength: hyperparams.length,
+							$$metagraphTimestamps: [{
+								[EntityMetaKey.Selector]: {
+									$subnet: entitySelector,
+									timestampMs,
+									source: Source.Bittensor_JsonRpc,
+								},
+								[EntityMetaKey.Fields]: bittensorMetagraphTimestampEntityFields(
+									metagraph.length,
+									neuronsLite
+								),
+							}],
 						}
 					},
 				}
@@ -223,43 +280,10 @@ export default {
 					subnetInfoByteLength: (subnet) => subnet.subnetInfoByteLength,
 					dynamicInfoByteLength: (subnet) => subnet.dynamicInfoByteLength,
 					hyperparamsByteLength: (subnet) => subnet.hyperparamsByteLength,
-				}),
-
-		defineResolver({
-			entityType: EntityType.BittensorMetagraph_Timestamp,
-			resolve: {
-				SubnetTimestampMsSource: {
-					resolve: async ({ $subnet }) => {
-						assertBittensorMainnet($subnet.$network)
-						const {
-							getFinalizedHead,
-							getMetagraph,
-							getNeuronsLite,
-						} = await import('$/sources/Bittensor/JsonRpc/queries.ts')
-						const finalizedBlockHash = await getFinalizedHead()
-						const [
-							metagraph,
-							neuronsLite,
-						] = await Promise.all([
-							getMetagraph({
-								netuid: $subnet.netuid,
-								blockHash: finalizedBlockHash,
-							}),
-							getNeuronsLite({
-								netuid: $subnet.netuid,
-								blockHash: finalizedBlockHash,
-							}),
-						])
-						return {
-							metagraphByteLength: metagraph.length,
-							neuronCount: compactLengthFromScaleBytes(neuronsLite),
-						}
+					$$metagraphTimestamps: {
+						select: (snapshot) => snapshot.$$metagraphTimestamps,
+						resolveCount: (snapshot) => snapshot.$$metagraphTimestamps.length,
 					},
-				}
-			}
-		})({
-					metagraphByteLength: (timestamp) => timestamp.metagraphByteLength,
-					neuronCount: (timestamp) => timestamp.neuronCount,
 				}),
 
 		defineResolver({
@@ -294,21 +318,15 @@ export default {
 				Slug: {
 					resolve: async (network) => {
 						assertBittensorMainnet(network)
-						return [
-							{
-								[EntityMetaKey.Selector]: {
-									$network: network,
-									timestampMs: Date.now(),
-									source: Source.Bittensor_JsonRpc,
-								},
-							},
-						]
+						return {
+							timestamps: await bittensorNetworkTimestampRefs(network),
+						}
 					},
 				}
 			}
 		})({
 					Bittensor: {
-						$$timestamps: (timestamps) => timestamps,
+						$$timestamps: (snapshot) => snapshot.timestamps,
 					},
 				}),
 
@@ -318,20 +336,14 @@ export default {
 				Network: {
 					resolve: async ({ $network }) => {
 						assertBittensorMainnet($network)
-						return [
-							{
-								[EntityMetaKey.Selector]: {
-									$network: $network,
-									timestampMs: Date.now(),
-									source: Source.Bittensor_JsonRpc,
-								},
-							},
-						]
+						return {
+							timestamps: await bittensorNetworkTimestampRefs($network),
+						}
 					},
 				}
 			}
 		})({
-					$$timestamps: (timestamps) => timestamps,
+					$$timestamps: (snapshot) => snapshot.timestamps,
 				}),
 
 		defineResolver({
@@ -479,31 +491,6 @@ export default {
 					$$subnets: {
 						select: (snapshot) => snapshot.subnets,
 						resolveCount: (snapshot) => snapshot.subnetCount,
-					},
-				}),
-
-		defineResolver({
-			entityType: EntityType.BittensorSubnet,
-			resolve: {
-				NetworkNetuid: {
-					resolve: async (entitySelector) => {
-						assertBittensorMainnet(entitySelector.$network)
-						return [
-							{
-								[EntityMetaKey.Selector]: {
-									$subnet: entitySelector,
-									timestampMs: Date.now(),
-									source: Source.Bittensor_JsonRpc,
-								},
-							},
-						]
-					},
-				}
-			}
-		})({
-					$$metagraphTimestamps: {
-						select: (timestamps) => timestamps,
-						resolveCount: (timestamps) => timestamps.length,
 					},
 				}),
 

@@ -12127,9 +12127,6 @@ export const schema = {
 				},
 				views: {
 					singular: {
-						query: {
-							sources: [Source.Bittensor_JsonRpc],
-						},
 						summary: {
 							title: [{ field: "timestampMs", format: "timestamp" }],
 							value: [{ field: "metagraphByteLength", format: "number" }],
@@ -12275,9 +12272,6 @@ export const schema = {
 				},
 				views: {
 					singular: {
-						query: {
-							sources: [Source.Bittensor_JsonRpc],
-						},
 						summary: {
 							title: [{ field: "timestampMs", format: "timestamp" }],
 							value: [{ field: "finalizedBlockNumber", format: "number" }],

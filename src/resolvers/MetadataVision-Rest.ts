@@ -1,18 +1,19 @@
-import { mediaFromUrl } from '$/resolvers/media.ts'
 import { optionalNonemptyString } from '$/lib/string.ts'
 import {
 	defineResolver,
 	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
+import { mediaFromUrl } from '$/resolvers/media.ts'
 import {
 	EntityMetaKey,
+	entityFieldAddressKey,
 } from '$/schema/$schema.ts'
-import { MediaType } from '$/schema/MediaType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { Source } from '$/sources/Source.ts'
+import { MediaType } from '$/schema/MediaType.ts'
 import type { MetadataVisionOpenGraphData } from '$/sources/MetadataVision/Rest/types.ts'
+import { Source } from '$/sources/Source.ts'
 
-const urlPreviewFieldsFromWire = (
+const urlPreviewTimestampFieldsFromWire = (
 	wire: MetadataVisionOpenGraphData
 ) => {
 	const title = optionalNonemptyString(wire.title)
@@ -22,12 +23,22 @@ const urlPreviewFieldsFromWire = (
 	const image = mediaFromUrl(imageUrl, MediaType.Image)
 
 	return {
-		...(title != null && { title }),
-		...(description != null && { description }),
-		...(siteName != null && { siteName }),
-		...(imageUrl != null && { imageUrl }),
-		...(image != null && { $image: image }),
-		previewStatus: 'ok',
+		...(title != null && {
+			[entityFieldAddressKey(EntityType.UrlPreview_Timestamp, [], 'title')]: title,
+		}),
+		...(description != null && {
+			[entityFieldAddressKey(EntityType.UrlPreview_Timestamp, [], 'description')]: description,
+		}),
+		...(siteName != null && {
+			[entityFieldAddressKey(EntityType.UrlPreview_Timestamp, [], 'siteName')]: siteName,
+		}),
+		...(imageUrl != null && {
+			[entityFieldAddressKey(EntityType.UrlPreview_Timestamp, [], 'imageUrl')]: imageUrl,
+		}),
+		...(image != null && {
+			[entityFieldAddressKey(EntityType.UrlPreview_Timestamp, [], '$image')]: image,
+		}),
+		[entityFieldAddressKey(EntityType.UrlPreview_Timestamp, [], 'previewStatus')]: 'ok',
 	}
 }
 
@@ -39,48 +50,29 @@ export default {
 			entityType: EntityType.Url,
 			resolve: {
 				Url: {
-					resolve: async ({ url }) => ({
-						$$previewTimestamps: [
-							{
-								[EntityMetaKey.Selector]: {
-									$url: { url },
-									timestampMs: Date.now(),
-									source: Source.MetadataVision_Rest,
-								},
-							},
-						],
-					}),
-				}
-			},
-		})({
-			$$previewTimestamps: (snapshot) => snapshot.$$previewTimestamps,
-		}),
-
-		defineResolver({
-			entityType: EntityType.UrlPreview_Timestamp,
-			resolve: {
-				UrlTimestampMsSource: {
-					resolve: async ({ $url, source }) => {
-						if (source !== Source.MetadataVision_Rest)
-							throw new Error(`MetadataVision_Rest: unsupported source ${source}`)
-
+					resolve: async ({ url }) => {
 						const { getOpenGraphWireForPublicHttpUrl, metadataVisionBinding } = await import('$/sources/MetadataVision/Rest/queries.ts')
-						return urlPreviewFieldsFromWire(
-							await getOpenGraphWireForPublicHttpUrl(
-								metadataVisionBinding,
-								$url.url
-							)
+						const wire = await getOpenGraphWireForPublicHttpUrl(
+							metadataVisionBinding,
+							url
 						)
+						return {
+							$$previewTimestamps: [
+								{
+									[EntityMetaKey.Selector]: {
+										$url: { url },
+										timestampMs: Date.now(),
+										source: Source.MetadataVision_Rest,
+									},
+									[EntityMetaKey.Fields]: urlPreviewTimestampFieldsFromWire(wire),
+								},
+							],
+						}
 					},
 				}
 			},
 		})({
-			title: (snapshot) => snapshot.title,
-			description: (snapshot) => snapshot.description,
-			siteName: (snapshot) => snapshot.siteName,
-			imageUrl: (snapshot) => snapshot.imageUrl,
-			$image: (snapshot) => snapshot.$image,
-			previewStatus: (snapshot) => snapshot.previewStatus,
+			$$previewTimestamps: (snapshot) => snapshot.$$previewTimestamps,
 		}),
 	],
 } satisfies RegisteredSourceResolverModule

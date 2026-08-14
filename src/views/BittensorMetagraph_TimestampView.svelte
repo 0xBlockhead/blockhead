@@ -4,7 +4,6 @@
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -20,12 +19,7 @@
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.BittensorMetagraph_Timestamp>, 'prefetched'> = $props()
 
-	const viewSelection = $derived(selection({
-		sources: selection.sources ?? [
-			Source.Bittensor_JsonRpc,
-		],
-	}))
-	const bittensorMetagraphTimestamp = $derived(viewSelection({
+	const bittensorMetagraphTimestamp = $derived(selection({
 		fields: {
 			metagraphByteLength: true,
 		},
@@ -111,7 +105,7 @@
 
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
 						fields: {
 							neuronCount: true,
 						},

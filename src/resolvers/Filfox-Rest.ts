@@ -1347,49 +1347,6 @@ export default {
 		}),
 
 		defineResolver({
-			entityType: EntityType.FilecoinNetwork_Timestamp,
-			resolve: {
-				NetworkTimestampMsSource: {
-					resolve: async ({ $network, timestampMs, source }) => {
-						assertFilecoinMainnet($network)
-						if (source !== Source.Filfox_Rest)
-							throw new Error(`Filfox_Rest: unsupported network observation source ${source}`)
-						const overview = await (await import('$/sources/Filfox/Rest/queries.ts')).getOverview()
-						if (overview.timestamp * 1000 !== timestampMs)
-							throw new Error(`Filfox_Rest: network observation does not match ${timestampMs.toString()}`)
-						return {
-							timestampMs,
-							source: Source.Filfox_Rest,
-							headHeight: BigInt(overview.height),
-							headTimestampMs: overview.timestamp * 1000,
-							...(overview.totalRawBytePower != null && {
-								totalRawBytePower: BigInt(overview.totalRawBytePower),
-							}),
-							...(overview.totalQualityAdjPower != null && {
-								totalQualityAdjustedPower: BigInt(overview.totalQualityAdjPower),
-							}),
-						}
-					},
-				},
-			},
-		})({
-			timestampMs: (observation) => observation.timestampMs,
-			source: (observation) => observation.source,
-			headHeight: (observation) => observation.headHeight,
-			headTipsetKey: () => undefined,
-			headBlockCount: () => undefined,
-			headTimestampMs: (observation) => observation.headTimestampMs,
-			$headTipset: () => undefined,
-			$$headMiners: () => [],
-			networkVersion: () => undefined,
-			lotusVersion: () => undefined,
-			lotusAgent: () => undefined,
-			blockDelaySeconds: () => undefined,
-			totalRawBytePower: (observation) => observation.totalRawBytePower,
-			totalQualityAdjustedPower: (observation) => observation.totalQualityAdjustedPower,
-		}),
-
-		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Slug: {

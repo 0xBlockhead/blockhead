@@ -93,9 +93,6 @@ const filecoinNetworkTimestampsResolver = filfoxRest.resolvers.find((resolver) =
 	resolver.entityType === EntityType.FilecoinNetwork
 	&& '$$timestamps' in resolver.projections
 ))
-const filecoinNetworkTimestampResolver = filfoxRest.resolvers.find((resolver) => (
-	resolver.entityType === EntityType.FilecoinNetwork_Timestamp
-))
 const networkDealsResolver = filfoxRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.Network
 	&& 'Filecoin' in resolver.projections
@@ -134,7 +131,6 @@ if (
 	|| dealResolver == null
 	|| filecoinNetworkDealsResolver == null
 	|| filecoinNetworkTimestampsResolver == null
-	|| filecoinNetworkTimestampResolver == null
 	|| networkDealsResolver == null
 	|| networkTimestampsResolver == null
 	|| minerResolver == null
@@ -181,7 +177,6 @@ describe('Filfox REST resolvers', () => {
 			EntityType.FilecoinDeal,
 			EntityType.FilecoinNetwork,
 			EntityType.FilecoinNetwork,
-			EntityType.FilecoinNetwork_Timestamp,
 			EntityType.Network,
 			EntityType.Network,
 		])
@@ -966,7 +961,7 @@ describe('Filfox REST resolvers', () => {
 
 	it('lists deals through FilecoinNetwork and Network Filecoin projections', async () => {
 		getDeals.mockResolvedValue({
-			totalCount: 1,
+			totalCount: 99,
 			deals: [{
 				id: 42,
 				height: 100,
@@ -1031,14 +1026,19 @@ describe('Filfox REST resolvers', () => {
 				$network: network,
 			},
 			context
-		)).toBe(1)
+		)).toBe(99)
+		expect(networkDealsResolver.projections.Filecoin.$$deals.resolveCount?.(
+			await networkDealsResolver.resolve.Slug.resolve(network, context),
+			network,
+			context
+		)).toBe(99)
 		expect(getDeals).toHaveBeenCalledWith({
 			page: 0,
 			pageSize: 8,
 		})
 	})
 
-	it('projects FilecoinNetwork tip timestamps from overview power clocks', async () => {
+	it('embeds complete Filfox-supported network observation fields from one overview read', async () => {
 		getOverview.mockResolvedValue({
 			height: 6_258_509,
 			timestamp: 1_786_061_670,
@@ -1051,7 +1051,7 @@ describe('Filfox REST resolvers', () => {
 		const tip = await filecoinNetworkTimestampsResolver.resolve.Network.resolve({
 			$network: network,
 		})
-		expect(filecoinNetworkTimestampsResolver.projections.$$timestamps(tip)).toEqual([{
+		const expectedObservation = {
 			[EntityMetaKey.Selector]: {
 				$network: network,
 				timestampMs: 1_786_061_670_000,
@@ -1063,20 +1063,33 @@ describe('Filfox REST resolvers', () => {
 				[entityFieldAddressKey(EntityType.FilecoinNetwork_Timestamp, [], 'totalRawBytePower')]: 1651885653727641600n,
 				[entityFieldAddressKey(EntityType.FilecoinNetwork_Timestamp, [], 'totalQualityAdjustedPower')]: 14630426665522823168n,
 			},
-		}])
+		}
+		expect(filecoinNetworkTimestampsResolver.projections.$$timestamps(tip)).toEqual([
+			expectedObservation,
+		])
+		expect(getOverview).toHaveBeenCalledTimes(1)
+		expect(filecoinNetworkTimestampsResolver.projections.$$timestamps).not.toHaveProperty('resolveCount')
 		expect(networkTimestampsResolver.projections.Filecoin.$$timestamps(
 			await networkTimestampsResolver.resolve.Slug.resolve(network)
-		)).toEqual(filecoinNetworkTimestampsResolver.projections.$$timestamps(tip))
+		)).toEqual([
+			expectedObservation,
+		])
+	})
 
-		const observation = await filecoinNetworkTimestampResolver.resolve.NetworkTimestampMsSource.resolve({
+	it('propagates overview failures from the latest-observation parent', async () => {
+		getOverview.mockRejectedValue(new Error('Filfox_Rest: overview unavailable'))
+
+		await expect(filecoinNetworkTimestampsResolver.resolve.Network.resolve({
 			$network: network,
-			timestampMs: 1_786_061_670_000,
-			source: Source.Filfox_Rest,
-		})
-		expect(filecoinNetworkTimestampResolver.projections.headHeight(observation)).toBe(6_258_509n)
-		expect(filecoinNetworkTimestampResolver.projections.totalRawBytePower(observation)).toBe(1651885653727641600n)
-		expect(filecoinNetworkTimestampResolver.projections.lotusVersion(observation)).toBeUndefined()
-		expect(filecoinNetworkTimestampResolver.projections.headTipsetKey(observation)).toBeUndefined()
+		})).rejects.toThrow('Filfox_Rest: overview unavailable')
+		await expect(networkTimestampsResolver.resolve.Slug.resolve(network)).rejects.toThrow('Filfox_Rest: overview unavailable')
+		expect(getOverview).toHaveBeenCalledTimes(2)
+	})
+
+	it('does not register a direct FilecoinNetwork_Timestamp resolver', () => {
+		expect(filfoxRest.resolvers.map((resolver) => resolver.entityType)).not.toContain(
+			EntityType.FilecoinNetwork_Timestamp
+		)
 	})
 
 	it('maps Filfox address power into miner observations keyed by tipset', async () => {

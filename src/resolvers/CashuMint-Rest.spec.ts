@@ -29,25 +29,18 @@ vi.mock('$/sources/Cashu/Mint/Rest/queries.ts', () => ({
 	getMintQuoteBolt11,
 }))
 const { default: cashuMintResolvers } = await import('$/resolvers/CashuMint-Rest.ts')
-const mintTimestampResolver = cashuMintResolvers.resolvers.find((resolver) => (
-	resolver.entityType === EntityType.CashuMint_Timestamp
-	&& 'MintTimestampMsSource' in resolver.resolve
+const mintResolver = cashuMintResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.CashuMint
+	&& '$$timestamps' in resolver.projections
+	&& !('$$keysets' in resolver.projections)
 ))
-const keysetTimestampResolver = cashuMintResolvers.resolvers.find((resolver) => (
-	resolver.entityType === EntityType.CashuKeyset_Timestamp
-	&& 'KeysetTimestampMsSource' in resolver.resolve
-))
-const meltQuoteTimestampResolver = cashuMintResolvers.resolvers.find((resolver) => (
-	resolver.entityType === EntityType.BlockheadCashuMeltQuote_Timestamp
-	&& 'MeltQuoteTimestampMsSource' in resolver.resolve
+const keysetResolver = cashuMintResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.CashuKeyset
+	&& 'CashuMintKeysetId' in resolver.resolve
 ))
 const mintQuoteResolver = cashuMintResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.BlockheadCashuMintQuote
 	&& 'MintMethodQuoteId' in resolver.resolve
-))
-const mintQuoteTimestampResolver = cashuMintResolvers.resolvers.find((resolver) => (
-	resolver.entityType === EntityType.BlockheadCashuMintQuote_Timestamp
-	&& 'MintQuoteTimestampMsSource' in resolver.resolve
 ))
 const meltQuoteResolver = cashuMintResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.BlockheadCashuMeltQuote
@@ -58,16 +51,12 @@ const mintKeysetsResolver = cashuMintResolvers.resolvers.find((resolver) => (
 	&& '$$keysets' in resolver.projections
 ))
 if (
-	mintTimestampResolver == null
-	|| !('MintTimestampMsSource' in mintTimestampResolver.resolve)
-	|| keysetTimestampResolver == null
-	|| !('KeysetTimestampMsSource' in keysetTimestampResolver.resolve)
-	|| meltQuoteTimestampResolver == null
-	|| !('MeltQuoteTimestampMsSource' in meltQuoteTimestampResolver.resolve)
+	mintResolver == null
+	|| !('MintUrl' in mintResolver.resolve)
+	|| keysetResolver == null
+	|| !('CashuMintKeysetId' in keysetResolver.resolve)
 	|| mintQuoteResolver == null
 	|| !('MintMethodQuoteId' in mintQuoteResolver.resolve)
-	|| mintQuoteTimestampResolver == null
-	|| !('MintQuoteTimestampMsSource' in mintQuoteTimestampResolver.resolve)
 	|| meltQuoteResolver == null
 	|| !('MintMethodQuoteId' in meltQuoteResolver.resolve)
 	|| mintKeysetsResolver == null
@@ -88,7 +77,22 @@ afterEach(() => {
 	vi.restoreAllMocks()
 })
 
-it('projects the current NUT-06 and NUT-02 contracts', async () => {
+it('does not register direct Cashu timestamp replay resolvers', () => {
+	expect(cashuMintResolvers.resolvers.some((resolver) => (
+		resolver.entityType === EntityType.CashuMint_Timestamp
+	))).toBe(false)
+	expect(cashuMintResolvers.resolvers.some((resolver) => (
+		resolver.entityType === EntityType.CashuKeyset_Timestamp
+	))).toBe(false)
+	expect(cashuMintResolvers.resolvers.some((resolver) => (
+		resolver.entityType === EntityType.BlockheadCashuMintQuote_Timestamp
+	))).toBe(false)
+	expect(cashuMintResolvers.resolvers.some((resolver) => (
+		resolver.entityType === EntityType.BlockheadCashuMeltQuote_Timestamp
+	))).toBe(false)
+})
+
+it('projects the current NUT-06 and NUT-02 contracts from one parent read', async () => {
 	const contact = [{
 		method: 'email',
 		info: 'mint@example.com',
@@ -128,43 +132,54 @@ it('projects the current NUT-06 and NUT-02 contracts', async () => {
 		}],
 	})
 	const mintSelector = { mintUrl: 'https://mint.example' }
-	expect(await mintTimestampResolver.resolve.MintTimestampMsSource.resolve({
-		$mint: mintSelector,
-		timestampMs: 10,
-		source: Source.CashuMint_Rest,
-	}, {})).toMatchObject({
-		descriptionLong: 'Long',
-		contactJson: JSON.stringify(contact),
-		urls: ['https://mint.example'],
-		nutsJson: JSON.stringify(nuts),
-		mintMethodsJson: JSON.stringify(methods),
-		meltMethodsJson: JSON.stringify(methods),
-		supportedNutNumbers: [
+	const mintSnapshot = await mintResolver.resolve.MintUrl.resolve(mintSelector, {})
+	const mintObservation = mintSnapshot.$$timestamps[0]
+	const mintFields = mintObservation[EntityMetaKey.Fields]
+
+	expect(getMintInfo).toHaveBeenCalledTimes(1)
+	expect(getMintInfo).toHaveBeenCalledWith('https://mint.example')
+	expect(mintFields).toMatchObject({
+		[entityFieldAddressKey(EntityType.CashuMint_Timestamp, [], 'descriptionLong')]: 'Long',
+		[entityFieldAddressKey(EntityType.CashuMint_Timestamp, [], 'contactJson')]: JSON.stringify(contact),
+		[entityFieldAddressKey(EntityType.CashuMint_Timestamp, [], 'urls')]: ['https://mint.example'],
+		[entityFieldAddressKey(EntityType.CashuMint_Timestamp, [], 'nutsJson')]: JSON.stringify(nuts),
+		[entityFieldAddressKey(EntityType.CashuMint_Timestamp, [], 'mintMethodsJson')]: JSON.stringify(methods),
+		[entityFieldAddressKey(EntityType.CashuMint_Timestamp, [], 'meltMethodsJson')]: JSON.stringify(methods),
+		[entityFieldAddressKey(EntityType.CashuMint_Timestamp, [], 'supportedNutNumbers')]: [
 			4,
 			5,
 			7,
 		],
-		$icon: {
+		[entityFieldAddressKey(EntityType.CashuMint_Timestamp, [], '$icon')]: {
 			[EntityMetaKey.Selector]: {
 				url: 'https://mint.example/icon.png',
 			},
 		},
 	})
-	expect(await keysetTimestampResolver.resolve.KeysetTimestampMsSource.resolve({
-		$keyset: {
-			$mint: mintSelector,
-			keysetId: 'keyset',
-		},
-		timestampMs: 10,
+	expect(mintObservation[EntityMetaKey.Selector]).toMatchObject({
+		$mint: mintSelector,
 		source: Source.CashuMint_Rest,
-	}, {})).toMatchObject({
-		inputFeePpk: 0,
-		finalExpiryMs: 1_896_187_313_000,
-		listedByKeysetsEndpoint: true,
-		listedByKeysEndpoint: true,
+		timestampMs: expect.any(Number),
 	})
-	expect(mintTimestampResolver.projections.urls({})).toEqual([])
-	expect(mintTimestampResolver.projections.supportedNutNumbers({})).toEqual([])
+
+	const keysetSnapshot = await keysetResolver.resolve.CashuMintKeysetId.resolve({
+		$mint: mintSelector,
+		keysetId: 'keyset',
+	}, {})
+	const keysetObservation = keysetSnapshot.$$timestamps[0]
+
+	expect(getMintKeysets).toHaveBeenCalledTimes(1)
+	expect(getMintKeysForKeyset).toHaveBeenCalledTimes(1)
+	expect(keysetObservation[EntityMetaKey.Fields]).toMatchObject({
+		[entityFieldAddressKey(EntityType.CashuKeyset_Timestamp, [], 'inputFeePpk')]: 0,
+		[entityFieldAddressKey(EntityType.CashuKeyset_Timestamp, [], 'finalExpiryMs')]: 1_896_187_313_000,
+		[entityFieldAddressKey(EntityType.CashuKeyset_Timestamp, [], 'listedByKeysetsEndpoint')]: true,
+		[entityFieldAddressKey(EntityType.CashuKeyset_Timestamp, [], 'listedByKeysEndpoint')]: true,
+	})
+	expect(keysetObservation[EntityMetaKey.Selector]).toMatchObject({
+		source: Source.CashuMint_Rest,
+		timestampMs: expect.any(Number),
+	})
 })
 
 it('materializes key rotation and key availability on the mint-owned keyset collection', async () => {
@@ -261,22 +276,13 @@ it('projects an exact BOLT11 mint quote read without owning the mutation', async
 				timestampMs: 1_700_000_000_000,
 				source: Source.CashuMint_Rest,
 			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.BlockheadCashuMintQuote_Timestamp, [], 'state')]: 'PAID',
+				[entityFieldAddressKey(EntityType.BlockheadCashuMintQuote_Timestamp, [], 'expiryMs')]: 1_700_000_100_000,
+			},
 		}],
 	})
-	await expect(mintQuoteTimestampResolver.resolve.MintQuoteTimestampMsSource.resolve({
-		$mintQuote: mintQuoteSelector,
-		timestampMs: 1_700_000_000_000,
-		source: Source.CashuMint_Rest,
-	}, {})).resolves.toEqual({
-		$mintQuote: {
-			[EntityMetaKey.Selector]: mintQuoteSelector,
-		},
-		timestampMs: 1_700_000_000_000,
-		source: Source.CashuMint_Rest,
-		state: 'PAID',
-		expiryMs: 1_700_000_100_000,
-	})
-	expect(getMintQuoteBolt11).toHaveBeenCalledTimes(2)
+	expect(getMintQuoteBolt11).toHaveBeenCalledTimes(1)
 	expect(getMintQuoteBolt11).toHaveBeenCalledWith(
 		'https://mint.example',
 		'mint-quote'
@@ -307,11 +313,7 @@ it('does not fabricate a mint quote observation when the wire omits state', asyn
 	)).resolves.toMatchObject({
 		$$timestamps: [],
 	})
-	await expect(mintQuoteTimestampResolver.resolve.MintQuoteTimestampMsSource.resolve({
-		$mintQuote: mintQuoteSelector,
-		timestampMs: 1_700_000_000_000,
-		source: Source.CashuMint_Rest,
-	}, {})).rejects.toThrow('mint quote state is absent')
+	expect(getMintQuoteBolt11).toHaveBeenCalledTimes(1)
 })
 
 it('rejects unsafe Cashu timestamp conversions before creating an observation selector', async () => {
@@ -368,22 +370,13 @@ it('projects an exact BOLT11 melt quote read without owning the mutation', async
 				timestampMs: 100,
 				source: Source.CashuMint_Rest,
 			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.BlockheadCashuMeltQuote_Timestamp, [], 'state')]: 'PAID',
+				[entityFieldAddressKey(EntityType.BlockheadCashuMeltQuote_Timestamp, [], 'expiryMs')]: 1_700_000_000_000,
+			},
 		}],
 	})
-	await expect(meltQuoteTimestampResolver.resolve.MeltQuoteTimestampMsSource.resolve({
-		$meltQuote: meltQuoteSelector,
-		timestampMs: 100,
-		source: Source.CashuMint_Rest,
-	}, {})).resolves.toEqual({
-		$meltQuote: {
-			[EntityMetaKey.Selector]: meltQuoteSelector,
-		},
-		timestampMs: 100,
-		source: Source.CashuMint_Rest,
-		state: 'PAID',
-		expiryMs: 1_700_000_000_000,
-	})
-	expect(getMeltQuoteBolt11).toHaveBeenCalledTimes(2)
+	expect(getMeltQuoteBolt11).toHaveBeenCalledTimes(1)
 	expect(getMeltQuoteBolt11).toHaveBeenCalledWith(
 		'https://mint.example',
 		'melt-quote'
@@ -398,25 +391,10 @@ it('rejects inapplicable Cashu melt observations before transport', async () => 
 	}, {})).rejects.toThrow('unsupported mint method bolt12')
 	expect(getMintQuoteBolt11).not.toHaveBeenCalled()
 
-	await expect(meltQuoteTimestampResolver.resolve.MeltQuoteTimestampMsSource.resolve({
-		$meltQuote: {
-			$mint: { mintUrl: 'https://mint.example' },
-			method: 'bolt12',
-			quoteId: 'melt-quote',
-		},
-		timestampMs: 100,
-		source: Source.CashuMint_Rest,
+	await expect(meltQuoteResolver.resolve.MintMethodQuoteId.resolve({
+		$mint: { mintUrl: 'https://mint.example' },
+		method: 'bolt12',
+		quoteId: 'melt-quote',
 	}, {})).rejects.toThrow('unsupported melt method bolt12')
-	expect(getMeltQuoteBolt11).not.toHaveBeenCalled()
-
-	await expect(meltQuoteTimestampResolver.resolve.MeltQuoteTimestampMsSource.resolve({
-		$meltQuote: {
-			$mint: { mintUrl: 'https://mint.example' },
-			method: 'bolt11',
-			quoteId: 'melt-quote',
-		},
-		timestampMs: 100,
-		source: Source.Aave_Rest,
-	}, {})).rejects.toThrow('unsupported source Aave_Rest')
 	expect(getMeltQuoteBolt11).not.toHaveBeenCalled()
 })
