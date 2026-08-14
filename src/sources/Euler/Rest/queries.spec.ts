@@ -155,28 +155,32 @@ describe('Euler EVK vault operations', () => {
 		})
 		await expect(listVaults({
 			chainId: 1,
-		})).resolves.toEqual([
-			{
-				chainId: 1,
-				vaultAddress: '0x00011d9a1eb3d7278b8df2391e2e32f6f9bcf293',
-				vaultType: 'evk',
-				name: 'EVK Vault ePT-USDS-14AUG2025-2',
-				symbol: 'ePT-USDS-14AUG2025-2',
-				decimals: 18,
-				assetAddress: '0xffec096c087c13cc268497b89a613cace4df9a48',
-				assetSymbol: 'PT-USDS-14AUG2025',
-				assetName: 'PT USDS Stablecoin 14AUG2025',
-				assetDecimals: 18,
-				totalAssets: '0',
-				totalBorrows: '0',
-				totalSupplyUsd: 0,
-				totalBorrowsUsd: 0,
-				utilization: 0,
-				supplyApy: 0,
-				borrowApy: 0,
-				createdAt: '2025-07-09T21:17:23.000Z',
-			},
-		])
+		})).resolves.toEqual({
+			vaults: [
+				{
+					chainId: 1,
+					vaultAddress: '0x00011d9a1eb3d7278b8df2391e2e32f6f9bcf293',
+					vaultType: 'evk',
+					name: 'EVK Vault ePT-USDS-14AUG2025-2',
+					symbol: 'ePT-USDS-14AUG2025-2',
+					decimals: 18,
+					assetAddress: '0xffec096c087c13cc268497b89a613cace4df9a48',
+					assetSymbol: 'PT-USDS-14AUG2025',
+					assetName: 'PT USDS Stablecoin 14AUG2025',
+					assetDecimals: 18,
+					totalAssets: '0',
+					totalBorrows: '0',
+					totalSupplyUsd: 0,
+					totalBorrowsUsd: 0,
+					utilization: 0,
+					supplyApy: 0,
+					borrowApy: 0,
+					createdAt: '2025-07-09T21:17:23.000Z',
+				},
+			],
+			totalCount: 872,
+			offset: 0,
+		})
 		expect(sourceGetJson).toHaveBeenCalledWith(
 			binding,
 			httpUrl(binding, '/v3/evk/vaults', {
@@ -199,7 +203,11 @@ describe('Euler EVK vault operations', () => {
 
 		await expect(listVaults({
 			chainId: 1,
-		})).resolves.toEqual([])
+		})).resolves.toEqual({
+			vaults: [],
+			totalCount: 0,
+			offset: 0,
+		})
 	})
 
 	it('fails closed when a vault list contains another chain', async () => {

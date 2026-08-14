@@ -451,7 +451,15 @@ export const listVaults = async ({
 	if (new Set(vaults.map((vault) => vault.vaultAddress)).size !== vaults.length)
 		throw new Error(`${Source.Euler_Rest}: vault list contains duplicate vault identities`)
 
-	return vaults
+	const totalCount = response.meta?.total
+	if (totalCount == null || !Number.isSafeInteger(totalCount) || totalCount < vaults.length)
+		throw new Error(`${Source.Euler_Rest}: vault list response missing meta.total`)
+
+	return {
+		vaults,
+		totalCount,
+		offset,
+	}
 }
 
 /** Fetch canonical EVK vault detail by chain id and vault address. */

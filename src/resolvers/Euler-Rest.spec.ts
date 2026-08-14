@@ -381,4 +381,58 @@ describe('Euler Rest resolver module', () => {
 		})
 		expect(sourceGetJson).toHaveBeenCalledTimes(1)
 	})
+
+	it('projects authoritative Euler EVK vault catalog counts independently from the page window', async () => {
+		if (networkEulerEvkVaultsResolver == null)
+			throw new Error('missing Network $$eulerEvkVaults resolver')
+
+		sourceGetJson.mockResolvedValueOnce({
+			data: [
+				{
+					chainId: 1,
+					address: baseVaultAddress,
+					vaultType: 'evk',
+					name: baseVaultDetail.name,
+					symbol: baseVaultDetail.symbol,
+					decimals: baseVaultDetail.decimals,
+					asset: {
+						address: baseVaultDetail.assetAddress,
+						symbol: baseVaultDetail.assetSymbol,
+					},
+					totalAssets: baseVaultDetail.totalAssets,
+					totalBorrows: baseVaultDetail.totalBorrows,
+					totalSupplyUsd: baseVaultDetail.totalSupplyUsd,
+					totalBorrowsUsd: baseVaultDetail.totalBorrowsUsd,
+					utilization: baseVaultDetail.utilization,
+					supplyApy: baseVaultDetail.supplyApy,
+					borrowApy: baseVaultDetail.borrowApy,
+					createdAt: baseVaultDetail.createdAt,
+				},
+			],
+			meta: {
+				total: 872,
+				offset: 0,
+				limit: 16,
+			},
+		})
+
+		const snapshot = await networkEulerEvkVaultsResolver.resolve.Caip2.resolve(baseNetwork, context)
+		const vaultList = networkEulerEvkVaultsResolver.projections.Evm.$$eulerEvkVaults
+
+		expect(vaultList.select(snapshot)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$network: baseNetwork,
+					vaultAddress: '0x00011d9a1eb3d7278b8df2391e2e32f6f9bcf293',
+				},
+			},
+		])
+		expect(vaultList.resolveCount(snapshot)).toBe(872)
+		expect(vaultList.continuation(snapshot)).toEqual({
+			operation: 'network-euler-evk-vaults',
+			target: 'euler',
+			terminal: false,
+			token: '1',
+		})
+	})
 })

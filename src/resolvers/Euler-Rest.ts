@@ -267,23 +267,48 @@ export default {
 						if (eulerEvkByChainId[chainId] == null)
 							throw new Error(`${Source.Euler_Rest}: unsupported chain id ${String(chainId)}`)
 
+						const skip = context.pagination.offset ?? 0
+						if (!Number.isSafeInteger(skip) || skip < 0)
+							throw new Error(`${Source.Euler_Rest}: invalid pagination offset`)
+
 						const { listVaults } = await import('$/sources/Euler/Rest/queries.ts')
-						return (await listVaults({
+						const page = await listVaults({
 							chainId,
 							limit: resolverContextRowLimit(context),
-						}))
-							.map((vault) => ({
+							offset: skip,
+						})
+
+						return {
+							skip,
+							totalCount: page.totalCount,
+							rows: page.vaults.map((vault) => ({
 								[EntityMetaKey.Selector]: {
 									$network: network,
 									vaultAddress: vault.vaultAddress,
 								},
-							}))
+							})),
+						}
 					},
 				},
 			},
 		})({
 			Evm: {
-				$$eulerEvkVaults: (vaults) => vaults,
+				$$eulerEvkVaults: {
+					select: (snapshot) => snapshot.rows,
+					resolveCount: (snapshot) => snapshot.totalCount,
+					continuation: (snapshot) => {
+						const nextSkip = snapshot.skip + snapshot.rows.length
+
+						return {
+							operation: 'network-euler-evk-vaults',
+							target: 'euler',
+							terminal: nextSkip >= snapshot.totalCount,
+							...(nextSkip < snapshot.totalCount && {
+								token: String(nextSkip),
+							}),
+						}
+					},
+				},
 			},
 		}),
 	],
