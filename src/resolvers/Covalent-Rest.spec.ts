@@ -30,6 +30,9 @@ const transactionResolver = covalentResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.EvmTransaction
 	&& '$$logs' in resolver.projections
 ))
+const logResolver = covalentResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.EvmLog
+))
 const ownedCoinsResolver = covalentResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.EvmNetworkAccount
 	&& '$$ownedCoins' in resolver.projections
@@ -44,6 +47,7 @@ const balanceResolver = covalentResolvers.resolvers.find((resolver) => (
 
 if (
 	transactionResolver == null
+	|| logResolver == null
 	|| ownedCoinsResolver == null
 	|| accountTransactionsResolver == null
 	|| balanceResolver == null
@@ -648,5 +652,9 @@ describe('Covalent GoldRush product entity types', () => {
 		}])
 		expect(transactionResolver.projections.$$tokenApprovals.resolveCount(transaction)).toBe(1)
 		expect(transactionResolver.projections.$$tokenTransfers.resolveCount(transaction)).toBe(1)
+		expect(transactionResolver.projections.$$logs.resolveCount(transaction)).toBe(2)
+		expect(transactionResolver.projections.$$internalTransfers.resolveCount(transaction)).toBe(1)
+		expect(logResolver.projections.$$topics.resolveCount(transaction.$$logs[1])).toBe(3)
+		expect(logResolver.projections.Event.TokenTransfer.$$tokenTransfers.resolveCount(transaction.$$logs[1])).toBe(1)
 	})
 })

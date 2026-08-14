@@ -267,6 +267,7 @@ describe('Envio HyperRPC resolver', () => {
 				},
 			}],
 		})
+		expect(resolver.projections.$$logs.resolveCount(resolved)).toBe(1)
 		expect(jsonRpc2.mock.calls.every(([binding]) => (
 			binding.source === resolverBinding.source
 			&& binding.target.kind === resolverBinding.target.kind
@@ -319,6 +320,7 @@ describe('Envio HyperRPC resolver', () => {
 				},
 			},
 		})
+		expect(resolver.projections.$$topics.resolveCount(resolved)).toBe(1)
 		expect(resolver.projections.Event.signatureHash(resolved)).toBe(transactionReceipt.logs[0].topics[0])
 	})
 
@@ -384,6 +386,9 @@ describe('Envio HyperRPC resolver', () => {
 				},
 			},
 		}])
+		const transferProjection = resolverFor(EntityType.EvmLog).projections.Event.TokenTransfer.$$tokenTransfers
+		expect(transferProjection.resolveCount(log)).toBe(1)
+		expect(transferProjection.select(log)).toHaveLength(1)
 
 		await expect(resolverFor(EntityType.EvmTokenTransfer).resolve['LogIndexInLog'].resolve({
 			$log: logSelector,

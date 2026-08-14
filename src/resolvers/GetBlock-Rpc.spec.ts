@@ -145,6 +145,7 @@ describe('GetBlock RPC transaction source', () => {
 				},
 			}],
 		})
+		expect(getBlockRpc.resolvers[0].projections.$$logs.resolveCount(resolved)).toBe(1)
 	})
 
 	it('preserves a pending transaction when its receipt is not available yet', async () => {
@@ -155,13 +156,15 @@ describe('GetBlock RPC transaction source', () => {
 				id: 2,
 				result: null,
 			})))
-		await expect(getBlockRpc.resolvers[0].resolve['EvmNetworkTxHash'].resolve({
+		const resolved = await getBlockRpc.resolvers[0].resolve['EvmNetworkTxHash'].resolve({
 			$network: network,
 			txHash: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-		}, context)).resolves.toMatchObject({
+		}, context)
+		expect(resolved).toMatchObject({
 			executionStatus: EvmTransactionExecutionStatus.Pending,
 			$$logs: [],
 		})
+		expect(getBlockRpc.resolvers[0].projections.$$logs.resolveCount(resolved)).toBe(0)
 	})
 
 	it('keeps an empty transaction distinct from transport failure', async () => {

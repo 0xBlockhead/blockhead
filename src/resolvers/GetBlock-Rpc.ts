@@ -155,7 +155,10 @@ export default {
 			s: (transaction) => transaction.s,
 			v: (transaction) => transaction.v,
 			executionStatus: (transaction) => transaction.executionStatus,
-			$$logs: (transaction) => transaction.$$logs,
+			$$logs: {
+				select: (transaction) => transaction.$$logs,
+				resolveCount: (transaction) => transaction.$$logs.length,
+			},
 		}),
 	],
 } satisfies RegisteredSourceResolverModule

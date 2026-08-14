@@ -576,7 +576,10 @@ export default {
 				maxFeePerBlobGas: (transaction) => transaction.maxFeePerBlobGas,
 				blobGasUsed: (transaction) => transaction.blobGasUsed,
 			},
-			$$logs: (transaction) => transaction.logs,
+			$$logs: {
+				select: (transaction) => transaction.logs,
+				resolveCount: (transaction) => transaction.logs.length,
+			},
 		}),
 
 		defineResolver({
@@ -604,7 +607,10 @@ export default {
 		})({
 			$transaction: (log) => log.$transaction,
 			indexInTransaction: (log) => log.indexInTransaction,
-			$$topics: (log) => log.$$topics,
+			$$topics: {
+				select: (log) => log.$$topics,
+				resolveCount: (log) => log.$$topics.length,
+			},
 			topic0: (log) => log.topic0,
 			data: (log) => log.data,
 			removed: (log) => log.removed,
@@ -618,7 +624,10 @@ export default {
 					return log.topic0
 				},
 				TokenTransfer: {
-					$$tokenTransfers: (log) => log.$$tokenTransfers ?? [],
+					$$tokenTransfers: {
+						select: (log) => log.$$tokenTransfers ?? [],
+						resolveCount: (log) => log.$$tokenTransfers?.length ?? 0,
+					},
 				},
 			},
 		}),

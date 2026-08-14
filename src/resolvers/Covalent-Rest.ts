@@ -458,9 +458,12 @@ export default {
 			gasPrice: (transaction) => transaction.gasPrice,
 			gasUsed: (transaction) => transaction.gasUsed,
 			executionStatus: (transaction) => transaction.executionStatus,
-			$$logs: (transaction) => transaction.$$logs.map((log) => ({
-				[EntityMetaKey.Selector]: log[EntityMetaKey.Selector],
-			})),
+			$$logs: {
+				select: (transaction) => transaction.$$logs.map((log) => ({
+					[EntityMetaKey.Selector]: log[EntityMetaKey.Selector],
+				})),
+				resolveCount: (transaction) => transaction.$$logs.length,
+			},
 			$$tokenApprovals: {
 				select: (transaction) => transaction.$$logs.flatMap((log) => (
 					log.$tokenApproval == null ?
@@ -474,9 +477,12 @@ export default {
 				select: (transaction) => transaction.$$logs.flatMap((log) => log.$$tokenTransfers.map(evmTokenTransferReference)),
 				resolveCount: (transaction) => transaction.$$logs.reduce((count, log) => count + log.$$tokenTransfers.length, 0),
 			},
-			$$internalTransfers: (transaction) => transaction.$$internalTransfers.map((transfer) => ({
-				[EntityMetaKey.Selector]: transfer[EntityMetaKey.Selector],
-			})),
+			$$internalTransfers: {
+				select: (transaction) => transaction.$$internalTransfers.map((transfer) => ({
+					[EntityMetaKey.Selector]: transfer[EntityMetaKey.Selector],
+				})),
+				resolveCount: (transaction) => transaction.$$internalTransfers.length,
+			},
 		}),
 
 		defineResolver({
@@ -510,7 +516,10 @@ export default {
 			$transaction: (log) => log.$transaction,
 			indexInTransaction: (log) => log[EntityMetaKey.Selector].indexInTransaction,
 			$block: (log) => log.$block,
-			$$topics: (log) => log.$$topics,
+			$$topics: {
+				select: (log) => log.$$topics,
+				resolveCount: (log) => log.$$topics.length,
+			},
 			topic0: (log) => log.topic0,
 			data: (log) => log.data,
 			$emitter: (log) => log.$emitter,
@@ -530,7 +539,10 @@ export default {
 					},
 				},
 				TokenTransfer: {
-					$$tokenTransfers: (log) => log.$$tokenTransfers.map(evmTokenTransferReference),
+					$$tokenTransfers: {
+						select: (log) => log.$$tokenTransfers.map(evmTokenTransferReference),
+						resolveCount: (log) => log.$$tokenTransfers.length,
+					},
 				},
 			},
 		}),
