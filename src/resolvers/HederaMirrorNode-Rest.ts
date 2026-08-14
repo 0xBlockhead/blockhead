@@ -10,6 +10,7 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
 import type {
+	HederaMirrorNodeAccountToken,
 	HederaMirrorNodeBlock,
 	HederaMirrorNodeContract,
 	HederaMirrorNodeContractLog,
@@ -20,6 +21,9 @@ import type {
 	HederaMirrorNodeNetworkStake,
 	HederaMirrorNodeNetworkSupply,
 	HederaMirrorNodeNode,
+	HederaMirrorNodeNftAllowance,
+	HederaMirrorNodeTokenAllowance,
+	HederaMirrorNodeCryptoAllowance,
 	HederaMirrorNodeSchedule,
 	HederaMirrorNodeNft,
 	HederaMirrorNodeTopic,
@@ -27,6 +31,8 @@ import type {
 	HederaMirrorNodeToken,
 	HederaMirrorNodeTransaction,
 } from '$/sources/HederaMirrorNode/Rest/types.ts'
+
+type HederaAllowanceSelector = EntitySelector<typeof schema, EntityType.HederaAllowance>
 
 const assertHederaMainnet = (
 	network: EntitySelector<typeof schema, EntityType.Network>
@@ -439,6 +445,100 @@ const blockContainsConsensusTimestamp = (
 		return true
 
 	return consensusKey < hederaTimestampOrderKey(block.timestamp.to, 'block consensus end')
+}
+
+const hederaAllowanceSnapshot = (
+	allowanceSelector: HederaAllowanceSelector,
+	allowance:
+		| HederaMirrorNodeCryptoAllowance
+		| HederaMirrorNodeTokenAllowance
+		| HederaMirrorNodeNftAllowance
+) => {
+	const allowanceTimestampMs = timestampMs(allowance.timestamp.to, 'allowance timestamp')
+	timestampMs(allowance.timestamp.from, 'allowance timestamp')
+
+	return {
+		...(allowanceSelector.tokenId != null && {
+			$token: {
+				[EntityMetaKey.Selector]: {
+					$network: allowanceSelector.$owner.$network,
+					tokenId: allowanceSelector.tokenId,
+				},
+			},
+		}),
+		$$timestamps: [{
+			[EntityMetaKey.Selector]: {
+				$allowance: allowanceSelector,
+				timestampMs: allowanceTimestampMs,
+				source: Source.HederaMirrorNode_Rest,
+			},
+			[EntityMetaKey.Fields]: {
+				...('amount' in allowance && {
+					[entityFieldAddressKey(EntityType.HederaAllowance_Timestamp, [], 'amount')]: nonnegativeBigInt(allowance.amount, 'allowance amount'),
+				}),
+				...('approved_for_all' in allowance && {
+					[entityFieldAddressKey(EntityType.HederaAllowance_Timestamp, [], 'approvedForAll')]: allowance.approved_for_all,
+				}),
+			},
+		}],
+	}
+}
+
+const resolveHederaAllowance = async (
+	allowanceSelector: HederaAllowanceSelector
+) => {
+	assertHederaMainnet(allowanceSelector.$owner.$network)
+	assertHederaMainnet(allowanceSelector.$spender.$network)
+	if (allowanceSelector.serialNumber != null)
+		throw new Error('HederaMirrorNode_Rest: serial-specific NFT allowances are unsupported')
+
+	const { getAccountAllowance } = await import('$/sources/HederaMirrorNode/Rest/queries.ts')
+	const snapshot = await getAccountAllowance({
+		accountId: allowanceSelector.$owner.accountId,
+		spenderAccountId: allowanceSelector.$spender.accountId,
+		allowanceKind: allowanceSelector.allowanceKind === 'crypto' ? 'crypto'
+		: allowanceSelector.allowanceKind === 'token' ? 'token'
+		: allowanceSelector.allowanceKind === 'nft' ? 'nft'
+		:
+			(() => {
+				throw new Error('HederaMirrorNode_Rest: unsupported allowance kind')
+			})(),
+		tokenId: allowanceSelector.tokenId,
+	})
+
+	return hederaAllowanceSnapshot(allowanceSelector, snapshot.allowance)
+}
+
+const hederaTokenAssociationSnapshot = (
+	associationSelector: EntitySelector<typeof schema, EntityType.HederaTokenAssociation>,
+	token: HederaMirrorNodeAccountToken,
+	resolvedAtMs: number
+) => {
+	timestampMs(token.created_timestamp, 'token association creation timestamp')
+	if (token.freeze_status.length === 0 || token.kyc_status.length === 0)
+		throw new Error('HederaMirrorNode_Rest: malformed token relationship status')
+
+	return {
+		$token: {
+			[EntityMetaKey.Selector]: associationSelector.$token,
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.HederaToken, [], 'decimals')]: nonnegativeSafeInteger(token.decimals, 'token decimals'),
+			},
+		},
+		$$timestamps: [{
+			[EntityMetaKey.Selector]: {
+				$association: associationSelector,
+				timestampMs: resolvedAtMs,
+				source: Source.HederaMirrorNode_Rest,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.HederaTokenAssociation_Timestamp, [], 'associationStatus')]: token.automatic_association ? 'automatic' : 'manual',
+				[entityFieldAddressKey(EntityType.HederaTokenAssociation_Timestamp, [], 'balance')]: nonnegativeBigInt(token.balance, 'token relationship balance'),
+				[entityFieldAddressKey(EntityType.HederaTokenAssociation_Timestamp, [], 'kycStatus')]: token.kyc_status,
+				[entityFieldAddressKey(EntityType.HederaTokenAssociation_Timestamp, [], 'freezeStatus')]: token.freeze_status,
+			},
+		}],
+	}
 }
 
 const normalizeEvmAddress = (
@@ -2791,6 +2891,48 @@ export default {
 					contract.contractId
 				),
 			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.HederaAllowance,
+			resolve: {
+				OwnerSpenderAllowanceKind: {
+					resolve: resolveHederaAllowance,
+				},
+				OwnerSpenderAllowanceKindTokenId: {
+					resolve: resolveHederaAllowance,
+				},
+				OwnerSpenderAllowanceKindTokenIdSerialNumber: {
+					resolve: resolveHederaAllowance,
+				},
+			},
+		})({
+			$token: (snapshot) => snapshot.$token,
+			$$timestamps: (snapshot) => snapshot.$$timestamps,
+		}),
+
+		defineResolver({
+			entityType: EntityType.HederaTokenAssociation,
+			resolve: {
+				AccountToken: {
+					resolve: async (associationSelector) => {
+						assertHederaMainnet(associationSelector.$account.$network)
+						assertHederaMainnet(associationSelector.$token.$network)
+						const { getAccountToken } = await import('$/sources/HederaMirrorNode/Rest/queries.ts')
+						return hederaTokenAssociationSnapshot(
+							associationSelector,
+							await getAccountToken(
+								associationSelector.$account.accountId,
+								associationSelector.$token.tokenId
+							),
+							Date.now()
+						)
+					},
+				},
+			},
+		})({
+			$token: (snapshot) => snapshot.$token,
+			$$timestamps: (snapshot) => snapshot.$$timestamps,
 		}),
 	],
 } satisfies RegisteredSourceResolverModule

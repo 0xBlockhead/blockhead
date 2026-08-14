@@ -511,6 +511,68 @@ export const getAccountAllowances = async (
 	throw new Error('HederaMirrorNode_Rest: invalid allowance continuation')
 }
 
+export const getAccountAllowance = async ({
+	accountId,
+	spenderAccountId,
+	allowanceKind,
+	tokenId,
+}: {
+	accountId: string
+	spenderAccountId: string
+	allowanceKind: 'crypto' | 'token' | 'nft'
+	tokenId?: string
+}) => {
+	if (!accountIdPattern.test(spenderAccountId))
+		throw new Error('HederaMirrorNode_Rest: invalid allowance spender selector')
+	if (allowanceKind === 'crypto' && tokenId != null)
+		throw new Error('HederaMirrorNode_Rest: crypto allowance cannot select a token')
+	if (allowanceKind !== 'crypto' && (tokenId == null || !accountIdPattern.test(tokenId)))
+		throw new Error('HederaMirrorNode_Rest: token allowance requires a token selector')
+
+	const pathname = `/api/v1/accounts/${encodeURIComponent(accountId)}/allowances/${
+		allowanceKind === 'crypto' ?
+			'crypto'
+		: allowanceKind === 'token' ?
+			'tokens'
+		:
+			'nfts'
+	}`
+	const url = accountCollectionUrl(
+		accountId,
+		pathname,
+		1,
+		'asc',
+		[],
+		false
+	)
+	url.searchParams.set('spender.id', `eq:${spenderAccountId}`)
+	if (tokenId != null)
+		url.searchParams.set('token.id', `eq:${tokenId}`)
+	if (allowanceKind === 'nft')
+		url.searchParams.set('owner', 'true')
+
+	const page = await sourceGetHederaJson<
+		| HederaMirrorNodeCryptoAllowances
+		| HederaMirrorNodeTokenAllowances
+		| HederaMirrorNodeNftAllowances
+	>(url.toString())
+	if (page.allowances.length !== 1)
+		throw new Error('HederaMirrorNode_Rest: allowance not found')
+
+	const allowance = page.allowances[0]
+	if (
+		allowance.owner !== accountId
+		|| allowance.spender !== spenderAccountId
+		|| (tokenId != null && (!('token_id' in allowance) || allowance.token_id !== tokenId))
+	)
+		throw new Error('HederaMirrorNode_Rest: response allowance does not match request')
+
+	return {
+		allowanceKind,
+		allowance,
+	}
+}
+
 export const getAccountTokens = (
 	accountId: string,
 	limit: number,
@@ -528,6 +590,31 @@ export const getAccountTokens = (
 		continuationToken
 	).toString()
 )
+
+export const getAccountToken = async (
+	accountId: string,
+	tokenId: string
+) => {
+	if (!accountIdPattern.test(tokenId))
+		throw new Error('HederaMirrorNode_Rest: invalid token relationship selector')
+
+	const url = accountCollectionUrl(
+		accountId,
+		`/api/v1/accounts/${encodeURIComponent(accountId)}/tokens`,
+		1,
+		'asc',
+		[],
+		false
+	)
+	url.searchParams.set('token.id', `eq:${tokenId}`)
+	const page = await sourceGetHederaJson<HederaMirrorNodeAccountTokens>(url.toString())
+	if (page.tokens.length !== 1)
+		throw new Error('HederaMirrorNode_Rest: token relationship not found')
+	if (page.tokens[0].token_id !== tokenId)
+		throw new Error('HederaMirrorNode_Rest: response token relationship does not match request')
+
+	return page.tokens[0]
+}
 
 export const getAccountNfts = (
 	accountId: string,

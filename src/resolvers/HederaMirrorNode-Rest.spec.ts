@@ -26,9 +26,11 @@ import {
 } from '$/sources/SourceBinding.ts'
 import {
 	getAccount,
+	getAccountAllowance,
 	getAccountAllowances,
 	getAccounts,
 	getAccountNfts,
+	getAccountToken,
 	getAccountTokens,
 	getBlock,
 	getBlockByConsensusTimestamp,
@@ -1630,6 +1632,113 @@ describe('Hedera Mirror Node account assets and allowances', () => {
 			context
 		)).toMatchObject({
 			terminal: true,
+		})
+	})
+
+	it('resolves exact allowance and token-association routes', async () => {
+		sourceFetch
+			.mockResolvedValueOnce(new Response(JSON.stringify({
+				allowances: [tokenAllowanceFixture],
+				links: {
+					next: null,
+				},
+			} satisfies HederaMirrorNodeTokenAllowances)))
+			.mockResolvedValueOnce(new Response(JSON.stringify({
+				tokens: [accountTokenFixture],
+				links: {
+					next: null,
+				},
+			} satisfies HederaMirrorNodeAccountTokens)))
+
+		await expect(getAccountAllowance({
+			accountId: '0.0.98',
+			spenderAccountId: '0.0.99',
+			allowanceKind: 'token',
+			tokenId: '0.0.700',
+		})).resolves.toMatchObject({
+			allowanceKind: 'token',
+			allowance: {
+				amount: '9007199254740993',
+			},
+		})
+		await expect(getAccountToken('0.0.98', '0.0.700')).resolves.toMatchObject({
+			token_id: '0.0.700',
+			balance: '9007199254740995',
+		})
+		expect(sourceFetch.mock.calls.map(([, url]) => url)).toEqual([
+			'https://mainnet-public.mirrornode.hedera.com/api/v1/accounts/0.0.98/allowances/tokens?limit=1&order=asc&spender.id=eq%3A0.0.99&token.id=eq%3A0.0.700',
+			'https://mainnet-public.mirrornode.hedera.com/api/v1/accounts/0.0.98/tokens?limit=1&order=asc&token.id=eq%3A0.0.700',
+		])
+
+		sourceFetch
+			.mockResolvedValueOnce(new Response(JSON.stringify({
+				allowances: [tokenAllowanceFixture],
+				links: {
+					next: null,
+				},
+			} satisfies HederaMirrorNodeTokenAllowances)))
+			.mockResolvedValueOnce(new Response(JSON.stringify({
+				tokens: [accountTokenFixture],
+				links: {
+					next: null,
+				},
+			} satisfies HederaMirrorNodeAccountTokens)))
+
+		const allowanceResolver = hederaMirrorNode.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.HederaAllowance
+		))
+		const associationResolver = hederaMirrorNode.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.HederaTokenAssociation
+		))
+		if (allowanceResolver == null || associationResolver == null)
+			throw new Error('Hedera direct relationship resolvers missing')
+
+		const allowanceSelector = {
+			$owner: {
+				$network: network,
+				accountId: '0.0.98',
+			},
+			$spender: {
+				$network: network,
+				accountId: '0.0.99',
+			},
+			allowanceKind: 'token',
+			tokenId: '0.0.700',
+		}
+		const allowanceSnapshot = await allowanceResolver.resolve[
+			'OwnerSpenderAllowanceKindTokenId'
+		].resolve(allowanceSelector, context)
+		expect(allowanceResolver.projections.$token(allowanceSnapshot, allowanceSelector, context)).toMatchObject({
+			[EntityMetaKey.Selector]: {
+				tokenId: '0.0.700',
+			},
+		})
+		expect(allowanceResolver.projections.$$timestamps(
+			allowanceSnapshot,
+			allowanceSelector,
+			context
+		)[0][EntityMetaKey.Fields]).toMatchObject({
+			[entityFieldAddressKey(EntityType.HederaAllowance_Timestamp, [], 'amount')]: 9_007_199_254_740_993n,
+		})
+
+		vi.spyOn(Date, 'now').mockReturnValueOnce(1_784_678_400_000)
+		const associationSelector = {
+			$account: allowanceSelector.$owner,
+			$token: {
+				$network: network,
+				tokenId: '0.0.700',
+			},
+		}
+		const associationSnapshot = await associationResolver.resolve[
+			'AccountToken'
+		].resolve(associationSelector, context)
+		expect(associationResolver.projections.$$timestamps(
+			associationSnapshot,
+			associationSelector,
+			context
+		)[0][EntityMetaKey.Selector]).toMatchObject({
+			timestampMs: 1_784_678_400_000,
+			source: Source.HederaMirrorNode_Rest,
 		})
 	})
 
