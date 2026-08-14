@@ -141,7 +141,10 @@ export const pendleMarketEnvelope = arktype({
 	timestamp: 'string',
 	categoryIds: 'string[]',
 	chainId: 'number',
-})
+	'rewardTokens?': 'string[]',
+	'inputTokens?': 'string[]',
+	'outputTokens?': 'string[]',
+}).onUndeclaredKey('reject')
 
 export const pendleMarketsAllEnvelope = arktype({
 	total: 'number',

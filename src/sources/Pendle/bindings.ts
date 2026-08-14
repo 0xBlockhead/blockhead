@@ -42,7 +42,7 @@ export default indexSourceBindings([
 		endpoints: [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: 'https://api-v2.pendle.finance/core',
+				locator: 'https://api-v2.pendle.finance/core/',
 				corsEnabled: true,
 			},
 		],
@@ -125,6 +125,20 @@ export default indexSourceBindings([
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'https://rpc.soniclabs.com',
+				corsEnabled: false,
+			},
+		],
+	},
+	{
+		...pendleRestBindingAxes,
+		target: {
+			kind: SourceTargetKind.Eip155Chain,
+			key: '196',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://rpc.xlayer.tech',
 				corsEnabled: false,
 			},
 		],

@@ -13,7 +13,6 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 import bindings from '$/sources/Pendle/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import { httpUrl } from '$/sources/_shared/wire/HttpRest/client.ts'
 
 const sourceGetJson = vi.hoisted(() => vi.fn())
 const getAccountPositions = vi.hoisted(() => vi.fn())
@@ -533,7 +532,7 @@ describe('Pendle Rest resolver module', () => {
 		})
 		expect(sourceGetJson).toHaveBeenCalledWith(
 			bindings[Source.Pendle_Rest][0],
-			httpUrl(bindings[Source.Pendle_Rest][0], `/v2/markets/all?chainId=1&ids=1-${baseMarketAddress}&skip=0&limit=1`)
+			`https://api-v2.pendle.finance/core/v2/markets/all?chainId=1&ids=1-${baseMarketAddress}&skip=0&limit=1`
 		)
 	})
 

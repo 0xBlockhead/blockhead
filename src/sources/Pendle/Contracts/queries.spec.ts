@@ -43,7 +43,7 @@ describe('Pendle contract account operations', () => {
 		expect(bindings[Source.Pendle_Rest].filter(({ apiFamily }) => (
 			apiFamily === ApiFamily.RestJson
 		))).toHaveLength(1)
-		expect(executionBindings).toHaveLength(11)
+		expect(executionBindings).toHaveLength(12)
 		expect(executionBindings.every(({ delivery }) => (
 			delivery === SourceDelivery.HttpProxy
 		))).toBe(true)
@@ -53,6 +53,7 @@ describe('Pendle contract account operations', () => {
 			'56',
 			'143',
 			'146',
+			'196',
 			'999',
 			'5000',
 			'8453',

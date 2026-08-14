@@ -100,15 +100,15 @@ const assertUnitIntervalNumber = (
 	return value
 }
 
-const assertEnvelope = (
+const assertEnvelope = <_Value>(
 	envelope: {
-		assert: (value: unknown) => unknown
+		assert: (value: unknown) => _Value
 	},
 	value: unknown,
 	label: string
 ) => {
 	try {
-		envelope.assert(value)
+		return envelope.assert(value)
 	} catch {
 		throw new Error(`${Source.Pendle_Rest}: invalid ${label} response envelope`)
 	}
@@ -216,14 +216,17 @@ export const listMarkets = async ({
 		&& new Set(normalizedMarketAddresses).size !== normalizedMarketAddresses.length
 	)
 		throw new Error(`${Source.Pendle_Rest}: market addresses contains duplicate addresses`)
-	const response = await sourceGetJson<PendleMarketsAllResponseWire>(
-		binding,
-		httpUrl(
+	const response = assertEnvelope(
+		pendleMarketsAllEnvelope,
+		await sourceGetJson<PendleMarketsAllResponseWire>(
 			binding,
-			`/v2/markets/all?chainId=${String(chainId)}${normalizedMarketAddresses == null ? '' : `&ids=${normalizedMarketAddresses.map((marketAddress) => `${String(chainId)}-${marketAddress}`).join(',')}`}&skip=${String(skip)}&limit=${String(limit)}`
-		)
+			httpUrl(
+				binding,
+				`v2/markets/all?chainId=${String(chainId)}${normalizedMarketAddresses == null ? '' : `&ids=${normalizedMarketAddresses.map((marketAddress) => `${String(chainId)}-${marketAddress}`).join(',')}`}&skip=${String(skip)}&limit=${String(limit)}`
+			)
+		),
+		'markets/all'
 	)
-	assertEnvelope(pendleMarketsAllEnvelope, response, 'markets/all')
 	if (response.skip !== skip)
 		throw new Error(`${Source.Pendle_Rest}: markets/all response skip mismatch`)
 	if (response.results.length > limit)
@@ -300,11 +303,14 @@ export const getMarketTokens = async ({
 }) => {
 	assertChainId(chainId)
 	const normalizedMarketAddress = assertAddress(marketAddress, 'market address')
-	const response = await sourceGetJson<PendleMarketTokensWire>(
-		binding,
-		httpUrl(binding, `/v1/sdk/${String(chainId)}/markets/${normalizedMarketAddress}/tokens`)
+	const response = assertEnvelope(
+		pendleMarketTokensEnvelope,
+		await sourceGetJson<PendleMarketTokensWire>(
+			binding,
+			httpUrl(binding, `v1/sdk/${String(chainId)}/markets/${normalizedMarketAddress}/tokens`)
+		),
+		'market tokens'
 	)
-	assertEnvelope(pendleMarketTokensEnvelope, response, 'market tokens')
 	return {
 		chainId,
 		marketAddress: normalizedMarketAddress,

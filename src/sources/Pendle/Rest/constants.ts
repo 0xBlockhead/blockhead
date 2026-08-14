@@ -40,6 +40,10 @@ export const pendleChainDeployments = [
 		name: 'Sonic',
 	},
 	{
+		chainId: 196,
+		name: 'X Layer',
+	},
+	{
 		chainId: 999,
 		name: 'HyperEVM',
 	},
@@ -53,7 +57,7 @@ export const pendleChainDeployments = [
 	},
 	{
 		chainId: 9745,
-		name: 'Plume',
+		name: 'Plasma',
 	},
 	{
 		chainId: 42161,

@@ -20,7 +20,6 @@ import {
 	WireProtocol,
 } from '$/sources/SourceBinding.ts'
 import { Source } from '$/sources/Source.ts'
-import { httpUrl } from '$/sources/_shared/wire/HttpRest/client.ts'
 
 const sourceGetJson = vi.hoisted(() => vi.fn())
 
@@ -91,7 +90,7 @@ describe('Pendle REST binding', () => {
 		expect(binding.endpoints).toEqual([
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: 'https://api-v2.pendle.finance/core',
+				locator: 'https://api-v2.pendle.finance/core/',
 				corsEnabled: true,
 			},
 		])
@@ -102,6 +101,14 @@ describe('Pendle REST binding', () => {
 			chainId: 1,
 			name: 'Ethereum',
 		})
+		expect(pendleByChainId[196]).toEqual({
+			chainId: 196,
+			name: 'X Layer',
+		})
+		expect(pendleByChainId[9745]).toEqual({
+			chainId: 9745,
+			name: 'Plasma',
+		})
 		expect(pendleChainDeployments.some((deployment) => deployment.chainId === 42161)).toBe(true)
 	})
 })
@@ -109,6 +116,60 @@ describe('Pendle REST binding', () => {
 describe('Pendle market operations', () => {
 	beforeEach(() => {
 		sourceGetJson.mockReset()
+	})
+
+	it('accepts current live markets/all fields without exposing provider-only arrays', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			total: 1,
+			limit: 1,
+			skip: 0,
+			results: [
+				{
+					...baseMarketWire,
+					rewardTokens: [
+						'1-0x808507121b80c02388fad14726482e061b8da827',
+					],
+					inputTokens: [
+						'1-0x35d8949372d46b7a3d5a56006ae77b215fc69bc0',
+					],
+					outputTokens: [
+						'1-0x35d8949372d46b7a3d5a56006ae77b215fc69bc0',
+					],
+				},
+			],
+		})
+		const page = await listMarkets({
+			chainId: 1,
+			limit: 1,
+		})
+		expect(page).toMatchObject({
+			total: 1,
+			markets: [
+				{
+					marketAddress: baseMarketAddress,
+				},
+			],
+		})
+		expect(page.markets[0]).not.toHaveProperty('rewardTokens')
+	})
+
+	it('rejects undeclared markets/all fields', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			total: 1,
+			limit: 1,
+			skip: 0,
+			results: [
+				{
+					...baseMarketWire,
+					unexpected: true,
+				},
+			],
+		})
+
+		await expect(listMarkets({
+			chainId: 1,
+			limit: 1,
+		})).rejects.toThrow('invalid markets/all response envelope')
 	})
 
 	it('lists markets from GET /v2/markets/all', async () => {
@@ -168,7 +229,7 @@ describe('Pendle market operations', () => {
 		})
 		expect(sourceGetJson).toHaveBeenCalledWith(
 			binding,
-			httpUrl(binding, '/v2/markets/all?chainId=1&skip=0&limit=1')
+			'https://api-v2.pendle.finance/core/v2/markets/all?chainId=1&skip=0&limit=1'
 		)
 	})
 
@@ -303,7 +364,7 @@ describe('Pendle market operations', () => {
 		})
 		expect(sourceGetJson).toHaveBeenCalledWith(
 			binding,
-			httpUrl(binding, `/v2/markets/all?chainId=1&ids=1-${baseMarketAddress}&skip=0&limit=1`)
+			`https://api-v2.pendle.finance/core/v2/markets/all?chainId=1&ids=1-${baseMarketAddress}&skip=0&limit=1`
 		)
 	})
 
@@ -449,7 +510,7 @@ describe('Pendle market operations', () => {
 		})
 		expect(sourceGetJson).toHaveBeenCalledWith(
 			binding,
-			httpUrl(binding, `/v1/sdk/1/markets/${baseMarketAddress}/tokens`)
+			`https://api-v2.pendle.finance/core/v1/sdk/1/markets/${baseMarketAddress}/tokens`
 		)
 	})
 
