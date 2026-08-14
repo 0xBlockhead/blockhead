@@ -112,18 +112,29 @@ const nodeReferenceFromMempoolSpaceRankedNode = (
 	},
 })
 
+const peerNodeFromMempoolSpaceChannel = (
+	channel: MempoolSpaceLightningChannel
+) => {
+	if (channel.node != null)
+		return channel.node
+	if (channel.node_left != null && channel.node_right != null)
+		return undefined
+
+	return channel.node_left ?? channel.node_right ?? undefined
+}
+
 const channelSnapshotFromMempoolSpaceChannel = (
 	channel: MempoolSpaceLightningChannel
 ) => {
-	const node = channel.node ?? channel.node_right ?? channel.node_left
+	const peerNode = peerNodeFromMempoolSpaceChannel(channel)
 
 	return {
 		shortChannelId: channel.short_id ?? undefined,
 		fundingTransactionId: channel.transaction_id ?? undefined,
 		fundingOutputIndex: channel.transaction_vout ?? undefined,
 		openedAtMs: timestampMsFromIso(channel.created),
-		...(node != null && {
-			$node1: nodeReferenceFromMempoolSpaceChannelNode(node),
+		...(peerNode != null && {
+			$node1: nodeReferenceFromMempoolSpaceChannelNode(peerNode),
 		}),
 	}
 }
@@ -143,6 +154,18 @@ const agreedChannelFeeRatePpm = (
 	return leftFeeRate
 }
 
+const channelFeeRatePpmFromMempoolSpace = (
+	channel: MempoolSpaceLightningChannel
+) => {
+	const agreedFeeRatePpm = agreedChannelFeeRatePpm(channel.node_left, channel.node_right)
+	if (agreedFeeRatePpm != null)
+		return agreedFeeRatePpm
+	if (channel.node_left != null && channel.node_right != null)
+		return undefined
+
+	return channel.fee_rate ?? undefined
+}
+
 const channelTimestampSnapshotFromMempoolSpaceChannel = (
 	channel: MempoolSpaceLightningChannel
 ) => ({
@@ -153,7 +176,7 @@ const channelTimestampSnapshotFromMempoolSpaceChannel = (
 	closingReason: channel.closing_reason == null ? undefined : String(channel.closing_reason),
 	closedAtMs: timestampMsFromIso(channel.closing_date),
 	updatedAtMs: timestampMsFromIso(channel.updated_at),
-	feeRatePpm: agreedChannelFeeRatePpm(channel.node_left, channel.node_right),
+	feeRatePpm: channelFeeRatePpmFromMempoolSpace(channel),
 })
 
 const timestampSnapshotFromMempoolSpaceStatistics = (

@@ -14,6 +14,7 @@ import { Source } from '$/sources/Source.ts'
 
 const {
 	getBlock,
+	getChannelInfo,
 	getInfo,
 	getLightningStatistics,
 	getNetworkInfo,
@@ -22,6 +23,7 @@ const {
 	listPayments,
 } = vi.hoisted(() => ({
 	getBlock: vi.fn(),
+	getChannelInfo: vi.fn(),
 	getInfo: vi.fn(),
 	getLightningStatistics: vi.fn(),
 	getNetworkInfo: vi.fn(),
@@ -31,6 +33,7 @@ const {
 }))
 
 vi.mock('$/sources/LightningLnd/Rest/queries.ts', () => ({
+	getChannelInfo,
 	getInfo,
 	getNetworkInfo,
 	listChannels,
@@ -70,8 +73,9 @@ const lightningNetwork = {
 	slug: 'lightning',
 } as const
 
-const mempoolNetworkTimestampResolver = lightningMempoolSpace.resolvers.find((resolver) => (
-	resolver.entityType === EntityType.LightningNetwork_Timestamp
+const mempoolNetworkResolver = lightningMempoolSpace.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.LightningNetwork
+	&& '$$timestamps' in resolver.projections
 ))
 const lndNodeStateResolver = lightningLnd.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.BlockheadLightningNodeState
@@ -80,7 +84,7 @@ const lndChannelTimestampResolver = lightningLnd.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.LightningChannel_Timestamp
 ))
 if (
-	mempoolNetworkTimestampResolver == null
+	mempoolNetworkResolver == null
 	|| lndNodeStateResolver == null
 	|| lndChannelTimestampResolver == null
 )
@@ -128,7 +132,7 @@ describe('Lightning and mempool resolver bindings', () => {
 		expect(mempoolEntityTypes.has(EntityType.LightningNetwork)).toBe(true)
 		expect(mempoolEntityTypes.has(EntityType.LightningNode)).toBe(true)
 		expect(mempoolEntityTypes.has(EntityType.LightningChannel)).toBe(true)
-		expect(mempoolEntityTypes.has(EntityType.LightningNetwork_Timestamp)).toBe(true)
+		expect(mempoolEntityTypes.has(EntityType.LightningNetwork_Timestamp)).toBe(false)
 		expect(
 			[...mempoolEntityTypes].some((entityType) => (
 				String(entityType).startsWith('BlockheadLightning')
@@ -158,14 +162,12 @@ describe('Lightning and mempool resolver bindings', () => {
 		))).toEqual(['networkStats'])
 	})
 
-	it('fail-closes Mempool public tip when stamped as LND before transport', async () => {
-		await expect(mempoolNetworkTimestampResolver.resolve.LightningNetworkTimestampMsSource.resolve({
-			$lightningNetwork: {
-				$network: lightningNetwork,
+	it('fail-closes Mempool public observations for unsupported networks before transport', async () => {
+		await expect(mempoolNetworkResolver.resolve.Network.resolve({
+			$network: {
+				slug: 'bitcoin',
 			},
-			timestampMs: 1,
-			source: Source.LightningLnd_Rest,
-		}, context)).rejects.toThrow('unsupported source')
+		}, context)).rejects.toThrow('unsupported Lightning network')
 		expect(getLightningStatistics).not.toHaveBeenCalled()
 		expect(getInfo).not.toHaveBeenCalled()
 		expect(getNetworkInfo).not.toHaveBeenCalled()
@@ -185,17 +187,12 @@ describe('Lightning and mempool resolver bindings', () => {
 	})
 
 	it('keeps LND local-node channel observations free of Mempool closing fields', async () => {
-		listChannels.mockResolvedValue({
-			channels: [{
-				active: true,
-				remote_pubkey: '02peer',
-				channel_point: 'funding-transaction:7',
-				chan_id: '42',
-				capacity: '250000',
-				local_balance: '100000',
-				remote_balance: '150000',
-				private: false,
-			}],
+		getChannelInfo.mockResolvedValue({
+			channel_id: '42',
+			last_update: 1,
+			node1_pub: '02local',
+			node2_pub: '02peer',
+			capacity: '250000',
 		})
 
 		await expect(lndChannelTimestampResolver.resolve.ChannelTimestampMsSource.resolve({
@@ -203,13 +200,13 @@ describe('Lightning and mempool resolver bindings', () => {
 				$network: lightningNetwork,
 				channelId: '42',
 			},
-			timestampMs: 1,
+			timestampMs: 1_000,
 			source: Source.LightningLnd_Rest,
 		}, context)).resolves.toEqual({
 			status: 'Active',
 			capacitySats: 250000n,
 			feeRatePpm: undefined,
-			updatedAtMs: undefined,
+			updatedAtMs: 1_000,
 		})
 		expect(getLightningStatistics).not.toHaveBeenCalled()
 	})
@@ -247,12 +244,8 @@ describe('Lightning and mempool resolver bindings', () => {
 		expect(listInvoices).not.toHaveBeenCalled()
 		expect(listPayments).not.toHaveBeenCalled()
 
-		await mempoolNetworkTimestampResolver.resolve.LightningNetworkTimestampMsSource.resolve({
-			$lightningNetwork: {
-				$network: lightningNetwork,
-			},
-			timestampMs: Date.parse('2026-01-01T00:00:00.000Z'),
-			source: Source.LightningMempoolSpace_Rest,
+		await mempoolNetworkResolver.resolve.Network.resolve({
+			$network: lightningNetwork,
 		}, context)
 		expect(getInfo).toHaveBeenCalledOnce()
 		expect(getLightningStatistics).toHaveBeenCalledOnce()
@@ -270,6 +263,9 @@ describe('Lightning and mempool resolver bindings', () => {
 			}, context)
 
 		expect(getInfo).toHaveBeenCalledWith()
-		expect(getBlock).toHaveBeenCalledWith('block')
+		expect(getBlock).toHaveBeenCalledWith({
+			blockHash: 'block',
+			target: 'bip122:000000000019d6689c085ae165831e93',
+		})
 	})
 })

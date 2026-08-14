@@ -457,4 +457,36 @@ describe('LightningMempoolSpace parent timestamp materialization', () => {
 			},
 		}])
 	})
+
+	it('withholds peer materialization when both channel endpoints are present without a list peer', async () => {
+		getLightningChannel.mockResolvedValue({
+			id: '892785849701564416',
+			updated_at: '2026-05-21T03:47:19.000Z',
+			status: 1,
+			capacity: '500000000',
+			node_left: {
+				public_key: publicKey,
+				fee_rate: 2499,
+			},
+			node_right: {
+				public_key: '03'.padEnd(66, 'b'),
+				fee_rate: 1,
+			},
+		})
+
+		const channelResolver = lightningMempoolSpaceRest.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.LightningChannel
+			&& '$node1' in resolver.projections
+		))
+		if (channelResolver == null)
+			throw new Error('LightningMempoolSpace_Rest: missing channel resolver')
+
+		const channelSnapshot = await channelResolver.resolve.NetworkChannelId.resolve({
+			$network: lightningNetwork,
+			channelId: '892785849701564416',
+		}, context)
+
+		expect(channelResolver.projections.$node1(channelSnapshot)).toBeUndefined()
+	})
+
 })
