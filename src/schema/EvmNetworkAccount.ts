@@ -34,11 +34,17 @@ export default entity({
 		defaultSources: [
 			Source.Blockscout_Rest,
 			Source.GoldRushFoundational_Rest,
-			Source.SafeTransactionService_Rest,
 		],
 	},
 	$$queuedTransactions: {
-		entityType: EntityType.EvmTransaction,
+		entityType: EntityType.SafeMultisigTransaction,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.SafeTransactionService_Rest,
+		],
+	},
+	$$safeMultisigTransactions: {
+		entityType: EntityType.SafeMultisigTransaction,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
 			Source.SafeTransactionService_Rest,

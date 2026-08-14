@@ -858,6 +858,7 @@ export enum EntityType {
 	RssItem = 'RssItem',
 	RssItem_Timestamp = 'RssItem_Timestamp',
 	RssNetwork = 'RssNetwork',
+	SafeMultisigTransaction = 'SafeMultisigTransaction',
 	ScalingDeploymentClaim = 'ScalingDeploymentClaim',
 	ScalingDeploymentClaim_Timestamp = 'ScalingDeploymentClaim_Timestamp',
 	SnapshotProposal = 'SnapshotProposal',

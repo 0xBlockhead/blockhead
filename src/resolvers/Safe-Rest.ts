@@ -1,8 +1,4 @@
-import {
-	EvmTransactionEnvelopeType,
-	EvmTransactionExecutionStatus,
-	EvmTransactionKind,
-} from '$/constants/Evm.ts'
+import { SafeMultisigOperation } from '$/constants/Safe.ts'
 import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
 import {
 	resolverContextRowLimit,
@@ -69,111 +65,155 @@ const accountRef = (
 	}
 }
 
-const evmTransactionKindFromSafeMultisig = (
-	transaction: SafeMultisigTransaction
+const timestampMsFromIso = (
+	iso: string,
+	label: string
 ) => {
-	const value = BigInt(transaction.value)
-	const hasCalldata = transaction.data != null && transaction.data !== '0x'
-	return (
-		hasCalldata ?
-			value > 0n ?
-				EvmTransactionKind.NativeTransferAndCall
-			:
-				EvmTransactionKind.ContractCall
-		:
-			value > 0n ?
-				EvmTransactionKind.NativeTransfer
-			:
-				EvmTransactionKind.ContractCall
-	)
+	const timestampMs = Date.parse(iso)
+	if (Number.isNaN(timestampMs))
+		throw new Error(`SafeTransactionService_Rest: ${label} is not a timestamp`)
+
+	return timestampMs
 }
 
-const evmTransactionSnapshotFromSafeMultisig = ({
+const optionalTimestampMsFromIso = (
+	iso: string | null,
+	label: string
+) => (
+	iso == null ?
+		undefined
+	:
+		timestampMsFromIso(iso, label)
+)
+
+const safeMultisigOperationFromWire = (
+	operation: 0 | 1
+) => (
+	operation === 0 ?
+		SafeMultisigOperation.Call
+	:
+		SafeMultisigOperation.DelegateCall
+)
+
+const safeMultisigSnapshotFromWire = ({
 	chainId,
-	txHash,
 	transaction,
 }: {
 	chainId: number
-	txHash: string
 	transaction: SafeMultisigTransaction
 }) => {
 	const $network = evmNetworkSelectorFromChainId(chainId)
-	const safe = hexLowerOfByteSize(transaction.safe, 20)
-	const to = hexLowerOfByteSize(transaction.to, 20)
-	if (safe == null)
-		throw new Error('SafeTransactionService_Rest: Safe address not normalized')
-	if (to == null)
-		throw new Error('SafeTransactionService_Rest: destination address not normalized')
+	const safeTxHash = hexLowerOfByteSize(transaction.safeTxHash, 32)
+	const gasToken = hexLowerOfByteSize(transaction.gasToken, 20)
+	if (safeTxHash == null)
+		throw new Error('SafeTransactionService_Rest: Safe tx hash not normalized')
+	if (gasToken == null)
+		throw new Error('SafeTransactionService_Rest: gas token not normalized')
 
-	const executionStatus = (
-		!transaction.isExecuted ?
-			EvmTransactionExecutionStatus.Pending
-		: transaction.isSuccessful === true ?
-			EvmTransactionExecutionStatus.Success
-		: transaction.isSuccessful === false ?
-			EvmTransactionExecutionStatus.Failed
-		:
+	const executionHash = (
+		transaction.transactionHash == null ?
 			undefined
+		:
+			hexLowerOfByteSize(transaction.transactionHash, 32)
 	)
-	const blockNumber = (
-		transaction.blockNumber == null ?
+	if (transaction.transactionHash != null && executionHash == null)
+		throw new Error('SafeTransactionService_Rest: execution hash not normalized')
+
+	const executedAtMs = optionalTimestampMsFromIso(transaction.executionDate, 'executionDate')
+	const data = (
+		transaction.data == null || transaction.data === '0x' ?
 			undefined
 		:
-			BigInt(transaction.blockNumber)
+			transaction.data.toLowerCase()
 	)
 
 	return {
 		[EntityMetaKey.Selector]: {
 			$network,
-			txHash,
+			safeTxHash,
 		},
-		envelopeType: EvmTransactionEnvelopeType.Unknown,
-		kind: evmTransactionKindFromSafeMultisig(transaction),
-		$from: accountRef(safe),
-		$to: accountRef(to),
+		$safe: contractRef(chainId, transaction.safe),
+		$to: accountRef(transaction.to),
 		value: BigInt(transaction.value),
-		...(transaction.data != null && transaction.data !== '0x' && {
-			input: transaction.data.toLowerCase(),
+		...(data != null && { data }),
+		operation: safeMultisigOperationFromWire(transaction.operation),
+		nonce: BigInt(transaction.nonce),
+		safeTxGas: BigInt(transaction.safeTxGas),
+		baseGas: BigInt(transaction.baseGas),
+		gasPrice: BigInt(transaction.gasPrice),
+		gasToken,
+		$refundReceiver: accountRef(transaction.refundReceiver),
+		...(transaction.proposer != null && {
+			$proposer: accountRef(transaction.proposer),
 		}),
-		...(executionStatus != null && { executionStatus }),
-		...(blockNumber != null && {
-			$block: {
+		...(transaction.executor != null && {
+			$executor: accountRef(transaction.executor),
+		}),
+		isExecuted: transaction.isExecuted,
+		...(transaction.isSuccessful != null && {
+			isSuccessful: transaction.isSuccessful,
+		}),
+		confirmationsRequired: transaction.confirmationsRequired,
+		submittedAtMs: timestampMsFromIso(transaction.submissionDate, 'submissionDate'),
+		...(executedAtMs != null && { executedAtMs }),
+		modifiedAtMs: timestampMsFromIso(transaction.modified, 'modified'),
+		...(executionHash != null && {
+			$executionTransaction: {
 				[EntityMetaKey.Selector]: {
 					$network,
-					blockNumber,
+					txHash: executionHash,
 				},
 			},
 		}),
 	}
 }
 
-const evmTransactionReferenceFromSafeMultisig = (
+const safeMultisigReferenceFromWire = (
 	chainId: number,
-	txHash: string,
 	transaction: SafeMultisigTransaction
 ) => {
-	const snapshot = evmTransactionSnapshotFromSafeMultisig({
+	const snapshot = safeMultisigSnapshotFromWire({
 		chainId,
-		txHash,
 		transaction,
 	})
+	const field = (
+		name: Parameters<typeof entityFieldAddressKey>[2]
+	) => entityFieldAddressKey(EntityType.SafeMultisigTransaction, [], name)
 
 	return {
 		[EntityMetaKey.Selector]: snapshot[EntityMetaKey.Selector],
 		[EntityMetaKey.Fields]: {
-			[entityFieldAddressKey(EntityType.EvmTransaction, [], 'envelopeType')]: snapshot.envelopeType,
-			[entityFieldAddressKey(EntityType.EvmTransaction, [], 'kind')]: snapshot.kind,
-			[entityFieldAddressKey(EntityType.EvmTransaction, [], '$from')]: snapshot.$from,
-			[entityFieldAddressKey(EntityType.EvmTransaction, [], '$to')]: snapshot.$to,
-			[entityFieldAddressKey(EntityType.EvmTransaction, [], 'value')]: snapshot.value,
-			...(snapshot.input != null && {
-				[entityFieldAddressKey(EntityType.EvmTransaction, [], 'input')]: snapshot.input,
+			[field('$safe')]: snapshot.$safe,
+			[field('$to')]: snapshot.$to,
+			[field('value')]: snapshot.value,
+			...(snapshot.data != null && {
+				[field('data')]: snapshot.data,
 			}),
-			...(snapshot.executionStatus != null && {
-				[entityFieldAddressKey(EntityType.EvmTransaction, [], 'executionStatus')]: snapshot.executionStatus,
+			[field('operation')]: snapshot.operation,
+			[field('nonce')]: snapshot.nonce,
+			[field('safeTxGas')]: snapshot.safeTxGas,
+			[field('baseGas')]: snapshot.baseGas,
+			[field('gasPrice')]: snapshot.gasPrice,
+			[field('gasToken')]: snapshot.gasToken,
+			[field('$refundReceiver')]: snapshot.$refundReceiver,
+			...(snapshot.$proposer != null && {
+				[field('$proposer')]: snapshot.$proposer,
 			}),
-			...(snapshot.$block != null && {
-				[entityFieldAddressKey(EntityType.EvmTransaction, [], '$block')]: snapshot.$block,
+			...(snapshot.$executor != null && {
+				[field('$executor')]: snapshot.$executor,
+			}),
+			[field('isExecuted')]: snapshot.isExecuted,
+			...(snapshot.isSuccessful != null && {
+				[field('isSuccessful')]: snapshot.isSuccessful,
+			}),
+			[field('confirmationsRequired')]: snapshot.confirmationsRequired,
+			[field('submittedAtMs')]: snapshot.submittedAtMs,
+			...(snapshot.executedAtMs != null && {
+				[field('executedAtMs')]: snapshot.executedAtMs,
+			}),
+			[field('modifiedAtMs')]: snapshot.modifiedAtMs,
+			...(snapshot.$executionTransaction != null && {
+				[field('$executionTransaction')]: snapshot.$executionTransaction,
 			}),
 		},
 	}
@@ -324,7 +364,7 @@ export default {
 				},
 			},
 		})({
-			$$transactions: {
+			$$safeMultisigTransactions: {
 				resolveCount: (count) => count,
 			},
 		}),
@@ -356,23 +396,15 @@ export default {
 						})
 						return {
 							nextOffset: page.nextOffset,
-							transactions: page.results.map((transaction) => {
-								const txHash = hexLowerOfByteSize(transaction.transactionHash ?? '', 32)
-								if (txHash == null)
-									throw new Error('SafeTransactionService_Rest: executed transaction missing execution hash')
-
-								return evmTransactionReferenceFromSafeMultisig(
-									chainId,
-									txHash,
-									transaction
-								)
-							}),
+							transactions: page.results.map((transaction) => (
+								safeMultisigReferenceFromWire(chainId, transaction)
+							)),
 						}
 					},
 				},
 			},
 		})({
-			$$transactions: {
+			$$safeMultisigTransactions: {
 				select: (snapshot) => snapshot.transactions,
 				continuation: (snapshot) => ({
 					operation: 'safe-executed-transactions',
@@ -447,17 +479,9 @@ export default {
 						})
 						return {
 							nextOffset: page.nextOffset,
-							transactions: page.results.map((transaction) => {
-								const txHash = hexLowerOfByteSize(transaction.safeTxHash, 32)
-								if (txHash == null)
-									throw new Error('SafeTransactionService_Rest: queued transaction missing Safe tx hash')
-
-								return evmTransactionReferenceFromSafeMultisig(
-									chainId,
-									txHash,
-									transaction
-								)
-							}),
+							transactions: page.results.map((transaction) => (
+								safeMultisigReferenceFromWire(chainId, transaction)
+							)),
 						}
 					},
 				},
@@ -477,17 +501,17 @@ export default {
 		}),
 
 		defineResolver({
-			entityType: EntityType.EvmTransaction,
+			entityType: EntityType.SafeMultisigTransaction,
 			resolve: {
-				EvmNetworkTxHash: {
+				EvmNetworkSafeTxHash: {
 					resolve: async ({
 						$network,
-						txHash: txHashSelector,
+						safeTxHash: safeTxHashSelector,
 					}) => {
 						const chainId = evmChainIdFromNetworkSelector($network)
-						const txHash = hexLowerOfByteSize(txHashSelector, 32)
-						if (txHash == null)
-							throw new Error('SafeTransactionService_Rest: transaction hash not normalized')
+						const safeTxHash = hexLowerOfByteSize(safeTxHashSelector, 32)
+						if (safeTxHash == null)
+							throw new Error('SafeTransactionService_Rest: Safe tx hash not normalized')
 
 						const {
 							getSafeMultisigTransaction,
@@ -496,25 +520,36 @@ export default {
 						requireSafeTransactionServiceBinding(chainId)
 						const transaction = await getSafeMultisigTransaction({
 							chainId,
-							safeTxHash: txHash,
+							safeTxHash,
 						})
-						return evmTransactionSnapshotFromSafeMultisig({
+						return safeMultisigSnapshotFromWire({
 							chainId,
-							txHash,
 							transaction,
 						})
 					},
 				},
 			},
 		})({
-			envelopeType: (transaction) => transaction.envelopeType,
-			kind: (transaction) => transaction.kind,
-			$from: (transaction) => transaction.$from,
+			$safe: (transaction) => transaction.$safe,
 			$to: (transaction) => transaction.$to,
 			value: (transaction) => transaction.value,
-			input: (transaction) => transaction.input,
-			executionStatus: (transaction) => transaction.executionStatus,
-			$block: (transaction) => transaction.$block,
+			data: (transaction) => transaction.data,
+			operation: (transaction) => transaction.operation,
+			nonce: (transaction) => transaction.nonce,
+			safeTxGas: (transaction) => transaction.safeTxGas,
+			baseGas: (transaction) => transaction.baseGas,
+			gasPrice: (transaction) => transaction.gasPrice,
+			gasToken: (transaction) => transaction.gasToken,
+			$refundReceiver: (transaction) => transaction.$refundReceiver,
+			$proposer: (transaction) => transaction.$proposer,
+			$executor: (transaction) => transaction.$executor,
+			isExecuted: (transaction) => transaction.isExecuted,
+			isSuccessful: (transaction) => transaction.isSuccessful,
+			confirmationsRequired: (transaction) => transaction.confirmationsRequired,
+			submittedAtMs: (transaction) => transaction.submittedAtMs,
+			executedAtMs: (transaction) => transaction.executedAtMs,
+			modifiedAtMs: (transaction) => transaction.modifiedAtMs,
+			$executionTransaction: (transaction) => transaction.$executionTransaction,
 		}),
 	],
 } satisfies RegisteredSourceResolverModule

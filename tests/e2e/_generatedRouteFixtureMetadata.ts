@@ -5271,6 +5271,20 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
+	'/(explore)/(networks)/network/[network]/(transactions)/safe-tx/[safeTxHash]': {
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/safe-tx/[safeTxHash=evmTxHash]',
+		mappings: [
+			{
+				id: 'SafeMultisigTransaction.EvmNetworkSafeTxHash',
+				projectionEntity: 'Network',
+				probeAtomPrefixes: ['/network/[network]/safe-tx/[safeTxHash]:SafeMultisigTransaction.EvmNetworkSafeTxHash'],
+				probeCases: [[[0, '1', ['safeTxHash', 'network']]]],
+				projectionPath: [
+					'Evm',
+				],
+			},
+		],
+	},
 	'/(explore)/(networks)/network/[network]/(transactions)/tx/[transactionId]': {
 		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxIdOrStringSegment]',
 		mappings: [

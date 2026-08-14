@@ -8,11 +8,7 @@ import {
 
 import * as Address from 'ox/Address'
 
-import {
-	EvmTransactionEnvelopeType,
-	EvmTransactionExecutionStatus,
-	EvmTransactionKind,
-} from '$/constants/Evm.ts'
+import { SafeMultisigOperation } from '$/constants/Safe.ts'
 import {
 	entityFieldAddressKey,
 	EntityMetaKey,
@@ -46,6 +42,13 @@ const network = {
 	},
 }
 
+const submittedAtMs = Date.parse('2026-07-22T00:00:00Z')
+const laterExecutedAtMs = Date.parse('2026-07-22T01:00:00Z')
+
+const safeField = (
+	name: Parameters<typeof entityFieldAddressKey>[2]
+) => entityFieldAddressKey(EntityType.SafeMultisigTransaction, [], name)
+
 const context = {
 	filters: [],
 	sorts: [],
@@ -63,7 +66,7 @@ describe('Safe Transaction Service resolver module', () => {
 		sourceGetJson.mockReset()
 	})
 
-	it('registers under SafeTransactionService_Rest for EvmContract and EvmNetworkAccount', () => {
+	it('registers under SafeTransactionService_Rest for EvmContract, EvmNetworkAccount, and SafeMultisigTransaction', async () => {
 		expect(safeRest.source).toBe(Source.SafeTransactionService_Rest)
 		expect(safeRest.resolvers.map((resolver) => resolver.entityType)).toEqual([
 			EntityType.EvmContract,
@@ -72,7 +75,7 @@ describe('Safe Transaction Service resolver module', () => {
 			EntityType.EvmNetworkAccount,
 			EntityType.EvmNetworkAccount,
 			EntityType.EvmNetworkAccount,
-			EntityType.EvmTransaction,
+			EntityType.SafeMultisigTransaction,
 		])
 	})
 
@@ -241,7 +244,7 @@ describe('Safe Transaction Service resolver module', () => {
 		expect(snapshot).not.toHaveProperty('$factory')
 	})
 
-	it('maps executed Safe multisig transactions onto EvmNetworkAccount $$transactions', async () => {
+	it('maps executed Safe multisig transactions onto EvmNetworkAccount $$safeMultisigTransactions', async () => {
 		sourceGetJson.mockResolvedValue({
 			count: 1,
 			next: `https://api.safe.global/tx-service/base/api/v2/safes/${Address.checksum(safeAddress)}/multisig-transactions/?limit=16&offset=16&executed=true`,
@@ -279,20 +282,20 @@ describe('Safe Transaction Service resolver module', () => {
 
 		const accountResolvers = safeRest.resolvers.filter((resolver) => (
 			resolver.entityType === EntityType.EvmNetworkAccount
-			&& '$$transactions' in resolver.projections
+			&& '$$safeMultisigTransactions' in resolver.projections
 		))
 		const listResolver = accountResolvers.find((resolver) => (
-			typeof resolver.projections.$$transactions === 'object'
-			&& resolver.projections.$$transactions != null
-			&& 'select' in resolver.projections.$$transactions
+			typeof resolver.projections.$$safeMultisigTransactions === 'object'
+			&& resolver.projections.$$safeMultisigTransactions != null
+			&& 'select' in resolver.projections.$$safeMultisigTransactions
 		))
 		const countResolver = accountResolvers.find((resolver) => (
-			typeof resolver.projections.$$transactions === 'object'
-			&& resolver.projections.$$transactions != null
-			&& 'resolveCount' in resolver.projections.$$transactions
+			typeof resolver.projections.$$safeMultisigTransactions === 'object'
+			&& resolver.projections.$$safeMultisigTransactions != null
+			&& 'resolveCount' in resolver.projections.$$safeMultisigTransactions
 		))
 		if (listResolver == null || countResolver == null)
-			throw new Error('missing EvmNetworkAccount $$transactions resolvers')
+			throw new Error('missing EvmNetworkAccount $$safeMultisigTransactions resolvers')
 
 		const listSnapshot = await listResolver.resolve.EvmNetworkEvmAccount.resolve({
 			$network: network,
@@ -300,37 +303,62 @@ describe('Safe Transaction Service resolver module', () => {
 				address: safeAddress,
 			},
 		}, context)
-		expect(listResolver.projections.$$transactions.select(listSnapshot)).toEqual([
+		expect(listResolver.projections.$$safeMultisigTransactions.select(listSnapshot)).toEqual([
 			{
 				[EntityMetaKey.Selector]: {
 					$network: network,
-					txHash: executionHash,
+					safeTxHash,
 				},
 				[EntityMetaKey.Fields]: {
-					[entityFieldAddressKey(EntityType.EvmTransaction, [], 'envelopeType')]: EvmTransactionEnvelopeType.Unknown,
-					[entityFieldAddressKey(EntityType.EvmTransaction, [], 'kind')]: EvmTransactionKind.ContractCall,
-					[entityFieldAddressKey(EntityType.EvmTransaction, [], '$from')]: {
+					[safeField('$safe')]: {
 						[EntityMetaKey.Selector]: {
+							$network: network,
 							address: safeAddress,
 						},
 					},
-					[entityFieldAddressKey(EntityType.EvmTransaction, [], '$to')]: {
+					[safeField('$to')]: {
 						[EntityMetaKey.Selector]: {
 							address: recipientAddress,
 						},
 					},
-					[entityFieldAddressKey(EntityType.EvmTransaction, [], 'value')]: 0n,
-					[entityFieldAddressKey(EntityType.EvmTransaction, [], 'executionStatus')]: EvmTransactionExecutionStatus.Success,
-					[entityFieldAddressKey(EntityType.EvmTransaction, [], '$block')]: {
+					[safeField('value')]: 0n,
+					[safeField('operation')]: SafeMultisigOperation.Call,
+					[safeField('nonce')]: 1n,
+					[safeField('safeTxGas')]: 0n,
+					[safeField('baseGas')]: 0n,
+					[safeField('gasPrice')]: 0n,
+					[safeField('gasToken')]: zeroAddress,
+					[safeField('$refundReceiver')]: {
+						[EntityMetaKey.Selector]: {
+							address: zeroAddress,
+						},
+					},
+					[safeField('$proposer')]: {
+						[EntityMetaKey.Selector]: {
+							address: ownerAddress,
+						},
+					},
+					[safeField('$executor')]: {
+						[EntityMetaKey.Selector]: {
+							address: ownerAddress,
+						},
+					},
+					[safeField('isExecuted')]: true,
+					[safeField('isSuccessful')]: true,
+					[safeField('confirmationsRequired')]: 1,
+					[safeField('submittedAtMs')]: submittedAtMs,
+					[safeField('executedAtMs')]: submittedAtMs,
+					[safeField('modifiedAtMs')]: submittedAtMs,
+					[safeField('$executionTransaction')]: {
 						[EntityMetaKey.Selector]: {
 							$network: network,
-							blockNumber: 1n,
+							txHash: executionHash,
 						},
 					},
 				},
 			},
 		])
-		expect(listResolver.projections.$$transactions.continuation(listSnapshot)).toEqual({
+		expect(listResolver.projections.$$safeMultisigTransactions.continuation(listSnapshot)).toEqual({
 			operation: 'safe-executed-transactions',
 			target: 'safe-transaction-service',
 			terminal: false,
@@ -343,7 +371,7 @@ describe('Safe Transaction Service resolver module', () => {
 				address: safeAddress,
 			},
 		}, context)
-		expect(countResolver.projections.$$transactions.resolveCount(countSnapshot)).toBe(1)
+		expect(countResolver.projections.$$safeMultisigTransactions.resolveCount(countSnapshot)).toBe(1)
 	})
 
 	it('uses the Safe continuation offset for later executed transaction pages', async () => {
@@ -356,13 +384,13 @@ describe('Safe Transaction Service resolver module', () => {
 
 		const listResolver = safeRest.resolvers.find((resolver) => (
 			resolver.entityType === EntityType.EvmNetworkAccount
-			&& '$$transactions' in resolver.projections
-			&& typeof resolver.projections.$$transactions === 'object'
-			&& resolver.projections.$$transactions != null
-			&& 'select' in resolver.projections.$$transactions
+			&& '$$safeMultisigTransactions' in resolver.projections
+			&& typeof resolver.projections.$$safeMultisigTransactions === 'object'
+			&& resolver.projections.$$safeMultisigTransactions != null
+			&& 'select' in resolver.projections.$$safeMultisigTransactions
 		))
 		if (listResolver == null)
-			throw new Error('missing EvmNetworkAccount transactions list resolver')
+			throw new Error('missing EvmNetworkAccount Safe transactions list resolver')
 
 		await listResolver.resolve.EvmNetworkEvmAccount.resolve({
 			$network: network,
@@ -440,23 +468,41 @@ describe('Safe Transaction Service resolver module', () => {
 			{
 				[EntityMetaKey.Selector]: {
 					$network: network,
-					txHash: safeTxHash,
+					safeTxHash,
 				},
 				[EntityMetaKey.Fields]: {
-					[entityFieldAddressKey(EntityType.EvmTransaction, [], 'envelopeType')]: EvmTransactionEnvelopeType.Unknown,
-					[entityFieldAddressKey(EntityType.EvmTransaction, [], 'kind')]: EvmTransactionKind.ContractCall,
-					[entityFieldAddressKey(EntityType.EvmTransaction, [], '$from')]: {
+					[safeField('$safe')]: {
 						[EntityMetaKey.Selector]: {
+							$network: network,
 							address: safeAddress,
 						},
 					},
-					[entityFieldAddressKey(EntityType.EvmTransaction, [], '$to')]: {
+					[safeField('$to')]: {
 						[EntityMetaKey.Selector]: {
 							address: recipientAddress,
 						},
 					},
-					[entityFieldAddressKey(EntityType.EvmTransaction, [], 'value')]: 0n,
-					[entityFieldAddressKey(EntityType.EvmTransaction, [], 'executionStatus')]: EvmTransactionExecutionStatus.Pending,
+					[safeField('value')]: 0n,
+					[safeField('operation')]: SafeMultisigOperation.Call,
+					[safeField('nonce')]: 2n,
+					[safeField('safeTxGas')]: 0n,
+					[safeField('baseGas')]: 0n,
+					[safeField('gasPrice')]: 0n,
+					[safeField('gasToken')]: zeroAddress,
+					[safeField('$refundReceiver')]: {
+						[EntityMetaKey.Selector]: {
+							address: zeroAddress,
+						},
+					},
+					[safeField('$proposer')]: {
+						[EntityMetaKey.Selector]: {
+							address: ownerAddress,
+						},
+					},
+					[safeField('isExecuted')]: false,
+					[safeField('confirmationsRequired')]: 1,
+					[safeField('submittedAtMs')]: submittedAtMs,
+					[safeField('modifiedAtMs')]: submittedAtMs,
 				},
 			},
 		])
@@ -476,7 +522,7 @@ describe('Safe Transaction Service resolver module', () => {
 		expect(countResolver.projections.$$queuedTransactions.resolveCount(countSnapshot)).toBe(1)
 	})
 
-	it('projects queued SafeTxHash onto singular EvmTransaction enrolled fields', async () => {
+	it('projects queued SafeTxHash onto singular SafeMultisigTransaction enrolled fields', async () => {
 		sourceGetJson.mockResolvedValue({
 			safe: safeAddress,
 			to: recipientAddress,
@@ -509,25 +555,20 @@ describe('Safe Transaction Service resolver module', () => {
 		})
 
 		const transactionResolver = safeRest.resolvers.find((resolver) => (
-			resolver.entityType === EntityType.EvmTransaction
+			resolver.entityType === EntityType.SafeMultisigTransaction
 			&& 'value' in resolver.projections
 		))
 		if (transactionResolver == null)
-			throw new Error('missing EvmTransaction SafeTxHash resolver')
+			throw new Error('missing SafeMultisigTransaction resolver')
 
-		const {
-			EvmTransactionEnvelopeType,
-			EvmTransactionExecutionStatus,
-			EvmTransactionKind,
-		} = await import('$/constants/Evm.ts')
-		const snapshot = await transactionResolver.resolve.EvmNetworkTxHash.resolve({
+		const snapshot = await transactionResolver.resolve.EvmNetworkSafeTxHash.resolve({
 			$network: network,
-			txHash: safeTxHash,
+			safeTxHash,
 		}, context)
-		expect(transactionResolver.projections.envelopeType(snapshot)).toBe(EvmTransactionEnvelopeType.Unknown)
-		expect(transactionResolver.projections.kind(snapshot)).toBe(EvmTransactionKind.NativeTransferAndCall)
-		expect(transactionResolver.projections.$from(snapshot)).toEqual({
+		expect(transactionResolver.projections.operation(snapshot)).toBe(SafeMultisigOperation.Call)
+		expect(transactionResolver.projections.$safe(snapshot)).toEqual({
 			[EntityMetaKey.Selector]: {
+				$network: network,
 				address: safeAddress,
 			},
 		})
@@ -537,9 +578,9 @@ describe('Safe Transaction Service resolver module', () => {
 			},
 		})
 		expect(transactionResolver.projections.value(snapshot)).toBe(1000n)
-		expect(transactionResolver.projections.input(snapshot)).toBe('0xa9059cbb')
-		expect(transactionResolver.projections.executionStatus(snapshot)).toBe(EvmTransactionExecutionStatus.Pending)
-		expect(transactionResolver.projections.$block(snapshot)).toBeUndefined()
+		expect(transactionResolver.projections.data(snapshot)).toBe('0xa9059cbb')
+		expect(transactionResolver.projections.isExecuted(snapshot)).toBe(false)
+		expect(transactionResolver.projections.$executionTransaction(snapshot)).toBeUndefined()
 		expect(snapshot).not.toHaveProperty('origin')
 		expect(snapshot).not.toHaveProperty('ethGasPrice')
 		expect(snapshot).not.toHaveProperty('proposedByDelegate')
@@ -547,7 +588,7 @@ describe('Safe Transaction Service resolver module', () => {
 		expect(sourceGetJson.mock.calls[0]?.[1]).toContain(`/api/v2/multisig-transactions/${safeTxHash}/`)
 	})
 
-	it('projects executed SafeTxHash with block + success status', async () => {
+	it('links executed Safe transactions to the outer execution hash without treating safeTxHash as an EVM tx', async () => {
 		sourceGetJson.mockResolvedValue({
 			safe: safeAddress,
 			to: recipientAddress,
@@ -577,28 +618,30 @@ describe('Safe Transaction Service resolver module', () => {
 		})
 
 		const transactionResolver = safeRest.resolvers.find((resolver) => (
-			resolver.entityType === EntityType.EvmTransaction
-			&& 'executionStatus' in resolver.projections
+			resolver.entityType === EntityType.SafeMultisigTransaction
+			&& 'isExecuted' in resolver.projections
 		))
 		if (transactionResolver == null)
-			throw new Error('missing EvmTransaction SafeTxHash resolver')
+			throw new Error('missing SafeMultisigTransaction resolver')
 
-		const {
-			EvmTransactionExecutionStatus,
-			EvmTransactionKind,
-		} = await import('$/constants/Evm.ts')
-		const snapshot = await transactionResolver.resolve.EvmNetworkTxHash.resolve({
+		const snapshot = await transactionResolver.resolve.EvmNetworkSafeTxHash.resolve({
 			$network: network,
-			txHash: safeTxHash,
+			safeTxHash,
 		}, context)
-		expect(transactionResolver.projections.kind(snapshot)).toBe(EvmTransactionKind.ContractCall)
-		expect(transactionResolver.projections.executionStatus(snapshot)).toBe(EvmTransactionExecutionStatus.Success)
-		expect(transactionResolver.projections.$block(snapshot)).toEqual({
+		expect(snapshot[EntityMetaKey.Selector]).toEqual({
+			$network: network,
+			safeTxHash,
+		})
+		expect(transactionResolver.projections.isExecuted(snapshot)).toBe(true)
+		expect(transactionResolver.projections.isSuccessful(snapshot)).toBe(true)
+		expect(transactionResolver.projections.executedAtMs(snapshot)).toBe(laterExecutedAtMs)
+		expect(transactionResolver.projections.$executionTransaction(snapshot)).toEqual({
 			[EntityMetaKey.Selector]: {
 				$network: network,
-				blockNumber: 12n,
+				txHash: executionHash,
 			},
 		})
-		expect(transactionResolver.projections.input(snapshot)).toBeUndefined()
+		expect(transactionResolver.projections.data(snapshot)).toBeUndefined()
+		expect(snapshot[EntityMetaKey.Selector]).not.toHaveProperty('txHash')
 	})
 })

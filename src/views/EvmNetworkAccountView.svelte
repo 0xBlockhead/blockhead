@@ -38,6 +38,7 @@
 	import EvmAccountView from '$/views/EvmAccountView.svelte'
 	import BalancerVeBalBalanceView from '$/views/BalancerVeBalBalanceView.svelte'
 	import EvmTransactionsView from '$/views/EvmTransactionsView.svelte'
+	import SafeMultisigTransactionsView from '$/views/SafeMultisigTransactionsView.svelte'
 	import EvmTokenTransfersView from '$/views/EvmTokenTransfersView.svelte'
 	import EvmInternalTransfersView from '$/views/EvmInternalTransfersView.svelte'
 	import EvmNetworkActorCoinBalancesView from '$/views/EvmNetworkActorCoinBalancesView.svelte'
@@ -154,7 +155,11 @@
 					},
 					{
 						id: 'evm-network-account-queued-transactions',
-						label: 'Queued transactions',
+						label: 'Queued Safe transactions',
+					},
+					{
+						id: 'evm-network-account-safe-transactions',
+						label: 'Safe transactions',
 					},
 					{
 						id: 'evm-network-account-token-transfers',
@@ -186,11 +191,21 @@
 			{/snippet}
 
 			{#snippet SectionEvmNetworkAccountQueuedTransactions({ id, label })}
-				<EvmTransactionsView
+				<SafeMultisigTransactionsView
 					selection={selection.$$queuedTransactions}
 					collapsible={false}
 					title={label}
 					emptyText='No queued Safe transactions.'
+					id={`${id}-list`}
+				/>
+			{/snippet}
+
+			{#snippet SectionEvmNetworkAccountSafeTransactions({ id, label })}
+				<SafeMultisigTransactionsView
+					selection={selection.$$safeMultisigTransactions}
+					collapsible={false}
+					title={label}
+					emptyText='No executed Safe transactions.'
 					id={`${id}-list`}
 				/>
 			{/snippet}

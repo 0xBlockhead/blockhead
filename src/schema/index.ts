@@ -858,6 +858,7 @@ import RssFeedSchema from '$/schema/RssFeed.ts'
 import RssItem_TimestampSchema from '$/schema/RssItem_Timestamp.ts'
 import RssItemSchema from '$/schema/RssItem.ts'
 import RssNetworkSchema from '$/schema/RssNetwork.ts'
+import SafeMultisigTransactionSchema from '$/schema/SafeMultisigTransaction.ts'
 import ScalingDeploymentClaim_TimestampSchema from '$/schema/ScalingDeploymentClaim_Timestamp.ts'
 import ScalingDeploymentClaimSchema from '$/schema/ScalingDeploymentClaim.ts'
 import SnapshotProposalSchema from '$/schema/SnapshotProposal.ts'
@@ -1992,6 +1993,7 @@ const schemaChunk17 = [
 	RssItemSchema,
 	RssItem_TimestampSchema,
 	RssNetworkSchema,
+	SafeMultisigTransactionSchema,
 	ScalingDeploymentClaimSchema,
 	ScalingDeploymentClaim_TimestampSchema,
 	SnapshotProposalSchema,
@@ -2034,10 +2036,10 @@ const schemaChunk17 = [
 	StarknetTransactionSchema,
 	StarknetTransaction_TimestampSchema,
 	StellarAccountSchema,
-	StellarAccount_TimestampSchema,
 ] as const
 
 const schemaChunk18 = [
+	StellarAccount_TimestampSchema,
 	StellarAccountSignerSchema,
 	StellarAccountSigner_TimestampSchema,
 	StellarAssetSchema,
@@ -2087,10 +2089,10 @@ const schemaChunk18 = [
 	TezosBakerSchema,
 	TezosBaker_Cycle_TimestampSchema,
 	TezosBaker_TimestampSchema,
-	TezosBakingRightSchema,
 ] as const
 
 const schemaChunk19 = [
+	TezosBakingRightSchema,
 	TezosBakingRight_TimestampSchema,
 	TezosBigMapSchema,
 	TezosBigMap_TimestampSchema,
@@ -2140,10 +2142,10 @@ const schemaChunk19 = [
 	TonWorkchainSchema,
 	TransferRestrictionSchema,
 	TransferRestrictionCheck_TimestampSchema,
-	TronAccountSchema,
 ] as const
 
 const schemaChunk20 = [
+	TronAccountSchema,
 	TronAccount_TimestampSchema,
 	TronAccountTokenBalance_TimestampSchema,
 	TronBlockSchema,
@@ -2193,10 +2195,10 @@ const schemaChunk20 = [
 	XrplLedgerEntrySchema,
 	XrplTransactionSchema,
 	XrplTransaction_TimestampSchema,
-	XrplTrustlineSchema,
 ] as const
 
 const schemaChunk21 = [
+	XrplTrustlineSchema,
 	XrplTrustline_TimestampSchema,
 	XUserSchema,
 	XUser_TimestampSchema,

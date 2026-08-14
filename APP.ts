@@ -1557,6 +1557,7 @@ export enum EntityType {
 	RssItem = "RssItem",
 	RssItem_Timestamp = "RssItem_Timestamp",
 	RssNetwork = "RssNetwork",
+	SafeMultisigTransaction = "SafeMultisigTransaction",
 	ScalingDeploymentClaim = "ScalingDeploymentClaim",
 	ScalingDeploymentClaim_Timestamp = "ScalingDeploymentClaim_Timestamp",
 	SnapshotProposal = "SnapshotProposal",
@@ -2555,6 +2556,18 @@ export const schema = {
 					matcher: "rssItemIdentityKind",
 				},
 				type: { raw: "type.enumerated('Guid', 'Link')" },
+			},
+			{
+				id: "SafeMultisigOperation",
+				enumConstantMap: {
+					from: "$/constants/Safe.ts",
+					name: "safeMultisigOperationByOperation",
+				},
+				imports: [{
+					from: "$/constants/Safe.ts",
+					names: ["SafeMultisigOperation"],
+				}],
+				type: { enum: "SafeMultisigOperation" },
 			},
 			{
 				id: "SnapshotHubAny",
@@ -30026,8 +30039,9 @@ export const schema = {
 				"$network": { label: "network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
 				"$actor": { label: "actor", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EvmAccount },
 				"$$timestamps": { label: "timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmNetworkAccount_Timestamp, defaultSources: [Source.Blockscout_Rest, Source.Etherscan_Rest] },
-				"$$transactions": { label: "transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmTransaction, defaultSources: [Source.Blockscout_Rest, Source.GoldRushFoundational_Rest, Source.SafeTransactionService_Rest] },
-				"$$queuedTransactions": { label: "queued transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmTransaction, defaultSources: [Source.SafeTransactionService_Rest] },
+				"$$transactions": { label: "transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmTransaction, defaultSources: [Source.Blockscout_Rest, Source.GoldRushFoundational_Rest] },
+				"$$queuedTransactions": { label: "queued transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.SafeMultisigTransaction, defaultSources: [Source.SafeTransactionService_Rest] },
+				"$$safeMultisigTransactions": { label: "Safe transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.SafeMultisigTransaction, defaultSources: [Source.SafeTransactionService_Rest] },
 				"$$tokenTransfers": { label: "token transfers", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmTokenTransfer },
 				"$$internalTransfers": { label: "internal transfers", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmInternalTransfer },
 				"$$ownedCoins": { label: "owned coins", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmNetworkActorCoinBalance, defaultSources: [Source.Allium_Rest, Source.Blockscout_Rest, Source.GoldRushFoundational_Rest] },
@@ -30065,7 +30079,8 @@ export const schema = {
 								className: "network-view-collapsible-activity",
 								sections: [
 									{ id: "evm-network-account-transactions", field: "$$transactions", List: "EvmTransactionsView", label: "Transactions", emptyText: "No transactions yet." },
-									{ id: "evm-network-account-queued-transactions", field: "$$queuedTransactions", List: "EvmTransactionsView", label: "Queued transactions", emptyText: "No queued Safe transactions." },
+									{ id: "evm-network-account-queued-transactions", field: "$$queuedTransactions", List: "SafeMultisigTransactionsView", label: "Queued Safe transactions", emptyText: "No queued Safe transactions." },
+									{ id: "evm-network-account-safe-transactions", field: "$$safeMultisigTransactions", List: "SafeMultisigTransactionsView", label: "Safe transactions", emptyText: "No executed Safe transactions." },
 									{ id: "evm-network-account-token-transfers", field: "$$tokenTransfers", List: "EvmTokenTransfersView", label: "Token transfers", emptyText: "No token transfers yet." },
 									{ id: "evm-network-account-internal-transfers", field: "$$internalTransfers", List: "EvmInternalTransfersView", label: "Internal transfers", emptyText: "No internal transfers yet." },
 								],
@@ -53995,6 +54010,68 @@ export const schema = {
 						],
 					},
 					plural: { component: "RssNetworksView" },
+				},
+			}),
+
+			entity({
+				entityType: EntityType.SafeMultisigTransaction,
+				labels: {
+					singular: "Safe transaction",
+					plural: "Safe transactions",
+				},
+				description: "A Safe-signed inner transaction identified by its EIP-712 safeTxHash. It is not the outer chain transaction that later executes it.",
+			})({
+				"$network": { label: "Network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
+				"safeTxHash": { label: "Safe transaction hash", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "EvmTxHash", normalize: "lowercaseHexIdentityValue" },
+				"$safe": { label: "Safe", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EvmContract, defaultSources: [Source.SafeTransactionService_Rest] },
+				"$to": { label: "To", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EvmAccount, defaultSources: [Source.SafeTransactionService_Rest] },
+				"value": { label: "Value", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "bigint", defaultSources: [Source.SafeTransactionService_Rest] },
+				"data": { label: "Data", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "zeroExHex", defaultSources: [Source.SafeTransactionService_Rest] },
+				"operation": { label: "Operation", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "SafeMultisigOperation", defaultSources: [Source.SafeTransactionService_Rest] },
+				"nonce": { label: "Nonce", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "bigint", defaultSources: [Source.SafeTransactionService_Rest] },
+				"safeTxGas": { label: "Safe tx gas", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "bigint", defaultSources: [Source.SafeTransactionService_Rest] },
+				"baseGas": { label: "Base gas", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "bigint", defaultSources: [Source.SafeTransactionService_Rest] },
+				"gasPrice": { label: "Gas price", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "bigint", defaultSources: [Source.SafeTransactionService_Rest] },
+				"gasToken": { label: "Gas token", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "evmAddress", defaultSources: [Source.SafeTransactionService_Rest] },
+				"$refundReceiver": { label: "Refund receiver", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EvmAccount, defaultSources: [Source.SafeTransactionService_Rest] },
+				"$proposer": { label: "Proposer", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.EvmAccount, defaultSources: [Source.SafeTransactionService_Rest] },
+				"$executor": { label: "Executor", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.EvmAccount, defaultSources: [Source.SafeTransactionService_Rest] },
+				"isExecuted": { label: "Executed", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "boolean", defaultSources: [Source.SafeTransactionService_Rest] },
+				"isSuccessful": { label: "Successful", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean", defaultSources: [Source.SafeTransactionService_Rest] },
+				"confirmationsRequired": { label: "Confirmations required", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number", defaultSources: [Source.SafeTransactionService_Rest] },
+				"submittedAtMs": { label: "Submitted", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger", defaultSources: [Source.SafeTransactionService_Rest] },
+				"executedAtMs": { label: "Executed at", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeInteger", defaultSources: [Source.SafeTransactionService_Rest] },
+				"modifiedAtMs": { label: "Modified", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger", defaultSources: [Source.SafeTransactionService_Rest] },
+				"$executionTransaction": { label: "Execution transaction", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.EvmTransaction, defaultSources: [Source.SafeTransactionService_Rest] },
+			})({
+				selectors: {
+					"EvmNetworkSafeTxHash": ["$network", "safeTxHash"],
+				},
+				views: {
+					singular: {
+						query: {
+							sources: [Source.SafeTransactionService_Rest],
+							fields: ["value", "operation", "nonce", "isExecuted"],
+							openFields: ["data", "isSuccessful", "confirmationsRequired", "submittedAtMs", "executedAtMs"],
+						},
+						summary: {
+							title: [{ field: "safeTxHash", format: "truncated" }],
+							value: ["operation", { field: "isExecuted", format: "boolean" }],
+							HeadingAfter: ["$safe"],
+						},
+						closed: ["operation", { field: "value", format: "numberValue" }, { field: "isExecuted", format: "boolean" }],
+						content: {
+							dl: [
+								["$to", { field: "value", format: "numberValue" }, "operation", "nonce", { field: "data", format: "truncated" }],
+								["isSuccessful", "confirmationsRequired", "$proposer", "$executor", "$executionTransaction", { field: "submittedAtMs", format: "timestamp" }, { field: "executedAtMs", format: "timestamp" }],
+							],
+						},
+					},
+					plural: {
+						component: "SafeMultisigTransactionsView",
+						title: "Safe transactions",
+						query: { sources: { default: [Source.SafeTransactionService_Rest] } },
+					},
 				},
 			}),
 
@@ -78158,6 +78235,32 @@ export const routes = defineRoutes(schema)({
 												href: "/(explore)/(networks)/network/[network]/transactions",
 											},
 											children: {
+												"safe-tx": {
+													children: {
+														"[safeTxHash]": {
+															selectors: {
+																[EntityType.SafeMultisigTransaction]: {
+																	"EvmNetworkSafeTxHash": {
+																		when: {
+																			path: ["namespace"],
+																			is: "Evm",
+																		},
+																		projection: {
+																			entityType: EntityType.Network,
+																			facetPath: ["Evm"]
+																		},
+																		params: {
+																			"safeTxHash": [
+																				"safeTxHash"
+																			]
+																		},
+																		page: {}
+																	}
+																},
+															},
+														},
+													},
+												},
 												"tx": {
 													children: {
 														"consensus": {
