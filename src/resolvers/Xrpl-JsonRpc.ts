@@ -529,6 +529,75 @@ export default {
 		}),
 
 		defineResolver({
+			entityType: EntityType.XrplLedgerEntry,
+			resolve: {
+				LedgerEntryHash: {
+					resolve: async ({ $ledger, entryHash }) => {
+						assertXrplNetwork($ledger.$network)
+						if (
+							'ledgerIndex' in $ledger
+							&& $ledger.ledgerIndex > BigInt(Number.MAX_SAFE_INTEGER)
+						)
+							throw new Error('Xrpl_Rippled: ledger entry ledger index is too large')
+						const { getLedgerEntry } = await import('$/sources/Xrpl/JsonRpc/queries.ts')
+						const response = await getLedgerEntry(entryHash, (
+							'ledgerIndex' in $ledger ?
+								Number($ledger.ledgerIndex)
+							: 'ledgerHash' in $ledger ?
+								{
+									ledgerHash: $ledger.ledgerHash,
+								}
+							:
+								'validated'
+						))
+						if (
+							'ledgerIndex' in $ledger
+							&& response.ledger_index == null
+						)
+							throw new Error('Xrpl_Rippled: ledger entry is missing its ledger index')
+						if (
+							'ledgerIndex' in $ledger
+							&& response.ledger_index != null
+							&& validatedLedgerIndex(response.ledger_index) !== $ledger.ledgerIndex
+						)
+							throw new Error('Xrpl_Rippled: ledger entry ledger index does not match')
+						if (
+							'ledgerHash' in $ledger
+							&& response.ledger_hash == null
+						)
+							throw new Error('Xrpl_Rippled: ledger entry is missing its ledger hash')
+						if (
+							'ledgerHash' in $ledger
+							&& response.ledger_hash != null
+							&& response.ledger_hash.toLowerCase() !== $ledger.ledgerHash.toLowerCase()
+						)
+							throw new Error('Xrpl_Rippled: ledger entry ledger hash does not match')
+
+						return {
+							entryType: response.node.LedgerEntryType,
+							...(response.node.Account != null && {
+								account: response.node.Account,
+							}),
+							...(response.node.PreviousTxnID != null && {
+								previousTransactionHash: response.node.PreviousTxnID,
+							}),
+							...(response.node.PreviousTxnLgrSeq != null && {
+								previousTransactionLedgerIndex: validatedLedgerIndex(response.node.PreviousTxnLgrSeq),
+							}),
+							fields: response.node,
+						}
+					},
+				},
+			},
+		})({
+			entryType: (entry) => entry.entryType,
+			account: (entry) => entry.account,
+			previousTransactionHash: (entry) => entry.previousTransactionHash,
+			previousTransactionLedgerIndex: (entry) => entry.previousTransactionLedgerIndex,
+			fields: (entry) => entry.fields,
+		}),
+
+		defineResolver({
 			entityType: EntityType.XrplAccount,
 			resolve: {
 				NetworkAccount: {

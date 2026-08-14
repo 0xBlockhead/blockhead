@@ -1,0 +1,16 @@
+{
+	"index": "13F1A95D7AAB7108D5CE7EEAF504B2894B8C674E6D68499076441C4837282BF8",
+	"ledger_hash": "EC02890710AAA2B71221D74DE9B3B7A4E67E7A3A77B47D342E82D0B3B1E69456",
+	"ledger_index": 93412781,
+	"node": {
+		"Account": "rf1BiGeXwwQoi8Z2ueFYTEXSwuJYfV2Jpn",
+		"Balance": "424021949",
+		"Flags": 8388608,
+		"LedgerEntryType": "AccountRoot",
+		"OwnerCount": 3,
+		"PreviousTxnID": "4E0AA11CBDD1760DE95B68DF2ABBE75C9698CEB548BEA9789053FCB3EBD444FB",
+		"PreviousTxnLgrSeq": 66054510,
+		"Sequence": 359
+	},
+	"validated": true
+}

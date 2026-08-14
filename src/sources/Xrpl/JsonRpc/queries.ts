@@ -10,6 +10,7 @@ import {
 	xrplFeature,
 	xrplLedger,
 	xrplLedgerData,
+	xrplLedgerEntry,
 	xrplLedgerWithTransactions,
 	xrplServerInfo,
 	type XrplAccountLinesResult,
@@ -130,6 +131,59 @@ export const getValidatedLedgerData = async (
 			}),
 		}])
 	)
+}
+
+export const getLedgerEntry = async (
+	entryHash: string,
+	specifier: XrplLedgerSpecifier | {
+		ledgerHash: string
+	} = 'validated'
+) => {
+	if (!/^[0-9a-fA-F]{64}$/.test(entryHash))
+		throw new Error('Xrpl_Rippled: ledger entry hash must be canonical hexadecimal')
+	if (typeof specifier === 'object') {
+		if (!/^[0-9a-fA-F]{64}$/.test(specifier.ledgerHash))
+			throw new Error('Xrpl_Rippled: ledger hash must be canonical hexadecimal')
+	} else if (specifier !== 'validated') {
+		if (!Number.isSafeInteger(specifier) || specifier < 0)
+			throw new Error('Xrpl_Rippled: ledger index must be a nonnegative safe integer')
+	}
+
+	const response = assertEnvelope(
+		'ledger_entry',
+		xrplLedgerEntry,
+		await jsonRpc2<unknown>(binding, 'ledger_entry', [{
+			index: entryHash,
+			...(
+				typeof specifier === 'object' ?
+					{
+						ledger_hash: specifier.ledgerHash,
+					}
+				:
+					{
+						ledger_index: specifier,
+					}
+			),
+		}])
+	)
+	if (!response.validated)
+		throw new Error('Xrpl_Rippled: ledger entry is not validated')
+	if (response.index.toLowerCase() !== entryHash.toLowerCase())
+		throw new Error('Xrpl_Rippled: ledger entry response does not match request')
+	if (
+		(
+			typeof specifier === 'object'
+			&& response.ledger_hash != null
+			&& response.ledger_hash.toLowerCase() !== specifier.ledgerHash.toLowerCase()
+		)
+		|| (
+			typeof specifier === 'number'
+			&& response.ledger_index != null
+			&& response.ledger_index !== specifier
+		)
+	)
+		throw new Error('Xrpl_Rippled: ledger entry response does not match request')
+	return response
 }
 
 export const getValidatedLedgerTransactions = async () => (

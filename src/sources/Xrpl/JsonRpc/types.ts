@@ -83,6 +83,20 @@ export type XrplLedgerDataResult = typeof xrplLedgerDataWire.infer & {
 	marker?: XrplMarker
 }
 
+export const xrplLedgerEntryNodeWire = xrplLedgerStateObjectWire.omit('index')
+
+export type XrplLedgerEntryNode = typeof xrplLedgerEntryNodeWire.infer
+
+export const xrplLedgerEntryWire = arktype({
+	index: 'string > 0',
+	'ledger_hash?': 'string > 0',
+	'ledger_index?': 'number.integer >= 0',
+	node: xrplLedgerEntryNodeWire,
+	validated: 'boolean',
+})
+
+export type XrplLedgerEntryResult = typeof xrplLedgerEntryWire.infer
+
 export const xrplAccountRootWire = arktype({
 	Account: 'string > 0',
 	Balance: 'string',
@@ -254,6 +268,8 @@ export const xrplLedgerBody = xrplLedgerBodyWire satisfies Type<XrplLedgerBody>
 export const xrplLedger = xrplLedgerWire satisfies Type<XrplLedgerResult>
 export const xrplLedgerStateObject = xrplLedgerStateObjectWire satisfies Type<XrplLedgerStateObject>
 export const xrplLedgerData = xrplLedgerDataWire
+export const xrplLedgerEntryNode = xrplLedgerEntryNodeWire satisfies Type<XrplLedgerEntryNode>
+export const xrplLedgerEntry = xrplLedgerEntryWire satisfies Type<XrplLedgerEntryResult>
 export const xrplAccountInfo = xrplAccountInfoWire satisfies Type<XrplAccountInfoResult>
 export const xrplAccountObjects = xrplAccountObjectsWire
 export const xrplAccountLines = xrplAccountLinesWire

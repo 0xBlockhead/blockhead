@@ -25,6 +25,7 @@ import {
 	getAccountTransactions,
 	getAmmInfo,
 	getFeatures,
+	getLedgerEntry,
 	getValidatedLedgerData,
 	getServerInfo,
 	getValidatedLedger,
@@ -38,6 +39,7 @@ import type {
 	XrplAmmInfoResult,
 	XrplFeatureResult,
 	XrplLedgerDataResult,
+	XrplLedgerEntryResult,
 	XrplLedgerResult,
 	XrplLedgerWithTransactionsResult,
 	XrplServerInfoResult,
@@ -76,6 +78,10 @@ const ledgerTransactions = JSON.parse(readFileSync(
 	new URL('../sources/Xrpl/JsonRpc/fixtures/ledger-transactions.json', import.meta.url),
 	'utf8'
 )) satisfies XrplLedgerWithTransactionsResult
+const ledgerEntry = JSON.parse(readFileSync(
+	new URL('../sources/Xrpl/JsonRpc/fixtures/ledger-entry.json', import.meta.url),
+	'utf8'
+)) satisfies XrplLedgerEntryResult
 const ammInfo = JSON.parse(readFileSync(
 	new URL('../sources/Xrpl/JsonRpc/fixtures/amm-info.json', import.meta.url),
 	'utf8'
@@ -364,6 +370,73 @@ describe('XRPL rippled queries', () => {
 				ledger_index: 'validated',
 			}],
 		})
+	})
+
+	it('loads a typed ledger_entry by canonical entry hash', async () => {
+		sourceFetch.mockResolvedValueOnce(jsonRpcResponse(ledgerEntry))
+		await expect(getLedgerEntry(ledgerEntry.index)).resolves.toEqual(ledgerEntry)
+		expect(JSON.parse(sourceFetch.mock.calls[0][2].body)).toMatchObject({
+			method: 'ledger_entry',
+			params: [{
+				index: ledgerEntry.index,
+				ledger_index: 'validated',
+			}],
+		})
+
+		sourceFetch.mockResolvedValueOnce(jsonRpcResponse(ledgerEntry))
+		await expect(getLedgerEntry(ledgerEntry.index, validatedLedger.ledger_index)).resolves.toEqual(ledgerEntry)
+		expect(JSON.parse(sourceFetch.mock.calls[1][2].body)).toMatchObject({
+			params: [{
+				index: ledgerEntry.index,
+				ledger_index: validatedLedger.ledger_index,
+			}],
+		})
+
+		sourceFetch.mockResolvedValueOnce(jsonRpcResponse(ledgerEntry))
+		await expect(getLedgerEntry(ledgerEntry.index, {
+			ledgerHash: validatedLedger.ledger_hash,
+		})).resolves.toEqual(ledgerEntry)
+		expect(JSON.parse(sourceFetch.mock.calls[2][2].body)).toMatchObject({
+			params: [{
+				index: ledgerEntry.index,
+				ledger_hash: validatedLedger.ledger_hash,
+			}],
+		})
+	})
+
+	it('rejects non-canonical or mismatched ledger entry lookups', async () => {
+		await expect(getLedgerEntry('not-a-hash')).rejects.toThrow('canonical hexadecimal')
+		await expect(getLedgerEntry(ledgerEntry.index, -1)).rejects.toThrow('nonnegative safe integer')
+		await expect(getLedgerEntry(ledgerEntry.index, {
+			ledgerHash: 'not-a-hash',
+		})).rejects.toThrow('canonical hexadecimal')
+		expect(sourceFetch).not.toHaveBeenCalled()
+
+		sourceFetch.mockResolvedValueOnce(jsonRpcResponse({
+			...ledgerEntry,
+			validated: false,
+		}))
+		await expect(getLedgerEntry(ledgerEntry.index)).rejects.toThrow('is not validated')
+
+		sourceFetch.mockResolvedValueOnce(jsonRpcResponse({
+			...ledgerEntry,
+			index: 'B'.repeat(64),
+		}))
+		await expect(getLedgerEntry(ledgerEntry.index)).rejects.toThrow('does not match request')
+
+		sourceFetch.mockResolvedValueOnce(jsonRpcResponse({
+			...ledgerEntry,
+			ledger_index: 93_412_782,
+		}))
+		await expect(getLedgerEntry(ledgerEntry.index, 93_412_781)).rejects.toThrow('does not match request')
+
+		sourceFetch.mockResolvedValueOnce(jsonRpcResponse({
+			...ledgerEntry,
+			ledger_hash: 'B'.repeat(64),
+		}))
+		await expect(getLedgerEntry(ledgerEntry.index, {
+			ledgerHash: validatedLedger.ledger_hash,
+		})).rejects.toThrow('does not match request')
 	})
 })
 describe('XRPL rippled account resolver', () => {
@@ -1085,5 +1158,133 @@ describe('XRPL rippled direct trustline resolvers', () => {
 			ledgerIndex: 93_412_781n,
 			source: Source.Xrpl_Rippled,
 		})).rejects.toThrow('ledger index does not match')
+	})
+})
+
+describe('XRPL rippled ledger entry resolver', () => {
+	beforeEach(() => {
+		sourceFetch.mockReset()
+	})
+
+	const resolverFor = () => {
+		const resolver = xrpl.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.XrplLedgerEntry
+			&& 'LedgerEntryHash' in candidate.resolve
+		))
+		if (resolver == null)
+			throw new Error('Xrpl_Rippled spec missing XrplLedgerEntry.LedgerEntryHash resolver')
+		return resolver
+	}
+
+	it('projects a validated ledger entry against its ledger identity', async () => {
+		const resolver = resolverFor()
+		const entry = {
+			$ledger: {
+				$network: {
+					caip2: networkBySlug.xrpl.caip2,
+				},
+				ledgerIndex: 93_412_781n,
+				ledgerHash: validatedLedger.ledger_hash,
+			},
+			entryHash: ledgerEntry.index,
+		}
+
+		sourceFetch.mockResolvedValueOnce(jsonRpcResponse(ledgerEntry))
+		const snapshot = await resolver.resolve['LedgerEntryHash'].resolve(entry)
+		expect(resolver.projections.entryType(snapshot)).toBe('AccountRoot')
+		expect(resolver.projections.account(snapshot)).toBe('rf1BiGeXwwQoi8Z2ueFYTEXSwuJYfV2Jpn')
+		expect(resolver.projections.previousTransactionHash(snapshot)).toBe('4E0AA11CBDD1760DE95B68DF2ABBE75C9698CEB548BEA9789053FCB3EBD444FB')
+		expect(resolver.projections.previousTransactionLedgerIndex(snapshot)).toBe(66_054_510n)
+		expect(resolver.projections.fields(snapshot)).toEqual(ledgerEntry.node)
+		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).params[0]).toMatchObject({
+			index: ledgerEntry.index,
+			ledger_index: 93_412_781,
+		})
+	})
+
+	it('requests hash-keyed ledgers by ledger hash', async () => {
+		const resolver = resolverFor()
+		const entry = {
+			$ledger: {
+				$network: {
+					caip2: networkBySlug.xrpl.caip2,
+				},
+				ledgerHash: validatedLedger.ledger_hash,
+			},
+			entryHash: ledgerEntry.index,
+		}
+
+		sourceFetch.mockResolvedValueOnce(jsonRpcResponse(ledgerEntry))
+		const snapshot = await resolver.resolve['LedgerEntryHash'].resolve(entry)
+		expect(resolver.projections.entryType(snapshot)).toBe('AccountRoot')
+		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).params[0]).toMatchObject({
+			index: ledgerEntry.index,
+			ledger_hash: validatedLedger.ledger_hash,
+		})
+	})
+
+	it('rejects unsupported networks and oversized ledger indices before transport', async () => {
+		const resolver = resolverFor()
+		await expect(resolver.resolve['LedgerEntryHash'].resolve({
+			$ledger: {
+				$network: {
+					caip2: networkBySlug.ethereum.caip2,
+				},
+				ledgerIndex: 93_412_781n,
+			},
+			entryHash: ledgerEntry.index,
+		})).rejects.toThrow('unsupported network')
+		await expect(resolver.resolve['LedgerEntryHash'].resolve({
+			$ledger: {
+				$network: {
+					caip2: networkBySlug.xrpl.caip2,
+				},
+				ledgerIndex: BigInt(Number.MAX_SAFE_INTEGER) + 1n,
+			},
+			entryHash: ledgerEntry.index,
+		})).rejects.toThrow('ledger index is too large')
+		expect(sourceFetch).not.toHaveBeenCalled()
+	})
+
+	it('rejects unvalidated or foreign-ledger entries', async () => {
+		const resolver = resolverFor()
+		const entry = {
+			$ledger: {
+				$network: {
+					caip2: networkBySlug.xrpl.caip2,
+				},
+				ledgerIndex: 93_412_781n,
+				ledgerHash: validatedLedger.ledger_hash,
+			},
+			entryHash: ledgerEntry.index,
+		}
+
+		sourceFetch.mockResolvedValueOnce(jsonRpcResponse({
+			...ledgerEntry,
+			validated: false,
+		}))
+		await expect(resolver.resolve['LedgerEntryHash'].resolve(entry)).rejects.toThrow('is not validated')
+
+		sourceFetch.mockResolvedValueOnce(jsonRpcResponse({
+			...ledgerEntry,
+			ledger_index: 93_412_782,
+		}))
+		await expect(resolver.resolve['LedgerEntryHash'].resolve(entry)).rejects.toThrow('does not match request')
+
+		sourceFetch.mockResolvedValueOnce(jsonRpcResponse({
+			...ledgerEntry,
+			ledger_hash: 'B'.repeat(64),
+		}))
+		await expect(resolver.resolve['LedgerEntryHash'].resolve(entry)).rejects.toThrow('ledger hash does not match')
+
+		sourceFetch.mockResolvedValueOnce(jsonRpcResponse({
+			...ledgerEntry,
+			node: {
+				...ledgerEntry.node,
+				Account: 'rDifferentAccount',
+			},
+		}))
+		const snapshot = await resolver.resolve['LedgerEntryHash'].resolve(entry)
+		expect(resolver.projections.account(snapshot)).toBe('rDifferentAccount')
 	})
 })
