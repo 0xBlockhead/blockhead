@@ -44,27 +44,18 @@ const subnetResolver = avalanchePlatformVm.resolvers.find((resolver) => (
 const validatorResolver = avalanchePlatformVm.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.AvalancheValidator
 ))
-const validatorTimestampResolver = avalanchePlatformVm.resolvers.find((resolver) => (
-	resolver.entityType === EntityType.AvalancheValidator_Timestamp
-))
 const blockResolver = avalanchePlatformVm.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.AvalanchePChainBlock
 ))
 const txResolver = avalanchePlatformVm.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.AvalanchePChainTransaction
 ))
-const txTimestampResolver = avalanchePlatformVm.resolvers.find((resolver) => (
-	resolver.entityType === EntityType.AvalanchePChainTransaction_Timestamp
-))
-
 if (
 	blockchainResolver == null
 	|| subnetResolver == null
 	|| validatorResolver == null
-	|| validatorTimestampResolver == null
 	|| blockResolver == null
 	|| txResolver == null
-	|| txTimestampResolver == null
 )
 	throw new Error('AvalanchePlatformVm_JsonRpc spec missing required resolvers')
 
@@ -174,6 +165,11 @@ it('projects enrolled blockchain, subnet, validator, and P-Chain block fields', 
 	expect(subnet.$$blockchains).toHaveLength(1)
 	expect(subnetResolver.projections.$$validators.resolveCount(subnet)).toBe(1)
 	expect(subnetResolver.projections.$$blockchains.resolveCount(subnet)).toBe(1)
+	expect(subnet.$$timestamps[0][EntityMetaKey.Fields]).toMatchObject({
+		[entityFieldAddressKey(EntityType.AvalancheSubnet_Timestamp, [], 'validatorCount')]: 1,
+		[entityFieldAddressKey(EntityType.AvalancheSubnet_Timestamp, [], 'chainCount')]: 1,
+		[entityFieldAddressKey(EntityType.AvalancheSubnet_Timestamp, [], 'pendingValidatorCount')]: 0,
+	})
 
 	const validator = await validatorResolver.resolve.NodeIdSubnetIdStartTimeMs.resolve({
 		nodeId: 'NodeID-validator',
@@ -276,12 +272,6 @@ it('materializes pending validators through the subnet, direct entity, and obser
 		.mockResolvedValueOnce({
 			validators: [pendingValidator],
 		})
-		.mockResolvedValueOnce({
-			validators: [],
-		})
-		.mockResolvedValueOnce({
-			validators: [pendingValidator],
-		})
 
 	const subnet = await subnetResolver.resolve.SubnetId.resolve({
 		subnetId: avalanchePrimaryNetworkSubnetId,
@@ -302,66 +292,75 @@ it('materializes pending validators through the subnet, direct entity, and obser
 		context
 	)
 	expect(validator.stakeAmountNavax).toBe(4000000000000n)
-
-	const observation = await validatorTimestampResolver.resolve.ValidatorTimestampMsSource.resolve({
-		$validator: validatorSelector,
-		timestampMs: 1,
-		source: Source.AvalanchePlatformVm_JsonRpc,
-	}, context)
-	expect(observation.validatorSetKind).toBe('pending')
-	expect(observation.observedStakeNavax).toBe(4000000000000n)
+	expect(validator.$$timestamps[0][EntityMetaKey.Fields]).toMatchObject({
+		[entityFieldAddressKey(EntityType.AvalancheValidator_Timestamp, [], 'validatorSetKind')]: 'pending',
+		[entityFieldAddressKey(EntityType.AvalancheValidator_Timestamp, [], 'observedStakeNavax')]: 4000000000000n,
+	})
 })
 
 it('projects committed P-Chain transaction status observations', async () => {
 	jsonRpc2
 		.mockResolvedValueOnce({
-			status: 'Committed',
+			tx: {
+				id: 'tx-1',
+				unsignedTx: {},
+			},
+			encoding: 'json',
 		})
 		.mockResolvedValueOnce({
-			height: '99',
+			status: 'Committed',
 		})
 
-	const observation = await txTimestampResolver.resolve.TransactionTimestampMsSource.resolve({
+	const transaction = await txResolver.resolve.NetworkTxId.resolve({
+		$network: {
+			slug: networkBySlug['avalanche-p-chain'].slug,
+		},
+		txId: 'tx-1',
+	}, context)
+
+	expect(transaction.$$timestamps[0][EntityMetaKey.Selector]).toMatchObject({
 		$transaction: {
 			$network: {
 				slug: networkBySlug['avalanche-p-chain'].slug,
 			},
 			txId: 'tx-1',
 		},
-		timestampMs: 1,
 		source: Source.AvalanchePlatformVm_JsonRpc,
-	}, context)
-
-	expect(observation.status).toBe('Committed')
-	expect(observation.blockHeight).toBe(99n)
-	expect(observation.source).toBe(Source.AvalanchePlatformVm_JsonRpc)
+	})
+	expect(transaction.$$timestamps[0][EntityMetaKey.Fields]).toEqual({
+		[entityFieldAddressKey(EntityType.AvalanchePChainTransaction_Timestamp, [], 'status')]: 'Committed',
+	})
 })
 
 it('projects enrolled AvalanchePChainTransaction fields from platform.getTx json', async () => {
-	jsonRpc2.mockResolvedValueOnce({
-		tx: {
-			unsignedTx: {
-				networkID: 1,
-				blockchainID: avalanchePrimaryNetworkSubnetId,
-				memo: '0x68656c6c6f',
-				validator: {
-					nodeID: 'NodeID-VT3YhgFaWEzy4Ap937qMeNEDscCammzG',
-					start: 1682945406,
-					end: 1684155006,
-					weight: 48944170378,
+	jsonRpc2
+		.mockResolvedValueOnce({
+			tx: {
+				unsignedTx: {
+					networkID: 1,
+					blockchainID: avalanchePrimaryNetworkSubnetId,
+					memo: '0x68656c6c6f',
+					validator: {
+						nodeID: 'NodeID-VT3YhgFaWEzy4Ap937qMeNEDscCammzG',
+						start: 1682945406,
+						end: 1684155006,
+						weight: 48944170378,
+					},
+					stake: [{
+						assetID: 'FvwEAhmxKfeiG8SnEvq42hc6whRyY3EFYAvebMqDNDGCgxN5Z',
+					}],
+					shares: 200000,
+					rewardsOwner: {
+						addresses: ['P-avax19zfygxaf59stehzedhxjesads0p5jdvfeedal0'],
+					},
 				},
-				stake: [{
-					assetID: 'FvwEAhmxKfeiG8SnEvq42hc6whRyY3EFYAvebMqDNDGCgxN5Z',
-				}],
-				shares: 200000,
-				rewardsOwner: {
-					addresses: ['P-avax19zfygxaf59stehzedhxjesads0p5jdvfeedal0'],
-				},
+				id: '28KVjSw5h3XKGuNpJXWY74EdnGq4TUWvCgEtJPymgQTvudiugb',
 			},
-			id: '28KVjSw5h3XKGuNpJXWY74EdnGq4TUWvCgEtJPymgQTvudiugb',
-		},
-		encoding: 'json',
-	})
+			encoding: 'json',
+		})
+		.mockResolvedValueOnce({
+			status: 'Committed',
+		})
 
 	const transaction = await txResolver.resolve.NetworkTxId.resolve({
 		$network: {
@@ -394,6 +393,12 @@ it('projects enrolled AvalanchePChainTransaction fields from platform.getTx json
 				encoding: 'json',
 			},
 		],
+		[
+			'platform.getTxStatus',
+			{
+				txID: '28KVjSw5h3XKGuNpJXWY74EdnGq4TUWvCgEtJPymgQTvudiugb',
+			},
+		],
 	])
 })
 
@@ -421,6 +426,9 @@ it('fails closed when direct P-Chain responses disagree with requested identity'
 				unsignedTx: {},
 			},
 			encoding: 'json',
+		})
+		.mockResolvedValueOnce({
+			status: 'Unknown',
 		})
 
 	await expect(blockResolver.resolve.NetworkHeight.resolve({

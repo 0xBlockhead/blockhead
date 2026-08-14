@@ -1117,7 +1117,7 @@ describe('resolver registry live resolver architecture', () => {
 			&& sourceClaimParentMaterializers(claim).length > 0
 		))
 
-		expect(parentOwnedClaims).toHaveLength(70)
+		expect(parentOwnedClaims).toHaveLength(217)
 		expect(Object.entries(Object.groupBy(
 			parentOwnedClaims,
 			(claim) => claim.entityType
@@ -1130,15 +1130,26 @@ describe('resolver registry live resolver architecture', () => {
 			[EntityType._GlobalIpfsAccess_Timestamp, 3],
 			[EntityType._GlobalSwarmAccess_Timestamp, 5],
 			[EntityType.AtprotoPost_Timestamp, 10],
+			[EntityType.AvalanchePChainTransaction_Timestamp, 4],
+			[EntityType.AvalancheSubnet_Timestamp, 7],
+			[EntityType.AvalancheValidator_Timestamp, 7],
+			[EntityType.BlockheadAvalancheNodeState_Timestamp, 10],
+			[EntityType.BlockheadLightningPeer_Timestamp, 7],
 			[EntityType.BridgeTransfer_Timestamp, 1],
 			[EntityType.CardanoTransaction, 1],
+			[EntityType.CashuKeyset_Timestamp, 2],
+			[EntityType.CashuMint_Timestamp, 6],
+			[EntityType.Erc4337SmartAccount_Timestamp, 1],
 			[EntityType.EvmNetworkActorCoinBalance_Timestamp, 1],
+			[EntityType.HederaContract_Timestamp, 3],
 			[EntityType.HyperliquidPerpMarket_Timestamp, 2],
 			[EntityType.LiquidityPool_Timestamp, 16],
+			[EntityType.MoneroNetwork_Timestamp, 29],
+			[EntityType.Network_Timestamp, 40],
 			[EntityType.NetworkEndpointObservation_Timestamp, 20],
-			[EntityType.UtxoAddress_Timestamp, 1],
+			[EntityType.SolanaValidator_Timestamp, 7],
+			[EntityType.UtxoAddress_Timestamp, 30],
 			[EntityType.XrplLedger, 1],
-			[EntityType.XrplLedgerEntry, 5],
 			[EntityType.XrplTransaction, 4],
 		])
 		for (const claim of parentOwnedClaims) {

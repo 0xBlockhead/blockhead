@@ -69,17 +69,6 @@ const cosmosNetworkResolverSelectors = <_Snapshot extends object>(
 	},
 })
 
-const cosmosNetworkTimestampApplicability = [
-	{
-		$network: cosmosNetworkApplicability[0],
-		source: Source.CometBft_Rest,
-	},
-	{
-		$network: cosmosNetworkApplicability[1],
-		source: Source.CometBft_Rest,
-	},
-] as const
-
 const cosmosBlockFields = (wireBlock: CometBftBlockResponse) => ({
 	hash: wireBlock.result.block_id.hash,
 	height: BigInt(wireBlock.result.block.header.height),
@@ -271,89 +260,52 @@ export default {
 		}),
 
 		defineResolver({
-			entityType: EntityType.Network_Timestamp,
-			resolve: {
-				NetworkTimestampMsSource: {
-					appliesTo: cosmosNetworkTimestampApplicability,
-					resolve: async ({
-						$network,
-						timestampMs,
-						source,
-					}) => {
-						assertCosmosHub($network)
-						const {
-							getBlock,
-							getStatus,
-						} = await import('$/sources/CometBft/Rest/queries.ts')
-						const status = await getStatus()
-						const latestHeight = BigInt(status.result.sync_info.latest_block_height)
-						// Transport leftovers: earliest_* / latest_app_hash / node_info.id /
-						// validator_info — accepted fail-closed; unenrolled on Network_Timestamp.Cosmos.
-						const {
-							sync_info: syncInfo,
-							node_info: nodeInfo,
-							validator_info: validatorInfo,
-						} = status.result
-						if (syncInfo.earliest_block_height != null && BigInt(syncInfo.earliest_block_height) > latestHeight)
-							throw new Error('CometBft_Rest: earliest block height exceeds tip')
-						if (validatorInfo?.voting_power != null && validatorInfo.voting_power === '')
-							throw new Error('CometBft_Rest: malformed validator voting power')
-						if (nodeInfo.id != null && nodeInfo.id === '')
-							throw new Error('CometBft_Rest: malformed node id')
-						const tipBlock = await getBlock({
-							height: latestHeight,
-						})
-						const tip = cosmosBlockFields(tipBlock)
-						// Transport leftovers on block header (app_hash / validators_hash / …) stay unprojected.
-						if (tipBlock.result.block.header.app_hash != null && tipBlock.result.block.header.app_hash === '')
-							throw new Error('CometBft_Rest: malformed app hash leftover')
-						return {
-							$network: {
-								[EntityMetaKey.Selector]: $network,
-							},
-							timestampMs,
-							source,
-							ledgerModels: [NetworkLedgerModel.Account],
-							executionModels: [NetworkExecutionModel.CosmosSdk],
-							latestBlockHeight: tip.height,
-							latestBlockHash: tip.hash,
-							latestBlockTimeMs: tip.timestampMs,
-							latestBlockTransactionCount: tip.transactionCount,
-							chainId: nodeInfo.network,
-							nodeNetwork: nodeInfo.network,
-							isSyncing: syncInfo.catching_up,
-						}
-					},
-				},
-			},
-		})({
-			$network: (timestamp) => timestamp.$network,
-			timestampMs: (timestamp) => timestamp.timestampMs,
-			source: (timestamp) => timestamp.source,
-			ledgerModels: (timestamp) => timestamp.ledgerModels,
-			executionModels: (timestamp) => timestamp.executionModels,
-			Cosmos: {
-				latestBlockHeight: (timestamp) => timestamp.latestBlockHeight,
-				latestBlockHash: (timestamp) => timestamp.latestBlockHash,
-				latestBlockTimeMs: (timestamp) => timestamp.latestBlockTimeMs,
-				latestBlockTransactionCount: (timestamp) => timestamp.latestBlockTransactionCount,
-				chainId: (timestamp) => timestamp.chainId,
-				nodeNetwork: (timestamp) => timestamp.nodeNetwork,
-				isSyncing: (timestamp) => timestamp.isSyncing,
-			},
-		}),
-
-		defineResolver({
 			entityType: EntityType.Network,
-			resolve: cosmosNetworkResolverSelectors(async (network) => ([
-				{
+			resolve: cosmosNetworkResolverSelectors(async (network) => {
+				assertCosmosHub(network)
+				const {
+					getBlock,
+					getStatus,
+				} = await import('$/sources/CometBft/Rest/queries.ts')
+				const status = await getStatus()
+				const {
+					sync_info: syncInfo,
+					node_info: nodeInfo,
+					validator_info: validatorInfo,
+				} = status.result
+				const latestHeight = BigInt(syncInfo.latest_block_height)
+				if (syncInfo.earliest_block_height != null && BigInt(syncInfo.earliest_block_height) > latestHeight)
+					throw new Error('CometBft_Rest: earliest block height exceeds tip')
+				if (validatorInfo?.voting_power != null && validatorInfo.voting_power === '')
+					throw new Error('CometBft_Rest: malformed validator voting power')
+				if (nodeInfo.id != null && nodeInfo.id === '')
+					throw new Error('CometBft_Rest: malformed node id')
+				const tipBlock = await getBlock({
+					height: latestHeight,
+				})
+				const tip = cosmosBlockFields(tipBlock)
+				if (tipBlock.result.block.header.app_hash != null && tipBlock.result.block.header.app_hash === '')
+					throw new Error('CometBft_Rest: malformed app hash leftover')
+
+				return [{
 					[EntityMetaKey.Selector]: {
 						$network: network,
 						timestampMs: Date.now(),
 						source: Source.CometBft_Rest,
 					},
-				},
-			])),
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.Network_Timestamp, [], 'ledgerModels')]: [NetworkLedgerModel.Account],
+						[entityFieldAddressKey(EntityType.Network_Timestamp, [], 'executionModels')]: [NetworkExecutionModel.CosmosSdk],
+						[entityFieldAddressKey(EntityType.Network_Timestamp, ['Cosmos'], 'latestBlockHeight')]: tip.height,
+						[entityFieldAddressKey(EntityType.Network_Timestamp, ['Cosmos'], 'latestBlockHash')]: tip.hash,
+						[entityFieldAddressKey(EntityType.Network_Timestamp, ['Cosmos'], 'latestBlockTimeMs')]: tip.timestampMs,
+						[entityFieldAddressKey(EntityType.Network_Timestamp, ['Cosmos'], 'latestBlockTransactionCount')]: tip.transactionCount,
+						[entityFieldAddressKey(EntityType.Network_Timestamp, ['Cosmos'], 'chainId')]: nodeInfo.network,
+						[entityFieldAddressKey(EntityType.Network_Timestamp, ['Cosmos'], 'nodeNetwork')]: nodeInfo.network,
+						[entityFieldAddressKey(EntityType.Network_Timestamp, ['Cosmos'], 'isSyncing')]: syncInfo.catching_up,
+					},
+				}]
+			}),
 		})({
 			$$timestamps: (timestamps) => timestamps,
 		}),

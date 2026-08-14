@@ -145,6 +145,10 @@ const pChainTransactionFields = (
 		$network: NetworkId
 		height: bigint
 		blockId: string
+	},
+	observation?: {
+		status: string
+		timestampMs: number
 	}
 ) => {
 	const unsignedTx = tx.unsignedTx
@@ -192,16 +196,21 @@ const pChainTransactionFields = (
 			destinationChain: unsignedTx.destinationChain,
 		}),
 		payload: unsignedTx,
-		$$timestamps: [{
-			[EntityMetaKey.Selector]: {
-				$transaction: {
-					$network,
-					txId,
+		...(observation != null && {
+			$$timestamps: [{
+				[EntityMetaKey.Selector]: {
+					$transaction: {
+						$network,
+						txId,
+					},
+					timestampMs: observation.timestampMs,
+					source: Source.AvalanchePlatformVm_JsonRpc,
 				},
-				timestampMs: Date.now(),
-				source: Source.AvalanchePlatformVm_JsonRpc,
-			},
-		}],
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.AvalanchePChainTransaction_Timestamp, [], 'status')]: observation.status,
+				},
+			}],
+		}),
 	}
 }
 
@@ -458,6 +467,10 @@ export default {
 						])
 						const subnetBlockchains = blockchains.blockchains.filter((row) => row.subnetID === subnetId)
 						const threshold = Number(subnet.threshold)
+						const validators = [
+							...currentValidators.validators,
+							...pendingValidators.validators,
+						]
 						return {
 							subnetId: subnet.id,
 							controlKeys: subnet.controlKeys,
@@ -472,10 +485,7 @@ export default {
 									[entityFieldAddressKey(EntityType.AvalancheBlockchain, [], 'chainName')]: blockchain.name,
 								},
 							})),
-							$$validators: [
-								...currentValidators.validators,
-								...pendingValidators.validators,
-							].map((validator) => {
+							$$validators: validators.map((validator) => {
 								const fields = validatorFields(validator, subnetId)
 								return {
 									[EntityMetaKey.Selector]: validatorSelector(validator, subnetId),
@@ -487,10 +497,7 @@ export default {
 									},
 								}
 							}),
-							$$delegators: [
-								...currentValidators.validators,
-								...pendingValidators.validators,
-							].flatMap((validator) => (
+							$$delegators: validators.flatMap((validator) => (
 								(validator.delegators ?? []).map((delegator) => {
 									const fields = delegatorFields(delegator, validator, subnetId)
 									return {
@@ -505,6 +512,34 @@ export default {
 									}
 								})
 							)),
+							$$timestamps: [{
+								[EntityMetaKey.Selector]: {
+									$subnet: {
+										subnetId,
+									},
+									timestampMs: Date.now(),
+									source: Source.AvalanchePlatformVm_JsonRpc,
+								},
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.AvalancheSubnet_Timestamp, [], 'validatorCount')]: currentValidators.validators.length,
+									[entityFieldAddressKey(EntityType.AvalancheSubnet_Timestamp, [], 'delegatorCount')]: currentValidators.validators.reduce(
+										(sum, validator) => (
+											sum
+											+ (
+												validator.delegators?.length
+												?? Number(validator.delegatorCount ?? 0)
+											)
+										),
+										0
+									),
+									[entityFieldAddressKey(EntityType.AvalancheSubnet_Timestamp, [], 'totalStakeNavax')]: currentValidators.validators.reduce(
+										(sum, validator) => sum + bigintFromWire(validator.weight, 'validator weight'),
+										0n
+									),
+									[entityFieldAddressKey(EntityType.AvalancheSubnet_Timestamp, [], 'chainCount')]: subnetBlockchains.length,
+									[entityFieldAddressKey(EntityType.AvalancheSubnet_Timestamp, [], 'pendingValidatorCount')]: pendingValidators.validators.length,
+								},
+							}],
 						}
 					},
 				},
@@ -523,72 +558,7 @@ export default {
 				resolveCount: (subnet) => subnet.$$validators.length,
 			},
 			$$delegators: (subnet) => subnet.$$delegators,
-		}),
-
-		defineResolver({
-			entityType: EntityType.AvalancheSubnet_Timestamp,
-			resolve: {
-				SubnetTimestampMsSource: {
-					resolve: async ({ $subnet, source }) => {
-						if (source !== Source.AvalanchePlatformVm_JsonRpc)
-							throw new Error('AvalanchePlatformVm_JsonRpc: observation source mismatch')
-						const {
-							getBlockchains,
-							getCurrentValidators,
-							getPendingValidators,
-						} = await import('$/sources/AvalanchePlatformVm/JsonRpc/queries.ts')
-						const [
-							validators,
-							pending,
-							blockchains,
-						] = await Promise.all([
-							getCurrentValidators({
-								subnetID: $subnet.subnetId,
-							}),
-							getPendingValidators({
-								subnetID: $subnet.subnetId,
-							}),
-							getBlockchains(),
-						])
-						const totalStakeNavax = validators.validators.reduce(
-							(sum, validator) => sum + bigintFromWire(validator.weight, 'validator weight'),
-							0n
-						)
-						const delegatorCount = validators.validators.reduce(
-							(sum, validator) => (
-								sum
-								+ (
-									validator.delegators?.length
-									?? (
-										validator.delegatorCount != null ?
-											Number(validator.delegatorCount)
-										:
-											0
-									)
-								)
-							),
-							0
-						)
-						return {
-							timestampMs: Date.now(),
-							source: Source.AvalanchePlatformVm_JsonRpc,
-							validatorCount: validators.validators.length,
-							delegatorCount,
-							totalStakeNavax,
-							chainCount: blockchains.blockchains.filter((row) => row.subnetID === $subnet.subnetId).length,
-							pendingValidatorCount: pending.validators.length,
-						}
-					},
-				},
-			},
-		})({
-			timestampMs: (observation) => observation.timestampMs,
-			source: (observation) => observation.source,
-			validatorCount: (observation) => observation.validatorCount,
-			delegatorCount: (observation) => observation.delegatorCount,
-			totalStakeNavax: (observation) => observation.totalStakeNavax,
-			chainCount: (observation) => observation.chainCount,
-			pendingValidatorCount: (observation) => observation.pendingValidatorCount,
+			$$timestamps: (subnet) => subnet.$$timestamps,
 		}),
 
 		defineResolver({
@@ -596,12 +566,42 @@ export default {
 			resolve: {
 				NodeIdSubnetIdStartTimeMs: {
 					resolve: async ({ nodeId, subnetId, startTimeMs }) => {
-						const { validator } = await getValidatorWithSetKind({
+						const {
+							validator,
+							validatorSetKind,
+						} = await getValidatorWithSetKind({
 							nodeId,
 							startTimeMs,
 							subnetId,
 						})
-						return validatorFields(validator, subnetId)
+						return {
+							...validatorFields(validator, subnetId),
+							$$timestamps: [{
+								[EntityMetaKey.Selector]: {
+									$validator: {
+										nodeId,
+										startTimeMs,
+										subnetId,
+									},
+									timestampMs: Date.now(),
+									source: Source.AvalanchePlatformVm_JsonRpc,
+								},
+								[EntityMetaKey.Fields]: {
+									...(validator.connected != null && {
+										[entityFieldAddressKey(EntityType.AvalancheValidator_Timestamp, [], 'connected')]: validator.connected,
+									}),
+									...(validator.uptime != null && {
+										[entityFieldAddressKey(EntityType.AvalancheValidator_Timestamp, [], 'uptimePercent')]: Number(validator.uptime),
+									}),
+									[entityFieldAddressKey(EntityType.AvalancheValidator_Timestamp, [], 'validatorSetKind')]: validatorSetKind,
+									[entityFieldAddressKey(EntityType.AvalancheValidator_Timestamp, [], 'observedStakeNavax')]: bigintFromWire(validator.weight, 'validator weight'),
+									[entityFieldAddressKey(EntityType.AvalancheValidator_Timestamp, [], 'observedDelegatorCount')]: (
+										validator.delegators?.length
+										?? Number(validator.delegatorCount ?? 0)
+									),
+								},
+							}],
+						}
 					},
 				},
 			},
@@ -615,53 +615,7 @@ export default {
 			$subnet: (validator) => validator.$subnet,
 			$network: (validator) => validator.$network,
 			$$delegators: (validator) => validator.$$delegators,
-		}),
-
-		defineResolver({
-			entityType: EntityType.AvalancheValidator_Timestamp,
-			resolve: {
-				ValidatorTimestampMsSource: {
-					resolve: async ({ $validator, source }) => {
-						if (source !== Source.AvalanchePlatformVm_JsonRpc)
-							throw new Error('AvalanchePlatformVm_JsonRpc: observation source mismatch')
-						const {
-							validator,
-							validatorSetKind,
-						} = await getValidatorWithSetKind({
-							nodeId: $validator.nodeId,
-							startTimeMs: $validator.startTimeMs,
-							subnetId: $validator.subnetId,
-						})
-						return {
-							timestampMs: Date.now(),
-							source: Source.AvalanchePlatformVm_JsonRpc,
-							...(validator.connected != null && { connected: validator.connected }),
-							...(validator.uptime != null && {
-								uptimePercent: Number(validator.uptime),
-							}),
-							validatorSetKind,
-							observedStakeNavax: bigintFromWire(validator.weight, 'validator weight'),
-							observedDelegatorCount: (
-								validator.delegators?.length
-								?? (
-									validator.delegatorCount != null ?
-										Number(validator.delegatorCount)
-									:
-										0
-								)
-							),
-						}
-					},
-				},
-			},
-		})({
-			timestampMs: (observation) => observation.timestampMs,
-			source: (observation) => observation.source,
-			connected: (observation) => observation.connected,
-			uptimePercent: (observation) => observation.uptimePercent,
-			validatorSetKind: (observation) => observation.validatorSetKind,
-			observedStakeNavax: (observation) => observation.observedStakeNavax,
-			observedDelegatorCount: (observation) => observation.observedDelegatorCount,
+			$$timestamps: (validator) => validator.$$timestamps,
 		}),
 
 		defineResolver({
@@ -733,12 +687,30 @@ export default {
 				NetworkTxId: {
 					resolve: async ({ $network, txId }) => {
 						assertAvalanchePChain($network)
-						const { getTx } = await import('$/sources/AvalanchePlatformVm/JsonRpc/queries.ts')
-						const response = await getTx(txId, 'json')
+						const {
+							getTx,
+							getTxStatus,
+						} = await import('$/sources/AvalanchePlatformVm/JsonRpc/queries.ts')
+						const [
+							response,
+							status,
+						] = await Promise.all([
+							getTx(txId, 'json'),
+							getTxStatus(txId),
+						])
 						const transaction = jsonTx(response.tx)
 						if (transaction.id != null && transaction.id !== txId)
 							throw new Error(`AvalanchePlatformVm_JsonRpc: transaction id ${transaction.id} does not match selector ${txId}`)
-						return pChainTransactionFields($network, txId, transaction)
+						return pChainTransactionFields(
+							$network,
+							txId,
+							transaction,
+							undefined,
+							{
+								status: status.status,
+								timestampMs: Date.now(),
+							}
+						)
 					},
 				},
 			},
@@ -757,44 +729,6 @@ export default {
 			destinationChain: (transaction) => transaction.destinationChain,
 			payload: (transaction) => transaction.payload,
 			$$timestamps: (transaction) => transaction.$$timestamps,
-		}),
-
-		defineResolver({
-			entityType: EntityType.AvalanchePChainTransaction_Timestamp,
-			resolve: {
-				TransactionTimestampMsSource: {
-					resolve: async ({ $transaction, source }) => {
-						assertAvalanchePChain($transaction.$network)
-						if (source !== Source.AvalanchePlatformVm_JsonRpc)
-							throw new Error('AvalanchePlatformVm_JsonRpc: observation source mismatch')
-						const {
-							getHeight,
-							getTxStatus,
-						} = await import('$/sources/AvalanchePlatformVm/JsonRpc/queries.ts')
-						const [
-							status,
-							height,
-						] = await Promise.all([
-							getTxStatus($transaction.txId),
-							getHeight(),
-						])
-						return {
-							timestampMs: Date.now(),
-							source: Source.AvalanchePlatformVm_JsonRpc,
-							status: status.status,
-							...(status.status === 'Committed' && {
-								blockHeight: bigintFromWire(height.height, 'height'),
-							}),
-						}
-					},
-				},
-			},
-		})({
-			timestampMs: (observation) => observation.timestampMs,
-			source: (observation) => observation.source,
-			status: (observation) => observation.status,
-			blockHeight: (observation) => observation.blockHeight,
-			blockId: () => undefined,
 		}),
 
 		defineResolver({

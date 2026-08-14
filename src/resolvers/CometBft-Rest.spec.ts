@@ -50,9 +50,6 @@ const blockResolver = cometBft.resolvers.find((candidate) => (
 const transactionResolver = cometBft.resolvers.find((candidate) => (
 	candidate.entityType === EntityType.CosmosTransaction
 ))
-const networkTimestampResolver = cometBft.resolvers.find((candidate) => (
-	candidate.entityType === EntityType.Network_Timestamp
-))
 const networkBlocksResolver = cometBft.resolvers.find((candidate) => (
 	candidate.entityType === EntityType.Network
 	&& 'Cosmos' in candidate.projections
@@ -66,7 +63,6 @@ const networkTimestampsResolver = cometBft.resolvers.find((candidate) => (
 if (
 	blockResolver == null
 	|| transactionResolver == null
-	|| networkTimestampResolver == null
 	|| networkBlocksResolver == null
 	|| networkTimestampsResolver == null
 )
@@ -229,20 +225,24 @@ describe('CometBFT resolver binding', () => {
 			},
 		})
 
-		const snapshot = await networkTimestampResolver.resolve.NetworkTimestampMsSource.resolve({
-			$network: cosmosNetwork,
-			timestampMs: 1_700_000_000_000,
-			source: Source.CometBft_Rest,
-		}, context)
-
-		expect(networkTimestampResolver.projections.Cosmos.latestBlockHeight(snapshot)).toBe(100n)
-		expect(networkTimestampResolver.projections.Cosmos.latestBlockHash(snapshot)).toBe('TIPHASH')
-		expect(networkTimestampResolver.projections.Cosmos.latestBlockTimeMs(snapshot)).toBe(
-			Date.parse('2026-01-01T00:00:10.000Z')
+		const snapshot = await networkTimestampsResolver.resolve.Caip2.resolve(
+			cosmosNetwork,
+			context
 		)
-		expect(networkTimestampResolver.projections.Cosmos.latestBlockTransactionCount(snapshot)).toBe(3)
-		expect(networkTimestampResolver.projections.Cosmos.chainId(snapshot)).toBe('cosmoshub-4')
-		expect(networkTimestampResolver.projections.Cosmos.isSyncing(snapshot)).toBe(true)
+		const observation = networkTimestampsResolver.projections.$$timestamps(snapshot)[0]
+
+		expect(observation[EntityMetaKey.Selector]).toMatchObject({
+			$network: cosmosNetwork,
+			source: Source.CometBft_Rest,
+		})
+		expect(observation[EntityMetaKey.Fields]).toMatchObject({
+			[entityFieldAddressKey(EntityType.Network_Timestamp, ['Cosmos'], 'latestBlockHeight')]: 100n,
+			[entityFieldAddressKey(EntityType.Network_Timestamp, ['Cosmos'], 'latestBlockHash')]: 'TIPHASH',
+			[entityFieldAddressKey(EntityType.Network_Timestamp, ['Cosmos'], 'latestBlockTimeMs')]: Date.parse('2026-01-01T00:00:10.000Z'),
+			[entityFieldAddressKey(EntityType.Network_Timestamp, ['Cosmos'], 'latestBlockTransactionCount')]: 3,
+			[entityFieldAddressKey(EntityType.Network_Timestamp, ['Cosmos'], 'chainId')]: 'cosmoshub-4',
+			[entityFieldAddressKey(EntityType.Network_Timestamp, ['Cosmos'], 'isSyncing')]: true,
+		})
 		expect(getBlock).toHaveBeenCalledWith({
 			height: 100n,
 		})
@@ -351,22 +351,6 @@ describe('CometBFT resolver binding', () => {
 					[entityFieldAddressKey(EntityType.CosmosBlock, [], 'proposerConsensusAddress')]: 'proposer-3',
 					[entityFieldAddressKey(EntityType.CosmosBlock, [], 'timestampMs')]: Date.parse('2026-01-01T00:00:03.000Z'),
 					[entityFieldAddressKey(EntityType.CosmosBlock, [], 'transactionCount')]: 0,
-				},
-			},
-		])
-	})
-
-	it('exposes Network.$$timestamps tip handle for CometBft_Rest', async () => {
-		const snapshot = await networkTimestampsResolver.resolve.Caip2.resolve(
-			cosmosNetwork,
-			context
-		)
-		expect(networkTimestampsResolver.projections.$$timestamps(snapshot)).toEqual([
-			{
-				[EntityMetaKey.Selector]: {
-					$network: cosmosNetwork,
-					timestampMs: expect.any(Number),
-					source: Source.CometBft_Rest,
 				},
 			},
 		])
