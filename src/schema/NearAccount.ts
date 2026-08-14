@@ -21,26 +21,12 @@ export default entity({
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
-	amountYoctoNear: {
-		primitiveType: type('bigint'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+	$$blocks: {
+		entityType: EntityType.NearAccount_Block,
+		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
 			Source.NearRpc_JsonRpc,
 			Source.NearBlocks_Rest,
-		],
-	},
-	storageUsageBytes: {
-		primitiveType: type('bigint'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.NearRpc_JsonRpc,
-		],
-	},
-	$contract: {
-		entityType: EntityType.NearContract,
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.NearRpc_JsonRpc,
 		],
 	},
 	$$accessKeys: {

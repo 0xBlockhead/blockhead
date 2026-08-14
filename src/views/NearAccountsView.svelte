@@ -36,7 +36,6 @@
 				],
 				fields: {
 					accountId: true,
-					amountYoctoNear: true,
 					$network: true,
 				},
 			},
@@ -66,10 +65,6 @@
 		>
 			{#snippet Title()}
 				{nearAccountSelector.accountId || 'near account'}
-			{/snippet}
-
-			{#snippet Value()}
-				{nearAccount.amountYoctoNear ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

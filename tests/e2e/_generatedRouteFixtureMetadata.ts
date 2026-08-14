@@ -1491,6 +1491,16 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
+	'/(explore)/(networks)/network/[network]/(accounts)/account/[accountId]/block-state/[blockHeight]/[blockHash]': {
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=stringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey]/(selection)/block-state/[blockHeight=nonNegativeBigInt]/[blockHash=stringSegment]',
+		mappings: [
+			{
+				id: 'NearAccount_Block.AccountBlock',
+				probeAtomPrefixes: ['/network/[network]/account/[accountId]/block-state/[blockHeight]/[blockHash]:NearAccount_Block.AccountBlock'],
+				probeCases: [[[0, '1', ['blockHeight', 'blockHash', 'accountId', 'network']]]],
+			},
+		],
+	},
 	'/(explore)/(networks)/network/[network]/(accounts)/account/[accountId]/borrow-lend/[tokenIndex]': {
 		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=stringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey]/(selection)/borrow-lend/[tokenIndex=nonNegativeInteger]',
 		mappings: [
@@ -1716,20 +1726,6 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				probeCases: [[[0, '1', ['source', 'ledgerIndex', 'accountId', 'network']]]],
 				projectionPath: [
 					'Xrpl',
-				],
-			},
-		],
-	},
-	'/(explore)/(networks)/network/[network]/(accounts)/account/[accountId]/observations/[timestampMs]/[source]': {
-		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=stringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey]/(selection)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-		mappings: [
-			{
-				id: 'NearAccount_Timestamp.AccountTimestampMsSource',
-				projectionEntity: 'Network',
-				probeAtomPrefixes: ['/network/[network]/account/[accountId]/observations/[timestampMs]/[source]:NearAccount_Timestamp.AccountTimestampMsSource'],
-				probeCases: [[[0, '1', ['timestampMs', 'source', 'accountId', 'network']]]],
-				projectionPath: [
-					'Near',
 				],
 			},
 		],

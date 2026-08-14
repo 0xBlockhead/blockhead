@@ -266,11 +266,13 @@ const getNearTransactionStatus = async ({ $network, hash, signerAccountId }: {
 }
 const getNearAccount = async (
 	network: NetworkId,
-	accountId: string
+	accountId: string,
+	blockId?: string
 ) => {
 	assertNearMainnet(network)
 	return viewAccount({
 		accountId,
+		blockId,
 	})
 }
 const getNearAccessKey = async (
@@ -755,23 +757,39 @@ export default {
 					resolve: async ({ $network, accountId }) => {
 						const account = await getNearAccount($network, accountId)
 						return {
-							...nearAccountFields(account),
-							...(account.code_hash !== '11111111111111111111111111111111' && {
-								$contract: {
-									[EntityMetaKey.Selector]: {
-										$network: $network,
-										accountId: accountId,
+							$$blocks: [{
+								[EntityMetaKey.Selector]: {
+									$account: {
+										$network,
+										accountId,
+									},
+									$block: {
+										$network,
+										height: BigInt(account.block_height),
+										hash: account.block_hash,
 									},
 								},
-							}),
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.NearAccount_Block, [], 'amountYoctoNear')]: BigInt(account.amount),
+									[entityFieldAddressKey(EntityType.NearAccount_Block, [], 'lockedYoctoNear')]: BigInt(account.locked),
+									[entityFieldAddressKey(EntityType.NearAccount_Block, [], 'storageUsageBytes')]: BigInt(account.storage_usage),
+									[entityFieldAddressKey(EntityType.NearAccount_Block, [], 'codeHash')]: account.code_hash,
+									...(account.code_hash !== '11111111111111111111111111111111' && {
+										[entityFieldAddressKey(EntityType.NearAccount_Block, [], '$contract')]: {
+											[EntityMetaKey.Selector]: {
+												$network,
+												accountId,
+											},
+										},
+									}),
+								},
+							}],
 						}
 					},
 				}
 			},
 		})({
-			amountYoctoNear: (account) => account.amountYoctoNear,
-			storageUsageBytes: (account) => account.storageUsageBytes,
-			$contract: (account) => account.$contract,
+			$$blocks: (account) => account.$$blocks,
 		}),
 		defineResolver({
 			entityType: EntityType.NearContract,
@@ -781,7 +799,17 @@ export default {
 						const account = await getNearAccount($network, accountId)
 						if (account.code_hash === '11111111111111111111111111111111')
 							throw new Error(`NearRpc_JsonRpc: account ${accountId} has no deployed contract code`)
-						return nearAccountFields(account)
+						return {
+							...nearAccountFields(account),
+							...(account.code_hash !== '11111111111111111111111111111111' && {
+								$contract: {
+									[EntityMetaKey.Selector]: {
+										$network: $account.$network,
+										accountId: $account.accountId,
+									},
+								},
+							}),
+						}
 					},
 				}
 			},
@@ -828,24 +856,32 @@ export default {
 			prefixBase64: (entry) => entry.prefixBase64,
 		}),
 		defineResolver({
-			entityType: EntityType.NearAccount_Timestamp,
+			entityType: EntityType.NearAccount_Block,
 			resolve: {
-				AccountTimestampMsSource: {
-					resolve: async ({ $account }) => {
-						return nearAccountFields(await getNearAccount(
+				AccountBlock: {
+					resolve: async ({ $account, $block }) => {
+						assertNearMainnet($block.$network)
+						const account = await getNearAccount(
 							$account.$network,
-							$account.accountId
-						))
+							$account.accountId,
+							$block.hash
+						)
+						if (
+							BigInt(account.block_height) !== $block.height
+							|| account.block_hash !== $block.hash
+						)
+							throw new Error('NearRpc_JsonRpc: account block identity mismatch')
+
+						return nearAccountFields(account)
 					},
 				}
 			},
 		})({
-			amountYoctoNear: (timestamp) => timestamp.amountYoctoNear,
-			lockedYoctoNear: (timestamp) => timestamp.lockedYoctoNear,
-			storageUsageBytes: (timestamp) => timestamp.storageUsageBytes,
-			codeHash: (timestamp) => timestamp.codeHash,
-			blockHeight: (timestamp) => timestamp.blockHeight,
-			blockHash: (timestamp) => timestamp.blockHash,
+			$contract: (block) => block.$contract,
+			amountYoctoNear: (block) => block.amountYoctoNear,
+			lockedYoctoNear: (block) => block.lockedYoctoNear,
+			storageUsageBytes: (block) => block.storageUsageBytes,
+			codeHash: (block) => block.codeHash,
 		}),
 		defineResolver({
 			entityType: EntityType.NearContract_Timestamp,

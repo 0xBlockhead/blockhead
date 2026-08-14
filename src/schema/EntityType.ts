@@ -765,7 +765,7 @@ export enum EntityType {
 	NearAccessKey = 'NearAccessKey',
 	NearAccessKey_Timestamp = 'NearAccessKey_Timestamp',
 	NearAccount = 'NearAccount',
-	NearAccount_Timestamp = 'NearAccount_Timestamp',
+	NearAccount_Block = 'NearAccount_Block',
 	NearAction = 'NearAction',
 	NearBlock = 'NearBlock',
 	NearChunk = 'NearChunk',

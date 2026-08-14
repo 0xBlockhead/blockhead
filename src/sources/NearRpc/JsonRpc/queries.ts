@@ -398,10 +398,12 @@ export const nearRpc = (() => {
 }
 
 	const viewAccount = async ({
-	accountId,
-}: {
-	accountId: string
-}) => {
+		accountId,
+		blockId,
+	}: {
+		accountId: string
+		blockId?: string
+	}) => {
 	if (accountId === '')
 		throw new Error(`${Source.NearRpc_JsonRpc}: empty account id`)
 
@@ -410,7 +412,7 @@ export const nearRpc = (() => {
 		nearAccountWire,
 		await jsonRpc2<unknown>(binding, 'query', {
 			request_type: 'view_account',
-			finality: 'final',
+			...(blockId == null ? { finality: 'final' } : { block_id: blockId }),
 			account_id: accountId,
 		})
 	)

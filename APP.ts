@@ -1464,7 +1464,7 @@ export enum EntityType {
 	NearAccessKey = "NearAccessKey",
 	NearAccessKey_Timestamp = "NearAccessKey_Timestamp",
 	NearAccount = "NearAccount",
-	NearAccount_Timestamp = "NearAccount_Timestamp",
+	NearAccount_Block = "NearAccount_Block",
 	NearAction = "NearAction",
 	NearBlock = "NearBlock",
 	NearChunk = "NearChunk",
@@ -46903,9 +46903,7 @@ export const schema = {
 			})({
 				"$network": { label: "Network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
 				"accountId": { label: "Account ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"amountYoctoNear": { label: "Amount yocto near", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.NearRpc_JsonRpc, Source.NearBlocks_Rest] },
-				"storageUsageBytes": { label: "Storage usage bytes", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.NearRpc_JsonRpc] },
-				"$contract": { label: "Contract", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.NearContract, defaultSources: [Source.NearRpc_JsonRpc] },
+				"$$blocks": { label: "Block states", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.NearAccount_Block, defaultSources: [Source.NearRpc_JsonRpc, Source.NearBlocks_Rest] },
 				"$$accessKeys": { label: "Access keys", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.NearAccessKey, defaultSources: [Source.NearRpc_JsonRpc] },
 				"$$transactions": { label: "Transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.NearTransaction, defaultSources: [Source.NearBlocks_Rest] },
 			})({
@@ -46919,7 +46917,6 @@ export const schema = {
 						},
 						summary: {
 							title: ["accountId"],
-							value: [{ field: "amountYoctoNear", format: "numberValue" }],
 							HeadingAfter: ["$network"],
 						},
 						content: {
@@ -46927,13 +46924,11 @@ export const schema = {
 								[
 									"$network",
 									"accountId",
-									{ field: "amountYoctoNear", format: "numberValue" },
-									{ field: "storageUsageBytes", format: "numberValue" },
-									"$contract",
 								],
 							],
 						},
 						lists: [
+							{ field: "$$blocks", component: "NearAccount_BlocksView", label: "Block states", emptyText: "No Near account block states yet." },
 							{ field: "$$accessKeys", component: "NearAccessKeysView", label: "Access keys" },
 							{ field: "$$transactions", component: "NearTransactionsView", label: "Transactions", emptyText: "No Near transactions for this account." },
 						],
@@ -46947,25 +46942,24 @@ export const schema = {
 			}),
 
 			entity({
-				entityType: EntityType.NearAccount_Timestamp,
+				entityType: EntityType.NearAccount_Block,
 				labels: {
-					singular: "near account timestamp",
-					plural: "near account observations",
+					singular: "near account block state",
+					plural: "near account block states",
 				},
 			})({
 				"$account": { label: "Account", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.NearAccount },
-				"timestampMs": { label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
-				"source": { label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"blockHeight": { label: "Block height", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
-				"blockHash": { label: "Block hash", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"amountYoctoNear": { label: "Amount yocto near", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.NearRpc_JsonRpc] },
-				"lockedYoctoNear": { label: "Locked yocto near", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
-				"storageUsageBytes": { label: "Storage usage bytes", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.NearRpc_JsonRpc] },
+				"$block": { label: "Block", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.NearBlock },
+				"$contract": { label: "Contract", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.NearContract, defaultSources: [Source.NearRpc_JsonRpc] },
+				"timestampMs": { label: "Timestamp", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeInteger" },
+				"amountYoctoNear": { label: "Amount yocto near", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "bigint", defaultSources: [Source.NearRpc_JsonRpc, Source.NearBlocks_Rest] },
+				"lockedYoctoNear": { label: "Locked yocto near", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.NearRpc_JsonRpc, Source.NearBlocks_Rest] },
+				"storageUsageBytes": { label: "Storage usage bytes", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "bigint", defaultSources: [Source.NearRpc_JsonRpc, Source.NearBlocks_Rest] },
 				"codeHash": { label: "Code hash", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.NearRpc_JsonRpc] },
-				"deleted": { label: "Deleted", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean" },
+				"deleted": { label: "Deleted", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean", defaultSources: [Source.NearBlocks_Rest] },
 			})({
 				selectors: {
-					"AccountTimestampMsSource": ["$account", "timestampMs", "source"],
+					"AccountBlock": ["$account", "$block"],
 				},
 				views: {
 					singular: {
@@ -46973,18 +46967,17 @@ export const schema = {
 							sources: [Source.NearRpc_JsonRpc],
 						},
 						summary: {
-							title: [{ field: "timestampMs", format: "timestamp" }],
+							title: ["$block"],
 							value: [{ field: "amountYoctoNear", format: "numberValue" }],
-							HeadingAfter: [{ field: "blockHeight", format: "number" }],
+							HeadingAfter: [{ field: "timestampMs", format: "timestamp" }],
 						},
 						content: {
 							dl: [
 								[
 									"$account",
+									"$block",
+									"$contract",
 									{ field: "timestampMs", format: "timestamp" },
-									"source",
-									{ field: "blockHeight", format: "number" },
-									{ field: "blockHash", format: "truncated" },
 									{ field: "amountYoctoNear", format: "numberValue" },
 									{ field: "lockedYoctoNear", format: "numberValue" },
 									{ field: "storageUsageBytes", format: "numberValue" },
@@ -46994,7 +46987,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "NearAccount_TimestampsView",
+					plural: { component: "NearAccount_BlocksView",
 					},
 				},
 			}),
@@ -75422,6 +75415,37 @@ export const routes = defineRoutes(schema)({
 																		}
 																	}
 																},
+																"block-state": {
+																	children: {
+																		"[blockHeight]": {
+																			params: { "blockHeight": ["NonNegativeBigInt"] },
+																			children: {
+																				"[blockHash]": {
+																					params: { "blockHash": ["string"] },
+																					selectors: {
+																						[EntityType.NearAccount_Block]: {
+																							"AccountBlock": {
+																								derivations: {
+																									"$block": {
+																										kind: "selector",
+																										entity: EntityType.NearBlock,
+																										selector: "NetworkHeightHash",
+																										params: [
+																											{ field: "$network", value: { kind: "property", value: { kind: "field", name: "$account" }, property: "$network" } },
+																											{ field: "height", value: { kind: "param", name: "blockHeight" } },
+																											{ field: "hash", value: { kind: "param", name: "blockHash" } },
+																										],
+																									},
+																								},
+																								page: {},
+																							},
+																						},
+																					},
+																				},
+																			},
+																		},
+																	},
+																},
 																"access-key": {
 																	children: {
 																		"[publicKey]": {
@@ -75468,17 +75492,6 @@ export const routes = defineRoutes(schema)({
 																			children: {
 																				"[source]": {
 																					params: { "source": ["string"] },
-																					selectors: {
-																						[EntityType.NearAccount_Timestamp]: {
-																							"AccountTimestampMsSource": {
-																								params: {},
-																								derivations: { "timestampMs": { kind: "param", name: "timestampMs" }, "source": { kind: "param", name: "source" } },
-																								page: {},
-																								when: { path: ["namespace"], is: "Near" },
-																								projection: { entityType: EntityType.Network, facetPath: ["Near"] },
-																							}
-																						}
-																					},
 																					children: {
 																						"[infoType]": {
 																							params: { "infoType": ["string"] },

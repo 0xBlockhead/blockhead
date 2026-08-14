@@ -764,7 +764,7 @@ import MoveModuleSchema from '$/schema/MoveModule.ts'
 import MoveStructSchema from '$/schema/MoveStruct.ts'
 import NearAccessKey_TimestampSchema from '$/schema/NearAccessKey_Timestamp.ts'
 import NearAccessKeySchema from '$/schema/NearAccessKey.ts'
-import NearAccount_TimestampSchema from '$/schema/NearAccount_Timestamp.ts'
+import NearAccount_BlockSchema from '$/schema/NearAccount_Block.ts'
 import NearAccountSchema from '$/schema/NearAccount.ts'
 import NearActionSchema from '$/schema/NearAction.ts'
 import NearBlockSchema from '$/schema/NearBlock.ts'
@@ -1893,7 +1893,7 @@ const schemaChunk15 = [
 	NearAccessKeySchema,
 	NearAccessKey_TimestampSchema,
 	NearAccountSchema,
-	NearAccount_TimestampSchema,
+	NearAccount_BlockSchema,
 	NearActionSchema,
 	NearBlockSchema,
 	NearChunkSchema,

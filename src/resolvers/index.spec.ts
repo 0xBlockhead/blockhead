@@ -1112,7 +1112,7 @@ describe('resolver registry live resolver architecture', () => {
 			&& sourceClaimParentMaterializers(claim).length > 0
 		))
 
-		expect(parentOwnedClaims).toHaveLength(346)
+		expect(parentOwnedClaims).toHaveLength(350)
 		expect(Object.entries(Object.groupBy(
 			parentOwnedClaims,
 			(claim) => claim.entityType
@@ -1144,6 +1144,7 @@ describe('resolver registry live resolver architecture', () => {
 			[EntityType.LightningNode_Timestamp, 17],
 			[EntityType.LiquidityPool_Timestamp, 16],
 			[EntityType.MoneroNetwork_Timestamp, 29],
+			[EntityType.NearAccount_Block, 4],
 			[EntityType.Network_Timestamp, 50],
 			[EntityType.NetworkEndpointObservation_Timestamp, 20],
 			[EntityType.PolkadotAccount_Timestamp, 2],

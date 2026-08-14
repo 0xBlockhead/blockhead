@@ -6,17 +6,14 @@ import {
 	entityFieldAddressKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { Source } from '$/sources/Source.ts'
 import type {
 	NearBlocksAccount,
 	NearBlocksBlock,
 	NearBlocksTransaction,
-	NearBlocksV3AccountBalance,
 	NearBlocksV3Transaction,
 } from '$/sources/NearBlocks/Rest/types.ts'
 
 const getAccount = vi.fn()
-const getAccountBalance = vi.fn()
 const getAccountTransactions = vi.fn()
 const getBlock = vi.fn()
 const getTransaction = vi.fn()
@@ -24,7 +21,6 @@ const listBlocks = vi.fn()
 
 vi.mock('$/sources/NearBlocks/Rest/queries.ts', () => ({
 	getAccount,
-	getAccountBalance,
 	getAccountTransactions,
 	getBlock,
 	getTransaction,
@@ -35,10 +31,7 @@ const { default: nearBlocks } = await import('$/resolvers/NearBlocks-Rest.ts')
 
 const accountResolver = nearBlocks.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.NearAccount
-	&& 'amountYoctoNear' in resolver.projections
-))
-const accountTimestampResolver = nearBlocks.resolvers.find((resolver) => (
-	resolver.entityType === EntityType.NearAccount_Timestamp
+	&& '$$blocks' in resolver.projections
 ))
 const accountTransactionsResolver = nearBlocks.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.NearAccount
@@ -57,8 +50,6 @@ const transactionResolver = nearBlocks.resolvers.find((resolver) => (
 
 if (accountResolver == null)
 	throw new Error('NearBlocks-Rest spec missing NearAccount resolver')
-if (accountTimestampResolver == null)
-	throw new Error('NearBlocks-Rest spec missing NearAccount_Timestamp resolver')
 if (accountTransactionsResolver == null)
 	throw new Error('NearBlocks-Rest spec missing NearAccount.$$transactions resolver')
 if (blockResolver == null)
@@ -86,13 +77,6 @@ const account = {
 	$network: network,
 	accountId: 'alice.near',
 }
-
-const balance = {
-	account_id: 'alice.near',
-	amount: '100',
-	amount_staked: '20',
-	storage_usage: '30',
-} satisfies NearBlocksV3AccountBalance
 
 const accountWire = {
 	account_id: 'alice.near',
@@ -167,46 +151,33 @@ describe('NearBlocks schema-shaped resolvers', () => {
 		vi.clearAllMocks()
 	})
 
-	it('projects account balance fields from v3 portfolio transport', async () => {
-		getAccountBalance.mockResolvedValueOnce(balance)
+	it('materializes the account state at the provider block without arbitrary timestamp replay', async () => {
+		getAccount.mockResolvedValueOnce(accountWire)
 
 		const snapshot = await accountResolver.resolve.NetworkAccountId.resolve({
 			$network: network,
 			accountId: 'alice.near',
 		}, context)
 
-		expect(getAccountBalance).toHaveBeenCalledWith('alice.near')
-		expect(accountResolver.projections.amountYoctoNear(snapshot)).toBe(100n)
-		expect(accountResolver.projections.storageUsageBytes(snapshot)).toBe(30n)
-	})
-
-	it('projects NearAccount_Timestamp locked storage and block meta from v1 account', async () => {
-		getAccount.mockResolvedValueOnce(accountWire)
-
-		const snapshot = await accountTimestampResolver.resolve.AccountTimestampMsSource.resolve({
-			$account: account,
-			timestampMs: 1,
-			source: Source.NearBlocks_Rest,
-		}, context)
-
 		expect(getAccount).toHaveBeenCalledWith({
 			accountId: 'alice.near',
 		})
-		expect(accountTimestampResolver.projections.amountYoctoNear(snapshot)).toBe(100n)
-		expect(accountTimestampResolver.projections.lockedYoctoNear(snapshot)).toBe(7n)
-		expect(accountTimestampResolver.projections.storageUsageBytes(snapshot)).toBe(182n)
-		expect(accountTimestampResolver.projections.blockHeight(snapshot)).toBe(208137439n)
-		expect(accountTimestampResolver.projections.blockHash(snapshot)).toBe('account-block-hash')
-		expect(accountTimestampResolver.projections.deleted(snapshot)).toBe(false)
-	})
-
-	it('rejects NearAccount_Timestamp for foreign source selectors', async () => {
-		await expect(accountTimestampResolver.resolve.AccountTimestampMsSource.resolve({
-			$account: account,
-			timestampMs: 1,
-			source: Source.NearRpc_JsonRpc,
-		}, context)).rejects.toThrow('unsupported source')
-		expect(getAccount).not.toHaveBeenCalled()
+		expect(accountResolver.projections.$$blocks(snapshot)).toMatchObject([{
+			[EntityMetaKey.Selector]: {
+				$account: account,
+				$block: {
+					$network: network,
+					height: 208137439n,
+					hash: 'account-block-hash',
+				},
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.NearAccount_Block, [], 'amountYoctoNear')]: 100n,
+				[entityFieldAddressKey(EntityType.NearAccount_Block, [], 'lockedYoctoNear')]: 7n,
+				[entityFieldAddressKey(EntityType.NearAccount_Block, [], 'storageUsageBytes')]: 182n,
+				[entityFieldAddressKey(EntityType.NearAccount_Block, [], 'deleted')]: false,
+			},
+		}])
 	})
 
 	it('projects NearTransaction refs from account transaction pages with opaque continuation', async () => {
@@ -501,6 +472,6 @@ describe('NearBlocks schema-shaped resolvers', () => {
 			},
 			accountId: 'alice.near',
 		}, context)).rejects.toThrow('unsupported network')
-		expect(getAccountBalance).not.toHaveBeenCalled()
+		expect(getAccount).not.toHaveBeenCalled()
 	})
 })

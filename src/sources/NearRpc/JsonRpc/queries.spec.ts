@@ -298,6 +298,33 @@ it('rejects empty receipt and transaction selectors before transport', async () 
 	expect(jsonRpc2).not.toHaveBeenCalled()
 })
 
+it('pins account state queries to the requested block hash', async () => {
+	jsonRpc2.mockResolvedValueOnce({
+		amount: '10',
+		locked: '0',
+		code_hash: '11111111111111111111111111111111',
+		storage_usage: 100,
+		storage_paid_at: 0,
+		block_height: 123,
+		block_hash: 'block-hash',
+	})
+
+	await viewAccount({
+		accountId: 'signer.near',
+		blockId: 'block-hash',
+	})
+
+	expect(jsonRpc2).toHaveBeenCalledWith(
+		expect.anything(),
+		'query',
+		{
+			request_type: 'view_account',
+			block_id: 'block-hash',
+			account_id: 'signer.near',
+		}
+	)
+})
+
 it('rejects substituted receipt and transaction subjects', async () => {
 	jsonRpc2
 		.mockResolvedValueOnce({

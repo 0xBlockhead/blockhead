@@ -7,48 +7,53 @@ import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export default entity({
-	entityType: EntityType.NearAccount_Timestamp,
+	entityType: EntityType.NearAccount_Block,
 	labels: {
-		singular: 'near account timestamp',
-		plural: 'near account observations',
+		singular: 'near account block state',
+		plural: 'near account block states',
 	},
 })({
 	$account: {
 		entityType: EntityType.NearAccount,
 		cardinality: EntityFieldCardinality.One,
 	},
-	timestampMs: {
-		primitiveType: type('number.integer >= 0'),
+	$block: {
+		entityType: EntityType.NearBlock,
 		cardinality: EntityFieldCardinality.One,
 	},
-	source: {
-		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.One,
-	},
-	blockHeight: {
-		primitiveType: type('bigint'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	blockHash: {
-		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	amountYoctoNear: {
-		primitiveType: type('bigint'),
+	$contract: {
+		entityType: EntityType.NearContract,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.NearRpc_JsonRpc,
 		],
 	},
-	lockedYoctoNear: {
-		primitiveType: type('bigint'),
+	timestampMs: {
+		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
-	storageUsageBytes: {
+	amountYoctoNear: {
+		primitiveType: type('bigint'),
+		cardinality: EntityFieldCardinality.One,
+		defaultSources: [
+			Source.NearRpc_JsonRpc,
+			Source.NearBlocks_Rest,
+		],
+	},
+	lockedYoctoNear: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.NearRpc_JsonRpc,
+			Source.NearBlocks_Rest,
+		],
+	},
+	storageUsageBytes: {
+		primitiveType: type('bigint'),
+		cardinality: EntityFieldCardinality.One,
+		defaultSources: [
+			Source.NearRpc_JsonRpc,
+			Source.NearBlocks_Rest,
 		],
 	},
 	codeHash: {
@@ -61,13 +66,15 @@ export default entity({
 	deleted: {
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.NearBlocks_Rest,
+		],
 	},
 })({
 	selectors: {
-		AccountTimestampMsSource: [
+		AccountBlock: [
 			'$account',
-			'timestampMs',
-			'source',
+			'$block',
 		],
 	},
 })

@@ -168,54 +168,37 @@ export default {
 				NetworkAccountId: {
 					resolve: async ({ $network, accountId }) => {
 						assertNearMainnet($network)
-						const { getAccountBalance } = await import('$/sources/NearBlocks/Rest/queries.ts')
-						const balance = await getAccountBalance(accountId)
+						const { getAccount } = await import('$/sources/NearBlocks/Rest/queries.ts')
+						const account = await getAccount({ accountId })
+						if (account.storage_usage == null)
+							throw new Error('NearBlocks_Rest: account storage usage not found')
+
 						return {
-							amountYoctoNear: BigInt(balance.amount),
-							storageUsageBytes: BigInt(balance.storage_usage),
+							$$blocks: [{
+								[EntityMetaKey.Selector]: {
+									$account: {
+										$network,
+										accountId,
+									},
+									$block: {
+										$network,
+										height: BigInt(account.block_height),
+										hash: account.block_hash,
+									},
+								},
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.NearAccount_Block, [], 'amountYoctoNear')]: BigInt(account.amount),
+									[entityFieldAddressKey(EntityType.NearAccount_Block, [], 'lockedYoctoNear')]: account.locked == null ? undefined : BigInt(account.locked),
+									[entityFieldAddressKey(EntityType.NearAccount_Block, [], 'storageUsageBytes')]: BigInt(account.storage_usage),
+									[entityFieldAddressKey(EntityType.NearAccount_Block, [], 'deleted')]: accountDeleted(account.deleted),
+								},
+							}],
 						}
 					},
 				}
 			},
 		})({
-			amountYoctoNear: (snapshot) => snapshot.amountYoctoNear,
-			storageUsageBytes: (snapshot) => snapshot.storageUsageBytes,
-		}),
-
-		defineResolver({
-			entityType: EntityType.NearAccount_Timestamp,
-			resolve: {
-				AccountTimestampMsSource: {
-					resolve: async ({ $account, source }) => {
-						assertNearMainnet($account.$network)
-						if (source !== Source.NearBlocks_Rest)
-							throw new Error(`NearBlocks_Rest: unsupported source ${source}`)
-						const { getAccount } = await import('$/sources/NearBlocks/Rest/queries.ts')
-						const account = await getAccount({
-							accountId: $account.accountId,
-						})
-						return {
-							amountYoctoNear: BigInt(account.amount),
-							...(account.locked != null && {
-								lockedYoctoNear: BigInt(account.locked),
-							}),
-							...(account.storage_usage != null && {
-								storageUsageBytes: BigInt(account.storage_usage),
-							}),
-							blockHeight: BigInt(account.block_height),
-							blockHash: account.block_hash,
-							deleted: accountDeleted(account.deleted),
-						}
-					},
-				},
-			},
-		})({
-			amountYoctoNear: (timestamp) => timestamp.amountYoctoNear,
-			lockedYoctoNear: (timestamp) => timestamp.lockedYoctoNear,
-			storageUsageBytes: (timestamp) => timestamp.storageUsageBytes,
-			blockHeight: (timestamp) => timestamp.blockHeight,
-			blockHash: (timestamp) => timestamp.blockHash,
-			deleted: (timestamp) => timestamp.deleted,
+			$$blocks: (snapshot) => snapshot.$$blocks,
 		}),
 
 		defineResolver({

@@ -3,6 +3,7 @@ import { networkBySlug } from '$/constants/Network.ts'
 import { EntityMetaKey, entityFieldAddressKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import type {
+	NearRpcAccount,
 	NearRpcBlock,
 	NearRpcChunk,
 } from '$/sources/NearRpc/JsonRpc/types.ts'
@@ -35,6 +36,17 @@ const storageEntryResolver = nearRpc.resolvers.find((resolver) => (
 
 if (storageEntryResolver == null)
 	throw new Error('NearRpc_JsonRpc spec missing NearContractStorageEntry resolver')
+
+const accountResolver = nearRpc.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.NearAccount
+	&& '$$blocks' in resolver.projections
+))
+const accountBlockResolver = nearRpc.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.NearAccount_Block
+))
+
+if (accountResolver == null || accountBlockResolver == null)
+	throw new Error('NearRpc_JsonRpc spec missing Near account block-state resolvers')
 
 const blockResolver = nearRpc.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.NearBlock
@@ -126,6 +138,15 @@ const wireChunk = {
 		}],
 	}],
 } satisfies NearRpcChunk
+const wireAccount = {
+	amount: '100',
+	locked: '7',
+	code_hash: 'code-hash',
+	storage_usage: 182,
+	storage_paid_at: 0,
+	block_height: 1_234_567,
+	block_hash: 'block-hash',
+} satisfies NearRpcAccount
 
 const jsonRpcResult = (result: unknown) => (
 	new Response(JSON.stringify({
@@ -134,6 +155,63 @@ const jsonRpcResult = (result: unknown) => (
 		result,
 	}))
 )
+
+describe('NEAR account block state', () => {
+	beforeEach(() => {
+		corsFetch.mockReset()
+	})
+
+	it('embeds current state under the exact provider block and replays that block directly', async () => {
+		corsFetch.mockResolvedValueOnce(jsonRpcResult(wireAccount))
+
+		const snapshot = await accountResolver.resolve.NetworkAccountId.resolve({
+			$network: network,
+			accountId: 'alice.near',
+		}, context)
+
+		expect(accountResolver.projections.$$blocks(snapshot)).toMatchObject([{
+			[EntityMetaKey.Selector]: {
+				$account: {
+					$network: network,
+					accountId: 'alice.near',
+				},
+				$block: {
+					$network: network,
+					height: 1_234_567n,
+					hash: 'block-hash',
+				},
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.NearAccount_Block, [], 'amountYoctoNear')]: 100n,
+				[entityFieldAddressKey(EntityType.NearAccount_Block, [], 'lockedYoctoNear')]: 7n,
+				[entityFieldAddressKey(EntityType.NearAccount_Block, [], 'storageUsageBytes')]: 182n,
+				[entityFieldAddressKey(EntityType.NearAccount_Block, [], 'codeHash')]: 'code-hash',
+			},
+		}])
+
+		corsFetch.mockResolvedValueOnce(jsonRpcResult(wireAccount))
+		const block = await accountBlockResolver.resolve.AccountBlock.resolve({
+			$account: {
+				$network: network,
+				accountId: 'alice.near',
+			},
+			$block: {
+				$network: network,
+				height: 1_234_567n,
+				hash: 'block-hash',
+			},
+		}, context)
+
+		expect(accountBlockResolver.projections.amountYoctoNear(block)).toBe(100n)
+		expect(JSON.parse(corsFetch.mock.calls[1][1].init.body)).toMatchObject({
+			params: {
+				request_type: 'view_account',
+				block_id: 'block-hash',
+				account_id: 'alice.near',
+			},
+		})
+	})
+})
 
 describe('NEAR contract storage query', () => {
 	beforeEach(() => {
