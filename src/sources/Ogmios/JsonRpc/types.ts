@@ -22,6 +22,8 @@ const numberOfBytes = arktype({
 	bytes: nonNegativeInteger,
 })
 
+const nonEmptyString = arktype('string > 0')
+
 
 /** `Point` from `queryLedgerState/tip` / `queryNetwork/tip` (rejects `"origin"`). */
 export const ogmiosPointWire = arktype({
@@ -42,6 +44,20 @@ export type OgmiosBlockHeight = typeof ogmiosBlockHeightWire.infer
 export const ogmiosEpochWire = nonNegativeInteger
 
 export type OgmiosEpoch = typeof ogmiosEpochWire.infer
+
+
+/** `queryLedgerState/constitution`. */
+export const ogmiosConstitutionWire = arktype({
+	metadata: {
+		url: nonEmptyString,
+		hash: nonEmptyString,
+	},
+	guardrails: arktype({
+		hash: nonEmptyString,
+	}).or('null'),
+})
+
+export type OgmiosConstitution = typeof ogmiosConstitutionWire.infer
 
 
 const executionUnits = arktype({

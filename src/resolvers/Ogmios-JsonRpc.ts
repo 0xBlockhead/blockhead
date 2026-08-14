@@ -355,6 +355,54 @@ export default {
 		}),
 
 		defineResolver({
+			entityType: EntityType.CardanoConstitution_Epoch,
+			resolve: {
+				NetworkEpochSource: {
+					resolve: async ({
+						$network,
+						epoch,
+						source,
+					}) => {
+						assertCardanoMainnet($network)
+						if (source !== Source.Ogmios_JsonRpc)
+							throw new Error('Ogmios_JsonRpc: constitution source mismatch')
+
+						const {
+							getConstitution,
+							getEpoch,
+							getLedgerTip,
+						} = await loadOgmiosQueries()
+						const [
+							constitution,
+							currentEpoch,
+							tip,
+						] = await Promise.all([
+							getConstitution(),
+							getEpoch(),
+							getLedgerTip(),
+						])
+						if (currentEpoch !== epoch)
+							throw new Error('Ogmios_JsonRpc: historical constitution epoch is unavailable')
+
+						return {
+							slot: BigInt(tip.slot),
+							anchorUrl: constitution.metadata.url,
+							anchorHash: constitution.metadata.hash,
+							...(constitution.guardrails != null && {
+								scriptHash: constitution.guardrails.hash,
+							}),
+						}
+					},
+				},
+			},
+		})({
+			slot: (constitution) => constitution.slot,
+			anchorUrl: (constitution) => constitution.anchorUrl,
+			anchorHash: (constitution) => constitution.anchorHash,
+			scriptHash: (constitution) => constitution.scriptHash,
+		}),
+
+		defineResolver({
 			entityType: EntityType.CardanoBlock,
 			resolve: {
 				NetworkHash: {

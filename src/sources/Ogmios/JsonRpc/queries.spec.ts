@@ -15,6 +15,7 @@ vi.mock('$/sources/_shared/wire/JsonRpc2/client.ts', () => ({
 }))
 
 const {
+	getConstitution,
 	getEpoch,
 	getLedgerTip,
 	getNetworkBlockHeight,
@@ -117,12 +118,30 @@ describe('Ogmios JsonRpc tip transport', () => {
 			.mockResolvedValueOnce(tipPoint)
 			.mockResolvedValueOnce(12_345_678)
 			.mockResolvedValueOnce(500)
+			.mockResolvedValueOnce({
+				metadata: {
+					url: 'ipfs://constitution',
+					hash: 'constitution-anchor-hash',
+				},
+				guardrails: {
+					hash: 'guardrails-script-hash',
+				},
+			})
 			.mockResolvedValueOnce(protocolParameters)
 
 		await expect(getLedgerTip()).resolves.toEqual(tipPoint)
 		await expect(getNetworkTip()).resolves.toEqual(tipPoint)
 		await expect(getNetworkBlockHeight()).resolves.toBe(12_345_678)
 		await expect(getEpoch()).resolves.toBe(500)
+		await expect(getConstitution()).resolves.toEqual({
+			metadata: {
+				url: 'ipfs://constitution',
+				hash: 'constitution-anchor-hash',
+			},
+			guardrails: {
+				hash: 'guardrails-script-hash',
+			},
+		})
 		await expect(getProtocolParameters()).resolves.toMatchObject({
 			minFeeCoefficient: 44,
 			version: {
@@ -153,6 +172,11 @@ describe('Ogmios JsonRpc tip transport', () => {
 		expect(jsonRpc2).toHaveBeenNthCalledWith(
 			5,
 			bindings[Source.Ogmios_JsonRpc][0],
+			'queryLedgerState/constitution'
+		)
+		expect(jsonRpc2).toHaveBeenNthCalledWith(
+			6,
+			bindings[Source.Ogmios_JsonRpc][0],
 			'queryLedgerState/protocolParameters'
 		)
 	})
@@ -174,5 +198,14 @@ describe('Ogmios JsonRpc tip transport', () => {
 			minFeeCoefficient: 44,
 		})
 		await expect(getProtocolParameters()).rejects.toThrow('invalid protocol parameters response envelope')
+
+		jsonRpc2.mockResolvedValueOnce({
+			metadata: {
+				url: '',
+				hash: 'constitution-anchor-hash',
+			},
+			guardrails: null,
+		})
+		await expect(getConstitution()).rejects.toThrow('invalid constitution response envelope')
 	})
 })

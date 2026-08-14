@@ -2,10 +2,12 @@ import { jsonRpc2 } from '$/sources/_shared/wire/JsonRpc2/client.ts'
 import bindings from '$/sources/Ogmios/bindings.ts'
 import {
 	ogmiosBlockHeightWire,
+	ogmiosConstitutionWire,
 	ogmiosEpochWire,
 	ogmiosPointWire,
 	ogmiosProtocolParametersWire,
 	type OgmiosBlockHeight,
+	type OgmiosConstitution,
 	type OgmiosEpoch,
 	type OgmiosPoint,
 	type OgmiosProtocolParameters,
@@ -87,6 +89,17 @@ export const getEpoch = async (): Promise<OgmiosEpoch> => (
 		await jsonRpc2(
 			binding,
 			'queryLedgerState/epoch'
+		)
+	)
+)
+
+export const getConstitution = async (): Promise<OgmiosConstitution> => (
+	assertEnvelope(
+		'constitution',
+		ogmiosConstitutionWire,
+		await jsonRpc2(
+			binding,
+			'queryLedgerState/constitution'
 		)
 	)
 )

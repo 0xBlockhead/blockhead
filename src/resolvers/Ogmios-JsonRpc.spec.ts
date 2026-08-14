@@ -14,11 +14,13 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
 const getEpoch = vi.hoisted(() => vi.fn())
+const getConstitution = vi.hoisted(() => vi.fn())
 const getLedgerTip = vi.hoisted(() => vi.fn())
 const getNetworkBlockHeight = vi.hoisted(() => vi.fn())
 const getProtocolParameters = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/Ogmios/JsonRpc/queries.ts', () => ({
+	getConstitution,
 	getEpoch,
 	getLedgerTip,
 	getNetworkBlockHeight,
@@ -145,6 +147,9 @@ const protocolParametersEpochResolver = ogmiosJsonRpc.resolvers.find((resolver) 
 const blockResolver = ogmiosJsonRpc.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.CardanoBlock
 ))
+const constitutionEpochResolver = ogmiosJsonRpc.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.CardanoConstitution_Epoch
+))
 
 if (
 	timestampsResolver == null
@@ -153,18 +158,29 @@ if (
 	|| timestampResolver == null
 	|| protocolParametersEpochResolver == null
 	|| blockResolver == null
+	|| constitutionEpochResolver == null
 )
 	throw new Error('Ogmios-JsonRpc spec missing tip/protocol leftover resolvers')
 
 describe('Ogmios JsonRpc Cardano tip projections', () => {
 	beforeEach(() => {
 		getLedgerTip.mockReset()
+		getConstitution.mockReset()
 		getNetworkBlockHeight.mockReset()
 		getEpoch.mockReset()
 		getProtocolParameters.mockReset()
 		getLedgerTip.mockResolvedValue(tipPoint)
 		getNetworkBlockHeight.mockResolvedValue(12_345_678)
 		getEpoch.mockResolvedValue(500)
+		getConstitution.mockResolvedValue({
+			metadata: {
+				url: 'ipfs://constitution',
+				hash: 'constitution-anchor-hash',
+			},
+			guardrails: {
+				hash: 'guardrails-script-hash',
+			},
+		})
 		getProtocolParameters.mockResolvedValue(protocolParameters)
 	})
 
@@ -254,5 +270,54 @@ describe('Ogmios JsonRpc Cardano tip projections', () => {
 
 	it('rejects non-Cardano networks', async () => {
 		await expect(timestampsResolver.resolve.Slug.resolve(unsupportedNetwork, context)).rejects.toThrow('unsupported network')
+	})
+
+	it('resolves the current constitution at its epoch and source tip', async () => {
+		const constitution = await constitutionEpochResolver.resolve.NetworkEpochSource.resolve({
+			$network: network,
+			epoch: 500,
+			source: Source.Ogmios_JsonRpc,
+		}, context)
+
+		expect(constitution).toEqual({
+			slot: 130_000_102n,
+			anchorUrl: 'ipfs://constitution',
+			anchorHash: 'constitution-anchor-hash',
+			scriptHash: 'guardrails-script-hash',
+		})
+		expect(constitutionEpochResolver.projections.anchorUrl(constitution)).toBe('ipfs://constitution')
+
+		getConstitution.mockResolvedValueOnce({
+			metadata: {
+				url: 'ipfs://constitution',
+				hash: 'constitution-anchor-hash',
+			},
+			guardrails: null,
+		})
+		await expect(constitutionEpochResolver.resolve.NetworkEpochSource.resolve({
+			$network: network,
+			epoch: 500,
+			source: Source.Ogmios_JsonRpc,
+		}, context)).resolves.not.toHaveProperty('scriptHash')
+	})
+
+	it('rejects historical and foreign constitution selectors before fabricating state', async () => {
+		await expect(constitutionEpochResolver.resolve.NetworkEpochSource.resolve({
+			$network: network,
+			epoch: 499,
+			source: Source.Ogmios_JsonRpc,
+		}, context)).rejects.toThrow('historical constitution epoch is unavailable')
+
+		await expect(constitutionEpochResolver.resolve.NetworkEpochSource.resolve({
+			$network: network,
+			epoch: 500,
+			source: Source.Blockfrost_Rest,
+		}, context)).rejects.toThrow('constitution source mismatch')
+
+		await expect(constitutionEpochResolver.resolve.NetworkEpochSource.resolve({
+			$network: unsupportedNetwork,
+			epoch: 500,
+			source: Source.Ogmios_JsonRpc,
+		}, context)).rejects.toThrow('unsupported network')
 	})
 })
