@@ -87,8 +87,13 @@ const nodeStateTimestampResolver = lightningLnd.resolvers.find((resolver) => (
 ))
 const nodeChannelStatesResolver = lightningLnd.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.BlockheadLightningNodeState
-	&& '$$channelStates' in resolver.projections
+	&& typeof resolver.projections.$$channelStates === 'function'
 	&& !('lndPubkey' in resolver.projections)
+))
+const nodeChannelStateCountResolver = lightningLnd.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.BlockheadLightningNodeState
+	&& typeof resolver.projections.$$channelStates === 'object'
+	&& 'resolveCount' in resolver.projections.$$channelStates
 ))
 const channelStateResolver = lightningLnd.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.BlockheadLightningChannelState
@@ -117,16 +122,35 @@ const paymentListResolver = lightningLnd.resolvers.find((resolver): resolver is 
 ))
 const channelListResolver = lightningLnd.resolvers.find((resolver): resolver is ChannelListResolver => (
 	resolver.entityType === EntityType.LightningNetwork
-	&& '$$channels' in resolver.projections
+	&& typeof resolver.projections.$$channels === 'function'
+))
+const nodeResolver = lightningLnd.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.LightningNode
+	&& '$$timestamps' in resolver.projections
 ))
 const nodeChannelsResolver = lightningLnd.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.LightningNode
-	&& '$$channels' in resolver.projections
+	&& typeof resolver.projections.$$channels === 'function'
+))
+const nodeChannelCountResolver = lightningLnd.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.LightningNode
+	&& typeof resolver.projections.$$channels === 'object'
+	&& 'resolveCount' in resolver.projections.$$channels
 ))
 const nodePeersResolver = lightningLnd.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.BlockheadLightningNodeState
-	&& '$$peers' in resolver.projections
+	&& typeof resolver.projections.$$peers === 'function'
 	&& !('lndPubkey' in resolver.projections)
+))
+const nodePeerCountResolver = lightningLnd.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.BlockheadLightningNodeState
+	&& typeof resolver.projections.$$peers === 'object'
+	&& 'resolveCount' in resolver.projections.$$peers
+))
+const channelStateHtlcsResolver = lightningLnd.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.BlockheadLightningChannelState
+	&& typeof resolver.projections.$$htlcs === 'object'
+	&& 'resolveCount' in resolver.projections.$$htlcs
 ))
 const peerResolver = lightningLnd.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.BlockheadLightningPeer
@@ -142,9 +166,12 @@ if (
 	nodeStateResolver == null
 	|| nodeStateTimestampResolver == null
 	|| nodeChannelStatesResolver == null
+	|| nodeChannelStateCountResolver == null
 	|| channelStateResolver == null
+	|| channelStateHtlcsResolver == null
 	|| htlcResolver == null
 	|| networkTimestampResolver == null
+	|| nodeResolver == null
 	|| nodeTimestampResolver == null
 	|| channelResolver == null
 	|| channelTimestampResolver == null
@@ -154,7 +181,9 @@ if (
 	|| paymentTimestampResolver == null
 	|| channelListResolver == null
 	|| nodeChannelsResolver == null
+	|| nodeChannelCountResolver == null
 	|| nodePeersResolver == null
+	|| nodePeerCountResolver == null
 	|| peerResolver == null
 	|| nodeForwardsResolver == null
 	|| forwardResolver == null
@@ -295,7 +324,7 @@ describe('Lightning LND resolver ownership', () => {
 		expect(getInfo).not.toHaveBeenCalled()
 	})
 
-	it('projects public-graph node capacity and falls back for private local peers', async () => {
+	it('projects public-graph node capacity and rejects unavailable historical replay', async () => {
 		getNodeInfo.mockResolvedValueOnce({
 			node: {
 				pub_key: peerPublicKey,
@@ -313,7 +342,7 @@ describe('Lightning LND resolver ownership', () => {
 				$network: lightningNetwork,
 				publicKey: peerPublicKey,
 			},
-			timestampMs: 1,
+			timestampMs: 1_700_000_000_000,
 			source: Source.LightningLnd_Rest,
 		}, context)).resolves.toMatchObject({
 			alias: 'Peer',
@@ -325,21 +354,6 @@ describe('Lightning LND resolver ownership', () => {
 		})
 
 		getNodeInfo.mockRejectedValueOnce(new Error('not in graph'))
-		getInfo.mockResolvedValue({
-			identity_pubkey: localPublicKey,
-		})
-		listChannels.mockResolvedValue({
-			channels: [
-				channel,
-				{
-					...channel,
-					remote_pubkey: `02${'c'.repeat(64)}`,
-					chan_id: '43',
-					private: true,
-				},
-			],
-		})
-
 		await expect(nodeTimestampResolver.resolve.NodeTimestampMsSource.resolve({
 			$node: {
 				$network: lightningNetwork,
@@ -347,18 +361,9 @@ describe('Lightning LND resolver ownership', () => {
 			},
 			timestampMs: 1,
 			source: Source.LightningLnd_Rest,
-		}, context)).resolves.toMatchObject({
-			channelCount: 1,
-			networkAddresses: [],
-		})
-		await expect(nodeTimestampResolver.resolve.NodeTimestampMsSource.resolve({
-			$node: {
-				$network: lightningNetwork,
-				publicKey: `02${'c'.repeat(64)}`,
-			},
-			timestampMs: 1,
-			source: Source.LightningLnd_Rest,
-		}, context)).rejects.toThrow('node not found')
+		}, context)).rejects.toThrow('not in graph')
+		expect(getInfo).not.toHaveBeenCalled()
+		expect(listChannels).not.toHaveBeenCalled()
 	})
 
 	it('resolves public graph channels without collapsing directional fees', async () => {
@@ -371,7 +376,7 @@ describe('Lightning LND resolver ownership', () => {
 		}
 		const timestampSelector = {
 			$channel: channelSelector,
-			timestampMs: 99,
+			timestampMs: 1_700_000_010_000,
 			source: Source.LightningLnd_Rest,
 		} as const
 
@@ -409,15 +414,10 @@ describe('Lightning LND resolver ownership', () => {
 		})
 
 		getChannelInfo.mockRejectedValueOnce(new Error('edge missing'))
-		listChannels.mockResolvedValue({ channels: [channel] })
 		await expect(
 			channelTimestampResolver.resolve.ChannelTimestampMsSource.resolve(timestampSelector, context)
-		).resolves.toEqual({
-			status: 'Active',
-			capacitySats: 250000n,
-			feeRatePpm: undefined,
-			updatedAtMs: undefined,
-		})
+		).rejects.toThrow('edge missing')
+		expect(listChannels).not.toHaveBeenCalled()
 	})
 
 	it('lists node channels from graph edges when available', async () => {
@@ -678,7 +678,7 @@ describe('Lightning LND resolver ownership', () => {
 			operation: 'forwards',
 			target: 'local-lnd',
 			terminal: false,
-			token: 1,
+			token: '1',
 		})
 
 		getForwardingHistory
@@ -846,7 +846,8 @@ describe('Lightning LND resolver ownership', () => {
 		)).toEqual({
 			operation: 'payments',
 			target: 'lightning',
-			terminal: true,
+			terminal: false,
+			token: '9007199254740994',
 		})
 	})
 
@@ -1096,6 +1097,291 @@ describe('Lightning LND resolver ownership', () => {
 			totalCapacitySats: 5_000_000_000_000n,
 			averageCapacitySats: 62500n,
 			medianCapacitySats: 50000n,
+		})
+	})
+})
+
+describe('Lightning LND exact relationship counts, continuations, and provider clocks', () => {
+	const localNodeState = {
+		connectionId: 'local-lnd',
+		$network: {
+			$network: lightningNetwork,
+		},
+	} as const
+
+	it('stamps public node observations with last_update and rejects a mismatched retrieval clock', async () => {
+		getNodeInfo.mockResolvedValue({
+			node: {
+				pub_key: peerPublicKey,
+				last_update: 1_700_000_000,
+			},
+			num_channels: 3,
+			total_capacity: '9000000',
+		})
+
+		await expect(nodeResolver.resolve.NetworkPublicKey.resolve({
+			$network: lightningNetwork,
+			publicKey: peerPublicKey,
+		}, context)).resolves.toEqual({
+			$$timestamps: [{
+				[EntityMetaKey.Selector]: {
+					$node: {
+						$network: lightningNetwork,
+						publicKey: peerPublicKey,
+					},
+					timestampMs: 1_700_000_000_000,
+					source: Source.LightningLnd_Rest,
+				},
+				[EntityMetaKey.Fields]: expect.objectContaining({
+					[entityFieldAddressKey(EntityType.LightningNode_Timestamp, [], 'capacitySats')]: 9_000_000n,
+					[entityFieldAddressKey(EntityType.LightningNode_Timestamp, [], 'channelCount')]: 3,
+				}),
+			}],
+		})
+		await expect(nodeTimestampResolver.resolve.NodeTimestampMsSource.resolve({
+			$node: {
+				$network: lightningNetwork,
+				publicKey: peerPublicKey,
+			},
+			timestampMs: 1,
+			source: Source.LightningLnd_Rest,
+		}, context)).rejects.toThrow('node observation clock mismatch')
+		expect(getInfo).not.toHaveBeenCalled()
+		expect(listChannels).not.toHaveBeenCalled()
+
+		getNodeInfo.mockResolvedValueOnce({
+			node: {
+				pub_key: peerPublicKey,
+			},
+			num_channels: 3,
+		})
+		await expect(nodeTimestampResolver.resolve.NodeTimestampMsSource.resolve({
+			$node: {
+				$network: lightningNetwork,
+				publicKey: peerPublicKey,
+			},
+			timestampMs: 1,
+			source: Source.LightningLnd_Rest,
+		}, context)).rejects.toThrow('node missing observation clock')
+	})
+
+	it('embeds retrieval-clock local node fields instead of replaying them through the timestamp resolver', async () => {
+		vi.spyOn(Date, 'now').mockReturnValue(1_700_000_111_000)
+		getNodeInfo.mockRejectedValue(new Error('not in graph'))
+		getInfo.mockResolvedValue({
+			identity_pubkey: localPublicKey,
+			alias: 'Local',
+			color: '#abcdef',
+			num_active_channels: 1,
+			num_inactive_channels: 2,
+			uris: ['local.example:9735'],
+		})
+		listChannels.mockResolvedValue({ channels: [channel] })
+
+		await expect(nodeResolver.resolve.NetworkPublicKey.resolve({
+			$network: lightningNetwork,
+			publicKey: localPublicKey,
+		}, context)).resolves.toEqual({
+			$$timestamps: [{
+				[EntityMetaKey.Selector]: {
+					$node: {
+						$network: lightningNetwork,
+						publicKey: localPublicKey,
+					},
+					timestampMs: 1_700_000_111_000,
+					source: Source.LightningLnd_Rest,
+				},
+				[EntityMetaKey.Fields]: expect.objectContaining({
+					[entityFieldAddressKey(EntityType.LightningNode_Timestamp, [], 'alias')]: 'Local',
+					[entityFieldAddressKey(EntityType.LightningNode_Timestamp, [], 'channelCount')]: 3,
+					[entityFieldAddressKey(EntityType.LightningNode_Timestamp, [], 'networkAddresses')]: ['local.example:9735'],
+				}),
+			}],
+		})
+		await expect(nodeTimestampResolver.resolve.NodeTimestampMsSource.resolve({
+			$node: {
+				$network: lightningNetwork,
+				publicKey: localPublicKey,
+			},
+			timestampMs: 1_700_000_111_000,
+			source: Source.LightningLnd_Rest,
+		}, context)).rejects.toThrow('not in graph')
+	})
+
+	it('rejects a mismatched public channel last_update without falling back to the local list', async () => {
+		getChannelInfo.mockResolvedValue(edge)
+		listChannels.mockResolvedValue({ channels: [channel] })
+
+		await expect(channelTimestampResolver.resolve.ChannelTimestampMsSource.resolve({
+			$channel: {
+				$network: lightningNetwork,
+				channelId: channel.chan_id,
+			},
+			timestampMs: 99,
+			source: Source.LightningLnd_Rest,
+		}, context)).rejects.toThrow('channel observation clock mismatch')
+		expect(listChannels).not.toHaveBeenCalled()
+	})
+
+	it('counts node channels from graph num_channels, not the sliced edge page', async () => {
+		getNodeInfo.mockResolvedValue({
+			node: {
+				pub_key: peerPublicKey,
+			},
+			num_channels: 17,
+			channels: [edge],
+		})
+
+		const partialChannels = await nodeChannelsResolver.resolve.NetworkPublicKey.resolve({
+			$network: lightningNetwork,
+			publicKey: peerPublicKey,
+		}, {
+			...context,
+			pagination: {
+				limit: 1,
+			},
+		})
+		expect(nodeChannelsResolver.projections.$$channels(partialChannels)).toHaveLength(1)
+		expect(getNodeInfo).toHaveBeenCalledWith({
+			publicKey: peerPublicKey,
+			includeChannels: true,
+		})
+
+		await expect(nodeChannelCountResolver.resolve.NetworkPublicKey.resolve({
+			$network: lightningNetwork,
+			publicKey: peerPublicKey,
+		}, context)).resolves.toBe(17)
+		expect(nodeChannelCountResolver.projections.$$channels.resolveCount(17)).toBe(17)
+		expect(getNodeInfo).toHaveBeenLastCalledWith({
+			publicKey: peerPublicKey,
+		})
+		expect(listChannels).not.toHaveBeenCalled()
+	})
+
+	it('fail-closes a graph node missing num_channels or unavailable from the public graph', async () => {
+		getNodeInfo.mockResolvedValueOnce({
+			node: {
+				pub_key: peerPublicKey,
+			},
+		})
+		await expect(nodeChannelCountResolver.resolve.NetworkPublicKey.resolve({
+			$network: lightningNetwork,
+			publicKey: peerPublicKey,
+		}, context)).rejects.toThrow('node info missing channel count')
+		expect(listChannels).not.toHaveBeenCalled()
+
+		getNodeInfo.mockRejectedValueOnce(new Error('not in graph'))
+		await expect(nodeChannelCountResolver.resolve.NetworkPublicKey.resolve({
+			$network: lightningNetwork,
+			publicKey: peerPublicKey,
+		}, context)).rejects.toThrow('not in graph')
+		expect(getInfo).not.toHaveBeenCalled()
+		expect(listChannels).not.toHaveBeenCalled()
+	})
+
+	it('counts local peers and open channel states from getinfo, not list page length', async () => {
+		getInfo.mockResolvedValue({
+			identity_pubkey: localPublicKey,
+			num_peers: 4,
+			num_active_channels: 1,
+			num_inactive_channels: 2,
+			num_pending_channels: 9,
+		})
+
+		await expect(nodePeerCountResolver.resolve.ConnectionIdNetwork.resolve(
+			localNodeState,
+			context
+		)).resolves.toBe(4)
+		expect(nodePeerCountResolver.projections.$$peers.resolveCount(4)).toBe(4)
+		expect(listPeers).not.toHaveBeenCalled()
+
+		await expect(nodeChannelStateCountResolver.resolve.ConnectionIdNetwork.resolve(
+			localNodeState,
+			context
+		)).resolves.toBe(3)
+		expect(nodeChannelStateCountResolver.projections.$$channelStates.resolveCount(3)).toBe(3)
+		expect(listChannels).not.toHaveBeenCalled()
+	})
+
+	it('fail-closes missing getinfo peer and open-channel counts before transport lists', async () => {
+		getInfo.mockResolvedValueOnce({
+			identity_pubkey: localPublicKey,
+		})
+		await expect(nodePeerCountResolver.resolve.ConnectionIdNetwork.resolve(
+			localNodeState,
+			context
+		)).rejects.toThrow('getinfo missing peer count')
+
+		getInfo.mockResolvedValueOnce({
+			identity_pubkey: localPublicKey,
+			num_active_channels: 1,
+		})
+		await expect(nodeChannelStateCountResolver.resolve.ConnectionIdNetwork.resolve(
+			localNodeState,
+			context
+		)).rejects.toThrow('getinfo missing open channel counts')
+		expect(listPeers).not.toHaveBeenCalled()
+		expect(listChannels).not.toHaveBeenCalled()
+	})
+
+	it('counts pending HTLCs from the complete local channel array', async () => {
+		listChannels.mockResolvedValue({ channels: [channel] })
+		const htlcs = await channelStateHtlcsResolver.resolve.LocalNodeStateChannel.resolve({
+			$localNodeState: localNodeState,
+			$channel: {
+				$network: lightningNetwork,
+				channelId: '42',
+			},
+		}, context)
+		expect(channelStateHtlcsResolver.projections.$$htlcs.select(htlcs)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$channelState: {
+					$localNodeState: localNodeState,
+					$channel: {
+						$network: lightningNetwork,
+						channelId: '42',
+					},
+				},
+				htlcIndex: 7,
+			},
+		}])
+		expect(channelStateHtlcsResolver.projections.$$htlcs.resolveCount(htlcs)).toBe(1)
+	})
+
+	it('continues invoice and payment index pages until the offset stops advancing or the page is empty', () => {
+		expect(invoiceListResolver.projections.$$invoices.continuation({
+			page: {
+				invoices: [invoice],
+				last_index_offset: '2',
+			},
+		}, { $network: lightningNetwork }, context)).toEqual({
+			operation: 'invoices',
+			target: 'lightning',
+			terminal: false,
+			token: '2',
+		})
+		expect(invoiceListResolver.projections.$$invoices.continuation({
+			page: {
+				invoices: [invoice],
+				last_index_offset: '2',
+			},
+		}, { $network: lightningNetwork }, {
+			...context,
+			providerContinuationToken: '2',
+		})).toEqual({
+			operation: 'invoices',
+			target: 'lightning',
+			terminal: true,
+		})
+		expect(paymentListResolver.projections.$$payments.continuation({
+			page: {
+				payments: [],
+				last_index_offset: '9',
+			},
+		}, { $network: lightningNetwork }, context)).toEqual({
+			operation: 'payments',
+			target: 'lightning',
+			terminal: true,
 		})
 	})
 })

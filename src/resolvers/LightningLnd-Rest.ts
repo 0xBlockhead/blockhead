@@ -6,7 +6,10 @@
  * from the connected node. This is not a browser wallet adapter; public-graph
  * indexing without a local node remains `LightningMempoolSpace_Rest`.
  */
-import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
+import {
+	type ProviderContinuation,
+	resolverContextRowLimit,
+} from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
@@ -65,6 +68,51 @@ const timestampMsFromLndUpdate = (seconds: number | null | undefined) => (
 	:
 		seconds * 1000
 )
+
+const assertLndObservationClock = (
+	observedTimestampMs: number | undefined,
+	timestampMs: number,
+	label: string
+) => {
+	if (observedTimestampMs == null)
+		throw new Error(`LightningLnd_Rest: ${label} missing observation clock`)
+
+	if (observedTimestampMs !== timestampMs)
+		throw new Error(`LightningLnd_Rest: ${label} observation clock mismatch`)
+}
+
+const lndIndexPageContinuation = ({
+	operation,
+	target,
+	lastIndexOffset,
+	requestOffset,
+	pageLength,
+}: {
+	operation: string
+	target: string
+	lastIndexOffset: string | number | null | undefined
+	requestOffset: string | number | undefined
+	pageLength: number
+}): ProviderContinuation => {
+	const lastOffset = lastIndexOffset == null ? undefined : String(lastIndexOffset)
+	if (
+		lastOffset == null
+		|| lastOffset === (requestOffset == null ? undefined : String(requestOffset))
+		|| pageLength === 0
+	)
+		return {
+			operation,
+			target,
+			terminal: true,
+		}
+
+	return {
+		operation,
+		target,
+		terminal: false,
+		token: lastOffset,
+	}
+}
 
 const timestampMsFromNanoseconds = (nanoseconds: string | null | undefined) => (
 	nanoseconds == null || nanoseconds === '' ?
@@ -854,6 +902,26 @@ export default {
 		}),
 
 		defineResolver({
+			entityType: EntityType.BlockheadLightningNodeState,
+			resolve: {
+				ConnectionIdNetwork: {
+					resolve: async ({ $network }) => {
+						assertLightningNetwork($network.$network)
+						const info = await lndInfo()
+						if (info.num_peers == null)
+							throw new Error('LightningLnd_Rest: getinfo missing peer count')
+
+						return info.num_peers
+					},
+				},
+			},
+		})({
+			$$peers: {
+				resolveCount: (count) => count,
+			},
+		}),
+
+		defineResolver({
 			entityType: EntityType.BlockheadLightningPeer,
 			resolve: {
 				LocalNodeStatePublicKey: {
@@ -893,17 +961,30 @@ export default {
 					resolve: async ({ connectionId, $network }, context) => {
 						assertLightningNetwork($network.$network)
 						const { getForwardingHistory } = await import('$/sources/LightningLnd/Rest/queries.ts')
-						const pageSize = Math.min(100, resolverContextRowLimit(context))
+						const indexOffset = (
+							context.providerContinuationToken == null ?
+								undefined
+							:
+								Number(context.providerContinuationToken)
+						)
+						if (
+							indexOffset != null
+							&& (
+								!Number.isSafeInteger(indexOffset)
+								|| indexOffset < 0
+							)
+						)
+							throw new Error('LightningLnd_Rest: invalid forwarding continuation')
+
 						return {
 							$localNodeState: {
 								connectionId,
 								$network,
 							},
 							page: await getForwardingHistory({
-								indexOffset: context.providerContinuationToken,
-								numMaxEvents: pageSize,
+								indexOffset,
+								numMaxEvents: Math.min(100, resolverContextRowLimit(context)),
 							}),
-							pageSize,
 						}
 					},
 				},
@@ -928,23 +1009,13 @@ export default {
 						},
 					}
 				}),
-				continuation: ({ $localNodeState, page, pageSize }, _state, context) => (
-					page.last_offset_index == null
-					|| page.last_offset_index === context.providerContinuationToken
-					|| (page.forwarding_events ?? []).length < pageSize ?
-						{
-							operation: 'forwards',
-							target: $localNodeState.connectionId,
-							terminal: true,
-						}
-					:
-						{
-							operation: 'forwards',
-							target: $localNodeState.connectionId,
-							terminal: false,
-							token: page.last_offset_index,
-						}
-				),
+				continuation: ({ $localNodeState, page }, _state, context) => lndIndexPageContinuation({
+					operation: 'forwards',
+					target: $localNodeState.connectionId,
+					lastIndexOffset: page.last_offset_index,
+					requestOffset: context.providerContinuationToken,
+					pageLength: (page.forwarding_events ?? []).length,
+				}),
 			},
 		}),
 
@@ -973,7 +1044,7 @@ export default {
 							if (
 								page.last_offset_index == null
 								|| page.last_offset_index === indexOffset
-								|| (page.forwarding_events ?? []).length < 100
+								|| (page.forwarding_events ?? []).length === 0
 								|| visitedOffsets.has(page.last_offset_index)
 							)
 								throw new Error(`LightningLnd_Rest: forward not found ${$incomingChannel.channelId}:${incomingHtlcId}`)
@@ -1093,6 +1164,29 @@ export default {
 		}),
 
 		defineResolver({
+			entityType: EntityType.BlockheadLightningNodeState,
+			resolve: {
+				ConnectionIdNetwork: {
+					resolve: async ({ $network }) => {
+						assertLightningNetwork($network.$network)
+						const info = await lndInfo()
+						if (
+							info.num_active_channels == null
+							|| info.num_inactive_channels == null
+						)
+							throw new Error('LightningLnd_Rest: getinfo missing open channel counts')
+
+						return info.num_active_channels + info.num_inactive_channels
+					},
+				},
+			},
+		})({
+			$$channelStates: {
+				resolveCount: (count) => count,
+			},
+		}),
+
+		defineResolver({
 			entityType: EntityType.BlockheadLightningChannelState,
 			resolve: {
 				LocalNodeStateChannel: {
@@ -1155,7 +1249,10 @@ export default {
 				},
 			},
 		})({
-			$$htlcs: (htlcs) => htlcs,
+			$$htlcs: {
+				select: (htlcs) => htlcs,
+				resolveCount: (htlcs) => htlcs.length,
+			},
 		}),
 
 		defineResolver({
@@ -1192,15 +1289,25 @@ export default {
 				NetworkPublicKey: {
 					resolve: async ({ $network, publicKey }) => {
 						assertLightningNetwork($network)
+						let timestampMs
+						let timestampFields
 						try {
 							const { getNodeInfo } = await import('$/sources/LightningLnd/Rest/queries.ts')
-							await getNodeInfo({
+							const info = await getNodeInfo({
 								publicKey,
 							})
+							timestampMs = (
+								timestampMsFromLndUpdate(
+									info.node.last_update
+								)
+								?? Date.now()
+							)
+							timestampFields = lightningNodeTimestampFieldsFromGraph(info)
 						} catch {
 							const info = await lndInfo()
 							const channels = await lndChannels()
-							lightningNodeTimestampFields(publicKey, info, channels)
+							timestampFields = lightningNodeTimestampFields(publicKey, info, channels)
+							timestampMs = Date.now()
 						}
 						return {
 							$$timestamps: [
@@ -1210,8 +1317,24 @@ export default {
 											$network,
 											publicKey,
 										},
-										timestampMs: Date.now(),
+										timestampMs,
 										source: Source.LightningLnd_Rest,
+									},
+									[EntityMetaKey.Fields]: {
+										...(timestampFields.alias != null && {
+											[entityFieldAddressKey(EntityType.LightningNode_Timestamp, [], 'alias')]: timestampFields.alias,
+										}),
+										...(timestampFields.color != null && {
+											[entityFieldAddressKey(EntityType.LightningNode_Timestamp, [], 'color')]: timestampFields.color,
+										}),
+										...(timestampFields.capacitySats != null && {
+											[entityFieldAddressKey(EntityType.LightningNode_Timestamp, [], 'capacitySats')]: timestampFields.capacitySats,
+										}),
+										[entityFieldAddressKey(EntityType.LightningNode_Timestamp, [], 'channelCount')]: timestampFields.channelCount,
+										...(timestampFields.updatedAtMs != null && {
+											[entityFieldAddressKey(EntityType.LightningNode_Timestamp, [], 'updatedAtMs')]: timestampFields.updatedAtMs,
+										}),
+										[entityFieldAddressKey(EntityType.LightningNode_Timestamp, [], 'networkAddresses')]: timestampFields.networkAddresses,
 									},
 								},
 							],
@@ -1227,21 +1350,19 @@ export default {
 			entityType: EntityType.LightningNode_Timestamp,
 			resolve: {
 				NodeTimestampMsSource: {
-					resolve: async ({ $node, source }) => {
+					resolve: async ({ $node, source, timestampMs }) => {
 						if (source !== Source.LightningLnd_Rest) throw new Error(`LightningLnd_Rest: unsupported source ${source}`)
 						assertLightningNetwork($node.$network)
-						try {
-							const { getNodeInfo } = await import('$/sources/LightningLnd/Rest/queries.ts')
-							return lightningNodeTimestampFieldsFromGraph(
-								await getNodeInfo({
-									publicKey: $node.publicKey,
-								})
-							)
-						} catch {
-							const info = await lndInfo()
-							const channels = await lndChannels()
-							return lightningNodeTimestampFields($node.publicKey, info, channels)
-						}
+						const { getNodeInfo } = await import('$/sources/LightningLnd/Rest/queries.ts')
+						const info = await getNodeInfo({
+							publicKey: $node.publicKey,
+						})
+						assertLndObservationClock(
+							timestampMsFromLndUpdate(info.node.last_update),
+							timestampMs,
+							'node'
+						)
+						return lightningNodeTimestampFieldsFromGraph(info)
 					},
 				},
 			},
@@ -1292,23 +1413,22 @@ export default {
 			entityType: EntityType.LightningChannel_Timestamp,
 			resolve: {
 				ChannelTimestampMsSource: {
-					resolve: async ({ $channel, source }) => {
+					resolve: async ({ $channel, source, timestampMs }) => {
 						if (source !== Source.LightningLnd_Rest) throw new Error(`LightningLnd_Rest: unsupported source ${source}`)
 						assertLightningNetwork($channel.$network)
-						const channel = (await lndChannels()).find((channel) => channel.chan_id === $channel.channelId)
-						try {
-							const { getChannelInfo } = await import('$/sources/LightningLnd/Rest/queries.ts')
-							return channelTimestampFieldsFromLndEdge(
-								channel,
-								await getChannelInfo({
-									channelId: $channel.channelId,
-								})
-							)
-						} catch {
-							if (channel == null)
-								throw new Error(`LightningLnd_Rest: channel not found ${$channel.channelId}`)
-							return channelTimestampFieldsFromLndChannel(channel)
-						}
+						const { getChannelInfo } = await import('$/sources/LightningLnd/Rest/queries.ts')
+						const edge = await getChannelInfo({
+							channelId: $channel.channelId,
+						})
+						assertLndObservationClock(
+							timestampMsFromLndUpdate(edge.last_update),
+							timestampMs,
+							'channel'
+						)
+						return channelTimestampFieldsFromLndEdge(
+							undefined,
+							edge
+						)
 					},
 				},
 			},
@@ -1474,7 +1594,6 @@ export default {
 								indexOffset: context.providerContinuationToken,
 								numMaxInvoices: resolverContextRowLimit(context),
 							}),
-							pageSize: resolverContextRowLimit(context),
 						}
 					},
 				},
@@ -1525,23 +1644,13 @@ export default {
 						}]
 					})
 				},
-				continuation: ({ page, pageSize }, _network, context) => (
-					page.last_index_offset == null
-					|| page.last_index_offset === context.providerContinuationToken
-					|| (page.invoices ?? []).length < pageSize ?
-						{
-							operation: 'invoices',
-							target: 'lightning',
-							terminal: true,
-						}
-					:
-						{
-							operation: 'invoices',
-							target: 'lightning',
-							terminal: false,
-							token: page.last_index_offset,
-						}
-				),
+				continuation: ({ page }, _network, context) => lndIndexPageContinuation({
+					operation: 'invoices',
+					target: 'lightning',
+					lastIndexOffset: page.last_index_offset,
+					requestOffset: context.providerContinuationToken,
+					pageLength: (page.invoices ?? []).length,
+				}),
 			},
 		}),
 
@@ -1557,7 +1666,6 @@ export default {
 								indexOffset: context.providerContinuationToken,
 								maxPayments: resolverContextRowLimit(context),
 							}),
-							pageSize: resolverContextRowLimit(context),
 						}
 					},
 				},
@@ -1594,23 +1702,13 @@ export default {
 						}
 					})
 				},
-				continuation: ({ page, pageSize }, _network, context) => (
-					page.last_index_offset == null
-					|| page.last_index_offset === context.providerContinuationToken
-					|| (page.payments ?? []).length < pageSize ?
-						{
-							operation: 'payments',
-							target: 'lightning',
-							terminal: true,
-						}
-					:
-						{
-							operation: 'payments',
-							target: 'lightning',
-							terminal: false,
-							token: page.last_index_offset,
-						}
-				),
+				continuation: ({ page }, _network, context) => lndIndexPageContinuation({
+					operation: 'payments',
+					target: 'lightning',
+					lastIndexOffset: page.last_index_offset,
+					requestOffset: context.providerContinuationToken,
+					pageLength: (page.payments ?? []).length,
+				}),
 			},
 		}),
 
@@ -1653,6 +1751,29 @@ export default {
 			},
 		})({
 			$$channels: (channels) => channels,
+		}),
+
+		defineResolver({
+			entityType: EntityType.LightningNode,
+			resolve: {
+				NetworkPublicKey: {
+					resolve: async ({ $network, publicKey }) => {
+						assertLightningNetwork($network)
+						const { getNodeInfo } = await import('$/sources/LightningLnd/Rest/queries.ts')
+						const info = await getNodeInfo({
+							publicKey,
+						})
+						if (info.num_channels == null)
+							throw new Error('LightningLnd_Rest: node info missing channel count')
+
+						return info.num_channels
+					},
+				},
+			},
+		})({
+			$$channels: {
+				resolveCount: (count) => count,
+			},
 		}),
 
 	],
