@@ -1277,6 +1277,7 @@ export enum EntityType {
 	GitForgeJob = "GitForgeJob",
 	GitForgeMirror = "GitForgeMirror",
 	GitForgePipeline = "GitForgePipeline",
+	GitForgeProtectedBranch = "GitForgeProtectedBranch",
 	GitForgePullRequest = "GitForgePullRequest",
 	GitForgeRelease = "GitForgeRelease",
 	GitLooseObject = "GitLooseObject",
@@ -34687,6 +34688,7 @@ export const schema = {
 				"source": { label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"$$issues": { label: "issues", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.GitForgeIssue, defaultSources: [Source.Gitlab_Rest] },
 				"$$pipelines": { label: "pipelines", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.GitForgePipeline, defaultSources: [Source.Gitlab_Rest] },
+				"$$protectedBranches": { label: "protected branches", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.GitForgeProtectedBranch, defaultSources: [Source.Gitlab_Rest] },
 				"$$pullRequests": { label: "merge requests", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.GitForgePullRequest, defaultSources: [Source.Gitlab_Rest] },
 				"$$releases": { label: "releases", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.GitForgeRelease, defaultSources: [Source.Gitlab_Rest] },
 			})({
@@ -34704,6 +34706,7 @@ export const schema = {
 								{ field: "$$issues", component: "GitForgeIssuesView", label: "Issues", emptyText: "No issues." },
 								{ field: "$$pullRequests", component: "GitForgePullRequestsView", label: "Merge requests", emptyText: "No merge requests." },
 								{ field: "$$releases", component: "GitForgeReleasesView", label: "Releases", emptyText: "No releases." },
+								{ field: "$$protectedBranches", component: "GitForgeProtectedBranchesView", label: "Protected branches", emptyText: "No protected branches." },
 							],
 						},
 					},
@@ -34740,6 +34743,36 @@ export const schema = {
 						content: { dl: [["$forgeMirror", { field: "pipelineId", format: "number" }, { field: "pipelineIid", format: "number" }, "ref", { field: "commitObjectId", format: "truncated" }, "status", "source", { field: "url", format: "url" }], [{ field: "createdAt", format: "timestamp" }, { field: "updatedAt", format: "timestamp" }]], lists: [{ field: "$$jobs", component: "GitForgeJobsView", label: "Jobs", emptyText: "No jobs." }] },
 					},
 					plural: { component: "GitForgePipelinesView", title: "Git forge pipelines" },
+				},
+			}),
+
+			entity({
+				entityType: EntityType.GitForgeProtectedBranch,
+				labels: {
+					singular: "Git forge protected branch",
+					plural: "Git forge protected branches",
+				},
+			})({
+				"$forgeMirror": { label: "forge mirror", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.GitForgeMirror },
+				"name": { label: "name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"providerProtectedBranchId": { label: "provider protected branch ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+				"pushAccessDescriptions": { label: "push access", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "string" },
+				"mergeAccessDescriptions": { label: "merge access", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "string" },
+				"unprotectAccessDescriptions": { label: "unprotect access", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "string" },
+				"allowForcePush": { label: "allow force push", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "boolean" },
+				"codeOwnerApprovalRequired": { label: "code owner approval required", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "boolean" },
+				"inherited": { label: "inherited", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean" },
+			})({
+				selectors: {
+					"ForgeMirrorName": ["$forgeMirror", "name"],
+				},
+				views: {
+					singular: {
+						summary: { title: ["name"] },
+						closed: ["$forgeMirror", "name"],
+						content: { dl: [["$forgeMirror", "name", "providerProtectedBranchId", "pushAccessDescriptions", "mergeAccessDescriptions", "unprotectAccessDescriptions", { field: "allowForcePush", format: "boolean" }, { field: "codeOwnerApprovalRequired", format: "boolean" }, { field: "inherited", format: "boolean" }]] },
+					},
+					plural: { component: "GitForgeProtectedBranchesView", title: "Git forge protected branches" },
 				},
 			}),
 
@@ -95529,6 +95562,20 @@ export const routes = defineRoutes(schema)({
 																				}
 																			}
 																		}
+																	}
+																}
+															}
+														}
+													}
+												},
+												"protected-branch": {
+													children: {
+														"[name]": {
+															selectors: {
+																[EntityType.GitForgeProtectedBranch]: {
+																	"ForgeMirrorName": {
+																		params: { "name": ["name"] },
+																		page: {},
 																	}
 																}
 															}

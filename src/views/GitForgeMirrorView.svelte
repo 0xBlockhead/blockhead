@@ -33,6 +33,7 @@
 	import GitForgeIssuesView from '$/views/GitForgeIssuesView.svelte'
 	import GitForgePullRequestsView from '$/views/GitForgePullRequestsView.svelte'
 	import GitForgeReleasesView from '$/views/GitForgeReleasesView.svelte'
+	import GitForgeProtectedBranchesView from '$/views/GitForgeProtectedBranchesView.svelte'
 	import GitRepositoryView from '$/views/GitRepositoryView.svelte'
 </script>
 
@@ -301,6 +302,21 @@
 						countResource={releasesResource.count}
 						title='Releases'
 						id='releases'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+		{@const protectedBranchesResource = selection.$$protectedBranches}
+		<ResourceBoundary
+			resource={protectedBranchesResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<GitForgeProtectedBranchesView
+						selection={protectedBranchesResource}
+						countResource={protectedBranchesResource.count}
+						title='Protected branches'
+						id='protected-branches'
 					/>
 				{/if}
 			{/snippet}

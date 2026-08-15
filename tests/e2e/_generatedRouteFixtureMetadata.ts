@@ -13208,6 +13208,16 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
+	'/git/forge/[forgeHost]/[owner]/[repositoryName]/protected-branch/[name]': {
+		routeId: '/git/forge/[forgeHost=stringSegment]/[owner=stringSegment]/[repositoryName=stringSegment]/(gitForgeMirror)/protected-branch/[name=stringSegment]',
+		mappings: [
+			{
+				id: 'GitForgeProtectedBranch.ForgeMirrorName',
+				probeAtomPrefixes: ['/git/forge/[forgeHost]/[owner]/[repositoryName]/protected-branch/[name]:GitForgeProtectedBranch.ForgeMirrorName'],
+				probeCases: [[[0, '1', ['name', 'forgeHost', 'owner', 'repositoryName']]]],
+			},
+		],
+	},
 	'/git/forge/[forgeHost]/[owner]/[repositoryName]/pull-request/[pullRequestNumber]': {
 		routeId: '/git/forge/[forgeHost=stringSegment]/[owner=stringSegment]/[repositoryName=stringSegment]/(gitForgeMirror)/pull-request/[pullRequestNumber=nonNegativeInteger]',
 		mappings: [

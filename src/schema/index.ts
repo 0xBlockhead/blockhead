@@ -578,6 +578,7 @@ import GitForgeIssueSchema from '$/schema/GitForgeIssue.ts'
 import GitForgeJobSchema from '$/schema/GitForgeJob.ts'
 import GitForgeMirrorSchema from '$/schema/GitForgeMirror.ts'
 import GitForgePipelineSchema from '$/schema/GitForgePipeline.ts'
+import GitForgeProtectedBranchSchema from '$/schema/GitForgeProtectedBranch.ts'
 import GitForgePullRequestSchema from '$/schema/GitForgePullRequest.ts'
 import GitForgeReleaseSchema from '$/schema/GitForgeRelease.ts'
 import GitLooseObjectSchema from '$/schema/GitLooseObject.ts'
@@ -1697,6 +1698,7 @@ const schemaChunk11 = [
 	GitForgeJobSchema,
 	GitForgeMirrorSchema,
 	GitForgePipelineSchema,
+	GitForgeProtectedBranchSchema,
 	GitForgePullRequestSchema,
 	GitForgeReleaseSchema,
 	GitLooseObjectSchema,
@@ -1719,10 +1721,10 @@ const schemaChunk11 = [
 	HederaAccountSchema,
 	HederaAccount_TimestampSchema,
 	HederaAllowanceSchema,
-	HederaAllowance_TimestampSchema,
 ] as const
 
 const schemaChunk12 = [
+	HederaAllowance_TimestampSchema,
 	HederaBlockSchema,
 	HederaContractSchema,
 	HederaContract_TimestampSchema,
@@ -1772,10 +1774,10 @@ const schemaChunk12 = [
 	HyperliquidTransactionSchema,
 	HyperliquidTransaction_TimestampSchema,
 	HyperliquidValidatorSchema,
-	HyperliquidValidator_TimestampSchema,
 ] as const
 
 const schemaChunk13 = [
+	HyperliquidValidator_TimestampSchema,
 	HyperliquidVaultSchema,
 	HyperliquidVault_TimestampSchema,
 	HyperliquidVaultEquity_TimestampSchema,
@@ -1825,10 +1827,10 @@ const schemaChunk13 = [
 	LensNetworkSchema,
 	LensPostSchema,
 	LensPost_TimestampSchema,
-	LensUsernameSchema,
 ] as const
 
 const schemaChunk14 = [
+	LensUsernameSchema,
 	LensUsernameNamespaceSchema,
 	LensUsernameNamespaceRuleSchema,
 	LeverageSchema,
@@ -1878,10 +1880,10 @@ const schemaChunk14 = [
 	MevRelay_TimestampSchema,
 	MoneroBlockSchema,
 	MoneroKeyImageSchema,
-	MoneroNetworkSchema,
 ] as const
 
 const schemaChunk15 = [
+	MoneroNetworkSchema,
 	MoneroNetwork_TimestampSchema,
 	MoneroRingSchema,
 	MoneroRingMemberSchema,
@@ -1931,10 +1933,10 @@ const schemaChunk15 = [
 	NostrRelaySchema,
 	NostrRelay_TimestampSchema,
 	NostrRepostSchema,
-	NostrSearchQuerySchema,
 ] as const
 
 const schemaChunk16 = [
+	NostrSearchQuerySchema,
 	OciDescriptorSchema,
 	OciManifestSchema,
 	OracleFeedSchema,
@@ -1984,10 +1986,10 @@ const schemaChunk16 = [
 	RedditLinkSchema,
 	RedditLink_TimestampSchema,
 	RedditNetworkSchema,
-	RedditSubredditSchema,
 ] as const
 
 const schemaChunk17 = [
+	RedditSubredditSchema,
 	RedditSubreddit_TimestampSchema,
 	RegulatedAssetProfileSchema,
 	RegulatedAssetProfile_TimestampSchema,
@@ -2037,10 +2039,10 @@ const schemaChunk17 = [
 	StarknetStorageEntry_TimestampSchema,
 	StarknetTokenHoldingSchema,
 	StarknetTokenHolding_TimestampSchema,
-	StarknetTransactionSchema,
 ] as const
 
 const schemaChunk18 = [
+	StarknetTransactionSchema,
 	StarknetTransaction_TimestampSchema,
 	StellarAccountSchema,
 	StellarAccount_TimestampSchema,
@@ -2090,10 +2092,10 @@ const schemaChunk18 = [
 	TallyProposalSchema,
 	TezosAccountSchema,
 	TezosAccount_TimestampSchema,
-	TezosBakerSchema,
 ] as const
 
 const schemaChunk19 = [
+	TezosBakerSchema,
 	TezosBaker_Cycle_TimestampSchema,
 	TezosBaker_TimestampSchema,
 	TezosBakingRightSchema,
@@ -2143,10 +2145,10 @@ const schemaChunk19 = [
 	TonTrace_TimestampSchema,
 	TonTransactionSchema,
 	TonTransactionPhaseSchema,
-	TonWorkchainSchema,
 ] as const
 
 const schemaChunk20 = [
+	TonWorkchainSchema,
 	TransferRestrictionSchema,
 	TransferRestrictionCheck_TimestampSchema,
 	TronAccountSchema,
@@ -2196,10 +2198,10 @@ const schemaChunk20 = [
 	XrplAmmSchema,
 	XrplAmm_TimestampSchema,
 	XrplLedgerSchema,
-	XrplLedgerEntrySchema,
 ] as const
 
 const schemaChunk21 = [
+	XrplLedgerEntrySchema,
 	XrplTransactionSchema,
 	XrplTransaction_TimestampSchema,
 	XrplTrustlineSchema,

@@ -578,6 +578,7 @@ export enum EntityType {
 	GitForgeJob = 'GitForgeJob',
 	GitForgeMirror = 'GitForgeMirror',
 	GitForgePipeline = 'GitForgePipeline',
+	GitForgeProtectedBranch = 'GitForgeProtectedBranch',
 	GitForgePullRequest = 'GitForgePullRequest',
 	GitForgeRelease = 'GitForgeRelease',
 	GitLooseObject = 'GitLooseObject',

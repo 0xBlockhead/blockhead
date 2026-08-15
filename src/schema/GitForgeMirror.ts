@@ -68,6 +68,13 @@ export default entity({
 			Source.Gitlab_Rest,
 		],
 	},
+	$$protectedBranches: {
+		entityType: EntityType.GitForgeProtectedBranch,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Gitlab_Rest,
+		],
+	},
 	$$pullRequests: {
 		entityType: EntityType.GitForgePullRequest,
 		cardinality: EntityFieldCardinality.Many,

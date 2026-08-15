@@ -652,6 +652,65 @@ export default {
 		}),
 
 		defineResolver({
+			entityType: EntityType.GitForgeMirror,
+			resolve: {
+				ForgeHostOwnerRepositoryName: {
+					resolve: async (mirror, context) => {
+						const projectId = gitlabProjectIdFromMirror(mirror)
+						if (projectId == null) return undefined
+
+						const page = gitlabPage(context.providerContinuationToken)
+						const perPage = resolverContextRowLimit(context)
+						const { listProtectedBranches } = await import('$/sources/Gitlab/Rest/queries.ts')
+						return {
+							page,
+							perPage,
+							protectedBranches: (
+								perPage === 0 ?
+									[]
+								:
+									await listProtectedBranches({
+										projectId,
+										page,
+										perPage,
+									})
+							),
+						}
+					},
+				},
+			},
+		})({
+			$$protectedBranches: {
+				select: ({ protectedBranches }, mirror) => protectedBranches.map((protectedBranch) => ({
+					[EntityMetaKey.Selector]: {
+						$forgeMirror: mirror,
+						name: protectedBranch.name,
+					},
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.GitForgeProtectedBranch, [], 'providerProtectedBranchId')]: String(protectedBranch.id),
+						[entityFieldAddressKey(EntityType.GitForgeProtectedBranch, [], 'pushAccessDescriptions')]: protectedBranch.push_access_levels.map((access) => access.access_level_description),
+						[entityFieldAddressKey(EntityType.GitForgeProtectedBranch, [], 'mergeAccessDescriptions')]: protectedBranch.merge_access_levels.map((access) => access.access_level_description),
+						[entityFieldAddressKey(EntityType.GitForgeProtectedBranch, [], 'unprotectAccessDescriptions')]: (protectedBranch.unprotect_access_levels ?? []).map((access) => access.access_level_description),
+						[entityFieldAddressKey(EntityType.GitForgeProtectedBranch, [], 'allowForcePush')]: protectedBranch.allow_force_push,
+						[entityFieldAddressKey(EntityType.GitForgeProtectedBranch, [], 'codeOwnerApprovalRequired')]: protectedBranch.code_owner_approval_required,
+						...(protectedBranch.inherited != null && {
+							[entityFieldAddressKey(EntityType.GitForgeProtectedBranch, [], 'inherited')]: protectedBranch.inherited,
+						}),
+					},
+				})),
+				continuation: ({
+					protectedBranches,
+					page,
+					perPage,
+				}) => ({
+					operation: 'gitlab-protected-branches',
+					terminal: perPage === 0 || protectedBranches.length < perPage,
+					...(protectedBranches.length === perPage && { token: String(page + 1) }),
+				}),
+			},
+		}),
+
+		defineResolver({
 			entityType: EntityType.GitRepository,
 			resolve: {
 				CanonicalRemoteUrl: {
@@ -1357,6 +1416,51 @@ export default {
 			createdAt: (issue) => issue.createdAt,
 			updatedAt: (issue) => issue.updatedAt,
 			closedAt: (issue) => issue.closedAt,
+		}),
+
+		defineResolver({
+			entityType: EntityType.GitForgeProtectedBranch,
+			resolve: {
+				ForgeMirrorName: {
+					resolve: async ({
+						$forgeMirror,
+						name,
+					}) => {
+						const projectId = gitlabProjectIdFromMirror($forgeMirror)
+						if (projectId == null) return undefined
+
+						const { getProtectedBranch } = await import('$/sources/Gitlab/Rest/queries.ts')
+						const protectedBranch = await getProtectedBranch({
+							projectId,
+							branchName: name,
+						})
+						if (protectedBranch.name !== name)
+							throw new Error('Gitlab_Rest: protected branch identity does not match selector')
+
+						return {
+							$forgeMirror,
+							name,
+							providerProtectedBranchId: String(protectedBranch.id),
+							pushAccessDescriptions: protectedBranch.push_access_levels.map((access) => access.access_level_description),
+							mergeAccessDescriptions: protectedBranch.merge_access_levels.map((access) => access.access_level_description),
+							unprotectAccessDescriptions: (protectedBranch.unprotect_access_levels ?? []).map((access) => access.access_level_description),
+							allowForcePush: protectedBranch.allow_force_push,
+							codeOwnerApprovalRequired: protectedBranch.code_owner_approval_required,
+							...(protectedBranch.inherited != null && { inherited: protectedBranch.inherited }),
+						}
+					},
+				},
+			},
+		})({
+			$forgeMirror: (protectedBranch) => protectedBranch.$forgeMirror,
+			name: (protectedBranch) => protectedBranch.name,
+			providerProtectedBranchId: (protectedBranch) => protectedBranch.providerProtectedBranchId,
+			pushAccessDescriptions: (protectedBranch) => protectedBranch.pushAccessDescriptions,
+			mergeAccessDescriptions: (protectedBranch) => protectedBranch.mergeAccessDescriptions,
+			unprotectAccessDescriptions: (protectedBranch) => protectedBranch.unprotectAccessDescriptions,
+			allowForcePush: (protectedBranch) => protectedBranch.allowForcePush,
+			codeOwnerApprovalRequired: (protectedBranch) => protectedBranch.codeOwnerApprovalRequired,
+			inherited: (protectedBranch) => protectedBranch.inherited,
 		}),
 
 		defineResolver({

@@ -22,11 +22,13 @@ const {
 	getPipelineJobs,
 	getPipelines,
 	getProject,
+	getProtectedBranch,
 	getRelease,
 	getReleases,
 	getRepositoryTree,
 	getTag,
 	getTags,
+	listProtectedBranches,
 	compareRepositoryRefs,
 } = vi.hoisted(() => ({
 	getBranches: vi.fn(),
@@ -42,11 +44,13 @@ const {
 	getPipelineJobs: vi.fn(),
 	getPipelines: vi.fn(),
 	getProject: vi.fn(),
+	getProtectedBranch: vi.fn(),
 	getRelease: vi.fn(),
 	getReleases: vi.fn(),
 	getRepositoryTree: vi.fn(),
 	getTag: vi.fn(),
 	getTags: vi.fn(),
+	listProtectedBranches: vi.fn(),
 	compareRepositoryRefs: vi.fn(),
 }))
 
@@ -64,11 +68,13 @@ vi.mock('$/sources/Gitlab/Rest/queries.ts', () => ({
 	getPipelineJobs,
 	getPipelines,
 	getProject,
+	getProtectedBranch,
 	getRelease,
 	getReleases,
 	getRepositoryTree,
 	getTag,
 	getTags,
+	listProtectedBranches,
 	compareRepositoryRefs,
 }))
 
@@ -78,6 +84,7 @@ const mirrorIssuesResolver = resolverModule.resolvers.find((resolver) => '$$issu
 const mirrorPipelinesResolver = resolverModule.resolvers.find((resolver) => '$$pipelines' in resolver.projections)
 const mirrorPullRequestsResolver = resolverModule.resolvers.find((resolver) => '$$pullRequests' in resolver.projections)
 const mirrorReleasesResolver = resolverModule.resolvers.find((resolver) => '$$releases' in resolver.projections)
+const mirrorProtectedBranchesResolver = resolverModule.resolvers.find((resolver) => '$$protectedBranches' in resolver.projections)
 const repositoryResolver = resolverModule.resolvers.find((resolver) => resolver.entityType === EntityType.GitRepository && 'objectFormat' in resolver.projections)
 const repositoryRefsResolver = resolverModule.resolvers.find((resolver) => resolver.entityType === EntityType.GitRepository && '$$refs' in resolver.projections)
 const repositoryObjectsResolver = resolverModule.resolvers.find((resolver) => resolver.entityType === EntityType.GitRepository && '$$objects' in resolver.projections)
@@ -90,6 +97,7 @@ const pipelineResolver = resolverModule.resolvers.find((resolver) => resolver.en
 const pipelineJobsResolver = resolverModule.resolvers.find((resolver) => '$$jobs' in resolver.projections)
 const jobResolver = resolverModule.resolvers.find((resolver) => resolver.entityType === EntityType.GitForgeJob)
 const releaseResolver = resolverModule.resolvers.find((resolver) => resolver.entityType === EntityType.GitForgeRelease)
+const protectedBranchResolver = resolverModule.resolvers.find((resolver) => resolver.entityType === EntityType.GitForgeProtectedBranch)
 const signatureResolver = resolverModule.resolvers.find((resolver) => resolver.entityType === EntityType.GitSignature)
 const compareResolver = resolverModule.resolvers.find((resolver) => resolver.entityType === EntityType.GitForgeCompare)
 const compareFileChangeResolver = resolverModule.resolvers.find((resolver) => resolver.entityType === EntityType.GitForgeCompareFileChange)
@@ -100,6 +108,7 @@ if (
 	|| mirrorPipelinesResolver == null
 	|| mirrorPullRequestsResolver == null
 	|| mirrorReleasesResolver == null
+	|| mirrorProtectedBranchesResolver == null
 	|| repositoryRefsResolver == null
 	|| repositoryObjectsResolver == null
 	|| remoteResolver == null
@@ -111,6 +120,7 @@ if (
 	|| pipelineJobsResolver == null
 	|| jobResolver == null
 	|| releaseResolver == null
+	|| protectedBranchResolver == null
 	|| signatureResolver == null
 	|| compareResolver == null
 	|| compareFileChangeResolver == null
@@ -327,6 +337,24 @@ describe('GitLab repository journey', () => {
 			},
 		})
 		getPipelineJobs.mockResolvedValue([])
+		getProtectedBranch.mockResolvedValue({
+			id: 109607,
+			name: 'master',
+			push_access_levels: [{
+				id: 1,
+				access_level: 40,
+				access_level_description: 'Maintainers',
+			}],
+			merge_access_levels: [{
+				id: 2,
+				access_level: 40,
+				access_level_description: 'Maintainers',
+			}],
+			allow_force_push: false,
+			code_owner_approval_required: true,
+			inherited: false,
+		})
+		listProtectedBranches.mockResolvedValue([])
 	})
 
 	it('links the forge mirror to its canonical repository with provider provenance', async () => {
@@ -1261,5 +1289,161 @@ describe('GitLab repository journey', () => {
 			fromObjectId,
 			toObjectId,
 		})).rejects.toThrow('Gitlab_Rest: compare head does not match to object ID')
+	})
+
+	it('materializes protected-branch rules from GitLab list and get', async () => {
+		const selector = {
+			forgeHost: 'gitlab.com',
+			owner: 'gitlab-org',
+			repositoryName: 'gitlab',
+		}
+		const pageContext = {
+			filters: [],
+			sorts: [],
+			pagination: { limit: 2 },
+			selectorKeys: [],
+			parentSelectorKeys: [],
+			sources: [],
+			publicEnv: {},
+		}
+		listProtectedBranches.mockResolvedValueOnce([
+			{
+				id: 100,
+				name: 'master',
+				push_access_levels: [{
+					id: 1,
+					access_level: 40,
+					access_level_description: 'Maintainers',
+				}],
+				merge_access_levels: [{
+					id: 2,
+					access_level: 40,
+					access_level_description: 'Maintainers',
+				}],
+				allow_force_push: false,
+				code_owner_approval_required: true,
+				inherited: false,
+			},
+			{
+				id: 101,
+				name: 'release/*',
+				push_access_levels: [{
+					id: 3,
+					access_level: 0,
+					access_level_description: 'No one',
+				}],
+				merge_access_levels: [{
+					id: 4,
+					access_level: 40,
+					access_level_description: 'Maintainers',
+				}],
+				allow_force_push: false,
+				code_owner_approval_required: true,
+			},
+		])
+		const protectedBranchPage = await mirrorProtectedBranchesResolver.resolve.ForgeHostOwnerRepositoryName.resolve(selector, pageContext)
+		if (protectedBranchPage == null)
+			throw new Error('GitLab protected branch page must resolve')
+		const protectedBranches = mirrorProtectedBranchesResolver.projections.$$protectedBranches.select(protectedBranchPage, selector, pageContext)
+
+		expect(protectedBranches).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$forgeMirror: selector,
+					name: 'master',
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.GitForgeProtectedBranch, [], 'providerProtectedBranchId')]: '100',
+					[entityFieldAddressKey(EntityType.GitForgeProtectedBranch, [], 'pushAccessDescriptions')]: ['Maintainers'],
+					[entityFieldAddressKey(EntityType.GitForgeProtectedBranch, [], 'mergeAccessDescriptions')]: ['Maintainers'],
+					[entityFieldAddressKey(EntityType.GitForgeProtectedBranch, [], 'unprotectAccessDescriptions')]: [],
+					[entityFieldAddressKey(EntityType.GitForgeProtectedBranch, [], 'allowForcePush')]: false,
+					[entityFieldAddressKey(EntityType.GitForgeProtectedBranch, [], 'codeOwnerApprovalRequired')]: true,
+					[entityFieldAddressKey(EntityType.GitForgeProtectedBranch, [], 'inherited')]: false,
+				},
+			},
+			{
+				[EntityMetaKey.Selector]: {
+					$forgeMirror: selector,
+					name: 'release/*',
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.GitForgeProtectedBranch, [], 'providerProtectedBranchId')]: '101',
+					[entityFieldAddressKey(EntityType.GitForgeProtectedBranch, [], 'pushAccessDescriptions')]: ['No one'],
+					[entityFieldAddressKey(EntityType.GitForgeProtectedBranch, [], 'mergeAccessDescriptions')]: ['Maintainers'],
+					[entityFieldAddressKey(EntityType.GitForgeProtectedBranch, [], 'unprotectAccessDescriptions')]: [],
+					[entityFieldAddressKey(EntityType.GitForgeProtectedBranch, [], 'allowForcePush')]: false,
+					[entityFieldAddressKey(EntityType.GitForgeProtectedBranch, [], 'codeOwnerApprovalRequired')]: true,
+				},
+			},
+		])
+		expect(listProtectedBranches).toHaveBeenCalledWith(expect.objectContaining({ page: 1, perPage: 2 }))
+		expect(mirrorProtectedBranchesResolver.projections.$$protectedBranches.continuation?.(protectedBranchPage, selector, pageContext)).toEqual({
+			operation: 'gitlab-protected-branches',
+			terminal: false,
+			token: '2',
+		})
+
+		await expect(protectedBranchResolver.resolve.ForgeMirrorName.resolve({
+			$forgeMirror: selector,
+			name: 'master',
+		})).resolves.toEqual({
+			$forgeMirror: selector,
+			name: 'master',
+			providerProtectedBranchId: '109607',
+			pushAccessDescriptions: ['Maintainers'],
+			mergeAccessDescriptions: ['Maintainers'],
+			unprotectAccessDescriptions: [],
+			allowForcePush: false,
+			codeOwnerApprovalRequired: true,
+			inherited: false,
+		})
+		expect(getProtectedBranch).toHaveBeenCalledWith({
+			projectId: 'gitlab-org/gitlab',
+			branchName: 'master',
+		})
+	})
+
+	it('does not claim protected-branch authority for non-GitLab mirrors', async () => {
+		const $forgeMirror = {
+			forgeHost: 'codeberg.org',
+			owner: 'forgejo',
+			repositoryName: 'forgejo',
+		}
+		const pageContext = {
+			filters: [],
+			sorts: [],
+			pagination: { limit: 1 },
+			selectorKeys: [],
+			parentSelectorKeys: [],
+			sources: [],
+			publicEnv: {},
+		}
+		await expect(mirrorProtectedBranchesResolver.resolve.ForgeHostOwnerRepositoryName.resolve($forgeMirror, pageContext)).resolves.toBeUndefined()
+		await expect(protectedBranchResolver.resolve.ForgeMirrorName.resolve({
+			$forgeMirror,
+			name: 'main',
+		})).resolves.toBeUndefined()
+		expect(listProtectedBranches).not.toHaveBeenCalled()
+		expect(getProtectedBranch).not.toHaveBeenCalled()
+	})
+
+	it('fails closed when a protected branch name does not match the selector', async () => {
+		getProtectedBranch.mockResolvedValueOnce({
+			id: 109607,
+			name: 'main',
+			push_access_levels: [],
+			merge_access_levels: [],
+			allow_force_push: false,
+			code_owner_approval_required: false,
+		})
+		await expect(protectedBranchResolver.resolve.ForgeMirrorName.resolve({
+			$forgeMirror: {
+				forgeHost: 'gitlab.com',
+				owner: 'gitlab-org',
+				repositoryName: 'gitlab',
+			},
+			name: 'master',
+		})).rejects.toThrow('Gitlab_Rest: protected branch identity does not match selector')
 	})
 })
