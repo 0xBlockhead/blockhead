@@ -27,6 +27,7 @@ const {
 	getProtectedBranch,
 	getRelease,
 	getReleases,
+	getRepositoryBlob,
 	getRepositoryTree,
 	getTag,
 	getTags,
@@ -757,5 +758,56 @@ describe('GitLab REST wires', () => {
 			'https://gitlab.com/api/v4/projects/group%2Fproject/pipelines/91',
 			'https://gitlab.com/api/v4/projects/group%2Fproject/jobs/123',
 		])
+	})
+
+	it('reads a content-addressed repository blob by SHA', async () => {
+		const blobSha = '79f7bbd25901e8334750839545a9bd021f0e4c83'
+		sourceGetJson
+			.mockResolvedValueOnce({
+				size: 1476,
+				encoding: 'base64',
+				content: 'VGhpcyBpcyBhIGJpbmFyeSBmaWxl',
+				sha: blobSha,
+			})
+			.mockResolvedValueOnce({
+				size: 0,
+				encoding: 'base64',
+				content: '',
+				sha: 'f'.repeat(64),
+			})
+
+		await expect(getRepositoryBlob({
+			projectId: 'gitlab-org/gitlab',
+			blobSha,
+		})).resolves.toEqual({
+			size: 1476,
+			encoding: 'base64',
+			content: 'VGhpcyBpcyBhIGJpbmFyeSBmaWxl',
+			sha: blobSha,
+		})
+		await expect(getRepositoryBlob({
+			projectId: 'group/project',
+			blobSha: 'f'.repeat(64),
+		})).resolves.toMatchObject({
+			size: 0,
+			sha: 'f'.repeat(64),
+		})
+		expect(sourceGetJson.mock.calls.map(([, url]) => url)).toEqual([
+			`https://gitlab.com/api/v4/projects/gitlab-org%2Fgitlab/repository/blobs/${blobSha}`,
+			`https://gitlab.com/api/v4/projects/group%2Fproject/repository/blobs/${'f'.repeat(64)}`,
+		])
+	})
+
+	it('fails closed when a repository blob omits content-addressed fields', async () => {
+		sourceGetJson.mockResolvedValue({
+			size: 1476,
+			encoding: 'base64',
+			content: 'VGhpcyBpcyBhIGJpbmFyeSBmaWxl',
+		})
+
+		await expect(getRepositoryBlob({
+			projectId: 'gitlab-org/gitlab',
+			blobSha: '79f7bbd25901e8334750839545a9bd021f0e4c83',
+		})).rejects.toThrow('Gitlab_Rest: invalid repository blob response')
 	})
 })

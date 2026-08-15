@@ -79,6 +79,15 @@ export const gitlabRepositoryTreeEntryWire = type({
 
 export const gitlabRepositoryTreeWire = gitlabRepositoryTreeEntryWire.array()
 
+export const gitlabRepositoryBlobWire = type({
+	size: 'number.integer >= 0',
+	encoding: "'base64'",
+	content: 'string',
+	sha: '/^[0-9a-fA-F]{40}$|^[0-9a-fA-F]{64}$/',
+})
+
+export type GitlabRepositoryBlob = typeof gitlabRepositoryBlobWire.infer
+
 export const gitlabCommitWire = type({
 	id: '/^[0-9a-fA-F]{40}$|^[0-9a-fA-F]{64}$/',
 	short_id: 'string > 0',

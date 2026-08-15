@@ -21,6 +21,7 @@ import {
 	gitlabProtectedBranchWire,
 	gitlabReleaseWire,
 	gitlabReleasesWire,
+	gitlabRepositoryBlobWire,
 	gitlabRepositoryTreeWire,
 	gitlabTagsWire,
 	gitlabTagWire,
@@ -497,4 +498,21 @@ export const getRepositoryTree = ({
 			throw new Error('Gitlab_Rest: invalid repository tree response')
 		}
 	})
+)
+
+export const getRepositoryBlob = ({
+	projectId,
+	blobSha,
+}: {
+	projectId: string
+	blobSha: string
+}) => (
+	getJson<JsonValue>(binding, `/api/v4/projects/${encodeURIComponent(projectId)}/repository/blobs/${encodeURIComponent(blobSha)}`)
+		.then((blob) => {
+			try {
+				return gitlabRepositoryBlobWire.assert(blob)
+			} catch {
+				throw new Error('Gitlab_Rest: invalid repository blob response')
+			}
+		})
 )
