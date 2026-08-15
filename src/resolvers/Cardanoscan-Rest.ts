@@ -404,13 +404,18 @@ export default {
 					}],
 					resolve: async ({
 						$network,
+						timestampMs,
 						source,
 					}) => {
 						assertCardanoMainnet($network)
 						if (source !== Source.Cardanoscan_Rest)
 							throw new Error('Cardanoscan_Rest: observation source mismatch')
 
-						return tipObservation()
+						const observation = await tipObservation()
+						if (observation.timestampMs !== timestampMs)
+							throw new Error('Cardanoscan_Rest: historical observation is unavailable')
+
+						return observation
 					},
 				},
 			},

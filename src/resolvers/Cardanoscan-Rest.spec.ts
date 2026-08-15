@@ -65,6 +65,9 @@ const transactionResolver = cardanoscan.resolvers.find((resolver) => (
 const assetResolver = cardanoscan.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.CardanoNativeAsset
 ))
+const networkTimestampResolver = cardanoscan.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.CardanoNetwork_Timestamp
+))
 
 if (
 	networkTipResolver == null
@@ -73,6 +76,7 @@ if (
 	|| blockResolver == null
 	|| transactionResolver == null
 	|| assetResolver == null
+	|| networkTimestampResolver == null
 )
 	throw new Error('Cardanoscan-Rest spec missing resolvers')
 
@@ -292,5 +296,38 @@ describe('Cardanoscan Rest Cardano projections', () => {
 				slug: 'ethereum',
 			})
 		).rejects.toThrow('unsupported network')
+	})
+
+	it('rejects historical Cardano network observations the live tip cannot serve', async () => {
+		getLatestBlock.mockResolvedValue(tipBlock)
+		getNetworkState.mockResolvedValue({
+			circulatingSupply: '35000000000000000',
+			reserves: '1000',
+			treasury: '2000',
+			liveCirculatingSupply: '35000000000000000',
+		})
+
+		await expect(networkTimestampResolver.resolve.NetworkTimestampMsSource.resolve({
+			$network: network,
+			timestampMs: tipTimestampMs - 1,
+			source: Source.Cardanoscan_Rest,
+		})).rejects.toThrow('Cardanoscan_Rest: historical observation is unavailable')
+
+		await expect(networkTimestampResolver.resolve.NetworkTimestampMsSource.resolve({
+			$network: network,
+			timestampMs: tipTimestampMs,
+			source: Source.Constants_Internal,
+		})).rejects.toThrow('Cardanoscan_Rest: observation source mismatch')
+
+		await expect(networkTimestampResolver.resolve.NetworkTimestampMsSource.resolve({
+			$network: network,
+			timestampMs: tipTimestampMs,
+			source: Source.Cardanoscan_Rest,
+		})).resolves.toMatchObject({
+			timestampMs: tipTimestampMs,
+			latestSlot: 130_000_102n,
+			latestBlockHash: 'a'.repeat(64),
+			epoch: 500,
+		})
 	})
 })
