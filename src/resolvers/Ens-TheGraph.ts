@@ -40,6 +40,28 @@ const bigintFromSubgraphScalar = (value: unknown) => (
 		BigInt(String(value))
 )
 
+const timestampMsFromSubgraphUnixSeconds = (value: unknown) => {
+	const seconds = bigintFromSubgraphScalar(value)
+	if (seconds == null)
+		return undefined
+	const timestampMs = Number(seconds) * 1000
+	return Number.isSafeInteger(timestampMs) && timestampMs >= 0 ?
+		timestampMs
+	:
+		undefined
+}
+
+const ensRecordKindFromRecordKey = (recordKey: string) => (
+	recordKey.startsWith('coin:') ?
+		'coin'
+	: recordKey.startsWith('text:') ?
+		'text'
+	: recordKey === 'contenthash' ?
+		'contenthash'
+	:
+		'text'
+)
+
 const evmAccountFromSubgraphAccount = (
 	account: { id: string } | null | undefined
 ): Entity<typeof schema, EntityType.EvmAccount> | null => {
@@ -65,6 +87,7 @@ const ensRecordTipValueFromDomain = (
 			addr?: {
 				id: string
 			} | null
+			contentHash?: string | null
 			events?: readonly {
 				__typename: string
 				blockNumber: number
@@ -77,6 +100,13 @@ const ensRecordTipValueFromDomain = (
 	},
 	recordKey: string
 ) => {
+	if (recordKey === 'contenthash') {
+		const contentHash = domain.resolver?.contentHash
+		return contentHash == null || contentHash === '' || contentHash === '0x' ?
+			undefined
+		:
+			String(contentHash)
+	}
 	const events = domain.resolver?.events ?? []
 	if (recordKey.startsWith('text:')) {
 		const textKey = recordKey.slice('text:'.length)
@@ -191,6 +221,21 @@ export default {
 							?? matchingEnsDomain.resolver?.addr
 						)
 						const ownerActor = evmAccountFromSubgraphAccount(matchingEnsDomain.owner)
+						const registrantActor = evmAccountFromSubgraphAccount(
+							matchingEnsDomain.registration?.registrant
+							?? matchingEnsDomain.registrant
+						)
+						const wrapperOwnerActor = evmAccountFromSubgraphAccount(matchingEnsDomain.wrappedOwner)
+						const createdAtMs = timestampMsFromSubgraphUnixSeconds(matchingEnsDomain.createdAt)
+						const registeredAtMs = timestampMsFromSubgraphUnixSeconds(
+							matchingEnsDomain.registration?.registrationDate
+						)
+						const registrationExpiryAtMs = timestampMsFromSubgraphUnixSeconds(
+							matchingEnsDomain.registration?.expiryDate
+						)
+						const wrapperExpiryAtMs = timestampMsFromSubgraphUnixSeconds(
+							matchingEnsDomain.wrappedDomain?.expiryDate
+						)
 						const resolverTextKeys = matchingEnsDomain.resolver?.texts?.map(String) ?? []
 						const resolverCoinTypes = matchingEnsDomain.resolver?.coinTypes
 							?.filter((coinType) => coinType != null)
@@ -207,10 +252,16 @@ export default {
 								[]
 						))
 						const observedAtMs = Date.now()
-						const recordEntities = [
+						const recordKeys = [
 							...resolverTextKeys.map((textKey) => `text:${textKey}`),
 							...resolverCoinTypes.map((coinType) => `coin:${coinType}`),
-						].map((recordKey) => {
+							...(ensRecordTipValueFromDomain(matchingEnsDomain, 'contenthash') === undefined ?
+								[]
+							:
+								['contenthash']
+							),
+						]
+						const recordEntities = recordKeys.map((recordKey) => {
 							const coinType = recordKey.startsWith('coin:') ?
 								Number(recordKey.slice('coin:'.length))
 							:
@@ -230,7 +281,7 @@ export default {
 										},
 									},
 									[entityFieldAddressKey(EntityType.EnsRecord, [], 'recordKey')]: recordKey,
-									[entityFieldAddressKey(EntityType.EnsRecord, [], 'recordKind')]: recordKey.startsWith('coin:') ? 'coin' : 'text',
+									[entityFieldAddressKey(EntityType.EnsRecord, [], 'recordKind')]: ensRecordKindFromRecordKey(recordKey),
 									...(coinType != null && Number.isSafeInteger(coinType) && {
 										[entityFieldAddressKey(EntityType.EnsRecord, [], 'coinType')]: coinType,
 									}),
@@ -310,6 +361,27 @@ export default {
 							...(ownerActor != null && {
 								$ownerActor: ownerActor,
 							}),
+							...(registrantActor != null && {
+								$registrantActor: registrantActor,
+							}),
+							...(wrapperOwnerActor != null && {
+								$wrapperOwnerActor: wrapperOwnerActor,
+							}),
+							...(createdAtMs != null && {
+								createdAtMs,
+							}),
+							...(registeredAtMs != null && {
+								registeredAtMs,
+							}),
+							...(registrationExpiryAtMs != null && {
+								registrationExpiryAtMs,
+							}),
+							...(matchingEnsDomain.wrappedDomain != null && {
+								wrapperFuses: matchingEnsDomain.wrappedDomain.fuses,
+							}),
+							...(wrapperExpiryAtMs != null && {
+								wrapperExpiryAtMs,
+							}),
 							...(resolverTextKeys.length > 0 && {
 								resolverTextKeys,
 							}),
@@ -379,6 +451,13 @@ export default {
 				$resolverContract: (ensName) => ensName.$resolverContract,
 				$subgraphResolvedActor: (ensName) => ensName.$subgraphResolvedActor,
 				$ownerActor: (ensName) => ensName.$ownerActor,
+				$registrantActor: (ensName) => ensName.$registrantActor,
+				$wrapperOwnerActor: (ensName) => ensName.$wrapperOwnerActor,
+				createdAtMs: (ensName) => ensName.createdAtMs,
+				registeredAtMs: (ensName) => ensName.registeredAtMs,
+				registrationExpiryAtMs: (ensName) => ensName.registrationExpiryAtMs,
+				wrapperFuses: (ensName) => ensName.wrapperFuses,
+				wrapperExpiryAtMs: (ensName) => ensName.wrapperExpiryAtMs,
 				resolverTextKeys: (ensName) => ensName.resolverTextKeys,
 				resolverCoinTypes: (ensName) => ensName.resolverCoinTypes,
 				textRecords: (ensName) => ensName.textRecords,
@@ -486,7 +565,7 @@ export default {
 								},
 							},
 							recordKey,
-							recordKind: recordKey.startsWith('coin:') ? 'coin' : 'text',
+							recordKind: ensRecordKindFromRecordKey(recordKey),
 							...(coinType == null || Number.isNaN(coinType) ? {} : { coinType }),
 							$$timestamps: [{
 								[EntityMetaKey.Selector]: {

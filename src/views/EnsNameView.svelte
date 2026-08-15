@@ -35,6 +35,11 @@
 			node: true,
 			labelName: true,
 			labelhash: true,
+			createdAtMs: true,
+			registeredAtMs: true,
+			registrationExpiryAtMs: true,
+			wrapperFuses: true,
+			wrapperExpiryAtMs: true,
 		},
 	}))
 	const titleFallback = $derived(selection.entitySelector.name || 'ENS name')
@@ -44,7 +49,9 @@
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
+	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import EnsNameView from '$/views/EnsNameView.svelte'
 	import EvmContractView from '$/views/EvmContractView.svelte'
@@ -225,6 +232,126 @@
 									selection={select(EntityType.EvmAccount, (evmAccount ?? evmAccountInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={selection.$registrantActor}
+			>
+				{#snippet children(evmAccount)}
+					{#if evmAccount != null}
+						{@const evmAccountInitial = untrack(() => evmAccount)}
+						<div>
+							<dt>Registrant</dt>
+							<dd>
+								<EvmAccountView
+									selection={select(EntityType.EvmAccount, (evmAccount ?? evmAccountInitial)[EntityMetaKey.Selector])}
+									layout={EntityLayout.Value}
+								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={selection.$wrapperOwnerActor}
+			>
+				{#snippet children(evmAccount)}
+					{#if evmAccount != null}
+						{@const evmAccountInitial = untrack(() => evmAccount)}
+						<div>
+							<dt>Wrapper owner</dt>
+							<dd>
+								<EvmAccountView
+									selection={select(EntityType.EvmAccount, (evmAccount ?? evmAccountInitial)[EntityMetaKey.Selector])}
+									layout={EntityLayout.Value}
+								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={ensName}
+			>
+				{#snippet children(entity)}
+					{@const createdAtMs = entity.createdAtMs}
+					{#if createdAtMs != null}
+						<div>
+							<dt>Created</dt>
+							<dd>
+								<Timestamp timestamp={createdAtMs} />
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={ensName}
+			>
+				{#snippet children(entity)}
+					{@const registeredAtMs = entity.registeredAtMs}
+					{#if registeredAtMs != null}
+						<div>
+							<dt>Registered</dt>
+							<dd>
+								<Timestamp timestamp={registeredAtMs} />
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={ensName}
+			>
+				{#snippet children(entity)}
+					{@const registrationExpiryAtMs = entity.registrationExpiryAtMs}
+					{#if registrationExpiryAtMs != null}
+						<div>
+							<dt>Registration expiry</dt>
+							<dd>
+								<Timestamp timestamp={registrationExpiryAtMs} />
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={ensName}
+			>
+				{#snippet children(entity)}
+					{@const wrapperFuses = entity.wrapperFuses}
+					{#if wrapperFuses != null}
+						<div>
+							<dt>Wrapper fuses</dt>
+							<dd>
+								<NumberValue
+									value={wrapperFuses}
+								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={ensName}
+			>
+				{#snippet children(entity)}
+					{@const wrapperExpiryAtMs = entity.wrapperExpiryAtMs}
+					{#if wrapperExpiryAtMs != null}
+						<div>
+							<dt>Wrapper expiry</dt>
+							<dd>
+								<Timestamp timestamp={wrapperExpiryAtMs} />
 							</dd>
 						</div>
 					{/if}

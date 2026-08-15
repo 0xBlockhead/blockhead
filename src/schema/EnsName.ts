@@ -52,6 +52,34 @@ export default entity({
 		entityType: EntityType.EvmAccount,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
+	$registrantActor: {
+		entityType: EntityType.EvmAccount,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	$wrapperOwnerActor: {
+		entityType: EntityType.EvmAccount,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	createdAtMs: {
+		primitiveType: type('number.integer >= 0'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	registeredAtMs: {
+		primitiveType: type('number.integer >= 0'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	registrationExpiryAtMs: {
+		primitiveType: type('number.integer >= 0'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	wrapperFuses: {
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	wrapperExpiryAtMs: {
+		primitiveType: type('number.integer >= 0'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
 	textRecords: {
 		primitiveType: type('unknown'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,

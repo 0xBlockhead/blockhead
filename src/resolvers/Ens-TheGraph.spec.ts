@@ -200,6 +200,7 @@ describe('Ens-TheGraph entity resolver', () => {
 					address: '0x000000000000000000000000000000000000dead',
 				},
 			},
+			createdAtMs: 1_700_000_000_000,
 			resolverTextKeys: ['url'],
 			resolverCoinTypes: ['60'],
 			textRecords: {
@@ -249,6 +250,22 @@ describe('Ens-TheGraph entity resolver', () => {
 						}],
 					},
 				},
+				{
+					[EntityMetaKey.Selector]: {
+						$name: {
+							name: 'vitalik.eth',
+						},
+						recordKey: 'contenthash',
+					},
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.EnsRecord, [], 'recordKind')]: 'contenthash',
+						[entityFieldAddressKey(EntityType.EnsRecord, [], '$$timestamps')]: [{
+							[EntityMetaKey.Fields]: {
+								[entityFieldAddressKey(EntityType.EnsRecord_Timestamp, [], 'value')]: '0xcontent',
+							},
+						}],
+					},
+				},
 			],
 			$$timestamps: [
 				{
@@ -292,7 +309,7 @@ describe('Ens-TheGraph entity resolver', () => {
 			subdomainCount: 1,
 		})
 		expect(ensNameResolver.projections.$$subdomains.resolveCount(resolvedEntity)).toBe(1)
-		expect(ensNameResolver.projections.$$records.resolveCount(resolvedEntity)).toBe(2)
+		expect(ensNameResolver.projections.$$records.resolveCount(resolvedEntity)).toBe(3)
 		expect(ensNameResolver.projections.$$timestamps.resolveCount(resolvedEntity)).toBe(1)
 		expect(ensTheGraphResolvers.resolvers.some((resolver) => (
 			resolver.entityType === EntityType.EnsName_Timestamp
@@ -317,6 +334,53 @@ describe('Ens-TheGraph entity resolver', () => {
 			name: 'vitalik.eth',
 			normalizedName: 'vitalik.eth',
 		})
+	})
+
+	it('maps registrar registration and NameWrapper state as distinct name facts', async () => {
+		getName.mockResolvedValueOnce([{
+			...vitalikDomainWire,
+			registrant: {
+				id: '0x000000000000000000000000000000000000beef',
+			},
+			wrappedOwner: {
+				id: '0x000000000000000000000000000000000000cafe',
+			},
+			wrappedDomain: {
+				expiryDate: '1900000000',
+				fuses: 196608,
+			},
+			registration: {
+				registrationDate: '1600000000',
+				expiryDate: '1800000000',
+				cost: '1',
+				registrant: {
+					id: '0x000000000000000000000000000000000000beef',
+				},
+			},
+		}])
+
+		const resolvedEntity = await ensNameResolver.resolve['NormalizedName'].resolve(
+			{ name: 'vitalik.eth' },
+			resolverContext
+		)
+
+		expect(resolvedEntity).toMatchObject({
+			$registrantActor: {
+				[EntityMetaKey.Selector]: {
+					address: '0x000000000000000000000000000000000000beef',
+				},
+			},
+			$wrapperOwnerActor: {
+				[EntityMetaKey.Selector]: {
+					address: '0x000000000000000000000000000000000000cafe',
+				},
+			},
+			registeredAtMs: 1_600_000_000_000,
+			registrationExpiryAtMs: 1_800_000_000_000,
+			wrapperFuses: 196608,
+			wrapperExpiryAtMs: 1_900_000_000_000,
+		})
+		expect(resolvedEntity).not.toHaveProperty('expiryDate')
 	})
 })
 
@@ -506,6 +570,46 @@ describe('Ens-TheGraph EnsRecord resolver', () => {
 		)
 		expect(legacyCoinRecord.$$timestamps[0][EntityMetaKey.Fields]).toEqual({
 			[entityFieldAddressKey(EntityType.EnsRecord_Timestamp, [], 'value')]: '0xD8dA6BF26964aF9D7eEd9e03E53415D37aA96045',
+		})
+	})
+
+	it('resolves contenthash records from the subgraph resolver tip', async () => {
+		vi.spyOn(Date, 'now').mockReturnValue(1_800_000_000_000)
+		getName.mockResolvedValueOnce([vitalikDomainWire])
+
+		const contentHashRecord = await ensRecordResolver.resolve['NameRecordKey'].resolve(
+			{
+				$name: {
+					name: 'vitalik.eth',
+				},
+				recordKey: 'contenthash',
+			},
+			resolverContext
+		)
+
+		expect(contentHashRecord).toEqual({
+			$name: {
+				[EntityMetaKey.Selector]: {
+					name: 'vitalik.eth',
+				},
+			},
+			recordKey: 'contenthash',
+			recordKind: 'contenthash',
+			$$timestamps: [{
+				[EntityMetaKey.Selector]: {
+					$record: {
+						$name: {
+							name: 'vitalik.eth',
+						},
+						recordKey: 'contenthash',
+					},
+					timestampMs: 1_800_000_000_000,
+					source: Source.TheGraph_Graphql,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.EnsRecord_Timestamp, [], 'value')]: '0xcontent',
+				},
+			}],
 		})
 	})
 })
