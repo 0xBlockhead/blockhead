@@ -846,32 +846,100 @@ const voltaireTipBlockObservationClock = async (
 	throw allJsonRpcEndpointsFailedError(chainId, fieldName, errors)
 }
 
-const ensContentHashFromJsonRpc = async (name: string) => {
+const ensRecordKindFromRecordKey = (recordKey: string) => (
+	recordKey.startsWith('coin:') ?
+		'coin'
+	: recordKey.startsWith('text:') ?
+		'text'
+	: recordKey === 'contenthash' ?
+		'contenthash'
+	:
+		'text'
+)
+
+const ensLiveRecordValue = (value: string | null | undefined) => (
+	value == null || value === '' || value === '0x' ?
+		undefined
+	:
+		value
+)
+
+const ensForwardFromJsonRpc = async (
+	name: string,
+	options?: {
+		textKeys?: readonly string[]
+		coinTypeIds?: readonly number[]
+	}
+) => {
 	const chainId = ChainId.Ethereum
 	const jsonRpcTransports = (await voltaireJsonRpcHttpTransportsByChainId())[chainId] ?? []
 	if (jsonRpcTransports.length === 0)
-		throw new Error('Voltaire_JsonRpc: no JSON-RPC URL for EnsRecord contenthash')
+		throw new Error('Voltaire_JsonRpc: no JSON-RPC URL for EnsRecord')
 
 	const errors: string[] = []
 	for (const jsonRpcTransport of jsonRpcTransports) {
 		try {
-			const { contentHash } = await jsonRpcTransport.resolveEnsForward({
+			const {
+				textRecords,
+				coinAddresses,
+				contentHash,
+			} = await jsonRpcTransport.resolveEnsForward({
 				name,
-				textKeys: [],
-				coinTypeIds: [],
+				...options,
 			})
-			return (
-				contentHash == null || contentHash === '' || contentHash === '0x' ?
-					undefined
-				:
-					contentHash
-			)
+			return {
+				textRecords,
+				coinAddresses,
+				contentHash: ensLiveRecordValue(contentHash),
+			}
 		} catch (error) {
 			errors.push(`${jsonRpcTransport.diagnosticLabel}: ${errorMessage(error)}`)
 		}
 	}
-	throw allJsonRpcEndpointsFailedError(chainId, 'EnsRecord contenthash', errors)
+	throw allJsonRpcEndpointsFailedError(chainId, 'EnsRecord', errors)
 }
+
+const ensRecordSnapshot = ({
+	name,
+	recordKey,
+	coinType,
+	value,
+	observedAtMs,
+}: {
+	name: string
+	recordKey: string
+	coinType?: number
+	value: string | undefined
+	observedAtMs: number
+}) => ({
+	$name: {
+		[EntityMetaKey.Selector]: {
+			name,
+		},
+	},
+	recordKey,
+	recordKind: ensRecordKindFromRecordKey(recordKey),
+	...(coinType != null && Number.isSafeInteger(coinType) && {
+		coinType,
+	}),
+	$$timestamps: [{
+		[EntityMetaKey.Selector]: {
+			$record: {
+				$name: {
+					name,
+				},
+				recordKey,
+			},
+			timestampMs: observedAtMs,
+			source: Source.Voltaire_JsonRpc,
+		},
+		[EntityMetaKey.Fields]: {
+			...(value !== undefined && {
+				[entityFieldAddressKey(EntityType.EnsRecord_Timestamp, [], 'value')]: value,
+			}),
+		},
+	}],
+})
 
 const evmTransactionRefsForTxHashes = (
 	chainId: number,
@@ -1360,48 +1428,68 @@ export default {
 							normalizeEnsName,
 						} = await import('$/sources/Voltaire/JsonRpc/ens.ts')
 						const normalizedName = normalizeEnsName(name)
-						const contentHash = await ensContentHashFromJsonRpc(normalizedName)
+						const {
+							textRecords,
+							coinAddresses,
+							contentHash,
+						} = await ensForwardFromJsonRpc(normalizedName)
 						const observedAtMs = Date.now()
 						return {
 							name: normalizedName,
 							normalizedName,
-							$$records: (
-								contentHash === undefined ?
-									[]
-								:
-									[{
-										[EntityMetaKey.Selector]: {
-											$name: {
-												name: normalizedName,
-											},
+							$$records: [
+								...Object.entries(textRecords).flatMap(([key, value]) => {
+									const liveValue = ensLiveRecordValue(value)
+									return liveValue === undefined ?
+										[]
+									:
+										[ensRecordSnapshot({
+											name: normalizedName,
+											recordKey: `text:${key}`,
+											value: liveValue,
+											observedAtMs,
+										})]
+								}),
+								...Object.entries(coinAddresses).flatMap(([coinTypeKey, value]) => {
+									const liveValue = ensLiveRecordValue(value)
+									const coinType = Number(coinTypeKey)
+									return liveValue === undefined ?
+										[]
+									:
+										[ensRecordSnapshot({
+											name: normalizedName,
+											recordKey: `coin:${coinTypeKey}`,
+											coinType,
+											value: liveValue,
+											observedAtMs,
+										})]
+								}),
+								...(
+									contentHash === undefined ?
+										[]
+									:
+										[ensRecordSnapshot({
+											name: normalizedName,
 											recordKey: 'contenthash',
-										},
-										[EntityMetaKey.Fields]: {
-											[entityFieldAddressKey(EntityType.EnsRecord, [], '$name')]: {
-												[EntityMetaKey.Selector]: {
-													name: normalizedName,
-												},
-											},
-											[entityFieldAddressKey(EntityType.EnsRecord, [], 'recordKey')]: 'contenthash',
-											[entityFieldAddressKey(EntityType.EnsRecord, [], 'recordKind')]: 'contenthash',
-											[entityFieldAddressKey(EntityType.EnsRecord, [], '$$timestamps')]: [{
-												[EntityMetaKey.Selector]: {
-													$record: {
-														$name: {
-															name: normalizedName,
-														},
-														recordKey: 'contenthash',
-													},
-													timestampMs: observedAtMs,
-													source: Source.Voltaire_JsonRpc,
-												},
-												[EntityMetaKey.Fields]: {
-													[entityFieldAddressKey(EntityType.EnsRecord_Timestamp, [], 'value')]: contentHash,
-												},
-											}],
-										},
-									}]
-							),
+											value: contentHash,
+											observedAtMs,
+										})]
+								),
+							].map((ensRecord) => ({
+								[EntityMetaKey.Selector]: {
+									$name: ensRecord.$name[EntityMetaKey.Selector],
+									recordKey: ensRecord.recordKey,
+								},
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.EnsRecord, [], '$name')]: ensRecord.$name,
+									[entityFieldAddressKey(EntityType.EnsRecord, [], 'recordKey')]: ensRecord.recordKey,
+									[entityFieldAddressKey(EntityType.EnsRecord, [], 'recordKind')]: ensRecord.recordKind,
+									...(ensRecord.coinType != null && {
+										[entityFieldAddressKey(EntityType.EnsRecord, [], 'coinType')]: ensRecord.coinType,
+									}),
+									[entityFieldAddressKey(EntityType.EnsRecord, [], '$$timestamps')]: ensRecord.$$timestamps,
+								},
+							})),
 						}
 					},
 				}
@@ -1420,41 +1508,63 @@ export default {
 			resolve: {
 				NameRecordKey: {
 					resolve: async ({ $name, recordKey }) => {
-						if (recordKey !== 'contenthash')
-							throw new Error('Voltaire_JsonRpc: ENS recordKey is not contenthash')
-
 						const {
 							normalizeEnsName,
 						} = await import('$/sources/Voltaire/JsonRpc/ens.ts')
 						const normalizedName = normalizeEnsName($name.name)
-						const contentHash = await ensContentHashFromJsonRpc(normalizedName)
 						const observedAtMs = Date.now()
-						return {
-							$name: {
-								[EntityMetaKey.Selector]: {
-									name: normalizedName,
-								},
-							},
-							recordKey: 'contenthash',
-							recordKind: 'contenthash',
-							$$timestamps: [{
-								[EntityMetaKey.Selector]: {
-									$record: {
-										$name: {
-											name: normalizedName,
-										},
-										recordKey: 'contenthash',
-									},
-									timestampMs: observedAtMs,
-									source: Source.Voltaire_JsonRpc,
-								},
-								[EntityMetaKey.Fields]: {
-									...(contentHash !== undefined && {
-										[entityFieldAddressKey(EntityType.EnsRecord_Timestamp, [], 'value')]: contentHash,
-									}),
-								},
-							}],
+						if (recordKey === 'contenthash') {
+							const { contentHash } = await ensForwardFromJsonRpc(normalizedName, {
+								textKeys: [],
+								coinTypeIds: [],
+							})
+							return ensRecordSnapshot({
+								name: normalizedName,
+								recordKey,
+								value: contentHash,
+								observedAtMs,
+							})
 						}
+						if (recordKey.startsWith('coin:')) {
+							const coinType = Number(recordKey.slice('coin:'.length))
+							const { coinAddresses } = await ensForwardFromJsonRpc(normalizedName, {
+								textKeys: [],
+								coinTypeIds: (
+									Number.isSafeInteger(coinType) ?
+										[coinType]
+									:
+										[]
+								),
+							})
+							return ensRecordSnapshot({
+								name: normalizedName,
+								recordKey,
+								coinType,
+								value: ensLiveRecordValue(
+									Number.isSafeInteger(coinType) ?
+										coinAddresses[String(coinType)]
+									:
+										undefined
+								),
+								observedAtMs,
+							})
+						}
+						const textKey = (
+							recordKey.startsWith('text:') ?
+								recordKey.slice('text:'.length)
+							:
+								recordKey
+						)
+						const { textRecords } = await ensForwardFromJsonRpc(normalizedName, {
+							textKeys: [textKey],
+							coinTypeIds: [],
+						})
+						return ensRecordSnapshot({
+							name: normalizedName,
+							recordKey,
+							value: ensLiveRecordValue(textRecords[textKey]),
+							observedAtMs,
+						})
 					},
 				},
 			},
@@ -1462,6 +1572,7 @@ export default {
 			$name: (ensRecord) => ensRecord.$name,
 			recordKey: (ensRecord) => ensRecord.recordKey,
 			recordKind: (ensRecord) => ensRecord.recordKind,
+			coinType: (ensRecord) => ensRecord.coinType,
 			$$timestamps: {
 				select: (ensRecord) => ensRecord.$$timestamps,
 				resolveCount: (ensRecord) => ensRecord.$$timestamps.length,

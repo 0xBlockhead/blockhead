@@ -1123,7 +1123,7 @@ describe('Voltaire EVM storage read observations', () => {
 	})
 })
 
-describe('Voltaire ENS contenthash records', () => {
+describe('Voltaire ENS records', () => {
 	const ensNameResolver = voltaireJsonRpc.resolvers.find((candidate) => (
 		candidate.entityType === EntityType.EnsName
 	))
@@ -1136,12 +1136,20 @@ describe('Voltaire ENS contenthash records', () => {
 		vi.spyOn(Date, 'now').mockReturnValue(1_800_000_000_000)
 	})
 
-	it('maps live contenthash onto EnsName.$$records as recordKey/recordKind contenthash', async () => {
+	it('maps live text, coin, and contenthash onto EnsName.$$records', async () => {
 		if (ensNameResolver == null)
 			throw new Error('Voltaire EnsName resolver is not registered')
 
 		resolveEnsForward.mockResolvedValueOnce({
 			contentHash: '0xe30101701220content',
+			textRecords: {
+				url: 'https://vitalik.ca',
+				avatar: '',
+			},
+			coinAddresses: {
+				'60': '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
+				'0': '0x',
+			},
 		})
 		const snapshot = await ensNameResolver.resolve.NormalizedName.resolve({
 			name: 'vitalik.eth',
@@ -1149,52 +1157,123 @@ describe('Voltaire ENS contenthash records', () => {
 
 		expect(resolveEnsForward).toHaveBeenCalledWith({
 			name: 'vitalik.eth',
-			textKeys: [],
-			coinTypeIds: [],
 		})
 		expect(ensNameResolver.projections.name(snapshot)).toBe('vitalik.eth')
 		expect(ensNameResolver.projections.normalizedName(snapshot)).toBe('vitalik.eth')
-		expect(ensNameResolver.projections.$$records.select(snapshot)).toEqual([{
-			[EntityMetaKey.Selector]: {
-				$name: {
-					name: 'vitalik.eth',
-				},
-				recordKey: 'contenthash',
-			},
-			[EntityMetaKey.Fields]: {
-				[entityFieldAddressKey(EntityType.EnsRecord, [], '$name')]: {
-					[EntityMetaKey.Selector]: {
+		expect(ensNameResolver.projections.$$records.select(snapshot)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$name: {
 						name: 'vitalik.eth',
 					},
+					recordKey: 'text:url',
 				},
-				[entityFieldAddressKey(EntityType.EnsRecord, [], 'recordKey')]: 'contenthash',
-				[entityFieldAddressKey(EntityType.EnsRecord, [], 'recordKind')]: 'contenthash',
-				[entityFieldAddressKey(EntityType.EnsRecord, [], '$$timestamps')]: [{
-					[EntityMetaKey.Selector]: {
-						$record: {
-							$name: {
-								name: 'vitalik.eth',
-							},
-							recordKey: 'contenthash',
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.EnsRecord, [], '$name')]: {
+						[EntityMetaKey.Selector]: {
+							name: 'vitalik.eth',
 						},
-						timestampMs: 1_800_000_000_000,
-						source: Source.Voltaire_JsonRpc,
 					},
-					[EntityMetaKey.Fields]: {
-						[entityFieldAddressKey(EntityType.EnsRecord_Timestamp, [], 'value')]: '0xe30101701220content',
-					},
-				}],
+					[entityFieldAddressKey(EntityType.EnsRecord, [], 'recordKey')]: 'text:url',
+					[entityFieldAddressKey(EntityType.EnsRecord, [], 'recordKind')]: 'text',
+					[entityFieldAddressKey(EntityType.EnsRecord, [], '$$timestamps')]: [{
+						[EntityMetaKey.Selector]: {
+							$record: {
+								$name: {
+									name: 'vitalik.eth',
+								},
+								recordKey: 'text:url',
+							},
+							timestampMs: 1_800_000_000_000,
+							source: Source.Voltaire_JsonRpc,
+						},
+						[EntityMetaKey.Fields]: {
+							[entityFieldAddressKey(EntityType.EnsRecord_Timestamp, [], 'value')]: 'https://vitalik.ca',
+						},
+					}],
+				},
 			},
-		}])
-		expect(ensNameResolver.projections.$$records.resolveCount(snapshot)).toBe(1)
+			{
+				[EntityMetaKey.Selector]: {
+					$name: {
+						name: 'vitalik.eth',
+					},
+					recordKey: 'coin:60',
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.EnsRecord, [], '$name')]: {
+						[EntityMetaKey.Selector]: {
+							name: 'vitalik.eth',
+						},
+					},
+					[entityFieldAddressKey(EntityType.EnsRecord, [], 'recordKey')]: 'coin:60',
+					[entityFieldAddressKey(EntityType.EnsRecord, [], 'recordKind')]: 'coin',
+					[entityFieldAddressKey(EntityType.EnsRecord, [], 'coinType')]: 60,
+					[entityFieldAddressKey(EntityType.EnsRecord, [], '$$timestamps')]: [{
+						[EntityMetaKey.Selector]: {
+							$record: {
+								$name: {
+									name: 'vitalik.eth',
+								},
+								recordKey: 'coin:60',
+							},
+							timestampMs: 1_800_000_000_000,
+							source: Source.Voltaire_JsonRpc,
+						},
+						[EntityMetaKey.Fields]: {
+							[entityFieldAddressKey(EntityType.EnsRecord_Timestamp, [], 'value')]: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
+						},
+					}],
+				},
+			},
+			{
+				[EntityMetaKey.Selector]: {
+					$name: {
+						name: 'vitalik.eth',
+					},
+					recordKey: 'contenthash',
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.EnsRecord, [], '$name')]: {
+						[EntityMetaKey.Selector]: {
+							name: 'vitalik.eth',
+						},
+					},
+					[entityFieldAddressKey(EntityType.EnsRecord, [], 'recordKey')]: 'contenthash',
+					[entityFieldAddressKey(EntityType.EnsRecord, [], 'recordKind')]: 'contenthash',
+					[entityFieldAddressKey(EntityType.EnsRecord, [], '$$timestamps')]: [{
+						[EntityMetaKey.Selector]: {
+							$record: {
+								$name: {
+									name: 'vitalik.eth',
+								},
+								recordKey: 'contenthash',
+							},
+							timestampMs: 1_800_000_000_000,
+							source: Source.Voltaire_JsonRpc,
+						},
+						[EntityMetaKey.Fields]: {
+							[entityFieldAddressKey(EntityType.EnsRecord_Timestamp, [], 'value')]: '0xe30101701220content',
+						},
+					}],
+				},
+			},
+		])
+		expect(ensNameResolver.projections.$$records.resolveCount(snapshot)).toBe(3)
 	})
 
-	it('omits EnsName.$$records contenthash when the live hash is zero or empty', async () => {
+	it('omits EnsName.$$records rows when live text, coin, or contenthash values are zero or empty', async () => {
 		if (ensNameResolver == null)
 			throw new Error('Voltaire EnsName resolver is not registered')
 
 		resolveEnsForward.mockResolvedValueOnce({
 			contentHash: null,
+			textRecords: {
+				url: '',
+			},
+			coinAddresses: {
+				'60': null,
+			},
 		})
 		const emptySnapshot = await ensNameResolver.resolve.NormalizedName.resolve({
 			name: 'vitalik.eth',
@@ -1204,6 +1283,12 @@ describe('Voltaire ENS contenthash records', () => {
 
 		resolveEnsForward.mockResolvedValueOnce({
 			contentHash: '0x',
+			textRecords: {
+				url: '0x',
+			},
+			coinAddresses: {
+				'60': '0x',
+			},
 		})
 		const zeroSnapshot = await ensNameResolver.resolve.NormalizedName.resolve({
 			name: 'vitalik.eth',
@@ -1223,6 +1308,11 @@ describe('Voltaire ENS contenthash records', () => {
 				name: 'vitalik.eth',
 			},
 			recordKey: 'contenthash',
+		})
+		expect(resolveEnsForward).toHaveBeenCalledWith({
+			name: 'vitalik.eth',
+			textKeys: [],
+			coinTypeIds: [],
 		})
 		expect(contentHashRecord).toEqual({
 			$name: {
@@ -1259,14 +1349,117 @@ describe('Voltaire ENS contenthash records', () => {
 			recordKey: 'contenthash',
 		})
 		expect(emptyRecord.$$timestamps[0][EntityMetaKey.Fields]).toEqual({})
+	})
 
-		await expect(
-			ensRecordResolver.resolve.NameRecordKey.resolve({
-				$name: {
+	it('resolves EnsRecord text and coin keys from live JSON-RPC and omits timestamp value when empty', async () => {
+		if (ensRecordResolver == null)
+			throw new Error('Voltaire EnsRecord resolver is not registered')
+
+		resolveEnsForward.mockResolvedValueOnce({
+			textRecords: {
+				url: 'https://vitalik.ca',
+			},
+		})
+		const textRecord = await ensRecordResolver.resolve.NameRecordKey.resolve({
+			$name: {
+				name: 'vitalik.eth',
+			},
+			recordKey: 'text:url',
+		})
+		expect(resolveEnsForward).toHaveBeenCalledWith({
+			name: 'vitalik.eth',
+			textKeys: ['url'],
+			coinTypeIds: [],
+		})
+		expect(textRecord).toEqual({
+			$name: {
+				[EntityMetaKey.Selector]: {
 					name: 'vitalik.eth',
 				},
-				recordKey: 'text:url',
-			})
-		).rejects.toThrow('Voltaire_JsonRpc: ENS recordKey is not contenthash')
+			},
+			recordKey: 'text:url',
+			recordKind: 'text',
+			$$timestamps: [{
+				[EntityMetaKey.Selector]: {
+					$record: {
+						$name: {
+							name: 'vitalik.eth',
+						},
+						recordKey: 'text:url',
+					},
+					timestampMs: 1_800_000_000_000,
+					source: Source.Voltaire_JsonRpc,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.EnsRecord_Timestamp, [], 'value')]: 'https://vitalik.ca',
+				},
+			}],
+		})
+
+		resolveEnsForward.mockResolvedValueOnce({
+			coinAddresses: {
+				'60': '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
+			},
+		})
+		const coinRecord = await ensRecordResolver.resolve.NameRecordKey.resolve({
+			$name: {
+				name: 'vitalik.eth',
+			},
+			recordKey: 'coin:60',
+		})
+		expect(resolveEnsForward).toHaveBeenCalledWith({
+			name: 'vitalik.eth',
+			textKeys: [],
+			coinTypeIds: [60],
+		})
+		expect(coinRecord).toEqual({
+			$name: {
+				[EntityMetaKey.Selector]: {
+					name: 'vitalik.eth',
+				},
+			},
+			recordKey: 'coin:60',
+			recordKind: 'coin',
+			coinType: 60,
+			$$timestamps: [{
+				[EntityMetaKey.Selector]: {
+					$record: {
+						$name: {
+							name: 'vitalik.eth',
+						},
+						recordKey: 'coin:60',
+					},
+					timestampMs: 1_800_000_000_000,
+					source: Source.Voltaire_JsonRpc,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.EnsRecord_Timestamp, [], 'value')]: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
+				},
+			}],
+		})
+		expect(ensRecordResolver.projections.coinType(coinRecord)).toBe(60)
+
+		resolveEnsForward.mockResolvedValueOnce({
+			textRecords: {},
+		})
+		const emptyTextRecord = await ensRecordResolver.resolve.NameRecordKey.resolve({
+			$name: {
+				name: 'vitalik.eth',
+			},
+			recordKey: 'text:url',
+		})
+		expect(emptyTextRecord.$$timestamps[0][EntityMetaKey.Fields]).toEqual({})
+
+		resolveEnsForward.mockResolvedValueOnce({
+			coinAddresses: {},
+		})
+		const emptyCoinRecord = await ensRecordResolver.resolve.NameRecordKey.resolve({
+			$name: {
+				name: 'vitalik.eth',
+			},
+			recordKey: 'coin:60',
+		})
+		expect(emptyCoinRecord.$$timestamps[0][EntityMetaKey.Fields]).toEqual({})
+		expect(ensRecordResolver.projections.coinType(emptyCoinRecord)).toBe(60)
 	})
 })
