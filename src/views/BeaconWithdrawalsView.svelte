@@ -76,7 +76,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{beaconWithdrawal.amountGwei != null ? beaconWithdrawal.amountGwei + ' gwei' : ''}
+				{beaconWithdrawal.amountGwei + ' gwei'}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

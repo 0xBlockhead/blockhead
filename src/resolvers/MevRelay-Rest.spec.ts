@@ -67,6 +67,11 @@ const context = {
 	publicEnv: {},
 }
 
+const relay = {
+	$network: network,
+	host: 'boost-relay.flashbots.net',
+}
+
 const payloadResolver = mevRelayRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.MevRelay_ProposerPayloadDelivered
 ))
@@ -127,9 +132,8 @@ describe('MevRelay REST resolvers', () => {
 	it('resolves a proposer payload by slot + block_hash filter', async () => {
 		getProposerPayloadDeliveredForRelayHost.mockResolvedValueOnce([bidTrace])
 
-		const snapshot = await payloadResolver.resolve.EvmNetworkRelayHostSlotBlockHash.resolve({
-			$network: network,
-			relayHost: 'boost-relay.flashbots.net',
+		const snapshot = await payloadResolver.resolve.RelaySlotBlockHash.resolve({
+			$relay: relay,
 			slot: 14917871,
 			blockHash: bidTrace.block_hash,
 		}, context)
@@ -139,10 +143,14 @@ describe('MevRelay REST resolvers', () => {
 			slot: 14917871,
 			block_hash: bidTrace.block_hash,
 		})
-		expect(snapshot).toMatchObject({
-			builderPubkey: bidTrace.builder_pubkey,
-			value: 5316647666874603n,
-			blockNumber: 25680883n,
+		expect(snapshot[EntityMetaKey.Selector]).toEqual({
+			$relay: relay,
+			slot: 14917871,
+			blockHash: bidTrace.block_hash,
+		})
+		expect(snapshot[EntityMetaKey.Fields]).toMatchObject({
+			[entityFieldAddressKey(EntityType.MevRelay_ProposerPayloadDelivered, [], 'value')]: 5316647666874603n,
+			[entityFieldAddressKey(EntityType.MevRelay_ProposerPayloadDelivered, [], 'blockNumber')]: 25680883n,
 		})
 		expect(payloadResolver.projections.$executionBlock(snapshot)).toEqual({
 			[EntityMetaKey.Selector]: {
@@ -167,9 +175,8 @@ describe('MevRelay REST resolvers', () => {
 			},
 		])
 
-		await expect(payloadResolver.resolve.EvmNetworkRelayHostSlotBlockHash.resolve({
-			$network: network,
-			relayHost: 'boost-relay.flashbots.net',
+		await expect(payloadResolver.resolve.RelaySlotBlockHash.resolve({
+			$relay: relay,
 			slot: 14917871,
 			blockHash: bidTrace.block_hash,
 		}, context)).rejects.toThrow('proposer payload selector is ambiguous')
@@ -178,31 +185,43 @@ describe('MevRelay REST resolvers', () => {
 	it('resolves one relay-received builder bid with native report facts', async () => {
 		getBuilderBlocksReceivedForRelayHost.mockResolvedValueOnce([builderTipBidTrace])
 
-		const snapshot = await receivedBidResolver.resolve.EvmNetworkRelayHostSlotBlockHashBuilderPubkey.resolve({
-			$network: network,
-			relayHost: 'boost-relay.flashbots.net',
+		const snapshot = await receivedBidResolver.resolve.RelaySlotBuilderBlockHashReceivedAtMs.resolve({
+			$relay: relay,
 			slot: 14917871,
+			$builder: {
+				$network: network,
+				builderPubkey: bidTrace.builder_pubkey,
+			},
 			blockHash: bidTrace.block_hash,
-			builderPubkey: bidTrace.builder_pubkey,
+			receivedAtMs: 1786068803855,
 		}, context)
 
 		expect(getBuilderBlocksReceivedForRelayHost).toHaveBeenCalledWith('boost-relay.flashbots.net', {
-			limit: 2,
+			limit: 50,
 			slot: 14917871,
 			block_hash: bidTrace.block_hash,
 			builder_pubkey: bidTrace.builder_pubkey,
 		})
+		expect(snapshot[EntityMetaKey.Selector]).toEqual({
+			$relay: relay,
+			slot: 14917871,
+			$builder: {
+				$network: network,
+				builderPubkey: bidTrace.builder_pubkey,
+			},
+			blockHash: bidTrace.block_hash,
+			receivedAtMs: 1786068803855,
+		})
 		expect(snapshot[EntityMetaKey.Fields]).toMatchObject({
 			[entityFieldAddressKey(EntityType.MevRelay_BuilderBlockReceived, [], 'valueWei')]: 5316647666874603n,
 			[entityFieldAddressKey(EntityType.MevRelay_BuilderBlockReceived, [], 'transactionCount')]: 483,
-			[entityFieldAddressKey(EntityType.MevRelay_BuilderBlockReceived, [], 'receivedAtMs')]: 1786068803855,
+			[entityFieldAddressKey(EntityType.MevRelay_BuilderBlockReceived, [], 'blockNumber')]: 25680883n,
 			[entityFieldAddressKey(EntityType.MevRelay_BuilderBlockReceived, [], 'optimisticSubmission')]: true,
 		})
 		expect(snapshot[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.MevRelay_BuilderBlockReceived, [], '$executionBlock')]).toBeUndefined()
-		expect(receivedBidResolver.projections.$executionBlock(snapshot)).toBeUndefined()
 	})
 
-	it('rejects a received-bid selector collision instead of choosing one relay receipt', async () => {
+	it('distinguishes received bids by receipt clock instead of collapsing them', async () => {
 		getBuilderBlocksReceivedForRelayHost.mockResolvedValueOnce([
 			builderTipBidTrace,
 			{
@@ -211,13 +230,26 @@ describe('MevRelay REST resolvers', () => {
 			},
 		])
 
-		await expect(receivedBidResolver.resolve.EvmNetworkRelayHostSlotBlockHashBuilderPubkey.resolve({
-			$network: network,
-			relayHost: 'boost-relay.flashbots.net',
+		const snapshot = await receivedBidResolver.resolve.RelaySlotBuilderBlockHashReceivedAtMs.resolve({
+			$relay: relay,
 			slot: 14917871,
+			$builder: {
+				$network: network,
+				builderPubkey: bidTrace.builder_pubkey,
+			},
 			blockHash: bidTrace.block_hash,
+			receivedAtMs: 1786068803856,
+		}, context)
+		expect(snapshot[EntityMetaKey.Selector].receivedAtMs).toBe(1786068803856)
+	})
+
+	it('omits received bids that have no receipt clock', async () => {
+		getBuilderBlocksReceivedForRelayHost.mockResolvedValue([bidTrace])
+		const builderBids = await builderReceivedBidsResolver.resolve.EvmNetworkBuilderPubkey.resolve({
+			$network: network,
 			builderPubkey: bidTrace.builder_pubkey,
-		}, context)).rejects.toThrow('received builder block selector is ambiguous without receipt time')
+		}, context)
+		expect(builderBids).toEqual([])
 	})
 
 	it('connects builder and network received-bid journeys to source-filtered relay reads', async () => {
@@ -247,9 +279,8 @@ describe('MevRelay REST resolvers', () => {
 			...bidTrace,
 			value: '-1',
 		}])
-		await expect(payloadResolver.resolve.EvmNetworkRelayHostSlotBlockHash.resolve({
-			$network: network,
-			relayHost: 'boost-relay.flashbots.net',
+		await expect(payloadResolver.resolve.RelaySlotBlockHash.resolve({
+			$relay: relay,
 			slot: 14917871,
 			blockHash: bidTrace.block_hash,
 		}, context)).rejects.toThrow('invalid BidTrace value')
@@ -258,9 +289,8 @@ describe('MevRelay REST resolvers', () => {
 			...bidTrace,
 			block_number: '-1',
 		}])
-		await expect(payloadResolver.resolve.EvmNetworkRelayHostSlotBlockHash.resolve({
-			$network: network,
-			relayHost: 'boost-relay.flashbots.net',
+		await expect(payloadResolver.resolve.RelaySlotBlockHash.resolve({
+			$relay: relay,
 			slot: 14917871,
 			blockHash: bidTrace.block_hash,
 		}, context)).rejects.toThrow('invalid BidTrace block number')
@@ -269,9 +299,8 @@ describe('MevRelay REST resolvers', () => {
 	it('fails with an explicit unsupported state when a relay has no matching payload', async () => {
 		getProposerPayloadDeliveredForRelayHost.mockResolvedValueOnce([])
 
-		await expect(payloadResolver.resolve.EvmNetworkRelayHostSlotBlockHash.resolve({
-			$network: network,
-			relayHost: 'boost-relay.flashbots.net',
+		await expect(payloadResolver.resolve.RelaySlotBlockHash.resolve({
+			$relay: relay,
 			slot: 14917871,
 			blockHash: bidTrace.block_hash,
 		}, context)).rejects.toThrow('proposer payload not found')
@@ -394,13 +423,14 @@ describe('MevRelay REST resolvers', () => {
 
 		expect(rows[0]).toMatchObject({
 			[EntityMetaKey.Selector]: {
-				$network: network,
-				relayHost: expect.any(String),
+				$relay: {
+					$network: network,
+					host: expect.any(String),
+				},
 				slot: 14_917_871,
 				blockHash: bidTrace.block_hash,
 			},
 			[EntityMetaKey.Fields]: {
-				[entityFieldAddressKey(EntityType.MevRelay_ProposerPayloadDelivered, [], 'builderPubkey')]: bidTrace.builder_pubkey,
 				[entityFieldAddressKey(EntityType.MevRelay_ProposerPayloadDelivered, [], 'value')]: 5_316_647_666_874_603n,
 				[entityFieldAddressKey(EntityType.MevRelay_ProposerPayloadDelivered, [], 'blockNumber')]: 25_680_883n,
 				[entityFieldAddressKey(EntityType.MevRelay_ProposerPayloadDelivered, [], '$builder')]: {

@@ -8456,34 +8456,6 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
-	'/(explore)/(networks)/network/[network]/mev/payload/[relayHost]/[slot]/[blockHash]': {
-		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/mev/payload/[relayHost=stringSegment]/[slot=nonNegativeInteger]/[blockHash=zeroExHex]',
-		mappings: [
-			{
-				id: 'MevRelay_ProposerPayloadDelivered.EvmNetworkRelayHostSlotBlockHash',
-				projectionEntity: 'Network',
-				probeAtomPrefixes: ['/network/[network]/mev/payload/[relayHost]/[slot]/[blockHash]:MevRelay_ProposerPayloadDelivered.EvmNetworkRelayHostSlotBlockHash'],
-				probeCases: [[[0, '1', ['relayHost', 'slot', 'blockHash', 'network']]]],
-				projectionPath: [
-					'Evm',
-				],
-			},
-		],
-	},
-	'/(explore)/(networks)/network/[network]/mev/payload/received-bid/[relayHost]/[slot]/[blockHash]/[builderPubkey]': {
-		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/mev/payload/received-bid/[relayHost=stringSegment]/[slot=nonNegativeInteger]/[blockHash=zeroExHex]/[builderPubkey=stringSegment]',
-		mappings: [
-			{
-				id: 'MevRelay_BuilderBlockReceived.EvmNetworkRelayHostSlotBlockHashBuilderPubkey',
-				projectionEntity: 'Network',
-				probeAtomPrefixes: ['/network/[network]/mev/payload/received-bid/[relayHost]/[slot]/[blockHash]/[builderPubkey]:MevRelay_BuilderBlockReceived.EvmNetworkRelayHostSlotBlockHashBuilderPubkey'],
-				probeCases: [[[0, '1', ['relayHost', 'slot', 'blockHash', 'builderPubkey', 'network']]]],
-				projectionPath: [
-					'Evm',
-				],
-			},
-		],
-	},
 	'/(explore)/(networks)/network/[network]/mev/payloads': {
 		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/mev/payloads',
 		mappings: [
@@ -8522,6 +8494,34 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				projectionEntity: 'Network',
 				probeAtomPrefixes: ['/network/[network]/mev/relay/[host]:MevRelay.EvmNetworkHost'],
 				probeCases: [[[0, '1', ['host', 'network']]]],
+				projectionPath: [
+					'Evm',
+				],
+			},
+		],
+	},
+	'/(explore)/(networks)/network/[network]/mev/relay/[host]/payload/[slot]/[blockHash]': {
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/mev/relay/[host=stringSegment]/(mevRelay)/payload/[slot=nonNegativeInteger]/[blockHash=zeroExHex]',
+		mappings: [
+			{
+				id: 'MevRelay_ProposerPayloadDelivered.RelaySlotBlockHash',
+				projectionEntity: 'Network',
+				probeAtomPrefixes: ['/network/[network]/mev/relay/[host]/payload/[slot]/[blockHash]:MevRelay_ProposerPayloadDelivered.RelaySlotBlockHash'],
+				probeCases: [[[0, '1', ['slot', 'blockHash', 'host', 'network']]]],
+				projectionPath: [
+					'Evm',
+				],
+			},
+		],
+	},
+	'/(explore)/(networks)/network/[network]/mev/relay/[host]/received-bid/[slot]/[blockHash]/[builderPubkey]/[receivedAtMs]': {
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/mev/relay/[host=stringSegment]/(mevRelay)/received-bid/[slot=nonNegativeInteger]/[blockHash=zeroExHex]/[builderPubkey=stringSegment]/[receivedAtMs=nonNegativeInteger]',
+		mappings: [
+			{
+				id: 'MevRelay_BuilderBlockReceived.RelaySlotBuilderBlockHashReceivedAtMs',
+				projectionEntity: 'Network',
+				probeAtomPrefixes: ['/network/[network]/mev/relay/[host]/received-bid/[slot]/[blockHash]/[builderPubkey]/[receivedAtMs]:MevRelay_BuilderBlockReceived.RelaySlotBuilderBlockHashReceivedAtMs'],
+				probeCases: [[[0, '1', ['slot', 'blockHash', 'receivedAtMs', 'builderPubkey', 'host', 'network']]]],
 				projectionPath: [
 					'Evm',
 				],

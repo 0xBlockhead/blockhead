@@ -13,9 +13,14 @@
 	// State
 	let {
 		data,
+		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.MevRelay_ProposerPayloadDelivered, data.selector, {
+	const pageSelection = $derived(select(EntityType.MevRelay_ProposerPayloadDelivered, {
+		$relay: data.selector,
+		slot: Number(params.slot),
+		blockHash: params.blockHash,
+	}, {
 		fields: {
 			value: true,
 		},
@@ -29,7 +34,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? 'Slot ' + String(pageSelection.entitySelector.slot ?? '') : ['Slot ' + String(pageSelection.entitySelector.slot), (pageSelection.entity.value != null ? String(pageSelection.entity.value) + ' wei' : '')].filter(Boolean).join(' ') || 'MEV relay proposer payload delivered')} • MEV relay proposer payload delivered • Blockhead</title>
+	<title>{data.title ?? (pageSelection.entity == null ? 'Slot ' + String(pageSelection.entitySelector.slot ?? '') : ['Slot ' + String(pageSelection.entitySelector.slot), String(pageSelection.entity.value) + ' wei'].filter(Boolean).join(' ') || 'MEV relay proposer payload delivered')} • MEV relay proposer payload delivered • Blockhead</title>
 </svelte:head>
 
 

@@ -12,13 +12,10 @@ export default entity({
 		singular: 'MEV relay builder block received',
 		plural: 'MEV relay builder blocks received',
 	},
+	description: 'A relay-scoped report that a builder block candidate was received. It is not a consensus bid and not a canonical execution block.',
 })({
-	$network: {
-		entityType: EntityType.Network,
-		cardinality: EntityFieldCardinality.One,
-	},
-	relayHost: {
-		primitiveType: type('string'),
+	$relay: {
+		entityType: EntityType.MevRelay,
 		cardinality: EntityFieldCardinality.One,
 	},
 	slot: {
@@ -29,53 +26,45 @@ export default entity({
 		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.One,
 	},
-	builderPubkey: {
-		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.One,
-	},
 	$builder: {
 		entityType: EntityType.MevBuilder,
 		cardinality: EntityFieldCardinality.One,
 	},
+	receivedAtMs: {
+		primitiveType: type('number.integer >= 0'),
+		cardinality: EntityFieldCardinality.One,
+	},
 	parentHash: {
 		primitiveType: ZeroExHex,
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		cardinality: EntityFieldCardinality.One,
 	},
 	proposerPubkey: {
 		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		cardinality: EntityFieldCardinality.One,
 	},
 	proposerFeeRecipient: {
 		primitiveType: EvmAddress,
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		cardinality: EntityFieldCardinality.One,
 	},
 	valueWei: {
 		primitiveType: type('bigint'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		cardinality: EntityFieldCardinality.One,
 	},
 	gasLimit: {
 		primitiveType: type('bigint'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		cardinality: EntityFieldCardinality.One,
 	},
 	gasUsed: {
 		primitiveType: type('bigint'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		cardinality: EntityFieldCardinality.One,
 	},
 	transactionCount: {
 		primitiveType: type('number.integer >= 0'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		cardinality: EntityFieldCardinality.One,
 	},
 	blockNumber: {
 		primitiveType: type('bigint'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	$executionBlock: {
-		entityType: EntityType.EvmBlock,
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	receivedAtMs: {
-		primitiveType: type('number.integer >= 0'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		cardinality: EntityFieldCardinality.One,
 	},
 	optimisticSubmission: {
 		primitiveType: type('boolean'),
@@ -83,12 +72,12 @@ export default entity({
 	},
 })({
 	selectors: {
-		EvmNetworkRelayHostSlotBlockHashBuilderPubkey: [
-			'$network',
-			'relayHost',
+		RelaySlotBuilderBlockHashReceivedAtMs: [
+			'$relay',
 			'slot',
+			'$builder',
 			'blockHash',
-			'builderPubkey',
+			'receivedAtMs',
 		],
 	},
 })

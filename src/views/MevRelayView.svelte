@@ -31,6 +31,8 @@
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
+	import MevRelay_BuilderBlockReceivedsView from '$/views/MevRelay_BuilderBlockReceivedsView.svelte'
+	import MevRelay_ProposerPayloadDeliveredsView from '$/views/MevRelay_ProposerPayloadDeliveredsView.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
 </script>
 
@@ -143,6 +145,36 @@
 							/>
 						{/snippet}
 					</EntitiesList>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+		{@const receivedBidsResource = selection.$$receivedBids}
+		<ResourceBoundary
+			resource={receivedBidsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<MevRelay_BuilderBlockReceivedsView
+						selection={receivedBidsResource}
+						countResource={receivedBidsResource.count}
+						title='Received bids'
+						id='received-bids'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+		{@const deliveredPayloadsResource = selection.$$deliveredPayloads}
+		<ResourceBoundary
+			resource={deliveredPayloadsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<MevRelay_ProposerPayloadDeliveredsView
+						selection={deliveredPayloadsResource}
+						countResource={deliveredPayloadsResource.count}
+						title='Delivered payloads'
+						id='delivered-payloads'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

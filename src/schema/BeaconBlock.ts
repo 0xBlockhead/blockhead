@@ -55,6 +55,41 @@ export default entity({
 		entityType: EntityType.EvmBlock,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
+	rewardTotalGwei: {
+		primitiveType: type('bigint'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Beacon_Rest,
+		],
+	},
+	rewardAttestationsGwei: {
+		primitiveType: type('bigint'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Beacon_Rest,
+		],
+	},
+	rewardSyncAggregateGwei: {
+		primitiveType: type('bigint'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Beacon_Rest,
+		],
+	},
+	rewardProposerSlashingsGwei: {
+		primitiveType: type('bigint'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Beacon_Rest,
+		],
+	},
+	rewardAttesterSlashingsGwei: {
+		primitiveType: type('bigint'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Beacon_Rest,
+		],
+	},
 	$executionPayloadBid: {
 		entityType: EntityType.BeaconExecutionPayloadBid,
 		cardinality: EntityFieldCardinality.ZeroOrOne,

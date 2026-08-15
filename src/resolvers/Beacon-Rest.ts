@@ -244,34 +244,36 @@ const beaconAttestationReference = (
 const beaconWithdrawalReference = (
 	$block: EntitySelector<typeof schema, EntityType.BeaconBlock>,
 	withdrawal: BeaconBlockDutySummary['withdrawals'][number]
-) => ({
-	[EntityMetaKey.Selector]: {
-		$block,
-		withdrawalIndex: withdrawal.withdrawalIndex,
-	},
-	[EntityMetaKey.Fields]: {
-		[entityFieldAddressKey(EntityType.BeaconWithdrawal, [], 'indexInBlock')]: withdrawal.indexInBlock,
-		...(withdrawal.validatorIndex != null && {
-			[entityFieldAddressKey(EntityType.BeaconWithdrawal, [], 'validatorIndex')]: withdrawal.validatorIndex,
+) => {
+	if (
+		withdrawal.validatorIndex == null
+		|| withdrawal.address == null
+		|| withdrawal.amountGwei == null
+	)
+		throw new Error('Beacon_Rest: withdrawal is missing required Capella fields')
+
+	return {
+		[EntityMetaKey.Selector]: {
+			$block,
+			withdrawalIndex: withdrawal.withdrawalIndex,
+		},
+		[EntityMetaKey.Fields]: {
+			[entityFieldAddressKey(EntityType.BeaconWithdrawal, [], 'indexInBlock')]: withdrawal.indexInBlock,
 			[entityFieldAddressKey(EntityType.BeaconWithdrawal, [], '$validator')]: {
 				[EntityMetaKey.Selector]: {
 					$network: $block.$network,
 					indexInNetwork: withdrawal.validatorIndex,
 				},
 			},
-		}),
-		...(withdrawal.address != null && {
 			[entityFieldAddressKey(EntityType.BeaconWithdrawal, [], '$account')]: {
 				[EntityMetaKey.Selector]: {
 					address: with0xHex(withdrawal.address),
 				},
 			},
-		}),
-		...(withdrawal.amountGwei != null && {
 			[entityFieldAddressKey(EntityType.BeaconWithdrawal, [], 'amountGwei')]: withdrawal.amountGwei,
-		}),
-	},
-})
+		},
+	}
+}
 
 const beaconDepositReference = (
 	$block: EntitySelector<typeof schema, EntityType.BeaconBlock>,
@@ -394,31 +396,24 @@ const observationFields = (
 	)
 )
 
-const beaconSlotReferenceFromHeader = (
+const beaconSlotReference = (
 	$network: EntitySelector<typeof schema, EntityType.Network>,
-	header: Awaited<ReturnType<typeof import('$/sources/Beacon/Rest/queries.ts').getHeader>>
+	slot: number
 ) => {
-	const slot = safeIntegerFromDecimal(header.header.message.slot, 'slot')
+	const epoch = Math.floor(slot / slotsPerEpoch)
 	return {
 		[EntityMetaKey.Selector]: {
 			$network,
 			slot,
 		},
 		[EntityMetaKey.Fields]: {
-			[entityFieldAddressKey(EntityType.BeaconSlot, [], 'epoch')]: Math.floor(slot / slotsPerEpoch),
+			[entityFieldAddressKey(EntityType.BeaconSlot, [], 'epoch')]: epoch,
 			[entityFieldAddressKey(EntityType.BeaconSlot, [], '$epoch')]: {
 				[EntityMetaKey.Selector]: {
 					$network,
-					epoch: Math.floor(slot / slotsPerEpoch),
+					epoch,
 				},
 			},
-			[entityFieldAddressKey(EntityType.BeaconSlot, [], 'bodyRoot')]: with0xHex(header.header.message.body_root),
-			[entityFieldAddressKey(EntityType.BeaconSlot, [], 'canonical')]: header.canonical,
-			[entityFieldAddressKey(EntityType.BeaconSlot, [], 'parentRoot')]: with0xHex(header.header.message.parent_root),
-			[entityFieldAddressKey(EntityType.BeaconSlot, [], 'proposerIndex')]: safeIntegerFromDecimal(header.header.message.proposer_index, 'proposer index'),
-			[entityFieldAddressKey(EntityType.BeaconSlot, [], 'root')]: with0xHex(header.root),
-			[entityFieldAddressKey(EntityType.BeaconSlot, [], 'signature')]: with0xHex(header.header.signature),
-			[entityFieldAddressKey(EntityType.BeaconSlot, [], 'stateRoot')]: with0xHex(header.header.message.state_root),
 		},
 	}
 }
@@ -482,37 +477,25 @@ const beaconRecentEpochReferences = (
 		))
 )
 
-const beaconRecentSlotReferencesFromHead = async (
+const beaconRecentSlotReferencesFromHead = (
 	$network: EntitySelector<typeof schema, EntityType.Network>,
-	chainId: number,
-	headHeader: Awaited<ReturnType<typeof import('$/sources/Beacon/Rest/queries.ts').getHeader>>,
+	headSlot: number,
 	limit: number,
 	startSlot?: number
 ) => {
-	const { getHeader } = await import('$/sources/Beacon/Rest/queries.ts')
-	const headSlot = safeIntegerFromDecimal(
-		headHeader.header.message.slot,
-		'head slot'
-	)
 	const fromSlot = startSlot ?? headSlot
 	if (fromSlot > headSlot)
 		throw new Error('Beacon_Rest: slots continuation exceeds head')
-	return Promise.all(
-		Array.from(
-			{ length: limit },
-			(_, index) => fromSlot - index
-		)
-			.flatMap((slot) => (
-				slot < 0 ?
-					[]
-				:
-					[(slot === headSlot ?
-						Promise.resolve(headHeader)
-					:
-						getHeader(chainId, slot)
-					).then((header) => beaconSlotReferenceFromHeader($network, header))]
-			))
+	return Array.from(
+		{ length: limit },
+		(_, index) => fromSlot - index
 	)
+		.flatMap((slot) => (
+			slot < 0 ?
+				[]
+			:
+				[beaconSlotReference($network, slot)]
+		))
 }
 
 const beaconFinalityTimestampReference = (
@@ -949,6 +932,31 @@ export default {
 		}),
 
 		defineResolver({
+			entityType: EntityType.BeaconBlock,
+			resolve: {
+				NetworkRoot: {
+					appliesTo: eip155NetworkApplicability,
+					resolve: async ({
+						$network,
+						root,
+					}) => {
+						const { getBlockRewards } = await import('$/sources/Beacon/Rest/queries.ts')
+						return getBlockRewards(
+							eip155ChainId($network),
+							root
+						)
+					},
+				},
+			},
+		})({
+			rewardTotalGwei: (rewards) => rewards.totalGwei,
+			rewardAttestationsGwei: (rewards) => rewards.attestationsGwei,
+			rewardSyncAggregateGwei: (rewards) => rewards.syncAggregateGwei,
+			rewardProposerSlashingsGwei: (rewards) => rewards.proposerSlashingsGwei,
+			rewardAttesterSlashingsGwei: (rewards) => rewards.attesterSlashingsGwei,
+		}),
+
+		defineResolver({
 			entityType: EntityType.BeaconExecutionPayloadBid,
 			resolve: {
 				BeaconBlock: {
@@ -1320,66 +1328,6 @@ export default {
 			}),
 
 		defineResolver({
-			entityType: EntityType.BeaconSlot,
-			resolve: {
-				EvmNetworkSlot: {
-					appliesTo: eip155NetworkApplicability,
-					resolve: async ({ $network, slot }) => {
-						const { getHeader } = await import('$/sources/Beacon/Rest/queries.ts')
-						const header = await getHeader(
-							eip155ChainId($network),
-							slot
-						)
-						return {
-							bodyRoot: with0xHex(header.header.message.body_root),
-							canonical: header.canonical,
-							parentRoot: with0xHex(header.header.message.parent_root),
-							proposerIndex: safeIntegerFromDecimal(
-								header.header.message.proposer_index,
-								'proposer index'
-							),
-							root: with0xHex(header.root),
-							signature: with0xHex(header.header.signature),
-							stateRoot: with0xHex(header.header.message.state_root),
-						}
-					},
-				},
-			},
-		})({
-				bodyRoot: (slot) => slot.bodyRoot,
-				canonical: (slot) => slot.canonical,
-				parentRoot: (slot) => slot.parentRoot,
-				proposerIndex: (slot) => slot.proposerIndex,
-				root: (slot) => slot.root,
-				signature: (slot) => slot.signature,
-				stateRoot: (slot) => slot.stateRoot,
-			}),
-
-		defineResolver({
-			entityType: EntityType.BeaconSlot,
-			resolve: {
-				EvmNetworkSlot: {
-					appliesTo: eip155NetworkApplicability,
-					resolve: async ({ $network, slot }) => {
-						const { getBlockRewards } = await import('$/sources/Beacon/Rest/queries.ts')
-						return getBlockRewards(
-							eip155ChainId($network),
-							slot
-						)
-					},
-				},
-			},
-		})({
-				rewardTotalGwei: (rewards) => rewards.totalGwei,
-				rewardAttestationsGwei: (rewards) => rewards.attestationsGwei,
-				rewardSyncAggregateGwei: (rewards) => rewards.syncAggregateGwei,
-				rewardProposerSlashingsGwei: (rewards) => rewards.proposerSlashingsGwei,
-				rewardAttesterSlashingsGwei: (rewards) => rewards.attesterSlashingsGwei,
-				rewardExecutionOptimistic: (rewards) => rewards.executionOptimistic,
-				rewardFinalized: (rewards) => rewards.finalized,
-			}),
-
-		defineResolver({
 			entityType: EntityType.BeaconValidator,
 			resolve: {
 				NetworkIndexInNetwork: {
@@ -1662,32 +1610,32 @@ export default {
 							)
 						).withdrawals.find((candidate) => candidate.withdrawalIndex === withdrawalIndex)
 						if (withdrawal == null) throw new Error('Beacon_Rest: withdrawal not found')
+						if (
+							withdrawal.validatorIndex == null
+							|| withdrawal.address == null
+							|| withdrawal.amountGwei == null
+						)
+							throw new Error('Beacon_Rest: withdrawal is missing required Capella fields')
 						return {
 							indexInBlock: withdrawal.indexInBlock,
-							...(withdrawal.validatorIndex != null && {
-								validatorIndex: withdrawal.validatorIndex,
-								$validator: {
-									[EntityMetaKey.Selector]: {
-										$network: $block.$network,
-										indexInNetwork: withdrawal.validatorIndex,
-									},
+							$validator: {
+								[EntityMetaKey.Selector]: {
+									$network: $block.$network,
+									indexInNetwork: withdrawal.validatorIndex,
 								},
-							}),
-							...(withdrawal.address != null && {
-								$account: {
-									[EntityMetaKey.Selector]: {
-										address: with0xHex(withdrawal.address),
-									},
+							},
+							$account: {
+								[EntityMetaKey.Selector]: {
+									address: with0xHex(withdrawal.address),
 								},
-							}),
-							...(withdrawal.amountGwei != null && { amountGwei: withdrawal.amountGwei }),
+							},
+							amountGwei: withdrawal.amountGwei,
 						}
 					},
 				},
 			},
 		})({
 				indexInBlock: (withdrawal) => withdrawal.indexInBlock,
-				validatorIndex: (withdrawal) => withdrawal.validatorIndex,
 				$validator: (withdrawal) => withdrawal.$validator,
 				$account: (withdrawal) => withdrawal.$account,
 				amountGwei: (withdrawal) => withdrawal.amountGwei,
@@ -1725,55 +1673,17 @@ export default {
 				EvmNetworkEpoch: {
 					appliesTo: eip155NetworkApplicability,
 					resolve: async ({ $network, epoch }, context) => {
-						const {
-							getBlockRewards,
-							getHeadersAtSlot,
-							getProposerDuties,
-						} = await import('$/sources/Beacon/Rest/queries.ts')
-						const chainId = eip155ChainId($network)
-						const duties = await getProposerDuties(chainId, epoch)
+						const { getProposerDuties } = await import('$/sources/Beacon/Rest/queries.ts')
+						const duties = await getProposerDuties(eip155ChainId($network), epoch)
 						if (duties.some((duty) => (
 							Number(duty.slot) < epoch * slotsPerEpoch
 							|| Number(duty.slot) >= (epoch + 1) * slotsPerEpoch
 						)))
 							throw new Error(`Beacon_Rest: proposer duty outside epoch ${String(epoch)}`)
 						return {
-							slots: await Promise.all(
-								duties
-									.slice(0, Math.min(resolverContextRowLimit(context), slotsPerEpoch))
-									.map(async (duty) => {
-										const slot = Number(duty.slot)
-										const headers = await getHeadersAtSlot(chainId, slot)
-										if (headers.length > 1)
-											throw new Error(`Beacon_Rest: multiple canonical headers returned for slot ${String(slot)}`)
-										if (headers.length === 0)
-											return {
-												[EntityMetaKey.Selector]: {
-													$network,
-													slot,
-												},
-												[EntityMetaKey.Fields]: {
-													[entityFieldAddressKey(EntityType.BeaconSlot, [], 'epoch')]: epoch,
-													[entityFieldAddressKey(EntityType.BeaconSlot, [], 'proposerIndex')]: Number(duty.validator_index),
-												},
-											}
-										const rewards = await getBlockRewards(chainId, slot)
-										const slotReference = beaconSlotReferenceFromHeader($network, headers[0])
-										return {
-											...slotReference,
-											[EntityMetaKey.Fields]: {
-												...slotReference[EntityMetaKey.Fields],
-												[entityFieldAddressKey(EntityType.BeaconSlot, [], 'rewardTotalGwei')]: rewards.totalGwei,
-												[entityFieldAddressKey(EntityType.BeaconSlot, [], 'rewardAttestationsGwei')]: rewards.attestationsGwei,
-												[entityFieldAddressKey(EntityType.BeaconSlot, [], 'rewardSyncAggregateGwei')]: rewards.syncAggregateGwei,
-												[entityFieldAddressKey(EntityType.BeaconSlot, [], 'rewardProposerSlashingsGwei')]: rewards.proposerSlashingsGwei,
-												[entityFieldAddressKey(EntityType.BeaconSlot, [], 'rewardAttesterSlashingsGwei')]: rewards.attesterSlashingsGwei,
-												[entityFieldAddressKey(EntityType.BeaconSlot, [], 'rewardExecutionOptimistic')]: rewards.executionOptimistic,
-												[entityFieldAddressKey(EntityType.BeaconSlot, [], 'rewardFinalized')]: rewards.finalized,
-											},
-										}
-									})
-							),
+							slots: duties
+								.slice(0, Math.min(resolverContextRowLimit(context), slotsPerEpoch))
+								.map((duty) => beaconSlotReference($network, Number(duty.slot))),
 							slotCount: duties.length,
 						}
 					},
@@ -1860,10 +1770,9 @@ export default {
 							slots: startSlot < 0 ?
 								[]
 							:
-								await beaconRecentSlotReferencesFromHead(
+								beaconRecentSlotReferencesFromHead(
 									{ caip2 },
-									chainId,
-									headHeader,
+									headSlot,
 									resolverContextRowLimit(context),
 									startSlot
 								),
@@ -1929,10 +1838,9 @@ export default {
 									lastHeadSlot !== headSlot
 									|| lastHeadRoot !== headRoot
 								) {
-									const recentSlots = await beaconRecentSlotReferencesFromHead(
+									const recentSlots = beaconRecentSlotReferencesFromHead(
 										parentEntitySelector,
-										chainId,
-										headHeader,
+										headSlot,
 										limit
 									)
 									if (signal.aborted)

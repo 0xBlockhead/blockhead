@@ -29,88 +29,12 @@ export default entity({
 		entityType: EntityType.BeaconEpoch,
 		cardinality: EntityFieldCardinality.One,
 	},
-	proposerIndex: {
-		primitiveType: type('number'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	root: {
-		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	parentRoot: {
-		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	stateRoot: {
-		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	bodyRoot: {
-		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	canonical: {
-		primitiveType: type('boolean'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	signature: {
-		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	rewardTotalGwei: {
-		primitiveType: type('bigint'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Beacon_Rest,
-		],
-	},
-	rewardAttestationsGwei: {
-		primitiveType: type('bigint'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Beacon_Rest,
-		],
-	},
-	rewardSyncAggregateGwei: {
-		primitiveType: type('bigint'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Beacon_Rest,
-		],
-	},
-	rewardProposerSlashingsGwei: {
-		primitiveType: type('bigint'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Beacon_Rest,
-		],
-	},
-	rewardAttesterSlashingsGwei: {
-		primitiveType: type('bigint'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Beacon_Rest,
-		],
-	},
-	rewardExecutionOptimistic: {
-		primitiveType: type('boolean'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Beacon_Rest,
-		],
-	},
-	rewardFinalized: {
-		primitiveType: type('boolean'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Beacon_Rest,
-		],
-	},
 	$$blocks: {
 		entityType: EntityType.BeaconBlock,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
 			Source.Beacon_Rest,
+			Source.BeaconchaIn_Rest,
 		],
 	},
 	$$beaconCommittees: {

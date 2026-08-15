@@ -87,14 +87,11 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={beaconWithdrawal}>
 			{#snippet children(entity)}
-				{@const amountGwei = entity.amountGwei}
-				{#if amountGwei != null}
-					<NumberValue
-						value={amountGwei}
-					/>
+				<NumberValue
+					value={entity.amountGwei}
+				/>
 
-					<span> gwei</span>
-				{/if}
+				<span> gwei</span>
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -140,90 +137,59 @@
 				</dd>
 			</div>
 
-			<ResourceBoundary
-				resource={
-					viewSelection({
-						fields: {
-							validatorIndex: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const validatorIndex = entity.validatorIndex}
-					{#if validatorIndex != null}
-						<div>
-							<dt>Validator index</dt>
-							<dd>
-								<NumberValue
-									value={validatorIndex}
-								/>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+			<div>
+				<dt>Amount</dt>
+				<dd>
+					<ResourceBoundary
+						resource={beaconWithdrawal}
+					>
+						{#snippet children(entity)}
+							<NumberValue
+								value={entity.amountGwei}
+							/>
 
-			<ResourceBoundary
-				resource={beaconWithdrawal}
-			>
-				{#snippet children(entity)}
-					{@const amountGwei = entity.amountGwei}
-					{#if amountGwei != null}
-						<div>
-							<dt>Amount</dt>
-							<dd>
-								<NumberValue
-									value={amountGwei}
-								/>
-
-								<span> gwei</span>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+							<span> gwei</span>
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 		</dl>
 
 		<dl data-column-item="center">
-			<ResourceBoundary
-				resource={selection.$validator}
-			>
-				{#snippet children(beaconValidator)}
-					{#if beaconValidator != null}
-						{@const beaconValidatorInitial = untrack(() => beaconValidator)}
-						<div>
-							<dt>Validator</dt>
-							<dd>
-								<BeaconValidatorView
-									selection={select(EntityType.BeaconValidator, (beaconValidator ?? beaconValidatorInitial)[EntityMetaKey.Selector])}
-									prefetched={beaconValidator ?? beaconValidatorInitial}
-									layout={EntityLayout.Value}
-								/>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+			<div>
+				<dt>Validator</dt>
+				<dd>
+					<ResourceBoundary
+						resource={selection.$validator}
+					>
+						{#snippet children(beaconValidator)}
+							{@const beaconValidatorInitial = untrack(() => beaconValidator)}
+							<BeaconValidatorView
+								selection={select(EntityType.BeaconValidator, (beaconValidator ?? beaconValidatorInitial)[EntityMetaKey.Selector])}
+								prefetched={beaconValidator ?? beaconValidatorInitial}
+								layout={EntityLayout.Value}
+							/>
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
-			<ResourceBoundary
-				resource={selection.$account}
-			>
-				{#snippet children(evmAccount)}
-					{#if evmAccount != null}
-						{@const evmAccountInitial = untrack(() => evmAccount)}
-						<div>
-							<dt>Account</dt>
-							<dd>
-								<EvmAccountView
-									selection={select(EntityType.EvmAccount, (evmAccount ?? evmAccountInitial)[EntityMetaKey.Selector])}
-									layout={EntityLayout.Value}
-								/>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+			<div>
+				<dt>Account</dt>
+				<dd>
+					<ResourceBoundary
+						resource={selection.$account}
+					>
+						{#snippet children(evmAccount)}
+							{@const evmAccountInitial = untrack(() => evmAccount)}
+							<EvmAccountView
+								selection={select(EntityType.EvmAccount, (evmAccount ?? evmAccountInitial)[EntityMetaKey.Selector])}
+								layout={EntityLayout.Value}
+							/>
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
 			<div>
 				<dt>Beacon block</dt>

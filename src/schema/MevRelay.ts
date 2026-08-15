@@ -33,6 +33,20 @@ export default entity({
 			Source.MevRelay_Rest,
 		],
 	},
+	$$deliveredPayloads: {
+		entityType: EntityType.MevRelay_ProposerPayloadDelivered,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.MevRelay_Rest,
+		],
+	},
+	$$receivedBids: {
+		entityType: EntityType.MevRelay_BuilderBlockReceived,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.MevRelay_Rest,
+		],
+	},
 })({
 	selectors: {
 		EvmNetworkHost: [

@@ -4,8 +4,6 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
-	import { untrack } from 'svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
@@ -25,13 +23,13 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.MevRelay_BuilderBlockReceived> = $props()
 
-	const network = $derived(selection.entitySelector.$network)
+	const relay = $derived(selection.entitySelector.$relay)
 	const mevRelayBuilderBlockReceived = $derived(selection({
 		fields: {
 			valueWei: true,
 		},
 	}))
-	const titleFallback = $derived(['Slot ' + String(selection.entitySelector.slot), (prefetched.valueWei != null ? String(prefetched.valueWei) + ' wei' : '')].filter(Boolean).join(' ') || 'MEV relay builder block received')
+	const titleFallback = $derived(['Slot ' + String(selection.entitySelector.slot), String(prefetched.valueWei ?? '') + ' wei'].filter(Boolean).join(' ') || 'MEV relay builder block received')
 
 
 	// Components
@@ -39,9 +37,8 @@
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
+	import MevRelayView from '$/views/MevRelayView.svelte'
 	import MevBuilderView from '$/views/MevBuilderView.svelte'
-	import EvmBlockView from '$/views/EvmBlockView.svelte'
-	import NetworkView from '$/views/NetworkView.svelte'
 </script>
 
 
@@ -52,18 +49,19 @@
 	href={
 		href === undefined ?
 			resolve(
-				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/mev/payload/received-bid/[relayHost=stringSegment]/[slot=nonNegativeInteger]/[blockHash=zeroExHex]/[builderPubkey=stringSegment]',
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/mev/relay/[host=stringSegment]/(mevRelay)/received-bid/[slot=nonNegativeInteger]/[blockHash=zeroExHex]/[builderPubkey=stringSegment]/[receivedAtMs=nonNegativeInteger]',
 				{
 					network: (
-						'caip2' in network ?
-							caip2StringFromValue(network.caip2)
+						'caip2' in relay.$network ?
+							caip2StringFromValue(relay.$network.caip2)
 						:
-							network.slug
+							relay.$network.slug
 					),
-					relayHost: selection.entitySelector.relayHost,
+					host: relay.host,
 					slot: String(selection.entitySelector.slot),
 					blockHash: selection.entitySelector.blockHash,
-					builderPubkey: selection.entitySelector.builderPubkey,
+					builderPubkey: selection.entitySelector.$builder.builderPubkey,
+					receivedAtMs: String(selection.entitySelector.receivedAtMs),
 				}
 			)
 		:
@@ -76,7 +74,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={mevRelayBuilderBlockReceived}>
 			{#snippet children(entity)}
-				{['Slot ' + String(selection.entitySelector.slot), (entity.valueWei != null ? String(entity.valueWei) + ' wei' : '')].filter(Boolean).join(' ') || title || titleFallback}
+				{['Slot ' + String(selection.entitySelector.slot), String(entity.valueWei) + ' wei'].filter(Boolean).join(' ') || title || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -84,40 +82,33 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={mevRelayBuilderBlockReceived}>
 			{#snippet children(entity)}
-				{@const valueWei = entity.valueWei}
-				{#if valueWei != null}
-					<NumberValue
-						value={valueWei}
-					/>
+				<NumberValue
+					value={entity.valueWei}
+				/>
 
-					<span> wei</span>
-				{/if}
+				<span> wei</span>
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary
-			resource={selection.$builder}
-		>
-			{#snippet children(mevBuilder)}
-				{@const mevBuilderInitial = untrack(() => mevBuilder)}
-				<span data-text="muted">
-					<MevBuilderView
-						selection={select(EntityType.MevBuilder, (mevBuilder ?? mevBuilderInitial)[EntityMetaKey.Selector])}
-						layout={EntityLayout.Title}
-					/>
-				</span>
-			{/snippet}
-		</ResourceBoundary>
+		<span data-text="muted">
+			<MevBuilderView
+				selection={select(EntityType.MevBuilder, selection.entitySelector.$builder)}
+				layout={EntityLayout.Title}
+			/>
+		</span>
 	{/snippet}
 
 	{#snippet Content()}
 		<dl data-column-item="center">
 			<div>
-				<dt>Relay host</dt>
+				<dt>Relay</dt>
 				<dd>
-					{selection.entitySelector.relayHost}
+					<MevRelayView
+						selection={select(EntityType.MevRelay, selection.entitySelector.$relay)}
+						layout={EntityLayout.Value}
+					/>
 				</dd>
 			</div>
 
@@ -137,92 +128,151 @@
 				</dd>
 			</div>
 
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							parentHash: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const parentHash = entity.parentHash}
-					{#if parentHash != null}
-						<div>
-							<dt>Parent hash</dt>
-							<dd>
-								<TruncatedValue value={parentHash} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+			<div>
+				<dt>Parent hash</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									parentHash: true,
+								},
+							})
+						}
+					>
+						{#snippet children(entity)}
+							<TruncatedValue value={entity.parentHash} />
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 		</dl>
 
 		<dl data-column-item="center">
 			<div>
-				<dt>Builder public key</dt>
+				<dt>Builder</dt>
 				<dd>
-					<TruncatedValue value={selection.entitySelector.builderPubkey} />
+					<MevBuilderView
+						selection={select(EntityType.MevBuilder, selection.entitySelector.$builder)}
+						layout={EntityLayout.Value}
+					/>
 				</dd>
 			</div>
 
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							proposerPubkey: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const proposerPubkey = entity.proposerPubkey}
-					{#if proposerPubkey != null}
-						<div>
-							<dt>Proposer public key</dt>
-							<dd>
-								<TruncatedValue value={proposerPubkey} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							proposerFeeRecipient: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const proposerFeeRecipient = entity.proposerFeeRecipient}
-					{#if proposerFeeRecipient != null}
-						<div>
-							<dt>Proposer fee recipient</dt>
-							<dd>
-								<TruncatedValue value={proposerFeeRecipient} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
 			<div>
-				<dt>Builder</dt>
+				<dt>Proposer public key</dt>
 				<dd>
 					<ResourceBoundary
-						resource={selection.$builder}
+						resource={
+							selection({
+								fields: {
+									proposerPubkey: true,
+								},
+							})
+						}
 					>
-						{#snippet children(mevBuilder)}
-							{@const mevBuilderInitial = untrack(() => mevBuilder)}
-							<MevBuilderView
-								selection={select(EntityType.MevBuilder, (mevBuilder ?? mevBuilderInitial)[EntityMetaKey.Selector])}
-								layout={EntityLayout.Value}
+						{#snippet children(entity)}
+							<TruncatedValue value={entity.proposerPubkey} />
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<div>
+				<dt>Proposer fee recipient</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									proposerFeeRecipient: true,
+								},
+							})
+						}
+					>
+						{#snippet children(entity)}
+							<TruncatedValue value={entity.proposerFeeRecipient} />
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+		</dl>
+
+		<dl data-column-item="center">
+			<div>
+				<dt>Bid value</dt>
+				<dd>
+					<ResourceBoundary
+						resource={mevRelayBuilderBlockReceived}
+					>
+						{#snippet children(entity)}
+							<NumberValue
+								value={entity.valueWei}
+							/>
+
+							<span> wei</span>
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<div>
+				<dt>Gas limit</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									gasLimit: true,
+								},
+							})
+						}
+					>
+						{#snippet children(entity)}
+							<NumberValue
+								value={entity.gasLimit}
+							/>
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<div>
+				<dt>Gas used</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									gasUsed: true,
+								},
+							})
+						}
+					>
+						{#snippet children(entity)}
+							<NumberValue
+								value={entity.gasUsed}
+							/>
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<div>
+				<dt>Transaction count</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									transactionCount: true,
+								},
+							})
+						}
+					>
+						{#snippet children(entity)}
+							<NumberValue
+								value={entity.transactionCount}
 							/>
 						{/snippet}
 					</ResourceBoundary>
@@ -231,165 +281,33 @@
 		</dl>
 
 		<dl data-column-item="center">
-			<ResourceBoundary
-				resource={mevRelayBuilderBlockReceived}
-			>
-				{#snippet children(entity)}
-					{@const valueWei = entity.valueWei}
-					{#if valueWei != null}
-						<div>
-							<dt>Bid value</dt>
-							<dd>
-								<NumberValue
-									value={valueWei}
-								/>
+			<div>
+				<dt>Claimed block number</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									blockNumber: true,
+								},
+							})
+						}
+					>
+						{#snippet children(entity)}
+							<NumberValue
+								value={entity.blockNumber}
+							/>
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
-								<span> wei</span>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							gasLimit: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const gasLimit = entity.gasLimit}
-					{#if gasLimit != null}
-						<div>
-							<dt>Gas limit</dt>
-							<dd>
-								<NumberValue
-									value={gasLimit}
-								/>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							gasUsed: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const gasUsed = entity.gasUsed}
-					{#if gasUsed != null}
-						<div>
-							<dt>Gas used</dt>
-							<dd>
-								<NumberValue
-									value={gasUsed}
-								/>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							transactionCount: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const transactionCount = entity.transactionCount}
-					{#if transactionCount != null}
-						<div>
-							<dt>Transaction count</dt>
-							<dd>
-								<NumberValue
-									value={transactionCount}
-								/>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		</dl>
-
-		<dl data-column-item="center">
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							blockNumber: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const blockNumber = entity.blockNumber}
-					{#if blockNumber != null}
-						<div>
-							<dt>Block number</dt>
-							<dd>
-								<NumberValue
-									value={blockNumber}
-								/>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={selection.$executionBlock}
-			>
-				{#snippet children(evmBlock)}
-					{#if evmBlock != null}
-						{@const evmBlockInitial = untrack(() => evmBlock)}
-						<div>
-							<dt>Execution block</dt>
-							<dd>
-								<EvmBlockView
-									selection={select(EntityType.EvmBlock, (evmBlock ?? evmBlockInitial)[EntityMetaKey.Selector])}
-									prefetched={evmBlock ?? evmBlockInitial}
-									layout={EntityLayout.Value}
-								/>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							receivedAtMs: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const receivedAtMs = entity.receivedAtMs}
-					{#if receivedAtMs != null}
-						<div>
-							<dt>Received at</dt>
-							<dd>
-								<Timestamp timestamp={receivedAtMs} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+			<div>
+				<dt>Received at</dt>
+				<dd>
+					<Timestamp timestamp={selection.entitySelector.receivedAtMs} />
+				</dd>
+			</div>
 
 			<ResourceBoundary
 				resource={
@@ -412,16 +330,6 @@
 					{/if}
 				{/snippet}
 			</ResourceBoundary>
-
-			<div>
-				<dt>Network</dt>
-				<dd>
-					<NetworkView
-						selection={select(EntityType.Network, selection.entitySelector.$network)}
-						layout={EntityLayout.Value}
-					/>
-				</dd>
-			</div>
 		</dl>
 	{/snippet}
 </EntityView>

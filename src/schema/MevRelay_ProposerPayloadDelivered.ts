@@ -12,13 +12,10 @@ export default entity({
 		singular: 'MEV relay proposer payload delivered',
 		plural: 'MEV relay proposer payloads delivered',
 	},
+	description: 'A relay-scoped report that a payload was delivered to a proposer. Delivery is not consensus finality.',
 })({
-	$network: {
-		entityType: EntityType.Network,
-		cardinality: EntityFieldCardinality.One,
-	},
-	relayHost: {
-		primitiveType: type('string'),
+	$relay: {
+		entityType: EntityType.MevRelay,
 		cardinality: EntityFieldCardinality.One,
 	},
 	slot: {
@@ -29,21 +26,17 @@ export default entity({
 		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.One,
 	},
-	builderPubkey: {
-		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
 	$builder: {
 		entityType: EntityType.MevBuilder,
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		cardinality: EntityFieldCardinality.One,
 	},
 	value: {
 		primitiveType: type('bigint'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		cardinality: EntityFieldCardinality.One,
 	},
 	blockNumber: {
 		primitiveType: type('bigint'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		cardinality: EntityFieldCardinality.One,
 	},
 	$executionBlock: {
 		entityType: EntityType.EvmBlock,
@@ -51,9 +44,8 @@ export default entity({
 	},
 })({
 	selectors: {
-		EvmNetworkRelayHostSlotBlockHash: [
-			'$network',
-			'relayHost',
+		RelaySlotBlockHash: [
+			'$relay',
 			'slot',
 			'blockHash',
 		],

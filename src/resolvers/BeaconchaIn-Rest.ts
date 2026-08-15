@@ -22,6 +22,7 @@ import { bindingByChainId } from '$/sources/BeaconchaIn/Rest/constants.ts'
 import type {
 	BeaconchaInAttestation,
 	BeaconchaInDeposit,
+	BeaconchaInSlot,
 	BeaconchaInValidator,
 	BeaconchaInWithdrawal,
 } from '$/sources/BeaconchaIn/Rest/types.ts'
@@ -121,6 +122,71 @@ const slotBody = async (
 	}
 }
 
+const beaconchaInSlotHasBlock = (slot: BeaconchaInSlot) => (
+	slot.status === '1'
+	|| slot.status === '3'
+)
+
+const beaconchaInSlotBlockReferences = (
+	$network: EntitySelector<typeof schema, EntityType.Network>,
+	slot: BeaconchaInSlot
+) => {
+	if (!beaconchaInSlotHasBlock(slot))
+		return []
+
+	const root = with0xHex(slot.blockroot)
+	return [{
+		[EntityMetaKey.Selector]: {
+			$network,
+			root,
+		},
+		[EntityMetaKey.Fields]: {
+			[entityFieldAddressKey(EntityType.BeaconBlock, [], '$slot')]: {
+				[EntityMetaKey.Selector]: {
+					$network,
+					slot: slot.slot,
+				},
+			},
+			[entityFieldAddressKey(EntityType.BeaconBlock, [], '$proposer')]: {
+				[EntityMetaKey.Selector]: {
+					$network,
+					indexInNetwork: slot.proposer,
+				},
+			},
+			...(slot.slot > 0 && {
+				[entityFieldAddressKey(EntityType.BeaconBlock, [], '$parent')]: {
+					[EntityMetaKey.Selector]: {
+						$network,
+						root: with0xHex(slot.parentroot),
+					},
+				},
+			}),
+			[entityFieldAddressKey(EntityType.BeaconBlock, [], 'stateRoot')]: with0xHex(slot.stateroot),
+			[entityFieldAddressKey(EntityType.BeaconBlock, [], 'signature')]: with0xHex(slot.signature),
+		},
+	}]
+}
+
+const beaconchaInSlotReference = (
+	$network: EntitySelector<typeof schema, EntityType.Network>,
+	slot: BeaconchaInSlot
+) => ({
+	[EntityMetaKey.Selector]: {
+		$network,
+		slot: slot.slot,
+	},
+	[EntityMetaKey.Fields]: {
+		[entityFieldAddressKey(EntityType.BeaconSlot, [], 'epoch')]: slot.epoch,
+		[entityFieldAddressKey(EntityType.BeaconSlot, [], '$epoch')]: {
+			[EntityMetaKey.Selector]: {
+				$network,
+				epoch: slot.epoch,
+			},
+		},
+		[entityFieldAddressKey(EntityType.BeaconSlot, [], '$$blocks')]: beaconchaInSlotBlockReferences($network, slot),
+	},
+})
+
 const assertOptionalBlockRoot = (
 	$block: {
 		root: `0x${string}`
@@ -201,7 +267,6 @@ const beaconchaInWithdrawalReference = (
 	},
 	[EntityMetaKey.Fields]: {
 		[entityFieldAddressKey(EntityType.BeaconWithdrawal, [], 'indexInBlock')]: indexInBlock,
-		[entityFieldAddressKey(EntityType.BeaconWithdrawal, [], 'validatorIndex')]: withdrawal.validatorindex,
 		[entityFieldAddressKey(EntityType.BeaconWithdrawal, [], '$validator')]: {
 			[EntityMetaKey.Selector]: {
 				$network: $block.$network,
@@ -428,14 +493,16 @@ const beaconchaInNetworkBeaconSlotReferences = async (
 		throw new Error('BeaconchaIn_Rest: slots continuation exceeds latest slot')
 
 	const limit = resolverContextRowLimit(context)
+	const $network = { caip2 }
 	const tipFields = {
 		[entityFieldAddressKey(EntityType.BeaconSlot, [], 'epoch')]: head.epoch,
-		[entityFieldAddressKey(EntityType.BeaconSlot, [], 'proposerIndex')]: head.proposer,
-		[entityFieldAddressKey(EntityType.BeaconSlot, [], 'root')]: with0xHex(head.blockroot),
-		[entityFieldAddressKey(EntityType.BeaconSlot, [], 'parentRoot')]: with0xHex(head.parentroot),
-		[entityFieldAddressKey(EntityType.BeaconSlot, [], 'stateRoot')]: with0xHex(head.stateroot),
-		[entityFieldAddressKey(EntityType.BeaconSlot, [], 'signature')]: with0xHex(head.signature),
-		[entityFieldAddressKey(EntityType.BeaconSlot, [], 'canonical')]: head.status === '1',
+		[entityFieldAddressKey(EntityType.BeaconSlot, [], '$epoch')]: {
+			[EntityMetaKey.Selector]: {
+				$network,
+				epoch: head.epoch,
+			},
+		},
+		[entityFieldAddressKey(EntityType.BeaconSlot, [], '$$blocks')]: beaconchaInSlotBlockReferences($network, head),
 	}
 	return {
 		slots: Array.from({
@@ -449,12 +516,19 @@ const beaconchaInNetworkBeaconSlotReferences = async (
 				:
 					[{
 						[EntityMetaKey.Selector]: {
-							$network: { caip2 },
+							$network,
 							slot,
 						},
-						...(slot === head.slot && {
-							[EntityMetaKey.Fields]: tipFields,
-						}),
+						[EntityMetaKey.Fields]: {
+							[entityFieldAddressKey(EntityType.BeaconSlot, [], 'epoch')]: Math.floor(slot / slotsPerEpoch),
+							[entityFieldAddressKey(EntityType.BeaconSlot, [], '$epoch')]: {
+								[EntityMetaKey.Selector]: {
+									$network,
+									epoch: Math.floor(slot / slotsPerEpoch),
+								},
+							},
+							...(slot === head.slot && tipFields),
+						},
 					}]
 			)),
 	}
@@ -524,21 +598,7 @@ export default {
 						return {
 							slots: slots
 								.slice(offset, offset + resolverContextRowLimit(context))
-								.map((slot) => ({
-									[EntityMetaKey.Selector]: {
-										$network,
-										slot: slot.slot,
-									},
-									[EntityMetaKey.Fields]: {
-										[entityFieldAddressKey(EntityType.BeaconSlot, [], 'epoch')]: slot.epoch,
-										[entityFieldAddressKey(EntityType.BeaconSlot, [], 'proposerIndex')]: slot.proposer,
-										[entityFieldAddressKey(EntityType.BeaconSlot, [], 'root')]: with0xHex(slot.blockroot),
-										[entityFieldAddressKey(EntityType.BeaconSlot, [], 'parentRoot')]: with0xHex(slot.parentroot),
-										[entityFieldAddressKey(EntityType.BeaconSlot, [], 'stateRoot')]: with0xHex(slot.stateroot),
-										[entityFieldAddressKey(EntityType.BeaconSlot, [], 'signature')]: with0xHex(slot.signature),
-										[entityFieldAddressKey(EntityType.BeaconSlot, [], 'canonical')]: slot.status === '1',
-									},
-								})),
+								.map((slot) => beaconchaInSlotReference($network, slot)),
 							slotCount: slots.length,
 							offset,
 						}
@@ -574,12 +634,7 @@ export default {
 						)
 						return {
 							epoch: slot.epoch,
-							proposerIndex: slot.proposer,
-							root: with0xHex(slot.blockroot),
-							parentRoot: with0xHex(slot.parentroot),
-							stateRoot: with0xHex(slot.stateroot),
-							signature: with0xHex(slot.signature),
-							canonical: slot.status === '1',
+							$$blocks: beaconchaInSlotBlockReferences($network, slot),
 						}
 					},
 				},
@@ -592,12 +647,10 @@ export default {
 					epoch: slot.epoch,
 				},
 			}),
-			proposerIndex: (slot) => slot.proposerIndex,
-			root: (slot) => slot.root,
-			parentRoot: (slot) => slot.parentRoot,
-			stateRoot: (slot) => slot.stateRoot,
-			signature: (slot) => slot.signature,
-			canonical: (slot) => slot.canonical,
+			$$blocks: {
+				select: (slot) => slot.$$blocks,
+				resolveCount: (slot) => slot.$$blocks.length,
+			},
 		}),
 
 		defineResolver({
@@ -920,7 +973,6 @@ export default {
 
 						return {
 							indexInBlock,
-							validatorIndex: withdrawal.validatorindex,
 							$validator: {
 								[EntityMetaKey.Selector]: {
 									$network: $block.$network,
@@ -939,7 +991,6 @@ export default {
 			},
 		})({
 			indexInBlock: (withdrawal) => withdrawal.indexInBlock,
-			validatorIndex: (withdrawal) => withdrawal.validatorIndex,
 			$validator: (withdrawal) => withdrawal.$validator,
 			$account: (withdrawal) => withdrawal.$account,
 			amountGwei: (withdrawal) => withdrawal.amountGwei,

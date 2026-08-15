@@ -65,7 +65,7 @@ const epochSlotsResolver = beaconchaInRest.resolvers.find((resolver) => (
 ))
 const slotResolver = beaconchaInRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.BeaconSlot
-	&& 'canonical' in resolver.projections
+	&& '$$blocks' in resolver.projections
 ))
 const validatorResolver = beaconchaInRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.BeaconValidator
@@ -200,12 +200,40 @@ describe('BeaconchaIn-Rest resolvers', () => {
 				},
 				[EntityMetaKey.Fields]: {
 					[entityFieldAddressKey(EntityType.BeaconSlot, [], 'epoch')]: 10,
-					[entityFieldAddressKey(EntityType.BeaconSlot, [], 'proposerIndex')]: 7,
-					[entityFieldAddressKey(EntityType.BeaconSlot, [], 'root')]: `0x${'11'.repeat(32)}`,
-					[entityFieldAddressKey(EntityType.BeaconSlot, [], 'parentRoot')]: `0x${'22'.repeat(32)}`,
-					[entityFieldAddressKey(EntityType.BeaconSlot, [], 'stateRoot')]: `0x${'33'.repeat(32)}`,
-					[entityFieldAddressKey(EntityType.BeaconSlot, [], 'signature')]: `0x${'44'.repeat(96)}`,
-					[entityFieldAddressKey(EntityType.BeaconSlot, [], 'canonical')]: true,
+					[entityFieldAddressKey(EntityType.BeaconSlot, [], '$epoch')]: {
+						[EntityMetaKey.Selector]: {
+							$network: network,
+							epoch: 10,
+						},
+					},
+					[entityFieldAddressKey(EntityType.BeaconSlot, [], '$$blocks')]: [{
+						[EntityMetaKey.Selector]: {
+							$network: network,
+							root: `0x${'11'.repeat(32)}`,
+						},
+						[EntityMetaKey.Fields]: {
+							[entityFieldAddressKey(EntityType.BeaconBlock, [], '$slot')]: {
+								[EntityMetaKey.Selector]: {
+									$network: network,
+									slot: 320,
+								},
+							},
+							[entityFieldAddressKey(EntityType.BeaconBlock, [], '$proposer')]: {
+								[EntityMetaKey.Selector]: {
+									$network: network,
+									indexInNetwork: 7,
+								},
+							},
+							[entityFieldAddressKey(EntityType.BeaconBlock, [], '$parent')]: {
+								[EntityMetaKey.Selector]: {
+									$network: network,
+									root: `0x${'22'.repeat(32)}`,
+								},
+							},
+							[entityFieldAddressKey(EntityType.BeaconBlock, [], 'stateRoot')]: `0x${'33'.repeat(32)}`,
+							[entityFieldAddressKey(EntityType.BeaconBlock, [], 'signature')]: `0x${'44'.repeat(96)}`,
+						},
+					}],
 				},
 			},
 			{
@@ -215,12 +243,13 @@ describe('BeaconchaIn-Rest resolvers', () => {
 				},
 				[EntityMetaKey.Fields]: {
 					[entityFieldAddressKey(EntityType.BeaconSlot, [], 'epoch')]: 10,
-					[entityFieldAddressKey(EntityType.BeaconSlot, [], 'proposerIndex')]: 8,
-					[entityFieldAddressKey(EntityType.BeaconSlot, [], 'root')]: `0x${'55'.repeat(32)}`,
-					[entityFieldAddressKey(EntityType.BeaconSlot, [], 'parentRoot')]: `0x${'66'.repeat(32)}`,
-					[entityFieldAddressKey(EntityType.BeaconSlot, [], 'stateRoot')]: `0x${'77'.repeat(32)}`,
-					[entityFieldAddressKey(EntityType.BeaconSlot, [], 'signature')]: `0x${'88'.repeat(96)}`,
-					[entityFieldAddressKey(EntityType.BeaconSlot, [], 'canonical')]: false,
+					[entityFieldAddressKey(EntityType.BeaconSlot, [], '$epoch')]: {
+						[EntityMetaKey.Selector]: {
+							$network: network,
+							epoch: 10,
+						},
+					},
+					[entityFieldAddressKey(EntityType.BeaconSlot, [], '$$blocks')]: [],
 				},
 			},
 		])
@@ -272,9 +301,12 @@ describe('BeaconchaIn-Rest resolvers', () => {
 			slot: 320,
 		}, context)).resolves.toMatchObject({
 			epoch: 10,
-			proposerIndex: 7,
-			canonical: true,
-			root: `0x${'11'.repeat(32)}`,
+			$$blocks: [{
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					root: `0x${'11'.repeat(32)}`,
+				},
+			}],
 		})
 
 		const validator = await validatorResolver.resolve.NetworkIndexInNetwork.resolve({
@@ -580,16 +612,66 @@ describe('BeaconchaIn-Rest resolvers', () => {
 				[EntityMetaKey.Selector]: { $network: network, slot: 400 },
 				[EntityMetaKey.Fields]: {
 					[entityFieldAddressKey(EntityType.BeaconSlot, [], 'epoch')]: 12,
-					[entityFieldAddressKey(EntityType.BeaconSlot, [], 'proposerIndex')]: 1,
-					[entityFieldAddressKey(EntityType.BeaconSlot, [], 'root')]: with0xHex('11'.repeat(32)),
-					[entityFieldAddressKey(EntityType.BeaconSlot, [], 'parentRoot')]: with0xHex('22'.repeat(32)),
-					[entityFieldAddressKey(EntityType.BeaconSlot, [], 'stateRoot')]: with0xHex('33'.repeat(32)),
-					[entityFieldAddressKey(EntityType.BeaconSlot, [], 'signature')]: with0xHex('44'.repeat(96)),
-					[entityFieldAddressKey(EntityType.BeaconSlot, [], 'canonical')]: true,
+					[entityFieldAddressKey(EntityType.BeaconSlot, [], '$epoch')]: {
+						[EntityMetaKey.Selector]: {
+							$network: network,
+							epoch: 12,
+						},
+					},
+					[entityFieldAddressKey(EntityType.BeaconSlot, [], '$$blocks')]: [{
+						[EntityMetaKey.Selector]: {
+							$network: network,
+							root: with0xHex('11'.repeat(32)),
+						},
+						[EntityMetaKey.Fields]: {
+							[entityFieldAddressKey(EntityType.BeaconBlock, [], '$slot')]: {
+								[EntityMetaKey.Selector]: {
+									$network: network,
+									slot: 400,
+								},
+							},
+							[entityFieldAddressKey(EntityType.BeaconBlock, [], '$proposer')]: {
+								[EntityMetaKey.Selector]: {
+									$network: network,
+									indexInNetwork: 1,
+								},
+							},
+							[entityFieldAddressKey(EntityType.BeaconBlock, [], '$parent')]: {
+								[EntityMetaKey.Selector]: {
+									$network: network,
+									root: with0xHex('22'.repeat(32)),
+								},
+							},
+							[entityFieldAddressKey(EntityType.BeaconBlock, [], 'stateRoot')]: with0xHex('33'.repeat(32)),
+							[entityFieldAddressKey(EntityType.BeaconBlock, [], 'signature')]: with0xHex('44'.repeat(96)),
+						},
+					}],
 				},
 			},
-			{ [EntityMetaKey.Selector]: { $network: network, slot: 399 } },
-			{ [EntityMetaKey.Selector]: { $network: network, slot: 398 } },
+			{
+				[EntityMetaKey.Selector]: { $network: network, slot: 399 },
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.BeaconSlot, [], 'epoch')]: Math.floor(399 / slotsPerEpoch),
+					[entityFieldAddressKey(EntityType.BeaconSlot, [], '$epoch')]: {
+						[EntityMetaKey.Selector]: {
+							$network: network,
+							epoch: Math.floor(399 / slotsPerEpoch),
+						},
+					},
+				},
+			},
+			{
+				[EntityMetaKey.Selector]: { $network: network, slot: 398 },
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.BeaconSlot, [], 'epoch')]: Math.floor(398 / slotsPerEpoch),
+					[entityFieldAddressKey(EntityType.BeaconSlot, [], '$epoch')]: {
+						[EntityMetaKey.Selector]: {
+							$network: network,
+							epoch: Math.floor(398 / slotsPerEpoch),
+						},
+					},
+				},
+			},
 		])
 		expect(networkSlotsResolver.projections.Evm.$$beaconSlots.continuation(slotsPage).token).toBe('397')
 

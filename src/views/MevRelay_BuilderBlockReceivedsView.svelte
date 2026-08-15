@@ -40,38 +40,39 @@
 >
 	{#snippet Item({ item: mevRelayBuilderBlockReceived })}
 		{@const mevRelayBuilderBlockReceivedSelector = mevRelayBuilderBlockReceived[EntityMetaKey.Selector]}
-		{@const network = mevRelayBuilderBlockReceivedSelector.$network}
+		{@const relay = mevRelayBuilderBlockReceivedSelector.$relay}
 		<EntityView
 			entityType={EntityType.MevRelay_BuilderBlockReceived}
 			entitySelector={mevRelayBuilderBlockReceivedSelector}
 			href={
 				resolve(
-					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/mev/payload/received-bid/[relayHost=stringSegment]/[slot=nonNegativeInteger]/[blockHash=zeroExHex]/[builderPubkey=stringSegment]',
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/mev/relay/[host=stringSegment]/(mevRelay)/received-bid/[slot=nonNegativeInteger]/[blockHash=zeroExHex]/[builderPubkey=stringSegment]/[receivedAtMs=nonNegativeInteger]',
 					{
 						network: (
-							'caip2' in network ?
-								caip2StringFromValue(network.caip2)
+							'caip2' in relay.$network ?
+								caip2StringFromValue(relay.$network.caip2)
 							:
-								network.slug
+								relay.$network.slug
 						),
-						relayHost: mevRelayBuilderBlockReceivedSelector.relayHost,
+						host: relay.host,
 						slot: String(mevRelayBuilderBlockReceivedSelector.slot),
 						blockHash: mevRelayBuilderBlockReceivedSelector.blockHash,
-						builderPubkey: mevRelayBuilderBlockReceivedSelector.builderPubkey,
+						builderPubkey: mevRelayBuilderBlockReceivedSelector.$builder.builderPubkey,
+						receivedAtMs: String(mevRelayBuilderBlockReceivedSelector.receivedAtMs),
 					}
 				)
 			}
 		>
 			{#snippet Title()}
-				{['Slot ' + String(mevRelayBuilderBlockReceivedSelector.slot), (mevRelayBuilderBlockReceived.valueWei != null ? String(mevRelayBuilderBlockReceived.valueWei) + ' wei' : '')].filter(Boolean).join(' ') || 'MEV relay builder block received'}
+				{['Slot ' + String(mevRelayBuilderBlockReceivedSelector.slot), String(mevRelayBuilderBlockReceived.valueWei) + ' wei'].filter(Boolean).join(' ') || 'MEV relay builder block received'}
 			{/snippet}
 
 			{#snippet Value()}
-				{mevRelayBuilderBlockReceived.valueWei != null ? mevRelayBuilderBlockReceived.valueWei + ' wei' : ''}
+				{mevRelayBuilderBlockReceived.valueWei + ' wei'}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{mevRelayBuilderBlockReceived.$builder.builderPubkey || 'MEV builder'}</span>
+				<span data-text="annotation">{mevRelayBuilderBlockReceivedSelector.$builder.builderPubkey || 'MEV builder'}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

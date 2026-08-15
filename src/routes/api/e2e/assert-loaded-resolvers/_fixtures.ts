@@ -690,9 +690,11 @@ const probeEntitySelectorByType = defineProbeEntitySelectors({
 		indexInSlot: 0,
 	},
 	[EntityType.BeaconWithdrawal]: {
-		$network: mainnet,
-		slot: 9_500_000,
-		indexInSlot: 0,
+		$block: {
+			$network: mainnet,
+			root: `0x${'0'.repeat(64)}`,
+		},
+		withdrawalIndex: 0,
 	},
 	[EntityType.BeaconSlashing]: {
 		$network: mainnet,
@@ -1054,10 +1056,25 @@ const probeEntitySelectorByType = defineProbeEntitySelectors({
 		host: 'relay.ultrasound.money',
 	},
 	[EntityType.MevRelay_ProposerPayloadDelivered]: {
-		$network: mainnet,
-		relayHost: 'relay.ultrasound.money',
+		$relay: {
+			$network: mainnet,
+			host: 'relay.ultrasound.money',
+		},
 		slot: 9_500_000,
 		blockHash: `0x${'0'.repeat(64)}`,
+	} as const,
+	[EntityType.MevRelay_BuilderBlockReceived]: {
+		$relay: {
+			$network: mainnet,
+			host: 'relay.ultrasound.money',
+		},
+		slot: 9_500_000,
+		$builder: {
+			$network: mainnet,
+			builderPubkey: `0x${'0'.repeat(96)}`,
+		},
+		blockHash: `0x${'0'.repeat(64)}`,
+		receivedAtMs: 0,
 	} as const,
 	[EntityType.MevBuilder]: {
 		$network: mainnet,

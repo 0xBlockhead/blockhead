@@ -129,17 +129,13 @@ const slashingResolver = beaconRest.resolvers.find((resolver) => (
 const depositResolver = beaconRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.BeaconDeposit
 ))
-const headerResolver = beaconRest.resolvers.find((resolver) => (
-	resolver.entityType === EntityType.BeaconSlot
-	&& 'root' in resolver.projections
-))
-const blockRewardsResolver = beaconRest.resolvers.find((resolver) => (
-	resolver.entityType === EntityType.BeaconSlot
-	&& 'rewardTotalGwei' in resolver.projections
-))
 const slotBlocksResolver = beaconRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.BeaconSlot
 	&& '$$blocks' in resolver.projections
+))
+const blockRewardsResolver = beaconRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.BeaconBlock
+	&& 'rewardTotalGwei' in resolver.projections
 ))
 const beaconBlockResolver = beaconRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.BeaconBlock
@@ -208,7 +204,6 @@ if (
 	|| validatorRewardResolver == null
 	|| depositResolver == null
 	|| slashingResolver == null
-	|| headerResolver == null
 	|| blockRewardsResolver == null
 	|| slotBlocksResolver == null
 	|| beaconBlockResolver == null
@@ -247,12 +242,6 @@ const resolveForkVersionsByUpgradeId = (
 	:
 		undefined
 )
-const resolveHeaderBySlot = (
-	'EvmNetworkSlot' in headerResolver.resolve ?
-		headerResolver.resolve.EvmNetworkSlot.resolve
-	:
-		undefined
-)
 const resolveHeadSlots = (
 	'Caip2' in headSlotResolver.resolve ?
 		headSlotResolver.resolve.Caip2.resolve
@@ -279,8 +268,6 @@ const resolveSyncCommitteesList = (
 )
 if (resolveForkVersionsByUpgradeId == null)
 	throw new Error('Beacon REST fork resolver does not accept upgrade IDs')
-if (resolveHeaderBySlot == null)
-	throw new Error('Beacon REST header resolver does not accept slots')
 if (resolveHeadSlots == null)
 	throw new Error('Beacon REST head-slot resolver does not accept CAIP-2 networks')
 if (resolveCommitteesList == null || resolveSlotCommitteesList == null)
@@ -955,45 +942,22 @@ describe('Beacon REST checkpoint and fork projections', () => {
 		expect(getValidator).toHaveBeenNthCalledWith(2, 1, 12, 1)
 	})
 
-	it('projects native header keys, decimal strings, and case only at the schema boundary', async () => {
-		getHeader.mockResolvedValue({
-			root: `0x${'A'.repeat(64)}`,
-			canonical: true,
-			header: {
-				message: {
-					slot: '64',
-					proposer_index: '12',
-					parent_root: `0x${'B'.repeat(64)}`,
-					state_root: `0x${'C'.repeat(64)}`,
-					body_root: `0x${'D'.repeat(64)}`,
-				},
-				signature: `0x${'E'.repeat(192)}`,
-			},
-		})
+	it('treats a beacon slot as a coordinate and does not project a canonical header onto it', async () => {
+		const slotEpochResolver = beaconRest.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.BeaconSlot
+			&& 'epoch' in resolver.projections
+			&& !('$$blocks' in resolver.projections)
+		))
+		if (slotEpochResolver == null)
+			throw new Error('Beacon REST slot epoch resolver is not registered')
 
-		await expect(resolveHeaderBySlot({
+		await expect(slotEpochResolver.resolve.EvmNetworkSlot.resolve({
 			$network: network,
 			slot: 64,
-		}, {
-			filters: [],
-			sorts: [],
-			pagination: {},
-			selectorKeys: [],
-			parentSelectorKeys: [],
-			publicEnv: {},
 		})).resolves.toEqual({
-			bodyRoot: `0x${'d'.repeat(64)}`,
-			canonical: true,
-			parentRoot: `0x${'b'.repeat(64)}`,
-			proposerIndex: 12,
-			root: `0x${'a'.repeat(64)}`,
-			signature: `0x${'e'.repeat(192)}`,
-			stateRoot: `0x${'c'.repeat(64)}`,
+			epoch: 2,
 		})
-		expect(getHeader).toHaveBeenCalledWith(
-			1,
-			64
-		)
+		expect(getHeader).not.toHaveBeenCalled()
 	})
 
 	it('materializes a fork-root block and source-clocked canonicality observation', async () => {
@@ -1272,35 +1236,6 @@ describe('Beacon REST checkpoint and fork projections', () => {
 		})).rejects.toThrow('does not match selected block bid')
 	})
 
-	it('rejects a native uint64 header index that cannot be represented by the schema number', async () => {
-		getHeader.mockResolvedValue({
-			root: `0x${'A'.repeat(64)}`,
-			canonical: true,
-			header: {
-				message: {
-					slot: '64',
-					proposer_index: '18446744073709551615',
-					parent_root: `0x${'B'.repeat(64)}`,
-					state_root: `0x${'C'.repeat(64)}`,
-					body_root: `0x${'D'.repeat(64)}`,
-				},
-				signature: `0x${'E'.repeat(192)}`,
-			},
-		})
-
-		await expect(resolveHeaderBySlot({
-			$network: network,
-			slot: 64,
-		}, {
-			filters: [],
-			sorts: [],
-			pagination: {},
-			selectorKeys: [],
-			parentSelectorKeys: [],
-			publicEnv: {},
-		})).rejects.toThrow('proposer index must be a safe integer')
-	})
-
 	it('rejects a native head-slot uint64 that cannot be represented by resolver numbers', async () => {
 		getHeader.mockResolvedValue({
 			root: `0x${'A'.repeat(64)}`,
@@ -1327,13 +1262,13 @@ describe('Beacon REST checkpoint and fork projections', () => {
 		})).rejects.toThrow('head slot must be a safe integer')
 	})
 
-	it('materializes recent slot headers from the bounded network collection', async () => {
-		getHeader.mockImplementation(async (_chainId, slot) => ({
+	it('materializes recent slot coordinates from the bounded network collection', async () => {
+		getHeader.mockResolvedValue({
 			root: `0x${'A'.repeat(64)}`,
 			canonical: true,
 			header: {
 				message: {
-					slot: slot === 'head' ? '64' : String(slot),
+					slot: '64',
 					proposer_index: '12',
 					parent_root: `0x${'B'.repeat(64)}`,
 					state_root: `0x${'C'.repeat(64)}`,
@@ -1341,7 +1276,7 @@ describe('Beacon REST checkpoint and fork projections', () => {
 				},
 				signature: `0x${'E'.repeat(192)}`,
 			},
-		}))
+		})
 
 		const snapshot = await resolveHeadSlots(network, {
 			filters: [],
@@ -1362,11 +1297,15 @@ describe('Beacon REST checkpoint and fork projections', () => {
 			},
 			[EntityMetaKey.Fields]: {
 				[entityFieldAddressKey(EntityType.BeaconSlot, [], 'epoch')]: 2,
-				[entityFieldAddressKey(EntityType.BeaconSlot, [], 'canonical')]: true,
-				[entityFieldAddressKey(EntityType.BeaconSlot, [], 'proposerIndex')]: 12,
-				[entityFieldAddressKey(EntityType.BeaconSlot, [], 'root')]: `0x${'a'.repeat(64)}`,
+				[entityFieldAddressKey(EntityType.BeaconSlot, [], '$epoch')]: {
+					[EntityMetaKey.Selector]: {
+						$network: network,
+						epoch: 2,
+					},
+				},
 			},
 		})
+		expect(slots[0][EntityMetaKey.Fields][entityFieldAddressKey(EntityType.BeaconSlot, [], 'root')]).toBeUndefined()
 		expect(headSlotResolver.projections.Evm.$$beaconSlots.resolveCount(snapshot)).toBe(65)
 		expect(headSlotResolver.projections.Evm.$$beaconSlots.continuation(snapshot)).toEqual({
 			operation: 'network-beacon-slots',
@@ -1374,11 +1313,10 @@ describe('Beacon REST checkpoint and fork projections', () => {
 			token: '62',
 		})
 		expect(getHeader).toHaveBeenCalledWith(1, 'head')
-		expect(getHeader).toHaveBeenCalledWith(1, 63)
-		expect(getHeader).toHaveBeenCalledTimes(2)
+		expect(getHeader).toHaveBeenCalledTimes(1)
 	})
 
-	it('materializes bounded epoch slot history with native header facts', async () => {
+	it('materializes bounded epoch slot history as slot coordinates', async () => {
 		getProposerDuties.mockResolvedValue([
 			{
 				pubkey: `0x${'1'.repeat(96)}`,
@@ -1391,30 +1329,6 @@ describe('Beacon REST checkpoint and fork projections', () => {
 				slot: '65',
 			},
 		])
-		getHeadersAtSlot.mockImplementation(async (_chainId, slot) => [{
-			root: `0x${String(slot).padStart(64, '0')}`,
-			canonical: true,
-			header: {
-				message: {
-					slot: String(slot),
-					proposer_index: '12',
-					parent_root: `0x${'b'.repeat(64)}`,
-					state_root: `0x${'c'.repeat(64)}`,
-					body_root: `0x${'d'.repeat(64)}`,
-				},
-				signature: `0x${'e'.repeat(192)}`,
-			},
-		}])
-		getBlockRewards.mockImplementation(async (_chainId, slot) => ({
-			proposerIndex: 12,
-			totalGwei: BigInt(Number(slot) * 10),
-			attestationsGwei: 500n,
-			syncAggregateGwei: 200n,
-			proposerSlashingsGwei: 10n,
-			attesterSlashingsGwei: 5n,
-			executionOptimistic: false,
-			finalized: true,
-		}))
 
 		const snapshot = await epochSlotsResolver.resolve.EvmNetworkEpoch.resolve({
 			$network: network,
@@ -1440,10 +1354,6 @@ describe('Beacon REST checkpoint and fork projections', () => {
 				},
 				[EntityMetaKey.Fields]: {
 					[entityFieldAddressKey(EntityType.BeaconSlot, [], 'epoch')]: 2,
-					[entityFieldAddressKey(EntityType.BeaconSlot, [], 'canonical')]: true,
-					[entityFieldAddressKey(EntityType.BeaconSlot, [], 'proposerIndex')]: 12,
-					[entityFieldAddressKey(EntityType.BeaconSlot, [], 'rewardTotalGwei')]: 640n,
-					[entityFieldAddressKey(EntityType.BeaconSlot, [], 'rewardFinalized')]: true,
 				},
 			},
 			{
@@ -1453,12 +1363,11 @@ describe('Beacon REST checkpoint and fork projections', () => {
 				},
 			},
 		])
+		expect(slots[0][EntityMetaKey.Fields][entityFieldAddressKey(EntityType.BeaconSlot, [], 'root')]).toBeUndefined()
 		expect(epochSlotsResolver.projections.$$beaconSlots.resolveCount(snapshot)).toBe(2)
-		expect(getHeadersAtSlot).toHaveBeenNthCalledWith(1, 1, 64)
-		expect(getHeadersAtSlot).toHaveBeenNthCalledWith(2, 1, 65)
 		expect(getProposerDuties).toHaveBeenCalledWith(1, 2)
-		expect(getBlockRewards).toHaveBeenNthCalledWith(1, 1, 64)
-		expect(getBlockRewards).toHaveBeenNthCalledWith(2, 1, 65)
+		expect(getHeadersAtSlot).not.toHaveBeenCalled()
+		expect(getBlockRewards).not.toHaveBeenCalled()
 	})
 
 	it('materializes source-owned PeerDAS columns and custody observations from one slot read', async () => {
@@ -1575,14 +1484,20 @@ describe('Beacon REST checkpoint and fork projections', () => {
 			},
 			[EntityMetaKey.Fields]: {
 				[entityFieldAddressKey(EntityType.BeaconSlot, [], 'epoch')]: 3,
-				[entityFieldAddressKey(EntityType.BeaconSlot, [], 'proposerIndex')]: 22,
+				[entityFieldAddressKey(EntityType.BeaconSlot, [], '$epoch')]: {
+					[EntityMetaKey.Selector]: {
+						$network: network,
+						epoch: 3,
+					},
+				},
 			},
 		}])
 		expect(epochSlotsResolver.projections.$$beaconSlots.resolveCount(snapshot)).toBe(1)
 		expect(getBlockRewards).not.toHaveBeenCalled()
+		expect(getHeadersAtSlot).not.toHaveBeenCalled()
 	})
 
-	it('projects coordinate-bound proposer reward components onto the slot owner', async () => {
+	it('projects coordinate-bound proposer reward components onto the block root', async () => {
 		getBlockRewards.mockResolvedValue({
 			proposerIndex: 12,
 			totalGwei: 1000n,
@@ -1594,20 +1509,18 @@ describe('Beacon REST checkpoint and fork projections', () => {
 			finalized: true,
 		})
 
-		const rewards = await blockRewardsResolver.resolve.EvmNetworkSlot.resolve({
+		const rewards = await blockRewardsResolver.resolve.NetworkRoot.resolve({
 			$network: network,
-			slot: 64,
+			root: `0x${'a'.repeat(64)}`,
 		})
 		expect(blockRewardsResolver.projections.rewardTotalGwei(rewards)).toBe(1000n)
 		expect(blockRewardsResolver.projections.rewardAttestationsGwei(rewards)).toBe(700n)
 		expect(blockRewardsResolver.projections.rewardSyncAggregateGwei(rewards)).toBe(200n)
 		expect(blockRewardsResolver.projections.rewardProposerSlashingsGwei(rewards)).toBe(60n)
 		expect(blockRewardsResolver.projections.rewardAttesterSlashingsGwei(rewards)).toBe(40n)
-		expect(blockRewardsResolver.projections.rewardExecutionOptimistic(rewards)).toBe(false)
-		expect(blockRewardsResolver.projections.rewardFinalized(rewards)).toBe(true)
 		expect(getBlockRewards).toHaveBeenCalledWith(
 			1,
-			64
+			`0x${'a'.repeat(64)}`
 		)
 	})
 
@@ -1869,7 +1782,6 @@ describe('Beacon REST checkpoint and fork projections', () => {
 			},
 			[EntityMetaKey.Fields]: {
 				[entityFieldAddressKey(EntityType.BeaconWithdrawal, [], 'indexInBlock')]: 5,
-				[entityFieldAddressKey(EntityType.BeaconWithdrawal, [], 'validatorIndex')]: 12,
 				[entityFieldAddressKey(EntityType.BeaconWithdrawal, [], 'amountGwei')]: 32_000_000_000n,
 				[entityFieldAddressKey(EntityType.BeaconWithdrawal, [], '$validator')]: {
 					[EntityMetaKey.Selector]: {
@@ -2236,7 +2148,6 @@ describe('Beacon live consensus head', () => {
 			},
 			[EntityMetaKey.Fields]: {
 				[entityFieldAddressKey(EntityType.BeaconSlot, [], 'epoch')]: 2,
-				[entityFieldAddressKey(EntityType.BeaconSlot, [], 'root')]: `0x${'a'.repeat(64)}`,
 				[entityFieldAddressKey(EntityType.BeaconSlot, [], '$epoch')]: {
 					[EntityMetaKey.Selector]: {
 						$network: network,
@@ -2245,6 +2156,7 @@ describe('Beacon live consensus head', () => {
 				},
 			},
 		})
+		expect(slotRows[0][EntityMetaKey.Fields][entityFieldAddressKey(EntityType.BeaconSlot, [], 'root')]).toBeUndefined()
 		expect(epochRows).toEqual([
 			{
 				[EntityMetaKey.Selector]: {
@@ -2274,7 +2186,7 @@ describe('Beacon live consensus head', () => {
 			},
 		})
 		expect(getHeader).toHaveBeenCalledWith(1, 'head')
-		expect(getHeader).toHaveBeenCalledWith(1, 63)
+		expect(getHeader).not.toHaveBeenCalledWith(1, 63)
 		expect(getFinalityCheckpoints).toHaveBeenCalledWith(1)
 		expect(replaceSlotCount).toHaveBeenCalledWith([{
 			source: Source.Beacon_Rest,
@@ -2296,11 +2208,8 @@ describe('Beacon live consensus head', () => {
 
 		getHeader
 			.mockResolvedValueOnce(headHeaderWire(63, 'a'))
-			.mockResolvedValueOnce(headHeaderWire(62, '2'))
 			.mockResolvedValueOnce(headHeaderWire(63, 'b'))
-			.mockResolvedValueOnce(headHeaderWire(62, '2'))
 			.mockResolvedValueOnce(headHeaderWire(64, 'c'))
-			.mockResolvedValueOnce(headHeaderWire(63, 'd'))
 		getFinalityCheckpoints.mockResolvedValue(finalityCheckpointsWire)
 		const replaceSlots = vi.fn()
 		const replaceEpochs = vi.fn()
@@ -2344,7 +2253,7 @@ describe('Beacon live consensus head', () => {
 		expect(replaceSlots.mock.calls[0]?.[0]?.[0]?.value[0]).toMatchObject({
 			[EntityMetaKey.Selector]: { slot: 63 },
 			[EntityMetaKey.Fields]: {
-				[entityFieldAddressKey(EntityType.BeaconSlot, [], 'root')]: `0x${'a'.repeat(64)}`,
+				[entityFieldAddressKey(EntityType.BeaconSlot, [], 'epoch')]: 1,
 			},
 		})
 
@@ -2354,7 +2263,7 @@ describe('Beacon live consensus head', () => {
 		expect(replaceSlots.mock.calls[1]?.[0]?.[0]?.value[0]).toMatchObject({
 			[EntityMetaKey.Selector]: { slot: 63 },
 			[EntityMetaKey.Fields]: {
-				[entityFieldAddressKey(EntityType.BeaconSlot, [], 'root')]: `0x${'b'.repeat(64)}`,
+				[entityFieldAddressKey(EntityType.BeaconSlot, [], 'epoch')]: 1,
 			},
 		})
 
