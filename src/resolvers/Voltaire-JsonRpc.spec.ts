@@ -1136,7 +1136,7 @@ describe('Voltaire ENS records', () => {
 		vi.spyOn(Date, 'now').mockReturnValue(1_800_000_000_000)
 	})
 
-	it('maps live text, coin, contenthash, dns, and zonehash onto EnsName.$$records', async () => {
+	it('maps live text, coin, contenthash, dns, zonehash, and abi onto EnsName.$$records', async () => {
 		if (ensNameResolver == null)
 			throw new Error('Voltaire EnsName resolver is not registered')
 
@@ -1155,6 +1155,7 @@ describe('Voltaire ENS records', () => {
 				'dns:1:example.eth': '0x',
 			},
 			zonehash: '0xzonehash',
+			resolverAbiJsonText: '[{"type":"function","name":"foo"}]',
 		})
 		const snapshot = await ensNameResolver.resolve.NormalizedName.resolve({
 			name: 'vitalik.eth',
@@ -1327,11 +1328,43 @@ describe('Voltaire ENS records', () => {
 					}],
 				},
 			},
+			{
+				[EntityMetaKey.Selector]: {
+					$name: {
+						name: 'vitalik.eth',
+					},
+					recordKey: 'abi',
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.EnsRecord, [], '$name')]: {
+						[EntityMetaKey.Selector]: {
+							name: 'vitalik.eth',
+						},
+					},
+					[entityFieldAddressKey(EntityType.EnsRecord, [], 'recordKey')]: 'abi',
+					[entityFieldAddressKey(EntityType.EnsRecord, [], 'recordKind')]: 'abi',
+					[entityFieldAddressKey(EntityType.EnsRecord, [], '$$timestamps')]: [{
+						[EntityMetaKey.Selector]: {
+							$record: {
+								$name: {
+									name: 'vitalik.eth',
+								},
+								recordKey: 'abi',
+							},
+							timestampMs: 1_800_000_000_000,
+							source: Source.Voltaire_JsonRpc,
+						},
+						[EntityMetaKey.Fields]: {
+							[entityFieldAddressKey(EntityType.EnsRecord_Timestamp, [], 'value')]: '[{"type":"function","name":"foo"}]',
+						},
+					}],
+				},
+			},
 		])
-		expect(ensNameResolver.projections.$$records.resolveCount(snapshot)).toBe(5)
+		expect(ensNameResolver.projections.$$records.resolveCount(snapshot)).toBe(6)
 	})
 
-	it('omits EnsName.$$records rows when live text, coin, contenthash, dns, or zonehash values are zero or empty', async () => {
+	it('omits EnsName.$$records rows when live text, coin, contenthash, dns, zonehash, or abi values are zero or empty', async () => {
 		if (ensNameResolver == null)
 			throw new Error('Voltaire EnsName resolver is not registered')
 
@@ -1347,6 +1380,7 @@ describe('Voltaire ENS records', () => {
 				'dns:16:example.eth': '',
 			},
 			zonehash: null,
+			resolverAbiJsonText: null,
 		})
 		const emptySnapshot = await ensNameResolver.resolve.NormalizedName.resolve({
 			name: 'vitalik.eth',
@@ -1366,6 +1400,7 @@ describe('Voltaire ENS records', () => {
 				'dns:16:example.eth': '0x',
 			},
 			zonehash: '0x',
+			resolverAbiJsonText: '0x',
 		})
 		const zeroSnapshot = await ensNameResolver.resolve.NormalizedName.resolve({
 			name: 'vitalik.eth',
@@ -1392,6 +1427,7 @@ describe('Voltaire ENS records', () => {
 			coinTypeIds: [],
 			dnsRecordKeys: [],
 			zonehash: false,
+			resolverAbi: false,
 		})
 		expect(contentHashRecord).toEqual({
 			$name: {
@@ -1430,6 +1466,64 @@ describe('Voltaire ENS records', () => {
 		expect(emptyRecord.$$timestamps[0][EntityMetaKey.Fields]).toEqual({})
 	})
 
+	it('resolves EnsRecord abi from live JSON-RPC and omits timestamp value when empty', async () => {
+		if (ensRecordResolver == null)
+			throw new Error('Voltaire EnsRecord resolver is not registered')
+
+		resolveEnsForward.mockResolvedValueOnce({
+			resolverAbiJsonText: '[{"type":"function","name":"foo"}]',
+		})
+		const abiRecord = await ensRecordResolver.resolve.NameRecordKey.resolve({
+			$name: {
+				name: 'vitalik.eth',
+			},
+			recordKey: 'abi',
+		})
+		expect(resolveEnsForward).toHaveBeenCalledWith({
+			name: 'vitalik.eth',
+			textKeys: [],
+			coinTypeIds: [],
+			dnsRecordKeys: [],
+			zonehash: false,
+			resolverAbi: true,
+		})
+		expect(abiRecord).toEqual({
+			$name: {
+				[EntityMetaKey.Selector]: {
+					name: 'vitalik.eth',
+				},
+			},
+			recordKey: 'abi',
+			recordKind: 'abi',
+			$$timestamps: [{
+				[EntityMetaKey.Selector]: {
+					$record: {
+						$name: {
+							name: 'vitalik.eth',
+						},
+						recordKey: 'abi',
+					},
+					timestampMs: 1_800_000_000_000,
+					source: Source.Voltaire_JsonRpc,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.EnsRecord_Timestamp, [], 'value')]: '[{"type":"function","name":"foo"}]',
+				},
+			}],
+		})
+
+		resolveEnsForward.mockResolvedValueOnce({
+			resolverAbiJsonText: null,
+		})
+		const emptyRecord = await ensRecordResolver.resolve.NameRecordKey.resolve({
+			$name: {
+				name: 'vitalik.eth',
+			},
+			recordKey: 'abi',
+		})
+		expect(emptyRecord.$$timestamps[0][EntityMetaKey.Fields]).toEqual({})
+	})
+
 	it('resolves EnsRecord text and coin keys from live JSON-RPC and omits timestamp value when empty', async () => {
 		if (ensRecordResolver == null)
 			throw new Error('Voltaire EnsRecord resolver is not registered')
@@ -1451,6 +1545,7 @@ describe('Voltaire ENS records', () => {
 			coinTypeIds: [],
 			dnsRecordKeys: [],
 			zonehash: false,
+			resolverAbi: false,
 		})
 		expect(textRecord).toEqual({
 			$name: {
@@ -1494,6 +1589,7 @@ describe('Voltaire ENS records', () => {
 			coinTypeIds: [60],
 			dnsRecordKeys: [],
 			zonehash: false,
+			resolverAbi: false,
 		})
 		expect(coinRecord).toEqual({
 			$name: {
@@ -1570,6 +1666,7 @@ describe('Voltaire ENS records', () => {
 				type: 16,
 			}],
 			zonehash: false,
+			resolverAbi: false,
 		})
 		expect(dnsRecord).toEqual({
 			$name: {
@@ -1611,6 +1708,7 @@ describe('Voltaire ENS records', () => {
 			coinTypeIds: [],
 			dnsRecordKeys: [],
 			zonehash: true,
+			resolverAbi: false,
 		})
 		expect(zonehashRecord).toEqual({
 			$name: {

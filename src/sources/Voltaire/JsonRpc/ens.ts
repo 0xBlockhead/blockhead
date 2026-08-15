@@ -493,6 +493,7 @@ const resolveEnsForward = async ({
 		{ name, type: ENS_DNS_RR_TYPE_AAAA },
 	],
 	zonehash = true,
+	resolverAbi = true,
 }: EnsRequest & {
 	name: string
 	textKeys?: readonly string[]
@@ -502,6 +503,7 @@ const resolveEnsForward = async ({
 		type: number
 	}[]
 	zonehash?: boolean
+	resolverAbi?: boolean
 }) => {
 	const node = bytes32FromNamehash(namehash(name))
 	const [owner, resolverAddress] = await Promise.all([
@@ -554,11 +556,14 @@ const resolveEnsForward = async ({
 			resolverAddress,
 			node,
 		}),
-		resolveResolverAbiJson({
-			request,
-			resolverAddress,
-			node,
-		}),
+		resolverAbi ?
+			resolveResolverAbiJson({
+				request,
+				resolverAddress,
+				node,
+			})
+		:
+			Promise.resolve(null),
 		Promise.all(
 			coinTypeIds.map(async (coinType) => (
 				[
