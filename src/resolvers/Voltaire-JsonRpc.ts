@@ -859,6 +859,8 @@ const ensRecordKindFromRecordKey = (recordKey: string) => (
 		'zonehash'
 	: recordKey === 'abi' ?
 		'abi'
+	: recordKey === 'pubkey' ?
+		'pubkey'
 	:
 		'text'
 )
@@ -881,6 +883,7 @@ const ensForwardFromJsonRpc = async (
 		}[]
 		zonehash?: boolean
 		resolverAbi?: boolean
+		resolverPubkey?: boolean
 	}
 ) => {
 	const chainId = ChainId.Ethereum
@@ -898,6 +901,7 @@ const ensForwardFromJsonRpc = async (
 				dnsRecords,
 				zonehash,
 				resolverAbiJsonText,
+				pubkey,
 			} = await jsonRpcTransport.resolveEnsForward({
 				name,
 				...options,
@@ -909,6 +913,7 @@ const ensForwardFromJsonRpc = async (
 				dnsRecords,
 				zonehash: ensLiveRecordValue(zonehash),
 				resolverAbiJsonText: ensLiveRecordValue(resolverAbiJsonText),
+				pubkey: ensLiveRecordValue(pubkey),
 			}
 		} catch (error) {
 			errors.push(`${jsonRpcTransport.diagnosticLabel}: ${errorMessage(error)}`)
@@ -1453,6 +1458,7 @@ export default {
 							dnsRecords,
 							zonehash,
 							resolverAbiJsonText,
+							pubkey,
 						} = await ensForwardFromJsonRpc(normalizedName)
 						const observedAtMs = Date.now()
 						return {
@@ -1530,6 +1536,17 @@ export default {
 											observedAtMs,
 										})]
 								),
+								...(
+									pubkey === undefined ?
+										[]
+									:
+										[ensRecordSnapshot({
+											name: normalizedName,
+											recordKey: 'pubkey',
+											value: pubkey,
+											observedAtMs,
+										})]
+								),
 							].map((ensRecord) => ({
 								[EntityMetaKey.Selector]: {
 									$name: ensRecord.$name[EntityMetaKey.Selector],
@@ -1575,6 +1592,7 @@ export default {
 								dnsRecordKeys: [],
 								zonehash: false,
 								resolverAbi: false,
+								resolverPubkey: false,
 							})
 							return ensRecordSnapshot({
 								name: normalizedName,
@@ -1596,6 +1614,7 @@ export default {
 								dnsRecordKeys: [],
 								zonehash: false,
 								resolverAbi: false,
+								resolverPubkey: false,
 							})
 							return ensRecordSnapshot({
 								name: normalizedName,
@@ -1617,6 +1636,7 @@ export default {
 								dnsRecordKeys: [],
 								zonehash: true,
 								resolverAbi: false,
+								resolverPubkey: false,
 							})
 							return ensRecordSnapshot({
 								name: normalizedName,
@@ -1639,6 +1659,7 @@ export default {
 								}],
 								zonehash: false,
 								resolverAbi: false,
+								resolverPubkey: false,
 							})
 							return ensRecordSnapshot({
 								name: normalizedName,
@@ -1654,11 +1675,28 @@ export default {
 								dnsRecordKeys: [],
 								zonehash: false,
 								resolverAbi: true,
+								resolverPubkey: false,
 							})
 							return ensRecordSnapshot({
 								name: normalizedName,
 								recordKey,
 								value: resolverAbiJsonText,
+								observedAtMs,
+							})
+						}
+						if (recordKey === 'pubkey') {
+							const { pubkey } = await ensForwardFromJsonRpc(normalizedName, {
+								textKeys: [],
+								coinTypeIds: [],
+								dnsRecordKeys: [],
+								zonehash: false,
+								resolverAbi: false,
+								resolverPubkey: true,
+							})
+							return ensRecordSnapshot({
+								name: normalizedName,
+								recordKey,
+								value: pubkey,
 								observedAtMs,
 							})
 						}
@@ -1674,6 +1712,7 @@ export default {
 							dnsRecordKeys: [],
 							zonehash: false,
 							resolverAbi: false,
+							resolverPubkey: false,
 						})
 						return ensRecordSnapshot({
 							name: normalizedName,

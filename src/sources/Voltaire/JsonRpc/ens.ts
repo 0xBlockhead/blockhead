@@ -139,6 +139,19 @@ const RESOLVER_ZONEHASH_ABI = new Abi([
 	},
 ])
 
+const RESOLVER_PUBKEY_ABI = new Abi([
+	{
+		type: 'function',
+		name: 'pubkey',
+		stateMutability: 'view',
+		inputs: [{ type: 'bytes32', name: 'node' }],
+		outputs: [
+			{ type: 'bytes32', name: 'x' },
+			{ type: 'bytes32', name: 'y' },
+		],
+	},
+])
+
 const ENS_DNS_RR_TYPE_A = 1
 const ENS_DNS_RR_TYPE_AAAA = 28
 const ENS_DNS_RR_TYPE_TXT = 16
@@ -149,6 +162,10 @@ const BYTES_OUTPUT = [{ type: 'bytes' as const, name: '' }] as const
 const RESOLVER_ABI_OUTPUT = [
 	{ type: 'uint256' as const, name: '' },
 	{ type: 'bytes' as const, name: '' },
+] as const
+const RESOLVER_PUBKEY_OUTPUT = [
+	{ type: 'bytes32' as const, name: '' },
+	{ type: 'bytes32' as const, name: '' },
 ] as const
 
 const bytes32FromNamehash = (nodeBytes: Uint8Array): `0x${string}` => {
@@ -444,6 +461,33 @@ const resolveZonehash = async ({
 			zoneHash
 }
 
+const resolveResolverPubkey = async ({
+	request,
+	resolverAddress,
+	node,
+}: EnsRequest & {
+	resolverAddress: `0x${string}`
+	node: `0x${string}`
+}) => {
+	const response = await request({
+		method: 'eth_call',
+		params: [
+			{
+				to: resolverAddress,
+				data: encodeFunction(RESOLVER_PUBKEY_ABI, 'pubkey', [node]),
+			},
+			'latest',
+		],
+	})
+	if (response == null || typeof response !== 'string' || response === '0x') return null
+	const [x, y] = decodeParameters(RESOLVER_PUBKEY_OUTPUT, toBytes(response))
+	const xHex = hexLowerOfByteSize(decodedBytesAsHex(x) ?? '', 32)
+	const yHex = hexLowerOfByteSize(decodedBytesAsHex(y) ?? '', 32)
+	if (xHex == null || yHex == null) return null
+	if (isZeroHex(xHex) && isZeroHex(yHex)) return null
+	return `0x${xHex.slice(2)}${yHex.slice(2)}`
+}
+
 const reverseNode = (address: `0x${string}`) => (
 	bytes32FromNamehash(
 		namehash(`${address.toLowerCase().slice(2).padStart(40, '0')}.addr.reverse`)
@@ -494,6 +538,7 @@ const resolveEnsForward = async ({
 	],
 	zonehash = true,
 	resolverAbi = true,
+	resolverPubkey = true,
 }: EnsRequest & {
 	name: string
 	textKeys?: readonly string[]
@@ -504,6 +549,7 @@ const resolveEnsForward = async ({
 	}[]
 	zonehash?: boolean
 	resolverAbi?: boolean
+	resolverPubkey?: boolean
 }) => {
 	const node = bytes32FromNamehash(namehash(name))
 	const [owner, resolverAddress] = await Promise.all([
@@ -529,9 +575,10 @@ const resolveEnsForward = async ({
 			coinAddresses: { ...emptyStringRecord },
 			dnsRecords: { ...emptyStringRecord },
 			zonehash: null,
+			pubkey: null,
 		}
 	}
-	const [address, textRecords, contentHash, resolverAbiJsonText, coinAddresses, dnsRecords, zoneHash] = await Promise.all([
+	const [address, textRecords, contentHash, resolverAbiJsonText, coinAddresses, dnsRecords, zoneHash, pubkey] = await Promise.all([
 		resolveAddr({
 			request,
 			resolverAddress,
@@ -609,6 +656,14 @@ const resolveEnsForward = async ({
 			})
 		:
 			Promise.resolve(null),
+		resolverPubkey ?
+			resolveResolverPubkey({
+				request,
+				resolverAddress,
+				node,
+			})
+		:
+			Promise.resolve(null),
 	])
 	return {
 		address,
@@ -620,6 +675,7 @@ const resolveEnsForward = async ({
 		coinAddresses,
 		dnsRecords,
 		zonehash: zoneHash,
+		pubkey,
 	}
 }
 
