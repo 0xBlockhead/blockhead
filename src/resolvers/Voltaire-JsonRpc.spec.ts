@@ -24,6 +24,7 @@ const getBalance = vi.hoisted(() => vi.fn())
 const getBlockByNumber = vi.hoisted(() => vi.fn())
 const getBlockNumber = vi.hoisted(() => vi.fn())
 const getStorageAt = vi.hoisted(() => vi.fn())
+const resolveEnsForward = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/Voltaire/JsonRpc/queries.ts', () => ({
 	voltaireJsonRpcTransports: {
@@ -38,6 +39,7 @@ vi.mock('$/sources/Voltaire/JsonRpc/queries.ts', () => ({
 				getBlockByNumber,
 				getBlockNumber,
 				getStorageAt,
+				resolveEnsForward,
 			}],
 			10: [
 				{
@@ -1118,5 +1120,153 @@ describe('Voltaire EVM storage read observations', () => {
 				},
 			},
 		])
+	})
+})
+
+describe('Voltaire ENS contenthash records', () => {
+	const ensNameResolver = voltaireJsonRpc.resolvers.find((candidate) => (
+		candidate.entityType === EntityType.EnsName
+	))
+	const ensRecordResolver = voltaireJsonRpc.resolvers.find((candidate) => (
+		candidate.entityType === EntityType.EnsRecord
+	))
+
+	beforeEach(() => {
+		vi.clearAllMocks()
+		vi.spyOn(Date, 'now').mockReturnValue(1_800_000_000_000)
+	})
+
+	it('maps live contenthash onto EnsName.$$records as recordKey/recordKind contenthash', async () => {
+		if (ensNameResolver == null)
+			throw new Error('Voltaire EnsName resolver is not registered')
+
+		resolveEnsForward.mockResolvedValueOnce({
+			contentHash: '0xe30101701220content',
+		})
+		const snapshot = await ensNameResolver.resolve.NormalizedName.resolve({
+			name: 'vitalik.eth',
+		})
+
+		expect(resolveEnsForward).toHaveBeenCalledWith({
+			name: 'vitalik.eth',
+			textKeys: [],
+			coinTypeIds: [],
+		})
+		expect(ensNameResolver.projections.name(snapshot)).toBe('vitalik.eth')
+		expect(ensNameResolver.projections.normalizedName(snapshot)).toBe('vitalik.eth')
+		expect(ensNameResolver.projections.$$records.select(snapshot)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$name: {
+					name: 'vitalik.eth',
+				},
+				recordKey: 'contenthash',
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.EnsRecord, [], '$name')]: {
+					[EntityMetaKey.Selector]: {
+						name: 'vitalik.eth',
+					},
+				},
+				[entityFieldAddressKey(EntityType.EnsRecord, [], 'recordKey')]: 'contenthash',
+				[entityFieldAddressKey(EntityType.EnsRecord, [], 'recordKind')]: 'contenthash',
+				[entityFieldAddressKey(EntityType.EnsRecord, [], '$$timestamps')]: [{
+					[EntityMetaKey.Selector]: {
+						$record: {
+							$name: {
+								name: 'vitalik.eth',
+							},
+							recordKey: 'contenthash',
+						},
+						timestampMs: 1_800_000_000_000,
+						source: Source.Voltaire_JsonRpc,
+					},
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.EnsRecord_Timestamp, [], 'value')]: '0xe30101701220content',
+					},
+				}],
+			},
+		}])
+		expect(ensNameResolver.projections.$$records.resolveCount(snapshot)).toBe(1)
+	})
+
+	it('omits EnsName.$$records contenthash when the live hash is zero or empty', async () => {
+		if (ensNameResolver == null)
+			throw new Error('Voltaire EnsName resolver is not registered')
+
+		resolveEnsForward.mockResolvedValueOnce({
+			contentHash: null,
+		})
+		const emptySnapshot = await ensNameResolver.resolve.NormalizedName.resolve({
+			name: 'vitalik.eth',
+		})
+		expect(ensNameResolver.projections.$$records.select(emptySnapshot)).toEqual([])
+		expect(ensNameResolver.projections.$$records.resolveCount(emptySnapshot)).toBe(0)
+
+		resolveEnsForward.mockResolvedValueOnce({
+			contentHash: '0x',
+		})
+		const zeroSnapshot = await ensNameResolver.resolve.NormalizedName.resolve({
+			name: 'vitalik.eth',
+		})
+		expect(ensNameResolver.projections.$$records.select(zeroSnapshot)).toEqual([])
+	})
+
+	it('resolves EnsRecord contenthash from live JSON-RPC and omits timestamp value when empty', async () => {
+		if (ensRecordResolver == null)
+			throw new Error('Voltaire EnsRecord resolver is not registered')
+
+		resolveEnsForward.mockResolvedValueOnce({
+			contentHash: '0xe30101701220content',
+		})
+		const contentHashRecord = await ensRecordResolver.resolve.NameRecordKey.resolve({
+			$name: {
+				name: 'vitalik.eth',
+			},
+			recordKey: 'contenthash',
+		})
+		expect(contentHashRecord).toEqual({
+			$name: {
+				[EntityMetaKey.Selector]: {
+					name: 'vitalik.eth',
+				},
+			},
+			recordKey: 'contenthash',
+			recordKind: 'contenthash',
+			$$timestamps: [{
+				[EntityMetaKey.Selector]: {
+					$record: {
+						$name: {
+							name: 'vitalik.eth',
+						},
+						recordKey: 'contenthash',
+					},
+					timestampMs: 1_800_000_000_000,
+					source: Source.Voltaire_JsonRpc,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.EnsRecord_Timestamp, [], 'value')]: '0xe30101701220content',
+				},
+			}],
+		})
+
+		resolveEnsForward.mockResolvedValueOnce({
+			contentHash: null,
+		})
+		const emptyRecord = await ensRecordResolver.resolve.NameRecordKey.resolve({
+			$name: {
+				name: 'vitalik.eth',
+			},
+			recordKey: 'contenthash',
+		})
+		expect(emptyRecord.$$timestamps[0][EntityMetaKey.Fields]).toEqual({})
+
+		await expect(
+			ensRecordResolver.resolve.NameRecordKey.resolve({
+				$name: {
+					name: 'vitalik.eth',
+				},
+				recordKey: 'text:url',
+			})
+		).rejects.toThrow('Voltaire_JsonRpc: ENS recordKey is not contenthash')
 	})
 })

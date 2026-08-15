@@ -846,6 +846,33 @@ const voltaireTipBlockObservationClock = async (
 	throw allJsonRpcEndpointsFailedError(chainId, fieldName, errors)
 }
 
+const ensContentHashFromJsonRpc = async (name: string) => {
+	const chainId = ChainId.Ethereum
+	const jsonRpcTransports = (await voltaireJsonRpcHttpTransportsByChainId())[chainId] ?? []
+	if (jsonRpcTransports.length === 0)
+		throw new Error('Voltaire_JsonRpc: no JSON-RPC URL for EnsRecord contenthash')
+
+	const errors: string[] = []
+	for (const jsonRpcTransport of jsonRpcTransports) {
+		try {
+			const { contentHash } = await jsonRpcTransport.resolveEnsForward({
+				name,
+				textKeys: [],
+				coinTypeIds: [],
+			})
+			return (
+				contentHash == null || contentHash === '' || contentHash === '0x' ?
+					undefined
+				:
+					contentHash
+			)
+		} catch (error) {
+			errors.push(`${jsonRpcTransport.diagnosticLabel}: ${errorMessage(error)}`)
+		}
+	}
+	throw allJsonRpcEndpointsFailedError(chainId, 'EnsRecord contenthash', errors)
+}
+
 const evmTransactionRefsForTxHashes = (
 	chainId: number,
 	transactions: readonly (string | RpcTransactionWire)[] | undefined
@@ -1333,9 +1360,48 @@ export default {
 							normalizeEnsName,
 						} = await import('$/sources/Voltaire/JsonRpc/ens.ts')
 						const normalizedName = normalizeEnsName(name)
+						const contentHash = await ensContentHashFromJsonRpc(normalizedName)
+						const observedAtMs = Date.now()
 						return {
 							name: normalizedName,
 							normalizedName,
+							$$records: (
+								contentHash === undefined ?
+									[]
+								:
+									[{
+										[EntityMetaKey.Selector]: {
+											$name: {
+												name: normalizedName,
+											},
+											recordKey: 'contenthash',
+										},
+										[EntityMetaKey.Fields]: {
+											[entityFieldAddressKey(EntityType.EnsRecord, [], '$name')]: {
+												[EntityMetaKey.Selector]: {
+													name: normalizedName,
+												},
+											},
+											[entityFieldAddressKey(EntityType.EnsRecord, [], 'recordKey')]: 'contenthash',
+											[entityFieldAddressKey(EntityType.EnsRecord, [], 'recordKind')]: 'contenthash',
+											[entityFieldAddressKey(EntityType.EnsRecord, [], '$$timestamps')]: [{
+												[EntityMetaKey.Selector]: {
+													$record: {
+														$name: {
+															name: normalizedName,
+														},
+														recordKey: 'contenthash',
+													},
+													timestampMs: observedAtMs,
+													source: Source.Voltaire_JsonRpc,
+												},
+												[EntityMetaKey.Fields]: {
+													[entityFieldAddressKey(EntityType.EnsRecord_Timestamp, [], 'value')]: contentHash,
+												},
+											}],
+										},
+									}]
+							),
 						}
 					},
 				}
@@ -1343,6 +1409,63 @@ export default {
 		})({
 			name: (entity) => entity.name,
 			normalizedName: (entity) => entity.normalizedName,
+			$$records: {
+				select: (entity) => entity.$$records,
+				resolveCount: (entity) => entity.$$records.length,
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.EnsRecord,
+			resolve: {
+				NameRecordKey: {
+					resolve: async ({ $name, recordKey }) => {
+						if (recordKey !== 'contenthash')
+							throw new Error('Voltaire_JsonRpc: ENS recordKey is not contenthash')
+
+						const {
+							normalizeEnsName,
+						} = await import('$/sources/Voltaire/JsonRpc/ens.ts')
+						const normalizedName = normalizeEnsName($name.name)
+						const contentHash = await ensContentHashFromJsonRpc(normalizedName)
+						const observedAtMs = Date.now()
+						return {
+							$name: {
+								[EntityMetaKey.Selector]: {
+									name: normalizedName,
+								},
+							},
+							recordKey: 'contenthash',
+							recordKind: 'contenthash',
+							$$timestamps: [{
+								[EntityMetaKey.Selector]: {
+									$record: {
+										$name: {
+											name: normalizedName,
+										},
+										recordKey: 'contenthash',
+									},
+									timestampMs: observedAtMs,
+									source: Source.Voltaire_JsonRpc,
+								},
+								[EntityMetaKey.Fields]: {
+									...(contentHash !== undefined && {
+										[entityFieldAddressKey(EntityType.EnsRecord_Timestamp, [], 'value')]: contentHash,
+									}),
+								},
+							}],
+						}
+					},
+				},
+			},
+		})({
+			$name: (ensRecord) => ensRecord.$name,
+			recordKey: (ensRecord) => ensRecord.recordKey,
+			recordKind: (ensRecord) => ensRecord.recordKind,
+			$$timestamps: {
+				select: (ensRecord) => ensRecord.$$timestamps,
+				resolveCount: (ensRecord) => ensRecord.$$timestamps.length,
+			},
 		}),
 
 		defineResolver({
