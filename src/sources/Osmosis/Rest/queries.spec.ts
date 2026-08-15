@@ -653,7 +653,7 @@ describe('Osmosis LCD named operations', () => {
 		})
 		expect(sourceGetJson).toHaveBeenCalledWith(
 			binding,
-			httpUrl(binding, '/osmosis/poolmanager/v1beta1/pools/1/prices?base_asset_denom=uosmo&quote_asset_denom=uion')
+			httpUrl(binding, '/osmosis/poolmanager/v2/pools/1/prices?base_asset_denom=uosmo&quote_asset_denom=uion')
 		)
 	})
 

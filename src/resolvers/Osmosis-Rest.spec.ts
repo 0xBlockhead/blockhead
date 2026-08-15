@@ -737,7 +737,7 @@ describe('Osmosis LCD resolver module', () => {
 		expect(osmosisPoolTimestampResolver.projections.quoteAssetDenom(snapshot)).toBe('uion')
 		expect(sourceGetJson).toHaveBeenCalledWith(
 			expect.anything(),
-			expect.stringMatching(/\/osmosis\/poolmanager\/v1beta1\/pools\/1\/prices\?/)
+			expect.stringMatching(/\/osmosis\/poolmanager\/v2\/pools\/1\/prices\?/)
 		)
 	})
 

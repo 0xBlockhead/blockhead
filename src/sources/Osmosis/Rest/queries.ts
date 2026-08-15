@@ -469,7 +469,7 @@ export const getSpotPrice = ({
 		quote_asset_denom: quoteAssetDenom,
 	})
 	return lcdGetJson<unknown>(
-		`/osmosis/poolmanager/v1beta1/pools/${poolId}/prices?${search.toString()}`
+		`/osmosis/poolmanager/v2/pools/${poolId}/prices?${search.toString()}`
 	)
 		.then((response) => {
 			try {
