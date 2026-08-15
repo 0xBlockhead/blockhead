@@ -44,6 +44,31 @@ export type GitlabTag = typeof gitlabTagWire.infer
 
 export const gitlabTagsWire = gitlabTagWire.array()
 
+const gitlabProtectedRefAccessWire = type({
+	id: 'number.integer >= 0',
+	access_level: 'number.integer >= 0 | null',
+	access_level_description: 'string > 0',
+	'deploy_key_id?': 'number.integer >= 0 | null',
+	'user_id?': 'number.integer >= 0 | null',
+	'group_id?': 'number.integer >= 0 | null',
+	'member_role_id?': 'number.integer >= 0 | null',
+})
+
+export const gitlabProtectedBranchWire = type({
+	id: 'number.integer >= 0',
+	name: 'string > 0',
+	push_access_levels: gitlabProtectedRefAccessWire.array(),
+	merge_access_levels: gitlabProtectedRefAccessWire.array(),
+	allow_force_push: 'boolean',
+	code_owner_approval_required: 'boolean',
+	'unprotect_access_levels?': gitlabProtectedRefAccessWire.array(),
+	'inherited?': 'boolean',
+})
+
+export type GitlabProtectedBranch = typeof gitlabProtectedBranchWire.infer
+
+export const gitlabProtectedBranchesWire = gitlabProtectedBranchWire.array()
+
 export const gitlabRepositoryTreeEntryWire = type({
 	id: '/^[0-9a-fA-F]{40}$|^[0-9a-fA-F]{64}$/',
 	name: 'string > 0',

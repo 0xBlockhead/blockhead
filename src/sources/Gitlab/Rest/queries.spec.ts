@@ -24,11 +24,13 @@ const {
 	getPipelineJobs,
 	getPipelines,
 	getProject,
+	getProtectedBranch,
 	getRelease,
 	getReleases,
 	getRepositoryTree,
 	getTag,
 	getTags,
+	listProtectedBranches,
 } = await import('$/sources/Gitlab/Rest/queries.ts')
 
 describe('GitLab REST wires', () => {
@@ -530,6 +532,183 @@ describe('GitLab REST wires', () => {
 			projectId: 'group/project',
 			pipelineId: -1,
 		})).toThrow('invalid pipeline ID')
+	})
+
+	it('accepts native protected-branch policy payloads from list and get', async () => {
+		sourceGetJson
+			.mockResolvedValueOnce([
+				{
+					id: 100,
+					name: 'main',
+					push_access_levels: [{
+						id: 1001,
+						access_level: 40,
+						access_level_description: 'Maintainers',
+					}],
+					merge_access_levels: [{
+						id: 2001,
+						access_level: 40,
+						access_level_description: 'Maintainers',
+					}],
+					allow_force_push: false,
+					code_owner_approval_required: false,
+				},
+				{
+					id: 101,
+					name: 'release/*',
+					push_access_levels: [{
+						id: 1003,
+						access_level: 40,
+						access_level_description: 'Maintainers',
+					}],
+					merge_access_levels: [{
+						id: 2002,
+						access_level: 40,
+						access_level_description: 'Maintainers',
+					}],
+					allow_force_push: false,
+					code_owner_approval_required: false,
+				},
+			])
+			.mockResolvedValueOnce({
+				id: 109607,
+				name: 'master',
+				push_access_levels: [{
+					id: 7058263,
+					access_level: 40,
+					access_level_description: 'GitLab Bot',
+					deploy_key_id: null,
+					user_id: 1786152,
+					group_id: null,
+					member_role_id: null,
+				}],
+				merge_access_levels: [{
+					id: 33863457,
+					access_level: 40,
+					access_level_description: 'managers',
+					user_id: null,
+					group_id: 2584649,
+					member_role_id: null,
+				}],
+				allow_force_push: false,
+				unprotect_access_levels: [],
+				code_owner_approval_required: true,
+				inherited: false,
+			})
+
+		await expect(listProtectedBranches({
+			projectId: 'gitlab-org/gitlab',
+		})).resolves.toEqual([
+			expect.objectContaining({
+				id: 100,
+				name: 'main',
+				allow_force_push: false,
+			}),
+			expect.objectContaining({
+				name: 'release/*',
+			}),
+		])
+		await expect(getProtectedBranch({
+			projectId: 'gitlab-org/gitlab',
+			branchName: 'master',
+		})).resolves.toMatchObject({
+			id: 109607,
+			name: 'master',
+			code_owner_approval_required: true,
+			inherited: false,
+			push_access_levels: [{
+				access_level: 40,
+				user_id: 1786152,
+			}],
+			merge_access_levels: [{
+				group_id: 2584649,
+			}],
+		})
+		expect(sourceGetJson.mock.calls.map(([, url]) => url)).toEqual([
+			'https://gitlab.com/api/v4/projects/gitlab-org%2Fgitlab/protected_branches?page=1&per_page=100',
+			'https://gitlab.com/api/v4/projects/gitlab-org%2Fgitlab/protected_branches/master',
+		])
+	})
+
+	it('reads protected-branch pages, search, and wildcard names and rejects invalid pagination before transport', async () => {
+		sourceGetJson
+			.mockResolvedValueOnce([{
+				id: 100,
+				name: 'master',
+				push_access_levels: [{
+					id: 1001,
+					access_level: 40,
+					access_level_description: 'Maintainers',
+				}],
+				merge_access_levels: [{
+					id: 2001,
+					access_level: 40,
+					access_level_description: 'Maintainers',
+				}],
+				allow_force_push: false,
+				code_owner_approval_required: false,
+			}])
+			.mockResolvedValueOnce({
+				id: 101,
+				name: 'release/*',
+				push_access_levels: [{
+					id: 1003,
+					access_level: 0,
+					access_level_description: 'No one',
+				}],
+				merge_access_levels: [{
+					id: 2002,
+					access_level: 40,
+					access_level_description: 'Maintainers',
+				}],
+				allow_force_push: false,
+				code_owner_approval_required: true,
+			})
+
+		await expect(listProtectedBranches({
+			projectId: 'gitlab-org/gitlab',
+			search: 'master',
+			page: 2,
+			perPage: 5,
+		})).resolves.toHaveLength(1)
+		await expect(getProtectedBranch({
+			projectId: 'gitlab-org/gitlab',
+			branchName: 'release/*',
+		})).resolves.toMatchObject({
+			name: 'release/*',
+			push_access_levels: [{
+				access_level: 0,
+			}],
+		})
+		expect(sourceGetJson.mock.calls.map(([, url]) => url)).toEqual([
+			'https://gitlab.com/api/v4/projects/gitlab-org%2Fgitlab/protected_branches?search=master&page=2&per_page=5',
+			'https://gitlab.com/api/v4/projects/gitlab-org%2Fgitlab/protected_branches/release%2F*',
+		])
+		expect(() => listProtectedBranches({
+			projectId: 'gitlab-org/gitlab',
+			page: 0,
+		})).toThrow('invalid page')
+		expect(() => listProtectedBranches({
+			projectId: 'gitlab-org/gitlab',
+			perPage: 101,
+		})).toThrow('invalid per-page limit')
+	})
+
+	it('fails closed when a protected-branch policy omits access levels', async () => {
+		sourceGetJson.mockResolvedValue({
+			id: 100,
+			name: 'main',
+			allow_force_push: false,
+			code_owner_approval_required: false,
+		})
+
+		await expect(getProtectedBranch({
+			projectId: 'gitlab-org/gitlab',
+			branchName: 'main',
+		})).rejects.toThrow('Gitlab_Rest: invalid protected branch response')
+		await expect(listProtectedBranches({
+			projectId: 'gitlab-org/gitlab',
+		})).rejects.toThrow('Gitlab_Rest: invalid protected branches response')
 	})
 
 	it('reads exact pipeline and job identities from their native endpoints', async () => {

@@ -17,6 +17,8 @@ import {
 	gitlabProjectWire,
 	gitlabPipelineWire,
 	gitlabPipelinesWire,
+	gitlabProtectedBranchesWire,
+	gitlabProtectedBranchWire,
 	gitlabReleaseWire,
 	gitlabReleasesWire,
 	gitlabRepositoryTreeWire,
@@ -91,6 +93,47 @@ export const getBranch = ({
 				return gitlabBranchWire.assert(branch)
 			} catch {
 				throw new Error('Gitlab_Rest: invalid branch response')
+			}
+		})
+)
+
+export const listProtectedBranches = ({
+	projectId,
+	search,
+	page = 1,
+	perPage = 100,
+}: {
+	projectId: string
+	search?: string
+	page?: number
+	perPage?: number
+}) => (
+	getJson<JsonValue>(binding, `/api/v4/projects/${encodeURIComponent(projectId)}/protected_branches?${new URLSearchParams({
+		...(search != null && { search }),
+		...gitlabPaginationParams(page, perPage),
+	})}`)
+		.then((protectedBranches) => {
+			try {
+				return gitlabProtectedBranchesWire.assert(protectedBranches)
+			} catch {
+				throw new Error('Gitlab_Rest: invalid protected branches response')
+			}
+		})
+)
+
+export const getProtectedBranch = ({
+	projectId,
+	branchName,
+}: {
+	projectId: string
+	branchName: string
+}) => (
+	getJson<JsonValue>(binding, `/api/v4/projects/${encodeURIComponent(projectId)}/protected_branches/${encodeURIComponent(branchName)}`)
+		.then((protectedBranch) => {
+			try {
+				return gitlabProtectedBranchWire.assert(protectedBranch)
+			} catch {
+				throw new Error('Gitlab_Rest: invalid protected branch response')
 			}
 		})
 )
