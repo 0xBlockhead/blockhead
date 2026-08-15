@@ -88,7 +88,19 @@ export default indexSourceBindings([
 		endpoints: [
 			{
 				endpointKind: SourceEndpointKind.UdpAddress,
-				locator: 'udp://{bootstrap-node}:{port}',
+				locator: 'udp://router.bittorrent.com:6881',
+			},
+			{
+				endpointKind: SourceEndpointKind.UdpAddress,
+				locator: 'udp://router.utorrent.com:6881',
+			},
+			{
+				endpointKind: SourceEndpointKind.UdpAddress,
+				locator: 'udp://dht.transmissionbt.com:6881',
+			},
+			{
+				endpointKind: SourceEndpointKind.UdpAddress,
+				locator: 'udp://dht.libtorrent.org:25401',
 			},
 		],
 		wireProtocol: WireProtocol.Bencode,
