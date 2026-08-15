@@ -572,6 +572,8 @@ export enum EntityType {
 	GitBlob = 'GitBlob',
 	GitCommit = 'GitCommit',
 	GitFetchObservation = 'GitFetchObservation',
+	GitForgeCompare = 'GitForgeCompare',
+	GitForgeCompareFileChange = 'GitForgeCompareFileChange',
 	GitForgeIssue = 'GitForgeIssue',
 	GitForgeJob = 'GitForgeJob',
 	GitForgeMirror = 'GitForgeMirror',

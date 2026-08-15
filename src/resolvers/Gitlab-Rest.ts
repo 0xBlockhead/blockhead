@@ -48,6 +48,55 @@ const gitlabProjectIdFromMirror = ({
 	forgeHost === 'gitlab.com' ? `${owner}/${repositoryName}` : undefined
 )
 
+const gitlabGitObjectId = (id: string) => (
+	`0x${id.toLowerCase()}`
+)
+
+const gitObjectFormatFromObjectId = (objectId: string) => {
+	if (objectId.length === 42)
+		return 'sha1'
+	if (objectId.length === 66)
+		return 'sha256'
+	throw new Error('Gitlab_Rest: unsupported git object ID length')
+}
+
+const gitCommitRefFromObjectId = (objectId: string) => ({
+	[EntityMetaKey.Selector]: {
+		objectId,
+		objectFormat: gitObjectFormatFromObjectId(objectId),
+	},
+})
+
+const gitlabCompareFromMirror = async ({
+	$forgeMirror,
+	fromObjectId,
+	toObjectId,
+}: {
+	$forgeMirror: {
+		forgeHost: string
+		owner: string
+		repositoryName: string
+	}
+	fromObjectId: string
+	toObjectId: string
+}) => {
+	const projectId = gitlabProjectIdFromMirror($forgeMirror)
+	if (projectId == null)
+		return undefined
+
+	const { compareRepositoryRefs } = await import('$/sources/Gitlab/Rest/queries.ts')
+	const comparison = await compareRepositoryRefs({
+		projectId,
+		from: fromObjectId.slice(2),
+		to: toObjectId.slice(2),
+	})
+	const toCommitObjectId = gitlabGitObjectId(comparison.commit.id)
+	if (toCommitObjectId !== toObjectId.toLowerCase())
+		throw new Error('Gitlab_Rest: compare head does not match to object ID')
+
+	return comparison
+}
+
 const gitlabTimestampMs = (timestamp: string) => {
 	const timestampMs = Date.parse(timestamp)
 	if (!Number.isFinite(timestampMs))
@@ -1406,6 +1455,133 @@ export default {
 			authorSelector: (release) => release.authorSelector,
 			createdAt: (release) => release.createdAt,
 			publishedAt: (release) => release.publishedAt,
+		}),
+
+		defineResolver({
+			entityType: EntityType.GitForgeCompare,
+			resolve: {
+				ForgeMirrorFromObjectIdToObjectId: {
+					resolve: async ({
+						$forgeMirror,
+						fromObjectId,
+						toObjectId,
+					}) => {
+						const comparison = await gitlabCompareFromMirror({
+							$forgeMirror,
+							fromObjectId,
+							toObjectId,
+						})
+						if (comparison == null)
+							return undefined
+
+						const fromCommit = gitCommitRefFromObjectId(fromObjectId)
+						const toCommit = gitCommitRefFromObjectId(toObjectId)
+						const compareSelector = {
+							$forgeMirror,
+							fromObjectId,
+							toObjectId,
+						}
+
+						return {
+							$forgeMirror,
+							fromObjectId,
+							toObjectId,
+							$fromCommit: fromCommit,
+							$toCommit: toCommit,
+							sameRef: comparison.compare_same_ref,
+							timedOut: comparison.compare_timeout,
+							$$commits: comparison.commits.map((commit) => (
+								gitCommitRefFromObjectId(gitlabGitObjectId(commit.id))
+							)),
+							$$fileChanges: comparison.diffs.map((diff) => ({
+								[EntityMetaKey.Selector]: {
+									$compare: compareSelector,
+									oldPath: diff.old_path,
+									newPath: diff.new_path,
+								},
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.GitForgeCompareFileChange, [], 'oldMode')]: diff.a_mode,
+									[entityFieldAddressKey(EntityType.GitForgeCompareFileChange, [], 'newMode')]: diff.b_mode,
+									[entityFieldAddressKey(EntityType.GitForgeCompareFileChange, [], 'newFile')]: diff.new_file,
+									[entityFieldAddressKey(EntityType.GitForgeCompareFileChange, [], 'renamedFile')]: diff.renamed_file,
+									[entityFieldAddressKey(EntityType.GitForgeCompareFileChange, [], 'deletedFile')]: diff.deleted_file,
+									...(diff.too_large != null && {
+										[entityFieldAddressKey(EntityType.GitForgeCompareFileChange, [], 'tooLarge')]: diff.too_large,
+									}),
+									...(diff.diff !== '' && {
+										[entityFieldAddressKey(EntityType.GitForgeCompareFileChange, [], 'patch')]: diff.diff,
+									}),
+								},
+							})),
+						}
+					},
+				},
+			},
+		})({
+			$forgeMirror: (comparison) => comparison.$forgeMirror,
+			fromObjectId: (comparison) => comparison.fromObjectId,
+			toObjectId: (comparison) => comparison.toObjectId,
+			$fromCommit: (comparison) => comparison.$fromCommit,
+			$toCommit: (comparison) => comparison.$toCommit,
+			sameRef: (comparison) => comparison.sameRef,
+			timedOut: (comparison) => comparison.timedOut,
+			$$commits: {
+				select: (comparison) => comparison.$$commits,
+				resolveCount: (comparison) => comparison.$$commits.length,
+			},
+			$$fileChanges: (comparison) => comparison.$$fileChanges,
+		}),
+
+		defineResolver({
+			entityType: EntityType.GitForgeCompareFileChange,
+			resolve: {
+				CompareOldPathNewPath: {
+					resolve: async ({
+						$compare,
+						oldPath,
+						newPath,
+					}) => {
+						const comparison = await gitlabCompareFromMirror($compare)
+						if (comparison == null)
+							return undefined
+
+						const diff = comparison.diffs.find((candidate) => (
+							candidate.old_path === oldPath
+							&& candidate.new_path === newPath
+						))
+						if (diff == null)
+							throw new Error('Gitlab_Rest: file change is not in this comparison')
+
+						return {
+							$compare,
+							oldPath,
+							newPath,
+							oldMode: diff.a_mode,
+							newMode: diff.b_mode,
+							newFile: diff.new_file,
+							renamedFile: diff.renamed_file,
+							deletedFile: diff.deleted_file,
+							...(diff.too_large != null && {
+								tooLarge: diff.too_large,
+							}),
+							...(diff.diff !== '' && {
+								patch: diff.diff,
+							}),
+						}
+					},
+				},
+			},
+		})({
+			$compare: (fileChange) => fileChange.$compare,
+			oldPath: (fileChange) => fileChange.oldPath,
+			newPath: (fileChange) => fileChange.newPath,
+			oldMode: (fileChange) => fileChange.oldMode,
+			newMode: (fileChange) => fileChange.newMode,
+			newFile: (fileChange) => fileChange.newFile,
+			renamedFile: (fileChange) => fileChange.renamedFile,
+			deletedFile: (fileChange) => fileChange.deletedFile,
+			tooLarge: (fileChange) => fileChange.tooLarge,
+			patch: (fileChange) => fileChange.patch,
 		}),
 	],
 } satisfies RegisteredSourceResolverModule

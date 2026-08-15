@@ -1271,6 +1271,8 @@ export enum EntityType {
 	GitBlob = "GitBlob",
 	GitCommit = "GitCommit",
 	GitFetchObservation = "GitFetchObservation",
+	GitForgeCompare = "GitForgeCompare",
+	GitForgeCompareFileChange = "GitForgeCompareFileChange",
 	GitForgeIssue = "GitForgeIssue",
 	GitForgeJob = "GitForgeJob",
 	GitForgeMirror = "GitForgeMirror",
@@ -34522,6 +34524,84 @@ export const schema = {
 						component: "GitFetchObservationsView",
 						title: "Git fetch observations",
 					},
+				},
+			}),
+
+			entity({
+				entityType: EntityType.GitForgeCompare,
+				labels: {
+					singular: "Git forge compare",
+					plural: "Git forge compares",
+				},
+			})({
+				"$forgeMirror": { label: "forge mirror", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.GitForgeMirror },
+				"fromObjectId": { label: "from object ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "zeroExHex" },
+				"toObjectId": { label: "to object ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "zeroExHex" },
+				"$fromCommit": { label: "from commit", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.GitCommit },
+				"$toCommit": { label: "to commit", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.GitCommit },
+				"sameRef": { label: "same ref", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "boolean" },
+				"timedOut": { label: "timed out", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "boolean" },
+				"$$commits": { label: "commits", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.GitCommit, defaultSources: [Source.Gitlab_Rest] },
+				"$$fileChanges": { label: "file changes", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.GitForgeCompareFileChange, defaultSources: [Source.Gitlab_Rest] },
+			})({
+				selectors: {
+					"ForgeMirrorFromObjectIdToObjectId": ["$forgeMirror", "fromObjectId", "toObjectId"],
+				},
+				views: {
+					singular: {
+						query: { sources: [Source.Gitlab_Rest] },
+						summary: {
+							title: [{ field: "fromObjectId", format: "truncated" }, { field: "toObjectId", format: "truncated" }],
+							value: ["$forgeMirror"],
+						},
+						closed: ["$forgeMirror", { field: "fromObjectId", format: "truncated" }, { field: "toObjectId", format: "truncated" }],
+						content: {
+							dl: [
+								["$forgeMirror", { field: "fromObjectId", format: "truncated" }, { field: "toObjectId", format: "truncated" }, "$fromCommit", "$toCommit", { field: "sameRef", format: "boolean" }, { field: "timedOut", format: "boolean" }],
+							],
+							lists: [
+								{ field: "$$commits", component: "GitCommitsView", emptyText: "No commits in this comparison." },
+								{ field: "$$fileChanges", component: "GitForgeCompareFileChangesView", emptyText: "No file changes in this comparison." },
+							],
+						},
+					},
+					plural: { component: "GitForgeComparesView", title: "Git forge compares" },
+				},
+			}),
+
+			entity({
+				entityType: EntityType.GitForgeCompareFileChange,
+				labels: {
+					singular: "Git forge compare file change",
+					plural: "Git forge compare file changes",
+				},
+			})({
+				"$compare": { label: "compare", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.GitForgeCompare },
+				"oldPath": { label: "old path", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "opaqueRouteIdentifier" },
+				"newPath": { label: "new path", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "opaqueRouteIdentifier" },
+				"oldMode": { label: "old mode", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"newMode": { label: "new mode", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"newFile": { label: "new file", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "boolean" },
+				"renamedFile": { label: "renamed file", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "boolean" },
+				"deletedFile": { label: "deleted file", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "boolean" },
+				"tooLarge": { label: "too large", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean" },
+				"patch": { label: "patch", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+			})({
+				selectors: {
+					"CompareOldPathNewPath": ["$compare", "oldPath", "newPath"],
+				},
+				views: {
+					singular: {
+						query: { sources: [Source.Gitlab_Rest] },
+						summary: { title: ["newPath"], value: ["oldPath"] },
+						closed: ["$compare", "oldPath", "newPath"],
+						content: {
+							dl: [
+								["$compare", "oldPath", "newPath", "oldMode", "newMode", { field: "newFile", format: "boolean" }, { field: "renamedFile", format: "boolean" }, { field: "deletedFile", format: "boolean" }, { field: "tooLarge", format: "boolean" }],
+							],
+						},
+					},
+					plural: { component: "GitForgeCompareFileChangesView", title: "Git forge compare file changes" },
 				},
 			}),
 
@@ -95445,6 +95525,44 @@ export const routes = defineRoutes(schema)({
 																					"PipelineJobId": {
 																						params: { "jobId": ["jobId"] },
 																						page: {},
+																					}
+																				}
+																			}
+																		}
+																	}
+																}
+															}
+														}
+													}
+												},
+												"compare": {
+													children: {
+														"[fromObjectId]": {
+															children: {
+																"[toObjectId]": {
+																	selectors: {
+																		[EntityType.GitForgeCompare]: {
+																			"ForgeMirrorFromObjectIdToObjectId": {
+																				params: { "fromObjectId": ["fromObjectId"], "toObjectId": ["toObjectId"] },
+																				page: {},
+																			}
+																		}
+																	},
+																	children: {
+																		"file": {
+																			children: {
+																				"[oldPath]": {
+																					children: {
+																						"[newPath]": {
+																							selectors: {
+																								[EntityType.GitForgeCompareFileChange]: {
+																									"CompareOldPathNewPath": {
+																										params: { "oldPath": ["oldPath"], "newPath": ["newPath"] },
+																										page: {},
+																									}
+																								}
+																							}
+																						}
 																					}
 																				}
 																			}

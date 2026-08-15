@@ -13154,6 +13154,30 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
+	'/git/forge/[forgeHost]/[owner]/[repositoryName]/compare/[fromObjectId]/[toObjectId]': {
+		routeId: '/git/forge/[forgeHost=stringSegment]/[owner=stringSegment]/[repositoryName=stringSegment]/(gitForgeMirror)/compare/[fromObjectId=zeroExHex]/[toObjectId=zeroExHex]',
+		mappings: [
+			{
+				id: 'GitForgeCompare.ForgeMirrorFromObjectIdToObjectId',
+				probeAtomPrefixes: ['/git/forge/[forgeHost]/[owner]/[repositoryName]/compare/[fromObjectId]/[toObjectId]:GitForgeCompare.ForgeMirrorFromObjectIdToObjectId'],
+				probeCases: [[[0, '1', ['fromObjectId', 'toObjectId', 'forgeHost', 'owner', 'repositoryName']]]],
+			},
+		],
+	},
+	'/git/forge/[forgeHost]/[owner]/[repositoryName]/compare/[fromObjectId]/[toObjectId]/file/[oldPath]/[newPath]': {
+		routeId: '/git/forge/[forgeHost=stringSegment]/[owner=stringSegment]/[repositoryName=stringSegment]/(gitForgeMirror)/compare/[fromObjectId=zeroExHex]/[toObjectId=zeroExHex]/(gitForgeCompare)/file/[oldPath=stringSegment]/[newPath=stringSegment]',
+		parameterEncodingByName: {
+			oldPath: 'Opaque',
+			newPath: 'Opaque',
+		},
+		mappings: [
+			{
+				id: 'GitForgeCompareFileChange.CompareOldPathNewPath',
+				probeAtomPrefixes: ['/git/forge/[forgeHost]/[owner]/[repositoryName]/compare/[fromObjectId]/[toObjectId]/file/[oldPath]/[newPath]:GitForgeCompareFileChange.CompareOldPathNewPath'],
+				probeCases: [[[0, '1', ['oldPath', 'newPath', 'fromObjectId', 'toObjectId', 'forgeHost', 'owner', 'repositoryName']]]],
+			},
+		],
+	},
 	'/git/forge/[forgeHost]/[owner]/[repositoryName]/issue/[issueNumber]': {
 		routeId: '/git/forge/[forgeHost=stringSegment]/[owner=stringSegment]/[repositoryName=stringSegment]/(gitForgeMirror)/issue/[issueNumber=nonNegativeInteger]',
 		mappings: [

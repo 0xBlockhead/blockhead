@@ -27,6 +27,7 @@ const {
 	getRepositoryTree,
 	getTag,
 	getTags,
+	compareRepositoryRefs,
 } = vi.hoisted(() => ({
 	getBranches: vi.fn(),
 	getBranch: vi.fn(),
@@ -46,6 +47,7 @@ const {
 	getRepositoryTree: vi.fn(),
 	getTag: vi.fn(),
 	getTags: vi.fn(),
+	compareRepositoryRefs: vi.fn(),
 }))
 
 vi.mock('$/sources/Gitlab/Rest/queries.ts', () => ({
@@ -67,6 +69,7 @@ vi.mock('$/sources/Gitlab/Rest/queries.ts', () => ({
 	getRepositoryTree,
 	getTag,
 	getTags,
+	compareRepositoryRefs,
 }))
 
 const resolverModule = (await import('$/resolvers/Gitlab-Rest.ts')).default
@@ -88,6 +91,8 @@ const pipelineJobsResolver = resolverModule.resolvers.find((resolver) => '$$jobs
 const jobResolver = resolverModule.resolvers.find((resolver) => resolver.entityType === EntityType.GitForgeJob)
 const releaseResolver = resolverModule.resolvers.find((resolver) => resolver.entityType === EntityType.GitForgeRelease)
 const signatureResolver = resolverModule.resolvers.find((resolver) => resolver.entityType === EntityType.GitSignature)
+const compareResolver = resolverModule.resolvers.find((resolver) => resolver.entityType === EntityType.GitForgeCompare)
+const compareFileChangeResolver = resolverModule.resolvers.find((resolver) => resolver.entityType === EntityType.GitForgeCompareFileChange)
 if (
 	mirrorResolver == null
 	|| repositoryResolver == null
@@ -107,6 +112,8 @@ if (
 	|| jobResolver == null
 	|| releaseResolver == null
 	|| signatureResolver == null
+	|| compareResolver == null
+	|| compareFileChangeResolver == null
 )
 	throw new Error('GitLab repository-journey resolvers must all be registered')
 
@@ -1118,5 +1125,141 @@ describe('GitLab repository journey', () => {
 			signatureId: `https://gitlab.com/group/project/-/commit/${'a'.repeat(40)}`,
 		})).resolves.toBeUndefined()
 		expect(getCommitSignature).not.toHaveBeenCalled()
+	})
+
+	it('resolves a merge-base compare by commit object IDs and file changes', async () => {
+		const fromObjectId = `0x${'a'.repeat(40)}`
+		const toObjectId = `0x${'c'.repeat(40)}`
+		const forgeMirror = {
+			forgeHost: 'gitlab.com',
+			owner: 'gitlab-org',
+			repositoryName: 'gitlab',
+		}
+		compareRepositoryRefs.mockResolvedValue({
+			commit: {
+				id: 'c'.repeat(40),
+			},
+			commits: [{
+				id: 'b'.repeat(40),
+				parent_ids: ['a'.repeat(40)],
+				title: 'feat',
+				message: 'feat\n',
+				author_name: 'A',
+				author_email: 'a@example.com',
+				authored_date: '2026-08-14T00:00:00Z',
+				committer_name: 'A',
+				committer_email: 'a@example.com',
+				committed_date: '2026-08-14T00:00:00Z',
+			}],
+			diffs: [{
+				old_path: 'src/old.ts',
+				new_path: 'src/new.ts',
+				a_mode: '100644',
+				b_mode: '100644',
+				new_file: false,
+				renamed_file: true,
+				deleted_file: false,
+				diff: '@@ -1 +1 @@',
+				too_large: false,
+			}],
+			compare_timeout: false,
+			compare_same_ref: false,
+		})
+
+		const comparison = await compareResolver.resolve.ForgeMirrorFromObjectIdToObjectId.resolve({
+			$forgeMirror: forgeMirror,
+			fromObjectId,
+			toObjectId,
+		})
+
+		expect(compareRepositoryRefs).toHaveBeenCalledWith({
+			projectId: 'gitlab-org/gitlab',
+			from: 'a'.repeat(40),
+			to: 'c'.repeat(40),
+		})
+		expect(comparison).toMatchObject({
+			sameRef: false,
+			timedOut: false,
+			$fromCommit: {
+				[EntityMetaKey.Selector]: {
+					objectId: fromObjectId,
+					objectFormat: 'sha1',
+				},
+			},
+			$toCommit: {
+				[EntityMetaKey.Selector]: {
+					objectId: toObjectId,
+					objectFormat: 'sha1',
+				},
+			},
+			$$commits: [{
+				[EntityMetaKey.Selector]: {
+					objectId: `0x${'b'.repeat(40)}`,
+					objectFormat: 'sha1',
+				},
+			}],
+		})
+		expect(compareResolver.projections.$$commits.resolveCount(comparison)).toBe(1)
+		expect(compareResolver.projections.$$fileChanges(comparison)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$compare: {
+					$forgeMirror: forgeMirror,
+					fromObjectId,
+					toObjectId,
+				},
+				oldPath: 'src/old.ts',
+				newPath: 'src/new.ts',
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.GitForgeCompareFileChange, [], 'oldMode')]: '100644',
+				[entityFieldAddressKey(EntityType.GitForgeCompareFileChange, [], 'newMode')]: '100644',
+				[entityFieldAddressKey(EntityType.GitForgeCompareFileChange, [], 'newFile')]: false,
+				[entityFieldAddressKey(EntityType.GitForgeCompareFileChange, [], 'renamedFile')]: true,
+				[entityFieldAddressKey(EntityType.GitForgeCompareFileChange, [], 'deletedFile')]: false,
+				[entityFieldAddressKey(EntityType.GitForgeCompareFileChange, [], 'tooLarge')]: false,
+				[entityFieldAddressKey(EntityType.GitForgeCompareFileChange, [], 'patch')]: '@@ -1 +1 @@',
+			},
+		}])
+
+		const fileChange = await compareFileChangeResolver.resolve.CompareOldPathNewPath.resolve({
+			$compare: {
+				$forgeMirror: forgeMirror,
+				fromObjectId,
+				toObjectId,
+			},
+			oldPath: 'src/old.ts',
+			newPath: 'src/new.ts',
+		})
+		expect(fileChange).toMatchObject({
+			oldPath: 'src/old.ts',
+			newPath: 'src/new.ts',
+			renamedFile: true,
+			patch: '@@ -1 +1 @@',
+		})
+
+		await expect(compareFileChangeResolver.resolve.CompareOldPathNewPath.resolve({
+			$compare: {
+				$forgeMirror: forgeMirror,
+				fromObjectId,
+				toObjectId,
+			},
+			oldPath: 'missing.ts',
+			newPath: 'missing.ts',
+		})).rejects.toThrow('Gitlab_Rest: file change is not in this comparison')
+
+		compareRepositoryRefs.mockResolvedValueOnce({
+			commit: {
+				id: 'd'.repeat(40),
+			},
+			commits: [],
+			diffs: [],
+			compare_timeout: false,
+			compare_same_ref: false,
+		})
+		await expect(compareResolver.resolve.ForgeMirrorFromObjectIdToObjectId.resolve({
+			$forgeMirror: forgeMirror,
+			fromObjectId,
+			toObjectId,
+		})).rejects.toThrow('Gitlab_Rest: compare head does not match to object ID')
 	})
 })
