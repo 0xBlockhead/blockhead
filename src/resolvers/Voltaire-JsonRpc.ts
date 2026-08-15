@@ -851,8 +851,12 @@ const ensRecordKindFromRecordKey = (recordKey: string) => (
 		'coin'
 	: recordKey.startsWith('text:') ?
 		'text'
+	: recordKey.startsWith('dns:') ?
+		'dns'
 	: recordKey === 'contenthash' ?
 		'contenthash'
+	: recordKey === 'zonehash' ?
+		'zonehash'
 	:
 		'text'
 )
@@ -869,6 +873,11 @@ const ensForwardFromJsonRpc = async (
 	options?: {
 		textKeys?: readonly string[]
 		coinTypeIds?: readonly number[]
+		dnsRecordKeys?: readonly {
+			name: string
+			type: number
+		}[]
+		zonehash?: boolean
 	}
 ) => {
 	const chainId = ChainId.Ethereum
@@ -883,6 +892,8 @@ const ensForwardFromJsonRpc = async (
 				textRecords,
 				coinAddresses,
 				contentHash,
+				dnsRecords,
+				zonehash,
 			} = await jsonRpcTransport.resolveEnsForward({
 				name,
 				...options,
@@ -891,6 +902,8 @@ const ensForwardFromJsonRpc = async (
 				textRecords,
 				coinAddresses,
 				contentHash: ensLiveRecordValue(contentHash),
+				dnsRecords,
+				zonehash: ensLiveRecordValue(zonehash),
 			}
 		} catch (error) {
 			errors.push(`${jsonRpcTransport.diagnosticLabel}: ${errorMessage(error)}`)
@@ -1432,6 +1445,8 @@ export default {
 							textRecords,
 							coinAddresses,
 							contentHash,
+							dnsRecords,
+							zonehash,
 						} = await ensForwardFromJsonRpc(normalizedName)
 						const observedAtMs = Date.now()
 						return {
@@ -1472,6 +1487,29 @@ export default {
 											name: normalizedName,
 											recordKey: 'contenthash',
 											value: contentHash,
+											observedAtMs,
+										})]
+								),
+								...Object.entries(dnsRecords).flatMap(([recordKey, value]) => {
+									const liveValue = ensLiveRecordValue(value)
+									return liveValue === undefined ?
+										[]
+									:
+										[ensRecordSnapshot({
+											name: normalizedName,
+											recordKey,
+											value: liveValue,
+											observedAtMs,
+										})]
+								}),
+								...(
+									zonehash === undefined ?
+										[]
+									:
+										[ensRecordSnapshot({
+											name: normalizedName,
+											recordKey: 'zonehash',
+											value: zonehash,
 											observedAtMs,
 										})]
 								),
@@ -1517,6 +1555,8 @@ export default {
 							const { contentHash } = await ensForwardFromJsonRpc(normalizedName, {
 								textKeys: [],
 								coinTypeIds: [],
+								dnsRecordKeys: [],
+								zonehash: false,
 							})
 							return ensRecordSnapshot({
 								name: normalizedName,
@@ -1535,6 +1575,8 @@ export default {
 									:
 										[]
 								),
+								dnsRecordKeys: [],
+								zonehash: false,
 							})
 							return ensRecordSnapshot({
 								name: normalizedName,
@@ -1549,6 +1591,41 @@ export default {
 								observedAtMs,
 							})
 						}
+						if (recordKey === 'zonehash') {
+							const { zonehash } = await ensForwardFromJsonRpc(normalizedName, {
+								textKeys: [],
+								coinTypeIds: [],
+								dnsRecordKeys: [],
+								zonehash: true,
+							})
+							return ensRecordSnapshot({
+								name: normalizedName,
+								recordKey,
+								value: zonehash,
+								observedAtMs,
+							})
+						}
+						if (recordKey.startsWith('dns:')) {
+							const dnsKey = recordKey.slice('dns:'.length)
+							const separatorIndex = dnsKey.indexOf(':')
+							const type = Number(dnsKey.slice(0, separatorIndex))
+							const dnsName = dnsKey.slice(separatorIndex + 1)
+							const { dnsRecords } = await ensForwardFromJsonRpc(normalizedName, {
+								textKeys: [],
+								coinTypeIds: [],
+								dnsRecordKeys: [{
+									name: dnsName,
+									type,
+								}],
+								zonehash: false,
+							})
+							return ensRecordSnapshot({
+								name: normalizedName,
+								recordKey,
+								value: ensLiveRecordValue(dnsRecords[recordKey]),
+								observedAtMs,
+							})
+						}
 						const textKey = (
 							recordKey.startsWith('text:') ?
 								recordKey.slice('text:'.length)
@@ -1558,6 +1635,8 @@ export default {
 						const { textRecords } = await ensForwardFromJsonRpc(normalizedName, {
 							textKeys: [textKey],
 							coinTypeIds: [],
+							dnsRecordKeys: [],
+							zonehash: false,
 						})
 						return ensRecordSnapshot({
 							name: normalizedName,

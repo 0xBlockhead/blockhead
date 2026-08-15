@@ -1,5 +1,6 @@
 import { Abi, decodeParameters, encodeFunction } from '@tevm/voltaire/Abi'
 import { namehash, normalize as ensNormalizeNode, toString as ensToString } from '@tevm/voltaire/Ens'
+import { keccak256 } from '@tevm/voltaire/Hash'
 import { fromBytes as hexFromBytes, toBytes } from '@tevm/voltaire/Hex'
 
 import {
@@ -113,6 +114,34 @@ const NAME_RESOLVER_ABI = new Abi([
 		outputs: [{ type: 'string', name: '' }],
 	},
 ])
+
+const RESOLVER_DNS_RECORD_ABI = new Abi([
+	{
+		type: 'function',
+		name: 'dnsRecord',
+		stateMutability: 'view',
+		inputs: [
+			{ type: 'bytes32', name: 'node' },
+			{ type: 'bytes32', name: 'name' },
+			{ type: 'uint16', name: 'resource' },
+		],
+		outputs: [{ type: 'bytes', name: '' }],
+	},
+])
+
+const RESOLVER_ZONEHASH_ABI = new Abi([
+	{
+		type: 'function',
+		name: 'zonehash',
+		stateMutability: 'view',
+		inputs: [{ type: 'bytes32', name: 'node' }],
+		outputs: [{ type: 'bytes', name: '' }],
+	},
+])
+
+const ENS_DNS_RR_TYPE_A = 1
+const ENS_DNS_RR_TYPE_AAAA = 28
+const ENS_DNS_RR_TYPE_TXT = 16
 
 const ADDRESS_OUTPUT = [{ type: 'address' as const, name: '' }] as const
 const STRING_OUTPUT = [{ type: 'string' as const, name: '' }] as const
@@ -341,6 +370,80 @@ const resolveMulticoinAddr = async ({
 			coinAddress
 }
 
+const dnsNameWireFromName = (name: string) => {
+	const bytes: number[] = []
+	for (const label of name.split('.')) {
+		const labelBytes = new TextEncoder().encode(label)
+		if (labelBytes.length === 0 || labelBytes.length > 63)
+			throw new Error('Voltaire_JsonRpc: DNS name label length out of range')
+		bytes.push(labelBytes.length, ...labelBytes)
+	}
+	bytes.push(0)
+	return Uint8Array.from(bytes)
+}
+
+const resolveDnsRecord = async ({
+	request,
+	resolverAddress,
+	node,
+	name,
+	resource,
+}: EnsRequest & {
+	resolverAddress: `0x${string}`
+	node: `0x${string}`
+	name: string
+	resource: number
+}) => {
+	const response = await request({
+		method: 'eth_call',
+		params: [
+			{
+				to: resolverAddress,
+				data: encodeFunction(RESOLVER_DNS_RECORD_ABI, 'dnsRecord', [
+					node,
+					bytes32FromNamehash(keccak256(dnsNameWireFromName(name))),
+					BigInt(resource),
+				]),
+			},
+			'latest',
+		],
+	})
+	if (response == null || typeof response !== 'string' || response === '0x') return null
+	const [value] = decodeParameters(BYTES_OUTPUT, toBytes(response))
+	const record = decodedBytesAsHex(value)
+	return record == null || isZeroHex(record) ?
+			null
+		:
+			record
+}
+
+const resolveZonehash = async ({
+	request,
+	resolverAddress,
+	node,
+}: EnsRequest & {
+	resolverAddress: `0x${string}`
+	node: `0x${string}`
+}) => {
+	const response = await request({
+		method: 'eth_call',
+		params: [
+			{
+				to: resolverAddress,
+				data: encodeFunction(RESOLVER_ZONEHASH_ABI, 'zonehash', [node]),
+			},
+			'latest',
+		],
+	})
+	if (response == null || typeof response !== 'string' || response === '0x') return null
+	const [value] = decodeParameters(BYTES_OUTPUT, toBytes(response))
+	const zoneHash = decodedBytesAsHex(value)
+	return zoneHash == null || isZeroHex(zoneHash) ?
+			null
+		:
+			zoneHash
+}
+
 const reverseNode = (address: `0x${string}`) => (
 	bytes32FromNamehash(
 		namehash(`${address.toLowerCase().slice(2).padStart(40, '0')}.addr.reverse`)
@@ -383,10 +486,22 @@ const resolveEnsForward = async ({
 	name,
 	textKeys = ensTextRecords.map((row) => row.key),
 	coinTypeIds = ensCoinTypes.map((row) => Number(row.key)),
+	dnsRecordKeys = [
+		{ name: `_dnslink.${name}`, type: ENS_DNS_RR_TYPE_TXT },
+		{ name, type: ENS_DNS_RR_TYPE_TXT },
+		{ name, type: ENS_DNS_RR_TYPE_A },
+		{ name, type: ENS_DNS_RR_TYPE_AAAA },
+	],
+	zonehash = true,
 }: EnsRequest & {
 	name: string
 	textKeys?: readonly string[]
 	coinTypeIds?: readonly number[]
+	dnsRecordKeys?: readonly {
+		name: string
+		type: number
+	}[]
+	zonehash?: boolean
 }) => {
 	const node = bytes32FromNamehash(namehash(name))
 	const [owner, resolverAddress] = await Promise.all([
@@ -410,9 +525,11 @@ const resolveEnsForward = async ({
 			contentHash: null,
 			resolverAbiJsonText: null,
 			coinAddresses: { ...emptyStringRecord },
+			dnsRecords: { ...emptyStringRecord },
+			zonehash: null,
 		}
 	}
-	const [address, textRecords, contentHash, resolverAbiJsonText, coinAddresses] = await Promise.all([
+	const [address, textRecords, contentHash, resolverAbiJsonText, coinAddresses, dnsRecords, zoneHash] = await Promise.all([
 		resolveAddr({
 			request,
 			resolverAddress,
@@ -460,6 +577,33 @@ const resolveEnsForward = async ({
 					entries.filter((entry): entry is [string, string] => entry[1] != null)
 				)
 			)),
+		Promise.all(
+			dnsRecordKeys.map(async ({ name: dnsName, type }) => (
+				[
+					`dns:${type}:${dnsName}`,
+					await resolveDnsRecord({
+						request,
+						resolverAddress,
+						node,
+						name: dnsName,
+						resource: type,
+					}),
+				] as const
+			))
+		)
+			.then((entries) => (
+				Object.fromEntries(
+					entries.filter((entry): entry is [string, string] => entry[1] != null)
+				)
+			)),
+		zonehash ?
+			resolveZonehash({
+				request,
+				resolverAddress,
+				node,
+			})
+		:
+			Promise.resolve(null),
 	])
 	return {
 		address,
@@ -469,6 +613,8 @@ const resolveEnsForward = async ({
 		contentHash,
 		resolverAbiJsonText,
 		coinAddresses,
+		dnsRecords,
+		zonehash: zoneHash,
 	}
 }
 
