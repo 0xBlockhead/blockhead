@@ -12,12 +12,15 @@ import {
 } from '$/sources/BitTorrent/Dht/client.ts'
 import {
 	dhtNodeIdLength,
+	dhtPublicKeyLength,
+	dhtSignatureLength,
 	krpcMessageWire,
 	type CompactNodeInfo,
 	type CompactPeerInfo,
 	type DhtQueryKind,
 	type FindNodeResult,
 	type GetPeersResult,
+	type GetResult,
 	type KrpcMessage,
 	type PingResult,
 } from '$/sources/BitTorrent/Dht/types.ts'
@@ -52,6 +55,14 @@ const assertBencodeObject = (
 	if (!(value instanceof Object) || value instanceof Uint8Array || value instanceof Array || Number.isSafeInteger(value))
 		throw new Error(`BitTorrent_Dht: ${label} must be a bencode dict`)
 	return value as { [key: string]: BencodeValue | undefined }
+}
+
+const assertSequence = (
+	value: unknown
+) => {
+	if (!Number.isSafeInteger(value) || Number(value) < 0)
+		throw new Error('BitTorrent_Dht: seq must be a non-negative safe integer')
+	return Number(value)
 }
 
 const bytesEqual = (
@@ -311,5 +322,49 @@ export const getPeers = async ({
 		nodes: parseCompactNodeInfos(
 			assertByteString(values.nodes ?? new Uint8Array(0), 'nodes')
 		),
+	}
+}
+
+export const get = async ({
+	remote,
+	nodeId,
+	target,
+	seq,
+	timeoutMs = 15_000,
+}: {
+	remote: DhtRemote
+	nodeId: Uint8Array
+	target: Uint8Array
+	seq?: number
+	timeoutMs?: number
+}): Promise<GetResult> => {
+	if (seq !== undefined)
+		assertSequence(seq)
+	const transactionId = randomBytes(2)
+	const { remoteNodeId, values } = await queryOnce({
+		remote,
+		transactionId,
+		queryKind: 'get',
+		nodeId: assertNodeIdLength(nodeId, 'node id'),
+		argumentsDict: {
+			target: assertNodeIdLength(target, 'target'),
+			...(seq !== undefined && { seq }),
+		},
+		timeoutMs,
+	})
+	return {
+		remoteNodeId,
+		token: assertByteString(values.token, 'token'),
+		nodes: parseCompactNodeInfos(
+			assertByteString(values.nodes ?? new Uint8Array(0), 'nodes')
+		),
+		...(values.v !== undefined && { value: values.v }),
+		...(values.k !== undefined && {
+			publicKey: assertByteString(values.k, 'public key', dhtPublicKeyLength),
+		}),
+		...(values.sig !== undefined && {
+			signature: assertByteString(values.sig, 'signature', dhtSignatureLength),
+		}),
+		...(values.seq !== undefined && { sequence: assertSequence(values.seq) }),
 	}
 }

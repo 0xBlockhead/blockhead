@@ -1,11 +1,18 @@
 /**
- * BitTorrent mainline DHT (BEP 5) KRPC wire shapes over bencode.
+ * BitTorrent mainline DHT (BEP 5) KRPC wire shapes over bencode, plus BEP 44 `get`.
  * @see https://www.bittorrent.org/beps/bep_0005.html
+ * @see https://www.bittorrent.org/beps/bep_0044.html
  */
+
+import type { BencodeValue } from '$/sources/_shared/wire/Bencode/types.ts'
 
 import { type as arktype } from 'arktype'
 
 export const dhtNodeIdLength = 20
+
+export const dhtPublicKeyLength = 32
+
+export const dhtSignatureLength = 64
 
 export type DhtNodeId = Uint8Array
 
@@ -24,7 +31,7 @@ export type CompactNodeInfo = {
 	port: number
 }
 
-export type DhtQueryKind = 'ping' | 'find_node' | 'get_peers'
+export type DhtQueryKind = 'ping' | 'find_node' | 'get_peers' | 'get'
 
 /** Decoded KRPC message envelope (byte strings stay `'unknown'` and are narrowed by the codec). */
 export const krpcMessageWire = arktype({
@@ -53,4 +60,14 @@ export type GetPeersResult = {
 	token: DhtToken
 	peers: CompactPeerInfo[]
 	nodes: CompactNodeInfo[]
+}
+
+export type GetResult = {
+	remoteNodeId: DhtNodeId
+	token: DhtToken
+	nodes: CompactNodeInfo[]
+	value?: BencodeValue
+	publicKey?: Uint8Array
+	signature?: Uint8Array
+	sequence?: number
 }

@@ -22,6 +22,7 @@ vi.mock('$/sources/BitTorrent/Dht/client.ts', () => ({
 
 const {
 	findNode,
+	get,
 	getPeers,
 	ping,
 } = await import('$/sources/BitTorrent/Dht/queries.ts')
@@ -262,6 +263,175 @@ describe('BitTorrent mainline DHT queries', () => {
 		await expect(promise).rejects.toThrow('must be a list of byte strings')
 	})
 
+	it('sends a BEP 44 get query and parses an immutable item value', async () => {
+		const socket = installFakeSocket()
+		const closestNode = new Uint8Array([
+			...target,
+			0x0b, 0x0b, 0x0b, 0x0b, 0x1f, 0x90,
+		])
+		const itemValue = textEncoder.encode('Hello World!')
+		const promise = get({ remote, nodeId, target })
+		const request = expectQueryRequest({
+			bytes: socket.sentRequests[0],
+			queryKind: 'get',
+			nodeId,
+			extraArguments: { target },
+		})
+		socket.reply({
+			t: request.t,
+			y: 'r',
+			r: {
+				id: remoteNodeId,
+				token,
+				v: itemValue,
+				nodes: closestNode,
+			},
+		})
+		await expect(promise).resolves.toEqual({
+			remoteNodeId,
+			token,
+			value: itemValue,
+			nodes: [
+				{
+					nodeId: target,
+					host: '11.11.11.11',
+					port: 8080,
+				},
+			],
+		})
+	})
+
+	it('parses a mutable BEP 44 get response with public key, signature, and sequence', async () => {
+		const socket = installFakeSocket()
+		const publicKey = new Uint8Array(32).map((_, index) => index)
+		const signature = new Uint8Array(64).map((_, index) => 64 + index)
+		const itemValue = { msg: textEncoder.encode('Hello World!') }
+		const promise = get({ remote, nodeId, target, seq: 0 })
+		const request = expectQueryRequest({
+			bytes: socket.sentRequests[0],
+			queryKind: 'get',
+			nodeId,
+			extraArguments: {
+				target,
+				seq: 0,
+			},
+		})
+		socket.reply({
+			t: request.t,
+			y: 'r',
+			r: {
+				id: remoteNodeId,
+				token,
+				k: publicKey,
+				sig: signature,
+				seq: 1,
+				v: itemValue,
+			},
+		})
+		await expect(promise).resolves.toEqual({
+			remoteNodeId,
+			token,
+			nodes: [],
+			value: itemValue,
+			publicKey,
+			signature,
+			sequence: 1,
+		})
+	})
+
+	it('handles a BEP 44 get response with closest nodes but no stored value', async () => {
+		const socket = installFakeSocket()
+		const closestNode = new Uint8Array([
+			...target,
+			0x0b, 0x0b, 0x0b, 0x0b, 0x1f, 0x90,
+		])
+		const promise = get({ remote, nodeId, target })
+		const request = decodeRequest(socket.sentRequests[0])
+		socket.reply({
+			t: request.t,
+			y: 'r',
+			r: { id: remoteNodeId, token, nodes: closestNode },
+		})
+		await expect(promise).resolves.toEqual({
+			remoteNodeId,
+			token,
+			nodes: [
+				{
+					nodeId: target,
+					host: '11.11.11.11',
+					port: 8080,
+				},
+			],
+		})
+	})
+
+	it('fails closed when a BEP 44 get response omits the token', async () => {
+		const socket = installFakeSocket()
+		const promise = get({ remote, nodeId, target })
+		const request = decodeRequest(socket.sentRequests[0])
+		socket.reply({
+			t: request.t,
+			y: 'r',
+			r: { id: remoteNodeId, v: textEncoder.encode('Hello World!') },
+		})
+		await expect(promise).rejects.toThrow('token must be a byte string')
+	})
+
+	it('fails closed when a mutable public key is not 32 bytes', async () => {
+		const socket = installFakeSocket()
+		const promise = get({ remote, nodeId, target })
+		const request = decodeRequest(socket.sentRequests[0])
+		socket.reply({
+			t: request.t,
+			y: 'r',
+			r: {
+				id: remoteNodeId,
+				token,
+				k: new Uint8Array(31),
+			},
+		})
+		await expect(promise).rejects.toThrow('public key must be 32 bytes')
+	})
+
+	it('fails closed when a mutable signature is not 64 bytes', async () => {
+		const socket = installFakeSocket()
+		const promise = get({ remote, nodeId, target })
+		const request = decodeRequest(socket.sentRequests[0])
+		socket.reply({
+			t: request.t,
+			y: 'r',
+			r: {
+				id: remoteNodeId,
+				token,
+				sig: new Uint8Array(63),
+			},
+		})
+		await expect(promise).rejects.toThrow('signature must be 64 bytes')
+	})
+
+	it('fails closed when a mutable sequence is not a non-negative safe integer', async () => {
+		const socket = installFakeSocket()
+		const promise = get({ remote, nodeId, target })
+		const request = decodeRequest(socket.sentRequests[0])
+		socket.reply({
+			t: request.t,
+			y: 'r',
+			r: {
+				id: remoteNodeId,
+				token,
+				seq: -1,
+			},
+		})
+		await expect(promise).rejects.toThrow('seq must be a non-negative safe integer')
+	})
+
+	it('fails closed on a requested seq that is not a non-negative safe integer', async () => {
+		await expect(get({ remote, nodeId, target, seq: -1 })).rejects.toThrow(
+			'seq must be a non-negative safe integer'
+		)
+		expect(mocks.createDhtSocket).not.toHaveBeenCalled()
+	})
+
 	it('throws a KRPC error with code and message for error envelopes', async () => {
 		const socket = installFakeSocket()
 		const promise = findNode({ remote, nodeId, target })
@@ -311,6 +481,9 @@ describe('BitTorrent mainline DHT queries', () => {
 
 	it('fails closed on targets that are not 20 bytes', async () => {
 		await expect(findNode({ remote, nodeId, target: new Uint8Array(21) })).rejects.toThrow(
+			'target must be 20 bytes'
+		)
+		await expect(get({ remote, nodeId, target: new Uint8Array(21) })).rejects.toThrow(
 			'target must be 20 bytes'
 		)
 		expect(mocks.createDhtSocket).not.toHaveBeenCalled()
