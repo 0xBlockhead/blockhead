@@ -24,8 +24,11 @@ const {
 	getAddress,
 	getAddressTransactions,
 	getAddressUtxos,
+	getDifficultyAdjustment,
 	getMempoolStats,
 	getMiningHashrate,
+	getMiningPool,
+	getMiningPools,
 	getOutspend,
 	getRecommendedFees,
 	getTipHeight,
@@ -194,6 +197,191 @@ describe('mempool.space Bitcoin REST binding', () => {
 		await expect(getMiningHashrate({
 			target: bitcoinTarget,
 		})).rejects.toThrow('duplicate observation timestamps')
+	})
+
+	it('reads the current difficulty adjustment window from the canonical Bitcoin API binding', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			progressPercent: 48.56150793650794,
+			difficultyChange: -2.170874871890427,
+			estimatedRetargetDate: 1_787_455_458_780,
+			remainingBlocks: 1037,
+			remainingTime: 636_655_780,
+			previousRetarget: 0.9889358055576736,
+			previousTime: 1_786_217_755,
+			nextRetargetHeight: 963_648,
+			timeAvg: 613_940,
+			adjustedTimeAvg: 613_940,
+			timeOffset: 0,
+			expectedBlocks: 1001.7466666666667,
+		})
+
+		await expect(getDifficultyAdjustment({
+			target: bitcoinTarget,
+		})).resolves.toMatchObject({
+			progressPercent: 48.56150793650794,
+			nextRetargetHeight: 963_648,
+		})
+		expect(sourceGetJson).toHaveBeenCalledWith(
+			bitcoinBinding,
+			'https://mempool.space/api/v1/difficulty-adjustment'
+		)
+	})
+
+	it('fail-closes malformed difficulty adjustment envelopes', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			progressPercent: 48.56150793650794,
+			difficultyChange: -2.170874871890427,
+			estimatedRetargetDate: 1_787_455_458_780,
+			remainingBlocks: 1037,
+			remainingTime: 636_655_780,
+			previousRetarget: 0.9889358055576736,
+			previousTime: 1_786_217_755,
+			nextRetargetHeight: 963_648,
+			timeAvg: 613_940,
+			adjustedTimeAvg: 613_940,
+			timeOffset: 0,
+			expectedBlocks: -1,
+		})
+
+		await expect(getDifficultyAdjustment({
+			target: bitcoinTarget,
+		})).rejects.toThrow('invalid difficulty adjustment envelope')
+	})
+
+	it('reads the mining pool catalog and a single pool by slug', async () => {
+		sourceGetJson
+			.mockResolvedValueOnce([
+				{
+					name: 'Unknown',
+					slug: 'unknown',
+					unique_id: 0,
+				},
+				{
+					name: 'F2Pool',
+					slug: 'f2pool',
+					unique_id: 36,
+				},
+			])
+			.mockResolvedValueOnce({
+				pool: {
+					id: 37,
+					name: 'F2Pool',
+					link: 'https://www.f2pool.com',
+					addresses: [
+						'1KFHE7w8BhaENAswwryaoccDb6qcT6DbYY',
+						'bc1qf274x7penhcd8hsv3jcmwa5xxzjl2a6pa9pxwm',
+					],
+					regexes: [
+						'F2Pool',
+						'🐟',
+					],
+					slug: 'f2pool',
+					unique_id: 36,
+				},
+				blockCount: {
+					all: 97_479,
+					'24h': 18,
+					'1w': 167,
+				},
+				blockShare: {
+					all: 0.10126509954166373,
+					'24h': 0.1232876712328767,
+					'1w': 0.16851664984863773,
+				},
+				estimatedHashrate: 113_185_830_253_682_540_000,
+				reportedHashrate: null,
+				avgBlockHealth: 99.15,
+				totalReward: '128416697905845',
+			})
+
+		await expect(getMiningPools({
+			target: bitcoinTarget,
+		})).resolves.toEqual([
+			{
+				name: 'Unknown',
+				slug: 'unknown',
+				unique_id: 0,
+			},
+			{
+				name: 'F2Pool',
+				slug: 'f2pool',
+				unique_id: 36,
+			},
+		])
+		await expect(getMiningPool({
+			slug: 'f2pool',
+			target: bitcoinTarget,
+		})).resolves.toMatchObject({
+			pool: {
+				slug: 'f2pool',
+			},
+			blockCount: {
+				'24h': 18,
+			},
+		})
+		expect(sourceGetJson.mock.calls).toEqual([
+			[
+				bitcoinBinding,
+				'https://mempool.space/api/v1/mining/pools',
+			],
+			[
+				bitcoinBinding,
+				'https://mempool.space/api/v1/mining/pool/f2pool',
+			],
+		])
+	})
+
+	it('rejects duplicate mining pool catalog ids and substituted pool slugs', async () => {
+		sourceGetJson
+			.mockResolvedValueOnce([
+				{
+					name: 'Unknown',
+					slug: 'unknown',
+					unique_id: 0,
+				},
+				{
+					name: 'F2Pool',
+					slug: 'f2pool',
+					unique_id: 0,
+				},
+			])
+			.mockResolvedValueOnce({
+				pool: {
+					id: 37,
+					name: 'F2Pool',
+					link: 'https://www.f2pool.com',
+					addresses: [],
+					regexes: [],
+					slug: 'antpool',
+					unique_id: 36,
+				},
+				blockCount: {
+					all: 97_479,
+					'24h': 18,
+					'1w': 167,
+				},
+				blockShare: {
+					all: 0.10126509954166373,
+					'24h': 0.1232876712328767,
+					'1w': 0.16851664984863773,
+				},
+				estimatedHashrate: 113_185_830_253_682_540_000,
+				reportedHashrate: null,
+				avgBlockHealth: 99.15,
+				totalReward: '128416697905845',
+			})
+
+		await expect(getMiningPools({
+			target: bitcoinTarget,
+		})).rejects.toThrow('duplicate catalog ids')
+		await expect(getMiningPool({
+			slug: 'f2pool',
+			target: bitcoinTarget,
+		})).rejects.toThrow('mining pool response has mismatched identity')
+		await expect(getMiningPool({
+			slug: '',
+			target: bitcoinTarget,
+		})).rejects.toThrow('mining pool slug is empty')
 	})
 
 	it('resolves block hash by height and address UTXOs on hard-fail paths', async () => {

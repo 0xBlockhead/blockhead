@@ -17,7 +17,10 @@ import {
 } from '$/sources/Esplora/Rest/envelopes.ts'
 import bindings from '$/sources/MempoolSpace/bindings.ts'
 import {
+	mempoolSpaceDifficultyAdjustmentWire,
 	mempoolSpaceMiningHashrateWire,
+	mempoolSpaceMiningPoolWire,
+	mempoolSpaceMiningPoolsWire,
 	mempoolSpaceTipHeightWire,
 } from '$/sources/MempoolSpace/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
@@ -354,6 +357,56 @@ export const getMiningHashrate = async ({
 		throw new Error(`${sourceLabel}: mining hashrate contains duplicate observation timestamps`)
 
 	return miningHashrate
+}
+
+export const getDifficultyAdjustment = async ({
+	target,
+}: {
+	target: MempoolSpaceTarget
+}) => (
+	assertEsploraEnvelope(
+		mempoolSpaceDifficultyAdjustmentWire,
+		await getMempoolSpaceJson(target, 'v1/difficulty-adjustment'),
+		'difficulty adjustment',
+		sourceLabel
+	)
+)
+
+export const getMiningPools = async ({
+	target,
+}: {
+	target: MempoolSpaceTarget
+}) => {
+	const miningPools = assertEsploraEnvelope(
+		mempoolSpaceMiningPoolsWire,
+		await getMempoolSpaceJson(target, 'v1/mining/pools'),
+		'mining pools',
+		sourceLabel
+	)
+	if (new Set(miningPools.map(({ unique_id: uniqueId }) => uniqueId)).size !== miningPools.length)
+		throw new Error(`${sourceLabel}: mining pools contain duplicate catalog ids`)
+
+	return miningPools
+}
+
+export const getMiningPool = async ({
+	slug,
+	target,
+}: {
+	slug: string
+	target: MempoolSpaceTarget
+}) => {
+	if (slug.length === 0)
+		throw new Error(`${sourceLabel}: mining pool slug is empty`)
+	const miningPool = assertEsploraEnvelope(
+		mempoolSpaceMiningPoolWire,
+		await getMempoolSpaceJson(target, `v1/mining/pool/${encodeURIComponent(slug)}`),
+		'mining pool',
+		sourceLabel
+	)
+	if (miningPool.pool.slug !== slug)
+		throw new Error(`${sourceLabel}: mining pool response has mismatched identity`)
+	return miningPool
 }
 
 export const getTipHeight = async ({
