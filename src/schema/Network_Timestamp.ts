@@ -353,6 +353,7 @@ export default entity({
 				cardinality: EntityFieldCardinality.ZeroOrOne,
 				defaultSources: [
 					Source.BitcoinCore_JsonRpc,
+					Source.MempoolSpace_Rest,
 				],
 			},
 			hashrateBlockWindow: {
@@ -360,6 +361,55 @@ export default entity({
 				cardinality: EntityFieldCardinality.ZeroOrOne,
 				defaultSources: [
 					Source.BitcoinCore_JsonRpc,
+				],
+			},
+			difficultyAdjustmentProgressPercent: {
+				primitiveType: type('number'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.MempoolSpace_Rest,
+				],
+			},
+			difficultyChangePercent: {
+				primitiveType: type('number'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.MempoolSpace_Rest,
+				],
+			},
+			previousRetargetPercent: {
+				primitiveType: type('number'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.MempoolSpace_Rest,
+				],
+			},
+			remainingBlocks: {
+				primitiveType: type('number'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.MempoolSpace_Rest,
+				],
+			},
+			expectedBlocks: {
+				primitiveType: type('number'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.MempoolSpace_Rest,
+				],
+			},
+			nextRetargetHeight: {
+				primitiveType: type('number'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.MempoolSpace_Rest,
+				],
+			},
+			estimatedRetargetDateMs: {
+				primitiveType: type('number'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.MempoolSpace_Rest,
 				],
 			},
 			conservativeFeeRate2BlocksSatsPerKvb: {

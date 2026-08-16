@@ -938,8 +938,9 @@ export default {
 					getMempoolStats,
 					getMiningHashrate,
 					getRecommendedFees,
+					getDifficultyAdjustment,
 				} = await import('$/sources/MempoolSpace/Rest/queries.ts')
-				const [blocks, mempoolStats, miningHashrate, fees] = await Promise.all([
+				const [blocks, mempoolStats, miningHashrate, fees, difficultyAdjustment] = await Promise.all([
 					getBlocks({
 						target: bitcoinMainnetCaip2,
 					}),
@@ -950,6 +951,9 @@ export default {
 						target: bitcoinMainnetCaip2,
 					}),
 					getRecommendedFees({
+						target: bitcoinMainnetCaip2,
+					}),
+					getDifficultyAdjustment({
 						target: bitcoinMainnetCaip2,
 					}),
 				])
@@ -973,6 +977,13 @@ export default {
 							[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'mempoolSizeBytes')]: BigInt(Math.ceil(mempoolStats.vsize)),
 							[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'hashrateHashesPerSecond')]: miningHashrate.currentHashrate,
 							[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'suggestedTransactionFeePerByteSats')]: fees.hourFee,
+							[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'difficultyAdjustmentProgressPercent')]: difficultyAdjustment.progressPercent,
+							[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'difficultyChangePercent')]: difficultyAdjustment.difficultyChange,
+							[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'previousRetargetPercent')]: difficultyAdjustment.previousRetarget,
+							[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'remainingBlocks')]: difficultyAdjustment.remainingBlocks,
+							[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'expectedBlocks')]: difficultyAdjustment.expectedBlocks,
+							[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'nextRetargetHeight')]: difficultyAdjustment.nextRetargetHeight,
+							[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'estimatedRetargetDateMs')]: difficultyAdjustment.estimatedRetargetDate,
 						},
 					},
 					...[...miningHashrate.hashrates]

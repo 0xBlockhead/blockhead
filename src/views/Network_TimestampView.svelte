@@ -101,6 +101,127 @@
 
 				<dl data-column-item="center">
 					<ResourceBoundary
+						resource={projection.difficultyAdjustmentProgressPercent}
+					>
+						{#snippet children(difficultyAdjustmentProgressPercent)}
+							{#if difficultyAdjustmentProgressPercent != null}
+								<div>
+									<dt>Difficulty adjustment progress</dt>
+									<dd>
+										<NumberValue
+											value={difficultyAdjustmentProgressPercent}
+										/>
+									</dd>
+								</div>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+
+					<ResourceBoundary
+						resource={projection.difficultyChangePercent}
+					>
+						{#snippet children(difficultyChangePercent)}
+							{#if difficultyChangePercent != null}
+								<div>
+									<dt>Estimated difficulty change</dt>
+									<dd>
+										<NumberValue
+											value={difficultyChangePercent}
+										/>
+									</dd>
+								</div>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+
+					<ResourceBoundary
+						resource={projection.previousRetargetPercent}
+					>
+						{#snippet children(previousRetargetPercent)}
+							{#if previousRetargetPercent != null}
+								<div>
+									<dt>Previous retarget change</dt>
+									<dd>
+										<NumberValue
+											value={previousRetargetPercent}
+										/>
+									</dd>
+								</div>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dl>
+
+				<dl data-column-item="center">
+					<ResourceBoundary
+						resource={projection.remainingBlocks}
+					>
+						{#snippet children(remainingBlocks)}
+							{#if remainingBlocks != null}
+								<div>
+									<dt>Blocks remaining in epoch</dt>
+									<dd>
+										<NumberValue
+											value={remainingBlocks}
+										/>
+									</dd>
+								</div>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+
+					<ResourceBoundary
+						resource={projection.expectedBlocks}
+					>
+						{#snippet children(expectedBlocks)}
+							{#if expectedBlocks != null}
+								<div>
+									<dt>Expected blocks in epoch</dt>
+									<dd>
+										<NumberValue
+											value={expectedBlocks}
+										/>
+									</dd>
+								</div>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+
+					<ResourceBoundary
+						resource={projection.nextRetargetHeight}
+					>
+						{#snippet children(nextRetargetHeight)}
+							{#if nextRetargetHeight != null}
+								<div>
+									<dt>Next retarget height</dt>
+									<dd>
+										<NumberValue
+											value={nextRetargetHeight}
+										/>
+									</dd>
+								</div>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+
+					<ResourceBoundary
+						resource={projection.estimatedRetargetDateMs}
+					>
+						{#snippet children(estimatedRetargetDateMs)}
+							{#if estimatedRetargetDateMs != null}
+								<div>
+									<dt>Estimated retarget time</dt>
+									<dd>
+										<Timestamp timestamp={estimatedRetargetDateMs} />
+									</dd>
+								</div>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dl>
+
+				<dl data-column-item="center">
+					<ResourceBoundary
 						resource={projection.conservativeFeeRate2BlocksSatsPerKvb}
 					>
 						{#snippet children(conservativeFeeRate2BlocksSatsPerKvb)}

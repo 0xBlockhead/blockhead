@@ -665,6 +665,20 @@ describe('MempoolSpace UTXO', () => {
 				economyFee: 2,
 				minimumFee: 1,
 			})
+			.mockResolvedValueOnce({
+				progressPercent: 50,
+				difficultyChange: 1.5,
+				estimatedRetargetDate: 1_800_000_000_000,
+				remainingBlocks: 1000,
+				remainingTime: 600_000,
+				previousRetarget: -2,
+				previousTime: 1_700_000_000_000,
+				nextRetargetHeight: 841_000,
+				timeAvg: 600_000,
+				adjustedTimeAvg: 600_000,
+				timeOffset: 0,
+				expectedBlocks: 2016,
+			})
 
 		const rows = await networkTimestampsResolver.resolve.Caip2.resolve(network, {
 			...resolverContext,
@@ -675,6 +689,11 @@ describe('MempoolSpace UTXO', () => {
 		const projection = networkTimestampsResolver.projections.$$timestamps
 		if (typeof projection !== 'function')
 			throw new Error('MempoolSpace-Rest Network.$$timestamps projection is not direct')
+		expect(projection(rows)[0][EntityMetaKey.Fields]).toMatchObject({
+			[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'hashrateHashesPerSecond')]: 4000,
+			[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'difficultyAdjustmentProgressPercent')]: 50,
+			[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'nextRetargetHeight')]: 841_000,
+		})
 		expect(projection(rows).slice(1)).toEqual([
 			expect.objectContaining({
 				[EntityMetaKey.Selector]: expect.objectContaining({ timestampMs: 300_000 }),
@@ -705,7 +724,7 @@ describe('MempoolSpace UTXO', () => {
 			source: Source.MempoolSpace_Rest,
 		}, resolverContext)
 		expect(networkTimestampResolver.projections.Utxo.hashrateHashesPerSecond(historical)).toBe(3000)
-		expect(sourceGetJson).toHaveBeenCalledTimes(5)
+		expect(sourceGetJson).toHaveBeenCalledTimes(6)
 	})
 
 	it('limits every selector to canonical Bitcoin subjects', () => {
