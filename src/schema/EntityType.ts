@@ -182,6 +182,8 @@ export enum EntityType {
 	BitcoinCashCashTokenCommitment = 'BitcoinCashCashTokenCommitment',
 	BitcoinCashCashTokenFungibleAmount = 'BitcoinCashCashTokenFungibleAmount',
 	BitcoinCashCashTokenNft = 'BitcoinCashCashTokenNft',
+	BitcoinMiningPool = 'BitcoinMiningPool',
+	BitcoinMiningPool_Timestamp = 'BitcoinMiningPool_Timestamp',
 	BitcoinOrdinalInscription = 'BitcoinOrdinalInscription',
 	BitcoinRune = 'BitcoinRune',
 	BitcoinRuneBalance = 'BitcoinRuneBalance',

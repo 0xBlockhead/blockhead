@@ -32,6 +32,13 @@ const mempoolTransactionsResolver = networkResolvers.find((resolver) => (
 	&& '$$transactions' in resolver.projections.Utxo
 	&& typeof resolver.projections.Utxo.$$transactions === 'function'
 ))
+const miningPoolsResolver = networkResolvers.find((resolver) => (
+	'Utxo' in resolver.projections
+	&& '$$miningPools' in resolver.projections.Utxo
+))
+const miningPoolResolver = mempoolSpaceResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.BitcoinMiningPool
+))
 const blockResolver = mempoolSpaceResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.UtxoBlock
 	&& 'NetworkHeight' in resolver.resolve
@@ -73,6 +80,12 @@ if (networkTimestampsResolver == null)
 
 if (mempoolTransactionsResolver == null)
 	throw new Error('MempoolSpace-Rest spec missing Network.Utxo.$$transactions resolver')
+
+if (miningPoolsResolver == null)
+	throw new Error('MempoolSpace-Rest spec missing Network.Utxo.$$miningPools resolver')
+
+if (miningPoolResolver == null)
+	throw new Error('MempoolSpace-Rest spec missing BitcoinMiningPool resolver')
 
 if (blockResolver == null)
 	throw new Error('MempoolSpace-Rest spec missing UtxoBlock NetworkHeight resolver')
@@ -725,6 +738,150 @@ describe('MempoolSpace UTXO', () => {
 		}, resolverContext)
 		expect(networkTimestampResolver.projections.Utxo.hashrateHashesPerSecond(historical)).toBe(3000)
 		expect(sourceGetJson).toHaveBeenCalledTimes(6)
+	})
+
+	it('lists Bitcoin mining pools from the catalog without fetching pool stats', async () => {
+		sourceGetJson.mockResolvedValueOnce([
+			{
+				name: 'Unknown',
+				slug: 'unknown',
+				unique_id: 0,
+			},
+			{
+				name: 'F2Pool',
+				slug: 'f2pool',
+				unique_id: 36,
+			},
+		])
+		const snapshot = await miningPoolsResolver.resolve.Caip2.resolve(network, {
+			...resolverContext,
+			pagination: {
+				limit: 16,
+			},
+		})
+		const projection = miningPoolsResolver.projections.Utxo.$$miningPools
+		if (typeof projection === 'function' || projection.select == null || projection.resolveCount == null)
+			throw new Error('MempoolSpace-Rest Network.Utxo.$$miningPools projection is not counted')
+		expect(projection.select(snapshot, network)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					slug: 'unknown',
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.BitcoinMiningPool, [], 'uniqueId')]: 0,
+					[entityFieldAddressKey(EntityType.BitcoinMiningPool, [], 'name')]: 'Unknown',
+				},
+			},
+			{
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					slug: 'f2pool',
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.BitcoinMiningPool, [], 'uniqueId')]: 36,
+					[entityFieldAddressKey(EntityType.BitcoinMiningPool, [], 'name')]: 'F2Pool',
+				},
+			},
+		])
+		expect(projection.resolveCount(snapshot, network)).toBe(2)
+		expect(sourceGetJson).toHaveBeenCalledTimes(1)
+		expect(sourceGetJson).toHaveBeenCalledWith(
+			bitcoinBinding,
+			'https://mempool.space/api/v1/mining/pools'
+		)
+	})
+
+	it('resolves a mining pool by slug with coinbase identity and a retrieval-clocked stats observation', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			pool: {
+				id: 37,
+				name: 'F2Pool',
+				link: 'https://www.f2pool.com',
+				addresses: [
+					'1KFHE7w8BhaENAswwryaoccDb6qcT6DbYY',
+					'bc1qf274x7penhcd8hsv3jcmwa5xxzjl2a6pa9pxwm',
+				],
+				regexes: [
+					'F2Pool',
+					'🐟',
+				],
+				slug: 'f2pool',
+				unique_id: 36,
+			},
+			blockCount: {
+				all: 97_479,
+				'24h': 18,
+				'1w': 167,
+			},
+			blockShare: {
+				all: 0.10126509954166373,
+				'24h': 0.1232876712328767,
+				'1w': 0.16851664984863773,
+			},
+			estimatedHashrate: 113_185_830_253_682_540_000,
+			reportedHashrate: null,
+			avgBlockHealth: 99.15,
+			totalReward: '128416697905845',
+		})
+		const now = 1_700_000_123_000
+		const dateNow = vi.spyOn(Date, 'now').mockReturnValue(now)
+		const pool = await miningPoolResolver.resolve.NetworkSlug.resolve({
+			$network: network,
+			slug: 'f2pool',
+		}, resolverContext)
+		dateNow.mockRestore()
+		expect(miningPoolResolver.projections.name(pool)).toBe('F2Pool')
+		expect(miningPoolResolver.projections.uniqueId(pool)).toBe(36)
+		expect(miningPoolResolver.projections.websiteUrl(pool)).toBe('https://www.f2pool.com')
+		expect(miningPoolResolver.projections.coinbaseTagRegexes(pool)).toEqual([
+			'F2Pool',
+			'🐟',
+		])
+		expect(miningPoolResolver.projections.$$coinbaseAddresses(pool)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					address: '1KFHE7w8BhaENAswwryaoccDb6qcT6DbYY',
+				},
+			},
+			{
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					address: 'bc1qf274x7penhcd8hsv3jcmwa5xxzjl2a6pa9pxwm',
+				},
+			},
+		])
+		expect(miningPoolResolver.projections.$$timestamps(pool)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$pool: {
+						$network: network,
+						slug: 'f2pool',
+					},
+					timestampMs: now,
+					source: Source.MempoolSpace_Rest,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.BitcoinMiningPool_Timestamp, [], 'blockCountAll')]: 97_479,
+					[entityFieldAddressKey(EntityType.BitcoinMiningPool_Timestamp, [], 'blockCount24h')]: 18,
+					[entityFieldAddressKey(EntityType.BitcoinMiningPool_Timestamp, [], 'blockCount1w')]: 167,
+					[entityFieldAddressKey(EntityType.BitcoinMiningPool_Timestamp, [], 'blockShareAll')]: 0.10126509954166373,
+					[entityFieldAddressKey(EntityType.BitcoinMiningPool_Timestamp, [], 'blockShare24h')]: 0.1232876712328767,
+					[entityFieldAddressKey(EntityType.BitcoinMiningPool_Timestamp, [], 'blockShare1w')]: 0.16851664984863773,
+					[entityFieldAddressKey(EntityType.BitcoinMiningPool_Timestamp, [], 'estimatedHashrateHashesPerSecond')]: 113_185_830_253_682_540_000,
+					[entityFieldAddressKey(EntityType.BitcoinMiningPool_Timestamp, [], 'avgBlockHealth')]: 99.15,
+					[entityFieldAddressKey(EntityType.BitcoinMiningPool_Timestamp, [], 'totalRewardSats')]: 128416697905845n,
+				},
+			},
+		])
+		expect(mempoolSpaceResolvers.resolvers.some((resolver) => (
+			resolver.entityType === EntityType.BitcoinMiningPool_Timestamp
+		))).toBe(false)
+		expect(sourceGetJson).toHaveBeenCalledWith(
+			bitcoinBinding,
+			'https://mempool.space/api/v1/mining/pool/f2pool'
+		)
 	})
 
 	it('limits every selector to canonical Bitcoin subjects', () => {

@@ -881,6 +881,8 @@ export enum EntityType {
 	BitcoinCashCashTokenCommitment = "BitcoinCashCashTokenCommitment",
 	BitcoinCashCashTokenFungibleAmount = "BitcoinCashCashTokenFungibleAmount",
 	BitcoinCashCashTokenNft = "BitcoinCashCashTokenNft",
+	BitcoinMiningPool = "BitcoinMiningPool",
+	BitcoinMiningPool_Timestamp = "BitcoinMiningPool_Timestamp",
 	BitcoinOrdinalInscription = "BitcoinOrdinalInscription",
 	BitcoinRune = "BitcoinRune",
 	BitcoinRuneBalance = "BitcoinRuneBalance",
@@ -11847,6 +11849,89 @@ export const schema = {
 				},
 			}),
 
+
+			entity({
+				entityType: EntityType.BitcoinMiningPool,
+				labels: {
+					singular: "Bitcoin mining pool",
+					plural: "Bitcoin mining pools",
+				},
+				description: "A named Bitcoin mining-pool catalog subject that attributes coinbase-identified blocks on one UTXO network. Pool identity is the catalog slug, not a block, hashrate observation, or Network_Timestamp field.",
+			})({
+				"$network": { label: "Network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
+				"slug": { label: "Slug", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"uniqueId": { label: "Catalog id", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger", defaultSources: [Source.MempoolSpace_Rest] },
+				"name": { label: "Name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string", defaultSources: [Source.MempoolSpace_Rest] },
+				"websiteUrl": { label: "Website", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.MempoolSpace_Rest] },
+				"coinbaseTagRegexes": { label: "Coinbase tag regexes", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "string", defaultSources: [Source.MempoolSpace_Rest] },
+				"$$coinbaseAddresses": { label: "Coinbase addresses", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.UtxoAddress, defaultSources: [Source.MempoolSpace_Rest] },
+				"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BitcoinMiningPool_Timestamp, defaultSources: [Source.MempoolSpace_Rest] },
+			})({
+				selectors: {
+					"NetworkSlug": ["$network", "slug"],
+				},
+				views: {
+					singular: {
+						query: { sources: [Source.MempoolSpace_Rest] },
+						summary: { title: ["name"], value: ["slug"] },
+						content: {
+							dl: [
+								["$network", { field: "uniqueId", format: "number" }, "websiteUrl"],
+								["coinbaseTagRegexes"],
+							],
+						},
+						lists: [
+							{ field: "$$coinbaseAddresses", component: "UtxoAddressesView", emptyText: "No coinbase addresses." },
+							{ field: "$$timestamps", component: "BitcoinMiningPool_TimestampsView", emptyText: "No mining-pool observations yet." },
+						],
+					},
+					plural: { component: "BitcoinMiningPoolsView", title: "Bitcoin mining pools" },
+				},
+			}),
+
+			entity({
+				entityType: EntityType.BitcoinMiningPool_Timestamp,
+				labels: {
+					singular: "Bitcoin mining pool observation",
+					plural: "Bitcoin mining pool observations",
+				},
+				description: "A source-scoped observation of one mining pool's attributed block counts, shares, and hashrate. Rolling 24h and 1w windows are as-of this observation clock, not stable pool identity.",
+			})({
+				"$pool": { label: "Pool", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.BitcoinMiningPool },
+				"timestampMs": { label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
+				"source": { label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"blockCountAll": { label: "Blocks attributed (all)", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeInteger", defaultSources: [Source.MempoolSpace_Rest] },
+				"blockCount24h": { label: "Blocks attributed (24h)", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeInteger", defaultSources: [Source.MempoolSpace_Rest] },
+				"blockCount1w": { label: "Blocks attributed (1w)", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeInteger", defaultSources: [Source.MempoolSpace_Rest] },
+				"blockShareAll": { label: "Block share (all)", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.MempoolSpace_Rest] },
+				"blockShare24h": { label: "Block share (24h)", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.MempoolSpace_Rest] },
+				"blockShare1w": { label: "Block share (1w)", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.MempoolSpace_Rest] },
+				"estimatedHashrateHashesPerSecond": { label: "Estimated hashrate", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.MempoolSpace_Rest] },
+				"reportedHashrateHashesPerSecond": { label: "Reported hashrate", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.MempoolSpace_Rest] },
+				"avgBlockHealth": { label: "Average block health", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.MempoolSpace_Rest] },
+				"totalRewardSats": { label: "Total attributed reward", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.MempoolSpace_Rest] },
+			})({
+				selectors: {
+					"PoolTimestampMsSource": ["$pool", "timestampMs", "source"],
+				},
+				views: {
+					singular: {
+						summary: {
+							title: [{ field: "timestampMs", format: "timestamp" }],
+							value: ["$pool", { field: "blockCount24h", format: "number" }],
+						},
+						content: {
+							dl: [
+								["$pool", "source"],
+								[{ field: "blockCountAll", format: "number" }, { field: "blockCount24h", format: "number" }, { field: "blockCount1w", format: "number" }],
+								[{ field: "blockShareAll", format: "number" }, { field: "blockShare24h", format: "number" }, { field: "blockShare1w", format: "number" }],
+								["estimatedHashrateHashesPerSecond", "reportedHashrateHashesPerSecond", { field: "avgBlockHealth", format: "number" }, { field: "totalRewardSats", format: "number" }],
+							],
+						},
+					},
+					plural: { component: "BitcoinMiningPool_TimestampsView" },
+				},
+			}),
 
 			entity({
 				entityType: EntityType.BitcoinOrdinalInscription,
@@ -48518,7 +48603,8 @@ export const schema = {
 						includes: "Utxo",
 					})({
 						"$$blocks": { label: "Blocks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.UtxoBlock, defaultSources: [Source.BitcoinCashNode_JsonRpc, Source.Blockchair_Rest, Source.DogecoinCore_JsonRpc, Source.Esplora_Rest, Source.LitecoinCore_JsonRpc, Source.MempoolSpace_Rest] },
-						"$$transactions": { label: "Transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.UtxoTransaction, defaultSources: [Source.Blockchair_Rest, Source.Esplora_Rest, Source.MempoolSpace_Rest] }
+						"$$transactions": { label: "Transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.UtxoTransaction, defaultSources: [Source.Blockchair_Rest, Source.Esplora_Rest, Source.MempoolSpace_Rest] },
+						"$$miningPools": { label: "Mining pools", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BitcoinMiningPool, defaultSources: [Source.MempoolSpace_Rest] },
 					})({
 						singularView: {
 							carousels: [
@@ -48529,6 +48615,7 @@ export const schema = {
 									sections: [
 										{ id: "utxo-consensus-observations", field: "$$timestamps", List: "Network_TimestampsView", label: "Observations", selection: { sources: [Source.Blockchair_Rest, Source.Esplora_Rest, Source.MempoolSpace_Rest], limit: 16 } },
 										{ id: "utxo-consensus-blocks", field: ["Utxo", "$$blocks"], List: "UtxoBlocksView", label: "Blocks", selection: { sources: [Source.BitcoinCashNode_JsonRpc, Source.Blockchair_Rest, Source.DogecoinCore_JsonRpc, Source.Esplora_Rest, Source.LitecoinCore_JsonRpc, Source.MempoolSpace_Rest], limit: 16 } },
+										{ id: "utxo-consensus-mining-pools", field: ["Utxo", "$$miningPools"], List: "BitcoinMiningPoolsView", label: "Mining pools", selection: { sources: [Source.MempoolSpace_Rest], limit: 16 } },
 									],
 								},
 								{
@@ -82506,6 +82593,52 @@ export const routes = defineRoutes(schema)({
 																	"runeId": ["runeId"],
 																},
 																page: {},
+															},
+														},
+													},
+												},
+											},
+										},
+										"mining-pool": {
+											children: {
+												"[slug]": {
+													selectors: {
+														[EntityType.BitcoinMiningPool]: {
+															"NetworkSlug": {
+																when: {
+																	path: ["namespace"],
+																	is: "Bitcoin",
+																},
+																projection: {
+																	entityType: EntityType.Network,
+																	facetPath: ["Utxo"],
+																},
+																params: {
+																	"slug": ["slug"],
+																},
+																page: {},
+															},
+														},
+													},
+													children: {
+														"observations": {
+															children: {
+																"[timestampMs]": {
+																	params: { "timestampMs": ["NonNegativeInteger"] },
+																	children: {
+																		"[source]": {
+																			selectors: {
+																				[EntityType.BitcoinMiningPool_Timestamp]: {
+																					"PoolTimestampMsSource": {
+																						params: { "source": ["source"] },
+																						derivations: { "timestampMs": { kind: "param", name: "timestampMs" } },
+																						page: {},
+																					},
+																				},
+																			},
+																		},
+																	},
+																},
 															},
 														},
 													},

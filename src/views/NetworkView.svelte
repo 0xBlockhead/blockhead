@@ -413,6 +413,7 @@
 	import SolanaTokenAccountsView from '$/views/SolanaTokenAccountsView.svelte'
 	import SolanaTokenMintsView from '$/views/SolanaTokenMintsView.svelte'
 	import UtxoBlocksView from '$/views/UtxoBlocksView.svelte'
+	import BitcoinMiningPoolsView from '$/views/BitcoinMiningPoolsView.svelte'
 	import UtxoTransactionsView from '$/views/UtxoTransactionsView.svelte'
 	import ZcashShieldedPoolsView from '$/views/ZcashShieldedPoolsView.svelte'
 	import BittensorNetwork_TimestampsView from '$/views/BittensorNetwork_TimestampsView.svelte'
@@ -4336,6 +4337,10 @@
 						Source.MempoolSpace_Rest,
 					], pendingEntity)}
 
+				{@const utxoChainActivityUtxoConsensusMiningPoolsSources = networkApplicableSources([
+						Source.MempoolSpace_Rest,
+					], pendingEntity)}
+
 				{@const utxoChainActivitySections = [
 						...(
 							blockchairRestAndEsploraRestAndMempoolSpaceRestSources.length > 0 ?
@@ -4354,6 +4359,17 @@
 									{
 										id: 'utxo-consensus-blocks',
 										label: 'Blocks',
+									},
+								]
+							:
+								[]
+						),
+						...(
+							utxoChainActivityUtxoConsensusMiningPoolsSources.length > 0 ?
+								[
+									{
+										id: 'utxo-consensus-mining-pools',
+										label: 'Mining pools',
 									},
 								]
 							:
@@ -4396,6 +4412,21 @@
 									projection
 									.$$blocks({
 										sources: utxoChainActivityUtxoConsensusBlocksSources,
+										limit: 16,
+									})
+								}
+								collapsible={false}
+								title={label}
+								id={`${id}-list`}
+							/>
+						{/snippet}
+
+						{#snippet SectionUtxoConsensusMiningPools({ id, label })}
+							<BitcoinMiningPoolsView
+								selection={
+									projection
+									.$$miningPools({
+										sources: utxoChainActivityUtxoConsensusMiningPoolsSources,
 										limit: 16,
 									})
 								}

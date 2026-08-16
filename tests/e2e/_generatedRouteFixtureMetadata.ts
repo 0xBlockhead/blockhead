@@ -8591,6 +8591,30 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
+	'/(explore)/(networks)/network/[network]/mining-pool/[slug]': {
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/mining-pool/[slug=stringSegment]',
+		mappings: [
+			{
+				id: 'BitcoinMiningPool.NetworkSlug',
+				projectionEntity: 'Network',
+				probeAtomPrefixes: ['/network/[network]/mining-pool/[slug]:BitcoinMiningPool.NetworkSlug'],
+				probeCases: [[[0, '1', ['slug', 'network']]]],
+				projectionPath: [
+					'Utxo',
+				],
+			},
+		],
+	},
+	'/(explore)/(networks)/network/[network]/mining-pool/[slug]/observations/[timestampMs]/[source]': {
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/mining-pool/[slug=stringSegment]/(bitcoinMiningPool)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+		mappings: [
+			{
+				id: 'BitcoinMiningPool_Timestamp.PoolTimestampMsSource',
+				probeAtomPrefixes: ['/network/[network]/mining-pool/[slug]/observations/[timestampMs]/[source]:BitcoinMiningPool_Timestamp.PoolTimestampMsSource'],
+				probeCases: [[[0, '1', ['source', 'timestampMs', 'slug', 'network']]]],
+			},
+		],
+	},
 	'/(explore)/(networks)/network/[network]/module/[moduleName]': {
 		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/module/[moduleName=stringSegment]',
 		mappings: [

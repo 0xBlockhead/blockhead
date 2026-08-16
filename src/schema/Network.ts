@@ -797,6 +797,13 @@ export default entity({
 					Source.MempoolSpace_Rest,
 				],
 			},
+			$$miningPools: {
+				entityType: EntityType.BitcoinMiningPool,
+				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.MempoolSpace_Rest,
+				],
+			},
 		}),
 		CashTokens: facet({
 			path: [

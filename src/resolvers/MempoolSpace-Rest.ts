@@ -1263,5 +1263,111 @@ export default {
 				},
 			}),
 
+		defineResolver({
+			entityType: EntityType.Network,
+			resolve: bitcoinNetworkSelectors(async (network, context) => {
+				assertBitcoinMainnet(network)
+				const { getMiningPools } = await import('$/sources/MempoolSpace/Rest/queries.ts')
+				const miningPools = await getMiningPools({
+					target: bitcoinMainnetCaip2,
+				})
+				const offset = context.pagination.offset ?? 0
+				return {
+					miningPools: miningPools.slice(offset, offset + resolverContextRowLimit(context)),
+					totalCount: miningPools.length,
+				}
+			}),
+		})({
+				Utxo: {
+					$$miningPools: {
+						select: (snapshot, network) => snapshot.miningPools.map((pool) => ({
+							[EntityMetaKey.Selector]: {
+								$network: network,
+								slug: pool.slug,
+							},
+							[EntityMetaKey.Fields]: {
+								[entityFieldAddressKey(EntityType.BitcoinMiningPool, [], 'uniqueId')]: pool.unique_id,
+								[entityFieldAddressKey(EntityType.BitcoinMiningPool, [], 'name')]: pool.name,
+							},
+						})),
+						resolveCount: (snapshot) => snapshot.totalCount,
+					},
+				},
+			}),
+
+		defineResolver({
+			entityType: EntityType.BitcoinMiningPool,
+			resolve: {
+				NetworkSlug: {
+					appliesTo: bitcoinNetworkReferenceApplicability,
+					resolve: async ({
+						$network,
+						slug,
+					}) => {
+						assertBitcoinMainnet($network)
+						const { getMiningPool } = await import('$/sources/MempoolSpace/Rest/queries.ts')
+						const miningPool = await getMiningPool({
+							slug,
+							target: bitcoinMainnetCaip2,
+						})
+						const timestampMs = Date.now()
+						return {
+							$network: {
+								[EntityMetaKey.Selector]: $network,
+							},
+							slug: miningPool.pool.slug,
+							uniqueId: miningPool.pool.unique_id,
+							name: miningPool.pool.name,
+							websiteUrl: miningPool.pool.link,
+							coinbaseTagRegexes: miningPool.pool.regexes,
+							$$coinbaseAddresses: miningPool.pool.addresses.map((address) => ({
+								[EntityMetaKey.Selector]: {
+									$network,
+									address,
+								},
+							})),
+							$$timestamps: [
+								{
+									[EntityMetaKey.Selector]: {
+										$pool: {
+											$network,
+											slug: miningPool.pool.slug,
+										},
+										timestampMs,
+										source: Source.MempoolSpace_Rest,
+									},
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.BitcoinMiningPool_Timestamp, [], 'blockCountAll')]: miningPool.blockCount.all,
+										[entityFieldAddressKey(EntityType.BitcoinMiningPool_Timestamp, [], 'blockCount24h')]: miningPool.blockCount['24h'],
+										[entityFieldAddressKey(EntityType.BitcoinMiningPool_Timestamp, [], 'blockCount1w')]: miningPool.blockCount['1w'],
+										[entityFieldAddressKey(EntityType.BitcoinMiningPool_Timestamp, [], 'blockShareAll')]: miningPool.blockShare.all,
+										[entityFieldAddressKey(EntityType.BitcoinMiningPool_Timestamp, [], 'blockShare24h')]: miningPool.blockShare['24h'],
+										[entityFieldAddressKey(EntityType.BitcoinMiningPool_Timestamp, [], 'blockShare1w')]: miningPool.blockShare['1w'],
+										[entityFieldAddressKey(EntityType.BitcoinMiningPool_Timestamp, [], 'estimatedHashrateHashesPerSecond')]: miningPool.estimatedHashrate,
+										...(miningPool.reportedHashrate != null && {
+											[entityFieldAddressKey(EntityType.BitcoinMiningPool_Timestamp, [], 'reportedHashrateHashesPerSecond')]: miningPool.reportedHashrate,
+										}),
+										...(miningPool.avgBlockHealth != null && {
+											[entityFieldAddressKey(EntityType.BitcoinMiningPool_Timestamp, [], 'avgBlockHealth')]: miningPool.avgBlockHealth,
+										}),
+										[entityFieldAddressKey(EntityType.BitcoinMiningPool_Timestamp, [], 'totalRewardSats')]: BigInt(miningPool.totalReward),
+									},
+								},
+							],
+						}
+					},
+				},
+			},
+		})({
+			$network: (pool) => pool.$network,
+			slug: (pool) => pool.slug,
+			uniqueId: (pool) => pool.uniqueId,
+			name: (pool) => pool.name,
+			websiteUrl: (pool) => pool.websiteUrl,
+			coinbaseTagRegexes: (pool) => pool.coinbaseTagRegexes,
+			$$coinbaseAddresses: (pool) => pool.$$coinbaseAddresses,
+			$$timestamps: (pool) => pool.$$timestamps,
+		}),
+
 	],
 } satisfies RegisteredSourceResolverModule
