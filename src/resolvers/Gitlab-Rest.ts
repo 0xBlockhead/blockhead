@@ -60,6 +60,41 @@ const gitObjectFormatFromObjectId = (objectId: string) => {
 	throw new Error('Gitlab_Rest: unsupported git object ID length')
 }
 
+const gitBlobSnapshotFromGitlabBlob = (blob: {
+	sha: string
+	size: number
+	content: string
+	encoding: 'base64'
+}) => {
+	const objectId = gitlabGitObjectId(blob.sha)
+	const objectFormat = gitObjectFormatFromObjectId(objectId)
+	const decodedBytes = Uint8Array.from(atob(blob.content), (character) => character.charCodeAt(0))
+	const textSample = decodedBytes.includes(0) ?
+		undefined
+	:
+		new TextDecoder('utf-8', { fatal: false }).decode(decodedBytes).slice(0, 4096)
+	return {
+		[EntityMetaKey.Selector]: {
+			objectId,
+			objectFormat,
+		},
+		[EntityMetaKey.Fields]: {
+			[entityFieldAddressKey(EntityType.GitBlob, [], 'objectId')]: objectId,
+			[entityFieldAddressKey(EntityType.GitBlob, [], 'objectFormat')]: objectFormat,
+			[entityFieldAddressKey(EntityType.GitBlob, [], '$object')]: {
+				[EntityMetaKey.Selector]: {
+					objectId,
+					objectFormat,
+				},
+			},
+			[entityFieldAddressKey(EntityType.GitBlob, [], 'byteSize')]: BigInt(blob.size),
+			...(textSample != null && textSample !== '' && {
+				[entityFieldAddressKey(EntityType.GitBlob, [], 'textSample')]: textSample,
+			}),
+		},
+	}
+}
+
 const gitCommitRefFromObjectId = (objectId: string) => ({
 	[EntityMetaKey.Selector]: {
 		objectId,
@@ -1124,7 +1159,7 @@ export default {
 						)
 							throw new Error('Gitlab_Rest: invalid repository path')
 
-						const { getRepositoryTree } = await import('$/sources/Gitlab/Rest/queries.ts')
+						const { getRepositoryBlob, getRepositoryTree } = await import('$/sources/Gitlab/Rest/queries.ts')
 						const pathSegments = normalizedPath.split('/')
 						const treeObjectIds: `0x${string}`[] = []
 						let target: Awaited<ReturnType<typeof getRepositoryTree>>[number] | undefined
@@ -1157,12 +1192,27 @@ export default {
 								treeObjectIds.push(`0x${target.id}`)
 							}
 						}
+						const blob = (
+							target?.type === 'blob' ?
+								await getRepositoryBlob({
+									projectId: coordinates.projectId,
+									blobSha: target.id,
+								})
+							:
+								undefined
+						)
+						if (blob != null && blob.sha.toLowerCase() !== target?.id.toLowerCase())
+							throw new Error('Gitlab_Rest: repository blob sha does not match tree entry')
+
 						return {
 							$repository,
 							commitObjectId,
 							path: normalizedPath,
 							treeObjectIds,
 							...(target?.type === 'blob' && { blobObjectId: `0x${target.id}` }),
+							...(blob != null && {
+								$blob: gitBlobSnapshotFromGitlabBlob(blob),
+							}),
 							...(target?.type === 'commit' && { submoduleCommitId: `0x${target.id}` }),
 							status: (
 								target == null ?
@@ -1186,6 +1236,7 @@ export default {
 			path: (resolution) => resolution.path,
 			treeObjectIds: (resolution) => resolution.treeObjectIds,
 			blobObjectId: (resolution) => resolution.blobObjectId,
+			$blob: (resolution) => resolution.$blob,
 			submoduleCommitId: (resolution) => resolution.submoduleCommitId,
 			status: (resolution) => resolution.status,
 		}),

@@ -4,6 +4,8 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
@@ -33,6 +35,7 @@
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import GitRepositoryView from '$/views/GitRepositoryView.svelte'
+	import GitBlobView from '$/views/GitBlobView.svelte'
 </script>
 
 
@@ -137,6 +140,25 @@
 							<dt>blob object ID</dt>
 							<dd>
 								<TruncatedValue value={blobObjectId} />
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={selection.$blob}
+			>
+				{#snippet children(gitBlob)}
+					{#if gitBlob != null}
+						{@const gitBlobInitial = untrack(() => gitBlob)}
+						<div>
+							<dt>Blob</dt>
+							<dd>
+								<GitBlobView
+									selection={select(EntityType.GitBlob, (gitBlob ?? gitBlobInitial)[EntityMetaKey.Selector])}
+									layout={EntityLayout.Value}
+								/>
 							</dd>
 						</div>
 					{/if}

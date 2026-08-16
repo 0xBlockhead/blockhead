@@ -4,6 +4,7 @@ import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { ZeroExHex } from '$/schema/ZeroExHex.ts'
+import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export default entity({
@@ -32,6 +33,13 @@ export default entity({
 	blobObjectId: {
 		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	$blob: {
+		entityType: EntityType.GitBlob,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Gitlab_Rest,
+		],
 	},
 	submoduleCommitId: {
 		primitiveType: ZeroExHex,

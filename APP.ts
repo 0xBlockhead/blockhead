@@ -35354,6 +35354,7 @@ export const schema = {
 				"path": { label: "path", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"treeObjectIds": { label: "tree object ids", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "zeroExHex" },
 				"blobObjectId": { label: "blob object ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "zeroExHex" },
+				"$blob": { label: "Blob", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.GitBlob, defaultSources: [Source.Gitlab_Rest] },
 				"submoduleCommitId": { label: "submodule commit ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "zeroExHex" },
 				"status": { label: "status", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 			})({
@@ -35364,7 +35365,7 @@ export const schema = {
 					singular: {
 						summary: { title: ["path"], value: ["status"], HeadingAfter: [{ field: "commitObjectId", format: "truncated" }] },
 						closed: ["$repository", { field: "commitObjectId", format: "truncated" }, "path"],
-						content: { dl: [["$repository", { field: "commitObjectId", format: "truncated" }, "path", "treeObjectIds", { field: "blobObjectId", format: "truncated" }, { field: "submoduleCommitId", format: "truncated" }, "status"]] },
+						content: { dl: [["$repository", { field: "commitObjectId", format: "truncated" }, "path", "treeObjectIds", { field: "blobObjectId", format: "truncated" }, "$blob", { field: "submoduleCommitId", format: "truncated" }, "status"]] },
 					},
 					plural: { component: "GitTreePathResolutionsView", title: "Git tree path resolutions", },
 				},

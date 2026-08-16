@@ -26,6 +26,7 @@ const {
 	getRelease,
 	getReleases,
 	getRepositoryTree,
+	getRepositoryBlob,
 	getTag,
 	getTags,
 	listProtectedBranches,
@@ -48,6 +49,7 @@ const {
 	getRelease: vi.fn(),
 	getReleases: vi.fn(),
 	getRepositoryTree: vi.fn(),
+	getRepositoryBlob: vi.fn(),
 	getTag: vi.fn(),
 	getTags: vi.fn(),
 	listProtectedBranches: vi.fn(),
@@ -72,6 +74,7 @@ vi.mock('$/sources/Gitlab/Rest/queries.ts', () => ({
 	getRelease,
 	getReleases,
 	getRepositoryTree,
+	getRepositoryBlob,
 	getTag,
 	getTags,
 	listProtectedBranches,
@@ -203,6 +206,12 @@ describe('GitLab repository journey', () => {
 					mode: '040000',
 				}]
 		))
+		getRepositoryBlob.mockResolvedValue({
+			size: 11,
+			encoding: 'base64',
+			content: btoa('hello blob\n'),
+			sha: 'd'.repeat(40),
+		})
 		getCommits.mockResolvedValue([
 			{
 				id: 'f'.repeat(40),
@@ -952,6 +961,20 @@ describe('GitLab repository journey', () => {
 			treeObjectIds: [`0x${'c'.repeat(40)}`],
 			blobObjectId: `0x${'d'.repeat(40)}`,
 			status: 'resolved-blob',
+			$blob: {
+				[EntityMetaKey.Selector]: {
+					objectId: `0x${'d'.repeat(40)}`,
+					objectFormat: 'sha1',
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.GitBlob, [], 'byteSize')]: 11n,
+					[entityFieldAddressKey(EntityType.GitBlob, [], 'textSample')]: 'hello blob\n',
+				},
+			},
+		})
+		expect(getRepositoryBlob).toHaveBeenCalledWith({
+			projectId: 'gitlab-org/gitlab',
+			blobSha: 'd'.repeat(40),
 		})
 	})
 
