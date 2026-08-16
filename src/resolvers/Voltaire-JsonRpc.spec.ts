@@ -11,6 +11,8 @@ import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { MediaTransport } from '$/schema/MediaTransport.ts'
+import { MediaType } from '$/schema/MediaType.ts'
 import { Source } from '$/sources/Source.ts'
 
 const getTxpoolStatus = vi.hoisted(() => vi.fn())
@@ -25,6 +27,7 @@ const getBlockByNumber = vi.hoisted(() => vi.fn())
 const getBlockNumber = vi.hoisted(() => vi.fn())
 const getStorageAt = vi.hoisted(() => vi.fn())
 const resolveEnsForward = vi.hoisted(() => vi.fn())
+const resolveEnsReverse = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/Voltaire/JsonRpc/queries.ts', () => ({
 	voltaireJsonRpcTransports: {
@@ -40,6 +43,7 @@ vi.mock('$/sources/Voltaire/JsonRpc/queries.ts', () => ({
 				getBlockNumber,
 				getStorageAt,
 				resolveEnsForward,
+				resolveEnsReverse,
 			}],
 			10: [
 				{
@@ -1856,5 +1860,66 @@ describe('Voltaire ENS records', () => {
 			recordKey: 'zonehash',
 		})
 		expect(emptyZonehashRecord.$$timestamps[0][EntityMetaKey.Fields]).toEqual({})
+	})
+})
+
+describe('Voltaire EvmAccount avatar', () => {
+	const evmAccountAvatarResolver = voltaireJsonRpc.resolvers.find((candidate) => (
+		candidate.entityType === EntityType.EvmAccount
+		&& 'avatarUrl' in candidate.projections
+	))
+
+	beforeEach(() => {
+		vi.clearAllMocks()
+	})
+
+	it('reverse-looks up avatar with scoped resolveEnsForward options', async () => {
+		if (evmAccountAvatarResolver == null)
+			throw new Error('Voltaire EvmAccount avatar resolver is not registered')
+
+		resolveEnsReverse.mockResolvedValueOnce('vitalik.eth')
+		resolveEnsForward.mockResolvedValueOnce({
+			textRecords: {
+				avatar: 'https://example.com/avatar.png',
+			},
+		})
+		const snapshot = await evmAccountAvatarResolver.resolve.AddressInteropAddress.resolve({
+			address: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
+		})
+
+		expect(resolveEnsReverse).toHaveBeenCalledWith({
+			address: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
+		})
+		expect(resolveEnsForward).toHaveBeenCalledWith({
+			name: 'vitalik.eth',
+			textKeys: ['avatar'],
+			coinTypeIds: [],
+			dnsRecordKeys: [],
+			zonehash: false,
+			resolverAbi: false,
+			resolverPubkey: false,
+		})
+		expect(snapshot).toEqual({
+			avatarUrl: 'https://example.com/avatar.png',
+			$avatar: {
+				[EntityMetaKey.Selector]: {
+					url: 'https://example.com/avatar.png',
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.Media, [], 'type')]: MediaType.Image,
+					[entityFieldAddressKey(EntityType.Media, [], 'transport')]: MediaTransport.Http,
+				},
+			},
+		})
+		expect(evmAccountAvatarResolver.projections.avatarUrl(snapshot)).toBe('https://example.com/avatar.png')
+		expect(evmAccountAvatarResolver.projections.$avatar(snapshot)).toEqual({
+			[EntityMetaKey.Selector]: {
+				url: 'https://example.com/avatar.png',
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.Media, [], 'type')]: MediaType.Image,
+				[entityFieldAddressKey(EntityType.Media, [], 'transport')]: MediaTransport.Http,
+			},
+		})
 	})
 })

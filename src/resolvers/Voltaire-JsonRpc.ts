@@ -3194,7 +3194,6 @@ export default {
 				AddressInteropAddress: {
 					resolve: async ({ address }) => {
 						const { normalizeEnsName } = await import('$/sources/Voltaire/JsonRpc/ens.ts')
-						const { ensTextRecords } = await import('$/constants/Ens.ts')
 						const chainId = ChainId.Ethereum
 						for (const jsonRpcTransport of (
 							(await voltaireJsonRpcHttpTransportsByChainId())[chainId] ?? []
@@ -3207,7 +3206,12 @@ export default {
 									return {}
 								const { textRecords } = await jsonRpcTransport.resolveEnsForward({
 									name: normalizeEnsName(ensNameFromReverseLookup),
-									textKeys: ensTextRecords.map((row) => row.key),
+									textKeys: ['avatar'],
+									coinTypeIds: [],
+									dnsRecordKeys: [],
+									zonehash: false,
+									resolverAbi: false,
+									resolverPubkey: false,
 								})
 								const avatarUrl = ((raw) => (
 									raw.length === 0 ?
