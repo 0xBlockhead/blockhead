@@ -39,6 +39,7 @@ const resolverLoaderEntries = [
 	[Source.BitcoinCore_JsonRpc, () => import('./BitcoinCore-JsonRpc.ts')],
 	[Source.Bithomp, () => import('./Bithomp.ts')],
 	[Source.Bittensor_JsonRpc, () => import('./Bittensor-JsonRpc.ts')],
+	[Source.BitTorrent, () => import('./BitTorrent-Dht.ts')],
 	[Source.Blobscan_Rest, () => import('./Blobscan-Rest.ts')],
 	[Source.Blockchair_Rest, () => import('./Blockchair-Rest.ts')],
 	[Source.Blockfrost_Rest, () => import('./Blockfrost-Rest.ts')],

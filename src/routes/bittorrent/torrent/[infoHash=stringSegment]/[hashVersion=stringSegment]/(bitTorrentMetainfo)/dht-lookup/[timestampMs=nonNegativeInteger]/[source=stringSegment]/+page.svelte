@@ -12,14 +12,9 @@
 
 	// State
 	let {
+		data,
 		params,
 	}: PageProps = $props()
-
-	const pageSelection = $derived(select(EntityType.BitTorrentDhtLookup_Timestamp, {
-		infoHash: params.infoHash,
-		observerKey: params.observerKey,
-		timestampMs: Number(params.timestampMs),
-	}))
 
 
 	// Components
@@ -29,12 +24,20 @@
 
 
 <svelte:head>
-	<title>{pageSelection.entitySelector.infoHash || 'bit torrent DHT lookup timestamp'} • bit torrent DHT lookup timestamp • Blockhead</title>
+	<title>{data.title ?? 'mainline DHT lookup'} • mainline DHT lookup • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<BitTorrentDhtLookup_TimestampView
-		selection={pageSelection}
+		selection={
+			select(EntityType.BitTorrentDhtLookup_Timestamp, {
+				$torrent: data.selector,
+				timestampMs: Number(params.timestampMs),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})
+		}
 	/>
 </Page>

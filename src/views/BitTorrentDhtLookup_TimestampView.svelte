@@ -7,6 +7,10 @@
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
+	// Context
+	import { select } from '$/routes/+layout.svelte'
+
+
 	// State
 	let {
 		selection,
@@ -17,19 +21,22 @@
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.BitTorrentDhtLookup_Timestamp>, 'prefetched'> = $props()
 
+	const torrent = $derived(selection.entitySelector.$torrent)
 	const bitTorrentDhtLookupTimestamp = $derived(selection({
 		fields: {
+			peerCount: true,
 			status: true,
 		},
 	}))
-	const titleFallback = $derived(selection.entitySelector.infoHash || 'bit torrent DHT lookup timestamp')
+	const titleFallback = 'mainline DHT lookup'
 
 
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
-	import TruncatedValue from '$/components/TruncatedValue.svelte'
+	import BitTorrentDhtNode_TimestampsView from '$/views/BitTorrentDhtNode_TimestampsView.svelte'
+	import BitTorrentMetainfoView from '$/views/BitTorrentMetainfoView.svelte'
 </script>
 
 
@@ -40,11 +47,12 @@
 	href={
 		href === undefined ?
 			resolve(
-				'/(bittorrent)/bittorrent/dht-lookup/[infoHash=stringSegment]/[observerKey=stringSegment]/[timestampMs=nonNegativeInteger]',
+				'/bittorrent/torrent/[infoHash=stringSegment]/[hashVersion=stringSegment]/(bitTorrentMetainfo)/dht-lookup/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 				{
-					infoHash: selection.entitySelector.infoHash,
-					observerKey: selection.entitySelector.observerKey,
+					infoHash: torrent.infoHash,
+					hashVersion: torrent.hashVersion,
 					timestampMs: String(selection.entitySelector.timestampMs),
+					source: selection.entitySelector.source,
 				}
 			)
 		:
@@ -55,13 +63,17 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<TruncatedValue value={selection.entitySelector.infoHash} />
+		<BitTorrentMetainfoView
+			selection={select(EntityType.BitTorrentMetainfo, selection.entitySelector.$torrent)}
+			href={null}
+			layout={EntityLayout.Title}
+		/>
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={bitTorrentDhtLookupTimestamp}>
 			{#snippet children(entity)}
-				{entity.status || selection.entitySelector.infoHash || titleFallback}
+				{[String(entity.peerCount ?? ''), (entity.status ?? '')].filter(Boolean).join(' ') || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -73,42 +85,6 @@
 	{/snippet}
 
 	{#snippet Content()}
-		<dl data-column-item="center">
-			<div>
-				<dt>info hash</dt>
-				<dd>
-					<TruncatedValue value={selection.entitySelector.infoHash} />
-				</dd>
-			</div>
-
-			<div>
-				<dt>observer key</dt>
-				<dd>
-					{selection.entitySelector.observerKey}
-				</dd>
-			</div>
-
-			<div>
-				<dt>Timestamp</dt>
-				<dd>
-					<Timestamp timestamp={selection.entitySelector.timestampMs} />
-				</dd>
-			</div>
-
-			<div>
-				<dt>status</dt>
-				<dd>
-					<ResourceBoundary
-						resource={bitTorrentDhtLookupTimestamp}
-					>
-						{#snippet children(entity)}
-							{entity.status}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
-		</dl>
-
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
@@ -123,7 +99,7 @@
 					{@const queriedNodeCount = entity.queriedNodeCount}
 					{#if queriedNodeCount != null}
 						<div>
-							<dt>queried node count</dt>
+							<dt>Queried nodes</dt>
 							<dd>
 								<NumberValue
 									value={queriedNodeCount}
@@ -147,7 +123,7 @@
 					{@const responsiveNodeCount = entity.responsiveNodeCount}
 					{#if responsiveNodeCount != null}
 						<div>
-							<dt>responsive node count</dt>
+							<dt>Responsive nodes</dt>
 							<dd>
 								<NumberValue
 									value={responsiveNodeCount}
@@ -159,19 +135,13 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							peerCount: true,
-						},
-					})
-				}
+				resource={bitTorrentDhtLookupTimestamp}
 			>
 				{#snippet children(entity)}
 					{@const peerCount = entity.peerCount}
 					{#if peerCount != null}
 						<div>
-							<dt>peer count</dt>
+							<dt>Peers</dt>
 							<dd>
 								<NumberValue
 									value={peerCount}
@@ -182,5 +152,48 @@
 				{/snippet}
 			</ResourceBoundary>
 		</dl>
+
+		<dl data-column-item="center">
+			<ResourceBoundary
+				resource={bitTorrentDhtLookupTimestamp}
+			>
+				{#snippet children(entity)}
+					{@const status = entity.status}
+					{#if status != null}
+						<div>
+							<dt>Status</dt>
+							<dd>
+								{status}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<div>
+				<dt>Timestamp</dt>
+				<dd>
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
+				</dd>
+			</div>
+		</dl>
+	{/snippet}
+
+	{#snippet Details()}
+		{@const closestNodesResource = selection.$$closestNodes}
+		<ResourceBoundary
+			resource={closestNodesResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<BitTorrentDhtNode_TimestampsView
+						selection={closestNodesResource}
+						countResource={closestNodesResource.count}
+						title='Closest DHT nodes'
+						id='closest-nodes'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

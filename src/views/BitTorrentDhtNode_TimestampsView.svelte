@@ -11,6 +11,7 @@
 	// State
 	let {
 		selection,
+		title = 'DHT nodes',
 		open = $bindable(true),
 		...EntitiesListProps
 	}: EntityListViewProps<EntityType.BitTorrentDhtNode_Timestamp> = $props()
@@ -24,6 +25,7 @@
 <EntitiesList
 	{...EntitiesListProps}
 	entityType={EntityType.BitTorrentDhtNode_Timestamp}
+	{title}
 	bind:open
 	resource={
 		selection({
@@ -54,7 +56,7 @@
 			}
 		>
 			{#snippet Title()}
-				{bitTorrentDhtNodeTimestampSelector.nodeId || 'bit torrent DHT node timestamp'}
+				{bitTorrentDhtNodeTimestampSelector.nodeId || 'mainline DHT node observation'}
 			{/snippet}
 
 			{#snippet Value()}

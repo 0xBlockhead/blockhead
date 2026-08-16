@@ -108,6 +108,13 @@ export default entity({
 			Source.TransmissionRpc_JsonRpc,
 		],
 	},
+	$$dhtLookups: {
+		entityType: EntityType.BitTorrentDhtLookup_Timestamp,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.BitTorrent,
+		],
+	},
 })({
 	selectors: {
 		InfoHashHashVersion: [

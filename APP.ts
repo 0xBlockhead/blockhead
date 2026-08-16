@@ -12477,55 +12477,58 @@ export const schema = {
 			entity({
 				entityType: EntityType.BitTorrentDhtLookup_Timestamp,
 				labels: {
-					singular: "bit torrent DHT lookup timestamp",
-					plural: "bit torrent DHT lookup observations",
+					singular: "mainline DHT lookup",
+					plural: "mainline DHT lookups",
 				},
+				description: "A source-scoped one-shot BEP 5 get_peers observation for a v1 torrent infohash. It is not a recursive Kademlia walk and not a durable local routing table.",
 			})({
-				"infoHash": { label: "info hash", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"observerKey": { label: "observer key", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"$torrent": { label: "Torrent", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.BitTorrentMetainfo },
 				"timestampMs": { label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
-				"queriedNodeCount": { label: "queried node count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"responsiveNodeCount": { label: "responsive node count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"peerCount": { label: "peer count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"closestNodeIds": { label: "closest node ids", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "string" },
-				"status": { label: "status", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"source": { label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"queriedNodeCount": { label: "Queried nodes", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.BitTorrent] },
+				"responsiveNodeCount": { label: "Responsive nodes", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.BitTorrent] },
+				"peerCount": { label: "Peers", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.BitTorrent] },
+				"status": { label: "Status", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.BitTorrent] },
+				"$$closestNodes": { label: "Closest DHT nodes", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BitTorrentDhtNode_Timestamp, defaultSources: [Source.BitTorrent] },
 			})({
 				selectors: {
-					"InfoHashObserverKeyTimestampMs": ["infoHash", "observerKey", "timestampMs"],
+					"TorrentTimestampMsSource": ["$torrent", "timestampMs", "source"],
 				},
 				views: {
 					singular: {
 						summary: {
-							title: [{ field: "infoHash", format: "truncated" }],
-							value: ["status"],
+							title: ["$torrent"],
+							value: [{ field: "peerCount", format: "number" }, "status"],
 							HeadingAfter: [{ field: "timestampMs", format: "timestamp" }],
 						},
 						content: {
 							dl: [
-								[{ field: "infoHash", format: "truncated" }, "observerKey", { field: "timestampMs", format: "timestamp" }, "status"],
 								[{ field: "queriedNodeCount", format: "number" }, { field: "responsiveNodeCount", format: "number" }, { field: "peerCount", format: "number" }],
+								["status", { field: "timestampMs", format: "timestamp" }],
 							],
 						},
+						lists: [
+							{ field: "$$closestNodes", component: "BitTorrentDhtNode_TimestampsView", emptyText: "No closest DHT nodes." },
+						],
 					},
-					plural: { component: "BitTorrentDhtLookup_TimestampsView",
-					},
+					plural: { component: "BitTorrentDhtLookup_TimestampsView", title: "Mainline DHT lookups" },
 				},
 			}),
 
 			entity({
 				entityType: EntityType.BitTorrentDhtNode_Timestamp,
 				labels: {
-					singular: "bit torrent DHT node timestamp",
-					plural: "bit torrent DHT node observations",
+					singular: "mainline DHT node observation",
+					plural: "mainline DHT node observations",
 				},
+				description: "A source-scoped compact-node or bootstrap contact observed during one mainline DHT query. Address and reachability belong to that observation clock, not a stored routing table.",
 			})({
-				"nodeId": { label: "node ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"nodeId": { label: "Node id", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"timestampMs": { label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
 				"source": { label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"address": { label: "Address", description: "The address or account identifier used by the source protocol.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"port": { label: "port", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"observedInfoHashes": { label: "observed info hashes", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "string" },
-				"reachable": { label: "reachable", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean" },
+				"address": { label: "Address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.BitTorrent] },
+				"port": { label: "Port", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.BitTorrent] },
+				"reachable": { label: "Reachable", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean", defaultSources: [Source.BitTorrent] },
 			})({
 				selectors: {
 					"NodeIdTimestampMsSource": ["nodeId", "timestampMs", "source"],
@@ -12533,19 +12536,18 @@ export const schema = {
 				views: {
 					singular: {
 						summary: {
-							title: ["nodeId"],
+							title: [{ field: "nodeId", format: "truncated" }],
 							value: ["reachable"],
 							HeadingAfter: [{ field: "timestampMs", format: "timestamp" }],
 						},
 						content: {
 							dl: [
-								["nodeId", { field: "timestampMs", format: "timestamp" }, "source", "reachable"],
-								["address", { field: "port", format: "number" }, "observedInfoHashes"],
+								[{ field: "timestampMs", format: "timestamp" }, "source", "reachable"],
+								["address", { field: "port", format: "number" }],
 							],
 						},
 					},
-					plural: { component: "BitTorrentDhtNode_TimestampsView",
-					},
+					plural: { component: "BitTorrentDhtNode_TimestampsView", title: "DHT nodes" },
 				},
 			}),
 
@@ -12644,6 +12646,7 @@ export const schema = {
 				"$$swarmTimestamps": { label: "swarm timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BitTorrentSwarmObservation_Timestamp },
 				"$$clientTransfers": { label: "client transfers", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadBitTorrentTransfer_Timestamp },
 				"$$peerTimestamps": { label: "peer observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BitTorrentPeer_Timestamp, defaultSources: [Source.qBittorrentWebUi_Rest, Source.TransmissionRpc_JsonRpc] },
+				"$$dhtLookups": { label: "Mainline DHT lookups", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BitTorrentDhtLookup_Timestamp, defaultSources: [Source.BitTorrent] },
 			})({
 				selectors: {
 					"InfoHashHashVersion": ["infoHash", "hashVersion"],
@@ -12679,6 +12682,7 @@ export const schema = {
 								sections: [
 									{ id: "bittorrent-trackers", field: "$$trackers", List: "BitTorrentTrackersView", label: "Trackers", emptyText: "No trackers found." },
 									{ id: "bittorrent-magnets", field: "$$magnets", List: "MagnetLinksView", label: "Magnets", emptyText: "No magnets found." },
+									{ id: "bittorrent-dht-lookups", field: "$$dhtLookups", List: "BitTorrentDhtLookup_TimestampsView", label: "DHT lookups", emptyText: "No mainline DHT lookups yet." },
 								],
 							},
 							{
@@ -95098,6 +95102,29 @@ export const routes = defineRoutes(schema)({
 												}
 											}
 										},
+										"dht-lookup": {
+											children: {
+												"[timestampMs]": {
+													params: { "timestampMs": ["NonNegativeInteger"] },
+													children: {
+														"[source]": {
+															params: { "source": ["string"] },
+															selectors: {
+																[EntityType.BitTorrentDhtLookup_Timestamp]: {
+																	"TorrentTimestampMsSource": {
+																		derivations: {
+																			"timestampMs": { kind: "param", name: "timestampMs" },
+																			"source": { kind: "param", name: "source" },
+																		},
+																		page: {},
+																	}
+																}
+															},
+														}
+													}
+												}
+											}
+										},
 										"file": {
 											children: {
 												"[fileIndex]": {
@@ -95207,6 +95234,46 @@ export const routes = defineRoutes(schema)({
 																[EntityType.BitTorrentTrackerScrape_Timestamp]: {
 																	"TrackerInfoHashTimestampMsSource": {
 																		params: { "infoHash": ["infoHash"], "timestampMs": ["timestampMs"], "source": ["source"] },
+																		page: {},
+																	}
+																}
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"(bittorrent)": {
+			children: {
+				"bittorrent": {
+					children: {
+						"dht-node": {
+							children: {
+								"[nodeId]": {
+									children: {
+										"observations": {
+											children: {
+												"[timestampMs]": {
+													params: { "timestampMs": ["NonNegativeInteger"] },
+													children: {
+														"[source]": {
+															params: { "source": ["string"] },
+															selectors: {
+																[EntityType.BitTorrentDhtNode_Timestamp]: {
+																	"NodeIdTimestampMsSource": {
+																		params: { "nodeId": ["nodeId"] },
+																		derivations: {
+																			"timestampMs": { kind: "param", name: "timestampMs" },
+																			"source": { kind: "param", name: "source" },
+																		},
 																		page: {},
 																	}
 																}
@@ -97008,62 +97075,6 @@ export const routes = defineRoutes(schema)({
 																				}
 																			}
 																		}
-																	}
-																}
-															}
-														}
-													}
-												}
-											}
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		},
-		"(bittorrent)": {
-			children: {
-				"bittorrent": {
-					children: {
-						"dht-lookup": {
-							children: {
-								"[infoHash]": {
-									children: {
-										"[observerKey]": {
-											children: {
-												"[timestampMs]": {
-													selectors: {
-														[EntityType.BitTorrentDhtLookup_Timestamp]: {
-															"InfoHashObserverKeyTimestampMs": {
-																params: { "infoHash": ["infoHash"], "observerKey": ["observerKey"], "timestampMs": ["timestampMs"] },
-																page: {},
-															}
-														}
-													}
-												}
-											}
-										}
-									}
-								}
-							}
-						},
-						"dht-node": {
-							children: {
-								"[nodeId]": {
-									children: {
-										"observations": {
-											children: {
-												"[timestampMs]": {
-													children: {
-														"[source]": {
-															selectors: {
-																[EntityType.BitTorrentDhtNode_Timestamp]: {
-																	"NodeIdTimestampMsSource": {
-																		params: { "nodeId": ["nodeId"], "timestampMs": ["timestampMs"], "source": ["source"] },
-																		page: {},
 																	}
 																}
 															}
@@ -115691,6 +115702,10 @@ export const app = {
 			{
 				source: Source.Bittensor_JsonRpc,
 				path: "src/resolvers/Bittensor-JsonRpc.ts",
+			},
+			{
+				source: Source.BitTorrent,
+				path: "src/resolvers/BitTorrent-Dht.ts",
 			},
 			{
 				source: Source.Blobscan_Rest,

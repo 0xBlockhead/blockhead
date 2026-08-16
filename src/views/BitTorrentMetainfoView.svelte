@@ -39,6 +39,7 @@
 	import BitTorrentPiecesView from '$/views/BitTorrentPiecesView.svelte'
 	import BitTorrentTrackersView from '$/views/BitTorrentTrackersView.svelte'
 	import MagnetLinksView from '$/views/MagnetLinksView.svelte'
+	import BitTorrentDhtLookup_TimestampsView from '$/views/BitTorrentDhtLookup_TimestampsView.svelte'
 	import BitTorrentSwarmObservation_TimestampsView from '$/views/BitTorrentSwarmObservation_TimestampsView.svelte'
 	import BlockheadBitTorrentTransfer_TimestampsView from '$/views/BlockheadBitTorrentTransfer_TimestampsView.svelte'
 	import BitTorrentPeer_TimestampsView from '$/views/BitTorrentPeer_TimestampsView.svelte'
@@ -346,6 +347,10 @@
 						id: 'bittorrent-magnets',
 						label: 'Magnets',
 					},
+					{
+						id: 'bittorrent-dht-lookups',
+						label: 'DHT lookups',
+					},
 				]
 			}
 			data-card
@@ -373,6 +378,16 @@
 					collapsible={false}
 					title={label}
 					emptyText='No magnets found.'
+					id={`${id}-list`}
+				/>
+			{/snippet}
+
+			{#snippet SectionBittorrentDhtLookups({ id, label })}
+				<BitTorrentDhtLookup_TimestampsView
+					selection={selection.$$dhtLookups}
+					collapsible={false}
+					title={label}
+					emptyText='No mainline DHT lookups yet.'
 					id={`${id}-list`}
 				/>
 			{/snippet}

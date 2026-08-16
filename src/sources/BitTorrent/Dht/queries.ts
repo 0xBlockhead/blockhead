@@ -5,6 +5,8 @@ import {
 	encodeBencode,
 } from '$/sources/_shared/wire/Bencode/client.ts'
 import type { BencodeValue } from '$/sources/_shared/wire/Bencode/types.ts'
+import bindings from '$/sources/BitTorrent/bindings.ts'
+import { Source } from '$/sources/Source.ts'
 import {
 	createDhtSocket,
 	type DhtRemote,
@@ -368,3 +370,37 @@ export const get = async ({
 		...(values.seq !== undefined && { sequence: assertSequence(values.seq) }),
 	}
 }
+
+const udpLocatorPattern = /^udp:\/\/([^:/]+):(\d+)$/
+
+export const parseDhtIdHex = (
+	hex: string,
+	label: string
+) => {
+	const normalized = hex.toLowerCase()
+	if (!/^[0-9a-f]{40}$/.test(normalized))
+		throw new Error(`BitTorrent_Dht: ${label} must be 20-byte hex`)
+	return Uint8Array.from({ length: 20 }, (_, index) => (
+		Number.parseInt(normalized.slice(index * 2, index * 2 + 2), 16)
+	))
+}
+
+export const normalizeDhtIdHex = (
+	nodeId: Uint8Array
+) => (
+	[...assertNodeIdLength(nodeId, 'node id')]
+		.map((byte) => byte.toString(16).padStart(2, '0'))
+		.join('')
+)
+
+export const mainlineDhtBootstrapRemotes = bindings[Source.BitTorrent]
+	.filter((binding) => binding.target.key === 'mainline-dht')
+	.flatMap((binding) => binding.endpoints.map((endpoint) => {
+		const match = udpLocatorPattern.exec(endpoint.locator)
+		if (match == null)
+			throw new Error(`BitTorrent_Dht: invalid bootstrap locator ${endpoint.locator}`)
+		return {
+			host: match[1],
+			port: Number(match[2]),
+		}
+	}))

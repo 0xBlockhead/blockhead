@@ -31,7 +31,7 @@
 
 
 <svelte:head>
-	<title>{pageSelection.entitySelector.nodeId || 'bit torrent DHT node timestamp'} • bit torrent DHT node timestamp • Blockhead</title>
+	<title>{pageSelection.entitySelector.nodeId || 'mainline DHT node observation'} • mainline DHT node observation • Blockhead</title>
 </svelte:head>
 
 

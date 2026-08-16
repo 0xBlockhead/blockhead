@@ -29,7 +29,12 @@
 		selection({
 			...{
 				fields: {
-					infoHash: true,
+					$torrent: {
+						fields: {
+							name: true,
+						},
+					},
+					peerCount: true,
 					status: true,
 					timestampMs: true,
 				},
@@ -39,26 +44,28 @@
 >
 	{#snippet Item({ item: bitTorrentDhtLookupTimestamp })}
 		{@const bitTorrentDhtLookupTimestampSelector = bitTorrentDhtLookupTimestamp[EntityMetaKey.Selector]}
+		{@const torrent = bitTorrentDhtLookupTimestampSelector.$torrent}
 		<EntityView
 			entityType={EntityType.BitTorrentDhtLookup_Timestamp}
 			entitySelector={bitTorrentDhtLookupTimestampSelector}
 			href={
 				resolve(
-					'/(bittorrent)/bittorrent/dht-lookup/[infoHash=stringSegment]/[observerKey=stringSegment]/[timestampMs=nonNegativeInteger]',
+					'/bittorrent/torrent/[infoHash=stringSegment]/[hashVersion=stringSegment]/(bitTorrentMetainfo)/dht-lookup/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 					{
-						infoHash: bitTorrentDhtLookupTimestampSelector.infoHash,
-						observerKey: bitTorrentDhtLookupTimestampSelector.observerKey,
+						infoHash: torrent.infoHash,
+						hashVersion: torrent.hashVersion,
 						timestampMs: String(bitTorrentDhtLookupTimestampSelector.timestampMs),
+						source: bitTorrentDhtLookupTimestampSelector.source,
 					}
 				)
 			}
 		>
 			{#snippet Title()}
-				{bitTorrentDhtLookupTimestampSelector.infoHash || 'bit torrent DHT lookup timestamp'}
+				{(bitTorrentDhtLookupTimestamp.$torrent.name ?? '') || bitTorrentDhtLookupTimestampSelector.$torrent.infoHash || 'bit torrent metainfo'}
 			{/snippet}
 
 			{#snippet Value()}
-				{bitTorrentDhtLookupTimestamp.status}
+				{[String(bitTorrentDhtLookupTimestamp.peerCount ?? ''), (bitTorrentDhtLookupTimestamp.status ?? '')].filter(Boolean).join(' ')}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

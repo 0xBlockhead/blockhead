@@ -22,7 +22,7 @@
 			reachable: true,
 		},
 	}))
-	const titleFallback = $derived(selection.entitySelector.nodeId || 'bit torrent DHT node timestamp')
+	const titleFallback = $derived(selection.entitySelector.nodeId || 'mainline DHT node observation')
 
 
 	// Components
@@ -54,6 +54,10 @@
 	bind:open
 	{...EntityViewProps}
 >
+	{#snippet Title()}
+		<TruncatedValue value={selection.entitySelector.nodeId} />
+	{/snippet}
+
 	{#snippet Value()}
 		<ResourceBoundary resource={bitTorrentDhtNodeTimestamp}>
 			{#snippet children(entity)}
@@ -70,13 +74,6 @@
 
 	{#snippet Content()}
 		<dl data-column-item="center">
-			<div>
-				<dt>node ID</dt>
-				<dd>
-					{selection.entitySelector.nodeId}
-				</dd>
-			</div>
-
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
@@ -98,7 +95,7 @@
 					{@const reachable = entity.reachable}
 					{#if reachable != null}
 						<div>
-							<dt>reachable</dt>
+							<dt>Reachable</dt>
 							<dd>
 								{reachable ? 'Yes' : 'No'}
 							</dd>
@@ -144,7 +141,7 @@
 					{@const port = entity.port}
 					{#if port != null}
 						<div>
-							<dt>port</dt>
+							<dt>Port</dt>
 							<dd>
 								<NumberValue
 									value={port}
@@ -154,25 +151,6 @@
 					{/if}
 				{/snippet}
 			</ResourceBoundary>
-
-			<div>
-				<dt>observed info hashes</dt>
-				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								fields: {
-									observedInfoHashes: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{entity.observedInfoHashes.values.join(', ')}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
 		</dl>
 	{/snippet}
 </EntityView>

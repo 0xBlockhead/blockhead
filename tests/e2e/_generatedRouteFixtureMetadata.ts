@@ -1150,16 +1150,6 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
-	'/(bittorrent)/bittorrent/dht-lookup/[infoHash]/[observerKey]/[timestampMs]': {
-		routeId: '/(bittorrent)/bittorrent/dht-lookup/[infoHash=stringSegment]/[observerKey=stringSegment]/[timestampMs=nonNegativeInteger]',
-		mappings: [
-			{
-				id: 'BitTorrentDhtLookup_Timestamp.InfoHashObserverKeyTimestampMs',
-				probeAtomPrefixes: ['/bittorrent/dht-lookup/[infoHash]/[observerKey]/[timestampMs]:BitTorrentDhtLookup_Timestamp.InfoHashObserverKeyTimestampMs'],
-				probeCases: [[[0, '1', ['infoHash', 'observerKey', 'timestampMs']]]],
-			},
-		],
-	},
 	'/(bittorrent)/bittorrent/dht-node/[nodeId]/observations/[timestampMs]/[source]': {
 		routeId: '/(bittorrent)/bittorrent/dht-node/[nodeId=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 		mappings: [
@@ -12841,6 +12831,16 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				id: 'BitTorrentMetainfo.InfoHashHashVersion',
 				probeAtomPrefixes: ['/bittorrent/torrent/[infoHash]/[hashVersion]:BitTorrentMetainfo.InfoHashHashVersion'],
 				probeCases: [[[0, '1', ['infoHash', 'hashVersion']]]],
+			},
+		],
+	},
+	'/bittorrent/torrent/[infoHash]/[hashVersion]/dht-lookup/[timestampMs]/[source]': {
+		routeId: '/bittorrent/torrent/[infoHash=stringSegment]/[hashVersion=stringSegment]/(bitTorrentMetainfo)/dht-lookup/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+		mappings: [
+			{
+				id: 'BitTorrentDhtLookup_Timestamp.TorrentTimestampMsSource',
+				probeAtomPrefixes: ['/bittorrent/torrent/[infoHash]/[hashVersion]/dht-lookup/[timestampMs]/[source]:BitTorrentDhtLookup_Timestamp.TorrentTimestampMsSource'],
+				probeCases: [[[0, '1', ['timestampMs', 'source', 'infoHash', 'hashVersion']]]],
 			},
 		],
 	},
