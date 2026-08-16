@@ -30,11 +30,6 @@
 			Source.MempoolSpace_Rest,
 		],
 	}))
-	const bitcoinMiningPool = $derived(viewSelection({
-		fields: {
-			name: true,
-		},
-	}))
 	const titleFallback = $derived((prefetched.name ?? '') || 'Bitcoin mining pool')
 
 
@@ -74,7 +69,15 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={bitcoinMiningPool}>
+		<ResourceBoundary
+			resource={
+				viewSelection({
+					fields: {
+						name: true,
+					},
+				})
+			}
+		>
 			{#snippet children(entity)}
 				{entity.name || title || titleFallback}
 			{/snippet}
@@ -94,26 +97,6 @@
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
 					/>
-				</dd>
-			</div>
-
-			<div>
-				<dt>Name</dt>
-				<dd>
-					<ResourceBoundary
-						resource={bitcoinMiningPool}
-					>
-						{#snippet children(entity)}
-							{entity.name}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
-
-			<div>
-				<dt>Slug</dt>
-				<dd>
-					{selection.entitySelector.slug}
 				</dd>
 			</div>
 
