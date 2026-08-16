@@ -398,6 +398,19 @@ describe('Lightning LND resolver ownership', () => {
 			capacitySats: 250000n,
 			updatedAtMs: 1_700_000_010_000,
 			feeRatePpm: undefined,
+			$$routingPolicies: [{
+				[EntityMetaKey.Selector]: {
+					$channelTimestamp: timestampSelector,
+					$towardNode: {
+						$network: lightningNetwork,
+						publicKey: peerPublicKey,
+					},
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.LightningChannelRoutingPolicy_Timestamp, [], 'feeRatePpm')]: 125,
+					[entityFieldAddressKey(EntityType.LightningChannelRoutingPolicy_Timestamp, [], 'disabled')]: false,
+				},
+			}],
 		})
 
 		getChannelInfo.mockResolvedValueOnce({

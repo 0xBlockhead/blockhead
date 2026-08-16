@@ -709,6 +709,7 @@ export enum EntityType {
 	Leverage = 'Leverage',
 	LightningChannel = 'LightningChannel',
 	LightningChannel_Timestamp = 'LightningChannel_Timestamp',
+	LightningChannelRoutingPolicy_Timestamp = 'LightningChannelRoutingPolicy_Timestamp',
 	LightningNetwork = 'LightningNetwork',
 	LightningNetwork_Timestamp = 'LightningNetwork_Timestamp',
 	LightningNode = 'LightningNode',

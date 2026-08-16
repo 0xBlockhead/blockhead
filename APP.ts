@@ -1408,6 +1408,7 @@ export enum EntityType {
 	Leverage = "Leverage",
 	LightningChannel = "LightningChannel",
 	LightningChannel_Timestamp = "LightningChannel_Timestamp",
+	LightningChannelRoutingPolicy_Timestamp = "LightningChannelRoutingPolicy_Timestamp",
 	LightningNetwork = "LightningNetwork",
 	LightningNetwork_Timestamp = "LightningNetwork_Timestamp",
 	LightningNode = "LightningNode",
@@ -43351,6 +43352,7 @@ export const schema = {
 				"status": { label: "Status", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "LightningChannelStatus", defaultSources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest, Source.Amboss_Graphql] },
 				"capacitySats": { label: "Channel funding capacity sats", description: "Total channel funding capacity from the source graph, not either party's directional balance or a routable-liquidity estimate.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest, Source.Amboss_Graphql] },
 				"feeRatePpm": { label: "Fee rate ppm", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest, Source.Amboss_Graphql] },
+				"$$routingPolicies": { label: "Directional routing policies", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.LightningChannelRoutingPolicy_Timestamp, defaultSources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest, Source.Amboss_Graphql] },
 				"updatedAtMs": { label: "Updated", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest, Source.Amboss_Graphql] },
 				"closingTransactionId": { label: "Closing transaction ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Amboss_Graphql, Source.LightningMempoolSpace_Rest] },
 				"closingFeeSats": { label: "Closing fee sats", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Amboss_Graphql, Source.LightningMempoolSpace_Rest] },
@@ -43373,8 +43375,49 @@ export const schema = {
 								["closingTransactionId", { field: "closingFeeSats", format: "number" }, "closingReason", { field: "closedAtMs", format: "timestamp" }],
 							],
 						},
+						lists: [
+							{ field: "$$routingPolicies", component: "LightningChannelRoutingPolicy_TimestampsView", emptyText: "No directional routing policies." },
+						],
 					},
 					plural: { component: "LightningChannel_TimestampsView", },
+				},
+			}),
+
+			entity({
+				entityType: EntityType.LightningChannelRoutingPolicy_Timestamp,
+				labels: {
+					singular: "Lightning channel routing policy",
+					plural: "Lightning channel routing policies",
+				},
+				description: "A source-scoped advertised HTLC forwarding policy from one public channel peer toward the other peer, at the same observation clock as the parent channel graph snapshot. Directional fees are not a channel-global rate.",
+			})({
+				"$channelTimestamp": { label: "Channel observation", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.LightningChannel_Timestamp },
+				"$towardNode": { label: "Toward node", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.LightningNode },
+				"feeRatePpm": { label: "Fee rate ppm", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest, Source.Amboss_Graphql] },
+				"feeBaseMsat": { label: "Base fee", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest] },
+				"timeLockDelta": { label: "CLTV delta", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeInteger", defaultSources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest] },
+				"minHtlcMsat": { label: "Min HTLC", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest] },
+				"maxHtlcMsat": { label: "Max HTLC", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest] },
+				"disabled": { label: "Disabled", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean", defaultSources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest, Source.Amboss_Graphql] },
+				"updatedAtMs": { label: "Updated", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest] },
+			})({
+				selectors: {
+					"ChannelTimestampTowardNode": ["$channelTimestamp", "$towardNode"],
+				},
+				views: {
+					singular: {
+						summary: {
+							title: ["$towardNode"],
+							value: [{ field: "feeRatePpm", format: "number" }, "disabled"],
+						},
+						content: {
+							dl: [
+								[{ field: "feeRatePpm", format: "number" }, { field: "feeBaseMsat", format: "number" }, { field: "timeLockDelta", format: "number" }],
+								[{ field: "minHtlcMsat", format: "number" }, { field: "maxHtlcMsat", format: "number" }, "disabled", { field: "updatedAtMs", format: "timestamp" }],
+							],
+						},
+					},
+					plural: { component: "LightningChannelRoutingPolicy_TimestampsView", title: "Routing policies" },
 				},
 			}),
 
@@ -81301,6 +81344,33 @@ export const routes = defineRoutes(schema)({
 																						params: { "source": ["source"] },
 																						derivations: { "timestampMs": { kind: "param", name: "timestampMs" } },
 																						page: {},
+																					},
+																				},
+																			},
+																			children: {
+																				"routing-policy": {
+																					children: {
+																						"[publicKey]": {
+																							params: { "publicKey": ["string"] },
+																							selectors: {
+																								[EntityType.LightningChannelRoutingPolicy_Timestamp]: {
+																									"ChannelTimestampTowardNode": {
+																										derivations: {
+																											"$towardNode": {
+																												kind: "selector",
+																												entity: EntityType.LightningNode,
+																												selector: "NetworkPublicKey",
+																												params: [
+																													{ field: "$network", value: { kind: "property", value: { kind: "field", name: "$channel" }, property: "$network" } },
+																													{ field: "publicKey", param: "publicKey" },
+																												],
+																											},
+																										},
+																										page: {},
+																									},
+																								},
+																							},
+																						},
 																					},
 																				},
 																			},

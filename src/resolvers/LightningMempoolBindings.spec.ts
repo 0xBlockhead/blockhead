@@ -207,6 +207,7 @@ describe('Lightning and mempool resolver bindings', () => {
 			capacitySats: 250000n,
 			feeRatePpm: undefined,
 			updatedAtMs: 1_000,
+			$$routingPolicies: [],
 		})
 		expect(getLightningStatistics).not.toHaveBeenCalled()
 	})

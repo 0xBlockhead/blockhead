@@ -65,6 +65,93 @@ const agreedChannelFeeRatePpm = (
 	return node1FeeRate
 }
 
+const lightningChannelRoutingPolicyFromAmboss = ({
+	$channel,
+	timestampMs,
+	$network,
+	towardPublicKey,
+	policy,
+}: {
+	$channel: {
+		$network: NetworkId
+		channelId: string
+	}
+	timestampMs: number
+	$network: NetworkId
+	towardPublicKey: string
+	policy: {
+		fee_rate_milli_msat: number | string
+		disabled: boolean
+	} | null | undefined
+}) => {
+	if (policy == null)
+		return
+	const feeRatePpm = Number(policy.fee_rate_milli_msat)
+	return {
+		[EntityMetaKey.Selector]: {
+			$channelTimestamp: {
+				$channel,
+				timestampMs,
+				source: Source.Amboss_Graphql,
+			},
+			$towardNode: {
+				$network,
+				publicKey: towardPublicKey,
+			},
+		},
+		[EntityMetaKey.Fields]: {
+			...(Number.isFinite(feeRatePpm) && {
+				[entityFieldAddressKey(EntityType.LightningChannelRoutingPolicy_Timestamp, [], 'feeRatePpm')]: feeRatePpm,
+			}),
+			[entityFieldAddressKey(EntityType.LightningChannelRoutingPolicy_Timestamp, [], 'disabled')]: policy.disabled,
+		},
+	}
+}
+
+const lightningChannelRoutingPoliciesFromAmboss = ({
+	$channel,
+	timestampMs,
+	$network,
+	node1Pub,
+	node2Pub,
+	node1Policy,
+	node2Policy,
+}: {
+	$channel: {
+		$network: NetworkId
+		channelId: string
+	}
+	timestampMs: number
+	$network: NetworkId
+	node1Pub: string
+	node2Pub: string
+	node1Policy: {
+		fee_rate_milli_msat: number | string
+		disabled: boolean
+	} | null | undefined
+	node2Policy: {
+		fee_rate_milli_msat: number | string
+		disabled: boolean
+	} | null | undefined
+}) => (
+	[
+		lightningChannelRoutingPolicyFromAmboss({
+			$channel,
+			timestampMs,
+			$network,
+			towardPublicKey: node2Pub,
+			policy: node1Policy,
+		}),
+		lightningChannelRoutingPolicyFromAmboss({
+			$channel,
+			timestampMs,
+			$network,
+			towardPublicKey: node1Pub,
+			policy: node2Policy,
+		}),
+	].flatMap((policy) => policy == null ? [] : [policy])
+)
+
 const nodeSnapshotFromAmbossNode = (
 	node: Awaited<ReturnType<typeof import('$/sources/Amboss/Graphql/queries.ts').getNode>>
 ) => {
@@ -246,6 +333,10 @@ export default {
 									channel.node2_policy
 								)
 								const timestampMs = timestampMsFromChannelWire(channel.last_update)
+								const $channel = {
+									$network,
+									channelId: channel.long_channel_id,
+								}
 
 								return {
 									[EntityMetaKey.Selector]: {
@@ -268,10 +359,7 @@ export default {
 										[entityFieldAddressKey(EntityType.LightningChannel, [], '$$timestamps')]: [
 											{
 												[EntityMetaKey.Selector]: {
-													$channel: {
-														$network,
-														channelId: channel.long_channel_id,
-													},
+													$channel,
 													timestampMs,
 													source: Source.Amboss_Graphql,
 												},
@@ -284,6 +372,16 @@ export default {
 														[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'feeRatePpm')]:
 															feeRatePpm,
 													}),
+													[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], '$$routingPolicies')]:
+														lightningChannelRoutingPoliciesFromAmboss({
+															$channel,
+															timestampMs,
+															$network,
+															node1Pub: channel.node1_pub,
+															node2Pub: channel.node2_pub,
+															node1Policy: channel.node1_policy,
+															node2Policy: channel.node2_policy,
+														}),
 												},
 											},
 										],
@@ -329,6 +427,11 @@ export default {
 						})
 						const edgeInfo = edge.graph.info
 						const funding = parseAmbossChannelFundingPoint(edgeInfo.chan_point)
+						const timestampMs = timestampMsFromChannelWire(edgeInfo.last_update)
+						const $channel = {
+							$network,
+							channelId: edge.long_channel_id,
+						}
 
 						return {
 							[EntityMetaKey.Selector]: {
@@ -347,17 +450,26 @@ export default {
 							$$timestamps: [
 								{
 									[EntityMetaKey.Selector]: {
-										$channel: {
-											$network,
-											channelId: edge.long_channel_id,
-										},
-										timestampMs: timestampMsFromChannelWire(edgeInfo.last_update),
+										$channel,
+										timestampMs,
 										source: Source.Amboss_Graphql,
 									},
-									[EntityMetaKey.Fields]: timestampEntityFields(
-										EntityType.LightningChannel_Timestamp,
-										channelTimestampSnapshotFromAmbossEdge(edge)
-									),
+									[EntityMetaKey.Fields]: {
+										...timestampEntityFields(
+											EntityType.LightningChannel_Timestamp,
+											channelTimestampSnapshotFromAmbossEdge(edge)
+										),
+										[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], '$$routingPolicies')]:
+											lightningChannelRoutingPoliciesFromAmboss({
+												$channel,
+												timestampMs,
+												$network,
+												node1Pub: edgeInfo.node1_pub,
+												node2Pub: edgeInfo.node2_pub,
+												node1Policy: edgeInfo.node1_policy,
+												node2Policy: edgeInfo.node2_policy,
+											}),
+									},
 								},
 							],
 						}

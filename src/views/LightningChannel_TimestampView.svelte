@@ -35,6 +35,7 @@
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
+	import LightningChannelRoutingPolicy_TimestampsView from '$/views/LightningChannelRoutingPolicy_TimestampsView.svelte'
 	import LightningChannelView from '$/views/LightningChannelView.svelte'
 </script>
 
@@ -271,5 +272,23 @@
 				{/snippet}
 			</ResourceBoundary>
 		</dl>
+	{/snippet}
+
+	{#snippet Details()}
+		{@const routingPoliciesResource = selection.$$routingPolicies}
+		<ResourceBoundary
+			resource={routingPoliciesResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<LightningChannelRoutingPolicy_TimestampsView
+						selection={routingPoliciesResource}
+						countResource={routingPoliciesResource.count}
+						title='Directional routing policies'
+						id='routing-policies'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

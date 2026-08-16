@@ -14163,6 +14163,7 @@ const generatePageFile = (
 			), {
 				params: 'params',
 				pageSelector: 'data.selector',
+				fields: 'data.selector',
 			}),
 		]))
 	})()

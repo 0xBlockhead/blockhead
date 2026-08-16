@@ -141,6 +141,97 @@ const agreedChannelFeeRatePpm = (
 	return Number(node1FeeRate)
 }
 
+const lightningChannelRoutingPolicyFromLnd = ({
+	$channel,
+	timestampMs,
+	towardPublicKey,
+	policy,
+}: {
+	$channel: {
+		$network: NetworkId
+		channelId: string
+	}
+	timestampMs: number
+	towardPublicKey: string
+	policy: LndChannelEdge['node1_policy']
+}) => {
+	if (policy == null)
+		return
+	const feeRatePpm = (
+		policy.fee_rate_milli_msat == null ?
+			undefined
+		:
+			Number(policy.fee_rate_milli_msat)
+	)
+	const feeBaseMsat = bigintFromWire(policy.fee_base_msat)
+	const minHtlcMsat = bigintFromWire(policy.min_htlc)
+	const maxHtlcMsat = bigintFromWire(policy.max_htlc_msat)
+	return {
+		[EntityMetaKey.Selector]: {
+			$channelTimestamp: {
+				$channel,
+				timestampMs,
+				source: Source.LightningLnd_Rest,
+			},
+			$towardNode: {
+				$network: lightningNetwork,
+				publicKey: towardPublicKey,
+			},
+		},
+		[EntityMetaKey.Fields]: {
+			...(feeRatePpm != null && {
+				[entityFieldAddressKey(EntityType.LightningChannelRoutingPolicy_Timestamp, [], 'feeRatePpm')]: feeRatePpm,
+			}),
+			...(feeBaseMsat != null && {
+				[entityFieldAddressKey(EntityType.LightningChannelRoutingPolicy_Timestamp, [], 'feeBaseMsat')]: feeBaseMsat,
+			}),
+			...(policy.time_lock_delta != null && {
+				[entityFieldAddressKey(EntityType.LightningChannelRoutingPolicy_Timestamp, [], 'timeLockDelta')]: policy.time_lock_delta,
+			}),
+			...(minHtlcMsat != null && {
+				[entityFieldAddressKey(EntityType.LightningChannelRoutingPolicy_Timestamp, [], 'minHtlcMsat')]: minHtlcMsat,
+			}),
+			...(maxHtlcMsat != null && {
+				[entityFieldAddressKey(EntityType.LightningChannelRoutingPolicy_Timestamp, [], 'maxHtlcMsat')]: maxHtlcMsat,
+			}),
+			...(policy.disabled != null && {
+				[entityFieldAddressKey(EntityType.LightningChannelRoutingPolicy_Timestamp, [], 'disabled')]: policy.disabled,
+			}),
+			...(policy.last_update != null && {
+				[entityFieldAddressKey(EntityType.LightningChannelRoutingPolicy_Timestamp, [], 'updatedAtMs')]: policy.last_update * 1000,
+			}),
+		},
+	}
+}
+
+const lightningChannelRoutingPoliciesFromLndEdge = ({
+	$channel,
+	timestampMs,
+	edge,
+}: {
+	$channel: {
+		$network: NetworkId
+		channelId: string
+	}
+	timestampMs: number
+	edge: LndChannelEdge
+}) => (
+	[
+		lightningChannelRoutingPolicyFromLnd({
+			$channel,
+			timestampMs,
+			towardPublicKey: edge.node2_pub,
+			policy: edge.node1_policy,
+		}),
+		lightningChannelRoutingPolicyFromLnd({
+			$channel,
+			timestampMs,
+			towardPublicKey: edge.node1_pub,
+			policy: edge.node2_policy,
+		}),
+	].flatMap((policy) => policy == null ? [] : [policy])
+)
+
 const channelStatusFromLndChannel = (channel: LndChannel) => (
 	channel.active === true ?
 		LightningChannelStatus.Active
@@ -202,6 +293,10 @@ const channelFieldsFromLndEdge = (
 			channelPointParts(edge.chan_point)
 	)
 	const feeRatePpm = agreedChannelFeeRatePpm(edge.node1_policy, edge.node2_policy)
+	const $channel = {
+		$network: lightningNetwork,
+		channelId: edge.channel_id,
+	}
 	return {
 		$node1: {
 			[EntityMetaKey.Selector]: {
@@ -216,10 +311,7 @@ const channelFieldsFromLndEdge = (
 		$$timestamps: [
 			{
 				[EntityMetaKey.Selector]: {
-					$channel: {
-						$network: lightningNetwork,
-						channelId: edge.channel_id,
-					},
+					$channel,
 					timestampMs,
 					source: Source.LightningLnd_Rest,
 				},
@@ -238,6 +330,11 @@ const channelFieldsFromLndEdge = (
 					}),
 					...(feeRatePpm != null && {
 						[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'feeRatePpm')]: feeRatePpm,
+					}),
+					[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], '$$routingPolicies')]: lightningChannelRoutingPoliciesFromLndEdge({
+						$channel,
+						timestampMs,
+						edge,
 					}),
 				},
 			},
@@ -303,6 +400,7 @@ const channelFieldsFromLndChannel = (
 					...(bigintFromWire(channel.capacity) != null && {
 						[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'capacitySats')]: bigintFromWire(channel.capacity),
 					}),
+					[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], '$$routingPolicies')]: [],
 				},
 			},
 		],
@@ -318,7 +416,12 @@ const channelTimestampFieldsFromLndChannel = (channel: LndChannel) => ({
 
 const channelTimestampFieldsFromLndEdge = (
 	channel: LndChannel | undefined,
-	edge: LndChannelEdge
+	edge: LndChannelEdge,
+	$channel: {
+		$network: NetworkId
+		channelId: string
+	},
+	timestampMs: number
 ) => ({
 	...(
 		channel == null ?
@@ -336,6 +439,11 @@ const channelTimestampFieldsFromLndEdge = (
 	capacitySats: bigintFromWire(edge.capacity ?? channel?.capacity),
 	updatedAtMs: edge.last_update == null ? undefined : edge.last_update * 1000,
 	feeRatePpm: agreedChannelFeeRatePpm(edge.node1_policy, edge.node2_policy),
+	$$routingPolicies: lightningChannelRoutingPoliciesFromLndEdge({
+		$channel,
+		timestampMs,
+		edge,
+	}),
 })
 
 const channelRowFromLndChannel = (channel: LndChannel) => {
@@ -1429,7 +1537,9 @@ export default {
 						)
 						return channelTimestampFieldsFromLndEdge(
 							undefined,
-							edge
+							edge,
+							$channel,
+							timestampMs
 						)
 					},
 				},
@@ -1443,6 +1553,7 @@ export default {
 			status: (timestamp) => timestamp.status,
 			capacitySats: (timestamp) => timestamp.capacitySats,
 			feeRatePpm: (timestamp) => timestamp.feeRatePpm,
+			$$routingPolicies: (timestamp) => timestamp.$$routingPolicies,
 			updatedAtMs: (timestamp) => timestamp.updatedAtMs,
 		}),
 

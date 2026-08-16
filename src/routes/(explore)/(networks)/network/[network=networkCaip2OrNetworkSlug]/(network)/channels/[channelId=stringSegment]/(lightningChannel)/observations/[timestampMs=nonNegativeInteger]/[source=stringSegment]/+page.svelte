@@ -13,15 +13,10 @@
 	// State
 	let {
 		data,
-		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.LightningChannel_Timestamp, {
-		$channel: data.selector,
-		timestampMs: Number(params.timestampMs),
-		source: params.source,
-	}, {
-		sources: [params.source],
+	const pageSelection = $derived(select(EntityType.LightningChannel_Timestamp, data.selector, {
+		sources: [data.selector.source],
 	}))
 
 

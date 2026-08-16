@@ -454,6 +454,46 @@ describe('LightningMempoolSpace parent timestamp materialization', () => {
 				[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'closedAtMs')]: Date.parse('2026-01-02T00:00:00.000Z'),
 				[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'updatedAtMs')]: Date.parse(updatedAt),
 				[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'feeRatePpm')]: 125,
+				[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], '$$routingPolicies')]: [
+					{
+						[EntityMetaKey.Selector]: {
+							$channelTimestamp: {
+								$channel: {
+									$network: lightningNetwork,
+									channelId: '42',
+								},
+								timestampMs: Date.parse(updatedAt),
+								source: Source.LightningMempoolSpace_Rest,
+							},
+							$towardNode: {
+								$network: lightningNetwork,
+								publicKey: '03'.padEnd(66, 'b'),
+							},
+						},
+						[EntityMetaKey.Fields]: {
+							[entityFieldAddressKey(EntityType.LightningChannelRoutingPolicy_Timestamp, [], 'feeRatePpm')]: 125,
+						},
+					},
+					{
+						[EntityMetaKey.Selector]: {
+							$channelTimestamp: {
+								$channel: {
+									$network: lightningNetwork,
+									channelId: '42',
+								},
+								timestampMs: Date.parse(updatedAt),
+								source: Source.LightningMempoolSpace_Rest,
+							},
+							$towardNode: {
+								$network: lightningNetwork,
+								publicKey,
+							},
+						},
+						[EntityMetaKey.Fields]: {
+							[entityFieldAddressKey(EntityType.LightningChannelRoutingPolicy_Timestamp, [], 'feeRatePpm')]: 125,
+						},
+					},
+				],
 			},
 		}])
 	})

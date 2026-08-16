@@ -210,6 +210,26 @@ describe('Amboss GraphQL Lightning node/channel resolvers', () => {
 							[EntityMetaKey.Fields]: {
 								[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'capacitySats')]: 1000000n,
 								[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'updatedAtMs')]: 1_700_000_000_000,
+								[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], '$$routingPolicies')]: [{
+									[EntityMetaKey.Selector]: {
+										$channelTimestamp: {
+											$channel: {
+												$network: lightningNetwork,
+												channelId: '123',
+											},
+											timestampMs: 1_700_000_000_000,
+											source: Source.Amboss_Graphql,
+										},
+										$towardNode: {
+											$network: lightningNetwork,
+											publicKey: peerPublicKey,
+										},
+									},
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.LightningChannelRoutingPolicy_Timestamp, [], 'feeRatePpm')]: 250,
+										[entityFieldAddressKey(EntityType.LightningChannelRoutingPolicy_Timestamp, [], 'disabled')]: false,
+									},
+								}],
 							},
 						},
 					],
@@ -283,6 +303,26 @@ describe('Amboss GraphQL Lightning node/channel resolvers', () => {
 					[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'status')]: LightningChannelStatus.Open,
 					[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'capacitySats')]: 1000000n,
 					[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'updatedAtMs')]: 1_700_000_000_000,
+					[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], '$$routingPolicies')]: [{
+						[EntityMetaKey.Selector]: {
+							$channelTimestamp: {
+								$channel: {
+									$network: lightningNetwork,
+									channelId: '123',
+								},
+								timestampMs: 1_700_000_000_000,
+								source: Source.Amboss_Graphql,
+							},
+							$towardNode: {
+								$network: lightningNetwork,
+								publicKey: peerPublicKey,
+							},
+						},
+						[EntityMetaKey.Fields]: {
+							[entityFieldAddressKey(EntityType.LightningChannelRoutingPolicy_Timestamp, [], 'feeRatePpm')]: 250,
+							[entityFieldAddressKey(EntityType.LightningChannelRoutingPolicy_Timestamp, [], 'disabled')]: false,
+						},
+					}],
 				},
 			},
 		])
@@ -325,6 +365,26 @@ describe('Amboss GraphQL Lightning node/channel resolvers', () => {
 			[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'status')]: LightningChannelStatus.Open,
 			[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'capacitySats')]: 1000000n,
 			[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'updatedAtMs')]: 1_700_000_000_000,
+			[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], '$$routingPolicies')]: [{
+				[EntityMetaKey.Selector]: {
+					$channelTimestamp: {
+						$channel: {
+							$network: lightningNetwork,
+							channelId: '123',
+						},
+						timestampMs: 1_700_000_000_000,
+						source: Source.Amboss_Graphql,
+					},
+					$towardNode: {
+						$network: lightningNetwork,
+						publicKey,
+					},
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.LightningChannelRoutingPolicy_Timestamp, [], 'feeRatePpm')]: 400,
+					[entityFieldAddressKey(EntityType.LightningChannelRoutingPolicy_Timestamp, [], 'disabled')]: false,
+				},
+			}],
 		})
 	})
 
@@ -376,6 +436,48 @@ describe('Amboss GraphQL Lightning node/channel resolvers', () => {
 					[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'capacitySats')]: 1000000n,
 					[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'updatedAtMs')]: 1_700_000_000_000,
 					[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'feeRatePpm')]: 250,
+					[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], '$$routingPolicies')]: [
+						{
+							[EntityMetaKey.Selector]: {
+								$channelTimestamp: {
+									$channel: {
+										$network: lightningNetwork,
+										channelId: '123',
+									},
+									timestampMs: 1_700_000_000_000,
+									source: Source.Amboss_Graphql,
+								},
+								$towardNode: {
+									$network: lightningNetwork,
+									publicKey: peerPublicKey,
+								},
+							},
+							[EntityMetaKey.Fields]: {
+								[entityFieldAddressKey(EntityType.LightningChannelRoutingPolicy_Timestamp, [], 'feeRatePpm')]: 250,
+								[entityFieldAddressKey(EntityType.LightningChannelRoutingPolicy_Timestamp, [], 'disabled')]: false,
+							},
+						},
+						{
+							[EntityMetaKey.Selector]: {
+								$channelTimestamp: {
+									$channel: {
+										$network: lightningNetwork,
+										channelId: '123',
+									},
+									timestampMs: 1_700_000_000_000,
+									source: Source.Amboss_Graphql,
+								},
+								$towardNode: {
+									$network: lightningNetwork,
+									publicKey,
+								},
+							},
+							[EntityMetaKey.Fields]: {
+								[entityFieldAddressKey(EntityType.LightningChannelRoutingPolicy_Timestamp, [], 'feeRatePpm')]: 250,
+								[entityFieldAddressKey(EntityType.LightningChannelRoutingPolicy_Timestamp, [], 'disabled')]: false,
+							},
+						},
+					],
 				},
 			},
 		])
@@ -434,6 +536,7 @@ describe('Amboss GraphQL Lightning node/channel resolvers', () => {
 					[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'closingFeeSats')]: 2500n,
 					[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'closingReason')]: 'MUTUAL',
 					[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'closedAtMs')]: Date.parse('2023-11-14T22:15:00.000Z'),
+					[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], '$$routingPolicies')]: [],
 				},
 			},
 		])

@@ -54,6 +54,15 @@ export default entity({
 			Source.Amboss_Graphql,
 		],
 	},
+	$$routingPolicies: {
+		entityType: EntityType.LightningChannelRoutingPolicy_Timestamp,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.LightningMempoolSpace_Rest,
+			Source.LightningLnd_Rest,
+			Source.Amboss_Graphql,
+		],
+	},
 	updatedAtMs: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,

@@ -243,23 +243,105 @@ const lightningNetworkTimestampRowFromStatistics = (
 	}
 }
 
+const lightningChannelRoutingPolicyFromMempoolSpaceNode = ({
+	$channel,
+	timestampMs,
+	towardPublicKey,
+	node,
+}: {
+	$channel: {
+		$network: NetworkId
+		channelId: string
+	}
+	timestampMs: number | undefined
+	towardPublicKey: string | undefined
+	node: MempoolSpaceLightningChannelNode | null | undefined
+}) => {
+	if (node == null || timestampMs == null || towardPublicKey == null || towardPublicKey === '')
+		return
+	const feeBaseMsat = bigintFromWire(node.base_fee_mtokens)
+	const minHtlcMsat = bigintFromWire(node.min_htlc_mtokens)
+	const maxHtlcMsat = bigintFromWire(node.max_htlc_mtokens)
+	const updatedAtMs = timestampMsFromIso(node.updated_at)
+	return {
+		[EntityMetaKey.Selector]: {
+			$channelTimestamp: {
+				$channel,
+				timestampMs,
+				source: Source.LightningMempoolSpace_Rest,
+			},
+			$towardNode: {
+				$network: lightningNetwork,
+				publicKey: towardPublicKey,
+			},
+		},
+		[EntityMetaKey.Fields]: {
+			...(node.fee_rate != null && {
+				[entityFieldAddressKey(EntityType.LightningChannelRoutingPolicy_Timestamp, [], 'feeRatePpm')]: node.fee_rate,
+			}),
+			...(feeBaseMsat != null && {
+				[entityFieldAddressKey(EntityType.LightningChannelRoutingPolicy_Timestamp, [], 'feeBaseMsat')]: feeBaseMsat,
+			}),
+			...(node.cltv_delta != null && {
+				[entityFieldAddressKey(EntityType.LightningChannelRoutingPolicy_Timestamp, [], 'timeLockDelta')]: node.cltv_delta,
+			}),
+			...(minHtlcMsat != null && {
+				[entityFieldAddressKey(EntityType.LightningChannelRoutingPolicy_Timestamp, [], 'minHtlcMsat')]: minHtlcMsat,
+			}),
+			...(maxHtlcMsat != null && {
+				[entityFieldAddressKey(EntityType.LightningChannelRoutingPolicy_Timestamp, [], 'maxHtlcMsat')]: maxHtlcMsat,
+			}),
+			...(node.is_disabled != null && {
+				[entityFieldAddressKey(EntityType.LightningChannelRoutingPolicy_Timestamp, [], 'disabled')]: (
+					node.is_disabled === true
+					|| node.is_disabled === 1
+				),
+			}),
+			...(updatedAtMs != null && {
+				[entityFieldAddressKey(EntityType.LightningChannelRoutingPolicy_Timestamp, [], 'updatedAtMs')]: updatedAtMs,
+			}),
+		},
+	}
+}
+
 const lightningChannelTimestampRowFromMempoolSpaceChannel = (
 	channelSelector: {
 		$network: NetworkId
 		channelId: string
 	},
 	channel: MempoolSpaceLightningChannel
-) => ({
-	[EntityMetaKey.Selector]: {
-		$channel: channelSelector,
-		timestampMs: timestampMsFromIso(channel.updated_at),
-		source: Source.LightningMempoolSpace_Rest,
-	},
-	[EntityMetaKey.Fields]: timestampEntityFields(
-		EntityType.LightningChannel_Timestamp,
-		channelTimestampSnapshotFromMempoolSpaceChannel(channel)
-	),
-})
+) => {
+	const timestampMs = timestampMsFromIso(channel.updated_at)
+	return {
+		[EntityMetaKey.Selector]: {
+			$channel: channelSelector,
+			timestampMs,
+			source: Source.LightningMempoolSpace_Rest,
+		},
+		[EntityMetaKey.Fields]: {
+			...timestampEntityFields(
+				EntityType.LightningChannel_Timestamp,
+				channelTimestampSnapshotFromMempoolSpaceChannel(channel)
+			),
+			[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], '$$routingPolicies')]: (
+				[
+					lightningChannelRoutingPolicyFromMempoolSpaceNode({
+						$channel: channelSelector,
+						timestampMs,
+						towardPublicKey: channel.node_right?.public_key,
+						node: channel.node_left,
+					}),
+					lightningChannelRoutingPolicyFromMempoolSpaceNode({
+						$channel: channelSelector,
+						timestampMs,
+						towardPublicKey: channel.node_left?.public_key,
+						node: channel.node_right,
+					}),
+				].flatMap((policy) => policy == null ? [] : [policy])
+			),
+		},
+	}
+}
 
 const lightningMempoolSpaceNodeCountFromStatistics = async () => {
 	const { getLightningStatistics } = await import('$/sources/LightningMempoolSpace/Rest/queries.ts')

@@ -7223,6 +7223,16 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
+	'/(explore)/(networks)/network/[network]/channels/[channelId]/observations/[timestampMs]/[source]/routing-policy/[publicKey]': {
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/channels/[channelId=stringSegment]/(lightningChannel)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]/(lightningChannelTimestamp)/routing-policy/[publicKey=stringSegment]',
+		mappings: [
+			{
+				id: 'LightningChannelRoutingPolicy_Timestamp.ChannelTimestampTowardNode',
+				probeAtomPrefixes: ['/network/[network]/channels/[channelId]/observations/[timestampMs]/[source]/routing-policy/[publicKey]:LightningChannelRoutingPolicy_Timestamp.ChannelTimestampTowardNode'],
+				probeCases: [[[0, '1', ['publicKey', 'source', 'timestampMs', 'channelId', 'network']]]],
+			},
+		],
+	},
 	'/(explore)/(networks)/network/[network]/chunk/[chunkHash]': {
 		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/chunk/[chunkHash=stringSegment]',
 		mappings: [
