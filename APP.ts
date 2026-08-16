@@ -11270,6 +11270,13 @@ export const schema = {
 					entityType: EntityType.BeaconDataColumn,
 					defaultSources: [Source.Beacon_Rest],
 				},
+				"$executionBlock": {
+					label: "Execution block",
+					type: EntityFieldType.EntityReference,
+					cardinality: EntityFieldCardinality.ZeroOrOne,
+					entityType: EntityType.EvmBlock,
+					defaultSources: [Source.Beacon_Rest],
+				},
 			})({
 				selectors: {
 					"EvmNetworkSlot": ["$network", "slot"],
@@ -11292,6 +11299,7 @@ export const schema = {
 							dl: [
 								[
 									"$epoch",
+									"$executionBlock",
 								],
 							],
 						},

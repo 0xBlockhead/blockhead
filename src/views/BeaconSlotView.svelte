@@ -36,6 +36,7 @@
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import BeaconEpochView from '$/views/BeaconEpochView.svelte'
+	import EvmBlockView from '$/views/EvmBlockView.svelte'
 	import BeaconBlocksView from '$/views/BeaconBlocksView.svelte'
 	import BeaconCommitteesView from '$/views/BeaconCommitteesView.svelte'
 	import BeaconDepositsView from '$/views/BeaconDepositsView.svelte'
@@ -122,6 +123,26 @@
 					</ResourceBoundary>
 				</dd>
 			</div>
+
+			<ResourceBoundary
+				resource={selection.$executionBlock}
+			>
+				{#snippet children(evmBlock)}
+					{#if evmBlock != null}
+						{@const evmBlockInitial = untrack(() => evmBlock)}
+						<div>
+							<dt>Execution block</dt>
+							<dd>
+								<EvmBlockView
+									selection={select(EntityType.EvmBlock, (evmBlock ?? evmBlockInitial)[EntityMetaKey.Selector])}
+									prefetched={evmBlock ?? evmBlockInitial}
+									layout={EntityLayout.Value}
+								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 		</dl>
 	{/snippet}
 

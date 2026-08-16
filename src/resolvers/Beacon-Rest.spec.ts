@@ -993,10 +993,11 @@ describe('Beacon REST checkpoint and fork projections', () => {
 			root: `0x${'a'.repeat(64)}`,
 		}
 		const block = await beaconBlockResolver.resolve.NetworkRoot.resolve(selector)
-		const blocks = await slotBlocksResolver.resolve.EvmNetworkSlot.resolve({
+		const slotSnapshot = await slotBlocksResolver.resolve.EvmNetworkSlot.resolve({
 			$network: network,
 			slot: 64,
 		})
+		const blocks = slotBlocksResolver.projections.$$blocks.select(slotSnapshot)
 
 		expect(block).toMatchObject({
 			root: selector.root,
@@ -1023,8 +1024,13 @@ describe('Beacon REST checkpoint and fork projections', () => {
 			},
 		})
 		expect(blocks).toHaveLength(2)
-		expect(slotBlocksResolver.projections.$$blocks.select(blocks)).toHaveLength(2)
-		expect(slotBlocksResolver.projections.$$blocks.resolveCount(blocks)).toBe(2)
+		expect(slotBlocksResolver.projections.$$blocks.resolveCount(slotSnapshot)).toBe(2)
+		expect(slotBlocksResolver.projections.$executionBlock(slotSnapshot)).toEqual({
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				hash: `0x${'f'.repeat(64)}`,
+			},
+		})
 		expect(blocks[0]).toMatchObject({
 			[EntityMetaKey.Selector]: { root: selector.root },
 			[EntityMetaKey.Fields]: {
@@ -1058,10 +1064,13 @@ describe('Beacon REST checkpoint and fork projections', () => {
 		expect(getHeadersAtSlot).toHaveBeenCalledWith(1, 64)
 
 		getHeadersAtSlot.mockResolvedValue([])
-		await expect(slotBlocksResolver.resolve.EvmNetworkSlot.resolve({
+		const emptySlot = await slotBlocksResolver.resolve.EvmNetworkSlot.resolve({
 			$network: network,
 			slot: 65,
-		})).resolves.toEqual([])
+		})
+		expect(slotBlocksResolver.projections.$$blocks.select(emptySlot)).toEqual([])
+		expect(slotBlocksResolver.projections.$$blocks.resolveCount(emptySlot)).toBe(0)
+		expect(slotBlocksResolver.projections.$executionBlock(emptySlot)).toBeUndefined()
 	})
 
 	it('materializes a selected Gloas bid and separately delivered execution envelope', async () => {

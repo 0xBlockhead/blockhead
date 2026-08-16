@@ -708,83 +708,108 @@ export default {
 						} = await import('$/sources/Beacon/Rest/queries.ts')
 						const chainId = eip155ChainId($network)
 						const timestampMs = Date.now()
-						return (await Promise.all((
+						const blocks = (await Promise.all((
 							await getHeadersAtSlot(chainId, slot)
 						).map((header) => (
 							getBeaconBlockSnapshot(chainId, header.root)
-						)))).map((block) => ({
-							[EntityMetaKey.Selector]: {
-								$network,
-								root: block.root,
-							},
-							[EntityMetaKey.Fields]: {
-								[entityFieldAddressKey(EntityType.BeaconBlock, [], '$slot')]: {
-									[EntityMetaKey.Selector]: {
-										$network,
-										slot: block.slot,
-									},
+						))))
+						const executionBlockHashes = blocks.flatMap((block) => (
+							block.executionBlockHash == null ?
+								[]
+							:
+								[block.executionBlockHash]
+						))
+						const agreedExecutionBlockHash = (
+							executionBlockHashes.length > 0
+							&& new Set(executionBlockHashes.map((hash) => hash.toLowerCase())).size === 1
+						) ?
+							executionBlockHashes[0]
+						:
+							undefined
+						return {
+							blocks: blocks.map((block) => ({
+								[EntityMetaKey.Selector]: {
+									$network,
+									root: block.root,
 								},
-								[entityFieldAddressKey(EntityType.BeaconBlock, [], '$proposer')]: {
-									[EntityMetaKey.Selector]: {
-										$network,
-										indexInNetwork: block.proposerIndex,
-									},
-								},
-								...(block.slot > 0 && {
-									[entityFieldAddressKey(EntityType.BeaconBlock, [], '$parent')]: {
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.BeaconBlock, [], '$slot')]: {
 										[EntityMetaKey.Selector]: {
 											$network,
-											root: block.parentRoot,
+											slot: block.slot,
 										},
 									},
-								}),
-								[entityFieldAddressKey(EntityType.BeaconBlock, [], 'version')]: block.version,
-								[entityFieldAddressKey(EntityType.BeaconBlock, [], 'stateRoot')]: block.stateRoot,
-								[entityFieldAddressKey(EntityType.BeaconBlock, [], 'bodyRoot')]: block.bodyRoot,
-								[entityFieldAddressKey(EntityType.BeaconBlock, [], 'signature')]: block.signature,
-								...(block.executionBlockHash != null && {
-									[entityFieldAddressKey(EntityType.BeaconBlock, [], '$executionBlock')]: {
+									[entityFieldAddressKey(EntityType.BeaconBlock, [], '$proposer')]: {
 										[EntityMetaKey.Selector]: {
 											$network,
-											hash: block.executionBlockHash,
+											indexInNetwork: block.proposerIndex,
 										},
 									},
-								}),
-								...(block.executionPayloadBid != null && {
-									[entityFieldAddressKey(EntityType.BeaconBlock, [], '$executionPayloadBid')]: {
+									...(block.slot > 0 && {
+										[entityFieldAddressKey(EntityType.BeaconBlock, [], '$parent')]: {
+											[EntityMetaKey.Selector]: {
+												$network,
+												root: block.parentRoot,
+											},
+										},
+									}),
+									[entityFieldAddressKey(EntityType.BeaconBlock, [], 'version')]: block.version,
+									[entityFieldAddressKey(EntityType.BeaconBlock, [], 'stateRoot')]: block.stateRoot,
+									[entityFieldAddressKey(EntityType.BeaconBlock, [], 'bodyRoot')]: block.bodyRoot,
+									[entityFieldAddressKey(EntityType.BeaconBlock, [], 'signature')]: block.signature,
+									...(block.executionBlockHash != null && {
+										[entityFieldAddressKey(EntityType.BeaconBlock, [], '$executionBlock')]: {
+											[EntityMetaKey.Selector]: {
+												$network,
+												hash: block.executionBlockHash,
+											},
+										},
+									}),
+									...(block.executionPayloadBid != null && {
+										[entityFieldAddressKey(EntityType.BeaconBlock, [], '$executionPayloadBid')]: {
+											[EntityMetaKey.Selector]: {
+												$beaconBlock: {
+													$network,
+													root: block.root,
+												},
+											},
+										},
+									}),
+									[entityFieldAddressKey(EntityType.BeaconBlock, [], '$$timestamps')]: [{
 										[EntityMetaKey.Selector]: {
-											$beaconBlock: {
+											$block: {
 												$network,
 												root: block.root,
 											},
+											timestampMs,
+											source: Source.Beacon_Rest,
 										},
-									},
-								}),
-								[entityFieldAddressKey(EntityType.BeaconBlock, [], '$$timestamps')]: [{
+										[EntityMetaKey.Fields]: {
+											[entityFieldAddressKey(EntityType.BeaconBlock_Timestamp, [], 'canonical')]: block.canonical,
+											[entityFieldAddressKey(EntityType.BeaconBlock_Timestamp, [], 'executionOptimistic')]: block.executionOptimistic,
+											[entityFieldAddressKey(EntityType.BeaconBlock_Timestamp, [], 'finalized')]: block.finalized,
+										},
+									}],
+								},
+							})),
+							...(agreedExecutionBlockHash != null && {
+								$executionBlock: {
 									[EntityMetaKey.Selector]: {
-										$block: {
-											$network,
-											root: block.root,
-										},
-										timestampMs,
-										source: Source.Beacon_Rest,
+										$network,
+										hash: agreedExecutionBlockHash,
 									},
-									[EntityMetaKey.Fields]: {
-										[entityFieldAddressKey(EntityType.BeaconBlock_Timestamp, [], 'canonical')]: block.canonical,
-										[entityFieldAddressKey(EntityType.BeaconBlock_Timestamp, [], 'executionOptimistic')]: block.executionOptimistic,
-										[entityFieldAddressKey(EntityType.BeaconBlock_Timestamp, [], 'finalized')]: block.finalized,
-									},
-								}],
-							},
-						}))
+								},
+							}),
+						}
 					},
 				},
 			},
 		})({
 			$$blocks: {
-				select: (blocks) => blocks,
-				resolveCount: (blocks) => blocks.length,
+				select: (slot) => slot.blocks,
+				resolveCount: (slot) => slot.blocks.length,
 			},
+			$executionBlock: (slot) => slot.$executionBlock,
 		}),
 
 		defineResolver({

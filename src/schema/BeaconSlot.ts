@@ -80,6 +80,13 @@ export default entity({
 			Source.Beacon_Rest,
 		],
 	},
+	$executionBlock: {
+		entityType: EntityType.EvmBlock,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Beacon_Rest,
+		],
+	},
 })({
 	selectors: {
 		EvmNetworkSlot: [
