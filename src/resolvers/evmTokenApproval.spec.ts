@@ -73,6 +73,41 @@ describe('EVM token approvals', () => {
 		})
 	})
 
+	it('reconciles Blockscout padded topics with Voltaire receipt topics onto one approval', () => {
+		const data = `0x${'0'.repeat(63)}a` as const
+		const blockscoutTopics = [
+			'0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925' as const,
+			ownerTopic,
+			approvedActorTopic,
+			null,
+		]
+		const voltaireTopics = [
+			'0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925' as const,
+			ownerTopic,
+			approvedActorTopic,
+		]
+		const flatten = (topics: readonly (`0x${string}` | null)[]) => (
+			topics.flatMap((topic) => (
+				topic == null ?
+					[]
+				:
+					[topic]
+			))
+		)
+
+		expect(evmTokenApprovalEntityFromLog({
+			$log,
+			topics: flatten(blockscoutTopics),
+			data,
+			emitterAddress,
+		})).toEqual(evmTokenApprovalEntityFromLog({
+			$log,
+			topics: flatten(voltaireTopics),
+			data,
+			emitterAddress,
+		}))
+	})
+
 	it('rejects malformed or ambiguous event shapes', () => {
 		expect(evmTokenApprovalEntityFromLog({
 			$log,

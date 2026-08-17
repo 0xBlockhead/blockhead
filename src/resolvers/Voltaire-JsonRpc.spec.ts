@@ -1036,6 +1036,74 @@ describe('Voltaire transaction execution hierarchy', () => {
 	})
 })
 
+describe('Voltaire token approval occurrences', () => {
+	beforeEach(() => {
+		vi.clearAllMocks()
+	})
+
+	it('materializes one native token approval from its exact receipt log', async () => {
+		const txHash = '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+		const contract = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'
+		const owner = '0x1111111111111111111111111111111111111111'
+		const spender = '0x2222222222222222222222222222222222222222'
+		getTransactionReceipt.mockResolvedValue({
+			status: '0x1',
+			logs: [{
+				address: contract,
+				blockHash: '0xcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc',
+				blockNumber: '0x10',
+				data: `0x${'0'.repeat(63)}a`,
+				logIndex: '0x0',
+				removed: false,
+				topics: [
+					'0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925',
+					`0x${'00'.repeat(12)}${owner.slice(2)}`,
+					`0x${'00'.repeat(12)}${spender.slice(2)}`,
+				],
+			}],
+		})
+		const approvalResolver = voltaireJsonRpc.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.EvmTokenApproval
+			&& 'Log' in candidate.resolve
+		))
+		if (approvalResolver == null || !('Log' in approvalResolver.resolve))
+			throw new Error('Voltaire token approval resolver is not registered')
+
+		const approval = await approvalResolver.resolve.Log.resolve({
+			$log: {
+				$transaction: {
+					$network: {
+						caip2: {
+							namespace: 'eip155',
+							reference: '1',
+						},
+					},
+					txHash,
+				},
+				indexInTransaction: 0,
+			},
+		})
+		expect(approvalResolver.projections.approvalKind(approval)).toBe('Allowance')
+		expect(approvalResolver.projections.standard(approval)).toBe('ERC-20')
+		expect(approvalResolver.projections.Allowance.amount(approval)).toBe(10n)
+		expect(approvalResolver.projections.$tokenContract(approval)).toMatchObject({
+			[EntityMetaKey.Selector]: {
+				address: contract,
+			},
+		})
+		expect(approvalResolver.projections.$owner(approval)).toMatchObject({
+			[EntityMetaKey.Selector]: {
+				address: owner,
+			},
+		})
+		expect(approvalResolver.projections.$approvedActor(approval)).toMatchObject({
+			[EntityMetaKey.Selector]: {
+				address: spender,
+			},
+		})
+	})
+})
+
 describe('Voltaire EVM storage read observations', () => {
 	const storageContext = {
 		filters: [],
