@@ -385,6 +385,10 @@ export const parseDhtIdHex = (
 	))
 }
 
+export const createRandomNodeId = () => (
+	assertNodeIdLength(randomBytes(dhtNodeIdLength), 'node id')
+)
+
 export const normalizeDhtIdHex = (
 	nodeId: Uint8Array
 ) => (

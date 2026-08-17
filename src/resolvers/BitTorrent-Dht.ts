@@ -1,5 +1,3 @@
-import { randomBytes } from 'node:crypto'
-
 import {
 	defineResolver,
 	type RegisteredSourceResolverModule,
@@ -106,6 +104,7 @@ const resolveDhtLookups = async ({
 	if (hashVersion !== 'v1')
 		throw new Error('BitTorrent_Dht: get_peers requires a v1 20-byte info hash')
 	const {
+		createRandomNodeId,
 		normalizeDhtIdHex,
 		getPeers,
 		mainlineDhtBootstrapRemotes,
@@ -114,7 +113,7 @@ const resolveDhtLookups = async ({
 	if (mainlineDhtBootstrapRemotes.length === 0)
 		throw new Error('BitTorrent_Dht: no mainline DHT bootstrap remotes')
 	const infoHashBytes = parseDhtIdHex(infoHash, 'info hash')
-	const nodeId = randomBytes(20)
+	const nodeId = createRandomNodeId()
 	const $torrent = {
 		infoHash: infoHash.toLowerCase(),
 		hashVersion,
