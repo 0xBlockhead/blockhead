@@ -13222,6 +13222,16 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
+	'/git/forge/[forgeHost]/[owner]/[repositoryName]/issue/[issueNumber]/note/[noteId]': {
+		routeId: '/git/forge/[forgeHost=stringSegment]/[owner=stringSegment]/[repositoryName=stringSegment]/(gitForgeMirror)/issue/[issueNumber=nonNegativeInteger]/(gitForgeIssue)/note/[noteId=nonNegativeInteger]',
+		mappings: [
+			{
+				id: 'GitForgeIssueNote.IssueNoteId',
+				probeAtomPrefixes: ['/git/forge/[forgeHost]/[owner]/[repositoryName]/issue/[issueNumber]/note/[noteId]:GitForgeIssueNote.IssueNoteId'],
+				probeCases: [[[0, '1', ['noteId', 'issueNumber', 'forgeHost', 'owner', 'repositoryName']]]],
+			},
+		],
+	},
 	'/git/forge/[forgeHost]/[owner]/[repositoryName]/pipeline/[pipelineId]': {
 		routeId: '/git/forge/[forgeHost=stringSegment]/[owner=stringSegment]/[repositoryName=stringSegment]/(gitForgeMirror)/pipeline/[pipelineId=nonNegativeInteger]',
 		mappings: [
@@ -13262,6 +13272,16 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
+	'/git/forge/[forgeHost]/[owner]/[repositoryName]/pull-request/[pullRequestNumber]/note/[noteId]': {
+		routeId: '/git/forge/[forgeHost=stringSegment]/[owner=stringSegment]/[repositoryName=stringSegment]/(gitForgeMirror)/pull-request/[pullRequestNumber=nonNegativeInteger]/(gitForgePullRequest)/note/[noteId=nonNegativeInteger]',
+		mappings: [
+			{
+				id: 'GitForgePullRequestNote.PullRequestNoteId',
+				probeAtomPrefixes: ['/git/forge/[forgeHost]/[owner]/[repositoryName]/pull-request/[pullRequestNumber]/note/[noteId]:GitForgePullRequestNote.PullRequestNoteId'],
+				probeCases: [[[0, '1', ['noteId', 'pullRequestNumber', 'forgeHost', 'owner', 'repositoryName']]]],
+			},
+		],
+	},
 	'/git/forge/[forgeHost]/[owner]/[repositoryName]/release/[releaseTagName]': {
 		routeId: '/git/forge/[forgeHost=stringSegment]/[owner=stringSegment]/[repositoryName=stringSegment]/(gitForgeMirror)/release/[releaseTagName=stringSegment]',
 		mappings: [
@@ -13269,6 +13289,16 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				id: 'GitForgeRelease.ForgeMirrorReleaseTagName',
 				probeAtomPrefixes: ['/git/forge/[forgeHost]/[owner]/[repositoryName]/release/[releaseTagName]:GitForgeRelease.ForgeMirrorReleaseTagName'],
 				probeCases: [[[0, '1', ['releaseTagName', 'forgeHost', 'owner', 'repositoryName']]]],
+			},
+		],
+	},
+	'/git/forge/[forgeHost]/[owner]/[repositoryName]/release/[releaseTagName]/asset/[linkId]': {
+		routeId: '/git/forge/[forgeHost=stringSegment]/[owner=stringSegment]/[repositoryName=stringSegment]/(gitForgeMirror)/release/[releaseTagName=stringSegment]/(gitForgeRelease)/asset/[linkId=nonNegativeInteger]',
+		mappings: [
+			{
+				id: 'GitForgeReleaseLink.ReleaseLinkId',
+				probeAtomPrefixes: ['/git/forge/[forgeHost]/[owner]/[repositoryName]/release/[releaseTagName]/asset/[linkId]:GitForgeReleaseLink.ReleaseLinkId'],
+				probeCases: [[[0, '1', ['linkId', 'releaseTagName', 'forgeHost', 'owner', 'repositoryName']]]],
 			},
 		],
 	},

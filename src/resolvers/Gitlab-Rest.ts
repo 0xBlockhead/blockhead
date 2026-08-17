@@ -8,6 +8,7 @@ import {
 	entityFieldAddressKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import type { GitlabNote } from '$/sources/Gitlab/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 
 
@@ -138,6 +139,23 @@ const gitlabTimestampMs = (timestamp: string) => {
 		throw new Error('Gitlab_Rest: invalid lifecycle timestamp')
 	return timestampMs
 }
+
+const gitlabNoteFields = (note: GitlabNote) => ({
+	noteId: note.id,
+	body: note.body,
+	...(note.type != null && note.type !== '' && { noteType: note.type }),
+	system: note.system,
+	...(note.author != null && { authorSelector: note.author }),
+	createdAt: gitlabTimestampMs(note.created_at),
+	updatedAt: gitlabTimestampMs(note.updated_at),
+	...(note.discussion_id != null && { discussionId: note.discussion_id }),
+	...(note.position != null && {
+		oldPath: note.position.old_path,
+		newPath: note.position.new_path,
+		...(note.position.old_line != null && { oldLine: note.position.old_line }),
+		...(note.position.new_line != null && { newLine: note.position.new_line }),
+	}),
+})
 
 const gitlabPage = (providerContinuationToken: string | undefined) => {
 	const page = Number(providerContinuationToken ?? '1')
@@ -1470,6 +1488,120 @@ export default {
 		}),
 
 		defineResolver({
+			entityType: EntityType.GitForgeIssue,
+			resolve: {
+				ForgeMirrorIssueNumber: {
+					resolve: async (issue, context) => {
+						const projectId = gitlabProjectIdFromMirror(issue.$forgeMirror)
+						if (projectId == null) return undefined
+
+						const page = gitlabPage(context.providerContinuationToken)
+						const requestedPerPage = resolverContextRowLimit(context)
+						const perPage = requestedPerPage === 0 ? 0 : Math.min(100, Math.max(1, requestedPerPage))
+						const { getIssueNotes } = await import('$/sources/Gitlab/Rest/queries.ts')
+						const notes = (
+							perPage === 0 ?
+								[]
+							:
+								await getIssueNotes({
+									projectId,
+									issueNumber: issue.issueNumber,
+									page,
+									perPage,
+								})
+						)
+						if (notes.some((note) => (
+							note.noteable_iid !== issue.issueNumber
+							|| note.noteable_type !== 'Issue'
+						)))
+							throw new Error('Gitlab_Rest: issue note identity does not match selector')
+
+						return {
+							notes,
+							page,
+							perPage,
+						}
+					},
+				},
+			},
+		})({
+			$$notes: {
+				select: ({ notes }, issue) => notes.map((note) => {
+					const fields = gitlabNoteFields(note)
+					return {
+						[EntityMetaKey.Selector]: {
+							$issue: issue,
+							noteId: note.id,
+						},
+						[EntityMetaKey.Fields]: {
+							[entityFieldAddressKey(EntityType.GitForgeIssueNote, [], 'body')]: fields.body,
+							[entityFieldAddressKey(EntityType.GitForgeIssueNote, [], 'system')]: fields.system,
+							[entityFieldAddressKey(EntityType.GitForgeIssueNote, [], 'createdAt')]: fields.createdAt,
+							[entityFieldAddressKey(EntityType.GitForgeIssueNote, [], 'updatedAt')]: fields.updatedAt,
+							...(fields.noteType != null && {
+								[entityFieldAddressKey(EntityType.GitForgeIssueNote, [], 'noteType')]: fields.noteType,
+							}),
+							...(fields.authorSelector != null && {
+								[entityFieldAddressKey(EntityType.GitForgeIssueNote, [], 'authorSelector')]: fields.authorSelector,
+							}),
+						},
+					}
+				}),
+				continuation: ({
+					notes,
+					page,
+					perPage,
+				}) => ({
+					operation: 'gitlab-issue-notes',
+					terminal: perPage === 0 || notes.length < perPage,
+					...(notes.length === perPage && { token: String(page + 1) }),
+				}),
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.GitForgeIssueNote,
+			resolve: {
+				IssueNoteId: {
+					resolve: async ({
+						$issue,
+						noteId,
+					}) => {
+						const projectId = gitlabProjectIdFromMirror($issue.$forgeMirror)
+						if (projectId == null) return undefined
+
+						const { getIssueNote } = await import('$/sources/Gitlab/Rest/queries.ts')
+						const note = await getIssueNote({
+							projectId,
+							issueNumber: $issue.issueNumber,
+							noteId,
+						})
+						if (
+							note.id !== noteId
+							|| note.noteable_iid !== $issue.issueNumber
+							|| note.noteable_type !== 'Issue'
+						)
+							throw new Error('Gitlab_Rest: issue note identity does not match selector')
+
+						return {
+							$issue,
+							...gitlabNoteFields(note),
+						}
+					},
+				},
+			},
+		})({
+			$issue: (note) => note.$issue,
+			noteId: (note) => note.noteId,
+			body: (note) => note.body,
+			noteType: (note) => note.noteType,
+			system: (note) => note.system,
+			authorSelector: (note) => note.authorSelector,
+			createdAt: (note) => note.createdAt,
+			updatedAt: (note) => note.updatedAt,
+		}),
+
+		defineResolver({
 			entityType: EntityType.GitForgeProtectedBranch,
 			resolve: {
 				ForgeMirrorName: {
@@ -1570,6 +1702,140 @@ export default {
 		}),
 
 		defineResolver({
+			entityType: EntityType.GitForgePullRequest,
+			resolve: {
+				ForgeMirrorPullRequestNumber: {
+					resolve: async (pullRequest, context) => {
+						const projectId = gitlabProjectIdFromMirror(pullRequest.$forgeMirror)
+						if (projectId == null) return undefined
+
+						const page = gitlabPage(context.providerContinuationToken)
+						const requestedPerPage = resolverContextRowLimit(context)
+						const perPage = requestedPerPage === 0 ? 0 : Math.min(100, Math.max(1, requestedPerPage))
+						const { getMergeRequestNotes } = await import('$/sources/Gitlab/Rest/queries.ts')
+						const notes = (
+							perPage === 0 ?
+								[]
+							:
+								await getMergeRequestNotes({
+									projectId,
+									pullRequestNumber: pullRequest.pullRequestNumber,
+									page,
+									perPage,
+								})
+						)
+						if (notes.some((note) => (
+							note.noteable_iid !== pullRequest.pullRequestNumber
+							|| note.noteable_type !== 'MergeRequest'
+						)))
+							throw new Error('Gitlab_Rest: merge request note identity does not match selector')
+
+						return {
+							notes,
+							page,
+							perPage,
+						}
+					},
+				},
+			},
+		})({
+			$$notes: {
+				select: ({ notes }, pullRequest) => notes.map((note) => {
+					const fields = gitlabNoteFields(note)
+					return {
+						[EntityMetaKey.Selector]: {
+							$pullRequest: pullRequest,
+							noteId: note.id,
+						},
+						[EntityMetaKey.Fields]: {
+							[entityFieldAddressKey(EntityType.GitForgePullRequestNote, [], 'body')]: fields.body,
+							[entityFieldAddressKey(EntityType.GitForgePullRequestNote, [], 'system')]: fields.system,
+							[entityFieldAddressKey(EntityType.GitForgePullRequestNote, [], 'createdAt')]: fields.createdAt,
+							[entityFieldAddressKey(EntityType.GitForgePullRequestNote, [], 'updatedAt')]: fields.updatedAt,
+							...(fields.noteType != null && {
+								[entityFieldAddressKey(EntityType.GitForgePullRequestNote, [], 'noteType')]: fields.noteType,
+							}),
+							...(fields.authorSelector != null && {
+								[entityFieldAddressKey(EntityType.GitForgePullRequestNote, [], 'authorSelector')]: fields.authorSelector,
+							}),
+							...(fields.discussionId != null && {
+								[entityFieldAddressKey(EntityType.GitForgePullRequestNote, [], 'discussionId')]: fields.discussionId,
+							}),
+							...(fields.oldPath != null && {
+								[entityFieldAddressKey(EntityType.GitForgePullRequestNote, [], 'oldPath')]: fields.oldPath,
+							}),
+							...(fields.newPath != null && {
+								[entityFieldAddressKey(EntityType.GitForgePullRequestNote, [], 'newPath')]: fields.newPath,
+							}),
+							...(fields.oldLine != null && {
+								[entityFieldAddressKey(EntityType.GitForgePullRequestNote, [], 'oldLine')]: fields.oldLine,
+							}),
+							...(fields.newLine != null && {
+								[entityFieldAddressKey(EntityType.GitForgePullRequestNote, [], 'newLine')]: fields.newLine,
+							}),
+						},
+					}
+				}),
+				continuation: ({
+					notes,
+					page,
+					perPage,
+				}) => ({
+					operation: 'gitlab-merge-request-notes',
+					terminal: perPage === 0 || notes.length < perPage,
+					...(notes.length === perPage && { token: String(page + 1) }),
+				}),
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.GitForgePullRequestNote,
+			resolve: {
+				PullRequestNoteId: {
+					resolve: async ({
+						$pullRequest,
+						noteId,
+					}) => {
+						const projectId = gitlabProjectIdFromMirror($pullRequest.$forgeMirror)
+						if (projectId == null) return undefined
+
+						const { getMergeRequestNote } = await import('$/sources/Gitlab/Rest/queries.ts')
+						const note = await getMergeRequestNote({
+							projectId,
+							pullRequestNumber: $pullRequest.pullRequestNumber,
+							noteId,
+						})
+						if (
+							note.id !== noteId
+							|| note.noteable_iid !== $pullRequest.pullRequestNumber
+							|| note.noteable_type !== 'MergeRequest'
+						)
+							throw new Error('Gitlab_Rest: merge request note identity does not match selector')
+
+						return {
+							$pullRequest,
+							...gitlabNoteFields(note),
+						}
+					},
+				},
+			},
+		})({
+			$pullRequest: (note) => note.$pullRequest,
+			noteId: (note) => note.noteId,
+			body: (note) => note.body,
+			noteType: (note) => note.noteType,
+			system: (note) => note.system,
+			authorSelector: (note) => note.authorSelector,
+			discussionId: (note) => note.discussionId,
+			oldPath: (note) => note.oldPath,
+			newPath: (note) => note.newPath,
+			oldLine: (note) => note.oldLine,
+			newLine: (note) => note.newLine,
+			createdAt: (note) => note.createdAt,
+			updatedAt: (note) => note.updatedAt,
+		}),
+
+		defineResolver({
 			entityType: EntityType.GitForgeRelease,
 			resolve: {
 				ForgeMirrorReleaseTagName: {
@@ -1610,6 +1876,85 @@ export default {
 			authorSelector: (release) => release.authorSelector,
 			createdAt: (release) => release.createdAt,
 			publishedAt: (release) => release.publishedAt,
+		}),
+
+		defineResolver({
+			entityType: EntityType.GitForgeRelease,
+			resolve: {
+				ForgeMirrorReleaseTagName: {
+					resolve: async (release) => {
+						const projectId = gitlabProjectIdFromMirror(release.$forgeMirror)
+						if (projectId == null) return undefined
+
+						const { getReleaseAssetLinks } = await import('$/sources/Gitlab/Rest/queries.ts')
+						return {
+							links: await getReleaseAssetLinks({
+								projectId,
+								releaseTagName: release.releaseTagName,
+							}),
+						}
+					},
+				},
+			},
+		})({
+			$$links: {
+				select: ({ links }, release) => links.map((link) => ({
+					[EntityMetaKey.Selector]: {
+						$release: release,
+						linkId: link.id,
+					},
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.GitForgeReleaseLink, [], 'name')]: link.name,
+						[entityFieldAddressKey(EntityType.GitForgeReleaseLink, [], 'url')]: link.url,
+						...(link.link_type != null && {
+							[entityFieldAddressKey(EntityType.GitForgeReleaseLink, [], 'linkType')]: link.link_type,
+						}),
+						...(link.direct_asset_url != null && {
+							[entityFieldAddressKey(EntityType.GitForgeReleaseLink, [], 'directAssetUrl')]: link.direct_asset_url,
+						}),
+					},
+				})),
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.GitForgeReleaseLink,
+			resolve: {
+				ReleaseLinkId: {
+					resolve: async ({
+						$release,
+						linkId,
+					}) => {
+						const projectId = gitlabProjectIdFromMirror($release.$forgeMirror)
+						if (projectId == null) return undefined
+
+						const { getReleaseAssetLink } = await import('$/sources/Gitlab/Rest/queries.ts')
+						const link = await getReleaseAssetLink({
+							projectId,
+							releaseTagName: $release.releaseTagName,
+							linkId,
+						})
+						if (link.id !== linkId)
+							throw new Error('Gitlab_Rest: release asset link identity does not match selector')
+
+						return {
+							$release,
+							linkId,
+							name: link.name,
+							url: link.url,
+							...(link.link_type != null && { linkType: link.link_type }),
+							...(link.direct_asset_url != null && { directAssetUrl: link.direct_asset_url }),
+						}
+					},
+				},
+			},
+		})({
+			$release: (link) => link.$release,
+			linkId: (link) => link.linkId,
+			name: (link) => link.name,
+			url: (link) => link.url,
+			linkType: (link) => link.linkType,
+			directAssetUrl: (link) => link.directAssetUrl,
 		}),
 
 		defineResolver({

@@ -195,6 +195,41 @@ export const gitlabIssueWire = type({
 
 export const gitlabIssuesWire = gitlabIssueWire.array()
 
+const gitlabNoteAuthorWire = type({
+	id: 'number.integer >= 0',
+	username: 'string > 0',
+	name: 'string',
+	web_url: 'string.url',
+})
+
+const gitlabNotePositionWire = type({
+	old_path: 'string',
+	new_path: 'string',
+	'old_line?': 'number.integer | null',
+	'new_line?': 'number.integer | null',
+	'position_type?': 'string',
+})
+
+export const gitlabNoteWire = type({
+	id: 'number.integer >= 0',
+	body: 'string',
+	created_at: 'string > 0',
+	updated_at: 'string > 0',
+	system: 'boolean',
+	noteable_iid: 'number.integer >= 0',
+	noteable_type: 'string > 0',
+	'type?': 'string | null',
+	'author?': gitlabNoteAuthorWire,
+	'resolvable?': 'boolean',
+	'resolved?': 'boolean',
+	'discussion_id?': 'string > 0',
+	'position?': gitlabNotePositionWire,
+})
+
+export type GitlabNote = typeof gitlabNoteWire.infer
+
+export const gitlabNotesWire = gitlabNoteWire.array()
+
 export const gitlabMergeRequestWire = type({
 	iid: 'number.integer >= 0',
 	project_id: 'number.integer >= 0',
@@ -216,6 +251,18 @@ export const gitlabMergeRequestWire = type({
 
 export const gitlabMergeRequestsWire = gitlabMergeRequestWire.array()
 
+export const gitlabReleaseAssetLinkWire = type({
+	id: 'number.integer >= 0',
+	name: 'string > 0',
+	url: 'string.url',
+	'link_type?': 'string > 0',
+	'direct_asset_url?': 'string.url',
+})
+
+export type GitlabReleaseAssetLink = typeof gitlabReleaseAssetLinkWire.infer
+
+export const gitlabReleaseAssetLinksWire = gitlabReleaseAssetLinkWire.array()
+
 export const gitlabReleaseWire = type({
 	tag_name: 'string > 0',
 	'name?': 'string | null',
@@ -229,6 +276,10 @@ export const gitlabReleaseWire = type({
 		username: 'string > 0',
 		name: 'string',
 		web_url: 'string.url',
+	},
+	'assets?': {
+		'count?': 'number.integer >= 0',
+		'links?': gitlabReleaseAssetLinkWire.array(),
 	},
 })
 

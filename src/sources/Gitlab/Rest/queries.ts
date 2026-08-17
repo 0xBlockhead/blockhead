@@ -14,11 +14,15 @@ import {
 	gitlabJobsWire,
 	gitlabMergeRequestWire,
 	gitlabMergeRequestsWire,
+	gitlabNoteWire,
+	gitlabNotesWire,
 	gitlabProjectWire,
 	gitlabPipelineWire,
 	gitlabPipelinesWire,
 	gitlabProtectedBranchesWire,
 	gitlabProtectedBranchWire,
+	gitlabReleaseAssetLinkWire,
+	gitlabReleaseAssetLinksWire,
 	gitlabReleaseWire,
 	gitlabReleasesWire,
 	gitlabRepositoryBlobWire,
@@ -364,6 +368,56 @@ export const getIssues = ({
 		})
 )
 
+export const getIssueNotes = ({
+	projectId,
+	issueNumber,
+	page = 1,
+	perPage = 100,
+}: {
+	projectId: string
+	issueNumber: number
+	page?: number
+	perPage?: number
+}) => {
+	if (!Number.isSafeInteger(issueNumber) || issueNumber < 0)
+		throw new Error('Gitlab_Rest: invalid issue number')
+
+	return getJson<JsonValue>(binding, `/api/v4/projects/${encodeURIComponent(projectId)}/issues/${issueNumber}/notes?${new URLSearchParams({
+		...gitlabPaginationParams(page, perPage),
+	})}`)
+		.then((notes) => {
+			try {
+				return gitlabNotesWire.assert(notes)
+			} catch {
+				throw new Error('Gitlab_Rest: invalid issue notes response')
+			}
+		})
+}
+
+export const getIssueNote = ({
+	projectId,
+	issueNumber,
+	noteId,
+}: {
+	projectId: string
+	issueNumber: number
+	noteId: number
+}) => {
+	if (!Number.isSafeInteger(issueNumber) || issueNumber < 0)
+		throw new Error('Gitlab_Rest: invalid issue number')
+	if (!Number.isSafeInteger(noteId) || noteId < 0)
+		throw new Error('Gitlab_Rest: invalid note ID')
+
+	return getJson<JsonValue>(binding, `/api/v4/projects/${encodeURIComponent(projectId)}/issues/${issueNumber}/notes/${noteId}`)
+		.then((note) => {
+			try {
+				return gitlabNoteWire.assert(note)
+			} catch {
+				throw new Error('Gitlab_Rest: invalid issue note response')
+			}
+		})
+}
+
 export const getMergeRequest = ({
 	projectId,
 	pullRequestNumber,
@@ -403,6 +457,56 @@ export const getMergeRequests = ({
 		})
 )
 
+export const getMergeRequestNotes = ({
+	projectId,
+	pullRequestNumber,
+	page = 1,
+	perPage = 100,
+}: {
+	projectId: string
+	pullRequestNumber: number
+	page?: number
+	perPage?: number
+}) => {
+	if (!Number.isSafeInteger(pullRequestNumber) || pullRequestNumber < 0)
+		throw new Error('Gitlab_Rest: invalid merge request number')
+
+	return getJson<JsonValue>(binding, `/api/v4/projects/${encodeURIComponent(projectId)}/merge_requests/${pullRequestNumber}/notes?${new URLSearchParams({
+		...gitlabPaginationParams(page, perPage),
+	})}`)
+		.then((notes) => {
+			try {
+				return gitlabNotesWire.assert(notes)
+			} catch {
+				throw new Error('Gitlab_Rest: invalid merge request notes response')
+			}
+		})
+}
+
+export const getMergeRequestNote = ({
+	projectId,
+	pullRequestNumber,
+	noteId,
+}: {
+	projectId: string
+	pullRequestNumber: number
+	noteId: number
+}) => {
+	if (!Number.isSafeInteger(pullRequestNumber) || pullRequestNumber < 0)
+		throw new Error('Gitlab_Rest: invalid merge request number')
+	if (!Number.isSafeInteger(noteId) || noteId < 0)
+		throw new Error('Gitlab_Rest: invalid note ID')
+
+	return getJson<JsonValue>(binding, `/api/v4/projects/${encodeURIComponent(projectId)}/merge_requests/${pullRequestNumber}/notes/${noteId}`)
+		.then((note) => {
+			try {
+				return gitlabNoteWire.assert(note)
+			} catch {
+				throw new Error('Gitlab_Rest: invalid merge request note response')
+			}
+		})
+}
+
 export const getRelease = ({
 	projectId,
 	releaseTagName,
@@ -440,6 +544,45 @@ export const getReleases = ({
 			}
 		})
 )
+
+export const getReleaseAssetLinks = ({
+	projectId,
+	releaseTagName,
+}: {
+	projectId: string
+	releaseTagName: string
+}) => (
+	getJson<JsonValue>(binding, `/api/v4/projects/${encodeURIComponent(projectId)}/releases/${encodeURIComponent(releaseTagName)}/assets/links`)
+		.then((links) => {
+			try {
+				return gitlabReleaseAssetLinksWire.assert(links)
+			} catch {
+				throw new Error('Gitlab_Rest: invalid release asset links response')
+			}
+		})
+)
+
+export const getReleaseAssetLink = ({
+	projectId,
+	releaseTagName,
+	linkId,
+}: {
+	projectId: string
+	releaseTagName: string
+	linkId: number
+}) => {
+	if (!Number.isSafeInteger(linkId) || linkId < 0)
+		throw new Error('Gitlab_Rest: invalid release asset link ID')
+
+	return getJson<JsonValue>(binding, `/api/v4/projects/${encodeURIComponent(projectId)}/releases/${encodeURIComponent(releaseTagName)}/assets/links/${linkId}`)
+		.then((link) => {
+			try {
+				return gitlabReleaseAssetLinkWire.assert(link)
+			} catch {
+				throw new Error('Gitlab_Rest: invalid release asset link response')
+			}
+		})
+}
 
 export const compareRepositoryRefs = ({
 	projectId,

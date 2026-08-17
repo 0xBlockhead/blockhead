@@ -17,8 +17,12 @@ const {
 	getCommitSignature,
 	getIssue,
 	getIssues,
+	getIssueNote,
+	getIssueNotes,
 	getMergeRequest,
 	getMergeRequests,
+	getMergeRequestNote,
+	getMergeRequestNotes,
 	getJob,
 	getPipeline,
 	getPipelineJobs,
@@ -27,6 +31,8 @@ const {
 	getProtectedBranch,
 	getRelease,
 	getReleases,
+	getReleaseAssetLink,
+	getReleaseAssetLinks,
 	getRepositoryBlob,
 	getRepositoryTree,
 	getTag,
@@ -757,6 +763,86 @@ describe('GitLab REST wires', () => {
 		expect(sourceGetJson.mock.calls.map(([, path]) => path)).toEqual([
 			'https://gitlab.com/api/v4/projects/group%2Fproject/pipelines/91',
 			'https://gitlab.com/api/v4/projects/group%2Fproject/jobs/123',
+		])
+	})
+
+	it('reads native issue notes, merge-request notes and release asset links', async () => {
+		const issueNote = {
+			id: 302,
+			body: 'Preserve native comments',
+			created_at: '2026-01-04T00:00:00Z',
+			updated_at: '2026-01-04T00:00:00Z',
+			system: false,
+			noteable_iid: 12,
+			noteable_type: 'Issue',
+			type: null,
+		}
+		const mergeRequestNote = {
+			id: 404,
+			body: 'Review the native graph',
+			created_at: '2026-02-04T00:00:00Z',
+			updated_at: '2026-02-04T00:00:00Z',
+			system: false,
+			noteable_iid: 34,
+			noteable_type: 'MergeRequest',
+			type: 'DiffNote',
+			discussion_id: 'abcd1234',
+			position: {
+				old_path: 'src/index.ts',
+				new_path: 'src/index.ts',
+				old_line: null,
+				new_line: 12,
+			},
+		}
+		const releaseLink = {
+			id: 9,
+			name: 'release.md',
+			url: 'https://gitlab.com/gitlab-org/gitlab/-/releases/v1.0.0/downloads/release.md',
+			link_type: 'other',
+			direct_asset_url: 'https://gitlab.com/gitlab-org/gitlab/-/releases/v1.0.0/downloads/release.md',
+		}
+		sourceGetJson
+			.mockResolvedValueOnce([issueNote])
+			.mockResolvedValueOnce(issueNote)
+			.mockResolvedValueOnce([mergeRequestNote])
+			.mockResolvedValueOnce(mergeRequestNote)
+			.mockResolvedValueOnce([releaseLink])
+			.mockResolvedValueOnce(releaseLink)
+
+		await expect(getIssueNotes({
+			projectId: 'gitlab-org/gitlab',
+			issueNumber: 12,
+		})).resolves.toMatchObject([{ id: 302 }])
+		await expect(getIssueNote({
+			projectId: 'gitlab-org/gitlab',
+			issueNumber: 12,
+			noteId: 302,
+		})).resolves.toMatchObject({ id: 302, noteable_type: 'Issue' })
+		await expect(getMergeRequestNotes({
+			projectId: 'gitlab-org/gitlab',
+			pullRequestNumber: 34,
+		})).resolves.toMatchObject([{ id: 404, type: 'DiffNote' }])
+		await expect(getMergeRequestNote({
+			projectId: 'gitlab-org/gitlab',
+			pullRequestNumber: 34,
+			noteId: 404,
+		})).resolves.toMatchObject({ id: 404, type: 'DiffNote' })
+		await expect(getReleaseAssetLinks({
+			projectId: 'gitlab-org/gitlab',
+			releaseTagName: 'v1.0.0',
+		})).resolves.toMatchObject([{ id: 9 }])
+		await expect(getReleaseAssetLink({
+			projectId: 'gitlab-org/gitlab',
+			releaseTagName: 'v1.0.0',
+			linkId: 9,
+		})).resolves.toMatchObject({ name: 'release.md' })
+		expect(sourceGetJson.mock.calls.map(([, path]) => path)).toEqual([
+			'https://gitlab.com/api/v4/projects/gitlab-org%2Fgitlab/issues/12/notes?page=1&per_page=100',
+			'https://gitlab.com/api/v4/projects/gitlab-org%2Fgitlab/issues/12/notes/302',
+			'https://gitlab.com/api/v4/projects/gitlab-org%2Fgitlab/merge_requests/34/notes?page=1&per_page=100',
+			'https://gitlab.com/api/v4/projects/gitlab-org%2Fgitlab/merge_requests/34/notes/404',
+			'https://gitlab.com/api/v4/projects/gitlab-org%2Fgitlab/releases/v1.0.0/assets/links',
+			'https://gitlab.com/api/v4/projects/gitlab-org%2Fgitlab/releases/v1.0.0/assets/links/9',
 		])
 	})
 

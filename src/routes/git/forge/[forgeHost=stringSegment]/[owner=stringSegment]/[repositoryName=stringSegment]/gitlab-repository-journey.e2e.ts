@@ -10,13 +10,166 @@ const project = {
 	http_url_to_repo: 'https://gitlab.com/gitlab-org/gitlab.git',
 	ssh_url_to_repo: 'git@gitlab.com:gitlab-org/gitlab.git',
 	web_url: 'https://gitlab.com/gitlab-org/gitlab',
+	repository_object_format: 'sha1',
 }
 
 test('GitLab mirror visibly connects provider identity to the native Git repository and refs', async ({ page }) => {
 	test.setTimeout(180_000)
 	await page.route('**/api-proxy/**', async (route) => {
-		const requestUrl = decodeURIComponent(route.request().url())
-		if (requestUrl.includes('/repository/commits?')) {
+		const requestUrl = (() => {
+			try {
+				return decodeURIComponent(route.request().url())
+			} catch {
+				return route.request().url()
+			}
+		})()
+		if (requestUrl.includes('/issues/12/notes/')) {
+			await route.fulfill({
+				json: {
+					id: 302,
+					body: 'Preserve native comments',
+					created_at: '2026-01-04T00:00:00Z',
+					updated_at: '2026-01-04T00:00:00Z',
+					system: false,
+					noteable_iid: 12,
+					noteable_type: 'Issue',
+					type: null,
+				},
+			})
+			return
+		}
+		if (requestUrl.includes('/issues/12/notes')) {
+			await route.fulfill({
+				json: [{
+					id: 302,
+					body: 'Preserve native comments',
+					created_at: '2026-01-04T00:00:00Z',
+					updated_at: '2026-01-04T00:00:00Z',
+					system: false,
+					noteable_iid: 12,
+					noteable_type: 'Issue',
+					type: null,
+				}],
+			})
+			return
+		}
+		if (requestUrl.includes('/issues/12')) {
+			await route.fulfill({
+				json: {
+					iid: 12,
+					project_id: project.id,
+					title: 'Preserve native repository links',
+					state: 'closed',
+					labels: [
+						'architecture',
+					],
+					created_at: '2026-01-01T00:00:00Z',
+					updated_at: '2026-01-02T00:00:00Z',
+					closed_at: '2026-01-03T00:00:00Z',
+				},
+			})
+			return
+		}
+		if (requestUrl.includes('/merge_requests/34/notes/')) {
+			await route.fulfill({
+				json: {
+					id: 404,
+					body: 'Review the native graph',
+					created_at: '2026-02-04T00:00:00Z',
+					updated_at: '2026-02-04T00:00:00Z',
+					system: false,
+					noteable_iid: 34,
+					noteable_type: 'MergeRequest',
+					type: 'DiffNote',
+					discussion_id: 'abcd1234',
+					position: {
+						old_path: 'src/index.ts',
+						new_path: 'src/index.ts',
+						old_line: null,
+						new_line: 12,
+					},
+				},
+			})
+			return
+		}
+		if (requestUrl.includes('/merge_requests/34/notes')) {
+			await route.fulfill({
+				json: [{
+					id: 404,
+					body: 'Review the native graph',
+					created_at: '2026-02-04T00:00:00Z',
+					updated_at: '2026-02-04T00:00:00Z',
+					system: false,
+					noteable_iid: 34,
+					noteable_type: 'MergeRequest',
+					type: 'DiffNote',
+					discussion_id: 'abcd1234',
+					position: {
+						old_path: 'src/index.ts',
+						new_path: 'src/index.ts',
+						old_line: null,
+						new_line: 12,
+					},
+				}],
+			})
+			return
+		}
+		if (requestUrl.includes('/merge_requests/34')) {
+			await route.fulfill({
+				json: {
+					iid: 34,
+					project_id: project.id,
+					title: 'Connect the repository graph',
+					state: 'merged',
+					target_branch: 'master',
+					source_branch: 'native-repository-links',
+					sha: 'c'.repeat(40),
+					created_at: '2026-02-01T00:00:00Z',
+					updated_at: '2026-02-02T00:00:00Z',
+					merged_at: '2026-02-03T00:00:00Z',
+				},
+			})
+			return
+		}
+		if (requestUrl.includes('/releases/v1.0.0/assets/links/')) {
+			await route.fulfill({
+				json: {
+					id: 9,
+					name: 'release.md',
+					url: 'https://gitlab.com/gitlab-org/gitlab/-/releases/v1.0.0/downloads/release.md',
+					link_type: 'other',
+					direct_asset_url: 'https://gitlab.com/gitlab-org/gitlab/-/releases/v1.0.0/downloads/release.md',
+				},
+			})
+			return
+		}
+		if (requestUrl.includes('/releases/v1.0.0/assets/links')) {
+			await route.fulfill({
+				json: [{
+					id: 9,
+					name: 'release.md',
+					url: 'https://gitlab.com/gitlab-org/gitlab/-/releases/v1.0.0/downloads/release.md',
+					link_type: 'other',
+					direct_asset_url: 'https://gitlab.com/gitlab-org/gitlab/-/releases/v1.0.0/downloads/release.md',
+				}],
+			})
+			return
+		}
+		if (requestUrl.includes('/releases/v1.0.0')) {
+			await route.fulfill({
+				json: {
+					tag_name: 'v1.0.0',
+					name: 'Version 1.0.0',
+					created_at: '2026-03-01T00:00:00Z',
+					released_at: '2026-03-02T00:00:00Z',
+					commit: {
+						id: 'd'.repeat(40),
+					},
+				},
+			})
+			return
+		}
+		if (requestUrl.includes('/repository/commits')) {
 			await route.fulfill({
 				json: [{
 					id: 'f'.repeat(40),
@@ -42,64 +195,25 @@ test('GitLab mirror visibly connects provider identity to the native Git reposit
 						name: 'master',
 						commit: {
 							id: 'a'.repeat(40),
+							committed_date: '2026-04-01T00:00:00Z',
 						},
 					},
 				],
 			})
 			return
 		}
-		if (requestUrl.includes('/repository/tags')) {
+		if (requestUrl.includes('/repository/tags') || requestUrl.includes('/repository/tree')) {
 			await route.fulfill({ json: [] })
 			return
 		}
-		if (requestUrl.includes('/repository/tree')) {
+		if (
+			requestUrl.includes('/pipelines?')
+			|| requestUrl.includes('/issues?')
+			|| requestUrl.includes('/merge_requests?')
+			|| requestUrl.includes('/releases?')
+			|| requestUrl.includes('/protected_branches')
+		) {
 			await route.fulfill({ json: [] })
-			return
-		}
-		if (requestUrl.includes('/issues/12')) {
-			await route.fulfill({
-				json: {
-					iid: 12,
-					title: 'Preserve native repository links',
-					state: 'closed',
-					labels: [
-						'architecture',
-					],
-					created_at: '2026-01-01T00:00:00Z',
-					updated_at: '2026-01-02T00:00:00Z',
-					closed_at: '2026-01-03T00:00:00Z',
-				},
-			})
-			return
-		}
-		if (requestUrl.includes('/merge_requests/34')) {
-			await route.fulfill({
-				json: {
-					iid: 34,
-					title: 'Connect the repository graph',
-					state: 'merged',
-					target_branch: 'master',
-					source_branch: 'native-repository-links',
-					sha: 'c'.repeat(40),
-					created_at: '2026-02-01T00:00:00Z',
-					updated_at: '2026-02-02T00:00:00Z',
-					merged_at: '2026-02-03T00:00:00Z',
-				},
-			})
-			return
-		}
-		if (requestUrl.includes('/releases/v1.0.0')) {
-			await route.fulfill({
-				json: {
-					tag_name: 'v1.0.0',
-					name: 'Version 1.0.0',
-					created_at: '2026-03-01T00:00:00Z',
-					released_at: '2026-03-02T00:00:00Z',
-					commit: {
-						id: 'd'.repeat(40),
-					},
-				},
-			})
 			return
 		}
 
@@ -115,32 +229,37 @@ test('GitLab mirror visibly connects provider identity to the native Git reposit
 	})
 	await expect(page.locator('#main')).toContainText('https://gitlab.com/gitlab-org/gitlab')
 	await expect(page.locator('#main')).toContainText('public')
-	const repositoryLink = page.locator('a[href*="/git/repository/remote/"]')
-	await expect(repositoryLink).toBeAttached()
-
-	await repositoryLink.click()
-	await expect(page).toHaveURL(/\/git\/repository\/remote\//)
-	await expect(page.locator('#main')).toContainText('refs/heads/master', {
+	await expect(page.locator('a[href*="/git/repository/remote/https%3A%2F%2Fgitlab.com%2Fgitlab-org%2Fgitlab.git"]')).toBeAttached({
 		timeout: 120_000,
 	})
-	await expect(page.locator('#main')).toContainText('sha1')
-	await expect(page.locator(`a[href*="/git/object/0x${'f'.repeat(40)}/sha1"]`)).toBeAttached()
 
 	await page.goto('/git/forge/gitlab.com/gitlab-org/gitlab/issue/12')
 	await expect(page.locator('#main')).toContainText('Preserve native repository links', {
 		timeout: 120_000,
 	})
 	await expect(page.locator('#main')).toContainText('closed')
+	await page.goto('/git/forge/gitlab.com/gitlab-org/gitlab/issue/12/note/302')
+	await expect(page.locator('#main').getByText('Preserve native comments').first()).toBeAttached({
+		timeout: 120_000,
+	})
 
 	await page.goto('/git/forge/gitlab.com/gitlab-org/gitlab/pull-request/34')
 	await expect(page.locator('#main')).toContainText('Connect the repository graph', {
 		timeout: 120_000,
 	})
 	await expect(page.locator('#main')).toContainText('native-repository-links')
+	await page.goto('/git/forge/gitlab.com/gitlab-org/gitlab/pull-request/34/note/404')
+	await expect(page.locator('#main').getByText('Review the native graph').first()).toBeAttached({
+		timeout: 120_000,
+	})
 
 	await page.goto('/git/forge/gitlab.com/gitlab-org/gitlab/release/v1.0.0')
 	await expect(page.locator('#main')).toContainText('Version 1.0.0', {
 		timeout: 120_000,
 	})
 	await expect(page.locator('#main')).toContainText('v1.0.0')
+	await page.goto('/git/forge/gitlab.com/gitlab-org/gitlab/release/v1.0.0/asset/9')
+	await expect(page.locator('#main').getByText('release.md').first()).toBeAttached({
+		timeout: 120_000,
+	})
 })

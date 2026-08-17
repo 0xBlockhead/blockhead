@@ -15,8 +15,12 @@ const {
 	getCommits,
 	getIssue,
 	getIssues,
+	getIssueNote,
+	getIssueNotes,
 	getMergeRequest,
 	getMergeRequests,
+	getMergeRequestNote,
+	getMergeRequestNotes,
 	getJob,
 	getPipeline,
 	getPipelineJobs,
@@ -25,6 +29,8 @@ const {
 	getProtectedBranch,
 	getRelease,
 	getReleases,
+	getReleaseAssetLink,
+	getReleaseAssetLinks,
 	getRepositoryTree,
 	getRepositoryBlob,
 	getTag,
@@ -38,8 +44,12 @@ const {
 	getCommits: vi.fn(),
 	getIssue: vi.fn(),
 	getIssues: vi.fn(),
+	getIssueNote: vi.fn(),
+	getIssueNotes: vi.fn(),
 	getMergeRequest: vi.fn(),
 	getMergeRequests: vi.fn(),
+	getMergeRequestNote: vi.fn(),
+	getMergeRequestNotes: vi.fn(),
 	getJob: vi.fn(),
 	getPipeline: vi.fn(),
 	getPipelineJobs: vi.fn(),
@@ -48,6 +58,8 @@ const {
 	getProtectedBranch: vi.fn(),
 	getRelease: vi.fn(),
 	getReleases: vi.fn(),
+	getReleaseAssetLink: vi.fn(),
+	getReleaseAssetLinks: vi.fn(),
 	getRepositoryTree: vi.fn(),
 	getRepositoryBlob: vi.fn(),
 	getTag: vi.fn(),
@@ -63,8 +75,12 @@ vi.mock('$/sources/Gitlab/Rest/queries.ts', () => ({
 	getCommits,
 	getIssue,
 	getIssues,
+	getIssueNote,
+	getIssueNotes,
 	getMergeRequest,
 	getMergeRequests,
+	getMergeRequestNote,
+	getMergeRequestNotes,
 	getJob,
 	getPipeline,
 	getPipelineJobs,
@@ -73,6 +89,8 @@ vi.mock('$/sources/Gitlab/Rest/queries.ts', () => ({
 	getProtectedBranch,
 	getRelease,
 	getReleases,
+	getReleaseAssetLink,
+	getReleaseAssetLinks,
 	getRepositoryTree,
 	getRepositoryBlob,
 	getTag,
@@ -94,12 +112,18 @@ const repositoryObjectsResolver = resolverModule.resolvers.find((resolver) => re
 const remoteResolver = resolverModule.resolvers.find((resolver) => resolver.entityType === EntityType.GitRemote)
 const refResolver = resolverModule.resolvers.find((resolver) => resolver.entityType === EntityType.GitRef)
 const pathResolutionResolver = resolverModule.resolvers.find((resolver) => resolver.entityType === EntityType.GitTreePathResolution)
-const issueResolver = resolverModule.resolvers.find((resolver) => resolver.entityType === EntityType.GitForgeIssue)
-const pullRequestResolver = resolverModule.resolvers.find((resolver) => resolver.entityType === EntityType.GitForgePullRequest)
+const issueResolver = resolverModule.resolvers.find((resolver) => resolver.entityType === EntityType.GitForgeIssue && 'title' in resolver.projections)
+const issueNotesResolver = resolverModule.resolvers.find((resolver) => resolver.entityType === EntityType.GitForgeIssue && '$$notes' in resolver.projections)
+const issueNoteResolver = resolverModule.resolvers.find((resolver) => resolver.entityType === EntityType.GitForgeIssueNote)
+const pullRequestResolver = resolverModule.resolvers.find((resolver) => resolver.entityType === EntityType.GitForgePullRequest && 'title' in resolver.projections)
+const pullRequestNotesResolver = resolverModule.resolvers.find((resolver) => resolver.entityType === EntityType.GitForgePullRequest && '$$notes' in resolver.projections)
+const pullRequestNoteResolver = resolverModule.resolvers.find((resolver) => resolver.entityType === EntityType.GitForgePullRequestNote)
 const pipelineResolver = resolverModule.resolvers.find((resolver) => resolver.entityType === EntityType.GitForgePipeline && 'pipelineIid' in resolver.projections)
 const pipelineJobsResolver = resolverModule.resolvers.find((resolver) => '$$jobs' in resolver.projections)
 const jobResolver = resolverModule.resolvers.find((resolver) => resolver.entityType === EntityType.GitForgeJob)
-const releaseResolver = resolverModule.resolvers.find((resolver) => resolver.entityType === EntityType.GitForgeRelease)
+const releaseResolver = resolverModule.resolvers.find((resolver) => resolver.entityType === EntityType.GitForgeRelease && 'targetObjectId' in resolver.projections)
+const releaseLinksResolver = resolverModule.resolvers.find((resolver) => resolver.entityType === EntityType.GitForgeRelease && '$$links' in resolver.projections)
+const releaseLinkResolver = resolverModule.resolvers.find((resolver) => resolver.entityType === EntityType.GitForgeReleaseLink)
 const protectedBranchResolver = resolverModule.resolvers.find((resolver) => resolver.entityType === EntityType.GitForgeProtectedBranch)
 const signatureResolver = resolverModule.resolvers.find((resolver) => resolver.entityType === EntityType.GitSignature)
 const compareResolver = resolverModule.resolvers.find((resolver) => resolver.entityType === EntityType.GitForgeCompare)
@@ -118,11 +142,17 @@ if (
 	|| refResolver == null
 	|| pathResolutionResolver == null
 	|| issueResolver == null
+	|| issueNotesResolver == null
+	|| issueNoteResolver == null
 	|| pullRequestResolver == null
+	|| pullRequestNotesResolver == null
+	|| pullRequestNoteResolver == null
 	|| pipelineResolver == null
 	|| pipelineJobsResolver == null
 	|| jobResolver == null
 	|| releaseResolver == null
+	|| releaseLinksResolver == null
+	|| releaseLinkResolver == null
 	|| protectedBranchResolver == null
 	|| signatureResolver == null
 	|| compareResolver == null
@@ -278,6 +308,23 @@ describe('GitLab repository journey', () => {
 			},
 		})
 		getIssues.mockResolvedValue([])
+		getIssueNotes.mockResolvedValue([])
+		getIssueNote.mockResolvedValue({
+			id: 302,
+			body: 'Preserve native comments',
+			created_at: '2026-01-04T00:00:00Z',
+			updated_at: '2026-01-04T00:00:00Z',
+			system: false,
+			noteable_iid: 12,
+			noteable_type: 'Issue',
+			type: null,
+			author: {
+				id: 7,
+				username: 'issue-author',
+				name: 'Issue Author',
+				web_url: 'https://gitlab.com/issue-author',
+			},
+		})
 		getMergeRequest.mockResolvedValue({
 			iid: 34,
 			project_id: project.id,
@@ -297,6 +344,24 @@ describe('GitLab repository journey', () => {
 			},
 		})
 		getMergeRequests.mockResolvedValue([])
+		getMergeRequestNotes.mockResolvedValue([])
+		getMergeRequestNote.mockResolvedValue({
+			id: 404,
+			body: 'Review the native graph',
+			created_at: '2026-02-04T00:00:00Z',
+			updated_at: '2026-02-04T00:00:00Z',
+			system: false,
+			noteable_iid: 34,
+			noteable_type: 'MergeRequest',
+			type: 'DiffNote',
+			discussion_id: 'abcd1234',
+			position: {
+				old_path: 'src/index.ts',
+				new_path: 'src/index.ts',
+				old_line: null,
+				new_line: 12,
+			},
+		})
 		getRelease.mockResolvedValue({
 			tag_name: 'v1.0.0',
 			name: 'Version 1.0.0',
@@ -313,6 +378,14 @@ describe('GitLab repository journey', () => {
 			},
 		})
 		getReleases.mockResolvedValue([])
+		getReleaseAssetLinks.mockResolvedValue([])
+		getReleaseAssetLink.mockResolvedValue({
+			id: 9,
+			name: 'release.md',
+			url: 'https://gitlab.com/gitlab-org/gitlab/-/releases/v1.0.0/downloads/release.md',
+			link_type: 'other',
+			direct_asset_url: 'https://gitlab.com/gitlab-org/gitlab/-/releases/v1.0.0/downloads/release.md',
+		})
 		getPipeline.mockResolvedValue({
 			id: 91,
 			iid: 17,
@@ -1468,5 +1541,128 @@ describe('GitLab repository journey', () => {
 			},
 			name: 'master',
 		})).rejects.toThrow('Gitlab_Rest: protected branch identity does not match selector')
+	})
+
+	it('materializes native issue comments, merge-request review notes and release asset links', async () => {
+		const $forgeMirror = {
+			forgeHost: 'gitlab.com',
+			owner: 'gitlab-org',
+			repositoryName: 'gitlab',
+		}
+		const context = {
+			filters: [],
+			sorts: [],
+			pagination: { limit: 1 },
+			selectorKeys: [],
+			parentSelectorKeys: [],
+			sources: [],
+			publicEnv: {},
+		}
+		const issueSelector = {
+			$forgeMirror,
+			issueNumber: 12,
+		}
+		const pullRequestSelector = {
+			$forgeMirror,
+			pullRequestNumber: 34,
+		}
+		const releaseSelector = {
+			$forgeMirror,
+			releaseTagName: 'v1.0.0',
+		}
+		getIssueNotes.mockResolvedValueOnce([{
+			id: 302,
+			body: 'Preserve native comments',
+			created_at: '2026-01-04T00:00:00Z',
+			updated_at: '2026-01-04T00:00:00Z',
+			system: false,
+			noteable_iid: 12,
+			noteable_type: 'Issue',
+			type: null,
+			author: {
+				id: 7,
+				username: 'issue-author',
+				name: 'Issue Author',
+				web_url: 'https://gitlab.com/issue-author',
+			},
+		}])
+		getMergeRequestNotes.mockResolvedValueOnce([{
+			id: 404,
+			body: 'Review the native graph',
+			created_at: '2026-02-04T00:00:00Z',
+			updated_at: '2026-02-04T00:00:00Z',
+			system: false,
+			noteable_iid: 34,
+			noteable_type: 'MergeRequest',
+			type: 'DiffNote',
+			discussion_id: 'abcd1234',
+			position: {
+				old_path: 'src/index.ts',
+				new_path: 'src/index.ts',
+				old_line: null,
+				new_line: 12,
+			},
+		}])
+		getReleaseAssetLinks.mockResolvedValueOnce([{
+			id: 9,
+			name: 'release.md',
+			url: 'https://gitlab.com/gitlab-org/gitlab/-/releases/v1.0.0/downloads/release.md',
+			link_type: 'other',
+			direct_asset_url: 'https://gitlab.com/gitlab-org/gitlab/-/releases/v1.0.0/downloads/release.md',
+		}])
+
+		const issueNotes = await issueNotesResolver.resolve.ForgeMirrorIssueNumber.resolve(issueSelector, context)
+		const pullRequestNotes = await pullRequestNotesResolver.resolve.ForgeMirrorPullRequestNumber.resolve(pullRequestSelector, context)
+		const releaseLinks = await releaseLinksResolver.resolve.ForgeMirrorReleaseTagName.resolve(releaseSelector)
+		if (issueNotes == null || pullRequestNotes == null || releaseLinks == null)
+			throw new Error('GitLab comment and asset pages must resolve')
+
+		expect(issueNotesResolver.projections.$$notes.select(issueNotes, issueSelector, context)).toMatchObject([{
+			[EntityMetaKey.Selector]: { noteId: 302 },
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.GitForgeIssueNote, [], 'body')]: 'Preserve native comments',
+				[entityFieldAddressKey(EntityType.GitForgeIssueNote, [], 'system')]: false,
+			},
+		}])
+		expect(pullRequestNotesResolver.projections.$$notes.select(pullRequestNotes, pullRequestSelector, context)).toMatchObject([{
+			[EntityMetaKey.Selector]: { noteId: 404 },
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.GitForgePullRequestNote, [], 'body')]: 'Review the native graph',
+				[entityFieldAddressKey(EntityType.GitForgePullRequestNote, [], 'noteType')]: 'DiffNote',
+				[entityFieldAddressKey(EntityType.GitForgePullRequestNote, [], 'newPath')]: 'src/index.ts',
+				[entityFieldAddressKey(EntityType.GitForgePullRequestNote, [], 'newLine')]: 12,
+			},
+		}])
+		expect(releaseLinksResolver.projections.$$links.select(releaseLinks, releaseSelector, context)).toMatchObject([{
+			[EntityMetaKey.Selector]: { linkId: 9 },
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.GitForgeReleaseLink, [], 'name')]: 'release.md',
+				[entityFieldAddressKey(EntityType.GitForgeReleaseLink, [], 'linkType')]: 'other',
+			},
+		}])
+		await expect(issueNoteResolver.resolve.IssueNoteId.resolve({
+			$issue: issueSelector,
+			noteId: 302,
+		})).resolves.toMatchObject({
+			noteId: 302,
+			body: 'Preserve native comments',
+			system: false,
+		})
+		await expect(pullRequestNoteResolver.resolve.PullRequestNoteId.resolve({
+			$pullRequest: pullRequestSelector,
+			noteId: 404,
+		})).resolves.toMatchObject({
+			noteId: 404,
+			noteType: 'DiffNote',
+			newLine: 12,
+		})
+		await expect(releaseLinkResolver.resolve.ReleaseLinkId.resolve({
+			$release: releaseSelector,
+			linkId: 9,
+		})).resolves.toMatchObject({
+			linkId: 9,
+			name: 'release.md',
+			url: 'https://gitlab.com/gitlab-org/gitlab/-/releases/v1.0.0/downloads/release.md',
+		})
 	})
 })

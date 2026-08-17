@@ -3,65 +3,72 @@
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { ZeroExHex } from '$/schema/ZeroExHex.ts'
-import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export default entity({
-	entityType: EntityType.GitForgeRelease,
+	entityType: EntityType.GitForgePullRequestNote,
 	labels: {
-		singular: 'Git forge release',
-		plural: 'Git forge releases',
+		singular: 'Git forge pull request note',
+		plural: 'Git forge pull request notes',
 	},
 })({
-	$forgeMirror: {
-		entityType: EntityType.GitForgeMirror,
+	$pullRequest: {
+		entityType: EntityType.GitForgePullRequest,
 		cardinality: EntityFieldCardinality.One,
 	},
-	releaseTagName: {
+	noteId: {
+		primitiveType: type('number.integer >= 0'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	body: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
-	name: {
+	noteType: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
-	targetObjectId: {
-		primitiveType: ZeroExHex,
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+	system: {
+		primitiveType: type('boolean'),
+		cardinality: EntityFieldCardinality.One,
 	},
 	authorSelector: {
 		primitiveType: type('unknown'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
-	draft: {
-		primitiveType: type('boolean'),
+	discussionId: {
+		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
-	prerelease: {
-		primitiveType: type('boolean'),
+	oldPath: {
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	newPath: {
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	oldLine: {
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	newLine: {
+		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	createdAt: {
 		primitiveType: type('number'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		cardinality: EntityFieldCardinality.One,
 	},
-	publishedAt: {
+	updatedAt: {
 		primitiveType: type('number'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	$$links: {
-		entityType: EntityType.GitForgeReleaseLink,
-		cardinality: EntityFieldCardinality.Many,
-		defaultSources: [
-			Source.Gitlab_Rest,
-		],
+		cardinality: EntityFieldCardinality.One,
 	},
 })({
 	selectors: {
-		ForgeMirrorReleaseTagName: [
-			'$forgeMirror',
-			'releaseTagName',
+		PullRequestNoteId: [
+			'$pullRequest',
+			'noteId',
 		],
 	},
 })

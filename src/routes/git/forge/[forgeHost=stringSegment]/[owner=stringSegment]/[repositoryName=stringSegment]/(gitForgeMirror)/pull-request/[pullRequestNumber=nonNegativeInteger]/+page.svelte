@@ -13,13 +13,9 @@
 	// State
 	let {
 		data,
-		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.GitForgePullRequest, {
-		$forgeMirror: data.selector,
-		pullRequestNumber: Number(params.pullRequestNumber),
-	}, {
+	const pageSelection = $derived(select(EntityType.GitForgePullRequest, data.selector, {
 		fields: {
 			title: true,
 		},

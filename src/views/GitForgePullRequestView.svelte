@@ -37,6 +37,7 @@
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
+	import GitForgePullRequestNotesView from '$/views/GitForgePullRequestNotesView.svelte'
 	import GitForgeMirrorView from '$/views/GitForgeMirrorView.svelte'
 </script>
 
@@ -263,5 +264,23 @@
 				{/snippet}
 			</ResourceBoundary>
 		</dl>
+	{/snippet}
+
+	{#snippet Details()}
+		{@const notesResource = selection.$$notes}
+		<ResourceBoundary
+			resource={notesResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<GitForgePullRequestNotesView
+						selection={notesResource}
+						countResource={notesResource.count}
+						title='Comments'
+						id='notes'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

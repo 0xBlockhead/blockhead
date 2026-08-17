@@ -1276,12 +1276,15 @@ export enum EntityType {
 	GitForgeCompare = "GitForgeCompare",
 	GitForgeCompareFileChange = "GitForgeCompareFileChange",
 	GitForgeIssue = "GitForgeIssue",
+	GitForgeIssueNote = "GitForgeIssueNote",
 	GitForgeJob = "GitForgeJob",
 	GitForgeMirror = "GitForgeMirror",
 	GitForgePipeline = "GitForgePipeline",
 	GitForgeProtectedBranch = "GitForgeProtectedBranch",
 	GitForgePullRequest = "GitForgePullRequest",
+	GitForgePullRequestNote = "GitForgePullRequestNote",
 	GitForgeRelease = "GitForgeRelease",
+	GitForgeReleaseLink = "GitForgeReleaseLink",
 	GitLooseObject = "GitLooseObject",
 	GitObject = "GitObject",
 	GitObjectVerification_Timestamp = "GitObjectVerification_Timestamp",
@@ -34720,6 +34723,7 @@ export const schema = {
 				"createdAt": { label: "Created", description: "The time when the subject was created according to the source.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 				"updatedAt": { label: "Updated", description: "The time when the subject was last updated according to the source.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 				"closedAt": { label: "closed AT", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+				"$$notes": { label: "notes", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.GitForgeIssueNote, defaultSources: [Source.Gitlab_Rest] },
 			})({
 				selectors: {
 					"ForgeMirrorIssueNumber": ["$forgeMirror", "issueNumber"],
@@ -34728,9 +34732,42 @@ export const schema = {
 					singular: {
 						summary: { title: ["title"], titleFallback: [{ field: "issueNumber", format: "number" }], value: ["state"] },
 						closed: ["$forgeMirror", { field: "issueNumber", format: "number" }, "state"],
-						content: { dl: [["$forgeMirror", { field: "issueNumber", format: "number" }, "title", "state", "labels"], [{ field: "createdAt", format: "timestamp" }, { field: "updatedAt", format: "timestamp" }, { field: "closedAt", format: "timestamp" }]] },
+						content: { dl: [["$forgeMirror", { field: "issueNumber", format: "number" }, "title", "state", "labels"], [{ field: "createdAt", format: "timestamp" }, { field: "updatedAt", format: "timestamp" }, { field: "closedAt", format: "timestamp" }]], lists: [{ field: "$$notes", component: "GitForgeIssueNotesView", label: "Comments", emptyText: "No comments." }] },
 					},
 					plural: { component: "GitForgeIssuesView", title: "Git forge issues", },
+				},
+			}),
+
+			entity({
+				entityType: EntityType.GitForgeIssueNote,
+				labels: {
+					singular: "Git forge issue note",
+					plural: "Git forge issue notes",
+				},
+			})({
+				"$issue": { label: "issue", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.GitForgeIssue },
+				"noteId": { label: "note ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
+				"body": { label: "body", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"noteType": { label: "note type", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+				"system": { label: "system", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "boolean" },
+				"authorSelector": { label: "author selector", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "unknown" },
+				"createdAt": { label: "Created", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
+				"updatedAt": { label: "Updated", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
+			})({
+				selectors: {
+					"IssueNoteId": ["$issue", "noteId"],
+				},
+				views: {
+					singular: {
+						query: { sources: [Source.Gitlab_Rest] },
+						summary: { title: [{ field: "body", format: "longText" }], titleFallback: [{ field: "noteId", format: "number" }], value: ["noteType"] },
+						closed: ["$issue", { field: "noteId", format: "number" }],
+						content: {
+							body: { field: "body", format: "longText" },
+							dl: [["$issue", { field: "noteId", format: "number" }, "noteType", { field: "system", format: "boolean" }], [{ field: "createdAt", format: "timestamp" }, { field: "updatedAt", format: "timestamp" }]],
+						},
+					},
+					plural: { component: "GitForgeIssueNotesView", title: "Git forge issue notes" },
 				},
 			}),
 
@@ -34892,6 +34929,7 @@ export const schema = {
 				"createdAt": { label: "Created", description: "The time when the subject was created according to the source.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 				"updatedAt": { label: "Updated", description: "The time when the subject was last updated according to the source.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 				"mergedAt": { label: "merged AT", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+				"$$notes": { label: "notes", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.GitForgePullRequestNote, defaultSources: [Source.Gitlab_Rest] },
 			})({
 				selectors: {
 					"ForgeMirrorPullRequestNumber": ["$forgeMirror", "pullRequestNumber"],
@@ -34900,9 +34938,47 @@ export const schema = {
 					singular: {
 						summary: { title: ["title"], titleFallback: [{ field: "pullRequestNumber", format: "number" }], value: ["state"] },
 						closed: ["$forgeMirror", { field: "pullRequestNumber", format: "number" }, "state"],
-						content: { dl: [["$forgeMirror", { field: "pullRequestNumber", format: "number" }, "title", "state", "baseRef", "headRef", { field: "headObjectId", format: "truncated" }], [{ field: "createdAt", format: "timestamp" }, { field: "updatedAt", format: "timestamp" }, { field: "mergedAt", format: "timestamp" }]] },
+						content: { dl: [["$forgeMirror", { field: "pullRequestNumber", format: "number" }, "title", "state", "baseRef", "headRef", { field: "headObjectId", format: "truncated" }], [{ field: "createdAt", format: "timestamp" }, { field: "updatedAt", format: "timestamp" }, { field: "mergedAt", format: "timestamp" }]], lists: [{ field: "$$notes", component: "GitForgePullRequestNotesView", label: "Comments", emptyText: "No comments." }] },
 					},
 					plural: { component: "GitForgePullRequestsView", title: "Git forge pull requests", },
+				},
+			}),
+
+			entity({
+				entityType: EntityType.GitForgePullRequestNote,
+				labels: {
+					singular: "Git forge pull request note",
+					plural: "Git forge pull request notes",
+				},
+			})({
+				"$pullRequest": { label: "pull request", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.GitForgePullRequest },
+				"noteId": { label: "note ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
+				"body": { label: "body", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"noteType": { label: "note type", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+				"system": { label: "system", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "boolean" },
+				"authorSelector": { label: "author selector", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "unknown" },
+				"discussionId": { label: "discussion ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+				"oldPath": { label: "old path", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+				"newPath": { label: "new path", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+				"oldLine": { label: "old line", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+				"newLine": { label: "new line", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+				"createdAt": { label: "Created", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
+				"updatedAt": { label: "Updated", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
+			})({
+				selectors: {
+					"PullRequestNoteId": ["$pullRequest", "noteId"],
+				},
+				views: {
+					singular: {
+						query: { sources: [Source.Gitlab_Rest] },
+						summary: { title: [{ field: "body", format: "longText" }], titleFallback: [{ field: "noteId", format: "number" }], value: ["noteType"] },
+						closed: ["$pullRequest", { field: "noteId", format: "number" }],
+						content: {
+							body: { field: "body", format: "longText" },
+							dl: [["$pullRequest", { field: "noteId", format: "number" }, "noteType", { field: "system", format: "boolean" }, "discussionId", "oldPath", "newPath", { field: "oldLine", format: "number" }, { field: "newLine", format: "number" }], [{ field: "createdAt", format: "timestamp" }, { field: "updatedAt", format: "timestamp" }]],
+						},
+					},
+					plural: { component: "GitForgePullRequestNotesView", title: "Git forge pull request notes" },
 				},
 			}),
 
@@ -34922,6 +34998,7 @@ export const schema = {
 				"prerelease": { label: "prerelease", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean" },
 				"createdAt": { label: "Created", description: "The time when the subject was created according to the source.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 				"publishedAt": { label: "published AT", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+				"$$links": { label: "asset links", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.GitForgeReleaseLink, defaultSources: [Source.Gitlab_Rest] },
 			})({
 				selectors: {
 					"ForgeMirrorReleaseTagName": ["$forgeMirror", "releaseTagName"],
@@ -34930,9 +35007,37 @@ export const schema = {
 					singular: {
 						summary: { title: ["name"], titleFallback: ["releaseTagName"], value: ["releaseTagName"] },
 						closed: ["$forgeMirror", "releaseTagName", "name"],
-						content: { dl: [["$forgeMirror", "releaseTagName", "name", { field: "targetObjectId", format: "truncated" }, "draft", "prerelease"], [{ field: "createdAt", format: "timestamp" }, { field: "publishedAt", format: "timestamp" }]] },
+						content: { dl: [["$forgeMirror", "releaseTagName", "name", { field: "targetObjectId", format: "truncated" }, "draft", "prerelease"], [{ field: "createdAt", format: "timestamp" }, { field: "publishedAt", format: "timestamp" }]], lists: [{ field: "$$links", component: "GitForgeReleaseLinksView", label: "Assets", emptyText: "No release assets." }] },
 					},
 					plural: { component: "GitForgeReleasesView", title: "Git forge releases", },
+				},
+			}),
+
+			entity({
+				entityType: EntityType.GitForgeReleaseLink,
+				labels: {
+					singular: "Git forge release link",
+					plural: "Git forge release links",
+				},
+			})({
+				"$release": { label: "release", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.GitForgeRelease },
+				"linkId": { label: "link ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
+				"name": { label: "name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"url": { label: "URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "urlString" },
+				"linkType": { label: "link type", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+				"directAssetUrl": { label: "direct asset URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "urlString" },
+			})({
+				selectors: {
+					"ReleaseLinkId": ["$release", "linkId"],
+				},
+				views: {
+					singular: {
+						query: { sources: [Source.Gitlab_Rest] },
+						summary: { title: ["name"], value: ["linkType"] },
+						closed: ["$release", { field: "linkId", format: "number" }, "name"],
+						content: { dl: [["$release", { field: "linkId", format: "number" }, "name", { field: "url", format: "url" }, "linkType", { field: "directAssetUrl", format: "url" }]] },
+					},
+					plural: { component: "GitForgeReleaseLinksView", title: "Git forge release links" },
 				},
 			}),
 
@@ -95794,6 +95899,22 @@ export const routes = defineRoutes(schema)({
 																		page: {},
 																	}
 																}
+															},
+															children: {
+																"asset": {
+																	children: {
+																		"[linkId]": {
+																			selectors: {
+																				[EntityType.GitForgeReleaseLink]: {
+																					"ReleaseLinkId": {
+																						params: { "linkId": ["linkId"] },
+																						page: {},
+																					}
+																				}
+																			}
+																		}
+																	}
+																}
 															}
 														}
 													}
@@ -95808,6 +95929,22 @@ export const routes = defineRoutes(schema)({
 																		page: {},
 																	}
 																}
+															},
+															children: {
+																"note": {
+																	children: {
+																		"[noteId]": {
+																			selectors: {
+																				[EntityType.GitForgeIssueNote]: {
+																					"IssueNoteId": {
+																						params: { "noteId": ["noteId"] },
+																						page: {},
+																					}
+																				}
+																			}
+																		}
+																	}
+																}
 															}
 														}
 													}
@@ -95820,6 +95957,22 @@ export const routes = defineRoutes(schema)({
 																	"ForgeMirrorPullRequestNumber": {
 																		params: { "pullRequestNumber": ["pullRequestNumber"] },
 																		page: {},
+																	}
+																}
+															},
+															children: {
+																"note": {
+																	children: {
+																		"[noteId]": {
+																			selectors: {
+																				[EntityType.GitForgePullRequestNote]: {
+																					"PullRequestNoteId": {
+																						params: { "noteId": ["noteId"] },
+																						page: {},
+																					}
+																				}
+																			}
+																		}
 																	}
 																}
 															}

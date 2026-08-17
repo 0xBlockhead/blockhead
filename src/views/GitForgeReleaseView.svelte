@@ -35,6 +35,7 @@
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
+	import GitForgeReleaseLinksView from '$/views/GitForgeReleaseLinksView.svelte'
 	import GitForgeMirrorView from '$/views/GitForgeMirrorView.svelte'
 </script>
 
@@ -220,5 +221,23 @@
 				{/snippet}
 			</ResourceBoundary>
 		</dl>
+	{/snippet}
+
+	{#snippet Details()}
+		{@const linksResource = selection.$$links}
+		<ResourceBoundary
+			resource={linksResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<GitForgeReleaseLinksView
+						selection={linksResource}
+						countResource={linksResource.count}
+						title='Assets'
+						id='links'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>
