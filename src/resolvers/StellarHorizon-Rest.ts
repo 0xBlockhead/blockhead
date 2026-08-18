@@ -11,6 +11,7 @@ import type {
 	StellarHorizonAccount,
 	StellarHorizonBalance,
 	StellarHorizonClaimableBalance,
+	StellarHorizonEffect,
 	StellarHorizonOffer,
 	StellarHorizonOperation,
 	StellarHorizonTrade,
@@ -247,6 +248,61 @@ const operationBodyFromWire = (
 		body
 	:
 		undefined
+}
+
+const effectIdentityKeys = new Set([
+	'_links',
+	'id',
+	'paging_token',
+	'type',
+	'type_i',
+	'created_at',
+	'account',
+])
+
+const effectBodyFromWire = (
+	effect: StellarHorizonEffect
+) => {
+	const body = Object.fromEntries(
+		Object.entries(effect)
+			.filter(([key, value]) => (
+				!effectIdentityKeys.has(key)
+				&& value !== undefined
+			))
+	)
+
+	return Object.keys(body).length > 0 ?
+		body
+	:
+		undefined
+}
+
+const effectFromWire = (
+	$network: {
+		$network: {
+			slug: string
+		}
+	},
+	effect: StellarHorizonEffect
+) => {
+	const body = effectBodyFromWire(effect)
+
+	return {
+		[EntityMetaKey.Selector]: {
+			$network,
+			effectId: effect.id,
+		},
+		[EntityMetaKey.Fields]: {
+			[entityFieldAddressKey(EntityType.StellarEffect, [], 'effectType')]: effect.type,
+			...(effect.account != null && {
+				[entityFieldAddressKey(EntityType.StellarEffect, [], 'account')]: effect.account,
+			}),
+			[entityFieldAddressKey(EntityType.StellarEffect, [], 'createdAt')]: timestampMsFromWire(effect.created_at, 'effect creation time'),
+			...(body != null && {
+				[entityFieldAddressKey(EntityType.StellarEffect, [], 'body')]: body,
+			}),
+		},
+	}
 }
 
 const transactionFromWire = (
@@ -1177,6 +1233,43 @@ export default {
 		}),
 
 		defineResolver({
+			entityType: EntityType.StellarLedger,
+			resolve: {
+				NetworkSequence: {
+					resolve: async (ledger, context) => {
+						assertStellarPublicNetwork(ledger.$network)
+						const limit = Math.min(resolverContextRowLimit(context), 200)
+						const { getLedgerEffects } = await import('$/sources/StellarHorizon/Rest/queries.ts')
+						return {
+							limit,
+							page: await getLedgerEffects(
+								ledger.sequence,
+								limit,
+								context.providerContinuationToken
+							),
+						}
+					},
+				},
+			},
+		})({
+			$$effects: {
+				select: ({ page }, ledger) => (
+					page._embedded.records.map((effect) => (
+						effectFromWire(ledger.$network, effect)
+					))
+				),
+				continuation: ({ limit, page }, ledger) => (
+					stellarContinuation(
+						'ledger-effects',
+						ledger.sequence.toString(),
+						limit,
+						page._embedded.records
+					)
+				),
+			},
+		}),
+
+		defineResolver({
 			entityType: EntityType.StellarTransaction,
 			resolve: {
 				NetworkHash: {
@@ -1283,6 +1376,74 @@ export default {
 						}
 				},
 			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.StellarTransaction,
+			resolve: {
+				NetworkHash: {
+					resolve: async ({ $network, hash }, context) => {
+						assertStellarPublicNetwork($network)
+						const limit = Math.min(resolverContextRowLimit(context), 200)
+						const { getTransactionEffects } = await import('$/sources/StellarHorizon/Rest/queries.ts')
+						return {
+							limit,
+							page: await getTransactionEffects(
+								hash,
+								limit,
+								context.providerContinuationToken
+							),
+						}
+					},
+				},
+			},
+		})({
+			$$effects: {
+				select: ({ page }, { $network }) => (
+					page._embedded.records.map((effect) => (
+						effectFromWire($network, effect)
+					))
+				),
+				continuation: ({ limit, page }, { hash }) => (
+					stellarContinuation(
+						'transaction-effects',
+						hash,
+						limit,
+						page._embedded.records
+					)
+				),
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.StellarEffect,
+			resolve: {
+				NetworkEffectId: {
+					resolve: async ({ $network, effectId }) => {
+						assertStellarPublicNetwork($network)
+						const { getEffect } = await import('$/sources/StellarHorizon/Rest/queries.ts')
+						const effect = await getEffect(effectId)
+						if (effect.id !== effectId)
+							throw new Error('StellarHorizon_Rest: effect identity does not match selector')
+						const body = effectBodyFromWire(effect)
+						return {
+							effectType: effect.type,
+							...(effect.account != null && {
+								account: effect.account,
+							}),
+							createdAt: timestampMsFromWire(effect.created_at, 'effect creation time'),
+							...(body != null && {
+								body,
+							}),
+						}
+					},
+				},
+			},
+		})({
+			effectType: (effect) => effect.effectType,
+			account: (effect) => effect.account,
+			createdAt: (effect) => effect.createdAt,
+			body: (effect) => effect.body,
 		}),
 
 		defineResolver({

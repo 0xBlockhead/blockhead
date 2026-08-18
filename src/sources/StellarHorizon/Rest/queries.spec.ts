@@ -24,11 +24,16 @@ const {
 	getClaimableBalances,
 	getLedgerOperations,
 	getLedgerTransactions,
+	getLedgerEffects,
 	getOffer,
 	getOfferTrades,
 	getTransaction,
 	getTransactionOperations,
+	getTransactionEffects,
+	getOperationEffects,
+	getEffect,
 	operationIndexFromHorizonId,
+	parseOperationIdFromEffectId,
 } = await import('$/sources/StellarHorizon/Rest/queries.ts')
 
 const binding = bindings[Source.StellarHorizon_Rest][0]
@@ -643,6 +648,99 @@ describe('Stellar Horizon account transport', () => {
 			`/transactions/${hash}/operations?limit=2&order=asc`
 		)
 		expect(operationIndexFromHorizonId('273998503801384961')).toBe(1)
+	})
+})
+
+describe('Stellar Horizon effect transport', () => {
+	const effectId = '0000000429496733697-0000000001'
+	const operationId = '429496733697'
+	const hash = 'd'.repeat(64)
+	const accountCreated = {
+		id: effectId,
+		paging_token: '429496733697-1',
+		account: accountId,
+		type: 'account_created',
+		type_i: 0,
+		created_at: '2026-07-22T00:00:00Z',
+		starting_balance: '20.0000000',
+	}
+
+	beforeEach(() => {
+		vi.clearAllMocks()
+	})
+
+	it('parses the owning operation ID from a Horizon effect ID', () => {
+		expect(parseOperationIdFromEffectId(effectId)).toBe(operationId)
+		expect(parseOperationIdFromEffectId('429496733697-1')).toBe(operationId)
+		expect(() => parseOperationIdFromEffectId('not-an-effect')).toThrow('invalid effect ID')
+	})
+
+	it('loads ledger-scoped effects and fails closed on a foreign ledger', async () => {
+		getJson.mockResolvedValueOnce(page([accountCreated]))
+		await expect(getLedgerEffects(100n, 10, '200')).resolves.toMatchObject({
+			_embedded: {
+				records: [{
+					id: effectId,
+					type: 'account_created',
+					starting_balance: '20.0000000',
+				}],
+			},
+		})
+		expect(getJson).toHaveBeenLastCalledWith(
+			binding,
+			'/ledgers/100/effects?limit=10&order=desc&cursor=200'
+		)
+
+		getJson.mockResolvedValueOnce(page([{
+			...accountCreated,
+			id: '0000000012884905985-0000000001',
+			paging_token: '12884905985-1',
+		}]))
+		await expect(getLedgerEffects(100n, 10)).rejects.toThrow('foreign ledger')
+		await expect(getLedgerEffects(-1n, 10)).rejects.toThrow('ledger sequence must be nonnegative')
+	})
+
+	it('loads transaction-scoped effects from the native transaction collection', async () => {
+		getJson.mockResolvedValueOnce(page([accountCreated]))
+		await expect(getTransactionEffects(hash, 2)).resolves.toMatchObject({
+			_embedded: {
+				records: [{
+					id: effectId,
+				}],
+			},
+		})
+		expect(getJson).toHaveBeenLastCalledWith(
+			binding,
+			`/transactions/${hash}/effects?limit=2&order=desc`
+		)
+		await expect(getTransactionEffects('not-a-hash', 2)).rejects.toThrow('invalid transaction hash')
+	})
+
+	it('loads an effect from its owning operation collection', async () => {
+		getJson.mockResolvedValueOnce(page([accountCreated]))
+		await expect(getEffect(effectId)).resolves.toMatchObject({
+			id: effectId,
+			type: 'account_created',
+			starting_balance: '20.0000000',
+		})
+		expect(getJson).toHaveBeenLastCalledWith(
+			binding,
+			`/operations/${operationId}/effects?limit=200&order=desc`
+		)
+
+		getJson.mockResolvedValueOnce(page([{
+			...accountCreated,
+			id: '0000000429496733697-0000000002',
+			paging_token: '429496733697-2',
+		}]))
+		await expect(getEffect(effectId)).rejects.toThrow('effect not found on owning operation')
+
+		getJson.mockResolvedValueOnce(page([{
+			...accountCreated,
+			id: '0000000012884905985-0000000001',
+			paging_token: '12884905985-1',
+		}]))
+		await expect(getOperationEffects(operationId, 10)).rejects.toThrow('foreign operation')
 	})
 })
 

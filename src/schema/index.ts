@@ -916,6 +916,7 @@ import StellarAccountSignerSchema from '$/schema/StellarAccountSigner.ts'
 import StellarAssetSchema from '$/schema/StellarAsset.ts'
 import StellarClaimableBalance_TimestampSchema from '$/schema/StellarClaimableBalance_Timestamp.ts'
 import StellarClaimableBalanceSchema from '$/schema/StellarClaimableBalance.ts'
+import StellarEffectSchema from '$/schema/StellarEffect.ts'
 import StellarLedgerSchema from '$/schema/StellarLedger.ts'
 import StellarLiquidityPool_TimestampSchema from '$/schema/StellarLiquidityPool_Timestamp.ts'
 import StellarLiquidityPoolSchema from '$/schema/StellarLiquidityPool.ts'
@@ -2063,6 +2064,7 @@ const schemaChunk18 = [
 	StellarAssetSchema,
 	StellarClaimableBalanceSchema,
 	StellarClaimableBalance_TimestampSchema,
+	StellarEffectSchema,
 	StellarLedgerSchema,
 	StellarLiquidityPoolSchema,
 	StellarLiquidityPool_TimestampSchema,
@@ -2097,10 +2099,10 @@ const schemaChunk18 = [
 	SuiTransactionSchema,
 	SuiTransaction_TimestampSchema,
 	SwapQuote_TimestampSchema,
-	SwapQuoteStepSchema,
 ] as const
 
 const schemaChunk19 = [
+	SwapQuoteStepSchema,
 	SwarmProtocolSchema,
 	SwarmResourceSchema,
 	TallyGovernorSchema,
@@ -2150,10 +2152,10 @@ const schemaChunk19 = [
 	TonNftCollectionSchema,
 	TonNftCollection_TimestampSchema,
 	TonNftItemSchema,
-	TonNftItem_TimestampSchema,
 ] as const
 
 const schemaChunk20 = [
+	TonNftItem_TimestampSchema,
 	TonNftTransferSchema,
 	TonShard_TimestampSchema,
 	TonTraceSchema,
@@ -2203,10 +2205,10 @@ const schemaChunk20 = [
 	XNetworkSchema,
 	XPostSchema,
 	XPost_TimestampSchema,
-	XrplAccountSchema,
 ] as const
 
 const schemaChunk21 = [
+	XrplAccountSchema,
 	XrplAccount_TimestampSchema,
 	XrplAmendmentSchema,
 	XrplAmendment_TimestampSchema,

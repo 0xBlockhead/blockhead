@@ -64,14 +64,28 @@ const ledgerOperationsResolver = stellarHorizonResolvers.resolvers.find((resolve
 	resolver.entityType === EntityType.StellarLedger
 	&& '$$operations' in resolver.projections
 ))
+const ledgerEffectsResolver = stellarHorizonResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.StellarLedger
+	&& '$$effects' in resolver.projections
+))
+const transactionEffectsResolver = stellarHorizonResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.StellarTransaction
+	&& '$$effects' in resolver.projections
+))
+const stellarEffectResolver = stellarHorizonResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.StellarEffect
+))
 
 if (
 	directOfferResolver == null
 	|| offerTradesResolver == null
 	|| offerTimestampResolver == null
 	|| ledgerOperationsResolver == null
+	|| ledgerEffectsResolver == null
+	|| transactionEffectsResolver == null
+	|| stellarEffectResolver == null
 )
-	throw new Error('Stellar Horizon spec missing direct offer or ledger-operation resolvers')
+	throw new Error('Stellar Horizon spec missing direct offer, ledger-operation, or effect resolvers')
 
 const accountId = `G${'A'.repeat(55)}`
 const otherAccountId = `G${'B'.repeat(55)}`
@@ -1004,6 +1018,122 @@ describe('Stellar Horizon ledger hierarchy', () => {
 		expect(getJson).toHaveBeenLastCalledWith(
 			expect.anything(),
 			'/ledgers/100/operations?limit=2&order=desc'
+		)
+	})
+})
+
+describe('Stellar Horizon effect resolvers', () => {
+	const effectId = '0000000429496733697-0000000001'
+	const accountCreated = {
+		id: effectId,
+		paging_token: '429496733697-1',
+		account: accountId,
+		type: 'account_created',
+		type_i: 0,
+		created_at: '2026-07-22T00:00:00Z',
+		starting_balance: '20.0000000',
+	}
+	const effectFields = {
+		[entityFieldAddressKey(EntityType.StellarEffect, [], 'effectType')]: 'account_created',
+		[entityFieldAddressKey(EntityType.StellarEffect, [], 'account')]: accountId,
+		[entityFieldAddressKey(EntityType.StellarEffect, [], 'createdAt')]: Date.parse('2026-07-22T00:00:00Z'),
+		[entityFieldAddressKey(EntityType.StellarEffect, [], 'body')]: {
+			starting_balance: '20.0000000',
+		},
+	}
+
+	beforeEach(() => {
+		vi.clearAllMocks()
+	})
+
+	it('pages ledger effects into network-scoped effect identities', async () => {
+		const ledger = {
+			$network: account.$network,
+			sequence: 100n,
+		}
+		getJson.mockResolvedValueOnce(page([accountCreated]))
+
+		const snapshot = await ledgerEffectsResolver.resolve.NetworkSequence.resolve(
+			ledger,
+			context
+		)
+
+		expect(ledgerEffectsResolver.projections.$$effects.select(
+			snapshot,
+			ledger,
+			context
+		)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$network: ledger.$network,
+				effectId,
+			},
+			[EntityMetaKey.Fields]: effectFields,
+		}])
+		expect(ledgerEffectsResolver.projections.$$effects.continuation(
+			snapshot,
+			ledger,
+			context
+		)).toEqual({
+			operation: 'ledger-effects',
+			target: '100',
+			terminal: true,
+		})
+		expect(getJson).toHaveBeenLastCalledWith(
+			expect.anything(),
+			'/ledgers/100/effects?limit=2&order=desc'
+		)
+	})
+
+	it('pages transaction effects from the native transaction collection', async () => {
+		const transaction = {
+			$network: account.$network,
+			hash: 'd'.repeat(64),
+		}
+		getJson.mockResolvedValueOnce(page([accountCreated]))
+
+		const snapshot = await transactionEffectsResolver.resolve.NetworkHash.resolve(
+			transaction,
+			context
+		)
+
+		expect(transactionEffectsResolver.projections.$$effects.select(
+			snapshot,
+			transaction,
+			context
+		)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$network: transaction.$network,
+				effectId,
+			},
+			[EntityMetaKey.Fields]: effectFields,
+		}])
+		expect(transactionEffectsResolver.projections.$$effects.continuation(
+			snapshot,
+			transaction,
+			context
+		)).toEqual({
+			operation: 'transaction-effects',
+			target: transaction.hash,
+			terminal: true,
+		})
+	})
+
+	it('resolves a singular effect from its owning operation collection', async () => {
+		getJson.mockResolvedValueOnce(page([accountCreated]))
+		const snapshot = await stellarEffectResolver.resolve.NetworkEffectId.resolve({
+			$network: account.$network,
+			effectId,
+		})
+
+		expect(stellarEffectResolver.projections.effectType(snapshot)).toBe('account_created')
+		expect(stellarEffectResolver.projections.account(snapshot)).toBe(accountId)
+		expect(stellarEffectResolver.projections.createdAt(snapshot)).toBe(Date.parse('2026-07-22T00:00:00Z'))
+		expect(stellarEffectResolver.projections.body(snapshot)).toEqual({
+			starting_balance: '20.0000000',
+		})
+		expect(getJson).toHaveBeenLastCalledWith(
+			expect.anything(),
+			'/operations/429496733697/effects?limit=200&order=desc'
 		)
 	})
 })

@@ -119,6 +119,17 @@ export const stellarHorizonOperationWire = arktype({
 
 export type StellarHorizonOperation = typeof stellarHorizonOperationWire.infer
 
+export const stellarHorizonEffectWire = arktype({
+	id: 'string > 0',
+	paging_token: 'string > 0',
+	type: 'string > 0',
+	type_i: 'number.integer >= 0',
+	created_at: 'string > 0',
+	'account?': 'string',
+}).and(arktype('Record<string, unknown>'))
+
+export type StellarHorizonEffect = typeof stellarHorizonEffectWire.infer
+
 export const stellarHorizonPaymentWire = stellarHorizonOperationWire
 
 export type StellarHorizonPayment = typeof stellarHorizonPaymentWire.infer
@@ -245,6 +256,7 @@ export type StellarHorizonPage<_Record> = {
 export const stellarHorizonAccountPageWire = stellarHorizonPageWire(stellarHorizonAccountWire)
 export const stellarHorizonTransactionPageWire = stellarHorizonPageWire(stellarHorizonTransactionWire)
 export const stellarHorizonOperationPageWire = stellarHorizonPageWire(stellarHorizonOperationWire)
+export const stellarHorizonEffectPageWire = stellarHorizonPageWire(stellarHorizonEffectWire)
 export const stellarHorizonPaymentPageWire = stellarHorizonPageWire(stellarHorizonPaymentWire)
 export const stellarHorizonOfferPageWire = stellarHorizonPageWire(stellarHorizonOfferWire)
 export const stellarHorizonTradePageWire = stellarHorizonPageWire(stellarHorizonTradeWire)
@@ -258,6 +270,7 @@ export const stellarHorizonThresholds = stellarHorizonThresholdsWire satisfies T
 export const stellarHorizonAccount = stellarHorizonAccountWire satisfies Type<StellarHorizonAccount>
 export const stellarHorizonTransaction = stellarHorizonTransactionWire satisfies Type<StellarHorizonTransaction>
 export const stellarHorizonOperation = stellarHorizonOperationWire satisfies Type<StellarHorizonOperation>
+export const stellarHorizonEffect = stellarHorizonEffectWire satisfies Type<StellarHorizonEffect>
 export const stellarHorizonPayment = stellarHorizonPaymentWire satisfies Type<StellarHorizonPayment>
 export const stellarHorizonAssetIdentity = stellarHorizonAssetIdentityWire satisfies Type<StellarHorizonAssetIdentity>
 export const stellarHorizonOffer = stellarHorizonOfferWire satisfies Type<StellarHorizonOffer>

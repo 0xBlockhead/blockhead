@@ -4281,6 +4281,20 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
+	'/(explore)/(networks)/network/[network]/(protocol-networks)/effect/stellar/[effectId]': {
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/effect/stellar/[effectId=stringSegment]',
+		mappings: [
+			{
+				id: 'StellarEffect.NetworkEffectId',
+				projectionEntity: 'Network',
+				probeAtomPrefixes: ['/network/[network]/effect/stellar/[effectId]:StellarEffect.NetworkEffectId'],
+				probeCases: [[[0, '1', ['effectId', 'network']]]],
+				projectionPath: [
+					'Stellar',
+				],
+			},
+		],
+	},
 	'/(explore)/(networks)/network/[network]/(protocol-networks)/exchange-rate/observations/[timestampMs]/[source]': {
 		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/exchange-rate/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 		mappings: [

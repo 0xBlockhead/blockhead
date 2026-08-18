@@ -37,6 +37,7 @@
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import StellarTransactionsView from '$/views/StellarTransactionsView.svelte'
 	import StellarOperationsView from '$/views/StellarOperationsView.svelte'
+	import StellarEffectsView from '$/views/StellarEffectsView.svelte'
 	import StellarNetworkView from '$/views/StellarNetworkView.svelte'
 </script>
 
@@ -292,6 +293,21 @@
 						countResource={operationsResource.count}
 						title='operations'
 						id='operations'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+		{@const effectsResource = selection.$$effects}
+		<ResourceBoundary
+			resource={effectsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<StellarEffectsView
+						selection={effectsResource}
+						countResource={effectsResource.count}
+						title='effects'
+						id='effects'
 					/>
 				{/if}
 			{/snippet}

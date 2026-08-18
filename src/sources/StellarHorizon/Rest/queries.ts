@@ -9,6 +9,7 @@ import {
 	stellarHorizonLiquidityPoolWire,
 	stellarHorizonOfferWire,
 	stellarHorizonOfferPageWire,
+	stellarHorizonEffectPageWire,
 	stellarHorizonOperationPageWire,
 	stellarHorizonPaymentPageWire,
 	stellarHorizonTradePageWire,
@@ -17,6 +18,7 @@ import {
 	type StellarHorizonAssetIdentity,
 	type StellarHorizonBalance,
 	type StellarHorizonClaimableBalance,
+	type StellarHorizonEffect,
 	type StellarHorizonLiquidityPool,
 	type StellarHorizonLiquidityPoolReserve,
 	type StellarHorizonOffer,
@@ -833,6 +835,118 @@ export const getLedgerOperations = async (
 		assertUnsignedInteger(operation.type_i, 'operation type index')
 	}
 	return page
+}
+
+export const parseOperationIdFromEffectId = (
+	effectId: string
+) => {
+	const match = /^0*(\d+)-0*\d+$/.exec(effectId)
+	if (match == null)
+		throw new Error('StellarHorizon_Rest: invalid effect ID')
+	return match[1]
+}
+
+const assertEffectDomain = (
+	effect: StellarHorizonEffect
+) => {
+	parseOperationIdFromEffectId(effect.id)
+	assertUnsignedInteger(effect.type_i, 'effect type index')
+	if (effect.account != null)
+		assertAccountId(effect.account)
+}
+
+const assertEffectPage = (
+	page: StellarHorizonPage<StellarHorizonEffect>,
+	limit: number,
+	cursor?: string
+) => {
+	assertPage(page, limit, cursor)
+	for (const effect of page._embedded.records)
+		assertEffectDomain(effect)
+}
+
+export const getLedgerEffects = async (
+	sequence: bigint,
+	limit: number,
+	cursor?: string
+) => {
+	if (sequence < 0n)
+		throw new Error('StellarHorizon_Rest: ledger sequence must be nonnegative')
+	const parameters = pageParameters(limit, cursor)
+	if (limit === 0)
+		return emptyPage<StellarHorizonEffect>()
+	const page = assertEnvelope(
+		'ledger effect page',
+		stellarHorizonEffectPageWire,
+		await query(`/ledgers/${sequence.toString()}/effects?${parameters.toString()}`)
+	)
+	assertEffectPage(page, limit, cursor)
+	for (const effect of page._embedded.records) {
+		if ((BigInt(parseOperationIdFromEffectId(effect.id)) >> 32n) !== sequence)
+			throw new Error('StellarHorizon_Rest: effect page contains a foreign ledger')
+	}
+	return page
+}
+
+export const getTransactionEffects = async (
+	hash: string,
+	limit: number,
+	cursor?: string
+) => {
+	if (!/^[0-9a-f]{64}$/.test(hash))
+		throw new Error('StellarHorizon_Rest: invalid transaction hash')
+	const parameters = pageParameters(limit, cursor)
+	if (limit === 0)
+		return emptyPage<StellarHorizonEffect>()
+	const page = assertEnvelope(
+		'transaction effect page',
+		stellarHorizonEffectPageWire,
+		await query(`/transactions/${encodeURIComponent(hash)}/effects?${parameters.toString()}`)
+	)
+	assertEffectPage(page, limit, cursor)
+	return page
+}
+
+export const getOperationEffects = async (
+	operationId: string,
+	limit: number,
+	cursor?: string
+) => {
+	const canonicalOperationId = (() => {
+		try {
+			const value = BigInt(operationId)
+			if (value < 0n)
+				throw new Error()
+			return value.toString()
+		} catch {
+			throw new Error('StellarHorizon_Rest: invalid operation ID')
+		}
+	})()
+	const parameters = pageParameters(limit, cursor)
+	if (limit === 0)
+		return emptyPage<StellarHorizonEffect>()
+	const page = assertEnvelope(
+		'operation effect page',
+		stellarHorizonEffectPageWire,
+		await query(`/operations/${encodeURIComponent(canonicalOperationId)}/effects?${parameters.toString()}`)
+	)
+	assertEffectPage(page, limit, cursor)
+	for (const effect of page._embedded.records) {
+		if (parseOperationIdFromEffectId(effect.id) !== canonicalOperationId)
+			throw new Error('StellarHorizon_Rest: effect page contains a foreign operation')
+	}
+	return page
+}
+
+export const getEffect = async (
+	effectId: string
+) => {
+	const operationId = parseOperationIdFromEffectId(effectId)
+	const page = await getOperationEffects(operationId, 200)
+	const effect = page._embedded.records.find((record) => record.id === effectId)
+	if (effect == null)
+		throw new Error('StellarHorizon_Rest: effect not found on owning operation')
+	return effect
 }
 
 export const getClaimableBalance = async (

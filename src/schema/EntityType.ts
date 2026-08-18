@@ -916,6 +916,7 @@ export enum EntityType {
 	StellarAsset = 'StellarAsset',
 	StellarClaimableBalance = 'StellarClaimableBalance',
 	StellarClaimableBalance_Timestamp = 'StellarClaimableBalance_Timestamp',
+	StellarEffect = 'StellarEffect',
 	StellarLedger = 'StellarLedger',
 	StellarLiquidityPool = 'StellarLiquidityPool',
 	StellarLiquidityPool_Timestamp = 'StellarLiquidityPool_Timestamp',

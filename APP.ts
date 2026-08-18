@@ -1615,6 +1615,7 @@ export enum EntityType {
 	StellarAsset = "StellarAsset",
 	StellarClaimableBalance = "StellarClaimableBalance",
 	StellarClaimableBalance_Timestamp = "StellarClaimableBalance_Timestamp",
+	StellarEffect = "StellarEffect",
 	StellarLedger = "StellarLedger",
 	StellarLiquidityPool = "StellarLiquidityPool",
 	StellarLiquidityPool_Timestamp = "StellarLiquidityPool_Timestamp",
@@ -57256,6 +57257,66 @@ export const schema = {
 			}),
 
 			entity({
+				entityType: EntityType.StellarEffect,
+				labels: {
+					singular: 'stellar effect',
+					plural: 'stellar effects',
+				},
+			})({
+				"$network": {
+					label: 'network',
+					type: EntityFieldType.EntityReference,
+					entityType: EntityType.StellarNetwork,
+					cardinality: EntityFieldCardinality.One,
+				},
+				"effectId": {
+					label: 'effect ID',
+					type: EntityFieldType.Primitive,
+					valueType: "string",
+					cardinality: EntityFieldCardinality.One,
+				},
+				"effectType": {
+					label: 'effect type',
+					type: EntityFieldType.Primitive,
+					valueType: "string",
+					cardinality: EntityFieldCardinality.One,
+				},
+				"account": {
+					label: 'account',
+					type: EntityFieldType.Primitive,
+					valueType: "string",
+					cardinality: EntityFieldCardinality.ZeroOrOne,
+				},
+				"createdAt": {
+					label: 'Created',
+					type: EntityFieldType.Primitive,
+					valueType: "number",
+					cardinality: EntityFieldCardinality.One,
+				},
+				"body": {
+					label: 'body',
+					type: EntityFieldType.Primitive,
+					valueType: "unknown",
+					cardinality: EntityFieldCardinality.ZeroOrOne,
+				},
+			})({
+				selectors: {
+					"NetworkEffectId": [
+						'$network',
+						'effectId',
+					],
+				},
+				views: {
+					singular: {
+						summary: { title: ["effectType"], titleFallback: [{ field: "effectId", format: "truncated" }], value: [{ field: "effectId", format: "truncated" }] },
+						closed: ["$network", { field: "effectId", format: "truncated" }],
+						content: { dl: [["$network", { field: "account", format: "truncated" }, { field: "createdAt", format: "timestamp" }]] },
+					},
+					plural: { component: "StellarEffectsView", },
+				},
+			}),
+
+			entity({
 				entityType: EntityType.StellarLedger,
 				labels: {
 					singular: 'stellar ledger',
@@ -57330,6 +57391,12 @@ export const schema = {
 					entityType: EntityType.StellarOperation,
 					cardinality: EntityFieldCardinality.Many,
 				},
+				"$$effects": {
+					label: 'effects',
+					type: EntityFieldType.EntitiesReference,
+					entityType: EntityType.StellarEffect,
+					cardinality: EntityFieldCardinality.Many,
+				},
 			})({
 				selectors: {
 					"NetworkSequence": [
@@ -57344,6 +57411,7 @@ export const schema = {
 						lists: [
 							{ field: '$$transactions', component: 'StellarTransactionsView', emptyText: 'No transactions found.' },
 							{ field: '$$operations', component: 'StellarOperationsView', emptyText: 'No operations found.' },
+							{ field: '$$effects', component: 'StellarEffectsView', emptyText: 'No effects found.' },
 						],
 					},
 					plural: { component: "StellarLedgersView", },
@@ -58077,6 +58145,12 @@ export const schema = {
 					label: 'operations',
 					type: EntityFieldType.EntitiesReference,
 					entityType: EntityType.StellarOperation,
+					cardinality: EntityFieldCardinality.Many,
+				},
+				"$$effects": {
+					label: 'effects',
+					type: EntityFieldType.EntitiesReference,
+					entityType: EntityType.StellarEffect,
 					cardinality: EntityFieldCardinality.Many,
 				},
 			})({
@@ -86913,6 +86987,26 @@ export const routes = defineRoutes(schema)({
 																	}
 																}
 															}
+														}
+													}
+												},
+												"effect": {
+													children: {
+														"stellar": {
+															children: {
+																"[effectId]": {
+																	selectors: {
+																		[EntityType.StellarEffect]: {
+																			"NetworkEffectId": {
+																				params: { "effectId": ["effectId"] },
+																				page: {},
+																				when: { path: ["namespace"], is: "Stellar" },
+																				projection: { entityType: EntityType.Network, facetPath: ["Stellar"] },
+																			}
+																		}
+																	}
+																},
+															},
 														}
 													}
 												},

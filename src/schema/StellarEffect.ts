@@ -6,41 +6,41 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
 export default entity({
-	entityType: EntityType.StellarTransaction,
+	entityType: EntityType.StellarEffect,
 	labels: {
-		singular: 'stellar transaction',
-		plural: 'stellar transactions',
+		singular: 'stellar effect',
+		plural: 'stellar effects',
 	},
 })({
 	$network: {
 		entityType: EntityType.StellarNetwork,
 		cardinality: EntityFieldCardinality.One,
 	},
-	hash: {
+	effectId: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
-	sourceAccount: {
+	effectType: {
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	account: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
-	$$timestamps: {
-		entityType: EntityType.StellarTransaction_Timestamp,
-		cardinality: EntityFieldCardinality.Many,
+	createdAt: {
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.One,
 	},
-	$$operations: {
-		entityType: EntityType.StellarOperation,
-		cardinality: EntityFieldCardinality.Many,
-	},
-	$$effects: {
-		entityType: EntityType.StellarEffect,
-		cardinality: EntityFieldCardinality.Many,
+	body: {
+		primitiveType: type('unknown'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 })({
 	selectors: {
-		NetworkHash: [
+		NetworkEffectId: [
 			'$network',
-			'hash',
+			'effectId',
 		],
 	},
 })

@@ -60,6 +60,10 @@ export default entity({
 		entityType: EntityType.StellarOperation,
 		cardinality: EntityFieldCardinality.Many,
 	},
+	$$effects: {
+		entityType: EntityType.StellarEffect,
+		cardinality: EntityFieldCardinality.Many,
+	},
 })({
 	selectors: {
 		NetworkSequence: [
