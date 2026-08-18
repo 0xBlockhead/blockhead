@@ -36,7 +36,6 @@
 	import PolkadotAccountView from '$/views/PolkadotAccountView.svelte'
 	import CosmosAccountView from '$/views/CosmosAccountView.svelte'
 	import HederaAccountView from '$/views/HederaAccountView.svelte'
-	import CardanoAddressView from '$/views/CardanoAddressView.svelte'
 	import EvmNetworkAccountView from '$/views/EvmNetworkAccountView.svelte'
 	import SolanaAccountView from '$/views/SolanaAccountView.svelte'
 	import StarknetContractView from '$/views/StarknetContractView.svelte'
@@ -53,7 +52,7 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		{@const DetailView = data.entityType === EntityType.AptosAccount ? AptosAccountView : data.entityType === EntityType.PolkadotAccount ? PolkadotAccountView : data.entityType === EntityType.CosmosAccount ? CosmosAccountView : data.entityType === EntityType.HederaAccount ? HederaAccountView : data.entityType === EntityType.CardanoAddress ? CardanoAddressView : data.entityType === EntityType.EvmNetworkAccount ? EvmNetworkAccountView : data.entityType === EntityType.SolanaAccount ? SolanaAccountView : data.entityType === EntityType.StarknetContract ? StarknetContractView : data.entityType === EntityType.TronAccount ? TronAccountView : data.entityType === EntityType.TonAccount ? TonAccountView : data.entityType === EntityType.XrplAccount ? XrplAccountView : data.entityType === EntityType.NearAccount ? NearAccountView : data.entityType === EntityType.HyperliquidAccount ? HyperliquidAccountView : QuilibriumAccountView}
+		{@const DetailView = data.entityType === EntityType.AptosAccount ? AptosAccountView : data.entityType === EntityType.PolkadotAccount ? PolkadotAccountView : data.entityType === EntityType.CosmosAccount ? CosmosAccountView : data.entityType === EntityType.HederaAccount ? HederaAccountView : data.entityType === EntityType.EvmNetworkAccount ? EvmNetworkAccountView : data.entityType === EntityType.SolanaAccount ? SolanaAccountView : data.entityType === EntityType.StarknetContract ? StarknetContractView : data.entityType === EntityType.TronAccount ? TronAccountView : data.entityType === EntityType.TonAccount ? TonAccountView : data.entityType === EntityType.XrplAccount ? XrplAccountView : data.entityType === EntityType.NearAccount ? NearAccountView : data.entityType === EntityType.HyperliquidAccount ? HyperliquidAccountView : QuilibriumAccountView}
 
 		<DetailView
 			selection={select(data.entityType, data.selector)}

@@ -47,7 +47,7 @@
 			entitySelector={cardanoAddressTimestampSelector}
 			href={
 				resolve(
-					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=stringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey]/(selection)/observation/cardano-block/[blockSlot=nonNegativeBigInt]/[source=stringSegment]',
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/cardano/[address=stringSegment]/(cardanoAddress)/observation/cardano-block/[blockSlot=nonNegativeBigInt]/[source=stringSegment]',
 					{
 						network: (
 							'caip2' in address.$network ?
@@ -55,7 +55,7 @@
 							:
 								address.$network.slug
 						),
-						accountId: address.address,
+						address: address.address,
 						blockSlot: String(cardanoAddressTimestampSelector.blockSlot),
 						source: cardanoAddressTimestampSelector.source,
 					}

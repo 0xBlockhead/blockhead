@@ -21,7 +21,6 @@
 		[EntityType.PolkadotAccount]: PolkadotAccountView,
 		[EntityType.CosmosAccount]: CosmosAccountView,
 		[EntityType.HederaAccount]: HederaAccountView,
-		[EntityType.CardanoAddress]: CardanoAddressView,
 		[EntityType.EvmNetworkAccount]: EvmNetworkAccountView,
 		[EntityType.SolanaAccount]: SolanaAccountView,
 		[EntityType.StarknetContract]: StarknetContractView,
@@ -39,7 +38,6 @@
 	import PolkadotAccountView from '$/views/PolkadotAccountView.svelte'
 	import CosmosAccountView from '$/views/CosmosAccountView.svelte'
 	import HederaAccountView from '$/views/HederaAccountView.svelte'
-	import CardanoAddressView from '$/views/CardanoAddressView.svelte'
 	import EvmNetworkAccountView from '$/views/EvmNetworkAccountView.svelte'
 	import SolanaAccountView from '$/views/SolanaAccountView.svelte'
 	import StarknetContractView from '$/views/StarknetContractView.svelte'
@@ -66,9 +64,6 @@
 			:
 			data.entityType === EntityType.HederaAccount ?
 				(data.selector.accountId || 'hedera account') + ' • hedera account • Blockhead'
-			:
-			data.entityType === EntityType.CardanoAddress ?
-				(data.selector.address || 'Cardano address') + ' • Cardano address • Blockhead'
 			:
 			data.entityType === EntityType.EvmNetworkAccount ?
 				('EVM network account') + ' • EVM network account • Blockhead'
@@ -122,13 +117,6 @@
 				select(EntityType.HederaAccount, data.selector, {
 					sources: [
 						Source.HederaMirrorNode_Rest,
-					],
-				})
-			:
-			data.entityType === EntityType.CardanoAddress ?
-				select(EntityType.CardanoAddress, data.selector, {
-					sources: [
-						Source.Blockfrost_Rest,
 					],
 				})
 			:

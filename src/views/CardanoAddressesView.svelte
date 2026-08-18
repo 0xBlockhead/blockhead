@@ -47,7 +47,7 @@
 			entitySelector={cardanoAddressSelector}
 			href={
 				resolve(
-					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=stringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey]',
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/cardano/[address=stringSegment]',
 					{
 						network: (
 							'caip2' in network ?
@@ -55,7 +55,7 @@
 							:
 								network.slug
 						),
-						accountId: cardanoAddressSelector.address,
+						address: cardanoAddressSelector.address,
 					}
 				)
 			}

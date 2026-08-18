@@ -1302,15 +1302,6 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				],
 			},
 			{
-				id: 'CardanoAddress.NetworkAddress',
-				projectionEntity: 'Network',
-				probeAtomPrefixes: ['/network/[network]/account/[accountId]:CardanoAddress.NetworkAddress'],
-				probeCases: [[[0, '1', ['accountId', 'network']]]],
-				projectionPath: [
-					'Cardano',
-				],
-			},
-			{
 				id: 'EvmNetworkAccount.EvmNetworkEvmAccount',
 				projectionEntity: 'Network',
 				probeAtomPrefixes: ['/network/[network]/account/[accountId]:EvmNetworkAccount.EvmNetworkEvmAccount'],
@@ -1664,20 +1655,6 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
-	'/(explore)/(networks)/network/[network]/(accounts)/account/[accountId]/observation/cardano-block/[blockSlot]/[source]': {
-		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=stringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey]/(selection)/observation/cardano-block/[blockSlot=nonNegativeBigInt]/[source=stringSegment]',
-		mappings: [
-			{
-				id: 'CardanoAddress_Timestamp.AddressBlockSlotSource',
-				projectionEntity: 'Network',
-				probeAtomPrefixes: ['/network/[network]/account/[accountId]/observation/cardano-block/[blockSlot]/[source]:CardanoAddress_Timestamp.AddressBlockSlotSource'],
-				probeCases: [[[0, '1', ['source', 'blockSlot', 'accountId', 'network']]]],
-				projectionPath: [
-					'Cardano',
-				],
-			},
-		],
-	},
 	'/(explore)/(networks)/network/[network]/(accounts)/account/[accountId]/observation/solana-slot/[slot]/[source]': {
 		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=stringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey]/(selection)/observation/solana-slot/[slot=nonNegativeBigInt]/[source=stringSegment]',
 		mappings: [
@@ -1882,6 +1859,34 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				id: 'TonTransactionPhase.TransactionPhaseKind',
 				probeAtomPrefixes: ['/network/[network]/account/[accountId]/transaction/[lt]/phase/[phaseKind]:TonTransactionPhase.TransactionPhaseKind'],
 				probeCases: [[[0, '1', ['phaseKind', 'lt', 'accountId', 'network']]]],
+			},
+		],
+	},
+	'/(explore)/(networks)/network/[network]/(accounts)/account/cardano/[address]': {
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/cardano/[address=stringSegment]',
+		mappings: [
+			{
+				id: 'CardanoAddress.NetworkAddress',
+				projectionEntity: 'Network',
+				probeAtomPrefixes: ['/network/[network]/account/cardano/[address]:CardanoAddress.NetworkAddress'],
+				probeCases: [[[0, '1', ['address', 'network']]]],
+				projectionPath: [
+					'Cardano',
+				],
+			},
+		],
+	},
+	'/(explore)/(networks)/network/[network]/(accounts)/account/cardano/[address]/observation/cardano-block/[blockSlot]/[source]': {
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/cardano/[address=stringSegment]/(cardanoAddress)/observation/cardano-block/[blockSlot=nonNegativeBigInt]/[source=stringSegment]',
+		mappings: [
+			{
+				id: 'CardanoAddress_Timestamp.AddressBlockSlotSource',
+				projectionEntity: 'Network',
+				probeAtomPrefixes: ['/network/[network]/account/cardano/[address]/observation/cardano-block/[blockSlot]/[source]:CardanoAddress_Timestamp.AddressBlockSlotSource'],
+				probeCases: [[[0, '1', ['source', 'blockSlot', 'address', 'network']]]],
+				projectionPath: [
+					'Cardano',
+				],
 			},
 		],
 	},

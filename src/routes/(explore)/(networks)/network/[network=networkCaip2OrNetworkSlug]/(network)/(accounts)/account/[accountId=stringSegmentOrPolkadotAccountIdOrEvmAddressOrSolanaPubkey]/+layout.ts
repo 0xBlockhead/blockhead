@@ -8,7 +8,6 @@ import { match as matchSolanaPubkey } from '$/params/solanaPubkey.ts'
 import { match as matchStringSegment } from '$/params/stringSegment.ts'
 import { parseEntitySelector, type EntitySelectorForSelectorName } from '$/schema/$schema.ts'
 import AptosAccountSchema from '$/schema/AptosAccount.ts'
-import CardanoAddressSchema from '$/schema/CardanoAddress.ts'
 import CosmosAccountSchema from '$/schema/CosmosAccount.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import EvmNetworkAccountSchema from '$/schema/EvmNetworkAccount.ts'
@@ -63,15 +62,6 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 				typeof schema,
 				EntityType.HederaAccount,
 				'NetworkAccountId'
-			>
-		}
-		| {
-			readonly entityType: EntityType.CardanoAddress
-			readonly selectorName: 'NetworkAddress'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.CardanoAddress,
-				'NetworkAddress'
 			>
 		}
 		| {
@@ -246,24 +236,6 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 				entityType: EntityType.HederaAccount,
 				selectorName: 'NetworkAccountId',
 				selector: hederaAccountNetworkAccountIdSelector,
-			})
-	}
-
-	if (parentData.projectionNetwork.namespace === 'Cardano' && matchStringSegment(params.accountId)) {
-		const cardanoAddressNetworkAddressSelector = parseEntitySelector(
-			schema,
-			CardanoAddressSchema,
-			{
-				$network: parentData.selector,
-				address: params.accountId,
-			},
-			'NetworkAddress'
-		)
-		if (!(cardanoAddressNetworkAddressSelector instanceof arktype.errors))
-			routeCandidates.push({
-				entityType: EntityType.CardanoAddress,
-				selectorName: 'NetworkAddress',
-				selector: cardanoAddressNetworkAddressSelector,
 			})
 	}
 

@@ -61,7 +61,7 @@
 	href={
 		href === undefined ?
 			resolve(
-				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=stringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey]',
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/cardano/[address=stringSegment]',
 				{
 					network: (
 						'caip2' in network ?
@@ -69,7 +69,7 @@
 						:
 							network.slug
 					),
-					accountId: selection.entitySelector.address,
+					address: selection.entitySelector.address,
 				}
 			)
 		:

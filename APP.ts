@@ -75494,6 +75494,50 @@ export const routes = defineRoutes(schema)({
 											children: {
 												"account": {
 													children: {
+														"cardano": {
+															children: {
+																"[address]": {
+																	selectors: {
+																		[EntityType.CardanoAddress]: {
+																			"NetworkAddress": {
+																				params: { "address": ["address"] },
+																				page: {},
+																				when: { path: ["namespace"], is: "Cardano" },
+																				projection: { entityType: EntityType.Network, facetPath: ["Cardano"] },
+																			}
+																		}
+																	},
+																	children: {
+																		"observation": {
+																			children: {
+																				"cardano-block": {
+																					children: {
+																						"[blockSlot]": {
+																							params: { "blockSlot": ["NonNegativeBigInt"] },
+																							children: {
+																								"[source]": {
+																									selectors: {
+																										[EntityType.CardanoAddress_Timestamp]: {
+																											"AddressBlockSlotSource": {
+																												when: { path: ["namespace"], is: "Cardano" },
+																												projection: { entityType: EntityType.Network, facetPath: ["Cardano"] },
+																												params: { "source": ["source"] },
+																												derivations: { "blockSlot": { kind: "param", name: "blockSlot" } },
+																												page: {},
+																											},
+																										},
+																									},
+																								},
+																							},
+																						},
+																					},
+																				},
+																			},
+																		},
+																	},
+																},
+															},
+														},
 														"[accountId]": {
 															selectors: {
 																[EntityType.AptosAccount]: {
@@ -75569,18 +75613,6 @@ export const routes = defineRoutes(schema)({
 																		},
 																		params: {
 																			"accountId": ["accountId"],
-																		},
-																		page: {},
-																	},
-																},
-																[EntityType.CardanoAddress]: {
-																	"NetworkAddress": {
-																		projection: {
-																			entityType: EntityType.Network,
-																			facetPath: ["Cardano"],
-																		},
-																		params: {
-																			"accountId": ["address"],
 																		},
 																		page: {},
 																	},
@@ -75734,28 +75766,6 @@ export const routes = defineRoutes(schema)({
 																										projection: { entityType: EntityType.Network, facetPath: ["Aptos"] },
 																										params: { "source": ["source"] },
 																										derivations: { "ledgerVersion": { kind: "param", name: "ledgerVersion" } },
-																										page: {},
-																									},
-																								},
-																							},
-																						},
-																					},
-																				},
-																			},
-																		},
-																		"cardano-block": {
-																			children: {
-																				"[blockSlot]": {
-																					params: { "blockSlot": ["NonNegativeBigInt"] },
-																					children: {
-																						"[source]": {
-																							selectors: {
-																								[EntityType.CardanoAddress_Timestamp]: {
-																									"AddressBlockSlotSource": {
-																										when: { path: ["namespace"], is: "Cardano" },
-																										projection: { entityType: EntityType.Network, facetPath: ["Cardano"] },
-																										params: { "source": ["source"] },
-																										derivations: { "blockSlot": { kind: "param", name: "blockSlot" } },
 																										page: {},
 																									},
 																								},
