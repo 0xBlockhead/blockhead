@@ -620,6 +620,12 @@ describe('GitLab repository journey', () => {
 			stage: 'verify',
 			status: 'success',
 		})
+		expect(pipelineJobsResolver.projections.$$jobs.continuation?.(jobPage, pipelineSelector, context)).toEqual({
+			operation: 'gitlab-pipeline-jobs',
+			target: '91',
+			terminal: false,
+			token: '2',
+		})
 		expect(mirrorPipelinesResolver.projections.$$pipelines.continuation?.(pipelinePage, mirror, context)).toEqual({
 			operation: 'gitlab-pipelines',
 			terminal: false,

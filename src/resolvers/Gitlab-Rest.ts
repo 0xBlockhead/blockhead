@@ -1377,8 +1377,9 @@ export default {
 					jobs,
 					page,
 					perPage,
-				}) => ({
+				}, pipeline) => ({
 					operation: 'gitlab-pipeline-jobs',
+					target: String(pipeline.pipelineId),
 					terminal: perPage === 0 || jobs.length < perPage,
 					...(jobs.length === perPage && { token: String(page + 1) }),
 				}),

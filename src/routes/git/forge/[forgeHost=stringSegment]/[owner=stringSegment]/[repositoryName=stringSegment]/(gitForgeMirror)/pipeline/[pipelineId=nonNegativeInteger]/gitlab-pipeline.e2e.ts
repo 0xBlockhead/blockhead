@@ -47,17 +47,34 @@ const job = {
 }
 
 
+const decodeProxyUrl = (url: string) => {
+	try {
+		const once = decodeURIComponent(url)
+		try {
+			return decodeURIComponent(once)
+		} catch {
+			return once
+		}
+	} catch {
+		return url
+	}
+}
+
+
 test('GitLab pipeline and job render as native GitForgePipeline / GitForgeJob journeys', async ({ page }) => {
 	test.setTimeout(240_000)
+	const proxyUrls: string[] = []
+	const consoleLines: string[] = []
+	page.on('console', (message) => {
+		consoleLines.push(`${message.type()}: ${message.text()}`)
+	})
+	page.on('pageerror', (error) => {
+		consoleLines.push(`pageerror: ${error.message}`)
+	})
 	await page.route('**/api-proxy/**', async (route) => {
-		const requestUrl = (() => {
-			try {
-				return decodeURIComponent(route.request().url())
-			} catch {
-				return route.request().url()
-			}
-		})()
-		if (requestUrl.includes('/pipelines/91/jobs')) {
+		const requestUrl = decodeProxyUrl(route.request().url())
+		proxyUrls.push(requestUrl)
+		if (/\/pipelines\/91\/jobs(?:\?|$)/.test(requestUrl)) {
 			await route.fulfill({ json: [job] })
 			return
 		}
@@ -130,6 +147,24 @@ test('GitLab pipeline and job render as native GitForgePipeline / GitForgeJob jo
 	await expect(page.locator('#main').getByText('master').first()).toBeAttached({
 		timeout: 120_000,
 	})
+
+	const pipelineDetails = page.locator('#main article details').first()
+	await expect(pipelineDetails).toBeAttached()
+	if (!await pipelineDetails.evaluate((element) => element instanceof HTMLDetailsElement && element.open))
+		await pipelineDetails.locator('summary').click()
+
+	const jobsList = page.locator('#jobs')
+	try {
+		await expect(jobsList).toBeAttached({
+			timeout: 120_000,
+		})
+	} catch (error) {
+		throw new Error(
+			`Pipeline $$jobs list did not attach #jobs.\nproxy URLs:\n${proxyUrls.join('\n')}\n\nconsole:\n${consoleLines.join('\n')}\n\n${error}`
+		)
+	}
+	await expect(jobsList.getByText('test').first()).toBeAttached()
+	await expect(jobsList.getByText('verify').first()).toBeAttached()
 
 	await page.goto('/git/forge/gitlab.com/gitlab-org/gitlab/pipeline/91/job/123')
 	await expect(page.locator('#main').getByText('test').first()).toBeAttached({
