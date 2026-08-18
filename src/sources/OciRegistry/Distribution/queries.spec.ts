@@ -351,7 +351,13 @@ describe('OCI distribution manifest transport', () => {
 		])
 		expect(sourceFetch).toHaveBeenNthCalledWith(
 			2,
-			expect.any(Object),
+			{
+				...bindings[Source.OciRegistry_Distribution][0],
+				endpoints: [{
+					...bindings[Source.OciRegistry_Distribution][0].endpoints[0],
+					locator: 'https://registry.example/v2',
+				}],
+			},
 			`https://registry.example/v2/team/image/referrers/${digest}?last=${digest}`,
 			{
 				headers: {
@@ -392,11 +398,17 @@ describe('OCI distribution manifest transport', () => {
 		})])
 		expect(sourceFetch).toHaveBeenNthCalledWith(
 			2,
-			expect.any(Object),
+			{
+				...bindings[Source.OciRegistry_Distribution][0],
+				endpoints: [{
+					...bindings[Source.OciRegistry_Distribution][0].endpoints[0],
+					locator: 'https://registry.example/v2',
+				}],
+			},
 			`https://registry.example/v2/team/image/manifests/sha256-${'a'.repeat(64)}`,
 			{
 				headers: {
-					accept: expect.stringContaining('application/vnd.oci.image.index.v1+json'),
+					accept: 'application/vnd.oci.image.manifest.v1+json, application/vnd.oci.image.index.v1+json, application/vnd.docker.distribution.manifest.v2+json, application/vnd.docker.distribution.manifest.list.v2+json',
 				},
 				redirect: 'manual',
 			}
