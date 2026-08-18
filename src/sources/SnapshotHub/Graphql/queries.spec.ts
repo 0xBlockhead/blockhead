@@ -221,8 +221,39 @@ describe('Snapshot Hub public governance reads', () => {
 			1,
 			binding,
 			binding.endpoints[0].locator,
-			expect.any(Object)
+			expect.objectContaining({
+				method: 'POST',
+				headers: {
+					accept: 'application/json',
+					'content-type': 'application/json',
+				},
+			})
 		)
+		expect(JSON.parse(String(sourceFetch.mock.calls[0]?.[2]?.body))).toEqual({
+			query: expect.stringContaining('query SnapshotHubSpace($id: String!)'),
+			variables: {
+				id: spaceId,
+			},
+		})
+		expect(sourceFetch).toHaveBeenNthCalledWith(
+			2,
+			binding,
+			binding.endpoints[0].locator,
+			expect.objectContaining({
+				method: 'POST',
+				headers: {
+					accept: 'application/json',
+					'content-type': 'application/json',
+				},
+			})
+		)
+		expect(JSON.parse(String(sourceFetch.mock.calls[1]?.[2]?.body))).toEqual({
+			query: expect.stringContaining('query SnapshotHubSpaces('),
+			variables: {
+				first: 1,
+				skip: 40,
+			},
+		})
 	})
 
 	it('rejects duplicate space account identities within one role', async () => {
