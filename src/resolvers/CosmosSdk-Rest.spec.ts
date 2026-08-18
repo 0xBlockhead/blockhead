@@ -336,7 +336,9 @@ describe('Cosmos SDK account list resolver', () => {
 		)).toBe(3_691_345)
 		expect(getJson).toHaveBeenCalledWith(
 			'https://rest.cosmos.directory/cosmoshub/cosmos/auth/v1beta1/accounts?pagination.limit=2&pagination.count_total=true',
-			expect.any(Object)
+			{
+				init: undefined,
+			}
 		)
 	})
 
@@ -411,7 +413,9 @@ describe('Cosmos SDK account detail resolver', () => {
 
 		expect(getJson).toHaveBeenCalledWith(
 			'https://rest.cosmos.directory/cosmoshub/cosmos/auth/v1beta1/accounts/cosmos1account',
-			expect.any(Object)
+			{
+				init: undefined,
+			}
 		)
 		expect(accountDetailResolver.projections.$$timestamps(snapshot)).toMatchObject([
 			{
