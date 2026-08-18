@@ -39,9 +39,34 @@ export const isAmbireRequestWindowPageUrl = (
 )
 
 export const ambireDriver = {
-	approveConnection: (page) => (
-		page.locator('[data-testid="dapp-connect-button"]').click()
-	),
+	approveConnection: async (page) => {
+		const connect = page.locator('[data-testid="dapp-connect-button"]')
+		await connect.waitFor({
+			timeout: 15_000,
+		})
+		await connect.filter({
+			hasNotText: /loading/i,
+		}).waitFor({
+			timeout: 15_000,
+		})
+		const label = (await connect.innerText()).trim()
+		if (/hold/i.test(label)) {
+			const box = await connect.boundingBox()
+			if (box == null)
+				throw new Error('Ambire dapp-connect-button has no clickable box')
+
+			await page.mouse.move(
+				box.x + box.width / 2,
+				box.y + box.height / 2
+			)
+			await page.mouse.down()
+			await new Promise((resolve) => setTimeout(resolve, 2_300))
+			await page.mouse.up()
+		} else {
+			await connect.click()
+		}
+		await page.waitForEvent('close').catch(() => undefined)
+	},
 	kind: 'ambire',
 	open: (context, extension) => (
 		openExtensionPage(context, extension, 'tab.html')

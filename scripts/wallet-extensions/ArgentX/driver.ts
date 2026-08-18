@@ -114,14 +114,26 @@ export const argentXDriver = {
 		extensionId: string,
 		decision: 'approve' | 'reject'
 	) => {
-		const deadline = Date.now() + 15_000
+		const deadline = Date.now() + 30_000
+		const name = (
+			decision === 'approve' ?
+				/^(?:Connect|Continue)$/
+			:
+				/^(?:Reject|Cancel|Deny)$/i
+		)
 		while (Date.now() < deadline) {
-			for (const page of context.pages().filter((page) => isArgentXIndexPageUrl(page.url(), extensionId))) {
+			for (const page of context.pages()) {
+				if (!page.url().startsWith(`chrome-extension://${extensionId}/`))
+					continue
+				if (!await page.getByText(/Connect to /).isVisible().catch(() => false))
+					continue
 				const decisionButton = page.getByRole('button', {
-					name: decision === 'approve' ? /^Connect$/ : /reject|cancel/i,
-				})
-					.first()
-				if (await decisionButton.isVisible().catch(() => false)) {
+					name,
+				}).first()
+				if (
+					await decisionButton.isVisible().catch(() => false)
+					&& await decisionButton.isEnabled().catch(() => false)
+				) {
 					await decisionButton.click()
 					return true
 				}

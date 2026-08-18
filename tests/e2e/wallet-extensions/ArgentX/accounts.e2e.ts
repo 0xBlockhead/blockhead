@@ -55,20 +55,20 @@ test('runs the declarative Argent X compatibility matrix', async ({
 	await expect(walletConnectionsStatus(page)).toContainText(/Wallet discovery active\..*Providers detected: [1-9]/, {
 		timeout: 60_000,
 	})
-	await expect(connectWalletButtonForDriver(page, 'ArgentX')).toBeVisible()
+	await expect(connectWalletButtonForDriver(page, 'ArgentX').first()).toBeVisible()
 	expect(await page.evaluate(() => (
 		Object.hasOwn(globalThis, 'starknet_argentX')
 	))).toBe(true)
 
 	const [, rejected] = await Promise.all([
-		connectWalletButtonForDriver(page, 'ArgentX').click().catch(() => undefined),
+		connectWalletButtonForDriver(page, 'ArgentX').first().click().catch(() => undefined),
 		argentXDriver.decideConnection(context, extension.id, 'reject'),
 	])
 	expect(rejected).toBe(true)
 	await expect(walletConnectionsStatus(page)).toContainText('Active connections: 0.')
 
 	const [, approved] = await Promise.all([
-		connectWalletButtonForDriver(page, 'ArgentX').click(),
+		connectWalletButtonForDriver(page, 'ArgentX').first().click(),
 		argentXDriver.decideConnection(context, extension.id, 'approve'),
 	])
 	expect(approved).toBe(true)

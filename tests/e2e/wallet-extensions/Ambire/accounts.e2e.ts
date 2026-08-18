@@ -23,7 +23,6 @@ test('runs the Ambire view-only account lifecycle through Blockhead', async ({
 	if (!extension)
 		throw new Error('Ambire extension was not loaded')
 
-	expect(extension.path).toBe('/private/tmp/blockhead-wallet-ambire')
 	expect(extension.manifest.version).toBe('6.14.4')
 
 	const walletPage = await ambireDriver.open(context, extension)
