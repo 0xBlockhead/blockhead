@@ -1,7 +1,4 @@
-import type {
-	BrowserContext,
-	Page,
-} from 'playwright'
+import { expect, type BrowserContext, type Page } from '@playwright/test'
 
 import type {
 	WalletMatrixObservation,
@@ -41,13 +38,55 @@ export const unisatOrdinalsPurposeUnsupportedObservation = (): WalletMatrixObser
 	}
 )
 
+/** UniSat Connect chrome is `windows.create` of `notification.html` (hash `/approval` is SPA after load). */
 export const isUniSatApprovalPageUrl = (
 	url: string,
 	extensionId: string
 ) => (
 	url.startsWith(`chrome-extension://${extensionId}/`)
-	&& url.includes('/notification.html#/approval')
+	&& url.includes('/notification.html')
 )
+
+const dismissUniSatHomePopovers = async (page: Page) => {
+	const overlay = page.locator('.popover-container')
+	const overlayDismiss = overlay.getByText('Skip', {
+		exact: true,
+	}).or(overlay.getByText('Got it', {
+		exact: true,
+	}))
+	if (await overlayDismiss.count() > 0)
+		await overlayDismiss.first().click().catch(() => undefined)
+	const notice = page.getByTestId('notice-popover')
+	if (await notice.isVisible()) {
+		const checkbox = page.getByTestId('notice-checkbox-1-input')
+		if (!await checkbox.isChecked())
+			await checkbox.click()
+		await page.getByTestId('notice-ok-button').click({
+			force: true,
+		}).catch(() => undefined)
+	}
+}
+
+const clickUniSatAccountSelect = async (page: Page) => {
+	const overlay = page.locator('.popover-container')
+	const accountSelect = page.getByTestId('account-select')
+	await expect.poll(async () => {
+		if (await overlay.count() > 0) {
+			await dismissUniSatHomePopovers(page)
+			return 'blocked'
+		}
+		try {
+			await accountSelect.click({
+				timeout: 2_000,
+			})
+			return 'clicked'
+		} catch {
+			return 'blocked'
+		}
+	}, {
+		timeout: 30_000,
+	}).toBe('clicked')
+}
 
 export const unisatDriver = {
 	kind: 'unisat',
@@ -97,37 +136,46 @@ export const unisatDriver = {
 		await page.getByTestId('address-type-continue-button').click()
 	},
 	createDerivedAccount: async (page: Page) => {
-		if (await page.getByTestId('notice-popover').isVisible()) {
-			await page.getByTestId('notice-checkbox-1-input').click()
-			if (!await page.getByTestId('notice-checkbox-1-input').isChecked())
-				throw new Error('UniSat notice checkbox did not remain checked')
-			await page.getByText('OK', {
-				exact: true,
-			}).click()
-			await page.getByTestId('notice-popover').waitFor({
-				state: 'hidden',
-			})
-		}
-		await page.getByTestId('account-select').click()
+		await clickUniSatAccountSelect(page)
 		await page.getByTestId('add-account-button').click()
 		await page.getByTestId('create-account-name-input').fill('Ephemeral account 2')
 		await page.getByTestId('create-account-confirm-button').click()
 	},
 	switchAccount: async (page: Page) => {
-		await page.getByTestId('account-select').click()
+		await clickUniSatAccountSelect(page)
 		const accountItems = page.locator('[data-testid^="account-item-"]')
 		if (await accountItems.count() !== 2)
 			throw new Error('UniSat did not expose exactly two derived accounts')
-		await accountItems.nth(0).click()
-		await page.getByTestId('account-select').click()
-		await accountItems.nth(1).click()
+		for (let index = 0; index < 2; index++) {
+			const item = accountItems.nth(index)
+			const selected = await item.evaluate((element) => (
+				Number.parseFloat(getComputedStyle(element).borderTopWidth) > 0
+			))
+			if (selected)
+				continue
+			await item.click({
+				position: {
+					x: 80,
+					y: 28,
+				},
+			})
+			return
+		}
+		throw new Error('UniSat did not expose an unselected derived account')
 	},
 	waitForApproval: async (
 		context: BrowserContext,
 		extension: LoadedWalletExtension
 	) => {
+		const existing = context.pages().find((page) => (
+			isUniSatApprovalPageUrl(page.url(), extension.id)
+		))
+		if (existing)
+			return existing
+
 		await context.waitForEvent('page', {
 			predicate: (page) => isUniSatApprovalPageUrl(page.url(), extension.id),
+			timeout: 30_000,
 		}).catch(() => undefined)
 		const approvalPage = context.pages().find((page) => (
 			isUniSatApprovalPageUrl(page.url(), extension.id)

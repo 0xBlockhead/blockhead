@@ -46,8 +46,12 @@ test('keeps the UniSat account lifecycle shard free of invented recover / ordina
 	])
 })
 
-test('maps headed Connect chrome to UniSat notification.html#/approval URLs', () => {
+test('maps headed Connect chrome to UniSat notification.html URLs', () => {
 	const extensionId = 'ppbibelpcjmhbdihakflkdcoccbgbkpo'
+	assert.equal(
+		isUniSatApprovalPageUrl(`chrome-extension://${extensionId}/notification.html`, extensionId),
+		true
+	)
 	assert.equal(
 		isUniSatApprovalPageUrl(`chrome-extension://${extensionId}/notification.html#/approval`, extensionId),
 		true
@@ -61,7 +65,7 @@ test('maps headed Connect chrome to UniSat notification.html#/approval URLs', ()
 		false
 	)
 	assert.equal(
-		isUniSatApprovalPageUrl(`chrome-extension://other/notification.html#/approval`, extensionId),
+		isUniSatApprovalPageUrl(`chrome-extension://other/notification.html`, extensionId),
 		false
 	)
 	assert.equal(typeof unisatDriver.waitForApproval, 'function')

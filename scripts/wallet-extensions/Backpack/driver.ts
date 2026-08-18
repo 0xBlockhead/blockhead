@@ -189,32 +189,18 @@ export const backpackDriver = {
 		page: Page,
 		address = createEphemeralSolanaAddress()
 	) => {
-		await page.getByText('Wallet 1', {
-			exact: true,
-		}).click()
-		const addWallet = page.getByText('Add new Solana wallet', {
-			exact: true,
-		}).or(page.getByText('Add wallet', {
+		const viewOnlyImport = page.getByTestId('view-only-importing-button')
+		const walletPicker = page.getByTestId('wallets-button').or(page.getByText('Wallet 1', {
 			exact: true,
 		}))
-		await expect(addWallet.first()).toBeVisible({
+		await expect(walletPicker.first()).toBeVisible({
 			timeout: 15_000,
 		})
-		const addWalletBox = await addWallet.first().boundingBox()
-		if (addWalletBox == null)
-			throw new Error('Backpack Add wallet control has no clickable box')
-
-		await page.mouse.click(
-			addWalletBox.x + addWalletBox.width / 2,
-			addWalletBox.y + addWalletBox.height / 2
-		)
-		const viewOnlyImport = page.getByTestId('view-only-importing-button').or(page.getByText('View-only wallet', {
-			exact: true,
-		}))
-		await expect(viewOnlyImport.first()).toBeVisible({
+		await walletPicker.first().click()
+		await expect(viewOnlyImport).toBeAttached({
 			timeout: 15_000,
 		}).catch((error) => {
-			throw new Error('Backpack Add wallet did not open view-only-importing-button; popup remained on home chrome (compromised-wallet banner / purpose switcher)', {
+			throw new Error('Backpack wallet picker did not attach view-only-importing-button', {
 				cause: error,
 			})
 		})

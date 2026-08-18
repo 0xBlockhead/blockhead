@@ -73,13 +73,13 @@ test('runs the declarative Petra compatibility matrix', async ({
 	await expect(walletConnectionsStatus(page)).toContainText(/Providers detected: [1-9]/, {
 		timeout: 120_000,
 	})
-	await expect(connectWalletButtonForDriver(page, 'Petra')).toBeVisible({
+	await expect(connectWalletButtonForDriver(page, 'Petra').first()).toBeVisible({
 		timeout: 120_000,
 	})
 
 	const previousPages = new Set(context.pages())
 	const [, rejected] = await Promise.all([
-		connectWalletButtonForDriver(page, 'Petra').click().catch(() => undefined),
+		connectWalletButtonForDriver(page, 'Petra').first().click().catch(() => undefined),
 		petraDriver.decideConnection(context, extension, 'reject', previousPages),
 	])
 	await expect(walletConnectionsStatus(page)).toContainText('Active connections: 0.')
@@ -88,7 +88,7 @@ test('runs the declarative Petra compatibility matrix', async ({
 	if (rejected) {
 		const approvePreviousPages = new Set(context.pages())
 		const [, approved] = await Promise.all([
-			connectWalletButtonForDriver(page, 'Petra').click(),
+			connectWalletButtonForDriver(page, 'Petra').first().click(),
 			petraDriver.decideConnection(context, extension, 'approve', approvePreviousPages),
 		])
 		if (approved) {

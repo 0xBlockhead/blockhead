@@ -10,6 +10,7 @@ import {
 	disconnectWalletButton,
 	retryConnectionButton,
 	walletConnectionCard,
+	walletConnectionCardByNameFallback,
 	walletConnectionsStatus,
 } from '../_walletPageSelectors.ts'
 import { expect, test } from '../wallet.fixture.ts'
@@ -58,8 +59,10 @@ test('creates and switches ephemeral UniSat accounts through Blockhead', async (
 		timeout: 120_000,
 	})
 
-	await connectWalletButtonForDriver(page, 'UniSat').first().click()
-	const approvalPage = await unisatDriver.waitForApproval(context, extension)
+	const [approvalPage] = await Promise.all([
+		unisatDriver.waitForApproval(context, extension),
+		connectWalletButtonForDriver(page, 'UniSat').first().click(),
+	])
 	await expect.poll(() => approvalPage.locator('body').innerText()).not.toBe('')
 	await unisatDriver.rejectConnection(approvalPage)
 	await expect.poll(() => approvalPage.isClosed()).toBe(true)
@@ -68,8 +71,10 @@ test('creates and switches ephemeral UniSat accounts through Blockhead', async (
 	await expect(retryConnection).toBeVisible({
 		timeout: 120_000,
 	})
-	await retryConnection.click()
-	const retryApprovalPage = await unisatDriver.waitForApproval(context, extension)
+	const [retryApprovalPage] = await Promise.all([
+		unisatDriver.waitForApproval(context, extension),
+		retryConnection.click(),
+	])
 	await expect.poll(() => retryApprovalPage.locator('body').innerText()).not.toBe('')
 	await unisatDriver.approveConnection(retryApprovalPage)
 	await expect.poll(() => retryApprovalPage.isClosed()).toBe(true)
@@ -101,7 +106,7 @@ test('creates and switches ephemeral UniSat accounts through Blockhead', async (
 		throw new Error('UniSat account switch did not expose a distinct second account address')
 
 	await disconnectWalletButton(connection).click()
-	await expect(connection.getByText('disconnected', {
+	await expect(walletConnectionCardByNameFallback(page, 'UniSat').getByText('disconnected', {
 		exact: true,
 	})).toBeAttached()
 	await expect(walletConnectionsStatus(page)).toContainText('Active connections: 0.')
