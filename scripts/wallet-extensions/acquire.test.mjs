@@ -10,11 +10,28 @@ import {
 	writeFile,
 } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
-import { join } from 'node:path'
+import {
+	join,
+	resolve,
+} from 'node:path'
 import test from 'node:test'
 
-import { acquireWalletExtension } from './acquire.mjs'
+import {
+	acquireWalletExtension,
+	defaultWalletExtensionArtifactRoot,
+} from './acquire.mjs'
 
+
+test('keeps acquired extension artifacts outside Playwright test-results', () => {
+	assert.equal(
+		defaultWalletExtensionArtifactRoot,
+		resolve('.wallet-extensions/artifacts')
+	)
+	assert.equal(
+		defaultWalletExtensionArtifactRoot.startsWith(resolve('test-results')),
+		false
+	)
+})
 
 const artifact = Buffer.from('pinned wallet archive')
 const descriptor = {

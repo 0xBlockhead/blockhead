@@ -30,6 +30,9 @@ vite.config.ts.timestamp-*
 /.fallow/
 /.pnpm-store/
 
+# Wallet extension acquire artifacts (must not live under Playwright test-results)
+/.wallet-extensions/
+
 # Playwright
 test-results
 /.playwright-cli/page-*.yml

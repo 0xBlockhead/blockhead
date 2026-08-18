@@ -69,11 +69,15 @@ const publishArtifact = async (
 	}
 }
 
+// Keep acquired zips outside Playwright's default outputDir (`test-results`).
+// Headed shards wipe that folder at run start; putting artifacts there ENOENTs the extension.
+export const defaultWalletExtensionArtifactRoot = resolve('.wallet-extensions/artifacts')
+
 export const acquireWalletExtension = async (
 	wallet,
 	descriptor,
 	{
-		artifactRoot = resolve('test-results/wallet-extensions/artifacts'),
+		artifactRoot = defaultWalletExtensionArtifactRoot,
 		download = fetch,
 		extract = async (archive, directory) => (
 			execute('unzip', [

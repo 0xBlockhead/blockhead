@@ -120,9 +120,9 @@ export const backpackDriver = {
 		extensionPage(context, extension, 'popup.html')
 	),
 	onboardSolana: async (page: Page, password: string) => {
-		await expect(page.getByText('Create a new wallet', {
+		await expect(page.getByTestId('create-wallet-button').or(page.getByText('Create a new wallet', {
 			exact: true,
-		}).or(page.getByTestId('create-wallet-button'))).toBeVisible({
+		})).first()).toBeVisible({
 			timeout: 30_000,
 		})
 		await clickByTestIdOrText(page, 'create-wallet-button', 'Create a new wallet')
@@ -191,17 +191,45 @@ export const backpackDriver = {
 	) => {
 		await page.getByText('Wallet 1', {
 			exact: true,
+		}).click()
+		const addWallet = page.getByText('Add new Solana wallet', {
+			exact: true,
 		}).or(page.getByText('Add wallet', {
 			exact: true,
-		})).first().click()
-		if (await page.getByText('Add wallet', {
+		}))
+		await expect(addWallet.first()).toBeVisible({
+			timeout: 15_000,
+		})
+		const addWalletBox = await addWallet.first().boundingBox()
+		if (addWalletBox == null)
+			throw new Error('Backpack Add wallet control has no clickable box')
+
+		await page.mouse.click(
+			addWalletBox.x + addWalletBox.width / 2,
+			addWalletBox.y + addWalletBox.height / 2
+		)
+		const viewOnlyImport = page.getByTestId('view-only-importing-button').or(page.getByText('View-only wallet', {
 			exact: true,
-		}).count() > 0)
-			await page.getByText('Add wallet', {
-				exact: true,
-			}).first().click()
-		await clickByTestIdOrText(page, 'view-only-importing-button', /View.?only/)
-		const publicKeyInput = page.getByTestId('public-key-input').or(page.getByPlaceholder(/address/i)).or(page.getByRole('textbox'))
+		}))
+		await expect(viewOnlyImport.first()).toBeVisible({
+			timeout: 15_000,
+		}).catch((error) => {
+			throw new Error('Backpack Add wallet did not open view-only-importing-button; popup remained on home chrome (compromised-wallet banner / purpose switcher)', {
+				cause: error,
+			})
+		})
+		const viewOnlyBox = await viewOnlyImport.first().boundingBox()
+		if (viewOnlyBox == null)
+			throw new Error('Backpack View-only wallet import row has no clickable box')
+
+		await page.mouse.click(
+			viewOnlyBox.x + viewOnlyBox.width / 2,
+			viewOnlyBox.y + viewOnlyBox.height / 2
+		)
+		const publicKeyInput = page.getByTestId('public-key-input').or(page.getByPlaceholder('Public key'))
+		await expect(publicKeyInput.first()).toBeVisible({
+			timeout: 15_000,
+		})
 		await publicKeyInput.first().fill(address)
 		await clickByTestIdOrText(page, 'public-key-import-button', /import|add|continue/i)
 		await expect(page.getByText(address.slice(0, 4))).toBeVisible({
