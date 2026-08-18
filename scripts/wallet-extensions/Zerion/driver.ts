@@ -125,9 +125,21 @@ export const zerionDriver = {
 		await clickOnboardingButton(page, 'Continue')
 		await clickOnboardingButton(page, 'Do it Later')
 		await page.goto(walletUrl(extension))
-		await page.getByText('I’ll take the risk', {
-			exact: true,
-		}).click()
+		await expectNoTurnstile(page)
+		try {
+			await page.getByText('I’ll take the risk', {
+				exact: true,
+			}).click({
+				timeout: 15_000,
+			})
+		} catch (error) {
+			if (await page.locator('iframe[src*="turnstile"]').isVisible())
+				throw new Error(turnstileBlockedMessage, {
+					cause: error,
+				})
+
+			throw error
+		}
 		return page
 	},
 	waitForRequest: async (
