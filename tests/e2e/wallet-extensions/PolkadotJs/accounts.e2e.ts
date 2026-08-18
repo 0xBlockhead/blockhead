@@ -70,7 +70,6 @@ test('runs the declarative polkadot.js compatibility matrix', async ({
 					}
 				:
 					{
-						accountAddress: accounts[scenario.accountOrdinal - 1].address,
 						outcome: 'inaccessible',
 						evidence: {
 							code: 'injected-account-visible-product-bridge-missing',
@@ -85,7 +84,7 @@ test('runs the declarative polkadot.js compatibility matrix', async ({
 	expect(results).toHaveLength(3)
 	expect(results.filter(({ outcome }) => outcome === 'inaccessible')).toHaveLength(2)
 	expect(results.filter(({ outcome }) => outcome === 'blocked')).toHaveLength(1)
-	expect(results.slice(0, 2).every(({ accountAddressHash }) => /^sha256:[0-9a-f]{64}$/.test(accountAddressHash ?? ''))).toBe(true)
+	expect(results.every((result) => !('accountAddressHash' in result))).toBe(true)
 	expect(JSON.stringify(results)).not.toContain(accounts[0].address)
 	expect(JSON.stringify(results)).not.toContain(accounts[1].address)
 	console.log(JSON.stringify(results, null, 2))
