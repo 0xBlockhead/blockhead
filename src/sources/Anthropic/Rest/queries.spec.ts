@@ -1,4 +1,4 @@
-import { expect, it, vi } from 'vitest'
+import { beforeEach, expect, it, vi } from 'vitest'
 
 import bindings from '$/sources/Anthropic/bindings.ts'
 import { Source } from '$/sources/Source.ts'
@@ -10,29 +10,84 @@ vi.mock('$/sources/_runtime/http.ts', async (importOriginal) => ({
 	sourceFetch,
 }))
 
-const { listModels } = await import('$/sources/Anthropic/Rest/queries.ts')
+const { listModels, retrieveModel } = await import('$/sources/Anthropic/Rest/queries.ts')
 const binding = bindings[Source.Anthropic_Rest][0]
+const noncanonicalBinding = {
+	...binding,
+	endpoints: binding.endpoints.map((endpoint) => ({
+		...endpoint,
+		locator: 'https://noncanonical.example/anthropic',
+	})),
+}
+const models = {
+	data: [
+		{
+			id: 'claude/opus',
+		},
+	],
+}
 
-it('passes only the caller-provided noncanonical binding and endpoint to transport', async () => {
-	const modifiedBinding = {
-		...binding,
-		endpoints: binding.endpoints.map((endpoint) => ({
-			...endpoint,
-			locator: 'https://noncanonical.example/anthropic',
-		})),
-	}
-	sourceFetch.mockResolvedValueOnce(new Response('{}'))
+beforeEach(() => {
+	sourceFetch.mockReset()
+})
 
-	await listModels({
-		binding: modifiedBinding,
+it('lists models from the caller-provided binding with versioned API-key headers', async () => {
+	sourceFetch.mockResolvedValueOnce(Response.json(models))
+
+	await expect(listModels({
+		binding: noncanonicalBinding,
 		credential: 'test-key',
 		anthropicVersion: '2023-06-01',
-	})
+	})).resolves.toEqual(models)
 
 	expect(sourceFetch).toHaveBeenCalledOnce()
-	expect(sourceFetch.mock.calls[0][0]).toBe(modifiedBinding)
-	expect(sourceFetch.mock.calls[0][1]).toBe('https://noncanonical.example/v1/models')
-	expect(sourceFetch.mock.calls[0][2]).toMatchObject({
-		redirect: 'manual',
-	})
+	expect(sourceFetch).toHaveBeenCalledWith(
+		noncanonicalBinding,
+		'https://noncanonical.example/v1/models',
+		{
+			redirect: 'manual',
+			headers: {
+				'anthropic-version': '2023-06-01',
+				'x-api-key': 'test-key',
+			},
+		}
+	)
+})
+
+it('encodes retrieveModel ids onto the caller-provided origin', async () => {
+	const model = models.data[0]
+	sourceFetch.mockResolvedValueOnce(Response.json(model))
+
+	await expect(retrieveModel({
+		binding: noncanonicalBinding,
+		modelId: model.id,
+		credential: 'test-key',
+		anthropicVersion: '2023-06-01',
+	})).resolves.toEqual(model)
+
+	expect(sourceFetch).toHaveBeenCalledWith(
+		noncanonicalBinding,
+		'https://noncanonical.example/v1/models/claude%2Fopus',
+		{
+			redirect: 'manual',
+			headers: {
+				'anthropic-version': '2023-06-01',
+				'x-api-key': 'test-key',
+			},
+		}
+	)
+})
+
+it('fails closed with the Anthropic source label and JSON error hint', async () => {
+	sourceFetch.mockResolvedValueOnce(Response.json({
+		message: 'invalid x-api-key',
+	}, {
+		status: 401,
+	}))
+
+	await expect(listModels({
+		binding: noncanonicalBinding,
+		credential: 'test-key',
+		anthropicVersion: '2023-06-01',
+	})).rejects.toThrow('Anthropic_Rest (401): invalid x-api-key')
 })
