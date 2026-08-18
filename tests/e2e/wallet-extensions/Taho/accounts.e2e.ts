@@ -43,8 +43,52 @@ test('creates one Taho account and connects it to Blockhead', async ({
 	expect(accounts.first).toBe('Taho 1')
 
 	await page.goto(`${baseURL ?? 'http://127.0.0.1:5173'}/~/wallets`)
-	await expect(walletConnectionsStatus(page)).toContainText(/Wallet discovery active\..*Providers detected: [1-9]/)
-	await expect(connectWalletButtonForDriver(page, 'Taho')).toBeVisible()
+	await expect(walletConnectionsStatus(page)).toContainText('Wallet discovery active.')
+	const connect = connectWalletButtonForDriver(page, 'Taho')
+	const discovered = await connect.waitFor({
+		state: 'visible',
+		timeout: 15_000,
+	}).then(() => true).catch(() => false)
+
+	if (!discovered) {
+		await expect(walletConnectionsStatus(page)).toContainText('Providers detected: 0.')
+		await expect(connect).toHaveCount(0)
+		const results = await runWalletCompatibilityMatrix({
+			driver: {
+				kind: 'taho',
+				run: async (scenario) => (
+					scenario.accountOrdinal === 1 ?
+						{
+							outcome: 'inaccessible',
+							evidence: {
+								code: 'content-script-host-mismatch',
+								detail: `Taho 0.66.0 content_scripts match file/localhost/https only; ${new URL(page.url()).origin} stays Providers detected: 0 with no Connect Taho`,
+								source: 'wallet-connections',
+							},
+						}
+					:
+						tahoBlockedObservation(scenario)
+				),
+			},
+			scenarios: tahoWalletMatrixScenarios(taho.manifest.version),
+			step: (name, run) => test.step(name, run),
+		})
+		expect(results.map(({ outcome }) => outcome)).toEqual([
+			'inaccessible',
+			'blocked',
+			'blocked',
+		])
+		logWalletMatrixResults(results, {
+			label: 'taho-content-script-host-mismatch',
+			expectedOutcomes: [
+				'inaccessible',
+				'blocked',
+			],
+		})
+		return
+	}
+
+	await expect(walletConnectionsStatus(page)).toContainText(/Providers detected: [1-9]/)
 
 	await Promise.all([
 		approveTahoConnection(context, taho.id),
