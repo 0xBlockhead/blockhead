@@ -91,9 +91,15 @@
 - Resolver / network latency: Pages backed by `resolveEntity` or external HTTP may need timeouts on the order of minutes (e.g. `120_000` ms) for the “settled” assertion, while still asserting a cheap invariant first (nav link, layout chrome).
 - Success vs failure: When the UI shows either a happy path or an explicit error string, use `.or()` on locators and assert one branch is attached once the async work finishes.
 
+### Playwright E2E — cross-route matrix
+
+- **`tests/e2e/route-matrix.e2e.ts`** is the one owner for shell (`#main`), canonical URL, settlement, runtime diagnostics, and boundary failure across discovered `+page` routes (`tests/e2e/_routeDiscovery.ts`).
+- Modes, not separate suites: `pnpm run test:e2e:boundaries` (parallel matrix + verbose artifacts), `pnpm run test:e2e:failfast` (`E2E_FAILFAST=1` serial stop-on-first), `E2E_PROBE_PATH`, `E2E_PATH_PATTERN` / `E2E_PATH_LIMIT` / shards / `E2E_START_PATH`, `E2E_MATRIX_ARTIFACTS=0`.
+- Distinct remaining scenario tests: CORS (`cors-policy.e2e.ts`), persistence (`tanstack-db-persistence.e2e.ts`), TanStack cold-cache/navigation-stress (`tanstack-cache-pages.e2e.ts`), raw-payload ban (`app-generated-routes.e2e.ts`).
+
 ### Playwright E2E — CORS policy
 
-- **`pnpm run test:e2e:cors`** — `tests/e2e/cors-policy.e2e.ts` walks **every discovered `+page` route** (same discovery as `tanstack-cache-pages.e2e.ts`), uses `waitUntil: 'load'`, `assertMainSettled`, optional `networkidle`, then a **quiet window** (`E2E_CORS_QUIET_MS`, default 4s) so late resolver fetches surface CORS console errors. Other e2e suites filter that copy as upstream noise; this suite is the dedicated regression gate.
+- **`pnpm run test:e2e:cors`** — `tests/e2e/cors-policy.e2e.ts` walks **every discovered `+page` route** (same `_routeDiscovery.ts` as the route matrix), uses `waitUntil: 'load'`, `assertMainSettled`, optional `networkidle`, then a **quiet window** (`E2E_CORS_QUIET_MS`, default 4s) so late resolver fetches surface CORS console errors. Other e2e suites filter that copy as upstream noise; this suite is the dedicated regression gate.
 - Subset: `E2E_PATH_LIMIT=20 pnpm run test:e2e:cors`. Single route: `E2E_PROBE_PATH=/network/eip155:1 pnpm exec playwright test tests/e2e/cors-policy.e2e.ts -g "probe route"`.
 - **Fix pattern (browser client code):** never bare `fetch('https://…')` for provider HTTP when the origin is not browser-CORS-safe. Use `getJson` / `getText` / exported **`corsFetch`** from `$/lib/http.ts` with either:
 	- **`origins`:** readonly `SourceOrigin[]` from the provider definition (`origin` + `corsEnabled`) — same list seeds `/api-proxy/` allow-list in `hooks.server.ts`; or

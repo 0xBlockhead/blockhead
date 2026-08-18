@@ -95,7 +95,7 @@ export const YOUTUBE_PROBE_VIDEO_ID = 'jNQXAC9IVRw' as const
 
 export const YOUTUBE_PROBE_COMMENT_ID = 'UgzuC3zzpRZkjc5Qzsd4AaABAg' as const
 
-/** EVM explorer routes for e2e smoke / boundary (see also `routeViewSmokePaths`). */
+/** EVM explorer routes for route-local e2e (also in the cross-route matrix). */
 export const e2eEvmExplorerRoutePaths = {
 	hub: '/evm',
 	calldata: '/evm/calldata',
@@ -107,7 +107,7 @@ export const e2eEvmExplorerRoutePaths = {
 	networkTransactionLog: `/network/eip155:1/tx/${SAMPLE_TX_HASH}/log/0`,
 } as const satisfies Record<string, `/${string}`>
 
-/** Nostr / YouTube list routes for route-view smoke (see also `routeViewSmokePaths`). */
+/** Nostr / YouTube list routes. */
 export const e2eNostrYouTubeRoutePaths = {
 	nostrRelays: '/nostr/relays',
 	nostrReposts: '/nostr/reposts',
@@ -117,7 +117,7 @@ export const e2eNostrYouTubeRoutePaths = {
 	youtubePlaylists: '/youtube/playlists',
 } as const satisfies Record<string, `/${string}`>
 
-/** Detail routes that depend on live indexer/API payloads; opt in via `routeViewSmokeOptionalDetailPathByLabel`. */
+/** Detail routes that depend on live indexer/API payloads; optional in the route matrix via `e2eBoundaryLiveOptionalPathnames`. */
 export const e2eNostrYouTubeOptionalDetailRoutePaths = {
 	nostrRelay: `/nostr/relay/${encodeURIComponent(NOSTR_PROBE_RELAY_URL)}`,
 	nostrRepost: `/nostr/repost/${NOSTR_PROBE_REPOST_EVENT_ID}`,

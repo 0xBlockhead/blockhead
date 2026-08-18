@@ -10,8 +10,6 @@ import {
 	setupPageRuntimeDiagnostics,
 } from '../_e2eBrowserHelpers.ts'
 
-import { discoverFilteredPathnamesFromRoutes } from './_routeDiscovery.ts'
-
 
 /** `load` can exceed the default 15s navigation timeout after many client navigations. */
 const gotoLoadTimeoutMs = 120_000
@@ -20,12 +18,6 @@ const gotoLoadTimeoutMs = 120_000
 test.describe.configure({ mode: 'serial' })
 
 test.describe('TanStack query lifecycle + cache', () => {
-	let pageUrls: string[] = []
-
-	test.beforeAll(async () => {
-		pageUrls = await discoverFilteredPathnamesFromRoutes()
-	})
-
 	test('networks: cold live collection load resolves provider-backed rows', async ({ page }) => {
 		test.setTimeout(240_000)
 		await installChainlistRpcsJsonStub(page)
@@ -55,27 +47,6 @@ test.describe('TanStack query lifecycle + cache', () => {
 
 		await assertMainSettled(page, 180_000, diagnostics)
 		expect(diagnostics.issues, diagnostics.issues.join('\n')).toEqual([])
-	})
-
-	test('every +page URL: no console errors, no alerts, main settles', async ({ page }) => {
-		test.setTimeout(900_000)
-		page.setDefaultNavigationTimeout(gotoLoadTimeoutMs)
-		await installChainlistRpcsJsonStub(page)
-		const diagnostics = setupPageRuntimeDiagnostics(page, { forwardConsole: true })
-		await diagnostics.step(page.goto('/', { waitUntil: 'load', timeout: gotoLoadTimeoutMs }))
-		await expectMainVisible(page, 120_000, diagnostics)
-		await assertMainSettled(page, 180_000, diagnostics)
-
-		for (const url of pageUrls) {
-			await test.step(url, async () => {
-				const issueStart = diagnostics.issues.length
-				await diagnostics.step(page.goto(url, { waitUntil: 'load', timeout: gotoLoadTimeoutMs }))
-				await expectMainVisible(page, 120_000, diagnostics)
-				await assertMainSettled(page, 180_000, diagnostics)
-				const fromPage = diagnostics.issues.slice(issueStart)
-				expect(fromPage, `${url}\n${fromPage.join('\n')}`).toEqual([])
-			})
-		}
 	})
 
 	test('navigation stress: networks, home, contracts loop', async ({ page }) => {

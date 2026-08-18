@@ -1,33 +1,45 @@
 /**
- * Visits every discovered `+page` route, records QueryBoundary / ResourceBoundary /
- * svelte:boundary updates, and reports routes whose boundaries failed, stayed loading,
- * or left `#main` empty after settle.
+ * Canonical cross-route regression owner: shell (`#main`), canonical URL, settlement,
+ * runtime diagnostics, and boundary failure. Fail-fast, probe, filtering, sharding,
+ * and verbose artifacts are execution modes of this file, not separate claims.
  *
  * ```
  * pnpm run test:e2e:boundaries
  * E2E_PATH_LIMIT=20 pnpm run test:e2e:boundaries
- * E2E_PATH_PATTERN='^/(activitypub|atproto|farcaster|lens|nostr|reddit|rss|x|xmtp|youtube)(/|$)' pnpm exec playwright test tests/e2e/boundary-updates.e2e.ts
- * E2E_PROBE_PATH=/network/eip155:1 pnpm exec playwright test tests/e2e/boundary-updates.e2e.ts -g probe
+ * E2E_PATH_PATTERN='^/(activitypub|atproto|farcaster|lens|nostr|reddit|rss|x|xmtp|youtube)(/|$)' pnpm run test:e2e:boundaries
+ * E2E_FAILFAST=1 pnpm run test:e2e:failfast
+ * E2E_PATH_SHARD_TOTAL=4 E2E_PATH_SHARD_INDEX=0 pnpm run test:e2e:failfast
+ * E2E_PROBE_PATH=/network/eip155:1 pnpm exec playwright test tests/e2e/route-matrix.e2e.ts -g probe
+ * E2E_PROBE_PATH=/network/cosmos:cosmoshub-4 E2E_MAIN_MS=240000 pnpm exec playwright test tests/e2e/route-matrix.e2e.ts -g probe
+ * E2E_START_PATH=/coins pnpm run test:e2e:failfast
  * E2E_BOUNDARY_SLOW_MS=30000 pnpm run test:e2e:boundaries
  * ```
  */
+import type { Page, TestInfo } from '@playwright/test'
 import { expect, test } from '@playwright/test'
 
 import {
+	assertCanonicalRouteUrl,
+	assertMainSettled,
+	e2eBrowserNewContextOptions,
+	expectMainVisible,
 	formatBoundaryReportSummary,
 	getBoundaryProbeEvents,
 	installBoundaryProbe,
 	installChainlistRpcsJsonStub,
 	jsonStringifyForExpectMessage,
+	pageFailureSnapshot,
 	requestFailureIsResourceCancellation,
 	resetBoundaryProbe,
 	snapshotBoundaryMain,
-	type RouteBoundaryReport,
 	summarizeRouteBoundaryReport,
 	waitForBoundarySettle,
+	type RouteBoundaryReport,
 } from '../_e2eBrowserHelpers.ts'
 
 import { discoverFilteredPathnamesFromRoutes } from './_routeDiscovery.ts'
+import { e2eBoundaryLiveOptionalPathnames } from './_routeParamFixtures.ts'
+import { setupRouteViewSmokePage } from './_routeViewDiagnostics.ts'
 
 
 const gotoLoadTimeoutMs = 120_000
@@ -55,6 +67,9 @@ const slowThresholdMs = (() => {
 })()
 
 const probePath = process.env.E2E_PROBE_PATH?.trim()
+const failFast = process.env.E2E_FAILFAST === '1'
+const expectedVisibleText = process.env.E2E_EXPECT_VISIBLE_TEXT?.trim()
+const verboseArtifacts = process.env.E2E_MATRIX_ARTIFACTS !== '0'
 
 type RoutePageDiagnostics = NonNullable<RouteBoundaryReport['diagnostics']> & {
 	flush: () => Promise<void>
@@ -79,7 +94,7 @@ const requestFailureIsViteNavigationModuleAbort = (
 	)
 }
 
-const installRoutePageDiagnostics = (page: import('@playwright/test').Page) => {
+const installRoutePageDiagnostics = (page: Page) => {
 	const pendingConsoleReads: Promise<void>[] = []
 	const diagnostics: RoutePageDiagnostics = {
 		console: [],
@@ -172,8 +187,97 @@ const installRoutePageDiagnostics = (page: import('@playwright/test').Page) => {
 	return diagnostics
 }
 
+const installEthereumEipGithubStub = async (page: Page) => {
+	await page.route(
+		(url) => {
+			const href = decodeURIComponent(url.href)
+			return (
+				href.includes('api.github.com/repos/ethereum/EIPs/contents/EIPS')
+				|| (
+					href.includes('raw.githubusercontent.com/ethereum/EIPs/master/EIPS/eip-')
+					&& href.endsWith('.md')
+				)
+			)
+		},
+		async (route) => {
+			const href = decodeURIComponent(route.request().url())
+			const proposalNumber = href.match(/eip-(\d+)\.md$/)?.[1] ?? '1559'
+			await route.fulfill(
+				href.includes('api.github.com/repos/ethereum/EIPs/contents/EIPS') ?
+					{
+						contentType: 'application/json',
+						body: JSON.stringify([
+							{
+								type: 'file',
+								name: 'eip-1.md',
+							},
+							{
+								type: 'file',
+								name: 'eip-1559.md',
+							},
+						]),
+					}
+				:
+					{
+						contentType: 'text/markdown',
+						body: [
+							'---',
+							`eip: ${proposalNumber}`,
+							`title: EIP ${proposalNumber}`,
+							'status: Final',
+							'category: Core',
+							'---',
+							'',
+							`# EIP-${proposalNumber}`,
+							'',
+							'Deterministic E2E fixture body.',
+						].join('\n'),
+					}
+			)
+		}
+	)
+}
+
+const installRouteMatrixPage = async (
+	page: Page,
+	databaseName: string,
+	{
+		logProxyFetchFailures = false,
+	}: {
+		logProxyFetchFailures?: boolean
+	} = {}
+) => {
+	await page.addInitScript(({ name, schemaVersion }) => {
+		window.__blockheadClientProbeEnabled = true
+		window.__blockheadWaSqliteDatabaseNameOverride = name
+		window.__blockheadWaSqliteVfsNameOverride = name.replace(/[^a-zA-Z0-9_-]/g, '_')
+		window.__blockheadPersistedCollectionSchemaVersionOverride = schemaVersion
+	}, {
+		name: databaseName,
+		schemaVersion: Date.now(),
+	})
+	if (logProxyFetchFailures)
+		await page.addInitScript(() => {
+			const originalFetch = window.fetch.bind(window)
+			window.fetch = async (...parameters) => {
+				const stack = new Error().stack
+				const response = await originalFetch(...parameters)
+				const url = response.url || String(parameters[0])
+				if (
+					response.status >= 400
+					&& url.includes('/api-proxy/')
+				)
+					console.error('[blockhead:fetch-failed]', response.status, url, stack)
+				return response
+			}
+		})
+	await installBoundaryProbe(page)
+	await installChainlistRpcsJsonStub(page)
+	await installEthereumEipGithubStub(page)
+}
+
 const collectRouteBoundaryReport = async (
-	page: import('@playwright/test').Page,
+	page: Page,
 	pathname: string,
 	diagnostics: RoutePageDiagnostics
 ) => {
@@ -269,29 +373,35 @@ const collectRouteBoundaryReport = async (
 }
 
 const attachBoundaryArtifacts = async (
-	testInfo: import('@playwright/test').TestInfo,
+	testInfo: TestInfo,
 	reports: RouteBoundaryReport[]
 ) => {
-	const summary = formatBoundaryReportSummary(reports)
-	console.log(`\n--- boundary updates ---\n${summary}`)
+	if (!verboseArtifacts) return
 
-	await testInfo.attach('boundary-updates-summary.txt', {
+	const summary = formatBoundaryReportSummary(reports, e2eBoundaryLiveOptionalPathnames)
+	console.log(`\n--- route matrix ---\n${summary}`)
+
+	await testInfo.attach('route-matrix-summary.txt', {
 		body: summary,
 		contentType: 'text/plain',
 	})
-	await testInfo.attach('boundary-updates-report.json', {
+	await testInfo.attach('route-matrix-report.json', {
 		body: JSON.stringify(reports, null, 2),
 		contentType: 'application/json',
 	})
 }
 
 const attachClientTraceArtifact = async (
-	page: import('@playwright/test').Page,
-	testInfo: import('@playwright/test').TestInfo,
+	page: Page,
+	testInfo: TestInfo,
 	pathname: string,
 	report: RouteBoundaryReport
 ) => {
-	if (report.issues.length === 0) return
+	if (
+		!verboseArtifacts
+		|| report.issues.length === 0
+	)
+		return
 
 	const trace = await page.evaluate(() => {
 		const collections = window.__blockheadClientProbe?.traceCollections()
@@ -353,25 +463,144 @@ const attachClientTraceArtifact = async (
 	})
 }
 
-const assertBoundaryReports = (reports: RouteBoundaryReport[]) => {
-	const issueRoutes = reports.filter((report) => report.issues.length > 0)
+const assertNoBrokenBoundaryReports = (
+	reports: RouteBoundaryReport[]
+) => {
 	expect(
-		issueRoutes.map((report) => (
-			`${report.pathname}\n  ${report.issues.join('\n  ')}`
-		)),
-		formatBoundaryReportSummary(reports)
+		reports
+			.filter((report) => (
+				report.issues.length > 0
+				&& !e2eBoundaryLiveOptionalPathnames.has(report.pathname)
+			))
+			.map((report) => `${report.pathname}\n  ${report.issues.join('\n  ')}`),
+		formatBoundaryReportSummary(reports, e2eBoundaryLiveOptionalPathnames)
 	).toEqual([])
 }
 
-const routePathnames = await (async () => {
-	if (probePath != null && probePath !== '')
-		return []
+const assertCanonicalShell = async (
+	page: Page,
+	pathname: string
+) => {
+	await assertCanonicalRouteUrl(page, pathname)
+	if (!e2eBoundaryLiveOptionalPathnames.has(pathname))
+		await expect(page.locator('#main').locator('[data-error]')).toHaveCount(0)
+	if (expectedVisibleText != null && expectedVisibleText !== '')
+		await expect(page.locator('#main')).toContainText(expectedVisibleText)
+}
 
-	return discoverFilteredPathnamesFromRoutes()
+const visitRouteMatrix = async (
+	page: Page,
+	testInfo: TestInfo,
+	pathname: string
+) => {
+	const diagnostics = installRoutePageDiagnostics(page)
+	const report = await collectRouteBoundaryReport(page, pathname, diagnostics)
+	await attachClientTraceArtifact(page, testInfo, pathname, report)
+	await attachBoundaryArtifacts(testInfo, [report])
+	await assertCanonicalShell(page, pathname)
+	assertNoBrokenBoundaryReports([report])
+	return report
+}
+
+const visitRouteFailFast = async (
+	page: Page,
+	testInfo: TestInfo,
+	pathname: string
+) => {
+	const {
+		diagnostics,
+		flushArtifacts,
+		step,
+	} = setupRouteViewSmokePage(page)
+	try {
+		await step(page.goto(pathname, {
+			waitUntil: 'load',
+			timeout: gotoLoadTimeoutMs,
+		}))
+		await expectMainVisible(page, settleTimeoutMs, diagnostics)
+		await step(assertCanonicalRouteUrl(page, pathname))
+		await step(expect(page.locator('#main').locator('[data-error]')).toHaveCount(0, {
+			timeout: settleTimeoutMs,
+		}))
+		await step(assertMainSettled(page, settleTimeoutMs, diagnostics))
+		if (expectedVisibleText != null && expectedVisibleText !== '')
+			await step(expect(page.locator('#main')).toContainText(expectedVisibleText))
+	}
+	catch (error) {
+		await flushArtifacts(testInfo)
+		const message = error instanceof Error ? error.message : String(error)
+		throw new Error(
+			[
+				`route-matrix fail-fast stopped at ${pathname} (url=${page.url()}): ${message}`,
+				`section/resource/source ownership:\n${await pageFailureSnapshot(page)}`,
+			].join('\n\n'),
+			{ cause: error }
+		)
+	}
+}
+
+const withRouteTimeout = async (
+	pathname: string,
+	index: number,
+	total: number,
+	visit: Promise<void>
+) => {
+	const timeoutMs = settleTimeoutMs + gotoLoadTimeoutMs + 30_000
+	await Promise.race([
+		visit,
+		new Promise<never>((_, reject) => {
+			setTimeout(() => {
+				reject(new Error(
+					`route matrix timeout after ${timeoutMs}ms at ${pathname} (${index + 1}/${total})`
+				))
+			}, timeoutMs)
+		}),
+	])
+}
+
+const routeDatabaseName = (
+	prefix: string,
+	testInfo: TestInfo,
+	index?: number
+) => (
+	`blockhead-${prefix}-${testInfo.workerIndex}-${testInfo.retry}-${testInfo.repeatEachIndex}${index == null ? '' : `-${index}`}-${Date.now()}.sqlite`
+)
+
+const {
+	routePathnames,
+	routeDiscoveryError,
+} = await (async () => {
+	if (
+		(probePath != null && probePath !== '')
+		|| failFast
+	)
+		return {
+			routePathnames: [] as string[],
+			routeDiscoveryError: undefined,
+		}
+
+	try {
+		return {
+			routePathnames: await discoverFilteredPathnamesFromRoutes(),
+			routeDiscoveryError: undefined,
+		}
+	} catch (error) {
+		// Keep probe/contract tests loadable when generated route atoms lag `_routeParamFixtures`.
+		return {
+			routePathnames: [] as string[],
+			routeDiscoveryError: error,
+		}
+	}
 })()
 
-test.describe('boundary updates (every +page route)', () => {
-	test.describe.configure({ mode: 'parallel' })
+
+test.describe('route matrix (shell, URL, settlement, diagnostics, boundary)', () => {
+	test.describe.configure({
+		mode: failFast ?
+			'serial'
+		:
+			'parallel',
+	})
 
 	test('boundary snapshot identifies section, heading, and entity field owner', async ({ page }) => {
 		await page.setContent(`
@@ -441,84 +670,87 @@ test.describe('boundary updates (every +page route)', () => {
 	})
 
 	test('probe route', async ({ page }, testInfo) => {
-		test.skip(probePath == null || probePath === '', 'set E2E_PROBE_PATH')
+		const pathname = probePath
+		test.skip(pathname == null || pathname === '', 'set E2E_PROBE_PATH')
+		if (pathname == null || pathname === '')
+			return
+
 		testInfo.setTimeout(settleTimeoutMs + gotoLoadTimeoutMs + 60_000)
 		page.setDefaultNavigationTimeout(gotoLoadTimeoutMs)
-		await page.addInitScript(({ databaseName, schemaVersion }) => {
-			window.__blockheadClientProbeEnabled = true
-			window.__blockheadWaSqliteDatabaseNameOverride = databaseName
-			window.__blockheadWaSqliteVfsNameOverride = databaseName.replace(/[^a-zA-Z0-9_-]/g, '_')
-			window.__blockheadPersistedCollectionSchemaVersionOverride = schemaVersion
-		}, {
-			databaseName: `blockhead-boundary-probe-${testInfo.workerIndex}-${testInfo.retry}-${testInfo.repeatEachIndex}-${Date.now()}.sqlite`,
-			schemaVersion: Date.now(),
-		})
-		await page.addInitScript(() => {
-			const originalFetch = window.fetch.bind(window)
-			window.fetch = async (...parameters) => {
-				const stack = new Error().stack
-				const response = await originalFetch(...parameters)
-				const url = response.url || String(parameters[0])
-				if (
-					response.status >= 400
-					&& url.includes('/api-proxy/')
-				)
-					console.error('[blockhead:fetch-failed]', response.status, url, stack)
-				return response
+		await installRouteMatrixPage(
+			page,
+			routeDatabaseName('route-matrix-probe', testInfo),
+			{
+				logProxyFetchFailures: !failFast,
 			}
-		})
-		const diagnostics = installRoutePageDiagnostics(page)
-		await installBoundaryProbe(page)
-		await installChainlistRpcsJsonStub(page)
+		)
+		if (failFast)
+			await visitRouteFailFast(page, testInfo, pathname)
+		else
+			await visitRouteMatrix(page, testInfo, pathname)
+	})
 
-		const report = await collectRouteBoundaryReport(page, probePath!, diagnostics)
-		await attachClientTraceArtifact(page, testInfo, probePath!, report)
-		await attachBoundaryArtifacts(testInfo, [report])
-		assertBoundaryReports([report])
+	test('every +page URL until first failure', async ({ browser }, testInfo) => {
+		test.skip(!failFast, 'set E2E_FAILFAST=1')
+		test.skip(probePath != null && probePath !== '', 'E2E_PROBE_PATH skips full matrix')
+		const pageUrls = await discoverFilteredPathnamesFromRoutes()
+		const perRouteBudgetMs = settleTimeoutMs + gotoLoadTimeoutMs + 30_000
+		testInfo.setTimeout(pageUrls.length * perRouteBudgetMs + 60_000)
+		console.log([
+			`[route-matrix fail-fast] selected ${pageUrls.length} routes`,
+			`pattern=${process.env.E2E_PATH_PATTERN?.trim() || '<unset>'}`,
+			`start=${process.env.E2E_START_PATH?.trim() || '<unset>'}`,
+			`limit=${process.env.E2E_PATH_LIMIT?.trim() || '<unset>'}`,
+			`shard=${process.env.E2E_PATH_SHARD_INDEX?.trim() || '0'}/${process.env.E2E_PATH_SHARD_TOTAL?.trim() || '1'}`,
+		].join(' '))
+
+		for (const [index, pathname] of pageUrls.entries()) {
+			console.log(`[route-matrix fail-fast] ${index + 1}/${pageUrls.length} ${pathname}`)
+			await test.step(pathname, async () => {
+				const context = await browser.newContext(e2eBrowserNewContextOptions())
+				const page = await context.newPage()
+				try {
+					page.setDefaultNavigationTimeout(gotoLoadTimeoutMs)
+					await installRouteMatrixPage(
+						page,
+						routeDatabaseName('route-matrix-failfast', testInfo, index)
+					)
+					await withRouteTimeout(
+						pathname,
+						index,
+						pageUrls.length,
+						visitRouteFailFast(page, testInfo, pathname)
+					)
+				} finally {
+					await context.close()
+				}
+			})
+		}
 	})
 
 	for (const [index, pathname] of routePathnames.entries()) {
 		test(`${index + 1}/${routePathnames.length} ${pathname}`, async ({ page }, testInfo) => {
-			test.skip(probePath != null && probePath !== '', 'E2E_PROBE_PATH skips full matrix')
 			testInfo.setTimeout(settleTimeoutMs + gotoLoadTimeoutMs + 60_000)
 			page.setDefaultNavigationTimeout(gotoLoadTimeoutMs)
-			await page.addInitScript(({ databaseName, schemaVersion }) => {
-				window.__blockheadClientProbeEnabled = true
-				window.__blockheadWaSqliteDatabaseNameOverride = databaseName
-				window.__blockheadWaSqliteVfsNameOverride = databaseName.replace(/[^a-zA-Z0-9_-]/g, '_')
-				window.__blockheadPersistedCollectionSchemaVersionOverride = schemaVersion
-			}, {
-				databaseName: `blockhead-boundary-${testInfo.workerIndex}-${testInfo.retry}-${testInfo.repeatEachIndex}-${index}-${Date.now()}.sqlite`,
-				schemaVersion: Date.now(),
-			})
-			await page.addInitScript(() => {
-				const originalFetch = window.fetch.bind(window)
-				window.fetch = async (...parameters) => {
-					const stack = new Error().stack
-					const response = await originalFetch(...parameters)
-					const url = response.url || String(parameters[0])
-					if (
-						response.status >= 400
-						&& url.includes('/api-proxy/')
-					)
-						console.error('[blockhead:fetch-failed]', response.status, url, stack)
-					return response
+			await installRouteMatrixPage(
+				page,
+				routeDatabaseName('route-matrix', testInfo, index),
+				{
+					logProxyFetchFailures: true,
 				}
-			})
-			const diagnostics = installRoutePageDiagnostics(page)
-			await installBoundaryProbe(page)
-			await installChainlistRpcsJsonStub(page)
-
-			console.log(`[boundary route] ${index + 1}/${routePathnames.length} ${pathname}`)
-			const report = await collectRouteBoundaryReport(page, pathname, diagnostics)
-			await attachClientTraceArtifact(page, testInfo, pathname, report)
-			await attachBoundaryArtifacts(testInfo, [report])
-			assertBoundaryReports([report])
+			)
+			console.log(`[route matrix] ${index + 1}/${routePathnames.length} ${pathname}`)
+			await visitRouteMatrix(page, testInfo, pathname)
 		})
 	}
 
-	test('route discovery produced boundary cases', () => {
+	test('route discovery produced matrix cases', () => {
+		test.skip(failFast, 'E2E_FAILFAST skips per-route matrix')
 		test.skip(probePath != null && probePath !== '', 'E2E_PROBE_PATH skips full matrix')
+		if (routeDiscoveryError instanceof Error)
+			throw routeDiscoveryError
+		if (routeDiscoveryError != null)
+			throw new Error(String(routeDiscoveryError))
 		expect(routePathnames.length).toBeGreaterThan(0)
 	})
 })
