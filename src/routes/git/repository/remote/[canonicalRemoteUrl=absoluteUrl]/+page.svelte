@@ -12,12 +12,10 @@
 
 	// State
 	let {
-		params,
+		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.GitRepository, {
-		canonicalRemoteUrl: decodeURIComponent(params.canonicalRemoteUrl),
-	}, {
+	const pageSelection = $derived(select(EntityType.GitRepository, data.selector, {
 		fields: {
 			repositoryId: true,
 		},
@@ -31,7 +29,7 @@
 
 
 <svelte:head>
-	<title>{pageSelection.entity == null ? (pageSelection.entitySelector.canonicalRemoteUrl ?? '') || 'Git repository' : [pageSelection.entity.repositoryId, (pageSelection.entitySelector.canonicalRemoteUrl ?? '')].filter(Boolean).join(' ') || 'Git repository'} • Git repository • Blockhead</title>
+	<title>{data.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.canonicalRemoteUrl ?? '') || 'Git repository' : [pageSelection.entity.repositoryId, (pageSelection.entitySelector.canonicalRemoteUrl ?? '')].filter(Boolean).join(' ') || 'Git repository')} • Git repository • Blockhead</title>
 </svelte:head>
 
 

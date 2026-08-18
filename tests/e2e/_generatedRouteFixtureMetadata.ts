@@ -13381,16 +13381,6 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
-	'/git/repository/id/[repositoryId]/commit/[commitObjectId]/path/[path]': {
-		routeId: '/git/repository/id/[repositoryId=stringSegment]/(gitRepository)/commit/[commitObjectId=zeroExHex]/path/[path=stringSegment]',
-		mappings: [
-			{
-				id: 'GitTreePathResolution.RepositoryCommitObjectIdPath',
-				probeAtomPrefixes: ['/git/repository/id/[repositoryId]/commit/[commitObjectId]/path/[path]:GitTreePathResolution.RepositoryCommitObjectIdPath'],
-				probeCases: [[[0, '1', ['commitObjectId', 'path', 'repositoryId']]]],
-			},
-		],
-	},
 	'/git/repository/id/[repositoryId]/ref-update/[refName]/[oldObjectId]/[newObjectId]': {
 		routeId: '/git/repository/id/[repositoryId=stringSegment]/(gitRepository)/ref-update/[refName=stringSegment]/[oldObjectId=zeroExHex]/[newObjectId=zeroExHex]',
 		mappings: [
@@ -13451,6 +13441,19 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				id: 'GitRepository.CanonicalRemoteUrl',
 				probeAtomPrefixes: ['/git/repository/remote/[canonicalRemoteUrl]:GitRepository.CanonicalRemoteUrl'],
 				probeCases: [[[0, '1', ['canonicalRemoteUrl']]]],
+			},
+		],
+	},
+	'/git/repository/remote/[canonicalRemoteUrl]/commit/[commitObjectId]/path/[path]': {
+		routeId: '/git/repository/remote/[canonicalRemoteUrl=absoluteUrl]/(gitRepository)/commit/[commitObjectId=zeroExHex]/path/[path=stringSegment]',
+		parameterEncodingByName: {
+			canonicalRemoteUrl: 'Opaque',
+		},
+		mappings: [
+			{
+				id: 'GitTreePathResolution.RepositoryCommitObjectIdPath',
+				probeAtomPrefixes: ['/git/repository/remote/[canonicalRemoteUrl]/commit/[commitObjectId]/path/[path]:GitTreePathResolution.RepositoryCommitObjectIdPath'],
+				probeCases: [[[0, '1', ['commitObjectId', 'path', 'canonicalRemoteUrl']]]],
 			},
 		],
 	},

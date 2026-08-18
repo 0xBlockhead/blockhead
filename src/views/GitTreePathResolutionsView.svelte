@@ -43,11 +43,11 @@
 			entityType={EntityType.GitTreePathResolution}
 			entitySelector={gitTreePathResolutionSelector}
 			href={
-				'repositoryId' in gitTreePathResolutionSelector.$repository ?
+				'canonicalRemoteUrl' in gitTreePathResolutionSelector.$repository ?
 					resolve(
-						'/git/repository/id/[repositoryId=stringSegment]/(gitRepository)/commit/[commitObjectId=zeroExHex]/path/[path=stringSegment]',
+						'/git/repository/remote/[canonicalRemoteUrl=absoluteUrl]/(gitRepository)/commit/[commitObjectId=zeroExHex]/path/[path=stringSegment]',
 						{
-							repositoryId: gitTreePathResolutionSelector.$repository.repositoryId,
+							canonicalRemoteUrl: encodeURIComponent(gitTreePathResolutionSelector.$repository.canonicalRemoteUrl),
 							commitObjectId: gitTreePathResolutionSelector.commitObjectId,
 							path: gitTreePathResolutionSelector.path,
 						}

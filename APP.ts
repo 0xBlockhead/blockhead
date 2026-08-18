@@ -95949,7 +95949,23 @@ export const routes = defineRoutes(schema)({
 													}
 												}
 											}
-										},
+										}
+									}
+								}
+							}
+						},
+						"remote": {
+							children: {
+								"[canonicalRemoteUrl]": {
+									selectors: {
+										[EntityType.GitRepository]: {
+											"CanonicalRemoteUrl": {
+												params: { "canonicalRemoteUrl": ["canonicalRemoteUrl"] },
+												page: {},
+											}
+										}
+									},
+									children: {
 										"commit": {
 											children: {
 												"[commitObjectId]": {
@@ -95970,20 +95986,6 @@ export const routes = defineRoutes(schema)({
 														}
 													}
 												}
-											}
-										}
-									}
-								}
-							}
-						},
-						"remote": {
-							children: {
-								"[canonicalRemoteUrl]": {
-									selectors: {
-										[EntityType.GitRepository]: {
-											"CanonicalRemoteUrl": {
-												params: { "canonicalRemoteUrl": ["canonicalRemoteUrl"] },
-												page: {},
 											}
 										}
 									}

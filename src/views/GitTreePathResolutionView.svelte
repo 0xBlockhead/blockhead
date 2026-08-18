@@ -46,11 +46,11 @@
 	href={
 		href === undefined ?
 			(
-				'repositoryId' in selection.entitySelector.$repository ?
+				'canonicalRemoteUrl' in selection.entitySelector.$repository ?
 					resolve(
-						'/git/repository/id/[repositoryId=stringSegment]/(gitRepository)/commit/[commitObjectId=zeroExHex]/path/[path=stringSegment]',
+						'/git/repository/remote/[canonicalRemoteUrl=absoluteUrl]/(gitRepository)/commit/[commitObjectId=zeroExHex]/path/[path=stringSegment]',
 						{
-							repositoryId: selection.entitySelector.$repository.repositoryId,
+							canonicalRemoteUrl: encodeURIComponent(selection.entitySelector.$repository.canonicalRemoteUrl),
 							commitObjectId: selection.entitySelector.commitObjectId,
 							path: selection.entitySelector.path,
 						}
