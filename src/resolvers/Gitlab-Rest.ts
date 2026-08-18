@@ -193,15 +193,18 @@ const gitlabCollectionContinuation = ({
 	rowCount,
 	stream,
 	streams,
+	target,
 }: {
 	page: number
 	perPage: number
 	rowCount: number
 	stream: string
 	streams: readonly [string, ...string[]]
+	target: string
 }) => {
 	if (perPage !== 0 && rowCount === perPage)
 		return {
+			target,
 			terminal: false as const,
 			token: `${stream}:${page + 1}`,
 		}
@@ -210,11 +213,15 @@ const gitlabCollectionContinuation = ({
 	return (
 		streamIndex >= 0 && streamIndex < streams.length - 1 ?
 			{
+				target,
 				terminal: false as const,
 				token: `${streams[streamIndex + 1]}:1`,
 			}
 		:
-			{ terminal: true as const }
+			{
+				target,
+				terminal: true as const,
+			}
 	)
 }
 
@@ -492,8 +499,9 @@ export default {
 					page,
 					perPage,
 					pipelines,
-				}) => ({
+				}, mirror) => ({
 					operation: 'gitlab-pipelines',
+					target: `${mirror.owner}/${mirror.repositoryName}`,
 					terminal: perPage === 0 || pipelines.length < perPage,
 					...(pipelines.length === perPage && { token: String(page + 1) }),
 				}),
@@ -563,8 +571,9 @@ export default {
 					issues,
 					page,
 					perPage,
-				}) => ({
+				}, mirror) => ({
 					operation: 'gitlab-issues',
+					target: `${mirror.owner}/${mirror.repositoryName}`,
 					terminal: perPage === 0 || issues.length < perPage,
 					...(issues.length === perPage && { token: String(page + 1) }),
 				}),
@@ -636,8 +645,9 @@ export default {
 					mergeRequests,
 					page,
 					perPage,
-				}) => ({
+				}, mirror) => ({
 					operation: 'gitlab-merge-requests',
+					target: `${mirror.owner}/${mirror.repositoryName}`,
 					terminal: perPage === 0 || mergeRequests.length < perPage,
 					...(mergeRequests.length === perPage && { token: String(page + 1) }),
 				}),
@@ -696,8 +706,9 @@ export default {
 					releases,
 					page,
 					perPage,
-				}) => ({
+				}, mirror) => ({
 					operation: 'gitlab-releases',
+					target: `${mirror.owner}/${mirror.repositoryName}`,
 					terminal: perPage === 0 || releases.length < perPage,
 					...(releases.length === perPage && { token: String(page + 1) }),
 				}),
@@ -755,8 +766,9 @@ export default {
 					protectedBranches,
 					page,
 					perPage,
-				}) => ({
+				}, mirror) => ({
 					operation: 'gitlab-protected-branches',
+					target: `${mirror.owner}/${mirror.repositoryName}`,
 					terminal: perPage === 0 || protectedBranches.length < perPage,
 					...(protectedBranches.length === perPage && { token: String(page + 1) }),
 				}),
@@ -909,6 +921,7 @@ export default {
 					}
 				}),
 				continuation: ({
+					canonicalRemoteUrl,
 					page,
 					perPage,
 					refs,
@@ -921,6 +934,7 @@ export default {
 						rowCount: refs.length,
 						stream,
 						streams: ['heads', 'tags'],
+						target: canonicalRemoteUrl,
 					}),
 				}),
 			},
@@ -1007,6 +1021,7 @@ export default {
 					},
 				})),
 				continuation: ({
+					canonicalRemoteUrl,
 					objects,
 					page,
 					perPage,
@@ -1019,6 +1034,7 @@ export default {
 						rowCount: objects.length,
 						stream,
 						streams: ['commits', 'tree'],
+						target: canonicalRemoteUrl,
 					}),
 				}),
 			},
@@ -1552,8 +1568,9 @@ export default {
 					notes,
 					page,
 					perPage,
-				}) => ({
+				}, issue) => ({
 					operation: 'gitlab-issue-notes',
+					target: String(issue.issueNumber),
 					terminal: perPage === 0 || notes.length < perPage,
 					...(notes.length === perPage && { token: String(page + 1) }),
 				}),
@@ -1781,8 +1798,9 @@ export default {
 					notes,
 					page,
 					perPage,
-				}) => ({
+				}, pullRequest) => ({
 					operation: 'gitlab-merge-request-notes',
+					target: String(pullRequest.pullRequestNumber),
 					terminal: perPage === 0 || notes.length < perPage,
 					...(notes.length === perPage && { token: String(page + 1) }),
 				}),

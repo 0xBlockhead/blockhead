@@ -545,16 +545,19 @@ describe('GitLab repository journey', () => {
 		expect(getReleases).toHaveBeenCalledWith(expect.objectContaining({ page: 1, perPage: 1 }))
 		expect(mirrorIssuesResolver.projections.$$issues.continuation?.(issuePage, selector, pageContext)).toEqual({
 			operation: 'gitlab-issues',
+			target: 'gitlab-org/gitlab',
 			terminal: false,
 			token: '2',
 		})
 		expect(mirrorPullRequestsResolver.projections.$$pullRequests.continuation?.(pullRequestPage, selector, pageContext)).toEqual({
 			operation: 'gitlab-merge-requests',
+			target: 'gitlab-org/gitlab',
 			terminal: false,
 			token: '2',
 		})
 		expect(mirrorReleasesResolver.projections.$$releases.continuation?.(releasePage, selector, pageContext)).toEqual({
 			operation: 'gitlab-releases',
+			target: 'gitlab-org/gitlab',
 			terminal: false,
 			token: '2',
 		})
@@ -628,6 +631,7 @@ describe('GitLab repository journey', () => {
 		})
 		expect(mirrorPipelinesResolver.projections.$$pipelines.continuation?.(pipelinePage, mirror, context)).toEqual({
 			operation: 'gitlab-pipelines',
+			target: 'gitlab-org/gitlab',
 			terminal: false,
 			token: '2',
 		})
@@ -749,6 +753,7 @@ describe('GitLab repository journey', () => {
 		})
 		expect(repositoryRefsResolver.projections.$$refs.continuation?.(branchPage, selector, pageContext)).toEqual({
 			operation: 'gitlab-refs',
+			target: project.http_url_to_repo,
 			terminal: false,
 			token: 'heads:2',
 		})
@@ -790,6 +795,7 @@ describe('GitLab repository journey', () => {
 		})
 		expect(repositoryRefsResolver.projections.$$refs.continuation?.(tagPage, selector, tagContext)).toEqual({
 			operation: 'gitlab-refs',
+			target: project.http_url_to_repo,
 			terminal: true,
 		})
 		expect(getBranches).toHaveBeenCalledWith({
@@ -836,6 +842,7 @@ describe('GitLab repository journey', () => {
 		])
 		expect(repositoryObjectsResolver.projections.$$objects.continuation?.(commitPage, selector, pageContext)).toEqual({
 			operation: 'gitlab-objects',
+			target: project.http_url_to_repo,
 			terminal: false,
 			token: 'commits:2',
 		})
@@ -1482,6 +1489,7 @@ describe('GitLab repository journey', () => {
 		expect(listProtectedBranches).toHaveBeenCalledWith(expect.objectContaining({ page: 1, perPage: 2 }))
 		expect(mirrorProtectedBranchesResolver.projections.$$protectedBranches.continuation?.(protectedBranchPage, selector, pageContext)).toEqual({
 			operation: 'gitlab-protected-branches',
+			target: 'gitlab-org/gitlab',
 			terminal: false,
 			token: '2',
 		})
@@ -1630,6 +1638,12 @@ describe('GitLab repository journey', () => {
 				[entityFieldAddressKey(EntityType.GitForgeIssueNote, [], 'system')]: false,
 			},
 		}])
+		expect(issueNotesResolver.projections.$$notes.continuation?.(issueNotes, issueSelector, context)).toEqual({
+			operation: 'gitlab-issue-notes',
+			target: '12',
+			terminal: false,
+			token: '2',
+		})
 		expect(pullRequestNotesResolver.projections.$$notes.select(pullRequestNotes, pullRequestSelector, context)).toMatchObject([{
 			[EntityMetaKey.Selector]: { noteId: 404 },
 			[EntityMetaKey.Fields]: {
@@ -1639,6 +1653,12 @@ describe('GitLab repository journey', () => {
 				[entityFieldAddressKey(EntityType.GitForgePullRequestNote, [], 'newLine')]: 12,
 			},
 		}])
+		expect(pullRequestNotesResolver.projections.$$notes.continuation?.(pullRequestNotes, pullRequestSelector, context)).toEqual({
+			operation: 'gitlab-merge-request-notes',
+			target: '34',
+			terminal: false,
+			token: '2',
+		})
 		expect(releaseLinksResolver.projections.$$links.select(releaseLinks, releaseSelector, context)).toMatchObject([{
 			[EntityMetaKey.Selector]: { linkId: 9 },
 			[EntityMetaKey.Fields]: {
