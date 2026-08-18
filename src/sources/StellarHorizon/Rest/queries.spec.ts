@@ -219,7 +219,7 @@ describe('Stellar Horizon account transport', () => {
 
 	it('loads bounded payment and operation pages with account ownership proof', async () => {
 		getJson.mockResolvedValueOnce(page([{
-			id: 'payment-id',
+			id: '273998503801384961',
 			paging_token: '101',
 			transaction_hash: 'a'.repeat(64),
 			type: 'payment',
@@ -233,7 +233,7 @@ describe('Stellar Horizon account transport', () => {
 		await expect(getAccountPayments(accountId, 25, '100')).resolves.toMatchObject({
 			_embedded: {
 				records: [{
-					id: 'payment-id',
+					id: '273998503801384961',
 				}],
 			},
 		})
@@ -243,7 +243,7 @@ describe('Stellar Horizon account transport', () => {
 		)
 
 		getJson.mockResolvedValueOnce(page([{
-			id: 'operation-id',
+			id: '273998503801384962',
 			paging_token: '102',
 			transaction_hash: 'b'.repeat(64),
 			type: 'manage_data',

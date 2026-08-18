@@ -36,6 +36,14 @@ export default entity({
 		entityType: EntityType.StellarTransaction,
 		cardinality: EntityFieldCardinality.Many,
 	},
+	$$operations: {
+		entityType: EntityType.StellarOperation,
+		cardinality: EntityFieldCardinality.Many,
+	},
+	$$payments: {
+		entityType: EntityType.StellarOperation,
+		cardinality: EntityFieldCardinality.Many,
+	},
 	$$signers: {
 		entityType: EntityType.StellarAccountSigner,
 		cardinality: EntityFieldCardinality.Many,

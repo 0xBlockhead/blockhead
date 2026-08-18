@@ -64,6 +64,14 @@ const ledgerOperationsResolver = stellarHorizonResolvers.resolvers.find((resolve
 	resolver.entityType === EntityType.StellarLedger
 	&& '$$operations' in resolver.projections
 ))
+const accountOperationsResolver = stellarHorizonResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.StellarAccount
+	&& '$$operations' in resolver.projections
+))
+const accountPaymentsResolver = stellarHorizonResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.StellarAccount
+	&& '$$payments' in resolver.projections
+))
 const ledgerEffectsResolver = stellarHorizonResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.StellarLedger
 	&& '$$effects' in resolver.projections
@@ -81,11 +89,13 @@ if (
 	|| offerTradesResolver == null
 	|| offerTimestampResolver == null
 	|| ledgerOperationsResolver == null
+	|| accountOperationsResolver == null
+	|| accountPaymentsResolver == null
 	|| ledgerEffectsResolver == null
 	|| transactionEffectsResolver == null
 	|| stellarEffectResolver == null
 )
-	throw new Error('Stellar Horizon spec missing direct offer, ledger-operation, or effect resolvers')
+	throw new Error('Stellar Horizon spec missing direct offer, ledger-operation, account-operation, or effect resolvers')
 
 const accountId = `G${'A'.repeat(55)}`
 const otherAccountId = `G${'B'.repeat(55)}`
@@ -343,6 +353,112 @@ describe('Stellar Horizon public-account resolver', () => {
 		})
 		expect(getJson.mock.calls[0][1]).toBe(
 			`/accounts/${accountId}/transactions?limit=2&order=desc`
+		)
+	})
+
+	it('materializes account operations and payments as StellarOperation refs', async () => {
+		getJson.mockResolvedValueOnce(page([{
+			id: '273998503801384961',
+			paging_token: '273998503801384961',
+			transaction_successful: true,
+			source_account: accountId,
+			type: 'manage_data',
+			type_i: 10,
+			created_at: '2026-07-22T00:00:00Z',
+			transaction_hash: 'a'.repeat(64),
+		}]))
+		const operationSnapshot = await accountOperationsResolver.resolve.NetworkAccountId.resolve(
+			account,
+			context
+		)
+
+		expect(accountOperationsResolver.projections.$$operations.select(
+			operationSnapshot,
+			account,
+			context
+		)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$transaction: {
+					$network: account.$network,
+					hash: 'a'.repeat(64),
+				},
+				operationIndex: 1,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.StellarOperation, [], 'operationType')]: 'manage_data',
+				[entityFieldAddressKey(EntityType.StellarOperation, [], 'sourceAccount')]: accountId,
+				[entityFieldAddressKey(EntityType.StellarOperation, [], 'resultCode')]: 'successful',
+			},
+		}])
+		expect(accountOperationsResolver.projections.$$operations.continuation(
+			operationSnapshot,
+			account,
+			context
+		)).toEqual({
+			operation: 'account-operations',
+			target: accountId,
+			terminal: true,
+		})
+		expect(getJson).toHaveBeenLastCalledWith(
+			expect.anything(),
+			`/accounts/${accountId}/operations?limit=2&order=desc`
+		)
+
+		getJson.mockResolvedValueOnce(page([{
+			id: '273998503801384962',
+			paging_token: '273998503801384962',
+			transaction_successful: true,
+			source_account: accountId,
+			type: 'payment',
+			type_i: 1,
+			created_at: '2026-07-22T00:00:00Z',
+			transaction_hash: 'b'.repeat(64),
+			from: accountId,
+			to: otherAccountId,
+			amount: '1.0000000',
+			asset_type: 'native',
+		}]))
+		const paymentSnapshot = await accountPaymentsResolver.resolve.NetworkAccountId.resolve(
+			account,
+			context
+		)
+
+		expect(accountPaymentsResolver.projections.$$payments.select(
+			paymentSnapshot,
+			account,
+			context
+		)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$transaction: {
+					$network: account.$network,
+					hash: 'b'.repeat(64),
+				},
+				operationIndex: 2,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.StellarOperation, [], 'operationType')]: 'payment',
+				[entityFieldAddressKey(EntityType.StellarOperation, [], 'sourceAccount')]: accountId,
+				[entityFieldAddressKey(EntityType.StellarOperation, [], 'body')]: {
+					from: accountId,
+					to: otherAccountId,
+					amount: '1.0000000',
+					asset_type: 'native',
+				},
+				[entityFieldAddressKey(EntityType.StellarOperation, [], 'resultCode')]: 'successful',
+			},
+		}])
+		expect(accountPaymentsResolver.projections.$$payments.continuation(
+			paymentSnapshot,
+			account,
+			context
+		)).toEqual({
+			operation: 'account-payments',
+			target: accountId,
+			terminal: true,
+		})
+		expect(getJson).toHaveBeenLastCalledWith(
+			expect.anything(),
+			`/accounts/${accountId}/payments?limit=2&order=desc`
 		)
 	})
 

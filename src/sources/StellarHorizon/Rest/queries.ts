@@ -626,6 +626,9 @@ export const getAccountPayments = async (
 	for (const payment of page._embedded.records) {
 		if (!touchesAccount(payment, accountId))
 			throw new Error('StellarHorizon_Rest: payment page contains a foreign account row')
+		if (!/^[0-9a-f]{64}$/.test(payment.transaction_hash))
+			throw new Error('StellarHorizon_Rest: operation is missing transaction identity')
+		operationIndexFromHorizonId(payment.id)
 		if (payment.amount != null)
 			assertAmount(payment.amount, 'payment amount')
 		if (payment.asset_issuer != null)
@@ -650,9 +653,10 @@ export const getAccountOperations = async (
 	for (const operation of page._embedded.records) {
 		if (!touchesAccount(operation, accountId))
 			throw new Error('StellarHorizon_Rest: operation page contains a foreign account row')
-		if (operation.transaction_hash.length === 0)
+		if (!/^[0-9a-f]{64}$/.test(operation.transaction_hash))
 			throw new Error('StellarHorizon_Rest: operation is missing transaction identity')
 		assertUnsignedInteger(operation.type_i, 'operation type index')
+		operationIndexFromHorizonId(operation.id)
 	}
 	return page
 }

@@ -56790,6 +56790,18 @@ export const schema = {
 					entityType: EntityType.StellarTransaction,
 					cardinality: EntityFieldCardinality.Many,
 				},
+				"$$operations": {
+					label: 'operations',
+					type: EntityFieldType.EntitiesReference,
+					entityType: EntityType.StellarOperation,
+					cardinality: EntityFieldCardinality.Many,
+				},
+				"$$payments": {
+					label: 'payments',
+					type: EntityFieldType.EntitiesReference,
+					entityType: EntityType.StellarOperation,
+					cardinality: EntityFieldCardinality.Many,
+				},
 				"$$signers": {
 					label: 'signers',
 					type: EntityFieldType.EntitiesReference,
@@ -56820,6 +56832,8 @@ export const schema = {
 									{ id: "stellar-account-trustlines", field: "$$trustlines", List: "StellarTrustlinesView", label: "Trustlines", emptyText: "No trustlines." },
 									{ id: "stellar-account-offers", field: "$$offers", List: "StellarOffersView", label: "Offers", emptyText: "No offers." },
 									{ id: "stellar-account-trades", field: "$$trades", List: "StellarTradesView", label: "Trades", emptyText: "No trades." },
+									{ id: "stellar-account-operations", field: "$$operations", List: "StellarOperationsView", label: "Operations", emptyText: "No operations." },
+									{ id: "stellar-account-payments", field: "$$payments", List: "StellarOperationsView", label: "Payments", emptyText: "No payments." },
 								],
 							},
 							{

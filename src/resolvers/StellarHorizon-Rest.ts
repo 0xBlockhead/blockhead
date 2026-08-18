@@ -1151,6 +1151,96 @@ export default {
 		}),
 
 		defineResolver({
+			entityType: EntityType.StellarAccount,
+			resolve: {
+				NetworkAccountId: {
+					resolve: async (account, context) => {
+						assertStellarPublicNetwork(account.$network)
+						const limit = Math.min(resolverContextRowLimit(context), 200)
+						const {
+							getAccountOperations,
+							operationIndexFromHorizonId,
+						} = await import('$/sources/StellarHorizon/Rest/queries.ts')
+						return {
+							limit,
+							operationIndexFromHorizonId,
+							page: await getAccountOperations(
+								account.accountId,
+								limit,
+								context.providerContinuationToken
+							),
+						}
+					},
+				},
+			},
+		})({
+			$$operations: {
+				select: ({ page, operationIndexFromHorizonId }, account) => (
+					page._embedded.records.map((operation) => (
+						operationFromWire(
+							account.$network,
+							operation,
+							operationIndexFromHorizonId
+						)
+					))
+				),
+				continuation: ({ limit, page }, account) => (
+					stellarContinuation(
+						'account-operations',
+						account.accountId,
+						limit,
+						page._embedded.records
+					)
+				),
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.StellarAccount,
+			resolve: {
+				NetworkAccountId: {
+					resolve: async (account, context) => {
+						assertStellarPublicNetwork(account.$network)
+						const limit = Math.min(resolverContextRowLimit(context), 200)
+						const {
+							getAccountPayments,
+							operationIndexFromHorizonId,
+						} = await import('$/sources/StellarHorizon/Rest/queries.ts')
+						return {
+							limit,
+							operationIndexFromHorizonId,
+							page: await getAccountPayments(
+								account.accountId,
+								limit,
+								context.providerContinuationToken
+							),
+						}
+					},
+				},
+			},
+		})({
+			$$payments: {
+				select: ({ page, operationIndexFromHorizonId }, account) => (
+					page._embedded.records.map((payment) => (
+						operationFromWire(
+							account.$network,
+							payment,
+							operationIndexFromHorizonId
+						)
+					))
+				),
+				continuation: ({ limit, page }, account) => (
+					stellarContinuation(
+						'account-payments',
+						account.accountId,
+						limit,
+						page._embedded.records
+					)
+				),
+			},
+		}),
+
+		defineResolver({
 			entityType: EntityType.StellarLedger,
 			resolve: {
 				NetworkSequence: {

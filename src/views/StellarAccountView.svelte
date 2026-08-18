@@ -33,6 +33,7 @@
 	import StellarTrustlinesView from '$/views/StellarTrustlinesView.svelte'
 	import StellarOffersView from '$/views/StellarOffersView.svelte'
 	import StellarTradesView from '$/views/StellarTradesView.svelte'
+	import StellarOperationsView from '$/views/StellarOperationsView.svelte'
 	import StellarTransactionsView from '$/views/StellarTransactionsView.svelte'
 	import StellarAccountSignersView from '$/views/StellarAccountSignersView.svelte'
 	import StellarAccount_TimestampsView from '$/views/StellarAccount_TimestampsView.svelte'
@@ -103,6 +104,14 @@
 						id: 'stellar-account-trades',
 						label: 'Trades',
 					},
+					{
+						id: 'stellar-account-operations',
+						label: 'Operations',
+					},
+					{
+						id: 'stellar-account-payments',
+						label: 'Payments',
+					},
 				]
 			}
 			data-card
@@ -140,6 +149,26 @@
 					collapsible={false}
 					title={label}
 					emptyText='No trades.'
+					id={`${id}-list`}
+				/>
+			{/snippet}
+
+			{#snippet SectionStellarAccountOperations({ id, label })}
+				<StellarOperationsView
+					selection={selection.$$operations}
+					collapsible={false}
+					title={label}
+					emptyText='No operations.'
+					id={`${id}-list`}
+				/>
+			{/snippet}
+
+			{#snippet SectionStellarAccountPayments({ id, label })}
+				<StellarOperationsView
+					selection={selection.$$payments}
+					collapsible={false}
+					title={label}
+					emptyText='No payments.'
 					id={`${id}-list`}
 				/>
 			{/snippet}
