@@ -907,8 +907,14 @@ describe('Blockscout account-abstraction queries', () => {
 		})
 		expect(fetchMock).toHaveBeenCalledWith(
 			expect.stringContaining(`transaction_hash=${hex('a', 64)}`),
-			expect.any(Object)
+			expect.objectContaining({
+				headers: {
+					accept: 'application/json',
+				},
+			})
 		)
+		expect(fetchMock.mock.calls[0]?.[1]?.method).toBeUndefined()
+		expect(fetchMock.mock.calls[0]?.[1]?.body).toBeUndefined()
 
 		await expect(getUserOperationsPage({
 			chainId: 1,
@@ -950,8 +956,14 @@ describe('Blockscout account-abstraction queries', () => {
 		expect(fetchMock).toHaveBeenNthCalledWith(
 			1,
 			expect.stringContaining(`bundler=${hex('c', 40)}`),
-			expect.any(Object)
+			expect.objectContaining({
+				headers: {
+					accept: 'application/json',
+				},
+			})
 		)
+		expect(fetchMock.mock.calls[0]?.[1]?.method).toBeUndefined()
+		expect(fetchMock.mock.calls[0]?.[1]?.body).toBeUndefined()
 
 		await expect(getErc4337SmartAccountList({
 			chainId: 1,
@@ -969,8 +981,14 @@ describe('Blockscout account-abstraction queries', () => {
 		expect(fetchMock).toHaveBeenNthCalledWith(
 			2,
 			expect.stringContaining(`factory=${hex('d', 40)}`),
-			expect.any(Object)
+			expect.objectContaining({
+				headers: {
+					accept: 'application/json',
+				},
+			})
 		)
+		expect(fetchMock.mock.calls[1]?.[1]?.method).toBeUndefined()
+		expect(fetchMock.mock.calls[1]?.[1]?.body).toBeUndefined()
 	})
 
 	it('rejects address transactions that do not involve the requested address', async () => {
