@@ -66,8 +66,15 @@ describe('Coinpaprika coin queries', () => {
 			expect.stringContaining(encodeURIComponent(
 				'https://api.coinpaprika.com/v1/tickers?quotes=USD'
 			)),
-			expect.any(Object)
+			expect.objectContaining({
+				headers: {
+					Accept: 'application/json',
+				},
+			})
 		)
+		expect(fetchMock.mock.calls[0]?.[1]?.method).toBeUndefined()
+		expect(fetchMock.mock.calls[0]?.[1]?.body).toBeUndefined()
+		expect(fetchMock.mock.calls[0]?.[1]?.headers).not.toHaveProperty('Authorization')
 	})
 
 	it('loads a single ticker by coin id through the registered browser proxy transport', async () => {
@@ -198,15 +205,27 @@ describe('Coinpaprika coin queries', () => {
 			expect.stringContaining(encodeURIComponent(
 				'https://api.coinpaprika.com/v1/coins/btc%2Fbitcoin/markets?quotes=USD'
 			)),
-			expect.any(Object)
+			expect.objectContaining({
+				headers: {
+					Accept: 'application/json',
+				},
+			})
 		)
 		expect(fetchMock).toHaveBeenNthCalledWith(
 			2,
 			expect.stringContaining(encodeURIComponent(
 				'https://api.coinpaprika.com/v1/exchanges/binance%2Fus/markets?quotes=USD'
 			)),
-			expect.any(Object)
+			expect.objectContaining({
+				headers: {
+					Accept: 'application/json',
+				},
+			})
 		)
+		expect(fetchMock.mock.calls[0]?.[1]?.method).toBeUndefined()
+		expect(fetchMock.mock.calls[0]?.[1]?.body).toBeUndefined()
+		expect(fetchMock.mock.calls[1]?.[1]?.method).toBeUndefined()
+		expect(fetchMock.mock.calls[1]?.[1]?.body).toBeUndefined()
 	})
 
 	it('accepts ticker and market leftover legs used only as transport', async () => {
