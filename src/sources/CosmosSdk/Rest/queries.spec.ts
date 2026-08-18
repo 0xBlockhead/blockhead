@@ -101,7 +101,14 @@ describe('Cosmos SDK GetTxsEvent transport', () => {
 		})
 		expect(getJson).toHaveBeenCalledWith(
 			'https://rest.cosmos.directory/cosmoshub/cosmos/tx/v1beta1/txs?events=message.sender%3D%27cosmos1sender%27&order_by=ORDER_BY_DESC&page=2&limit=16',
-			expect.any(Object)
+			{
+				origins: [
+					{
+						origin: 'https://rest.cosmos.directory',
+						corsEnabled: true,
+					},
+				],
+			}
 		)
 	})
 
@@ -176,7 +183,14 @@ describe('Cosmos SDK validator transport', () => {
 		})).resolves.toEqual({ validators: [], pagination: {} })
 		expect(getJson).toHaveBeenCalledWith(
 			'https://rest.cosmos.directory/cosmoshub/cosmos/staking/v1beta1/validators?pagination.limit=16&pagination.count_total=true&status=BOND_STATUS_BONDED',
-			expect.any(Object)
+			{
+				origins: [
+					{
+						origin: 'https://rest.cosmos.directory',
+						corsEnabled: true,
+					},
+				],
+			}
 		)
 	})
 })
