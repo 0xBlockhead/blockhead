@@ -83,10 +83,12 @@ test('preserves a registered feed URL path, query, and reserved values', async (
 		' https://hnrss.org/frontpage?target=https%3A%2F%2Fexample.com%2Fa%3Fx%3D1%26y%3D2&label=a%2Bb%23c '
 	)
 
+	expect(sourceFetch).toHaveBeenCalledOnce()
 	expect(sourceFetch).toHaveBeenCalledWith(
-		expect.any(Object),
+		hnrssBinding,
 		'https://hnrss.org/frontpage?target=https%3A%2F%2Fexample.com%2Fa%3Fx%3D1%26y%3D2&label=a%2Bb%23c'
 	)
+	expect(sourceFetch.mock.calls[0]?.[2]).toBeUndefined()
 })
 
 test('materializes native enclosure URLs across RSS, Atom, Media RSS, and Podcasting 2.0', async () => {
