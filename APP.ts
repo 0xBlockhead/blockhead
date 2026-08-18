@@ -49901,6 +49901,7 @@ export const schema = {
 							title: [
 								{ field: "timestampMs", format: "timestamp" },
 								"endpointKind",
+								{ field: ["Execution", "peerCount"], format: "numberValue" },
 							],
 							value: [
 								"health",

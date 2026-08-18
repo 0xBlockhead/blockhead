@@ -64,7 +64,7 @@
 							entitySelector={networkEndpointObservationTimestampSelector}
 						>
 							{#snippet Title()}
-								{[String(networkEndpointObservationTimestampSelector.timestampMs), networkEndpointObservationTimestampSelector.endpointKind].filter(Boolean).join(' ') || 'network endpoint observation timestamp'}
+								{[String(networkEndpointObservationTimestampSelector.timestampMs), networkEndpointObservationTimestampSelector.endpointKind, String(executionPeerCount0 ?? '')].filter(Boolean).join(' ') || 'network endpoint observation timestamp'}
 							{/snippet}
 
 							{#snippet Value()}
