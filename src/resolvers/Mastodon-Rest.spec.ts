@@ -580,6 +580,36 @@ describe('Mastodon ActivityPub observations', () => {
 		expect(listInstanceModeratedDomains).toHaveBeenCalledTimes(1)
 	})
 
+	it('omits undisclosed moderated domains without masking the instance snapshot', async () => {
+		getInstance.mockResolvedValueOnce({
+			title: 'Available metadata',
+			version: '4.3.1',
+		})
+		listInstancePeerDomains.mockResolvedValueOnce(['peer.example'])
+		listInstanceModeratedDomains.mockRejectedValueOnce(new Error('domain blocks undisclosed'))
+
+		const [observation] = await resolver(
+			EntityType.ActivityPubInstance,
+			'$$timestamps'
+		).resolve['InstanceOrigin'].resolve({
+			instanceOrigin: 'https://mastodon.social',
+		}, context)
+
+		const moderatedDomainsKey = entityFieldAddressKey(
+			EntityType.ActivityPubInstance_Timestamp,
+			[],
+			'$$moderatedDomains'
+		)
+		expect(observation[EntityMetaKey.Fields]).not.toHaveProperty(moderatedDomainsKey)
+		expect(Object.values(observation[EntityMetaKey.Fields])).toContainEqual([
+			expect.objectContaining({
+				[EntityMetaKey.Selector]: expect.objectContaining({
+					peerDomain: 'peer.example',
+				}),
+			}),
+		])
+	})
+
 	it('does not mask required instance metadata failure', async () => {
 		getInstance.mockRejectedValueOnce(new Error('instance metadata unavailable'))
 		listInstancePeerDomains.mockResolvedValueOnce([])

@@ -748,7 +748,8 @@ export default {
 						const [instance, peerDomains, moderatedDomains] = await Promise.all([
 							getInstance(binding, instanceOrigin),
 							listInstancePeerDomains(binding, instanceOrigin),
-							listInstanceModeratedDomains(binding, instanceOrigin),
+							listInstanceModeratedDomains(binding, instanceOrigin)
+								.catch(() => undefined),
 						])
 						const $instance = { instanceOrigin }
 						const $observation = {
@@ -774,10 +775,11 @@ export default {
 										peerDomain,
 									},
 								})),
-								[entityFieldAddressKey(EntityType.ActivityPubInstance_Timestamp, [], '$$moderatedDomains')]: moderatedDomains.map((domainBlock) => ({
-											[EntityMetaKey.Selector]: {
-												$observation,
-												digest: domainBlock.digest.toLowerCase(),
+								...(moderatedDomains != null && {
+									[entityFieldAddressKey(EntityType.ActivityPubInstance_Timestamp, [], '$$moderatedDomains')]: moderatedDomains.map((domainBlock) => ({
+										[EntityMetaKey.Selector]: {
+											$observation,
+											digest: domainBlock.digest.toLowerCase(),
 											},
 											[EntityMetaKey.Fields]: {
 												[entityFieldAddressKey(EntityType.ActivityPubInstanceModeratedDomain, [], 'domain')]: domainBlock.domain,
@@ -786,7 +788,8 @@ export default {
 													[entityFieldAddressKey(EntityType.ActivityPubInstanceModeratedDomain, [], 'comment')]: domainBlock.comment,
 												}),
 											},
-								})),
+									})),
+								}),
 							},
 						}]
 					},
