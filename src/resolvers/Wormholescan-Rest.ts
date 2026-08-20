@@ -171,6 +171,71 @@ const wormholeCoinInstanceRef = (
 	}
 }
 
+const bridgeTransferObservationsFromOperation = (
+	transfer: EntitySelector<typeof schema, EntityType.BridgeTransfer>,
+	operation: WormholescanOperation
+) => {
+	const sourceTransactionAtMs = timestampMsFromIso(operation.sourceChain?.timestamp)
+	const destinationTransactionAtMs = timestampMsFromIso(operation.targetChain?.timestamp)
+	if (
+		destinationTransactionAtMs == null
+		&& (
+			operation.targetChain?.status != null
+			|| operation.targetChain?.transaction?.txHash != null
+			|| operation.targetChain?.fee != null
+			|| operation.targetChain?.feeUSD != null
+		)
+	)
+		throw new Error('Wormholescan_Rest: destination lifecycle facts lack a destination clock')
+	if (
+		sourceTransactionAtMs != null
+		&& sourceTransactionAtMs === destinationTransactionAtMs
+	)
+		throw new Error('Wormholescan_Rest: source and destination observation clocks collide')
+
+	const sourceObservations = (
+		sourceTransactionAtMs == null ?
+			[]
+		: [{
+			$transfer: {
+				[EntityMetaKey.Selector]: transfer,
+			},
+			timestampMs: sourceTransactionAtMs,
+			source: Source.Wormholescan,
+			...(operation.sourceChain?.status != null && {
+				status: operation.sourceChain.status,
+			}),
+		}]
+	)
+	const destinationTxHash = evmTxHashFromWormholeWire(
+		operation.targetChain?.transaction?.txHash
+	)
+	const fillGasFee = bigintAmountFromWire(operation.targetChain?.fee)
+	const fillGasFeeUsd = nonNegativeUsdFee(operation.targetChain?.feeUSD)
+	const destinationObservations = (
+		destinationTransactionAtMs == null ?
+			[]
+		: [{
+			$transfer: {
+				[EntityMetaKey.Selector]: transfer,
+			},
+			timestampMs: destinationTransactionAtMs,
+			source: Source.Wormholescan,
+			...(operation.targetChain?.status != null && {
+				status: operation.targetChain.status,
+			}),
+			...(destinationTxHash != null && { destinationTxHash }),
+			...(fillGasFee != null && { fillGasFee }),
+			...(fillGasFeeUsd != null && { fillGasFeeUsd }),
+		}]
+	)
+
+	return [
+		...sourceObservations,
+		...destinationObservations,
+	]
+}
+
 const bridgeTransferSnapshotFromOperation = (
 	transfer: EntitySelector<typeof schema, EntityType.BridgeTransfer>,
 	operation: WormholescanOperation
@@ -224,26 +289,13 @@ const bridgeTransferSnapshotFromOperation = (
 	const sourceTransactionAtMs = timestampMsFromIso(operation.sourceChain?.timestamp)
 	const destinationTransactionAtMs = timestampMsFromIso(operation.targetChain?.timestamp)
 	if (
-		destinationTransactionAtMs == null
-		&& (
-			operation.targetChain?.status != null
-			|| operation.targetChain?.transaction?.txHash != null
-			|| operation.targetChain?.fee != null
-			|| operation.targetChain?.feeUSD != null
-		)
-	)
-		throw new Error('Wormholescan_Rest: destination lifecycle facts lack a destination clock')
-	if (
 		sourceTransactionAtMs != null
 		&& destinationTransactionAtMs != null
 		&& destinationTransactionAtMs < sourceTransactionAtMs
 	)
 		throw new Error('Wormholescan_Rest: destination transaction precedes source transaction')
-	const observedAtMs = (
-		timestampMsFromIso(operation.targetChain?.timestamp)
-		?? timestampMsFromIso(operation.sourceChain?.timestamp)
-	)
-	if (observedAtMs == null)
+	const observations = bridgeTransferObservationsFromOperation(transfer, operation)
+	if (observations.length === 0)
 		throw new Error('Wormholescan_Rest: operation missing timestamp')
 
 	return {
@@ -312,13 +364,13 @@ const bridgeTransferSnapshotFromOperation = (
 				transactionLatencyMs: destinationTransactionAtMs - sourceTransactionAtMs,
 			}
 		),
-		$$timestamps: [{
+		$$timestamps: observations.map(({ timestampMs }) => ({
 			[EntityMetaKey.Selector]: {
 				$transfer: transfer,
-				timestampMs: observedAtMs,
+				timestampMs,
 				source: Source.Wormholescan,
 			},
-		}],
+		})),
 	}
 }
 
@@ -452,36 +504,14 @@ export default {
 
 						const operation = await loadOperationForTransfer($transfer)
 						bridgeTransferSnapshotFromOperation($transfer, operation)
-						const observedAtMs = (
-							timestampMsFromIso(operation.targetChain?.timestamp)
-							?? timestampMsFromIso(operation.sourceChain?.timestamp)
-						)
-						if (observedAtMs == null)
-							throw new Error('Wormholescan_Rest: operation missing timestamp')
-						if (observedAtMs !== timestampMs)
+						const observation = bridgeTransferObservationsFromOperation(
+							$transfer,
+							operation
+						).find((candidate) => candidate.timestampMs === timestampMs)
+						if (observation == null)
 							throw new Error('Wormholescan_Rest: observation clock mismatch')
 
-						const destinationTxHash = evmTxHashFromWormholeWire(
-							operation.targetChain?.transaction?.txHash
-						)
-						const status = (
-							operation.targetChain?.status
-							?? operation.sourceChain?.status
-						)
-						const fillGasFee = bigintAmountFromWire(operation.targetChain?.fee)
-						const fillGasFeeUsd = nonNegativeUsdFee(operation.targetChain?.feeUSD)
-
-						return {
-							$transfer: {
-								[EntityMetaKey.Selector]: $transfer,
-							},
-							timestampMs,
-							source,
-							...(status != null && { status }),
-							...(destinationTxHash != null && { destinationTxHash }),
-							...(fillGasFee != null && { fillGasFee }),
-							...(fillGasFeeUsd != null && { fillGasFeeUsd }),
-						}
+						return observation
 					},
 				},
 			},

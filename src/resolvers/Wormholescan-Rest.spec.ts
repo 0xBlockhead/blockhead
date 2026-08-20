@@ -165,14 +165,23 @@ describe('Wormholescan BridgeTransfer resolvers', () => {
 				},
 			},
 		})
-		expect(resolver.projections.$$timestamps.select(snapshot)).toEqual([{
-			[EntityMetaKey.Selector]: {
-				$transfer: transfer,
-				timestampMs: Date.parse('2026-01-02T03:05:06.000Z'),
-				source: Source.Wormholescan,
+		expect(resolver.projections.$$timestamps.select(snapshot)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$transfer: transfer,
+					timestampMs: Date.parse('2026-01-02T03:04:05.000Z'),
+					source: Source.Wormholescan,
+				},
 			},
-		}])
-		expect(resolver.projections.$$timestamps.resolveCount(snapshot)).toBe(1)
+			{
+				[EntityMetaKey.Selector]: {
+					$transfer: transfer,
+					timestampMs: Date.parse('2026-01-02T03:05:06.000Z'),
+					source: Source.Wormholescan,
+				},
+			},
+		])
+		expect(resolver.projections.$$timestamps.resolveCount(snapshot)).toBe(2)
 	})
 
 	it('looks up an operation by source transaction hash selector', async () => {
@@ -279,6 +288,28 @@ describe('Wormholescan BridgeTransfer resolvers', () => {
 		})
 	})
 
+	it('keeps source confirmation on its source transaction clock', async () => {
+		getOperationById.mockResolvedValue(operation)
+		const resolver = wormholescanRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.BridgeTransfer_Timestamp
+		))
+		if (resolver == null)
+			throw new Error('Wormholescan BridgeTransfer_Timestamp resolver is not registered')
+
+		const snapshot = await resolver.resolve.TransferTimestampMsSource.resolve({
+			$transfer: transfer,
+			timestampMs: Date.parse('2026-01-02T03:04:05.000Z'),
+			source: Source.Wormholescan,
+		})
+
+		expect(snapshot).toMatchObject({
+			status: 'confirmed',
+		})
+		expect(snapshot).not.toHaveProperty('destinationTxHash')
+		expect(snapshot).not.toHaveProperty('fillGasFee')
+		expect(snapshot).not.toHaveProperty('fillGasFeeUsd')
+	})
+
 	it('fails closed on observation clock mismatch', async () => {
 		getOperationById.mockResolvedValue(operation)
 		const resolver = wormholescanRest.resolvers.find((candidate) => (
@@ -292,6 +323,24 @@ describe('Wormholescan BridgeTransfer resolvers', () => {
 			timestampMs: Date.parse('2026-01-02T03:05:06.000Z') + 1,
 			source: Source.Wormholescan,
 		})).rejects.toThrow('Wormholescan_Rest: observation clock mismatch')
+	})
+
+	it('fails closed when source and destination clocks cannot identify distinct observations', async () => {
+		getOperationById.mockResolvedValue({
+			...operation,
+			targetChain: {
+				...operation.targetChain,
+				timestamp: operation.sourceChain.timestamp,
+			},
+		})
+		const resolver = wormholescanRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.BridgeTransfer
+		))
+		if (resolver == null)
+			throw new Error('Wormholescan BridgeTransfer resolver is not registered')
+
+		await expect(resolver.resolve.SourceTransferId.resolve(transfer))
+			.rejects.toThrow('source and destination observation clocks collide')
 	})
 
 	it('fails closed on contradictory operation chain coordinates', async () => {
