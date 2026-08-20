@@ -148,9 +148,6 @@ export default {
 								rpcEndpoint.url
 						).trim())
 						.filter((url) => url.length > 0)
-					if (rpcUrls.length === 0)
-						throw new Error(`Chainlist_Rest: no RPC URLs for chain ${chain.chainId}`)
-
 					return evmChainCatalogUrlEntities(rpcUrls)
 				},
 				$parent: ({ chain }) => {
