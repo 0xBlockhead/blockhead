@@ -70,7 +70,8 @@ export const getStatus = (
  * GET /2/search
  */
 export const searchStatuses = (
-	count: number
+	count: number,
+	cursor?: string
 ) => (
 	fxEmbedGet<FxEmbedSearchResults>(
 		'/search',
@@ -78,6 +79,7 @@ export const searchStatuses = (
 			q: 'lang:en -is:retweet',
 			feed: 'latest',
 			count: clampFxEmbedCount(count),
+			cursor,
 		},
 		[404]
 	)
@@ -88,12 +90,14 @@ export const searchStatuses = (
  */
 export const getUserStatuses = (
 	idOrUsername: string,
-	count: number
+	count: number,
+	cursor?: string
 ) => (
 	fxEmbedGet<FxEmbedSearchResults>(
 		`/profile/${encodeURIComponent(profileHandleParam(idOrUsername))}/statuses`,
 		{
 			count: clampFxEmbedCount(count),
+			cursor,
 		}
 	)
 )

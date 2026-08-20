@@ -59,14 +59,14 @@ it('uses the proxied FxEmbed origin and preserves profile identity encoding', as
 	)
 })
 
-it('clamps bounded search and profile windows without inventing continuation', async () => {
-	await searchStatuses(500)
-	await getUserStatuses('alice', 0)
+it('clamps bounded windows and preserves opaque continuation tokens', async () => {
+	await searchStatuses(500, 'search/+ %=cursor')
+	await getUserStatuses('alice', 0, 'profile/+ %=cursor')
 
 	expect(new URL(sourceGetJson.mock.calls[0][1]).searchParams.get('count')).toBe('100')
 	expect(new URL(sourceGetJson.mock.calls[1][1]).searchParams.get('count')).toBe('1')
-	expect(new URL(sourceGetJson.mock.calls[0][1]).searchParams.has('cursor')).toBe(false)
-	expect(new URL(sourceGetJson.mock.calls[1][1]).searchParams.has('cursor')).toBe(false)
+	expect(new URL(sourceGetJson.mock.calls[0][1]).searchParams.get('cursor')).toBe('search/+ %=cursor')
+	expect(new URL(sourceGetJson.mock.calls[1][1]).searchParams.get('cursor')).toBe('profile/+ %=cursor')
 	expect(sourceGetJson.mock.calls[0][2]).toEqual([404])
 	expect(sourceGetJson.mock.calls[1][2]).toEqual([])
 })

@@ -44,6 +44,10 @@ describe('X FxEmbed global network', () => {
 
 	it('materializes typed observed users and posts at the resolver limit', async () => {
 		fxEmbedQueries.searchStatuses.mockResolvedValue({
+			cursor: {
+				top: null,
+				bottom: null,
+			},
 			results: [
 				{
 					type: 'status',
@@ -74,11 +78,11 @@ describe('X FxEmbed global network', () => {
 				{ scope: EntityType._GlobalXNetwork },
 				resolverContext
 			)
-		const users = globalNetworkResolvers[0].projections.$$observedUsers(snapshot)
-		const posts = globalNetworkResolvers[0].projections.$$observedPosts(snapshot)
+		const users = globalNetworkResolvers[0].projections.$$observedUsers.select(snapshot)
+		const posts = globalNetworkResolvers[0].projections.$$observedPosts.select(snapshot)
 
 		expect(fxEmbedQueries.searchStatuses).toHaveBeenCalledOnce()
-		expect(fxEmbedQueries.searchStatuses).toHaveBeenCalledWith(2)
+		expect(fxEmbedQueries.searchStatuses).toHaveBeenCalledWith(2, undefined)
 		expect(users).toEqual([
 			{
 				[EntityMetaKey.Selector]: { id: 'user-1' },
@@ -128,6 +132,10 @@ describe('X FxEmbed global network', () => {
 
 	it('does not materialize directory users with empty handles', async () => {
 		fxEmbedQueries.searchStatuses.mockResolvedValue({
+			cursor: {
+				top: null,
+				bottom: null,
+			},
 			results: [
 				{
 					type: 'status',
@@ -147,8 +155,8 @@ describe('X FxEmbed global network', () => {
 				{ scope: EntityType._GlobalXNetwork },
 				resolverContext
 			)
-		expect(globalNetworkResolvers[0].projections.$$observedUsers(snapshot)).toEqual([])
-		expect(globalNetworkResolvers[0].projections.$$observedPosts(snapshot)).toEqual([{
+		expect(globalNetworkResolvers[0].projections.$$observedUsers.select(snapshot)).toEqual([])
+		expect(globalNetworkResolvers[0].projections.$$observedPosts.select(snapshot)).toEqual([{
 			[EntityMetaKey.Selector]: { id: 'valid-post' },
 			[EntityMetaKey.Fields]: {
 				[entityFieldAddressKey(EntityType.XPost, [], 'createdAt')]:

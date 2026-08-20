@@ -140,6 +140,35 @@ const xPostReferenceFromFxEmbedStatus = (
 	}
 }
 
+const uniqueFxEmbedStatuses = (
+	statuses: readonly FxEmbedTwitterStatus[]
+) => (
+	[...new Map(statuses.map((status) => [status.id, status])).values()]
+)
+
+const fxEmbedContinuation = (
+	page: { cursor: { bottom: string | null } },
+	viewerScope: string
+) => (
+	page.cursor.bottom == null || page.cursor.bottom === '' ?
+		{
+			operation: 'timeline',
+			target: 'fxembed-api',
+			viewerScope,
+			terminal: true,
+		}
+	:
+		{
+			operation: 'timeline',
+			target: 'fxembed-api',
+			viewerScope,
+			terminal: false,
+			token: page.cursor.bottom,
+		}
+)
+
+const fxEmbedSearchViewerScope = 'search:latest:lang:en -is:retweet'
+
 const xUserSnapshotFromFxEmbedUser = (
 	user: FxEmbedUser,
 	id: string,
@@ -293,21 +322,27 @@ export default {
 				Scope: {
 					resolve: async (_entitySelector, context) => {
 						const { searchStatuses } = await import('$/sources/FxEmbed/Rest/queries.ts')
-						return (await searchStatuses(resolverContextRowLimit(context))).results
+						return searchStatuses(
+							resolverContextRowLimit(context),
+							context.providerContinuationToken
+						)
 					},
 				},
 			},
 		})({
-			$$xUsers: (statuses) => (
-				statuses.flatMap((status) => {
+			$$xUsers: {
+				select: (page) => uniqueFxEmbedStatuses(page.results).flatMap((status) => {
 					const authorId = optionalNonemptyString(status.author.id)
 					if (authorId == null) return []
 					return [xUserReferenceFromFxEmbedUser(status.author, authorId)]
-				})
-			),
-			$$xPosts: (statuses) => (
-				statuses.map((status) => xPostReferenceFromFxEmbedStatus(status, status.id))
-			),
+				}),
+				continuation: (page) => fxEmbedContinuation(page, fxEmbedSearchViewerScope),
+			},
+			$$xPosts: {
+				select: (page) => uniqueFxEmbedStatuses(page.results)
+					.map((status) => xPostReferenceFromFxEmbedStatus(status, status.id)),
+				continuation: (page) => fxEmbedContinuation(page, fxEmbedSearchViewerScope),
+			},
 		}),
 
 		defineResolver({
@@ -317,31 +352,49 @@ export default {
 					resolve: async ({ id }, context) => {
 						const { getUserStatuses } = await import('$/sources/FxEmbed/Rest/queries.ts')
 						const limit = resolverContextRowLimit(context)
-						return (await getUserStatuses(id, limit)).results
-							.flatMap((status) => (
-								status.author.id === id ?
-									[xPostReferenceFromFxEmbedStatus(status, status.id)]
-								:
-									[]
-							))
+						return {
+							page: await getUserStatuses(
+								id,
+								limit,
+								context.providerContinuationToken
+							),
+							profileIdentity: { id },
+							continuationScope: `id:${id}`,
+						}
 					},
 				},
 				Username: {
 					resolve: async ({ username }, context) => {
 						const { getUserStatuses } = await import('$/sources/FxEmbed/Rest/queries.ts')
 						const limit = resolverContextRowLimit(context)
-						return (await getUserStatuses(username, limit)).results
-							.flatMap((status) => (
-								status.author.screen_name.toLowerCase() === username.toLowerCase() ?
-									[xPostReferenceFromFxEmbedStatus(status, status.id)]
-								:
-									[]
-							))
+						return {
+							page: await getUserStatuses(
+								username,
+								limit,
+								context.providerContinuationToken
+							),
+							profileIdentity: { username: username.toLowerCase() },
+							continuationScope: `username:${username.toLowerCase()}`,
+						}
 					},
 				},
 			},
 		})({
-			$$posts: (snapshot) => snapshot,
+			$$posts: {
+				select: ({ page, profileIdentity }) => uniqueFxEmbedStatuses(page.results)
+					.flatMap((status) => (
+						(
+							'id' in profileIdentity ?
+								status.author.id === profileIdentity.id
+							:
+								status.author.screen_name.toLowerCase() === profileIdentity.username
+						) ?
+							[xPostReferenceFromFxEmbedStatus(status, status.id)]
+						:
+							[]
+					)),
+				continuation: ({ page, continuationScope }) => fxEmbedContinuation(page, continuationScope),
+			},
 		}),
 
 		defineResolver({
@@ -350,26 +403,28 @@ export default {
 				Scope: {
 					resolve: async (_entitySelector, context) => {
 						const { searchStatuses } = await import('$/sources/FxEmbed/Rest/queries.ts')
-						return (
-							await searchStatuses(
-								resolverContextRowLimit(context)
-							)
-						).results
+						return searchStatuses(
+							resolverContextRowLimit(context),
+							context.providerContinuationToken
+						)
 					},
 				},
 			},
 		})({
-			$$observedUsers: (statuses) => (
-				statuses.flatMap((status) => (
+			$$observedUsers: {
+				select: (page) => uniqueFxEmbedStatuses(page.results).flatMap((status) => (
 					optionalNonemptyString(status.author.screen_name) != null ?
 						[xUserReferenceFromFxEmbedUser(status.author, status.author.id)]
 					:
 						[]
-				))
-			),
-			$$observedPosts: (statuses) => (
-				statuses.map((status) => xPostReferenceFromFxEmbedStatus(status, status.id))
-			),
+				)),
+				continuation: (page) => fxEmbedContinuation(page, fxEmbedSearchViewerScope),
+			},
+			$$observedPosts: {
+				select: (page) => uniqueFxEmbedStatuses(page.results)
+					.map((status) => xPostReferenceFromFxEmbedStatus(status, status.id)),
+				continuation: (page) => fxEmbedContinuation(page, fxEmbedSearchViewerScope),
+			},
 		}),
 	],
 } satisfies RegisteredSourceResolverModule
