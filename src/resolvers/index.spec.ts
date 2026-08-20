@@ -1112,7 +1112,7 @@ describe('resolver registry live resolver architecture', () => {
 			&& sourceClaimParentMaterializers(claim).length > 0
 		))
 
-		expect(parentOwnedClaims).toHaveLength(350)
+		expect(parentOwnedClaims).toHaveLength(378)
 		expect(Object.entries(Object.groupBy(
 			parentOwnedClaims,
 			(claim) => claim.entityType
@@ -1128,6 +1128,7 @@ describe('resolver registry live resolver architecture', () => {
 			[EntityType.AvalanchePChainTransaction_Timestamp, 4],
 			[EntityType.AvalancheSubnet_Timestamp, 7],
 			[EntityType.AvalancheValidator_Timestamp, 7],
+			[EntityType.BitcoinMiningPool_Timestamp, 10],
 			[EntityType.BlockheadAvalancheNodeState_Timestamp, 10],
 			[EntityType.BlockheadLightningPeer_Timestamp, 7],
 			[EntityType.BridgeTransfer_Timestamp, 1],
@@ -1139,14 +1140,16 @@ describe('resolver registry live resolver architecture', () => {
 			[EntityType.EvmNetworkActorCoinBalance_Timestamp, 1],
 			[EntityType.HederaContract_Timestamp, 3],
 			[EntityType.HyperliquidPerpMarket_Timestamp, 2],
-			[EntityType.LightningChannel_Timestamp, 16],
+			[EntityType.LightningChannel_Timestamp, 18],
+			[EntityType.LightningChannelRoutingPolicy_Timestamp, 7],
 			[EntityType.LightningNetwork_Timestamp, 10],
 			[EntityType.LightningNode_Timestamp, 17],
 			[EntityType.LiquidityPool_Timestamp, 16],
 			[EntityType.MoneroNetwork_Timestamp, 29],
 			[EntityType.NearAccount_Block, 4],
-			[EntityType.Network_Timestamp, 50],
+			[EntityType.Network_Timestamp, 57],
 			[EntityType.NetworkEndpointObservation_Timestamp, 20],
+			[EntityType.OsmosisPool_Timestamp, 2],
 			[EntityType.PolkadotAccount_Timestamp, 2],
 			[EntityType.PolkadotAsset_Timestamp, 13],
 			[EntityType.PolkadotAssetBalance_Timestamp, 4],

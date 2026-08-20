@@ -565,7 +565,14 @@
 
 			{#snippet SectionOsmosisPoolSpot({ id, label })}
 				<OsmosisPool_TimestampsView
-					selection={selection.$$timestamps}
+					selection={
+						selection
+						.$$timestamps({
+							sources: [
+								Source.Osmosis_LCD_Rest,
+							],
+						})
+					}
 					collapsible={false}
 					title={label}
 					emptyText='No spot price observations.'

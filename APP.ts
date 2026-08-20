@@ -51408,7 +51408,7 @@ export const schema = {
 				"lastLiquidityUpdate": { label: "Last liquidity update", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Osmosis_LCD_Rest] },
 				"positionCount": { label: "Position count", description: "Concentrated-liquidity position count for this pool (LCD NumPoolPositions). No honest pool-wide position list exists on LCD.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeBigInt", defaultSources: [Source.Osmosis_LCD_Rest] },
 				"$$assets": { label: "Assets", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.OsmosisPoolAsset, defaultSources: [Source.Osmosis_LCD_Rest] },
-				"$$timestamps": { label: "Spot prices", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.OsmosisPool_Timestamp },
+				"$$timestamps": { label: "Spot prices", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.OsmosisPool_Timestamp, defaultSources: [Source.Osmosis_LCD_Rest] },
 			})({
 				selectors: {
 					"NetworkPoolId": ["$network", "poolId"],
@@ -51438,7 +51438,7 @@ export const schema = {
 								className: "network-view-collapsible-balances",
 								sections: [
 									{ id: "osmosis-pool-assets", field: "$$assets", List: "OsmosisPoolAssetsView", label: "Assets", emptyText: "No pool assets.", selection: { sources: [Source.Osmosis_LCD_Rest] } },
-									{ id: "osmosis-pool-spot", field: "$$timestamps", List: "OsmosisPool_TimestampsView", label: "Spot prices", emptyText: "No spot price observations." },
+									{ id: "osmosis-pool-spot", field: "$$timestamps", List: "OsmosisPool_TimestampsView", label: "Spot prices", emptyText: "No spot price observations.", selection: { sources: [Source.Osmosis_LCD_Rest] } },
 								],
 							},
 						],
@@ -51459,8 +51459,8 @@ export const schema = {
 				"timestampMs": { label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
 				"baseAssetDenom": { label: "Base asset denom", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"quoteAssetDenom": { label: "Quote asset denom", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"source": { label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"spotPrice": { label: "Spot price", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeDecimalString" },
+				"source": { label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string", defaultSources: [Source.Osmosis_LCD_Rest] },
+				"spotPrice": { label: "Spot price", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeDecimalString", defaultSources: [Source.Osmosis_LCD_Rest] },
 			})({
 				selectors: {
 					"PoolTimestampMsBaseQuote": ["$pool", "timestampMs", "baseAssetDenom", "quoteAssetDenom"],

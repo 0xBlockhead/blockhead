@@ -114,6 +114,9 @@ export default entity({
 	$$timestamps: {
 		entityType: EntityType.OsmosisPool_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Osmosis_LCD_Rest,
+		],
 	},
 })({
 	selectors: {

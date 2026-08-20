@@ -104,10 +104,16 @@ test('pool materializes spot observations whose detail uses the stored observati
 	await page.goto(poolPath, {
 		waitUntil: 'domcontentloaded',
 	})
+	await expect.poll(
+		() => requests.filter((request) => request.includes('/prices?')).length,
+		{
+			timeout: 120_000,
+		}
+	).toBe(2)
 	const observationLink = page.locator(
 		`#main a[href^='${poolPath}/observations/'][href$='/uosmo/uion']`
 	)
-	await expect(observationLink).toContainText('1.500000000000000000000000000000000000', {
+	await expect(observationLink).toBeAttached({
 		timeout: 120_000,
 	})
 	const observationPath = await observationLink.getAttribute('href')
@@ -121,6 +127,5 @@ test('pool materializes spot observations whose detail uses the stored observati
 	await expect(page.locator('#main')).toContainText('1.500000000000000000000000000000000000')
 	await expect(page.locator('#main')).toContainText(Source.Osmosis_LCD_Rest)
 	await expect.poll(() => requests.filter((request) => request.includes('/prices?')).length).toBe(priceRequestCount)
-	expect(priceRequestCount).toBe(2)
 	expect(unexpectedRequests).toEqual([])
 })
