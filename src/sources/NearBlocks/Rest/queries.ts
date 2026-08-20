@@ -223,7 +223,7 @@ export const listBlocks = async ({
 	const response = assertEnvelope(
 		'blocks',
 		nearBlocksBlockResponseWire,
-		await getNearBlocksJson(`/v1/blocks?limit=${limit}`)
+		await getNearBlocksJson(`/v1/blocks?per_page=${limit}`)
 	)
 	if (response.blocks.length > limit)
 		throw new Error('NearBlocks_Rest: block page exceeds requested limit')

@@ -243,7 +243,7 @@ describe('NearBlocks v1 entity transport', () => {
 		})).resolves.toHaveLength(2)
 		expect(getNearBlocksRestJson).toHaveBeenCalledWith(
 			binding,
-			'/v1/blocks?limit=2'
+			'/v1/blocks?per_page=2'
 		)
 
 		getNearBlocksRestJson.mockResolvedValueOnce({
