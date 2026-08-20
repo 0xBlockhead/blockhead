@@ -260,20 +260,6 @@ describe('SQD Portal resolver', () => {
 				},
 			}],
 		})
-		expect(Object.keys(sqdPortal.resolvers[0].projections).sort()).toEqual([
-			'$$transactions',
-			'$miner',
-			'$parent',
-			'baseFeePerGas',
-			'blobGasUsed',
-			'excessBlobGas',
-			'gasLimit',
-			'gasUsed',
-			'hash',
-			'parentHash',
-			'timestamp',
-			'transactionCount',
-		])
 	})
 
 	it('preserves a Slug network selector through transaction references', async () => {

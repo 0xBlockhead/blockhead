@@ -12,10 +12,6 @@ import {
 	getProposerPayloadDeliveredForRelayHost,
 } from '$/sources/MevRelay/Rest/queries.ts'
 import { Source } from '$/sources/Source.ts'
-import {
-	ApiFamily,
-	SourceDelivery,
-} from '$/sources/SourceBinding.ts'
 
 const flashbotsMainnetBinding = bindings[Source.MevRelay_Rest].find((binding) => (
 	binding.target.key === 'boost-relay.flashbots.net'
@@ -60,13 +56,6 @@ describe('MevRelay REST bidtrace queries', () => {
 		vi.unstubAllGlobals()
 	})
 
-	it('binds Flashbots mainnet over HTTP proxy', () => {
-		expect(flashbotsMainnetBinding.apiFamily).toBe(ApiFamily.RestJson)
-		expect(flashbotsMainnetBinding.delivery).toBe(SourceDelivery.HttpProxy)
-		expect(flashbotsMainnetBinding.endpoints[0].locator).toBe('https://boost-relay.flashbots.net')
-		expect(flashbotsMainnetBinding.endpoints[0].corsEnabled).toBe(false)
-	})
-
 	it('routes proposer_payload_delivered through the registered browser HTTP proxy binding', async () => {
 		const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(jsonResponse([bidTrace]))
 		vi.stubGlobal('fetch', fetchMock)
@@ -98,25 +87,16 @@ describe('MevRelay REST bidtrace queries', () => {
 		})).rejects.toThrow('500')
 	})
 
-	it('fail-closes malformed proposer_payload_delivered BidTrace envelopes', async () => {
-		const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(jsonResponse([
+	it.each([
+		['invalid row', [
 			{
 				...bidTrace,
 				value: 'not-a-decimal',
 			},
-		]))
-		vi.stubGlobal('fetch', fetchMock)
-		vi.stubGlobal('window', {})
-
-		await expect(getProposerPayloadDeliveredForRelayHost('boost-relay.flashbots.net', {
-			limit: 1,
-		})).rejects.toThrow('invalid proposer_payload_delivered BidTrace response envelope')
-	})
-
-	it('fail-closes non-array BidTrace envelopes', async () => {
-		const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(jsonResponse({
-			slot: bidTrace.slot,
-		}))
+		]],
+		['non-array envelope', { slot: bidTrace.slot }],
+	])('fail-closes malformed proposer payloads: %s', async (_case, response) => {
+		const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(jsonResponse(response))
 		vi.stubGlobal('fetch', fetchMock)
 		vi.stubGlobal('window', {})
 
@@ -216,24 +196,17 @@ describe('MevRelay REST bidtrace queries', () => {
 		})).rejects.toThrow('MevRelay_Rest: proposer_payload_delivered BidTrace slot does not match query')
 	})
 
-	it('fail-closes proposer_payload_delivered rows with selector collisions', async () => {
-		const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(jsonResponse([bidTrace, bidTrace]))
-		vi.stubGlobal('fetch', fetchMock)
-		vi.stubGlobal('window', {})
-
-		await expect(getProposerPayloadDeliveredForRelayHost('boost-relay.flashbots.net', {
-			limit: 2,
-		})).rejects.toThrow('MevRelay_Rest: proposer_payload_delivered BidTrace list contains selector collisions')
-	})
-
-	it('fail-closes conflicting proposer builder attribution for one delivered payload', async () => {
-		const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(jsonResponse([
+	it.each([
+		['duplicate selector', [bidTrace, bidTrace]],
+		['conflicting builder attribution', [
 			bidTrace,
 			{
 				...bidTrace,
 				builder_pubkey: `0x${'00'.repeat(47)}01`,
 			},
-		]))
+		]],
+	])('fail-closes proposer selector collisions: %s', async (_case, response) => {
+		const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(jsonResponse(response))
 		vi.stubGlobal('fetch', fetchMock)
 		vi.stubGlobal('window', {})
 

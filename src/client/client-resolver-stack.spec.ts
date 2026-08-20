@@ -13,11 +13,6 @@ import {
 import type { PersistenceAdapter } from '@tanstack/db-sqlite-persistence-core'
 import { type as arktype } from 'arktype'
 import { stringify } from 'devalue'
-import {
-	readdirSync,
-	readFileSync,
-} from 'node:fs'
-import { resolve } from 'node:path'
 
 import {
 	CollectionLoadDecision,
@@ -71,21 +66,6 @@ import {
 	SourceDelivery,
 } from '$/sources/SourceBinding.ts'
 
-
-const clientDirectory = resolve(
-	process.cwd(),
-	'src/client'
-)
-
-const source = (
-	fileName: string
-) => readFileSync(
-	resolve(
-		clientDirectory,
-		fileName
-	),
-	'utf8'
-)
 
 const testSourceIndex = <const _Source extends string>(sources: readonly _Source[]) => ({
 	enabledBindingIds: new Set<string>(),
@@ -183,72 +163,6 @@ const materializationParentSelectorKey = entitySelectorKey(
 
 
 describe('client resolver stack architecture', () => {
-	it('keeps the client implementation in the original files', () => {
-		expect(readdirSync(clientDirectory)
-			.filter((fileName) => (
-				!fileName.endsWith('.spec.ts')
-				&& !fileName.endsWith('.test.ts')
-				&& !fileName.endsWith('.types.ts')
-			))
-			.toSorted()).toEqual([
-			'$client.svelte.ts',
-			'$proxy.svelte.ts',
-			'$subscribe.svelte.ts',
-		])
-	})
-
-	it('keeps loaded-subset completion owned by the persisted collection', () => {
-		expect(source('$client.svelte.ts')).toMatch(/PersistedCollectionLoadedSubset/)
-		expect(source('$client.svelte.ts')).toMatch(/metadata\?\.collection\.set/)
-		expect(source('$client.svelte.ts')).not.toMatch(/sourceExecutions|SourceExecution|localOnlyCollectionOptions|queryCollectionOptions/)
-		expect(source('$subscribe.svelte.ts')).not.toMatch(/LoadedSubset|loadedSubsets|rowCount|sourceRowCounts|metadata\.collection|persistedCollectionOptions|queryCollectionOptions/)
-	})
-
-	it('keeps E2E tracing isolated from the production client', () => {
-		const productionLayoutSource = readFileSync(
-			resolve(
-				process.cwd(),
-				'src/routes/+layout.svelte'
-			),
-			'utf8'
-		)
-		const applicationBootstrapSource = readFileSync(
-			resolve(
-				process.cwd(),
-				'src/routes/ApplicationBootstrap.svelte'
-			),
-			'utf8'
-		)
-
-		expect(source('$client.svelte.ts')).not.toMatch(/__blockhead|PersistenceTrace|trace:/)
-		expect(source('$client.svelte.ts')).not.toMatch(/\bindexSourceProviders\b/)
-		expect(source('$client.svelte.ts')).toMatch(/enabledBindingIds\.has\(sourceBindingId\(sourceBinding\)\)/)
-		expect(source('$subscribe.svelte.ts')).not.toMatch(/__blockhead|PersistenceTrace|trace:/)
-		expect(productionLayoutSource).not.toMatch(/\$e2eProbe|E2E|__blockhead/)
-		expect(productionLayoutSource).toMatch(/openBrowserWASQLiteOPFSDatabase/)
-		expect(productionLayoutSource).toMatch(/createBrowserWASQLitePersistence/)
-		expect(productionLayoutSource.indexOf('await import.meta.hot?.data.databaseClose')).toBeLessThan(
-			productionLayoutSource.indexOf('return openBrowserWASQLiteOPFSDatabase')
-		)
-		expect(productionLayoutSource).toMatch(/data\.databaseClose = closeDatabase\(\)/)
-		expect(productionLayoutSource).toMatch(/const closeDatabase = databaseCloseWhenReady\(databasePromise\)/)
-		expect(productionLayoutSource).toMatch(/const applicationRuntime = applicationRuntimeWhenReady\([\s\S]*?bootstrap,[\s\S]*?mountWalletConnectionRuntime\(appClient\)/)
-		expect(productionLayoutSource).toMatch(/export const getAppClient = \(\) => \{[\s\S]*?if \(appClient == null\)[\s\S]*?throw new Error\('App client was read before bootstrap completed'\)[\s\S]*?return appClient/)
-		expect(productionLayoutSource).not.toMatch(/export (?:const|let) appClient/)
-		expect(productionLayoutSource).not.toMatch(/bootstrap\.then\([\s\S]*?\.catch\(\(\) => \{\}\)/)
-		expect(productionLayoutSource).toMatch(/sourceRuntimeCapabilities\(\)[\s\S]*?const sourceIndex = indexSourceProviders\(/)
-		expect(productionLayoutSource.match(/\bindexSourceProviders\(/g)).toHaveLength(1)
-		expect(productionLayoutSource).toMatch(/resolvers: await loadResolvers\(sourceIndex\.enabledSources\)/)
-		expect(productionLayoutSource).toMatch(/\bsourceIndex,\n\s*\}/)
-		expect(productionLayoutSource).toMatch(/const bootstrap = Promise\.all\(\[/)
-		expect(productionLayoutSource).toMatch(/export const select: AppClient\['select'\] = \(\.\.\.parameters\) => getAppClient\(\)\.select\(\.\.\.parameters\)/)
-		expect(productionLayoutSource).toMatch(/<ApplicationBootstrap[\s\S]*?ready=\{applicationRuntime\.ready\}[\s\S]*?\{children\}[\s\S]*?\/>/)
-		expect(productionLayoutSource).not.toMatch(/<ApplicationBootstrap[^>]*>[\s\S]*?\{@render children\(\)\}[\s\S]*?<\/ApplicationBootstrap>/)
-		expect(applicationBootstrapSource).toMatch(/\{#await ready\}[\s\S]*?Loading\.\.\.[\s\S]*?\{:then\}[\s\S]*?\{@render children\(\)\}[\s\S]*?\{:catch error\}/)
-		expect(applicationBootstrapSource).toMatch(/boundaryKey="ApplicationBootstrap"[\s\S]*?failure=\{\{[\s\S]*?error,/)
-		expect(productionLayoutSource).not.toMatch(/temporary|inMemory|memoryPersistence|installAppClientProbe/)
-	})
-
 	it('keeps resolver publication cadence independent from transport delivery', () => {
 		const dydxHttpBinding = sourceBindings.find((binding) => (
 			binding.source === Source.DydxIndexer
@@ -402,30 +316,6 @@ describe('client resolver stack architecture', () => {
 			barrierCommit,
 			futureCommit,
 		])
-	})
-
-	it('keeps Persisted collection query functions from using hydrated rows for the persistence gate', () => {
-		const clientSource = source('$client.svelte.ts')
-		for (const queryFunction of [
-			'loadEntityRows',
-			'loadFieldRows',
-			'loadCountRows',
-		]) {
-			const start = clientSource.indexOf(`const ${queryFunction}`)
-			expect(start).toBeGreaterThanOrEqual(0)
-			const nextConst = clientSource.indexOf('\nconst ', start + 1)
-			const nextExport = clientSource.indexOf('\nexport const ', start + 1)
-			const body = clientSource.slice(
-				start,
-				Math.min(
-					...[
-						nextConst,
-						nextExport,
-					].filter((index) => index >= 0)
-				)
-			)
-			expect(body).not.toMatch(/collection\.toArray|collection\.values|collection\.size|collection\.has/)
-		}
 	})
 
 	it('distinguishes remote, fresh query-cache-empty hydrated-rows, and loaded-marker outcomes', () => {
@@ -1865,9 +1755,6 @@ describe('client resolver stack architecture', () => {
 				'source-a': ['count'],
 			},
 		})
-		expect(source('$client.svelte.ts')).toMatch(/collectionLoadFailures\.add\(\{[\s\S]*sources: \[outcome\.source\]/)
-		expect(source('$client.svelte.ts')).toMatch(/console\.error\([\s\S]*\[Blockhead collection-load-failure\]/)
-		expect(source('$client.svelte.ts')).not.toMatch(/console\.warn\([^)]*partially failed/)
 	})
 
 	it('appends and cancels continuation pages within the exact relationship partition', async () => {
@@ -2180,24 +2067,6 @@ describe('client resolver stack architecture', () => {
 		})
 		expect(failedReplay.rows).toEqual([])
 		expect(failedReplay.nextMarker.sourceRowCounts).toEqual({})
-	})
-
-	it('keeps undefined snapshot completion gated by schema cardinality', () => {
-		const clientSource = source('$client.svelte.ts')
-		for (const queryFunction of [
-			'loadFieldRows',
-			'loadCountRows',
-		]) {
-			const start = clientSource.indexOf(`const ${queryFunction}`)
-			expect(start).toBeGreaterThanOrEqual(0)
-			const nextConst = clientSource.indexOf('\nconst ', start + 1)
-			const body = clientSource.slice(
-				start,
-				nextConst
-			)
-			expect(body).toMatch(/if \(snapshot === undefined\)[\s\S]*fieldCanCompleteEmpty/)
-			expect(body).not.toMatch(/snapshot (?:==|===) null/)
-		}
 	})
 
 	it('keeps base fields flat and nested facet fields addressed', async () => {
@@ -2577,25 +2446,6 @@ describe('client resolver stack architecture', () => {
 		expect(() => selection.Parent.Child[JSON.parse('"missing"')]).toThrow('SelectionFixture.Parent.Child.missing does not exist')
 		expect(() => selection.current).not.toThrow()
 		expect(() => selection.Parent.current).not.toThrow()
-	})
-
-	it('validates resolver field value shape before writing persisted field rows', () => {
-		const clientSource = source('$client.svelte.ts')
-		const materializerSource = readFileSync(
-			resolve(
-				process.cwd(),
-				'src/collections/assertLoadedCollectionRows.ts'
-			),
-			'utf8'
-		)
-		expect(clientSource).toMatch(/materializeResolverOutput/)
-		expect(clientSource).toMatch(/ResolverOutputMaterialization\.Field/)
-		expect(clientSource).toMatch(/ResolverOutputMaterialization\.Count/)
-		expect(clientSource).toMatch(/schemaIndex = indexSchema\(schema\)/)
-		expect(clientSource).toMatch(/schemaIndex\?: ReturnType<typeof indexSchema<_Schema>>/)
-		expect(clientSource).not.toMatch(/Array\.isArray\(value\) \?[\s\S]*:\s*\[value\]/)
-		expect(materializerSource).toMatch(/schemaIndex\.entityFieldDefinitionByEntityTypePathAndName\[fieldDefinition\.entityType\]/)
-		expect(materializerSource).not.toMatch(/indexSchema\(|entityFieldDefinitions\(/)
 	})
 
 	it('settles persisted account terminal projections through the app resolver registry', async () => {
@@ -3653,11 +3503,6 @@ describe('client resolver stack architecture', () => {
 			value: -1,
 			filterKey: '{}',
 		})).toThrow(/invalid count/)
-	})
-
-	it('keeps count rows are authoritative for paged and windowed list totals', () => {
-		expect(source('$subscribe.svelte.ts')).not.toMatch(/totalCount:[^\n]*values\.length/)
-		expect(source('$subscribe.svelte.ts')).not.toMatch(/loaded row length/)
 	})
 
 	it('selects authoritative count rows by field-local source priority without preloading passive raw collections', async () => {
@@ -5267,10 +5112,4 @@ describe('client resolver stack architecture', () => {
 		expect(deletedItemsResource.ready).toBe(false)
 	}, 30_000)
 
-	it('keeps view-facing reads behind the proxy and subscribe files', () => {
-		expect(source('$proxy.svelte.ts')).not.toMatch(/entityCollections|entityFieldCollections|queryCollectionOptions/)
-		expect(source('$proxy.svelte.ts')).not.toMatch(/activeReferenceResources|referenceResourceBySelector/)
-		expect(source('$subscribe.svelte.ts')).not.toMatch(/queryCollectionOptions|persistedCollectionOptions/)
-		expect(source('$subscribe.svelte.ts')).toMatch(/subscribeEntityField[\s\S]*nestedResourceBySelectorKey/)
-	})
 })

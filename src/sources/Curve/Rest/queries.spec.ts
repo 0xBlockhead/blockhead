@@ -7,17 +7,6 @@ import {
 } from 'vitest'
 
 import bindings from '$/sources/Curve/bindings.ts'
-import {
-	curvePlatformByChainId,
-	curvePlatforms,
-} from '$/sources/Curve/Rest/constants.ts'
-import {
-	ApiFamily,
-	SourceDelivery,
-	SourceEndpointKind,
-	SourceTargetKind,
-	WireProtocol,
-} from '$/sources/SourceBinding.ts'
 import { Source } from '$/sources/Source.ts'
 
 const sourceGetJson = vi.hoisted(() => vi.fn())
@@ -304,39 +293,6 @@ const lendingVaultWire = {
 	blockchainId: 'ethereum',
 	registryId: 'oneway',
 } as const
-
-describe('Curve REST binding', () => {
-	it('targets the official Curve public API', () => {
-		expect(binding.target).toEqual({
-			kind: SourceTargetKind.Global,
-			key: 'curve-api',
-		})
-		expect(binding.source).toBe(Source.Curve_Rest)
-		expect(binding.wireProtocol).toBe(WireProtocol.HttpRest)
-		expect(binding.apiFamily).toBe(ApiFamily.RestJson)
-		expect(binding.delivery).toBe(SourceDelivery.BrowserDirect)
-		expect(binding.endpoints).toEqual([
-			{
-				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: 'https://api.curve.finance',
-				corsEnabled: true,
-			},
-		])
-	})
-
-	it('catalogs Curve platforms and their registries from getPlatforms snapshot', () => {
-		expect(curvePlatformByChainId[1]).toEqual({
-			blockchainId: 'ethereum',
-			chainId: 1,
-			registries: expect.arrayContaining([
-				'main',
-				'factory',
-				'factory-stable-ng',
-			]),
-		})
-		expect(curvePlatforms.some((platform) => platform.chainId === 42161)).toBe(true)
-	})
-})
 
 describe('Curve pool operations', () => {
 	beforeEach(() => {

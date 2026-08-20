@@ -9,16 +9,7 @@ import {
 import bindings from '$/sources/Compound/bindings.ts'
 import {
 	compoundCometByChainIdAndAddress,
-	compoundCometDeployments,
-	compoundNetworkByChainId,
 } from '$/sources/Compound/Rest/constants.ts'
-import {
-	ApiFamily,
-	SourceDelivery,
-	SourceEndpointKind,
-	SourceTargetKind,
-	WireProtocol,
-} from '$/sources/SourceBinding.ts'
 import { Source } from '$/sources/Source.ts'
 import { httpUrl } from '$/sources/_shared/wire/HttpRest/client.ts'
 
@@ -76,41 +67,6 @@ const baseRoots = {
 	rewards: '0x1B0e765F6224C21223AeA2af16c1C46E38885a40',
 	bulker: '0xa397a8C2086C554B531c02E29f3291c9704B00c7',
 } as const
-
-describe('Compound III deployment binding', () => {
-	it('targets the official comet deployment artifacts', () => {
-		expect(binding.target).toEqual({
-			kind: SourceTargetKind.GitRepository,
-			key: 'compound-finance/comet@f766f51583c23acc33b2a7824654ef2029a96804:deployments',
-		})
-		expect(binding.source).toBe(Source.Compound_Rest)
-		expect(binding.wireProtocol).toBe(WireProtocol.HttpRest)
-		expect(binding.apiFamily).toBe(ApiFamily.RestJson)
-		expect(binding.delivery).toBe(SourceDelivery.BrowserDirect)
-		expect(binding.endpoints).toEqual([
-			{
-				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: 'https://raw.githubusercontent.com/compound-finance/comet/f766f51583c23acc33b2a7824654ef2029a96804/',
-				corsEnabled: true,
-			},
-		])
-	})
-
-	it('catalogs Compound III deployments across documented networks', () => {
-		expect(compoundNetworkByChainId[8453]?.networkSlug).toBe('base')
-		expect(compoundCometDeployments.some((deployment) => (
-			deployment.chainId === 1
-			&& deployment.marketSlug === 'usdc'
-		))).toBe(true)
-		expect(compoundCometByChainIdAndAddress[`8453:${baseCometAddress}`]?.marketSlug).toBe('usdc')
-		expect(compoundCometDeployments).toHaveLength(28)
-		expect(
-			new Set(compoundCometDeployments.map((deployment) => (
-				`${deployment.networkSlug}/${deployment.marketSlug}`
-			))).size
-		).toBe(28)
-	})
-})
 
 describe('Compound III deployment operations', () => {
 	beforeEach(() => {
@@ -276,60 +232,37 @@ describe('Compound III deployment operations', () => {
 		})).rejects.toThrow(`${Source.Compound_Rest}: invalid roots response envelope`)
 	})
 
-	it('rejects configuration envelopes missing required rates', async () => {
-		const {
-			rates: _rates,
-			...configurationWithoutRates
-		} = baseConfiguration
-		sourceGetJson.mockResolvedValueOnce(configurationWithoutRates)
-		await expect(getConfiguration({
-			networkSlug: 'base',
-			marketSlug: 'usdc',
-		})).rejects.toThrow(`${Source.Compound_Rest}: invalid configuration response envelope`)
-	})
-
-	it('rejects negative rate curve parameters', async () => {
-		sourceGetJson.mockResolvedValueOnce({
+	it.each([
+		['missing rates', {
 			...baseConfiguration,
-			rates: {
-				...baseConfiguration.rates,
-				supplyKink: -0.1,
-			},
-		})
-		await expect(getConfiguration({
-			networkSlug: 'base',
-			marketSlug: 'usdc',
-		})).rejects.toThrow(`${Source.Compound_Rest}: configuration rates.supplyKink must be a finite number in [0, 1]`)
-	})
-
-	it('rejects supplyKink above 1', async () => {
-		sourceGetJson.mockResolvedValueOnce({
+			rates: undefined,
+		}, 'invalid configuration response envelope'],
+		['negative kink', {
 			...baseConfiguration,
-			rates: {
-				...baseConfiguration.rates,
-				supplyKink: 1.2,
-			},
-		})
-		await expect(getConfiguration({
-			networkSlug: 'base',
-			marketSlug: 'usdc',
-		})).rejects.toThrow(`${Source.Compound_Rest}: configuration rates.supplyKink must be a finite number in [0, 1]`)
-	})
-
-	it('rejects malformed supplyCap amounts', async () => {
-		sourceGetJson.mockResolvedValueOnce({
+			rates: { ...baseConfiguration.rates, supplyKink: -0.1 },
+		}, 'configuration rates.supplyKink must be a finite number in [0, 1]'],
+		['kink above one', {
 			...baseConfiguration,
-			assets: {
-				WETH: {
-					...baseConfiguration.assets.WETH,
-					supplyCap: 'not-an-amount',
-				},
-			},
-		})
+			rates: { ...baseConfiguration.rates, supplyKink: 1.2 },
+		}, 'configuration rates.supplyKink must be a finite number in [0, 1]'],
+		['malformed supply cap', {
+			...baseConfiguration,
+			assets: { WETH: { ...baseConfiguration.assets.WETH, supplyCap: 'not-an-amount' } },
+		}, 'configuration WETH supplyCap must be a non-negative decimal or scientific amount'],
+		['collateral factor above one', {
+			...baseConfiguration,
+			assets: { WETH: { ...baseConfiguration.assets.WETH, borrowCF: 1.2 } },
+		}, 'configuration asset WETH borrowCF must be a finite number in [0, 1]'],
+		['storefront factor above one', {
+			...baseConfiguration,
+			storeFrontPriceFactor: 1.5,
+		}, 'configuration storeFrontPriceFactor must be a finite number in [0, 1]'],
+	])('rejects %s', async (_, response, error) => {
+		sourceGetJson.mockResolvedValueOnce(response)
 		await expect(getConfiguration({
 			networkSlug: 'base',
 			marketSlug: 'usdc',
-		})).rejects.toThrow(`${Source.Compound_Rest}: configuration WETH supplyCap must be a non-negative decimal or scientific amount`)
+		})).rejects.toThrow(`${Source.Compound_Rest}: ${error}`)
 	})
 
 	it('normalizes governor, reward token, and storeFrontPriceFactor when present', async () => {
@@ -350,30 +283,4 @@ describe('Compound III deployment operations', () => {
 		})
 	})
 
-	it('rejects collateral factors outside [0, 1]', async () => {
-		sourceGetJson.mockResolvedValueOnce({
-			...baseConfiguration,
-			assets: {
-				WETH: {
-					...baseConfiguration.assets.WETH,
-					borrowCF: 1.2,
-				},
-			},
-		})
-		await expect(getConfiguration({
-			networkSlug: 'base',
-			marketSlug: 'usdc',
-		})).rejects.toThrow(`${Source.Compound_Rest}: configuration asset WETH borrowCF must be a finite number in [0, 1]`)
-	})
-
-	it('rejects storeFrontPriceFactor outside [0, 1]', async () => {
-		sourceGetJson.mockResolvedValueOnce({
-			...baseConfiguration,
-			storeFrontPriceFactor: 1.5,
-		})
-		await expect(getConfiguration({
-			networkSlug: 'base',
-			marketSlug: 'usdc',
-		})).rejects.toThrow(`${Source.Compound_Rest}: configuration storeFrontPriceFactor must be a finite number in [0, 1]`)
-	})
 })

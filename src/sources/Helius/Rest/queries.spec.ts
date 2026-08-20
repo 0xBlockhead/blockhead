@@ -2,11 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import bindings from '$/sources/Helius/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import {
-	ApiFamily,
-	SourceEndpointKind,
-	SourceTargetKind,
-} from '$/sources/SourceBinding.ts'
+import { ApiFamily } from '$/sources/SourceBinding.ts'
 
 const corsFetch = vi.hoisted(() => vi.fn())
 

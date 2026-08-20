@@ -16,31 +16,17 @@ describe('Primal REST binding authority', () => {
 		vi.unstubAllGlobals()
 	})
 
-	it('uses the registered proxy binding and serializes typed POST bodies', async () => {
+	it('serializes typed search and action workflows through the registered binding', async () => {
 		vi.stubGlobal('window', {})
-		vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
-			expect(String(input)).toBe(
-				`/api-proxy/${encodeURIComponent(sourceBindingId(primalBinding))}/0/${encodeURIComponent(`${primalBinding.endpoints[0].locator}/v1/search/events`)}`
-			)
-			expect(init?.method).toBe('POST')
-			expect(init?.headers).toEqual({
-				Accept: 'application/json',
-				'Content-Type': 'application/json',
-			})
-			expect(init?.body).toBe(JSON.stringify({
-				query: 'nostr',
-				kinds: [
-					1,
-					30023,
-				],
-				limit: 2,
-			}))
-			return new Response(JSON.stringify([]), {
+		const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => (
+			new Response(JSON.stringify(String(input).endsWith(encodeURIComponent('/v1/search/events')) ? [] : {
+				...(String(input).includes(encodeURIComponent('/v1/search/users')) ? { users: [] } : { actions: [] }),
+			}), {
 				headers: {
 					'content-type': 'application/json',
 				},
 			})
-		})
+		))
 
 		await expect(search('events', {
 			query: ' nostr ',
@@ -50,46 +36,9 @@ describe('Primal REST binding authority', () => {
 			],
 			limit: 2,
 		})).resolves.toEqual([])
-	})
-
-	it('normalizes and bounds endpoint-native note actions', async () => {
-		vi.stubGlobal('window', {})
-		vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
-			expect(String(input)).toBe(
-				`/api-proxy/${encodeURIComponent(sourceBindingId(primalBinding))}/0/${encodeURIComponent(`${primalBinding.endpoints[0].locator}/v1/timeline/event/actions`)}`
-			)
-			expect(init?.body).toBe(JSON.stringify({
-				event_id: 'abcdef',
-				kind: 7,
-				limit: 1000,
-			}))
-			return new Response(JSON.stringify({ actions: [] }), {
-				headers: {
-					'content-type': 'application/json',
-				},
-			})
-		})
 
 		await expect(getNoteActions('ABCDEF', 7, 2000)).resolves.toEqual({
 			actions: [],
-		})
-	})
-
-	it('preserves the typed users search endpoint', async () => {
-		vi.stubGlobal('window', {})
-		vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
-			expect(String(input)).toBe(
-				`/api-proxy/${encodeURIComponent(sourceBindingId(primalBinding))}/0/${encodeURIComponent(`${primalBinding.endpoints[0].locator}/v1/search/users`)}`
-			)
-			expect(init?.body).toBe(JSON.stringify({
-				query: 'alice',
-				limit: 1,
-			}))
-			return new Response(JSON.stringify({ users: [] }), {
-				headers: {
-					'content-type': 'application/json',
-				},
-			})
 		})
 
 		await expect(search('users', {
@@ -98,5 +47,51 @@ describe('Primal REST binding authority', () => {
 		})).resolves.toEqual({
 			users: [],
 		})
+
+		expect(fetchMock.mock.calls.map(([input, init]) => ({
+			url: String(input),
+			method: init?.method,
+			headers: init?.headers,
+			body: init?.body,
+		}))).toEqual([
+			{
+				url: `/api-proxy/${encodeURIComponent(sourceBindingId(primalBinding))}/0/${encodeURIComponent(`${primalBinding.endpoints[0].locator}/v1/search/events`)}`,
+				method: 'POST',
+				headers: {
+					Accept: 'application/json',
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({
+					query: 'nostr',
+					kinds: [1, 30023],
+					limit: 2,
+				}),
+			},
+			{
+				url: `/api-proxy/${encodeURIComponent(sourceBindingId(primalBinding))}/0/${encodeURIComponent(`${primalBinding.endpoints[0].locator}/v1/timeline/event/actions`)}`,
+				method: 'POST',
+				headers: {
+					Accept: 'application/json',
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({
+					event_id: 'abcdef',
+					kind: 7,
+					limit: 1000,
+				}),
+			},
+			{
+				url: `/api-proxy/${encodeURIComponent(sourceBindingId(primalBinding))}/0/${encodeURIComponent(`${primalBinding.endpoints[0].locator}/v1/search/users`)}`,
+				method: 'POST',
+				headers: {
+					Accept: 'application/json',
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({
+					query: 'alice',
+					limit: 1,
+				}),
+			},
+		])
 	})
 })

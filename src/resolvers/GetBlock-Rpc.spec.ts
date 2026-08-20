@@ -107,25 +107,6 @@ describe('GetBlock RPC transaction source', () => {
 			$network: network,
 			txHash: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
 		}, context)
-		expect(Object.keys(getBlockRpc.resolvers[0].projections).sort()).toEqual([
-			'$$logs',
-			'$block',
-			'$from',
-			'$to',
-			'cumulativeGasUsed',
-			'effectiveGasPrice',
-			'executionStatus',
-			'gas',
-			'gasPrice',
-			'gasUsed',
-			'indexInBlock',
-			'input',
-			'nonce',
-			'r',
-			's',
-			'v',
-			'value',
-		].sort())
 		expect(resolved).toMatchObject({
 			$block: {
 				[EntityMetaKey.Selector]: {

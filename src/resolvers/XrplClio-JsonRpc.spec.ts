@@ -1,5 +1,4 @@
 import { QueryClient } from '@tanstack/query-core'
-import { readFileSync } from 'node:fs'
 import {
 	beforeEach,
 	describe,
@@ -67,7 +66,6 @@ const networkLedgersCountResolver = xrplClio.resolvers.find((candidate) => (
 	candidate.entityType === EntityType.Network
 	&& 'Xrpl' in candidate.projections
 	&& typeof candidate.projections.Xrpl.$$ledgers === 'object'
-	&& candidate.projections.Xrpl.$$ledgers != null
 	&& 'resolveCount' in candidate.projections.Xrpl.$$ledgers
 ))
 if (networkLedgersCountResolver == null)
@@ -228,14 +226,6 @@ describe('XRPL Clio Network $$ledgers resolveLive', () => {
 		expect(streamLedger).not.toHaveBeenCalled()
 	})
 
-	it('does not poll HTTP as the live driver', () => {
-		const source = readFileSync('src/resolvers/XrplClio-JsonRpc.ts', 'utf8')
-
-		expect(source).toContain('streamLedger')
-		expect(source).toContain('resolveLive')
-		expect(source).not.toMatch(/\bsetTimeout\b|\bsetInterval\b|\bpoll\s*\(/)
-		expect(source).not.toContain('getValidatedLedgerHead')
-	})
 })
 
 

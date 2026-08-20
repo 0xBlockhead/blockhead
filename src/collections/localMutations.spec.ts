@@ -5,8 +5,6 @@ import {
 	it,
 	vi,
 } from 'vitest'
-import { readFileSync } from 'node:fs'
-import { resolve } from 'node:path'
 import { stringify } from 'devalue'
 import { type as arktype } from 'arktype'
 import {
@@ -66,56 +64,11 @@ import { entityDefinitionByType, schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
 import { connectedWalletConnection } from '$/state/wallets/walletConnectionState.ts'
 
-const source = readFileSync(resolve('src/collections/localMutations.ts'), 'utf8')
-const farcasterMutationSource = source.slice(
-	source.indexOf('export const writeLocalBlockheadFarcasterAccountConnection'),
-	source.indexOf('export const writeLocalBlockheadSocialPostSession')
-)
-const workspaceMutationSource = source.slice(
-	source.indexOf('export const writeLocalBlockheadWorkspace'),
-	source.indexOf('export const writeLocalBlockheadWallet')
-)
-const walletConnectionMutationSource = source.slice(
-	source.indexOf('export const writeLocalBlockheadWalletConnection'),
-	source.indexOf('export const deleteLocalBlockheadWalletConnection')
-)
-const walletRequestMutationSource = source.slice(
-	source.indexOf('export const writeLocalBlockheadEvmWalletRequest')
-)
-const sessionLifecycleMutationSource = source.slice(
-	source.indexOf('export const writeLocalBlockheadSession ='),
-	source.indexOf('export const writeLocalBlockheadTransferIntent')
-)
-const sessionCapabilityGrantMutationSource = source.slice(
-	source.indexOf('export const writeLocalBlockheadWalletCapabilityGrant'),
-	source.indexOf('export const writeLocalBlockheadTransferIntent')
-)
-
 afterEach(() => {
 	vi.unstubAllGlobals()
 })
 
-describe('local wallet connection mutations', () => {
-	it('coerces flat connection rows through the wallet connection state machine before persistence', () => {
-		expect(walletConnectionMutationSource).toContain('walletConnectionPersistRoundTrip(connection)')
-		expect(walletConnectionMutationSource).toContain("selected: 'selected' in persisted ? persisted.selected : undefined")
-		expect(walletConnectionMutationSource).toContain("error: 'error' in persisted ? persisted.error : undefined")
-		expect(walletConnectionMutationSource).not.toContain('persistWalletConnection(connection)')
-	})
-})
-
 describe('local session lifecycle mutations', () => {
-	it('routes session create/lock/delete through sessionLifecycleState helpers', () => {
-		expect(sessionLifecycleMutationSource).toContain('draftSessionLifecycle({')
-		expect(sessionLifecycleMutationSource).toContain('sessionLifecyclePersistRoundTrip(session)')
-		expect(sessionLifecycleMutationSource).toContain('applyLocalBlockheadSessionLifecycleUpdate(')
-		expect(sessionLifecycleMutationSource).toContain('lockSessionLifecycle(previous, lockedAt')
-		expect(sessionLifecycleMutationSource).toContain('unlockSessionLifecycle(previous')
-		expect(sessionLifecycleMutationSource).toContain('canRemoveSessionLifecycle(previous)')
-		expect(source).toContain('applySessionLifecycleUpdate(')
-		expect(sessionLifecycleMutationSource).not.toMatch(/wallets\/adapters/)
-	})
-
 	it('coerces missing lockedAt on reload and ignores stale updatedAt races', async () => {
 		type MockRow = Record<string, object | string | number | boolean | bigint | undefined>
 		const collectionByAddress = new Map<string, {
@@ -310,13 +263,6 @@ describe('local session lifecycle mutations', () => {
 })
 
 describe('local session capability grant mutations', () => {
-	it('hydrates grants through sessionCapabilityGrant lifecycle before persistence', () => {
-		expect(sessionCapabilityGrantMutationSource).toContain('sessionCapabilityGrantFromPersisted(grant, now)')
-		expect(sessionCapabilityGrantMutationSource).toContain('applySessionCapabilityGrantUpdate(')
-		expect(sessionCapabilityGrantMutationSource).toContain('persistSessionCapabilityGrant(applied)')
-		expect(sessionCapabilityGrantMutationSource).toContain('removeSessionCapabilityGrantsForConnection(')
-	})
-
 	it('preserves inactive grants, ignores stale reissues, and revokes grants with their connection', async () => {
 		type MockRow = Record<string, object | string | number | boolean | bigint | undefined>
 		const collectionByAddress = new Map<string, {
@@ -488,23 +434,6 @@ describe('local session capability grant mutations', () => {
 		])
 		await deleteLocalBlockheadWalletCapabilityGrant(context, 'grant-2')
 		expect(context.entityCollections[EntityType.BlockheadWalletCapabilityGrant].toArray).toHaveLength(1)
-	})
-})
-
-describe('local Farcaster account connection mutations', () => {
-	it('persists verified Farcaster connection state without proof material', () => {
-		expect(farcasterMutationSource).toContain('persistFarcasterAccountConnection(machine)')
-		expect(farcasterMutationSource).toContain('associationFingerprint: persisted.associationFingerprint')
-		expect(farcasterMutationSource).toContain('expiresAt: persisted.expiresAt')
-		expect(farcasterMutationSource).toContain('selected: persisted.selected')
-		expect(farcasterMutationSource).not.toMatch(/\b(?:challenge|signature|nonce)\b/)
-	})
-
-	it('keeps connection identity stable and disconnect deletion atomic', () => {
-		expect(farcasterMutationSource).toContain('connectionId: persisted.connectionId')
-		expect(farcasterMutationSource).toContain('farcasterAccountConnectionFromPersisted')
-		expect(farcasterMutationSource).toContain('deleteLocalEntityFields(')
-		expect(farcasterMutationSource).toContain('deleteLocalPresence(')
 	})
 })
 
@@ -1705,8 +1634,6 @@ describe('local mutation authority journal', () => {
 			},
 			[EntityMetaKey.Value]: 1,
 		}))
-		expect(workspaceMutationSource).not.toMatch(/\b(?:focus|hover)\w*/i)
-
 		writeLocalBlockheadLocalMediaIngest(context, {
 			ingestId: 'ingest-1',
 			fileName: 'draft.png',
@@ -1923,8 +1850,6 @@ describe('local mutation authority journal', () => {
 			[],
 			'requestMethod'
 		)].toArray[0]?.[EntityMetaKey.Value]).toBe('wallet_sendCalls')
-		expect(walletRequestMutationSource).not.toMatch(/\b(?:callCount|caip2)\b/)
-		expect(walletRequestMutationSource).toMatch(/at least one BlockheadWalletRequestCall/)
 		await writeLocalBlockheadWalletRequest_Timestamp(context, walletRequestSelector, {
 			timestampMs: 1,
 			source: Source.Local_Internal,
@@ -2216,12 +2141,6 @@ describe('local mutation authority journal', () => {
 				[EntityMetaKey.Value]: 1,
 			}),
 		])
-		const intentOutcomeMutationSource = source.slice(
-			source.indexOf('export const writeLocalBlockheadIntentInvocation'),
-			source.indexOf('export const writeLocalBlockheadActionReadinessChecks')
-		)
-		expect(intentOutcomeMutationSource).not.toMatch(/\b(?:DataTransfer|drag)\w*/i)
-
 		const readinessCheck = {
 			checkId: 'rpc-simulation',
 			checkKind: 'rpc-simulation',

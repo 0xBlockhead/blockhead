@@ -15,7 +15,6 @@ const {
 	fetchBrowseResult,
 	getGatewayReachability,
 	listDeclaredGatewayOrigins,
-	listSeededExampleResources,
 } = await import('$/sources/Swarm/Rest/queries.ts')
 const binding = bindings[Source.Swarm_Rest][0]
 
@@ -45,15 +44,11 @@ describe('Swarm gateway binding transport', () => {
 		)
 	})
 
-	it('fails closed on non-SwarmOnly references before transport', async () => {
+	it('rejects invalid references and content paths before transport', async () => {
 		await expect(fetchBrowseResult({
 			reference: 'not-a-swarm-ref',
 		})).rejects.toThrow('invalid reference')
 
-		expect(sourceFetch).not.toHaveBeenCalled()
-	})
-
-	it('fails closed on content paths with control characters before transport', async () => {
 		await expect(fetchBrowseResult({
 			reference: swarmDocsLandingReference,
 			contentPath: 'index\n.html',
@@ -93,16 +88,10 @@ describe('Swarm gateway binding transport', () => {
 		})
 	})
 
-	it('lists binding origins and seeded browse examples', () => {
+	it('lists binding-owned gateway origins', () => {
 		expect(listDeclaredGatewayOrigins()).toEqual(
 			binding.endpoints.map((endpoint) => new URL(endpoint.locator).origin)
 		)
-		expect(listSeededExampleResources()).toEqual([
-			{
-				reference: swarmDocsLandingReference,
-				contentPath: '',
-			},
-		])
 	})
 
 	it('normalizes 0x / scheme prefixes in assertSwarmGatewayReference', () => {

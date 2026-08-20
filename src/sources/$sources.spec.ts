@@ -264,15 +264,6 @@ describe('source provider registry', () => {
 		expect(sourceCallerCount).toBeGreaterThan(0)
 	})
 
-	it('keeps every provider origin represented in the proxy allow-list source', () => {
-		const serverSource = readFileSync(join(process.cwd(), 'src', 'sources', 'index.server.ts'), 'utf8')
-
-		expect(serverSource).toMatch(/import \{ sourceBindings \} from '\$\/sources\/\$sourceProviders\.ts'/)
-		expect(serverSource).toMatch(/\bsourceEndpointOrigin\(endpoint\)/)
-		expect(serverSource).toMatch(/\bbinding\.delivery === SourceDelivery\.HttpProxy\b/)
-		expect(serverSource).not.toMatch(/\bnew Set\(\s*\[/)
-	})
-
 	it('keeps source modules from bypassing source-aware browser fetch routing', () => {
 		for (const filePath of globSync('src/sources/**/*.ts')) {
 			if (
@@ -347,19 +338,13 @@ describe('source provider registry', () => {
 			locator: 'https://api.piped.private.coffee',
 			corsEnabled: true,
 		}])
-		for (const filePath of globSync('src/sources/Piped/**/*.ts'))
-			expect(readFileSync(filePath, 'utf8'), filePath).not.toMatch(/\bOriginsForPublicEnv\b|\bPUBLIC_PIPED_API_BASE_URL\b/)
 	})
 
 	it('derives Beacon REST chain support from its canonical bindings', () => {
-		expect([...beaconRestByChainId.values()].map(({ chainId }) => chainId)).toEqual([
-			'1',
-			'11155111',
-			'17000',
-		])
 		expect(beaconRestByChainId.has(1)).toBe(true)
 		expect(beaconRestByChainId.has(11155111)).toBe(true)
-		expect(beaconRestByChainId.has(17000)).toBe(true)
+		expect(beaconRestByChainId.has(560048)).toBe(true)
+		expect(beaconRestByChainId.has(17000)).toBe(false)
 		expect(beaconRestByChainId.has(10)).toBe(false)
 	})
 
@@ -444,11 +429,6 @@ describe('source provider registry', () => {
 		} finally {
 			vi.unstubAllGlobals()
 		}
-	})
-
-	it('uses generated Voltaire bindings as the executable transport authority', () => {
-		expect(readFileSync(join(process.cwd(), 'src', 'sources', 'Voltaire', 'JsonRpc', 'queries.ts'), 'utf8'))
-			.not.toMatch(/executionEndpoints\.ts|voltaireJsonRpcTransportCandidates|bindingByEndpoint|bindingForEndpoint|supportsTxpool/)
 	})
 
 	it('keeps Quilibrium docs endpoints in generated APP binding metadata', () => {

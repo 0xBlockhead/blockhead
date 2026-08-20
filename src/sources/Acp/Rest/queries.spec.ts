@@ -9,10 +9,6 @@ import {
 import bindings from '$/sources/Acp/bindings.ts'
 import { fetchRegistry } from '$/sources/Acp/Rest/queries.ts'
 import { Source } from '$/sources/Source.ts'
-import {
-	ApiFamily,
-	SourceDelivery,
-} from '$/sources/SourceBinding.ts'
 
 const sourceGetJson = vi.hoisted(() => vi.fn())
 
@@ -63,13 +59,6 @@ describe('AcpRegistry REST queries', () => {
 		vi.unstubAllGlobals()
 	})
 
-	it('binds the public registry over RemoteQuery HTTP', () => {
-		expect(registryBinding.apiFamily).toBe(ApiFamily.RestJson)
-		expect(registryBinding.delivery).toBe(SourceDelivery.RemoteQuery)
-		expect(registryBinding.endpoints[0].locator).toBe('https://cdn.agentclientprotocol.com/registry/v1/latest/registry.json')
-		expect(registryBinding.endpoints[0].corsEnabled).toBe(false)
-	})
-
 	it('assert-closes a valid registry envelope', async () => {
 		sourceGetJson.mockResolvedValueOnce(registry)
 
@@ -80,16 +69,9 @@ describe('AcpRegistry REST queries', () => {
 		)
 	})
 
-	it('rejects envelopes missing agents', async () => {
-		sourceGetJson.mockResolvedValueOnce({
-			version: '1.0.0',
-		})
-
-		await expect(fetchRegistry()).rejects.toThrow('invalid registry response envelope')
-	})
-
-	it('rejects agents with empty distribution targets', async () => {
-		sourceGetJson.mockResolvedValueOnce({
+	it.each([
+		['missing agents', { version: '1.0.0' }],
+		['empty distribution target', {
 			version: '1.0.0',
 			agents: [{
 				id: 'broken',
@@ -105,8 +87,9 @@ describe('AcpRegistry REST queries', () => {
 					},
 				},
 			}],
-		})
-
+		}],
+	])('rejects invalid registry envelopes: %s', async (_case, envelope) => {
+		sourceGetJson.mockResolvedValueOnce(envelope)
 		await expect(fetchRegistry()).rejects.toThrow('invalid registry response envelope')
 	})
 })

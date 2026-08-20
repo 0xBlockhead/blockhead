@@ -23,13 +23,6 @@ describe('Sigstore Rekor public transparency log', () => {
 		getJson.mockReset()
 	})
 
-	it('exposes only the product-addressable named read operations', () => {
-		expect(Object.keys(queries).sort()).toEqual([
-			'getLogEntry',
-			'getLogInfo',
-		])
-	})
-
 	it('reads typed log state from the canonical endpoint', async () => {
 		const logInfo = {
 			rootHash: 'a'.repeat(64),

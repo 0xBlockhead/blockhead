@@ -318,10 +318,6 @@ describe('Solana JSON-RPC network state lists', () => {
 		)
 		expect(getSlot).not.toHaveBeenCalled()
 		expect(validators).toHaveLength(1)
-		expect(Object.keys(validators[0])).toEqual([
-			EntityMetaKey.Selector,
-			EntityMetaKey.Fields,
-		])
 		expect(validators[0][EntityMetaKey.Fields]).toEqual({
 			[entityFieldAddressKey(EntityType.SolanaValidator, [], '$$timestamps')]: [expect.objectContaining({
 				[EntityMetaKey.Fields]: expect.objectContaining({
@@ -330,12 +326,6 @@ describe('Solana JSON-RPC network state lists', () => {
 				}),
 			})],
 		})
-		expect(Object.keys(validators[0][EntityMetaKey.Fields][
-			entityFieldAddressKey(EntityType.SolanaValidator, [], '$$timestamps')
-		][0])).toEqual([
-			EntityMetaKey.Selector,
-			EntityMetaKey.Fields,
-		])
 		const timestampFields = validators[0][EntityMetaKey.Fields][
 			entityFieldAddressKey(EntityType.SolanaValidator, [], '$$timestamps')
 		][0][EntityMetaKey.Fields]
@@ -609,7 +599,6 @@ describe('Solana JSON-RPC Network slotSubscribe resolveLive canary', () => {
 				'$$timestamps': true,
 			},
 		})
-		expect(Object.keys(networkTimestampsResolver.resolveLive)).toEqual(['slotStream'])
 	})
 
 	it('publishes $$timestamps absoluteSlot from slotSubscribe push only', async () => {

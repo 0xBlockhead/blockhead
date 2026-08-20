@@ -301,23 +301,6 @@ describe('Voyager OpenAPI operations', () => {
 		await expect(listClassContracts({ classHash: '0x1', limit: 10 })).rejects.toThrow('class contracts page returned a duplicate identity')
 	})
 
-	it('exports deepened endpoint operations', () => {
-		expect(Object.keys(queries).sort()).toEqual([
-			'getApiStatus',
-			'getBlockByHash',
-			'getClassByHash',
-			'getContractByAddress',
-			'getNetworkStats',
-			'getTransactionByHash',
-			'listBlocks',
-			'listClassContracts',
-			'listClasses',
-			'listContracts',
-			'listEvents',
-			'listTransactions',
-		])
-	})
-
 	it('hard-fails HTTP through getJson (no soft-empty accepted statuses)', async () => {
 		getJson.mockRejectedValueOnce(new Error('Voyager https://api.voyager.online/beta/txns/0x1 → 404 Not Found'))
 

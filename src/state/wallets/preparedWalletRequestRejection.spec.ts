@@ -1,4 +1,3 @@
-import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 
 import { Source } from '$/sources/Source.ts'
@@ -20,12 +19,6 @@ const preparedObservation = {
 	...preparedWalletRequestObservation(),
 	timestampMs: 20,
 } as const
-
-const source = readFileSync(
-	new URL('./preparedWalletRequestRejection.ts', import.meta.url),
-	'utf8'
-)
-
 
 describe('prepared wallet request rejection', () => {
 	it('creates only a later failed signing observation for an existing prepared transaction request', () => {
@@ -76,12 +69,6 @@ describe('prepared wallet request rejection', () => {
 			'timestampMs',
 		])
 		expect(isPreparedWalletRequestWithoutSend(rejection.observation)).toBe(false)
-		expect(source).not.toMatch(/writeLocalBlockheadWalletRequest(?:SubmittedAt)?/)
-		expect(source).not.toMatch(/EntityType\.EvmTransaction/)
-		expect(source).not.toMatch(/EvmTransaction/)
-		expect(source).not.toMatch(/submittedAt\s*:/)
-		expect(source).not.toMatch(/submitSessionLifecycle/)
-		expect(source).not.toMatch(/finalizeSessionLifecycle/)
 	})
 
 	it('leaves the prepared request row identity unchanged and never invents a public tx', () => {

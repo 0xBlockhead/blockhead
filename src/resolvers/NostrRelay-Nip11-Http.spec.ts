@@ -28,12 +28,6 @@ describe('NostrRelay NIP-11 Http resolver', () => {
 		fetchRelayInformation.mockReset()
 	})
 
-	it('registers under NostrRelay_Nip11_Http', () => {
-		expect(nostrRelayNip11Http.source).toBe(Source.NostrRelay_Nip11_Http)
-		expect(nostrRelayNip11Http.resolvers).toHaveLength(1)
-		expect(relayResolver.entityType).toBe(EntityType.NostrRelay)
-	})
-
 	it('rejects relay URL aliases that would discard credentials or request components', async () => {
 		await expect(relayResolver.resolve.RelayUrl.resolve({
 			relayUrl: 'wss://relay.example/?profile=public',

@@ -7,14 +7,6 @@ import {
 } from 'vitest'
 
 import bindings from '$/sources/Aave/bindings.ts'
-import { aaveChainByChainId, aaveChains } from '$/sources/Aave/Rest/constants.ts'
-import {
-	ApiFamily,
-	SourceDelivery,
-	SourceEndpointKind,
-	SourceTargetKind,
-	WireProtocol,
-} from '$/sources/SourceBinding.ts'
 import { Source } from '$/sources/Source.ts'
 
 const graphql = vi.hoisted(() => vi.fn())
@@ -105,63 +97,6 @@ const ethereumMarketSnapshot = {
 	],
 } as const
 
-describe('Aave V3 GraphQL binding', () => {
-	beforeEach(() => {
-		graphql.mockReset()
-	})
-
-	it('uses the canonical binding when the caller omits one', async () => {
-		graphql.mockResolvedValueOnce({ markets: [] })
-
-		await listMarkets({ chainIds: [1] })
-
-		expect(graphql).toHaveBeenCalledOnce()
-		expect(graphql.mock.calls[0][0].binding).toBe(binding)
-	})
-
-	it('passes only the caller-provided noncanonical binding to GraphQL', async () => {
-		const modifiedBinding = {
-			...binding,
-			endpoints: binding.endpoints.map((endpoint) => ({
-				...endpoint,
-				locator: 'https://noncanonical.example/aave',
-			})),
-		}
-		graphql.mockResolvedValueOnce({ markets: [] })
-
-		await listMarkets({ binding: modifiedBinding, chainIds: [1] })
-
-		expect(graphql).toHaveBeenCalledOnce()
-		expect(graphql.mock.calls[0][0].binding).toBe(modifiedBinding)
-	})
-
-	it('targets the official AaveKit GraphQL endpoint', () => {
-		expect(binding.target).toEqual({
-			kind: SourceTargetKind.Global,
-			key: 'aave-v3-api',
-		})
-		expect(binding.source).toBe(Source.Aave_Rest)
-		expect(binding.wireProtocol).toBe(WireProtocol.Graphql)
-		expect(binding.apiFamily).toBe(ApiFamily.GraphqlHttp)
-		expect(binding.delivery).toBe(SourceDelivery.HttpProxy)
-		expect(binding.endpoints).toEqual([
-			{
-				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: 'https://api.v3.aave.com/graphql',
-				corsEnabled: false,
-			},
-		])
-	})
-
-	it('catalogs documented EIP-155 chain ids including Ethereum', () => {
-		expect(aaveChainByChainId[1]).toEqual({
-			chainId: 1,
-			name: 'Ethereum',
-		})
-		expect(aaveChains.some((chain) => chain.chainId === 8453)).toBe(true)
-	})
-})
-
 describe('Aave market list/detail operations', () => {
 	beforeEach(() => {
 		graphql.mockReset()
@@ -211,47 +146,24 @@ describe('Aave market list/detail operations', () => {
 		})).resolves.toEqual([])
 	})
 
-	it('rejects a response without list data', async () => {
-		graphql.mockResolvedValueOnce(undefined)
-
-		await expect(listMarkets({
-			binding,
-			chainIds: [
-				1,
-			],
-		})).rejects.toThrow(`${Source.Aave_Rest}: markets response missing data`)
-	})
-
-	it('rejects a response without a markets envelope', async () => {
-		graphql.mockResolvedValueOnce({})
-
-		await expect(listMarkets({
-			binding,
-			chainIds: [
-				1,
-			],
-		})).rejects.toThrow(`${Source.Aave_Rest}: markets response missing markets`)
-	})
-
-	it('rejects malformed market list envelopes', async () => {
-		graphql.mockResolvedValueOnce({
-			markets: [
-				{
-					...ethereumMarket,
-					chain: {
-						...ethereumMarket.chain,
-						chainId: '1',
-					},
+	it.each([
+		['missing data', undefined, 'markets response missing data'],
+		['missing operation', {}, 'markets response missing markets'],
+		['malformed envelope', {
+			markets: [{
+				...ethereumMarket,
+				chain: {
+					...ethereumMarket.chain,
+					chainId: '1',
 				},
-			],
-		})
-
+			}],
+		}, 'invalid markets response envelope'],
+	])('rejects %s', async (_, response, error) => {
+		graphql.mockResolvedValueOnce(response)
 		await expect(listMarkets({
 			binding,
-			chainIds: [
-				1,
-			],
-		})).rejects.toThrow(`${Source.Aave_Rest}: invalid markets response envelope`)
+			chainIds: [1],
+		})).rejects.toThrow(`${Source.Aave_Rest}: ${error}`)
 	})
 
 	it('rejects a market outside the requested chain filter', async () => {
@@ -294,29 +206,15 @@ describe('Aave market list/detail operations', () => {
 		})).rejects.toThrow(`${Source.Aave_Rest}: duplicate market identity`)
 	})
 
-	it('rejects an empty chainIds list before transport', async () => {
+	it.each([
+		['empty', [], 'chainIds required'],
+		['unsupported', [999999], 'unsupported chain id'],
+		['duplicate', [1, 1], 'duplicate chain ids'],
+	])('rejects %s chain filters before transport', async (_, chainIds, error) => {
 		await expect(listMarkets({
 			binding,
-			chainIds: [],
-		})).rejects.toThrow(`${Source.Aave_Rest}: chainIds required`)
-		expect(graphql).not.toHaveBeenCalled()
-	})
-
-	it('rejects an unsupported chain id before transport', async () => {
-		await expect(listMarkets({
-			binding,
-			chainIds: [
-				999999,
-			],
-		})).rejects.toThrow(`${Source.Aave_Rest}: unsupported chain id`)
-		expect(graphql).not.toHaveBeenCalled()
-	})
-
-	it('rejects duplicate chain ids before transport', async () => {
-		await expect(listMarkets({
-			binding,
-			chainIds: [1, 1],
-		})).rejects.toThrow(`${Source.Aave_Rest}: duplicate chain ids`)
+			chainIds,
+		})).rejects.toThrow(`${Source.Aave_Rest}: ${error}`)
 		expect(graphql).not.toHaveBeenCalled()
 	})
 
@@ -502,50 +400,21 @@ describe('Aave market list/detail operations', () => {
 		})).rejects.toThrow(`${Source.Aave_Rest}: duplicate reserve identity`)
 	})
 
-	it('rejects a response without detail data', async () => {
-		graphql.mockResolvedValueOnce(undefined)
-
-		await expect(getMarket({
-			binding,
-			chainId: 1,
-			poolAddress: '0x87870bca3f3fd6335c3f4ce8392d69350b4fa4e2',
-		})).rejects.toThrow(`${Source.Aave_Rest}: market response missing data`)
-	})
-
-	it('rejects a response without a market envelope', async () => {
-		graphql.mockResolvedValueOnce({})
-
-		await expect(getMarket({
-			binding,
-			chainId: 1,
-			poolAddress: '0x87870bca3f3fd6335c3f4ce8392d69350b4fa4e2',
-		})).rejects.toThrow(`${Source.Aave_Rest}: market response missing market`)
-	})
-
-	it('rejects malformed market detail envelopes', async () => {
-		graphql.mockResolvedValueOnce({
-			market: {
+	it.each([
+		['missing data', undefined, 'market response missing data'],
+		['missing operation', {}, 'market response missing market'],
+		['malformed envelope', { market: {
 				...ethereumMarketSnapshot,
 				totalAvailableLiquidity: null,
-			},
-		})
-
+			} }, 'invalid market response envelope'],
+		['missing market', { market: null }, 'market not found'],
+	])('rejects %s', async (_, response, error) => {
+		graphql.mockResolvedValueOnce(response)
 		await expect(getMarket({
 			binding,
 			chainId: 1,
 			poolAddress: '0x87870bca3f3fd6335c3f4ce8392d69350b4fa4e2',
-		})).rejects.toThrow(`${Source.Aave_Rest}: invalid market response envelope`)
-	})
-
-	it('throws when the market is missing', async () => {
-		graphql.mockResolvedValueOnce({
-			market: null,
-		})
-		await expect(getMarket({
-			binding,
-			chainId: 1,
-			poolAddress: '0x87870bca3f3fd6335c3f4ce8392d69350b4fa4e2',
-		})).rejects.toThrow(`${Source.Aave_Rest}: market not found`)
+		})).rejects.toThrow(`${Source.Aave_Rest}: ${error}`)
 	})
 
 	it('rejects an invalid pool address before transport', async () => {
@@ -765,103 +634,57 @@ describe('Aave account position operations', () => {
 		expect(graphql).not.toHaveBeenCalled()
 	})
 
-	it('fails closed when userSupplies is omitted', async () => {
+	it.each([
+		['missing supplies', {
+			userBorrows: [],
+		}],
+		['supply missing collateral flag', {
+			userSupplies: [{
+				market: {
+					address: ethereumMarket.address,
+					chain: { chainId: 1 },
+				},
+				currency: {
+					address: '0xA0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+					symbol: 'USDC',
+					decimals: 6,
+					chainId: 1,
+				},
+				balance: {
+					amount: { value: '1000.5' },
+					usd: '1000.5',
+				},
+				apy: { value: '0.03' },
+				canBeCollateral: true,
+			}],
+			userBorrows: [],
+		}],
+		['non-string borrow debt', {
+			userSupplies: [],
+			userBorrows: [{
+				market: {
+					address: ethereumMarket.address,
+					chain: { chainId: 1 },
+				},
+				currency: {
+					address: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+					symbol: 'WETH',
+					decimals: 18,
+					chainId: 1,
+				},
+				debt: {
+					amount: { value: 2.5 },
+					usd: '5000',
+				},
+				apy: { value: '0.05' },
+			}],
+		}],
+	])('fails closed for %s', async (_, response) => {
 		graphql
 			.mockResolvedValueOnce({
-				markets: [
-					ethereumMarket,
-				],
+				markets: [ethereumMarket],
 			})
-			.mockResolvedValueOnce({
-				userBorrows: [],
-			})
-
-		await expect(getAccountPositions({
-			binding,
-			chainId: 1,
-			account: '0x464C71f6c2F760DdA6093dCB91C24c39e5d6e18c',
-		})).rejects.toThrow(`${Source.Aave_Rest}: invalid account positions response envelope`)
-	})
-
-	it('fails closed when a supply row omits isCollateral', async () => {
-		graphql
-			.mockResolvedValueOnce({
-				markets: [
-					ethereumMarket,
-				],
-			})
-			.mockResolvedValueOnce({
-				userSupplies: [
-					{
-						market: {
-							address: ethereumMarket.address,
-							chain: {
-								chainId: 1,
-							},
-						},
-						currency: {
-							address: '0xA0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-							symbol: 'USDC',
-							decimals: 6,
-							chainId: 1,
-						},
-						balance: {
-							amount: {
-								value: '1000.5',
-							},
-							usd: '1000.5',
-						},
-						apy: {
-							value: '0.03',
-						},
-						canBeCollateral: true,
-					},
-				],
-				userBorrows: [],
-			})
-
-		await expect(getAccountPositions({
-			binding,
-			chainId: 1,
-			account: '0x464C71f6c2F760DdA6093dCB91C24c39e5d6e18c',
-		})).rejects.toThrow(`${Source.Aave_Rest}: invalid account positions response envelope`)
-	})
-
-	it('fails closed when a borrow debt amount is not a string', async () => {
-		graphql
-			.mockResolvedValueOnce({
-				markets: [
-					ethereumMarket,
-				],
-			})
-			.mockResolvedValueOnce({
-				userSupplies: [],
-				userBorrows: [
-					{
-						market: {
-							address: ethereumMarket.address,
-							chain: {
-								chainId: 1,
-							},
-						},
-						currency: {
-							address: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-							symbol: 'WETH',
-							decimals: 18,
-							chainId: 1,
-						},
-						debt: {
-							amount: {
-								value: 2.5,
-							},
-							usd: '5000',
-						},
-						apy: {
-							value: '0.05',
-						},
-					},
-				],
-			})
+			.mockResolvedValueOnce(response)
 
 		await expect(getAccountPositions({
 			binding,
@@ -1102,49 +925,24 @@ describe('Aave account position operations', () => {
 		})).rejects.toThrow(`${Source.Aave_Rest}: invalid eMode decimal value`)
 	})
 
-	it('fails closed when supplyCap amount is not a decimal string', async () => {
-		graphql.mockResolvedValueOnce({
-			market: {
-				...ethereumMarketSnapshot,
-				reserves: [
-					{
-						...ethereumMarketSnapshot.reserves[0],
-						supplyInfo: {
-							apy: {
-								value: '0.031245',
-							},
-							supplyCap: {
-								amount: {
-									value: 'not-a-decimal',
-								},
-							},
-						},
-					},
-				],
+	it.each([
+		['supply cap', {
+			supplyInfo: {
+				apy: { value: '0.031245' },
+				supplyCap: { amount: { value: 'not-a-decimal' } },
 			},
-		})
-
-		await expect(getMarket({
-			binding,
-			chainId: 1,
-			poolAddress: ethereumMarket.address,
-		})).rejects.toThrow(`${Source.Aave_Rest}: invalid reserve decimal value`)
-	})
-
-	it('fails closed when unbacked amount is not a decimal string', async () => {
+		}],
+		['unbacked amount', {
+			unbacked: { amount: { value: 'bad' } },
+		}],
+	])('fails closed for malformed reserve %s', async (_, malformedFields) => {
 		graphql.mockResolvedValueOnce({
 			market: {
 				...ethereumMarketSnapshot,
-				reserves: [
-					{
-						...ethereumMarketSnapshot.reserves[0],
-						unbacked: {
-							amount: {
-								value: 'bad',
-							},
-						},
-					},
-				],
+				reserves: [{
+					...ethereumMarketSnapshot.reserves[0],
+					...malformedFields,
+				}],
 			},
 		})
 

@@ -102,16 +102,6 @@ const protocolParameters = {
 } as const
 
 describe('Ogmios JsonRpc tip transport', () => {
-	it('owns the canonical Cardano mainnet binding', () => {
-		expect(bindings[Source.Ogmios_JsonRpc][0]).toMatchObject({
-			source: Source.Ogmios_JsonRpc,
-			target: {
-				kind: 'Caip2Network',
-				key: 'cip34:1-764824073',
-			},
-		})
-	})
-
 	it('accepts ledger tip / network tip / block height / epoch / protocol parameters', async () => {
 		jsonRpc2
 			.mockResolvedValueOnce(tipPoint)

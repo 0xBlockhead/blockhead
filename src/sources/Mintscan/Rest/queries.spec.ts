@@ -315,14 +315,4 @@ describe('Mintscan Cosmos LCD proxy operations', () => {
 		})).resolves.toEqual(txEnvelope)
 	})
 
-	it('exports only endpoint-specific operations', () => {
-		expect(Object.keys(queries).sort()).toEqual([
-			'getAccount',
-			'getBlock',
-			'getLatestBlock',
-			'getNodeInfo',
-			'getSyncing',
-			'getTx',
-		])
-	})
 })

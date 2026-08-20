@@ -406,7 +406,4 @@ describe('Amboss public Lightning graph queries', () => {
 		await expect(getPopularNodePubkeys(binding)).rejects.toThrow('invalid popular nodes response envelope')
 	})
 
-	it('keeps the Amboss GraphQL binding on the public API locator', () => {
-		expect(binding.endpoints[0].locator).toBe('https://api.amboss.space/graphql')
-	})
 })

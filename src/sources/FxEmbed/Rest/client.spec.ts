@@ -2,11 +2,7 @@ import { beforeEach, expect, it, vi } from 'vitest'
 
 import bindings from '$/sources/FxEmbed/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import {
-	ApiFamily,
-	SourceArtifactKind,
-	type SourceBinding,
-} from '$/sources/SourceBinding.ts'
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
 
 const {
 	firstHttpUrlForBinding,
@@ -37,16 +33,7 @@ beforeEach(() => {
 	sourceGetJson.mockResolvedValue({ results: [] })
 })
 
-it('uses the generated FxEmbed OpenAPI contract', () => {
-	expect(fxEmbedRestBinding.apiFamily).toBe(ApiFamily.OpenApiHttp)
-	expect(fxEmbedRestBinding.artifacts.map(({ kind }) => kind)).toEqual([
-		SourceArtifactKind.GenerationManifest,
-		SourceArtifactKind.OpenApiSpec,
-		SourceArtifactKind.OpenApiTypes,
-	])
-})
-
-it('uses the proxied FxEmbed origin and preserves profile identity encoding', async () => {
+it('preserves FxEmbed identities, bounds, empty results, and application failures', async () => {
 	await getUser('123')
 	await getUser('@alice/example')
 
@@ -59,7 +46,7 @@ it('uses the proxied FxEmbed origin and preserves profile identity encoding', as
 	)
 })
 
-it('clamps bounded windows and preserves opaque continuation tokens', async () => {
+it('clamps bounded windows, preserves cursors, and handles application results', async () => {
 	await searchStatuses(500, 'search/+ %=cursor')
 	await getUserStatuses('alice', 0, 'profile/+ %=cursor')
 
@@ -69,9 +56,7 @@ it('clamps bounded windows and preserves opaque continuation tokens', async () =
 	expect(new URL(sourceGetJson.mock.calls[1][1]).searchParams.get('cursor')).toBe('profile/+ %=cursor')
 	expect(sourceGetJson.mock.calls[0][2]).toEqual([404])
 	expect(sourceGetJson.mock.calls[1][2]).toEqual([])
-})
 
-it('returns the documented empty search result response', async () => {
 	sourceGetJson.mockResolvedValueOnce({
 		code: 404,
 		results: [],
@@ -81,9 +66,7 @@ it('returns the documented empty search result response', async () => {
 		code: 404,
 		results: [],
 	})
-})
 
-it('rejects FxEmbed application failures returned through successful HTTP transport', async () => {
 	sourceGetJson.mockResolvedValueOnce({
 		code: 500,
 		message: 'Upstream failed',

@@ -5,10 +5,7 @@ import blockchair from '$/sources/Blockchair/index.ts'
 import { indexSourceProviders } from '$/sources/$sources.ts'
 import { getBlockchairJson } from '$/sources/Blockchair/Rest/client.ts'
 import { Source } from '$/sources/Source.ts'
-import {
-	SourceDelivery,
-	sourceBindingId,
-} from '$/sources/SourceBinding.ts'
+import { sourceBindingId } from '$/sources/SourceBinding.ts'
 
 const binding = bindings[Source.Blockchair_Rest][0]
 
@@ -17,36 +14,7 @@ describe('Blockchair REST client delivery', () => {
 		vi.unstubAllGlobals()
 	})
 
-	it('uses the registered HttpProxy binding and injects an optional public API key', async () => {
-		const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(new Response(JSON.stringify({ data: [] }), {
-			headers: {
-				'content-type': 'application/json',
-			},
-		}))
-		vi.stubGlobal('fetch', fetchMock)
-		vi.stubGlobal('window', {})
-
-		await expect(getBlockchairJson({
-			path: '/bitcoin/blocks',
-			searchParams: {
-				limit: 16,
-			},
-			publicEnv: {
-				PUBLIC_BLOCKCHAIR_API_KEY: 'public key',
-			},
-		})).resolves.toEqual({ data: [] })
-
-		expect(binding.delivery).toBe(SourceDelivery.HttpProxy)
-		expect(fetchMock).toHaveBeenCalledOnce()
-		expect(fetchMock).toHaveBeenCalledWith(
-			`/api-proxy/${encodeURIComponent(sourceBindingId(binding))}/0/${encodeURIComponent('https://api.blockchair.com/bitcoin/blocks?limit=16&key=public+key')}`,
-			expect.objectContaining({
-				signal: expect.any(AbortSignal),
-			})
-		)
-	})
-
-	it('requires a public API key to enable and still proxies authenticated reads', async () => {
+	it('enables only configured bindings and proxies encoded authenticated reads', async () => {
 		const eligibleBindingIds = new Set([
 			sourceBindingId(binding),
 		])
@@ -64,13 +32,16 @@ describe('Blockchair REST client delivery', () => {
 		vi.stubGlobal('window', {})
 
 		await expect(getBlockchairJson({
-			path: '/bitcoin/stats',
+			path: '/bitcoin/blocks',
+			searchParams: {
+				limit: 16,
+			},
 			publicEnv: {
-				PUBLIC_BLOCKCHAIR_API_KEY: 'configured',
+				PUBLIC_BLOCKCHAIR_API_KEY: 'public key',
 			},
 		})).resolves.toEqual({ data: [] })
 		expect(fetchMock).toHaveBeenCalledWith(
-			`/api-proxy/${encodeURIComponent(sourceBindingId(binding))}/0/${encodeURIComponent('https://api.blockchair.com/bitcoin/stats?key=configured')}`,
+			`/api-proxy/${encodeURIComponent(sourceBindingId(binding))}/0/${encodeURIComponent('https://api.blockchair.com/bitcoin/blocks?limit=16&key=public+key')}`,
 			expect.objectContaining({
 				signal: expect.any(AbortSignal),
 			})

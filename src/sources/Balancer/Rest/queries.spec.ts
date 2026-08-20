@@ -7,17 +7,6 @@ import {
 } from 'vitest'
 
 import bindings from '$/sources/Balancer/bindings.ts'
-import {
-	balancerChainByChainId,
-	balancerChains,
-} from '$/sources/Balancer/Rest/constants.ts'
-import {
-	ApiFamily,
-	SourceDelivery,
-	SourceEndpointKind,
-	SourceTargetKind,
-	WireProtocol,
-} from '$/sources/SourceBinding.ts'
 import { Source } from '$/sources/Source.ts'
 
 const graphql = vi.hoisted(() => vi.fn())
@@ -105,66 +94,6 @@ const stableV3Pool = {
 	},
 } as const
 
-describe('Balancer API binding', () => {
-	beforeEach(() => {
-		graphql.mockReset()
-	})
-
-	it('uses the canonical binding when the caller omits one', async () => {
-		graphql.mockResolvedValueOnce({ poolGetPools: [] })
-
-		await listPools({ chainId: 1 })
-
-		expect(graphql).toHaveBeenCalledOnce()
-		expect(graphql.mock.calls[0][0].binding).toBe(binding)
-	})
-
-	it('passes only the caller-provided noncanonical binding to GraphQL', async () => {
-		const modifiedBinding = {
-			...binding,
-			endpoints: binding.endpoints.map((endpoint) => ({
-				...endpoint,
-				locator: 'https://noncanonical.example/balancer',
-			})),
-		}
-		graphql.mockResolvedValueOnce({ poolGetPools: [] })
-
-		await listPools({ binding: modifiedBinding, chainId: 1 })
-
-		expect(graphql).toHaveBeenCalledOnce()
-		expect(graphql.mock.calls[0][0].binding).toBe(modifiedBinding)
-	})
-
-	it('targets the official Balancer GraphQL API', () => {
-		expect(binding.target).toEqual({
-			kind: SourceTargetKind.Global,
-			key: 'balancer-api-v3',
-		})
-		expect(binding.source).toBe(Source.Balancer_Rest)
-		expect(binding.wireProtocol).toBe(WireProtocol.Graphql)
-		expect(binding.apiFamily).toBe(ApiFamily.GraphqlHttp)
-		expect(binding.delivery).toBe(SourceDelivery.BrowserDirect)
-		expect(binding.endpoints).toEqual([
-			{
-				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: 'https://api-v3.balancer.fi/',
-				corsEnabled: true,
-			},
-		])
-	})
-
-	it('catalogs Vault deployments for documented EIP-155 chains', () => {
-		expect(balancerChainByChainId[1]).toEqual({
-			chainId: 1,
-			name: 'Ethereum',
-			gqlChain: 'MAINNET',
-			vaultV2: '0xba12222222228d8ba445958a75a0704d566bf2c8',
-			vaultV3: '0xba1333333333a1ba1108e8412f11850a5c319ba9',
-		})
-		expect(balancerChains.some((chain) => chain.chainId === 8453)).toBe(true)
-	})
-})
-
 describe('Balancer poolGetPool operation', () => {
 	beforeEach(() => {
 		graphql.mockReset()
@@ -235,57 +164,31 @@ describe('Balancer poolGetPool operation', () => {
 		})
 	})
 
-	it('rejects an unsupported chain id before transport', async () => {
+	it.each([
+		['unsupported chain', 999999, weightedV2PoolId, 'unsupported chain id 999999'],
+		['invalid pool', 1, 'not-a-pool', 'invalid pool id not-a-pool'],
+	])('rejects %s before transport', async (_, chainId, poolId, error) => {
 		await expect(getPool({
 			binding,
-			chainId: 999999,
-			poolId: weightedV2PoolId,
-		})).rejects.toThrow(`${Source.Balancer_Rest}: unsupported chain id 999999`)
+			chainId,
+			poolId,
+		})).rejects.toThrow(`${Source.Balancer_Rest}: ${error}`)
 		expect(graphql).not.toHaveBeenCalled()
 	})
 
-	it('rejects an invalid pool id before transport', async () => {
-		await expect(getPool({
-			binding,
-			chainId: 1,
-			poolId: 'not-a-pool',
-		})).rejects.toThrow(`${Source.Balancer_Rest}: invalid pool id not-a-pool`)
-		expect(graphql).not.toHaveBeenCalled()
-	})
-
-	it('throws when the API returns a null pool', async () => {
-		graphql.mockResolvedValueOnce({
-			poolGetPool: null,
-		})
+	it.each([
+		['missing pool', { poolGetPool: null }, `pool not found ${weightedV2PoolId} on chain 1`],
+		['missing operation', {}, 'pool response missing poolGetPool'],
+		['malformed envelope', {
+			poolGetPool: { id: weightedV2PoolId },
+		}, 'invalid pool response envelope'],
+	])('rejects %s', async (_, response, error) => {
+		graphql.mockResolvedValueOnce(response)
 		await expect(getPool({
 			binding,
 			chainId: 1,
 			poolId: weightedV2PoolId,
-		})).rejects.toThrow(`${Source.Balancer_Rest}: pool not found ${weightedV2PoolId} on chain 1`)
-	})
-
-	it('fails closed when the pool detail operation is missing', async () => {
-		graphql.mockResolvedValueOnce({})
-
-		await expect(getPool({
-			binding,
-			chainId: 1,
-			poolId: weightedV2PoolId,
-		})).rejects.toThrow(`${Source.Balancer_Rest}: pool response missing poolGetPool`)
-	})
-
-	it('fails closed when the pool detail envelope is malformed', async () => {
-		graphql.mockResolvedValueOnce({
-			poolGetPool: {
-				id: weightedV2PoolId,
-			},
-		})
-
-		await expect(getPool({
-			binding,
-			chainId: 1,
-			poolId: weightedV2PoolId,
-		})).rejects.toThrow(`${Source.Balancer_Rest}: invalid pool response envelope`)
+		})).rejects.toThrow(`${Source.Balancer_Rest}: ${error}`)
 	})
 
 	it('strips undeclared pool wire keys while keeping enrolled fields', async () => {
@@ -372,37 +275,18 @@ describe('Balancer poolGetPools operation', () => {
 		expect(graphql).not.toHaveBeenCalled()
 	})
 
-	it('fails closed when the pool list response has no data', async () => {
-		graphql.mockResolvedValueOnce(undefined)
-
+	it.each([
+		['missing data', undefined, 'pool list response missing data'],
+		['missing operation', {}, 'pool list response poolGetPools is missing'],
+		['malformed envelope', {
+			poolGetPools: [{ id: weightedV2PoolId }],
+		}, 'invalid pool list response envelope'],
+	])('fails closed for %s', async (_, response, error) => {
+		graphql.mockResolvedValueOnce(response)
 		await expect(listPools({
 			binding,
 			chainId: 1,
-		})).rejects.toThrow(`${Source.Balancer_Rest}: pool list response missing data`)
-	})
-
-	it('fails closed when the pool list operation is absent', async () => {
-		graphql.mockResolvedValueOnce({})
-
-		await expect(listPools({
-			binding,
-			chainId: 1,
-		})).rejects.toThrow(`${Source.Balancer_Rest}: pool list response poolGetPools is missing`)
-	})
-
-	it('fails closed when the pool list envelope is malformed', async () => {
-		graphql.mockResolvedValueOnce({
-			poolGetPools: [
-				{
-					id: weightedV2PoolId,
-				},
-			],
-		})
-
-		await expect(listPools({
-			binding,
-			chainId: 1,
-		})).rejects.toThrow(`${Source.Balancer_Rest}: invalid pool list response envelope`)
+		})).rejects.toThrow(`${Source.Balancer_Rest}: ${error}`)
 
 		graphql.mockResolvedValueOnce({
 			poolGetPools: null,

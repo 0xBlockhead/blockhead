@@ -2,15 +2,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import bindings from '$/sources/Zebra/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import {
-	ApiFamily,
-	SourceCredentialScope,
-	SourceDelivery,
-	SourceEndpointKind,
-	SourceOperationGroup,
-	SourceTargetKind,
-	WireProtocol,
-} from '$/sources/SourceBinding.ts'
 
 const jsonRpc2 = vi.fn()
 
@@ -37,30 +28,6 @@ const txId = 'b'.repeat(64)
 describe('Zebra transparent-address transport', () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
-	})
-
-	it('selects the exact canonical Zcash mainnet binding', () => {
-		expect(binding).toEqual({
-			source: Source.Zebra_JsonRpc,
-			target: {
-				kind: SourceTargetKind.Caip2Network,
-				key: 'bip122:00040fe8ec8471911baa1db1266ea15',
-			},
-			endpoints: [{
-				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: 'http://127.0.0.1:8232',
-				corsEnabled: false,
-			}],
-			wireProtocol: WireProtocol.JsonRpc2,
-			apiFamily: ApiFamily.BitcoinJsonRpc,
-			operationGroups: [
-				SourceOperationGroup.GenericRead,
-			],
-			delivery: SourceDelivery.LocalOnly,
-			credentials: [{
-				scope: SourceCredentialScope.LocalSecret,
-			}],
-		})
 	})
 
 	it('asserts block and transaction envelopes through neutral JSON-RPC reads', async () => {

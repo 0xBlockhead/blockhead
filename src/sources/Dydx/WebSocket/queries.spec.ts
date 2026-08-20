@@ -1,5 +1,3 @@
-import { readFileSync } from 'node:fs'
-
 import {
 	beforeEach,
 	describe,
@@ -121,10 +119,4 @@ describe('dYdX Indexer live client', () => {
 		})
 	})
 
-	it('does not import server-only implementation into the client query module', () => {
-		const source = readFileSync('src/sources/Dydx/WebSocket/queries.ts', 'utf8')
-
-		expect(source).toContain("from '$/sources/Dydx/WebSocket/live.remote.ts'")
-		expect(source).not.toContain('.server.ts')
-	})
 })

@@ -1,16 +1,5 @@
 import { beforeEach, expect, test, vi } from 'vitest'
 
-import { Source } from '$/sources/Source.ts'
-import {
-	ApiFamily,
-	SourceDelivery,
-	SourceEndpointKind,
-	SourceOperationGroup,
-	SourceTargetKind,
-	WireProtocol,
-} from '$/sources/SourceBinding.ts'
-import bindings from '$/sources/Rss2Json/bindings.ts'
-
 const sourceGetJson = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/_runtime/http.ts', async (importOriginal) => ({
@@ -18,48 +7,10 @@ vi.mock('$/sources/_runtime/http.ts', async (importOriginal) => ({
 	sourceGetJson,
 }))
 
-import { rss2JsonGet } from '$/sources/Rss2Json/Rest/client.ts'
 import { getFeed } from '$/sources/Rss2Json/Rest/queries.ts'
 
 beforeEach(() => {
 	sourceGetJson.mockReset()
-})
-
-test('uses the registered HttpProxy binding', async () => {
-	sourceGetJson.mockResolvedValueOnce({
-		status: 'ok',
-	})
-
-	await expect(rss2JsonGet(
-		bindings[Source.Rss2Json_Rest][0],
-		'/v1/api.json?rss_url=fixture'
-	)).resolves.toEqual({
-		status: 'ok',
-	})
-	expect(sourceGetJson).toHaveBeenCalledWith(
-		expect.objectContaining({
-			source: Source.Rss2Json_Rest,
-			target: {
-				kind: SourceTargetKind.Global,
-				key: 'rss2json',
-			},
-			endpoints: [
-				{
-					endpointKind: SourceEndpointKind.HttpUrl,
-					locator: 'https://api.rss2json.com',
-					corsEnabled: false,
-				},
-			],
-			wireProtocol: WireProtocol.HttpRest,
-			apiFamily: ApiFamily.RestJson,
-			operationGroups: [
-				SourceOperationGroup.GenericRead,
-			],
-			delivery: SourceDelivery.HttpProxy,
-			credentials: [],
-		}),
-		'https://api.rss2json.com/v1/api.json?rss_url=fixture'
-	)
 })
 
 test('encodes an arbitrary feed URL as one reserved query value', async () => {

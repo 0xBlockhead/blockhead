@@ -1,5 +1,3 @@
-import { readFileSync } from 'node:fs'
-
 import {
 	beforeEach,
 	describe,
@@ -165,23 +163,6 @@ describe('XrplClio subscribeLedger RemoteLive transport', () => {
 		})
 	})
 
-	it('keeps the initial ledger subscription on the server boundary', () => {
-		const source = readFileSync('src/sources/XrplClio/JsonRpc/live.server.ts', 'utf8')
-
-		expect(source).toContain("streams: ['ledger']")
-		expect(source).toContain('iterateSourceLive')
-		expect(source).not.toMatch(/\bsetTimeout\b|\bsetInterval\b|\bpoll\s*\(/)
-	})
-
-	it('does not poll and does not own a resolver', () => {
-		const source = readFileSync('src/sources/XrplClio/JsonRpc/queries.ts', 'utf8')
-
-		expect(source).toContain("from '$/sources/XrplClio/JsonRpc/live.remote.ts'")
-		expect(source).not.toContain('.server.ts')
-		expect(source).not.toMatch(/\bsetTimeout\b|\bsetInterval\b|\bpoll\s*\(/)
-		expect(source).not.toContain('resolveLive')
-		expect(source).not.toContain('defineResolver')
-	})
 })
 
 

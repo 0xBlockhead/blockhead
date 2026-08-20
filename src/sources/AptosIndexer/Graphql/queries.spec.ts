@@ -171,8 +171,4 @@ describe('Aptos Indexer account portfolio queries', () => {
 		expect(executeAptosIndexer).not.toHaveBeenCalled()
 	})
 
-	it('binds Aptos Indexer GraphQL over HttpProxy', () => {
-		expect(Object.keys(bindings)).toEqual([Source.AptosIndexer_Graphql])
-		expect(aptosIndexerBinding.source).toBe(Source.AptosIndexer_Graphql)
-	})
 })

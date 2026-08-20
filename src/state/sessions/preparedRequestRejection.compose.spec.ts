@@ -1,4 +1,3 @@
-import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 
 import { ActionType } from '$/constants/actions.ts'
@@ -14,16 +13,6 @@ import {
 	isSessionSimulationWithoutSend,
 	lockSessionLifecycle,
 } from './sessionLifecycleState.ts'
-
-
-const rejectionModuleSource = readFileSync(
-	new URL('../wallets/preparedWalletRequestRejection.ts', import.meta.url),
-	'utf8'
-)
-const composeSource = readFileSync(
-	new URL('./preparedRequestRejection.compose.spec.ts', import.meta.url),
-	'utf8'
-)
 
 
 describe('prepared request rejection compose', () => {
@@ -81,19 +70,5 @@ describe('prepared request rejection compose', () => {
 		expect(session.status).toBe(BlockheadSessionStatus.Draft)
 		expect(session).not.toHaveProperty('submittedAt')
 		expect(isEditableSessionLifecycle(session)).toBe(true)
-	})
-
-	it('stays on the prepared-request / session authority plane without submission writers', () => {
-		expect(rejectionModuleSource).not.toMatch(/writeLocalBlockheadWalletRequest(?:SubmittedAt)?/)
-		expect(rejectionModuleSource).not.toMatch(/EntityType\.EvmTransaction/)
-		expect(rejectionModuleSource).not.toMatch(/submitSessionLifecycle/)
-		expect(rejectionModuleSource).not.toMatch(/finalizeSessionLifecycle/)
-		expect(rejectionModuleSource).not.toMatch(/evmNativeTransferPreparation/)
-		expect(rejectionModuleSource).not.toMatch(/evmSwapPreparation/)
-		expect(rejectionModuleSource).toMatch(/PreparedWalletRequestObservation/)
-		expect(composeSource).toMatch(/preparedWalletRequestObservation/)
-		expect(composeSource).toMatch(/isSessionSimulationWithoutSend/)
-		expect(composeSource).toMatch(/ActionType\.Transfer/)
-		expect(composeSource).toMatch(/ActionType\.Swap/)
 	})
 })

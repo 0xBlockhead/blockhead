@@ -46,7 +46,7 @@ describe('DeFiLlama REST endpoint selection', () => {
 		sourceGetJson.mockResolvedValue({ coins: {} })
 	})
 
-	it('uses the public current-prices endpoint without Pro credentials', async () => {
+	it('routes every price lookup through its public or authenticated product endpoint', async () => {
 		await getCurrentPrices({
 			coins: ['coingecko:ethereum'],
 		})
@@ -55,9 +55,7 @@ describe('DeFiLlama REST endpoint selection', () => {
 			bindingByTargetKey['coins-public'],
 			'https://coins.llama.fi/prices/current/coingecko%3Aethereum'
 		)
-	})
 
-	it('uses the official Pro gateway path when credentials are available', async () => {
 		await getProCurrentPrices({
 			coins: ['coingecko:ethereum'],
 			publicEnv: {
@@ -69,9 +67,7 @@ describe('DeFiLlama REST endpoint selection', () => {
 			bindingByTargetKey['coins-pro'],
 			'https://pro-api.llama.fi/pro%20key/coins/prices/current/coingecko%3Aethereum'
 		)
-	})
 
-	it('uses the public historical-prices endpoint', async () => {
 		await getHistoricalPrices({
 			coins: ['coingecko:ethereum'],
 			timestamp: 1_700_000_000,
@@ -81,9 +77,7 @@ describe('DeFiLlama REST endpoint selection', () => {
 			bindingByTargetKey['coins-public'],
 			'https://coins.llama.fi/prices/historical/1700000000/coingecko%3Aethereum'
 		)
-	})
 
-	it('uses the Pro historical-prices gateway path', async () => {
 		await getProHistoricalPrices({
 			coins: ['coingecko:ethereum'],
 			timestamp: 1_700_000_000,
@@ -96,9 +90,7 @@ describe('DeFiLlama REST endpoint selection', () => {
 			bindingByTargetKey['coins-pro'],
 			'https://pro-api.llama.fi/pro%20key/coins/prices/historical/1700000000/coingecko%3Aethereum'
 		)
-	})
 
-	it('uses the public first-prices endpoint', async () => {
 		await getFirstPrices({
 			coins: ['coingecko:ethereum'],
 		})
@@ -107,9 +99,7 @@ describe('DeFiLlama REST endpoint selection', () => {
 			bindingByTargetKey['coins-public'],
 			'https://coins.llama.fi/prices/first/coingecko%3Aethereum'
 		)
-	})
 
-	it('uses the Pro first-prices gateway path', async () => {
 		await getProFirstPrices({
 			coins: ['coingecko:ethereum'],
 			publicEnv: {

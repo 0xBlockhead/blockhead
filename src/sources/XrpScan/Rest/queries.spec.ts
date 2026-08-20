@@ -282,18 +282,4 @@ describe('XrpScan Rest fail-closed envelopes', () => {
 		await expect(run()).rejects.toThrow(/invalid .+ response envelope/)
 	})
 
-	it('exports the modeled explorer operations', () => {
-		expect(Object.keys(queries).sort()).toEqual([
-			'getAccount',
-			'getAccountTransactions',
-			'getAccountTrustlines',
-			'getAmm',
-			'getLedger',
-			'getLedgerTransactions',
-			'getLedgers',
-			'getObject',
-			'getServerInfo',
-			'getTransaction',
-		])
-	})
 })

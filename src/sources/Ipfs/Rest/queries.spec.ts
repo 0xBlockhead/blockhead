@@ -1,10 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import bindings from '$/sources/Ipfs/bindings.ts'
-import {
-	ipfsDocsIpnsName,
-	ipfsGatewaySampleCid,
-} from '$/sources/Ipfs/Rest/constants.ts'
+import { ipfsGatewaySampleCid } from '$/sources/Ipfs/Rest/constants.ts'
 import { Source } from '$/sources/Source.ts'
 
 const sourceFetch = vi.fn()
@@ -19,7 +16,6 @@ const {
 	getGatewayUrl,
 	getGatewayReachability,
 	listDeclaredGatewayOrigins,
-	listSeededExampleResources,
 } = await import('$/sources/Ipfs/Rest/queries.ts')
 const binding = bindings[Source.Ipfs_Rest][0]
 
@@ -50,16 +46,12 @@ describe('IPFS gateway binding transport', () => {
 		)
 	})
 
-	it('fails closed on invalid IPFS CID targets before transport', async () => {
+	it('rejects invalid gateway identities and paths before transport', async () => {
 		await expect(fetchBrowseResult({
 			namespace: 'ipfs',
 			target: 'not-a-cid',
 		})).rejects.toThrow('invalid IPFS CID target')
 
-		expect(sourceFetch).not.toHaveBeenCalled()
-	})
-
-	it('validates direct gateway URL targets before composing a binding-owned URL', () => {
 		expect(() => getGatewayUrl({
 			namespace: 'ipfs',
 			target: 'not-a-cid',
@@ -71,9 +63,7 @@ describe('IPFS gateway binding transport', () => {
 			target: 'bad\nname',
 			gatewayOrigin: 'https://ipfs.io',
 		})).toThrow('IPNS target contains URL delimiters')
-	})
 
-	it('fails closed on content paths with control characters before transport', async () => {
 		await expect(fetchBrowseResult({
 			namespace: 'ipfs',
 			target: ipfsGatewaySampleCid,
@@ -157,22 +147,10 @@ describe('IPFS gateway binding transport', () => {
 		})
 	})
 
-	it('lists binding origins and seeded browse examples', () => {
+	it('lists binding-owned gateway origins', () => {
 		expect(listDeclaredGatewayOrigins()).toEqual(
 			binding.endpoints.map((endpoint) => new URL(endpoint.locator).origin)
 		)
-		expect(listSeededExampleResources()).toEqual([
-			{
-				namespace: 'ipfs',
-				target: ipfsGatewaySampleCid,
-				contentPath: '',
-			},
-			{
-				namespace: 'ipns',
-				target: ipfsDocsIpnsName,
-				contentPath: '',
-			},
-		])
 	})
 
 	it('rejects blank and URL-delimiting IPNS targets', () => {

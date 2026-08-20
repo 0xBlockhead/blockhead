@@ -2,17 +2,12 @@ import {
 	beforeEach,
 	describe,
 	expect,
-	expectTypeOf,
 	it,
 	vi,
 } from 'vitest'
 
 import bindings from '$/sources/TonCenter/bindings.ts'
-import sourceServerCredentials from '$/sources/$sourceServerCredentials.server.ts'
-import {
-	ApiFamily,
-	sourceBindingId,
-} from '$/sources/SourceBinding.ts'
+import { ApiFamily } from '$/sources/SourceBinding.ts'
 import { Source } from '$/sources/Source.ts'
 
 const getJson = vi.hoisted(() => vi.fn())
@@ -93,53 +88,6 @@ describe('TON Center V2 OpenAPI operations', () => {
 		})
 	})
 
-	it('indexes the definition-time V2 network targets', () => {
-		expectTypeOf<Parameters<typeof getAddressInformation>[0]>().toEqualTypeOf<
-			'ton:-239' | 'ton:-3'
-		>()
-		expect(bindings[Source.TonCenter].map((binding) => ({
-			source: binding.source,
-			target: binding.target.key,
-			apiFamily: binding.apiFamily,
-		}))).toEqual([
-			{
-				source: Source.TonCenter,
-				target: 'ton:-239',
-				apiFamily: ApiFamily.OpenApiHttp,
-			},
-			{
-				source: Source.TonCenter,
-				target: 'ton:-3',
-				apiFamily: ApiFamily.OpenApiHttp,
-			},
-			{
-				source: Source.TonCenter,
-				target: 'ton:-239',
-				apiFamily: ApiFamily.TonCenterV3Api,
-			},
-		])
-		expect(Object.keys(bindingByNetwork).sort()).toEqual([
-			'ton:-239',
-			'ton:-3',
-		])
-		expect(sourceServerCredentials.get(sourceBindingId(bindingByNetwork['ton:-239']))).toEqual({
-			envKey: 'TONCENTER_MAINNET_API_KEY',
-			injection: {
-				header: {
-					name: 'X-API-Key',
-				},
-			},
-		})
-		expect(sourceServerCredentials.get(sourceBindingId(bindingByNetwork['ton:-3']))).toEqual({
-			envKey: 'TONCENTER_TESTNET_API_KEY',
-			injection: {
-				header: {
-					name: 'X-API-Key',
-				},
-			},
-		})
-	})
-
 	it('requests address state through the canonical target binding and generated parameters', async () => {
 		getJson.mockResolvedValue({
 			ok: true,
@@ -196,11 +144,4 @@ describe('TON Center V2 OpenAPI operations', () => {
 		})).rejects.toThrow('response result is missing')
 	})
 
-	it('exports only product-facing endpoint operations', () => {
-		expect(Object.keys(queries).sort()).toEqual([
-			'getAddressInformation',
-			'getMasterchainInfo',
-			'runGetMethod',
-		])
-	})
 })

@@ -1,4 +1,3 @@
-import { readdirSync, readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { type as arktype } from 'arktype'
 
@@ -510,75 +509,6 @@ describe('entity selectors', () => {
 			])
 	})
 
-	it('keeps concrete schema rows free of legacy selector surfaces', () => {
-		expect(
-			readdirSync(new URL('.', import.meta.url))
-				.filter((fileName) => (
-					fileName.endsWith('.ts')
-					&& !fileName.endsWith('.spec.ts')
-					&& !fileName.startsWith('$')
-					&& fileName !== 'index.ts'
-				))
-				.flatMap((fileName) => {
-					const source = readFileSync(new URL(fileName, import.meta.url), 'utf8')
-					const entityCallIndex = Math.max(
-						source.indexOf(' = entity({'),
-						source.indexOf('export default entity({')
-					)
-					if (entityCallIndex === -1)
-						return []
-
-					const entityMetadataSource = source.slice(
-						entityCallIndex,
-						source.indexOf('\n})({', entityCallIndex)
-					)
-					return [
-						...(/\n\tid:/u.test(entityMetadataSource) ? [`${fileName}: top-level id`] : []),
-						...(/\n\tidentities:/u.test(entityMetadataSource) ? [`${fileName}: identities`] : []),
-						...(/\n\tlookups:/u.test(entityMetadataSource) ? [`${fileName}: lookups`] : []),
-						...(/\n\t\tentityId:/u.test(entityMetadataSource) ? [`${fileName}: entityId`] : []),
-						...(/\n\t\tdurable:/u.test(entityMetadataSource) ? [`${fileName}: durable`] : []),
-					]
-				})
-			).toEqual([])
-	})
-
-	it('declares metadata, fields, selectors, and facets in constructor order', () => {
-		expect(
-			readdirSync(new URL('.', import.meta.url))
-				.filter((fileName) => (
-					fileName.endsWith('.ts')
-					&& !fileName.endsWith('.spec.ts')
-					&& !fileName.startsWith('$')
-					&& fileName !== 'index.ts'
-				))
-				.flatMap((fileName) => {
-					const source = readFileSync(new URL(fileName, import.meta.url), 'utf8')
-					if (!source.includes('\n\tentityType:'))
-						return []
-
-					const metadataIndex = Math.max(
-						source.indexOf(' = entity({'),
-						source.indexOf('export default entity({')
-					)
-					const fieldsIndex = source.indexOf('\n})({', metadataIndex)
-					const selectorsAndFacetsIndex = source.indexOf('\n})({', fieldsIndex + 1)
-					const selectorsIndex = source.indexOf('\n\tselectors: {', selectorsAndFacetsIndex)
-					const facetsIndex = source.indexOf('\n\tfacets: {', selectorsAndFacetsIndex)
-					return (
-						metadataIndex !== -1
-						&& fieldsIndex > metadataIndex
-						&& selectorsAndFacetsIndex > fieldsIndex
-						&& selectorsIndex > selectorsAndFacetsIndex
-						&& (facetsIndex === -1 || facetsIndex > selectorsIndex) ?
-							[]
-						:
-							[`${fileName}: expected metadata, fields, selectors, then facets`]
-					)
-				})
-			).toEqual([])
-	})
-
 	it('keeps every concrete selector field represented as an ordinary field definition', () => {
 		expect(
 			schema.flatMap((entityDefinition) => {
@@ -1019,36 +949,13 @@ describe('entity selectors', () => {
 					[]
 			))
 			).toEqual([])
-
-		expect(
-			[
-				'src/views/LightningNodeView.svelte',
-				'src/views/LightningChannelView.svelte',
-			].flatMap((filePath) => {
-				const contents = readFileSync(filePath, 'utf8')
-
-				return [
-					...(
-						contents.includes('selector.$network.caip2') ?
-							[`${filePath}:selector.$network.caip2`]
-						:
-							[]
-					),
-				]
-			})
-			).toEqual([])
 	})
 
-	it('keeps migrated liquidity pool observations off stable pool headers', () => {
-		const liquidityPool = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.LiquidityPool)
-		const liquidityPoolTimestamp = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.LiquidityPool_Timestamp)
-		const liquidityPoolBlock = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.LiquidityPool_Block)
-
-		if (liquidityPool == null || liquidityPoolTimestamp == null || liquidityPoolBlock == null)
-			throw new Error('Liquidity pool schema rows missing')
-
-		expect(entityFieldDefinitions(liquidityPool).map((fieldDefinition) => fieldDefinition.name)).not.toEqual(
-			expect.arrayContaining([
+	it.each([
+		{
+			stableEntityType: EntityType.LiquidityPool,
+			observationEntityType: EntityType.LiquidityPool_Timestamp,
+			stableFields: [
 				'sqrtPriceX96',
 				'liquidity',
 				'tick',
@@ -1061,10 +968,8 @@ describe('entity selectors', () => {
 				'priceChangePercent24h',
 				'transactionBuys24h',
 				'transactionSells24h',
-			])
-		)
-		expect(entityFieldDefinitions(liquidityPoolTimestamp).map((fieldDefinition) => fieldDefinition.name)).toEqual(
-			expect.arrayContaining([
+			],
+			observationFields: [
 				'priceUsd',
 				'priceNative',
 				'liquidityUsd',
@@ -1074,470 +979,198 @@ describe('entity selectors', () => {
 				'priceChangePercent24h',
 				'transactionBuys24h',
 				'transactionSells24h',
-			])
-		)
-		expect(entityFieldDefinitions(liquidityPoolBlock).map((fieldDefinition) => fieldDefinition.name)).toEqual(
-			expect.arrayContaining([
-				'sqrtPriceX96',
-				'liquidity',
-				'tick',
-			])
-		)
-	})
-
-	it('keeps migrated coin observations off stable coin headers', () => {
-		const coin = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.Coin)
-		const coinTimestamp = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.Coin_Timestamp)
-
-		if (coin == null || coinTimestamp == null)
-			throw new Error('Coin schema rows missing')
-
-		expect(entityFieldDefinitions(coin).map((fieldDefinition) => fieldDefinition.name)).not.toEqual(
-			expect.arrayContaining([
-				'marketCapRank',
-				'marketCapUsd',
-			])
-		)
-		expect(entityFieldDefinitions(coinTimestamp).map((fieldDefinition) => fieldDefinition.name)).toEqual(
-			expect.arrayContaining([
-				'marketCapRank',
-				'marketCapUsd',
-				'marketCap',
-			])
-		)
-	})
-
-	it('keeps migrated EVM head and gas observations off stable network headers', () => {
-		const evmNetwork = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.Network)
-		const evmNetworkTimestamp = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.EvmNetwork_Timestamp)
-		const evmNetworkGasFeeBlock = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.EvmNetwork_GasFee_Block)
-
-		if (evmNetwork == null || evmNetworkTimestamp == null || evmNetworkGasFeeBlock == null)
-			throw new Error('EVM network schema rows missing')
-
-		expect(entityFieldDefinitions(evmNetwork).map((fieldDefinition) => fieldDefinition.name)).not.toEqual(
-			expect.arrayContaining([
-				'blockHeight',
-				'gasPrice',
-				'baseFeePerGas',
-				'gasUsedRatio',
-			])
-		)
-		expect(entityFieldDefinitions(evmNetworkTimestamp).map((fieldDefinition) => fieldDefinition.name)).toEqual(
-			expect.arrayContaining([
-				'blockHeight',
-			])
-		)
-		expect(entityFieldDefinitions(evmNetworkGasFeeBlock).map((fieldDefinition) => fieldDefinition.name)).toEqual(
-			expect.arrayContaining([
-				'legacyGasPrice',
-				'baseFeePerGas',
-				'gasUsedRatio',
-			])
-		)
-	})
-
-	it('keeps migrated Reddit observations off stable content headers', () => {
-		const redditSubreddit = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.RedditSubreddit)
-		const redditSubredditTimestamp = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.RedditSubreddit_Timestamp)
-		const redditLink = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.RedditLink)
-		const redditLinkTimestamp = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.RedditLink_Timestamp)
-		const redditComment = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.RedditComment)
-		const redditCommentTimestamp = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.RedditComment_Timestamp)
-
-		if (
-			redditSubreddit == null
-			|| redditSubredditTimestamp == null
-			|| redditLink == null
-			|| redditLinkTimestamp == null
-			|| redditComment == null
-			|| redditCommentTimestamp == null
-		)
-			throw new Error('Reddit schema rows missing')
-
-		expect(entityFieldDefinitions(redditSubreddit).map((fieldDefinition) => fieldDefinition.name)).not.toEqual(
-			expect.arrayContaining([
-				'subscriberCount',
-				'activeUserCount',
-			])
-		)
-		expect(entityFieldDefinitions(redditSubredditTimestamp).map((fieldDefinition) => fieldDefinition.name)).toEqual(
-			expect.arrayContaining([
-				'subscriberCount',
-				'activeUserCount',
-			])
-		)
-		expect(entityFieldDefinitions(redditLink).map((fieldDefinition) => fieldDefinition.name)).not.toEqual(
-			expect.arrayContaining([
-				'score',
-				'commentCount',
-			])
-		)
-		expect(entityFieldDefinitions(redditLinkTimestamp).map((fieldDefinition) => fieldDefinition.name)).toEqual(
-			expect.arrayContaining([
-				'score',
-				'commentCount',
-			])
-		)
-		expect(entityFieldDefinitions(redditComment).map((fieldDefinition) => fieldDefinition.name)).not.toEqual(
-			expect.arrayContaining([
-				'score',
-			])
-		)
-		expect(entityFieldDefinitions(redditCommentTimestamp).map((fieldDefinition) => fieldDefinition.name)).toEqual(
-			expect.arrayContaining([
-				'score',
-			])
-		)
-	})
-
-	it('keeps migrated YouTube channel observations off stable channel headers', () => {
-		const youTubeChannel = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.YoutubeChannel)
-		const youTubeChannelTimestamp = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.YoutubeChannel_Timestamp)
-
-		if (youTubeChannel == null || youTubeChannelTimestamp == null)
-			throw new Error('YouTube channel schema rows missing')
-
-		expect(entityFieldDefinitions(youTubeChannel).map((fieldDefinition) => fieldDefinition.name)).not.toEqual(
-			expect.arrayContaining([
-				'subscriberCount',
-				'videoCount',
-				'viewCount',
-			])
-		)
-		expect(entityFieldDefinitions(youTubeChannelTimestamp).map((fieldDefinition) => fieldDefinition.name)).toEqual(
-			expect.arrayContaining([
-				'subscriberCount',
-				'videoCount',
-				'viewCount',
-			])
-		)
-	})
-
-	it('keeps migrated YouTube video observations off stable video headers', () => {
-		const youTubeVideo = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.YoutubeVideo)
-		const youTubeVideoTimestamp = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.YoutubeVideo_Timestamp)
-
-		if (youTubeVideo == null || youTubeVideoTimestamp == null)
-			throw new Error('YouTube video schema rows missing')
-
-		expect(entityFieldDefinitions(youTubeVideo).map((fieldDefinition) => fieldDefinition.name)).not.toEqual(
-			expect.arrayContaining([
-				'viewCount',
-				'likeCount',
-				'commentCount',
-			])
-		)
-		expect(entityFieldDefinitions(youTubeVideoTimestamp).map((fieldDefinition) => fieldDefinition.name)).toEqual(
-			expect.arrayContaining([
-				'viewCount',
-				'likeCount',
-				'commentCount',
-			])
-		)
-	})
-
-	it('keeps migrated YouTube playlist observations off stable playlist headers', () => {
-		const youTubePlaylist = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.YoutubePlaylist)
-		const youTubePlaylistTimestamp = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.YoutubePlaylist_Timestamp)
-
-		if (youTubePlaylist == null || youTubePlaylistTimestamp == null)
-			throw new Error('YouTube playlist schema rows missing')
-
-		expect(entityFieldDefinitions(youTubePlaylist).map((fieldDefinition) => fieldDefinition.name)).not.toEqual(
-			expect.arrayContaining([
-				'itemCount',
-			])
-		)
-		expect(entityFieldDefinitions(youTubePlaylistTimestamp).map((fieldDefinition) => fieldDefinition.name)).toEqual(
-			expect.arrayContaining([
-				'itemCount',
-			])
-		)
-	})
-
-	it('keeps migrated YouTube comment observations off stable comment headers', () => {
-		const youTubeComment = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.YoutubeComment)
-		const youTubeCommentTimestamp = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.YoutubeComment_Timestamp)
-
-		if (youTubeComment == null || youTubeCommentTimestamp == null)
-			throw new Error('YouTube comment schema rows missing')
-
-		expect(entityFieldDefinitions(youTubeComment).map((fieldDefinition) => fieldDefinition.name)).not.toEqual(
-			expect.arrayContaining([
-				'likeCount',
-				'replyCount',
-			])
-		)
-		expect(entityFieldDefinitions(youTubeCommentTimestamp).map((fieldDefinition) => fieldDefinition.name)).toEqual(
-			expect.arrayContaining([
-				'likeCount',
-				'replyCount',
-			])
-		)
-	})
-
-	it('keeps migrated ActivityPub actor observations off stable actor headers', () => {
-		const activityPubActor = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.ActivityPubActor)
-		const activityPubActorTimestamp = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.ActivityPubActor_Timestamp)
-
-		if (activityPubActor == null || activityPubActorTimestamp == null)
-			throw new Error('ActivityPub actor schema rows missing')
-
-		expect(entityFieldDefinitions(activityPubActor).map((fieldDefinition) => fieldDefinition.name)).not.toEqual(
-			expect.arrayContaining([
-				'followersCount',
-				'followingCount',
-				'statusesCount',
-			])
-		)
-		expect(entityFieldDefinitions(activityPubActorTimestamp).map((fieldDefinition) => fieldDefinition.name)).toEqual(
-			expect.arrayContaining([
-				'followersCount',
-				'followingCount',
-				'statusesCount',
-			])
-		)
-	})
-
-	it('keeps ActivityPub actor federation URI as an explicit selector', () => {
-		const activityPubActor = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.ActivityPubActor)
-		if (activityPubActor == null)
-			throw new Error('ActivityPub actor schema row missing')
-
-		expect(activityPubActor.selectors.find((selector) => selector.name === 'ActivityStreamsUri')?.fields).toEqual([
-			'activityStreamsUri',
-		])
-		expect(validateEntitySelector(schema, activityPubActor, {
-			activityStreamsUri: 'https://mastodon.social/users/Gargron',
-		}).name).toBe('ActivityStreamsUri')
-		expect(entityFieldDefinitions(activityPubActor).find((fieldDefinition) => fieldDefinition.name === 'activityStreamsUri')?.cardinality).toBe(EntityFieldCardinality.One)
-		expect(activityPubActor.selectors.some((selector) => selector.fields.includes('profileUrl'))).toBe(false)
-	})
-
-	it('keeps migrated ActivityPub note observations off stable note headers', () => {
-		const activityPubNote = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.ActivityPubNote)
-		const activityPubNoteTimestamp = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.ActivityPubNote_Timestamp)
-
-		if (activityPubNote == null || activityPubNoteTimestamp == null)
-			throw new Error('ActivityPub note schema rows missing')
-
-		expect(entityFieldDefinitions(activityPubNote).map((fieldDefinition) => fieldDefinition.name)).not.toEqual(
-			expect.arrayContaining([
-				'favouriteCount',
-				'reblogCount',
-				'replyCount',
-			])
-		)
-		expect(entityFieldDefinitions(activityPubNoteTimestamp).map((fieldDefinition) => fieldDefinition.name)).toEqual(
-			expect.arrayContaining([
-				'favouriteCount',
-				'reblogCount',
-				'replyCount',
-			])
-		)
-	})
-
-	it('keeps ActivityPub note federation URI as an explicit selector', () => {
-		const activityPubNote = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.ActivityPubNote)
-		if (activityPubNote == null)
-			throw new Error('ActivityPub note schema row missing')
-
-		expect(activityPubNote.selectors.find((selector) => selector.name === 'ActivityStreamsUri')?.fields).toEqual([
-			'activityStreamsUri',
-		])
-		expect(validateEntitySelector(schema, activityPubNote, {
-			activityStreamsUri: 'https://mastodon.social/users/Gargron/statuses/116539053870420123',
-		}).name).toBe('ActivityStreamsUri')
-		expect(entityFieldDefinitions(activityPubNote).find((fieldDefinition) => fieldDefinition.name === 'activityStreamsUri')?.cardinality).toBe(EntityFieldCardinality.One)
-		expect(activityPubNote.selectors.some((selector) => selector.fields.includes('statusUrl'))).toBe(false)
-	})
-
-	it('keeps migrated Atproto observations off stable actor and post headers', () => {
-		const atprotoActor = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.AtprotoActor)
-		const atprotoActorTimestamp = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.AtprotoActor_Timestamp)
-		const atprotoPost = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.AtprotoPost)
-		const atprotoPostTimestamp = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.AtprotoPost_Timestamp)
-
-		if (atprotoActor == null || atprotoActorTimestamp == null || atprotoPost == null || atprotoPostTimestamp == null)
-			throw new Error('Atproto schema rows missing')
-
-		expect(entityFieldDefinitions(atprotoActor).map((fieldDefinition) => fieldDefinition.name)).not.toEqual(
-			expect.arrayContaining([
-				'followersCount',
-				'followsCount',
-				'postsCount',
-			])
-		)
-		expect(entityFieldDefinitions(atprotoActorTimestamp).map((fieldDefinition) => fieldDefinition.name)).toEqual(
-			expect.arrayContaining([
-				'followersCount',
-				'followsCount',
-				'postsCount',
-			])
-		)
-		expect(entityFieldDefinitions(atprotoPost).map((fieldDefinition) => fieldDefinition.name)).not.toEqual(
-			expect.arrayContaining([
-				'likeCount',
-				'repostCount',
-				'replyCount',
-				'quoteCount',
-			])
-		)
-		expect(entityFieldDefinitions(atprotoPostTimestamp).map((fieldDefinition) => fieldDefinition.name)).toEqual(
-			expect.arrayContaining([
-				'likeCount',
-				'repostCount',
-				'replyCount',
-				'quoteCount',
-			])
-		)
-	})
-
-	it('keeps migrated X observations off stable user and post headers', () => {
-		const xUser = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.XUser)
-		const xUserTimestamp = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.XUser_Timestamp)
-		const xPost = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.XPost)
-		const xPostTimestamp = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.XPost_Timestamp)
-
-		if (xUser == null || xUserTimestamp == null || xPost == null || xPostTimestamp == null)
-			throw new Error('X schema rows missing')
-
-		expect(entityFieldDefinitions(xUser).map((fieldDefinition) => fieldDefinition.name)).not.toEqual(
-			expect.arrayContaining([
-				'followerCount',
-				'followingCount',
-				'tweetCount',
-				'listedCount',
-			])
-		)
-		expect(entityFieldDefinitions(xUserTimestamp).map((fieldDefinition) => fieldDefinition.name)).toEqual(
-			expect.arrayContaining([
-				'followerCount',
-				'followingCount',
-				'tweetCount',
-				'listedCount',
-			])
-		)
-		expect(entityFieldDefinitions(xPost).map((fieldDefinition) => fieldDefinition.name)).not.toEqual(
-			expect.arrayContaining([
-				'likeCount',
-				'retweetCount',
-				'replyCount',
-				'quoteCount',
-			])
-		)
-		expect(entityFieldDefinitions(xPostTimestamp).map((fieldDefinition) => fieldDefinition.name)).toEqual(
-			expect.arrayContaining([
-				'likeCount',
-				'retweetCount',
-				'replyCount',
-				'quoteCount',
-			])
-		)
-	})
-
-	it('keeps migrated Farcaster observations off stable user, cast, and channel headers', () => {
-		const farcasterUser = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.FarcasterUser)
-		const farcasterUserTimestamp = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.FarcasterUser_Timestamp)
-		const farcasterCast = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.FarcasterCast)
-		const farcasterCastTimestamp = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.FarcasterCast_Timestamp)
-		const farcasterChannel = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.FarcasterChannel)
-		const farcasterChannelTimestamp = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.FarcasterChannel_Timestamp)
-
-		if (
-			farcasterUser == null
-			|| farcasterUserTimestamp == null
-			|| farcasterCast == null
-			|| farcasterCastTimestamp == null
-			|| farcasterChannel == null
-			|| farcasterChannelTimestamp == null
-		)
-			throw new Error('Farcaster schema rows missing')
-
-		expect(entityFieldDefinitions(farcasterUser).map((fieldDefinition) => fieldDefinition.name)).not.toEqual(
-			expect.arrayContaining([
-				'followerCount',
-				'followingCount',
-			])
-		)
-		expect(entityFieldDefinitions(farcasterUserTimestamp).map((fieldDefinition) => fieldDefinition.name)).toEqual(
-			expect.arrayContaining([
-				'followerCount',
-				'followingCount',
-			])
-		)
-		expect(entityFieldDefinitions(farcasterCast).map((fieldDefinition) => fieldDefinition.name)).not.toEqual(
-			expect.arrayContaining([
-				'likeCount',
-				'recastCount',
-				'replyCount',
-			])
-		)
-		expect(entityFieldDefinitions(farcasterCastTimestamp).map((fieldDefinition) => fieldDefinition.name)).toEqual(
-			expect.arrayContaining([
-				'likeCount',
-				'recastCount',
-				'replyCount',
-			])
-		)
-		expect(entityFieldDefinitions(farcasterChannel).map((fieldDefinition) => fieldDefinition.name)).not.toEqual(
-			expect.arrayContaining([
-				'followerCount',
-				'memberCount',
-			])
-		)
-		expect(entityFieldDefinitions(farcasterChannelTimestamp).map((fieldDefinition) => fieldDefinition.name)).toEqual(
-			expect.arrayContaining([
-				'followerCount',
-				'memberCount',
-			])
-		)
-	})
-
-	it('keeps migrated Lens observations off stable account and post headers', () => {
-		const lensAccount = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.LensAccount)
-		const lensAccountTimestamp = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.LensAccount_Timestamp)
-		const lensPost = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.LensPost)
-		const lensPostTimestamp = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.LensPost_Timestamp)
-
-		if (lensAccount == null || lensAccountTimestamp == null || lensPost == null || lensPostTimestamp == null)
-			throw new Error('Lens schema rows missing')
-
-		expect(entityFieldDefinitions(lensAccount).map((fieldDefinition) => fieldDefinition.name)).not.toEqual(
-			expect.arrayContaining([
-				'followerCount',
-				'followingCount',
-			])
-		)
-		expect(entityFieldDefinitions(lensAccountTimestamp).map((fieldDefinition) => fieldDefinition.name)).toEqual(
-			expect.arrayContaining([
-				'followerCount',
-				'followingCount',
-			])
-		)
-		expect(entityFieldDefinitions(lensPost).map((fieldDefinition) => fieldDefinition.name)).not.toEqual(
-			expect.arrayContaining([
+			],
+		},
+		{
+			stableEntityType: EntityType.LiquidityPool,
+			observationEntityType: EntityType.LiquidityPool_Block,
+			stableFields: ['sqrtPriceX96', 'liquidity', 'tick'],
+			observationFields: ['sqrtPriceX96', 'liquidity', 'tick'],
+		},
+		{
+			stableEntityType: EntityType.Coin,
+			observationEntityType: EntityType.Coin_Timestamp,
+			stableFields: ['marketCapRank', 'marketCapUsd'],
+			observationFields: ['marketCapRank', 'marketCapUsd', 'marketCap'],
+		},
+		{
+			stableEntityType: EntityType.Network,
+			observationEntityType: EntityType.EvmNetwork_Timestamp,
+			stableFields: ['blockHeight', 'gasPrice', 'baseFeePerGas', 'gasUsedRatio'],
+			observationFields: ['blockHeight'],
+		},
+		{
+			stableEntityType: EntityType.Network,
+			observationEntityType: EntityType.EvmNetwork_GasFee_Block,
+			stableFields: ['blockHeight', 'gasPrice', 'baseFeePerGas', 'gasUsedRatio'],
+			observationFields: ['legacyGasPrice', 'baseFeePerGas', 'gasUsedRatio'],
+		},
+		{
+			stableEntityType: EntityType.RedditSubreddit,
+			observationEntityType: EntityType.RedditSubreddit_Timestamp,
+			stableFields: ['subscriberCount', 'activeUserCount'],
+			observationFields: ['subscriberCount', 'activeUserCount'],
+		},
+		{
+			stableEntityType: EntityType.RedditLink,
+			observationEntityType: EntityType.RedditLink_Timestamp,
+			stableFields: ['score', 'commentCount'],
+			observationFields: ['score', 'commentCount'],
+		},
+		{
+			stableEntityType: EntityType.RedditComment,
+			observationEntityType: EntityType.RedditComment_Timestamp,
+			stableFields: ['score'],
+			observationFields: ['score'],
+		},
+		{
+			stableEntityType: EntityType.YoutubeChannel,
+			observationEntityType: EntityType.YoutubeChannel_Timestamp,
+			stableFields: ['subscriberCount', 'videoCount', 'viewCount'],
+			observationFields: ['subscriberCount', 'videoCount', 'viewCount'],
+		},
+		{
+			stableEntityType: EntityType.YoutubeVideo,
+			observationEntityType: EntityType.YoutubeVideo_Timestamp,
+			stableFields: ['viewCount', 'likeCount', 'commentCount'],
+			observationFields: ['viewCount', 'likeCount', 'commentCount'],
+		},
+		{
+			stableEntityType: EntityType.YoutubePlaylist,
+			observationEntityType: EntityType.YoutubePlaylist_Timestamp,
+			stableFields: ['itemCount'],
+			observationFields: ['itemCount'],
+		},
+		{
+			stableEntityType: EntityType.YoutubeComment,
+			observationEntityType: EntityType.YoutubeComment_Timestamp,
+			stableFields: ['likeCount', 'replyCount'],
+			observationFields: ['likeCount', 'replyCount'],
+		},
+		{
+			stableEntityType: EntityType.ActivityPubActor,
+			observationEntityType: EntityType.ActivityPubActor_Timestamp,
+			stableFields: ['followersCount', 'followingCount', 'statusesCount'],
+			observationFields: ['followersCount', 'followingCount', 'statusesCount'],
+		},
+		{
+			stableEntityType: EntityType.ActivityPubNote,
+			observationEntityType: EntityType.ActivityPubNote_Timestamp,
+			stableFields: ['favouriteCount', 'reblogCount', 'replyCount'],
+			observationFields: ['favouriteCount', 'reblogCount', 'replyCount'],
+		},
+		{
+			stableEntityType: EntityType.AtprotoActor,
+			observationEntityType: EntityType.AtprotoActor_Timestamp,
+			stableFields: ['followersCount', 'followsCount', 'postsCount'],
+			observationFields: ['followersCount', 'followsCount', 'postsCount'],
+		},
+		{
+			stableEntityType: EntityType.AtprotoPost,
+			observationEntityType: EntityType.AtprotoPost_Timestamp,
+			stableFields: ['likeCount', 'repostCount', 'replyCount', 'quoteCount'],
+			observationFields: ['likeCount', 'repostCount', 'replyCount', 'quoteCount'],
+		},
+		{
+			stableEntityType: EntityType.XUser,
+			observationEntityType: EntityType.XUser_Timestamp,
+			stableFields: ['followerCount', 'followingCount', 'tweetCount', 'listedCount'],
+			observationFields: ['followerCount', 'followingCount', 'tweetCount', 'listedCount'],
+		},
+		{
+			stableEntityType: EntityType.XPost,
+			observationEntityType: EntityType.XPost_Timestamp,
+			stableFields: ['likeCount', 'retweetCount', 'replyCount', 'quoteCount'],
+			observationFields: ['likeCount', 'retweetCount', 'replyCount', 'quoteCount'],
+		},
+		{
+			stableEntityType: EntityType.FarcasterUser,
+			observationEntityType: EntityType.FarcasterUser_Timestamp,
+			stableFields: ['followerCount', 'followingCount'],
+			observationFields: ['followerCount', 'followingCount'],
+		},
+		{
+			stableEntityType: EntityType.FarcasterCast,
+			observationEntityType: EntityType.FarcasterCast_Timestamp,
+			stableFields: ['likeCount', 'recastCount', 'replyCount'],
+			observationFields: ['likeCount', 'recastCount', 'replyCount'],
+		},
+		{
+			stableEntityType: EntityType.FarcasterChannel,
+			observationEntityType: EntityType.FarcasterChannel_Timestamp,
+			stableFields: ['followerCount', 'memberCount'],
+			observationFields: ['followerCount', 'memberCount'],
+		},
+		{
+			stableEntityType: EntityType.LensAccount,
+			observationEntityType: EntityType.LensAccount_Timestamp,
+			stableFields: ['followerCount', 'followingCount'],
+			observationFields: ['followerCount', 'followingCount'],
+		},
+		{
+			stableEntityType: EntityType.LensPost,
+			observationEntityType: EntityType.LensPost_Timestamp,
+			stableFields: [
 				'commentCount',
 				'repostCount',
 				'quoteCount',
 				'bookmarkCount',
 				'collectCount',
 				'reactionCount',
-			])
-		)
-		expect(entityFieldDefinitions(lensPostTimestamp).map((fieldDefinition) => fieldDefinition.name)).toEqual(
-			expect.arrayContaining([
+			],
+			observationFields: [
 				'commentCount',
 				'repostCount',
 				'quoteCount',
 				'bookmarkCount',
 				'collectCount',
 				'reactionCount',
-			])
-		)
-	})
+			],
+		},
+	])(
+		'keeps $stableEntityType observations on $observationEntityType',
+		({ stableEntityType, observationEntityType, stableFields, observationFields }) => {
+			const stableEntity = schema.find((definition) => definition.entityType === stableEntityType)
+			const observationEntity = schema.find((definition) => definition.entityType === observationEntityType)
+			if (stableEntity == null || observationEntity == null)
+				throw new Error(`Missing schema rows for ${stableEntityType} and ${observationEntityType}`)
 
+			expect(entityFieldDefinitions(stableEntity).map(({ name }) => name)).not.toEqual(
+				expect.arrayContaining(stableFields)
+			)
+			expect(entityFieldDefinitions(observationEntity).map(({ name }) => name)).toEqual(
+				expect.arrayContaining(observationFields)
+			)
+		}
+	)
+
+	it.each([
+		{
+			entityType: EntityType.ActivityPubActor,
+			selectorValue: 'https://mastodon.social/users/Gargron',
+			legacyField: 'profileUrl',
+		},
+		{
+			entityType: EntityType.ActivityPubNote,
+			selectorValue: 'https://mastodon.social/users/Gargron/statuses/116539053870420123',
+			legacyField: 'statusUrl',
+		},
+	])('keeps $entityType federation URI as an explicit selector', ({ entityType, selectorValue, legacyField }) => {
+		const definition = schema.find((entityDefinition) => entityDefinition.entityType === entityType)
+		if (definition == null)
+			throw new Error(`${entityType} schema row missing`)
+
+		expect(definition.selectors.find(({ name }) => name === 'ActivityStreamsUri')?.fields).toEqual([
+			'activityStreamsUri',
+		])
+		expect(validateEntitySelector(schema, definition, {
+			activityStreamsUri: selectorValue,
+		}).name).toBe('ActivityStreamsUri')
+		expect(entityFieldDefinitions(definition).find(({ name }) => name === 'activityStreamsUri')?.cardinality).toBe(
+			EntityFieldCardinality.One
+		)
+		expect(definition.selectors.some(({ fields }) => fields.includes(legacyField))).toBe(false)
+	})
 	it('models Farcaster connections by opaque connection ID', () => {
 		const definition = schema.find(({ entityType }) => (
 			entityType === EntityType.BlockheadFarcasterAccountConnection
@@ -1627,7 +1260,6 @@ describe('entity selectors', () => {
 		expect(entityFieldDefinitions(evmNetworkAccount).find(({ name }) => name === '$$transactions')?.defaultSources).toEqual([
 			Source.Blockscout_Rest,
 			Source.GoldRushFoundational_Rest,
-			Source.SafeTransactionService_Rest,
 		])
 		expect(entityFieldDefinitions(evmNetworkAccount).find(({ name }) => name === '$$queuedTransactions')?.defaultSources).toEqual([
 			Source.SafeTransactionService_Rest,

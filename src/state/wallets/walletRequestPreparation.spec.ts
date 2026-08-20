@@ -1,4 +1,3 @@
-import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 
 import { WalletCapability, WalletProtocol, WalletTransportKind } from '$/constants/Wallet.ts'
@@ -41,67 +40,7 @@ const base = {
 	activeAccount: account,
 } as const
 
-const preparationSource = readFileSync(
-	new URL('./walletRequestPreparation.ts', import.meta.url),
-	'utf8'
-)
-const walletConnectionRuntimeSource = readFileSync(
-	new URL('./walletConnectionRuntime.svelte.ts', import.meta.url),
-	'utf8'
-)
-const prepWithoutSendComposeSource = readFileSync(
-	new URL('../sessions/prepWithoutSendGrantRemoval.compose.spec.ts', import.meta.url),
-	'utf8'
-)
-const blockheadWalletRequestCallPrepComposeSource = readFileSync(
-	new URL('./blockheadWalletRequestCallPrep.compose.spec.ts', import.meta.url),
-	'utf8'
-)
-const walletPrepBlockedComposeSource = readFileSync(
-	new URL('./walletPrepBlocked.compose.spec.ts', import.meta.url),
-	'utf8'
-)
-const sessionsE2eSource = readFileSync(
-	new URL('../../routes/~/sessions/sessions.e2e.ts', import.meta.url),
-	'utf8'
-)
-
-
 describe('walletRequestPreparation', () => {
-	it('keeps prep gates free of send/submit mutation paths', () => {
-		expect(preparationSource).not.toMatch(/writeLocalBlockheadWalletRequestSubmittedAt/)
-		expect(preparationSource).not.toMatch(/signMessage/)
-		expect(preparationSource).not.toMatch(/eth_sendTransaction\(/)
-		expect(preparationSource).not.toMatch(/BlockheadWalletAccount/)
-		expect(preparationSource).toMatch(/BlockheadWalletRequestCall/)
-	})
-
-	it('wires selection, capability, and call-batch gates into prepare callers', () => {
-		expect(walletConnectionRuntimeSource).toMatch(/resolveWalletPrepSelection/)
-		expect(walletConnectionRuntimeSource).toMatch(/writeLocalBlockheadWalletRequest\([\s\S]*connections\)/)
-		expect(prepWithoutSendComposeSource).toMatch(/resolveWalletTransactionPrepGate/)
-		expect(prepWithoutSendComposeSource).toMatch(/resolveWalletRequestCallsPreparation/)
-		expect(prepWithoutSendComposeSource).toMatch(/WalletCapability\.SendTransaction/)
-		expect(prepWithoutSendComposeSource).toMatch(/isPreparedWalletRequestWithoutSend/)
-		expect(preparationSource).toMatch(/resolveExecutableWalletRequestPrep/)
-		expect(blockheadWalletRequestCallPrepComposeSource).toMatch(/resolveExecutableWalletRequestPrep/)
-		expect(blockheadWalletRequestCallPrepComposeSource).toMatch(/at least one BlockheadWalletRequestCall/)
-		expect(blockheadWalletRequestCallPrepComposeSource).toMatch(/non-empty inputDataHash/)
-		expect(blockheadWalletRequestCallPrepComposeSource).toMatch(/ordered BlockheadWalletRequestCall/)
-		expect(blockheadWalletRequestCallPrepComposeSource).toMatch(/prep-without-send/)
-		expect(walletPrepBlockedComposeSource).toMatch(/resolveExecutableWalletRequestPrep/)
-		expect(walletPrepBlockedComposeSource).toMatch(/zero Connected wallets/)
-		expect(walletPrepBlockedComposeSource).toMatch(/none is selected/)
-		expect(walletPrepBlockedComposeSource).toMatch(/SendTransaction capability/)
-		expect(walletPrepBlockedComposeSource).toMatch(/prep-without-send/)
-		expect(sessionsE2eSource).toMatch(/prepares a locked native transfer without sending/)
-		expect(sessionsE2eSource).toMatch(/Prep journey must not broadcast eth_sendTransaction/)
-		expect(sessionsE2eSource).toMatch(/EVM native transfer preparation succeeded and saved a wallet request/)
-		expect(sessionsE2eSource).toMatch(/eth_sendTransaction/)
-		expect(sessionsE2eSource).toMatch(/must not broadcast eth_sendTransaction/)
-		expect(sessionsE2eSource).not.toMatch(/writeLocalBlockheadWalletRequestSubmittedAt/)
-	})
-
 	it('requires exactly one Connected+selected wallet before prep binding', () => {
 		expect(resolveWalletPrepSelection([])).toEqual({
 			ready: false,

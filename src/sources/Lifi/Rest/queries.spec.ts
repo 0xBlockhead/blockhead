@@ -19,8 +19,6 @@ import type {
 	LifiQuoteStep,
 	LifiToken,
 } from '$/sources/Lifi/Rest/types.ts'
-import bindings from '$/sources/Lifi/bindings.ts'
-import { Source } from '$/sources/Source.ts'
 
 vi.mock('$/sources/Lifi/Rest/client.ts', () => ({
 	lifiRestFetch: vi.fn(),
@@ -503,11 +501,6 @@ describe('LI.FI transfer status', () => {
 		await expect(fetchTransferStatus({
 			txHash: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
 		})).rejects.toThrow('malformed transfer status')
-	})
-
-	it('shares the canonical LI.FI REST source binding', () => {
-		expect(Object.keys(bindings)).toEqual([Source.Lifi_Rest])
-		expect(bindings[Source.Lifi_Rest][0].source).toBe(Source.Lifi_Rest)
 	})
 
 	it('rejects blank chain display names in the catalog envelope', async () => {

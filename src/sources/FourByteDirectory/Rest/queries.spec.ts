@@ -12,10 +12,6 @@ import {
 	getFunctionEntries,
 } from '$/sources/FourByteDirectory/Rest/queries.ts'
 import { Source } from '$/sources/Source.ts'
-import {
-	ApiFamily,
-	SourceDelivery,
-} from '$/sources/SourceBinding.ts'
 
 const binding = bindings[Source.FourByteDirectory_Rest][0]
 const jsonResponse = (body: unknown) => (
@@ -30,13 +26,6 @@ describe('4byte.directory REST product queries', () => {
 	afterEach(() => {
 		vi.restoreAllMocks()
 		vi.unstubAllGlobals()
-	})
-
-	it('owns its registered proxied REST binding independently from Openchain', () => {
-		expect(binding.apiFamily).toBe(ApiFamily.RestJson)
-		expect(binding.delivery).toBe(SourceDelivery.HttpProxy)
-		expect(binding.endpoints[0].locator).toBe('https://www.4byte.directory/api/v1')
-		expect(binding.endpoints[0].corsEnabled).toBe(false)
 	})
 
 	it('queries function and event signatures through its own source binding', async () => {

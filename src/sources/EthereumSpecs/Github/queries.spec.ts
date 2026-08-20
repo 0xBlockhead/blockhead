@@ -26,16 +26,14 @@ if (binding == null)
 	throw new Error('EthereumSpecs_Github execution-specs binding is missing')
 
 describe('Ethereum specs GitHub queries', () => {
-	it('reads the pinned upgrade document from its registered source target', async () => {
+	it('reads a representative upgrade document and rejects unsafe identities', async () => {
 		getText.mockResolvedValueOnce('# Prague')
 
 		await expect(fetchExecutionSpecsMainnetUpgradeMarkdown({
 			filename: 'prague.md',
 		})).resolves.toBe('# Prague')
 		expect(getText).toHaveBeenCalledWith(binding, 'prague.md')
-	})
 
-	it('rejects path traversal and non-Markdown identities before transport', () => {
 		vi.clearAllMocks()
 
 		for (const filename of [

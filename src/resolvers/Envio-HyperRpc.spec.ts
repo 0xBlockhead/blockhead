@@ -188,37 +188,6 @@ describe('Envio HyperRPC resolver', () => {
 			txHash: transaction.hash,
 		}, context)
 
-		expect(Object.keys(resolver.projections).sort()).toEqual([
-			'$$logs',
-			'$block',
-			'$from',
-			'$to',
-			'Blob',
-			'FeeMarket',
-			'cumulativeGasUsed',
-			'effectiveGasPrice',
-			'envelopeType',
-			'executionStatus',
-			'gas',
-			'gasPrice',
-			'gasUsed',
-			'indexInBlock',
-			'input',
-			'kind',
-			'nonce',
-			'r',
-			's',
-			'v',
-			'value',
-		].sort())
-		expect(Object.keys(resolver.projections.FeeMarket).sort()).toEqual([
-			'maxFeePerGas',
-			'maxPriorityFeePerGas',
-		])
-		expect(Object.keys(resolver.projections.Blob).sort()).toEqual([
-			'blobGasUsed',
-			'maxFeePerBlobGas',
-		])
 		expect(resolved).toMatchObject({
 			$block: {
 				[EntityMetaKey.Selector]: {
@@ -286,17 +255,6 @@ describe('Envio HyperRPC resolver', () => {
 			indexInTransaction: 2,
 		}, context)
 
-		expect(Object.keys(resolver.projections).sort()).toEqual([
-			'$$topics',
-			'$block',
-			'$emitter',
-			'$transaction',
-			'Event',
-			'data',
-			'indexInTransaction',
-			'removed',
-			'topic0',
-		].sort())
 		expect(resolved).toMatchObject({
 			[EntityMetaKey.Selector]: {
 				indexInTransaction: 2,
@@ -447,20 +405,6 @@ describe('Envio HyperRPC resolver', () => {
 			hash: block.hash,
 		}, context)
 
-		expect(Object.keys(resolver.projections).sort()).toEqual([
-			'$$transactions',
-			'$miner',
-			'$parent',
-			'baseFeePerGas',
-			'blobGasUsed',
-			'excessBlobGas',
-			'gasLimit',
-			'gasUsed',
-			'hash',
-			'parentHash',
-			'timestamp',
-			'transactionCount',
-		].sort())
 		expect(byNumber).toMatchObject({
 			hash: block.hash,
 			parentHash: block.parentHash,

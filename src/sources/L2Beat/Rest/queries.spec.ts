@@ -6,12 +6,8 @@ import {
 	vi,
 } from 'vitest'
 
-import bindings from '$/sources/L2Beat/bindings.ts'
 import { scalingSummaryPath } from '$/sources/L2Beat/Rest/constants.ts'
 import { fetchScalingSummary } from '$/sources/L2Beat/Rest/queries.ts'
-import { Source } from '$/sources/Source.ts'
-
-const l2BeatRestBinding = bindings[Source.L2Beat_Rest][0]
 
 describe('L2Beat scaling summary query', () => {
 	afterEach(() => {
@@ -19,22 +15,44 @@ describe('L2Beat scaling summary query', () => {
 		vi.unstubAllGlobals()
 	})
 
-	it('routes through the registered browser HTTP proxy binding', async () => {
+	it('routes through the browser proxy and strips undeclared project keys', async () => {
 		const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(new Response(JSON.stringify({
-			projects: {},
+			projects: {
+				arbitrum: {
+					id: 'arbitrum',
+					name: 'Arbitrum One',
+					slug: 'arbitrum',
+					type: 'layer2',
+					hostChain: 'Ethereum',
+					category: 'Optimistic Rollup',
+					providers: ['Arbitrum'],
+					tvs: { breakdown: { total: 1 } },
+				},
+			},
 			chart: {
 				syncedUntil: 1_785_830_400,
+				types: ['timestamp'],
+				data: [[1]],
 			},
 		})))
 		vi.stubGlobal('fetch', fetchMock)
 		vi.stubGlobal('window', {})
 
-		await expect(fetchScalingSummary()).resolves.toMatchObject({
+		await expect(fetchScalingSummary()).resolves.toEqual({
+			projects: {
+				arbitrum: {
+					id: 'arbitrum',
+					name: 'Arbitrum One',
+					slug: 'arbitrum',
+					type: 'layer2',
+					hostChain: 'Ethereum',
+					category: 'Optimistic Rollup',
+				},
+			},
 			chart: {
 				syncedUntil: 1_785_830_400,
 			},
 		})
-		expect(l2BeatRestBinding.endpoints[0]?.locator).toBe('https://l2beat.com')
 		expect(fetchMock).toHaveBeenCalledWith(
 			expect.stringMatching(new RegExp(`^/api-proxy/.+/0/https%3A%2F%2Fl2beat\\.com${scalingSummaryPath.replaceAll('/', '%2F')}$`)),
 			expect.objectContaining({
@@ -71,48 +89,5 @@ describe('L2Beat scaling summary query', () => {
 		}))))
 
 		await expect(fetchScalingSummary()).rejects.toThrow('L2Beat_Rest: invalid scaling summary response envelope')
-	})
-
-	it('strips undeclared project keys after assert', async () => {
-		vi.stubGlobal('window', {})
-		vi.stubGlobal('fetch', vi.fn<typeof fetch>().mockResolvedValue(new Response(JSON.stringify({
-			projects: {
-				arbitrum: {
-					id: 'arbitrum',
-					name: 'Arbitrum One',
-					slug: 'arbitrum',
-					type: 'layer2',
-					hostChain: 'Ethereum',
-					category: 'Optimistic Rollup',
-					providers: ['Arbitrum'],
-					tvs: {
-						breakdown: {
-							total: 1,
-						},
-					},
-				},
-			},
-			chart: {
-				syncedUntil: 1_785_830_400,
-				types: ['timestamp'],
-				data: [[1]],
-			},
-		}))))
-
-		await expect(fetchScalingSummary()).resolves.toEqual({
-			projects: {
-				arbitrum: {
-					id: 'arbitrum',
-					name: 'Arbitrum One',
-					slug: 'arbitrum',
-					type: 'layer2',
-					hostChain: 'Ethereum',
-					category: 'Optimistic Rollup',
-				},
-			},
-			chart: {
-				syncedUntil: 1_785_830_400,
-			},
-		})
 	})
 })

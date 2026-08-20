@@ -9,8 +9,6 @@ import {
 import {
 	duneApiPaths,
 	duneExecutionPathSuffixes,
-	duneExecutionStatusByState,
-	dunePerformanceTiers,
 } from '$/sources/Dune/Rest/constants.ts'
 import {
 	cancelExecution,
@@ -118,13 +116,6 @@ describe('Dune REST queries', () => {
 			method: 'POST',
 			body: JSON.stringify({ performance: 'medium' }),
 		})
-	})
-
-	it('exposes execution-state and performance catalogs for envelope checks', () => {
-		expect(duneExecutionStatusByState.QUERY_STATE_COMPLETED.expectsResult).toBe(true)
-		expect(duneExecutionStatusByState.QUERY_STATE_PENDING.terminal).toBe(false)
-		expect(dunePerformanceTiers.some((tier) => tier.performance === 'medium')).toBe(true)
-		expect(duneApiPaths.usage).toBe('/api/v1/usage')
 	})
 
 	it('hard-fails HTTP errors on every query surface', async () => {

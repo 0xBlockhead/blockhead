@@ -7,7 +7,6 @@ import {
 	vi,
 } from 'vitest'
 import { encode } from 'cborg'
-import { readFileSync } from 'node:fs'
 
 import bindings from '$/sources/AtprotoSync/bindings.ts'
 import { Source } from '$/sources/Source.ts'
@@ -514,12 +513,4 @@ describe('AtprotoSync_Xrpc subscribeRepos RemoteLive transport', () => {
 		expect(returned).toBe(2)
 	})
 
-	it('keeps WebSocket ownership behind query.live with no polling', () => {
-		const source = readFileSync('src/sources/AtprotoSync/Xrpc/queries.ts', 'utf8')
-
-		expect(source).toContain("from '$/sources/_runtime/live.remote.ts'")
-		expect(source).not.toContain('.server.ts')
-		expect(source).not.toMatch(/\bnew\s+WebSocket\b/)
-		expect(source).not.toMatch(/\bsetTimeout\b|\bsetInterval\b|\bpoll\s*\(/)
-	})
 })

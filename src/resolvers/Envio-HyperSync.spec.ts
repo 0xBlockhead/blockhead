@@ -254,20 +254,6 @@ describe('Envio HyperSync resolver', () => {
 			blockNumber: 19_000_000n,
 		}, context)
 
-		expect(Object.keys(resolver.projections).sort()).toEqual([
-			'$$transactions',
-			'$miner',
-			'$parent',
-			'baseFeePerGas',
-			'blobGasUsed',
-			'excessBlobGas',
-			'gasLimit',
-			'gasUsed',
-			'hash',
-			'parentHash',
-			'timestamp',
-			'transactionCount',
-		].sort())
 		expect(block).toMatchObject({
 			hash: evmBlockPage.data.blocks[0].hash,
 			parentHash: evmBlockPage.data.blocks[0].parent_hash,

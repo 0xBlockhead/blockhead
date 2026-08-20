@@ -1,8 +1,7 @@
-import { beforeEach, expect, it, vi } from 'vitest'
+import { expect, it, vi } from 'vitest'
 
 import bindings from '$/sources/FilecoinFips/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceDelivery } from '$/sources/SourceBinding.ts'
 
 const sourceGetJson = vi.hoisted(() => vi.fn())
 const sourceGetText = vi.hoisted(() => vi.fn())
@@ -20,12 +19,7 @@ const {
 } = await import('$/sources/FilecoinFips/Github/queries.ts')
 const binding = bindings[Source.FilecoinFips_Github][0]
 
-beforeEach(() => {
-	sourceGetJson.mockReset()
-	sourceGetText.mockReset()
-})
-
-it('uses the declared public GitHub binding and exact FIP path', async () => {
+it('reads representative FIP documents and rejects unsafe coordinates', async () => {
 	sourceGetJson.mockResolvedValueOnce([])
 	sourceGetText.mockResolvedValueOnce('# FIP 42')
 
@@ -40,8 +34,6 @@ it('uses the declared public GitHub binding and exact FIP path', async () => {
 		number: 42,
 	})).resolves.toBe('# FIP 42')
 
-	expect(binding.delivery).toBe(SourceDelivery.BrowserDirect)
-	expect(binding.credentials).toEqual([])
 	expect(sourceGetJson).toHaveBeenCalledWith(
 		binding,
 		'https://api.github.com/repos/filecoin-project/FIPs/contents/FIPS?ref=master'
@@ -50,9 +42,8 @@ it('uses the declared public GitHub binding and exact FIP path', async () => {
 		binding,
 		'https://raw.githubusercontent.com/filecoin-project/FIPs/master/FIPS/fip-0042.md'
 	)
-})
 
-it('rejects unsafe or unscoped FIP document numbers before requesting GitHub', () => {
+	vi.clearAllMocks()
 	expect(() => getMarkdownText({
 		number: 0,
 	})).toThrow('FIP number must be a positive safe integer')

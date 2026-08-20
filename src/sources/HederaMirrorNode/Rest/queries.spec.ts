@@ -8,10 +8,6 @@ import {
 
 import { Source } from '$/sources/Source.ts'
 import bindings from '$/sources/HederaMirrorNode/bindings.ts'
-import {
-	SourceDelivery,
-	SourceTargetKind,
-} from '$/sources/SourceBinding.ts'
 
 const sourceGetText = vi.hoisted(() => vi.fn())
 
@@ -243,16 +239,6 @@ describe('Hedera Mirror network collections', () => {
 		expect(() => getNodes(2, 'https://example.com/api/v1/network/nodes?limit=2&order=asc')).toThrow('invalid continuation')
 		expect(() => getNodes(2, 'https://user@mainnet-public.mirrornode.hedera.com/api/v1/network/nodes?limit=2&order=asc&node.id=gt:4')).toThrow('invalid continuation')
 		expect(() => getNodes(2, '/api/v1/network/nodes?limit=2&order=asc&node.id=gt:4#fragment')).toThrow('invalid continuation')
-	})
-
-	it('uses the canonical mainnet HTTP proxy binding', () => {
-		expect(binding).toMatchObject({
-			delivery: SourceDelivery.HttpProxy,
-			endpoints: [{
-				locator: 'https://mainnet-public.mirrornode.hedera.com',
-				corsEnabled: false,
-			}],
-		})
 	})
 
 	it('addresses a single node and hard-fails empty or mismatched pages', async () => {

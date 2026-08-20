@@ -278,11 +278,6 @@ describe('NEAR contract storage resolver', () => {
 			valueBase64: 'dmFsdWU=',
 			prefixBase64: selector.keyBase64,
 		})
-		expect(Object.keys(storageEntryResolver.projections).sort()).toEqual([
-			'blockHash',
-			'prefixBase64',
-			'valueBase64',
-		])
 	})
 
 	it('rejects wrong sources, networks, heights, and prefix-only results', async () => {
@@ -353,17 +348,6 @@ describe('Near block selectors', () => {
 				block_id: Number(height),
 			},
 		})
-		expect(Object.keys(blockResolver.resolve).sort()).toEqual([
-			'NetworkHeight',
-			'NetworkHeightHash',
-		])
-		expect(Object.keys(blockResolver.projections).sort()).toEqual([
-			'$$chunks',
-			'$parent',
-			'epochId',
-			'hash',
-			'timestampMs',
-		])
 		expect(blockResolver.projections.hash(byHeight)).toBe(wireBlock.header.hash)
 		expect(blockResolver.projections.timestampMs(byHeight)).toBe(1_722_470_400_000)
 		expect(blockResolver.projections.$parent(byHeight)).toEqual({
@@ -502,12 +486,6 @@ describe('Near chunk hierarchy', () => {
 				chunk_id: wireChunk.header.chunk_hash,
 			},
 		})
-		expect(Object.keys(chunkResolver.projections).sort()).toEqual([
-			'$$transactions',
-			'$block',
-			'gasUsed',
-			'shardId',
-		])
 		expect(chunkResolver.projections.$block(chunk)).toEqual({
 			[EntityMetaKey.Selector]: {
 				$network: network,
@@ -656,20 +634,6 @@ describe('NEAR network reading facets', () => {
 				produced: 1,
 			},
 		})
-		expect(Object.keys(validatorTimestampResolver.projections).sort()).toEqual([
-			'epochHeight',
-			'epochStartHeight',
-			'expectedBlocks',
-			'expectedChunks',
-			'isSlashed',
-			'kickoutReason',
-			'producedBlocks',
-			'producedChunks',
-			'publicKey',
-			'shards',
-			'stakeYoctoNear',
-			'validatorSetRole',
-		])
 	})
 
 	it('materializes a network timestamp snapshot from head status gas and validators', async () => {

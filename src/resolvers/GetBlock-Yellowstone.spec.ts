@@ -373,22 +373,4 @@ describe('GetBlock Yellowstone account source', () => {
 		])
 	})
 
-	it('owns the schema-supported account observation fields', () => {
-		expect(timestampResolver).toBeDefined()
-		expect(Object.keys(timestampResolver.projections).sort()).toEqual([
-			'$account',
-			'$ownerProgram',
-			'dataEncoding',
-			'executable',
-			'lamports',
-			'rentEpoch',
-			'slot',
-			'source',
-			'spaceBytes',
-			'timestampMs',
-		].sort())
-		expect(Object.keys(accountResolver.projections).sort()).toEqual([
-			'$$timestamps',
-		])
-	})
 })

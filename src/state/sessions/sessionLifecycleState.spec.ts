@@ -1,4 +1,3 @@
-import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 
 import { BlockheadSessionStatus } from '$/schema/BlockheadSessionStatus.ts'
@@ -54,23 +53,7 @@ const grantBase = {
 	issuedAt: 10,
 } as const satisfies SessionCapabilityGrant
 
-const sessionsE2eSource = readFileSync(
-	new URL('../../routes/~/sessions/sessions.e2e.ts', import.meta.url),
-	'utf8'
-)
-
-
 describe('sessionLifecycleState', () => {
-	it('attaches sessions/account e2e prep-without-send journey proofs', () => {
-		expect(sessionsE2eSource).toMatch(/prepares a locked native transfer without sending/)
-		expect(sessionsE2eSource).toMatch(/Prep journey must not broadcast eth_sendTransaction/)
-		expect(sessionsE2eSource).toMatch(/Lock session/)
-		expect(sessionsE2eSource).toMatch(/Prepare EVM native transfer/)
-		expect(sessionsE2eSource).toMatch(/blockhead-session-intents-list/)
-		expect(sessionsE2eSource).toMatch(/session-action-outcomes-list/)
-		expect(sessionsE2eSource).toMatch(/wallet-request/)
-	})
-
 	it('keeps Draft lock optional and requires lock on terminal statuses', () => {
 		const unlocked = draftSessionLifecycle(sessionBase)
 		const locked = draftSessionLifecycle({

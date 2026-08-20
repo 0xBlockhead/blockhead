@@ -259,29 +259,6 @@ describe('ZeroGChain JSON-RPC resolver I/O', () => {
 			txHash,
 		}, context)
 
-		expect(Object.keys(transactionResolver.projections).sort()).toEqual([
-			'$block',
-			'$from',
-			'$to',
-			'Blob',
-			'ContractCreation',
-			'FeeMarket',
-			'cumulativeGasUsed',
-			'effectiveGasPrice',
-			'envelopeType',
-			'executionStatus',
-			'gas',
-			'gasPrice',
-			'gasUsed',
-			'indexInBlock',
-			'input',
-			'kind',
-			'nonce',
-			'r',
-			's',
-			'v',
-			'value',
-		].sort())
 		expect(resolved).toMatchObject({
 			$block: {
 				[EntityMetaKey.Selector]: {

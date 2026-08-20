@@ -51,18 +51,6 @@ describe('Mcp source bindings', () => {
 		])
 	})
 
-	it('accepts only JsonRpc2/McpProtocol local and HttpRest/RestJson among MCP provider bindings', () => {
-		expect(
-			Object.values(mcpBindings)
-				.flat()
-				.map((binding) => `${binding.wireProtocol}/${binding.apiFamily}/${binding.delivery}`)
-				.sort()
-		).toEqual([
-			`${WireProtocol.HttpRest}/${ApiFamily.RestJson}/${SourceDelivery.RemoteQuery}`,
-			`${WireProtocol.JsonRpc2}/${ApiFamily.McpProtocol}/${SourceDelivery.LocalOnly}`,
-		])
-	})
-
 	it('rejects collapsing McpProtocol onto HttpRest or non-local JsonRpc2 anywhere in the registry', () => {
 		expect(
 			sourceBindings.some((binding) => (

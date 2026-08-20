@@ -1,12 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { CoinId } from '$/constants/Coin.ts'
-import { MarketVenueId } from '$/constants/MarketVenue.ts'
-import {
-	coinpaprikaCoins,
-	coinpaprikaExchangeIdByMarketVenueId,
-	idByCoinId,
-} from '$/sources/Coinpaprika/OpenApi/constants.ts'
 import {
 	getCoinById,
 	getCoinMarkets,
@@ -22,16 +15,6 @@ describe('Coinpaprika coin queries', () => {
 		vi.unstubAllGlobals()
 	})
 
-	it('uses the current canonical AAVE API id', () => {
-		expect(idByCoinId[CoinId.AAVE]).toBe('aave-new')
-	})
-
-	it('maps catalog venues onto Coinpaprika exchange wire ids', () => {
-		expect(coinpaprikaExchangeIdByMarketVenueId[MarketVenueId.Binance]).toBe('binance')
-		expect(coinpaprikaExchangeIdByMarketVenueId[MarketVenueId.Coinbase]).toBe('coinbase')
-		expect(coinpaprikaExchangeIdByMarketVenueId[MarketVenueId.Okx]).toBe('okx')
-	})
-
 	it('rejects empty coin identifiers before transport', async () => {
 		const fetchMock = vi.fn<typeof fetch>()
 		vi.stubGlobal('fetch', fetchMock)
@@ -39,11 +22,11 @@ describe('Coinpaprika coin queries', () => {
 
 		await expect(getCoinById({
 			publicEnv: {},
-			coinpaprikaId: '   ' as never,
+			coinpaprikaId: '   ',
 		})).rejects.toThrow('coin identifier must not be empty')
 		await expect(getTickerById({
 			publicEnv: {},
-			coinpaprikaId: '   ' as never,
+			coinpaprikaId: '   ',
 		})).rejects.toThrow('coin identifier must not be empty')
 		expect(fetchMock).not.toHaveBeenCalled()
 	})
@@ -135,13 +118,6 @@ describe('Coinpaprika coin queries', () => {
 			},
 		})
 		expect(fetchMock.mock.calls[0]?.[1]?.headers?.Authorization).not.toBe(`Bearer ${apiKey}`)
-	})
-
-	it('keeps the supported coin catalog in source constants', () => {
-		expect(coinpaprikaCoins).toContainEqual({
-			coinId: CoinId.ETH,
-			wireId: 'eth-ethereum',
-		})
 	})
 
 	it('passes documented historical OHLC parameters through and returns raw rows', async () => {

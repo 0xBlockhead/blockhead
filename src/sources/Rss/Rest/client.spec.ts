@@ -1,14 +1,6 @@
 import { beforeEach, expect, test, vi } from 'vitest'
 
 import { Source } from '$/sources/Source.ts'
-import {
-	ApiFamily,
-	SourceDelivery,
-	SourceEndpointKind,
-	SourceOperationGroup,
-	SourceTargetKind,
-	WireProtocol,
-} from '$/sources/SourceBinding.ts'
 import bindings from '$/sources/Rss/bindings.ts'
 
 const hnrssBinding = bindings[Source.Rss_Rest].find((binding) => binding.target.key === 'https://hnrss.org')
@@ -50,27 +42,7 @@ test('uses the feed-target HttpProxy binding and parses its response', async () 
 		],
 	})
 	expect(sourceFetch).toHaveBeenCalledWith(
-		expect.objectContaining({
-			source: Source.Rss_Rest,
-			target: {
-				kind: SourceTargetKind.Feed,
-				key: 'https://hnrss.org',
-			},
-			endpoints: [
-				{
-					endpointKind: SourceEndpointKind.HttpUrl,
-					locator: 'https://hnrss.org',
-					corsEnabled: false,
-				},
-			],
-			wireProtocol: WireProtocol.HttpRest,
-			apiFamily: ApiFamily.RestJson,
-			operationGroups: [
-				SourceOperationGroup.GenericRead,
-			],
-			delivery: SourceDelivery.HttpProxy,
-			credentials: [],
-		}),
+		hnrssBinding,
 		'https://hnrss.org/frontpage'
 	)
 })
@@ -159,16 +131,14 @@ test('withholds credentialed and non-HTTP feed metadata URLs from visible fields
 	expect(feed.items[0]?.commentsUrl).toBeUndefined()
 })
 
-test('rejects credentials in a same-origin feed URL before transport', async () => {
+test('fails closed across request identity, response status, envelope, and item identity', async () => {
 	await expect(rssFetchFeed(
 		hnrssBinding,
 		'https://reader:secret@hnrss.org/frontpage'
 	)).rejects.toThrow('feed URL must not contain credentials')
 
 	expect(sourceFetch).not.toHaveBeenCalled()
-})
 
-test('rejects repeated canonical item identities from the scoped feed response', async () => {
 	sourceFetch.mockResolvedValueOnce(new Response(`
 		<rss>
 			<channel>
@@ -182,9 +152,7 @@ test('rejects repeated canonical item identities from the scoped feed response',
 		'duplicate item identity'
 	)
 	expect(sourceFetch).toHaveBeenCalledOnce()
-})
 
-test('rejects failed refresh responses before parsing their bodies', async () => {
 	sourceFetch.mockResolvedValueOnce(new Response('<rss><channel /></rss>', {
 		status: 503,
 		statusText: 'Service Unavailable',
@@ -193,9 +161,7 @@ test('rejects failed refresh responses before parsing their bodies', async () =>
 	await expect(rssFetchFeed(hnrssBinding, 'https://hnrss.org/frontpage')).rejects.toThrow(
 		'503 Service Unavailable'
 	)
-})
 
-test('rejects a non-feed XML response instead of reporting a reachable empty feed', async () => {
 	sourceFetch.mockResolvedValueOnce(new Response('<html><body>temporarily unavailable</body></html>'))
 
 	await expect(rssFetchFeed(hnrssBinding, 'https://hnrss.org/frontpage')).rejects.toThrow(

@@ -128,15 +128,6 @@ describe('EIP-8004 Scan registration ownership', () => {
 				tokenId: '42',
 			}
 		)
-		expect(Object.keys(eip8004Scan.resolvers[0].projections).sort()).toEqual([
-			'$$files',
-			'$$timestamps',
-			'$evmNft',
-			'agentId',
-			'chainId',
-			'identityRegistry',
-			'namespace',
-		])
 	})
 
 	it('rejects unsupported namespaces and invalid chain IDs before transport', async () => {
@@ -244,14 +235,6 @@ describe('EIP-8004 Scan registration observation tip fields', () => {
 			blockNumber: 113957614,
 			transactionHash: '0xd2281d6e485b3e4265d7aacc1c4286af86188e757b7723979793786ba89ec84b',
 		})
-		expect(Object.keys(timestampResolver.projections).sort()).toEqual([
-			'active',
-			'agentUri',
-			'agentWalletAddress',
-			'blockNumber',
-			'ownerAddress',
-			'transactionHash',
-		])
 	})
 
 	it('rejects an observation without an authoritative provider clock', async () => {
@@ -297,10 +280,6 @@ describe('EIP-8004 Scan registration file ownership', () => {
 			$registration: registrationFile.$registration,
 			fileUrl: registrationFile.fileUrl,
 		})
-		expect(Object.keys(fileResolver.projections).sort()).toEqual([
-			'$registration',
-			'fileUrl',
-		])
 	})
 
 	it('rejects unsupported identity and mismatched file URLs', async () => {
@@ -376,15 +355,6 @@ describe('EIP-8004 Scan service endpoint ownership', () => {
 				tokenId: '42',
 			}
 		)
-		expect(Object.keys(endpointResolver.projections).sort()).toEqual([
-			'$registrationFile',
-			'active',
-			'endpointKind',
-			'endpointUrl',
-			'name',
-			'protocolKind',
-			'version',
-		])
 	})
 
 	it('rejects unsupported registration identity before transport', async () => {

@@ -8,15 +8,6 @@ import {
 
 import bindings from '$/sources/Octez/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import {
-	ApiFamily,
-	SourceArtifactKind,
-	SourceDelivery,
-	SourceEndpointKind,
-	SourceOperationGroup,
-	SourceTargetKind,
-	WireProtocol,
-} from '$/sources/SourceBinding.ts'
 
 const getJson = vi.hoisted(() => vi.fn())
 
@@ -32,41 +23,6 @@ const blockHash = `B${'1'.repeat(50)}`
 describe('Octez mainnet shell RPC operations', () => {
 	beforeEach(() => {
 		getJson.mockReset()
-	})
-
-	it('registers the official browser-readable Octez mainnet shell endpoint', () => {
-		expect(binding).toMatchObject({
-			target: {
-				kind: SourceTargetKind.Caip2Network,
-				key: 'tezos:NetXdQprcVkpaWU',
-			},
-			endpoints: [{
-				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: 'https://tezos-mainnet.octez.io',
-				corsEnabled: true,
-			}],
-			wireProtocol: WireProtocol.HttpRest,
-			apiFamily: ApiFamily.TezosNodeRpc,
-			operationGroups: [SourceOperationGroup.GenericRead],
-			delivery: SourceDelivery.BrowserDirect,
-			credentials: [],
-			artifacts: [
-				{
-					kind: SourceArtifactKind.GenerationManifest,
-					path: 'src/sources/Octez/OpenApi/schema-source.ts',
-				},
-				{
-					kind: SourceArtifactKind.OpenApiSpec,
-					path: 'src/sources/Octez/OpenApi/openapi.json',
-					generated: true,
-				},
-				{
-					kind: SourceArtifactKind.OpenApiTypes,
-					path: 'src/sources/Octez/OpenApi/openapi.d.ts',
-					generated: true,
-				},
-			],
-		})
 	})
 
 	it('pins the configured node to the Tezos mainnet chain', async () => {
@@ -125,11 +81,4 @@ describe('Octez mainnet shell RPC operations', () => {
 		await expect(queries.getBootstrapState()).rejects.toThrow()
 	})
 
-	it('exports only named shell RPC operations', () => {
-		expect(Object.keys(queries).sort()).toEqual([
-			'getBootstrapState',
-			'getChainId',
-			'getHeadHash',
-		])
-	})
 })

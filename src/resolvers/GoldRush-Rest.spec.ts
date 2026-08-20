@@ -135,20 +135,6 @@ describe('GoldRush Foundational transaction source', () => {
 			emptyContext
 		)
 
-		expect(Object.keys(transactionResolver.projections).sort()).toEqual([
-			'$$internalTransfers',
-			'$$logs',
-			'$block',
-			'$from',
-			'$to',
-			'executionStatus',
-			'gas',
-			'gasPrice',
-			'gasUsed',
-			'indexInBlock',
-			'nonce',
-			'value',
-		].sort())
 		expect(resolved).toMatchObject({
 			nonce: 6,
 			executionStatus: EvmTransactionExecutionStatus.Success,

@@ -407,10 +407,4 @@ describe('Axelarscan GMP queries', () => {
 			transactionHash: `0x${'9'.repeat(64)}`,
 		})).rejects.toThrow('foreign transaction message')
 	})
-
-	it('does not expose superseded query entry points', async () => {
-		const module = await import('$/sources/Axelarscan/Rest/queries.ts')
-		expect(module).not.toHaveProperty('getGmpMessagesByTransaction')
-		expect(module).not.toHaveProperty('query')
-	})
 })

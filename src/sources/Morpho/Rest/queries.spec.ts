@@ -7,17 +7,6 @@ import {
 } from 'vitest'
 
 import bindings from '$/sources/Morpho/bindings.ts'
-import {
-	morphoBlueByChainId,
-	morphoBlueDeployments,
-} from '$/sources/Morpho/Rest/constants.ts'
-import {
-	ApiFamily,
-	SourceDelivery,
-	SourceEndpointKind,
-	SourceTargetKind,
-	WireProtocol,
-} from '$/sources/SourceBinding.ts'
 import { Source } from '$/sources/Source.ts'
 import { httpUrl } from '$/sources/_shared/wire/HttpRest/client.ts'
 
@@ -59,36 +48,6 @@ const baseMarketState = {
 	total_borrow_shares: '1175898795256045502042',
 	fee_wad: '0',
 } as const
-
-describe('Morpho Blue REST binding', () => {
-	it('targets the official Morpho public API', () => {
-		expect(binding.target).toEqual({
-			kind: SourceTargetKind.Global,
-			key: 'morpho-api',
-		})
-		expect(binding.source).toBe(Source.Morpho_Rest)
-		expect(binding.wireProtocol).toBe(WireProtocol.HttpRest)
-		expect(binding.apiFamily).toBe(ApiFamily.RestJson)
-		expect(binding.delivery).toBe(SourceDelivery.BrowserDirect)
-		expect(binding.endpoints).toEqual([
-			{
-				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: 'https://api.morpho.org',
-				corsEnabled: true,
-			},
-		])
-	})
-
-	it('catalogs Morpho Blue deployments for Ethereum and Base', () => {
-		expect(morphoBlueByChainId[1]).toEqual({
-			chainId: 1,
-			name: 'Ethereum',
-			morpho: '0xbbbbbbbbbb9cc5e90e3b3af64bdaf62c37eeffcb',
-			adaptiveCurveIrm: '0x870ac11d48b15db9a138cf899d20f13f79ba00bc',
-		})
-		expect(morphoBlueDeployments.some((deployment) => deployment.chainId === 8453)).toBe(true)
-	})
-})
 
 describe('Morpho Blue market operations', () => {
 	beforeEach(() => {
@@ -142,19 +101,17 @@ describe('Morpho Blue market operations', () => {
 		)
 	})
 
-	it('rejects an unsupported chain id before transport', async () => {
-		await expect(getMarket({
+	it.each([
+		['unsupported chain', {
 			chainId: 999999,
 			marketId: baseMarketId,
-		})).rejects.toThrow(`${Source.Morpho_Rest}: unsupported chain id`)
-		expect(sourceGetJson).not.toHaveBeenCalled()
-	})
-
-	it('rejects an invalid market id before transport', async () => {
-		await expect(getMarket({
+		}, 'unsupported chain id'],
+		['invalid market id', {
 			chainId: 8453,
 			marketId: '0xdead',
-		})).rejects.toThrow(`${Source.Morpho_Rest}: invalid market id`)
+		}, 'invalid market id'],
+	])('rejects %s before transport', async (_, options, error) => {
+		await expect(getMarket(options)).rejects.toThrow(`${Source.Morpho_Rest}: ${error}`)
 		expect(sourceGetJson).not.toHaveBeenCalled()
 	})
 

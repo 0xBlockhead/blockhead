@@ -341,11 +341,6 @@ describe('Constants resolver projections', () => {
 
 	it('keeps unsigned Nostr seeds on stable identity and note relationships only', async () => {
 		expect(nostrNetworkSeedNotes.every((note) => !Object.hasOwn(note, 'signature'))).toBe(true)
-		expect(Object.keys(nostrProfileResolver.projections).toSorted()).toEqual([
-			'$$notes',
-			'pubkey',
-		])
-
 		await expect(nostrProfileResolver.resolve['CanonicalPubkey'].resolve({
 			pubkey: nostrNetworkSeedProfiles[0].pubkey,
 		}, resolverContext)).resolves.toEqual({

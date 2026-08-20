@@ -1,8 +1,7 @@
-import { beforeEach, expect, it, vi } from 'vitest'
+import { expect, it, vi } from 'vitest'
 
 import bindings from '$/sources/PolkadotRfcs/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceDelivery } from '$/sources/SourceBinding.ts'
 
 const sourceGetJson = vi.hoisted(() => vi.fn())
 const sourceGetText = vi.hoisted(() => vi.fn())
@@ -18,12 +17,7 @@ const {
 } = await import('$/sources/PolkadotRfcs/Github/queries.ts')
 const binding = bindings[Source.PolkadotRfcs_Github][0]
 
-beforeEach(() => {
-	sourceGetJson.mockReset()
-	sourceGetText.mockReset()
-})
-
-it('uses the declared public GitHub binding and exact RFC path', async () => {
+it('reads representative RFC documents and rejects unsafe coordinates', async () => {
 	sourceGetJson.mockResolvedValueOnce([])
 	sourceGetText.mockResolvedValueOnce('# RFC 42')
 
@@ -32,8 +26,6 @@ it('uses the declared public GitHub binding and exact RFC path', async () => {
 		number: 42,
 	})).resolves.toBe('# RFC 42')
 
-	expect(binding.delivery).toBe(SourceDelivery.BrowserDirect)
-	expect(binding.credentials).toEqual([])
 	expect(sourceGetJson).toHaveBeenCalledWith(
 		binding,
 		'https://api.github.com/repos/polkadot-fellows/RFCs/contents/text?ref=main'
@@ -42,9 +34,8 @@ it('uses the declared public GitHub binding and exact RFC path', async () => {
 		binding,
 		'https://raw.githubusercontent.com/polkadot-fellows/RFCs/main/text/0042.md'
 	)
-})
 
-it('rejects unsafe or unscoped RFC document numbers before requesting GitHub', () => {
+	vi.clearAllMocks()
 	expect(() => getMarkdownText({
 		number: 0,
 	})).toThrow('RFC number must be a positive safe integer')

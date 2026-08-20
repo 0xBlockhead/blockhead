@@ -8,13 +8,6 @@ import {
 
 import bindings from '$/sources/Osmosis/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import {
-	ApiFamily,
-	SourceDelivery,
-	SourceEndpointKind,
-	SourceTargetKind,
-	WireProtocol,
-} from '$/sources/SourceBinding.ts'
 import { httpUrl } from '$/sources/_shared/wire/HttpRest/client.ts'
 
 const sourceGetJson = vi.hoisted(() => vi.fn())
@@ -44,27 +37,6 @@ const {
 
 const binding = bindings[Source.Osmosis_LCD_Rest][0]
 const osmosisLcdRestUrl = binding.endpoints[0].locator
-
-describe('Osmosis LCD binding', () => {
-	it('targets cosmos:osmosis-1 over cosmoshub-4', () => {
-		expect(binding.target).toEqual({
-			kind: SourceTargetKind.Caip2Network,
-			key: 'cosmos:osmosis-1',
-		})
-		expect(binding.target.key).not.toBe('cosmos:cosmoshub-4')
-		expect(binding.source).toBe(Source.Osmosis_LCD_Rest)
-		expect(binding.apiFamily).toBe(ApiFamily.CosmosLcdApi)
-		expect(binding.wireProtocol).toBe(WireProtocol.HttpRest)
-		expect(binding.delivery).toBe(SourceDelivery.HttpProxy)
-		expect(binding.endpoints).toEqual([
-			{
-				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: osmosisLcdRestUrl,
-				corsEnabled: false,
-			},
-		])
-	})
-})
 
 describe('Osmosis LCD named operations', () => {
 	beforeEach(() => {

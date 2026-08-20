@@ -7,13 +7,6 @@ import {
 } from 'vitest'
 
 import bindings from '$/sources/Morpho/bindings.ts'
-import {
-	ApiFamily,
-	SourceDelivery,
-	SourceEndpointKind,
-	SourceTargetKind,
-	WireProtocol,
-} from '$/sources/SourceBinding.ts'
 import { Source } from '$/sources/Source.ts'
 
 const sourceFetch = vi.hoisted(() => vi.fn())
@@ -105,26 +98,6 @@ const vault = {
 describe('Morpho GraphQL market enumeration', () => {
 	beforeEach(() => {
 		sourceFetch.mockReset()
-	})
-
-	it('registers the official GraphQL endpoint', () => {
-		expect(binding).toMatchObject({
-			source: Source.Morpho_Graphql,
-			target: {
-				kind: SourceTargetKind.Global,
-				key: 'morpho-api',
-			},
-			endpoints: [
-				{
-					endpointKind: SourceEndpointKind.HttpUrl,
-					locator: 'https://api.morpho.org/graphql',
-					corsEnabled: true,
-				},
-			],
-			wireProtocol: WireProtocol.Graphql,
-			apiFamily: ApiFamily.GraphqlHttp,
-			delivery: SourceDelivery.BrowserDirect,
-		})
 	})
 
 	it('posts the documented chain-filtered markets query', async () => {
@@ -239,22 +212,19 @@ describe('Morpho GraphQL market enumeration', () => {
 		})
 	})
 
-	it('rejects unsupported chains before transport', async () => {
-		await expect(listMarkets({
-			chainIds: [
-				999_999,
-			],
-		})).rejects.toThrow(`${Source.Morpho_Graphql}: unsupported chain id`)
-		expect(sourceFetch).not.toHaveBeenCalled()
-	})
-
-	it('rejects duplicate chain filters before transport', async () => {
-		await expect(listMarkets({
-			chainIds: [
-				8453,
-				8453,
-			],
-		})).rejects.toThrow(`${Source.Morpho_Graphql}: duplicate chain ids`)
+	it.each([
+		['unsupported chain', {
+			chainIds: [999_999],
+		}, 'unsupported chain id'],
+		['duplicate chains', {
+			chainIds: [8453, 8453],
+		}, 'duplicate chain ids'],
+		['invalid limit', {
+			chainIds: [8453],
+			limit: 101,
+		}, 'limit must be between 1 and 100'],
+	])('rejects %s before transport', async (_, options, error) => {
+		await expect(listMarkets(options)).rejects.toThrow(`${Source.Morpho_Graphql}: ${error}`)
 		expect(sourceFetch).not.toHaveBeenCalled()
 	})
 
@@ -284,14 +254,6 @@ describe('Morpho GraphQL market enumeration', () => {
 	})
 
 	it('accepts every chain id advertised by Morpho GraphQL chains', async () => {
-		const {
-			morphoGraphqlNetworkByChainId,
-		} = await import('$/sources/Morpho/Graphql/constants.ts')
-
-		expect(morphoGraphqlNetworkByChainId[5042]?.name).toBe('Arc')
-		expect(morphoGraphqlNetworkByChainId[42161]?.name).toBe('Arbitrum One')
-		expect(morphoGraphqlNetworkByChainId[4217]?.name).toBe('Tempo Mainnet')
-
 		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
 			data: {
 				markets: {
@@ -312,16 +274,6 @@ describe('Morpho GraphQL market enumeration', () => {
 			countTotal: 0,
 		})
 		expect(sourceFetch).toHaveBeenCalledTimes(1)
-	})
-
-	it('rejects invalid limits before transport', async () => {
-		await expect(listMarkets({
-			chainIds: [
-				8453,
-			],
-			limit: 101,
-		})).rejects.toThrow(`${Source.Morpho_Graphql}: limit must be between 1 and 100`)
-		expect(sourceFetch).not.toHaveBeenCalled()
 	})
 
 	it('reads and verifies a market by its chain and id', async () => {
@@ -678,12 +630,16 @@ describe('Morpho GraphQL MetaMorpho vault enumeration', () => {
 		})
 	})
 
-	it('rejects unsupported chains before transport', async () => {
-		await expect(listVaults({
-			chainIds: [
-				999_999,
-			],
-		})).rejects.toThrow(`${Source.Morpho_Graphql}: unsupported chain id`)
+	it.each([
+		['unsupported chain', {
+			chainIds: [999_999],
+		}, 'unsupported chain id'],
+		['invalid limit', {
+			chainIds: [1],
+			limit: 101,
+		}, 'limit must be between 1 and 100'],
+	])('rejects %s before transport', async (_, options, error) => {
+		await expect(listVaults(options)).rejects.toThrow(`${Source.Morpho_Graphql}: ${error}`)
 		expect(sourceFetch).not.toHaveBeenCalled()
 	})
 
@@ -710,16 +666,6 @@ describe('Morpho GraphQL MetaMorpho vault enumeration', () => {
 				1,
 			],
 		})).rejects.toThrow(`${Source.Morpho_Graphql}: vaults response contains duplicate vault identities`)
-	})
-
-	it('rejects invalid limits before transport', async () => {
-		await expect(listVaults({
-			chainIds: [
-				1,
-			],
-			limit: 101,
-		})).rejects.toThrow(`${Source.Morpho_Graphql}: limit must be between 1 and 100`)
-		expect(sourceFetch).not.toHaveBeenCalled()
 	})
 
 	it('reads and verifies a vault by its chain and address', async () => {

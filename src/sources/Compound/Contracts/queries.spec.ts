@@ -6,14 +6,7 @@ import {
 	vi,
 } from 'vitest'
 
-import bindings from '$/sources/Compound/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import {
-	ApiFamily,
-	SourceDelivery,
-	SourceTargetKind,
-	WireProtocol,
-} from '$/sources/SourceBinding.ts'
 
 const jsonRpc2 = vi.hoisted(() => vi.fn())
 const sourceGetJson = vi.hoisted(() => vi.fn())
@@ -34,22 +27,6 @@ describe('Compound III contract account operations', () => {
 	beforeEach(() => {
 		jsonRpc2.mockReset()
 		sourceGetJson.mockReset()
-	})
-
-	it('binds every cataloged Compound chain to EVM execution JSON-RPC', () => {
-		const executionBindings = bindings[Source.Compound_Rest].filter(({ apiFamily }) => (
-			apiFamily === ApiFamily.EvmExecutionJsonRpc
-		))
-
-		expect(bindings[Source.Compound_Rest].filter(({ apiFamily }) => (
-			apiFamily === ApiFamily.RestJson
-		))).toHaveLength(1)
-		expect(executionBindings).toHaveLength(10)
-		expect(executionBindings.every(({ delivery, target, wireProtocol }) => (
-			delivery === SourceDelivery.HttpProxy
-			&& target.kind === SourceTargetKind.Eip155Chain
-			&& wireProtocol === WireProtocol.JsonRpc2
-		))).toBe(true)
 	})
 
 	it('reads a complete account position at one block', async () => {

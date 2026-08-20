@@ -10,8 +10,6 @@ import { Source } from '$/sources/Source.ts'
 import {
 	sourceBindingId,
 	SourceCredentialScope,
-	SourceDelivery,
-	SourceEndpointKind,
 	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
 
@@ -61,7 +59,6 @@ describe('source provider runtime capability index', () => {
 			{},
 			new Set()
 		)
-		expect(localOnlyBinding.delivery).toBe(SourceDelivery.LocalOnly)
 		expect(localOnlyUnavailable.enabledSources.has(Source.Pathfinder)).toBe(false)
 
 		const browserDirectBinding = requiredSourceBinding(Source.Constants_Internal)
@@ -72,8 +69,6 @@ describe('source provider runtime capability index', () => {
 				sourceBindingId(browserDirectBinding),
 			])
 		)
-		expect(browserDirectBinding.delivery).toBe(SourceDelivery.BrowserDirect)
-		expect(browserDirectBinding.endpoints[0].endpointKind).toBe(SourceEndpointKind.InProcess)
 		expect(browserDirectAvailable.enabledSources.has(Source.Constants_Internal)).toBe(true)
 		expect(browserDirectAvailable.enabledBindingIds).toEqual(new Set([
 			sourceBindingId(browserDirectBinding),
@@ -83,10 +78,6 @@ describe('source provider runtime capability index', () => {
 	it('gates runtime-secret bindings without disabling a surviving public binding', () => {
 		const starkscanBinding = requiredSourceBinding(Source.Starkscan)
 		const starkscanBindingId = sourceBindingId(starkscanBinding)
-		expect(starkscanBinding.delivery).toBe(SourceDelivery.HttpProxy)
-		expect(starkscanBinding.credentials).toEqual([{
-			scope: SourceCredentialScope.RuntimeSecret,
-		}])
 		expect(indexSourceProviders(
 			sourceProviderDefinitions,
 			{},

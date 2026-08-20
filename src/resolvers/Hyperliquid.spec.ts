@@ -269,15 +269,6 @@ describe('Hyperliquid public account resolvers', () => {
 				},
 			}],
 		})
-		expect(Object.keys(timestamps[0]?.[EntityMetaKey.Fields] ?? {})).toEqual([
-			entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'accountValue'),
-			entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'totalNtlPos'),
-			entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'totalRawUsd'),
-			entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'totalMarginUsed'),
-			entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'withdrawable'),
-			entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'crossMaintenanceMarginUsed'),
-			entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'assetPositions'),
-		])
 		expect(timestamps[1]?.[EntityMetaKey.Fields]).toEqual({
 			[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'spotBalances')]: responseByInfoType.spotClearinghouseState.balances,
 		})

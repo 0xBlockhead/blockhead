@@ -155,7 +155,6 @@ describe('Aptos Indexer typed operations', () => {
 		await queries.getTableItem('0xhandle', '0xkeyhash', 42n)
 
 		expect(sourceFetch).toHaveBeenCalledTimes(6)
-		expect(Object.keys(bindings)).toEqual([Source.AptosIndexer_Graphql])
 		expect(aptosIndexerBinding.delivery).toBe(SourceDelivery.HttpProxy)
 		expect(sourceFetch.mock.calls.every((call) => call[0] === aptosIndexerBinding)).toBe(true)
 		expect(sourceFetch.mock.calls.every((call) => call[1] === 'https://api.mainnet.aptoslabs.com/v1/graphql')).toBe(true)

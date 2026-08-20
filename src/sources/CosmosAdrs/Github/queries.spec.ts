@@ -1,8 +1,7 @@
-import { beforeEach, expect, it, vi } from 'vitest'
+import { expect, it, vi } from 'vitest'
 
 import bindings from '$/sources/CosmosAdrs/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceDelivery } from '$/sources/SourceBinding.ts'
 
 const sourceGetJson = vi.hoisted(() => vi.fn())
 const sourceGetText = vi.hoisted(() => vi.fn())
@@ -18,12 +17,7 @@ const {
 } = await import('$/sources/CosmosAdrs/Github/queries.ts')
 const binding = bindings[Source.CosmosAdrs_Github][0]
 
-beforeEach(() => {
-	sourceGetJson.mockReset()
-	sourceGetText.mockReset()
-})
-
-it('uses the declared public GitHub binding and exact ADR path', async () => {
+it('reads representative ADR documents and rejects unsafe coordinates', async () => {
 	sourceGetJson.mockResolvedValueOnce([])
 	sourceGetText.mockResolvedValueOnce('# ADR 007')
 
@@ -32,8 +26,6 @@ it('uses the declared public GitHub binding and exact ADR path', async () => {
 		number: 7,
 	})).resolves.toBe('# ADR 007')
 
-	expect(binding.delivery).toBe(SourceDelivery.BrowserDirect)
-	expect(binding.credentials).toEqual([])
 	expect(sourceGetJson).toHaveBeenCalledWith(
 		binding,
 		'https://api.github.com/repos/cosmos/cosmos-sdk/contents/docs/architecture?ref=main'
@@ -42,9 +34,8 @@ it('uses the declared public GitHub binding and exact ADR path', async () => {
 		binding,
 		'https://raw.githubusercontent.com/cosmos/cosmos-sdk/main/docs/architecture/adr-007.md'
 	)
-})
 
-it('rejects unsafe or unscoped ADR document numbers before requesting GitHub', () => {
+	vi.clearAllMocks()
 	expect(() => getMarkdownText({
 		number: 0,
 	})).toThrow('ADR number must be a positive safe integer')

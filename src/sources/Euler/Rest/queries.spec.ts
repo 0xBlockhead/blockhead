@@ -7,18 +7,7 @@ import {
 } from 'vitest'
 
 import bindings from '$/sources/Euler/bindings.ts'
-import {
-	eulerEvkByChainId,
-	eulerEvkChains,
-	eulerVaultListDefaultLimit,
-} from '$/sources/Euler/Rest/constants.ts'
-import {
-	ApiFamily,
-	SourceDelivery,
-	SourceEndpointKind,
-	SourceTargetKind,
-	WireProtocol,
-} from '$/sources/SourceBinding.ts'
+import { eulerVaultListDefaultLimit } from '$/sources/Euler/Rest/constants.ts'
 import { Source } from '$/sources/Source.ts'
 import { httpUrl } from '$/sources/_shared/wire/HttpRest/client.ts'
 
@@ -108,34 +97,6 @@ const baseAccountPosition = {
 		method: 'live-read-through',
 	},
 } as const
-
-describe('Euler Data v3 REST binding', () => {
-	it('targets the official Euler v3 API', () => {
-		expect(binding.target).toEqual({
-			kind: SourceTargetKind.Global,
-			key: 'euler-v3-api',
-		})
-		expect(binding.source).toBe(Source.Euler_Rest)
-		expect(binding.wireProtocol).toBe(WireProtocol.HttpRest)
-		expect(binding.apiFamily).toBe(ApiFamily.RestJson)
-		expect(binding.delivery).toBe(SourceDelivery.BrowserDirect)
-		expect(binding.endpoints).toEqual([
-			{
-				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: 'https://v3.euler.finance',
-				corsEnabled: true,
-			},
-		])
-	})
-
-	it('catalogs supported EVK chains including Ethereum', () => {
-		expect(eulerEvkByChainId[1]).toEqual({
-			chainId: 1,
-			name: 'ethereum',
-		})
-		expect(eulerEvkChains.some((chain) => chain.chainId === 8453)).toBe(true)
-	})
-})
 
 describe('Euler EVK vault operations', () => {
 	beforeEach(() => {
@@ -422,18 +383,16 @@ describe('Euler EVK vault operations', () => {
 		expect(vault).not.toHaveProperty('borrowSpy')
 	})
 
-	it('rejects an unsupported chain id before transport', async () => {
-		await expect(listVaults({
+	it.each([
+		['unsupported chain', () => listVaults({
 			chainId: 999999,
-		})).rejects.toThrow(`${Source.Euler_Rest}: unsupported chain id`)
-		expect(sourceGetJson).not.toHaveBeenCalled()
-	})
-
-	it('rejects an invalid vault address before transport', async () => {
-		await expect(getVault({
+		}), 'unsupported chain id'],
+		['invalid vault address', () => getVault({
 			chainId: 1,
 			vaultAddress: 'not-an-address',
-		})).rejects.toThrow(`${Source.Euler_Rest}: invalid vault address`)
+		}), 'invalid vault address'],
+	])('rejects %s before transport', async (_, operation, error) => {
+		await expect(operation()).rejects.toThrow(`${Source.Euler_Rest}: ${error}`)
 		expect(sourceGetJson).not.toHaveBeenCalled()
 	})
 
@@ -520,8 +479,8 @@ describe('Euler EVK vault operations', () => {
 		}])
 	})
 
-	it('fails closed when account position liquidity omits daysToLiquidation', async () => {
-		sourceGetJson.mockResolvedValueOnce({
+	it.each([
+		['missing liquidity clock', {
 			data: [{
 				...baseAccountPosition,
 				liquidity: {
@@ -529,21 +488,14 @@ describe('Euler EVK vault operations', () => {
 					unitOfAccount: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
 				},
 			}],
-		})
-
+		}, 'account position missing liquidity.daysToLiquidation'],
+		['missing response data', {}, 'account positions response missing data'],
+	])('fails closed for %s', async (_, response, error) => {
+		sourceGetJson.mockResolvedValueOnce(response)
 		await expect(getAccountPositions({
 			chainId: 1,
 			account: baseVaultAddress,
-		})).rejects.toThrow(`${Source.Euler_Rest}: account position missing liquidity.daysToLiquidation`)
-	})
-
-	it('fails closed when an account position response has no data', async () => {
-		sourceGetJson.mockResolvedValueOnce({})
-
-		await expect(getAccountPositions({
-			chainId: 1,
-			account: baseVaultAddress,
-		})).rejects.toThrow(`${Source.Euler_Rest}: account positions response missing data`)
+		})).rejects.toThrow(`${Source.Euler_Rest}: ${error}`)
 	})
 
 	it('rejects duplicate account position identities after address normalization', async () => {

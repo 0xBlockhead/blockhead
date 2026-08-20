@@ -3,7 +3,6 @@ import { describe, expect, it } from 'vitest'
 import {
 	entityFieldAddressKey,
 	entityFieldDefinitions,
-	type EntityDefinition,
 } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
 import { EntityFieldType } from '$/schema/EntityFieldType.ts'
@@ -279,36 +278,6 @@ const rootField = (
 	]
 )
 
-
-const fieldRows = (
-	entityDefinition: EntityDefinition
-) => (
-	entityFieldDefinitions(entityDefinition)
-		.map((fieldDefinition) => ({
-			entityType: entityDefinition.entityType,
-			fieldName: fieldDefinition.name,
-			fieldType: fieldDefinition.type,
-			cardinality: fieldDefinition.cardinality,
-			entityTypeTarget: (
-				fieldDefinition.type === EntityFieldType.EntityReference
-				|| fieldDefinition.type === EntityFieldType.EntitiesReference
-			) ?
-				fieldDefinition.entityType
-			:
-				undefined,
-			selectorMembership: entityDefinition.selectors
-				.filter((selector) => selector.fields.includes(fieldDefinition.name))
-				.map((selector) => selector.name),
-		}))
-		.sort((left, right) => (
-			left.entityType === right.entityType ?
-				left.fieldName.localeCompare(right.fieldName)
-			:
-				left.entityType.localeCompare(right.entityType)
-		))
-)
-
-
 const assertRef = (
 	entityType: string,
 	requiredRef: RequiredRef,
@@ -369,15 +338,6 @@ const collectFirstSliceDrift = () => {
 
 	for (const contract of firstSliceContract) {
 		const entityDefinition = schemaMeta.entityDefinitionByType[contract.entityType]
-		if (entityDefinition == null) {
-			findings.push({
-				category: 'missing-row-current-probe',
-				entityType: contract.entityType,
-				detail: `required first-slice row absent from schemaMeta.entityDefinitionByType`,
-			})
-			continue
-		}
-
 		const liveSelectorFieldSets = entityDefinition.selectors.map((selector) => [
 			...selector.fields,
 		])
@@ -502,14 +462,6 @@ const collectFirstSliceDrift = () => {
 	}
 
 	for (const { entityType, ref } of firstSliceIntegrationRefs) {
-		if (schemaMeta.entityDefinitionByType[entityType] == null) {
-			findings.push({
-				category: 'missing-row-current-probe',
-				entityType,
-				detail: 'integration parent row absent',
-			})
-			continue
-		}
 		assertRef(entityType, ref, findings)
 	}
 
@@ -545,9 +497,6 @@ describe('Blockhead first-slice intent schema drift gate', () => {
 				entityDefinition,
 				`missing-row-current-probe: ${contract.entityType}`
 			).toBeDefined()
-			if (entityDefinition == null)
-				continue
-
 			const liveSelectorFieldSets = entityDefinition.selectors.map((selector) => [
 				...selector.fields,
 			])
@@ -573,7 +522,7 @@ describe('Blockhead first-slice intent schema drift gate', () => {
 			).toMatchObject({
 				type: ref.fieldType,
 				entityType: ref.entityType,
-				...(ref.cardinality != null && { cardinality: ref.cardinality }),
+					cardinality: ref.cardinality,
 			})
 		}
 	})
@@ -582,9 +531,6 @@ describe('Blockhead first-slice intent schema drift gate', () => {
 		for (const contract of firstSliceContract.filter((row) => row.timestampSource)) {
 			const entityDefinition = schemaMeta.entityDefinitionByType[contract.entityType]
 			expect(entityDefinition).toBeDefined()
-			if (entityDefinition == null)
-				continue
-
 			expect(
 				entityDefinition.selectors.some((selector) => selector.fields.includes('source')),
 				`timestamp-source-drift: ${contract.entityType} selector`
@@ -602,9 +548,6 @@ describe('Blockhead first-slice intent schema drift gate', () => {
 	it('forbids tracked anti-field names on first-slice rows', () => {
 		const antiFieldHits = firstSliceContract.flatMap((contract) => {
 			const entityDefinition = schemaMeta.entityDefinitionByType[contract.entityType]
-			if (entityDefinition == null)
-				return []
-
 			return entityFieldDefinitions(entityDefinition)
 				.filter((fieldDefinition) => (
 					(forbiddenAntiFieldNames as readonly string[]).includes(fieldDefinition.name)
@@ -631,41 +574,5 @@ describe('Blockhead first-slice intent schema drift gate', () => {
 		expect(axisViolations).toEqual([
 			...knownLiveAxisViolations,
 		])
-	})
-
-	it('exposes a compact metadata probe for first-slice rows', () => {
-		const entityRows = firstSliceContract
-			.map((contract) => {
-				const entityDefinition = schemaMeta.entityDefinitionByType[contract.entityType]
-				if (entityDefinition == null) {
-					return {
-						entityType: contract.entityType,
-						missingFromLive: true,
-					}
-				}
-
-				return {
-					entityType: contract.entityType,
-					selectors: entityDefinition.selectors.map((selector) => ({
-						name: selector.name,
-						fields: [
-							...selector.fields,
-						],
-					})),
-					fieldCount: entityFieldDefinitions(entityDefinition).length,
-					fields: fieldRows(entityDefinition),
-				}
-			})
-			.sort((left, right) => left.entityType.localeCompare(right.entityType))
-
-		expect(entityRows.map((row) => row.entityType)).toEqual(
-			firstSliceContract
-				.map((contract) => contract.entityType)
-				.slice()
-				.sort((left, right) => left.localeCompare(right))
-		)
-		expect(
-			entityRows.every((row) => !('missingFromLive' in row && row.missingFromLive))
-		).toBe(true)
 	})
 })

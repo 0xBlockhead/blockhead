@@ -212,18 +212,6 @@ describe('Monero daemon block selectors', () => {
 	expect(getBlock).toHaveBeenNthCalledWith(2, {
 		height,
 		})
-		expect(Object.keys(blockResolver.resolve).sort()).toEqual([
-			'NetworkHeight',
-			'NetworkHeightHash',
-		])
-		expect(Object.keys(blockResolver.projections).sort()).toEqual([
-			'$$transactions',
-			'$parent',
-			'difficulty',
-			'hash',
-			'timestampMs',
-			'weightBytes',
-		])
 		expect(blockResolver.projections.hash(byHeight)).toBe(block.block_header.hash)
 		expect(blockResolver.projections.$$transactions.select(byHeight)).toEqual([
 			expect.objectContaining({

@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest'
 
 import {
 	beaconConsensusByExecutionChainId,
-	beaconConsensusNetworks,
 } from '$/constants/BeaconConsensus.ts'
 import { ChainId } from '$/constants/ChainId.ts'
 import {
@@ -66,25 +65,9 @@ describe('canonical network identities', () => {
 				executionModels: [NetworkExecutionModel.Evm],
 			})
 			expect(beaconConsensusByExecutionChainId[row.chainId]?.consensusProtocol).toBe('EthereumBeacon')
+			expect(beaconConsensusByExecutionChainId[row.chainId]).not.toHaveProperty('restBaseUrl')
+			expect(beaconConsensusByExecutionChainId[row.chainId]?.slotsPerEpoch).toBe(32)
 		}
-	})
-})
-
-
-describe('beacon consensus catalog', () => {
-	it('covers every Ethereum beacon execution L1 without embedding REST URLs', () => {
-		expect(beaconConsensusNetworks.map(({ chainId }) => chainId)).toEqual([
-			ChainId.Ethereum,
-			ChainId.EthereumSepolia,
-			ChainId.Holesky,
-			ChainId.Hoodi,
-		])
-		expect(
-			beaconConsensusNetworks.every((network) => (
-				!Object.hasOwn(network, 'restBaseUrl')
-				&& network.slotsPerEpoch === 32
-			))
-		).toBe(true)
 	})
 })
 

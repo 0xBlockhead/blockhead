@@ -10,18 +10,14 @@ import {
 } from '$/lib/errors.ts'
 
 describe('error helpers', () => {
-	it('serializes Error values with their message', () => {
+	it('serializes and normalizes representative thrown values', () => {
 		expect(serializeError(new Error('failed'))).toContain('Error: failed')
-	})
 
-	it('serializes arbitrary thrown values without local message-shape parsing', () => {
 		expect(serializeError({
 			message: 'wire failure',
 			code: 500,
 		})).toBe('{\n  "message": "wire failure",\n  "code": 500\n}')
-	})
 
-	it('normalizes non-Error thrown values while preserving cause', () => {
 		const cause = {
 			message: 'wire failure',
 		}

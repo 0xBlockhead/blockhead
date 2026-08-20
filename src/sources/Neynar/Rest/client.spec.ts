@@ -17,17 +17,14 @@ afterEach(() => {
 })
 
 describe('Neynar REST binding authority', () => {
-	it('keeps missing credentials non-executable', async () => {
+	it('keeps anonymous reads inert and routes authenticated reads', async () => {
 		const fetchMock = vi.fn<typeof fetch>()
 		vi.stubGlobal('fetch', fetchMock)
 
 		await expect(neynarFetch({}, '/v2/farcaster/feed/')).resolves.toBeUndefined()
 		expect(fetchMock).not.toHaveBeenCalled()
-	})
 
-	it('routes authenticated feed reads through the declared proxy endpoint', async () => {
-		const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(new Response('{}'))
-		vi.stubGlobal('fetch', fetchMock)
+		fetchMock.mockResolvedValue(new Response('{}'))
 		vi.stubGlobal('window', {})
 
 		await neynarFetch(

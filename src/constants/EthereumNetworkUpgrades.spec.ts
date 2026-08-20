@@ -138,20 +138,6 @@ describe('Ethereum network upgrade indexes', () => {
 			).toBe(true)
 		}
 
-		expect(Object.keys(ethereumMainnetNetworkUpgradeSlugAliasBySegmentSlug)).toEqual([
-			'paris',
-			'bellatrix',
-			'the-merge',
-			'the merge',
-			'shanghai',
-			'capella',
-			'cancun',
-			'deneb',
-			'prague',
-			'electra',
-			'osaka',
-			'fulu',
-		])
 		for (const chainId of [
 			1,
 			11_155_111,

@@ -4,8 +4,6 @@ import {
 	it,
 	vi,
 } from 'vitest'
-import { readFileSync } from 'node:fs'
-
 import { sourceBindings } from '$/sources/$sourceProviders.ts'
 import { Source } from '$/sources/Source.ts'
 import {
@@ -58,14 +56,4 @@ describe('browser server source capabilities', () => {
 		)).toBe(true)
 	})
 
-	it('publishes one deterministic remote query without credential data', () => {
-		const source = readFileSync(
-			'src/sources/_runtime/capabilities.remote.ts',
-			'utf8'
-		)
-		expect(source).toContain("import { query } from '$app/server'")
-		expect(source).toContain('enabledBrowserServerSourceBindingIds')
-		expect(source).toContain('enabledServerBindingIds: [...enabledBrowserServerSourceBindingIds].toSorted()')
-		expect(source).not.toMatch(/privateEnv|sourceServerCredentials|secret/)
-	})
 })

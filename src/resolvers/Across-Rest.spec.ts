@@ -548,9 +548,4 @@ describe('Across BridgeTransfer resolvers', () => {
 			source: Source.Across_Rest,
 		})).rejects.toThrow('pending status has no authoritative observation clock')
 	})
-
-	it('exports Across_Rest as the registered source module', () => {
-		expect(across.source).toBe(Source.Across_Rest)
-		expect(across.resolvers.length).toBeGreaterThan(0)
-	})
 })

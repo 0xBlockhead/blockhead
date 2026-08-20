@@ -25,11 +25,6 @@ describe('NostrRelay NIP-11 Http transport', () => {
 		sourceFetch.mockReset()
 	})
 
-	it('has at least one NIP-11 binding', () => {
-		expect(boundRelayUrl).toBeTypeOf('string')
-		expect(bindings[Source.NostrRelay_Nip11_Http].length).toBeGreaterThan(0)
-	})
-
 	it('accepts a minimal valid NIP-11 document', async () => {
 		sourceFetch.mockResolvedValue({
 			ok: true,

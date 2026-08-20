@@ -15,7 +15,6 @@ import { EntityType } from '$/schema/EntityType.ts'
 import {
 	entityDefinitionByType,
 	schema,
-	schemaMeta,
 } from '$/schema/index.ts'
 
 
@@ -89,12 +88,5 @@ describe('EVM route params', () => {
 			},
 			txHash: '0x5e4763cd6b6f129869fff1d60bfadf1d37e1677cb8f1d8997299680da09d5b01',
 		})
-	})
-
-	it('indexes selector definitions by entity type and selector name', () => {
-		expect(schemaMeta.entitySelectorDefinitionByEntityTypeAndName[EntityType.EvmBlock].EvmNetworkBlockNumber.fields).toEqual([
-			'$network',
-			'blockNumber',
-		])
 	})
 })

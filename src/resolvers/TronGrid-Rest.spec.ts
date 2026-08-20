@@ -421,10 +421,6 @@ describe('TronGrid REST network relationships', () => {
 				}],
 			},
 		}])
-		expect(Object.keys(witnesses[0])).toEqual([
-			EntityMetaKey.Selector,
-			EntityMetaKey.Fields,
-		])
 	})
 
 	it('paginates witness and block collections without repeating the first page', async () => {

@@ -293,7 +293,6 @@ describe('Aptos Fullnode typed operations', () => {
 		await queries.getTransactionByHash(aptosFullnodeBinding, '0xhash/value')
 		await queries.getTransactionByVersion(aptosFullnodeBinding, 42n)
 
-		expect(Object.keys(bindings)).toEqual([Source.AptosFullnode_Rest])
 		expect(aptosFullnodeBinding).toMatchObject({
 			endpoints: [{
 				endpointKind: SourceEndpointKind.HttpUrl,

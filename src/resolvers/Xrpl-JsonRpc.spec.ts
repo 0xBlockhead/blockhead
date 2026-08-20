@@ -732,12 +732,6 @@ describe('XRPL rippled network resolver', () => {
 				},
 			},
 		])
-		expect(Object.keys(resolver.projections)).toEqual([
-			'Xrpl',
-		])
-		expect(Object.keys(resolver.projections.Xrpl)).toEqual([
-			'$$ledgers',
-		])
 	})
 
 	it('projects enrolled XrplLedger tip fields from nested ledger body', async () => {

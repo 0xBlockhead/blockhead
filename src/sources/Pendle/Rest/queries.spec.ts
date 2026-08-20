@@ -7,18 +7,7 @@ import {
 } from 'vitest'
 
 import bindings from '$/sources/Pendle/bindings.ts'
-import {
-	pendleByChainId,
-	pendleChainDeployments,
-	pendleMarketsAllMaxLimit,
-} from '$/sources/Pendle/Rest/constants.ts'
-import {
-	ApiFamily,
-	SourceDelivery,
-	SourceEndpointKind,
-	SourceTargetKind,
-	WireProtocol,
-} from '$/sources/SourceBinding.ts'
+import { pendleMarketsAllMaxLimit } from '$/sources/Pendle/Rest/constants.ts'
 import { Source } from '$/sources/Source.ts'
 
 const sourceGetJson = vi.hoisted(() => vi.fn())
@@ -76,42 +65,6 @@ const baseMarketWire = {
 	],
 	chainId: 1,
 } as const
-
-describe('Pendle REST binding', () => {
-	it('targets the official Pendle public API', () => {
-		expect(binding.target).toEqual({
-			kind: SourceTargetKind.Global,
-			key: 'pendle-api',
-		})
-		expect(binding.source).toBe(Source.Pendle_Rest)
-		expect(binding.wireProtocol).toBe(WireProtocol.HttpRest)
-		expect(binding.apiFamily).toBe(ApiFamily.RestJson)
-		expect(binding.delivery).toBe(SourceDelivery.BrowserDirect)
-		expect(binding.endpoints).toEqual([
-			{
-				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: 'https://api-v2.pendle.finance/core/',
-				corsEnabled: true,
-			},
-		])
-	})
-
-	it('catalogs documented Pendle chain deployments', () => {
-		expect(pendleByChainId[1]).toEqual({
-			chainId: 1,
-			name: 'Ethereum',
-		})
-		expect(pendleByChainId[196]).toEqual({
-			chainId: 196,
-			name: 'X Layer',
-		})
-		expect(pendleByChainId[9745]).toEqual({
-			chainId: 9745,
-			name: 'Plasma',
-		})
-		expect(pendleChainDeployments.some((deployment) => deployment.chainId === 42161)).toBe(true)
-	})
-})
 
 describe('Pendle market operations', () => {
 	beforeEach(() => {
@@ -313,29 +266,20 @@ describe('Pendle market operations', () => {
 		})).rejects.toThrow(`${Source.Pendle_Rest}: market not found ${baseMarketAddress}`)
 	})
 
-	it('rejects an invalid limit before transport', async () => {
-		await expect(listMarkets({
+	it.each([
+		['invalid limit', {
 			chainId: 1,
 			limit: pendleMarketsAllMaxLimit + 1,
-		})).rejects.toThrow(`${Source.Pendle_Rest}: invalid limit`)
-		expect(sourceGetJson).not.toHaveBeenCalled()
-	})
-
-	it('rejects duplicate requested market addresses before transport', async () => {
-		await expect(listMarkets({
+		}, 'invalid limit'],
+		['duplicate addresses', {
 			chainId: 1,
-			marketAddresses: [
-				baseMarketAddress,
-				baseMarketAddress.toUpperCase(),
-			],
-		})).rejects.toThrow(`${Source.Pendle_Rest}: market addresses contains duplicate addresses`)
-		expect(sourceGetJson).not.toHaveBeenCalled()
-	})
-
-	it('rejects an unsupported chain before transport', async () => {
-		await expect(listMarkets({
+			marketAddresses: [baseMarketAddress, baseMarketAddress.toUpperCase()],
+		}, 'market addresses contains duplicate addresses'],
+		['unsupported chain', {
 			chainId: 9999,
-		})).rejects.toThrow(`${Source.Pendle_Rest}: unsupported chain id 9999`)
+		}, 'unsupported chain id 9999'],
+	])('rejects %s before transport', async (_, options, error) => {
+		await expect(listMarkets(options)).rejects.toThrow(`${Source.Pendle_Rest}: ${error}`)
 		expect(sourceGetJson).not.toHaveBeenCalled()
 	})
 

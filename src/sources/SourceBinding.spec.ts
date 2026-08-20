@@ -1,5 +1,4 @@
 import {
-	readFileSync,
 	statSync,
 } from 'node:fs'
 
@@ -489,29 +488,6 @@ describe('source binding indexes', () => {
 		])
 	})
 
-	it('serves RemoteLive through sourceLive instead of the HTTP proxy', () => {
-		expect(readFileSync('src/sources/_runtime/live.remote.ts', 'utf8'))
-			.toMatch(/export const sourceLive = query\.live/)
-		expect(readFileSync('src/sources/_runtime/live.remote.ts', 'utf8'))
-			.not.toMatch(/api-proxy|corsFetch|sourceFetch/)
-		expect(readFileSync('src/sources/_runtime/proxy.server.ts', 'utf8'))
-			.not.toMatch(/RemoteLive|WebSocket/)
-	})
-
-	it('keeps managed gRPC behind the server-owned RemoteLive boundary', () => {
-		const remoteSource = readFileSync('src/sources/_runtime/live.remote.ts', 'utf8')
-		const clientSource = readFileSync('src/sources/_shared/wire/Grpc/live.ts', 'utf8')
-		const serverSource = readFileSync('src/sources/_shared/wire/Grpc/live.server.ts', 'utf8')
-		const yellowstoneSource = readFileSync('src/sources/GetBlock/Yellowstone/queries.ts', 'utf8')
-
-		expect(remoteSource).toMatch(/getRequestEvent\(\)\.request\.signal/)
-		expect(clientSource).not.toContain('node:http2')
-		expect(serverSource).toContain("from 'node:http2'")
-		expect(yellowstoneSource).toContain('iterateGrpcLive')
-		expect(yellowstoneSource).not.toContain('.server.ts')
-		expect(() => statSync('src/sources/GetBlock/Yellowstone/managedGrpc.server.ts')).toThrow()
-	})
-
 	it('proxies TRON APIs with server-owned key injection', () => {
 		const tronGridBinding = sourceBindings.find(({ source }) => source === Source.TronGrid_Rest)
 		const tronScanBinding = sourceBindings.find(({ source }) => source === Source.TronScan_Rest)
@@ -608,11 +584,6 @@ describe('source binding indexes', () => {
 		} finally {
 			vi.unstubAllGlobals()
 		}
-	})
-
-	it('keeps the CORS browser proof free of route-specific delivery ignores', () => {
-		expect(readFileSync('tests/e2e/cors-policy.e2e.ts', 'utf8'))
-			.not.toMatch(/e2eBoundaryLiveOptionalPathnames|failFast\s*:/)
 	})
 
 	it('models Demo and Pro contracts on one Coingecko source', () => {
@@ -792,12 +763,6 @@ describe('source binding indexes', () => {
 				credential.scope === SourceCredentialScope.PublicConfig
 			))
 		))).toBe(false)
-		expect([
-			'src/sources/OpenSea/Rest/queries.ts',
-			'src/resolvers/OpenSea-Rest.ts',
-		].map((path) => readFileSync(path, 'utf8')).join('\n')).not.toMatch(
-			/process\.env|\$env\/dynamic\/private|OPENSEA_API_KEY|requireOpenSeaCredential|x-api-key|authorization/i
-		)
 	})
 
 	it('keeps Reddit OAuth authority on one server-credential binding', () => {

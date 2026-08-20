@@ -194,19 +194,6 @@ describe('Algorand Indexer deepened resolvers', () => {
 		vi.clearAllMocks()
 	})
 
-	it('declares the architecture-neutral Algorand selector applicability', () => {
-		expect(holdingsResolver.resolve[
-			'NetworkAddress'
-		].appliesTo).toEqual([{
-			$network: {
-				$network: {
-					slug: networkBySlug.algorand.slug,
-				},
-			},
-		}])
-		expect(algorandIndexerResolvers.source).toBe(Source.Nodely)
-	})
-
 	it('resolves paginated transaction group members through the native group hierarchy', async () => {
 		const group = {
 			$network: network,

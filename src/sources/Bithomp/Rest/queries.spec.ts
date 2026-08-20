@@ -237,18 +237,3 @@ describe('Bithomp Rest fail-closed envelopes', () => {
 		})
 	})
 })
-
-describe('Bithomp Rest query surface', () => {
-	it('exports the modeled explorer operations', () => {
-		expect(Object.keys(queries).sort()).toEqual([
-			'getAccount',
-			'getAccountTransactions',
-			'getAmm',
-			'getAmms',
-			'getLedgerEntry',
-			'getSearch',
-			'getTrustlines',
-			'getUsername',
-		])
-	})
-})

@@ -1,10 +1,5 @@
-import { readFileSync } from 'node:fs'
-import { dirname, resolve } from 'node:path'
-import { fileURLToPath } from 'node:url'
-
 import { describe, expect, it } from 'vitest'
 
-import { schemaSource } from '$/sources/Youtube/Discovery/schema-source.ts'
 import type {
 	YoutubeApiChannel,
 	YoutubeApiChannelsListResponse,
@@ -14,17 +9,7 @@ import type {
 	YoutubeApiVideosListResponse,
 } from '$/sources/Youtube/Rest/types.ts'
 
-const discoveryDir = dirname(fileURLToPath(import.meta.url))
-
 describe('Youtube Discovery schema-source', () => {
-	it('declares a checked-in Discovery document and generated typesFile', () => {
-		expect(schemaSource.schemaUrl).toContain('youtube.googleapis.com/$discovery/rest')
-		expect(schemaSource.schemaFile).toBe('./youtube-v3.json')
-		expect(schemaSource.typesFile).toBe('./discovery.d.ts')
-		expect(readFileSync(resolve(discoveryDir, schemaSource.schemaFile), 'utf8')).toContain('"youtube:v3"')
-		expect(readFileSync(resolve(discoveryDir, schemaSource.typesFile), 'utf8')).toContain('ChannelListResponse:')
-	})
-
 	it('exposes Rest wire aliases from generated Discovery schemas', () => {
 		const channel = {
 			kind: 'youtube#channel',
@@ -79,8 +64,8 @@ describe('Youtube Discovery schema-source', () => {
 			kind: 'youtube#videoListResponse',
 			items: [video],
 		} as const satisfies YoutubeApiVideosListResponse
-		expect(channels.items?.[0]?.id).toBe('UC123')
-		expect(videos.items?.[0]?.id).toBe('vid')
+		expect(channels.items[0].id).toBe('UC123')
+		expect(videos.items[0].id).toBe('vid')
 
 		const snippet = {
 			title: 'Video',

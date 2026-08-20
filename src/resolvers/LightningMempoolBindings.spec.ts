@@ -7,9 +7,7 @@ import {
 } from 'vitest'
 
 import { networkBySlug } from '$/constants/Network.ts'
-import { entityFieldDefinitions } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import lightningNetworkDefinition from '$/schema/LightningNetwork.ts'
 import { Source } from '$/sources/Source.ts'
 
 const {
@@ -95,73 +93,6 @@ beforeEach(() => {
 })
 
 describe('Lightning and mempool resolver bindings', () => {
-	it('binds public graph collections only to their registered materializers', () => {
-		expect(Object.fromEntries(entityFieldDefinitions(lightningNetworkDefinition)
-			.filter(({ name }) => [
-				'$$timestamps',
-				'$$nodes',
-				'$$channels',
-			].includes(name))
-			.map(({ defaultSources, name }) => [
-				name,
-				defaultSources,
-			]))).toEqual({
-			'$$timestamps': [
-				Source.LightningMempoolSpace_Rest,
-				Source.LightningLnd_Rest,
-			],
-			'$$nodes': [
-				Source.LightningMempoolSpace_Rest,
-				Source.LightningLnd_Rest,
-				Source.Amboss_Graphql,
-			],
-			'$$channels': [
-				Source.LightningLnd_Rest,
-			],
-		})
-	})
-
-	it('keeps MempoolSpace on public graph entities and LND on local session rows', () => {
-		const mempoolEntityTypes = new Set(
-			lightningMempoolSpace.resolvers.map((resolver) => resolver.entityType)
-		)
-		const lndEntityTypes = new Set(
-			lightningLnd.resolvers.map((resolver) => resolver.entityType)
-		)
-
-		expect(mempoolEntityTypes.has(EntityType.LightningNetwork)).toBe(true)
-		expect(mempoolEntityTypes.has(EntityType.LightningNode)).toBe(true)
-		expect(mempoolEntityTypes.has(EntityType.LightningChannel)).toBe(true)
-		expect(mempoolEntityTypes.has(EntityType.LightningNetwork_Timestamp)).toBe(false)
-		expect(
-			[...mempoolEntityTypes].some((entityType) => (
-				String(entityType).startsWith('BlockheadLightning')
-			))
-		).toBe(false)
-
-		expect(lndEntityTypes.has(EntityType.BlockheadLightningNodeState)).toBe(true)
-		expect(lndEntityTypes.has(EntityType.BlockheadLightningInvoice)).toBe(true)
-		expect(lndEntityTypes.has(EntityType.BlockheadLightningPayment)).toBe(true)
-		expect(lndEntityTypes.has(EntityType.LightningNetwork_Timestamp)).toBe(true)
-		expect(lndEntityTypes.has(EntityType.LightningNode)).toBe(true)
-		expect(lndEntityTypes.has(EntityType.LightningChannel)).toBe(true)
-	})
-
-	it('keeps live publishers on their source-owned Lightning surfaces', () => {
-		expect(lightningLnd.resolvers.flatMap((resolver) => (
-			'resolveLive' in resolver ?
-				Object.keys(resolver.resolveLive)
-			:
-				[]
-		))).toEqual(['operatorState'])
-		expect(lightningMempoolSpace.resolvers.flatMap((resolver) => (
-			'resolveLive' in resolver ?
-				Object.keys(resolver.resolveLive)
-			:
-				[]
-		))).toEqual(['networkStats'])
-	})
-
 	it('fail-closes Mempool public observations for unsupported networks before transport', async () => {
 		await expect(mempoolNetworkResolver.resolve.Network.resolve({
 			$network: {

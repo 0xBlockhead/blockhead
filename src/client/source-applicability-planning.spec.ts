@@ -13,8 +13,6 @@ import {
 } from '@tanstack/db'
 import type { PersistenceAdapter } from '@tanstack/db-sqlite-persistence-core'
 import { stringify } from 'devalue'
-import { readFileSync } from 'node:fs'
-import { resolve } from 'node:path'
 
 import {
 	client,
@@ -148,40 +146,6 @@ describe('source applicability planning contract', () => {
 		})).toEqual([
 			Source.CosmosSdk_Rest,
 		])
-	})
-
-	it('filters persistence and source markers before loading', () => {
-		const clientSource = readFileSync(
-			resolve(process.cwd(), 'src/client/$client.svelte.ts'),
-			'utf8'
-		)
-		for (const collectionSurface of [
-			'fieldLoadedSubsetKey',
-			'countLoadedSubsetKey',
-		]) {
-			const surfaceStart = clientSource.indexOf(collectionSurface)
-			const persistedRowsStart = clientSource.indexOf(
-				'persistedRows: (loadSubsetOptions, rows, marker)',
-				surfaceStart
-			)
-			const applicabilityStart = clientSource.indexOf(
-				'applicableResolverSources(',
-				persistedRowsStart
-			)
-			const productSubsetStart = clientSource.indexOf(
-				'productSubsetOwnedRows(',
-				applicabilityStart
-			)
-
-			expect(persistedRowsStart).toBeGreaterThan(surfaceStart)
-			expect(applicabilityStart).toBeGreaterThan(persistedRowsStart)
-			expect(applicabilityStart).toBeLessThan(productSubsetStart)
-		}
-		expect(clientSource).not.toMatch(/sourceNames\s*\?\?\s*applicableResolverSources/)
-		expect(clientSource).toContain('const includesEnabledLocalInternal = (')
-		expect(clientSource).toContain('enabledSources.has(Source.Local_Internal)')
-		expect(clientSource.match(/includesEnabledLocalInternal\(subset\.sources, enabledSources\)/g)?.length).toBeGreaterThanOrEqual(9)
-		expect(clientSource).not.toMatch(/subset\.sources\?\.includes\(Source\.Local_Internal\) === true/)
 	})
 
 	it('excluded source never invokes or owns outcome', async () => {

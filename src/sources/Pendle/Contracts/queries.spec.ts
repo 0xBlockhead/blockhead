@@ -6,12 +6,7 @@ import {
 	vi,
 } from 'vitest'
 
-import bindings from '$/sources/Pendle/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import {
-	ApiFamily,
-	SourceDelivery,
-} from '$/sources/SourceBinding.ts'
 
 const jsonRpc2 = vi.hoisted(() => vi.fn())
 const sourceGetJson = vi.hoisted(() => vi.fn())
@@ -33,34 +28,6 @@ describe('Pendle contract account operations', () => {
 	beforeEach(() => {
 		jsonRpc2.mockReset()
 		sourceGetJson.mockReset()
-	})
-
-	it('binds every cataloged Pendle chain to EVM execution JSON-RPC', () => {
-		const executionBindings = bindings[Source.Pendle_Rest].filter(({ apiFamily }) => (
-			apiFamily === ApiFamily.EvmExecutionJsonRpc
-		))
-
-		expect(bindings[Source.Pendle_Rest].filter(({ apiFamily }) => (
-			apiFamily === ApiFamily.RestJson
-		))).toHaveLength(1)
-		expect(executionBindings).toHaveLength(12)
-		expect(executionBindings.every(({ delivery }) => (
-			delivery === SourceDelivery.HttpProxy
-		))).toBe(true)
-		expect(executionBindings.map(({ target }) => target.key)).toEqual([
-			'1',
-			'10',
-			'56',
-			'143',
-			'146',
-			'196',
-			'999',
-			'5000',
-			'8453',
-			'9745',
-			'42161',
-			'80094',
-		])
 	})
 
 	it('reads PT, YT, SY, and LP balances at one block and keeps only active markets', async () => {

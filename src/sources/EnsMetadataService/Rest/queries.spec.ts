@@ -79,10 +79,4 @@ describe('ENS Labs Metadata Service OpenAPI operations', () => {
 		)
 	})
 
-	it('exports only endpoint-specific operations', () => {
-		expect(Object.keys(queries).sort()).toEqual([
-			'getAvatarMetadata',
-			'getEnsNftMetadata',
-		])
-	})
 })

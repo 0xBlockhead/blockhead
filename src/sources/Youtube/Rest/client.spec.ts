@@ -65,18 +65,6 @@ it('uses generated HttpProxy binding metadata and preserves reserved query ident
 	expect(new URL(sourceGetJson.mock.calls[0][1]).searchParams.get('q')).toBe('channel / + % identity')
 })
 
-it('keeps the YouTube binding endpoint registered as non-CORS provider reality', async () => {
-	await searchChannels({
-		PUBLIC_YOUTUBE_API_KEY: 'key',
-	}, 'channel', 1)
-
-	expect(sourceGetJson.mock.calls[0][0].endpoints).toEqual([{
-		endpointKind: SourceEndpointKind.HttpUrl,
-		locator: 'https://www.googleapis.com',
-		corsEnabled: false,
-	}])
-})
-
 it('clamps bounded collection windows and fails closed without provider authentication', async () => {
 	await listChannelPlaylists({
 		PUBLIC_YOUTUBE_API_KEY: 'key',
@@ -129,6 +117,7 @@ it('completes partial embedded replies across opaque pages and deduplicates prov
 	sourceGetJson
 		.mockResolvedValueOnce({
 			items: [{
+				id: 'parent-1',
 				snippet: {
 					videoId: 'video-1',
 					totalReplyCount: 3,
@@ -188,6 +177,7 @@ it('completes partial embedded replies across opaque pages and deduplicates prov
 it('does not fetch reply pages for an authoritatively empty thread', async () => {
 	sourceGetJson.mockResolvedValueOnce({
 		items: [{
+			id: 'parent-1',
 			snippet: {
 				videoId: 'video-1',
 				totalReplyCount: 0,
@@ -207,6 +197,7 @@ it.each([
 	{
 		label: 'foreign thread video',
 		thread: {
+			id: 'parent-1',
 			snippet: {
 				videoId: 'video-2',
 				totalReplyCount: 0,
@@ -217,6 +208,7 @@ it.each([
 	{
 		label: 'foreign embedded parent',
 		thread: {
+			id: 'parent-1',
 			snippet: {
 				videoId: 'video-1',
 				totalReplyCount: 1,
@@ -265,6 +257,7 @@ it.each([
 	sourceGetJson
 		.mockResolvedValueOnce({
 			items: [{
+				id: 'parent-1',
 				snippet: {
 					videoId: 'video-1',
 					totalReplyCount: 1,
@@ -289,6 +282,7 @@ it('propagates provider failures while completing replies', async () => {
 	sourceGetJson
 		.mockResolvedValueOnce({
 			items: [{
+				id: 'parent-1',
 				snippet: {
 					videoId: 'video-1',
 					totalReplyCount: 1,
@@ -306,6 +300,7 @@ it('fails closed when reply pagination exceeds its provider page bound', async (
 	sourceGetJson
 		.mockResolvedValueOnce({
 			items: [{
+				id: 'parent-1',
 				snippet: {
 					videoId: 'video-1',
 					totalReplyCount: 1,

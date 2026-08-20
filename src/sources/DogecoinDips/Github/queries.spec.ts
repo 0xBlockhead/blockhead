@@ -18,31 +18,24 @@ const {
 const binding = bindings[Source.DogecoinDips_Github][0]
 
 describe('Dogecoin DIPs GitHub queries', () => {
-	it('uses the registered binding endpoint and repository target', async () => {
+	it('reads representative DIP documents and rejects unsafe coordinates', async () => {
 		httpRuntime.sourceGetJson.mockResolvedValueOnce([])
+		httpRuntime.sourceGetText.mockResolvedValueOnce('DIP')
 
 		await getContents()
+		await expect(getMediaWikiText({
+			number: 70,
+		})).resolves.toBe('DIP')
 
 		expect(httpRuntime.sourceGetJson).toHaveBeenCalledWith(
 			binding,
 			'https://api.github.com/repos/dogecoin/dips/contents/?ref=master'
 		)
-	})
-
-	it('constructs the selected DIP path under the binding-owned repository', async () => {
-		httpRuntime.sourceGetText.mockResolvedValueOnce('DIP')
-
-		await getMediaWikiText({
-			number: 70,
-		})
-
 		expect(httpRuntime.sourceGetText).toHaveBeenCalledWith(
 			binding,
 			'https://raw.githubusercontent.com/dogecoin/dips/master/dip-0070.mediawiki'
 		)
-	})
 
-	it('rejects unsafe DIP coordinates before requesting GitHub', () => {
 		vi.clearAllMocks()
 		expect(() => getMediaWikiText({
 			number: 0,

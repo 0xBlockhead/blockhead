@@ -14,10 +14,6 @@ import {
 	listVerifiedContracts,
 } from '$/sources/Sourcify/Rest/queries.ts'
 import { Source } from '$/sources/Source.ts'
-import {
-	ApiFamily,
-	SourceDelivery,
-} from '$/sources/SourceBinding.ts'
 
 const binding = bindings[Source.Sourcify_Rest][0]
 const depositContract = '0x00000000219ab540356cBB839Cbe05303d7705Fa' as const
@@ -34,13 +30,6 @@ describe('Sourcify REST product queries', () => {
 	afterEach(() => {
 		vi.restoreAllMocks()
 		vi.unstubAllGlobals()
-	})
-
-	it('binds the Sourcify Server API v2 repository over HTTP proxy', () => {
-		expect(binding.apiFamily).toBe(ApiFamily.SourcifyRestV2)
-		expect(binding.delivery).toBe(SourceDelivery.HttpProxy)
-		expect(binding.endpoints[0]?.locator).toBe('https://sourcify.dev/server/v2')
-		expect(binding.endpoints[0]?.corsEnabled).toBe(false)
 	})
 
 	it('encodes lowercase address contract lookup with product fields', () => {

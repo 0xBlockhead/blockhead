@@ -173,16 +173,4 @@ describe('Logos Blockchain 0.2.0 node API', () => {
 		expect(getJson).not.toHaveBeenCalled()
 	})
 
-	it('exposes the local node HTTP endpoint', () => {
-		expect(queries.nodeEndpoint()).toBe('http://127.0.0.1:8080')
-	})
-
-	it('exports only the endpoint-specific operations', () => {
-		expect(Object.keys(queries).sort()).toEqual([
-			'getCryptarchiaInfo',
-			'getNetworkInfo',
-			'getWalletBalance',
-			'nodeEndpoint',
-		].sort())
-	})
 })

@@ -11,7 +11,7 @@ const ipfsCid = 'QmYwAPJzv5CZsnA625s3Xf2nemtYgPpHdWEz79ojWnPbdG'
 const arweaveTransactionId = '1234567890123456789012345678901234567890123'
 
 describe('resolveMediaUrlTransport', () => {
-	it('rejects empty and unsupported inputs', () => {
+	it('classifies supported media identities and rejects unsupported inputs', () => {
 		expect(resolveMediaUrlTransport(undefined)).toBeUndefined()
 		expect(resolveMediaUrlTransport(null)).toBeUndefined()
 		expect(resolveMediaUrlTransport('')).toBeUndefined()
@@ -19,9 +19,7 @@ describe('resolveMediaUrlTransport', () => {
 		expect(resolveMediaUrlTransport('ftp://example.com/file.png')).toBeUndefined()
 		expect(resolveMediaUrlTransport('data:image/png;base64,AAAA')).toBeUndefined()
 		expect(resolveMediaUrlTransport('not-a-cid')).toBeUndefined()
-	})
 
-	it('keeps HTTP URLs and protocol-relative URLs as HTTP transport', () => {
 		expect(resolveMediaUrlTransport('https://example.com/image.png')).toEqual({
 			url: 'https://example.com/image.png',
 			transport: MediaTransport.Http,
@@ -34,9 +32,7 @@ describe('resolveMediaUrlTransport', () => {
 			url: 'https://example.com/image.png',
 			transport: MediaTransport.Http,
 		})
-	})
 
-	it('normalizes IPFS protocol, gateway, subdomain, and bare CID URLs before HTTP fallback', () => {
 		expect(resolveMediaUrlTransport(` ipfs:///${ipfsCid}/path.png?x=1#hash `)).toEqual({
 			url: `https://ipfs.io/ipfs/${ipfsCid}/path.png?x=1#hash`,
 			transport: MediaTransport.Ipfs,
@@ -53,9 +49,7 @@ describe('resolveMediaUrlTransport', () => {
 			url: `https://ipfs.io/ipfs/${ipfsCid}`,
 			transport: MediaTransport.Ipfs,
 		})
-	})
 
-	it('normalizes Arweave protocol, gateway, and bare transaction ids before HTTP fallback', () => {
 		expect(resolveMediaUrlTransport(`ar://${arweaveTransactionId}`)).toEqual({
 			url: `https://arweave.net/${arweaveTransactionId}`,
 			transport: MediaTransport.Arweave,

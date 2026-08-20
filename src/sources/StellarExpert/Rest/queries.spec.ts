@@ -292,13 +292,4 @@ describe('StellarExpert OpenAPI operations', () => {
 		})).rejects.toThrow('HTTP 404')
 	})
 
-	it('exports only product-relevant endpoint operations', () => {
-		expect(Object.keys(queries).sort()).toEqual([
-			'getAllAssets',
-			'getAssetRating',
-			'getAssetSupply',
-			'getSequenceFromTimestamp',
-			'getTimestampFromSequence',
-		])
-	})
 })

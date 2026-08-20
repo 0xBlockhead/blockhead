@@ -24,7 +24,7 @@ const {
 } = await import('$/sources/Neynar/Rest/queries.ts')
 
 describe('Neynar channel request identity', () => {
-	it('looks up a channel anonymously without manufacturing viewer context', async () => {
+	it('preserves channel identity and optional viewer attribution across lookup modes', async () => {
 		neynarFetch.mockResolvedValueOnce({
 			channel: {
 				id: 'design',
@@ -46,9 +46,7 @@ describe('Neynar channel request identity', () => {
 			{},
 			'/v2/farcaster/channel/?id=design&type=id'
 		)
-	})
 
-	it('looks up a parent URL with explicit viewer attribution', async () => {
 		neynarFetch.mockResolvedValueOnce({
 			channel: {
 				id: 'design',
@@ -80,36 +78,33 @@ describe('Neynar channel request identity', () => {
 		)
 	})
 
-	it('rejects a substituted channel id', async () => {
-		neynarFetch.mockResolvedValueOnce({
-			channel: {
+	it.each([
+		{
+			name: 'channel ID',
+			response: {
 				id: 'development',
 				url: 'https://farcaster.xyz/~/channel/development',
 			},
-		})
-
-		await expect(getChannel({}, {
-			id: 'design',
-			type: 'id',
-		})).rejects.toThrow('channel subject mismatch')
-	})
-
-	it('rejects a substituted channel parent URL', async () => {
-		neynarFetch.mockResolvedValueOnce({
-			channel: {
+			query: { id: 'design', type: 'id' as const },
+		},
+		{
+			name: 'parent URL',
+			response: {
 				id: 'design',
 				parent_url: 'https://farcaster.xyz/~/channel/development',
 				url: 'https://farcaster.xyz/~/channel/development',
 			},
-		})
-
-		await expect(getChannel({}, {
-			id: 'https://farcaster.xyz/~/channel/design',
-			type: 'parent_url',
-		})).rejects.toThrow('channel subject mismatch')
+			query: {
+				id: 'https://farcaster.xyz/~/channel/design',
+				type: 'parent_url' as const,
+			},
+		},
+	])('rejects a substituted $name', async ({ response, query }) => {
+		neynarFetch.mockResolvedValueOnce({ channel: response })
+		await expect(getChannel({}, query)).rejects.toThrow('channel subject mismatch')
 	})
 
-	it('serializes anonymous membership pagination exactly', async () => {
+	it('serializes channel membership and user channel collection scopes', async () => {
 		neynarFetch.mockResolvedValueOnce({
 			members: [],
 			next: { cursor: 'next+/=' },
@@ -125,9 +120,7 @@ describe('Neynar channel request identity', () => {
 			{},
 			'/v2/farcaster/channel/member/list/?channel_id=design&limit=100&cursor=opaque%2B%2F%3D'
 		)
-	})
 
-	it('uses the member-list FID filter for point membership', async () => {
 		await getChannelMembersPage({}, {
 			channelId: 'design',
 			fid: 3,
@@ -137,9 +130,7 @@ describe('Neynar channel request identity', () => {
 			{},
 			'/v2/farcaster/channel/member/list/?channel_id=design&fid=3'
 		)
-	})
 
-	it('serializes a user following-channel page exactly', async () => {
 		await getUserChannelsPage({}, {
 			fid: 3,
 			limit: 100,
@@ -150,9 +141,7 @@ describe('Neynar channel request identity', () => {
 			{},
 			'/v2/farcaster/user/channels/?fid=3&limit=100&cursor=opaque%2B%2F%3D'
 		)
-	})
 
-	it('serializes a user channel-membership page exactly', async () => {
 		await getUserChannelMembershipsPage({}, {
 			fid: 3,
 			limit: 20,
@@ -167,7 +156,7 @@ describe('Neynar channel request identity', () => {
 })
 
 describe('Neynar FID request limits', () => {
-	it('accepts and serializes 100 bulk-user FIDs', async () => {
+	it('accepts and serializes the 100-FID bound across bulk users and feeds', async () => {
 		const fids = Array.from({ length: 100 }, (_, index) => index + 1)
 
 		await getBulkUsers({
@@ -179,33 +168,6 @@ describe('Neynar FID request limits', () => {
 			{},
 			`/v2/farcaster/user/bulk/?fids=${fids.join('%2C')}`
 		)
-	})
-
-	it('rejects more than 100 bulk-user FIDs before transport', async () => {
-		neynarFetch.mockClear()
-
-		await expect(getBulkUsers({
-			publicEnv: {},
-			fids: Array.from({ length: 101 }, (_, index) => index + 1),
-		})).rejects.toThrow('Neynar bulk users accepts at most 100 FIDs')
-		expect(neynarFetch).not.toHaveBeenCalled()
-	})
-
-	it('rejects duplicate bulk-user FIDs before transport', async () => {
-		neynarFetch.mockClear()
-
-		await expect(getBulkUsers({
-			publicEnv: {},
-			fids: [
-				1,
-				1,
-			],
-		})).rejects.toThrow('Neynar bulk users requires unique FIDs')
-		expect(neynarFetch).not.toHaveBeenCalled()
-	})
-
-	it('accepts 100 feed-filter FIDs', async () => {
-		const fids = Array.from({ length: 100 }, (_, index) => index + 1)
 
 		await getFeed({}, {
 			feedType: 'filter',
@@ -219,8 +181,21 @@ describe('Neynar FID request limits', () => {
 		)
 	})
 
-	it('rejects empty and oversized feed-filter FID lists before transport', async () => {
+	it('rejects invalid bulk-user and feed FID collections before transport', async () => {
 		neynarFetch.mockClear()
+
+		await expect(getBulkUsers({
+			publicEnv: {},
+			fids: Array.from({ length: 101 }, (_, index) => index + 1),
+		})).rejects.toThrow('Neynar bulk users accepts at most 100 FIDs')
+
+		await expect(getBulkUsers({
+			publicEnv: {},
+			fids: [
+				1,
+				1,
+			],
+		})).rejects.toThrow('Neynar bulk users requires unique FIDs')
 
 		expect(() => getFeed({}, {
 			feedType: 'filter',
@@ -286,7 +261,7 @@ describe('Neynar feed request identity', () => {
 })
 
 describe('Neynar user-cast request identity', () => {
-	it('uses the dedicated FID operation with bounded cursor pagination', async () => {
+	it('uses the dedicated FID operation with provider-default and bounded pagination', async () => {
 		await getUserCastsPage({}, {
 			fid: 42,
 			limit: 1_000,
@@ -297,9 +272,7 @@ describe('Neynar user-cast request identity', () => {
 			{},
 			'/v2/farcaster/feed/user/casts/?fid=42&limit=150&cursor=opaque%2B%2F%3Dcursor'
 		)
-	})
 
-	it('uses the provider default page bound without inventing a cursor', async () => {
 		await getUserCastsPage({}, {
 			fid: 42,
 		})

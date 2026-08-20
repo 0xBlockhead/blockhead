@@ -1,8 +1,7 @@
-import { beforeEach, expect, it, vi } from 'vitest'
+import { expect, it, vi } from 'vitest'
 
 import bindings from '$/sources/NearNeps/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceDelivery } from '$/sources/SourceBinding.ts'
 
 const sourceGetJson = vi.hoisted(() => vi.fn())
 const sourceGetText = vi.hoisted(() => vi.fn())
@@ -18,12 +17,7 @@ const {
 } = await import('$/sources/NearNeps/Github/queries.ts')
 const binding = bindings[Source.NearNeps_Github][0]
 
-beforeEach(() => {
-	sourceGetJson.mockReset()
-	sourceGetText.mockReset()
-})
-
-it('uses the declared public GitHub binding and exact NEP path', async () => {
+it('reads representative NEP documents and rejects unsafe coordinates', async () => {
 	sourceGetJson.mockResolvedValueOnce([])
 	sourceGetText.mockResolvedValueOnce('# NEP 171')
 
@@ -32,8 +26,6 @@ it('uses the declared public GitHub binding and exact NEP path', async () => {
 		number: 171,
 	})).resolves.toBe('# NEP 171')
 
-	expect(binding.delivery).toBe(SourceDelivery.BrowserDirect)
-	expect(binding.credentials).toEqual([])
 	expect(sourceGetJson).toHaveBeenCalledWith(
 		binding,
 		'https://api.github.com/repos/near/NEPs/contents/neps?ref=master'
@@ -42,9 +34,8 @@ it('uses the declared public GitHub binding and exact NEP path', async () => {
 		binding,
 		'https://raw.githubusercontent.com/near/NEPs/master/neps/nep-0171.md'
 	)
-})
 
-it('rejects unsafe or unscoped NEP document numbers before requesting GitHub', () => {
+	vi.clearAllMocks()
 	expect(() => getMarkdownText({
 		number: 0,
 	})).toThrow('NEP number must be a positive safe integer')

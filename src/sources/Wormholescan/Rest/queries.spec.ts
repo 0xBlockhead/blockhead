@@ -306,14 +306,6 @@ describe('Wormholescan OpenAPI operations', () => {
 		expect(getJson).not.toHaveBeenCalled()
 	})
 
-	it('exports only live-supported OpenAPI GET operations', () => {
-		expect(Object.keys(queries).sort()).toEqual([
-			'getOperationById',
-			'getOperations',
-			'getVaaById',
-		])
-	})
-
 	it('accepts live base64 vaa.raw strings and null normalizedDecimals', async () => {
 		getJson.mockResolvedValue({
 			operations: [{

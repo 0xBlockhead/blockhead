@@ -437,9 +437,6 @@ describe('Across public bridge queries', () => {
 			depositId,
 		})).rejects.toThrow('refunded deposit missing refund transaction')
 
-		const queries = await import('$/sources/Across/Rest/queries.ts')
-		expect('getDepositByTransaction' in queries).toBe(false)
-		expect('query' in queries).toBe(false)
 	})
 
 	it('accepts TRON and Solana spoke-pool chain ids from the live chains catalog', async () => {

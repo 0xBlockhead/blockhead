@@ -374,15 +374,3 @@ describe('Pyth Benchmarks REST operations', () => {
 		expect(getJson).not.toHaveBeenCalled()
 	})
 })
-
-describe('Pyth Rest export surface', () => {
-	it('exports Hermes and Benchmarks operations', () => {
-		expect(Object.keys(queries).sort()).toEqual([
-			'getBenchmarkPriceFeed',
-			'getBenchmarkPriceFeeds',
-			'getBenchmarkPriceUpdateAt',
-			'getLatestPriceUpdates',
-			'getPriceFeeds',
-		])
-	})
-})

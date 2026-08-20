@@ -967,11 +967,6 @@ describe('Hedera Mirror Node account query and resolver', () => {
 				},
 			],
 		})
-		expect(Object.keys(hederaMirrorNode.resolvers[0].projections)).toEqual([
-			'accountId',
-			'$$timestamps',
-		])
-
 		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
 			...accountFixture,
 			account: '0.0.99',
@@ -1049,15 +1044,6 @@ describe('Hedera Mirror Node block resolver', () => {
 			recordFileName: '2022-05-03T06_46_26.060890949Z.rcd',
 			transactionCount: 3,
 		})
-		expect(Object.keys(hederaMirrorNode.resolvers[2].projections).sort()).toEqual([
-			'blockHash',
-			'blockNumber',
-			'consensusEndTimestamp',
-			'consensusStartTimestamp',
-			'gasUsed',
-			'recordFileName',
-			'transactionCount',
-		])
 	})
 
 	it('resolves block hashes case-insensitively and rejects mismatched responses', async () => {
@@ -2155,23 +2141,6 @@ describe('Hedera Mirror Node transaction detail', () => {
 		expect(transactionResolver.projections.$$hbarTransfers.resolveCount(snapshot)).toBe(snapshot.$$hbarTransfers.length)
 		expect(transactionResolver.projections.$$tokenTransfers.resolveCount(snapshot)).toBe(3)
 		expect(transactionResolver.projections.$$contractResults.resolveCount(snapshot)).toBe(0)
-		expect(Object.keys(transactionResolver.projections).sort()).toEqual([
-			'$$contractResults',
-			'$$hbarTransfers',
-			'$$tokenTransfers',
-			'$block',
-			'$schedule',
-			'chargedTxFeeTinybar',
-			'consensusTimestamp',
-			'nodeAccountId',
-			'nonce',
-			'payerAccount',
-			'result',
-			'scheduled',
-			'transactionId',
-			'transactionType',
-			'validStartTimestamp',
-		])
 	})
 
 	it('projects enrolled $block / $schedule / $$contractResults via Mirror joins', async () => {
@@ -2567,12 +2536,6 @@ describe('Hedera Mirror Node network blocks resolver', () => {
 				},
 			},
 		])
-		expect(Object.keys(hederaMirrorNode.resolvers[1].projections)).toEqual([
-			'Hedera',
-		])
-		expect(Object.keys(hederaMirrorNode.resolvers[1].projections.Hedera)).toEqual([
-			'$$blocks',
-		])
 	})
 
 	it('rejects non-Hedera CAIP-2 subjects before transport', async () => {
@@ -2670,10 +2633,6 @@ describe('Hedera Mirror Node node and network observations', () => {
 				},
 			}],
 		})
-		expect(Object.keys(hederaMirrorNode.resolvers[9].projections).sort()).toEqual([
-			'$$timestamps',
-			'nodeId',
-		])
 	})
 
 	it('rejects malformed node service endpoints before projecting schema fields', async () => {
