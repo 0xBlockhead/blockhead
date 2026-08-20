@@ -813,7 +813,7 @@ describe('Hedera Mirror Node token and NFT hierarchy', () => {
 					},
 					collector_account_id: '0.0.99',
 					denominating_token_id: '0.0.700',
-					maximum: '120',
+					maximum: null,
 					minimum: '30',
 					net_of_transfers: true,
 				}],
@@ -869,9 +869,11 @@ describe('Hedera Mirror Node token and NFT hierarchy', () => {
 			[entityFieldAddressKey(EntityType.HederaTokenCustomFee, [], 'numerator')]: 12n,
 			[entityFieldAddressKey(EntityType.HederaTokenCustomFee, [], 'denominator')]: 29n,
 			[entityFieldAddressKey(EntityType.HederaTokenCustomFee, [], 'minimumAmount')]: 30n,
-			[entityFieldAddressKey(EntityType.HederaTokenCustomFee, [], 'maximumAmount')]: 120n,
 			[entityFieldAddressKey(EntityType.HederaTokenCustomFee, [], 'netOfTransfers')]: true,
 		})
+		expect(customFees[1][EntityMetaKey.Fields]).not.toHaveProperty(
+			entityFieldAddressKey(EntityType.HederaTokenCustomFee, [], 'maximumAmount')
+		)
 		expect(customFees[2][EntityMetaKey.Fields]).toMatchObject({
 			[entityFieldAddressKey(EntityType.HederaTokenCustomFee, [], 'feeKind')]: 'royalty',
 			[entityFieldAddressKey(EntityType.HederaTokenCustomFee, [], 'numerator')]: 5n,

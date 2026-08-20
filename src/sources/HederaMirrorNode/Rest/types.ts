@@ -410,7 +410,7 @@ export type HederaMirrorNodeCustomFees = {
 		}
 		collector_account_id: string | null
 		denominating_token_id: string | null
-		maximum: number | string
+		maximum: number | string | null
 		minimum: number | string
 		net_of_transfers: boolean
 	}[]

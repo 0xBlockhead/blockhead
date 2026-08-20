@@ -1043,7 +1043,9 @@ const tokenCustomFeeRows = (
 			numerator: nonnegativeBigInt(String(fee.amount.numerator), 'custom fractional fee numerator'),
 			denominator: nonnegativeBigInt(String(fee.amount.denominator), 'custom fractional fee denominator'),
 			minimumAmount: nonnegativeBigInt(String(fee.minimum), 'custom fractional fee minimum'),
-			maximumAmount: nonnegativeBigInt(String(fee.maximum), 'custom fractional fee maximum'),
+			...(fee.maximum != null && {
+				maximumAmount: nonnegativeBigInt(String(fee.maximum), 'custom fractional fee maximum'),
+			}),
 			netOfTransfers: fee.net_of_transfers,
 			...(fee.all_collectors_are_exempt != null && {
 				allCollectorsAreExempt: fee.all_collectors_are_exempt,
