@@ -19,7 +19,6 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import {
 	acrossChainByChainId,
-	acrossDepositStatusByStatus,
 } from '$/sources/Across/Rest/constants.ts'
 import type { AcrossDeposit } from '$/sources/Across/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
@@ -94,16 +93,15 @@ const acrossEvmTxHash = (
 	return normalized
 }
 
-const acrossObservationMs = (
+const acrossFillObservationMs = (
 	deposit: AcrossDeposit
 ) => {
-	const timestamp = (
-		deposit.fillBlockTimestamp
-		?? deposit.depositBlockTimestamp
-	)
-	const timestampMs = Date.parse(timestamp)
+	if (deposit.status !== 'filled' || deposit.fillBlockTimestamp == null)
+		return undefined
+
+	const timestampMs = Date.parse(deposit.fillBlockTimestamp)
 	if (!Number.isFinite(timestampMs))
-		throw new Error('Across_Rest: invalid deposit observation timestamp')
+		throw new Error('Across_Rest: invalid fill observation timestamp')
 
 	return timestampMs
 }
@@ -173,7 +171,7 @@ const acrossBridgeTransferSnapshot = (
 	const toToken = acrossCoinInstanceRef(deposit.destinationChainId, deposit.outputToken)
 	if (toNetwork != null && toToken == null)
 		throw new Error('Across_Rest: invalid output token address')
-	const timestampMs = acrossObservationMs(deposit)
+	const fillObservationMs = acrossFillObservationMs(deposit)
 	const sourceTransactionAtMs = acrossTransactionTimestampMs(
 		deposit.depositBlockTimestamp,
 		'deposit transaction'
@@ -257,13 +255,18 @@ const acrossBridgeTransferSnapshot = (
 		...(exclusiveRelayer != null && {
 			exclusiveRelayer,
 		}),
-		$$timestamps: [{
-			[EntityMetaKey.Selector]: {
-				$transfer: transfer,
-				timestampMs,
-				source: Source.Across_Rest,
-			},
-		}],
+		$$timestamps: (
+			fillObservationMs == null ?
+				[]
+			:
+				[{
+					[EntityMetaKey.Selector]: {
+						$transfer: transfer,
+						timestampMs: fillObservationMs,
+						source: Source.Across_Rest,
+					},
+				}]
+		),
 	}
 }
 
@@ -457,10 +460,11 @@ export default {
 							throw new Error(`Across_Rest: unsupported bridge transfer timestamp source ${source}`)
 
 						const deposit = await loadAcrossDeposit($transfer)
-						const observedAtMs = acrossObservationMs(deposit)
+						const observedAtMs = acrossFillObservationMs(deposit)
+						if (observedAtMs == null)
+							throw new Error(`Across_Rest: ${deposit.status} status has no authoritative observation clock`)
 						if (observedAtMs !== timestampMs)
 							throw new Error('Across_Rest: observation clock mismatch')
-						const fromNetwork = acrossEvmNetworkRef(deposit.originChainId)
 						const toNetwork = acrossEvmNetworkRef(deposit.destinationChainId)
 
 						const destinationTxHash = (
@@ -468,12 +472,6 @@ export default {
 								undefined
 							:
 								acrossEvmTxHash(deposit.fillTxnRef)
-						)
-						const refundTxHash = (
-							deposit.depositRefundTxnRef == null ?
-								undefined
-							:
-								acrossEvmTxHash(deposit.depositRefundTxnRef)
 						)
 						const relayer = (
 							deposit.relayer == null ?
@@ -483,22 +481,8 @@ export default {
 						)
 						if (deposit.fillTxnRef != null && toNetwork != null && destinationTxHash == null)
 							throw new Error('Across_Rest: invalid fill transaction hash')
-						if (deposit.depositRefundTxnRef != null && fromNetwork != null && refundTxHash == null)
-							throw new Error('Across_Rest: invalid refund transaction hash')
 						if (deposit.relayer != null && toNetwork != null && relayer == null)
 							throw new Error('Across_Rest: invalid relayer address')
-
-						const fillDeadlineMs = (
-							deposit.fillDeadline == null ?
-								undefined
-							:
-								Date.parse(deposit.fillDeadline)
-						)
-						if (
-							deposit.fillDeadline != null
-							&& !Number.isFinite(fillDeadlineMs)
-						)
-							throw new Error('Across_Rest: invalid fill deadline')
 
 						return {
 							$transfer: {
@@ -513,32 +497,12 @@ export default {
 							...(relayer != null && toNetwork != null && {
 								relayer,
 							}),
-							...(refundTxHash != null && fromNetwork != null && {
-								refundTxHash,
-							}),
-							...(
-								fillDeadlineMs != null
-								&& deposit.status !== 'filled'
-								&& deposit.status !== 'refunded'
-								&& {
-									estimatedCompletionMs: fillDeadlineMs,
-								}
-							),
 							...(deposit.fillGasFee != null && {
 								fillGasFee: BigInt(deposit.fillGasFee),
 							}),
 							...(deposit.fillGasFeeUsd != null && {
 								fillGasFeeUsd: deposit.fillGasFeeUsd,
 							}),
-							...(
-								(
-									deposit.status === 'expired'
-									|| deposit.status === 'refunded'
-								)
-								&& {
-									error: acrossDepositStatusByStatus[deposit.status].label,
-								}
-							),
 						}
 					},
 				},

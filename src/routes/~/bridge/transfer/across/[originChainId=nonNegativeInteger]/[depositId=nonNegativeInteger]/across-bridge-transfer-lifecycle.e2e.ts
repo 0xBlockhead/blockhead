@@ -45,7 +45,7 @@ const deposit = {
 }
 
 
-test('Across transfer route preserves the deposit, fill, and source-clocked observation lifecycle', async ({ page }, testInfo) => {
+test('Across transfer route exposes only the fill-clocked status transition', async ({ page }, testInfo) => {
 	testInfo.setTimeout(180_000)
 	const pageErrors: string[] = []
 	page.on('pageerror', (error) => pageErrors.push(error.message))
@@ -73,7 +73,9 @@ test('Across transfer route preserves the deposit, fill, and source-clocked obse
 			return
 		}
 		if (!requestUrl.includes('app.across.to/api/deposit')) {
-			await route.fallback()
+			await route.fulfill({
+				status: 418,
+			})
 			return
 		}
 

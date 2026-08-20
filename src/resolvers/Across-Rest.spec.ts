@@ -204,6 +204,8 @@ describe('Across BridgeTransfer resolvers', () => {
 		expect(snapshot.$recipient).toBeUndefined()
 		expect(snapshot.$destinationTx).toBeUndefined()
 		expect(snapshot.exclusiveRelayer).toBeUndefined()
+		expect(resolver.projections.$$timestamps.select(snapshot)).toEqual([])
+		expect(resolver.projections.$$timestamps.resolveCount(snapshot)).toBe(0)
 	})
 
 	it('projects fill status, relayer, and destination hash from deposit lifecycle', async () => {
@@ -321,7 +323,7 @@ describe('Across BridgeTransfer resolvers', () => {
 		})).rejects.toThrow('exact deposit selector requires safe integer coordinates')
 	})
 
-	it('projects expired deposit status labels onto observation errors', async () => {
+	it('does not backdate an expired current status to the deposit event', async () => {
 		getDeposit.mockResolvedValue({
 			deposit: {
 				...deposit,
@@ -338,23 +340,23 @@ describe('Across BridgeTransfer resolvers', () => {
 				maxIndex: 0,
 			},
 		})
-		const resolver = across.resolvers.find((candidate) => (
+		const transferResolver = across.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.BridgeTransfer
+		))
+		const observationResolver = across.resolvers.find((candidate) => (
 			candidate.entityType === EntityType.BridgeTransfer_Timestamp
 		))
-		if (resolver == null)
-			throw new Error('Across_Rest: BridgeTransfer_Timestamp resolver missing')
+		if (transferResolver == null || observationResolver == null)
+			throw new Error('Across_Rest: resolvers missing')
 
-		const snapshot = await resolver.resolve.TransferTimestampMsSource.resolve({
+		const snapshot = await transferResolver.resolve.SourceTransferId.resolve(transfer)
+		expect(transferResolver.projections.$$timestamps.select(snapshot)).toEqual([])
+		expect(transferResolver.projections.$$timestamps.resolveCount(snapshot)).toBe(0)
+		await expect(observationResolver.resolve.TransferTimestampMsSource.resolve({
 			$transfer: transfer,
 			timestampMs: Date.parse(deposit.depositBlockTimestamp),
 			source: Source.Across_Rest,
-		})
-
-			expect(snapshot).toMatchObject({
-				status: 'expired',
-				error: 'Fill deadline passed; refund pending on origin',
-				estimatedCompletionMs: Date.parse(deposit.fillDeadline),
-		})
+		})).rejects.toThrow('expired status has no authoritative observation clock')
 	})
 
 	it('lists depositor-scoped deposits for Address and AddressInteropAddress', async () => {
@@ -513,7 +515,7 @@ describe('Across BridgeTransfer resolvers', () => {
 		)).rejects.toThrow('deposit missing deposit id')
 	})
 
-	it('projects fill-deadline estimates for unfinished transfers', async () => {
+	it('does not backdate a pending current status to the deposit event', async () => {
 		getDeposit.mockResolvedValue({
 			deposit: {
 				...deposit,
@@ -528,24 +530,23 @@ describe('Across BridgeTransfer resolvers', () => {
 				maxIndex: 0,
 			},
 		})
-		const resolver = across.resolvers.find((candidate) => (
+		const transferResolver = across.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.BridgeTransfer
+		))
+		const observationResolver = across.resolvers.find((candidate) => (
 			candidate.entityType === EntityType.BridgeTransfer_Timestamp
 		))
-		if (resolver == null)
-			throw new Error('Across_Rest: BridgeTransfer_Timestamp resolver missing')
+		if (transferResolver == null || observationResolver == null)
+			throw new Error('Across_Rest: resolvers missing')
 
-		const snapshot = await resolver.resolve.TransferTimestampMsSource.resolve({
+		const snapshot = await transferResolver.resolve.SourceTransferId.resolve(transfer)
+		expect(transferResolver.projections.$$timestamps.select(snapshot)).toEqual([])
+		expect(transferResolver.projections.$$timestamps.resolveCount(snapshot)).toBe(0)
+		await expect(observationResolver.resolve.TransferTimestampMsSource.resolve({
 			$transfer: transfer,
 			timestampMs: Date.parse(deposit.depositBlockTimestamp),
 			source: Source.Across_Rest,
-		})
-
-			expect(snapshot).toMatchObject({
-				status: 'pending',
-				estimatedCompletionMs: Date.parse(deposit.fillDeadline),
-		})
-		expect(snapshot).not.toHaveProperty('completedAt')
-		expect(snapshot).not.toHaveProperty('destinationTxHash')
+		})).rejects.toThrow('pending status has no authoritative observation clock')
 	})
 
 	it('exports Across_Rest as the registered source module', () => {
