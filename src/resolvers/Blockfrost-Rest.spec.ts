@@ -1729,7 +1729,40 @@ describe('Blockfrost Cardano governance details', () => {
 			epoch: 598,
 			source: Source.Blockfrost_Rest,
 		}, resolverContext)).rejects.toThrow('historical proposal observation is unavailable')
-		expect(getGovernanceProposal).toHaveBeenCalledTimes(3)
+		expect(getGovernanceProposal).toHaveBeenCalledTimes(2)
+	})
+
+	it('rejects a current proposal observation for a different transaction occurrence', async () => {
+		getGovernanceProposal.mockResolvedValueOnce({
+			id: 'gov_action1wrong',
+			tx_hash: 'different-proposal-hash',
+			cert_index: 2,
+			governance_type: 'info_action',
+			governance_description: null,
+			deposit: '1000000',
+			return_address: 'stake1return',
+			ratified_epoch: null,
+			enacted_epoch: null,
+			dropped_epoch: null,
+			expired_epoch: null,
+			expiration: 600,
+		})
+		const observationResolver = blockfrostResolvers.resolvers.find(({ entityType }) => (
+			entityType === EntityType.CardanoGovernanceProposal_Timestamp
+		))
+
+		if (observationResolver == null)
+			throw new Error('missing proposal observation resolver')
+
+		await expect(observationResolver.resolve['ProposalEpochSource'].resolve({
+			$proposal: {
+				$network: cardanoNetwork,
+				proposalTxHash: 'proposal-hash',
+				proposalIndex: 1,
+			},
+			epoch: 599,
+			source: Source.Blockfrost_Rest,
+		}, resolverContext)).rejects.toThrow('governance proposal observation does not match the subject')
 	})
 
 	it('projects every typed governance action into named semantic fields', async () => {

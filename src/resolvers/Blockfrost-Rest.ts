@@ -1544,18 +1544,18 @@ export default {
 							getGovernanceProposal,
 							getLatestEpoch,
 						} = await import('$/sources/Blockfrost/Rest/queries.ts')
-						const [
-							proposal,
-							latestEpoch,
-						] = await Promise.all([
-							getGovernanceProposal(
-								$proposal.proposalTxHash,
-								$proposal.proposalIndex
-							),
-							getLatestEpoch(),
-						])
+						const latestEpoch = await getLatestEpoch()
 						if (latestEpoch.epoch !== epoch)
 							throw new Error('Blockfrost_Rest: historical proposal observation is unavailable')
+
+						const proposal = await getGovernanceProposal(
+							$proposal.proposalTxHash,
+							$proposal.proposalIndex
+						)
+						if (
+							proposal.tx_hash !== $proposal.proposalTxHash
+							|| proposal.cert_index !== $proposal.proposalIndex
+						) throw new Error('Blockfrost_Rest: governance proposal observation does not match the subject')
 
 						return {
 							epoch,
