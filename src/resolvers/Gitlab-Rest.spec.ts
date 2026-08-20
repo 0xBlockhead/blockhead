@@ -671,6 +671,24 @@ describe('GitLab repository journey', () => {
 		expect(getRepositoryTree).not.toHaveBeenCalled()
 	})
 
+	it('preserves public repository identity when GitLab omits its object format', async () => {
+		getProject.mockResolvedValue({
+			...project,
+			repository_object_format: null,
+		})
+
+		const snapshot = await repositoryResolver.resolve.CanonicalRemoteUrl.resolve({
+			canonicalRemoteUrl: project.http_url_to_repo,
+		})
+
+		expect(snapshot).toMatchObject({
+			repositoryId: project.http_url_to_repo,
+			canonicalRemoteUrl: project.http_url_to_repo,
+			defaultRefName: 'refs/heads/master',
+		})
+		expect(snapshot).not.toHaveProperty('objectFormat')
+	})
+
 	it('paginates native branch then tag refs with source-clocked protection observations', async () => {
 		getBranches.mockResolvedValueOnce([
 			{
@@ -881,6 +899,34 @@ describe('GitLab repository journey', () => {
 			perPage: 1,
 		})
 		expect('resolveCount' in repositoryObjectsResolver.projections.$$objects).toBe(false)
+	})
+
+	it('does not emit ambiguously formatted objects when GitLab omits the object format', async () => {
+		getProject.mockResolvedValue({
+			...project,
+			repository_object_format: null,
+		})
+		const selector = {
+			canonicalRemoteUrl: project.http_url_to_repo,
+		}
+		const context = {
+			filters: [],
+			sorts: [],
+			pagination: { limit: 1 },
+			selectorKeys: [],
+			parentSelectorKeys: [],
+			sources: [],
+			publicEnv: {},
+		}
+
+		const page = await repositoryObjectsResolver.resolve.CanonicalRemoteUrl.resolve(selector, context)
+		if (page == null)
+			throw new Error('GitLab object page must preserve repository identity')
+
+		expect(page).toMatchObject({
+			canonicalRemoteUrl: project.http_url_to_repo,
+		})
+		expect(repositoryObjectsResolver.projections.$$objects.select(page, selector, context)).toEqual([])
 	})
 
 	it('does not claim non-GitLab forge or remote authority', async () => {

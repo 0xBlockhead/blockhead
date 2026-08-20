@@ -10,7 +10,7 @@ export const gitlabProjectWire = type({
 	http_url_to_repo: 'string.url',
 	ssh_url_to_repo: 'string > 0',
 	web_url: 'string.url',
-	repository_object_format: "'sha1' | 'sha256'",
+	repository_object_format: "'sha1' | 'sha256' | null",
 })
 
 export type GitlabProject = typeof gitlabProjectWire.infer

@@ -792,7 +792,7 @@ export default {
 						return {
 							repositoryId: repositoryRemoteUrl,
 							canonicalRemoteUrl: repositoryRemoteUrl,
-							objectFormat: project.repository_object_format,
+							...(project.repository_object_format != null && { objectFormat: project.repository_object_format }),
 							...(project.default_branch != null && { defaultRefName: `refs/heads/${project.default_branch}` }),
 							$$remotes: [{
 								[EntityMetaKey.Selector]: {
@@ -1003,7 +1003,7 @@ export default {
 					canonicalRemoteUrl,
 					objectFormat,
 					objects,
-				}) => [...new Map(objects.map((object) => [
+				}) => objectFormat == null ? [] : [...new Map(objects.map((object) => [
 					object.objectId,
 					object.objectKind,
 				] as const)).entries()].map(([objectId, objectKind]) => ({

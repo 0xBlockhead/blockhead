@@ -171,6 +171,25 @@ describe('GitLab REST wires', () => {
 		})).rejects.toThrow('Gitlab_Rest: invalid issue response')
 	})
 
+	it('accepts the nullable object format in unauthenticated public project responses', async () => {
+		sourceGetJson.mockResolvedValue({
+			id: 278964,
+			path: 'gitlab',
+			path_with_namespace: 'gitlab-org/gitlab',
+			default_branch: 'master',
+			visibility: 'public',
+			http_url_to_repo: 'https://gitlab.com/gitlab-org/gitlab.git',
+			ssh_url_to_repo: 'git@gitlab.com:gitlab-org/gitlab.git',
+			web_url: 'https://gitlab.com/gitlab-org/gitlab',
+			repository_object_format: null,
+		})
+
+		await expect(getProject({ projectId: 'gitlab-org/gitlab' })).resolves.toMatchObject({
+			path_with_namespace: 'gitlab-org/gitlab',
+			repository_object_format: null,
+		})
+	})
+
 	it('accepts exact branch and tag observations with protection state', async () => {
 		sourceGetJson
 			.mockResolvedValueOnce({
