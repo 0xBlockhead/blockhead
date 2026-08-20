@@ -104,7 +104,7 @@ describe('Algod Rest transport', () => {
 		await expect(getStatus()).rejects.toThrow('Algod_Rest: invalid node status envelope')
 	})
 
-	it('loads application boxes with an authoritative response round', async () => {
+	it('loads application boxes with goal-argument encoding and an authoritative response round', async () => {
 		sourceFetch.mockResolvedValueOnce({
 			ok: true,
 			headers: new Headers({
@@ -131,7 +131,7 @@ describe('Algod Rest transport', () => {
 				source: Source.Nodely,
 				apiFamily: ApiFamily.AlgodRestApi,
 			}),
-			'https://mainnet-api.4160.nodely.dev/v2/applications/42/box?name=Ym94'
+			'https://mainnet-api.4160.nodely.dev/v2/applications/42/box?name=b64%3AYm94'
 		)
 
 		sourceFetch.mockResolvedValueOnce({

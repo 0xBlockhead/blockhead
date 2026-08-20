@@ -238,7 +238,7 @@ export const getApplicationBox = async ({
 		httpUrl(
 			binding,
 			`/v2/applications/${applicationId.toString()}/box`,
-			{ name: boxName }
+			{ name: `b64:${boxName}` }
 		)
 	)
 	if (!response.ok)
