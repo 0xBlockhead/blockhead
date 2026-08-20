@@ -22963,16 +22963,19 @@ export const schema = {
 			})({
 				"$network": { label: "network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.CelestiaNetwork },
 				"namespaceId": { label: "namespace ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"namespaceVersion": { label: "namespace version", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"label": { label: "Label", description: "A human-readable name for the subject.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"$$blobs": { label: "blobs", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CelestiaBlob },
-				"$$timestamps": { label: "timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CelestiaNamespace_Timestamp },
+				"namespaceVersion": { label: "namespace version", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Celenium_Rest] },
+				"label": { label: "Label", description: "A human-readable name for the subject.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Celenium_Rest] },
+				"$$blobs": { label: "blobs", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CelestiaBlob, defaultSources: [Source.Celenium_Rest] },
+				"$$timestamps": { label: "timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CelestiaNamespace_Timestamp, defaultSources: [Source.Celenium_Rest] },
 			})({
 				selectors: {
 					"NetworkNamespaceId": ["$network", "namespaceId"],
 				},
 				views: {
 					singular: {
+						query: {
+							sources: [Source.Celenium_Rest],
+						},
 						summary: {
 							title: ["label"],
 							titleFallback: [{ field: "namespaceId", format: "truncated" }],
@@ -22984,8 +22987,8 @@ export const schema = {
 							],
 						},
 						lists: [
-							{ field: "$$timestamps", component: "CelestiaNamespace_TimestampsView", emptyText: "No observations yet." },
-							{ field: "$$blobs", component: "CelestiaBlobsView", emptyText: "No blobs found." },
+							{ field: "$$timestamps", component: "CelestiaNamespace_TimestampsView", emptyText: "No observations yet.", selection: { sources: [Source.Celenium_Rest] } },
+							{ field: "$$blobs", component: "CelestiaBlobsView", emptyText: "No blobs found.", selection: { sources: [Source.Celenium_Rest] } },
 						],
 					},
 					plural: { component: "CelestiaNamespacesView",

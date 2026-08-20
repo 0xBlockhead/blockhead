@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -16,6 +17,9 @@
 	}: PageProps = $props()
 
 	const pageSelection = $derived(select(EntityType.CelestiaNamespace, data.selector, {
+		sources: [
+			Source.Celenium_Rest,
+		],
 		fields: {
 			label: true,
 		},

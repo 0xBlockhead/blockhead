@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { LayoutProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -41,7 +42,13 @@
 >
 	{#snippet Summary()}
 		<CelestiaNamespaceView
-			selection={select(EntityType.CelestiaNamespace, data.selector)}
+			selection={
+				select(EntityType.CelestiaNamespace, data.selector, {
+					sources: [
+						Source.Celenium_Rest,
+					],
+				})
+			}
 			href={detailHref}
 			layout={EntityLayout.SummaryInline}
 		/>

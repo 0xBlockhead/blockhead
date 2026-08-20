@@ -6,6 +6,7 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -24,6 +25,9 @@
 	}: EntitySelectionViewProps<EntityType.CelestiaNamespace> = $props()
 
 	const celestiaNamespace = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Celenium_Rest,
+		],
 		fields: {
 			label: true,
 			namespaceVersion: true,
