@@ -59,7 +59,6 @@ export const l2BeatProjectChainIds = [
 	{ projectId: 'nova', chainId: 42170 },
 	{ projectId: 'taiko', chainId: 167000 },
 	{ projectId: 'zklinknova', chainId: 810180 },
-	{ projectId: 'swell', chainId: 1923 },
 	{ projectId: 'polygonzkevm', chainId: 1101 },
 	{ projectId: 'mode', chainId: 34443 },
 	{ projectId: 'bobanetwork', chainId: 288 },

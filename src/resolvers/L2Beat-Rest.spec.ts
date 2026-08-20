@@ -47,6 +47,41 @@ const arbitrumProject = {
 }
 
 describe('L2Beat resolver', () => {
+	it('does not advertise archived Swell while retaining active projects', async () => {
+		const networkResolver = l2Beat.resolvers[0]
+
+		expect(networkResolver.resolve.Caip2.appliesTo).toContainEqual({
+			caip2: {
+				namespace: 'eip155',
+				reference: '42161',
+			},
+		})
+		expect(networkResolver.resolve.Caip2.appliesTo).not.toContainEqual({
+			caip2: {
+				namespace: 'eip155',
+				reference: '1923',
+			},
+		})
+
+		const networks = await l2Beat.resolvers[3].resolve.Scope.resolve()
+		expect(networks).toContainEqual({
+			[EntityMetaKey.Selector]: {
+				caip2: {
+					namespace: 'eip155',
+					reference: '42161',
+				},
+			},
+		})
+		expect(networks).not.toContainEqual({
+			[EntityMetaKey.Selector]: {
+				caip2: {
+					namespace: 'eip155',
+					reference: '1923',
+				},
+			},
+		})
+	})
+
 	it('keeps direct snapshots plain and relationship references compact', async () => {
 		fetchScalingSummary.mockResolvedValue({
 			projects: {
