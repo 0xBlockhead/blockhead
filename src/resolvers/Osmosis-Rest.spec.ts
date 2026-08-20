@@ -95,9 +95,6 @@ const cosmosAccountOsmosisPositionsResolver = osmosisRest.resolvers.find((resolv
 const osmosisPoolAssetResolver = osmosisRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.OsmosisPoolAsset
 ))
-const osmosisPoolTimestampResolver = osmosisRest.resolvers.find((resolver) => (
-	resolver.entityType === EntityType.OsmosisPool_Timestamp
-))
 const ibcClientResolver = osmosisRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.IbcClient
 	&& 'clientType' in resolver.projections
@@ -120,7 +117,6 @@ describe('Osmosis LCD resolver module', () => {
 			EntityType.OsmosisPosition,
 			EntityType.CosmosAccount,
 			EntityType.OsmosisPoolAsset,
-			EntityType.OsmosisPool_Timestamp,
 			EntityType.CosmosDenom,
 			EntityType.Network,
 			EntityType.Network,
@@ -143,7 +139,9 @@ describe('Osmosis LCD resolver module', () => {
 		expect(osmosisPositionResolver).toBeDefined()
 		expect(cosmosAccountOsmosisPositionsResolver).toBeDefined()
 		expect(osmosisPoolAssetResolver).toBeDefined()
-		expect(osmosisPoolTimestampResolver).toBeDefined()
+		expect(osmosisRest.resolvers.some((resolver) => (
+			resolver.entityType === EntityType.OsmosisPool_Timestamp
+		))).toBe(false)
 		expect(networkTimestampsResolver).toBeDefined()
 		expect(networkBlocksResolver).toBeDefined()
 		expect(networkOsmosisPoolsResolver).toBeDefined()
@@ -713,34 +711,6 @@ describe('Osmosis LCD resolver module', () => {
 		})
 	})
 
-	it('resolves OsmosisPool_Timestamp spot price from getSpotPrice', async () => {
-		sourceGetJson.mockResolvedValueOnce({
-			spot_price: '1.25',
-		})
-
-		if (osmosisPoolTimestampResolver == null)
-			throw new Error('missing OsmosisPool_Timestamp resolver')
-
-		const snapshot = await osmosisPoolTimestampResolver.resolve.PoolTimestampMsBaseQuote.resolve({
-			$pool: {
-				$network: osmosisNetwork,
-				poolId: '1',
-			},
-			timestampMs: 1_700_000_000_000,
-			baseAssetDenom: 'uosmo',
-			quoteAssetDenom: 'uion',
-		}, context)
-
-		expect(osmosisPoolTimestampResolver.projections.spotPrice(snapshot)).toBe('1.25')
-		expect(osmosisPoolTimestampResolver.projections.source(snapshot)).toBe(Source.Osmosis_LCD_Rest)
-		expect(osmosisPoolTimestampResolver.projections.baseAssetDenom(snapshot)).toBe('uosmo')
-		expect(osmosisPoolTimestampResolver.projections.quoteAssetDenom(snapshot)).toBe('uion')
-		expect(sourceGetJson).toHaveBeenCalledWith(
-			expect.anything(),
-			expect.stringMatching(/\/osmosis\/poolmanager\/v2\/pools\/1\/prices\?/)
-		)
-	})
-
 	it('resolves OsmosisPosition by network + position id', async () => {
 		if (osmosisPositionResolver == null)
 			throw new Error('missing OsmosisPosition resolver')
@@ -863,7 +833,7 @@ describe('Osmosis LCD resolver module', () => {
 		expect(cosmosAccountOsmosisPositionsResolver.projections.$$osmosisPositions.select(snapshot)).toEqual([])
 	})
 
-	it('projects OsmosisPool.$$timestamps spot pairs when token0/token1 are known', async () => {
+	it('materializes complete OsmosisPool spot observations with per-response clocks', async () => {
 		if (osmosisPoolResolver == null)
 			throw new Error('missing OsmosisPool resolver')
 
@@ -871,8 +841,15 @@ describe('Osmosis LCD resolver module', () => {
 		if (typeof $$timestamps === 'function' || $$timestamps?.resolve == null)
 			throw new Error('missing OsmosisPool.$$timestamps field resolve')
 
-		sourceGetJson
-			.mockResolvedValueOnce({
+		const forwardResponse = Promise.withResolvers<{
+			spot_price: string
+		}>()
+		const reverseResponse = Promise.withResolvers<{
+			spot_price: string
+		}>()
+		sourceGetJson.mockImplementation((_binding, url: string) => {
+			if (!url.includes('/prices?'))
+				return Promise.resolve({
 				pool: {
 					id: '1066',
 					'@type': '/osmosis.concentratedliquidity.v1beta1.Pool',
@@ -880,17 +857,29 @@ describe('Osmosis LCD resolver module', () => {
 					token1: 'uion',
 				},
 			})
-			.mockResolvedValueOnce({
-				spot_price: '1.5',
-			})
-			.mockResolvedValueOnce({
-				spot_price: '0.666666666666666667',
-			})
 
-		const rows = await $$timestamps.resolve({
+			return url.includes('base_asset_denom=uosmo') ?
+				forwardResponse.promise
+			:
+				reverseResponse.promise
+		})
+		const now = vi.spyOn(Date, 'now')
+			.mockReturnValueOnce(1_700_000_000_001)
+			.mockReturnValueOnce(1_700_000_000_002)
+		const rowsPromise = $$timestamps.resolve({
 			$network: osmosisNetwork,
 			poolId: '1066',
 		}, context)
+
+		await vi.waitFor(() => expect(sourceGetJson).toHaveBeenCalledTimes(3))
+		reverseResponse.resolve({
+			spot_price: '0.666666666666666667',
+		})
+		await vi.waitFor(() => expect(now).toHaveBeenCalledTimes(1))
+		forwardResponse.resolve({
+			spot_price: '1.5',
+		})
+		const rows = await rowsPromise
 
 		expect(rows).toEqual([
 			{
@@ -899,7 +888,7 @@ describe('Osmosis LCD resolver module', () => {
 						$network: osmosisNetwork,
 						poolId: '1066',
 					},
-					timestampMs: expect.any(Number),
+					timestampMs: 1_700_000_000_002,
 					baseAssetDenom: 'uosmo',
 					quoteAssetDenom: 'uion',
 				},
@@ -914,7 +903,7 @@ describe('Osmosis LCD resolver module', () => {
 						$network: osmosisNetwork,
 						poolId: '1066',
 					},
-					timestampMs: expect.any(Number),
+					timestampMs: 1_700_000_000_001,
 					baseAssetDenom: 'uion',
 					quoteAssetDenom: 'uosmo',
 				},
@@ -924,6 +913,8 @@ describe('Osmosis LCD resolver module', () => {
 				},
 			},
 		])
+		expect(now).toHaveBeenCalledTimes(2)
+		now.mockRestore()
 	})
 
 	it('omits OsmosisPool.$$timestamps when the pool pair is ambiguous', async () => {

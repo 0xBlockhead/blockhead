@@ -794,7 +794,6 @@ export default {
 						return undefined
 
 					const { getSpotPrice } = await import('$/sources/Osmosis/Rest/queries.ts')
-					const timestampMs = Date.now()
 					const $pool = {
 						$network,
 						poolId,
@@ -807,36 +806,42 @@ export default {
 							poolId,
 							baseAssetDenom,
 							quoteAssetDenom,
-						}),
+						}).then((spotPrice) => ({
+							spotPrice,
+							timestampMs: Date.now(),
+						})),
 						getSpotPrice({
 							poolId,
 							baseAssetDenom: quoteAssetDenom,
 							quoteAssetDenom: baseAssetDenom,
-						}),
+						}).then((spotPrice) => ({
+							spotPrice,
+							timestampMs: Date.now(),
+						})),
 					])
 					return [
 						{
 							[EntityMetaKey.Selector]: {
 								$pool,
-								timestampMs,
+								timestampMs: forward.timestampMs,
 								baseAssetDenom,
 								quoteAssetDenom,
 							},
 							[EntityMetaKey.Fields]: {
 								[entityFieldAddressKey(EntityType.OsmosisPool_Timestamp, [], 'source')]: Source.Osmosis_LCD_Rest,
-								[entityFieldAddressKey(EntityType.OsmosisPool_Timestamp, [], 'spotPrice')]: forward.spot_price,
+								[entityFieldAddressKey(EntityType.OsmosisPool_Timestamp, [], 'spotPrice')]: forward.spotPrice.spot_price,
 							},
 						},
 						{
 							[EntityMetaKey.Selector]: {
 								$pool,
-								timestampMs,
+								timestampMs: reverse.timestampMs,
 								baseAssetDenom: quoteAssetDenom,
 								quoteAssetDenom: baseAssetDenom,
 							},
 							[EntityMetaKey.Fields]: {
 								[entityFieldAddressKey(EntityType.OsmosisPool_Timestamp, [], 'source')]: Source.Osmosis_LCD_Rest,
-								[entityFieldAddressKey(EntityType.OsmosisPool_Timestamp, [], 'spotPrice')]: reverse.spot_price,
+								[entityFieldAddressKey(EntityType.OsmosisPool_Timestamp, [], 'spotPrice')]: reverse.spotPrice.spot_price,
 							},
 						},
 					]
@@ -990,48 +995,6 @@ export default {
 			amount: (asset) => asset.amount,
 			weight: (asset) => asset.weight,
 			$cosmosDenom: (asset) => asset.$cosmosDenom,
-		}),
-
-		defineResolver({
-			entityType: EntityType.OsmosisPool_Timestamp,
-			resolve: {
-				PoolTimestampMsBaseQuote: {
-					appliesTo: osmosisPoolChildApplicability,
-					resolve: async ({
-						$pool,
-						timestampMs,
-						baseAssetDenom,
-						quoteAssetDenom,
-					}) => {
-						assertOsmosisNetwork($pool.$network)
-						const { getSpotPrice } = await import('$/sources/Osmosis/Rest/queries.ts')
-						const {
-							spot_price: spotPrice,
-						} = await getSpotPrice({
-							poolId: $pool.poolId,
-							baseAssetDenom,
-							quoteAssetDenom,
-						})
-						return {
-							$pool: {
-								[EntityMetaKey.Selector]: $pool,
-							},
-							timestampMs,
-							baseAssetDenom,
-							quoteAssetDenom,
-							source: Source.Osmosis_LCD_Rest,
-							spotPrice,
-						}
-					},
-				},
-			},
-		})({
-			$pool: (observation) => observation.$pool,
-			timestampMs: (observation) => observation.timestampMs,
-			baseAssetDenom: (observation) => observation.baseAssetDenom,
-			quoteAssetDenom: (observation) => observation.quoteAssetDenom,
-			source: (observation) => observation.source,
-			spotPrice: (observation) => observation.spotPrice,
 		}),
 
 		defineResolver({
