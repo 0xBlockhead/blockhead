@@ -60,6 +60,10 @@ const offerTradesResolver = stellarHorizonResolvers.resolvers.find((resolver) =>
 const offerTimestampResolver = stellarHorizonResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.StellarOffer_Timestamp
 ))
+const ledgerHeaderResolver = stellarHorizonResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.StellarLedger
+	&& 'hash' in resolver.projections
+))
 const ledgerOperationsResolver = stellarHorizonResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.StellarLedger
 	&& '$$operations' in resolver.projections
@@ -88,6 +92,7 @@ if (
 	directOfferResolver == null
 	|| offerTradesResolver == null
 	|| offerTimestampResolver == null
+	|| ledgerHeaderResolver == null
 	|| ledgerOperationsResolver == null
 	|| accountOperationsResolver == null
 	|| accountPaymentsResolver == null
@@ -95,7 +100,7 @@ if (
 	|| transactionEffectsResolver == null
 	|| stellarEffectResolver == null
 )
-	throw new Error('Stellar Horizon spec missing direct offer, ledger-operation, account-operation, or effect resolvers')
+	throw new Error('Stellar Horizon spec missing ledger-header, offer, ledger-operation, account-operation, or effect resolvers')
 
 const accountId = `G${'A'.repeat(55)}`
 const otherAccountId = `G${'B'.repeat(55)}`
@@ -118,6 +123,40 @@ const context = {
 	sources: [],
 	publicEnv: {},
 }
+
+describe('Stellar Horizon ledger-header resolver', () => {
+	beforeEach(() => {
+		vi.clearAllMocks()
+	})
+
+	it('projects the exact Horizon ledger header into existing fields', async () => {
+		getJson.mockResolvedValueOnce({
+			id: '37d36e0c8fe4e7500e430b404f9e9dd7a96f63e85d7d83f791f1861f96f97b71',
+			hash: '37d36e0c8fe4e7500e430b404f9e9dd7a96f63e85d7d83f791f1861f96f97b71',
+			sequence: 64_041_727,
+			successful_transaction_count: 338,
+			failed_transaction_count: 91,
+			operation_count: 646,
+			closed_at: '2026-08-20T12:54:47Z',
+			protocol_version: 27,
+		})
+		const selector = {
+			$network: account.$network,
+			sequence: 64_041_727n,
+		}
+		const snapshot = await ledgerHeaderResolver.resolve.NetworkSequence.resolve(selector, context)
+
+		expect(ledgerHeaderResolver.projections.hash(snapshot)).toBe('37d36e0c8fe4e7500e430b404f9e9dd7a96f63e85d7d83f791f1861f96f97b71')
+		expect(ledgerHeaderResolver.projections.closeTimeMs(snapshot)).toBe(Date.parse('2026-08-20T12:54:47Z'))
+		expect(ledgerHeaderResolver.projections.protocolVersion(snapshot)).toBe(27)
+		expect(ledgerHeaderResolver.projections.transactionCount(snapshot)).toBe(429)
+		expect(ledgerHeaderResolver.projections.operationCount(snapshot)).toBe(646)
+		expect(ledgerHeaderResolver.projections.successfulTransactionCount(snapshot)).toBe(338)
+		expect(ledgerHeaderResolver.projections.failedTransactionCount(snapshot)).toBe(91)
+		expect(getJson.mock.calls[0][1]).toBe('/ledgers/64041727')
+	})
+})
+
 const page = <_Record>(records: _Record[]) => ({
 	_links: {
 		next: {

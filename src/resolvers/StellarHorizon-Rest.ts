@@ -1244,6 +1244,37 @@ export default {
 			entityType: EntityType.StellarLedger,
 			resolve: {
 				NetworkSequence: {
+					resolve: async (ledger) => {
+						assertStellarPublicNetwork(ledger.$network)
+						const { getLedger } = await import('$/sources/StellarHorizon/Rest/queries.ts')
+						const horizonLedger = await getLedger(ledger.sequence)
+
+						return {
+							hash: horizonLedger.hash,
+							closeTimeMs: timestampMsFromWire(horizonLedger.closed_at, 'ledger close time'),
+							protocolVersion: horizonLedger.protocol_version,
+							transactionCount: horizonLedger.successful_transaction_count + horizonLedger.failed_transaction_count,
+							operationCount: horizonLedger.operation_count,
+							successfulTransactionCount: horizonLedger.successful_transaction_count,
+							failedTransactionCount: horizonLedger.failed_transaction_count,
+						}
+					},
+				},
+			},
+		})({
+			hash: (ledger) => ledger.hash,
+			closeTimeMs: (ledger) => ledger.closeTimeMs,
+			protocolVersion: (ledger) => ledger.protocolVersion,
+			transactionCount: (ledger) => ledger.transactionCount,
+			operationCount: (ledger) => ledger.operationCount,
+			successfulTransactionCount: (ledger) => ledger.successfulTransactionCount,
+			failedTransactionCount: (ledger) => ledger.failedTransactionCount,
+		}),
+
+		defineResolver({
+			entityType: EntityType.StellarLedger,
+			resolve: {
+				NetworkSequence: {
 					resolve: async (ledger, context) => {
 						assertStellarPublicNetwork(ledger.$network)
 						const limit = Math.min(resolverContextRowLimit(context), 200)

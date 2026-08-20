@@ -95,6 +95,19 @@ export const stellarHorizonTransactionWire = arktype({
 
 export type StellarHorizonTransaction = typeof stellarHorizonTransactionWire.infer
 
+export const stellarHorizonLedgerWire = arktype({
+	id: 'string > 0',
+	hash: 'string > 0',
+	sequence: 'number.integer >= 0',
+	successful_transaction_count: 'number.integer >= 0',
+	failed_transaction_count: 'number.integer >= 0',
+	operation_count: 'number.integer >= 0',
+	closed_at: 'string > 0',
+	protocol_version: 'number.integer >= 0',
+})
+
+export type StellarHorizonLedger = typeof stellarHorizonLedgerWire.infer
+
 export const stellarHorizonOperationWire = arktype({
 	id: 'string > 0',
 	paging_token: 'string > 0',
@@ -269,6 +282,7 @@ export const stellarHorizonSigner = stellarHorizonSignerWire satisfies Type<Stel
 export const stellarHorizonThresholds = stellarHorizonThresholdsWire satisfies Type<StellarHorizonThresholds>
 export const stellarHorizonAccount = stellarHorizonAccountWire satisfies Type<StellarHorizonAccount>
 export const stellarHorizonTransaction = stellarHorizonTransactionWire satisfies Type<StellarHorizonTransaction>
+export const stellarHorizonLedger = stellarHorizonLedgerWire satisfies Type<StellarHorizonLedger>
 export const stellarHorizonOperation = stellarHorizonOperationWire satisfies Type<StellarHorizonOperation>
 export const stellarHorizonEffect = stellarHorizonEffectWire satisfies Type<StellarHorizonEffect>
 export const stellarHorizonPayment = stellarHorizonPaymentWire satisfies Type<StellarHorizonPayment>

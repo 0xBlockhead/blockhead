@@ -22,6 +22,7 @@ const {
 	getLiquidityPools,
 	getClaimableBalance,
 	getClaimableBalances,
+	getLedger,
 	getLedgerOperations,
 	getLedgerTransactions,
 	getLedgerEffects,
@@ -50,6 +51,65 @@ const page = <_Record>(records: _Record[]) => ({
 	_embedded: {
 		records,
 	},
+})
+
+const ledger = {
+	id: '37d36e0c8fe4e7500e430b404f9e9dd7a96f63e85d7d83f791f1861f96f97b71',
+	hash: '37d36e0c8fe4e7500e430b404f9e9dd7a96f63e85d7d83f791f1861f96f97b71',
+	sequence: 64_041_727,
+	successful_transaction_count: 338,
+	failed_transaction_count: 91,
+	operation_count: 646,
+	closed_at: '2026-08-20T12:54:47Z',
+	protocol_version: 27,
+}
+
+describe('Stellar Horizon ledger transport', () => {
+	beforeEach(() => {
+		vi.clearAllMocks()
+	})
+
+	it('loads an exact ledger header by lossless sequence identity', async () => {
+		getJson.mockResolvedValueOnce(ledger)
+
+		await expect(getLedger(64_041_727n)).resolves.toEqual(ledger)
+		expect(getJson).toHaveBeenCalledWith(binding, '/ledgers/64041727')
+	})
+
+	it('rejects invalid sequence bounds, response identity, hashes, counts, and close times', async () => {
+		await expect(getLedger(-1n)).rejects.toThrow('nonnegative uint32')
+		await expect(getLedger(4_294_967_296n)).rejects.toThrow('nonnegative uint32')
+
+		getJson.mockResolvedValueOnce({
+			...ledger,
+			sequence: ledger.sequence + 1,
+		})
+		await expect(getLedger(BigInt(ledger.sequence))).rejects.toThrow('identity mismatch')
+
+		getJson.mockResolvedValueOnce({
+			...ledger,
+			hash: 'f'.repeat(64),
+		})
+		await expect(getLedger(BigInt(ledger.sequence))).rejects.toThrow('invalid ledger hash')
+
+		getJson.mockResolvedValueOnce({
+			...ledger,
+			operation_count: Number.MAX_SAFE_INTEGER + 1,
+		})
+		await expect(getLedger(BigInt(ledger.sequence))).rejects.toThrow('invalid operation count')
+
+		getJson.mockResolvedValueOnce({
+			...ledger,
+			successful_transaction_count: Number.MAX_SAFE_INTEGER,
+		})
+		await expect(getLedger(BigInt(ledger.sequence))).rejects.toThrow('invalid transaction count')
+
+		getJson.mockResolvedValueOnce({
+			...ledger,
+			closed_at: 'not-a-timestamp',
+		})
+		await expect(getLedger(BigInt(ledger.sequence))).rejects.toThrow('invalid ledger close time')
+	})
 })
 
 describe('Stellar Horizon account transport', () => {

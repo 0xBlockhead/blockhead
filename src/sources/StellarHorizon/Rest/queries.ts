@@ -7,6 +7,7 @@ import {
 	stellarHorizonClaimableBalanceWire,
 	stellarHorizonLiquidityPoolPageWire,
 	stellarHorizonLiquidityPoolWire,
+	stellarHorizonLedgerWire,
 	stellarHorizonOfferWire,
 	stellarHorizonOfferPageWire,
 	stellarHorizonEffectPageWire,
@@ -21,6 +22,7 @@ import {
 	type StellarHorizonEffect,
 	type StellarHorizonLiquidityPool,
 	type StellarHorizonLiquidityPoolReserve,
+	type StellarHorizonLedger,
 	type StellarHorizonOffer,
 	type StellarHorizonOperation,
 	type StellarHorizonPage,
@@ -420,6 +422,39 @@ export const getAccount = async (
 		assetIdentities.add(assetIdentity)
 	}
 	return account
+}
+
+export const getLedger = async (
+	sequence: bigint
+) => {
+	if (sequence < 0n || sequence > 4_294_967_295n)
+		throw new Error('StellarHorizon_Rest: ledger sequence must be a nonnegative uint32')
+
+	const ledger = assertEnvelope(
+		'ledger',
+		stellarHorizonLedgerWire,
+		await query(`/ledgers/${sequence.toString()}`)
+	)
+	if (BigInt(ledger.sequence) !== sequence)
+		throw new Error('StellarHorizon_Rest: ledger response identity mismatch')
+	if (!/^[0-9a-f]{64}$/.test(ledger.id) || ledger.hash !== ledger.id)
+		throw new Error('StellarHorizon_Rest: invalid ledger hash')
+
+	for (const [label, count] of [
+		['ledger sequence', ledger.sequence],
+		['successful transaction count', ledger.successful_transaction_count],
+		['failed transaction count', ledger.failed_transaction_count],
+		['operation count', ledger.operation_count],
+		['protocol version', ledger.protocol_version],
+	] as const)
+		assertUnsignedInteger(count, label)
+	if (!Number.isSafeInteger(ledger.successful_transaction_count + ledger.failed_transaction_count))
+		throw new Error('StellarHorizon_Rest: invalid transaction count')
+
+	if (!Number.isSafeInteger(Date.parse(ledger.closed_at)))
+		throw new Error('StellarHorizon_Rest: invalid ledger close time')
+
+	return ledger satisfies StellarHorizonLedger
 }
 
 export const getLiquidityPool = async (
