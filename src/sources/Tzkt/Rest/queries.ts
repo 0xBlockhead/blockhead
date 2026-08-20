@@ -604,6 +604,25 @@ export const getCurrentStatistics = async () => (
 	) as TzktStatistics
 )
 
+export const getCoherentCurrentNetworkSnapshot = async () => {
+	for (let attempt = 0; attempt < 3; attempt += 1) {
+		const headBeforeStatistics = await getHead()
+		const statistics = await getCurrentStatistics()
+		const headAfterStatistics = await getHead()
+		if (
+			headBeforeStatistics.level === statistics.level
+			&& headAfterStatistics.level === statistics.level
+			&& headBeforeStatistics.hash === headAfterStatistics.hash
+		)
+			return {
+				head: headAfterStatistics,
+				statistics,
+			}
+	}
+
+	throw new Error('Tzkt_Rest: current head and statistics did not reach a coherent level')
+}
+
 export const listOperationsByHash = async ({
 	operationHash,
 }: {

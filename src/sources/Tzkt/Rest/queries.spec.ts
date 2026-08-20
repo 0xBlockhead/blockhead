@@ -5,6 +5,7 @@ import {
 	getBigMap,
 	getBlock,
 	getContract,
+	getCoherentCurrentNetworkSnapshot,
 	getCurrentStatistics,
 	getDelegate,
 	getHead,
@@ -90,6 +91,23 @@ const delegate = {
 	lastActivityTime: '2024-01-02T00:00:00Z',
 }
 
+const head = {
+	chain: 'mainnet',
+	chainId: 'NetXdQprcVkpaWU',
+	cycle: 800,
+	level: 5_000_000,
+	hash: 'BLhead',
+	protocol: 'PsPROTOCOL',
+	timestamp: '2026-07-16T12:34:56Z',
+	synced: true,
+}
+
+const statistics = {
+	level: head.level,
+	timestamp: head.timestamp,
+	totalSupply: 1_000_000_000,
+}
+
 describe('TzKT REST fail-closed envelopes', () => {
 	beforeEach(() => {
 		sourceGetJsonMock.mockReset()
@@ -124,6 +142,55 @@ describe('TzKT REST fail-closed envelopes', () => {
 		await expect(getCurrentStatistics()).resolves.toMatchObject({
 			totalSupply: 1_000_000_000,
 		})
+	})
+
+	it('returns a coherent current network snapshot without retrying', async () => {
+		sourceGetJsonMock
+			.mockResolvedValueOnce(head)
+			.mockResolvedValueOnce(statistics)
+			.mockResolvedValueOnce(head)
+
+		await expect(getCoherentCurrentNetworkSnapshot()).resolves.toEqual({
+			head,
+			statistics,
+		})
+		expect(sourceGetJsonMock).toHaveBeenCalledTimes(3)
+	})
+
+	it('retries a moving current network snapshot and fails after three races', async () => {
+		const nextHead = {
+			...head,
+			level: head.level + 1,
+			hash: 'BLnext',
+		}
+		const nextStatistics = {
+			...statistics,
+			level: nextHead.level,
+		}
+		sourceGetJsonMock
+			.mockResolvedValueOnce(head)
+			.mockResolvedValueOnce(nextStatistics)
+			.mockResolvedValueOnce(nextHead)
+			.mockResolvedValueOnce(nextHead)
+			.mockResolvedValueOnce(nextStatistics)
+			.mockResolvedValueOnce(nextHead)
+
+		await expect(getCoherentCurrentNetworkSnapshot()).resolves.toEqual({
+			head: nextHead,
+			statistics: nextStatistics,
+		})
+
+		sourceGetJsonMock.mockReset()
+		for (let attempt = 0; attempt < 3; attempt += 1)
+			sourceGetJsonMock
+				.mockResolvedValueOnce(head)
+				.mockResolvedValueOnce(nextStatistics)
+				.mockResolvedValueOnce(nextHead)
+
+		await expect(getCoherentCurrentNetworkSnapshot()).rejects.toThrow(
+			'current head and statistics did not reach a coherent level'
+		)
+		expect(sourceGetJsonMock).toHaveBeenCalledTimes(9)
 	})
 
 	it('asserts contract, token, and operation list envelopes', async () => {

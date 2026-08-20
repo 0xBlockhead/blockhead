@@ -1407,21 +1407,13 @@ export default {
 				Network: {
 					resolve: async ({ $network }) => {
 						assertTezosMainnet($network)
+						const { getCoherentCurrentNetworkSnapshot } = await import('$/sources/Tzkt/Rest/queries.ts')
 						const {
-							getCurrentStatistics,
-							getHead,
-						} = await import('$/sources/Tzkt/Rest/queries.ts')
-						const [
 							head,
 							statistics,
-						] = await Promise.all([
-							getHead(),
-							getCurrentStatistics(),
-						])
+						} = await getCoherentCurrentNetworkSnapshot()
 						if (head.chainId !== networkBySlug.tezos.caip2.reference)
 							throw new Error(`Tzkt_Rest: head chainId ${head.chainId} is not Tezos mainnet`)
-						if (statistics.level !== head.level)
-							throw new Error('Tzkt_Rest: statistics level does not match head')
 						const timestampMs = timestampMsFromIso(head.timestamp)
 						if (!Number.isSafeInteger(timestampMs))
 							throw new Error('Tzkt_Rest: head timestamp is invalid')
@@ -2328,23 +2320,14 @@ export default {
 						assertTezosMainnet($network.$network)
 						if (source !== Source.Tzkt_Rest)
 							throw new Error(`Tzkt_Rest: unsupported observation source ${source}`)
+						const { getCoherentCurrentNetworkSnapshot } = await import('$/sources/Tzkt/Rest/queries.ts')
 						const {
-							getCurrentStatistics,
-							getHead,
-						} = await import('$/sources/Tzkt/Rest/queries.ts')
-						const [
 							head,
 							statistics,
-						] = await Promise.all([
-							getHead(),
-							getCurrentStatistics(),
-						])
+						} = await getCoherentCurrentNetworkSnapshot()
 						const headTimestampMs = timestampMsFromIso(head.timestamp)
 						if (headTimestampMs !== timestampMs)
 							throw new Error(`Tzkt_Rest: network observation timestamp ${headTimestampMs} does not match ${timestampMs}`)
-						if (statistics.level !== head.level)
-							throw new Error('Tzkt_Rest: statistics level does not match head')
-
 						return {
 							$network: {
 								[EntityMetaKey.Selector]: $network,

@@ -759,6 +759,17 @@ describe('TzKT network lists, tokens, and operation fields', () => {
 				timestamp: '2026-07-16T12:34:56Z',
 				totalSupply: 1_000_000_000,
 			})
+			.mockResolvedValueOnce({
+				chain: 'mainnet',
+				chainId: 'NetXdQprcVkpaWU',
+				cycle: 800,
+				level: 5_000_000,
+				hash: 'BLhead',
+				protocol: 'PsPROTOCOL',
+				timestamp: '2026-07-16T12:34:56Z',
+				synced: true,
+				knownLevel: 5_000_000,
+			})
 		const resolver = networkResolverFor('$$timestamps')
 
 		await expect(resolver.resolve['Network'].resolve({
@@ -784,7 +795,7 @@ describe('TzKT network lists, tokens, and operation fields', () => {
 		])
 	})
 
-	it('rejects mismatched head and statistics without soft-emptying', async () => {
+	it('retries a moving head and statistics before projecting the network observation', async () => {
 		getJson
 			.mockResolvedValueOnce({
 				chain: 'mainnet',
@@ -797,9 +808,24 @@ describe('TzKT network lists, tokens, and operation fields', () => {
 				synced: true,
 			})
 			.mockResolvedValueOnce({
-				level: 4_999_999,
+				level: 5_000_001,
 				timestamp: '2026-07-16T12:34:56Z',
 				totalSupply: 1_000_000_000,
+			})
+			.mockResolvedValueOnce({
+				chain: 'mainnet', chainId: 'NetXdQprcVkpaWU', cycle: 800, level: 5_000_001,
+				hash: 'BLnext', protocol: 'PsPROTOCOL', timestamp: '2026-07-16T12:35:04Z', synced: true,
+			})
+			.mockResolvedValueOnce({
+				chain: 'mainnet', chainId: 'NetXdQprcVkpaWU', cycle: 800, level: 5_000_001,
+				hash: 'BLnext', protocol: 'PsPROTOCOL', timestamp: '2026-07-16T12:35:04Z', synced: true,
+			})
+			.mockResolvedValueOnce({
+				level: 5_000_001, timestamp: '2026-07-16T12:35:04Z', totalSupply: 1_000_000_001,
+			})
+			.mockResolvedValueOnce({
+				chain: 'mainnet', chainId: 'NetXdQprcVkpaWU', cycle: 800, level: 5_000_001,
+				hash: 'BLnext', protocol: 'PsPROTOCOL', timestamp: '2026-07-16T12:35:04Z', synced: true,
 			})
 		const resolver = networkResolverFor('$$timestamps')
 
@@ -807,7 +833,17 @@ describe('TzKT network lists, tokens, and operation fields', () => {
 			$network: {
 				slug: 'tezos',
 			},
-		}, context)).rejects.toThrow('statistics level does not match head')
+		}, context)).resolves.toEqual([
+			expect.objectContaining({
+				[EntityMetaKey.Selector]: expect.objectContaining({
+					timestampMs: Date.parse('2026-07-16T12:35:04Z'),
+				}),
+				[EntityMetaKey.Fields]: expect.objectContaining({
+					[entityFieldAddressKey(EntityType.TezosNetwork_Timestamp, [], 'latestLevel')]: 5_000_001n,
+					[entityFieldAddressKey(EntityType.TezosNetwork_Timestamp, [], 'totalSupplyMutez')]: 1_000_000_001n,
+				}),
+			}),
+		])
 	})
 
 	it('resolves token identity and timestamp observations', async () => {
