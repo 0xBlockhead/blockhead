@@ -393,10 +393,7 @@ export default {
 							context.publicEnv,
 							blockNumber
 						)
-						const block = await getBlock(
-							context.publicEnv,
-							header.hash
-						)
+						const block = await getBlock(context.publicEnv, header.hash)
 						return {
 							blockNumber: header.blockNumber,
 							blockHash: header.hash,
@@ -418,13 +415,8 @@ export default {
 				NetworkBlockHash: {
 					resolve: async ({ $network, blockHash }, context) => {
 						assertAvailMainnet($network.$network)
-						const {
-							getBlock,
-						} = await import('$/sources/Avail/JsonRpc/queries.ts')
-						const block = await getBlock(
-							context.publicEnv,
-							blockHash
-						)
+						const { getBlock } = await import('$/sources/Avail/JsonRpc/queries.ts')
+						const block = await getBlock(context.publicEnv, blockHash)
 						const resolvedHash = block.hash ?? blockHash.toLowerCase()
 						return {
 							blockNumber: block.blockNumber,
@@ -453,6 +445,34 @@ export default {
 			extrinsicsRoot: (block) => block.extrinsicsRoot,
 			extrinsicCount: (block) => block.extrinsicCount,
 			$parent: (block) => block.$parent,
+		}),
+
+		defineResolver({
+			entityType: EntityType.AvailBlock,
+			resolve: {
+				NetworkBlockNumber: {
+					resolve: async ({ $network, blockNumber }, context) => {
+						assertAvailMainnet($network.$network)
+						const {
+							getBlockHash,
+							getBlockTimestamp,
+						} = await import('$/sources/Avail/JsonRpc/queries.ts')
+						return getBlockTimestamp(
+							context.publicEnv,
+							await getBlockHash(context.publicEnv, blockNumber)
+						)
+					},
+				},
+				NetworkBlockHash: {
+					resolve: async ({ $network, blockHash }, context) => {
+						assertAvailMainnet($network.$network)
+						const { getBlockTimestamp } = await import('$/sources/Avail/JsonRpc/queries.ts')
+						return getBlockTimestamp(context.publicEnv, blockHash)
+					},
+				},
+			},
+		})({
+			timestampMs: (timestampMs) => timestampMs,
 		}),
 	],
 } satisfies RegisteredSourceResolverModule

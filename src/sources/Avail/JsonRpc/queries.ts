@@ -18,6 +18,7 @@ import type { JsonValue } from '$/typescript/JsonValue.ts'
 
 const mainnetChainName = 'Avail DA Mainnet'
 const mainnetGenesisHash = '0xb91746b45e0346cc2f815a520b9c6cb4d5c0902af848db0a80f85932d2e8276a'
+const timestampNowStorageKey = '0xf0c365c3cf59d671eb72da0e7a4113c49f1f0515f462cdcf84e0f1d6045dfcbb'
 const hashPattern = /^0x[0-9a-fA-F]{64}$/
 const quantityPattern = /^0x(?:0|[1-9a-fA-F][0-9a-fA-F]*)$/
 const binding = bindings[Source.Avail][0]
@@ -229,6 +230,30 @@ export const getBlock = async (
 		extrinsicCount: wire.block.extrinsics.length,
 		extrinsics: wire.block.extrinsics,
 	}
+}
+
+export const getBlockTimestamp = async (
+	publicEnv: SourcePublicEnv,
+	blockHash: string
+) => {
+	assertHash(blockHash, 'timestamp block hash')
+	const encodedTimestamp = await request<string | null>(
+		binding,
+		publicEnv,
+		'state_getStorage',
+		[
+			timestampNowStorageKey,
+			blockHash,
+		]
+	)
+	if (encodedTimestamp == null || !/^0x[0-9a-fA-F]{16}$/.test(encodedTimestamp))
+		throw new Error('Avail: invalid block timestamp')
+
+	const timestampMs = Number(BigInt(`0x${encodedTimestamp.slice(2).match(/../g)?.reverse().join('')}`))
+	if (!Number.isSafeInteger(timestampMs))
+		throw new Error('Avail: block timestamp exceeds safe integer range')
+
+	return timestampMs
 }
 
 export const getDataProof = async (

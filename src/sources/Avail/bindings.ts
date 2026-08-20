@@ -28,7 +28,7 @@ export default indexSourceBindings([
 		wireProtocol: WireProtocol.JsonRpc2,
 		apiFamily: ApiFamily.SubstrateJsonRpc,
 		operationGroups: genericReadOperationGroups,
-		delivery: SourceDelivery.RemoteQuery,
+		delivery: SourceDelivery.HttpProxy,
 		credentials: [
 			{
 				scope: SourceCredentialScope.PublicConfig,

@@ -2,9 +2,11 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import bindings from '$/sources/Avail/bindings.ts'
 import { Source } from '$/sources/Source.ts'
+import { SourceDelivery } from '$/sources/SourceBinding.ts'
 import {
 	getBlock,
 	getBlockHash,
+	getBlockTimestamp,
 	getDataProof,
 	getFinalizedHead,
 	getHeader,
@@ -48,6 +50,11 @@ const headerWire = {
 describe('Avail mainnet read-only JSON-RPC contracts', () => {
 	beforeEach(() => {
 		jsonRpc2Mock.mockReset()
+	})
+
+	it('delivers the non-CORS public endpoint through the HTTP proxy', () => {
+		expect(binding.delivery).toBe(SourceDelivery.HttpProxy)
+		expect(binding.endpoints[0].corsEnabled).toBe(false)
 	})
 
 	it('pins mainnet identity to chain name and genesis hash', async () => {
@@ -188,6 +195,29 @@ describe('Avail mainnet read-only JSON-RPC contracts', () => {
 			currentBlock: 10n,
 			highestBlock: 12n,
 		})
+	})
+
+	it('reads the runtime timestamp at the exact block hash', async () => {
+		jsonRpc2Mock.mockResolvedValueOnce('0x407df51ea0010000')
+
+		await expect(getBlockTimestamp(
+			publicEnv,
+			hash
+		)).resolves.toBe(1_787_225_800_000)
+		expect(jsonRpc2Mock).toHaveBeenCalledWith(
+			resolvedBinding,
+			'state_getStorage',
+			[
+				'0xf0c365c3cf59d671eb72da0e7a4113c49f1f0515f462cdcf84e0f1d6045dfcbb',
+				hash,
+			]
+		)
+
+		jsonRpc2Mock.mockResolvedValueOnce('0x01')
+		await expect(getBlockTimestamp(
+			publicEnv,
+			hash
+		)).rejects.toThrow('invalid block timestamp')
 	})
 
 	it('loads an exact finalized data proof for a block extrinsic', async () => {

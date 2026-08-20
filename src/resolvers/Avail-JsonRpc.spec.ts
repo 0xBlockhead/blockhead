@@ -15,6 +15,7 @@ import { Source } from '$/sources/Source.ts'
 
 const getBlock = vi.hoisted(() => vi.fn())
 const getBlockHash = vi.hoisted(() => vi.fn())
+const getBlockTimestamp = vi.hoisted(() => vi.fn())
 const getDataProof = vi.hoisted(() => vi.fn())
 const getFinalizedHead = vi.hoisted(() => vi.fn())
 const getHeader = vi.hoisted(() => vi.fn())
@@ -26,6 +27,7 @@ const getSystemSyncState = vi.hoisted(() => vi.fn())
 vi.mock('$/sources/Avail/JsonRpc/queries.ts', () => ({
 	getBlock,
 	getBlockHash,
+	getBlockTimestamp,
 	getDataProof,
 	getFinalizedHead,
 	getHeader,
@@ -70,6 +72,11 @@ const timestampResolver = avail.resolvers.find((resolver) => (
 ))
 const blockResolver = avail.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.AvailBlock
+	&& 'blockHash' in resolver.projections
+))
+const blockTimestampResolver = avail.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.AvailBlock
+	&& 'timestampMs' in resolver.projections
 ))
 const dataSubmissionResolver = avail.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.AvailDataSubmission
@@ -80,6 +87,7 @@ if (
 	|| networkBlocksResolver == null
 	|| timestampResolver == null
 	|| blockResolver == null
+	|| blockTimestampResolver == null
 	|| dataSubmissionResolver == null
 )
 	throw new Error('Avail-JsonRpc spec missing resolvers')
@@ -99,6 +107,8 @@ const header = {
 beforeEach(() => {
 	getBlock.mockReset()
 	getBlockHash.mockReset()
+	getBlockTimestamp.mockReset()
+	getBlockTimestamp.mockResolvedValue(1_787_225_800_000)
 	getDataProof.mockReset()
 	getFinalizedHead.mockReset()
 	getHeader.mockReset()
@@ -433,5 +443,20 @@ describe('Avail JsonRpc resolver', () => {
 		}, context)
 		expect(blockResolver.projections.blockNumber(byHash)).toBe(100n)
 		expect(blockResolver.projections.parentHash(byHash)).toBe(parentHash)
+
+		getBlockHash.mockResolvedValue(hash)
+		const timestampByNumber = await blockTimestampResolver.resolve.NetworkBlockNumber.resolve({
+			$network: availNetwork,
+			blockNumber: 100n,
+		}, context)
+		expect(blockTimestampResolver.projections.timestampMs(timestampByNumber)).toBe(1_787_225_800_000)
+		expect(getBlockHash).toHaveBeenCalledWith(context.publicEnv, 100n)
+		expect(getBlockTimestamp).toHaveBeenCalledWith(context.publicEnv, hash)
+
+		const timestampByHash = await blockTimestampResolver.resolve.NetworkBlockHash.resolve({
+			$network: availNetwork,
+			blockHash: hash,
+		}, context)
+		expect(blockTimestampResolver.projections.timestampMs(timestampByHash)).toBe(1_787_225_800_000)
 	})
 })

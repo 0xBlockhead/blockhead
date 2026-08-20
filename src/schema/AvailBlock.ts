@@ -52,6 +52,9 @@ export default entity({
 	timestampMs: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Avail,
+		],
 	},
 	extrinsicCount: {
 		primitiveType: type('number'),
