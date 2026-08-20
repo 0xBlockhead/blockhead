@@ -285,7 +285,7 @@ describe('Solana upgradeable program hierarchy', () => {
 		const programData = new Uint8Array(36)
 		new DataView(programData.buffer).setUint32(0, 2, true)
 		programData.set(programDataAddressBytes, 4)
-		const authorityData = new Uint8Array(45)
+		const authorityData = new Uint8Array(49)
 		new DataView(authorityData.buffer).setUint32(0, 3, true)
 		authorityData[12] = 1
 		authorityData.set(authorityAddressBytes, 13)
@@ -331,6 +331,49 @@ describe('Solana upgradeable program hierarchy', () => {
 				minContextSlot: 100,
 			},
 		])
+	})
+
+	it('preserves finalized upgradeable-loader programs without inventing authority', async () => {
+		const programDataAddressBytes = new Uint8Array(32).fill(7)
+		const programData = new Uint8Array(36)
+		new DataView(programData.buffer).setUint32(0, 2, true)
+		programData.set(programDataAddressBytes, 4)
+		const authorityData = new Uint8Array(17)
+		new DataView(authorityData.buffer).setUint32(0, 3, true)
+
+		sourceFetch
+			.mockResolvedValueOnce(rpcResponse({
+				context: {
+					slot: 100,
+				},
+				value: {
+					lamports: 1,
+					owner: solanaUpgradeableLoaderProgramId,
+					executable: true,
+					rentEpoch: 0,
+					data: [base64.encode(programData), 'base64'],
+				},
+			}))
+			.mockResolvedValueOnce(rpcResponse({
+				context: {
+					slot: 101,
+				},
+				value: {
+					lamports: 1,
+					owner: solanaUpgradeableLoaderProgramId,
+					executable: false,
+					rentEpoch: 0,
+					data: [base64.encode(authorityData), 'base64'],
+				},
+			}))
+
+		await expect(getProgramInfo({
+			programId: pubkey,
+		})).resolves.toEqual({
+			loaderAddress: solanaUpgradeableLoaderProgramId,
+			programDataAddress: base58.encode(programDataAddressBytes),
+			slot: 101,
+		})
 	})
 
 	it('preserves an executable immutable program without inventing upgrade authority', async () => {

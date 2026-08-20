@@ -624,8 +624,7 @@ export const getProgramInfo = async ({
 	if (
 		authorityData.length < 13
 		|| new DataView(authorityData.buffer, authorityData.byteOffset, authorityData.byteLength).getUint32(0, true) !== 3
-		|| (authorityData[12] === 0 && authorityData.length !== 13)
-		|| (authorityData[12] === 1 && authorityData.length !== 45)
+		|| (authorityData[12] === 1 && authorityData.length < 45)
 		|| (authorityData[12] !== 0 && authorityData[12] !== 1)
 	)
 		throw new Error(`Solana program-data account for ${programId} has invalid upgradeable-loader data`)
@@ -634,7 +633,7 @@ export const getProgramInfo = async ({
 		loaderAddress: programAccount.value.owner,
 		programDataAddress,
 		upgradeAuthorityAddress: authorityData[12] === 1 ?
-			base58.encode(authorityData.subarray(13))
+			base58.encode(authorityData.subarray(13, 45))
 		:
 			undefined,
 		slot: programDataAccount.context.slot,
