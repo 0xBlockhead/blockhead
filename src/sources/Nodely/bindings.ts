@@ -20,13 +20,13 @@ export default indexSourceBindings([
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'https://mainnet-api.4160.nodely.dev',
-				corsEnabled: false,
+				corsEnabled: true,
 			},
 		],
 		wireProtocol: WireProtocol.HttpRest,
 		apiFamily: ApiFamily.AlgodRestApi,
 		operationGroups: genericReadOperationGroups,
-		delivery: SourceDelivery.HttpProxy,
+		delivery: SourceDelivery.BrowserDirect,
 		credentials: [],
 	},
 	{
@@ -39,13 +39,13 @@ export default indexSourceBindings([
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'https://mainnet-idx.4160.nodely.dev',
-				corsEnabled: false,
+				corsEnabled: true,
 			},
 		],
 		wireProtocol: WireProtocol.HttpRest,
 		apiFamily: ApiFamily.AlgorandIndexerRestApi,
 		operationGroups: genericReadOperationGroups,
-		delivery: SourceDelivery.HttpProxy,
+		delivery: SourceDelivery.BrowserDirect,
 		credentials: [],
 	},
 ])
