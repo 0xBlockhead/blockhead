@@ -203,6 +203,7 @@ it('projects json-encoded P-Chain blocks with transaction ids', async () => {
 			parentID: 'parent-block',
 			height: 1,
 			id: 'block-id',
+			time: 1700000000,
 			tx: {
 				id: 'tx-id',
 				unsignedTx: {
@@ -218,6 +219,7 @@ it('projects json-encoded P-Chain blocks with transaction ids', async () => {
 			parentID: 'parent-block',
 			height: 1,
 			id: 'block-id',
+			time: 1700000000,
 			tx: {
 				id: 'tx-id',
 				unsignedTx: {

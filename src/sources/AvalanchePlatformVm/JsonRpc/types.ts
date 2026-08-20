@@ -105,7 +105,7 @@ export type AvalanchePlatformVmJsonBlock = {
 	parentID: string
 	height: number | string
 	id: string
-	timestamp?: number | string
+	time?: number | string
 	txs?: AvalanchePlatformVmJsonTx[]
 	tx?: AvalanchePlatformVmJsonTx
 }

@@ -144,6 +144,7 @@ it('projects enrolled blockchain, subnet, validator, and P-Chain block fields', 
 				parentID: 'parent',
 				height: 7,
 				id: 'block-7',
+				time: 1700000000,
 				tx: {
 					id: 'tx-7',
 					unsignedTx: {
@@ -213,7 +214,7 @@ it('projects enrolled blockchain, subnet, validator, and P-Chain block fields', 
 	}, context)
 	expect(block.blockId).toBe('block-7')
 	expect(block.txCount).toBe(1)
-	expect(block.timestampMs).toBe(1_600_740_000_000)
+	expect(block.timestampMs).toBe(1_700_000_000_000)
 	expect(blockResolver.projections.$$transactions.resolveCount(block)).toBe(1)
 	expect(blockResolver.projections.$$transactions.select(block)).toEqual(block.$$transactions)
 	expect(block.$$transactions).toEqual([{
@@ -239,6 +240,33 @@ it('projects enrolled blockchain, subnet, validator, and P-Chain block fields', 
 			},
 		},
 	}])
+})
+
+it('preserves legacy AdvanceTime block timestamps when the top-level Banff time is absent', async () => {
+	jsonRpc2.mockResolvedValueOnce({
+		block: {
+			parentID: 'parent',
+			height: 6,
+			id: 'block-6',
+			tx: {
+				id: 'tx-6',
+				unsignedTx: {
+					time: 1600740000,
+				},
+			},
+		},
+		encoding: 'json',
+	})
+
+	await expect(blockResolver.resolve.NetworkHeight.resolve({
+		$network: {
+			slug: networkBySlug['avalanche-p-chain'].slug,
+		},
+		height: 6n,
+	}, context)).resolves.toMatchObject({
+		blockId: 'block-6',
+		timestampMs: 1_600_740_000_000,
+	})
 })
 
 it('materializes pending validators through the subnet, direct entity, and observation hierarchy', async () => {

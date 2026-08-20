@@ -128,7 +128,7 @@ const jsonBlockWire = arktype({
 	parentID: 'string',
 	height: 'number.integer | string',
 	id: 'string',
-	'timestamp?': 'number | string',
+	'time?': 'number | string',
 	'txs?': jsonTxWire.array(),
 	'tx?': jsonTxWire,
 })

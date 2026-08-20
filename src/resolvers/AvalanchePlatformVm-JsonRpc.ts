@@ -224,8 +224,8 @@ const blockTxCount = (block: AvalanchePlatformVmJsonBlock) => (
 )
 
 const blockTimestampMs = (block: AvalanchePlatformVmJsonBlock) => {
-	if (block.timestamp != null)
-		return millisFromUnixSeconds(block.timestamp, 'block timestamp')
+	if (block.time != null)
+		return millisFromUnixSeconds(block.time, 'block time')
 	if (block.tx?.unsignedTx.time != null)
 		return millisFromUnixSeconds(
 			block.tx.unsignedTx.time,
