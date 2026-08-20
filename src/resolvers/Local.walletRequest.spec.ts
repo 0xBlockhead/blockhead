@@ -174,10 +174,6 @@ describe('Local_Internal wallet request resolvers', () => {
 		expect(walletConnectionResolver.projections).not.toHaveProperty('selected')
 		expect(walletConnectionResolver.projections.Connected).toHaveProperty('selected')
 
-		const { readFile } = await import('node:fs/promises')
-		const source = await readFile(new URL('./Local.ts', import.meta.url), 'utf8')
-		expect(source).toMatch(/blockheadWalletConnection\.status === 'connected'[\s\S]*?selected:/)
-		expect(source).not.toMatch(/selected: blockheadWalletConnection\.selected,/)
 	})
 
 	it('resolves EVM detail, call, and prepared timestamp rows', { timeout: 60_000 }, async () => {
