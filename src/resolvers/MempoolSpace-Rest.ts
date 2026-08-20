@@ -33,6 +33,9 @@ type MempoolSpaceBlock = Awaited<ReturnType<
 type MempoolSpaceTransaction = Awaited<ReturnType<
 	typeof import('$/sources/MempoolSpace/Rest/queries.ts').getTransaction
 >>
+type MempoolSpaceDifficultyAdjustment = Awaited<ReturnType<
+	typeof import('$/sources/MempoolSpace/Rest/queries.ts').getDifficultyAdjustments
+>>[number]
 
 const utxoBlockReferenceFromMempoolSpaceWire = (
 	$network: NetworkId,
@@ -72,6 +75,25 @@ const utxoBlockReferenceFromMempoolSpaceWire = (
 			[entityFieldAddressKey(EntityType.UtxoBlock, [], 'weightUnits')]: block.weight,
 		}),
 		[entityFieldAddressKey(EntityType.UtxoBlock, [], 'transactionCount')]: block.tx_count,
+	},
+})
+
+const utxoDifficultyAdjustmentBlockReference = (
+	$network: NetworkId,
+	difficultyAdjustment: MempoolSpaceDifficultyAdjustment,
+	hash: string
+) => ({
+	[EntityMetaKey.Selector]: {
+		$network,
+		height: BigInt(difficultyAdjustment.height),
+		hash,
+	},
+	[EntityMetaKey.Fields]: {
+		[entityFieldAddressKey(EntityType.UtxoBlock, [], 'height')]: BigInt(difficultyAdjustment.height),
+		[entityFieldAddressKey(EntityType.UtxoBlock, [], 'hash')]: hash,
+		[entityFieldAddressKey(EntityType.UtxoBlock, [], 'timestampMs')]: difficultyAdjustment.time * 1_000,
+		[entityFieldAddressKey(EntityType.UtxoBlock, [], 'difficulty')]: difficultyAdjustment.difficulty,
+		[entityFieldAddressKey(EntityType.UtxoBlock, [], 'difficultyAdjustmentPercent')]: difficultyAdjustment.adjustmentPercent,
 	},
 })
 
@@ -321,6 +343,23 @@ const utxoBlockSnapshot = async (
 	}
 }
 
+const difficultyAdjustmentAtHeight = async (
+	$network: NetworkId,
+	height: bigint
+) => {
+	assertBitcoinMainnet($network)
+	const { getDifficultyAdjustments } = await import('$/sources/MempoolSpace/Rest/queries.ts')
+	const difficultyAdjustment = (
+		await getDifficultyAdjustments({
+			target: bitcoinMainnetCaip2,
+		})
+	).find((candidate) => BigInt(candidate.height) === height)
+	if (difficultyAdjustment == null)
+		throw new Error(`MempoolSpace_Rest: no difficulty adjustment at block height ${height.toString()}`)
+
+	return difficultyAdjustment
+}
+
 const utxoBlockTransactionPage = async (
 	$network: NetworkId,
 	hash: string,
@@ -410,6 +449,31 @@ export default {
 				weightUnits: (block) => block.weightUnits,
 				transactionCount: (block) => block.transactionCount,
 			}),
+
+		defineResolver({
+			entityType: EntityType.UtxoBlock,
+			resolve: {
+				NetworkHeight: {
+					appliesTo: bitcoinNetworkReferenceApplicability,
+					resolve: ({ $network, height }) => difficultyAdjustmentAtHeight($network, height),
+				},
+				NetworkHeightHash: {
+					appliesTo: bitcoinNetworkReferenceApplicability,
+					resolve: async ({ $network, height, hash }) => {
+						const { getBlockHashByHeight } = await import('$/sources/MempoolSpace/Rest/queries.ts')
+						if (await getBlockHashByHeight({
+							height,
+							target: bitcoinMainnetCaip2,
+						}) !== hash)
+							throw new Error('MempoolSpace_Rest: difficulty adjustment block hash mismatch')
+
+						return difficultyAdjustmentAtHeight($network, height)
+					},
+				},
+			},
+		})({
+			difficultyAdjustmentPercent: (difficultyAdjustment) => difficultyAdjustment.adjustmentPercent,
+		}),
 
 		defineResolver({
 			entityType: EntityType.UtxoTransaction,
@@ -1159,6 +1223,42 @@ export default {
 					$$blocks: (blocks) => blocks,
 				},
 			}),
+
+		defineResolver({
+			entityType: EntityType.Network,
+			resolve: bitcoinNetworkSelectors(async (network, context) => {
+				assertBitcoinMainnet(network)
+				const {
+					getBlockHashByHeight,
+					getDifficultyAdjustments,
+				} = await import('$/sources/MempoolSpace/Rest/queries.ts')
+				const difficultyAdjustments = (
+					await getDifficultyAdjustments({
+						target: bitcoinMainnetCaip2,
+					})
+				)
+					.slice(
+						context.pagination.offset ?? 0,
+						(context.pagination.offset ?? 0) + resolverContextRowLimit(context)
+					)
+				const blocks = await Promise.all(difficultyAdjustments.map(async (difficultyAdjustment) => utxoDifficultyAdjustmentBlockReference(
+						network,
+						difficultyAdjustment,
+						await getBlockHashByHeight({
+							height: BigInt(difficultyAdjustment.height),
+							target: bitcoinMainnetCaip2,
+						})
+					)))
+				if (new Set(blocks.map((block) => block[EntityMetaKey.Selector].hash)).size !== blocks.length)
+					throw new Error('MempoolSpace_Rest: difficulty adjustment blocks contain duplicate block hashes')
+
+				return blocks
+			}),
+		})({
+			Utxo: {
+				$$difficultyAdjustmentBlocks: (blocks) => blocks,
+			},
+		}),
 
 		defineResolver({
 			entityType: EntityType.Network,

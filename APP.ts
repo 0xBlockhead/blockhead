@@ -48759,6 +48759,7 @@ export const schema = {
 						includes: "Utxo",
 					})({
 						"$$blocks": { label: "Blocks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.UtxoBlock, defaultSources: [Source.BitcoinCashNode_JsonRpc, Source.Blockchair_Rest, Source.DogecoinCore_JsonRpc, Source.Esplora_Rest, Source.LitecoinCore_JsonRpc, Source.MempoolSpace_Rest] },
+						"$$difficultyAdjustmentBlocks": { label: "Difficulty adjustments", description: "Bitcoin retarget blocks where a new mining difficulty became effective.", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.UtxoBlock, defaultSources: [Source.MempoolSpace_Rest] },
 						"$$transactions": { label: "Transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.UtxoTransaction, defaultSources: [Source.Blockchair_Rest, Source.Esplora_Rest, Source.MempoolSpace_Rest] },
 						"$$miningPools": { label: "Mining pools", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BitcoinMiningPool, defaultSources: [Source.MempoolSpace_Rest] },
 					})({
@@ -48771,6 +48772,7 @@ export const schema = {
 									sections: [
 										{ id: "utxo-consensus-observations", field: "$$timestamps", List: "Network_TimestampsView", label: "Observations", selection: { sources: [Source.Blockchair_Rest, Source.Esplora_Rest, Source.MempoolSpace_Rest], limit: 16 } },
 										{ id: "utxo-consensus-blocks", field: ["Utxo", "$$blocks"], List: "UtxoBlocksView", label: "Blocks", selection: { sources: [Source.BitcoinCashNode_JsonRpc, Source.Blockchair_Rest, Source.DogecoinCore_JsonRpc, Source.Esplora_Rest, Source.LitecoinCore_JsonRpc, Source.MempoolSpace_Rest], limit: 16 } },
+										{ id: "utxo-consensus-difficulty-adjustments", field: ["Utxo", "$$difficultyAdjustmentBlocks"], List: "UtxoBlocksView", label: "Difficulty adjustments", selection: { sources: [Source.MempoolSpace_Rest], limit: 16 } },
 										{ id: "utxo-consensus-mining-pools", field: ["Utxo", "$$miningPools"], List: "BitcoinMiningPoolsView", label: "Mining pools", selection: { sources: [Source.MempoolSpace_Rest], limit: 16 } },
 									],
 								},
@@ -66427,7 +66429,8 @@ export const schema = {
 				"timestampMs": { label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 				"merkleRoot": { label: "Merkle root", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"nonce": { label: "Nonce", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"difficulty": { label: "Difficulty", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+				"difficulty": { label: "Difficulty", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.MempoolSpace_Rest] },
+				"difficultyAdjustmentPercent": { label: "Difficulty adjustment", description: "The percentage change in Bitcoin mining difficulty that became effective at this retarget block.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.MempoolSpace_Rest] },
 				"sizeBytes": { label: "Size", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 				"weightUnits": { label: "Weight", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 				"transactionCount": { label: "Transaction count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
@@ -66451,7 +66454,7 @@ export const schema = {
 						content: {
 							dl: [
 								[{ field: "height", format: "number" }, { field: "hash", format: "truncated" }, { field: "timestampMs", format: "timestamp" }, "transactionCount"],
-								["merkleRoot", "nonce", "difficulty", "sizeBytes", "weightUnits", "$parent", "$network"],
+								["merkleRoot", "nonce", "difficulty", { field: "difficultyAdjustmentPercent", format: "number" }, "sizeBytes", "weightUnits", "$parent", "$network"],
 							],
 						},
 						lists: [

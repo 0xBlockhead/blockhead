@@ -44,6 +44,16 @@ export default entity({
 	difficulty: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.MempoolSpace_Rest,
+		],
+	},
+	difficultyAdjustmentPercent: {
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.MempoolSpace_Rest,
+		],
 	},
 	sizeBytes: {
 		primitiveType: type('number'),

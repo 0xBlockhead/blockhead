@@ -18,6 +18,7 @@ import {
 import bindings from '$/sources/MempoolSpace/bindings.ts'
 import {
 	mempoolSpaceDifficultyAdjustmentWire,
+	mempoolSpaceDifficultyAdjustmentHistoryWire,
 	mempoolSpaceMiningHashrateWire,
 	mempoolSpaceMiningPoolWire,
 	mempoolSpaceMiningPoolsWire,
@@ -371,6 +372,42 @@ export const getDifficultyAdjustment = async ({
 		sourceLabel
 	)
 )
+
+export const getDifficultyAdjustments = async ({
+	target,
+}: {
+	target: MempoolSpaceTarget
+}) => {
+	const difficultyAdjustments = assertEsploraEnvelope(
+		mempoolSpaceDifficultyAdjustmentHistoryWire,
+		await getMempoolSpaceJson(target, 'v1/mining/difficulty-adjustments/3m'),
+		'difficulty adjustment history',
+		sourceLabel
+	)
+	if (new Set(difficultyAdjustments.map(([, height]) => height)).size !== difficultyAdjustments.length)
+		throw new Error(`${sourceLabel}: difficulty adjustment history contains duplicate block heights`)
+
+	if (difficultyAdjustments.some((row, index) => (
+		index > 0
+		&& (
+			row[0] > difficultyAdjustments[index - 1][0]
+			|| row[1] >= difficultyAdjustments[index - 1][1]
+		)
+	)))
+		throw new Error(`${sourceLabel}: difficulty adjustment history is not newest first`)
+
+	return difficultyAdjustments.map(([
+		time,
+		height,
+		difficulty,
+		adjustmentRatio,
+	]) => ({
+		time,
+		height,
+		difficulty,
+		adjustmentPercent: (adjustmentRatio - 1) * 100,
+	}))
+}
 
 export const getMiningPools = async ({
 	target,

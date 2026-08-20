@@ -25,6 +25,7 @@ const {
 	getAddressTransactions,
 	getAddressUtxos,
 	getDifficultyAdjustment,
+	getDifficultyAdjustments,
 	getMempoolStats,
 	getMiningHashrate,
 	getMiningPool,
@@ -246,6 +247,64 @@ describe('mempool.space Bitcoin REST binding', () => {
 		await expect(getDifficultyAdjustment({
 			target: bitcoinTarget,
 		})).rejects.toThrow('invalid difficulty adjustment envelope')
+	})
+
+	it('reads canonical difficulty adjustment tuples newest first and normalizes ratios to percent', async () => {
+		sourceGetJson.mockResolvedValueOnce([
+			[1_786_217_755, 961_632, 127_479_855_693_691.4, 1.00989],
+			[1_785_019_866, 959_616, 126_231_507_121_868.2, 0.992616],
+			[1_783_800_551, 957_600, 127_170_500_429_035.2, 0.949956],
+		])
+
+		await expect(getDifficultyAdjustments({
+			target: bitcoinTarget,
+		})).resolves.toEqual([
+			{
+				time: 1_786_217_755,
+				height: 961_632,
+				difficulty: 127_479_855_693_691.4,
+				adjustmentPercent: 0.9889999999999954,
+			},
+			{
+				time: 1_785_019_866,
+				height: 959_616,
+				difficulty: 126_231_507_121_868.2,
+				adjustmentPercent: -0.7383999999999946,
+			},
+			{
+				time: 1_783_800_551,
+				height: 957_600,
+				difficulty: 127_170_500_429_035.2,
+				adjustmentPercent: -5.004399999999998,
+			},
+		])
+		expect(sourceGetJson).toHaveBeenCalledWith(
+			bitcoinBinding,
+			'https://mempool.space/api/v1/mining/difficulty-adjustments/3m'
+		)
+	})
+
+	it('fail-closes malformed, duplicate, and out-of-order difficulty histories', async () => {
+		sourceGetJson
+			.mockResolvedValueOnce([[1_786_217_755, 961_632, -1, 1.00989]])
+			.mockResolvedValueOnce([
+				[1_786_217_755, 961_632, 127_479_855_693_691.4, 1.00989],
+				[1_785_019_866, 961_632, 126_231_507_121_868.2, 0.992616],
+			])
+			.mockResolvedValueOnce([
+				[1_785_019_866, 959_616, 126_231_507_121_868.2, 0.992616],
+				[1_786_217_755, 961_632, 127_479_855_693_691.4, 1.00989],
+			])
+
+		await expect(getDifficultyAdjustments({
+			target: bitcoinTarget,
+		})).rejects.toThrow('invalid difficulty adjustment history envelope')
+		await expect(getDifficultyAdjustments({
+			target: bitcoinTarget,
+		})).rejects.toThrow('duplicate block heights')
+		await expect(getDifficultyAdjustments({
+			target: bitcoinTarget,
+		})).rejects.toThrow('not newest first')
 	})
 
 	it('reads the mining pool catalog and a single pool by slug', async () => {

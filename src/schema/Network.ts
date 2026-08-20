@@ -788,6 +788,13 @@ export default entity({
 					Source.MempoolSpace_Rest,
 				],
 			},
+			$$difficultyAdjustmentBlocks: {
+				entityType: EntityType.UtxoBlock,
+				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.MempoolSpace_Rest,
+				],
+			},
 			$$transactions: {
 				entityType: EntityType.UtxoTransaction,
 				cardinality: EntityFieldCardinality.Many,

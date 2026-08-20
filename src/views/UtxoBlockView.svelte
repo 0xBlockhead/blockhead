@@ -239,6 +239,30 @@
 				resource={
 					selection({
 						fields: {
+							difficultyAdjustmentPercent: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const difficultyAdjustmentPercent = entity.difficultyAdjustmentPercent}
+					{#if difficultyAdjustmentPercent != null}
+						<div>
+							<dt>Difficulty adjustment</dt>
+							<dd>
+								<NumberValue
+									value={difficultyAdjustmentPercent}
+								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
 							sizeBytes: true,
 						},
 					})

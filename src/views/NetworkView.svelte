@@ -222,6 +222,12 @@
 		], pendingEntity)
 	)
 
+	const mempoolSpaceRestSources = $derived(
+		networkApplicableSources([
+			Source.MempoolSpace_Rest,
+		], pendingEntity)
+	)
+
 	const bittensorJsonRpcSources = $derived(
 		networkApplicableSources([
 			Source.Bittensor_JsonRpc,
@@ -4337,10 +4343,6 @@
 						Source.MempoolSpace_Rest,
 					], pendingEntity)}
 
-				{@const utxoChainActivityUtxoConsensusMiningPoolsSources = networkApplicableSources([
-						Source.MempoolSpace_Rest,
-					], pendingEntity)}
-
 				{@const utxoChainActivitySections = [
 						...(
 							blockchairRestAndEsploraRestAndMempoolSpaceRestSources.length > 0 ?
@@ -4365,7 +4367,18 @@
 								[]
 						),
 						...(
-							utxoChainActivityUtxoConsensusMiningPoolsSources.length > 0 ?
+							mempoolSpaceRestSources.length > 0 ?
+								[
+									{
+										id: 'utxo-consensus-difficulty-adjustments',
+										label: 'Difficulty adjustments',
+									},
+								]
+							:
+								[]
+						),
+						...(
+							mempoolSpaceRestSources.length > 0 ?
 								[
 									{
 										id: 'utxo-consensus-mining-pools',
@@ -4421,12 +4434,27 @@
 							/>
 						{/snippet}
 
+						{#snippet SectionUtxoConsensusDifficultyAdjustments({ id, label })}
+							<UtxoBlocksView
+								selection={
+									projection
+									.$$difficultyAdjustmentBlocks({
+										sources: mempoolSpaceRestSources,
+										limit: 16,
+									})
+								}
+								collapsible={false}
+								title={label}
+								id={`${id}-list`}
+							/>
+						{/snippet}
+
 						{#snippet SectionUtxoConsensusMiningPools({ id, label })}
 							<BitcoinMiningPoolsView
 								selection={
 									projection
 									.$$miningPools({
-										sources: utxoChainActivityUtxoConsensusMiningPoolsSources,
+										sources: mempoolSpaceRestSources,
 										limit: 16,
 									})
 								}

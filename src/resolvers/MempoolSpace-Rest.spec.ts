@@ -27,6 +27,10 @@ const blocksResolver = networkResolvers.find((resolver) => (
 	&& '$$blocks' in resolver.projections.Utxo
 	&& typeof resolver.projections.Utxo.$$blocks === 'function'
 ))
+const difficultyAdjustmentBlocksResolver = networkResolvers.find((resolver) => (
+	'Utxo' in resolver.projections
+	&& '$$difficultyAdjustmentBlocks' in resolver.projections.Utxo
+))
 const mempoolTransactionsResolver = networkResolvers.find((resolver) => (
 	'Utxo' in resolver.projections
 	&& '$$transactions' in resolver.projections.Utxo
@@ -43,6 +47,10 @@ const blockResolver = mempoolSpaceResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.UtxoBlock
 	&& 'NetworkHeight' in resolver.resolve
 	&& 'NetworkHeightHash' in resolver.resolve
+))
+const difficultyAdjustmentBlockResolver = mempoolSpaceResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.UtxoBlock
+	&& 'difficultyAdjustmentPercent' in resolver.projections
 ))
 const blockTransactionsResolver = mempoolSpaceResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.UtxoBlock
@@ -75,6 +83,9 @@ const outputSpentResolver = mempoolSpaceResolvers.resolvers.find((resolver) => (
 if (blocksResolver == null)
 	throw new Error('MempoolSpace-Rest spec missing Network.Utxo.$$blocks resolver')
 
+if (difficultyAdjustmentBlocksResolver == null)
+	throw new Error('MempoolSpace-Rest spec missing Network.Utxo.$$difficultyAdjustmentBlocks resolver')
+
 if (networkTimestampsResolver == null)
 	throw new Error('MempoolSpace-Rest spec missing Network.$$timestamps resolver')
 
@@ -89,6 +100,9 @@ if (miningPoolResolver == null)
 
 if (blockResolver == null)
 	throw new Error('MempoolSpace-Rest spec missing UtxoBlock NetworkHeight resolver')
+
+if (difficultyAdjustmentBlockResolver == null)
+	throw new Error('MempoolSpace-Rest spec missing UtxoBlock difficulty adjustment resolver')
 
 if (blockTransactionsResolver == null)
 	throw new Error('MempoolSpace-Rest spec missing UtxoBlock.$$transactions resolver')
@@ -968,6 +982,85 @@ describe('MempoolSpace UTXO', () => {
 			},
 		}])
 		expect(sourceGetJson).toHaveBeenCalledOnce()
+	})
+
+	it('materializes sparse difficulty adjustment block references with deterministic identities', async () => {
+		sourceGetJson
+			.mockResolvedValueOnce([
+				[1_786_217_755, 961_632, 127_479_855_693_691.4, 1.00989],
+				[1_785_019_866, 959_616, 126_231_507_121_868.2, 0.992616],
+			])
+			.mockResolvedValueOnce('a'.repeat(64))
+
+		expect(await difficultyAdjustmentBlocksResolver.resolve.Caip2.resolve(network, {
+			...resolverContext,
+			pagination: {
+				offset: 1,
+				limit: 1,
+			},
+		})).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				height: 959_616n,
+				hash: 'a'.repeat(64),
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.UtxoBlock, [], 'height')]: 959_616n,
+				[entityFieldAddressKey(EntityType.UtxoBlock, [], 'hash')]: 'a'.repeat(64),
+				[entityFieldAddressKey(EntityType.UtxoBlock, [], 'timestampMs')]: 1_785_019_866_000,
+				[entityFieldAddressKey(EntityType.UtxoBlock, [], 'difficulty')]: 126_231_507_121_868.2,
+				[entityFieldAddressKey(EntityType.UtxoBlock, [], 'difficultyAdjustmentPercent')]: -0.7383999999999946,
+			},
+		}])
+		expect(sourceGetJson).toHaveBeenCalledTimes(2)
+	})
+
+	it('fail-closes repeated block hashes in sparse difficulty adjustment history', async () => {
+		sourceGetJson
+			.mockResolvedValueOnce([
+				[1_786_217_755, 961_632, 127_479_855_693_691.4, 1.00989],
+				[1_785_019_866, 959_616, 126_231_507_121_868.2, 0.992616],
+			])
+			.mockResolvedValueOnce('a'.repeat(64))
+			.mockResolvedValueOnce('a'.repeat(64))
+
+		await expect(difficultyAdjustmentBlocksResolver.resolve.Caip2.resolve(network, {
+			...resolverContext,
+			pagination: {
+				limit: 2,
+			},
+		})).rejects.toThrow('duplicate block hashes')
+	})
+
+	it('resolves exact retarget block facts and validates height-hash identity', async () => {
+		sourceGetJson.mockResolvedValueOnce([
+			[1_786_217_755, 961_632, 127_479_855_693_691.4, 1.00989],
+		])
+		const difficultyAdjustment = await difficultyAdjustmentBlockResolver.resolve.NetworkHeight.resolve({
+			$network: network,
+			height: 961_632n,
+		}, resolverContext)
+		expect(difficultyAdjustmentBlockResolver.projections.difficultyAdjustmentPercent(difficultyAdjustment)).toBeCloseTo(0.989)
+
+		sourceGetJson
+			.mockResolvedValueOnce('a'.repeat(64))
+			.mockResolvedValueOnce([
+				[1_786_217_755, 961_632, 127_479_855_693_691.4, 1.00989],
+			])
+		await expect(difficultyAdjustmentBlockResolver.resolve.NetworkHeightHash.resolve({
+			$network: network,
+			height: 961_632n,
+			hash: 'a'.repeat(64),
+		}, resolverContext)).resolves.toMatchObject({
+			height: 961_632,
+		})
+
+		sourceGetJson.mockResolvedValueOnce('b'.repeat(64))
+		await expect(difficultyAdjustmentBlockResolver.resolve.NetworkHeightHash.resolve({
+			$network: network,
+			height: 961_632n,
+			hash: 'a'.repeat(64),
+		}, resolverContext)).rejects.toThrow('block hash mismatch')
 	})
 
 	it('materializes a paged mempool transaction hierarchy from authoritative transaction reads', async () => {

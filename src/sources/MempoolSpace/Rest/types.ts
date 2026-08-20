@@ -13,6 +13,22 @@ export const mempoolSpaceMiningHashrateWire = arktype({
 })
 
 /**
+ * `/api/v1/mining/difficulty-adjustments/:interval` rows are
+ * `[blockTimeSeconds, blockHeight, difficulty, adjustmentRatio]`.
+ *
+ * @see https://mempool.space/docs/api/rest#get-difficulty-adjustments
+ * @see https://github.com/mempool/mempool/blob/c863f02ae6abff3699d42b3ff5ae50a11240748f/backend/src/api/mining/mining.ts
+ */
+export const mempoolSpaceDifficultyAdjustmentHistoryRowWire = arktype([
+	'number.integer >= 0 <= 9007199254740',
+	`number.integer >= 0 <= ${Number.MAX_SAFE_INTEGER}`,
+	'number >= 0',
+	'number >= 0',
+])
+
+export const mempoolSpaceDifficultyAdjustmentHistoryWire = mempoolSpaceDifficultyAdjustmentHistoryRowWire.array()
+
+/**
  * `/api/v1/difficulty-adjustment` current difficulty-adjustment window.
  * @see https://mempool.space/docs/api/rest#get-difficulty-adjustment
  */
