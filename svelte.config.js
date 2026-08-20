@@ -37,7 +37,6 @@ export default {
 		},
 
 		experimental: {
-			handleRenderingErrors: true,
 			remoteFunctions: true,
 		},
 	},

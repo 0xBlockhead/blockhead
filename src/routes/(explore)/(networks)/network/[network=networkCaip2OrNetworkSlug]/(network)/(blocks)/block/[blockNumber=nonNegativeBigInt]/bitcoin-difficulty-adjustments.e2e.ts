@@ -40,7 +40,9 @@ test.beforeEach(async ({ page }, testInfo) => {
 
 test('renders Bitcoin difficulty history with exact retarget block links', async ({ page }) => {
 	test.setTimeout(180_000)
+	const pageErrors: string[] = []
 	const unexpectedRequests: string[] = []
+	page.on('pageerror', (error) => pageErrors.push(error.message))
 	await page.route('https://mempool.space/api/**', async (route) => {
 		const request = route.request()
 		const pathname = new URL(request.url()).pathname
@@ -127,12 +129,74 @@ test('renders Bitcoin difficulty history with exact retarget block links', async
 			body: 'Unexpected Mempool fixture request',
 		})
 	})
+	await page.route('https://blockstream.info/api/**', async (route) => {
+		const request = route.request()
+		const pathname = new URL(request.url()).pathname
+		if (request.method() === 'GET' && pathname === '/api/blocks') {
+			await route.fulfill({ json: [block] })
+			return
+		}
+		if (request.method() === 'GET' && pathname === '/api/mempool/txids') {
+			await route.fulfill({ json: [] })
+			return
+		}
+		if (request.method() === 'GET' && pathname === '/api/mempool') {
+			await route.fulfill({
+				json: {
+					count: 0,
+					vsize: 0,
+					total_fee: 0,
+				},
+			})
+			return
+		}
+		if (request.method() === 'GET' && pathname === '/api/fee-estimates') {
+			await route.fulfill({ json: { 1: 1 } })
+			return
+		}
+		if (request.method() === 'GET' && pathname === `/api/block/${blockHash}`) {
+			await route.fulfill({ json: block })
+			return
+		}
+		if (request.method() === 'GET' && pathname === `/api/block-height/${blockHeight}`) {
+			await route.fulfill({ body: blockHash })
+			return
+		}
+		if (request.method() === 'GET' && pathname === `/api/block/${blockHash}/txs/0`) {
+			await route.fulfill({ json: [] })
+			return
+		}
+
+		unexpectedRequests.push(`${request.method()} ${pathname}`)
+		await route.fulfill({
+			status: 418,
+			body: 'Unexpected Esplora fixture request',
+		})
+	})
 
 	await page.goto('/network/bitcoin', { waitUntil: 'domcontentloaded' })
 	await expect(page.locator('#main').getByText('Difficulty adjustments', { exact: true })).toBeAttached({
 		timeout: 120_000,
 	})
-	await expect(page.locator(`#main a[href='${blockPath}']`)).toBeAttached()
+	const difficultyAdjustmentBlockLink = page
+		.getByLabel('Difficulty adjustments')
+		.locator(`a[href='${blockPath}']`)
+	await expect(difficultyAdjustmentBlockLink).toBeAttached()
 	await expect(page.locator('#main [data-error], #main [role="alert"]')).toHaveCount(0)
+
+	await difficultyAdjustmentBlockLink.click()
+	await expect(page).toHaveURL((url) => url.pathname === blockPath)
+	await expect(page.locator('#main').getByText('UTXO block', { exact: true }).first()).toBeAttached({
+		timeout: 120_000,
+	})
+	await expect(page.locator('#main').getByText('961,632', { exact: true }).first()).toBeAttached()
+	expect(pageErrors).toEqual([])
+
+	await page.goto(blockPath, { waitUntil: 'domcontentloaded' })
+	await expect(page.locator('#main').getByText('UTXO block', { exact: true }).first()).toBeAttached({
+		timeout: 120_000,
+	})
+	await expect(page.locator('#main').getByText('961,632', { exact: true }).first()).toBeAttached()
+	expect(pageErrors).toEqual([])
 	expect(unexpectedRequests).toEqual([])
 })
