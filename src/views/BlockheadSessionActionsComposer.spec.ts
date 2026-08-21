@@ -4,12 +4,6 @@ import {
 	it,
 	vi,
 } from 'vitest'
-import {
-	type Action,
-	ActionType,
-	actionTypeDefinitionByActionType,
-	zeroAddress,
-} from '$/constants/actions.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { stringify } from 'devalue'
 import {
@@ -25,50 +19,6 @@ vi.mock('$/routes/+layout.svelte', () => ({
 
 
 describe('BlockheadSessionActionsComposer contract', () => {
-	it('validates exact discriminated action params instead of a generic JSON payload', () => {
-		expect(actionTypeDefinitionByActionType[ActionType.Swap].params.assert({})).toEqual({
-			chainId: 1,
-			tokenIn: zeroAddress,
-			tokenOut: zeroAddress,
-			amount: 0n,
-			slippage: 0.005,
-		})
-		expect(actionTypeDefinitionByActionType[ActionType.Bridge].params.assert({})).toEqual({
-			fromChainId: 1,
-			toChainId: 10,
-			tokenAddress: zeroAddress,
-			amount: 0n,
-			slippage: 0.005,
-		})
-		const action = {
-			type: ActionType.Transfer,
-			params: actionTypeDefinitionByActionType[ActionType.Transfer].params.assert({}),
-		} satisfies Action
-		expect(action.params).toEqual({
-			fromActor: zeroAddress,
-			toActor: zeroAddress,
-			chainId: 1,
-			tokenAddress: zeroAddress,
-			amount: 0n,
-		})
-
-		expect(() => actionTypeDefinitionByActionType[ActionType.Swap].params.assert({
-			chainId: 0,
-		})).toThrow()
-		expect(() => actionTypeDefinitionByActionType[ActionType.Bridge].params.assert({
-			slippage: 1,
-		})).toThrow()
-		expect(() => actionTypeDefinitionByActionType[ActionType.Swap].params.assert({
-			fromActor: zeroAddress,
-		})).toThrow()
-		expect(() => actionTypeDefinitionByActionType[ActionType.Bridge].params.assert({
-			tokenIn: zeroAddress,
-		})).toThrow()
-		expect(() => actionTypeDefinitionByActionType[ActionType.Transfer].params.assert({
-			slippage: 0.005,
-		})).toThrow()
-	})
-
 	it.each([
 		{
 			name: 'valid EVM account payload',

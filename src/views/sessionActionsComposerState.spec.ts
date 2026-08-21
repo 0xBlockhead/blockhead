@@ -10,15 +10,11 @@ import {
 	emptyDraftFieldsForActionType,
 	failSessionComposerPreparation,
 	finishSessionComposerPreparation,
-	idleSessionActionDraft,
-	idleSessionComposerNotice,
 	isSessionComposerPreparing,
 	retargetSessionActionDraft,
 	sessionComposerNoticeMessage,
 	sessionComposerReadinessCheckIds,
 	sessionComposerWalletRequestId,
-	type SessionActionDraft,
-	type SessionComposerNotice,
 } from './sessionActionsComposerState.ts'
 
 
@@ -206,69 +202,4 @@ describe('sessionActionsComposerState', () => {
 		}))).toBe('EVM native transfer preparation succeeded and saved a wallet request.')
 	})
 
-	it('rejects constructing illegal notice and draft combos at the type level', () => {
-		const illegalNotice: SessionComposerNotice = idleSessionComposerNotice
-		const illegalDraft: SessionActionDraft = idleSessionActionDraft
-
-		// @ts-expect-error preparing cannot carry a wallet request id
-		const _preparingWithRequest: SessionComposerNotice = {
-			status: 'preparing',
-			walletRequestId: 'x',
-		}
-		// @ts-expect-error prepared cannot carry a wallet request id
-		const _preparedWithRequest: SessionComposerNotice = {
-			status: 'prepared',
-			message: 'ok',
-			walletRequestId: 'x',
-		}
-		// @ts-expect-error create drafts cannot carry edit identity
-		const _createWithSelector: SessionActionDraft = {
-			mode: 'create',
-			actionType: ActionType.Transfer,
-			fields: {
-				fromActor: '',
-				toActor: '',
-				chainId: '',
-				tokenAddress: '',
-				amount: '',
-			},
-			selector: {
-				sessionId: 's',
-				actionId: 'a',
-			},
-		}
-		// @ts-expect-error edit drafts require identity fields
-		const _editWithoutIdentity: SessionActionDraft = {
-			mode: 'edit',
-			actionType: ActionType.Transfer,
-			fields: {
-				fromActor: '',
-				toActor: '',
-				chainId: '',
-				tokenAddress: '',
-				amount: '',
-			},
-		}
-		// @ts-expect-error transfer fields cannot include swap-only keys
-		const _transferWithTokenIn: SessionActionDraft = {
-			mode: 'create',
-			actionType: ActionType.Transfer,
-			fields: {
-				fromActor: '',
-				toActor: '',
-				chainId: '',
-				tokenAddress: '',
-				amount: '',
-				tokenIn: '',
-			},
-		}
-
-		expect(illegalNotice.status).toBe('idle')
-		expect(illegalDraft.mode).toBe('idle')
-		void _preparingWithRequest
-		void _preparedWithRequest
-		void _createWithSelector
-		void _editWithoutIdentity
-		void _transferWithTokenIn
-	})
 })

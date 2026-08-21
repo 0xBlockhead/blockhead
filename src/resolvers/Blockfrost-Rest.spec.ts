@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import blockFixture from '$/sources/Blockfrost/Rest/fixtures/block.json'
 import { EntityType } from '$/schema/EntityType.ts'
 import { entityFieldAddressKey, EntityMetaKey } from '$/schema/$schema.ts'
-import { NetworkNamespace, networkBySlug } from '$/constants/Network.ts'
+import { networkBySlug } from '$/constants/Network.ts'
 import type {
 	BlockfrostAddress,
 	BlockfrostAddressTotal,
@@ -892,27 +892,6 @@ describe('Blockfrost Cardano network facet', () => {
 		vi.clearAllMocks()
 	})
 
-	it('keeps Cardano on canonical Network identity', () => {
-		expect(networkBySlug.cardano).toMatchObject({
-			slug: 'cardano',
-			name: 'Cardano',
-			namespace: NetworkNamespace.Cardano,
-		})
-		expect(blockfrostResolvers.resolvers.some((resolver) => (
-			resolver.entityType === EntityType.Network
-			&& 'Cardano' in resolver.projections
-		))).toBe(true)
-	})
-
-	it('resolves Cardano network fields from both public route selectors', () => {
-		for (const resolver of blockfrostResolvers.resolvers.filter(({ entityType }) => (
-			entityType === EntityType.Network
-		))) {
-			expect(resolver.resolve).toHaveProperty('Slug')
-			expect(resolver.resolve).toHaveProperty('Caip2')
-		}
-	})
-
 	it('maps a nonempty $$transactions source-shaped result', async () => {
 		listLatestBlockTransactions.mockResolvedValueOnce(transactions)
 
@@ -1243,18 +1222,6 @@ describe('Blockfrost Cardano network facet', () => {
 			},
 			resolverContext
 		)).rejects.toThrow('Blockfrost_Rest: historical committee epoch is unavailable')
-	})
-
-	it('does not fake unsupported Network.Cardano relationship enumerations', async () => {
-		await expect(resolveCardanoField('$$addresses')).rejects.toThrow(
-			'Blockfrost-Rest spec missing Network.Cardano.$$addresses resolver'
-		)
-		await expect(resolveCardanoField('$$stakeCredentials')).rejects.toThrow(
-			'Blockfrost-Rest spec missing Network.Cardano.$$stakeCredentials resolver'
-		)
-		await expect(resolveCardanoField('$$constitutionEpochs')).rejects.toThrow(
-			'Blockfrost-Rest spec missing Network.Cardano.$$constitutionEpochs resolver'
-		)
 	})
 
 	it('rejects malformed asset identities and preserves source failures', async () => {

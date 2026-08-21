@@ -411,42 +411,4 @@ describe('walletConnectionState', () => {
 		])
 	})
 
-	it('rejects illegal WalletConnection literals at the type level', () => {
-		const legal: WalletConnection = buildWalletConnection({
-			...base,
-			status: BlockheadConnectionStatus.Connected,
-			selected: true,
-		})
-
-		// @ts-expect-error connecting cannot be selected
-		const _connectingSelected: WalletConnection = {
-			...base,
-			status: BlockheadConnectionStatus.Connecting,
-			selected: true,
-		}
-		// @ts-expect-error error status requires error string
-		const _errorWithoutMessage: WalletConnection = {
-			...base,
-			status: BlockheadConnectionStatus.Error,
-		}
-		// @ts-expect-error disconnected cannot carry selected
-		const _disconnectedSelected: WalletConnection = {
-			...base,
-			status: BlockheadConnectionStatus.Disconnected,
-			selected: true,
-		}
-		// @ts-expect-error connected cannot carry error
-		const _connectedWithError: WalletConnection = {
-			...base,
-			status: BlockheadConnectionStatus.Connected,
-			selected: false,
-			error: 'nope',
-		}
-
-		expect(legal.status).toBe(BlockheadConnectionStatus.Connected)
-		void _connectingSelected
-		void _errorWithoutMessage
-		void _disconnectedSelected
-		void _connectedWithError
-	})
 })

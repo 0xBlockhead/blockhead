@@ -97,6 +97,32 @@ const ethereumMarketSnapshot = {
 	],
 } as const
 
+const account = '0x464C71f6c2F760DdA6093dCB91C24c39e5d6e18c'
+const accountSupply = {
+	market: { address: ethereumMarket.address, chain: { chainId: 1 } },
+	currency: {
+		address: '0xA0b86991c6218b36c1d19D4a2e9eb0ce3606eb48',
+		symbol: 'USDC',
+		decimals: 6,
+		chainId: 1,
+	},
+	balance: { amount: { value: '1000.5' }, usd: '1000.5' },
+	apy: { value: '0.03' },
+	isCollateral: true,
+	canBeCollateral: true,
+} as const
+const accountBorrow = {
+	market: accountSupply.market,
+	currency: {
+		address: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+		symbol: 'WETH',
+		decimals: 18,
+		chainId: 1,
+	},
+	debt: { amount: { value: '2.5' }, usd: '5000' },
+	apy: { value: '0.05' },
+} as const
+
 describe('Aave market list/detail operations', () => {
 	beforeEach(() => {
 		graphql.mockReset()
@@ -440,64 +466,14 @@ describe('Aave account position operations', () => {
 				],
 			})
 			.mockResolvedValueOnce({
-				userSupplies: [
-					{
-						market: {
-							address: ethereumMarket.address,
-							chain: {
-								chainId: 1,
-							},
-						},
-						currency: {
-							address: '0xA0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-							symbol: 'USDC',
-							decimals: 6,
-							chainId: 1,
-						},
-						balance: {
-							amount: {
-								value: '1000.5',
-							},
-							usd: '1000.5',
-						},
-						apy: {
-							value: '0.03',
-						},
-						isCollateral: true,
-						canBeCollateral: true,
-					},
-				],
-				userBorrows: [
-					{
-						market: {
-							address: ethereumMarket.address,
-							chain: {
-								chainId: 1,
-							},
-						},
-						currency: {
-							address: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-							symbol: 'WETH',
-							decimals: 18,
-							chainId: 1,
-						},
-						debt: {
-							amount: {
-								value: '2.5',
-							},
-							usd: '5000',
-						},
-						apy: {
-							value: '0.05',
-						},
-					},
-				],
+				userSupplies: [accountSupply],
+				userBorrows: [accountBorrow],
 			})
 
 		await expect(getAccountPositions({
 			binding,
 			chainId: 1,
-			account: '0x464C71f6c2F760DdA6093dCB91C24c39e5d6e18c',
+			account,
 		})).resolves.toEqual([
 			{
 				protocol: 'Aave V3',
@@ -532,31 +508,6 @@ describe('Aave account position operations', () => {
 	})
 
 	it('rejects duplicate account positions after identity normalization', async () => {
-		const supply = {
-			market: {
-				address: ethereumMarket.address,
-				chain: {
-					chainId: 1,
-				},
-			},
-			currency: {
-				address: '0xA0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-				symbol: 'USDC',
-				decimals: 6,
-				chainId: 1,
-			},
-			balance: {
-				amount: {
-					value: '1000.5',
-				},
-				usd: '1000.5',
-			},
-			apy: {
-				value: '0.03',
-			},
-			isCollateral: true,
-			canBeCollateral: true,
-		}
 		graphql
 			.mockResolvedValueOnce({
 				markets: [
@@ -565,12 +516,12 @@ describe('Aave account position operations', () => {
 			})
 			.mockResolvedValueOnce({
 				userSupplies: [
-					supply,
+					accountSupply,
 					{
-						...supply,
+						...accountSupply,
 						currency: {
-							...supply.currency,
-							address: supply.currency.address.toLowerCase(),
+							...accountSupply.currency,
+							address: accountSupply.currency.address.toLowerCase(),
 						},
 					},
 				],
@@ -640,43 +591,19 @@ describe('Aave account position operations', () => {
 		}],
 		['supply missing collateral flag', {
 			userSupplies: [{
-				market: {
-					address: ethereumMarket.address,
-					chain: { chainId: 1 },
-				},
-				currency: {
-					address: '0xA0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-					symbol: 'USDC',
-					decimals: 6,
-					chainId: 1,
-				},
-				balance: {
-					amount: { value: '1000.5' },
-					usd: '1000.5',
-				},
-				apy: { value: '0.03' },
-				canBeCollateral: true,
+				...accountSupply,
+				isCollateral: undefined,
 			}],
 			userBorrows: [],
 		}],
 		['non-string borrow debt', {
 			userSupplies: [],
 			userBorrows: [{
-				market: {
-					address: ethereumMarket.address,
-					chain: { chainId: 1 },
-				},
-				currency: {
-					address: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-					symbol: 'WETH',
-					decimals: 18,
-					chainId: 1,
-				},
+				...accountBorrow,
 				debt: {
+					...accountBorrow.debt,
 					amount: { value: 2.5 },
-					usd: '5000',
 				},
-				apy: { value: '0.05' },
 			}],
 		}],
 	])('fails closed for %s', async (_, response) => {
@@ -961,14 +888,8 @@ describe('Aave account position operations', () => {
 				],
 			})
 			.mockResolvedValueOnce({
-				userSupplies: [
-					{
-						market: {
-							address: ethereumMarket.address,
-							chain: {
-								chainId: 1,
-							},
-						},
+				userSupplies: [{
+					...accountSupply,
 						currency: {
 							address: '0xA0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
 							symbol: 'USDC',
@@ -985,10 +906,8 @@ describe('Aave account position operations', () => {
 						apy: {
 							value: '0.01',
 						},
-						isCollateral: false,
-						canBeCollateral: true,
-					},
-				],
+					isCollateral: false,
+				}],
 				userBorrows: [],
 			})
 

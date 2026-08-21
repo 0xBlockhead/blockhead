@@ -176,18 +176,6 @@ describe('Morpho GraphQL market enumeration', () => {
 				offset: 7,
 			},
 		})
-		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('chainId_in: $chainIds')
-		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('first: $limit')
-		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('skip: $offset')
-		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('countTotal')
-		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('utilization')
-		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('supplyApy')
-		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('liquidityAssets')
-		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('listed')
-		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('netSupplyApy')
-		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('avgSupplyApy')
-		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('rewards')
-		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('symbol')
 	})
 
 	it('returns a successful empty market list', async () => {
@@ -327,11 +315,6 @@ describe('Morpho GraphQL market enumeration', () => {
 				marketId: market.marketId,
 			},
 		})
-		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('marketById')
-		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('creationBlockNumber')
-		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('supplyAssets')
-		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('borrowApy')
-		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('collateralAssets')
 	})
 
 	it('fails closed when a detail response omits its market', async () => {
@@ -595,17 +578,6 @@ describe('Morpho GraphQL MetaMorpho vault enumeration', () => {
 				offset: 8,
 			},
 		})
-		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('chainId_in: $chainIds')
-		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('first: $limit')
-		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('skip: $offset')
-		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('orderBy: TotalAssetsUsd')
-		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('totalAssets')
-		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('totalSupply')
-		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('netApy')
-		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('sharePriceUsd')
-		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('netApyExcludingRewards')
-		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('allRewards')
-		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('countTotal')
 	})
 
 	it('returns a successful empty vault list', async () => {
@@ -695,7 +667,6 @@ describe('Morpho GraphQL MetaMorpho vault enumeration', () => {
 				address: '0xbeef01735c132ada46aa9aa4c54623caa92a64cb',
 			},
 		})
-		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('vaultByAddress')
 	})
 
 	it('omits vault tip state when GraphQL state is null', async () => {

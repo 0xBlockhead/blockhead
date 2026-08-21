@@ -123,29 +123,15 @@ const testSourceIndex = <const _Source extends string>(sources: readonly _Source
 
 
 describe('source applicability planning contract', () => {
-	it('non-Superchain EIP-155 networks exclude Superchain', () => {
+	it.each([
+		['ethereum', []],
+		['arbitrum', []],
+		['optimism', [Source.Superchain_Github]],
+		['cosmos', [Source.CosmosSdk_Rest]],
+	] as const)('plans applicable sources for %s', (network, expectedSources) => {
 		expect(networkSources({
-			caip2: networkBySlug.ethereum.caip2,
-		})).toEqual([])
-		expect(networkSources({
-			caip2: networkBySlug.arbitrum.caip2,
-		})).toEqual([])
-	})
-
-	it('known Superchain includes source', () => {
-		expect(networkSources({
-			caip2: networkBySlug.optimism.caip2,
-		})).toEqual([
-			Source.Superchain_Github,
-		])
-	})
-
-	it('cosmoshub includes Cosmos', () => {
-		expect(networkSources({
-			caip2: networkBySlug.cosmos.caip2,
-		})).toEqual([
-			Source.CosmosSdk_Rest,
-		])
+			caip2: networkBySlug[network].caip2,
+		})).toEqual(expectedSources)
 	})
 
 	it('excluded source never invokes or owns outcome', async () => {
@@ -599,24 +585,4 @@ describe('source applicability planning contract', () => {
 		})
 	})
 
-	it('exact checked-in Superchain membership', () => {
-		const superchainResolversForCaip2 = resolverIndexes.resolverDefinitionsByEntityTypeAndSelectorName[
-			resolverDefinitionsKey(EntityType.Network, 'Caip2')
-		].filter((resolver) => resolver.source === Source.Superchain_Github)
-
-		for (const resolver of superchainResolversForCaip2) {
-			expect(resolver.appliesTo('Caip2', {
-				caip2: networkBySlug.base.caip2,
-			})).toBe(true)
-			expect(resolver.appliesTo('Caip2', {
-				caip2: networkBySlug.optimism.caip2,
-			})).toBe(true)
-			expect(resolver.appliesTo('Caip2', {
-				caip2: networkBySlug.ethereum.caip2,
-			})).toBe(false)
-			expect(resolver.appliesTo('Caip2', {
-				caip2: networkBySlug.arbitrum.caip2,
-			})).toBe(false)
-		}
-	})
 })

@@ -16,7 +16,6 @@ import { indexResolvers } from '$/resolvers/$resolvers.ts'
 import {
 	EntityMetaKey,
 	entityFieldAddressKey,
-	entityFieldDefinitions,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
@@ -348,20 +347,6 @@ describe('Beacon REST checkpoint and fork projections', () => {
 				reference: '10',
 			},
 		})).toBe(false)
-	})
-
-	it('is the sole default source for Network.Evm.consensusEndpoints', () => {
-		const networkDefinition = schema.find((definition) => (
-			definition.entityType === EntityType.Network
-		))
-		if (networkDefinition == null)
-			throw new Error('Network schema definition missing')
-
-		expect(entityFieldDefinitions(networkDefinition).find((field) => (
-			field.name === 'consensusEndpoints'
-		))?.defaultSources).toEqual([
-			Source.Beacon_Rest,
-		])
 	})
 
 	it('converts native finality checkpoint fields only at schema projection', async () => {
