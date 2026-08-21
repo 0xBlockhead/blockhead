@@ -40,6 +40,13 @@ import {
 import { discoverFilteredPathnamesFromRoutes } from './_routeDiscovery.ts'
 import { e2eBoundaryLiveOptionalPathnames } from './_routeParamFixtures.ts'
 import { setupRouteViewSmokePage } from './_routeViewDiagnostics.ts'
+import {
+	assertRouteReportCoherent,
+	createRouteRunIdentity,
+	resultSetFingerprint,
+	type RouteRunIdentity,
+	type RouteResult,
+} from '../../scripts/e2e/routeRunIdentity.ts'
 
 
 const gotoLoadTimeoutMs = 120_000
@@ -380,13 +387,27 @@ const attachBoundaryArtifacts = async (
 
 	const summary = formatBoundaryReportSummary(reports, e2eBoundaryLiveOptionalPathnames)
 	console.log(`\n--- route matrix ---\n${summary}`)
+	const artifactReports = reports.map((report) => {
+		const artifactReport = {
+			...report,
+			runIdentity: routeRunIdentity,
+			resultSetFingerprint: routeResultSetFingerprint,
+		}
+		assertRouteReportCoherent({
+			acceptedResults: routeResults,
+			report: artifactReport,
+			runIdentity: routeRunIdentity,
+			reportName: `route-matrix:${report.pathname}`,
+		})
+		return artifactReport
+	})
 
 	await testInfo.attach('route-matrix-summary.txt', {
 		body: summary,
 		contentType: 'text/plain',
 	})
 	await testInfo.attach('route-matrix-report.json', {
-		body: JSON.stringify(reports, null, 2),
+		body: JSON.stringify(artifactReports, null, 2),
 		contentType: 'application/json',
 	})
 }
@@ -575,7 +596,7 @@ const {
 		|| failFast
 	)
 		return {
-			routePathnames: [] as string[],
+			routePathnames: probePath != null && probePath !== '' ? [probePath] : [],
 			routeDiscoveryError: undefined,
 		}
 
@@ -592,6 +613,22 @@ const {
 		}
 	}
 })()
+
+const routeRunIdentity: RouteRunIdentity = await createRouteRunIdentity({
+	browserIdentity: process.env.E2E_BROWSER_IDENTITY?.trim() || 'playwright',
+	buildIdentity: process.env.E2E_BUILD_IDENTITY?.trim() || 'dev',
+	captureContractVersion: 'route-matrix-v1',
+	classifierVersion: 'route-boundary-v1',
+	corpusVersion: `route-pathnames-v1:${routePathnames.length}`,
+	repositoryDirectory: process.cwd(),
+})
+
+const routeResults: RouteResult[] = routePathnames.map((pathname) => ({
+		targetId: 'route-matrix',
+		exampleId: pathname,
+		exampleVersion: 'route-matrix-v1',
+}))
+const routeResultSetFingerprint = resultSetFingerprint(routeResults)
 
 
 test.describe('route matrix (shell, URL, settlement, diagnostics, boundary)', () => {
