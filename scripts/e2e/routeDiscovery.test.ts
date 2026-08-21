@@ -26,7 +26,7 @@ test('route probe atom values exactly cover every generated atom', () => {
 	)
 })
 
-test('excludes unsupported Hyperliquid observation pages from route discovery', () => {
+test('excludes unsupported Hyperliquid observations while retaining block-scoped Near account state', () => {
 	const mappingIds = Object.values(e2eRouteFixtureMetadataByNodeId).flatMap(({ mappings }) => (
 		mappings.map(({ id }) => id)
 	))
@@ -41,7 +41,7 @@ test('excludes unsupported Hyperliquid observation pages from route discovery', 
 	])
 		assert.equal(mappingIds.includes(mappingId), false)
 
-	assert.equal(mappingIds.includes('NearAccount_Timestamp.AccountTimestampMsSource'), true)
+	assert.equal(mappingIds.includes('NearAccount_Block.AccountBlock'), true)
 	assert.equal(Object.keys(e2eRouteProbeAtomValueById).some((atom) => (
 		[
 			'HyperliquidAccount_Timestamp',

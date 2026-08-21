@@ -245,6 +245,79 @@ const installEthereumEipGithubStub = async (page: Page) => {
 	)
 }
 
+const installAtprotoGraphStub = async (page: Page) => {
+	await page.route(
+		(url) => {
+			const href = decodeURIComponent(url.href)
+			return (
+				href.includes('app.bsky.graph.getList')
+				|| href.includes('app.bsky.graph.getStarterPack')
+				|| href.includes('app.bsky.actor.getProfile')
+			)
+		},
+		async (route) => {
+			const href = decodeURIComponent(route.request().url())
+			if (href.includes('app.bsky.actor.getProfile')) {
+				await route.fulfill({
+					contentType: 'application/json',
+					body: JSON.stringify({
+						did: 'did:plc:journeyfixture',
+						handle: 'journeyfixture.test',
+						displayName: 'Journey Fixture',
+						avatar: 'https://cdn.bsky.app/journey-fixture.png',
+						indexedAt: '2026-08-21T00:00:00.000Z',
+					}),
+				})
+				return
+			}
+			const uri = href.includes('app.bsky.graph.getStarterPack') ?
+				'at://did:plc:journeyfixture/app.bsky.graph.starterpack/welcome'
+			:
+				'at://did:plc:journeyfixture/app.bsky.graph.list/team'
+			if (href.includes('app.bsky.graph.getStarterPack')) {
+				await route.fulfill({
+					contentType: 'application/json',
+					body: JSON.stringify({
+						starterPack: {
+							uri,
+							cid: 'bafyreijourneystarterpack',
+							creator: {
+								did: 'did:plc:journeyfixture',
+								handle: 'journeyfixture.test',
+							},
+							list: {
+								uri: 'at://did:plc:journeyfixture/app.bsky.graph.list/team',
+								cid: 'bafyreijourneylist',
+								name: 'Journey Team',
+								purpose: 'app.bsky.graph.defs#referencelist',
+							},
+							indexedAt: '2026-08-21T00:00:00.000Z',
+						},
+					}),
+				})
+				return
+			}
+			await route.fulfill({
+				contentType: 'application/json',
+				body: JSON.stringify({
+					list: {
+						uri,
+						cid: 'bafyreijourneylist',
+						creator: {
+							did: 'did:plc:journeyfixture',
+							handle: 'journeyfixture.test',
+						},
+						name: 'Journey Team',
+						purpose: 'app.bsky.graph.defs#referencelist',
+						indexedAt: '2026-08-21T00:00:00.000Z',
+					},
+					items: [],
+				}),
+			})
+		}
+	)
+}
+
 const installRouteMatrixPage = async (
 	page: Page,
 	databaseName: string,
@@ -281,6 +354,7 @@ const installRouteMatrixPage = async (
 	await installBoundaryProbe(page)
 	await installChainlistRpcsJsonStub(page)
 	await installEthereumEipGithubStub(page)
+	await installAtprotoGraphStub(page)
 }
 
 const collectRouteBoundaryReport = async (
