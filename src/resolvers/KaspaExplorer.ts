@@ -1,5 +1,5 @@
 import { networkBySlug } from '$/constants/Network.ts'
-import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
+import { resolverContextRowLimit, type ResolverContext } from '$/resolvers/$resolvers.ts'
 import { defineResolver, type RegisteredSourceResolverModule } from '$/resolvers/defineResolver.ts'
 import {
 	entityFieldAddressKey,
@@ -37,6 +37,20 @@ const assertKaspaMainnet = (
 		return
 
 	throw new Error('Kaspa Explorer: unsupported network')
+}
+
+const assertCurrentObservation = (
+	timestampMs: number,
+	context: ResolverContext,
+	label: string
+) => {
+	const requestedTimestamps = context.filters.flatMap((filter) => {
+		if (filter.fieldPath.length !== 1 || filter.fieldPath[0] !== 'timestampMs')
+			return []
+		return Array.isArray(filter.value) ? filter.value : [filter.value]
+	})
+	if (requestedTimestamps.some((requestedTimestamp) => requestedTimestamp !== timestampMs))
+		throw new Error(`Kaspa Explorer: historical ${label} observations are unsupported`)
 }
 
 const kaspaTransactionFields = (
@@ -164,20 +178,25 @@ export default {
 							getAddressBalance,
 							getAddressTransactionCount,
 							getAddressUtxoCount,
+							getBlockdag,
 						} = await import('$/sources/KaspaExplorer/Rest/queries.ts')
 						const [
 							balance,
 							transactions,
 							utxos,
+							blockdag,
 						] = await Promise.all([
 							getAddressBalance({ kaspaAddress: address.address }),
 							getAddressTransactionCount({ kaspaAddress: address.address }),
 							getAddressUtxoCount({ kaspaAddress: address.address }),
+							getBlockdag(),
 						])
+						const timestampMs = Number(blockdag.pastMedianTime)
+						assertCurrentObservation(timestampMs, context, 'address')
 						return [{
 							[EntityMetaKey.Selector]: {
 								$address: address,
-								timestampMs: Date.now(),
+								timestampMs,
 								source: Source.KaspaExplorer,
 							},
 							[EntityMetaKey.Fields]: {
@@ -204,13 +223,15 @@ export default {
 						if (limit === 0)
 							return []
 
-						const { getCompleteAddressUtxos } = await import('$/sources/KaspaExplorer/Rest/queries.ts')
-						const utxos = await getCompleteAddressUtxos({
-							kaspaAddress: address.address,
-						})
+						const { getBlockdag, getCompleteAddressUtxos } = await import('$/sources/KaspaExplorer/Rest/queries.ts')
+						const [utxos, blockdag] = await Promise.all([
+							getCompleteAddressUtxos({ kaspaAddress: address.address }),
+							getBlockdag(),
+						])
 						if (utxos.length > limit)
 							throw new Error('Kaspa Explorer: complete UTXO snapshot exceeds the requested row limit')
-						const timestampMs = Date.now()
+						const timestampMs = Number(blockdag.pastMedianTime)
+						assertCurrentObservation(timestampMs, context, 'address UTXO')
 						return utxos.map((utxo) => ({
 							[EntityMetaKey.Selector]: {
 								$address: address,

@@ -124,7 +124,6 @@ const resolverContext = {
 describe('Kaspa Explorer address resolver', () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
-		vi.spyOn(Date, 'now').mockReturnValue(1_720_000_000_000)
 	})
 
 	it('declares canonical Kaspa selector applicability and source authority', () => {
@@ -175,6 +174,7 @@ describe('Kaspa Explorer address resolver', () => {
 	})
 
 	it('materializes one exact sompi/count observation with resolution-time provenance', async () => {
+		getBlockdag.mockResolvedValueOnce({ pastMedianTime: '1720000000000' })
 		getAddressBalance.mockResolvedValueOnce({
 			address: address.address,
 			balance: 9_000_000,
@@ -238,6 +238,7 @@ describe('Kaspa Explorer address resolver', () => {
 				},
 			},
 		])
+		getBlockdag.mockResolvedValueOnce({ pastMedianTime: '1720000000000' })
 
 		const utxos = await utxosResolver.resolve[
 			'NetworkAddress'
@@ -263,6 +264,31 @@ describe('Kaspa Explorer address resolver', () => {
 			[entityFieldAddressKey(EntityType.KaspaAddressUtxo_Timestamp, [], 'blockDaaScore')]: 12_345_678_901_234_567n,
 			[entityFieldAddressKey(EntityType.KaspaAddressUtxo_Timestamp, [], 'isCoinbase')]: false,
 		})
+	})
+
+	it('rejects historical address and UTXO observation selectors', async () => {
+		getAddressBalance.mockResolvedValueOnce({ address: address.address, balance: 1 })
+		getAddressTransactionCount.mockResolvedValueOnce({ total: 1 })
+		getAddressUtxoCount.mockResolvedValueOnce({ count: 0 })
+		getBlockdag.mockResolvedValueOnce({ pastMedianTime: '1720000000000' })
+		const historicalContext = {
+			...resolverContext,
+			filters: [{ fieldPath: ['timestampMs'], operator: 'eq' as const, value: 1_719_999_999_999 }],
+		}
+
+		await expect(observationsResolver.resolve[
+			'NetworkAddress'
+		].resolve(address, historicalContext)).rejects.toThrow(
+			'Kaspa Explorer: historical address observations are unsupported'
+		)
+
+		getCompleteAddressUtxos.mockResolvedValueOnce([])
+		getBlockdag.mockResolvedValueOnce({ pastMedianTime: '1720000000000' })
+		await expect(utxosResolver.resolve[
+			'NetworkAddress'
+		].resolve(address, historicalContext)).rejects.toThrow(
+			'Kaspa Explorer: historical address UTXO observations are unsupported'
+		)
 	})
 
 	it('materializes newest-first transaction identity and advances the bounded cursor', async () => {
