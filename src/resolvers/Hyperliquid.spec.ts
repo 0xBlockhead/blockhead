@@ -281,9 +281,12 @@ describe('Hyperliquid public account resolvers', () => {
 			[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'perpAddRate')]: '0.000105',
 			[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'spotCrossRate')]: '0.00049',
 			[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'spotAddRate')]: '0.00028',
+			[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'activeReferralDiscount')]: '0.0',
 		})
 		expect(timestamps[3]?.[EntityMetaKey.Fields]).toEqual({
 			[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'delegated')]: '12',
+			[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'undelegated')]: '0',
+			[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'totalPendingWithdrawal')]: '0',
 			[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'pendingWithdrawalCount')]: 0,
 		})
 		expect(timestamps[4]?.[EntityMetaKey.Fields]).toEqual({
@@ -866,7 +869,7 @@ describe('Hyperliquid order status resolver', () => {
 				[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'size')]: '9007199254740992.999999999999999999',
 				[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'remainingSize')]: '9007199254740992.999999999999999999',
 				[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'filledSize')]: '0.000000000000000002',
-				[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'children')]: [],
+				[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], '$$children')]: [],
 			},
 		}])
 	})

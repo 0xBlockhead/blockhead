@@ -857,7 +857,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["QuilibriumNodeRpc_Grpc","NetworkSlug","quilibrium","ServerOnly","GrpcService"] | QuilibriumNodeRpc | QuilibriumNodeRpc_Grpc | NetworkSlug | quilibrium | Grpc | GrpcService | GenericRead | ServerOnly |
 | ["Radicle_Local","GitRepository","radicle-repository","LocalOnly","GitObject"] | Radicle | Radicle_Local | GitRepository | radicle-repository | LocalFile | GitObject | GitRepositoryContents, RepositoryMetadata | LocalOnly |
 | ["Radicle_Remote","GitRepository","radicle-repository","RemoteQuery","RestJson"] | Radicle | Radicle_Remote | GitRepository | radicle-repository | HttpRest | RestJson | RepositoryMetadata | RemoteQuery |
-| ["RadicleCli_Local","LocalDevice","radicle-cli","LocalOnly","LocalParser"] | RadicleCli | RadicleCli_Local | LocalDevice | radicle-cli | InProcess | LocalParser | RepositoryMetadata | LocalOnly |
+| ["RadicleCli_Local","LocalDevice","radicle-cli","LocalOnly","LocalParser"] | RadicleCli | RadicleCli_Local | LocalDevice | radicle-cli | InProcess | LocalParser | GenericRead, IssueTracking, PullRequestReview, RepositoryMetadata | LocalOnly |
 | ["RadicleNode_Control","LocalDevice","radicle-node","ServerOnly","RestJson"] | RadicleNode | RadicleNode_Control | LocalDevice | radicle-node | HttpRest | RestJson | RepositoryMetadata | ServerOnly |
 | ["Reddit_PublicJson","Global","reddit-public-json","HttpProxy","RestJson"] | RedditPublic | Reddit_PublicJson | Global | reddit-public-json | HttpRest | RestJson | GenericRead | HttpProxy |
 | ["Reddit_Rest","Global","oauth-api","HttpProxy","RestJson"] | Reddit | Reddit_Rest | Global | oauth-api | HttpRest | RestJson | GenericRead | HttpProxy |

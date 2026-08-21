@@ -1462,6 +1462,16 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
+	'/(explore)/(networks)/network/[network]/(accounts)/account/[accountId]/balance/[tokenIndex]': {
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=stringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey]/(selection)/balance/[tokenIndex=nonNegativeInteger]',
+		mappings: [
+			{
+				id: 'HyperliquidBalance.AccountTokenIndex',
+				probeAtomPrefixes: ['/network/[network]/account/[accountId]/balance/[tokenIndex]:HyperliquidBalance.AccountTokenIndex'],
+				probeCases: [[[0, '1', ['tokenIndex', 'accountId', 'network']]]],
+			},
+		],
+	},
 	'/(explore)/(networks)/network/[network]/(accounts)/account/[accountId]/balancer/vebal': {
 		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=stringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey]/(selection)/balancer/vebal',
 		mappings: [
@@ -1489,6 +1499,16 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				id: 'HyperliquidBorrowLendPosition.AccountTokenIndex',
 				probeAtomPrefixes: ['/network/[network]/account/[accountId]/borrow-lend/[tokenIndex]:HyperliquidBorrowLendPosition.AccountTokenIndex'],
 				probeCases: [[[0, '1', ['tokenIndex', 'accountId', 'network']]]],
+			},
+		],
+	},
+	'/(explore)/(networks)/network/[network]/(accounts)/account/[accountId]/builder/[builder]': {
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=stringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey]/(selection)/builder/[builder=evmAddress]',
+		mappings: [
+			{
+				id: 'HyperliquidBuilderApproval.AccountBuilder',
+				probeAtomPrefixes: ['/network/[network]/account/[accountId]/builder/[builder]:HyperliquidBuilderApproval.AccountBuilder'],
+				probeCases: [[[0, '1', ['builder', 'accountId', 'network']]]],
 			},
 		],
 	},
@@ -1724,6 +1744,16 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				id: 'HyperliquidOrder.AccountOid',
 				probeAtomPrefixes: ['/network/[network]/account/[accountId]/order/id/[oid]:HyperliquidOrder.AccountOid'],
 				probeCases: [[[0, '1', ['oid', 'accountId', 'network']]]],
+			},
+		],
+	},
+	'/(explore)/(networks)/network/[network]/(accounts)/account/[accountId]/position/[coin]': {
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=stringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey]/(selection)/position/[coin=stringSegment]',
+		mappings: [
+			{
+				id: 'HyperliquidPosition.AccountCoin',
+				probeAtomPrefixes: ['/network/[network]/account/[accountId]/position/[coin]:HyperliquidPosition.AccountCoin'],
+				probeCases: [[[0, '1', ['coin', 'accountId', 'network']]]],
 			},
 		],
 	},

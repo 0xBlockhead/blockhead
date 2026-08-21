@@ -122,7 +122,10 @@ describe('Hyperliquid public account Info transport', () => {
 					: body.type === 'userFees' ?
 						{
 							dailyUserVlm: [],
-							feeSchedule: {},
+							feeSchedule: {
+								cross: '0',
+								add: '0',
+							},
 							userCrossRate: '0',
 							userAddRate: '0',
 							userSpotCrossRate: '0',

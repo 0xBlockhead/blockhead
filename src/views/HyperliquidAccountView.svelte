@@ -37,6 +37,9 @@
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
 	import HyperliquidAccountView from '$/views/HyperliquidAccountView.svelte'
+	import HyperliquidPositionsView from '$/views/HyperliquidPositionsView.svelte'
+	import HyperliquidBalancesView from '$/views/HyperliquidBalancesView.svelte'
+	import HyperliquidBuilderApprovalsView from '$/views/HyperliquidBuilderApprovalsView.svelte'
 	import HyperliquidOrdersView from '$/views/HyperliquidOrdersView.svelte'
 	import HyperliquidFillsView from '$/views/HyperliquidFillsView.svelte'
 	import HyperliquidVaultEquity_TimestampsView from '$/views/HyperliquidVaultEquity_TimestampsView.svelte'
@@ -154,6 +157,18 @@
 			sections={
 				[
 					{
+						id: 'hyperliquid-account-positions',
+						label: 'Positions',
+					},
+					{
+						id: 'hyperliquid-account-balances',
+						label: 'Balances',
+					},
+					{
+						id: 'hyperliquid-account-builder-approvals',
+						label: 'Builder approvals',
+					},
+					{
 						id: 'hyperliquid-account-orders',
 						label: 'Orders',
 					},
@@ -178,6 +193,36 @@
 				<header data-row-item="flexible" data-row="wrap gap-4">
 					<HeadingComponent>Activity</HeadingComponent>
 				</header>
+			{/snippet}
+
+			{#snippet SectionHyperliquidAccountPositions({ id, label })}
+				<HyperliquidPositionsView
+					selection={selection.$$positions}
+					collapsible={false}
+					title={label}
+					emptyText='No positions.'
+					id={`${id}-list`}
+				/>
+			{/snippet}
+
+			{#snippet SectionHyperliquidAccountBalances({ id, label })}
+				<HyperliquidBalancesView
+					selection={selection.$$balances}
+					collapsible={false}
+					title={label}
+					emptyText='No balances.'
+					id={`${id}-list`}
+				/>
+			{/snippet}
+
+			{#snippet SectionHyperliquidAccountBuilderApprovals({ id, label })}
+				<HyperliquidBuilderApprovalsView
+					selection={selection.$$builderApprovals}
+					collapsible={false}
+					title={label}
+					emptyText='No builder approvals.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
 			{#snippet SectionHyperliquidAccountOrders({ id, label })}

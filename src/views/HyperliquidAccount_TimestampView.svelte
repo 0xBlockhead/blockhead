@@ -202,6 +202,248 @@
 				resource={
 					selection({
 						fields: {
+							perpCrossRate: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const perpCrossRate = entity.perpCrossRate}
+					{#if perpCrossRate != null}
+						<div>
+							<dt>perp cross rate</dt>
+							<dd>
+								{perpCrossRate}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							perpAddRate: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const perpAddRate = entity.perpAddRate}
+					{#if perpAddRate != null}
+						<div>
+							<dt>perp add rate</dt>
+							<dd>
+								{perpAddRate}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							spotCrossRate: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const spotCrossRate = entity.spotCrossRate}
+					{#if spotCrossRate != null}
+						<div>
+							<dt>spot cross rate</dt>
+							<dd>
+								{spotCrossRate}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							spotAddRate: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const spotAddRate = entity.spotAddRate}
+					{#if spotAddRate != null}
+						<div>
+							<dt>spot add rate</dt>
+							<dd>
+								{spotAddRate}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							activeReferralDiscount: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const activeReferralDiscount = entity.activeReferralDiscount}
+					{#if activeReferralDiscount != null}
+						<div>
+							<dt>active referral discount</dt>
+							<dd>
+								{activeReferralDiscount}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							delegated: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const delegated = entity.delegated}
+					{#if delegated != null}
+						<div>
+							<dt>delegated</dt>
+							<dd>
+								{delegated}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							undelegated: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const undelegated = entity.undelegated}
+					{#if undelegated != null}
+						<div>
+							<dt>undelegated</dt>
+							<dd>
+								{undelegated}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							totalPendingWithdrawal: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const totalPendingWithdrawal = entity.totalPendingWithdrawal}
+					{#if totalPendingWithdrawal != null}
+						<div>
+							<dt>total pending withdrawal</dt>
+							<dd>
+								{totalPendingWithdrawal}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							pendingWithdrawalCount: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const pendingWithdrawalCount = entity.pendingWithdrawalCount}
+					{#if pendingWithdrawalCount != null}
+						<div>
+							<dt>pending withdrawal count</dt>
+							<dd>
+								{pendingWithdrawalCount}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							abstractionMode: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const abstractionMode = entity.abstractionMode}
+					{#if abstractionMode != null}
+						<div>
+							<dt>abstraction mode</dt>
+							<dd>
+								{abstractionMode}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							dexAbstractionEnabled: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const dexAbstractionEnabled = entity.dexAbstractionEnabled}
+					{#if dexAbstractionEnabled != null}
+						<div>
+							<dt>DEX abstraction enabled</dt>
+							<dd>
+								{dexAbstractionEnabled}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
 							borrowLendHealth: true,
 						},
 					})
