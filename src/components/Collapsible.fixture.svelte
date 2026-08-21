@@ -3,9 +3,13 @@
 	let {
 		itemKey,
 		summary,
+		id,
+		onclose,
 	}: {
 		itemKey: string
 		summary: string
+		id?: string
+		onclose?: (id?: string) => void
 	} = $props()
 	let openItemKey = $state<string>()
 
@@ -16,6 +20,8 @@
 
 
 <Collapsible
+	{id}
+	{onclose}
 	bind:open={
 		() => openItemKey === itemKey,
 		(_open) => {

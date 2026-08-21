@@ -3,6 +3,7 @@
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import type { SvelteHTMLElements } from 'svelte/elements'
 	import type { Snippet } from 'svelte'
+	import { onDestroy } from 'svelte'
 
 
 	// Context
@@ -50,14 +51,30 @@
 
 	// Inner context
 	incrementHeadingLevel()
+	let closeTimeout: ReturnType<typeof setTimeout> | undefined
+
+	const cancelClose = () => {
+		if (closeTimeout !== undefined) {
+			clearTimeout(closeTimeout)
+			closeTimeout = undefined
+		}
+	}
+
+	onDestroy(cancelClose)
 </script>
 
 
 <details
 	bind:open
 	ontoggle={(e) => {
-		if (!e.currentTarget.open && onclose) {
-			setTimeout(() => onclose(detailsProps.id ?? undefined), 300)
+		if (e.currentTarget.open) {
+			cancelClose()
+		} else if (onclose) {
+			cancelClose()
+			closeTimeout = setTimeout(() => {
+				closeTimeout = undefined
+				if (!open) onclose(detailsProps.id ?? undefined)
+			}, 300)
 		}
 		ontoggle?.(e)
 	}}
