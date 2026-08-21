@@ -10,7 +10,7 @@ const project = {
 	http_url_to_repo: 'https://gitlab.com/gitlab-org/gitlab.git',
 	ssh_url_to_repo: 'git@gitlab.com:gitlab-org/gitlab.git',
 	web_url: 'https://gitlab.com/gitlab-org/gitlab',
-	repository_object_format: 'sha1',
+	repository_object_format: null,
 }
 
 test('GitLab mirror visibly connects provider identity to the native Git repository and refs', async ({ page }) => {
@@ -232,6 +232,7 @@ test('GitLab mirror visibly connects provider identity to the native Git reposit
 	await expect(page.locator('a[href*="/git/repository/remote/https%3A%2F%2Fgitlab.com%2Fgitlab-org%2Fgitlab.git"]')).toBeAttached({
 		timeout: 120_000,
 	})
+	await expect(page.locator('a[href*="/object/"]')).toHaveCount(0)
 
 	await page.goto('/git/forge/gitlab.com/gitlab-org/gitlab/issue/12')
 	await expect(page.locator('#main')).toContainText('Preserve native repository links', {
