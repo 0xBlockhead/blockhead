@@ -3,6 +3,7 @@ import test from 'node:test'
 
 import { app, EntityType } from '../../APP.ts'
 import { compileApp } from './generate.ts'
+import { EntityFieldCardinality, EntityFieldType } from './model.ts'
 import { renderGeneratedFile } from './render.ts'
 
 
@@ -31,7 +32,11 @@ test('exports complete immutable generated-file, source-claim, and source-accoun
 	)
 	assertRecursivelyFrozen(compiledApp)
 	assert.ok(compiledApp.generatedFiles.length > 0)
-	assert.deepEqual(compiledApp.presentationManifest, [{
+	assert.deepEqual(compiledApp.presentationManifest.map((entry) => ({
+		...entry,
+		owner: { ...entry.owner },
+		placement: { ...entry.placement },
+	})), [{
 		id: 'ArweaveResource.$$manifestPaths',
 		owner: {
 			entityType: EntityType.ArweaveResource,
@@ -408,5 +413,5 @@ test('classifies every source claim and mapped selector against authority', () =
 		&& claim.access === 'Public'
 		&& claim.executability === 'ResolverMissing'
 	))
-	assert.equal(publicColdReadGaps.length, 28)
+	assert.equal(publicColdReadGaps.length, 0)
 })
