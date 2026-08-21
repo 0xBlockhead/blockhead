@@ -347,8 +347,11 @@ test('classifies every source claim and mapped selector against authority', () =
 		)
 		assert.ok([
 			'PublicRouteDemand',
+			'PublicRouteResolverMissing',
 			'LocalRuntimeDemand',
+			'LocalRuntimeResolverMissing',
 			'NonExecutableDemand',
+			'NonExecutableResolverMissing',
 			'ResolverOnlyCapability',
 			'FieldSourcedIdentity',
 			'ReferenceMaterializedIdentity',

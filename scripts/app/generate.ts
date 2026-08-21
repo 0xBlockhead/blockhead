@@ -1861,48 +1861,6 @@ const compileMappedSelectorFacts = (
 	sources: mapping.sourceSelection == null ? [] : sourceSelectionSources(mapping.sourceSelection),
 })))
 
-// An entity without its own source claim is still accountable when a claimed
-// entity references it, because those child rows are materialized by the
-// reference owner's resolver rather than by a claim of their own. Reference
-// ownership is transitive: a claimed root materializes its whole child chain.
-const compileReferenceMaterializedEntityTypes = (
-	entities: readonly Entity[],
-	facetEntries: readonly EntityFacetEntry[],
-	claimedEntityTypes: ReadonlySet<string>
-) => {
-	const referencedEntityTypesByOwner = Map.groupBy(
-		[
-			...entities.flatMap((entity) => entity.fields.map((field) => ({
-				entityType: entity.entityType,
-				field,
-			}))),
-			...facetEntries.flatMap((facetEntry) => (facetEntry.facet.fields ?? []).map((field) => ({
-				entityType: facetEntry.entityType,
-				field,
-			}))),
-		].filter(({ field }) => (
-			(
-				field.type === EntityFieldType.EntityReference
-				|| field.type === EntityFieldType.EntitiesReference
-			)
-			&& field.entityType != null
-		)),
-		({ entityType }) => entityType
-	)
-	const materialized = new Set<string>()
-	const owners = [...claimedEntityTypes]
-	for (const owner of owners)
-		for (const { field } of referencedEntityTypesByOwner.get(owner) ?? []) {
-			if (field.entityType == null || materialized.has(field.entityType) || claimedEntityTypes.has(field.entityType))
-				continue
-
-			materialized.add(field.entityType)
-			owners.push(field.entityType)
-		}
-
-	return materialized
-}
-
 const sourceSelectionConditionFields = (
 	selection: _SourceSelection
 ) => {
@@ -6039,11 +5997,10 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 		})),
 		resolverModules,
 		fieldSourcedEntityTypes,
-		referenceMaterializedEntityTypes: compileReferenceMaterializedEntityTypes(
-			activeEntities,
-			facetEntries,
-			new Set(sourceClaims.map((claim) => claim.entityType))
-		),
+		// Reference identity is supplied by the resolver-gap audit, where the
+		// loaded parent materializer and its exact field path are available. The
+		// generator must not infer it from schema edges alone.
+		referenceMaterializedEntityTypes: new Set(),
 	})
 	const sourceAccountability = {
 		claims: sourceClaims.map((claim) => classifySourceClaim(claim, accountabilityAuthority)),

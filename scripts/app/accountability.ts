@@ -23,8 +23,11 @@ export enum SourceClaimExecutability {
 
 export enum MappedSelectorAccountability {
 	PublicRouteDemand = 'PublicRouteDemand',
+	PublicRouteResolverMissing = 'PublicRouteResolverMissing',
 	LocalRuntimeDemand = 'LocalRuntimeDemand',
+	LocalRuntimeResolverMissing = 'LocalRuntimeResolverMissing',
 	NonExecutableDemand = 'NonExecutableDemand',
+	NonExecutableResolverMissing = 'NonExecutableResolverMissing',
 	ResolverOnlyCapability = 'ResolverOnlyCapability',
 	FieldSourcedIdentity = 'FieldSourcedIdentity',
 	ReferenceMaterializedIdentity = 'ReferenceMaterializedIdentity',
@@ -35,12 +38,22 @@ export type AccountabilityAuthority = Readonly<{
 	accessBySource: ReadonlyMap<string, SourceAccess>
 	deliveriesBySource: ReadonlyMap<string, readonly string[]>
 	resolverSources: ReadonlySet<string>
+	resolverClaimKeys?: ReadonlySet<string>
 	// A selector without its own route source selection still reads through the
 	// default sources declared by its entity fields, or through a claimed
 	// reference field that materializes it as a child row of another entity.
 	fieldSourcedEntityTypes: ReadonlySet<string>
 	referenceMaterializedEntityTypes: ReadonlySet<string>
 }>
+
+export const sourceClaimAccountabilityKey = (claim: Pick<SourceClaimFacts, 'publicRoute' | 'source' | 'entityType' | 'selectorName' | 'facetPath' | 'fieldName'>) => [
+	claim.publicRoute,
+	claim.source,
+	claim.entityType,
+	claim.selectorName,
+	claim.facetPath.join('.'),
+	claim.fieldName,
+].filter((part) => part != null && part !== '').join(':')
 
 type SourceClaimFacts = Readonly<{
 	source: string
@@ -99,6 +112,7 @@ const widestAccess = (
 export const indexAccountabilityAuthority = ({
 	sourceBindings,
 	resolverModules,
+	resolverClaimKeys,
 	fieldSourcedEntityTypes,
 	referenceMaterializedEntityTypes,
 }: {
@@ -109,6 +123,7 @@ export const indexAccountabilityAuthority = ({
 	resolverModules: readonly {
 		source: string
 	}[]
+	resolverClaimKeys?: ReadonlySet<string>
 	fieldSourcedEntityTypes: ReadonlySet<string>
 	referenceMaterializedEntityTypes: ReadonlySet<string>
 }): AccountabilityAuthority => ({
@@ -126,6 +141,7 @@ export const indexAccountabilityAuthority = ({
 			bindings.map(({ delivery }) => delivery).toSorted()
 		), new Map<string, readonly string[]>()),
 	resolverSources: new Set(resolverModules.map((resolverModule) => resolverModule.source)),
+	resolverClaimKeys,
 	fieldSourcedEntityTypes,
 	referenceMaterializedEntityTypes,
 })
@@ -143,7 +159,7 @@ export const classifySourceClaim = (
 	demand: claim.publicRoute == null ? SourceClaimDemand.FieldDefault : SourceClaimDemand.PublicRoute,
 	access: sourceAccess(claim.source, authority),
 	deliveries: authority.deliveriesBySource.get(claim.source) ?? [],
-	executability: authority.resolverSources.has(claim.source) ?
+	executability: (authority.resolverClaimKeys == null ? authority.resolverSources.has(claim.source) : authority.resolverClaimKeys.has(sourceClaimAccountabilityKey(claim))) ?
 		SourceClaimExecutability.ResolverDeclared
 	:
 		SourceClaimExecutability.ResolverMissing,
@@ -163,17 +179,27 @@ const mappedSelectorAccountability = (
 	if (!mapping.authoredPage)
 		return MappedSelectorAccountability.ResolverOnlyCapability
 
-	const access = mapping.sources.reduce(
+	const access = mapping.sources.reduce<SourceAccess>(
 		(widest, source) => widestAccess(sourceAccess(source, authority), widest),
 		SourceAccess.Undeclared
 	)
 
-	return access === SourceAccess.Public ?
-		MappedSelectorAccountability.PublicRouteDemand
-	: access === SourceAccess.LocalRuntime || access === SourceAccess.ServerRuntime ?
-		MappedSelectorAccountability.LocalRuntimeDemand
+	const resolverMissing = mapping.sources.some((source) => authority.resolverClaimKeys == null ?
+		!authority.resolverSources.has(source)
 	:
-		MappedSelectorAccountability.NonExecutableDemand
+		!authority.resolverClaimKeys.has(sourceClaimAccountabilityKey({
+			publicRoute: mapping.route,
+			source,
+			entityType: mapping.entityType,
+			selectorName: mapping.selectorName,
+			facetPath: [],
+		})))
+	return access === SourceAccess.Public ?
+		(resolverMissing ? MappedSelectorAccountability.PublicRouteResolverMissing : MappedSelectorAccountability.PublicRouteDemand)
+	: access === SourceAccess.LocalRuntime || access === SourceAccess.ServerRuntime ?
+		(resolverMissing ? MappedSelectorAccountability.LocalRuntimeResolverMissing : MappedSelectorAccountability.LocalRuntimeDemand)
+	:
+		(resolverMissing ? MappedSelectorAccountability.NonExecutableResolverMissing : MappedSelectorAccountability.NonExecutableDemand)
 }
 
 export const classifyMappedSelector = (

@@ -38,6 +38,7 @@ const semanticPropertyNames = new Set([
 	'routes',
 	'sourceBindings',
 	'sourceClaims',
+	'sourceAccountability',
 	'sourceProviders',
 	'sources',
 ])
@@ -551,6 +552,9 @@ test('product compiler separates source-claim analysis IR from renderer capabili
 	const compiledSourceClaimDeclaration = generatorSourceFile.statements.find((statement): statement is ts.TypeAliasDeclaration => (
 		ts.isTypeAliasDeclaration(statement) && statement.name.text === 'CompiledSourceClaim'
 	))
+	const compiledSourceAccountabilityDeclaration = generatorSourceFile.statements.find((statement): statement is ts.TypeAliasDeclaration => (
+		ts.isTypeAliasDeclaration(statement) && statement.name.text === 'CompiledSourceAccountability'
+	))
 
 	assert.deepEqual(
 		rendererSourceFile.statements
@@ -567,6 +571,7 @@ test('product compiler separates source-claim analysis IR from renderer capabili
 	assert.equal(renderGeneratedFileDeclaration.initializer.parameters[0]?.type?.getText(rendererSourceFile), 'GeneratedFile')
 	assert.ok(compiledAppDeclaration)
 	assert.ok(compiledSourceClaimDeclaration)
+	assert.ok(compiledSourceAccountabilityDeclaration)
 	assert.doesNotMatch(compiledAppDeclaration.type.getText(generatorSourceFile), /CompiledAppFacts|Entity|Route|Provider|Binding|Index/)
 	const compiledAppType = ts.isTypeReferenceNode(compiledAppDeclaration.type)
 		&& compiledAppDeclaration.type.typeArguments?.length === 1 ?
@@ -580,6 +585,12 @@ test('product compiler separates source-claim analysis IR from renderer capabili
 		compiledSourceClaimDeclaration.type
 	assert.ok(ts.isTypeLiteralNode(compiledAppType))
 	assert.ok(ts.isTypeLiteralNode(compiledSourceClaimType))
+	const compiledSourceAccountabilityType = ts.isTypeReferenceNode(compiledSourceAccountabilityDeclaration.type)
+		&& compiledSourceAccountabilityDeclaration.type.typeArguments?.length === 1 ?
+		compiledSourceAccountabilityDeclaration.type.typeArguments[0]
+	:
+		compiledSourceAccountabilityDeclaration.type
+	assert.ok(ts.isTypeLiteralNode(compiledSourceAccountabilityType))
 	assert.deepEqual(
 		[...compiledAppType.members]
 			.filter(ts.isPropertySignature)
@@ -587,6 +598,7 @@ test('product compiler separates source-claim analysis IR from renderer capabili
 		[
 			'generatedFiles',
 			'sourceClaims',
+			'sourceAccountability',
 		]
 	)
 	assert.deepEqual(
@@ -602,10 +614,20 @@ test('product compiler separates source-claim analysis IR from renderer capabili
 			'publicRoute',
 		]
 	)
+	assert.deepEqual(
+		[...compiledSourceAccountabilityType.members]
+			.filter(ts.isPropertySignature)
+			.map((property) => property.name.getText(generatorSourceFile)),
+		[
+			'claims',
+			'mappedSelectors',
+		]
+	)
 	assert.doesNotMatch(renderer, /CompiledSourceClaim|sourceClaims/)
 	assert.match(generator, /from '\.\/render\.ts'/)
 	assert.match(generator, /generatedFiles: generateFiles\(compiledApp\)/)
-	assert.match(generator, /sourceClaims: compileSourceClaims\(/)
-	assert.match(generator, /const files = compileApp\(app\)\.generatedFiles/)
+	assert.match(generator, /const sourceClaims = compileSourceClaims\(/)
+	assert.match(generator, /sourceClaims,/)
+	assert.match(generator, /const compiledApp = compileApp\(app\)/)
 	assert.doesNotMatch(generator, /compileApp\(app\)\.renderPlan/)
 })

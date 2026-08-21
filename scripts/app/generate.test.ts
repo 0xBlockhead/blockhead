@@ -1418,6 +1418,7 @@ test('generates one APP-ordered lazy resolver loader registry', () => {
 	const source = renderGeneratedFile(resolverIndex)
 	assert.doesNotMatch(source, /import\.meta\.glob|eager: true|export const resolvers/)
 	assert.match(source, /export const loadResolvers = async/)
+	assert.match(source, /export const resolverLoaderSources = Object\.freeze\(resolverLoaderEntries\.map\(\[source\]\) => source\)\)/)
 	assert.doesNotMatch(source, /export default loadResolvers/)
 	assert.doesNotMatch(source, /loadResolverEntries|loadAllResolvers/)
 	assert.match(source, /Resolver module source mismatch/)
