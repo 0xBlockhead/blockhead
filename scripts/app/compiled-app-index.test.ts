@@ -464,7 +464,7 @@ test('classifies every source claim and mapped selector against authority', () =
 			'ResolverOnlyCapability',
 			'FieldSourcedIdentity',
 			'ReferenceMaterializedIdentity',
-			'SchemaIdentityOnly',
+			'IntentionallyNonExecutable',
 		].includes(selector.accountability))
 	}
 

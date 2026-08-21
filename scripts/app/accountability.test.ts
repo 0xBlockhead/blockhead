@@ -492,7 +492,7 @@ test('classifies a mapped selector by route sources, authored page, and inherite
 			MappedSelectorAccountability.ResolverOnlyCapability,
 			MappedSelectorAccountability.FieldSourcedIdentity,
 			MappedSelectorAccountability.ReferenceMaterializedIdentity,
-			MappedSelectorAccountability.SchemaIdentityOnly,
+			MappedSelectorAccountability.IntentionallyNonExecutable,
 		]
 	)
 	assert.deepEqual(
@@ -546,6 +546,12 @@ test('accounts for every compiled claim and mapped selector of the current app',
 		mappedSelectors.filter((row) => (
 			row.accountability === MappedSelectorAccountability.ResolverOnlyCapability
 		)).every((row) => !row.authoredPage),
+		true
+	)
+	assert.equal(
+		mappedSelectors.filter((row) => (
+			row.accountability === MappedSelectorAccountability.IntentionallyNonExecutable
+		)).every((row) => row.sources.length === 0),
 		true
 	)
 })
