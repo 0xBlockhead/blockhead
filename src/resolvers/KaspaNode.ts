@@ -139,23 +139,27 @@ export const createKaspaNodeResolverModule = (
 		})({ $$utxos: (rows) => rows }),
 		defineResolver({
 			entityType: EntityType.KaspaBlock,
-			resolve: { NetworkBlockHash: { appliesTo: applicability, resolve: async (block) => {
+			resolve: { NetworkBlockHash: { appliesTo: addressApplicability, resolve: async (block) => {
 				assertKaspaNetwork(block.$network)
 				const value = blockValue(await (await loadQueries()).getBlock({ blockHash: block.blockHash }))
 				return [{ [EntityMetaKey.Selector]: { $network: block.$network, blockHash: value.header.hash }, [EntityMetaKey.Fields]: blockFields(value) }]
 			} } },
-		})({}),
+		})({
+			version: (block: KaspaNodeBlock) => block.header.version,
+		}),
 		defineResolver({
 			entityType: EntityType.KaspaTransaction,
-			resolve: { NetworkTransactionId: { appliesTo: applicability, resolve: async (transaction) => {
+			resolve: { NetworkTransactionId: { appliesTo: addressApplicability, resolve: async (transaction) => {
 				assertKaspaNetwork(transaction.$network)
 				const value = transactionValue(await (await loadQueries()).getTransaction({ transactionId: transaction.transactionId }))
 				return [{ [EntityMetaKey.Selector]: { $network: transaction.$network, transactionId: value.transactionId }, [EntityMetaKey.Fields]: transactionFields(value) }]
 			} } },
-		})({}),
+		})({
+			version: (transaction: KaspaNodeTransaction) => transaction.version,
+		}),
 		defineResolver({
 			entityType: EntityType.KaspaAcceptedTransaction,
-			resolve: { AcceptingBlockTransaction: { appliesTo: [{ $acceptingBlock: applicability[0], $transaction: applicability[0] }], resolve: async (accepted) => {
+			resolve: { AcceptingBlockTransaction: { appliesTo: [{ $acceptingBlock: addressApplicability[0], $transaction: addressApplicability[0] }], resolve: async (accepted) => {
 				assertKaspaNetwork(accepted.$acceptingBlock.$network)
 				const value = blockValue(await (await loadQueries()).getBlock({ blockHash: accepted.$acceptingBlock.blockHash }))
 				if (!value.transactions.some((transaction) => transaction.transactionId === accepted.$transaction.transactionId))
@@ -165,10 +169,12 @@ export const createKaspaNodeResolverModule = (
 					[entityFieldAddressKey(EntityType.KaspaAcceptedTransaction, [], 'transactionId')]: accepted.$transaction.transactionId,
 				} }]
 			} } },
-		})({}),
+		})({
+			acceptingBlockHash: (accepted: { acceptingBlockHash: string }) => accepted.acceptingBlockHash,
+		}),
 		defineResolver({
 			entityType: EntityType.KaspaVirtualChain_Timestamp,
-			resolve: { NetworkStartHashTimestampMsSource: { appliesTo: applicability, resolve: async (chain) => {
+			resolve: { NetworkStartHashTimestampMsSource: { appliesTo: addressApplicability, resolve: async (chain) => {
 				assertKaspaNetwork(chain.$network)
 				const value = await (await loadQueries()).getVirtualChain({ startHash: chain.startHash, minConfirmationCount: chain.minConfirmationCount })
 				return [{ [EntityMetaKey.Selector]: { $network: chain.$network, startHash: chain.startHash, timestampMs: Date.now(), source }, [EntityMetaKey.Fields]: {
@@ -179,6 +185,8 @@ export const createKaspaNodeResolverModule = (
 					...(value.nextCheckpointHash != null && { [entityFieldAddressKey(EntityType.KaspaVirtualChain_Timestamp, [], 'nextCheckpointHash')]: value.nextCheckpointHash }),
 				} }]
 			} } },
-		})({}),
+		})({
+			addedChainBlockHashes: (chain: KaspaNodeVirtualChain) => chain.addedChainBlockHashes,
+		}),
 	],
 }) satisfies RegisteredSourceResolverModule

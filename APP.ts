@@ -115976,6 +115976,10 @@ export const app = {
 				path: "src/resolvers/Amboss-Graphql.ts",
 			},
 			{
+				source: Source.Anthropic_Rest,
+				path: "src/resolvers/Anthropic-Rest.ts",
+			},
+			{
 				source: Source.AptosFullnode_Rest,
 				path: "src/resolvers/AptosFullnode-Rest.ts",
 			},
@@ -116312,8 +116316,20 @@ export const app = {
 				path: "src/resolvers/Ipfs-Rest.ts",
 			},
 			{
+				source: Source.Juno_JsonRpc,
+				path: "src/resolvers/Juno-JsonRpc.ts",
+			},
+			{
 				source: Source.KaspaExplorer,
 				path: "src/resolvers/KaspaExplorer.ts",
+			},
+			{
+				source: Source.KaspaNode_Rest,
+				path: "src/resolvers/KaspaNode-Rest.ts",
+			},
+			{
+				source: Source.KaspaNode_Wrpc,
+				path: "src/resolvers/KaspaNode-Wrpc.ts",
 			},
 			{
 				source: Source.KingnodesDydxNode,
