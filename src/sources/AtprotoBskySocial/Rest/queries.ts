@@ -9,6 +9,18 @@ export const getProfile = (binding: SourceBinding, actor: string) => (
 	bskyAppViewXrpc(binding).getProfile(actor)
 )
 
+export const getFeedGenerator = (binding: SourceBinding, feed: string) => (
+	bskyAppViewXrpc(binding).getFeedGenerator(feed)
+)
+
+export const getGraphList = (binding: SourceBinding, list: string) => (
+	bskyAppViewXrpc(binding).getList(list)
+)
+
+export const getStarterPack = (binding: SourceBinding, starterPack: string) => (
+	bskyAppViewXrpc(binding).getStarterPack(starterPack)
+)
+
 export const getPosts = (binding: SourceBinding, uris: string[]) => (
 	bskyAppViewXrpc(binding).getPosts(uris)
 )

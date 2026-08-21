@@ -16,6 +16,9 @@ import { Source } from '$/sources/Source.ts'
 import { firstHttpUrlForBinding } from '$/sources/_runtime/http.ts'
 import {
 	isBskyAppViewThreadViewPost,
+	type BskyAppViewGetFeedGeneratorResponse,
+	type BskyAppViewGetListResponse,
+	type BskyAppViewGetStarterPackResponse,
 	type BskyAppViewProfile,
 	type BskyAppViewPostView,
 	type BskyAppViewThreadViewPost,
@@ -193,6 +196,67 @@ const atprotoPostReferenceFromPostView = (postView: BskyAppViewPostView) => {
 	}
 }
 
+const atprotoFeedGeneratorFields = ({
+	view,
+	isOnline,
+	isValid,
+}: BskyAppViewGetFeedGeneratorResponse) => {
+	const indexedAt = optionalTimestampMs(view.indexedAt)
+	if (indexedAt == null)
+		throw new Error('BskyAppView_Xrpc: feed generator has invalid indexedAt')
+
+	const description = optionalNonemptyString(view.description)
+	const avatar = mediaFromUrl(view.avatar, MediaType.Image)
+	return {
+		uri: view.uri,
+		cid: view.cid,
+		did: view.did,
+		$creator: { [EntityMetaKey.Selector]: { did: view.creator.did } },
+		displayName: view.displayName,
+		...(description != null && { description }),
+		...(avatar != null && { $avatar: avatar }),
+		...(view.likeCount != null && { likeCount: view.likeCount }),
+		...(view.acceptsInteractions != null && {
+			acceptsInteractions: view.acceptsInteractions,
+		}),
+		...(view.contentMode != null && { contentMode: view.contentMode }),
+		indexedAt,
+		isOnline,
+		isValid,
+	}
+}
+
+const atprotoGraphListFields = ({ list }: BskyAppViewGetListResponse) => {
+	const indexedAt = optionalTimestampMs(list.indexedAt)
+	if (indexedAt == null)
+		throw new Error('BskyAppView_Xrpc: graph list has invalid indexedAt')
+	return {
+		uri: list.uri,
+		cid: list.cid,
+		$creator: { [EntityMetaKey.Selector]: { did: list.creator.did } },
+		name: list.name,
+		purpose: list.purpose,
+		...(optionalNonemptyString(list.description) != null && { description: optionalNonemptyString(list.description) }),
+		...(list.listItemCount != null && { listItemCount: list.listItemCount }),
+		indexedAt,
+	}
+}
+
+const atprotoStarterPackFields = ({ starterPack }: BskyAppViewGetStarterPackResponse) => {
+	const indexedAt = optionalTimestampMs(starterPack.indexedAt)
+	if (indexedAt == null)
+		throw new Error('BskyAppView_Xrpc: starter pack has invalid indexedAt')
+	return {
+		uri: starterPack.uri,
+		cid: starterPack.cid,
+		$creator: { [EntityMetaKey.Selector]: { did: starterPack.creator.did } },
+		...(starterPack.list != null && { $list: { [EntityMetaKey.Selector]: { uri: starterPack.list.uri } } }),
+		...(starterPack.joinedWeekCount != null && { joinedWeekCount: starterPack.joinedWeekCount }),
+		...(starterPack.joinedAllTimeCount != null && { joinedAllTimeCount: starterPack.joinedAllTimeCount }),
+		indexedAt,
+	}
+}
+
 export const bskyAppViewResolvers = (
 	source: Source.Atproto_Xrpc | Source.Atproto_BskySocial_Xrpc,
 	loadQueries: () => Promise<typeof import('$/sources/AtprotoBsky/Rest/queries.ts')>
@@ -365,6 +429,66 @@ export const bskyAppViewResolvers = (
 				did: (actor) => actor.did,
 				handle: (actor) => actor.handle,
 			}),
+
+		defineResolver({
+			entityType: EntityType.AtprotoFeedGenerator,
+			resolve: {
+				Uri: {
+					resolve: async ({ uri }, context) => {
+						const [binding, { getFeedGenerator }] = await loadBindingAndQueries(context)
+						const response = await getFeedGenerator(binding, uri)
+						if (response.view.uri !== uri)
+							throw new Error(`${source}: feed generator response subject mismatch for ${uri}`)
+
+						return atprotoFeedGeneratorFields(response)
+					},
+				},
+			},
+		})({
+				uri: (generator) => generator.uri,
+				cid: (generator) => generator.cid,
+				did: (generator) => generator.did,
+				$creator: (generator) => generator.$creator,
+				displayName: (generator) => generator.displayName,
+				description: (generator) => generator.description,
+				$avatar: (generator) => generator.$avatar,
+				likeCount: (generator) => generator.likeCount,
+				acceptsInteractions: (generator) => generator.acceptsInteractions,
+				contentMode: (generator) => generator.contentMode,
+				indexedAt: (generator) => generator.indexedAt,
+				isOnline: (generator) => generator.isOnline,
+				isValid: (generator) => generator.isValid,
+		}),
+
+		defineResolver({
+			entityType: EntityType.AtprotoGraphList,
+			resolve: { Uri: { resolve: async ({ uri }, context) => {
+				const [binding, { getGraphList }] = await loadBindingAndQueries(context)
+				const response = await getGraphList(binding, uri)
+				if (response.list.uri !== uri)
+					throw new Error(`${source}: graph list response subject mismatch for ${uri}`)
+				return atprotoGraphListFields(response)
+			} } },
+		})({
+			uri: (list) => list.uri, cid: (list) => list.cid, $creator: (list) => list.$creator,
+			name: (list) => list.name, purpose: (list) => list.purpose, description: (list) => list.description,
+			listItemCount: (list) => list.listItemCount, indexedAt: (list) => list.indexedAt,
+		}),
+
+		defineResolver({
+			entityType: EntityType.AtprotoStarterPack,
+			resolve: { Uri: { resolve: async ({ uri }, context) => {
+				const [binding, { getStarterPack }] = await loadBindingAndQueries(context)
+				const response = await getStarterPack(binding, uri)
+				if (response.starterPack.uri !== uri)
+					throw new Error(`${source}: starter pack response subject mismatch for ${uri}`)
+				return atprotoStarterPackFields(response)
+			} } },
+		})({
+			uri: (pack) => pack.uri, cid: (pack) => pack.cid, $creator: (pack) => pack.$creator,
+			$list: (pack) => pack.$list, joinedWeekCount: (pack) => pack.joinedWeekCount,
+			joinedAllTimeCount: (pack) => pack.joinedAllTimeCount, indexedAt: (pack) => pack.indexedAt,
+		}),
 
 		defineResolver({
 			entityType: EntityType.AtprotoPost,

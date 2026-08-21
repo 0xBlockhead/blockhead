@@ -4,6 +4,9 @@ import type {
 	AtprotoIdentityResolveHandleResponse,
 	BskyAppViewGetAuthorFeedResponse,
 	BskyAppViewActorListResponse,
+	BskyAppViewGetFeedGeneratorResponse,
+	BskyAppViewGetListResponse,
+	BskyAppViewGetStarterPackResponse,
 	BskyAppViewGetLikesResponse,
 	BskyAppViewGetPostThreadResponse,
 	BskyAppViewGetPostsResponse,
@@ -16,6 +19,9 @@ import type {
 import {
 	atprotoIdentityResolveHandleResponseWire,
 	bskyAppViewGetAuthorFeedResponseWire,
+	bskyAppViewGetFeedGeneratorResponseWire,
+	bskyAppViewGetListResponseWire,
+	bskyAppViewGetStarterPackResponseWire,
 	bskyAppViewFollowersResponseWire,
 	bskyAppViewFollowsResponseWire,
 	bskyAppViewGetLikesResponseWire,
@@ -93,6 +99,32 @@ export const bskyAppViewXrpc = (binding: SourceBinding) => {
 			if (new Set(response.posts.map(({ uri }) => uri)).size !== response.posts.length)
 				throw new Error('BskyAppView_Xrpc: duplicate post URI')
 
+			return response
+		},
+		getFeedGenerator: async (feed: string) => {
+			const response = assertEnvelope(
+				'feed-generator',
+				bskyAppViewGetFeedGeneratorResponseWire,
+				await get<BskyAppViewGetFeedGeneratorResponse>(
+					'/app.bsky.feed.getFeedGenerator',
+					[['feed', feed]]
+				)
+			)
+			if (response.view.uri !== feed)
+				throw new Error('BskyAppView_Xrpc: feed-generator response subject mismatch')
+
+			return response
+		},
+		getList: async (list: string) => {
+			const response = assertEnvelope('graph-list', bskyAppViewGetListResponseWire, await get<BskyAppViewGetListResponse>('/app.bsky.graph.getList', [['list', list]]))
+			if (response.list.uri !== list)
+				throw new Error('BskyAppView_Xrpc: graph-list response subject mismatch')
+			return response
+		},
+		getStarterPack: async (starterPack: string) => {
+			const response = assertEnvelope('starter-pack', bskyAppViewGetStarterPackResponseWire, await get<BskyAppViewGetStarterPackResponse>('/app.bsky.graph.getStarterPack', [['starterPack', starterPack]]))
+			if (response.starterPack.uri !== starterPack)
+				throw new Error('BskyAppView_Xrpc: starter-pack response subject mismatch')
 			return response
 		},
 		getPostThread: async (

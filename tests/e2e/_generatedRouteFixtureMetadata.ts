@@ -10583,6 +10583,32 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
+	'/(social)/(atproto)/atproto/feed/[...uri]': {
+		routeId: '/(social)/(atproto)/atproto/(globalAtprotoNetwork)/feed/[...uri=stringSegment]',
+		parameterEncodingByName: {
+			uri: 'Opaque',
+		},
+		mappings: [
+			{
+				id: 'AtprotoFeedGenerator.Uri',
+				probeAtomPrefixes: ['/atproto/feed/[...uri]:AtprotoFeedGenerator.Uri'],
+				probeCases: [[[0, '1', ['uri']]]],
+			},
+		],
+	},
+	'/(social)/(atproto)/atproto/graph-list/[...uri]': {
+		routeId: '/(social)/(atproto)/atproto/(globalAtprotoNetwork)/graph-list/[...uri=stringSegment]',
+		parameterEncodingByName: {
+			uri: 'Opaque',
+		},
+		mappings: [
+			{
+				id: 'AtprotoGraphList.Uri',
+				probeAtomPrefixes: ['/atproto/graph-list/[...uri]:AtprotoGraphList.Uri'],
+				probeCases: [[[0, '1', ['uri']]]],
+			},
+		],
+	},
 	'/(social)/(atproto)/atproto/post/[...uri]': {
 		routeId: '/(social)/(atproto)/atproto/(globalAtprotoNetwork)/post/[...uri=stringSegment]',
 		parameterEncodingByName: {
@@ -10639,6 +10665,19 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				id: 'AtprotoRepoCommit.RepoDidRevSource',
 				probeAtomPrefixes: ['/atproto/repo/[repoDid]/commit/rev/[rev]/[source]:AtprotoRepoCommit.RepoDidRevSource'],
 				probeCases: [[[0, '1', ['repoDid', 'rev', 'source']]]],
+			},
+		],
+	},
+	'/(social)/(atproto)/atproto/starter-pack/[...uri]': {
+		routeId: '/(social)/(atproto)/atproto/(globalAtprotoNetwork)/starter-pack/[...uri=stringSegment]',
+		parameterEncodingByName: {
+			uri: 'Opaque',
+		},
+		mappings: [
+			{
+				id: 'AtprotoStarterPack.Uri',
+				probeAtomPrefixes: ['/atproto/starter-pack/[...uri]:AtprotoStarterPack.Uri'],
+				probeCases: [[[0, '1', ['uri']]]],
 			},
 		],
 	},

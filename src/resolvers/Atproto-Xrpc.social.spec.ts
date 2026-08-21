@@ -17,6 +17,9 @@ import { Source } from '$/sources/Source.ts'
 const {
 	getAuthorFeed,
 	getFollowers,
+	getFeedGenerator,
+	getGraphList,
+	getStarterPack,
 	getFollows,
 	getLikes,
 	getPostThread,
@@ -30,6 +33,9 @@ const {
 } = vi.hoisted(() => ({
 	getAuthorFeed: vi.fn(),
 	getFollowers: vi.fn(),
+	getFeedGenerator: vi.fn(),
+	getGraphList: vi.fn(),
+	getStarterPack: vi.fn(),
 	getFollows: vi.fn(),
 	getLikes: vi.fn(),
 	getPostThread: vi.fn(),
@@ -45,6 +51,9 @@ const {
 vi.mock('$/sources/AtprotoBsky/Rest/queries.ts', () => ({
 	getAuthorFeed,
 	getFollowers,
+	getFeedGenerator,
+	getGraphList,
+	getStarterPack,
 	getFollows,
 	getLikes,
 	getPostThread,
@@ -95,6 +104,9 @@ describe('Atproto_Xrpc APP-free social deepenings', () => {
 		vi.restoreAllMocks()
 		getAuthorFeed.mockReset()
 		getFollowers.mockReset()
+		getFeedGenerator.mockReset()
+		getGraphList.mockReset()
+		getStarterPack.mockReset()
 		getFollows.mockReset()
 		getLikes.mockReset()
 		getPostThread.mockReset()
@@ -150,9 +162,68 @@ describe('Atproto_Xrpc APP-free social deepenings', () => {
 		expect(followerRows.nextCursor).toBe('followers-next')
 		expect(getFollowers).toHaveBeenCalledWith(context.sourceBinding, {
 		actor: 'did:plc:alice',
-		limit: 4,
-		cursor: undefined,
+			limit: 4,
+			cursor: undefined,
+		})
 	})
+
+	it('resolves a feed generator with its service and creator identities kept distinct', async () => {
+		const uri = 'at://did:plc:alice/app.bsky.feed.generator/whats-hot'
+		getFeedGenerator.mockResolvedValue({
+			view: {
+				uri,
+				cid: 'bafyreifeed',
+				did: 'did:web:feeds.example.com',
+				creator: {
+					did: 'did:plc:alice',
+					handle: 'alice.test',
+				},
+				displayName: 'What’s Hot',
+				description: 'Popular posts',
+				avatar: 'https://cdn.bsky.app/feed.png',
+				likeCount: 12,
+				acceptsInteractions: true,
+				contentMode: 'app.bsky.feed.defs#contentModeUnspecified',
+				indexedAt: '2026-08-20T12:00:00.000Z',
+			},
+			isOnline: true,
+			isValid: true,
+		})
+		const resolver = atproto.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.AtprotoFeedGenerator
+		))
+		if (resolver == null || !('Uri' in resolver.resolve))
+			throw new Error('missing feed-generator resolver')
+
+		const fields = await resolver.resolve.Uri.resolve({ uri }, context)
+		expect(fields).toMatchObject({
+			uri,
+			cid: 'bafyreifeed',
+			did: 'did:web:feeds.example.com',
+			displayName: 'What’s Hot',
+			indexedAt: Date.parse('2026-08-20T12:00:00.000Z'),
+			isOnline: true,
+			isValid: true,
+		})
+		expect(fields.$creator).toEqual({
+			[EntityMetaKey.Selector]: { did: 'did:plc:alice' },
+		})
+		expect(getFeedGenerator).toHaveBeenCalledWith(context.sourceBinding, uri)
+	})
+
+	it('resolves graph lists and starter packs as distinct AT-URI subjects', async () => {
+		const listUri = 'at://did:plc:alice/app.bsky.graph.list/team'
+		const starterPackUri = 'at://did:plc:alice/app.bsky.graph.starterpack/welcome'
+		getGraphList.mockResolvedValue({ list: { uri: listUri, cid: 'bafylist', creator: { did: 'did:plc:alice', handle: 'alice.test' }, name: 'Team', purpose: 'app.bsky.graph.defs#referencelist', listItemCount: 3, indexedAt: '2026-08-21T00:00:00.000Z' }, items: [] })
+		getStarterPack.mockResolvedValue({ starterPack: { uri: starterPackUri, cid: 'bafypack', creator: { did: 'did:plc:alice', handle: 'alice.test' }, list: { uri: listUri, cid: 'bafylist', name: 'Team', purpose: 'app.bsky.graph.defs#referencelist' }, joinedWeekCount: 2, indexedAt: '2026-08-21T00:00:00.000Z' } })
+		const listResolver = atproto.resolvers.find((candidate) => candidate.entityType === EntityType.AtprotoGraphList)
+		const starterPackResolver = atproto.resolvers.find((candidate) => candidate.entityType === EntityType.AtprotoStarterPack)
+		if (listResolver == null || starterPackResolver == null || !('Uri' in listResolver.resolve) || !('Uri' in starterPackResolver.resolve))
+			throw new Error('missing graph declaration resolvers')
+		await expect(listResolver.resolve.Uri.resolve({ uri: listUri }, context)).resolves.toMatchObject({ uri: listUri, name: 'Team', listItemCount: 3 })
+		await expect(starterPackResolver.resolve.Uri.resolve({ uri: starterPackUri }, context)).resolves.toMatchObject({ uri: starterPackUri, $list: { [EntityMetaKey.Selector]: { uri: listUri } }, joinedWeekCount: 2 })
+		expect(getGraphList).toHaveBeenCalledWith(context.sourceBinding, listUri)
+		expect(getStarterPack).toHaveBeenCalledWith(context.sourceBinding, starterPackUri)
 	})
 
 	it('resolves post likers and reposters with independent provider cursors', async () => {

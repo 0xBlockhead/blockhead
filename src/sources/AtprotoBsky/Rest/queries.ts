@@ -13,6 +13,18 @@ export const getPosts = (binding: SourceBinding, uris: string[]) => (
 	bskyAppViewXrpc(binding).getPosts(uris)
 )
 
+export const getFeedGenerator = (binding: SourceBinding, feed: string) => (
+	bskyAppViewXrpc(binding).getFeedGenerator(feed)
+)
+
+export const getGraphList = (binding: SourceBinding, list: string) => (
+	bskyAppViewXrpc(binding).getList(list)
+)
+
+export const getStarterPack = (binding: SourceBinding, starterPack: string) => (
+	bskyAppViewXrpc(binding).getStarterPack(starterPack)
+)
+
 export const getPostThread = (
 	binding: SourceBinding,
 	uri: string,

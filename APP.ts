@@ -9305,6 +9305,150 @@ export const schema = {
 			}),
 
 			entity({
+				entityType: EntityType.AtprotoFeedGenerator,
+				labels: {
+					singular: "AT Protocol feed generator",
+					plural: "AT Protocol feed generators",
+				},
+				description: "A feed-generator declaration addressed by its stable app.bsky.feed.generator AT URI. Appview fields describe the currently indexed declaration and service status; they do not claim mutation history.",
+			})({
+				"uri": {
+					label: "AT URI",
+					type: EntityFieldType.Primitive,
+					cardinality: EntityFieldCardinality.One,
+					valueType: "opaqueRouteIdentifier",
+				},
+				"cid": {
+					label: "CID",
+					type: EntityFieldType.Primitive,
+					cardinality: EntityFieldCardinality.One,
+					valueType: "string",
+				},
+				"did": {
+					label: "Service DID",
+					type: EntityFieldType.Primitive,
+					cardinality: EntityFieldCardinality.One,
+					valueType: "string",
+				},
+				"$creator": {
+					label: "Creator",
+					type: EntityFieldType.EntityReference,
+					cardinality: EntityFieldCardinality.One,
+					entityType: EntityType.AtprotoActor,
+				},
+				"displayName": {
+					label: "Display name",
+					type: EntityFieldType.Primitive,
+					cardinality: EntityFieldCardinality.One,
+					valueType: "string",
+				},
+				"description": {
+					label: "Description",
+					type: EntityFieldType.Primitive,
+					cardinality: EntityFieldCardinality.ZeroOrOne,
+					valueType: "string",
+				},
+				"$avatar": {
+					label: "Avatar",
+					type: EntityFieldType.EntityReference,
+					cardinality: EntityFieldCardinality.ZeroOrOne,
+					entityType: EntityType.Media,
+				},
+				"likeCount": {
+					label: "Likes",
+					type: EntityFieldType.Primitive,
+					cardinality: EntityFieldCardinality.ZeroOrOne,
+					valueType: "number",
+				},
+				"acceptsInteractions": {
+					label: "Accepts interactions",
+					type: EntityFieldType.Primitive,
+					cardinality: EntityFieldCardinality.ZeroOrOne,
+					valueType: "boolean",
+				},
+				"contentMode": {
+					label: "Content mode",
+					type: EntityFieldType.Primitive,
+					cardinality: EntityFieldCardinality.ZeroOrOne,
+					valueType: "string",
+				},
+				"indexedAt": {
+					label: "Indexed",
+					type: EntityFieldType.Primitive,
+					cardinality: EntityFieldCardinality.One,
+					valueType: "number",
+				},
+				"isOnline": {
+					label: "Online recently",
+					type: EntityFieldType.Primitive,
+					cardinality: EntityFieldCardinality.One,
+					valueType: "boolean",
+				},
+				"isValid": {
+					label: "Declaration compatible",
+					type: EntityFieldType.Primitive,
+					cardinality: EntityFieldCardinality.One,
+					valueType: "boolean",
+				},
+			})({
+				selectors: {
+					"Uri": ["uri"],
+				},
+				views: {
+					singular: {
+						query: {
+							sources: [Source.Atproto_Xrpc, Source.Atproto_BskySocial_Xrpc],
+						},
+						summary: {
+							icon: "$avatar",
+							title: ["displayName"],
+							titleFallback: [{ field: "uri", format: "truncated" }],
+							HeadingAfter: [
+								{ field: "isOnline", format: "boolean" },
+							],
+						},
+						closed: ["displayName", "uri"],
+						content: {
+							body: { field: "description", format: "longText" },
+							dl: [
+								[
+									{ field: "uri", format: "truncated" },
+									"$creator",
+									{ field: "did", format: "truncated" },
+									{ field: "cid", format: "truncated" },
+									{ field: "indexedAt", format: "timestamp" },
+									{ field: "likeCount", format: "number" },
+									"acceptsInteractions",
+									"contentMode",
+									"isOnline",
+									"isValid",
+								],
+							],
+						},
+					},
+					plural: { component: "AtprotoFeedGeneratorsView" },
+				},
+			}),
+
+			entity({
+				entityType: EntityType.AtprotoGraphList,
+				labels: { singular: "AT Protocol graph list", plural: "AT Protocol graph lists" },
+				description: "A current AppView graph-list declaration addressed by its stable app.bsky.graph.list AT URI.",
+			})({
+				"uri": { label: "AT URI", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "opaqueRouteIdentifier" },
+				"cid": { label: "CID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"$creator": { label: "Creator", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.AtprotoActor },
+				"name": { label: "Name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"purpose": { label: "Purpose", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"description": { label: "Description", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+				"listItemCount": { label: "Members", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+				"indexedAt": { label: "Indexed", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
+			})({
+				selectors: { "Uri": ["uri"] },
+				views: { singular: { query: { sources: [Source.Atproto_Xrpc, Source.Atproto_BskySocial_Xrpc], fields: ["name", "cid", "purpose", "listItemCount", "indexedAt"] }, summary: { title: ["name"] }, closed: ["name"], content: { dl: [[{ field: "uri", format: "truncated" }, "$creator", "purpose", { field: "cid", format: "truncated" }, { field: "listItemCount", format: "number" }, { field: "indexedAt", format: "timestamp" }]] } }, plural: { component: "AtprotoGraphListsView" } },
+			}),
+
+			entity({
 				entityType: EntityType.AtprotoNetwork,
 				labels: {
 					singular: "AT Protocol",
@@ -9683,6 +9827,23 @@ export const schema = {
 					},
 					plural: { component: "AtprotoRepoCommitsView", title: "Repo commits", },
 				},
+			}),
+
+			entity({
+				entityType: EntityType.AtprotoStarterPack,
+				labels: { singular: "AT Protocol starter pack", plural: "AT Protocol starter packs" },
+				description: "A current AppView starter-pack declaration addressed by its stable app.bsky.graph.starterpack AT URI.",
+			})({
+				"uri": { label: "AT URI", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "opaqueRouteIdentifier" },
+				"cid": { label: "CID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"$creator": { label: "Creator", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.AtprotoActor },
+				"$list": { label: "List", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.AtprotoGraphList },
+				"joinedWeekCount": { label: "Joined this week", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+				"joinedAllTimeCount": { label: "Joined all time", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+				"indexedAt": { label: "Indexed", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
+			})({
+				selectors: { "Uri": ["uri"] },
+				views: { singular: { query: { sources: [Source.Atproto_Xrpc, Source.Atproto_BskySocial_Xrpc], fields: ["cid", "joinedWeekCount", "joinedAllTimeCount", "indexedAt"] }, summary: { title: [{ field: "uri", format: "truncated" }] }, closed: ["uri"], content: { dl: [[{ field: "uri", format: "truncated" }, "$creator", "$list", { field: "cid", format: "truncated" }, { field: "joinedWeekCount", format: "number" }, { field: "joinedAllTimeCount", format: "number" }, { field: "indexedAt", format: "timestamp" }]] } }, plural: { component: "AtprotoStarterPacksView" } },
 			}),
 
 			entity({
@@ -93330,7 +93491,33 @@ export const routes = defineRoutes(schema)({
 										}
 									}
 								},
-								"repo": {
+								"feed": {
+									children: {
+										"[...uri]": {
+											selectors: {
+												[EntityType.AtprotoFeedGenerator]: {
+													"Uri": {
+														params: {
+															"uri": ["uri"],
+														},
+														page: {},
+													},
+												},
+											},
+										},
+					},
+				},
+				"graph-list": {
+					children: {
+						"[...uri]": { selectors: { [EntityType.AtprotoGraphList]: { "Uri": { params: { "uri": ["uri"] }, page: {} } } }, },
+					},
+				},
+				"starter-pack": {
+					children: {
+						"[...uri]": { selectors: { [EntityType.AtprotoStarterPack]: { "Uri": { params: { "uri": ["uri"] }, page: {} } } }, },
+					},
+				},
+				"repo": {
 									children: {
 										"[repoDid]": {
 											children: {

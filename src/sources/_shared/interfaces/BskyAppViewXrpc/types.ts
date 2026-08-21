@@ -205,6 +205,59 @@ export type BskyAppViewGetPostsResponse = {
 	posts: BskyAppViewPostView[]
 }
 
+export type BskyAppViewFeedGeneratorView = {
+	uri: string
+	cid: string
+	did: string
+	creator: BskyAppViewProfile
+	displayName: string
+	description?: string
+	avatar?: string
+	likeCount?: number
+	acceptsInteractions?: boolean
+	contentMode?: string
+	indexedAt: string
+}
+
+export type BskyAppViewGetFeedGeneratorResponse = {
+	view: BskyAppViewFeedGeneratorView
+	isOnline: boolean
+	isValid: boolean
+}
+
+export type BskyAppViewGraphListView = {
+	uri: string
+	cid: string
+	creator: BskyAppViewProfile
+	name: string
+	purpose: string
+	description?: string
+	avatar?: string
+	listItemCount?: number
+	indexedAt: string
+}
+
+export type BskyAppViewGetListResponse = {
+	list: BskyAppViewGraphListView
+	items: { uri: string, subject: BskyAppViewProfile }[]
+	cursor?: string
+}
+
+export type BskyAppViewStarterPackView = {
+	uri: string
+	cid: string
+	creator: BskyAppViewProfile
+	list?: { uri: string, cid: string, name: string, purpose: string }
+	listItemsSample?: { uri: string, subject: BskyAppViewProfile }[]
+	joinedWeekCount?: number
+	joinedAllTimeCount?: number
+	indexedAt: string
+}
+
+export type BskyAppViewGetStarterPackResponse = {
+	starterPack: BskyAppViewStarterPackView
+}
+
 export type BskyAppViewGetAuthorFeedResponse = {
 	feed: {
 		post: BskyAppViewPostView
@@ -356,6 +409,32 @@ const bskyAppViewPostViewWire = arktype({
 	'embed?': 'unknown',
 })
 
+const bskyAppViewFeedGeneratorViewWire = arktype({
+	uri: 'string',
+	cid: 'string',
+	did: 'string',
+	creator: bskyAppViewProfileWire,
+	displayName: 'string',
+	'description?': 'string',
+	'avatar?': 'string',
+	'likeCount?': 'number.integer >= 0',
+	'acceptsInteractions?': 'boolean',
+	'contentMode?': 'string',
+	indexedAt: 'string',
+})
+
+const bskyAppViewGraphListViewWire = arktype({
+	uri: 'string', cid: 'string', creator: bskyAppViewProfileWire, name: 'string', purpose: 'string',
+	'description?': 'string', 'avatar?': 'string', 'listItemCount?': 'number.integer >= 0', indexedAt: 'string',
+})
+const bskyAppViewGraphListItemWire = arktype({ uri: 'string', subject: bskyAppViewProfileWire })
+const bskyAppViewStarterPackViewWire = arktype({
+	uri: 'string', cid: 'string', creator: bskyAppViewProfileWire,
+	'list?': arktype({ uri: 'string', cid: 'string', name: 'string', purpose: 'string' }),
+	'listItemsSample?': bskyAppViewGraphListItemWire.array(),
+	'joinedWeekCount?': 'number.integer >= 0', 'joinedAllTimeCount?': 'number.integer >= 0', indexedAt: 'string',
+})
+
 export const atprotoIdentityResolveHandleResponseWire = arktype({
 	did: 'string',
 }) satisfies Type<AtprotoIdentityResolveHandleResponse>
@@ -365,6 +444,22 @@ export const bskyAppViewProfileWireAssert = bskyAppViewProfileWire satisfies Typ
 export const bskyAppViewGetPostsResponseWire = arktype({
 	posts: bskyAppViewPostViewWire.array(),
 }) satisfies Type<BskyAppViewGetPostsResponse>
+
+export const bskyAppViewGetFeedGeneratorResponseWire = arktype({
+	view: bskyAppViewFeedGeneratorViewWire,
+	isOnline: 'boolean',
+	isValid: 'boolean',
+}) satisfies Type<BskyAppViewGetFeedGeneratorResponse>
+
+export const bskyAppViewGetListResponseWire = arktype({
+	list: bskyAppViewGraphListViewWire,
+	items: bskyAppViewGraphListItemWire.array(),
+	'cursor?': 'string',
+}) satisfies Type<BskyAppViewGetListResponse>
+
+export const bskyAppViewGetStarterPackResponseWire = arktype({
+	starterPack: bskyAppViewStarterPackViewWire,
+}) satisfies Type<BskyAppViewGetStarterPackResponse>
 
 export const bskyAppViewGetAuthorFeedResponseWire = arktype({
 	feed: arktype({
