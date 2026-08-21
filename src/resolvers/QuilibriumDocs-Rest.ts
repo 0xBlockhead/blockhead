@@ -53,7 +53,7 @@ export default {
 			resolve: {
 				Slug: {
 					appliesTo: [{ slug: networkBySlug.quilibrium.slug }],
-					resolve: async () => {
+					resolve: async ({ slug }) => {
 						const {
 							getDocsEndpoints,
 							getNodeInterfaces,
@@ -61,13 +61,11 @@ export default {
 							getProtocolFacts,
 							getServiceLayers,
 						} = await import('$/sources/QuilibriumDocs/Rest/queries.ts')
-						const networkSlug = networkBySlug.quilibrium.slug
-
 						return {
 							docsEndpoints: getDocsEndpoints(),
-							nodeInterfaces: getNodeInterfaces({ networkSlug }),
-							protocolFacts: getProtocolFacts({ networkSlug }),
-							serviceLayers: getServiceLayers({ networkSlug }),
+							nodeInterfaces: getNodeInterfaces({ networkSlug: slug }),
+							protocolFacts: getProtocolFacts({ networkSlug: slug }),
+							serviceLayers: getServiceLayers({ networkSlug: slug }),
 							protocolDocumentNumber: getPrimaryProtocolDocument().number,
 						}
 					},

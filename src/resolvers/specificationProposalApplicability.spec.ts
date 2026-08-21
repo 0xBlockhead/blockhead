@@ -182,10 +182,10 @@ describe('specification proposal source applicability', () => {
 		const rows = await quilibriumDocs.resolvers[1].resolve.Scope.resolve()
 		expect(rows).toHaveLength(1)
 		expect(rows[0]?.[EntityMetaKey.Fields]).toEqual({
-			[entityFieldAddressKey(EntityType.SpecificationProposal, [], 'documentBody')]: 'Quilibrium protocol whitepaper and architecture reference.',
+			[entityFieldAddressKey(EntityType.SpecificationProposal, [], 'documentBody')]: 'Official Quilibrium protocol documentation covering the protocol overview and consensus mechanism.',
 			[entityFieldAddressKey(EntityType.SpecificationProposal, [], 'documentCategory')]: 'Protocol document',
 			[entityFieldAddressKey(EntityType.SpecificationProposal, [], 'documentStatus')]: 'Published',
-			[entityFieldAddressKey(EntityType.SpecificationProposal, [], 'documentTitle')]: 'Quilibrium peer-to-peer MPC platform whitepaper',
+			[entityFieldAddressKey(EntityType.SpecificationProposal, [], 'documentTitle')]: 'Quilibrium protocol documentation',
 		})
 	})
 

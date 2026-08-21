@@ -21,9 +21,12 @@ import bindings from '$/sources/QuilibriumDocs/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 import { SourceEndpointKind } from '$/sources/SourceBinding.ts'
 
-const docsBinding = () => (
-	Object.fromEntries(bindings[Source.QuilibriumDocs_Rest].map((binding) => [binding.target.key, binding]))['docs']
-)
+const docsBinding = () => {
+	const binding = bindings[Source.QuilibriumDocs_Rest].find((candidate) => candidate.target.key === 'docs')
+	if (binding == null)
+		throw new Error('QuilibriumDocs_Rest: docs binding is unavailable')
+	return binding
+}
 
 const assertQuilibriumNetwork = (networkSlug: string) => {
 	if (networkSlug !== 'quilibrium')
@@ -33,6 +36,7 @@ const assertQuilibriumNetwork = (networkSlug: string) => {
 export const getDocsEndpoints = () => {
 	const endpoints = docsBinding().endpoints
 		.filter((endpoint) => endpoint.endpointKind === SourceEndpointKind.HttpUrl)
+		.filter((endpoint) => endpoint.locator === quilibriumDocsBaseUrl)
 		.map((endpoint) => ({
 			url: endpoint.locator,
 			transportType: TransportType.Http,
@@ -89,7 +93,10 @@ export const getProtocolDocument = ({
 }
 
 export const getPrimaryProtocolDocument = (): QuilibriumDocsProtocolDocument => {
-	return quilibriumProtocolDocuments[0]
+	const document = quilibriumProtocolDocuments[0]
+	if (document == null)
+		throw new Error('QuilibriumDocs_Rest: primary protocol document is unavailable')
+	return document
 }
 
 export const getPages = quilibriumDocsPages

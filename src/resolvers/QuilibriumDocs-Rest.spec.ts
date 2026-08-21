@@ -22,7 +22,7 @@ describe('QuilibriumDocs-Rest', () => {
 		).resolves.toMatchObject({
 			documentCategory: 'Protocol document',
 			documentStatus: 'Published',
-			documentTitle: 'Quilibrium peer-to-peer MPC platform whitepaper',
+			documentTitle: 'Quilibrium protocol documentation',
 		})
 	})
 
@@ -34,6 +34,12 @@ describe('QuilibriumDocs-Rest', () => {
 				number: 99,
 			})
 		).rejects.toThrow('QuilibriumDocs_Rest: document not found 99')
+	})
+
+	it('rejects a protocol network outside the resolver applicability slice', async () => {
+		await expect(
+			networkResolver.resolve.Slug.resolve({ slug: 'bitcoin' })
+		).rejects.toThrow('QuilibriumDocs_Rest: unsupported network: bitcoin')
 	})
 
 	it('resolves Network Quilibrium facet rows from Rest queries', async () => {

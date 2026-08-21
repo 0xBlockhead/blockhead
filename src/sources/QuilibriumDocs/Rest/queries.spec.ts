@@ -22,6 +22,7 @@ describe('QuilibriumDocs Rest queries', () => {
 			&& endpoint.providerName === 'Quilibrium docs'
 		))).toBe(true)
 		expect(endpoints.some((endpoint) => endpoint.url === quilibriumDocsBaseUrl)).toBe(true)
+		expect(endpoints.some((endpoint) => endpoint.url === 'https://quilibrium.com')).toBe(false)
 		const interfaces = getNodeInterfaces({ networkSlug: 'quilibrium' })
 
 		expect(interfaces.map(({ label, port }) => ({ label, port }))).toEqual([
@@ -62,14 +63,14 @@ describe('QuilibriumDocs Rest queries', () => {
 		expect(listProtocolDocuments()).toEqual([
 			{
 				number: 1,
-				documentBody: 'Quilibrium protocol whitepaper and architecture reference.',
+				documentBody: 'Official Quilibrium protocol documentation covering the protocol overview and consensus mechanism.',
 				documentCategory: 'Protocol document',
 				documentStatus: 'Published',
-				documentTitle: 'Quilibrium peer-to-peer MPC platform whitepaper',
+				documentTitle: 'Quilibrium protocol documentation',
 			},
 		])
 		expect(getProtocolDocument({ number: 1 }).documentTitle).toBe(
-			'Quilibrium peer-to-peer MPC platform whitepaper',
+			'Quilibrium protocol documentation',
 		)
 		expect(getPrimaryProtocolDocument().number).toBe(1)
 		expect(() => getProtocolDocument({ number: 99 })).toThrow(

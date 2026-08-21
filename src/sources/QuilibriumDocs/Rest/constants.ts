@@ -12,17 +12,18 @@ export const quilibriumDocsBaseUrl = 'https://docs.quilibrium.com'
 
 /**
  * Checked-in Quilibrium protocol document index for SpecificationProposal.
- * Body/title summarize the protocol docs surface (overview + consensus), not a separate PDF host.
+ * This is the official documentation surface, not a claim that Quilibrium publishes a
+ * separate whitepaper artifact.
  * @see https://docs.quilibrium.com/docs/protocol/overview/
  * @see https://docs.quilibrium.com/docs/protocol/consensus/
  */
 export const quilibriumProtocolDocuments = [
 	{
 		number: 1,
-		documentBody: 'Quilibrium protocol whitepaper and architecture reference.',
+		documentBody: 'Official Quilibrium protocol documentation covering the protocol overview and consensus mechanism.',
 		documentCategory: 'Protocol document',
 		documentStatus: 'Published',
-		documentTitle: 'Quilibrium peer-to-peer MPC platform whitepaper',
+		documentTitle: 'Quilibrium protocol documentation',
 	},
 ] as const satisfies readonly QuilibriumDocsProtocolDocument[]
 
