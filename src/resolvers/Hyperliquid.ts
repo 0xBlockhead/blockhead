@@ -18,7 +18,10 @@ import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
 import { hyperliquidJsonRpcEndpoints } from '$/sources/Hyperliquid/JsonRpc/queries.ts'
 import { hyperliquidRestEndpoints } from '$/sources/Hyperliquid/Rest/queries.ts'
-import type { HyperliquidMetaAndAssetCtxs } from '$/sources/Hyperliquid/Rest/types.ts'
+import type {
+	HyperliquidMetaAndAssetCtxs,
+	HyperliquidOrderChild,
+} from '$/sources/Hyperliquid/Rest/types.ts'
 
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 
@@ -91,7 +94,7 @@ const hyperliquidOrderTimestampSnapshot = ({
 	statusTimestamp,
 }: {
 	order: {
-		children: unknown[]
+		children: HyperliquidOrderChild[]
 		origSz: string
 		sz: string
 	}
@@ -979,7 +982,6 @@ export default {
 										[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'totalMarginUsed')]: clearinghouseObservation.state.marginSummary.totalMarginUsed,
 										[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'withdrawable')]: clearinghouseObservation.state.withdrawable,
 										[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'crossMaintenanceMarginUsed')]: clearinghouseObservation.state.crossMaintenanceMarginUsed,
-										[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'assetPositions')]: clearinghouseObservation.state.assetPositions,
 									},
 								},
 								{
@@ -993,7 +995,6 @@ export default {
 										source: Source.Hyperliquid,
 									},
 									[EntityMetaKey.Fields]: {
-										[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'spotBalances')]: spotClearinghouseObservation.state.balances,
 									},
 								},
 								{
@@ -1007,7 +1008,11 @@ export default {
 										source: Source.Hyperliquid,
 									},
 									[EntityMetaKey.Fields]: {
-										[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'feeSchedule')]: userFeesObservation.fees,
+										[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'perpCrossRate')]: userFeesObservation.fees.userCrossRate,
+										[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'perpAddRate')]: userFeesObservation.fees.userAddRate,
+										[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'spotCrossRate')]: userFeesObservation.fees.userSpotCrossRate,
+										[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'spotAddRate')]: userFeesObservation.fees.userSpotAddRate,
+										[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'activeReferralDiscount')]: userFeesObservation.fees.activeReferralDiscount,
 									},
 								},
 								{
@@ -1021,7 +1026,10 @@ export default {
 										source: Source.Hyperliquid,
 									},
 									[EntityMetaKey.Fields]: {
-										[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'stakingSummary')]: delegatorSummaryObservation.summary,
+										[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'delegated')]: delegatorSummaryObservation.summary.delegated,
+										[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'undelegated')]: delegatorSummaryObservation.summary.undelegated,
+										[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'totalPendingWithdrawal')]: delegatorSummaryObservation.summary.totalPendingWithdrawal,
+										[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'pendingWithdrawalCount')]: delegatorSummaryObservation.summary.nPendingWithdrawals,
 									},
 								},
 								{
@@ -1035,7 +1043,7 @@ export default {
 										source: Source.Hyperliquid,
 									},
 									[EntityMetaKey.Fields]: {
-										[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'userAbstraction')]: userAbstractionObservation.abstraction,
+										[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'abstractionMode')]: userAbstractionObservation.abstraction,
 									},
 								},
 								{
@@ -1049,7 +1057,7 @@ export default {
 										source: Source.Hyperliquid,
 									},
 									[EntityMetaKey.Fields]: {
-										[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'userDexAbstraction')]: userDexAbstractionObservation.abstraction,
+										[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'dexAbstractionEnabled')]: userDexAbstractionObservation.abstraction,
 									},
 								},
 								{
@@ -1063,7 +1071,6 @@ export default {
 										source: Source.Hyperliquid,
 									},
 									[EntityMetaKey.Fields]: {
-										[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'approvedBuilders')]: approvedBuildersObservation.builders,
 									},
 								},
 								{
@@ -1111,6 +1118,50 @@ export default {
 									[entityFieldAddressKey(EntityType.HyperliquidBorrowLendPosition, [], 'supplyValue')]: position.supply.value,
 								},
 							})),
+							$$positions: clearinghouseObservation.state.assetPositions.map(({ position }) => ({
+								[EntityMetaKey.Selector]: {
+									$account: { $network, address },
+									coin: position.coin,
+								},
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.HyperliquidPosition, [], 'size')]: position.szi,
+									...(position.entryPx != null && {
+										[entityFieldAddressKey(EntityType.HyperliquidPosition, [], 'entryPrice')]: position.entryPx,
+									}),
+									[entityFieldAddressKey(EntityType.HyperliquidPosition, [], 'positionValue')]: position.positionValue,
+									[entityFieldAddressKey(EntityType.HyperliquidPosition, [], 'unrealizedPnl')]: position.unrealizedPnl,
+									[entityFieldAddressKey(EntityType.HyperliquidPosition, [], 'returnOnEquity')]: position.returnOnEquity,
+									...(position.liquidationPx != null && {
+										[entityFieldAddressKey(EntityType.HyperliquidPosition, [], 'liquidationPrice')]: position.liquidationPx,
+									}),
+									[entityFieldAddressKey(EntityType.HyperliquidPosition, [], 'marginUsed')]: position.marginUsed,
+									[entityFieldAddressKey(EntityType.HyperliquidPosition, [], 'maxLeverage')]: position.maxLeverage,
+									[entityFieldAddressKey(EntityType.HyperliquidPosition, [], 'cumulativeFundingAllTime')]: position.cumFunding.allTime,
+									[entityFieldAddressKey(EntityType.HyperliquidPosition, [], 'cumulativeFundingSinceChange')]: position.cumFunding.sinceChange,
+									[entityFieldAddressKey(EntityType.HyperliquidPosition, [], 'cumulativeFundingSinceOpen')]: position.cumFunding.sinceOpen,
+									[entityFieldAddressKey(EntityType.HyperliquidPosition, [], 'leverageRawUsd')]: position.leverage.rawUsd,
+									[entityFieldAddressKey(EntityType.HyperliquidPosition, [], 'leverageType')]: position.leverage.type,
+									[entityFieldAddressKey(EntityType.HyperliquidPosition, [], 'leverageValue')]: position.leverage.value,
+								},
+							})),
+							$$balances: spotClearinghouseObservation.state.balances.map((balance) => ({
+								[EntityMetaKey.Selector]: {
+									$account: { $network, address },
+									tokenIndex: balance.token,
+								},
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.HyperliquidBalance, [], 'coin')]: balance.coin,
+									[entityFieldAddressKey(EntityType.HyperliquidBalance, [], 'total')]: balance.total,
+									[entityFieldAddressKey(EntityType.HyperliquidBalance, [], 'hold')]: balance.hold,
+									[entityFieldAddressKey(EntityType.HyperliquidBalance, [], 'entryNtl')]: balance.entryNtl,
+								},
+							})),
+							$$builderApprovals: approvedBuildersObservation.builders.map((builder) => ({
+								[EntityMetaKey.Selector]: {
+									$account: { $network, address },
+									builder,
+								},
+							})),
 						}
 					},
 				}
@@ -1120,6 +1171,9 @@ export default {
 			$masterAccount: (snapshot) => snapshot.$masterAccount,
 			$$timestamps: (snapshot) => snapshot.$$timestamps,
 			$$borrowLendPositions: (snapshot) => snapshot.$$borrowLendPositions,
+			$$positions: (snapshot) => snapshot.$$positions,
+			$$balances: (snapshot) => snapshot.$$balances,
+			$$builderApprovals: (snapshot) => snapshot.$$builderApprovals,
 		}),
 
 		defineResolver({
@@ -1245,7 +1299,12 @@ export default {
 									[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'size')]: orderTimestamp.size,
 									[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'remainingSize')]: orderTimestamp.remainingSize,
 									[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'filledSize')]: orderTimestamp.filledSize,
-									[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'children')]: orderTimestamp.children,
+									[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], '$$children')]: orderTimestamp.children.map((child) => ({
+										[EntityMetaKey.Selector]: {
+											$account: account,
+											oid: assertSafeWireInteger(child.oid, 'child order id'),
+										},
+									})),
 								},
 							}],
 						},
@@ -1337,7 +1396,12 @@ export default {
 									[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'size')]: orderTimestamp.size,
 									[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'remainingSize')]: orderTimestamp.remainingSize,
 									[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'filledSize')]: orderTimestamp.filledSize,
-									[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'children')]: orderTimestamp.children,
+									[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], '$$children')]: orderTimestamp.children.map((child) => ({
+										[EntityMetaKey.Selector]: {
+											$account,
+											oid: assertSafeWireInteger(child.oid, 'child order id'),
+										},
+									})),
 								},
 							}],
 						}
@@ -1413,7 +1477,7 @@ export default {
 			size: (snapshot) => snapshot.size,
 			remainingSize: (snapshot) => snapshot.remainingSize,
 			filledSize: (snapshot) => snapshot.filledSize,
-			children: (snapshot) => snapshot.children,
+			$$children: (snapshot) => snapshot.children,
 		}),
 
 		defineResolver({

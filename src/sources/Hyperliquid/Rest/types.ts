@@ -130,7 +130,25 @@ export type HyperliquidFrontendOrder = {
 	triggerCondition: string
 	isTrigger: boolean
 	triggerPx: string
-	children: JsonValue[]
+	children: HyperliquidOrderChild[]
+	isPositionTpsl: boolean
+	reduceOnly: boolean
+	orderType: string
+	origSz: string
+	tif?: string
+	cloid?: string | null
+}
+
+export type HyperliquidOrderChild = {
+	coin: string
+	side: string
+	limitPx: string
+	sz: string
+	oid: number
+	timestamp: number
+	triggerCondition: string
+	isTrigger: boolean
+	triggerPx: string
 	isPositionTpsl: boolean
 	reduceOnly: boolean
 	orderType: string
@@ -296,7 +314,7 @@ export type HyperliquidVaultDetails = {
 
 export type HyperliquidUserFees = {
 	dailyUserVlm: JsonValue[]
-	feeSchedule: JsonValue
+	feeSchedule: HyperliquidFeeSchedule
 	userCrossRate: string
 	userAddRate: string
 	userSpotCrossRate: string
@@ -307,6 +325,13 @@ export type HyperliquidUserFees = {
 	nextTrialAvailableTimestamp: number | null
 	stakingLink: JsonValue
 	activeStakingDiscount: JsonValue
+}
+
+export type HyperliquidFeeSchedule = {
+	cross: string
+	add: string
+	spotCross?: string
+	spotAdd?: string
 }
 
 export type HyperliquidDelegatorSummary = {

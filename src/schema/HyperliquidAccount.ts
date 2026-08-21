@@ -57,6 +57,18 @@ export default entity({
 			Source.Hyperliquid,
 		],
 	},
+	$$positions: {
+		entityType: EntityType.HyperliquidPosition,
+		cardinality: EntityFieldCardinality.Many,
+	},
+	$$balances: {
+		entityType: EntityType.HyperliquidBalance,
+		cardinality: EntityFieldCardinality.Many,
+	},
+	$$builderApprovals: {
+		entityType: EntityType.HyperliquidBuilderApproval,
+		cardinality: EntityFieldCardinality.Many,
+	},
 })({
 	selectors: {
 		NetworkAddress: [

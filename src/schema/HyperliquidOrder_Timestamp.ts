@@ -36,9 +36,9 @@ export default entity({
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
-	children: {
-		primitiveType: type('unknown'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+	$$children: {
+		entityType: EntityType.HyperliquidOrder,
+		cardinality: EntityFieldCardinality.Many,
 	},
 	filledSize: {
 		primitiveType: type('string'),

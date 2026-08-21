@@ -52,34 +52,17 @@ export default entity({
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
-	assetPositions: {
-		primitiveType: type('unknown'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	spotBalances: {
-		primitiveType: type('unknown'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	feeSchedule: {
-		primitiveType: type('unknown'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	stakingSummary: {
-		primitiveType: type('unknown'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	userAbstraction: {
-		primitiveType: type('unknown'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	userDexAbstraction: {
-		primitiveType: type('unknown'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	approvedBuilders: {
-		primitiveType: type('unknown'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
+	perpCrossRate: { primitiveType: type('string'), cardinality: EntityFieldCardinality.ZeroOrOne },
+	perpAddRate: { primitiveType: type('string'), cardinality: EntityFieldCardinality.ZeroOrOne },
+	spotCrossRate: { primitiveType: type('string'), cardinality: EntityFieldCardinality.ZeroOrOne },
+	spotAddRate: { primitiveType: type('string'), cardinality: EntityFieldCardinality.ZeroOrOne },
+	activeReferralDiscount: { primitiveType: type('string'), cardinality: EntityFieldCardinality.ZeroOrOne },
+	delegated: { primitiveType: type('string'), cardinality: EntityFieldCardinality.ZeroOrOne },
+	undelegated: { primitiveType: type('string'), cardinality: EntityFieldCardinality.ZeroOrOne },
+	totalPendingWithdrawal: { primitiveType: type('string'), cardinality: EntityFieldCardinality.ZeroOrOne },
+	pendingWithdrawalCount: { primitiveType: type('number.integer >= 0'), cardinality: EntityFieldCardinality.ZeroOrOne },
+	abstractionMode: { primitiveType: type.enumerated('unifiedAccount', 'portfolioMargin', 'disabled', 'default', 'dexAbstraction'), cardinality: EntityFieldCardinality.ZeroOrOne },
+	dexAbstractionEnabled: { primitiveType: type('boolean'), cardinality: EntityFieldCardinality.ZeroOrOne },
 	borrowLendHealth: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,

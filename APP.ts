@@ -1338,6 +1338,9 @@ export enum EntityType {
 	HederaTransaction = "HederaTransaction",
 	HyperliquidAccount = "HyperliquidAccount",
 	HyperliquidAccount_Timestamp = "HyperliquidAccount_Timestamp",
+	HyperliquidPosition = "HyperliquidPosition",
+	HyperliquidBalance = "HyperliquidBalance",
+	HyperliquidBuilderApproval = "HyperliquidBuilderApproval",
 	HyperliquidBlock = "HyperliquidBlock",
 	HyperliquidBorrowLendPosition = "HyperliquidBorrowLendPosition",
 	HyperliquidBorrowLendReserve = "HyperliquidBorrowLendReserve",
@@ -2254,6 +2257,14 @@ export const schema = {
 			{
 				id: "HyperliquidAccountInfoType",
 				type: { raw: "type.enumerated('clearinghouseState', 'spotClearinghouseState', 'userFees', 'delegatorSummary', 'userAbstraction', 'userDexAbstraction', 'approvedBuilders', 'borrowLendUserState')" },
+			},
+			{
+				id: "HyperliquidAccountAbstraction",
+				type: { raw: "type.enumerated('unifiedAccount', 'portfolioMargin', 'disabled', 'default', 'dexAbstraction')" },
+			},
+			{
+				id: "HyperliquidLeverageType",
+				type: { raw: "type.enumerated('cross', 'isolated')" },
 			},
 			{
 				id: "Integer",
@@ -38524,6 +38535,51 @@ export const schema = {
 			}),
 
 			entity({
+				entityType: EntityType.HyperliquidPosition,
+				labels: {
+					singular: "hyperliquid position",
+					plural: "hyperliquid positions",
+				},
+			})({
+				"$account": { type: EntityFieldType.EntityReference, entityType: EntityType.HyperliquidAccount, cardinality: EntityFieldCardinality.One },
+				"coin": { type: EntityFieldType.Primitive, primitiveType: { primitive: "string" }, cardinality: EntityFieldCardinality.One },
+				"size": { type: EntityFieldType.Primitive, primitiveType: { primitive: "string" }, cardinality: EntityFieldCardinality.One },
+				"entryPrice": { type: EntityFieldType.Primitive, primitiveType: { primitive: "string" }, cardinality: EntityFieldCardinality.ZeroOrOne },
+				"positionValue": { type: EntityFieldType.Primitive, primitiveType: { primitive: "string" }, cardinality: EntityFieldCardinality.One },
+				"unrealizedPnl": { type: EntityFieldType.Primitive, primitiveType: { primitive: "string" }, cardinality: EntityFieldCardinality.One },
+				"returnOnEquity": { type: EntityFieldType.Primitive, primitiveType: { primitive: "string" }, cardinality: EntityFieldCardinality.One },
+				"liquidationPrice": { type: EntityFieldType.Primitive, primitiveType: { primitive: "string" }, cardinality: EntityFieldCardinality.ZeroOrOne },
+				"marginUsed": { type: EntityFieldType.Primitive, primitiveType: { primitive: "string" }, cardinality: EntityFieldCardinality.One },
+				"maxLeverage": { type: EntityFieldType.Primitive, primitiveType: { primitive: "number" }, cardinality: EntityFieldCardinality.One },
+				"cumulativeFundingAllTime": { type: EntityFieldType.Primitive, primitiveType: { primitive: "string" }, cardinality: EntityFieldCardinality.One },
+				"cumulativeFundingSinceChange": { type: EntityFieldType.Primitive, primitiveType: { primitive: "string" }, cardinality: EntityFieldCardinality.One },
+				"cumulativeFundingSinceOpen": { type: EntityFieldType.Primitive, primitiveType: { primitive: "string" }, cardinality: EntityFieldCardinality.One },
+				"leverageRawUsd": { type: EntityFieldType.Primitive, primitiveType: { primitive: "string" }, cardinality: EntityFieldCardinality.One },
+				"leverageType": { type: EntityFieldType.Primitive, valueType: "HyperliquidLeverageType", cardinality: EntityFieldCardinality.One },
+				"leverageValue": { type: EntityFieldType.Primitive, primitiveType: { primitive: "number" }, cardinality: EntityFieldCardinality.One },
+			})({ selectors: { AccountCoin: ["$account", "coin"] }, views: { plural: { component: "HyperliquidPositionsView" } } }),
+
+			entity({
+				entityType: EntityType.HyperliquidBalance,
+				labels: { singular: "hyperliquid balance", plural: "hyperliquid balances" },
+			})({
+				"$account": { type: EntityFieldType.EntityReference, entityType: EntityType.HyperliquidAccount, cardinality: EntityFieldCardinality.One },
+				"tokenIndex": { type: EntityFieldType.Primitive, valueType: "NonNegativeInteger", cardinality: EntityFieldCardinality.One },
+				"coin": { type: EntityFieldType.Primitive, primitiveType: { primitive: "string" }, cardinality: EntityFieldCardinality.One },
+				"total": { type: EntityFieldType.Primitive, primitiveType: { primitive: "string" }, cardinality: EntityFieldCardinality.One },
+				"hold": { type: EntityFieldType.Primitive, primitiveType: { primitive: "string" }, cardinality: EntityFieldCardinality.One },
+				"entryNtl": { type: EntityFieldType.Primitive, primitiveType: { primitive: "string" }, cardinality: EntityFieldCardinality.One },
+			})({ selectors: { AccountTokenIndex: ["$account", "tokenIndex"] }, views: { plural: { component: "HyperliquidBalancesView" } } }),
+
+			entity({
+				entityType: EntityType.HyperliquidBuilderApproval,
+				labels: { singular: "hyperliquid builder approval", plural: "hyperliquid builder approvals" },
+			})({
+				"$account": { type: EntityFieldType.EntityReference, entityType: EntityType.HyperliquidAccount, cardinality: EntityFieldCardinality.One },
+				"builder": { type: EntityFieldType.Primitive, valueType: "evmAddress", cardinality: EntityFieldCardinality.One },
+			})({ selectors: { AccountBuilder: ["$account", "builder"] }, views: { plural: { component: "HyperliquidBuilderApprovalsView" } } }),
+
+			entity({
 				entityType: EntityType.HyperliquidAccount,
 				labels: {
 					singular: "hyperliquid account",
@@ -38592,6 +38648,9 @@ export const schema = {
 					cardinality: EntityFieldCardinality.Many,
 					defaultSources: [Source.Hyperliquid],
 				},
+				"$$positions": { label: "positions", type: EntityFieldType.EntitiesReference, entityType: EntityType.HyperliquidPosition, cardinality: EntityFieldCardinality.Many },
+				"$$balances": { label: "balances", type: EntityFieldType.EntitiesReference, entityType: EntityType.HyperliquidBalance, cardinality: EntityFieldCardinality.Many },
+				"$$builderApprovals": { label: "builder approvals", type: EntityFieldType.EntitiesReference, entityType: EntityType.HyperliquidBuilderApproval, cardinality: EntityFieldCardinality.Many },
 			})({
 				selectors: {
 					"NetworkAddress": [
@@ -38607,6 +38666,9 @@ export const schema = {
 								label: "Activity",
 								className: "network-view-collapsible-activity",
 								sections: [
+									{ id: "hyperliquid-account-positions", field: "$$positions", List: "HyperliquidPositionsView", label: "Positions", emptyText: "No positions." },
+									{ id: "hyperliquid-account-balances", field: "$$balances", List: "HyperliquidBalancesView", label: "Balances", emptyText: "No balances." },
+									{ id: "hyperliquid-account-builder-approvals", field: "$$builderApprovals", List: "HyperliquidBuilderApprovalsView", label: "Builder approvals", emptyText: "No builder approvals." },
 									{ id: "hyperliquid-account-orders", field: "$$orders", List: "HyperliquidOrdersView", label: "Orders", emptyText: "No orders." },
 									{ id: "hyperliquid-account-fills", field: "$$fills", List: "HyperliquidFillsView", label: "Fills", emptyText: "No fills." },
 									{ id: "hyperliquid-account-vault-equities", field: "$$vaultEquities", List: "HyperliquidVaultEquity_TimestampsView", label: "Vault Equities", emptyText: "No vault equities." },
@@ -38697,48 +38759,17 @@ export const schema = {
 					primitiveType: { primitive: "string" },
 					cardinality: EntityFieldCardinality.ZeroOrOne,
 				},
-				"assetPositions": {
-					label: "asset positions",
-					type: EntityFieldType.Primitive,
-					primitiveType: { primitive: "unknown" },
-					cardinality: EntityFieldCardinality.ZeroOrOne,
-				},
-				"spotBalances": {
-					label: "spot balances",
-					type: EntityFieldType.Primitive,
-					primitiveType: { primitive: "unknown" },
-					cardinality: EntityFieldCardinality.ZeroOrOne,
-				},
-				"feeSchedule": {
-					label: "fee schedule",
-					type: EntityFieldType.Primitive,
-					primitiveType: { primitive: "unknown" },
-					cardinality: EntityFieldCardinality.ZeroOrOne,
-				},
-				"stakingSummary": {
-					label: "staking summary",
-					type: EntityFieldType.Primitive,
-					primitiveType: { primitive: "unknown" },
-					cardinality: EntityFieldCardinality.ZeroOrOne,
-				},
-				"userAbstraction": {
-					label: "user abstraction",
-					type: EntityFieldType.Primitive,
-					primitiveType: { primitive: "unknown" },
-					cardinality: EntityFieldCardinality.ZeroOrOne,
-				},
-				"userDexAbstraction": {
-					label: "user dex abstraction",
-					type: EntityFieldType.Primitive,
-					primitiveType: { primitive: "unknown" },
-					cardinality: EntityFieldCardinality.ZeroOrOne,
-				},
-				"approvedBuilders": {
-					label: "approved builders",
-					type: EntityFieldType.Primitive,
-					primitiveType: { primitive: "unknown" },
-					cardinality: EntityFieldCardinality.ZeroOrOne,
-				},
+				"perpCrossRate": { label: "perp cross rate", type: EntityFieldType.Primitive, primitiveType: { primitive: "string" }, cardinality: EntityFieldCardinality.ZeroOrOne },
+				"perpAddRate": { label: "perp add rate", type: EntityFieldType.Primitive, primitiveType: { primitive: "string" }, cardinality: EntityFieldCardinality.ZeroOrOne },
+				"spotCrossRate": { label: "spot cross rate", type: EntityFieldType.Primitive, primitiveType: { primitive: "string" }, cardinality: EntityFieldCardinality.ZeroOrOne },
+				"spotAddRate": { label: "spot add rate", type: EntityFieldType.Primitive, primitiveType: { primitive: "string" }, cardinality: EntityFieldCardinality.ZeroOrOne },
+				"activeReferralDiscount": { label: "active referral discount", type: EntityFieldType.Primitive, primitiveType: { primitive: "string" }, cardinality: EntityFieldCardinality.ZeroOrOne },
+				"delegated": { label: "delegated", type: EntityFieldType.Primitive, primitiveType: { primitive: "string" }, cardinality: EntityFieldCardinality.ZeroOrOne },
+				"undelegated": { label: "undelegated", type: EntityFieldType.Primitive, primitiveType: { primitive: "string" }, cardinality: EntityFieldCardinality.ZeroOrOne },
+				"totalPendingWithdrawal": { label: "total pending withdrawal", type: EntityFieldType.Primitive, primitiveType: { primitive: "string" }, cardinality: EntityFieldCardinality.ZeroOrOne },
+				"pendingWithdrawalCount": { label: "pending withdrawal count", type: EntityFieldType.Primitive, valueType: "NonNegativeInteger", cardinality: EntityFieldCardinality.ZeroOrOne },
+				"abstractionMode": { label: "abstraction mode", type: EntityFieldType.Primitive, valueType: "HyperliquidAccountAbstraction", cardinality: EntityFieldCardinality.ZeroOrOne },
+				"dexAbstractionEnabled": { label: "DEX abstraction enabled", type: EntityFieldType.Primitive, primitiveType: { primitive: "boolean" }, cardinality: EntityFieldCardinality.ZeroOrOne },
 				"borrowLendHealth": {
 					label: "borrow lend health",
 					type: EntityFieldType.Primitive,
@@ -39664,11 +39695,11 @@ export const schema = {
 					primitiveType: { primitive: "string" },
 					cardinality: EntityFieldCardinality.ZeroOrOne,
 				},
-				"children": {
-					label: "children",
-					type: EntityFieldType.Primitive,
-					primitiveType: { primitive: "unknown" },
-					cardinality: EntityFieldCardinality.ZeroOrOne,
+				"$$children": {
+					label: "child orders",
+					type: EntityFieldType.EntitiesReference,
+					entityType: EntityType.HyperliquidOrder,
+					cardinality: EntityFieldCardinality.Many,
 				},
 				"filledSize": {
 					label: "filled size",

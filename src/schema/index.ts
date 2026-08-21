@@ -639,13 +639,16 @@ import HederaTopicMessageSchema from '$/schema/HederaTopicMessage.ts'
 import HederaTransactionSchema from '$/schema/HederaTransaction.ts'
 import HyperliquidAccount_TimestampSchema from '$/schema/HyperliquidAccount_Timestamp.ts'
 import HyperliquidAccountSchema from '$/schema/HyperliquidAccount.ts'
+import HyperliquidBalanceSchema from '$/schema/HyperliquidBalance.ts'
 import HyperliquidBlockSchema from '$/schema/HyperliquidBlock.ts'
+import HyperliquidBuilderApprovalSchema from '$/schema/HyperliquidBuilderApproval.ts'
 import HyperliquidBorrowLendPositionSchema from '$/schema/HyperliquidBorrowLendPosition.ts'
 import HyperliquidBorrowLendReserveSchema from '$/schema/HyperliquidBorrowLendReserve.ts'
 import HyperliquidFillSchema from '$/schema/HyperliquidFill.ts'
 import HyperliquidMarket_TimeInterval_TimestampSchema from '$/schema/HyperliquidMarket_TimeInterval_Timestamp.ts'
 import HyperliquidNetwork_TimestampSchema from '$/schema/HyperliquidNetwork_Timestamp.ts'
 import HyperliquidNetworkSchema from '$/schema/HyperliquidNetwork.ts'
+import HyperliquidPositionSchema from '$/schema/HyperliquidPosition.ts'
 import HyperliquidOrder_TimestampSchema from '$/schema/HyperliquidOrder_Timestamp.ts'
 import HyperliquidOrderSchema from '$/schema/HyperliquidOrder.ts'
 import HyperliquidPerpMarket_TimestampSchema from '$/schema/HyperliquidPerpMarket_Timestamp.ts'
@@ -1769,13 +1772,16 @@ const schemaChunk12 = [
 	HederaTransactionSchema,
 	HyperliquidAccountSchema,
 	HyperliquidAccount_TimestampSchema,
+	HyperliquidBalanceSchema,
 	HyperliquidBlockSchema,
+	HyperliquidBuilderApprovalSchema,
 	HyperliquidBorrowLendPositionSchema,
 	HyperliquidBorrowLendReserveSchema,
 	HyperliquidFillSchema,
 	HyperliquidMarket_TimeInterval_TimestampSchema,
 	HyperliquidNetworkSchema,
 	HyperliquidNetwork_TimestampSchema,
+	HyperliquidPositionSchema,
 	HyperliquidOrderSchema,
 	HyperliquidOrder_TimestampSchema,
 	HyperliquidPerpMarketSchema,

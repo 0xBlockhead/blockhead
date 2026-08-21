@@ -257,36 +257,49 @@ describe('Hyperliquid public account resolvers', () => {
 			[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'totalMarginUsed')]: '12.5',
 			[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'withdrawable')]: '88',
 			[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'crossMaintenanceMarginUsed')]: '4',
-			[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'assetPositions')]: [{
-				type: 'oneWay',
-				position: {
-					coin: 'ETH',
-					leverage: {
-						rawUsd: '100',
-						type: 'isolated',
-						value: 10,
-					},
-				},
-			}],
 		})
+		expect(accountPortfolioResolver.projections.$$positions(snapshot)).toMatchObject([{
+			[EntityMetaKey.Selector]: { $account: account, coin: 'ETH' },
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.HyperliquidPosition, [], 'size')]: '0.5',
+				[entityFieldAddressKey(EntityType.HyperliquidPosition, [], 'leverageType')]: 'isolated',
+			},
+		}])
+		expect(accountPortfolioResolver.projections.$$balances(snapshot)).toEqual([{
+			[EntityMetaKey.Selector]: { $account: account, tokenIndex: 0 },
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.HyperliquidBalance, [], 'coin')]: 'USDC',
+				[entityFieldAddressKey(EntityType.HyperliquidBalance, [], 'total')]: '25',
+				[entityFieldAddressKey(EntityType.HyperliquidBalance, [], 'hold')]: '2',
+				[entityFieldAddressKey(EntityType.HyperliquidBalance, [], 'entryNtl')]: '25',
+			},
+		}])
 		expect(timestamps[1]?.[EntityMetaKey.Fields]).toEqual({
-			[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'spotBalances')]: responseByInfoType.spotClearinghouseState.balances,
 		})
 		expect(timestamps[2]?.[EntityMetaKey.Fields]).toEqual({
-			[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'feeSchedule')]: responseByInfoType.userFees,
+			[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'perpCrossRate')]: '0.000315',
+			[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'perpAddRate')]: '0.000105',
+			[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'spotCrossRate')]: '0.00049',
+			[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'spotAddRate')]: '0.00028',
 		})
 		expect(timestamps[3]?.[EntityMetaKey.Fields]).toEqual({
-			[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'stakingSummary')]: responseByInfoType.delegatorSummary,
+			[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'delegated')]: '12',
+			[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'pendingWithdrawalCount')]: 0,
 		})
 		expect(timestamps[4]?.[EntityMetaKey.Fields]).toEqual({
-			[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'userAbstraction')]: 'default',
+			[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'abstractionMode')]: 'default',
 		})
 		expect(timestamps[5]?.[EntityMetaKey.Fields]).toEqual({
-			[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'userDexAbstraction')]: false,
+			[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'dexAbstractionEnabled')]: false,
 		})
 		expect(timestamps[6]?.[EntityMetaKey.Fields]).toEqual({
-			[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'approvedBuilders')]: responseByInfoType.approvedBuilders,
 		})
+		expect(accountPortfolioResolver.projections.$$builderApprovals(snapshot)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$account: account,
+				builder: responseByInfoType.approvedBuilders[0],
+			},
+		}])
 		expect(timestamps[7]?.[EntityMetaKey.Fields]).toEqual({
 			[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'borrowLendHealth')]: 'healthy',
 		})
@@ -411,7 +424,7 @@ describe('Hyperliquid public account resolvers', () => {
 					[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'size')]: '0',
 					[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'remainingSize')]: '0',
 					[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'filledSize')]: '0.0076',
-					[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'children')]: [],
+					[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], '$$children')]: [],
 				},
 			}],
 		})
@@ -502,7 +515,7 @@ describe('Hyperliquid public account resolvers', () => {
 					[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'status')]: 'open',
 					[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'statusTimestampMs')]: 1_700_000_000_500,
 					[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'size')]: '0.1',
-					[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'children')]: [],
+					[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], '$$children')]: [],
 				},
 			}],
 		})
