@@ -1,4 +1,9 @@
-import { randomBytes } from 'node:crypto'
+import {
+	createHash,
+	randomBytes,
+} from 'node:crypto'
+
+import { ed25519 } from '@noble/curves/ed25519.js'
 
 import {
 	decodeBencode,
@@ -78,6 +83,58 @@ const bytesEqual = (
 			return false
 	}
 	return true
+}
+
+const sha1 = (bytes: Uint8Array) => (
+	new Uint8Array(createHash('sha1').update(bytes).digest())
+)
+
+const concatenateBytes = (...values: Uint8Array[]) => {
+	const result = new Uint8Array(values.reduce((length, value) => length + value.byteLength, 0))
+	let offset = 0
+	for (const value of values) {
+		result.set(value, offset)
+		offset += value.byteLength
+	}
+	return result
+}
+
+const validateBep44Value = ({
+	target,
+	value,
+	publicKey,
+	signature,
+	sequence,
+	salt,
+}: {
+	target: Uint8Array
+	value: BencodeValue | undefined
+	publicKey: Uint8Array | undefined
+	signature: Uint8Array | undefined
+	sequence: number | undefined
+	salt: Uint8Array
+}) => {
+	if (value === undefined) {
+		if (publicKey !== undefined || signature !== undefined)
+			throw new Error('BitTorrent_Dht: incomplete mutable item response')
+		return
+	}
+	if (publicKey === undefined && signature === undefined && sequence === undefined) {
+		if (!bytesEqual(sha1(encodeBencode(value)), target))
+			throw new Error('BitTorrent_Dht: immutable item hash does not match target')
+		return
+	}
+	if (publicKey === undefined || signature === undefined || sequence === undefined)
+		throw new Error('BitTorrent_Dht: incomplete mutable item response')
+	if (!bytesEqual(sha1(concatenateBytes(publicKey, salt)), target))
+		throw new Error('BitTorrent_Dht: mutable item public key does not match target')
+	const signable = concatenateBytes(
+		salt.byteLength === 0 ? new Uint8Array(0) : encodeBencode({ salt }).subarray(1, -1),
+		new TextEncoder().encode(`3:seqi${sequence}e1:v`),
+		encodeBencode(value)
+	)
+	if (!ed25519.verify(signature, signable, publicKey))
+		throw new Error('BitTorrent_Dht: mutable item signature is invalid')
 }
 
 const parseIpv4Port = (
@@ -332,14 +389,18 @@ export const get = async ({
 	nodeId,
 	target,
 	seq,
+	salt = new Uint8Array(0),
 	timeoutMs = 15_000,
 }: {
 	remote: DhtRemote
 	nodeId: Uint8Array
 	target: Uint8Array
 	seq?: number
+	salt?: Uint8Array
 	timeoutMs?: number
 }): Promise<GetResult> => {
+	if (salt.byteLength > 64)
+		throw new Error('BitTorrent_Dht: salt must not exceed 64 bytes')
 	if (seq !== undefined)
 		assertSequence(seq)
 	const transactionId = randomBytes(2)
@@ -354,20 +415,22 @@ export const get = async ({
 		},
 		timeoutMs,
 	})
+	const value = values.v
+	const publicKey = values.k === undefined ? undefined : assertByteString(values.k, 'public key', dhtPublicKeyLength)
+	const signature = values.sig === undefined ? undefined : assertByteString(values.sig, 'signature', dhtSignatureLength)
+	const sequence = values.seq === undefined ? undefined : assertSequence(values.seq)
+	const token = assertByteString(values.token, 'token')
+	validateBep44Value({ target, value, publicKey, signature, sequence, salt })
 	return {
 		remoteNodeId,
-		token: assertByteString(values.token, 'token'),
+		token,
 		nodes: parseCompactNodeInfos(
 			assertByteString(values.nodes ?? new Uint8Array(0), 'nodes')
 		),
-		...(values.v !== undefined && { value: values.v }),
-		...(values.k !== undefined && {
-			publicKey: assertByteString(values.k, 'public key', dhtPublicKeyLength),
-		}),
-		...(values.sig !== undefined && {
-			signature: assertByteString(values.sig, 'signature', dhtSignatureLength),
-		}),
-		...(values.seq !== undefined && { sequence: assertSequence(values.seq) }),
+		...(value !== undefined && { value }),
+		...(publicKey !== undefined && { publicKey }),
+		...(signature !== undefined && { signature }),
+		...(sequence !== undefined && { sequence }),
 	}
 }
 

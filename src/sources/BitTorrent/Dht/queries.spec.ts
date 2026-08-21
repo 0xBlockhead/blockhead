@@ -29,6 +29,12 @@ const {
 
 const textEncoder = new TextEncoder()
 
+const hexBytes = (hex: string) => (
+	Uint8Array.from({ length: hex.length / 2 }, (_, index) => (
+		Number.parseInt(hex.slice(index * 2, index * 2 + 2), 16)
+	))
+)
+
 const decodeRequest = (bytes: Uint8Array) => {
 	const decoded = decodeBencode(bytes)
 	if (!(decoded instanceof Object) || decoded instanceof Uint8Array || decoded instanceof Array || Number.isSafeInteger(decoded))
@@ -265,17 +271,18 @@ describe('BitTorrent mainline DHT queries', () => {
 
 	it('sends a BEP 44 get query and parses an immutable item value', async () => {
 		const socket = installFakeSocket()
+		const immutableTarget = hexBytes('e5f96f6f38320f0f33959cb4d3d656452117aadb')
 		const closestNode = new Uint8Array([
 			...target,
 			0x0b, 0x0b, 0x0b, 0x0b, 0x1f, 0x90,
 		])
 		const itemValue = textEncoder.encode('Hello World!')
-		const promise = get({ remote, nodeId, target })
+		const promise = get({ remote, nodeId, target: immutableTarget })
 		const request = expectQueryRequest({
 			bytes: socket.sentRequests[0],
 			queryKind: 'get',
 			nodeId,
-			extraArguments: { target },
+			extraArguments: { target: immutableTarget },
 		})
 		socket.reply({
 			t: request.t,
@@ -301,18 +308,19 @@ describe('BitTorrent mainline DHT queries', () => {
 		})
 	})
 
-	it('parses a mutable BEP 44 get response with public key, signature, and sequence', async () => {
+	it('authenticates the official BEP 44 mutable test vector', async () => {
 		const socket = installFakeSocket()
-		const publicKey = new Uint8Array(32).map((_, index) => index)
-		const signature = new Uint8Array(64).map((_, index) => 64 + index)
-		const itemValue = { msg: textEncoder.encode('Hello World!') }
-		const promise = get({ remote, nodeId, target, seq: 0 })
+		const mutableTarget = hexBytes('4a533d47ec9c7d95b1ad75f576cffc641853b750')
+		const publicKey = hexBytes('77ff84905a91936367c01360803104f92432fcd904a43511876df5cdf3e7e548')
+		const signature = hexBytes('305ac8aeb6c9c151fa120f120ea2cfb923564e11552d06a5d856091e5e853cff1260d3f39e4999684aa92eb73ffd136e6f4f3ecbfda0ce53a1608ecd7ae21f01')
+		const itemValue = textEncoder.encode('Hello World!')
+		const promise = get({ remote, nodeId, target: mutableTarget, seq: 0 })
 		const request = expectQueryRequest({
 			bytes: socket.sentRequests[0],
 			queryKind: 'get',
 			nodeId,
 			extraArguments: {
-				target,
+				target: mutableTarget,
 				seq: 0,
 			},
 		})
@@ -336,6 +344,97 @@ describe('BitTorrent mainline DHT queries', () => {
 			publicKey,
 			signature,
 			sequence: 1,
+		})
+	})
+
+	it('authenticates the official salted BEP 44 mutable test vector', async () => {
+		const socket = installFakeSocket()
+		const salt = textEncoder.encode('foobar')
+		const saltedTarget = hexBytes('411eba73b6f087ca51a3795d9c8c938d365e32c1')
+		const publicKey = hexBytes('77ff84905a91936367c01360803104f92432fcd904a43511876df5cdf3e7e548')
+		const signature = hexBytes('6834284b6b24c3204eb2fea824d82f88883a3d95e8b4a21b8c0ded553d17d17ddf9a8a7104b1258f30bed3787e6cb896fca78c58f8e03b5f18f14951a87d9a08')
+		const itemValue = textEncoder.encode('Hello World!')
+		const promise = get({ remote, nodeId, target: saltedTarget, salt })
+		const request = decodeRequest(socket.sentRequests[0])
+		socket.reply({
+			t: request.t,
+			y: 'r',
+			r: { id: remoteNodeId, token, k: publicKey, sig: signature, seq: 1, v: itemValue },
+		})
+		await expect(promise).resolves.toMatchObject({
+			value: itemValue,
+			publicKey,
+			signature,
+			sequence: 1,
+		})
+	})
+
+	it('rejects immutable values whose SHA-1 does not match the requested target', async () => {
+		const socket = installFakeSocket()
+		const promise = get({ remote, nodeId, target })
+		const request = decodeRequest(socket.sentRequests[0])
+		socket.reply({ t: request.t, y: 'r', r: { id: remoteNodeId, token, v: textEncoder.encode('Hello World!') } })
+		await expect(promise).rejects.toThrow('immutable item hash does not match target')
+	})
+
+	it('rejects mutable values whose public key does not derive the requested target', async () => {
+		const socket = installFakeSocket()
+		const promise = get({ remote, nodeId, target })
+		const request = decodeRequest(socket.sentRequests[0])
+		socket.reply({
+			t: request.t,
+			y: 'r',
+			r: {
+				id: remoteNodeId,
+				token,
+				k: new Uint8Array(32),
+				sig: new Uint8Array(64),
+				seq: 1,
+				v: textEncoder.encode('value'),
+			},
+		})
+		await expect(promise).rejects.toThrow('mutable item public key does not match target')
+	})
+
+	it('rejects invalid mutable signatures after matching the target', async () => {
+		const socket = installFakeSocket()
+		const mutableTarget = hexBytes('4a533d47ec9c7d95b1ad75f576cffc641853b750')
+		const promise = get({ remote, nodeId, target: mutableTarget })
+		const request = decodeRequest(socket.sentRequests[0])
+		socket.reply({
+			t: request.t,
+			y: 'r',
+			r: {
+				id: remoteNodeId,
+				token,
+				k: hexBytes('77ff84905a91936367c01360803104f92432fcd904a43511876df5cdf3e7e548'),
+				sig: new Uint8Array(64),
+				seq: 1,
+				v: textEncoder.encode('Hello World!'),
+			},
+		})
+		await expect(promise).rejects.toThrow('mutable item signature is invalid')
+	})
+
+	it('rejects incomplete mutable values and oversized salts', async () => {
+		const socket = installFakeSocket()
+		const promise = get({ remote, nodeId, target })
+		const request = decodeRequest(socket.sentRequests[0])
+		socket.reply({ t: request.t, y: 'r', r: { id: remoteNodeId, token, k: new Uint8Array(32) } })
+		await expect(promise).rejects.toThrow('incomplete mutable item response')
+		await expect(get({ remote, nodeId, target, salt: new Uint8Array(65) })).rejects.toThrow('salt must not exceed 64 bytes')
+	})
+
+	it('accepts a sequence-only response when a requested mutable value is not newer', async () => {
+		const socket = installFakeSocket()
+		const promise = get({ remote, nodeId, target, seq: 2 })
+		const request = decodeRequest(socket.sentRequests[0])
+		socket.reply({ t: request.t, y: 'r', r: { id: remoteNodeId, token, seq: 2 } })
+		await expect(promise).resolves.toEqual({
+			remoteNodeId,
+			token,
+			nodes: [],
+			sequence: 2,
 		})
 	})
 
