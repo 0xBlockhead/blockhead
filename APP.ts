@@ -108767,6 +108767,9 @@ export const app = {
 					wireProtocol: WireProtocol.InProcess,
 					apiFamily: ApiFamily.LocalParser,
 					operationGroups: [
+						SourceOperationGroup.GenericRead,
+						SourceOperationGroup.IssueTracking,
+						SourceOperationGroup.PullRequestReview,
 						SourceOperationGroup.RepositoryMetadata,
 					],
 					delivery: SourceDelivery.LocalOnly,
