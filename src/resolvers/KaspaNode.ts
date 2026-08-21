@@ -1,5 +1,6 @@
 import { networkBySlug } from '$/constants/Network.ts'
 import { defineResolver, type RegisteredSourceResolverModule } from '$/resolvers/defineResolver.ts'
+import type { ResolverContext } from '$/resolvers/$resolvers.ts'
 import { entityFieldAddressKey, EntityMetaKey, type EntitySelector } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
@@ -45,6 +46,18 @@ const assertKaspaAddress = (address: KaspaAddressId) => {
 const blockValue = (value: KaspaNodeBlock | { block: KaspaNodeBlock }) => 'block' in value ? value.block : value
 const transactionValue = (value: KaspaNodeTransaction | { transaction: KaspaNodeTransaction }) => 'transaction' in value ? value.transaction : value
 const utxoValues = (value: { entries: KaspaNodeUtxo[] } | KaspaNodeUtxo[]) => 'entries' in value ? value.entries : value
+
+const assertCurrentObservation = (timestampMs: number, context: ResolverContext, label: string) => {
+	const requestedTimestamps = context.filters.flatMap((filter) => {
+		if (filter.fieldPath.length !== 1 || filter.fieldPath[0] !== 'timestampMs')
+			return []
+		if (filter.operator === 'eq')
+			return [filter.value]
+		return Array.isArray(filter.value) ? filter.value : []
+	})
+	if (requestedTimestamps.some((requestedTimestamp) => requestedTimestamp !== timestampMs))
+		throw new Error(`KaspaNode: historical ${label} observations are unsupported`)
+}
 
 const transactionFields = (transaction: KaspaNodeTransaction) => ({
 	[entityFieldAddressKey(EntityType.KaspaTransaction, [], 'version')]: transaction.version,
@@ -105,11 +118,16 @@ export const createKaspaNodeResolverModule = (
 		})({ $$timestamps: (rows) => rows }),
 		defineResolver({
 			entityType: EntityType.KaspaAddress,
-			resolve: { NetworkAddress: { appliesTo: addressApplicability, resolve: async (address) => {
+			resolve: { NetworkAddress: { appliesTo: addressApplicability, resolve: async (address, context) => {
 				assertKaspaAddress(address)
 				const queries = await loadQueries()
-				const [balance, utxos] = await Promise.all([queries.getAddressBalance({ address: address.address }), queries.getAddressUtxos({ address: address.address })])
-				const timestampMs = Date.now()
+				const [balance, utxos, dag] = await Promise.all([
+					queries.getAddressBalance({ address: address.address }),
+					queries.getAddressUtxos({ address: address.address }),
+					queries.getBlockDagInfo(),
+				])
+				const timestampMs = dag.pastMedianTime
+				assertCurrentObservation(timestampMs, context, 'address')
 				const entries = utxoValues(utxos)
 				return [{
 					[EntityMetaKey.Selector]: { $address: address, timestampMs, source },
@@ -122,10 +140,16 @@ export const createKaspaNodeResolverModule = (
 		})({ $$timestamps: (rows) => rows }),
 		defineResolver({
 			entityType: EntityType.KaspaAddress,
-			resolve: { NetworkAddress: { appliesTo: addressApplicability, resolve: async (address) => {
+			resolve: { NetworkAddress: { appliesTo: addressApplicability, resolve: async (address, context) => {
 				assertKaspaAddress(address)
-				const entries = utxoValues(await (await loadQueries()).getAddressUtxos({ address: address.address }))
-				const timestampMs = Date.now()
+				const queries = await loadQueries()
+				const [utxos, dag] = await Promise.all([
+					queries.getAddressUtxos({ address: address.address }),
+					queries.getBlockDagInfo(),
+				])
+				const entries = utxoValues(utxos)
+				const timestampMs = dag.pastMedianTime
+				assertCurrentObservation(timestampMs, context, 'address UTXO')
 				return entries.map((utxo) => ({
 					[EntityMetaKey.Selector]: { $address: address, outpointTransactionId: utxo.outpoint.transactionId, outpointIndex: utxo.outpoint.index, timestampMs, source },
 					[EntityMetaKey.Fields]: {
@@ -174,10 +198,17 @@ export const createKaspaNodeResolverModule = (
 		}),
 		defineResolver({
 			entityType: EntityType.KaspaVirtualChain_Timestamp,
-			resolve: { NetworkStartHashTimestampMsSource: { appliesTo: addressApplicability, resolve: async (chain) => {
+			resolve: { NetworkStartHashTimestampMsSource: { appliesTo: addressApplicability, resolve: async (chain, context) => {
 				assertKaspaNetwork(chain.$network)
-				const value = await (await loadQueries()).getVirtualChain({ startHash: chain.startHash, minConfirmationCount: chain.minConfirmationCount })
-				return [{ [EntityMetaKey.Selector]: { $network: chain.$network, startHash: chain.startHash, timestampMs: Date.now(), source }, [EntityMetaKey.Fields]: {
+				const queries = await loadQueries()
+				const [value, dag] = await Promise.all([
+					queries.getVirtualChain({ startHash: chain.startHash, minConfirmationCount: chain.minConfirmationCount }),
+					queries.getBlockDagInfo(),
+				])
+				assertCurrentObservation(dag.pastMedianTime, context, 'virtual-chain')
+				if (chain.timestampMs !== dag.pastMedianTime)
+					throw new Error('KaspaNode: historical virtual-chain observations are unsupported')
+				return [{ [EntityMetaKey.Selector]: { $network: chain.$network, startHash: chain.startHash, timestampMs: dag.pastMedianTime, source }, [EntityMetaKey.Fields]: {
 					...(value.minConfirmationCount != null && { [entityFieldAddressKey(EntityType.KaspaVirtualChain_Timestamp, [], 'minConfirmationCount')]: value.minConfirmationCount }),
 					[entityFieldAddressKey(EntityType.KaspaVirtualChain_Timestamp, [], 'addedChainBlockHashes')]: value.addedChainBlockHashes,
 					[entityFieldAddressKey(EntityType.KaspaVirtualChain_Timestamp, [], 'removedChainBlockHashes')]: value.removedChainBlockHashes,
