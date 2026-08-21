@@ -42,6 +42,7 @@
 		"test:e2e": "playwright test",
 		"test:e2e:boundaries": "playwright test tests/e2e/route-matrix.e2e.ts --workers=4",
 		"test:e2e:failfast": "E2E_FAILFAST=1 playwright test tests/e2e/route-matrix.e2e.ts",
+		"test:e2e:screenshot-quality": "E2E_SCREENSHOT_QUALITY=1 playwright test tests/e2e/route-screenshot-quality.e2e.ts",
 		"test:e2e:cors": "playwright test tests/e2e/cors-policy.e2e.ts",
 		"test:e2e:wallet-extensions": "WALLET_EXTENSIONS_E2E=1 PLAYWRIGHT_HEADLESS=0 playwright test --config playwright.wallet-extensions.config.ts",
 		"test:e2e:persistence": "VITE_BLOCKHEAD_E2E_PROBE=1 PLAYWRIGHT_DEDICATED_SERVER=1 playwright test tests/e2e/tanstack-db-persistence.e2e.ts",

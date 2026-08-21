@@ -3163,7 +3163,6 @@ export const e2eDomQualityProbeOverlays = {
 			'Status',
 		],
 		minDt: 4,
-		discoveryOptional: true,
 	},
 	'/youtube/videos': {
 		routeTitle: 'YouTube Videos',
@@ -3194,8 +3193,8 @@ export const e2eDomQualityProbeOverlays = {
 		minDt: 4,
 		minLinks: 1,
 	},
-	'/evm/topic/0xa9059cbb': {
-		required: ['0xa9059cbb'],
+	'/evm/topic/0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef': {
+		required: ['0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef'],
 		requiredDt: [
 			'Topic',
 			'Signatures',
@@ -3212,5 +3211,4 @@ export const e2eDomQualityProbeOverlays = {
 	minDt?: number
 	minLinks?: number
 	minEntityRows?: number
-	discoveryOptional?: boolean
 }>>
