@@ -148,7 +148,7 @@ describe('MCP registry REST queries', () => {
 		expect(sourceGetJson).toHaveBeenNthCalledWith(
 			2,
 			binding,
-			httpUrl(binding, 'io.example%2Fserver/versions/1.0.0')
+			httpUrl(binding, 'io.example%2Fserver/versions/1.0.0?include_deleted=true')
 		)
 	})
 })

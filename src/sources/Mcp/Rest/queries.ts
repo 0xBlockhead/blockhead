@@ -181,6 +181,6 @@ export const getRegistryServer = (
 
 	return getJson<McpRegistryServerDetailEnvelope>(
 		binding,
-		`${encodeURIComponent(serverName)}/versions/${encodeURIComponent(version)}`
+		`${encodeURIComponent(serverName)}/versions/${encodeURIComponent(version)}?include_deleted=true`
 	).then(assertRegistryServerDetailEnvelope)
 }

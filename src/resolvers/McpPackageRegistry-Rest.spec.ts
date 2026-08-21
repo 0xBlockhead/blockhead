@@ -99,6 +99,12 @@ it('connects registry package identity, repository and exact published version m
 		packageArguments: ['--readonly'],
 	})
 	expect(getRegistryServer).toHaveBeenNthCalledWith(
+		1,
+		context.sourceBinding,
+		'io.example/server',
+		'latest'
+	)
+	expect(getRegistryServer).toHaveBeenNthCalledWith(
 		2,
 		context.sourceBinding,
 		'io.example/server',
