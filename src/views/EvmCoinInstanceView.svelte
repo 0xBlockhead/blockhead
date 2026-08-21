@@ -424,7 +424,6 @@
 								selection={marketsWithInstanceAsBaseResource}
 								countResource={marketsWithInstanceAsBaseResource.count}
 								title='Markets with instance as base'
-								href={resolve('/(assets)/markets')}
 								id='markets-with-instance-as-base'
 							/>
 						{/if}
@@ -441,7 +440,6 @@
 								selection={marketsWithInstanceAsQuoteResource}
 								countResource={marketsWithInstanceAsQuoteResource.count}
 								title='Markets with instance as quote'
-								href={resolve('/(assets)/markets')}
 								id='markets-with-instance-as-quote'
 							/>
 						{/if}

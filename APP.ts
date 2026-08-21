@@ -28861,8 +28861,8 @@ export const schema = {
 							lists: [
 								{ field: "$$outboundBridgeCapabilities", component: "CoinBridgeCapabilitiesView", query: { sources: [Source.Lifi_Rest] }, emptyText: "No outbound bridge capabilities for this instance yet." },
 								{ field: "$$inboundBridgeCapabilities", component: "CoinBridgeCapabilitiesView", query: { sources: [Source.Lifi_Rest] }, emptyText: "No inbound bridge capabilities for this instance yet." },
-								{ field: "$$marketsWithInstanceAsBase", component: "MarketsView", href: "/(assets)/markets", emptyText: "No markets use this instance as base yet." },
-								{ field: "$$marketsWithInstanceAsQuote", component: "MarketsView", href: "/(assets)/markets", emptyText: "No markets use this instance as quote yet." },
+								{ field: "$$marketsWithInstanceAsBase", component: "MarketsView", emptyText: "No markets use this instance as base yet." },
+								{ field: "$$marketsWithInstanceAsQuote", component: "MarketsView", emptyText: "No markets use this instance as quote yet." },
 							],
 						},
 					}),
@@ -28903,8 +28903,8 @@ export const schema = {
 							lists: [
 								{ field: "$$outboundBridgeCapabilities", component: "CoinBridgeCapabilitiesView", query: { sources: [Source.Lifi_Rest] }, emptyText: "No outbound bridge capabilities for this instance yet." },
 								{ field: "$$inboundBridgeCapabilities", component: "CoinBridgeCapabilitiesView", query: { sources: [Source.Lifi_Rest] }, emptyText: "No inbound bridge capabilities for this instance yet." },
-								{ field: "$$marketsWithInstanceAsBase", component: "MarketsView", href: "/(assets)/markets", emptyText: "No markets use this instance as base yet." },
-								{ field: "$$marketsWithInstanceAsQuote", component: "MarketsView", href: "/(assets)/markets", emptyText: "No markets use this instance as quote yet." },
+								{ field: "$$marketsWithInstanceAsBase", component: "MarketsView", emptyText: "No markets use this instance as base yet." },
+								{ field: "$$marketsWithInstanceAsQuote", component: "MarketsView", emptyText: "No markets use this instance as quote yet." },
 							],
 						},
 					}),
@@ -44633,7 +44633,7 @@ export const schema = {
 									label: "Spot",
 									className: "network-view-collapsible-spot",
 									sections: [
-										{ id: "market-prices", field: "$$marketPrices", List: "MarketPricesView", label: "Spot", emptyText: "No spot market prices.", href: "/(assets)/markets" },
+									{ id: "market-prices", field: "$$marketPrices", List: "MarketPricesView", label: "Spot", emptyText: "No spot market prices." },
 										{ id: "market-ohlc", field: "$$marketTimeIntervalTimestamps", List: "Market_TimeInterval_TimestampsView", label: "Candles", emptyText: "No OHLC candles." },
 									],
 								},
@@ -45351,7 +45351,6 @@ export const schema = {
 							{
 								field: "$$markets",
 								component: "MarketsView",
-								href: "/(assets)/markets",
 							},
 						],
 						content: {
@@ -56399,7 +56398,6 @@ export const schema = {
 								field: "$$proposalKinds",
 								component: "SpecificationProposalKindsView",
 								label: "Proposal kinds",
-								href: "/(proposals)/proposals",
 								emptyText: "No proposal kinds for this realm.",
 							},
 						],

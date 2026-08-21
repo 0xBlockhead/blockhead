@@ -88,7 +88,6 @@
 						selection={marketsResource}
 						countResource={marketsResource.count}
 						title='Markets'
-						href={resolve('/(assets)/markets')}
 						id='markets'
 					/>
 				{/if}

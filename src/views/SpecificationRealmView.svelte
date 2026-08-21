@@ -145,7 +145,6 @@
 						selection={proposalKindsResource}
 						countResource={proposalKindsResource.count}
 						title='Proposal kinds'
-						href={resolve('/(proposals)/proposals')}
 						id='proposal-kinds'
 					/>
 				{/if}
