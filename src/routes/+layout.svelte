@@ -17,6 +17,7 @@
 		BLOCKHEAD_PERSISTED_COLLECTION_SCHEMA_VERSION,
 		BLOCKHEAD_WA_SQLITE_DATABASE_NAME,
 	} from '$/constants/Persistence.ts'
+	import { BrowserPersistenceRuntime } from '$/lib/db/browserPersistenceRuntime.ts'
 	import { loadResolvers } from '$/resolvers/index.ts'
 	import {
 		schema,
@@ -31,18 +32,24 @@
 	import type { SourceProvider } from '$/sources/SourceProvider.ts'
 	import { indexSourceProviders } from '$/sources/$sources.ts'
 	import { applicationRuntimeWhenReady } from './applicationRuntime.ts'
-	import { databaseCloseWhenReady } from './databaseLifecycle.ts'
-
-	const databasePromise = (async () => {
-		await import.meta.hot?.data.databaseClose
-
-		return openBrowserWASQLiteOPFSDatabase({
-			databaseName: BLOCKHEAD_WA_SQLITE_DATABASE_NAME,
-		})
-	})()
-	const closeDatabase = databaseCloseWhenReady(databasePromise)
+	const persistenceRuntime = new BrowserPersistenceRuntime({
+		name: BLOCKHEAD_WA_SQLITE_DATABASE_NAME,
+		openOwner: async () => {
+			await import.meta.hot?.data.databaseClose
+			const database = await openBrowserWASQLiteOPFSDatabase({
+				databaseName: BLOCKHEAD_WA_SQLITE_DATABASE_NAME,
+			})
+			return {
+				persistence: createBrowserWASQLitePersistence({
+					database,
+					schemaMismatchPolicy: 'reset',
+				}),
+				close: () => database.close?.(),
+			}
+		},
+	})
 	import.meta.hot?.dispose((data) => {
-		data.databaseClose = closeDatabase()
+		data.databaseClose = persistenceRuntime.close()
 	})
 
 	type AppClient = ReturnType<ReturnType<ReturnType<typeof client<
@@ -53,8 +60,8 @@
 	let appClient: AppClient | undefined
 	const bootstrap = Promise.all([
 		sourceRuntimeCapabilities(),
-		databasePromise,
-	]).then(async ([sourceCapabilities, database]) => {
+		persistenceRuntime.ready,
+	]).then(async ([sourceCapabilities]) => {
 		const sourceIndex = indexSourceProviders(
 			sourceProviders,
 			env,
@@ -67,10 +74,7 @@
 			persistence,
 			waitForPersistence,
 		} = trackPersistedCollectionPersistence(
-			createBrowserWASQLitePersistence({
-				database,
-				schemaMismatchPolicy: 'reset',
-			})
+			persistenceRuntime.persistence
 		)
 
 		appClient = client(
@@ -134,6 +138,7 @@
 	let {
 		children,
 	} = $props()
+	let persistencePhase = $state(persistenceRuntime.phase)
 
 	const applicationRuntime = applicationRuntimeWhenReady(
 		bootstrap,
@@ -148,7 +153,14 @@
 		})
 	)
 	$effect(() => {
-		return applicationRuntime.destroy
+		const unsubscribePersistencePhase = persistenceRuntime.subscribePhase((phase) => {
+			persistencePhase = phase
+		})
+		return () => {
+			unsubscribePersistencePhase()
+			applicationRuntime.destroy()
+			void persistenceRuntime.close()
+		}
 	})
 
 	// Components
@@ -171,6 +183,7 @@
 
 <div
 	id="layout"
+	data-persistence-phase={persistencePhase}
 	data-scroll-container="layout-inline-panes snap-inline"
 	data-sticky-container
 >
