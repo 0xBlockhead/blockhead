@@ -137,7 +137,15 @@
 
 	const applicationRuntime = applicationRuntimeWhenReady(
 		bootstrap,
-		(appClient) => untrack(() => mountWalletConnectionRuntime(appClient))
+		(appClient) => untrack(() => {
+			const walletConnectionRuntime = mountWalletConnectionRuntime(appClient)
+			return {
+				destroy: () => {
+					walletConnectionRuntime.destroy()
+					appClient.destroy()
+				},
+			}
+		})
 	)
 	$effect(() => {
 		return applicationRuntime.destroy
