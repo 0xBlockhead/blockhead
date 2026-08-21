@@ -38,8 +38,21 @@ export type RouteResult = {
 
 export type RouteReport = {
 	runIdentity: RouteRunIdentity
+	corpusFingerprint: string
 	resultSetFingerprint: string
 	[key: string]: unknown
+}
+
+export type RouteCorpusArtifact = {
+	runIdentity: RouteRunIdentity
+	corpusFingerprint: string
+	targets: readonly RouteCorpusTarget[]
+}
+
+export type RouteCheckpoint = {
+	runIdentity: RouteRunIdentity
+	corpusFingerprint: string
+	results: readonly RouteResult[]
 }
 
 export type RouteMatrixArtifact = RouteReport & {
@@ -48,6 +61,7 @@ export type RouteMatrixArtifact = RouteReport & {
 
 export type RouteResultsArtifact = {
 	runIdentity: RouteRunIdentity
+	corpusFingerprint: string
 	results: readonly RouteResult[]
 }
 
@@ -166,6 +180,10 @@ export const resultSetFingerprint = (results: readonly RouteResult[]) => sha256(
 	))),
 )
 
+export const corpusFingerprint = (corpusTargets: readonly RouteCorpusTarget[]) => sha256(
+	canonicalJson([...corpusTargets].sort((targetA, targetB) => targetA.id.localeCompare(targetB.id))),
+)
+
 const identityFields = Object.keys({
 	version: 0,
 	commit: '',
@@ -197,6 +215,26 @@ export const assertRouteResultsCoherent = ({
 	results: readonly RouteResult[]
 	runIdentity: RouteRunIdentity
 }) => {
+	assertRouteCorpusTargetsCoherent(corpusTargets)
+	const examplesByKey = new Map<string, string>(
+		corpusTargets.flatMap((target) => target.examples.map((example) => [
+			`${target.id}\u0000${example.id}`,
+			example.version,
+		] as const)),
+	)
+	assertRouteResultEntriesCoherent({ corpusTargets, results })
+	if (results.length !== examplesByKey.size)
+		throw new Error(`result set is incomplete: expected ${examplesByKey.size} examples, received ${results.length}`)
+}
+
+export const assertRouteResultEntriesCoherent = ({
+	corpusTargets,
+	results,
+}: {
+	corpusTargets: readonly RouteCorpusTarget[]
+	results: readonly RouteResult[]
+}) => {
+	assertRouteCorpusTargetsCoherent(corpusTargets)
 	const examplesByKey = new Map<string, string>(
 		corpusTargets.flatMap((target) => target.examples.map((example) => [
 			`${target.id}\u0000${example.id}`,
@@ -215,8 +253,39 @@ export const assertRouteResultsCoherent = ({
 			throw new Error(`result set evaluates corpus example more than once: ${key}`)
 		seen.add(key)
 	}
-	if (seen.size !== examplesByKey.size)
-		throw new Error(`result set is incomplete: expected ${examplesByKey.size} examples, received ${seen.size}`)
+}
+
+const assertRouteCorpusTargetsCoherent = (corpusTargets: readonly RouteCorpusTarget[]) => {
+	const targetIds = new Set<string>()
+	for (const target of corpusTargets) {
+		if (targetIds.has(target.id))
+			throw new Error(`corpus contains duplicate target: ${target.id}`)
+		targetIds.add(target.id)
+		const exampleIds = new Set<string>()
+		for (const example of target.examples) {
+			if (exampleIds.has(example.id))
+				throw new Error(`corpus target contains duplicate example: ${target.id}\u0000${example.id}`)
+			exampleIds.add(example.id)
+		}
+	}
+}
+
+export const assertRouteCorpusArtifactCoherent = ({
+	artifact,
+	corpusTargets,
+	runIdentity,
+}: {
+	artifact: RouteCorpusArtifact
+	corpusTargets: readonly RouteCorpusTarget[]
+	runIdentity: RouteRunIdentity
+}) => {
+	assertRunIdentityMatches(runIdentity, artifact.runIdentity, 'corpus')
+	assertRouteCorpusTargetsCoherent(corpusTargets)
+	assertRouteCorpusTargetsCoherent(artifact.targets)
+	if (artifact.corpusFingerprint !== corpusFingerprint(corpusTargets))
+		throw new Error('corpus has incoherent target versions')
+	if (canonicalJson(artifact.targets) !== canonicalJson(corpusTargets))
+		throw new Error('corpus artifact targets do not match the accepted corpus')
 }
 
 export const assertRouteResultsArtifactCoherent = ({
@@ -229,6 +298,8 @@ export const assertRouteResultsArtifactCoherent = ({
 	runIdentity: RouteRunIdentity
 }) => {
 	assertRunIdentityMatches(runIdentity, artifact.runIdentity, 'results')
+	if (artifact.corpusFingerprint !== corpusFingerprint(corpusTargets))
+		throw new Error('results has incoherent corpus fingerprint')
 	assertRouteResultsCoherent({
 		corpusTargets,
 		results: artifact.results,
@@ -236,18 +307,38 @@ export const assertRouteResultsArtifactCoherent = ({
 	})
 }
 
+export const assertRouteCheckpointCoherent = ({
+	checkpoint,
+	corpusTargets,
+	runIdentity,
+}: {
+	checkpoint: RouteCheckpoint
+	corpusTargets: readonly RouteCorpusTarget[]
+	runIdentity: RouteRunIdentity
+}) => {
+	assertRunIdentityMatches(runIdentity, checkpoint.runIdentity, 'checkpoint')
+	if (checkpoint.corpusFingerprint !== corpusFingerprint(corpusTargets))
+		throw new Error('checkpoint has incoherent corpus fingerprint')
+	assertRouteResultEntriesCoherent({ corpusTargets, results: checkpoint.results })
+}
+
 export const assertRouteReportCoherent = ({
 	acceptedResults,
+	corpusTargets,
 	report,
 	runIdentity,
 	reportName,
 }: {
 	acceptedResults: readonly RouteResult[]
+	corpusTargets: readonly RouteCorpusTarget[]
 	report: RouteReport
 	runIdentity: RouteRunIdentity
 	reportName: string
 }) => {
 	assertRunIdentityMatches(runIdentity, report.runIdentity, reportName)
+	const expectedCorpusFingerprint = corpusFingerprint(corpusTargets)
+	if (report.corpusFingerprint !== expectedCorpusFingerprint)
+		throw new Error(`${reportName} has incoherent corpus fingerprint`)
 	const expectedFingerprint = resultSetFingerprint(acceptedResults)
 	if (report.resultSetFingerprint !== expectedFingerprint)
 		throw new Error(`${reportName} was not derived from the accepted result set`)

@@ -3,13 +3,18 @@ import test from 'node:test'
 
 import {
 	assertRouteReportCoherent,
+	assertRouteCheckpointCoherent,
+	assertRouteCorpusArtifactCoherent,
+	assertRouteResultEntriesCoherent,
 	assertRouteResultsArtifactCoherent,
 	assertRouteResultsCoherent,
 	assertRunIdentityMatches,
+	corpusFingerprint,
 	resultSetFingerprint,
 	routeCorpusTargetsFromPathnames,
 	routeResultFromReport,
 	type RouteCorpusTarget,
+	type RouteCheckpoint,
 	type RouteReport,
 	type RouteResult,
 	type RouteResultsArtifact,
@@ -67,7 +72,7 @@ test('rejects every identity dimension that can invalidate a route report', () =
 test('requires an exact, versioned result for every corpus example', () => {
 	assert.doesNotThrow(() => assertRouteResultsCoherent({ corpusTargets: targets, results, runIdentity: identity }))
 	assert.doesNotThrow(() => assertRouteResultsArtifactCoherent({
-		artifact: { runIdentity: identity, results } satisfies RouteResultsArtifact,
+		artifact: { runIdentity: identity, corpusFingerprint: corpusFingerprint(targets), results } satisfies RouteResultsArtifact,
 		corpusTargets: targets,
 		runIdentity: identity,
 	}))
@@ -86,12 +91,37 @@ test('requires an exact, versioned result for every corpus example', () => {
 })
 
 test('reports reject stale checkpoints and reports derived from another result set', () => {
+	const checkpoint = {
+		runIdentity: identity,
+		corpusFingerprint: corpusFingerprint(targets),
+		results: results.slice(0, 1),
+	} satisfies RouteCheckpoint
+	assert.doesNotThrow(() => assertRouteCheckpointCoherent({
+		checkpoint,
+		corpusTargets: targets,
+		runIdentity: identity,
+	}))
+	assert.throws(
+		() => assertRouteCheckpointCoherent({
+			checkpoint: { ...checkpoint, corpusFingerprint: 'stale' },
+			corpusTargets: targets,
+			runIdentity: identity,
+		}),
+		/checkpoint has incoherent corpus fingerprint/,
+	)
+	assert.doesNotThrow(() => assertRouteResultEntriesCoherent({
+		corpusTargets: targets,
+		results: results.slice(0, 1),
+	}))
+
 	const report = {
 		runIdentity: identity,
+		corpusFingerprint: corpusFingerprint(targets),
 		resultSetFingerprint: resultSetFingerprint(results),
 	} satisfies RouteReport
 	assert.doesNotThrow(() => assertRouteReportCoherent({
 		acceptedResults: results,
+		corpusTargets: targets,
 		report,
 		runIdentity: identity,
 		reportName: 'gallery.html',
@@ -99,6 +129,7 @@ test('reports reject stale checkpoints and reports derived from another result s
 	assert.throws(
 		() => assertRouteReportCoherent({
 			acceptedResults: results,
+			corpusTargets: targets,
 			report: { ...report, runIdentity: { ...identity, classifierVersion: 'classifier-b' } },
 			runIdentity: identity,
 			reportName: 'gallery.html',
@@ -108,11 +139,41 @@ test('reports reject stale checkpoints and reports derived from another result s
 	assert.throws(
 		() => assertRouteReportCoherent({
 			acceptedResults: results.slice(0, 1),
+			corpusTargets: targets,
 			report,
 			runIdentity: identity,
 			reportName: 'gallery.html',
 		}),
 		/not derived from the accepted result set/,
+	)
+})
+
+test('corpus artifacts reject target or example-version drift', () => {
+	const artifact = {
+		runIdentity: identity,
+		corpusFingerprint: corpusFingerprint(targets),
+		targets,
+	}
+	assert.doesNotThrow(() => assertRouteCorpusArtifactCoherent({
+		artifact,
+		corpusTargets: targets,
+		runIdentity: identity,
+	}))
+	assert.throws(
+		() => assertRouteCorpusArtifactCoherent({
+			artifact: { ...artifact, targets: [{ ...targets[0], examples: [{ ...targets[0].examples[0], version: 'stale' }] }] },
+			corpusTargets: targets,
+			runIdentity: identity,
+		}),
+		/corpus artifact targets do not match/,
+	)
+	assert.throws(
+		() => assertRouteCorpusArtifactCoherent({
+			artifact: { ...artifact, targets: [targets[0], targets[0]] },
+			corpusTargets: targets,
+			runIdentity: identity,
+		}),
+		/corpus contains duplicate target/,
 	)
 })
 

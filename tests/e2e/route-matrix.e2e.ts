@@ -42,6 +42,7 @@ import { e2eBoundaryLiveOptionalPathnames } from './_routeParamFixtures.ts'
 import { setupRouteViewSmokePage } from './_routeViewDiagnostics.ts'
 import {
 	assertRouteReportCoherent,
+	corpusFingerprint,
 	resultSetFingerprint,
 	createRouteRunIdentity,
 	routeCorpusTargetsFromPathnames,
@@ -473,11 +474,13 @@ const attachBoundaryArtifacts = async (
 			const results: RouteResult[] = reports.map((report) => routeResultFromReport(report, routeCorpusTargets))
 			const artifact = {
 				runIdentity,
+				corpusFingerprint: corpusFingerprint(routeCorpusTargets),
 				resultSetFingerprint: resultSetFingerprint(results),
 				reports: results,
 			} satisfies RouteMatrixArtifact
 			assertRouteReportCoherent({
 				acceptedResults: results,
+				corpusTargets: routeCorpusTargets,
 				report: artifact,
 				runIdentity,
 				reportName: 'route-matrix-report.json',
