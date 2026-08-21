@@ -314,6 +314,7 @@ type CompiledPresentationManifestFact = Readonly<{
 	owner: Readonly<{
 		entityType: string
 		field: string
+		fieldReference: FieldReference
 		fieldType: EntityFieldType
 		cardinality: EntityFieldCardinality
 		targetEntityType: string
@@ -427,50 +428,54 @@ const freezeCompiled = <_Value>(value: _Value): _Value => {
 }
 
 const compilePresentationManifest = (
-	entities: readonly Entity[]
+	entities: readonly Entity[],
+	entityFacetByPath: Readonly<Record<string, EntityFacetEntry>>
 ): readonly CompiledPresentationManifestFact[] => {
-	const entityType = EntityType.ArweaveResource
-	const fieldName = '$$manifestPaths'
-	const entity = entities.find((candidate) => candidate.entityType === entityType)
-	if (entity == null)
-		throw new Error(`Presentation manifest owner entity ${entityType} is missing`)
+	const manifest: CompiledPresentationManifestFact[] = []
+	const placementIds = new Set<string>()
+	for (const entity of entities) {
+		const fieldsByName = new Map(entity.fields.map((field) => [field.name, field]))
+		for (const placement of entity.views.singular?.lists ?? []) {
+			if (placement.field == null)
+				throw new Error(`Presentation manifest placement ${entity.entityType} is missing a field`)
+			const fieldReference = placement.field
+			const fieldName = fieldNameForReference(fieldReference)
+			const id = `${entity.entityType}.${fieldReferenceKey(fieldReference)}`
+			if (placementIds.has(id))
+				throw new Error(`Presentation manifest placement ${id} is duplicated`)
+			placementIds.add(id)
 
-	const field = entity.fields.find((candidate) => candidate.name === fieldName)
-	if (field == null)
-		throw new Error(`Presentation manifest owner field ${entityType}.${fieldName} is missing`)
-	if (
-		field.type !== EntityFieldType.EntitiesReference
-		|| field.cardinality !== EntityFieldCardinality.Many
-		|| field.entityType !== EntityType.ArweaveManifestPath
-	)
-		throw new Error(`Presentation manifest owner field ${entityType}.${fieldName} has the wrong reference type`)
+			const field = isProjectionFieldReference(fieldReference) ?
+				entityFacetByPath[projectionPathKey(entity.entityType, fieldReference.slice(0, -1))]?.facet.fields?.find((candidate) => candidate.name === fieldName)
+			:
+				fieldsByName.get(fieldName)
+			if (field == null)
+				throw new Error(`Presentation manifest owner field ${id} is missing`)
+			if (field.type !== EntityFieldType.EntitiesReference || !fieldCardinalityIsMany(field) || field.entityType == null)
+				throw new Error(`Presentation manifest owner field ${id} must be an entity collection reference`)
+			if (placement.component == null || placement.component.trim() === '')
+				throw new Error(`Presentation manifest placement ${id} is missing a component`)
 
-	const placements = (entity.views.singular?.lists ?? []).filter((list) => list.field === fieldName)
-	if (placements.length === 0)
-		throw new Error(`Presentation manifest placement ${entityType}.${fieldName} is missing`)
-	if (placements.length > 1)
-		throw new Error(`Presentation manifest placement ${entityType}.${fieldName} is duplicated`)
-
-	const placement = placements[0]!
-	if (placement.component !== 'ArweaveManifestPathsView')
-		throw new Error(`Presentation manifest placement ${entityType}.${fieldName} has the wrong component`)
-
-	return [{
-		id: `${entityType}.${fieldName}`,
-		owner: {
-			entityType,
-			field: fieldName,
-			fieldType: field.type,
-			cardinality: field.cardinality,
-			targetEntityType: field.entityType,
-		},
-		placement: {
-			kind: 'singular-list',
-			component: placement.component,
-			...(placement.label == null ? {} : { label: placement.label }),
-			...(placement.emptyText == null ? {} : { emptyText: placement.emptyText }),
-		},
-	}]
+			manifest.push({
+				id,
+				owner: {
+					entityType: entity.entityType,
+					field: fieldName,
+					fieldReference,
+					fieldType: field.type,
+					cardinality: field.cardinality,
+					targetEntityType: field.entityType,
+				},
+				placement: {
+					kind: 'singular-list',
+					component: placement.component,
+					...(placement.label == null ? {} : { label: placement.label }),
+					...(placement.emptyText == null ? {} : { emptyText: placement.emptyText }),
+				},
+			})
+		}
+	}
+	return manifest
 }
 
 const templateStringText = (value: string) => value
@@ -5509,7 +5514,7 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 	const navigationItems = Object.freeze([...app.navigation.items])
 	const activeEntities = Object.freeze([...app.schema.entities]
 		.sort((left, right) => compareEntityTypes(left.entityType, right.entityType)))
-	const presentationManifest = compilePresentationManifest(activeEntities)
+	const presentationManifest = compilePresentationManifest(activeEntities, entityFacetByPath)
 	const entityTypes = Object.freeze(activeEntities.map((entity) => entity.entityType))
 	const entityByType = nullPrototypeRecord(activeEntities.map((entity) => [
 		entity.entityType,

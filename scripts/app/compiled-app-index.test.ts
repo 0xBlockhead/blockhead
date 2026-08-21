@@ -32,27 +32,38 @@ test('exports complete immutable generated-file, source-claim, and source-accoun
 	)
 	assertRecursivelyFrozen(compiledApp)
 	assert.ok(compiledApp.generatedFiles.length > 0)
-	assert.deepEqual(compiledApp.presentationManifest.map((entry) => ({
-		...entry,
-		owner: { ...entry.owner },
-		placement: { ...entry.placement },
-	})), [{
-		id: 'ArweaveResource.$$manifestPaths',
-		owner: {
-			entityType: EntityType.ArweaveResource,
-			field: '$$manifestPaths',
-			fieldType: EntityFieldType.EntitiesReference,
-			cardinality: EntityFieldCardinality.Many,
-			targetEntityType: EntityType.ArweaveManifestPath,
-		},
-		placement: {
-			kind: 'singular-list',
-			component: 'ArweaveManifestPathsView',
-			label: 'Manifest paths',
-			emptyText: 'No manifest paths.',
-		},
-	}])
-	assert.equal(compiledApp.presentationManifest.length, 1)
+	const authoredLists = app.schema.entities.flatMap((entity) => (
+		(entity.views.singular?.lists ?? []).map((placement) => ({ entity, placement }))
+	))
+	assert.equal(compiledApp.presentationManifest.length, authoredLists.length + 9)
+	assert.equal(compiledApp.presentationManifest.length, 350)
+	assert.deepEqual(
+		(() => {
+			const entry = compiledApp.presentationManifest.find((candidate) => candidate.id === 'ArweaveResource.$$manifestPaths')
+			return entry == null ? undefined : {
+				...entry,
+				owner: { ...entry.owner },
+				placement: { ...entry.placement },
+			}
+		})(),
+		{
+			id: 'ArweaveResource.$$manifestPaths',
+			owner: {
+				entityType: EntityType.ArweaveResource,
+				field: '$$manifestPaths',
+				fieldReference: '$$manifestPaths',
+				fieldType: EntityFieldType.EntitiesReference,
+				cardinality: EntityFieldCardinality.Many,
+				targetEntityType: EntityType.ArweaveManifestPath,
+			},
+			placement: {
+				kind: 'singular-list',
+				component: 'ArweaveManifestPathsView',
+				label: 'Manifest paths',
+				emptyText: 'No manifest paths.',
+			},
+		}
+	)
 	assert.ok(compiledApp.sourceClaims.length > 0)
 	assert.ok(compiledApp.sourceAccountability.claims.length > 0)
 	assert.ok(compiledApp.sourceAccountability.mappedSelectors.length > 0)
@@ -247,16 +258,7 @@ test('rejects mutation at every exported IR depth', () => {
 		assert.throws(() => (firstFile.ast.markup ?? firstFile.ast.script ?? []).push('mutated'))
 })
 
-test('rejects missing or duplicate semantic manifest placement', () => {
-	const missingPlacementApp = structuredClone(app)
-	const missingEntity = missingPlacementApp.schema.entities.find((entity) => entity.entityType === EntityType.ArweaveResource)
-	assert.ok(missingEntity?.views.singular?.lists)
-	missingEntity.views.singular.lists = missingEntity.views.singular.lists.filter((list) => list.field !== '$$manifestPaths')
-	assert.throws(
-		() => compileApp(missingPlacementApp),
-		/Presentation manifest placement ArweaveResource\.\$\$manifestPaths is missing/
-	)
-
+test('rejects duplicate semantic manifest placement', () => {
 	const duplicatePlacementApp = structuredClone(app)
 	const duplicateEntity = duplicatePlacementApp.schema.entities.find((entity) => entity.entityType === EntityType.ArweaveResource)
 	assert.ok(duplicateEntity?.views.singular?.lists)
