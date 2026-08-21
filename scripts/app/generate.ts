@@ -286,6 +286,7 @@ type CompiledPageModuleRouteFileFacts = Extract<CompiledPhysicalRouteFileFacts, 
 type CompiledLayoutRouteFileFacts = Extract<CompiledPhysicalRouteFileFacts, { kind: 'detailLayout' | 'layout' }>
 type CompiledAppFacts = Readonly<{
 	activeEntities: readonly Entity[]
+	presentationManifest: readonly CompiledPresentationManifestFact[]
 	entityByType: Readonly<Record<string, Entity>>
 	entityFacetByPath: Readonly<Record<string, EntityFacetEntry>>
 	facetAncestorConditionsByPath: Readonly<Record<string, readonly _AppFacetCondition[]>>
@@ -306,6 +307,23 @@ type CompiledAppFacts = Readonly<{
 	collectionRouteByEntity: Readonly<Record<string, string>>
 	collectionRoutesBySourceField: Readonly<Record<string, readonly EntityRouteLink[]>>
 	entityRouteLinksByType: Readonly<Partial<Record<string, readonly EntityRouteLink[]>>>
+}>
+
+type CompiledPresentationManifestFact = Readonly<{
+	id: string
+	owner: Readonly<{
+		entityType: string
+		field: string
+		fieldType: EntityFieldType
+		cardinality: EntityFieldCardinality
+		targetEntityType: string
+	}>
+	placement: Readonly<{
+		kind: 'singular-list'
+		component: string
+		label?: string
+		emptyText?: string
+	}>
 }>
 
 type GenerationIndexes = Readonly<
@@ -330,6 +348,7 @@ type GenerationIndexes = Readonly<
 >
 export type CompiledApp = Readonly<{
 	generatedFiles: readonly GeneratedFile[]
+	presentationManifest: readonly CompiledPresentationManifestFact[]
 	sourceClaims: readonly CompiledSourceClaim[]
 	sourceAccountability: CompiledSourceAccountability
 }>
@@ -405,6 +424,53 @@ const freezeCompiled = <_Value>(value: _Value): _Value => {
 			freezeCompiled(nestedValue),
 		]))
 	)) as _Value
+}
+
+const compilePresentationManifest = (
+	entities: readonly Entity[]
+): readonly CompiledPresentationManifestFact[] => {
+	const entityType = EntityType.ArweaveResource
+	const fieldName = '$$manifestPaths'
+	const entity = entities.find((candidate) => candidate.entityType === entityType)
+	if (entity == null)
+		throw new Error(`Presentation manifest owner entity ${entityType} is missing`)
+
+	const field = entity.fields.find((candidate) => candidate.name === fieldName)
+	if (field == null)
+		throw new Error(`Presentation manifest owner field ${entityType}.${fieldName} is missing`)
+	if (
+		field.type !== EntityFieldType.EntitiesReference
+		|| field.cardinality !== EntityFieldCardinality.Many
+		|| field.entityType !== EntityType.ArweaveManifestPath
+	)
+		throw new Error(`Presentation manifest owner field ${entityType}.${fieldName} has the wrong reference type`)
+
+	const placements = (entity.views.singular?.lists ?? []).filter((list) => list.field === fieldName)
+	if (placements.length === 0)
+		throw new Error(`Presentation manifest placement ${entityType}.${fieldName} is missing`)
+	if (placements.length > 1)
+		throw new Error(`Presentation manifest placement ${entityType}.${fieldName} is duplicated`)
+
+	const placement = placements[0]!
+	if (placement.component !== 'ArweaveManifestPathsView')
+		throw new Error(`Presentation manifest placement ${entityType}.${fieldName} has the wrong component`)
+
+	return [{
+		id: `${entityType}.${fieldName}`,
+		owner: {
+			entityType,
+			field: fieldName,
+			fieldType: field.type,
+			cardinality: field.cardinality,
+			targetEntityType: field.entityType,
+		},
+		placement: {
+			kind: 'singular-list',
+			component: placement.component,
+			...(placement.label == null ? {} : { label: placement.label }),
+			...(placement.emptyText == null ? {} : { emptyText: placement.emptyText }),
+		},
+	}]
 }
 
 const templateStringText = (value: string) => value
@@ -5443,6 +5509,7 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 	const navigationItems = Object.freeze([...app.navigation.items])
 	const activeEntities = Object.freeze([...app.schema.entities]
 		.sort((left, right) => compareEntityTypes(left.entityType, right.entityType)))
+	const presentationManifest = compilePresentationManifest(activeEntities)
 	const entityTypes = Object.freeze(activeEntities.map((entity) => entity.entityType))
 	const entityByType = nullPrototypeRecord(activeEntities.map((entity) => [
 		entity.entityType,
@@ -5956,6 +6023,7 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 
 	const compiledApp = {
 		activeEntities,
+		presentationManifest,
 		entityByType,
 		entityFacetByPath,
 		facetAncestorConditionsByPath,
@@ -6020,6 +6088,7 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 
 	return freezeCompiled({
 		generatedFiles: generateFiles(compiledApp),
+		presentationManifest,
 		sourceClaims,
 		sourceAccountability,
 	})

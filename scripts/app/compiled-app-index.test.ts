@@ -21,6 +21,7 @@ test('exports complete immutable generated-file, source-claim, and source-accoun
 
 	assert.deepEqual(Object.keys(compiledApp), [
 		'generatedFiles',
+		'presentationManifest',
 		'sourceClaims',
 		'sourceAccountability',
 	])
@@ -30,6 +31,23 @@ test('exports complete immutable generated-file, source-claim, and source-accoun
 	)
 	assertRecursivelyFrozen(compiledApp)
 	assert.ok(compiledApp.generatedFiles.length > 0)
+	assert.deepEqual(compiledApp.presentationManifest, [{
+		id: 'ArweaveResource.$$manifestPaths',
+		owner: {
+			entityType: EntityType.ArweaveResource,
+			field: '$$manifestPaths',
+			fieldType: EntityFieldType.EntitiesReference,
+			cardinality: EntityFieldCardinality.Many,
+			targetEntityType: EntityType.ArweaveManifestPath,
+		},
+		placement: {
+			kind: 'singular-list',
+			component: 'ArweaveManifestPathsView',
+			label: 'Manifest paths',
+			emptyText: 'No manifest paths.',
+		},
+	}])
+	assert.equal(compiledApp.presentationManifest.length, 1)
 	assert.ok(compiledApp.sourceClaims.length > 0)
 	assert.ok(compiledApp.sourceAccountability.claims.length > 0)
 	assert.ok(compiledApp.sourceAccountability.mappedSelectors.length > 0)
@@ -209,6 +227,10 @@ test('rejects mutation at every exported IR depth', () => {
 	assert.ok(firstFile)
 
 	assert.throws(() => compiledApp.generatedFiles.push(firstFile))
+	assert.throws(() => compiledApp.presentationManifest.push(compiledApp.presentationManifest[0]!))
+	assert.throws(() => {
+		Object.defineProperty(compiledApp.presentationManifest[0]!.placement, 'component', { value: 'mutated' })
+	})
 	assert.throws(() => {
 		compiledApp.generatedFiles[0].path = 'mutated'
 	})
@@ -218,6 +240,28 @@ test('rejects mutation at every exported IR depth', () => {
 		assert.throws(() => firstFile.ast.body.push('mutated'))
 	else
 		assert.throws(() => (firstFile.ast.markup ?? firstFile.ast.script ?? []).push('mutated'))
+})
+
+test('rejects missing or duplicate semantic manifest placement', () => {
+	const missingPlacementApp = structuredClone(app)
+	const missingEntity = missingPlacementApp.schema.entities.find((entity) => entity.entityType === EntityType.ArweaveResource)
+	assert.ok(missingEntity?.views.singular?.lists)
+	missingEntity.views.singular.lists = missingEntity.views.singular.lists.filter((list) => list.field !== '$$manifestPaths')
+	assert.throws(
+		() => compileApp(missingPlacementApp),
+		/Presentation manifest placement ArweaveResource\.\$\$manifestPaths is missing/
+	)
+
+	const duplicatePlacementApp = structuredClone(app)
+	const duplicateEntity = duplicatePlacementApp.schema.entities.find((entity) => entity.entityType === EntityType.ArweaveResource)
+	assert.ok(duplicateEntity?.views.singular?.lists)
+	const manifestPlacement = duplicateEntity.views.singular.lists.find((list) => list.field === '$$manifestPaths')
+	assert.ok(manifestPlacement)
+	duplicateEntity.views.singular.lists.push(structuredClone(manifestPlacement))
+	assert.throws(
+		() => compileApp(duplicatePlacementApp),
+		/Presentation manifest placement ArweaveResource\.\$\$manifestPaths is duplicated/
+	)
 })
 
 test('rejects ambiguous same-entity detail components without collapsing selector variants', () => {
