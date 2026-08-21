@@ -42,9 +42,11 @@ import { e2eBoundaryLiveOptionalPathnames } from './_routeParamFixtures.ts'
 import { setupRouteViewSmokePage } from './_routeViewDiagnostics.ts'
 import {
 	assertRouteReportCoherent,
-	createRouteRunIdentity,
 	resultSetFingerprint,
-	type RouteRunIdentity,
+	createRouteRunIdentity,
+	routeCorpusTargetsFromPathnames,
+	routeResultFromReport,
+	type RouteMatrixArtifact,
 	type RouteResult,
 } from '../../scripts/e2e/routeRunIdentity.ts'
 
@@ -461,27 +463,27 @@ const attachBoundaryArtifacts = async (
 
 	const summary = formatBoundaryReportSummary(reports, e2eBoundaryLiveOptionalPathnames)
 	console.log(`\n--- route matrix ---\n${summary}`)
-	const artifactReports = reports.map((report) => {
-		const artifactReport = {
-			...report,
-			runIdentity: routeRunIdentity,
-			resultSetFingerprint: routeResultSetFingerprint,
-		}
-		assertRouteReportCoherent({
-			acceptedResults: routeResults,
-			report: artifactReport,
-			runIdentity: routeRunIdentity,
-			reportName: `route-matrix:${report.pathname}`,
-		})
-		return artifactReport
-	})
-
 	await testInfo.attach('route-matrix-summary.txt', {
 		body: summary,
 		contentType: 'text/plain',
 	})
 	await testInfo.attach('route-matrix-report.json', {
-		body: JSON.stringify(artifactReports, null, 2),
+		body: JSON.stringify(await (async () => {
+			const runIdentity = await routeRunIdentity
+			const results: RouteResult[] = reports.map((report) => routeResultFromReport(report, routeCorpusTargets))
+			const artifact = {
+				runIdentity,
+				resultSetFingerprint: resultSetFingerprint(results),
+				reports: results,
+			} satisfies RouteMatrixArtifact
+			assertRouteReportCoherent({
+				acceptedResults: results,
+				report: artifact,
+				runIdentity,
+				reportName: 'route-matrix-report.json',
+			})
+			return artifact
+		})(), null, 2),
 		contentType: 'application/json',
 	})
 }
@@ -688,22 +690,17 @@ const {
 	}
 })()
 
-const routeRunIdentity: RouteRunIdentity = await createRouteRunIdentity({
-	browserIdentity: process.env.E2E_BROWSER_IDENTITY?.trim() || 'playwright',
-	buildIdentity: process.env.E2E_BUILD_IDENTITY?.trim() || 'dev',
-	captureContractVersion: 'route-matrix-v1',
-	classifierVersion: 'route-boundary-v1',
-	corpusVersion: `route-pathnames-v1:${routePathnames.length}`,
+const routeCorpusTargets = routeCorpusTargetsFromPathnames(
+	routePathnames.length > 0 ? routePathnames : probePath ? [probePath] : []
+)
+const routeRunIdentity = createRouteRunIdentity({
 	repositoryDirectory: process.cwd(),
+	browserIdentity: process.env.E2E_BROWSER_IDENTITY?.trim() || 'playwright',
+	buildIdentity: process.env.E2E_BUILD_IDENTITY?.trim() || 'route-matrix',
+	captureContractVersion: process.env.E2E_CAPTURE_CONTRACT_VERSION?.trim() || 'route-matrix-v1',
+	classifierVersion: process.env.E2E_CLASSIFIER_VERSION?.trim() || 'boundary-v1',
+	corpusVersion: process.env.E2E_CORPUS_VERSION?.trim() || 'discovered-pathnames-v1',
 })
-
-const routeResults: RouteResult[] = routePathnames.map((pathname) => ({
-		targetId: 'route-matrix',
-		exampleId: pathname,
-		exampleVersion: 'route-matrix-v1',
-}))
-const routeResultSetFingerprint = resultSetFingerprint(routeResults)
-
 
 test.describe('route matrix (shell, URL, settlement, diagnostics, boundary)', () => {
 	test.describe.configure({

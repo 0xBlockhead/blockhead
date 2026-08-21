@@ -7,6 +7,8 @@ import {
 	assertRouteResultsCoherent,
 	assertRunIdentityMatches,
 	resultSetFingerprint,
+	routeCorpusTargetsFromPathnames,
+	routeResultFromReport,
 	type RouteCorpusTarget,
 	type RouteReport,
 	type RouteResult,
@@ -111,5 +113,23 @@ test('reports reject stale checkpoints and reports derived from another result s
 			reportName: 'gallery.html',
 		}),
 		/not derived from the accepted result set/,
+	)
+})
+
+test('adapts discovered pathnames into stable versioned route results', () => {
+	const corpus = routeCorpusTargetsFromPathnames(['/zeta', '/alpha'])
+	assert.deepEqual(corpus.map(({ id }) => id), ['/alpha', '/zeta'])
+	assert.equal(corpus[0]?.examples[0]?.id, 'default')
+	assert.equal(
+		routeResultFromReport({ pathname: '/alpha' }, corpus).exampleVersion,
+		corpus[0]?.examples[0]?.version,
+	)
+	assert.deepEqual(
+		routeResultFromReport({ pathname: '/alpha', targetId: 'spoofed', exampleId: 'spoofed', exampleVersion: 'stale' }, corpus),
+		{ pathname: '/alpha', targetId: '/alpha', exampleId: 'default', exampleVersion: corpus[0]?.examples[0]?.version },
+	)
+	assert.throws(
+		() => routeResultFromReport({ pathname: '/missing' }, corpus),
+		/unknown corpus target/
 	)
 })

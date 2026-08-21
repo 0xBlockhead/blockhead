@@ -42,12 +42,42 @@ export type RouteReport = {
 	[key: string]: unknown
 }
 
+export type RouteMatrixArtifact = RouteReport & {
+	reports: readonly RouteResult[]
+}
+
 export type RouteResultsArtifact = {
 	runIdentity: RouteRunIdentity
 	results: readonly RouteResult[]
 }
 
 const sha256 = (value: string | Uint8Array) => createHash('sha256').update(value).digest('hex')
+
+/** Adapt the route matrix's discovered page targets without changing discovery ownership. */
+export const routeCorpusTargetsFromPathnames = (pathnames: readonly string[]): RouteCorpusTarget[] => (
+	[...pathnames].sort().map((pathname) => ({
+		id: pathname,
+		examples: [{ id: 'default', version: sha256(pathname) }],
+	}))
+)
+
+export const routeResultFromReport = (
+	report: { pathname: string } & Partial<RouteResult>,
+	corpusTargets: readonly RouteCorpusTarget[]
+): RouteResult => {
+	const target = corpusTargets.find(({ id }) => id === report.pathname)
+	if (target == null)
+		throw new Error(`route report references unknown corpus target: ${report.pathname}`)
+	const example = target.examples[0]
+	if (example == null)
+		throw new Error(`route corpus target has no examples: ${report.pathname}`)
+	return {
+		...report,
+		targetId: target.id,
+		exampleId: example.id,
+		exampleVersion: example.version,
+	}
+}
 
 const canonicalJson = (value: unknown): string => {
 	if (value === null || typeof value !== 'object')
