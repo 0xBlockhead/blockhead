@@ -1,0 +1,30 @@
+// Generated from APP.ts.
+
+import type { LayoutLoad } from './$types'
+import { error } from '@sveltejs/kit'
+import { match as matchStringSegment } from '$/params/stringSegment.ts'
+import { parseEntitySelector } from '$/schema/$schema.ts'
+import BridgeTransferSchema from '$/schema/BridgeTransfer.ts'
+import { schema } from '$/schema/index.ts'
+import { type as arktype } from 'arktype'
+
+export const load: LayoutLoad = ({ params }) => {
+	if (!(matchStringSegment(params.source) && matchStringSegment(params.transferId)))
+		error(404, 'Route mapping not applicable')
+
+	const bridgeTransferSourceTransferIdSelector = parseEntitySelector(
+		schema,
+		BridgeTransferSchema,
+		{
+			source: params.source,
+			transferId: params.transferId,
+		},
+		'SourceTransferId'
+	)
+	if (bridgeTransferSourceTransferIdSelector instanceof arktype.errors)
+		error(404, 'Invalid BridgeTransfer selector')
+
+	return {
+		selector: bridgeTransferSourceTransferIdSelector,
+	}
+}

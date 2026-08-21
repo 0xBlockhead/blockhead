@@ -9,7 +9,6 @@ const transferId = `2/${emitter}/42`
 const sourceTransactionHash = `0x${'a'.repeat(64)}`
 const destinationTransactionHash = `0x${'b'.repeat(64)}`
 const sourceTimestampMs = Date.parse('2026-01-02T03:04:05.000Z')
-const destinationTimestampMs = Date.parse('2026-01-02T03:05:06.000Z')
 const transferPath = `/~/bridge/transfer/Wormholescan/${encodeURIComponent(transferId)}`
 
 const operation = {
@@ -43,7 +42,7 @@ const operation = {
 	targetChain: {
 		chainId: 23,
 		status: 'completed',
-		timestamp: '2026-01-02T03:05:06.000Z',
+		timestamp: '2026-01-02T03:04:05.000Z',
 		to: `000000000000000000000000${'2'.repeat(40)}`,
 		fee: '21000',
 		feeUSD: '0.42',
@@ -54,7 +53,7 @@ const operation = {
 }
 
 
-test('Wormhole transfer shows source and destination event-clocked observations', async ({ page }, testInfo) => {
+test('Wormhole transfer keeps equal-clock source and destination observations visible', async ({ page }, testInfo) => {
 	testInfo.setTimeout(180_000)
 	const pageErrors: string[] = []
 	const unexpectedConsoleErrors: string[] = []
@@ -106,12 +105,12 @@ test('Wormhole transfer shows source and destination event-clocked observations'
 	await expect(main.getByRole('heading', {
 		level: 4,
 		name: String(sourceTimestampMs),
-	})).toBeAttached()
-	await expect(main.getByRole('heading', {
-		level: 4,
-		name: String(destinationTimestampMs),
-	})).toBeAttached()
+	})).toHaveCount(2)
 	await expect(main).toContainText('timestamps (2)')
+	await expect(main).toContainText('sourceTransaction')
+	await expect(main).toContainText('destinationTransaction')
+	await expect(main.locator(`a[href*="/observations/${sourceTimestampMs}/Wormholescan/sourceTransaction"]`)).toHaveCount(1)
+	await expect(main.locator(`a[href*="/observations/${sourceTimestampMs}/Wormholescan/destinationTransaction"]`)).toHaveCount(1)
 	expect(pageErrors).toEqual([])
 	expect(unexpectedConsoleErrors).toEqual([])
 })

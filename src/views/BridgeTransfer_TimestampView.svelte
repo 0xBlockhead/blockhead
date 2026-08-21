@@ -39,6 +39,7 @@
 		fields: {
 			status: true,
 			substatus: true,
+			eventKind: true,
 		},
 	}))
 
@@ -59,19 +60,33 @@
 	href={
 		href === undefined ?
 			(
-				'originChainId' in transfer
-				&& 'depositId' in transfer ?
+				'eventKind' in selection.entitySelector
+				&& 'source' in transfer
+				&& 'transferId' in transfer ?
 					resolve(
-						'/~/bridge/transfer/across/[originChainId=nonNegativeInteger]/[depositId=nonNegativeInteger]/(bridgeTransfer)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+						'/~/bridge/transfer/[source=stringSegment]/[transferId=stringSegment]/(bridgeTransfer)/observations/[timestampMs=nonNegativeInteger]/[observationSource=stringSegment]/[eventKind=bridgeTransferEventKind]',
 						{
-							originChainId: String(transfer.originChainId),
-							depositId: String(transfer.depositId),
+							source: transfer.source,
+							transferId: transfer.transferId,
 							timestampMs: String(selection.entitySelector.timestampMs),
-							source: selection.entitySelector.source,
+							observationSource: selection.entitySelector.source,
+							eventKind: selection.entitySelector.eventKind,
 						}
 					)
 				:
-					undefined
+					'originChainId' in transfer
+					&& 'depositId' in transfer ?
+						resolve(
+							'/~/bridge/transfer/across/[originChainId=nonNegativeInteger]/[depositId=nonNegativeInteger]/(bridgeTransfer)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+							{
+								originChainId: String(transfer.originChainId),
+								depositId: String(transfer.depositId),
+								timestampMs: String(selection.entitySelector.timestampMs),
+								source: selection.entitySelector.source,
+							}
+						)
+					:
+						undefined
 			)
 		:
 			href ?? undefined
@@ -93,9 +108,19 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<span data-text="muted">
-			{selection.entitySelector.source}
-		</span>
+		<ResourceBoundary resource={bridgeTransferTimestamp}>
+			{#snippet children(entity)}
+				<span data-text="muted">
+					{selection.entitySelector.source}
+				</span>
+				{@const eventKind = entity.eventKind}
+				{#if eventKind != null}
+					<span data-text="muted">
+						{eventKind}
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content()}
@@ -123,6 +148,22 @@
 					{selection.entitySelector.source}
 				</dd>
 			</div>
+
+			<ResourceBoundary
+				resource={bridgeTransferTimestamp}
+			>
+				{#snippet children(entity)}
+					{@const eventKind = entity.eventKind}
+					{#if eventKind != null}
+						<div>
+							<dt>event kind</dt>
+							<dd>
+								{eventKind}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
 			<ResourceBoundary
 				resource={bridgeTransferTimestamp}

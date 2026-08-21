@@ -12,14 +12,11 @@
 
 	// State
 	let {
-		params,
+		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.BridgeTransfer, {
-		source: params.source,
-		transferId: params.transferId,
-	}, {
-		sources: [params.source],
+	const pageSelection = $derived(select(EntityType.BridgeTransfer, data.selector, {
+		sources: [data.selector.source],
 	}))
 
 
@@ -30,7 +27,7 @@
 
 
 <svelte:head>
-	<title>{pageSelection.entitySelector.transferId || 'bridge transfer'} • bridge transfer • Blockhead</title>
+	<title>{data.title ?? (pageSelection.entitySelector.transferId || 'bridge transfer')} • bridge transfer • Blockhead</title>
 </svelte:head>
 
 

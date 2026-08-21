@@ -27,6 +27,13 @@ export default entity({
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
+	eventKind: {
+		primitiveType: type.enumerated('sourceTransaction', 'destinationTransaction'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Wormholescan,
+		],
+	},
 	status: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
@@ -118,6 +125,12 @@ export default entity({
 			'$transfer',
 			'timestampMs',
 			'source',
+		],
+		TransferTimestampMsSourceEventKind: [
+			'$transfer',
+			'timestampMs',
+			'source',
+			'eventKind',
 		],
 	},
 })

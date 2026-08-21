@@ -2,6 +2,7 @@
 
 import { match as matchAbsoluteUrl } from '$/params/absoluteUrl.ts'
 import { match as matchBridgeRouteStepIndex } from '$/params/bridgeRouteStepIndex.ts'
+import { match as matchBridgeTransferEventKind } from '$/params/bridgeTransferEventKind.ts'
 import { match as matchEip155ChainId } from '$/params/eip155ChainId.ts'
 import { match as matchEvmAddress } from '$/params/evmAddress.ts'
 import { match as matchEvmAddressOrStringSegment } from '$/params/evmAddressOrStringSegment.ts'
@@ -69,6 +70,7 @@ export const matchE2eRouteParam = (matcher: string, value: string) => {
 		case 'rssItemIdentityKind': return matchRssItemIdentityKind(value)
 		case 'nonNegativeNumber': return matchNonNegativeNumber(value)
 		case 'bridgeRouteStepIndex': return matchBridgeRouteStepIndex(value)
+		case 'bridgeTransferEventKind': return matchBridgeTransferEventKind(value)
 		default: throw new Error(`Missing generated route matcher ${matcher}`)
 	}
 }
@@ -11807,6 +11809,16 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				id: 'BridgeTransfer.SourceTransferId',
 				probeAtomPrefixes: ['/~/bridge/transfer/[source]/[transferId]:BridgeTransfer.SourceTransferId'],
 				probeCases: [[[0, '1', ['source', 'transferId']]]],
+			},
+		],
+	},
+	'/~/bridge/transfer/[source]/[transferId]/observations/[timestampMs]/[observationSource]/[eventKind]': {
+		routeId: '/~/bridge/transfer/[source=stringSegment]/[transferId=stringSegment]/(bridgeTransfer)/observations/[timestampMs=nonNegativeInteger]/[observationSource=stringSegment]/[eventKind=bridgeTransferEventKind]',
+		mappings: [
+			{
+				id: 'BridgeTransfer_Timestamp.TransferTimestampMsSourceEventKind',
+				probeAtomPrefixes: ['/~/bridge/transfer/[source]/[transferId]/observations/[timestampMs]/[observationSource]/[eventKind]:BridgeTransfer_Timestamp.TransferTimestampMsSourceEventKind'],
+				probeCases: [[[0, '1', ['observationSource', 'eventKind', 'timestampMs', 'source', 'transferId']]]],
 			},
 		],
 	},

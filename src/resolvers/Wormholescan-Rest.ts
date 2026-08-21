@@ -175,6 +175,8 @@ const bridgeTransferObservationsFromOperation = (
 	transfer: EntitySelector<typeof schema, EntityType.BridgeTransfer>,
 	operation: WormholescanOperation
 ) => {
+	const sourceTransactionEventKind = 'sourceTransaction'
+	const destinationTransactionEventKind = 'destinationTransaction'
 	const sourceTransactionAtMs = timestampMsFromIso(operation.sourceChain?.timestamp)
 	const destinationTransactionAtMs = timestampMsFromIso(operation.targetChain?.timestamp)
 	if (
@@ -187,12 +189,6 @@ const bridgeTransferObservationsFromOperation = (
 		)
 	)
 		throw new Error('Wormholescan_Rest: destination lifecycle facts lack a destination clock')
-	if (
-		sourceTransactionAtMs != null
-		&& sourceTransactionAtMs === destinationTransactionAtMs
-	)
-		throw new Error('Wormholescan_Rest: source and destination observation clocks collide')
-
 	const sourceObservations = (
 		sourceTransactionAtMs == null ?
 			[]
@@ -202,6 +198,7 @@ const bridgeTransferObservationsFromOperation = (
 			},
 			timestampMs: sourceTransactionAtMs,
 			source: Source.Wormholescan,
+			eventKind: sourceTransactionEventKind,
 			...(operation.sourceChain?.status != null && {
 				status: operation.sourceChain.status,
 			}),
@@ -221,6 +218,7 @@ const bridgeTransferObservationsFromOperation = (
 			},
 			timestampMs: destinationTransactionAtMs,
 			source: Source.Wormholescan,
+			eventKind: destinationTransactionEventKind,
 			...(operation.targetChain?.status != null && {
 				status: operation.targetChain.status,
 			}),
@@ -364,11 +362,12 @@ const bridgeTransferSnapshotFromOperation = (
 				transactionLatencyMs: destinationTransactionAtMs - sourceTransactionAtMs,
 			}
 		),
-		$$timestamps: observations.map(({ timestampMs }) => ({
+		$$timestamps: observations.map(({ timestampMs, eventKind }) => ({
 			[EntityMetaKey.Selector]: {
 				$transfer: transfer,
 				timestampMs,
 				source: Source.Wormholescan,
+				eventKind,
 			},
 		})),
 	}
@@ -493,11 +492,12 @@ export default {
 		defineResolver({
 			entityType: EntityType.BridgeTransfer_Timestamp,
 			resolve: {
-				TransferTimestampMsSource: {
+				TransferTimestampMsSourceEventKind: {
 					resolve: async ({
 						$transfer,
 						timestampMs,
 						source,
+						eventKind,
 					}) => {
 						if (source !== Source.Wormholescan)
 							throw new Error(`Wormholescan_Rest: unsupported bridge transfer timestamp source ${source}`)
@@ -507,7 +507,10 @@ export default {
 						const observation = bridgeTransferObservationsFromOperation(
 							$transfer,
 							operation
-						).find((candidate) => candidate.timestampMs === timestampMs)
+						).find((candidate) => (
+							candidate.timestampMs === timestampMs
+							&& candidate.eventKind === eventKind
+						))
 						if (observation == null)
 							throw new Error('Wormholescan_Rest: observation clock mismatch')
 
@@ -519,6 +522,7 @@ export default {
 			$transfer: (observation) => observation.$transfer,
 			timestampMs: (observation) => observation.timestampMs,
 			source: (observation) => observation.source,
+			eventKind: (observation) => observation.eventKind,
 			status: (observation) => observation.status,
 			destinationTxHash: (observation) => observation.destinationTxHash,
 			fillGasFee: (observation) => observation.fillGasFee,

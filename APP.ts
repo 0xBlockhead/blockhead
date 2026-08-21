@@ -1918,6 +1918,13 @@ export const schema = {
 				type: { array: { enum: "BridgeRouteTag" } },
 			},
 			{
+				id: "BridgeTransferEventKind",
+				routeParam: {
+					matcher: "bridgeTransferEventKind",
+				},
+				type: { raw: "type.enumerated('sourceTransaction', 'destinationTransaction')" },
+			},
+			{
 				id: "caip10",
 				format: "namespaceReference",
 				displayExpression: "`${value.namespace}:${value.reference}:${value.accountAddress}`",
@@ -19903,6 +19910,7 @@ export const schema = {
 				"$transfer": { label: "transfer", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.BridgeTransfer },
 				"timestampMs": { label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
 				"source": { label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"eventKind": { label: "event kind", description: "The lifecycle event whose provider clock identifies this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "BridgeTransferEventKind", defaultSources: [Source.Wormholescan] },
 				"status": { label: "status", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Across_Rest, Source.Axelarscan_Rest, Source.LayerZeroScan_Rest, Source.Lifi_Rest, Source.Wormholescan] },
 				"substatus": { label: "substatus", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Across_Rest, Source.Axelarscan_Rest, Source.LayerZeroScan_Rest, Source.Lifi_Rest] },
 				"sourceConfirmations": { label: "source confirmations", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
@@ -19917,21 +19925,22 @@ export const schema = {
 			})({
 				selectors: {
 					"TransferTimestampMsSource": ["$transfer", "timestampMs", "source"],
+					"TransferTimestampMsSourceEventKind": ["$transfer", "timestampMs", "source", "eventKind"],
 				},
 				views: {
 					singular: {
 						query: {
 							sources: [Source.Across_Rest, Source.Allium_Rest, Source.Axelarscan_Rest, Source.Dune_Rest, Source.LayerZeroScan_Rest, Source.Lifi_Rest, Source.Voltaire_JsonRpc, Source.Wormholescan],
-							openFields: ["status", "substatus", "sourceConfirmations", "requiredConfirmations", "destinationTxHash", "relayer", "refundTxHash", "estimatedCompletionMs", "fillGasFee", "fillGasFeeUsd", "error"],
+							openFields: ["eventKind", "status", "substatus", "sourceConfirmations", "requiredConfirmations", "destinationTxHash", "relayer", "refundTxHash", "estimatedCompletionMs", "fillGasFee", "fillGasFeeUsd", "error"],
 						},
 						summary: {
 							title: [{ field: "timestampMs", format: "timestamp" }],
 							value: ["status", "substatus"],
-							HeadingAfter: ["source"],
+							HeadingAfter: ["source", "eventKind"],
 						},
 						content: {
 							dl: [
-								["$transfer", { field: "timestampMs", format: "timestamp" }, "source", "status", "substatus"],
+								["$transfer", { field: "timestampMs", format: "timestamp" }, "source", "eventKind", "status", "substatus"],
 								[{ field: "sourceConfirmations", format: "number" }, { field: "requiredConfirmations", format: "number" }, "destinationTxHash", "relayer", "refundTxHash"],
 								[{ field: "estimatedCompletionMs", format: "timestamp" }, { field: "fillGasFee", format: "number" }, "fillGasFeeUsd", "error"],
 							],
@@ -73047,7 +73056,33 @@ export const routes = defineRoutes(schema)({
 														page: {},
 													}
 												}
-											}
+											},
+											children: {
+												"observations": {
+													children: {
+														"[timestampMs]": {
+															params: { "timestampMs": ["NonNegativeInteger"] },
+															children: {
+																"[observationSource]": {
+																	children: {
+																		"[eventKind]": {
+																			selectors: {
+																				[EntityType.BridgeTransfer_Timestamp]: {
+																					"TransferTimestampMsSourceEventKind": {
+																						params: { "observationSource": ["source"], "eventKind": ["eventKind"] },
+																						derivations: { "timestampMs": { kind: "param", name: "timestampMs" } },
+																						page: {},
+																					},
+																				},
+																			},
+																		},
+																	},
+																},
+															},
+														},
+													},
+												},
+											},
 										}
 									}
 								}

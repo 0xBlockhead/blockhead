@@ -33,6 +33,7 @@
 					status: true,
 					substatus: true,
 					source: true,
+					eventKind: true,
 				},
 			},
 		})
@@ -45,19 +46,33 @@
 			entityType={EntityType.BridgeTransfer_Timestamp}
 			entitySelector={bridgeTransferTimestampSelector}
 			href={
-				'originChainId' in transfer
-				&& 'depositId' in transfer ?
+				'eventKind' in bridgeTransferTimestampSelector
+				&& 'source' in transfer
+				&& 'transferId' in transfer ?
 					resolve(
-						'/~/bridge/transfer/across/[originChainId=nonNegativeInteger]/[depositId=nonNegativeInteger]/(bridgeTransfer)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+						'/~/bridge/transfer/[source=stringSegment]/[transferId=stringSegment]/(bridgeTransfer)/observations/[timestampMs=nonNegativeInteger]/[observationSource=stringSegment]/[eventKind=bridgeTransferEventKind]',
 						{
-							originChainId: String(transfer.originChainId),
-							depositId: String(transfer.depositId),
+							source: transfer.source,
+							transferId: transfer.transferId,
 							timestampMs: String(bridgeTransferTimestampSelector.timestampMs),
-							source: bridgeTransferTimestampSelector.source,
+							observationSource: bridgeTransferTimestampSelector.source,
+							eventKind: bridgeTransferTimestampSelector.eventKind,
 						}
 					)
 				:
-					undefined
+					'originChainId' in transfer
+					&& 'depositId' in transfer ?
+						resolve(
+							'/~/bridge/transfer/across/[originChainId=nonNegativeInteger]/[depositId=nonNegativeInteger]/(bridgeTransfer)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+							{
+								originChainId: String(transfer.originChainId),
+								depositId: String(transfer.depositId),
+								timestampMs: String(bridgeTransferTimestampSelector.timestampMs),
+								source: bridgeTransferTimestampSelector.source,
+							}
+						)
+					:
+						undefined
 			}
 		>
 			{#snippet Title()}
@@ -69,7 +84,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{bridgeTransferTimestampSelector.source}</span>
+				<span data-text="annotation">{[bridgeTransferTimestampSelector.source, (bridgeTransferTimestamp.eventKind ?? '')].filter(Boolean).join(' ')}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}
