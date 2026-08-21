@@ -22,6 +22,17 @@ import {
 } from './render.ts'
 
 import {
+	classifyMappedSelector,
+	classifySourceClaim,
+	indexAccountabilityAuthority,
+	MappedSelectorAccountability,
+	publicColdReadGaps,
+	SourceAccess,
+	type MappedSelectorAccountabilityRow,
+	type SourceClaimAccountabilityRow,
+} from './accountability.ts'
+
+import {
 	EntityType,
 	Source,
 	SourceProvider,
@@ -320,6 +331,12 @@ type GenerationIndexes = Readonly<
 export type CompiledApp = Readonly<{
 	generatedFiles: readonly GeneratedFile[]
 	sourceClaims: readonly CompiledSourceClaim[]
+	sourceAccountability: CompiledSourceAccountability
+}>
+
+export type CompiledSourceAccountability = Readonly<{
+	claims: readonly SourceClaimAccountabilityRow[]
+	mappedSelectors: readonly MappedSelectorAccountabilityRow[]
 }>
 
 export type CompiledSourceClaim = Readonly<{
@@ -1830,6 +1847,61 @@ const compileSourceClaims = (
 		}),
 	]),
 ].toSorted((left, right) => JSON.stringify(left).localeCompare(JSON.stringify(right), 'en')) satisfies CompiledSourceClaim[]
+
+// Every selector mapped onto a route node is accountable, including the ones
+// that deliberately have no authored page and therefore express resolver-only
+// capability rather than public route demand.
+const compileMappedSelectorFacts = (
+	routeNodes: readonly RouteNode[]
+) => routeNodes.flatMap((node) => routeNodeSelectorMappings(node).map((mapping) => ({
+	entityType: mapping.entityType,
+	selectorName: mapping.selectorName,
+	route: publicRouteId(node.svelteKitPath),
+	authoredPage: mapping.page !== false,
+	sources: mapping.sourceSelection == null ? [] : sourceSelectionSources(mapping.sourceSelection),
+})))
+
+// An entity without its own source claim is still accountable when a claimed
+// entity references it, because those child rows are materialized by the
+// reference owner's resolver rather than by a claim of their own. Reference
+// ownership is transitive: a claimed root materializes its whole child chain.
+const compileReferenceMaterializedEntityTypes = (
+	entities: readonly Entity[],
+	facetEntries: readonly EntityFacetEntry[],
+	claimedEntityTypes: ReadonlySet<string>
+) => {
+	const referencedEntityTypesByOwner = Map.groupBy(
+		[
+			...entities.flatMap((entity) => entity.fields.map((field) => ({
+				entityType: entity.entityType,
+				field,
+			}))),
+			...facetEntries.flatMap((facetEntry) => (facetEntry.facet.fields ?? []).map((field) => ({
+				entityType: facetEntry.entityType,
+				field,
+			}))),
+		].filter(({ field }) => (
+			(
+				field.type === EntityFieldType.EntityReference
+				|| field.type === EntityFieldType.EntitiesReference
+			)
+			&& field.entityType != null
+		)),
+		({ entityType }) => entityType
+	)
+	const materialized = new Set<string>()
+	const owners = [...claimedEntityTypes]
+	for (const owner of owners)
+		for (const { field } of referencedEntityTypesByOwner.get(owner) ?? []) {
+			if (field.entityType == null || materialized.has(field.entityType) || claimedEntityTypes.has(field.entityType))
+				continue
+
+			materialized.add(field.entityType)
+			owners.push(field.entityType)
+		}
+
+	return materialized
+}
 
 const sourceSelectionConditionFields = (
 	selection: _SourceSelection
@@ -5951,14 +6023,48 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 		entityRouteLinksByType: nullPrototypeRecord([...entityRouteLinksByType]),
 	} satisfies CompiledAppFacts
 
-	return freezeCompiled({
-		generatedFiles: generateFiles(compiledApp),
-		sourceClaims: compileSourceClaims(
+	const sourceClaims = compileSourceClaims(
+		activeEntities,
+		facetEntries,
+		physicalRouteFiles,
+		compiledApp
+	)
+	const fieldSourcedEntityTypes = new Set(sourceClaims.flatMap((claim) => (
+		claim.fieldName == null ? [] : [claim.entityType]
+	)))
+	const accountabilityAuthority = indexAccountabilityAuthority({
+		sourceBindings: compiledSourceBindings.map(({ source, binding }) => ({
+			source,
+			delivery: binding.delivery,
+		})),
+		resolverModules,
+		fieldSourcedEntityTypes,
+		referenceMaterializedEntityTypes: compileReferenceMaterializedEntityTypes(
 			activeEntities,
 			facetEntries,
-			physicalRouteFiles,
-			compiledApp
+			new Set(sourceClaims.map((claim) => claim.entityType))
 		),
+	})
+	const sourceAccountability = {
+		claims: sourceClaims.map((claim) => classifySourceClaim(claim, accountabilityAuthority)),
+		mappedSelectors: compileMappedSelectorFacts(indexedRouteNodes)
+			.map((mapping) => classifyMappedSelector(mapping, accountabilityAuthority)),
+	}
+	const undeclaredAccessSources = unique([
+		...sourceAccountability.claims
+			.filter((row) => row.access === SourceAccess.Undeclared)
+			.map((row) => row.source),
+		...sourceAccountability.mappedSelectors.flatMap((row) => row.sources.filter((source) => (
+			accountabilityAuthority.accessBySource.get(source) == null
+		))),
+	])
+	if (undeclaredAccessSources.length > 0)
+		throw new Error(`Source claims reference sources without a declared delivery: ${undeclaredAccessSources.join(', ')}`)
+
+	return freezeCompiled({
+		generatedFiles: generateFiles(compiledApp),
+		sourceClaims,
+		sourceAccountability,
 	})
 }
 
@@ -7393,6 +7499,10 @@ const generateResolverIndexFile = (resolverModules: readonly App['resolvers']['m
 			'const resolverLoaderEntries = [',
 			...resolverModules.map((module) => generateResolverLoaderEntry(module)),
 			'] as const satisfies readonly ResolverLoaderEntry[]',
+			'',
+			'// The loader denominator is generated from APP resolver authority so',
+			'// provider work can target missing source families without a hand-written allowlist.',
+			'export const resolverLoaderSources = Object.freeze(resolverLoaderEntries.map(([source]) => source))',
 			'',
 			'export const loadResolvers = async (enabledSources: ReadonlySet<Source> = new Set(Object.values(Source))) => Promise.all(',
 			'\tresolverLoaderEntries',
@@ -15094,9 +15204,48 @@ const checkGeneratedViewImportsResolve = async (files: readonly GeneratedFile[])
 		throw new Error(`Generated view imports do not resolve:\n${missing.join('\n')}`)
 }
 
+// The canonical accountability report keyed by source, entity, selector/field,
+// route, and declared access. Run it with
+// `node --import tsx scripts/app/generate.ts accountability`.
+const renderAccountabilityReport = ({
+	claims,
+	mappedSelectors,
+}: CompiledSourceAccountability) => [
+	...Object.entries(Object.groupBy(claims, (row) => `${row.demand}/${row.access}/${row.executability}`))
+		.map(([key, rows]) => `claim ${key}: ${rows?.length ?? 0}`)
+		.toSorted((left, right) => left.localeCompare(right, 'en')),
+	...Object.entries(Object.groupBy(mappedSelectors, (row) => row.accountability))
+		.map(([key, rows]) => `selector ${key}: ${rows?.length ?? 0}`)
+		.toSorted((left, right) => left.localeCompare(right, 'en')),
+	'',
+	'Public cold-read gaps:',
+	...publicColdReadGaps(claims).map((row) => [
+			row.source,
+			row.deliveries.join(','),
+			row.entityType,
+		row.selectorName ?? [...row.facetPath, row.fieldName].join('.'),
+		row.publicRoute,
+	].join('\t')),
+	'',
+	'Mapped selectors without declared source authority:',
+	...mappedSelectors
+		.filter((row) => row.accountability === MappedSelectorAccountability.SchemaIdentityOnly)
+		.map((row) => [
+			row.entityType,
+			row.selectorName,
+			row.route,
+		].join('\t')),
+].join('\n')
+
 const main = async () => {
 	const command = process.argv[2] ?? 'check'
-	const files = compileApp(app).generatedFiles
+	const compiledApp = compileApp(app)
+	if (command === 'accountability') {
+		console.log(renderAccountabilityReport(compiledApp.sourceAccountability))
+		return
+	}
+
+	const files = compiledApp.generatedFiles
 	await checkGeneratedViewImportsResolve(files)
 
 	if (command === 'check') {

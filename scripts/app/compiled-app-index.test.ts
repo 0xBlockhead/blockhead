@@ -16,16 +16,23 @@ const assertRecursivelyFrozen = (value: object) => {
 			assertRecursivelyFrozen(nestedValue)
 }
 
-test('exports complete immutable generated-file and source-claim IR', () => {
+test('exports complete immutable generated-file, source-claim, and source-accountability IR', () => {
 	const compiledApp = baselineCompiledApp
 
 	assert.deepEqual(Object.keys(compiledApp), [
 		'generatedFiles',
 		'sourceClaims',
+		'sourceAccountability',
 	])
+	assert.equal(
+		compiledApp.sourceAccountability.claims.length,
+		compiledApp.sourceClaims.length
+	)
 	assertRecursivelyFrozen(compiledApp)
 	assert.ok(compiledApp.generatedFiles.length > 0)
 	assert.ok(compiledApp.sourceClaims.length > 0)
+	assert.ok(compiledApp.sourceAccountability.claims.length > 0)
+	assert.ok(compiledApp.sourceAccountability.mappedSelectors.length > 0)
 	assert.equal(
 		new Set(compiledApp.generatedFiles.map((generatedFile) => generatedFile.path)).size,
 		compiledApp.generatedFiles.length
@@ -300,4 +307,59 @@ test('rejects canonical alias drift while retaining alias ingress as a visible r
 	))
 	assert.ok(generatedAliasPage)
 	assert.match(renderGeneratedFile(generatedAliasPage), /globalThis\.location\.replace\(canonicalEntityHref\)/)
+})
+
+test('classifies every source claim and mapped selector against authority', () => {
+	const { sourceAccountability } = baselineCompiledApp
+
+	for (const claim of sourceAccountability.claims) {
+		const keys = Object.keys(claim).toSorted()
+		assert.ok(
+			keys.includes('fieldName') && !keys.includes('selectorName')
+			|| keys.includes('selectorName') && !keys.includes('fieldName')
+			|| keys.includes('fieldName') && keys.includes('selectorName'),
+			`unexpected claim shape: ${keys.join(',')}`
+		)
+		assert.ok(keys.includes('source'))
+		assert.ok(keys.includes('entityType'))
+		assert.ok(keys.includes('facetPath'))
+		assert.ok(keys.includes('demand'))
+		assert.ok(keys.includes('access'))
+		assert.ok(keys.includes('deliveries'))
+		assert.ok(keys.includes('executability'))
+		assert.ok(['PublicRoute', 'FieldDefault'].includes(claim.demand))
+		assert.ok(['Public', 'LocalRuntime', 'ServerRuntime'].includes(claim.access))
+		assert.ok(['ResolverDeclared', 'ResolverMissing'].includes(claim.executability))
+	}
+
+	for (const selector of sourceAccountability.mappedSelectors) {
+		assert.deepEqual(
+			Object.keys(selector).toSorted(),
+			[
+				'accountability',
+				'authoredPage',
+				'entityType',
+				'route',
+				'selectorName',
+				'sources',
+				'sourcesWithoutResolver',
+			].toSorted()
+		)
+		assert.ok([
+			'PublicRouteDemand',
+			'LocalRuntimeDemand',
+			'NonExecutableDemand',
+			'ResolverOnlyCapability',
+			'FieldSourcedIdentity',
+			'ReferenceMaterializedIdentity',
+			'SchemaIdentityOnly',
+		].includes(selector.accountability))
+	}
+
+	const publicColdReadGaps = sourceAccountability.claims.filter((claim) => (
+		claim.demand === 'PublicRoute'
+		&& claim.access === 'Public'
+		&& claim.executability === 'ResolverMissing'
+	))
+	assert.equal(publicColdReadGaps.length, 28)
 })

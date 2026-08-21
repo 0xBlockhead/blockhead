@@ -46,7 +46,7 @@ import {
 	WireProtocol,
 } from '$/sources/SourceBinding.ts'
 import sourceProviders, { sourceBindings } from '$/sources/$sourceProviders.ts'
-import { loadResolvers } from '$/resolvers/index.ts'
+import { loadResolvers, resolverLoaderSources } from '$/resolvers/index.ts'
 import { CoinId } from '$/constants/Coin.ts'
 import { networkBySlug } from '$/constants/Network.ts'
 import voltaireJsonRpc from '$/resolvers/Voltaire-JsonRpc.ts'
@@ -276,6 +276,14 @@ describe('resolver registry live resolver architecture', () => {
 				Object.hasOwn(sourceProvider.sources, source)
 			))
 		))).toBe(true)
+	})
+
+	it('exposes the generated resolver-loader denominator without a static allowlist', () => {
+		expect(resolverLoaderSources).toEqual(app.resolvers.modules.map(({ source }) => source))
+		expect(new Set(resolverLoaderSources).size).toBe(resolverLoaderSources.length)
+		expect(resolverLoaderSources.every((source) => sourceProviders.some((sourceProvider) => (
+			Object.hasOwn(sourceProvider.sources, source)
+		)))).toBe(true)
 	})
 
 	it('assigns each selector field capability to one resolver definition', () => {
@@ -1226,6 +1234,30 @@ describe('resolver registry live resolver architecture', () => {
 				}),
 			])
 		}
+	})
+
+	it('holds a stable total denominator for accounted-for source claim gaps', () => {
+		const parentOwnedClaims = compiledResolverSourceClaimGaps.filter((claim) => (
+			claim.publicRoute == null
+			&& claim.source !== Source.Constants_Internal
+			&& claim.source !== Source.Local_Internal
+			&& sourceClaimParentMaterializers(claim).length > 0
+		))
+		const catalogOwnedClaims = compiledResolverSourceClaimGaps.filter((claim) => (
+			claim.source === Source.Constants_Internal
+			|| claim.source === Source.Local_Internal
+		))
+		const otherClaims = compiledResolverSourceClaimGaps.filter((claim) => (
+			!parentOwnedClaims.includes(claim)
+			&& !catalogOwnedClaims.includes(claim)
+		))
+
+		expect(parentOwnedClaims.length).toBe(378)
+		expect(catalogOwnedClaims.length).toBe(100)
+		expect(otherClaims.length).toBe(246)
+		expect(compiledResolverSourceClaimGaps.length).toBe(
+			parentOwnedClaims.length + catalogOwnedClaims.length + otherClaims.length
+		)
 	})
 
 	it('keeps generated schema entities accountable without treating view source forwarding as ownership', () => {

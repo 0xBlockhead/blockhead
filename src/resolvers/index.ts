@@ -226,6 +226,10 @@ const resolverLoaderEntries = [
 	[Source.ZeroGStorageScan_Rest, () => import('./ZeroGStorageScan-Rest.ts')],
 ] as const satisfies readonly ResolverLoaderEntry[]
 
+// The loader denominator is generated from APP resolver authority so
+// provider work can target missing source families without a hand-written allowlist.
+export const resolverLoaderSources = Object.freeze(resolverLoaderEntries.map(([source]) => source))
+
 export const loadResolvers = async (enabledSources: ReadonlySet<Source> = new Set(Object.values(Source))) => Promise.all(
 	resolverLoaderEntries
 		.filter(([source]) => enabledSources.has(source))
