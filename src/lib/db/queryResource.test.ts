@@ -283,4 +283,24 @@ describe('TanStackLiveQueryResource', () => {
 		expect(fixture.resource.ready).toBe(true)
 		expect(fixture.resource.error).toBeUndefined()
 	})
+
+	it('unsubscribes exactly once when destroyed after starting', async () => {
+		const fixture = createFixture(readySnapshot('ready'))
+		await expect(fixture.resource).resolves.toBe('ready')
+		expect(fixture.sourceSubscriptionCount).toBe(1)
+
+		fixture.resource.destroy()
+		fixture.resource.destroy()
+		expect(fixture.sourceSubscriptionCount).toBe(0)
+	})
+
+	it('does not subscribe when destroyed during the deferred start', async () => {
+		const fixture = createFixture(readySnapshot('ready'))
+		void fixture.resource.current
+		fixture.resource.destroy()
+		await Promise.resolve()
+		await Promise.resolve()
+
+		expect(fixture.sourceSubscriptionCount).toBe(0)
+	})
 })

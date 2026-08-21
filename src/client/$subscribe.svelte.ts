@@ -91,7 +91,7 @@ export type EntityFieldResourceData<
 		SubscribeFieldResult<_Schema, _EntityType, _FieldName, _FieldSelection>
 )
 
-type SharedEntityFieldResource = SvelteKitResource<EntityFieldResourceData<
+type SharedEntityFieldResource = TanStackLiveQueryResource<EntityFieldResourceData<
 	Schema,
 	EntityType<Schema>,
 	EntityFieldName<Schema, EntityType<Schema>>
@@ -103,6 +103,35 @@ type SharedEntityResource = TanStackLiveQueryResource<EntityResourceData<
 
 const sharedEntityFieldResourceByContext = new WeakMap<object, Map<string, SharedEntityFieldResource>>()
 const sharedEntityResourceByContext = new WeakMap<object, Map<string, SharedEntityResource>>()
+const clientResourcesByContext = new WeakMap<object, Set<{ destroy(): void }>>()
+const destroyedClientContexts = new WeakSet<object>()
+
+export const registerClientResource = <_Resource extends { destroy(): void }>(
+	context: object,
+	resource: _Resource
+) => {
+	if (destroyedClientContexts.has(context)) {
+		resource.destroy()
+		return resource
+	}
+
+	const resources = clientResourcesByContext.get(context) ?? new Set()
+	resources.add(resource)
+	clientResourcesByContext.set(context, resources)
+	return resource
+}
+
+export const destroyClientResources = (
+	context: object
+) => {
+	destroyedClientContexts.add(context)
+	for (const resource of clientResourcesByContext.get(context) ?? [])
+		resource.destroy()
+
+	clientResourcesByContext.delete(context)
+	sharedEntityFieldResourceByContext.delete(context)
+	sharedEntityResourceByContext.delete(context)
+}
 
 const serializableEntityFieldResourceKey = <
 	_Schema extends Schema,
@@ -851,7 +880,7 @@ export function subscribeEntityField<
 	const unsubscribeByNestedResource = new Map<SharedEntityResource, () => void>()
 	const pendingNestedResourceSubscriptions = new Set<SharedEntityResource>()
 	let nestedResourceUpdate: (() => void) | undefined
-	const resource = new TanStackLiveQueryResource(() => {
+	const resource = registerClientResource(context, new TanStackLiveQueryResource(() => {
 		const rowsFailure = queries.rowsFailure()
 		const rowsFailed = (
 			rowsFailure !== undefined
@@ -1062,7 +1091,7 @@ export function subscribeEntityField<
 			unsubscribeLocalMutationAuthorityChanges()
 			unsubscribeResolverSubsetLoadingChanges()
 		}
-	}, () => waitForLiveQueryCollections(observedQueries))
+	}, () => waitForLiveQueryCollections(observedQueries)))
 	if (sharedResourceKey !== undefined) {
 		const resources = (
 			sharedEntityFieldResourceByContext.get(context)
@@ -1155,7 +1184,7 @@ export const subscribeEntityFieldCount = <
 		filterKey: stringify({}),
 	})
 
-	return new TanStackLiveQueryResource(() => asQuerySnapshot(
+	return registerClientResource(context, new TanStackLiveQueryResource(() => asQuerySnapshot(
 		[{
 			...counts,
 			isComplete: (
@@ -1206,7 +1235,7 @@ export const subscribeEntityFieldCount = <
 			unsubscribeLocalMutationAuthority()
 			unsubscribeResolverSubsetLoading()
 		}
-	}, () => waitForLiveQueryCollections(observedQueries))
+	}, () => waitForLiveQueryCollections(observedQueries)))
 }
 
 export function subscribeEntity<
@@ -1496,7 +1525,7 @@ const subscribeEntitySelection = <
 	const pendingNestedResourceSubscriptions = new Set<SharedEntityResource>()
 	let nestedResourceUpdate: (() => void) | undefined
 
-	const resource = new TanStackLiveQueryResource(() => {
+	const resource = registerClientResource(context, new TanStackLiveQueryResource(() => {
 		const rowsFailure = entityRowsFailure()
 		const rowsFailed = (
 			rowsFailure !== undefined
@@ -1801,7 +1830,7 @@ const subscribeEntitySelection = <
 			for (const unsubscribe of unsubscribeSourceLoadingChanges)
 				unsubscribe()
 		}
-	}, () => waitForLiveQueryCollections(observedQueries))
+	}, () => waitForLiveQueryCollections(observedQueries)))
 	if (sharedResourceKeys.length > 0) {
 		const resources = (
 			sharedEntityResourceByContext.get(context)

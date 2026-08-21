@@ -49,6 +49,7 @@ export class TanStackLiveQueryResource<Data> implements SvelteKitResource<Data> 
 	#rejectFirst: ((error: QueryResourceError) => void) | undefined = this.#first.reject
 	#pending = true
 	#started = false
+	#destroyed = false
 
 	#then = $derived.by((): Promise<Data>['then'] => {
 		const promise = this.#promise
@@ -77,7 +78,10 @@ export class TanStackLiveQueryResource<Data> implements SvelteKitResource<Data> 
 	}
 
 	#subscribe() {
-		if (this.#unsubscribe !== undefined)
+		if (
+			this.#destroyed
+			|| this.#unsubscribe !== undefined
+		)
 			return
 
 		this.#unsubscribe = this.#subscribeToSource(() => {
@@ -88,7 +92,10 @@ export class TanStackLiveQueryResource<Data> implements SvelteKitResource<Data> 
 	}
 
 	#start() {
-		if (this.#started)
+		if (
+			this.#destroyed
+			|| this.#started
+		)
 			return
 
 		this.#started = true
@@ -105,6 +112,15 @@ export class TanStackLiveQueryResource<Data> implements SvelteKitResource<Data> 
 			.catch((error) => {
 				this.fail(error instanceof Error ? error : String(error))
 			})
+	}
+
+	destroy() {
+		if (this.#destroyed)
+			return
+
+		this.#destroyed = true
+		this.#unsubscribe?.()
+		this.#unsubscribe = undefined
 	}
 
 	#apply(

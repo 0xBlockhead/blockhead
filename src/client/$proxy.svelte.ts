@@ -16,6 +16,7 @@ import {
 	subscribeEntity,
 	subscribeEntityField,
 	subscribeEntityFieldCount,
+	registerClientResource,
 	type EntityFieldResourceData,
 	type EntityResourceData,
 } from '$/client/$subscribe.svelte.ts'
@@ -1696,7 +1697,7 @@ const createEntityReferencePathProxy = (
 			error,
 		} as const
 	}
-	const pathResource = new TanStackLiveQueryResource<EntityReferencePathResult>(
+	const pathResource = registerClientResource(context, new TanStackLiveQueryResource<EntityReferencePathResult>(
 		pathSnapshot,
 		(update) => {
 			if (typeof window === 'undefined')
@@ -1729,7 +1730,7 @@ const createEntityReferencePathProxy = (
 				)))
 			}
 		}
-	)
+	))
 	const withTerminalSelection = (
 		selectionOverride?: SubscribeSelection<Schema, EntityType<Schema>, object>
 	) => createEntityReferencePathProxy(

@@ -26,6 +26,7 @@ import {
 	createEntityProxy,
 	type EntityProxyResource,
 } from '$/client/$proxy.svelte.ts'
+import { destroyClientResources } from '$/client/$subscribe.svelte.ts'
 import {
 	materializeResolverOutput,
 	ResolverOutputMaterialization,
@@ -569,6 +570,7 @@ export type ClientContext<
 				_Selection
 			>
 		) => EntityProxyResource<_Schema, _EntityType, _Selection>
+	destroy(): void
 }
 
 export type SubscribeSelection<
@@ -4642,6 +4644,9 @@ export const client = <
 			entitySelector,
 			selection
 		),
+		destroy: () => {
+			destroyClientResources(requireContext())
+		},
 	}
 
 	return context
