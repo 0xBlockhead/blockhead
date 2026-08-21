@@ -11,7 +11,7 @@ export const e2eProbeVitePlugin = () => ({
 		for (const expected of [
 			"\t} from '$/client/$client.svelte.ts'\n",
 			'\t\t\tconst database = await openBrowserWASQLiteOPFSDatabase({\n\t\t\t\tdatabaseName: BLOCKHEAD_WA_SQLITE_DATABASE_NAME,\n\t\t\t})',
-			"\t\t\t\tpersistence: createBrowserWASQLitePersistence({\n\t\t\t\t\tdatabase,\n\t\t\t\t\tschemaMismatchPolicy: 'reset',\n\t\t\t\t}),",
+			"\t\t\t\tpersistence: createBrowserWASQLitePersistence({\n\t\t\t\t\tdatabase,\n\t\t\t\t\tschemaMismatchPolicy: 'throw',\n\t\t\t\t}),",
 			'\t\t\t\tschemaVersion: BLOCKHEAD_PERSISTED_COLLECTION_SCHEMA_VERSION,',
 			'\t\treturn appClient',
 		]) {
@@ -29,8 +29,8 @@ export const e2eProbeVitePlugin = () => ({
 				'\t\t\tconst database = await openBlockheadBrowserDatabase({\n\t\t\t\tdatabaseName: e2eDatabaseName(BLOCKHEAD_WA_SQLITE_DATABASE_NAME),\n\t\t\t\tvfsName: e2eVfsName(),\n\t\t\t})'
 			)
 			.replace(
-				"\t\t\t\tpersistence: createBrowserWASQLitePersistence({\n\t\t\t\t\tdatabase,\n\t\t\t\t\tschemaMismatchPolicy: 'reset',\n\t\t\t\t}),",
-				"\t\t\t\tpersistence: createE2EClientInstrumentation(\n\t\t\t\t\tcreateBrowserWASQLitePersistence({\n\t\t\t\t\t\tdatabase,\n\t\t\t\t\t\tschemaMismatchPolicy: 'reset',\n\t\t\t\t\t})\n\t\t\t\t).persistence,"
+				"\t\t\t\tpersistence: createBrowserWASQLitePersistence({\n\t\t\t\t\tdatabase,\n\t\t\t\t\tschemaMismatchPolicy: 'throw',\n\t\t\t\t}),",
+				"\t\t\t\tpersistence: createE2EClientInstrumentation(\n\t\t\t\t\tcreateBrowserWASQLitePersistence({\n\t\t\t\t\t\tdatabase,\n\t\t\t\t\t\tschemaMismatchPolicy: 'throw',\n\t\t\t\t\t})\n\t\t\t\t).persistence,"
 			)
 			.replace(
 				'\t\t\t\tschemaVersion: BLOCKHEAD_PERSISTED_COLLECTION_SCHEMA_VERSION,',

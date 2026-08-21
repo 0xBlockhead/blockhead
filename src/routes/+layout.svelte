@@ -42,7 +42,7 @@
 			return {
 				persistence: createBrowserWASQLitePersistence({
 					database,
-					schemaMismatchPolicy: 'reset',
+					schemaMismatchPolicy: 'throw',
 				}),
 				close: () => database.close?.(),
 			}

@@ -380,7 +380,7 @@ test.describe('TanStack DB persistence', () => {
 		}
 	})
 
-	test('schema version invalidates durable Persisted collection subset persistence', async ({
+	test('schema mismatch fails closed without deleting durable Persisted collection subset persistence', async ({
 		browser,
 	}) => {
 		test.skip(matrixOnly)
@@ -442,6 +442,25 @@ test.describe('TanStack DB persistence', () => {
 			coldCompletedKeys
 		).map(collectionLoadSemanticKey).length).toBeGreaterThan(0)
 		await bumpedVersionPage.close()
+
+		const recoveredPage = await openPreparedPage(context, 101)
+		const recoveredDiagnostics = setupPageRuntimeDiagnostics(recoveredPage)
+		await recoveredDiagnostics.step(recoveredPage.goto(persistedCollectionPersistencePath, {
+			waitUntil: 'load',
+			timeout: gotoLoadTimeoutMs,
+		}))
+		await expectMainVisible(recoveredPage, 120_000, recoveredDiagnostics)
+		await waitForCoveredCollectionLoadKeys(recoveredPage, [...coldCompletedKeys])
+		const recovered = await readCollectionLoads(recoveredPage)
+		expect(repeatedRemoteCollectionLoads(
+			recovered.collectionLoads,
+			coldCompletedKeys
+		).map(collectionLoadSemanticKey)).toEqual([])
+		expect(persistedCollectionLoads(
+			recovered.collectionLoads,
+			coldCompletedKeys
+		).length).toBeGreaterThan(0)
+		await recoveredPage.close()
 
 		await context.close()
 	})
