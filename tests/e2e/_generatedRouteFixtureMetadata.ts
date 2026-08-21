@@ -9183,13 +9183,13 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
-	'/(explore)/(networks)/network/[network]/osmosis-pool/[poolId]/observations/[timestampMs]/[baseAssetDenom]/[quoteAssetDenom]': {
-		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/osmosis-pool/[poolId=stringSegment]/(osmosisPool)/observations/[timestampMs=nonNegativeInteger]/[baseAssetDenom=stringSegment]/[quoteAssetDenom=stringSegment]',
+	'/(explore)/(networks)/network/[network]/osmosis-pool/[poolId]/observations/[blockHeight]/[baseAssetDenom]/[quoteAssetDenom]': {
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/osmosis-pool/[poolId=stringSegment]/(osmosisPool)/observations/[blockHeight=nonNegativeBigInt]/[baseAssetDenom=stringSegment]/[quoteAssetDenom=stringSegment]',
 		mappings: [
 			{
-				id: 'OsmosisPool_Timestamp.PoolTimestampMsBaseQuote',
-				probeAtomPrefixes: ['/network/[network]/osmosis-pool/[poolId]/observations/[timestampMs]/[baseAssetDenom]/[quoteAssetDenom]:OsmosisPool_Timestamp.PoolTimestampMsBaseQuote'],
-				probeCases: [[[0, '1', ['baseAssetDenom', 'quoteAssetDenom', 'timestampMs', 'poolId', 'network']]]],
+				id: 'OsmosisPool_Timestamp.PoolBlockBaseQuote',
+				probeAtomPrefixes: ['/network/[network]/osmosis-pool/[poolId]/observations/[blockHeight]/[baseAssetDenom]/[quoteAssetDenom]:OsmosisPool_Timestamp.PoolBlockBaseQuote'],
+				probeCases: [[[0, '1', ['blockHeight', 'baseAssetDenom', 'quoteAssetDenom', 'poolId', 'network']]]],
 			},
 		],
 	},

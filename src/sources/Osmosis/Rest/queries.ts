@@ -3,7 +3,8 @@
  * @see https://lcd.osmosis.zone/swagger/
  */
 import { TransportType } from '$/constants/TransportType.ts'
-import { sourceGetJson } from '$/sources/_runtime/http.ts'
+import { fetchFailedMessage } from '$/lib/http.ts'
+import { sourceFetch, sourceGetJson } from '$/sources/_runtime/http.ts'
 import { httpUrl } from '$/sources/_shared/wire/HttpRest/client.ts'
 import bindings from '$/sources/Osmosis/bindings.ts'
 import { osmosisPoolPaths } from '$/sources/Osmosis/Rest/constants.ts'
@@ -17,6 +18,7 @@ import type {
 	OsmosisSyncingResponse,
 	OsmosisUserPositionsResponse,
 	OsmosisValidatorsResponse,
+	OsmosisBlockScopedSpotPrice,
 } from '$/sources/Osmosis/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 import { type as arktype } from 'arktype'
@@ -158,6 +160,21 @@ const lcdGetJson = <_Json>(path: string) => (
 		httpUrl(binding, path)
 	)
 )
+
+const lcdGetJsonAtBlock = async <_Json>(path: string, blockHeight: bigint) => {
+	const url = httpUrl(binding, path)
+	const response = await sourceFetch(binding, url, {
+		headers: {
+			'x-cosmos-block-height': blockHeight.toString(),
+		},
+	})
+	if (!response.ok)
+		throw new Error(await fetchFailedMessage(url, response))
+	return {
+		json: await response.json<_Json>(),
+		response,
+	}
+}
 
 export const osmosisLcdRestEndpoints = binding.endpoints.map(({ locator: url }) => ({
 	url,
@@ -456,11 +473,13 @@ export const getSpotPrice = ({
 	poolId,
 	baseAssetDenom,
 	quoteAssetDenom,
+	blockHeight,
 }: {
 	poolId: string
 	baseAssetDenom: string
 	quoteAssetDenom: string
-}) => {
+	blockHeight?: bigint
+}): Promise<OsmosisBlockScopedSpotPrice | { spot_price: string }> => {
 	assertPoolId(poolId)
 	assertDenom(baseAssetDenom, 'base asset denom')
 	assertDenom(quoteAssetDenom, 'quote asset denom')
@@ -468,14 +487,26 @@ export const getSpotPrice = ({
 		base_asset_denom: baseAssetDenom,
 		quote_asset_denom: quoteAssetDenom,
 	})
-	return lcdGetJson<unknown>(
-		`/osmosis/poolmanager/v2/pools/${poolId}/prices?${search.toString()}`
-	)
-		.then((response) => {
+	const path = `/osmosis/poolmanager/v2/pools/${poolId}/prices?${search.toString()}`
+	const result = blockHeight == null ?
+		lcdGetJson<unknown>(path).then((json) => ({ json, response: undefined }))
+	:
+		lcdGetJsonAtBlock<unknown>(path, blockHeight)
+	return result.then(({ json, response }) => {
+		let spotPrice: { spot_price: string }
 			try {
-				return osmosisSpotPriceResponseWire.assert(response)
+				spotPrice = osmosisSpotPriceResponseWire.assert(json)
 			} catch {
 				throw new Error(`${Source.Osmosis_LCD_Rest}: invalid spot price response envelope`)
+			}
+			if (response == null)
+				return spotPrice
+			const responseHeight = response.headers.get('x-cosmos-block-height')
+			if (responseHeight !== blockHeight?.toString())
+				throw new Error(`${Source.Osmosis_LCD_Rest}: response block height mismatch`)
+			return {
+				...spotPrice,
+				blockHeight,
 			}
 		})
 }

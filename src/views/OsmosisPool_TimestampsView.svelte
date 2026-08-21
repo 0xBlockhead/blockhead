@@ -48,7 +48,7 @@
 			entitySelector={osmosisPoolTimestampSelector}
 			href={
 				resolve(
-					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/osmosis-pool/[poolId=stringSegment]/(osmosisPool)/observations/[timestampMs=nonNegativeInteger]/[baseAssetDenom=stringSegment]/[quoteAssetDenom=stringSegment]',
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/osmosis-pool/[poolId=stringSegment]/(osmosisPool)/observations/[blockHeight=nonNegativeBigInt]/[baseAssetDenom=stringSegment]/[quoteAssetDenom=stringSegment]',
 					{
 						network: (
 							'caip2' in pool.$network ?
@@ -57,7 +57,7 @@
 								pool.$network.slug
 						),
 						poolId: pool.poolId,
-						timestampMs: String(osmosisPoolTimestampSelector.timestampMs),
+						blockHeight: String(osmosisPoolTimestampSelector.blockHeight),
 						baseAssetDenom: osmosisPoolTimestampSelector.baseAssetDenom,
 						quoteAssetDenom: osmosisPoolTimestampSelector.quoteAssetDenom,
 					}

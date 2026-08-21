@@ -19,7 +19,7 @@
 
 	const pageSelection = $derived(select(EntityType.OsmosisPool_Timestamp, {
 		$pool: data.selector,
-		timestampMs: Number(params.timestampMs),
+		blockHeight: BigInt(params.blockHeight),
 		baseAssetDenom: params.baseAssetDenom,
 		quoteAssetDenom: params.quoteAssetDenom,
 	}, {

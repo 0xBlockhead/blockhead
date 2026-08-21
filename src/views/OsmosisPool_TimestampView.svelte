@@ -51,7 +51,7 @@
 	href={
 		href === undefined ?
 			resolve(
-				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/osmosis-pool/[poolId=stringSegment]/(osmosisPool)/observations/[timestampMs=nonNegativeInteger]/[baseAssetDenom=stringSegment]/[quoteAssetDenom=stringSegment]',
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/osmosis-pool/[poolId=stringSegment]/(osmosisPool)/observations/[blockHeight=nonNegativeBigInt]/[baseAssetDenom=stringSegment]/[quoteAssetDenom=stringSegment]',
 				{
 					network: (
 						'caip2' in pool.$network ?
@@ -60,7 +60,7 @@
 							pool.$network.slug
 					),
 					poolId: pool.poolId,
-					timestampMs: String(selection.entitySelector.timestampMs),
+					blockHeight: String(selection.entitySelector.blockHeight),
 					baseAssetDenom: selection.entitySelector.baseAssetDenom,
 					quoteAssetDenom: selection.entitySelector.quoteAssetDenom,
 				}
@@ -95,7 +95,19 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={selection.entitySelector.timestampMs} />
+					<ResourceBoundary
+						resource={
+							viewSelection({
+								fields: {
+									timestampMs: true,
+								},
+							})
+						}
+					>
+						{#snippet children(entity)}
+							<Timestamp timestamp={entity.timestampMs} />
+						{/snippet}
+					</ResourceBoundary>
 				</dd>
 			</div>
 

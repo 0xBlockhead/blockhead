@@ -796,6 +796,10 @@ export default {
 							return undefined
 
 						const { getSpotPrice } = await import('$/sources/Osmosis/Rest/queries.ts')
+						const { getLatestBlock } = await import('$/sources/Osmosis/Rest/queries.ts')
+						const block = await getLatestBlock()
+						const blockHeight = BigInt(block.block.header.height)
+						const timestampMs = Date.parse(block.block.header.time)
 						const $pool = {
 							$network,
 							poolId,
@@ -808,41 +812,43 @@ export default {
 								poolId,
 								baseAssetDenom,
 								quoteAssetDenom,
+								blockHeight,
 							}).then((spotPrice) => ({
 								spotPrice,
-								timestampMs: Date.now(),
 							})),
 							getSpotPrice({
 								poolId,
 								baseAssetDenom: quoteAssetDenom,
 								quoteAssetDenom: baseAssetDenom,
+								blockHeight,
 							}).then((spotPrice) => ({
 								spotPrice,
-								timestampMs: Date.now(),
 							})),
 						])
 						return [
 							{
 								[EntityMetaKey.Selector]: {
 									$pool,
-									timestampMs: forward.timestampMs,
+									blockHeight,
 									baseAssetDenom,
 									quoteAssetDenom,
 								},
 								[EntityMetaKey.Fields]: {
 									[entityFieldAddressKey(EntityType.OsmosisPool_Timestamp, [], 'source')]: Source.Osmosis_LCD_Rest,
+									[entityFieldAddressKey(EntityType.OsmosisPool_Timestamp, [], 'timestampMs')]: timestampMs,
 									[entityFieldAddressKey(EntityType.OsmosisPool_Timestamp, [], 'spotPrice')]: forward.spotPrice.spot_price,
 								},
 							},
 							{
 								[EntityMetaKey.Selector]: {
 									$pool,
-									timestampMs: reverse.timestampMs,
+									blockHeight,
 									baseAssetDenom: quoteAssetDenom,
 									quoteAssetDenom: baseAssetDenom,
 								},
 								[EntityMetaKey.Fields]: {
 									[entityFieldAddressKey(EntityType.OsmosisPool_Timestamp, [], 'source')]: Source.Osmosis_LCD_Rest,
+									[entityFieldAddressKey(EntityType.OsmosisPool_Timestamp, [], 'timestampMs')]: timestampMs,
 									[entityFieldAddressKey(EntityType.OsmosisPool_Timestamp, [], 'spotPrice')]: reverse.spotPrice.spot_price,
 								},
 							},

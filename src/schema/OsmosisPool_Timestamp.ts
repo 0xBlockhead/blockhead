@@ -19,6 +19,10 @@ export default entity({
 		entityType: EntityType.OsmosisPool,
 		cardinality: EntityFieldCardinality.One,
 	},
+	blockHeight: {
+		primitiveType: type('bigint').narrow((value) => value >= 0n),
+		cardinality: EntityFieldCardinality.One,
+	},
 	timestampMs: {
 		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.One,
@@ -47,9 +51,9 @@ export default entity({
 	},
 })({
 	selectors: {
-		PoolTimestampMsBaseQuote: [
+		PoolBlockBaseQuote: [
 			'$pool',
-			'timestampMs',
+			'blockHeight',
 			'baseAssetDenom',
 			'quoteAssetDenom',
 		],

@@ -6,7 +6,7 @@ import { sourceBindingId } from '$/sources/SourceBinding.ts'
 
 
 const poolId = '1066'
-const poolPath = `/network/cosmos:osmosis-1/osmosis-pool/${poolId}`
+const poolPath = `/network/osmosis/osmosis-pool/${poolId}`
 const osmosisProxyRoute = new RegExp(
 	`/api-proxy/${encodeURIComponent(sourceBindingId(bindings[Source.Osmosis_LCD_Rest][0]))}/0/`
 )
@@ -21,7 +21,7 @@ test.beforeEach(async ({ context }, testInfo) => {
 		window.__blockheadWaSqliteVfsNameOverride = name.replace(/[^a-zA-Z0-9_-]/g, '_')
 		window.__blockheadPersistedCollectionSchemaVersionOverride = schemaVersion
 	}, {
-		name: `blockhead-osmosis-pool-observations-${testInfo.workerIndex}-${testInfo.retry}-${Date.now()}.sqlite`,
+		name: `bh-osmosis-${testInfo.workerIndex}-${testInfo.retry}-${testInfo.repeatEachIndex}.sqlite`,
 		schemaVersion: Date.now(),
 	})
 })
@@ -56,6 +56,28 @@ test('pool materializes spot observations whose detail uses the stored observati
 			return
 		}
 
+		if (providerUrl.pathname === '/cosmos/base/tendermint/v1beta1/blocks/latest') {
+			await route.fulfill({
+				json: {
+					block_id: {
+						hash: 'osmosis-tip',
+					},
+					block: {
+						header: {
+							height: '42',
+							time: '2026-08-21T00:00:00.000Z',
+							chain_id: 'osmosis-1',
+							proposer_address: 'proposer',
+						},
+						data: {
+							txs: [],
+						},
+					},
+				},
+			})
+			return
+		}
+
 		if (providerUrl.pathname === `/osmosis/poolmanager/v2/pools/${poolId}/prices`) {
 			const baseAssetDenom = providerUrl.searchParams.get('base_asset_denom')
 			const quoteAssetDenom = providerUrl.searchParams.get('quote_asset_denom')
@@ -63,6 +85,9 @@ test('pool materializes spot observations whose detail uses the stored observati
 				await route.fulfill({
 					json: {
 						spot_price: '1.500000000000000000000000000000000000',
+					},
+					headers: {
+						'x-cosmos-block-height': '42',
 					},
 				})
 				return
@@ -72,6 +97,9 @@ test('pool materializes spot observations whose detail uses the stored observati
 				await route.fulfill({
 					json: {
 						spot_price: '0.666666666666666666666666666666666667',
+					},
+					headers: {
+						'x-cosmos-block-height': '42',
 					},
 				})
 				return
@@ -111,7 +139,7 @@ test('pool materializes spot observations whose detail uses the stored observati
 		}
 	).toBe(2)
 	const observationLink = page.locator(
-		`#main a[href^='${poolPath}/observations/'][href$='/uosmo/uion']`
+		`#main a[href^='${poolPath}/observations/'][href$='/42/uosmo/uion']`
 	)
 	await expect(observationLink).toBeAttached({
 		timeout: 120_000,

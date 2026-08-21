@@ -39,6 +39,11 @@ export type OsmosisBlockResponse = {
 	}
 }
 
+export type OsmosisBlockScopedSpotPrice = {
+	spot_price: string
+	blockHeight: bigint
+}
+
 export type OsmosisSyncingResponse = {
 	syncing: boolean
 }

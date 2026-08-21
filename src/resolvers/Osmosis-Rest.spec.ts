@@ -12,10 +12,12 @@ import bindings from '$/sources/Osmosis/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 
 const sourceGetJson = vi.hoisted(() => vi.fn())
+const sourceFetch = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/_runtime/http.ts', async (importOriginal) => ({
 	...await importOriginal<typeof import('$/sources/_runtime/http.ts')>(),
 	sourceGetJson,
+	sourceFetch,
 }))
 
 const { default: osmosisRest } = await import('$/resolvers/Osmosis-Rest.ts')
@@ -108,6 +110,7 @@ const ibcClientResolver = osmosisRest.resolvers.find((resolver) => (
 describe('Osmosis LCD resolver module', () => {
 	beforeEach(() => {
 		sourceGetJson.mockReset()
+		sourceFetch.mockReset()
 	})
 
 	it('registers under Osmosis_LCD_Rest against cosmos:osmosis-1', () => {
@@ -851,6 +854,23 @@ describe('Osmosis LCD resolver module', () => {
 			spot_price: string
 		}>()
 		sourceGetJson.mockImplementation((_binding, url: string) => {
+			if (url.includes('/blocks/latest'))
+				return Promise.resolve({
+					block_id: {
+						hash: 'osmosis-tip',
+					},
+					block: {
+						header: {
+							height: '42',
+							time: '2026-08-21T00:00:00.000Z',
+							chain_id: 'osmosis-1',
+							proposer_address: 'proposer',
+						},
+						data: {
+							txs: [],
+						},
+					},
+				})
 			if (!url.includes('/prices?'))
 				return Promise.resolve({
 				pool: {
@@ -866,19 +886,25 @@ describe('Osmosis LCD resolver module', () => {
 			:
 				reverseResponse.promise
 		})
-		const now = vi.spyOn(Date, 'now')
-			.mockReturnValueOnce(1_700_000_000_001)
-			.mockReturnValueOnce(1_700_000_000_002)
+		sourceFetch.mockImplementation((_binding, url: string) => (
+			Promise.resolve({
+				ok: true,
+				headers: new Headers({ 'x-cosmos-block-height': '42' }),
+				json: () => url.includes('base_asset_denom=uosmo') ?
+					forwardResponse.promise
+				:
+					reverseResponse.promise,
+			})
+		))
 		const rowsPromise = osmosisPoolTimestampsResolver.resolve.NetworkPoolId.resolve({
 			$network: osmosisNetwork,
 			poolId: '1066',
 		}, context)
 
-		await vi.waitFor(() => expect(sourceGetJson).toHaveBeenCalledTimes(3))
+		await vi.waitFor(() => expect(sourceGetJson).toHaveBeenCalledTimes(2))
 		reverseResponse.resolve({
 			spot_price: '0.666666666666666667',
 		})
-		await vi.waitFor(() => expect(now).toHaveBeenCalledTimes(1))
 		forwardResponse.resolve({
 			spot_price: '1.5',
 		})
@@ -892,12 +918,13 @@ describe('Osmosis LCD resolver module', () => {
 						$network: osmosisNetwork,
 						poolId: '1066',
 					},
-					timestampMs: 1_700_000_000_002,
+					blockHeight: 42n,
 					baseAssetDenom: 'uosmo',
 					quoteAssetDenom: 'uion',
 				},
 				[EntityMetaKey.Fields]: {
 					[entityFieldAddressKey(EntityType.OsmosisPool_Timestamp, [], 'source')]: Source.Osmosis_LCD_Rest,
+					[entityFieldAddressKey(EntityType.OsmosisPool_Timestamp, [], 'timestampMs')]: 1_787_270_400_000,
 					[entityFieldAddressKey(EntityType.OsmosisPool_Timestamp, [], 'spotPrice')]: '1.5',
 				},
 			},
@@ -907,18 +934,17 @@ describe('Osmosis LCD resolver module', () => {
 						$network: osmosisNetwork,
 						poolId: '1066',
 					},
-					timestampMs: 1_700_000_000_001,
+					blockHeight: 42n,
 					baseAssetDenom: 'uion',
 					quoteAssetDenom: 'uosmo',
 				},
 				[EntityMetaKey.Fields]: {
 					[entityFieldAddressKey(EntityType.OsmosisPool_Timestamp, [], 'source')]: Source.Osmosis_LCD_Rest,
+					[entityFieldAddressKey(EntityType.OsmosisPool_Timestamp, [], 'timestampMs')]: 1_787_270_400_000,
 					[entityFieldAddressKey(EntityType.OsmosisPool_Timestamp, [], 'spotPrice')]: '0.666666666666666667',
 				},
 			},
 		])
-		expect(now).toHaveBeenCalledTimes(2)
-		now.mockRestore()
 	})
 
 	it('omits OsmosisPool.$$timestamps when the pool pair is ambiguous', async () => {

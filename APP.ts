@@ -51492,6 +51492,7 @@ export const schema = {
 				description: "A point-in-time Osmosis poolmanager spot price for a base/quote denom pair.",
 			})({
 				"$pool": { label: "Pool", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.OsmosisPool },
+				"blockHeight": { label: "Block height", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeBigInt" },
 				"timestampMs": { label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
 				"baseAssetDenom": { label: "Base asset denom", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"quoteAssetDenom": { label: "Quote asset denom", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
@@ -51499,7 +51500,7 @@ export const schema = {
 				"spotPrice": { label: "Spot price", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeDecimalString", defaultSources: [Source.Osmosis_LCD_Rest] },
 			})({
 				selectors: {
-					"PoolTimestampMsBaseQuote": ["$pool", "timestampMs", "baseAssetDenom", "quoteAssetDenom"],
+					"PoolBlockBaseQuote": ["$pool", "blockHeight", "baseAssetDenom", "quoteAssetDenom"],
 				},
 				views: {
 					singular: {
@@ -82435,31 +82436,28 @@ export const routes = defineRoutes(schema)({
 														},
 													},
 													children: {
-														"observations": {
-															children: {
-																"[timestampMs]": {
-																	params: { "timestampMs": ["NonNegativeInteger"] },
-																	children: {
-																		"[baseAssetDenom]": {
-																			children: {
-																				"[quoteAssetDenom]": {
-																					selectors: {
-																						[EntityType.OsmosisPool_Timestamp]: {
-																							"PoolTimestampMsBaseQuote": {
-																								params: {
-																									"baseAssetDenom": ["baseAssetDenom"],
-																									"quoteAssetDenom": ["quoteAssetDenom"],
-																								},
-																								derivations: {
-																									"timestampMs": { kind: "param", name: "timestampMs" },
-																								},
-																								page: {},
-																							},
-																						},
-																					},
+								"observations": {
+									children: {
+										"[blockHeight]": {
+											children: {
+												"[baseAssetDenom]": {
+													children: {
+														"[quoteAssetDenom]": {
+																	selectors: {
+																		[EntityType.OsmosisPool_Timestamp]: {
+																			"PoolBlockBaseQuote": {
+																				params: {
+																					"blockHeight": ["blockHeight"],
+																					"baseAssetDenom": ["baseAssetDenom"],
+																					"quoteAssetDenom": ["quoteAssetDenom"],
 																				},
+																				page: {},
 																			},
 																		},
+																	},
+																},
+													},
+											},
 																	},
 																},
 															},

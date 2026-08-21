@@ -11,10 +11,12 @@ import { Source } from '$/sources/Source.ts'
 import { httpUrl } from '$/sources/_shared/wire/HttpRest/client.ts'
 
 const sourceGetJson = vi.hoisted(() => vi.fn())
+const sourceFetch = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/_runtime/http.ts', async (importOriginal) => ({
 	...await importOriginal<typeof import('$/sources/_runtime/http.ts')>(),
 	sourceGetJson,
+	sourceFetch,
 }))
 
 const {
@@ -41,6 +43,7 @@ const osmosisLcdRestUrl = binding.endpoints[0].locator
 describe('Osmosis LCD named operations', () => {
 	beforeEach(() => {
 		sourceGetJson.mockReset()
+		sourceFetch.mockReset()
 	})
 
 	it('reads node info from the Osmosis LCD', async () => {
@@ -638,6 +641,46 @@ describe('Osmosis LCD named operations', () => {
 			baseAssetDenom: 'uosmo',
 			quoteAssetDenom: 'uion',
 		})).rejects.toThrow(`${Source.Osmosis_LCD_Rest}: invalid spot price response envelope`)
+	})
+
+	it('pins spot prices to the requested block and validates the response height', async () => {
+		sourceFetch.mockResolvedValueOnce({
+			ok: true,
+			headers: new Headers({ 'x-cosmos-block-height': '42' }),
+			json: async () => ({ spot_price: '1.25' }),
+		})
+
+		await expect(getSpotPrice({
+			poolId: '1',
+			baseAssetDenom: 'uosmo',
+			quoteAssetDenom: 'uion',
+			blockHeight: 42n,
+		})).resolves.toEqual({
+			spot_price: '1.25',
+			blockHeight: 42n,
+		})
+		expect(sourceFetch).toHaveBeenCalledWith(
+			binding,
+			httpUrl(binding, '/osmosis/poolmanager/v2/pools/1/prices?base_asset_denom=uosmo&quote_asset_denom=uion'),
+			expect.objectContaining({
+				headers: { 'x-cosmos-block-height': '42' },
+			}),
+		)
+	})
+
+	it('rejects a block-scoped spot price when LCD returns another height', async () => {
+		sourceFetch.mockResolvedValueOnce({
+			ok: true,
+			headers: new Headers({ 'x-cosmos-block-height': '41' }),
+			json: async () => ({ spot_price: '1.25' }),
+		})
+
+		await expect(getSpotPrice({
+			poolId: '1',
+			baseAssetDenom: 'uosmo',
+			quoteAssetDenom: 'uion',
+			blockHeight: 42n,
+		})).rejects.toThrow(`${Source.Osmosis_LCD_Rest}: response block height mismatch`)
 	})
 
 	it('lists IBC channels and connection channels from Osmosis LCD', async () => {
