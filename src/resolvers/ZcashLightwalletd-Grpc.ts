@@ -29,7 +29,6 @@ const blockSnapshot = async ($network: { caip2?: { namespace: string; reference:
 		},
 	})
 	return {
-		height: block.height,
 		hash,
 		...(height > 0n && { $parent: {
 			[EntityMetaKey.Selector]: {
@@ -110,7 +109,6 @@ export default {
 				},
 			},
 		})({
-			height: (snapshot) => snapshot.height,
 			hash: (snapshot) => snapshot.hash,
 			$parent: (snapshot) => snapshot.$parent,
 			timestampMs: (snapshot) => snapshot.timestampMs,
