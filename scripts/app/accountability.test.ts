@@ -118,6 +118,25 @@ test('classifies a source claim by declared route demand, delivery, and resolver
 	)
 })
 
+test('keys source claims without aliasing route punctuation or omitted coordinates', () => {
+	const routeClaim = {
+		source: 'ProxiedRest',
+		entityType: 'FixtureEntity',
+		selectorName: 'Slug',
+		facetPath: [],
+		publicRoute: '/network/[namespace]:[reference]',
+	}
+	const fieldClaim = {
+		source: 'ProxiedRest',
+		entityType: 'FixtureEntity',
+		facetPath: [],
+		fieldName: 'Slug:missing',
+	}
+
+	assert.notEqual(sourceClaimAccountabilityKey(routeClaim), sourceClaimAccountabilityKey(fieldClaim))
+	assert.notEqual(sourceClaimAccountabilityKey({ ...routeClaim, selectorName: undefined }), sourceClaimAccountabilityKey(routeClaim))
+})
+
 test('reports only publicly deliverable route claims without a resolver as cold-read gaps', () => {
 	assert.deepEqual(
 		publicColdReadGaps([

@@ -117,14 +117,7 @@ const resolverFieldSelector = (
 	&& resolverPart.fieldName === fieldName
 ))?.select
 
-const resolverSourceClaimKey = (claim: CompiledSourceClaim) => [
-	claim.publicRoute,
-	claim.source,
-	claim.entityType,
-	claim.selectorName,
-	claim.facetPath.join('.'),
-	claim.fieldName,
-].filter((part) => part != null && part !== '').join(':')
+const resolverSourceClaimKey = sourceClaimAccountabilityKey
 
 const resolverSourceClaimGaps = (
 	claims: readonly CompiledSourceClaim[]
@@ -1027,7 +1020,14 @@ describe('resolver registry live resolver architecture', () => {
 			fieldName: 'missingCompilerFixtureField',
 			publicRoute: '/compiler-source-claim-fixture',
 		}])).toEqual([
-			'/compiler-source-claim-fixture:Constants_Internal:Network:Caip2:missingCompilerFixtureField',
+			sourceClaimAccountabilityKey({
+				source: Source.Constants_Internal,
+				entityType: EntityType.Network,
+				selectorName: 'Caip2',
+				facetPath: [],
+				fieldName: 'missingCompilerFixtureField',
+				publicRoute: '/compiler-source-claim-fixture',
+			}),
 		])
 	})
 

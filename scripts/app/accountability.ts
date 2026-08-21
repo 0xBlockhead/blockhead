@@ -46,14 +46,14 @@ export type AccountabilityAuthority = Readonly<{
 	referenceMaterializedEntityTypes: ReadonlySet<string>
 }>
 
-export const sourceClaimAccountabilityKey = (claim: Pick<SourceClaimFacts, 'publicRoute' | 'source' | 'entityType' | 'selectorName' | 'facetPath' | 'fieldName'>) => [
-	claim.publicRoute,
+export const sourceClaimAccountabilityKey = (claim: Pick<SourceClaimFacts, 'publicRoute' | 'source' | 'entityType' | 'selectorName' | 'facetPath' | 'fieldName'>) => JSON.stringify([
+	claim.publicRoute ?? null,
 	claim.source,
 	claim.entityType,
-	claim.selectorName,
-	claim.facetPath.join('.'),
-	claim.fieldName,
-].filter((part) => part != null && part !== '').join(':')
+	claim.selectorName ?? null,
+	claim.facetPath,
+	claim.fieldName ?? null,
+])
 
 type SourceClaimFacts = Readonly<{
 	source: string
