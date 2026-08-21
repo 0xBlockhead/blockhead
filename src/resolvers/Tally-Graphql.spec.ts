@@ -39,6 +39,7 @@ const {
 	resolveTallyProposal,
 	resolveTallyProposals,
 	tallyGovernorFields,
+	tallyProposalExecutableCallFields,
 	tallyProposalFields,
 } = await import('$/resolvers/Tally-Graphql.ts')
 
@@ -149,6 +150,17 @@ const proposal = {
 			percent: 80,
 		},
 	],
+	executableCalls: [
+		{
+			index: 0,
+			chainId: 'eip155:1',
+			target: '0x1111111111111111111111111111111111111111',
+			value: '1000000000000000000',
+			calldata: '0x1234',
+			signature: 'transfer(address,uint256)',
+			type: 'standard',
+		},
+	],
 }
 
 describe('Tally resolver field shaping', () => {
@@ -238,6 +250,31 @@ describe('Tally resolver field shaping', () => {
 		})
 	})
 
+	it('preserves executable-call index, network, target, value, and calldata identity', () => {
+		expect(tallyProposalExecutableCallFields(
+			proposalId,
+			proposal.executableCalls[0],
+		)).toMatchObject({
+			[EntityMetaKey.Selector]: {
+				$proposal: { proposalId },
+				index: 0,
+			},
+			$network: {
+				[EntityMetaKey.Selector]: {
+					caip2: { namespace: 'eip155', reference: '1' },
+				},
+			},
+			$target: {
+				[EntityMetaKey.Selector]: {
+					$actor: { address: '0x1111111111111111111111111111111111111111' },
+				},
+			},
+			value: 1_000_000_000_000_000_000n,
+			calldata: '0x1234',
+			callType: 'standard',
+		})
+	})
+
 	it('resolves governors and proposals through lazy query imports', async () => {
 		getGovernor.mockResolvedValue(governor)
 		getGovernorsPage.mockResolvedValue({
@@ -311,6 +348,7 @@ describe('Tally resolver field shaping', () => {
 			EntityType.TallyGovernor,
 			EntityType.TallyGovernor,
 			EntityType.TallyProposal,
+			EntityType.TallyProposalExecutableCall,
 		])
 		const governorResolver = tally.resolvers.find((resolver) => (
 			resolver.entityType === EntityType.TallyGovernor
@@ -324,6 +362,9 @@ describe('Tally resolver field shaping', () => {
 			resolver.entityType === EntityType.TallyGovernor
 			&& '$$proposals' in resolver.projections
 		))
+		const executableCallResolver = tally.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.TallyProposalExecutableCall
+		))
 		expect(governorResolver?.projections.name({ governorId, name: 'Uniswap' })).toBe('Uniswap')
 		expect(proposalResolver?.projections.title({ proposalId, title: 'Fund public goods' })).toBe('Fund public goods')
 		expect(proposalResolver?.projections.voteStats({
@@ -331,6 +372,7 @@ describe('Tally resolver field shaping', () => {
 			voteStats: proposal.voteStats,
 		})).toEqual(proposal.voteStats)
 		expect(governorProposalsResolver?.resolve).toHaveProperty('GovernorId')
+		expect(executableCallResolver?.resolve).toHaveProperty('ProposalIndex')
 	})
 
 	it('continues governor proposal pages with the provider cursor', async () => {

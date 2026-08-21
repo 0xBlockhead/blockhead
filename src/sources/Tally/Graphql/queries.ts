@@ -113,6 +113,15 @@ const tallyProposalFields = `
 		votersCount
 		percent
 	}
+	executableCalls {
+		index
+		chainId
+		target
+		value
+		calldata
+		signature
+		type
+	}
 `
 
 const governorQuery = `
@@ -400,6 +409,31 @@ const assertProposal = (
 		}
 		if (proposal.voteStats.length > 32)
 			throw new Error('Tally: too many vote stats')
+	}
+	if (proposal.executableCalls != null) {
+		const indexes = new Set<number>()
+		let previousIndex = -1
+		for (const call of proposal.executableCalls) {
+			assertSafeNonnegativeInteger(call.index, 'executable call index')
+			if (indexes.has(call.index))
+				throw new Error('Tally: duplicate executable call index')
+			if (call.index <= previousIndex)
+				throw new Error('Tally: executable calls are not ordered by index')
+			indexes.add(call.index)
+			previousIndex = call.index
+
+			assertCaip2(call.chainId, 'executable call chain ID')
+			if (!/^0x[0-9a-fA-F]{40}$/.test(call.target))
+				throw new Error('Tally: invalid executable call target')
+			if (!/^(0|[1-9][0-9]*)$/.test(call.value) || BigInt(call.value) >= 2n ** 256n)
+				throw new Error('Tally: invalid executable call value')
+			if (!/^0x(?:[0-9a-fA-F]{2})*$/.test(call.calldata))
+				throw new Error('Tally: invalid executable call calldata')
+			if (call.signature != null)
+				assertOpaqueIdentity(call.signature, 'executable call signature', 1024)
+			if (call.type != null)
+				assertOpaqueIdentity(call.type, 'executable call type', 128)
+		}
 	}
 
 	return normalizedProposal

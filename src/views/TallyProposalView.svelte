@@ -44,6 +44,7 @@
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
+	import TallyProposalExecutableCallsView from '$/views/TallyProposalExecutableCallsView.svelte'
 	import TallyGovernorView from '$/views/TallyGovernorView.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
 	import EvmNetworkAccountView from '$/views/EvmNetworkAccountView.svelte'
@@ -379,6 +380,32 @@
 					{description}
 				{:else}
 					<p data-text="muted">No proposal description.</p>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Details()}
+		{@const executableCallsResource = selection.$$executableCalls}
+		<ResourceBoundary
+			resource={executableCallsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<TallyProposalExecutableCallsView
+						selection={executableCallsResource}
+						countResource={executableCallsResource.count}
+						title='Executable calls'
+						href={
+							resolve(
+								'/~/tally/proposal/[proposalId=stringSegment]/(tallyProposal)/executable-calls',
+								{
+									proposalId: encodeURIComponent(selection.entitySelector.proposalId),
+								}
+							)
+						}
+						id='executable-calls'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

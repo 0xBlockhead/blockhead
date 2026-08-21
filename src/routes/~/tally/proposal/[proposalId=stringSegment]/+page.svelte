@@ -13,12 +13,10 @@
 
 	// State
 	let {
-		params,
+		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.TallyProposal, {
-		proposalId: decodeURIComponent(params.proposalId),
-	}, {
+	const pageSelection = $derived(select(EntityType.TallyProposal, data.selector, {
 		sources: [
 			Source.Tally,
 		],
@@ -36,7 +34,7 @@
 
 
 <svelte:head>
-	<title>{pageSelection.entity == null ? (pageSelection.entitySelector.proposalId ?? '') || 'Tally proposal' : (pageSelection.entity.title ?? '') || [(pageSelection.entity.onchainId ? 'Proposal ' + pageSelection.entity.onchainId : ''), pageSelection.entitySelector.proposalId].filter(Boolean).join(' ') || 'Tally proposal'} • Tally proposal • Blockhead</title>
+	<title>{data.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.proposalId ?? '') || 'Tally proposal' : (pageSelection.entity.title ?? '') || [(pageSelection.entity.onchainId ? 'Proposal ' + pageSelection.entity.onchainId : ''), pageSelection.entitySelector.proposalId].filter(Boolean).join(' ') || 'Tally proposal')} • Tally proposal • Blockhead</title>
 </svelte:head>
 
 

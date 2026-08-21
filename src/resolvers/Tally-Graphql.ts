@@ -10,15 +10,18 @@ import { EntityType } from '$/schema/EntityType.ts'
 import type {
 	TallyGovernor,
 	TallyProposal,
+	TallyProposalExecutableCall,
 } from '$/sources/Tally/Graphql/types.ts'
 import { Source } from '$/sources/Source.ts'
 
 
-const zeroExAddress = (
+const zeroExHex = (
 	value: string
 ): `0x${string}` => (
 	`0x${value.slice(2).toLowerCase()}`
 )
+
+const zeroExAddress = zeroExHex
 
 const parseAccountId = (
 	accountId: string
@@ -69,6 +72,73 @@ const proposalSelector = (
 ) => ({
 	proposalId,
 })
+
+const proposalExecutableCallSelector = (
+	proposalId: string,
+	index: number
+) => ({
+	$proposal: proposalSelector(proposalId),
+	index,
+})
+
+export const tallyProposalExecutableCallFields = (
+	proposalId: string,
+	call: TallyProposalExecutableCall
+) => {
+	const chainId = /^eip155:(0|[1-9][0-9]*)$/.exec(call.chainId)?.[1]
+	if (chainId == null)
+		throw new Error('Tally: executable call chain is not an EVM CAIP-2 id')
+	const $network = evmNetworkSelector(chainId)
+
+	return {
+		[EntityMetaKey.Selector]: proposalExecutableCallSelector(proposalId, call.index),
+		$proposal: {
+			[EntityMetaKey.Selector]: proposalSelector(proposalId),
+		},
+		index: call.index,
+		$network: {
+			[EntityMetaKey.Selector]: $network,
+		},
+		$target: {
+			[EntityMetaKey.Selector]: {
+				$network,
+				$actor: {
+					address: zeroExAddress(call.target),
+				},
+			},
+		},
+		value: BigInt(call.value),
+		calldata: zeroExHex(call.calldata),
+		...(call.signature != null && {
+			signature: call.signature,
+		}),
+		...(call.type != null && {
+			callType: call.type,
+		}),
+	}
+}
+
+const tallyProposalExecutableCallReference = (
+	proposalId: string,
+	call: TallyProposalExecutableCall
+) => {
+	const fields = tallyProposalExecutableCallFields(proposalId, call)
+	return {
+		[EntityMetaKey.Selector]: proposalExecutableCallSelector(proposalId, call.index),
+		[EntityMetaKey.Fields]: {
+			[entityFieldAddressKey(EntityType.TallyProposalExecutableCall, [], '$network')]: fields.$network,
+			[entityFieldAddressKey(EntityType.TallyProposalExecutableCall, [], '$target')]: fields.$target,
+			[entityFieldAddressKey(EntityType.TallyProposalExecutableCall, [], 'value')]: fields.value,
+			[entityFieldAddressKey(EntityType.TallyProposalExecutableCall, [], 'calldata')]: fields.calldata,
+			...(fields.signature != null && {
+				[entityFieldAddressKey(EntityType.TallyProposalExecutableCall, [], 'signature')]: fields.signature,
+			}),
+			...(fields.callType != null && {
+				[entityFieldAddressKey(EntityType.TallyProposalExecutableCall, [], 'callType')]: fields.callType,
+			}),
+		},
+	}
+}
 
 const timestampMsFromWire = (
 	value: string | null | undefined
@@ -228,6 +298,11 @@ export const tallyProposalFields = (
 		}),
 		...(proposal.voteStats != null && {
 			voteStats: proposal.voteStats,
+		}),
+		...(proposal.executableCalls != null && {
+			$$executableCalls: proposal.executableCalls.map((call) => (
+				tallyProposalExecutableCallReference(String(proposal.id), call)
+			)),
 		}),
 		...(startAtMs != null && {
 			startAtMs,
@@ -453,6 +528,34 @@ export default {
 			endAtMs: (proposal) => proposal.endAtMs,
 			discourseUrl: (proposal) => proposal.discourseUrl,
 			snapshotUrl: (proposal) => proposal.snapshotUrl,
+			$$executableCalls: (proposal) => proposal.$$executableCalls,
+		}),
+
+		defineResolver({
+			entityType: EntityType.TallyProposalExecutableCall,
+			resolve: {
+				ProposalIndex: {
+					resolve: async ({ $proposal, index }) => {
+						const { getProposal } = await import('$/sources/Tally/Graphql/queries.ts')
+						const proposal = await getProposal({
+							proposalId: $proposal.proposalId,
+						})
+						const call = proposal.executableCalls?.find((candidate) => candidate.index === index)
+						if (call == null)
+							throw new Error('Tally: executable call not found')
+						return tallyProposalExecutableCallFields($proposal.proposalId, call)
+					},
+				},
+			},
+		})({
+			$proposal: (call) => call.$proposal,
+			index: (call) => call.index,
+			$network: (call) => call.$network,
+			$target: (call) => call.$target,
+			value: (call) => call.value,
+			calldata: (call) => call.calldata,
+			signature: (call) => call.signature,
+			callType: (call) => call.callType,
 		}),
 	],
 } satisfies RegisteredSourceResolverModule

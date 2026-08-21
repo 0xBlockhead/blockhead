@@ -125,6 +125,17 @@ const proposal = {
 			percent: 4,
 		},
 	],
+	executableCalls: [
+		{
+			index: 0,
+			chainId: 'eip155:1',
+			target: '0x1111111111111111111111111111111111111111',
+			value: '1000000000000000000',
+			calldata: '0x1234',
+			signature: 'transfer(address,uint256)',
+			type: 'standard',
+		},
+	],
 }
 
 const jsonResponse = (data: object) => (
@@ -230,6 +241,7 @@ describe('Tally onchain governance reads', () => {
 			id: proposalId,
 			status: 'active',
 			voteStats: proposal.voteStats,
+			executableCalls: proposal.executableCalls,
 			governor: {
 				id: governorId,
 			},

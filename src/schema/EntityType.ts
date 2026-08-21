@@ -959,6 +959,7 @@ export enum EntityType {
 	SwarmResource = 'SwarmResource',
 	TallyGovernor = 'TallyGovernor',
 	TallyProposal = 'TallyProposal',
+	TallyProposalExecutableCall = 'TallyProposalExecutableCall',
 	TezosAccount = 'TezosAccount',
 	TezosAccount_Timestamp = 'TezosAccount_Timestamp',
 	TezosBaker = 'TezosBaker',

@@ -118,6 +118,16 @@ const tallyVoteStatWire = arktype({
 	percent: 'number',
 })
 
+const tallyProposalExecutableCallWire = arktype({
+	index: 'number.integer >= 0',
+	chainId: 'string',
+	target: 'string',
+	value: 'string',
+	calldata: 'string',
+	signature: tallyNullableString,
+	type: tallyNullableString,
+})
+
 export const tallyProposalWire = arktype({
 	id: tallyIntIdWire,
 	onchainId: tallyNullableString,
@@ -131,6 +141,7 @@ export const tallyProposalWire = arktype({
 	start: tallyBlockTimestampWire.or(arktype('null')),
 	end: tallyBlockTimestampWire.or(arktype('null')),
 	voteStats: tallyVoteStatWire.array().or(arktype('null')),
+	executableCalls: tallyProposalExecutableCallWire.array().or(arktype('null')),
 })
 
 export const tallyPageInfoWire = arktype({
@@ -163,4 +174,5 @@ export const tallyProposalsPageDataWire = arktype({
 
 export type TallyGovernor = typeof tallyGovernorWire.infer
 export type TallyProposal = typeof tallyProposalWire.infer
+export type TallyProposalExecutableCall = NonNullable<TallyProposal['executableCalls']>[number]
 export type TallyPageInfo = typeof tallyPageInfoWire.infer

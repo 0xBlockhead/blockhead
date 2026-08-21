@@ -12673,6 +12673,32 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
+	'/~/tally/proposal/[proposalId]/executable-call/[index]': {
+		routeId: '/~/tally/proposal/[proposalId=stringSegment]/(tallyProposal)/executable-call/[index=nonNegativeInteger]',
+		parameterEncodingByName: {
+			proposalId: 'Opaque',
+		},
+		mappings: [
+			{
+				id: 'TallyProposalExecutableCall.ProposalIndex',
+				probeAtomPrefixes: ['/~/tally/proposal/[proposalId]/executable-call/[index]:TallyProposalExecutableCall.ProposalIndex'],
+				probeCases: [[[0, '1', ['index', 'proposalId']]]],
+			},
+		],
+	},
+	'/~/tally/proposal/[proposalId]/executable-calls': {
+		routeId: '/~/tally/proposal/[proposalId=stringSegment]/(tallyProposal)/executable-calls',
+		parameterEncodingByName: {
+			proposalId: 'Opaque',
+		},
+		mappings: [
+			{
+				id: 'TallyProposal.ProposalId',
+				probeAtomPrefixes: ['/~/tally/proposal/[proposalId]:TallyProposal.ProposalId'],
+				probeCases: [[[0, '1', ['proposalId']]]],
+			},
+		],
+	},
 	'/~/waku/connection/[connectionId]/node-state/[nodeId]': {
 		routeId: '/~/waku/connection/[connectionId=stringSegment]/node-state/[nodeId=stringSegment]',
 		mappings: [

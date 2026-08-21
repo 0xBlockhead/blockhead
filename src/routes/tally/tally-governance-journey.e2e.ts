@@ -58,6 +58,17 @@ const proposal = {
 			percent: 20,
 		},
 	],
+	executableCalls: [
+		{
+			index: 7,
+			chainId: 'eip155:1',
+			target: '0x1111111111111111111111111111111111111111',
+			value: '1000000000000000000',
+			calldata: '0x1234',
+			signature: 'transfer(address,uint256)',
+			type: 'standard',
+		},
+	],
 }
 const governor = {
 	...proposal.governor,
@@ -98,11 +109,14 @@ test.beforeEach(async ({ page }, testInfo) => {
 })
 
 
-test('Tally proposal route renders proposal and vote breakdown from GraphQL', async ({ page }) => {
+test('Tally proposal route links its ordered executable call detail', async ({ page }) => {
+	const unexpectedProviderRequests: string[] = []
 	await page.route('**/api-proxy/**', async (route) => {
 		const requestBody = route.request().postData() ?? ''
-		if (!requestBody.includes('query Tally'))
-			return route.continue()
+		if (!requestBody.includes('query Tally')) {
+			unexpectedProviderRequests.push(requestBody)
+			return route.fulfill({ status: 418, body: 'Unexpected provider request' })
+		}
 
 		expect(requestBody).toMatch(/query Tally(?:Proposal|Governor)/)
 		await route.fulfill({
@@ -119,7 +133,7 @@ test('Tally proposal route renders proposal and vote breakdown from GraphQL', as
 		})
 	})
 
-	await page.goto(`/tally/proposal/${proposalId}`, {
+	await page.goto(`/~/tally/proposal/${proposalId}`, {
 		waitUntil: 'load',
 		timeout: routeViewSmokeTimeoutsMs.goto,
 	})
@@ -130,7 +144,15 @@ test('Tally proposal route renders proposal and vote breakdown from GraphQL', as
 	})
 	await expect(main).toContainText(proposal.metadata.description)
 	await expect(main.locator('dt').filter({ hasText: /^Votes$/ }).locator('..')).toContainText('for: 100000 (3 voters, 80%)')
+	const executableCallLink = main.locator(`a[href="/~/tally/proposal/${proposalId}/executable-call/7"]`)
+	await expect(executableCallLink).toContainText('Call #7')
+	await executableCallLink.click()
+	await expect(page).toHaveURL(`/~/tally/proposal/${proposalId}/executable-call/7`)
+	await expect(page.locator('#main a[href="/network/eip155:1/account/0x1111111111111111111111111111111111111111"]')).toBeVisible()
+	await expect(page.locator('#main')).toContainText('1000000000000000000')
+	await expect(page.locator('#main')).toContainText('0x1234')
 	await expect(main.locator('[data-resource-state="failed"]')).toHaveCount(0)
+	expect(unexpectedProviderRequests).toEqual([])
 })
 
 test('Tally proposal route exposes an upstream failure', async ({ page }) => {
@@ -144,7 +166,7 @@ test('Tally proposal route exposes an upstream failure', async ({ page }) => {
 		})
 	})
 
-	await page.goto(`/tally/proposal/${proposalId}`, {
+	await page.goto(`/~/tally/proposal/${proposalId}`, {
 		waitUntil: 'load',
 		timeout: routeViewSmokeTimeoutsMs.goto,
 	})

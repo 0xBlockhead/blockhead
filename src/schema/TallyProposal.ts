@@ -121,6 +121,13 @@ export default entity({
 			Source.Tally,
 		],
 	},
+	$$executableCalls: {
+		entityType: EntityType.TallyProposalExecutableCall,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Tally,
+		],
+	},
 })({
 	selectors: {
 		ProposalId: [

@@ -1658,6 +1658,7 @@ export enum EntityType {
 	SwarmResource = "SwarmResource",
 	TallyGovernor = "TallyGovernor",
 	TallyProposal = "TallyProposal",
+	TallyProposalExecutableCall = "TallyProposalExecutableCall",
 	TezosAccount = "TezosAccount",
 	TezosAccount_Timestamp = "TezosAccount_Timestamp",
 	TezosBaker = "TezosBaker",
@@ -60515,6 +60516,7 @@ export const schema = {
 				"endAtMs": { label: "Ends", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Tally] },
 				"discourseUrl": { label: "Discourse", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Tally] },
 				"snapshotUrl": { label: "Snapshot URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Tally] },
+				"$$executableCalls": { label: "Executable calls", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.TallyProposalExecutableCall, defaultSources: [Source.Tally] },
 			})({
 				selectors: {
 					"ProposalId": ["proposalId"],
@@ -60539,8 +60541,48 @@ export const schema = {
 								emptyText: "No proposal description.",
 							},
 						},
+						lists: [
+							{ field: "$$executableCalls", component: "TallyProposalExecutableCallsView", label: "Executable calls", emptyText: "No executable calls." },
+						],
 					},
 					plural: { component: "TallyProposalsView", title: "Tally proposals" },
+				},
+			}),
+
+			entity({
+				entityType: EntityType.TallyProposalExecutableCall,
+				labels: {
+					singular: "Tally proposal executable call",
+					plural: "Tally proposal executable calls",
+				},
+				description: "One ordered executable call declared by a Tally proposal.",
+			})({
+				"$proposal": { label: "Proposal", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.TallyProposal },
+				"index": { label: "Call index", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
+				"$network": { label: "Network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network, defaultSources: [Source.Tally] },
+				"$target": { label: "Target", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EvmNetworkAccount, defaultSources: [Source.Tally] },
+				"value": { label: "Value", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "bigint", defaultSources: [Source.Tally] },
+				"calldata": { label: "Calldata", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "zeroExHex", defaultSources: [Source.Tally] },
+				"signature": { label: "Signature", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Tally] },
+				"callType": { label: "Call type", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Tally] },
+			})({
+				selectors: {
+					"ProposalIndex": ["$proposal", "index"],
+				},
+				views: {
+					singular: {
+						summary: {
+							title: [{ field: "index", prefix: "Call #" }],
+							HeadingAfter: ["$proposal"],
+						},
+						content: {
+							dl: [
+								["$proposal", "index", "$network", "$target", "value", "callType", "signature"],
+							],
+							body: { field: "calldata", format: "longText" },
+						},
+					},
+					plural: { component: "TallyProposalExecutableCallsView", title: "Executable calls" },
 				},
 			}),
 
@@ -74060,6 +74102,37 @@ export const routes = defineRoutes(schema)({
 													"proposalId": ["proposalId"],
 												},
 												page: {},
+											},
+										},
+									},
+									children: {
+										"executable-calls": {
+											collections: [
+												{
+													field: [EntityType.TallyProposal, "$$executableCalls"],
+													query: { sources: [Source.Tally] },
+													derivations: {
+														"proposalId": { kind: "param", name: "proposalId", decode: _ExpressionDecode.DecodeURIComponent },
+													},
+													page: {
+														view: { component: "TallyProposalExecutableCallsView" },
+														text: { title: "Proposal executable calls" },
+													},
+												},
+											],
+										},
+										"executable-call": {
+											children: {
+												"[index]": {
+													selectors: {
+														[EntityType.TallyProposalExecutableCall]: {
+															"ProposalIndex": {
+																params: { "index": ["index"] },
+																page: {},
+															},
+														},
+													},
+												},
 											},
 										},
 									},

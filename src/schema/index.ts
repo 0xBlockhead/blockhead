@@ -959,6 +959,7 @@ import SwarmProtocolSchema from '$/schema/SwarmProtocol.ts'
 import SwarmResourceSchema from '$/schema/SwarmResource.ts'
 import TallyGovernorSchema from '$/schema/TallyGovernor.ts'
 import TallyProposalSchema from '$/schema/TallyProposal.ts'
+import TallyProposalExecutableCallSchema from '$/schema/TallyProposalExecutableCall.ts'
 import TezosAccount_TimestampSchema from '$/schema/TezosAccount_Timestamp.ts'
 import TezosAccountSchema from '$/schema/TezosAccount.ts'
 import TezosBaker_Cycle_TimestampSchema from '$/schema/TezosBaker_Cycle_Timestamp.ts'
@@ -2113,6 +2114,7 @@ const schemaChunk19 = [
 	SwarmResourceSchema,
 	TallyGovernorSchema,
 	TallyProposalSchema,
+	TallyProposalExecutableCallSchema,
 	TezosAccountSchema,
 	TezosAccount_TimestampSchema,
 	TezosBakerSchema,
@@ -2154,10 +2156,10 @@ const schemaChunk19 = [
 	TonJettonBalance_TimestampSchema,
 	TonJettonTransferSchema,
 	TonMessageSchema,
-	TonNetwork_TimestampSchema,
 ] as const
 
 const schemaChunk20 = [
+	TonNetwork_TimestampSchema,
 	TonNftCollectionSchema,
 	TonNftCollection_TimestampSchema,
 	TonNftItemSchema,
@@ -2207,10 +2209,10 @@ const schemaChunk20 = [
 	XmtpConversationSchema,
 	XmtpMessageSchema,
 	XmtpNetworkSchema,
-	XmtpParticipantSchema,
 ] as const
 
 const schemaChunk21 = [
+	XmtpParticipantSchema,
 	XNetworkSchema,
 	XPostSchema,
 	XPost_TimestampSchema,
