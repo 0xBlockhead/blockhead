@@ -8,8 +8,10 @@ it('loads only enabled resolver modules in canonical APP order', { timeout: 60_0
 	await expect(loadResolvers(new Set([
 		Source.Local_Internal,
 		Source.Constants_Internal,
+		Source.ZcashLightwalletd_Grpc,
 	]))).resolves.toMatchObject([
 		{ source: Source.Constants_Internal },
 		{ source: Source.Local_Internal },
+		{ source: Source.ZcashLightwalletd_Grpc },
 	])
 })
