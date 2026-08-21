@@ -8,19 +8,19 @@ import {
 import { EntityMetaKey, entityFieldAddressKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 
-const fetchBrowseResult = vi.hoisted(() => vi.fn())
+const fetchRawTransactionContent = vi.hoisted(() => vi.fn())
 const parseArweaveManifest = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/Arweave/Rest/queries.ts', async (importOriginal) => ({
 	...await importOriginal<typeof import('$/sources/Arweave/Rest/queries.ts')>(),
-	fetchBrowseResult,
+	fetchRawTransactionContent,
 	parseArweaveManifest,
 }))
 
 describe('Arweave manifest resolver', () => {
 	it('materializes declared paths as canonical native resource children', async () => {
-		fetchBrowseResult.mockResolvedValueOnce({
-			contentType: 'application/x.arweave-manifest+json; charset=utf-8',
+		fetchRawTransactionContent.mockResolvedValueOnce({
+			contentType: 'application/x.arweave-manifest+json',
 			text: '{}',
 		})
 		parseArweaveManifest.mockReturnValueOnce({
@@ -41,9 +41,8 @@ describe('Arweave manifest resolver', () => {
 		if (resolver == null)
 			throw new Error('Arweave manifest resolver missing')
 
-		const snapshot = await resolver.resolve.TransactionIdContentPath.resolve({
+		const snapshot = await resolver.resolve.TransactionId.resolve({
 			transactionId: 'A'.repeat(43),
-			contentPath: '',
 		}, {
 			filters: [],
 			sorts: [],
@@ -54,24 +53,24 @@ describe('Arweave manifest resolver', () => {
 		})
 
 		expect(resolver.projections.manifestVersion(snapshot)).toBe('0.2.0')
-		expect(resolver.projections.manifestIndexPath(snapshot)).toBe('index.html')
-		expect(resolver.projections.manifestFallbackTransactionId(snapshot)).toBe('B'.repeat(43))
+		expect(resolver.projections.manifestDeclaredIndexPath(snapshot)).toBe('index.html')
+		expect(resolver.projections.$manifestIndexResource(snapshot)).toEqual({
+			[EntityMetaKey.Selector]: { transactionId: 'C'.repeat(43) },
+		})
+		expect(resolver.projections.$manifestFallbackResource(snapshot)).toEqual({
+			[EntityMetaKey.Selector]: { transactionId: 'B'.repeat(43) },
+		})
 		expect(resolver.projections.$$manifestPaths.select(snapshot)).toEqual([
 			{
 				[EntityMetaKey.Selector]: {
 					$manifest: {
 						transactionId: 'A'.repeat(43),
-						contentPath: '',
 					},
 					path: 'index.html',
 				},
 				[EntityMetaKey.Fields]: {
-					[entityFieldAddressKey(EntityType.ArweaveManifestPath, [], 'targetTransactionId')]: 'C'.repeat(43),
 					[entityFieldAddressKey(EntityType.ArweaveManifestPath, [], '$resource')]: {
-						[EntityMetaKey.Selector]: {
-							transactionId: 'C'.repeat(43),
-							contentPath: '',
-						},
+						[EntityMetaKey.Selector]: { transactionId: 'C'.repeat(43) },
 					},
 				},
 			},
@@ -79,17 +78,12 @@ describe('Arweave manifest resolver', () => {
 				[EntityMetaKey.Selector]: {
 					$manifest: {
 						transactionId: 'A'.repeat(43),
-						contentPath: '',
 					},
 					path: 'assets/app.js',
 				},
 				[EntityMetaKey.Fields]: {
-					[entityFieldAddressKey(EntityType.ArweaveManifestPath, [], 'targetTransactionId')]: 'D'.repeat(43),
 					[entityFieldAddressKey(EntityType.ArweaveManifestPath, [], '$resource')]: {
-						[EntityMetaKey.Selector]: {
-							transactionId: 'D'.repeat(43),
-							contentPath: '',
-						},
+						[EntityMetaKey.Selector]: { transactionId: 'D'.repeat(43) },
 					},
 				},
 			},

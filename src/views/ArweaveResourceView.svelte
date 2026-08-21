@@ -27,6 +27,7 @@
 	const arweaveResource = $derived(selection({
 		fields: {
 			canonicalUri: true,
+			contentPath: true,
 		},
 	}))
 	const titleFallback = $derived((prefetched.canonicalUri ?? '') || selection.entitySelector.transactionId || 'arweave resource')
@@ -37,6 +38,7 @@
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import ArweaveManifestPathsView from '$/views/ArweaveManifestPathsView.svelte'
 	import ArweaveResource_TimestampsView from '$/views/ArweaveResource_TimestampsView.svelte'
+	import ArweaveResourceView from '$/views/ArweaveResourceView.svelte'
 	import ArweaveTransactionView from '$/views/ArweaveTransactionView.svelte'
 </script>
 
@@ -47,12 +49,22 @@
 	title={title ?? titleFallback}
 	href={
 		href === undefined ?
-			resolve(
-				'/(arweave)/arweave/resource/[transactionId=stringSegment]/[contentPath=stringSegment]',
-				{
-					transactionId: selection.entitySelector.transactionId,
-					contentPath: selection.entitySelector.contentPath,
-				}
+			(
+				'contentPath' in selection.entitySelector ?
+					resolve(
+						'/(arweave)/arweave/resource/[transactionId=stringSegment]/(arweaveResource)/path/[...contentPath=stringSegment]',
+						{
+							transactionId: selection.entitySelector.transactionId,
+							contentPath: selection.entitySelector.contentPath,
+						}
+					)
+				:
+					resolve(
+						'/(arweave)/arweave/resource/[transactionId=stringSegment]',
+						{
+							transactionId: selection.entitySelector.transactionId,
+						}
+					)
 			)
 		:
 			href ?? undefined
@@ -70,7 +82,11 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{selection.entitySelector.contentPath || (prefetched.canonicalUri ?? '') || titleFallback}
+		<ResourceBoundary resource={arweaveResource}>
+			{#snippet children(entity)}
+				{entity.contentPath || entity.canonicalUri || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content()}
@@ -85,7 +101,13 @@
 			<div>
 				<dt>content path</dt>
 				<dd>
-					{selection.entitySelector.contentPath}
+					<ResourceBoundary
+						resource={arweaveResource}
+					>
+						{#snippet children(entity)}
+							{entity.contentPath}
+						{/snippet}
+					</ResourceBoundary>
 				</dd>
 			</div>
 
@@ -134,18 +156,18 @@
 				resource={
 					selection({
 						fields: {
-							manifestIndexPath: true,
+							manifestDeclaredIndexPath: true,
 						},
 					})
 				}
 			>
 				{#snippet children(entity)}
-					{@const manifestIndexPath = entity.manifestIndexPath}
-					{#if manifestIndexPath != null}
+					{@const manifestDeclaredIndexPath = entity.manifestDeclaredIndexPath}
+					{#if manifestDeclaredIndexPath != null}
 						<div>
-							<dt>manifest index path</dt>
+							<dt>manifest declared index path</dt>
 							<dd>
-								{manifestIndexPath}
+								{manifestDeclaredIndexPath}
 							</dd>
 						</div>
 					{/if}
@@ -153,21 +175,39 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							manifestFallbackTransactionId: true,
-						},
-					})
-				}
+				resource={selection.$manifestIndexResource}
 			>
-				{#snippet children(entity)}
-					{@const manifestFallbackTransactionId = entity.manifestFallbackTransactionId}
-					{#if manifestFallbackTransactionId != null}
+				{#snippet children(arweaveResource)}
+					{#if arweaveResource != null}
+						{@const arweaveResourceInitial = untrack(() => arweaveResource)}
 						<div>
-							<dt>manifest fallback transaction ID</dt>
+							<dt>manifest index resource</dt>
 							<dd>
-								<TruncatedValue value={manifestFallbackTransactionId} />
+								<ArweaveResourceView
+									selection={select(EntityType.ArweaveResource, (arweaveResource ?? arweaveResourceInitial)[EntityMetaKey.Selector])}
+									prefetched={arweaveResource ?? arweaveResourceInitial}
+									layout={EntityLayout.Value}
+								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={selection.$manifestFallbackResource}
+			>
+				{#snippet children(arweaveResource)}
+					{#if arweaveResource != null}
+						{@const arweaveResourceInitial = untrack(() => arweaveResource)}
+						<div>
+							<dt>manifest fallback resource</dt>
+							<dd>
+								<ArweaveResourceView
+									selection={select(EntityType.ArweaveResource, (arweaveResource ?? arweaveResourceInitial)[EntityMetaKey.Selector])}
+									prefetched={arweaveResource ?? arweaveResourceInitial}
+									layout={EntityLayout.Value}
+								/>
 							</dd>
 						</div>
 					{/if}

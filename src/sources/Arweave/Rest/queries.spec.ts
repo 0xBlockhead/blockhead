@@ -4,6 +4,7 @@ import bindings from '$/sources/Arweave/bindings.ts'
 import {
 	decodeArweaveTagField,
 	fetchBrowseResult,
+	fetchRawTransactionContent,
 	getGatewayUrl,
 	getBlockByHash,
 	getBlockByHeight,
@@ -40,6 +41,32 @@ describe('Arweave public gateway metadata', () => {
 	afterEach(() => {
 		vi.unstubAllGlobals()
 		vi.mocked(sourceFetch).mockReset()
+	})
+
+	it('fetches bounded raw transaction bytes separately from resolved browse content', async () => {
+		vi.mocked(sourceFetch).mockResolvedValueOnce(new Response('{"manifest":"arweave/paths"}', {
+			status: 200,
+			headers: { 'content-type': 'application/x.arweave-manifest+json' },
+		}))
+
+		await expect(fetchRawTransactionContent({ transactionId })).resolves.toEqual({
+			contentType: 'application/x.arweave-manifest+json',
+			text: '{"manifest":"arweave/paths"}',
+		})
+		expect(sourceFetch).toHaveBeenCalledWith(
+			expect.anything(),
+			expect.stringContaining(`/raw/${transactionId}`),
+			expect.anything()
+		)
+
+		vi.mocked(sourceFetch).mockResolvedValueOnce(new Response('too large', {
+			status: 200,
+			headers: { 'content-length': '9' },
+		}))
+		await expect(fetchRawTransactionContent({
+			transactionId,
+			maxContentBytes: 8,
+		})).rejects.toThrow('exceeds 8 byte inspection limit')
 	})
 
 	it('maps GET /info and GET /block/height with X-Block-Format 2', async () => {

@@ -30,7 +30,12 @@
 			...{
 				fields: {
 					path: true,
-					targetTransactionId: true,
+					$resource: {
+						fields: {
+							canonicalUri: true,
+							contentPath: true,
+						},
+					},
 				},
 			},
 		})
@@ -38,16 +43,14 @@
 >
 	{#snippet Item({ item: arweaveManifestPath })}
 		{@const arweaveManifestPathSelector = arweaveManifestPath[EntityMetaKey.Selector]}
-		{@const manifest = arweaveManifestPathSelector.$manifest}
 		<EntityView
 			entityType={EntityType.ArweaveManifestPath}
 			entitySelector={arweaveManifestPathSelector}
 			href={
 				resolve(
-					'/(arweave)/arweave/manifest-path/[transactionId=stringSegment]/[contentPath=stringSegment]/[path=stringSegment]',
+					'/(arweave)/arweave/resource/[transactionId=stringSegment]/(arweaveResource)/manifest-path/[...path=stringSegment]',
 					{
-						transactionId: manifest.transactionId,
-						contentPath: manifest.contentPath,
+						transactionId: arweaveManifestPathSelector.$manifest.transactionId,
 						path: arweaveManifestPathSelector.path,
 					}
 				)
@@ -58,7 +61,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{arweaveManifestPath.targetTransactionId}
+				{arweaveManifestPath.$resource.canonicalUri || arweaveManifestPath.$resource.transactionId || 'arweave resource'}
 			{/snippet}
 		</EntityView>
 	{/snippet}

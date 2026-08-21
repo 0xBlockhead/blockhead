@@ -833,32 +833,42 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
-	'/(arweave)/arweave/manifest-path/[transactionId]/[contentPath]/[path]': {
-		routeId: '/(arweave)/arweave/manifest-path/[transactionId=stringSegment]/[contentPath=stringSegment]/[path=stringSegment]',
+	'/(arweave)/arweave/resource/[transactionId]': {
+		routeId: '/(arweave)/arweave/resource/[transactionId=stringSegment]',
 		mappings: [
 			{
-				id: 'ArweaveManifestPath.ManifestPath',
-				probeAtomPrefixes: ['/arweave/manifest-path/[transactionId]/[contentPath]/[path]:ArweaveManifestPath.ManifestPath'],
-				probeCases: [[[0, '1', ['path', 'transactionId', 'contentPath']]]],
+				id: 'ArweaveResource.TransactionId',
+				probeAtomPrefixes: ['/arweave/resource/[transactionId]:ArweaveResource.TransactionId'],
+				probeCases: [[[0, '1', ['transactionId']]]],
 			},
 		],
 	},
-	'/(arweave)/arweave/resource/[transactionId]/[contentPath]': {
-		routeId: '/(arweave)/arweave/resource/[transactionId=stringSegment]/[contentPath=stringSegment]',
+	'/(arweave)/arweave/resource/[transactionId]/manifest-path/[...path]': {
+		routeId: '/(arweave)/arweave/resource/[transactionId=stringSegment]/(arweaveResource)/manifest-path/[...path=stringSegment]',
+		mappings: [
+			{
+				id: 'ArweaveManifestPath.ManifestPath',
+				probeAtomPrefixes: ['/arweave/resource/[transactionId]/manifest-path/[...path]:ArweaveManifestPath.ManifestPath'],
+				probeCases: [[[0, '1', ['path', 'transactionId']]]],
+			},
+		],
+	},
+	'/(arweave)/arweave/resource/[transactionId]/path/[...contentPath]': {
+		routeId: '/(arweave)/arweave/resource/[transactionId=stringSegment]/(arweaveResource)/path/[...contentPath=stringSegment]',
 		mappings: [
 			{
 				id: 'ArweaveResource.TransactionIdContentPath',
-				probeAtomPrefixes: ['/arweave/resource/[transactionId]/[contentPath]:ArweaveResource.TransactionIdContentPath'],
+				probeAtomPrefixes: ['/arweave/resource/[transactionId]/path/[...contentPath]:ArweaveResource.TransactionIdContentPath'],
 				probeCases: [[[0, '1', ['transactionId', 'contentPath']]]],
 			},
 		],
 	},
-	'/(arweave)/arweave/resource/[transactionId]/[contentPath]/observations/[timestampMs]/[source]': {
-		routeId: '/(arweave)/arweave/resource/[transactionId=stringSegment]/[contentPath=stringSegment]/(arweaveResource)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+	'/(arweave)/arweave/resource/[transactionId]/path/[...contentPath]/observations/[timestampMs]/[source]': {
+		routeId: '/(arweave)/arweave/resource/[transactionId=stringSegment]/(arweaveResource)/path/[...contentPath=stringSegment]/(arweaveResource)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 		mappings: [
 			{
 				id: 'ArweaveResource_Timestamp.ResourceTimestampMsSource',
-				probeAtomPrefixes: ['/arweave/resource/[transactionId]/[contentPath]/observations/[timestampMs]/[source]:ArweaveResource_Timestamp.ResourceTimestampMsSource'],
+				probeAtomPrefixes: ['/arweave/resource/[transactionId]/path/[...contentPath]/observations/[timestampMs]/[source]:ArweaveResource_Timestamp.ResourceTimestampMsSource'],
 				probeCases: [[[0, '1', ['timestampMs', 'source', 'transactionId', 'contentPath']]]],
 			},
 		],

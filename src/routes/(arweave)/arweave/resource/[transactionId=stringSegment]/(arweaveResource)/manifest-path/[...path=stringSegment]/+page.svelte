@@ -18,7 +18,6 @@
 	const pageSelection = $derived(select(EntityType.ArweaveManifestPath, {
 		$manifest: {
 			transactionId: params.transactionId,
-			contentPath: params.contentPath,
 		},
 		path: params.path,
 	}))

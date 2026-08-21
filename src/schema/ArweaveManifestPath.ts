@@ -21,13 +21,6 @@ export default entity({
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
-	targetTransactionId: {
-		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.One,
-		defaultSources: [
-			Source.Arweave_Rest,
-		],
-	},
 	$resource: {
 		entityType: EntityType.ArweaveResource,
 		cardinality: EntityFieldCardinality.One,

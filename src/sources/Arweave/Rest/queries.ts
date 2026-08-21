@@ -46,11 +46,19 @@ export const parseArweaveManifest = (text: string): ArweaveManifest => {
 		throw new Error('Arweave_Rest: invalid manifest JSON')
 	}
 	const manifest = assertEnvelope('manifest', arweaveManifestWire, parsed)
-	if (manifest.index != null)
-		assertGatewayContentPath({
-			family: ContentGatewayFamily.Arweave,
-			contentPath: manifest.index.path,
-		})
+	if (manifest.index != null) {
+		if (manifest.index.path == null && manifest.index.id == null)
+			throw new Error('Arweave_Rest: invalid manifest index')
+		if (manifest.index.path != null)
+			assertGatewayContentPath({
+				family: ContentGatewayFamily.Arweave,
+				contentPath: manifest.index.path,
+			})
+		if (manifest.index.id != null)
+			assertBase64UrlId(manifest.index.id, 'manifest index transaction ID')
+		if (manifest.version === '0.1.0' && manifest.index.id != null)
+			throw new Error('Arweave_Rest: invalid manifest index for version 0.1.0')
+	}
 	if (manifest.fallback != null)
 		assertBase64UrlId(manifest.fallback.id, 'manifest fallback transaction ID')
 	for (const [path, resource] of Object.entries(manifest.paths)) {
@@ -453,6 +461,85 @@ export const getGatewayUrl = ({
 		contentPath,
 	})
 	return `${gatewayOrigin}/${trimmedTransactionId}${trimmedPath ? `/${trimmedPath.split('/').map(encodeURIComponent).join('/')}` : ''}`
+}
+
+const readBoundedText = async (
+	response: Response,
+	maxBytes: number
+) => {
+	const declaredLength = response.headers.get('content-length')
+	if (
+		declaredLength != null
+		&& /^(0|[1-9][0-9]*)$/.test(declaredLength)
+		&& BigInt(declaredLength) > BigInt(maxBytes)
+	)
+		throw new Error(`Arweave_Rest: raw transaction exceeds ${maxBytes} byte inspection limit`)
+	if (response.body == null)
+		throw new Error('Arweave_Rest: raw transaction response has no body')
+
+	const reader = response.body.getReader()
+	const chunks: Uint8Array[] = []
+	let receivedBytes = 0
+	for (;;) {
+		const chunk = await reader.read()
+		if (chunk.done)
+			break
+		receivedBytes += chunk.value.byteLength
+		if (receivedBytes > maxBytes) {
+			await reader.cancel()
+			throw new Error(`Arweave_Rest: raw transaction exceeds ${maxBytes} byte inspection limit`)
+		}
+		chunks.push(chunk.value)
+	}
+	const bytes = new Uint8Array(receivedBytes)
+	let offset = 0
+	for (const chunk of chunks) {
+		bytes.set(chunk, offset)
+		offset += chunk.byteLength
+	}
+	return new TextDecoder().decode(bytes)
+}
+
+/** Reads signed transaction bytes without applying path-manifest resolution. */
+export const fetchRawTransactionContent = async ({
+	transactionId,
+	maxContentBytes = 1_048_576,
+	signal,
+}: {
+	transactionId: string
+	maxContentBytes?: number
+	signal?: AbortSignal
+}) => {
+	const trimmedTransactionId = trimSlashes(transactionId.trim())
+	assertBase64UrlId(trimmedTransactionId, 'transaction ID')
+	if (!Number.isSafeInteger(maxContentBytes) || maxContentBytes < 0 || maxContentBytes > 5_242_880)
+		throw new Error('Arweave_Rest: raw inspection limit must be from 0 through 5242880 bytes')
+	const failures: string[] = []
+
+	for (const { endpoint } of arweaveGatewayEndpoints(binding)) {
+		const response = await sourceFetch(
+			binding,
+			`${endpoint.locator}/raw/${encodeURIComponent(trimmedTransactionId)}`,
+			{ signal }
+		)
+		if (response.ok)
+			return {
+				contentType: response.headers.get('content-type')?.split(';', 1)[0].trim().toLowerCase(),
+				text: await readBoundedText(response, maxContentBytes),
+			}
+
+		const hint = await jsonErrorHintFromResponse(response)
+		failures.push(
+			hint ?
+				`${endpoint.locator} (${response.status}): ${hint}`
+			:
+				`${endpoint.locator} (${response.status} ${response.statusText})`
+		)
+	}
+
+	throw new Error(
+		`Unable to load raw Arweave transaction ${trimmedTransactionId} from public gateways: ${failures.join('; ')}`
+	)
 }
 
 export const fetchBrowseResult = async ({

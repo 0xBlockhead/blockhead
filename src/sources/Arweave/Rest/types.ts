@@ -4,7 +4,8 @@ export type ArweaveManifest = {
 	manifest: 'arweave/paths'
 	version: '0.1.0' | '0.2.0'
 	index?: {
-		path: string
+		path?: string
+		id?: string
 	}
 	fallback?: {
 		id: string
@@ -18,7 +19,8 @@ export const arweaveManifestWire = arktype({
 	manifest: "'arweave/paths'",
 	version: "'0.1.0' | '0.2.0'",
 	'index?': {
-		path: 'string',
+		'path?': 'string',
+		'id?': 'string',
 	},
 	'fallback?': {
 		id: 'string',

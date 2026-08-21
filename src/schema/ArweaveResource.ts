@@ -32,15 +32,22 @@ export default entity({
 			Source.Arweave_Rest,
 		],
 	},
-	manifestIndexPath: {
+	manifestDeclaredIndexPath: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.Arweave_Rest,
 		],
 	},
-	manifestFallbackTransactionId: {
-		primitiveType: type('string'),
+	$manifestIndexResource: {
+		entityType: EntityType.ArweaveResource,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Arweave_Rest,
+		],
+	},
+	$manifestFallbackResource: {
+		entityType: EntityType.ArweaveResource,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.Arweave_Rest,
@@ -63,6 +70,9 @@ export default entity({
 	},
 })({
 	selectors: {
+		TransactionId: [
+			'transactionId',
+		],
 		TransactionIdContentPath: [
 			'transactionId',
 			'contentPath',

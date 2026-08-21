@@ -492,6 +492,34 @@ export default {
 		defineResolver({
 			entityType: EntityType.ArweaveResource,
 			resolve: {
+				TransactionId: {
+					resolve: async ({ transactionId }) => {
+						if (!/^[A-Za-z0-9_-]{43}$/.test(transactionId))
+							throw new Error('Arweave_Rest: invalid transaction ID')
+						const { fetchBrowseResult } = await import('$/sources/Arweave/Rest/queries.ts')
+						const browseResult = await fetchBrowseResult({ transactionId })
+						const timestampMs = Date.now()
+						return {
+							transactionId,
+							contentPath: '',
+							canonicalUri: arweaveCanonicalUri(transactionId, ''),
+							$transaction: {
+								[EntityMetaKey.Selector]: {
+									$network: { $network: arweaveSlugNetwork },
+									transactionId,
+								},
+							},
+							timestamps: [{
+								[EntityMetaKey.Selector]: {
+									$resource: { transactionId },
+									timestampMs,
+									source: Source.Arweave_Rest,
+								},
+								[EntityMetaKey.Fields]: arweaveResourceTimestampFieldRowsFromBrowseResult(browseResult),
+							}],
+						}
+					},
+				},
 				TransactionIdContentPath: {
 					resolve: async ({
 						transactionId,
@@ -503,23 +531,11 @@ export default {
 							family: ContentGatewayFamily.Arweave,
 							contentPath,
 						})
-						const {
-							fetchBrowseResult,
-							parseArweaveManifest,
-						} = await import('$/sources/Arweave/Rest/queries.ts')
+						const { fetchBrowseResult } = await import('$/sources/Arweave/Rest/queries.ts')
 						const browseResult = await fetchBrowseResult({
 							transactionId,
 							contentPath: normalizedContentPath,
 						})
-						const manifest = (
-							browseResult.contentType?.split(';', 1)[0].trim().toLowerCase()
-								=== 'application/x.arweave-manifest+json'
-							&& browseResult.text != null ?
-								parseArweaveManifest(browseResult.text)
-							:
-								undefined
-						)
-
 						const timestampMs = Date.now()
 						return {
 							transactionId,
@@ -533,34 +549,6 @@ export default {
 									transactionId,
 								},
 							},
-							...(manifest != null && {
-								version: manifest.version,
-								...(manifest.index != null && {
-									indexPath: manifest.index.path,
-								}),
-								...(manifest.fallback != null && {
-									fallbackTransactionId: manifest.fallback.id,
-								}),
-								paths: Object.entries(manifest.paths).map(([manifestPath, target]) => ({
-									[EntityMetaKey.Selector]: {
-										$manifest: {
-											transactionId,
-											contentPath: normalizedContentPath,
-										},
-										path: manifestPath,
-									},
-									[EntityMetaKey.Fields]: {
-										[entityFieldAddressKey(EntityType.ArweaveManifestPath, [], 'targetTransactionId')]: target.id,
-										[entityFieldAddressKey(EntityType.ArweaveManifestPath, [], '$resource')]: {
-											[EntityMetaKey.Selector]: {
-												transactionId: target.id,
-												contentPath: '',
-											},
-										},
-									},
-								})),
-							}),
-							...(!manifest && { paths: [] }),
 							timestamps: [{
 								[EntityMetaKey.Selector]: {
 									$resource: {
@@ -580,15 +568,66 @@ export default {
 			transactionId: (resource) => resource.transactionId,
 			contentPath: (resource) => resource.contentPath,
 			canonicalUri: (resource) => resource.canonicalUri,
-			manifestVersion: (resource) => resource.version,
-			manifestIndexPath: (resource) => resource.indexPath,
-			manifestFallbackTransactionId: (resource) => resource.fallbackTransactionId,
 			$transaction: (resource) => resource.$transaction,
+			$$timestamps: (resource) => resource.timestamps,
+		}),
+
+		defineResolver({
+			entityType: EntityType.ArweaveResource,
+			resolve: {
+				TransactionId: {
+					resolve: async ({ transactionId }) => {
+						const {
+							fetchRawTransactionContent,
+							parseArweaveManifest,
+						} = await import('$/sources/Arweave/Rest/queries.ts')
+						const raw = await fetchRawTransactionContent({ transactionId })
+						if (raw.contentType !== 'application/x.arweave-manifest+json')
+							return { paths: [] }
+						const manifest = parseArweaveManifest(raw.text)
+						return {
+							version: manifest.version,
+							...(manifest.index?.path != null && {
+								declaredIndexPath: manifest.index.path,
+							}),
+							...(manifest.index?.id != null ? {
+								indexResource: {
+									[EntityMetaKey.Selector]: { transactionId: manifest.index.id },
+								},
+							} : manifest.index?.path != null && Object.hasOwn(manifest.paths, manifest.index.path) ? {
+								indexResource: {
+									[EntityMetaKey.Selector]: { transactionId: manifest.paths[manifest.index.path].id },
+								},
+							} : {}),
+							...(manifest.fallback != null && {
+								fallbackResource: {
+									[EntityMetaKey.Selector]: { transactionId: manifest.fallback.id },
+								},
+							}),
+							paths: Object.entries(manifest.paths).map(([path, target]) => ({
+								[EntityMetaKey.Selector]: {
+									$manifest: { transactionId },
+									path,
+								},
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.ArweaveManifestPath, [], '$resource')]: {
+										[EntityMetaKey.Selector]: { transactionId: target.id },
+									},
+								},
+							})),
+						}
+					},
+				},
+			},
+		})({
+			manifestVersion: (resource) => resource.version,
+			manifestDeclaredIndexPath: (resource) => resource.declaredIndexPath,
+			$manifestIndexResource: (resource) => resource.indexResource,
+			$manifestFallbackResource: (resource) => resource.fallbackResource,
 			$$manifestPaths: {
 				select: (resource) => resource.paths,
 				resolveCount: (resource) => resource.paths.length,
 			},
-			$$timestamps: (resource) => resource.timestamps,
 		}),
 
 		defineResolver({
@@ -597,31 +636,24 @@ export default {
 				ManifestPath: {
 					resolve: async ({ $manifest, path }) => {
 						const {
-							fetchBrowseResult,
+							fetchRawTransactionContent,
 							parseArweaveManifest,
 						} = await import('$/sources/Arweave/Rest/queries.ts')
-						const browseResult = await fetchBrowseResult({
+						const raw = await fetchRawTransactionContent({
 							transactionId: $manifest.transactionId,
-							contentPath: $manifest.contentPath,
 						})
-						if (
-							browseResult.contentType?.split(';', 1)[0].trim().toLowerCase()
-								!== 'application/x.arweave-manifest+json'
-							|| browseResult.text == null
-						)
+						if (raw.contentType !== 'application/x.arweave-manifest+json')
 							throw new Error('Arweave_Rest: resource is not a path manifest')
 
-						const target = Object.entries(parseArweaveManifest(browseResult.text).paths)
+						const target = Object.entries(parseArweaveManifest(raw.text).paths)
 							.find(([manifestPath]) => manifestPath === path)?.[1]
 						if (target == null)
 							throw new Error(`Arweave_Rest: manifest path not found ${path}`)
 
 						return {
-							targetTransactionId: target.id,
 							$resource: {
 								[EntityMetaKey.Selector]: {
 									transactionId: target.id,
-									contentPath: '',
 								},
 							},
 						}
@@ -629,7 +661,6 @@ export default {
 				},
 			},
 		})({
-			targetTransactionId: (manifestPath) => manifestPath.targetTransactionId,
 			$resource: (manifestPath) => manifestPath.$resource,
 		}),
 	],

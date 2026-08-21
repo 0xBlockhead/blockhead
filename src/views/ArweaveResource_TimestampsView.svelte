@@ -45,15 +45,18 @@
 			entityType={EntityType.ArweaveResource_Timestamp}
 			entitySelector={arweaveResourceTimestampSelector}
 			href={
-				resolve(
-					'/(arweave)/arweave/resource/[transactionId=stringSegment]/[contentPath=stringSegment]/(arweaveResource)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-					{
-						transactionId: resource.transactionId,
-						contentPath: resource.contentPath,
-						timestampMs: String(arweaveResourceTimestampSelector.timestampMs),
-						source: arweaveResourceTimestampSelector.source,
-					}
-				)
+				'contentPath' in resource ?
+					resolve(
+						'/(arweave)/arweave/resource/[transactionId=stringSegment]/(arweaveResource)/path/[...contentPath=stringSegment]/(arweaveResource)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+						{
+							transactionId: resource.transactionId,
+							contentPath: resource.contentPath,
+							timestampMs: String(arweaveResourceTimestampSelector.timestampMs),
+							source: arweaveResourceTimestampSelector.source,
+						}
+					)
+				:
+					undefined
 			}
 		>
 			{#snippet Title()}

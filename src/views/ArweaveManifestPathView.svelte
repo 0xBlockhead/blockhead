@@ -23,17 +23,9 @@
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.ArweaveManifestPath>, 'prefetched'> = $props()
 
-	const manifest = $derived(selection.entitySelector.$manifest)
-	const arweaveManifestPath = $derived(selection({
-		fields: {
-			targetTransactionId: true,
-		},
-	}))
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import ArweaveResourceView from '$/views/ArweaveResourceView.svelte'
 </script>
 
@@ -45,10 +37,9 @@
 	href={
 		href === undefined ?
 			resolve(
-				'/(arweave)/arweave/manifest-path/[transactionId=stringSegment]/[contentPath=stringSegment]/[path=stringSegment]',
+				'/(arweave)/arweave/resource/[transactionId=stringSegment]/(arweaveResource)/manifest-path/[...path=stringSegment]',
 				{
-					transactionId: manifest.transactionId,
-					contentPath: manifest.contentPath,
+					transactionId: selection.entitySelector.$manifest.transactionId,
 					path: selection.entitySelector.path,
 				}
 			)
@@ -60,9 +51,17 @@
 	{...EntityViewProps}
 >
 	{#snippet Value()}
-		<ResourceBoundary resource={arweaveManifestPath}>
-			{#snippet children(entity)}
-				<TruncatedValue value={entity.targetTransactionId} />
+		<ResourceBoundary
+			resource={selection.$resource}
+		>
+			{#snippet children(arweaveResource)}
+				{@const arweaveResourceInitial = untrack(() => arweaveResource)}
+				<ArweaveResourceView
+					selection={select(EntityType.ArweaveResource, (arweaveResource ?? arweaveResourceInitial)[EntityMetaKey.Selector])}
+					prefetched={arweaveResource ?? arweaveResourceInitial}
+					href={null}
+					layout={EntityLayout.Value}
+				/>
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -83,19 +82,6 @@
 				<dt>path</dt>
 				<dd>
 					{selection.entitySelector.path}
-				</dd>
-			</div>
-
-			<div>
-				<dt>target transaction ID</dt>
-				<dd>
-					<ResourceBoundary
-						resource={arweaveManifestPath}
-					>
-						{#snippet children(entity)}
-							<TruncatedValue value={entity.targetTransactionId} />
-						{/snippet}
-					</ResourceBoundary>
 				</dd>
 			</div>
 

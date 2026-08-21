@@ -20,10 +20,9 @@
 
 	const detailHref = $derived(
 		resolve(
-			'/(arweave)/arweave/resource/[transactionId=stringSegment]/[contentPath=stringSegment]',
+			'/(arweave)/arweave/resource/[transactionId=stringSegment]',
 			{
 				transactionId: params.transactionId,
-				contentPath: params.contentPath,
 			}
 		)
 	)

@@ -43,13 +43,21 @@
 			entityType={EntityType.ArweaveResource}
 			entitySelector={arweaveResourceSelector}
 			href={
-				resolve(
-					'/(arweave)/arweave/resource/[transactionId=stringSegment]/[contentPath=stringSegment]',
-					{
-						transactionId: arweaveResourceSelector.transactionId,
-						contentPath: arweaveResourceSelector.contentPath,
-					}
-				)
+				'contentPath' in arweaveResourceSelector ?
+					resolve(
+						'/(arweave)/arweave/resource/[transactionId=stringSegment]/(arweaveResource)/path/[...contentPath=stringSegment]',
+						{
+							transactionId: arweaveResourceSelector.transactionId,
+							contentPath: arweaveResourceSelector.contentPath,
+						}
+					)
+				:
+					resolve(
+						'/(arweave)/arweave/resource/[transactionId=stringSegment]',
+						{
+							transactionId: arweaveResourceSelector.transactionId,
+						}
+					)
 			}
 		>
 			{#snippet Title()}
@@ -57,7 +65,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{arweaveResourceSelector.contentPath}
+				{arweaveResource.contentPath}
 			{/snippet}
 		</EntityView>
 	{/snippet}

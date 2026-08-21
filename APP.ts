@@ -830,10 +830,13 @@ export enum EntityType {
 	AssetSupply_Timestamp = "AssetSupply_Timestamp",
 	AtprotoActor = "AtprotoActor",
 	AtprotoActor_Timestamp = "AtprotoActor_Timestamp",
+	AtprotoFeedGenerator = "AtprotoFeedGenerator",
+	AtprotoGraphList = "AtprotoGraphList",
 	AtprotoNetwork = "AtprotoNetwork",
 	AtprotoPost = "AtprotoPost",
 	AtprotoPost_Timestamp = "AtprotoPost_Timestamp",
 	AtprotoRepoCommit = "AtprotoRepoCommit",
+	AtprotoStarterPack = "AtprotoStarterPack",
 	AvailAppId = "AvailAppId",
 	AvailAppId_Timestamp = "AvailAppId_Timestamp",
 	AvailBlock = "AvailBlock",
@@ -8267,7 +8270,6 @@ export const schema = {
 			})({
 				"$manifest": { label: "manifest", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.ArweaveResource },
 				"path": { label: "path", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"targetTransactionId": { label: "target transaction ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string", defaultSources: [Source.Arweave_Rest] },
 				"$resource": { label: "target resource", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.ArweaveResource, defaultSources: [Source.Arweave_Rest] },
 			})({
 				selectors: {
@@ -8275,8 +8277,8 @@ export const schema = {
 				},
 				views: {
 					singular: {
-						summary: { title: ["path"], value: [{ field: "targetTransactionId", format: "truncated" }] },
-						content: { dl: [["$manifest", "path", { field: "targetTransactionId", format: "truncated" }, "$resource"]] },
+						summary: { title: ["path"], value: ["$resource"] },
+						content: { dl: [["$manifest", "path", "$resource"]] },
 					},
 					plural: { component: "ArweaveManifestPathsView", title: "Arweave manifest paths" },
 				},
@@ -8375,13 +8377,15 @@ export const schema = {
 				"contentPath": { label: "content path", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"canonicalUri": { label: "canonical URI", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"manifestVersion": { label: "manifest version", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Arweave_Rest] },
-				"manifestIndexPath": { label: "manifest index path", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Arweave_Rest] },
-				"manifestFallbackTransactionId": { label: "manifest fallback transaction ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Arweave_Rest] },
+				"manifestDeclaredIndexPath": { label: "manifest declared index path", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Arweave_Rest] },
+				"$manifestIndexResource": { label: "manifest index resource", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.ArweaveResource, defaultSources: [Source.Arweave_Rest] },
+				"$manifestFallbackResource": { label: "manifest fallback resource", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.ArweaveResource, defaultSources: [Source.Arweave_Rest] },
 				"$transaction": { label: "transaction", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.ArweaveTransaction },
 				"$$manifestPaths": { label: "manifest paths", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.ArweaveManifestPath, defaultSources: [Source.Arweave_Rest] },
 				"$$timestamps": { label: "timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.ArweaveResource_Timestamp },
 			})({
 				selectors: {
+					"TransactionId": ["transactionId"],
 					"TransactionIdContentPath": ["transactionId", "contentPath"],
 				},
 				views: {
@@ -8393,7 +8397,7 @@ export const schema = {
 						},
 						content: {
 							dl: [
-								[{ field: "transactionId", format: "truncated" }, "contentPath", "canonicalUri", "manifestVersion", "manifestIndexPath", { field: "manifestFallbackTransactionId", format: "truncated" }, "$transaction"],
+								[{ field: "transactionId", format: "truncated" }, "contentPath", "canonicalUri", "manifestVersion", "manifestDeclaredIndexPath", "$manifestIndexResource", "$manifestFallbackResource", "$transaction"],
 							],
 						},
 						lists: [
@@ -98223,15 +98227,21 @@ export const routes = defineRoutes(schema)({
 			children: {
 				"arweave": {
 					children: {
-						"manifest-path": {
+						"resource": {
 							children: {
 								"[transactionId]": {
-									params: { "transactionId": ["string"] },
+									selectors: {
+										[EntityType.ArweaveResource]: {
+											"TransactionId": {
+												params: { "transactionId": ["transactionId"] },
+												page: {},
+											}
+										}
+									},
 									children: {
-										"[contentPath]": {
-											params: { "contentPath": ["string"] },
+										"manifest-path": {
 											children: {
-												"[path]": {
+												"[...path]": {
 													selectors: {
 														[EntityType.ArweaveManifestPath]: {
 															"ManifestPath": {
@@ -98240,11 +98250,8 @@ export const routes = defineRoutes(schema)({
 																	"$manifest": {
 																		kind: "selector",
 																		entity: EntityType.ArweaveResource,
-																		selector: "TransactionIdContentPath",
-																		params: [
-																			{ field: "transactionId", param: "transactionId" },
-																			{ field: "contentPath", param: "contentPath" },
-																		],
+																		selector: "TransactionId",
+																		params: [{ field: "transactionId", param: "transactionId" }],
 																	},
 																},
 																page: {},
@@ -98253,26 +98260,20 @@ export const routes = defineRoutes(schema)({
 													}
 												}
 											}
-										}
-									}
-								}
-							}
-							},
-						"resource": {
-							children: {
-								"[transactionId]": {
-									children: {
-										"[contentPath]": {
-											selectors: {
-												[EntityType.ArweaveResource]: {
-													"TransactionIdContentPath": {
-														params: { "transactionId": ["transactionId"], "contentPath": ["contentPath"] },
-														page: {},
-													}
-												}
-											},
+										},
+										"path": {
 											children: {
-												"observations": {
+												"[...contentPath]": {
+													selectors: {
+														[EntityType.ArweaveResource]: {
+															"TransactionIdContentPath": {
+																params: { "transactionId": ["transactionId"], "contentPath": ["contentPath"] },
+																page: {},
+															}
+														}
+													},
+													children: {
+														"observations": {
 													children: {
 														"[timestampMs]": {
 															children: {
@@ -98287,6 +98288,8 @@ export const routes = defineRoutes(schema)({
 																	}
 																}
 															}
+														}
+													}
 														}
 													}
 												}
