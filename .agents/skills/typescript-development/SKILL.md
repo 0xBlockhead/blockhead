@@ -1,15 +1,13 @@
 ---
 name: typescript-development
-description: Apply repository-specific TypeScript expression, typing, naming, import, and lint-remediation conventions. Use when changing TypeScript logic or types in .ts, .svelte.ts, or Svelte script blocks.
+description: Apply repository TypeScript conventions and resolve type or lint failures.
 ---
 
 # TypeScript development
 
-Read the nearest `AGENTS.md`. Let `pnpm run lint` enforce mechanical formatting, but apply the repository's semantic TypeScript rules while editing.
+Let `pnpm run lint` enforce mechanical formatting; apply only the semantic rules below while editing.
 
 Read [expressions-and-types.md](references/expressions-and-types.md) when changing multiline expressions, generics, optionality, object construction, assertions, runtime boundaries, or lint suppressions.
-
-Read [typescript-reference.md](references/typescript-reference.md) when an exact formatting example, lint exception policy, constants rule, or library-helper boundary is relevant.
 
 Keep core data flow at the call site. Inline a single-use derivable value unless its name records a domain or transport concept. Use inferred types and package-provided types before writing annotations or duplicates.
 

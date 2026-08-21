@@ -17,11 +17,13 @@
 - Use `.` when the receiver is non-nullish, optional chaining only for a nullish-capable receiver, and `??` only when the type permits absence.
 - Prefer `??` to `||` for defaulting.
 - Prefer array spread to `.concat`.
+- Prefer `T[]` to `Array<T>`.
 - For an object-only conditional spread, use `...(condition && { ... })`. Arrays still need an iterable branch.
 - Declare functions with `const` unless overload signatures require a declaration.
 - Prefer `as const satisfies` for constants instead of a binding annotation.
 - Name generic parameters `_Type extends Type`.
 - Do not add re-exports or barrel modules.
+- Use `$/` for `src/` imports and include full `.ts`, `.svelte`, or `.svelte.ts` extensions.
 - Rewrite imports immediately when moving or renaming files.
 
 ## Runtime boundaries and lint

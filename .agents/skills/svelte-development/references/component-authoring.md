@@ -31,6 +31,7 @@ Order instance-script sections when present:
 - `Collapsible` and `ParentPageCollapsible` summary snippets receive `{ open }`.
 - Keep a snippet prop directly under its receiving component. If its body is conditional, put the condition inside the snippet.
 - For local snippets passed by reference from conditional markup, keep the snippet definitions in the same conditional scope.
+- List `Item` snippets receive loaded rows. Do not guard the row or branch on `isPlaceholder`; customize missing rows only through `ItemPlaceholder`, or `PlaceholderRange` for `OrderedList`.
 
 For a function binding, put getter and setter on separate lines, prefix the setter argument with `_`, and keep the setter body explicit.
 
@@ -41,6 +42,7 @@ For a function binding, put getter and setter on separate lines, prefix the sett
 - Import functions in the section where they are exclusively used.
 - Keep UI-only `.svelte.ts` state beside its route or context.
 - Put global polyfills, styles, and view-transition setup only in the root layout.
+- Use `{@const}` only as an immediate child of a snippet, control-flow block, fragment, boundary, or component.
 
 ## Markup and CSS
 

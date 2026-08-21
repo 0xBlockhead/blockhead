@@ -8,8 +8,6 @@
 - A provider hub may repeat its name as a group and URL segment because only the URL directory contributes a segment.
 - Do not repeat a list name as both a group and its immediate list URL directory.
 
-Canonical shapes:
-
 ```text
 routes/(area)/+layout.svelte
 routes/(area)/<domainList>/+page.svelte
@@ -21,13 +19,7 @@ routes/(area)/(<domainListGroup>)/<staticBeforeKey>/[<domainItemKey>]/+page.svel
 routes/(area)/(<domainListGroup>)/<staticBeforeKey>/[<domainItemKey>]/(<domainItem>)/+layout.svelte
 ```
 
-A detail may sit directly under `(area)` when there is no useful plural family group:
-
-```text
-routes/(area)/<domainItem>/[<domainItemKey>]/+page.svelte
-```
-
-A provider hub may repeat its name because the group does not contribute to the URL:
+A detail may sit directly under `(area)` when there is no useful plural family group. A provider hub may repeat its name because the group does not contribute to the URL:
 
 ```text
 routes/(area)/(<hub>)/<hub>/+layout.svelte
@@ -60,11 +52,8 @@ routes/.../(<childItem>)/<grandchildItem>/[<grandchildKey>]/+page.svelte
 routes/.../(<sliceGroup>)/<sliceNoun>/+page.svelte
 routes/.../(<sliceGroup>)/<sliceNoun>/[<sliceKey>]/+page.svelte
 
-routes/.../<compositeItem>/[<compositeKeyFirst>]/[<compositeKeySecond>]/[<compositeKeyThird>]/+page.svelte
-routes/.../<compositeItem>/[<compositeKeyFirst>]/[<compositeKeySecond>]/[<compositeKeyThird>]/[<compositeKeyFourth>]/+page.svelte
-
-routes/.../(<domainListGroup>)/<compositeItem>/[<compositeKeyFirst>]/[<compositeKeySecond>]/+page.svelte
-routes/.../(<domainListGroup>)/<compositeItem>/[<compositeKeyFirst>]/[<compositeKeySecond>]/[<compositeKeyThird>]/[<compositeKeyFourth>]/+page.svelte
+routes/.../<compositeItem>/[<keyFirst>]/[<keySecond>]/.../+page.svelte
+routes/.../(<domainListGroup>)/<compositeItem>/[<keyFirst>]/[<keySecond>]/.../+page.svelte
 ```
 
 ## Facets
@@ -79,11 +68,4 @@ routes/.../(<facetBranch>)/<facetInnerList>/+page.svelte
 routes/.../(<facetBranch>)/<facetInnerItem>/[<facetInnerKey>]/+page.svelte
 ```
 
-Never hardcode a shared view's heading URL, invent placeholder IDs, or put a detail layout on a plural list key path.
-
-Before finishing, confirm the route does not:
-
-- duplicate a list token through `(<domainList>)/<domainList>/+page`,
-- reject the valid `(<hub>)/<hub>/` hub shape,
-- invert detail chrome as `<domainList>/[key]/+layout`,
-- leave a group with one file and no shared UI.
+Never hardcode a shared view's heading URL, invent placeholder IDs, put detail chrome on a plural list key path, duplicate a list token through group and URL directories, or leave a group with one file and no shared UI. The repeated `(<hub>)/<hub>/` provider-hub shape remains valid because only the second directory contributes a URL segment.

@@ -1,11 +1,11 @@
 ---
 name: source-provider-development
-description: Add or revise provider sources, source bindings, transport clients, credentials, generated schemas, or source freshness in src/sources. Use for provider onboarding, endpoint changes, OpenAPI or GraphQL sync, delivery mode, proxying, or stale client audits.
+description: Add or revise provider sources, bindings, transport, credentials, or generated schemas.
 ---
 
 # Source provider development
 
-Read `src/sources/AGENTS.md` and the provider's existing source, resolver, and generated-artifact structure before editing.
+Inspect the provider's existing source, resolver, and generated-artifact structure before editing.
 
 Keep the data flow visible:
 
@@ -19,7 +19,7 @@ Read [source-model.md](references/source-model.md) when changing provider, sourc
 
 For a freshness audit or manual client drift, read [freshness-audits.md](references/freshness-audits.md). For OpenAPI or GraphQL artifacts, read [schema-codegen.md](references/schema-codegen.md).
 
-Read [provider-reference.md](references/provider-reference.md) for the complete binding ontology, generated artifact contracts, resolver integration rules, or provider registration checklist.
+For a new provider or binding, read [provider-onboarding.md](references/provider-onboarding.md).
 
 Use official provider documentation and machine-readable schemas for current endpoint or authentication facts. Do not infer provider changes from third-party examples.
 

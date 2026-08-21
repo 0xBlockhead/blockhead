@@ -9,4 +9,4 @@
 - Name `queries.ts` exports with transport-neutral verbs. The import path already names the provider.
 - Do not hand-edit generated schemas or generated client types.
 - Load the `source-provider-development` skill for provider additions, client freshness audits, binding changes, or source code generation.
-- Read the complete provider reference in `source-provider-development` when changing binding ontology or delivery semantics.
+- Read `source-provider-development` and its `source-model.md` reference when changing binding ontology or delivery semantics.

@@ -4,6 +4,7 @@
 
 - Keep replies concise and describe intent instead of pasting machine-oriented payloads.
 - Preserve unrelated working changes. Never use Git rollback commands to correct an edit in a dirty worktree.
+- Put agent worktrees beneath `~/Developer/blockhead-2026-agent/` in the established harness subtree, never a system temporary directory.
 - Use `apply_patch` for edits. Prefer `mv` followed by an edit for file moves.
 - For shell commands, write home paths with `~` and escape `$` and other expansion-sensitive symbols.
 - Do not place rewrite programs containing template literals, `$`, backticks, globs, or replacement strings in inline shell or `node -e` commands. Use `apply_patch` or a temporary script.
@@ -37,6 +38,10 @@ Read the nearest nested `AGENTS.md` before editing its subtree. Load a matching 
 
 ## Specialized work
 
+- Creating, revising, splitting, consolidating, or evaluating repository skills: `create-skill`.
+- Writing, reviewing, consolidating, or improving automated tests: `test-methodology`.
+- Explicit code, test, fixture, schema, or instruction reduction while preserving behavior and fault detection: `reduce`.
+- Persistent delivery programs optimizing accepted product progress across a mutable work denominator: `orchestrate-program`.
 - TypeScript logic or types: `typescript-development`.
 - Any `.svelte` or `.svelte.ts` edit: `svelte-development`.
 - Schema identity, selectors, references, observations, or cardinality: `schema-entity-modeling`.

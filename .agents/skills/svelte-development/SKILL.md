@@ -1,6 +1,6 @@
 ---
 name: svelte-development
-description: Edit or review Svelte 5 components and Svelte TypeScript modules in this repository. Use for any change to .svelte or .svelte.ts files, including snippets, props, runes, component markup, CSS, resources, and routes.
+description: Edit or review Svelte 5 components and .svelte.ts modules.
 ---
 
 # Svelte development
@@ -9,9 +9,7 @@ Use Svelte 5 runes. Do not introduce legacy reactive declarations, `onMount` as 
 
 This project uses Composer 2.5, not React or Motion. Do not emit React Motion syntax or close HTML elements with `</motion>`.
 
-Before editing, read the nearest `AGENTS.md`. For component props, snippets, bindings, markup spacing, and CSS conventions, read [component-authoring.md](references/component-authoring.md).
-
-Read [svelte-reference.md](references/svelte-reference.md) when exact prop, snippet, rest-prop, binding, resource, or component examples are needed.
+For component props, snippets, bindings, markup spacing, and CSS conventions, read [component-authoring.md](references/component-authoring.md).
 
 Keep state and derived logic close to use:
 

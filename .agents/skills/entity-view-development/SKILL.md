@@ -1,11 +1,11 @@
 ---
 name: entity-view-development
-description: Design or revise entity view identity, headings, summaries, related-entity links, details sections, and view resource consumption. Use for changes to shared EntityView or EntityId behavior and domain views under src/views.
+description: Revise entity identity, summaries, relationships, or layout in src/views.
 ---
 
 # Entity view development
 
-Read `src/views/AGENTS.md`, the affected schema cardinality, and neighboring views that express the same relationship.
+Inspect the affected schema cardinality and neighboring views that express the same relationship.
 
 Keep identity and loaded presentation separate:
 
@@ -17,4 +17,4 @@ Keep identity and loaded presentation separate:
 
 Choose the lightest related-entity layout that expresses the relationship. Read [related-entity-layouts.md](references/related-entity-layouts.md) when adding or moving related entities between `Content` and `Details`.
 
-Load `svelte-development` for every Svelte edit. Read [entity-views-reference.md](references/entity-views-reference.md) when changing shared snippet contracts or a domain-oriented view named in its catalog.
+Load `svelte-development` for every Svelte edit. Read [entity-views-reference.md](references/entity-views-reference.md) when changing link ownership, details-list structure, or shared snippet contracts.

@@ -8,4 +8,4 @@
 - Do not use TypeScript assertions in route or view Svelte files.
 - Co-locate route-specific E2E tests beside the route and do not prefix E2E filenames with `+`.
 - Load `svelte-development` for Svelte edits, `route-architecture` for route additions or moves, and `playwright-route-testing` for browser verification.
-- Read the detailed routes reference in `route-architecture` before adding or moving a deep route family.
+- Read `route-architecture` and its `route-shapes.md` reference before adding or moving a deep route family.

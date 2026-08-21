@@ -1,6 +1,6 @@
 ---
 name: playwright-route-testing
-description: Add, update, run, or diagnose Playwright E2E coverage in this repository. Use for route tests, route-matrix probes, boundary failures, CORS checks, persistence tests, browser console errors, or visible resource reactivity.
+description: Add or diagnose Playwright route, CORS, persistence, or reactivity coverage.
 ---
 
 # Playwright route testing
@@ -19,7 +19,3 @@ For matrix modes and probes, read [route-matrix.md](references/route-matrix.md).
 Read [testing-reference.md](references/testing-reference.md) when exact placement, selector, assertion, or invocation conventions are needed.
 
 Prefer a stable filename fragment when invoking a co-located test so the shell does not need quoted route-group paths.
-
-When the bundled browser runner fails because of missing Playwright or a macOS sandbox error, use `/opt/homebrew/bin/playwright-cli`. Do not reinstall project dependencies unless this repository's declared Playwright dependency is actually broken.
-
-Verify the visible behavior, collect console and page errors, and resolve unexpected errors before finishing.

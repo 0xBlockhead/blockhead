@@ -1,0 +1,4 @@
+interface:
+  display_name: "Model Schema Entities"
+  short_description: "Model concrete entities, selectors, and fields"
+  default_prompt: "Use $model-schema-entities to model or audit these concrete schema entities, selectors, fields, and observations."

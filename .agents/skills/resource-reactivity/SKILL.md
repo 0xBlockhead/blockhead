@@ -1,6 +1,6 @@
 ---
 name: resource-reactivity
-description: Change or diagnose TanStackLiveQueryResource, ResourceBoundary, route resource fixtures, OPFS-backed collection reactivity, or visible DOM updates driven by TanStack source notifications.
+description: Change or diagnose SvelteKit-shaped resource reactivity and OPFS persistence.
 ---
 
 # Resource reactivity

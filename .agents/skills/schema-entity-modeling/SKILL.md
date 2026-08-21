@@ -1,11 +1,11 @@
 ---
 name: schema-entity-modeling
-description: Model or review schema entities, selectors, scalar fields, entity references, cardinality, revisions, observations, and timestamp coordinates. Use for changes under src/schema or when resolver and view behavior exposes a schema identity or cardinality problem.
+description: Model repository schema identity, selectors, references, cardinality, and observations.
 ---
 
 # Schema entity modeling
 
-Read `src/schema/AGENTS.md` and the affected entity, resolver registrations, references, and views before changing the model.
+Inspect the affected entity, resolver registrations, references, and views before changing the model.
 
 Model domain identity before provider payload shape:
 
