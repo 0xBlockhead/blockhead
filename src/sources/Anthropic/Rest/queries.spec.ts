@@ -22,9 +22,13 @@ const noncanonicalBinding = {
 const models = {
 	data: [
 		{
+			type: 'model',
 			id: 'claude/opus',
+			display_name: 'Claude Opus',
+			created_at: '2025-01-02T03:04:05.000Z',
 		},
 	],
+	has_more: false,
 }
 
 beforeEach(() => {
