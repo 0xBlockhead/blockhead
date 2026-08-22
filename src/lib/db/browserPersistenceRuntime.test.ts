@@ -116,6 +116,98 @@ describe('BrowserPersistenceRuntime', () => {
 		await follower.close()
 	})
 
+	test('preserves collection mode and schema selection through follower RPC', async () => {
+		const name = crypto.randomUUID()
+		const locks = lockManager()
+		const selections: string[] = []
+		const ownerPersistence: PersistedCollectionPersistence = {
+			...persistence([]),
+			resolvePersistenceForCollection: ({
+				collectionId,
+				mode,
+				schemaVersion,
+			}) => ({
+				adapter: {
+					...persistence([]).adapter,
+					applyCommittedTx: async () => {
+						selections.push(`${collectionId}:${mode}:${schemaVersion}`)
+					},
+				},
+			}),
+		}
+		const owner = new BrowserPersistenceRuntime({
+			name,
+			channel: new TestChannel(name) as never,
+			locks: locks as never,
+			openOwner: async () => ({ persistence: ownerPersistence, close: () => undefined }),
+		})
+		await owner.ready
+		const follower = new BrowserPersistenceRuntime({
+			name,
+			channel: new TestChannel(name) as never,
+			locks: locks as never,
+			openOwner: async () => ({ persistence: persistence([]), close: () => undefined }),
+		})
+		await follower.ready
+		const selectedPersistence = follower.persistence.resolvePersistenceForCollection?.({
+			collectionId: 'Entity Persisted',
+			mode: 'sync-present',
+			schemaVersion: 13,
+		})
+		await selectedPersistence?.adapter.applyCommittedTx('Entity Persisted', {} as never)
+		expect(selections).toEqual(['Entity Persisted:sync-present:13'])
+		await follower.close()
+		await owner.close()
+	})
+
+	test('replays an unacknowledged committed transaction after owner death', async () => {
+		const name = crypto.randomUUID()
+		const locks = lockManager()
+		const appliedTransactions = new Set<string>()
+		let attempts = 0
+		let owner: BrowserPersistenceRuntime
+		const durablePersistence = (): PersistedCollectionPersistence => ({
+			adapter: {
+				...persistence([]).adapter,
+				applyCommittedTx: async (_collectionId, transaction) => {
+					attempts++
+					appliedTransactions.add(transaction.txId)
+					if (attempts === 1)
+						void owner.close()
+				},
+			},
+		})
+		owner = new BrowserPersistenceRuntime({
+			name,
+			channel: new TestChannel(name) as never,
+			locks: locks as never,
+			openOwner: async () => ({ persistence: durablePersistence(), close: () => undefined }),
+			heartbeatMs: 5,
+			requestTimeoutMs: 5,
+		})
+		await owner.ready
+		const follower = new BrowserPersistenceRuntime({
+			name,
+			channel: new TestChannel(name) as never,
+			locks: locks as never,
+			openOwner: async () => ({ persistence: durablePersistence(), close: () => undefined }),
+			heartbeatMs: 5,
+			requestTimeoutMs: 5,
+		})
+		await follower.ready
+		await follower.persistence.adapter.applyCommittedTx('rows', {
+			txId: 'committed-before-owner-death',
+			term: 1,
+			seq: 1,
+			rowVersion: 1,
+			mutations: [],
+		})
+		expect(attempts).toBe(2)
+		expect(appliedTransactions).toEqual(new Set(['committed-before-owner-death']))
+		expect(follower.phase).toBe('owner')
+		await follower.close()
+	})
+
 	test('starts as a follower when another owner is opening, then promotes after the owner disappears', async () => {
 		const locks = lockManager()
 		locks.hold()

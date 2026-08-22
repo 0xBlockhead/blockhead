@@ -1,4 +1,5 @@
 import type {
+	PersistedCollectionMode,
 	PersistedCollectionPersistence,
 	PersistenceAdapter,
 } from '@tanstack/db-sqlite-persistence-core'
@@ -8,9 +9,27 @@ export type BrowserPersistencePhase = 'opening' | 'owner' | 'follower' | 'recove
 
 type AdapterOperation = keyof PersistenceAdapter
 
+type PersistenceSelection =
+	| {
+		type: 'collection'
+		options: {
+			collectionId: string
+			mode: PersistedCollectionMode
+			schemaVersion?: number
+		}
+	}
+	| { type: 'mode'; mode: PersistedCollectionMode }
+	| undefined
+
 type RuntimeMessage =
 	| { type: 'heartbeat'; ownerId: string }
-	| { type: 'request'; requestId: string; operation: AdapterOperation; arguments: unknown[] }
+	| {
+		type: 'request'
+		requestId: string
+		operation: AdapterOperation
+		arguments: unknown[]
+		selection: PersistenceSelection
+	}
 	| { type: 'response'; requestId: string; result?: unknown; error?: string }
 	| { type: 'invalidation'; operation: AdapterOperation }
 
@@ -57,11 +76,12 @@ export class BrowserPersistenceRuntime {
 	#invalidationSubscribers = new Set<(operation: AdapterOperation) => void>()
 	#lastHeartbeat = performance.now()
 	#lockRelease = Promise.withResolvers<void>()
-	#ownerAdapter: PersistenceAdapter | undefined
+	#ownerPersistence: PersistedCollectionPersistence | undefined
 	#pending = new Map<string, {
 		arguments: unknown[]
 		deferred: PromiseWithResolvers<unknown>
 		operation: AdapterOperation
+		selection: PersistenceSelection
 		timer: ReturnType<typeof setInterval>
 	}>()
 	#phase: BrowserPersistencePhase = 'opening'
@@ -83,7 +103,7 @@ export class BrowserPersistenceRuntime {
 		this.#persistence = this.#createPersistenceFacade()
 		this.#heartbeat = setInterval(() => {
 			if (this.#closed) return
-			if (this.#ownerAdapter !== undefined)
+			if (this.#ownerPersistence !== undefined)
 				this.#channel.postMessage({ type: 'heartbeat', ownerId: this.#runtimeId })
 			else if (performance.now() - this.#lastHeartbeat > heartbeatMs * 3) {
 				void this.#promote(options)
@@ -135,20 +155,33 @@ export class BrowserPersistenceRuntime {
 		return this.#closePromise
 	}
 
-	#createPersistenceFacade(): PersistedCollectionPersistence {
-		const adapter = Object.fromEntries(([
-			'loadSubset', 'applyCommittedTx', 'loadCollectionMetadata', 'scanRows',
-			'ensureIndex', 'markIndexRemoved', 'getStreamPosition',
-		] as const).map((operation) => [operation, (...arguments_: unknown[]) => this.#call(operation, arguments_)])) as PersistenceAdapter
+	#createPersistenceFacade(
+		selection?: PersistenceSelection
+	): PersistedCollectionPersistence {
+		const adapter: PersistenceAdapter = {
+			loadSubset: (...arguments_) => this.#call('loadSubset', arguments_, selection),
+			applyCommittedTx: (...arguments_) => this.#call('applyCommittedTx', arguments_, selection),
+			loadCollectionMetadata: (...arguments_) => this.#call('loadCollectionMetadata', arguments_, selection),
+			scanRows: (...arguments_) => this.#call('scanRows', arguments_, selection),
+			ensureIndex: (...arguments_) => this.#call('ensureIndex', arguments_, selection),
+			markIndexRemoved: (...arguments_) => this.#call('markIndexRemoved', arguments_, selection),
+			getStreamPosition: (...arguments_) => this.#call('getStreamPosition', arguments_, selection),
+		}
 		return {
 			adapter,
-			resolvePersistenceForCollection: () => this.#persistence,
-			resolvePersistenceForMode: () => this.#persistence,
+			resolvePersistenceForCollection: (options) => this.#createPersistenceFacade({
+				type: 'collection',
+				options,
+			}),
+			resolvePersistenceForMode: (mode) => this.#createPersistenceFacade({
+				type: 'mode',
+				mode,
+			}),
 		}
 	}
 
 	async #promote(options: BrowserPersistenceRuntimeOptions) {
-		if (this.#closed || this.#ownerAdapter !== undefined) return
+		if (this.#closed || this.#ownerPersistence !== undefined) return
 		if (this.#promotion !== undefined) return this.#promotion
 		const locks = options.locks ?? navigator.locks
 		const promoted = Promise.withResolvers<void>()
@@ -169,7 +202,7 @@ export class BrowserPersistenceRuntime {
 					promoted.reject(new Error('SQLite persistence runtime closed'))
 					return
 				}
-				this.#ownerAdapter = owner.persistence.adapter
+				this.#ownerPersistence = owner.persistence
 				this.#closeOwner = owner.close
 				this.#setPhase('owner')
 				this.#replayPendingLocally()
@@ -186,19 +219,65 @@ export class BrowserPersistenceRuntime {
 		return promoted.promise
 	}
 
-	#call(operation: AdapterOperation, arguments_: unknown[]) {
+	#call(
+		operation: 'loadSubset',
+		arguments_: Parameters<PersistenceAdapter['loadSubset']>,
+		selection: PersistenceSelection
+	): ReturnType<PersistenceAdapter['loadSubset']>
+	#call(
+		operation: 'applyCommittedTx',
+		arguments_: Parameters<PersistenceAdapter['applyCommittedTx']>,
+		selection: PersistenceSelection
+	): ReturnType<PersistenceAdapter['applyCommittedTx']>
+	#call(
+		operation: 'loadCollectionMetadata',
+		arguments_: Parameters<NonNullable<PersistenceAdapter['loadCollectionMetadata']>>,
+		selection: PersistenceSelection
+	): ReturnType<NonNullable<PersistenceAdapter['loadCollectionMetadata']>>
+	#call(
+		operation: 'scanRows',
+		arguments_: Parameters<NonNullable<PersistenceAdapter['scanRows']>>,
+		selection: PersistenceSelection
+	): ReturnType<NonNullable<PersistenceAdapter['scanRows']>>
+	#call(
+		operation: 'ensureIndex',
+		arguments_: Parameters<PersistenceAdapter['ensureIndex']>,
+		selection: PersistenceSelection
+	): ReturnType<PersistenceAdapter['ensureIndex']>
+	#call(
+		operation: 'markIndexRemoved',
+		arguments_: Parameters<NonNullable<PersistenceAdapter['markIndexRemoved']>>,
+		selection: PersistenceSelection
+	): ReturnType<NonNullable<PersistenceAdapter['markIndexRemoved']>>
+	#call(
+		operation: 'getStreamPosition',
+		arguments_: Parameters<NonNullable<PersistenceAdapter['getStreamPosition']>>,
+		selection: PersistenceSelection
+	): ReturnType<NonNullable<PersistenceAdapter['getStreamPosition']>>
+	#call(
+		operation: AdapterOperation,
+		arguments_: unknown[],
+		selection: PersistenceSelection
+	): Promise<unknown> {
 		if (this.#closed) return Promise.reject(new Error('SQLite persistence runtime closed'))
-		if (this.#ownerAdapter !== undefined)
-			return this.#execute(operation, arguments_)
+		if (this.#ownerPersistence !== undefined)
+			return this.#execute(operation, arguments_, selection)
 		const requestId = crypto.randomUUID()
 		const deferred = Promise.withResolvers<unknown>()
-		const send = () => this.#channel.postMessage({ type: 'request', requestId, operation, arguments: arguments_ })
+		const send = () => this.#channel.postMessage({
+			type: 'request',
+			requestId,
+			operation,
+			arguments: arguments_,
+			selection,
+		})
 		send()
 		const retry = setInterval(send, this.#requestTimeoutMs)
 		this.#pending.set(requestId, {
 			arguments: arguments_,
 			deferred,
 			operation,
+			selection,
 			timer: retry,
 		})
 		return deferred.promise.finally(() => {
@@ -225,7 +304,7 @@ export class BrowserPersistenceRuntime {
 			for (const subscriber of this.#invalidationSubscribers) subscriber(message.operation)
 			return
 		}
-		if (this.#ownerAdapter === undefined) return
+		if (this.#ownerPersistence === undefined) return
 		const completed = this.#completed.get(message.requestId) ?? this.#invoke(message)
 		this.#completed.set(message.requestId, completed)
 		void completed.then((response) => {
@@ -235,7 +314,11 @@ export class BrowserPersistenceRuntime {
 
 	async #invoke(message: Extract<RuntimeMessage, { type: 'request' }>): Promise<RuntimeMessage> {
 		try {
-			const result = await this.#execute(message.operation, message.arguments)
+			const result = await this.#execute(
+				message.operation,
+				message.arguments,
+				message.selection
+			)
 			if (!this.#closed)
 				this.#channel.postMessage({ type: 'invalidation', operation: message.operation })
 			return { type: 'response', requestId: message.requestId, result }
@@ -244,18 +327,42 @@ export class BrowserPersistenceRuntime {
 		}
 	}
 
-	#execute(operation: AdapterOperation, arguments_: unknown[]) {
-		const operationMethod = this.#ownerAdapter?.[operation]
+	#execute(
+		operation: AdapterOperation,
+		arguments_: unknown[],
+		selection: PersistenceSelection
+	) {
+		const ownerPersistence = this.#ownerPersistence
+		if (ownerPersistence === undefined)
+			return Promise.reject(new Error('SQLite persistence owner is unavailable'))
+
+		const selectedPersistence = selection?.type === 'collection'
+			? ownerPersistence.resolvePersistenceForCollection?.(selection.options)
+				?? ownerPersistence.resolvePersistenceForMode?.(selection.options.mode)
+				?? ownerPersistence
+			: selection?.type === 'mode'
+				? ownerPersistence.resolvePersistenceForMode?.(selection.mode)
+					?? ownerPersistence
+				: ownerPersistence
+		const operationMethod = selectedPersistence.adapter[operation]
 		return operationMethod === undefined ?
 			Promise.resolve(undefined)
 		:
-			Promise.resolve(Reflect.apply(operationMethod, this.#ownerAdapter, arguments_))
+			Promise.resolve(Reflect.apply(
+				operationMethod,
+				selectedPersistence.adapter,
+				arguments_
+			))
 	}
 
 	#replayPendingLocally() {
 		for (const pending of this.#pending.values()) {
 			clearInterval(pending.timer)
-			void this.#execute(pending.operation, pending.arguments).then(
+			void this.#execute(
+				pending.operation,
+				pending.arguments,
+				pending.selection
+			).then(
 				(result) => pending.deferred.resolve(result),
 				(error) => pending.deferred.reject(error)
 			)
