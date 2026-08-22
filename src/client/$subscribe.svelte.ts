@@ -1128,6 +1128,7 @@ export function subscribeEntityField<
 			queries.sourceCollection.utils.subscribeLocalMutationAuthorityChanges(update)
 		const unsubscribeResolverSubsetLoadingChanges =
 			queries.sourceCollection.utils.subscribeResolverSubsetLoadingChanges(update)
+		const unsubscribeRowChanges = queries.sourceCollection.utils.subscribeRowChanges(update)
 		return () => {
 			nestedResourceUpdate = undefined
 			pendingNestedResourceSubscriptions.clear()
@@ -1139,6 +1140,7 @@ export function subscribeEntityField<
 			unsubscribeContinuationChanges()
 			unsubscribeLocalMutationAuthorityChanges()
 			unsubscribeResolverSubsetLoadingChanges()
+			unsubscribeRowChanges()
 		}
 	}, () => waitForLiveQueryCollections(observedQueries)))
 	if (sharedResourceKey !== undefined) {
@@ -1858,6 +1860,10 @@ const subscribeEntitySelection = <
 			context.entityCollections[entityType],
 			...fields.map(({ queries }) => queries.sourceCollection),
 		].map((collection) => collection.utils.subscribeResolverSubsetLoadingChanges(update))
+		const unsubscribeRowChanges = [
+			context.entityCollections[entityType],
+			...fields.map(({ queries }) => queries.sourceCollection),
+		].map((collection) => collection.utils.subscribeRowChanges(update))
 		const unsubscribeSourceLoadingChanges = fields.map(({ queries }) => (
 			queries.sourceCollection.on('loadingSubset:change', update)
 		))
@@ -1875,6 +1881,8 @@ const subscribeEntitySelection = <
 			for (const unsubscribe of unsubscribeLocalMutationAuthorities)
 				unsubscribe()
 			for (const unsubscribe of unsubscribeResolverSubsetLoadingChanges)
+				unsubscribe()
+			for (const unsubscribe of unsubscribeRowChanges)
 				unsubscribe()
 			for (const unsubscribe of unsubscribeSourceLoadingChanges)
 				unsubscribe()
