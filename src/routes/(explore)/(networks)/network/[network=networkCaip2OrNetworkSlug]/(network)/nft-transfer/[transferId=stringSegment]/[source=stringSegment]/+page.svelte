@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'TON NFT transfer'} • TON NFT transfer • Blockhead</title>
+	<title>{data?.title ?? 'TON NFT transfer'} • TON NFT transfer • Blockhead</title>
 </svelte:head>
 
 

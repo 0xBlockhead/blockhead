@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'starknet token holding'} • starknet token holding • Blockhead</title>
+	<title>{data?.title ?? 'starknet token holding'} • starknet token holding • Blockhead</title>
 </svelte:head>
 
 

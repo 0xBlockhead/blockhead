@@ -23,7 +23,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'Sui transaction'} • Sui transaction • Blockhead</title>
+	<title>{data?.title ?? 'Sui transaction'} • Sui transaction • Blockhead</title>
 </svelte:head>
 
 

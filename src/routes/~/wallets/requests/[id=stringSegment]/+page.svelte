@@ -33,7 +33,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? 'blockhead wallet request' : pageSelection.entity.requestKind || 'blockhead wallet request')} • blockhead wallet request • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entity == null ? 'blockhead wallet request' : pageSelection.entity.requestKind || 'blockhead wallet request')} • blockhead wallet request • Blockhead</title>
 </svelte:head>
 
 

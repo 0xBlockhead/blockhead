@@ -23,7 +23,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'ICP request status'} • ICP request status • Blockhead</title>
+	<title>{data?.title ?? 'ICP request status'} • ICP request status • Blockhead</title>
 </svelte:head>
 
 

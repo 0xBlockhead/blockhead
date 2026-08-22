@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'zero g data chunk'} • zero g data chunk • Blockhead</title>
+	<title>{data?.title ?? 'zero g data chunk'} • zero g data chunk • Blockhead</title>
 </svelte:head>
 
 

@@ -31,7 +31,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.nodeId || 'zero g da node')} • zero g da node • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.nodeId || 'zero g da node')} • zero g da node • Blockhead</title>
 </svelte:head>
 
 

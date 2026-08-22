@@ -30,7 +30,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.ticker || 'dydx chain market')} • dydx chain market • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.ticker || 'dydx chain market')} • dydx chain market • Blockhead</title>
 </svelte:head>
 
 

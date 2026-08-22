@@ -25,7 +25,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.keyHash || 'aptos table item')} • aptos table item • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.keyHash || 'aptos table item')} • aptos table item • Blockhead</title>
 </svelte:head>
 
 

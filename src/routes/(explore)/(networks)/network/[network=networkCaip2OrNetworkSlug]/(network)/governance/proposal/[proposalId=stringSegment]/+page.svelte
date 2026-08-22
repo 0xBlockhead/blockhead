@@ -29,7 +29,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? 'Proposal ' + (pageSelection.entitySelector.proposalId ?? '') : [(pageSelection.entity.title ?? ''), 'Proposal ' + pageSelection.entitySelector.proposalId].filter(Boolean).join(' ') || 'Cosmos governance proposal')} • Cosmos governance proposal • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entity == null ? 'Proposal ' + (pageSelection.entitySelector.proposalId ?? '') : [(pageSelection.entity.title ?? ''), 'Proposal ' + pageSelection.entitySelector.proposalId].filter(Boolean).join(' ') || 'Cosmos governance proposal')} • Cosmos governance proposal • Blockhead</title>
 </svelte:head>
 
 

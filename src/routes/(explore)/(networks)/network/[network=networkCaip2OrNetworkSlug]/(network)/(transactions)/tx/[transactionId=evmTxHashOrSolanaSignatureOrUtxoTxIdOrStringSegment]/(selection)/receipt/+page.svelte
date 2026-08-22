@@ -23,7 +23,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'tron transaction receipt'} • tron transaction receipt • Blockhead</title>
+	<title>{data?.title ?? 'tron transaction receipt'} • tron transaction receipt • Blockhead</title>
 </svelte:head>
 
 

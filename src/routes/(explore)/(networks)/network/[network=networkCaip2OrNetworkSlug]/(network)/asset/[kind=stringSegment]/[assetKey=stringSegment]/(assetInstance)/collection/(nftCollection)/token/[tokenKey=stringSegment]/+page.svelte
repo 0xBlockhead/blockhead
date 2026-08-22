@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'NFT token'} • NFT token • Blockhead</title>
+	<title>{data?.title ?? 'NFT token'} • NFT token • Blockhead</title>
 </svelte:head>
 
 

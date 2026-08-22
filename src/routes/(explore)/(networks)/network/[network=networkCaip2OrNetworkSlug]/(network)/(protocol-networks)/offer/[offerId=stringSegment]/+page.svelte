@@ -25,7 +25,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.offerId || 'stellar offer')} • stellar offer • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.offerId || 'stellar offer')} • stellar offer • Blockhead</title>
 </svelte:head>
 
 

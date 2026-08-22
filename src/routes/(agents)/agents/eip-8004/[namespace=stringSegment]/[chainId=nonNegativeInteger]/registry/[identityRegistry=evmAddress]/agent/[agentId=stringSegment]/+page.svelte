@@ -31,7 +31,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.agentId || 'EIP-8004 agent registration')} • EIP-8004 agent registration • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.agentId || 'EIP-8004 agent registration')} • EIP-8004 agent registration • Blockhead</title>
 </svelte:head>
 
 

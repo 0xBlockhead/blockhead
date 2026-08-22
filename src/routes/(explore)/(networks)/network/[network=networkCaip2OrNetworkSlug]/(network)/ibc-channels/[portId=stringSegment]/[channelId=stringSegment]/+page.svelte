@@ -25,7 +25,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.channelId || 'IBC channel')} • IBC channel • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.channelId || 'IBC channel')} • IBC channel • Blockhead</title>
 </svelte:head>
 
 

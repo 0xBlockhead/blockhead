@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'hyperliquid position'} • hyperliquid position • Blockhead</title>
+	<title>{data?.title ?? 'hyperliquid position'} • hyperliquid position • Blockhead</title>
 </svelte:head>
 
 

@@ -30,7 +30,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.keyImage || 'monero key image')} • monero key image • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.keyImage || 'monero key image')} • monero key image • Blockhead</title>
 </svelte:head>
 
 

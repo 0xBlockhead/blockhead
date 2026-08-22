@@ -34,7 +34,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.operationId || 'ACP file operation')} • ACP file operation • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.operationId || 'ACP file operation')} • ACP file operation • Blockhead</title>
 </svelte:head>
 
 

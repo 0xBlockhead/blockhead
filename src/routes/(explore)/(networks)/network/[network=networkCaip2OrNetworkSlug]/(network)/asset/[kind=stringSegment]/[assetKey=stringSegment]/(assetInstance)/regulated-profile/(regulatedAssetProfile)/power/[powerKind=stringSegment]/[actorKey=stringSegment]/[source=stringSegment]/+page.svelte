@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'issuer power'} • issuer power • Blockhead</title>
+	<title>{data?.title ?? 'issuer power'} • issuer power • Blockhead</title>
 </svelte:head>
 
 

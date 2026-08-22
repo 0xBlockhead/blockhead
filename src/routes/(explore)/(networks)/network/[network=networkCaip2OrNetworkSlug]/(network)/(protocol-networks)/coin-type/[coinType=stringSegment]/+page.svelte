@@ -25,7 +25,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.coinType || 'Sui coin type')} • Sui coin type • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.coinType || 'Sui coin type')} • Sui coin type • Blockhead</title>
 </svelte:head>
 
 

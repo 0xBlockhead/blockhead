@@ -23,7 +23,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'hedera topic'} • hedera topic • Blockhead</title>
+	<title>{data?.title ?? 'hedera topic'} • hedera topic • Blockhead</title>
 </svelte:head>
 
 

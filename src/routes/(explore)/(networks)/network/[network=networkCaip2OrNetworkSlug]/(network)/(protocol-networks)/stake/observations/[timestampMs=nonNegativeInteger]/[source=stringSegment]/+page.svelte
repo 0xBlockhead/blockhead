@@ -23,7 +23,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'hedera network stake timestamp'} • hedera network stake timestamp • Blockhead</title>
+	<title>{data?.title ?? 'hedera network stake timestamp'} • hedera network stake timestamp • Blockhead</title>
 </svelte:head>
 
 

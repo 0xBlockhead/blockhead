@@ -30,7 +30,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.orderId || 'dydx chain order')} • dydx chain order • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.orderId || 'dydx chain order')} • dydx chain order • Blockhead</title>
 </svelte:head>
 
 

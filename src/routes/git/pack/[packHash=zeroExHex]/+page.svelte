@@ -25,7 +25,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.packHash || 'Git packfile')} • Git packfile • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.packHash || 'Git packfile')} • Git packfile • Blockhead</title>
 </svelte:head>
 
 

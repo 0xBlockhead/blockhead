@@ -40,7 +40,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? 'starknet block' : String(pageSelection.entity.blockNumber) || 'starknet block')} • starknet block • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entity == null ? 'starknet block' : String(pageSelection.entity.blockNumber) || 'starknet block')} • starknet block • Blockhead</title>
 </svelte:head>
 
 

@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'tezos token balance timestamp'} • tezos token balance timestamp • Blockhead</title>
+	<title>{data?.title ?? 'tezos token balance timestamp'} • tezos token balance timestamp • Blockhead</title>
 </svelte:head>
 
 

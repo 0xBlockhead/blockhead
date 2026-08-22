@@ -25,7 +25,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.originalPackageId || 'Sui package')} • Sui package • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.originalPackageId || 'Sui package')} • Sui package • Blockhead</title>
 </svelte:head>
 
 

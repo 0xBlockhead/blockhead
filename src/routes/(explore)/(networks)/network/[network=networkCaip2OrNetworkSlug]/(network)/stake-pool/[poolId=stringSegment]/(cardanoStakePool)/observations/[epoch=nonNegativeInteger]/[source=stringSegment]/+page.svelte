@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'Cardano stake pool timestamp'} • Cardano stake pool timestamp • Blockhead</title>
+	<title>{data?.title ?? 'Cardano stake pool timestamp'} • Cardano stake pool timestamp • Blockhead</title>
 </svelte:head>
 
 

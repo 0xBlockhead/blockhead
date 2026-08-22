@@ -25,7 +25,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'litecoin MWEB peg in'} • litecoin MWEB peg in • Blockhead</title>
+	<title>{data?.title ?? 'litecoin MWEB peg in'} • litecoin MWEB peg in • Blockhead</title>
 </svelte:head>
 
 

@@ -30,7 +30,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.token || 'CCTP allowance')} • CCTP allowance • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.token || 'CCTP allowance')} • CCTP allowance • Blockhead</title>
 </svelte:head>
 
 

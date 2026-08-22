@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'kaspa virtual chain timestamp'} • kaspa virtual chain timestamp • Blockhead</title>
+	<title>{data?.title ?? 'kaspa virtual chain timestamp'} • kaspa virtual chain timestamp • Blockhead</title>
 </svelte:head>
 
 

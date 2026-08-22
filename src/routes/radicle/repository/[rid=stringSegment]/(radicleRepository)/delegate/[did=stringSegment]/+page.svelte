@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'radicle delegate'} • radicle delegate • Blockhead</title>
+	<title>{data?.title ?? 'radicle delegate'} • radicle delegate • Blockhead</title>
 </svelte:head>
 
 

@@ -30,7 +30,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.uid || 'EAS attestation')} • EAS attestation • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.uid || 'EAS attestation')} • EAS attestation • Blockhead</title>
 </svelte:head>
 
 

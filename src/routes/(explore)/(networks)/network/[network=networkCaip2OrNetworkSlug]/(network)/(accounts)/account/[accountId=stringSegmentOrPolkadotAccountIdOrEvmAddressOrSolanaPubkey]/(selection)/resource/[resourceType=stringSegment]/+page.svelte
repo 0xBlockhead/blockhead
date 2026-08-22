@@ -25,7 +25,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.resourceType || 'aptos account resource')} • aptos account resource • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.resourceType || 'aptos account resource')} • aptos account resource • Blockhead</title>
 </svelte:head>
 
 

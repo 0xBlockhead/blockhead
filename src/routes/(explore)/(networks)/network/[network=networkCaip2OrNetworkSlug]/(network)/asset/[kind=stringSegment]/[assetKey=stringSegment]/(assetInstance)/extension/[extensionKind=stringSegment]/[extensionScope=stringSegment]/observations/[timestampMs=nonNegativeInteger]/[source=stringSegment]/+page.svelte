@@ -34,7 +34,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.extensionKind || 'token program extension timestamp')} • token program extension timestamp • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.extensionKind || 'token program extension timestamp')} • token program extension timestamp • Blockhead</title>
 </svelte:head>
 
 

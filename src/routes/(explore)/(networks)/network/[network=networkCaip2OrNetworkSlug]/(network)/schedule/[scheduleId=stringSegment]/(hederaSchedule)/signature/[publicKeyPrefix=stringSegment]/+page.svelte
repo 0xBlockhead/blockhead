@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'hedera schedule signature'} • hedera schedule signature • Blockhead</title>
+	<title>{data?.title ?? 'hedera schedule signature'} • hedera schedule signature • Blockhead</title>
 </svelte:head>
 
 

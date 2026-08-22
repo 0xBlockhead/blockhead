@@ -32,7 +32,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (String(pageSelection.entitySelector.timestampMs) || 'local LND payment observation')} • local LND payment observation • Blockhead</title>
+	<title>{data?.title ?? (String(pageSelection.entitySelector.timestampMs) || 'local LND payment observation')} • local LND payment observation • Blockhead</title>
 </svelte:head>
 
 

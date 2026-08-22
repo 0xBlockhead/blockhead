@@ -29,7 +29,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? 'Git forge pipeline' : 'Pipeline #' + String(pageSelection.entity.pipelineIid))} • Git forge pipeline • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entity == null ? 'Git forge pipeline' : 'Pipeline #' + String(pageSelection.entity.pipelineIid))} • Git forge pipeline • Blockhead</title>
 </svelte:head>
 
 

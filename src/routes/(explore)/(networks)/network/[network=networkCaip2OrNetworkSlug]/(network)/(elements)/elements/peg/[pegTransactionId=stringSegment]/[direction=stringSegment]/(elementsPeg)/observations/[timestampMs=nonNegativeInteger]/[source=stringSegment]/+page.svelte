@@ -32,7 +32,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (String(pageSelection.entitySelector.timestampMs) || 'Elements peg observation')} • Elements peg observation • Blockhead</title>
+	<title>{data?.title ?? (String(pageSelection.entitySelector.timestampMs) || 'Elements peg observation')} • Elements peg observation • Blockhead</title>
 </svelte:head>
 
 

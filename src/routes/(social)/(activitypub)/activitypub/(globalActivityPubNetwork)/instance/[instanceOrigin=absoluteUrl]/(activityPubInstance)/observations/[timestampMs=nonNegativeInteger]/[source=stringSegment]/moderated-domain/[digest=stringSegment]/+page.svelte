@@ -39,7 +39,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? 'ActivityPub instance moderated domain' : [pageSelection.entity.domain, pageSelection.entity.severity, (pageSelection.entity.comment ?? '')].filter(Boolean).join(' ') || 'ActivityPub instance moderated domain')} • ActivityPub instance moderated domain • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entity == null ? 'ActivityPub instance moderated domain' : [pageSelection.entity.domain, pageSelection.entity.severity, (pageSelection.entity.comment ?? '')].filter(Boolean).join(' ') || 'ActivityPub instance moderated domain')} • ActivityPub instance moderated domain • Blockhead</title>
 </svelte:head>
 
 

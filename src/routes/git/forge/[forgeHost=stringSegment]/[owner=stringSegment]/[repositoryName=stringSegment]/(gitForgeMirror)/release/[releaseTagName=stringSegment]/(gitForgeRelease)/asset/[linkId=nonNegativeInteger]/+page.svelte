@@ -37,7 +37,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? 'Git forge release link' : pageSelection.entity.name || 'Git forge release link')} • Git forge release link • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entity == null ? 'Git forge release link' : pageSelection.entity.name || 'Git forge release link')} • Git forge release link • Blockhead</title>
 </svelte:head>
 
 

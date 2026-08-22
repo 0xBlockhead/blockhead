@@ -37,7 +37,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? 'Token approval' : [pageSelection.entity.approvalKind, (pageSelection.entity.standard ?? '')].filter(Boolean).join(' ') || 'Token approval')} • Token approval • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entity == null ? 'Token approval' : [pageSelection.entity.approvalKind, (pageSelection.entity.standard ?? '')].filter(Boolean).join(' ') || 'Token approval')} • Token approval • Blockhead</title>
 </svelte:head>
 
 

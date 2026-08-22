@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'ENS'} • ENS • Blockhead</title>
+	<title>{data?.title ?? 'ENS'} • ENS • Blockhead</title>
 </svelte:head>
 
 

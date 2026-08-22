@@ -36,7 +36,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.attestationKind || 'AI artifact attestation')} • AI artifact attestation • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.attestationKind || 'AI artifact attestation')} • AI artifact attestation • Blockhead</title>
 </svelte:head>
 
 

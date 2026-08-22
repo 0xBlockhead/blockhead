@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'ICP subnet canister range timestamp'} • ICP subnet canister range timestamp • Blockhead</title>
+	<title>{data?.title ?? 'ICP subnet canister range timestamp'} • ICP subnet canister range timestamp • Blockhead</title>
 </svelte:head>
 
 

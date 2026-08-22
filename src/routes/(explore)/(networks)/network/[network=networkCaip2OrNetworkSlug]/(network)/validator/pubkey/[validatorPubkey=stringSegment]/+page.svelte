@@ -34,7 +34,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? 'beacon validator' : (String(pageSelection.entity.indexInNetwork ?? '') ? 'Validator #' + String(pageSelection.entity.indexInNetwork ?? '') : '') || 'beacon validator')} • beacon validator • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entity == null ? 'beacon validator' : (String(pageSelection.entity.indexInNetwork ?? '') ? 'Validator #' + String(pageSelection.entity.indexInNetwork ?? '') : '') || 'beacon validator')} • beacon validator • Blockhead</title>
 </svelte:head>
 
 

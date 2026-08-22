@@ -30,7 +30,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.agentCardUrl || 'A2A agent card')} • A2A agent card • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.agentCardUrl || 'A2A agent card')} • A2A agent card • Blockhead</title>
 </svelte:head>
 
 

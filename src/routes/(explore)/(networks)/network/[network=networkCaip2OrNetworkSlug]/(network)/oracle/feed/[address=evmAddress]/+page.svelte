@@ -29,7 +29,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.address ?? '') || 'oracle feed' : (pageSelection.entity.label ?? '') || pageSelection.entitySelector.address || 'oracle feed')} • oracle feed • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.address ?? '') || 'oracle feed' : (pageSelection.entity.label ?? '') || pageSelection.entitySelector.address || 'oracle feed')} • oracle feed • Blockhead</title>
 </svelte:head>
 
 

@@ -36,7 +36,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (String(pageSelection.entitySelector.outputIndex) || 'Bitcoin runestone')} • Bitcoin runestone • Blockhead</title>
+	<title>{data?.title ?? (String(pageSelection.entitySelector.outputIndex) || 'Bitcoin runestone')} • Bitcoin runestone • Blockhead</title>
 </svelte:head>
 
 

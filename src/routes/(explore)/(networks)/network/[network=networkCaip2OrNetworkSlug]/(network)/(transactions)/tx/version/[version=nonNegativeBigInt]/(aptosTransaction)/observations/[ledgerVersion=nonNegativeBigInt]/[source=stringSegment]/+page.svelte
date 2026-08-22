@@ -32,7 +32,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (String(pageSelection.entitySelector.ledgerVersion) || 'aptos transaction timestamp')} • aptos transaction timestamp • Blockhead</title>
+	<title>{data?.title ?? (String(pageSelection.entitySelector.ledgerVersion) || 'aptos transaction timestamp')} • aptos transaction timestamp • Blockhead</title>
 </svelte:head>
 
 

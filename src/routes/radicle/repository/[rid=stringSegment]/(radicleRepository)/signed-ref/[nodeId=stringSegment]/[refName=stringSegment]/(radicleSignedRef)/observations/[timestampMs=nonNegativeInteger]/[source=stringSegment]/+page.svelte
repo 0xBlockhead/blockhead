@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'radicle signed ref timestamp'} • radicle signed ref timestamp • Blockhead</title>
+	<title>{data?.title ?? 'radicle signed ref timestamp'} • radicle signed ref timestamp • Blockhead</title>
 </svelte:head>
 
 

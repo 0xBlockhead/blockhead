@@ -37,7 +37,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.classHash || 'starknet class')} • starknet class • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.classHash || 'starknet class')} • starknet class • Blockhead</title>
 </svelte:head>
 
 

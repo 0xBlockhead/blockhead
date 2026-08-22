@@ -37,7 +37,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.gaugeAddress ?? '') || 'Curve gauge' : [(pageSelection.entity.name ?? ''), pageSelection.entitySelector.gaugeAddress].filter(Boolean).join(' ') || 'Curve gauge')} • Curve gauge • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.gaugeAddress ?? '') || 'Curve gauge' : [(pageSelection.entity.name ?? ''), pageSelection.entitySelector.gaugeAddress].filter(Boolean).join(' ') || 'Curve gauge')} • Curve gauge • Blockhead</title>
 </svelte:head>
 
 

@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'Lightning channel routing policy'} • Lightning channel routing policy • Blockhead</title>
+	<title>{data?.title ?? 'Lightning channel routing policy'} • Lightning channel routing policy • Blockhead</title>
 </svelte:head>
 
 

@@ -37,7 +37,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? 'Cardano governance vote' : pageSelection.entity.vote || 'Cardano governance vote')} • Cardano governance vote • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entity == null ? 'Cardano governance vote' : pageSelection.entity.vote || 'Cardano governance vote')} • Cardano governance vote • Blockhead</title>
 </svelte:head>
 
 

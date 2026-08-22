@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'transfer restriction check timestamp'} • transfer restriction check timestamp • Blockhead</title>
+	<title>{data?.title ?? 'transfer restriction check timestamp'} • transfer restriction check timestamp • Blockhead</title>
 </svelte:head>
 
 

@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'zero g storage node timestamp'} • zero g storage node timestamp • Blockhead</title>
+	<title>{data?.title ?? 'zero g storage node timestamp'} • zero g storage node timestamp • Blockhead</title>
 </svelte:head>
 
 

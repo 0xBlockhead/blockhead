@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'Cardano transaction output asset'} • Cardano transaction output asset • Blockhead</title>
+	<title>{data?.title ?? 'Cardano transaction output asset'} • Cardano transaction output asset • Blockhead</title>
 </svelte:head>
 
 

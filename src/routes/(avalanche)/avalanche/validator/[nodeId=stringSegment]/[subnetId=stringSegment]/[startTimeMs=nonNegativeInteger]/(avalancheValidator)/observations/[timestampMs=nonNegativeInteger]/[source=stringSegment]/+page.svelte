@@ -32,7 +32,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (String(pageSelection.entitySelector.timestampMs) || 'avalanche validator timestamp')} • avalanche validator timestamp • Blockhead</title>
+	<title>{data?.title ?? (String(pageSelection.entitySelector.timestampMs) || 'avalanche validator timestamp')} • avalanche validator timestamp • Blockhead</title>
 </svelte:head>
 
 

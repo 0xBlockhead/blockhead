@@ -29,7 +29,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.path || 'Git tree entry')} • Git tree entry • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.path || 'Git tree entry')} • Git tree entry • Blockhead</title>
 </svelte:head>
 
 

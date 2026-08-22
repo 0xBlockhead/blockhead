@@ -30,7 +30,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.providerId ?? '') || 'AI model provider' : (pageSelection.entity.label ?? '') || [(pageSelection.entitySelector.providerId ?? ''), (pageSelection.entity.domain ?? '')].filter(Boolean).join(' ') || 'AI model provider')} • AI model provider • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.providerId ?? '') || 'AI model provider' : (pageSelection.entity.label ?? '') || [(pageSelection.entitySelector.providerId ?? ''), (pageSelection.entity.domain ?? '')].filter(Boolean).join(' ') || 'AI model provider')} • AI model provider • Blockhead</title>
 </svelte:head>
 
 

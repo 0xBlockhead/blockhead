@@ -32,7 +32,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (String(pageSelection.entitySelector.timestampMs) || 'ACP terminal timestamp')} • ACP terminal timestamp • Blockhead</title>
+	<title>{data?.title ?? (String(pageSelection.entitySelector.timestampMs) || 'ACP terminal timestamp')} • ACP terminal timestamp • Blockhead</title>
 </svelte:head>
 
 

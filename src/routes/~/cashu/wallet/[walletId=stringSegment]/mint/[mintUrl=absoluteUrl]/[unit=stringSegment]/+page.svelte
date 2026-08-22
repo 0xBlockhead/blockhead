@@ -25,7 +25,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.walletId || 'blockhead Cashu wallet state')} • blockhead Cashu wallet state • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.walletId || 'blockhead Cashu wallet state')} • blockhead Cashu wallet state • Blockhead</title>
 </svelte:head>
 
 

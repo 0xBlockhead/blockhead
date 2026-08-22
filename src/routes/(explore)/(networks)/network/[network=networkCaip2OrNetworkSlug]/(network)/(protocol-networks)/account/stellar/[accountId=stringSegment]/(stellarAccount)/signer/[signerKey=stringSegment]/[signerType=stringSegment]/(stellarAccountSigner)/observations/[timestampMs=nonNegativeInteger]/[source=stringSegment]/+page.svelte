@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'stellar account signer timestamp'} • stellar account signer timestamp • Blockhead</title>
+	<title>{data?.title ?? 'stellar account signer timestamp'} • stellar account signer timestamp • Blockhead</title>
 </svelte:head>
 
 

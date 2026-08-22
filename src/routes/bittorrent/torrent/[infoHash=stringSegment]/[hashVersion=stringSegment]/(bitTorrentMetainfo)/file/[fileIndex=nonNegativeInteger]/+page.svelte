@@ -33,7 +33,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? 'bit torrent file' : pageSelection.entity.path || 'bit torrent file')} • bit torrent file • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entity == null ? 'bit torrent file' : pageSelection.entity.path || 'bit torrent file')} • bit torrent file • Blockhead</title>
 </svelte:head>
 
 

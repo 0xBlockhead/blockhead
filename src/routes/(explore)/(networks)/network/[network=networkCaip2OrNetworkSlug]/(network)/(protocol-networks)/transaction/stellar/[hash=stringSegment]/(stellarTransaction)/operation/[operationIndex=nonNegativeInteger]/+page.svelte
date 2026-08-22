@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'stellar operation'} • stellar operation • Blockhead</title>
+	<title>{data?.title ?? 'stellar operation'} • stellar operation • Blockhead</title>
 </svelte:head>
 
 

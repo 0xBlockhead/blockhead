@@ -33,7 +33,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.messageHash || 'blockhead waku message observation timestamp')} • blockhead waku message observation timestamp • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.messageHash || 'blockhead waku message observation timestamp')} • blockhead waku message observation timestamp • Blockhead</title>
 </svelte:head>
 
 

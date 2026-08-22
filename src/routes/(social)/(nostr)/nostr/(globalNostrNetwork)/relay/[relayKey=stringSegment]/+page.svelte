@@ -25,7 +25,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.relayUrl || 'Nostr relay')} • Nostr relay • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.relayUrl || 'Nostr relay')} • Nostr relay • Blockhead</title>
 </svelte:head>
 
 

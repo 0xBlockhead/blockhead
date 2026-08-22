@@ -35,7 +35,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.cid || 'filecoin block')} • filecoin block • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.cid || 'filecoin block')} • filecoin block • Blockhead</title>
 </svelte:head>
 
 

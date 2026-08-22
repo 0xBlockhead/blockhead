@@ -33,7 +33,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? 'Git forge job' : pageSelection.entity.name || 'Git forge job')} • Git forge job • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entity == null ? 'Git forge job' : pageSelection.entity.name || 'Git forge job')} • Git forge job • Blockhead</title>
 </svelte:head>
 
 

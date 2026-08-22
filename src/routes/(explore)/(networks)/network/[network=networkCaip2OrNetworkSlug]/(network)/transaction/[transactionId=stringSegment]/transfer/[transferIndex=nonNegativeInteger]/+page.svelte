@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'tron token transfer'} • tron token transfer • Blockhead</title>
+	<title>{data?.title ?? 'tron token transfer'} • tron token transfer • Blockhead</title>
 </svelte:head>
 
 

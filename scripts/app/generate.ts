@@ -14371,7 +14371,7 @@ const generatePageFile = (
 				viewEntityDefinition,
 				indexes,
 				'pageSelection',
-				usesData ? 'data.title' : undefined,
+				usesData ? 'data?.title' : undefined,
 				'pageSelection.entitySelector',
 				viewSelector
 			)

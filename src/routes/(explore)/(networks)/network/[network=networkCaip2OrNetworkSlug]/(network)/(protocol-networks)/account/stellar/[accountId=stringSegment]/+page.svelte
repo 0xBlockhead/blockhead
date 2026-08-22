@@ -23,7 +23,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'stellar account'} • stellar account • Blockhead</title>
+	<title>{data?.title ?? 'stellar account'} • stellar account • Blockhead</title>
 </svelte:head>
 
 

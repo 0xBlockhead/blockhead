@@ -25,7 +25,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'Balancer account pool balance'} • Balancer account pool balance • Blockhead</title>
+	<title>{data?.title ?? 'Balancer account pool balance'} • Balancer account pool balance • Blockhead</title>
 </svelte:head>
 
 

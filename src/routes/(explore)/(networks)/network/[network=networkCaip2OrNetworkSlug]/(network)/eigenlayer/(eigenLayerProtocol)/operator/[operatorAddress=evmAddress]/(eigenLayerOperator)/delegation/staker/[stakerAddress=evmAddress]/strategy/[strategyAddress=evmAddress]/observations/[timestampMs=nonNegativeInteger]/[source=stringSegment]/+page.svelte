@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'eigen layer delegation timestamp'} • eigen layer delegation timestamp • Blockhead</title>
+	<title>{data?.title ?? 'eigen layer delegation timestamp'} • eigen layer delegation timestamp • Blockhead</title>
 </svelte:head>
 
 

@@ -33,7 +33,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.gaugeAddress ?? '') || 'Balancer gauge' : [(pageSelection.entity.poolSymbol ?? ''), pageSelection.entitySelector.gaugeAddress].filter(Boolean).join(' ') || 'Balancer gauge')} • Balancer gauge • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.gaugeAddress ?? '') || 'Balancer gauge' : [(pageSelection.entity.poolSymbol ?? ''), pageSelection.entitySelector.gaugeAddress].filter(Boolean).join(' ') || 'Balancer gauge')} • Balancer gauge • Blockhead</title>
 </svelte:head>
 
 

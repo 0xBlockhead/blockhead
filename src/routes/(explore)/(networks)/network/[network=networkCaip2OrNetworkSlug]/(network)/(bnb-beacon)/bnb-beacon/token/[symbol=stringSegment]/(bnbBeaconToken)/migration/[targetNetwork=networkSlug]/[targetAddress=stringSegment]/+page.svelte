@@ -29,7 +29,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? 'bnb beacon token migration' : pageSelection.entity.migrationKind || 'bnb beacon token migration')} • bnb beacon token migration • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entity == null ? 'bnb beacon token migration' : pageSelection.entity.migrationKind || 'bnb beacon token migration')} • bnb beacon token migration • Blockhead</title>
 </svelte:head>
 
 

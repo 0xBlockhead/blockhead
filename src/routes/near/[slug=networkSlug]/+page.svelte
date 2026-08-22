@@ -34,7 +34,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.slug ?? '') || 'near network' : [(pageSelection.entity.name ?? ''), pageSelection.entitySelector.slug].filter(Boolean).join(' ') || 'near network')} • near network • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.slug ?? '') || 'near network' : [(pageSelection.entity.name ?? ''), pageSelection.entitySelector.slug].filter(Boolean).join(' ') || 'near network')} • near network • Blockhead</title>
 </svelte:head>
 
 

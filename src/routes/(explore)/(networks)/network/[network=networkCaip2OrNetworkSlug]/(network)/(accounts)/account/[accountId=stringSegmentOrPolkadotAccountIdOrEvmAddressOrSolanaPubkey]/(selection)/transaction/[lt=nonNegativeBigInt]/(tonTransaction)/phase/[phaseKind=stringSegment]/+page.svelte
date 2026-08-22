@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'TON transaction phase'} • TON transaction phase • Blockhead</title>
+	<title>{data?.title ?? 'TON transaction phase'} • TON transaction phase • Blockhead</title>
 </svelte:head>
 
 

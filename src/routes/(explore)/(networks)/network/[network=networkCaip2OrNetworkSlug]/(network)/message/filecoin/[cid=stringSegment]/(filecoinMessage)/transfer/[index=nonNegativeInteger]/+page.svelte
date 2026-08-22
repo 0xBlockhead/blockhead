@@ -37,7 +37,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? 'filecoin message transfer' : pageSelection.entity.transferType || 'filecoin message transfer')} • filecoin message transfer • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entity == null ? 'filecoin message transfer' : pageSelection.entity.transferType || 'filecoin message transfer')} • filecoin message transfer • Blockhead</title>
 </svelte:head>
 
 

@@ -35,7 +35,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? String(pageSelection.entitySelector.timestampMs ?? '') || 'Lightning public node observation' : [(pageSelection.entity.alias ?? ''), String(pageSelection.entitySelector.timestampMs)].filter(Boolean).join(' ') || 'Lightning public node observation')} • Lightning public node observation • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entity == null ? String(pageSelection.entitySelector.timestampMs ?? '') || 'Lightning public node observation' : [(pageSelection.entity.alias ?? ''), String(pageSelection.entitySelector.timestampMs)].filter(Boolean).join(' ') || 'Lightning public node observation')} • Lightning public node observation • Blockhead</title>
 </svelte:head>
 
 

@@ -32,7 +32,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.source || 'EVM network actor coin balance timestamp')} • EVM network actor coin balance timestamp • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.source || 'EVM network actor coin balance timestamp')} • EVM network actor coin balance timestamp • Blockhead</title>
 </svelte:head>
 
 

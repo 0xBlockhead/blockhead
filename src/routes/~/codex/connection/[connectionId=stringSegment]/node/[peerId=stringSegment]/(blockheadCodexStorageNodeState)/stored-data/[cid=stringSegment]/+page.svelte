@@ -30,7 +30,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.cid || 'blockhead codex stored data')} • blockhead codex stored data • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.cid || 'blockhead codex stored data')} • blockhead codex stored data • Blockhead</title>
 </svelte:head>
 
 

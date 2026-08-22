@@ -32,7 +32,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (String(pageSelection.entitySelector.timestampMs) || 'network upgrade observation')} • network upgrade observation • Blockhead</title>
+	<title>{data?.title ?? (String(pageSelection.entitySelector.timestampMs) || 'network upgrade observation')} • network upgrade observation • Blockhead</title>
 </svelte:head>
 
 

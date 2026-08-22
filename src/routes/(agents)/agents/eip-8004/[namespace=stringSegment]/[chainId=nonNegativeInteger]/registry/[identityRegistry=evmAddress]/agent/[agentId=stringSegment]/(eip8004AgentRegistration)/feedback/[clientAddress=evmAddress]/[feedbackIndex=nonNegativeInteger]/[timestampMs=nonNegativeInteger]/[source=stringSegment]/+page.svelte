@@ -37,7 +37,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? String(pageSelection.entitySelector.feedbackIndex ?? '') || 'EIP-8004 reputation feedback timestamp' : (pageSelection.entity.value ?? '') || String(pageSelection.entitySelector.feedbackIndex) || 'EIP-8004 reputation feedback timestamp')} • EIP-8004 reputation feedback timestamp • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entity == null ? String(pageSelection.entitySelector.feedbackIndex ?? '') || 'EIP-8004 reputation feedback timestamp' : (pageSelection.entity.value ?? '') || String(pageSelection.entitySelector.feedbackIndex) || 'EIP-8004 reputation feedback timestamp')} • EIP-8004 reputation feedback timestamp • Blockhead</title>
 </svelte:head>
 
 

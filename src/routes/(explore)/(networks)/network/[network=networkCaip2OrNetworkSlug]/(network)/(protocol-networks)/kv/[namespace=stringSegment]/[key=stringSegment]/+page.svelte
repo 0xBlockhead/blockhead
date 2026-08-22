@@ -31,7 +31,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.key || 'zero g kv entry')} • zero g kv entry • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.key || 'zero g kv entry')} • zero g kv entry • Blockhead</title>
 </svelte:head>
 
 

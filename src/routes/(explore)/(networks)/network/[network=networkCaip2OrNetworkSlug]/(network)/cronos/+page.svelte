@@ -23,7 +23,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'cronos network profile'} • cronos network profile • Blockhead</title>
+	<title>{data?.title ?? 'cronos network profile'} • cronos network profile • Blockhead</title>
 </svelte:head>
 
 

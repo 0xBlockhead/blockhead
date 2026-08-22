@@ -30,7 +30,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.avsAddress || 'eigen layer avs')} • eigen layer avs • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.avsAddress || 'eigen layer avs')} • eigen layer avs • Blockhead</title>
 </svelte:head>
 
 

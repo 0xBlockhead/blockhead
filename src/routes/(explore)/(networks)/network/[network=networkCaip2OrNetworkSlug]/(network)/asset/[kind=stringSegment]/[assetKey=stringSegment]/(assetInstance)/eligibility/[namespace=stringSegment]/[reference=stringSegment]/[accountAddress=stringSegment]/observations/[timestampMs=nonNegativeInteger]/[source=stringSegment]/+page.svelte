@@ -39,7 +39,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (String(pageSelection.entitySelector.timestampMs) || 'asset eligibility')} • asset eligibility • Blockhead</title>
+	<title>{data?.title ?? (String(pageSelection.entitySelector.timestampMs) || 'asset eligibility')} • asset eligibility • Blockhead</title>
 </svelte:head>
 
 

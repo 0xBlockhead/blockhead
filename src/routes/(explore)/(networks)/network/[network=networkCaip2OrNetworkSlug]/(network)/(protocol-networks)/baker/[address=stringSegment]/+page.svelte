@@ -23,7 +23,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'tezos baker'} • tezos baker • Blockhead</title>
+	<title>{data?.title ?? 'tezos baker'} • tezos baker • Blockhead</title>
 </svelte:head>
 
 

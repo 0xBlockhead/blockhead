@@ -42,7 +42,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? 'Uniswap V3 pool' : pageSelection.entity.poolAddress || 'Uniswap V3 pool')} • Uniswap V3 pool • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entity == null ? 'Uniswap V3 pool' : pageSelection.entity.poolAddress || 'Uniswap V3 pool')} • Uniswap V3 pool • Blockhead</title>
 </svelte:head>
 
 

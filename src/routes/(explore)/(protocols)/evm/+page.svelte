@@ -33,7 +33,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? 'EVM protocol' : pageSelection.entity.protocolName || 'EVM protocol')} • EVM protocol • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entity == null ? 'EVM protocol' : pageSelection.entity.protocolName || 'EVM protocol')} • EVM protocol • Blockhead</title>
 </svelte:head>
 
 

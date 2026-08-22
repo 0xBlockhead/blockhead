@@ -37,7 +37,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? String(pageSelection.entitySelector.noteId ?? '') || 'Git forge issue note' : pageSelection.entity.body || String(pageSelection.entitySelector.noteId) || 'Git forge issue note')} • Git forge issue note • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entity == null ? String(pageSelection.entitySelector.noteId ?? '') || 'Git forge issue note' : pageSelection.entity.body || String(pageSelection.entitySelector.noteId) || 'Git forge issue note')} • Git forge issue note • Blockhead</title>
 </svelte:head>
 
 

@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'tezos big map key timestamp'} • tezos big map key timestamp • Blockhead</title>
+	<title>{data?.title ?? 'tezos big map key timestamp'} • tezos big map key timestamp • Blockhead</title>
 </svelte:head>
 
 

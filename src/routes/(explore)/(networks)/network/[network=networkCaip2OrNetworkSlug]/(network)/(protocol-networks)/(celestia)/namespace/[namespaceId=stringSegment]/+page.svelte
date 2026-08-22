@@ -33,7 +33,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.namespaceId ?? '') || 'celestia namespace' : (pageSelection.entity.label ?? '') || pageSelection.entitySelector.namespaceId || 'celestia namespace')} • celestia namespace • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.namespaceId ?? '') || 'celestia namespace' : (pageSelection.entity.label ?? '') || pageSelection.entitySelector.namespaceId || 'celestia namespace')} • celestia namespace • Blockhead</title>
 </svelte:head>
 
 

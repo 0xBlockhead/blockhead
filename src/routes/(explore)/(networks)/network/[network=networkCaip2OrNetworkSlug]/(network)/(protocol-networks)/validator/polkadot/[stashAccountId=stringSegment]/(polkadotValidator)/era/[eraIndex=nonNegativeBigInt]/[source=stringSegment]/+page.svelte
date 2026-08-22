@@ -32,7 +32,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (String(pageSelection.entitySelector.eraIndex) || 'polkadot validator era')} • polkadot validator era • Blockhead</title>
+	<title>{data?.title ?? (String(pageSelection.entitySelector.eraIndex) || 'polkadot validator era')} • polkadot validator era • Blockhead</title>
 </svelte:head>
 
 

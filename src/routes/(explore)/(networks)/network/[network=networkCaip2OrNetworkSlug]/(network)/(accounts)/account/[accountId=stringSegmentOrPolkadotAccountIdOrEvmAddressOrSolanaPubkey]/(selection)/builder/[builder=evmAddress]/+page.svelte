@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'hyperliquid builder approval'} • hyperliquid builder approval • Blockhead</title>
+	<title>{data?.title ?? 'hyperliquid builder approval'} • hyperliquid builder approval • Blockhead</title>
 </svelte:head>
 
 

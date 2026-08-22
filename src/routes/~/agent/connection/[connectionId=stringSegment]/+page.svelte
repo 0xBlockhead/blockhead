@@ -30,7 +30,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.connectionId || 'blockhead agent connection')} • blockhead agent connection • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.connectionId || 'blockhead agent connection')} • blockhead agent connection • Blockhead</title>
 </svelte:head>
 
 

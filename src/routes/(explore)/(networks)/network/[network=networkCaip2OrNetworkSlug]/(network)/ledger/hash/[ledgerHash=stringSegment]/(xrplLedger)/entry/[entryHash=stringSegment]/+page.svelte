@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'XRPL ledger entry'} • XRPL ledger entry • Blockhead</title>
+	<title>{data?.title ?? 'XRPL ledger entry'} • XRPL ledger entry • Blockhead</title>
 </svelte:head>
 
 

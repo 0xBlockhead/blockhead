@@ -29,7 +29,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.structName || 'move struct')} • move struct • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.structName || 'move struct')} • move struct • Blockhead</title>
 </svelte:head>
 
 

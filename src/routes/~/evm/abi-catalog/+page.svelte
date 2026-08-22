@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'global EVM ABI catalog'} • global EVM ABI catalog • Blockhead</title>
+	<title>{data?.title ?? 'global EVM ABI catalog'} • global EVM ABI catalog • Blockhead</title>
 </svelte:head>
 
 

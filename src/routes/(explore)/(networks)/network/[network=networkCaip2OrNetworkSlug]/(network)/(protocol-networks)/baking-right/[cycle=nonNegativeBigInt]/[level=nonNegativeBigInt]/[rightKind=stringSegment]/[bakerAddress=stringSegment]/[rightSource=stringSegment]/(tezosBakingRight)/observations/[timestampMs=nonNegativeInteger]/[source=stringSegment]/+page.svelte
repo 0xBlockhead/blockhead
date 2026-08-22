@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'tezos baking right timestamp'} • tezos baking right timestamp • Blockhead</title>
+	<title>{data?.title ?? 'tezos baking right timestamp'} • tezos baking right timestamp • Blockhead</title>
 </svelte:head>
 
 

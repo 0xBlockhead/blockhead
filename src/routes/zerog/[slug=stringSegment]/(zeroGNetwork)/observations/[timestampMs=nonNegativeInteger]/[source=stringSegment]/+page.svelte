@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'zero g network timestamp'} • zero g network timestamp • Blockhead</title>
+	<title>{data?.title ?? 'zero g network timestamp'} • zero g network timestamp • Blockhead</title>
 </svelte:head>
 
 

@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'Sui package upgrade'} • Sui package upgrade • Blockhead</title>
+	<title>{data?.title ?? 'Sui package upgrade'} • Sui package upgrade • Blockhead</title>
 </svelte:head>
 
 

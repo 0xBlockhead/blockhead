@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'algorand transaction group'} • algorand transaction group • Blockhead</title>
+	<title>{data?.title ?? 'algorand transaction group'} • algorand transaction group • Blockhead</title>
 </svelte:head>
 
 

@@ -37,7 +37,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? 'litecoin MWEB output' : (pageSelection.entity.commitment ?? '') || 'litecoin MWEB output')} • litecoin MWEB output • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entity == null ? 'litecoin MWEB output' : (pageSelection.entity.commitment ?? '') || 'litecoin MWEB output')} • litecoin MWEB output • Blockhead</title>
 </svelte:head>
 
 

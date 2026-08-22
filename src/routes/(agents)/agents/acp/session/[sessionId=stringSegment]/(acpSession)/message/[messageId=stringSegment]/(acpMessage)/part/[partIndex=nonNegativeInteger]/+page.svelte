@@ -37,7 +37,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? 'ACP message part' : pageSelection.entity.partKind || 'ACP message part')} • ACP message part • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entity == null ? 'ACP message part' : pageSelection.entity.partKind || 'ACP message part')} • ACP message part • Blockhead</title>
 </svelte:head>
 
 

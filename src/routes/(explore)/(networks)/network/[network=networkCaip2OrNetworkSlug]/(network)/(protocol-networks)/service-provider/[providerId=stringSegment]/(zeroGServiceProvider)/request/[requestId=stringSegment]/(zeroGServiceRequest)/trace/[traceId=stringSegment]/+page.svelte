@@ -36,7 +36,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.traceId || 'zero g settlement trace')} • zero g settlement trace • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.traceId || 'zero g settlement trace')} • zero g settlement trace • Blockhead</title>
 </svelte:head>
 
 

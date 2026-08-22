@@ -33,7 +33,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? 'XMTP' : pageSelection.entity.protocolName || 'XMTP')} • XMTP • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entity == null ? 'XMTP' : pageSelection.entity.protocolName || 'XMTP')} • XMTP • Blockhead</title>
 </svelte:head>
 
 

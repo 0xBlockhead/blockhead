@@ -29,7 +29,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? String(pageSelection.entitySelector.appId ?? '') || 'avail app ID' : (pageSelection.entity.label ?? '') || String(pageSelection.entitySelector.appId) || 'avail app ID')} • avail app ID • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entity == null ? String(pageSelection.entitySelector.appId ?? '') || 'avail app ID' : (pageSelection.entity.label ?? '') || String(pageSelection.entitySelector.appId) || 'avail app ID')} • avail app ID • Blockhead</title>
 </svelte:head>
 
 

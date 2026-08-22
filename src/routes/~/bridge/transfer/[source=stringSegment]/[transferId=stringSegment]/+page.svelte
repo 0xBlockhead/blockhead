@@ -27,7 +27,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.transferId || 'bridge transfer')} • bridge transfer • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.transferId || 'bridge transfer')} • bridge transfer • Blockhead</title>
 </svelte:head>
 
 

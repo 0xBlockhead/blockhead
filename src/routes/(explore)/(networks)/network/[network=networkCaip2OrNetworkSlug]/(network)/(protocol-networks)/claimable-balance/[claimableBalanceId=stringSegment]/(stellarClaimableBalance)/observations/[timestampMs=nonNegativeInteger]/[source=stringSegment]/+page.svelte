@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'stellar claimable balance timestamp'} • stellar claimable balance timestamp • Blockhead</title>
+	<title>{data?.title ?? 'stellar claimable balance timestamp'} • stellar claimable balance timestamp • Blockhead</title>
 </svelte:head>
 
 

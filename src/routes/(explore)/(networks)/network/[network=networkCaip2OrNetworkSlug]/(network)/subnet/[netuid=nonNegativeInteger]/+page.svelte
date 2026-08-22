@@ -34,7 +34,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? String(pageSelection.entitySelector.netuid ?? '') || 'Bittensor subnet' : [(pageSelection.entity.name ?? ''), String(pageSelection.entitySelector.netuid)].filter(Boolean).join(' ') || 'Bittensor subnet')} • Bittensor subnet • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entity == null ? String(pageSelection.entitySelector.netuid ?? '') || 'Bittensor subnet' : [(pageSelection.entity.name ?? ''), String(pageSelection.entitySelector.netuid)].filter(Boolean).join(' ') || 'Bittensor subnet')} • Bittensor subnet • Blockhead</title>
 </svelte:head>
 
 

@@ -32,7 +32,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (String(pageSelection.entitySelector.timestampMs) || 'blockhead state channel deposit timestamp')} • blockhead state channel deposit timestamp • Blockhead</title>
+	<title>{data?.title ?? (String(pageSelection.entitySelector.timestampMs) || 'blockhead state channel deposit timestamp')} • blockhead state channel deposit timestamp • Blockhead</title>
 </svelte:head>
 
 

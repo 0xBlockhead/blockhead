@@ -30,7 +30,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.root || 'beacon block')} • beacon block • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.root || 'beacon block')} • beacon block • Blockhead</title>
 </svelte:head>
 
 

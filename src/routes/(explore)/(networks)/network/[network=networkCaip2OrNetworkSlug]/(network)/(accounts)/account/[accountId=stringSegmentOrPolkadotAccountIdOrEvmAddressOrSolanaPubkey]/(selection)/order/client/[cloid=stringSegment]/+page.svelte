@@ -23,7 +23,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'hyperliquid order'} • hyperliquid order • Blockhead</title>
+	<title>{data?.title ?? 'hyperliquid order'} • hyperliquid order • Blockhead</title>
 </svelte:head>
 
 

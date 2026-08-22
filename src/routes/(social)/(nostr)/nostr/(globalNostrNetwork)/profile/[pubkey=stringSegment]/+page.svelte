@@ -32,7 +32,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.pubkey || 'Nostr profile')} • Nostr profile • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.pubkey || 'Nostr profile')} • Nostr profile • Blockhead</title>
 </svelte:head>
 
 

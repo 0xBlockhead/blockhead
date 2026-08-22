@@ -33,7 +33,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.formatId || 'asset format support timestamp')} • asset format support timestamp • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.formatId || 'asset format support timestamp')} • asset format support timestamp • Blockhead</title>
 </svelte:head>
 
 

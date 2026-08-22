@@ -36,7 +36,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.claimPath || 'AI document claim')} • AI document claim • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.claimPath || 'AI document claim')} • AI document claim • Blockhead</title>
 </svelte:head>
 
 

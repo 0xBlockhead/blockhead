@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'litecoin MWEB transaction'} • litecoin MWEB transaction • Blockhead</title>
+	<title>{data?.title ?? 'litecoin MWEB transaction'} • litecoin MWEB transaction • Blockhead</title>
 </svelte:head>
 
 

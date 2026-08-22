@@ -34,7 +34,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? ((String(pageSelection.entitySelector.sequence ?? '') ? 'Update #' + String(pageSelection.entitySelector.sequence ?? '') : '') || 'ACP session update')} • ACP session update • Blockhead</title>
+	<title>{data?.title ?? ((String(pageSelection.entitySelector.sequence ?? '') ? 'Update #' + String(pageSelection.entitySelector.sequence ?? '') : '') || 'ACP session update')} • ACP session update • Blockhead</title>
 </svelte:head>
 
 

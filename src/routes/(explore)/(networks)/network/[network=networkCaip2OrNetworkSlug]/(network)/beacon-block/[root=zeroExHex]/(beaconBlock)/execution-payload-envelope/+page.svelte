@@ -33,7 +33,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? 'Beacon execution payload envelope' : 'Execution block ' + String(pageSelection.entity.blockNumber))} • Beacon execution payload envelope • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entity == null ? 'Beacon execution payload envelope' : 'Execution block ' + String(pageSelection.entity.blockNumber))} • Beacon execution payload envelope • Blockhead</title>
 </svelte:head>
 
 

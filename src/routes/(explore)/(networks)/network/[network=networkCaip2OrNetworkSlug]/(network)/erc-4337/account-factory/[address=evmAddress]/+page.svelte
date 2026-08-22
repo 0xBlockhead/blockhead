@@ -25,7 +25,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.address || 'ERC-4337 account factory')} • ERC-4337 account factory • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.address || 'ERC-4337 account factory')} • ERC-4337 account factory • Blockhead</title>
 </svelte:head>
 
 

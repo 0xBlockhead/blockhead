@@ -23,7 +23,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'radicle identity document'} • radicle identity document • Blockhead</title>
+	<title>{data?.title ?? 'radicle identity document'} • radicle identity document • Blockhead</title>
 </svelte:head>
 
 

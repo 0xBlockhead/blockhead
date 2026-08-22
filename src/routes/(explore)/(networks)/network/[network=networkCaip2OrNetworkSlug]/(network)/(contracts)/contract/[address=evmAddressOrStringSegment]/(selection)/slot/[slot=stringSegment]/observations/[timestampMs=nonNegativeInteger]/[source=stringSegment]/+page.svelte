@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'hedera contract state timestamp'} • hedera contract state timestamp • Blockhead</title>
+	<title>{data?.title ?? 'hedera contract state timestamp'} • hedera contract state timestamp • Blockhead</title>
 </svelte:head>
 
 

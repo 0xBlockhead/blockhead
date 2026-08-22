@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'claim topic requirement'} • claim topic requirement • Blockhead</title>
+	<title>{data?.title ?? 'claim topic requirement'} • claim topic requirement • Blockhead</title>
 </svelte:head>
 
 

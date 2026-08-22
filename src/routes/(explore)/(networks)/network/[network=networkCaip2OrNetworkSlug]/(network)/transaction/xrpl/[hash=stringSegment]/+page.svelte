@@ -23,7 +23,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'XRPL transaction'} • XRPL transaction • Blockhead</title>
+	<title>{data?.title ?? 'XRPL transaction'} • XRPL transaction • Blockhead</title>
 </svelte:head>
 
 

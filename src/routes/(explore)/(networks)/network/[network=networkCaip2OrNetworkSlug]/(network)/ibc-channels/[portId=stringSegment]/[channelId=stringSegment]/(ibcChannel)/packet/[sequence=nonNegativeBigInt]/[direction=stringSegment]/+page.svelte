@@ -30,7 +30,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? ((String(pageSelection.entitySelector.sequence ?? '') ? 'Packet #' + String(pageSelection.entitySelector.sequence ?? '') : '') || 'IBC packet')} • IBC packet • Blockhead</title>
+	<title>{data?.title ?? ((String(pageSelection.entitySelector.sequence ?? '') ? 'Packet #' + String(pageSelection.entitySelector.sequence ?? '') : '') || 'IBC packet')} • IBC packet • Blockhead</title>
 </svelte:head>
 
 

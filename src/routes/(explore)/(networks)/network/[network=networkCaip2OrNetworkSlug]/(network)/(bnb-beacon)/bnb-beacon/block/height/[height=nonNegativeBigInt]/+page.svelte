@@ -33,7 +33,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? String(pageSelection.entitySelector.height ?? '') || 'bnb beacon block' : String(pageSelection.entitySelector.height) || pageSelection.entity.hash || 'bnb beacon block')} • bnb beacon block • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entity == null ? String(pageSelection.entitySelector.height ?? '') || 'bnb beacon block' : String(pageSelection.entitySelector.height) || pageSelection.entity.hash || 'bnb beacon block')} • bnb beacon block • Blockhead</title>
 </svelte:head>
 
 

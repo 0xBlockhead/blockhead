@@ -23,7 +23,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'ICP ledger canister'} • ICP ledger canister • Blockhead</title>
+	<title>{data?.title ?? 'ICP ledger canister'} • ICP ledger canister • Blockhead</title>
 </svelte:head>
 
 

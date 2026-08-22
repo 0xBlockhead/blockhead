@@ -33,7 +33,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? 'aptos state change' : pageSelection.entity.changeKind || 'aptos state change')} • aptos state change • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entity == null ? 'aptos state change' : pageSelection.entity.changeKind || 'aptos state change')} • aptos state change • Blockhead</title>
 </svelte:head>
 
 

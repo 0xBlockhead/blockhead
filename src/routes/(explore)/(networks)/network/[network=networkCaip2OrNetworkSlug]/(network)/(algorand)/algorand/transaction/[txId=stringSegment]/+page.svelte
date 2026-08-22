@@ -25,7 +25,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.txId || 'algorand transaction')} • algorand transaction • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.txId || 'algorand transaction')} • algorand transaction • Blockhead</title>
 </svelte:head>
 
 

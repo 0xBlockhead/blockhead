@@ -23,7 +23,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'TON contract get method'} • TON contract get method • Blockhead</title>
+	<title>{data?.title ?? 'TON contract get method'} • TON contract get method • Blockhead</title>
 </svelte:head>
 
 

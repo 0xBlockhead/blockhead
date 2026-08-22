@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'compliance module'} • compliance module • Blockhead</title>
+	<title>{data?.title ?? 'compliance module'} • compliance module • Blockhead</title>
 </svelte:head>
 
 

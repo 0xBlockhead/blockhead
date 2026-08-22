@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'Sui checkpoint'} • Sui checkpoint • Blockhead</title>
+	<title>{data?.title ?? 'Sui checkpoint'} • Sui checkpoint • Blockhead</title>
 </svelte:head>
 
 

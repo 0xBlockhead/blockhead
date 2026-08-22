@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'radicle collaboration event'} • radicle collaboration event • Blockhead</title>
+	<title>{data?.title ?? 'radicle collaboration event'} • radicle collaboration event • Blockhead</title>
 </svelte:head>
 
 

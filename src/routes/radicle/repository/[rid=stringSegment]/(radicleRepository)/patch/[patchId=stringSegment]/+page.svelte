@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'radicle patch'} • radicle patch • Blockhead</title>
+	<title>{data?.title ?? 'radicle patch'} • radicle patch • Blockhead</title>
 </svelte:head>
 
 

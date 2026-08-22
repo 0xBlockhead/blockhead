@@ -35,7 +35,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.newPath || 'Git forge compare file change')} • Git forge compare file change • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.newPath || 'Git forge compare file change')} • Git forge compare file change • Blockhead</title>
 </svelte:head>
 
 

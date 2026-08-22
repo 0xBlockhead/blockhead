@@ -33,7 +33,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? 'Compound position' : pageSelection.entity.baseTokenSymbol || 'Compound position')} • Compound position • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entity == null ? 'Compound position' : pageSelection.entity.baseTokenSymbol || 'Compound position')} • Compound position • Blockhead</title>
 </svelte:head>
 
 

@@ -29,7 +29,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.objectKey || 'asset object')} • asset object • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.objectKey || 'asset object')} • asset object • Blockhead</title>
 </svelte:head>
 
 

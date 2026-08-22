@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'kaspa block'} • kaspa block • Blockhead</title>
+	<title>{data?.title ?? 'kaspa block'} • kaspa block • Blockhead</title>
 </svelte:head>
 
 

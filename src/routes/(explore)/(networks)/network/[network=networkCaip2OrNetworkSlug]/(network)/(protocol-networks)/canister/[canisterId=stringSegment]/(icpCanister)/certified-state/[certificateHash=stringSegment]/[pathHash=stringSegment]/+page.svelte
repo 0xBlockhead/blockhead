@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'ICP certified state'} • ICP certified state • Blockhead</title>
+	<title>{data?.title ?? 'ICP certified state'} • ICP certified state • Blockhead</title>
 </svelte:head>
 
 

@@ -31,7 +31,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.did || 'AT Protocol account')} • AT Protocol account • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.did || 'AT Protocol account')} • AT Protocol account • Blockhead</title>
 </svelte:head>
 
 

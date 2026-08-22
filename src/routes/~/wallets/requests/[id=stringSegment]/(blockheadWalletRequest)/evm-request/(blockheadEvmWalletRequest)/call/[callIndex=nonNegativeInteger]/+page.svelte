@@ -34,7 +34,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? ((String(pageSelection.entitySelector.callIndex ?? '') ? 'Call #' + String(pageSelection.entitySelector.callIndex ?? '') : '') || 'blockhead wallet request call')} • blockhead wallet request call • Blockhead</title>
+	<title>{data?.title ?? ((String(pageSelection.entitySelector.callIndex ?? '') ? 'Call #' + String(pageSelection.entitySelector.callIndex ?? '') : '') || 'blockhead wallet request call')} • blockhead wallet request call • Blockhead</title>
 </svelte:head>
 
 

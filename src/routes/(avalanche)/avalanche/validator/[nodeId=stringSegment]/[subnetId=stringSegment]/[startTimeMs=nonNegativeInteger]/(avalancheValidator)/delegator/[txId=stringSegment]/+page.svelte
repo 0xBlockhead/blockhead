@@ -33,7 +33,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.txId ?? '') || 'avalanche delegator' : (pageSelection.entity.delegatorAddress ?? '') || pageSelection.entitySelector.txId || 'avalanche delegator')} • avalanche delegator • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.txId ?? '') || 'avalanche delegator' : (pageSelection.entity.delegatorAddress ?? '') || pageSelection.entitySelector.txId || 'avalanche delegator')} • avalanche delegator • Blockhead</title>
 </svelte:head>
 
 

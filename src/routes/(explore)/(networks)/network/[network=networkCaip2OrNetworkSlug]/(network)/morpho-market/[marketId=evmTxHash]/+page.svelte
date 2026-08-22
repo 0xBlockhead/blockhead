@@ -31,7 +31,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.marketId || 'Morpho market')} • Morpho market • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.marketId || 'Morpho market')} • Morpho market • Blockhead</title>
 </svelte:head>
 
 

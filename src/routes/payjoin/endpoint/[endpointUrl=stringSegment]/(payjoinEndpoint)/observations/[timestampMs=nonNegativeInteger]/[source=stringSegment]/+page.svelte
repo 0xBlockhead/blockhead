@@ -32,7 +32,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (String(pageSelection.entitySelector.timestampMs) || 'payjoin endpoint timestamp')} • payjoin endpoint timestamp • Blockhead</title>
+	<title>{data?.title ?? (String(pageSelection.entitySelector.timestampMs) || 'payjoin endpoint timestamp')} • payjoin endpoint timestamp • Blockhead</title>
 </svelte:head>
 
 

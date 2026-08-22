@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'hyperliquid balance'} • hyperliquid balance • Blockhead</title>
+	<title>{data?.title ?? 'hyperliquid balance'} • hyperliquid balance • Blockhead</title>
 </svelte:head>
 
 

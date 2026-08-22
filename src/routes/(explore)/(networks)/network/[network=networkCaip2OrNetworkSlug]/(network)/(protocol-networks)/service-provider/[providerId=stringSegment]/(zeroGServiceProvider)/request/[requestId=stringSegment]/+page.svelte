@@ -32,7 +32,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.requestId || 'zero g service request')} • zero g service request • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.requestId || 'zero g service request')} • zero g service request • Blockhead</title>
 </svelte:head>
 
 

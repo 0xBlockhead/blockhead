@@ -25,7 +25,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.nodeId || 'avalanche validator')} • avalanche validator • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.nodeId || 'avalanche validator')} • avalanche validator • Blockhead</title>
 </svelte:head>
 
 

@@ -31,7 +31,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.publicKey || 'blockhead Logos blockchain wallet key state')} • blockhead Logos blockchain wallet key state • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.publicKey || 'blockhead Logos blockchain wallet key state')} • blockhead Logos blockchain wallet key state • Blockhead</title>
 </svelte:head>
 
 

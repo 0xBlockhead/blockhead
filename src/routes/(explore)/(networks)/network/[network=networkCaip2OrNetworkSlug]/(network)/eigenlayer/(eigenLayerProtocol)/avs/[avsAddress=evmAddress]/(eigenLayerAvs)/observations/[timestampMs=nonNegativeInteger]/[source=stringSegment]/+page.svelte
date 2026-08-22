@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'eigen layer avs timestamp'} • eigen layer avs timestamp • Blockhead</title>
+	<title>{data?.title ?? 'eigen layer avs timestamp'} • eigen layer avs timestamp • Blockhead</title>
 </svelte:head>
 
 

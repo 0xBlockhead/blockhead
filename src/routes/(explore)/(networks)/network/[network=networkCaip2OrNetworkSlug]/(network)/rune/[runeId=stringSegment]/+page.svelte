@@ -34,7 +34,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? 'Bitcoin Rune' : [(pageSelection.entity.spacedRune ?? ''), (pageSelection.entity.rune ?? '')].filter(Boolean).join(' ') || 'Bitcoin Rune')} • Bitcoin Rune • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entity == null ? 'Bitcoin Rune' : [(pageSelection.entity.spacedRune ?? ''), (pageSelection.entity.rune ?? '')].filter(Boolean).join(' ') || 'Bitcoin Rune')} • Bitcoin Rune • Blockhead</title>
 </svelte:head>
 
 

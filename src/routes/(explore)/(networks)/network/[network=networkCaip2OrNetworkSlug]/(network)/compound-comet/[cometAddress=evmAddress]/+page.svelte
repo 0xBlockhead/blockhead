@@ -33,7 +33,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? 'Compound Comet market' : pageSelection.entity.name || 'Compound Comet market')} • Compound Comet market • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entity == null ? 'Compound Comet market' : pageSelection.entity.name || 'Compound Comet market')} • Compound Comet market • Blockhead</title>
 </svelte:head>
 
 

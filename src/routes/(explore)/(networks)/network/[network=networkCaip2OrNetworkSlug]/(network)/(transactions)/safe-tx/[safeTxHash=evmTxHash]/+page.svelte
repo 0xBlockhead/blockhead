@@ -30,7 +30,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.safeTxHash || 'Safe transaction')} • Safe transaction • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.safeTxHash || 'Safe transaction')} • Safe transaction • Blockhead</title>
 </svelte:head>
 
 

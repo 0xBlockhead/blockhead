@@ -32,7 +32,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (String(pageSelection.entitySelector.timestampMs) || 'blockhead agent credential state timestamp')} • blockhead agent credential state timestamp • Blockhead</title>
+	<title>{data?.title ?? (String(pageSelection.entitySelector.timestampMs) || 'blockhead agent credential state timestamp')} • blockhead agent credential state timestamp • Blockhead</title>
 </svelte:head>
 
 

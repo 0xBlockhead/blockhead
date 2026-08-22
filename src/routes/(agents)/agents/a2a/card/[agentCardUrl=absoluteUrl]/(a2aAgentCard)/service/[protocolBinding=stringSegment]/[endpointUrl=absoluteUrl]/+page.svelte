@@ -27,7 +27,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.endpointUrl || 'A2A agent service')} • A2A agent service • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.endpointUrl || 'A2A agent service')} • A2A agent service • Blockhead</title>
 </svelte:head>
 
 

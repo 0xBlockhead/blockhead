@@ -32,7 +32,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (String(pageSelection.entitySelector.slot) || 'solana transaction timestamp')} • solana transaction timestamp • Blockhead</title>
+	<title>{data?.title ?? (String(pageSelection.entitySelector.slot) || 'solana transaction timestamp')} • solana transaction timestamp • Blockhead</title>
 </svelte:head>
 
 

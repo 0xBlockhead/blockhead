@@ -32,7 +32,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (String(pageSelection.entitySelector.timestampMs) || 'blockhead Logos blockchain wallet key state timestamp')} • blockhead Logos blockchain wallet key state timestamp • Blockhead</title>
+	<title>{data?.title ?? (String(pageSelection.entitySelector.timestampMs) || 'blockhead Logos blockchain wallet key state timestamp')} • blockhead Logos blockchain wallet key state timestamp • Blockhead</title>
 </svelte:head>
 
 

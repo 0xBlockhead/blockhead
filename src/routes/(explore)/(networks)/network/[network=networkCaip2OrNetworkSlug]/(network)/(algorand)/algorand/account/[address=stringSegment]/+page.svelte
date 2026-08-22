@@ -23,7 +23,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'algorand account'} • algorand account • Blockhead</title>
+	<title>{data?.title ?? 'algorand account'} • algorand account • Blockhead</title>
 </svelte:head>
 
 

@@ -33,7 +33,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.drepCredential ?? '') || 'Cardano DRep' : [(pageSelection.entity.displayName ?? ''), pageSelection.entitySelector.drepCredential].filter(Boolean).join(' ') || 'Cardano DRep')} • Cardano DRep • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.drepCredential ?? '') || 'Cardano DRep' : [(pageSelection.entity.displayName ?? ''), pageSelection.entitySelector.drepCredential].filter(Boolean).join(' ') || 'Cardano DRep')} • Cardano DRep • Blockhead</title>
 </svelte:head>
 
 

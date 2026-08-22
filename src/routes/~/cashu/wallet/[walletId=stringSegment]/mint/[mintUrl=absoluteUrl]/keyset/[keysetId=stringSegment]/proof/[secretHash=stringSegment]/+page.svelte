@@ -25,7 +25,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.secretHash || 'blockhead Cashu proof')} • blockhead Cashu proof • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.secretHash || 'blockhead Cashu proof')} • blockhead Cashu proof • Blockhead</title>
 </svelte:head>
 
 

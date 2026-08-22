@@ -29,7 +29,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (String(pageSelection.entitySelector.height) || 'aptos block')} • aptos block • Blockhead</title>
+	<title>{data?.title ?? (String(pageSelection.entitySelector.height) || 'aptos block')} • aptos block • Blockhead</title>
 </svelte:head>
 
 

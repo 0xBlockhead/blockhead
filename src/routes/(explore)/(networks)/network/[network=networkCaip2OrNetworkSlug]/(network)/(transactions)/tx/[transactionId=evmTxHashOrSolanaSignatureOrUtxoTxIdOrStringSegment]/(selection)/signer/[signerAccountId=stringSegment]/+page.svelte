@@ -36,7 +36,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.hash || 'near transaction')} • near transaction • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.hash || 'near transaction')} • near transaction • Blockhead</title>
 </svelte:head>
 
 

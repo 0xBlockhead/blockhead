@@ -38,7 +38,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? 'erc4626 vault' : [(pageSelection.entity.name ?? ''), (pageSelection.entity.symbol ?? '')].filter(Boolean).join(' ') || 'erc4626 vault')} • erc4626 vault • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entity == null ? 'erc4626 vault' : [(pageSelection.entity.name ?? ''), (pageSelection.entity.symbol ?? '')].filter(Boolean).join(' ') || 'erc4626 vault')} • erc4626 vault • Blockhead</title>
 </svelte:head>
 
 

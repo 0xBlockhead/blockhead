@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'tezos token transfer'} • tezos token transfer • Blockhead</title>
+	<title>{data?.title ?? 'tezos token transfer'} • tezos token transfer • Blockhead</title>
 </svelte:head>
 
 

@@ -35,7 +35,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (String(pageSelection.entitySelector.eventIndex) || 'starknet event')} • starknet event • Blockhead</title>
+	<title>{data?.title ?? (String(pageSelection.entitySelector.eventIndex) || 'starknet event')} • starknet event • Blockhead</title>
 </svelte:head>
 
 

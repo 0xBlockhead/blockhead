@@ -33,7 +33,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? 'Event ' + String(pageSelection.entitySelector.indexInBlock ?? '') : [pageSelection.entity.eventName, 'Event ' + String(pageSelection.entitySelector.indexInBlock)].filter(Boolean).join(' ') || 'Polkadot event')} • Polkadot event • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entity == null ? 'Event ' + String(pageSelection.entitySelector.indexInBlock ?? '') : [pageSelection.entity.eventName, 'Event ' + String(pageSelection.entitySelector.indexInBlock)].filter(Boolean).join(' ') || 'Polkadot event')} • Polkadot event • Blockhead</title>
 </svelte:head>
 
 

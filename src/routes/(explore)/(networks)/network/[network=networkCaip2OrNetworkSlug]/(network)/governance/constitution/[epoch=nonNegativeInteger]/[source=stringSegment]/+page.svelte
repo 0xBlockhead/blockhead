@@ -23,7 +23,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'Cardano constitution epoch'} • Cardano constitution epoch • Blockhead</title>
+	<title>{data?.title ?? 'Cardano constitution epoch'} • Cardano constitution epoch • Blockhead</title>
 </svelte:head>
 
 

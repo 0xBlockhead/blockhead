@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'ENS reverse record'} • ENS reverse record • Blockhead</title>
+	<title>{data?.title ?? 'ENS reverse record'} • ENS reverse record • Blockhead</title>
 </svelte:head>
 
 

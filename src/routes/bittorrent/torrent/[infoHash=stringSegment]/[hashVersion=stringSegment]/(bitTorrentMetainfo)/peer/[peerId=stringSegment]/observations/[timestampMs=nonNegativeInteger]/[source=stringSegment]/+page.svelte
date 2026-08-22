@@ -33,7 +33,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.peerId || 'bit torrent peer timestamp')} • bit torrent peer timestamp • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.peerId || 'bit torrent peer timestamp')} • bit torrent peer timestamp • Blockhead</title>
 </svelte:head>
 
 

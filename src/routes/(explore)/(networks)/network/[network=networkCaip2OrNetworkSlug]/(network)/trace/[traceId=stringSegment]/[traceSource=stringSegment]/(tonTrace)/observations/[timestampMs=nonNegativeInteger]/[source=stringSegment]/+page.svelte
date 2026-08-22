@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'TON trace timestamp'} • TON trace timestamp • Blockhead</title>
+	<title>{data?.title ?? 'TON trace timestamp'} • TON trace timestamp • Blockhead</title>
 </svelte:head>
 
 

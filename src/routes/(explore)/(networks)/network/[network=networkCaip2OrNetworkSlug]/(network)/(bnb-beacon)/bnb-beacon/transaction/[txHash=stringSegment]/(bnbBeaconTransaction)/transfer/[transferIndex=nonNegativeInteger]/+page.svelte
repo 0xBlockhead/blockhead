@@ -33,7 +33,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? 'bnb beacon token transfer' : pageSelection.entity.symbol || 'bnb beacon token transfer')} • bnb beacon token transfer • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entity == null ? 'bnb beacon token transfer' : pageSelection.entity.symbol || 'bnb beacon token transfer')} • bnb beacon token transfer • Blockhead</title>
 </svelte:head>
 
 

@@ -34,7 +34,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? 'aptos event' : pageSelection.entity.eventType || 'aptos event')} • aptos event • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entity == null ? 'aptos event' : pageSelection.entity.eventType || 'aptos event')} • aptos event • Blockhead</title>
 </svelte:head>
 
 

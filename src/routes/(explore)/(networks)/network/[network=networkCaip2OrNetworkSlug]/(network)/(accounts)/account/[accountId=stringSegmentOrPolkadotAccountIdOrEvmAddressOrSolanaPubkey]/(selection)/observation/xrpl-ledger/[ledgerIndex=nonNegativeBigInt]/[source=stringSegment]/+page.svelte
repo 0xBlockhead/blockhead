@@ -35,7 +35,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? 'XRPL account timestamp' : String(pageSelection.entity.balanceDrops ?? '') || 'XRPL account timestamp')} • XRPL account timestamp • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entity == null ? 'XRPL account timestamp' : String(pageSelection.entity.balanceDrops ?? '') || 'XRPL account timestamp')} • XRPL account timestamp • Blockhead</title>
 </svelte:head>
 
 

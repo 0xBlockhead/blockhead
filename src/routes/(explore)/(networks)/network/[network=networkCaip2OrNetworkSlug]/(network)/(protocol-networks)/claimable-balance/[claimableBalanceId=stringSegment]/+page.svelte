@@ -23,7 +23,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'stellar claimable balance'} • stellar claimable balance • Blockhead</title>
+	<title>{data?.title ?? 'stellar claimable balance'} • stellar claimable balance • Blockhead</title>
 </svelte:head>
 
 

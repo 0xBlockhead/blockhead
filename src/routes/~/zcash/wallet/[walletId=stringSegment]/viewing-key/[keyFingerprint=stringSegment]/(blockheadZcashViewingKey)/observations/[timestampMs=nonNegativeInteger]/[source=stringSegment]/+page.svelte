@@ -32,7 +32,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (String(pageSelection.entitySelector.timestampMs) || 'blockhead zcash viewing key timestamp')} • blockhead zcash viewing key timestamp • Blockhead</title>
+	<title>{data?.title ?? (String(pageSelection.entitySelector.timestampMs) || 'blockhead zcash viewing key timestamp')} • blockhead zcash viewing key timestamp • Blockhead</title>
 </svelte:head>
 
 

@@ -33,7 +33,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.transactionHash || 'starknet transaction')} • starknet transaction • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.transactionHash || 'starknet transaction')} • starknet transaction • Blockhead</title>
 </svelte:head>
 
 

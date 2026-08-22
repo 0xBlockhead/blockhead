@@ -23,7 +23,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'Cardano stake credential'} • Cardano stake credential • Blockhead</title>
+	<title>{data?.title ?? 'Cardano stake credential'} • Cardano stake credential • Blockhead</title>
 </svelte:head>
 
 

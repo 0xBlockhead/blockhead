@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'hedera token custom fee'} • hedera token custom fee • Blockhead</title>
+	<title>{data?.title ?? 'hedera token custom fee'} • hedera token custom fee • Blockhead</title>
 </svelte:head>
 
 

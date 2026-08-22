@@ -41,7 +41,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (String(pageSelection.entitySelector.amount) || 'blockhead state channel transfer')} • blockhead state channel transfer • Blockhead</title>
+	<title>{data?.title ?? (String(pageSelection.entitySelector.amount) || 'blockhead state channel transfer')} • blockhead state channel transfer • Blockhead</title>
 </svelte:head>
 
 

@@ -29,7 +29,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.blockId ?? '') || 'avalanche p chain block' : String(pageSelection.entity.height) || pageSelection.entitySelector.blockId || 'avalanche p chain block')} • avalanche p chain block • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.blockId ?? '') || 'avalanche p chain block' : String(pageSelection.entity.height) || pageSelection.entitySelector.blockId || 'avalanche p chain block')} • avalanche p chain block • Blockhead</title>
 </svelte:head>
 
 

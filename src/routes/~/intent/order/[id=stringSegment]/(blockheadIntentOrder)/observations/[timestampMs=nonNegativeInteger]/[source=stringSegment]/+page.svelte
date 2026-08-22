@@ -35,7 +35,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? 'blockhead intent order timestamp' : pageSelection.entity.status || 'blockhead intent order timestamp')} • blockhead intent order timestamp • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entity == null ? 'blockhead intent order timestamp' : pageSelection.entity.status || 'blockhead intent order timestamp')} • blockhead intent order timestamp • Blockhead</title>
 </svelte:head>
 
 

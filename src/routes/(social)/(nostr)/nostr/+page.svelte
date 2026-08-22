@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'Nostr'} • Nostr • Blockhead</title>
+	<title>{data?.title ?? 'Nostr'} • Nostr • Blockhead</title>
 </svelte:head>
 
 

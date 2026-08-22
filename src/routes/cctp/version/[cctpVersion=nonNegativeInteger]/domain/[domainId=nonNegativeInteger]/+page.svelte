@@ -36,7 +36,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? 'CCTP domain support' : pageSelection.entity.name || 'CCTP domain support')} • CCTP domain support • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entity == null ? 'CCTP domain support' : pageSelection.entity.name || 'CCTP domain support')} • CCTP domain support • Blockhead</title>
 </svelte:head>
 
 

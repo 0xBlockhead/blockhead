@@ -34,7 +34,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.operationId ?? '') || 'AI provider API operation' : (pageSelection.entity.label ?? '') || pageSelection.entitySelector.operationId || 'AI provider API operation')} • AI provider API operation • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.operationId ?? '') || 'AI provider API operation' : (pageSelection.entity.label ?? '') || pageSelection.entitySelector.operationId || 'AI provider API operation')} • AI provider API operation • Blockhead</title>
 </svelte:head>
 
 

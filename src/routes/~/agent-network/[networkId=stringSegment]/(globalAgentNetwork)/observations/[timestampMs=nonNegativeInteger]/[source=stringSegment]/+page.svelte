@@ -32,7 +32,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (String(pageSelection.entitySelector.timestampMs) || 'global agent network timestamp')} • global agent network timestamp • Blockhead</title>
+	<title>{data?.title ?? (String(pageSelection.entitySelector.timestampMs) || 'global agent network timestamp')} • global agent network timestamp • Blockhead</title>
 </svelte:head>
 
 

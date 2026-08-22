@@ -30,7 +30,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.sessionId || 'ACP session')} • ACP session • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.sessionId || 'ACP session')} • ACP session • Blockhead</title>
 </svelte:head>
 
 

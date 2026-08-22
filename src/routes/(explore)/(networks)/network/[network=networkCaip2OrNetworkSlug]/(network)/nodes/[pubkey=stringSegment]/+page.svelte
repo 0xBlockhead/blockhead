@@ -32,7 +32,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.publicKey || 'Lightning public node')} • Lightning public node • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.publicKey || 'Lightning public node')} • Lightning public node • Blockhead</title>
 </svelte:head>
 
 

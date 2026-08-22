@@ -23,7 +23,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'payout'} • payout • Blockhead</title>
+	<title>{data?.title ?? 'payout'} • payout • Blockhead</title>
 </svelte:head>
 
 

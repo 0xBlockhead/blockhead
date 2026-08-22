@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'monero ring'} • monero ring • Blockhead</title>
+	<title>{data?.title ?? 'monero ring'} • monero ring • Blockhead</title>
 </svelte:head>
 
 

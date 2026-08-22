@@ -30,7 +30,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.hash || 'User operation')} • User operation • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.hash || 'User operation')} • User operation • Blockhead</title>
 </svelte:head>
 
 

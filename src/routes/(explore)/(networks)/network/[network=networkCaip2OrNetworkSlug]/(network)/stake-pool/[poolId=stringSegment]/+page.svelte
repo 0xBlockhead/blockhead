@@ -33,7 +33,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.poolId ?? '') || 'Cardano stake pool' : [(pageSelection.entity.ticker ?? ''), pageSelection.entitySelector.poolId].filter(Boolean).join(' ') || 'Cardano stake pool')} • Cardano stake pool • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.poolId ?? '') || 'Cardano stake pool' : [(pageSelection.entity.ticker ?? ''), pageSelection.entitySelector.poolId].filter(Boolean).join(' ') || 'Cardano stake pool')} • Cardano stake pool • Blockhead</title>
 </svelte:head>
 
 

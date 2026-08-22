@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'Sui coin balance timestamp'} • Sui coin balance timestamp • Blockhead</title>
+	<title>{data?.title ?? 'Sui coin balance timestamp'} • Sui coin balance timestamp • Blockhead</title>
 </svelte:head>
 
 

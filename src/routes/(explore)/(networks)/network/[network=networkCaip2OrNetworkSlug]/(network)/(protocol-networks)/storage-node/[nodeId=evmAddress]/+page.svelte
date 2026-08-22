@@ -23,7 +23,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'zero g storage node'} • zero g storage node • Blockhead</title>
+	<title>{data?.title ?? 'zero g storage node'} • zero g storage node • Blockhead</title>
 </svelte:head>
 
 

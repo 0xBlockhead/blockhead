@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'payout claim timestamp'} • payout claim timestamp • Blockhead</title>
+	<title>{data?.title ?? 'payout claim timestamp'} • payout claim timestamp • Blockhead</title>
 </svelte:head>
 
 

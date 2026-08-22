@@ -29,7 +29,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (String(pageSelection.entitySelector.roundId) || 'oracle feed round')} • oracle feed round • Blockhead</title>
+	<title>{data?.title ?? (String(pageSelection.entitySelector.roundId) || 'oracle feed round')} • oracle feed round • Blockhead</title>
 </svelte:head>
 
 

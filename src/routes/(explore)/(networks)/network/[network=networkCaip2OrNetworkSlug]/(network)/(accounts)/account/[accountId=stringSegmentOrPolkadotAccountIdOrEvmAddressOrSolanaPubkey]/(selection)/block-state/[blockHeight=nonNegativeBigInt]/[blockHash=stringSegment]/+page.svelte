@@ -25,7 +25,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'near account block state'} • near account block state • Blockhead</title>
+	<title>{data?.title ?? 'near account block state'} • near account block state • Blockhead</title>
 </svelte:head>
 
 

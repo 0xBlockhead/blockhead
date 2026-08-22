@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'swap quote step'} • swap quote step • Blockhead</title>
+	<title>{data?.title ?? 'swap quote step'} • swap quote step • Blockhead</title>
 </svelte:head>
 
 

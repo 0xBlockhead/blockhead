@@ -32,7 +32,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (String(pageSelection.entitySelector.timestampMs) || 'mcp resource content timestamp')} • mcp resource content timestamp • Blockhead</title>
+	<title>{data?.title ?? (String(pageSelection.entitySelector.timestampMs) || 'mcp resource content timestamp')} • mcp resource content timestamp • Blockhead</title>
 </svelte:head>
 
 

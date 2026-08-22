@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'stellar trade'} • stellar trade • Blockhead</title>
+	<title>{data?.title ?? 'stellar trade'} • stellar trade • Blockhead</title>
 </svelte:head>
 
 

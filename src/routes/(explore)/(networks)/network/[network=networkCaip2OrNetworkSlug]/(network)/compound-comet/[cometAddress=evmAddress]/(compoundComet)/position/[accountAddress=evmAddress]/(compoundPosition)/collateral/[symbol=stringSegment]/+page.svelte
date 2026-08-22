@@ -25,7 +25,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'Compound position collateral'} • Compound position collateral • Blockhead</title>
+	<title>{data?.title ?? 'Compound position collateral'} • Compound position collateral • Blockhead</title>
 </svelte:head>
 
 

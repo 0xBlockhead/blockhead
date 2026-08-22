@@ -23,7 +23,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'hedera token association'} • hedera token association • Blockhead</title>
+	<title>{data?.title ?? 'hedera token association'} • hedera token association • Blockhead</title>
 </svelte:head>
 
 

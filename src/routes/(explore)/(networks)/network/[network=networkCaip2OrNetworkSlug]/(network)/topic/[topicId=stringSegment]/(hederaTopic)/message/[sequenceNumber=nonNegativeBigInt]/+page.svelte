@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'hedera topic message'} • hedera topic message • Blockhead</title>
+	<title>{data?.title ?? 'hedera topic message'} • hedera topic message • Blockhead</title>
 </svelte:head>
 
 

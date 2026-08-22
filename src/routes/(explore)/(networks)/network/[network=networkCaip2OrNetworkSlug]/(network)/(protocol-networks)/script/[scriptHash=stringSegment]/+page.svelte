@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'tezos michelson script'} • tezos michelson script • Blockhead</title>
+	<title>{data?.title ?? 'tezos michelson script'} • tezos michelson script • Blockhead</title>
 </svelte:head>
 
 

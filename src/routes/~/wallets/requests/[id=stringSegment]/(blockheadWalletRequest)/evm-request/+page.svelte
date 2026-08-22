@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'Blockhead EVM wallet request'} • Blockhead EVM wallet request • Blockhead</title>
+	<title>{data?.title ?? 'Blockhead EVM wallet request'} • Blockhead EVM wallet request • Blockhead</title>
 </svelte:head>
 
 

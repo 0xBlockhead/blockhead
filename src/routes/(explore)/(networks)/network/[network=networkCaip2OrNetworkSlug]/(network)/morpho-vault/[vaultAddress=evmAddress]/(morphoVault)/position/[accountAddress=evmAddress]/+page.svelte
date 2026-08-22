@@ -25,7 +25,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'Morpho vault position'} • Morpho vault position • Blockhead</title>
+	<title>{data?.title ?? 'Morpho vault position'} • Morpho vault position • Blockhead</title>
 </svelte:head>
 
 

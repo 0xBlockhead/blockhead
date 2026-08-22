@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'eigen layer reward timestamp'} • eigen layer reward timestamp • Blockhead</title>
+	<title>{data?.title ?? 'eigen layer reward timestamp'} • eigen layer reward timestamp • Blockhead</title>
 </svelte:head>
 
 

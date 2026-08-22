@@ -32,7 +32,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (String(pageSelection.entitySelector.timestampMs) || 'UTXO address timestamp')} • UTXO address timestamp • Blockhead</title>
+	<title>{data?.title ?? (String(pageSelection.entitySelector.timestampMs) || 'UTXO address timestamp')} • UTXO address timestamp • Blockhead</title>
 </svelte:head>
 
 

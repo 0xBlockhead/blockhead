@@ -33,7 +33,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? 'AT Protocol' : pageSelection.entity.protocolName || 'AT Protocol')} • AT Protocol • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entity == null ? 'AT Protocol' : pageSelection.entity.protocolName || 'AT Protocol')} • AT Protocol • Blockhead</title>
 </svelte:head>
 
 

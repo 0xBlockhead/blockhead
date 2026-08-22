@@ -23,7 +23,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'TON transaction'} • TON transaction • Blockhead</title>
+	<title>{data?.title ?? 'TON transaction'} • TON transaction • Blockhead</title>
 </svelte:head>
 
 

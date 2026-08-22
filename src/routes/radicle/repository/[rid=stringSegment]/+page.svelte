@@ -23,7 +23,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'radicle repository'} • radicle repository • Blockhead</title>
+	<title>{data?.title ?? 'radicle repository'} • radicle repository • Blockhead</title>
 </svelte:head>
 
 

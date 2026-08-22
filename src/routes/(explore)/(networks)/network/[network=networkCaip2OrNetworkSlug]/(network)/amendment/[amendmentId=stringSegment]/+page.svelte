@@ -23,7 +23,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'XRPL amendment'} • XRPL amendment • Blockhead</title>
+	<title>{data?.title ?? 'XRPL amendment'} • XRPL amendment • Blockhead</title>
 </svelte:head>
 
 

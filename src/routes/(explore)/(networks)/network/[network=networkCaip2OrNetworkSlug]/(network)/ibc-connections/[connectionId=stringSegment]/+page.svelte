@@ -25,7 +25,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.connectionId || 'IBC connection')} • IBC connection • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.connectionId || 'IBC connection')} • IBC connection • Blockhead</title>
 </svelte:head>
 
 

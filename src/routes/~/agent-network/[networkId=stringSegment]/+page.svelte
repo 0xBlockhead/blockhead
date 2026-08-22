@@ -23,7 +23,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'global agent network'} • global agent network • Blockhead</title>
+	<title>{data?.title ?? 'global agent network'} • global agent network • Blockhead</title>
 </svelte:head>
 
 

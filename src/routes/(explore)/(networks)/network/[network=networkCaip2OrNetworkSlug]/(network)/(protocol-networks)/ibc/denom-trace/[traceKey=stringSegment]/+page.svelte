@@ -30,7 +30,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.traceKey ?? '') || 'IBC denom trace' : [(pageSelection.entity.displayDenom ?? ''), (pageSelection.entity.baseDenom ?? ''), pageSelection.entitySelector.traceKey].filter(Boolean).join(' ') || 'IBC denom trace')} • IBC denom trace • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.traceKey ?? '') || 'IBC denom trace' : [(pageSelection.entity.displayDenom ?? ''), (pageSelection.entity.baseDenom ?? ''), pageSelection.entitySelector.traceKey].filter(Boolean).join(' ') || 'IBC denom trace')} • IBC denom trace • Blockhead</title>
 </svelte:head>
 
 

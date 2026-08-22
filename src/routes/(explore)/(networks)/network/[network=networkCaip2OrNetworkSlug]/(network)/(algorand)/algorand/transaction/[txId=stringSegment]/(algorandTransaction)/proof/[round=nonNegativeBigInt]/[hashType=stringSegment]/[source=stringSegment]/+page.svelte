@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'algorand transaction proof'} • algorand transaction proof • Blockhead</title>
+	<title>{data?.title ?? 'algorand transaction proof'} • algorand transaction proof • Blockhead</title>
 </svelte:head>
 
 

@@ -25,7 +25,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (String(pageSelection.entitySelector.serialNumber) || 'hedera NFT')} • hedera NFT • Blockhead</title>
+	<title>{data?.title ?? (String(pageSelection.entitySelector.serialNumber) || 'hedera NFT')} • hedera NFT • Blockhead</title>
 </svelte:head>
 
 

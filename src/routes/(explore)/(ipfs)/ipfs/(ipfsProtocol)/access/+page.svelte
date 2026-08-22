@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'global IPFS access'} • global IPFS access • Blockhead</title>
+	<title>{data?.title ?? 'global IPFS access'} • global IPFS access • Blockhead</title>
 </svelte:head>
 
 

@@ -34,7 +34,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? ((String(pageSelection.entitySelector.indexInEnvelope ?? '') ? 'Consolidation request #' + String(pageSelection.entitySelector.indexInEnvelope ?? '') : '') || 'Beacon execution consolidation request')} • Beacon execution consolidation request • Blockhead</title>
+	<title>{data?.title ?? ((String(pageSelection.entitySelector.indexInEnvelope ?? '') ? 'Consolidation request #' + String(pageSelection.entitySelector.indexInEnvelope ?? '') : '') || 'Beacon execution consolidation request')} • Beacon execution consolidation request • Blockhead</title>
 </svelte:head>
 
 

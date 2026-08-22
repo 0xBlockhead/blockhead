@@ -32,7 +32,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (String(pageSelection.entitySelector.timestampMs) || 'filecoin deal timestamp')} • filecoin deal timestamp • Blockhead</title>
+	<title>{data?.title ?? (String(pageSelection.entitySelector.timestampMs) || 'filecoin deal timestamp')} • filecoin deal timestamp • Blockhead</title>
 </svelte:head>
 
 

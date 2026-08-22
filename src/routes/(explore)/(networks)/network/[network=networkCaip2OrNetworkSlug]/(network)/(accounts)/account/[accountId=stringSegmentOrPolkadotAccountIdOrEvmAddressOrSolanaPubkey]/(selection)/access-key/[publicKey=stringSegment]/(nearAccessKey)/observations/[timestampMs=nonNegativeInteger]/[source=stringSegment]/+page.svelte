@@ -32,7 +32,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (String(pageSelection.entitySelector.timestampMs) || 'near access key timestamp')} • near access key timestamp • Blockhead</title>
+	<title>{data?.title ?? (String(pageSelection.entitySelector.timestampMs) || 'near access key timestamp')} • near access key timestamp • Blockhead</title>
 </svelte:head>
 
 

@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'dydx chain subaccount'} • dydx chain subaccount • Blockhead</title>
+	<title>{data?.title ?? 'dydx chain subaccount'} • dydx chain subaccount • Blockhead</title>
 </svelte:head>
 
 

@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'soroban Wasm timestamp'} • soroban Wasm timestamp • Blockhead</title>
+	<title>{data?.title ?? 'soroban Wasm timestamp'} • soroban Wasm timestamp • Blockhead</title>
 </svelte:head>
 
 

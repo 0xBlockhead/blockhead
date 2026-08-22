@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'Sui object change'} • Sui object change • Blockhead</title>
+	<title>{data?.title ?? 'Sui object change'} • Sui object change • Blockhead</title>
 </svelte:head>
 
 

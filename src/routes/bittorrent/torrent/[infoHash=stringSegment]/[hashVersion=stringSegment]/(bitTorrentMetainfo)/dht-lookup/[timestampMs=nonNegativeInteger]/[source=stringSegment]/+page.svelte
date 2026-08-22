@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'mainline DHT lookup'} • mainline DHT lookup • Blockhead</title>
+	<title>{data?.title ?? 'mainline DHT lookup'} • mainline DHT lookup • Blockhead</title>
 </svelte:head>
 
 

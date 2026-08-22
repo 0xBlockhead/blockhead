@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'algorand asset timestamp'} • algorand asset timestamp • Blockhead</title>
+	<title>{data?.title ?? 'algorand asset timestamp'} • algorand asset timestamp • Blockhead</title>
 </svelte:head>
 
 

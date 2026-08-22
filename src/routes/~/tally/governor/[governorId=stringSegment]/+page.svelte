@@ -34,7 +34,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.governorId ?? '') || 'Tally governor' : [(pageSelection.entity.name ?? ''), (pageSelection.entity.organizationName ?? '')].filter(Boolean).join(' ') || pageSelection.entitySelector.governorId || 'Tally governor')} • Tally governor • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.governorId ?? '') || 'Tally governor' : [(pageSelection.entity.name ?? ''), (pageSelection.entity.organizationName ?? '')].filter(Boolean).join(' ') || pageSelection.entitySelector.governorId || 'Tally governor')} • Tally governor • Blockhead</title>
 </svelte:head>
 
 

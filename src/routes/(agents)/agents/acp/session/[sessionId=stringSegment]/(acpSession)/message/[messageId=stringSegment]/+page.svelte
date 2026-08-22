@@ -30,7 +30,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.messageId || 'ACP message')} • ACP message • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.messageId || 'ACP message')} • ACP message • Blockhead</title>
 </svelte:head>
 
 

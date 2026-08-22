@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'ICP canister timestamp'} • ICP canister timestamp • Blockhead</title>
+	<title>{data?.title ?? 'ICP canister timestamp'} • ICP canister timestamp • Blockhead</title>
 </svelte:head>
 
 

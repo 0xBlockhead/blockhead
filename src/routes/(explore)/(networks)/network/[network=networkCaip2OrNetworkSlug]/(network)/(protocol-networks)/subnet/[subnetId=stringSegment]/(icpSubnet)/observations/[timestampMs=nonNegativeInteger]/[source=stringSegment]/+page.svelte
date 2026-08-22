@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'ICP subnet timestamp'} • ICP subnet timestamp • Blockhead</title>
+	<title>{data?.title ?? 'ICP subnet timestamp'} • ICP subnet timestamp • Blockhead</title>
 </svelte:head>
 
 

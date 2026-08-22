@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'hedera HBAR transfer'} • hedera HBAR transfer • Blockhead</title>
+	<title>{data?.title ?? 'hedera HBAR transfer'} • hedera HBAR transfer • Blockhead</title>
 </svelte:head>
 
 

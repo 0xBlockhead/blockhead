@@ -32,7 +32,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (String(pageSelection.entitySelector.timestampMs) || 'bnb validator timestamp')} • bnb validator timestamp • Blockhead</title>
+	<title>{data?.title ?? (String(pageSelection.entitySelector.timestampMs) || 'bnb validator timestamp')} • bnb validator timestamp • Blockhead</title>
 </svelte:head>
 
 

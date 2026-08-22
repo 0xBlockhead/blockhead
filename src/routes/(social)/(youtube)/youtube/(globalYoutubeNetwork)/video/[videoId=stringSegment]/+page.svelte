@@ -35,7 +35,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.videoId ?? '') || 'YouTube video' : (pageSelection.entity.title ?? '') || pageSelection.entitySelector.videoId || 'YouTube video')} • YouTube video • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.videoId ?? '') || 'YouTube video' : (pageSelection.entity.title ?? '') || pageSelection.entitySelector.videoId || 'YouTube video')} • YouTube video • Blockhead</title>
 </svelte:head>
 
 

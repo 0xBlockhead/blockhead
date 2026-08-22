@@ -23,7 +23,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'TON jetton'} • TON jetton • Blockhead</title>
+	<title>{data?.title ?? 'TON jetton'} • TON jetton • Blockhead</title>
 </svelte:head>
 
 

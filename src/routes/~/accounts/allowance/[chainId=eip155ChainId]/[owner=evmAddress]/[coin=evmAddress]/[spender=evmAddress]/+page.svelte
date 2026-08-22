@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'allowance'} • allowance • Blockhead</title>
+	<title>{data?.title ?? 'allowance'} • allowance • Blockhead</title>
 </svelte:head>
 
 

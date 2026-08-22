@@ -25,7 +25,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'Morpho market position'} • Morpho market position • Blockhead</title>
+	<title>{data?.title ?? 'Morpho market position'} • Morpho market position • Blockhead</title>
 </svelte:head>
 
 

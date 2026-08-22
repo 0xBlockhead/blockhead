@@ -38,7 +38,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? 'GMX position' : [(pageSelection.entity.indexName ?? ''), (pageSelection.entity.poolName ?? '')].filter(Boolean).join(' ') || 'GMX position')} • GMX position • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entity == null ? 'GMX position' : [(pageSelection.entity.indexName ?? ''), (pageSelection.entity.poolName ?? '')].filter(Boolean).join(' ') || 'GMX position')} • GMX position • Blockhead</title>
 </svelte:head>
 
 

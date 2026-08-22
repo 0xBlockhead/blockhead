@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'hedera token transfer'} • hedera token transfer • Blockhead</title>
+	<title>{data?.title ?? 'hedera token transfer'} • hedera token transfer • Blockhead</title>
 </svelte:head>
 
 

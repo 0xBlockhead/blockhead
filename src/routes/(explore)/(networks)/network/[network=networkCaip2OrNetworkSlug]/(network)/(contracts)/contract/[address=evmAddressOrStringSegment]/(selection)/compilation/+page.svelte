@@ -33,7 +33,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? 'EVM contract compilation' : [(pageSelection.entity.name ?? ''), (pageSelection.entity.fullyQualifiedName ?? ''), (pageSelection.entity.compiler ?? '')].filter(Boolean).join(' ') || 'EVM contract compilation')} • EVM contract compilation • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entity == null ? 'EVM contract compilation' : [(pageSelection.entity.name ?? ''), (pageSelection.entity.fullyQualifiedName ?? ''), (pageSelection.entity.compiler ?? '')].filter(Boolean).join(' ') || 'EVM contract compilation')} • EVM contract compilation • Blockhead</title>
 </svelte:head>
 
 

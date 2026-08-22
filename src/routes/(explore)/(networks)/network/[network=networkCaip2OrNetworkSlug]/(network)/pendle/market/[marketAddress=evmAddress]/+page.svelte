@@ -33,7 +33,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? 'Pendle market' : pageSelection.entity.name || 'Pendle market')} • Pendle market • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entity == null ? 'Pendle market' : pageSelection.entity.name || 'Pendle market')} • Pendle market • Blockhead</title>
 </svelte:head>
 
 

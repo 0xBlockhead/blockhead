@@ -31,7 +31,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.accountAddress || 'blockhead quilibrium account state')} • blockhead quilibrium account state • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.accountAddress || 'blockhead quilibrium account state')} • blockhead quilibrium account state • Blockhead</title>
 </svelte:head>
 
 

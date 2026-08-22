@@ -32,7 +32,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (String(pageSelection.entitySelector.timestampMs) || 'blockhead monero subaddress state timestamp')} • blockhead monero subaddress state timestamp • Blockhead</title>
+	<title>{data?.title ?? (String(pageSelection.entitySelector.timestampMs) || 'blockhead monero subaddress state timestamp')} • blockhead monero subaddress state timestamp • Blockhead</title>
 </svelte:head>
 
 

@@ -29,7 +29,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.transactionId ?? '') || 'arweave resource' : pageSelection.entity.canonicalUri || pageSelection.entitySelector.transactionId || 'arweave resource')} • arweave resource • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.transactionId ?? '') || 'arweave resource' : pageSelection.entity.canonicalUri || pageSelection.entitySelector.transactionId || 'arweave resource')} • arweave resource • Blockhead</title>
 </svelte:head>
 
 

@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'TON block'} • TON block • Blockhead</title>
+	<title>{data?.title ?? 'TON block'} • TON block • Blockhead</title>
 </svelte:head>
 
 

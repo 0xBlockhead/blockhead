@@ -34,7 +34,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.outcomeId || 'near execution outcome')} • near execution outcome • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.outcomeId || 'near execution outcome')} • near execution outcome • Blockhead</title>
 </svelte:head>
 
 

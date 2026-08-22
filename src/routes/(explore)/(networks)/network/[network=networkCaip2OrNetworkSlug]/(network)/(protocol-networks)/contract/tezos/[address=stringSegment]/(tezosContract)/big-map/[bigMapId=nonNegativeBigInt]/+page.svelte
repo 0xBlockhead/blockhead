@@ -23,7 +23,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'tezos big map'} • tezos big map • Blockhead</title>
+	<title>{data?.title ?? 'tezos big map'} • tezos big map • Blockhead</title>
 </svelte:head>
 
 

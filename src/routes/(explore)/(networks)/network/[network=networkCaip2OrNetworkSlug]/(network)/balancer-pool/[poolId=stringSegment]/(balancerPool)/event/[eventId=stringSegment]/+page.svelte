@@ -37,7 +37,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? 'Balancer pool event' : pageSelection.entity.eventType || 'Balancer pool event')} • Balancer pool event • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entity == null ? 'Balancer pool event' : pageSelection.entity.eventType || 'Balancer pool event')} • Balancer pool event • Blockhead</title>
 </svelte:head>
 
 

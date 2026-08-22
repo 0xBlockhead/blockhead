@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'TON jetton transfer'} • TON jetton transfer • Blockhead</title>
+	<title>{data?.title ?? 'TON jetton transfer'} • TON jetton transfer • Blockhead</title>
 </svelte:head>
 
 

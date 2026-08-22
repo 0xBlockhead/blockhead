@@ -29,7 +29,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (String(pageSelection.entitySelector.inputIndex) || 'Elements issuance')} • Elements issuance • Blockhead</title>
+	<title>{data?.title ?? (String(pageSelection.entitySelector.inputIndex) || 'Elements issuance')} • Elements issuance • Blockhead</title>
 </svelte:head>
 
 

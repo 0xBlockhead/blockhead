@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'tezos block'} • tezos block • Blockhead</title>
+	<title>{data?.title ?? 'tezos block'} • tezos block • Blockhead</title>
 </svelte:head>
 
 

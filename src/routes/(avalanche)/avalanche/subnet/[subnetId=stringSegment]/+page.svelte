@@ -29,7 +29,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.subnetId ?? '') || 'avalanche subnet' : (pageSelection.entity.label ?? '') || pageSelection.entitySelector.subnetId || 'avalanche subnet')} • avalanche subnet • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.subnetId ?? '') || 'avalanche subnet' : (pageSelection.entity.label ?? '') || pageSelection.entitySelector.subnetId || 'avalanche subnet')} • avalanche subnet • Blockhead</title>
 </svelte:head>
 
 

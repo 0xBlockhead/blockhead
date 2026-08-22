@@ -30,7 +30,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.auctionAddress || 'Uniswap CCA auction')} • Uniswap CCA auction • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.auctionAddress || 'Uniswap CCA auction')} • Uniswap CCA auction • Blockhead</title>
 </svelte:head>
 
 

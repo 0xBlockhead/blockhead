@@ -35,7 +35,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.localAccountId ?? '') || 'ActivityPub actor' : [(pageSelection.entity.displayName ?? ''), pageSelection.entity.acct, (pageSelection.entity.username ?? ''), pageSelection.entitySelector.localAccountId].filter(Boolean).join(' ') || 'ActivityPub actor')} • ActivityPub actor • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.localAccountId ?? '') || 'ActivityPub actor' : [(pageSelection.entity.displayName ?? ''), pageSelection.entity.acct, (pageSelection.entity.username ?? ''), pageSelection.entitySelector.localAccountId].filter(Boolean).join(' ') || 'ActivityPub actor')} • ActivityPub actor • Blockhead</title>
 </svelte:head>
 
 

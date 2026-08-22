@@ -34,7 +34,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? ((String(pageSelection.entitySelector.indexInTurn ?? '') ? 'Call #' + String(pageSelection.entitySelector.indexInTurn ?? '') : '') || 'blockhead agent provider call')} • blockhead agent provider call • Blockhead</title>
+	<title>{data?.title ?? ((String(pageSelection.entitySelector.indexInTurn ?? '') ? 'Call #' + String(pageSelection.entitySelector.indexInTurn ?? '') : '') || 'blockhead agent provider call')} • blockhead agent provider call • Blockhead</title>
 </svelte:head>
 
 

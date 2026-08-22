@@ -29,7 +29,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.functionName || 'move function')} • move function • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.functionName || 'move function')} • move function • Blockhead</title>
 </svelte:head>
 
 

@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'tezos baker cycle timestamp'} • tezos baker cycle timestamp • Blockhead</title>
+	<title>{data?.title ?? 'tezos baker cycle timestamp'} • tezos baker cycle timestamp • Blockhead</title>
 </svelte:head>
 
 

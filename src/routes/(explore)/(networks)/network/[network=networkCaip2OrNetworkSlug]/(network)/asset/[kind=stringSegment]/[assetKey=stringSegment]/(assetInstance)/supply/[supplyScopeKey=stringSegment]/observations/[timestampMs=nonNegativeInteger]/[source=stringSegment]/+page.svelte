@@ -33,7 +33,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.supplyScopeKey || 'asset supply timestamp')} • asset supply timestamp • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.supplyScopeKey || 'asset supply timestamp')} • asset supply timestamp • Blockhead</title>
 </svelte:head>
 
 

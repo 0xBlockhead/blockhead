@@ -29,7 +29,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.path || 'bit torrent file tree entry')} • bit torrent file tree entry • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.path || 'bit torrent file tree entry')} • bit torrent file tree entry • Blockhead</title>
 </svelte:head>
 
 

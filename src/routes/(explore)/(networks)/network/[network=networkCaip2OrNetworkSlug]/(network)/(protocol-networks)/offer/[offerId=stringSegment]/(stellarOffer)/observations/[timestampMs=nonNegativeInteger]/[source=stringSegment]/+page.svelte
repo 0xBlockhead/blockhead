@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'stellar offer timestamp'} • stellar offer timestamp • Blockhead</title>
+	<title>{data?.title ?? 'stellar offer timestamp'} • stellar offer timestamp • Blockhead</title>
 </svelte:head>
 
 

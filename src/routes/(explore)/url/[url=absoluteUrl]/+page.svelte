@@ -25,7 +25,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.url || 'URL')} • URL • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.url || 'URL')} • URL • Blockhead</title>
 </svelte:head>
 
 

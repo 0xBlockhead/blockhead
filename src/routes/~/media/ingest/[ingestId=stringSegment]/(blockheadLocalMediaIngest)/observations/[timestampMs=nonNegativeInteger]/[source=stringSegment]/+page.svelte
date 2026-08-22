@@ -35,7 +35,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? 'local media ingest timestamp' : pageSelection.entity.status || 'local media ingest timestamp')} • local media ingest timestamp • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entity == null ? 'local media ingest timestamp' : pageSelection.entity.status || 'local media ingest timestamp')} • local media ingest timestamp • Blockhead</title>
 </svelte:head>
 
 

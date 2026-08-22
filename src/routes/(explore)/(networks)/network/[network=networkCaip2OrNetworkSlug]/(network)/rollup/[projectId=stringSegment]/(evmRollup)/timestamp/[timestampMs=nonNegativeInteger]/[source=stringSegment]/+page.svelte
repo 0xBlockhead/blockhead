@@ -35,7 +35,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? String(pageSelection.entitySelector.timestampMs ?? '') || 'EVM rollup timestamp' : [(pageSelection.entity.listingStage ?? ''), String(pageSelection.entitySelector.timestampMs)].filter(Boolean).join(' ') || 'EVM rollup timestamp')} • EVM rollup timestamp • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entity == null ? String(pageSelection.entitySelector.timestampMs ?? '') || 'EVM rollup timestamp' : [(pageSelection.entity.listingStage ?? ''), String(pageSelection.entitySelector.timestampMs)].filter(Boolean).join(' ') || 'EVM rollup timestamp')} • EVM rollup timestamp • Blockhead</title>
 </svelte:head>
 
 

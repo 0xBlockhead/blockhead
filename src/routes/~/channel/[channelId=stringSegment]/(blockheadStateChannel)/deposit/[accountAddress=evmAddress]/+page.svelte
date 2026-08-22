@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'blockhead state channel deposit'} • blockhead state channel deposit • Blockhead</title>
+	<title>{data?.title ?? 'blockhead state channel deposit'} • blockhead state channel deposit • Blockhead</title>
 </svelte:head>
 
 

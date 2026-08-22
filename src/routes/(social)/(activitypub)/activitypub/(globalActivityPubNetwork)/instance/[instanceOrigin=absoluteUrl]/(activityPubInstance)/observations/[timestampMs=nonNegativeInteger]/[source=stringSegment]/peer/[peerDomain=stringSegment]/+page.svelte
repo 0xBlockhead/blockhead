@@ -34,7 +34,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.peerDomain || 'ActivityPub instance peer')} • ActivityPub instance peer • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.peerDomain || 'ActivityPub instance peer')} • ActivityPub instance peer • Blockhead</title>
 </svelte:head>
 
 

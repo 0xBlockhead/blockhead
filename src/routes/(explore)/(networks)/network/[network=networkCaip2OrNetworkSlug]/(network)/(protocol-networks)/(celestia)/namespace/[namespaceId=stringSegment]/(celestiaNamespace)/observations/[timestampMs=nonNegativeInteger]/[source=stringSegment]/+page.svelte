@@ -32,7 +32,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (String(pageSelection.entitySelector.timestampMs) || 'celestia namespace timestamp')} • celestia namespace timestamp • Blockhead</title>
+	<title>{data?.title ?? (String(pageSelection.entitySelector.timestampMs) || 'celestia namespace timestamp')} • celestia namespace timestamp • Blockhead</title>
 </svelte:head>
 
 

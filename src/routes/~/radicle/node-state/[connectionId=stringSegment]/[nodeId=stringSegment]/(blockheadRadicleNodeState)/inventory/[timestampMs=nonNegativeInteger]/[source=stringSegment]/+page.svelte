@@ -35,7 +35,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? 'blockhead radicle node inventory timestamp' : pageSelection.entity.status || 'blockhead radicle node inventory timestamp')} • blockhead radicle node inventory timestamp • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entity == null ? 'blockhead radicle node inventory timestamp' : pageSelection.entity.status || 'blockhead radicle node inventory timestamp')} • blockhead radicle node inventory timestamp • Blockhead</title>
 </svelte:head>
 
 

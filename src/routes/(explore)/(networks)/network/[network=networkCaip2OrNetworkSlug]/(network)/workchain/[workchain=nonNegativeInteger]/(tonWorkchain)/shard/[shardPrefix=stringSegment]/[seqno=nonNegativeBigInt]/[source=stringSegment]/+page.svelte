@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'TON shard timestamp'} • TON shard timestamp • Blockhead</title>
+	<title>{data?.title ?? 'TON shard timestamp'} • TON shard timestamp • Blockhead</title>
 </svelte:head>
 
 

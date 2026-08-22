@@ -32,7 +32,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (String(pageSelection.entitySelector.timestampMs) || 'oracle feed timestamp')} • oracle feed timestamp • Blockhead</title>
+	<title>{data?.title ?? (String(pageSelection.entitySelector.timestampMs) || 'oracle feed timestamp')} • oracle feed timestamp • Blockhead</title>
 </svelte:head>
 
 

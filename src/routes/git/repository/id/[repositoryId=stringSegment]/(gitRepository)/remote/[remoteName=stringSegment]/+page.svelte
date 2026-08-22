@@ -25,7 +25,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.remoteName || 'Git remote')} • Git remote • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.remoteName || 'Git remote')} • Git remote • Blockhead</title>
 </svelte:head>
 
 

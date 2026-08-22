@@ -23,7 +23,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'ICP subnet'} • ICP subnet • Blockhead</title>
+	<title>{data?.title ?? 'ICP subnet'} • ICP subnet • Blockhead</title>
 </svelte:head>
 
 

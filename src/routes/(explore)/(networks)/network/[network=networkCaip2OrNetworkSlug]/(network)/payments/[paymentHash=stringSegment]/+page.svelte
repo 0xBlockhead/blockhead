@@ -30,7 +30,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.paymentHash || 'local LND payment')} • local LND payment • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.paymentHash || 'local LND payment')} • local LND payment • Blockhead</title>
 </svelte:head>
 
 

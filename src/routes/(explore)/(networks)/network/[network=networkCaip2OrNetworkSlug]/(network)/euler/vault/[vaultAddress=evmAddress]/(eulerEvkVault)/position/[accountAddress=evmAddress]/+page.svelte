@@ -25,7 +25,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'Euler EVK vault position'} • Euler EVK vault position • Blockhead</title>
+	<title>{data?.title ?? 'Euler EVK vault position'} • Euler EVK vault position • Blockhead</title>
 </svelte:head>
 
 

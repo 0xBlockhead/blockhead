@@ -38,7 +38,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.uriTemplate ?? '') || 'mcp resource template' : (pageSelection.entity.title ?? '') || [(pageSelection.entity.name ?? ''), pageSelection.entitySelector.uriTemplate].filter(Boolean).join(' ') || 'mcp resource template')} • mcp resource template • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.uriTemplate ?? '') || 'mcp resource template' : (pageSelection.entity.title ?? '') || [(pageSelection.entity.name ?? ''), pageSelection.entitySelector.uriTemplate].filter(Boolean).join(' ') || 'mcp resource template')} • mcp resource template • Blockhead</title>
 </svelte:head>
 
 

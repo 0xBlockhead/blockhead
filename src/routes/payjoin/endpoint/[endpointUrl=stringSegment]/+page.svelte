@@ -25,7 +25,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.endpointUrl || 'payjoin endpoint')} • payjoin endpoint • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.endpointUrl || 'payjoin endpoint')} • payjoin endpoint • Blockhead</title>
 </svelte:head>
 
 

@@ -35,7 +35,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? 'ACP agent program version' : (pageSelection.entity.version ?? '') || 'ACP agent program version')} • ACP agent program version • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entity == null ? 'ACP agent program version' : (pageSelection.entity.version ?? '') || 'ACP agent program version')} • ACP agent program version • Blockhead</title>
 </svelte:head>
 
 

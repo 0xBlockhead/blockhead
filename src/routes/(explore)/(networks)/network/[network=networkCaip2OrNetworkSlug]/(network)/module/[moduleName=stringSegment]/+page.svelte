@@ -25,7 +25,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.moduleName || 'Cosmos module')} • Cosmos module • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.moduleName || 'Cosmos module')} • Cosmos module • Blockhead</title>
 </svelte:head>
 
 

@@ -34,7 +34,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.symbol || 'Compound Comet collateral asset')} • Compound Comet collateral asset • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.symbol || 'Compound Comet collateral asset')} • Compound Comet collateral asset • Blockhead</title>
 </svelte:head>
 
 

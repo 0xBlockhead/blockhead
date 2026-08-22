@@ -23,7 +23,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'radicle signed ref'} • radicle signed ref • Blockhead</title>
+	<title>{data?.title ?? 'radicle signed ref'} • radicle signed ref • Blockhead</title>
 </svelte:head>
 
 

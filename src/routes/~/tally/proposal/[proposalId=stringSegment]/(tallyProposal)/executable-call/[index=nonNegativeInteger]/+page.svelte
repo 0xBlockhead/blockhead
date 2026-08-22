@@ -29,7 +29,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'Call #' + String(pageSelection.entitySelector.index)} • Tally proposal executable call • Blockhead</title>
+	<title>{data?.title ?? 'Call #' + String(pageSelection.entitySelector.index)} • Tally proposal executable call • Blockhead</title>
 </svelte:head>
 
 

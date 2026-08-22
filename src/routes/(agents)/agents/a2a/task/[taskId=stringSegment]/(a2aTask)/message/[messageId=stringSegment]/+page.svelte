@@ -27,7 +27,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.messageId || 'A2A message')} • A2A message • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.messageId || 'A2A message')} • A2A message • Blockhead</title>
 </svelte:head>
 
 

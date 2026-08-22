@@ -23,7 +23,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'TON workchain'} • TON workchain • Blockhead</title>
+	<title>{data?.title ?? 'TON workchain'} • TON workchain • Blockhead</title>
 </svelte:head>
 
 

@@ -33,7 +33,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (String(pageSelection.entitySelector.timestampMs) || 'bit torrent tracker scrape timestamp')} • bit torrent tracker scrape timestamp • Blockhead</title>
+	<title>{data?.title ?? (String(pageSelection.entitySelector.timestampMs) || 'bit torrent tracker scrape timestamp')} • bit torrent tracker scrape timestamp • Blockhead</title>
 </svelte:head>
 
 

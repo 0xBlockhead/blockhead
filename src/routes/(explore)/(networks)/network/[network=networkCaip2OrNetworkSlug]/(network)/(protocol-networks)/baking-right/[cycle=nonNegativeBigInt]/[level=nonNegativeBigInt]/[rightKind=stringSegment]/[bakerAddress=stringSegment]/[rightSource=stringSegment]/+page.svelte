@@ -23,7 +23,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'tezos baking right'} • tezos baking right • Blockhead</title>
+	<title>{data?.title ?? 'tezos baking right'} • tezos baking right • Blockhead</title>
 </svelte:head>
 
 

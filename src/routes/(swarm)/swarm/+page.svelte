@@ -33,7 +33,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? 'Swarm protocol' : pageSelection.entity.protocolName || 'Swarm protocol')} • Swarm protocol • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entity == null ? 'Swarm protocol' : pageSelection.entity.protocolName || 'Swarm protocol')} • Swarm protocol • Blockhead</title>
 </svelte:head>
 
 

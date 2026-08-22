@@ -23,7 +23,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'tezos token'} • tezos token • Blockhead</title>
+	<title>{data?.title ?? 'tezos token'} • tezos token • Blockhead</title>
 </svelte:head>
 
 

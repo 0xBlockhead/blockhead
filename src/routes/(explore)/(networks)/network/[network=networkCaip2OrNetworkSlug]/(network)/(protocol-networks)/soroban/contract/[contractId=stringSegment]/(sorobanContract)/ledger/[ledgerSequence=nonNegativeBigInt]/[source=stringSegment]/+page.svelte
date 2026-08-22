@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'soroban contract timestamp'} • soroban contract timestamp • Blockhead</title>
+	<title>{data?.title ?? 'soroban contract timestamp'} • soroban contract timestamp • Blockhead</title>
 </svelte:head>
 
 

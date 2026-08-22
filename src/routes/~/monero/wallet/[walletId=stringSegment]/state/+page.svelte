@@ -31,7 +31,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.walletId || 'blockhead monero wallet state')} • blockhead monero wallet state • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.walletId || 'blockhead monero wallet state')} • blockhead monero wallet state • Blockhead</title>
 </svelte:head>
 
 

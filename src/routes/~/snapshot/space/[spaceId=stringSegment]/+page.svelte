@@ -33,7 +33,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.spaceId ?? '') || 'Snapshot space' : (pageSelection.entity.name ?? '') || pageSelection.entitySelector.spaceId || 'Snapshot space')} • Snapshot space • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.spaceId ?? '') || 'Snapshot space' : (pageSelection.entity.name ?? '') || pageSelection.entitySelector.spaceId || 'Snapshot space')} • Snapshot space • Blockhead</title>
 </svelte:head>
 
 

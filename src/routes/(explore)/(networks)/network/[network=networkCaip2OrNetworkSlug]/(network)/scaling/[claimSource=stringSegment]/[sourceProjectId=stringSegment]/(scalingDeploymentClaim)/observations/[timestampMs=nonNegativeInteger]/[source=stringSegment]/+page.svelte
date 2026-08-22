@@ -36,7 +36,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? String(pageSelection.entitySelector.timestampMs ?? '') || 'scaling deployment claim timestamp' : [(pageSelection.entity.architectureKind ?? ''), (pageSelection.entity.protocolLabel ?? ''), String(pageSelection.entitySelector.timestampMs)].filter(Boolean).join(' ') || 'scaling deployment claim timestamp')} • scaling deployment claim timestamp • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entity == null ? String(pageSelection.entitySelector.timestampMs ?? '') || 'scaling deployment claim timestamp' : [(pageSelection.entity.architectureKind ?? ''), (pageSelection.entity.protocolLabel ?? ''), String(pageSelection.entitySelector.timestampMs)].filter(Boolean).join(' ') || 'scaling deployment claim timestamp')} • scaling deployment claim timestamp • Blockhead</title>
 </svelte:head>
 
 

@@ -32,7 +32,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (String(pageSelection.entitySelector.timestampMs) || 'global AI artifact catalog timestamp')} • global AI artifact catalog timestamp • Blockhead</title>
+	<title>{data?.title ?? (String(pageSelection.entitySelector.timestampMs) || 'global AI artifact catalog timestamp')} • global AI artifact catalog timestamp • Blockhead</title>
 </svelte:head>
 
 

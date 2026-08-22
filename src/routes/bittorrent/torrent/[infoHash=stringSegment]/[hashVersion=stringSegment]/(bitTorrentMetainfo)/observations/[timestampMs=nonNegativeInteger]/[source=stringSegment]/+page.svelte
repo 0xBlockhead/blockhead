@@ -32,7 +32,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (String(pageSelection.entitySelector.timestampMs) || 'bit torrent swarm observation timestamp')} • bit torrent swarm observation timestamp • Blockhead</title>
+	<title>{data?.title ?? (String(pageSelection.entitySelector.timestampMs) || 'bit torrent swarm observation timestamp')} • bit torrent swarm observation timestamp • Blockhead</title>
 </svelte:head>
 
 

@@ -30,7 +30,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.shardKey || 'quilibrium shard')} • quilibrium shard • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.shardKey || 'quilibrium shard')} • quilibrium shard • Blockhead</title>
 </svelte:head>
 
 

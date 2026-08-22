@@ -30,7 +30,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? 'hedera transaction' : pageSelection.entity.transactionType || pageSelection.entity.transactionId || 'hedera transaction')} • hedera transaction • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entity == null ? 'hedera transaction' : pageSelection.entity.transactionType || pageSelection.entity.transactionId || 'hedera transaction')} • hedera transaction • Blockhead</title>
 </svelte:head>
 
 

@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'stellar liquidity pool timestamp'} • stellar liquidity pool timestamp • Blockhead</title>
+	<title>{data?.title ?? 'stellar liquidity pool timestamp'} • stellar liquidity pool timestamp • Blockhead</title>
 </svelte:head>
 
 

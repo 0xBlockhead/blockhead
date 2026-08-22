@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'XRPL trustline timestamp'} • XRPL trustline timestamp • Blockhead</title>
+	<title>{data?.title ?? 'XRPL trustline timestamp'} • XRPL trustline timestamp • Blockhead</title>
 </svelte:head>
 
 

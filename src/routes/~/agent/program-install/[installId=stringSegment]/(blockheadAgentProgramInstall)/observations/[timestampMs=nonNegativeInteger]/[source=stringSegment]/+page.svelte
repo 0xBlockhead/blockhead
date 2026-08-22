@@ -32,7 +32,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (String(pageSelection.entitySelector.timestampMs) || 'blockhead agent program install timestamp')} • blockhead agent program install timestamp • Blockhead</title>
+	<title>{data?.title ?? (String(pageSelection.entitySelector.timestampMs) || 'blockhead agent program install timestamp')} • blockhead agent program install timestamp • Blockhead</title>
 </svelte:head>
 
 

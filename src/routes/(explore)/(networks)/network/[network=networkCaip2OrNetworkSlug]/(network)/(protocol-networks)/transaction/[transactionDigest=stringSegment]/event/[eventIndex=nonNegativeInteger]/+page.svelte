@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'Sui event'} • Sui event • Blockhead</title>
+	<title>{data?.title ?? 'Sui event'} • Sui event • Blockhead</title>
 </svelte:head>
 
 

@@ -31,7 +31,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (String(pageSelection.entitySelector.dealId) || 'filecoin deal')} • filecoin deal • Blockhead</title>
+	<title>{data?.title ?? (String(pageSelection.entitySelector.dealId) || 'filecoin deal')} • filecoin deal • Blockhead</title>
 </svelte:head>
 
 

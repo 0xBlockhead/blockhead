@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'Sui programmable transaction command'} • Sui programmable transaction command • Blockhead</title>
+	<title>{data?.title ?? 'Sui programmable transaction command'} • Sui programmable transaction command • Blockhead</title>
 </svelte:head>
 
 

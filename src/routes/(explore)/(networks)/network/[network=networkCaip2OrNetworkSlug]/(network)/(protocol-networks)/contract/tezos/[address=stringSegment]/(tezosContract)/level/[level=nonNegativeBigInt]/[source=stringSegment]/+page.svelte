@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'tezos contract timestamp'} • tezos contract timestamp • Blockhead</title>
+	<title>{data?.title ?? 'tezos contract timestamp'} • tezos contract timestamp • Blockhead</title>
 </svelte:head>
 
 

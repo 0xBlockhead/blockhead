@@ -33,7 +33,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.nodeId || 'blockhead radicle seed observation timestamp')} • blockhead radicle seed observation timestamp • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.nodeId || 'blockhead radicle seed observation timestamp')} • blockhead radicle seed observation timestamp • Blockhead</title>
 </svelte:head>
 
 

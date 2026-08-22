@@ -33,7 +33,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.slot || 'EVM storage read timestamp')} • EVM storage read timestamp • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.slot || 'EVM storage read timestamp')} • EVM storage read timestamp • Blockhead</title>
 </svelte:head>
 
 

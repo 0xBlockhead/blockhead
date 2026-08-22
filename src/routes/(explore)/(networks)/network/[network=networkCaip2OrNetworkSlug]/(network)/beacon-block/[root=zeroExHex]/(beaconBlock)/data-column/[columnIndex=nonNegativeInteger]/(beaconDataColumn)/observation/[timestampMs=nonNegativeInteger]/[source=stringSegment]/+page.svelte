@@ -32,7 +32,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (String(pageSelection.entitySelector.timestampMs) || 'beacon data column custody observation')} • beacon data column custody observation • Blockhead</title>
+	<title>{data?.title ?? (String(pageSelection.entitySelector.timestampMs) || 'beacon data column custody observation')} • beacon data column custody observation • Blockhead</title>
 </svelte:head>
 
 

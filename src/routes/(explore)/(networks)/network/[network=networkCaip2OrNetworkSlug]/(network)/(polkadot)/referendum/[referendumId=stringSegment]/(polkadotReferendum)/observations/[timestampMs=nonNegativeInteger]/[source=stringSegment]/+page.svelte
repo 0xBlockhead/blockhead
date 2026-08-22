@@ -35,7 +35,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? 'Polkadot referendum timestamp' : (pageSelection.entity.status ?? '') || 'Polkadot referendum timestamp')} • Polkadot referendum timestamp • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entity == null ? 'Polkadot referendum timestamp' : (pageSelection.entity.status ?? '') || 'Polkadot referendum timestamp')} • Polkadot referendum timestamp • Blockhead</title>
 </svelte:head>
 
 

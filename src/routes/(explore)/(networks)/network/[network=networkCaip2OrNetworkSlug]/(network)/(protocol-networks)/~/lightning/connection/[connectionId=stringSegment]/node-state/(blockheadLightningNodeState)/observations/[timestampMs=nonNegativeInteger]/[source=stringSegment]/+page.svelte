@@ -32,7 +32,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (String(pageSelection.entitySelector.timestampMs) || 'local LND node-state observation')} • local LND node-state observation • Blockhead</title>
+	<title>{data?.title ?? (String(pageSelection.entitySelector.timestampMs) || 'local LND node-state observation')} • local LND node-state observation • Blockhead</title>
 </svelte:head>
 
 

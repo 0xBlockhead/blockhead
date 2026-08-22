@@ -30,7 +30,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (String(pageSelection.entitySelector.frameNumber) || 'quilibrium frame')} • quilibrium frame • Blockhead</title>
+	<title>{data?.title ?? (String(pageSelection.entitySelector.frameNumber) || 'quilibrium frame')} • quilibrium frame • Blockhead</title>
 </svelte:head>
 
 

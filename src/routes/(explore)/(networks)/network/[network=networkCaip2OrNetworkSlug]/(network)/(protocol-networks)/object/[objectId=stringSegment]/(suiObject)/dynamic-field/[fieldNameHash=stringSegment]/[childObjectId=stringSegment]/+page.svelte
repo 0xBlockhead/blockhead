@@ -23,7 +23,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'Sui dynamic field edge'} • Sui dynamic field edge • Blockhead</title>
+	<title>{data?.title ?? 'Sui dynamic field edge'} • Sui dynamic field edge • Blockhead</title>
 </svelte:head>
 
 

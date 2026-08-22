@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'regulated asset profile timestamp'} • regulated asset profile timestamp • Blockhead</title>
+	<title>{data?.title ?? 'regulated asset profile timestamp'} • regulated asset profile timestamp • Blockhead</title>
 </svelte:head>
 
 

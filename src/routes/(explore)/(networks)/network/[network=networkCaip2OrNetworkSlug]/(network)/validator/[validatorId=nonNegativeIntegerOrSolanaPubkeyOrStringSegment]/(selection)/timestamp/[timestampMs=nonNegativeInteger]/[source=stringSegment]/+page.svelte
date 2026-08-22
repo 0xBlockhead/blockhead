@@ -32,7 +32,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.source || 'Cosmos validator timestamp')} • Cosmos validator timestamp • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.source || 'Cosmos validator timestamp')} • Cosmos validator timestamp • Blockhead</title>
 </svelte:head>
 
 

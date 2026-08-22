@@ -25,7 +25,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.symbol || 'bnb beacon token')} • bnb beacon token • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.symbol || 'bnb beacon token')} • bnb beacon token • Blockhead</title>
 </svelte:head>
 
 

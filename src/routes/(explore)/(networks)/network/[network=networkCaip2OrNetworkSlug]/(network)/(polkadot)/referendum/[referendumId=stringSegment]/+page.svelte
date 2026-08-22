@@ -25,7 +25,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.referendumId || 'Polkadot referendum')} • Polkadot referendum • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.referendumId || 'Polkadot referendum')} • Polkadot referendum • Blockhead</title>
 </svelte:head>
 
 

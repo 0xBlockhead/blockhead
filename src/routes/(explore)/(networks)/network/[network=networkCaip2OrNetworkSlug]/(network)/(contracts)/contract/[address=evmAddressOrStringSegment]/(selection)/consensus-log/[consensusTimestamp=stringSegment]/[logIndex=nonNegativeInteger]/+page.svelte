@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'hedera contract log'} • hedera contract log • Blockhead</title>
+	<title>{data?.title ?? 'hedera contract log'} • hedera contract log • Blockhead</title>
 </svelte:head>
 
 

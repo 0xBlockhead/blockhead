@@ -32,7 +32,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (String(pageSelection.entitySelector.timestampMs) || 'beacon block observation')} • beacon block observation • Blockhead</title>
+	<title>{data?.title ?? (String(pageSelection.entitySelector.timestampMs) || 'beacon block observation')} • beacon block observation • Blockhead</title>
 </svelte:head>
 
 

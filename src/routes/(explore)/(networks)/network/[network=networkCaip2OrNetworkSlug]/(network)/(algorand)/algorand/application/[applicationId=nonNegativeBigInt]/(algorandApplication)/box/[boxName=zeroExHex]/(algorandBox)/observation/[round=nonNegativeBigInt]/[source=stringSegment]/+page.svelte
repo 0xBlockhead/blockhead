@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'algorand box round'} • algorand box round • Blockhead</title>
+	<title>{data?.title ?? 'algorand box round'} • algorand box round • Blockhead</title>
 </svelte:head>
 
 

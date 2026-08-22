@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'XRPL amendment timestamp'} • XRPL amendment timestamp • Blockhead</title>
+	<title>{data?.title ?? 'XRPL amendment timestamp'} • XRPL amendment timestamp • Blockhead</title>
 </svelte:head>
 
 

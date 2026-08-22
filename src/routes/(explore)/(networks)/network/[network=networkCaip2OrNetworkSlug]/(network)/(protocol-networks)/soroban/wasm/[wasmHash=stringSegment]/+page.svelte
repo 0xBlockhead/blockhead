@@ -23,7 +23,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'soroban Wasm'} • soroban Wasm • Blockhead</title>
+	<title>{data?.title ?? 'soroban Wasm'} • soroban Wasm • Blockhead</title>
 </svelte:head>
 
 

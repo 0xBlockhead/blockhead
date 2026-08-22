@@ -36,7 +36,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? 'AI document' : pageSelection.entity.documentKind || 'AI document')} • AI document • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entity == null ? 'AI document' : pageSelection.entity.documentKind || 'AI document')} • AI document • Blockhead</title>
 </svelte:head>
 
 

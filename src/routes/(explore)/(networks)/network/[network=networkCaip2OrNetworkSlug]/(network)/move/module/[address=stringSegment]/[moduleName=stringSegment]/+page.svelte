@@ -25,7 +25,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.moduleName || 'move module')} • move module • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.moduleName || 'move module')} • move module • Blockhead</title>
 </svelte:head>
 
 

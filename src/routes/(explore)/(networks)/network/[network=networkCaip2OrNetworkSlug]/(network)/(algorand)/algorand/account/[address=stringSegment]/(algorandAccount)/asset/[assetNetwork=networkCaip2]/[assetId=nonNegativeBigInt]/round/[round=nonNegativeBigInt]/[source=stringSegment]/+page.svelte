@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'algorand asset holding round'} • algorand asset holding round • Blockhead</title>
+	<title>{data?.title ?? 'algorand asset holding round'} • algorand asset holding round • Blockhead</title>
 </svelte:head>
 
 

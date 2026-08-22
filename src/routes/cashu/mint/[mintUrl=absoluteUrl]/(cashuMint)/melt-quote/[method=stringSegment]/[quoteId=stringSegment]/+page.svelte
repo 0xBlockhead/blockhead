@@ -25,7 +25,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.quoteId || 'blockhead Cashu melt quote')} • blockhead Cashu melt quote • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.quoteId || 'blockhead Cashu melt quote')} • blockhead Cashu melt quote • Blockhead</title>
 </svelte:head>
 
 

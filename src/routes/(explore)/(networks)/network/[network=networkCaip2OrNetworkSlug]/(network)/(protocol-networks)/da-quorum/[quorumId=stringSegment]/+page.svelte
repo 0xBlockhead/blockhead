@@ -31,7 +31,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.quorumId || 'zero g da quorum')} • zero g da quorum • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.quorumId || 'zero g da quorum')} • zero g da quorum • Blockhead</title>
 </svelte:head>
 
 

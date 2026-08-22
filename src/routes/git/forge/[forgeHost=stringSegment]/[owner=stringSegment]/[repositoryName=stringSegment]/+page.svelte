@@ -25,7 +25,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? ([pageSelection.entitySelector.owner, pageSelection.entitySelector.repositoryName].filter(Boolean).join(' ') || 'Git forge mirror')} • Git forge mirror • Blockhead</title>
+	<title>{data?.title ?? ([pageSelection.entitySelector.owner, pageSelection.entitySelector.repositoryName].filter(Boolean).join(' ') || 'Git forge mirror')} • Git forge mirror • Blockhead</title>
 </svelte:head>
 
 

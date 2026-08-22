@@ -25,7 +25,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'kaspa accepted transaction'} • kaspa accepted transaction • Blockhead</title>
+	<title>{data?.title ?? 'kaspa accepted transaction'} • kaspa accepted transaction • Blockhead</title>
 </svelte:head>
 
 

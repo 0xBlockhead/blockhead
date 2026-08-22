@@ -32,7 +32,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (String(pageSelection.entitySelector.timestampMs) || 'avail app ID timestamp')} • avail app ID timestamp • Blockhead</title>
+	<title>{data?.title ?? (String(pageSelection.entitySelector.timestampMs) || 'avail app ID timestamp')} • avail app ID timestamp • Blockhead</title>
 </svelte:head>
 
 

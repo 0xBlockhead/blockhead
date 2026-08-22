@@ -23,7 +23,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'stellar liquidity pool'} • stellar liquidity pool • Blockhead</title>
+	<title>{data?.title ?? 'stellar liquidity pool'} • stellar liquidity pool • Blockhead</title>
 </svelte:head>
 
 

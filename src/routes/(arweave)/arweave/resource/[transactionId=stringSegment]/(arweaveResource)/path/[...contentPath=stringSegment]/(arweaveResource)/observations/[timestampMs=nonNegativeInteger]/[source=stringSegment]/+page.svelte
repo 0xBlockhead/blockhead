@@ -32,7 +32,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (String(pageSelection.entitySelector.timestampMs) || 'arweave resource timestamp')} • arweave resource timestamp • Blockhead</title>
+	<title>{data?.title ?? (String(pageSelection.entitySelector.timestampMs) || 'arweave resource timestamp')} • arweave resource timestamp • Blockhead</title>
 </svelte:head>
 
 

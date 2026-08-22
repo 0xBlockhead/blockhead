@@ -32,7 +32,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (String(pageSelection.entitySelector.timestampMs) || 'EIP-8004 agent registration timestamp')} • EIP-8004 agent registration timestamp • Blockhead</title>
+	<title>{data?.title ?? (String(pageSelection.entitySelector.timestampMs) || 'EIP-8004 agent registration timestamp')} • EIP-8004 agent registration timestamp • Blockhead</title>
 </svelte:head>
 
 

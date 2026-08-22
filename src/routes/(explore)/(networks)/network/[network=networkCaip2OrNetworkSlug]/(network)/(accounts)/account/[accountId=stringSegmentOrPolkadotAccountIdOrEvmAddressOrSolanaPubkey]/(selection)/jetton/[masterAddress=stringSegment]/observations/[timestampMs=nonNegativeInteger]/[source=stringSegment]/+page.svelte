@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'TON jetton balance timestamp'} • TON jetton balance timestamp • Blockhead</title>
+	<title>{data?.title ?? 'TON jetton balance timestamp'} • TON jetton balance timestamp • Blockhead</title>
 </svelte:head>
 
 

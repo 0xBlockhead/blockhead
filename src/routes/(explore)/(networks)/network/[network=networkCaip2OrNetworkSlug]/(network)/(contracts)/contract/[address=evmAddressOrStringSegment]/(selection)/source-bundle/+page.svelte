@@ -23,7 +23,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'EVM contract source bundle'} • EVM contract source bundle • Blockhead</title>
+	<title>{data?.title ?? 'EVM contract source bundle'} • EVM contract source bundle • Blockhead</title>
 </svelte:head>
 
 

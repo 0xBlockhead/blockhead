@@ -31,7 +31,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.providerId || 'zero g service provider')} • zero g service provider • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.providerId || 'zero g service provider')} • zero g service provider • Blockhead</title>
 </svelte:head>
 
 

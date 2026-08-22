@@ -23,7 +23,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'transfer restriction'} • transfer restriction • Blockhead</title>
+	<title>{data?.title ?? 'transfer restriction'} • transfer restriction • Blockhead</title>
 </svelte:head>
 
 

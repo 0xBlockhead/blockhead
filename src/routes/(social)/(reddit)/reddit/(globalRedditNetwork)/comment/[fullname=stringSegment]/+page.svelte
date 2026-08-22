@@ -34,7 +34,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.fullname ?? '') || 'Reddit comment' : (pageSelection.entity.body ?? '') || pageSelection.entitySelector.fullname || 'Reddit comment')} • Reddit comment • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.fullname ?? '') || 'Reddit comment' : (pageSelection.entity.body ?? '') || pageSelection.entitySelector.fullname || 'Reddit comment')} • Reddit comment • Blockhead</title>
 </svelte:head>
 
 

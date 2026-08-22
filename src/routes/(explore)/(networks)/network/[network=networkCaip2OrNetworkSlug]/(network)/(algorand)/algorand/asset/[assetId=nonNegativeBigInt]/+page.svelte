@@ -25,7 +25,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (String(pageSelection.entitySelector.assetId) || 'algorand asset')} • algorand asset • Blockhead</title>
+	<title>{data?.title ?? (String(pageSelection.entitySelector.assetId) || 'algorand asset')} • algorand asset • Blockhead</title>
 </svelte:head>
 
 

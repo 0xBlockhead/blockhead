@@ -31,7 +31,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.txHash || 'blockhead monero transfer state')} • blockhead monero transfer state • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.txHash || 'blockhead monero transfer state')} • blockhead monero transfer state • Blockhead</title>
 </svelte:head>
 
 

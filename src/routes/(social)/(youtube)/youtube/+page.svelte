@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'YouTube'} • YouTube network • Blockhead</title>
+	<title>{data?.title ?? 'YouTube'} • YouTube network • Blockhead</title>
 </svelte:head>
 
 

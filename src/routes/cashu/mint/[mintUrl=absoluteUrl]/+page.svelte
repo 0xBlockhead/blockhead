@@ -30,7 +30,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.mintUrl || 'Cashu mint')} • Cashu mint • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.mintUrl || 'Cashu mint')} • Cashu mint • Blockhead</title>
 </svelte:head>
 
 

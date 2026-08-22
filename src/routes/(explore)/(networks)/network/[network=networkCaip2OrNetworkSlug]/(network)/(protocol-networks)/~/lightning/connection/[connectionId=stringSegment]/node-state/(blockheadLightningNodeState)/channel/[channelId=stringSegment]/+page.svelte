@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'local LND channel state'} • local LND channel state • Blockhead</title>
+	<title>{data?.title ?? 'local LND channel state'} • local LND channel state • Blockhead</title>
 </svelte:head>
 
 

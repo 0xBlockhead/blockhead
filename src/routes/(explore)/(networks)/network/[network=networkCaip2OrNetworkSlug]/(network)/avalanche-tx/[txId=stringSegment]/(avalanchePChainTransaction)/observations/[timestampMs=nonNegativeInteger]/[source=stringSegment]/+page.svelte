@@ -32,7 +32,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (String(pageSelection.entitySelector.timestampMs) || 'avalanche p chain transaction timestamp')} • avalanche p chain transaction timestamp • Blockhead</title>
+	<title>{data?.title ?? (String(pageSelection.entitySelector.timestampMs) || 'avalanche p chain transaction timestamp')} • avalanche p chain transaction timestamp • Blockhead</title>
 </svelte:head>
 
 

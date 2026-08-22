@@ -23,7 +23,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'TON NFT collection'} • TON NFT collection • Blockhead</title>
+	<title>{data?.title ?? 'TON NFT collection'} • TON NFT collection • Blockhead</title>
 </svelte:head>
 
 

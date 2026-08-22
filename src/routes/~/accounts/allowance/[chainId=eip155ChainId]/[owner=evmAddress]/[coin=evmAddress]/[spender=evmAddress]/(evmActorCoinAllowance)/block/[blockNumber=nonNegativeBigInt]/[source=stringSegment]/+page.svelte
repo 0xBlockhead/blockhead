@@ -32,7 +32,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'Block ' + String(pageSelection.entitySelector.blockNumber)} • EVM actor coin allowance block • Blockhead</title>
+	<title>{data?.title ?? 'Block ' + String(pageSelection.entitySelector.blockNumber)} • EVM actor coin allowance block • Blockhead</title>
 </svelte:head>
 
 

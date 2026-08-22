@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'tezos cycle'} • tezos cycle • Blockhead</title>
+	<title>{data?.title ?? 'tezos cycle'} • tezos cycle • Blockhead</title>
 </svelte:head>
 
 

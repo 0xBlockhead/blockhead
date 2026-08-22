@@ -25,7 +25,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.mintAddress || 'solana token mint')} • solana token mint • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.mintAddress || 'solana token mint')} • solana token mint • Blockhead</title>
 </svelte:head>
 
 

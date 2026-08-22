@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'hyperliquid spot pair'} • hyperliquid spot pair • Blockhead</title>
+	<title>{data?.title ?? 'hyperliquid spot pair'} • hyperliquid spot pair • Blockhead</title>
 </svelte:head>
 
 

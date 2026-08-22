@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'Sui balance change'} • Sui balance change • Blockhead</title>
+	<title>{data?.title ?? 'Sui balance change'} • Sui balance change • Blockhead</title>
 </svelte:head>
 
 

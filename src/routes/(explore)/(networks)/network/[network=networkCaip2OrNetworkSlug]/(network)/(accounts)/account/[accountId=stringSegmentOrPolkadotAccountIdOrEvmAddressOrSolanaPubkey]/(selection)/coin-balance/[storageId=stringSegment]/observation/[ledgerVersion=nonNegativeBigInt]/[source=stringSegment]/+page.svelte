@@ -36,7 +36,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? 'current Aptos coin balance observation' : pageSelection.entity.assetType || 'current Aptos coin balance observation')} • current Aptos coin balance observation • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entity == null ? 'current Aptos coin balance observation' : pageSelection.entity.assetType || 'current Aptos coin balance observation')} • current Aptos coin balance observation • Blockhead</title>
 </svelte:head>
 
 

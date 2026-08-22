@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'algorand application local state round'} • algorand application local state round • Blockhead</title>
+	<title>{data?.title ?? 'algorand application local state round'} • algorand application local state round • Blockhead</title>
 </svelte:head>
 
 

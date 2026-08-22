@@ -33,7 +33,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? 'blockhead intent quote' : pageSelection.entity.providerProtocol || 'blockhead intent quote')} • blockhead intent quote • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entity == null ? 'blockhead intent quote' : pageSelection.entity.providerProtocol || 'blockhead intent quote')} • blockhead intent quote • Blockhead</title>
 </svelte:head>
 
 

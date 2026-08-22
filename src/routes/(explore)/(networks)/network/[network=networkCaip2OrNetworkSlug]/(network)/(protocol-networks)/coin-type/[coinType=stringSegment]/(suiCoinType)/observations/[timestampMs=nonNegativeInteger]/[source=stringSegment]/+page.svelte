@@ -32,7 +32,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (String(pageSelection.entitySelector.timestampMs) || 'Sui regulated coin state timestamp')} • Sui regulated coin state timestamp • Blockhead</title>
+	<title>{data?.title ?? (String(pageSelection.entitySelector.timestampMs) || 'Sui regulated coin state timestamp')} • Sui regulated coin state timestamp • Blockhead</title>
 </svelte:head>
 
 

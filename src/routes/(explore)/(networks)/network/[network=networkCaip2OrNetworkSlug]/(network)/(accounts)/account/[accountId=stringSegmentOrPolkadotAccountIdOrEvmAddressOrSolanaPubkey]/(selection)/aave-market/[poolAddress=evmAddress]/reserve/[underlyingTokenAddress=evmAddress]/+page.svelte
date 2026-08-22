@@ -38,7 +38,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? 'Aave reserve position' : pageSelection.entity.symbol || 'Aave reserve position')} • Aave reserve position • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entity == null ? 'Aave reserve position' : pageSelection.entity.symbol || 'Aave reserve position')} • Aave reserve position • Blockhead</title>
 </svelte:head>
 
 

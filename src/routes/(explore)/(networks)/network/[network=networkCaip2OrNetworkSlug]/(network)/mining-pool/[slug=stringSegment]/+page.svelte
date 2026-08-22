@@ -33,7 +33,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? 'Bitcoin mining pool' : pageSelection.entity.name || 'Bitcoin mining pool')} • Bitcoin mining pool • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entity == null ? 'Bitcoin mining pool' : pageSelection.entity.name || 'Bitcoin mining pool')} • Bitcoin mining pool • Blockhead</title>
 </svelte:head>
 
 

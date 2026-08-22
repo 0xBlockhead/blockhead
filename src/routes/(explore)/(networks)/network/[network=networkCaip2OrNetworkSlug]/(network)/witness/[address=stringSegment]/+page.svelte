@@ -23,7 +23,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'tron witness'} • tron witness • Blockhead</title>
+	<title>{data?.title ?? 'tron witness'} • tron witness • Blockhead</title>
 </svelte:head>
 
 

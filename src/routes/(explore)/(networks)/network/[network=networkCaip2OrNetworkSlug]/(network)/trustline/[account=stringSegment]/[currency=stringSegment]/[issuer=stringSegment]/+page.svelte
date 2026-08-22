@@ -23,7 +23,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'XRPL trustline'} • XRPL trustline • Blockhead</title>
+	<title>{data?.title ?? 'XRPL trustline'} • XRPL trustline • Blockhead</title>
 </svelte:head>
 
 

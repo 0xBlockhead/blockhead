@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'starknet storage entry timestamp'} • starknet storage entry timestamp • Blockhead</title>
+	<title>{data?.title ?? 'starknet storage entry timestamp'} • starknet storage entry timestamp • Blockhead</title>
 </svelte:head>
 
 

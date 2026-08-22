@@ -30,7 +30,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.id || 'blockhead state channel')} • blockhead state channel • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.id || 'blockhead state channel')} • blockhead state channel • Blockhead</title>
 </svelte:head>
 
 

@@ -31,7 +31,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.txHash || 'blockhead monero output state')} • blockhead monero output state • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.txHash || 'blockhead monero output state')} • blockhead monero output state • Blockhead</title>
 </svelte:head>
 
 

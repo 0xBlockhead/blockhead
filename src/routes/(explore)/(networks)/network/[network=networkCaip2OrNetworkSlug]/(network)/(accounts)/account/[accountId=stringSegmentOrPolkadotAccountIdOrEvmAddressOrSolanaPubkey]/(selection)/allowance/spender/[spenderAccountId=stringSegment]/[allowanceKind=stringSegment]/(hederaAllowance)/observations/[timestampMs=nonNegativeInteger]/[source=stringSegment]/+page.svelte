@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'hedera allowance timestamp'} • hedera allowance timestamp • Blockhead</title>
+	<title>{data?.title ?? 'hedera allowance timestamp'} • hedera allowance timestamp • Blockhead</title>
 </svelte:head>
 
 

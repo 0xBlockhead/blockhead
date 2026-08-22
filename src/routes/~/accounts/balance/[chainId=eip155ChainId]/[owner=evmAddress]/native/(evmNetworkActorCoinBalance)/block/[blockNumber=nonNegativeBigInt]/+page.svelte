@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'EVM network actor coin balance EVM block'} • EVM network actor coin balance EVM block • Blockhead</title>
+	<title>{data?.title ?? 'EVM network actor coin balance EVM block'} • EVM network actor coin balance EVM block • Blockhead</title>
 </svelte:head>
 
 

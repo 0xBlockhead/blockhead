@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'radicle issue'} • radicle issue • Blockhead</title>
+	<title>{data?.title ?? 'radicle issue'} • radicle issue • Blockhead</title>
 </svelte:head>
 
 

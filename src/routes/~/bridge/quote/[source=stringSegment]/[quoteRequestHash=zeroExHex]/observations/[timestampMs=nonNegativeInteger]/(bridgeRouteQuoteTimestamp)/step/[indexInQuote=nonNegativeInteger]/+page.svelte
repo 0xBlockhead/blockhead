@@ -29,7 +29,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? ((String(pageSelection.entitySelector.indexInQuote ?? '') ? 'Step #' + String(pageSelection.entitySelector.indexInQuote ?? '') : '') || 'bridge route quote step')} • bridge route quote step • Blockhead</title>
+	<title>{data?.title ?? ((String(pageSelection.entitySelector.indexInQuote ?? '') ? 'Step #' + String(pageSelection.entitySelector.indexInQuote ?? '') : '') || 'bridge route quote step')} • bridge route quote step • Blockhead</title>
 </svelte:head>
 
 

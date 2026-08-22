@@ -33,7 +33,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? 'blockhead action readiness check' : pageSelection.entity.checkKind || 'blockhead action readiness check')} • blockhead action readiness check • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entity == null ? 'blockhead action readiness check' : pageSelection.entity.checkKind || 'blockhead action readiness check')} • blockhead action readiness check • Blockhead</title>
 </svelte:head>
 
 

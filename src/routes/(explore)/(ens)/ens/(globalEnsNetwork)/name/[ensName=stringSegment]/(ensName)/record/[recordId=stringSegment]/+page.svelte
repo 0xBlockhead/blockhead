@@ -31,7 +31,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.recordKey || 'ENS record')} • ENS record • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.recordKey || 'ENS record')} • ENS record • Blockhead</title>
 </svelte:head>
 
 

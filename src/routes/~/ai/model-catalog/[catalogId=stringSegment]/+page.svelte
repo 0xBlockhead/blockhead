@@ -23,7 +23,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'global AI model catalog'} • global AI model catalog • Blockhead</title>
+	<title>{data?.title ?? 'global AI model catalog'} • global AI model catalog • Blockhead</title>
 </svelte:head>
 
 

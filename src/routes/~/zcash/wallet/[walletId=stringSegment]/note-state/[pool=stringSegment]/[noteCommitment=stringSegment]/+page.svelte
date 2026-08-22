@@ -33,7 +33,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.noteCommitment || 'blockhead zcash note state')} • blockhead zcash note state • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.noteCommitment || 'blockhead zcash note state')} • blockhead zcash note state • Blockhead</title>
 </svelte:head>
 
 

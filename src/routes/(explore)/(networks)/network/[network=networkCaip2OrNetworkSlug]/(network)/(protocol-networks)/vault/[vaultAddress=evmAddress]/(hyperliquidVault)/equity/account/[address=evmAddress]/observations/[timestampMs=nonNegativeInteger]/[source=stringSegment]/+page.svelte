@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'hyperliquid vault equity timestamp'} • hyperliquid vault equity timestamp • Blockhead</title>
+	<title>{data?.title ?? 'hyperliquid vault equity timestamp'} • hyperliquid vault equity timestamp • Blockhead</title>
 </svelte:head>
 
 

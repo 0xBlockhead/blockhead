@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'Cardano native asset timestamp'} • Cardano native asset timestamp • Blockhead</title>
+	<title>{data?.title ?? 'Cardano native asset timestamp'} • Cardano native asset timestamp • Blockhead</title>
 </svelte:head>
 
 

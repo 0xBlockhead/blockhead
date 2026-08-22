@@ -30,7 +30,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.turnId || 'ACP prompt turn')} • ACP prompt turn • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.turnId || 'ACP prompt turn')} • ACP prompt turn • Blockhead</title>
 </svelte:head>
 
 

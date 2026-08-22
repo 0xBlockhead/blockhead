@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'global Swarm access'} • global Swarm access • Blockhead</title>
+	<title>{data?.title ?? 'global Swarm access'} • global Swarm access • Blockhead</title>
 </svelte:head>
 
 

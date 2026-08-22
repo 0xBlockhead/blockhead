@@ -32,7 +32,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.epochId || 'near validator timestamp')} • near validator timestamp • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.epochId || 'near validator timestamp')} • near validator timestamp • Blockhead</title>
 </svelte:head>
 
 

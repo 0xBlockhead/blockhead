@@ -23,7 +23,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'hyperliquid validator'} • hyperliquid validator • Blockhead</title>
+	<title>{data?.title ?? 'hyperliquid validator'} • hyperliquid validator • Blockhead</title>
 </svelte:head>
 
 

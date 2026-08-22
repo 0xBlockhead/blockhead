@@ -32,7 +32,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (String(pageSelection.entitySelector.timestampMs) || 'Bitcoin mining pool observation')} • Bitcoin mining pool observation • Blockhead</title>
+	<title>{data?.title ?? (String(pageSelection.entitySelector.timestampMs) || 'Bitcoin mining pool observation')} • Bitcoin mining pool observation • Blockhead</title>
 </svelte:head>
 
 

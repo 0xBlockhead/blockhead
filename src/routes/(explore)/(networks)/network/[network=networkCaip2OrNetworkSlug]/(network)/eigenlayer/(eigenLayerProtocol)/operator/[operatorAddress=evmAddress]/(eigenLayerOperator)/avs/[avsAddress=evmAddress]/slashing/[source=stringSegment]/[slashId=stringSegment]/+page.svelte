@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'eigen layer slashing event'} • eigen layer slashing event • Blockhead</title>
+	<title>{data?.title ?? 'eigen layer slashing event'} • eigen layer slashing event • Blockhead</title>
 </svelte:head>
 
 

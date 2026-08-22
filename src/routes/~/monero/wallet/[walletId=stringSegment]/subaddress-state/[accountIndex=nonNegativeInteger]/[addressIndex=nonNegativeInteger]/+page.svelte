@@ -34,7 +34,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.walletId ?? '') || 'blockhead monero subaddress state' : (pageSelection.entity.address ?? '') || pageSelection.entitySelector.walletId || 'blockhead monero subaddress state')} • blockhead monero subaddress state • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.walletId ?? '') || 'blockhead monero subaddress state' : (pageSelection.entity.address ?? '') || pageSelection.entitySelector.walletId || 'blockhead monero subaddress state')} • blockhead monero subaddress state • Blockhead</title>
 </svelte:head>
 
 

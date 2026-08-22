@@ -32,7 +32,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (String(pageSelection.entitySelector.timestampMs) || 'bnb beacon token timestamp')} • bnb beacon token timestamp • Blockhead</title>
+	<title>{data?.title ?? (String(pageSelection.entitySelector.timestampMs) || 'bnb beacon token timestamp')} • bnb beacon token timestamp • Blockhead</title>
 </svelte:head>
 
 

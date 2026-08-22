@@ -23,7 +23,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'TON trace'} • TON trace • Blockhead</title>
+	<title>{data?.title ?? 'TON trace'} • TON trace • Blockhead</title>
 </svelte:head>
 
 

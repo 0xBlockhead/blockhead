@@ -31,7 +31,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (String(pageSelection.entitySelector.sequence) || 'A2A task event')} • A2A task event • Blockhead</title>
+	<title>{data?.title ?? (String(pageSelection.entitySelector.sequence) || 'A2A task event')} • A2A task event • Blockhead</title>
 </svelte:head>
 
 

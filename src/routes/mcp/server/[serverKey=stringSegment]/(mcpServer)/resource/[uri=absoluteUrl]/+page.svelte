@@ -34,7 +34,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.uri ?? '') || 'mcp resource' : (pageSelection.entity.title ?? '') || [(pageSelection.entity.name ?? ''), pageSelection.entitySelector.uri].filter(Boolean).join(' ') || 'mcp resource')} • mcp resource • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.uri ?? '') || 'mcp resource' : (pageSelection.entity.title ?? '') || [(pageSelection.entity.name ?? ''), pageSelection.entitySelector.uri].filter(Boolean).join(' ') || 'mcp resource')} • mcp resource • Blockhead</title>
 </svelte:head>
 
 

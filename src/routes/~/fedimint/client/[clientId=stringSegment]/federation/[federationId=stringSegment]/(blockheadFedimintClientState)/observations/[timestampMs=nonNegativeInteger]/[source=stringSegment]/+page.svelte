@@ -32,7 +32,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (String(pageSelection.entitySelector.timestampMs) || 'blockhead Fedimint client state timestamp')} • blockhead Fedimint client state timestamp • Blockhead</title>
+	<title>{data?.title ?? (String(pageSelection.entitySelector.timestampMs) || 'blockhead Fedimint client state timestamp')} • blockhead Fedimint client state timestamp • Blockhead</title>
 </svelte:head>
 
 

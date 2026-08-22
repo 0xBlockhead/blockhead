@@ -33,7 +33,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? 'EVM trace' : (String(pageSelection.entity.index ?? '') ? 'Trace #' + String(pageSelection.entity.index ?? '') : '') || (pageSelection.entitySelector.traceAddress ?? '') || 'EVM trace')} • EVM trace • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entity == null ? 'EVM trace' : (String(pageSelection.entity.index ?? '') ? 'Trace #' + String(pageSelection.entity.index ?? '') : '') || (pageSelection.entitySelector.traceAddress ?? '') || 'EVM trace')} • EVM trace • Blockhead</title>
 </svelte:head>
 
 

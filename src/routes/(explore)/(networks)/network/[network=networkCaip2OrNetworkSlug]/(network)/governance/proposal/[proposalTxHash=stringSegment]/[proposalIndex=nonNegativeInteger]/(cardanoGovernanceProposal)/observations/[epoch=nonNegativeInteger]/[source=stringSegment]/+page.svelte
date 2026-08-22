@@ -32,7 +32,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'Epoch ' + String(pageSelection.entitySelector.epoch)} • Cardano governance proposal timestamp • Blockhead</title>
+	<title>{data?.title ?? 'Epoch ' + String(pageSelection.entitySelector.epoch)} • Cardano governance proposal timestamp • Blockhead</title>
 </svelte:head>
 
 

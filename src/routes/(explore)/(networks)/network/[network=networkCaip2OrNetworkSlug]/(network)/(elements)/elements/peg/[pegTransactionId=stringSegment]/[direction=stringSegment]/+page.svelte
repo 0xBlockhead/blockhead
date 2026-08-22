@@ -25,7 +25,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? ([pageSelection.entitySelector.direction, pageSelection.entitySelector.pegTransactionId].filter(Boolean).join(' ') || 'Elements peg')} • Elements peg • Blockhead</title>
+	<title>{data?.title ?? ([pageSelection.entitySelector.direction, pageSelection.entitySelector.pegTransactionId].filter(Boolean).join(' ') || 'Elements peg')} • Elements peg • Blockhead</title>
 </svelte:head>
 
 

@@ -25,7 +25,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.trackerUrl || 'bit torrent tracker')} • bit torrent tracker • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.trackerUrl || 'bit torrent tracker')} • bit torrent tracker • Blockhead</title>
 </svelte:head>
 
 

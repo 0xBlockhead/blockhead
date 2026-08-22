@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'Cardano stake delegation epoch'} • Cardano stake delegation epoch • Blockhead</title>
+	<title>{data?.title ?? 'Cardano stake delegation epoch'} • Cardano stake delegation epoch • Blockhead</title>
 </svelte:head>
 
 

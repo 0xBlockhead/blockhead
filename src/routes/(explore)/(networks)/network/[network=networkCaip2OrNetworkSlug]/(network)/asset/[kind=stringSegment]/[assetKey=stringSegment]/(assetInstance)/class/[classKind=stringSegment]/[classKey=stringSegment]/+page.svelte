@@ -34,7 +34,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.classKey ?? '') || 'asset class' : [(pageSelection.entity.label ?? ''), pageSelection.entitySelector.classKey].filter(Boolean).join(' ') || 'asset class')} • asset class • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.classKey ?? '') || 'asset class' : [(pageSelection.entity.label ?? ''), pageSelection.entitySelector.classKey].filter(Boolean).join(' ') || 'asset class')} • asset class • Blockhead</title>
 </svelte:head>
 
 

@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'hedera NFT timestamp'} • hedera NFT timestamp • Blockhead</title>
+	<title>{data?.title ?? 'hedera NFT timestamp'} • hedera NFT timestamp • Blockhead</title>
 </svelte:head>
 
 

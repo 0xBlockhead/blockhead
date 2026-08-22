@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'zcash shielded pool block state'} • zcash shielded pool block state • Blockhead</title>
+	<title>{data?.title ?? 'zcash shielded pool block state'} • zcash shielded pool block state • Blockhead</title>
 </svelte:head>
 
 

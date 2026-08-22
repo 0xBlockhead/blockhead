@@ -34,7 +34,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? 'Coin' : [pageSelection.entity.symbol, pageSelection.entity.name].filter(Boolean).join(' ') || 'Coin')} • Coin • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entity == null ? 'Coin' : [pageSelection.entity.symbol, pageSelection.entity.name].filter(Boolean).join(' ') || 'Coin')} • Coin • Blockhead</title>
 </svelte:head>
 
 

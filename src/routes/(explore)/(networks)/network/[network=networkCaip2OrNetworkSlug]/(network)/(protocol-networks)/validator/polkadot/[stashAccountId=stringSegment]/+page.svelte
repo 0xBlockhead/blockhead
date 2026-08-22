@@ -25,7 +25,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.stashAccountId || 'Polkadot validator')} • Polkadot validator • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.stashAccountId || 'Polkadot validator')} • Polkadot validator • Blockhead</title>
 </svelte:head>
 
 

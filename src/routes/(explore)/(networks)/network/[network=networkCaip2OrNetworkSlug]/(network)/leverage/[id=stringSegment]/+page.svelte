@@ -29,7 +29,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.id || 'leverage')} • leverage • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.id || 'leverage')} • leverage • Blockhead</title>
 </svelte:head>
 
 

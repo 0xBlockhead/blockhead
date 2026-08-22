@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'XRPL AMM timestamp'} • XRPL AMM timestamp • Blockhead</title>
+	<title>{data?.title ?? 'XRPL AMM timestamp'} • XRPL AMM timestamp • Blockhead</title>
 </svelte:head>
 
 

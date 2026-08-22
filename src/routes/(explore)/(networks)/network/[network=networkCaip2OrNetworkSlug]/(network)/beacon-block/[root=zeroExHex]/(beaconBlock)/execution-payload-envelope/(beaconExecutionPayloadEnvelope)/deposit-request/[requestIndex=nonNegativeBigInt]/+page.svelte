@@ -34,7 +34,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'Deposit request ' + String(pageSelection.entitySelector.requestIndex)} • Beacon execution deposit request • Blockhead</title>
+	<title>{data?.title ?? 'Deposit request ' + String(pageSelection.entitySelector.requestIndex)} • Beacon execution deposit request • Blockhead</title>
 </svelte:head>
 
 

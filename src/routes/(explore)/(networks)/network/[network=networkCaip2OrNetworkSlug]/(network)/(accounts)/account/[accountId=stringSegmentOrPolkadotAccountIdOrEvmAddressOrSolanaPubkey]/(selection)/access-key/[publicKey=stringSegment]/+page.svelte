@@ -30,7 +30,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.publicKey || 'near access key')} • near access key • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.publicKey || 'near access key')} • near access key • Blockhead</title>
 </svelte:head>
 
 

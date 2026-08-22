@@ -34,7 +34,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? 'Curve pool' : [pageSelection.entity.name, pageSelection.entity.symbol].filter(Boolean).join(' ') || 'Curve pool')} • Curve pool • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entity == null ? 'Curve pool' : [pageSelection.entity.name, pageSelection.entity.symbol].filter(Boolean).join(' ') || 'Curve pool')} • Curve pool • Blockhead</title>
 </svelte:head>
 
 

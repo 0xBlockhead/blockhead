@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'dogecoin aux pow parent block header'} • dogecoin aux pow parent block header • Blockhead</title>
+	<title>{data?.title ?? 'dogecoin aux pow parent block header'} • dogecoin aux pow parent block header • Blockhead</title>
 </svelte:head>
 
 

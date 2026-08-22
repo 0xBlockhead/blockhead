@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'solana instruction'} • solana instruction • Blockhead</title>
+	<title>{data?.title ?? 'solana instruction'} • solana instruction • Blockhead</title>
 </svelte:head>
 
 

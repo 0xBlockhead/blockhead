@@ -32,7 +32,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (String(pageSelection.entitySelector.timestampMs) || 'A2A agent service timestamp')} • A2A agent service timestamp • Blockhead</title>
+	<title>{data?.title ?? (String(pageSelection.entitySelector.timestampMs) || 'A2A agent service timestamp')} • A2A agent service timestamp • Blockhead</title>
 </svelte:head>
 
 

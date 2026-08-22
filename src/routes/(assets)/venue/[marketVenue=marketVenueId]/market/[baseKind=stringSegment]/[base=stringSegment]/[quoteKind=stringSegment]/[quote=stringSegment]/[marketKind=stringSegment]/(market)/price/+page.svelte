@@ -23,7 +23,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'Market price'} • Market price • Blockhead</title>
+	<title>{data?.title ?? 'Market price'} • Market price • Blockhead</title>
 </svelte:head>
 
 

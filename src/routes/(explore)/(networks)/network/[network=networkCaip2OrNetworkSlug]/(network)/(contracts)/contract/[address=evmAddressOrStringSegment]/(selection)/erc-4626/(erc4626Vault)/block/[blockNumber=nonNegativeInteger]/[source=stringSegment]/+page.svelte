@@ -32,7 +32,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (String(pageSelection.entitySelector.blockNumber) || 'erc4626 vault block')} • erc4626 vault block • Blockhead</title>
+	<title>{data?.title ?? (String(pageSelection.entitySelector.blockNumber) || 'erc4626 vault block')} • erc4626 vault block • Blockhead</title>
 </svelte:head>
 
 

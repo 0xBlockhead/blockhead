@@ -23,7 +23,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'swap quote timestamp'} • swap quote timestamp • Blockhead</title>
+	<title>{data?.title ?? 'swap quote timestamp'} • swap quote timestamp • Blockhead</title>
 </svelte:head>
 
 

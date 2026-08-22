@@ -33,7 +33,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.remoteName || 'Git fetch observation')} • Git fetch observation • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.remoteName || 'Git fetch observation')} • Git fetch observation • Blockhead</title>
 </svelte:head>
 
 

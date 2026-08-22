@@ -34,7 +34,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.coin || 'hyperliquid perp market')} • hyperliquid perp market • Blockhead</title>
+	<title>{data?.title ?? (pageSelection.entitySelector.coin || 'hyperliquid perp market')} • hyperliquid perp market • Blockhead</title>
 </svelte:head>
 
 

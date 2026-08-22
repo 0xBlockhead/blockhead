@@ -25,7 +25,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'Pendle position'} • Pendle position • Blockhead</title>
+	<title>{data?.title ?? 'Pendle position'} • Pendle position • Blockhead</title>
 </svelte:head>
 
 

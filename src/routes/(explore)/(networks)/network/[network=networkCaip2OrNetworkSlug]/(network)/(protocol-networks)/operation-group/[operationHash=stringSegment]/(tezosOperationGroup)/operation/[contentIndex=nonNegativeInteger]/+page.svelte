@@ -23,7 +23,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'tezos operation'} • tezos operation • Blockhead</title>
+	<title>{data?.title ?? 'tezos operation'} • tezos operation • Blockhead</title>
 </svelte:head>
 
 

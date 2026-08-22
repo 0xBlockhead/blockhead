@@ -25,7 +25,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'local LND forward'} • local LND forward • Blockhead</title>
+	<title>{data?.title ?? 'local LND forward'} • local LND forward • Blockhead</title>
 </svelte:head>
 
 

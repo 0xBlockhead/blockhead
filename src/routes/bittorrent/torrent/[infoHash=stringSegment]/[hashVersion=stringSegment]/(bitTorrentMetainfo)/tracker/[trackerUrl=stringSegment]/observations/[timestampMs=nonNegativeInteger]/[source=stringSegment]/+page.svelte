@@ -35,7 +35,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (String(pageSelection.entitySelector.timestampMs) || 'bit torrent announce timestamp')} • bit torrent announce timestamp • Blockhead</title>
+	<title>{data?.title ?? (String(pageSelection.entitySelector.timestampMs) || 'bit torrent announce timestamp')} • bit torrent announce timestamp • Blockhead</title>
 </svelte:head>
 
 
