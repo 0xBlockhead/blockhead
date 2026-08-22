@@ -10,6 +10,10 @@ import {
 	traceE2ECollections,
 	type E2ECollectionTrace,
 } from './$e2eTrace.ts'
+import {
+	e2eProfileDatabaseName,
+	e2eProfileVfsName,
+} from './$e2eDatabaseProfile.ts'
 import type { Schema } from '$/schema/$schema.ts'
 import type {
 	LoadSubsetOptions,
@@ -71,7 +75,10 @@ export const e2eDatabaseName = (
 	defaultDatabaseName: string
 ) => (
 	typeof window !== 'undefined' ?
-		window.__blockheadWaSqliteDatabaseNameOverride ?? defaultDatabaseName
+		window.__blockheadWaSqliteDatabaseNameOverride == null ?
+			defaultDatabaseName
+		:
+			e2eProfileDatabaseName(window.__blockheadWaSqliteDatabaseNameOverride)
 	:
 		defaultDatabaseName
 )
@@ -80,7 +87,10 @@ export const e2eVfsName = (
 	defaultVfsName?: string
 ) => (
 	typeof window !== 'undefined' ?
-		window.__blockheadWaSqliteVfsNameOverride ?? defaultVfsName
+		window.__blockheadWaSqliteVfsNameOverride == null ?
+			defaultVfsName
+		:
+			e2eProfileVfsName(window.__blockheadWaSqliteVfsNameOverride)
 	:
 		defaultVfsName
 )
