@@ -1742,6 +1742,6 @@ describe('Hyperliquid market catalog resolvers', () => {
 				value: 1,
 			},
 			timestampMs: 1_700_000_000_000,
-		}, context)).rejects.toThrow('candle not found')
+		}, context)).rejects.toThrow('response contains a foreign coin')
 	})
 })
