@@ -43,10 +43,6 @@ const {
 	dydxNetworkReferenceResolver,
 } = await import('$/resolvers/Dydx.ts')
 
-const {
-	dydxNextFundingAtMs,
-} = await import('$/sources/Dydx/Rest/types.ts')
-
 const context = {
 	filters: [],
 	sorts: [],
@@ -460,23 +456,10 @@ describe('dYdX Indexer resolvers', () => {
 					[entityFieldAddressKey(EntityType.DydxChainMarket, [], 'baseAsset')]: 'BTC',
 					[entityFieldAddressKey(EntityType.DydxChainMarket, [], 'quoteAsset')]: 'USD',
 					[entityFieldAddressKey(EntityType.DydxChainMarket, [], 'marketKind')]: 'CROSS',
-					[entityFieldAddressKey(EntityType.DydxChainMarket, [], '$$timestamps')]: [{
-						[EntityMetaKey.Selector]: {
-							$market: {
-								$network: network,
-								ticker: 'BTC-USD',
-							},
-							timestampMs: observedAtMs,
-							source: Source.DydxIndexer,
-						},
-						[EntityMetaKey.Fields]: {
-							[entityFieldAddressKey(EntityType.DydxChainMarket_Timestamp, [], 'fundingRate')]: '-0.0000000000001',
-							[entityFieldAddressKey(EntityType.DydxChainMarket_Timestamp, [], 'nextFundingAtMs')]: dydxNextFundingAtMs(observedAtMs),
-							[entityFieldAddressKey(EntityType.DydxChainMarket_Timestamp, [], 'openInterest')]: '308.7674',
-							[entityFieldAddressKey(EntityType.DydxChainMarket_Timestamp, [], 'oraclePrice')]: '65554.247690000000000001',
-							[entityFieldAddressKey(EntityType.DydxChainMarket_Timestamp, [], 'status')]: 'ACTIVE',
-						},
-					}],
+					[entityFieldAddressKey(EntityType.DydxChainMarket, [], 'fundingRate')]: '-0.0000000000001',
+					[entityFieldAddressKey(EntityType.DydxChainMarket, [], 'openInterest')]: '308.7674',
+					[entityFieldAddressKey(EntityType.DydxChainMarket, [], 'oraclePrice')]: '65554.247690000000000001',
+					[entityFieldAddressKey(EntityType.DydxChainMarket, [], 'status')]: 'ACTIVE',
 				},
 			}],
 		}])
@@ -599,21 +582,11 @@ describe('dYdX Indexer resolvers', () => {
 					[entityFieldAddressKey(EntityType.DydxChainMarket, [], 'baseAsset')]: 'BTC',
 					[entityFieldAddressKey(EntityType.DydxChainMarket, [], 'quoteAsset')]: 'USD',
 					[entityFieldAddressKey(EntityType.DydxChainMarket, [], 'marketKind')]: 'ISOLATED',
+					[entityFieldAddressKey(EntityType.DydxChainMarket, [], 'fundingRate')]: '-0.000000000000000007',
+					[entityFieldAddressKey(EntityType.DydxChainMarket, [], 'openInterest')]: '308.7674',
+					[entityFieldAddressKey(EntityType.DydxChainMarket, [], 'oraclePrice')]: '65555.000000000000000009',
+					[entityFieldAddressKey(EntityType.DydxChainMarket, [], 'status')]: 'ACTIVE',
 					[entityFieldAddressKey(EntityType.DydxChainMarket, [], '$$timestamps')]: [
-						{
-							[EntityMetaKey.Selector]: {
-								$market: {
-									$network: network,
-									ticker: 'BTC-USD',
-								},
-								timestampMs: observedAtMs,
-								source: Source.DydxIndexer,
-							},
-							[EntityMetaKey.Fields]: {
-								[entityFieldAddressKey(EntityType.DydxChainMarket_Timestamp, [], 'fundingRate')]: '-0.000000000000000007',
-								[entityFieldAddressKey(EntityType.DydxChainMarket_Timestamp, [], 'nextFundingAtMs')]: dydxNextFundingAtMs(observedAtMs),
-							},
-						},
 						{
 							[EntityMetaKey.Selector]: {
 								$market: {
@@ -642,6 +615,10 @@ describe('dYdX Indexer resolvers', () => {
 					[entityFieldAddressKey(EntityType.DydxChainMarket, [], 'baseAsset')]: 'BTC',
 					[entityFieldAddressKey(EntityType.DydxChainMarket, [], 'quoteAsset')]: 'USD',
 					[entityFieldAddressKey(EntityType.DydxChainMarket, [], 'marketKind')]: 'CROSS',
+					[entityFieldAddressKey(EntityType.DydxChainMarket, [], 'fundingRate')]: '-0.000000000000000007',
+					[entityFieldAddressKey(EntityType.DydxChainMarket, [], 'openInterest')]: '309.000000000000000003',
+					[entityFieldAddressKey(EntityType.DydxChainMarket, [], 'oraclePrice')]: '65556.000000000000000011',
+					[entityFieldAddressKey(EntityType.DydxChainMarket, [], 'status')]: 'PAUSED',
 					[entityFieldAddressKey(EntityType.DydxChainMarket, [], '$$timestamps')]: [
 						{
 							[EntityMetaKey.Selector]: {
@@ -649,12 +626,11 @@ describe('dYdX Indexer resolvers', () => {
 									$network: network,
 									ticker: 'BTC-USD',
 								},
-								timestampMs: observedAtMs,
+								timestampMs: Date.parse(oracleTime),
 								source: Source.DydxIndexer,
 							},
 							[EntityMetaKey.Fields]: {
-								[entityFieldAddressKey(EntityType.DydxChainMarket_Timestamp, [], 'openInterest')]: '309.000000000000000003',
-								[entityFieldAddressKey(EntityType.DydxChainMarket_Timestamp, [], 'status')]: 'PAUSED',
+								[entityFieldAddressKey(EntityType.DydxChainMarket_Timestamp, [], 'oraclePrice')]: '65555.000000000000000009',
 							},
 						},
 						{
@@ -774,7 +750,7 @@ describe('dYdX Indexer resolvers', () => {
 		expect(dydxChainMarketResolver.projections.marketKind(snapshot)).toBe('CROSS')
 	})
 
-	it('materializes current and historical market observations under one field owner', async () => {
+	it('materializes only provider-clocked funding and price history', async () => {
 		const observation = await dydxChainMarketFundingHistoryResolver.resolve.NetworkTicker.resolve(
 			market,
 			context
@@ -785,19 +761,6 @@ describe('dYdX Indexer resolvers', () => {
 			expect.stringContaining('/v4/historicalFunding/BTC-USD?limit=1'),
 		]))
 		expect(dydxChainMarketFundingHistoryResolver.projections.$$timestamps(observation, market)).toEqual([{
-			[EntityMetaKey.Selector]: {
-				$market: market,
-				timestampMs: observedAtMs,
-				source: Source.DydxIndexer,
-			},
-			[EntityMetaKey.Fields]: {
-				[entityFieldAddressKey(EntityType.DydxChainMarket_Timestamp, [], 'fundingRate')]: '-0.0000000000001',
-				[entityFieldAddressKey(EntityType.DydxChainMarket_Timestamp, [], 'nextFundingAtMs')]: dydxNextFundingAtMs(observedAtMs),
-				[entityFieldAddressKey(EntityType.DydxChainMarket_Timestamp, [], 'openInterest')]: '308.7674',
-				[entityFieldAddressKey(EntityType.DydxChainMarket_Timestamp, [], 'oraclePrice')]: '65554.247690000000000001',
-				[entityFieldAddressKey(EntityType.DydxChainMarket_Timestamp, [], 'status')]: 'ACTIVE',
-			},
-		}, {
 			[EntityMetaKey.Selector]: {
 				$market: market,
 				timestampMs: Date.parse(historicalFunding[0].effectiveAt),

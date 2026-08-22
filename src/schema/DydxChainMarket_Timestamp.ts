@@ -26,24 +26,12 @@ export default entity({
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
-	oraclePrice: {
-		primitiveType: NonNegativeDecimalString,
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
 	fundingRate: {
 		primitiveType: DecimalString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
-	openInterest: {
+	oraclePrice: {
 		primitiveType: NonNegativeDecimalString,
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	status: {
-		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	nextFundingAtMs: {
-		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 })({

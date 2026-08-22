@@ -22,9 +22,16 @@ export default entity({
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
-	$$timestamps: {
-		entityType: EntityType.HyperliquidPerpMarket_Timestamp,
-		cardinality: EntityFieldCardinality.Many,
+	maxLeverage: {
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Hyperliquid,
+		],
+	},
+	onlyIsolated: {
+		primitiveType: type('boolean'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.Hyperliquid,
 		],

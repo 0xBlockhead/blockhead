@@ -4888,20 +4888,6 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
-	'/(explore)/(networks)/network/[network]/(protocol-networks)/spot-pair/[pairIndex]/observations/[timestampMs]/[source]': {
-		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/spot-pair/[pairIndex=nonNegativeInteger]/(hyperliquidSpotPair)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-		mappings: [
-			{
-				id: 'HyperliquidSpotPair_Timestamp.SpotPairTimestampMsSource',
-				projectionEntity: 'Network',
-				probeAtomPrefixes: ['/network/[network]/spot-pair/[pairIndex]/observations/[timestampMs]/[source]:HyperliquidSpotPair_Timestamp.SpotPairTimestampMsSource'],
-				probeCases: [[[0, '1', ['timestampMs', 'source', 'pairIndex', 'network']]]],
-				projectionPath: [
-					'Hyperliquid',
-				],
-			},
-		],
-	},
 	'/(explore)/(networks)/network/[network]/(protocol-networks)/stake/observations/[timestampMs]/[source]': {
 		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/stake/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 		mappings: [
@@ -7689,34 +7675,6 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
-	'/(explore)/(networks)/network/[network]/erc-4337/account-factory/[address]/observations': {
-		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/erc-4337/account-factory/[address=evmAddress]/(erc4337AccountFactory)/observations',
-		mappings: [
-			{
-				id: 'Erc4337AccountFactory.EvmNetworkAddress',
-				projectionEntity: 'Network',
-				probeAtomPrefixes: ['/network/[network]/erc-4337/account-factory/[address]:Erc4337AccountFactory.EvmNetworkAddress'],
-				probeCases: [[[0, '1', ['address', 'network']]]],
-				projectionPath: [
-					'Evm',
-				],
-			},
-		],
-	},
-	'/(explore)/(networks)/network/[network]/erc-4337/account-factory/[address]/observations/[timestampMs]/[source]': {
-		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/erc-4337/account-factory/[address=evmAddress]/(erc4337AccountFactory)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-		mappings: [
-			{
-				id: 'Erc4337AccountFactory_Timestamp.FactoryTimestampMsSource',
-				projectionEntity: 'Network',
-				probeAtomPrefixes: ['/network/[network]/erc-4337/account-factory/[address]/observations/[timestampMs]/[source]:Erc4337AccountFactory_Timestamp.FactoryTimestampMsSource'],
-				probeCases: [[[0, '1', ['timestampMs', 'source', 'address', 'network']]]],
-				projectionPath: [
-					'Evm',
-				],
-			},
-		],
-	},
 	'/(explore)/(networks)/network/[network]/erc-4337/bundler/[address]': {
 		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/erc-4337/bundler/[address=evmAddress]',
 		mappings: [
@@ -7725,34 +7683,6 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				projectionEntity: 'Network',
 				probeAtomPrefixes: ['/network/[network]/erc-4337/bundler/[address]:Erc4337Bundler.EvmNetworkAddress'],
 				probeCases: [[[0, '1', ['address', 'network']]]],
-				projectionPath: [
-					'Evm',
-				],
-			},
-		],
-	},
-	'/(explore)/(networks)/network/[network]/erc-4337/bundler/[address]/observations': {
-		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/erc-4337/bundler/[address=evmAddress]/(erc4337Bundler)/observations',
-		mappings: [
-			{
-				id: 'Erc4337Bundler.EvmNetworkAddress',
-				projectionEntity: 'Network',
-				probeAtomPrefixes: ['/network/[network]/erc-4337/bundler/[address]:Erc4337Bundler.EvmNetworkAddress'],
-				probeCases: [[[0, '1', ['address', 'network']]]],
-				projectionPath: [
-					'Evm',
-				],
-			},
-		],
-	},
-	'/(explore)/(networks)/network/[network]/erc-4337/bundler/[address]/observations/[timestampMs]/[source]': {
-		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/erc-4337/bundler/[address=evmAddress]/(erc4337Bundler)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-		mappings: [
-			{
-				id: 'Erc4337Bundler_Timestamp.BundlerTimestampMsSource',
-				projectionEntity: 'Network',
-				probeAtomPrefixes: ['/network/[network]/erc-4337/bundler/[address]/observations/[timestampMs]/[source]:Erc4337Bundler_Timestamp.BundlerTimestampMsSource'],
-				probeCases: [[[0, '1', ['timestampMs', 'source', 'address', 'network']]]],
 				projectionPath: [
 					'Evm',
 				],
@@ -7788,34 +7718,6 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
-	'/(explore)/(networks)/network/[network]/erc-4337/paymaster/[address]/observations': {
-		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/erc-4337/paymaster/[address=evmAddress]/(erc4337Paymaster)/observations',
-		mappings: [
-			{
-				id: 'Erc4337Paymaster.EvmNetworkAddress',
-				projectionEntity: 'Network',
-				probeAtomPrefixes: ['/network/[network]/erc-4337/paymaster/[address]:Erc4337Paymaster.EvmNetworkAddress'],
-				probeCases: [[[0, '1', ['address', 'network']]]],
-				projectionPath: [
-					'Evm',
-				],
-			},
-		],
-	},
-	'/(explore)/(networks)/network/[network]/erc-4337/paymaster/[address]/observations/[timestampMs]/[source]': {
-		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/erc-4337/paymaster/[address=evmAddress]/(erc4337Paymaster)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-		mappings: [
-			{
-				id: 'Erc4337Paymaster_Timestamp.PaymasterTimestampMsSource',
-				projectionEntity: 'Network',
-				probeAtomPrefixes: ['/network/[network]/erc-4337/paymaster/[address]/observations/[timestampMs]/[source]:Erc4337Paymaster_Timestamp.PaymasterTimestampMsSource'],
-				probeCases: [[[0, '1', ['timestampMs', 'source', 'address', 'network']]]],
-				projectionPath: [
-					'Evm',
-				],
-			},
-		],
-	},
 	'/(explore)/(networks)/network/[network]/erc-4337/paymasters': {
 		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/erc-4337/paymasters',
 		mappings: [
@@ -7839,34 +7741,6 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				projectionEntity: 'Network',
 				probeAtomPrefixes: ['/network/[network]/erc-4337/smart-account/[address]:Erc4337SmartAccount.EvmNetworkAddress'],
 				probeCases: [[[0, '1', ['address', 'network']]]],
-				projectionPath: [
-					'Evm',
-				],
-			},
-		],
-	},
-	'/(explore)/(networks)/network/[network]/erc-4337/smart-account/[address]/observations': {
-		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/erc-4337/smart-account/[address=evmAddress]/(erc4337SmartAccount)/observations',
-		mappings: [
-			{
-				id: 'Erc4337SmartAccount.EvmNetworkAddress',
-				projectionEntity: 'Network',
-				probeAtomPrefixes: ['/network/[network]/erc-4337/smart-account/[address]:Erc4337SmartAccount.EvmNetworkAddress'],
-				probeCases: [[[0, '1', ['address', 'network']]]],
-				projectionPath: [
-					'Evm',
-				],
-			},
-		],
-	},
-	'/(explore)/(networks)/network/[network]/erc-4337/smart-account/[address]/observations/[timestampMs]/[source]': {
-		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/erc-4337/smart-account/[address=evmAddress]/(erc4337SmartAccount)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-		mappings: [
-			{
-				id: 'Erc4337SmartAccount_Timestamp.AccountTimestampMsSource',
-				projectionEntity: 'Network',
-				probeAtomPrefixes: ['/network/[network]/erc-4337/smart-account/[address]/observations/[timestampMs]/[source]:Erc4337SmartAccount_Timestamp.AccountTimestampMsSource'],
-				probeCases: [[[0, '1', ['timestampMs', 'source', 'address', 'network']]]],
 				projectionPath: [
 					'Evm',
 				],

@@ -1,6 +1,6 @@
 // Generated from APP.ts.
 
-import type { LayoutLoad } from './$types'
+import type { PageLoad } from './$types'
 import { error } from '@sveltejs/kit'
 import { match as matchEvmAddress } from '$/params/evmAddress.ts'
 import { parseEntitySelector } from '$/schema/$schema.ts'
@@ -9,7 +9,7 @@ import { schema } from '$/schema/index.ts'
 import { type as arktype } from 'arktype'
 
 // Projection eligibility: facetPath=['Evm']
-export const load: LayoutLoad = async ({ params, parent }) => {
+export const load: PageLoad = async ({ params, parent }) => {
 	const parentData = await parent()
 
 	if (!(

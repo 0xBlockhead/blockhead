@@ -1113,19 +1113,7 @@ describe('Hyperliquid market catalog resolvers', () => {
 				coin: 'ETH',
 			},
 			[EntityMetaKey.Fields]: {
-				[entityFieldAddressKey(EntityType.HyperliquidPerpMarket, [], '$$timestamps')]: [{
-					[EntityMetaKey.Selector]: {
-						$perpMarket: {
-							$network: account.$network,
-							coin: 'ETH',
-						},
-						timestampMs: 1_700_000_000_999,
-						source: Source.Hyperliquid,
-					},
-					[EntityMetaKey.Fields]: {
-						[entityFieldAddressKey(EntityType.HyperliquidPerpMarket_Timestamp, [], 'maxLeverage')]: 25,
-					},
-				}],
+				[entityFieldAddressKey(EntityType.HyperliquidPerpMarket, [], 'maxLeverage')]: 25,
 			},
 		}])
 		expect(networkResolver.projections.$$perpMarkets.resolveCount(snapshot)).toBe(1)
@@ -1604,8 +1592,7 @@ describe('Hyperliquid market catalog resolvers', () => {
 		))).toBeUndefined()
 	})
 
-	it('enrolls current perp market fields on its non-replayable observation', async () => {
-		vi.spyOn(Date, 'now').mockReturnValue(1_700_000_000_999)
+	it('keeps current perp market fields on the market', async () => {
 		corsFetch.mockResolvedValue({
 			ok: true,
 			json: async () => [{
@@ -1636,28 +1623,14 @@ describe('Hyperliquid market catalog resolvers', () => {
 		if (resolver == null)
 			throw new Error('Hyperliquid perp market resolver is missing')
 
-		const observations = await resolver.resolve.NetworkCoin.resolve({
+		const market = await resolver.resolve.NetworkCoin.resolve({
 			$network: {
 				slug: 'hyperliquid',
 			},
 			coin: 'ETH',
 		}, context)
-		expect(resolver.projections.$$timestamps(observations)).toEqual([{
-			[EntityMetaKey.Selector]: {
-				$perpMarket: {
-					$network: {
-						slug: 'hyperliquid',
-					},
-					coin: 'ETH',
-				},
-				timestampMs: 1_700_000_000_999,
-				source: Source.Hyperliquid,
-			},
-			[EntityMetaKey.Fields]: {
-				[entityFieldAddressKey(EntityType.HyperliquidPerpMarket_Timestamp, [], 'maxLeverage')]: 25,
-				[entityFieldAddressKey(EntityType.HyperliquidPerpMarket_Timestamp, [], 'onlyIsolated')]: true,
-			},
-		}])
+		expect(resolver.projections.maxLeverage(market)).toBe(25)
+		expect(resolver.projections.onlyIsolated(market)).toBe(true)
 	})
 
 	it('enrolls current validator fields on its non-replayable observation', async () => {

@@ -1,8 +1,10 @@
 // Generated from APP.ts.
 
 import { entity } from '$/schema/$schema.ts'
+import { DecimalString } from '$/schema/DecimalString.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { NonNegativeDecimalString } from '$/schema/NonNegativeDecimalString.ts'
 import { type } from 'arktype'
 
 export default entity({
@@ -31,6 +33,22 @@ export default entity({
 	marketKind: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
+	},
+	fundingRate: {
+		primitiveType: DecimalString,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	oraclePrice: {
+		primitiveType: NonNegativeDecimalString,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	openInterest: {
+		primitiveType: NonNegativeDecimalString,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	status: {
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$timestamps: {
 		entityType: EntityType.DydxChainMarket_Timestamp,

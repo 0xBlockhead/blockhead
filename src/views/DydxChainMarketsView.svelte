@@ -33,8 +33,8 @@
 			...{
 				fields: {
 					ticker: true,
+					oraclePrice: true,
 					marketKind: true,
-					baseAsset: true,
 				},
 			},
 		})
@@ -65,11 +65,11 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{dydxChainMarket.marketKind}
+				{dydxChainMarket.oraclePrice ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{dydxChainMarket.baseAsset ?? ''}</span>
+				<span data-text="annotation">{dydxChainMarket.marketKind}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

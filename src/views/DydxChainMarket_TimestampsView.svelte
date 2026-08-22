@@ -31,7 +31,7 @@
 			...{
 				fields: {
 					timestampMs: true,
-					status: true,
+					fundingRate: true,
 				},
 			},
 		})
@@ -48,7 +48,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{dydxChainMarketTimestamp.status ?? ''}
+				{dydxChainMarketTimestamp.fundingRate ?? ''}
 			{/snippet}
 		</EntityView>
 	{/snippet}

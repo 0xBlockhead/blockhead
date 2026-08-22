@@ -115,6 +115,94 @@
 					{/if}
 				{/snippet}
 			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							name: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const name = entity.name}
+					{#if name != null}
+						<div>
+							<dt>Name</dt>
+							<dd>
+								{name}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							baseAssetId: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const baseAssetId = entity.baseAssetId}
+					{#if baseAssetId != null}
+						<div>
+							<dt>base asset ID</dt>
+							<dd>
+								{baseAssetId}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							quoteAssetId: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const quoteAssetId = entity.quoteAssetId}
+					{#if quoteAssetId != null}
+						<div>
+							<dt>quote asset ID</dt>
+							<dd>
+								{quoteAssetId}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							isCanonical: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const isCanonical = entity.isCanonical}
+					{#if isCanonical != null}
+						<div>
+							<dt>is canonical</dt>
+							<dd>
+								{isCanonical}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 		</dl>
 	{/snippet}
 </EntityView>

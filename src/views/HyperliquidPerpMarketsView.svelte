@@ -33,6 +33,7 @@
 			...{
 				fields: {
 					coin: true,
+					maxLeverage: true,
 					$network: true,
 				},
 			},
@@ -62,6 +63,10 @@
 		>
 			{#snippet Title()}
 				{hyperliquidPerpMarketSelector.coin || 'hyperliquid perp market'}
+			{/snippet}
+
+			{#snippet Value()}
+				{hyperliquidPerpMarket.maxLeverage ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

@@ -27,7 +27,7 @@
 	}))
 	const dydxChainMarketTimestamp = $derived(viewSelection({
 		fields: {
-			status: true,
+			fundingRate: true,
 		},
 	}))
 
@@ -54,7 +54,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={dydxChainMarketTimestamp}>
 			{#snippet children(entity)}
-				{(entity.status ?? '') || String(selection.entitySelector.timestampMs)}
+				{(entity.fundingRate ?? '') || String(selection.entitySelector.timestampMs)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -89,52 +89,6 @@
 				resource={dydxChainMarketTimestamp}
 			>
 				{#snippet children(entity)}
-					{@const status = entity.status}
-					{#if status != null}
-						<div>
-							<dt>status</dt>
-							<dd>
-								{status}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		</dl>
-
-		<dl data-column-item="center">
-			<ResourceBoundary
-				resource={
-					viewSelection({
-						fields: {
-							oraclePrice: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const oraclePrice = entity.oraclePrice}
-					{#if oraclePrice != null}
-						<div>
-							<dt>oracle price</dt>
-							<dd>
-								{oraclePrice}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={
-					viewSelection({
-						fields: {
-							fundingRate: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
 					{@const fundingRate = entity.fundingRate}
 					{#if fundingRate != null}
 						<div>
@@ -151,40 +105,18 @@
 				resource={
 					viewSelection({
 						fields: {
-							openInterest: true,
+							oraclePrice: true,
 						},
 					})
 				}
 			>
 				{#snippet children(entity)}
-					{@const openInterest = entity.openInterest}
-					{#if openInterest != null}
+					{@const oraclePrice = entity.oraclePrice}
+					{#if oraclePrice != null}
 						<div>
-							<dt>open interest</dt>
+							<dt>oracle price</dt>
 							<dd>
-								{openInterest}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={
-					viewSelection({
-						fields: {
-							nextFundingAtMs: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const nextFundingAtMs = entity.nextFundingAtMs}
-					{#if nextFundingAtMs != null}
-						<div>
-							<dt>next funding at ms</dt>
-							<dd>
-								<Timestamp timestamp={nextFundingAtMs} />
+								{oraclePrice}
 							</dd>
 						</div>
 					{/if}

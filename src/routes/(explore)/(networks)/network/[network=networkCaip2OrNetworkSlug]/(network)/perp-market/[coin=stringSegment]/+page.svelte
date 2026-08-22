@@ -14,9 +14,13 @@
 	// State
 	let {
 		data,
+		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.HyperliquidPerpMarket, data.selector, {
+	const pageSelection = $derived(select(EntityType.HyperliquidPerpMarket, {
+		$network: data.selector,
+		coin: params.coin,
+	}, {
 		sources: [
 			Source.Hyperliquid,
 		],

@@ -482,13 +482,9 @@ import EnsRecord_TimestampSchema from '$/schema/EnsRecord_Timestamp.ts'
 import EnsRecordSchema from '$/schema/EnsRecord.ts'
 import EnsReverseRecord_TimestampSchema from '$/schema/EnsReverseRecord_Timestamp.ts'
 import EnsReverseRecordSchema from '$/schema/EnsReverseRecord.ts'
-import Erc4337AccountFactory_TimestampSchema from '$/schema/Erc4337AccountFactory_Timestamp.ts'
 import Erc4337AccountFactorySchema from '$/schema/Erc4337AccountFactory.ts'
-import Erc4337Bundler_TimestampSchema from '$/schema/Erc4337Bundler_Timestamp.ts'
 import Erc4337BundlerSchema from '$/schema/Erc4337Bundler.ts'
-import Erc4337Paymaster_TimestampSchema from '$/schema/Erc4337Paymaster_Timestamp.ts'
 import Erc4337PaymasterSchema from '$/schema/Erc4337Paymaster.ts'
-import Erc4337SmartAccount_TimestampSchema from '$/schema/Erc4337SmartAccount_Timestamp.ts'
 import Erc4337SmartAccountSchema from '$/schema/Erc4337SmartAccount.ts'
 import Erc4626Vault_BlockSchema from '$/schema/Erc4626Vault_Block.ts'
 import Erc4626Vault_TimestampSchema from '$/schema/Erc4626Vault_Timestamp.ts'
@@ -650,11 +646,9 @@ import HyperliquidNetwork_TimestampSchema from '$/schema/HyperliquidNetwork_Time
 import HyperliquidNetworkSchema from '$/schema/HyperliquidNetwork.ts'
 import HyperliquidOrder_TimestampSchema from '$/schema/HyperliquidOrder_Timestamp.ts'
 import HyperliquidOrderSchema from '$/schema/HyperliquidOrder.ts'
-import HyperliquidPerpMarket_TimestampSchema from '$/schema/HyperliquidPerpMarket_Timestamp.ts'
 import HyperliquidPerpMarketSchema from '$/schema/HyperliquidPerpMarket.ts'
 import HyperliquidPositionSchema from '$/schema/HyperliquidPosition.ts'
 import HyperliquidSpotAssetSchema from '$/schema/HyperliquidSpotAsset.ts'
-import HyperliquidSpotPair_TimestampSchema from '$/schema/HyperliquidSpotPair_Timestamp.ts'
 import HyperliquidSpotPairSchema from '$/schema/HyperliquidSpotPair.ts'
 import HyperliquidTransaction_TimestampSchema from '$/schema/HyperliquidTransaction_Timestamp.ts'
 import HyperliquidTransactionSchema from '$/schema/HyperliquidTransaction.ts'
@@ -1608,13 +1602,9 @@ const schemaChunk9 = [
 	EnsReverseRecordSchema,
 	EnsReverseRecord_TimestampSchema,
 	Erc4337AccountFactorySchema,
-	Erc4337AccountFactory_TimestampSchema,
 	Erc4337BundlerSchema,
-	Erc4337Bundler_TimestampSchema,
 	Erc4337PaymasterSchema,
-	Erc4337Paymaster_TimestampSchema,
 	Erc4337SmartAccountSchema,
-	Erc4337SmartAccount_TimestampSchema,
 	Erc4626VaultSchema,
 	Erc4626Vault_BlockSchema,
 	Erc4626Vault_TimestampSchema,
@@ -1626,13 +1616,13 @@ const schemaChunk9 = [
 	EulerEvkVaultPositionSchema,
 	EvmAccountSchema,
 	EvmActorCoinAllowanceSchema,
-] as const
-
-const schemaChunk10 = [
 	EvmActorCoinAllowance_BlockSchema,
 	EvmBlobSchema,
 	EvmBlockSchema,
 	EvmCalldataSchema,
+] as const
+
+const schemaChunk10 = [
 	EvmCoinInstanceSchema,
 	EvmContractSchema,
 	EvmContractCompilationSchema,
@@ -1679,13 +1669,13 @@ const schemaChunk10 = [
 	FedimintFederation_TimestampSchema,
 	FedimintGatewaySchema,
 	FedimintGateway_TimestampSchema,
-] as const
-
-const schemaChunk11 = [
 	FilecoinActorSchema,
 	FilecoinActor_TimestampSchema,
 	FilecoinBlockSchema,
 	FilecoinDealSchema,
+] as const
+
+const schemaChunk11 = [
 	FilecoinDeal_TimestampSchema,
 	FilecoinMessageSchema,
 	FilecoinMessage_TimestampSchema,
@@ -1732,13 +1722,13 @@ const schemaChunk11 = [
 	GitTreeSchema,
 	GitTreeEntrySchema,
 	GitTreePathResolutionSchema,
-] as const
-
-const schemaChunk12 = [
 	GmxMarketSchema,
 	GmxPositionSchema,
 	HederaAccountSchema,
 	HederaAccount_TimestampSchema,
+] as const
+
+const schemaChunk12 = [
 	HederaAllowanceSchema,
 	HederaAllowance_TimestampSchema,
 	HederaBlockSchema,
@@ -1785,15 +1775,13 @@ const schemaChunk12 = [
 	HyperliquidOrderSchema,
 	HyperliquidOrder_TimestampSchema,
 	HyperliquidPerpMarketSchema,
-] as const
-
-const schemaChunk13 = [
-	HyperliquidPerpMarket_TimestampSchema,
 	HyperliquidPositionSchema,
 	HyperliquidSpotAssetSchema,
 	HyperliquidSpotPairSchema,
-	HyperliquidSpotPair_TimestampSchema,
 	HyperliquidTransactionSchema,
+] as const
+
+const schemaChunk13 = [
 	HyperliquidTransaction_TimestampSchema,
 	HyperliquidValidatorSchema,
 	HyperliquidValidator_TimestampSchema,
@@ -1838,15 +1826,15 @@ const schemaChunk13 = [
 	KaspaNetwork_TimestampSchema,
 	KaspaTransactionSchema,
 	KaspaVirtualChain_TimestampSchema,
-] as const
-
-const schemaChunk14 = [
 	LensAccountSchema,
 	LensAccount_TimestampSchema,
 	LensAccountManagerSchema,
 	LensFeedSchema,
 	LensFeedRuleSchema,
 	LensNetworkSchema,
+] as const
+
+const schemaChunk14 = [
 	LensPostSchema,
 	LensPost_TimestampSchema,
 	LensUsernameSchema,
@@ -1891,15 +1879,15 @@ const schemaChunk14 = [
 	McpToolSchema,
 	McpToolCallSchema,
 	McpToolCall_TimestampSchema,
-] as const
-
-const schemaChunk15 = [
 	MediaSchema,
 	MevBuilderSchema,
 	MevBuilder_TimestampSchema,
 	MevRelaySchema,
 	MevRelay_BuilderBlockReceivedSchema,
 	MevRelay_ProposerPayloadDeliveredSchema,
+] as const
+
+const schemaChunk15 = [
 	MevRelay_TimestampSchema,
 	MoneroBlockSchema,
 	MoneroKeyImageSchema,
@@ -1944,15 +1932,15 @@ const schemaChunk15 = [
 	NftCollectionSchema,
 	NftTokenSchema,
 	NostrArticleSchema,
-] as const
-
-const schemaChunk16 = [
 	NostrArticleEventSchema,
 	NostrNetworkSchema,
 	NostrNoteSchema,
 	NostrProfileSchema,
 	NostrProfileMetadataEventSchema,
 	NostrReactionSchema,
+] as const
+
+const schemaChunk16 = [
 	NostrRelaySchema,
 	NostrRelay_TimestampSchema,
 	NostrRepostSchema,
@@ -1997,15 +1985,15 @@ const schemaChunk16 = [
 	RadicleIdentityDocumentSchema,
 	RadicleIdentityRevisionSchema,
 	RadicleIssueSchema,
-] as const
-
-const schemaChunk17 = [
 	RadiclePatchSchema,
 	RadicleRepositorySchema,
 	RadicleSignedRefSchema,
 	RadicleSignedRef_TimestampSchema,
 	RedditCommentSchema,
 	RedditComment_TimestampSchema,
+] as const
+
+const schemaChunk17 = [
 	RedditLinkSchema,
 	RedditLink_TimestampSchema,
 	RedditNetworkSchema,
@@ -2050,15 +2038,15 @@ const schemaChunk17 = [
 	StarknetAccount_TimestampSchema,
 	StarknetBlockSchema,
 	StarknetClassSchema,
-] as const
-
-const schemaChunk18 = [
 	StarknetContractSchema,
 	StarknetEventSchema,
 	StarknetNetworkSchema,
 	StarknetNetwork_TimestampSchema,
 	StarknetStateUpdateSchema,
 	StarknetStorageEntrySchema,
+] as const
+
+const schemaChunk18 = [
 	StarknetStorageEntry_TimestampSchema,
 	StarknetTokenHoldingSchema,
 	StarknetTokenHolding_TimestampSchema,
@@ -2103,15 +2091,15 @@ const schemaChunk18 = [
 	SuiPackageVersionSchema,
 	SuiProgrammableTransactionCommandSchema,
 	SuiRegulatedCoinState_TimestampSchema,
-] as const
-
-const schemaChunk19 = [
 	SuiTransactionSchema,
 	SuiTransaction_TimestampSchema,
 	SwapQuote_TimestampSchema,
 	SwapQuoteStepSchema,
 	SwarmProtocolSchema,
 	SwarmResourceSchema,
+] as const
+
+const schemaChunk19 = [
 	TallyGovernorSchema,
 	TallyProposalSchema,
 	TallyProposalExecutableCallSchema,
@@ -2156,15 +2144,15 @@ const schemaChunk19 = [
 	TonJettonBalance_TimestampSchema,
 	TonJettonTransferSchema,
 	TonMessageSchema,
-] as const
-
-const schemaChunk20 = [
 	TonNetwork_TimestampSchema,
 	TonNftCollectionSchema,
 	TonNftCollection_TimestampSchema,
 	TonNftItemSchema,
 	TonNftItem_TimestampSchema,
 	TonNftTransferSchema,
+] as const
+
+const schemaChunk20 = [
 	TonShard_TimestampSchema,
 	TonTraceSchema,
 	TonTrace_TimestampSchema,
@@ -2209,15 +2197,15 @@ const schemaChunk20 = [
 	XmtpConversationSchema,
 	XmtpMessageSchema,
 	XmtpNetworkSchema,
-] as const
-
-const schemaChunk21 = [
 	XmtpParticipantSchema,
 	XNetworkSchema,
 	XPostSchema,
 	XPost_TimestampSchema,
 	XrplAccountSchema,
 	XrplAccount_TimestampSchema,
+] as const
+
+const schemaChunk21 = [
 	XrplAmendmentSchema,
 	XrplAmendment_TimestampSchema,
 	XrplAmmSchema,

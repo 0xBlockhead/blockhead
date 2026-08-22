@@ -13,6 +13,7 @@
 	// State
 	let {
 		data,
+		params,
 	}: PageProps = $props()
 
 
@@ -29,6 +30,11 @@
 
 <Page>
 	<HyperliquidSpotPairView
-		selection={select(EntityType.HyperliquidSpotPair, data.selector)}
+		selection={
+			select(EntityType.HyperliquidSpotPair, {
+				$network: data.selector,
+				pairIndex: Number(params.pairIndex),
+			})
+		}
 	/>
 </Page>

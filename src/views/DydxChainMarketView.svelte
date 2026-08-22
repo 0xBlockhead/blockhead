@@ -30,8 +30,8 @@
 	}))
 	const dydxChainMarket = $derived(viewSelection({
 		fields: {
+			oraclePrice: true,
 			marketKind: true,
-			baseAsset: true,
 		},
 	}))
 	const titleFallback = $derived(selection.entitySelector.ticker || 'dydx chain market')
@@ -72,7 +72,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={dydxChainMarket}>
 			{#snippet children(entity)}
-				{entity.marketKind || selection.entitySelector.ticker || titleFallback}
+				{(entity.oraclePrice ?? '') || selection.entitySelector.ticker || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -80,12 +80,9 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={dydxChainMarket}>
 			{#snippet children(entity)}
-				{@const baseAsset = entity.baseAsset}
-				{#if baseAsset != null}
-					<span data-text="muted">
-						{baseAsset}
-					</span>
-				{/if}
+				<span data-text="muted">
+					{entity.marketKind}
+				</span>
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -110,7 +107,13 @@
 			</div>
 
 			<ResourceBoundary
-				resource={dydxChainMarket}
+				resource={
+					viewSelection({
+						fields: {
+							baseAsset: true,
+						},
+					})
+				}
 			>
 				{#snippet children(entity)}
 					{@const baseAsset = entity.baseAsset}
@@ -159,6 +162,90 @@
 					</ResourceBoundary>
 				</dd>
 			</div>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							status: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const status = entity.status}
+					{#if status != null}
+						<div>
+							<dt>status</dt>
+							<dd>
+								{status}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		</dl>
+
+		<dl data-column-item="center">
+			<ResourceBoundary
+				resource={dydxChainMarket}
+			>
+				{#snippet children(entity)}
+					{@const oraclePrice = entity.oraclePrice}
+					{#if oraclePrice != null}
+						<div>
+							<dt>oracle price</dt>
+							<dd>
+								{oraclePrice}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							fundingRate: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const fundingRate = entity.fundingRate}
+					{#if fundingRate != null}
+						<div>
+							<dt>funding rate</dt>
+							<dd>
+								{fundingRate}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							openInterest: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const openInterest = entity.openInterest}
+					{#if openInterest != null}
+						<div>
+							<dt>open interest</dt>
+							<dd>
+								{openInterest}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 		</dl>
 	{/snippet}
 

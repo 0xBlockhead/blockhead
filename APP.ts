@@ -24942,8 +24942,8 @@ export const schema = {
 				"baseAsset": { label: "base asset", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"quoteAsset": { label: "quote asset", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"marketKind": { label: "market kind", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"oraclePrice": { label: "oracle price", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString" },
 				"fundingRate": { label: "funding rate", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "DecimalString" },
+				"oraclePrice": { label: "oracle price", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString" },
 				"openInterest": { label: "open interest", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString" },
 				"status": { label: "status", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"$$timestamps": { label: "timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.DydxChainMarket_Timestamp },
@@ -24977,6 +24977,7 @@ export const schema = {
 				"timestampMs": { label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
 				"source": { label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"fundingRate": { label: "funding rate", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "DecimalString" },
+				"oraclePrice": { label: "oracle price", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString" },
 			})({
 				selectors: {
 					"MarketTimestampMsSource": ["$market", "timestampMs", "source"],
@@ -24985,11 +24986,11 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.DydxIndexer],
-							openFields: ["fundingRate"],
+							openFields: ["fundingRate", "oraclePrice"],
 						},
 						summary: { title: [{ field: "timestampMs", format: "timestamp" }], value: ["fundingRate"] },
 						closed: ["$market", { field: "timestampMs", format: "timestamp" }, "source"],
-						content: { dl: [["$market", { field: "timestampMs", format: "timestamp" }, "source", "fundingRate"]] },
+						content: { dl: [["$market", { field: "timestampMs", format: "timestamp" }, "source", "fundingRate", "oraclePrice"]] },
 					},
 					plural: { component: "DydxChainMarket_TimestampsView", title: "dYdX chain market observations", },
 				},
@@ -80416,49 +80417,6 @@ export const routes = defineRoutes(schema)({
 																	}
 																}
 															},
-															children: {
-																"observations": {
-																	collections: [
-																		{
-																			field: [
-																				EntityType.Erc4337SmartAccount,
-																				"$$timestamps"
-																			],
-																			page: {
-																				view: { component: "Erc4337SmartAccount_TimestampsView" },
-																				text: { title: "Smart account observations" }
-																			}
-																		},
-																	],
-																	children: {
-																		"[timestampMs]": {
-																			children: {
-																				"[source]": {
-																					selectors: {
-																						[EntityType.Erc4337SmartAccount_Timestamp]: {
-																							"AccountTimestampMsSource": {
-																								projection: {
-																									entityType: EntityType.Network,
-																									facetPath: ["Evm"]
-																								},
-																								params: {
-																									"timestampMs": [
-																										"timestampMs"
-																									],
-																									"source": [
-																										"source"
-																									]
-																								},
-																								page: {}
-																							}
-																						}
-																					},
-																				}
-																			}
-																		}
-																	}
-																}
-															}
 														}
 													}
 												},
@@ -80482,47 +80440,6 @@ export const routes = defineRoutes(schema)({
 																}
 															},
 															children: {
-																"observations": {
-																	collections: [
-																		{
-																			field: [
-																				EntityType.Erc4337Bundler,
-																				"$$timestamps"
-																			],
-																			page: {
-																				view: { component: "Erc4337Bundler_TimestampsView" },
-																				text: { title: "Bundler observations" }
-																			}
-																		},
-																	],
-																	children: {
-																		"[timestampMs]": {
-																			children: {
-																				"[source]": {
-																					selectors: {
-																						[EntityType.Erc4337Bundler_Timestamp]: {
-																							"BundlerTimestampMsSource": {
-																								projection: {
-																									entityType: EntityType.Network,
-																									facetPath: ["Evm"]
-																								},
-																								params: {
-																									"timestampMs": [
-																										"timestampMs"
-																									],
-																									"source": [
-																										"source"
-																									]
-																								},
-																								page: {}
-																							}
-																						}
-																					},
-																				}
-																			}
-																		}
-																	}
-																}
 															}
 														}
 													}
@@ -80547,47 +80464,6 @@ export const routes = defineRoutes(schema)({
 																}
 															},
 															children: {
-																"observations": {
-																	collections: [
-																		{
-																			field: [
-																				EntityType.Erc4337Paymaster,
-																				"$$timestamps"
-																			],
-																			page: {
-																				view: { component: "Erc4337Paymaster_TimestampsView" },
-																				text: { title: "Paymaster observations" }
-																			}
-																		},
-																	],
-																	children: {
-																		"[timestampMs]": {
-																			children: {
-																				"[source]": {
-																					selectors: {
-																						[EntityType.Erc4337Paymaster_Timestamp]: {
-																							"PaymasterTimestampMsSource": {
-																								projection: {
-																									entityType: EntityType.Network,
-																									facetPath: ["Evm"]
-																								},
-																								params: {
-																									"timestampMs": [
-																										"timestampMs"
-																									],
-																									"source": [
-																										"source"
-																									]
-																								},
-																								page: {}
-																							}
-																						}
-																					},
-																				}
-																			}
-																		}
-																	}
-																}
 															}
 														}
 													}
@@ -80612,47 +80488,6 @@ export const routes = defineRoutes(schema)({
 																}
 															},
 															children: {
-																"observations": {
-																	collections: [
-																		{
-																			field: [
-																				EntityType.Erc4337AccountFactory,
-																				"$$timestamps"
-																			],
-																			page: {
-																				view: { component: "Erc4337AccountFactory_TimestampsView" },
-																				text: { title: "Account factory observations" }
-																			}
-																		},
-																	],
-																	children: {
-																		"[timestampMs]": {
-																			children: {
-																				"[source]": {
-																					selectors: {
-																						[EntityType.Erc4337AccountFactory_Timestamp]: {
-																							"FactoryTimestampMsSource": {
-																								projection: {
-																									entityType: EntityType.Network,
-																									facetPath: ["Evm"]
-																								},
-																								params: {
-																									"timestampMs": [
-																										"timestampMs"
-																									],
-																									"source": [
-																										"source"
-																									]
-																								},
-																								page: {}
-																							}
-																						}
-																					},
-																				}
-																			}
-																		}
-																	}
-																}
 															}
 														}
 													}
@@ -82449,29 +82284,6 @@ export const routes = defineRoutes(schema)({
 														},
 													},
 													children: {
-														"observations": {
-															children: {
-																"[timestampMs]": {
-																	params: { "timestampMs": ["NonNegativeInteger"] },
-																	children: {
-																		"[source]": {
-																			params: { "source": ["string"] },
-																			selectors: {
-																			[EntityType.HyperliquidPerpMarket_Timestamp]: {
-																"PerpMarketTimestampMsSource": {
-																	derivations: {
-																		"timestampMs": { kind: "param", name: "timestampMs" },
-																		"source": { kind: "param", name: "source" },
-																	},
-																	page: false,
-																},
-																				},
-																			},
-																		},
-																	},
-																},
-															},
-														},
 													},
 												},
 											},
@@ -84720,26 +84532,6 @@ export const routes = defineRoutes(schema)({
 																}
 															},
 															children: {
-																"observations": {
-																	children: {
-																		"[timestampMs]": {
-																			children: {
-																				"[source]": {
-																					selectors: {
-																						[EntityType.HyperliquidSpotPair_Timestamp]: {
-																							"SpotPairTimestampMsSource": {
-																								params: { "timestampMs": ["timestampMs"], "source": ["source"] },
-																								page: {},
-																								when: { path: ["namespace"], is: "Hyperliquid" },
-																								projection: { entityType: EntityType.Network, facetPath: ["Hyperliquid"] },
-																							}
-																						}
-																					}
-																				}
-																			}
-																		}
-																	}
-																}
 															}
 														}
 													}

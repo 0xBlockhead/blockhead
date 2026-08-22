@@ -5,7 +5,6 @@
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
@@ -25,21 +24,28 @@
 	}: Omit<EntitySelectionViewProps<EntityType.HyperliquidPerpMarket>, 'prefetched'> = $props()
 
 	const network = $derived(selection.entitySelector.$network)
-	const viewDomId = $derived('hyperliquid-perp-market-' + encodeURIComponent(stringify(selection.entitySelector)))
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Hyperliquid,
+		],
+	}))
+	const hyperliquidPerpMarket = $derived(viewSelection({
+		fields: {
+			maxLeverage: true,
+		},
+	}))
 
 
 	// Components
-	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
-	import HeadingComponent from '$/components/Heading.svelte'
+	import NumberValue from '$/components/NumberValue.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
-	import HyperliquidPerpMarket_TimestampsView from '$/views/HyperliquidPerpMarket_TimestampsView.svelte'
 </script>
 
 
 <EntityView
 	entityType={EntityType.HyperliquidPerpMarket}
 	entitySelector={selection.entitySelector}
-	id={viewDomId}
 	title={title ?? (selection.entitySelector.coin || 'hyperliquid perp market')}
 	href={
 		href === undefined ?
@@ -62,6 +68,19 @@
 	bind:open
 	{...EntityViewProps}
 >
+	{#snippet Value()}
+		<ResourceBoundary resource={hyperliquidPerpMarket}>
+			{#snippet children(entity)}
+				{@const maxLeverage = entity.maxLeverage}
+				{#if maxLeverage != null}
+					<NumberValue
+						value={maxLeverage}
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
 			<NetworkView
@@ -89,48 +108,46 @@
 					{selection.entitySelector.coin}
 				</dd>
 			</div>
+
+			<ResourceBoundary
+				resource={hyperliquidPerpMarket}
+			>
+				{#snippet children(entity)}
+					{@const maxLeverage = entity.maxLeverage}
+					{#if maxLeverage != null}
+						<div>
+							<dt>max leverage</dt>
+							<dd>
+								<NumberValue
+									value={maxLeverage}
+								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							onlyIsolated: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const onlyIsolated = entity.onlyIsolated}
+					{#if onlyIsolated != null}
+						<div>
+							<dt>only isolated</dt>
+							<dd>
+								{onlyIsolated}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 		</dl>
-	{/snippet}
-
-	{#snippet Details()}
-		<CollapsibleTabs
-			id={viewDomId + '-carousel-hyperliquid-perp-market-observations'}
-			sectionIdPrefix={viewDomId}
-			sections={
-				[
-					{
-						id: 'hyperliquid-perp-market-timestamps',
-						label: 'Observations',
-					},
-				]
-			}
-			data-card
-			class='network-view-collapsible-chain-activity'
-		>
-			{#snippet Summary()}
-				<header data-row-item="flexible" data-row="wrap gap-4">
-					<HeadingComponent>Observations</HeadingComponent>
-				</header>
-			{/snippet}
-
-			{#snippet SectionHyperliquidPerpMarketTimestamps({ id, label })}
-				<HyperliquidPerpMarket_TimestampsView
-					selection={
-						selection
-						.$$timestamps({
-							sources: [
-								Source.Hyperliquid,
-							],
-							limit: 16,
-						})
-					}
-					collapsible={false}
-					title={label}
-					emptyText='No Hyperliquid perp market observations.'
-					id={`${id}-list`}
-				/>
-			{/snippet}
-
-		</CollapsibleTabs>
 	{/snippet}
 </EntityView>

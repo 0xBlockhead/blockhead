@@ -38,7 +38,6 @@
 	import NetworkView from '$/views/NetworkView.svelte'
 	import Erc4337SmartAccountsView from '$/views/Erc4337SmartAccountsView.svelte'
 	import EvmUserOperationsView from '$/views/EvmUserOperationsView.svelte'
-	import Erc4337AccountFactory_TimestampsView from '$/views/Erc4337AccountFactory_TimestampsView.svelte'
 </script>
 
 
@@ -165,38 +164,6 @@
 					collapsible={false}
 					title={label}
 					emptyText='No ERC-4337 user operations.'
-					id={`${id}-list`}
-				/>
-			{/snippet}
-
-		</CollapsibleTabs>
-
-		<CollapsibleTabs
-			id={viewDomId + '-carousel-erc4337-factory-observations'}
-			sectionIdPrefix={viewDomId}
-			sections={
-				[
-					{
-						id: 'erc4337-factory-timestamps',
-						label: 'Observations',
-					},
-				]
-			}
-			data-card
-			class='network-view-collapsible-observations'
-		>
-			{#snippet Summary()}
-				<header data-row-item="flexible" data-row="wrap gap-4">
-					<HeadingComponent>Observations</HeadingComponent>
-				</header>
-			{/snippet}
-
-			{#snippet SectionErc4337FactoryTimestamps({ id, label })}
-				<Erc4337AccountFactory_TimestampsView
-					selection={selection.$$timestamps}
-					collapsible={false}
-					title={label}
-					emptyText='No ERC-4337 account factory observations.'
 					id={`${id}-list`}
 				/>
 			{/snippet}

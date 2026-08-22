@@ -401,7 +401,7 @@ describe('Blockscout Network account abstraction applicability', () => {
 		))).toBe(false)
 	})
 
-	it('materializes bundler detail timestamps from total_ops', async () => {
+	it('keeps provider current bundler counts on the bundler', async () => {
 		getErc4337BundlerDetail.mockResolvedValue({
 			address: blockscoutAddress,
 			total_bundles: 2,
@@ -409,10 +409,10 @@ describe('Blockscout Network account abstraction applicability', () => {
 		})
 		const resolver = blockscoutRest.resolvers.find((candidate) => (
 			candidate.entityType === EntityType.Erc4337Bundler
-			&& '$$timestamps' in candidate.projections
+			&& 'userOperationsCount' in candidate.projections
 		))
 		if (resolver == null)
-			throw new Error('Blockscout Erc4337Bundler timestamp resolver is not registered')
+			throw new Error('Blockscout Erc4337Bundler count resolver is not registered')
 
 		const entitySelector = {
 			$network: network,
@@ -423,21 +423,9 @@ describe('Blockscout Network account abstraction applicability', () => {
 			chainId: 1,
 			address: contract.address,
 		})
-		expect(resolved.$$timestamps).toEqual([{
-			[EntityMetaKey.Selector]: {
-				$bundler: entitySelector,
-				timestampMs: expect.any(Number),
-				source: Source.Blockscout_Rest,
-			},
-			[EntityMetaKey.Fields]: {
-				[entityFieldAddressKey(EntityType.Erc4337Bundler_Timestamp, [], 'userOperationsCount')]: 9,
-			},
-		}])
+		expect(resolver.projections.userOperationsCount(resolved)).toBe(9)
 		expect(blockscoutRest.resolvers.some((candidate) => (
 			candidate.entityType === EntityType.Erc4337Bundler_Timestamp
-			|| candidate.entityType === EntityType.Erc4337SmartAccount_Timestamp
-			|| candidate.entityType === EntityType.Erc4337Paymaster_Timestamp
-			|| candidate.entityType === EntityType.Erc4337AccountFactory_Timestamp
 		))).toBe(false)
 	})
 
@@ -576,19 +564,7 @@ describe('Blockscout Network account abstraction applicability', () => {
 						address: '0x2222222222222222222222222222222222222222',
 					},
 				},
-				[entityFieldAddressKey(EntityType.Erc4337SmartAccount, [], '$$timestamps')]: [{
-					[EntityMetaKey.Selector]: {
-						$account: {
-							$network: network,
-							address: '0x1111111111111111111111111111111111111111',
-						},
-						timestampMs: Date.parse('2026-07-16T09:30:43.020Z'),
-						source: Source.Blockscout_Rest,
-					},
-					[EntityMetaKey.Fields]: {
-						[entityFieldAddressKey(EntityType.Erc4337SmartAccount_Timestamp, [], 'userOperationsCount')]: 17,
-					},
-				}],
+				[entityFieldAddressKey(EntityType.Erc4337SmartAccount, [], 'userOperationsCount')]: 17,
 			},
 		}])
 	})
@@ -606,6 +582,7 @@ describe('Blockscout gas estimate observation identity', () => {
 		},
 	])('resolves CAIP-2 and slug network selectors', async ($network) => {
 		getStats.mockResolvedValue({
+			gas_price_updated_at: new Date(1_784_221_554_477).toISOString(),
 			gas_prices: {
 				slow: 1,
 				average: 2,
