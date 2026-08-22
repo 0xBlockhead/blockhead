@@ -72030,16 +72030,13 @@ export const routes = defineRoutes(schema)({
 															selectors: {
 																[EntityType.BlockheadIntentOrder_Timestamp]: {
 																	"OrderTimestampMsSource": {
-																		params: {},
-																		derivations: { "timestampMs": { kind: "param", name: "timestampMs" }, "source": { kind: "param", name: "source" } },
+																		params: { "timestampMs": ["timestampMs"], "source": ["source"] },
 																		page: {},
 																	}
 																}
-															},
-															params: { "source": ["string"] },
+															}
 														}
-													},
-													params: { "timestampMs": ["NonNegativeInteger"] },
+													}
 												}
 											}
 										}
@@ -72067,16 +72064,13 @@ export const routes = defineRoutes(schema)({
 															selectors: {
 																[EntityType.BlockheadIntentQuote_Timestamp]: {
 																	"QuoteTimestampMsSource": {
-																		params: {},
-																		derivations: { "timestampMs": { kind: "param", name: "timestampMs" }, "source": { kind: "param", name: "source" } },
+																		params: { "timestampMs": ["timestampMs"], "source": ["source"] },
 																		page: {},
 																	}
 																}
-															},
-															params: { "source": ["string"] },
+															}
 														}
-													},
-													params: { "timestampMs": ["NonNegativeInteger"] },
+													}
 												}
 											}
 										}
@@ -72108,16 +72102,13 @@ export const routes = defineRoutes(schema)({
 															selectors: {
 																[EntityType.BlockheadLocalMediaIngest_Timestamp]: {
 																	"IngestTimestampMsSource": {
-																		params: {},
-																		derivations: { "timestampMs": { kind: "param", name: "timestampMs" }, "source": { kind: "param", name: "source" } },
+																		params: { "timestampMs": ["timestampMs"], "source": ["source"] },
 																		page: {},
 																	}
 																}
-															},
-															params: { "source": ["string"] },
+															}
 														}
-													},
-													params: { "timestampMs": ["NonNegativeInteger"] },
+													}
 												}
 											}
 										}
