@@ -1,5 +1,10 @@
 import { defineConfig } from '@playwright/test'
 
+import {
+	walletPlaywrightTestDir,
+	walletPlaywrightTestIgnore,
+	walletPlaywrightTestMatch,
+} from './test-discovery.config.mjs'
 
 const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? 'http://127.0.0.1:5173'
 const webServerUrl = new URL(baseURL)
@@ -7,8 +12,9 @@ const webServerUrl = new URL(baseURL)
 export default defineConfig({
 	fullyParallel: false,
 	workers: 1,
-	testDir: './tests/e2e/wallet-extensions',
-	testMatch: '**/*.e2e.ts',
+	testDir: walletPlaywrightTestDir,
+	testMatch: walletPlaywrightTestMatch,
+	testIgnore: walletPlaywrightTestIgnore,
 	expect: {
 		timeout: 15_000,
 	},

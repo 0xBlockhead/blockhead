@@ -2,16 +2,19 @@ import { execFileSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
 import { matchesGlob } from 'node:path'
 
+import {
+	mainPlaywrightTestIgnore,
+	mainPlaywrightTestMatch,
+	vitestClientExclude,
+	vitestClientInclude,
+	vitestServerExclude,
+	vitestServerInclude,
+	walletPlaywrightTestDir,
+	walletPlaywrightTestIgnore,
+	walletPlaywrightTestMatch,
+} from '../../test-discovery.config.mjs'
+
 const testFilePattern = /\.(?:test|spec|e2e)\.(?:[cm]?[jt]sx?)$/
-const observationPatterns = [
-	'**/*live*.e2e.*',
-	'**/*observations*.e2e.*',
-	'**/*real-sources*.e2e.*',
-	'**/provider-discovery.e2e.*',
-	'**/real-wallets-required.e2e.*',
-	'**/tests/e2e/wallet-extensions/*/*.e2e.*',
-]
-const isObservation = (pathname) => observationPatterns.some((pattern) => matchesGlob(pathname, pattern))
 const packageJson = JSON.parse(readFileSync(new URL('../../package.json', import.meta.url)))
 
 const readTrackedTestPathnames = (root) => execFileSync(
@@ -28,7 +31,7 @@ const nodeTestPatterns = (scripts) => Object.values(scripts)
 
 const matchesAny = (pathname, patterns) => patterns.some((pattern) => matchesGlob(pathname, pattern))
 
-export const buildProofOwners = ({
+export const buildDiscoveryAuthority = ({
 	packageJson: manifest = packageJson,
 	viteConfig,
 	playwrightConfig,
@@ -43,9 +46,9 @@ export const buildProofOwners = ({
 	const walletPlaywright = (pathname) => matchesGlob(
 		pathname,
 		`${walletExtensionsPlaywrightConfig.testDir.replace('./', '')}/${walletExtensionsPlaywrightConfig.testMatch}`
-	) && !mainPlaywright(pathname)
+	) && !matchesAny(pathname, walletExtensionsPlaywrightConfig.testIgnore)
 
-	return [
+	const proofOwners = [
 		{
 			id: 'node-contracts',
 			lane: 'acceptance',
@@ -60,12 +63,7 @@ export const buildProofOwners = ({
 		{
 			id: 'playwright-main',
 			lane: 'acceptance',
-			matches: (pathname) => mainPlaywright(pathname) && !isObservation(pathname),
-		},
-		{
-			id: 'playwright-observations',
-			lane: 'observation',
-			matches: (pathname) => mainPlaywright(pathname) && isObservation(pathname),
+			matches: mainPlaywright,
 		},
 		{
 			id: 'playwright-wallet-observations',
@@ -73,14 +71,21 @@ export const buildProofOwners = ({
 			matches: walletPlaywright,
 		},
 	]
+	return {
+		proofOwners,
+		observationMatchers: [walletPlaywright],
+	}
 }
 
-export const inspectDiscovery = ({ pathnames, proofOwners }) => {
+export const buildProofOwners = (inputs) => buildDiscoveryAuthority(inputs).proofOwners
+
+export const inspectDiscovery = ({ pathnames, proofOwners, observationMatchers = [] }) => {
 	const entries = pathnames.map((pathname) => {
 		const owners = proofOwners.filter(({ matches }) => matches(pathname))
+		const lane = observationMatchers.some((matches) => matches(pathname)) ? 'observation' : 'acceptance'
 		return {
 			pathname,
-			lane: isObservation(pathname) ? 'observation' : 'acceptance',
+			lane,
 			owners: owners.map(({ id, lane }) => ({ id, lane })),
 		}
 	})
@@ -121,29 +126,31 @@ if (process.argv.includes('--report')) {
 	const viteConfig = {
 		test: {
 			projects: [
-				{ test: { name: 'client', include: ['src/**/*.svelte.{test,spec}.{js,ts}'], exclude: ['src/lib/server/**', 'src/routes/demo/**'] } },
-				{ test: { name: 'server', include: ['src/**/*.{test,spec}.{js,ts}'], exclude: ['src/**/*.svelte.{test,spec}.{js,ts}', 'src/routes/demo/**'] } },
+				{ test: { name: 'client', include: vitestClientInclude, exclude: vitestClientExclude } },
+				{ test: { name: 'server', include: vitestServerInclude, exclude: vitestServerExclude } },
 			],
 		},
 	}
 	const playwrightConfig = {
-		testMatch: '**/*.e2e.{ts,js}',
-		testIgnore: [
-			'**/.worktrees/**',
-			'**/tests/e2e/wallet-extensions/*/*.e2e.ts',
-			'**/tests/e2e/wallet-extensions/extension-loaded-smoke.e2e.ts',
-			'**/tests/e2e/wallet-extensions/provider-discovery.e2e.ts',
-			'**/tests/e2e/wallet-extensions/real-wallets-required.e2e.ts',
-		],
+		testMatch: mainPlaywrightTestMatch,
+		testIgnore: mainPlaywrightTestIgnore,
 	}
 	const walletExtensionsPlaywrightConfig = {
-		testDir: './tests/e2e/wallet-extensions',
-		testMatch: '**/*.e2e.ts',
+		testDir: walletPlaywrightTestDir,
+		testMatch: walletPlaywrightTestMatch,
+		testIgnore: walletPlaywrightTestIgnore,
 	}
+	const authority = buildDiscoveryAuthority({ viteConfig, playwrightConfig, walletExtensionsPlaywrightConfig })
 	const inventory = inspectDiscovery({
 		pathnames: readTrackedTestPathnames(root),
-		proofOwners: buildProofOwners({ viteConfig, playwrightConfig, walletExtensionsPlaywrightConfig }),
+		proofOwners: authority.proofOwners,
+		observationMatchers: authority.observationMatchers,
 	})
 	assertDiscoveryContract(inventory)
-	console.log(JSON.stringify(inventory.counts))
+	console.log(JSON.stringify({
+		counts: inventory.counts,
+		undiscovered: inventory.undiscovered,
+		duplicated: inventory.duplicated,
+		promotedObservations: inventory.promotedObservations,
+	}))
 }

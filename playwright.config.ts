@@ -4,6 +4,10 @@ import {
 	e2eBrowserNewContextOptions,
 	playwrightHeadless,
 } from './playwright.env.ts'
+import {
+	mainPlaywrightTestIgnore,
+	mainPlaywrightTestMatch,
+} from './test-discovery.config.mjs'
 
 const skipWebServer = process.env.PLAYWRIGHT_SKIP_WEBSERVER === '1'
 const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? 'http://127.0.0.1:5173'
@@ -32,14 +36,6 @@ export default defineConfig({
 					reuseExistingServer: process.env.PLAYWRIGHT_REUSE_EXISTING_SERVER === '1',
 				},
 	}),
-	testMatch: '**/*.e2e.{ts,js}',
-	testIgnore: [
-		'**/.worktrees/**',
-		// Real-wallet shards stay on playwright.wallet-extensions.config.ts (opt-in WALLET_EXTENSIONS_E2E=1).
-		// Keep wallet-page-selectors.e2e.ts discoverable here — synthetic DOM only, no extensions.
-		'**/tests/e2e/wallet-extensions/*/*.e2e.ts',
-		'**/tests/e2e/wallet-extensions/extension-loaded-smoke.e2e.ts',
-		'**/tests/e2e/wallet-extensions/provider-discovery.e2e.ts',
-		'**/tests/e2e/wallet-extensions/real-wallets-required.e2e.ts',
-	],
+	testMatch: mainPlaywrightTestMatch,
+	testIgnore: mainPlaywrightTestIgnore,
 })

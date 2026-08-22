@@ -10,6 +10,12 @@ import type {
 } from 'vite'
 
 import { e2eProbeVitePlugin } from './tests/e2e/_e2eProbeVitePlugin.ts'
+import {
+	vitestClientExclude,
+	vitestClientInclude,
+	vitestServerExclude,
+	vitestServerInclude,
+} from './test-discovery.config.mjs'
 
 const tanstackBrowserSqliteSrc = fileURLToPath(new URL(
 	'node_modules/@tanstack/browser-db-sqlite-persistence/src/index.ts',
@@ -122,11 +128,8 @@ export default defineConfig({
 						provider: playwright(),
 						instances: [{ browser: 'chromium', headless: true }]
 					},
-					include: ['src/**/*.svelte.{test,spec}.{js,ts}'],
-					exclude: [
-						'src/lib/server/**',
-						'src/routes/demo/**',
-					]
+					include: vitestClientInclude,
+					exclude: vitestClientExclude,
 				}
 			},
 
@@ -135,11 +138,8 @@ export default defineConfig({
 				test: {
 					name: 'server',
 					environment: 'node',
-					include: ['src/**/*.{test,spec}.{js,ts}'],
-					exclude: [
-						'src/**/*.svelte.{test,spec}.{js,ts}',
-						'src/routes/demo/**',
-					]
+					include: vitestServerInclude,
+					exclude: vitestServerExclude,
 				}
 			}
 		]
