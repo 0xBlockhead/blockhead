@@ -30,8 +30,18 @@ test('keeps rejected consent out of connected and submitted request rows after r
 
 	await page.addInitScript(() => {
 		const accountAddress = '0x1111111111111111111111111111111111111111'
+		const providerCallCounts = () => JSON.parse(
+			localStorage.getItem('wallet-consent-provider-call-counts') ?? '{}'
+		) as Record<string, number>
+		const countProviderCall = (method: string) => {
+			const counts = providerCallCounts()
+			counts[method] = (counts[method] ?? 0) + 1
+			localStorage.setItem('wallet-consent-provider-call-counts', JSON.stringify(counts))
+		}
 		const provider = {
 			request: async ({ method }: { method: string }) => {
+				countProviderCall(method)
+
 				if (method === 'eth_chainId')
 					return '0x1'
 
@@ -84,28 +94,51 @@ test('keeps rejected consent out of connected and submitted request rows after r
 	await page.getByRole('button', { name: 'Connect Consent Fixture Wallet' }).click()
 	await expect(walletConnectionsStatus(page)).toContainText('Active connections: 0.')
 	await expect(page.getByRole('button', { name: 'Retry connection' })).toBeVisible()
+	await expect.poll(async () => page.evaluate(() => JSON.parse(
+		localStorage.getItem('wallet-consent-provider-call-counts') ?? '{}'
+	).eth_requestAccounts)).toBe(1)
 
 	await page.reload()
 	await expect(walletConnectionsStatus(page)).toContainText('Active connections: 0.')
 	await expect(page.getByRole('button', { name: 'Retry connection' })).toBeVisible()
+	await expect.poll(async () => page.evaluate(() => JSON.parse(
+		localStorage.getItem('wallet-consent-provider-call-counts') ?? '{}'
+	).eth_requestAccounts)).toBe(1)
 
 	await page.getByRole('button', { name: 'Retry connection' }).click()
 	await expect(walletConnectionsStatus(page)).toContainText('Active connections: 1.')
+	await expect.poll(async () => page.evaluate(() => JSON.parse(
+		localStorage.getItem('wallet-consent-provider-call-counts') ?? '{}'
+	).eth_requestAccounts)).toBe(2)
 	const connection = walletConnectionCard(page, 'Consent Fixture Wallet')
 	await expect(connection).toBeVisible()
 
 	await messageToSignInput(connection).fill('rejected consent stays unsigned')
 	await signMessageButton(connection).click()
 	await expect(walletRequestHistory(page)).toContainText('personal_sign')
+	await expect.poll(async () => page.evaluate(() => JSON.parse(
+		localStorage.getItem('wallet-consent-provider-call-counts') ?? '{}'
+	).personal_sign)).toBe(1)
+	await expect(page.getByText(/Message signed by|Request history was saved/)).toHaveCount(0)
 
 	const requestLink = page.getByRole('link', { name: 'message-signature' }).last()
 	await expect(requestLink).toBeVisible()
 	await requestLink.click()
 	await expect(page).toHaveURL(/\/\~\/wallets\/requests\/wallet-request-/)
+	const statusField = page.locator('dt').filter({ hasText: /^status$/ }).locator('..')
+	await expect(statusField.getByText('failed', { exact: true })).toBeVisible()
+	await expect(page.getByText('Wallet signing request failed', { exact: true })).toBeVisible()
+	await expect(page.getByText('signature hash', { exact: true })).toHaveCount(0)
 	await expect(page.getByText('submitted at', { exact: true })).toHaveCount(0)
 	await expect(page.getByText('EVM request', { exact: true })).toHaveCount(0)
 
 	await page.reload()
+	await expect(statusField.getByText('failed', { exact: true })).toBeVisible()
+	await expect(page.getByText('Wallet signing request failed', { exact: true })).toBeVisible()
+	await expect(page.getByText('signature hash', { exact: true })).toHaveCount(0)
 	await expect(page.getByText('submitted at', { exact: true })).toHaveCount(0)
 	await expect(page.getByText('EVM request', { exact: true })).toHaveCount(0)
+	await expect.poll(async () => page.evaluate(() => JSON.parse(
+		localStorage.getItem('wallet-consent-provider-call-counts') ?? '{}'
+	).personal_sign)).toBe(1)
 })
