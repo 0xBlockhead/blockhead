@@ -474,19 +474,6 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
-	'/(agents)/agents/eip-8004/[namespace]/[chainId]/registry/[identityRegistry]/agent/[agentId]/file/[fileUrl]/cross-registration/[targetKind]/[targetSelectorHashAlgorithm]/[targetSelectorHash]': {
-		routeId: '/(agents)/agents/eip-8004/[namespace=stringSegment]/[chainId=nonNegativeInteger]/registry/[identityRegistry=evmAddress]/agent/[agentId=stringSegment]/(eip8004AgentRegistration)/file/[fileUrl=absoluteUrl]/(eip8004AgentRegistrationFile)/cross-registration/[targetKind=stringSegment]/[targetSelectorHashAlgorithm=stringSegment]/[targetSelectorHash=zeroExHex]',
-		parameterEncodingByName: {
-			fileUrl: 'Opaque',
-		},
-		mappings: [
-			{
-				id: 'Eip8004CrossRegistration.RegistrationFileTargetKindTargetSelectorHashAlgorithmTargetSelectorHash',
-				probeAtomPrefixes: ['/agents/eip-8004/[namespace]/[chainId]/registry/[identityRegistry]/agent/[agentId]/file/[fileUrl]/cross-registration/[targetKind]/[targetSelectorHashAlgorithm]/[targetSelectorHash]:Eip8004CrossRegistration.RegistrationFileTargetKindTargetSelectorHashAlgorithmTargetSelectorHash'],
-				probeCases: [[[0, '1', ['targetKind', 'targetSelectorHashAlgorithm', 'targetSelectorHash', 'fileUrl', 'namespace', 'chainId', 'identityRegistry', 'agentId']]]],
-			},
-		],
-	},
 	'/(agents)/agents/eip-8004/[namespace]/[chainId]/registry/[identityRegistry]/agent/[agentId]/file/[fileUrl]/service-endpoint/[endpointKind]/[endpointUrl]': {
 		routeId: '/(agents)/agents/eip-8004/[namespace=stringSegment]/[chainId=nonNegativeInteger]/registry/[identityRegistry=evmAddress]/agent/[agentId=stringSegment]/(eip8004AgentRegistration)/file/[fileUrl=absoluteUrl]/(eip8004AgentRegistrationFile)/service-endpoint/[endpointKind=stringSegment]/[endpointUrl=absoluteUrl]',
 		parameterEncodingByName: {

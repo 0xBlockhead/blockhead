@@ -466,7 +466,6 @@ import Eip8004AgentRegistration_TimestampSchema from '$/schema/Eip8004AgentRegis
 import Eip8004AgentRegistrationSchema from '$/schema/Eip8004AgentRegistration.ts'
 import Eip8004AgentRegistrationFileSchema from '$/schema/Eip8004AgentRegistrationFile.ts'
 import Eip8004AgentServiceEndpointSchema from '$/schema/Eip8004AgentServiceEndpoint.ts'
-import Eip8004CrossRegistrationSchema from '$/schema/Eip8004CrossRegistration.ts'
 import Eip8004EndpointDomainVerification_TimestampSchema from '$/schema/Eip8004EndpointDomainVerification_Timestamp.ts'
 import Eip8004ReputationFeedback_TimestampSchema from '$/schema/Eip8004ReputationFeedback_Timestamp.ts'
 import Eip8004Validation_TimestampSchema from '$/schema/Eip8004Validation_Timestamp.ts'
@@ -1585,7 +1584,6 @@ const schemaChunk9 = [
 	Eip8004AgentRegistration_TimestampSchema,
 	Eip8004AgentRegistrationFileSchema,
 	Eip8004AgentServiceEndpointSchema,
-	Eip8004CrossRegistrationSchema,
 	Eip8004EndpointDomainVerification_TimestampSchema,
 	Eip8004ReputationFeedback_TimestampSchema,
 	Eip8004Validation_TimestampSchema,

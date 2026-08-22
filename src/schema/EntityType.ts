@@ -466,7 +466,6 @@ export enum EntityType {
 	Eip8004AgentRegistration_Timestamp = 'Eip8004AgentRegistration_Timestamp',
 	Eip8004AgentRegistrationFile = 'Eip8004AgentRegistrationFile',
 	Eip8004AgentServiceEndpoint = 'Eip8004AgentServiceEndpoint',
-	Eip8004CrossRegistration = 'Eip8004CrossRegistration',
 	Eip8004EndpointDomainVerification_Timestamp = 'Eip8004EndpointDomainVerification_Timestamp',
 	Eip8004ReputationFeedback_Timestamp = 'Eip8004ReputationFeedback_Timestamp',
 	Eip8004Validation_Timestamp = 'Eip8004Validation_Timestamp',

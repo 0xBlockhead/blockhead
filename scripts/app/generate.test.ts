@@ -1178,9 +1178,10 @@ test('inlines generated resource selections with one consumer', () => {
 	assert.doesNotMatch(assetClassView, /const assetClass =/)
 	assert.match(assetClassView, /<ResourceBoundary\s+resource=\{\s+selection\(\{/)
 
-	const sourceSelectedView = generatedSource('src/views/Eip8004CrossRegistrationView.svelte')
-	assert.doesNotMatch(sourceSelectedView, /const viewSelection =/)
-	assert.match(sourceSelectedView, /resource=\{\s+selection\(\{\s+sources: selection\.sources/)
+	assert.equal(
+		baselineCompiledApp.generatedFiles.some(({ path }) => path.includes('/cross-registration/')),
+		false
+	)
 	for (const filePath of [
 		'src/views/CurrencyView.svelte',
 		'src/views/EvmAccountView.svelte',

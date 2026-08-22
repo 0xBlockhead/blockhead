@@ -1165,7 +1165,6 @@ export enum EntityType {
 	Eip8004AgentRegistration_Timestamp = "Eip8004AgentRegistration_Timestamp",
 	Eip8004AgentRegistrationFile = "Eip8004AgentRegistrationFile",
 	Eip8004AgentServiceEndpoint = "Eip8004AgentServiceEndpoint",
-	Eip8004CrossRegistration = "Eip8004CrossRegistration",
 	Eip8004EndpointDomainVerification_Timestamp = "Eip8004EndpointDomainVerification_Timestamp",
 	Eip8004ReputationFeedback_Timestamp = "Eip8004ReputationFeedback_Timestamp",
 	Eip8004Validation_Timestamp = "Eip8004Validation_Timestamp",
@@ -26066,43 +26065,6 @@ export const schema = {
 													],
 					},
 					plural: { component: "Eip8004AgentServiceEndpointsView", title: "EIP-8004 agent service endpoints", },
-				},
-			}),
-
-			entity({
-				entityType: EntityType.Eip8004CrossRegistration,
-				labels: {
-					singular: "EIP-8004 cross registration",
-					plural: "EIP-8004 cross registrations",
-				},
-			})({
-				"$registrationFile": { label: "Registration file", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Eip8004AgentRegistrationFile },
-				"targetKind": { label: "Target kind", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"targetSelectorHashAlgorithm": { label: "Target selector hash algorithm", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"targetSelectorHash": { label: "Target selector hash", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "zeroExHex" },
-				"targetSelector": { label: "Target selector", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "unknown" },
-				"evidenceUri": { label: "Evidence URI", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "urlString" },
-				"signature": { label: "Signature", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "unknown" },
-			})({
-				selectors: {
-					"RegistrationFileTargetKindTargetSelectorHashAlgorithmTargetSelectorHash": ["$registrationFile", "targetKind", "targetSelectorHashAlgorithm", "targetSelectorHash"],
-				},
-				views: {
-					singular: {
-						query: {
-							sources: [Source.Eip8004Scan_Rest],
-							openFields: ["targetSelector", "evidenceUri", "signature"],
-						},
-						summary: { title: ["targetKind"], value: ["targetSelectorHash"], HeadingAfter: ["targetSelectorHashAlgorithm"] },
-						closed: ["$registrationFile", "targetKind", "targetSelectorHash"],
-						content: {
-							dl: [
-								["$registrationFile", "targetKind", "targetSelectorHashAlgorithm", "targetSelectorHash"],
-								[{ field: "evidenceUri", format: "url" }],
-							],
-						},
-					},
-					plural: { component: "Eip8004CrossRegistrationsView", title: "EIP-8004 cross registrations", },
 				},
 			}),
 
@@ -94303,27 +94265,6 @@ export const routes = defineRoutes(schema)({
 																										}
 																									}
 																								},
-																								"cross-registration": {
-																									children: {
-																										"[targetKind]": {
-																											children: {
-																												"[targetSelectorHashAlgorithm]": {
-																													children: {
-																														"[targetSelectorHash]": {
-																															selectors: {
-																																[EntityType.Eip8004CrossRegistration]: {
-																																	"RegistrationFileTargetKindTargetSelectorHashAlgorithmTargetSelectorHash": {
-																																		params: { "targetKind": ["targetKind"], "targetSelectorHashAlgorithm": ["targetSelectorHashAlgorithm"], "targetSelectorHash": ["targetSelectorHash"] },
-																																		page: {},
-																																	}
-																																}
-																															}
-																														}
-																													}
-																												}
-																											}
-																										}
-																									}
 																								}
 																							}
 																						}
