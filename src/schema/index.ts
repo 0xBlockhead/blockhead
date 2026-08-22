@@ -1618,10 +1618,10 @@ const schemaChunk9 = [
 	EvmBlobSchema,
 	EvmBlockSchema,
 	EvmCalldataSchema,
+	EvmCoinInstanceSchema,
 ] as const
 
 const schemaChunk10 = [
-	EvmCoinInstanceSchema,
 	EvmContractSchema,
 	EvmContractCompilationSchema,
 	EvmContractSourceBundleSchema,
@@ -1671,10 +1671,10 @@ const schemaChunk10 = [
 	FilecoinActor_TimestampSchema,
 	FilecoinBlockSchema,
 	FilecoinDealSchema,
+	FilecoinDeal_TimestampSchema,
 ] as const
 
 const schemaChunk11 = [
-	FilecoinDeal_TimestampSchema,
 	FilecoinMessageSchema,
 	FilecoinMessage_TimestampSchema,
 	FilecoinMessageEventSchema,
@@ -1724,10 +1724,10 @@ const schemaChunk11 = [
 	GmxPositionSchema,
 	HederaAccountSchema,
 	HederaAccount_TimestampSchema,
+	HederaAllowanceSchema,
 ] as const
 
 const schemaChunk12 = [
-	HederaAllowanceSchema,
 	HederaAllowance_TimestampSchema,
 	HederaBlockSchema,
 	HederaContractSchema,
@@ -1777,10 +1777,10 @@ const schemaChunk12 = [
 	HyperliquidSpotAssetSchema,
 	HyperliquidSpotPairSchema,
 	HyperliquidTransactionSchema,
+	HyperliquidTransaction_TimestampSchema,
 ] as const
 
 const schemaChunk13 = [
-	HyperliquidTransaction_TimestampSchema,
 	HyperliquidValidatorSchema,
 	HyperliquidValidator_TimestampSchema,
 	HyperliquidVaultSchema,
@@ -1830,10 +1830,10 @@ const schemaChunk13 = [
 	LensFeedSchema,
 	LensFeedRuleSchema,
 	LensNetworkSchema,
+	LensPostSchema,
 ] as const
 
 const schemaChunk14 = [
-	LensPostSchema,
 	LensPost_TimestampSchema,
 	LensUsernameSchema,
 	LensUsernameNamespaceSchema,
@@ -1883,10 +1883,10 @@ const schemaChunk14 = [
 	MevRelaySchema,
 	MevRelay_BuilderBlockReceivedSchema,
 	MevRelay_ProposerPayloadDeliveredSchema,
+	MevRelay_TimestampSchema,
 ] as const
 
 const schemaChunk15 = [
-	MevRelay_TimestampSchema,
 	MoneroBlockSchema,
 	MoneroKeyImageSchema,
 	MoneroNetworkSchema,
@@ -1936,10 +1936,10 @@ const schemaChunk15 = [
 	NostrProfileSchema,
 	NostrProfileMetadataEventSchema,
 	NostrReactionSchema,
+	NostrRelaySchema,
 ] as const
 
 const schemaChunk16 = [
-	NostrRelaySchema,
 	NostrRelay_TimestampSchema,
 	NostrRepostSchema,
 	NostrSearchQuerySchema,
@@ -1989,10 +1989,10 @@ const schemaChunk16 = [
 	RadicleSignedRef_TimestampSchema,
 	RedditCommentSchema,
 	RedditComment_TimestampSchema,
+	RedditLinkSchema,
 ] as const
 
 const schemaChunk17 = [
-	RedditLinkSchema,
 	RedditLink_TimestampSchema,
 	RedditNetworkSchema,
 	RedditSubredditSchema,
@@ -2042,10 +2042,10 @@ const schemaChunk17 = [
 	StarknetNetwork_TimestampSchema,
 	StarknetStateUpdateSchema,
 	StarknetStorageEntrySchema,
+	StarknetStorageEntry_TimestampSchema,
 ] as const
 
 const schemaChunk18 = [
-	StarknetStorageEntry_TimestampSchema,
 	StarknetTokenHoldingSchema,
 	StarknetTokenHolding_TimestampSchema,
 	StarknetTransactionSchema,
@@ -2095,10 +2095,10 @@ const schemaChunk18 = [
 	SwapQuoteStepSchema,
 	SwarmProtocolSchema,
 	SwarmResourceSchema,
+	TallyGovernorSchema,
 ] as const
 
 const schemaChunk19 = [
-	TallyGovernorSchema,
 	TallyProposalSchema,
 	TallyProposalExecutableCallSchema,
 	TezosAccountSchema,
@@ -2148,10 +2148,10 @@ const schemaChunk19 = [
 	TonNftItemSchema,
 	TonNftItem_TimestampSchema,
 	TonNftTransferSchema,
+	TonShard_TimestampSchema,
 ] as const
 
 const schemaChunk20 = [
-	TonShard_TimestampSchema,
 	TonTraceSchema,
 	TonTrace_TimestampSchema,
 	TonTransactionSchema,
@@ -2201,10 +2201,10 @@ const schemaChunk20 = [
 	XPost_TimestampSchema,
 	XrplAccountSchema,
 	XrplAccount_TimestampSchema,
+	XrplAmendmentSchema,
 ] as const
 
 const schemaChunk21 = [
-	XrplAmendmentSchema,
 	XrplAmendment_TimestampSchema,
 	XrplAmmSchema,
 	XrplAmm_TimestampSchema,
