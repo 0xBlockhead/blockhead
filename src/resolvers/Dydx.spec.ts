@@ -179,6 +179,15 @@ const historicalPositions = [{
 	subaccountNumber: 0,
 }]
 
+const terminalPositions = [
+	historicalPositions[0],
+	{
+		...historicalPositions[0],
+		status: 'LIQUIDATED',
+		closedAt: '2026-06-03T00:00:00.000Z',
+	},
+]
+
 const markets = {
 	'BTC-USD': {
 		clobPairId: '0',
@@ -792,7 +801,7 @@ describe('dYdX Indexer resolvers', () => {
 		expect(sourceGetJson.mock.calls[0][1]).not.toContain('/v4/height')
 	})
 
-	it('materializes open state and terminal position observations without inventing a closure block coordinate', async () => {
+	it('materializes paginated open position slots from the full subaccount snapshot', async () => {
 		const observation = await dydxChainSubaccountResolver.resolve.NetworkAccountSubaccountNumber.resolve(
 			subaccount,
 			{
@@ -803,15 +812,12 @@ describe('dYdX Indexer resolvers', () => {
 			}
 		)
 
-		expect(sourceGetJson).toHaveBeenCalledTimes(3)
+		expect(sourceGetJson).toHaveBeenCalledTimes(2)
 		expect(sourceGetJson.mock.calls.map(([, url]) => url).some((url) => (
 			typeof url === 'string' && url.includes(`/v4/addresses/${address}/subaccountNumber/0`)
 		))).toBe(true)
 		expect(sourceGetJson.mock.calls.map(([, url]) => url).some((url) => (
 			typeof url === 'string' && url.includes('/v4/orders?')
-		))).toBe(true)
-		expect(sourceGetJson.mock.calls.map(([, url]) => url).some((url) => (
-			typeof url === 'string' && url.includes('/v4/perpetualPositions?')
 		))).toBe(true)
 		expect(dydxChainSubaccountResolver.projections.$$timestamps(
 			observation,
@@ -831,10 +837,12 @@ describe('dYdX Indexer resolvers', () => {
 				[entityFieldAddressKey(EntityType.DydxChainSubaccount_Timestamp, [], 'openOrderCount')]: 1,
 			},
 		}])
-		expect(dydxChainSubaccountResolver.projections.$$positions.select(
+		const positions = dydxChainSubaccountResolver.projections.$$positions.select(
 			observation,
 			subaccount
-		)[0]).toEqual({
+		)
+		expect(positions).toHaveLength(2)
+		expect(positions[0]).toEqual({
 			[EntityMetaKey.Selector]: {
 				$subaccount: subaccount,
 				$market: {
@@ -861,44 +869,15 @@ describe('dYdX Indexer resolvers', () => {
 				}],
 			},
 		})
-		expect(dydxChainSubaccountResolver.projections.$$positions.select(
-			observation,
-			subaccount
-		)[2]).toEqual({
-			[EntityMetaKey.Selector]: {
-				$subaccount: subaccount,
-				$market: {
-					$network: network,
-					ticker: 'SOL-USD',
-				},
-			},
-			[EntityMetaKey.Fields]: {
-				[entityFieldAddressKey(EntityType.DydxChainPerpetualPosition, [], '$$timestamps')]: [{
-					[EntityMetaKey.Selector]: {
-						$position: closedPerpetualPosition,
-						timestampMs: Date.parse('2026-06-02T00:00:00.000Z'),
-						source: Source.DydxIndexer,
-					},
-					[EntityMetaKey.Fields]: {
-						[entityFieldAddressKey(EntityType.DydxChainPerpetualPosition_Timestamp, [], 'side')]: 'LONG',
-						[entityFieldAddressKey(EntityType.DydxChainPerpetualPosition_Timestamp, [], 'size')]: '0',
-						[entityFieldAddressKey(EntityType.DydxChainPerpetualPosition_Timestamp, [], 'entryPrice')]: '64000',
-						[entityFieldAddressKey(EntityType.DydxChainPerpetualPosition_Timestamp, [], 'unrealizedPnl')]: '0',
-						[entityFieldAddressKey(EntityType.DydxChainPerpetualPosition_Timestamp, [], 'realizedPnl')]: '3.5',
-						[entityFieldAddressKey(EntityType.DydxChainPerpetualPosition_Timestamp, [], 'netFunding')]: '-0.02',
-					},
-				}],
-			},
-		})
 	})
 
-	it('resolves a stable position and its timestamp observation from one account snapshot', async () => {
+	it('resolves an open position and its timestamp observation from one account snapshot', async () => {
 		const observation = await dydxChainPerpetualPositionResolver.resolve.SubaccountMarket.resolve(
 			perpetualPosition,
 			context
 		)
 
-		expect(sourceGetJson).toHaveBeenCalledTimes(2)
+		expect(sourceGetJson).toHaveBeenCalledTimes(1)
 		expect(sourceGetJson.mock.calls.map(([, url]) => url).some((url) => (
 			typeof url === 'string' && url.includes(`/v4/addresses/${address}/subaccountNumber/0`)
 		))).toBe(true)
@@ -923,31 +902,55 @@ describe('dYdX Indexer resolvers', () => {
 		}])
 	})
 
-	it('resolves the latest terminal market position as a source-clocked observation without claiming its creation height is its closure height', async () => {
-		const observation = await dydxChainPerpetualPositionResolver.resolve.SubaccountMarket.resolve(
-			closedPerpetualPosition,
+	it('excludes repeated CLOSED and LIQUIDATED rows for a market from current positions', async () => {
+		sourceGetJson.mockImplementation((_binding, url) => Promise.resolve(
+			url.includes('/v4/addresses/') ?
+				{
+					...subaccountResponse,
+					openPerpetualPositions: {},
+				}
+			:
+			url.includes('/v4/perpetualPositions?') ?
+				{
+					positions: terminalPositions,
+				}
+			:
+				orders
+		))
+		const observation = await dydxChainSubaccountResolver.resolve.NetworkAccountSubaccountNumber.resolve(
+			subaccount,
 			context
 		)
 
-		expect(observation.position).toEqual(historicalPositions[0])
-		expect(dydxChainPerpetualPositionResolver.projections.$$timestamps(
+		expect(dydxChainSubaccountResolver.projections.$$positions.select(
 			observation,
-			closedPerpetualPosition
-		)).toEqual([{
-			[EntityMetaKey.Selector]: {
-				$position: closedPerpetualPosition,
-				timestampMs: Date.parse('2026-06-02T00:00:00.000Z'),
-				source: Source.DydxIndexer,
-			},
-			[EntityMetaKey.Fields]: {
-				[entityFieldAddressKey(EntityType.DydxChainPerpetualPosition_Timestamp, [], 'side')]: 'LONG',
-				[entityFieldAddressKey(EntityType.DydxChainPerpetualPosition_Timestamp, [], 'size')]: '0',
-				[entityFieldAddressKey(EntityType.DydxChainPerpetualPosition_Timestamp, [], 'entryPrice')]: '64000',
-				[entityFieldAddressKey(EntityType.DydxChainPerpetualPosition_Timestamp, [], 'unrealizedPnl')]: '0',
-				[entityFieldAddressKey(EntityType.DydxChainPerpetualPosition_Timestamp, [], 'realizedPnl')]: '3.5',
-				[entityFieldAddressKey(EntityType.DydxChainPerpetualPosition_Timestamp, [], 'netFunding')]: '-0.02',
-			},
-		}])
+			subaccount
+		)).toEqual([])
+		expect(sourceGetJson.mock.calls.some(([, url]) => url.includes('/v4/perpetualPositions?'))).toBe(false)
+	})
+
+	it('does not fabricate a closure observation for a closed market slot', async () => {
+		await expect(dydxChainPerpetualPositionResolver.resolve.SubaccountMarket.resolve(
+			closedPerpetualPosition,
+			context
+		)).rejects.toThrow('position not found for SOL-USD')
+	})
+
+	it('rejects a foreign subaccount address before projecting current positions', async () => {
+		sourceGetJson.mockImplementation((_binding, url) => Promise.resolve(
+			url.includes('/v4/addresses/') ?
+				{
+					...subaccountResponse,
+					address: `dydx1${'p'.repeat(38)}`,
+				}
+			:
+				orders
+		))
+
+		await expect(dydxChainSubaccountResolver.resolve.NetworkAccountSubaccountNumber.resolve(
+			subaccount,
+			context
+		)).rejects.toThrow('mismatched subaccount identity')
 	})
 
 	it('loads orders independently and preserves their native update coordinate', async () => {

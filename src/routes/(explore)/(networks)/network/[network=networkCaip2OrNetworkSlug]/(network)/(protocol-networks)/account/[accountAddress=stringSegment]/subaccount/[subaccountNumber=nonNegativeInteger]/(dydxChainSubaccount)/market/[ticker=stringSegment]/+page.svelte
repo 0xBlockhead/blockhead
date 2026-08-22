@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'dydx chain perpetual position'} • dydx chain perpetual position • Blockhead</title>
+	<title>{data.title ?? 'dydx chain open perpetual position'} • dydx chain open perpetual position • Blockhead</title>
 </svelte:head>
 
 

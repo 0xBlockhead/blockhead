@@ -7,8 +7,8 @@ import { EntityType } from '$/schema/EntityType.ts'
 export default entity({
 	entityType: EntityType.DydxChainPerpetualPosition,
 	labels: {
-		singular: 'dydx chain perpetual position',
-		plural: 'dydx chain perpetual positions',
+		singular: 'dydx chain open perpetual position',
+		plural: 'dydx chain open perpetual positions',
 	},
 })({
 	$subaccount: {

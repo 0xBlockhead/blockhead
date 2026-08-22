@@ -268,49 +268,22 @@ const resolveDydxPerpetualPosition = async (
 	assertDydxSubaccount(entitySelector.$subaccount)
 	assertDydxMainnet(entitySelector.$market.$network.$network)
 	const {
-		getPerpetualPositions,
 		getSubaccount,
 	} = await import('$/sources/Dydx/Rest/queries.ts')
-	const [
-		observation,
-		positionsObservation,
-	] = await Promise.all([
-		getSubaccount({
-			address: entitySelector.$subaccount.$account.address,
-			subaccountNumber: entitySelector.$subaccount.subaccountNumber,
-		}),
-		getPerpetualPositions({
-			address: entitySelector.$subaccount.$account.address,
-			subaccountNumber: entitySelector.$subaccount.subaccountNumber,
-		}),
-	])
-	const position = (
-		observation.value.openPerpetualPositions[entitySelector.$market.ticker]
-		?? positionsObservation.value
-			.filter((candidate) => (
-				candidate.market === entitySelector.$market.ticker
-				&& candidate.closedAt != null
-			))
-			.sort((positionA, positionB) => (
-				parseTimestampMs(positionB.closedAt ?? positionB.createdAt, 'closedAt')
-				- parseTimestampMs(positionA.closedAt ?? positionA.createdAt, 'closedAt')
-			)).find(() => true)
-	)
+	const observation = await getSubaccount({
+		address: entitySelector.$subaccount.$account.address,
+		subaccountNumber: entitySelector.$subaccount.subaccountNumber,
+	})
+	const position = Object.entries(observation.value.openPerpetualPositions)
+		.find(([market]) => market === entitySelector.$market.ticker)?.[1]
 	if (position == null)
 		throw new Error(`DydxIndexer_Rest: position not found for ${entitySelector.$market.ticker}`)
 
 	return {
 		...observation,
 		position,
-		positionTimestampMs: (
-			position.closedAt == null ?
-				observation.observedAtMs
-			:
-				parseTimestampMs(position.closedAt, 'closedAt')
-		),
-		...(position.closedAt == null && {
-			positionUpdatedAtHeight: observation.value.updatedAtHeight,
-		}),
+		positionTimestampMs: observation.observedAtMs,
+		positionUpdatedAtHeight: observation.value.updatedAtHeight,
 	}
 }
 
@@ -740,7 +713,6 @@ export const dydxChainSubaccountResolver = defineResolver({
 				assertDydxSubaccount(entitySelector)
 				const {
 					getOrders,
-					getPerpetualPositions,
 					getSubaccount,
 				} = await import('$/sources/Dydx/Rest/queries.ts')
 				const {
@@ -750,7 +722,6 @@ export const dydxChainSubaccountResolver = defineResolver({
 				const [
 					observation,
 					ordersObservation,
-					positionsObservation,
 				] = await Promise.all([
 					getSubaccount({
 						address: entitySelector.$account.address,
@@ -760,11 +731,6 @@ export const dydxChainSubaccountResolver = defineResolver({
 						address: entitySelector.$account.address,
 						subaccountNumber: entitySelector.subaccountNumber,
 						limit: dydxPageLimitMax,
-					}),
-					getPerpetualPositions({
-						address: entitySelector.$account.address,
-						subaccountNumber: entitySelector.subaccountNumber,
-						limit: positionLimit,
 					}),
 				])
 
@@ -779,15 +745,6 @@ export const dydxChainSubaccountResolver = defineResolver({
 						timestampMs: observation.observedAtMs,
 						updatedAtHeight: observation.value.updatedAtHeight,
 					}])
-				for (const position of positionsObservation.value)
-					if (position.closedAt != null)
-						positionSnapshotsByMarket.set(position.market, [
-							...(positionSnapshotsByMarket.get(position.market) ?? []),
-							{
-								position,
-								timestampMs: parseTimestampMs(position.closedAt, 'closedAt'),
-							},
-						])
 
 				return {
 					...observation,

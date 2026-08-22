@@ -25150,8 +25150,8 @@ export const schema = {
 			entity({
 				entityType: EntityType.DydxChainPerpetualPosition,
 				labels: {
-					singular: "dydx chain perpetual position",
-					plural: "dydx chain perpetual positions",
+					singular: "dydx chain open perpetual position",
+					plural: "dydx chain open perpetual positions",
 				},
 			})({
 				"$subaccount": { label: "subaccount", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.DydxChainSubaccount },
@@ -25171,7 +25171,7 @@ export const schema = {
 						content: { dl: [["$subaccount", "$market"]] },
 						lists: [{ field: "$$timestamps", component: "DydxChainPerpetualPosition_TimestampsView", emptyText: "No dYdX position observations." }],
 					},
-					plural: { component: "DydxChainPerpetualPositionsView", title: "dYdX chain perpetual positions", },
+					plural: { component: "DydxChainPerpetualPositionsView", title: "dYdX chain open perpetual positions", },
 				},
 			}),
 

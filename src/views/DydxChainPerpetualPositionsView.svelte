@@ -11,7 +11,7 @@
 	// State
 	let {
 		selection,
-		title = 'dYdX chain perpetual positions',
+		title = 'dYdX chain open perpetual positions',
 		open = $bindable(true),
 		...EntitiesListProps
 	}: EntityListViewProps<EntityType.DydxChainPerpetualPosition> = $props()

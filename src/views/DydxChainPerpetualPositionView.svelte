@@ -35,7 +35,7 @@
 <EntityView
 	entityType={EntityType.DydxChainPerpetualPosition}
 	entitySelector={selection.entitySelector}
-	title={title ?? 'dydx chain perpetual position'}
+	title={title ?? 'dydx chain open perpetual position'}
 	href={
 		href === undefined ?
 			(
