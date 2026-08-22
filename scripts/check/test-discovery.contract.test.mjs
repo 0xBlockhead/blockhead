@@ -1,54 +1,52 @@
 import assert from 'node:assert/strict'
-import { execFileSync } from 'node:child_process'
-import {
-	existsSync,
-	readFileSync,
-} from 'node:fs'
-import { matchesGlob } from 'node:path'
 import test from 'node:test'
 
-import playwrightConfig from '../../playwright.config.ts'
-import walletExtensionsPlaywrightConfig from '../../playwright.wallet-extensions.config.ts'
-import viteConfig from '../../vite.config.ts'
+import {
+	assertDiscoveryContract,
+	inspectDiscovery,
+} from './test-discovery.mjs'
 
+const proofOwners = [{
+	id: 'playwright-main',
+	lane: 'acceptance',
+	matches: (pathname) => pathname.endsWith('.e2e.ts') && !pathname.includes('provider-discovery'),
+}, {
+	id: 'node-contracts',
+	lane: 'acceptance',
+	matches: (pathname) => pathname.startsWith('scripts/check/'),
+}]
+const contract = (pathnames, owners = proofOwners) => inspectDiscovery({ pathnames, proofOwners: owners })
 
-const packageJson = JSON.parse(readFileSync(new URL('../../package.json', import.meta.url)))
-
-const trackedTestPathnames = execFileSync('git', ['ls-files', '--cached', '--others', '--exclude-standard'], {
-	cwd: new URL('../..', import.meta.url),
-	encoding: 'utf8',
+test('owns the complete current inventory, including colocated route suites', () => {
+	const inventory = contract([
+		'src/routes/root-navigation.e2e.ts',
+		'tests/e2e/route-matrix.e2e.ts',
+		'scripts/check/test-discovery.contract.test.mjs',
+	])
+	assertDiscoveryContract(inventory)
+	assert.equal(inventory.counts.colocatedRoutes, 1)
 })
-	.split('\n')
-	.filter((pathname) => existsSync(new URL(`../../${pathname}`, import.meta.url)))
-	.filter((pathname) => /\.(?:test|spec|e2e)\.(?:[cm]?[jt]sx?)$/.test(pathname))
 
-const nodeTestPatterns = Object.values(packageJson.scripts)
-	.flatMap((script) => script.split(' --test ').slice(1))
-	.flatMap((command) => command.split(/\s+(?:&&|\|\||;)/)[0].trim().split(/\s+/))
+test('fails when a colocated route suite is omitted from the configured runner', () => {
+	const owners = proofOwners.filter(({ id }) => id !== 'playwright-main' && id !== 'playwright-observations')
+	const inventory = contract(['src/routes/root-navigation.e2e.ts'], owners)
+	assert.deepEqual(inventory.undiscovered, ['src/routes/root-navigation.e2e.ts'])
+})
 
-const viteProjects = viteConfig.test.projects.map(({ test: config }) => config)
-const intentionallyExcludedPatterns = [
-	...viteProjects.flatMap(({ exclude }) => exclude),
-	...playwrightConfig.testIgnore,
-]
+test('fails when one suite is silently owned by duplicate configs', () => {
+	const owners = [
+		{ id: 'first-config', lane: 'acceptance', matches: () => true },
+		{ id: 'second-config', lane: 'acceptance', matches: () => true },
+	]
+	const inventory = contract(['tests/e2e/route-matrix.e2e.ts'], owners)
+	assert.deepEqual(inventory.duplicated, [{ pathname: 'tests/e2e/route-matrix.e2e.ts', owners: ['first-config', 'second-config'] }])
+})
 
-test('every tracked test-shaped file is owned by a configured runner or explicit exclusion', () => {
-	const undiscovered = trackedTestPathnames.filter((pathname) => (
-		!nodeTestPatterns.some((pattern) => matchesGlob(pathname, pattern))
-		&& !viteProjects.some((config) => (
-			config.include.some((pattern) => matchesGlob(pathname, pattern))
-			&& !config.exclude.some((pattern) => matchesGlob(pathname, pattern))
-		))
-		&& !(
-			matchesGlob(pathname, playwrightConfig.testMatch)
-			&& !playwrightConfig.testIgnore.some((pattern) => matchesGlob(pathname, pattern))
-		)
-		&& !matchesGlob(
-			pathname,
-			`${walletExtensionsPlaywrightConfig.testDir.replace('./', '')}/${walletExtensionsPlaywrightConfig.testMatch}`
-		)
-		&& !intentionallyExcludedPatterns.some((pattern) => matchesGlob(pathname, pattern))
-	))
-
-	assert.deepEqual(undiscovered, [])
+test('fails when an observational suite is promoted to acceptance', () => {
+	const inventory = contract(['tests/e2e/provider-discovery.e2e.ts'], [{
+		id: 'acceptance-config',
+		lane: 'acceptance',
+		matches: () => true,
+	}])
+	assert.deepEqual(inventory.promotedObservations, [{ pathname: 'tests/e2e/provider-discovery.e2e.ts', owners: ['acceptance-config'] }])
 })

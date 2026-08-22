@@ -38,6 +38,7 @@
 		"sources:precompiles:sync": "node --import tsx scripts/sources/precompiles/source.ts sync",
 		"test:unit": "vitest",
 		"test:contracts": "TSC_PATH=./node_modules/@typescript/native/bin/tsc node --import tsx --test scripts/app/*.test.ts scripts/check/*.test.mjs scripts/e2e/*.test.mjs scripts/e2e/*.test.ts",
+		"test:discovery": "node --import tsx scripts/check/test-discovery.mjs --report",
 		"test": "pnpm run test:unit -- --run && pnpm run test:contracts && pnpm run test:e2e",
 		"test:e2e": "playwright test",
 		"test:e2e:boundaries": "playwright test tests/e2e/route-matrix.e2e.ts --workers=4",
