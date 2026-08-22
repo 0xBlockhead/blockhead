@@ -1294,8 +1294,7 @@ const usdPriceStringToPrice1e8 = (
 }
 
 const gasEstimateObservationFromBlockscoutStats = (
-	stats: BlockscoutStats,
-	fallbackTimestampMs = Date.now()
+	stats: BlockscoutStats
 ) => {
 	const prices = stats.gas_prices
 	if (
@@ -1314,12 +1313,10 @@ const gasEstimateObservationFromBlockscoutStats = (
 		:
 			NaN
 	)
-	const timestampMs = (
-		Number.isFinite(updatedAtMs) ?
-			updatedAtMs
-		:
-			fallbackTimestampMs
-	)
+	if (!Number.isFinite(updatedAtMs))
+		return null
+
+	const timestampMs = updatedAtMs
 	return {
 		timestampMs,
 		...(prices.slow != null
@@ -1614,7 +1611,6 @@ const erc4337RegistryEntitiesFromBlockscoutWires = ({
 	items.flatMap((smartContract) => {
 		const address = hexLowerOfByteSize(smartContract.address.hash, 20)
 		const factoryAddress = hexLowerOfByteSize(smartContract.factory?.hash ?? '', 20)
-		const timestampMs = smartContract.creation_timestamp == null ? undefined : Date.parse(smartContract.creation_timestamp)
 		return address == null ?
 			[]
 		:
@@ -1638,21 +1634,7 @@ const erc4337RegistryEntitiesFromBlockscoutWires = ({
 							},
 						},
 					}),
-					...(timestampMs != null && Number.isFinite(timestampMs) && {
-						[entityFieldAddressKey(EntityType.Erc4337SmartAccount, [], '$$timestamps')]: [{
-							[EntityMetaKey.Selector]: {
-								$account: {
-									$network: evmNetworkSelectorFromChainId(chainId),
-									address,
-								},
-								timestampMs,
-								source: Source.Blockscout_Rest,
-							},
-							[EntityMetaKey.Fields]: {
-								[entityFieldAddressKey(EntityType.Erc4337SmartAccount_Timestamp, [], 'userOperationsCount')]: smartContract.total_ops,
-							},
-						}],
-					}),
+					[entityFieldAddressKey(EntityType.Erc4337SmartAccount, [], 'userOperationsCount')]: smartContract.total_ops,
 				},
 			}]
 	})
@@ -2557,25 +2539,14 @@ export default {
 									},
 								} satisfies Entity<typeof schema, EntityType.Erc4337AccountFactory>,
 							}),
-							$$timestamps: [
-								{
-									[EntityMetaKey.Selector]: {
-										$account: entitySelector,
-										timestampMs: Date.now(),
-										source: Source.Blockscout_Rest,
-									},
-									[EntityMetaKey.Fields]: {
-										[entityFieldAddressKey(EntityType.Erc4337SmartAccount_Timestamp, [], 'userOperationsCount')]: wire.total_ops,
-									},
-								},
-							],
+							userOperationsCount: wire.total_ops,
 						}
 					},
 				}
 			},
 		})({
 			$factory: (account) => account.$factory,
-			$$timestamps: (account) => account.$$timestamps,
+			userOperationsCount: (account) => account.userOperationsCount,
 		}),
 
 		defineResolver({
@@ -2624,25 +2595,12 @@ export default {
 							chainId: evmChainIdFromNetworkSelector(entitySelector.$network),
 							address: entitySelector.address,
 						})
-						return {
-							$$timestamps: [
-								{
-									[EntityMetaKey.Selector]: {
-										$bundler: entitySelector,
-										timestampMs: Date.now(),
-										source: Source.Blockscout_Rest,
-									},
-									[EntityMetaKey.Fields]: {
-										[entityFieldAddressKey(EntityType.Erc4337Bundler_Timestamp, [], 'userOperationsCount')]: wire.total_ops,
-									},
-								},
-							],
-						}
+						return { userOperationsCount: wire.total_ops }
 					},
 				},
 			},
 		})({
-			$$timestamps: (bundler) => bundler.$$timestamps,
+			userOperationsCount: (bundler) => bundler.userOperationsCount,
 		}),
 
 		defineResolver({
@@ -2691,25 +2649,12 @@ export default {
 							chainId: evmChainIdFromNetworkSelector(entitySelector.$network),
 							address: entitySelector.address,
 						})
-						return {
-							$$timestamps: [
-								{
-									[EntityMetaKey.Selector]: {
-										$paymaster: entitySelector,
-										timestampMs: Date.now(),
-										source: Source.Blockscout_Rest,
-									},
-									[EntityMetaKey.Fields]: {
-										[entityFieldAddressKey(EntityType.Erc4337Paymaster_Timestamp, [], 'userOperationsCount')]: wire.total_ops,
-									},
-								},
-							],
-						}
+						return { userOperationsCount: wire.total_ops }
 					},
 				},
 			},
 		})({
-			$$timestamps: (paymaster) => paymaster.$$timestamps,
+			userOperationsCount: (paymaster) => paymaster.userOperationsCount,
 		}),
 
 		defineResolver({
@@ -2759,24 +2704,15 @@ export default {
 							address: entitySelector.address,
 						})
 						return {
-							$$timestamps: [
-								{
-									[EntityMetaKey.Selector]: {
-										$factory: entitySelector,
-										timestampMs: Date.now(),
-										source: Source.Blockscout_Rest,
-									},
-									[EntityMetaKey.Fields]: {
-										[entityFieldAddressKey(EntityType.Erc4337AccountFactory_Timestamp, [], 'smartAccountsCount')]: wire.total_accounts,
-									},
-								},
-							],
+							userOperationsCount: wire.total_ops,
+							smartAccountsCount: wire.total_accounts,
 						}
 					},
 				},
 			},
 		})({
-			$$timestamps: (factory) => factory.$$timestamps,
+			userOperationsCount: (factory) => factory.userOperationsCount,
+			smartAccountsCount: (factory) => factory.smartAccountsCount,
 		}),
 
 		defineResolver({
@@ -3059,9 +2995,9 @@ export default {
 								`Blockscout_Rest: EvmNetwork_GasEstimate_Timestamp unsupported for chain ${String(evmChainIdFromNetworkSelector($network))}`
 							)
 
-						const observation = gasEstimateObservationFromBlockscoutStats(stats, timestampMs)
+						const observation = gasEstimateObservationFromBlockscoutStats(stats)
 						if (observation == null)
-							throw new Error('Blockscout_Rest: stats missing gas_prices tiers')
+							throw new Error('Blockscout_Rest: stats missing authoritative gas estimate clock')
 						if (timestampMs !== observation.timestampMs)
 							throw new Error('Blockscout_Rest: EvmNetwork_GasEstimate_Timestamp id does not match stats clock')
 						return {

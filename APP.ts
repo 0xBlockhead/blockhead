@@ -1182,13 +1182,9 @@ export enum EntityType {
 	EnsReverseRecord = "EnsReverseRecord",
 	EnsReverseRecord_Timestamp = "EnsReverseRecord_Timestamp",
 	Erc4337AccountFactory = "Erc4337AccountFactory",
-	Erc4337AccountFactory_Timestamp = "Erc4337AccountFactory_Timestamp",
 	Erc4337Bundler = "Erc4337Bundler",
-	Erc4337Bundler_Timestamp = "Erc4337Bundler_Timestamp",
 	Erc4337Paymaster = "Erc4337Paymaster",
-	Erc4337Paymaster_Timestamp = "Erc4337Paymaster_Timestamp",
 	Erc4337SmartAccount = "Erc4337SmartAccount",
-	Erc4337SmartAccount_Timestamp = "Erc4337SmartAccount_Timestamp",
 	Erc4626Vault = "Erc4626Vault",
 	Erc4626Vault_Block = "Erc4626Vault_Block",
 	Erc4626Vault_Timestamp = "Erc4626Vault_Timestamp",
@@ -1350,11 +1346,9 @@ export enum EntityType {
 	HyperliquidOrder = "HyperliquidOrder",
 	HyperliquidOrder_Timestamp = "HyperliquidOrder_Timestamp",
 	HyperliquidPerpMarket = "HyperliquidPerpMarket",
-	HyperliquidPerpMarket_Timestamp = "HyperliquidPerpMarket_Timestamp",
 	HyperliquidPosition = "HyperliquidPosition",
 	HyperliquidSpotAsset = "HyperliquidSpotAsset",
 	HyperliquidSpotPair = "HyperliquidSpotPair",
-	HyperliquidSpotPair_Timestamp = "HyperliquidSpotPair_Timestamp",
 	HyperliquidTransaction = "HyperliquidTransaction",
 	HyperliquidTransaction_Timestamp = "HyperliquidTransaction_Timestamp",
 	HyperliquidValidator = "HyperliquidValidator",
@@ -24948,6 +24942,10 @@ export const schema = {
 				"baseAsset": { label: "base asset", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"quoteAsset": { label: "quote asset", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"marketKind": { label: "market kind", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"oraclePrice": { label: "oracle price", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString" },
+				"fundingRate": { label: "funding rate", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "DecimalString" },
+				"openInterest": { label: "open interest", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString" },
+				"status": { label: "status", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"$$timestamps": { label: "timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.DydxChainMarket_Timestamp },
 			})({
 				selectors: {
@@ -24957,11 +24955,11 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.DydxIndexer],
-							openFields: ["baseAsset", "quoteAsset", "marketKind"],
+							openFields: ["baseAsset", "quoteAsset", "marketKind", "oraclePrice", "fundingRate", "openInterest", "status"],
 						},
-						summary: { title: ["ticker"], value: ["marketKind"], HeadingAfter: ["baseAsset"] },
+						summary: { title: ["ticker"], value: ["oraclePrice"], HeadingAfter: ["marketKind"] },
 						closed: ["$network", "ticker", "baseAsset", "quoteAsset"],
-						content: { dl: [["$network", "ticker", "baseAsset", "quoteAsset", "marketKind"]] },
+						content: { dl: [["$network", "ticker", "baseAsset", "quoteAsset", "marketKind", "status"], ["oraclePrice", "fundingRate", "openInterest"]] },
 						lists: [{ field: "$$timestamps", component: "DydxChainMarket_TimestampsView", emptyText: "No dYdX market observations." }],
 					},
 					plural: { component: "DydxChainMarketsView", title: "dYdX chain markets", },
@@ -24978,11 +24976,7 @@ export const schema = {
 				"$market": { label: "market", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.DydxChainMarket },
 				"timestampMs": { label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
 				"source": { label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"oraclePrice": { label: "oracle price", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString" },
 				"fundingRate": { label: "funding rate", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "DecimalString" },
-				"openInterest": { label: "open interest", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString" },
-				"status": { label: "status", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"nextFundingAtMs": { label: "next funding at ms", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 			})({
 				selectors: {
 					"MarketTimestampMsSource": ["$market", "timestampMs", "source"],
@@ -24991,11 +24985,11 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.DydxIndexer],
-							openFields: ["oraclePrice", "fundingRate", "openInterest", "status", "nextFundingAtMs"],
+							openFields: ["fundingRate"],
 						},
-						summary: { title: [{ field: "timestampMs", format: "timestamp" }], value: ["status"] },
+						summary: { title: [{ field: "timestampMs", format: "timestamp" }], value: ["fundingRate"] },
 						closed: ["$market", { field: "timestampMs", format: "timestamp" }, "source"],
-						content: { dl: [["$market", { field: "timestampMs", format: "timestamp" }, "source", "status"], ["oraclePrice", "fundingRate", "openInterest", { field: "nextFundingAtMs", format: "timestamp" }]] },
+						content: { dl: [["$market", { field: "timestampMs", format: "timestamp" }, "source", "fundingRate"]] },
 					},
 					plural: { component: "DydxChainMarket_TimestampsView", title: "dYdX chain market observations", },
 				},
@@ -26878,12 +26872,8 @@ export const schema = {
 					cardinality: EntityFieldCardinality.One,
 					entityType: EntityType.EvmContract,
 				},
-				"$$timestamps": {
-					label: "Timestamps",
-					type: EntityFieldType.EntitiesReference,
-					cardinality: EntityFieldCardinality.Many,
-					entityType: EntityType.Erc4337AccountFactory_Timestamp,
-				},
+				"userOperationsCount": { label: "User operations", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Blockscout_Rest] },
+				"smartAccountsCount": { label: "Smart accounts", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Blockscout_Rest] },
 				"$$userOperations": {
 					label: "User operations",
 					type: EntityFieldType.EntitiesReference,
@@ -26926,79 +26916,10 @@ export const schema = {
 									{ id: "erc4337-factory-user-operations", field: "$$userOperations", List: "EvmUserOperationsView", label: "User operations", emptyText: "No ERC-4337 user operations." },
 								],
 							},
-							{
-								id: "erc4337-factory-observations",
-								label: "Observations",
-								className: "network-view-collapsible-observations",
-								sections: [
-									{ id: "erc4337-factory-timestamps", field: "$$timestamps", List: "Erc4337AccountFactory_TimestampsView", label: "Observations", emptyText: "No ERC-4337 account factory observations." },
-								],
-							},
 						],
 					},
 					plural: {
 						component: "Erc4337AccountFactoriesView",
-					},
-				},
-			}),
-
-			entity({
-				entityType: EntityType.Erc4337AccountFactory_Timestamp,
-				labels: {
-					singular: "ERC-4337 account factory timestamp",
-					plural: "ERC-4337 account factory observations",
-				},
-			})({
-				"$factory": {
-					label: "Factory",
-					type: EntityFieldType.EntityReference,
-					cardinality: EntityFieldCardinality.One,
-					entityType: EntityType.Erc4337AccountFactory,
-				},
-				"timestampMs": {
-					label: "Timestamp",
-					description: "The observation time in Unix milliseconds.",
-					type: EntityFieldType.Primitive,
-					cardinality: EntityFieldCardinality.One,
-					valueType: "NonNegativeInteger",
-				},
-				"source": {
-					label: "Source",
-					description: "The source that produced this observation.",
-					type: EntityFieldType.Primitive,
-					cardinality: EntityFieldCardinality.One,
-					valueType: "string",
-				},
-				"userOperationsCount": { label: "User operations", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"smartAccountsCount": { label: "Smart accounts", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-			})({
-				selectors: {
-					"FactoryTimestampMsSource": ["$factory", "timestampMs", "source"],
-				},
-				views: {
-					singular: {
-						summary: {
-							title: [{ field: "timestampMs", format: "timestamp" }],
-							value: [{ field: "userOperationsCount", format: "number" }],
-							HeadingAfter: [
-								"source",
-								{ field: "smartAccountsCount", format: "number", suffix: " smart accounts" },
-							],
-						},
-						closed: [{ field: "timestampMs", format: "timestamp" }, "source"],
-						content: {
-							dl: [
-								[
-									{ field: "timestampMs", format: "timestamp" },
-									"source",
-									{ field: "userOperationsCount", format: "number" },
-									{ field: "smartAccountsCount", format: "number" },
-								],
-								["$factory"],
-							],
-						},
-					},
-					plural: { component: "Erc4337AccountFactory_TimestampsView",
 					},
 				},
 			}),
@@ -27023,12 +26944,7 @@ export const schema = {
 					cardinality: EntityFieldCardinality.ZeroOrOne,
 					entityType: EntityType.EvmContract,
 				},
-				"$$timestamps": {
-					label: "Timestamps",
-					type: EntityFieldType.EntitiesReference,
-					cardinality: EntityFieldCardinality.Many,
-					entityType: EntityType.Erc4337Bundler_Timestamp,
-				},
+				"userOperationsCount": { label: "User operations", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Blockscout_Rest] },
 				"$$userOperations": {
 					label: "User operations",
 					type: EntityFieldType.EntitiesReference,
@@ -27062,62 +26978,6 @@ export const schema = {
 			}),
 
 			entity({
-				entityType: EntityType.Erc4337Bundler_Timestamp,
-				labels: {
-					singular: "ERC-4337 bundler timestamp",
-					plural: "ERC-4337 bundler observations",
-				},
-			})({
-				"$bundler": {
-					label: "Bundler",
-					type: EntityFieldType.EntityReference,
-					cardinality: EntityFieldCardinality.One,
-					entityType: EntityType.Erc4337Bundler,
-				},
-				"timestampMs": {
-					label: "Timestamp",
-					description: "The observation time in Unix milliseconds.",
-					type: EntityFieldType.Primitive,
-					cardinality: EntityFieldCardinality.One,
-					valueType: "NonNegativeInteger",
-				},
-				"source": {
-					label: "Source",
-					description: "The source that produced this observation.",
-					type: EntityFieldType.Primitive,
-					cardinality: EntityFieldCardinality.One,
-					valueType: "string",
-				},
-				"userOperationsCount": { label: "User operations", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-			})({
-				selectors: {
-					"BundlerTimestampMsSource": ["$bundler", "timestampMs", "source"],
-				},
-				views: {
-					singular: {
-						summary: {
-							title: [{ field: "timestampMs", format: "timestamp" }],
-							value: [{ field: "userOperationsCount", format: "number" }],
-							HeadingAfter: ["source"],
-						},
-						closed: [{ field: "timestampMs", format: "timestamp" }, "source"],
-						content: {
-							dl: [
-								[
-									{ field: "timestampMs", format: "timestamp" },
-									"source",
-									{ field: "userOperationsCount", format: "number" },
-								],
-								["$bundler"],
-							],
-						},
-					},
-					plural: { component: "Erc4337Bundler_TimestampsView",
-					},
-				},
-			}),
-
-			entity({
 				entityType: EntityType.Erc4337Paymaster,
 				labels: {
 					singular: "ERC-4337 paymaster",
@@ -27137,12 +26997,7 @@ export const schema = {
 					cardinality: EntityFieldCardinality.One,
 					entityType: EntityType.EvmContract,
 				},
-				"$$timestamps": {
-					label: "Timestamps",
-					type: EntityFieldType.EntitiesReference,
-					cardinality: EntityFieldCardinality.Many,
-					entityType: EntityType.Erc4337Paymaster_Timestamp,
-				},
+				"userOperationsCount": { label: "User operations", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Blockscout_Rest] },
 				"$$userOperations": {
 					label: "User operations",
 					type: EntityFieldType.EntitiesReference,
@@ -27176,62 +27031,6 @@ export const schema = {
 			}),
 
 			entity({
-				entityType: EntityType.Erc4337Paymaster_Timestamp,
-				labels: {
-					singular: "ERC-4337 paymaster timestamp",
-					plural: "ERC-4337 paymaster observations",
-				},
-			})({
-				"$paymaster": {
-					label: "Paymaster",
-					type: EntityFieldType.EntityReference,
-					cardinality: EntityFieldCardinality.One,
-					entityType: EntityType.Erc4337Paymaster,
-				},
-				"timestampMs": {
-					label: "Timestamp",
-					description: "The observation time in Unix milliseconds.",
-					type: EntityFieldType.Primitive,
-					cardinality: EntityFieldCardinality.One,
-					valueType: "NonNegativeInteger",
-				},
-				"source": {
-					label: "Source",
-					description: "The source that produced this observation.",
-					type: EntityFieldType.Primitive,
-					cardinality: EntityFieldCardinality.One,
-					valueType: "string",
-				},
-				"userOperationsCount": { label: "User operations", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-			})({
-				selectors: {
-					"PaymasterTimestampMsSource": ["$paymaster", "timestampMs", "source"],
-				},
-				views: {
-					singular: {
-						summary: {
-							title: [{ field: "timestampMs", format: "timestamp" }],
-							value: [{ field: "userOperationsCount", format: "number" }],
-							HeadingAfter: ["source"],
-						},
-						closed: [{ field: "timestampMs", format: "timestamp" }, "source"],
-						content: {
-							dl: [
-								[
-									{ field: "timestampMs", format: "timestamp" },
-									"source",
-									{ field: "userOperationsCount", format: "number" },
-								],
-								["$paymaster"],
-							],
-						},
-					},
-					plural: { component: "Erc4337Paymaster_TimestampsView",
-					},
-				},
-			}),
-
-			entity({
 				entityType: EntityType.Erc4337SmartAccount,
 				labels: {
 					singular: "ERC-4337 smart account",
@@ -27257,13 +27056,7 @@ export const schema = {
 					cardinality: EntityFieldCardinality.ZeroOrOne,
 					entityType: EntityType.Erc4337AccountFactory,
 				},
-				"$$timestamps": {
-					label: "Timestamps",
-					type: EntityFieldType.EntitiesReference,
-					cardinality: EntityFieldCardinality.Many,
-					entityType: EntityType.Erc4337SmartAccount_Timestamp,
-					defaultSources: [Source.Blockscout_Rest],
-				},
+				"userOperationsCount": { label: "User operations", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Blockscout_Rest] },
 				"$$userOperations": {
 					label: "User operations",
 					type: EntityFieldType.EntitiesReference,
@@ -27303,73 +27096,9 @@ export const schema = {
 									{ id: "erc4337-smart-account-user-operations", field: "$$userOperations", List: "EvmUserOperationsView", label: "User operations", emptyText: "No ERC-4337 user operations." },
 								],
 							},
-							{
-								id: "erc4337-smart-account-observations",
-								label: "Observations",
-								className: "network-view-collapsible-observations",
-								sections: [
-									{ id: "erc4337-smart-account-timestamps", field: "$$timestamps", List: "Erc4337SmartAccount_TimestampsView", label: "Observations", emptyText: "No ERC-4337 smart account observations." },
-								],
-							},
 						],
 					},
 					plural: { component: "Erc4337SmartAccountsView",
-					},
-				},
-			}),
-
-			entity({
-				entityType: EntityType.Erc4337SmartAccount_Timestamp,
-				labels: {
-					singular: "ERC-4337 smart account timestamp",
-					plural: "ERC-4337 smart account observations",
-				},
-			})({
-				"$account": {
-					label: "Smart account",
-					type: EntityFieldType.EntityReference,
-					cardinality: EntityFieldCardinality.One,
-					entityType: EntityType.Erc4337SmartAccount,
-				},
-				"timestampMs": {
-					label: "Timestamp",
-					description: "The observation time in Unix milliseconds.",
-					type: EntityFieldType.Primitive,
-					cardinality: EntityFieldCardinality.One,
-					valueType: "NonNegativeInteger",
-				},
-				"source": {
-					label: "Source",
-					description: "The source that produced this observation.",
-					type: EntityFieldType.Primitive,
-					cardinality: EntityFieldCardinality.One,
-					valueType: "string",
-				},
-				"userOperationsCount": { label: "User operations", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Blockscout_Rest] },
-			})({
-				selectors: {
-					"AccountTimestampMsSource": ["$account", "timestampMs", "source"],
-				},
-				views: {
-					singular: {
-						summary: {
-							title: [{ field: "timestampMs", format: "timestamp" }],
-							value: [{ field: "userOperationsCount", format: "number" }],
-							HeadingAfter: ["source"],
-						},
-						closed: [{ field: "timestampMs", format: "timestamp" }, "source"],
-						content: {
-							dl: [
-								[
-									{ field: "timestampMs", format: "timestamp" },
-									"source",
-									{ field: "userOperationsCount", format: "number" },
-								],
-								["$account"],
-							],
-						},
-					},
-					plural: { component: "Erc4337SmartAccount_TimestampsView",
 					},
 				},
 			}),
@@ -39419,13 +39148,8 @@ export const schema = {
 					cardinality: EntityFieldCardinality.One,
 					valueType: "string",
 				},
-				"$$timestamps": {
-					label: "timestamps",
-					type: EntityFieldType.EntitiesReference,
-					entityType: EntityType.HyperliquidPerpMarket_Timestamp,
-					cardinality: EntityFieldCardinality.Many,
-					defaultSources: [Source.Hyperliquid],
-				},
+				"maxLeverage": { label: "max leverage", type: EntityFieldType.Primitive, primitiveType: { primitive: "number" }, cardinality: EntityFieldCardinality.ZeroOrOne, defaultSources: [Source.Hyperliquid] },
+				"onlyIsolated": { label: "only isolated", type: EntityFieldType.Primitive, primitiveType: { primitive: "boolean" }, cardinality: EntityFieldCardinality.ZeroOrOne, defaultSources: [Source.Hyperliquid] },
 			})({
 				selectors: {
 					"NetworkCoin": [
@@ -39435,99 +39159,17 @@ export const schema = {
 				},
 				views: {
 					singular: {
-						query: {
-							sources: [Source.Hyperliquid],
-						},
+						query: { sources: [Source.Hyperliquid], openFields: ["maxLeverage", "onlyIsolated"] },
 						summary: {
 							title: ["coin"],
+							value: [{ field: "maxLeverage", format: "number" }],
 							HeadingAfter: ["$network"],
 						},
 						content: {
-							dl: [
-								["$network", "coin"],
-							],
+							dl: [["$network", "coin", { field: "maxLeverage", format: "number" }, "onlyIsolated"]],
 						},
-						carousels: [
-							{
-								id: "hyperliquid-perp-market-observations",
-								label: "Observations",
-								className: "network-view-collapsible-chain-activity",
-								sections: [
-									{ id: "hyperliquid-perp-market-timestamps", field: "$$timestamps", List: "HyperliquidPerpMarket_TimestampsView", label: "Observations", emptyText: "No Hyperliquid perp market observations.", selection: { sources: [Source.Hyperliquid], limit: 16 } },
-								],
-							},
-						],
 					},
 					plural: { component: "HyperliquidPerpMarketsView", title: "Perp markets" },
-				},
-			}),
-
-			entity({
-				entityType: EntityType.HyperliquidPerpMarket_Timestamp,
-				labels: {
-					singular: "hyperliquid perp market timestamp",
-					plural: "hyperliquid perp market observations",
-				},
-			})({
-				"$perpMarket": {
-					label: "perp market",
-					type: EntityFieldType.EntityReference,
-					entityType: EntityType.HyperliquidPerpMarket,
-					cardinality: EntityFieldCardinality.One,
-				},
-				"timestampMs": {
-					label: "Timestamp",
-					description: "The observation time in Unix milliseconds.",
-					type: EntityFieldType.Primitive,
-					valueType: "NonNegativeInteger",
-					cardinality: EntityFieldCardinality.One,
-				},
-				"source": {
-					label: "Source",
-					description: "The source that produced this observation.",
-					type: EntityFieldType.Primitive,
-					valueType: "string",
-					cardinality: EntityFieldCardinality.One,
-				},
-				"maxLeverage": {
-					label: "max leverage",
-					type: EntityFieldType.Primitive,
-					primitiveType: { primitive: "number" },
-					cardinality: EntityFieldCardinality.ZeroOrOne,
-					defaultSources: [Source.Hyperliquid],
-				},
-				"onlyIsolated": {
-					label: "only isolated",
-					type: EntityFieldType.Primitive,
-					primitiveType: { primitive: "boolean" },
-					cardinality: EntityFieldCardinality.ZeroOrOne,
-					defaultSources: [Source.Hyperliquid],
-				},
-			})({
-				selectors: {
-					"PerpMarketTimestampMsSource": [
-						"$perpMarket",
-						"timestampMs",
-						"source",
-					],
-				},
-				views: {
-					singular: {
-						query: {
-							sources: [Source.Hyperliquid],
-						},
-						summary: {
-							title: ["$perpMarket"],
-							value: [{ field: "maxLeverage", format: "number" }],
-						},
-						content: {
-							dl: [
-								["$perpMarket", { field: "timestampMs", format: "timestamp" }, "source"],
-								[{ field: "maxLeverage", format: "number" }, "onlyIsolated"],
-							],
-						},
-					},
-					plural: { component: "HyperliquidPerpMarket_TimestampsView" },
 				},
 			}),
 
@@ -39689,12 +39331,10 @@ export const schema = {
 					entityType: EntityType.HyperliquidSpotAsset,
 					cardinality: EntityFieldCardinality.ZeroOrOne,
 				},
-				"$$timestamps": {
-					label: "timestamps",
-					type: EntityFieldType.EntitiesReference,
-					entityType: EntityType.HyperliquidSpotPair_Timestamp,
-					cardinality: EntityFieldCardinality.Many,
-				},
+				"name": { label: "Name", description: "The human-readable name of the subject.", type: EntityFieldType.Primitive, primitiveType: { primitive: "string" }, cardinality: EntityFieldCardinality.ZeroOrOne, defaultSources: [Source.Hyperliquid] },
+				"baseAssetId": { label: "base asset ID", type: EntityFieldType.Primitive, primitiveType: { primitive: "number" }, cardinality: EntityFieldCardinality.ZeroOrOne, defaultSources: [Source.Hyperliquid] },
+				"quoteAssetId": { label: "quote asset ID", type: EntityFieldType.Primitive, primitiveType: { primitive: "number" }, cardinality: EntityFieldCardinality.ZeroOrOne, defaultSources: [Source.Hyperliquid] },
+				"isCanonical": { label: "is canonical", type: EntityFieldType.Primitive, primitiveType: { primitive: "boolean" }, cardinality: EntityFieldCardinality.ZeroOrOne, defaultSources: [Source.Hyperliquid] },
 			})({
 				selectors: {
 					"NetworkPairIndex": [
@@ -39704,71 +39344,6 @@ export const schema = {
 				},
 				views: {
 					plural: { component: "HyperliquidSpotPairsView" },
-				},
-			}),
-
-			entity({
-				entityType: EntityType.HyperliquidSpotPair_Timestamp,
-				labels: {
-					singular: "hyperliquid spot pair timestamp",
-					plural: "hyperliquid spot pair observations",
-				},
-			})({
-				"$spotPair": {
-					label: "spot pair",
-					type: EntityFieldType.EntityReference,
-					entityType: EntityType.HyperliquidSpotPair,
-					cardinality: EntityFieldCardinality.One,
-				},
-				"timestampMs": {
-					label: "Timestamp",
-					description: "The observation time in Unix milliseconds.",
-					type: EntityFieldType.Primitive,
-					valueType: "NonNegativeInteger",
-					cardinality: EntityFieldCardinality.One,
-				},
-				"source": {
-					label: "Source",
-					description: "The source that produced this observation.",
-					type: EntityFieldType.Primitive,
-					valueType: "string",
-					cardinality: EntityFieldCardinality.One,
-				},
-				"name": {
-					label: "Name",
-					description: "The human-readable name of the subject.",
-					type: EntityFieldType.Primitive,
-					primitiveType: { primitive: "string" },
-					cardinality: EntityFieldCardinality.ZeroOrOne,
-				},
-				"baseAssetId": {
-					label: "base asset ID",
-					type: EntityFieldType.Primitive,
-					primitiveType: { primitive: "number" },
-					cardinality: EntityFieldCardinality.ZeroOrOne,
-				},
-				"quoteAssetId": {
-					label: "quote asset ID",
-					type: EntityFieldType.Primitive,
-					primitiveType: { primitive: "number" },
-					cardinality: EntityFieldCardinality.ZeroOrOne,
-				},
-				"isCanonical": {
-					label: "is canonical",
-					type: EntityFieldType.Primitive,
-					primitiveType: { primitive: "boolean" },
-					cardinality: EntityFieldCardinality.ZeroOrOne,
-				},
-			})({
-				selectors: {
-					"SpotPairTimestampMsSource": [
-						"$spotPair",
-						"timestampMs",
-						"source",
-					],
-				},
-				views: {
-					plural: { component: "HyperliquidSpotPair_TimestampsView" },
 				},
 			}),
 

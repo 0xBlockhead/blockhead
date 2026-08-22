@@ -11,10 +11,7 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
-import {
-	dydxNextFundingAtMs,
-	type DydxPerpetualPosition,
-} from '$/sources/Dydx/Rest/types.ts'
+import { type DydxPerpetualPosition } from '$/sources/Dydx/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
@@ -23,11 +20,7 @@ type DydxSubaccountId = EntitySelector<typeof schema, EntityType.DydxChainSubacc
 
 type DydxLiveMarket = {
 	marketKind: string
-}
-
-type DydxLiveMarketObservation = {
 	fundingRate?: string
-	nextFundingAtMs?: number
 	openInterest?: string
 	oraclePrice?: string
 	status?: string
@@ -428,12 +421,12 @@ export const dydxChainNetworkResolver = defineResolver({
 					}])
 				}
 				const replaceMarketRows = (
-					observationsByTicker: ReadonlyMap<string, ReadonlyMap<number, DydxLiveMarketObservation>>
+					marketsByTicker: ReadonlyMap<string, DydxLiveMarket>
 				) => {
 					fields.$$markets.replaceRows([{
 						source: Source.DydxIndexer,
 						value: [...trackedMarketByTicker].map(([ticker, liveMarket]) => {
-							const observations = observationsByTicker.get(ticker)
+							const market = marketsByTicker.get(ticker) ?? liveMarket
 							const {
 								baseAsset,
 								quoteAsset,
@@ -448,35 +441,10 @@ export const dydxChainNetworkResolver = defineResolver({
 									[entityFieldAddressKey(EntityType.DydxChainMarket, [], 'baseAsset')]: baseAsset,
 									[entityFieldAddressKey(EntityType.DydxChainMarket, [], 'quoteAsset')]: quoteAsset,
 									[entityFieldAddressKey(EntityType.DydxChainMarket, [], 'marketKind')]: liveMarket.marketKind,
-									...(observations !== undefined && {
-										[entityFieldAddressKey(EntityType.DydxChainMarket, [], '$$timestamps')]: [...observations].map(([timestampMs, observation]) => ({
-											[EntityMetaKey.Selector]: {
-												$market: {
-													$network: parentEntitySelector,
-													ticker,
-												},
-												timestampMs,
-												source: Source.DydxIndexer,
-											},
-											[EntityMetaKey.Fields]: {
-												...(observation.fundingRate !== undefined && {
-													[entityFieldAddressKey(EntityType.DydxChainMarket_Timestamp, [], 'fundingRate')]: observation.fundingRate,
-												}),
-												...(observation.nextFundingAtMs !== undefined && {
-													[entityFieldAddressKey(EntityType.DydxChainMarket_Timestamp, [], 'nextFundingAtMs')]: observation.nextFundingAtMs,
-												}),
-												...(observation.openInterest !== undefined && {
-													[entityFieldAddressKey(EntityType.DydxChainMarket_Timestamp, [], 'openInterest')]: observation.openInterest,
-												}),
-												...(observation.oraclePrice !== undefined && {
-													[entityFieldAddressKey(EntityType.DydxChainMarket_Timestamp, [], 'oraclePrice')]: observation.oraclePrice,
-												}),
-												...(observation.status !== undefined && {
-													[entityFieldAddressKey(EntityType.DydxChainMarket_Timestamp, [], 'status')]: observation.status,
-												}),
-											},
-										})),
-									}),
+									...(market.fundingRate !== undefined && { [entityFieldAddressKey(EntityType.DydxChainMarket, [], 'fundingRate')]: market.fundingRate }),
+									...(market.openInterest !== undefined && { [entityFieldAddressKey(EntityType.DydxChainMarket, [], 'openInterest')]: market.openInterest }),
+									...(market.oraclePrice !== undefined && { [entityFieldAddressKey(EntityType.DydxChainMarket, [], 'oraclePrice')]: market.oraclePrice }),
+									...(market.status !== undefined && { [entityFieldAddressKey(EntityType.DydxChainMarket, [], 'status')]: market.status }),
 								},
 							}
 						}),
@@ -504,24 +472,23 @@ export const dydxChainNetworkResolver = defineResolver({
 								if (message.type === 'subscribed') {
 									trackedMarketByTicker.clear()
 									marketCount = Object.keys(message.contents.markets).length
-									const timestampMs = Date.now()
-									const observationsByTicker = new Map<string, Map<number, DydxLiveMarketObservation>>()
+									const marketsByTicker = new Map<string, DydxLiveMarket>()
 									for (const [ticker, market] of Object.entries(message.contents.markets)
 										.sort(([tickerA], [tickerB]) => tickerA.localeCompare(tickerB))
 										.slice(marketOffset, marketOffset + resolverContextRowLimit(trigger))) {
 										trackedMarketByTicker.set(ticker, {
 											marketKind: market.marketType,
 										})
-										observationsByTicker.set(ticker, new Map([[timestampMs, {
+										marketsByTicker.set(ticker, {
+											marketKind: market.marketType,
 											fundingRate: market.nextFundingRate,
-											nextFundingAtMs: dydxNextFundingAtMs(timestampMs),
 											openInterest: market.openInterest,
 											oraclePrice: market.oraclePrice,
 											status: market.status,
-										}]]))
+										})
 									}
 
-									replaceMarketRows(observationsByTicker)
+									replaceMarketRows(marketsByTicker)
 									fields.$$markets.count.replaceRows([{
 										source: Source.DydxIndexer,
 										value: marketCount,
@@ -531,14 +498,13 @@ export const dydxChainNetworkResolver = defineResolver({
 								}
 
 								const changedMarketTickers = new Set<string>()
-								const observationsByTicker = new Map<string, Map<number, DydxLiveMarketObservation>>()
+								const marketsByTicker = new Map<string, DydxLiveMarket>()
 								for (const contents of (
 									message.type === 'channel_batch_data' ?
 										message.contents
 									:
 										[message.contents]
 								)) {
-									const timestampMs = Date.now()
 									for (const [ticker, update] of Object.entries(contents.trading ?? {})) {
 										const liveMarket = trackedMarketByTicker.get(ticker)
 										if (liveMarket === undefined)
@@ -557,12 +523,10 @@ export const dydxChainNetworkResolver = defineResolver({
 											continue
 
 										changedMarketTickers.add(ticker)
-										const observationsByTimestamp = observationsByTicker.get(ticker) ?? new Map()
-										observationsByTimestamp.set(timestampMs, {
-											...observationsByTimestamp.get(timestampMs),
+										marketsByTicker.set(ticker, {
+											...liveMarket,
 											...(update.nextFundingRate !== undefined && {
 												fundingRate: update.nextFundingRate,
-												nextFundingAtMs: dydxNextFundingAtMs(timestampMs),
 											}),
 											...(update.openInterest !== undefined && {
 												openInterest: update.openInterest,
@@ -571,7 +535,6 @@ export const dydxChainNetworkResolver = defineResolver({
 												status: update.status,
 											}),
 										})
-										observationsByTicker.set(ticker, observationsByTimestamp)
 									}
 
 									for (const [ticker, update] of Object.entries(contents.oraclePrices ?? {})) {
@@ -579,18 +542,18 @@ export const dydxChainNetworkResolver = defineResolver({
 											continue
 
 										changedMarketTickers.add(ticker)
-										const timestampMs = parseTimestampMs(update.effectiveAt, 'oracle effectiveAt')
-										const observationsByTimestamp = observationsByTicker.get(ticker) ?? new Map()
-										observationsByTimestamp.set(timestampMs, {
-											...observationsByTimestamp.get(timestampMs),
+										const liveMarket = trackedMarketByTicker.get(ticker)
+										if (liveMarket === undefined)
+											continue
+										marketsByTicker.set(ticker, {
+											...liveMarket,
 											oraclePrice: update.oraclePrice,
 										})
-										observationsByTicker.set(ticker, observationsByTimestamp)
 									}
 								}
 
 								if (changedMarketTickers.size !== 0)
-									replaceMarketRows(observationsByTicker)
+									replaceMarketRows(marketsByTicker)
 							}
 						})(),
 						(async () => {
@@ -708,6 +671,10 @@ export const dydxChainMarketResolver = defineResolver({
 	baseAsset: (snapshot) => assetsFromTicker(snapshot.market.ticker).baseAsset,
 	quoteAsset: (snapshot) => assetsFromTicker(snapshot.market.ticker).quoteAsset,
 	marketKind: (snapshot) => snapshot.market.marketType,
+	oraclePrice: (snapshot) => snapshot.market.oraclePrice,
+	fundingRate: (snapshot) => snapshot.market.nextFundingRate,
+	openInterest: (snapshot) => snapshot.market.openInterest,
+	status: (snapshot) => snapshot.market.status,
 })
 
 export const dydxChainMarketFundingHistoryResolver = defineResolver({
@@ -740,20 +707,7 @@ export const dydxChainMarketFundingHistoryResolver = defineResolver({
 		},
 	},
 })({
-	$$timestamps: (snapshot, market) => [{
-		[EntityMetaKey.Selector]: {
-			$market: market,
-			timestampMs: snapshot.observedAtMs,
-			source: Source.DydxIndexer,
-		},
-		[EntityMetaKey.Fields]: {
-			[entityFieldAddressKey(EntityType.DydxChainMarket_Timestamp, [], 'fundingRate')]: snapshot.market.nextFundingRate,
-			[entityFieldAddressKey(EntityType.DydxChainMarket_Timestamp, [], 'nextFundingAtMs')]: dydxNextFundingAtMs(snapshot.observedAtMs),
-			[entityFieldAddressKey(EntityType.DydxChainMarket_Timestamp, [], 'openInterest')]: snapshot.market.openInterest,
-			[entityFieldAddressKey(EntityType.DydxChainMarket_Timestamp, [], 'oraclePrice')]: snapshot.market.oraclePrice,
-			[entityFieldAddressKey(EntityType.DydxChainMarket_Timestamp, [], 'status')]: snapshot.market.status,
-		},
-	}, ...snapshot.fundingHistory.map((funding) => ({
+	$$timestamps: (snapshot, market) => snapshot.fundingHistory.map((funding) => ({
 		[EntityMetaKey.Selector]: {
 			$market: market,
 			timestampMs: parseTimestampMs(funding.effectiveAt, 'funding effectiveAt'),
@@ -761,7 +715,6 @@ export const dydxChainMarketFundingHistoryResolver = defineResolver({
 		},
 		[EntityMetaKey.Fields]: {
 			[entityFieldAddressKey(EntityType.DydxChainMarket_Timestamp, [], 'fundingRate')]: funding.rate,
-			[entityFieldAddressKey(EntityType.DydxChainMarket_Timestamp, [], 'oraclePrice')]: funding.price,
 		},
 	}))],
 })

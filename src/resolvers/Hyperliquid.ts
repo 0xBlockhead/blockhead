@@ -297,22 +297,10 @@ const resolveHyperliquidNetworkMetadata = async (
 					coin: market.name,
 				},
 				[EntityMetaKey.Fields]: {
-					[entityFieldAddressKey(EntityType.HyperliquidPerpMarket, [], '$$timestamps')]: [{
-						[EntityMetaKey.Selector]: {
-							$perpMarket: {
-								$network: network,
-								coin: market.name,
-							},
-							timestampMs,
-							source: Source.Hyperliquid,
-						},
-						[EntityMetaKey.Fields]: {
-							[entityFieldAddressKey(EntityType.HyperliquidPerpMarket_Timestamp, [], 'maxLeverage')]: market.maxLeverage,
-							...(market.onlyIsolated != null && {
-								[entityFieldAddressKey(EntityType.HyperliquidPerpMarket_Timestamp, [], 'onlyIsolated')]: market.onlyIsolated,
-							}),
-						},
-					}],
+					[entityFieldAddressKey(EntityType.HyperliquidPerpMarket, [], 'maxLeverage')]: market.maxLeverage,
+					...(market.onlyIsolated != null && {
+						[entityFieldAddressKey(EntityType.HyperliquidPerpMarket, [], 'onlyIsolated')]: market.onlyIsolated,
+					}),
 				},
 			})),
 		$$spotAssets: spotMeta.tokens
@@ -589,26 +577,16 @@ export default {
 							.find((candidate) => candidate.name === entitySelector.coin)
 						if (market == null)
 							throw new Error(`Hyperliquid_Rest: perp market not found for ${entitySelector.coin}`)
-						return [
-							{
-								[EntityMetaKey.Selector]: {
-									$perpMarket: entitySelector,
-									timestampMs: Date.now(),
-									source: Source.Hyperliquid,
-								},
-								[EntityMetaKey.Fields]: {
-									[entityFieldAddressKey(EntityType.HyperliquidPerpMarket_Timestamp, [], 'maxLeverage')]: market.maxLeverage,
-									...(market.onlyIsolated != null && {
-										[entityFieldAddressKey(EntityType.HyperliquidPerpMarket_Timestamp, [], 'onlyIsolated')]: market.onlyIsolated,
-									}),
-								},
-							},
-						]
+						return {
+							maxLeverage: market.maxLeverage,
+							...(market.onlyIsolated != null && { onlyIsolated: market.onlyIsolated }),
+						}
 					},
 				}
 			},
 		})({
-			$$timestamps: (snapshot) => snapshot,
+			maxLeverage: (market) => market.maxLeverage,
+			onlyIsolated: (market) => market.onlyIsolated,
 		}),
 
 		defineResolver({
@@ -683,24 +661,10 @@ export default {
 									assetId: spotPair.tokens[1],
 								},
 							},
-							$$timestamps: [{
-								[EntityMetaKey.Selector]: {
-									$spotPair: {
-										$network,
-										pairIndex,
-									},
-									timestampMs: Date.now(),
-									source: Source.Hyperliquid,
-								},
-								[EntityMetaKey.Fields]: {
-									[entityFieldAddressKey(EntityType.HyperliquidSpotPair_Timestamp, [], 'name')]: spotPair.name,
-									[entityFieldAddressKey(EntityType.HyperliquidSpotPair_Timestamp, [], 'baseAssetId')]: spotPair.tokens[0],
-									[entityFieldAddressKey(EntityType.HyperliquidSpotPair_Timestamp, [], 'quoteAssetId')]: spotPair.tokens[1],
-									...(spotPair.isCanonical != null && {
-										[entityFieldAddressKey(EntityType.HyperliquidSpotPair_Timestamp, [], 'isCanonical')]: spotPair.isCanonical,
-									}),
-								},
-							}],
+							name: spotPair.name,
+							baseAssetId: spotPair.tokens[0],
+							quoteAssetId: spotPair.tokens[1],
+							...(spotPair.isCanonical != null && { isCanonical: spotPair.isCanonical }),
 						}
 					},
 				}
@@ -708,7 +672,10 @@ export default {
 		})({
 			$baseAsset: (snapshot) => snapshot.$baseAsset,
 			$quoteAsset: (snapshot) => snapshot.$quoteAsset,
-			$$timestamps: (snapshot) => snapshot.$$timestamps,
+			name: (snapshot) => snapshot.name,
+			baseAssetId: (snapshot) => snapshot.baseAssetId,
+			quoteAssetId: (snapshot) => snapshot.quoteAssetId,
+			isCanonical: (snapshot) => snapshot.isCanonical,
 		}),
 
 		defineResolver({
