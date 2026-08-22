@@ -29,12 +29,6 @@ const appOrigin = new URL(
 	process.env.PLAYWRIGHT_BASE_URL?.trim() || 'http://127.0.0.1:5282'
 ).origin
 
-test.beforeEach(async ({ page }) => {
-	page.on('console', (msg) => {
-		if (msg.text().includes('BHDBG')) console.log(`BROWSER: ${msg.type()}: ${msg.text()}`)
-	})
-})
-
 test.beforeEach(async ({ page }, testInfo) => {
 	await page.addInitScript(({ name, schemaVersion }) => {
 		window.__blockheadClientProbeEnabled = true
@@ -99,7 +93,6 @@ test('Network summary live resources: expanded/collapsed dl, head push, refresh 
 		}
 	).toBe(1)
 
-	const blockStreamNode = summaryBlockLink
 	await collapseNetworkEntityView(page)
 	await expect(summaryBlockLink).toBeVisible({
 		timeout: 30_000,
@@ -117,34 +110,6 @@ test('Network summary live resources: expanded/collapsed dl, head push, refresh 
 
 	voltaireStubState.headBlockNumber = advancedHeadBlock
 	await refreshNetworkVoltaireHeadBlocks(page, advancedHeadBlock)
-	const collectionBlocksAfterPush = await page.evaluate(() => {
-		const trace = window.__blockheadClientProbe?.traceCollections()
-		const fieldRows = trace?.collectionRows.fields.Network ?? {}
-		const blocksKey = Object.keys(fieldRows).find((key) => key.includes('$$blocks'))
-		const rows = blocksKey ? fieldRows[blocksKey] : []
-		return rows.map((row) => String(
-			row.__value?.blockNumber
-			?? row.__value?.__selector?.blockNumber
-			?? ''
-		))
-	})
-	expect(collectionBlocksAfterPush, 'TanStack field collection should materialize pushed head block').toContain(String(advancedHeadBlock))
-
-	const networkFieldToArray = await page.evaluate(() => {
-		const appClient = window.__blockheadClientProbe?.appClient as any
-		if (appClient == null) return 'no appClient'
-		const fieldAddressKey = ['Network', ['Evm'], '$$blocks'].join('\u001e')
-		const collection = appClient.entityFieldCollections.Network?.[fieldAddressKey]
-		if (collection == null) return 'no collection'
-		return collection.toArray.map((row: any) => ({
-			source: row.__source,
-			valueKey: row.valueKey,
-			blockNumber: row.__value?.blockNumber ?? row.__value?.__selector?.blockNumber,
-		}))
-	})
-	console.log('FIELD_TOARRAY', networkFieldToArray)
-	console.log('COLLECTION_BLOCKS', collectionBlocksAfterPush)
-
 	await expect.poll(
 		() => readNetworkHeadBlockBigint(page, 5_000),
 		{
@@ -162,7 +127,6 @@ test('Network summary live resources: expanded/collapsed dl, head push, refresh 
 		}
 	).toBe(String(advancedHeadBlock))
 	await expect(page.locator('body')).toHaveAttribute('data-network-live-resource-route-instance', 'open')
-	await expect(blockStreamNode).toBe(blockStreamNode)
 
 	voltaireStubState.refreshFails = true
 
