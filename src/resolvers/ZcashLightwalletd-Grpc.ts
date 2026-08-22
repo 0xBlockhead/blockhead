@@ -78,7 +78,8 @@ export default {
 			resolve: {
 				Caip2: {
 					appliesTo: networkApplicability,
-					resolve: async ({ $network }) => {
+					resolve: async ({ caip2 }) => {
+						const $network = { caip2 }
 						const { getLatestBlock, getLightdInfo } = await import('$/sources/ZcashLightwalletd/Grpc/queries.ts')
 						const [latest, info] = await Promise.all([getLatestBlock(), getLightdInfo()])
 						const timestampMs = Date.now()
