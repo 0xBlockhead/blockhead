@@ -10,6 +10,7 @@ export const e2eProbeVitePlugin = () => ({
 
 		for (const expected of [
 			"\t} from '$/client/$client.svelte.ts'\n",
+			'\t\tname: BLOCKHEAD_WA_SQLITE_DATABASE_NAME,',
 			'\t\t\tconst database = await openBrowserWASQLiteOPFSDatabase({\n\t\t\t\tdatabaseName: BLOCKHEAD_WA_SQLITE_DATABASE_NAME,\n\t\t\t})',
 			"\t\t\t\tpersistence: createBrowserWASQLitePersistence({\n\t\t\t\t\tdatabase,\n\t\t\t\t\tschemaMismatchPolicy: 'throw',\n\t\t\t\t}),",
 			'\t\t\t\tschemaVersion: BLOCKHEAD_PERSISTED_COLLECTION_SCHEMA_VERSION,',
@@ -23,6 +24,10 @@ export const e2eProbeVitePlugin = () => ({
 			.replace(
 				"\t} from '$/client/$client.svelte.ts'\n",
 				"\t} from '$/client/$client.svelte.ts'\n\timport {\n\t\tcreateE2EClientInstrumentation,\n\t\te2eDatabaseName,\n\t\te2eSchemaVersion,\n\t\te2eVfsName,\n\t\tinstallAppClientProbe,\n\t\topenBlockheadBrowserDatabase,\n\t} from '/tests/e2e/$e2eProbe.ts'\n"
+			)
+			.replace(
+				'\t\tname: BLOCKHEAD_WA_SQLITE_DATABASE_NAME,',
+				'\t\tname: e2eDatabaseName(BLOCKHEAD_WA_SQLITE_DATABASE_NAME),'
 			)
 			.replace(
 				'\t\t\tconst database = await openBrowserWASQLiteOPFSDatabase({\n\t\t\t\tdatabaseName: BLOCKHEAD_WA_SQLITE_DATABASE_NAME,\n\t\t\t})',
