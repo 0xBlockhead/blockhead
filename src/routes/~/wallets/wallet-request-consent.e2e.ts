@@ -115,7 +115,7 @@ test('keeps rejected consent out of connected and submitted request rows after r
 
 	await messageToSignInput(connection).fill('rejected consent stays unsigned')
 	await signMessageButton(connection).click()
-	await expect(walletRequestHistory(page)).toContainText('personal_sign')
+	await expect(walletRequestHistory(page)).toContainText('message-signature')
 	await expect.poll(async () => page.evaluate(() => JSON.parse(
 		localStorage.getItem('wallet-consent-provider-call-counts') ?? '{}'
 	).personal_sign)).toBe(1)
@@ -125,6 +125,13 @@ test('keeps rejected consent out of connected and submitted request rows after r
 	await expect(requestLink).toBeVisible()
 	await requestLink.click()
 	await expect(page).toHaveURL(/\/\~\/wallets\/requests\/wallet-request-/)
+	const failedObservationLink = page.getByRole('main').getByRole('link', {
+		name: 'failed',
+		exact: true,
+	})
+	await expect(failedObservationLink).toBeVisible()
+	await failedObservationLink.click()
+	await expect(page).toHaveURL(/\/observations\/\d+\/Local_Internal$/)
 	const statusField = page.locator('dt').filter({ hasText: /^status$/ }).locator('..')
 	await expect(statusField.getByText('failed', { exact: true })).toBeVisible()
 	await expect(page.getByText('Wallet signing request failed', { exact: true })).toBeVisible()
