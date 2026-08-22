@@ -820,7 +820,11 @@ export default {
 							startTime: timestampMs,
 							endTime: timestampMs + 86_400_000,
 						}))
-							.find((candidate) => candidate.t === timestampMs)
+							.find((candidate) => (
+								candidate.t === timestampMs
+								&& candidate.s === marketKey
+								&& candidate.i === interval
+							))
 						if (candle == null)
 							throw new Error(`Hyperliquid_Rest: candle not found for ${marketKey} ${interval} @ ${String(timestampMs)}`)
 						return {

@@ -1704,5 +1704,44 @@ describe('Hyperliquid market catalog resolvers', () => {
 		}, context)
 		expect(candleResolver.projections.open(candle)).toBe(200000000000n)
 		expect(candleResolver.projections.tradeCount(candle)).toBe(9)
+		expect(candleResolver.projections.$perpMarket(candle)).toEqual({
+			[EntityMetaKey.Selector]: {
+				$network: account.$network,
+				coin: 'ETH',
+			},
+		})
+	})
+
+	it('fails closed when the provider candle identity disagrees with the requested observation', async () => {
+		const candleResolver = hyperliquid.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.HyperliquidMarket_TimeInterval_Timestamp
+		))
+		expect(candleResolver).toBeTruthy()
+
+		corsFetch.mockImplementation(async () => ({
+			ok: true,
+			json: async () => [{
+				t: 1_700_000_000_000,
+				T: 1_700_003_599_999,
+				s: 'BTC',
+				i: '4h',
+				o: '2000.0',
+				c: '2010.5',
+				h: '2011.0',
+				l: '1999.0',
+				v: '12.5',
+				n: 9,
+			}],
+		}))
+
+		await expect(candleResolver.resolve.NetworkMarketKeyTimeIntervalTimestampMs.resolve({
+			$network: account.$network,
+			marketKey: 'ETH',
+			timeInterval: {
+				unit: 'h',
+				value: 1,
+			},
+			timestampMs: 1_700_000_000_000,
+		}, context)).rejects.toThrow('candle not found')
 	})
 })
