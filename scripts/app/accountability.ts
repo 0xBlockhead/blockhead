@@ -205,11 +205,23 @@ const mappedSelectorAccountability = (
 export const classifyMappedSelector = (
 	mapping: MappedSelectorFacts,
 	authority: AccountabilityAuthority
-): MappedSelectorAccountabilityRow => ({
-	...mapping,
-	accountability: mappedSelectorAccountability(mapping, authority),
-	sourcesWithoutResolver: mapping.sources.filter((source) => !authority.resolverSources.has(source)),
-})
+): MappedSelectorAccountabilityRow => {
+	const accountability = mappedSelectorAccountability(mapping, authority)
+	const sourcesWithoutResolver = mapping.sources.filter((source) => (
+		authority.resolverClaimKeys == null ? !authority.resolverSources.has(source) : !authority.resolverClaimKeys.has(sourceClaimAccountabilityKey({
+		publicRoute: mapping.route,
+		source,
+		entityType: mapping.entityType,
+		selectorName: mapping.selectorName,
+		facetPath: [],
+	}))
+	))
+	return {
+		...mapping,
+		accountability,
+		sourcesWithoutResolver,
+	}
+}
 
 // A public route claim whose source declares no resolver module cannot be read
 // on a cold public visit; this is the only accountability class that represents

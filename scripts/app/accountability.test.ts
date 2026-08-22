@@ -12,6 +12,7 @@ import {
 	SourceAccess,
 	SourceClaimDemand,
 	SourceClaimExecutability,
+	sourceClaimAccountabilityKey,
 } from './accountability.ts'
 import { compileApp } from './generate.ts'
 
@@ -218,6 +219,13 @@ test('classifies a mapped selector by route sources, authored page, and inherite
 		}, fixtureAuthority).sourcesWithoutResolver,
 		['UnresolvedRest']
 	)
+	assert.deepEqual(
+		classifyMappedSelector(fixtureMapping, {
+			...fixtureAuthority,
+			resolverClaimKeys: new Set(),
+		}).sourcesWithoutResolver,
+		['ProxiedRest']
+	)
 })
 
 test('accounts for every compiled claim and mapped selector of the current app', () => {
@@ -252,7 +260,7 @@ test('partitions the public cold-read denominator by unfinished provider slice',
 	const { claims } = compiledSourceAccountability
 	const gaps = publicColdReadGaps(claims)
 
-	assert.ok(gaps.length > 0)
+	assert.equal(gaps.length, 0)
 	for (const row of gaps) {
 		assert.equal(row.demand, SourceClaimDemand.PublicRoute)
 		assert.equal(row.access, SourceAccess.Public)
