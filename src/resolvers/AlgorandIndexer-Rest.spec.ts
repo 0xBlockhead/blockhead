@@ -366,6 +366,7 @@ describe('Algorand Indexer deepened resolvers', () => {
 			[entityFieldAddressKey(EntityType.AlgorandAsset_Timestamp, [], 'total')]: 10_000n,
 			[entityFieldAddressKey(EntityType.AlgorandAsset_Timestamp, [], 'decimals')]: 0,
 			[entityFieldAddressKey(EntityType.AlgorandAsset_Timestamp, [], 'unitName')]: 'TEST',
+			[entityFieldAddressKey(EntityType.AlgorandAsset_Timestamp, [], 'url')]: 'https://example.com',
 		})
 
 		getApplication.mockResolvedValueOnce({
@@ -689,6 +690,31 @@ describe('Algorand Indexer deepened resolvers', () => {
 		})
 		expect(roundsProjection.select(roundsCountSnapshot, network, resolverContext)).toEqual([])
 		expect(roundsProjection.resolveCount(roundsCountSnapshot)).toBe(6n)
+	})
+
+	it('omits schemeless Algorand asset URL metadata instead of emitting an invalid field', async () => {
+		getAsset.mockResolvedValueOnce({
+			asset: {
+				index: 312769,
+				params: {
+					creator: account.address,
+					decimals: 6,
+					total: 1_000_000,
+					url: 'tether.to',
+				},
+			},
+			'current-round': 50,
+		})
+
+		const assetSnapshot = await assetResolver.resolve.NetworkAssetId.resolve({
+			$network: network,
+			assetId: 312769n,
+		}, resolverContext)
+		const fields = assetResolver.projections.$$timestamps(assetSnapshot)[0][EntityMetaKey.Fields]
+
+		expect(fields).not.toHaveProperty(
+			entityFieldAddressKey(EntityType.AlgorandAsset_Timestamp, [], 'url')
+		)
 	})
 
 	it('pages native network accounts, assets, and applications as selector-only rows', async () => {

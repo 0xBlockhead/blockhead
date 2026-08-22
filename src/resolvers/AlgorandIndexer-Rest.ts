@@ -8,8 +8,10 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
+import { UrlString } from '$/schema/UrlString.ts'
 import { Source } from '$/sources/Source.ts'
 import type { AlgorandIndexerTransaction } from '$/sources/AlgorandIndexer/Rest/types.ts'
+import { type } from 'arktype'
 import { bases } from 'multiformats/basics'
 
 type AlgorandNetworkId = EntitySelector<typeof schema, EntityType.AlgorandNetwork>
@@ -114,6 +116,16 @@ const optionalSafeBigInt = (
 	:
 		BigInt(value)
 )
+
+const algorandAssetUrl = (
+	value: string | undefined
+) => {
+	if (value == null)
+		return undefined
+
+	const parsed = UrlString(value)
+	return parsed instanceof type.errors ? undefined : parsed
+}
 
 const transactionFields = (
 	transaction: AlgorandIndexerTransaction,
@@ -322,6 +334,7 @@ export default {
 						const response = await getAsset(asset.assetId)
 						const params = response.asset.params
 						const total = optionalSafeBigInt(params.total)
+						const url = algorandAssetUrl(params.url)
 
 						return {
 							creator: params.creator,
@@ -341,7 +354,9 @@ export default {
 									[entityFieldAddressKey(EntityType.AlgorandAsset_Timestamp, [], 'defaultFrozen')]: params['default-frozen'],
 									[entityFieldAddressKey(EntityType.AlgorandAsset_Timestamp, [], 'unitName')]: params['unit-name'],
 									[entityFieldAddressKey(EntityType.AlgorandAsset_Timestamp, [], 'assetName')]: params.name,
-									[entityFieldAddressKey(EntityType.AlgorandAsset_Timestamp, [], 'url')]: params.url,
+									...(url != null && {
+										[entityFieldAddressKey(EntityType.AlgorandAsset_Timestamp, [], 'url')]: url,
+									}),
 									...(
 										params['metadata-hash'] != null && params['metadata-hash'].length > 0 && {
 											[entityFieldAddressKey(EntityType.AlgorandAsset_Timestamp, [], 'metadataHash')]: (
