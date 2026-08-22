@@ -13,7 +13,7 @@
 
 	// State
 	let {
-		data,
+		params,
 	}: PageProps = $props()
 
 
@@ -24,14 +24,16 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'EVM error'} • EVM error • Blockhead</title>
+	<title>EVM error • EVM error • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<EvmErrorView
 		selection={
-			select(EntityType.EvmError, data.selector, {
+			select(EntityType.EvmError, {
+				hex: params.hex,
+			}, {
 				sources: [
 					Source.Openchain_Rest,
 					Source.FourByteDirectory_Rest,

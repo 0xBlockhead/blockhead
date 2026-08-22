@@ -4,12 +4,7 @@ import {
 	it,
 	vi,
 } from 'vitest'
-import {
-	entityFieldAddressKey,
-	EntityMetaKey,
-} from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { Source } from '$/sources/Source.ts'
 
 const {
 	getEventEntries,
@@ -91,7 +86,7 @@ describe('Openchain resolver', () => {
 		})).rejects.toThrow('Openchain event lookup unavailable')
 	})
 
-	it('materializes complete selector observations in the parent row', async () => {
+	it('returns stable parent output across repeated selector resolutions', async () => {
 		getFunctionEntries.mockResolvedValue([
 			{
 				name: 'transfer(address,uint256)',
@@ -105,29 +100,11 @@ describe('Openchain resolver', () => {
 			},
 		])
 
-		const snapshot = await resolveSelector()
-		expect(snapshot.$$timestamps).toEqual([{
-			[EntityMetaKey.Selector]: {
-				$selector: { hex: '0x12345678' },
-				timestampMs: expect.any(Number),
-				source: Source.Openchain_Rest,
-			},
-			[EntityMetaKey.Fields]: {
-				[entityFieldAddressKey(EntityType.EvmSelector_Timestamp, [], 'signatures')]: [
-					'transfer(address,uint256)',
-				],
-				[entityFieldAddressKey(EntityType.EvmSelector_Timestamp, [], 'filteredSignatureCount')]: 1,
-				[entityFieldAddressKey(EntityType.EvmSelector_Timestamp, [], 'verifiedCandidateCount')]: 1,
-				[entityFieldAddressKey(EntityType.EvmSelector_Timestamp, [], 'reachable')]: true,
-			},
-		}])
+		const first = await resolveSelector()
+		const second = await resolveSelector()
+		expect(first).toEqual({ signatures: ['transfer(address,uint256)'] })
+		expect(first).not.toHaveProperty('$$timestamps')
+		expect(second).toEqual(first)
 	})
 
-	it('does not expose arbitrary selector, topic, or error timestamp facets', () => {
-		expect(openchain.resolvers.some((candidate) => (
-			candidate.entityType === EntityType.EvmSelector_Timestamp
-			|| candidate.entityType === EntityType.EvmTopic_Timestamp
-			|| candidate.entityType === EntityType.EvmError_Timestamp
-		))).toBe(false)
-	})
 })

@@ -1210,7 +1210,6 @@ export enum EntityType {
 	EvmContractSourceBundle = "EvmContractSourceBundle",
 	EvmContractVerification = "EvmContractVerification",
 	EvmError = "EvmError",
-	EvmError_Timestamp = "EvmError_Timestamp",
 	EvmInternalTransfer = "EvmInternalTransfer",
 	EvmLog = "EvmLog",
 	EvmNetwork_GasEstimate_Timestamp = "EvmNetwork_GasEstimate_Timestamp",
@@ -1228,13 +1227,11 @@ export enum EntityType {
 	EvmRollup = "EvmRollup",
 	EvmRollup_Timestamp = "EvmRollup_Timestamp",
 	EvmSelector = "EvmSelector",
-	EvmSelector_Timestamp = "EvmSelector_Timestamp",
 	EvmStateChange = "EvmStateChange",
 	EvmStorageRead_Timestamp = "EvmStorageRead_Timestamp",
 	EvmTokenApproval = "EvmTokenApproval",
 	EvmTokenTransfer = "EvmTokenTransfer",
 	EvmTopic = "EvmTopic",
-	EvmTopic_Timestamp = "EvmTopic_Timestamp",
 	EvmTrace = "EvmTrace",
 	EvmTransaction = "EvmTransaction",
 	EvmUserOperation = "EvmUserOperation",
@@ -29271,12 +29268,6 @@ export const schema = {
 					cardinality: EntityFieldCardinality.Many,
 					valueType: "string",
 				},
-				"$$timestamps": {
-					label: "Observations",
-					type: EntityFieldType.EntitiesReference,
-					cardinality: EntityFieldCardinality.Many,
-					entityType: EntityType.EvmError_Timestamp,
-				},
 			})({
 				selectors: {
 					"Hex": ["hex"],
@@ -29345,163 +29336,9 @@ export const schema = {
 									},
 								],
 							],
-							lists: [
-								{
-									field: "$$timestamps",
-									component: "EvmError_TimestampsView",
-									emptyText: "No Openchain observations for this error.",
-								},
-							],
 						},
 					},
 					plural: { component: "EvmErrorsView",
-						query: {
-							sources: {
-								default: [Source.Openchain_Rest, Source.FourByteDirectory_Rest],
-							},
-						},
-					},
-				},
-			}),
-
-			entity({
-				entityType: EntityType.EvmError_Timestamp,
-				labels: {
-					singular: "EVM error observation",
-					plural: "EVM error observations",
-				},
-			})({
-				"$error": {
-					label: "Error",
-					type: EntityFieldType.EntityReference,
-					cardinality: EntityFieldCardinality.One,
-					entityType: EntityType.EvmError,
-				},
-				"timestampMs": {
-					label: "Timestamp",
-					description: "The observation time in Unix milliseconds.",
-					type: EntityFieldType.Primitive,
-					cardinality: EntityFieldCardinality.One,
-					valueType: "NonNegativeInteger",
-				},
-				"source": {
-					label: "Source",
-					description: "The source that produced this observation.",
-					type: EntityFieldType.Primitive,
-					cardinality: EntityFieldCardinality.One,
-					valueType: "string",
-				},
-				"signatures": {
-					label: "Signatures",
-					type: EntityFieldType.Primitive,
-					cardinality: EntityFieldCardinality.Many,
-					valueType: "string",
-				},
-				"filteredSignatureCount": {
-					label: "Filtered signature count",
-					type: EntityFieldType.Primitive,
-					cardinality: EntityFieldCardinality.ZeroOrOne,
-					valueType: "number",
-				},
-				"verifiedCandidateCount": {
-					label: "Verified candidate count",
-					type: EntityFieldType.Primitive,
-					cardinality: EntityFieldCardinality.ZeroOrOne,
-					valueType: "number",
-				},
-				"reachable": {
-					label: "Reachable",
-					type: EntityFieldType.Primitive,
-					cardinality: EntityFieldCardinality.ZeroOrOne,
-					valueType: "boolean",
-				},
-			})({
-				selectors: {
-					"ErrorTimestampMsSource": ["$error", "timestampMs", "source"],
-				},
-				views: {
-					singular: {
-						query: {
-							sources: [Source.Openchain_Rest, Source.FourByteDirectory_Rest],
-							fields: [
-								"signatures",
-							],
-							openFields: [
-								"filteredSignatureCount",
-								"verifiedCandidateCount",
-								"reachable",
-							],
-						},
-						summary: {
-							title: ["signatures"],
-							value: [
-								{
-									field: "timestampMs",
-									format: "timestamp",
-								},
-							],
-							HeadingAfter: ["source"],
-						},
-						closed: [
-							"signatures",
-							{
-								field: "timestampMs",
-								format: "timestamp",
-							},
-							"source",
-						],
-						content: {
-							dl: [
-								[
-									"$error",
-									{
-										field: "timestampMs",
-										format: "timestamp",
-									},
-									"source",
-								],
-								[
-									{
-										kind: _ViewItemKind.Block,
-										id: "signatures",
-										fields: ["signatures"],
-										Content: dedent `
-																												<div>
-																													<dt>Signatures</dt>
-																													<dd>
-																														{#if entity.signatures.values.length}
-																															<ul>
-																																{#each entity.signatures.values as signature (signature)}
-																																	<li><code>{signature}</code></li>
-																																{/each}
-																															</ul>
-																														{:else}
-																															<p data-text="muted">No catalog matches for this revert/error selector.</p>
-																														{/if}
-																													</dd>
-																												</div>
-																											`,
-									},
-									{
-										field: "filteredSignatureCount",
-										format: "number",
-										when: "open",
-									},
-									{
-										field: "verifiedCandidateCount",
-										format: "number",
-										when: "open",
-									},
-									{
-										field: "reachable",
-										format: "boolean",
-										when: "open",
-									},
-								],
-							],
-						},
-					},
-					plural: { component: "EvmError_TimestampsView",
 						query: {
 							sources: {
 								default: [Source.Openchain_Rest, Source.FourByteDirectory_Rest],
@@ -31066,12 +30903,6 @@ export const schema = {
 					cardinality: EntityFieldCardinality.Many,
 					valueType: "string",
 				},
-				"$$timestamps": {
-					label: "Observations",
-					type: EntityFieldType.EntitiesReference,
-					cardinality: EntityFieldCardinality.Many,
-					entityType: EntityType.EvmSelector_Timestamp,
-				},
 			})({
 				selectors: {
 					"Hex": ["hex"],
@@ -31141,162 +30972,8 @@ export const schema = {
 								],
 							],
 						},
-						lists: [
-							{
-								field: "$$timestamps",
-								component: "EvmSelector_TimestampsView",
-								emptyText: "No Openchain observations for this selector.",
-							},
-						],
 					},
 					plural: { component: "EvmSelectorsView",
-						query: {
-							sources: {
-								default: [Source.Openchain_Rest, Source.FourByteDirectory_Rest],
-							},
-						},
-					},
-				},
-			}),
-
-			entity({
-				entityType: EntityType.EvmSelector_Timestamp,
-				labels: {
-					singular: "EVM selector observation",
-					plural: "EVM selector observations",
-				},
-			})({
-				"$selector": {
-					label: "Selector",
-					type: EntityFieldType.EntityReference,
-					cardinality: EntityFieldCardinality.One,
-					entityType: EntityType.EvmSelector,
-				},
-				"timestampMs": {
-					label: "Timestamp",
-					description: "The observation time in Unix milliseconds.",
-					type: EntityFieldType.Primitive,
-					cardinality: EntityFieldCardinality.One,
-					valueType: "NonNegativeInteger",
-				},
-				"source": {
-					label: "Source",
-					description: "The source that produced this observation.",
-					type: EntityFieldType.Primitive,
-					cardinality: EntityFieldCardinality.One,
-					valueType: "string",
-				},
-				"signatures": {
-					label: "Signatures",
-					type: EntityFieldType.Primitive,
-					cardinality: EntityFieldCardinality.Many,
-					valueType: "string",
-				},
-				"filteredSignatureCount": {
-					label: "Filtered signature count",
-					type: EntityFieldType.Primitive,
-					cardinality: EntityFieldCardinality.ZeroOrOne,
-					valueType: "number",
-				},
-				"verifiedCandidateCount": {
-					label: "Verified candidate count",
-					type: EntityFieldType.Primitive,
-					cardinality: EntityFieldCardinality.ZeroOrOne,
-					valueType: "number",
-				},
-				"reachable": {
-					label: "Reachable",
-					type: EntityFieldType.Primitive,
-					cardinality: EntityFieldCardinality.ZeroOrOne,
-					valueType: "boolean",
-				},
-			})({
-				selectors: {
-					"SelectorTimestampMsSource": ["$selector", "timestampMs", "source"],
-				},
-				views: {
-					singular: {
-						query: {
-							sources: [Source.Openchain_Rest, Source.FourByteDirectory_Rest],
-							fields: [
-								"signatures",
-							],
-							openFields: [
-								"filteredSignatureCount",
-								"verifiedCandidateCount",
-								"reachable",
-							],
-						},
-						summary: {
-							title: ["signatures"],
-							value: [
-								{
-									field: "timestampMs",
-									format: "timestamp",
-								},
-							],
-							HeadingAfter: ["source"],
-						},
-						closed: [
-							"signatures",
-							{
-								field: "timestampMs",
-								format: "timestamp",
-							},
-							"source",
-						],
-						content: {
-							dl: [
-								[
-									"$selector",
-									{
-										field: "timestampMs",
-										format: "timestamp",
-									},
-									"source",
-								],
-								[
-									{
-										kind: _ViewItemKind.Block,
-										id: "signatures",
-										fields: ["signatures"],
-										Content: dedent `
-																												<div>
-																													<dt>Signatures</dt>
-																													<dd>
-																														{#if entity.signatures.values.length}
-																															<ul>
-																																{#each entity.signatures.values as signature (signature)}
-																																	<li><code>{signature}</code></li>
-																																{/each}
-																															</ul>
-																														{:else}
-																															<p data-text="muted">No catalog signatures matched this function selector.</p>
-																														{/if}
-																													</dd>
-																												</div>
-																											`,
-									},
-									{
-										field: "filteredSignatureCount",
-										format: "number",
-										when: "open",
-									},
-									{
-										field: "verifiedCandidateCount",
-										format: "number",
-										when: "open",
-									},
-									{
-										field: "reachable",
-										format: "boolean",
-										when: "open",
-									},
-								],
-							],
-						},
-					},
-					plural: { component: "EvmSelector_TimestampsView",
 						query: {
 							sources: {
 								default: [Source.Openchain_Rest, Source.FourByteDirectory_Rest],
@@ -31715,12 +31392,6 @@ export const schema = {
 					cardinality: EntityFieldCardinality.Many,
 					valueType: "string",
 				},
-				"$$timestamps": {
-					label: "Observations",
-					type: EntityFieldType.EntitiesReference,
-					cardinality: EntityFieldCardinality.Many,
-					entityType: EntityType.EvmTopic_Timestamp,
-				},
 			})({
 				selectors: {
 					"Hex": ["hex"],
@@ -31790,162 +31461,8 @@ export const schema = {
 								],
 							],
 						},
-						lists: [
-							{
-								field: "$$timestamps",
-								component: "EvmTopic_TimestampsView",
-								emptyText: "No Openchain observations for this topic.",
-							},
-						],
 					},
 					plural: { component: "EvmTopicsView",
-						query: {
-							sources: {
-								default: [Source.Openchain_Rest],
-							},
-						},
-					},
-				},
-			}),
-
-			entity({
-				entityType: EntityType.EvmTopic_Timestamp,
-				labels: {
-					singular: "EVM topic observation",
-					plural: "EVM topic observations",
-				},
-			})({
-				"$topic": {
-					label: "Topic",
-					type: EntityFieldType.EntityReference,
-					cardinality: EntityFieldCardinality.One,
-					entityType: EntityType.EvmTopic,
-				},
-				"timestampMs": {
-					label: "Timestamp",
-					description: "The observation time in Unix milliseconds.",
-					type: EntityFieldType.Primitive,
-					cardinality: EntityFieldCardinality.One,
-					valueType: "NonNegativeInteger",
-				},
-				"source": {
-					label: "Source",
-					description: "The source that produced this observation.",
-					type: EntityFieldType.Primitive,
-					cardinality: EntityFieldCardinality.One,
-					valueType: "string",
-				},
-				"signatures": {
-					label: "Signatures",
-					type: EntityFieldType.Primitive,
-					cardinality: EntityFieldCardinality.Many,
-					valueType: "string",
-				},
-				"filteredSignatureCount": {
-					label: "Filtered signature count",
-					type: EntityFieldType.Primitive,
-					cardinality: EntityFieldCardinality.ZeroOrOne,
-					valueType: "number",
-				},
-				"verifiedCandidateCount": {
-					label: "Verified candidate count",
-					type: EntityFieldType.Primitive,
-					cardinality: EntityFieldCardinality.ZeroOrOne,
-					valueType: "number",
-				},
-				"reachable": {
-					label: "Reachable",
-					type: EntityFieldType.Primitive,
-					cardinality: EntityFieldCardinality.ZeroOrOne,
-					valueType: "boolean",
-				},
-			})({
-				selectors: {
-					"TopicTimestampMsSource": ["$topic", "timestampMs", "source"],
-				},
-				views: {
-					singular: {
-						query: {
-								sources: [Source.Openchain_Rest, Source.FourByteDirectory_Rest],
-							fields: [
-								"signatures",
-							],
-							openFields: [
-								"filteredSignatureCount",
-								"verifiedCandidateCount",
-								"reachable",
-							],
-						},
-						summary: {
-							title: ["signatures"],
-							value: [
-								{
-									field: "timestampMs",
-									format: "timestamp",
-								},
-							],
-							HeadingAfter: ["source"],
-						},
-						closed: [
-							"signatures",
-							{
-								field: "timestampMs",
-								format: "timestamp",
-							},
-							"source",
-						],
-						content: {
-							dl: [
-								[
-									"$topic",
-									{
-										field: "timestampMs",
-										format: "timestamp",
-									},
-									"source",
-								],
-								[
-									{
-										kind: _ViewItemKind.Block,
-										id: "signatures",
-										fields: ["signatures"],
-										Content: dedent `
-																												<div>
-																													<dt>Signatures</dt>
-																													<dd>
-																														{#if entity.signatures.values.length}
-																															<ul>
-																																{#each entity.signatures.values as signature (signature)}
-																																	<li><code>{signature}</code></li>
-																																{/each}
-																															</ul>
-																														{:else}
-																															<p data-text="muted">No catalog signatures matched this log topic hash.</p>
-																														{/if}
-																													</dd>
-																												</div>
-																											`,
-									},
-									{
-										field: "filteredSignatureCount",
-										format: "number",
-										when: "open",
-									},
-									{
-										field: "verifiedCandidateCount",
-										format: "number",
-										when: "open",
-									},
-									{
-										field: "reachable",
-										format: "boolean",
-										when: "open",
-									},
-								],
-							],
-						},
-					},
-					plural: { component: "EvmTopic_TimestampsView",
 						query: {
 							sources: {
 								default: [Source.Openchain_Rest],
@@ -74630,37 +74147,6 @@ export const routes = defineRoutes(schema)({
 														}
 													},
 													children: {
-														"observations": {
-															children: {
-																"[timestampMs]": {
-																	children: {
-																		"[source]": {
-																			selectors: {
-																				[EntityType.EvmTopic_Timestamp]: {
-																					"TopicTimestampMsSource": {
-																						params: {
-																							"timestampMs": [
-																								"timestampMs"
-																							], "source": [
-																								"source"
-																							]
-																						}, derivations: {
-																							"$topic": {
-																								kind: "object", fields: [
-																									{
-																										name: "hex", value: { kind: "param", name: "hex" }
-																									},
-																								],
-																							}
-																						},
-																					}
-																				}
-																			},
-																		}
-																	}
-																}
-															}
-														}
 													}
 												}
 											}
@@ -74710,38 +74196,6 @@ export const routes = defineRoutes(schema)({
 														}
 													},
 													children: {
-														"observations": {
-															children: {
-																"[timestampMs]": {
-																	children: {
-																		"[source]": {
-																			selectors: {
-																				[EntityType.EvmSelector_Timestamp]: {
-																					"SelectorTimestampMsSource": {
-																						params: {
-																							"timestampMs": [
-																								"timestampMs"
-																							],
-																							"source": [
-																								"source"
-																							]
-																						},
-																						derivations: {
-																							"$selector": {
-																								kind: "object",
-																								fields: [
-																									{ name: "hex", value: { kind: "param", name: "hex" } },
-																								],
-																							}
-																						},
-																					}
-																				}
-																			},
-																		}
-																	}
-																}
-															}
-														}
 													}
 												}
 											}
@@ -75246,38 +74700,6 @@ export const routes = defineRoutes(schema)({
 														}
 													},
 													children: {
-														"observations": {
-															children: {
-																"[timestampMs]": {
-																	children: {
-																		"[source]": {
-																			selectors: {
-																				[EntityType.EvmError_Timestamp]: {
-																					"ErrorTimestampMsSource": {
-																						params: {
-																							"timestampMs": [
-																								"timestampMs"
-																							],
-																							"source": [
-																								"source"
-																							]
-																						},
-																						derivations: {
-																							"$error": {
-																								kind: "object",
-																								fields: [
-																									{ name: "hex", value: { kind: "param", name: "hex" } },
-																								],
-																							}
-																						},
-																					}
-																				}
-																			},
-																		}
-																	}
-																}
-															}
-														}
 													}
 												}
 											}

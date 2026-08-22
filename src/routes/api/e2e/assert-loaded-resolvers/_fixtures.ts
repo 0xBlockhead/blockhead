@@ -2809,27 +2809,6 @@ const parentProbeEntitySelectorOverridesByTypeAndName = defineParentProbeEntityS
 			source: Source.NostrRelay_Nip11_Http,
 		},
 	},
-	[EntityType.EvmSelector_Timestamp]: {
-		SelectorTimestampMsSource: {
-			$selector: { hex: TRANSFER_SELECTOR },
-			timestampMs: 0,
-			source: Source.Openchain_Rest,
-		},
-	},
-	[EntityType.EvmTopic_Timestamp]: {
-		TopicTimestampMsSource: {
-			$topic: { hex: TRANSFER_TOPIC },
-			timestampMs: 0,
-			source: Source.Openchain_Rest,
-		},
-	},
-	[EntityType.EvmError_Timestamp]: {
-		ErrorTimestampMsSource: {
-			$error: { hex: ERROR_SELECTOR },
-			timestampMs: 0,
-			source: Source.Openchain_Rest,
-		},
-	},
 	[EntityType.YoutubeComment_Timestamp]: {
 		YoutubeCommentTimestampMs: {
 			$comment: {

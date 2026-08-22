@@ -13,7 +13,7 @@
 
 	// State
 	let {
-		data,
+		params,
 	}: PageProps = $props()
 
 
@@ -24,14 +24,16 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'EVM selector'} • EVM selector • Blockhead</title>
+	<title>EVM selector • EVM selector • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<EvmSelectorView
 		selection={
-			select(EntityType.EvmSelector, data.selector, {
+			select(EntityType.EvmSelector, {
+				hex: params.hex,
+			}, {
 				sources: [
 					Source.Openchain_Rest,
 					Source.FourByteDirectory_Rest,

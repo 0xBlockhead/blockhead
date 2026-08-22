@@ -608,11 +608,8 @@ test('renders schema-owned primitive lists and rejects non-list fields', () => {
 		emptyText,
 	] of [
 		[EntityType.EvmError, 'No catalog matches for this revert/error selector.'],
-		[EntityType.EvmError_Timestamp, 'No catalog matches for this revert/error selector.'],
 		[EntityType.EvmSelector, 'No catalog signatures matched this function selector.'],
-		[EntityType.EvmSelector_Timestamp, 'No catalog signatures matched this function selector.'],
 		[EntityType.EvmTopic, 'No catalog signatures matched this log topic hash.'],
-		[EntityType.EvmTopic_Timestamp, 'No catalog signatures matched this log topic hash.'],
 	] as const) {
 		const source = generatedSource(`src/views/${entityType}View.svelte`)
 		assert.match(source, /<dt>Signatures<\/dt>/)
@@ -1187,9 +1184,6 @@ test('inlines generated resource selections with one consumer', () => {
 	for (const filePath of [
 		'src/views/CurrencyView.svelte',
 		'src/views/EvmAccountView.svelte',
-		'src/views/EvmError_TimestampView.svelte',
-		'src/views/EvmSelector_TimestampView.svelte',
-		'src/views/EvmTopic_TimestampView.svelte',
 	]) {
 		const source = generatedSource(filePath)
 		assert.equal((source.match(/sources: selection\.sources \?\?/g) ?? []).length, 1, filePath)
@@ -1262,17 +1256,6 @@ test('normalizes generated Svelte expression indentation to tabs', () => {
 	}
 })
 
-test('keeps prefetched collection summary fallbacks null-safe', () => {
-	for (const filePath of [
-		'src/views/EvmError_TimestampView.svelte',
-		'src/views/EvmSelector_TimestampView.svelte',
-		'src/views/EvmTopic_TimestampView.svelte',
-	]) {
-		const source = generatedSource(filePath)
-		assert.match(source, /prefetched\.signatures\?\.values\.join\(', '\)/, filePath)
-		assert.doesNotMatch(source, /prefetched\.signatures\.values/, filePath)
-	}
-})
 
 const stageReadOnlyGeneratedFixture = (generatedOutputRoot: string) => {
 	const startedAt = performance.now()

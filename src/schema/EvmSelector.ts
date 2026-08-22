@@ -21,10 +21,6 @@ export default entity({
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.Many,
 	},
-	$$timestamps: {
-		entityType: EntityType.EvmSelector_Timestamp,
-		cardinality: EntityFieldCardinality.Many,
-	},
 })({
 	selectors: {
 		Hex: [

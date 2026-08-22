@@ -5,12 +5,7 @@ import {
 	vi,
 } from 'vitest'
 
-import {
-	entityFieldAddressKey,
-	EntityMetaKey,
-} from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { Source } from '$/sources/Source.ts'
 
 const {
 	getEventEntries,
@@ -36,26 +31,17 @@ const resolverFor = (entityType: EntityType) => {
 }
 
 describe('4byte.directory resolver', () => {
-	it('materializes source-owned selector observations', async () => {
+	it('returns stable parent output across repeated selector resolutions', async () => {
 		getFunctionEntries.mockResolvedValue([{ text_signature: 'transfer(address,uint256)' }])
-		const snapshot = await resolverFor(EntityType.EvmSelector).resolve['Hex'].resolve({
+		const resolveSelector = () => resolverFor(EntityType.EvmSelector).resolve['Hex'].resolve({
 			hex: '0xa9059cbb',
 		})
+		const first = await resolveSelector()
+		const second = await resolveSelector()
 
-		expect(snapshot).toEqual({
-			signatures: ['transfer(address,uint256)'],
-			$$timestamps: [{
-				[EntityMetaKey.Selector]: {
-					$selector: { hex: '0xa9059cbb' },
-					timestampMs: expect.any(Number),
-					source: Source.FourByteDirectory_Rest,
-				},
-				[EntityMetaKey.Fields]: {
-					[entityFieldAddressKey(EntityType.EvmSelector_Timestamp, [], 'signatures')]: ['transfer(address,uint256)'],
-					[entityFieldAddressKey(EntityType.EvmSelector_Timestamp, [], 'reachable')]: true,
-				},
-			}],
-		})
+		expect(first).toEqual({ signatures: ['transfer(address,uint256)'] })
+		expect(first).not.toHaveProperty('$$timestamps')
+		expect(second).toEqual(first)
 	})
 
 	it('keeps topic and error claims under the same explicit source', async () => {
@@ -68,9 +54,8 @@ describe('4byte.directory resolver', () => {
 		const topic = await resolverFor(EntityType.EvmTopic).resolve['Hex'].resolve({ hex: '0x1234' })
 		const error = await resolverFor(EntityType.EvmError).resolve['Hex'].resolve({ hex: '0x12345678' })
 
-		expect(topic.$$timestamps[0]?.[EntityMetaKey.Selector].source).toBe(Source.FourByteDirectory_Rest)
+		expect(topic).toEqual({ signatures: ['Transfer(address,address,uint256)'] })
 		expect(error.signatures).toEqual(['Unauthorized(address)'])
-		expect(error.$$timestamps[0]?.[EntityMetaKey.Selector].source).toBe(Source.FourByteDirectory_Rest)
 	})
 
 	it('propagates provider failures and exposes no arbitrary timestamp facet', async () => {
@@ -79,10 +64,5 @@ describe('4byte.directory resolver', () => {
 		await expect(resolverFor(EntityType.EvmSelector).resolve['Hex'].resolve({
 			hex: '0xa9059cbb',
 		})).rejects.toThrow('4byte.directory unavailable')
-		expect(fourByteDirectory.resolvers.some((candidate) => (
-			candidate.entityType === EntityType.EvmSelector_Timestamp
-			|| candidate.entityType === EntityType.EvmTopic_Timestamp
-			|| candidate.entityType === EntityType.EvmError_Timestamp
-		))).toBe(false)
 	})
 })

@@ -36,7 +36,7 @@ test('exports complete immutable generated-file, source-claim, and source-accoun
 		(entity.views.singular?.lists ?? []).map((placement) => ({ entity, placement }))
 	))
 	assert.equal(compiledApp.presentationManifest.length, authoredLists.length + 9)
-	assert.equal(compiledApp.presentationManifest.length, 350)
+	assert.equal(compiledApp.presentationManifest.length, 348)
 	assert.deepEqual(
 		(() => {
 			const entry = compiledApp.presentationManifest.find((candidate) => candidate.id === 'ArweaveResource.$$manifestPaths')

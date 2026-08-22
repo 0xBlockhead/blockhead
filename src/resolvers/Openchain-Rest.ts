@@ -2,10 +2,6 @@ import {
 	defineResolver,
 	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
-import {
-	entityFieldAddressKey,
-	EntityMetaKey,
-} from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
@@ -72,32 +68,12 @@ export default {
 						const observation = await getFunctionObservation(hex)
 						return {
 							signatures: observation.signatures,
-							$$timestamps: [
-								{
-									[EntityMetaKey.Selector]: {
-										$selector: { hex },
-										timestampMs: Date.now(),
-										source: Source.Openchain_Rest,
-									},
-									[EntityMetaKey.Fields]: {
-										[entityFieldAddressKey(EntityType.EvmSelector_Timestamp, [], 'signatures')]: observation.signatures,
-										...(observation.filteredSignatureCount != null && {
-											[entityFieldAddressKey(EntityType.EvmSelector_Timestamp, [], 'filteredSignatureCount')]: observation.filteredSignatureCount,
-										}),
-										...(observation.verifiedCandidateCount != null && {
-											[entityFieldAddressKey(EntityType.EvmSelector_Timestamp, [], 'verifiedCandidateCount')]: observation.verifiedCandidateCount,
-										}),
-										[entityFieldAddressKey(EntityType.EvmSelector_Timestamp, [], 'reachable')]: observation.reachable,
-									},
-								},
-							],
 						}
 					},
 				},
 			},
 		})({
 			signatures: (snapshot) => snapshot.signatures,
-			$$timestamps: (snapshot) => snapshot.$$timestamps,
 		}),
 
 		defineResolver({
@@ -108,32 +84,12 @@ export default {
 						const observation = await getEventObservation(hex)
 						return {
 							signatures: observation.signatures,
-							$$timestamps: [
-								{
-									[EntityMetaKey.Selector]: {
-										$topic: { hex },
-										timestampMs: Date.now(),
-										source: Source.Openchain_Rest,
-									},
-									[EntityMetaKey.Fields]: {
-										[entityFieldAddressKey(EntityType.EvmTopic_Timestamp, [], 'signatures')]: observation.signatures,
-										...(observation.filteredSignatureCount != null && {
-											[entityFieldAddressKey(EntityType.EvmTopic_Timestamp, [], 'filteredSignatureCount')]: observation.filteredSignatureCount,
-										}),
-										...(observation.verifiedCandidateCount != null && {
-											[entityFieldAddressKey(EntityType.EvmTopic_Timestamp, [], 'verifiedCandidateCount')]: observation.verifiedCandidateCount,
-										}),
-										[entityFieldAddressKey(EntityType.EvmTopic_Timestamp, [], 'reachable')]: observation.reachable,
-									},
-								},
-							],
 						}
 					},
 				},
 			},
 		})({
 			signatures: (snapshot) => snapshot.signatures,
-			$$timestamps: (snapshot) => snapshot.$$timestamps,
 		}),
 
 		defineResolver({
@@ -144,32 +100,12 @@ export default {
 						const observation = await getErrorObservation(hex)
 						return {
 							signatures: observation.signatures,
-							$$timestamps: [
-								{
-									[EntityMetaKey.Selector]: {
-										$error: { hex },
-										timestampMs: Date.now(),
-										source: Source.Openchain_Rest,
-									},
-									[EntityMetaKey.Fields]: {
-										[entityFieldAddressKey(EntityType.EvmError_Timestamp, [], 'signatures')]: observation.signatures,
-										...(observation.filteredSignatureCount != null && {
-											[entityFieldAddressKey(EntityType.EvmError_Timestamp, [], 'filteredSignatureCount')]: observation.filteredSignatureCount,
-										}),
-										...(observation.verifiedCandidateCount != null && {
-											[entityFieldAddressKey(EntityType.EvmError_Timestamp, [], 'verifiedCandidateCount')]: observation.verifiedCandidateCount,
-										}),
-										[entityFieldAddressKey(EntityType.EvmError_Timestamp, [], 'reachable')]: observation.reachable,
-									},
-								},
-							],
 						}
 					},
 				},
 			},
 		})({
 			signatures: (snapshot) => snapshot.signatures,
-			$$timestamps: (snapshot) => snapshot.$$timestamps,
 		}),
 	],
 } satisfies RegisteredSourceResolverModule

@@ -22,7 +22,6 @@
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
-	import EvmTopic_TimestampsView from '$/views/EvmTopic_TimestampsView.svelte'
 </script>
 
 
@@ -112,23 +111,5 @@
 				</ResourceBoundary>
 			{/if}
 		</dl>
-	{/snippet}
-
-	{#snippet Details()}
-		{@const timestampsResource = selection.$$timestamps}
-		<ResourceBoundary
-			resource={timestampsResource}
-		>
-			{#snippet children(entities)}
-				{#if entities.values.length > 0}
-					<EvmTopic_TimestampsView
-						selection={timestampsResource}
-						countResource={timestampsResource.count}
-						title='Observations'
-						id='timestamps'
-					/>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
 	{/snippet}
 </EntityView>

@@ -2,10 +2,6 @@ import {
 	defineResolver,
 	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
-import {
-	entityFieldAddressKey,
-	EntityMetaKey,
-} from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
@@ -26,26 +22,12 @@ export default {
 					resolve: async ({ hex }) => {
 						const { getFunctionEntries } = await import('$/sources/FourByteDirectory/Rest/queries.ts')
 						const signatures = (await getFunctionEntries({ hex })).map((entry) => entry.text_signature)
-						return {
-							signatures,
-							$$timestamps: [{
-								[EntityMetaKey.Selector]: {
-									$selector: { hex },
-									timestampMs: Date.now(),
-									source: Source.FourByteDirectory_Rest,
-								},
-								[EntityMetaKey.Fields]: {
-									[entityFieldAddressKey(EntityType.EvmSelector_Timestamp, [], 'signatures')]: signatures,
-									[entityFieldAddressKey(EntityType.EvmSelector_Timestamp, [], 'reachable')]: true,
-								},
-							}],
-						}
+						return { signatures }
 					},
 				},
 			},
 		})({
 			signatures: (snapshot) => snapshot.signatures,
-			$$timestamps: (snapshot) => snapshot.$$timestamps,
 		}),
 
 		defineResolver({
@@ -55,26 +37,12 @@ export default {
 					resolve: async ({ hex }) => {
 						const { getEventEntries } = await import('$/sources/FourByteDirectory/Rest/queries.ts')
 						const signatures = (await getEventEntries({ hex })).map((entry) => entry.text_signature)
-						return {
-							signatures,
-							$$timestamps: [{
-								[EntityMetaKey.Selector]: {
-									$topic: { hex },
-									timestampMs: Date.now(),
-									source: Source.FourByteDirectory_Rest,
-								},
-								[EntityMetaKey.Fields]: {
-									[entityFieldAddressKey(EntityType.EvmTopic_Timestamp, [], 'signatures')]: signatures,
-									[entityFieldAddressKey(EntityType.EvmTopic_Timestamp, [], 'reachable')]: true,
-								},
-							}],
-						}
+						return { signatures }
 					},
 				},
 			},
 		})({
 			signatures: (snapshot) => snapshot.signatures,
-			$$timestamps: (snapshot) => snapshot.$$timestamps,
 		}),
 
 		defineResolver({
@@ -86,26 +54,12 @@ export default {
 						const signatures = (
 							await getFunctionEntries({ hex })
 						).map((entry) => entry.text_signature).filter(isErrorSignature)
-						return {
-							signatures,
-							$$timestamps: [{
-								[EntityMetaKey.Selector]: {
-									$error: { hex },
-									timestampMs: Date.now(),
-									source: Source.FourByteDirectory_Rest,
-								},
-								[EntityMetaKey.Fields]: {
-									[entityFieldAddressKey(EntityType.EvmError_Timestamp, [], 'signatures')]: signatures,
-									[entityFieldAddressKey(EntityType.EvmError_Timestamp, [], 'reachable')]: true,
-								},
-							}],
-						}
+						return { signatures }
 					},
 				},
 			},
 		})({
 			signatures: (snapshot) => snapshot.signatures,
-			$$timestamps: (snapshot) => snapshot.$$timestamps,
 		}),
 	],
 } satisfies RegisteredSourceResolverModule

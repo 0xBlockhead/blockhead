@@ -510,7 +510,6 @@ import EvmContractSchema from '$/schema/EvmContract.ts'
 import EvmContractCompilationSchema from '$/schema/EvmContractCompilation.ts'
 import EvmContractSourceBundleSchema from '$/schema/EvmContractSourceBundle.ts'
 import EvmContractVerificationSchema from '$/schema/EvmContractVerification.ts'
-import EvmError_TimestampSchema from '$/schema/EvmError_Timestamp.ts'
 import EvmErrorSchema from '$/schema/EvmError.ts'
 import EvmInternalTransferSchema from '$/schema/EvmInternalTransfer.ts'
 import EvmLogSchema from '$/schema/EvmLog.ts'
@@ -528,13 +527,11 @@ import EvmNftSchema from '$/schema/EvmNft.ts'
 import EvmProtocolSchema from '$/schema/EvmProtocol.ts'
 import EvmRollup_TimestampSchema from '$/schema/EvmRollup_Timestamp.ts'
 import EvmRollupSchema from '$/schema/EvmRollup.ts'
-import EvmSelector_TimestampSchema from '$/schema/EvmSelector_Timestamp.ts'
 import EvmSelectorSchema from '$/schema/EvmSelector.ts'
 import EvmStateChangeSchema from '$/schema/EvmStateChange.ts'
 import EvmStorageRead_TimestampSchema from '$/schema/EvmStorageRead_Timestamp.ts'
 import EvmTokenApprovalSchema from '$/schema/EvmTokenApproval.ts'
 import EvmTokenTransferSchema from '$/schema/EvmTokenTransfer.ts'
-import EvmTopic_TimestampSchema from '$/schema/EvmTopic_Timestamp.ts'
 import EvmTopicSchema from '$/schema/EvmTopic.ts'
 import EvmTraceSchema from '$/schema/EvmTrace.ts'
 import EvmTransactionSchema from '$/schema/EvmTransaction.ts'
@@ -1642,7 +1639,6 @@ const schemaChunk10 = [
 	EvmContractSourceBundleSchema,
 	EvmContractVerificationSchema,
 	EvmErrorSchema,
-	EvmError_TimestampSchema,
 	EvmInternalTransferSchema,
 	EvmLogSchema,
 	EvmNetwork_GasEstimate_TimestampSchema,
@@ -1660,13 +1656,11 @@ const schemaChunk10 = [
 	EvmRollupSchema,
 	EvmRollup_TimestampSchema,
 	EvmSelectorSchema,
-	EvmSelector_TimestampSchema,
 	EvmStateChangeSchema,
 	EvmStorageRead_TimestampSchema,
 	EvmTokenApprovalSchema,
 	EvmTokenTransferSchema,
 	EvmTopicSchema,
-	EvmTopic_TimestampSchema,
 	EvmTraceSchema,
 	EvmTransactionSchema,
 	EvmUserOperationSchema,
@@ -1682,12 +1676,12 @@ const schemaChunk10 = [
 	FarcasterUser_TimestampSchema,
 	FarcasterVerifiedAddressSchema,
 	FedimintFederationSchema,
-] as const
-
-const schemaChunk11 = [
 	FedimintFederation_TimestampSchema,
 	FedimintGatewaySchema,
 	FedimintGateway_TimestampSchema,
+] as const
+
+const schemaChunk11 = [
 	FilecoinActorSchema,
 	FilecoinActor_TimestampSchema,
 	FilecoinBlockSchema,
@@ -1735,12 +1729,12 @@ const schemaChunk11 = [
 	GitRepositorySchema,
 	GitSignatureSchema,
 	GitTagSchema,
-] as const
-
-const schemaChunk12 = [
 	GitTreeSchema,
 	GitTreeEntrySchema,
 	GitTreePathResolutionSchema,
+] as const
+
+const schemaChunk12 = [
 	GmxMarketSchema,
 	GmxPositionSchema,
 	HederaAccountSchema,
@@ -1788,12 +1782,12 @@ const schemaChunk12 = [
 	HyperliquidMarket_TimeInterval_TimestampSchema,
 	HyperliquidNetworkSchema,
 	HyperliquidNetwork_TimestampSchema,
-] as const
-
-const schemaChunk13 = [
 	HyperliquidOrderSchema,
 	HyperliquidOrder_TimestampSchema,
 	HyperliquidPerpMarketSchema,
+] as const
+
+const schemaChunk13 = [
 	HyperliquidPerpMarket_TimestampSchema,
 	HyperliquidPositionSchema,
 	HyperliquidSpotAssetSchema,
@@ -1841,12 +1835,12 @@ const schemaChunk13 = [
 	KaspaAddressUtxo_TimestampSchema,
 	KaspaBlockSchema,
 	KaspaNetworkSchema,
-] as const
-
-const schemaChunk14 = [
 	KaspaNetwork_TimestampSchema,
 	KaspaTransactionSchema,
 	KaspaVirtualChain_TimestampSchema,
+] as const
+
+const schemaChunk14 = [
 	LensAccountSchema,
 	LensAccount_TimestampSchema,
 	LensAccountManagerSchema,
@@ -1894,12 +1888,12 @@ const schemaChunk14 = [
 	McpServer_TimestampSchema,
 	McpServerPackageSchema,
 	McpServerPackageVersionSchema,
-] as const
-
-const schemaChunk15 = [
 	McpToolSchema,
 	McpToolCallSchema,
 	McpToolCall_TimestampSchema,
+] as const
+
+const schemaChunk15 = [
 	MediaSchema,
 	MevBuilderSchema,
 	MevBuilder_TimestampSchema,
@@ -1947,12 +1941,12 @@ const schemaChunk15 = [
 	NetworkStackSchema,
 	NetworkUpgradeSchema,
 	NetworkUpgrade_TimestampSchema,
-] as const
-
-const schemaChunk16 = [
 	NftCollectionSchema,
 	NftTokenSchema,
 	NostrArticleSchema,
+] as const
+
+const schemaChunk16 = [
 	NostrArticleEventSchema,
 	NostrNetworkSchema,
 	NostrNoteSchema,
@@ -2000,12 +1994,12 @@ const schemaChunk16 = [
 	QuilibriumShardSchema,
 	RadicleCollaborationEventSchema,
 	RadicleDelegateSchema,
-] as const
-
-const schemaChunk17 = [
 	RadicleIdentityDocumentSchema,
 	RadicleIdentityRevisionSchema,
 	RadicleIssueSchema,
+] as const
+
+const schemaChunk17 = [
 	RadiclePatchSchema,
 	RadicleRepositorySchema,
 	RadicleSignedRefSchema,
@@ -2053,12 +2047,12 @@ const schemaChunk17 = [
 	SpecificationProposalSchema,
 	SpecificationProposalKindSchema,
 	SpecificationRealmSchema,
-] as const
-
-const schemaChunk18 = [
 	StarknetAccount_TimestampSchema,
 	StarknetBlockSchema,
 	StarknetClassSchema,
+] as const
+
+const schemaChunk18 = [
 	StarknetContractSchema,
 	StarknetEventSchema,
 	StarknetNetworkSchema,
@@ -2106,12 +2100,12 @@ const schemaChunk18 = [
 	SuiObjectVersionSchema,
 	SuiPackageSchema,
 	SuiPackageUpgradeSchema,
-] as const
-
-const schemaChunk19 = [
 	SuiPackageVersionSchema,
 	SuiProgrammableTransactionCommandSchema,
 	SuiRegulatedCoinState_TimestampSchema,
+] as const
+
+const schemaChunk19 = [
 	SuiTransactionSchema,
 	SuiTransaction_TimestampSchema,
 	SwapQuote_TimestampSchema,
@@ -2159,12 +2153,12 @@ const schemaChunk19 = [
 	TonContractGetMethod_TimestampSchema,
 	TonJettonSchema,
 	TonJetton_TimestampSchema,
-] as const
-
-const schemaChunk20 = [
 	TonJettonBalance_TimestampSchema,
 	TonJettonTransferSchema,
 	TonMessageSchema,
+] as const
+
+const schemaChunk20 = [
 	TonNetwork_TimestampSchema,
 	TonNftCollectionSchema,
 	TonNftCollection_TimestampSchema,
@@ -2212,12 +2206,12 @@ const schemaChunk20 = [
 	UtxoTransaction_Mempool_TimestampSchema,
 	WalletConnectionMethodSchema,
 	WormholeVaaSchema,
-] as const
-
-const schemaChunk21 = [
 	XmtpConversationSchema,
 	XmtpMessageSchema,
 	XmtpNetworkSchema,
+] as const
+
+const schemaChunk21 = [
 	XmtpParticipantSchema,
 	XNetworkSchema,
 	XPostSchema,
