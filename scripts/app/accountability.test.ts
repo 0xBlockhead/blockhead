@@ -11,6 +11,7 @@ import {
 	MappedSelectorAccountability,
 	ObservationTimeProvenance,
 	observationTimeAccountabilityKey,
+	observationTimeWriterManifest,
 	publicColdReadGaps,
 	SourceAccess,
 	SourceClaimDemand,
@@ -183,13 +184,75 @@ test('keeps generated observation clocks unclassified until a writer proves thei
 	)
 })
 
+test('derives writer evidence only from a typed writer used to emit an observation', () => {
+	const sourceText = `
+		const unused = defineObservationTimeWriter({
+			entityType: EntityType.Unused_Timestamp,
+			selectorName: 'UnusedTimestampMsSource',
+			source: Source.Provider_Rest,
+			provenance: 'LocalRefresh',
+		})
+		const used = defineObservationTimeWriter({
+			entityType: EntityType.HistoricalThing_Timestamp,
+			selectorName: 'ThingTimestampMsSource',
+			source: Source.Provider_Rest,
+			provenance: 'HttpResponse',
+		})
+		used.write({ $thing: { id: 'thing' }, timestampMs: 1, source: Source.Provider_Rest }, {})
+	`
+	const writers = observationTimeWriterManifest([{
+		source: 'Provider_Rest',
+		path: 'fixture.ts',
+		sourceText,
+	}])
+
+	assert.deepEqual(writers, [{
+		entityType: 'HistoricalThing_Timestamp',
+		selectorName: 'ThingTimestampMsSource',
+		source: 'Provider_Rest',
+		provenance: 'HttpResponse',
+	}])
+})
+
 test('re-derives the complete observation-time writer denominator without blessing unknown clocks', () => {
 	const rows = compiledApp.observationTimeAccountability
 
 	assert.equal(rows.length, 351)
-	assert.deepEqual(truthfulObservationTimeAccountability(rows), [])
-	for (const row of rows) {
-		assert.equal(row.provenance, ObservationTimeProvenance.Unclassified)
+	assert.deepEqual(compiledApp.observationTimeWriterManifest.map((writer) => ({ ...writer })), [
+		{
+			entityType: 'BeaconBlock_Timestamp',
+			selectorName: 'BlockTimestampMsSource',
+			source: 'Beacon_Rest',
+			provenance: 'LocalRefresh',
+		},
+		{
+			entityType: 'BeaconDataColumn_Timestamp',
+			selectorName: 'DataColumnTimestampMsSource',
+			source: 'Beacon_Rest',
+			provenance: 'LocalRefresh',
+		},
+		{
+			entityType: 'BeaconExecutionPayloadEnvelope_Timestamp',
+			selectorName: 'EnvelopeTimestampMsSource',
+			source: 'Beacon_Rest',
+			provenance: 'LocalRefresh',
+		},
+		{
+			entityType: 'NetworkEndpointObservation_Timestamp',
+			selectorName: 'NetworkEndpointUrlEndpointKindTimestampMsSource',
+			source: 'Beacon_Rest',
+			provenance: 'HttpResponse',
+		},
+	])
+	const truthfulRows = truthfulObservationTimeAccountability(rows)
+	assert.deepEqual(truthfulRows.map(({ entityType, selectorName, source, provenance }) => [entityType, selectorName, source, provenance]), [
+		['BeaconBlock_Timestamp', 'BlockTimestampMsSource', 'Beacon_Rest', ObservationTimeProvenance.LocalRefresh],
+		['BeaconDataColumn_Timestamp', 'DataColumnTimestampMsSource', 'Beacon_Rest', ObservationTimeProvenance.LocalRefresh],
+		['BeaconExecutionPayloadEnvelope_Timestamp', 'EnvelopeTimestampMsSource', 'Beacon_Rest', ObservationTimeProvenance.LocalRefresh],
+		['NetworkEndpointObservation_Timestamp', 'NetworkEndpointUrlEndpointKindTimestampMsSource', 'Beacon_Rest', ObservationTimeProvenance.HttpResponse],
+	])
+	assert.equal(rows.filter((row) => row.provenance === ObservationTimeProvenance.Unclassified).length, 347)
+	for (const row of rows.filter((row) => row.provenance === ObservationTimeProvenance.Unclassified)) {
 		assert.equal(row.selectorFields.includes('timestampMs'), true)
 		assert.equal(row.route.startsWith('/'), true)
 		assert.equal(observationTimeAccountabilityKey(row).startsWith('['), true)

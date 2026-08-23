@@ -13,6 +13,7 @@ import {
 	defineResolver,
 	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
+import { defineObservationTimeWriter } from '$/resolvers/observationTimeWriter.ts'
 import {
 	entityFieldAddressKey,
 	EntityMetaKey,
@@ -34,6 +35,34 @@ import type {
 	BeaconDataColumnSidecars,
 	BeaconExecutionPayloadEnvelope,
 } from '$/sources/Beacon/Rest/types.ts'
+
+const beaconBlockTimestampWriter = defineObservationTimeWriter({
+	entityType: EntityType.BeaconBlock_Timestamp,
+	selectorName: 'BlockTimestampMsSource',
+	source: Source.Beacon_Rest,
+	provenance: 'LocalRefresh',
+})
+
+const beaconDataColumnTimestampWriter = defineObservationTimeWriter({
+	entityType: EntityType.BeaconDataColumn_Timestamp,
+	selectorName: 'DataColumnTimestampMsSource',
+	source: Source.Beacon_Rest,
+	provenance: 'LocalRefresh',
+})
+
+const beaconExecutionPayloadEnvelopeTimestampWriter = defineObservationTimeWriter({
+	entityType: EntityType.BeaconExecutionPayloadEnvelope_Timestamp,
+	selectorName: 'EnvelopeTimestampMsSource',
+	source: Source.Beacon_Rest,
+	provenance: 'LocalRefresh',
+})
+
+const beaconNetworkEndpointObservationTimestampWriter = defineObservationTimeWriter({
+	entityType: EntityType.NetworkEndpointObservation_Timestamp,
+	selectorName: 'NetworkEndpointUrlEndpointKindTimestampMsSource',
+	source: Source.Beacon_Rest,
+	provenance: 'HttpResponse',
+})
 
 const beaconNetworkApplicability = [...beaconRestByChainId.values()].map(({ chainId }) => ({
 	caip2: {
@@ -180,18 +209,18 @@ const beaconDataColumnSnapshot = (
 		columns: sidecar.columns,
 		kzgProofs: sidecar.kzgProofs,
 		kzgCommitments: sidecar.kzgCommitments,
-		$$timestamps: [{
-			[EntityMetaKey.Selector]: {
+		$$timestamps: [beaconDataColumnTimestampWriter.write(
+			{
 				$dataColumn,
 				timestampMs,
 				source: Source.Beacon_Rest,
 			},
-			[EntityMetaKey.Fields]: {
+			{
 				[entityFieldAddressKey(EntityType.BeaconDataColumn_Timestamp, [], 'endpointUrl')]: sidecars.endpointUrl,
 				[entityFieldAddressKey(EntityType.BeaconDataColumn_Timestamp, [], 'executionOptimistic')]: sidecars.executionOptimistic,
 				[entityFieldAddressKey(EntityType.BeaconDataColumn_Timestamp, [], 'finalized')]: sidecars.finalized,
-			},
-		}],
+			}
+		)],
 	}
 }
 
@@ -609,8 +638,8 @@ export default {
 						].every((endpointUrl) => endpointUrl === peerCount.endpointUrl))
 							throw new Error('Beacon_Rest: node observation endpoints do not match')
 
-						return [{
-							[EntityMetaKey.Selector]: {
+						return [beaconNetworkEndpointObservationTimestampWriter.write(
+							{
 								$network: { caip2 },
 								endpointUrl: peerCount.endpointUrl,
 								endpointKind: ApiFamily.EthereumBeaconRest,
@@ -623,7 +652,7 @@ export default {
 								),
 								source: Source.Beacon_Rest,
 							},
-							[EntityMetaKey.Fields]: {
+							{
 								[entityFieldAddressKey(EntityType.NetworkEndpointObservation_Timestamp, ['Beacon'], 'disconnectedPeerCount')]: BigInt(peerCount.disconnected),
 								[entityFieldAddressKey(EntityType.NetworkEndpointObservation_Timestamp, ['Beacon'], 'connectingPeerCount')]: BigInt(peerCount.connecting),
 								[entityFieldAddressKey(EntityType.NetworkEndpointObservation_Timestamp, ['Beacon'], 'connectedPeerCount')]: BigInt(peerCount.connected),
@@ -647,8 +676,8 @@ export default {
 									[entityFieldAddressKey(EntityType.NetworkEndpointObservation_Timestamp, ['Beacon'], 'custodyGroupCount')]: BigInt(identity.metadata.custody_group_count),
 								}),
 								[entityFieldAddressKey(EntityType.NetworkEndpointObservation_Timestamp, ['Beacon'], 'statusCode')]: health.statusCode,
-							},
-						}]
+							}
+						)]
 					},
 				},
 			},
@@ -775,8 +804,8 @@ export default {
 											},
 										},
 									}),
-									[entityFieldAddressKey(EntityType.BeaconBlock, [], '$$timestamps')]: [{
-										[EntityMetaKey.Selector]: {
+									[entityFieldAddressKey(EntityType.BeaconBlock, [], '$$timestamps')]: [beaconBlockTimestampWriter.write(
+										{
 											$block: {
 												$network,
 												root: block.root,
@@ -784,12 +813,12 @@ export default {
 											timestampMs,
 											source: Source.Beacon_Rest,
 										},
-										[EntityMetaKey.Fields]: {
+										{
 											[entityFieldAddressKey(EntityType.BeaconBlock_Timestamp, [], 'canonical')]: block.canonical,
 											[entityFieldAddressKey(EntityType.BeaconBlock_Timestamp, [], 'executionOptimistic')]: block.executionOptimistic,
 											[entityFieldAddressKey(EntityType.BeaconBlock_Timestamp, [], 'finalized')]: block.finalized,
-										},
-									}],
+										}
+									)],
 								},
 							})),
 							...(agreedExecutionBlockHash != null && {
@@ -904,8 +933,8 @@ export default {
 							$$attestations: block.attestations.map((attestation) => beaconAttestationReference(blockSelector, attestation)),
 							$$deposits: block.deposits.map((deposit) => beaconDepositReference(blockSelector, deposit)),
 							$$slashings: block.slashings.map((slashing) => beaconSlashingReference(blockSelector, slashing)),
-							$$timestamps: [{
-								[EntityMetaKey.Selector]: {
+							$$timestamps: [beaconBlockTimestampWriter.write(
+								{
 									$block: {
 										$network,
 										root: block.root,
@@ -913,12 +942,12 @@ export default {
 									timestampMs,
 									source: Source.Beacon_Rest,
 								},
-								[EntityMetaKey.Fields]: {
+								{
 									[entityFieldAddressKey(EntityType.BeaconBlock_Timestamp, [], 'canonical')]: block.canonical,
 									[entityFieldAddressKey(EntityType.BeaconBlock_Timestamp, [], 'executionOptimistic')]: block.executionOptimistic,
 									[entityFieldAddressKey(EntityType.BeaconBlock_Timestamp, [], 'finalized')]: block.finalized,
-								},
-							}],
+								}
+							)],
 							$$withdrawals: block.withdrawals.map((withdrawal) => beaconWithdrawalReference(blockSelector, withdrawal)),
 						}
 					},
@@ -1127,17 +1156,17 @@ export default {
 									[entityFieldAddressKey(EntityType.BeaconExecutionWithdrawalRequest, [], 'amountGwei')]: request.amountGwei,
 								},
 							})),
-							$$timestamps: [{
-								[EntityMetaKey.Selector]: {
+							$$timestamps: [beaconExecutionPayloadEnvelopeTimestampWriter.write(
+								{
 									$envelope: envelopeSelector,
 									timestampMs,
 									source: Source.Beacon_Rest,
 								},
-								[EntityMetaKey.Fields]: {
+								{
 									[entityFieldAddressKey(EntityType.BeaconExecutionPayloadEnvelope_Timestamp, [], 'executionOptimistic')]: envelope.executionOptimistic,
 									[entityFieldAddressKey(EntityType.BeaconExecutionPayloadEnvelope_Timestamp, [], 'finalized')]: envelope.finalized,
-								},
-							}],
+								}
+							)],
 						}
 					},
 				},

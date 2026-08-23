@@ -1,3 +1,7 @@
+import ts from 'typescript'
+
+import type { ObservationTimeProvenance as ResolverObservationTimeProvenance } from '../../src/resolvers/observationTimeWriter.ts'
+
 // Source accountability classifies every compiled source claim and every mapped
 // route selector against declared delivery and resolver authority, so coverage
 // counts distinguish public cold-read demand from local, server, or
@@ -57,6 +61,13 @@ export type ObservationTimeAccountabilityRow = Readonly<{
 	provenance: ObservationTimeProvenance
 }>
 
+export type ObservationTimeWriter = Readonly<{
+	entityType: string
+	selectorName: string
+	source: string
+	provenance: Exclude<ResolverObservationTimeProvenance, 'Unclassified'>
+}>
+
 type ObservationTimeSelector = Readonly<{
 	entityType: string
 	selectors: readonly {
@@ -84,8 +95,27 @@ export const observationTimeAccountabilityKey = (
 
 export const compileObservationTimeAccountability = (
 	entities: readonly ObservationTimeSelector[],
-	routes: readonly ObservationTimeRoute[]
-) => entities.flatMap(({ entityType, selectors }) => selectors
+	routes: readonly ObservationTimeRoute[],
+	writers: readonly ObservationTimeWriter[] = []
+) => {
+	const provenanceByWriterKey = writers.reduce((provenanceByWriterKey, writer) => {
+		const key = JSON.stringify([
+			writer.entityType,
+			writer.selectorName,
+			writer.source,
+		])
+		const previous = provenanceByWriterKey.get(key)
+		provenanceByWriterKey.set(
+			key,
+			previous == null || previous === writer.provenance ?
+				writer.provenance
+			:
+				ObservationTimeProvenance.Unclassified
+		)
+		return provenanceByWriterKey
+	}, new Map<string, ObservationTimeProvenance>())
+
+	return entities.flatMap(({ entityType, selectors }) => selectors
 	.filter(({ fields }) => fields.includes('timestampMs'))
 	.flatMap(({ name, fields }) => {
 		const route = routes.find((candidate) => (
@@ -102,9 +132,114 @@ export const compileObservationTimeAccountability = (
 			route: route.route,
 			authoredPage: route.authoredPage,
 			...(source == null ? {} : { source }),
-			provenance: ObservationTimeProvenance.Unclassified,
+			provenance: source == null ?
+				ObservationTimeProvenance.Unclassified
+			:
+				provenanceByWriterKey.get(JSON.stringify([
+					entityType,
+					name,
+					source,
+				])) ?? ObservationTimeProvenance.Unclassified,
 		}))
 	}))
+}
+
+const objectProperty = (
+	object: ts.ObjectLiteralExpression,
+	name: string
+) => object.properties.find((property): property is ts.PropertyAssignment => (
+	ts.isPropertyAssignment(property)
+		&& ts.isIdentifier(property.name)
+		&& property.name.text === name
+	))
+
+const identifierText = (
+	expression: ts.Expression | undefined,
+	description: string
+) => {
+	if (expression != null && ts.isPropertyAccessExpression(expression))
+		return expression.name.text
+	if (expression != null && ts.isStringLiteral(expression))
+		return expression.text
+	throw new Error(`Observation-time writer ${description} must be a literal`)
+}
+
+const observationTimeWriterProvenance = (
+	value: string,
+	description: string
+): ObservationTimeWriter['provenance'] => {
+	switch (value) {
+		case 'ProviderEvent':
+		case 'ProviderSnapshot':
+		case 'HttpResponse':
+		case 'Ingestion':
+		case 'LocalRefresh':
+			return value
+		default:
+			throw new Error(`Observation-time writer ${description} has unsupported provenance ${value}`)
+	}
+}
+
+export const observationTimeWriterManifest = (
+	resolverModules: readonly {
+		source: string
+		path?: string
+		paths?: readonly string[]
+		sourceText?: string
+	}[]
+): readonly ObservationTimeWriter[] => resolverModules.flatMap((resolverModule) => {
+	const paths = resolverModule.paths ?? (resolverModule.path == null ? [] : [resolverModule.path])
+	return paths.flatMap((resolverPath) => {
+		const source = resolverModule.sourceText ?? ts.sys.readFile(resolverPath)
+		if (source == null)
+			throw new Error(`Observation-time writer resolver source is unavailable: ${resolverPath}`)
+
+		const file = ts.createSourceFile(resolverPath, source, ts.ScriptTarget.Latest, true)
+		const writers = new Map<string, ObservationTimeWriter>()
+		const usedWriters = new Set<string>()
+		const visit = (node: ts.Node): void => {
+			if (
+				ts.isVariableDeclaration(node)
+				&& ts.isIdentifier(node.name)
+				&& node.initializer != null
+				&& ts.isCallExpression(node.initializer)
+				&& ts.isIdentifier(node.initializer.expression)
+				&& node.initializer.expression.text === 'defineObservationTimeWriter'
+			) {
+				const registration = node.initializer.arguments[0]
+				if (registration == null || !ts.isObjectLiteralExpression(registration))
+					throw new Error(`Observation-time writer ${node.name.text} in ${resolverPath} must use an object registration`)
+
+				const writer = {
+					entityType: identifierText(objectProperty(registration, 'entityType')?.initializer, `${node.name.text}.entityType`),
+					selectorName: identifierText(objectProperty(registration, 'selectorName')?.initializer, `${node.name.text}.selectorName`),
+					source: identifierText(objectProperty(registration, 'source')?.initializer, `${node.name.text}.source`),
+					provenance: observationTimeWriterProvenance(
+						identifierText(objectProperty(registration, 'provenance')?.initializer, `${node.name.text}.provenance`),
+						`${node.name.text}.provenance`
+					),
+				}
+				if (writer.source !== resolverModule.source)
+					throw new Error(`Observation-time writer ${node.name.text} in ${resolverPath} declares ${writer.source}, not ${resolverModule.source}`)
+				writers.set(node.name.text, writer)
+			}
+			if (
+				ts.isCallExpression(node)
+				&& ts.isPropertyAccessExpression(node.expression)
+				&& node.expression.name.text === 'write'
+				&& ts.isIdentifier(node.expression.expression)
+			)
+				usedWriters.add(node.expression.expression.text)
+
+			ts.forEachChild(node, visit)
+		}
+		visit(file)
+		return [...usedWriters].flatMap((writerName) => {
+			const writer = writers.get(writerName)
+			return writer == null ? [] : [writer]
+		})
+	})
+}).toSorted((left, right) => JSON.stringify(left).localeCompare(JSON.stringify(right), 'en'))
 
 export const truthfulObservationTimeAccountability = (
 	rows: readonly ObservationTimeAccountabilityRow[]

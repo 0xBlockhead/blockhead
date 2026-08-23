@@ -28,9 +28,11 @@ import {
 	indexAccountabilityAuthority,
 	MappedSelectorAccountability,
 	ObservationTimeProvenance,
+	observationTimeWriterManifest,
 	publicColdReadGaps,
 	SourceAccess,
 	type ObservationTimeAccountabilityRow,
+	type ObservationTimeWriter,
 	type MappedSelectorAccountabilityRow,
 	type SourceClaimAccountabilityRow,
 } from './accountability.ts'
@@ -356,6 +358,7 @@ export type CompiledApp = Readonly<{
 	sourceClaims: readonly CompiledSourceClaim[]
 	sourceAccountability: CompiledSourceAccountability
 	observationTimeAccountability: readonly ObservationTimeAccountabilityRow[]
+	observationTimeWriterManifest: readonly ObservationTimeWriter[]
 }>
 
 export type CompiledSourceAccountability = Readonly<{
@@ -6124,9 +6127,11 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 		mappedSelectors: compileMappedSelectorFacts(indexedRouteNodes)
 			.map((mapping) => classifyMappedSelector(mapping, accountabilityAuthority)),
 	}
+	const observationTimeWriters = observationTimeWriterManifest(resolverModules)
 	const observationTimeAccountability = compileObservationTimeAccountability(
 		activeEntities,
-		sourceAccountability.mappedSelectors
+		sourceAccountability.mappedSelectors,
+		observationTimeWriters
 	)
 	const undeclaredAccessSources = unique([
 		...sourceAccountability.claims
@@ -6145,6 +6150,7 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 		sourceClaims,
 		sourceAccountability,
 		observationTimeAccountability,
+		observationTimeWriterManifest: observationTimeWriters,
 	})
 }
 
