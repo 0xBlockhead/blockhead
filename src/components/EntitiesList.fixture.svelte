@@ -38,21 +38,46 @@
 			},
 		},
 	}
+	const thirdItem: Item = {
+		[EntityMetaKey.Selector]: {
+			scope: '_GlobalAtprotoNetwork',
+		},
+		[EntityMetaKey.SelectorKey]: 'third',
+		protocolName: 'Later page item',
+		value: {
+			[EntityMetaKey.Selector]: {
+				scope: '_GlobalAtprotoNetwork',
+			},
+		},
+	}
+	type Token = 'next' | 'later'
 
 
 	// State
-	let items = $state<Item[]>([
+	let values = $state<Item[]>([
 		firstItem,
 	])
-	let attempts = $state(0)
-	let error = $state(false)
-	let loading = $state(false)
-	let terminal = $state(false)
-	let settleLoad = $state<(outcome: 'failed' | 'succeeded') => void>()
+	let token = $state<Token | undefined>('next')
+	let failedToken = $state<Token>()
+	let loadingToken = $state<Token>()
+	let attempts = $state<Record<Token, number>>({
+		next: 0,
+		later: 0,
+	})
+	let settleLoad = $state<(
+		token: Token,
+		outcome: 'failed' | 'succeeded'
+	) => void>()
+	let pendingLoad = $state<{
+		token: Token
+		promise: Promise<void>
+		resolve: () => void
+		reject: (error: Error) => void
+	} | undefined>()
 	const continuation: PersistedCollectionContinuation = {
 		source: 'fixture',
 		get metadata() {
-			return terminal ?
+			return token === undefined ?
 				{
 					operation: 'fixture',
 					target: 'fixture',
@@ -63,47 +88,63 @@
 					operation: 'fixture',
 					target: 'fixture',
 					terminal: false,
-					token: 'next',
+					token,
 				}
 		},
 		get error() {
-			return error
+			return token !== undefined && failedToken === token
 		},
 		get loading() {
-			return loading
+			return token !== undefined && loadingToken === token
 		},
 		loadMore: () => {
-			attempts += 1
-			error = false
-			loading = true
-			return new Promise((resolve, reject) => {
-				settleLoad = (outcome) => {
-					loading = false
-					if (outcome === 'failed') {
-						error = true
-						reject(new Error('Continuation failed'))
-						return
-					}
+			if (token === undefined)
+				return Promise.resolve()
+			if (pendingLoad?.token === token)
+				return pendingLoad.promise
 
-					items = [
-						...items,
-						secondItem,
-					]
-					terminal = true
-					resource.set({
-						continuation,
-						values: items,
-					})
-					resolve()
+			const requestedToken = token
+			attempts[requestedToken] += 1
+			failedToken = undefined
+			loadingToken = requestedToken
+			const pending = Promise.withResolvers<void>()
+			pendingLoad = {
+				token: requestedToken,
+				promise: pending.promise,
+				resolve: pending.resolve,
+				reject: pending.reject,
+			}
+			settleLoad = (settledToken, outcome) => {
+				if (settledToken !== requestedToken)
+					return
+				loadingToken = undefined
+				pendingLoad = undefined
+				settleLoad = undefined
+				if (outcome === 'failed') {
+					failedToken = requestedToken
+					pending.reject(new Error('Continuation failed'))
+					return
 				}
-			})
+
+				values = [
+					...values,
+					requestedToken === 'next' ? secondItem : thirdItem,
+				]
+				token = requestedToken === 'next' ? 'later' : undefined
+				resource.set({
+					continuation,
+					values,
+				})
+				pending.resolve()
+			}
+			return pending.promise
 		},
 		cancel: () => {},
 	}
 	const resource = new TanStackLiveQueryResource(() => ({
 		data: {
 			continuation,
-			values: items,
+			values,
 		},
 		isError: false,
 		isLoading: false,
@@ -119,19 +160,20 @@
 
 <button
 	type="button"
-	onclick={() => settleLoad?.('failed')}
+	onclick={() => token !== undefined && settleLoad?.(token, 'failed')}
 >
-	Reject page
+	{token === 'next' ? 'Reject page' : 'Reject current page'}
 </button>
 
 <button
 	type="button"
-	onclick={() => settleLoad?.('succeeded')}
+	onclick={() => token !== undefined && settleLoad?.(token, 'succeeded')}
 >
 	Resolve page
 </button>
 
-<span>Attempts: {attempts}</span>
+<span>Next attempts: {attempts.next}</span>
+<span>Later attempts: {attempts.later}</span>
 
 <EntitiesList
 	entityType={EntityType._GlobalAtprotoNetwork}
