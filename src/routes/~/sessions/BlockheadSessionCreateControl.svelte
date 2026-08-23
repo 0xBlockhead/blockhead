@@ -1,4 +1,9 @@
 <script lang="ts">
+	// Types/constants
+	import { goto } from '$app/navigation'
+	import { resolve } from '$app/paths'
+
+
 	// Context
 	import { writeLocalBlockheadSession } from '$/collections/localMutations.ts'
 	import { getAppClient } from '$/routes/+layout.svelte'
@@ -14,12 +19,18 @@
 	data-column="gap-3"
 	onsubmit={async (event) => {
 		event.preventDefault()
-		await writeLocalBlockheadSession(
+		const sessionSelector = await writeLocalBlockheadSession(
 			getAppClient(),
 			{ scope: '$$blockheadSessions' },
 			sessionName,
 		)
 		sessionName = ''
+		await goto(resolve(
+			'/~/session/[sessionId=stringSegment]',
+			{
+				sessionId: sessionSelector.id,
+			}
+		))
 	}}
 >
 	<header data-row="between wrap align-center gap-2">

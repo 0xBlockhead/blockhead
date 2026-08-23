@@ -199,10 +199,10 @@ test('connects a matching wallet and prepares a locked native transfer without s
 	await page.getByRole('button', {
 		name: 'Create session',
 	}).click()
-	await page.getByRole('link', {
-		name: 'Locked prep journey',
-	}).click()
-	await expect(page).toHaveURL(/\/~\/session\//)
+	await expect(page).toHaveURL(/\/~\/session\/session-[^/]+(?:\?|$)/)
+	await expect(page.getByText('No actions.', { exact: true })).toBeVisible({
+		timeout: 120_000,
+	})
 	await expect(page.getByRole('button', {
 		name: 'Start transfer draft with keyboard',
 	})).toBeVisible({
@@ -344,10 +344,10 @@ test('keeps session actions as drafts until explicit confirmation', async ({ pag
 	})
 	await page.getByLabel('Session name').fill('Intent draft test')
 	await page.getByRole('button', { name: 'Create session' }).click()
-	await page.getByRole('link', {
-		name: 'Intent draft test',
-	}).click()
-	await expect(page).toHaveURL(/\/~\/session\//)
+	await expect(page).toHaveURL(/\/~\/session\/session-[^/]+(?:\?|$)/)
+	await expect(page.getByText('No actions.', { exact: true })).toBeVisible({
+		timeout: 120_000,
+	})
 	await expect(page.getByLabel('Rename session')).toBeVisible({
 		timeout: 120_000,
 	})
@@ -456,10 +456,7 @@ test('cancels a keyboard-created draft without adding an action', async ({ page 
 	})
 	await page.getByLabel('Session name').fill('Cancel draft test')
 	await page.getByRole('button', { name: 'Create session' }).click()
-	await page.getByRole('link', {
-		name: 'Cancel draft test',
-	}).click()
-	await expect(page).toHaveURL(/\/~\/session\//)
+	await expect(page).toHaveURL(/\/~\/session\/session-[^/]+(?:\?|$)/)
 
 	await expect(page.getByRole('button', { name: 'Start transfer draft with keyboard' })).toBeVisible({
 		timeout: 120_000,

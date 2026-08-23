@@ -71,6 +71,8 @@ afterEach(() => {
 describe('local session lifecycle mutations', () => {
 	it('coerces missing lockedAt on reload and ignores stale updatedAt races', async () => {
 		type MockRow = Record<string, object | string | number | boolean | bigint | undefined>
+		let persistenceBarrier: Promise<void> | undefined
+		let persistenceStarted: PromiseWithResolvers<void> | undefined
 		const collectionByAddress = new Map<string, {
 			toArray: MockRow[]
 			startSyncImmediate(): void
@@ -105,7 +107,10 @@ describe('local session lifecycle mutations', () => {
 				toArray: rows,
 				startSyncImmediate: () => {},
 				utils: {
-					waitForPersistence: async () => {},
+					waitForPersistence: async () => {
+						persistenceStarted?.resolve()
+						await persistenceBarrier
+					},
 					replaceRows: (predicate: (row: MockRow) => boolean, nextRows: readonly MockRow[]) => {
 						for (let index = rows.length - 1; index >= 0; index--)
 							if (predicate(rows[index]))
@@ -245,7 +250,40 @@ describe('local session lifecycle mutations', () => {
 			}),
 		])
 
-		const draftSelector = await writeLocalBlockheadSession(context, parentSelector, 'draft-removable')
+		const persistence = Promise.withResolvers<void>()
+		persistenceBarrier = persistence.promise
+		persistenceStarted = Promise.withResolvers<void>()
+		let writerSettled = false
+		const draftWrite = writeLocalBlockheadSession(
+			context,
+			parentSelector,
+			'draft-removable'
+		).then((selector) => {
+			writerSettled = true
+			return selector
+		})
+		await persistenceStarted.promise
+		expect(writerSettled).toBe(false)
+		persistence.resolve()
+		const draftSelector = await draftWrite
+		persistenceBarrier = undefined
+		persistenceStarted = undefined
+		expect(context.entityCollections[EntityType.BlockheadSession].toArray).toEqual(expect.arrayContaining([
+			expect.objectContaining({
+				[EntityMetaKey.Selector]: draftSelector,
+			}),
+		]))
+		expect(context.entityFieldCollections[EntityType._Global][entityFieldAddressKey(
+			EntityType._Global,
+			[],
+			'$$blockheadSessions'
+		)].toArray).toEqual(expect.arrayContaining([
+			expect.objectContaining({
+				[EntityMetaKey.Value]: expect.objectContaining({
+					[EntityMetaKey.SelectorKey]: stringify(draftSelector),
+				}),
+			}),
+		]))
 		writeLocalBlockheadSessionLockedAt(context, draftSelector, 5)
 		expect(context.entityFieldCollections[EntityType.BlockheadSession][entityFieldAddressKey(
 			EntityType.BlockheadSession,
