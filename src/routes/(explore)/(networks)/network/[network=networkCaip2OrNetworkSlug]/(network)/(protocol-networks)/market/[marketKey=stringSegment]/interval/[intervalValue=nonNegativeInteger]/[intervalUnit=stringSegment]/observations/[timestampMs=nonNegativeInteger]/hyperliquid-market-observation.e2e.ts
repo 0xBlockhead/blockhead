@@ -62,13 +62,13 @@ test('renders a provider-matched Hyperliquid market interval observation', async
 
 		if (body.type === 'metaAndAssetCtxs') {
 			await route.fulfill({
-				json: [[{
+				json: [{
 					universe: [{
 						name: marketKey,
 						szDecimals: 4,
 						maxLeverage: 50,
 					}],
-				}], [{
+				}, [{
 					funding: '0',
 					openInterest: '0',
 					prevDayPx: '100',
