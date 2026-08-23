@@ -96,7 +96,7 @@ const assertTransactionCollection = async (
 	await expectMainVisible(page)
 	await expect(page).toHaveURL((url) => url.pathname === pathname && url.search === '' && url.hash === '')
 	const transactions = page.locator('#transactions')
-	await expect(transactions.locator(`a[href$="${transactionPath}"]`)).toBeAttached({
+	await expect(transactions.locator(`a[href="${transactionPath}"]`)).toBeAttached({
 		timeout: 120_000,
 	})
 	await expect(transactions.locator('[data-resource-state="pending"]')).toHaveCount(0)
