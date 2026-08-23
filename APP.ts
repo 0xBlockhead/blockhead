@@ -115413,6 +115413,10 @@ export const app = {
 				path: "src/resolvers/Mastodon-Rest.ts",
 			},
 			{
+				source: Source.McpDeclared_Protocol,
+				path: "src/resolvers/McpDeclared-Protocol.ts",
+			},
+			{
 				source: Source.McpPackageRegistry_Rest,
 				path: "src/resolvers/McpPackageRegistry-Rest.ts",
 			},

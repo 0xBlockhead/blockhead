@@ -121,6 +121,7 @@ const resolverLoaderEntries = [
 	[Source.Lotus_JsonRpc, () => import('./Lotus-JsonRpc.ts')],
 	[Source.MagnetUri_Uri, () => import('./MagnetUri-Uri.ts')],
 	[Source.Mastodon_Rest, () => import('./Mastodon-Rest.ts')],
+	[Source.McpDeclared_Protocol, () => import('./McpDeclared-Protocol.ts')],
 	[Source.McpPackageRegistry_Rest, () => import('./McpPackageRegistry-Rest.ts')],
 	[Source.MempoolSpace_Rest, () => import('./MempoolSpace-Rest.ts')],
 	[Source.MetadataVision_Rest, () => import('./MetadataVision-Rest.ts')],

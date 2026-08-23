@@ -84,6 +84,6 @@ it('requires explicit authorization before tools/call and records the result', a
 	const allowed = await invokeMcpTool(binding, 'fake-key', server, { callId: 'allowed', toolName: 'sum', arguments: { a: 1, b: 2 } }, () => true)
 
 	expect(denied).toMatchObject({ status: 'unavailable', error: 'McpDeclared_Protocol: tool invocation was not authorized' })
-	expect(server.requests).toHaveLength(1)
+	expect(server.requests.map(({ method }) => method)).toEqual(['tools/call'])
 	expect(allowed).toMatchObject({ status: 'connected', call: { callId: 'allowed' }, structuredContent: { value: 3 } })
 })
