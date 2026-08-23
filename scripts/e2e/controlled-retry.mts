@@ -376,7 +376,9 @@ export const runControlledRetry = async ({ browser, manifest, outputDirectory, p
 			try {
 				await page.goto(new URL(pathname, manifest.server.url).href)
 				await waitForCaptureQuality(page, pathname)
-				({ runtimeDiagnostics, classification } = classifyRuntimeDiagnostics(await page.runtimeDiagnostics()))
+				const classified = classifyRuntimeDiagnostics(await page.runtimeDiagnostics())
+				runtimeDiagnostics = classified.runtimeDiagnostics
+				classification = classified.classification
 				if (classification.failures.length > 0)
 					detail = `screenshot quality: ${classification.failures.join('; ')}`
 				const screenshotPath = join(outputDirectory, 'screenshots', `${stem}.png`)
@@ -385,8 +387,11 @@ export const runControlledRetry = async ({ browser, manifest, outputDirectory, p
 				const diagnosticPath = join(outputDirectory, 'diagnostics', `${stem}.html`)
 				await writeFile(diagnosticPath, await page.content())
 			} finally {
-				if (runtimeDiagnostics.main.finalUrl === '')
-					({ runtimeDiagnostics, classification } = classifyRuntimeDiagnostics(await page.runtimeDiagnostics().catch(() => emptyRuntimeDiagnostics())))
+				if (runtimeDiagnostics.main.finalUrl === '') {
+					const classified = classifyRuntimeDiagnostics(await page.runtimeDiagnostics().catch(() => emptyRuntimeDiagnostics()))
+					runtimeDiagnostics = classified.runtimeDiagnostics
+					classification = classified.classification
+				}
 				await page.close()
 			}
 		} catch (error) {

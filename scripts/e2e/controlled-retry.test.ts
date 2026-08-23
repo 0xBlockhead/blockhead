@@ -56,10 +56,23 @@ const browser = (runtimeDiagnostics = cleanRuntimeDiagnostics()): CaptureBrowser
 		identity: 'fixture chromium 1',
 		newContext: async () => {
 			contexts += 1
+			let currentUrl = 'http://127.0.0.1:4173/'
 			return {
 				id: `context-${contexts}`,
 				startTracing: async () => {},
-				newPage: async () => ({ goto: async () => {}, screenshot: async ({ path }) => writeFile(path, 'image'), content: async () => '<main id="main">fixture</main>', url: () => 'http://127.0.0.1:4173/a', isMainVisible: async () => true, runtimeDiagnostics: async () => runtimeDiagnostics, waitForTimeout: async () => {}, close: async () => {} }),
+				newPage: async () => ({
+					goto: async (url) => { currentUrl = url },
+					screenshot: async ({ path }) => writeFile(path, 'image'),
+					content: async () => '<main id="main">fixture</main>',
+					url: () => currentUrl,
+					isMainVisible: async () => true,
+					runtimeDiagnostics: async () => ({
+						...runtimeDiagnostics,
+						main: { ...runtimeDiagnostics.main, finalUrl: currentUrl },
+					}),
+					waitForTimeout: async () => {},
+					close: async () => {},
+				}),
 				stopTracing: async (path) => writeFile(path, 'trace'),
 				close: async () => {},
 			}
@@ -120,7 +133,7 @@ test('records runtime faults and makes classifier failures non-clean without los
 	assert.equal(run.counts.failures, 1)
 	assert.match(attempt.detail, /screenshot quality:/)
 	assert.equal(attempt.runtimeDiagnostics.requestFailures[0].failure, 'net::ERR_FAILED')
-	assert.ok(attempt.classification.failures.includes('3 boundary events: dom-failed, console-failed, console-uncaught'))
+	assert.ok(attempt.classification.failures.includes('boundary events: dom-failed, console-failed, console-uncaught'))
 	assert.ok(attempt.classification.failures.includes('capture overflow: pageX=1, pageY=2, carouselX=3'))
 	assert.ok(attempt.artifacts.screenshot)
 	assert.ok(attempt.artifacts.trace)
