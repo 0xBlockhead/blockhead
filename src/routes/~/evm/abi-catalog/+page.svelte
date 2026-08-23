@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,12 +26,14 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType._GlobalEvmAbiCatalog, data.selector, {
-				sources: [
-					Source.Local_Internal,
-				],
-			})}
-		<title>{data?.title ?? 'global EVM ABI catalog'} • global EVM ABI catalog • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType._GlobalEvmAbiCatalog, data.selector, {
+					sources: [
+						Source.Local_Internal,
+					],
+				}))}
+			<title>{data?.title ?? 'global EVM ABI catalog'} • global EVM ABI catalog • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'global EVM ABI catalog'} • global EVM ABI catalog • Blockhead</title>
 	{/if}
@@ -39,14 +42,16 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType._GlobalEvmAbiCatalog, data.selector, {
-				sources: [
-					Source.Local_Internal,
-				],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType._GlobalEvmAbiCatalog, data.selector, {
+					sources: [
+						Source.Local_Internal,
+					],
+				}))}
 
-	<GlobalEvmAbiCatalogView
-		selection={pageSelection}
-	/>
+		<GlobalEvmAbiCatalogView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

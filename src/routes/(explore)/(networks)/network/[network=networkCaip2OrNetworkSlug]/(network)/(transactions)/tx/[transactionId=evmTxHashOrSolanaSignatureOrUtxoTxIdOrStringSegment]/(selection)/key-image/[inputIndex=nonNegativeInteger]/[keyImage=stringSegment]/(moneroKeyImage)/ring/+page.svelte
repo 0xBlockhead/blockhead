@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,12 +26,14 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.MoneroRing, data.selector, {
-				sources: [
-					Source.MoneroDaemonRpc_JsonRpc,
-				],
-			})}
-		<title>{data?.title ?? 'monero ring'} • monero ring • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.MoneroRing, data.selector, {
+					sources: [
+						Source.MoneroDaemonRpc_JsonRpc,
+					],
+				}))}
+			<title>{data?.title ?? 'monero ring'} • monero ring • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'monero ring'} • monero ring • Blockhead</title>
 	{/if}
@@ -39,14 +42,16 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.MoneroRing, data.selector, {
-				sources: [
-					Source.MoneroDaemonRpc_JsonRpc,
-				],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.MoneroRing, data.selector, {
+					sources: [
+						Source.MoneroDaemonRpc_JsonRpc,
+					],
+				}))}
 
-	<MoneroRingView
-		selection={pageSelection}
-	/>
+		<MoneroRingView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

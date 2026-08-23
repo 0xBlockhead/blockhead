@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,13 +26,15 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.UniswapV3Position, data.selector, {
-				sources: [
-					Source.Voltaire_JsonRpc,
-					Source.UniswapContracts_Evm,
-				],
-			})}
-		<title>{data?.title ?? (String(pageSelection.entitySelector.tokenId) || 'Uniswap V3 position')} • Uniswap V3 position • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.UniswapV3Position, data.selector, {
+					sources: [
+						Source.Voltaire_JsonRpc,
+						Source.UniswapContracts_Evm,
+					],
+				}))}
+			<title>{data?.title ?? (String(pageSelection.entitySelector.tokenId) || 'Uniswap V3 position')} • Uniswap V3 position • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Uniswap V3 position'} • Uniswap V3 position • Blockhead</title>
 	{/if}
@@ -40,15 +43,17 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.UniswapV3Position, data.selector, {
-				sources: [
-					Source.Voltaire_JsonRpc,
-					Source.UniswapContracts_Evm,
-				],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.UniswapV3Position, data.selector, {
+					sources: [
+						Source.Voltaire_JsonRpc,
+						Source.UniswapContracts_Evm,
+					],
+				}))}
 
-	<UniswapV3PositionView
-		selection={pageSelection}
-	/>
+		<UniswapV3PositionView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

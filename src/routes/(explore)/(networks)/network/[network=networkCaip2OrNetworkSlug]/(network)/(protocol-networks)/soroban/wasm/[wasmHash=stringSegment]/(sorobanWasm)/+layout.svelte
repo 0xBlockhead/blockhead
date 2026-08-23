@@ -9,6 +9,7 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -41,11 +42,13 @@
 >
 	{#snippet Summary()}
 		{#if data?.selector != null}
-			<SorobanWasmView
-				selection={select(EntityType.SorobanWasm, data.selector)}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
+			{#key data.selector}
+				<SorobanWasmView
+					selection={untrack(() => select(EntityType.SorobanWasm, data.selector))}
+					href={detailHref}
+					layout={EntityLayout.SummaryInline}
+				/>
+			{/key}
 		{/if}
 	{/snippet}
 

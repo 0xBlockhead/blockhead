@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -24,8 +25,10 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BnbBeaconToken, data.selector)}
-		<title>{data?.title ?? (pageSelection.entitySelector.symbol || 'bnb beacon token')} • bnb beacon token • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BnbBeaconToken, data.selector))}
+			<title>{data?.title ?? (pageSelection.entitySelector.symbol || 'bnb beacon token')} • bnb beacon token • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'bnb beacon token'} • bnb beacon token • Blockhead</title>
 	{/if}
@@ -34,10 +37,12 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BnbBeaconToken, data.selector)}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BnbBeaconToken, data.selector))}
 
-	<BnbBeaconTokenView
-		selection={pageSelection}
-	/>
+		<BnbBeaconTokenView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

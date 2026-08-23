@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,15 +26,17 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.TonShard_Timestamp, {
-				$workchain: data.selector,
-				shardPrefix: params.shardPrefix,
-				seqno: BigInt(params.seqno),
-				source: params.source,
-			}, {
-				sources: [params.source],
-			})}
-		<title>{data?.title ?? 'TON shard timestamp'} • TON shard timestamp • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.TonShard_Timestamp, {
+					$workchain: data.selector,
+					shardPrefix: params.shardPrefix,
+					seqno: BigInt(params.seqno),
+					source: params.source,
+				}, {
+					sources: [params.source],
+				}))}
+			<title>{data?.title ?? 'TON shard timestamp'} • TON shard timestamp • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'TON shard timestamp'} • TON shard timestamp • Blockhead</title>
 	{/if}
@@ -42,17 +45,19 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.TonShard_Timestamp, {
-				$workchain: data.selector,
-				shardPrefix: params.shardPrefix,
-				seqno: BigInt(params.seqno),
-				source: params.source,
-			}, {
-				sources: [params.source],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.TonShard_Timestamp, {
+					$workchain: data.selector,
+					shardPrefix: params.shardPrefix,
+					seqno: BigInt(params.seqno),
+					source: params.source,
+				}, {
+					sources: [params.source],
+				}))}
 
-	<TonShard_TimestampView
-		selection={pageSelection}
-	/>
+		<TonShard_TimestampView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

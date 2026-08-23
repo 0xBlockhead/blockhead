@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -26,17 +27,19 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.OsmosisPool_Timestamp, {
-				$pool: data.selector,
-				blockHeight: BigInt(params.blockHeight),
-				baseAssetDenom: params.baseAssetDenom,
-				quoteAssetDenom: params.quoteAssetDenom,
-			}, {
-				sources: [
-					Source.Osmosis_LCD_Rest,
-				],
-			})}
-		<title>{data?.title ?? ([pageSelection.entitySelector.baseAssetDenom, pageSelection.entitySelector.quoteAssetDenom].filter(Boolean).join(' ') || 'Osmosis pool timestamp')} • Osmosis pool timestamp • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.OsmosisPool_Timestamp, {
+					$pool: data.selector,
+					blockHeight: BigInt(params.blockHeight),
+					baseAssetDenom: params.baseAssetDenom,
+					quoteAssetDenom: params.quoteAssetDenom,
+				}, {
+					sources: [
+						Source.Osmosis_LCD_Rest,
+					],
+				}))}
+			<title>{data?.title ?? ([pageSelection.entitySelector.baseAssetDenom, pageSelection.entitySelector.quoteAssetDenom].filter(Boolean).join(' ') || 'Osmosis pool timestamp')} • Osmosis pool timestamp • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Osmosis pool timestamp'} • Osmosis pool timestamp • Blockhead</title>
 	{/if}
@@ -45,19 +48,21 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.OsmosisPool_Timestamp, {
-				$pool: data.selector,
-				blockHeight: BigInt(params.blockHeight),
-				baseAssetDenom: params.baseAssetDenom,
-				quoteAssetDenom: params.quoteAssetDenom,
-			}, {
-				sources: [
-					Source.Osmosis_LCD_Rest,
-				],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.OsmosisPool_Timestamp, {
+					$pool: data.selector,
+					blockHeight: BigInt(params.blockHeight),
+					baseAssetDenom: params.baseAssetDenom,
+					quoteAssetDenom: params.quoteAssetDenom,
+				}, {
+					sources: [
+						Source.Osmosis_LCD_Rest,
+					],
+				}))}
 
-	<OsmosisPool_TimestampView
-		selection={pageSelection}
-	/>
+		<OsmosisPool_TimestampView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

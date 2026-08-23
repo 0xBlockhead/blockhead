@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,12 +26,14 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.FilecoinSector, data.selector, {
-				sources: [
-					Source.Lotus_JsonRpc,
-				],
-			})}
-		<title>{data?.title ?? (String(pageSelection.entitySelector.sectorNumber) || 'filecoin sector')} • filecoin sector • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.FilecoinSector, data.selector, {
+					sources: [
+						Source.Lotus_JsonRpc,
+					],
+				}))}
+			<title>{data?.title ?? (String(pageSelection.entitySelector.sectorNumber) || 'filecoin sector')} • filecoin sector • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'filecoin sector'} • filecoin sector • Blockhead</title>
 	{/if}
@@ -39,14 +42,16 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.FilecoinSector, data.selector, {
-				sources: [
-					Source.Lotus_JsonRpc,
-				],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.FilecoinSector, data.selector, {
+					sources: [
+						Source.Lotus_JsonRpc,
+					],
+				}))}
 
-	<FilecoinSectorView
-		selection={pageSelection}
-	/>
+		<FilecoinSectorView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

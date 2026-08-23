@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,11 +26,13 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.ElementsIssuance, {
-				$transaction: data.selector,
-				inputIndex: Number(params.inputIndex),
-			})}
-		<title>{data?.title ?? (String(pageSelection.entitySelector.inputIndex) || 'Elements issuance')} • Elements issuance • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.ElementsIssuance, {
+					$transaction: data.selector,
+					inputIndex: Number(params.inputIndex),
+				}))}
+			<title>{data?.title ?? (String(pageSelection.entitySelector.inputIndex) || 'Elements issuance')} • Elements issuance • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Elements issuance'} • Elements issuance • Blockhead</title>
 	{/if}
@@ -38,13 +41,15 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.ElementsIssuance, {
-				$transaction: data.selector,
-				inputIndex: Number(params.inputIndex),
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.ElementsIssuance, {
+					$transaction: data.selector,
+					inputIndex: Number(params.inputIndex),
+				}))}
 
-	<ElementsIssuanceView
-		selection={pageSelection}
-	/>
+		<ElementsIssuanceView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

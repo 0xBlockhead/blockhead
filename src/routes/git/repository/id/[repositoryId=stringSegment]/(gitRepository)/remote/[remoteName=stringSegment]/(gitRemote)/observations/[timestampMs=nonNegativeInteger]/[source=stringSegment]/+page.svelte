@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,15 +26,17 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.GitFetchObservation, {
-				$repository: data.selector,
-				remoteName: params.remoteName,
-				timestampMs: Number(params.timestampMs),
-				source: params.source,
-			}, {
-				sources: [params.source],
-			})}
-		<title>{data?.title ?? (pageSelection.entitySelector.remoteName || 'Git fetch observation')} • Git fetch observation • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.GitFetchObservation, {
+					$repository: data.selector,
+					remoteName: params.remoteName,
+					timestampMs: Number(params.timestampMs),
+					source: params.source,
+				}, {
+					sources: [params.source],
+				}))}
+			<title>{data?.title ?? (pageSelection.entitySelector.remoteName || 'Git fetch observation')} • Git fetch observation • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Git fetch observation'} • Git fetch observation • Blockhead</title>
 	{/if}
@@ -42,17 +45,19 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.GitFetchObservation, {
-				$repository: data.selector,
-				remoteName: params.remoteName,
-				timestampMs: Number(params.timestampMs),
-				source: params.source,
-			}, {
-				sources: [params.source],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.GitFetchObservation, {
+					$repository: data.selector,
+					remoteName: params.remoteName,
+					timestampMs: Number(params.timestampMs),
+					source: params.source,
+				}, {
+					sources: [params.source],
+				}))}
 
-	<GitFetchObservationView
-		selection={pageSelection}
-	/>
+		<GitFetchObservationView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

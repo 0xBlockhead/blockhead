@@ -9,6 +9,7 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -41,15 +42,17 @@
 >
 	{#snippet Summary()}
 		{#if data?.selector != null}
-			<A2aMessageView
-				selection={
-					select(EntityType.A2aMessage, data.selector, {
-						sources: [],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
+			{#key data.selector}
+				<A2aMessageView
+					selection={
+						untrack(() => select(EntityType.A2aMessage, data.selector, {
+							sources: [],
+						}))
+					}
+					href={detailHref}
+					layout={EntityLayout.SummaryInline}
+				/>
+			{/key}
 		{/if}
 	{/snippet}
 

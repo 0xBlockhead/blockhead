@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,14 +26,16 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.ZeroGServiceRequest, data.selector, {
-				sources: [
-					Source.ZeroGChain_JsonRpc,
-					Source.ZeroGStorageNode_JsonRpc,
-					Source.ZeroGStorageScan_Rest,
-				],
-			})}
-		<title>{data?.title ?? (pageSelection.entitySelector.requestId || 'zero g service request')} • zero g service request • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.ZeroGServiceRequest, data.selector, {
+					sources: [
+						Source.ZeroGChain_JsonRpc,
+						Source.ZeroGStorageNode_JsonRpc,
+						Source.ZeroGStorageScan_Rest,
+					],
+				}))}
+			<title>{data?.title ?? (pageSelection.entitySelector.requestId || 'zero g service request')} • zero g service request • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'zero g service request'} • zero g service request • Blockhead</title>
 	{/if}
@@ -41,16 +44,18 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.ZeroGServiceRequest, data.selector, {
-				sources: [
-					Source.ZeroGChain_JsonRpc,
-					Source.ZeroGStorageNode_JsonRpc,
-					Source.ZeroGStorageScan_Rest,
-				],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.ZeroGServiceRequest, data.selector, {
+					sources: [
+						Source.ZeroGChain_JsonRpc,
+						Source.ZeroGStorageNode_JsonRpc,
+						Source.ZeroGStorageScan_Rest,
+					],
+				}))}
 
-	<ZeroGServiceRequestView
-		selection={pageSelection}
-	/>
+		<ZeroGServiceRequestView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

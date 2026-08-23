@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -26,15 +27,17 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.EasSchema, {
-				$network: data.selector,
-				schemaUid: params.schemaUid,
-			}, {
-				sources: [
-					Source.EasScan_Graphql,
-				],
-			})}
-		<title>{data?.title ?? (pageSelection.entitySelector.schemaUid || 'EAS schema')} • EAS schema • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.EasSchema, {
+					$network: data.selector,
+					schemaUid: params.schemaUid,
+				}, {
+					sources: [
+						Source.EasScan_Graphql,
+					],
+				}))}
+			<title>{data?.title ?? (pageSelection.entitySelector.schemaUid || 'EAS schema')} • EAS schema • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'EAS schema'} • EAS schema • Blockhead</title>
 	{/if}
@@ -43,17 +46,19 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.EasSchema, {
-				$network: data.selector,
-				schemaUid: params.schemaUid,
-			}, {
-				sources: [
-					Source.EasScan_Graphql,
-				],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.EasSchema, {
+					$network: data.selector,
+					schemaUid: params.schemaUid,
+				}, {
+					sources: [
+						Source.EasScan_Graphql,
+					],
+				}))}
 
-	<EasSchemaView
-		selection={pageSelection}
-	/>
+		<EasSchemaView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

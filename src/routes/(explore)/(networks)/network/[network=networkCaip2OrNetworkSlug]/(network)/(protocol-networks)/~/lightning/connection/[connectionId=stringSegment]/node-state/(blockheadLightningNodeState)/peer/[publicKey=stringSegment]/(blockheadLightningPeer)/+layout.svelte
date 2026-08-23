@@ -10,6 +10,7 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -43,18 +44,20 @@
 >
 	{#snippet Summary()}
 		{#if data?.selector != null}
-			<BlockheadLightningPeerView
-				selection={
-					select(EntityType.BlockheadLightningPeer, data.selector, {
-						sources: [
-							Source.LightningLnd_Rest,
-							Source.Local_Internal,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
+			{#key data.selector}
+				<BlockheadLightningPeerView
+					selection={
+						untrack(() => select(EntityType.BlockheadLightningPeer, data.selector, {
+							sources: [
+								Source.LightningLnd_Rest,
+								Source.Local_Internal,
+							],
+						}))
+					}
+					href={detailHref}
+					layout={EntityLayout.SummaryInline}
+				/>
+			{/key}
 		{/if}
 	{/snippet}
 

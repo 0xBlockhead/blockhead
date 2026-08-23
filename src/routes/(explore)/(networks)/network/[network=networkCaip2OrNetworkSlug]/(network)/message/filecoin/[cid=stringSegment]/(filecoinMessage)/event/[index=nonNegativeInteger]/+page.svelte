@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -26,19 +27,21 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.FilecoinMessageEvent, {
-				$message: data.selector,
-				index: Number(params.index),
-			}, {
-				sources: [
-					Source.Filfox_Rest,
-				],
-				fields: {
-					name: true,
-					address: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? 'filecoin message event' : [(pageSelection.entity.name ?? ''), pageSelection.entity.address].filter(Boolean).join(' ') || 'filecoin message event')} • filecoin message event • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.FilecoinMessageEvent, {
+					$message: data.selector,
+					index: Number(params.index),
+				}, {
+					sources: [
+						Source.Filfox_Rest,
+					],
+					fields: {
+						name: true,
+						address: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? 'filecoin message event' : [(pageSelection.entity.name ?? ''), pageSelection.entity.address].filter(Boolean).join(' ') || 'filecoin message event')} • filecoin message event • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'filecoin message event'} • filecoin message event • Blockhead</title>
 	{/if}
@@ -47,21 +50,23 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.FilecoinMessageEvent, {
-				$message: data.selector,
-				index: Number(params.index),
-			}, {
-				sources: [
-					Source.Filfox_Rest,
-				],
-				fields: {
-					name: true,
-					address: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.FilecoinMessageEvent, {
+					$message: data.selector,
+					index: Number(params.index),
+				}, {
+					sources: [
+						Source.Filfox_Rest,
+					],
+					fields: {
+						name: true,
+						address: true,
+					},
+				}))}
 
-	<FilecoinMessageEventView
-		selection={pageSelection}
-	/>
+		<FilecoinMessageEventView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

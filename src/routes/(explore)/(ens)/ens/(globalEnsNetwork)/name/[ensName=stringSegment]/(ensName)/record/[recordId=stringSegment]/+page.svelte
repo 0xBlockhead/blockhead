@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,13 +26,15 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.EnsRecord, data.selector, {
-				sources: [
-					Source.TheGraph_Graphql,
-					Source.Voltaire_JsonRpc,
-				],
-			})}
-		<title>{data?.title ?? (pageSelection.entitySelector.recordKey || 'ENS record')} • ENS record • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.EnsRecord, data.selector, {
+					sources: [
+						Source.TheGraph_Graphql,
+						Source.Voltaire_JsonRpc,
+					],
+				}))}
+			<title>{data?.title ?? (pageSelection.entitySelector.recordKey || 'ENS record')} • ENS record • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'ENS record'} • ENS record • Blockhead</title>
 	{/if}
@@ -40,15 +43,17 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.EnsRecord, data.selector, {
-				sources: [
-					Source.TheGraph_Graphql,
-					Source.Voltaire_JsonRpc,
-				],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.EnsRecord, data.selector, {
+					sources: [
+						Source.TheGraph_Graphql,
+						Source.Voltaire_JsonRpc,
+					],
+				}))}
 
-	<EnsRecordView
-		selection={pageSelection}
-	/>
+		<EnsRecordView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

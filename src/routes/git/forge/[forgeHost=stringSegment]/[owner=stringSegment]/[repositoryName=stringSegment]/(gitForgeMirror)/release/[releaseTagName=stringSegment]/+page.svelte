@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -24,12 +25,14 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.GitForgeRelease, data.selector, {
-				fields: {
-					name: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.releaseTagName ?? '') || 'Git forge release' : (pageSelection.entity.name ?? '') || pageSelection.entitySelector.releaseTagName || 'Git forge release')} • Git forge release • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.GitForgeRelease, data.selector, {
+					fields: {
+						name: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.releaseTagName ?? '') || 'Git forge release' : (pageSelection.entity.name ?? '') || pageSelection.entitySelector.releaseTagName || 'Git forge release')} • Git forge release • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Git forge release'} • Git forge release • Blockhead</title>
 	{/if}
@@ -38,14 +41,16 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.GitForgeRelease, data.selector, {
-				fields: {
-					name: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.GitForgeRelease, data.selector, {
+					fields: {
+						name: true,
+					},
+				}))}
 
-	<GitForgeReleaseView
-		selection={pageSelection}
-	/>
+		<GitForgeReleaseView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

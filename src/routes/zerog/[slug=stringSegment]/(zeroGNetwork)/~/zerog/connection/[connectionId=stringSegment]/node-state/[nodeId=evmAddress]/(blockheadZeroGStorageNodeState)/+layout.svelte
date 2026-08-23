@@ -10,6 +10,7 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -43,18 +44,20 @@
 >
 	{#snippet Summary()}
 		{#if data?.selector != null}
-			<BlockheadZeroGStorageNodeStateView
-				selection={
-					select(EntityType.BlockheadZeroGStorageNodeState, data.selector, {
-						sources: [
-							Source.Local_Internal,
-							Source.ZeroGStorageNode_JsonRpc,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
+			{#key data.selector}
+				<BlockheadZeroGStorageNodeStateView
+					selection={
+						untrack(() => select(EntityType.BlockheadZeroGStorageNodeState, data.selector, {
+							sources: [
+								Source.Local_Internal,
+								Source.ZeroGStorageNode_JsonRpc,
+							],
+						}))
+					}
+					href={detailHref}
+					layout={EntityLayout.SummaryInline}
+				/>
+			{/key}
 		{/if}
 	{/snippet}
 

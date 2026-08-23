@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,17 +26,19 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BitcoinCashCashTokenFungibleAmount, {
-				$output: data.selector,
-			}, {
-				sources: [
-					Source.BitcoinCashNode_JsonRpc,
-				],
-				fields: {
-					amount: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? 'Bitcoin Cash CashToken fungible amount' : String(pageSelection.entity.amount) || 'Bitcoin Cash CashToken fungible amount')} • Bitcoin Cash CashToken fungible amount • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BitcoinCashCashTokenFungibleAmount, {
+					$output: data.selector,
+				}, {
+					sources: [
+						Source.BitcoinCashNode_JsonRpc,
+					],
+					fields: {
+						amount: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? 'Bitcoin Cash CashToken fungible amount' : String(pageSelection.entity.amount) || 'Bitcoin Cash CashToken fungible amount')} • Bitcoin Cash CashToken fungible amount • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Bitcoin Cash CashToken fungible amount'} • Bitcoin Cash CashToken fungible amount • Blockhead</title>
 	{/if}
@@ -44,19 +47,21 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BitcoinCashCashTokenFungibleAmount, {
-				$output: data.selector,
-			}, {
-				sources: [
-					Source.BitcoinCashNode_JsonRpc,
-				],
-				fields: {
-					amount: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BitcoinCashCashTokenFungibleAmount, {
+					$output: data.selector,
+				}, {
+					sources: [
+						Source.BitcoinCashNode_JsonRpc,
+					],
+					fields: {
+						amount: true,
+					},
+				}))}
 
-	<BitcoinCashCashTokenFungibleAmountView
-		selection={pageSelection}
-	/>
+		<BitcoinCashCashTokenFungibleAmountView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

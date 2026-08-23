@@ -10,6 +10,7 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -42,21 +43,23 @@
 >
 	{#snippet Summary()}
 		{#if data?.selector != null}
-			<Erc4626VaultView
-				selection={
-					select(EntityType.Erc4626Vault, data.selector, {
-						sources: [
-							Source.Blockscout_Rest,
-							Source.Defillama_Rest,
-							Source.Etherscan_Rest,
-							Source.Sourcify_Rest,
-							Source.Voltaire_JsonRpc,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
+			{#key data.selector}
+				<Erc4626VaultView
+					selection={
+						untrack(() => select(EntityType.Erc4626Vault, data.selector, {
+							sources: [
+								Source.Blockscout_Rest,
+								Source.Defillama_Rest,
+								Source.Etherscan_Rest,
+								Source.Sourcify_Rest,
+								Source.Voltaire_JsonRpc,
+							],
+						}))
+					}
+					href={detailHref}
+					layout={EntityLayout.SummaryInline}
+				/>
+			{/key}
 		{/if}
 	{/snippet}
 

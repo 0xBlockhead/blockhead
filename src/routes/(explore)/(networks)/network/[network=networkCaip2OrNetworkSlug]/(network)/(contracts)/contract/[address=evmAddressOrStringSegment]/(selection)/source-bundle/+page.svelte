@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -24,10 +25,12 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.EvmContractSourceBundle, {
-				$contract: data.selector,
-			})}
-		<title>{data?.title ?? 'EVM contract source bundle'} • EVM contract source bundle • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.EvmContractSourceBundle, {
+					$contract: data.selector,
+				}))}
+			<title>{data?.title ?? 'EVM contract source bundle'} • EVM contract source bundle • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'EVM contract source bundle'} • EVM contract source bundle • Blockhead</title>
 	{/if}
@@ -36,12 +39,14 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.EvmContractSourceBundle, {
-				$contract: data.selector,
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.EvmContractSourceBundle, {
+					$contract: data.selector,
+				}))}
 
-	<EvmContractSourceBundleView
-		selection={pageSelection}
-	/>
+		<EvmContractSourceBundleView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

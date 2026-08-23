@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,12 +26,14 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BlockheadKaspaNodeState, data.selector, {
-				sources: [
-					Source.Local_Internal,
-				],
-			})}
-		<title>{data?.title ?? (pageSelection.entitySelector.connectionId || 'blockhead kaspa node state')} • blockhead kaspa node state • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BlockheadKaspaNodeState, data.selector, {
+					sources: [
+						Source.Local_Internal,
+					],
+				}))}
+			<title>{data?.title ?? (pageSelection.entitySelector.connectionId || 'blockhead kaspa node state')} • blockhead kaspa node state • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'blockhead kaspa node state'} • blockhead kaspa node state • Blockhead</title>
 	{/if}
@@ -39,14 +42,16 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BlockheadKaspaNodeState, data.selector, {
-				sources: [
-					Source.Local_Internal,
-				],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BlockheadKaspaNodeState, data.selector, {
+					sources: [
+						Source.Local_Internal,
+					],
+				}))}
 
-	<BlockheadKaspaNodeStateView
-		selection={pageSelection}
-	/>
+		<BlockheadKaspaNodeStateView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

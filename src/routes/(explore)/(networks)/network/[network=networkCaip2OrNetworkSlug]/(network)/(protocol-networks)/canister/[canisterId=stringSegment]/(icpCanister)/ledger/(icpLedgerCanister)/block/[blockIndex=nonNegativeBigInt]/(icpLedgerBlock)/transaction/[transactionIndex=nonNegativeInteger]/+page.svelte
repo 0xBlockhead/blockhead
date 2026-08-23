@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,11 +26,13 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.IcpLedgerTransaction, {
-				$block: data.selector,
-				transactionIndex: Number(params.transactionIndex),
-			})}
-		<title>{data?.title ?? 'ICP ledger transaction'} • ICP ledger transaction • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.IcpLedgerTransaction, {
+					$block: data.selector,
+					transactionIndex: Number(params.transactionIndex),
+				}))}
+			<title>{data?.title ?? 'ICP ledger transaction'} • ICP ledger transaction • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'ICP ledger transaction'} • ICP ledger transaction • Blockhead</title>
 	{/if}
@@ -38,13 +41,15 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.IcpLedgerTransaction, {
-				$block: data.selector,
-				transactionIndex: Number(params.transactionIndex),
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.IcpLedgerTransaction, {
+					$block: data.selector,
+					transactionIndex: Number(params.transactionIndex),
+				}))}
 
-	<IcpLedgerTransactionView
-		selection={pageSelection}
-	/>
+		<IcpLedgerTransactionView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

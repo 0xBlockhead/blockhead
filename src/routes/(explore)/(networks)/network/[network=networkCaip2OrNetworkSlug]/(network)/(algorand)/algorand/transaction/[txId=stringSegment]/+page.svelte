@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -24,8 +25,10 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.AlgorandTransaction, data.selector)}
-		<title>{data?.title ?? (pageSelection.entitySelector.txId || 'algorand transaction')} • algorand transaction • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.AlgorandTransaction, data.selector))}
+			<title>{data?.title ?? (pageSelection.entitySelector.txId || 'algorand transaction')} • algorand transaction • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'algorand transaction'} • algorand transaction • Blockhead</title>
 	{/if}
@@ -34,10 +37,12 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.AlgorandTransaction, data.selector)}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.AlgorandTransaction, data.selector))}
 
-	<AlgorandTransactionView
-		selection={pageSelection}
-	/>
+		<AlgorandTransactionView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

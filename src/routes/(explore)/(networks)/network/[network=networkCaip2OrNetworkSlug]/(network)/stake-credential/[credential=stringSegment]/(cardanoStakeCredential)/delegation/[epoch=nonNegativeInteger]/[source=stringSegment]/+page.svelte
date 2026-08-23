@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,14 +26,16 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.CardanoStakeDelegation_Epoch, {
-				$stakeCredential: data.selector,
-				epoch: Number(params.epoch),
-				source: params.source,
-			}, {
-				sources: [params.source],
-			})}
-		<title>{data?.title ?? 'Cardano stake delegation epoch'} • Cardano stake delegation epoch • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.CardanoStakeDelegation_Epoch, {
+					$stakeCredential: data.selector,
+					epoch: Number(params.epoch),
+					source: params.source,
+				}, {
+					sources: [params.source],
+				}))}
+			<title>{data?.title ?? 'Cardano stake delegation epoch'} • Cardano stake delegation epoch • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Cardano stake delegation epoch'} • Cardano stake delegation epoch • Blockhead</title>
 	{/if}
@@ -41,16 +44,18 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.CardanoStakeDelegation_Epoch, {
-				$stakeCredential: data.selector,
-				epoch: Number(params.epoch),
-				source: params.source,
-			}, {
-				sources: [params.source],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.CardanoStakeDelegation_Epoch, {
+					$stakeCredential: data.selector,
+					epoch: Number(params.epoch),
+					source: params.source,
+				}, {
+					sources: [params.source],
+				}))}
 
-	<CardanoStakeDelegation_EpochView
-		selection={pageSelection}
-	/>
+		<CardanoStakeDelegation_EpochView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

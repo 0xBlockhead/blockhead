@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -24,12 +25,14 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.MagnetLink, data.selector, {
-				fields: {
-					displayName: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.magnetUri ?? '') || 'magnet link' : (pageSelection.entity.displayName ?? '') || pageSelection.entitySelector.magnetUri || 'magnet link')} • magnet link • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.MagnetLink, data.selector, {
+					fields: {
+						displayName: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.magnetUri ?? '') || 'magnet link' : (pageSelection.entity.displayName ?? '') || pageSelection.entitySelector.magnetUri || 'magnet link')} • magnet link • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'magnet link'} • magnet link • Blockhead</title>
 	{/if}
@@ -38,14 +41,16 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.MagnetLink, data.selector, {
-				fields: {
-					displayName: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.MagnetLink, data.selector, {
+					fields: {
+						displayName: true,
+					},
+				}))}
 
-	<MagnetLinkView
-		selection={pageSelection}
-	/>
+		<MagnetLinkView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

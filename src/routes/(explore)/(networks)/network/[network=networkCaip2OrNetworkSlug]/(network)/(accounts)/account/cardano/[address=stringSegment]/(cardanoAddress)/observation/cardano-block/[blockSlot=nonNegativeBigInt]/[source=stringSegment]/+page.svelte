@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,17 +26,19 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.CardanoAddress_Timestamp, {
-				$address: data.selector,
-				blockSlot: BigInt(params.blockSlot),
-				source: params.source,
-			}, {
-				sources: [params.source],
-				fields: {
-					timestampMs: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? String(pageSelection.entitySelector.blockSlot ?? '') || 'Cardano address timestamp' : String(pageSelection.entity.timestampMs ?? '') || String(pageSelection.entitySelector.blockSlot) || 'Cardano address timestamp')} • Cardano address timestamp • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.CardanoAddress_Timestamp, {
+					$address: data.selector,
+					blockSlot: BigInt(params.blockSlot),
+					source: params.source,
+				}, {
+					sources: [params.source],
+					fields: {
+						timestampMs: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? String(pageSelection.entitySelector.blockSlot ?? '') || 'Cardano address timestamp' : String(pageSelection.entity.timestampMs ?? '') || String(pageSelection.entitySelector.blockSlot) || 'Cardano address timestamp')} • Cardano address timestamp • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Cardano address timestamp'} • Cardano address timestamp • Blockhead</title>
 	{/if}
@@ -44,19 +47,21 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.CardanoAddress_Timestamp, {
-				$address: data.selector,
-				blockSlot: BigInt(params.blockSlot),
-				source: params.source,
-			}, {
-				sources: [params.source],
-				fields: {
-					timestampMs: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.CardanoAddress_Timestamp, {
+					$address: data.selector,
+					blockSlot: BigInt(params.blockSlot),
+					source: params.source,
+				}, {
+					sources: [params.source],
+					fields: {
+						timestampMs: true,
+					},
+				}))}
 
-	<CardanoAddress_TimestampView
-		selection={pageSelection}
-	/>
+		<CardanoAddress_TimestampView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

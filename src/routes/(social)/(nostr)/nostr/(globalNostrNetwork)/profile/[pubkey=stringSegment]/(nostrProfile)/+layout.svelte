@@ -10,6 +10,7 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -41,19 +42,21 @@
 >
 	{#snippet Summary()}
 		{#if data?.selector != null}
-			<NostrProfileView
-				selection={
-					select(EntityType.NostrProfile, data.selector, {
-						sources: [
-							Source.Constants_Internal,
-							Source.NostrRelay_WebSocket,
-							Source.Primal_Rest,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
+			{#key data.selector}
+				<NostrProfileView
+					selection={
+						untrack(() => select(EntityType.NostrProfile, data.selector, {
+							sources: [
+								Source.Constants_Internal,
+								Source.NostrRelay_WebSocket,
+								Source.Primal_Rest,
+							],
+						}))
+					}
+					href={detailHref}
+					layout={EntityLayout.SummaryInline}
+				/>
+			{/key}
 		{/if}
 	{/snippet}
 

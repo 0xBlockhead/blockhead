@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -26,15 +27,17 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BlockheadTransferRequest, {
-				id: params.id,
-				$network: data.selector,
-			}, {
-				sources: [
-					Source.Local_Internal,
-				],
-			})}
-		<title>{data?.title ?? (pageSelection.entitySelector.id || 'blockhead transfer request')} • blockhead transfer request • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BlockheadTransferRequest, {
+					id: params.id,
+					$network: data.selector,
+				}, {
+					sources: [
+						Source.Local_Internal,
+					],
+				}))}
+			<title>{data?.title ?? (pageSelection.entitySelector.id || 'blockhead transfer request')} • blockhead transfer request • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'blockhead transfer request'} • blockhead transfer request • Blockhead</title>
 	{/if}
@@ -43,17 +46,19 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BlockheadTransferRequest, {
-				id: params.id,
-				$network: data.selector,
-			}, {
-				sources: [
-					Source.Local_Internal,
-				],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BlockheadTransferRequest, {
+					id: params.id,
+					$network: data.selector,
+				}, {
+					sources: [
+						Source.Local_Internal,
+					],
+				}))}
 
-	<BlockheadTransferRequestView
-		selection={pageSelection}
-	/>
+		<BlockheadTransferRequestView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,15 +26,17 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BitTorrentPeer_Timestamp, {
-				$torrent: data.selector,
-				peerId: params.peerId,
-				timestampMs: Number(params.timestampMs),
-				source: params.source,
-			}, {
-				sources: [params.source],
-			})}
-		<title>{data?.title ?? (pageSelection.entitySelector.peerId || 'bit torrent peer timestamp')} • bit torrent peer timestamp • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BitTorrentPeer_Timestamp, {
+					$torrent: data.selector,
+					peerId: params.peerId,
+					timestampMs: Number(params.timestampMs),
+					source: params.source,
+				}, {
+					sources: [params.source],
+				}))}
+			<title>{data?.title ?? (pageSelection.entitySelector.peerId || 'bit torrent peer timestamp')} • bit torrent peer timestamp • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'bit torrent peer timestamp'} • bit torrent peer timestamp • Blockhead</title>
 	{/if}
@@ -42,17 +45,19 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BitTorrentPeer_Timestamp, {
-				$torrent: data.selector,
-				peerId: params.peerId,
-				timestampMs: Number(params.timestampMs),
-				source: params.source,
-			}, {
-				sources: [params.source],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BitTorrentPeer_Timestamp, {
+					$torrent: data.selector,
+					peerId: params.peerId,
+					timestampMs: Number(params.timestampMs),
+					source: params.source,
+				}, {
+					sources: [params.source],
+				}))}
 
-	<BitTorrentPeer_TimestampView
-		selection={pageSelection}
-	/>
+		<BitTorrentPeer_TimestampView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

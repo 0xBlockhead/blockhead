@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,15 +26,17 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.NetworkUpgrade, data.selector, {
-				sources: [
-					Source.Constants_Internal,
-				],
-				fields: {
-					name: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.upgradeId ?? '') || 'network upgrade' : [pageSelection.entity.name, pageSelection.entitySelector.upgradeId].filter(Boolean).join(' ') || 'network upgrade')} • network upgrade • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.NetworkUpgrade, data.selector, {
+					sources: [
+						Source.Constants_Internal,
+					],
+					fields: {
+						name: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.upgradeId ?? '') || 'network upgrade' : [pageSelection.entity.name, pageSelection.entitySelector.upgradeId].filter(Boolean).join(' ') || 'network upgrade')} • network upgrade • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'network upgrade'} • network upgrade • Blockhead</title>
 	{/if}
@@ -42,17 +45,19 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.NetworkUpgrade, data.selector, {
-				sources: [
-					Source.Constants_Internal,
-				],
-				fields: {
-					name: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.NetworkUpgrade, data.selector, {
+					sources: [
+						Source.Constants_Internal,
+					],
+					fields: {
+						name: true,
+					},
+				}))}
 
-	<NetworkUpgradeView
-		selection={pageSelection}
-	/>
+		<NetworkUpgradeView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

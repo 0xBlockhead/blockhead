@@ -10,6 +10,7 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -41,18 +42,20 @@
 >
 	{#snippet Summary()}
 		{#if data?.selector != null}
-			<RssFeedView
-				selection={
-					select(EntityType.RssFeed, data.selector, {
-						sources: [
-							Source.Rss_Rest,
-							Source.Rss2Json_Rest,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
+			{#key data.selector}
+				<RssFeedView
+					selection={
+						untrack(() => select(EntityType.RssFeed, data.selector, {
+							sources: [
+								Source.Rss_Rest,
+								Source.Rss2Json_Rest,
+							],
+						}))
+					}
+					href={detailHref}
+					layout={EntityLayout.SummaryInline}
+				/>
+			{/key}
 		{/if}
 	{/snippet}
 

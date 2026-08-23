@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,13 +26,15 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.Eip8004AgentRegistration, data.selector, {
-				sources: [
-					Source.Eip8004Scan_Rest,
-					Source.Voltaire_JsonRpc,
-				],
-			})}
-		<title>{data?.title ?? (pageSelection.entitySelector.agentId || 'EIP-8004 agent registration')} • EIP-8004 agent registration • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.Eip8004AgentRegistration, data.selector, {
+					sources: [
+						Source.Eip8004Scan_Rest,
+						Source.Voltaire_JsonRpc,
+					],
+				}))}
+			<title>{data?.title ?? (pageSelection.entitySelector.agentId || 'EIP-8004 agent registration')} • EIP-8004 agent registration • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'EIP-8004 agent registration'} • EIP-8004 agent registration • Blockhead</title>
 	{/if}
@@ -40,15 +43,17 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.Eip8004AgentRegistration, data.selector, {
-				sources: [
-					Source.Eip8004Scan_Rest,
-					Source.Voltaire_JsonRpc,
-				],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.Eip8004AgentRegistration, data.selector, {
+					sources: [
+						Source.Eip8004Scan_Rest,
+						Source.Voltaire_JsonRpc,
+					],
+				}))}
 
-	<Eip8004AgentRegistrationView
-		selection={pageSelection}
-	/>
+		<Eip8004AgentRegistrationView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

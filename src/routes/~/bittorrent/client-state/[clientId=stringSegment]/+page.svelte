@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -24,12 +25,14 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BlockheadBitTorrentClientState, data.selector, {
-				fields: {
-					clientName: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.clientId ?? '') || 'blockhead bit torrent client state' : (pageSelection.entity.clientName ?? '') || pageSelection.entitySelector.clientId || 'blockhead bit torrent client state')} • blockhead bit torrent client state • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BlockheadBitTorrentClientState, data.selector, {
+					fields: {
+						clientName: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.clientId ?? '') || 'blockhead bit torrent client state' : (pageSelection.entity.clientName ?? '') || pageSelection.entitySelector.clientId || 'blockhead bit torrent client state')} • blockhead bit torrent client state • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'blockhead bit torrent client state'} • blockhead bit torrent client state • Blockhead</title>
 	{/if}
@@ -38,14 +41,16 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BlockheadBitTorrentClientState, data.selector, {
-				fields: {
-					clientName: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BlockheadBitTorrentClientState, data.selector, {
+					fields: {
+						clientName: true,
+					},
+				}))}
 
-	<BlockheadBitTorrentClientStateView
-		selection={pageSelection}
-	/>
+		<BlockheadBitTorrentClientStateView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

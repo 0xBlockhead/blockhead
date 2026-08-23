@@ -9,6 +9,7 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -43,11 +44,13 @@
 >
 	{#snippet Summary()}
 		{#if data?.selector != null}
-			<BlockheadCashuProofView
-				selection={select(EntityType.BlockheadCashuProof, data.selector)}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
+			{#key data.selector}
+				<BlockheadCashuProofView
+					selection={untrack(() => select(EntityType.BlockheadCashuProof, data.selector))}
+					href={detailHref}
+					layout={EntityLayout.SummaryInline}
+				/>
+			{/key}
 		{/if}
 	{/snippet}
 

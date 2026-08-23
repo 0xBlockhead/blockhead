@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,15 +26,17 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.CompoundPosition, data.selector, {
-				sources: [
-					Source.Compound_Rest,
-				],
-				fields: {
-					baseTokenSymbol: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? 'Compound position' : pageSelection.entity.baseTokenSymbol || 'Compound position')} • Compound position • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.CompoundPosition, data.selector, {
+					sources: [
+						Source.Compound_Rest,
+					],
+					fields: {
+						baseTokenSymbol: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? 'Compound position' : pageSelection.entity.baseTokenSymbol || 'Compound position')} • Compound position • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Compound position'} • Compound position • Blockhead</title>
 	{/if}
@@ -42,17 +45,19 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.CompoundPosition, data.selector, {
-				sources: [
-					Source.Compound_Rest,
-				],
-				fields: {
-					baseTokenSymbol: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.CompoundPosition, data.selector, {
+					sources: [
+						Source.Compound_Rest,
+					],
+					fields: {
+						baseTokenSymbol: true,
+					},
+				}))}
 
-	<CompoundPositionView
-		selection={pageSelection}
-	/>
+		<CompoundPositionView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

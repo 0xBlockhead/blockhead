@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -24,13 +25,15 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.ScalingDeploymentClaim, data.selector, {
-				sources: [data.selector.source],
-				fields: {
-					scalingDeploymentClaimId: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.sourceProjectId ?? '') || 'scaling deployment claim' : [pageSelection.entitySelector.sourceProjectId, (pageSelection.entity.scalingDeploymentClaimId ?? '')].filter(Boolean).join(' ') || 'scaling deployment claim')} • scaling deployment claim • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.ScalingDeploymentClaim, data.selector, {
+					sources: [data.selector.source],
+					fields: {
+						scalingDeploymentClaimId: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.sourceProjectId ?? '') || 'scaling deployment claim' : [pageSelection.entitySelector.sourceProjectId, (pageSelection.entity.scalingDeploymentClaimId ?? '')].filter(Boolean).join(' ') || 'scaling deployment claim')} • scaling deployment claim • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'scaling deployment claim'} • scaling deployment claim • Blockhead</title>
 	{/if}
@@ -39,15 +42,17 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.ScalingDeploymentClaim, data.selector, {
-				sources: [data.selector.source],
-				fields: {
-					scalingDeploymentClaimId: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.ScalingDeploymentClaim, data.selector, {
+					sources: [data.selector.source],
+					fields: {
+						scalingDeploymentClaimId: true,
+					},
+				}))}
 
-	<ScalingDeploymentClaimView
-		selection={pageSelection}
-	/>
+		<ScalingDeploymentClaimView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

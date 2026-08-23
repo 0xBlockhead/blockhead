@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,16 +26,18 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BlockheadMoneroSubaddressState, data.selector, {
-				sources: [
-					Source.Local_Internal,
-					Source.MoneroWalletRpc_JsonRpc,
-				],
-				fields: {
-					address: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.walletId ?? '') || 'blockhead monero subaddress state' : (pageSelection.entity.address ?? '') || pageSelection.entitySelector.walletId || 'blockhead monero subaddress state')} • blockhead monero subaddress state • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BlockheadMoneroSubaddressState, data.selector, {
+					sources: [
+						Source.Local_Internal,
+						Source.MoneroWalletRpc_JsonRpc,
+					],
+					fields: {
+						address: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.walletId ?? '') || 'blockhead monero subaddress state' : (pageSelection.entity.address ?? '') || pageSelection.entitySelector.walletId || 'blockhead monero subaddress state')} • blockhead monero subaddress state • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'blockhead monero subaddress state'} • blockhead monero subaddress state • Blockhead</title>
 	{/if}
@@ -43,18 +46,20 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BlockheadMoneroSubaddressState, data.selector, {
-				sources: [
-					Source.Local_Internal,
-					Source.MoneroWalletRpc_JsonRpc,
-				],
-				fields: {
-					address: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BlockheadMoneroSubaddressState, data.selector, {
+					sources: [
+						Source.Local_Internal,
+						Source.MoneroWalletRpc_JsonRpc,
+					],
+					fields: {
+						address: true,
+					},
+				}))}
 
-	<BlockheadMoneroSubaddressStateView
-		selection={pageSelection}
-	/>
+		<BlockheadMoneroSubaddressStateView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

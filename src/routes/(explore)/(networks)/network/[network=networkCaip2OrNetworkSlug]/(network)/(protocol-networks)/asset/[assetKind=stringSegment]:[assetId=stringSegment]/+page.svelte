@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,12 +26,14 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.PolkadotAsset, data.selector, {
-				sources: [
-					Source.SubstrateSidecar_Rest,
-				],
-			})}
-		<title>{data?.title ?? (pageSelection.entitySelector.assetId || 'Polkadot asset')} • Polkadot asset • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.PolkadotAsset, data.selector, {
+					sources: [
+						Source.SubstrateSidecar_Rest,
+					],
+				}))}
+			<title>{data?.title ?? (pageSelection.entitySelector.assetId || 'Polkadot asset')} • Polkadot asset • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Polkadot asset'} • Polkadot asset • Blockhead</title>
 	{/if}
@@ -39,14 +42,16 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.PolkadotAsset, data.selector, {
-				sources: [
-					Source.SubstrateSidecar_Rest,
-				],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.PolkadotAsset, data.selector, {
+					sources: [
+						Source.SubstrateSidecar_Rest,
+					],
+				}))}
 
-	<PolkadotAssetView
-		selection={pageSelection}
-	/>
+		<PolkadotAssetView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

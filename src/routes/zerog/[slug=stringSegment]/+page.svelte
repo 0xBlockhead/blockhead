@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,15 +26,17 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.ZeroGNetwork, data.selector, {
-				sources: [
-					Source.Constants_Internal,
-				],
-				fields: {
-					name: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? 'zero g network' : pageSelection.entity.name || 'zero g network')} • zero g network • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.ZeroGNetwork, data.selector, {
+					sources: [
+						Source.Constants_Internal,
+					],
+					fields: {
+						name: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? 'zero g network' : pageSelection.entity.name || 'zero g network')} • zero g network • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'zero g network'} • zero g network • Blockhead</title>
 	{/if}
@@ -42,17 +45,19 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.ZeroGNetwork, data.selector, {
-				sources: [
-					Source.Constants_Internal,
-				],
-				fields: {
-					name: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.ZeroGNetwork, data.selector, {
+					sources: [
+						Source.Constants_Internal,
+					],
+					fields: {
+						name: true,
+					},
+				}))}
 
-	<ZeroGNetworkView
-		selection={pageSelection}
-	/>
+		<ZeroGNetworkView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

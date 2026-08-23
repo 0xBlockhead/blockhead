@@ -10,6 +10,7 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -42,18 +43,20 @@
 >
 	{#snippet Summary()}
 		{#if data?.selector != null}
-			<MorphoMarketView
-				selection={
-					select(EntityType.MorphoMarket, data.selector, {
-						sources: [
-							Source.Morpho_Graphql,
-							Source.Morpho_Rest,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
+			{#key data.selector}
+				<MorphoMarketView
+					selection={
+						untrack(() => select(EntityType.MorphoMarket, data.selector, {
+							sources: [
+								Source.Morpho_Graphql,
+								Source.Morpho_Rest,
+							],
+						}))
+					}
+					href={detailHref}
+					layout={EntityLayout.SummaryInline}
+				/>
+			{/key}
 		{/if}
 	{/snippet}
 

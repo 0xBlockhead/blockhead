@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -26,18 +27,20 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.GmxMarket, {
-				$network: data.selector,
-				marketTokenAddress: params.marketTokenAddress,
-			}, {
-				sources: [
-					Source.Gmx_Rest,
-				],
-				fields: {
-					name: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? 'GMX market' : pageSelection.entity.name || 'GMX market')} • GMX market • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.GmxMarket, {
+					$network: data.selector,
+					marketTokenAddress: params.marketTokenAddress,
+				}, {
+					sources: [
+						Source.Gmx_Rest,
+					],
+					fields: {
+						name: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? 'GMX market' : pageSelection.entity.name || 'GMX market')} • GMX market • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'GMX market'} • GMX market • Blockhead</title>
 	{/if}
@@ -46,20 +49,22 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.GmxMarket, {
-				$network: data.selector,
-				marketTokenAddress: params.marketTokenAddress,
-			}, {
-				sources: [
-					Source.Gmx_Rest,
-				],
-				fields: {
-					name: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.GmxMarket, {
+					$network: data.selector,
+					marketTokenAddress: params.marketTokenAddress,
+				}, {
+					sources: [
+						Source.Gmx_Rest,
+					],
+					fields: {
+						name: true,
+					},
+				}))}
 
-	<GmxMarketView
-		selection={pageSelection}
-	/>
+		<GmxMarketView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

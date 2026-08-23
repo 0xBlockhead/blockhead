@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -26,15 +27,17 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BlockheadAgentProviderCall, {
-				$turn: data.selector,
-				indexInTurn: Number(params.indexInTurn),
-			}, {
-				sources: [
-					Source.Local_Internal,
-				],
-			})}
-		<title>{data?.title ?? ((String(pageSelection.entitySelector.indexInTurn ?? '') ? 'Call #' + String(pageSelection.entitySelector.indexInTurn ?? '') : '') || 'blockhead agent provider call')} • blockhead agent provider call • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BlockheadAgentProviderCall, {
+					$turn: data.selector,
+					indexInTurn: Number(params.indexInTurn),
+				}, {
+					sources: [
+						Source.Local_Internal,
+					],
+				}))}
+			<title>{data?.title ?? ((String(pageSelection.entitySelector.indexInTurn ?? '') ? 'Call #' + String(pageSelection.entitySelector.indexInTurn ?? '') : '') || 'blockhead agent provider call')} • blockhead agent provider call • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'blockhead agent provider call'} • blockhead agent provider call • Blockhead</title>
 	{/if}
@@ -43,17 +46,19 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BlockheadAgentProviderCall, {
-				$turn: data.selector,
-				indexInTurn: Number(params.indexInTurn),
-			}, {
-				sources: [
-					Source.Local_Internal,
-				],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BlockheadAgentProviderCall, {
+					$turn: data.selector,
+					indexInTurn: Number(params.indexInTurn),
+				}, {
+					sources: [
+						Source.Local_Internal,
+					],
+				}))}
 
-	<BlockheadAgentProviderCallView
-		selection={pageSelection}
-	/>
+		<BlockheadAgentProviderCallView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

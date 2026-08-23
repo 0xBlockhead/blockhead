@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,12 +26,14 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.DogecoinBlockAuxPow, data.selector, {
-				sources: [
-					Source.DogecoinCore_JsonRpc,
-				],
-			})}
-		<title>{data?.title ?? 'dogecoin block aux pow'} • dogecoin block aux pow • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.DogecoinBlockAuxPow, data.selector, {
+					sources: [
+						Source.DogecoinCore_JsonRpc,
+					],
+				}))}
+			<title>{data?.title ?? 'dogecoin block aux pow'} • dogecoin block aux pow • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'dogecoin block aux pow'} • dogecoin block aux pow • Blockhead</title>
 	{/if}
@@ -39,14 +42,16 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.DogecoinBlockAuxPow, data.selector, {
-				sources: [
-					Source.DogecoinCore_JsonRpc,
-				],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.DogecoinBlockAuxPow, data.selector, {
+					sources: [
+						Source.DogecoinCore_JsonRpc,
+					],
+				}))}
 
-	<DogecoinBlockAuxPowView
-		selection={pageSelection}
-	/>
+		<DogecoinBlockAuxPowView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

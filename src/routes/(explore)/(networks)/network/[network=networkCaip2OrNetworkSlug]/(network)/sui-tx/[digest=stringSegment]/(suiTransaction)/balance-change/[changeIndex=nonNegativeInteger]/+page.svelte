@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,11 +26,13 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.SuiBalanceChange, {
-				$transaction: data.selector,
-				changeIndex: Number(params.changeIndex),
-			})}
-		<title>{data?.title ?? 'Sui balance change'} • Sui balance change • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.SuiBalanceChange, {
+					$transaction: data.selector,
+					changeIndex: Number(params.changeIndex),
+				}))}
+			<title>{data?.title ?? 'Sui balance change'} • Sui balance change • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Sui balance change'} • Sui balance change • Blockhead</title>
 	{/if}
@@ -38,13 +41,15 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.SuiBalanceChange, {
-				$transaction: data.selector,
-				changeIndex: Number(params.changeIndex),
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.SuiBalanceChange, {
+					$transaction: data.selector,
+					changeIndex: Number(params.changeIndex),
+				}))}
 
-	<SuiBalanceChangeView
-		selection={pageSelection}
-	/>
+		<SuiBalanceChangeView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

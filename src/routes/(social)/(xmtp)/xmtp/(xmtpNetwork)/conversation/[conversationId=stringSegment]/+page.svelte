@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,16 +26,18 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.XmtpConversation, data.selector, {
-				sources: [
-					Source.Local_Internal,
-				],
-				fields: {
-					topic: true,
-					peerInboxId: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.id ?? '') || 'XMTP conversation' : [(pageSelection.entity.topic ?? ''), (pageSelection.entity.peerInboxId ?? ''), pageSelection.entitySelector.id].filter(Boolean).join(' ') || 'XMTP conversation')} • XMTP conversation • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.XmtpConversation, data.selector, {
+					sources: [
+						Source.Local_Internal,
+					],
+					fields: {
+						topic: true,
+						peerInboxId: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.id ?? '') || 'XMTP conversation' : [(pageSelection.entity.topic ?? ''), (pageSelection.entity.peerInboxId ?? ''), pageSelection.entitySelector.id].filter(Boolean).join(' ') || 'XMTP conversation')} • XMTP conversation • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'XMTP conversation'} • XMTP conversation • Blockhead</title>
 	{/if}
@@ -43,18 +46,20 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.XmtpConversation, data.selector, {
-				sources: [
-					Source.Local_Internal,
-				],
-				fields: {
-					topic: true,
-					peerInboxId: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.XmtpConversation, data.selector, {
+					sources: [
+						Source.Local_Internal,
+					],
+					fields: {
+						topic: true,
+						peerInboxId: true,
+					},
+				}))}
 
-	<XmtpConversationView
-		selection={pageSelection}
-	/>
+		<XmtpConversationView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

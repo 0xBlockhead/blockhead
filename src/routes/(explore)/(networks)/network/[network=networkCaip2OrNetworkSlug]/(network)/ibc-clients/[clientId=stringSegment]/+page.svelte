@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -24,8 +25,10 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.IbcClient, data.selector)}
-		<title>{data?.title ?? (pageSelection.entitySelector.clientId || 'IBC client')} • IBC client • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.IbcClient, data.selector))}
+			<title>{data?.title ?? (pageSelection.entitySelector.clientId || 'IBC client')} • IBC client • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'IBC client'} • IBC client • Blockhead</title>
 	{/if}
@@ -34,10 +37,12 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.IbcClient, data.selector)}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.IbcClient, data.selector))}
 
-	<IbcClientView
-		selection={pageSelection}
-	/>
+		<IbcClientView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,13 +26,15 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.SolanaInstruction, {
-				$transaction: data.selector.$transaction,
-				instructionKind: params.instructionKind,
-				indexInTransaction: Number(params.indexInTransaction),
-				indexInInstruction: Number(params.indexInInstruction),
-			})}
-		<title>{data?.title ?? 'solana instruction'} • solana instruction • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.SolanaInstruction, {
+					$transaction: data.selector.$transaction,
+					instructionKind: params.instructionKind,
+					indexInTransaction: Number(params.indexInTransaction),
+					indexInInstruction: Number(params.indexInInstruction),
+				}))}
+			<title>{data?.title ?? 'solana instruction'} • solana instruction • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'solana instruction'} • solana instruction • Blockhead</title>
 	{/if}
@@ -40,15 +43,17 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.SolanaInstruction, {
-				$transaction: data.selector.$transaction,
-				instructionKind: params.instructionKind,
-				indexInTransaction: Number(params.indexInTransaction),
-				indexInInstruction: Number(params.indexInInstruction),
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.SolanaInstruction, {
+					$transaction: data.selector.$transaction,
+					instructionKind: params.instructionKind,
+					indexInTransaction: Number(params.indexInTransaction),
+					indexInInstruction: Number(params.indexInInstruction),
+				}))}
 
-	<SolanaInstructionView
-		selection={pageSelection}
-	/>
+		<SolanaInstructionView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

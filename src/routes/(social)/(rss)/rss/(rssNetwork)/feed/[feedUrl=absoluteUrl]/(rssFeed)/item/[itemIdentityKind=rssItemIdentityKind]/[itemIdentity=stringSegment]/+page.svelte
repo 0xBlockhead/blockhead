@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,16 +26,18 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.RssItem, data.selector, {
-				sources: [
-					Source.Rss_Rest,
-					Source.Rss2Json_Rest,
-				],
-				fields: {
-					title: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.itemIdentity ?? '') || 'RSS item' : [(pageSelection.entity.title ?? ''), pageSelection.entitySelector.itemIdentity].filter(Boolean).join(' ') || 'RSS item')} • RSS item • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.RssItem, data.selector, {
+					sources: [
+						Source.Rss_Rest,
+						Source.Rss2Json_Rest,
+					],
+					fields: {
+						title: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.itemIdentity ?? '') || 'RSS item' : [(pageSelection.entity.title ?? ''), pageSelection.entitySelector.itemIdentity].filter(Boolean).join(' ') || 'RSS item')} • RSS item • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'RSS item'} • RSS item • Blockhead</title>
 	{/if}
@@ -43,18 +46,20 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.RssItem, data.selector, {
-				sources: [
-					Source.Rss_Rest,
-					Source.Rss2Json_Rest,
-				],
-				fields: {
-					title: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.RssItem, data.selector, {
+					sources: [
+						Source.Rss_Rest,
+						Source.Rss2Json_Rest,
+					],
+					fields: {
+						title: true,
+					},
+				}))}
 
-	<RssItemView
-		selection={pageSelection}
-	/>
+		<RssItemView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

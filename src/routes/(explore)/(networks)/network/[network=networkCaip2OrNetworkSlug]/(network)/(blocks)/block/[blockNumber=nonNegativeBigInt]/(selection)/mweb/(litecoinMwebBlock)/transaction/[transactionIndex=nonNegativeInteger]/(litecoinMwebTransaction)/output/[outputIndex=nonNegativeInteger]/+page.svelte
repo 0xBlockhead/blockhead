@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -26,18 +27,20 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.LitecoinMwebOutput, {
-				$transaction: data.selector,
-				outputIndex: Number(params.outputIndex),
-			}, {
-				sources: [
-					Source.LitecoinCore_JsonRpc,
-				],
-				fields: {
-					commitment: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? 'litecoin MWEB output' : (pageSelection.entity.commitment ?? '') || 'litecoin MWEB output')} • litecoin MWEB output • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.LitecoinMwebOutput, {
+					$transaction: data.selector,
+					outputIndex: Number(params.outputIndex),
+				}, {
+					sources: [
+						Source.LitecoinCore_JsonRpc,
+					],
+					fields: {
+						commitment: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? 'litecoin MWEB output' : (pageSelection.entity.commitment ?? '') || 'litecoin MWEB output')} • litecoin MWEB output • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'litecoin MWEB output'} • litecoin MWEB output • Blockhead</title>
 	{/if}
@@ -46,20 +49,22 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.LitecoinMwebOutput, {
-				$transaction: data.selector,
-				outputIndex: Number(params.outputIndex),
-			}, {
-				sources: [
-					Source.LitecoinCore_JsonRpc,
-				],
-				fields: {
-					commitment: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.LitecoinMwebOutput, {
+					$transaction: data.selector,
+					outputIndex: Number(params.outputIndex),
+				}, {
+					sources: [
+						Source.LitecoinCore_JsonRpc,
+					],
+					fields: {
+						commitment: true,
+					},
+				}))}
 
-	<LitecoinMwebOutputView
-		selection={pageSelection}
-	/>
+		<LitecoinMwebOutputView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

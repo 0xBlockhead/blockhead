@@ -10,6 +10,7 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -41,17 +42,19 @@
 >
 	{#snippet Summary()}
 		{#if data?.selector != null}
-			<TallyProposalView
-				selection={
-					select(EntityType.TallyProposal, data.selector, {
-						sources: [
-							Source.Tally,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
+			{#key data.selector}
+				<TallyProposalView
+					selection={
+						untrack(() => select(EntityType.TallyProposal, data.selector, {
+							sources: [
+								Source.Tally,
+							],
+						}))
+					}
+					href={detailHref}
+					layout={EntityLayout.SummaryInline}
+				/>
+			{/key}
 		{/if}
 	{/snippet}
 

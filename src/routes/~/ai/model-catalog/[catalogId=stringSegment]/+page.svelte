@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -24,8 +25,10 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType._GlobalAiModelCatalog, data.selector)}
-		<title>{data?.title ?? 'global AI model catalog'} • global AI model catalog • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType._GlobalAiModelCatalog, data.selector))}
+			<title>{data?.title ?? 'global AI model catalog'} • global AI model catalog • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'global AI model catalog'} • global AI model catalog • Blockhead</title>
 	{/if}
@@ -34,10 +37,12 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType._GlobalAiModelCatalog, data.selector)}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType._GlobalAiModelCatalog, data.selector))}
 
-	<GlobalAiModelCatalogView
-		selection={pageSelection}
-	/>
+		<GlobalAiModelCatalogView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

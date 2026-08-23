@@ -10,6 +10,7 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -44,17 +45,19 @@
 >
 	{#snippet Summary()}
 		{#if data?.selector != null}
-			<MoneroKeyImageView
-				selection={
-					select(EntityType.MoneroKeyImage, data.selector, {
-						sources: [
-							Source.MoneroDaemonRpc_JsonRpc,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
+			{#key data.selector}
+				<MoneroKeyImageView
+					selection={
+						untrack(() => select(EntityType.MoneroKeyImage, data.selector, {
+							sources: [
+								Source.MoneroDaemonRpc_JsonRpc,
+							],
+						}))
+					}
+					href={detailHref}
+					layout={EntityLayout.SummaryInline}
+				/>
+			{/key}
 		{/if}
 	{/snippet}
 

@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,15 +26,17 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.CardanoScriptWitness, {
-				$transaction: data.selector,
-				witnessIndex: Number(params.witnessIndex),
-			}, {
-				fields: {
-					scriptKind: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? 'Script #' + String(pageSelection.entitySelector.witnessIndex ?? '') : [pageSelection.entity.scriptKind, 'Script #' + String(pageSelection.entitySelector.witnessIndex)].filter(Boolean).join(' ') || 'Cardano script witness')} • Cardano script witness • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.CardanoScriptWitness, {
+					$transaction: data.selector,
+					witnessIndex: Number(params.witnessIndex),
+				}, {
+					fields: {
+						scriptKind: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? 'Script #' + String(pageSelection.entitySelector.witnessIndex ?? '') : [pageSelection.entity.scriptKind, 'Script #' + String(pageSelection.entitySelector.witnessIndex)].filter(Boolean).join(' ') || 'Cardano script witness')} • Cardano script witness • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Cardano script witness'} • Cardano script witness • Blockhead</title>
 	{/if}
@@ -42,17 +45,19 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.CardanoScriptWitness, {
-				$transaction: data.selector,
-				witnessIndex: Number(params.witnessIndex),
-			}, {
-				fields: {
-					scriptKind: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.CardanoScriptWitness, {
+					$transaction: data.selector,
+					witnessIndex: Number(params.witnessIndex),
+				}, {
+					fields: {
+						scriptKind: true,
+					},
+				}))}
 
-	<CardanoScriptWitnessView
-		selection={pageSelection}
-	/>
+		<CardanoScriptWitnessView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

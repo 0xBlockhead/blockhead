@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -26,15 +27,17 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.McpServerPackageVersion, {
-				$package: data.selector,
-				version: params.version,
-			}, {
-				sources: [
-					Source.McpPackageRegistry_Rest,
-				],
-			})}
-		<title>{data?.title ?? ((pageSelection.entitySelector.version ?? '') || 'mcp server package version')} • mcp server package version • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.McpServerPackageVersion, {
+					$package: data.selector,
+					version: params.version,
+				}, {
+					sources: [
+						Source.McpPackageRegistry_Rest,
+					],
+				}))}
+			<title>{data?.title ?? ((pageSelection.entitySelector.version ?? '') || 'mcp server package version')} • mcp server package version • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'mcp server package version'} • mcp server package version • Blockhead</title>
 	{/if}
@@ -43,17 +46,19 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.McpServerPackageVersion, {
-				$package: data.selector,
-				version: params.version,
-			}, {
-				sources: [
-					Source.McpPackageRegistry_Rest,
-				],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.McpServerPackageVersion, {
+					$package: data.selector,
+					version: params.version,
+				}, {
+					sources: [
+						Source.McpPackageRegistry_Rest,
+					],
+				}))}
 
-	<McpServerPackageVersionView
-		selection={pageSelection}
-	/>
+		<McpServerPackageVersionView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

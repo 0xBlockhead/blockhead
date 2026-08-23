@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,12 +26,14 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.QuilibriumShard, data.selector, {
-				sources: [
-					Source.QuilibriumNode_Grpc,
-				],
-			})}
-		<title>{data?.title ?? (pageSelection.entitySelector.shardKey || 'quilibrium shard')} • quilibrium shard • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.QuilibriumShard, data.selector, {
+					sources: [
+						Source.QuilibriumNode_Grpc,
+					],
+				}))}
+			<title>{data?.title ?? (pageSelection.entitySelector.shardKey || 'quilibrium shard')} • quilibrium shard • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'quilibrium shard'} • quilibrium shard • Blockhead</title>
 	{/if}
@@ -39,14 +42,16 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.QuilibriumShard, data.selector, {
-				sources: [
-					Source.QuilibriumNode_Grpc,
-				],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.QuilibriumShard, data.selector, {
+					sources: [
+						Source.QuilibriumNode_Grpc,
+					],
+				}))}
 
-	<QuilibriumShardView
-		selection={pageSelection}
-	/>
+		<QuilibriumShardView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

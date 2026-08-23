@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,13 +26,15 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.StarknetStorageEntry, data.selector, {
-				sources: [
-					Source.Juno_JsonRpc,
-					Source.Pathfinder,
-				],
-			})}
-		<title>{data?.title ?? (pageSelection.entitySelector.storageKey || 'starknet storage entry')} • starknet storage entry • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.StarknetStorageEntry, data.selector, {
+					sources: [
+						Source.Juno_JsonRpc,
+						Source.Pathfinder,
+					],
+				}))}
+			<title>{data?.title ?? (pageSelection.entitySelector.storageKey || 'starknet storage entry')} • starknet storage entry • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'starknet storage entry'} • starknet storage entry • Blockhead</title>
 	{/if}
@@ -40,15 +43,17 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.StarknetStorageEntry, data.selector, {
-				sources: [
-					Source.Juno_JsonRpc,
-					Source.Pathfinder,
-				],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.StarknetStorageEntry, data.selector, {
+					sources: [
+						Source.Juno_JsonRpc,
+						Source.Pathfinder,
+					],
+				}))}
 
-	<StarknetStorageEntryView
-		selection={pageSelection}
-	/>
+		<StarknetStorageEntryView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

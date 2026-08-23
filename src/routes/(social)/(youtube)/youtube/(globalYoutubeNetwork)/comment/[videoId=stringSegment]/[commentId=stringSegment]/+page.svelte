@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,16 +26,18 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.YoutubeComment, data.selector, {
-				sources: [
-					Source.Youtube_Rest,
-					Source.Piped_Rest,
-				],
-				fields: {
-					text: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? 'YouTube comment' : (pageSelection.entity.text ?? '') || 'YouTube comment')} • YouTube comment • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.YoutubeComment, data.selector, {
+					sources: [
+						Source.Youtube_Rest,
+						Source.Piped_Rest,
+					],
+					fields: {
+						text: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? 'YouTube comment' : (pageSelection.entity.text ?? '') || 'YouTube comment')} • YouTube comment • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'YouTube comment'} • YouTube comment • Blockhead</title>
 	{/if}
@@ -43,18 +46,20 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.YoutubeComment, data.selector, {
-				sources: [
-					Source.Youtube_Rest,
-					Source.Piped_Rest,
-				],
-				fields: {
-					text: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.YoutubeComment, data.selector, {
+					sources: [
+						Source.Youtube_Rest,
+						Source.Piped_Rest,
+					],
+					fields: {
+						text: true,
+					},
+				}))}
 
-	<YoutubeCommentView
-		selection={pageSelection}
-	/>
+		<YoutubeCommentView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

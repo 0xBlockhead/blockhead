@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,13 +26,15 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.MorphoMarket, data.selector, {
-				sources: [
-					Source.Morpho_Graphql,
-					Source.Morpho_Rest,
-				],
-			})}
-		<title>{data?.title ?? (pageSelection.entitySelector.marketId || 'Morpho market')} • Morpho market • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.MorphoMarket, data.selector, {
+					sources: [
+						Source.Morpho_Graphql,
+						Source.Morpho_Rest,
+					],
+				}))}
+			<title>{data?.title ?? (pageSelection.entitySelector.marketId || 'Morpho market')} • Morpho market • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Morpho market'} • Morpho market • Blockhead</title>
 	{/if}
@@ -40,15 +43,17 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.MorphoMarket, data.selector, {
-				sources: [
-					Source.Morpho_Graphql,
-					Source.Morpho_Rest,
-				],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.MorphoMarket, data.selector, {
+					sources: [
+						Source.Morpho_Graphql,
+						Source.Morpho_Rest,
+					],
+				}))}
 
-	<MorphoMarketView
-		selection={pageSelection}
-	/>
+		<MorphoMarketView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

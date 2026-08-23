@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,16 +26,18 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.KaspaAddressUtxo_Timestamp, {
-				$address: data.selector,
-				outpointTransactionId: params.outpointTransactionId,
-				outpointIndex: Number(params.outpointIndex),
-				timestampMs: Number(params.timestampMs),
-				source: params.source,
-			}, {
-				sources: [params.source],
-			})}
-		<title>{data?.title ?? 'kaspa address UTXO timestamp'} • kaspa address UTXO timestamp • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.KaspaAddressUtxo_Timestamp, {
+					$address: data.selector,
+					outpointTransactionId: params.outpointTransactionId,
+					outpointIndex: Number(params.outpointIndex),
+					timestampMs: Number(params.timestampMs),
+					source: params.source,
+				}, {
+					sources: [params.source],
+				}))}
+			<title>{data?.title ?? 'kaspa address UTXO timestamp'} • kaspa address UTXO timestamp • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'kaspa address UTXO timestamp'} • kaspa address UTXO timestamp • Blockhead</title>
 	{/if}
@@ -43,18 +46,20 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.KaspaAddressUtxo_Timestamp, {
-				$address: data.selector,
-				outpointTransactionId: params.outpointTransactionId,
-				outpointIndex: Number(params.outpointIndex),
-				timestampMs: Number(params.timestampMs),
-				source: params.source,
-			}, {
-				sources: [params.source],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.KaspaAddressUtxo_Timestamp, {
+					$address: data.selector,
+					outpointTransactionId: params.outpointTransactionId,
+					outpointIndex: Number(params.outpointIndex),
+					timestampMs: Number(params.timestampMs),
+					source: params.source,
+				}, {
+					sources: [params.source],
+				}))}
 
-	<KaspaAddressUtxo_TimestampView
-		selection={pageSelection}
-	/>
+		<KaspaAddressUtxo_TimestampView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

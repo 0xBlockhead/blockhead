@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,11 +26,13 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.StellarLedger, {
-				$network: data.selector,
-				sequence: BigInt(params.sequence),
-			})}
-		<title>{data?.title ?? (String(pageSelection.entitySelector.sequence) || 'stellar ledger')} • stellar ledger • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.StellarLedger, {
+					$network: data.selector,
+					sequence: BigInt(params.sequence),
+				}))}
+			<title>{data?.title ?? (String(pageSelection.entitySelector.sequence) || 'stellar ledger')} • stellar ledger • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'stellar ledger'} • stellar ledger • Blockhead</title>
 	{/if}
@@ -38,13 +41,15 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.StellarLedger, {
-				$network: data.selector,
-				sequence: BigInt(params.sequence),
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.StellarLedger, {
+					$network: data.selector,
+					sequence: BigInt(params.sequence),
+				}))}
 
-	<StellarLedgerView
-		selection={pageSelection}
-	/>
+		<StellarLedgerView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

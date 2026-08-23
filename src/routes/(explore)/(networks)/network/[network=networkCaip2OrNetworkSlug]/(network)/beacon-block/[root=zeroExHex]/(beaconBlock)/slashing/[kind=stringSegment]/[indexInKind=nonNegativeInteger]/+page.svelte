@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,12 +26,14 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BeaconSlashing, {
-				$block: data.selector,
-				kind: params.kind,
-				indexInKind: Number(params.indexInKind),
-			})}
-		<title>{data?.title ?? ((String(pageSelection.entitySelector.indexInKind ?? '') ? 'Slashing #' + String(pageSelection.entitySelector.indexInKind ?? '') : '') || 'beacon slashing')} • beacon slashing • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BeaconSlashing, {
+					$block: data.selector,
+					kind: params.kind,
+					indexInKind: Number(params.indexInKind),
+				}))}
+			<title>{data?.title ?? ((String(pageSelection.entitySelector.indexInKind ?? '') ? 'Slashing #' + String(pageSelection.entitySelector.indexInKind ?? '') : '') || 'beacon slashing')} • beacon slashing • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'beacon slashing'} • beacon slashing • Blockhead</title>
 	{/if}
@@ -39,14 +42,16 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BeaconSlashing, {
-				$block: data.selector,
-				kind: params.kind,
-				indexInKind: Number(params.indexInKind),
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BeaconSlashing, {
+					$block: data.selector,
+					kind: params.kind,
+					indexInKind: Number(params.indexInKind),
+				}))}
 
-	<BeaconSlashingView
-		selection={pageSelection}
-	/>
+		<BeaconSlashingView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

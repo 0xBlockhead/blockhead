@@ -10,6 +10,7 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -43,17 +44,19 @@
 >
 	{#snippet Summary()}
 		{#if data?.selector != null}
-			<BeaconDataColumnView
-				selection={
-					select(EntityType.BeaconDataColumn, data.selector, {
-						sources: [
-							Source.Beacon_Rest,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
+			{#key data.selector}
+				<BeaconDataColumnView
+					selection={
+						untrack(() => select(EntityType.BeaconDataColumn, data.selector, {
+							sources: [
+								Source.Beacon_Rest,
+							],
+						}))
+					}
+					href={detailHref}
+					layout={EntityLayout.SummaryInline}
+				/>
+			{/key}
 		{/if}
 	{/snippet}
 

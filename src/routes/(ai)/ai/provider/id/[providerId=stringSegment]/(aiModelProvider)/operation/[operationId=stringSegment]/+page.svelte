@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,16 +26,18 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.AiProviderApiOperation, data.selector, {
-				sources: [
-					Source.Anthropic_Rest,
-					Source.OpenAI_Rest,
-				],
-				fields: {
-					label: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.operationId ?? '') || 'AI provider API operation' : (pageSelection.entity.label ?? '') || pageSelection.entitySelector.operationId || 'AI provider API operation')} • AI provider API operation • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.AiProviderApiOperation, data.selector, {
+					sources: [
+						Source.Anthropic_Rest,
+						Source.OpenAI_Rest,
+					],
+					fields: {
+						label: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.operationId ?? '') || 'AI provider API operation' : (pageSelection.entity.label ?? '') || pageSelection.entitySelector.operationId || 'AI provider API operation')} • AI provider API operation • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'AI provider API operation'} • AI provider API operation • Blockhead</title>
 	{/if}
@@ -43,18 +46,20 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.AiProviderApiOperation, data.selector, {
-				sources: [
-					Source.Anthropic_Rest,
-					Source.OpenAI_Rest,
-				],
-				fields: {
-					label: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.AiProviderApiOperation, data.selector, {
+					sources: [
+						Source.Anthropic_Rest,
+						Source.OpenAI_Rest,
+					],
+					fields: {
+						label: true,
+					},
+				}))}
 
-	<AiProviderApiOperationView
-		selection={pageSelection}
-	/>
+		<AiProviderApiOperationView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

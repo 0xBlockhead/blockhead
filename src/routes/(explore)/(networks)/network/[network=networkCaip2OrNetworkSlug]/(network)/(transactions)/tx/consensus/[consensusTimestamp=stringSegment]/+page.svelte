@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -24,13 +25,15 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.HederaTransaction, data.selector, {
-				fields: {
-					transactionType: true,
-					transactionId: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? 'hedera transaction' : pageSelection.entity.transactionType || pageSelection.entity.transactionId || 'hedera transaction')} • hedera transaction • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.HederaTransaction, data.selector, {
+					fields: {
+						transactionType: true,
+						transactionId: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? 'hedera transaction' : pageSelection.entity.transactionType || pageSelection.entity.transactionId || 'hedera transaction')} • hedera transaction • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'hedera transaction'} • hedera transaction • Blockhead</title>
 	{/if}
@@ -39,15 +42,17 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.HederaTransaction, data.selector, {
-				fields: {
-					transactionType: true,
-					transactionId: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.HederaTransaction, data.selector, {
+					fields: {
+						transactionType: true,
+						transactionId: true,
+					},
+				}))}
 
-	<HederaTransactionView
-		selection={pageSelection}
-	/>
+		<HederaTransactionView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

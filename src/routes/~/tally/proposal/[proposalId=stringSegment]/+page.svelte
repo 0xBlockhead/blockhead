@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,16 +26,18 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.TallyProposal, data.selector, {
-				sources: [
-					Source.Tally,
-				],
-				fields: {
-					title: true,
-					onchainId: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.proposalId ?? '') || 'Tally proposal' : (pageSelection.entity.title ?? '') || [(pageSelection.entity.onchainId ? 'Proposal ' + pageSelection.entity.onchainId : ''), pageSelection.entitySelector.proposalId].filter(Boolean).join(' ') || 'Tally proposal')} • Tally proposal • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.TallyProposal, data.selector, {
+					sources: [
+						Source.Tally,
+					],
+					fields: {
+						title: true,
+						onchainId: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.proposalId ?? '') || 'Tally proposal' : (pageSelection.entity.title ?? '') || [(pageSelection.entity.onchainId ? 'Proposal ' + pageSelection.entity.onchainId : ''), pageSelection.entitySelector.proposalId].filter(Boolean).join(' ') || 'Tally proposal')} • Tally proposal • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Tally proposal'} • Tally proposal • Blockhead</title>
 	{/if}
@@ -43,18 +46,20 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.TallyProposal, data.selector, {
-				sources: [
-					Source.Tally,
-				],
-				fields: {
-					title: true,
-					onchainId: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.TallyProposal, data.selector, {
+					sources: [
+						Source.Tally,
+					],
+					fields: {
+						title: true,
+						onchainId: true,
+					},
+				}))}
 
-	<TallyProposalView
-		selection={pageSelection}
-	/>
+		<TallyProposalView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

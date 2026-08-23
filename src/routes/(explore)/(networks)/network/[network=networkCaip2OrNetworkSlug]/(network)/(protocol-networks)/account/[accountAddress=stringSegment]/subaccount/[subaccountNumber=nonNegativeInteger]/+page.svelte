@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,13 +26,15 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.DydxChainSubaccount, data.selector, {
-				sources: [
-					Source.DydxIndexer,
-					Source.KingnodesDydxNode,
-				],
-			})}
-		<title>{data?.title ?? 'dydx chain subaccount'} • dydx chain subaccount • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.DydxChainSubaccount, data.selector, {
+					sources: [
+						Source.DydxIndexer,
+						Source.KingnodesDydxNode,
+					],
+				}))}
+			<title>{data?.title ?? 'dydx chain subaccount'} • dydx chain subaccount • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'dydx chain subaccount'} • dydx chain subaccount • Blockhead</title>
 	{/if}
@@ -40,15 +43,17 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.DydxChainSubaccount, data.selector, {
-				sources: [
-					Source.DydxIndexer,
-					Source.KingnodesDydxNode,
-				],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.DydxChainSubaccount, data.selector, {
+					sources: [
+						Source.DydxIndexer,
+						Source.KingnodesDydxNode,
+					],
+				}))}
 
-	<DydxChainSubaccountView
-		selection={pageSelection}
-	/>
+		<DydxChainSubaccountView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

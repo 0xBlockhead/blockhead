@@ -9,6 +9,7 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -41,11 +42,13 @@
 >
 	{#snippet Summary()}
 		{#if data?.selector != null}
-			<PayoutView
-				selection={select(EntityType.Payout, data.selector)}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
+			{#key data.selector}
+				<PayoutView
+					selection={untrack(() => select(EntityType.Payout, data.selector))}
+					href={detailHref}
+					layout={EntityLayout.SummaryInline}
+				/>
+			{/key}
 		{/if}
 	{/snippet}
 

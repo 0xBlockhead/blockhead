@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -26,15 +27,17 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.DogecoinAuxPowMerkleBranch, {
-				$auxPow: data.selector,
-				branchKind: params.branchKind,
-			}, {
-				sources: [
-					Source.DogecoinCore_JsonRpc,
-				],
-			})}
-		<title>{data?.title ?? (pageSelection.entitySelector.branchKind || 'dogecoin aux pow merkle branch')} • dogecoin aux pow merkle branch • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.DogecoinAuxPowMerkleBranch, {
+					$auxPow: data.selector,
+					branchKind: params.branchKind,
+				}, {
+					sources: [
+						Source.DogecoinCore_JsonRpc,
+					],
+				}))}
+			<title>{data?.title ?? (pageSelection.entitySelector.branchKind || 'dogecoin aux pow merkle branch')} • dogecoin aux pow merkle branch • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'dogecoin aux pow merkle branch'} • dogecoin aux pow merkle branch • Blockhead</title>
 	{/if}
@@ -43,17 +46,19 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.DogecoinAuxPowMerkleBranch, {
-				$auxPow: data.selector,
-				branchKind: params.branchKind,
-			}, {
-				sources: [
-					Source.DogecoinCore_JsonRpc,
-				],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.DogecoinAuxPowMerkleBranch, {
+					$auxPow: data.selector,
+					branchKind: params.branchKind,
+				}, {
+					sources: [
+						Source.DogecoinCore_JsonRpc,
+					],
+				}))}
 
-	<DogecoinAuxPowMerkleBranchView
-		selection={pageSelection}
-	/>
+		<DogecoinAuxPowMerkleBranchView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

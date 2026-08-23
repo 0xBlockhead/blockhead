@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -24,8 +25,10 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BitTorrentTracker, data.selector)}
-		<title>{data?.title ?? (pageSelection.entitySelector.trackerUrl || 'bit torrent tracker')} • bit torrent tracker • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BitTorrentTracker, data.selector))}
+			<title>{data?.title ?? (pageSelection.entitySelector.trackerUrl || 'bit torrent tracker')} • bit torrent tracker • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'bit torrent tracker'} • bit torrent tracker • Blockhead</title>
 	{/if}
@@ -34,10 +37,12 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BitTorrentTracker, data.selector)}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BitTorrentTracker, data.selector))}
 
-	<BitTorrentTrackerView
-		selection={pageSelection}
-	/>
+		<BitTorrentTrackerView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

@@ -9,6 +9,7 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -53,13 +54,15 @@
 >
 	{#snippet Summary()}
 		{#if data?.selector != null}
-			{@const DetailView = data.entityType === EntityType.AptosAccount ? AptosAccountView : data.entityType === EntityType.PolkadotAccount ? PolkadotAccountView : data.entityType === EntityType.CosmosAccount ? CosmosAccountView : data.entityType === EntityType.HederaAccount ? HederaAccountView : data.entityType === EntityType.EvmNetworkAccount ? EvmNetworkAccountView : data.entityType === EntityType.SolanaAccount ? SolanaAccountView : data.entityType === EntityType.StarknetContract ? StarknetContractView : data.entityType === EntityType.TronAccount ? TronAccountView : data.entityType === EntityType.TonAccount ? TonAccountView : data.entityType === EntityType.XrplAccount ? XrplAccountView : data.entityType === EntityType.NearAccount ? NearAccountView : data.entityType === EntityType.HyperliquidAccount ? HyperliquidAccountView : QuilibriumAccountView}
+			{#key data.selector}
+				{@const DetailView = data.entityType === EntityType.AptosAccount ? AptosAccountView : data.entityType === EntityType.PolkadotAccount ? PolkadotAccountView : data.entityType === EntityType.CosmosAccount ? CosmosAccountView : data.entityType === EntityType.HederaAccount ? HederaAccountView : data.entityType === EntityType.EvmNetworkAccount ? EvmNetworkAccountView : data.entityType === EntityType.SolanaAccount ? SolanaAccountView : data.entityType === EntityType.StarknetContract ? StarknetContractView : data.entityType === EntityType.TronAccount ? TronAccountView : data.entityType === EntityType.TonAccount ? TonAccountView : data.entityType === EntityType.XrplAccount ? XrplAccountView : data.entityType === EntityType.NearAccount ? NearAccountView : data.entityType === EntityType.HyperliquidAccount ? HyperliquidAccountView : QuilibriumAccountView}
 
-			<DetailView
-				selection={select(data.entityType, data.selector)}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
+				<DetailView
+					selection={untrack(() => select(data.entityType, data.selector))}
+					href={detailHref}
+					layout={EntityLayout.SummaryInline}
+				/>
+			{/key}
 		{/if}
 	{/snippet}
 

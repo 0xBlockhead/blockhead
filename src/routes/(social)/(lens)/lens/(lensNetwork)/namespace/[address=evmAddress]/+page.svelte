@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -24,13 +25,15 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.LensUsernameNamespace, data.selector, {
-				fields: {
-					namespace: true,
-					tokenName: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? 'Lens username namespace' : [pageSelection.entity.namespace, (pageSelection.entity.tokenName ?? '')].filter(Boolean).join(' ') || 'Lens username namespace')} • Lens username namespace • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.LensUsernameNamespace, data.selector, {
+					fields: {
+						namespace: true,
+						tokenName: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? 'Lens username namespace' : [pageSelection.entity.namespace, (pageSelection.entity.tokenName ?? '')].filter(Boolean).join(' ') || 'Lens username namespace')} • Lens username namespace • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Lens username namespace'} • Lens username namespace • Blockhead</title>
 	{/if}
@@ -39,15 +42,17 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.LensUsernameNamespace, data.selector, {
-				fields: {
-					namespace: true,
-					tokenName: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.LensUsernameNamespace, data.selector, {
+					fields: {
+						namespace: true,
+						tokenName: true,
+					},
+				}))}
 
-	<LensUsernameNamespaceView
-		selection={pageSelection}
-	/>
+		<LensUsernameNamespaceView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

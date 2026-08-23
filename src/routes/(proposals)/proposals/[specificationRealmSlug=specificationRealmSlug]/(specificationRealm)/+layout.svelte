@@ -10,6 +10,7 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -41,17 +42,19 @@
 >
 	{#snippet Summary()}
 		{#if data?.selector != null}
-			<SpecificationRealmView
-				selection={
-					select(EntityType.SpecificationRealm, data.selector, {
-						sources: [
-							Source.Constants_Internal,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
+			{#key data.selector}
+				<SpecificationRealmView
+					selection={
+						untrack(() => select(EntityType.SpecificationRealm, data.selector, {
+							sources: [
+								Source.Constants_Internal,
+							],
+						}))
+					}
+					href={detailHref}
+					layout={EntityLayout.SummaryInline}
+				/>
+			{/key}
 		{/if}
 	{/snippet}
 

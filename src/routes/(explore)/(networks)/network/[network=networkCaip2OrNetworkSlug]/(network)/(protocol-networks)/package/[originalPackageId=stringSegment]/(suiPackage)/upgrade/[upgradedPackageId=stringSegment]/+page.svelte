@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,11 +26,13 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.SuiPackageUpgrade, {
-				$package: data.selector,
-				upgradedPackageId: params.upgradedPackageId,
-			})}
-		<title>{data?.title ?? 'Sui package upgrade'} • Sui package upgrade • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.SuiPackageUpgrade, {
+					$package: data.selector,
+					upgradedPackageId: params.upgradedPackageId,
+				}))}
+			<title>{data?.title ?? 'Sui package upgrade'} • Sui package upgrade • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Sui package upgrade'} • Sui package upgrade • Blockhead</title>
 	{/if}
@@ -38,13 +41,15 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.SuiPackageUpgrade, {
-				$package: data.selector,
-				upgradedPackageId: params.upgradedPackageId,
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.SuiPackageUpgrade, {
+					$package: data.selector,
+					upgradedPackageId: params.upgradedPackageId,
+				}))}
 
-	<SuiPackageUpgradeView
-		selection={pageSelection}
-	/>
+		<SuiPackageUpgradeView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

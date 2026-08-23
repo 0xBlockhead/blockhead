@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,11 +26,13 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.HederaScheduleSignature, {
-				$schedule: data.selector,
-				publicKeyPrefix: params.publicKeyPrefix,
-			})}
-		<title>{data?.title ?? 'hedera schedule signature'} • hedera schedule signature • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.HederaScheduleSignature, {
+					$schedule: data.selector,
+					publicKeyPrefix: params.publicKeyPrefix,
+				}))}
+			<title>{data?.title ?? 'hedera schedule signature'} • hedera schedule signature • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'hedera schedule signature'} • hedera schedule signature • Blockhead</title>
 	{/if}
@@ -38,13 +41,15 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.HederaScheduleSignature, {
-				$schedule: data.selector,
-				publicKeyPrefix: params.publicKeyPrefix,
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.HederaScheduleSignature, {
+					$schedule: data.selector,
+					publicKeyPrefix: params.publicKeyPrefix,
+				}))}
 
-	<HederaScheduleSignatureView
-		selection={pageSelection}
-	/>
+		<HederaScheduleSignatureView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

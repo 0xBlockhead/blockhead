@@ -9,6 +9,7 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -40,11 +41,13 @@
 >
 	{#snippet Summary()}
 		{#if data?.selector != null}
-			<ArweaveResourceView
-				selection={select(EntityType.ArweaveResource, data.selector)}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
+			{#key data.selector}
+				<ArweaveResourceView
+					selection={untrack(() => select(EntityType.ArweaveResource, data.selector))}
+					href={detailHref}
+					layout={EntityLayout.SummaryInline}
+				/>
+			{/key}
 		{/if}
 	{/snippet}
 

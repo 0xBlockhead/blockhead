@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -26,21 +27,23 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BitcoinRuneBalance, {
-				$address: data.selector,
-				$rune: {
-					$network: data.selector.$network,
-					runeId: params.runeId,
-				},
-			}, {
-				sources: [
-					Source.UniSat_Rest,
-				],
-				fields: {
-					amount: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? 'Bitcoin Rune balance' : pageSelection.entity.amount || 'Bitcoin Rune balance')} • Bitcoin Rune balance • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BitcoinRuneBalance, {
+					$address: data.selector,
+					$rune: {
+						$network: data.selector.$network,
+						runeId: params.runeId,
+					},
+				}, {
+					sources: [
+						Source.UniSat_Rest,
+					],
+					fields: {
+						amount: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? 'Bitcoin Rune balance' : pageSelection.entity.amount || 'Bitcoin Rune balance')} • Bitcoin Rune balance • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Bitcoin Rune balance'} • Bitcoin Rune balance • Blockhead</title>
 	{/if}
@@ -49,23 +52,25 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BitcoinRuneBalance, {
-				$address: data.selector,
-				$rune: {
-					$network: data.selector.$network,
-					runeId: params.runeId,
-				},
-			}, {
-				sources: [
-					Source.UniSat_Rest,
-				],
-				fields: {
-					amount: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BitcoinRuneBalance, {
+					$address: data.selector,
+					$rune: {
+						$network: data.selector.$network,
+						runeId: params.runeId,
+					},
+				}, {
+					sources: [
+						Source.UniSat_Rest,
+					],
+					fields: {
+						amount: true,
+					},
+				}))}
 
-	<BitcoinRuneBalanceView
-		selection={pageSelection}
-	/>
+		<BitcoinRuneBalanceView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

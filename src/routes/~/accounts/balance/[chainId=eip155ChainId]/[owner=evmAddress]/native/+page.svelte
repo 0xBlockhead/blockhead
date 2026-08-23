@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,15 +26,17 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.EvmNetworkActorCoinBalance, data.selector, {
-				sources: [
-					Source.Constants_Internal,
-				],
-				fields: {
-					symbol: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? 'balance' : pageSelection.entity.symbol || 'balance')} • balance • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.EvmNetworkActorCoinBalance, data.selector, {
+					sources: [
+						Source.Constants_Internal,
+					],
+					fields: {
+						symbol: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? 'balance' : pageSelection.entity.symbol || 'balance')} • balance • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'balance'} • balance • Blockhead</title>
 	{/if}
@@ -42,17 +45,19 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.EvmNetworkActorCoinBalance, data.selector, {
-				sources: [
-					Source.Constants_Internal,
-				],
-				fields: {
-					symbol: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.EvmNetworkActorCoinBalance, data.selector, {
+					sources: [
+						Source.Constants_Internal,
+					],
+					fields: {
+						symbol: true,
+					},
+				}))}
 
-	<EvmNetworkActorCoinBalanceView
-		selection={pageSelection}
-	/>
+		<EvmNetworkActorCoinBalanceView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

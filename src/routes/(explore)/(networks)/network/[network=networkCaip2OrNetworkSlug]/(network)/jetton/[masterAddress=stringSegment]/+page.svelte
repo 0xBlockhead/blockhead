@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -24,8 +25,10 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.TonJetton, data.selector)}
-		<title>{data?.title ?? 'TON jetton'} • TON jetton • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.TonJetton, data.selector))}
+			<title>{data?.title ?? 'TON jetton'} • TON jetton • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'TON jetton'} • TON jetton • Blockhead</title>
 	{/if}
@@ -34,10 +37,12 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.TonJetton, data.selector)}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.TonJetton, data.selector))}
 
-	<TonJettonView
-		selection={pageSelection}
-	/>
+		<TonJettonView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

@@ -10,6 +10,7 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -45,17 +46,19 @@
 >
 	{#snippet Summary()}
 		{#if data?.selector != null}
-			<GitForgeCompareView
-				selection={
-					select(EntityType.GitForgeCompare, data.selector, {
-						sources: [
-							Source.Gitlab_Rest,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
+			{#key data.selector}
+				<GitForgeCompareView
+					selection={
+						untrack(() => select(EntityType.GitForgeCompare, data.selector, {
+							sources: [
+								Source.Gitlab_Rest,
+							],
+						}))
+					}
+					href={detailHref}
+					layout={EntityLayout.SummaryInline}
+				/>
+			{/key}
 		{/if}
 	{/snippet}
 

@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,13 +26,15 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.FilecoinMessageFee, {
-				$message: data.selector,
-				source: params.source,
-			}, {
-				sources: [params.source],
-			})}
-		<title>{data?.title ?? (pageSelection.entitySelector.source || 'filecoin message fee')} • filecoin message fee • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.FilecoinMessageFee, {
+					$message: data.selector,
+					source: params.source,
+				}, {
+					sources: [params.source],
+				}))}
+			<title>{data?.title ?? (pageSelection.entitySelector.source || 'filecoin message fee')} • filecoin message fee • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'filecoin message fee'} • filecoin message fee • Blockhead</title>
 	{/if}
@@ -40,15 +43,17 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.FilecoinMessageFee, {
-				$message: data.selector,
-				source: params.source,
-			}, {
-				sources: [params.source],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.FilecoinMessageFee, {
+					$message: data.selector,
+					source: params.source,
+				}, {
+					sources: [params.source],
+				}))}
 
-	<FilecoinMessageFeeView
-		selection={pageSelection}
-	/>
+		<FilecoinMessageFeeView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

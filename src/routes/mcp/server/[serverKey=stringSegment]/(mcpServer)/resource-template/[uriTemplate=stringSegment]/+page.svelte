@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -26,19 +27,21 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.McpResourceTemplate, {
-				$server: data.selector,
-				uriTemplate: params.uriTemplate,
-			}, {
-				sources: [
-					Source.McpDeclared_Protocol,
-				],
-				fields: {
-					title: true,
-					name: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.uriTemplate ?? '') || 'mcp resource template' : (pageSelection.entity.title ?? '') || [(pageSelection.entity.name ?? ''), pageSelection.entitySelector.uriTemplate].filter(Boolean).join(' ') || 'mcp resource template')} • mcp resource template • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.McpResourceTemplate, {
+					$server: data.selector,
+					uriTemplate: params.uriTemplate,
+				}, {
+					sources: [
+						Source.McpDeclared_Protocol,
+					],
+					fields: {
+						title: true,
+						name: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.uriTemplate ?? '') || 'mcp resource template' : (pageSelection.entity.title ?? '') || [(pageSelection.entity.name ?? ''), pageSelection.entitySelector.uriTemplate].filter(Boolean).join(' ') || 'mcp resource template')} • mcp resource template • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'mcp resource template'} • mcp resource template • Blockhead</title>
 	{/if}
@@ -47,21 +50,23 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.McpResourceTemplate, {
-				$server: data.selector,
-				uriTemplate: params.uriTemplate,
-			}, {
-				sources: [
-					Source.McpDeclared_Protocol,
-				],
-				fields: {
-					title: true,
-					name: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.McpResourceTemplate, {
+					$server: data.selector,
+					uriTemplate: params.uriTemplate,
+				}, {
+					sources: [
+						Source.McpDeclared_Protocol,
+					],
+					fields: {
+						title: true,
+						name: true,
+					},
+				}))}
 
-	<McpResourceTemplateView
-		selection={pageSelection}
-	/>
+		<McpResourceTemplateView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

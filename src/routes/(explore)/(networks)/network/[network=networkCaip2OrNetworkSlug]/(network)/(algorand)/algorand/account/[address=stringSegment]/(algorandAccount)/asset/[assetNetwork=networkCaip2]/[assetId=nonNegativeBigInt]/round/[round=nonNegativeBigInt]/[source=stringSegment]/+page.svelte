@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,22 +26,24 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.AlgorandAssetHolding_Round, {
-				$account: data.selector,
-				$asset: {
-					$network: {
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.AlgorandAssetHolding_Round, {
+					$account: data.selector,
+					$asset: {
 						$network: {
-							caip2: params.assetNetwork,
+							$network: {
+								caip2: params.assetNetwork,
+							},
 						},
+						assetId: BigInt(params.assetId),
 					},
-					assetId: BigInt(params.assetId),
-				},
-				round: BigInt(params.round),
-				source: params.source,
-			}, {
-				sources: [params.source],
-			})}
-		<title>{data?.title ?? 'algorand asset holding round'} • algorand asset holding round • Blockhead</title>
+					round: BigInt(params.round),
+					source: params.source,
+				}, {
+					sources: [params.source],
+				}))}
+			<title>{data?.title ?? 'algorand asset holding round'} • algorand asset holding round • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'algorand asset holding round'} • algorand asset holding round • Blockhead</title>
 	{/if}
@@ -49,24 +52,26 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.AlgorandAssetHolding_Round, {
-				$account: data.selector,
-				$asset: {
-					$network: {
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.AlgorandAssetHolding_Round, {
+					$account: data.selector,
+					$asset: {
 						$network: {
-							caip2: params.assetNetwork,
+							$network: {
+								caip2: params.assetNetwork,
+							},
 						},
+						assetId: BigInt(params.assetId),
 					},
-					assetId: BigInt(params.assetId),
-				},
-				round: BigInt(params.round),
-				source: params.source,
-			}, {
-				sources: [params.source],
-			})}
+					round: BigInt(params.round),
+					source: params.source,
+				}, {
+					sources: [params.source],
+				}))}
 
-	<AlgorandAssetHolding_RoundView
-		selection={pageSelection}
-	/>
+		<AlgorandAssetHolding_RoundView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,12 +26,14 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BlockheadAgentProgramInstall, data.selector, {
-				sources: [
-					Source.Local_Internal,
-				],
-			})}
-		<title>{data?.title ?? (pageSelection.entitySelector.installId || 'blockhead agent program install')} • blockhead agent program install • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BlockheadAgentProgramInstall, data.selector, {
+					sources: [
+						Source.Local_Internal,
+					],
+				}))}
+			<title>{data?.title ?? (pageSelection.entitySelector.installId || 'blockhead agent program install')} • blockhead agent program install • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'blockhead agent program install'} • blockhead agent program install • Blockhead</title>
 	{/if}
@@ -39,14 +42,16 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BlockheadAgentProgramInstall, data.selector, {
-				sources: [
-					Source.Local_Internal,
-				],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BlockheadAgentProgramInstall, data.selector, {
+					sources: [
+						Source.Local_Internal,
+					],
+				}))}
 
-	<BlockheadAgentProgramInstallView
-		selection={pageSelection}
-	/>
+		<BlockheadAgentProgramInstallView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

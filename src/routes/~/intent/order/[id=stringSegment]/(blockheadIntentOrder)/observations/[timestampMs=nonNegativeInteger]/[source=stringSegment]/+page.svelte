@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,17 +26,19 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BlockheadIntentOrder_Timestamp, {
-				$order: data.selector,
-				timestampMs: Number(params.timestampMs),
-				source: params.source,
-			}, {
-				sources: [params.source],
-				fields: {
-					status: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? 'blockhead intent order timestamp' : pageSelection.entity.status || 'blockhead intent order timestamp')} • blockhead intent order timestamp • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BlockheadIntentOrder_Timestamp, {
+					$order: data.selector,
+					timestampMs: Number(params.timestampMs),
+					source: params.source,
+				}, {
+					sources: [params.source],
+					fields: {
+						status: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? 'blockhead intent order timestamp' : pageSelection.entity.status || 'blockhead intent order timestamp')} • blockhead intent order timestamp • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'blockhead intent order timestamp'} • blockhead intent order timestamp • Blockhead</title>
 	{/if}
@@ -44,19 +47,21 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BlockheadIntentOrder_Timestamp, {
-				$order: data.selector,
-				timestampMs: Number(params.timestampMs),
-				source: params.source,
-			}, {
-				sources: [params.source],
-				fields: {
-					status: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BlockheadIntentOrder_Timestamp, {
+					$order: data.selector,
+					timestampMs: Number(params.timestampMs),
+					source: params.source,
+				}, {
+					sources: [params.source],
+					fields: {
+						status: true,
+					},
+				}))}
 
-	<BlockheadIntentOrder_TimestampView
-		selection={pageSelection}
-	/>
+		<BlockheadIntentOrder_TimestampView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

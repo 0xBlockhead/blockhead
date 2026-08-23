@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -24,8 +25,10 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.TonContractGetMethod, data.selector)}
-		<title>{data?.title ?? 'TON contract get method'} • TON contract get method • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.TonContractGetMethod, data.selector))}
+			<title>{data?.title ?? 'TON contract get method'} • TON contract get method • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'TON contract get method'} • TON contract get method • Blockhead</title>
 	{/if}
@@ -34,10 +37,12 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.TonContractGetMethod, data.selector)}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.TonContractGetMethod, data.selector))}
 
-	<TonContractGetMethodView
-		selection={pageSelection}
-	/>
+		<TonContractGetMethodView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

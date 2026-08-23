@@ -10,6 +10,7 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -42,17 +43,19 @@
 >
 	{#snippet Summary()}
 		{#if data?.selector != null}
-			<MorphoVaultView
-				selection={
-					select(EntityType.MorphoVault, data.selector, {
-						sources: [
-							Source.Morpho_Graphql,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
+			{#key data.selector}
+				<MorphoVaultView
+					selection={
+						untrack(() => select(EntityType.MorphoVault, data.selector, {
+							sources: [
+								Source.Morpho_Graphql,
+							],
+						}))
+					}
+					href={detailHref}
+					layout={EntityLayout.SummaryInline}
+				/>
+			{/key}
 		{/if}
 	{/snippet}
 

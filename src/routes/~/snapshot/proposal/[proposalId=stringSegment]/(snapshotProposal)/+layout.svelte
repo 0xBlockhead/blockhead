@@ -10,6 +10,7 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -41,17 +42,19 @@
 >
 	{#snippet Summary()}
 		{#if data?.selector != null}
-			<SnapshotProposalView
-				selection={
-					select(EntityType.SnapshotProposal, data.selector, {
-						sources: [
-							Source.SnapshotHub_Graphql,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
+			{#key data.selector}
+				<SnapshotProposalView
+					selection={
+						untrack(() => select(EntityType.SnapshotProposal, data.selector, {
+							sources: [
+								Source.SnapshotHub_Graphql,
+							],
+						}))
+					}
+					href={detailHref}
+					layout={EntityLayout.SummaryInline}
+				/>
+			{/key}
 		{/if}
 	{/snippet}
 

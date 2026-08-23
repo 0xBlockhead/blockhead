@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,11 +26,13 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.GitForgeProtectedBranch, {
-				$forgeMirror: data.selector,
-				name: params.name,
-			})}
-		<title>{data?.title ?? (pageSelection.entitySelector.name || 'Git forge protected branch')} • Git forge protected branch • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.GitForgeProtectedBranch, {
+					$forgeMirror: data.selector,
+					name: params.name,
+				}))}
+			<title>{data?.title ?? (pageSelection.entitySelector.name || 'Git forge protected branch')} • Git forge protected branch • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Git forge protected branch'} • Git forge protected branch • Blockhead</title>
 	{/if}
@@ -38,13 +41,15 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.GitForgeProtectedBranch, {
-				$forgeMirror: data.selector,
-				name: params.name,
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.GitForgeProtectedBranch, {
+					$forgeMirror: data.selector,
+					name: params.name,
+				}))}
 
-	<GitForgeProtectedBranchView
-		selection={pageSelection}
-	/>
+		<GitForgeProtectedBranchView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

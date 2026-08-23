@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,14 +26,16 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.TezosTokenTransfer, {
-				$network: data.selector,
-				transferId: params.transferId,
-				source: params.source,
-			}, {
-				sources: [params.source],
-			})}
-		<title>{data?.title ?? 'tezos token transfer'} • tezos token transfer • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.TezosTokenTransfer, {
+					$network: data.selector,
+					transferId: params.transferId,
+					source: params.source,
+				}, {
+					sources: [params.source],
+				}))}
+			<title>{data?.title ?? 'tezos token transfer'} • tezos token transfer • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'tezos token transfer'} • tezos token transfer • Blockhead</title>
 	{/if}
@@ -41,16 +44,18 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.TezosTokenTransfer, {
-				$network: data.selector,
-				transferId: params.transferId,
-				source: params.source,
-			}, {
-				sources: [params.source],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.TezosTokenTransfer, {
+					$network: data.selector,
+					transferId: params.transferId,
+					source: params.source,
+				}, {
+					sources: [params.source],
+				}))}
 
-	<TezosTokenTransferView
-		selection={pageSelection}
-	/>
+		<TezosTokenTransferView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

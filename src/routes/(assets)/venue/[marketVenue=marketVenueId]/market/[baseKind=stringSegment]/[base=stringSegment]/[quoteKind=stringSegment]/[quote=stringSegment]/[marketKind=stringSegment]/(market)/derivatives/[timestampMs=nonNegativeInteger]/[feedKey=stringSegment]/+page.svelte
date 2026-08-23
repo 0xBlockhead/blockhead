@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,12 +26,14 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.Market_Derivative_Timestamp, {
-				$market: data.selector,
-				timestampMs: Number(params.timestampMs),
-				feedKey: decodeURIComponent(params.feedKey),
-			})}
-		<title>{data?.title ?? (pageSelection.entitySelector.feedKey || 'market derivative timestamp')} • market derivative timestamp • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.Market_Derivative_Timestamp, {
+					$market: data.selector,
+					timestampMs: Number(params.timestampMs),
+					feedKey: decodeURIComponent(params.feedKey),
+				}))}
+			<title>{data?.title ?? (pageSelection.entitySelector.feedKey || 'market derivative timestamp')} • market derivative timestamp • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'market derivative timestamp'} • market derivative timestamp • Blockhead</title>
 	{/if}
@@ -39,14 +42,16 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.Market_Derivative_Timestamp, {
-				$market: data.selector,
-				timestampMs: Number(params.timestampMs),
-				feedKey: decodeURIComponent(params.feedKey),
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.Market_Derivative_Timestamp, {
+					$market: data.selector,
+					timestampMs: Number(params.timestampMs),
+					feedKey: decodeURIComponent(params.feedKey),
+				}))}
 
-	<Market_Derivative_TimestampView
-		selection={pageSelection}
-	/>
+		<Market_Derivative_TimestampView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

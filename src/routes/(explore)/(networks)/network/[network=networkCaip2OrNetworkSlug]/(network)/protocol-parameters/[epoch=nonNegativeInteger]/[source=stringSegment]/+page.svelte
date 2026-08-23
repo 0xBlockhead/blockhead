@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -24,10 +25,12 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.CardanoProtocolParameters_Epoch, data.selector, {
-				sources: [data.selector.source],
-			})}
-		<title>{data?.title ?? 'Cardano protocol parameters epoch'} • Cardano protocol parameters epoch • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.CardanoProtocolParameters_Epoch, data.selector, {
+					sources: [data.selector.source],
+				}))}
+			<title>{data?.title ?? 'Cardano protocol parameters epoch'} • Cardano protocol parameters epoch • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Cardano protocol parameters epoch'} • Cardano protocol parameters epoch • Blockhead</title>
 	{/if}
@@ -36,12 +39,14 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.CardanoProtocolParameters_Epoch, data.selector, {
-				sources: [data.selector.source],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.CardanoProtocolParameters_Epoch, data.selector, {
+					sources: [data.selector.source],
+				}))}
 
-	<CardanoProtocolParameters_EpochView
-		selection={pageSelection}
-	/>
+		<CardanoProtocolParameters_EpochView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

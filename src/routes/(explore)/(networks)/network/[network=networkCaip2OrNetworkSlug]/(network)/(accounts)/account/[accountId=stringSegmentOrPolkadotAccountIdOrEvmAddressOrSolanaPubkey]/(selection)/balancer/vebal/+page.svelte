@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,17 +26,19 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BalancerVeBalBalance, {
-				$account: data.selector,
-			}, {
-				sources: [
-					Source.Balancer_Rest,
-				],
-				fields: {
-					balance: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? 'Balancer veBAL balance' : pageSelection.entity.balance || 'Balancer veBAL balance')} • Balancer veBAL balance • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BalancerVeBalBalance, {
+					$account: data.selector,
+				}, {
+					sources: [
+						Source.Balancer_Rest,
+					],
+					fields: {
+						balance: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? 'Balancer veBAL balance' : pageSelection.entity.balance || 'Balancer veBAL balance')} • Balancer veBAL balance • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Balancer veBAL balance'} • Balancer veBAL balance • Blockhead</title>
 	{/if}
@@ -44,19 +47,21 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BalancerVeBalBalance, {
-				$account: data.selector,
-			}, {
-				sources: [
-					Source.Balancer_Rest,
-				],
-				fields: {
-					balance: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BalancerVeBalBalance, {
+					$account: data.selector,
+				}, {
+					sources: [
+						Source.Balancer_Rest,
+					],
+					fields: {
+						balance: true,
+					},
+				}))}
 
-	<BalancerVeBalBalanceView
-		selection={pageSelection}
-	/>
+		<BalancerVeBalBalanceView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

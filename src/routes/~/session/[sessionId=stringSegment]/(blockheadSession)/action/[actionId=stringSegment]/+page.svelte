@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,15 +26,17 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BlockheadSessionAction, data.selector, {
-				sources: [
-					Source.Local_Internal,
-				],
-				fields: {
-					actionType: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? 'blockhead session action' : pageSelection.entity.actionType || 'blockhead session action')} • blockhead session action • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BlockheadSessionAction, data.selector, {
+					sources: [
+						Source.Local_Internal,
+					],
+					fields: {
+						actionType: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? 'blockhead session action' : pageSelection.entity.actionType || 'blockhead session action')} • blockhead session action • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'blockhead session action'} • blockhead session action • Blockhead</title>
 	{/if}
@@ -42,17 +45,19 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BlockheadSessionAction, data.selector, {
-				sources: [
-					Source.Local_Internal,
-				],
-				fields: {
-					actionType: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BlockheadSessionAction, data.selector, {
+					sources: [
+						Source.Local_Internal,
+					],
+					fields: {
+						actionType: true,
+					},
+				}))}
 
-	<BlockheadSessionActionView
-		selection={pageSelection}
-	/>
+		<BlockheadSessionActionView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

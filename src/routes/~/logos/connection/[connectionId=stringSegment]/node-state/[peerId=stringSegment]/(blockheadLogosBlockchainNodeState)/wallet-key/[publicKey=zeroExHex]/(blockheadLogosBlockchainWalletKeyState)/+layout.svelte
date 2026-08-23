@@ -10,6 +10,7 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -43,18 +44,20 @@
 >
 	{#snippet Summary()}
 		{#if data?.selector != null}
-			<BlockheadLogosBlockchainWalletKeyStateView
-				selection={
-					select(EntityType.BlockheadLogosBlockchainWalletKeyState, data.selector, {
-						sources: [
-							Source.Local_Internal,
-							Source.LogosBlockchainNode_Rest,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
+			{#key data.selector}
+				<BlockheadLogosBlockchainWalletKeyStateView
+					selection={
+						untrack(() => select(EntityType.BlockheadLogosBlockchainWalletKeyState, data.selector, {
+							sources: [
+								Source.Local_Internal,
+								Source.LogosBlockchainNode_Rest,
+							],
+						}))
+					}
+					href={detailHref}
+					layout={EntityLayout.SummaryInline}
+				/>
+			{/key}
 		{/if}
 	{/snippet}
 

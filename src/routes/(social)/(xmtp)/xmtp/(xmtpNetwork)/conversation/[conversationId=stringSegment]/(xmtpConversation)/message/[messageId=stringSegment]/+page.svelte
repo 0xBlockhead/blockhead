@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -26,18 +27,20 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.XmtpMessage, {
-				$conversation: data.selector,
-				id: params.messageId,
-			}, {
-				sources: [
-					Source.Local_Internal,
-				],
-				fields: {
-					contentText: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.id ?? '') || 'XMTP message' : [(pageSelection.entity.contentText ?? ''), pageSelection.entitySelector.id].filter(Boolean).join(' ') || 'XMTP message')} • XMTP message • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.XmtpMessage, {
+					$conversation: data.selector,
+					id: params.messageId,
+				}, {
+					sources: [
+						Source.Local_Internal,
+					],
+					fields: {
+						contentText: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.id ?? '') || 'XMTP message' : [(pageSelection.entity.contentText ?? ''), pageSelection.entitySelector.id].filter(Boolean).join(' ') || 'XMTP message')} • XMTP message • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'XMTP message'} • XMTP message • Blockhead</title>
 	{/if}
@@ -46,20 +49,22 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.XmtpMessage, {
-				$conversation: data.selector,
-				id: params.messageId,
-			}, {
-				sources: [
-					Source.Local_Internal,
-				],
-				fields: {
-					contentText: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.XmtpMessage, {
+					$conversation: data.selector,
+					id: params.messageId,
+				}, {
+					sources: [
+						Source.Local_Internal,
+					],
+					fields: {
+						contentText: true,
+					},
+				}))}
 
-	<XmtpMessageView
-		selection={pageSelection}
-	/>
+		<XmtpMessageView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

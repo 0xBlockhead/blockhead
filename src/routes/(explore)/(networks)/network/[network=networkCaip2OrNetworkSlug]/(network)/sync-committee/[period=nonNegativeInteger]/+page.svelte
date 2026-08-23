@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -24,8 +25,10 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BeaconSyncCommittee, data.selector)}
-		<title>{data?.title ?? ((String(pageSelection.entitySelector.period ?? '') ? 'Sync committee #' + String(pageSelection.entitySelector.period ?? '') : '') || 'beacon sync committee')} • beacon sync committee • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BeaconSyncCommittee, data.selector))}
+			<title>{data?.title ?? ((String(pageSelection.entitySelector.period ?? '') ? 'Sync committee #' + String(pageSelection.entitySelector.period ?? '') : '') || 'beacon sync committee')} • beacon sync committee • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'beacon sync committee'} • beacon sync committee • Blockhead</title>
 	{/if}
@@ -34,10 +37,12 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BeaconSyncCommittee, data.selector)}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BeaconSyncCommittee, data.selector))}
 
-	<BeaconSyncCommitteeView
-		selection={pageSelection}
-	/>
+		<BeaconSyncCommitteeView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -24,12 +25,14 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BnbValidator, data.selector, {
-				fields: {
-					moniker: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.operatorAddress ?? '') || 'bnb validator' : (pageSelection.entity.moniker ?? '') || pageSelection.entitySelector.operatorAddress || 'bnb validator')} • bnb validator • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BnbValidator, data.selector, {
+					fields: {
+						moniker: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.operatorAddress ?? '') || 'bnb validator' : (pageSelection.entity.moniker ?? '') || pageSelection.entitySelector.operatorAddress || 'bnb validator')} • bnb validator • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'bnb validator'} • bnb validator • Blockhead</title>
 	{/if}
@@ -38,14 +41,16 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BnbValidator, data.selector, {
-				fields: {
-					moniker: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BnbValidator, data.selector, {
+					fields: {
+						moniker: true,
+					},
+				}))}
 
-	<BnbValidatorView
-		selection={pageSelection}
-	/>
+		<BnbValidatorView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

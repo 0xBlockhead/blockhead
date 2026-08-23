@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,18 +26,20 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.AiModel, data.selector, {
-				sources: [
-					Source.Anthropic_Rest,
-					Source.HuggingFaceHub_Rest,
-					Source.Mlflow_Rest,
-					Source.OpenAI_Rest,
-				],
-				fields: {
-					label: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.providerModelId ?? '') || 'AI model' : (pageSelection.entity.label ?? '') || pageSelection.entitySelector.providerModelId || 'AI model')} • AI model • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.AiModel, data.selector, {
+					sources: [
+						Source.Anthropic_Rest,
+						Source.HuggingFaceHub_Rest,
+						Source.Mlflow_Rest,
+						Source.OpenAI_Rest,
+					],
+					fields: {
+						label: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.providerModelId ?? '') || 'AI model' : (pageSelection.entity.label ?? '') || pageSelection.entitySelector.providerModelId || 'AI model')} • AI model • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'AI model'} • AI model • Blockhead</title>
 	{/if}
@@ -45,20 +48,22 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.AiModel, data.selector, {
-				sources: [
-					Source.Anthropic_Rest,
-					Source.HuggingFaceHub_Rest,
-					Source.Mlflow_Rest,
-					Source.OpenAI_Rest,
-				],
-				fields: {
-					label: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.AiModel, data.selector, {
+					sources: [
+						Source.Anthropic_Rest,
+						Source.HuggingFaceHub_Rest,
+						Source.Mlflow_Rest,
+						Source.OpenAI_Rest,
+					],
+					fields: {
+						label: true,
+					},
+				}))}
 
-	<AiModelView
-		selection={pageSelection}
-	/>
+		<AiModelView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

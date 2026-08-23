@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,15 +26,17 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BlockheadWalletRequest, data.selector, {
-				sources: [
-					Source.Local_Internal,
-				],
-				fields: {
-					requestKind: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? 'blockhead wallet request' : pageSelection.entity.requestKind || 'blockhead wallet request')} • blockhead wallet request • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BlockheadWalletRequest, data.selector, {
+					sources: [
+						Source.Local_Internal,
+					],
+					fields: {
+						requestKind: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? 'blockhead wallet request' : pageSelection.entity.requestKind || 'blockhead wallet request')} • blockhead wallet request • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'blockhead wallet request'} • blockhead wallet request • Blockhead</title>
 	{/if}
@@ -42,17 +45,19 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BlockheadWalletRequest, data.selector, {
-				sources: [
-					Source.Local_Internal,
-				],
-				fields: {
-					requestKind: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BlockheadWalletRequest, data.selector, {
+					sources: [
+						Source.Local_Internal,
+					],
+					fields: {
+						requestKind: true,
+					},
+				}))}
 
-	<BlockheadWalletRequestView
-		selection={pageSelection}
-	/>
+		<BlockheadWalletRequestView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

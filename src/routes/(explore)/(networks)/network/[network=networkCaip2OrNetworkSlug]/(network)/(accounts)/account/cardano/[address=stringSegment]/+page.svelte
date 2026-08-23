@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,12 +26,14 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.CardanoAddress, data.selector, {
-				sources: [
-					Source.Blockfrost_Rest,
-				],
-			})}
-		<title>{data?.title ?? (pageSelection.entitySelector.address || 'Cardano address')} • Cardano address • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.CardanoAddress, data.selector, {
+					sources: [
+						Source.Blockfrost_Rest,
+					],
+				}))}
+			<title>{data?.title ?? (pageSelection.entitySelector.address || 'Cardano address')} • Cardano address • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Cardano address'} • Cardano address • Blockhead</title>
 	{/if}
@@ -39,14 +42,16 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.CardanoAddress, data.selector, {
-				sources: [
-					Source.Blockfrost_Rest,
-				],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.CardanoAddress, data.selector, {
+					sources: [
+						Source.Blockfrost_Rest,
+					],
+				}))}
 
-	<CardanoAddressView
-		selection={pageSelection}
-	/>
+		<CardanoAddressView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

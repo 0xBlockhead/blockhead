@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -26,18 +27,20 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.StarknetClass, {
-				$network: data.selector,
-				classHash: params.classHash,
-			}, {
-				sources: [
-					Source.Juno_JsonRpc,
-					Source.Pathfinder,
-					Source.Starkscan,
-					Source.Voyager,
-				],
-			})}
-		<title>{data?.title ?? (pageSelection.entitySelector.classHash || 'starknet class')} • starknet class • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.StarknetClass, {
+					$network: data.selector,
+					classHash: params.classHash,
+				}, {
+					sources: [
+						Source.Juno_JsonRpc,
+						Source.Pathfinder,
+						Source.Starkscan,
+						Source.Voyager,
+					],
+				}))}
+			<title>{data?.title ?? (pageSelection.entitySelector.classHash || 'starknet class')} • starknet class • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'starknet class'} • starknet class • Blockhead</title>
 	{/if}
@@ -46,20 +49,22 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.StarknetClass, {
-				$network: data.selector,
-				classHash: params.classHash,
-			}, {
-				sources: [
-					Source.Juno_JsonRpc,
-					Source.Pathfinder,
-					Source.Starkscan,
-					Source.Voyager,
-				],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.StarknetClass, {
+					$network: data.selector,
+					classHash: params.classHash,
+				}, {
+					sources: [
+						Source.Juno_JsonRpc,
+						Source.Pathfinder,
+						Source.Starkscan,
+						Source.Voyager,
+					],
+				}))}
 
-	<StarknetClassView
-		selection={pageSelection}
-	/>
+		<StarknetClassView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

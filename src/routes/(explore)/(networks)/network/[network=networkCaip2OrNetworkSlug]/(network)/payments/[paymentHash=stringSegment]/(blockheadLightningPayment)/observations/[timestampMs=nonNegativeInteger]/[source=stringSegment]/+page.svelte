@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,14 +26,16 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BlockheadLightningPayment_Timestamp, {
-				$payment: data.selector,
-				timestampMs: Number(params.timestampMs),
-				source: params.source,
-			}, {
-				sources: [params.source],
-			})}
-		<title>{data?.title ?? (String(pageSelection.entitySelector.timestampMs) || 'local LND payment observation')} • local LND payment observation • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BlockheadLightningPayment_Timestamp, {
+					$payment: data.selector,
+					timestampMs: Number(params.timestampMs),
+					source: params.source,
+				}, {
+					sources: [params.source],
+				}))}
+			<title>{data?.title ?? (String(pageSelection.entitySelector.timestampMs) || 'local LND payment observation')} • local LND payment observation • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'local LND payment observation'} • local LND payment observation • Blockhead</title>
 	{/if}
@@ -41,16 +44,18 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BlockheadLightningPayment_Timestamp, {
-				$payment: data.selector,
-				timestampMs: Number(params.timestampMs),
-				source: params.source,
-			}, {
-				sources: [params.source],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BlockheadLightningPayment_Timestamp, {
+					$payment: data.selector,
+					timestampMs: Number(params.timestampMs),
+					source: params.source,
+				}, {
+					sources: [params.source],
+				}))}
 
-	<BlockheadLightningPayment_TimestampView
-		selection={pageSelection}
-	/>
+		<BlockheadLightningPayment_TimestampView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

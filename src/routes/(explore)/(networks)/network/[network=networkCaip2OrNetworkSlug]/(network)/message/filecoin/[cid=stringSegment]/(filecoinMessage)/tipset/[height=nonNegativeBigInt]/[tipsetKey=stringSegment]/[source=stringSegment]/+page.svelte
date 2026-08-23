@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,18 +26,20 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.FilecoinMessage_Timestamp, {
-				$message: data.selector,
-				height: BigInt(params.height),
-				tipsetKey: params.tipsetKey,
-				source: params.source,
-			}, {
-				sources: [params.source],
-				fields: {
-					timestampMs: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? 'filecoin message timestamp' : String(pageSelection.entity.timestampMs) || 'filecoin message timestamp')} • filecoin message timestamp • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.FilecoinMessage_Timestamp, {
+					$message: data.selector,
+					height: BigInt(params.height),
+					tipsetKey: params.tipsetKey,
+					source: params.source,
+				}, {
+					sources: [params.source],
+					fields: {
+						timestampMs: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? 'filecoin message timestamp' : String(pageSelection.entity.timestampMs) || 'filecoin message timestamp')} • filecoin message timestamp • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'filecoin message timestamp'} • filecoin message timestamp • Blockhead</title>
 	{/if}
@@ -45,20 +48,22 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.FilecoinMessage_Timestamp, {
-				$message: data.selector,
-				height: BigInt(params.height),
-				tipsetKey: params.tipsetKey,
-				source: params.source,
-			}, {
-				sources: [params.source],
-				fields: {
-					timestampMs: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.FilecoinMessage_Timestamp, {
+					$message: data.selector,
+					height: BigInt(params.height),
+					tipsetKey: params.tipsetKey,
+					source: params.source,
+				}, {
+					sources: [params.source],
+					fields: {
+						timestampMs: true,
+					},
+				}))}
 
-	<FilecoinMessage_TimestampView
-		selection={pageSelection}
-	/>
+		<FilecoinMessage_TimestampView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

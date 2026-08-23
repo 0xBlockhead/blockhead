@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -24,13 +25,15 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.A2aArtifact, data.selector, {
-				sources: [],
-				fields: {
-					name: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.artifactId ?? '') || 'A2A artifact' : (pageSelection.entity.name ?? '') || pageSelection.entitySelector.artifactId || 'A2A artifact')} • A2A artifact • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.A2aArtifact, data.selector, {
+					sources: [],
+					fields: {
+						name: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.artifactId ?? '') || 'A2A artifact' : (pageSelection.entity.name ?? '') || pageSelection.entitySelector.artifactId || 'A2A artifact')} • A2A artifact • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'A2A artifact'} • A2A artifact • Blockhead</title>
 	{/if}
@@ -39,15 +42,17 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.A2aArtifact, data.selector, {
-				sources: [],
-				fields: {
-					name: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.A2aArtifact, data.selector, {
+					sources: [],
+					fields: {
+						name: true,
+					},
+				}))}
 
-	<A2aArtifactView
-		selection={pageSelection}
-	/>
+		<A2aArtifactView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

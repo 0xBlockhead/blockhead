@@ -10,6 +10,7 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -42,17 +43,19 @@
 >
 	{#snippet Summary()}
 		{#if data?.selector != null}
-			<BlockheadLightningPaymentView
-				selection={
-					select(EntityType.BlockheadLightningPayment, data.selector, {
-						sources: [
-							Source.LightningLnd_Rest,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
+			{#key data.selector}
+				<BlockheadLightningPaymentView
+					selection={
+						untrack(() => select(EntityType.BlockheadLightningPayment, data.selector, {
+							sources: [
+								Source.LightningLnd_Rest,
+							],
+						}))
+					}
+					href={detailHref}
+					layout={EntityLayout.SummaryInline}
+				/>
+			{/key}
 		{/if}
 	{/snippet}
 

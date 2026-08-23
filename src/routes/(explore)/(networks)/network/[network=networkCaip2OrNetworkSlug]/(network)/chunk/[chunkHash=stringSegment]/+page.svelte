@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,12 +26,14 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.NearChunk, data.selector, {
-				sources: [
-					Source.NearRpc_JsonRpc,
-				],
-			})}
-		<title>{data?.title ?? (pageSelection.entitySelector.chunkHash || 'near chunk')} • near chunk • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.NearChunk, data.selector, {
+					sources: [
+						Source.NearRpc_JsonRpc,
+					],
+				}))}
+			<title>{data?.title ?? (pageSelection.entitySelector.chunkHash || 'near chunk')} • near chunk • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'near chunk'} • near chunk • Blockhead</title>
 	{/if}
@@ -39,14 +42,16 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.NearChunk, data.selector, {
-				sources: [
-					Source.NearRpc_JsonRpc,
-				],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.NearChunk, data.selector, {
+					sources: [
+						Source.NearRpc_JsonRpc,
+					],
+				}))}
 
-	<NearChunkView
-		selection={pageSelection}
-	/>
+		<NearChunkView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,15 +26,17 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BlockheadAgentCredentialState, data.selector, {
-				sources: [
-					Source.Local_Internal,
-				],
-				fields: {
-					label: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.credentialId ?? '') || 'blockhead agent credential state' : (pageSelection.entity.label ?? '') || pageSelection.entitySelector.credentialId || 'blockhead agent credential state')} • blockhead agent credential state • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BlockheadAgentCredentialState, data.selector, {
+					sources: [
+						Source.Local_Internal,
+					],
+					fields: {
+						label: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.credentialId ?? '') || 'blockhead agent credential state' : (pageSelection.entity.label ?? '') || pageSelection.entitySelector.credentialId || 'blockhead agent credential state')} • blockhead agent credential state • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'blockhead agent credential state'} • blockhead agent credential state • Blockhead</title>
 	{/if}
@@ -42,17 +45,19 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BlockheadAgentCredentialState, data.selector, {
-				sources: [
-					Source.Local_Internal,
-				],
-				fields: {
-					label: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BlockheadAgentCredentialState, data.selector, {
+					sources: [
+						Source.Local_Internal,
+					],
+					fields: {
+						label: true,
+					},
+				}))}
 
-	<BlockheadAgentCredentialStateView
-		selection={pageSelection}
-	/>
+		<BlockheadAgentCredentialStateView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

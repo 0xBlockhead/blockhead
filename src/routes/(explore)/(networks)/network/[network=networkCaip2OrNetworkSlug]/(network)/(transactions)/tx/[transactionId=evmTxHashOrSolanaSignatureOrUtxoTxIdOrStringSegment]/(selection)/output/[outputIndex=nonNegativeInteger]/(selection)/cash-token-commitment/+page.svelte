@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,17 +26,19 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BitcoinCashCashTokenCommitment, {
-				$output: data.selector,
-			}, {
-				sources: [
-					Source.BitcoinCashNode_JsonRpc,
-				],
-				fields: {
-					commitmentHex: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? 'Bitcoin Cash CashToken commitment' : pageSelection.entity.commitmentHex || 'Bitcoin Cash CashToken commitment')} • Bitcoin Cash CashToken commitment • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BitcoinCashCashTokenCommitment, {
+					$output: data.selector,
+				}, {
+					sources: [
+						Source.BitcoinCashNode_JsonRpc,
+					],
+					fields: {
+						commitmentHex: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? 'Bitcoin Cash CashToken commitment' : pageSelection.entity.commitmentHex || 'Bitcoin Cash CashToken commitment')} • Bitcoin Cash CashToken commitment • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Bitcoin Cash CashToken commitment'} • Bitcoin Cash CashToken commitment • Blockhead</title>
 	{/if}
@@ -44,19 +47,21 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BitcoinCashCashTokenCommitment, {
-				$output: data.selector,
-			}, {
-				sources: [
-					Source.BitcoinCashNode_JsonRpc,
-				],
-				fields: {
-					commitmentHex: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BitcoinCashCashTokenCommitment, {
+					$output: data.selector,
+				}, {
+					sources: [
+						Source.BitcoinCashNode_JsonRpc,
+					],
+					fields: {
+						commitmentHex: true,
+					},
+				}))}
 
-	<BitcoinCashCashTokenCommitmentView
-		selection={pageSelection}
-	/>
+		<BitcoinCashCashTokenCommitmentView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

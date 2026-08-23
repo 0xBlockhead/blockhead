@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,15 +26,17 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BlockheadAgentConversationTurn, data.selector, {
-				sources: [
-					Source.Local_Internal,
-				],
-				fields: {
-					userPrompt: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? 'agent conversation turn' : pageSelection.entity.userPrompt || 'agent conversation turn')} • agent conversation turn • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BlockheadAgentConversationTurn, data.selector, {
+					sources: [
+						Source.Local_Internal,
+					],
+					fields: {
+						userPrompt: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? 'agent conversation turn' : pageSelection.entity.userPrompt || 'agent conversation turn')} • agent conversation turn • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'agent conversation turn'} • agent conversation turn • Blockhead</title>
 	{/if}
@@ -42,17 +45,19 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BlockheadAgentConversationTurn, data.selector, {
-				sources: [
-					Source.Local_Internal,
-				],
-				fields: {
-					userPrompt: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BlockheadAgentConversationTurn, data.selector, {
+					sources: [
+						Source.Local_Internal,
+					],
+					fields: {
+						userPrompt: true,
+					},
+				}))}
 
-	<BlockheadAgentConversationTurnView
-		selection={pageSelection}
-	/>
+		<BlockheadAgentConversationTurnView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

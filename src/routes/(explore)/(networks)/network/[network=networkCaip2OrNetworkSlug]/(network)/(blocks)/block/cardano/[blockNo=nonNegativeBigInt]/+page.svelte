@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -24,12 +25,14 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.CardanoBlock, data.selector, {
-				fields: {
-					hash: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? 'Cardano block' : pageSelection.entity.hash || 'Cardano block')} • Cardano block • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.CardanoBlock, data.selector, {
+					fields: {
+						hash: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? 'Cardano block' : pageSelection.entity.hash || 'Cardano block')} • Cardano block • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Cardano block'} • Cardano block • Blockhead</title>
 	{/if}
@@ -38,14 +41,16 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.CardanoBlock, data.selector, {
-				fields: {
-					hash: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.CardanoBlock, data.selector, {
+					fields: {
+						hash: true,
+					},
+				}))}
 
-	<CardanoBlockView
-		selection={pageSelection}
-	/>
+		<CardanoBlockView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

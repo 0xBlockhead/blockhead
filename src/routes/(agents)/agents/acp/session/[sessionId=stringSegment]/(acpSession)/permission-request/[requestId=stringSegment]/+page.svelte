@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -26,15 +27,17 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.AcpPermissionRequest, {
-				$session: data.selector,
-				requestId: params.requestId,
-			}, {
-				sources: [
-					Source.AcpLocal_JsonRpc,
-				],
-			})}
-		<title>{data?.title ?? (pageSelection.entitySelector.requestId || 'ACP permission request')} • ACP permission request • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.AcpPermissionRequest, {
+					$session: data.selector,
+					requestId: params.requestId,
+				}, {
+					sources: [
+						Source.AcpLocal_JsonRpc,
+					],
+				}))}
+			<title>{data?.title ?? (pageSelection.entitySelector.requestId || 'ACP permission request')} • ACP permission request • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'ACP permission request'} • ACP permission request • Blockhead</title>
 	{/if}
@@ -43,17 +46,19 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.AcpPermissionRequest, {
-				$session: data.selector,
-				requestId: params.requestId,
-			}, {
-				sources: [
-					Source.AcpLocal_JsonRpc,
-				],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.AcpPermissionRequest, {
+					$session: data.selector,
+					requestId: params.requestId,
+				}, {
+					sources: [
+						Source.AcpLocal_JsonRpc,
+					],
+				}))}
 
-	<AcpPermissionRequestView
-		selection={pageSelection}
-	/>
+		<AcpPermissionRequestView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

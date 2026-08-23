@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,14 +26,16 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.EvmNetworkActorCoinBalance_Timestamp, {
-				$actorCoin: data.selector,
-				timestampMs: Number(params.timestampMs),
-				source: params.source,
-			}, {
-				sources: [params.source],
-			})}
-		<title>{data?.title ?? (pageSelection.entitySelector.source || 'EVM network actor coin balance timestamp')} • EVM network actor coin balance timestamp • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.EvmNetworkActorCoinBalance_Timestamp, {
+					$actorCoin: data.selector,
+					timestampMs: Number(params.timestampMs),
+					source: params.source,
+				}, {
+					sources: [params.source],
+				}))}
+			<title>{data?.title ?? (pageSelection.entitySelector.source || 'EVM network actor coin balance timestamp')} • EVM network actor coin balance timestamp • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'EVM network actor coin balance timestamp'} • EVM network actor coin balance timestamp • Blockhead</title>
 	{/if}
@@ -41,16 +44,18 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.EvmNetworkActorCoinBalance_Timestamp, {
-				$actorCoin: data.selector,
-				timestampMs: Number(params.timestampMs),
-				source: params.source,
-			}, {
-				sources: [params.source],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.EvmNetworkActorCoinBalance_Timestamp, {
+					$actorCoin: data.selector,
+					timestampMs: Number(params.timestampMs),
+					source: params.source,
+				}, {
+					sources: [params.source],
+				}))}
 
-	<EvmNetworkActorCoinBalance_TimestampView
-		selection={pageSelection}
-	/>
+		<EvmNetworkActorCoinBalance_TimestampView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

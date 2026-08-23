@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -26,16 +27,18 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.Eip8004AgentServiceEndpoint, {
-				$registrationFile: data.selector,
-				endpointKind: params.endpointKind,
-				endpointUrl: decodeURIComponent(params.endpointUrl),
-			}, {
-				sources: [
-					Source.Eip8004Scan_Rest,
-				],
-			})}
-		<title>{data?.title ?? (pageSelection.entitySelector.endpointUrl || 'EIP-8004 agent service endpoint')} • EIP-8004 agent service endpoint • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.Eip8004AgentServiceEndpoint, {
+					$registrationFile: data.selector,
+					endpointKind: params.endpointKind,
+					endpointUrl: decodeURIComponent(params.endpointUrl),
+				}, {
+					sources: [
+						Source.Eip8004Scan_Rest,
+					],
+				}))}
+			<title>{data?.title ?? (pageSelection.entitySelector.endpointUrl || 'EIP-8004 agent service endpoint')} • EIP-8004 agent service endpoint • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'EIP-8004 agent service endpoint'} • EIP-8004 agent service endpoint • Blockhead</title>
 	{/if}
@@ -44,18 +47,20 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.Eip8004AgentServiceEndpoint, {
-				$registrationFile: data.selector,
-				endpointKind: params.endpointKind,
-				endpointUrl: decodeURIComponent(params.endpointUrl),
-			}, {
-				sources: [
-					Source.Eip8004Scan_Rest,
-				],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.Eip8004AgentServiceEndpoint, {
+					$registrationFile: data.selector,
+					endpointKind: params.endpointKind,
+					endpointUrl: decodeURIComponent(params.endpointUrl),
+				}, {
+					sources: [
+						Source.Eip8004Scan_Rest,
+					],
+				}))}
 
-	<Eip8004AgentServiceEndpointView
-		selection={pageSelection}
-	/>
+		<Eip8004AgentServiceEndpointView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

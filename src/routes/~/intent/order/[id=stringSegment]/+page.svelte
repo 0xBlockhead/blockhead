@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,15 +26,17 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BlockheadIntentOrder, data.selector, {
-				sources: [
-					Source.Local_Internal,
-				],
-				fields: {
-					orderId: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? 'blockhead intent order' : pageSelection.entity.orderId || 'blockhead intent order')} • blockhead intent order • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BlockheadIntentOrder, data.selector, {
+					sources: [
+						Source.Local_Internal,
+					],
+					fields: {
+						orderId: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? 'blockhead intent order' : pageSelection.entity.orderId || 'blockhead intent order')} • blockhead intent order • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'blockhead intent order'} • blockhead intent order • Blockhead</title>
 	{/if}
@@ -42,17 +45,19 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BlockheadIntentOrder, data.selector, {
-				sources: [
-					Source.Local_Internal,
-				],
-				fields: {
-					orderId: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BlockheadIntentOrder, data.selector, {
+					sources: [
+						Source.Local_Internal,
+					],
+					fields: {
+						orderId: true,
+					},
+				}))}
 
-	<BlockheadIntentOrderView
-		selection={pageSelection}
-	/>
+		<BlockheadIntentOrderView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

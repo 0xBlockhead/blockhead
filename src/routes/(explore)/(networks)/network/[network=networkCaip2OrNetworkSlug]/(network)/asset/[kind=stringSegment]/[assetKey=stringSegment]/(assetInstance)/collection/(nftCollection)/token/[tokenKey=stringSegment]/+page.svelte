@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,11 +26,13 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.NftToken, {
-				$collection: data.selector,
-				tokenKey: params.tokenKey,
-			})}
-		<title>{data?.title ?? 'NFT token'} • NFT token • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.NftToken, {
+					$collection: data.selector,
+					tokenKey: params.tokenKey,
+				}))}
+			<title>{data?.title ?? 'NFT token'} • NFT token • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'NFT token'} • NFT token • Blockhead</title>
 	{/if}
@@ -38,13 +41,15 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.NftToken, {
-				$collection: data.selector,
-				tokenKey: params.tokenKey,
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.NftToken, {
+					$collection: data.selector,
+					tokenKey: params.tokenKey,
+				}))}
 
-	<NftTokenView
-		selection={pageSelection}
-	/>
+		<NftTokenView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

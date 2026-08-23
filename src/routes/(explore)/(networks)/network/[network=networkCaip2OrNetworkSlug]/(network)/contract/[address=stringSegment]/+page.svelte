@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,15 +26,17 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.TronContract, data.selector, {
-				sources: [
-					Source.TronScan_Rest,
-				],
-				fields: {
-					name: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.address ?? '') || 'tron contract' : (pageSelection.entity.name ?? '') || pageSelection.entitySelector.address || 'tron contract')} • tron contract • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.TronContract, data.selector, {
+					sources: [
+						Source.TronScan_Rest,
+					],
+					fields: {
+						name: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.address ?? '') || 'tron contract' : (pageSelection.entity.name ?? '') || pageSelection.entitySelector.address || 'tron contract')} • tron contract • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'tron contract'} • tron contract • Blockhead</title>
 	{/if}
@@ -42,17 +45,19 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.TronContract, data.selector, {
-				sources: [
-					Source.TronScan_Rest,
-				],
-				fields: {
-					name: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.TronContract, data.selector, {
+					sources: [
+						Source.TronScan_Rest,
+					],
+					fields: {
+						name: true,
+					},
+				}))}
 
-	<TronContractView
-		selection={pageSelection}
-	/>
+		<TronContractView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

@@ -9,6 +9,7 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -47,13 +48,15 @@
 >
 	{#snippet Summary()}
 		{#if data?.selector != null}
-			{@const DetailView = data.entityType === EntityType.PolkadotBlock ? PolkadotBlockView : data.entityType === EntityType.UtxoBlock ? UtxoBlockView : data.entityType === EntityType.BittensorBlock ? BittensorBlockView : data.entityType === EntityType.MoneroBlock ? MoneroBlockView : data.entityType === EntityType.NearBlock ? NearBlockView : TronBlockView}
+			{#key data.selector}
+				{@const DetailView = data.entityType === EntityType.PolkadotBlock ? PolkadotBlockView : data.entityType === EntityType.UtxoBlock ? UtxoBlockView : data.entityType === EntityType.BittensorBlock ? BittensorBlockView : data.entityType === EntityType.MoneroBlock ? MoneroBlockView : data.entityType === EntityType.NearBlock ? NearBlockView : TronBlockView}
 
-			<DetailView
-				selection={select(data.entityType, data.selector)}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
+				<DetailView
+					selection={untrack(() => select(data.entityType, data.selector))}
+					href={detailHref}
+					layout={EntityLayout.SummaryInline}
+				/>
+			{/key}
 		{/if}
 	{/snippet}
 

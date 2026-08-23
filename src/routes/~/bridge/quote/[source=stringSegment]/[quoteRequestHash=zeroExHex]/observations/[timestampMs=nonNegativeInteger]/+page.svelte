@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -24,14 +25,16 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BridgeRouteQuote_Timestamp, data.selector, {
-				sources: [data.selector.source],
-				fields: {
-					fromChainId: true,
-					toChainId: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? 'to' : [String(pageSelection.entity.fromChainId), 'to', String(pageSelection.entity.toChainId)].filter(Boolean).join(' ') || 'bridge route quote timestamp')} • bridge route quote timestamp • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BridgeRouteQuote_Timestamp, data.selector, {
+					sources: [data.selector.source],
+					fields: {
+						fromChainId: true,
+						toChainId: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? 'to' : [String(pageSelection.entity.fromChainId), 'to', String(pageSelection.entity.toChainId)].filter(Boolean).join(' ') || 'bridge route quote timestamp')} • bridge route quote timestamp • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'bridge route quote timestamp'} • bridge route quote timestamp • Blockhead</title>
 	{/if}
@@ -40,16 +43,18 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BridgeRouteQuote_Timestamp, data.selector, {
-				sources: [data.selector.source],
-				fields: {
-					fromChainId: true,
-					toChainId: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BridgeRouteQuote_Timestamp, data.selector, {
+					sources: [data.selector.source],
+					fields: {
+						fromChainId: true,
+						toChainId: true,
+					},
+				}))}
 
-	<BridgeRouteQuote_TimestampView
-		selection={pageSelection}
-	/>
+		<BridgeRouteQuote_TimestampView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

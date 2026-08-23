@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,11 +26,13 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.ZeroGDataChunk, {
-				$dataBlob: data.selector,
-				chunkIndex: Number(params.chunkIndex),
-			})}
-		<title>{data?.title ?? 'zero g data chunk'} • zero g data chunk • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.ZeroGDataChunk, {
+					$dataBlob: data.selector,
+					chunkIndex: Number(params.chunkIndex),
+				}))}
+			<title>{data?.title ?? 'zero g data chunk'} • zero g data chunk • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'zero g data chunk'} • zero g data chunk • Blockhead</title>
 	{/if}
@@ -38,13 +41,15 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.ZeroGDataChunk, {
-				$dataBlob: data.selector,
-				chunkIndex: Number(params.chunkIndex),
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.ZeroGDataChunk, {
+					$dataBlob: data.selector,
+					chunkIndex: Number(params.chunkIndex),
+				}))}
 
-	<ZeroGDataChunkView
-		selection={pageSelection}
-	/>
+		<ZeroGDataChunkView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

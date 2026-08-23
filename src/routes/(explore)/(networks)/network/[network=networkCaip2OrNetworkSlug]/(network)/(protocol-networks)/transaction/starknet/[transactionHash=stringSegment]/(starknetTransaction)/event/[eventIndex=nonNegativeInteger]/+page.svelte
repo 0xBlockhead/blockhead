@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -26,16 +27,18 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.StarknetEvent, {
-				$transaction: data.selector,
-				eventIndex: Number(params.eventIndex),
-			}, {
-				sources: [
-					Source.Starkscan,
-					Source.Voyager,
-				],
-			})}
-		<title>{data?.title ?? (String(pageSelection.entitySelector.eventIndex) || 'starknet event')} • starknet event • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.StarknetEvent, {
+					$transaction: data.selector,
+					eventIndex: Number(params.eventIndex),
+				}, {
+					sources: [
+						Source.Starkscan,
+						Source.Voyager,
+					],
+				}))}
+			<title>{data?.title ?? (String(pageSelection.entitySelector.eventIndex) || 'starknet event')} • starknet event • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'starknet event'} • starknet event • Blockhead</title>
 	{/if}
@@ -44,18 +47,20 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.StarknetEvent, {
-				$transaction: data.selector,
-				eventIndex: Number(params.eventIndex),
-			}, {
-				sources: [
-					Source.Starkscan,
-					Source.Voyager,
-				],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.StarknetEvent, {
+					$transaction: data.selector,
+					eventIndex: Number(params.eventIndex),
+				}, {
+					sources: [
+						Source.Starkscan,
+						Source.Voyager,
+					],
+				}))}
 
-	<StarknetEventView
-		selection={pageSelection}
-	/>
+		<StarknetEventView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

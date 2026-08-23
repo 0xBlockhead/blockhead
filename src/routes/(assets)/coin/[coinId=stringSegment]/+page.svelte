@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,16 +26,18 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.Coin, data.selector, {
-				sources: [
-					Source.Constants_Internal,
-				],
-				fields: {
-					symbol: true,
-					name: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? 'Coin' : [pageSelection.entity.symbol, pageSelection.entity.name].filter(Boolean).join(' ') || 'Coin')} • Coin • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.Coin, data.selector, {
+					sources: [
+						Source.Constants_Internal,
+					],
+					fields: {
+						symbol: true,
+						name: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? 'Coin' : [pageSelection.entity.symbol, pageSelection.entity.name].filter(Boolean).join(' ') || 'Coin')} • Coin • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Coin'} • Coin • Blockhead</title>
 	{/if}
@@ -43,18 +46,20 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.Coin, data.selector, {
-				sources: [
-					Source.Constants_Internal,
-				],
-				fields: {
-					symbol: true,
-					name: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.Coin, data.selector, {
+					sources: [
+						Source.Constants_Internal,
+					],
+					fields: {
+						symbol: true,
+						name: true,
+					},
+				}))}
 
-	<CoinView
-		selection={pageSelection}
-	/>
+		<CoinView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

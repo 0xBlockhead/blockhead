@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -26,18 +27,20 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.FilecoinMessageTransfer, {
-				$message: data.selector,
-				index: Number(params.index),
-			}, {
-				sources: [
-					Source.Filfox_Rest,
-				],
-				fields: {
-					transferType: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? 'filecoin message transfer' : pageSelection.entity.transferType || 'filecoin message transfer')} • filecoin message transfer • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.FilecoinMessageTransfer, {
+					$message: data.selector,
+					index: Number(params.index),
+				}, {
+					sources: [
+						Source.Filfox_Rest,
+					],
+					fields: {
+						transferType: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? 'filecoin message transfer' : pageSelection.entity.transferType || 'filecoin message transfer')} • filecoin message transfer • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'filecoin message transfer'} • filecoin message transfer • Blockhead</title>
 	{/if}
@@ -46,20 +49,22 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.FilecoinMessageTransfer, {
-				$message: data.selector,
-				index: Number(params.index),
-			}, {
-				sources: [
-					Source.Filfox_Rest,
-				],
-				fields: {
-					transferType: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.FilecoinMessageTransfer, {
+					$message: data.selector,
+					index: Number(params.index),
+				}, {
+					sources: [
+						Source.Filfox_Rest,
+					],
+					fields: {
+						transferType: true,
+					},
+				}))}
 
-	<FilecoinMessageTransferView
-		selection={pageSelection}
-	/>
+		<FilecoinMessageTransferView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

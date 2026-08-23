@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,14 +26,16 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.StellarTrade, {
-				$network: data.selector,
-				tradeId: params.tradeId,
-				source: params.source,
-			}, {
-				sources: [params.source],
-			})}
-		<title>{data?.title ?? 'stellar trade'} • stellar trade • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.StellarTrade, {
+					$network: data.selector,
+					tradeId: params.tradeId,
+					source: params.source,
+				}, {
+					sources: [params.source],
+				}))}
+			<title>{data?.title ?? 'stellar trade'} • stellar trade • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'stellar trade'} • stellar trade • Blockhead</title>
 	{/if}
@@ -41,16 +44,18 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.StellarTrade, {
-				$network: data.selector,
-				tradeId: params.tradeId,
-				source: params.source,
-			}, {
-				sources: [params.source],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.StellarTrade, {
+					$network: data.selector,
+					tradeId: params.tradeId,
+					source: params.source,
+				}, {
+					sources: [params.source],
+				}))}
 
-	<StellarTradeView
-		selection={pageSelection}
-	/>
+		<StellarTradeView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

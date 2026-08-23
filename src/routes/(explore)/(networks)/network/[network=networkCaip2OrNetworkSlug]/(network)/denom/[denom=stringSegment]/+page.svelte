@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -24,13 +25,15 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.CosmosDenom, data.selector, {
-				fields: {
-					symbol: true,
-					display: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.denom ?? '') || 'Cosmos denom' : [(pageSelection.entity.symbol ?? ''), (pageSelection.entity.display ?? ''), pageSelection.entitySelector.denom].filter(Boolean).join(' ') || 'Cosmos denom')} • Cosmos denom • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.CosmosDenom, data.selector, {
+					fields: {
+						symbol: true,
+						display: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.denom ?? '') || 'Cosmos denom' : [(pageSelection.entity.symbol ?? ''), (pageSelection.entity.display ?? ''), pageSelection.entitySelector.denom].filter(Boolean).join(' ') || 'Cosmos denom')} • Cosmos denom • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Cosmos denom'} • Cosmos denom • Blockhead</title>
 	{/if}
@@ -39,15 +42,17 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.CosmosDenom, data.selector, {
-				fields: {
-					symbol: true,
-					display: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.CosmosDenom, data.selector, {
+					fields: {
+						symbol: true,
+						display: true,
+					},
+				}))}
 
-	<CosmosDenomView
-		selection={pageSelection}
-	/>
+		<CosmosDenomView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

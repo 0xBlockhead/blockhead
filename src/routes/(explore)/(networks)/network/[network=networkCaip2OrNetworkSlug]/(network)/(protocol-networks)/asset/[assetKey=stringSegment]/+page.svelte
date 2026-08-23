@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,11 +26,13 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.StellarAsset, {
-				$network: data.selector,
-				assetKey: params.assetKey,
-			})}
-		<title>{data?.title ?? 'stellar asset'} • stellar asset • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.StellarAsset, {
+					$network: data.selector,
+					assetKey: params.assetKey,
+				}))}
+			<title>{data?.title ?? 'stellar asset'} • stellar asset • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'stellar asset'} • stellar asset • Blockhead</title>
 	{/if}
@@ -38,13 +41,15 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.StellarAsset, {
-				$network: data.selector,
-				assetKey: params.assetKey,
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.StellarAsset, {
+					$network: data.selector,
+					assetKey: params.assetKey,
+				}))}
 
-	<StellarAssetView
-		selection={pageSelection}
-	/>
+		<StellarAssetView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

@@ -10,6 +10,7 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -42,17 +43,19 @@
 >
 	{#snippet Summary()}
 		{#if data?.selector != null}
-			<AcpMessageView
-				selection={
-					select(EntityType.AcpMessage, data.selector, {
-						sources: [
-							Source.AcpLocal_JsonRpc,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
+			{#key data.selector}
+				<AcpMessageView
+					selection={
+						untrack(() => select(EntityType.AcpMessage, data.selector, {
+							sources: [
+								Source.AcpLocal_JsonRpc,
+							],
+						}))
+					}
+					href={detailHref}
+					layout={EntityLayout.SummaryInline}
+				/>
+			{/key}
 		{/if}
 	{/snippet}
 

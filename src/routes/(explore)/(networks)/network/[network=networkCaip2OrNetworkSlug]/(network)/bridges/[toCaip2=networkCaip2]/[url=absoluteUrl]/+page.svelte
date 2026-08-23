@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -24,8 +25,10 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.EvmNetworkBridge, data.selector)}
-		<title>{data?.title ?? (pageSelection.entitySelector.url || 'EVM network bridge')} • EVM network bridge • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.EvmNetworkBridge, data.selector))}
+			<title>{data?.title ?? (pageSelection.entitySelector.url || 'EVM network bridge')} • EVM network bridge • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'EVM network bridge'} • EVM network bridge • Blockhead</title>
 	{/if}
@@ -34,10 +37,12 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.EvmNetworkBridge, data.selector)}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.EvmNetworkBridge, data.selector))}
 
-	<EvmNetworkBridgeView
-		selection={pageSelection}
-	/>
+		<EvmNetworkBridgeView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

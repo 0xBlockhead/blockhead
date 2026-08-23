@@ -10,6 +10,7 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -34,17 +35,19 @@
 >
 	{#snippet Summary()}
 		{#if data?.selector != null}
-			<GlobalYoutubeNetworkView
-				selection={
-					select(EntityType._GlobalYoutubeNetwork, data.selector, {
-						sources: [
-							Source.Constants_Internal,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
+			{#key data.selector}
+				<GlobalYoutubeNetworkView
+					selection={
+						untrack(() => select(EntityType._GlobalYoutubeNetwork, data.selector, {
+							sources: [
+								Source.Constants_Internal,
+							],
+						}))
+					}
+					href={detailHref}
+					layout={EntityLayout.SummaryInline}
+				/>
+			{/key}
 		{/if}
 	{/snippet}
 

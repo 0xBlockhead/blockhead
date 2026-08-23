@@ -10,6 +10,7 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -42,19 +43,21 @@
 >
 	{#snippet Summary()}
 		{#if data?.selector != null}
-			<LightningNodeView
-				selection={
-					select(EntityType.LightningNode, data.selector, {
-						sources: [
-							Source.LightningMempoolSpace_Rest,
-							Source.LightningLnd_Rest,
-							Source.Amboss_Graphql,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
+			{#key data.selector}
+				<LightningNodeView
+					selection={
+						untrack(() => select(EntityType.LightningNode, data.selector, {
+							sources: [
+								Source.LightningMempoolSpace_Rest,
+								Source.LightningLnd_Rest,
+								Source.Amboss_Graphql,
+							],
+						}))
+					}
+					href={detailHref}
+					layout={EntityLayout.SummaryInline}
+				/>
+			{/key}
 		{/if}
 	{/snippet}
 

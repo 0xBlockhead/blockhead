@@ -14616,6 +14616,9 @@ const generatePageFile = (
 					...pageContextSection,
 					'import { select } from \'$/routes/+layout.svelte\'',
 				] : []),
+				...(usesTransientSelectorBoundary ? [
+					'import { untrack } from \'svelte\'',
+				] : []),
 				...(hasPageProps ? [
 					...pageStateSection,
 					...renderPagePropsState([
@@ -14659,12 +14662,14 @@ const generatePageFile = (
 				pageEntityTitleExpression != null && entityTypeLabel != null ?
 					usesTransientSelectorBoundary ? [
 						'{#if data?.selector != null}',
-						renderSvelteConst(1, 'pageSelection', pageSelectionExpression),
+						'\t{#key data.selector}',
+						renderSvelteConst(2, 'pageSelection', `untrack(() => ${pageSelectionExpression})`),
 						...(literalPageEntityTitle == null ?
-							[`\t<title>{${pageEntityTitleExpression}} • ${entityTypeLabel} • Blockhead</title>`]
+							[`\t\t<title>{${pageEntityTitleExpression}} • ${entityTypeLabel} • Blockhead</title>`]
 						:
-							[`\t<title>${svelteText(literalPageEntityTitle)} • ${entityTypeLabel} • Blockhead</title>`]
+							[`\t\t<title>${svelteText(literalPageEntityTitle)} • ${entityTypeLabel} • Blockhead</title>`]
 						),
+						'\t{/key}',
 						'{:else}',
 						`\t<title>{data?.title ?? ${emitTypeScript(entityTypeLabel)}} • ${entityTypeLabel} • Blockhead</title>`,
 						'{/if}',
@@ -14685,7 +14690,8 @@ const generatePageFile = (
 				'<Page>',
 				...(usesTransientSelectorBoundary ? [
 					'\t{#if data?.selector != null}',
-					renderSvelteConst(2, 'pageSelection', pageSelectionExpression),
+					'\t\t{#key data.selector}',
+					renderSvelteConst(3, 'pageSelection', `untrack(() => ${pageSelectionExpression})`),
 					'',
 					...reindentLines(renderEntityPageMarkup(
 						routeFile,
@@ -14694,7 +14700,8 @@ const generatePageFile = (
 						routeId(appRoutePath),
 						indexes,
 						'pageSelection'
-					), 1),
+					), 2),
+					'\t\t{/key}',
 					'\t{/if}',
 				] : collection == null ?
 					renderEntityPageMarkup(
@@ -14902,15 +14909,17 @@ const generateLayoutFile = (routeFile: CompiledLayoutRouteFileFacts) => {
 			'>',
 			'\t{#snippet Summary()}',
 			'\t\t{#if data?.selector != null}',
+			'\t\t\t{#key data.selector}',
 			...(routeFile.detailLayout.components.length === 1 ? [] : [
-				'\t\t\t{@const DetailView = ' + routeFile.detailLayout.detailViewExpression + '}',
+				'\t\t\t\t{@const DetailView = ' + routeFile.detailLayout.detailViewExpression + '}',
 				'',
 			]),
-			`\t\t\t<${component}`,
-			renderSvelteAttribute(4, 'selection', routeFile.detailLayout.detailSelectionExpression),
-			renderSvelteAttribute(4, 'href', 'detailHref'),
-			'\t\t\t\tlayout={EntityLayout.SummaryInline}',
-			'\t\t\t/>',
+			`\t\t\t\t<${component}`,
+			renderSvelteAttribute(5, 'selection', `untrack(() => ${routeFile.detailLayout.detailSelectionExpression})`),
+			renderSvelteAttribute(5, 'href', 'detailHref'),
+			'\t\t\t\t\tlayout={EntityLayout.SummaryInline}',
+			'\t\t\t\t/>',
+			'\t\t\t{/key}',
 			'\t\t{/if}',
 			'\t{/snippet}',
 			'',
@@ -14935,6 +14944,7 @@ const generateLayoutFile = (routeFile: CompiledLayoutRouteFileFacts) => {
 					'// Context',
 					'import { resolve } from \'$app/paths\'',
 					'import { select } from \'$/routes/+layout.svelte\'',
+					'import { untrack } from \'svelte\'',
 					'',
 					'',
 					'// State',

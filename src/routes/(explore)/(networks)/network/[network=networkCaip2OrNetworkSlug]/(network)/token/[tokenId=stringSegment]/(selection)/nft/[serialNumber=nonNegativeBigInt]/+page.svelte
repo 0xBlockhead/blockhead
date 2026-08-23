@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -24,8 +25,10 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.HederaNft, data.selector)}
-		<title>{data?.title ?? (String(pageSelection.entitySelector.serialNumber) || 'hedera NFT')} • hedera NFT • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.HederaNft, data.selector))}
+			<title>{data?.title ?? (String(pageSelection.entitySelector.serialNumber) || 'hedera NFT')} • hedera NFT • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'hedera NFT'} • hedera NFT • Blockhead</title>
 	{/if}
@@ -34,10 +37,12 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.HederaNft, data.selector)}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.HederaNft, data.selector))}
 
-	<HederaNftView
-		selection={pageSelection}
-	/>
+		<HederaNftView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -26,17 +27,19 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.AiDocumentClaim, {
-				$document: data.selector,
-				extractorId: params.extractorId,
-				claimPath: params.claimPath,
-			}, {
-				sources: [
-					Source.Eip8004Scan_Rest,
-					Source.Ipfs_Rest,
-				],
-			})}
-		<title>{data?.title ?? (pageSelection.entitySelector.claimPath || 'AI document claim')} • AI document claim • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.AiDocumentClaim, {
+					$document: data.selector,
+					extractorId: params.extractorId,
+					claimPath: params.claimPath,
+				}, {
+					sources: [
+						Source.Eip8004Scan_Rest,
+						Source.Ipfs_Rest,
+					],
+				}))}
+			<title>{data?.title ?? (pageSelection.entitySelector.claimPath || 'AI document claim')} • AI document claim • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'AI document claim'} • AI document claim • Blockhead</title>
 	{/if}
@@ -45,19 +48,21 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.AiDocumentClaim, {
-				$document: data.selector,
-				extractorId: params.extractorId,
-				claimPath: params.claimPath,
-			}, {
-				sources: [
-					Source.Eip8004Scan_Rest,
-					Source.Ipfs_Rest,
-				],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.AiDocumentClaim, {
+					$document: data.selector,
+					extractorId: params.extractorId,
+					claimPath: params.claimPath,
+				}, {
+					sources: [
+						Source.Eip8004Scan_Rest,
+						Source.Ipfs_Rest,
+					],
+				}))}
 
-	<AiDocumentClaimView
-		selection={pageSelection}
-	/>
+		<AiDocumentClaimView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

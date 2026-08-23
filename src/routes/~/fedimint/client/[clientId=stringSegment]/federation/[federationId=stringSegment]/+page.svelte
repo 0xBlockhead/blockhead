@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -24,12 +25,14 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BlockheadFedimintClientState, data.selector, {
-				fields: {
-					clientName: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.clientId ?? '') || 'blockhead Fedimint client state' : (pageSelection.entity.clientName ?? '') || pageSelection.entitySelector.clientId || 'blockhead Fedimint client state')} • blockhead Fedimint client state • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BlockheadFedimintClientState, data.selector, {
+					fields: {
+						clientName: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.clientId ?? '') || 'blockhead Fedimint client state' : (pageSelection.entity.clientName ?? '') || pageSelection.entitySelector.clientId || 'blockhead Fedimint client state')} • blockhead Fedimint client state • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'blockhead Fedimint client state'} • blockhead Fedimint client state • Blockhead</title>
 	{/if}
@@ -38,14 +41,16 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BlockheadFedimintClientState, data.selector, {
-				fields: {
-					clientName: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BlockheadFedimintClientState, data.selector, {
+					fields: {
+						clientName: true,
+					},
+				}))}
 
-	<BlockheadFedimintClientStateView
-		selection={pageSelection}
-	/>
+		<BlockheadFedimintClientStateView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

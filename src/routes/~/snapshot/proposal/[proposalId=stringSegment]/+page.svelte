@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,15 +26,17 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.SnapshotProposal, data.selector, {
-				sources: [
-					Source.SnapshotHub_Graphql,
-				],
-				fields: {
-					title: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.proposalId ?? '') || 'Snapshot proposal' : (pageSelection.entity.title ?? '') || pageSelection.entitySelector.proposalId || 'Snapshot proposal')} • Snapshot proposal • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.SnapshotProposal, data.selector, {
+					sources: [
+						Source.SnapshotHub_Graphql,
+					],
+					fields: {
+						title: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.proposalId ?? '') || 'Snapshot proposal' : (pageSelection.entity.title ?? '') || pageSelection.entitySelector.proposalId || 'Snapshot proposal')} • Snapshot proposal • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Snapshot proposal'} • Snapshot proposal • Blockhead</title>
 	{/if}
@@ -42,17 +45,19 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.SnapshotProposal, data.selector, {
-				sources: [
-					Source.SnapshotHub_Graphql,
-				],
-				fields: {
-					title: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.SnapshotProposal, data.selector, {
+					sources: [
+						Source.SnapshotHub_Graphql,
+					],
+					fields: {
+						title: true,
+					},
+				}))}
 
-	<SnapshotProposalView
-		selection={pageSelection}
-	/>
+		<SnapshotProposalView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,11 +26,13 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.TonTransactionPhase, {
-				$transaction: data.selector,
-				phaseKind: params.phaseKind,
-			})}
-		<title>{data?.title ?? 'TON transaction phase'} • TON transaction phase • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.TonTransactionPhase, {
+					$transaction: data.selector,
+					phaseKind: params.phaseKind,
+				}))}
+			<title>{data?.title ?? 'TON transaction phase'} • TON transaction phase • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'TON transaction phase'} • TON transaction phase • Blockhead</title>
 	{/if}
@@ -38,13 +41,15 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.TonTransactionPhase, {
-				$transaction: data.selector,
-				phaseKind: params.phaseKind,
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.TonTransactionPhase, {
+					$transaction: data.selector,
+					phaseKind: params.phaseKind,
+				}))}
 
-	<TonTransactionPhaseView
-		selection={pageSelection}
-	/>
+		<TonTransactionPhaseView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

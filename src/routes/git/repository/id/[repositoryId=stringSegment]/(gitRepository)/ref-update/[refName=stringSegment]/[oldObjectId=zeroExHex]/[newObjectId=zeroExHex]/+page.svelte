@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,13 +26,15 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.GitRefUpdate, {
-				$repository: data.selector,
-				refName: params.refName,
-				oldObjectId: params.oldObjectId,
-				newObjectId: params.newObjectId,
-			})}
-		<title>{data?.title ?? (pageSelection.entitySelector.refName || 'Git ref update')} • Git ref update • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.GitRefUpdate, {
+					$repository: data.selector,
+					refName: params.refName,
+					oldObjectId: params.oldObjectId,
+					newObjectId: params.newObjectId,
+				}))}
+			<title>{data?.title ?? (pageSelection.entitySelector.refName || 'Git ref update')} • Git ref update • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Git ref update'} • Git ref update • Blockhead</title>
 	{/if}
@@ -40,15 +43,17 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.GitRefUpdate, {
-				$repository: data.selector,
-				refName: params.refName,
-				oldObjectId: params.oldObjectId,
-				newObjectId: params.newObjectId,
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.GitRefUpdate, {
+					$repository: data.selector,
+					refName: params.refName,
+					oldObjectId: params.oldObjectId,
+					newObjectId: params.newObjectId,
+				}))}
 
-	<GitRefUpdateView
-		selection={pageSelection}
-	/>
+		<GitRefUpdateView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

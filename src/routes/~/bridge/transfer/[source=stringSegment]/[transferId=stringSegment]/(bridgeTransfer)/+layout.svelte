@@ -10,6 +10,7 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -42,24 +43,26 @@
 >
 	{#snippet Summary()}
 		{#if data?.selector != null}
-			<BridgeTransferView
-				selection={
-					select(EntityType.BridgeTransfer, data.selector, {
-						sources: [
-							Source.Across_Rest,
-							Source.Allium_Rest,
-							Source.Axelarscan_Rest,
-							Source.Dune_Rest,
-							Source.LayerZeroScan_Rest,
-							Source.Lifi_Rest,
-							Source.Voltaire_JsonRpc,
-							Source.Wormholescan,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
+			{#key data.selector}
+				<BridgeTransferView
+					selection={
+						untrack(() => select(EntityType.BridgeTransfer, data.selector, {
+							sources: [
+								Source.Across_Rest,
+								Source.Allium_Rest,
+								Source.Axelarscan_Rest,
+								Source.Dune_Rest,
+								Source.LayerZeroScan_Rest,
+								Source.Lifi_Rest,
+								Source.Voltaire_JsonRpc,
+								Source.Wormholescan,
+							],
+						}))
+					}
+					href={detailHref}
+					layout={EntityLayout.SummaryInline}
+				/>
+			{/key}
 		{/if}
 	{/snippet}
 

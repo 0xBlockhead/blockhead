@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,17 +26,19 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.XrplAccount_Timestamp, {
-				$account: data.selector,
-				ledgerIndex: BigInt(params.ledgerIndex),
-				source: params.source,
-			}, {
-				sources: [params.source],
-				fields: {
-					balanceDrops: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? 'XRPL account timestamp' : String(pageSelection.entity.balanceDrops ?? '') || 'XRPL account timestamp')} • XRPL account timestamp • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.XrplAccount_Timestamp, {
+					$account: data.selector,
+					ledgerIndex: BigInt(params.ledgerIndex),
+					source: params.source,
+				}, {
+					sources: [params.source],
+					fields: {
+						balanceDrops: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? 'XRPL account timestamp' : String(pageSelection.entity.balanceDrops ?? '') || 'XRPL account timestamp')} • XRPL account timestamp • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'XRPL account timestamp'} • XRPL account timestamp • Blockhead</title>
 	{/if}
@@ -44,19 +47,21 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.XrplAccount_Timestamp, {
-				$account: data.selector,
-				ledgerIndex: BigInt(params.ledgerIndex),
-				source: params.source,
-			}, {
-				sources: [params.source],
-				fields: {
-					balanceDrops: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.XrplAccount_Timestamp, {
+					$account: data.selector,
+					ledgerIndex: BigInt(params.ledgerIndex),
+					source: params.source,
+				}, {
+					sources: [params.source],
+					fields: {
+						balanceDrops: true,
+					},
+				}))}
 
-	<XrplAccount_TimestampView
-		selection={pageSelection}
-	/>
+		<XrplAccount_TimestampView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

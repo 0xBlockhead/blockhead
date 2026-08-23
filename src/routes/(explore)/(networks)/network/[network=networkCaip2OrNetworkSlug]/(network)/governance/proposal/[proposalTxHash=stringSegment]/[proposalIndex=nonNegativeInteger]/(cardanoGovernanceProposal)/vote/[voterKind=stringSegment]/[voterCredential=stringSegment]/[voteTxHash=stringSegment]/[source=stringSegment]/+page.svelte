@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,19 +26,21 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.CardanoGovernanceVote, {
-				$proposal: data.selector,
-				voterKind: params.voterKind,
-				voterCredential: params.voterCredential,
-				voteTxHash: params.voteTxHash,
-				source: params.source,
-			}, {
-				sources: [params.source],
-				fields: {
-					vote: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? 'Cardano governance vote' : pageSelection.entity.vote || 'Cardano governance vote')} • Cardano governance vote • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.CardanoGovernanceVote, {
+					$proposal: data.selector,
+					voterKind: params.voterKind,
+					voterCredential: params.voterCredential,
+					voteTxHash: params.voteTxHash,
+					source: params.source,
+				}, {
+					sources: [params.source],
+					fields: {
+						vote: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? 'Cardano governance vote' : pageSelection.entity.vote || 'Cardano governance vote')} • Cardano governance vote • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Cardano governance vote'} • Cardano governance vote • Blockhead</title>
 	{/if}
@@ -46,21 +49,23 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.CardanoGovernanceVote, {
-				$proposal: data.selector,
-				voterKind: params.voterKind,
-				voterCredential: params.voterCredential,
-				voteTxHash: params.voteTxHash,
-				source: params.source,
-			}, {
-				sources: [params.source],
-				fields: {
-					vote: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.CardanoGovernanceVote, {
+					$proposal: data.selector,
+					voterKind: params.voterKind,
+					voterCredential: params.voterCredential,
+					voteTxHash: params.voteTxHash,
+					source: params.source,
+				}, {
+					sources: [params.source],
+					fields: {
+						vote: true,
+					},
+				}))}
 
-	<CardanoGovernanceVoteView
-		selection={pageSelection}
-	/>
+		<CardanoGovernanceVoteView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

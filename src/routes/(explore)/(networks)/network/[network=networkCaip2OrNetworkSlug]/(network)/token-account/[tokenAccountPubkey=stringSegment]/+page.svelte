@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -24,8 +25,10 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.SolanaTokenAccount, data.selector)}
-		<title>{data?.title ?? (pageSelection.entitySelector.tokenAccountPubkey || 'solana token account')} • solana token account • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.SolanaTokenAccount, data.selector))}
+			<title>{data?.title ?? (pageSelection.entitySelector.tokenAccountPubkey || 'solana token account')} • solana token account • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'solana token account'} • solana token account • Blockhead</title>
 	{/if}
@@ -34,10 +37,12 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.SolanaTokenAccount, data.selector)}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.SolanaTokenAccount, data.selector))}
 
-	<SolanaTokenAccountView
-		selection={pageSelection}
-	/>
+		<SolanaTokenAccountView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

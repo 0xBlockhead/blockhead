@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -26,22 +27,24 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BlockheadStateChannelTransfer, {
-				$channel: data.selector,
-				turnNum: Number(params.turnNum),
-				$from: {
-					address: params.fromAddress,
-				},
-				$to: {
-					address: params.toAddress,
-				},
-				amount: BigInt(params.amount),
-			}, {
-				sources: [
-					Source.Local_Internal,
-				],
-			})}
-		<title>{data?.title ?? (String(pageSelection.entitySelector.amount) || 'blockhead state channel transfer')} • blockhead state channel transfer • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BlockheadStateChannelTransfer, {
+					$channel: data.selector,
+					turnNum: Number(params.turnNum),
+					$from: {
+						address: params.fromAddress,
+					},
+					$to: {
+						address: params.toAddress,
+					},
+					amount: BigInt(params.amount),
+				}, {
+					sources: [
+						Source.Local_Internal,
+					],
+				}))}
+			<title>{data?.title ?? (String(pageSelection.entitySelector.amount) || 'blockhead state channel transfer')} • blockhead state channel transfer • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'blockhead state channel transfer'} • blockhead state channel transfer • Blockhead</title>
 	{/if}
@@ -50,24 +53,26 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BlockheadStateChannelTransfer, {
-				$channel: data.selector,
-				turnNum: Number(params.turnNum),
-				$from: {
-					address: params.fromAddress,
-				},
-				$to: {
-					address: params.toAddress,
-				},
-				amount: BigInt(params.amount),
-			}, {
-				sources: [
-					Source.Local_Internal,
-				],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BlockheadStateChannelTransfer, {
+					$channel: data.selector,
+					turnNum: Number(params.turnNum),
+					$from: {
+						address: params.fromAddress,
+					},
+					$to: {
+						address: params.toAddress,
+					},
+					amount: BigInt(params.amount),
+				}, {
+					sources: [
+						Source.Local_Internal,
+					],
+				}))}
 
-	<BlockheadStateChannelTransferView
-		selection={pageSelection}
-	/>
+		<BlockheadStateChannelTransferView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

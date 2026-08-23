@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -24,12 +25,14 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.AptosTransaction, data.selector, {
-				fields: {
-					hash: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? String(pageSelection.entitySelector.version ?? '') || 'aptos transaction' : pageSelection.entity.hash || String(pageSelection.entitySelector.version) || 'aptos transaction')} • aptos transaction • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.AptosTransaction, data.selector, {
+					fields: {
+						hash: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? String(pageSelection.entitySelector.version ?? '') || 'aptos transaction' : pageSelection.entity.hash || String(pageSelection.entitySelector.version) || 'aptos transaction')} • aptos transaction • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'aptos transaction'} • aptos transaction • Blockhead</title>
 	{/if}
@@ -38,14 +41,16 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.AptosTransaction, data.selector, {
-				fields: {
-					hash: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.AptosTransaction, data.selector, {
+					fields: {
+						hash: true,
+					},
+				}))}
 
-	<AptosTransactionView
-		selection={pageSelection}
-	/>
+		<AptosTransactionView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,12 +26,14 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.EigenLayerAvs, data.selector, {
-				sources: [
-					Source.EigenExplorer_Rest,
-				],
-			})}
-		<title>{data?.title ?? (pageSelection.entitySelector.avsAddress || 'eigen layer avs')} • eigen layer avs • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.EigenLayerAvs, data.selector, {
+					sources: [
+						Source.EigenExplorer_Rest,
+					],
+				}))}
+			<title>{data?.title ?? (pageSelection.entitySelector.avsAddress || 'eigen layer avs')} • eigen layer avs • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'eigen layer avs'} • eigen layer avs • Blockhead</title>
 	{/if}
@@ -39,14 +42,16 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.EigenLayerAvs, data.selector, {
-				sources: [
-					Source.EigenExplorer_Rest,
-				],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.EigenLayerAvs, data.selector, {
+					sources: [
+						Source.EigenExplorer_Rest,
+					],
+				}))}
 
-	<EigenLayerAvsView
-		selection={pageSelection}
-	/>
+		<EigenLayerAvsView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

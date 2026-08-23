@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,11 +26,13 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.TezosInternalOperation, {
-				$parentOperation: data.selector,
-				internalIndex: Number(params.internalIndex),
-			})}
-		<title>{data?.title ?? 'tezos internal operation'} • tezos internal operation • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.TezosInternalOperation, {
+					$parentOperation: data.selector,
+					internalIndex: Number(params.internalIndex),
+				}))}
+			<title>{data?.title ?? 'tezos internal operation'} • tezos internal operation • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'tezos internal operation'} • tezos internal operation • Blockhead</title>
 	{/if}
@@ -38,13 +41,15 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.TezosInternalOperation, {
-				$parentOperation: data.selector,
-				internalIndex: Number(params.internalIndex),
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.TezosInternalOperation, {
+					$parentOperation: data.selector,
+					internalIndex: Number(params.internalIndex),
+				}))}
 
-	<TezosInternalOperationView
-		selection={pageSelection}
-	/>
+		<TezosInternalOperationView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

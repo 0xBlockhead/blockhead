@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,11 +26,13 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.RadicleCollaborationEvent, {
-				$repository: data.selector,
-				eventId: params.eventId,
-			})}
-		<title>{data?.title ?? 'radicle collaboration event'} • radicle collaboration event • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.RadicleCollaborationEvent, {
+					$repository: data.selector,
+					eventId: params.eventId,
+				}))}
+			<title>{data?.title ?? 'radicle collaboration event'} • radicle collaboration event • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'radicle collaboration event'} • radicle collaboration event • Blockhead</title>
 	{/if}
@@ -38,13 +41,15 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.RadicleCollaborationEvent, {
-				$repository: data.selector,
-				eventId: params.eventId,
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.RadicleCollaborationEvent, {
+					$repository: data.selector,
+					eventId: params.eventId,
+				}))}
 
-	<RadicleCollaborationEventView
-		selection={pageSelection}
-	/>
+		<RadicleCollaborationEventView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

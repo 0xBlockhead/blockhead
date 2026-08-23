@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,12 +26,14 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.EvmLog, data.selector, {
-				sources: [
-					Source.Blockscout_Rest,
-				],
-			})}
-		<title>{data?.title ?? ((String(pageSelection.entitySelector.indexInTransaction ?? '') ? 'Log #' + String(pageSelection.entitySelector.indexInTransaction ?? '') : '') || 'EVM log')} • EVM log • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.EvmLog, data.selector, {
+					sources: [
+						Source.Blockscout_Rest,
+					],
+				}))}
+			<title>{data?.title ?? ((String(pageSelection.entitySelector.indexInTransaction ?? '') ? 'Log #' + String(pageSelection.entitySelector.indexInTransaction ?? '') : '') || 'EVM log')} • EVM log • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'EVM log'} • EVM log • Blockhead</title>
 	{/if}
@@ -39,14 +42,16 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.EvmLog, data.selector, {
-				sources: [
-					Source.Blockscout_Rest,
-				],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.EvmLog, data.selector, {
+					sources: [
+						Source.Blockscout_Rest,
+					],
+				}))}
 
-	<EvmLogView
-		selection={pageSelection}
-	/>
+		<EvmLogView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

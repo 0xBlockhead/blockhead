@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,15 +26,17 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.AvailBlock, {
-				$network: data.selector,
-				blockNumber: BigInt(params.blockNumber),
-			}, {
-				fields: {
-					blockHash: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? String(pageSelection.entitySelector.blockNumber ?? '') || 'avail block' : String(pageSelection.entitySelector.blockNumber) || pageSelection.entity.blockHash || 'avail block')} • avail block • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.AvailBlock, {
+					$network: data.selector,
+					blockNumber: BigInt(params.blockNumber),
+				}, {
+					fields: {
+						blockHash: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? String(pageSelection.entitySelector.blockNumber ?? '') || 'avail block' : String(pageSelection.entitySelector.blockNumber) || pageSelection.entity.blockHash || 'avail block')} • avail block • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'avail block'} • avail block • Blockhead</title>
 	{/if}
@@ -42,17 +45,19 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.AvailBlock, {
-				$network: data.selector,
-				blockNumber: BigInt(params.blockNumber),
-			}, {
-				fields: {
-					blockHash: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.AvailBlock, {
+					$network: data.selector,
+					blockNumber: BigInt(params.blockNumber),
+				}, {
+					fields: {
+						blockHash: true,
+					},
+				}))}
 
-	<AvailBlockView
-		selection={pageSelection}
-	/>
+		<AvailBlockView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,14 +26,16 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BeaconExecutionPayloadEnvelope_Timestamp, {
-				$envelope: data.selector,
-				timestampMs: Number(params.timestampMs),
-				source: params.source,
-			}, {
-				sources: [params.source],
-			})}
-		<title>{data?.title ?? (String(pageSelection.entitySelector.timestampMs) || 'Beacon execution payload envelope observation')} • Beacon execution payload envelope observation • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BeaconExecutionPayloadEnvelope_Timestamp, {
+					$envelope: data.selector,
+					timestampMs: Number(params.timestampMs),
+					source: params.source,
+				}, {
+					sources: [params.source],
+				}))}
+			<title>{data?.title ?? (String(pageSelection.entitySelector.timestampMs) || 'Beacon execution payload envelope observation')} • Beacon execution payload envelope observation • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Beacon execution payload envelope observation'} • Beacon execution payload envelope observation • Blockhead</title>
 	{/if}
@@ -41,16 +44,18 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BeaconExecutionPayloadEnvelope_Timestamp, {
-				$envelope: data.selector,
-				timestampMs: Number(params.timestampMs),
-				source: params.source,
-			}, {
-				sources: [params.source],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BeaconExecutionPayloadEnvelope_Timestamp, {
+					$envelope: data.selector,
+					timestampMs: Number(params.timestampMs),
+					source: params.source,
+				}, {
+					sources: [params.source],
+				}))}
 
-	<BeaconExecutionPayloadEnvelope_TimestampView
-		selection={pageSelection}
-	/>
+		<BeaconExecutionPayloadEnvelope_TimestampView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

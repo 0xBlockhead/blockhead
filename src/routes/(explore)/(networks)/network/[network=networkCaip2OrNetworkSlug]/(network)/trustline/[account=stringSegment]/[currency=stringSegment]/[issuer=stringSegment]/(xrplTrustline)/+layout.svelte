@@ -9,6 +9,7 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -43,11 +44,13 @@
 >
 	{#snippet Summary()}
 		{#if data?.selector != null}
-			<XrplTrustlineView
-				selection={select(EntityType.XrplTrustline, data.selector)}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
+			{#key data.selector}
+				<XrplTrustlineView
+					selection={untrack(() => select(EntityType.XrplTrustline, data.selector))}
+					href={detailHref}
+					layout={EntityLayout.SummaryInline}
+				/>
+			{/key}
 		{/if}
 	{/snippet}
 

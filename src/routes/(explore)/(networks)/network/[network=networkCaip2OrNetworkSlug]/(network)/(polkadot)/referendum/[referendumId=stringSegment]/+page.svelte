@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -24,8 +25,10 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.PolkadotReferendum, data.selector)}
-		<title>{data?.title ?? (pageSelection.entitySelector.referendumId || 'Polkadot referendum')} • Polkadot referendum • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.PolkadotReferendum, data.selector))}
+			<title>{data?.title ?? (pageSelection.entitySelector.referendumId || 'Polkadot referendum')} • Polkadot referendum • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Polkadot referendum'} • Polkadot referendum • Blockhead</title>
 	{/if}
@@ -34,10 +37,12 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.PolkadotReferendum, data.selector)}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.PolkadotReferendum, data.selector))}
 
-	<PolkadotReferendumView
-		selection={pageSelection}
-	/>
+		<PolkadotReferendumView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

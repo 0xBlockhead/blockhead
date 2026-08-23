@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -26,20 +27,22 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.MorphoMarketPosition, {
-				$account: {
-					$network: data.selector.$network,
-					$actor: {
-						address: params.accountAddress,
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.MorphoMarketPosition, {
+					$account: {
+						$network: data.selector.$network,
+						$actor: {
+							address: params.accountAddress,
+						},
 					},
-				},
-				$market: data.selector,
-			}, {
-				sources: [
-					Source.Morpho_Graphql,
-				],
-			})}
-		<title>{data?.title ?? 'Morpho market position'} • Morpho market position • Blockhead</title>
+					$market: data.selector,
+				}, {
+					sources: [
+						Source.Morpho_Graphql,
+					],
+				}))}
+			<title>{data?.title ?? 'Morpho market position'} • Morpho market position • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Morpho market position'} • Morpho market position • Blockhead</title>
 	{/if}
@@ -48,22 +51,24 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.MorphoMarketPosition, {
-				$account: {
-					$network: data.selector.$network,
-					$actor: {
-						address: params.accountAddress,
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.MorphoMarketPosition, {
+					$account: {
+						$network: data.selector.$network,
+						$actor: {
+							address: params.accountAddress,
+						},
 					},
-				},
-				$market: data.selector,
-			}, {
-				sources: [
-					Source.Morpho_Graphql,
-				],
-			})}
+					$market: data.selector,
+				}, {
+					sources: [
+						Source.Morpho_Graphql,
+					],
+				}))}
 
-	<MorphoMarketPositionView
-		selection={pageSelection}
-	/>
+		<MorphoMarketPositionView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

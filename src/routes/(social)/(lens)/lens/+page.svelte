@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,15 +26,17 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.LensNetwork, data.selector, {
-				sources: [
-					Source.Constants_Internal,
-				],
-				fields: {
-					protocolName: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? 'Lens' : pageSelection.entity.protocolName || 'Lens')} • Lens • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.LensNetwork, data.selector, {
+					sources: [
+						Source.Constants_Internal,
+					],
+					fields: {
+						protocolName: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? 'Lens' : pageSelection.entity.protocolName || 'Lens')} • Lens • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Lens'} • Lens • Blockhead</title>
 	{/if}
@@ -42,17 +45,19 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.LensNetwork, data.selector, {
-				sources: [
-					Source.Constants_Internal,
-				],
-				fields: {
-					protocolName: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.LensNetwork, data.selector, {
+					sources: [
+						Source.Constants_Internal,
+					],
+					fields: {
+						protocolName: true,
+					},
+				}))}
 
-	<LensNetworkView
-		selection={pageSelection}
-	/>
+		<LensNetworkView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

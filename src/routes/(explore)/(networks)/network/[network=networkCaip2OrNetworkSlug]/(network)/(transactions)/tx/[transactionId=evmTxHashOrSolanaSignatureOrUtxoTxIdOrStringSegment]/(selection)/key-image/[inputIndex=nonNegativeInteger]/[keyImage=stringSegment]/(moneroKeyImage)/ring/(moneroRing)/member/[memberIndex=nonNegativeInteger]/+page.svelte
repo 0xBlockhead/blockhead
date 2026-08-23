@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -26,15 +27,17 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.MoneroRingMember, {
-				$ring: data.selector,
-				memberIndex: Number(params.memberIndex),
-			}, {
-				sources: [
-					Source.MoneroDaemonRpc_JsonRpc,
-				],
-			})}
-		<title>{data?.title ?? (String(pageSelection.entitySelector.memberIndex) || 'monero ring member')} • monero ring member • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.MoneroRingMember, {
+					$ring: data.selector,
+					memberIndex: Number(params.memberIndex),
+				}, {
+					sources: [
+						Source.MoneroDaemonRpc_JsonRpc,
+					],
+				}))}
+			<title>{data?.title ?? (String(pageSelection.entitySelector.memberIndex) || 'monero ring member')} • monero ring member • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'monero ring member'} • monero ring member • Blockhead</title>
 	{/if}
@@ -43,17 +46,19 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.MoneroRingMember, {
-				$ring: data.selector,
-				memberIndex: Number(params.memberIndex),
-			}, {
-				sources: [
-					Source.MoneroDaemonRpc_JsonRpc,
-				],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.MoneroRingMember, {
+					$ring: data.selector,
+					memberIndex: Number(params.memberIndex),
+				}, {
+					sources: [
+						Source.MoneroDaemonRpc_JsonRpc,
+					],
+				}))}
 
-	<MoneroRingMemberView
-		selection={pageSelection}
-	/>
+		<MoneroRingMemberView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

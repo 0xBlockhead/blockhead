@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,15 +26,17 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BlockheadZcashNoteState, data.selector, {
-				sources: [
-					Source.Local_Internal,
-					Source.ZcashClientBackend_Local,
-					Source.ZcashLightwalletd_Grpc,
-					Source.ZcashdWallet_JsonRpc,
-				],
-			})}
-		<title>{data?.title ?? (pageSelection.entitySelector.noteCommitment || 'blockhead zcash note state')} • blockhead zcash note state • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BlockheadZcashNoteState, data.selector, {
+					sources: [
+						Source.Local_Internal,
+						Source.ZcashClientBackend_Local,
+						Source.ZcashLightwalletd_Grpc,
+						Source.ZcashdWallet_JsonRpc,
+					],
+				}))}
+			<title>{data?.title ?? (pageSelection.entitySelector.noteCommitment || 'blockhead zcash note state')} • blockhead zcash note state • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'blockhead zcash note state'} • blockhead zcash note state • Blockhead</title>
 	{/if}
@@ -42,17 +45,19 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BlockheadZcashNoteState, data.selector, {
-				sources: [
-					Source.Local_Internal,
-					Source.ZcashClientBackend_Local,
-					Source.ZcashLightwalletd_Grpc,
-					Source.ZcashdWallet_JsonRpc,
-				],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BlockheadZcashNoteState, data.selector, {
+					sources: [
+						Source.Local_Internal,
+						Source.ZcashClientBackend_Local,
+						Source.ZcashLightwalletd_Grpc,
+						Source.ZcashdWallet_JsonRpc,
+					],
+				}))}
 
-	<BlockheadZcashNoteStateView
-		selection={pageSelection}
-	/>
+		<BlockheadZcashNoteStateView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

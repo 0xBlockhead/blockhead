@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -26,15 +27,17 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BeaconExecutionDepositRequest, {
-				$envelope: data.selector,
-				requestIndex: params.requestIndex,
-			}, {
-				sources: [
-					Source.Beacon_Rest,
-				],
-			})}
-		<title>{data?.title ?? 'Deposit request ' + String(pageSelection.entitySelector.requestIndex)} • Beacon execution deposit request • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BeaconExecutionDepositRequest, {
+					$envelope: data.selector,
+					requestIndex: params.requestIndex,
+				}, {
+					sources: [
+						Source.Beacon_Rest,
+					],
+				}))}
+			<title>{data?.title ?? 'Deposit request ' + String(pageSelection.entitySelector.requestIndex)} • Beacon execution deposit request • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Beacon execution deposit request'} • Beacon execution deposit request • Blockhead</title>
 	{/if}
@@ -43,17 +46,19 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BeaconExecutionDepositRequest, {
-				$envelope: data.selector,
-				requestIndex: params.requestIndex,
-			}, {
-				sources: [
-					Source.Beacon_Rest,
-				],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BeaconExecutionDepositRequest, {
+					$envelope: data.selector,
+					requestIndex: params.requestIndex,
+				}, {
+					sources: [
+						Source.Beacon_Rest,
+					],
+				}))}
 
-	<BeaconExecutionDepositRequestView
-		selection={pageSelection}
-	/>
+		<BeaconExecutionDepositRequestView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,11 +26,13 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.TrustedIssuer, {
-				$profile: data.selector,
-				issuerKey: params.issuerKey,
-			})}
-		<title>{data?.title ?? 'trusted issuer'} • trusted issuer • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.TrustedIssuer, {
+					$profile: data.selector,
+					issuerKey: params.issuerKey,
+				}))}
+			<title>{data?.title ?? 'trusted issuer'} • trusted issuer • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'trusted issuer'} • trusted issuer • Blockhead</title>
 	{/if}
@@ -38,13 +41,15 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.TrustedIssuer, {
-				$profile: data.selector,
-				issuerKey: params.issuerKey,
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.TrustedIssuer, {
+					$profile: data.selector,
+					issuerKey: params.issuerKey,
+				}))}
 
-	<TrustedIssuerView
-		selection={pageSelection}
-	/>
+		<TrustedIssuerView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

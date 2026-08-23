@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -26,18 +27,20 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.McpTool, {
-				$server: data.selector,
-				name: params.name,
-			}, {
-				sources: [
-					Source.McpDeclared_Protocol,
-				],
-				fields: {
-					title: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.name ?? '') || 'mcp tool' : (pageSelection.entity.title ?? '') || pageSelection.entitySelector.name || 'mcp tool')} • mcp tool • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.McpTool, {
+					$server: data.selector,
+					name: params.name,
+				}, {
+					sources: [
+						Source.McpDeclared_Protocol,
+					],
+					fields: {
+						title: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.name ?? '') || 'mcp tool' : (pageSelection.entity.title ?? '') || pageSelection.entitySelector.name || 'mcp tool')} • mcp tool • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'mcp tool'} • mcp tool • Blockhead</title>
 	{/if}
@@ -46,20 +49,22 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.McpTool, {
-				$server: data.selector,
-				name: params.name,
-			}, {
-				sources: [
-					Source.McpDeclared_Protocol,
-				],
-				fields: {
-					title: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.McpTool, {
+					$server: data.selector,
+					name: params.name,
+				}, {
+					sources: [
+						Source.McpDeclared_Protocol,
+					],
+					fields: {
+						title: true,
+					},
+				}))}
 
-	<McpToolView
-		selection={pageSelection}
-	/>
+		<McpToolView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

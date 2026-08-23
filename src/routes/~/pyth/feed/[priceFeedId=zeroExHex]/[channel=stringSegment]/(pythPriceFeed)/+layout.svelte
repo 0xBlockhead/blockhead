@@ -10,6 +10,7 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -42,18 +43,20 @@
 >
 	{#snippet Summary()}
 		{#if data?.selector != null}
-			<PythPriceFeedView
-				selection={
-					select(EntityType.PythPriceFeed, data.selector, {
-						sources: [
-							Source.PythBenchmarks_Rest,
-							Source.PythHermes_Rest,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
+			{#key data.selector}
+				<PythPriceFeedView
+					selection={
+						untrack(() => select(EntityType.PythPriceFeed, data.selector, {
+							sources: [
+								Source.PythBenchmarks_Rest,
+								Source.PythHermes_Rest,
+							],
+						}))
+					}
+					href={detailHref}
+					layout={EntityLayout.SummaryInline}
+				/>
+			{/key}
 		{/if}
 	{/snippet}
 

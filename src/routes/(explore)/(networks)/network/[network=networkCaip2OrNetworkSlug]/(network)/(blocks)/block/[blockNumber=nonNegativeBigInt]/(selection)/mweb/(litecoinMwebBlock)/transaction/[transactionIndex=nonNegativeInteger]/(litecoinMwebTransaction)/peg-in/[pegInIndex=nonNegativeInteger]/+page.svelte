@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -26,15 +27,17 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.LitecoinMwebPegIn, {
-				$transaction: data.selector,
-				pegInIndex: Number(params.pegInIndex),
-			}, {
-				sources: [
-					Source.LitecoinCore_JsonRpc,
-				],
-			})}
-		<title>{data?.title ?? 'litecoin MWEB peg in'} • litecoin MWEB peg in • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.LitecoinMwebPegIn, {
+					$transaction: data.selector,
+					pegInIndex: Number(params.pegInIndex),
+				}, {
+					sources: [
+						Source.LitecoinCore_JsonRpc,
+					],
+				}))}
+			<title>{data?.title ?? 'litecoin MWEB peg in'} • litecoin MWEB peg in • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'litecoin MWEB peg in'} • litecoin MWEB peg in • Blockhead</title>
 	{/if}
@@ -43,17 +46,19 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.LitecoinMwebPegIn, {
-				$transaction: data.selector,
-				pegInIndex: Number(params.pegInIndex),
-			}, {
-				sources: [
-					Source.LitecoinCore_JsonRpc,
-				],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.LitecoinMwebPegIn, {
+					$transaction: data.selector,
+					pegInIndex: Number(params.pegInIndex),
+				}, {
+					sources: [
+						Source.LitecoinCore_JsonRpc,
+					],
+				}))}
 
-	<LitecoinMwebPegInView
-		selection={pageSelection}
-	/>
+		<LitecoinMwebPegInView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

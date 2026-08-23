@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,15 +26,17 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.EvmStorageRead_Timestamp, {
-				$contract: data.selector,
-				slot: params.slot,
-				timestampMs: Number(params.timestampMs),
-				source: params.source,
-			}, {
-				sources: [params.source],
-			})}
-		<title>{data?.title ?? (pageSelection.entitySelector.slot || 'EVM storage read timestamp')} • EVM storage read timestamp • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.EvmStorageRead_Timestamp, {
+					$contract: data.selector,
+					slot: params.slot,
+					timestampMs: Number(params.timestampMs),
+					source: params.source,
+				}, {
+					sources: [params.source],
+				}))}
+			<title>{data?.title ?? (pageSelection.entitySelector.slot || 'EVM storage read timestamp')} • EVM storage read timestamp • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'EVM storage read timestamp'} • EVM storage read timestamp • Blockhead</title>
 	{/if}
@@ -42,17 +45,19 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.EvmStorageRead_Timestamp, {
-				$contract: data.selector,
-				slot: params.slot,
-				timestampMs: Number(params.timestampMs),
-				source: params.source,
-			}, {
-				sources: [params.source],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.EvmStorageRead_Timestamp, {
+					$contract: data.selector,
+					slot: params.slot,
+					timestampMs: Number(params.timestampMs),
+					source: params.source,
+				}, {
+					sources: [params.source],
+				}))}
 
-	<EvmStorageRead_TimestampView
-		selection={pageSelection}
-	/>
+		<EvmStorageRead_TimestampView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

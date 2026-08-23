@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -24,8 +25,10 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BitcoinCashCashTokenCategory, data.selector)}
-		<title>{data?.title ?? (pageSelection.entitySelector.categoryId || 'Bitcoin Cash CashToken category')} • Bitcoin Cash CashToken category • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BitcoinCashCashTokenCategory, data.selector))}
+			<title>{data?.title ?? (pageSelection.entitySelector.categoryId || 'Bitcoin Cash CashToken category')} • Bitcoin Cash CashToken category • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Bitcoin Cash CashToken category'} • Bitcoin Cash CashToken category • Blockhead</title>
 	{/if}
@@ -34,10 +37,12 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BitcoinCashCashTokenCategory, data.selector)}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BitcoinCashCashTokenCategory, data.selector))}
 
-	<BitcoinCashCashTokenCategoryView
-		selection={pageSelection}
-	/>
+		<BitcoinCashCashTokenCategoryView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

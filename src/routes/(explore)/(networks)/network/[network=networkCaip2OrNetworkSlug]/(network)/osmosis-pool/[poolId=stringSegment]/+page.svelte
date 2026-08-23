@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,15 +26,17 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.OsmosisPool, data.selector, {
-				sources: [
-					Source.Osmosis_LCD_Rest,
-				],
-				fields: {
-					typeUrl: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.poolId ?? '') || 'Osmosis pool' : [pageSelection.entitySelector.poolId, (pageSelection.entity.typeUrl ?? '')].filter(Boolean).join(' ') || 'Osmosis pool')} • Osmosis pool • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.OsmosisPool, data.selector, {
+					sources: [
+						Source.Osmosis_LCD_Rest,
+					],
+					fields: {
+						typeUrl: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.poolId ?? '') || 'Osmosis pool' : [pageSelection.entitySelector.poolId, (pageSelection.entity.typeUrl ?? '')].filter(Boolean).join(' ') || 'Osmosis pool')} • Osmosis pool • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Osmosis pool'} • Osmosis pool • Blockhead</title>
 	{/if}
@@ -42,17 +45,19 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.OsmosisPool, data.selector, {
-				sources: [
-					Source.Osmosis_LCD_Rest,
-				],
-				fields: {
-					typeUrl: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.OsmosisPool, data.selector, {
+					sources: [
+						Source.Osmosis_LCD_Rest,
+					],
+					fields: {
+						typeUrl: true,
+					},
+				}))}
 
-	<OsmosisPoolView
-		selection={pageSelection}
-	/>
+		<OsmosisPoolView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

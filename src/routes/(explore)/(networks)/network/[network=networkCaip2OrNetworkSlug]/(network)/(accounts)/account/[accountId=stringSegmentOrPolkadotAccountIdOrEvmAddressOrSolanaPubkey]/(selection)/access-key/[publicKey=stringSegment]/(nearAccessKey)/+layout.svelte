@@ -10,6 +10,7 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -43,17 +44,19 @@
 >
 	{#snippet Summary()}
 		{#if data?.selector != null}
-			<NearAccessKeyView
-				selection={
-					select(EntityType.NearAccessKey, data.selector, {
-						sources: [
-							Source.NearRpc_JsonRpc,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
+			{#key data.selector}
+				<NearAccessKeyView
+					selection={
+						untrack(() => select(EntityType.NearAccessKey, data.selector, {
+							sources: [
+								Source.NearRpc_JsonRpc,
+							],
+						}))
+					}
+					href={detailHref}
+					layout={EntityLayout.SummaryInline}
+				/>
+			{/key}
 		{/if}
 	{/snippet}
 

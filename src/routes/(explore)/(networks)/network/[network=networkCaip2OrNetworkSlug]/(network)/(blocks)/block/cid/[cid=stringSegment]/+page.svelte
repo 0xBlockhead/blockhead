@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -26,16 +27,18 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.FilecoinBlock, {
-				$network: data.selector,
-				cid: params.cid,
-			}, {
-				sources: [
-					Source.Lotus_JsonRpc,
-					Source.Filfox_Rest,
-				],
-			})}
-		<title>{data?.title ?? (pageSelection.entitySelector.cid || 'filecoin block')} • filecoin block • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.FilecoinBlock, {
+					$network: data.selector,
+					cid: params.cid,
+				}, {
+					sources: [
+						Source.Lotus_JsonRpc,
+						Source.Filfox_Rest,
+					],
+				}))}
+			<title>{data?.title ?? (pageSelection.entitySelector.cid || 'filecoin block')} • filecoin block • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'filecoin block'} • filecoin block • Blockhead</title>
 	{/if}
@@ -44,18 +47,20 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.FilecoinBlock, {
-				$network: data.selector,
-				cid: params.cid,
-			}, {
-				sources: [
-					Source.Lotus_JsonRpc,
-					Source.Filfox_Rest,
-				],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.FilecoinBlock, {
+					$network: data.selector,
+					cid: params.cid,
+				}, {
+					sources: [
+						Source.Lotus_JsonRpc,
+						Source.Filfox_Rest,
+					],
+				}))}
 
-	<FilecoinBlockView
-		selection={pageSelection}
-	/>
+		<FilecoinBlockView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

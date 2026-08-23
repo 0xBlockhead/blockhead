@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -26,15 +27,17 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BeaconExecutionWithdrawalRequest, {
-				$envelope: data.selector,
-				indexInEnvelope: Number(params.indexInEnvelope),
-			}, {
-				sources: [
-					Source.Beacon_Rest,
-				],
-			})}
-		<title>{data?.title ?? ((String(pageSelection.entitySelector.indexInEnvelope ?? '') ? 'Withdrawal request #' + String(pageSelection.entitySelector.indexInEnvelope ?? '') : '') || 'Beacon execution withdrawal request')} • Beacon execution withdrawal request • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BeaconExecutionWithdrawalRequest, {
+					$envelope: data.selector,
+					indexInEnvelope: Number(params.indexInEnvelope),
+				}, {
+					sources: [
+						Source.Beacon_Rest,
+					],
+				}))}
+			<title>{data?.title ?? ((String(pageSelection.entitySelector.indexInEnvelope ?? '') ? 'Withdrawal request #' + String(pageSelection.entitySelector.indexInEnvelope ?? '') : '') || 'Beacon execution withdrawal request')} • Beacon execution withdrawal request • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Beacon execution withdrawal request'} • Beacon execution withdrawal request • Blockhead</title>
 	{/if}
@@ -43,17 +46,19 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BeaconExecutionWithdrawalRequest, {
-				$envelope: data.selector,
-				indexInEnvelope: Number(params.indexInEnvelope),
-			}, {
-				sources: [
-					Source.Beacon_Rest,
-				],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BeaconExecutionWithdrawalRequest, {
+					$envelope: data.selector,
+					indexInEnvelope: Number(params.indexInEnvelope),
+				}, {
+					sources: [
+						Source.Beacon_Rest,
+					],
+				}))}
 
-	<BeaconExecutionWithdrawalRequestView
-		selection={pageSelection}
-	/>
+		<BeaconExecutionWithdrawalRequestView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

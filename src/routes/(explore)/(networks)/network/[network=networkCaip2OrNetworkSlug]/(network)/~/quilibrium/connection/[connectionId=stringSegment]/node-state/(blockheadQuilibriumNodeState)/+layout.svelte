@@ -10,6 +10,7 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -42,19 +43,21 @@
 >
 	{#snippet Summary()}
 		{#if data?.selector != null}
-			<BlockheadQuilibriumNodeStateView
-				selection={
-					select(EntityType.BlockheadQuilibriumNodeState, data.selector, {
-						sources: [
-							Source.Local_Internal,
-							Source.QuilibriumNodeMetrics_Prometheus,
-							Source.QuilibriumNode_Grpc,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
+			{#key data.selector}
+				<BlockheadQuilibriumNodeStateView
+					selection={
+						untrack(() => select(EntityType.BlockheadQuilibriumNodeState, data.selector, {
+							sources: [
+								Source.Local_Internal,
+								Source.QuilibriumNodeMetrics_Prometheus,
+								Source.QuilibriumNode_Grpc,
+							],
+						}))
+					}
+					href={detailHref}
+					layout={EntityLayout.SummaryInline}
+				/>
+			{/key}
 		{/if}
 	{/snippet}
 

@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,14 +26,16 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.AvailDataSubmission, {
-				$network: data.selector,
-				source: params.source,
-				submissionKey: params.submissionKey,
-			}, {
-				sources: [params.source],
-			})}
-		<title>{data?.title ?? (pageSelection.entitySelector.submissionKey || 'avail data submission')} • avail data submission • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.AvailDataSubmission, {
+					$network: data.selector,
+					source: params.source,
+					submissionKey: params.submissionKey,
+				}, {
+					sources: [params.source],
+				}))}
+			<title>{data?.title ?? (pageSelection.entitySelector.submissionKey || 'avail data submission')} • avail data submission • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'avail data submission'} • avail data submission • Blockhead</title>
 	{/if}
@@ -41,16 +44,18 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.AvailDataSubmission, {
-				$network: data.selector,
-				source: params.source,
-				submissionKey: params.submissionKey,
-			}, {
-				sources: [params.source],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.AvailDataSubmission, {
+					$network: data.selector,
+					source: params.source,
+					submissionKey: params.submissionKey,
+				}, {
+					sources: [params.source],
+				}))}
 
-	<AvailDataSubmissionView
-		selection={pageSelection}
-	/>
+		<AvailDataSubmissionView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

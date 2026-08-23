@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -26,18 +27,20 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.CurveLendingVault, {
-				$network: data.selector,
-				vaultAddress: params.vaultAddress,
-			}, {
-				sources: [
-					Source.Curve_Rest,
-				],
-				fields: {
-					name: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? 'Curve Lend vault' : pageSelection.entity.name || 'Curve Lend vault')} • Curve Lend vault • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.CurveLendingVault, {
+					$network: data.selector,
+					vaultAddress: params.vaultAddress,
+				}, {
+					sources: [
+						Source.Curve_Rest,
+					],
+					fields: {
+						name: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? 'Curve Lend vault' : pageSelection.entity.name || 'Curve Lend vault')} • Curve Lend vault • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Curve Lend vault'} • Curve Lend vault • Blockhead</title>
 	{/if}
@@ -46,20 +49,22 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.CurveLendingVault, {
-				$network: data.selector,
-				vaultAddress: params.vaultAddress,
-			}, {
-				sources: [
-					Source.Curve_Rest,
-				],
-				fields: {
-					name: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.CurveLendingVault, {
+					$network: data.selector,
+					vaultAddress: params.vaultAddress,
+				}, {
+					sources: [
+						Source.Curve_Rest,
+					],
+					fields: {
+						name: true,
+					},
+				}))}
 
-	<CurveLendingVaultView
-		selection={pageSelection}
-	/>
+		<CurveLendingVaultView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

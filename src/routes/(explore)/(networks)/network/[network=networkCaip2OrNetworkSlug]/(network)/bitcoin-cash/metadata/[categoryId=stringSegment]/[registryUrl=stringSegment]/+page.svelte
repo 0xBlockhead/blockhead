@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -26,19 +27,21 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BitcoinCashBcmrMetadata, {
-				$network: data.selector,
-				categoryId: params.categoryId,
-				registryUrl: params.registryUrl,
-			}, {
-				sources: [
-					Source.BitcoinCashBcmr_Github,
-				],
-				fields: {
-					name: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.categoryId ?? '') || 'Bitcoin cash bcmr metadata' : (pageSelection.entity.name ?? '') || pageSelection.entitySelector.categoryId || 'Bitcoin cash bcmr metadata')} • Bitcoin cash bcmr metadata • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BitcoinCashBcmrMetadata, {
+					$network: data.selector,
+					categoryId: params.categoryId,
+					registryUrl: params.registryUrl,
+				}, {
+					sources: [
+						Source.BitcoinCashBcmr_Github,
+					],
+					fields: {
+						name: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.categoryId ?? '') || 'Bitcoin cash bcmr metadata' : (pageSelection.entity.name ?? '') || pageSelection.entitySelector.categoryId || 'Bitcoin cash bcmr metadata')} • Bitcoin cash bcmr metadata • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Bitcoin cash bcmr metadata'} • Bitcoin cash bcmr metadata • Blockhead</title>
 	{/if}
@@ -47,21 +50,23 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BitcoinCashBcmrMetadata, {
-				$network: data.selector,
-				categoryId: params.categoryId,
-				registryUrl: params.registryUrl,
-			}, {
-				sources: [
-					Source.BitcoinCashBcmr_Github,
-				],
-				fields: {
-					name: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BitcoinCashBcmrMetadata, {
+					$network: data.selector,
+					categoryId: params.categoryId,
+					registryUrl: params.registryUrl,
+				}, {
+					sources: [
+						Source.BitcoinCashBcmr_Github,
+					],
+					fields: {
+						name: true,
+					},
+				}))}
 
-	<BitcoinCashBcmrMetadataView
-		selection={pageSelection}
-	/>
+		<BitcoinCashBcmrMetadataView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

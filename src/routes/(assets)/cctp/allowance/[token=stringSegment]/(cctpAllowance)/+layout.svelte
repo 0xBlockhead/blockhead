@@ -10,6 +10,7 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -41,17 +42,19 @@
 >
 	{#snippet Summary()}
 		{#if data?.selector != null}
-			<CctpAllowanceView
-				selection={
-					select(EntityType.CctpAllowance, data.selector, {
-						sources: [
-							Source.CircleCctpIris,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
+			{#key data.selector}
+				<CctpAllowanceView
+					selection={
+						untrack(() => select(EntityType.CctpAllowance, data.selector, {
+							sources: [
+								Source.CircleCctpIris,
+							],
+						}))
+					}
+					href={detailHref}
+					layout={EntityLayout.SummaryInline}
+				/>
+			{/key}
 		{/if}
 	{/snippet}
 

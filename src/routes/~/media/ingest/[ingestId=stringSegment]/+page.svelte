@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,15 +26,17 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BlockheadLocalMediaIngest, data.selector, {
-				sources: [
-					Source.Local_Internal,
-				],
-				fields: {
-					fileName: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.ingestId ?? '') || 'local media ingest' : (pageSelection.entity.fileName ?? '') || pageSelection.entitySelector.ingestId || 'local media ingest')} • local media ingest • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BlockheadLocalMediaIngest, data.selector, {
+					sources: [
+						Source.Local_Internal,
+					],
+					fields: {
+						fileName: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.ingestId ?? '') || 'local media ingest' : (pageSelection.entity.fileName ?? '') || pageSelection.entitySelector.ingestId || 'local media ingest')} • local media ingest • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'local media ingest'} • local media ingest • Blockhead</title>
 	{/if}
@@ -42,17 +45,19 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BlockheadLocalMediaIngest, data.selector, {
-				sources: [
-					Source.Local_Internal,
-				],
-				fields: {
-					fileName: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BlockheadLocalMediaIngest, data.selector, {
+					sources: [
+						Source.Local_Internal,
+					],
+					fields: {
+						fileName: true,
+					},
+				}))}
 
-	<BlockheadLocalMediaIngestView
-		selection={pageSelection}
-	/>
+		<BlockheadLocalMediaIngestView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

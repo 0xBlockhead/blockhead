@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,13 +26,15 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.SuiObjectVersion, {
-				$network: data.selector,
-				objectId: params.objectId,
-				version: BigInt(params.version),
-				digest: params.digest,
-			})}
-		<title>{data?.title ?? 'Sui object version'} • Sui object version • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.SuiObjectVersion, {
+					$network: data.selector,
+					objectId: params.objectId,
+					version: BigInt(params.version),
+					digest: params.digest,
+				}))}
+			<title>{data?.title ?? 'Sui object version'} • Sui object version • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Sui object version'} • Sui object version • Blockhead</title>
 	{/if}
@@ -40,15 +43,17 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.SuiObjectVersion, {
-				$network: data.selector,
-				objectId: params.objectId,
-				version: BigInt(params.version),
-				digest: params.digest,
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.SuiObjectVersion, {
+					$network: data.selector,
+					objectId: params.objectId,
+					version: BigInt(params.version),
+					digest: params.digest,
+				}))}
 
-	<SuiObjectVersionView
-		selection={pageSelection}
-	/>
+		<SuiObjectVersionView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

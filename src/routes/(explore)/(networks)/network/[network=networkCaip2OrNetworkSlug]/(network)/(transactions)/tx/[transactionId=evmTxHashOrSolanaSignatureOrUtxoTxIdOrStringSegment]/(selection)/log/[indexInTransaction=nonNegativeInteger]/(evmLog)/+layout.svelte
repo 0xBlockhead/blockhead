@@ -10,6 +10,7 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -43,17 +44,19 @@
 >
 	{#snippet Summary()}
 		{#if data?.selector != null}
-			<EvmLogView
-				selection={
-					select(EntityType.EvmLog, data.selector, {
-						sources: [
-							Source.Blockscout_Rest,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
+			{#key data.selector}
+				<EvmLogView
+					selection={
+						untrack(() => select(EntityType.EvmLog, data.selector, {
+							sources: [
+								Source.Blockscout_Rest,
+							],
+						}))
+					}
+					href={detailHref}
+					layout={EntityLayout.SummaryInline}
+				/>
+			{/key}
 		{/if}
 	{/snippet}
 

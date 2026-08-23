@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,11 +26,13 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.OracleFeed_Round, {
-				$oracleFeed: data.selector,
-				roundId: BigInt(params.roundId),
-			})}
-		<title>{data?.title ?? (String(pageSelection.entitySelector.roundId) || 'oracle feed round')} • oracle feed round • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.OracleFeed_Round, {
+					$oracleFeed: data.selector,
+					roundId: BigInt(params.roundId),
+				}))}
+			<title>{data?.title ?? (String(pageSelection.entitySelector.roundId) || 'oracle feed round')} • oracle feed round • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'oracle feed round'} • oracle feed round • Blockhead</title>
 	{/if}
@@ -38,13 +41,15 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.OracleFeed_Round, {
-				$oracleFeed: data.selector,
-				roundId: BigInt(params.roundId),
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.OracleFeed_Round, {
+					$oracleFeed: data.selector,
+					roundId: BigInt(params.roundId),
+				}))}
 
-	<OracleFeed_RoundView
-		selection={pageSelection}
-	/>
+		<OracleFeed_RoundView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

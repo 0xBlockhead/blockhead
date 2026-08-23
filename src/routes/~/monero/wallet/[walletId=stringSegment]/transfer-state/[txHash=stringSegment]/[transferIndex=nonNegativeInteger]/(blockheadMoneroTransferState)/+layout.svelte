@@ -10,6 +10,7 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -43,18 +44,20 @@
 >
 	{#snippet Summary()}
 		{#if data?.selector != null}
-			<BlockheadMoneroTransferStateView
-				selection={
-					select(EntityType.BlockheadMoneroTransferState, data.selector, {
-						sources: [
-							Source.Local_Internal,
-							Source.MoneroWalletRpc_JsonRpc,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
+			{#key data.selector}
+				<BlockheadMoneroTransferStateView
+					selection={
+						untrack(() => select(EntityType.BlockheadMoneroTransferState, data.selector, {
+							sources: [
+								Source.Local_Internal,
+								Source.MoneroWalletRpc_JsonRpc,
+							],
+						}))
+					}
+					href={detailHref}
+					layout={EntityLayout.SummaryInline}
+				/>
+			{/key}
 		{/if}
 	{/snippet}
 

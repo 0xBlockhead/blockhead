@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,14 +26,16 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BeaconValidator_Timestamp, {
-				$validator: data.selector,
-				slot: Number(params.slot),
-				source: params.source,
-			}, {
-				sources: [params.source],
-			})}
-		<title>{data?.title ?? ((String(pageSelection.entitySelector.slot ?? '') ? 'Slot #' + String(pageSelection.entitySelector.slot ?? '') : '') || 'beacon validator timestamp')} • beacon validator timestamp • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BeaconValidator_Timestamp, {
+					$validator: data.selector,
+					slot: Number(params.slot),
+					source: params.source,
+				}, {
+					sources: [params.source],
+				}))}
+			<title>{data?.title ?? ((String(pageSelection.entitySelector.slot ?? '') ? 'Slot #' + String(pageSelection.entitySelector.slot ?? '') : '') || 'beacon validator timestamp')} • beacon validator timestamp • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'beacon validator timestamp'} • beacon validator timestamp • Blockhead</title>
 	{/if}
@@ -41,16 +44,18 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BeaconValidator_Timestamp, {
-				$validator: data.selector,
-				slot: Number(params.slot),
-				source: params.source,
-			}, {
-				sources: [params.source],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BeaconValidator_Timestamp, {
+					$validator: data.selector,
+					slot: Number(params.slot),
+					source: params.source,
+				}, {
+					sources: [params.source],
+				}))}
 
-	<BeaconValidator_TimestampView
-		selection={pageSelection}
-	/>
+		<BeaconValidator_TimestampView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

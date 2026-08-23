@@ -10,6 +10,7 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -43,17 +44,19 @@
 >
 	{#snippet Summary()}
 		{#if data?.selector != null}
-			<LitecoinMwebTransactionView
-				selection={
-					select(EntityType.LitecoinMwebTransaction, data.selector, {
-						sources: [
-							Source.LitecoinCore_JsonRpc,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
+			{#key data.selector}
+				<LitecoinMwebTransactionView
+					selection={
+						untrack(() => select(EntityType.LitecoinMwebTransaction, data.selector, {
+							sources: [
+								Source.LitecoinCore_JsonRpc,
+							],
+						}))
+					}
+					href={detailHref}
+					layout={EntityLayout.SummaryInline}
+				/>
+			{/key}
 		{/if}
 	{/snippet}
 

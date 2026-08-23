@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,13 +26,15 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.EvmBlob, data.selector, {
-				sources: [
-					Source.Voltaire_JsonRpc,
-					Source.Blobscan_Rest,
-				],
-			})}
-		<title>{data?.title ?? ((String(pageSelection.entitySelector.indexInTransaction ?? '') ? 'Blob #' + String(pageSelection.entitySelector.indexInTransaction ?? '') : '') || 'EVM blob')} • EVM blob • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.EvmBlob, data.selector, {
+					sources: [
+						Source.Voltaire_JsonRpc,
+						Source.Blobscan_Rest,
+					],
+				}))}
+			<title>{data?.title ?? ((String(pageSelection.entitySelector.indexInTransaction ?? '') ? 'Blob #' + String(pageSelection.entitySelector.indexInTransaction ?? '') : '') || 'EVM blob')} • EVM blob • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'EVM blob'} • EVM blob • Blockhead</title>
 	{/if}
@@ -40,15 +43,17 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.EvmBlob, data.selector, {
-				sources: [
-					Source.Voltaire_JsonRpc,
-					Source.Blobscan_Rest,
-				],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.EvmBlob, data.selector, {
+					sources: [
+						Source.Voltaire_JsonRpc,
+						Source.Blobscan_Rest,
+					],
+				}))}
 
-	<EvmBlobView
-		selection={pageSelection}
-	/>
+		<EvmBlobView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

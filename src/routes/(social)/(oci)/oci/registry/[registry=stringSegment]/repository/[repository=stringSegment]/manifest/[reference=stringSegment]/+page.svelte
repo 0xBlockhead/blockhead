@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,12 +26,14 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.OciManifest, data.selector, {
-				sources: [
-					Source.OciRegistry_Distribution,
-				],
-			})}
-		<title>{data?.title ?? (pageSelection.entitySelector.repository || 'OCI manifest')} • OCI manifest • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.OciManifest, data.selector, {
+					sources: [
+						Source.OciRegistry_Distribution,
+					],
+				}))}
+			<title>{data?.title ?? (pageSelection.entitySelector.repository || 'OCI manifest')} • OCI manifest • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'OCI manifest'} • OCI manifest • Blockhead</title>
 	{/if}
@@ -39,14 +42,16 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.OciManifest, data.selector, {
-				sources: [
-					Source.OciRegistry_Distribution,
-				],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.OciManifest, data.selector, {
+					sources: [
+						Source.OciRegistry_Distribution,
+					],
+				}))}
 
-	<OciManifestView
-		selection={pageSelection}
-	/>
+		<OciManifestView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

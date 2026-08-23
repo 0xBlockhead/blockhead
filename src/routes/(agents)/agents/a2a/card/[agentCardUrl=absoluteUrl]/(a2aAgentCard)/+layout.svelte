@@ -10,6 +10,7 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -41,17 +42,19 @@
 >
 	{#snippet Summary()}
 		{#if data?.selector != null}
-			<A2aAgentCardView
-				selection={
-					select(EntityType.A2aAgentCard, data.selector, {
-						sources: [
-							Source.Eip8004Scan_Rest,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
+			{#key data.selector}
+				<A2aAgentCardView
+					selection={
+						untrack(() => select(EntityType.A2aAgentCard, data.selector, {
+							sources: [
+								Source.Eip8004Scan_Rest,
+							],
+						}))
+					}
+					href={detailHref}
+					layout={EntityLayout.SummaryInline}
+				/>
+			{/key}
 		{/if}
 	{/snippet}
 

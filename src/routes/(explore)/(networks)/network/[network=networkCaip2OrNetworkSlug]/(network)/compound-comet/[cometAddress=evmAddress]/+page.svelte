@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,15 +26,17 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.CompoundComet, data.selector, {
-				sources: [
-					Source.Compound_Rest,
-				],
-				fields: {
-					name: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? 'Compound Comet market' : pageSelection.entity.name || 'Compound Comet market')} • Compound Comet market • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.CompoundComet, data.selector, {
+					sources: [
+						Source.Compound_Rest,
+					],
+					fields: {
+						name: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? 'Compound Comet market' : pageSelection.entity.name || 'Compound Comet market')} • Compound Comet market • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Compound Comet market'} • Compound Comet market • Blockhead</title>
 	{/if}
@@ -42,17 +45,19 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.CompoundComet, data.selector, {
-				sources: [
-					Source.Compound_Rest,
-				],
-				fields: {
-					name: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.CompoundComet, data.selector, {
+					sources: [
+						Source.Compound_Rest,
+					],
+					fields: {
+						name: true,
+					},
+				}))}
 
-	<CompoundCometView
-		selection={pageSelection}
-	/>
+		<CompoundCometView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

@@ -10,6 +10,7 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -42,18 +43,20 @@
 >
 	{#snippet Summary()}
 		{#if data?.selector != null}
-			<FilecoinActorView
-				selection={
-					select(EntityType.FilecoinActor, data.selector, {
-						sources: [
-							Source.Lotus_JsonRpc,
-							Source.Filfox_Rest,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
+			{#key data.selector}
+				<FilecoinActorView
+					selection={
+						untrack(() => select(EntityType.FilecoinActor, data.selector, {
+							sources: [
+								Source.Lotus_JsonRpc,
+								Source.Filfox_Rest,
+							],
+						}))
+					}
+					href={detailHref}
+					layout={EntityLayout.SummaryInline}
+				/>
+			{/key}
 		{/if}
 	{/snippet}
 

@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -24,8 +25,10 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.AptosAccountResource, data.selector)}
-		<title>{data?.title ?? (pageSelection.entitySelector.resourceType || 'aptos account resource')} • aptos account resource • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.AptosAccountResource, data.selector))}
+			<title>{data?.title ?? (pageSelection.entitySelector.resourceType || 'aptos account resource')} • aptos account resource • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'aptos account resource'} • aptos account resource • Blockhead</title>
 	{/if}
@@ -34,10 +37,12 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.AptosAccountResource, data.selector)}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.AptosAccountResource, data.selector))}
 
-	<AptosAccountResourceView
-		selection={pageSelection}
-	/>
+		<AptosAccountResourceView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

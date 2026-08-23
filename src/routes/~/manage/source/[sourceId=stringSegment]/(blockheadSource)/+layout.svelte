@@ -10,6 +10,7 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -41,18 +42,20 @@
 >
 	{#snippet Summary()}
 		{#if data?.selector != null}
-			<BlockheadSourceView
-				selection={
-					select(EntityType.BlockheadSource, data.selector, {
-						sources: [
-							Source.Constants_Internal,
-							Source.Local_Internal,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
+			{#key data.selector}
+				<BlockheadSourceView
+					selection={
+						untrack(() => select(EntityType.BlockheadSource, data.selector, {
+							sources: [
+								Source.Constants_Internal,
+								Source.Local_Internal,
+							],
+						}))
+					}
+					href={detailHref}
+					layout={EntityLayout.SummaryInline}
+				/>
+			{/key}
 		{/if}
 	{/snippet}
 

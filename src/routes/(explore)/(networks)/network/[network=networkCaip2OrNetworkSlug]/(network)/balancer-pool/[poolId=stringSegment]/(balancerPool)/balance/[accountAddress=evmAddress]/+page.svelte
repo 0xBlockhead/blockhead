@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -26,20 +27,22 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BalancerAccountPoolBalance, {
-				$account: {
-					$network: data.selector.$network,
-					$actor: {
-						address: params.accountAddress,
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BalancerAccountPoolBalance, {
+					$account: {
+						$network: data.selector.$network,
+						$actor: {
+							address: params.accountAddress,
+						},
 					},
-				},
-				$pool: data.selector,
-			}, {
-				sources: [
-					Source.Balancer_Rest,
-				],
-			})}
-		<title>{data?.title ?? 'Balancer account pool balance'} • Balancer account pool balance • Blockhead</title>
+					$pool: data.selector,
+				}, {
+					sources: [
+						Source.Balancer_Rest,
+					],
+				}))}
+			<title>{data?.title ?? 'Balancer account pool balance'} • Balancer account pool balance • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Balancer account pool balance'} • Balancer account pool balance • Blockhead</title>
 	{/if}
@@ -48,22 +51,24 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BalancerAccountPoolBalance, {
-				$account: {
-					$network: data.selector.$network,
-					$actor: {
-						address: params.accountAddress,
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BalancerAccountPoolBalance, {
+					$account: {
+						$network: data.selector.$network,
+						$actor: {
+							address: params.accountAddress,
+						},
 					},
-				},
-				$pool: data.selector,
-			}, {
-				sources: [
-					Source.Balancer_Rest,
-				],
-			})}
+					$pool: data.selector,
+				}, {
+					sources: [
+						Source.Balancer_Rest,
+					],
+				}))}
 
-	<BalancerAccountPoolBalanceView
-		selection={pageSelection}
-	/>
+		<BalancerAccountPoolBalanceView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

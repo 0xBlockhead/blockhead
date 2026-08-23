@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -24,8 +25,10 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.SorobanWasm, data.selector)}
-		<title>{data?.title ?? 'soroban Wasm'} • soroban Wasm • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.SorobanWasm, data.selector))}
+			<title>{data?.title ?? 'soroban Wasm'} • soroban Wasm • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'soroban Wasm'} • soroban Wasm • Blockhead</title>
 	{/if}
@@ -34,10 +37,12 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.SorobanWasm, data.selector)}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.SorobanWasm, data.selector))}
 
-	<SorobanWasmView
-		selection={pageSelection}
-	/>
+		<SorobanWasmView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

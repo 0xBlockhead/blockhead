@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,15 +26,17 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BlockheadLightningInvoice, data.selector, {
-				sources: [
-					Source.LightningLnd_Rest,
-				],
-				fields: {
-					memo: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.paymentHash ?? '') || 'local LND invoice' : (pageSelection.entity.memo ?? '') || pageSelection.entitySelector.paymentHash || 'local LND invoice')} • local LND invoice • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BlockheadLightningInvoice, data.selector, {
+					sources: [
+						Source.LightningLnd_Rest,
+					],
+					fields: {
+						memo: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.paymentHash ?? '') || 'local LND invoice' : (pageSelection.entity.memo ?? '') || pageSelection.entitySelector.paymentHash || 'local LND invoice')} • local LND invoice • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'local LND invoice'} • local LND invoice • Blockhead</title>
 	{/if}
@@ -42,17 +45,19 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BlockheadLightningInvoice, data.selector, {
-				sources: [
-					Source.LightningLnd_Rest,
-				],
-				fields: {
-					memo: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BlockheadLightningInvoice, data.selector, {
+					sources: [
+						Source.LightningLnd_Rest,
+					],
+					fields: {
+						memo: true,
+					},
+				}))}
 
-	<BlockheadLightningInvoiceView
-		selection={pageSelection}
-	/>
+		<BlockheadLightningInvoiceView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

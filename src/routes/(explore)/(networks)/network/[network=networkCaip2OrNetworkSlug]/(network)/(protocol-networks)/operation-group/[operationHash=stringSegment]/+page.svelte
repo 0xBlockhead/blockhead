@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -24,8 +25,10 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.TezosOperationGroup, data.selector)}
-		<title>{data?.title ?? 'tezos operation group'} • tezos operation group • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.TezosOperationGroup, data.selector))}
+			<title>{data?.title ?? 'tezos operation group'} • tezos operation group • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'tezos operation group'} • tezos operation group • Blockhead</title>
 	{/if}
@@ -34,10 +37,12 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.TezosOperationGroup, data.selector)}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.TezosOperationGroup, data.selector))}
 
-	<TezosOperationGroupView
-		selection={pageSelection}
-	/>
+		<TezosOperationGroupView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -26,18 +27,20 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.EthereumExecutionUpgrade, {
-				$network: data.selector,
-				upgradeId: params.upgradeId,
-			}, {
-				sources: [
-					Source.Constants_Internal,
-				],
-				fields: {
-					name: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.upgradeId ?? '') || 'Ethereum execution upgrade' : pageSelection.entitySelector.upgradeId || pageSelection.entity.name || 'Ethereum execution upgrade')} • Ethereum execution upgrade • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.EthereumExecutionUpgrade, {
+					$network: data.selector,
+					upgradeId: params.upgradeId,
+				}, {
+					sources: [
+						Source.Constants_Internal,
+					],
+					fields: {
+						name: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.upgradeId ?? '') || 'Ethereum execution upgrade' : pageSelection.entitySelector.upgradeId || pageSelection.entity.name || 'Ethereum execution upgrade')} • Ethereum execution upgrade • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Ethereum execution upgrade'} • Ethereum execution upgrade • Blockhead</title>
 	{/if}
@@ -46,20 +49,22 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.EthereumExecutionUpgrade, {
-				$network: data.selector,
-				upgradeId: params.upgradeId,
-			}, {
-				sources: [
-					Source.Constants_Internal,
-				],
-				fields: {
-					name: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.EthereumExecutionUpgrade, {
+					$network: data.selector,
+					upgradeId: params.upgradeId,
+				}, {
+					sources: [
+						Source.Constants_Internal,
+					],
+					fields: {
+						name: true,
+					},
+				}))}
 
-	<EthereumExecutionUpgradeView
-		selection={pageSelection}
-	/>
+		<EthereumExecutionUpgradeView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

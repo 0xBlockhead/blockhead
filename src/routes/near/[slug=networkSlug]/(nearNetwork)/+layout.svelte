@@ -10,6 +10,7 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -41,18 +42,20 @@
 >
 	{#snippet Summary()}
 		{#if data?.selector != null}
-			<NearNetworkView
-				selection={
-					select(EntityType.NearNetwork, data.selector, {
-						sources: [
-							Source.Constants_Internal,
-							Source.NearRpc_JsonRpc,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
+			{#key data.selector}
+				<NearNetworkView
+					selection={
+						untrack(() => select(EntityType.NearNetwork, data.selector, {
+							sources: [
+								Source.Constants_Internal,
+								Source.NearRpc_JsonRpc,
+							],
+						}))
+					}
+					href={detailHref}
+					layout={EntityLayout.SummaryInline}
+				/>
+			{/key}
 		{/if}
 	{/snippet}
 

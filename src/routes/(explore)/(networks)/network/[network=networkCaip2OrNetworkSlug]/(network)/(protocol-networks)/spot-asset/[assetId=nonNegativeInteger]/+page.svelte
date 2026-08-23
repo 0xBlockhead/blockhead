@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -26,18 +27,20 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.HyperliquidSpotAsset, {
-				$network: data.selector.$network,
-				assetId: Number(params.assetId),
-			}, {
-				sources: [
-					Source.Hyperliquid,
-				],
-				fields: {
-					name: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? String(pageSelection.entitySelector.assetId ?? '') || 'hyperliquid spot asset' : (pageSelection.entity.name ?? '') || String(pageSelection.entitySelector.assetId) || 'hyperliquid spot asset')} • hyperliquid spot asset • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.HyperliquidSpotAsset, {
+					$network: data.selector.$network,
+					assetId: Number(params.assetId),
+				}, {
+					sources: [
+						Source.Hyperliquid,
+					],
+					fields: {
+						name: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? String(pageSelection.entitySelector.assetId ?? '') || 'hyperliquid spot asset' : (pageSelection.entity.name ?? '') || String(pageSelection.entitySelector.assetId) || 'hyperliquid spot asset')} • hyperliquid spot asset • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'hyperliquid spot asset'} • hyperliquid spot asset • Blockhead</title>
 	{/if}
@@ -46,20 +49,22 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.HyperliquidSpotAsset, {
-				$network: data.selector.$network,
-				assetId: Number(params.assetId),
-			}, {
-				sources: [
-					Source.Hyperliquid,
-				],
-				fields: {
-					name: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.HyperliquidSpotAsset, {
+					$network: data.selector.$network,
+					assetId: Number(params.assetId),
+				}, {
+					sources: [
+						Source.Hyperliquid,
+					],
+					fields: {
+						name: true,
+					},
+				}))}
 
-	<HyperliquidSpotAssetView
-		selection={pageSelection}
-	/>
+		<HyperliquidSpotAssetView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

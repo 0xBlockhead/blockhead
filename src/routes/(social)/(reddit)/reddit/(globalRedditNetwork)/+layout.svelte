@@ -10,6 +10,7 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -34,18 +35,20 @@
 >
 	{#snippet Summary()}
 		{#if data?.selector != null}
-			<GlobalRedditNetworkView
-				selection={
-					select(EntityType._GlobalRedditNetwork, data.selector, {
-						sources: [
-							Source.Reddit_PublicJson,
-							Source.Reddit_Rest,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
+			{#key data.selector}
+				<GlobalRedditNetworkView
+					selection={
+						untrack(() => select(EntityType._GlobalRedditNetwork, data.selector, {
+							sources: [
+								Source.Reddit_PublicJson,
+								Source.Reddit_Rest,
+							],
+						}))
+					}
+					href={detailHref}
+					layout={EntityLayout.SummaryInline}
+				/>
+			{/key}
 		{/if}
 	{/snippet}
 

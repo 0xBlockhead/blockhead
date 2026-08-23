@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -24,10 +25,12 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.TronTransactionReceipt, {
-				$transaction: data.selector,
-			})}
-		<title>{data?.title ?? 'tron transaction receipt'} • tron transaction receipt • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.TronTransactionReceipt, {
+					$transaction: data.selector,
+				}))}
+			<title>{data?.title ?? 'tron transaction receipt'} • tron transaction receipt • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'tron transaction receipt'} • tron transaction receipt • Blockhead</title>
 	{/if}
@@ -36,12 +39,14 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.TronTransactionReceipt, {
-				$transaction: data.selector,
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.TronTransactionReceipt, {
+					$transaction: data.selector,
+				}))}
 
-	<TronTransactionReceiptView
-		selection={pageSelection}
-	/>
+		<TronTransactionReceiptView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -26,18 +27,20 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.GitForgeReleaseLink, {
-				$release: data.selector,
-				linkId: Number(params.linkId),
-			}, {
-				sources: [
-					Source.Gitlab_Rest,
-				],
-				fields: {
-					name: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? 'Git forge release link' : pageSelection.entity.name || 'Git forge release link')} • Git forge release link • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.GitForgeReleaseLink, {
+					$release: data.selector,
+					linkId: Number(params.linkId),
+				}, {
+					sources: [
+						Source.Gitlab_Rest,
+					],
+					fields: {
+						name: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? 'Git forge release link' : pageSelection.entity.name || 'Git forge release link')} • Git forge release link • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Git forge release link'} • Git forge release link • Blockhead</title>
 	{/if}
@@ -46,20 +49,22 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.GitForgeReleaseLink, {
-				$release: data.selector,
-				linkId: Number(params.linkId),
-			}, {
-				sources: [
-					Source.Gitlab_Rest,
-				],
-				fields: {
-					name: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.GitForgeReleaseLink, {
+					$release: data.selector,
+					linkId: Number(params.linkId),
+				}, {
+					sources: [
+						Source.Gitlab_Rest,
+					],
+					fields: {
+						name: true,
+					},
+				}))}
 
-	<GitForgeReleaseLinkView
-		selection={pageSelection}
-	/>
+		<GitForgeReleaseLinkView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

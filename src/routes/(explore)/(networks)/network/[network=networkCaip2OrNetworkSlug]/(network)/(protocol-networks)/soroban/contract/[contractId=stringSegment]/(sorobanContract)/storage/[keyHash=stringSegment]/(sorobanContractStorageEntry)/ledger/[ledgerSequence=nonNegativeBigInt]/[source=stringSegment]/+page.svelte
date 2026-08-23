@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,14 +26,16 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.SorobanContractStorageEntry_Timestamp, {
-				$entry: data.selector,
-				ledgerSequence: BigInt(params.ledgerSequence),
-				source: params.source,
-			}, {
-				sources: [params.source],
-			})}
-		<title>{data?.title ?? 'soroban contract storage entry timestamp'} • soroban contract storage entry timestamp • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.SorobanContractStorageEntry_Timestamp, {
+					$entry: data.selector,
+					ledgerSequence: BigInt(params.ledgerSequence),
+					source: params.source,
+				}, {
+					sources: [params.source],
+				}))}
+			<title>{data?.title ?? 'soroban contract storage entry timestamp'} • soroban contract storage entry timestamp • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'soroban contract storage entry timestamp'} • soroban contract storage entry timestamp • Blockhead</title>
 	{/if}
@@ -41,16 +44,18 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.SorobanContractStorageEntry_Timestamp, {
-				$entry: data.selector,
-				ledgerSequence: BigInt(params.ledgerSequence),
-				source: params.source,
-			}, {
-				sources: [params.source],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.SorobanContractStorageEntry_Timestamp, {
+					$entry: data.selector,
+					ledgerSequence: BigInt(params.ledgerSequence),
+					source: params.source,
+				}, {
+					sources: [params.source],
+				}))}
 
-	<SorobanContractStorageEntry_TimestampView
-		selection={pageSelection}
-	/>
+		<SorobanContractStorageEntry_TimestampView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

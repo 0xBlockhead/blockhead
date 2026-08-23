@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,13 +26,15 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.TonBlock, {
-				$network: data.selector,
-				workchain: Number(params.workchain),
-				shardPrefix: params.shardPrefix,
-				seqno: BigInt(params.seqno),
-			})}
-		<title>{data?.title ?? 'TON block'} • TON block • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.TonBlock, {
+					$network: data.selector,
+					workchain: Number(params.workchain),
+					shardPrefix: params.shardPrefix,
+					seqno: BigInt(params.seqno),
+				}))}
+			<title>{data?.title ?? 'TON block'} • TON block • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'TON block'} • TON block • Blockhead</title>
 	{/if}
@@ -40,15 +43,17 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.TonBlock, {
-				$network: data.selector,
-				workchain: Number(params.workchain),
-				shardPrefix: params.shardPrefix,
-				seqno: BigInt(params.seqno),
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.TonBlock, {
+					$network: data.selector,
+					workchain: Number(params.workchain),
+					shardPrefix: params.shardPrefix,
+					seqno: BigInt(params.seqno),
+				}))}
 
-	<TonBlockView
-		selection={pageSelection}
-	/>
+		<TonBlockView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

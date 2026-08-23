@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,15 +26,17 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BridgeTransfer_Timestamp, {
-				$transfer: data.selector,
-				timestampMs: Number(params.timestampMs),
-				source: params.observationSource,
-				eventKind: params.eventKind,
-			}, {
-				sources: [params.observationSource],
-			})}
-		<title>{data?.title ?? (String(pageSelection.entitySelector.timestampMs) || 'bridge transfer timestamp')} • bridge transfer timestamp • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BridgeTransfer_Timestamp, {
+					$transfer: data.selector,
+					timestampMs: Number(params.timestampMs),
+					source: params.observationSource,
+					eventKind: params.eventKind,
+				}, {
+					sources: [params.observationSource],
+				}))}
+			<title>{data?.title ?? (String(pageSelection.entitySelector.timestampMs) || 'bridge transfer timestamp')} • bridge transfer timestamp • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'bridge transfer timestamp'} • bridge transfer timestamp • Blockhead</title>
 	{/if}
@@ -42,17 +45,19 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BridgeTransfer_Timestamp, {
-				$transfer: data.selector,
-				timestampMs: Number(params.timestampMs),
-				source: params.observationSource,
-				eventKind: params.eventKind,
-			}, {
-				sources: [params.observationSource],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BridgeTransfer_Timestamp, {
+					$transfer: data.selector,
+					timestampMs: Number(params.timestampMs),
+					source: params.observationSource,
+					eventKind: params.eventKind,
+				}, {
+					sources: [params.observationSource],
+				}))}
 
-	<BridgeTransfer_TimestampView
-		selection={pageSelection}
-	/>
+		<BridgeTransfer_TimestampView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

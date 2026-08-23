@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,12 +26,14 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.Erc4337SmartAccount, data.selector, {
-				sources: [
-					Source.Blockscout_Rest,
-				],
-			})}
-		<title>{data?.title ?? (pageSelection.entitySelector.address || 'ERC-4337 smart account')} • ERC-4337 smart account • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.Erc4337SmartAccount, data.selector, {
+					sources: [
+						Source.Blockscout_Rest,
+					],
+				}))}
+			<title>{data?.title ?? (pageSelection.entitySelector.address || 'ERC-4337 smart account')} • ERC-4337 smart account • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'ERC-4337 smart account'} • ERC-4337 smart account • Blockhead</title>
 	{/if}
@@ -39,14 +42,16 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.Erc4337SmartAccount, data.selector, {
-				sources: [
-					Source.Blockscout_Rest,
-				],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.Erc4337SmartAccount, data.selector, {
+					sources: [
+						Source.Blockscout_Rest,
+					],
+				}))}
 
-	<Erc4337SmartAccountView
-		selection={pageSelection}
-	/>
+		<Erc4337SmartAccountView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

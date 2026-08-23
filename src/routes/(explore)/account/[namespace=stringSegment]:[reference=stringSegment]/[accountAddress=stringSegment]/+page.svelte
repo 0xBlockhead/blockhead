@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,12 +26,14 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.Account, data.selector, {
-				sources: [
-					Source.Constants_Internal,
-				],
-			})}
-		<title>{data?.title ?? (`${pageSelection.entitySelector.caip10.namespace}:${pageSelection.entitySelector.caip10.reference}:${pageSelection.entitySelector.caip10.accountAddress}` || 'account')} • account • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.Account, data.selector, {
+					sources: [
+						Source.Constants_Internal,
+					],
+				}))}
+			<title>{data?.title ?? (`${pageSelection.entitySelector.caip10.namespace}:${pageSelection.entitySelector.caip10.reference}:${pageSelection.entitySelector.caip10.accountAddress}` || 'account')} • account • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'account'} • account • Blockhead</title>
 	{/if}
@@ -39,14 +42,16 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.Account, data.selector, {
-				sources: [
-					Source.Constants_Internal,
-				],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.Account, data.selector, {
+					sources: [
+						Source.Constants_Internal,
+					],
+				}))}
 
-	<AccountView
-		selection={pageSelection}
-	/>
+		<AccountView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

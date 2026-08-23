@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,15 +26,17 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.PolkadotEvent, {
-				$block: data.selector,
-				indexInBlock: Number(params.eventIndex),
-			}, {
-				fields: {
-					eventName: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? 'Event ' + String(pageSelection.entitySelector.indexInBlock ?? '') : [pageSelection.entity.eventName, 'Event ' + String(pageSelection.entitySelector.indexInBlock)].filter(Boolean).join(' ') || 'Polkadot event')} • Polkadot event • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.PolkadotEvent, {
+					$block: data.selector,
+					indexInBlock: Number(params.eventIndex),
+				}, {
+					fields: {
+						eventName: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? 'Event ' + String(pageSelection.entitySelector.indexInBlock ?? '') : [pageSelection.entity.eventName, 'Event ' + String(pageSelection.entitySelector.indexInBlock)].filter(Boolean).join(' ') || 'Polkadot event')} • Polkadot event • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Polkadot event'} • Polkadot event • Blockhead</title>
 	{/if}
@@ -42,17 +45,19 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.PolkadotEvent, {
-				$block: data.selector,
-				indexInBlock: Number(params.eventIndex),
-			}, {
-				fields: {
-					eventName: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.PolkadotEvent, {
+					$block: data.selector,
+					indexInBlock: Number(params.eventIndex),
+				}, {
+					fields: {
+						eventName: true,
+					},
+				}))}
 
-	<PolkadotEventView
-		selection={pageSelection}
-	/>
+		<PolkadotEventView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,12 +26,14 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.QuilibriumProver, data.selector, {
-				sources: [
-					Source.QuilibriumNode_Grpc,
-				],
-			})}
-		<title>{data?.title ?? (pageSelection.entitySelector.proverPeerId || 'quilibrium prover')} • quilibrium prover • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.QuilibriumProver, data.selector, {
+					sources: [
+						Source.QuilibriumNode_Grpc,
+					],
+				}))}
+			<title>{data?.title ?? (pageSelection.entitySelector.proverPeerId || 'quilibrium prover')} • quilibrium prover • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'quilibrium prover'} • quilibrium prover • Blockhead</title>
 	{/if}
@@ -39,14 +42,16 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.QuilibriumProver, data.selector, {
-				sources: [
-					Source.QuilibriumNode_Grpc,
-				],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.QuilibriumProver, data.selector, {
+					sources: [
+						Source.QuilibriumNode_Grpc,
+					],
+				}))}
 
-	<QuilibriumProverView
-		selection={pageSelection}
-	/>
+		<QuilibriumProverView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

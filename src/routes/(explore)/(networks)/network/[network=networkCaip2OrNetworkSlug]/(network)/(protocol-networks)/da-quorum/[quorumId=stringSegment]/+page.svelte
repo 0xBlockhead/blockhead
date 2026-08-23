@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,13 +26,15 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.ZeroGDaQuorum, data.selector, {
-				sources: [
-					Source.ZeroGChainScan_Rest,
-					Source.ZeroGStorageNode_JsonRpc,
-				],
-			})}
-		<title>{data?.title ?? (pageSelection.entitySelector.quorumId || 'zero g da quorum')} • zero g da quorum • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.ZeroGDaQuorum, data.selector, {
+					sources: [
+						Source.ZeroGChainScan_Rest,
+						Source.ZeroGStorageNode_JsonRpc,
+					],
+				}))}
+			<title>{data?.title ?? (pageSelection.entitySelector.quorumId || 'zero g da quorum')} • zero g da quorum • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'zero g da quorum'} • zero g da quorum • Blockhead</title>
 	{/if}
@@ -40,15 +43,17 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.ZeroGDaQuorum, data.selector, {
-				sources: [
-					Source.ZeroGChainScan_Rest,
-					Source.ZeroGStorageNode_JsonRpc,
-				],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.ZeroGDaQuorum, data.selector, {
+					sources: [
+						Source.ZeroGChainScan_Rest,
+						Source.ZeroGStorageNode_JsonRpc,
+					],
+				}))}
 
-	<ZeroGDaQuorumView
-		selection={pageSelection}
-	/>
+		<ZeroGDaQuorumView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

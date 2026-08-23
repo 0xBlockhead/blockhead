@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,12 +26,14 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.TonTransaction, {
-				$account: data.selector.$account,
-				lt: BigInt(params.lt),
-				hash: params.hash,
-			})}
-		<title>{data?.title ?? 'TON transaction'} • TON transaction • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.TonTransaction, {
+					$account: data.selector.$account,
+					lt: BigInt(params.lt),
+					hash: params.hash,
+				}))}
+			<title>{data?.title ?? 'TON transaction'} • TON transaction • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'TON transaction'} • TON transaction • Blockhead</title>
 	{/if}
@@ -39,14 +42,16 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.TonTransaction, {
-				$account: data.selector.$account,
-				lt: BigInt(params.lt),
-				hash: params.hash,
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.TonTransaction, {
+					$account: data.selector.$account,
+					lt: BigInt(params.lt),
+					hash: params.hash,
+				}))}
 
-	<TonTransactionView
-		selection={pageSelection}
-	/>
+		<TonTransactionView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

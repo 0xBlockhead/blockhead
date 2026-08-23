@@ -9,6 +9,7 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -40,11 +41,13 @@
 >
 	{#snippet Summary()}
 		{#if data?.selector != null}
-			<McpServerPackageView
-				selection={select(EntityType.McpServerPackage, data.selector)}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
+			{#key data.selector}
+				<McpServerPackageView
+					selection={untrack(() => select(EntityType.McpServerPackage, data.selector))}
+					href={detailHref}
+					layout={EntityLayout.SummaryInline}
+				/>
+			{/key}
 		{/if}
 	{/snippet}
 

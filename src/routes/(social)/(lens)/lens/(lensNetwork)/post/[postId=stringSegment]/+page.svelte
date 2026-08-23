@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,15 +26,17 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.LensPost, data.selector, {
-				sources: [
-					Source.Lens_Graphql,
-				],
-				fields: {
-					text: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.id ?? '') || 'Lens post' : [(pageSelection.entity.text ?? ''), pageSelection.entitySelector.id].filter(Boolean).join(' ') || 'Lens post')} • Lens post • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.LensPost, data.selector, {
+					sources: [
+						Source.Lens_Graphql,
+					],
+					fields: {
+						text: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.id ?? '') || 'Lens post' : [(pageSelection.entity.text ?? ''), pageSelection.entitySelector.id].filter(Boolean).join(' ') || 'Lens post')} • Lens post • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Lens post'} • Lens post • Blockhead</title>
 	{/if}
@@ -42,17 +45,19 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.LensPost, data.selector, {
-				sources: [
-					Source.Lens_Graphql,
-				],
-				fields: {
-					text: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.LensPost, data.selector, {
+					sources: [
+						Source.Lens_Graphql,
+					],
+					fields: {
+						text: true,
+					},
+				}))}
 
-	<LensPostView
-		selection={pageSelection}
-	/>
+		<LensPostView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

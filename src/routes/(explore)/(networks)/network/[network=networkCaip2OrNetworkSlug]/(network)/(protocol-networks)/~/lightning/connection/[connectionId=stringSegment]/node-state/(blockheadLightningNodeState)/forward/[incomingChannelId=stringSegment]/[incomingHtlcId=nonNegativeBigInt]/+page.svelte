@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -26,20 +27,22 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BlockheadLightningForward, {
-				$localNodeState: data.selector,
-				$incomingChannel: {
-					$network: data.selector.$network.$network,
-					channelId: params.incomingChannelId,
-				},
-				incomingHtlcId: BigInt(params.incomingHtlcId),
-			}, {
-				sources: [
-					Source.LightningLnd_Rest,
-					Source.Local_Internal,
-				],
-			})}
-		<title>{data?.title ?? 'local LND forward'} • local LND forward • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BlockheadLightningForward, {
+					$localNodeState: data.selector,
+					$incomingChannel: {
+						$network: data.selector.$network.$network,
+						channelId: params.incomingChannelId,
+					},
+					incomingHtlcId: BigInt(params.incomingHtlcId),
+				}, {
+					sources: [
+						Source.LightningLnd_Rest,
+						Source.Local_Internal,
+					],
+				}))}
+			<title>{data?.title ?? 'local LND forward'} • local LND forward • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'local LND forward'} • local LND forward • Blockhead</title>
 	{/if}
@@ -48,22 +51,24 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BlockheadLightningForward, {
-				$localNodeState: data.selector,
-				$incomingChannel: {
-					$network: data.selector.$network.$network,
-					channelId: params.incomingChannelId,
-				},
-				incomingHtlcId: BigInt(params.incomingHtlcId),
-			}, {
-				sources: [
-					Source.LightningLnd_Rest,
-					Source.Local_Internal,
-				],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BlockheadLightningForward, {
+					$localNodeState: data.selector,
+					$incomingChannel: {
+						$network: data.selector.$network.$network,
+						channelId: params.incomingChannelId,
+					},
+					incomingHtlcId: BigInt(params.incomingHtlcId),
+				}, {
+					sources: [
+						Source.LightningLnd_Rest,
+						Source.Local_Internal,
+					],
+				}))}
 
-	<BlockheadLightningForwardView
-		selection={pageSelection}
-	/>
+		<BlockheadLightningForwardView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

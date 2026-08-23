@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,22 +26,24 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.AlgorandApplicationLocalState_Round, {
-				$account: data.selector,
-				$application: {
-					$network: {
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.AlgorandApplicationLocalState_Round, {
+					$account: data.selector,
+					$application: {
 						$network: {
-							caip2: params.applicationNetwork,
+							$network: {
+								caip2: params.applicationNetwork,
+							},
 						},
+						applicationId: BigInt(params.applicationId),
 					},
-					applicationId: BigInt(params.applicationId),
-				},
-				round: BigInt(params.round),
-				source: params.source,
-			}, {
-				sources: [params.source],
-			})}
-		<title>{data?.title ?? 'algorand application local state round'} • algorand application local state round • Blockhead</title>
+					round: BigInt(params.round),
+					source: params.source,
+				}, {
+					sources: [params.source],
+				}))}
+			<title>{data?.title ?? 'algorand application local state round'} • algorand application local state round • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'algorand application local state round'} • algorand application local state round • Blockhead</title>
 	{/if}
@@ -49,24 +52,26 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.AlgorandApplicationLocalState_Round, {
-				$account: data.selector,
-				$application: {
-					$network: {
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.AlgorandApplicationLocalState_Round, {
+					$account: data.selector,
+					$application: {
 						$network: {
-							caip2: params.applicationNetwork,
+							$network: {
+								caip2: params.applicationNetwork,
+							},
 						},
+						applicationId: BigInt(params.applicationId),
 					},
-					applicationId: BigInt(params.applicationId),
-				},
-				round: BigInt(params.round),
-				source: params.source,
-			}, {
-				sources: [params.source],
-			})}
+					round: BigInt(params.round),
+					source: params.source,
+				}, {
+					sources: [params.source],
+				}))}
 
-	<AlgorandApplicationLocalState_RoundView
-		selection={pageSelection}
-	/>
+		<AlgorandApplicationLocalState_RoundView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

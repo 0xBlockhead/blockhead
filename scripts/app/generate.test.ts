@@ -1281,16 +1281,16 @@ test('guards transient detail page selectors without weakening route parsing', (
 
 	assert.match(
 		pageSource,
-		/\{#if data\?\.selector != null\}[\s\S]*?\{@const pageSelection = select\(EntityType\.BlockheadSession, data\.selector,[\s\S]*?<BlockheadSessionView[\s\S]*?selection=\{pageSelection\}[\s\S]*?\{\/if\}/
+		/\{#if data\?\.selector != null\}[\s\S]*?\{#key data\.selector\}[\s\S]*?\{@const pageSelection = untrack\(\(\) => select\(EntityType\.BlockheadSession, data\.selector,[\s\S]*?<BlockheadSessionView[\s\S]*?selection=\{pageSelection\}[\s\S]*?\{\/key\}[\s\S]*?\{\/if\}/
 	)
 	assert.match(
 		pageSource,
-		/<svelte:head>[\s\S]*?\{#if data\?\.selector != null\}[\s\S]*?\{@const pageSelection = select\(EntityType\.BlockheadSession, data\.selector,[\s\S]*?\{:else\}[\s\S]*?data\?\.title[\s\S]*?\{\/if\}[\s\S]*?<\/svelte:head>/
+		/<svelte:head>[\s\S]*?\{#if data\?\.selector != null\}[\s\S]*?\{#key data\.selector\}[\s\S]*?\{@const pageSelection = untrack\(\(\) => select\(EntityType\.BlockheadSession, data\.selector,[\s\S]*?\{\/key\}[\s\S]*?\{:else\}[\s\S]*?data\?\.title[\s\S]*?\{\/if\}[\s\S]*?<\/svelte:head>/
 	)
 	assert.doesNotMatch(pageSource, /const pageSelection = \$derived/)
 	assert.match(
 		detailLayoutSource,
-		/\{#snippet Summary\(\)\}[\s\S]*?\{#if data\?\.selector != null\}[\s\S]*?select\(EntityType\.BlockheadSession, data\.selector,[\s\S]*?\{\/if\}[\s\S]*?\{\/snippet\}/
+		/\{#snippet Summary\(\)\}[\s\S]*?\{#if data\?\.selector != null\}[\s\S]*?\{#key data\.selector\}[\s\S]*?untrack\(\(\) => select\(EntityType\.BlockheadSession, data\.selector[\s\S]*?\{\/key\}[\s\S]*?\{\/if\}[\s\S]*?\{\/snippet\}/
 	)
 	assert.match(routeModuleSource, /error\(404, 'Invalid BlockheadSession selector'\)/)
 	assert.doesNotMatch(routeModuleSource, /catch|\?\? \{\}/)

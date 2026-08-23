@@ -10,6 +10,7 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -42,18 +43,20 @@
 >
 	{#snippet Summary()}
 		{#if data?.selector != null}
-			<BittensorSubnetView
-				selection={
-					select(EntityType.BittensorSubnet, data.selector, {
-						sources: [
-							Source.Constants_Internal,
-							Source.Bittensor_JsonRpc,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
+			{#key data.selector}
+				<BittensorSubnetView
+					selection={
+						untrack(() => select(EntityType.BittensorSubnet, data.selector, {
+							sources: [
+								Source.Constants_Internal,
+								Source.Bittensor_JsonRpc,
+							],
+						}))
+					}
+					href={detailHref}
+					layout={EntityLayout.SummaryInline}
+				/>
+			{/key}
 		{/if}
 	{/snippet}
 

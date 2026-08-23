@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,16 +26,18 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BitcoinRune, data.selector, {
-				sources: [
-					Source.UniSat_Rest,
-				],
-				fields: {
-					spacedRune: true,
-					rune: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? 'Bitcoin Rune' : [(pageSelection.entity.spacedRune ?? ''), (pageSelection.entity.rune ?? '')].filter(Boolean).join(' ') || 'Bitcoin Rune')} • Bitcoin Rune • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BitcoinRune, data.selector, {
+					sources: [
+						Source.UniSat_Rest,
+					],
+					fields: {
+						spacedRune: true,
+						rune: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? 'Bitcoin Rune' : [(pageSelection.entity.spacedRune ?? ''), (pageSelection.entity.rune ?? '')].filter(Boolean).join(' ') || 'Bitcoin Rune')} • Bitcoin Rune • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Bitcoin Rune'} • Bitcoin Rune • Blockhead</title>
 	{/if}
@@ -43,18 +46,20 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BitcoinRune, data.selector, {
-				sources: [
-					Source.UniSat_Rest,
-				],
-				fields: {
-					spacedRune: true,
-					rune: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BitcoinRune, data.selector, {
+					sources: [
+						Source.UniSat_Rest,
+					],
+					fields: {
+						spacedRune: true,
+						rune: true,
+					},
+				}))}
 
-	<BitcoinRuneView
-		selection={pageSelection}
-	/>
+		<BitcoinRuneView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

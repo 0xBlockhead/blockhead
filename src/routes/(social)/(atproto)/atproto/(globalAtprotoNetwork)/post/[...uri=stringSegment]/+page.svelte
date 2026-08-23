@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,16 +26,18 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.AtprotoPost, data.selector, {
-				sources: [
-					Source.Atproto_Xrpc,
-					Source.Atproto_BskySocial_Xrpc,
-				],
-				fields: {
-					text: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.uri ?? '') || 'AT Protocol post' : (pageSelection.entity.text ?? '') || pageSelection.entitySelector.uri || 'AT Protocol post')} • AT Protocol post • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.AtprotoPost, data.selector, {
+					sources: [
+						Source.Atproto_Xrpc,
+						Source.Atproto_BskySocial_Xrpc,
+					],
+					fields: {
+						text: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.uri ?? '') || 'AT Protocol post' : (pageSelection.entity.text ?? '') || pageSelection.entitySelector.uri || 'AT Protocol post')} • AT Protocol post • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'AT Protocol post'} • AT Protocol post • Blockhead</title>
 	{/if}
@@ -43,18 +46,20 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.AtprotoPost, data.selector, {
-				sources: [
-					Source.Atproto_Xrpc,
-					Source.Atproto_BskySocial_Xrpc,
-				],
-				fields: {
-					text: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.AtprotoPost, data.selector, {
+					sources: [
+						Source.Atproto_Xrpc,
+						Source.Atproto_BskySocial_Xrpc,
+					],
+					fields: {
+						text: true,
+					},
+				}))}
 
-	<AtprotoPostView
-		selection={pageSelection}
-	/>
+		<AtprotoPostView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

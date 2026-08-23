@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,13 +26,15 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType._GlobalRedditNetwork, data.selector, {
-				sources: [
-					Source.Reddit_PublicJson,
-					Source.Reddit_Rest,
-				],
-			})}
-		<title>{data?.title ?? 'Reddit'} • Reddit • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType._GlobalRedditNetwork, data.selector, {
+					sources: [
+						Source.Reddit_PublicJson,
+						Source.Reddit_Rest,
+					],
+				}))}
+			<title>{data?.title ?? 'Reddit'} • Reddit • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Reddit'} • Reddit • Blockhead</title>
 	{/if}
@@ -40,15 +43,17 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType._GlobalRedditNetwork, data.selector, {
-				sources: [
-					Source.Reddit_PublicJson,
-					Source.Reddit_Rest,
-				],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType._GlobalRedditNetwork, data.selector, {
+					sources: [
+						Source.Reddit_PublicJson,
+						Source.Reddit_Rest,
+					],
+				}))}
 
-	<GlobalRedditNetworkView
-		selection={pageSelection}
-	/>
+		<GlobalRedditNetworkView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

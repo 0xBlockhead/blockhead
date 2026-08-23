@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,18 +26,20 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.EigenLayerSlashingEvent, {
-				$operator: data.selector,
-				$avs: {
-					$network: data.selector.$network,
-					avsAddress: params.avsAddress,
-				},
-				source: params.source,
-				slashId: params.slashId,
-			}, {
-				sources: [params.source],
-			})}
-		<title>{data?.title ?? 'eigen layer slashing event'} • eigen layer slashing event • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.EigenLayerSlashingEvent, {
+					$operator: data.selector,
+					$avs: {
+						$network: data.selector.$network,
+						avsAddress: params.avsAddress,
+					},
+					source: params.source,
+					slashId: params.slashId,
+				}, {
+					sources: [params.source],
+				}))}
+			<title>{data?.title ?? 'eigen layer slashing event'} • eigen layer slashing event • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'eigen layer slashing event'} • eigen layer slashing event • Blockhead</title>
 	{/if}
@@ -45,20 +48,22 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.EigenLayerSlashingEvent, {
-				$operator: data.selector,
-				$avs: {
-					$network: data.selector.$network,
-					avsAddress: params.avsAddress,
-				},
-				source: params.source,
-				slashId: params.slashId,
-			}, {
-				sources: [params.source],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.EigenLayerSlashingEvent, {
+					$operator: data.selector,
+					$avs: {
+						$network: data.selector.$network,
+						avsAddress: params.avsAddress,
+					},
+					source: params.source,
+					slashId: params.slashId,
+				}, {
+					sources: [params.source],
+				}))}
 
-	<EigenLayerSlashingEventView
-		selection={pageSelection}
-	/>
+		<EigenLayerSlashingEventView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

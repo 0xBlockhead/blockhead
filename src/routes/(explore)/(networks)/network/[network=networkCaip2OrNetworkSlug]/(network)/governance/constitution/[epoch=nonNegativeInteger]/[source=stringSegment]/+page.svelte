@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -24,10 +25,12 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.CardanoConstitution_Epoch, data.selector, {
-				sources: [data.selector.source],
-			})}
-		<title>{data?.title ?? 'Cardano constitution epoch'} • Cardano constitution epoch • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.CardanoConstitution_Epoch, data.selector, {
+					sources: [data.selector.source],
+				}))}
+			<title>{data?.title ?? 'Cardano constitution epoch'} • Cardano constitution epoch • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Cardano constitution epoch'} • Cardano constitution epoch • Blockhead</title>
 	{/if}
@@ -36,12 +39,14 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.CardanoConstitution_Epoch, data.selector, {
-				sources: [data.selector.source],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.CardanoConstitution_Epoch, data.selector, {
+					sources: [data.selector.source],
+				}))}
 
-	<CardanoConstitution_EpochView
-		selection={pageSelection}
-	/>
+		<CardanoConstitution_EpochView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

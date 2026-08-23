@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -24,8 +25,10 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.XrplTrustline, data.selector)}
-		<title>{data?.title ?? 'XRPL trustline'} • XRPL trustline • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.XrplTrustline, data.selector))}
+			<title>{data?.title ?? 'XRPL trustline'} • XRPL trustline • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'XRPL trustline'} • XRPL trustline • Blockhead</title>
 	{/if}
@@ -34,10 +37,12 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.XrplTrustline, data.selector)}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.XrplTrustline, data.selector))}
 
-	<XrplTrustlineView
-		selection={pageSelection}
-	/>
+		<XrplTrustlineView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -24,13 +25,15 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.CardanoGovernanceProposal, data.selector, {
-				fields: {
-					proposalKind: true,
-					governanceActionId: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? 'Cardano governance proposal' : [pageSelection.entity.proposalKind, (pageSelection.entity.governanceActionId ?? '')].filter(Boolean).join(' ') || 'Cardano governance proposal')} • Cardano governance proposal • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.CardanoGovernanceProposal, data.selector, {
+					fields: {
+						proposalKind: true,
+						governanceActionId: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? 'Cardano governance proposal' : [pageSelection.entity.proposalKind, (pageSelection.entity.governanceActionId ?? '')].filter(Boolean).join(' ') || 'Cardano governance proposal')} • Cardano governance proposal • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Cardano governance proposal'} • Cardano governance proposal • Blockhead</title>
 	{/if}
@@ -39,15 +42,17 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.CardanoGovernanceProposal, data.selector, {
-				fields: {
-					proposalKind: true,
-					governanceActionId: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.CardanoGovernanceProposal, data.selector, {
+					fields: {
+						proposalKind: true,
+						governanceActionId: true,
+					},
+				}))}
 
-	<CardanoGovernanceProposalView
-		selection={pageSelection}
-	/>
+		<CardanoGovernanceProposalView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

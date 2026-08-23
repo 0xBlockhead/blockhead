@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -24,8 +25,10 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.SuiDynamicFieldEdge, data.selector)}
-		<title>{data?.title ?? 'Sui dynamic field edge'} • Sui dynamic field edge • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.SuiDynamicFieldEdge, data.selector))}
+			<title>{data?.title ?? 'Sui dynamic field edge'} • Sui dynamic field edge • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Sui dynamic field edge'} • Sui dynamic field edge • Blockhead</title>
 	{/if}
@@ -34,10 +37,12 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.SuiDynamicFieldEdge, data.selector)}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.SuiDynamicFieldEdge, data.selector))}
 
-	<SuiDynamicFieldEdgeView
-		selection={pageSelection}
-	/>
+		<SuiDynamicFieldEdgeView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

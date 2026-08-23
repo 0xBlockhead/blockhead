@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,15 +26,17 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.CardanoDRep, data.selector, {
-				sources: [
-					Source.Blockfrost_Rest,
-				],
-				fields: {
-					displayName: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.drepCredential ?? '') || 'Cardano DRep' : [(pageSelection.entity.displayName ?? ''), pageSelection.entitySelector.drepCredential].filter(Boolean).join(' ') || 'Cardano DRep')} • Cardano DRep • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.CardanoDRep, data.selector, {
+					sources: [
+						Source.Blockfrost_Rest,
+					],
+					fields: {
+						displayName: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.drepCredential ?? '') || 'Cardano DRep' : [(pageSelection.entity.displayName ?? ''), pageSelection.entitySelector.drepCredential].filter(Boolean).join(' ') || 'Cardano DRep')} • Cardano DRep • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Cardano DRep'} • Cardano DRep • Blockhead</title>
 	{/if}
@@ -42,17 +45,19 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.CardanoDRep, data.selector, {
-				sources: [
-					Source.Blockfrost_Rest,
-				],
-				fields: {
-					displayName: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.CardanoDRep, data.selector, {
+					sources: [
+						Source.Blockfrost_Rest,
+					],
+					fields: {
+						displayName: true,
+					},
+				}))}
 
-	<CardanoDRepView
-		selection={pageSelection}
-	/>
+		<CardanoDRepView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

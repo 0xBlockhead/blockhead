@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -24,16 +25,18 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.EvmContractCompilation, {
-				$contract: data.selector,
-			}, {
-				fields: {
-					name: true,
-					fullyQualifiedName: true,
-					compiler: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? 'EVM contract compilation' : [(pageSelection.entity.name ?? ''), (pageSelection.entity.fullyQualifiedName ?? ''), (pageSelection.entity.compiler ?? '')].filter(Boolean).join(' ') || 'EVM contract compilation')} • EVM contract compilation • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.EvmContractCompilation, {
+					$contract: data.selector,
+				}, {
+					fields: {
+						name: true,
+						fullyQualifiedName: true,
+						compiler: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? 'EVM contract compilation' : [(pageSelection.entity.name ?? ''), (pageSelection.entity.fullyQualifiedName ?? ''), (pageSelection.entity.compiler ?? '')].filter(Boolean).join(' ') || 'EVM contract compilation')} • EVM contract compilation • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'EVM contract compilation'} • EVM contract compilation • Blockhead</title>
 	{/if}
@@ -42,18 +45,20 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.EvmContractCompilation, {
-				$contract: data.selector,
-			}, {
-				fields: {
-					name: true,
-					fullyQualifiedName: true,
-					compiler: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.EvmContractCompilation, {
+					$contract: data.selector,
+				}, {
+					fields: {
+						name: true,
+						fullyQualifiedName: true,
+						compiler: true,
+					},
+				}))}
 
-	<EvmContractCompilationView
-		selection={pageSelection}
-	/>
+		<EvmContractCompilationView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

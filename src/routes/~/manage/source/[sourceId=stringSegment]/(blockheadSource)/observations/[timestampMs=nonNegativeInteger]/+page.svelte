@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,11 +26,13 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BlockheadSource_Timestamp, {
-				$source: data.selector,
-				timestampMs: Number(params.timestampMs),
-			})}
-		<title>{data?.title ?? (String(pageSelection.entitySelector.timestampMs) || 'blockhead source timestamp')} • blockhead source timestamp • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BlockheadSource_Timestamp, {
+					$source: data.selector,
+					timestampMs: Number(params.timestampMs),
+				}))}
+			<title>{data?.title ?? (String(pageSelection.entitySelector.timestampMs) || 'blockhead source timestamp')} • blockhead source timestamp • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'blockhead source timestamp'} • blockhead source timestamp • Blockhead</title>
 	{/if}
@@ -38,13 +41,15 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BlockheadSource_Timestamp, {
-				$source: data.selector,
-				timestampMs: Number(params.timestampMs),
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BlockheadSource_Timestamp, {
+					$source: data.selector,
+					timestampMs: Number(params.timestampMs),
+				}))}
 
-	<BlockheadSource_TimestampView
-		selection={pageSelection}
-	/>
+		<BlockheadSource_TimestampView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

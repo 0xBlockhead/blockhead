@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,16 +26,18 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.CurvePool, data.selector, {
-				sources: [
-					Source.Curve_Rest,
-				],
-				fields: {
-					name: true,
-					symbol: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? 'Curve pool' : [pageSelection.entity.name, pageSelection.entity.symbol].filter(Boolean).join(' ') || 'Curve pool')} • Curve pool • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.CurvePool, data.selector, {
+					sources: [
+						Source.Curve_Rest,
+					],
+					fields: {
+						name: true,
+						symbol: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? 'Curve pool' : [pageSelection.entity.name, pageSelection.entity.symbol].filter(Boolean).join(' ') || 'Curve pool')} • Curve pool • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Curve pool'} • Curve pool • Blockhead</title>
 	{/if}
@@ -43,18 +46,20 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.CurvePool, data.selector, {
-				sources: [
-					Source.Curve_Rest,
-				],
-				fields: {
-					name: true,
-					symbol: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.CurvePool, data.selector, {
+					sources: [
+						Source.Curve_Rest,
+					],
+					fields: {
+						name: true,
+						symbol: true,
+					},
+				}))}
 
-	<CurvePoolView
-		selection={pageSelection}
-	/>
+		<CurvePoolView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

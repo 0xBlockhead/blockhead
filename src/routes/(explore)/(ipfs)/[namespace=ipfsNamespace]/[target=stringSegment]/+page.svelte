@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,15 +26,17 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.IpfsResource, data.selector, {
-				sources: [
-					Source.Ipfs_Rest,
-				],
-				fields: {
-					canonicalUri: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? 'IPFS resource' : pageSelection.entity.canonicalUri || 'IPFS resource')} • IPFS resource • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.IpfsResource, data.selector, {
+					sources: [
+						Source.Ipfs_Rest,
+					],
+					fields: {
+						canonicalUri: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? 'IPFS resource' : pageSelection.entity.canonicalUri || 'IPFS resource')} • IPFS resource • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'IPFS resource'} • IPFS resource • Blockhead</title>
 	{/if}
@@ -42,17 +45,19 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.IpfsResource, data.selector, {
-				sources: [
-					Source.Ipfs_Rest,
-				],
-				fields: {
-					canonicalUri: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.IpfsResource, data.selector, {
+					sources: [
+						Source.Ipfs_Rest,
+					],
+					fields: {
+						canonicalUri: true,
+					},
+				}))}
 
-	<IpfsResourceView
-		selection={pageSelection}
-	/>
+		<IpfsResourceView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

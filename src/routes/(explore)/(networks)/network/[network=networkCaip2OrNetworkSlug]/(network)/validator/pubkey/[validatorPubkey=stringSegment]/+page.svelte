@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,16 +26,18 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BeaconValidator, data.selector, {
-				sources: [
-					Source.Beacon_Rest,
-					Source.BeaconchaIn_Rest,
-				],
-				fields: {
-					indexInNetwork: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? 'beacon validator' : (String(pageSelection.entity.indexInNetwork ?? '') ? 'Validator #' + String(pageSelection.entity.indexInNetwork ?? '') : '') || 'beacon validator')} • beacon validator • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BeaconValidator, data.selector, {
+					sources: [
+						Source.Beacon_Rest,
+						Source.BeaconchaIn_Rest,
+					],
+					fields: {
+						indexInNetwork: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? 'beacon validator' : (String(pageSelection.entity.indexInNetwork ?? '') ? 'Validator #' + String(pageSelection.entity.indexInNetwork ?? '') : '') || 'beacon validator')} • beacon validator • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'beacon validator'} • beacon validator • Blockhead</title>
 	{/if}
@@ -43,18 +46,20 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BeaconValidator, data.selector, {
-				sources: [
-					Source.Beacon_Rest,
-					Source.BeaconchaIn_Rest,
-				],
-				fields: {
-					indexInNetwork: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BeaconValidator, data.selector, {
+					sources: [
+						Source.Beacon_Rest,
+						Source.BeaconchaIn_Rest,
+					],
+					fields: {
+						indexInNetwork: true,
+					},
+				}))}
 
-	<BeaconValidatorView
-		selection={pageSelection}
-	/>
+		<BeaconValidatorView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

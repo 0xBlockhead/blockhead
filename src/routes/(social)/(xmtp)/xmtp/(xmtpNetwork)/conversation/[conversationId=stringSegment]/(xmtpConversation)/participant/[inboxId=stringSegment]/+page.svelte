@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -26,15 +27,17 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.XmtpParticipant, {
-				$conversation: data.selector,
-				inboxId: params.inboxId,
-			}, {
-				sources: [
-					Source.Local_Internal,
-				],
-			})}
-		<title>{data?.title ?? (pageSelection.entitySelector.inboxId || 'XMTP participant')} • XMTP participant • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.XmtpParticipant, {
+					$conversation: data.selector,
+					inboxId: params.inboxId,
+				}, {
+					sources: [
+						Source.Local_Internal,
+					],
+				}))}
+			<title>{data?.title ?? (pageSelection.entitySelector.inboxId || 'XMTP participant')} • XMTP participant • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'XMTP participant'} • XMTP participant • Blockhead</title>
 	{/if}
@@ -43,17 +46,19 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.XmtpParticipant, {
-				$conversation: data.selector,
-				inboxId: params.inboxId,
-			}, {
-				sources: [
-					Source.Local_Internal,
-				],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.XmtpParticipant, {
+					$conversation: data.selector,
+					inboxId: params.inboxId,
+				}, {
+					sources: [
+						Source.Local_Internal,
+					],
+				}))}
 
-	<XmtpParticipantView
-		selection={pageSelection}
-	/>
+		<XmtpParticipantView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

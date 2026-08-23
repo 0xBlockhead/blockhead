@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -24,8 +25,10 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.Erc4337Bundler, data.selector)}
-		<title>{data?.title ?? (pageSelection.entitySelector.address || 'ERC-4337 bundler')} • ERC-4337 bundler • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.Erc4337Bundler, data.selector))}
+			<title>{data?.title ?? (pageSelection.entitySelector.address || 'ERC-4337 bundler')} • ERC-4337 bundler • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'ERC-4337 bundler'} • ERC-4337 bundler • Blockhead</title>
 	{/if}
@@ -34,10 +37,12 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.Erc4337Bundler, data.selector)}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.Erc4337Bundler, data.selector))}
 
-	<Erc4337BundlerView
-		selection={pageSelection}
-	/>
+		<Erc4337BundlerView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

@@ -10,6 +10,7 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -44,19 +45,21 @@
 >
 	{#snippet Summary()}
 		{#if data?.selector != null}
-			<EvmActorCoinAllowanceView
-				selection={
-					select(EntityType.EvmActorCoinAllowance, data.selector, {
-						sources: [
-							Source.EnvioHyperSync_RawHttp,
-							Source.SqdPortal_RawHttp,
-							Source.Voltaire_JsonRpc,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
+			{#key data.selector}
+				<EvmActorCoinAllowanceView
+					selection={
+						untrack(() => select(EntityType.EvmActorCoinAllowance, data.selector, {
+							sources: [
+								Source.EnvioHyperSync_RawHttp,
+								Source.SqdPortal_RawHttp,
+								Source.Voltaire_JsonRpc,
+							],
+						}))
+					}
+					href={detailHref}
+					layout={EntityLayout.SummaryInline}
+				/>
+			{/key}
 		{/if}
 	{/snippet}
 

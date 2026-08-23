@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -24,8 +25,10 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.HederaTopic, data.selector)}
-		<title>{data?.title ?? 'hedera topic'} • hedera topic • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.HederaTopic, data.selector))}
+			<title>{data?.title ?? 'hedera topic'} • hedera topic • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'hedera topic'} • hedera topic • Blockhead</title>
 	{/if}
@@ -34,10 +37,12 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.HederaTopic, data.selector)}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.HederaTopic, data.selector))}
 
-	<HederaTopicView
-		selection={pageSelection}
-	/>
+		<HederaTopicView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

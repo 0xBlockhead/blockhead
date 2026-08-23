@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,14 +26,16 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.Erc4626Vault_Block, {
-				$vault: data.selector,
-				blockNumber: Number(params.blockNumber),
-				source: params.source,
-			}, {
-				sources: [params.source],
-			})}
-		<title>{data?.title ?? (String(pageSelection.entitySelector.blockNumber) || 'erc4626 vault block')} • erc4626 vault block • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.Erc4626Vault_Block, {
+					$vault: data.selector,
+					blockNumber: Number(params.blockNumber),
+					source: params.source,
+				}, {
+					sources: [params.source],
+				}))}
+			<title>{data?.title ?? (String(pageSelection.entitySelector.blockNumber) || 'erc4626 vault block')} • erc4626 vault block • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'erc4626 vault block'} • erc4626 vault block • Blockhead</title>
 	{/if}
@@ -41,16 +44,18 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.Erc4626Vault_Block, {
-				$vault: data.selector,
-				blockNumber: Number(params.blockNumber),
-				source: params.source,
-			}, {
-				sources: [params.source],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.Erc4626Vault_Block, {
+					$vault: data.selector,
+					blockNumber: Number(params.blockNumber),
+					source: params.source,
+				}, {
+					sources: [params.source],
+				}))}
 
-	<Erc4626Vault_BlockView
-		selection={pageSelection}
-	/>
+		<Erc4626Vault_BlockView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

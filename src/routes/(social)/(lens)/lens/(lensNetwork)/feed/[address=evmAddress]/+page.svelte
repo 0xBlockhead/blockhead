@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -24,12 +25,14 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.LensFeed, data.selector, {
-				fields: {
-					name: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.address ?? '') || 'Lens feed' : [(pageSelection.entity.name ?? ''), pageSelection.entitySelector.address].filter(Boolean).join(' ') || 'Lens feed')} • Lens feed • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.LensFeed, data.selector, {
+					fields: {
+						name: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.address ?? '') || 'Lens feed' : [(pageSelection.entity.name ?? ''), pageSelection.entitySelector.address].filter(Boolean).join(' ') || 'Lens feed')} • Lens feed • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Lens feed'} • Lens feed • Blockhead</title>
 	{/if}
@@ -38,14 +41,16 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.LensFeed, data.selector, {
-				fields: {
-					name: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.LensFeed, data.selector, {
+					fields: {
+						name: true,
+					},
+				}))}
 
-	<LensFeedView
-		selection={pageSelection}
-	/>
+		<LensFeedView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

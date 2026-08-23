@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,11 +26,13 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.ComplianceModule, {
-				$profile: data.selector,
-				moduleKey: params.moduleKey,
-			})}
-		<title>{data?.title ?? 'compliance module'} • compliance module • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.ComplianceModule, {
+					$profile: data.selector,
+					moduleKey: params.moduleKey,
+				}))}
+			<title>{data?.title ?? 'compliance module'} • compliance module • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'compliance module'} • compliance module • Blockhead</title>
 	{/if}
@@ -38,13 +41,15 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.ComplianceModule, {
-				$profile: data.selector,
-				moduleKey: params.moduleKey,
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.ComplianceModule, {
+					$profile: data.selector,
+					moduleKey: params.moduleKey,
+				}))}
 
-	<ComplianceModuleView
-		selection={pageSelection}
-	/>
+		<ComplianceModuleView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

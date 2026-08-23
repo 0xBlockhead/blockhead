@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -26,20 +27,22 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.PendlePosition, {
-				$account: {
-					$network: data.selector.$network,
-					$actor: {
-						address: params.accountAddress,
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.PendlePosition, {
+					$account: {
+						$network: data.selector.$network,
+						$actor: {
+							address: params.accountAddress,
+						},
 					},
-				},
-				$market: data.selector,
-			}, {
-				sources: [
-					Source.Pendle_Rest,
-				],
-			})}
-		<title>{data?.title ?? 'Pendle position'} • Pendle position • Blockhead</title>
+					$market: data.selector,
+				}, {
+					sources: [
+						Source.Pendle_Rest,
+					],
+				}))}
+			<title>{data?.title ?? 'Pendle position'} • Pendle position • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Pendle position'} • Pendle position • Blockhead</title>
 	{/if}
@@ -48,22 +51,24 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.PendlePosition, {
-				$account: {
-					$network: data.selector.$network,
-					$actor: {
-						address: params.accountAddress,
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.PendlePosition, {
+					$account: {
+						$network: data.selector.$network,
+						$actor: {
+							address: params.accountAddress,
+						},
 					},
-				},
-				$market: data.selector,
-			}, {
-				sources: [
-					Source.Pendle_Rest,
-				],
-			})}
+					$market: data.selector,
+				}, {
+					sources: [
+						Source.Pendle_Rest,
+					],
+				}))}
 
-	<PendlePositionView
-		selection={pageSelection}
-	/>
+		<PendlePositionView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

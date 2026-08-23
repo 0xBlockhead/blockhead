@@ -10,6 +10,7 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -42,17 +43,19 @@
 >
 	{#snippet Summary()}
 		{#if data?.selector != null}
-			<EigenLayerOperatorView
-				selection={
-					select(EntityType.EigenLayerOperator, data.selector, {
-						sources: [
-							Source.EigenExplorer_Rest,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
+			{#key data.selector}
+				<EigenLayerOperatorView
+					selection={
+						untrack(() => select(EntityType.EigenLayerOperator, data.selector, {
+							sources: [
+								Source.EigenExplorer_Rest,
+							],
+						}))
+					}
+					href={detailHref}
+					layout={EntityLayout.SummaryInline}
+				/>
+			{/key}
 		{/if}
 	{/snippet}
 

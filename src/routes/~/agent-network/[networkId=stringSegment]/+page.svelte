@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -24,8 +25,10 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType._GlobalAgentNetwork, data.selector)}
-		<title>{data?.title ?? 'global agent network'} • global agent network • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType._GlobalAgentNetwork, data.selector))}
+			<title>{data?.title ?? 'global agent network'} • global agent network • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'global agent network'} • global agent network • Blockhead</title>
 	{/if}
@@ -34,10 +37,12 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType._GlobalAgentNetwork, data.selector)}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType._GlobalAgentNetwork, data.selector))}
 
-	<GlobalAgentNetworkView
-		selection={pageSelection}
-	/>
+		<GlobalAgentNetworkView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

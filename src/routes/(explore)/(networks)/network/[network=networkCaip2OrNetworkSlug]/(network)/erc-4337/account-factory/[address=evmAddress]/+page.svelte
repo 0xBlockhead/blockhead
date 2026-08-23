@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -24,8 +25,10 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.Erc4337AccountFactory, data.selector)}
-		<title>{data?.title ?? (pageSelection.entitySelector.address || 'ERC-4337 account factory')} • ERC-4337 account factory • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.Erc4337AccountFactory, data.selector))}
+			<title>{data?.title ?? (pageSelection.entitySelector.address || 'ERC-4337 account factory')} • ERC-4337 account factory • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'ERC-4337 account factory'} • ERC-4337 account factory • Blockhead</title>
 	{/if}
@@ -34,10 +37,12 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.Erc4337AccountFactory, data.selector)}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.Erc4337AccountFactory, data.selector))}
 
-	<Erc4337AccountFactoryView
-		selection={pageSelection}
-	/>
+		<Erc4337AccountFactoryView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

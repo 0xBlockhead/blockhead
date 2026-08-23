@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,18 +26,20 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.CctpDomainSupport, data.selector, {
-				sources: [
-					Source.CircleCctpContracts_Evm,
-					Source.CircleCctpContracts_Solana,
-					Source.CircleCctpContracts_Stellar,
-					Source.CircleCctpIris,
-				],
-				fields: {
-					name: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? 'CCTP domain support' : pageSelection.entity.name || 'CCTP domain support')} • CCTP domain support • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.CctpDomainSupport, data.selector, {
+					sources: [
+						Source.CircleCctpContracts_Evm,
+						Source.CircleCctpContracts_Solana,
+						Source.CircleCctpContracts_Stellar,
+						Source.CircleCctpIris,
+					],
+					fields: {
+						name: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? 'CCTP domain support' : pageSelection.entity.name || 'CCTP domain support')} • CCTP domain support • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'CCTP domain support'} • CCTP domain support • Blockhead</title>
 	{/if}
@@ -45,20 +48,22 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.CctpDomainSupport, data.selector, {
-				sources: [
-					Source.CircleCctpContracts_Evm,
-					Source.CircleCctpContracts_Solana,
-					Source.CircleCctpContracts_Stellar,
-					Source.CircleCctpIris,
-				],
-				fields: {
-					name: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.CctpDomainSupport, data.selector, {
+					sources: [
+						Source.CircleCctpContracts_Evm,
+						Source.CircleCctpContracts_Solana,
+						Source.CircleCctpContracts_Stellar,
+						Source.CircleCctpIris,
+					],
+					fields: {
+						name: true,
+					},
+				}))}
 
-	<CctpDomainSupportView
-		selection={pageSelection}
-	/>
+		<CctpDomainSupportView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

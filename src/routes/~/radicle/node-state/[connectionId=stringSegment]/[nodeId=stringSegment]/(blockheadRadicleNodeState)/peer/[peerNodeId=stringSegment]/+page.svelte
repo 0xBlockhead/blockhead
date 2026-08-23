@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -26,15 +27,17 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BlockheadRadiclePeer, {
-				$node: data.selector,
-				peerNodeId: params.peerNodeId,
-			}, {
-				sources: [
-					Source.Local_Internal,
-				],
-			})}
-		<title>{data?.title ?? (pageSelection.entitySelector.peerNodeId || 'blockhead radicle peer')} • blockhead radicle peer • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BlockheadRadiclePeer, {
+					$node: data.selector,
+					peerNodeId: params.peerNodeId,
+				}, {
+					sources: [
+						Source.Local_Internal,
+					],
+				}))}
+			<title>{data?.title ?? (pageSelection.entitySelector.peerNodeId || 'blockhead radicle peer')} • blockhead radicle peer • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'blockhead radicle peer'} • blockhead radicle peer • Blockhead</title>
 	{/if}
@@ -43,17 +46,19 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BlockheadRadiclePeer, {
-				$node: data.selector,
-				peerNodeId: params.peerNodeId,
-			}, {
-				sources: [
-					Source.Local_Internal,
-				],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BlockheadRadiclePeer, {
+					$node: data.selector,
+					peerNodeId: params.peerNodeId,
+				}, {
+					sources: [
+						Source.Local_Internal,
+					],
+				}))}
 
-	<BlockheadRadiclePeerView
-		selection={pageSelection}
-	/>
+		<BlockheadRadiclePeerView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

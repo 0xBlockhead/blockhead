@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,13 +26,15 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.McpServer, data.selector, {
-				sources: [
-					Source.Eip8004Scan_Rest,
-					Source.McpDeclared_Protocol,
-				],
-			})}
-		<title>{data?.title ?? (pageSelection.entitySelector.serverKey || 'mcp server')} • mcp server • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.McpServer, data.selector, {
+					sources: [
+						Source.Eip8004Scan_Rest,
+						Source.McpDeclared_Protocol,
+					],
+				}))}
+			<title>{data?.title ?? (pageSelection.entitySelector.serverKey || 'mcp server')} • mcp server • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'mcp server'} • mcp server • Blockhead</title>
 	{/if}
@@ -40,15 +43,17 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.McpServer, data.selector, {
-				sources: [
-					Source.Eip8004Scan_Rest,
-					Source.McpDeclared_Protocol,
-				],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.McpServer, data.selector, {
+					sources: [
+						Source.Eip8004Scan_Rest,
+						Source.McpDeclared_Protocol,
+					],
+				}))}
 
-	<McpServerView
-		selection={pageSelection}
-	/>
+		<McpServerView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

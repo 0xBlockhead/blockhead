@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -26,18 +27,20 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.CurveGauge, {
-				$network: data.selector,
-				gaugeAddress: params.gaugeAddress,
-			}, {
-				sources: [
-					Source.Curve_Rest,
-				],
-				fields: {
-					name: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.gaugeAddress ?? '') || 'Curve gauge' : [(pageSelection.entity.name ?? ''), pageSelection.entitySelector.gaugeAddress].filter(Boolean).join(' ') || 'Curve gauge')} • Curve gauge • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.CurveGauge, {
+					$network: data.selector,
+					gaugeAddress: params.gaugeAddress,
+				}, {
+					sources: [
+						Source.Curve_Rest,
+					],
+					fields: {
+						name: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.gaugeAddress ?? '') || 'Curve gauge' : [(pageSelection.entity.name ?? ''), pageSelection.entitySelector.gaugeAddress].filter(Boolean).join(' ') || 'Curve gauge')} • Curve gauge • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Curve gauge'} • Curve gauge • Blockhead</title>
 	{/if}
@@ -46,20 +49,22 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.CurveGauge, {
-				$network: data.selector,
-				gaugeAddress: params.gaugeAddress,
-			}, {
-				sources: [
-					Source.Curve_Rest,
-				],
-				fields: {
-					name: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.CurveGauge, {
+					$network: data.selector,
+					gaugeAddress: params.gaugeAddress,
+				}, {
+					sources: [
+						Source.Curve_Rest,
+					],
+					fields: {
+						name: true,
+					},
+				}))}
 
-	<CurveGaugeView
-		selection={pageSelection}
-	/>
+		<CurveGaugeView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

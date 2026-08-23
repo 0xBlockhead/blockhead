@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,13 +26,15 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.A2aMessagePart, {
-				$artifact: data.selector,
-				partIndex: Number(params.partIndex),
-			}, {
-				sources: [],
-			})}
-		<title>{data?.title ?? (String(pageSelection.entitySelector.partIndex) || 'A2A message part')} • A2A message part • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.A2aMessagePart, {
+					$artifact: data.selector,
+					partIndex: Number(params.partIndex),
+				}, {
+					sources: [],
+				}))}
+			<title>{data?.title ?? (String(pageSelection.entitySelector.partIndex) || 'A2A message part')} • A2A message part • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'A2A message part'} • A2A message part • Blockhead</title>
 	{/if}
@@ -40,15 +43,17 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.A2aMessagePart, {
-				$artifact: data.selector,
-				partIndex: Number(params.partIndex),
-			}, {
-				sources: [],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.A2aMessagePart, {
+					$artifact: data.selector,
+					partIndex: Number(params.partIndex),
+				}, {
+					sources: [],
+				}))}
 
-	<A2aMessagePartView
-		selection={pageSelection}
-	/>
+		<A2aMessagePartView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

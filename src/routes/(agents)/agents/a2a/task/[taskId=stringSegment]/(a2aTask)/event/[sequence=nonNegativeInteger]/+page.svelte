@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,13 +26,15 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.A2aTaskEvent, {
-				$task: data.selector,
-				sequence: Number(params.sequence),
-			}, {
-				sources: [],
-			})}
-		<title>{data?.title ?? (String(pageSelection.entitySelector.sequence) || 'A2A task event')} • A2A task event • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.A2aTaskEvent, {
+					$task: data.selector,
+					sequence: Number(params.sequence),
+				}, {
+					sources: [],
+				}))}
+			<title>{data?.title ?? (String(pageSelection.entitySelector.sequence) || 'A2A task event')} • A2A task event • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'A2A task event'} • A2A task event • Blockhead</title>
 	{/if}
@@ -40,15 +43,17 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.A2aTaskEvent, {
-				$task: data.selector,
-				sequence: Number(params.sequence),
-			}, {
-				sources: [],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.A2aTaskEvent, {
+					$task: data.selector,
+					sequence: Number(params.sequence),
+				}, {
+					sources: [],
+				}))}
 
-	<A2aTaskEventView
-		selection={pageSelection}
-	/>
+		<A2aTaskEventView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -26,17 +27,19 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BlockheadZeroGStoredChunk, {
-				$nodeState: data.selector,
-				dataRoot: params.dataRoot,
-				chunkIndex: Number(params.chunkIndex),
-			}, {
-				sources: [
-					Source.Local_Internal,
-					Source.ZeroGStorageNode_JsonRpc,
-				],
-			})}
-		<title>{data?.title ?? (pageSelection.entitySelector.dataRoot || 'blockhead zero g stored chunk')} • blockhead zero g stored chunk • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BlockheadZeroGStoredChunk, {
+					$nodeState: data.selector,
+					dataRoot: params.dataRoot,
+					chunkIndex: Number(params.chunkIndex),
+				}, {
+					sources: [
+						Source.Local_Internal,
+						Source.ZeroGStorageNode_JsonRpc,
+					],
+				}))}
+			<title>{data?.title ?? (pageSelection.entitySelector.dataRoot || 'blockhead zero g stored chunk')} • blockhead zero g stored chunk • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'blockhead zero g stored chunk'} • blockhead zero g stored chunk • Blockhead</title>
 	{/if}
@@ -45,19 +48,21 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BlockheadZeroGStoredChunk, {
-				$nodeState: data.selector,
-				dataRoot: params.dataRoot,
-				chunkIndex: Number(params.chunkIndex),
-			}, {
-				sources: [
-					Source.Local_Internal,
-					Source.ZeroGStorageNode_JsonRpc,
-				],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BlockheadZeroGStoredChunk, {
+					$nodeState: data.selector,
+					dataRoot: params.dataRoot,
+					chunkIndex: Number(params.chunkIndex),
+				}, {
+					sources: [
+						Source.Local_Internal,
+						Source.ZeroGStorageNode_JsonRpc,
+					],
+				}))}
 
-	<BlockheadZeroGStoredChunkView
-		selection={pageSelection}
-	/>
+		<BlockheadZeroGStoredChunkView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

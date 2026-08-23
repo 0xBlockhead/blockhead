@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,11 +26,13 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.MoveFunction, {
-				$module: data.selector,
-				functionName: params.functionName,
-			})}
-		<title>{data?.title ?? (pageSelection.entitySelector.functionName || 'move function')} • move function • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.MoveFunction, {
+					$module: data.selector,
+					functionName: params.functionName,
+				}))}
+			<title>{data?.title ?? (pageSelection.entitySelector.functionName || 'move function')} • move function • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'move function'} • move function • Blockhead</title>
 	{/if}
@@ -38,13 +41,15 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.MoveFunction, {
-				$module: data.selector,
-				functionName: params.functionName,
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.MoveFunction, {
+					$module: data.selector,
+					functionName: params.functionName,
+				}))}
 
-	<MoveFunctionView
-		selection={pageSelection}
-	/>
+		<MoveFunctionView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

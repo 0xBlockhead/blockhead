@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,16 +26,18 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.AssetSupply_LedgerCoordinate, {
-				$assetInstance: data.selector,
-				supplyScopeKey: params.supplyScopeKey,
-				ledgerCoordinateKind: params.ledgerCoordinateKind,
-				ledgerCoordinateValue: BigInt(params.ledgerCoordinateValue),
-				source: params.source,
-			}, {
-				sources: [params.source],
-			})}
-		<title>{data?.title ?? (pageSelection.entitySelector.supplyScopeKey || 'asset supply ledger coordinate')} • asset supply ledger coordinate • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.AssetSupply_LedgerCoordinate, {
+					$assetInstance: data.selector,
+					supplyScopeKey: params.supplyScopeKey,
+					ledgerCoordinateKind: params.ledgerCoordinateKind,
+					ledgerCoordinateValue: BigInt(params.ledgerCoordinateValue),
+					source: params.source,
+				}, {
+					sources: [params.source],
+				}))}
+			<title>{data?.title ?? (pageSelection.entitySelector.supplyScopeKey || 'asset supply ledger coordinate')} • asset supply ledger coordinate • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'asset supply ledger coordinate'} • asset supply ledger coordinate • Blockhead</title>
 	{/if}
@@ -43,18 +46,20 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.AssetSupply_LedgerCoordinate, {
-				$assetInstance: data.selector,
-				supplyScopeKey: params.supplyScopeKey,
-				ledgerCoordinateKind: params.ledgerCoordinateKind,
-				ledgerCoordinateValue: BigInt(params.ledgerCoordinateValue),
-				source: params.source,
-			}, {
-				sources: [params.source],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.AssetSupply_LedgerCoordinate, {
+					$assetInstance: data.selector,
+					supplyScopeKey: params.supplyScopeKey,
+					ledgerCoordinateKind: params.ledgerCoordinateKind,
+					ledgerCoordinateValue: BigInt(params.ledgerCoordinateValue),
+					source: params.source,
+				}, {
+					sources: [params.source],
+				}))}
 
-	<AssetSupply_LedgerCoordinateView
-		selection={pageSelection}
-	/>
+		<AssetSupply_LedgerCoordinateView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

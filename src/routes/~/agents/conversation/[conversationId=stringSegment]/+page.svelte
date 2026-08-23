@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,15 +26,17 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BlockheadAgentConversation, data.selector, {
-				sources: [
-					Source.Local_Internal,
-				],
-				fields: {
-					name: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.id ?? '') || 'agent conversation' : (pageSelection.entity.name ?? '') || pageSelection.entitySelector.id || 'agent conversation')} • agent conversation • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BlockheadAgentConversation, data.selector, {
+					sources: [
+						Source.Local_Internal,
+					],
+					fields: {
+						name: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.id ?? '') || 'agent conversation' : (pageSelection.entity.name ?? '') || pageSelection.entitySelector.id || 'agent conversation')} • agent conversation • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'agent conversation'} • agent conversation • Blockhead</title>
 	{/if}
@@ -42,17 +45,19 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BlockheadAgentConversation, data.selector, {
-				sources: [
-					Source.Local_Internal,
-				],
-				fields: {
-					name: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BlockheadAgentConversation, data.selector, {
+					sources: [
+						Source.Local_Internal,
+					],
+					fields: {
+						name: true,
+					},
+				}))}
 
-	<BlockheadAgentConversationView
-		selection={pageSelection}
-	/>
+		<BlockheadAgentConversationView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

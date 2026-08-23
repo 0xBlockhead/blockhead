@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -24,8 +25,10 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.GitTree, data.selector)}
-		<title>{data?.title ?? (pageSelection.entitySelector.objectId || 'Git tree')} • Git tree • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.GitTree, data.selector))}
+			<title>{data?.title ?? (pageSelection.entitySelector.objectId || 'Git tree')} • Git tree • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Git tree'} • Git tree • Blockhead</title>
 	{/if}
@@ -34,10 +37,12 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.GitTree, data.selector)}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.GitTree, data.selector))}
 
-	<GitTreeView
-		selection={pageSelection}
-	/>
+		<GitTreeView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

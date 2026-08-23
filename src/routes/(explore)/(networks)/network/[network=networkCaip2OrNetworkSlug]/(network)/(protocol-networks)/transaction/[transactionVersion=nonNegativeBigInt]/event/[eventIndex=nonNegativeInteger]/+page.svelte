@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,16 +26,18 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.AptosEvent, {
-				$network: data.selector,
-				transactionVersion: BigInt(params.transactionVersion),
-				eventIndex: Number(params.eventIndex),
-			}, {
-				fields: {
-					eventType: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? 'aptos event' : pageSelection.entity.eventType || 'aptos event')} • aptos event • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.AptosEvent, {
+					$network: data.selector,
+					transactionVersion: BigInt(params.transactionVersion),
+					eventIndex: Number(params.eventIndex),
+				}, {
+					fields: {
+						eventType: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? 'aptos event' : pageSelection.entity.eventType || 'aptos event')} • aptos event • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'aptos event'} • aptos event • Blockhead</title>
 	{/if}
@@ -43,18 +46,20 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.AptosEvent, {
-				$network: data.selector,
-				transactionVersion: BigInt(params.transactionVersion),
-				eventIndex: Number(params.eventIndex),
-			}, {
-				fields: {
-					eventType: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.AptosEvent, {
+					$network: data.selector,
+					transactionVersion: BigInt(params.transactionVersion),
+					eventIndex: Number(params.eventIndex),
+				}, {
+					fields: {
+						eventType: true,
+					},
+				}))}
 
-	<AptosEventView
-		selection={pageSelection}
-	/>
+		<AptosEventView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

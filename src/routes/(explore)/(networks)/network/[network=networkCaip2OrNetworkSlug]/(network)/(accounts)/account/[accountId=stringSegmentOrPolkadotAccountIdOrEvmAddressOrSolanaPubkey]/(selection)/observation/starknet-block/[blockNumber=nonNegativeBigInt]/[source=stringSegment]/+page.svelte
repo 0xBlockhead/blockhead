@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,14 +26,16 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.StarknetAccount_Timestamp, {
-				$contract: data.selector,
-				blockNumber: BigInt(params.blockNumber),
-				source: params.source,
-			}, {
-				sources: [params.source],
-			})}
-		<title>{data?.title ?? 'starknet account timestamp'} • starknet account timestamp • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.StarknetAccount_Timestamp, {
+					$contract: data.selector,
+					blockNumber: BigInt(params.blockNumber),
+					source: params.source,
+				}, {
+					sources: [params.source],
+				}))}
+			<title>{data?.title ?? 'starknet account timestamp'} • starknet account timestamp • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'starknet account timestamp'} • starknet account timestamp • Blockhead</title>
 	{/if}
@@ -41,16 +44,18 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.StarknetAccount_Timestamp, {
-				$contract: data.selector,
-				blockNumber: BigInt(params.blockNumber),
-				source: params.source,
-			}, {
-				sources: [params.source],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.StarknetAccount_Timestamp, {
+					$contract: data.selector,
+					blockNumber: BigInt(params.blockNumber),
+					source: params.source,
+				}, {
+					sources: [params.source],
+				}))}
 
-	<StarknetAccount_TimestampView
-		selection={pageSelection}
-	/>
+		<StarknetAccount_TimestampView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

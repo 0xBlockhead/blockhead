@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -24,10 +25,12 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BridgeTransfer, data.selector, {
-				sources: [data.selector.source],
-			})}
-		<title>{data?.title ?? (pageSelection.entitySelector.transferId || 'bridge transfer')} • bridge transfer • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BridgeTransfer, data.selector, {
+					sources: [data.selector.source],
+				}))}
+			<title>{data?.title ?? (pageSelection.entitySelector.transferId || 'bridge transfer')} • bridge transfer • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'bridge transfer'} • bridge transfer • Blockhead</title>
 	{/if}
@@ -36,12 +39,14 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BridgeTransfer, data.selector, {
-				sources: [data.selector.source],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BridgeTransfer, data.selector, {
+					sources: [data.selector.source],
+				}))}
 
-	<BridgeTransferView
-		selection={pageSelection}
-	/>
+		<BridgeTransferView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

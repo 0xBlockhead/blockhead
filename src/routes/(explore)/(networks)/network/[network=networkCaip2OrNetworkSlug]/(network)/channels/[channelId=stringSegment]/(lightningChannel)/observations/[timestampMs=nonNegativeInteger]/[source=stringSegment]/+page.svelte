@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -24,10 +25,12 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.LightningChannel_Timestamp, data.selector, {
-				sources: [data.selector.source],
-			})}
-		<title>{data?.title ?? (String(pageSelection.entitySelector.timestampMs) || 'Lightning public channel observation')} • Lightning public channel observation • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.LightningChannel_Timestamp, data.selector, {
+					sources: [data.selector.source],
+				}))}
+			<title>{data?.title ?? (String(pageSelection.entitySelector.timestampMs) || 'Lightning public channel observation')} • Lightning public channel observation • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Lightning public channel observation'} • Lightning public channel observation • Blockhead</title>
 	{/if}
@@ -36,12 +39,14 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.LightningChannel_Timestamp, data.selector, {
-				sources: [data.selector.source],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.LightningChannel_Timestamp, data.selector, {
+					sources: [data.selector.source],
+				}))}
 
-	<LightningChannel_TimestampView
-		selection={pageSelection}
-	/>
+		<LightningChannel_TimestampView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -24,8 +25,10 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.ElementsPeg, data.selector)}
-		<title>{data?.title ?? ([pageSelection.entitySelector.direction, pageSelection.entitySelector.pegTransactionId].filter(Boolean).join(' ') || 'Elements peg')} • Elements peg • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.ElementsPeg, data.selector))}
+			<title>{data?.title ?? ([pageSelection.entitySelector.direction, pageSelection.entitySelector.pegTransactionId].filter(Boolean).join(' ') || 'Elements peg')} • Elements peg • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Elements peg'} • Elements peg • Blockhead</title>
 	{/if}
@@ -34,10 +37,12 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.ElementsPeg, data.selector)}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.ElementsPeg, data.selector))}
 
-	<ElementsPegView
-		selection={pageSelection}
-	/>
+		<ElementsPegView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

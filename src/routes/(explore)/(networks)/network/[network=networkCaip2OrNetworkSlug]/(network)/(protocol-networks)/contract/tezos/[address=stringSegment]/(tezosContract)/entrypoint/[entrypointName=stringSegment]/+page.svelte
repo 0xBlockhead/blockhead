@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,11 +26,13 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.TezosEntrypoint, {
-				$contract: data.selector,
-				entrypointName: params.entrypointName,
-			})}
-		<title>{data?.title ?? 'tezos entrypoint'} • tezos entrypoint • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.TezosEntrypoint, {
+					$contract: data.selector,
+					entrypointName: params.entrypointName,
+				}))}
+			<title>{data?.title ?? 'tezos entrypoint'} • tezos entrypoint • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'tezos entrypoint'} • tezos entrypoint • Blockhead</title>
 	{/if}
@@ -38,13 +41,15 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.TezosEntrypoint, {
-				$contract: data.selector,
-				entrypointName: params.entrypointName,
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.TezosEntrypoint, {
+					$contract: data.selector,
+					entrypointName: params.entrypointName,
+				}))}
 
-	<TezosEntrypointView
-		selection={pageSelection}
-	/>
+		<TezosEntrypointView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

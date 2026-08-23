@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,11 +26,13 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BitTorrentPiece, {
-				$torrent: data.selector,
-				pieceIndex: Number(params.pieceIndex),
-			})}
-		<title>{data?.title ?? (String(pageSelection.entitySelector.pieceIndex) || 'bit torrent piece')} • bit torrent piece • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BitTorrentPiece, {
+					$torrent: data.selector,
+					pieceIndex: Number(params.pieceIndex),
+				}))}
+			<title>{data?.title ?? (String(pageSelection.entitySelector.pieceIndex) || 'bit torrent piece')} • bit torrent piece • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'bit torrent piece'} • bit torrent piece • Blockhead</title>
 	{/if}
@@ -38,13 +41,15 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BitTorrentPiece, {
-				$torrent: data.selector,
-				pieceIndex: Number(params.pieceIndex),
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BitTorrentPiece, {
+					$torrent: data.selector,
+					pieceIndex: Number(params.pieceIndex),
+				}))}
 
-	<BitTorrentPieceView
-		selection={pageSelection}
-	/>
+		<BitTorrentPieceView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

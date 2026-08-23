@@ -9,6 +9,7 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -43,11 +44,13 @@
 >
 	{#snippet Summary()}
 		{#if data?.selector != null}
-			<LightningChannel_TimestampView
-				selection={select(EntityType.LightningChannel_Timestamp, data.selector)}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
+			{#key data.selector}
+				<LightningChannel_TimestampView
+					selection={untrack(() => select(EntityType.LightningChannel_Timestamp, data.selector))}
+					href={detailHref}
+					layout={EntityLayout.SummaryInline}
+				/>
+			{/key}
 		{/if}
 	{/snippet}
 

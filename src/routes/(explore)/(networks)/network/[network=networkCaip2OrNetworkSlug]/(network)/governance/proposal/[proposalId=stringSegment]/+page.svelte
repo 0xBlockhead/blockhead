@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -24,12 +25,14 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.CosmosGovernanceProposal, data.selector, {
-				fields: {
-					title: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? 'Proposal ' + (pageSelection.entitySelector.proposalId ?? '') : [(pageSelection.entity.title ?? ''), 'Proposal ' + pageSelection.entitySelector.proposalId].filter(Boolean).join(' ') || 'Cosmos governance proposal')} • Cosmos governance proposal • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.CosmosGovernanceProposal, data.selector, {
+					fields: {
+						title: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? 'Proposal ' + (pageSelection.entitySelector.proposalId ?? '') : [(pageSelection.entity.title ?? ''), 'Proposal ' + pageSelection.entitySelector.proposalId].filter(Boolean).join(' ') || 'Cosmos governance proposal')} • Cosmos governance proposal • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Cosmos governance proposal'} • Cosmos governance proposal • Blockhead</title>
 	{/if}
@@ -38,14 +41,16 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.CosmosGovernanceProposal, data.selector, {
-				fields: {
-					title: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.CosmosGovernanceProposal, data.selector, {
+					fields: {
+						title: true,
+					},
+				}))}
 
-	<CosmosGovernanceProposalView
-		selection={pageSelection}
-	/>
+		<CosmosGovernanceProposalView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

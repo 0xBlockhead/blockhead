@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,12 +26,14 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.GitForgeCompare, data.selector, {
-				sources: [
-					Source.Gitlab_Rest,
-				],
-			})}
-		<title>{data?.title ?? ([pageSelection.entitySelector.fromObjectId, pageSelection.entitySelector.toObjectId].filter(Boolean).join(' ') || 'Git forge compare')} • Git forge compare • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.GitForgeCompare, data.selector, {
+					sources: [
+						Source.Gitlab_Rest,
+					],
+				}))}
+			<title>{data?.title ?? ([pageSelection.entitySelector.fromObjectId, pageSelection.entitySelector.toObjectId].filter(Boolean).join(' ') || 'Git forge compare')} • Git forge compare • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Git forge compare'} • Git forge compare • Blockhead</title>
 	{/if}
@@ -39,14 +42,16 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.GitForgeCompare, data.selector, {
-				sources: [
-					Source.Gitlab_Rest,
-				],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.GitForgeCompare, data.selector, {
+					sources: [
+						Source.Gitlab_Rest,
+					],
+				}))}
 
-	<GitForgeCompareView
-		selection={pageSelection}
-	/>
+		<GitForgeCompareView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

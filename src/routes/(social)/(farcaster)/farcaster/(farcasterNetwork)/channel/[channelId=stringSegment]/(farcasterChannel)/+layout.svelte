@@ -10,6 +10,7 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -41,18 +42,20 @@
 >
 	{#snippet Summary()}
 		{#if data?.selector != null}
-			<FarcasterChannelView
-				selection={
-					select(EntityType.FarcasterChannel, data.selector, {
-						sources: [
-							Source.Farcaster_Rest,
-							Source.Neynar_Rest,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
+			{#key data.selector}
+				<FarcasterChannelView
+					selection={
+						untrack(() => select(EntityType.FarcasterChannel, data.selector, {
+							sources: [
+								Source.Farcaster_Rest,
+								Source.Neynar_Rest,
+							],
+						}))
+					}
+					href={detailHref}
+					layout={EntityLayout.SummaryInline}
+				/>
+			{/key}
 		{/if}
 	{/snippet}
 

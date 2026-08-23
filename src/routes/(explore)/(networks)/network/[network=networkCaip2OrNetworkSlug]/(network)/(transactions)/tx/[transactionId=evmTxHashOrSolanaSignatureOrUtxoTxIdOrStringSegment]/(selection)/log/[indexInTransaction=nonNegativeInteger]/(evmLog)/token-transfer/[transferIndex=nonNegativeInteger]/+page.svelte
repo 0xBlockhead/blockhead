@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -26,19 +27,21 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.EvmTokenTransfer, {
-				$log: data.selector,
-				indexInLog: Number(params.transferIndex),
-			}, {
-				sources: [
-					Source.Blockscout_Rest,
-				],
-				fields: {
-					standard: true,
-					amount: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? `Transfer #${pageSelection.entitySelector.indexInLog}` : (String(pageSelection.entitySelector.indexInLog ?? '') ? 'Transfer #' + String(pageSelection.entitySelector.indexInLog ?? '') : '') || 'Token transfer')} • Token transfer • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.EvmTokenTransfer, {
+					$log: data.selector,
+					indexInLog: Number(params.transferIndex),
+				}, {
+					sources: [
+						Source.Blockscout_Rest,
+					],
+					fields: {
+						standard: true,
+						amount: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? `Transfer #${pageSelection.entitySelector.indexInLog}` : (String(pageSelection.entitySelector.indexInLog ?? '') ? 'Transfer #' + String(pageSelection.entitySelector.indexInLog ?? '') : '') || 'Token transfer')} • Token transfer • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Token transfer'} • Token transfer • Blockhead</title>
 	{/if}
@@ -47,21 +50,23 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.EvmTokenTransfer, {
-				$log: data.selector,
-				indexInLog: Number(params.transferIndex),
-			}, {
-				sources: [
-					Source.Blockscout_Rest,
-				],
-				fields: {
-					standard: true,
-					amount: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.EvmTokenTransfer, {
+					$log: data.selector,
+					indexInLog: Number(params.transferIndex),
+				}, {
+					sources: [
+						Source.Blockscout_Rest,
+					],
+					fields: {
+						standard: true,
+						amount: true,
+					},
+				}))}
 
-	<EvmTokenTransferView
-		selection={pageSelection}
-	/>
+		<EvmTokenTransferView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

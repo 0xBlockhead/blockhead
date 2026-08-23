@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -24,8 +25,10 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.ZcashShieldedAction, data.selector)}
-		<title>{data?.title ?? ([pageSelection.entitySelector.actionKind, String(pageSelection.entitySelector.indexInTransaction)].filter(Boolean).join(' ') || 'Zcash shielded action')} • Zcash shielded action • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.ZcashShieldedAction, data.selector))}
+			<title>{data?.title ?? ([pageSelection.entitySelector.actionKind, String(pageSelection.entitySelector.indexInTransaction)].filter(Boolean).join(' ') || 'Zcash shielded action')} • Zcash shielded action • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Zcash shielded action'} • Zcash shielded action • Blockhead</title>
 	{/if}
@@ -34,10 +37,12 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.ZcashShieldedAction, data.selector)}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.ZcashShieldedAction, data.selector))}
 
-	<ZcashShieldedActionView
-		selection={pageSelection}
-	/>
+		<ZcashShieldedActionView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,16 +26,18 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.XPost, data.selector, {
-				sources: [
-					Source.X_Rest,
-					Source.X_FxEmbed_Rest,
-				],
-				fields: {
-					text: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.id ?? '') || 'X post' : [(pageSelection.entity.text ?? ''), pageSelection.entitySelector.id].filter(Boolean).join(' ') || 'X post')} • X post • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.XPost, data.selector, {
+					sources: [
+						Source.X_Rest,
+						Source.X_FxEmbed_Rest,
+					],
+					fields: {
+						text: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.id ?? '') || 'X post' : [(pageSelection.entity.text ?? ''), pageSelection.entitySelector.id].filter(Boolean).join(' ') || 'X post')} • X post • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'X post'} • X post • Blockhead</title>
 	{/if}
@@ -43,18 +46,20 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.XPost, data.selector, {
-				sources: [
-					Source.X_Rest,
-					Source.X_FxEmbed_Rest,
-				],
-				fields: {
-					text: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.XPost, data.selector, {
+					sources: [
+						Source.X_Rest,
+						Source.X_FxEmbed_Rest,
+					],
+					fields: {
+						text: true,
+					},
+				}))}
 
-	<XPostView
-		selection={pageSelection}
-	/>
+		<XPostView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

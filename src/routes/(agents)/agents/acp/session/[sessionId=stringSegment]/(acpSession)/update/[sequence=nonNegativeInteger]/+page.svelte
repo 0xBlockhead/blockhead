@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -26,15 +27,17 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.AcpSessionUpdate, {
-				$session: data.selector,
-				sequence: Number(params.sequence),
-			}, {
-				sources: [
-					Source.AcpLocal_JsonRpc,
-				],
-			})}
-		<title>{data?.title ?? ((String(pageSelection.entitySelector.sequence ?? '') ? 'Update #' + String(pageSelection.entitySelector.sequence ?? '') : '') || 'ACP session update')} • ACP session update • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.AcpSessionUpdate, {
+					$session: data.selector,
+					sequence: Number(params.sequence),
+				}, {
+					sources: [
+						Source.AcpLocal_JsonRpc,
+					],
+				}))}
+			<title>{data?.title ?? ((String(pageSelection.entitySelector.sequence ?? '') ? 'Update #' + String(pageSelection.entitySelector.sequence ?? '') : '') || 'ACP session update')} • ACP session update • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'ACP session update'} • ACP session update • Blockhead</title>
 	{/if}
@@ -43,17 +46,19 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.AcpSessionUpdate, {
-				$session: data.selector,
-				sequence: Number(params.sequence),
-			}, {
-				sources: [
-					Source.AcpLocal_JsonRpc,
-				],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.AcpSessionUpdate, {
+					$session: data.selector,
+					sequence: Number(params.sequence),
+				}, {
+					sources: [
+						Source.AcpLocal_JsonRpc,
+					],
+				}))}
 
-	<AcpSessionUpdateView
-		selection={pageSelection}
-	/>
+		<AcpSessionUpdateView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

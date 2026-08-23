@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -24,8 +25,10 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.SuiCoinType, data.selector)}
-		<title>{data?.title ?? (pageSelection.entitySelector.coinType || 'Sui coin type')} • Sui coin type • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.SuiCoinType, data.selector))}
+			<title>{data?.title ?? (pageSelection.entitySelector.coinType || 'Sui coin type')} • Sui coin type • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Sui coin type'} • Sui coin type • Blockhead</title>
 	{/if}
@@ -34,10 +37,12 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.SuiCoinType, data.selector)}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.SuiCoinType, data.selector))}
 
-	<SuiCoinTypeView
-		selection={pageSelection}
-	/>
+		<SuiCoinTypeView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

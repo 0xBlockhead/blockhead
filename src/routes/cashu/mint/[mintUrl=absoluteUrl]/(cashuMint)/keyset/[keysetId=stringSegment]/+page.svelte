@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,12 +26,14 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.CashuKeyset, data.selector, {
-				sources: [
-					Source.CashuMint_Rest,
-				],
-			})}
-		<title>{data?.title ?? (pageSelection.entitySelector.keysetId || 'Cashu keyset')} • Cashu keyset • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.CashuKeyset, data.selector, {
+					sources: [
+						Source.CashuMint_Rest,
+					],
+				}))}
+			<title>{data?.title ?? (pageSelection.entitySelector.keysetId || 'Cashu keyset')} • Cashu keyset • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Cashu keyset'} • Cashu keyset • Blockhead</title>
 	{/if}
@@ -39,14 +42,16 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.CashuKeyset, data.selector, {
-				sources: [
-					Source.CashuMint_Rest,
-				],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.CashuKeyset, data.selector, {
+					sources: [
+						Source.CashuMint_Rest,
+					],
+				}))}
 
-	<CashuKeysetView
-		selection={pageSelection}
-	/>
+		<CashuKeysetView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

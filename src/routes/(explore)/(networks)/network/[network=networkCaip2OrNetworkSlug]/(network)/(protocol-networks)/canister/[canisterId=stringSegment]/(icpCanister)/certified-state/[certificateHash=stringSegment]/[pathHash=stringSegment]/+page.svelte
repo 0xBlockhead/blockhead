@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,12 +26,14 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.IcpCertifiedState, {
-				$canister: data.selector,
-				certificateHash: params.certificateHash,
-				pathHash: params.pathHash,
-			})}
-		<title>{data?.title ?? 'ICP certified state'} • ICP certified state • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.IcpCertifiedState, {
+					$canister: data.selector,
+					certificateHash: params.certificateHash,
+					pathHash: params.pathHash,
+				}))}
+			<title>{data?.title ?? 'ICP certified state'} • ICP certified state • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'ICP certified state'} • ICP certified state • Blockhead</title>
 	{/if}
@@ -39,14 +42,16 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.IcpCertifiedState, {
-				$canister: data.selector,
-				certificateHash: params.certificateHash,
-				pathHash: params.pathHash,
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.IcpCertifiedState, {
+					$canister: data.selector,
+					certificateHash: params.certificateHash,
+					pathHash: params.pathHash,
+				}))}
 
-	<IcpCertifiedStateView
-		selection={pageSelection}
-	/>
+		<IcpCertifiedStateView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

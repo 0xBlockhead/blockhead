@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,12 +26,14 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType._GlobalYoutubeNetwork, data.selector, {
-				sources: [
-					Source.Constants_Internal,
-				],
-			})}
-		<title>{data?.title ?? 'YouTube'} • YouTube network • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType._GlobalYoutubeNetwork, data.selector, {
+					sources: [
+						Source.Constants_Internal,
+					],
+				}))}
+			<title>{data?.title ?? 'YouTube'} • YouTube network • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'YouTube network'} • YouTube network • Blockhead</title>
 	{/if}
@@ -39,14 +42,16 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType._GlobalYoutubeNetwork, data.selector, {
-				sources: [
-					Source.Constants_Internal,
-				],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType._GlobalYoutubeNetwork, data.selector, {
+					sources: [
+						Source.Constants_Internal,
+					],
+				}))}
 
-	<GlobalYoutubeNetworkView
-		selection={pageSelection}
-	/>
+		<GlobalYoutubeNetworkView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

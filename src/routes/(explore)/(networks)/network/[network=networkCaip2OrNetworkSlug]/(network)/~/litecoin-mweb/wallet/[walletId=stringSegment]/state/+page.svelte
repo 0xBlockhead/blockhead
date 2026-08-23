@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,12 +26,14 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BlockheadLitecoinMwebWalletState, data.selector, {
-				sources: [
-					Source.Local_Internal,
-				],
-			})}
-		<title>{data?.title ?? (pageSelection.entitySelector.walletId || 'blockhead litecoin mweb wallet state')} • blockhead litecoin mweb wallet state • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BlockheadLitecoinMwebWalletState, data.selector, {
+					sources: [
+						Source.Local_Internal,
+					],
+				}))}
+			<title>{data?.title ?? (pageSelection.entitySelector.walletId || 'blockhead litecoin mweb wallet state')} • blockhead litecoin mweb wallet state • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'blockhead litecoin mweb wallet state'} • blockhead litecoin mweb wallet state • Blockhead</title>
 	{/if}
@@ -39,14 +42,16 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BlockheadLitecoinMwebWalletState, data.selector, {
-				sources: [
-					Source.Local_Internal,
-				],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BlockheadLitecoinMwebWalletState, data.selector, {
+					sources: [
+						Source.Local_Internal,
+					],
+				}))}
 
-	<BlockheadLitecoinMwebWalletStateView
-		selection={pageSelection}
-	/>
+		<BlockheadLitecoinMwebWalletStateView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

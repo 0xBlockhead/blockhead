@@ -10,6 +10,7 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -44,18 +45,20 @@
 >
 	{#snippet Summary()}
 		{#if data?.selector != null}
-			<EnsReverseRecordView
-				selection={
-					select(EntityType.EnsReverseRecord, data.selector, {
-						sources: [
-							Source.TheGraph_Graphql,
-							Source.Voltaire_JsonRpc,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
+			{#key data.selector}
+				<EnsReverseRecordView
+					selection={
+						untrack(() => select(EntityType.EnsReverseRecord, data.selector, {
+							sources: [
+								Source.TheGraph_Graphql,
+								Source.Voltaire_JsonRpc,
+							],
+						}))
+					}
+					href={detailHref}
+					layout={EntityLayout.SummaryInline}
+				/>
+			{/key}
 		{/if}
 	{/snippet}
 

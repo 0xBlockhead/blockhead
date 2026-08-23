@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -26,16 +27,18 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BlockheadStateChannelState, {
-				$channel: data.selector,
-				version: Number(params.version),
-				stateData: params.stateData,
-			}, {
-				sources: [
-					Source.Local_Internal,
-				],
-			})}
-		<title>{data?.title ?? (String(pageSelection.entitySelector.version) || 'blockhead state channel state')} • blockhead state channel state • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BlockheadStateChannelState, {
+					$channel: data.selector,
+					version: Number(params.version),
+					stateData: params.stateData,
+				}, {
+					sources: [
+						Source.Local_Internal,
+					],
+				}))}
+			<title>{data?.title ?? (String(pageSelection.entitySelector.version) || 'blockhead state channel state')} • blockhead state channel state • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'blockhead state channel state'} • blockhead state channel state • Blockhead</title>
 	{/if}
@@ -44,18 +47,20 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BlockheadStateChannelState, {
-				$channel: data.selector,
-				version: Number(params.version),
-				stateData: params.stateData,
-			}, {
-				sources: [
-					Source.Local_Internal,
-				],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BlockheadStateChannelState, {
+					$channel: data.selector,
+					version: Number(params.version),
+					stateData: params.stateData,
+				}, {
+					sources: [
+						Source.Local_Internal,
+					],
+				}))}
 
-	<BlockheadStateChannelStateView
-		selection={pageSelection}
-	/>
+		<BlockheadStateChannelStateView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

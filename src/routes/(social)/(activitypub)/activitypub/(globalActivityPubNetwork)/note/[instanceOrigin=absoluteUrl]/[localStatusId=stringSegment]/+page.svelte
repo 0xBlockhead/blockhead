@@ -10,6 +10,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -26,15 +27,17 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.ActivityPubNote, data.selector, {
-				sources: [
-					Source.Mastodon_Rest,
-				],
-				fields: {
-					content: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.localStatusId ?? '') || 'ActivityPub note' : [pageSelection.entity.content == null ? '' : htmlToPlainText(pageSelection.entity.content), pageSelection.entitySelector.localStatusId].filter(Boolean).join(' ') || 'ActivityPub note')} • ActivityPub note • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.ActivityPubNote, data.selector, {
+					sources: [
+						Source.Mastodon_Rest,
+					],
+					fields: {
+						content: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.localStatusId ?? '') || 'ActivityPub note' : [pageSelection.entity.content == null ? '' : htmlToPlainText(pageSelection.entity.content), pageSelection.entitySelector.localStatusId].filter(Boolean).join(' ') || 'ActivityPub note')} • ActivityPub note • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'ActivityPub note'} • ActivityPub note • Blockhead</title>
 	{/if}
@@ -43,17 +46,19 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.ActivityPubNote, data.selector, {
-				sources: [
-					Source.Mastodon_Rest,
-				],
-				fields: {
-					content: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.ActivityPubNote, data.selector, {
+					sources: [
+						Source.Mastodon_Rest,
+					],
+					fields: {
+						content: true,
+					},
+				}))}
 
-	<ActivityPubNoteView
-		selection={pageSelection}
-	/>
+		<ActivityPubNoteView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

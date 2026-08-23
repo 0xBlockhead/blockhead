@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -24,13 +25,15 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.A2aTask, data.selector, {
-				sources: [],
-				fields: {
-					providerTaskId: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.taskId ?? '') || 'A2A task' : pageSelection.entitySelector.taskId || (pageSelection.entity.providerTaskId ?? '') || 'A2A task')} • A2A task • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.A2aTask, data.selector, {
+					sources: [],
+					fields: {
+						providerTaskId: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.taskId ?? '') || 'A2A task' : pageSelection.entitySelector.taskId || (pageSelection.entity.providerTaskId ?? '') || 'A2A task')} • A2A task • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'A2A task'} • A2A task • Blockhead</title>
 	{/if}
@@ -39,15 +42,17 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.A2aTask, data.selector, {
-				sources: [],
-				fields: {
-					providerTaskId: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.A2aTask, data.selector, {
+					sources: [],
+					fields: {
+						providerTaskId: true,
+					},
+				}))}
 
-	<A2aTaskView
-		selection={pageSelection}
-	/>
+		<A2aTaskView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

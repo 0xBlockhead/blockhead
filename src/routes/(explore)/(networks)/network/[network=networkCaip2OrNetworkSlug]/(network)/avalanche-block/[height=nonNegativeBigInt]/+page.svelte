@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -24,12 +25,14 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.AvalanchePChainBlock, data.selector, {
-				fields: {
-					blockId: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? String(pageSelection.entitySelector.height ?? '') || 'avalanche p chain block' : String(pageSelection.entitySelector.height) || pageSelection.entity.blockId || 'avalanche p chain block')} • avalanche p chain block • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.AvalanchePChainBlock, data.selector, {
+					fields: {
+						blockId: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? String(pageSelection.entitySelector.height ?? '') || 'avalanche p chain block' : String(pageSelection.entitySelector.height) || pageSelection.entity.blockId || 'avalanche p chain block')} • avalanche p chain block • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'avalanche p chain block'} • avalanche p chain block • Blockhead</title>
 	{/if}
@@ -38,14 +41,16 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.AvalanchePChainBlock, data.selector, {
-				fields: {
-					blockId: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.AvalanchePChainBlock, data.selector, {
+					fields: {
+						blockId: true,
+					},
+				}))}
 
-	<AvalanchePChainBlockView
-		selection={pageSelection}
-	/>
+		<AvalanchePChainBlockView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

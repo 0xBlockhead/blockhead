@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,12 +26,14 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.TezosBigMapDiff, {
-				$operation: data.selector,
-				bigMapId: BigInt(params.bigMapId),
-				keyHash: params.keyHash,
-			})}
-		<title>{data?.title ?? 'tezos big map diff'} • tezos big map diff • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.TezosBigMapDiff, {
+					$operation: data.selector,
+					bigMapId: BigInt(params.bigMapId),
+					keyHash: params.keyHash,
+				}))}
+			<title>{data?.title ?? 'tezos big map diff'} • tezos big map diff • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'tezos big map diff'} • tezos big map diff • Blockhead</title>
 	{/if}
@@ -39,14 +42,16 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.TezosBigMapDiff, {
-				$operation: data.selector,
-				bigMapId: BigInt(params.bigMapId),
-				keyHash: params.keyHash,
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.TezosBigMapDiff, {
+					$operation: data.selector,
+					bigMapId: BigInt(params.bigMapId),
+					keyHash: params.keyHash,
+				}))}
 
-	<TezosBigMapDiffView
-		selection={pageSelection}
-	/>
+		<TezosBigMapDiffView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

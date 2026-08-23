@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,15 +26,17 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BeaconDeposit, {
-				$block: data.selector,
-				indexInBlock: Number(params.indexInBlock),
-			}, {
-				fields: {
-					pubkey: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? `Deposit #${pageSelection.entitySelector.indexInBlock}` : (String(pageSelection.entitySelector.indexInBlock ?? '') ? 'Deposit #' + String(pageSelection.entitySelector.indexInBlock ?? '') : '') || 'beacon deposit')} • beacon deposit • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BeaconDeposit, {
+					$block: data.selector,
+					indexInBlock: Number(params.indexInBlock),
+				}, {
+					fields: {
+						pubkey: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? `Deposit #${pageSelection.entitySelector.indexInBlock}` : (String(pageSelection.entitySelector.indexInBlock ?? '') ? 'Deposit #' + String(pageSelection.entitySelector.indexInBlock ?? '') : '') || 'beacon deposit')} • beacon deposit • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'beacon deposit'} • beacon deposit • Blockhead</title>
 	{/if}
@@ -42,17 +45,19 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BeaconDeposit, {
-				$block: data.selector,
-				indexInBlock: Number(params.indexInBlock),
-			}, {
-				fields: {
-					pubkey: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BeaconDeposit, {
+					$block: data.selector,
+					indexInBlock: Number(params.indexInBlock),
+				}, {
+					fields: {
+						pubkey: true,
+					},
+				}))}
 
-	<BeaconDepositView
-		selection={pageSelection}
-	/>
+		<BeaconDepositView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

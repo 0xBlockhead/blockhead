@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,14 +26,16 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.FilecoinMessageReceipt, {
-				$message: data.selector,
-				tipsetKey: params.tipsetKey,
-				source: params.source,
-			}, {
-				sources: [params.source],
-			})}
-		<title>{data?.title ?? (pageSelection.entitySelector.tipsetKey || 'filecoin message receipt')} • filecoin message receipt • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.FilecoinMessageReceipt, {
+					$message: data.selector,
+					tipsetKey: params.tipsetKey,
+					source: params.source,
+				}, {
+					sources: [params.source],
+				}))}
+			<title>{data?.title ?? (pageSelection.entitySelector.tipsetKey || 'filecoin message receipt')} • filecoin message receipt • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'filecoin message receipt'} • filecoin message receipt • Blockhead</title>
 	{/if}
@@ -41,16 +44,18 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.FilecoinMessageReceipt, {
-				$message: data.selector,
-				tipsetKey: params.tipsetKey,
-				source: params.source,
-			}, {
-				sources: [params.source],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.FilecoinMessageReceipt, {
+					$message: data.selector,
+					tipsetKey: params.tipsetKey,
+					source: params.source,
+				}, {
+					sources: [params.source],
+				}))}
 
-	<FilecoinMessageReceiptView
-		selection={pageSelection}
-	/>
+		<FilecoinMessageReceiptView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

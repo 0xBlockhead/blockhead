@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -26,15 +27,17 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.NearExecutionOutcome, {
-				$transaction: data.selector,
-				outcomeId: params.outcomeId,
-			}, {
-				sources: [
-					Source.NearRpc_JsonRpc,
-				],
-			})}
-		<title>{data?.title ?? (pageSelection.entitySelector.outcomeId || 'near execution outcome')} • near execution outcome • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.NearExecutionOutcome, {
+					$transaction: data.selector,
+					outcomeId: params.outcomeId,
+				}, {
+					sources: [
+						Source.NearRpc_JsonRpc,
+					],
+				}))}
+			<title>{data?.title ?? (pageSelection.entitySelector.outcomeId || 'near execution outcome')} • near execution outcome • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'near execution outcome'} • near execution outcome • Blockhead</title>
 	{/if}
@@ -43,17 +46,19 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.NearExecutionOutcome, {
-				$transaction: data.selector,
-				outcomeId: params.outcomeId,
-			}, {
-				sources: [
-					Source.NearRpc_JsonRpc,
-				],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.NearExecutionOutcome, {
+					$transaction: data.selector,
+					outcomeId: params.outcomeId,
+				}, {
+					sources: [
+						Source.NearRpc_JsonRpc,
+					],
+				}))}
 
-	<NearExecutionOutcomeView
-		selection={pageSelection}
-	/>
+		<NearExecutionOutcomeView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

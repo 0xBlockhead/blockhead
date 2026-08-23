@@ -10,6 +10,7 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -43,20 +44,22 @@
 >
 	{#snippet Summary()}
 		{#if data?.selector != null}
-			<BlockheadZcashNoteStateView
-				selection={
-					select(EntityType.BlockheadZcashNoteState, data.selector, {
-						sources: [
-							Source.Local_Internal,
-							Source.ZcashClientBackend_Local,
-							Source.ZcashLightwalletd_Grpc,
-							Source.ZcashdWallet_JsonRpc,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
+			{#key data.selector}
+				<BlockheadZcashNoteStateView
+					selection={
+						untrack(() => select(EntityType.BlockheadZcashNoteState, data.selector, {
+							sources: [
+								Source.Local_Internal,
+								Source.ZcashClientBackend_Local,
+								Source.ZcashLightwalletd_Grpc,
+								Source.ZcashdWallet_JsonRpc,
+							],
+						}))
+					}
+					href={detailHref}
+					layout={EntityLayout.SummaryInline}
+				/>
+			{/key}
 		{/if}
 	{/snippet}
 

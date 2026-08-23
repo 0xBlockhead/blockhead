@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,16 +26,18 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.MevRelay_ProposerPayloadDelivered, {
-				$relay: data.selector,
-				slot: Number(params.slot),
-				blockHash: params.blockHash,
-			}, {
-				fields: {
-					value: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? 'Slot ' + String(pageSelection.entitySelector.slot ?? '') : ['Slot ' + String(pageSelection.entitySelector.slot), String(pageSelection.entity.value) + ' wei'].filter(Boolean).join(' ') || 'MEV relay proposer payload delivered')} • MEV relay proposer payload delivered • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.MevRelay_ProposerPayloadDelivered, {
+					$relay: data.selector,
+					slot: Number(params.slot),
+					blockHash: params.blockHash,
+				}, {
+					fields: {
+						value: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? 'Slot ' + String(pageSelection.entitySelector.slot ?? '') : ['Slot ' + String(pageSelection.entitySelector.slot), String(pageSelection.entity.value) + ' wei'].filter(Boolean).join(' ') || 'MEV relay proposer payload delivered')} • MEV relay proposer payload delivered • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'MEV relay proposer payload delivered'} • MEV relay proposer payload delivered • Blockhead</title>
 	{/if}
@@ -43,18 +46,20 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.MevRelay_ProposerPayloadDelivered, {
-				$relay: data.selector,
-				slot: Number(params.slot),
-				blockHash: params.blockHash,
-			}, {
-				fields: {
-					value: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.MevRelay_ProposerPayloadDelivered, {
+					$relay: data.selector,
+					slot: Number(params.slot),
+					blockHash: params.blockHash,
+				}, {
+					fields: {
+						value: true,
+					},
+				}))}
 
-	<MevRelay_ProposerPayloadDeliveredView
-		selection={pageSelection}
-	/>
+		<MevRelay_ProposerPayloadDeliveredView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

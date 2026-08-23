@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,14 +26,16 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.SolanaTransaction_Timestamp, {
-				$transaction: data.selector,
-				slot: BigInt(params.slot),
-				source: params.source,
-			}, {
-				sources: [params.source],
-			})}
-		<title>{data?.title ?? (String(pageSelection.entitySelector.slot) || 'solana transaction timestamp')} • solana transaction timestamp • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.SolanaTransaction_Timestamp, {
+					$transaction: data.selector,
+					slot: BigInt(params.slot),
+					source: params.source,
+				}, {
+					sources: [params.source],
+				}))}
+			<title>{data?.title ?? (String(pageSelection.entitySelector.slot) || 'solana transaction timestamp')} • solana transaction timestamp • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'solana transaction timestamp'} • solana transaction timestamp • Blockhead</title>
 	{/if}
@@ -41,16 +44,18 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.SolanaTransaction_Timestamp, {
-				$transaction: data.selector,
-				slot: BigInt(params.slot),
-				source: params.source,
-			}, {
-				sources: [params.source],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.SolanaTransaction_Timestamp, {
+					$transaction: data.selector,
+					slot: BigInt(params.slot),
+					source: params.source,
+				}, {
+					sources: [params.source],
+				}))}
 
-	<SolanaTransaction_TimestampView
-		selection={pageSelection}
-	/>
+		<SolanaTransaction_TimestampView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

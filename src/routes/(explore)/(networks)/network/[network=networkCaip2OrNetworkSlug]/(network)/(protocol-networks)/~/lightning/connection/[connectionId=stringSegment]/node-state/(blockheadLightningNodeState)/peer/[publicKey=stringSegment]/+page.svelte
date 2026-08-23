@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,13 +26,15 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BlockheadLightningPeer, data.selector, {
-				sources: [
-					Source.LightningLnd_Rest,
-					Source.Local_Internal,
-				],
-			})}
-		<title>{data?.title ?? (pageSelection.entitySelector.publicKey || 'local LND peer')} • local LND peer • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BlockheadLightningPeer, data.selector, {
+					sources: [
+						Source.LightningLnd_Rest,
+						Source.Local_Internal,
+					],
+				}))}
+			<title>{data?.title ?? (pageSelection.entitySelector.publicKey || 'local LND peer')} • local LND peer • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'local LND peer'} • local LND peer • Blockhead</title>
 	{/if}
@@ -40,15 +43,17 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BlockheadLightningPeer, data.selector, {
-				sources: [
-					Source.LightningLnd_Rest,
-					Source.Local_Internal,
-				],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BlockheadLightningPeer, data.selector, {
+					sources: [
+						Source.LightningLnd_Rest,
+						Source.Local_Internal,
+					],
+				}))}
 
-	<BlockheadLightningPeerView
-		selection={pageSelection}
-	/>
+		<BlockheadLightningPeerView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

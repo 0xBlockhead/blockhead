@@ -9,6 +9,7 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -43,11 +44,13 @@
 >
 	{#snippet Summary()}
 		{#if data?.selector != null}
-			<HederaAllowanceView
-				selection={select(EntityType.HederaAllowance, data.selector)}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
+			{#key data.selector}
+				<HederaAllowanceView
+					selection={untrack(() => select(EntityType.HederaAllowance, data.selector))}
+					href={detailHref}
+					layout={EntityLayout.SummaryInline}
+				/>
+			{/key}
 		{/if}
 	{/snippet}
 

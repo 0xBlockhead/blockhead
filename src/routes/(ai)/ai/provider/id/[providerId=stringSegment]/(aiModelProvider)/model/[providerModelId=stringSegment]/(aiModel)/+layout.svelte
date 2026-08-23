@@ -10,6 +10,7 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -42,20 +43,22 @@
 >
 	{#snippet Summary()}
 		{#if data?.selector != null}
-			<AiModelView
-				selection={
-					select(EntityType.AiModel, data.selector, {
-						sources: [
-							Source.Anthropic_Rest,
-							Source.HuggingFaceHub_Rest,
-							Source.Mlflow_Rest,
-							Source.OpenAI_Rest,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
+			{#key data.selector}
+				<AiModelView
+					selection={
+						untrack(() => select(EntityType.AiModel, data.selector, {
+							sources: [
+								Source.Anthropic_Rest,
+								Source.HuggingFaceHub_Rest,
+								Source.Mlflow_Rest,
+								Source.OpenAI_Rest,
+							],
+						}))
+					}
+					href={detailHref}
+					layout={EntityLayout.SummaryInline}
+				/>
+			{/key}
 		{/if}
 	{/snippet}
 

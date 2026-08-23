@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,16 +26,18 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.RedditSubreddit, data.selector, {
-				sources: [
-					Source.Reddit_PublicJson,
-					Source.Reddit_Rest,
-				],
-				fields: {
-					title: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? 'r/' + (pageSelection.entitySelector.name ?? '') : (pageSelection.entity.title ?? '') || 'r/' + pageSelection.entitySelector.name)} • Reddit subreddit • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.RedditSubreddit, data.selector, {
+					sources: [
+						Source.Reddit_PublicJson,
+						Source.Reddit_Rest,
+					],
+					fields: {
+						title: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? 'r/' + (pageSelection.entitySelector.name ?? '') : (pageSelection.entity.title ?? '') || 'r/' + pageSelection.entitySelector.name)} • Reddit subreddit • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Reddit subreddit'} • Reddit subreddit • Blockhead</title>
 	{/if}
@@ -43,18 +46,20 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.RedditSubreddit, data.selector, {
-				sources: [
-					Source.Reddit_PublicJson,
-					Source.Reddit_Rest,
-				],
-				fields: {
-					title: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.RedditSubreddit, data.selector, {
+					sources: [
+						Source.Reddit_PublicJson,
+						Source.Reddit_Rest,
+					],
+					fields: {
+						title: true,
+					},
+				}))}
 
-	<RedditSubredditView
-		selection={pageSelection}
-	/>
+		<RedditSubredditView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

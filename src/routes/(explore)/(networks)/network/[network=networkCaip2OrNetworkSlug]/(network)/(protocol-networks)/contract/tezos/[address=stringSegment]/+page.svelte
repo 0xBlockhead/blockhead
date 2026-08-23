@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -24,8 +25,10 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.TezosContract, data.selector)}
-		<title>{data?.title ?? 'tezos contract'} • tezos contract • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.TezosContract, data.selector))}
+			<title>{data?.title ?? 'tezos contract'} • tezos contract • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'tezos contract'} • tezos contract • Blockhead</title>
 	{/if}
@@ -34,10 +37,12 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.TezosContract, data.selector)}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.TezosContract, data.selector))}
 
-	<TezosContractView
-		selection={pageSelection}
-	/>
+		<TezosContractView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

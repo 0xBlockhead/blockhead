@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,12 +26,14 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BlockheadCodexStorageNodeState, data.selector, {
-				sources: [
-					Source.Local_Internal,
-				],
-			})}
-		<title>{data?.title ?? (pageSelection.entitySelector.peerId || 'blockhead codex storage node state')} • blockhead codex storage node state • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BlockheadCodexStorageNodeState, data.selector, {
+					sources: [
+						Source.Local_Internal,
+					],
+				}))}
+			<title>{data?.title ?? (pageSelection.entitySelector.peerId || 'blockhead codex storage node state')} • blockhead codex storage node state • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'blockhead codex storage node state'} • blockhead codex storage node state • Blockhead</title>
 	{/if}
@@ -39,14 +42,16 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BlockheadCodexStorageNodeState, data.selector, {
-				sources: [
-					Source.Local_Internal,
-				],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BlockheadCodexStorageNodeState, data.selector, {
+					sources: [
+						Source.Local_Internal,
+					],
+				}))}
 
-	<BlockheadCodexStorageNodeStateView
-		selection={pageSelection}
-	/>
+		<BlockheadCodexStorageNodeStateView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

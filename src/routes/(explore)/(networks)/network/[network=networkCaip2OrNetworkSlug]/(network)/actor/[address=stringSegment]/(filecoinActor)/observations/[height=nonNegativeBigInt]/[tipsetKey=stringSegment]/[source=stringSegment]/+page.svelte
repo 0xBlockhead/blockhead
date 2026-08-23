@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,18 +26,20 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.FilecoinActor_Timestamp, {
-				$actor: data.selector,
-				height: BigInt(params.height),
-				tipsetKey: params.tipsetKey,
-				source: params.source,
-			}, {
-				sources: [params.source],
-				fields: {
-					timestampMs: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? 'filecoin actor timestamp' : String(pageSelection.entity.timestampMs) || 'filecoin actor timestamp')} • filecoin actor timestamp • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.FilecoinActor_Timestamp, {
+					$actor: data.selector,
+					height: BigInt(params.height),
+					tipsetKey: params.tipsetKey,
+					source: params.source,
+				}, {
+					sources: [params.source],
+					fields: {
+						timestampMs: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? 'filecoin actor timestamp' : String(pageSelection.entity.timestampMs) || 'filecoin actor timestamp')} • filecoin actor timestamp • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'filecoin actor timestamp'} • filecoin actor timestamp • Blockhead</title>
 	{/if}
@@ -45,20 +48,22 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.FilecoinActor_Timestamp, {
-				$actor: data.selector,
-				height: BigInt(params.height),
-				tipsetKey: params.tipsetKey,
-				source: params.source,
-			}, {
-				sources: [params.source],
-				fields: {
-					timestampMs: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.FilecoinActor_Timestamp, {
+					$actor: data.selector,
+					height: BigInt(params.height),
+					tipsetKey: params.tipsetKey,
+					source: params.source,
+				}, {
+					sources: [params.source],
+					fields: {
+						timestampMs: true,
+					},
+				}))}
 
-	<FilecoinActor_TimestampView
-		selection={pageSelection}
-	/>
+		<FilecoinActor_TimestampView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

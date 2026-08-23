@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,19 +26,21 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.AiModelVersion, {
-				$artifact: data.selector,
-			}, {
-				sources: [
-					Source.HuggingFaceHub_Rest,
-					Source.Mlflow_Rest,
-				],
-				fields: {
-					versionId: true,
-					revision: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? 'AI model version' : (pageSelection.entity.versionId ?? '') || (pageSelection.entity.revision ?? '') || 'AI model version')} • AI model version • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.AiModelVersion, {
+					$artifact: data.selector,
+				}, {
+					sources: [
+						Source.HuggingFaceHub_Rest,
+						Source.Mlflow_Rest,
+					],
+					fields: {
+						versionId: true,
+						revision: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? 'AI model version' : (pageSelection.entity.versionId ?? '') || (pageSelection.entity.revision ?? '') || 'AI model version')} • AI model version • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'AI model version'} • AI model version • Blockhead</title>
 	{/if}
@@ -46,21 +49,23 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.AiModelVersion, {
-				$artifact: data.selector,
-			}, {
-				sources: [
-					Source.HuggingFaceHub_Rest,
-					Source.Mlflow_Rest,
-				],
-				fields: {
-					versionId: true,
-					revision: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.AiModelVersion, {
+					$artifact: data.selector,
+				}, {
+					sources: [
+						Source.HuggingFaceHub_Rest,
+						Source.Mlflow_Rest,
+					],
+					fields: {
+						versionId: true,
+						revision: true,
+					},
+				}))}
 
-	<AiModelVersionView
-		selection={pageSelection}
-	/>
+		<AiModelVersionView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

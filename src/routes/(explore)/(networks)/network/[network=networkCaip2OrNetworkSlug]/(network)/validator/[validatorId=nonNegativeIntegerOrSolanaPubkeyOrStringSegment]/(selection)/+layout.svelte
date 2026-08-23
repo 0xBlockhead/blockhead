@@ -9,6 +9,7 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -44,13 +45,15 @@
 >
 	{#snippet Summary()}
 		{#if data?.selector != null}
-			{@const DetailView = data.entityType === EntityType.BeaconValidator ? BeaconValidatorView : data.entityType === EntityType.SolanaValidator ? SolanaValidatorView : data.entityType === EntityType.CosmosValidator ? CosmosValidatorView : NearValidatorView}
+			{#key data.selector}
+				{@const DetailView = data.entityType === EntityType.BeaconValidator ? BeaconValidatorView : data.entityType === EntityType.SolanaValidator ? SolanaValidatorView : data.entityType === EntityType.CosmosValidator ? CosmosValidatorView : NearValidatorView}
 
-			<DetailView
-				selection={select(data.entityType, data.selector)}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
+				<DetailView
+					selection={untrack(() => select(data.entityType, data.selector))}
+					href={detailHref}
+					layout={EntityLayout.SummaryInline}
+				/>
+			{/key}
 		{/if}
 	{/snippet}
 

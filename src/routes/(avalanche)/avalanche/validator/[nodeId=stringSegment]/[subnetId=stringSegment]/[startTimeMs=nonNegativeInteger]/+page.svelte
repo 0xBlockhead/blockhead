@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -24,8 +25,10 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.AvalancheValidator, data.selector)}
-		<title>{data?.title ?? (pageSelection.entitySelector.nodeId || 'avalanche validator')} • avalanche validator • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.AvalancheValidator, data.selector))}
+			<title>{data?.title ?? (pageSelection.entitySelector.nodeId || 'avalanche validator')} • avalanche validator • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'avalanche validator'} • avalanche validator • Blockhead</title>
 	{/if}
@@ -34,10 +37,12 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.AvalancheValidator, data.selector)}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.AvalancheValidator, data.selector))}
 
-	<AvalancheValidatorView
-		selection={pageSelection}
-	/>
+		<AvalancheValidatorView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

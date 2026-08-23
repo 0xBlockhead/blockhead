@@ -10,6 +10,7 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -43,17 +44,19 @@
 >
 	{#snippet Summary()}
 		{#if data?.selector != null}
-			<AccountView
-				selection={
-					select(EntityType.Account, data.selector, {
-						sources: [
-							Source.Constants_Internal,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
+			{#key data.selector}
+				<AccountView
+					selection={
+						untrack(() => select(EntityType.Account, data.selector, {
+							sources: [
+								Source.Constants_Internal,
+							],
+						}))
+					}
+					href={detailHref}
+					layout={EntityLayout.SummaryInline}
+				/>
+			{/key}
 		{/if}
 	{/snippet}
 

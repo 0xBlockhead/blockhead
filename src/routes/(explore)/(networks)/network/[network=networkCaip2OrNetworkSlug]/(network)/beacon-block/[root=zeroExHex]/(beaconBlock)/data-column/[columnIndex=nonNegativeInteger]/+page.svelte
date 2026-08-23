@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,12 +26,14 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BeaconDataColumn, data.selector, {
-				sources: [
-					Source.Beacon_Rest,
-				],
-			})}
-		<title>{data?.title ?? ((String(pageSelection.entitySelector.columnIndex ?? '') ? 'Data column #' + String(pageSelection.entitySelector.columnIndex ?? '') : '') || 'beacon data column')} • beacon data column • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BeaconDataColumn, data.selector, {
+					sources: [
+						Source.Beacon_Rest,
+					],
+				}))}
+			<title>{data?.title ?? ((String(pageSelection.entitySelector.columnIndex ?? '') ? 'Data column #' + String(pageSelection.entitySelector.columnIndex ?? '') : '') || 'beacon data column')} • beacon data column • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'beacon data column'} • beacon data column • Blockhead</title>
 	{/if}
@@ -39,14 +42,16 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BeaconDataColumn, data.selector, {
-				sources: [
-					Source.Beacon_Rest,
-				],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BeaconDataColumn, data.selector, {
+					sources: [
+						Source.Beacon_Rest,
+					],
+				}))}
 
-	<BeaconDataColumnView
-		selection={pageSelection}
-	/>
+		<BeaconDataColumnView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

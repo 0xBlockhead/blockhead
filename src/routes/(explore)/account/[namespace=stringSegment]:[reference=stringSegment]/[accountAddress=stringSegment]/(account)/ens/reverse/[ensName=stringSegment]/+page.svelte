@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,13 +26,15 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.EnsReverseRecord, data.selector, {
-				sources: [
-					Source.TheGraph_Graphql,
-					Source.Voltaire_JsonRpc,
-				],
-			})}
-		<title>{data?.title ?? 'ENS reverse record'} • ENS reverse record • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.EnsReverseRecord, data.selector, {
+					sources: [
+						Source.TheGraph_Graphql,
+						Source.Voltaire_JsonRpc,
+					],
+				}))}
+			<title>{data?.title ?? 'ENS reverse record'} • ENS reverse record • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'ENS reverse record'} • ENS reverse record • Blockhead</title>
 	{/if}
@@ -40,15 +43,17 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.EnsReverseRecord, data.selector, {
-				sources: [
-					Source.TheGraph_Graphql,
-					Source.Voltaire_JsonRpc,
-				],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.EnsReverseRecord, data.selector, {
+					sources: [
+						Source.TheGraph_Graphql,
+						Source.Voltaire_JsonRpc,
+					],
+				}))}
 
-	<EnsReverseRecordView
-		selection={pageSelection}
-	/>
+		<EnsReverseRecordView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

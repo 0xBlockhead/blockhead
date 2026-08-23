@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,14 +26,16 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.ZcashShieldedPoolBlockState, {
-				$block: data.selector,
-				$pool: {
-					$network: data.selector.$network,
-					pool: params.pool,
-				},
-			})}
-		<title>{data?.title ?? 'zcash shielded pool block state'} • zcash shielded pool block state • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.ZcashShieldedPoolBlockState, {
+					$block: data.selector,
+					$pool: {
+						$network: data.selector.$network,
+						pool: params.pool,
+					},
+				}))}
+			<title>{data?.title ?? 'zcash shielded pool block state'} • zcash shielded pool block state • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'zcash shielded pool block state'} • zcash shielded pool block state • Blockhead</title>
 	{/if}
@@ -41,16 +44,18 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.ZcashShieldedPoolBlockState, {
-				$block: data.selector,
-				$pool: {
-					$network: data.selector.$network,
-					pool: params.pool,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.ZcashShieldedPoolBlockState, {
+					$block: data.selector,
+					$pool: {
+						$network: data.selector.$network,
+						pool: params.pool,
+					},
+				}))}
 
-	<ZcashShieldedPoolBlockStateView
-		selection={pageSelection}
-	/>
+		<ZcashShieldedPoolBlockStateView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,12 +26,14 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.SuiEvent, {
-				$network: data.selector,
-				transactionDigest: params.transactionDigest,
-				eventIndex: Number(params.eventIndex),
-			})}
-		<title>{data?.title ?? 'Sui event'} • Sui event • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.SuiEvent, {
+					$network: data.selector,
+					transactionDigest: params.transactionDigest,
+					eventIndex: Number(params.eventIndex),
+				}))}
+			<title>{data?.title ?? 'Sui event'} • Sui event • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Sui event'} • Sui event • Blockhead</title>
 	{/if}
@@ -39,14 +42,16 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.SuiEvent, {
-				$network: data.selector,
-				transactionDigest: params.transactionDigest,
-				eventIndex: Number(params.eventIndex),
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.SuiEvent, {
+					$network: data.selector,
+					transactionDigest: params.transactionDigest,
+					eventIndex: Number(params.eventIndex),
+				}))}
 
-	<SuiEventView
-		selection={pageSelection}
-	/>
+		<SuiEventView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

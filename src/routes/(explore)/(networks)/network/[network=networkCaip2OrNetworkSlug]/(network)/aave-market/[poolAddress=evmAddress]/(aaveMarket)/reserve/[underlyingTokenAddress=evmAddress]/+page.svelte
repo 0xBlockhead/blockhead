@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -26,18 +27,20 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.AaveReserve, {
-				$market: data.selector,
-				underlyingTokenAddress: params.underlyingTokenAddress,
-			}, {
-				sources: [
-					Source.Aave_Rest,
-				],
-				fields: {
-					symbol: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? 'Aave reserve' : pageSelection.entity.symbol || 'Aave reserve')} • Aave reserve • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.AaveReserve, {
+					$market: data.selector,
+					underlyingTokenAddress: params.underlyingTokenAddress,
+				}, {
+					sources: [
+						Source.Aave_Rest,
+					],
+					fields: {
+						symbol: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? 'Aave reserve' : pageSelection.entity.symbol || 'Aave reserve')} • Aave reserve • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Aave reserve'} • Aave reserve • Blockhead</title>
 	{/if}
@@ -46,20 +49,22 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.AaveReserve, {
-				$market: data.selector,
-				underlyingTokenAddress: params.underlyingTokenAddress,
-			}, {
-				sources: [
-					Source.Aave_Rest,
-				],
-				fields: {
-					symbol: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.AaveReserve, {
+					$market: data.selector,
+					underlyingTokenAddress: params.underlyingTokenAddress,
+				}, {
+					sources: [
+						Source.Aave_Rest,
+					],
+					fields: {
+						symbol: true,
+					},
+				}))}
 
-	<AaveReserveView
-		selection={pageSelection}
-	/>
+		<AaveReserveView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

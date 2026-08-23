@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -24,8 +25,10 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BlockheadCashuProof, data.selector)}
-		<title>{data?.title ?? (pageSelection.entitySelector.secretHash || 'blockhead Cashu proof')} • blockhead Cashu proof • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BlockheadCashuProof, data.selector))}
+			<title>{data?.title ?? (pageSelection.entitySelector.secretHash || 'blockhead Cashu proof')} • blockhead Cashu proof • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'blockhead Cashu proof'} • blockhead Cashu proof • Blockhead</title>
 	{/if}
@@ -34,10 +37,12 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BlockheadCashuProof, data.selector)}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BlockheadCashuProof, data.selector))}
 
-	<BlockheadCashuProofView
-		selection={pageSelection}
-	/>
+		<BlockheadCashuProofView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

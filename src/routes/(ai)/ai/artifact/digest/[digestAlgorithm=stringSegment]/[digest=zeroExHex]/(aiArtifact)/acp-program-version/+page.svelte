@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,17 +26,19 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.AcpAgentProgramVersion, {
-				$artifact: data.selector,
-			}, {
-				sources: [
-					Source.AcpRegistry_Rest,
-				],
-				fields: {
-					version: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? 'ACP agent program version' : (pageSelection.entity.version ?? '') || 'ACP agent program version')} • ACP agent program version • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.AcpAgentProgramVersion, {
+					$artifact: data.selector,
+				}, {
+					sources: [
+						Source.AcpRegistry_Rest,
+					],
+					fields: {
+						version: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? 'ACP agent program version' : (pageSelection.entity.version ?? '') || 'ACP agent program version')} • ACP agent program version • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'ACP agent program version'} • ACP agent program version • Blockhead</title>
 	{/if}
@@ -44,19 +47,21 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.AcpAgentProgramVersion, {
-				$artifact: data.selector,
-			}, {
-				sources: [
-					Source.AcpRegistry_Rest,
-				],
-				fields: {
-					version: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.AcpAgentProgramVersion, {
+					$artifact: data.selector,
+				}, {
+					sources: [
+						Source.AcpRegistry_Rest,
+					],
+					fields: {
+						version: true,
+					},
+				}))}
 
-	<AcpAgentProgramVersionView
-		selection={pageSelection}
-	/>
+		<AcpAgentProgramVersionView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -26,19 +27,21 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.FilecoinMessageTokenTransfer, {
-				$message: data.selector,
-				index: Number(params.index),
-			}, {
-				sources: [
-					Source.Filfox_Rest,
-				],
-				fields: {
-					tokenSymbol: true,
-					token: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? 'filecoin message token transfer' : [(pageSelection.entity.tokenSymbol ?? ''), (pageSelection.entity.token ?? '')].filter(Boolean).join(' ') || 'filecoin message token transfer')} • filecoin message token transfer • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.FilecoinMessageTokenTransfer, {
+					$message: data.selector,
+					index: Number(params.index),
+				}, {
+					sources: [
+						Source.Filfox_Rest,
+					],
+					fields: {
+						tokenSymbol: true,
+						token: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? 'filecoin message token transfer' : [(pageSelection.entity.tokenSymbol ?? ''), (pageSelection.entity.token ?? '')].filter(Boolean).join(' ') || 'filecoin message token transfer')} • filecoin message token transfer • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'filecoin message token transfer'} • filecoin message token transfer • Blockhead</title>
 	{/if}
@@ -47,21 +50,23 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.FilecoinMessageTokenTransfer, {
-				$message: data.selector,
-				index: Number(params.index),
-			}, {
-				sources: [
-					Source.Filfox_Rest,
-				],
-				fields: {
-					tokenSymbol: true,
-					token: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.FilecoinMessageTokenTransfer, {
+					$message: data.selector,
+					index: Number(params.index),
+				}, {
+					sources: [
+						Source.Filfox_Rest,
+					],
+					fields: {
+						tokenSymbol: true,
+						token: true,
+					},
+				}))}
 
-	<FilecoinMessageTokenTransferView
-		selection={pageSelection}
-	/>
+		<FilecoinMessageTokenTransferView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

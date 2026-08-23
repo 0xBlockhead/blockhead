@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,16 +26,18 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.EthereumExecutionUpgrade, data.selector, {
-				sources: [
-					Source.Constants_Internal,
-				],
-				fields: {
-					upgradeId: true,
-					name: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? 'Ethereum execution upgrade' : pageSelection.entity.upgradeId || pageSelection.entity.name || 'Ethereum execution upgrade')} • Ethereum execution upgrade • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.EthereumExecutionUpgrade, data.selector, {
+					sources: [
+						Source.Constants_Internal,
+					],
+					fields: {
+						upgradeId: true,
+						name: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? 'Ethereum execution upgrade' : pageSelection.entity.upgradeId || pageSelection.entity.name || 'Ethereum execution upgrade')} • Ethereum execution upgrade • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Ethereum execution upgrade'} • Ethereum execution upgrade • Blockhead</title>
 	{/if}
@@ -43,18 +46,20 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.EthereumExecutionUpgrade, data.selector, {
-				sources: [
-					Source.Constants_Internal,
-				],
-				fields: {
-					upgradeId: true,
-					name: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.EthereumExecutionUpgrade, data.selector, {
+					sources: [
+						Source.Constants_Internal,
+					],
+					fields: {
+						upgradeId: true,
+						name: true,
+					},
+				}))}
 
-	<EthereumExecutionUpgradeView
-		selection={pageSelection}
-	/>
+		<EthereumExecutionUpgradeView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

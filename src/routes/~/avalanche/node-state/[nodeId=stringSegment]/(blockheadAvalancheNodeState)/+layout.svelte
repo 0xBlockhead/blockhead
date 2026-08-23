@@ -10,6 +10,7 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -41,17 +42,19 @@
 >
 	{#snippet Summary()}
 		{#if data?.selector != null}
-			<BlockheadAvalancheNodeStateView
-				selection={
-					select(EntityType.BlockheadAvalancheNodeState, data.selector, {
-						sources: [
-							Source.AvalancheInfo_JsonRpc,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
+			{#key data.selector}
+				<BlockheadAvalancheNodeStateView
+					selection={
+						untrack(() => select(EntityType.BlockheadAvalancheNodeState, data.selector, {
+							sources: [
+								Source.AvalancheInfo_JsonRpc,
+							],
+						}))
+					}
+					href={detailHref}
+					layout={EntityLayout.SummaryInline}
+				/>
+			{/key}
 		{/if}
 	{/snippet}
 

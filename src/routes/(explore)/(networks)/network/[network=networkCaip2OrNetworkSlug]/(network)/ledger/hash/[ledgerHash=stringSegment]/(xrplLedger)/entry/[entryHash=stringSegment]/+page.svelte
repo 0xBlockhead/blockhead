@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,11 +26,13 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.XrplLedgerEntry, {
-				$ledger: data.selector,
-				entryHash: params.entryHash,
-			})}
-		<title>{data?.title ?? 'XRPL ledger entry'} • XRPL ledger entry • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.XrplLedgerEntry, {
+					$ledger: data.selector,
+					entryHash: params.entryHash,
+				}))}
+			<title>{data?.title ?? 'XRPL ledger entry'} • XRPL ledger entry • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'XRPL ledger entry'} • XRPL ledger entry • Blockhead</title>
 	{/if}
@@ -38,13 +41,15 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.XrplLedgerEntry, {
-				$ledger: data.selector,
-				entryHash: params.entryHash,
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.XrplLedgerEntry, {
+					$ledger: data.selector,
+					entryHash: params.entryHash,
+				}))}
 
-	<XrplLedgerEntryView
-		selection={pageSelection}
-	/>
+		<XrplLedgerEntryView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

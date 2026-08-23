@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -26,19 +27,21 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.KaspaAcceptedTransaction, {
-				$acceptingBlock: data.selector,
-				$transaction: {
-					$network: data.selector.$network,
-					transactionId: params.transactionId,
-				},
-			}, {
-				sources: [
-					Source.KaspaNode_Grpc,
-					Source.KaspaNode_Wrpc,
-				],
-			})}
-		<title>{data?.title ?? 'kaspa accepted transaction'} • kaspa accepted transaction • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.KaspaAcceptedTransaction, {
+					$acceptingBlock: data.selector,
+					$transaction: {
+						$network: data.selector.$network,
+						transactionId: params.transactionId,
+					},
+				}, {
+					sources: [
+						Source.KaspaNode_Grpc,
+						Source.KaspaNode_Wrpc,
+					],
+				}))}
+			<title>{data?.title ?? 'kaspa accepted transaction'} • kaspa accepted transaction • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'kaspa accepted transaction'} • kaspa accepted transaction • Blockhead</title>
 	{/if}
@@ -47,21 +50,23 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.KaspaAcceptedTransaction, {
-				$acceptingBlock: data.selector,
-				$transaction: {
-					$network: data.selector.$network,
-					transactionId: params.transactionId,
-				},
-			}, {
-				sources: [
-					Source.KaspaNode_Grpc,
-					Source.KaspaNode_Wrpc,
-				],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.KaspaAcceptedTransaction, {
+					$acceptingBlock: data.selector,
+					$transaction: {
+						$network: data.selector.$network,
+						transactionId: params.transactionId,
+					},
+				}, {
+					sources: [
+						Source.KaspaNode_Grpc,
+						Source.KaspaNode_Wrpc,
+					],
+				}))}
 
-	<KaspaAcceptedTransactionView
-		selection={pageSelection}
-	/>
+		<KaspaAcceptedTransactionView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

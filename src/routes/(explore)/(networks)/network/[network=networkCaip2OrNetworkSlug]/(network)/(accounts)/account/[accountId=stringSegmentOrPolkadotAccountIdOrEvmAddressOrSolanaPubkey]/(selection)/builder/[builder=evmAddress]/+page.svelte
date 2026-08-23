@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,11 +26,13 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.HyperliquidBuilderApproval, {
-				$account: data.selector,
-				builder: params.builder,
-			})}
-		<title>{data?.title ?? 'hyperliquid builder approval'} • hyperliquid builder approval • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.HyperliquidBuilderApproval, {
+					$account: data.selector,
+					builder: params.builder,
+				}))}
+			<title>{data?.title ?? 'hyperliquid builder approval'} • hyperliquid builder approval • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'hyperliquid builder approval'} • hyperliquid builder approval • Blockhead</title>
 	{/if}
@@ -38,13 +41,15 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.HyperliquidBuilderApproval, {
-				$account: data.selector,
-				builder: params.builder,
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.HyperliquidBuilderApproval, {
+					$account: data.selector,
+					builder: params.builder,
+				}))}
 
-	<HyperliquidBuilderApprovalView
-		selection={pageSelection}
-	/>
+		<HyperliquidBuilderApprovalView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

@@ -10,6 +10,7 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -42,18 +43,20 @@
 >
 	{#snippet Summary()}
 		{#if data?.selector != null}
-			<UniswapV3PoolView
-				selection={
-					select(EntityType.UniswapV3Pool, data.selector, {
-						sources: [
-							Source.Voltaire_JsonRpc,
-							Source.UniswapContracts_Evm,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
+			{#key data.selector}
+				<UniswapV3PoolView
+					selection={
+						untrack(() => select(EntityType.UniswapV3Pool, data.selector, {
+							sources: [
+								Source.Voltaire_JsonRpc,
+								Source.UniswapContracts_Evm,
+							],
+						}))
+					}
+					href={detailHref}
+					layout={EntityLayout.SummaryInline}
+				/>
+			{/key}
 		{/if}
 	{/snippet}
 

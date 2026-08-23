@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -24,10 +25,12 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.CronosNetworkProfile, {
-				$network: data.selector,
-			})}
-		<title>{data?.title ?? 'cronos network profile'} • cronos network profile • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.CronosNetworkProfile, {
+					$network: data.selector,
+				}))}
+			<title>{data?.title ?? 'cronos network profile'} • cronos network profile • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'cronos network profile'} • cronos network profile • Blockhead</title>
 	{/if}
@@ -36,12 +39,14 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.CronosNetworkProfile, {
-				$network: data.selector,
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.CronosNetworkProfile, {
+					$network: data.selector,
+				}))}
 
-	<CronosNetworkProfileView
-		selection={pageSelection}
-	/>
+		<CronosNetworkProfileView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

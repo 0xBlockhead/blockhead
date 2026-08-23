@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,16 +26,18 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.LightningChannel, data.selector, {
-				sources: [
-					Source.LightningMempoolSpace_Rest,
-					Source.LightningLnd_Rest,
-				],
-				fields: {
-					shortChannelId: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.channelId ?? '') || 'Lightning channel' : (pageSelection.entity.shortChannelId ?? '') || pageSelection.entitySelector.channelId || 'Lightning channel')} • Lightning channel • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.LightningChannel, data.selector, {
+					sources: [
+						Source.LightningMempoolSpace_Rest,
+						Source.LightningLnd_Rest,
+					],
+					fields: {
+						shortChannelId: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.channelId ?? '') || 'Lightning channel' : (pageSelection.entity.shortChannelId ?? '') || pageSelection.entitySelector.channelId || 'Lightning channel')} • Lightning channel • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Lightning channel'} • Lightning channel • Blockhead</title>
 	{/if}
@@ -43,18 +46,20 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.LightningChannel, data.selector, {
-				sources: [
-					Source.LightningMempoolSpace_Rest,
-					Source.LightningLnd_Rest,
-				],
-				fields: {
-					shortChannelId: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.LightningChannel, data.selector, {
+					sources: [
+						Source.LightningMempoolSpace_Rest,
+						Source.LightningLnd_Rest,
+					],
+					fields: {
+						shortChannelId: true,
+					},
+				}))}
 
-	<LightningChannelView
-		selection={pageSelection}
-	/>
+		<LightningChannelView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

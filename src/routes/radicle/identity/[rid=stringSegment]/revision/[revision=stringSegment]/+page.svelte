@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -24,8 +25,10 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.RadicleIdentityDocument, data.selector)}
-		<title>{data?.title ?? 'radicle identity document'} • radicle identity document • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.RadicleIdentityDocument, data.selector))}
+			<title>{data?.title ?? 'radicle identity document'} • radicle identity document • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'radicle identity document'} • radicle identity document • Blockhead</title>
 	{/if}
@@ -34,10 +37,12 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.RadicleIdentityDocument, data.selector)}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.RadicleIdentityDocument, data.selector))}
 
-	<RadicleIdentityDocumentView
-		selection={pageSelection}
-	/>
+		<RadicleIdentityDocumentView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

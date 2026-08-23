@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,14 +26,16 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.SolanaTokenMint_Timestamp, {
-				$mint: data.selector,
-				slot: BigInt(params.slot),
-				source: params.source,
-			}, {
-				sources: [params.source],
-			})}
-		<title>{data?.title ?? (String(pageSelection.entitySelector.slot) || 'solana token mint timestamp')} • solana token mint timestamp • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.SolanaTokenMint_Timestamp, {
+					$mint: data.selector,
+					slot: BigInt(params.slot),
+					source: params.source,
+				}, {
+					sources: [params.source],
+				}))}
+			<title>{data?.title ?? (String(pageSelection.entitySelector.slot) || 'solana token mint timestamp')} • solana token mint timestamp • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'solana token mint timestamp'} • solana token mint timestamp • Blockhead</title>
 	{/if}
@@ -41,16 +44,18 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.SolanaTokenMint_Timestamp, {
-				$mint: data.selector,
-				slot: BigInt(params.slot),
-				source: params.source,
-			}, {
-				sources: [params.source],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.SolanaTokenMint_Timestamp, {
+					$mint: data.selector,
+					slot: BigInt(params.slot),
+					source: params.source,
+				}, {
+					sources: [params.source],
+				}))}
 
-	<SolanaTokenMint_TimestampView
-		selection={pageSelection}
-	/>
+		<SolanaTokenMint_TimestampView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

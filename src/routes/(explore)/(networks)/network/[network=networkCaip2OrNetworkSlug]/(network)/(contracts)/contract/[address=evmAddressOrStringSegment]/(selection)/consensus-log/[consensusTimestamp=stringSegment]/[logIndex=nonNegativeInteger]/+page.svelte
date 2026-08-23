@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,12 +26,14 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.HederaContractLog, {
-				$contract: data.selector,
-				consensusTimestamp: params.consensusTimestamp,
-				logIndex: Number(params.logIndex),
-			})}
-		<title>{data?.title ?? 'hedera contract log'} • hedera contract log • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.HederaContractLog, {
+					$contract: data.selector,
+					consensusTimestamp: params.consensusTimestamp,
+					logIndex: Number(params.logIndex),
+				}))}
+			<title>{data?.title ?? 'hedera contract log'} • hedera contract log • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'hedera contract log'} • hedera contract log • Blockhead</title>
 	{/if}
@@ -39,14 +42,16 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.HederaContractLog, {
-				$contract: data.selector,
-				consensusTimestamp: params.consensusTimestamp,
-				logIndex: Number(params.logIndex),
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.HederaContractLog, {
+					$contract: data.selector,
+					consensusTimestamp: params.consensusTimestamp,
+					logIndex: Number(params.logIndex),
+				}))}
 
-	<HederaContractLogView
-		selection={pageSelection}
-	/>
+		<HederaContractLogView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

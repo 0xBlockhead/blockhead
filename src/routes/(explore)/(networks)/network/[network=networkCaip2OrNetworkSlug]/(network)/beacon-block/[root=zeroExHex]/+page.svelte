@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,12 +26,14 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BeaconBlock, data.selector, {
-				sources: [
-					Source.Beacon_Rest,
-				],
-			})}
-		<title>{data?.title ?? (pageSelection.entitySelector.root || 'beacon block')} • beacon block • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BeaconBlock, data.selector, {
+					sources: [
+						Source.Beacon_Rest,
+					],
+				}))}
+			<title>{data?.title ?? (pageSelection.entitySelector.root || 'beacon block')} • beacon block • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'beacon block'} • beacon block • Blockhead</title>
 	{/if}
@@ -39,14 +42,16 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BeaconBlock, data.selector, {
-				sources: [
-					Source.Beacon_Rest,
-				],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BeaconBlock, data.selector, {
+					sources: [
+						Source.Beacon_Rest,
+					],
+				}))}
 
-	<BeaconBlockView
-		selection={pageSelection}
-	/>
+		<BeaconBlockView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

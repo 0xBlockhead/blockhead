@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -24,8 +25,10 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.NostrRelay, data.selector)}
-		<title>{data?.title ?? (pageSelection.entitySelector.relayUrl || 'Nostr relay')} • Nostr relay • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.NostrRelay, data.selector))}
+			<title>{data?.title ?? (pageSelection.entitySelector.relayUrl || 'Nostr relay')} • Nostr relay • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Nostr relay'} • Nostr relay • Blockhead</title>
 	{/if}
@@ -34,10 +37,12 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.NostrRelay, data.selector)}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.NostrRelay, data.selector))}
 
-	<NostrRelayView
-		selection={pageSelection}
-	/>
+		<NostrRelayView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

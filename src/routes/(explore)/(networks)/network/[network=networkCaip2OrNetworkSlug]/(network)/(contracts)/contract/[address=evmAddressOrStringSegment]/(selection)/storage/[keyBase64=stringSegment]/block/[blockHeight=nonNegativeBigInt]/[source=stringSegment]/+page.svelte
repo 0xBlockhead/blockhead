@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,15 +26,17 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.NearContractStorageEntry, {
-				$contract: data.selector,
-				keyBase64: params.keyBase64,
-				blockHeight: BigInt(params.blockHeight),
-				source: params.source,
-			}, {
-				sources: [params.source],
-			})}
-		<title>{data?.title ?? (pageSelection.entitySelector.keyBase64 || 'near contract storage entry')} • near contract storage entry • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.NearContractStorageEntry, {
+					$contract: data.selector,
+					keyBase64: params.keyBase64,
+					blockHeight: BigInt(params.blockHeight),
+					source: params.source,
+				}, {
+					sources: [params.source],
+				}))}
+			<title>{data?.title ?? (pageSelection.entitySelector.keyBase64 || 'near contract storage entry')} • near contract storage entry • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'near contract storage entry'} • near contract storage entry • Blockhead</title>
 	{/if}
@@ -42,17 +45,19 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.NearContractStorageEntry, {
-				$contract: data.selector,
-				keyBase64: params.keyBase64,
-				blockHeight: BigInt(params.blockHeight),
-				source: params.source,
-			}, {
-				sources: [params.source],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.NearContractStorageEntry, {
+					$contract: data.selector,
+					keyBase64: params.keyBase64,
+					blockHeight: BigInt(params.blockHeight),
+					source: params.source,
+				}, {
+					sources: [params.source],
+				}))}
 
-	<NearContractStorageEntryView
-		selection={pageSelection}
-	/>
+		<NearContractStorageEntryView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

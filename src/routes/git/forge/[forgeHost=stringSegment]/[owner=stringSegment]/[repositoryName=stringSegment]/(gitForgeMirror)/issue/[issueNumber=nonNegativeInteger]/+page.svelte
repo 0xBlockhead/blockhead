@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -24,12 +25,14 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.GitForgeIssue, data.selector, {
-				fields: {
-					title: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? String(pageSelection.entitySelector.issueNumber ?? '') || 'Git forge issue' : (pageSelection.entity.title ?? '') || String(pageSelection.entitySelector.issueNumber) || 'Git forge issue')} • Git forge issue • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.GitForgeIssue, data.selector, {
+					fields: {
+						title: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? String(pageSelection.entitySelector.issueNumber ?? '') || 'Git forge issue' : (pageSelection.entity.title ?? '') || String(pageSelection.entitySelector.issueNumber) || 'Git forge issue')} • Git forge issue • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Git forge issue'} • Git forge issue • Blockhead</title>
 	{/if}
@@ -38,14 +41,16 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.GitForgeIssue, data.selector, {
-				fields: {
-					title: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.GitForgeIssue, data.selector, {
+					fields: {
+						title: true,
+					},
+				}))}
 
-	<GitForgeIssueView
-		selection={pageSelection}
-	/>
+		<GitForgeIssueView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

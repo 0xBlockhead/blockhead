@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,21 +26,23 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.MevRelay_BuilderBlockReceived, {
-				$relay: data.selector,
-				slot: Number(params.slot),
-				$builder: {
-					$network: data.selector.$network,
-					builderPubkey: params.builderPubkey,
-				},
-				blockHash: params.blockHash,
-				receivedAtMs: Number(params.receivedAtMs),
-			}, {
-				fields: {
-					valueWei: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? 'Slot ' + String(pageSelection.entitySelector.slot ?? '') : ['Slot ' + String(pageSelection.entitySelector.slot), String(pageSelection.entity.valueWei) + ' wei'].filter(Boolean).join(' ') || 'MEV relay builder block received')} • MEV relay builder block received • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.MevRelay_BuilderBlockReceived, {
+					$relay: data.selector,
+					slot: Number(params.slot),
+					$builder: {
+						$network: data.selector.$network,
+						builderPubkey: params.builderPubkey,
+					},
+					blockHash: params.blockHash,
+					receivedAtMs: Number(params.receivedAtMs),
+				}, {
+					fields: {
+						valueWei: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? 'Slot ' + String(pageSelection.entitySelector.slot ?? '') : ['Slot ' + String(pageSelection.entitySelector.slot), String(pageSelection.entity.valueWei) + ' wei'].filter(Boolean).join(' ') || 'MEV relay builder block received')} • MEV relay builder block received • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'MEV relay builder block received'} • MEV relay builder block received • Blockhead</title>
 	{/if}
@@ -48,23 +51,25 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.MevRelay_BuilderBlockReceived, {
-				$relay: data.selector,
-				slot: Number(params.slot),
-				$builder: {
-					$network: data.selector.$network,
-					builderPubkey: params.builderPubkey,
-				},
-				blockHash: params.blockHash,
-				receivedAtMs: Number(params.receivedAtMs),
-			}, {
-				fields: {
-					valueWei: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.MevRelay_BuilderBlockReceived, {
+					$relay: data.selector,
+					slot: Number(params.slot),
+					$builder: {
+						$network: data.selector.$network,
+						builderPubkey: params.builderPubkey,
+					},
+					blockHash: params.blockHash,
+					receivedAtMs: Number(params.receivedAtMs),
+				}, {
+					fields: {
+						valueWei: true,
+					},
+				}))}
 
-	<MevRelay_BuilderBlockReceivedView
-		selection={pageSelection}
-	/>
+		<MevRelay_BuilderBlockReceivedView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

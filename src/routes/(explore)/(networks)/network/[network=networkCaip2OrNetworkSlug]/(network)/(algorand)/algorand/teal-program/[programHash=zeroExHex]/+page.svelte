@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -24,8 +25,10 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.AlgorandTealProgram, data.selector)}
-		<title>{data?.title ?? (pageSelection.entitySelector.programHash || 'algorand teal program')} • algorand teal program • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.AlgorandTealProgram, data.selector))}
+			<title>{data?.title ?? (pageSelection.entitySelector.programHash || 'algorand teal program')} • algorand teal program • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'algorand teal program'} • algorand teal program • Blockhead</title>
 	{/if}
@@ -34,10 +37,12 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.AlgorandTealProgram, data.selector)}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.AlgorandTealProgram, data.selector))}
 
-	<AlgorandTealProgramView
-		selection={pageSelection}
-	/>
+		<AlgorandTealProgramView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

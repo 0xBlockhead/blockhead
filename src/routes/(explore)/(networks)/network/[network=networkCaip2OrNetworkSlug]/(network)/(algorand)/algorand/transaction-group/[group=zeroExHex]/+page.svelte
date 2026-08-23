@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,11 +26,13 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.AlgorandTransactionGroup, {
-				$network: data.selector,
-				group: params.group,
-			})}
-		<title>{data?.title ?? 'algorand transaction group'} • algorand transaction group • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.AlgorandTransactionGroup, {
+					$network: data.selector,
+					group: params.group,
+				}))}
+			<title>{data?.title ?? 'algorand transaction group'} • algorand transaction group • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'algorand transaction group'} • algorand transaction group • Blockhead</title>
 	{/if}
@@ -38,13 +41,15 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.AlgorandTransactionGroup, {
-				$network: data.selector,
-				group: params.group,
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.AlgorandTransactionGroup, {
+					$network: data.selector,
+					group: params.group,
+				}))}
 
-	<AlgorandTransactionGroupView
-		selection={pageSelection}
-	/>
+		<AlgorandTransactionGroupView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

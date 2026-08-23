@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,13 +26,15 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.FilecoinActor, data.selector, {
-				sources: [
-					Source.Lotus_JsonRpc,
-					Source.Filfox_Rest,
-				],
-			})}
-		<title>{data?.title ?? (pageSelection.entitySelector.address || 'filecoin actor')} • filecoin actor • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.FilecoinActor, data.selector, {
+					sources: [
+						Source.Lotus_JsonRpc,
+						Source.Filfox_Rest,
+					],
+				}))}
+			<title>{data?.title ?? (pageSelection.entitySelector.address || 'filecoin actor')} • filecoin actor • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'filecoin actor'} • filecoin actor • Blockhead</title>
 	{/if}
@@ -40,15 +43,17 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.FilecoinActor, data.selector, {
-				sources: [
-					Source.Lotus_JsonRpc,
-					Source.Filfox_Rest,
-				],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.FilecoinActor, data.selector, {
+					sources: [
+						Source.Lotus_JsonRpc,
+						Source.Filfox_Rest,
+					],
+				}))}
 
-	<FilecoinActorView
-		selection={pageSelection}
-	/>
+		<FilecoinActorView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

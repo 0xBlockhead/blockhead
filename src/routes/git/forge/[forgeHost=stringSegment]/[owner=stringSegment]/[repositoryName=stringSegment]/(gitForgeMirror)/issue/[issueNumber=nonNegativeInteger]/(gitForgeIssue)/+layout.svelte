@@ -9,6 +9,7 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -43,11 +44,13 @@
 >
 	{#snippet Summary()}
 		{#if data?.selector != null}
-			<GitForgeIssueView
-				selection={select(EntityType.GitForgeIssue, data.selector)}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
+			{#key data.selector}
+				<GitForgeIssueView
+					selection={untrack(() => select(EntityType.GitForgeIssue, data.selector))}
+					href={detailHref}
+					layout={EntityLayout.SummaryInline}
+				/>
+			{/key}
 		{/if}
 	{/snippet}
 

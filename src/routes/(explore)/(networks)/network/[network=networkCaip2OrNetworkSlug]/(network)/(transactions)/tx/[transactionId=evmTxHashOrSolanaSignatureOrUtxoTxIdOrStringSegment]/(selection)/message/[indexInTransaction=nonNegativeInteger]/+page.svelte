@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,11 +26,13 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.CosmosMessage, {
-				$transaction: data.selector,
-				indexInTransaction: Number(params.indexInTransaction),
-			})}
-		<title>{data?.title ?? ((String(pageSelection.entitySelector.indexInTransaction ?? '') ? 'Message #' + String(pageSelection.entitySelector.indexInTransaction ?? '') : '') || 'Cosmos message')} • Cosmos message • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.CosmosMessage, {
+					$transaction: data.selector,
+					indexInTransaction: Number(params.indexInTransaction),
+				}))}
+			<title>{data?.title ?? ((String(pageSelection.entitySelector.indexInTransaction ?? '') ? 'Message #' + String(pageSelection.entitySelector.indexInTransaction ?? '') : '') || 'Cosmos message')} • Cosmos message • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Cosmos message'} • Cosmos message • Blockhead</title>
 	{/if}
@@ -38,13 +41,15 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.CosmosMessage, {
-				$transaction: data.selector,
-				indexInTransaction: Number(params.indexInTransaction),
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.CosmosMessage, {
+					$transaction: data.selector,
+					indexInTransaction: Number(params.indexInTransaction),
+				}))}
 
-	<CosmosMessageView
-		selection={pageSelection}
-	/>
+		<CosmosMessageView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

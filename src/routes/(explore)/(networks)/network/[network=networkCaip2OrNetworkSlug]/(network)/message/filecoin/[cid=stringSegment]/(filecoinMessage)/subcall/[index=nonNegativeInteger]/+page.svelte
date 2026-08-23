@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -26,19 +27,21 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.FilecoinMessageSubcall, {
-				$message: data.selector,
-				index: Number(params.index),
-			}, {
-				sources: [
-					Source.Filfox_Rest,
-					Source.Lotus_JsonRpc,
-				],
-				fields: {
-					method: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? 'filecoin message subcall' : pageSelection.entity.method || 'filecoin message subcall')} • filecoin message subcall • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.FilecoinMessageSubcall, {
+					$message: data.selector,
+					index: Number(params.index),
+				}, {
+					sources: [
+						Source.Filfox_Rest,
+						Source.Lotus_JsonRpc,
+					],
+					fields: {
+						method: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? 'filecoin message subcall' : pageSelection.entity.method || 'filecoin message subcall')} • filecoin message subcall • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'filecoin message subcall'} • filecoin message subcall • Blockhead</title>
 	{/if}
@@ -47,21 +50,23 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.FilecoinMessageSubcall, {
-				$message: data.selector,
-				index: Number(params.index),
-			}, {
-				sources: [
-					Source.Filfox_Rest,
-					Source.Lotus_JsonRpc,
-				],
-				fields: {
-					method: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.FilecoinMessageSubcall, {
+					$message: data.selector,
+					index: Number(params.index),
+				}, {
+					sources: [
+						Source.Filfox_Rest,
+						Source.Lotus_JsonRpc,
+					],
+					fields: {
+						method: true,
+					},
+				}))}
 
-	<FilecoinMessageSubcallView
-		selection={pageSelection}
-	/>
+		<FilecoinMessageSubcallView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

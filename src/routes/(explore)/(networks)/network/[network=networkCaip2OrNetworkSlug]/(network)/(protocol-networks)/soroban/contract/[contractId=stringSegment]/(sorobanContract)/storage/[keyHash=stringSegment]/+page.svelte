@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -24,8 +25,10 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.SorobanContractStorageEntry, data.selector)}
-		<title>{data?.title ?? 'soroban contract storage entry'} • soroban contract storage entry • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.SorobanContractStorageEntry, data.selector))}
+			<title>{data?.title ?? 'soroban contract storage entry'} • soroban contract storage entry • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'soroban contract storage entry'} • soroban contract storage entry • Blockhead</title>
 	{/if}
@@ -34,10 +37,12 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.SorobanContractStorageEntry, data.selector)}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.SorobanContractStorageEntry, data.selector))}
 
-	<SorobanContractStorageEntryView
-		selection={pageSelection}
-	/>
+		<SorobanContractStorageEntryView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,11 +26,13 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.TezosCycle, {
-				$network: data.selector,
-				cycle: BigInt(params.cycle),
-			})}
-		<title>{data?.title ?? 'tezos cycle'} • tezos cycle • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.TezosCycle, {
+					$network: data.selector,
+					cycle: BigInt(params.cycle),
+				}))}
+			<title>{data?.title ?? 'tezos cycle'} • tezos cycle • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'tezos cycle'} • tezos cycle • Blockhead</title>
 	{/if}
@@ -38,13 +41,15 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.TezosCycle, {
-				$network: data.selector,
-				cycle: BigInt(params.cycle),
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.TezosCycle, {
+					$network: data.selector,
+					cycle: BigInt(params.cycle),
+				}))}
 
-	<TezosCycleView
-		selection={pageSelection}
-	/>
+		<TezosCycleView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

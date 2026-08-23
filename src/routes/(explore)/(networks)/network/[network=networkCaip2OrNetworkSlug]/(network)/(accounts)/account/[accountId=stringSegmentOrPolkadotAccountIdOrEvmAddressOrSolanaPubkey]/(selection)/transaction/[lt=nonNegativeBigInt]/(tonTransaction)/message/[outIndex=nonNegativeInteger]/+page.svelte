@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,11 +26,13 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.TonMessage, {
-				$sourceTransaction: data.selector,
-				outIndex: Number(params.outIndex),
-			})}
-		<title>{data?.title ?? 'TON message'} • TON message • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.TonMessage, {
+					$sourceTransaction: data.selector,
+					outIndex: Number(params.outIndex),
+				}))}
+			<title>{data?.title ?? 'TON message'} • TON message • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'TON message'} • TON message • Blockhead</title>
 	{/if}
@@ -38,13 +41,15 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.TonMessage, {
-				$sourceTransaction: data.selector,
-				outIndex: Number(params.outIndex),
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.TonMessage, {
+					$sourceTransaction: data.selector,
+					outIndex: Number(params.outIndex),
+				}))}
 
-	<TonMessageView
-		selection={pageSelection}
-	/>
+		<TonMessageView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

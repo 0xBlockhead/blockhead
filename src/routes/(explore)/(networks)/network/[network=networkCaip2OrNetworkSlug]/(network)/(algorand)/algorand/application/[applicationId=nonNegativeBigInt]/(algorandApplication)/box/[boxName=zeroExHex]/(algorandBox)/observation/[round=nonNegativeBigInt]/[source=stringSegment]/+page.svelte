@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,14 +26,16 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.AlgorandBox_Round, {
-				$box: data.selector,
-				round: BigInt(params.round),
-				source: params.source,
-			}, {
-				sources: [params.source],
-			})}
-		<title>{data?.title ?? 'algorand box round'} • algorand box round • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.AlgorandBox_Round, {
+					$box: data.selector,
+					round: BigInt(params.round),
+					source: params.source,
+				}, {
+					sources: [params.source],
+				}))}
+			<title>{data?.title ?? 'algorand box round'} • algorand box round • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'algorand box round'} • algorand box round • Blockhead</title>
 	{/if}
@@ -41,16 +44,18 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.AlgorandBox_Round, {
-				$box: data.selector,
-				round: BigInt(params.round),
-				source: params.source,
-			}, {
-				sources: [params.source],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.AlgorandBox_Round, {
+					$box: data.selector,
+					round: BigInt(params.round),
+					source: params.source,
+				}, {
+					sources: [params.source],
+				}))}
 
-	<AlgorandBox_RoundView
-		selection={pageSelection}
-	/>
+		<AlgorandBox_RoundView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

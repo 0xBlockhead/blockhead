@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,11 +26,13 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.HyperliquidOrder, {
-				$account: data.selector,
-				oid: BigInt(params.oid),
-			})}
-		<title>{data?.title ?? 'hyperliquid order'} • hyperliquid order • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.HyperliquidOrder, {
+					$account: data.selector,
+					oid: BigInt(params.oid),
+				}))}
+			<title>{data?.title ?? 'hyperliquid order'} • hyperliquid order • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'hyperliquid order'} • hyperliquid order • Blockhead</title>
 	{/if}
@@ -38,13 +41,15 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.HyperliquidOrder, {
-				$account: data.selector,
-				oid: BigInt(params.oid),
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.HyperliquidOrder, {
+					$account: data.selector,
+					oid: BigInt(params.oid),
+				}))}
 
-	<HyperliquidOrderView
-		selection={pageSelection}
-	/>
+		<HyperliquidOrderView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

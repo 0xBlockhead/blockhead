@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,14 +26,16 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.SuiDynamicFieldEdge_Timestamp, {
-				$edge: data.selector,
-				checkpointSequence: BigInt(params.checkpointSequence),
-				source: params.source,
-			}, {
-				sources: [params.source],
-			})}
-		<title>{data?.title ?? 'Sui dynamic field edge timestamp'} • Sui dynamic field edge timestamp • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.SuiDynamicFieldEdge_Timestamp, {
+					$edge: data.selector,
+					checkpointSequence: BigInt(params.checkpointSequence),
+					source: params.source,
+				}, {
+					sources: [params.source],
+				}))}
+			<title>{data?.title ?? 'Sui dynamic field edge timestamp'} • Sui dynamic field edge timestamp • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Sui dynamic field edge timestamp'} • Sui dynamic field edge timestamp • Blockhead</title>
 	{/if}
@@ -41,16 +44,18 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.SuiDynamicFieldEdge_Timestamp, {
-				$edge: data.selector,
-				checkpointSequence: BigInt(params.checkpointSequence),
-				source: params.source,
-			}, {
-				sources: [params.source],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.SuiDynamicFieldEdge_Timestamp, {
+					$edge: data.selector,
+					checkpointSequence: BigInt(params.checkpointSequence),
+					source: params.source,
+				}, {
+					sources: [params.source],
+				}))}
 
-	<SuiDynamicFieldEdge_TimestampView
-		selection={pageSelection}
-	/>
+		<SuiDynamicFieldEdge_TimestampView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

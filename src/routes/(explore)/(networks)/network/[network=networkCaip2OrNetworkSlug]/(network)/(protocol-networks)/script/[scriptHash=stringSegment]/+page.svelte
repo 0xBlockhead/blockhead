@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,11 +26,13 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.TezosMichelsonScript, {
-				$network: data.selector,
-				scriptHash: params.scriptHash,
-			})}
-		<title>{data?.title ?? 'tezos michelson script'} • tezos michelson script • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.TezosMichelsonScript, {
+					$network: data.selector,
+					scriptHash: params.scriptHash,
+				}))}
+			<title>{data?.title ?? 'tezos michelson script'} • tezos michelson script • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'tezos michelson script'} • tezos michelson script • Blockhead</title>
 	{/if}
@@ -38,13 +41,15 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.TezosMichelsonScript, {
-				$network: data.selector,
-				scriptHash: params.scriptHash,
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.TezosMichelsonScript, {
+					$network: data.selector,
+					scriptHash: params.scriptHash,
+				}))}
 
-	<TezosMichelsonScriptView
-		selection={pageSelection}
-	/>
+		<TezosMichelsonScriptView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

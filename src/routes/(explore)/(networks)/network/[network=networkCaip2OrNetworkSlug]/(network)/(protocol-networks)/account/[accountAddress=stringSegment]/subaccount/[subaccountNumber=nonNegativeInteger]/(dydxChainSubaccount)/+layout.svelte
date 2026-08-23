@@ -10,6 +10,7 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -43,18 +44,20 @@
 >
 	{#snippet Summary()}
 		{#if data?.selector != null}
-			<DydxChainSubaccountView
-				selection={
-					select(EntityType.DydxChainSubaccount, data.selector, {
-						sources: [
-							Source.DydxIndexer,
-							Source.KingnodesDydxNode,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
+			{#key data.selector}
+				<DydxChainSubaccountView
+					selection={
+						untrack(() => select(EntityType.DydxChainSubaccount, data.selector, {
+							sources: [
+								Source.DydxIndexer,
+								Source.KingnodesDydxNode,
+							],
+						}))
+					}
+					href={detailHref}
+					layout={EntityLayout.SummaryInline}
+				/>
+			{/key}
 		{/if}
 	{/snippet}
 

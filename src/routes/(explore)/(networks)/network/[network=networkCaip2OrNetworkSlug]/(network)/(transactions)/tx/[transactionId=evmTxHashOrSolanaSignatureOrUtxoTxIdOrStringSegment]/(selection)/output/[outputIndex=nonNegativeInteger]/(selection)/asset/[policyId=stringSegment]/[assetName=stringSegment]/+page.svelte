@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,15 +26,17 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.CardanoTxOutputAsset, {
-				$output: data.selector,
-				$asset: {
-					$network: data.selector.$transaction.$network,
-					policyId: params.policyId,
-					assetName: params.assetName,
-				},
-			})}
-		<title>{data?.title ?? 'Cardano transaction output asset'} • Cardano transaction output asset • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.CardanoTxOutputAsset, {
+					$output: data.selector,
+					$asset: {
+						$network: data.selector.$transaction.$network,
+						policyId: params.policyId,
+						assetName: params.assetName,
+					},
+				}))}
+			<title>{data?.title ?? 'Cardano transaction output asset'} • Cardano transaction output asset • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Cardano transaction output asset'} • Cardano transaction output asset • Blockhead</title>
 	{/if}
@@ -42,17 +45,19 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.CardanoTxOutputAsset, {
-				$output: data.selector,
-				$asset: {
-					$network: data.selector.$transaction.$network,
-					policyId: params.policyId,
-					assetName: params.assetName,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.CardanoTxOutputAsset, {
+					$output: data.selector,
+					$asset: {
+						$network: data.selector.$transaction.$network,
+						policyId: params.policyId,
+						assetName: params.assetName,
+					},
+				}))}
 
-	<CardanoTxOutputAssetView
-		selection={pageSelection}
-	/>
+		<CardanoTxOutputAssetView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

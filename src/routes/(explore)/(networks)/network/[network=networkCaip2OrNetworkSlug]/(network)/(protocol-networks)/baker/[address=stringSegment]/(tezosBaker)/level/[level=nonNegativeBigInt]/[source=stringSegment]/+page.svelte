@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,14 +26,16 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.TezosBaker_Timestamp, {
-				$baker: data.selector,
-				level: BigInt(params.level),
-				source: params.source,
-			}, {
-				sources: [params.source],
-			})}
-		<title>{data?.title ?? 'tezos baker timestamp'} • tezos baker timestamp • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.TezosBaker_Timestamp, {
+					$baker: data.selector,
+					level: BigInt(params.level),
+					source: params.source,
+				}, {
+					sources: [params.source],
+				}))}
+			<title>{data?.title ?? 'tezos baker timestamp'} • tezos baker timestamp • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'tezos baker timestamp'} • tezos baker timestamp • Blockhead</title>
 	{/if}
@@ -41,16 +44,18 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.TezosBaker_Timestamp, {
-				$baker: data.selector,
-				level: BigInt(params.level),
-				source: params.source,
-			}, {
-				sources: [params.source],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.TezosBaker_Timestamp, {
+					$baker: data.selector,
+					level: BigInt(params.level),
+					source: params.source,
+				}, {
+					sources: [params.source],
+				}))}
 
-	<TezosBaker_TimestampView
-		selection={pageSelection}
-	/>
+		<TezosBaker_TimestampView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

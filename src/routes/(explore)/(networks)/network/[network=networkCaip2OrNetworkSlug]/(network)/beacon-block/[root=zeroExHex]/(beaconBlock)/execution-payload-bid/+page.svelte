@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,17 +26,19 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BeaconExecutionPayloadBid, {
-				$beaconBlock: data.selector,
-			}, {
-				sources: [
-					Source.Beacon_Rest,
-				],
-				fields: {
-					builderIndex: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? 'Beacon execution payload bid' : 'Builder ' + String(pageSelection.entity.builderIndex))} • Beacon execution payload bid • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BeaconExecutionPayloadBid, {
+					$beaconBlock: data.selector,
+				}, {
+					sources: [
+						Source.Beacon_Rest,
+					],
+					fields: {
+						builderIndex: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? 'Beacon execution payload bid' : 'Builder ' + String(pageSelection.entity.builderIndex))} • Beacon execution payload bid • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Beacon execution payload bid'} • Beacon execution payload bid • Blockhead</title>
 	{/if}
@@ -44,19 +47,21 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BeaconExecutionPayloadBid, {
-				$beaconBlock: data.selector,
-			}, {
-				sources: [
-					Source.Beacon_Rest,
-				],
-				fields: {
-					builderIndex: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BeaconExecutionPayloadBid, {
+					$beaconBlock: data.selector,
+				}, {
+					sources: [
+						Source.Beacon_Rest,
+					],
+					fields: {
+						builderIndex: true,
+					},
+				}))}
 
-	<BeaconExecutionPayloadBidView
-		selection={pageSelection}
-	/>
+		<BeaconExecutionPayloadBidView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

@@ -10,6 +10,7 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -34,18 +35,20 @@
 >
 	{#snippet Summary()}
 		{#if data?.selector != null}
-			<GlobalActivityPubNetworkView
-				selection={
-					select(EntityType._GlobalActivityPubNetwork, data.selector, {
-						sources: [
-							Source.Constants_Internal,
-							Source.Mastodon_Rest,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
+			{#key data.selector}
+				<GlobalActivityPubNetworkView
+					selection={
+						untrack(() => select(EntityType._GlobalActivityPubNetwork, data.selector, {
+							sources: [
+								Source.Constants_Internal,
+								Source.Mastodon_Rest,
+							],
+						}))
+					}
+					href={detailHref}
+					layout={EntityLayout.SummaryInline}
+				/>
+			{/key}
 		{/if}
 	{/snippet}
 

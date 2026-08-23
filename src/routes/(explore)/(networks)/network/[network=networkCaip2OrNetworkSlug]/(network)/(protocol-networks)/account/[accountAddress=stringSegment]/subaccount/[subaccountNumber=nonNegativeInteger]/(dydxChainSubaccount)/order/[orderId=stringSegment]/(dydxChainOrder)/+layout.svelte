@@ -10,6 +10,7 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -44,17 +45,19 @@
 >
 	{#snippet Summary()}
 		{#if data?.selector != null}
-			<DydxChainOrderView
-				selection={
-					select(EntityType.DydxChainOrder, data.selector, {
-						sources: [
-							Source.DydxIndexer,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
+			{#key data.selector}
+				<DydxChainOrderView
+					selection={
+						untrack(() => select(EntityType.DydxChainOrder, data.selector, {
+							sources: [
+								Source.DydxIndexer,
+							],
+						}))
+					}
+					href={detailHref}
+					layout={EntityLayout.SummaryInline}
+				/>
+			{/key}
 		{/if}
 	{/snippet}
 

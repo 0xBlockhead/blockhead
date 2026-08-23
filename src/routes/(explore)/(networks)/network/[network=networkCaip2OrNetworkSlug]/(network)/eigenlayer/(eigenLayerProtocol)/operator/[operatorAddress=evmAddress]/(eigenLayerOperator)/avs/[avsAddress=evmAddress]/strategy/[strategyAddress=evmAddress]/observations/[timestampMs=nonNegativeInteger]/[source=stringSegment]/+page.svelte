@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,22 +26,24 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.EigenLayerAllocation_Timestamp, {
-				$operator: data.selector,
-				$avs: {
-					$network: data.selector.$network,
-					avsAddress: params.avsAddress,
-				},
-				$strategy: {
-					$network: data.selector.$network,
-					strategyAddress: params.strategyAddress,
-				},
-				timestampMs: Number(params.timestampMs),
-				source: params.source,
-			}, {
-				sources: [params.source],
-			})}
-		<title>{data?.title ?? 'eigen layer allocation timestamp'} • eigen layer allocation timestamp • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.EigenLayerAllocation_Timestamp, {
+					$operator: data.selector,
+					$avs: {
+						$network: data.selector.$network,
+						avsAddress: params.avsAddress,
+					},
+					$strategy: {
+						$network: data.selector.$network,
+						strategyAddress: params.strategyAddress,
+					},
+					timestampMs: Number(params.timestampMs),
+					source: params.source,
+				}, {
+					sources: [params.source],
+				}))}
+			<title>{data?.title ?? 'eigen layer allocation timestamp'} • eigen layer allocation timestamp • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'eigen layer allocation timestamp'} • eigen layer allocation timestamp • Blockhead</title>
 	{/if}
@@ -49,24 +52,26 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.EigenLayerAllocation_Timestamp, {
-				$operator: data.selector,
-				$avs: {
-					$network: data.selector.$network,
-					avsAddress: params.avsAddress,
-				},
-				$strategy: {
-					$network: data.selector.$network,
-					strategyAddress: params.strategyAddress,
-				},
-				timestampMs: Number(params.timestampMs),
-				source: params.source,
-			}, {
-				sources: [params.source],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.EigenLayerAllocation_Timestamp, {
+					$operator: data.selector,
+					$avs: {
+						$network: data.selector.$network,
+						avsAddress: params.avsAddress,
+					},
+					$strategy: {
+						$network: data.selector.$network,
+						strategyAddress: params.strategyAddress,
+					},
+					timestampMs: Number(params.timestampMs),
+					source: params.source,
+				}, {
+					sources: [params.source],
+				}))}
 
-	<EigenLayerAllocation_TimestampView
-		selection={pageSelection}
-	/>
+		<EigenLayerAllocation_TimestampView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

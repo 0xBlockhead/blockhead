@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,12 +26,14 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.McpToolCall, data.selector, {
-				sources: [
-					Source.McpDeclared_Protocol,
-				],
-			})}
-		<title>{data?.title ?? (pageSelection.entitySelector.callId || 'mcp tool call')} • mcp tool call • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.McpToolCall, data.selector, {
+					sources: [
+						Source.McpDeclared_Protocol,
+					],
+				}))}
+			<title>{data?.title ?? (pageSelection.entitySelector.callId || 'mcp tool call')} • mcp tool call • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'mcp tool call'} • mcp tool call • Blockhead</title>
 	{/if}
@@ -39,14 +42,16 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.McpToolCall, data.selector, {
-				sources: [
-					Source.McpDeclared_Protocol,
-				],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.McpToolCall, data.selector, {
+					sources: [
+						Source.McpDeclared_Protocol,
+					],
+				}))}
 
-	<McpToolCallView
-		selection={pageSelection}
-	/>
+		<McpToolCallView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

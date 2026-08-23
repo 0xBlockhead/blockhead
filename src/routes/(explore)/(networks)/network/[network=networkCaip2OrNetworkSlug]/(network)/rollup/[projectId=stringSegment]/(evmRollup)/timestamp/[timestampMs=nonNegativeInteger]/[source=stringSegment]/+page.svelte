@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,17 +26,19 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.EvmRollup_Timestamp, {
-				$rollup: data.selector,
-				timestampMs: Number(params.timestampMs),
-				source: params.source,
-			}, {
-				sources: [params.source],
-				fields: {
-					listingStage: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? String(pageSelection.entitySelector.timestampMs ?? '') || 'EVM rollup timestamp' : [(pageSelection.entity.listingStage ?? ''), String(pageSelection.entitySelector.timestampMs)].filter(Boolean).join(' ') || 'EVM rollup timestamp')} • EVM rollup timestamp • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.EvmRollup_Timestamp, {
+					$rollup: data.selector,
+					timestampMs: Number(params.timestampMs),
+					source: params.source,
+				}, {
+					sources: [params.source],
+					fields: {
+						listingStage: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? String(pageSelection.entitySelector.timestampMs ?? '') || 'EVM rollup timestamp' : [(pageSelection.entity.listingStage ?? ''), String(pageSelection.entitySelector.timestampMs)].filter(Boolean).join(' ') || 'EVM rollup timestamp')} • EVM rollup timestamp • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'EVM rollup timestamp'} • EVM rollup timestamp • Blockhead</title>
 	{/if}
@@ -44,19 +47,21 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.EvmRollup_Timestamp, {
-				$rollup: data.selector,
-				timestampMs: Number(params.timestampMs),
-				source: params.source,
-			}, {
-				sources: [params.source],
-				fields: {
-					listingStage: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.EvmRollup_Timestamp, {
+					$rollup: data.selector,
+					timestampMs: Number(params.timestampMs),
+					source: params.source,
+				}, {
+					sources: [params.source],
+					fields: {
+						listingStage: true,
+					},
+				}))}
 
-	<EvmRollup_TimestampView
-		selection={pageSelection}
-	/>
+		<EvmRollup_TimestampView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

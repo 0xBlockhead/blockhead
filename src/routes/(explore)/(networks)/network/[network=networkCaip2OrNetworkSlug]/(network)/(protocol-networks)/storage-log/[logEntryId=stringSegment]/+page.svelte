@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,12 +26,14 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.ZeroGStorageLogEntry, data.selector, {
-				sources: [
-					Source.ZeroGStorageScan_Rest,
-				],
-			})}
-		<title>{data?.title ?? (pageSelection.entitySelector.logEntryId || 'zero g storage log entry')} • zero g storage log entry • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.ZeroGStorageLogEntry, data.selector, {
+					sources: [
+						Source.ZeroGStorageScan_Rest,
+					],
+				}))}
+			<title>{data?.title ?? (pageSelection.entitySelector.logEntryId || 'zero g storage log entry')} • zero g storage log entry • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'zero g storage log entry'} • zero g storage log entry • Blockhead</title>
 	{/if}
@@ -39,14 +42,16 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.ZeroGStorageLogEntry, data.selector, {
-				sources: [
-					Source.ZeroGStorageScan_Rest,
-				],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.ZeroGStorageLogEntry, data.selector, {
+					sources: [
+						Source.ZeroGStorageScan_Rest,
+					],
+				}))}
 
-	<ZeroGStorageLogEntryView
-		selection={pageSelection}
-	/>
+		<ZeroGStorageLogEntryView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

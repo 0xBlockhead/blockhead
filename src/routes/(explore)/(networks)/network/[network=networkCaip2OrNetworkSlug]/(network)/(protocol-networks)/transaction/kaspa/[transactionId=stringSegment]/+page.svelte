@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -26,18 +27,20 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.KaspaTransaction, {
-				$network: data.selector,
-				transactionId: params.transactionId,
-			}, {
-				sources: [
-					Source.KaspaExplorer,
-					Source.KaspaNode_Grpc,
-					Source.KaspaNode_Rest,
-					Source.KaspaNode_Wrpc,
-				],
-			})}
-		<title>{data?.title ?? 'kaspa transaction'} • kaspa transaction • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.KaspaTransaction, {
+					$network: data.selector,
+					transactionId: params.transactionId,
+				}, {
+					sources: [
+						Source.KaspaExplorer,
+						Source.KaspaNode_Grpc,
+						Source.KaspaNode_Rest,
+						Source.KaspaNode_Wrpc,
+					],
+				}))}
+			<title>{data?.title ?? 'kaspa transaction'} • kaspa transaction • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'kaspa transaction'} • kaspa transaction • Blockhead</title>
 	{/if}
@@ -46,20 +49,22 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.KaspaTransaction, {
-				$network: data.selector,
-				transactionId: params.transactionId,
-			}, {
-				sources: [
-					Source.KaspaExplorer,
-					Source.KaspaNode_Grpc,
-					Source.KaspaNode_Rest,
-					Source.KaspaNode_Wrpc,
-				],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.KaspaTransaction, {
+					$network: data.selector,
+					transactionId: params.transactionId,
+				}, {
+					sources: [
+						Source.KaspaExplorer,
+						Source.KaspaNode_Grpc,
+						Source.KaspaNode_Rest,
+						Source.KaspaNode_Wrpc,
+					],
+				}))}
 
-	<KaspaTransactionView
-		selection={pageSelection}
-	/>
+		<KaspaTransactionView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

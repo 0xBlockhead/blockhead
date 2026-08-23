@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -24,8 +25,10 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.CardanoStakeCredential, data.selector)}
-		<title>{data?.title ?? 'Cardano stake credential'} • Cardano stake credential • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.CardanoStakeCredential, data.selector))}
+			<title>{data?.title ?? 'Cardano stake credential'} • Cardano stake credential • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Cardano stake credential'} • Cardano stake credential • Blockhead</title>
 	{/if}
@@ -34,10 +37,12 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.CardanoStakeCredential, data.selector)}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.CardanoStakeCredential, data.selector))}
 
-	<CardanoStakeCredentialView
-		selection={pageSelection}
-	/>
+		<CardanoStakeCredentialView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

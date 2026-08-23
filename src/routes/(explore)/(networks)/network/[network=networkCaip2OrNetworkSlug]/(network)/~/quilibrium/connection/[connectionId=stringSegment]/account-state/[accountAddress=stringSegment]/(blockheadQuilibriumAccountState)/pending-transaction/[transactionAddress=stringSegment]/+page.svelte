@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -26,16 +27,18 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BlockheadQuilibriumPendingTransaction, {
-				$accountState: data.selector,
-				transactionAddress: params.transactionAddress,
-			}, {
-				sources: [
-					Source.Local_Internal,
-					Source.QuilibriumNodeRpc_Grpc,
-				],
-			})}
-		<title>{data?.title ?? (pageSelection.entitySelector.transactionAddress || 'blockhead quilibrium pending transaction')} • blockhead quilibrium pending transaction • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BlockheadQuilibriumPendingTransaction, {
+					$accountState: data.selector,
+					transactionAddress: params.transactionAddress,
+				}, {
+					sources: [
+						Source.Local_Internal,
+						Source.QuilibriumNodeRpc_Grpc,
+					],
+				}))}
+			<title>{data?.title ?? (pageSelection.entitySelector.transactionAddress || 'blockhead quilibrium pending transaction')} • blockhead quilibrium pending transaction • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'blockhead quilibrium pending transaction'} • blockhead quilibrium pending transaction • Blockhead</title>
 	{/if}
@@ -44,18 +47,20 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BlockheadQuilibriumPendingTransaction, {
-				$accountState: data.selector,
-				transactionAddress: params.transactionAddress,
-			}, {
-				sources: [
-					Source.Local_Internal,
-					Source.QuilibriumNodeRpc_Grpc,
-				],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BlockheadQuilibriumPendingTransaction, {
+					$accountState: data.selector,
+					transactionAddress: params.transactionAddress,
+				}, {
+					sources: [
+						Source.Local_Internal,
+						Source.QuilibriumNodeRpc_Grpc,
+					],
+				}))}
 
-	<BlockheadQuilibriumPendingTransactionView
-		selection={pageSelection}
-	/>
+		<BlockheadQuilibriumPendingTransactionView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

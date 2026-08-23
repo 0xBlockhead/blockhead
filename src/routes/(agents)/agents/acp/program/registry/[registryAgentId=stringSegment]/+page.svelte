@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,17 +26,19 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.AcpAgentProgram, data.selector, {
-				sources: [
-					Source.AcpRegistry_Rest,
-				],
-				fields: {
-					label: true,
-					packageName: true,
-					repositoryUrl: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.registryAgentId ?? '') || 'ACP agent program' : (pageSelection.entity.label ?? '') || [(pageSelection.entitySelector.registryAgentId ?? ''), (pageSelection.entity.packageName ?? ''), (pageSelection.entity.repositoryUrl ?? '')].filter(Boolean).join(' ') || 'ACP agent program')} • ACP agent program • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.AcpAgentProgram, data.selector, {
+					sources: [
+						Source.AcpRegistry_Rest,
+					],
+					fields: {
+						label: true,
+						packageName: true,
+						repositoryUrl: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.registryAgentId ?? '') || 'ACP agent program' : (pageSelection.entity.label ?? '') || [(pageSelection.entitySelector.registryAgentId ?? ''), (pageSelection.entity.packageName ?? ''), (pageSelection.entity.repositoryUrl ?? '')].filter(Boolean).join(' ') || 'ACP agent program')} • ACP agent program • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'ACP agent program'} • ACP agent program • Blockhead</title>
 	{/if}
@@ -44,19 +47,21 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.AcpAgentProgram, data.selector, {
-				sources: [
-					Source.AcpRegistry_Rest,
-				],
-				fields: {
-					label: true,
-					packageName: true,
-					repositoryUrl: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.AcpAgentProgram, data.selector, {
+					sources: [
+						Source.AcpRegistry_Rest,
+					],
+					fields: {
+						label: true,
+						packageName: true,
+						repositoryUrl: true,
+					},
+				}))}
 
-	<AcpAgentProgramView
-		selection={pageSelection}
-	/>
+		<AcpAgentProgramView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

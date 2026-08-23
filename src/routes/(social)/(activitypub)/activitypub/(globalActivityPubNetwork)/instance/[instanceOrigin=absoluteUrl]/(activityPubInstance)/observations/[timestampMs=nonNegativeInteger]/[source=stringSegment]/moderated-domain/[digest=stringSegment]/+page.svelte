@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -26,20 +27,22 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.ActivityPubInstanceModeratedDomain, {
-				$observation: data.selector,
-				digest: params.digest,
-			}, {
-				sources: [
-					Source.Mastodon_Rest,
-				],
-				fields: {
-					domain: true,
-					severity: true,
-					comment: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? 'ActivityPub instance moderated domain' : [pageSelection.entity.domain, pageSelection.entity.severity, (pageSelection.entity.comment ?? '')].filter(Boolean).join(' ') || 'ActivityPub instance moderated domain')} • ActivityPub instance moderated domain • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.ActivityPubInstanceModeratedDomain, {
+					$observation: data.selector,
+					digest: params.digest,
+				}, {
+					sources: [
+						Source.Mastodon_Rest,
+					],
+					fields: {
+						domain: true,
+						severity: true,
+						comment: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? 'ActivityPub instance moderated domain' : [pageSelection.entity.domain, pageSelection.entity.severity, (pageSelection.entity.comment ?? '')].filter(Boolean).join(' ') || 'ActivityPub instance moderated domain')} • ActivityPub instance moderated domain • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'ActivityPub instance moderated domain'} • ActivityPub instance moderated domain • Blockhead</title>
 	{/if}
@@ -48,22 +51,24 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.ActivityPubInstanceModeratedDomain, {
-				$observation: data.selector,
-				digest: params.digest,
-			}, {
-				sources: [
-					Source.Mastodon_Rest,
-				],
-				fields: {
-					domain: true,
-					severity: true,
-					comment: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.ActivityPubInstanceModeratedDomain, {
+					$observation: data.selector,
+					digest: params.digest,
+				}, {
+					sources: [
+						Source.Mastodon_Rest,
+					],
+					fields: {
+						domain: true,
+						severity: true,
+						comment: true,
+					},
+				}))}
 
-	<ActivityPubInstanceModeratedDomainView
-		selection={pageSelection}
-	/>
+		<ActivityPubInstanceModeratedDomainView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

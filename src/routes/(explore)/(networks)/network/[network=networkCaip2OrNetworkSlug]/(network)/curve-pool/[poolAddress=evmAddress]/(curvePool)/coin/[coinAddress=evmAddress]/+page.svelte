@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -26,19 +27,21 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.CurvePoolCoin, {
-				$pool: data.selector,
-				coinAddress: params.coinAddress,
-			}, {
-				sources: [
-					Source.Curve_Rest,
-				],
-				fields: {
-					symbol: true,
-					name: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? 'Curve pool coin' : [pageSelection.entity.symbol, pageSelection.entity.name].filter(Boolean).join(' ') || 'Curve pool coin')} • Curve pool coin • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.CurvePoolCoin, {
+					$pool: data.selector,
+					coinAddress: params.coinAddress,
+				}, {
+					sources: [
+						Source.Curve_Rest,
+					],
+					fields: {
+						symbol: true,
+						name: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? 'Curve pool coin' : [pageSelection.entity.symbol, pageSelection.entity.name].filter(Boolean).join(' ') || 'Curve pool coin')} • Curve pool coin • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Curve pool coin'} • Curve pool coin • Blockhead</title>
 	{/if}
@@ -47,21 +50,23 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.CurvePoolCoin, {
-				$pool: data.selector,
-				coinAddress: params.coinAddress,
-			}, {
-				sources: [
-					Source.Curve_Rest,
-				],
-				fields: {
-					symbol: true,
-					name: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.CurvePoolCoin, {
+					$pool: data.selector,
+					coinAddress: params.coinAddress,
+				}, {
+					sources: [
+						Source.Curve_Rest,
+					],
+					fields: {
+						symbol: true,
+						name: true,
+					},
+				}))}
 
-	<CurvePoolCoinView
-		selection={pageSelection}
-	/>
+		<CurvePoolCoinView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

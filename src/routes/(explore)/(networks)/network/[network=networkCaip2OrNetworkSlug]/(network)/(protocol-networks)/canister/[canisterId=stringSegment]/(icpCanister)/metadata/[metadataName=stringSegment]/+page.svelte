@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -24,8 +25,10 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.IcpCanisterMetadata, data.selector)}
-		<title>{data?.title ?? 'ICP canister metadata'} • ICP canister metadata • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.IcpCanisterMetadata, data.selector))}
+			<title>{data?.title ?? 'ICP canister metadata'} • ICP canister metadata • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'ICP canister metadata'} • ICP canister metadata • Blockhead</title>
 	{/if}
@@ -34,10 +37,12 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.IcpCanisterMetadata, data.selector)}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.IcpCanisterMetadata, data.selector))}
 
-	<IcpCanisterMetadataView
-		selection={pageSelection}
-	/>
+		<IcpCanisterMetadataView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

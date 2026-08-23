@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -24,8 +25,10 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.Url, data.selector)}
-		<title>{data?.title ?? (pageSelection.entitySelector.url || 'URL')} • URL • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.Url, data.selector))}
+			<title>{data?.title ?? (pageSelection.entitySelector.url || 'URL')} • URL • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'URL'} • URL • Blockhead</title>
 	{/if}
@@ -34,10 +37,12 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.Url, data.selector)}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.Url, data.selector))}
 
-	<UrlView
-		selection={pageSelection}
-	/>
+		<UrlView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

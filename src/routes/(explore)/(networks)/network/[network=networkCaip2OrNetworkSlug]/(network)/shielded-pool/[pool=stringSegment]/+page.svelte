@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -24,8 +25,10 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.ZcashShieldedPool, data.selector)}
-		<title>{data?.title ?? (pageSelection.entitySelector.pool || 'Zcash shielded pool')} • Zcash shielded pool • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.ZcashShieldedPool, data.selector))}
+			<title>{data?.title ?? (pageSelection.entitySelector.pool || 'Zcash shielded pool')} • Zcash shielded pool • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Zcash shielded pool'} • Zcash shielded pool • Blockhead</title>
 	{/if}
@@ -34,10 +37,12 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.ZcashShieldedPool, data.selector)}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.ZcashShieldedPool, data.selector))}
 
-	<ZcashShieldedPoolView
-		selection={pageSelection}
-	/>
+		<ZcashShieldedPoolView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

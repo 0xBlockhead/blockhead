@@ -10,6 +10,7 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -42,18 +43,20 @@
 >
 	{#snippet Summary()}
 		{#if data?.selector != null}
-			<AiProviderApiOperationView
-				selection={
-					select(EntityType.AiProviderApiOperation, data.selector, {
-						sources: [
-							Source.Anthropic_Rest,
-							Source.OpenAI_Rest,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
+			{#key data.selector}
+				<AiProviderApiOperationView
+					selection={
+						untrack(() => select(EntityType.AiProviderApiOperation, data.selector, {
+							sources: [
+								Source.Anthropic_Rest,
+								Source.OpenAI_Rest,
+							],
+						}))
+					}
+					href={detailHref}
+					layout={EntityLayout.SummaryInline}
+				/>
+			{/key}
 		{/if}
 	{/snippet}
 

@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,19 +26,21 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.EvmTokenApproval, {
-				$log: data.selector,
-			}, {
-				sources: [
-					Source.Blockscout_Rest,
-					Source.Voltaire_JsonRpc,
-				],
-				fields: {
-					approvalKind: true,
-					standard: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? 'Token approval' : [pageSelection.entity.approvalKind, (pageSelection.entity.standard ?? '')].filter(Boolean).join(' ') || 'Token approval')} • Token approval • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.EvmTokenApproval, {
+					$log: data.selector,
+				}, {
+					sources: [
+						Source.Blockscout_Rest,
+						Source.Voltaire_JsonRpc,
+					],
+					fields: {
+						approvalKind: true,
+						standard: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? 'Token approval' : [pageSelection.entity.approvalKind, (pageSelection.entity.standard ?? '')].filter(Boolean).join(' ') || 'Token approval')} • Token approval • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Token approval'} • Token approval • Blockhead</title>
 	{/if}
@@ -46,21 +49,23 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.EvmTokenApproval, {
-				$log: data.selector,
-			}, {
-				sources: [
-					Source.Blockscout_Rest,
-					Source.Voltaire_JsonRpc,
-				],
-				fields: {
-					approvalKind: true,
-					standard: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.EvmTokenApproval, {
+					$log: data.selector,
+				}, {
+					sources: [
+						Source.Blockscout_Rest,
+						Source.Voltaire_JsonRpc,
+					],
+					fields: {
+						approvalKind: true,
+						standard: true,
+					},
+				}))}
 
-	<EvmTokenApprovalView
-		selection={pageSelection}
-	/>
+		<EvmTokenApprovalView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

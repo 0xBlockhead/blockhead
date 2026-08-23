@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -24,10 +25,12 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.Network_Activity_Day, data.selector, {
-				sources: [data.selector.source],
-			})}
-		<title>{data?.title ?? (String(pageSelection.entitySelector.dayStartTimestampMs) || 'network activity day')} • network activity day • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.Network_Activity_Day, data.selector, {
+					sources: [data.selector.source],
+				}))}
+			<title>{data?.title ?? (String(pageSelection.entitySelector.dayStartTimestampMs) || 'network activity day')} • network activity day • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'network activity day'} • network activity day • Blockhead</title>
 	{/if}
@@ -36,12 +39,14 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.Network_Activity_Day, data.selector, {
-				sources: [data.selector.source],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.Network_Activity_Day, data.selector, {
+					sources: [data.selector.source],
+				}))}
 
-	<Network_Activity_DayView
-		selection={pageSelection}
-	/>
+		<Network_Activity_DayView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

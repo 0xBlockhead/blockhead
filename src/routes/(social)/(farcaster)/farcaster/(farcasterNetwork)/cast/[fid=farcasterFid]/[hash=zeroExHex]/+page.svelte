@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,17 +26,19 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.FarcasterCast, data.selector, {
-				sources: [
-					Source.Snapchain_Rest,
-					Source.Neynar_Rest,
-					Source.Farcaster_Rest,
-				],
-				fields: {
-					text: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.hash ?? '') || 'Farcaster cast' : [(pageSelection.entity.text ?? ''), pageSelection.entitySelector.hash].filter(Boolean).join(' ') || 'Farcaster cast')} • Farcaster cast • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.FarcasterCast, data.selector, {
+					sources: [
+						Source.Snapchain_Rest,
+						Source.Neynar_Rest,
+						Source.Farcaster_Rest,
+					],
+					fields: {
+						text: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.hash ?? '') || 'Farcaster cast' : [(pageSelection.entity.text ?? ''), pageSelection.entitySelector.hash].filter(Boolean).join(' ') || 'Farcaster cast')} • Farcaster cast • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Farcaster cast'} • Farcaster cast • Blockhead</title>
 	{/if}
@@ -44,19 +47,21 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.FarcasterCast, data.selector, {
-				sources: [
-					Source.Snapchain_Rest,
-					Source.Neynar_Rest,
-					Source.Farcaster_Rest,
-				],
-				fields: {
-					text: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.FarcasterCast, data.selector, {
+					sources: [
+						Source.Snapchain_Rest,
+						Source.Neynar_Rest,
+						Source.Farcaster_Rest,
+					],
+					fields: {
+						text: true,
+					},
+				}))}
 
-	<FarcasterCastView
-		selection={pageSelection}
-	/>
+		<FarcasterCastView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

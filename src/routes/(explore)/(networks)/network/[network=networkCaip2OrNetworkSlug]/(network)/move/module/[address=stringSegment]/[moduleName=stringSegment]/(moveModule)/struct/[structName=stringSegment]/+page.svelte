@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,11 +26,13 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.MoveStruct, {
-				$module: data.selector,
-				structName: params.structName,
-			})}
-		<title>{data?.title ?? (pageSelection.entitySelector.structName || 'move struct')} • move struct • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.MoveStruct, {
+					$module: data.selector,
+					structName: params.structName,
+				}))}
+			<title>{data?.title ?? (pageSelection.entitySelector.structName || 'move struct')} • move struct • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'move struct'} • move struct • Blockhead</title>
 	{/if}
@@ -38,13 +41,15 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.MoveStruct, {
-				$module: data.selector,
-				structName: params.structName,
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.MoveStruct, {
+					$module: data.selector,
+					structName: params.structName,
+				}))}
 
-	<MoveStructView
-		selection={pageSelection}
-	/>
+		<MoveStructView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

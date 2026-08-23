@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,15 +26,17 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.SuiCoinBalance_Timestamp, {
-				$account: data.selector,
-				coinType: params.coinType,
-				timestampMs: Number(params.timestampMs),
-				source: params.source,
-			}, {
-				sources: [params.source],
-			})}
-		<title>{data?.title ?? 'Sui coin balance timestamp'} • Sui coin balance timestamp • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.SuiCoinBalance_Timestamp, {
+					$account: data.selector,
+					coinType: params.coinType,
+					timestampMs: Number(params.timestampMs),
+					source: params.source,
+				}, {
+					sources: [params.source],
+				}))}
+			<title>{data?.title ?? 'Sui coin balance timestamp'} • Sui coin balance timestamp • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Sui coin balance timestamp'} • Sui coin balance timestamp • Blockhead</title>
 	{/if}
@@ -42,17 +45,19 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.SuiCoinBalance_Timestamp, {
-				$account: data.selector,
-				coinType: params.coinType,
-				timestampMs: Number(params.timestampMs),
-				source: params.source,
-			}, {
-				sources: [params.source],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.SuiCoinBalance_Timestamp, {
+					$account: data.selector,
+					coinType: params.coinType,
+					timestampMs: Number(params.timestampMs),
+					source: params.source,
+				}, {
+					sources: [params.source],
+				}))}
 
-	<SuiCoinBalance_TimestampView
-		selection={pageSelection}
-	/>
+		<SuiCoinBalance_TimestampView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

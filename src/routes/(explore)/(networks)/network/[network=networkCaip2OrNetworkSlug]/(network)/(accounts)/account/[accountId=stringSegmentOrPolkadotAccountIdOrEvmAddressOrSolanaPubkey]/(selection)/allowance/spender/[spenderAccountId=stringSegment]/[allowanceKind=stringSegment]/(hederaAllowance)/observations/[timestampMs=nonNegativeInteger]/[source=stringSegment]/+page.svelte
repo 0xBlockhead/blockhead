@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,14 +26,16 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.HederaAllowance_Timestamp, {
-				$allowance: data.selector,
-				timestampMs: Number(params.timestampMs),
-				source: params.source,
-			}, {
-				sources: [params.source],
-			})}
-		<title>{data?.title ?? 'hedera allowance timestamp'} • hedera allowance timestamp • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.HederaAllowance_Timestamp, {
+					$allowance: data.selector,
+					timestampMs: Number(params.timestampMs),
+					source: params.source,
+				}, {
+					sources: [params.source],
+				}))}
+			<title>{data?.title ?? 'hedera allowance timestamp'} • hedera allowance timestamp • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'hedera allowance timestamp'} • hedera allowance timestamp • Blockhead</title>
 	{/if}
@@ -41,16 +44,18 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.HederaAllowance_Timestamp, {
-				$allowance: data.selector,
-				timestampMs: Number(params.timestampMs),
-				source: params.source,
-			}, {
-				sources: [params.source],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.HederaAllowance_Timestamp, {
+					$allowance: data.selector,
+					timestampMs: Number(params.timestampMs),
+					source: params.source,
+				}, {
+					sources: [params.source],
+				}))}
 
-	<HederaAllowance_TimestampView
-		selection={pageSelection}
-	/>
+		<HederaAllowance_TimestampView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

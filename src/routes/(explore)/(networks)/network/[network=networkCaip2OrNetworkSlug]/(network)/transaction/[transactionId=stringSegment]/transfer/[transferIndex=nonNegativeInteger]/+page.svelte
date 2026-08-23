@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,12 +26,14 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.TronTokenTransfer, {
-				$network: data.selector,
-				transactionId: params.transactionId,
-				transferIndex: Number(params.transferIndex),
-			})}
-		<title>{data?.title ?? 'tron token transfer'} • tron token transfer • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.TronTokenTransfer, {
+					$network: data.selector,
+					transactionId: params.transactionId,
+					transferIndex: Number(params.transferIndex),
+				}))}
+			<title>{data?.title ?? 'tron token transfer'} • tron token transfer • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'tron token transfer'} • tron token transfer • Blockhead</title>
 	{/if}
@@ -39,14 +42,16 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.TronTokenTransfer, {
-				$network: data.selector,
-				transactionId: params.transactionId,
-				transferIndex: Number(params.transferIndex),
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.TronTokenTransfer, {
+					$network: data.selector,
+					transactionId: params.transactionId,
+					transferIndex: Number(params.transferIndex),
+				}))}
 
-	<TronTokenTransferView
-		selection={pageSelection}
-	/>
+		<TronTokenTransferView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

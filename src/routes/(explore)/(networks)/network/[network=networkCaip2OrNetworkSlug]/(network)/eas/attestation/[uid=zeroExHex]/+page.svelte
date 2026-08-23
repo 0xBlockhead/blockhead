@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,12 +26,14 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.EasAttestation, data.selector, {
-				sources: [
-					Source.EasScan_Graphql,
-				],
-			})}
-		<title>{data?.title ?? (pageSelection.entitySelector.uid || 'EAS attestation')} • EAS attestation • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.EasAttestation, data.selector, {
+					sources: [
+						Source.EasScan_Graphql,
+					],
+				}))}
+			<title>{data?.title ?? (pageSelection.entitySelector.uid || 'EAS attestation')} • EAS attestation • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'EAS attestation'} • EAS attestation • Blockhead</title>
 	{/if}
@@ -39,14 +42,16 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.EasAttestation, data.selector, {
-				sources: [
-					Source.EasScan_Graphql,
-				],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.EasAttestation, data.selector, {
+					sources: [
+						Source.EasScan_Graphql,
+					],
+				}))}
 
-	<EasAttestationView
-		selection={pageSelection}
-	/>
+		<EasAttestationView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

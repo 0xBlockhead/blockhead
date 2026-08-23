@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -24,12 +25,14 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.ArweaveResource, data.selector, {
-				fields: {
-					canonicalUri: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.transactionId ?? '') || 'arweave resource' : pageSelection.entity.canonicalUri || pageSelection.entitySelector.transactionId || 'arweave resource')} • arweave resource • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.ArweaveResource, data.selector, {
+					fields: {
+						canonicalUri: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.transactionId ?? '') || 'arweave resource' : pageSelection.entity.canonicalUri || pageSelection.entitySelector.transactionId || 'arweave resource')} • arweave resource • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'arweave resource'} • arweave resource • Blockhead</title>
 	{/if}
@@ -38,14 +41,16 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.ArweaveResource, data.selector, {
-				fields: {
-					canonicalUri: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.ArweaveResource, data.selector, {
+					fields: {
+						canonicalUri: true,
+					},
+				}))}
 
-	<ArweaveResourceView
-		selection={pageSelection}
-	/>
+		<ArweaveResourceView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

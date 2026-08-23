@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,24 +26,26 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.EigenLayerDelegation_Timestamp, {
-				$staker: {
-					$network: data.selector.$network,
-					$actor: {
-						address: params.stakerAddress,
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.EigenLayerDelegation_Timestamp, {
+					$staker: {
+						$network: data.selector.$network,
+						$actor: {
+							address: params.stakerAddress,
+						},
 					},
-				},
-				$operator: data.selector,
-				$strategy: {
-					$network: data.selector.$network,
-					strategyAddress: params.strategyAddress,
-				},
-				timestampMs: Number(params.timestampMs),
-				source: params.source,
-			}, {
-				sources: [params.source],
-			})}
-		<title>{data?.title ?? 'eigen layer delegation timestamp'} • eigen layer delegation timestamp • Blockhead</title>
+					$operator: data.selector,
+					$strategy: {
+						$network: data.selector.$network,
+						strategyAddress: params.strategyAddress,
+					},
+					timestampMs: Number(params.timestampMs),
+					source: params.source,
+				}, {
+					sources: [params.source],
+				}))}
+			<title>{data?.title ?? 'eigen layer delegation timestamp'} • eigen layer delegation timestamp • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'eigen layer delegation timestamp'} • eigen layer delegation timestamp • Blockhead</title>
 	{/if}
@@ -51,26 +54,28 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.EigenLayerDelegation_Timestamp, {
-				$staker: {
-					$network: data.selector.$network,
-					$actor: {
-						address: params.stakerAddress,
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.EigenLayerDelegation_Timestamp, {
+					$staker: {
+						$network: data.selector.$network,
+						$actor: {
+							address: params.stakerAddress,
+						},
 					},
-				},
-				$operator: data.selector,
-				$strategy: {
-					$network: data.selector.$network,
-					strategyAddress: params.strategyAddress,
-				},
-				timestampMs: Number(params.timestampMs),
-				source: params.source,
-			}, {
-				sources: [params.source],
-			})}
+					$operator: data.selector,
+					$strategy: {
+						$network: data.selector.$network,
+						strategyAddress: params.strategyAddress,
+					},
+					timestampMs: Number(params.timestampMs),
+					source: params.source,
+				}, {
+					sources: [params.source],
+				}))}
 
-	<EigenLayerDelegation_TimestampView
-		selection={pageSelection}
-	/>
+		<EigenLayerDelegation_TimestampView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

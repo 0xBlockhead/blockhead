@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,12 +26,14 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.EvmUserOperation, data.selector, {
-				sources: [
-					Source.Blockscout_Rest,
-				],
-			})}
-		<title>{data?.title ?? (pageSelection.entitySelector.hash || 'User operation')} • User operation • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.EvmUserOperation, data.selector, {
+					sources: [
+						Source.Blockscout_Rest,
+					],
+				}))}
+			<title>{data?.title ?? (pageSelection.entitySelector.hash || 'User operation')} • User operation • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'User operation'} • User operation • Blockhead</title>
 	{/if}
@@ -39,14 +42,16 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.EvmUserOperation, data.selector, {
-				sources: [
-					Source.Blockscout_Rest,
-				],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.EvmUserOperation, data.selector, {
+					sources: [
+						Source.Blockscout_Rest,
+					],
+				}))}
 
-	<EvmUserOperationView
-		selection={pageSelection}
-	/>
+		<EvmUserOperationView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

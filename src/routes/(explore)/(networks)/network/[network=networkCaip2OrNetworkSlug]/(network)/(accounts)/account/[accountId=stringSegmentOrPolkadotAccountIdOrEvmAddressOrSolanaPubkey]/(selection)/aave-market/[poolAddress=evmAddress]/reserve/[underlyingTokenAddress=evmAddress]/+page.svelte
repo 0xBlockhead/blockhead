@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -26,19 +27,21 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.AaveReservePosition, {
-				$account: data.selector,
-				poolAddress: params.poolAddress,
-				underlyingTokenAddress: params.underlyingTokenAddress,
-			}, {
-				sources: [
-					Source.Aave_Rest,
-				],
-				fields: {
-					symbol: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? 'Aave reserve position' : pageSelection.entity.symbol || 'Aave reserve position')} • Aave reserve position • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.AaveReservePosition, {
+					$account: data.selector,
+					poolAddress: params.poolAddress,
+					underlyingTokenAddress: params.underlyingTokenAddress,
+				}, {
+					sources: [
+						Source.Aave_Rest,
+					],
+					fields: {
+						symbol: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? 'Aave reserve position' : pageSelection.entity.symbol || 'Aave reserve position')} • Aave reserve position • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Aave reserve position'} • Aave reserve position • Blockhead</title>
 	{/if}
@@ -47,21 +50,23 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.AaveReservePosition, {
-				$account: data.selector,
-				poolAddress: params.poolAddress,
-				underlyingTokenAddress: params.underlyingTokenAddress,
-			}, {
-				sources: [
-					Source.Aave_Rest,
-				],
-				fields: {
-					symbol: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.AaveReservePosition, {
+					$account: data.selector,
+					poolAddress: params.poolAddress,
+					underlyingTokenAddress: params.underlyingTokenAddress,
+				}, {
+					sources: [
+						Source.Aave_Rest,
+					],
+					fields: {
+						symbol: true,
+					},
+				}))}
 
-	<AaveReservePositionView
-		selection={pageSelection}
-	/>
+		<AaveReservePositionView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

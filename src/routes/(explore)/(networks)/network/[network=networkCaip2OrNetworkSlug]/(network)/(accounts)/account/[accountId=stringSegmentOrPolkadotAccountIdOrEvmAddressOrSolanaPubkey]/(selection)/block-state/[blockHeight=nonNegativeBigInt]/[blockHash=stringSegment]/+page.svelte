@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -26,19 +27,21 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.NearAccount_Block, {
-				$account: data.selector,
-				$block: {
-					$network: data.selector.$network,
-					height: BigInt(params.blockHeight),
-					hash: params.blockHash,
-				},
-			}, {
-				sources: [
-					Source.NearRpc_JsonRpc,
-				],
-			})}
-		<title>{data?.title ?? 'near account block state'} • near account block state • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.NearAccount_Block, {
+					$account: data.selector,
+					$block: {
+						$network: data.selector.$network,
+						height: BigInt(params.blockHeight),
+						hash: params.blockHash,
+					},
+				}, {
+					sources: [
+						Source.NearRpc_JsonRpc,
+					],
+				}))}
+			<title>{data?.title ?? 'near account block state'} • near account block state • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'near account block state'} • near account block state • Blockhead</title>
 	{/if}
@@ -47,21 +50,23 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.NearAccount_Block, {
-				$account: data.selector,
-				$block: {
-					$network: data.selector.$network,
-					height: BigInt(params.blockHeight),
-					hash: params.blockHash,
-				},
-			}, {
-				sources: [
-					Source.NearRpc_JsonRpc,
-				],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.NearAccount_Block, {
+					$account: data.selector,
+					$block: {
+						$network: data.selector.$network,
+						height: BigInt(params.blockHeight),
+						hash: params.blockHash,
+					},
+				}, {
+					sources: [
+						Source.NearRpc_JsonRpc,
+					],
+				}))}
 
-	<NearAccount_BlockView
-		selection={pageSelection}
-	/>
+		<NearAccount_BlockView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

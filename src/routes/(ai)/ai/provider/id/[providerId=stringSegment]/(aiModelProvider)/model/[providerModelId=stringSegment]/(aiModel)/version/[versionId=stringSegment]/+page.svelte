@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -26,19 +27,21 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.AiModelVersion, {
-				$model: data.selector,
-				versionId: params.versionId,
-			}, {
-				sources: [
-					Source.HuggingFaceHub_Rest,
-					Source.Mlflow_Rest,
-				],
-				fields: {
-					revision: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.versionId ?? '') || 'AI model version' : (pageSelection.entitySelector.versionId ?? '') || (pageSelection.entity.revision ?? '') || 'AI model version')} • AI model version • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.AiModelVersion, {
+					$model: data.selector,
+					versionId: params.versionId,
+				}, {
+					sources: [
+						Source.HuggingFaceHub_Rest,
+						Source.Mlflow_Rest,
+					],
+					fields: {
+						revision: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.versionId ?? '') || 'AI model version' : (pageSelection.entitySelector.versionId ?? '') || (pageSelection.entity.revision ?? '') || 'AI model version')} • AI model version • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'AI model version'} • AI model version • Blockhead</title>
 	{/if}
@@ -47,21 +50,23 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.AiModelVersion, {
-				$model: data.selector,
-				versionId: params.versionId,
-			}, {
-				sources: [
-					Source.HuggingFaceHub_Rest,
-					Source.Mlflow_Rest,
-				],
-				fields: {
-					revision: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.AiModelVersion, {
+					$model: data.selector,
+					versionId: params.versionId,
+				}, {
+					sources: [
+						Source.HuggingFaceHub_Rest,
+						Source.Mlflow_Rest,
+					],
+					fields: {
+						revision: true,
+					},
+				}))}
 
-	<AiModelVersionView
-		selection={pageSelection}
-	/>
+		<AiModelVersionView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

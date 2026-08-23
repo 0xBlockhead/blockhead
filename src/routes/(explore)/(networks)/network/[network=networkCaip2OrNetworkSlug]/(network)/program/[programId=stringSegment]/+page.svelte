@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -24,8 +25,10 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.SolanaProgram, data.selector)}
-		<title>{data?.title ?? (pageSelection.entitySelector.programId || 'solana program')} • solana program • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.SolanaProgram, data.selector))}
+			<title>{data?.title ?? (pageSelection.entitySelector.programId || 'solana program')} • solana program • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'solana program'} • solana program • Blockhead</title>
 	{/if}
@@ -34,10 +37,12 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.SolanaProgram, data.selector)}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.SolanaProgram, data.selector))}
 
-	<SolanaProgramView
-		selection={pageSelection}
-	/>
+		<SolanaProgramView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

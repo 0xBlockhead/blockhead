@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,14 +26,16 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.IcpSubnet_Timestamp, {
-				$subnet: data.selector,
-				timestampMs: Number(params.timestampMs),
-				source: params.source,
-			}, {
-				sources: [params.source],
-			})}
-		<title>{data?.title ?? 'ICP subnet timestamp'} • ICP subnet timestamp • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.IcpSubnet_Timestamp, {
+					$subnet: data.selector,
+					timestampMs: Number(params.timestampMs),
+					source: params.source,
+				}, {
+					sources: [params.source],
+				}))}
+			<title>{data?.title ?? 'ICP subnet timestamp'} • ICP subnet timestamp • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'ICP subnet timestamp'} • ICP subnet timestamp • Blockhead</title>
 	{/if}
@@ -41,16 +44,18 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.IcpSubnet_Timestamp, {
-				$subnet: data.selector,
-				timestampMs: Number(params.timestampMs),
-				source: params.source,
-			}, {
-				sources: [params.source],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.IcpSubnet_Timestamp, {
+					$subnet: data.selector,
+					timestampMs: Number(params.timestampMs),
+					source: params.source,
+				}, {
+					sources: [params.source],
+				}))}
 
-	<IcpSubnet_TimestampView
-		selection={pageSelection}
-	/>
+		<IcpSubnet_TimestampView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

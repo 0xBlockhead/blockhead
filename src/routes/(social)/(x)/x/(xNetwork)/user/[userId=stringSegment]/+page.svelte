@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,17 +26,19 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.XUser, data.selector, {
-				sources: [
-					Source.X_Rest,
-					Source.X_FxEmbed_Rest,
-				],
-				fields: {
-					name: true,
-					username: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.id ?? '') || 'X user' : [(pageSelection.entity.name ?? ''), pageSelection.entity.username, pageSelection.entitySelector.id].filter(Boolean).join(' ') || 'X user')} • X user • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.XUser, data.selector, {
+					sources: [
+						Source.X_Rest,
+						Source.X_FxEmbed_Rest,
+					],
+					fields: {
+						name: true,
+						username: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.id ?? '') || 'X user' : [(pageSelection.entity.name ?? ''), pageSelection.entity.username, pageSelection.entitySelector.id].filter(Boolean).join(' ') || 'X user')} • X user • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'X user'} • X user • Blockhead</title>
 	{/if}
@@ -44,19 +47,21 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.XUser, data.selector, {
-				sources: [
-					Source.X_Rest,
-					Source.X_FxEmbed_Rest,
-				],
-				fields: {
-					name: true,
-					username: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.XUser, data.selector, {
+					sources: [
+						Source.X_Rest,
+						Source.X_FxEmbed_Rest,
+					],
+					fields: {
+						name: true,
+						username: true,
+					},
+				}))}
 
-	<XUserView
-		selection={pageSelection}
-	/>
+		<XUserView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

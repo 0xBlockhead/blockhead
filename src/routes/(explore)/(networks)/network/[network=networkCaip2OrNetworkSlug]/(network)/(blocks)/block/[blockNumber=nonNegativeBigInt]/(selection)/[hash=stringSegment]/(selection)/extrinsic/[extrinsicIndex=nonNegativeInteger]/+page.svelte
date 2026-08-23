@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,11 +26,13 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.PolkadotExtrinsic, {
-				$block: data.selector,
-				indexInBlock: Number(params.extrinsicIndex),
-			})}
-		<title>{data?.title ?? ((String(pageSelection.entitySelector.indexInBlock ?? '') ? 'Extrinsic #' + String(pageSelection.entitySelector.indexInBlock ?? '') : '') || 'Polkadot extrinsic')} • Polkadot extrinsic • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.PolkadotExtrinsic, {
+					$block: data.selector,
+					indexInBlock: Number(params.extrinsicIndex),
+				}))}
+			<title>{data?.title ?? ((String(pageSelection.entitySelector.indexInBlock ?? '') ? 'Extrinsic #' + String(pageSelection.entitySelector.indexInBlock ?? '') : '') || 'Polkadot extrinsic')} • Polkadot extrinsic • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Polkadot extrinsic'} • Polkadot extrinsic • Blockhead</title>
 	{/if}
@@ -38,13 +41,15 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.PolkadotExtrinsic, {
-				$block: data.selector,
-				indexInBlock: Number(params.extrinsicIndex),
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.PolkadotExtrinsic, {
+					$block: data.selector,
+					indexInBlock: Number(params.extrinsicIndex),
+				}))}
 
-	<PolkadotExtrinsicView
-		selection={pageSelection}
-	/>
+		<PolkadotExtrinsicView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

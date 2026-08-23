@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -24,8 +25,10 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.PolkadotPallet, data.selector)}
-		<title>{data?.title ?? (pageSelection.entitySelector.palletName || 'Polkadot pallet')} • Polkadot pallet • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.PolkadotPallet, data.selector))}
+			<title>{data?.title ?? (pageSelection.entitySelector.palletName || 'Polkadot pallet')} • Polkadot pallet • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Polkadot pallet'} • Polkadot pallet • Blockhead</title>
 	{/if}
@@ -34,10 +37,12 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.PolkadotPallet, data.selector)}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.PolkadotPallet, data.selector))}
 
-	<PolkadotPalletView
-		selection={pageSelection}
-	/>
+		<PolkadotPalletView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,11 +26,13 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.HyperliquidSpotPair, {
-				$network: data.selector.$network,
-				pairIndex: Number(params.pairIndex),
-			})}
-		<title>{data?.title ?? 'hyperliquid spot pair'} • hyperliquid spot pair • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.HyperliquidSpotPair, {
+					$network: data.selector.$network,
+					pairIndex: Number(params.pairIndex),
+				}))}
+			<title>{data?.title ?? 'hyperliquid spot pair'} • hyperliquid spot pair • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'hyperliquid spot pair'} • hyperliquid spot pair • Blockhead</title>
 	{/if}
@@ -38,13 +41,15 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.HyperliquidSpotPair, {
-				$network: data.selector.$network,
-				pairIndex: Number(params.pairIndex),
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.HyperliquidSpotPair, {
+					$network: data.selector.$network,
+					pairIndex: Number(params.pairIndex),
+				}))}
 
-	<HyperliquidSpotPairView
-		selection={pageSelection}
-	/>
+		<HyperliquidSpotPairView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

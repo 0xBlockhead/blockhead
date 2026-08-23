@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,11 +26,13 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.HederaTopicMessage, {
-				$topic: data.selector,
-				sequenceNumber: BigInt(params.sequenceNumber),
-			})}
-		<title>{data?.title ?? 'hedera topic message'} • hedera topic message • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.HederaTopicMessage, {
+					$topic: data.selector,
+					sequenceNumber: BigInt(params.sequenceNumber),
+				}))}
+			<title>{data?.title ?? 'hedera topic message'} • hedera topic message • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'hedera topic message'} • hedera topic message • Blockhead</title>
 	{/if}
@@ -38,13 +41,15 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.HederaTopicMessage, {
-				$topic: data.selector,
-				sequenceNumber: BigInt(params.sequenceNumber),
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.HederaTopicMessage, {
+					$topic: data.selector,
+					sequenceNumber: BigInt(params.sequenceNumber),
+				}))}
 
-	<HederaTopicMessageView
-		selection={pageSelection}
-	/>
+		<HederaTopicMessageView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

@@ -10,6 +10,7 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -42,17 +43,19 @@
 >
 	{#snippet Summary()}
 		{#if data?.selector != null}
-			<McpToolCallView
-				selection={
-					select(EntityType.McpToolCall, data.selector, {
-						sources: [
-							Source.McpDeclared_Protocol,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
+			{#key data.selector}
+				<McpToolCallView
+					selection={
+						untrack(() => select(EntityType.McpToolCall, data.selector, {
+							sources: [
+								Source.McpDeclared_Protocol,
+							],
+						}))
+					}
+					href={detailHref}
+					layout={EntityLayout.SummaryInline}
+				/>
+			{/key}
 		{/if}
 	{/snippet}
 

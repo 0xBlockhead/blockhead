@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,17 +26,19 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BitcoinCashCashTokenNft, {
-				$output: data.selector,
-			}, {
-				sources: [
-					Source.BitcoinCashNode_JsonRpc,
-				],
-				fields: {
-					capability: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? 'Bitcoin Cash CashToken NFT' : pageSelection.entity.capability || 'Bitcoin Cash CashToken NFT')} • Bitcoin Cash CashToken NFT • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BitcoinCashCashTokenNft, {
+					$output: data.selector,
+				}, {
+					sources: [
+						Source.BitcoinCashNode_JsonRpc,
+					],
+					fields: {
+						capability: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? 'Bitcoin Cash CashToken NFT' : pageSelection.entity.capability || 'Bitcoin Cash CashToken NFT')} • Bitcoin Cash CashToken NFT • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Bitcoin Cash CashToken NFT'} • Bitcoin Cash CashToken NFT • Blockhead</title>
 	{/if}
@@ -44,19 +47,21 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BitcoinCashCashTokenNft, {
-				$output: data.selector,
-			}, {
-				sources: [
-					Source.BitcoinCashNode_JsonRpc,
-				],
-				fields: {
-					capability: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BitcoinCashCashTokenNft, {
+					$output: data.selector,
+				}, {
+					sources: [
+						Source.BitcoinCashNode_JsonRpc,
+					],
+					fields: {
+						capability: true,
+					},
+				}))}
 
-	<BitcoinCashCashTokenNftView
-		selection={pageSelection}
-	/>
+		<BitcoinCashCashTokenNftView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

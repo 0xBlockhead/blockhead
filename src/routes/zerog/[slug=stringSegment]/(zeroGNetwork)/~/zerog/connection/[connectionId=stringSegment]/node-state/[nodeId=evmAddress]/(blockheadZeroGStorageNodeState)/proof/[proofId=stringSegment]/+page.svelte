@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -26,16 +27,18 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BlockheadZeroGStorageProof, {
-				$nodeState: data.selector,
-				proofId: params.proofId,
-			}, {
-				sources: [
-					Source.Local_Internal,
-					Source.ZeroGStorageNode_JsonRpc,
-				],
-			})}
-		<title>{data?.title ?? (pageSelection.entitySelector.proofId || 'blockhead zero g storage proof')} • blockhead zero g storage proof • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BlockheadZeroGStorageProof, {
+					$nodeState: data.selector,
+					proofId: params.proofId,
+				}, {
+					sources: [
+						Source.Local_Internal,
+						Source.ZeroGStorageNode_JsonRpc,
+					],
+				}))}
+			<title>{data?.title ?? (pageSelection.entitySelector.proofId || 'blockhead zero g storage proof')} • blockhead zero g storage proof • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'blockhead zero g storage proof'} • blockhead zero g storage proof • Blockhead</title>
 	{/if}
@@ -44,18 +47,20 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BlockheadZeroGStorageProof, {
-				$nodeState: data.selector,
-				proofId: params.proofId,
-			}, {
-				sources: [
-					Source.Local_Internal,
-					Source.ZeroGStorageNode_JsonRpc,
-				],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BlockheadZeroGStorageProof, {
+					$nodeState: data.selector,
+					proofId: params.proofId,
+				}, {
+					sources: [
+						Source.Local_Internal,
+						Source.ZeroGStorageNode_JsonRpc,
+					],
+				}))}
 
-	<BlockheadZeroGStorageProofView
-		selection={pageSelection}
-	/>
+		<BlockheadZeroGStorageProofView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

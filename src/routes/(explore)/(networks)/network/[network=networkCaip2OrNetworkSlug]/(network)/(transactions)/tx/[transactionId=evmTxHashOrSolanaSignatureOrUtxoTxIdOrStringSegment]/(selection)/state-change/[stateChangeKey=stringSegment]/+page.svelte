@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,15 +26,17 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.EvmStateChange, {
-				$transaction: data.selector,
-				stateChangeKey: decodeURIComponent(params.stateChangeKey),
-			}, {
-				fields: {
-					kind: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? 'EVM state change' : pageSelection.entity.kind || 'EVM state change')} • EVM state change • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.EvmStateChange, {
+					$transaction: data.selector,
+					stateChangeKey: decodeURIComponent(params.stateChangeKey),
+				}, {
+					fields: {
+						kind: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? 'EVM state change' : pageSelection.entity.kind || 'EVM state change')} • EVM state change • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'EVM state change'} • EVM state change • Blockhead</title>
 	{/if}
@@ -42,17 +45,19 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.EvmStateChange, {
-				$transaction: data.selector,
-				stateChangeKey: decodeURIComponent(params.stateChangeKey),
-			}, {
-				fields: {
-					kind: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.EvmStateChange, {
+					$transaction: data.selector,
+					stateChangeKey: decodeURIComponent(params.stateChangeKey),
+				}, {
+					fields: {
+						kind: true,
+					},
+				}))}
 
-	<EvmStateChangeView
-		selection={pageSelection}
-	/>
+		<EvmStateChangeView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

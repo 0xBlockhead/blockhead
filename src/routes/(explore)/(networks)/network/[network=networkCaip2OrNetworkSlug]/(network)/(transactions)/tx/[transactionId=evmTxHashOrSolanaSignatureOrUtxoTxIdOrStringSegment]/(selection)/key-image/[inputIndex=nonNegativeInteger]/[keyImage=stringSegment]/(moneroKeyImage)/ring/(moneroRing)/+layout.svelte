@@ -10,6 +10,7 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -44,17 +45,19 @@
 >
 	{#snippet Summary()}
 		{#if data?.selector != null}
-			<MoneroRingView
-				selection={
-					select(EntityType.MoneroRing, data.selector, {
-						sources: [
-							Source.MoneroDaemonRpc_JsonRpc,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
+			{#key data.selector}
+				<MoneroRingView
+					selection={
+						untrack(() => select(EntityType.MoneroRing, data.selector, {
+							sources: [
+								Source.MoneroDaemonRpc_JsonRpc,
+							],
+						}))
+					}
+					href={detailHref}
+					layout={EntityLayout.SummaryInline}
+				/>
+			{/key}
 		{/if}
 	{/snippet}
 

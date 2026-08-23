@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,15 +26,17 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BlockheadBitTorrentTransfer_Timestamp, {
-				$client: data.selector,
-				$torrent: {
-					infoHash: params.infoHash,
-					hashVersion: params.hashVersion,
-				},
-				timestampMs: Number(params.timestampMs),
-			})}
-		<title>{data?.title ?? (String(pageSelection.entitySelector.timestampMs) || 'blockhead bit torrent transfer timestamp')} • blockhead bit torrent transfer timestamp • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BlockheadBitTorrentTransfer_Timestamp, {
+					$client: data.selector,
+					$torrent: {
+						infoHash: params.infoHash,
+						hashVersion: params.hashVersion,
+					},
+					timestampMs: Number(params.timestampMs),
+				}))}
+			<title>{data?.title ?? (String(pageSelection.entitySelector.timestampMs) || 'blockhead bit torrent transfer timestamp')} • blockhead bit torrent transfer timestamp • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'blockhead bit torrent transfer timestamp'} • blockhead bit torrent transfer timestamp • Blockhead</title>
 	{/if}
@@ -42,17 +45,19 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BlockheadBitTorrentTransfer_Timestamp, {
-				$client: data.selector,
-				$torrent: {
-					infoHash: params.infoHash,
-					hashVersion: params.hashVersion,
-				},
-				timestampMs: Number(params.timestampMs),
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BlockheadBitTorrentTransfer_Timestamp, {
+					$client: data.selector,
+					$torrent: {
+						infoHash: params.infoHash,
+						hashVersion: params.hashVersion,
+					},
+					timestampMs: Number(params.timestampMs),
+				}))}
 
-	<BlockheadBitTorrentTransfer_TimestampView
-		selection={pageSelection}
-	/>
+		<BlockheadBitTorrentTransfer_TimestampView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

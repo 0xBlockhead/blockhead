@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,15 +26,17 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BnbBeaconTokenTransfer, {
-				$transaction: data.selector,
-				transferIndex: Number(params.transferIndex),
-			}, {
-				fields: {
-					symbol: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? 'bnb beacon token transfer' : pageSelection.entity.symbol || 'bnb beacon token transfer')} • bnb beacon token transfer • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BnbBeaconTokenTransfer, {
+					$transaction: data.selector,
+					transferIndex: Number(params.transferIndex),
+				}, {
+					fields: {
+						symbol: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? 'bnb beacon token transfer' : pageSelection.entity.symbol || 'bnb beacon token transfer')} • bnb beacon token transfer • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'bnb beacon token transfer'} • bnb beacon token transfer • Blockhead</title>
 	{/if}
@@ -42,17 +45,19 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BnbBeaconTokenTransfer, {
-				$transaction: data.selector,
-				transferIndex: Number(params.transferIndex),
-			}, {
-				fields: {
-					symbol: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BnbBeaconTokenTransfer, {
+					$transaction: data.selector,
+					transferIndex: Number(params.transferIndex),
+				}, {
+					fields: {
+						symbol: true,
+					},
+				}))}
 
-	<BnbBeaconTokenTransferView
-		selection={pageSelection}
-	/>
+		<BnbBeaconTokenTransferView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

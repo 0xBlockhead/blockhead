@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -24,13 +25,15 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.A2aAgentCard_Snapshot, data.selector, {
-				sources: [],
-				fields: {
-					name: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.contentHash ?? '') || 'A2A agent card snapshot' : (pageSelection.entity.name ?? '') || pageSelection.entitySelector.contentHash || 'A2A agent card snapshot')} • A2A agent card snapshot • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.A2aAgentCard_Snapshot, data.selector, {
+					sources: [],
+					fields: {
+						name: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.contentHash ?? '') || 'A2A agent card snapshot' : (pageSelection.entity.name ?? '') || pageSelection.entitySelector.contentHash || 'A2A agent card snapshot')} • A2A agent card snapshot • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'A2A agent card snapshot'} • A2A agent card snapshot • Blockhead</title>
 	{/if}
@@ -39,15 +42,17 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.A2aAgentCard_Snapshot, data.selector, {
-				sources: [],
-				fields: {
-					name: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.A2aAgentCard_Snapshot, data.selector, {
+					sources: [],
+					fields: {
+						name: true,
+					},
+				}))}
 
-	<A2aAgentCard_SnapshotView
-		selection={pageSelection}
-	/>
+		<A2aAgentCard_SnapshotView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

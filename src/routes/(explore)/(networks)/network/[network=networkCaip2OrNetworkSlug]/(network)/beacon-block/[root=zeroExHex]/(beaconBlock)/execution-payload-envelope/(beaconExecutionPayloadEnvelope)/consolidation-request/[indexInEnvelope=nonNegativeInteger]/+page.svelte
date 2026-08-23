@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -26,15 +27,17 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BeaconExecutionConsolidationRequest, {
-				$envelope: data.selector,
-				indexInEnvelope: Number(params.indexInEnvelope),
-			}, {
-				sources: [
-					Source.Beacon_Rest,
-				],
-			})}
-		<title>{data?.title ?? ((String(pageSelection.entitySelector.indexInEnvelope ?? '') ? 'Consolidation request #' + String(pageSelection.entitySelector.indexInEnvelope ?? '') : '') || 'Beacon execution consolidation request')} • Beacon execution consolidation request • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BeaconExecutionConsolidationRequest, {
+					$envelope: data.selector,
+					indexInEnvelope: Number(params.indexInEnvelope),
+				}, {
+					sources: [
+						Source.Beacon_Rest,
+					],
+				}))}
+			<title>{data?.title ?? ((String(pageSelection.entitySelector.indexInEnvelope ?? '') ? 'Consolidation request #' + String(pageSelection.entitySelector.indexInEnvelope ?? '') : '') || 'Beacon execution consolidation request')} • Beacon execution consolidation request • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Beacon execution consolidation request'} • Beacon execution consolidation request • Blockhead</title>
 	{/if}
@@ -43,17 +46,19 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BeaconExecutionConsolidationRequest, {
-				$envelope: data.selector,
-				indexInEnvelope: Number(params.indexInEnvelope),
-			}, {
-				sources: [
-					Source.Beacon_Rest,
-				],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BeaconExecutionConsolidationRequest, {
+					$envelope: data.selector,
+					indexInEnvelope: Number(params.indexInEnvelope),
+				}, {
+					sources: [
+						Source.Beacon_Rest,
+					],
+				}))}
 
-	<BeaconExecutionConsolidationRequestView
-		selection={pageSelection}
-	/>
+		<BeaconExecutionConsolidationRequestView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,11 +26,13 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.Leverage, {
-				$network: data.selector,
-				id: params.id,
-			})}
-		<title>{data?.title ?? (pageSelection.entitySelector.id || 'leverage')} • leverage • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.Leverage, {
+					$network: data.selector,
+					id: params.id,
+				}))}
+			<title>{data?.title ?? (pageSelection.entitySelector.id || 'leverage')} • leverage • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'leverage'} • leverage • Blockhead</title>
 	{/if}
@@ -38,13 +41,15 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.Leverage, {
-				$network: data.selector,
-				id: params.id,
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.Leverage, {
+					$network: data.selector,
+					id: params.id,
+				}))}
 
-	<LeverageView
-		selection={pageSelection}
-	/>
+		<LeverageView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

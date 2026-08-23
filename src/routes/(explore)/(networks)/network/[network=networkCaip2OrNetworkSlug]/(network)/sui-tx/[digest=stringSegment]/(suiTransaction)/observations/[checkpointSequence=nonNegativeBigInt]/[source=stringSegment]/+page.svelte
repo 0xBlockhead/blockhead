@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,14 +26,16 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.SuiTransaction_Timestamp, {
-				$transaction: data.selector,
-				checkpointSequence: BigInt(params.checkpointSequence),
-				source: params.source,
-			}, {
-				sources: [params.source],
-			})}
-		<title>{data?.title ?? 'Sui transaction timestamp'} • Sui transaction timestamp • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.SuiTransaction_Timestamp, {
+					$transaction: data.selector,
+					checkpointSequence: BigInt(params.checkpointSequence),
+					source: params.source,
+				}, {
+					sources: [params.source],
+				}))}
+			<title>{data?.title ?? 'Sui transaction timestamp'} • Sui transaction timestamp • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Sui transaction timestamp'} • Sui transaction timestamp • Blockhead</title>
 	{/if}
@@ -41,16 +44,18 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.SuiTransaction_Timestamp, {
-				$transaction: data.selector,
-				checkpointSequence: BigInt(params.checkpointSequence),
-				source: params.source,
-			}, {
-				sources: [params.source],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.SuiTransaction_Timestamp, {
+					$transaction: data.selector,
+					checkpointSequence: BigInt(params.checkpointSequence),
+					source: params.source,
+				}, {
+					sources: [params.source],
+				}))}
 
-	<SuiTransaction_TimestampView
-		selection={pageSelection}
-	/>
+		<SuiTransaction_TimestampView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

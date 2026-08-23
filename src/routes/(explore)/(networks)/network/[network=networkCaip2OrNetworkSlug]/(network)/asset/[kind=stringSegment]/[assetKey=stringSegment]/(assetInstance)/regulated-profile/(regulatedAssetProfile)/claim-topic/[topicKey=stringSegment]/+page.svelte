@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,11 +26,13 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.ClaimTopicRequirement, {
-				$profile: data.selector,
-				topicKey: params.topicKey,
-			})}
-		<title>{data?.title ?? 'claim topic requirement'} • claim topic requirement • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.ClaimTopicRequirement, {
+					$profile: data.selector,
+					topicKey: params.topicKey,
+				}))}
+			<title>{data?.title ?? 'claim topic requirement'} • claim topic requirement • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'claim topic requirement'} • claim topic requirement • Blockhead</title>
 	{/if}
@@ -38,13 +41,15 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.ClaimTopicRequirement, {
-				$profile: data.selector,
-				topicKey: params.topicKey,
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.ClaimTopicRequirement, {
+					$profile: data.selector,
+					topicKey: params.topicKey,
+				}))}
 
-	<ClaimTopicRequirementView
-		selection={pageSelection}
-	/>
+		<ClaimTopicRequirementView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

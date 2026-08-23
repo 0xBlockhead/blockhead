@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,15 +26,17 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.SpecificationRealm, data.selector, {
-				sources: [
-					Source.Constants_Internal,
-				],
-				fields: {
-					label: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.realm ?? '') || 'Specification realm' : pageSelection.entity.label || pageSelection.entitySelector.realm || 'Specification realm')} • Specification realm • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.SpecificationRealm, data.selector, {
+					sources: [
+						Source.Constants_Internal,
+					],
+					fields: {
+						label: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.realm ?? '') || 'Specification realm' : pageSelection.entity.label || pageSelection.entitySelector.realm || 'Specification realm')} • Specification realm • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Specification realm'} • Specification realm • Blockhead</title>
 	{/if}
@@ -42,17 +45,19 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.SpecificationRealm, data.selector, {
-				sources: [
-					Source.Constants_Internal,
-				],
-				fields: {
-					label: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.SpecificationRealm, data.selector, {
+					sources: [
+						Source.Constants_Internal,
+					],
+					fields: {
+						label: true,
+					},
+				}))}
 
-	<SpecificationRealmView
-		selection={pageSelection}
-	/>
+		<SpecificationRealmView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

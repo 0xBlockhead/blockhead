@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,14 +26,16 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.NostrProfile, data.selector, {
-				sources: [
-					Source.Constants_Internal,
-					Source.NostrRelay_WebSocket,
-					Source.Primal_Rest,
-				],
-			})}
-		<title>{data?.title ?? (pageSelection.entitySelector.pubkey || 'Nostr profile')} • Nostr profile • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.NostrProfile, data.selector, {
+					sources: [
+						Source.Constants_Internal,
+						Source.NostrRelay_WebSocket,
+						Source.Primal_Rest,
+					],
+				}))}
+			<title>{data?.title ?? (pageSelection.entitySelector.pubkey || 'Nostr profile')} • Nostr profile • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Nostr profile'} • Nostr profile • Blockhead</title>
 	{/if}
@@ -41,16 +44,18 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.NostrProfile, data.selector, {
-				sources: [
-					Source.Constants_Internal,
-					Source.NostrRelay_WebSocket,
-					Source.Primal_Rest,
-				],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.NostrProfile, data.selector, {
+					sources: [
+						Source.Constants_Internal,
+						Source.NostrRelay_WebSocket,
+						Source.Primal_Rest,
+					],
+				}))}
 
-	<NostrProfileView
-		selection={pageSelection}
-	/>
+		<NostrProfileView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

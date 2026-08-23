@@ -10,6 +10,7 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -41,18 +42,20 @@
 >
 	{#snippet Summary()}
 		{#if data?.selector != null}
-			<AtprotoActorView
-				selection={
-					select(EntityType.AtprotoActor, data.selector, {
-						sources: [
-							Source.Atproto_Xrpc,
-							Source.Atproto_BskySocial_Xrpc,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
+			{#key data.selector}
+				<AtprotoActorView
+					selection={
+						untrack(() => select(EntityType.AtprotoActor, data.selector, {
+							sources: [
+								Source.Atproto_Xrpc,
+								Source.Atproto_BskySocial_Xrpc,
+							],
+						}))
+					}
+					href={detailHref}
+					layout={EntityLayout.SummaryInline}
+				/>
+			{/key}
 		{/if}
 	{/snippet}
 

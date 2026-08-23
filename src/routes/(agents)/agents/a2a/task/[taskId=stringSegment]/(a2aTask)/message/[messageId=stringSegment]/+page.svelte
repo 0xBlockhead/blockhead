@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -24,10 +25,12 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.A2aMessage, data.selector, {
-				sources: [],
-			})}
-		<title>{data?.title ?? (pageSelection.entitySelector.messageId || 'A2A message')} • A2A message • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.A2aMessage, data.selector, {
+					sources: [],
+				}))}
+			<title>{data?.title ?? (pageSelection.entitySelector.messageId || 'A2A message')} • A2A message • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'A2A message'} • A2A message • Blockhead</title>
 	{/if}
@@ -36,12 +39,14 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.A2aMessage, data.selector, {
-				sources: [],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.A2aMessage, data.selector, {
+					sources: [],
+				}))}
 
-	<A2aMessageView
-		selection={pageSelection}
-	/>
+		<A2aMessageView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

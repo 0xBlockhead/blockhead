@@ -10,6 +10,7 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -41,18 +42,20 @@
 >
 	{#snippet Summary()}
 		{#if data?.selector != null}
-			<McpServerView
-				selection={
-					select(EntityType.McpServer, data.selector, {
-						sources: [
-							Source.Eip8004Scan_Rest,
-							Source.McpDeclared_Protocol,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
+			{#key data.selector}
+				<McpServerView
+					selection={
+						untrack(() => select(EntityType.McpServer, data.selector, {
+							sources: [
+								Source.Eip8004Scan_Rest,
+								Source.McpDeclared_Protocol,
+							],
+						}))
+					}
+					href={detailHref}
+					layout={EntityLayout.SummaryInline}
+				/>
+			{/key}
 		{/if}
 	{/snippet}
 

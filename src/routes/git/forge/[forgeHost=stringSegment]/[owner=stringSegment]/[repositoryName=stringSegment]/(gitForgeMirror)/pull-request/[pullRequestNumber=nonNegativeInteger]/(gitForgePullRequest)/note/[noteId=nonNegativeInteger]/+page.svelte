@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -26,18 +27,20 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.GitForgePullRequestNote, {
-				$pullRequest: data.selector,
-				noteId: Number(params.noteId),
-			}, {
-				sources: [
-					Source.Gitlab_Rest,
-				],
-				fields: {
-					body: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? String(pageSelection.entitySelector.noteId ?? '') || 'Git forge pull request note' : pageSelection.entity.body || String(pageSelection.entitySelector.noteId) || 'Git forge pull request note')} • Git forge pull request note • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.GitForgePullRequestNote, {
+					$pullRequest: data.selector,
+					noteId: Number(params.noteId),
+				}, {
+					sources: [
+						Source.Gitlab_Rest,
+					],
+					fields: {
+						body: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? String(pageSelection.entitySelector.noteId ?? '') || 'Git forge pull request note' : pageSelection.entity.body || String(pageSelection.entitySelector.noteId) || 'Git forge pull request note')} • Git forge pull request note • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Git forge pull request note'} • Git forge pull request note • Blockhead</title>
 	{/if}
@@ -46,20 +49,22 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.GitForgePullRequestNote, {
-				$pullRequest: data.selector,
-				noteId: Number(params.noteId),
-			}, {
-				sources: [
-					Source.Gitlab_Rest,
-				],
-				fields: {
-					body: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.GitForgePullRequestNote, {
+					$pullRequest: data.selector,
+					noteId: Number(params.noteId),
+				}, {
+					sources: [
+						Source.Gitlab_Rest,
+					],
+					fields: {
+						body: true,
+					},
+				}))}
 
-	<GitForgePullRequestNoteView
-		selection={pageSelection}
-	/>
+		<GitForgePullRequestNoteView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

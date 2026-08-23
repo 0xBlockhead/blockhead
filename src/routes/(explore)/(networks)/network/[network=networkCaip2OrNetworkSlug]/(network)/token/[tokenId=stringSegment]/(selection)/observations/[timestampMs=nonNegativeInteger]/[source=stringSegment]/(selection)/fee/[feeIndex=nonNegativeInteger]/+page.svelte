@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,11 +26,13 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.HederaTokenCustomFee, {
-				$tokenTimestamp: data.selector,
-				feeIndex: Number(params.feeIndex),
-			})}
-		<title>{data?.title ?? 'hedera token custom fee'} • hedera token custom fee • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.HederaTokenCustomFee, {
+					$tokenTimestamp: data.selector,
+					feeIndex: Number(params.feeIndex),
+				}))}
+			<title>{data?.title ?? 'hedera token custom fee'} • hedera token custom fee • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'hedera token custom fee'} • hedera token custom fee • Blockhead</title>
 	{/if}
@@ -38,13 +41,15 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.HederaTokenCustomFee, {
-				$tokenTimestamp: data.selector,
-				feeIndex: Number(params.feeIndex),
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.HederaTokenCustomFee, {
+					$tokenTimestamp: data.selector,
+					feeIndex: Number(params.feeIndex),
+				}))}
 
-	<HederaTokenCustomFeeView
-		selection={pageSelection}
-	/>
+		<HederaTokenCustomFeeView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

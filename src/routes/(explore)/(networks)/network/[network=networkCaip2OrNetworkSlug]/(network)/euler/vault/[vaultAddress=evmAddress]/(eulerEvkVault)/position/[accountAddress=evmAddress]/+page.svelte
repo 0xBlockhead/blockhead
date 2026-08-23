@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -26,20 +27,22 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.EulerEvkVaultPosition, {
-				$account: {
-					$network: data.selector.$network,
-					$actor: {
-						address: params.accountAddress,
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.EulerEvkVaultPosition, {
+					$account: {
+						$network: data.selector.$network,
+						$actor: {
+							address: params.accountAddress,
+						},
 					},
-				},
-				$vault: data.selector,
-			}, {
-				sources: [
-					Source.Euler_Rest,
-				],
-			})}
-		<title>{data?.title ?? 'Euler EVK vault position'} • Euler EVK vault position • Blockhead</title>
+					$vault: data.selector,
+				}, {
+					sources: [
+						Source.Euler_Rest,
+					],
+				}))}
+			<title>{data?.title ?? 'Euler EVK vault position'} • Euler EVK vault position • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Euler EVK vault position'} • Euler EVK vault position • Blockhead</title>
 	{/if}
@@ -48,22 +51,24 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.EulerEvkVaultPosition, {
-				$account: {
-					$network: data.selector.$network,
-					$actor: {
-						address: params.accountAddress,
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.EulerEvkVaultPosition, {
+					$account: {
+						$network: data.selector.$network,
+						$actor: {
+							address: params.accountAddress,
+						},
 					},
-				},
-				$vault: data.selector,
-			}, {
-				sources: [
-					Source.Euler_Rest,
-				],
-			})}
+					$vault: data.selector,
+				}, {
+					sources: [
+						Source.Euler_Rest,
+					],
+				}))}
 
-	<EulerEvkVaultPositionView
-		selection={pageSelection}
-	/>
+		<EulerEvkVaultPositionView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

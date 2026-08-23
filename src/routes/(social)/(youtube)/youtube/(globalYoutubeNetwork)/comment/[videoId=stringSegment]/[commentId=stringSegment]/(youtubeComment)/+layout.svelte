@@ -10,6 +10,7 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -42,18 +43,20 @@
 >
 	{#snippet Summary()}
 		{#if data?.selector != null}
-			<YoutubeCommentView
-				selection={
-					select(EntityType.YoutubeComment, data.selector, {
-						sources: [
-							Source.Youtube_Rest,
-							Source.Piped_Rest,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
+			{#key data.selector}
+				<YoutubeCommentView
+					selection={
+						untrack(() => select(EntityType.YoutubeComment, data.selector, {
+							sources: [
+								Source.Youtube_Rest,
+								Source.Piped_Rest,
+							],
+						}))
+					}
+					href={detailHref}
+					layout={EntityLayout.SummaryInline}
+				/>
+			{/key}
 		{/if}
 	{/snippet}
 

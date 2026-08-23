@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -24,10 +25,12 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.HederaNetworkFee_Timestamp, data.selector, {
-				sources: [data.selector.source],
-			})}
-		<title>{data?.title ?? 'hedera network fee timestamp'} • hedera network fee timestamp • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.HederaNetworkFee_Timestamp, data.selector, {
+					sources: [data.selector.source],
+				}))}
+			<title>{data?.title ?? 'hedera network fee timestamp'} • hedera network fee timestamp • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'hedera network fee timestamp'} • hedera network fee timestamp • Blockhead</title>
 	{/if}
@@ -36,12 +39,14 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.HederaNetworkFee_Timestamp, data.selector, {
-				sources: [data.selector.source],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.HederaNetworkFee_Timestamp, data.selector, {
+					sources: [data.selector.source],
+				}))}
 
-	<HederaNetworkFee_TimestampView
-		selection={pageSelection}
-	/>
+		<HederaNetworkFee_TimestampView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

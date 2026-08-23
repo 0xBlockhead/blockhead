@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,15 +26,17 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.CelestiaNamespace, data.selector, {
-				sources: [
-					Source.Celenium_Rest,
-				],
-				fields: {
-					label: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.namespaceId ?? '') || 'celestia namespace' : (pageSelection.entity.label ?? '') || pageSelection.entitySelector.namespaceId || 'celestia namespace')} • celestia namespace • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.CelestiaNamespace, data.selector, {
+					sources: [
+						Source.Celenium_Rest,
+					],
+					fields: {
+						label: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.namespaceId ?? '') || 'celestia namespace' : (pageSelection.entity.label ?? '') || pageSelection.entitySelector.namespaceId || 'celestia namespace')} • celestia namespace • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'celestia namespace'} • celestia namespace • Blockhead</title>
 	{/if}
@@ -42,17 +45,19 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.CelestiaNamespace, data.selector, {
-				sources: [
-					Source.Celenium_Rest,
-				],
-				fields: {
-					label: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.CelestiaNamespace, data.selector, {
+					sources: [
+						Source.Celenium_Rest,
+					],
+					fields: {
+						label: true,
+					},
+				}))}
 
-	<CelestiaNamespaceView
-		selection={pageSelection}
-	/>
+		<CelestiaNamespaceView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

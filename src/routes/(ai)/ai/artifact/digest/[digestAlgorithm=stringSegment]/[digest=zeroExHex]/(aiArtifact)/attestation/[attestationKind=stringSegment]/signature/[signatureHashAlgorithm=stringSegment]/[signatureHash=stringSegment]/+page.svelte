@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -26,18 +27,20 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.AiArtifactAttestation, {
-				$artifact: data.selector,
-				attestationKind: params.attestationKind,
-				signatureHashAlgorithm: params.signatureHashAlgorithm,
-				signatureHash: params.signatureHash,
-			}, {
-				sources: [
-					Source.Eip8004Scan_Rest,
-					Source.Ipfs_Rest,
-				],
-			})}
-		<title>{data?.title ?? (pageSelection.entitySelector.attestationKind || 'AI artifact attestation')} • AI artifact attestation • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.AiArtifactAttestation, {
+					$artifact: data.selector,
+					attestationKind: params.attestationKind,
+					signatureHashAlgorithm: params.signatureHashAlgorithm,
+					signatureHash: params.signatureHash,
+				}, {
+					sources: [
+						Source.Eip8004Scan_Rest,
+						Source.Ipfs_Rest,
+					],
+				}))}
+			<title>{data?.title ?? (pageSelection.entitySelector.attestationKind || 'AI artifact attestation')} • AI artifact attestation • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'AI artifact attestation'} • AI artifact attestation • Blockhead</title>
 	{/if}
@@ -46,20 +49,22 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.AiArtifactAttestation, {
-				$artifact: data.selector,
-				attestationKind: params.attestationKind,
-				signatureHashAlgorithm: params.signatureHashAlgorithm,
-				signatureHash: params.signatureHash,
-			}, {
-				sources: [
-					Source.Eip8004Scan_Rest,
-					Source.Ipfs_Rest,
-				],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.AiArtifactAttestation, {
+					$artifact: data.selector,
+					attestationKind: params.attestationKind,
+					signatureHashAlgorithm: params.signatureHashAlgorithm,
+					signatureHash: params.signatureHash,
+				}, {
+					sources: [
+						Source.Eip8004Scan_Rest,
+						Source.Ipfs_Rest,
+					],
+				}))}
 
-	<AiArtifactAttestationView
-		selection={pageSelection}
-	/>
+		<AiArtifactAttestationView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

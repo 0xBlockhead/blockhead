@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,16 +26,18 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.AiProviderCatalogEntry, data.selector, {
-				sources: [
-					Source.Anthropic_Rest,
-					Source.OpenAI_Rest,
-				],
-				fields: {
-					entryLabel: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.providerEntryId ?? '') || 'AI provider catalog entry' : (pageSelection.entity.entryLabel ?? '') || pageSelection.entitySelector.providerEntryId || 'AI provider catalog entry')} • AI provider catalog entry • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.AiProviderCatalogEntry, data.selector, {
+					sources: [
+						Source.Anthropic_Rest,
+						Source.OpenAI_Rest,
+					],
+					fields: {
+						entryLabel: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.providerEntryId ?? '') || 'AI provider catalog entry' : (pageSelection.entity.entryLabel ?? '') || pageSelection.entitySelector.providerEntryId || 'AI provider catalog entry')} • AI provider catalog entry • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'AI provider catalog entry'} • AI provider catalog entry • Blockhead</title>
 	{/if}
@@ -43,18 +46,20 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.AiProviderCatalogEntry, data.selector, {
-				sources: [
-					Source.Anthropic_Rest,
-					Source.OpenAI_Rest,
-				],
-				fields: {
-					entryLabel: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.AiProviderCatalogEntry, data.selector, {
+					sources: [
+						Source.Anthropic_Rest,
+						Source.OpenAI_Rest,
+					],
+					fields: {
+						entryLabel: true,
+					},
+				}))}
 
-	<AiProviderCatalogEntryView
-		selection={pageSelection}
-	/>
+		<AiProviderCatalogEntryView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

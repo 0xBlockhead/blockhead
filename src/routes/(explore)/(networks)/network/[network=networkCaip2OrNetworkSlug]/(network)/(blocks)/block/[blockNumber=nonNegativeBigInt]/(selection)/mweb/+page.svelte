@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,12 +26,14 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.LitecoinMwebBlock, data.selector, {
-				sources: [
-					Source.LitecoinCore_JsonRpc,
-				],
-			})}
-		<title>{data?.title ?? 'litecoin MWEB block'} • litecoin MWEB block • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.LitecoinMwebBlock, data.selector, {
+					sources: [
+						Source.LitecoinCore_JsonRpc,
+					],
+				}))}
+			<title>{data?.title ?? 'litecoin MWEB block'} • litecoin MWEB block • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'litecoin MWEB block'} • litecoin MWEB block • Blockhead</title>
 	{/if}
@@ -39,14 +42,16 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.LitecoinMwebBlock, data.selector, {
-				sources: [
-					Source.LitecoinCore_JsonRpc,
-				],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.LitecoinMwebBlock, data.selector, {
+					sources: [
+						Source.LitecoinCore_JsonRpc,
+					],
+				}))}
 
-	<LitecoinMwebBlockView
-		selection={pageSelection}
-	/>
+		<LitecoinMwebBlockView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,16 +26,18 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.EigenLayerProtocol, data.selector, {
-				sources: [
-					Source.Constants_Internal,
-					Source.EigenExplorer_Rest,
-				],
-				fields: {
-					protocolName: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? 'eigen layer protocol' : pageSelection.entity.protocolName || 'eigen layer protocol')} • eigen layer protocol • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.EigenLayerProtocol, data.selector, {
+					sources: [
+						Source.Constants_Internal,
+						Source.EigenExplorer_Rest,
+					],
+					fields: {
+						protocolName: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? 'eigen layer protocol' : pageSelection.entity.protocolName || 'eigen layer protocol')} • eigen layer protocol • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'eigen layer protocol'} • eigen layer protocol • Blockhead</title>
 	{/if}
@@ -43,18 +46,20 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.EigenLayerProtocol, data.selector, {
-				sources: [
-					Source.Constants_Internal,
-					Source.EigenExplorer_Rest,
-				],
-				fields: {
-					protocolName: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.EigenLayerProtocol, data.selector, {
+					sources: [
+						Source.Constants_Internal,
+						Source.EigenExplorer_Rest,
+					],
+					fields: {
+						protocolName: true,
+					},
+				}))}
 
-	<EigenLayerProtocolView
-		selection={pageSelection}
-	/>
+		<EigenLayerProtocolView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

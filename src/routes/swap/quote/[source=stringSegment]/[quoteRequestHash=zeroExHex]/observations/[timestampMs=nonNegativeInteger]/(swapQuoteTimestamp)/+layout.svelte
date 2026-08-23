@@ -9,6 +9,7 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -42,11 +43,13 @@
 >
 	{#snippet Summary()}
 		{#if data?.selector != null}
-			<SwapQuote_TimestampView
-				selection={select(EntityType.SwapQuote_Timestamp, data.selector)}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
+			{#key data.selector}
+				<SwapQuote_TimestampView
+					selection={untrack(() => select(EntityType.SwapQuote_Timestamp, data.selector))}
+					href={detailHref}
+					layout={EntityLayout.SummaryInline}
+				/>
+			{/key}
 		{/if}
 	{/snippet}
 

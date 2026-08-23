@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -24,13 +25,15 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.AiModelProvider, data.selector, {
-				fields: {
-					label: true,
-					domain: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.providerId ?? '') || 'AI model provider' : (pageSelection.entity.label ?? '') || [(pageSelection.entitySelector.providerId ?? ''), (pageSelection.entity.domain ?? '')].filter(Boolean).join(' ') || 'AI model provider')} • AI model provider • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.AiModelProvider, data.selector, {
+					fields: {
+						label: true,
+						domain: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.providerId ?? '') || 'AI model provider' : (pageSelection.entity.label ?? '') || [(pageSelection.entitySelector.providerId ?? ''), (pageSelection.entity.domain ?? '')].filter(Boolean).join(' ') || 'AI model provider')} • AI model provider • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'AI model provider'} • AI model provider • Blockhead</title>
 	{/if}
@@ -39,15 +42,17 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.AiModelProvider, data.selector, {
-				fields: {
-					label: true,
-					domain: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.AiModelProvider, data.selector, {
+					fields: {
+						label: true,
+						domain: true,
+					},
+				}))}
 
-	<AiModelProviderView
-		selection={pageSelection}
-	/>
+		<AiModelProviderView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

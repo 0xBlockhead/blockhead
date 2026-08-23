@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,15 +26,17 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.SnapshotSpace, data.selector, {
-				sources: [
-					Source.SnapshotHub_Graphql,
-				],
-				fields: {
-					name: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.spaceId ?? '') || 'Snapshot space' : (pageSelection.entity.name ?? '') || pageSelection.entitySelector.spaceId || 'Snapshot space')} • Snapshot space • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.SnapshotSpace, data.selector, {
+					sources: [
+						Source.SnapshotHub_Graphql,
+					],
+					fields: {
+						name: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.spaceId ?? '') || 'Snapshot space' : (pageSelection.entity.name ?? '') || pageSelection.entitySelector.spaceId || 'Snapshot space')} • Snapshot space • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Snapshot space'} • Snapshot space • Blockhead</title>
 	{/if}
@@ -42,17 +45,19 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.SnapshotSpace, data.selector, {
-				sources: [
-					Source.SnapshotHub_Graphql,
-				],
-				fields: {
-					name: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.SnapshotSpace, data.selector, {
+					sources: [
+						Source.SnapshotHub_Graphql,
+					],
+					fields: {
+						name: true,
+					},
+				}))}
 
-	<SnapshotSpaceView
-		selection={pageSelection}
-	/>
+		<SnapshotSpaceView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

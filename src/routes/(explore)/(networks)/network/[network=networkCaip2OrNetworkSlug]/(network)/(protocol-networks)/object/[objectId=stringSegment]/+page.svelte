@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -24,8 +25,10 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.SuiObject, data.selector)}
-		<title>{data?.title ?? (pageSelection.entitySelector.objectId || 'Sui object')} • Sui object • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.SuiObject, data.selector))}
+			<title>{data?.title ?? (pageSelection.entitySelector.objectId || 'Sui object')} • Sui object • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Sui object'} • Sui object • Blockhead</title>
 	{/if}
@@ -34,10 +37,12 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.SuiObject, data.selector)}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.SuiObject, data.selector))}
 
-	<SuiObjectView
-		selection={pageSelection}
-	/>
+		<SuiObjectView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

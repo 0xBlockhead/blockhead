@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,21 +26,23 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.AssetEligibility, {
-				$assetInstance: data.selector,
-				$account: {
-					caip10: {
-						namespace: params.namespace,
-						reference: params.reference,
-						accountAddress: params.accountAddress,
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.AssetEligibility, {
+					$assetInstance: data.selector,
+					$account: {
+						caip10: {
+							namespace: params.namespace,
+							reference: params.reference,
+							accountAddress: params.accountAddress,
+						},
 					},
-				},
-				timestampMs: Number(params.timestampMs),
-				source: params.source,
-			}, {
-				sources: [params.source],
-			})}
-		<title>{data?.title ?? (String(pageSelection.entitySelector.timestampMs) || 'asset eligibility')} • asset eligibility • Blockhead</title>
+					timestampMs: Number(params.timestampMs),
+					source: params.source,
+				}, {
+					sources: [params.source],
+				}))}
+			<title>{data?.title ?? (String(pageSelection.entitySelector.timestampMs) || 'asset eligibility')} • asset eligibility • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'asset eligibility'} • asset eligibility • Blockhead</title>
 	{/if}
@@ -48,23 +51,25 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.AssetEligibility, {
-				$assetInstance: data.selector,
-				$account: {
-					caip10: {
-						namespace: params.namespace,
-						reference: params.reference,
-						accountAddress: params.accountAddress,
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.AssetEligibility, {
+					$assetInstance: data.selector,
+					$account: {
+						caip10: {
+							namespace: params.namespace,
+							reference: params.reference,
+							accountAddress: params.accountAddress,
+						},
 					},
-				},
-				timestampMs: Number(params.timestampMs),
-				source: params.source,
-			}, {
-				sources: [params.source],
-			})}
+					timestampMs: Number(params.timestampMs),
+					source: params.source,
+				}, {
+					sources: [params.source],
+				}))}
 
-	<AssetEligibilityView
-		selection={pageSelection}
-	/>
+		<AssetEligibilityView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

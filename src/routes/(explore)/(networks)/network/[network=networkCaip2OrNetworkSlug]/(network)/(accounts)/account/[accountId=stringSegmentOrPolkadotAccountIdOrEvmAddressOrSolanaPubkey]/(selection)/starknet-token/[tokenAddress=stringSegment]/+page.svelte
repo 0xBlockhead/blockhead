@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,12 +26,14 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.StarknetTokenHolding, data.selector, {
-				sources: [
-					Source.Starkscan,
-				],
-			})}
-		<title>{data?.title ?? 'starknet token holding'} • starknet token holding • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.StarknetTokenHolding, data.selector, {
+					sources: [
+						Source.Starkscan,
+					],
+				}))}
+			<title>{data?.title ?? 'starknet token holding'} • starknet token holding • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'starknet token holding'} • starknet token holding • Blockhead</title>
 	{/if}
@@ -39,14 +42,16 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.StarknetTokenHolding, data.selector, {
-				sources: [
-					Source.Starkscan,
-				],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.StarknetTokenHolding, data.selector, {
+					sources: [
+						Source.Starkscan,
+					],
+				}))}
 
-	<StarknetTokenHoldingView
-		selection={pageSelection}
-	/>
+		<StarknetTokenHoldingView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

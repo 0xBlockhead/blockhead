@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,13 +26,15 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.AcpAgentRuntime, data.selector, {
-				sources: [
-					Source.AcpLocal_JsonRpc,
-					Source.Local_Internal,
-				],
-			})}
-		<title>{data?.title ?? (pageSelection.entitySelector.runtimeId || 'ACP agent runtime')} • ACP agent runtime • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.AcpAgentRuntime, data.selector, {
+					sources: [
+						Source.AcpLocal_JsonRpc,
+						Source.Local_Internal,
+					],
+				}))}
+			<title>{data?.title ?? (pageSelection.entitySelector.runtimeId || 'ACP agent runtime')} • ACP agent runtime • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'ACP agent runtime'} • ACP agent runtime • Blockhead</title>
 	{/if}
@@ -40,15 +43,17 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.AcpAgentRuntime, data.selector, {
-				sources: [
-					Source.AcpLocal_JsonRpc,
-					Source.Local_Internal,
-				],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.AcpAgentRuntime, data.selector, {
+					sources: [
+						Source.AcpLocal_JsonRpc,
+						Source.Local_Internal,
+					],
+				}))}
 
-	<AcpAgentRuntimeView
-		selection={pageSelection}
-	/>
+		<AcpAgentRuntimeView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,14 +26,16 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.CardanoDRep_Timestamp, {
-				$drep: data.selector,
-				epoch: Number(params.epoch),
-				source: params.source,
-			}, {
-				sources: [params.source],
-			})}
-		<title>{data?.title ?? 'Cardano DRep timestamp'} • Cardano DRep timestamp • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.CardanoDRep_Timestamp, {
+					$drep: data.selector,
+					epoch: Number(params.epoch),
+					source: params.source,
+				}, {
+					sources: [params.source],
+				}))}
+			<title>{data?.title ?? 'Cardano DRep timestamp'} • Cardano DRep timestamp • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Cardano DRep timestamp'} • Cardano DRep timestamp • Blockhead</title>
 	{/if}
@@ -41,16 +44,18 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.CardanoDRep_Timestamp, {
-				$drep: data.selector,
-				epoch: Number(params.epoch),
-				source: params.source,
-			}, {
-				sources: [params.source],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.CardanoDRep_Timestamp, {
+					$drep: data.selector,
+					epoch: Number(params.epoch),
+					source: params.source,
+				}, {
+					sources: [params.source],
+				}))}
 
-	<CardanoDRep_TimestampView
-		selection={pageSelection}
-	/>
+		<CardanoDRep_TimestampView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

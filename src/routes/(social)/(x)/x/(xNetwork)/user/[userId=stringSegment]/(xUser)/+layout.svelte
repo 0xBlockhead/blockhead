@@ -10,6 +10,7 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -41,18 +42,20 @@
 >
 	{#snippet Summary()}
 		{#if data?.selector != null}
-			<XUserView
-				selection={
-					select(EntityType.XUser, data.selector, {
-						sources: [
-							Source.X_Rest,
-							Source.X_FxEmbed_Rest,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
+			{#key data.selector}
+				<XUserView
+					selection={
+						untrack(() => select(EntityType.XUser, data.selector, {
+							sources: [
+								Source.X_Rest,
+								Source.X_FxEmbed_Rest,
+							],
+						}))
+					}
+					href={detailHref}
+					layout={EntityLayout.SummaryInline}
+				/>
+			{/key}
 		{/if}
 	{/snippet}
 

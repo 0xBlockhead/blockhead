@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,11 +26,13 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.Eip7702Authorization, {
-				$transaction: data.selector,
-				authorizationIndex: Number(params.authorizationIndex),
-			})}
-		<title>{data?.title ?? (String(pageSelection.entitySelector.authorizationIndex) || 'eip7702 authorization')} • eip7702 authorization • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.Eip7702Authorization, {
+					$transaction: data.selector,
+					authorizationIndex: Number(params.authorizationIndex),
+				}))}
+			<title>{data?.title ?? (String(pageSelection.entitySelector.authorizationIndex) || 'eip7702 authorization')} • eip7702 authorization • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'eip7702 authorization'} • eip7702 authorization • Blockhead</title>
 	{/if}
@@ -38,13 +41,15 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.Eip7702Authorization, {
-				$transaction: data.selector,
-				authorizationIndex: Number(params.authorizationIndex),
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.Eip7702Authorization, {
+					$transaction: data.selector,
+					authorizationIndex: Number(params.authorizationIndex),
+				}))}
 
-	<Eip7702AuthorizationView
-		selection={pageSelection}
-	/>
+		<Eip7702AuthorizationView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

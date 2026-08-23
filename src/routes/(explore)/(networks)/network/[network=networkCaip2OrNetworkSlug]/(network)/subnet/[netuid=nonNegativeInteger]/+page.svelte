@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,16 +26,18 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BittensorSubnet, data.selector, {
-				sources: [
-					Source.Constants_Internal,
-					Source.Bittensor_JsonRpc,
-				],
-				fields: {
-					name: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? String(pageSelection.entitySelector.netuid ?? '') || 'Bittensor subnet' : [(pageSelection.entity.name ?? ''), String(pageSelection.entitySelector.netuid)].filter(Boolean).join(' ') || 'Bittensor subnet')} • Bittensor subnet • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BittensorSubnet, data.selector, {
+					sources: [
+						Source.Constants_Internal,
+						Source.Bittensor_JsonRpc,
+					],
+					fields: {
+						name: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? String(pageSelection.entitySelector.netuid ?? '') || 'Bittensor subnet' : [(pageSelection.entity.name ?? ''), String(pageSelection.entitySelector.netuid)].filter(Boolean).join(' ') || 'Bittensor subnet')} • Bittensor subnet • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Bittensor subnet'} • Bittensor subnet • Blockhead</title>
 	{/if}
@@ -43,18 +46,20 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BittensorSubnet, data.selector, {
-				sources: [
-					Source.Constants_Internal,
-					Source.Bittensor_JsonRpc,
-				],
-				fields: {
-					name: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BittensorSubnet, data.selector, {
+					sources: [
+						Source.Constants_Internal,
+						Source.Bittensor_JsonRpc,
+					],
+					fields: {
+						name: true,
+					},
+				}))}
 
-	<BittensorSubnetView
-		selection={pageSelection}
-	/>
+		<BittensorSubnetView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

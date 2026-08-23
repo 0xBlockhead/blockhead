@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,22 +26,24 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BridgeTransfer, data.selector, {
-				sources: [
-					Source.Across_Rest,
-					Source.Allium_Rest,
-					Source.Axelarscan_Rest,
-					Source.Dune_Rest,
-					Source.LayerZeroScan_Rest,
-					Source.Lifi_Rest,
-					Source.Voltaire_JsonRpc,
-					Source.Wormholescan,
-				],
-				fields: {
-					transferId: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? 'bridge transfer' : pageSelection.entity.transferId || 'bridge transfer')} • bridge transfer • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BridgeTransfer, data.selector, {
+					sources: [
+						Source.Across_Rest,
+						Source.Allium_Rest,
+						Source.Axelarscan_Rest,
+						Source.Dune_Rest,
+						Source.LayerZeroScan_Rest,
+						Source.Lifi_Rest,
+						Source.Voltaire_JsonRpc,
+						Source.Wormholescan,
+					],
+					fields: {
+						transferId: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? 'bridge transfer' : pageSelection.entity.transferId || 'bridge transfer')} • bridge transfer • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'bridge transfer'} • bridge transfer • Blockhead</title>
 	{/if}
@@ -49,24 +52,26 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BridgeTransfer, data.selector, {
-				sources: [
-					Source.Across_Rest,
-					Source.Allium_Rest,
-					Source.Axelarscan_Rest,
-					Source.Dune_Rest,
-					Source.LayerZeroScan_Rest,
-					Source.Lifi_Rest,
-					Source.Voltaire_JsonRpc,
-					Source.Wormholescan,
-				],
-				fields: {
-					transferId: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BridgeTransfer, data.selector, {
+					sources: [
+						Source.Across_Rest,
+						Source.Allium_Rest,
+						Source.Axelarscan_Rest,
+						Source.Dune_Rest,
+						Source.LayerZeroScan_Rest,
+						Source.Lifi_Rest,
+						Source.Voltaire_JsonRpc,
+						Source.Wormholescan,
+					],
+					fields: {
+						transferId: true,
+					},
+				}))}
 
-	<BridgeTransferView
-		selection={pageSelection}
-	/>
+		<BridgeTransferView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

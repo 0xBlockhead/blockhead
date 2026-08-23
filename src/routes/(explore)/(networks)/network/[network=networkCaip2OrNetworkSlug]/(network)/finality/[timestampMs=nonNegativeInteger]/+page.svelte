@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -24,12 +25,14 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.EthereumBeaconFinality_Timestamp, data.selector, {
-				fields: {
-					finalizedCheckpointEpoch: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? 'ethereum beacon finality timestamp' : 'Finalized epoch ' + String(pageSelection.entity.finalizedCheckpointEpoch))} • ethereum beacon finality timestamp • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.EthereumBeaconFinality_Timestamp, data.selector, {
+					fields: {
+						finalizedCheckpointEpoch: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? 'ethereum beacon finality timestamp' : 'Finalized epoch ' + String(pageSelection.entity.finalizedCheckpointEpoch))} • ethereum beacon finality timestamp • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'ethereum beacon finality timestamp'} • ethereum beacon finality timestamp • Blockhead</title>
 	{/if}
@@ -38,14 +41,16 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.EthereumBeaconFinality_Timestamp, data.selector, {
-				fields: {
-					finalizedCheckpointEpoch: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.EthereumBeaconFinality_Timestamp, data.selector, {
+					fields: {
+						finalizedCheckpointEpoch: true,
+					},
+				}))}
 
-	<EthereumBeaconFinality_TimestampView
-		selection={pageSelection}
-	/>
+		<EthereumBeaconFinality_TimestampView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

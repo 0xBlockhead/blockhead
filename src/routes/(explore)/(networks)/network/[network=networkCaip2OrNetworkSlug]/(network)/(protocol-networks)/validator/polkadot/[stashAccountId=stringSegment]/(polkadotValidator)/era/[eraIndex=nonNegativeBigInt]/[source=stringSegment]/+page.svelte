@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,14 +26,16 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.PolkadotValidator_Era, {
-				$validator: data.selector,
-				eraIndex: BigInt(params.eraIndex),
-				source: params.source,
-			}, {
-				sources: [params.source],
-			})}
-		<title>{data?.title ?? (String(pageSelection.entitySelector.eraIndex) || 'polkadot validator era')} • polkadot validator era • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.PolkadotValidator_Era, {
+					$validator: data.selector,
+					eraIndex: BigInt(params.eraIndex),
+					source: params.source,
+				}, {
+					sources: [params.source],
+				}))}
+			<title>{data?.title ?? (String(pageSelection.entitySelector.eraIndex) || 'polkadot validator era')} • polkadot validator era • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'polkadot validator era'} • polkadot validator era • Blockhead</title>
 	{/if}
@@ -41,16 +44,18 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.PolkadotValidator_Era, {
-				$validator: data.selector,
-				eraIndex: BigInt(params.eraIndex),
-				source: params.source,
-			}, {
-				sources: [params.source],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.PolkadotValidator_Era, {
+					$validator: data.selector,
+					eraIndex: BigInt(params.eraIndex),
+					source: params.source,
+				}, {
+					sources: [params.source],
+				}))}
 
-	<PolkadotValidator_EraView
-		selection={pageSelection}
-	/>
+		<PolkadotValidator_EraView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

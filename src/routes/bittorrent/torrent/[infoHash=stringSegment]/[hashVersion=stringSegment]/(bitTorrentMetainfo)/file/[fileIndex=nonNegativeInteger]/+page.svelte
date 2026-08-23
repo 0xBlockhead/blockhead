@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,15 +26,17 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BitTorrentFile, {
-				$torrent: data.selector,
-				fileIndex: Number(params.fileIndex),
-			}, {
-				fields: {
-					path: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? 'bit torrent file' : pageSelection.entity.path || 'bit torrent file')} • bit torrent file • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BitTorrentFile, {
+					$torrent: data.selector,
+					fileIndex: Number(params.fileIndex),
+				}, {
+					fields: {
+						path: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? 'bit torrent file' : pageSelection.entity.path || 'bit torrent file')} • bit torrent file • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'bit torrent file'} • bit torrent file • Blockhead</title>
 	{/if}
@@ -42,17 +45,19 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.BitTorrentFile, {
-				$torrent: data.selector,
-				fileIndex: Number(params.fileIndex),
-			}, {
-				fields: {
-					path: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.BitTorrentFile, {
+					$torrent: data.selector,
+					fileIndex: Number(params.fileIndex),
+				}, {
+					fields: {
+						path: true,
+					},
+				}))}
 
-	<BitTorrentFileView
-		selection={pageSelection}
-	/>
+		<BitTorrentFileView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

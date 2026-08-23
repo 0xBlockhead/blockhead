@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,13 +26,15 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.SuiCheckpoint, {
-				$network: {
-					$network: data.selector,
-				},
-				sequence: BigInt(params.sequence),
-			})}
-		<title>{data?.title ?? 'Sui checkpoint'} • Sui checkpoint • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.SuiCheckpoint, {
+					$network: {
+						$network: data.selector,
+					},
+					sequence: BigInt(params.sequence),
+				}))}
+			<title>{data?.title ?? 'Sui checkpoint'} • Sui checkpoint • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'Sui checkpoint'} • Sui checkpoint • Blockhead</title>
 	{/if}
@@ -40,15 +43,17 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.SuiCheckpoint, {
-				$network: {
-					$network: data.selector,
-				},
-				sequence: BigInt(params.sequence),
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.SuiCheckpoint, {
+					$network: {
+						$network: data.selector,
+					},
+					sequence: BigInt(params.sequence),
+				}))}
 
-	<SuiCheckpointView
-		selection={pageSelection}
-	/>
+		<SuiCheckpointView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

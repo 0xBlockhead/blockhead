@@ -8,6 +8,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,14 +26,16 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.XrplTrustline_Timestamp, {
-				$trustline: data.selector,
-				ledgerIndex: BigInt(params.ledgerIndex),
-				source: params.source,
-			}, {
-				sources: [params.source],
-			})}
-		<title>{data?.title ?? 'XRPL trustline timestamp'} • XRPL trustline timestamp • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.XrplTrustline_Timestamp, {
+					$trustline: data.selector,
+					ledgerIndex: BigInt(params.ledgerIndex),
+					source: params.source,
+				}, {
+					sources: [params.source],
+				}))}
+			<title>{data?.title ?? 'XRPL trustline timestamp'} • XRPL trustline timestamp • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'XRPL trustline timestamp'} • XRPL trustline timestamp • Blockhead</title>
 	{/if}
@@ -41,16 +44,18 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.XrplTrustline_Timestamp, {
-				$trustline: data.selector,
-				ledgerIndex: BigInt(params.ledgerIndex),
-				source: params.source,
-			}, {
-				sources: [params.source],
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.XrplTrustline_Timestamp, {
+					$trustline: data.selector,
+					ledgerIndex: BigInt(params.ledgerIndex),
+					source: params.source,
+				}, {
+					sources: [params.source],
+				}))}
 
-	<XrplTrustline_TimestampView
-		selection={pageSelection}
-	/>
+		<XrplTrustline_TimestampView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>

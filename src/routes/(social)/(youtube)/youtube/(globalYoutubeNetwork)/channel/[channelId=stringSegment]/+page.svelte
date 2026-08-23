@@ -9,6 +9,7 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
+	import { untrack } from 'svelte'
 
 
 	// State
@@ -25,17 +26,19 @@
 
 <svelte:head>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.YoutubeChannel, data.selector, {
-				sources: [
-					Source.Youtube_Rest,
-					Source.Piped_Rest,
-					Source.Constants_Internal,
-				],
-				fields: {
-					title: true,
-				},
-			})}
-		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.channelId ?? '') || 'YouTube channel' : (pageSelection.entity.title ?? '') || pageSelection.entitySelector.channelId || 'YouTube channel')} • YouTube channel • Blockhead</title>
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.YoutubeChannel, data.selector, {
+					sources: [
+						Source.Youtube_Rest,
+						Source.Piped_Rest,
+						Source.Constants_Internal,
+					],
+					fields: {
+						title: true,
+					},
+				}))}
+			<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.channelId ?? '') || 'YouTube channel' : (pageSelection.entity.title ?? '') || pageSelection.entitySelector.channelId || 'YouTube channel')} • YouTube channel • Blockhead</title>
+		{/key}
 	{:else}
 		<title>{data?.title ?? 'YouTube channel'} • YouTube channel • Blockhead</title>
 	{/if}
@@ -44,19 +47,21 @@
 
 <Page>
 	{#if data?.selector != null}
-		{@const pageSelection = select(EntityType.YoutubeChannel, data.selector, {
-				sources: [
-					Source.Youtube_Rest,
-					Source.Piped_Rest,
-					Source.Constants_Internal,
-				],
-				fields: {
-					title: true,
-				},
-			})}
+		{#key data.selector}
+			{@const pageSelection = untrack(() => select(EntityType.YoutubeChannel, data.selector, {
+					sources: [
+						Source.Youtube_Rest,
+						Source.Piped_Rest,
+						Source.Constants_Internal,
+					],
+					fields: {
+						title: true,
+					},
+				}))}
 
-	<YoutubeChannelView
-		selection={pageSelection}
-	/>
+		<YoutubeChannelView
+			selection={pageSelection}
+		/>
+		{/key}
 	{/if}
 </Page>
