@@ -175,50 +175,36 @@ export const adaptCapturePage = (page: {
 const captureSettleTimeoutMs = 120_000
 const captureQuietMs = 2_000
 
-const renderedMainState = (html: string) => {
-	const main = html.match(/<main\b[^>]*\bid=["']main["'][^>]*>([\s\S]*?)<\/main>/i)
-	if (main == null)
-		return { ready: false, reason: 'no-#main' }
-	const text = main[1].replace(/<[^>]*>/g, ' ').replace(/&nbsp;/gi, ' ').replace(/\s+/g, ' ').trim()
-	if (text.length === 0)
-		return { ready: false, reason: '#main-empty' }
-	if (/\baria-busy=["']true["']|\bdata-loading\b/i.test(main[0]))
-		return { ready: false, reason: '#main-still-loading' }
-	if (/\bdata-error\b/i.test(main[0]))
-		return { ready: false, reason: '#main-boundary-error' }
-	return { ready: true, reason: `#main-text-length=${text.length}` }
-}
-
 export const waitForCaptureQuality = async (page: CapturePage, pathname: string, {
 	timeoutMs = captureSettleTimeoutMs,
 	quietMs = captureQuietMs,
 }: { timeoutMs?: number, quietMs?: number } = {}) => {
 	const deadline = Date.now() + timeoutMs
-	let lastHtml = ''
+	let lastSignature = ''
 	let quietSince = Date.now()
 	let lastReason = 'bootstrap-shell'
 	while (Date.now() < deadline) {
-		const html = await page.content()
-		const state = renderedMainState(html)
-		lastReason = state.reason
-		if (state.ready && await page.isMainVisible()) {
-			if (html === lastHtml) {
+		const runtimeDiagnostics = await page.runtimeDiagnostics()
+		const main = runtimeDiagnostics.main
+		if (main.readyState === 'complete' && main.visible) {
+			const signature = canonicalJson(main)
+			lastReason = `#main-text-length=${main.textLength}`
+			if (signature === lastSignature) {
 				if (Date.now() - quietSince >= quietMs) {
-					const finalUrl = new URL(page.url())
+					const finalUrl = new URL(main.finalUrl)
 					if (finalUrl.pathname !== pathname)
 						throw new Error(`capture canonical route mismatch: expected ${pathname}, received ${finalUrl.pathname}`)
 					return
 				}
 			}
 			else {
-				lastHtml = html
+				lastSignature = signature
 				quietSince = Date.now()
 			}
 		}
 		else {
-			if (state.ready)
-				lastReason = '#main-not-visible'
-			lastHtml = ''
+			lastReason = main.readyState === 'complete' ? 'no-visible-#main' : `document-${main.readyState}`
+			lastSignature = ''
 			quietSince = Date.now()
 		}
 		await page.waitForTimeout(250)
