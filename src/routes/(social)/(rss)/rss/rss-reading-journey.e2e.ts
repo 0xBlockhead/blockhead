@@ -3,6 +3,7 @@ import { expect, test, type Page } from '@playwright/test'
 
 const feedUrl = 'https://hnrss.org/frontpage'
 const feedPath = `/rss/feed/${encodeURIComponent(feedUrl)}`
+const feedImageUrl = 'https://images.example.com/deterministic-rss-feed.png'
 
 const installRssFixture = async (page: Page) => {
 	await page.route('**/api-proxy/**', async (route) => {
@@ -18,6 +19,7 @@ const installRssFixture = async (page: Page) => {
 						title: 'Deterministic RSS feed',
 						link: 'https://example.com/',
 						url: requestedFeedUrl,
+						image: feedImageUrl,
 					},
 					items: [{
 						title: 'Deterministic item',
@@ -38,6 +40,9 @@ const installRssFixture = async (page: Page) => {
 					<channel>
 						<title>Deterministic RSS feed</title>
 						<link>https://example.com/</link>
+						<image>
+							<url>${feedImageUrl}</url>
+						</image>
 						<item>
 							<title>Deterministic item</title>
 							<guid>deterministic-item</guid>
@@ -53,6 +58,10 @@ const installRssFixture = async (page: Page) => {
 }
 
 test.describe('RSS reading journey', () => {
+	test.beforeEach(async ({ page }) => {
+		await installRssFixture(page)
+	})
+
 	test('successful feed reads expose their source-owned observation list', async ({ page }) => {
 		test.setTimeout(180_000)
 		const consoleErrors: string[] = []
@@ -62,13 +71,20 @@ test.describe('RSS reading journey', () => {
 				consoleErrors.push(message.text())
 		})
 		page.on('pageerror', (error) => pageErrors.push(error.message))
-		await installRssFixture(page)
 		await page.goto(feedPath, { waitUntil: 'domcontentloaded' })
 
 		await expect(page.locator('#main')).toContainText('Deterministic RSS feed', {
 			timeout: 120_000,
 		})
 		await expect(page.locator(`#main a[href^="${feedPath}/item/"]`)).toContainText('Deterministic item')
+		const imageLink = page.getByRole('link', {
+			name: feedImageUrl,
+			exact: true,
+		})
+		await expect(imageLink).toBeVisible()
+		await expect(imageLink).toHaveAttribute('href', feedImageUrl)
+		await expect(imageLink).toHaveAttribute('target', '_blank')
+		await expect(imageLink).toHaveAttribute('rel', 'noreferrer noopener')
 		await expect(page.getByRole('heading', { name: /^Observations/ })).toBeVisible()
 		await expect(page.locator('#timestamps').getByRole('listitem')).toHaveCount(2)
 		await expect(page.locator('#timestamps')).toContainText(feedUrl)

@@ -13,6 +13,7 @@ const poolAddress = '0x87870bca3f3fd6335c3f4ce8392d69350b4fa4e2'
 const underlyingTokenAddress = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'
 const marketPath = `/network/eip155:1/aave-market/${poolAddress}`
 const reservePath = `${marketPath}/reserve/${underlyingTokenAddress}`
+const reserveImageUrl = 'https://images.example.com/deterministic-aave-usdc.png'
 const aaveProxyRoute = new RegExp(`/api-proxy/${encodeURIComponent(sourceBindingId(aaveBindings[Source.Aave_Rest][0]))}/0/`)
 
 const market = {
@@ -32,7 +33,7 @@ const market = {
 				name: 'USD Coin',
 				symbol: 'USDC',
 				decimals: 6,
-				imageUrl: 'https://statics.aave.com/icons/tokens/usdc.svg',
+				imageUrl: reserveImageUrl,
 				chainId: 1,
 			},
 			isFrozen: false,
@@ -113,6 +114,14 @@ test('market reserve list links to its canonical reserve detail', async ({ page 
 	await expect(page.getByText('750', {
 		exact: true,
 	})).toBeVisible()
+	const imageLink = page.getByRole('link', {
+		name: reserveImageUrl,
+		exact: true,
+	})
+	await expect(imageLink).toBeVisible()
+	await expect(imageLink).toHaveAttribute('href', reserveImageUrl)
+	await expect(imageLink).toHaveAttribute('target', '_blank')
+	await expect(imageLink).toHaveAttribute('rel', 'noreferrer noopener')
 	await expect(page.locator('#main [data-error], #main [role="alert"]')).toHaveCount(0)
 	expect(pageErrors).toEqual([])
 })
