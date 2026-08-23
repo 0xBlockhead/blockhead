@@ -9,7 +9,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -17,6 +16,21 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.BitcoinRuneBalance, {
+		$address: data.selector,
+		$rune: {
+			$network: data.selector.$network,
+			runeId: params.runeId,
+		},
+	}, {
+		sources: [
+			Source.UniSat_Rest,
+		],
+		fields: {
+			amount: true,
+		},
+	}))
 
 
 	// Components
@@ -26,24 +40,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.BitcoinRuneBalance, {
-					$address: data.selector,
-					$rune: {
-						$network: data.selector.$network,
-						runeId: params.runeId,
-					},
-				}, {
-					sources: [
-						Source.UniSat_Rest,
-					],
-					fields: {
-						amount: true,
-					},
-				}))}
-			<title>{data?.title ?? (pageSelection.entity == null ? 'Bitcoin Rune balance' : pageSelection.entity.amount || 'Bitcoin Rune balance')} • Bitcoin Rune balance • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'Bitcoin Rune balance' : pageSelection.entity.amount || 'Bitcoin Rune balance')} • Bitcoin Rune balance • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'Bitcoin Rune balance'} • Bitcoin Rune balance • Blockhead</title>
 	{/if}
@@ -51,26 +49,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.BitcoinRuneBalance, {
-					$address: data.selector,
-					$rune: {
-						$network: data.selector.$network,
-						runeId: params.runeId,
-					},
-				}, {
-					sources: [
-						Source.UniSat_Rest,
-					],
-					fields: {
-						amount: true,
-					},
-				}))}
-
-		<BitcoinRuneBalanceView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<BitcoinRuneBalanceView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

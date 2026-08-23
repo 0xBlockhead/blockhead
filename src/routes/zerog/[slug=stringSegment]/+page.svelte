@@ -9,13 +9,21 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.ZeroGNetwork, data.selector, {
+		sources: [
+			Source.Constants_Internal,
+		],
+		fields: {
+			name: true,
+		},
+	}))
 
 
 	// Components
@@ -25,18 +33,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.ZeroGNetwork, data.selector, {
-					sources: [
-						Source.Constants_Internal,
-					],
-					fields: {
-						name: true,
-					},
-				}))}
-			<title>{data?.title ?? (pageSelection.entity == null ? 'zero g network' : pageSelection.entity.name || 'zero g network')} • zero g network • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'zero g network' : pageSelection.entity.name || 'zero g network')} • zero g network • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'zero g network'} • zero g network • Blockhead</title>
 	{/if}
@@ -44,20 +42,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.ZeroGNetwork, data.selector, {
-					sources: [
-						Source.Constants_Internal,
-					],
-					fields: {
-						name: true,
-					},
-				}))}
-
-		<ZeroGNetworkView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<ZeroGNetworkView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

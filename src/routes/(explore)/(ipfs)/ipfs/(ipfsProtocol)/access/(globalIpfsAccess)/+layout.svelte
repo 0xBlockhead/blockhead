@@ -10,7 +10,6 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -21,6 +20,11 @@
 	}: LayoutProps = $props()
 
 	const detailHref = resolve('/(explore)/(ipfs)/ipfs/(ipfsProtocol)/access')
+	const detailSelection = $derived(data?.selector == null ? undefined : select(EntityType._GlobalIpfsAccess, data.selector, {
+		sources: [
+			Source.Constants_Internal,
+		],
+	}))
 
 
 	// Components
@@ -34,20 +38,12 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		{#if data?.selector != null}
-			{#key data.selector}
-				<GlobalIpfsAccessView
-					selection={
-						untrack(() => select(EntityType._GlobalIpfsAccess, data.selector, {
-							sources: [
-								Source.Constants_Internal,
-							],
-						}))
-					}
-					href={detailHref}
-					layout={EntityLayout.SummaryInline}
-				/>
-			{/key}
+		{#if detailSelection != null}
+			<GlobalIpfsAccessView
+				selection={detailSelection}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
 		{/if}
 	{/snippet}
 

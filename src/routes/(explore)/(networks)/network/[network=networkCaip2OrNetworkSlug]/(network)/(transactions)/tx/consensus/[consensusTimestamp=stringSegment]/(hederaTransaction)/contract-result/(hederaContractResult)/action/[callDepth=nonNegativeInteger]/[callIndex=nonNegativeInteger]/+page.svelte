@@ -8,7 +8,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -16,6 +15,12 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.HederaContractAction, {
+		$result: data.selector,
+		callDepth: Number(params.callDepth),
+		callIndex: Number(params.callIndex),
+	}))
 
 
 	// Components
@@ -25,15 +30,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.HederaContractAction, {
-					$result: data.selector,
-					callDepth: Number(params.callDepth),
-					callIndex: Number(params.callIndex),
-				}))}
-			<title>{data?.title ?? 'hedera contract action'} • hedera contract action • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? 'hedera contract action'} • hedera contract action • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'hedera contract action'} • hedera contract action • Blockhead</title>
 	{/if}
@@ -41,17 +39,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.HederaContractAction, {
-					$result: data.selector,
-					callDepth: Number(params.callDepth),
-					callIndex: Number(params.callIndex),
-				}))}
-
-		<HederaContractActionView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<HederaContractActionView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

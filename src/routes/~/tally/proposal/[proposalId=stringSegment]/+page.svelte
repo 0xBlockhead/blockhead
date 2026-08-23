@@ -9,13 +9,22 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.TallyProposal, data.selector, {
+		sources: [
+			Source.Tally,
+		],
+		fields: {
+			title: true,
+			onchainId: true,
+		},
+	}))
 
 
 	// Components
@@ -25,19 +34,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.TallyProposal, data.selector, {
-					sources: [
-						Source.Tally,
-					],
-					fields: {
-						title: true,
-						onchainId: true,
-					},
-				}))}
-			<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.proposalId ?? '') || 'Tally proposal' : (pageSelection.entity.title ?? '') || [(pageSelection.entity.onchainId ? 'Proposal ' + pageSelection.entity.onchainId : ''), pageSelection.entitySelector.proposalId].filter(Boolean).join(' ') || 'Tally proposal')} • Tally proposal • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.proposalId ?? '') || 'Tally proposal' : (pageSelection.entity.title ?? '') || [(pageSelection.entity.onchainId ? 'Proposal ' + pageSelection.entity.onchainId : ''), pageSelection.entitySelector.proposalId].filter(Boolean).join(' ') || 'Tally proposal')} • Tally proposal • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'Tally proposal'} • Tally proposal • Blockhead</title>
 	{/if}
@@ -45,21 +43,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.TallyProposal, data.selector, {
-					sources: [
-						Source.Tally,
-					],
-					fields: {
-						title: true,
-						onchainId: true,
-					},
-				}))}
-
-		<TallyProposalView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<TallyProposalView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

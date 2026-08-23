@@ -9,13 +9,23 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.AcpAgentProgram, data.selector, {
+		sources: [
+			Source.AcpRegistry_Rest,
+		],
+		fields: {
+			label: true,
+			packageName: true,
+			repositoryUrl: true,
+		},
+	}))
 
 
 	// Components
@@ -25,20 +35,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.AcpAgentProgram, data.selector, {
-					sources: [
-						Source.AcpRegistry_Rest,
-					],
-					fields: {
-						label: true,
-						packageName: true,
-						repositoryUrl: true,
-					},
-				}))}
-			<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.registryAgentId ?? '') || 'ACP agent program' : (pageSelection.entity.label ?? '') || [(pageSelection.entitySelector.registryAgentId ?? ''), (pageSelection.entity.packageName ?? ''), (pageSelection.entity.repositoryUrl ?? '')].filter(Boolean).join(' ') || 'ACP agent program')} • ACP agent program • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.registryAgentId ?? '') || 'ACP agent program' : (pageSelection.entity.label ?? '') || [(pageSelection.entitySelector.registryAgentId ?? ''), (pageSelection.entity.packageName ?? ''), (pageSelection.entity.repositoryUrl ?? '')].filter(Boolean).join(' ') || 'ACP agent program')} • ACP agent program • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'ACP agent program'} • ACP agent program • Blockhead</title>
 	{/if}
@@ -46,22 +44,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.AcpAgentProgram, data.selector, {
-					sources: [
-						Source.AcpRegistry_Rest,
-					],
-					fields: {
-						label: true,
-						packageName: true,
-						repositoryUrl: true,
-					},
-				}))}
-
-		<AcpAgentProgramView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<AcpAgentProgramView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

@@ -9,13 +9,21 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.CctpMessage, data.selector, {
+		sources: [
+			Source.CircleCctpContracts_Evm,
+			Source.CircleCctpContracts_Solana,
+			Source.CircleCctpContracts_Stellar,
+			Source.CircleCctpIris,
+		],
+	}))
 
 
 	// Components
@@ -25,18 +33,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.CctpMessage, data.selector, {
-					sources: [
-						Source.CircleCctpContracts_Evm,
-						Source.CircleCctpContracts_Solana,
-						Source.CircleCctpContracts_Stellar,
-						Source.CircleCctpIris,
-					],
-				}))}
-			<title>{data?.title ?? (pageSelection.entitySelector.nonce || 'CCTP message')} • CCTP message • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entitySelector.nonce || 'CCTP message')} • CCTP message • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'CCTP message'} • CCTP message • Blockhead</title>
 	{/if}
@@ -44,20 +42,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.CctpMessage, data.selector, {
-					sources: [
-						Source.CircleCctpContracts_Evm,
-						Source.CircleCctpContracts_Solana,
-						Source.CircleCctpContracts_Stellar,
-						Source.CircleCctpIris,
-					],
-				}))}
-
-		<CctpMessageView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<CctpMessageView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

@@ -9,13 +9,21 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.BalancerPool, data.selector, {
+		sources: [
+			Source.Balancer_Rest,
+		],
+		fields: {
+			name: true,
+		},
+	}))
 
 
 	// Components
@@ -25,18 +33,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.BalancerPool, data.selector, {
-					sources: [
-						Source.Balancer_Rest,
-					],
-					fields: {
-						name: true,
-					},
-				}))}
-			<title>{data?.title ?? (pageSelection.entity == null ? 'Balancer pool' : pageSelection.entity.name || 'Balancer pool')} • Balancer pool • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'Balancer pool' : pageSelection.entity.name || 'Balancer pool')} • Balancer pool • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'Balancer pool'} • Balancer pool • Blockhead</title>
 	{/if}
@@ -44,20 +42,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.BalancerPool, data.selector, {
-					sources: [
-						Source.Balancer_Rest,
-					],
-					fields: {
-						name: true,
-					},
-				}))}
-
-		<BalancerPoolView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<BalancerPoolView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

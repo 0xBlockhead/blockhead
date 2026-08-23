@@ -9,7 +9,6 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -28,6 +27,7 @@
 			}
 		)
 	)
+	const detailSelection = $derived(data?.selector == null ? undefined : select(data.entityType, data.selector))
 
 
 	// Components
@@ -51,16 +51,14 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		{#if data?.selector != null}
-			{#key data.selector}
-				{@const DetailView = data.entityType === EntityType.EvmBlock ? EvmBlockView : data.entityType === EntityType.SolanaBlock ? SolanaBlockView : data.entityType === EntityType.UtxoBlock ? UtxoBlockView : data.entityType === EntityType.PolkadotBlock ? PolkadotBlockView : data.entityType === EntityType.ArweaveBlock ? ArweaveBlockView : data.entityType === EntityType.CosmosBlock ? CosmosBlockView : data.entityType === EntityType.HederaBlock ? HederaBlockView : data.entityType === EntityType.HyperliquidBlock ? HyperliquidBlockView : data.entityType === EntityType.MoneroBlock ? MoneroBlockView : data.entityType === EntityType.NearBlock ? NearBlockView : TronBlockView}
+		{#if detailSelection != null}
+			{@const DetailView = data.entityType === EntityType.EvmBlock ? EvmBlockView : data.entityType === EntityType.SolanaBlock ? SolanaBlockView : data.entityType === EntityType.UtxoBlock ? UtxoBlockView : data.entityType === EntityType.PolkadotBlock ? PolkadotBlockView : data.entityType === EntityType.ArweaveBlock ? ArweaveBlockView : data.entityType === EntityType.CosmosBlock ? CosmosBlockView : data.entityType === EntityType.HederaBlock ? HederaBlockView : data.entityType === EntityType.HyperliquidBlock ? HyperliquidBlockView : data.entityType === EntityType.MoneroBlock ? MoneroBlockView : data.entityType === EntityType.NearBlock ? NearBlockView : TronBlockView}
 
-				<DetailView
-					selection={untrack(() => select(data.entityType, data.selector))}
-					href={detailHref}
-					layout={EntityLayout.SummaryInline}
-				/>
-			{/key}
+			<DetailView
+				selection={detailSelection}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
 		{/if}
 	{/snippet}
 

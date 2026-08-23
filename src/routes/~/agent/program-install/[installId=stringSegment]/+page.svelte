@@ -9,13 +9,18 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.BlockheadAgentProgramInstall, data.selector, {
+		sources: [
+			Source.Local_Internal,
+		],
+	}))
 
 
 	// Components
@@ -25,15 +30,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.BlockheadAgentProgramInstall, data.selector, {
-					sources: [
-						Source.Local_Internal,
-					],
-				}))}
-			<title>{data?.title ?? (pageSelection.entitySelector.installId || 'blockhead agent program install')} • blockhead agent program install • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entitySelector.installId || 'blockhead agent program install')} • blockhead agent program install • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'blockhead agent program install'} • blockhead agent program install • Blockhead</title>
 	{/if}
@@ -41,17 +39,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.BlockheadAgentProgramInstall, data.selector, {
-					sources: [
-						Source.Local_Internal,
-					],
-				}))}
-
-		<BlockheadAgentProgramInstallView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<BlockheadAgentProgramInstallView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

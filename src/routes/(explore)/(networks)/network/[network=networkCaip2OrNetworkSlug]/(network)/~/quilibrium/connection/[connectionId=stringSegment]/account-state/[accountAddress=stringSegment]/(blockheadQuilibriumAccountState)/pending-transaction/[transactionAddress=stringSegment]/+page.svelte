@@ -9,7 +9,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -17,6 +16,16 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.BlockheadQuilibriumPendingTransaction, {
+		$accountState: data.selector,
+		transactionAddress: params.transactionAddress,
+	}, {
+		sources: [
+			Source.Local_Internal,
+			Source.QuilibriumNodeRpc_Grpc,
+		],
+	}))
 
 
 	// Components
@@ -26,19 +35,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.BlockheadQuilibriumPendingTransaction, {
-					$accountState: data.selector,
-					transactionAddress: params.transactionAddress,
-				}, {
-					sources: [
-						Source.Local_Internal,
-						Source.QuilibriumNodeRpc_Grpc,
-					],
-				}))}
-			<title>{data?.title ?? (pageSelection.entitySelector.transactionAddress || 'blockhead quilibrium pending transaction')} • blockhead quilibrium pending transaction • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entitySelector.transactionAddress || 'blockhead quilibrium pending transaction')} • blockhead quilibrium pending transaction • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'blockhead quilibrium pending transaction'} • blockhead quilibrium pending transaction • Blockhead</title>
 	{/if}
@@ -46,21 +44,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.BlockheadQuilibriumPendingTransaction, {
-					$accountState: data.selector,
-					transactionAddress: params.transactionAddress,
-				}, {
-					sources: [
-						Source.Local_Internal,
-						Source.QuilibriumNodeRpc_Grpc,
-					],
-				}))}
-
-		<BlockheadQuilibriumPendingTransactionView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<BlockheadQuilibriumPendingTransactionView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

@@ -8,7 +8,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -16,6 +15,14 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.TezosBakingRight_Timestamp, {
+		$right: data.selector,
+		timestampMs: Number(params.timestampMs),
+		source: params.source,
+	}, {
+		sources: [params.source],
+	}))
 
 
 	// Components
@@ -25,17 +32,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.TezosBakingRight_Timestamp, {
-					$right: data.selector,
-					timestampMs: Number(params.timestampMs),
-					source: params.source,
-				}, {
-					sources: [params.source],
-				}))}
-			<title>{data?.title ?? 'tezos baking right timestamp'} • tezos baking right timestamp • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? 'tezos baking right timestamp'} • tezos baking right timestamp • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'tezos baking right timestamp'} • tezos baking right timestamp • Blockhead</title>
 	{/if}
@@ -43,19 +41,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.TezosBakingRight_Timestamp, {
-					$right: data.selector,
-					timestampMs: Number(params.timestampMs),
-					source: params.source,
-				}, {
-					sources: [params.source],
-				}))}
-
-		<TezosBakingRight_TimestampView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<TezosBakingRight_TimestampView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

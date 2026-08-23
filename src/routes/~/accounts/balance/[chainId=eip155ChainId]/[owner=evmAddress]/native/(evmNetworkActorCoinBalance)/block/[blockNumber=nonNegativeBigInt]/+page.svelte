@@ -8,7 +8,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -16,6 +15,14 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.EvmNetworkActorCoinBalance_EvmBlock, {
+		$actorCoin: data.selector,
+		$block: {
+			$network: data.selector.$network,
+			blockNumber: BigInt(params.blockNumber),
+		},
+	}))
 
 
 	// Components
@@ -25,17 +32,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.EvmNetworkActorCoinBalance_EvmBlock, {
-					$actorCoin: data.selector,
-					$block: {
-						$network: data.selector.$network,
-						blockNumber: BigInt(params.blockNumber),
-					},
-				}))}
-			<title>{data?.title ?? 'EVM network actor coin balance EVM block'} • EVM network actor coin balance EVM block • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? 'EVM network actor coin balance EVM block'} • EVM network actor coin balance EVM block • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'EVM network actor coin balance EVM block'} • EVM network actor coin balance EVM block • Blockhead</title>
 	{/if}
@@ -43,19 +41,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.EvmNetworkActorCoinBalance_EvmBlock, {
-					$actorCoin: data.selector,
-					$block: {
-						$network: data.selector.$network,
-						blockNumber: BigInt(params.blockNumber),
-					},
-				}))}
-
-		<EvmNetworkActorCoinBalance_EvmBlockView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<EvmNetworkActorCoinBalance_EvmBlockView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

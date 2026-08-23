@@ -9,7 +9,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -17,6 +16,15 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.AcpFileOperation, {
+		$session: data.selector,
+		operationId: params.operationId,
+	}, {
+		sources: [
+			Source.AcpLocal_JsonRpc,
+		],
+	}))
 
 
 	// Components
@@ -26,18 +34,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.AcpFileOperation, {
-					$session: data.selector,
-					operationId: params.operationId,
-				}, {
-					sources: [
-						Source.AcpLocal_JsonRpc,
-					],
-				}))}
-			<title>{data?.title ?? (pageSelection.entitySelector.operationId || 'ACP file operation')} • ACP file operation • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entitySelector.operationId || 'ACP file operation')} • ACP file operation • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'ACP file operation'} • ACP file operation • Blockhead</title>
 	{/if}
@@ -45,20 +43,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.AcpFileOperation, {
-					$session: data.selector,
-					operationId: params.operationId,
-				}, {
-					sources: [
-						Source.AcpLocal_JsonRpc,
-					],
-				}))}
-
-		<AcpFileOperationView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<AcpFileOperationView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

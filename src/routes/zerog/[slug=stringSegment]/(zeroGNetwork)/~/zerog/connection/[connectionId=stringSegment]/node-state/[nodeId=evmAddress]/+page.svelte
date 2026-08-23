@@ -9,13 +9,19 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.BlockheadZeroGStorageNodeState, data.selector, {
+		sources: [
+			Source.Local_Internal,
+			Source.ZeroGStorageNode_JsonRpc,
+		],
+	}))
 
 
 	// Components
@@ -25,16 +31,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.BlockheadZeroGStorageNodeState, data.selector, {
-					sources: [
-						Source.Local_Internal,
-						Source.ZeroGStorageNode_JsonRpc,
-					],
-				}))}
-			<title>{data?.title ?? (pageSelection.entitySelector.nodeId || 'blockhead zero g storage node state')} • blockhead zero g storage node state • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entitySelector.nodeId || 'blockhead zero g storage node state')} • blockhead zero g storage node state • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'blockhead zero g storage node state'} • blockhead zero g storage node state • Blockhead</title>
 	{/if}
@@ -42,18 +40,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.BlockheadZeroGStorageNodeState, data.selector, {
-					sources: [
-						Source.Local_Internal,
-						Source.ZeroGStorageNode_JsonRpc,
-					],
-				}))}
-
-		<BlockheadZeroGStorageNodeStateView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<BlockheadZeroGStorageNodeStateView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

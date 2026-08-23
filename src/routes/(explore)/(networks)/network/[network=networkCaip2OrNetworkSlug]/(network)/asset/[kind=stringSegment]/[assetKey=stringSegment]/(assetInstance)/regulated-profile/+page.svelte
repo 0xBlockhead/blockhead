@@ -8,13 +8,18 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.RegulatedAssetProfile, data.selector, {
+		fields: {
+			standard: true,
+		},
+	}))
 
 
 	// Components
@@ -24,15 +29,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.RegulatedAssetProfile, data.selector, {
-					fields: {
-						standard: true,
-					},
-				}))}
-			<title>{data?.title ?? (pageSelection.entity == null ? 'regulated asset profile' : pageSelection.entity.standard || 'regulated asset profile')} • regulated asset profile • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'regulated asset profile' : pageSelection.entity.standard || 'regulated asset profile')} • regulated asset profile • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'regulated asset profile'} • regulated asset profile • Blockhead</title>
 	{/if}
@@ -40,17 +38,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.RegulatedAssetProfile, data.selector, {
-					fields: {
-						standard: true,
-					},
-				}))}
-
-		<RegulatedAssetProfileView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<RegulatedAssetProfileView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

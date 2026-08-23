@@ -9,13 +9,18 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.NearAccessKey, data.selector, {
+		sources: [
+			Source.NearRpc_JsonRpc,
+		],
+	}))
 
 
 	// Components
@@ -25,15 +30,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.NearAccessKey, data.selector, {
-					sources: [
-						Source.NearRpc_JsonRpc,
-					],
-				}))}
-			<title>{data?.title ?? (pageSelection.entitySelector.publicKey || 'near access key')} • near access key • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entitySelector.publicKey || 'near access key')} • near access key • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'near access key'} • near access key • Blockhead</title>
 	{/if}
@@ -41,17 +39,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.NearAccessKey, data.selector, {
-					sources: [
-						Source.NearRpc_JsonRpc,
-					],
-				}))}
-
-		<NearAccessKeyView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<NearAccessKeyView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

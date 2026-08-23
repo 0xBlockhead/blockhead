@@ -8,7 +8,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -16,6 +15,12 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.IbcPacket, {
+		$channel: data.selector,
+		sequence: BigInt(params.sequence),
+		direction: params.direction,
+	}))
 
 
 	// Components
@@ -25,15 +30,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.IbcPacket, {
-					$channel: data.selector,
-					sequence: BigInt(params.sequence),
-					direction: params.direction,
-				}))}
-			<title>{data?.title ?? ((String(pageSelection.entitySelector.sequence ?? '') ? 'Packet #' + String(pageSelection.entitySelector.sequence ?? '') : '') || 'IBC packet')} • IBC packet • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? ((String(pageSelection.entitySelector.sequence ?? '') ? 'Packet #' + String(pageSelection.entitySelector.sequence ?? '') : '') || 'IBC packet')} • IBC packet • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'IBC packet'} • IBC packet • Blockhead</title>
 	{/if}
@@ -41,17 +39,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.IbcPacket, {
-					$channel: data.selector,
-					sequence: BigInt(params.sequence),
-					direction: params.direction,
-				}))}
-
-		<IbcPacketView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<IbcPacketView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

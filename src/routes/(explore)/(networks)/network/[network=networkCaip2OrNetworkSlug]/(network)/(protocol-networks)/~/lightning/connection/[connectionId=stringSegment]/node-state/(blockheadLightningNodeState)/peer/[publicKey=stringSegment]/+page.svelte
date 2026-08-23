@@ -9,13 +9,19 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.BlockheadLightningPeer, data.selector, {
+		sources: [
+			Source.LightningLnd_Rest,
+			Source.Local_Internal,
+		],
+	}))
 
 
 	// Components
@@ -25,16 +31,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.BlockheadLightningPeer, data.selector, {
-					sources: [
-						Source.LightningLnd_Rest,
-						Source.Local_Internal,
-					],
-				}))}
-			<title>{data?.title ?? (pageSelection.entitySelector.publicKey || 'local LND peer')} • local LND peer • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entitySelector.publicKey || 'local LND peer')} • local LND peer • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'local LND peer'} • local LND peer • Blockhead</title>
 	{/if}
@@ -42,18 +40,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.BlockheadLightningPeer, data.selector, {
-					sources: [
-						Source.LightningLnd_Rest,
-						Source.Local_Internal,
-					],
-				}))}
-
-		<BlockheadLightningPeerView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<BlockheadLightningPeerView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

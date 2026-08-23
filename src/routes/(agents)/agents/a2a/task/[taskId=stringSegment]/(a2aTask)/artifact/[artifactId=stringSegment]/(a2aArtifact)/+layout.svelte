@@ -9,7 +9,6 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -28,6 +27,9 @@
 			}
 		)
 	)
+	const detailSelection = $derived(data?.selector == null ? undefined : select(EntityType.A2aArtifact, data.selector, {
+		sources: [],
+	}))
 
 
 	// Components
@@ -41,18 +43,12 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		{#if data?.selector != null}
-			{#key data.selector}
-				<A2aArtifactView
-					selection={
-						untrack(() => select(EntityType.A2aArtifact, data.selector, {
-							sources: [],
-						}))
-					}
-					href={detailHref}
-					layout={EntityLayout.SummaryInline}
-				/>
-			{/key}
+		{#if detailSelection != null}
+			<A2aArtifactView
+				selection={detailSelection}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
 		{/if}
 	{/snippet}
 

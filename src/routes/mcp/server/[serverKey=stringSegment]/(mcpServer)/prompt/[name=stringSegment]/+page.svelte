@@ -9,13 +9,21 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.McpPrompt, data.selector, {
+		sources: [
+			Source.McpDeclared_Protocol,
+		],
+		fields: {
+			title: true,
+		},
+	}))
 
 
 	// Components
@@ -25,18 +33,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.McpPrompt, data.selector, {
-					sources: [
-						Source.McpDeclared_Protocol,
-					],
-					fields: {
-						title: true,
-					},
-				}))}
-			<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.name ?? '') || 'mcp prompt' : (pageSelection.entity.title ?? '') || pageSelection.entitySelector.name || 'mcp prompt')} • mcp prompt • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.name ?? '') || 'mcp prompt' : (pageSelection.entity.title ?? '') || pageSelection.entitySelector.name || 'mcp prompt')} • mcp prompt • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'mcp prompt'} • mcp prompt • Blockhead</title>
 	{/if}
@@ -44,20 +42,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.McpPrompt, data.selector, {
-					sources: [
-						Source.McpDeclared_Protocol,
-					],
-					fields: {
-						title: true,
-					},
-				}))}
-
-		<McpPromptView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<McpPromptView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

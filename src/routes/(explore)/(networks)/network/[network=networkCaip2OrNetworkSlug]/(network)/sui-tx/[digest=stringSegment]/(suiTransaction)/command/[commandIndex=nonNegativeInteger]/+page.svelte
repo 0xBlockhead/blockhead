@@ -8,7 +8,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -16,6 +15,11 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.SuiProgrammableTransactionCommand, {
+		$transaction: data.selector,
+		commandIndex: Number(params.commandIndex),
+	}))
 
 
 	// Components
@@ -25,14 +29,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.SuiProgrammableTransactionCommand, {
-					$transaction: data.selector,
-					commandIndex: Number(params.commandIndex),
-				}))}
-			<title>{data?.title ?? 'Sui programmable transaction command'} • Sui programmable transaction command • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? 'Sui programmable transaction command'} • Sui programmable transaction command • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'Sui programmable transaction command'} • Sui programmable transaction command • Blockhead</title>
 	{/if}
@@ -40,16 +38,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.SuiProgrammableTransactionCommand, {
-					$transaction: data.selector,
-					commandIndex: Number(params.commandIndex),
-				}))}
-
-		<SuiProgrammableTransactionCommandView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<SuiProgrammableTransactionCommandView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

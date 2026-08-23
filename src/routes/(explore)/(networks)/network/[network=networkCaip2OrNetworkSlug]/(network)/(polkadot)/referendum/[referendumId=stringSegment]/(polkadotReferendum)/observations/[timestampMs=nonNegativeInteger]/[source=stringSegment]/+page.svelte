@@ -8,7 +8,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -16,6 +15,17 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.PolkadotReferendum_Timestamp, {
+		$referendum: data.selector,
+		timestampMs: Number(params.timestampMs),
+		source: params.source,
+	}, {
+		sources: [params.source],
+		fields: {
+			status: true,
+		},
+	}))
 
 
 	// Components
@@ -25,20 +35,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.PolkadotReferendum_Timestamp, {
-					$referendum: data.selector,
-					timestampMs: Number(params.timestampMs),
-					source: params.source,
-				}, {
-					sources: [params.source],
-					fields: {
-						status: true,
-					},
-				}))}
-			<title>{data?.title ?? (pageSelection.entity == null ? 'Polkadot referendum timestamp' : (pageSelection.entity.status ?? '') || 'Polkadot referendum timestamp')} • Polkadot referendum timestamp • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'Polkadot referendum timestamp' : (pageSelection.entity.status ?? '') || 'Polkadot referendum timestamp')} • Polkadot referendum timestamp • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'Polkadot referendum timestamp'} • Polkadot referendum timestamp • Blockhead</title>
 	{/if}
@@ -46,22 +44,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.PolkadotReferendum_Timestamp, {
-					$referendum: data.selector,
-					timestampMs: Number(params.timestampMs),
-					source: params.source,
-				}, {
-					sources: [params.source],
-					fields: {
-						status: true,
-					},
-				}))}
-
-		<PolkadotReferendum_TimestampView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<PolkadotReferendum_TimestampView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

@@ -8,7 +8,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -16,6 +15,11 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.TallyProposalExecutableCall, {
+		$proposal: data.selector,
+		index: Number(params.index),
+	}))
 
 
 	// Components
@@ -25,14 +29,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.TallyProposalExecutableCall, {
-					$proposal: data.selector,
-					index: Number(params.index),
-				}))}
-			<title>{data?.title ?? 'Call #' + String(pageSelection.entitySelector.index)} • Tally proposal executable call • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? 'Call #' + String(pageSelection.entitySelector.index)} • Tally proposal executable call • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'Tally proposal executable call'} • Tally proposal executable call • Blockhead</title>
 	{/if}
@@ -40,16 +38,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.TallyProposalExecutableCall, {
-					$proposal: data.selector,
-					index: Number(params.index),
-				}))}
-
-		<TallyProposalExecutableCallView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<TallyProposalExecutableCallView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

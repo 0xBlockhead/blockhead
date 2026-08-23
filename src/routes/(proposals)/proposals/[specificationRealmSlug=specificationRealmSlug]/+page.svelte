@@ -9,13 +9,21 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.SpecificationRealm, data.selector, {
+		sources: [
+			Source.Constants_Internal,
+		],
+		fields: {
+			label: true,
+		},
+	}))
 
 
 	// Components
@@ -25,18 +33,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.SpecificationRealm, data.selector, {
-					sources: [
-						Source.Constants_Internal,
-					],
-					fields: {
-						label: true,
-					},
-				}))}
-			<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.realm ?? '') || 'Specification realm' : pageSelection.entity.label || pageSelection.entitySelector.realm || 'Specification realm')} • Specification realm • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.realm ?? '') || 'Specification realm' : pageSelection.entity.label || pageSelection.entitySelector.realm || 'Specification realm')} • Specification realm • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'Specification realm'} • Specification realm • Blockhead</title>
 	{/if}
@@ -44,20 +42,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.SpecificationRealm, data.selector, {
-					sources: [
-						Source.Constants_Internal,
-					],
-					fields: {
-						label: true,
-					},
-				}))}
-
-		<SpecificationRealmView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<SpecificationRealmView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

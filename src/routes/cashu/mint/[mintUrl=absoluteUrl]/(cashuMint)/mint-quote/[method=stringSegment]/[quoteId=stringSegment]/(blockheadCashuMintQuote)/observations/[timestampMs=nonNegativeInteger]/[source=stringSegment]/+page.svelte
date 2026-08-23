@@ -8,7 +8,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -16,6 +15,14 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.BlockheadCashuMintQuote_Timestamp, {
+		$mintQuote: data.selector,
+		timestampMs: Number(params.timestampMs),
+		source: params.source,
+	}, {
+		sources: [params.source],
+	}))
 
 
 	// Components
@@ -25,17 +32,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.BlockheadCashuMintQuote_Timestamp, {
-					$mintQuote: data.selector,
-					timestampMs: Number(params.timestampMs),
-					source: params.source,
-				}, {
-					sources: [params.source],
-				}))}
-			<title>{data?.title ?? (String(pageSelection.entitySelector.timestampMs) || 'blockhead Cashu mint quote timestamp')} • blockhead Cashu mint quote timestamp • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (String(pageSelection.entitySelector.timestampMs) || 'blockhead Cashu mint quote timestamp')} • blockhead Cashu mint quote timestamp • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'blockhead Cashu mint quote timestamp'} • blockhead Cashu mint quote timestamp • Blockhead</title>
 	{/if}
@@ -43,19 +41,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.BlockheadCashuMintQuote_Timestamp, {
-					$mintQuote: data.selector,
-					timestampMs: Number(params.timestampMs),
-					source: params.source,
-				}, {
-					sources: [params.source],
-				}))}
-
-		<BlockheadCashuMintQuote_TimestampView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<BlockheadCashuMintQuote_TimestampView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

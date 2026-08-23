@@ -8,7 +8,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -16,6 +15,16 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.TokenProgramExtension_Timestamp, {
+		$assetInstance: data.selector,
+		extensionKind: params.extensionKind,
+		extensionScope: params.extensionScope,
+		timestampMs: Number(params.timestampMs),
+		source: params.source,
+	}, {
+		sources: [params.source],
+	}))
 
 
 	// Components
@@ -25,19 +34,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.TokenProgramExtension_Timestamp, {
-					$assetInstance: data.selector,
-					extensionKind: params.extensionKind,
-					extensionScope: params.extensionScope,
-					timestampMs: Number(params.timestampMs),
-					source: params.source,
-				}, {
-					sources: [params.source],
-				}))}
-			<title>{data?.title ?? (pageSelection.entitySelector.extensionKind || 'token program extension timestamp')} • token program extension timestamp • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entitySelector.extensionKind || 'token program extension timestamp')} • token program extension timestamp • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'token program extension timestamp'} • token program extension timestamp • Blockhead</title>
 	{/if}
@@ -45,21 +43,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.TokenProgramExtension_Timestamp, {
-					$assetInstance: data.selector,
-					extensionKind: params.extensionKind,
-					extensionScope: params.extensionScope,
-					timestampMs: Number(params.timestampMs),
-					source: params.source,
-				}, {
-					sources: [params.source],
-				}))}
-
-		<TokenProgramExtension_TimestampView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<TokenProgramExtension_TimestampView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

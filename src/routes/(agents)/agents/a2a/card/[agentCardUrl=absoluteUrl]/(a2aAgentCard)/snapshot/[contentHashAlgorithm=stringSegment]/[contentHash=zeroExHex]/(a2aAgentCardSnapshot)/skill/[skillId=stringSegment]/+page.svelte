@@ -8,7 +8,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -16,6 +15,16 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.A2aAgentSkill, {
+		$cardSnapshot: data.selector,
+		skillId: params.skillId,
+	}, {
+		sources: [],
+		fields: {
+			name: true,
+		},
+	}))
 
 
 	// Components
@@ -25,19 +34,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.A2aAgentSkill, {
-					$cardSnapshot: data.selector,
-					skillId: params.skillId,
-				}, {
-					sources: [],
-					fields: {
-						name: true,
-					},
-				}))}
-			<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.skillId ?? '') || 'A2A agent skill' : (pageSelection.entity.name ?? '') || pageSelection.entitySelector.skillId || 'A2A agent skill')} • A2A agent skill • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.skillId ?? '') || 'A2A agent skill' : (pageSelection.entity.name ?? '') || pageSelection.entitySelector.skillId || 'A2A agent skill')} • A2A agent skill • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'A2A agent skill'} • A2A agent skill • Blockhead</title>
 	{/if}
@@ -45,21 +43,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.A2aAgentSkill, {
-					$cardSnapshot: data.selector,
-					skillId: params.skillId,
-				}, {
-					sources: [],
-					fields: {
-						name: true,
-					},
-				}))}
-
-		<A2aAgentSkillView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<A2aAgentSkillView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

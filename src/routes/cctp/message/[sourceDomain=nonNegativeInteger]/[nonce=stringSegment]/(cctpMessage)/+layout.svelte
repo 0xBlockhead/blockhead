@@ -10,7 +10,6 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -29,6 +28,14 @@
 			}
 		)
 	)
+	const detailSelection = $derived(data?.selector == null ? undefined : select(EntityType.CctpMessage, data.selector, {
+		sources: [
+			Source.CircleCctpContracts_Evm,
+			Source.CircleCctpContracts_Solana,
+			Source.CircleCctpContracts_Stellar,
+			Source.CircleCctpIris,
+		],
+	}))
 
 
 	// Components
@@ -42,23 +49,12 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		{#if data?.selector != null}
-			{#key data.selector}
-				<CctpMessageView
-					selection={
-						untrack(() => select(EntityType.CctpMessage, data.selector, {
-							sources: [
-								Source.CircleCctpContracts_Evm,
-								Source.CircleCctpContracts_Solana,
-								Source.CircleCctpContracts_Stellar,
-								Source.CircleCctpIris,
-							],
-						}))
-					}
-					href={detailHref}
-					layout={EntityLayout.SummaryInline}
-				/>
-			{/key}
+		{#if detailSelection != null}
+			<CctpMessageView
+				selection={detailSelection}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
 		{/if}
 	{/snippet}
 

@@ -9,7 +9,6 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -28,6 +27,7 @@
 			}
 		)
 	)
+	const detailSelection = $derived(data?.selector == null ? undefined : select(EntityType.TonWorkchain, data.selector))
 
 
 	// Components
@@ -41,14 +41,12 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		{#if data?.selector != null}
-			{#key data.selector}
-				<TonWorkchainView
-					selection={untrack(() => select(EntityType.TonWorkchain, data.selector))}
-					href={detailHref}
-					layout={EntityLayout.SummaryInline}
-				/>
-			{/key}
+		{#if detailSelection != null}
+			<TonWorkchainView
+				selection={detailSelection}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
 		{/if}
 	{/snippet}
 

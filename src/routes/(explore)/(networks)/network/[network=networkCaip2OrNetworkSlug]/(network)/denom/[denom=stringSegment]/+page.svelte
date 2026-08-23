@@ -8,13 +8,19 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.CosmosDenom, data.selector, {
+		fields: {
+			symbol: true,
+			display: true,
+		},
+	}))
 
 
 	// Components
@@ -24,16 +30,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.CosmosDenom, data.selector, {
-					fields: {
-						symbol: true,
-						display: true,
-					},
-				}))}
-			<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.denom ?? '') || 'Cosmos denom' : [(pageSelection.entity.symbol ?? ''), (pageSelection.entity.display ?? ''), pageSelection.entitySelector.denom].filter(Boolean).join(' ') || 'Cosmos denom')} • Cosmos denom • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.denom ?? '') || 'Cosmos denom' : [(pageSelection.entity.symbol ?? ''), (pageSelection.entity.display ?? ''), pageSelection.entitySelector.denom].filter(Boolean).join(' ') || 'Cosmos denom')} • Cosmos denom • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'Cosmos denom'} • Cosmos denom • Blockhead</title>
 	{/if}
@@ -41,18 +39,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.CosmosDenom, data.selector, {
-					fields: {
-						symbol: true,
-						display: true,
-					},
-				}))}
-
-		<CosmosDenomView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<CosmosDenomView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

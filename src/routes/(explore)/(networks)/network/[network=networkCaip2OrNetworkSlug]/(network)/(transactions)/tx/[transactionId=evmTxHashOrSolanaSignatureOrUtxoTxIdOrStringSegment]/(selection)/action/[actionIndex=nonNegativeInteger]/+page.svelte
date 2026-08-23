@@ -9,7 +9,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -17,6 +16,18 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.NearAction, {
+		$transaction: data.selector,
+		actionIndex: Number(params.actionIndex),
+	}, {
+		sources: [
+			Source.NearRpc_JsonRpc,
+		],
+		fields: {
+			actionKind: true,
+		},
+	}))
 
 
 	// Components
@@ -26,21 +37,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.NearAction, {
-					$transaction: data.selector,
-					actionIndex: Number(params.actionIndex),
-				}, {
-					sources: [
-						Source.NearRpc_JsonRpc,
-					],
-					fields: {
-						actionKind: true,
-					},
-				}))}
-			<title>{data?.title ?? (pageSelection.entity == null ? 'near action' : pageSelection.entity.actionKind || 'near action')} • near action • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'near action' : pageSelection.entity.actionKind || 'near action')} • near action • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'near action'} • near action • Blockhead</title>
 	{/if}
@@ -48,23 +46,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.NearAction, {
-					$transaction: data.selector,
-					actionIndex: Number(params.actionIndex),
-				}, {
-					sources: [
-						Source.NearRpc_JsonRpc,
-					],
-					fields: {
-						actionKind: true,
-					},
-				}))}
-
-		<NearActionView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<NearActionView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

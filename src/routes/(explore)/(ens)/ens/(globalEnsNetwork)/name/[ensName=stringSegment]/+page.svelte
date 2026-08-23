@@ -9,13 +9,19 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.EnsName, data.selector, {
+		sources: [
+			Source.TheGraph_Graphql,
+			Source.Voltaire_JsonRpc,
+		],
+	}))
 
 
 	// Components
@@ -25,16 +31,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.EnsName, data.selector, {
-					sources: [
-						Source.TheGraph_Graphql,
-						Source.Voltaire_JsonRpc,
-					],
-				}))}
-			<title>{data?.title ?? (pageSelection.entitySelector.name || 'ENS name')} • ENS name • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entitySelector.name || 'ENS name')} • ENS name • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'ENS name'} • ENS name • Blockhead</title>
 	{/if}
@@ -42,18 +40,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.EnsName, data.selector, {
-					sources: [
-						Source.TheGraph_Graphql,
-						Source.Voltaire_JsonRpc,
-					],
-				}))}
-
-		<EnsNameView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<EnsNameView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

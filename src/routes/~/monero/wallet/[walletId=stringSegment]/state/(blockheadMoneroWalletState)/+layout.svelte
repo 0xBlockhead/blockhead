@@ -10,7 +10,6 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -28,6 +27,12 @@
 			}
 		)
 	)
+	const detailSelection = $derived(data?.selector == null ? undefined : select(EntityType.BlockheadMoneroWalletState, data.selector, {
+		sources: [
+			Source.Local_Internal,
+			Source.MoneroWalletRpc_JsonRpc,
+		],
+	}))
 
 
 	// Components
@@ -41,21 +46,12 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		{#if data?.selector != null}
-			{#key data.selector}
-				<BlockheadMoneroWalletStateView
-					selection={
-						untrack(() => select(EntityType.BlockheadMoneroWalletState, data.selector, {
-							sources: [
-								Source.Local_Internal,
-								Source.MoneroWalletRpc_JsonRpc,
-							],
-						}))
-					}
-					href={detailHref}
-					layout={EntityLayout.SummaryInline}
-				/>
-			{/key}
+		{#if detailSelection != null}
+			<BlockheadMoneroWalletStateView
+				selection={detailSelection}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
 		{/if}
 	{/snippet}
 

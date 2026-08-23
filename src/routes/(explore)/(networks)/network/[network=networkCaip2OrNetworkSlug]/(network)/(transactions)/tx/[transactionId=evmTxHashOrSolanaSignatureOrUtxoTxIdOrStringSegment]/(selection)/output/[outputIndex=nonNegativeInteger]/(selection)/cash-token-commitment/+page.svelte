@@ -9,13 +9,23 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.BitcoinCashCashTokenCommitment, {
+		$output: data.selector,
+	}, {
+		sources: [
+			Source.BitcoinCashNode_JsonRpc,
+		],
+		fields: {
+			commitmentHex: true,
+		},
+	}))
 
 
 	// Components
@@ -25,20 +35,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.BitcoinCashCashTokenCommitment, {
-					$output: data.selector,
-				}, {
-					sources: [
-						Source.BitcoinCashNode_JsonRpc,
-					],
-					fields: {
-						commitmentHex: true,
-					},
-				}))}
-			<title>{data?.title ?? (pageSelection.entity == null ? 'Bitcoin Cash CashToken commitment' : pageSelection.entity.commitmentHex || 'Bitcoin Cash CashToken commitment')} • Bitcoin Cash CashToken commitment • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'Bitcoin Cash CashToken commitment' : pageSelection.entity.commitmentHex || 'Bitcoin Cash CashToken commitment')} • Bitcoin Cash CashToken commitment • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'Bitcoin Cash CashToken commitment'} • Bitcoin Cash CashToken commitment • Blockhead</title>
 	{/if}
@@ -46,22 +44,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.BitcoinCashCashTokenCommitment, {
-					$output: data.selector,
-				}, {
-					sources: [
-						Source.BitcoinCashNode_JsonRpc,
-					],
-					fields: {
-						commitmentHex: true,
-					},
-				}))}
-
-		<BitcoinCashCashTokenCommitmentView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<BitcoinCashCashTokenCommitmentView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

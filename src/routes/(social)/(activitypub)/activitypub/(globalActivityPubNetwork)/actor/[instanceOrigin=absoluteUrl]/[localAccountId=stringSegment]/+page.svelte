@@ -9,13 +9,23 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.ActivityPubActor, data.selector, {
+		sources: [
+			Source.Mastodon_Rest,
+		],
+		fields: {
+			displayName: true,
+			acct: true,
+			username: true,
+		},
+	}))
 
 
 	// Components
@@ -25,20 +35,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.ActivityPubActor, data.selector, {
-					sources: [
-						Source.Mastodon_Rest,
-					],
-					fields: {
-						displayName: true,
-						acct: true,
-						username: true,
-					},
-				}))}
-			<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.localAccountId ?? '') || 'ActivityPub actor' : [(pageSelection.entity.displayName ?? ''), pageSelection.entity.acct, (pageSelection.entity.username ?? ''), pageSelection.entitySelector.localAccountId].filter(Boolean).join(' ') || 'ActivityPub actor')} • ActivityPub actor • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.localAccountId ?? '') || 'ActivityPub actor' : [(pageSelection.entity.displayName ?? ''), pageSelection.entity.acct, (pageSelection.entity.username ?? ''), pageSelection.entitySelector.localAccountId].filter(Boolean).join(' ') || 'ActivityPub actor')} • ActivityPub actor • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'ActivityPub actor'} • ActivityPub actor • Blockhead</title>
 	{/if}
@@ -46,22 +44,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.ActivityPubActor, data.selector, {
-					sources: [
-						Source.Mastodon_Rest,
-					],
-					fields: {
-						displayName: true,
-						acct: true,
-						username: true,
-					},
-				}))}
-
-		<ActivityPubActorView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<ActivityPubActorView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

@@ -9,7 +9,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -17,6 +16,19 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.NearAccount_Block, {
+		$account: data.selector,
+		$block: {
+			$network: data.selector.$network,
+			height: BigInt(params.blockHeight),
+			hash: params.blockHash,
+		},
+	}, {
+		sources: [
+			Source.NearRpc_JsonRpc,
+		],
+	}))
 
 
 	// Components
@@ -26,22 +38,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.NearAccount_Block, {
-					$account: data.selector,
-					$block: {
-						$network: data.selector.$network,
-						height: BigInt(params.blockHeight),
-						hash: params.blockHash,
-					},
-				}, {
-					sources: [
-						Source.NearRpc_JsonRpc,
-					],
-				}))}
-			<title>{data?.title ?? 'near account block state'} • near account block state • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? 'near account block state'} • near account block state • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'near account block state'} • near account block state • Blockhead</title>
 	{/if}
@@ -49,24 +47,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.NearAccount_Block, {
-					$account: data.selector,
-					$block: {
-						$network: data.selector.$network,
-						height: BigInt(params.blockHeight),
-						hash: params.blockHash,
-					},
-				}, {
-					sources: [
-						Source.NearRpc_JsonRpc,
-					],
-				}))}
-
-		<NearAccount_BlockView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<NearAccount_BlockView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

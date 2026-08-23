@@ -9,13 +9,18 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.ZeroGConsensusNetwork, data.selector, {
+		sources: [
+			Source.ZeroGChainScan_Rest,
+		],
+	}))
 
 
 	// Components
@@ -25,15 +30,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.ZeroGConsensusNetwork, data.selector, {
-					sources: [
-						Source.ZeroGChainScan_Rest,
-					],
-				}))}
-			<title>{data?.title ?? (pageSelection.entitySelector.consensusNetworkId || 'zero g consensus network')} • zero g consensus network • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entitySelector.consensusNetworkId || 'zero g consensus network')} • zero g consensus network • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'zero g consensus network'} • zero g consensus network • Blockhead</title>
 	{/if}
@@ -41,17 +39,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.ZeroGConsensusNetwork, data.selector, {
-					sources: [
-						Source.ZeroGChainScan_Rest,
-					],
-				}))}
-
-		<ZeroGConsensusNetworkView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<ZeroGConsensusNetworkView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

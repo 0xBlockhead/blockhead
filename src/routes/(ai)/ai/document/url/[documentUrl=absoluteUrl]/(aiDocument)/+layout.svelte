@@ -10,7 +10,6 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -28,6 +27,14 @@
 			}
 		)
 	)
+	const detailSelection = $derived(data?.selector == null ? undefined : select(EntityType.AiDocument, data.selector, {
+		sources: [
+			Source.Eip8004Scan_Rest,
+			Source.HuggingFaceHub_Rest,
+			Source.Ipfs_Rest,
+			Source.Mlflow_Rest,
+		],
+	}))
 
 
 	// Components
@@ -41,23 +48,12 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		{#if data?.selector != null}
-			{#key data.selector}
-				<AiDocumentView
-					selection={
-						untrack(() => select(EntityType.AiDocument, data.selector, {
-							sources: [
-								Source.Eip8004Scan_Rest,
-								Source.HuggingFaceHub_Rest,
-								Source.Ipfs_Rest,
-								Source.Mlflow_Rest,
-							],
-						}))
-					}
-					href={detailHref}
-					layout={EntityLayout.SummaryInline}
-				/>
-			{/key}
+		{#if detailSelection != null}
+			<AiDocumentView
+				selection={detailSelection}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
 		{/if}
 	{/snippet}
 

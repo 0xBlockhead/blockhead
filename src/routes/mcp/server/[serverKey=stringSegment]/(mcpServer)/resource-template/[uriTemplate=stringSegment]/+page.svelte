@@ -9,7 +9,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -17,6 +16,19 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.McpResourceTemplate, {
+		$server: data.selector,
+		uriTemplate: params.uriTemplate,
+	}, {
+		sources: [
+			Source.McpDeclared_Protocol,
+		],
+		fields: {
+			title: true,
+			name: true,
+		},
+	}))
 
 
 	// Components
@@ -26,22 +38,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.McpResourceTemplate, {
-					$server: data.selector,
-					uriTemplate: params.uriTemplate,
-				}, {
-					sources: [
-						Source.McpDeclared_Protocol,
-					],
-					fields: {
-						title: true,
-						name: true,
-					},
-				}))}
-			<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.uriTemplate ?? '') || 'mcp resource template' : (pageSelection.entity.title ?? '') || [(pageSelection.entity.name ?? ''), pageSelection.entitySelector.uriTemplate].filter(Boolean).join(' ') || 'mcp resource template')} • mcp resource template • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.uriTemplate ?? '') || 'mcp resource template' : (pageSelection.entity.title ?? '') || [(pageSelection.entity.name ?? ''), pageSelection.entitySelector.uriTemplate].filter(Boolean).join(' ') || 'mcp resource template')} • mcp resource template • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'mcp resource template'} • mcp resource template • Blockhead</title>
 	{/if}
@@ -49,24 +47,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.McpResourceTemplate, {
-					$server: data.selector,
-					uriTemplate: params.uriTemplate,
-				}, {
-					sources: [
-						Source.McpDeclared_Protocol,
-					],
-					fields: {
-						title: true,
-						name: true,
-					},
-				}))}
-
-		<McpResourceTemplateView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<McpResourceTemplateView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

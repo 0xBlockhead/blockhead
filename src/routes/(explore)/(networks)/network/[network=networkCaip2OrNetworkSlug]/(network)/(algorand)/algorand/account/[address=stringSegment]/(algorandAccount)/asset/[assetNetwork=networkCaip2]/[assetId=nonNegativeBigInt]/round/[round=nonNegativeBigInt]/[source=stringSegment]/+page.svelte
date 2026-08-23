@@ -8,7 +8,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -16,6 +15,22 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.AlgorandAssetHolding_Round, {
+		$account: data.selector,
+		$asset: {
+			$network: {
+				$network: {
+					caip2: params.assetNetwork,
+				},
+			},
+			assetId: BigInt(params.assetId),
+		},
+		round: BigInt(params.round),
+		source: params.source,
+	}, {
+		sources: [params.source],
+	}))
 
 
 	// Components
@@ -25,25 +40,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.AlgorandAssetHolding_Round, {
-					$account: data.selector,
-					$asset: {
-						$network: {
-							$network: {
-								caip2: params.assetNetwork,
-							},
-						},
-						assetId: BigInt(params.assetId),
-					},
-					round: BigInt(params.round),
-					source: params.source,
-				}, {
-					sources: [params.source],
-				}))}
-			<title>{data?.title ?? 'algorand asset holding round'} • algorand asset holding round • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? 'algorand asset holding round'} • algorand asset holding round • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'algorand asset holding round'} • algorand asset holding round • Blockhead</title>
 	{/if}
@@ -51,27 +49,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.AlgorandAssetHolding_Round, {
-					$account: data.selector,
-					$asset: {
-						$network: {
-							$network: {
-								caip2: params.assetNetwork,
-							},
-						},
-						assetId: BigInt(params.assetId),
-					},
-					round: BigInt(params.round),
-					source: params.source,
-				}, {
-					sources: [params.source],
-				}))}
-
-		<AlgorandAssetHolding_RoundView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<AlgorandAssetHolding_RoundView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

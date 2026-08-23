@@ -8,13 +8,18 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.EvmNetwork_GasFee_Block, data.selector, {
+		fields: {
+			baseFeePerGas: true,
+		},
+	}))
 
 
 	// Components
@@ -24,15 +29,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.EvmNetwork_GasFee_Block, data.selector, {
-					fields: {
-						baseFeePerGas: true,
-					},
-				}))}
-			<title>{data?.title ?? (pageSelection.entity == null ? 'Block ' + String(pageSelection.entitySelector.blockNumber ?? '') : ['Block ' + String(pageSelection.entitySelector.blockNumber), (pageSelection.entity.baseFeePerGas != null ? String(pageSelection.entity.baseFeePerGas) + ' wei' : '')].filter(Boolean).join(' ') || 'EVM network gas fee block')} • EVM network gas fee block • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'Block ' + String(pageSelection.entitySelector.blockNumber ?? '') : ['Block ' + String(pageSelection.entitySelector.blockNumber), (pageSelection.entity.baseFeePerGas != null ? String(pageSelection.entity.baseFeePerGas) + ' wei' : '')].filter(Boolean).join(' ') || 'EVM network gas fee block')} • EVM network gas fee block • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'EVM network gas fee block'} • EVM network gas fee block • Blockhead</title>
 	{/if}
@@ -40,17 +38,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.EvmNetwork_GasFee_Block, data.selector, {
-					fields: {
-						baseFeePerGas: true,
-					},
-				}))}
-
-		<EvmNetwork_GasFee_BlockView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<EvmNetwork_GasFee_BlockView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

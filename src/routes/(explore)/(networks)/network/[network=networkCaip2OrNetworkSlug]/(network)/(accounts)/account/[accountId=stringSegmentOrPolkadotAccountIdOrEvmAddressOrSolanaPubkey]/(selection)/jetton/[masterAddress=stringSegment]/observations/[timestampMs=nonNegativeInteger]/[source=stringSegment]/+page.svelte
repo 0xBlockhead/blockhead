@@ -8,7 +8,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -16,6 +15,18 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.TonJettonBalance_Timestamp, {
+		$account: data.selector,
+		$jetton: {
+			$network: data.selector.$network,
+			masterAddress: params.masterAddress,
+		},
+		timestampMs: Number(params.timestampMs),
+		source: params.source,
+	}, {
+		sources: [params.source],
+	}))
 
 
 	// Components
@@ -25,21 +36,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.TonJettonBalance_Timestamp, {
-					$account: data.selector,
-					$jetton: {
-						$network: data.selector.$network,
-						masterAddress: params.masterAddress,
-					},
-					timestampMs: Number(params.timestampMs),
-					source: params.source,
-				}, {
-					sources: [params.source],
-				}))}
-			<title>{data?.title ?? 'TON jetton balance timestamp'} • TON jetton balance timestamp • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? 'TON jetton balance timestamp'} • TON jetton balance timestamp • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'TON jetton balance timestamp'} • TON jetton balance timestamp • Blockhead</title>
 	{/if}
@@ -47,23 +45,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.TonJettonBalance_Timestamp, {
-					$account: data.selector,
-					$jetton: {
-						$network: data.selector.$network,
-						masterAddress: params.masterAddress,
-					},
-					timestampMs: Number(params.timestampMs),
-					source: params.source,
-				}, {
-					sources: [params.source],
-				}))}
-
-		<TonJettonBalance_TimestampView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<TonJettonBalance_TimestampView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

@@ -10,7 +10,6 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -28,6 +27,11 @@
 			}
 		)
 	)
+	const detailSelection = $derived(data?.selector == null ? undefined : select(EntityType.SnapshotSpace, data.selector, {
+		sources: [
+			Source.SnapshotHub_Graphql,
+		],
+	}))
 
 
 	// Components
@@ -41,20 +45,12 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		{#if data?.selector != null}
-			{#key data.selector}
-				<SnapshotSpaceView
-					selection={
-						untrack(() => select(EntityType.SnapshotSpace, data.selector, {
-							sources: [
-								Source.SnapshotHub_Graphql,
-							],
-						}))
-					}
-					href={detailHref}
-					layout={EntityLayout.SummaryInline}
-				/>
-			{/key}
+		{#if detailSelection != null}
+			<SnapshotSpaceView
+				selection={detailSelection}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
 		{/if}
 	{/snippet}
 

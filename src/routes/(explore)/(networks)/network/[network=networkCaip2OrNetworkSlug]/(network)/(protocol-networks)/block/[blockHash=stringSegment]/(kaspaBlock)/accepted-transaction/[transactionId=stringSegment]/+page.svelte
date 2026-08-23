@@ -9,7 +9,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -17,6 +16,19 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.KaspaAcceptedTransaction, {
+		$acceptingBlock: data.selector,
+		$transaction: {
+			$network: data.selector.$network,
+			transactionId: params.transactionId,
+		},
+	}, {
+		sources: [
+			Source.KaspaNode_Grpc,
+			Source.KaspaNode_Wrpc,
+		],
+	}))
 
 
 	// Components
@@ -26,22 +38,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.KaspaAcceptedTransaction, {
-					$acceptingBlock: data.selector,
-					$transaction: {
-						$network: data.selector.$network,
-						transactionId: params.transactionId,
-					},
-				}, {
-					sources: [
-						Source.KaspaNode_Grpc,
-						Source.KaspaNode_Wrpc,
-					],
-				}))}
-			<title>{data?.title ?? 'kaspa accepted transaction'} • kaspa accepted transaction • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? 'kaspa accepted transaction'} • kaspa accepted transaction • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'kaspa accepted transaction'} • kaspa accepted transaction • Blockhead</title>
 	{/if}
@@ -49,24 +47,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.KaspaAcceptedTransaction, {
-					$acceptingBlock: data.selector,
-					$transaction: {
-						$network: data.selector.$network,
-						transactionId: params.transactionId,
-					},
-				}, {
-					sources: [
-						Source.KaspaNode_Grpc,
-						Source.KaspaNode_Wrpc,
-					],
-				}))}
-
-		<KaspaAcceptedTransactionView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<KaspaAcceptedTransactionView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

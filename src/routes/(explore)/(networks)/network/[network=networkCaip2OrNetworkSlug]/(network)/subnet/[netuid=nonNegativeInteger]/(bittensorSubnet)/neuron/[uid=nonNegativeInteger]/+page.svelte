@@ -9,7 +9,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -17,6 +16,15 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.BittensorNeuron, {
+		$subnet: data.selector,
+		uid: Number(params.uid),
+	}, {
+		sources: [
+			Source.Bittensor_JsonRpc,
+		],
+	}))
 
 
 	// Components
@@ -26,18 +34,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.BittensorNeuron, {
-					$subnet: data.selector,
-					uid: Number(params.uid),
-				}, {
-					sources: [
-						Source.Bittensor_JsonRpc,
-					],
-				}))}
-			<title>{data?.title ?? (String(pageSelection.entitySelector.uid) || 'Bittensor neuron')} • Bittensor neuron • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (String(pageSelection.entitySelector.uid) || 'Bittensor neuron')} • Bittensor neuron • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'Bittensor neuron'} • Bittensor neuron • Blockhead</title>
 	{/if}
@@ -45,20 +43,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.BittensorNeuron, {
-					$subnet: data.selector,
-					uid: Number(params.uid),
-				}, {
-					sources: [
-						Source.Bittensor_JsonRpc,
-					],
-				}))}
-
-		<BittensorNeuronView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<BittensorNeuronView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

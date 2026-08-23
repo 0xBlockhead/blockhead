@@ -8,7 +8,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -16,6 +15,11 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.LensAccountManager, {
+		$account: data.selector,
+		manager: params.manager,
+	}))
 
 
 	// Components
@@ -25,14 +29,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.LensAccountManager, {
-					$account: data.selector,
-					manager: params.manager,
-				}))}
-			<title>{data?.title ?? (pageSelection.entitySelector.manager || 'Lens account manager')} • Lens account manager • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entitySelector.manager || 'Lens account manager')} • Lens account manager • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'Lens account manager'} • Lens account manager • Blockhead</title>
 	{/if}
@@ -40,16 +38,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.LensAccountManager, {
-					$account: data.selector,
-					manager: params.manager,
-				}))}
-
-		<LensAccountManagerView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<LensAccountManagerView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

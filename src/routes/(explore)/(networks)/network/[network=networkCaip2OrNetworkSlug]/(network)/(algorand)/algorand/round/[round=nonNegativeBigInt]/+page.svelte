@@ -8,7 +8,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -16,6 +15,11 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.AlgorandRound, {
+		$network: data.selector,
+		round: BigInt(params.round),
+	}))
 
 
 	// Components
@@ -25,14 +29,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.AlgorandRound, {
-					$network: data.selector,
-					round: BigInt(params.round),
-				}))}
-			<title>{data?.title ?? 'algorand round'} • algorand round • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? 'algorand round'} • algorand round • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'algorand round'} • algorand round • Blockhead</title>
 	{/if}
@@ -40,16 +38,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.AlgorandRound, {
-					$network: data.selector,
-					round: BigInt(params.round),
-				}))}
-
-		<AlgorandRoundView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<AlgorandRoundView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

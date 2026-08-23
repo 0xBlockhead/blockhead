@@ -8,7 +8,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -16,6 +15,15 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.CardanoCertificate, {
+		$transaction: data.selector,
+		certificateIndex: Number(params.certificateIndex),
+	}, {
+		fields: {
+			certificateKind: true,
+		},
+	}))
 
 
 	// Components
@@ -25,18 +33,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.CardanoCertificate, {
-					$transaction: data.selector,
-					certificateIndex: Number(params.certificateIndex),
-				}, {
-					fields: {
-						certificateKind: true,
-					},
-				}))}
-			<title>{data?.title ?? (pageSelection.entity == null ? 'Certificate #' + String(pageSelection.entitySelector.certificateIndex ?? '') : [pageSelection.entity.certificateKind, 'Certificate #' + String(pageSelection.entitySelector.certificateIndex)].filter(Boolean).join(' ') || 'Cardano certificate')} • Cardano certificate • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'Certificate #' + String(pageSelection.entitySelector.certificateIndex ?? '') : [pageSelection.entity.certificateKind, 'Certificate #' + String(pageSelection.entitySelector.certificateIndex)].filter(Boolean).join(' ') || 'Cardano certificate')} • Cardano certificate • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'Cardano certificate'} • Cardano certificate • Blockhead</title>
 	{/if}
@@ -44,20 +42,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.CardanoCertificate, {
-					$transaction: data.selector,
-					certificateIndex: Number(params.certificateIndex),
-				}, {
-					fields: {
-						certificateKind: true,
-					},
-				}))}
-
-		<CardanoCertificateView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<CardanoCertificateView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

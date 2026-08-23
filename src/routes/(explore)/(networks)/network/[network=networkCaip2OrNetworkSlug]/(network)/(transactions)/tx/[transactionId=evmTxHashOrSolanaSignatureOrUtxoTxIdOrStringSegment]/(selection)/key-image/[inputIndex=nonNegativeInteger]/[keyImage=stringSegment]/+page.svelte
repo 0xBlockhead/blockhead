@@ -9,13 +9,18 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.MoneroKeyImage, data.selector, {
+		sources: [
+			Source.MoneroDaemonRpc_JsonRpc,
+		],
+	}))
 
 
 	// Components
@@ -25,15 +30,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.MoneroKeyImage, data.selector, {
-					sources: [
-						Source.MoneroDaemonRpc_JsonRpc,
-					],
-				}))}
-			<title>{data?.title ?? (pageSelection.entitySelector.keyImage || 'monero key image')} • monero key image • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entitySelector.keyImage || 'monero key image')} • monero key image • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'monero key image'} • monero key image • Blockhead</title>
 	{/if}
@@ -41,17 +39,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.MoneroKeyImage, data.selector, {
-					sources: [
-						Source.MoneroDaemonRpc_JsonRpc,
-					],
-				}))}
-
-		<MoneroKeyImageView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<MoneroKeyImageView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

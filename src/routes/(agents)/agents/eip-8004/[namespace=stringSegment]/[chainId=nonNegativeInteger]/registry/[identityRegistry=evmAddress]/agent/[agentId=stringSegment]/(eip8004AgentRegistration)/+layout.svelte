@@ -10,7 +10,6 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -31,6 +30,12 @@
 			}
 		)
 	)
+	const detailSelection = $derived(data?.selector == null ? undefined : select(EntityType.Eip8004AgentRegistration, data.selector, {
+		sources: [
+			Source.Eip8004Scan_Rest,
+			Source.Voltaire_JsonRpc,
+		],
+	}))
 
 
 	// Components
@@ -44,21 +49,12 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		{#if data?.selector != null}
-			{#key data.selector}
-				<Eip8004AgentRegistrationView
-					selection={
-						untrack(() => select(EntityType.Eip8004AgentRegistration, data.selector, {
-							sources: [
-								Source.Eip8004Scan_Rest,
-								Source.Voltaire_JsonRpc,
-							],
-						}))
-					}
-					href={detailHref}
-					layout={EntityLayout.SummaryInline}
-				/>
-			{/key}
+		{#if detailSelection != null}
+			<Eip8004AgentRegistrationView
+				selection={detailSelection}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
 		{/if}
 	{/snippet}
 

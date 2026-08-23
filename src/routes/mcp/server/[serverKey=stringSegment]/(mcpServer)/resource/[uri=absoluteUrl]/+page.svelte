@@ -9,13 +9,22 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.McpResource, data.selector, {
+		sources: [
+			Source.McpDeclared_Protocol,
+		],
+		fields: {
+			title: true,
+			name: true,
+		},
+	}))
 
 
 	// Components
@@ -25,19 +34,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.McpResource, data.selector, {
-					sources: [
-						Source.McpDeclared_Protocol,
-					],
-					fields: {
-						title: true,
-						name: true,
-					},
-				}))}
-			<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.uri ?? '') || 'mcp resource' : (pageSelection.entity.title ?? '') || [(pageSelection.entity.name ?? ''), pageSelection.entitySelector.uri].filter(Boolean).join(' ') || 'mcp resource')} • mcp resource • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.uri ?? '') || 'mcp resource' : (pageSelection.entity.title ?? '') || [(pageSelection.entity.name ?? ''), pageSelection.entitySelector.uri].filter(Boolean).join(' ') || 'mcp resource')} • mcp resource • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'mcp resource'} • mcp resource • Blockhead</title>
 	{/if}
@@ -45,21 +43,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.McpResource, data.selector, {
-					sources: [
-						Source.McpDeclared_Protocol,
-					],
-					fields: {
-						title: true,
-						name: true,
-					},
-				}))}
-
-		<McpResourceView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<McpResourceView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

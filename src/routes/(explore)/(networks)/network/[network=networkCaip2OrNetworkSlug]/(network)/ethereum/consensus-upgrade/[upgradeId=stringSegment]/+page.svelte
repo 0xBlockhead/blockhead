@@ -9,7 +9,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -17,6 +16,18 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.EthereumConsensusUpgrade, {
+		$network: data.selector,
+		upgradeId: params.upgradeId,
+	}, {
+		sources: [
+			Source.Constants_Internal,
+		],
+		fields: {
+			name: true,
+		},
+	}))
 
 
 	// Components
@@ -26,21 +37,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.EthereumConsensusUpgrade, {
-					$network: data.selector,
-					upgradeId: params.upgradeId,
-				}, {
-					sources: [
-						Source.Constants_Internal,
-					],
-					fields: {
-						name: true,
-					},
-				}))}
-			<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.upgradeId ?? '') || 'Ethereum consensus upgrade' : pageSelection.entitySelector.upgradeId || pageSelection.entity.name || 'Ethereum consensus upgrade')} • Ethereum consensus upgrade • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.upgradeId ?? '') || 'Ethereum consensus upgrade' : pageSelection.entitySelector.upgradeId || pageSelection.entity.name || 'Ethereum consensus upgrade')} • Ethereum consensus upgrade • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'Ethereum consensus upgrade'} • Ethereum consensus upgrade • Blockhead</title>
 	{/if}
@@ -48,23 +46,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.EthereumConsensusUpgrade, {
-					$network: data.selector,
-					upgradeId: params.upgradeId,
-				}, {
-					sources: [
-						Source.Constants_Internal,
-					],
-					fields: {
-						name: true,
-					},
-				}))}
-
-		<EthereumConsensusUpgradeView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<EthereumConsensusUpgradeView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

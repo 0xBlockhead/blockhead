@@ -9,13 +9,18 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.FilecoinSector, data.selector, {
+		sources: [
+			Source.Lotus_JsonRpc,
+		],
+	}))
 
 
 	// Components
@@ -25,15 +30,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.FilecoinSector, data.selector, {
-					sources: [
-						Source.Lotus_JsonRpc,
-					],
-				}))}
-			<title>{data?.title ?? (String(pageSelection.entitySelector.sectorNumber) || 'filecoin sector')} • filecoin sector • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (String(pageSelection.entitySelector.sectorNumber) || 'filecoin sector')} • filecoin sector • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'filecoin sector'} • filecoin sector • Blockhead</title>
 	{/if}
@@ -41,17 +39,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.FilecoinSector, data.selector, {
-					sources: [
-						Source.Lotus_JsonRpc,
-					],
-				}))}
-
-		<FilecoinSectorView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<FilecoinSectorView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

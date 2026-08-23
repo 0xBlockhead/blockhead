@@ -9,13 +9,19 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.ZeroGKvEntry, data.selector, {
+		sources: [
+			Source.ZeroGStorageNode_JsonRpc,
+			Source.ZeroGStorageScan_Rest,
+		],
+	}))
 
 
 	// Components
@@ -25,16 +31,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.ZeroGKvEntry, data.selector, {
-					sources: [
-						Source.ZeroGStorageNode_JsonRpc,
-						Source.ZeroGStorageScan_Rest,
-					],
-				}))}
-			<title>{data?.title ?? (pageSelection.entitySelector.key || 'zero g kv entry')} • zero g kv entry • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entitySelector.key || 'zero g kv entry')} • zero g kv entry • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'zero g kv entry'} • zero g kv entry • Blockhead</title>
 	{/if}
@@ -42,18 +40,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.ZeroGKvEntry, data.selector, {
-					sources: [
-						Source.ZeroGStorageNode_JsonRpc,
-						Source.ZeroGStorageScan_Rest,
-					],
-				}))}
-
-		<ZeroGKvEntryView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<ZeroGKvEntryView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

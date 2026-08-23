@@ -8,13 +8,19 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.ScalingDeploymentClaim, data.selector, {
+		sources: [data.selector.source],
+		fields: {
+			scalingDeploymentClaimId: true,
+		},
+	}))
 
 
 	// Components
@@ -24,16 +30,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.ScalingDeploymentClaim, data.selector, {
-					sources: [data.selector.source],
-					fields: {
-						scalingDeploymentClaimId: true,
-					},
-				}))}
-			<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.sourceProjectId ?? '') || 'scaling deployment claim' : [pageSelection.entitySelector.sourceProjectId, (pageSelection.entity.scalingDeploymentClaimId ?? '')].filter(Boolean).join(' ') || 'scaling deployment claim')} • scaling deployment claim • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.sourceProjectId ?? '') || 'scaling deployment claim' : [pageSelection.entitySelector.sourceProjectId, (pageSelection.entity.scalingDeploymentClaimId ?? '')].filter(Boolean).join(' ') || 'scaling deployment claim')} • scaling deployment claim • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'scaling deployment claim'} • scaling deployment claim • Blockhead</title>
 	{/if}
@@ -41,18 +39,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.ScalingDeploymentClaim, data.selector, {
-					sources: [data.selector.source],
-					fields: {
-						scalingDeploymentClaimId: true,
-					},
-				}))}
-
-		<ScalingDeploymentClaimView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<ScalingDeploymentClaimView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

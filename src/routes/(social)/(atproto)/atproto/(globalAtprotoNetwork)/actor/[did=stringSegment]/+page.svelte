@@ -9,13 +9,19 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.AtprotoActor, data.selector, {
+		sources: [
+			Source.Atproto_Xrpc,
+			Source.Atproto_BskySocial_Xrpc,
+		],
+	}))
 
 
 	// Components
@@ -25,16 +31,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.AtprotoActor, data.selector, {
-					sources: [
-						Source.Atproto_Xrpc,
-						Source.Atproto_BskySocial_Xrpc,
-					],
-				}))}
-			<title>{data?.title ?? (pageSelection.entitySelector.did || 'AT Protocol account')} • AT Protocol account • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entitySelector.did || 'AT Protocol account')} • AT Protocol account • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'AT Protocol account'} • AT Protocol account • Blockhead</title>
 	{/if}
@@ -42,18 +40,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.AtprotoActor, data.selector, {
-					sources: [
-						Source.Atproto_Xrpc,
-						Source.Atproto_BskySocial_Xrpc,
-					],
-				}))}
-
-		<AtprotoActorView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<AtprotoActorView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

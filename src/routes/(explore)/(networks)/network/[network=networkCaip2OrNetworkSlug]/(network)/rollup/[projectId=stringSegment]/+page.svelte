@@ -8,13 +8,18 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.EvmRollup, data.selector, {
+		fields: {
+			name: true,
+		},
+	}))
 
 
 	// Components
@@ -24,15 +29,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.EvmRollup, data.selector, {
-					fields: {
-						name: true,
-					},
-				}))}
-			<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.projectId ?? '') || 'EVM rollup' : [(pageSelection.entity.name ?? ''), pageSelection.entitySelector.projectId].filter(Boolean).join(' ') || 'EVM rollup')} • EVM rollup • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.projectId ?? '') || 'EVM rollup' : [(pageSelection.entity.name ?? ''), pageSelection.entitySelector.projectId].filter(Boolean).join(' ') || 'EVM rollup')} • EVM rollup • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'EVM rollup'} • EVM rollup • Blockhead</title>
 	{/if}
@@ -40,17 +38,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.EvmRollup, data.selector, {
-					fields: {
-						name: true,
-					},
-				}))}
-
-		<EvmRollupView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<EvmRollupView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

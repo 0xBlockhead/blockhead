@@ -9,7 +9,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -17,6 +16,17 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.AiArtifactAttestation, {
+		$artifact: data.selector,
+		attestationKind: params.attestationKind,
+		logEntryId: params.logEntryId,
+	}, {
+		sources: [
+			Source.Eip8004Scan_Rest,
+			Source.Ipfs_Rest,
+		],
+	}))
 
 
 	// Components
@@ -26,20 +36,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.AiArtifactAttestation, {
-					$artifact: data.selector,
-					attestationKind: params.attestationKind,
-					logEntryId: params.logEntryId,
-				}, {
-					sources: [
-						Source.Eip8004Scan_Rest,
-						Source.Ipfs_Rest,
-					],
-				}))}
-			<title>{data?.title ?? (pageSelection.entitySelector.attestationKind || 'AI artifact attestation')} • AI artifact attestation • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entitySelector.attestationKind || 'AI artifact attestation')} • AI artifact attestation • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'AI artifact attestation'} • AI artifact attestation • Blockhead</title>
 	{/if}
@@ -47,22 +45,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.AiArtifactAttestation, {
-					$artifact: data.selector,
-					attestationKind: params.attestationKind,
-					logEntryId: params.logEntryId,
-				}, {
-					sources: [
-						Source.Eip8004Scan_Rest,
-						Source.Ipfs_Rest,
-					],
-				}))}
-
-		<AiArtifactAttestationView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<AiArtifactAttestationView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

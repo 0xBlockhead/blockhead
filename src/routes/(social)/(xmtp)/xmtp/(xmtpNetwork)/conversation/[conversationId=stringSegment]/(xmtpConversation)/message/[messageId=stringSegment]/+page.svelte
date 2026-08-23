@@ -9,7 +9,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -17,6 +16,18 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.XmtpMessage, {
+		$conversation: data.selector,
+		id: params.messageId,
+	}, {
+		sources: [
+			Source.Local_Internal,
+		],
+		fields: {
+			contentText: true,
+		},
+	}))
 
 
 	// Components
@@ -26,21 +37,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.XmtpMessage, {
-					$conversation: data.selector,
-					id: params.messageId,
-				}, {
-					sources: [
-						Source.Local_Internal,
-					],
-					fields: {
-						contentText: true,
-					},
-				}))}
-			<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.id ?? '') || 'XMTP message' : [(pageSelection.entity.contentText ?? ''), pageSelection.entitySelector.id].filter(Boolean).join(' ') || 'XMTP message')} • XMTP message • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.id ?? '') || 'XMTP message' : [(pageSelection.entity.contentText ?? ''), pageSelection.entitySelector.id].filter(Boolean).join(' ') || 'XMTP message')} • XMTP message • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'XMTP message'} • XMTP message • Blockhead</title>
 	{/if}
@@ -48,23 +46,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.XmtpMessage, {
-					$conversation: data.selector,
-					id: params.messageId,
-				}, {
-					sources: [
-						Source.Local_Internal,
-					],
-					fields: {
-						contentText: true,
-					},
-				}))}
-
-		<XmtpMessageView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<XmtpMessageView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

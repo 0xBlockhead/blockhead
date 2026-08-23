@@ -8,13 +8,19 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.EvmNetwork_GasEstimate_Timestamp, data.selector, {
+		sources: [data.selector.source],
+		fields: {
+			fastGwei: true,
+		},
+	}))
 
 
 	// Components
@@ -24,16 +30,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.EvmNetwork_GasEstimate_Timestamp, data.selector, {
-					sources: [data.selector.source],
-					fields: {
-						fastGwei: true,
-					},
-				}))}
-			<title>{data?.title ?? (pageSelection.entity == null ? String(pageSelection.entitySelector.timestampMs ?? '') || 'EVM network gas estimate timestamp' : [(pageSelection.entity.fastGwei != null ? String(pageSelection.entity.fastGwei) + ' gwei' : ''), String(pageSelection.entitySelector.timestampMs)].filter(Boolean).join(' ') || 'EVM network gas estimate timestamp')} • EVM network gas estimate timestamp • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entity == null ? String(pageSelection.entitySelector.timestampMs ?? '') || 'EVM network gas estimate timestamp' : [(pageSelection.entity.fastGwei != null ? String(pageSelection.entity.fastGwei) + ' gwei' : ''), String(pageSelection.entitySelector.timestampMs)].filter(Boolean).join(' ') || 'EVM network gas estimate timestamp')} • EVM network gas estimate timestamp • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'EVM network gas estimate timestamp'} • EVM network gas estimate timestamp • Blockhead</title>
 	{/if}
@@ -41,18 +39,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.EvmNetwork_GasEstimate_Timestamp, data.selector, {
-					sources: [data.selector.source],
-					fields: {
-						fastGwei: true,
-					},
-				}))}
-
-		<EvmNetwork_GasEstimate_TimestampView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<EvmNetwork_GasEstimate_TimestampView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

@@ -9,13 +9,18 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.LiquidityPool, data.selector, {
+		sources: [
+			Source.Dexscreener_Rest,
+		],
+	}))
 
 
 	// Components
@@ -25,15 +30,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.LiquidityPool, data.selector, {
-					sources: [
-						Source.Dexscreener_Rest,
-					],
-				}))}
-			<title>{data?.title ?? (pageSelection.entitySelector.id || 'liquidity pool')} • liquidity pool • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entitySelector.id || 'liquidity pool')} • liquidity pool • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'liquidity pool'} • liquidity pool • Blockhead</title>
 	{/if}
@@ -41,17 +39,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.LiquidityPool, data.selector, {
-					sources: [
-						Source.Dexscreener_Rest,
-					],
-				}))}
-
-		<LiquidityPoolView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<LiquidityPoolView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

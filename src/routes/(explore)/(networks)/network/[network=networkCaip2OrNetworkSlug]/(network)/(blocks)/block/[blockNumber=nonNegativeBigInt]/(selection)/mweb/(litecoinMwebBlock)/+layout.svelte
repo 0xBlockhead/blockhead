@@ -10,7 +10,6 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -29,6 +28,11 @@
 			}
 		)
 	)
+	const detailSelection = $derived(data?.selector == null ? undefined : select(EntityType.LitecoinMwebBlock, data.selector, {
+		sources: [
+			Source.LitecoinCore_JsonRpc,
+		],
+	}))
 
 
 	// Components
@@ -42,20 +46,12 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		{#if data?.selector != null}
-			{#key data.selector}
-				<LitecoinMwebBlockView
-					selection={
-						untrack(() => select(EntityType.LitecoinMwebBlock, data.selector, {
-							sources: [
-								Source.LitecoinCore_JsonRpc,
-							],
-						}))
-					}
-					href={detailHref}
-					layout={EntityLayout.SummaryInline}
-				/>
-			{/key}
+		{#if detailSelection != null}
+			<LitecoinMwebBlockView
+				selection={detailSelection}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
 		{/if}
 	{/snippet}
 

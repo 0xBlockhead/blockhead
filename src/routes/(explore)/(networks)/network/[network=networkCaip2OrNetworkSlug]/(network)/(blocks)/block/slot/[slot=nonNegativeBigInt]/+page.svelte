@@ -8,13 +8,18 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.CardanoBlock, data.selector, {
+		fields: {
+			hash: true,
+		},
+	}))
 
 
 	// Components
@@ -24,15 +29,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.CardanoBlock, data.selector, {
-					fields: {
-						hash: true,
-					},
-				}))}
-			<title>{data?.title ?? (pageSelection.entity == null ? 'Cardano block' : pageSelection.entity.hash || 'Cardano block')} • Cardano block • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'Cardano block' : pageSelection.entity.hash || 'Cardano block')} • Cardano block • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'Cardano block'} • Cardano block • Blockhead</title>
 	{/if}
@@ -40,17 +38,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.CardanoBlock, data.selector, {
-					fields: {
-						hash: true,
-					},
-				}))}
-
-		<CardanoBlockView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<CardanoBlockView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

@@ -9,13 +9,23 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.YoutubeVideo, data.selector, {
+		sources: [
+			Source.Youtube_Rest,
+			Source.Piped_Rest,
+			Source.Constants_Internal,
+		],
+		fields: {
+			title: true,
+		},
+	}))
 
 
 	// Components
@@ -25,20 +35,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.YoutubeVideo, data.selector, {
-					sources: [
-						Source.Youtube_Rest,
-						Source.Piped_Rest,
-						Source.Constants_Internal,
-					],
-					fields: {
-						title: true,
-					},
-				}))}
-			<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.videoId ?? '') || 'YouTube video' : (pageSelection.entity.title ?? '') || pageSelection.entitySelector.videoId || 'YouTube video')} • YouTube video • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.videoId ?? '') || 'YouTube video' : (pageSelection.entity.title ?? '') || pageSelection.entitySelector.videoId || 'YouTube video')} • YouTube video • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'YouTube video'} • YouTube video • Blockhead</title>
 	{/if}
@@ -46,22 +44,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.YoutubeVideo, data.selector, {
-					sources: [
-						Source.Youtube_Rest,
-						Source.Piped_Rest,
-						Source.Constants_Internal,
-					],
-					fields: {
-						title: true,
-					},
-				}))}
-
-		<YoutubeVideoView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<YoutubeVideoView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

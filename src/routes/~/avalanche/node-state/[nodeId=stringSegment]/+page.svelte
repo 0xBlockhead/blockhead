@@ -9,13 +9,18 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.BlockheadAvalancheNodeState, data.selector, {
+		sources: [
+			Source.AvalancheInfo_JsonRpc,
+		],
+	}))
 
 
 	// Components
@@ -25,15 +30,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.BlockheadAvalancheNodeState, data.selector, {
-					sources: [
-						Source.AvalancheInfo_JsonRpc,
-					],
-				}))}
-			<title>{data?.title ?? (pageSelection.entitySelector.nodeId || 'blockhead avalanche node state')} • blockhead avalanche node state • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entitySelector.nodeId || 'blockhead avalanche node state')} • blockhead avalanche node state • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'blockhead avalanche node state'} • blockhead avalanche node state • Blockhead</title>
 	{/if}
@@ -41,17 +39,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.BlockheadAvalancheNodeState, data.selector, {
-					sources: [
-						Source.AvalancheInfo_JsonRpc,
-					],
-				}))}
-
-		<BlockheadAvalancheNodeStateView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<BlockheadAvalancheNodeStateView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

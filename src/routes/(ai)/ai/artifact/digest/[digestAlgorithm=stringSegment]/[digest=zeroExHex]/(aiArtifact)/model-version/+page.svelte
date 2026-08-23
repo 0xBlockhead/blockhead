@@ -9,13 +9,25 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.AiModelVersion, {
+		$artifact: data.selector,
+	}, {
+		sources: [
+			Source.HuggingFaceHub_Rest,
+			Source.Mlflow_Rest,
+		],
+		fields: {
+			versionId: true,
+			revision: true,
+		},
+	}))
 
 
 	// Components
@@ -25,22 +37,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.AiModelVersion, {
-					$artifact: data.selector,
-				}, {
-					sources: [
-						Source.HuggingFaceHub_Rest,
-						Source.Mlflow_Rest,
-					],
-					fields: {
-						versionId: true,
-						revision: true,
-					},
-				}))}
-			<title>{data?.title ?? (pageSelection.entity == null ? 'AI model version' : (pageSelection.entity.versionId ?? '') || (pageSelection.entity.revision ?? '') || 'AI model version')} • AI model version • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'AI model version' : (pageSelection.entity.versionId ?? '') || (pageSelection.entity.revision ?? '') || 'AI model version')} • AI model version • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'AI model version'} • AI model version • Blockhead</title>
 	{/if}
@@ -48,24 +46,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.AiModelVersion, {
-					$artifact: data.selector,
-				}, {
-					sources: [
-						Source.HuggingFaceHub_Rest,
-						Source.Mlflow_Rest,
-					],
-					fields: {
-						versionId: true,
-						revision: true,
-					},
-				}))}
-
-		<AiModelVersionView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<AiModelVersionView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

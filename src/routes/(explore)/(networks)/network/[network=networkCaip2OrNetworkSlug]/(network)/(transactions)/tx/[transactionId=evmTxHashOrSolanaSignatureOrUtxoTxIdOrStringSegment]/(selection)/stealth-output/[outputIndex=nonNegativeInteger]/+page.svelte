@@ -9,7 +9,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -17,6 +16,15 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.MoneroStealthOutput, {
+		$transaction: data.selector,
+		outputIndex: Number(params.outputIndex),
+	}, {
+		sources: [
+			Source.MoneroDaemonRpc_JsonRpc,
+		],
+	}))
 
 
 	// Components
@@ -26,18 +34,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.MoneroStealthOutput, {
-					$transaction: data.selector,
-					outputIndex: Number(params.outputIndex),
-				}, {
-					sources: [
-						Source.MoneroDaemonRpc_JsonRpc,
-					],
-				}))}
-			<title>{data?.title ?? (String(pageSelection.entitySelector.outputIndex) || 'monero stealth output')} • monero stealth output • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (String(pageSelection.entitySelector.outputIndex) || 'monero stealth output')} • monero stealth output • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'monero stealth output'} • monero stealth output • Blockhead</title>
 	{/if}
@@ -45,20 +43,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.MoneroStealthOutput, {
-					$transaction: data.selector,
-					outputIndex: Number(params.outputIndex),
-				}, {
-					sources: [
-						Source.MoneroDaemonRpc_JsonRpc,
-					],
-				}))}
-
-		<MoneroStealthOutputView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<MoneroStealthOutputView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

@@ -8,13 +8,18 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.GitForgePipeline, data.selector, {
+		fields: {
+			pipelineIid: true,
+		},
+	}))
 
 
 	// Components
@@ -24,15 +29,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.GitForgePipeline, data.selector, {
-					fields: {
-						pipelineIid: true,
-					},
-				}))}
-			<title>{data?.title ?? (pageSelection.entity == null ? 'Git forge pipeline' : 'Pipeline #' + String(pageSelection.entity.pipelineIid))} • Git forge pipeline • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'Git forge pipeline' : 'Pipeline #' + String(pageSelection.entity.pipelineIid))} • Git forge pipeline • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'Git forge pipeline'} • Git forge pipeline • Blockhead</title>
 	{/if}
@@ -40,17 +38,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.GitForgePipeline, data.selector, {
-					fields: {
-						pipelineIid: true,
-					},
-				}))}
-
-		<GitForgePipelineView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<GitForgePipelineView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

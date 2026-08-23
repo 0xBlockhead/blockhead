@@ -9,13 +9,20 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.EvmActorCoinAllowance, data.selector, {
+		sources: [
+			Source.EnvioHyperSync_RawHttp,
+			Source.SqdPortal_RawHttp,
+			Source.Voltaire_JsonRpc,
+		],
+	}))
 
 
 	// Components
@@ -25,17 +32,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.EvmActorCoinAllowance, data.selector, {
-					sources: [
-						Source.EnvioHyperSync_RawHttp,
-						Source.SqdPortal_RawHttp,
-						Source.Voltaire_JsonRpc,
-					],
-				}))}
-			<title>{data?.title ?? 'allowance'} • allowance • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? 'allowance'} • allowance • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'allowance'} • allowance • Blockhead</title>
 	{/if}
@@ -43,19 +41,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.EvmActorCoinAllowance, data.selector, {
-					sources: [
-						Source.EnvioHyperSync_RawHttp,
-						Source.SqdPortal_RawHttp,
-						Source.Voltaire_JsonRpc,
-					],
-				}))}
-
-		<EvmActorCoinAllowanceView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<EvmActorCoinAllowanceView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

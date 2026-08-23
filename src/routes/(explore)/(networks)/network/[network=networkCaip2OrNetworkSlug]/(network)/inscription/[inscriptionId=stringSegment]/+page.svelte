@@ -9,13 +9,21 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.BitcoinOrdinalInscription, data.selector, {
+		sources: [
+			Source.BitcoinCore_JsonRpc,
+			Source.Esplora_Rest,
+			Source.MempoolSpace_Rest,
+			Source.UniSat_Rest,
+		],
+	}))
 
 
 	// Components
@@ -25,18 +33,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.BitcoinOrdinalInscription, data.selector, {
-					sources: [
-						Source.BitcoinCore_JsonRpc,
-						Source.Esplora_Rest,
-						Source.MempoolSpace_Rest,
-						Source.UniSat_Rest,
-					],
-				}))}
-			<title>{data?.title ?? (pageSelection.entitySelector.inscriptionId || 'Bitcoin Ordinal inscription')} • Bitcoin Ordinal inscription • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entitySelector.inscriptionId || 'Bitcoin Ordinal inscription')} • Bitcoin Ordinal inscription • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'Bitcoin Ordinal inscription'} • Bitcoin Ordinal inscription • Blockhead</title>
 	{/if}
@@ -44,20 +42,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.BitcoinOrdinalInscription, data.selector, {
-					sources: [
-						Source.BitcoinCore_JsonRpc,
-						Source.Esplora_Rest,
-						Source.MempoolSpace_Rest,
-						Source.UniSat_Rest,
-					],
-				}))}
-
-		<BitcoinOrdinalInscriptionView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<BitcoinOrdinalInscriptionView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

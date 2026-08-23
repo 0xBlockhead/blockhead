@@ -8,13 +8,16 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.HederaNetworkExchangeRate_Timestamp, data.selector, {
+		sources: [data.selector.source],
+	}))
 
 
 	// Components
@@ -24,13 +27,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.HederaNetworkExchangeRate_Timestamp, data.selector, {
-					sources: [data.selector.source],
-				}))}
-			<title>{data?.title ?? 'hedera network exchange rate timestamp'} • hedera network exchange rate timestamp • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? 'hedera network exchange rate timestamp'} • hedera network exchange rate timestamp • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'hedera network exchange rate timestamp'} • hedera network exchange rate timestamp • Blockhead</title>
 	{/if}
@@ -38,15 +36,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.HederaNetworkExchangeRate_Timestamp, data.selector, {
-					sources: [data.selector.source],
-				}))}
-
-		<HederaNetworkExchangeRate_TimestampView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<HederaNetworkExchangeRate_TimestampView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

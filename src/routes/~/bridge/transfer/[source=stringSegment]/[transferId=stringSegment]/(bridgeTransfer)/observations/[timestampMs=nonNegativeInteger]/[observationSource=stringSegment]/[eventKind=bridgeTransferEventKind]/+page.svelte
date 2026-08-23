@@ -8,7 +8,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -16,6 +15,15 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.BridgeTransfer_Timestamp, {
+		$transfer: data.selector,
+		timestampMs: Number(params.timestampMs),
+		source: params.observationSource,
+		eventKind: params.eventKind,
+	}, {
+		sources: [params.observationSource],
+	}))
 
 
 	// Components
@@ -25,18 +33,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.BridgeTransfer_Timestamp, {
-					$transfer: data.selector,
-					timestampMs: Number(params.timestampMs),
-					source: params.observationSource,
-					eventKind: params.eventKind,
-				}, {
-					sources: [params.observationSource],
-				}))}
-			<title>{data?.title ?? (String(pageSelection.entitySelector.timestampMs) || 'bridge transfer timestamp')} • bridge transfer timestamp • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (String(pageSelection.entitySelector.timestampMs) || 'bridge transfer timestamp')} • bridge transfer timestamp • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'bridge transfer timestamp'} • bridge transfer timestamp • Blockhead</title>
 	{/if}
@@ -44,20 +42,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.BridgeTransfer_Timestamp, {
-					$transfer: data.selector,
-					timestampMs: Number(params.timestampMs),
-					source: params.observationSource,
-					eventKind: params.eventKind,
-				}, {
-					sources: [params.observationSource],
-				}))}
-
-		<BridgeTransfer_TimestampView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<BridgeTransfer_TimestampView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

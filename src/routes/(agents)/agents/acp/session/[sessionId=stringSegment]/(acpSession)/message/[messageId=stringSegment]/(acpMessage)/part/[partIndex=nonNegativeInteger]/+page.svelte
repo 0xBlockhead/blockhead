@@ -9,7 +9,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -17,6 +16,18 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.AcpMessagePart, {
+		$message: data.selector,
+		partIndex: Number(params.partIndex),
+	}, {
+		sources: [
+			Source.AcpLocal_JsonRpc,
+		],
+		fields: {
+			partKind: true,
+		},
+	}))
 
 
 	// Components
@@ -26,21 +37,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.AcpMessagePart, {
-					$message: data.selector,
-					partIndex: Number(params.partIndex),
-				}, {
-					sources: [
-						Source.AcpLocal_JsonRpc,
-					],
-					fields: {
-						partKind: true,
-					},
-				}))}
-			<title>{data?.title ?? (pageSelection.entity == null ? 'ACP message part' : pageSelection.entity.partKind || 'ACP message part')} • ACP message part • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'ACP message part' : pageSelection.entity.partKind || 'ACP message part')} • ACP message part • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'ACP message part'} • ACP message part • Blockhead</title>
 	{/if}
@@ -48,23 +46,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.AcpMessagePart, {
-					$message: data.selector,
-					partIndex: Number(params.partIndex),
-				}, {
-					sources: [
-						Source.AcpLocal_JsonRpc,
-					],
-					fields: {
-						partKind: true,
-					},
-				}))}
-
-		<AcpMessagePartView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<AcpMessagePartView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

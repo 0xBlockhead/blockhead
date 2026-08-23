@@ -9,13 +9,18 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.AcpTerminal, data.selector, {
+		sources: [
+			Source.AcpLocal_JsonRpc,
+		],
+	}))
 
 
 	// Components
@@ -25,15 +30,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.AcpTerminal, data.selector, {
-					sources: [
-						Source.AcpLocal_JsonRpc,
-					],
-				}))}
-			<title>{data?.title ?? (pageSelection.entitySelector.terminalId || 'ACP terminal')} • ACP terminal • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entitySelector.terminalId || 'ACP terminal')} • ACP terminal • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'ACP terminal'} • ACP terminal • Blockhead</title>
 	{/if}
@@ -41,17 +39,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.AcpTerminal, data.selector, {
-					sources: [
-						Source.AcpLocal_JsonRpc,
-					],
-				}))}
-
-		<AcpTerminalView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<AcpTerminalView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

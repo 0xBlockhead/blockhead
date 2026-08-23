@@ -9,13 +9,28 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.AiArtifact, data.selector, {
+		sources: [
+			Source.HuggingFaceHub_Rest,
+			Source.Ipfs_Rest,
+			Source.Mlflow_Rest,
+		],
+		fields: {
+			artifactType: true,
+			providerArtifactId: true,
+			ociDigest: true,
+			ipfsCid: true,
+			arweaveId: true,
+			gitObject: true,
+		},
+	}))
 
 
 	// Components
@@ -25,25 +40,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.AiArtifact, data.selector, {
-					sources: [
-						Source.HuggingFaceHub_Rest,
-						Source.Ipfs_Rest,
-						Source.Mlflow_Rest,
-					],
-					fields: {
-						artifactType: true,
-						providerArtifactId: true,
-						ociDigest: true,
-						ipfsCid: true,
-						arweaveId: true,
-						gitObject: true,
-					},
-				}))}
-			<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.digest ?? '') || 'AI artifact' : (pageSelection.entity.artifactType ?? '') || [(pageSelection.entity.providerArtifactId ?? ''), (pageSelection.entity.ociDigest ?? ''), (pageSelection.entity.ipfsCid ?? ''), (pageSelection.entity.arweaveId ?? ''), (pageSelection.entity.gitObject ?? ''), (pageSelection.entitySelector.digest ?? '')].filter(Boolean).join(' ') || 'AI artifact')} • AI artifact • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.digest ?? '') || 'AI artifact' : (pageSelection.entity.artifactType ?? '') || [(pageSelection.entity.providerArtifactId ?? ''), (pageSelection.entity.ociDigest ?? ''), (pageSelection.entity.ipfsCid ?? ''), (pageSelection.entity.arweaveId ?? ''), (pageSelection.entity.gitObject ?? ''), (pageSelection.entitySelector.digest ?? '')].filter(Boolean).join(' ') || 'AI artifact')} • AI artifact • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'AI artifact'} • AI artifact • Blockhead</title>
 	{/if}
@@ -51,27 +49,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.AiArtifact, data.selector, {
-					sources: [
-						Source.HuggingFaceHub_Rest,
-						Source.Ipfs_Rest,
-						Source.Mlflow_Rest,
-					],
-					fields: {
-						artifactType: true,
-						providerArtifactId: true,
-						ociDigest: true,
-						ipfsCid: true,
-						arweaveId: true,
-						gitObject: true,
-					},
-				}))}
-
-		<AiArtifactView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<AiArtifactView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

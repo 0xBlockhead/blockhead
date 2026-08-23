@@ -8,13 +8,16 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.SwapQuote_Timestamp, data.selector, {
+		sources: [data.selector.source],
+	}))
 
 
 	// Components
@@ -24,13 +27,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.SwapQuote_Timestamp, data.selector, {
-					sources: [data.selector.source],
-				}))}
-			<title>{data?.title ?? 'swap quote timestamp'} • swap quote timestamp • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? 'swap quote timestamp'} • swap quote timestamp • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'swap quote timestamp'} • swap quote timestamp • Blockhead</title>
 	{/if}
@@ -38,15 +36,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.SwapQuote_Timestamp, data.selector, {
-					sources: [data.selector.source],
-				}))}
-
-		<SwapQuote_TimestampView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<SwapQuote_TimestampView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

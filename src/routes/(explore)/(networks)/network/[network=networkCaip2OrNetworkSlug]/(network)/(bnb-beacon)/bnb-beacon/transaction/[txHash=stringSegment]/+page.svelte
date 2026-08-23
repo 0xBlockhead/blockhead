@@ -8,13 +8,14 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.BnbBeaconTransaction, data.selector))
 
 
 	// Components
@@ -24,11 +25,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.BnbBeaconTransaction, data.selector))}
-			<title>{data?.title ?? (pageSelection.entitySelector.txHash || 'bnb beacon transaction')} • bnb beacon transaction • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entitySelector.txHash || 'bnb beacon transaction')} • bnb beacon transaction • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'bnb beacon transaction'} • bnb beacon transaction • Blockhead</title>
 	{/if}
@@ -36,13 +34,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.BnbBeaconTransaction, data.selector))}
-
-		<BnbBeaconTransactionView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<BnbBeaconTransactionView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

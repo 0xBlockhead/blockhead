@@ -9,7 +9,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -17,6 +16,15 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.BeaconExecutionWithdrawalRequest, {
+		$envelope: data.selector,
+		indexInEnvelope: Number(params.indexInEnvelope),
+	}, {
+		sources: [
+			Source.Beacon_Rest,
+		],
+	}))
 
 
 	// Components
@@ -26,18 +34,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.BeaconExecutionWithdrawalRequest, {
-					$envelope: data.selector,
-					indexInEnvelope: Number(params.indexInEnvelope),
-				}, {
-					sources: [
-						Source.Beacon_Rest,
-					],
-				}))}
-			<title>{data?.title ?? ((String(pageSelection.entitySelector.indexInEnvelope ?? '') ? 'Withdrawal request #' + String(pageSelection.entitySelector.indexInEnvelope ?? '') : '') || 'Beacon execution withdrawal request')} • Beacon execution withdrawal request • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? ((String(pageSelection.entitySelector.indexInEnvelope ?? '') ? 'Withdrawal request #' + String(pageSelection.entitySelector.indexInEnvelope ?? '') : '') || 'Beacon execution withdrawal request')} • Beacon execution withdrawal request • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'Beacon execution withdrawal request'} • Beacon execution withdrawal request • Blockhead</title>
 	{/if}
@@ -45,20 +43,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.BeaconExecutionWithdrawalRequest, {
-					$envelope: data.selector,
-					indexInEnvelope: Number(params.indexInEnvelope),
-				}, {
-					sources: [
-						Source.Beacon_Rest,
-					],
-				}))}
-
-		<BeaconExecutionWithdrawalRequestView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<BeaconExecutionWithdrawalRequestView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

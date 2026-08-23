@@ -8,13 +8,14 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.Eip8004AgentRegistrationFile, data.selector))
 
 
 	// Components
@@ -24,11 +25,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.Eip8004AgentRegistrationFile, data.selector))}
-			<title>{data?.title ?? (pageSelection.entitySelector.fileUrl || 'EIP-8004 agent registration file')} • EIP-8004 agent registration file • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entitySelector.fileUrl || 'EIP-8004 agent registration file')} • EIP-8004 agent registration file • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'EIP-8004 agent registration file'} • EIP-8004 agent registration file • Blockhead</title>
 	{/if}
@@ -36,13 +34,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.Eip8004AgentRegistrationFile, data.selector))}
-
-		<Eip8004AgentRegistrationFileView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<Eip8004AgentRegistrationFileView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

@@ -10,7 +10,6 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -29,6 +28,12 @@
 			}
 		)
 	)
+	const detailSelection = $derived(data?.selector == null ? undefined : select(EntityType.EnsRecord, data.selector, {
+		sources: [
+			Source.TheGraph_Graphql,
+			Source.Voltaire_JsonRpc,
+		],
+	}))
 
 
 	// Components
@@ -42,21 +47,12 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		{#if data?.selector != null}
-			{#key data.selector}
-				<EnsRecordView
-					selection={
-						untrack(() => select(EntityType.EnsRecord, data.selector, {
-							sources: [
-								Source.TheGraph_Graphql,
-								Source.Voltaire_JsonRpc,
-							],
-						}))
-					}
-					href={detailHref}
-					layout={EntityLayout.SummaryInline}
-				/>
-			{/key}
+		{#if detailSelection != null}
+			<EnsRecordView
+				selection={detailSelection}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
 		{/if}
 	{/snippet}
 

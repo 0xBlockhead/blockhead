@@ -10,7 +10,6 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -30,6 +29,11 @@
 			}
 		)
 	)
+	const detailSelection = $derived(data?.selector == null ? undefined : select(EntityType.StarknetTokenHolding, data.selector, {
+		sources: [
+			Source.Starkscan,
+		],
+	}))
 
 
 	// Components
@@ -43,20 +47,12 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		{#if data?.selector != null}
-			{#key data.selector}
-				<StarknetTokenHoldingView
-					selection={
-						untrack(() => select(EntityType.StarknetTokenHolding, data.selector, {
-							sources: [
-								Source.Starkscan,
-							],
-						}))
-					}
-					href={detailHref}
-					layout={EntityLayout.SummaryInline}
-				/>
-			{/key}
+		{#if detailSelection != null}
+			<StarknetTokenHoldingView
+				selection={detailSelection}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
 		{/if}
 	{/snippet}
 

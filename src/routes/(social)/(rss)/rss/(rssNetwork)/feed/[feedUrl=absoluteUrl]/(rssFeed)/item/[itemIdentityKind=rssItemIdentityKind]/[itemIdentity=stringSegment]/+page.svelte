@@ -9,13 +9,22 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.RssItem, data.selector, {
+		sources: [
+			Source.Rss_Rest,
+			Source.Rss2Json_Rest,
+		],
+		fields: {
+			title: true,
+		},
+	}))
 
 
 	// Components
@@ -25,19 +34,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.RssItem, data.selector, {
-					sources: [
-						Source.Rss_Rest,
-						Source.Rss2Json_Rest,
-					],
-					fields: {
-						title: true,
-					},
-				}))}
-			<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.itemIdentity ?? '') || 'RSS item' : [(pageSelection.entity.title ?? ''), pageSelection.entitySelector.itemIdentity].filter(Boolean).join(' ') || 'RSS item')} • RSS item • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.itemIdentity ?? '') || 'RSS item' : [(pageSelection.entity.title ?? ''), pageSelection.entitySelector.itemIdentity].filter(Boolean).join(' ') || 'RSS item')} • RSS item • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'RSS item'} • RSS item • Blockhead</title>
 	{/if}
@@ -45,21 +43,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.RssItem, data.selector, {
-					sources: [
-						Source.Rss_Rest,
-						Source.Rss2Json_Rest,
-					],
-					fields: {
-						title: true,
-					},
-				}))}
-
-		<RssItemView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<RssItemView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

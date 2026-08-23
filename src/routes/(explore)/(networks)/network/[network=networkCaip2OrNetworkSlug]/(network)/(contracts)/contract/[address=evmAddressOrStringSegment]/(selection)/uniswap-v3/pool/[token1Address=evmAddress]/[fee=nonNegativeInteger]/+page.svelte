@@ -9,7 +9,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -17,6 +16,23 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.UniswapV3Pool, {
+		$token0: data.selector,
+		$token1: {
+			$network: data.selector.$network,
+			address: params.token1Address,
+		},
+		fee: Number(params.fee),
+	}, {
+		sources: [
+			Source.Voltaire_JsonRpc,
+			Source.UniswapContracts_Evm,
+		],
+		fields: {
+			poolAddress: true,
+		},
+	}))
 
 
 	// Components
@@ -26,26 +42,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.UniswapV3Pool, {
-					$token0: data.selector,
-					$token1: {
-						$network: data.selector.$network,
-						address: params.token1Address,
-					},
-					fee: Number(params.fee),
-				}, {
-					sources: [
-						Source.Voltaire_JsonRpc,
-						Source.UniswapContracts_Evm,
-					],
-					fields: {
-						poolAddress: true,
-					},
-				}))}
-			<title>{data?.title ?? (pageSelection.entity == null ? 'Uniswap V3 pool' : pageSelection.entity.poolAddress || 'Uniswap V3 pool')} • Uniswap V3 pool • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'Uniswap V3 pool' : pageSelection.entity.poolAddress || 'Uniswap V3 pool')} • Uniswap V3 pool • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'Uniswap V3 pool'} • Uniswap V3 pool • Blockhead</title>
 	{/if}
@@ -53,28 +51,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.UniswapV3Pool, {
-					$token0: data.selector,
-					$token1: {
-						$network: data.selector.$network,
-						address: params.token1Address,
-					},
-					fee: Number(params.fee),
-				}, {
-					sources: [
-						Source.Voltaire_JsonRpc,
-						Source.UniswapContracts_Evm,
-					],
-					fields: {
-						poolAddress: true,
-					},
-				}))}
-
-		<UniswapV3PoolView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<UniswapV3PoolView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

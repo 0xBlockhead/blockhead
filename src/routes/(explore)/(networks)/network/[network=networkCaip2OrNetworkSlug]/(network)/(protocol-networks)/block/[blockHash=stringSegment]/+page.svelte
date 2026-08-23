@@ -9,13 +9,21 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.KaspaBlock, data.selector, {
+		sources: [
+			Source.KaspaExplorer,
+			Source.KaspaNode_Grpc,
+			Source.KaspaNode_Rest,
+			Source.KaspaNode_Wrpc,
+		],
+	}))
 
 
 	// Components
@@ -25,18 +33,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.KaspaBlock, data.selector, {
-					sources: [
-						Source.KaspaExplorer,
-						Source.KaspaNode_Grpc,
-						Source.KaspaNode_Rest,
-						Source.KaspaNode_Wrpc,
-					],
-				}))}
-			<title>{data?.title ?? 'kaspa block'} • kaspa block • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? 'kaspa block'} • kaspa block • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'kaspa block'} • kaspa block • Blockhead</title>
 	{/if}
@@ -44,20 +42,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.KaspaBlock, data.selector, {
-					sources: [
-						Source.KaspaExplorer,
-						Source.KaspaNode_Grpc,
-						Source.KaspaNode_Rest,
-						Source.KaspaNode_Wrpc,
-					],
-				}))}
-
-		<KaspaBlockView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<KaspaBlockView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

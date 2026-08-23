@@ -10,7 +10,6 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -28,6 +27,11 @@
 			}
 		)
 	)
+	const detailSelection = $derived(data?.selector == null ? undefined : select(EntityType.AcpAgentProgram, data.selector, {
+		sources: [
+			Source.AcpRegistry_Rest,
+		],
+	}))
 
 
 	// Components
@@ -41,20 +45,12 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		{#if data?.selector != null}
-			{#key data.selector}
-				<AcpAgentProgramView
-					selection={
-						untrack(() => select(EntityType.AcpAgentProgram, data.selector, {
-							sources: [
-								Source.AcpRegistry_Rest,
-							],
-						}))
-					}
-					href={detailHref}
-					layout={EntityLayout.SummaryInline}
-				/>
-			{/key}
+		{#if detailSelection != null}
+			<AcpAgentProgramView
+				selection={detailSelection}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
 		{/if}
 	{/snippet}
 

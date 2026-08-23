@@ -9,13 +9,22 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.PythPriceFeed, data.selector, {
+		sources: [
+			Source.PythBenchmarks_Rest,
+			Source.PythHermes_Rest,
+		],
+		fields: {
+			symbol: true,
+		},
+	}))
 
 
 	// Components
@@ -25,19 +34,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.PythPriceFeed, data.selector, {
-					sources: [
-						Source.PythBenchmarks_Rest,
-						Source.PythHermes_Rest,
-					],
-					fields: {
-						symbol: true,
-					},
-				}))}
-			<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.priceFeedId ?? '') || 'Pyth price feed' : (pageSelection.entity.symbol ?? '') || pageSelection.entitySelector.priceFeedId || 'Pyth price feed')} • Pyth price feed • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.priceFeedId ?? '') || 'Pyth price feed' : (pageSelection.entity.symbol ?? '') || pageSelection.entitySelector.priceFeedId || 'Pyth price feed')} • Pyth price feed • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'Pyth price feed'} • Pyth price feed • Blockhead</title>
 	{/if}
@@ -45,21 +43,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.PythPriceFeed, data.selector, {
-					sources: [
-						Source.PythBenchmarks_Rest,
-						Source.PythHermes_Rest,
-					],
-					fields: {
-						symbol: true,
-					},
-				}))}
-
-		<PythPriceFeedView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<PythPriceFeedView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

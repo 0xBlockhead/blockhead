@@ -8,7 +8,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -16,6 +15,16 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.AssetSupply_LedgerCoordinate, {
+		$assetInstance: data.selector,
+		supplyScopeKey: params.supplyScopeKey,
+		ledgerCoordinateKind: params.ledgerCoordinateKind,
+		ledgerCoordinateValue: BigInt(params.ledgerCoordinateValue),
+		source: params.source,
+	}, {
+		sources: [params.source],
+	}))
 
 
 	// Components
@@ -25,19 +34,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.AssetSupply_LedgerCoordinate, {
-					$assetInstance: data.selector,
-					supplyScopeKey: params.supplyScopeKey,
-					ledgerCoordinateKind: params.ledgerCoordinateKind,
-					ledgerCoordinateValue: BigInt(params.ledgerCoordinateValue),
-					source: params.source,
-				}, {
-					sources: [params.source],
-				}))}
-			<title>{data?.title ?? (pageSelection.entitySelector.supplyScopeKey || 'asset supply ledger coordinate')} • asset supply ledger coordinate • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entitySelector.supplyScopeKey || 'asset supply ledger coordinate')} • asset supply ledger coordinate • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'asset supply ledger coordinate'} • asset supply ledger coordinate • Blockhead</title>
 	{/if}
@@ -45,21 +43,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.AssetSupply_LedgerCoordinate, {
-					$assetInstance: data.selector,
-					supplyScopeKey: params.supplyScopeKey,
-					ledgerCoordinateKind: params.ledgerCoordinateKind,
-					ledgerCoordinateValue: BigInt(params.ledgerCoordinateValue),
-					source: params.source,
-				}, {
-					sources: [params.source],
-				}))}
-
-		<AssetSupply_LedgerCoordinateView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<AssetSupply_LedgerCoordinateView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

@@ -9,13 +9,28 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.BridgeTransfer, data.selector, {
+		sources: [
+			Source.Across_Rest,
+			Source.Allium_Rest,
+			Source.Axelarscan_Rest,
+			Source.Dune_Rest,
+			Source.LayerZeroScan_Rest,
+			Source.Lifi_Rest,
+			Source.Voltaire_JsonRpc,
+			Source.Wormholescan,
+		],
+		fields: {
+			transferId: true,
+		},
+	}))
 
 
 	// Components
@@ -25,25 +40,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.BridgeTransfer, data.selector, {
-					sources: [
-						Source.Across_Rest,
-						Source.Allium_Rest,
-						Source.Axelarscan_Rest,
-						Source.Dune_Rest,
-						Source.LayerZeroScan_Rest,
-						Source.Lifi_Rest,
-						Source.Voltaire_JsonRpc,
-						Source.Wormholescan,
-					],
-					fields: {
-						transferId: true,
-					},
-				}))}
-			<title>{data?.title ?? (pageSelection.entity == null ? 'bridge transfer' : pageSelection.entity.transferId || 'bridge transfer')} • bridge transfer • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'bridge transfer' : pageSelection.entity.transferId || 'bridge transfer')} • bridge transfer • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'bridge transfer'} • bridge transfer • Blockhead</title>
 	{/if}
@@ -51,27 +49,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.BridgeTransfer, data.selector, {
-					sources: [
-						Source.Across_Rest,
-						Source.Allium_Rest,
-						Source.Axelarscan_Rest,
-						Source.Dune_Rest,
-						Source.LayerZeroScan_Rest,
-						Source.Lifi_Rest,
-						Source.Voltaire_JsonRpc,
-						Source.Wormholescan,
-					],
-					fields: {
-						transferId: true,
-					},
-				}))}
-
-		<BridgeTransferView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<BridgeTransferView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

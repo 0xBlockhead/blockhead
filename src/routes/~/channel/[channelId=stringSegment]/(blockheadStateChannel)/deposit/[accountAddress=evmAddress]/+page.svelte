@@ -9,13 +9,18 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.BlockheadStateChannelDeposit, data.selector, {
+		sources: [
+			Source.Local_Internal,
+		],
+	}))
 
 
 	// Components
@@ -25,15 +30,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.BlockheadStateChannelDeposit, data.selector, {
-					sources: [
-						Source.Local_Internal,
-					],
-				}))}
-			<title>{data?.title ?? 'blockhead state channel deposit'} • blockhead state channel deposit • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? 'blockhead state channel deposit'} • blockhead state channel deposit • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'blockhead state channel deposit'} • blockhead state channel deposit • Blockhead</title>
 	{/if}
@@ -41,17 +39,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.BlockheadStateChannelDeposit, data.selector, {
-					sources: [
-						Source.Local_Internal,
-					],
-				}))}
-
-		<BlockheadStateChannelDepositView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<BlockheadStateChannelDepositView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

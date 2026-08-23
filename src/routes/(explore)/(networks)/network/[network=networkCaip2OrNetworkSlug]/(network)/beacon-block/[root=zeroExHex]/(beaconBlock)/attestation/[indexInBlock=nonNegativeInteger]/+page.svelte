@@ -8,7 +8,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -16,6 +15,11 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.BeaconAttestation, {
+		$block: data.selector,
+		indexInBlock: Number(params.indexInBlock),
+	}))
 
 
 	// Components
@@ -25,14 +29,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.BeaconAttestation, {
-					$block: data.selector,
-					indexInBlock: Number(params.indexInBlock),
-				}))}
-			<title>{data?.title ?? ((String(pageSelection.entitySelector.indexInBlock ?? '') ? 'Attestation #' + String(pageSelection.entitySelector.indexInBlock ?? '') : '') || 'beacon attestation')} • beacon attestation • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? ((String(pageSelection.entitySelector.indexInBlock ?? '') ? 'Attestation #' + String(pageSelection.entitySelector.indexInBlock ?? '') : '') || 'beacon attestation')} • beacon attestation • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'beacon attestation'} • beacon attestation • Blockhead</title>
 	{/if}
@@ -40,16 +38,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.BeaconAttestation, {
-					$block: data.selector,
-					indexInBlock: Number(params.indexInBlock),
-				}))}
-
-		<BeaconAttestationView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<BeaconAttestationView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

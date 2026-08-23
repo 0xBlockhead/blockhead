@@ -8,7 +8,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -16,6 +15,16 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.MevRelay_ProposerPayloadDelivered, {
+		$relay: data.selector,
+		slot: Number(params.slot),
+		blockHash: params.blockHash,
+	}, {
+		fields: {
+			value: true,
+		},
+	}))
 
 
 	// Components
@@ -25,19 +34,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.MevRelay_ProposerPayloadDelivered, {
-					$relay: data.selector,
-					slot: Number(params.slot),
-					blockHash: params.blockHash,
-				}, {
-					fields: {
-						value: true,
-					},
-				}))}
-			<title>{data?.title ?? (pageSelection.entity == null ? 'Slot ' + String(pageSelection.entitySelector.slot ?? '') : ['Slot ' + String(pageSelection.entitySelector.slot), String(pageSelection.entity.value) + ' wei'].filter(Boolean).join(' ') || 'MEV relay proposer payload delivered')} • MEV relay proposer payload delivered • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'Slot ' + String(pageSelection.entitySelector.slot ?? '') : ['Slot ' + String(pageSelection.entitySelector.slot), String(pageSelection.entity.value) + ' wei'].filter(Boolean).join(' ') || 'MEV relay proposer payload delivered')} • MEV relay proposer payload delivered • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'MEV relay proposer payload delivered'} • MEV relay proposer payload delivered • Blockhead</title>
 	{/if}
@@ -45,21 +43,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.MevRelay_ProposerPayloadDelivered, {
-					$relay: data.selector,
-					slot: Number(params.slot),
-					blockHash: params.blockHash,
-				}, {
-					fields: {
-						value: true,
-					},
-				}))}
-
-		<MevRelay_ProposerPayloadDeliveredView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<MevRelay_ProposerPayloadDeliveredView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

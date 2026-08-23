@@ -8,7 +8,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -16,6 +15,16 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.StarknetStateUpdate, {
+		$network: {
+			$network: data.selector,
+		},
+		blockHash: params.blockHash,
+		source: params.source,
+	}, {
+		sources: [params.source],
+	}))
 
 
 	// Components
@@ -25,19 +34,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.StarknetStateUpdate, {
-					$network: {
-						$network: data.selector,
-					},
-					blockHash: params.blockHash,
-					source: params.source,
-				}, {
-					sources: [params.source],
-				}))}
-			<title>{data?.title ?? (pageSelection.entitySelector.blockHash || 'Starknet state update')} • Starknet state update • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entitySelector.blockHash || 'Starknet state update')} • Starknet state update • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'Starknet state update'} • Starknet state update • Blockhead</title>
 	{/if}
@@ -45,21 +43,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.StarknetStateUpdate, {
-					$network: {
-						$network: data.selector,
-					},
-					blockHash: params.blockHash,
-					source: params.source,
-				}, {
-					sources: [params.source],
-				}))}
-
-		<StarknetStateUpdateView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<StarknetStateUpdateView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

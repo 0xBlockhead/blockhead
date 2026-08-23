@@ -8,7 +8,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -16,6 +15,11 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.CosmosMessage, {
+		$transaction: data.selector,
+		indexInTransaction: Number(params.indexInTransaction),
+	}))
 
 
 	// Components
@@ -25,14 +29,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.CosmosMessage, {
-					$transaction: data.selector,
-					indexInTransaction: Number(params.indexInTransaction),
-				}))}
-			<title>{data?.title ?? ((String(pageSelection.entitySelector.indexInTransaction ?? '') ? 'Message #' + String(pageSelection.entitySelector.indexInTransaction ?? '') : '') || 'Cosmos message')} • Cosmos message • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? ((String(pageSelection.entitySelector.indexInTransaction ?? '') ? 'Message #' + String(pageSelection.entitySelector.indexInTransaction ?? '') : '') || 'Cosmos message')} • Cosmos message • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'Cosmos message'} • Cosmos message • Blockhead</title>
 	{/if}
@@ -40,16 +38,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.CosmosMessage, {
-					$transaction: data.selector,
-					indexInTransaction: Number(params.indexInTransaction),
-				}))}
-
-		<CosmosMessageView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<CosmosMessageView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

@@ -8,7 +8,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -16,6 +15,14 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.LightningChannelRoutingPolicy_Timestamp, {
+		$channelTimestamp: data.selector,
+		$towardNode: {
+			$network: data.selector.$channel.$network,
+			publicKey: params.publicKey,
+		},
+	}))
 
 
 	// Components
@@ -25,17 +32,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.LightningChannelRoutingPolicy_Timestamp, {
-					$channelTimestamp: data.selector,
-					$towardNode: {
-						$network: data.selector.$channel.$network,
-						publicKey: params.publicKey,
-					},
-				}))}
-			<title>{data?.title ?? 'Lightning channel routing policy'} • Lightning channel routing policy • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? 'Lightning channel routing policy'} • Lightning channel routing policy • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'Lightning channel routing policy'} • Lightning channel routing policy • Blockhead</title>
 	{/if}
@@ -43,19 +41,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.LightningChannelRoutingPolicy_Timestamp, {
-					$channelTimestamp: data.selector,
-					$towardNode: {
-						$network: data.selector.$channel.$network,
-						publicKey: params.publicKey,
-					},
-				}))}
-
-		<LightningChannelRoutingPolicy_TimestampView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<LightningChannelRoutingPolicy_TimestampView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

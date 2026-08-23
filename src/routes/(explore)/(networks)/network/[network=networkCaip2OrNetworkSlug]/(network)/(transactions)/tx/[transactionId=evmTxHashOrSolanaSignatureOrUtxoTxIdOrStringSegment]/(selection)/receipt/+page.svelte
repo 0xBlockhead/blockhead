@@ -8,13 +8,16 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.TronTransactionReceipt, {
+		$transaction: data.selector,
+	}))
 
 
 	// Components
@@ -24,13 +27,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.TronTransactionReceipt, {
-					$transaction: data.selector,
-				}))}
-			<title>{data?.title ?? 'tron transaction receipt'} • tron transaction receipt • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? 'tron transaction receipt'} • tron transaction receipt • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'tron transaction receipt'} • tron transaction receipt • Blockhead</title>
 	{/if}
@@ -38,15 +36,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.TronTransactionReceipt, {
-					$transaction: data.selector,
-				}))}
-
-		<TronTransactionReceiptView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<TronTransactionReceiptView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

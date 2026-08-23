@@ -9,13 +9,22 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.ElementsAsset, data.selector, {
+		sources: [
+			Source.Esplora_Rest,
+		],
+		fields: {
+			name: true,
+			ticker: true,
+		},
+	}))
 
 
 	// Components
@@ -25,19 +34,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.ElementsAsset, data.selector, {
-					sources: [
-						Source.Esplora_Rest,
-					],
-					fields: {
-						name: true,
-						ticker: true,
-					},
-				}))}
-			<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.assetId ?? '') || 'Elements asset' : [(pageSelection.entity.name ?? ''), (pageSelection.entity.ticker ?? ''), pageSelection.entitySelector.assetId].filter(Boolean).join(' ') || 'Elements asset')} • Elements asset • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.assetId ?? '') || 'Elements asset' : [(pageSelection.entity.name ?? ''), (pageSelection.entity.ticker ?? ''), pageSelection.entitySelector.assetId].filter(Boolean).join(' ') || 'Elements asset')} • Elements asset • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'Elements asset'} • Elements asset • Blockhead</title>
 	{/if}
@@ -45,21 +43,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.ElementsAsset, data.selector, {
-					sources: [
-						Source.Esplora_Rest,
-					],
-					fields: {
-						name: true,
-						ticker: true,
-					},
-				}))}
-
-		<ElementsAssetView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<ElementsAssetView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

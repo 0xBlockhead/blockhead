@@ -9,7 +9,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -17,6 +16,19 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.EvmInternalTransfer, {
+		$transaction: data.selector,
+		indexInTransaction: Number(params.indexInTransaction),
+	}, {
+		sources: [
+			Source.Blockscout_Rest,
+		],
+		fields: {
+			callType: true,
+			value: true,
+		},
+	}))
 
 
 	// Components
@@ -26,22 +38,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.EvmInternalTransfer, {
-					$transaction: data.selector,
-					indexInTransaction: Number(params.indexInTransaction),
-				}, {
-					sources: [
-						Source.Blockscout_Rest,
-					],
-					fields: {
-						callType: true,
-						value: true,
-					},
-				}))}
-			<title>{data?.title ?? (pageSelection.entity == null ? `Internal #${pageSelection.entitySelector.indexInTransaction}` : (String(pageSelection.entitySelector.indexInTransaction ?? '') ? 'Internal #' + String(pageSelection.entitySelector.indexInTransaction ?? '') : '') || 'EVM internal transfer')} • EVM internal transfer • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entity == null ? `Internal #${pageSelection.entitySelector.indexInTransaction}` : (String(pageSelection.entitySelector.indexInTransaction ?? '') ? 'Internal #' + String(pageSelection.entitySelector.indexInTransaction ?? '') : '') || 'EVM internal transfer')} • EVM internal transfer • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'EVM internal transfer'} • EVM internal transfer • Blockhead</title>
 	{/if}
@@ -49,24 +47,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.EvmInternalTransfer, {
-					$transaction: data.selector,
-					indexInTransaction: Number(params.indexInTransaction),
-				}, {
-					sources: [
-						Source.Blockscout_Rest,
-					],
-					fields: {
-						callType: true,
-						value: true,
-					},
-				}))}
-
-		<EvmInternalTransferView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<EvmInternalTransferView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

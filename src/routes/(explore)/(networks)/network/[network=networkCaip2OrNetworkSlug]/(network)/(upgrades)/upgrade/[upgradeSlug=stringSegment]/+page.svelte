@@ -9,13 +9,22 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.EthereumNetworkUpgrade, data.selector, {
+		sources: [
+			Source.Constants_Internal,
+		],
+		fields: {
+			upgradeId: true,
+			name: true,
+		},
+	}))
 
 
 	// Components
@@ -25,19 +34,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.EthereumNetworkUpgrade, data.selector, {
-					sources: [
-						Source.Constants_Internal,
-					],
-					fields: {
-						upgradeId: true,
-						name: true,
-					},
-				}))}
-			<title>{data?.title ?? (pageSelection.entity == null ? 'Ethereum network upgrade' : pageSelection.entity.upgradeId || pageSelection.entity.name || 'Ethereum network upgrade')} • Ethereum network upgrade • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'Ethereum network upgrade' : pageSelection.entity.upgradeId || pageSelection.entity.name || 'Ethereum network upgrade')} • Ethereum network upgrade • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'Ethereum network upgrade'} • Ethereum network upgrade • Blockhead</title>
 	{/if}
@@ -45,21 +43,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.EthereumNetworkUpgrade, data.selector, {
-					sources: [
-						Source.Constants_Internal,
-					],
-					fields: {
-						upgradeId: true,
-						name: true,
-					},
-				}))}
-
-		<EthereumNetworkUpgradeView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<EthereumNetworkUpgradeView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

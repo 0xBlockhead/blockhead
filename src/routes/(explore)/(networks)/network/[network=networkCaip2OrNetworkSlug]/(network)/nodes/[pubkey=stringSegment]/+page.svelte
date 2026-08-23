@@ -9,13 +9,20 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.LightningNode, data.selector, {
+		sources: [
+			Source.LightningMempoolSpace_Rest,
+			Source.LightningLnd_Rest,
+			Source.Amboss_Graphql,
+		],
+	}))
 
 
 	// Components
@@ -25,17 +32,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.LightningNode, data.selector, {
-					sources: [
-						Source.LightningMempoolSpace_Rest,
-						Source.LightningLnd_Rest,
-						Source.Amboss_Graphql,
-					],
-				}))}
-			<title>{data?.title ?? (pageSelection.entitySelector.publicKey || 'Lightning public node')} • Lightning public node • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entitySelector.publicKey || 'Lightning public node')} • Lightning public node • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'Lightning public node'} • Lightning public node • Blockhead</title>
 	{/if}
@@ -43,19 +41,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.LightningNode, data.selector, {
-					sources: [
-						Source.LightningMempoolSpace_Rest,
-						Source.LightningLnd_Rest,
-						Source.Amboss_Graphql,
-					],
-				}))}
-
-		<LightningNodeView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<LightningNodeView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

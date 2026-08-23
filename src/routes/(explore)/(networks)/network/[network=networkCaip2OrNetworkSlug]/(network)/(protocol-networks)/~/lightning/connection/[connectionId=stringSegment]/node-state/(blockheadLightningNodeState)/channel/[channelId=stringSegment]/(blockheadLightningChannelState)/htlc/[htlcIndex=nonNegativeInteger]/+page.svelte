@@ -9,7 +9,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -17,6 +16,16 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.BlockheadLightningHtlc, {
+		$channelState: data.selector,
+		htlcIndex: Number(params.htlcIndex),
+	}, {
+		sources: [
+			Source.LightningLnd_Rest,
+			Source.Local_Internal,
+		],
+	}))
 
 
 	// Components
@@ -26,19 +35,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.BlockheadLightningHtlc, {
-					$channelState: data.selector,
-					htlcIndex: Number(params.htlcIndex),
-				}, {
-					sources: [
-						Source.LightningLnd_Rest,
-						Source.Local_Internal,
-					],
-				}))}
-			<title>{data?.title ?? 'HTLC ' + String(pageSelection.entitySelector.htlcIndex)} • local LND HTLC • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? 'HTLC ' + String(pageSelection.entitySelector.htlcIndex)} • local LND HTLC • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'local LND HTLC'} • local LND HTLC • Blockhead</title>
 	{/if}
@@ -46,21 +44,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.BlockheadLightningHtlc, {
-					$channelState: data.selector,
-					htlcIndex: Number(params.htlcIndex),
-				}, {
-					sources: [
-						Source.LightningLnd_Rest,
-						Source.Local_Internal,
-					],
-				}))}
-
-		<BlockheadLightningHtlcView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<BlockheadLightningHtlcView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

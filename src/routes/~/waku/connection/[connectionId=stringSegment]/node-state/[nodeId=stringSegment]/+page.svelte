@@ -9,13 +9,19 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.BlockheadWakuNodeState, data.selector, {
+		sources: [
+			Source.Local_Internal,
+			Source.WakuNode,
+		],
+	}))
 
 
 	// Components
@@ -25,16 +31,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.BlockheadWakuNodeState, data.selector, {
-					sources: [
-						Source.Local_Internal,
-						Source.WakuNode,
-					],
-				}))}
-			<title>{data?.title ?? (pageSelection.entitySelector.nodeId || 'blockhead waku node state')} • blockhead waku node state • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entitySelector.nodeId || 'blockhead waku node state')} • blockhead waku node state • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'blockhead waku node state'} • blockhead waku node state • Blockhead</title>
 	{/if}
@@ -42,18 +40,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.BlockheadWakuNodeState, data.selector, {
-					sources: [
-						Source.Local_Internal,
-						Source.WakuNode,
-					],
-				}))}
-
-		<BlockheadWakuNodeStateView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<BlockheadWakuNodeStateView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

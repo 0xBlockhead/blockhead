@@ -9,7 +9,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -17,6 +16,15 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.BlockheadWalletRequestCall, {
+		$evmRequest: data.selector,
+		callIndex: Number(params.callIndex),
+	}, {
+		sources: [
+			Source.Local_Internal,
+		],
+	}))
 
 
 	// Components
@@ -26,18 +34,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.BlockheadWalletRequestCall, {
-					$evmRequest: data.selector,
-					callIndex: Number(params.callIndex),
-				}, {
-					sources: [
-						Source.Local_Internal,
-					],
-				}))}
-			<title>{data?.title ?? ((String(pageSelection.entitySelector.callIndex ?? '') ? 'Call #' + String(pageSelection.entitySelector.callIndex ?? '') : '') || 'blockhead wallet request call')} • blockhead wallet request call • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? ((String(pageSelection.entitySelector.callIndex ?? '') ? 'Call #' + String(pageSelection.entitySelector.callIndex ?? '') : '') || 'blockhead wallet request call')} • blockhead wallet request call • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'blockhead wallet request call'} • blockhead wallet request call • Blockhead</title>
 	{/if}
@@ -45,20 +43,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.BlockheadWalletRequestCall, {
-					$evmRequest: data.selector,
-					callIndex: Number(params.callIndex),
-				}, {
-					sources: [
-						Source.Local_Internal,
-					],
-				}))}
-
-		<BlockheadWalletRequestCallView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<BlockheadWalletRequestCallView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

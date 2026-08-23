@@ -8,7 +8,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -16,6 +15,11 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.AssetObject, {
+		$assetInstance: data.selector,
+		objectKey: params.objectKey,
+	}))
 
 
 	// Components
@@ -25,14 +29,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.AssetObject, {
-					$assetInstance: data.selector,
-					objectKey: params.objectKey,
-				}))}
-			<title>{data?.title ?? (pageSelection.entitySelector.objectKey || 'asset object')} • asset object • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entitySelector.objectKey || 'asset object')} • asset object • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'asset object'} • asset object • Blockhead</title>
 	{/if}
@@ -40,16 +38,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.AssetObject, {
-					$assetInstance: data.selector,
-					objectKey: params.objectKey,
-				}))}
-
-		<AssetObjectView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<AssetObjectView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

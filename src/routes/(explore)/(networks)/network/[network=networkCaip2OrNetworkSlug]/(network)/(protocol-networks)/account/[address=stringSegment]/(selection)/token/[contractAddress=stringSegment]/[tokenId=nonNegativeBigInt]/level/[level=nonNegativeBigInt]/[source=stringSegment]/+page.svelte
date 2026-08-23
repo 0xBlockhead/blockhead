@@ -8,7 +8,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -16,6 +15,19 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.TezosTokenBalance_Timestamp, {
+		$account: data.selector,
+		$token: {
+			$network: data.selector.$network,
+			contractAddress: params.contractAddress,
+			tokenId: BigInt(params.tokenId),
+		},
+		level: BigInt(params.level),
+		source: params.source,
+	}, {
+		sources: [params.source],
+	}))
 
 
 	// Components
@@ -25,22 +37,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.TezosTokenBalance_Timestamp, {
-					$account: data.selector,
-					$token: {
-						$network: data.selector.$network,
-						contractAddress: params.contractAddress,
-						tokenId: BigInt(params.tokenId),
-					},
-					level: BigInt(params.level),
-					source: params.source,
-				}, {
-					sources: [params.source],
-				}))}
-			<title>{data?.title ?? 'tezos token balance timestamp'} • tezos token balance timestamp • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? 'tezos token balance timestamp'} • tezos token balance timestamp • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'tezos token balance timestamp'} • tezos token balance timestamp • Blockhead</title>
 	{/if}
@@ -48,24 +46,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.TezosTokenBalance_Timestamp, {
-					$account: data.selector,
-					$token: {
-						$network: data.selector.$network,
-						contractAddress: params.contractAddress,
-						tokenId: BigInt(params.tokenId),
-					},
-					level: BigInt(params.level),
-					source: params.source,
-				}, {
-					sources: [params.source],
-				}))}
-
-		<TezosTokenBalance_TimestampView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<TezosTokenBalance_TimestampView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

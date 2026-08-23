@@ -9,13 +9,19 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType._GlobalActivityPubNetwork, data.selector, {
+		sources: [
+			Source.Constants_Internal,
+			Source.Mastodon_Rest,
+		],
+	}))
 
 
 	// Components
@@ -25,16 +31,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType._GlobalActivityPubNetwork, data.selector, {
-					sources: [
-						Source.Constants_Internal,
-						Source.Mastodon_Rest,
-					],
-				}))}
-			<title>{data?.title ?? 'global ActivityPub network'} • global ActivityPub network • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? 'global ActivityPub network'} • global ActivityPub network • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'global ActivityPub network'} • global ActivityPub network • Blockhead</title>
 	{/if}
@@ -42,18 +40,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType._GlobalActivityPubNetwork, data.selector, {
-					sources: [
-						Source.Constants_Internal,
-						Source.Mastodon_Rest,
-					],
-				}))}
-
-		<GlobalActivityPubNetworkView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<GlobalActivityPubNetworkView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

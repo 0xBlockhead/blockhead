@@ -10,7 +10,6 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -28,6 +27,13 @@
 			}
 		)
 	)
+	const detailSelection = $derived(data?.selector == null ? undefined : select(EntityType.NostrNote, data.selector, {
+		sources: [
+			Source.Constants_Internal,
+			Source.NostrRelay_WebSocket,
+			Source.Primal_Rest,
+		],
+	}))
 
 
 	// Components
@@ -41,22 +47,12 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		{#if data?.selector != null}
-			{#key data.selector}
-				<NostrNoteView
-					selection={
-						untrack(() => select(EntityType.NostrNote, data.selector, {
-							sources: [
-								Source.Constants_Internal,
-								Source.NostrRelay_WebSocket,
-								Source.Primal_Rest,
-							],
-						}))
-					}
-					href={detailHref}
-					layout={EntityLayout.SummaryInline}
-				/>
-			{/key}
+		{#if detailSelection != null}
+			<NostrNoteView
+				selection={detailSelection}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
 		{/if}
 	{/snippet}
 

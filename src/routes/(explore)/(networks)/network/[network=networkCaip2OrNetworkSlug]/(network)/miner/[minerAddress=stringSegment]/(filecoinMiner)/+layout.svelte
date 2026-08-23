@@ -10,7 +10,6 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -29,6 +28,12 @@
 			}
 		)
 	)
+	const detailSelection = $derived(data?.selector == null ? undefined : select(EntityType.FilecoinMiner, data.selector, {
+		sources: [
+			Source.Lotus_JsonRpc,
+			Source.Filfox_Rest,
+		],
+	}))
 
 
 	// Components
@@ -42,21 +47,12 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		{#if data?.selector != null}
-			{#key data.selector}
-				<FilecoinMinerView
-					selection={
-						untrack(() => select(EntityType.FilecoinMiner, data.selector, {
-							sources: [
-								Source.Lotus_JsonRpc,
-								Source.Filfox_Rest,
-							],
-						}))
-					}
-					href={detailHref}
-					layout={EntityLayout.SummaryInline}
-				/>
-			{/key}
+		{#if detailSelection != null}
+			<FilecoinMinerView
+				selection={detailSelection}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
 		{/if}
 	{/snippet}
 

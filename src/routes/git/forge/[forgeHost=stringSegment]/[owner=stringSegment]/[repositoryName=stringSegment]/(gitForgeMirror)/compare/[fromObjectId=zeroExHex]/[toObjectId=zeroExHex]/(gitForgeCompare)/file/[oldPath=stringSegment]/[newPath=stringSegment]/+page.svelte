@@ -9,7 +9,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -17,6 +16,16 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.GitForgeCompareFileChange, {
+		$compare: data.selector,
+		oldPath: decodeURIComponent(params.oldPath),
+		newPath: decodeURIComponent(params.newPath),
+	}, {
+		sources: [
+			Source.Gitlab_Rest,
+		],
+	}))
 
 
 	// Components
@@ -26,19 +35,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.GitForgeCompareFileChange, {
-					$compare: data.selector,
-					oldPath: decodeURIComponent(params.oldPath),
-					newPath: decodeURIComponent(params.newPath),
-				}, {
-					sources: [
-						Source.Gitlab_Rest,
-					],
-				}))}
-			<title>{data?.title ?? (pageSelection.entitySelector.newPath || 'Git forge compare file change')} • Git forge compare file change • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entitySelector.newPath || 'Git forge compare file change')} • Git forge compare file change • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'Git forge compare file change'} • Git forge compare file change • Blockhead</title>
 	{/if}
@@ -46,21 +44,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.GitForgeCompareFileChange, {
-					$compare: data.selector,
-					oldPath: decodeURIComponent(params.oldPath),
-					newPath: decodeURIComponent(params.newPath),
-				}, {
-					sources: [
-						Source.Gitlab_Rest,
-					],
-				}))}
-
-		<GitForgeCompareFileChangeView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<GitForgeCompareFileChangeView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

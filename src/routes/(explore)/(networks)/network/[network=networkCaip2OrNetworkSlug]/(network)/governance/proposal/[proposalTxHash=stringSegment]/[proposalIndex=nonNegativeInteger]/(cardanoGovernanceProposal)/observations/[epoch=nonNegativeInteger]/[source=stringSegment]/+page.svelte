@@ -8,7 +8,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -16,6 +15,14 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.CardanoGovernanceProposal_Timestamp, {
+		$proposal: data.selector,
+		epoch: Number(params.epoch),
+		source: params.source,
+	}, {
+		sources: [params.source],
+	}))
 
 
 	// Components
@@ -25,17 +32,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.CardanoGovernanceProposal_Timestamp, {
-					$proposal: data.selector,
-					epoch: Number(params.epoch),
-					source: params.source,
-				}, {
-					sources: [params.source],
-				}))}
-			<title>{data?.title ?? 'Epoch ' + String(pageSelection.entitySelector.epoch)} • Cardano governance proposal timestamp • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? 'Epoch ' + String(pageSelection.entitySelector.epoch)} • Cardano governance proposal timestamp • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'Cardano governance proposal timestamp'} • Cardano governance proposal timestamp • Blockhead</title>
 	{/if}
@@ -43,19 +41,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.CardanoGovernanceProposal_Timestamp, {
-					$proposal: data.selector,
-					epoch: Number(params.epoch),
-					source: params.source,
-				}, {
-					sources: [params.source],
-				}))}
-
-		<CardanoGovernanceProposal_TimestampView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<CardanoGovernanceProposal_TimestampView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

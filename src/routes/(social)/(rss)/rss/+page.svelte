@@ -9,13 +9,21 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.RssNetwork, data.selector, {
+		sources: [
+			Source.Constants_Internal,
+		],
+		fields: {
+			protocolName: true,
+		},
+	}))
 
 
 	// Components
@@ -25,18 +33,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.RssNetwork, data.selector, {
-					sources: [
-						Source.Constants_Internal,
-					],
-					fields: {
-						protocolName: true,
-					},
-				}))}
-			<title>{data?.title ?? (pageSelection.entity == null ? 'RSS / Atom' : pageSelection.entity.protocolName || 'RSS / Atom')} • RSS / Atom • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'RSS / Atom' : pageSelection.entity.protocolName || 'RSS / Atom')} • RSS / Atom • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'RSS / Atom'} • RSS / Atom • Blockhead</title>
 	{/if}
@@ -44,20 +42,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.RssNetwork, data.selector, {
-					sources: [
-						Source.Constants_Internal,
-					],
-					fields: {
-						protocolName: true,
-					},
-				}))}
-
-		<RssNetworkView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<RssNetworkView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

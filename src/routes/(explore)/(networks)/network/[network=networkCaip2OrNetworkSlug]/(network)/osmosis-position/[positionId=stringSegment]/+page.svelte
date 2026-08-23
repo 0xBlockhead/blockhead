@@ -9,13 +9,18 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.OsmosisPosition, data.selector, {
+		sources: [
+			Source.Osmosis_LCD_Rest,
+		],
+	}))
 
 
 	// Components
@@ -25,15 +30,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.OsmosisPosition, data.selector, {
-					sources: [
-						Source.Osmosis_LCD_Rest,
-					],
-				}))}
-			<title>{data?.title ?? (pageSelection.entitySelector.positionId || 'Osmosis position')} • Osmosis position • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entitySelector.positionId || 'Osmosis position')} • Osmosis position • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'Osmosis position'} • Osmosis position • Blockhead</title>
 	{/if}
@@ -41,17 +39,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.OsmosisPosition, data.selector, {
-					sources: [
-						Source.Osmosis_LCD_Rest,
-					],
-				}))}
-
-		<OsmosisPositionView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<OsmosisPositionView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

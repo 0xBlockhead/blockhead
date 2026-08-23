@@ -9,7 +9,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -17,6 +16,19 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.FilecoinMessageSubcall, {
+		$message: data.selector,
+		index: Number(params.index),
+	}, {
+		sources: [
+			Source.Filfox_Rest,
+			Source.Lotus_JsonRpc,
+		],
+		fields: {
+			method: true,
+		},
+	}))
 
 
 	// Components
@@ -26,22 +38,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.FilecoinMessageSubcall, {
-					$message: data.selector,
-					index: Number(params.index),
-				}, {
-					sources: [
-						Source.Filfox_Rest,
-						Source.Lotus_JsonRpc,
-					],
-					fields: {
-						method: true,
-					},
-				}))}
-			<title>{data?.title ?? (pageSelection.entity == null ? 'filecoin message subcall' : pageSelection.entity.method || 'filecoin message subcall')} • filecoin message subcall • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'filecoin message subcall' : pageSelection.entity.method || 'filecoin message subcall')} • filecoin message subcall • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'filecoin message subcall'} • filecoin message subcall • Blockhead</title>
 	{/if}
@@ -49,24 +47,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.FilecoinMessageSubcall, {
-					$message: data.selector,
-					index: Number(params.index),
-				}, {
-					sources: [
-						Source.Filfox_Rest,
-						Source.Lotus_JsonRpc,
-					],
-					fields: {
-						method: true,
-					},
-				}))}
-
-		<FilecoinMessageSubcallView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<FilecoinMessageSubcallView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

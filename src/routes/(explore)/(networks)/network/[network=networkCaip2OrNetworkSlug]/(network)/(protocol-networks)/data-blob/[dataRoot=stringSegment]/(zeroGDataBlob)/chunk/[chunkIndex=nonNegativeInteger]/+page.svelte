@@ -8,7 +8,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -16,6 +15,11 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.ZeroGDataChunk, {
+		$dataBlob: data.selector,
+		chunkIndex: Number(params.chunkIndex),
+	}))
 
 
 	// Components
@@ -25,14 +29,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.ZeroGDataChunk, {
-					$dataBlob: data.selector,
-					chunkIndex: Number(params.chunkIndex),
-				}))}
-			<title>{data?.title ?? 'zero g data chunk'} • zero g data chunk • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? 'zero g data chunk'} • zero g data chunk • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'zero g data chunk'} • zero g data chunk • Blockhead</title>
 	{/if}
@@ -40,16 +38,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.ZeroGDataChunk, {
-					$dataBlob: data.selector,
-					chunkIndex: Number(params.chunkIndex),
-				}))}
-
-		<ZeroGDataChunkView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<ZeroGDataChunkView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

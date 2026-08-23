@@ -9,13 +9,22 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.EulerEvkVault, data.selector, {
+		sources: [
+			Source.Euler_Rest,
+		],
+		fields: {
+			name: true,
+			symbol: true,
+		},
+	}))
 
 
 	// Components
@@ -25,19 +34,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.EulerEvkVault, data.selector, {
-					sources: [
-						Source.Euler_Rest,
-					],
-					fields: {
-						name: true,
-						symbol: true,
-					},
-				}))}
-			<title>{data?.title ?? (pageSelection.entity == null ? 'Euler EVK vault' : [pageSelection.entity.name, pageSelection.entity.symbol].filter(Boolean).join(' ') || 'Euler EVK vault')} • Euler EVK vault • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'Euler EVK vault' : [pageSelection.entity.name, pageSelection.entity.symbol].filter(Boolean).join(' ') || 'Euler EVK vault')} • Euler EVK vault • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'Euler EVK vault'} • Euler EVK vault • Blockhead</title>
 	{/if}
@@ -45,21 +43,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.EulerEvkVault, data.selector, {
-					sources: [
-						Source.Euler_Rest,
-					],
-					fields: {
-						name: true,
-						symbol: true,
-					},
-				}))}
-
-		<EulerEvkVaultView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<EulerEvkVaultView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

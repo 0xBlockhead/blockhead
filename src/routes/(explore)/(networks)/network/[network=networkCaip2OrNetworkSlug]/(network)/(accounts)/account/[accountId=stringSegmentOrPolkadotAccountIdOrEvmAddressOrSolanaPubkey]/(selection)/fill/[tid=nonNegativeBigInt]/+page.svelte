@@ -8,7 +8,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -16,6 +15,11 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.HyperliquidFill, {
+		$account: data.selector,
+		tid: BigInt(params.tid),
+	}))
 
 
 	// Components
@@ -25,14 +29,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.HyperliquidFill, {
-					$account: data.selector,
-					tid: BigInt(params.tid),
-				}))}
-			<title>{data?.title ?? 'hyperliquid fill'} • hyperliquid fill • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? 'hyperliquid fill'} • hyperliquid fill • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'hyperliquid fill'} • hyperliquid fill • Blockhead</title>
 	{/if}
@@ -40,16 +38,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.HyperliquidFill, {
-					$account: data.selector,
-					tid: BigInt(params.tid),
-				}))}
-
-		<HyperliquidFillView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<HyperliquidFillView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

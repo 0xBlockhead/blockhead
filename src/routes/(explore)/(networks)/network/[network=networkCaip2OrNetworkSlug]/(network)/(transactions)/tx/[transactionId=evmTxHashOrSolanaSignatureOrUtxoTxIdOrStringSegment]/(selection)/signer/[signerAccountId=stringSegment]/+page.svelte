@@ -9,7 +9,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -17,6 +16,17 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.NearTransaction, {
+		$network: data.selector.$network,
+		hash: params.transactionId,
+		signerAccountId: params.signerAccountId,
+	}, {
+		sources: [
+			Source.NearRpc_JsonRpc,
+			Source.NearBlocks_Rest,
+		],
+	}))
 
 
 	// Components
@@ -26,20 +36,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.NearTransaction, {
-					$network: data.selector.$network,
-					hash: params.transactionId,
-					signerAccountId: params.signerAccountId,
-				}, {
-					sources: [
-						Source.NearRpc_JsonRpc,
-						Source.NearBlocks_Rest,
-					],
-				}))}
-			<title>{data?.title ?? (pageSelection.entitySelector.hash || 'near transaction')} • near transaction • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entitySelector.hash || 'near transaction')} • near transaction • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'near transaction'} • near transaction • Blockhead</title>
 	{/if}
@@ -47,22 +45,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.NearTransaction, {
-					$network: data.selector.$network,
-					hash: params.transactionId,
-					signerAccountId: params.signerAccountId,
-				}, {
-					sources: [
-						Source.NearRpc_JsonRpc,
-						Source.NearBlocks_Rest,
-					],
-				}))}
-
-		<NearTransactionView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<NearTransactionView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

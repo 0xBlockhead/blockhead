@@ -8,13 +8,14 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.BeaconSyncCommittee, data.selector))
 
 
 	// Components
@@ -24,11 +25,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.BeaconSyncCommittee, data.selector))}
-			<title>{data?.title ?? ((String(pageSelection.entitySelector.period ?? '') ? 'Sync committee #' + String(pageSelection.entitySelector.period ?? '') : '') || 'beacon sync committee')} • beacon sync committee • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? ((String(pageSelection.entitySelector.period ?? '') ? 'Sync committee #' + String(pageSelection.entitySelector.period ?? '') : '') || 'beacon sync committee')} • beacon sync committee • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'beacon sync committee'} • beacon sync committee • Blockhead</title>
 	{/if}
@@ -36,13 +34,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.BeaconSyncCommittee, data.selector))}
-
-		<BeaconSyncCommitteeView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<BeaconSyncCommitteeView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

@@ -8,7 +8,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -16,6 +15,12 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.SuiEvent, {
+		$network: data.selector,
+		transactionDigest: params.transactionDigest,
+		eventIndex: Number(params.eventIndex),
+	}))
 
 
 	// Components
@@ -25,15 +30,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.SuiEvent, {
-					$network: data.selector,
-					transactionDigest: params.transactionDigest,
-					eventIndex: Number(params.eventIndex),
-				}))}
-			<title>{data?.title ?? 'Sui event'} • Sui event • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? 'Sui event'} • Sui event • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'Sui event'} • Sui event • Blockhead</title>
 	{/if}
@@ -41,17 +39,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.SuiEvent, {
-					$network: data.selector,
-					transactionDigest: params.transactionDigest,
-					eventIndex: Number(params.eventIndex),
-				}))}
-
-		<SuiEventView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<SuiEventView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

@@ -8,13 +8,14 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.HyperliquidVault, data.selector))
 
 
 	// Components
@@ -24,11 +25,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.HyperliquidVault, data.selector))}
-			<title>{data?.title ?? 'hyperliquid vault'} • hyperliquid vault • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? 'hyperliquid vault'} • hyperliquid vault • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'hyperliquid vault'} • hyperliquid vault • Blockhead</title>
 	{/if}
@@ -36,13 +34,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.HyperliquidVault, data.selector))}
-
-		<HyperliquidVaultView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<HyperliquidVaultView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

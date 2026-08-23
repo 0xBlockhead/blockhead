@@ -10,7 +10,6 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -29,6 +28,12 @@
 			}
 		)
 	)
+	const detailSelection = $derived(data?.selector == null ? undefined : select(EntityType.BlockheadWakuNodeState, data.selector, {
+		sources: [
+			Source.Local_Internal,
+			Source.WakuNode,
+		],
+	}))
 
 
 	// Components
@@ -42,21 +47,12 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		{#if data?.selector != null}
-			{#key data.selector}
-				<BlockheadWakuNodeStateView
-					selection={
-						untrack(() => select(EntityType.BlockheadWakuNodeState, data.selector, {
-							sources: [
-								Source.Local_Internal,
-								Source.WakuNode,
-							],
-						}))
-					}
-					href={detailHref}
-					layout={EntityLayout.SummaryInline}
-				/>
-			{/key}
+		{#if detailSelection != null}
+			<BlockheadWakuNodeStateView
+				selection={detailSelection}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
 		{/if}
 	{/snippet}
 

@@ -8,7 +8,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -16,6 +15,16 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.McpPromptResult, {
+		$prompt: data.selector,
+		argumentsHashAlgorithm: params.argumentsHashAlgorithm,
+		argumentsHash: params.argumentsHash,
+		timestampMs: Number(params.timestampMs),
+		source: params.source,
+	}, {
+		sources: [params.source],
+	}))
 
 
 	// Components
@@ -25,19 +34,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.McpPromptResult, {
-					$prompt: data.selector,
-					argumentsHashAlgorithm: params.argumentsHashAlgorithm,
-					argumentsHash: params.argumentsHash,
-					timestampMs: Number(params.timestampMs),
-					source: params.source,
-				}, {
-					sources: [params.source],
-				}))}
-			<title>{data?.title ?? (String(pageSelection.entitySelector.timestampMs) || 'mcp prompt result')} • mcp prompt result • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (String(pageSelection.entitySelector.timestampMs) || 'mcp prompt result')} • mcp prompt result • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'mcp prompt result'} • mcp prompt result • Blockhead</title>
 	{/if}
@@ -45,21 +43,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.McpPromptResult, {
-					$prompt: data.selector,
-					argumentsHashAlgorithm: params.argumentsHashAlgorithm,
-					argumentsHash: params.argumentsHash,
-					timestampMs: Number(params.timestampMs),
-					source: params.source,
-				}, {
-					sources: [params.source],
-				}))}
-
-		<McpPromptResultView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<McpPromptResultView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

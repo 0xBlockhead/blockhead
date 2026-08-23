@@ -8,13 +8,19 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.McpServerPackage, data.selector, {
+		fields: {
+			label: true,
+			repositoryUrl: true,
+		},
+	}))
 
 
 	// Components
@@ -24,16 +30,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.McpServerPackage, data.selector, {
-					fields: {
-						label: true,
-						repositoryUrl: true,
-					},
-				}))}
-			<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.registryServerName ?? '') || 'MCP server package' : (pageSelection.entity.label ?? '') || [(pageSelection.entitySelector.registryServerName ?? ''), (pageSelection.entity.repositoryUrl ?? '')].filter(Boolean).join(' ') || 'MCP server package')} • MCP server package • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.registryServerName ?? '') || 'MCP server package' : (pageSelection.entity.label ?? '') || [(pageSelection.entitySelector.registryServerName ?? ''), (pageSelection.entity.repositoryUrl ?? '')].filter(Boolean).join(' ') || 'MCP server package')} • MCP server package • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'MCP server package'} • MCP server package • Blockhead</title>
 	{/if}
@@ -41,18 +39,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.McpServerPackage, data.selector, {
-					fields: {
-						label: true,
-						repositoryUrl: true,
-					},
-				}))}
-
-		<McpServerPackageView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<McpServerPackageView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

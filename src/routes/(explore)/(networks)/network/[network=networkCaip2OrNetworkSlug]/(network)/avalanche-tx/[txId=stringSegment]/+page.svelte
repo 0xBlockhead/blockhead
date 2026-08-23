@@ -8,13 +8,14 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.AvalanchePChainTransaction, data.selector))
 
 
 	// Components
@@ -24,11 +25,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.AvalanchePChainTransaction, data.selector))}
-			<title>{data?.title ?? (pageSelection.entitySelector.txId || 'avalanche p chain transaction')} • avalanche p chain transaction • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entitySelector.txId || 'avalanche p chain transaction')} • avalanche p chain transaction • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'avalanche p chain transaction'} • avalanche p chain transaction • Blockhead</title>
 	{/if}
@@ -36,13 +34,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.AvalanchePChainTransaction, data.selector))}
-
-		<AvalanchePChainTransactionView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<AvalanchePChainTransactionView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

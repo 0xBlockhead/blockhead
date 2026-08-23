@@ -14616,9 +14616,6 @@ const generatePageFile = (
 					...pageContextSection,
 					'import { select } from \'$/routes/+layout.svelte\'',
 				] : []),
-				...(usesTransientSelectorBoundary ? [
-					'import { untrack } from \'svelte\'',
-				] : []),
 				...(hasPageProps ? [
 					...pageStateSection,
 					...renderPagePropsState([
@@ -14631,8 +14628,11 @@ const generatePageFile = (
 					...(hasFieldConditionedSources ? [
 						`const entitySelector = $derived(${selectorExpression})`,
 					] : []),
-				...(pageSelectionReference === 'pageSelection' && !usesTransientSelectorBoundary ? [
-					`const pageSelection = $derived(${pageSelectionExpression})`,
+				...(pageSelectionReference === 'pageSelection' || usesTransientSelectorBoundary ? [
+					usesTransientSelectorBoundary ?
+						`const pageSelection = $derived(data?.selector == null ? undefined : ${pageSelectionExpression})`
+					:
+						`const pageSelection = $derived(${pageSelectionExpression})`,
 				] : []),
 				]),
 				...((view?.script ?? '').trim() === '' ? [] : [
@@ -14661,15 +14661,12 @@ const generatePageFile = (
 			head: (
 				pageEntityTitleExpression != null && entityTypeLabel != null ?
 					usesTransientSelectorBoundary ? [
-						'{#if data?.selector != null}',
-						'\t{#key data.selector}',
-						renderSvelteConst(2, 'pageSelection', `untrack(() => ${pageSelectionExpression})`),
+						'{#if pageSelection != null}',
 						...(literalPageEntityTitle == null ?
-							[`\t\t<title>{${pageEntityTitleExpression}} • ${entityTypeLabel} • Blockhead</title>`]
+							[`\t<title>{${pageEntityTitleExpression}} • ${entityTypeLabel} • Blockhead</title>`]
 						:
-							[`\t\t<title>${svelteText(literalPageEntityTitle)} • ${entityTypeLabel} • Blockhead</title>`]
+							[`\t<title>${svelteText(literalPageEntityTitle)} • ${entityTypeLabel} • Blockhead</title>`]
 						),
-						'\t{/key}',
 						'{:else}',
 						`\t<title>{data?.title ?? ${emitTypeScript(entityTypeLabel)}} • ${entityTypeLabel} • Blockhead</title>`,
 						'{/if}',
@@ -14689,10 +14686,7 @@ const generatePageFile = (
 			markup: [
 				'<Page>',
 				...(usesTransientSelectorBoundary ? [
-					'\t{#if data?.selector != null}',
-					'\t\t{#key data.selector}',
-					renderSvelteConst(3, 'pageSelection', `untrack(() => ${pageSelectionExpression})`),
-					'',
+					'\t{#if pageSelection != null}',
 					...reindentLines(renderEntityPageMarkup(
 						routeFile,
 						component,
@@ -14700,8 +14694,7 @@ const generatePageFile = (
 						routeId(appRoutePath),
 						indexes,
 						'pageSelection'
-					), 2),
-					'\t\t{/key}',
+					), 1),
 					'\t{/if}',
 				] : collection == null ?
 					renderEntityPageMarkup(
@@ -14908,18 +14901,16 @@ const generateLayoutFile = (routeFile: CompiledLayoutRouteFileFacts) => {
 			renderSvelteAttribute(1, 'href', 'detailHref'),
 			'>',
 			'\t{#snippet Summary()}',
-			'\t\t{#if data?.selector != null}',
-			'\t\t\t{#key data.selector}',
+			'\t\t{#if detailSelection != null}',
 			...(routeFile.detailLayout.components.length === 1 ? [] : [
-				'\t\t\t\t{@const DetailView = ' + routeFile.detailLayout.detailViewExpression + '}',
+				'\t\t\t{@const DetailView = ' + routeFile.detailLayout.detailViewExpression + '}',
 				'',
 			]),
-			`\t\t\t\t<${component}`,
-			renderSvelteAttribute(5, 'selection', `untrack(() => ${routeFile.detailLayout.detailSelectionExpression})`),
-			renderSvelteAttribute(5, 'href', 'detailHref'),
-			'\t\t\t\t\tlayout={EntityLayout.SummaryInline}',
-			'\t\t\t\t/>',
-			'\t\t\t{/key}',
+			`\t\t\t<${component}`,
+			renderSvelteAttribute(4, 'selection', 'detailSelection'),
+			renderSvelteAttribute(4, 'href', 'detailHref'),
+			'\t\t\t\tlayout={EntityLayout.SummaryInline}',
+			'\t\t\t/>',
 			'\t\t{/if}',
 			'\t{/snippet}',
 			'',
@@ -14944,7 +14935,6 @@ const generateLayoutFile = (routeFile: CompiledLayoutRouteFileFacts) => {
 					'// Context',
 					'import { resolve } from \'$app/paths\'',
 					'import { select } from \'$/routes/+layout.svelte\'',
-					'import { untrack } from \'svelte\'',
 					'',
 					'',
 					'// State',
@@ -14963,6 +14953,7 @@ const generateLayoutFile = (routeFile: CompiledLayoutRouteFileFacts) => {
 							')',
 						]
 					),
+					`const detailSelection = $derived(data?.selector == null ? undefined : ${routeFile.detailLayout.detailSelectionExpression})`,
 					'',
 					'',
 					'// Components',

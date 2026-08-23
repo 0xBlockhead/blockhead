@@ -8,7 +8,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -16,6 +15,16 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.A2aTask, {
+		$service: data.selector,
+		providerTaskId: params.providerTaskId,
+	}, {
+		sources: [],
+		fields: {
+			taskId: true,
+		},
+	}))
 
 
 	// Components
@@ -25,19 +34,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.A2aTask, {
-					$service: data.selector,
-					providerTaskId: params.providerTaskId,
-				}, {
-					sources: [],
-					fields: {
-						taskId: true,
-					},
-				}))}
-			<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.providerTaskId ?? '') || 'A2A task' : pageSelection.entity.taskId || (pageSelection.entitySelector.providerTaskId ?? '') || 'A2A task')} • A2A task • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.providerTaskId ?? '') || 'A2A task' : pageSelection.entity.taskId || (pageSelection.entitySelector.providerTaskId ?? '') || 'A2A task')} • A2A task • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'A2A task'} • A2A task • Blockhead</title>
 	{/if}
@@ -45,21 +43,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.A2aTask, {
-					$service: data.selector,
-					providerTaskId: params.providerTaskId,
-				}, {
-					sources: [],
-					fields: {
-						taskId: true,
-					},
-				}))}
-
-		<A2aTaskView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<A2aTaskView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

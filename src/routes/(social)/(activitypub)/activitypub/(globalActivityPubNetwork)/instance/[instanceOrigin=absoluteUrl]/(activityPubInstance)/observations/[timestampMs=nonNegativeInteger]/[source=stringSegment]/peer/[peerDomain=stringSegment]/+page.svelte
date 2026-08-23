@@ -9,7 +9,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -17,6 +16,15 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.ActivityPubInstancePeer, {
+		$observation: data.selector,
+		peerDomain: params.peerDomain,
+	}, {
+		sources: [
+			Source.Mastodon_Rest,
+		],
+	}))
 
 
 	// Components
@@ -26,18 +34,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.ActivityPubInstancePeer, {
-					$observation: data.selector,
-					peerDomain: params.peerDomain,
-				}, {
-					sources: [
-						Source.Mastodon_Rest,
-					],
-				}))}
-			<title>{data?.title ?? (pageSelection.entitySelector.peerDomain || 'ActivityPub instance peer')} • ActivityPub instance peer • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entitySelector.peerDomain || 'ActivityPub instance peer')} • ActivityPub instance peer • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'ActivityPub instance peer'} • ActivityPub instance peer • Blockhead</title>
 	{/if}
@@ -45,20 +43,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.ActivityPubInstancePeer, {
-					$observation: data.selector,
-					peerDomain: params.peerDomain,
-				}, {
-					sources: [
-						Source.Mastodon_Rest,
-					],
-				}))}
-
-		<ActivityPubInstancePeerView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<ActivityPubInstancePeerView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

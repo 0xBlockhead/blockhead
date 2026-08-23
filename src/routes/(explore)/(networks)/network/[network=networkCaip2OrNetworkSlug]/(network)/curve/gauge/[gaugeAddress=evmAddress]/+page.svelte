@@ -9,7 +9,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -17,6 +16,18 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.CurveGauge, {
+		$network: data.selector,
+		gaugeAddress: params.gaugeAddress,
+	}, {
+		sources: [
+			Source.Curve_Rest,
+		],
+		fields: {
+			name: true,
+		},
+	}))
 
 
 	// Components
@@ -26,21 +37,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.CurveGauge, {
-					$network: data.selector,
-					gaugeAddress: params.gaugeAddress,
-				}, {
-					sources: [
-						Source.Curve_Rest,
-					],
-					fields: {
-						name: true,
-					},
-				}))}
-			<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.gaugeAddress ?? '') || 'Curve gauge' : [(pageSelection.entity.name ?? ''), pageSelection.entitySelector.gaugeAddress].filter(Boolean).join(' ') || 'Curve gauge')} • Curve gauge • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.gaugeAddress ?? '') || 'Curve gauge' : [(pageSelection.entity.name ?? ''), pageSelection.entitySelector.gaugeAddress].filter(Boolean).join(' ') || 'Curve gauge')} • Curve gauge • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'Curve gauge'} • Curve gauge • Blockhead</title>
 	{/if}
@@ -48,23 +46,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.CurveGauge, {
-					$network: data.selector,
-					gaugeAddress: params.gaugeAddress,
-				}, {
-					sources: [
-						Source.Curve_Rest,
-					],
-					fields: {
-						name: true,
-					},
-				}))}
-
-		<CurveGaugeView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<CurveGaugeView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

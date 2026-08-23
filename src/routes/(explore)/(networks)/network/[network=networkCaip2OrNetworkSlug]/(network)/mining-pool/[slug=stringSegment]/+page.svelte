@@ -9,13 +9,21 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.BitcoinMiningPool, data.selector, {
+		sources: [
+			Source.MempoolSpace_Rest,
+		],
+		fields: {
+			name: true,
+		},
+	}))
 
 
 	// Components
@@ -25,18 +33,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.BitcoinMiningPool, data.selector, {
-					sources: [
-						Source.MempoolSpace_Rest,
-					],
-					fields: {
-						name: true,
-					},
-				}))}
-			<title>{data?.title ?? (pageSelection.entity == null ? 'Bitcoin mining pool' : pageSelection.entity.name || 'Bitcoin mining pool')} • Bitcoin mining pool • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'Bitcoin mining pool' : pageSelection.entity.name || 'Bitcoin mining pool')} • Bitcoin mining pool • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'Bitcoin mining pool'} • Bitcoin mining pool • Blockhead</title>
 	{/if}
@@ -44,20 +42,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.BitcoinMiningPool, data.selector, {
-					sources: [
-						Source.MempoolSpace_Rest,
-					],
-					fields: {
-						name: true,
-					},
-				}))}
-
-		<BitcoinMiningPoolView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<BitcoinMiningPoolView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

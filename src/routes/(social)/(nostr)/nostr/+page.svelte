@@ -9,13 +9,18 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType._GlobalNostrNetwork, data.selector, {
+		sources: [
+			Source.Constants_Internal,
+		],
+	}))
 
 
 	// Components
@@ -25,15 +30,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType._GlobalNostrNetwork, data.selector, {
-					sources: [
-						Source.Constants_Internal,
-					],
-				}))}
-			<title>{data?.title ?? 'Nostr'} • Nostr • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? 'Nostr'} • Nostr • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'Nostr'} • Nostr • Blockhead</title>
 	{/if}
@@ -41,17 +39,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType._GlobalNostrNetwork, data.selector, {
-					sources: [
-						Source.Constants_Internal,
-					],
-				}))}
-
-		<GlobalNostrNetworkView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<GlobalNostrNetworkView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

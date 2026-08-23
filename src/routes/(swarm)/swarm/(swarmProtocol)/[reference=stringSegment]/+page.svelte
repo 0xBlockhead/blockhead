@@ -9,13 +9,21 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.SwarmResource, data.selector, {
+		sources: [
+			Source.Swarm_Rest,
+		],
+		fields: {
+			canonicalUri: true,
+		},
+	}))
 
 
 	// Components
@@ -25,18 +33,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.SwarmResource, data.selector, {
-					sources: [
-						Source.Swarm_Rest,
-					],
-					fields: {
-						canonicalUri: true,
-					},
-				}))}
-			<title>{data?.title ?? (pageSelection.entity == null ? 'Swarm resource' : pageSelection.entity.canonicalUri || 'Swarm resource')} • Swarm resource • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'Swarm resource' : pageSelection.entity.canonicalUri || 'Swarm resource')} • Swarm resource • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'Swarm resource'} • Swarm resource • Blockhead</title>
 	{/if}
@@ -44,20 +42,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.SwarmResource, data.selector, {
-					sources: [
-						Source.Swarm_Rest,
-					],
-					fields: {
-						canonicalUri: true,
-					},
-				}))}
-
-		<SwarmResourceView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<SwarmResourceView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

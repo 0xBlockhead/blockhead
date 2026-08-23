@@ -8,7 +8,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -16,6 +15,12 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.HederaHbarTransfer, {
+		$transaction: data.selector,
+		accountId: params.accountId,
+		transferIndex: Number(params.transferIndex),
+	}))
 
 
 	// Components
@@ -25,15 +30,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.HederaHbarTransfer, {
-					$transaction: data.selector,
-					accountId: params.accountId,
-					transferIndex: Number(params.transferIndex),
-				}))}
-			<title>{data?.title ?? 'hedera HBAR transfer'} • hedera HBAR transfer • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? 'hedera HBAR transfer'} • hedera HBAR transfer • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'hedera HBAR transfer'} • hedera HBAR transfer • Blockhead</title>
 	{/if}
@@ -41,17 +39,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.HederaHbarTransfer, {
-					$transaction: data.selector,
-					accountId: params.accountId,
-					transferIndex: Number(params.transferIndex),
-				}))}
-
-		<HederaHbarTransferView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<HederaHbarTransferView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

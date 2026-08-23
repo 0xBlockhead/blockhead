@@ -9,13 +9,18 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.EigenLayerOperator, data.selector, {
+		sources: [
+			Source.EigenExplorer_Rest,
+		],
+	}))
 
 
 	// Components
@@ -25,15 +30,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.EigenLayerOperator, data.selector, {
-					sources: [
-						Source.EigenExplorer_Rest,
-					],
-				}))}
-			<title>{data?.title ?? (pageSelection.entitySelector.operatorAddress || 'eigen layer operator')} • eigen layer operator • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entitySelector.operatorAddress || 'eigen layer operator')} • eigen layer operator • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'eigen layer operator'} • eigen layer operator • Blockhead</title>
 	{/if}
@@ -41,17 +39,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.EigenLayerOperator, data.selector, {
-					sources: [
-						Source.EigenExplorer_Rest,
-					],
-				}))}
-
-		<EigenLayerOperatorView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<EigenLayerOperatorView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

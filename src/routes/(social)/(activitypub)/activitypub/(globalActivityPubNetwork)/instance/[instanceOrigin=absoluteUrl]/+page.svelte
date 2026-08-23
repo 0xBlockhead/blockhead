@@ -9,13 +9,18 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.ActivityPubInstance, data.selector, {
+		sources: [
+			Source.Mastodon_Rest,
+		],
+	}))
 
 
 	// Components
@@ -25,15 +30,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.ActivityPubInstance, data.selector, {
-					sources: [
-						Source.Mastodon_Rest,
-					],
-				}))}
-			<title>{data?.title ?? (pageSelection.entitySelector.instanceOrigin || 'ActivityPub instance')} • ActivityPub instance • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entitySelector.instanceOrigin || 'ActivityPub instance')} • ActivityPub instance • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'ActivityPub instance'} • ActivityPub instance • Blockhead</title>
 	{/if}
@@ -41,17 +39,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.ActivityPubInstance, data.selector, {
-					sources: [
-						Source.Mastodon_Rest,
-					],
-				}))}
-
-		<ActivityPubInstanceView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<ActivityPubInstanceView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

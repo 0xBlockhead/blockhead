@@ -8,7 +8,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -16,6 +15,15 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.CelestiaBlock, {
+		$network: data.selector,
+		height: BigInt(params.height),
+	}, {
+		fields: {
+			hash: true,
+		},
+	}))
 
 
 	// Components
@@ -25,18 +33,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.CelestiaBlock, {
-					$network: data.selector,
-					height: BigInt(params.height),
-				}, {
-					fields: {
-						hash: true,
-					},
-				}))}
-			<title>{data?.title ?? (pageSelection.entity == null ? String(pageSelection.entitySelector.height ?? '') || 'celestia block' : String(pageSelection.entitySelector.height) || pageSelection.entity.hash || 'celestia block')} • celestia block • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entity == null ? String(pageSelection.entitySelector.height ?? '') || 'celestia block' : String(pageSelection.entitySelector.height) || pageSelection.entity.hash || 'celestia block')} • celestia block • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'celestia block'} • celestia block • Blockhead</title>
 	{/if}
@@ -44,20 +42,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.CelestiaBlock, {
-					$network: data.selector,
-					height: BigInt(params.height),
-				}, {
-					fields: {
-						hash: true,
-					},
-				}))}
-
-		<CelestiaBlockView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<CelestiaBlockView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

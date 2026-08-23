@@ -8,7 +8,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -16,6 +15,16 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.IcpSubnetCanisterRange_Timestamp, {
+		$subnet: data.selector,
+		rangeStart: params.rangeStart,
+		rangeEnd: params.rangeEnd,
+		registryVersion: BigInt(params.registryVersion),
+		source: params.source,
+	}, {
+		sources: [params.source],
+	}))
 
 
 	// Components
@@ -25,19 +34,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.IcpSubnetCanisterRange_Timestamp, {
-					$subnet: data.selector,
-					rangeStart: params.rangeStart,
-					rangeEnd: params.rangeEnd,
-					registryVersion: BigInt(params.registryVersion),
-					source: params.source,
-				}, {
-					sources: [params.source],
-				}))}
-			<title>{data?.title ?? 'ICP subnet canister range timestamp'} • ICP subnet canister range timestamp • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? 'ICP subnet canister range timestamp'} • ICP subnet canister range timestamp • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'ICP subnet canister range timestamp'} • ICP subnet canister range timestamp • Blockhead</title>
 	{/if}
@@ -45,21 +43,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.IcpSubnetCanisterRange_Timestamp, {
-					$subnet: data.selector,
-					rangeStart: params.rangeStart,
-					rangeEnd: params.rangeEnd,
-					registryVersion: BigInt(params.registryVersion),
-					source: params.source,
-				}, {
-					sources: [params.source],
-				}))}
-
-		<IcpSubnetCanisterRange_TimestampView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<IcpSubnetCanisterRange_TimestampView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

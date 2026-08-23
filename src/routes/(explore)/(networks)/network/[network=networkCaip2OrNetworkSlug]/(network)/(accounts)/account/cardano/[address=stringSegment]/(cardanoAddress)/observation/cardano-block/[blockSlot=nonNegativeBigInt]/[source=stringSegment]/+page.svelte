@@ -8,7 +8,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -16,6 +15,17 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.CardanoAddress_Timestamp, {
+		$address: data.selector,
+		blockSlot: BigInt(params.blockSlot),
+		source: params.source,
+	}, {
+		sources: [params.source],
+		fields: {
+			timestampMs: true,
+		},
+	}))
 
 
 	// Components
@@ -25,20 +35,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.CardanoAddress_Timestamp, {
-					$address: data.selector,
-					blockSlot: BigInt(params.blockSlot),
-					source: params.source,
-				}, {
-					sources: [params.source],
-					fields: {
-						timestampMs: true,
-					},
-				}))}
-			<title>{data?.title ?? (pageSelection.entity == null ? String(pageSelection.entitySelector.blockSlot ?? '') || 'Cardano address timestamp' : String(pageSelection.entity.timestampMs ?? '') || String(pageSelection.entitySelector.blockSlot) || 'Cardano address timestamp')} • Cardano address timestamp • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entity == null ? String(pageSelection.entitySelector.blockSlot ?? '') || 'Cardano address timestamp' : String(pageSelection.entity.timestampMs ?? '') || String(pageSelection.entitySelector.blockSlot) || 'Cardano address timestamp')} • Cardano address timestamp • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'Cardano address timestamp'} • Cardano address timestamp • Blockhead</title>
 	{/if}
@@ -46,22 +44,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.CardanoAddress_Timestamp, {
-					$address: data.selector,
-					blockSlot: BigInt(params.blockSlot),
-					source: params.source,
-				}, {
-					sources: [params.source],
-					fields: {
-						timestampMs: true,
-					},
-				}))}
-
-		<CardanoAddress_TimestampView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<CardanoAddress_TimestampView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

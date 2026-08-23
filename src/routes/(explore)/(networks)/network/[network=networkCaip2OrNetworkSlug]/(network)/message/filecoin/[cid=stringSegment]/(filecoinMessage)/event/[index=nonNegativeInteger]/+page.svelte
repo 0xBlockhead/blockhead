@@ -9,7 +9,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -17,6 +16,19 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.FilecoinMessageEvent, {
+		$message: data.selector,
+		index: Number(params.index),
+	}, {
+		sources: [
+			Source.Filfox_Rest,
+		],
+		fields: {
+			name: true,
+			address: true,
+		},
+	}))
 
 
 	// Components
@@ -26,22 +38,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.FilecoinMessageEvent, {
-					$message: data.selector,
-					index: Number(params.index),
-				}, {
-					sources: [
-						Source.Filfox_Rest,
-					],
-					fields: {
-						name: true,
-						address: true,
-					},
-				}))}
-			<title>{data?.title ?? (pageSelection.entity == null ? 'filecoin message event' : [(pageSelection.entity.name ?? ''), pageSelection.entity.address].filter(Boolean).join(' ') || 'filecoin message event')} • filecoin message event • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'filecoin message event' : [(pageSelection.entity.name ?? ''), pageSelection.entity.address].filter(Boolean).join(' ') || 'filecoin message event')} • filecoin message event • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'filecoin message event'} • filecoin message event • Blockhead</title>
 	{/if}
@@ -49,24 +47,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.FilecoinMessageEvent, {
-					$message: data.selector,
-					index: Number(params.index),
-				}, {
-					sources: [
-						Source.Filfox_Rest,
-					],
-					fields: {
-						name: true,
-						address: true,
-					},
-				}))}
-
-		<FilecoinMessageEventView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<FilecoinMessageEventView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

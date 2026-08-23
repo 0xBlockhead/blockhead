@@ -9,13 +9,18 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.BeaconBlock, data.selector, {
+		sources: [
+			Source.Beacon_Rest,
+		],
+	}))
 
 
 	// Components
@@ -25,15 +30,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.BeaconBlock, data.selector, {
-					sources: [
-						Source.Beacon_Rest,
-					],
-				}))}
-			<title>{data?.title ?? (pageSelection.entitySelector.root || 'beacon block')} • beacon block • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entitySelector.root || 'beacon block')} • beacon block • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'beacon block'} • beacon block • Blockhead</title>
 	{/if}
@@ -41,17 +39,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.BeaconBlock, data.selector, {
-					sources: [
-						Source.Beacon_Rest,
-					],
-				}))}
-
-		<BeaconBlockView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<BeaconBlockView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

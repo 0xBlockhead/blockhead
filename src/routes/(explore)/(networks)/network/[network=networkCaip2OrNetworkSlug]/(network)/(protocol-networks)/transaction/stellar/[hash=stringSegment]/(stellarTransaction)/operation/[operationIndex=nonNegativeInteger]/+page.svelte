@@ -8,7 +8,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -16,6 +15,11 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.StellarOperation, {
+		$transaction: data.selector,
+		operationIndex: Number(params.operationIndex),
+	}))
 
 
 	// Components
@@ -25,14 +29,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.StellarOperation, {
-					$transaction: data.selector,
-					operationIndex: Number(params.operationIndex),
-				}))}
-			<title>{data?.title ?? 'stellar operation'} • stellar operation • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? 'stellar operation'} • stellar operation • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'stellar operation'} • stellar operation • Blockhead</title>
 	{/if}
@@ -40,16 +38,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.StellarOperation, {
-					$transaction: data.selector,
-					operationIndex: Number(params.operationIndex),
-				}))}
-
-		<StellarOperationView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<StellarOperationView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

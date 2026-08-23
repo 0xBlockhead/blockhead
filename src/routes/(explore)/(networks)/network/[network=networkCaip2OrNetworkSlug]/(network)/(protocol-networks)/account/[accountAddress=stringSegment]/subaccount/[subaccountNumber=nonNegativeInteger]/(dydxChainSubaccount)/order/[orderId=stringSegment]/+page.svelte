@@ -9,13 +9,18 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.DydxChainOrder, data.selector, {
+		sources: [
+			Source.DydxIndexer,
+		],
+	}))
 
 
 	// Components
@@ -25,15 +30,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.DydxChainOrder, data.selector, {
-					sources: [
-						Source.DydxIndexer,
-					],
-				}))}
-			<title>{data?.title ?? (pageSelection.entitySelector.orderId || 'dydx chain order')} • dydx chain order • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entitySelector.orderId || 'dydx chain order')} • dydx chain order • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'dydx chain order'} • dydx chain order • Blockhead</title>
 	{/if}
@@ -41,17 +39,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.DydxChainOrder, data.selector, {
-					sources: [
-						Source.DydxIndexer,
-					],
-				}))}
-
-		<DydxChainOrderView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<DydxChainOrderView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

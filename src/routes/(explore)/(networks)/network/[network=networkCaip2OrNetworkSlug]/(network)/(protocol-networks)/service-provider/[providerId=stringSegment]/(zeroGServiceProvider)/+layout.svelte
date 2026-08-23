@@ -10,7 +10,6 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -29,6 +28,12 @@
 			}
 		)
 	)
+	const detailSelection = $derived(data?.selector == null ? undefined : select(EntityType.ZeroGServiceProvider, data.selector, {
+		sources: [
+			Source.ZeroGStorageNode_JsonRpc,
+			Source.ZeroGStorageScan_Rest,
+		],
+	}))
 
 
 	// Components
@@ -42,21 +47,12 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		{#if data?.selector != null}
-			{#key data.selector}
-				<ZeroGServiceProviderView
-					selection={
-						untrack(() => select(EntityType.ZeroGServiceProvider, data.selector, {
-							sources: [
-								Source.ZeroGStorageNode_JsonRpc,
-								Source.ZeroGStorageScan_Rest,
-							],
-						}))
-					}
-					href={detailHref}
-					layout={EntityLayout.SummaryInline}
-				/>
-			{/key}
+		{#if detailSelection != null}
+			<ZeroGServiceProviderView
+				selection={detailSelection}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
 		{/if}
 	{/snippet}
 

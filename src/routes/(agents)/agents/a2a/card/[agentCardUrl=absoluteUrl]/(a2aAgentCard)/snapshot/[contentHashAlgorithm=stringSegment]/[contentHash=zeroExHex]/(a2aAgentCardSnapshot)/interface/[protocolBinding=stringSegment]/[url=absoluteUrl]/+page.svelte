@@ -8,7 +8,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -16,6 +15,14 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.A2aAgentInterface, {
+		$cardSnapshot: data.selector,
+		protocolBinding: params.protocolBinding,
+		url: decodeURIComponent(params.url),
+	}, {
+		sources: [],
+	}))
 
 
 	// Components
@@ -25,17 +32,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.A2aAgentInterface, {
-					$cardSnapshot: data.selector,
-					protocolBinding: params.protocolBinding,
-					url: decodeURIComponent(params.url),
-				}, {
-					sources: [],
-				}))}
-			<title>{data?.title ?? (pageSelection.entitySelector.protocolBinding || 'A2A agent interface')} • A2A agent interface • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entitySelector.protocolBinding || 'A2A agent interface')} • A2A agent interface • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'A2A agent interface'} • A2A agent interface • Blockhead</title>
 	{/if}
@@ -43,19 +41,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.A2aAgentInterface, {
-					$cardSnapshot: data.selector,
-					protocolBinding: params.protocolBinding,
-					url: decodeURIComponent(params.url),
-				}, {
-					sources: [],
-				}))}
-
-		<A2aAgentInterfaceView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<A2aAgentInterfaceView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

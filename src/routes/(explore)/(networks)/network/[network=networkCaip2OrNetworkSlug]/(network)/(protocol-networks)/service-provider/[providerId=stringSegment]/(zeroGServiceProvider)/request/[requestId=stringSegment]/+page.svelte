@@ -9,13 +9,20 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.ZeroGServiceRequest, data.selector, {
+		sources: [
+			Source.ZeroGChain_JsonRpc,
+			Source.ZeroGStorageNode_JsonRpc,
+			Source.ZeroGStorageScan_Rest,
+		],
+	}))
 
 
 	// Components
@@ -25,17 +32,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.ZeroGServiceRequest, data.selector, {
-					sources: [
-						Source.ZeroGChain_JsonRpc,
-						Source.ZeroGStorageNode_JsonRpc,
-						Source.ZeroGStorageScan_Rest,
-					],
-				}))}
-			<title>{data?.title ?? (pageSelection.entitySelector.requestId || 'zero g service request')} • zero g service request • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entitySelector.requestId || 'zero g service request')} • zero g service request • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'zero g service request'} • zero g service request • Blockhead</title>
 	{/if}
@@ -43,19 +41,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.ZeroGServiceRequest, data.selector, {
-					sources: [
-						Source.ZeroGChain_JsonRpc,
-						Source.ZeroGStorageNode_JsonRpc,
-						Source.ZeroGStorageScan_Rest,
-					],
-				}))}
-
-		<ZeroGServiceRequestView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<ZeroGServiceRequestView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

@@ -8,13 +8,14 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.HyperliquidOrder, data.selector))
 
 
 	// Components
@@ -24,11 +25,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.HyperliquidOrder, data.selector))}
-			<title>{data?.title ?? 'hyperliquid order'} • hyperliquid order • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? 'hyperliquid order'} • hyperliquid order • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'hyperliquid order'} • hyperliquid order • Blockhead</title>
 	{/if}
@@ -36,13 +34,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.HyperliquidOrder, data.selector))}
-
-		<HyperliquidOrderView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<HyperliquidOrderView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

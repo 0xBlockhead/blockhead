@@ -9,13 +9,19 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.FilecoinMessage, data.selector, {
+		sources: [
+			Source.Filfox_Rest,
+			Source.Lotus_JsonRpc,
+		],
+	}))
 
 
 	// Components
@@ -25,16 +31,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.FilecoinMessage, data.selector, {
-					sources: [
-						Source.Filfox_Rest,
-						Source.Lotus_JsonRpc,
-					],
-				}))}
-			<title>{data?.title ?? (pageSelection.entitySelector.cid || 'filecoin message')} • filecoin message • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entitySelector.cid || 'filecoin message')} • filecoin message • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'filecoin message'} • filecoin message • Blockhead</title>
 	{/if}
@@ -42,18 +40,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.FilecoinMessage, data.selector, {
-					sources: [
-						Source.Filfox_Rest,
-						Source.Lotus_JsonRpc,
-					],
-				}))}
-
-		<FilecoinMessageView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<FilecoinMessageView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

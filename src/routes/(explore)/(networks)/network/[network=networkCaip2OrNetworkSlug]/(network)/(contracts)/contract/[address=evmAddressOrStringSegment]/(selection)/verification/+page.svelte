@@ -8,13 +8,21 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.EvmContractVerification, {
+		$contract: data.selector,
+	}, {
+		fields: {
+			match: true,
+			runtimeMatch: true,
+		},
+	}))
 
 
 	// Components
@@ -24,18 +32,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.EvmContractVerification, {
-					$contract: data.selector,
-				}, {
-					fields: {
-						match: true,
-						runtimeMatch: true,
-					},
-				}))}
-			<title>{data?.title ?? (pageSelection.entity == null ? 'EVM contract verification' : [(pageSelection.entity.match ?? ''), (pageSelection.entity.runtimeMatch ?? '')].filter(Boolean).join(' ') || 'EVM contract verification')} • EVM contract verification • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'EVM contract verification' : [(pageSelection.entity.match ?? ''), (pageSelection.entity.runtimeMatch ?? '')].filter(Boolean).join(' ') || 'EVM contract verification')} • EVM contract verification • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'EVM contract verification'} • EVM contract verification • Blockhead</title>
 	{/if}
@@ -43,20 +41,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.EvmContractVerification, {
-					$contract: data.selector,
-				}, {
-					fields: {
-						match: true,
-						runtimeMatch: true,
-					},
-				}))}
-
-		<EvmContractVerificationView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<EvmContractVerificationView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

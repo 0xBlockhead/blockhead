@@ -9,13 +9,20 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.BlockheadZcashViewingKey, data.selector, {
+		sources: [
+			Source.Local_Internal,
+			Source.ZcashClientBackend_Local,
+			Source.ZcashdWallet_JsonRpc,
+		],
+	}))
 
 
 	// Components
@@ -25,17 +32,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.BlockheadZcashViewingKey, data.selector, {
-					sources: [
-						Source.Local_Internal,
-						Source.ZcashClientBackend_Local,
-						Source.ZcashdWallet_JsonRpc,
-					],
-				}))}
-			<title>{data?.title ?? (pageSelection.entitySelector.keyFingerprint || 'blockhead zcash viewing key')} • blockhead zcash viewing key • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entitySelector.keyFingerprint || 'blockhead zcash viewing key')} • blockhead zcash viewing key • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'blockhead zcash viewing key'} • blockhead zcash viewing key • Blockhead</title>
 	{/if}
@@ -43,19 +41,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.BlockheadZcashViewingKey, data.selector, {
-					sources: [
-						Source.Local_Internal,
-						Source.ZcashClientBackend_Local,
-						Source.ZcashdWallet_JsonRpc,
-					],
-				}))}
-
-		<BlockheadZcashViewingKeyView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<BlockheadZcashViewingKeyView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

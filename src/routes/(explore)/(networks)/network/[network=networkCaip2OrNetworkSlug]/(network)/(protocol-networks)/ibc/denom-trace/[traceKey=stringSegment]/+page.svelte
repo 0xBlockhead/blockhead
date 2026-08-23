@@ -8,13 +8,19 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.IbcDenomTrace, data.selector, {
+		fields: {
+			displayDenom: true,
+			baseDenom: true,
+		},
+	}))
 
 
 	// Components
@@ -24,16 +30,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.IbcDenomTrace, data.selector, {
-					fields: {
-						displayDenom: true,
-						baseDenom: true,
-					},
-				}))}
-			<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.traceKey ?? '') || 'IBC denom trace' : [(pageSelection.entity.displayDenom ?? ''), (pageSelection.entity.baseDenom ?? ''), pageSelection.entitySelector.traceKey].filter(Boolean).join(' ') || 'IBC denom trace')} • IBC denom trace • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.traceKey ?? '') || 'IBC denom trace' : [(pageSelection.entity.displayDenom ?? ''), (pageSelection.entity.baseDenom ?? ''), pageSelection.entitySelector.traceKey].filter(Boolean).join(' ') || 'IBC denom trace')} • IBC denom trace • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'IBC denom trace'} • IBC denom trace • Blockhead</title>
 	{/if}
@@ -41,18 +39,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.IbcDenomTrace, data.selector, {
-					fields: {
-						displayDenom: true,
-						baseDenom: true,
-					},
-				}))}
-
-		<IbcDenomTraceView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<IbcDenomTraceView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

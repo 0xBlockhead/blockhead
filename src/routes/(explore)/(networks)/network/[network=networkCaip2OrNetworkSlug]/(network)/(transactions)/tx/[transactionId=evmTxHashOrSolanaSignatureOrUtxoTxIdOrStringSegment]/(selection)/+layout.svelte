@@ -9,7 +9,6 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -28,6 +27,7 @@
 			}
 		)
 	)
+	const detailSelection = $derived(data?.selector == null ? undefined : select(data.entityType, data.selector))
 
 
 	// Components
@@ -51,16 +51,14 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		{#if data?.selector != null}
-			{#key data.selector}
-				{@const DetailView = data.entityType === EntityType.EvmTransaction ? EvmTransactionView : data.entityType === EntityType.SolanaTransaction ? SolanaTransactionView : data.entityType === EntityType.CardanoTransaction ? CardanoTransactionView : data.entityType === EntityType.UtxoTransaction ? UtxoTransactionView : data.entityType === EntityType.ArweaveTransaction ? ArweaveTransactionView : data.entityType === EntityType.CosmosTransaction ? CosmosTransactionView : data.entityType === EntityType.HyperliquidTransaction ? HyperliquidTransactionView : data.entityType === EntityType.MoneroTransaction ? MoneroTransactionView : data.entityType === EntityType.NearTransaction ? NearTransactionView : data.entityType === EntityType.TronTransaction ? TronTransactionView : AptosTransactionView}
+		{#if detailSelection != null}
+			{@const DetailView = data.entityType === EntityType.EvmTransaction ? EvmTransactionView : data.entityType === EntityType.SolanaTransaction ? SolanaTransactionView : data.entityType === EntityType.CardanoTransaction ? CardanoTransactionView : data.entityType === EntityType.UtxoTransaction ? UtxoTransactionView : data.entityType === EntityType.ArweaveTransaction ? ArweaveTransactionView : data.entityType === EntityType.CosmosTransaction ? CosmosTransactionView : data.entityType === EntityType.HyperliquidTransaction ? HyperliquidTransactionView : data.entityType === EntityType.MoneroTransaction ? MoneroTransactionView : data.entityType === EntityType.NearTransaction ? NearTransactionView : data.entityType === EntityType.TronTransaction ? TronTransactionView : AptosTransactionView}
 
-				<DetailView
-					selection={untrack(() => select(data.entityType, data.selector))}
-					href={detailHref}
-					layout={EntityLayout.SummaryInline}
-				/>
-			{/key}
+			<DetailView
+				selection={detailSelection}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
 		{/if}
 	{/snippet}
 

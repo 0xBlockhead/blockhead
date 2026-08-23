@@ -9,13 +9,22 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.YoutubeComment, data.selector, {
+		sources: [
+			Source.Youtube_Rest,
+			Source.Piped_Rest,
+		],
+		fields: {
+			text: true,
+		},
+	}))
 
 
 	// Components
@@ -25,19 +34,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.YoutubeComment, data.selector, {
-					sources: [
-						Source.Youtube_Rest,
-						Source.Piped_Rest,
-					],
-					fields: {
-						text: true,
-					},
-				}))}
-			<title>{data?.title ?? (pageSelection.entity == null ? 'YouTube comment' : (pageSelection.entity.text ?? '') || 'YouTube comment')} • YouTube comment • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'YouTube comment' : (pageSelection.entity.text ?? '') || 'YouTube comment')} • YouTube comment • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'YouTube comment'} • YouTube comment • Blockhead</title>
 	{/if}
@@ -45,21 +43,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.YoutubeComment, data.selector, {
-					sources: [
-						Source.Youtube_Rest,
-						Source.Piped_Rest,
-					],
-					fields: {
-						text: true,
-					},
-				}))}
-
-		<YoutubeCommentView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<YoutubeCommentView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

@@ -9,13 +9,23 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.BitcoinCashCashTokenFungibleAmount, {
+		$output: data.selector,
+	}, {
+		sources: [
+			Source.BitcoinCashNode_JsonRpc,
+		],
+		fields: {
+			amount: true,
+		},
+	}))
 
 
 	// Components
@@ -25,20 +35,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.BitcoinCashCashTokenFungibleAmount, {
-					$output: data.selector,
-				}, {
-					sources: [
-						Source.BitcoinCashNode_JsonRpc,
-					],
-					fields: {
-						amount: true,
-					},
-				}))}
-			<title>{data?.title ?? (pageSelection.entity == null ? 'Bitcoin Cash CashToken fungible amount' : String(pageSelection.entity.amount) || 'Bitcoin Cash CashToken fungible amount')} • Bitcoin Cash CashToken fungible amount • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'Bitcoin Cash CashToken fungible amount' : String(pageSelection.entity.amount) || 'Bitcoin Cash CashToken fungible amount')} • Bitcoin Cash CashToken fungible amount • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'Bitcoin Cash CashToken fungible amount'} • Bitcoin Cash CashToken fungible amount • Blockhead</title>
 	{/if}
@@ -46,22 +44,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.BitcoinCashCashTokenFungibleAmount, {
-					$output: data.selector,
-				}, {
-					sources: [
-						Source.BitcoinCashNode_JsonRpc,
-					],
-					fields: {
-						amount: true,
-					},
-				}))}
-
-		<BitcoinCashCashTokenFungibleAmountView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<BitcoinCashCashTokenFungibleAmountView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

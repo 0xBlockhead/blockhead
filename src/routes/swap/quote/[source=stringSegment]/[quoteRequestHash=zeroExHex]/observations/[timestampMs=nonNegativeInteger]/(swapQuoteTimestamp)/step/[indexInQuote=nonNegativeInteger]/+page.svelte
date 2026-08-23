@@ -8,7 +8,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -16,6 +15,11 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.SwapQuoteStep, {
+		$quote: data.selector,
+		indexInQuote: Number(params.indexInQuote),
+	}))
 
 
 	// Components
@@ -25,14 +29,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.SwapQuoteStep, {
-					$quote: data.selector,
-					indexInQuote: Number(params.indexInQuote),
-				}))}
-			<title>{data?.title ?? 'swap quote step'} • swap quote step • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? 'swap quote step'} • swap quote step • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'swap quote step'} • swap quote step • Blockhead</title>
 	{/if}
@@ -40,16 +38,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.SwapQuoteStep, {
-					$quote: data.selector,
-					indexInQuote: Number(params.indexInQuote),
-				}))}
-
-		<SwapQuoteStepView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<SwapQuoteStepView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

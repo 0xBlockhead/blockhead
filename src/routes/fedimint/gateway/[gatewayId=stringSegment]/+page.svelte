@@ -9,13 +9,18 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.FedimintGateway, data.selector, {
+		sources: [
+			Source.FedimintGatewayd_Rest,
+		],
+	}))
 
 
 	// Components
@@ -25,15 +30,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.FedimintGateway, data.selector, {
-					sources: [
-						Source.FedimintGatewayd_Rest,
-					],
-				}))}
-			<title>{data?.title ?? (pageSelection.entitySelector.gatewayId || 'Fedimint gateway')} • Fedimint gateway • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entitySelector.gatewayId || 'Fedimint gateway')} • Fedimint gateway • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'Fedimint gateway'} • Fedimint gateway • Blockhead</title>
 	{/if}
@@ -41,17 +39,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.FedimintGateway, data.selector, {
-					sources: [
-						Source.FedimintGatewayd_Rest,
-					],
-				}))}
-
-		<FedimintGatewayView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<FedimintGatewayView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

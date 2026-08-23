@@ -9,13 +9,19 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.EvmBlob, data.selector, {
+		sources: [
+			Source.Voltaire_JsonRpc,
+			Source.Blobscan_Rest,
+		],
+	}))
 
 
 	// Components
@@ -25,16 +31,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.EvmBlob, data.selector, {
-					sources: [
-						Source.Voltaire_JsonRpc,
-						Source.Blobscan_Rest,
-					],
-				}))}
-			<title>{data?.title ?? ((String(pageSelection.entitySelector.indexInTransaction ?? '') ? 'Blob #' + String(pageSelection.entitySelector.indexInTransaction ?? '') : '') || 'EVM blob')} • EVM blob • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? ((String(pageSelection.entitySelector.indexInTransaction ?? '') ? 'Blob #' + String(pageSelection.entitySelector.indexInTransaction ?? '') : '') || 'EVM blob')} • EVM blob • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'EVM blob'} • EVM blob • Blockhead</title>
 	{/if}
@@ -42,18 +40,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.EvmBlob, data.selector, {
-					sources: [
-						Source.Voltaire_JsonRpc,
-						Source.Blobscan_Rest,
-					],
-				}))}
-
-		<EvmBlobView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<EvmBlobView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

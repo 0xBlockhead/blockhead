@@ -8,13 +8,16 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.TonTrace, data.selector, {
+		sources: [data.selector.source],
+	}))
 
 
 	// Components
@@ -24,13 +27,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.TonTrace, data.selector, {
-					sources: [data.selector.source],
-				}))}
-			<title>{data?.title ?? 'TON trace'} • TON trace • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? 'TON trace'} • TON trace • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'TON trace'} • TON trace • Blockhead</title>
 	{/if}
@@ -38,15 +36,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.TonTrace, data.selector, {
-					sources: [data.selector.source],
-				}))}
-
-		<TonTraceView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<TonTraceView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

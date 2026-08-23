@@ -8,13 +8,18 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.GitRepository, data.selector, {
+		fields: {
+			canonicalRemoteUrl: true,
+		},
+	}))
 
 
 	// Components
@@ -24,15 +29,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.GitRepository, data.selector, {
-					fields: {
-						canonicalRemoteUrl: true,
-					},
-				}))}
-			<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.repositoryId ?? '') || 'Git repository' : [pageSelection.entitySelector.repositoryId, (pageSelection.entity.canonicalRemoteUrl ?? '')].filter(Boolean).join(' ') || 'Git repository')} • Git repository • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.repositoryId ?? '') || 'Git repository' : [pageSelection.entitySelector.repositoryId, (pageSelection.entity.canonicalRemoteUrl ?? '')].filter(Boolean).join(' ') || 'Git repository')} • Git repository • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'Git repository'} • Git repository • Blockhead</title>
 	{/if}
@@ -40,17 +38,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.GitRepository, data.selector, {
-					fields: {
-						canonicalRemoteUrl: true,
-					},
-				}))}
-
-		<GitRepositoryView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<GitRepositoryView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

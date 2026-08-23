@@ -8,7 +8,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -16,6 +15,18 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.AptosCoinBalance_Timestamp, {
+		$account: data.selector,
+		storageId: params.storageId,
+		ledgerVersion: BigInt(params.ledgerVersion),
+		source: params.source,
+	}, {
+		sources: [params.source],
+		fields: {
+			assetType: true,
+		},
+	}))
 
 
 	// Components
@@ -25,21 +36,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.AptosCoinBalance_Timestamp, {
-					$account: data.selector,
-					storageId: params.storageId,
-					ledgerVersion: BigInt(params.ledgerVersion),
-					source: params.source,
-				}, {
-					sources: [params.source],
-					fields: {
-						assetType: true,
-					},
-				}))}
-			<title>{data?.title ?? (pageSelection.entity == null ? 'current Aptos coin balance observation' : pageSelection.entity.assetType || 'current Aptos coin balance observation')} • current Aptos coin balance observation • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'current Aptos coin balance observation' : pageSelection.entity.assetType || 'current Aptos coin balance observation')} • current Aptos coin balance observation • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'current Aptos coin balance observation'} • current Aptos coin balance observation • Blockhead</title>
 	{/if}
@@ -47,23 +45,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.AptosCoinBalance_Timestamp, {
-					$account: data.selector,
-					storageId: params.storageId,
-					ledgerVersion: BigInt(params.ledgerVersion),
-					source: params.source,
-				}, {
-					sources: [params.source],
-					fields: {
-						assetType: true,
-					},
-				}))}
-
-		<AptosCoinBalance_TimestampView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<AptosCoinBalance_TimestampView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

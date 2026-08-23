@@ -9,13 +9,19 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.BlockheadQuilibriumAccountState, data.selector, {
+		sources: [
+			Source.Local_Internal,
+			Source.QuilibriumNodeRpc_Grpc,
+		],
+	}))
 
 
 	// Components
@@ -25,16 +31,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.BlockheadQuilibriumAccountState, data.selector, {
-					sources: [
-						Source.Local_Internal,
-						Source.QuilibriumNodeRpc_Grpc,
-					],
-				}))}
-			<title>{data?.title ?? (pageSelection.entitySelector.accountAddress || 'blockhead quilibrium account state')} • blockhead quilibrium account state • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entitySelector.accountAddress || 'blockhead quilibrium account state')} • blockhead quilibrium account state • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'blockhead quilibrium account state'} • blockhead quilibrium account state • Blockhead</title>
 	{/if}
@@ -42,18 +40,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.BlockheadQuilibriumAccountState, data.selector, {
-					sources: [
-						Source.Local_Internal,
-						Source.QuilibriumNodeRpc_Grpc,
-					],
-				}))}
-
-		<BlockheadQuilibriumAccountStateView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<BlockheadQuilibriumAccountStateView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

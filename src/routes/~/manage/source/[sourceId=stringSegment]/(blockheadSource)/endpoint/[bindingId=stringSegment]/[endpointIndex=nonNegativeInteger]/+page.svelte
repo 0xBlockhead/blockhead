@@ -9,13 +9,22 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.BlockheadSourceEndpoint, data.selector, {
+		sources: [
+			Source.Constants_Internal,
+			Source.Local_Internal,
+		],
+		fields: {
+			endpointUrl: true,
+		},
+	}))
 
 
 	// Components
@@ -25,19 +34,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.BlockheadSourceEndpoint, data.selector, {
-					sources: [
-						Source.Constants_Internal,
-						Source.Local_Internal,
-					],
-					fields: {
-						endpointUrl: true,
-					},
-				}))}
-			<title>{data?.title ?? (pageSelection.entity == null ? 'source endpoint' : pageSelection.entity.endpointUrl || 'source endpoint')} • source endpoint • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'source endpoint' : pageSelection.entity.endpointUrl || 'source endpoint')} • source endpoint • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'source endpoint'} • source endpoint • Blockhead</title>
 	{/if}
@@ -45,21 +43,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.BlockheadSourceEndpoint, data.selector, {
-					sources: [
-						Source.Constants_Internal,
-						Source.Local_Internal,
-					],
-					fields: {
-						endpointUrl: true,
-					},
-				}))}
-
-		<BlockheadSourceEndpointView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<BlockheadSourceEndpointView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

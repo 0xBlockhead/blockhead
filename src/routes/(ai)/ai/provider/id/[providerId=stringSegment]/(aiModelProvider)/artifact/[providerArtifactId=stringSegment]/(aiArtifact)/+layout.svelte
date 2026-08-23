@@ -10,7 +10,6 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -29,6 +28,13 @@
 			}
 		)
 	)
+	const detailSelection = $derived(data?.selector == null ? undefined : select(EntityType.AiArtifact, data.selector, {
+		sources: [
+			Source.HuggingFaceHub_Rest,
+			Source.Ipfs_Rest,
+			Source.Mlflow_Rest,
+		],
+	}))
 
 
 	// Components
@@ -42,22 +48,12 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		{#if data?.selector != null}
-			{#key data.selector}
-				<AiArtifactView
-					selection={
-						untrack(() => select(EntityType.AiArtifact, data.selector, {
-							sources: [
-								Source.HuggingFaceHub_Rest,
-								Source.Ipfs_Rest,
-								Source.Mlflow_Rest,
-							],
-						}))
-					}
-					href={detailHref}
-					layout={EntityLayout.SummaryInline}
-				/>
-			{/key}
+		{#if detailSelection != null}
+			<AiArtifactView
+				selection={detailSelection}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
 		{/if}
 	{/snippet}
 

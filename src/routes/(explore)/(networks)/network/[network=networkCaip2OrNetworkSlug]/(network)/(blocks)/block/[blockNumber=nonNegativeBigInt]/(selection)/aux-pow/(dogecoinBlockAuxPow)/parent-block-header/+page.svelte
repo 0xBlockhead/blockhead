@@ -9,13 +9,20 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.DogecoinAuxPowParentBlockHeader, {
+		$auxPow: data.selector,
+	}, {
+		sources: [
+			Source.DogecoinCore_JsonRpc,
+		],
+	}))
 
 
 	// Components
@@ -25,17 +32,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.DogecoinAuxPowParentBlockHeader, {
-					$auxPow: data.selector,
-				}, {
-					sources: [
-						Source.DogecoinCore_JsonRpc,
-					],
-				}))}
-			<title>{data?.title ?? 'dogecoin aux pow parent block header'} • dogecoin aux pow parent block header • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? 'dogecoin aux pow parent block header'} • dogecoin aux pow parent block header • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'dogecoin aux pow parent block header'} • dogecoin aux pow parent block header • Blockhead</title>
 	{/if}
@@ -43,19 +41,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.DogecoinAuxPowParentBlockHeader, {
-					$auxPow: data.selector,
-				}, {
-					sources: [
-						Source.DogecoinCore_JsonRpc,
-					],
-				}))}
-
-		<DogecoinAuxPowParentBlockHeaderView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<DogecoinAuxPowParentBlockHeaderView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

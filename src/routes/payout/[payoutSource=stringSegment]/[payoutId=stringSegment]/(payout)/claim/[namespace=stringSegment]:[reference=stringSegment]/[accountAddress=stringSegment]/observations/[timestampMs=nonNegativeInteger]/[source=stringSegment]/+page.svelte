@@ -8,7 +8,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -16,6 +15,21 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.PayoutClaim_Timestamp, {
+		$payout: data.selector,
+		$account: {
+			caip10: {
+				namespace: params.namespace,
+				reference: params.reference,
+				accountAddress: params.accountAddress,
+			},
+		},
+		timestampMs: Number(params.timestampMs),
+		source: params.source,
+	}, {
+		sources: [params.source],
+	}))
 
 
 	// Components
@@ -25,24 +39,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.PayoutClaim_Timestamp, {
-					$payout: data.selector,
-					$account: {
-						caip10: {
-							namespace: params.namespace,
-							reference: params.reference,
-							accountAddress: params.accountAddress,
-						},
-					},
-					timestampMs: Number(params.timestampMs),
-					source: params.source,
-				}, {
-					sources: [params.source],
-				}))}
-			<title>{data?.title ?? 'payout claim timestamp'} • payout claim timestamp • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? 'payout claim timestamp'} • payout claim timestamp • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'payout claim timestamp'} • payout claim timestamp • Blockhead</title>
 	{/if}
@@ -50,26 +48,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.PayoutClaim_Timestamp, {
-					$payout: data.selector,
-					$account: {
-						caip10: {
-							namespace: params.namespace,
-							reference: params.reference,
-							accountAddress: params.accountAddress,
-						},
-					},
-					timestampMs: Number(params.timestampMs),
-					source: params.source,
-				}, {
-					sources: [params.source],
-				}))}
-
-		<PayoutClaim_TimestampView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<PayoutClaim_TimestampView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

@@ -8,7 +8,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -16,6 +15,13 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.SuiPackageVersion, {
+		$network: data.selector,
+		packageId: params.packageId,
+		version: BigInt(params.version),
+		digest: params.digest,
+	}))
 
 
 	// Components
@@ -25,16 +31,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.SuiPackageVersion, {
-					$network: data.selector,
-					packageId: params.packageId,
-					version: BigInt(params.version),
-					digest: params.digest,
-				}))}
-			<title>{data?.title ?? (String(pageSelection.entitySelector.version) || 'Sui package version')} • Sui package version • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (String(pageSelection.entitySelector.version) || 'Sui package version')} • Sui package version • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'Sui package version'} • Sui package version • Blockhead</title>
 	{/if}
@@ -42,18 +40,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.SuiPackageVersion, {
-					$network: data.selector,
-					packageId: params.packageId,
-					version: BigInt(params.version),
-					digest: params.digest,
-				}))}
-
-		<SuiPackageVersionView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<SuiPackageVersionView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

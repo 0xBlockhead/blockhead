@@ -9,13 +9,22 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.XmtpConversation, data.selector, {
+		sources: [
+			Source.Local_Internal,
+		],
+		fields: {
+			topic: true,
+			peerInboxId: true,
+		},
+	}))
 
 
 	// Components
@@ -25,19 +34,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.XmtpConversation, data.selector, {
-					sources: [
-						Source.Local_Internal,
-					],
-					fields: {
-						topic: true,
-						peerInboxId: true,
-					},
-				}))}
-			<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.id ?? '') || 'XMTP conversation' : [(pageSelection.entity.topic ?? ''), (pageSelection.entity.peerInboxId ?? ''), pageSelection.entitySelector.id].filter(Boolean).join(' ') || 'XMTP conversation')} • XMTP conversation • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.id ?? '') || 'XMTP conversation' : [(pageSelection.entity.topic ?? ''), (pageSelection.entity.peerInboxId ?? ''), pageSelection.entitySelector.id].filter(Boolean).join(' ') || 'XMTP conversation')} • XMTP conversation • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'XMTP conversation'} • XMTP conversation • Blockhead</title>
 	{/if}
@@ -45,21 +43,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.XmtpConversation, data.selector, {
-					sources: [
-						Source.Local_Internal,
-					],
-					fields: {
-						topic: true,
-						peerInboxId: true,
-					},
-				}))}
-
-		<XmtpConversationView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<XmtpConversationView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

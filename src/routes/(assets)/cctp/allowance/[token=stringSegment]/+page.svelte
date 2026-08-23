@@ -9,13 +9,18 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.CctpAllowance, data.selector, {
+		sources: [
+			Source.CircleCctpIris,
+		],
+	}))
 
 
 	// Components
@@ -25,15 +30,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.CctpAllowance, data.selector, {
-					sources: [
-						Source.CircleCctpIris,
-					],
-				}))}
-			<title>{data?.title ?? (pageSelection.entitySelector.token || 'CCTP allowance')} • CCTP allowance • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entitySelector.token || 'CCTP allowance')} • CCTP allowance • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'CCTP allowance'} • CCTP allowance • Blockhead</title>
 	{/if}
@@ -41,17 +39,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.CctpAllowance, data.selector, {
-					sources: [
-						Source.CircleCctpIris,
-					],
-				}))}
-
-		<CctpAllowanceView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<CctpAllowanceView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

@@ -9,13 +9,21 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.PendleMarket, data.selector, {
+		sources: [
+			Source.Pendle_Rest,
+		],
+		fields: {
+			name: true,
+		},
+	}))
 
 
 	// Components
@@ -25,18 +33,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.PendleMarket, data.selector, {
-					sources: [
-						Source.Pendle_Rest,
-					],
-					fields: {
-						name: true,
-					},
-				}))}
-			<title>{data?.title ?? (pageSelection.entity == null ? 'Pendle market' : pageSelection.entity.name || 'Pendle market')} • Pendle market • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'Pendle market' : pageSelection.entity.name || 'Pendle market')} • Pendle market • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'Pendle market'} • Pendle market • Blockhead</title>
 	{/if}
@@ -44,20 +42,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.PendleMarket, data.selector, {
-					sources: [
-						Source.Pendle_Rest,
-					],
-					fields: {
-						name: true,
-					},
-				}))}
-
-		<PendleMarketView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<PendleMarketView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

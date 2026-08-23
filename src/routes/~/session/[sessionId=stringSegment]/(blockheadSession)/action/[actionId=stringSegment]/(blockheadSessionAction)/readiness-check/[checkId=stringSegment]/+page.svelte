@@ -9,13 +9,21 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.BlockheadActionReadinessCheck, data.selector, {
+		sources: [
+			Source.Local_Internal,
+		],
+		fields: {
+			checkKind: true,
+		},
+	}))
 
 
 	// Components
@@ -25,18 +33,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.BlockheadActionReadinessCheck, data.selector, {
-					sources: [
-						Source.Local_Internal,
-					],
-					fields: {
-						checkKind: true,
-					},
-				}))}
-			<title>{data?.title ?? (pageSelection.entity == null ? 'blockhead action readiness check' : pageSelection.entity.checkKind || 'blockhead action readiness check')} • blockhead action readiness check • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'blockhead action readiness check' : pageSelection.entity.checkKind || 'blockhead action readiness check')} • blockhead action readiness check • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'blockhead action readiness check'} • blockhead action readiness check • Blockhead</title>
 	{/if}
@@ -44,20 +42,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.BlockheadActionReadinessCheck, data.selector, {
-					sources: [
-						Source.Local_Internal,
-					],
-					fields: {
-						checkKind: true,
-					},
-				}))}
-
-		<BlockheadActionReadinessCheckView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<BlockheadActionReadinessCheckView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

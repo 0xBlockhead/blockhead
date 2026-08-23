@@ -8,7 +8,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -16,6 +15,15 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.AvailBlock, {
+		$network: data.selector,
+		blockHash: params.blockHash,
+	}, {
+		fields: {
+			blockNumber: true,
+		},
+	}))
 
 
 	// Components
@@ -25,18 +33,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.AvailBlock, {
-					$network: data.selector,
-					blockHash: params.blockHash,
-				}, {
-					fields: {
-						blockNumber: true,
-					},
-				}))}
-			<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.blockHash ?? '') || 'avail block' : String(pageSelection.entity.blockNumber) || pageSelection.entitySelector.blockHash || 'avail block')} • avail block • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.blockHash ?? '') || 'avail block' : String(pageSelection.entity.blockNumber) || pageSelection.entitySelector.blockHash || 'avail block')} • avail block • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'avail block'} • avail block • Blockhead</title>
 	{/if}
@@ -44,20 +42,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.AvailBlock, {
-					$network: data.selector,
-					blockHash: params.blockHash,
-				}, {
-					fields: {
-						blockNumber: true,
-					},
-				}))}
-
-		<AvailBlockView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<AvailBlockView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

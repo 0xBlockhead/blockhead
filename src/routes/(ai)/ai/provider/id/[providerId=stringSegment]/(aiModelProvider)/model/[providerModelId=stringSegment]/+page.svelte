@@ -9,13 +9,24 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.AiModel, data.selector, {
+		sources: [
+			Source.Anthropic_Rest,
+			Source.HuggingFaceHub_Rest,
+			Source.Mlflow_Rest,
+			Source.OpenAI_Rest,
+		],
+		fields: {
+			label: true,
+		},
+	}))
 
 
 	// Components
@@ -25,21 +36,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.AiModel, data.selector, {
-					sources: [
-						Source.Anthropic_Rest,
-						Source.HuggingFaceHub_Rest,
-						Source.Mlflow_Rest,
-						Source.OpenAI_Rest,
-					],
-					fields: {
-						label: true,
-					},
-				}))}
-			<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.providerModelId ?? '') || 'AI model' : (pageSelection.entity.label ?? '') || pageSelection.entitySelector.providerModelId || 'AI model')} • AI model • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.providerModelId ?? '') || 'AI model' : (pageSelection.entity.label ?? '') || pageSelection.entitySelector.providerModelId || 'AI model')} • AI model • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'AI model'} • AI model • Blockhead</title>
 	{/if}
@@ -47,23 +45,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.AiModel, data.selector, {
-					sources: [
-						Source.Anthropic_Rest,
-						Source.HuggingFaceHub_Rest,
-						Source.Mlflow_Rest,
-						Source.OpenAI_Rest,
-					],
-					fields: {
-						label: true,
-					},
-				}))}
-
-		<AiModelView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<AiModelView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

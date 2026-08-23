@@ -9,7 +9,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -17,6 +16,15 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.HyperliquidBorrowLendReserve, {
+		$network: data.selector.$network,
+		tokenIndex: Number(params.tokenIndex),
+	}, {
+		sources: [
+			Source.Hyperliquid,
+		],
+	}))
 
 
 	// Components
@@ -26,18 +34,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.HyperliquidBorrowLendReserve, {
-					$network: data.selector.$network,
-					tokenIndex: Number(params.tokenIndex),
-				}, {
-					sources: [
-						Source.Hyperliquid,
-					],
-				}))}
-			<title>{data?.title ?? (String(pageSelection.entitySelector.tokenIndex) || 'hyperliquid borrow lend reserve')} • hyperliquid borrow lend reserve • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (String(pageSelection.entitySelector.tokenIndex) || 'hyperliquid borrow lend reserve')} • hyperliquid borrow lend reserve • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'hyperliquid borrow lend reserve'} • hyperliquid borrow lend reserve • Blockhead</title>
 	{/if}
@@ -45,20 +43,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.HyperliquidBorrowLendReserve, {
-					$network: data.selector.$network,
-					tokenIndex: Number(params.tokenIndex),
-				}, {
-					sources: [
-						Source.Hyperliquid,
-					],
-				}))}
-
-		<HyperliquidBorrowLendReserveView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<HyperliquidBorrowLendReserveView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

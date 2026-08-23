@@ -10,7 +10,6 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -29,6 +28,13 @@
 			}
 		)
 	)
+	const detailSelection = $derived(data?.selector == null ? undefined : select(EntityType.LightningNode, data.selector, {
+		sources: [
+			Source.LightningMempoolSpace_Rest,
+			Source.LightningLnd_Rest,
+			Source.Amboss_Graphql,
+		],
+	}))
 
 
 	// Components
@@ -42,22 +48,12 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		{#if data?.selector != null}
-			{#key data.selector}
-				<LightningNodeView
-					selection={
-						untrack(() => select(EntityType.LightningNode, data.selector, {
-							sources: [
-								Source.LightningMempoolSpace_Rest,
-								Source.LightningLnd_Rest,
-								Source.Amboss_Graphql,
-							],
-						}))
-					}
-					href={detailHref}
-					layout={EntityLayout.SummaryInline}
-				/>
-			{/key}
+		{#if detailSelection != null}
+			<LightningNodeView
+				selection={detailSelection}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
 		{/if}
 	{/snippet}
 

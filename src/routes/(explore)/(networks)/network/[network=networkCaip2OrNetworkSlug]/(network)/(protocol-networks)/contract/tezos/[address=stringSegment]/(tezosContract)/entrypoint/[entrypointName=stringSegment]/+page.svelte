@@ -8,7 +8,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -16,6 +15,11 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.TezosEntrypoint, {
+		$contract: data.selector,
+		entrypointName: params.entrypointName,
+	}))
 
 
 	// Components
@@ -25,14 +29,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.TezosEntrypoint, {
-					$contract: data.selector,
-					entrypointName: params.entrypointName,
-				}))}
-			<title>{data?.title ?? 'tezos entrypoint'} • tezos entrypoint • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? 'tezos entrypoint'} • tezos entrypoint • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'tezos entrypoint'} • tezos entrypoint • Blockhead</title>
 	{/if}
@@ -40,16 +38,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.TezosEntrypoint, {
-					$contract: data.selector,
-					entrypointName: params.entrypointName,
-				}))}
-
-		<TezosEntrypointView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<TezosEntrypointView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

@@ -8,7 +8,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -16,6 +15,17 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.BlockheadActionReadinessCheck_Timestamp, {
+		$readinessCheck: data.selector,
+		timestampMs: Number(params.timestampMs),
+		source: params.source,
+	}, {
+		sources: [params.source],
+		fields: {
+			status: true,
+		},
+	}))
 
 
 	// Components
@@ -25,20 +35,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.BlockheadActionReadinessCheck_Timestamp, {
-					$readinessCheck: data.selector,
-					timestampMs: Number(params.timestampMs),
-					source: params.source,
-				}, {
-					sources: [params.source],
-					fields: {
-						status: true,
-					},
-				}))}
-			<title>{data?.title ?? (pageSelection.entity == null ? 'blockhead action readiness check timestamp' : pageSelection.entity.status || 'blockhead action readiness check timestamp')} • blockhead action readiness check timestamp • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'blockhead action readiness check timestamp' : pageSelection.entity.status || 'blockhead action readiness check timestamp')} • blockhead action readiness check timestamp • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'blockhead action readiness check timestamp'} • blockhead action readiness check timestamp • Blockhead</title>
 	{/if}
@@ -46,22 +44,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.BlockheadActionReadinessCheck_Timestamp, {
-					$readinessCheck: data.selector,
-					timestampMs: Number(params.timestampMs),
-					source: params.source,
-				}, {
-					sources: [params.source],
-					fields: {
-						status: true,
-					},
-				}))}
-
-		<BlockheadActionReadinessCheck_TimestampView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<BlockheadActionReadinessCheck_TimestampView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

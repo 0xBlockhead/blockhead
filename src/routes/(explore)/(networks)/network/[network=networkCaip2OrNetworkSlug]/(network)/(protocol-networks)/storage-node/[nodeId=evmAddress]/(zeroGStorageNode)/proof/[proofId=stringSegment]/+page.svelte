@@ -9,7 +9,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -17,6 +16,15 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.ZeroGStorageProof, {
+		$storageNode: data.selector,
+		proofId: params.proofId,
+	}, {
+		sources: [
+			Source.ZeroGStorageScan_Rest,
+		],
+	}))
 
 
 	// Components
@@ -26,18 +34,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.ZeroGStorageProof, {
-					$storageNode: data.selector,
-					proofId: params.proofId,
-				}, {
-					sources: [
-						Source.ZeroGStorageScan_Rest,
-					],
-				}))}
-			<title>{data?.title ?? (pageSelection.entitySelector.proofId || 'zero g storage proof')} • zero g storage proof • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entitySelector.proofId || 'zero g storage proof')} • zero g storage proof • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'zero g storage proof'} • zero g storage proof • Blockhead</title>
 	{/if}
@@ -45,20 +43,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.ZeroGStorageProof, {
-					$storageNode: data.selector,
-					proofId: params.proofId,
-				}, {
-					sources: [
-						Source.ZeroGStorageScan_Rest,
-					],
-				}))}
-
-		<ZeroGStorageProofView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<ZeroGStorageProofView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

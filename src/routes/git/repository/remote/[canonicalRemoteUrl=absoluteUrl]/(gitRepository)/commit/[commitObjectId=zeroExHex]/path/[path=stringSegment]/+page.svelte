@@ -8,7 +8,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -16,6 +15,12 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.GitTreePathResolution, {
+		$repository: data.selector,
+		commitObjectId: params.commitObjectId,
+		path: params.path,
+	}))
 
 
 	// Components
@@ -25,15 +30,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.GitTreePathResolution, {
-					$repository: data.selector,
-					commitObjectId: params.commitObjectId,
-					path: params.path,
-				}))}
-			<title>{data?.title ?? (pageSelection.entitySelector.path || 'Git tree path resolution')} • Git tree path resolution • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entitySelector.path || 'Git tree path resolution')} • Git tree path resolution • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'Git tree path resolution'} • Git tree path resolution • Blockhead</title>
 	{/if}
@@ -41,17 +39,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.GitTreePathResolution, {
-					$repository: data.selector,
-					commitObjectId: params.commitObjectId,
-					path: params.path,
-				}))}
-
-		<GitTreePathResolutionView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<GitTreePathResolutionView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

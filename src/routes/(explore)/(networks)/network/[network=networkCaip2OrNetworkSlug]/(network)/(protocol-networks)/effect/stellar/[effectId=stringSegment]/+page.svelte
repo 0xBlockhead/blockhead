@@ -8,7 +8,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -16,6 +15,15 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.StellarEffect, {
+		$network: data.selector,
+		effectId: params.effectId,
+	}, {
+		fields: {
+			effectType: true,
+		},
+	}))
 
 
 	// Components
@@ -25,18 +33,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.StellarEffect, {
-					$network: data.selector,
-					effectId: params.effectId,
-				}, {
-					fields: {
-						effectType: true,
-					},
-				}))}
-			<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.effectId ?? '') || 'stellar effect' : pageSelection.entity.effectType || pageSelection.entitySelector.effectId || 'stellar effect')} • stellar effect • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.effectId ?? '') || 'stellar effect' : pageSelection.entity.effectType || pageSelection.entitySelector.effectId || 'stellar effect')} • stellar effect • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'stellar effect'} • stellar effect • Blockhead</title>
 	{/if}
@@ -44,20 +42,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.StellarEffect, {
-					$network: data.selector,
-					effectId: params.effectId,
-				}, {
-					fields: {
-						effectType: true,
-					},
-				}))}
-
-		<StellarEffectView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<StellarEffectView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

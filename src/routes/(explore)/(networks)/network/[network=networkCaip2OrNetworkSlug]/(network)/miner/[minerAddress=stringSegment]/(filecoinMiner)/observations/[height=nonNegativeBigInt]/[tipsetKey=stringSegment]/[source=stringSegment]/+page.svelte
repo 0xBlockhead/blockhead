@@ -8,7 +8,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -16,6 +15,18 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.FilecoinMiner_Timestamp, {
+		$miner: data.selector,
+		height: BigInt(params.height),
+		tipsetKey: params.tipsetKey,
+		source: params.source,
+	}, {
+		sources: [params.source],
+		fields: {
+			timestampMs: true,
+		},
+	}))
 
 
 	// Components
@@ -25,21 +36,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.FilecoinMiner_Timestamp, {
-					$miner: data.selector,
-					height: BigInt(params.height),
-					tipsetKey: params.tipsetKey,
-					source: params.source,
-				}, {
-					sources: [params.source],
-					fields: {
-						timestampMs: true,
-					},
-				}))}
-			<title>{data?.title ?? (pageSelection.entity == null ? 'filecoin miner timestamp' : String(pageSelection.entity.timestampMs) || 'filecoin miner timestamp')} • filecoin miner timestamp • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'filecoin miner timestamp' : String(pageSelection.entity.timestampMs) || 'filecoin miner timestamp')} • filecoin miner timestamp • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'filecoin miner timestamp'} • filecoin miner timestamp • Blockhead</title>
 	{/if}
@@ -47,23 +45,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.FilecoinMiner_Timestamp, {
-					$miner: data.selector,
-					height: BigInt(params.height),
-					tipsetKey: params.tipsetKey,
-					source: params.source,
-				}, {
-					sources: [params.source],
-					fields: {
-						timestampMs: true,
-					},
-				}))}
-
-		<FilecoinMiner_TimestampView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<FilecoinMiner_TimestampView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

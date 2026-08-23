@@ -9,7 +9,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -17,6 +16,17 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.BlockheadZeroGStoredChunk, {
+		$nodeState: data.selector,
+		dataRoot: params.dataRoot,
+		chunkIndex: Number(params.chunkIndex),
+	}, {
+		sources: [
+			Source.Local_Internal,
+			Source.ZeroGStorageNode_JsonRpc,
+		],
+	}))
 
 
 	// Components
@@ -26,20 +36,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.BlockheadZeroGStoredChunk, {
-					$nodeState: data.selector,
-					dataRoot: params.dataRoot,
-					chunkIndex: Number(params.chunkIndex),
-				}, {
-					sources: [
-						Source.Local_Internal,
-						Source.ZeroGStorageNode_JsonRpc,
-					],
-				}))}
-			<title>{data?.title ?? (pageSelection.entitySelector.dataRoot || 'blockhead zero g stored chunk')} • blockhead zero g stored chunk • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entitySelector.dataRoot || 'blockhead zero g stored chunk')} • blockhead zero g stored chunk • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'blockhead zero g stored chunk'} • blockhead zero g stored chunk • Blockhead</title>
 	{/if}
@@ -47,22 +45,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.BlockheadZeroGStoredChunk, {
-					$nodeState: data.selector,
-					dataRoot: params.dataRoot,
-					chunkIndex: Number(params.chunkIndex),
-				}, {
-					sources: [
-						Source.Local_Internal,
-						Source.ZeroGStorageNode_JsonRpc,
-					],
-				}))}
-
-		<BlockheadZeroGStoredChunkView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<BlockheadZeroGStoredChunkView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

@@ -8,13 +8,14 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.TezosBaker, data.selector))
 
 
 	// Components
@@ -24,11 +25,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.TezosBaker, data.selector))}
-			<title>{data?.title ?? 'tezos baker'} • tezos baker • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? 'tezos baker'} • tezos baker • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'tezos baker'} • tezos baker • Blockhead</title>
 	{/if}
@@ -36,13 +34,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.TezosBaker, data.selector))}
-
-		<TezosBakerView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<TezosBakerView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

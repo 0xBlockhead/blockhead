@@ -9,7 +9,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -17,6 +16,17 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.FilecoinTipset, {
+		$network: data.selector,
+		height: BigInt(params.height),
+		tipsetKey: params.tipsetKey,
+	}, {
+		sources: [
+			Source.Lotus_JsonRpc,
+			Source.Filfox_Rest,
+		],
+	}))
 
 
 	// Components
@@ -26,20 +36,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.FilecoinTipset, {
-					$network: data.selector,
-					height: BigInt(params.height),
-					tipsetKey: params.tipsetKey,
-				}, {
-					sources: [
-						Source.Lotus_JsonRpc,
-						Source.Filfox_Rest,
-					],
-				}))}
-			<title>{data?.title ?? (String(pageSelection.entitySelector.height) || 'filecoin tipset')} • filecoin tipset • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (String(pageSelection.entitySelector.height) || 'filecoin tipset')} • filecoin tipset • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'filecoin tipset'} • filecoin tipset • Blockhead</title>
 	{/if}
@@ -47,22 +45,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.FilecoinTipset, {
-					$network: data.selector,
-					height: BigInt(params.height),
-					tipsetKey: params.tipsetKey,
-				}, {
-					sources: [
-						Source.Lotus_JsonRpc,
-						Source.Filfox_Rest,
-					],
-				}))}
-
-		<FilecoinTipsetView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<FilecoinTipsetView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

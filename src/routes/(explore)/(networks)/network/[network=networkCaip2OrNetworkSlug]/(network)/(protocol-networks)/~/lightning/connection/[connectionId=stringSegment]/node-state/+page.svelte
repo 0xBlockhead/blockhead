@@ -9,13 +9,22 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.BlockheadLightningNodeState, data.selector, {
+		sources: [
+			Source.LightningLnd_Rest,
+			Source.Local_Internal,
+		],
+		fields: {
+			alias: true,
+		},
+	}))
 
 
 	// Components
@@ -25,19 +34,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.BlockheadLightningNodeState, data.selector, {
-					sources: [
-						Source.LightningLnd_Rest,
-						Source.Local_Internal,
-					],
-					fields: {
-						alias: true,
-					},
-				}))}
-			<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.connectionId ?? '') || 'local LND node state' : (pageSelection.entity.alias ?? '') || pageSelection.entitySelector.connectionId || 'local LND node state')} • local LND node state • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.connectionId ?? '') || 'local LND node state' : (pageSelection.entity.alias ?? '') || pageSelection.entitySelector.connectionId || 'local LND node state')} • local LND node state • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'local LND node state'} • local LND node state • Blockhead</title>
 	{/if}
@@ -45,21 +43,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.BlockheadLightningNodeState, data.selector, {
-					sources: [
-						Source.LightningLnd_Rest,
-						Source.Local_Internal,
-					],
-					fields: {
-						alias: true,
-					},
-				}))}
-
-		<BlockheadLightningNodeStateView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<BlockheadLightningNodeStateView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

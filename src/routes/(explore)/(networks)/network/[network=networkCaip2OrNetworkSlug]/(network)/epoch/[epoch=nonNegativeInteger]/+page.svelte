@@ -9,13 +9,19 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.BeaconEpoch, data.selector, {
+		sources: [
+			Source.Beacon_Rest,
+			Source.BeaconchaIn_Rest,
+		],
+	}))
 
 
 	// Components
@@ -25,16 +31,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.BeaconEpoch, data.selector, {
-					sources: [
-						Source.Beacon_Rest,
-						Source.BeaconchaIn_Rest,
-					],
-				}))}
-			<title>{data?.title ?? ((String(pageSelection.entitySelector.epoch ?? '') ? 'Epoch #' + String(pageSelection.entitySelector.epoch ?? '') : '') || 'beacon epoch')} • beacon epoch • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? ((String(pageSelection.entitySelector.epoch ?? '') ? 'Epoch #' + String(pageSelection.entitySelector.epoch ?? '') : '') || 'beacon epoch')} • beacon epoch • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'beacon epoch'} • beacon epoch • Blockhead</title>
 	{/if}
@@ -42,18 +40,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.BeaconEpoch, data.selector, {
-					sources: [
-						Source.Beacon_Rest,
-						Source.BeaconchaIn_Rest,
-					],
-				}))}
-
-		<BeaconEpochView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<BeaconEpochView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

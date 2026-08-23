@@ -9,13 +9,18 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.CashuMint, data.selector, {
+		sources: [
+			Source.CashuMint_Rest,
+		],
+	}))
 
 
 	// Components
@@ -25,15 +30,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.CashuMint, data.selector, {
-					sources: [
-						Source.CashuMint_Rest,
-					],
-				}))}
-			<title>{data?.title ?? (pageSelection.entitySelector.mintUrl || 'Cashu mint')} • Cashu mint • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entitySelector.mintUrl || 'Cashu mint')} • Cashu mint • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'Cashu mint'} • Cashu mint • Blockhead</title>
 	{/if}
@@ -41,17 +39,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.CashuMint, data.selector, {
-					sources: [
-						Source.CashuMint_Rest,
-					],
-				}))}
-
-		<CashuMintView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<CashuMintView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

@@ -9,13 +9,22 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.MorphoVault, data.selector, {
+		sources: [
+			Source.Morpho_Graphql,
+		],
+		fields: {
+			name: true,
+			symbol: true,
+		},
+	}))
 
 
 	// Components
@@ -25,19 +34,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.MorphoVault, data.selector, {
-					sources: [
-						Source.Morpho_Graphql,
-					],
-					fields: {
-						name: true,
-						symbol: true,
-					},
-				}))}
-			<title>{data?.title ?? (pageSelection.entity == null ? 'Morpho vault' : [pageSelection.entity.name, pageSelection.entity.symbol].filter(Boolean).join(' ') || 'Morpho vault')} • Morpho vault • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'Morpho vault' : [pageSelection.entity.name, pageSelection.entity.symbol].filter(Boolean).join(' ') || 'Morpho vault')} • Morpho vault • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'Morpho vault'} • Morpho vault • Blockhead</title>
 	{/if}
@@ -45,21 +43,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.MorphoVault, data.selector, {
-					sources: [
-						Source.Morpho_Graphql,
-					],
-					fields: {
-						name: true,
-						symbol: true,
-					},
-				}))}
-
-		<MorphoVaultView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<MorphoVaultView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

@@ -8,7 +8,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -16,6 +15,13 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.TonBlock, {
+		$network: data.selector,
+		workchain: Number(params.workchain),
+		shardPrefix: params.shardPrefix,
+		seqno: BigInt(params.seqno),
+	}))
 
 
 	// Components
@@ -25,16 +31,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.TonBlock, {
-					$network: data.selector,
-					workchain: Number(params.workchain),
-					shardPrefix: params.shardPrefix,
-					seqno: BigInt(params.seqno),
-				}))}
-			<title>{data?.title ?? 'TON block'} • TON block • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? 'TON block'} • TON block • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'TON block'} • TON block • Blockhead</title>
 	{/if}
@@ -42,18 +40,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.TonBlock, {
-					$network: data.selector,
-					workchain: Number(params.workchain),
-					shardPrefix: params.shardPrefix,
-					seqno: BigInt(params.seqno),
-				}))}
-
-		<TonBlockView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<TonBlockView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

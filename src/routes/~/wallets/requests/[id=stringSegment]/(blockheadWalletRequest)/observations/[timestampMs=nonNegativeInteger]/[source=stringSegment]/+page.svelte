@@ -8,7 +8,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -16,6 +15,17 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.BlockheadWalletRequest_Timestamp, {
+		$walletRequest: data.selector,
+		timestampMs: Number(params.timestampMs),
+		source: params.source,
+	}, {
+		sources: [params.source],
+		fields: {
+			status: true,
+		},
+	}))
 
 
 	// Components
@@ -25,20 +35,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.BlockheadWalletRequest_Timestamp, {
-					$walletRequest: data.selector,
-					timestampMs: Number(params.timestampMs),
-					source: params.source,
-				}, {
-					sources: [params.source],
-					fields: {
-						status: true,
-					},
-				}))}
-			<title>{data?.title ?? (pageSelection.entity == null ? 'blockhead wallet request timestamp' : pageSelection.entity.status || 'blockhead wallet request timestamp')} • blockhead wallet request timestamp • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'blockhead wallet request timestamp' : pageSelection.entity.status || 'blockhead wallet request timestamp')} • blockhead wallet request timestamp • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'blockhead wallet request timestamp'} • blockhead wallet request timestamp • Blockhead</title>
 	{/if}
@@ -46,22 +44,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.BlockheadWalletRequest_Timestamp, {
-					$walletRequest: data.selector,
-					timestampMs: Number(params.timestampMs),
-					source: params.source,
-				}, {
-					sources: [params.source],
-					fields: {
-						status: true,
-					},
-				}))}
-
-		<BlockheadWalletRequest_TimestampView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<BlockheadWalletRequest_TimestampView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

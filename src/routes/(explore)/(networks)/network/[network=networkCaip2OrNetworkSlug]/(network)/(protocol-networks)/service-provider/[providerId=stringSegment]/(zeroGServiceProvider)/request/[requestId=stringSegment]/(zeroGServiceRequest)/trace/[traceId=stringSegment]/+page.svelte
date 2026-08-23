@@ -9,7 +9,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -17,6 +16,17 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.ZeroGSettlementTrace, {
+		$serviceRequest: data.selector,
+		traceId: params.traceId,
+	}, {
+		sources: [
+			Source.ZeroGChain_JsonRpc,
+			Source.ZeroGStorageNode_JsonRpc,
+			Source.ZeroGStorageScan_Rest,
+		],
+	}))
 
 
 	// Components
@@ -26,20 +36,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.ZeroGSettlementTrace, {
-					$serviceRequest: data.selector,
-					traceId: params.traceId,
-				}, {
-					sources: [
-						Source.ZeroGChain_JsonRpc,
-						Source.ZeroGStorageNode_JsonRpc,
-						Source.ZeroGStorageScan_Rest,
-					],
-				}))}
-			<title>{data?.title ?? (pageSelection.entitySelector.traceId || 'zero g settlement trace')} • zero g settlement trace • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entitySelector.traceId || 'zero g settlement trace')} • zero g settlement trace • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'zero g settlement trace'} • zero g settlement trace • Blockhead</title>
 	{/if}
@@ -47,22 +45,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.ZeroGSettlementTrace, {
-					$serviceRequest: data.selector,
-					traceId: params.traceId,
-				}, {
-					sources: [
-						Source.ZeroGChain_JsonRpc,
-						Source.ZeroGStorageNode_JsonRpc,
-						Source.ZeroGStorageScan_Rest,
-					],
-				}))}
-
-		<ZeroGSettlementTraceView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<ZeroGSettlementTraceView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

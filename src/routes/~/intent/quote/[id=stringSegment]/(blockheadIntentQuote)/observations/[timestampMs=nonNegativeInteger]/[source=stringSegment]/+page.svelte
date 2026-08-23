@@ -8,7 +8,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -16,6 +15,17 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.BlockheadIntentQuote_Timestamp, {
+		$quote: data.selector,
+		timestampMs: Number(params.timestampMs),
+		source: params.source,
+	}, {
+		sources: [params.source],
+		fields: {
+			quoteId: true,
+		},
+	}))
 
 
 	// Components
@@ -25,20 +35,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.BlockheadIntentQuote_Timestamp, {
-					$quote: data.selector,
-					timestampMs: Number(params.timestampMs),
-					source: params.source,
-				}, {
-					sources: [params.source],
-					fields: {
-						quoteId: true,
-					},
-				}))}
-			<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.source ?? '') || 'blockhead intent quote timestamp' : (pageSelection.entity.quoteId ?? '') || pageSelection.entitySelector.source || 'blockhead intent quote timestamp')} • blockhead intent quote timestamp • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.source ?? '') || 'blockhead intent quote timestamp' : (pageSelection.entity.quoteId ?? '') || pageSelection.entitySelector.source || 'blockhead intent quote timestamp')} • blockhead intent quote timestamp • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'blockhead intent quote timestamp'} • blockhead intent quote timestamp • Blockhead</title>
 	{/if}
@@ -46,22 +44,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.BlockheadIntentQuote_Timestamp, {
-					$quote: data.selector,
-					timestampMs: Number(params.timestampMs),
-					source: params.source,
-				}, {
-					sources: [params.source],
-					fields: {
-						quoteId: true,
-					},
-				}))}
-
-		<BlockheadIntentQuote_TimestampView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<BlockheadIntentQuote_TimestampView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

@@ -9,7 +9,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -17,6 +16,20 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.BlockheadLightningForward, {
+		$localNodeState: data.selector,
+		$incomingChannel: {
+			$network: data.selector.$network.$network,
+			channelId: params.incomingChannelId,
+		},
+		incomingHtlcId: BigInt(params.incomingHtlcId),
+	}, {
+		sources: [
+			Source.LightningLnd_Rest,
+			Source.Local_Internal,
+		],
+	}))
 
 
 	// Components
@@ -26,23 +39,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.BlockheadLightningForward, {
-					$localNodeState: data.selector,
-					$incomingChannel: {
-						$network: data.selector.$network.$network,
-						channelId: params.incomingChannelId,
-					},
-					incomingHtlcId: BigInt(params.incomingHtlcId),
-				}, {
-					sources: [
-						Source.LightningLnd_Rest,
-						Source.Local_Internal,
-					],
-				}))}
-			<title>{data?.title ?? 'local LND forward'} • local LND forward • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? 'local LND forward'} • local LND forward • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'local LND forward'} • local LND forward • Blockhead</title>
 	{/if}
@@ -50,25 +48,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.BlockheadLightningForward, {
-					$localNodeState: data.selector,
-					$incomingChannel: {
-						$network: data.selector.$network.$network,
-						channelId: params.incomingChannelId,
-					},
-					incomingHtlcId: BigInt(params.incomingHtlcId),
-				}, {
-					sources: [
-						Source.LightningLnd_Rest,
-						Source.Local_Internal,
-					],
-				}))}
-
-		<BlockheadLightningForwardView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<BlockheadLightningForwardView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

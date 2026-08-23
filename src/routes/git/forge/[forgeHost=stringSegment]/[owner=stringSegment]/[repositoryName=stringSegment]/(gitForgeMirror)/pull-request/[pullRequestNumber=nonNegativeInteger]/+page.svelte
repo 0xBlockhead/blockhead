@@ -8,13 +8,18 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.GitForgePullRequest, data.selector, {
+		fields: {
+			title: true,
+		},
+	}))
 
 
 	// Components
@@ -24,15 +29,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.GitForgePullRequest, data.selector, {
-					fields: {
-						title: true,
-					},
-				}))}
-			<title>{data?.title ?? (pageSelection.entity == null ? String(pageSelection.entitySelector.pullRequestNumber ?? '') || 'Git forge pull request' : (pageSelection.entity.title ?? '') || String(pageSelection.entitySelector.pullRequestNumber) || 'Git forge pull request')} • Git forge pull request • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entity == null ? String(pageSelection.entitySelector.pullRequestNumber ?? '') || 'Git forge pull request' : (pageSelection.entity.title ?? '') || String(pageSelection.entitySelector.pullRequestNumber) || 'Git forge pull request')} • Git forge pull request • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'Git forge pull request'} • Git forge pull request • Blockhead</title>
 	{/if}
@@ -40,17 +38,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.GitForgePullRequest, data.selector, {
-					fields: {
-						title: true,
-					},
-				}))}
-
-		<GitForgePullRequestView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<GitForgePullRequestView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

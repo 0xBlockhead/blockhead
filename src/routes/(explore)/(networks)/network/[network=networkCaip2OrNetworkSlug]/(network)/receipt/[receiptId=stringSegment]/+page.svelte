@@ -9,13 +9,18 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.NearReceipt, data.selector, {
+		sources: [
+			Source.NearRpc_JsonRpc,
+		],
+	}))
 
 
 	// Components
@@ -25,15 +30,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.NearReceipt, data.selector, {
-					sources: [
-						Source.NearRpc_JsonRpc,
-					],
-				}))}
-			<title>{data?.title ?? (pageSelection.entitySelector.receiptId || 'near receipt')} • near receipt • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entitySelector.receiptId || 'near receipt')} • near receipt • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'near receipt'} • near receipt • Blockhead</title>
 	{/if}
@@ -41,17 +39,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.NearReceipt, data.selector, {
-					sources: [
-						Source.NearRpc_JsonRpc,
-					],
-				}))}
-
-		<NearReceiptView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<NearReceiptView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

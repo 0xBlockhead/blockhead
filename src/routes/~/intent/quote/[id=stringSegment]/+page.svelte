@@ -9,13 +9,21 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.BlockheadIntentQuote, data.selector, {
+		sources: [
+			Source.Local_Internal,
+		],
+		fields: {
+			providerProtocol: true,
+		},
+	}))
 
 
 	// Components
@@ -25,18 +33,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.BlockheadIntentQuote, data.selector, {
-					sources: [
-						Source.Local_Internal,
-					],
-					fields: {
-						providerProtocol: true,
-					},
-				}))}
-			<title>{data?.title ?? (pageSelection.entity == null ? 'blockhead intent quote' : pageSelection.entity.providerProtocol || 'blockhead intent quote')} • blockhead intent quote • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'blockhead intent quote' : pageSelection.entity.providerProtocol || 'blockhead intent quote')} • blockhead intent quote • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'blockhead intent quote'} • blockhead intent quote • Blockhead</title>
 	{/if}
@@ -44,20 +42,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.BlockheadIntentQuote, data.selector, {
-					sources: [
-						Source.Local_Internal,
-					],
-					fields: {
-						providerProtocol: true,
-					},
-				}))}
-
-		<BlockheadIntentQuoteView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<BlockheadIntentQuoteView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

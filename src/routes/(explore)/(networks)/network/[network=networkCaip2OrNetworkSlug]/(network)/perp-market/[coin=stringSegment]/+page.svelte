@@ -9,7 +9,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -17,6 +16,15 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.HyperliquidPerpMarket, {
+		$network: data.selector,
+		coin: params.coin,
+	}, {
+		sources: [
+			Source.Hyperliquid,
+		],
+	}))
 
 
 	// Components
@@ -26,18 +34,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.HyperliquidPerpMarket, {
-					$network: data.selector,
-					coin: params.coin,
-				}, {
-					sources: [
-						Source.Hyperliquid,
-					],
-				}))}
-			<title>{data?.title ?? (pageSelection.entitySelector.coin || 'hyperliquid perp market')} • hyperliquid perp market • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entitySelector.coin || 'hyperliquid perp market')} • hyperliquid perp market • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'hyperliquid perp market'} • hyperliquid perp market • Blockhead</title>
 	{/if}
@@ -45,20 +43,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.HyperliquidPerpMarket, {
-					$network: data.selector,
-					coin: params.coin,
-				}, {
-					sources: [
-						Source.Hyperliquid,
-					],
-				}))}
-
-		<HyperliquidPerpMarketView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<HyperliquidPerpMarketView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

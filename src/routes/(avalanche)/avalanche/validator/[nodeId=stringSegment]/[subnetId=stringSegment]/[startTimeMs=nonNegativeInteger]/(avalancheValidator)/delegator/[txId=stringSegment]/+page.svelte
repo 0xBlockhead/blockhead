@@ -8,7 +8,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -16,6 +15,15 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.AvalancheDelegator, {
+		$validator: data.selector,
+		txId: params.txId,
+	}, {
+		fields: {
+			delegatorAddress: true,
+		},
+	}))
 
 
 	// Components
@@ -25,18 +33,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.AvalancheDelegator, {
-					$validator: data.selector,
-					txId: params.txId,
-				}, {
-					fields: {
-						delegatorAddress: true,
-					},
-				}))}
-			<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.txId ?? '') || 'avalanche delegator' : (pageSelection.entity.delegatorAddress ?? '') || pageSelection.entitySelector.txId || 'avalanche delegator')} • avalanche delegator • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.txId ?? '') || 'avalanche delegator' : (pageSelection.entity.delegatorAddress ?? '') || pageSelection.entitySelector.txId || 'avalanche delegator')} • avalanche delegator • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'avalanche delegator'} • avalanche delegator • Blockhead</title>
 	{/if}
@@ -44,20 +42,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.AvalancheDelegator, {
-					$validator: data.selector,
-					txId: params.txId,
-				}, {
-					fields: {
-						delegatorAddress: true,
-					},
-				}))}
-
-		<AvalancheDelegatorView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<AvalancheDelegatorView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

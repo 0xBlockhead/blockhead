@@ -9,7 +9,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -17,6 +16,18 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.BalancerPoolEvent, {
+		$pool: data.selector,
+		eventId: decodeURIComponent(params.eventId),
+	}, {
+		sources: [
+			Source.Balancer_Rest,
+		],
+		fields: {
+			eventType: true,
+		},
+	}))
 
 
 	// Components
@@ -26,21 +37,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.BalancerPoolEvent, {
-					$pool: data.selector,
-					eventId: decodeURIComponent(params.eventId),
-				}, {
-					sources: [
-						Source.Balancer_Rest,
-					],
-					fields: {
-						eventType: true,
-					},
-				}))}
-			<title>{data?.title ?? (pageSelection.entity == null ? 'Balancer pool event' : pageSelection.entity.eventType || 'Balancer pool event')} • Balancer pool event • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'Balancer pool event' : pageSelection.entity.eventType || 'Balancer pool event')} • Balancer pool event • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'Balancer pool event'} • Balancer pool event • Blockhead</title>
 	{/if}
@@ -48,23 +46,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.BalancerPoolEvent, {
-					$pool: data.selector,
-					eventId: decodeURIComponent(params.eventId),
-				}, {
-					sources: [
-						Source.Balancer_Rest,
-					],
-					fields: {
-						eventType: true,
-					},
-				}))}
-
-		<BalancerPoolEventView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<BalancerPoolEventView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

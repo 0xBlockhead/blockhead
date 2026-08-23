@@ -8,7 +8,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -16,6 +15,15 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.IssuerPower, {
+		$profile: data.selector,
+		powerKind: params.powerKind,
+		actorKey: params.actorKey,
+		source: params.source,
+	}, {
+		sources: [params.source],
+	}))
 
 
 	// Components
@@ -25,18 +33,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.IssuerPower, {
-					$profile: data.selector,
-					powerKind: params.powerKind,
-					actorKey: params.actorKey,
-					source: params.source,
-				}, {
-					sources: [params.source],
-				}))}
-			<title>{data?.title ?? 'issuer power'} • issuer power • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? 'issuer power'} • issuer power • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'issuer power'} • issuer power • Blockhead</title>
 	{/if}
@@ -44,20 +42,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.IssuerPower, {
-					$profile: data.selector,
-					powerKind: params.powerKind,
-					actorKey: params.actorKey,
-					source: params.source,
-				}, {
-					sources: [params.source],
-				}))}
-
-		<IssuerPowerView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<IssuerPowerView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

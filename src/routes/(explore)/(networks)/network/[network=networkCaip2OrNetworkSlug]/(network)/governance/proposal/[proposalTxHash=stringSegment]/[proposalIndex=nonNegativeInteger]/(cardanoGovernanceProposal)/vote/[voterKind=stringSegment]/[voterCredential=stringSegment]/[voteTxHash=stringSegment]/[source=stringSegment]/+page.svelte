@@ -8,7 +8,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -16,6 +15,19 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.CardanoGovernanceVote, {
+		$proposal: data.selector,
+		voterKind: params.voterKind,
+		voterCredential: params.voterCredential,
+		voteTxHash: params.voteTxHash,
+		source: params.source,
+	}, {
+		sources: [params.source],
+		fields: {
+			vote: true,
+		},
+	}))
 
 
 	// Components
@@ -25,22 +37,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.CardanoGovernanceVote, {
-					$proposal: data.selector,
-					voterKind: params.voterKind,
-					voterCredential: params.voterCredential,
-					voteTxHash: params.voteTxHash,
-					source: params.source,
-				}, {
-					sources: [params.source],
-					fields: {
-						vote: true,
-					},
-				}))}
-			<title>{data?.title ?? (pageSelection.entity == null ? 'Cardano governance vote' : pageSelection.entity.vote || 'Cardano governance vote')} • Cardano governance vote • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'Cardano governance vote' : pageSelection.entity.vote || 'Cardano governance vote')} • Cardano governance vote • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'Cardano governance vote'} • Cardano governance vote • Blockhead</title>
 	{/if}
@@ -48,24 +46,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.CardanoGovernanceVote, {
-					$proposal: data.selector,
-					voterKind: params.voterKind,
-					voterCredential: params.voterCredential,
-					voteTxHash: params.voteTxHash,
-					source: params.source,
-				}, {
-					sources: [params.source],
-					fields: {
-						vote: true,
-					},
-				}))}
-
-		<CardanoGovernanceVoteView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<CardanoGovernanceVoteView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

@@ -10,7 +10,6 @@
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -30,6 +29,12 @@
 			}
 		)
 	)
+	const detailSelection = $derived(data?.selector == null ? undefined : select(EntityType.RssItem, data.selector, {
+		sources: [
+			Source.Rss_Rest,
+			Source.Rss2Json_Rest,
+		],
+	}))
 
 
 	// Components
@@ -43,21 +48,12 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		{#if data?.selector != null}
-			{#key data.selector}
-				<RssItemView
-					selection={
-						untrack(() => select(EntityType.RssItem, data.selector, {
-							sources: [
-								Source.Rss_Rest,
-								Source.Rss2Json_Rest,
-							],
-						}))
-					}
-					href={detailHref}
-					layout={EntityLayout.SummaryInline}
-				/>
-			{/key}
+		{#if detailSelection != null}
+			<RssItemView
+				selection={detailSelection}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
 		{/if}
 	{/snippet}
 

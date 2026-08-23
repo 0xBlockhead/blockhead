@@ -9,7 +9,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -17,6 +16,15 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.OsmosisPoolAsset, {
+		$pool: data.selector,
+		denom: params.denom,
+	}, {
+		sources: [
+			Source.Osmosis_LCD_Rest,
+		],
+	}))
 
 
 	// Components
@@ -26,18 +34,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.OsmosisPoolAsset, {
-					$pool: data.selector,
-					denom: params.denom,
-				}, {
-					sources: [
-						Source.Osmosis_LCD_Rest,
-					],
-				}))}
-			<title>{data?.title ?? (pageSelection.entitySelector.denom || 'Osmosis pool asset')} • Osmosis pool asset • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entitySelector.denom || 'Osmosis pool asset')} • Osmosis pool asset • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'Osmosis pool asset'} • Osmosis pool asset • Blockhead</title>
 	{/if}
@@ -45,20 +43,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.OsmosisPoolAsset, {
-					$pool: data.selector,
-					denom: params.denom,
-				}, {
-					sources: [
-						Source.Osmosis_LCD_Rest,
-					],
-				}))}
-
-		<OsmosisPoolAssetView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<OsmosisPoolAssetView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

@@ -9,13 +9,25 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.EvmTokenApproval, {
+		$log: data.selector,
+	}, {
+		sources: [
+			Source.Blockscout_Rest,
+			Source.Voltaire_JsonRpc,
+		],
+		fields: {
+			approvalKind: true,
+			standard: true,
+		},
+	}))
 
 
 	// Components
@@ -25,22 +37,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.EvmTokenApproval, {
-					$log: data.selector,
-				}, {
-					sources: [
-						Source.Blockscout_Rest,
-						Source.Voltaire_JsonRpc,
-					],
-					fields: {
-						approvalKind: true,
-						standard: true,
-					},
-				}))}
-			<title>{data?.title ?? (pageSelection.entity == null ? 'Token approval' : [pageSelection.entity.approvalKind, (pageSelection.entity.standard ?? '')].filter(Boolean).join(' ') || 'Token approval')} • Token approval • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'Token approval' : [pageSelection.entity.approvalKind, (pageSelection.entity.standard ?? '')].filter(Boolean).join(' ') || 'Token approval')} • Token approval • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'Token approval'} • Token approval • Blockhead</title>
 	{/if}
@@ -48,24 +46,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.EvmTokenApproval, {
-					$log: data.selector,
-				}, {
-					sources: [
-						Source.Blockscout_Rest,
-						Source.Voltaire_JsonRpc,
-					],
-					fields: {
-						approvalKind: true,
-						standard: true,
-					},
-				}))}
-
-		<EvmTokenApprovalView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<EvmTokenApprovalView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

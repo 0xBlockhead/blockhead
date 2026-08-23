@@ -8,13 +8,14 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
 	let {
 		data,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.UtxoAddress, data.selector))
 
 
 	// Components
@@ -24,11 +25,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.UtxoAddress, data.selector))}
-			<title>{data?.title ?? (pageSelection.entitySelector.address || 'UTXO address')} • UTXO address • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entitySelector.address || 'UTXO address')} • UTXO address • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'UTXO address'} • UTXO address • Blockhead</title>
 	{/if}
@@ -36,13 +34,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.UtxoAddress, data.selector))}
-
-		<UtxoAddressView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<UtxoAddressView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

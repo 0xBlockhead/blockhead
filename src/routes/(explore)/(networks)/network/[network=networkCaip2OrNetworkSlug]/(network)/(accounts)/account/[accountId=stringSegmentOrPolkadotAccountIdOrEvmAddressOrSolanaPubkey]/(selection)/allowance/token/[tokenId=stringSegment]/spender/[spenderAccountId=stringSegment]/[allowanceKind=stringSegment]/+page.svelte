@@ -8,7 +8,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -16,6 +15,16 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.HederaAllowance, {
+		$owner: data.selector,
+		$spender: {
+			$network: data.selector.$network,
+			accountId: params.spenderAccountId,
+		},
+		allowanceKind: params.allowanceKind,
+		tokenId: params.tokenId,
+	}))
 
 
 	// Components
@@ -25,19 +34,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.HederaAllowance, {
-					$owner: data.selector,
-					$spender: {
-						$network: data.selector.$network,
-						accountId: params.spenderAccountId,
-					},
-					allowanceKind: params.allowanceKind,
-					tokenId: params.tokenId,
-				}))}
-			<title>{data?.title ?? (pageSelection.entitySelector.allowanceKind || 'hedera allowance')} • hedera allowance • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entitySelector.allowanceKind || 'hedera allowance')} • hedera allowance • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'hedera allowance'} • hedera allowance • Blockhead</title>
 	{/if}
@@ -45,21 +43,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.HederaAllowance, {
-					$owner: data.selector,
-					$spender: {
-						$network: data.selector.$network,
-						accountId: params.spenderAccountId,
-					},
-					allowanceKind: params.allowanceKind,
-					tokenId: params.tokenId,
-				}))}
-
-		<HederaAllowanceView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<HederaAllowanceView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>

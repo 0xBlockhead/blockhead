@@ -9,7 +9,6 @@
 
 	// Context
 	import { select } from '$/routes/+layout.svelte'
-	import { untrack } from 'svelte'
 
 
 	// State
@@ -17,6 +16,19 @@
 		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.BitcoinCashBcmrMetadata, {
+		$network: data.selector,
+		categoryId: params.categoryId,
+		registryUrl: params.registryUrl,
+	}, {
+		sources: [
+			Source.BitcoinCashBcmr_Github,
+		],
+		fields: {
+			name: true,
+		},
+	}))
 
 
 	// Components
@@ -26,22 +38,8 @@
 
 
 <svelte:head>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.BitcoinCashBcmrMetadata, {
-					$network: data.selector,
-					categoryId: params.categoryId,
-					registryUrl: params.registryUrl,
-				}, {
-					sources: [
-						Source.BitcoinCashBcmr_Github,
-					],
-					fields: {
-						name: true,
-					},
-				}))}
-			<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.categoryId ?? '') || 'Bitcoin cash bcmr metadata' : (pageSelection.entity.name ?? '') || pageSelection.entitySelector.categoryId || 'Bitcoin cash bcmr metadata')} • Bitcoin cash bcmr metadata • Blockhead</title>
-		{/key}
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.categoryId ?? '') || 'Bitcoin cash bcmr metadata' : (pageSelection.entity.name ?? '') || pageSelection.entitySelector.categoryId || 'Bitcoin cash bcmr metadata')} • Bitcoin cash bcmr metadata • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'Bitcoin cash bcmr metadata'} • Bitcoin cash bcmr metadata • Blockhead</title>
 	{/if}
@@ -49,24 +47,9 @@
 
 
 <Page>
-	{#if data?.selector != null}
-		{#key data.selector}
-			{@const pageSelection = untrack(() => select(EntityType.BitcoinCashBcmrMetadata, {
-					$network: data.selector,
-					categoryId: params.categoryId,
-					registryUrl: params.registryUrl,
-				}, {
-					sources: [
-						Source.BitcoinCashBcmr_Github,
-					],
-					fields: {
-						name: true,
-					},
-				}))}
-
-		<BitcoinCashBcmrMetadataView
-			selection={pageSelection}
-		/>
-		{/key}
+	{#if pageSelection != null}
+	<BitcoinCashBcmrMetadataView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>
