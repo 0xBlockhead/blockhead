@@ -18,7 +18,7 @@
 	}: PageProps = $props()
 
 	const pageSelection = $derived(select(EntityType.HyperliquidSpotAsset, {
-		$network: data.selector,
+		$network: data.selector.$network,
 		assetId: Number(params.assetId),
 	}, {
 		sources: [

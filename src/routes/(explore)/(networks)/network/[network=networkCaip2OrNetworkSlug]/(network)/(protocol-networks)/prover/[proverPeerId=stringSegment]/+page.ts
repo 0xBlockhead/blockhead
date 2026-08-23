@@ -19,7 +19,7 @@ export const load: PageLoad = async ({ params, parent }) => {
 		schema,
 		QuilibriumProverSchema,
 		{
-			$network: parentData.selector,
+			$network: parentData.selector.$network,
 			proverPeerId: params.proverPeerId,
 		},
 		'NetworkProverPeerId'

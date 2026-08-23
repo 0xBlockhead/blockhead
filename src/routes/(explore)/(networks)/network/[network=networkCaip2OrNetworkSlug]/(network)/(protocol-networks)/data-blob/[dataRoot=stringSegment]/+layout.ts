@@ -19,7 +19,7 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 		schema,
 		ZeroGDataBlobSchema,
 		{
-			$network: parentData.selector,
+			$network: parentData.selector.$network,
 			dataRoot: params.dataRoot,
 		},
 		'NetworkDataRoot'

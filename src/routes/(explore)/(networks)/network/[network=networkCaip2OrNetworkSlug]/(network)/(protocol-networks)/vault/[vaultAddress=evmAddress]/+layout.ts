@@ -19,7 +19,7 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 		schema,
 		HyperliquidVaultSchema,
 		{
-			$network: parentData.selector,
+			$network: parentData.selector.$network,
 			vaultAddress: params.vaultAddress,
 		},
 		'NetworkVaultAddress'

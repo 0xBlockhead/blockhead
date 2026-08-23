@@ -18,7 +18,7 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 		schema,
 		EigenLayerAvsSchema,
 		{
-			$network: parentData.selector,
+			$network: parentData.selector.$network,
 			avsAddress: params.avsAddress,
 		},
 		'NetworkAvsAddress'

@@ -32,7 +32,7 @@
 	<HyperliquidMarket_TimeInterval_TimestampView
 		selection={
 			select(EntityType.HyperliquidMarket_TimeInterval_Timestamp, {
-				$network: data.selector,
+				$network: data.selector.$network,
 				marketKey: params.marketKey,
 				timeInterval: {
 					value: Number(params.intervalValue),

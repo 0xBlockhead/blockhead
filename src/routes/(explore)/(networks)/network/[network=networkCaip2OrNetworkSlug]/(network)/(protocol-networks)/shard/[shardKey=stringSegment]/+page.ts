@@ -19,7 +19,7 @@ export const load: PageLoad = async ({ params, parent }) => {
 		schema,
 		QuilibriumShardSchema,
 		{
-			$network: parentData.selector,
+			$network: parentData.selector.$network,
 			shardKey: params.shardKey,
 		},
 		'NetworkShardKey'

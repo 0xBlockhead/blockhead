@@ -29,7 +29,7 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 		schema,
 		PolkadotAssetSchema,
 		{
-			$network: parentData.selector,
+			$network: parentData.selector.$network,
 			assetKind: params.assetKind,
 			assetId: params.assetId,
 		},

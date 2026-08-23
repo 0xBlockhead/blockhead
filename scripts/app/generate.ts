@@ -3483,7 +3483,7 @@ const compileRouteTree = (
 					if (targetReferencePaths.length === 0)
 						return []
 
-					return entitySelectorReferencePaths(
+					const currentReferencePaths = entitySelectorReferencePaths(
 						entityByType,
 						entityType,
 						selectorName,
@@ -3494,7 +3494,20 @@ const compileRouteTree = (
 							!Object.hasOwn(mapping.derivations ?? {}, referencePath[0])
 							&& !paramBindings.some(({ fieldPath }) => referencePath.every((fieldName, index) => fieldPath[index] === fieldName))
 						)
-					)).flatMap((referencePath) => targetReferencePaths.map((targetReferencePath) => ({
+					))
+					const bindingReferencePaths = currentReferencePaths.length > 0 ?
+						currentReferencePaths
+					:
+						targetReferencePaths.length === 1
+						&& targetReferencePaths[0]?.length === 1
+						&& ancestor.mapping.fields.length === 1
+						&& ancestor.mapping.fields[0]?.name === targetReferencePaths[0][0]
+						&& expressionUsesKind(ancestor.mapping.fields[0].value, 'pageSelector') ?
+							[[]]
+						:
+							[]
+
+					return bindingReferencePaths.flatMap((referencePath) => targetReferencePaths.map((targetReferencePath) => ({
 						ancestor,
 						referencePath,
 						targetReferencePath,

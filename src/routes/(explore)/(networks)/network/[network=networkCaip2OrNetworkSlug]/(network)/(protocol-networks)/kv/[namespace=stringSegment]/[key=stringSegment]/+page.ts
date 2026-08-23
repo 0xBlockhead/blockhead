@@ -23,7 +23,7 @@ export const load: PageLoad = async ({ params, parent }) => {
 		schema,
 		ZeroGKvEntrySchema,
 		{
-			$network: parentData.selector,
+			$network: parentData.selector.$network,
 			namespace: params.namespace,
 			key: params.key,
 		},

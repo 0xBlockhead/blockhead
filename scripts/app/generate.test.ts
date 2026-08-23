@@ -804,6 +804,22 @@ test('decodes nested primitive route values only when their value-type members a
 	assert.doesNotMatch(evmPoolSource, /reference: Number\(params\.chainId\)/)
 })
 
+test('inherits base network selectors through the nearest protocol-network ancestor', () => {
+	const routeSources = [
+		'src/routes/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/market/[marketKey=stringSegment]/interval/[intervalValue=nonNegativeInteger]/[intervalUnit=stringSegment]/observations/[timestampMs=nonNegativeInteger]/+page.svelte',
+		'src/routes/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/borrow-lend/reserve/[tokenIndex=nonNegativeInteger]/+page.svelte',
+	].map((filePath) => {
+		const generatedFile = baselineCompiledApp.generatedFiles.find(({ path }) => path === filePath)
+		assert.ok(generatedFile)
+		return renderGeneratedFile(generatedFile)
+	})
+
+	for (const source of routeSources) {
+		assert.match(source, /\$network: data\.selector\.\$network,/)
+		assert.doesNotMatch(source, /\$network: data\.selector,/)
+	}
+})
+
 const generatedFileByPath = new Map(baselineCompiledApp.generatedFiles.map((generatedFile) => [generatedFile.path, generatedFile]))
 const generatedSource = (filePath: string) => {
 	const generatedFile = generatedFileByPath.get(filePath)

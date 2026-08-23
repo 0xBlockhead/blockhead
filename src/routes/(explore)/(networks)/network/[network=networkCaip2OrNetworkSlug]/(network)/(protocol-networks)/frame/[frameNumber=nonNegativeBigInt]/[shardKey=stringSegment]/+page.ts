@@ -24,7 +24,7 @@ export const load: PageLoad = async ({ params, parent }) => {
 		schema,
 		QuilibriumFrameSchema,
 		{
-			$network: parentData.selector,
+			$network: parentData.selector.$network,
 			frameNumber: BigInt(params.frameNumber),
 			shardKey: params.shardKey,
 		},

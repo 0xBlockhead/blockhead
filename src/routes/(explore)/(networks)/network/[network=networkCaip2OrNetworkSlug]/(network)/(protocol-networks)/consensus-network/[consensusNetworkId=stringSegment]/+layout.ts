@@ -19,7 +19,7 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 		schema,
 		ZeroGConsensusNetworkSchema,
 		{
-			$network: parentData.selector,
+			$network: parentData.selector.$network,
 			consensusNetworkId: params.consensusNetworkId,
 		},
 		'NetworkConsensusNetworkId'

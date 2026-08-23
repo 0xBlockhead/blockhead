@@ -19,7 +19,7 @@ export const load: PageLoad = async ({ params, parent }) => {
 		schema,
 		ZeroGStorageLogEntrySchema,
 		{
-			$network: parentData.selector,
+			$network: parentData.selector.$network,
 			logEntryId: params.logEntryId,
 		},
 		'NetworkLogEntryId'

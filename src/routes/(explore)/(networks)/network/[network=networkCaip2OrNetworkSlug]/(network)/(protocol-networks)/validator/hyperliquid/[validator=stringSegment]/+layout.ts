@@ -19,7 +19,7 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 		schema,
 		HyperliquidValidatorSchema,
 		{
-			$network: parentData.selector,
+			$network: parentData.selector.$network,
 			validator: params.validator,
 		},
 		'NetworkValidator'

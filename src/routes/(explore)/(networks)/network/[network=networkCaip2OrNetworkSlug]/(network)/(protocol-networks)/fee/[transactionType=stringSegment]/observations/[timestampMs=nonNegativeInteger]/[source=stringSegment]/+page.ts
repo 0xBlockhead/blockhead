@@ -25,7 +25,7 @@ export const load: PageLoad = async ({ params, parent }) => {
 		schema,
 		HederaNetworkFee_TimestampSchema,
 		{
-			$network: parentData.selector,
+			$network: parentData.selector.$network,
 			transactionType: params.transactionType,
 			timestampMs: Number(params.timestampMs),
 			source: params.source,

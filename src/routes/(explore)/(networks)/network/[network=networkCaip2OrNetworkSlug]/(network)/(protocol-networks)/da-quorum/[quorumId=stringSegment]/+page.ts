@@ -19,7 +19,7 @@ export const load: PageLoad = async ({ params, parent }) => {
 		schema,
 		ZeroGDaQuorumSchema,
 		{
-			$network: parentData.selector,
+			$network: parentData.selector.$network,
 			quorumId: params.quorumId,
 		},
 		'NetworkQuorumId'

@@ -32,7 +32,7 @@
 	<HyperliquidSpotPairView
 		selection={
 			select(EntityType.HyperliquidSpotPair, {
-				$network: data.selector,
+				$network: data.selector.$network,
 				pairIndex: Number(params.pairIndex),
 			})
 		}

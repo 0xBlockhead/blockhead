@@ -18,7 +18,7 @@
 	}: PageProps = $props()
 
 	const pageSelection = $derived(select(EntityType.HyperliquidBorrowLendReserve, {
-		$network: data.selector,
+		$network: data.selector.$network,
 		tokenIndex: Number(params.tokenIndex),
 	}, {
 		sources: [

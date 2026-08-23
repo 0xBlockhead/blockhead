@@ -28,7 +28,7 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 		schema,
 		PolkadotValidatorSchema,
 		{
-			$network: parentData.selector,
+			$network: parentData.selector.$network,
 			stashAccountId: params.stashAccountId,
 		},
 		'NetworkStashAccountId'

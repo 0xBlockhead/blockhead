@@ -19,7 +19,7 @@ export const load: PageLoad = async ({ params, parent }) => {
 		schema,
 		ZeroGDaNodeSchema,
 		{
-			$network: parentData.selector,
+			$network: parentData.selector.$network,
 			nodeId: params.nodeId,
 		},
 		'NetworkNodeId'

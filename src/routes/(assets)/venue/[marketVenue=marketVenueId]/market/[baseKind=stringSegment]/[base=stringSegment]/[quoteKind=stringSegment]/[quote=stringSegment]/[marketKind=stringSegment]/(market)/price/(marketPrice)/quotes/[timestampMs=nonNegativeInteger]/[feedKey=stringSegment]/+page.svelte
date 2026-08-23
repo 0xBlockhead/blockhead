@@ -17,7 +17,7 @@
 	}: PageProps = $props()
 
 	const pageSelection = $derived(select(EntityType.Market_Timestamp, {
-		$market: data.selector,
+		$market: data.selector.$market,
 		timestampMs: Number(params.timestampMs),
 		feedKey: decodeURIComponent(params.feedKey),
 	}))
