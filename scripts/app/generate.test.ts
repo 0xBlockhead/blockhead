@@ -796,6 +796,27 @@ const generatedViewSources = generatedSvelteFiles
 	.map((generatedFile) => [generatedFile.path, renderGeneratedFile(generatedFile)] as const)
 const pluralComponentNames = new Set(app.schema.entities.flatMap((entity) => entity.views?.plural?.component == null ? [] : [entity.views.plural.component]))
 const generatedPaths = new Set(baselineCompiledApp.generatedFiles.map(({ path: filePath }) => filePath))
+
+test('dispatches block transactions collections by chain-specific block entity', () => {
+	const route = baselineCompiledApp.generatedFiles.find(({ path }) => path === 'src/routes/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(blocks)/block/[blockNumber=nonNegativeBigInt]/(selection)/transactions/+page.svelte')
+	assert.ok(route)
+	const source = renderGeneratedFile(route)
+
+	for (const entityType of [EntityType.EvmBlock, EntityType.SolanaBlock, EntityType.UtxoBlock])
+		assert.match(source, new RegExp(`data\\.entityType === EntityType\\.${entityType}`))
+	for (const [entityType, component] of [
+		[EntityType.EvmBlock, 'EvmTransactionsView'],
+		[EntityType.SolanaBlock, 'SolanaTransactionsView'],
+		[EntityType.UtxoBlock, 'UtxoTransactionsView'],
+	] as const) {
+		const condition = `data.entityType === EntityType.${entityType}`
+		const conditionIndex = source.indexOf(condition)
+		assert.ok(conditionIndex >= 0)
+		assert.match(source.slice(conditionIndex, conditionIndex + 700), new RegExp(`<${component}\\b[\\s\\S]*?selection=`))
+	}
+	for (const entityType of [EntityType.EvmBlock, EntityType.SolanaBlock, EntityType.UtxoBlock])
+		assert.equal(source.match(new RegExp(`select\\(EntityType\\.${entityType}, data\\.selector\\)`, 'g'))?.length, 1)
+})
 const omittedPluralEntities = app.schema.entities.filter((entity) => (
 	!generatedPaths.has(`src/views/${entity.views.plural.component}.svelte`)
 ))

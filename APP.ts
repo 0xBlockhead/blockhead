@@ -77665,12 +77665,23 @@ export const routes = defineRoutes(schema)({
 																"transactions": {
 																	collections: [
 																		{
-																			field: [
-																				EntityType.EvmBlock,
-																				"$$transactions"
-																			],
+																			field: [EntityType.EvmBlock, "$$transactions"],
 																			page: {
 																				view: { component: "EvmTransactionsView" },
+																				text: { title: "Block transactions" }
+																			}
+																		},
+																		{
+																			field: [EntityType.SolanaBlock, "$$transactions"],
+																			page: {
+																				view: { component: "SolanaTransactionsView" },
+																				text: { title: "Block transactions" }
+																			}
+																		},
+																		{
+																			field: [EntityType.UtxoBlock, "$$transactions"],
+																			page: {
+																				view: { component: "UtxoTransactionsView" },
 																				text: { title: "Block transactions" }
 																			}
 																		},
