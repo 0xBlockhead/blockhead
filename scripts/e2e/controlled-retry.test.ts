@@ -58,6 +58,8 @@ test('captures every manifest attempt with complete route run provenance', async
 	assert.equal((await readFile(join(outputDirectory, 'attempts.jsonl'), 'utf8')).trim().split('\n').length, 4)
 	assert.match(run.runIdentity.browserIdentity, /fixture chromium/)
 	assert.equal(run.runIdentity.buildIdentity, 'fixture-build')
+	assert.match(run.outputs.corpusFingerprint, /^[0-9a-f]{64}$/)
+	assert.match(run.outputs.resultSetFingerprint, /^[0-9a-f]{64}$/)
 })
 
 test('contract rejects omitted provenance, mismatched counts, reused contexts, and partial completion', async () => {

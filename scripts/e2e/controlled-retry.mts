@@ -6,7 +6,10 @@ import { promisify } from 'node:util'
 
 import {
 	canonicalJson,
+	corpusFingerprint,
 	createRouteRunIdentity,
+	resultSetFingerprint,
+	routeCorpusTargetsFromPathnames,
 	type RouteRunIdentity,
 } from './routeRunIdentity.ts'
 
@@ -55,7 +58,12 @@ export type ControlledRetryRun = {
 	tools: { runner: string, runnerSha256: string, browser: string }
 	inputs: { manifest: ControlledRetryManifest, manifestSha256: string }
 	runIdentity: RouteRunIdentity
-	outputs: { attempts: string, artifactsDirectory: string }
+	outputs: {
+		attempts: string
+		artifactsDirectory: string
+		corpusFingerprint: string
+		resultSetFingerprint: string
+	}
 	counts: { completedAttempts: number, expectedAttempts: number, clean: number, failures: number }
 	validations: { name: string, passed: boolean }[]
 	startedAt: string
@@ -230,7 +238,17 @@ export const runControlledRetry = async ({ browser, manifest, outputDirectory, p
 		tools: { runner: basename(runnerPath), runnerSha256, browser: browser.identity },
 		inputs: { manifest, manifestSha256 },
 		runIdentity,
-		outputs: { attempts: attemptsPath, artifactsDirectory: outputDirectory },
+		outputs: {
+			attempts: attemptsPath,
+			artifactsDirectory: outputDirectory,
+			corpusFingerprint: corpusFingerprint(routeCorpusTargetsFromPathnames(manifest.paths)),
+			resultSetFingerprint: resultSetFingerprint(attempts.map((attempt) => ({
+				targetId: attempt.pathname,
+				exampleId: String(attempt.attempt),
+				exampleVersion: attempt.toolOutputHash,
+				outcome: attempt.outcome,
+			}))),
+		},
 		counts: { completedAttempts: attempts.length, expectedAttempts: expectedKeys(manifest).length, clean: attempts.filter(({ outcome }) => outcome === 'captured').length, failures: attempts.filter(({ outcome }) => outcome === 'failed').length },
 		validations: [
 			{ name: 'attempt-and-run-schema', passed: true },
