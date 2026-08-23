@@ -41,21 +41,23 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<Erc4626VaultView
-			selection={
-				select(EntityType.Erc4626Vault, data.selector, {
-					sources: [
-						Source.Blockscout_Rest,
-						Source.Defillama_Rest,
-						Source.Etherscan_Rest,
-						Source.Sourcify_Rest,
-						Source.Voltaire_JsonRpc,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<Erc4626VaultView
+				selection={
+					select(EntityType.Erc4626Vault, data.selector, {
+						sources: [
+							Source.Blockscout_Rest,
+							Source.Defillama_Rest,
+							Source.Etherscan_Rest,
+							Source.Sourcify_Rest,
+							Source.Voltaire_JsonRpc,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

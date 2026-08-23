@@ -41,11 +41,13 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<RegulatedAssetProfileView
-			selection={select(EntityType.RegulatedAssetProfile, data.selector)}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<RegulatedAssetProfileView
+				selection={select(EntityType.RegulatedAssetProfile, data.selector)}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

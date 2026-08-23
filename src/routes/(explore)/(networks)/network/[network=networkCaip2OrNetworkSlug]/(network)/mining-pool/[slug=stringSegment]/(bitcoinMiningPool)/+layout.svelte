@@ -41,17 +41,19 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<BitcoinMiningPoolView
-			selection={
-				select(EntityType.BitcoinMiningPool, data.selector, {
-					sources: [
-						Source.MempoolSpace_Rest,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<BitcoinMiningPoolView
+				selection={
+					select(EntityType.BitcoinMiningPool, data.selector, {
+						sources: [
+							Source.MempoolSpace_Rest,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

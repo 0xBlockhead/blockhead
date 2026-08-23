@@ -41,11 +41,13 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<ScalingDeploymentClaimView
-			selection={select(EntityType.ScalingDeploymentClaim, data.selector)}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<ScalingDeploymentClaimView
+				selection={select(EntityType.ScalingDeploymentClaim, data.selector)}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

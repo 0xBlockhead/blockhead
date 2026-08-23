@@ -16,14 +16,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.GitRefObservation_Timestamp, {
-		$ref: data.selector,
-		timestampMs: Number(params.timestampMs),
-		source: params.source,
-	}, {
-		sources: [params.source],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -32,12 +24,33 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (String(pageSelection.entitySelector.timestampMs) || 'Git ref observation timestamp')} • Git ref observation timestamp • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.GitRefObservation_Timestamp, {
+				$ref: data.selector,
+				timestampMs: Number(params.timestampMs),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+		<title>{data?.title ?? (String(pageSelection.entitySelector.timestampMs) || 'Git ref observation timestamp')} • Git ref observation timestamp • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Git ref observation timestamp'} • Git ref observation timestamp • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.GitRefObservation_Timestamp, {
+				$ref: data.selector,
+				timestampMs: Number(params.timestampMs),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+
 	<GitRefObservation_TimestampView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

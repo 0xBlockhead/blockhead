@@ -17,16 +17,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.BlockheadLightningHtlc, {
-		$channelState: data.selector,
-		htlcIndex: Number(params.htlcIndex),
-	}, {
-		sources: [
-			Source.LightningLnd_Rest,
-			Source.Local_Internal,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -35,12 +25,37 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'HTLC ' + String(pageSelection.entitySelector.htlcIndex)} • local LND HTLC • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BlockheadLightningHtlc, {
+				$channelState: data.selector,
+				htlcIndex: Number(params.htlcIndex),
+			}, {
+				sources: [
+					Source.LightningLnd_Rest,
+					Source.Local_Internal,
+				],
+			})}
+		<title>{data?.title ?? 'HTLC ' + String(pageSelection.entitySelector.htlcIndex)} • local LND HTLC • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'local LND HTLC'} • local LND HTLC • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BlockheadLightningHtlc, {
+				$channelState: data.selector,
+				htlcIndex: Number(params.htlcIndex),
+			}, {
+				sources: [
+					Source.LightningLnd_Rest,
+					Source.Local_Internal,
+				],
+			})}
+
 	<BlockheadLightningHtlcView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

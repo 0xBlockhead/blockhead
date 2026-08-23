@@ -41,18 +41,20 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<LightningChannelView
-			selection={
-				select(EntityType.LightningChannel, data.selector, {
-					sources: [
-						Source.LightningMempoolSpace_Rest,
-						Source.LightningLnd_Rest,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<LightningChannelView
+				selection={
+					select(EntityType.LightningChannel, data.selector, {
+						sources: [
+							Source.LightningMempoolSpace_Rest,
+							Source.LightningLnd_Rest,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

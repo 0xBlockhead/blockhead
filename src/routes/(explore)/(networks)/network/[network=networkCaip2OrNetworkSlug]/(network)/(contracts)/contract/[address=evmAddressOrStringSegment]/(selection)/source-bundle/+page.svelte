@@ -23,16 +23,25 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'EVM contract source bundle'} • EVM contract source bundle • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.EvmContractSourceBundle, {
+				$contract: data.selector,
+			})}
+		<title>{data?.title ?? 'EVM contract source bundle'} • EVM contract source bundle • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'EVM contract source bundle'} • EVM contract source bundle • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
-	<EvmContractSourceBundleView
-		selection={
-			select(EntityType.EvmContractSourceBundle, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.EvmContractSourceBundle, {
 				$contract: data.selector,
-			})
-		}
+			})}
+
+	<EvmContractSourceBundleView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

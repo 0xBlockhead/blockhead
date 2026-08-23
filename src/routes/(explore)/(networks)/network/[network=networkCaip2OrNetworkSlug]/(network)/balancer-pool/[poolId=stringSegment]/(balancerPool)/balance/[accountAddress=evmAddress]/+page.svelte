@@ -25,14 +25,8 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'Balancer account pool balance'} • Balancer account pool balance • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<BalancerAccountPoolBalanceView
-		selection={
-			select(EntityType.BalancerAccountPoolBalance, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BalancerAccountPoolBalance, {
 				$account: {
 					$network: data.selector.$network,
 					$actor: {
@@ -44,7 +38,32 @@
 				sources: [
 					Source.Balancer_Rest,
 				],
-			})
-		}
+			})}
+		<title>{data?.title ?? 'Balancer account pool balance'} • Balancer account pool balance • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Balancer account pool balance'} • Balancer account pool balance • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BalancerAccountPoolBalance, {
+				$account: {
+					$network: data.selector.$network,
+					$actor: {
+						address: params.accountAddress,
+					},
+				},
+				$pool: data.selector,
+			}, {
+				sources: [
+					Source.Balancer_Rest,
+				],
+			})}
+
+	<BalancerAccountPoolBalanceView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

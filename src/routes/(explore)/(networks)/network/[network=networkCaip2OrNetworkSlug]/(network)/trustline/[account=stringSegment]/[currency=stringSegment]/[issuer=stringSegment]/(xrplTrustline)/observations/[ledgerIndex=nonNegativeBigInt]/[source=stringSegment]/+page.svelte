@@ -24,20 +24,33 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'XRPL trustline timestamp'} • XRPL trustline timestamp • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<XrplTrustline_TimestampView
-		selection={
-			select(EntityType.XrplTrustline_Timestamp, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.XrplTrustline_Timestamp, {
 				$trustline: data.selector,
 				ledgerIndex: BigInt(params.ledgerIndex),
 				source: params.source,
 			}, {
 				sources: [params.source],
-			})
-		}
+			})}
+		<title>{data?.title ?? 'XRPL trustline timestamp'} • XRPL trustline timestamp • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'XRPL trustline timestamp'} • XRPL trustline timestamp • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.XrplTrustline_Timestamp, {
+				$trustline: data.selector,
+				ledgerIndex: BigInt(params.ledgerIndex),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+
+	<XrplTrustline_TimestampView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

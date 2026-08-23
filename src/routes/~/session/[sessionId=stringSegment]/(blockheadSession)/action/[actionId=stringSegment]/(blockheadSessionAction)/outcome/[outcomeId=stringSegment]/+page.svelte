@@ -16,15 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.BlockheadActionOutcome, data.selector, {
-		sources: [
-			Source.Local_Internal,
-		],
-		fields: {
-			outcomeKind: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -33,12 +24,35 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? 'blockhead action outcome' : pageSelection.entity.outcomeKind || 'blockhead action outcome')} • blockhead action outcome • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BlockheadActionOutcome, data.selector, {
+				sources: [
+					Source.Local_Internal,
+				],
+				fields: {
+					outcomeKind: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'blockhead action outcome' : pageSelection.entity.outcomeKind || 'blockhead action outcome')} • blockhead action outcome • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'blockhead action outcome'} • blockhead action outcome • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BlockheadActionOutcome, data.selector, {
+				sources: [
+					Source.Local_Internal,
+				],
+				fields: {
+					outcomeKind: true,
+				},
+			})}
+
 	<BlockheadActionOutcomeView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

@@ -24,18 +24,29 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'hedera contract action'} • hedera contract action • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.HederaContractAction, {
+				$result: data.selector,
+				callDepth: Number(params.callDepth),
+				callIndex: Number(params.callIndex),
+			})}
+		<title>{data?.title ?? 'hedera contract action'} • hedera contract action • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'hedera contract action'} • hedera contract action • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
-	<HederaContractActionView
-		selection={
-			select(EntityType.HederaContractAction, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.HederaContractAction, {
 				$result: data.selector,
 				callDepth: Number(params.callDepth),
 				callIndex: Number(params.callIndex),
-			})
-		}
+			})}
+
+	<HederaContractActionView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

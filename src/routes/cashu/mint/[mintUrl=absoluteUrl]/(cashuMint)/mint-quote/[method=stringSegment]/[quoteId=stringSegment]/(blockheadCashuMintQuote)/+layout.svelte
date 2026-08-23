@@ -41,11 +41,13 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<BlockheadCashuMintQuoteView
-			selection={select(EntityType.BlockheadCashuMintQuote, data.selector)}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<BlockheadCashuMintQuoteView
+				selection={select(EntityType.BlockheadCashuMintQuote, data.selector)}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

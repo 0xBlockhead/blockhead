@@ -24,21 +24,35 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'kaspa virtual chain timestamp'} • kaspa virtual chain timestamp • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<KaspaVirtualChain_TimestampView
-		selection={
-			select(EntityType.KaspaVirtualChain_Timestamp, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.KaspaVirtualChain_Timestamp, {
 				$network: data.selector,
 				startHash: params.startHash,
 				timestampMs: Number(params.timestampMs),
 				source: params.source,
 			}, {
 				sources: [params.source],
-			})
-		}
+			})}
+		<title>{data?.title ?? 'kaspa virtual chain timestamp'} • kaspa virtual chain timestamp • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'kaspa virtual chain timestamp'} • kaspa virtual chain timestamp • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.KaspaVirtualChain_Timestamp, {
+				$network: data.selector,
+				startHash: params.startHash,
+				timestampMs: Number(params.timestampMs),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+
+	<KaspaVirtualChain_TimestampView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

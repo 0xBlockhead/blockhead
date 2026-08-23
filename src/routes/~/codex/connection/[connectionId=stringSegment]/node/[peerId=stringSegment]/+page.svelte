@@ -16,12 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.BlockheadCodexStorageNodeState, data.selector, {
-		sources: [
-			Source.Local_Internal,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -30,12 +24,29 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.peerId || 'blockhead codex storage node state')} • blockhead codex storage node state • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BlockheadCodexStorageNodeState, data.selector, {
+				sources: [
+					Source.Local_Internal,
+				],
+			})}
+		<title>{data?.title ?? (pageSelection.entitySelector.peerId || 'blockhead codex storage node state')} • blockhead codex storage node state • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'blockhead codex storage node state'} • blockhead codex storage node state • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BlockheadCodexStorageNodeState, data.selector, {
+				sources: [
+					Source.Local_Internal,
+				],
+			})}
+
 	<BlockheadCodexStorageNodeStateView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

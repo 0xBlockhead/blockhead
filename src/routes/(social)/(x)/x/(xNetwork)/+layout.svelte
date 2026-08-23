@@ -33,17 +33,19 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<XNetworkView
-			selection={
-				select(EntityType.XNetwork, data.selector, {
-					sources: [
-						Source.Constants_Internal,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<XNetworkView
+				selection={
+					select(EntityType.XNetwork, data.selector, {
+						sources: [
+							Source.Constants_Internal,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

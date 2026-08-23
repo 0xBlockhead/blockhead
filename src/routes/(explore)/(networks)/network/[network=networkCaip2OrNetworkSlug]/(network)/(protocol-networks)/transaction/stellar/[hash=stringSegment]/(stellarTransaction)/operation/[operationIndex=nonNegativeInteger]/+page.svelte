@@ -24,17 +24,27 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'stellar operation'} • stellar operation • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.StellarOperation, {
+				$transaction: data.selector,
+				operationIndex: Number(params.operationIndex),
+			})}
+		<title>{data?.title ?? 'stellar operation'} • stellar operation • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'stellar operation'} • stellar operation • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
-	<StellarOperationView
-		selection={
-			select(EntityType.StellarOperation, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.StellarOperation, {
 				$transaction: data.selector,
 				operationIndex: Number(params.operationIndex),
-			})
-		}
+			})}
+
+	<StellarOperationView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

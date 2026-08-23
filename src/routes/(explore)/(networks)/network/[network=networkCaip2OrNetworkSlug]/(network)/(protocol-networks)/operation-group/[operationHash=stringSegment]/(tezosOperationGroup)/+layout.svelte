@@ -40,11 +40,13 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<TezosOperationGroupView
-			selection={select(EntityType.TezosOperationGroup, data.selector)}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<TezosOperationGroupView
+				selection={select(EntityType.TezosOperationGroup, data.selector)}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

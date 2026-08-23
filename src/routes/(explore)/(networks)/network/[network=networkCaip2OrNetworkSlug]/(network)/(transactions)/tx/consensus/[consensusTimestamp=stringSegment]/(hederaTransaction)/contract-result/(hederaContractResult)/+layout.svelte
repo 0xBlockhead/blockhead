@@ -40,11 +40,13 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<HederaContractResultView
-			selection={select(EntityType.HederaContractResult, data.selector)}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<HederaContractResultView
+				selection={select(EntityType.HederaContractResult, data.selector)}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

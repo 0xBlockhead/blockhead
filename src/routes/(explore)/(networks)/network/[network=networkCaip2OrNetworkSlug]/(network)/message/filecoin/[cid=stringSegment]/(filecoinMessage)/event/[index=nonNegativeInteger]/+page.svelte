@@ -17,19 +17,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.FilecoinMessageEvent, {
-		$message: data.selector,
-		index: Number(params.index),
-	}, {
-		sources: [
-			Source.Filfox_Rest,
-		],
-		fields: {
-			name: true,
-			address: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -38,12 +25,43 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? 'filecoin message event' : [(pageSelection.entity.name ?? ''), pageSelection.entity.address].filter(Boolean).join(' ') || 'filecoin message event')} • filecoin message event • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.FilecoinMessageEvent, {
+				$message: data.selector,
+				index: Number(params.index),
+			}, {
+				sources: [
+					Source.Filfox_Rest,
+				],
+				fields: {
+					name: true,
+					address: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'filecoin message event' : [(pageSelection.entity.name ?? ''), pageSelection.entity.address].filter(Boolean).join(' ') || 'filecoin message event')} • filecoin message event • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'filecoin message event'} • filecoin message event • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.FilecoinMessageEvent, {
+				$message: data.selector,
+				index: Number(params.index),
+			}, {
+				sources: [
+					Source.Filfox_Rest,
+				],
+				fields: {
+					name: true,
+					address: true,
+				},
+			})}
+
 	<FilecoinMessageEventView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

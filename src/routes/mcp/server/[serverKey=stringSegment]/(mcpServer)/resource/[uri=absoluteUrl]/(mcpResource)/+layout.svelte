@@ -41,17 +41,19 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<McpResourceView
-			selection={
-				select(EntityType.McpResource, data.selector, {
-					sources: [
-						Source.McpDeclared_Protocol,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<McpResourceView
+				selection={
+					select(EntityType.McpResource, data.selector, {
+						sources: [
+							Source.McpDeclared_Protocol,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

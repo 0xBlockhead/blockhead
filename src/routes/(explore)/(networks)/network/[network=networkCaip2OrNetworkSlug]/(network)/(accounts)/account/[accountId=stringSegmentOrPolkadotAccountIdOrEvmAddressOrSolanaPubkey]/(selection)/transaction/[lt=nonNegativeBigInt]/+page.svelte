@@ -23,12 +23,21 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'TON transaction'} • TON transaction • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.TonTransaction, data.selector)}
+		<title>{data?.title ?? 'TON transaction'} • TON transaction • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'TON transaction'} • TON transaction • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.TonTransaction, data.selector)}
+
 	<TonTransactionView
-		selection={select(EntityType.TonTransaction, data.selector)}
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

@@ -16,12 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.ActivityPubInstance, data.selector, {
-		sources: [
-			Source.Mastodon_Rest,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -30,12 +24,29 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.instanceOrigin || 'ActivityPub instance')} • ActivityPub instance • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.ActivityPubInstance, data.selector, {
+				sources: [
+					Source.Mastodon_Rest,
+				],
+			})}
+		<title>{data?.title ?? (pageSelection.entitySelector.instanceOrigin || 'ActivityPub instance')} • ActivityPub instance • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'ActivityPub instance'} • ActivityPub instance • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.ActivityPubInstance, data.selector, {
+				sources: [
+					Source.Mastodon_Rest,
+				],
+			})}
+
 	<ActivityPubInstanceView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

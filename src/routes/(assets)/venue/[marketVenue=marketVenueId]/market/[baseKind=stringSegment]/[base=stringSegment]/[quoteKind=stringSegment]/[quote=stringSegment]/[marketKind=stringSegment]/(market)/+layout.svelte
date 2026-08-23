@@ -44,11 +44,13 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<MarketView
-			selection={select(EntityType.Market, data.selector)}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<MarketView
+				selection={select(EntityType.Market, data.selector)}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

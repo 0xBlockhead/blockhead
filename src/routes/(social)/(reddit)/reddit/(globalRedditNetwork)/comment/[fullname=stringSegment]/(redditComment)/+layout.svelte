@@ -40,18 +40,20 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<RedditCommentView
-			selection={
-				select(EntityType.RedditComment, data.selector, {
-					sources: [
-						Source.Reddit_PublicJson,
-						Source.Reddit_Rest,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<RedditCommentView
+				selection={
+					select(EntityType.RedditComment, data.selector, {
+						sources: [
+							Source.Reddit_PublicJson,
+							Source.Reddit_Rest,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

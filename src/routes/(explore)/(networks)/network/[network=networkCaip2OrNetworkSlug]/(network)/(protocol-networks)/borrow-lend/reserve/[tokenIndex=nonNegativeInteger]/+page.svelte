@@ -17,15 +17,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.HyperliquidBorrowLendReserve, {
-		$network: data.selector.$network,
-		tokenIndex: Number(params.tokenIndex),
-	}, {
-		sources: [
-			Source.Hyperliquid,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -34,12 +25,35 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (String(pageSelection.entitySelector.tokenIndex) || 'hyperliquid borrow lend reserve')} • hyperliquid borrow lend reserve • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.HyperliquidBorrowLendReserve, {
+				$network: data.selector.$network,
+				tokenIndex: Number(params.tokenIndex),
+			}, {
+				sources: [
+					Source.Hyperliquid,
+				],
+			})}
+		<title>{data?.title ?? (String(pageSelection.entitySelector.tokenIndex) || 'hyperliquid borrow lend reserve')} • hyperliquid borrow lend reserve • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'hyperliquid borrow lend reserve'} • hyperliquid borrow lend reserve • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.HyperliquidBorrowLendReserve, {
+				$network: data.selector.$network,
+				tokenIndex: Number(params.tokenIndex),
+			}, {
+				sources: [
+					Source.Hyperliquid,
+				],
+			})}
+
 	<HyperliquidBorrowLendReserveView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

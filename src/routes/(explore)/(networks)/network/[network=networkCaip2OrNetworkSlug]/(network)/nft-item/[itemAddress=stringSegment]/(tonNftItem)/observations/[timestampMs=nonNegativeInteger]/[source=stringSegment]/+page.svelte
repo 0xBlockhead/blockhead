@@ -24,20 +24,33 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'TON NFT item timestamp'} • TON NFT item timestamp • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<TonNftItem_TimestampView
-		selection={
-			select(EntityType.TonNftItem_Timestamp, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.TonNftItem_Timestamp, {
 				$item: data.selector,
 				timestampMs: Number(params.timestampMs),
 				source: params.source,
 			}, {
 				sources: [params.source],
-			})
-		}
+			})}
+		<title>{data?.title ?? 'TON NFT item timestamp'} • TON NFT item timestamp • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'TON NFT item timestamp'} • TON NFT item timestamp • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.TonNftItem_Timestamp, {
+				$item: data.selector,
+				timestampMs: Number(params.timestampMs),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+
+	<TonNftItem_TimestampView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

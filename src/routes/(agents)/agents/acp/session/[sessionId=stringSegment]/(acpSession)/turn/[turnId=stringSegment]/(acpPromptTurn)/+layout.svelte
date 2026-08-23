@@ -41,17 +41,19 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<AcpPromptTurnView
-			selection={
-				select(EntityType.AcpPromptTurn, data.selector, {
-					sources: [
-						Source.AcpLocal_JsonRpc,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<AcpPromptTurnView
+				selection={
+					select(EntityType.AcpPromptTurn, data.selector, {
+						sources: [
+							Source.AcpLocal_JsonRpc,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

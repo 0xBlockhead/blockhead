@@ -24,18 +24,29 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'Blockhead EVM wallet request'} • Blockhead EVM wallet request • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BlockheadEvmWalletRequest, data.selector, {
+				sources: [
+					Source.Local_Internal,
+				],
+			})}
+		<title>{data?.title ?? 'Blockhead EVM wallet request'} • Blockhead EVM wallet request • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Blockhead EVM wallet request'} • Blockhead EVM wallet request • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
-	<BlockheadEvmWalletRequestView
-		selection={
-			select(EntityType.BlockheadEvmWalletRequest, data.selector, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BlockheadEvmWalletRequest, data.selector, {
 				sources: [
 					Source.Local_Internal,
 				],
-			})
-		}
+			})}
+
+	<BlockheadEvmWalletRequestView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

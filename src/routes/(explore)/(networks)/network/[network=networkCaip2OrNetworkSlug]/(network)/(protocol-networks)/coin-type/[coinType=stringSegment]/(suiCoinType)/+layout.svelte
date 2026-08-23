@@ -40,11 +40,13 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<SuiCoinTypeView
-			selection={select(EntityType.SuiCoinType, data.selector)}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<SuiCoinTypeView
+				selection={select(EntityType.SuiCoinType, data.selector)}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

@@ -15,8 +15,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.ElementsPeg, data.selector))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -25,12 +23,21 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? ([pageSelection.entitySelector.direction, pageSelection.entitySelector.pegTransactionId].filter(Boolean).join(' ') || 'Elements peg')} • Elements peg • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.ElementsPeg, data.selector)}
+		<title>{data?.title ?? ([pageSelection.entitySelector.direction, pageSelection.entitySelector.pegTransactionId].filter(Boolean).join(' ') || 'Elements peg')} • Elements peg • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Elements peg'} • Elements peg • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.ElementsPeg, data.selector)}
+
 	<ElementsPegView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

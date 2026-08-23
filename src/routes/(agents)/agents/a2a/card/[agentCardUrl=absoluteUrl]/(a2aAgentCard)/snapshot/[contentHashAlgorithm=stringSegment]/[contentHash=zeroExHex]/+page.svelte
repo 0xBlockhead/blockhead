@@ -15,13 +15,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.A2aAgentCard_Snapshot, data.selector, {
-		sources: [],
-		fields: {
-			name: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -30,12 +23,31 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.contentHash ?? '') || 'A2A agent card snapshot' : (pageSelection.entity.name ?? '') || pageSelection.entitySelector.contentHash || 'A2A agent card snapshot')} • A2A agent card snapshot • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.A2aAgentCard_Snapshot, data.selector, {
+				sources: [],
+				fields: {
+					name: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.contentHash ?? '') || 'A2A agent card snapshot' : (pageSelection.entity.name ?? '') || pageSelection.entitySelector.contentHash || 'A2A agent card snapshot')} • A2A agent card snapshot • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'A2A agent card snapshot'} • A2A agent card snapshot • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.A2aAgentCard_Snapshot, data.selector, {
+				sources: [],
+				fields: {
+					name: true,
+				},
+			})}
+
 	<A2aAgentCard_SnapshotView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

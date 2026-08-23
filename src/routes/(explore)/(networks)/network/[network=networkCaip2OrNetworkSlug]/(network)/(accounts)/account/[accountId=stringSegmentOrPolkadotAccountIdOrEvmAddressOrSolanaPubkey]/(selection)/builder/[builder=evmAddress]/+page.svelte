@@ -24,17 +24,27 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'hyperliquid builder approval'} • hyperliquid builder approval • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.HyperliquidBuilderApproval, {
+				$account: data.selector,
+				builder: params.builder,
+			})}
+		<title>{data?.title ?? 'hyperliquid builder approval'} • hyperliquid builder approval • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'hyperliquid builder approval'} • hyperliquid builder approval • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
-	<HyperliquidBuilderApprovalView
-		selection={
-			select(EntityType.HyperliquidBuilderApproval, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.HyperliquidBuilderApproval, {
 				$account: data.selector,
 				builder: params.builder,
-			})
-		}
+			})}
+
+	<HyperliquidBuilderApprovalView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

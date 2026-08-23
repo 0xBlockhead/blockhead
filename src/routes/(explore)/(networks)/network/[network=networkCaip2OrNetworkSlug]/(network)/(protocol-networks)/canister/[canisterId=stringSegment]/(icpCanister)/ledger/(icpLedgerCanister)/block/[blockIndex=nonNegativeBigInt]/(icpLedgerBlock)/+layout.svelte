@@ -41,11 +41,13 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<IcpLedgerBlockView
-			selection={select(EntityType.IcpLedgerBlock, data.selector)}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<IcpLedgerBlockView
+				selection={select(EntityType.IcpLedgerBlock, data.selector)}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

@@ -40,11 +40,13 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<SuiTransactionView
-			selection={select(EntityType.SuiTransaction, data.selector)}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<SuiTransactionView
+				selection={select(EntityType.SuiTransaction, data.selector)}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

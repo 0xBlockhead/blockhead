@@ -16,15 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType._GlobalAtprotoNetwork, data.selector, {
-		sources: [
-			Source.Constants_Internal,
-		],
-		fields: {
-			protocolName: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -33,12 +24,35 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? 'AT Protocol' : pageSelection.entity.protocolName || 'AT Protocol')} • AT Protocol • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType._GlobalAtprotoNetwork, data.selector, {
+				sources: [
+					Source.Constants_Internal,
+				],
+				fields: {
+					protocolName: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'AT Protocol' : pageSelection.entity.protocolName || 'AT Protocol')} • AT Protocol • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'AT Protocol'} • AT Protocol • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType._GlobalAtprotoNetwork, data.selector, {
+				sources: [
+					Source.Constants_Internal,
+				],
+				fields: {
+					protocolName: true,
+				},
+			})}
+
 	<GlobalAtprotoNetworkView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

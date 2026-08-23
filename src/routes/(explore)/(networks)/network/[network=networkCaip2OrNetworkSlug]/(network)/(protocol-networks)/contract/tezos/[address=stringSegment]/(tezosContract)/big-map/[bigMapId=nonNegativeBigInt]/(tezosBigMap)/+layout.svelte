@@ -41,11 +41,13 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<TezosBigMapView
-			selection={select(EntityType.TezosBigMap, data.selector)}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<TezosBigMapView
+				selection={select(EntityType.TezosBigMap, data.selector)}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

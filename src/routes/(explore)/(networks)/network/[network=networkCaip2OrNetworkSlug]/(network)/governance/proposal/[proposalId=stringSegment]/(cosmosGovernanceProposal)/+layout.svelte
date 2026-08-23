@@ -40,11 +40,13 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<CosmosGovernanceProposalView
-			selection={select(EntityType.CosmosGovernanceProposal, data.selector)}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<CosmosGovernanceProposalView
+				selection={select(EntityType.CosmosGovernanceProposal, data.selector)}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

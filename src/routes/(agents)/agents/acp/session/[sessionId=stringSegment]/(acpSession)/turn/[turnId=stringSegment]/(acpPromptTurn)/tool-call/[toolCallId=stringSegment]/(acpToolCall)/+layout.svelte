@@ -42,17 +42,19 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<AcpToolCallView
-			selection={
-				select(EntityType.AcpToolCall, data.selector, {
-					sources: [
-						Source.AcpLocal_JsonRpc,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<AcpToolCallView
+				selection={
+					select(EntityType.AcpToolCall, data.selector, {
+						sources: [
+							Source.AcpLocal_JsonRpc,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

@@ -41,18 +41,20 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<BlockheadLogosBlockchainNodeStateView
-			selection={
-				select(EntityType.BlockheadLogosBlockchainNodeState, data.selector, {
-					sources: [
-						Source.Local_Internal,
-						Source.LogosBlockchainNode_Rest,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<BlockheadLogosBlockchainNodeStateView
+				selection={
+					select(EntityType.BlockheadLogosBlockchainNodeState, data.selector, {
+						sources: [
+							Source.Local_Internal,
+							Source.LogosBlockchainNode_Rest,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

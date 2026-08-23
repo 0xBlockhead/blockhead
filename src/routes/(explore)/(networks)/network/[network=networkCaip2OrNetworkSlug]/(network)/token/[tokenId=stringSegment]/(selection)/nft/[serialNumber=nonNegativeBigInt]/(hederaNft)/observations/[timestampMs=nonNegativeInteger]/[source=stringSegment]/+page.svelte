@@ -24,20 +24,33 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'hedera NFT timestamp'} • hedera NFT timestamp • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<HederaNft_TimestampView
-		selection={
-			select(EntityType.HederaNft_Timestamp, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.HederaNft_Timestamp, {
 				$nft: data.selector,
 				timestampMs: Number(params.timestampMs),
 				source: params.source,
 			}, {
 				sources: [params.source],
-			})
-		}
+			})}
+		<title>{data?.title ?? 'hedera NFT timestamp'} • hedera NFT timestamp • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'hedera NFT timestamp'} • hedera NFT timestamp • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.HederaNft_Timestamp, {
+				$nft: data.selector,
+				timestampMs: Number(params.timestampMs),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+
+	<HederaNft_TimestampView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

@@ -17,15 +17,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.CompoundCometAsset, {
-		$comet: data.selector,
-		symbol: params.symbol,
-	}, {
-		sources: [
-			Source.Compound_Rest,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -34,12 +25,35 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.symbol || 'Compound Comet collateral asset')} • Compound Comet collateral asset • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.CompoundCometAsset, {
+				$comet: data.selector,
+				symbol: params.symbol,
+			}, {
+				sources: [
+					Source.Compound_Rest,
+				],
+			})}
+		<title>{data?.title ?? (pageSelection.entitySelector.symbol || 'Compound Comet collateral asset')} • Compound Comet collateral asset • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Compound Comet collateral asset'} • Compound Comet collateral asset • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.CompoundCometAsset, {
+				$comet: data.selector,
+				symbol: params.symbol,
+			}, {
+				sources: [
+					Source.Compound_Rest,
+				],
+			})}
+
 	<CompoundCometAssetView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

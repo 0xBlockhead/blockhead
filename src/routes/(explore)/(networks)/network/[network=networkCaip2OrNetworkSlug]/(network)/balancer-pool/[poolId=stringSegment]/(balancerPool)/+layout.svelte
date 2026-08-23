@@ -41,17 +41,19 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<BalancerPoolView
-			selection={
-				select(EntityType.BalancerPool, data.selector, {
-					sources: [
-						Source.Balancer_Rest,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<BalancerPoolView
+				selection={
+					select(EntityType.BalancerPool, data.selector, {
+						sources: [
+							Source.Balancer_Rest,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

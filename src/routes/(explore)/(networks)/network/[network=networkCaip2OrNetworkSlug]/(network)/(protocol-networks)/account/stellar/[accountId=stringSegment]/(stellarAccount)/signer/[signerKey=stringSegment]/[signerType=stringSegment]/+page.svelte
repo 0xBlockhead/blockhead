@@ -23,12 +23,21 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'stellar account signer'} • stellar account signer • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.StellarAccountSigner, data.selector)}
+		<title>{data?.title ?? 'stellar account signer'} • stellar account signer • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'stellar account signer'} • stellar account signer • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.StellarAccountSigner, data.selector)}
+
 	<StellarAccountSignerView
-		selection={select(EntityType.StellarAccountSigner, data.selector)}
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

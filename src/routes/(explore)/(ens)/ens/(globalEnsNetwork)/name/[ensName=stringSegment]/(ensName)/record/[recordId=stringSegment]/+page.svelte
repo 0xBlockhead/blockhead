@@ -16,13 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.EnsRecord, data.selector, {
-		sources: [
-			Source.TheGraph_Graphql,
-			Source.Voltaire_JsonRpc,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -31,12 +24,31 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.recordKey || 'ENS record')} • ENS record • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.EnsRecord, data.selector, {
+				sources: [
+					Source.TheGraph_Graphql,
+					Source.Voltaire_JsonRpc,
+				],
+			})}
+		<title>{data?.title ?? (pageSelection.entitySelector.recordKey || 'ENS record')} • ENS record • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'ENS record'} • ENS record • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.EnsRecord, data.selector, {
+				sources: [
+					Source.TheGraph_Graphql,
+					Source.Voltaire_JsonRpc,
+				],
+			})}
+
 	<EnsRecordView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

@@ -16,13 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.BlockheadLogosBlockchainNodeState, data.selector, {
-		sources: [
-			Source.Local_Internal,
-			Source.LogosBlockchainNode_Rest,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -31,12 +24,31 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.peerId || 'blockhead Logos blockchain node state')} • blockhead Logos blockchain node state • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BlockheadLogosBlockchainNodeState, data.selector, {
+				sources: [
+					Source.Local_Internal,
+					Source.LogosBlockchainNode_Rest,
+				],
+			})}
+		<title>{data?.title ?? (pageSelection.entitySelector.peerId || 'blockhead Logos blockchain node state')} • blockhead Logos blockchain node state • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'blockhead Logos blockchain node state'} • blockhead Logos blockchain node state • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BlockheadLogosBlockchainNodeState, data.selector, {
+				sources: [
+					Source.Local_Internal,
+					Source.LogosBlockchainNode_Rest,
+				],
+			})}
+
 	<BlockheadLogosBlockchainNodeStateView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

@@ -17,19 +17,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.McpResourceTemplate, {
-		$server: data.selector,
-		uriTemplate: params.uriTemplate,
-	}, {
-		sources: [
-			Source.McpDeclared_Protocol,
-		],
-		fields: {
-			title: true,
-			name: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -38,12 +25,43 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.uriTemplate ?? '') || 'mcp resource template' : (pageSelection.entity.title ?? '') || [(pageSelection.entity.name ?? ''), pageSelection.entitySelector.uriTemplate].filter(Boolean).join(' ') || 'mcp resource template')} • mcp resource template • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.McpResourceTemplate, {
+				$server: data.selector,
+				uriTemplate: params.uriTemplate,
+			}, {
+				sources: [
+					Source.McpDeclared_Protocol,
+				],
+				fields: {
+					title: true,
+					name: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.uriTemplate ?? '') || 'mcp resource template' : (pageSelection.entity.title ?? '') || [(pageSelection.entity.name ?? ''), pageSelection.entitySelector.uriTemplate].filter(Boolean).join(' ') || 'mcp resource template')} • mcp resource template • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'mcp resource template'} • mcp resource template • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.McpResourceTemplate, {
+				$server: data.selector,
+				uriTemplate: params.uriTemplate,
+			}, {
+				sources: [
+					Source.McpDeclared_Protocol,
+				],
+				fields: {
+					title: true,
+					name: true,
+				},
+			})}
+
 	<McpResourceTemplateView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

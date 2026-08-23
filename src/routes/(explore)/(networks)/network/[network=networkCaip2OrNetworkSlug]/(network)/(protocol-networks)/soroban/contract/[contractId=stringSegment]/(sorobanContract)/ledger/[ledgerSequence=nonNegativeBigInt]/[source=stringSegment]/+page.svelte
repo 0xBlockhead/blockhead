@@ -24,20 +24,33 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'soroban contract timestamp'} • soroban contract timestamp • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<SorobanContract_TimestampView
-		selection={
-			select(EntityType.SorobanContract_Timestamp, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.SorobanContract_Timestamp, {
 				$contract: data.selector,
 				ledgerSequence: BigInt(params.ledgerSequence),
 				source: params.source,
 			}, {
 				sources: [params.source],
-			})
-		}
+			})}
+		<title>{data?.title ?? 'soroban contract timestamp'} • soroban contract timestamp • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'soroban contract timestamp'} • soroban contract timestamp • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.SorobanContract_Timestamp, {
+				$contract: data.selector,
+				ledgerSequence: BigInt(params.ledgerSequence),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+
+	<SorobanContract_TimestampView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

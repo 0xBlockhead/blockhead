@@ -23,12 +23,21 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'TON workchain'} • TON workchain • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.TonWorkchain, data.selector)}
+		<title>{data?.title ?? 'TON workchain'} • TON workchain • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'TON workchain'} • TON workchain • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.TonWorkchain, data.selector)}
+
 	<TonWorkchainView
-		selection={select(EntityType.TonWorkchain, data.selector)}
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

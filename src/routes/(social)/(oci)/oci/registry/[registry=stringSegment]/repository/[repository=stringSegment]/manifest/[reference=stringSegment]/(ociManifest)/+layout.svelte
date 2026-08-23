@@ -42,17 +42,19 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<OciManifestView
-			selection={
-				select(EntityType.OciManifest, data.selector, {
-					sources: [
-						Source.OciRegistry_Distribution,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<OciManifestView
+				selection={
+					select(EntityType.OciManifest, data.selector, {
+						sources: [
+							Source.OciRegistry_Distribution,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

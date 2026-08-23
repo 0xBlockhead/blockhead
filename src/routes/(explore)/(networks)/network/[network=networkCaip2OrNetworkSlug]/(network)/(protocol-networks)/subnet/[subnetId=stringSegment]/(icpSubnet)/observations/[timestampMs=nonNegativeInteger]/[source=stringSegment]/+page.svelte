@@ -24,20 +24,33 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'ICP subnet timestamp'} • ICP subnet timestamp • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<IcpSubnet_TimestampView
-		selection={
-			select(EntityType.IcpSubnet_Timestamp, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.IcpSubnet_Timestamp, {
 				$subnet: data.selector,
 				timestampMs: Number(params.timestampMs),
 				source: params.source,
 			}, {
 				sources: [params.source],
-			})
-		}
+			})}
+		<title>{data?.title ?? 'ICP subnet timestamp'} • ICP subnet timestamp • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'ICP subnet timestamp'} • ICP subnet timestamp • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.IcpSubnet_Timestamp, {
+				$subnet: data.selector,
+				timestampMs: Number(params.timestampMs),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+
+	<IcpSubnet_TimestampView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

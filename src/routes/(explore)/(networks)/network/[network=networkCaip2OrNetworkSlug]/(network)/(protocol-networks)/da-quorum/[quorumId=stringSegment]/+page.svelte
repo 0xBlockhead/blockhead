@@ -16,13 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.ZeroGDaQuorum, data.selector, {
-		sources: [
-			Source.ZeroGChainScan_Rest,
-			Source.ZeroGStorageNode_JsonRpc,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -31,12 +24,31 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.quorumId || 'zero g da quorum')} • zero g da quorum • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.ZeroGDaQuorum, data.selector, {
+				sources: [
+					Source.ZeroGChainScan_Rest,
+					Source.ZeroGStorageNode_JsonRpc,
+				],
+			})}
+		<title>{data?.title ?? (pageSelection.entitySelector.quorumId || 'zero g da quorum')} • zero g da quorum • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'zero g da quorum'} • zero g da quorum • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.ZeroGDaQuorum, data.selector, {
+				sources: [
+					Source.ZeroGChainScan_Rest,
+					Source.ZeroGStorageNode_JsonRpc,
+				],
+			})}
+
 	<ZeroGDaQuorumView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

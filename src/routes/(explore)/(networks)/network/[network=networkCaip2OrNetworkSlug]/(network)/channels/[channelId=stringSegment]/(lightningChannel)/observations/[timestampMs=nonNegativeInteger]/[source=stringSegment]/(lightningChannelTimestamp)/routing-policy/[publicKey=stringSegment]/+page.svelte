@@ -24,20 +24,33 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'Lightning channel routing policy'} • Lightning channel routing policy • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<LightningChannelRoutingPolicy_TimestampView
-		selection={
-			select(EntityType.LightningChannelRoutingPolicy_Timestamp, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.LightningChannelRoutingPolicy_Timestamp, {
 				$channelTimestamp: data.selector,
 				$towardNode: {
 					$network: data.selector.$channel.$network,
 					publicKey: params.publicKey,
 				},
-			})
-		}
+			})}
+		<title>{data?.title ?? 'Lightning channel routing policy'} • Lightning channel routing policy • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Lightning channel routing policy'} • Lightning channel routing policy • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.LightningChannelRoutingPolicy_Timestamp, {
+				$channelTimestamp: data.selector,
+				$towardNode: {
+					$network: data.selector.$channel.$network,
+					publicKey: params.publicKey,
+				},
+			})}
+
+	<LightningChannelRoutingPolicy_TimestampView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

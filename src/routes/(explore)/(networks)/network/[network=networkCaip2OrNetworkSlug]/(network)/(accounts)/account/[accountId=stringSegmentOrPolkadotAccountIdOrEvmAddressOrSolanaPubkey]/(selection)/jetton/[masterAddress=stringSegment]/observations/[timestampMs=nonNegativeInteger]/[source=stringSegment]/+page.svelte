@@ -24,14 +24,8 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'TON jetton balance timestamp'} • TON jetton balance timestamp • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<TonJettonBalance_TimestampView
-		selection={
-			select(EntityType.TonJettonBalance_Timestamp, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.TonJettonBalance_Timestamp, {
 				$account: data.selector,
 				$jetton: {
 					$network: data.selector.$network,
@@ -41,7 +35,30 @@
 				source: params.source,
 			}, {
 				sources: [params.source],
-			})
-		}
+			})}
+		<title>{data?.title ?? 'TON jetton balance timestamp'} • TON jetton balance timestamp • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'TON jetton balance timestamp'} • TON jetton balance timestamp • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.TonJettonBalance_Timestamp, {
+				$account: data.selector,
+				$jetton: {
+					$network: data.selector.$network,
+					masterAddress: params.masterAddress,
+				},
+				timestampMs: Number(params.timestampMs),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+
+	<TonJettonBalance_TimestampView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

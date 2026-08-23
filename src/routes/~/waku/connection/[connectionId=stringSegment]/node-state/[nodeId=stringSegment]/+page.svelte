@@ -16,13 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.BlockheadWakuNodeState, data.selector, {
-		sources: [
-			Source.Local_Internal,
-			Source.WakuNode,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -31,12 +24,31 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.nodeId || 'blockhead waku node state')} • blockhead waku node state • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BlockheadWakuNodeState, data.selector, {
+				sources: [
+					Source.Local_Internal,
+					Source.WakuNode,
+				],
+			})}
+		<title>{data?.title ?? (pageSelection.entitySelector.nodeId || 'blockhead waku node state')} • blockhead waku node state • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'blockhead waku node state'} • blockhead waku node state • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BlockheadWakuNodeState, data.selector, {
+				sources: [
+					Source.Local_Internal,
+					Source.WakuNode,
+				],
+			})}
+
 	<BlockheadWakuNodeStateView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

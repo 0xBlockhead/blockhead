@@ -23,12 +23,21 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'ICP subnet'} • ICP subnet • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.IcpSubnet, data.selector)}
+		<title>{data?.title ?? 'ICP subnet'} • ICP subnet • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'ICP subnet'} • ICP subnet • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.IcpSubnet, data.selector)}
+
 	<IcpSubnetView
-		selection={select(EntityType.IcpSubnet, data.selector)}
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

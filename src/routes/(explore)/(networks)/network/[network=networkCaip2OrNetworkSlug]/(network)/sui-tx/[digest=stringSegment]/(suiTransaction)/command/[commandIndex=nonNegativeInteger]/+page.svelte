@@ -24,17 +24,27 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'Sui programmable transaction command'} • Sui programmable transaction command • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.SuiProgrammableTransactionCommand, {
+				$transaction: data.selector,
+				commandIndex: Number(params.commandIndex),
+			})}
+		<title>{data?.title ?? 'Sui programmable transaction command'} • Sui programmable transaction command • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Sui programmable transaction command'} • Sui programmable transaction command • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
-	<SuiProgrammableTransactionCommandView
-		selection={
-			select(EntityType.SuiProgrammableTransactionCommand, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.SuiProgrammableTransactionCommand, {
 				$transaction: data.selector,
 				commandIndex: Number(params.commandIndex),
-			})
-		}
+			})}
+
+	<SuiProgrammableTransactionCommandView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

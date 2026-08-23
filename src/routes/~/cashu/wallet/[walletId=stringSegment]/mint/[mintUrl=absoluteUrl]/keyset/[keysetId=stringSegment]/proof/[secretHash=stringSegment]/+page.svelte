@@ -15,8 +15,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.BlockheadCashuProof, data.selector))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -25,12 +23,21 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.secretHash || 'blockhead Cashu proof')} • blockhead Cashu proof • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BlockheadCashuProof, data.selector)}
+		<title>{data?.title ?? (pageSelection.entitySelector.secretHash || 'blockhead Cashu proof')} • blockhead Cashu proof • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'blockhead Cashu proof'} • blockhead Cashu proof • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BlockheadCashuProof, data.selector)}
+
 	<BlockheadCashuProofView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

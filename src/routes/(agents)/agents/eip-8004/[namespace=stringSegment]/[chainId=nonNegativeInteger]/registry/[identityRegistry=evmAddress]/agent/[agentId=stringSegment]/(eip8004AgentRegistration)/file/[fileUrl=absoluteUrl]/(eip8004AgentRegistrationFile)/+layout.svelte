@@ -43,11 +43,13 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<Eip8004AgentRegistrationFileView
-			selection={select(EntityType.Eip8004AgentRegistrationFile, data.selector)}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<Eip8004AgentRegistrationFileView
+				selection={select(EntityType.Eip8004AgentRegistrationFile, data.selector)}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

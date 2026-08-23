@@ -16,14 +16,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.NearValidator_Timestamp, {
-		$validator: data.selector,
-		epochId: params.epochId,
-		source: params.source,
-	}, {
-		sources: [params.source],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -32,12 +24,33 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.epochId || 'near validator timestamp')} • near validator timestamp • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.NearValidator_Timestamp, {
+				$validator: data.selector,
+				epochId: params.epochId,
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+		<title>{data?.title ?? (pageSelection.entitySelector.epochId || 'near validator timestamp')} • near validator timestamp • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'near validator timestamp'} • near validator timestamp • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.NearValidator_Timestamp, {
+				$validator: data.selector,
+				epochId: params.epochId,
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+
 	<NearValidator_TimestampView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

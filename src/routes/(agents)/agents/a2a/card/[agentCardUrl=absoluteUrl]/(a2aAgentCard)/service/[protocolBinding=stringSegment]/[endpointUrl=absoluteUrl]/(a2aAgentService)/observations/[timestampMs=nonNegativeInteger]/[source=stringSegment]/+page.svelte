@@ -16,14 +16,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.A2aAgentService_Timestamp, {
-		$service: data.selector,
-		timestampMs: Number(params.timestampMs),
-		source: params.source,
-	}, {
-		sources: [params.source],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -32,12 +24,33 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (String(pageSelection.entitySelector.timestampMs) || 'A2A agent service timestamp')} • A2A agent service timestamp • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.A2aAgentService_Timestamp, {
+				$service: data.selector,
+				timestampMs: Number(params.timestampMs),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+		<title>{data?.title ?? (String(pageSelection.entitySelector.timestampMs) || 'A2A agent service timestamp')} • A2A agent service timestamp • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'A2A agent service timestamp'} • A2A agent service timestamp • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.A2aAgentService_Timestamp, {
+				$service: data.selector,
+				timestampMs: Number(params.timestampMs),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+
 	<A2aAgentService_TimestampView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

@@ -15,12 +15,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.CardanoBlock, data.selector, {
-		fields: {
-			hash: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -29,12 +23,29 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? 'Cardano block' : pageSelection.entity.hash || 'Cardano block')} • Cardano block • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.CardanoBlock, data.selector, {
+				fields: {
+					hash: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'Cardano block' : pageSelection.entity.hash || 'Cardano block')} • Cardano block • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Cardano block'} • Cardano block • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.CardanoBlock, data.selector, {
+				fields: {
+					hash: true,
+				},
+			})}
+
 	<CardanoBlockView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

@@ -23,12 +23,21 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'hedera contract result'} • hedera contract result • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.HederaContractResult, data.selector)}
+		<title>{data?.title ?? 'hedera contract result'} • hedera contract result • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'hedera contract result'} • hedera contract result • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.HederaContractResult, data.selector)}
+
 	<HederaContractResultView
-		selection={select(EntityType.HederaContractResult, data.selector)}
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

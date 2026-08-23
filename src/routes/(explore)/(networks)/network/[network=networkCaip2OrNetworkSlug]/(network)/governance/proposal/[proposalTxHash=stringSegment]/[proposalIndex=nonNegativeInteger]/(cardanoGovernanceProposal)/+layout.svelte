@@ -41,11 +41,13 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<CardanoGovernanceProposalView
-			selection={select(EntityType.CardanoGovernanceProposal, data.selector)}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<CardanoGovernanceProposalView
+				selection={select(EntityType.CardanoGovernanceProposal, data.selector)}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

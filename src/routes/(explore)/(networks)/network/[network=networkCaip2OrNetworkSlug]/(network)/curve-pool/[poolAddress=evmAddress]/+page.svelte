@@ -16,16 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.CurvePool, data.selector, {
-		sources: [
-			Source.Curve_Rest,
-		],
-		fields: {
-			name: true,
-			symbol: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -34,12 +24,37 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? 'Curve pool' : [pageSelection.entity.name, pageSelection.entity.symbol].filter(Boolean).join(' ') || 'Curve pool')} • Curve pool • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.CurvePool, data.selector, {
+				sources: [
+					Source.Curve_Rest,
+				],
+				fields: {
+					name: true,
+					symbol: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'Curve pool' : [pageSelection.entity.name, pageSelection.entity.symbol].filter(Boolean).join(' ') || 'Curve pool')} • Curve pool • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Curve pool'} • Curve pool • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.CurvePool, data.selector, {
+				sources: [
+					Source.Curve_Rest,
+				],
+				fields: {
+					name: true,
+					symbol: true,
+				},
+			})}
+
 	<CurvePoolView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

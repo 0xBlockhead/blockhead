@@ -40,17 +40,19 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<SpecificationRealmView
-			selection={
-				select(EntityType.SpecificationRealm, data.selector, {
-					sources: [
-						Source.Constants_Internal,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<SpecificationRealmView
+				selection={
+					select(EntityType.SpecificationRealm, data.selector, {
+						sources: [
+							Source.Constants_Internal,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

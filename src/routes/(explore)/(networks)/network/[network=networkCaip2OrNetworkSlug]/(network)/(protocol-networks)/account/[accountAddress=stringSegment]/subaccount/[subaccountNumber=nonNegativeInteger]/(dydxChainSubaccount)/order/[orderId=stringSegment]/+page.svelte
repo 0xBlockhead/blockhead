@@ -16,12 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.DydxChainOrder, data.selector, {
-		sources: [
-			Source.DydxIndexer,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -30,12 +24,29 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.orderId || 'dydx chain order')} • dydx chain order • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.DydxChainOrder, data.selector, {
+				sources: [
+					Source.DydxIndexer,
+				],
+			})}
+		<title>{data?.title ?? (pageSelection.entitySelector.orderId || 'dydx chain order')} • dydx chain order • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'dydx chain order'} • dydx chain order • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.DydxChainOrder, data.selector, {
+				sources: [
+					Source.DydxIndexer,
+				],
+			})}
+
 	<DydxChainOrderView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

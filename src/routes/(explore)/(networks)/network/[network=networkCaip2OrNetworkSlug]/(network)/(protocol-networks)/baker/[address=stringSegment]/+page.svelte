@@ -23,12 +23,21 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'tezos baker'} • tezos baker • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.TezosBaker, data.selector)}
+		<title>{data?.title ?? 'tezos baker'} • tezos baker • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'tezos baker'} • tezos baker • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.TezosBaker, data.selector)}
+
 	<TezosBakerView
-		selection={select(EntityType.TezosBaker, data.selector)}
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

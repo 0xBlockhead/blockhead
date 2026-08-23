@@ -40,17 +40,19 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<AcpSessionView
-			selection={
-				select(EntityType.AcpSession, data.selector, {
-					sources: [
-						Source.AcpLocal_JsonRpc,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<AcpSessionView
+				selection={
+					select(EntityType.AcpSession, data.selector, {
+						sources: [
+							Source.AcpLocal_JsonRpc,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

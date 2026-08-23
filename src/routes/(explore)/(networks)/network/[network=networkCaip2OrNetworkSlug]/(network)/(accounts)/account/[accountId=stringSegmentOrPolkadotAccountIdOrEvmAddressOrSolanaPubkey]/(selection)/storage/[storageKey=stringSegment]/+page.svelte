@@ -16,13 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.StarknetStorageEntry, data.selector, {
-		sources: [
-			Source.Juno_JsonRpc,
-			Source.Pathfinder,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -31,12 +24,31 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.storageKey || 'starknet storage entry')} • starknet storage entry • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.StarknetStorageEntry, data.selector, {
+				sources: [
+					Source.Juno_JsonRpc,
+					Source.Pathfinder,
+				],
+			})}
+		<title>{data?.title ?? (pageSelection.entitySelector.storageKey || 'starknet storage entry')} • starknet storage entry • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'starknet storage entry'} • starknet storage entry • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.StarknetStorageEntry, data.selector, {
+				sources: [
+					Source.Juno_JsonRpc,
+					Source.Pathfinder,
+				],
+			})}
+
 	<StarknetStorageEntryView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

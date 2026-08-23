@@ -42,17 +42,19 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<StarknetTokenHoldingView
-			selection={
-				select(EntityType.StarknetTokenHolding, data.selector, {
-					sources: [
-						Source.Starkscan,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<StarknetTokenHoldingView
+				selection={
+					select(EntityType.StarknetTokenHolding, data.selector, {
+						sources: [
+							Source.Starkscan,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

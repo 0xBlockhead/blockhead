@@ -16,15 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.CelestiaNamespace, data.selector, {
-		sources: [
-			Source.Celenium_Rest,
-		],
-		fields: {
-			label: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -33,12 +24,35 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.namespaceId ?? '') || 'celestia namespace' : (pageSelection.entity.label ?? '') || pageSelection.entitySelector.namespaceId || 'celestia namespace')} • celestia namespace • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.CelestiaNamespace, data.selector, {
+				sources: [
+					Source.Celenium_Rest,
+				],
+				fields: {
+					label: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.namespaceId ?? '') || 'celestia namespace' : (pageSelection.entity.label ?? '') || pageSelection.entitySelector.namespaceId || 'celestia namespace')} • celestia namespace • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'celestia namespace'} • celestia namespace • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.CelestiaNamespace, data.selector, {
+				sources: [
+					Source.Celenium_Rest,
+				],
+				fields: {
+					label: true,
+				},
+			})}
+
 	<CelestiaNamespaceView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

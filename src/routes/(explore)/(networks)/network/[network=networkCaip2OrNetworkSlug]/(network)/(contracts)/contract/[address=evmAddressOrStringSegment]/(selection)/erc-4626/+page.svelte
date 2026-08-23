@@ -16,20 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.Erc4626Vault, data.selector, {
-		sources: [
-			Source.Blockscout_Rest,
-			Source.Defillama_Rest,
-			Source.Etherscan_Rest,
-			Source.Sourcify_Rest,
-			Source.Voltaire_JsonRpc,
-		],
-		fields: {
-			name: true,
-			symbol: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -38,12 +24,45 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? 'erc4626 vault' : [(pageSelection.entity.name ?? ''), (pageSelection.entity.symbol ?? '')].filter(Boolean).join(' ') || 'erc4626 vault')} • erc4626 vault • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.Erc4626Vault, data.selector, {
+				sources: [
+					Source.Blockscout_Rest,
+					Source.Defillama_Rest,
+					Source.Etherscan_Rest,
+					Source.Sourcify_Rest,
+					Source.Voltaire_JsonRpc,
+				],
+				fields: {
+					name: true,
+					symbol: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'erc4626 vault' : [(pageSelection.entity.name ?? ''), (pageSelection.entity.symbol ?? '')].filter(Boolean).join(' ') || 'erc4626 vault')} • erc4626 vault • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'erc4626 vault'} • erc4626 vault • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.Erc4626Vault, data.selector, {
+				sources: [
+					Source.Blockscout_Rest,
+					Source.Defillama_Rest,
+					Source.Etherscan_Rest,
+					Source.Sourcify_Rest,
+					Source.Voltaire_JsonRpc,
+				],
+				fields: {
+					name: true,
+					symbol: true,
+				},
+			})}
+
 	<Erc4626VaultView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

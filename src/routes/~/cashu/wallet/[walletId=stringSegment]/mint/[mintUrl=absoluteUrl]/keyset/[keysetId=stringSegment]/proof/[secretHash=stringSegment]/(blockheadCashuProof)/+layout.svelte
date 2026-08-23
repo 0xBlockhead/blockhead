@@ -42,11 +42,13 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<BlockheadCashuProofView
-			selection={select(EntityType.BlockheadCashuProof, data.selector)}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<BlockheadCashuProofView
+				selection={select(EntityType.BlockheadCashuProof, data.selector)}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

@@ -15,12 +15,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.ArweaveResource, data.selector, {
-		fields: {
-			canonicalUri: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -29,12 +23,29 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.transactionId ?? '') || 'arweave resource' : pageSelection.entity.canonicalUri || pageSelection.entitySelector.transactionId || 'arweave resource')} • arweave resource • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.ArweaveResource, data.selector, {
+				fields: {
+					canonicalUri: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.transactionId ?? '') || 'arweave resource' : pageSelection.entity.canonicalUri || pageSelection.entitySelector.transactionId || 'arweave resource')} • arweave resource • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'arweave resource'} • arweave resource • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.ArweaveResource, data.selector, {
+				fields: {
+					canonicalUri: true,
+				},
+			})}
+
 	<ArweaveResourceView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

@@ -16,16 +16,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.AptosEvent, {
-		$network: data.selector,
-		transactionVersion: BigInt(params.transactionVersion),
-		eventIndex: Number(params.eventIndex),
-	}, {
-		fields: {
-			eventType: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -34,12 +24,37 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? 'aptos event' : pageSelection.entity.eventType || 'aptos event')} • aptos event • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.AptosEvent, {
+				$network: data.selector,
+				transactionVersion: BigInt(params.transactionVersion),
+				eventIndex: Number(params.eventIndex),
+			}, {
+				fields: {
+					eventType: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'aptos event' : pageSelection.entity.eventType || 'aptos event')} • aptos event • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'aptos event'} • aptos event • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.AptosEvent, {
+				$network: data.selector,
+				transactionVersion: BigInt(params.transactionVersion),
+				eventIndex: Number(params.eventIndex),
+			}, {
+				fields: {
+					eventType: true,
+				},
+			})}
+
 	<AptosEventView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

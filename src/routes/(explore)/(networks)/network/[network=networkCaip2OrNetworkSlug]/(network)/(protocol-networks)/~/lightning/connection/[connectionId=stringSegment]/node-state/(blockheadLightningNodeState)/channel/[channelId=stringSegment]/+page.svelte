@@ -24,19 +24,31 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'local LND channel state'} • local LND channel state • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<BlockheadLightningChannelStateView
-		selection={
-			select(EntityType.BlockheadLightningChannelState, data.selector, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BlockheadLightningChannelState, data.selector, {
 				sources: [
 					Source.LightningLnd_Rest,
 					Source.Local_Internal,
 				],
-			})
-		}
+			})}
+		<title>{data?.title ?? 'local LND channel state'} • local LND channel state • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'local LND channel state'} • local LND channel state • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BlockheadLightningChannelState, data.selector, {
+				sources: [
+					Source.LightningLnd_Rest,
+					Source.Local_Internal,
+				],
+			})}
+
+	<BlockheadLightningChannelStateView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

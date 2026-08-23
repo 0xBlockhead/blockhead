@@ -16,13 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.McpServer, data.selector, {
-		sources: [
-			Source.Eip8004Scan_Rest,
-			Source.McpDeclared_Protocol,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -31,12 +24,31 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.serverKey || 'mcp server')} • mcp server • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.McpServer, data.selector, {
+				sources: [
+					Source.Eip8004Scan_Rest,
+					Source.McpDeclared_Protocol,
+				],
+			})}
+		<title>{data?.title ?? (pageSelection.entitySelector.serverKey || 'mcp server')} • mcp server • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'mcp server'} • mcp server • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.McpServer, data.selector, {
+				sources: [
+					Source.Eip8004Scan_Rest,
+					Source.McpDeclared_Protocol,
+				],
+			})}
+
 	<McpServerView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

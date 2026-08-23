@@ -24,17 +24,27 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'claim topic requirement'} • claim topic requirement • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.ClaimTopicRequirement, {
+				$profile: data.selector,
+				topicKey: params.topicKey,
+			})}
+		<title>{data?.title ?? 'claim topic requirement'} • claim topic requirement • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'claim topic requirement'} • claim topic requirement • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
-	<ClaimTopicRequirementView
-		selection={
-			select(EntityType.ClaimTopicRequirement, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.ClaimTopicRequirement, {
 				$profile: data.selector,
 				topicKey: params.topicKey,
-			})
-		}
+			})}
+
+	<ClaimTopicRequirementView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

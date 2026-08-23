@@ -16,17 +16,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.BlockheadWalletRequest_Timestamp, {
-		$walletRequest: data.selector,
-		timestampMs: Number(params.timestampMs),
-		source: params.source,
-	}, {
-		sources: [params.source],
-		fields: {
-			status: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -35,12 +24,39 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? 'blockhead wallet request timestamp' : pageSelection.entity.status || 'blockhead wallet request timestamp')} • blockhead wallet request timestamp • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BlockheadWalletRequest_Timestamp, {
+				$walletRequest: data.selector,
+				timestampMs: Number(params.timestampMs),
+				source: params.source,
+			}, {
+				sources: [params.source],
+				fields: {
+					status: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'blockhead wallet request timestamp' : pageSelection.entity.status || 'blockhead wallet request timestamp')} • blockhead wallet request timestamp • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'blockhead wallet request timestamp'} • blockhead wallet request timestamp • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BlockheadWalletRequest_Timestamp, {
+				$walletRequest: data.selector,
+				timestampMs: Number(params.timestampMs),
+				source: params.source,
+			}, {
+				sources: [params.source],
+				fields: {
+					status: true,
+				},
+			})}
+
 	<BlockheadWalletRequest_TimestampView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

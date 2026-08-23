@@ -23,12 +23,21 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'global agent network'} • global agent network • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType._GlobalAgentNetwork, data.selector)}
+		<title>{data?.title ?? 'global agent network'} • global agent network • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'global agent network'} • global agent network • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType._GlobalAgentNetwork, data.selector)}
+
 	<GlobalAgentNetworkView
-		selection={select(EntityType._GlobalAgentNetwork, data.selector)}
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

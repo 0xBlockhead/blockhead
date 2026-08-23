@@ -15,8 +15,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.CosmosModule, data.selector))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -25,12 +23,21 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.moduleName || 'Cosmos module')} • Cosmos module • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.CosmosModule, data.selector)}
+		<title>{data?.title ?? (pageSelection.entitySelector.moduleName || 'Cosmos module')} • Cosmos module • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Cosmos module'} • Cosmos module • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.CosmosModule, data.selector)}
+
 	<CosmosModuleView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

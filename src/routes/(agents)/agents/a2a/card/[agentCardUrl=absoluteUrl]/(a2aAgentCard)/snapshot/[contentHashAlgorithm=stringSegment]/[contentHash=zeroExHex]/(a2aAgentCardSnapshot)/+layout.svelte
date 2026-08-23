@@ -41,15 +41,17 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<A2aAgentCard_SnapshotView
-			selection={
-				select(EntityType.A2aAgentCard_Snapshot, data.selector, {
-					sources: [],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<A2aAgentCard_SnapshotView
+				selection={
+					select(EntityType.A2aAgentCard_Snapshot, data.selector, {
+						sources: [],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

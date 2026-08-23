@@ -16,16 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.RssItem, data.selector, {
-		sources: [
-			Source.Rss_Rest,
-			Source.Rss2Json_Rest,
-		],
-		fields: {
-			title: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -34,12 +24,37 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.itemIdentity ?? '') || 'RSS item' : [(pageSelection.entity.title ?? ''), pageSelection.entitySelector.itemIdentity].filter(Boolean).join(' ') || 'RSS item')} • RSS item • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.RssItem, data.selector, {
+				sources: [
+					Source.Rss_Rest,
+					Source.Rss2Json_Rest,
+				],
+				fields: {
+					title: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.itemIdentity ?? '') || 'RSS item' : [(pageSelection.entity.title ?? ''), pageSelection.entitySelector.itemIdentity].filter(Boolean).join(' ') || 'RSS item')} • RSS item • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'RSS item'} • RSS item • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.RssItem, data.selector, {
+				sources: [
+					Source.Rss_Rest,
+					Source.Rss2Json_Rest,
+				],
+				fields: {
+					title: true,
+				},
+			})}
+
 	<RssItemView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

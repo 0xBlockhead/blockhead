@@ -15,12 +15,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.FedimintFederation, data.selector, {
-		fields: {
-			name: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -29,12 +23,29 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.federationId ?? '') || 'Fedimint federation' : (pageSelection.entity.name ?? '') || pageSelection.entitySelector.federationId || 'Fedimint federation')} • Fedimint federation • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.FedimintFederation, data.selector, {
+				fields: {
+					name: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.federationId ?? '') || 'Fedimint federation' : (pageSelection.entity.name ?? '') || pageSelection.entitySelector.federationId || 'Fedimint federation')} • Fedimint federation • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Fedimint federation'} • Fedimint federation • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.FedimintFederation, data.selector, {
+				fields: {
+					name: true,
+				},
+			})}
+
 	<FedimintFederationView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

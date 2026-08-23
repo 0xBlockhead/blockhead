@@ -24,18 +24,29 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'Nostr'} • Nostr • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType._GlobalNostrNetwork, data.selector, {
+				sources: [
+					Source.Constants_Internal,
+				],
+			})}
+		<title>{data?.title ?? 'Nostr'} • Nostr • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Nostr'} • Nostr • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
-	<GlobalNostrNetworkView
-		selection={
-			select(EntityType._GlobalNostrNetwork, data.selector, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType._GlobalNostrNetwork, data.selector, {
 				sources: [
 					Source.Constants_Internal,
 				],
-			})
-		}
+			})}
+
+	<GlobalNostrNetworkView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

@@ -40,19 +40,21 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<YoutubeChannelView
-			selection={
-				select(EntityType.YoutubeChannel, data.selector, {
-					sources: [
-						Source.Youtube_Rest,
-						Source.Piped_Rest,
-						Source.Constants_Internal,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<YoutubeChannelView
+				selection={
+					select(EntityType.YoutubeChannel, data.selector, {
+						sources: [
+							Source.Youtube_Rest,
+							Source.Piped_Rest,
+							Source.Constants_Internal,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

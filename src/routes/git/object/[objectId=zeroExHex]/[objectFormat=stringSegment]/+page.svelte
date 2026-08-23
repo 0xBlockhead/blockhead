@@ -15,8 +15,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.GitObject, data.selector))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -25,12 +23,21 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.objectId || 'Git object')} • Git object • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.GitObject, data.selector)}
+		<title>{data?.title ?? (pageSelection.entitySelector.objectId || 'Git object')} • Git object • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Git object'} • Git object • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.GitObject, data.selector)}
+
 	<GitObjectView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

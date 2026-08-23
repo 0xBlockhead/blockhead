@@ -16,15 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.SwarmProtocol, data.selector, {
-		sources: [
-			Source.Constants_Internal,
-		],
-		fields: {
-			protocolName: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -33,12 +24,35 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? 'Swarm protocol' : pageSelection.entity.protocolName || 'Swarm protocol')} • Swarm protocol • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.SwarmProtocol, data.selector, {
+				sources: [
+					Source.Constants_Internal,
+				],
+				fields: {
+					protocolName: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'Swarm protocol' : pageSelection.entity.protocolName || 'Swarm protocol')} • Swarm protocol • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Swarm protocol'} • Swarm protocol • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.SwarmProtocol, data.selector, {
+				sources: [
+					Source.Constants_Internal,
+				],
+				fields: {
+					protocolName: true,
+				},
+			})}
+
 	<SwarmProtocolView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

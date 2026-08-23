@@ -41,17 +41,19 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<CardanoDRepView
-			selection={
-				select(EntityType.CardanoDRep, data.selector, {
-					sources: [
-						Source.Blockfrost_Rest,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<CardanoDRepView
+				selection={
+					select(EntityType.CardanoDRep, data.selector, {
+						sources: [
+							Source.Blockfrost_Rest,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

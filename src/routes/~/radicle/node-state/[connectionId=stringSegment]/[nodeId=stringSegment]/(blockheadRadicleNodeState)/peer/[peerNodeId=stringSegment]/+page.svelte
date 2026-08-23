@@ -17,15 +17,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.BlockheadRadiclePeer, {
-		$node: data.selector,
-		peerNodeId: params.peerNodeId,
-	}, {
-		sources: [
-			Source.Local_Internal,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -34,12 +25,35 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.peerNodeId || 'blockhead radicle peer')} • blockhead radicle peer • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BlockheadRadiclePeer, {
+				$node: data.selector,
+				peerNodeId: params.peerNodeId,
+			}, {
+				sources: [
+					Source.Local_Internal,
+				],
+			})}
+		<title>{data?.title ?? (pageSelection.entitySelector.peerNodeId || 'blockhead radicle peer')} • blockhead radicle peer • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'blockhead radicle peer'} • blockhead radicle peer • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BlockheadRadiclePeer, {
+				$node: data.selector,
+				peerNodeId: params.peerNodeId,
+			}, {
+				sources: [
+					Source.Local_Internal,
+				],
+			})}
+
 	<BlockheadRadiclePeerView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

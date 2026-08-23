@@ -40,15 +40,17 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<A2aMessageView
-			selection={
-				select(EntityType.A2aMessage, data.selector, {
-					sources: [],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<A2aMessageView
+				selection={
+					select(EntityType.A2aMessage, data.selector, {
+						sources: [],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

@@ -16,15 +16,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.BitTorrentPeer_Timestamp, {
-		$torrent: data.selector,
-		peerId: params.peerId,
-		timestampMs: Number(params.timestampMs),
-		source: params.source,
-	}, {
-		sources: [params.source],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -33,12 +24,35 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.peerId || 'bit torrent peer timestamp')} • bit torrent peer timestamp • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BitTorrentPeer_Timestamp, {
+				$torrent: data.selector,
+				peerId: params.peerId,
+				timestampMs: Number(params.timestampMs),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+		<title>{data?.title ?? (pageSelection.entitySelector.peerId || 'bit torrent peer timestamp')} • bit torrent peer timestamp • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'bit torrent peer timestamp'} • bit torrent peer timestamp • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BitTorrentPeer_Timestamp, {
+				$torrent: data.selector,
+				peerId: params.peerId,
+				timestampMs: Number(params.timestampMs),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+
 	<BitTorrentPeer_TimestampView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

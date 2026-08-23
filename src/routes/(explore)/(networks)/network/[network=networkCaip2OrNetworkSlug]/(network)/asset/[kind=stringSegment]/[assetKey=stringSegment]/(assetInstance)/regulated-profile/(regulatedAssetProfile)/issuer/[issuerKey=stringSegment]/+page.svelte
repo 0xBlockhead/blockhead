@@ -24,17 +24,27 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'trusted issuer'} • trusted issuer • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.TrustedIssuer, {
+				$profile: data.selector,
+				issuerKey: params.issuerKey,
+			})}
+		<title>{data?.title ?? 'trusted issuer'} • trusted issuer • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'trusted issuer'} • trusted issuer • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
-	<TrustedIssuerView
-		selection={
-			select(EntityType.TrustedIssuer, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.TrustedIssuer, {
 				$profile: data.selector,
 				issuerKey: params.issuerKey,
-			})
-		}
+			})}
+
+	<TrustedIssuerView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

@@ -24,14 +24,8 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'kaspa address UTXO timestamp'} • kaspa address UTXO timestamp • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<KaspaAddressUtxo_TimestampView
-		selection={
-			select(EntityType.KaspaAddressUtxo_Timestamp, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.KaspaAddressUtxo_Timestamp, {
 				$address: data.selector,
 				outpointTransactionId: params.outpointTransactionId,
 				outpointIndex: Number(params.outpointIndex),
@@ -39,7 +33,28 @@
 				source: params.source,
 			}, {
 				sources: [params.source],
-			})
-		}
+			})}
+		<title>{data?.title ?? 'kaspa address UTXO timestamp'} • kaspa address UTXO timestamp • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'kaspa address UTXO timestamp'} • kaspa address UTXO timestamp • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.KaspaAddressUtxo_Timestamp, {
+				$address: data.selector,
+				outpointTransactionId: params.outpointTransactionId,
+				outpointIndex: Number(params.outpointIndex),
+				timestampMs: Number(params.timestampMs),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+
+	<KaspaAddressUtxo_TimestampView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

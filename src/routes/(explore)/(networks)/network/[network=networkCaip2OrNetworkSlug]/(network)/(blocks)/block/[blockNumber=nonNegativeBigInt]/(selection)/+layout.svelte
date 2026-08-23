@@ -50,13 +50,15 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		{@const DetailView = data.entityType === EntityType.EvmBlock ? EvmBlockView : data.entityType === EntityType.SolanaBlock ? SolanaBlockView : data.entityType === EntityType.UtxoBlock ? UtxoBlockView : data.entityType === EntityType.PolkadotBlock ? PolkadotBlockView : data.entityType === EntityType.ArweaveBlock ? ArweaveBlockView : data.entityType === EntityType.CosmosBlock ? CosmosBlockView : data.entityType === EntityType.HederaBlock ? HederaBlockView : data.entityType === EntityType.HyperliquidBlock ? HyperliquidBlockView : data.entityType === EntityType.MoneroBlock ? MoneroBlockView : data.entityType === EntityType.NearBlock ? NearBlockView : TronBlockView}
+		{#if data?.selector != null}
+			{@const DetailView = data.entityType === EntityType.EvmBlock ? EvmBlockView : data.entityType === EntityType.SolanaBlock ? SolanaBlockView : data.entityType === EntityType.UtxoBlock ? UtxoBlockView : data.entityType === EntityType.PolkadotBlock ? PolkadotBlockView : data.entityType === EntityType.ArweaveBlock ? ArweaveBlockView : data.entityType === EntityType.CosmosBlock ? CosmosBlockView : data.entityType === EntityType.HederaBlock ? HederaBlockView : data.entityType === EntityType.HyperliquidBlock ? HyperliquidBlockView : data.entityType === EntityType.MoneroBlock ? MoneroBlockView : data.entityType === EntityType.NearBlock ? NearBlockView : TronBlockView}
 
-		<DetailView
-			selection={select(data.entityType, data.selector)}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+			<DetailView
+				selection={select(data.entityType, data.selector)}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

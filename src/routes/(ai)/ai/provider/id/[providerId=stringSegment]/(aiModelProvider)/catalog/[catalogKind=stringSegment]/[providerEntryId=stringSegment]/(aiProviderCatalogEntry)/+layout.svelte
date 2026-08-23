@@ -42,18 +42,20 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<AiProviderCatalogEntryView
-			selection={
-				select(EntityType.AiProviderCatalogEntry, data.selector, {
-					sources: [
-						Source.Anthropic_Rest,
-						Source.OpenAI_Rest,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<AiProviderCatalogEntryView
+				selection={
+					select(EntityType.AiProviderCatalogEntry, data.selector, {
+						sources: [
+							Source.Anthropic_Rest,
+							Source.OpenAI_Rest,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

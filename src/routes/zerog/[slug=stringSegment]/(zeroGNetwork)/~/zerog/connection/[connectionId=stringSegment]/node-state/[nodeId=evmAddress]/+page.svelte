@@ -16,13 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.BlockheadZeroGStorageNodeState, data.selector, {
-		sources: [
-			Source.Local_Internal,
-			Source.ZeroGStorageNode_JsonRpc,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -31,12 +24,31 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.nodeId || 'blockhead zero g storage node state')} • blockhead zero g storage node state • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BlockheadZeroGStorageNodeState, data.selector, {
+				sources: [
+					Source.Local_Internal,
+					Source.ZeroGStorageNode_JsonRpc,
+				],
+			})}
+		<title>{data?.title ?? (pageSelection.entitySelector.nodeId || 'blockhead zero g storage node state')} • blockhead zero g storage node state • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'blockhead zero g storage node state'} • blockhead zero g storage node state • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BlockheadZeroGStorageNodeState, data.selector, {
+				sources: [
+					Source.Local_Internal,
+					Source.ZeroGStorageNode_JsonRpc,
+				],
+			})}
+
 	<BlockheadZeroGStorageNodeStateView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

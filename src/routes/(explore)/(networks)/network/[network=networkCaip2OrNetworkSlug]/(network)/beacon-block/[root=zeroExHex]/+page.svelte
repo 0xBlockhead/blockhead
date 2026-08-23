@@ -16,12 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.BeaconBlock, data.selector, {
-		sources: [
-			Source.Beacon_Rest,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -30,12 +24,29 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.root || 'beacon block')} • beacon block • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BeaconBlock, data.selector, {
+				sources: [
+					Source.Beacon_Rest,
+				],
+			})}
+		<title>{data?.title ?? (pageSelection.entitySelector.root || 'beacon block')} • beacon block • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'beacon block'} • beacon block • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BeaconBlock, data.selector, {
+				sources: [
+					Source.Beacon_Rest,
+				],
+			})}
+
 	<BeaconBlockView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

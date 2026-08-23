@@ -16,12 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.CctpAllowance, data.selector, {
-		sources: [
-			Source.CircleCctpIris,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -30,12 +24,29 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.token || 'CCTP allowance')} • CCTP allowance • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.CctpAllowance, data.selector, {
+				sources: [
+					Source.CircleCctpIris,
+				],
+			})}
+		<title>{data?.title ?? (pageSelection.entitySelector.token || 'CCTP allowance')} • CCTP allowance • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'CCTP allowance'} • CCTP allowance • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.CctpAllowance, data.selector, {
+				sources: [
+					Source.CircleCctpIris,
+				],
+			})}
+
 	<CctpAllowanceView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

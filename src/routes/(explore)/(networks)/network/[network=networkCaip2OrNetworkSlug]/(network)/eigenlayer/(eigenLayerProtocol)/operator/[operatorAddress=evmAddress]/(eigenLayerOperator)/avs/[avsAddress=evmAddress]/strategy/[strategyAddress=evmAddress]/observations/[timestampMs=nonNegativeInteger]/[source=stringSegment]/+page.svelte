@@ -24,14 +24,8 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'eigen layer allocation timestamp'} • eigen layer allocation timestamp • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<EigenLayerAllocation_TimestampView
-		selection={
-			select(EntityType.EigenLayerAllocation_Timestamp, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.EigenLayerAllocation_Timestamp, {
 				$operator: data.selector,
 				$avs: {
 					$network: data.selector.$network,
@@ -45,7 +39,34 @@
 				source: params.source,
 			}, {
 				sources: [params.source],
-			})
-		}
+			})}
+		<title>{data?.title ?? 'eigen layer allocation timestamp'} • eigen layer allocation timestamp • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'eigen layer allocation timestamp'} • eigen layer allocation timestamp • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.EigenLayerAllocation_Timestamp, {
+				$operator: data.selector,
+				$avs: {
+					$network: data.selector.$network,
+					avsAddress: params.avsAddress,
+				},
+				$strategy: {
+					$network: data.selector.$network,
+					strategyAddress: params.strategyAddress,
+				},
+				timestampMs: Number(params.timestampMs),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+
+	<EigenLayerAllocation_TimestampView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

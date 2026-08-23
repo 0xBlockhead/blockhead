@@ -24,14 +24,8 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'ICP subnet canister range timestamp'} • ICP subnet canister range timestamp • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<IcpSubnetCanisterRange_TimestampView
-		selection={
-			select(EntityType.IcpSubnetCanisterRange_Timestamp, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.IcpSubnetCanisterRange_Timestamp, {
 				$subnet: data.selector,
 				rangeStart: params.rangeStart,
 				rangeEnd: params.rangeEnd,
@@ -39,7 +33,28 @@
 				source: params.source,
 			}, {
 				sources: [params.source],
-			})
-		}
+			})}
+		<title>{data?.title ?? 'ICP subnet canister range timestamp'} • ICP subnet canister range timestamp • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'ICP subnet canister range timestamp'} • ICP subnet canister range timestamp • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.IcpSubnetCanisterRange_Timestamp, {
+				$subnet: data.selector,
+				rangeStart: params.rangeStart,
+				rangeEnd: params.rangeEnd,
+				registryVersion: BigInt(params.registryVersion),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+
+	<IcpSubnetCanisterRange_TimestampView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

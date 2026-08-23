@@ -16,15 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.BitcoinMiningPool, data.selector, {
-		sources: [
-			Source.MempoolSpace_Rest,
-		],
-		fields: {
-			name: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -33,12 +24,35 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? 'Bitcoin mining pool' : pageSelection.entity.name || 'Bitcoin mining pool')} • Bitcoin mining pool • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BitcoinMiningPool, data.selector, {
+				sources: [
+					Source.MempoolSpace_Rest,
+				],
+				fields: {
+					name: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'Bitcoin mining pool' : pageSelection.entity.name || 'Bitcoin mining pool')} • Bitcoin mining pool • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Bitcoin mining pool'} • Bitcoin mining pool • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BitcoinMiningPool, data.selector, {
+				sources: [
+					Source.MempoolSpace_Rest,
+				],
+				fields: {
+					name: true,
+				},
+			})}
+
 	<BitcoinMiningPoolView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

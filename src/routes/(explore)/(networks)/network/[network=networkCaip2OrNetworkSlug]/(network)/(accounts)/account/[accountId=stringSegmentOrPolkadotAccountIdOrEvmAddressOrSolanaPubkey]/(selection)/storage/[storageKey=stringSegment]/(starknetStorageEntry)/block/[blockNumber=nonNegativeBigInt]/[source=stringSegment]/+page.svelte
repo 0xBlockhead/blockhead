@@ -24,20 +24,33 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'starknet storage entry timestamp'} • starknet storage entry timestamp • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<StarknetStorageEntry_TimestampView
-		selection={
-			select(EntityType.StarknetStorageEntry_Timestamp, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.StarknetStorageEntry_Timestamp, {
 				$entry: data.selector,
 				blockNumber: BigInt(params.blockNumber),
 				source: params.source,
 			}, {
 				sources: [params.source],
-			})
-		}
+			})}
+		<title>{data?.title ?? 'starknet storage entry timestamp'} • starknet storage entry timestamp • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'starknet storage entry timestamp'} • starknet storage entry timestamp • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.StarknetStorageEntry_Timestamp, {
+				$entry: data.selector,
+				blockNumber: BigInt(params.blockNumber),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+
+	<StarknetStorageEntry_TimestampView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

@@ -23,12 +23,21 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'Cardano stake credential'} • Cardano stake credential • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.CardanoStakeCredential, data.selector)}
+		<title>{data?.title ?? 'Cardano stake credential'} • Cardano stake credential • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Cardano stake credential'} • Cardano stake credential • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.CardanoStakeCredential, data.selector)}
+
 	<CardanoStakeCredentialView
-		selection={select(EntityType.CardanoStakeCredential, data.selector)}
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

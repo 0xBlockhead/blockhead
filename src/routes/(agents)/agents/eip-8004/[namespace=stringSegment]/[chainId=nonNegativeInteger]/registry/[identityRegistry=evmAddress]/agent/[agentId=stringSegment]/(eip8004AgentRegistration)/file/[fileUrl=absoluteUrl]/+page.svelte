@@ -15,8 +15,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.Eip8004AgentRegistrationFile, data.selector))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -25,12 +23,21 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.fileUrl || 'EIP-8004 agent registration file')} • EIP-8004 agent registration file • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.Eip8004AgentRegistrationFile, data.selector)}
+		<title>{data?.title ?? (pageSelection.entitySelector.fileUrl || 'EIP-8004 agent registration file')} • EIP-8004 agent registration file • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'EIP-8004 agent registration file'} • EIP-8004 agent registration file • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.Eip8004AgentRegistrationFile, data.selector)}
+
 	<Eip8004AgentRegistrationFileView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

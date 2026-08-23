@@ -24,19 +24,31 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'dydx chain subaccount'} • dydx chain subaccount • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<DydxChainSubaccountView
-		selection={
-			select(EntityType.DydxChainSubaccount, data.selector, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.DydxChainSubaccount, data.selector, {
 				sources: [
 					Source.DydxIndexer,
 					Source.KingnodesDydxNode,
 				],
-			})
-		}
+			})}
+		<title>{data?.title ?? 'dydx chain subaccount'} • dydx chain subaccount • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'dydx chain subaccount'} • dydx chain subaccount • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.DydxChainSubaccount, data.selector, {
+				sources: [
+					Source.DydxIndexer,
+					Source.KingnodesDydxNode,
+				],
+			})}
+
+	<DydxChainSubaccountView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

@@ -15,8 +15,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.SolanaProgram, data.selector))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -25,12 +23,21 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.programId || 'solana program')} • solana program • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.SolanaProgram, data.selector)}
+		<title>{data?.title ?? (pageSelection.entitySelector.programId || 'solana program')} • solana program • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'solana program'} • solana program • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.SolanaProgram, data.selector)}
+
 	<SolanaProgramView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

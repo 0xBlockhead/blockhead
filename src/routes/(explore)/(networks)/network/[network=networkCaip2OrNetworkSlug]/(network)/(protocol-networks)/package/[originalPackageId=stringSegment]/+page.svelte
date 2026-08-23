@@ -15,8 +15,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.SuiPackage, data.selector))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -25,12 +23,21 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.originalPackageId || 'Sui package')} • Sui package • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.SuiPackage, data.selector)}
+		<title>{data?.title ?? (pageSelection.entitySelector.originalPackageId || 'Sui package')} • Sui package • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Sui package'} • Sui package • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.SuiPackage, data.selector)}
+
 	<SuiPackageView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

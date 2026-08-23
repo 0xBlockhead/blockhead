@@ -25,14 +25,8 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'kaspa transaction'} • kaspa transaction • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<KaspaTransactionView
-		selection={
-			select(EntityType.KaspaTransaction, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.KaspaTransaction, {
 				$network: data.selector,
 				transactionId: params.transactionId,
 			}, {
@@ -42,7 +36,30 @@
 					Source.KaspaNode_Rest,
 					Source.KaspaNode_Wrpc,
 				],
-			})
-		}
+			})}
+		<title>{data?.title ?? 'kaspa transaction'} • kaspa transaction • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'kaspa transaction'} • kaspa transaction • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.KaspaTransaction, {
+				$network: data.selector,
+				transactionId: params.transactionId,
+			}, {
+				sources: [
+					Source.KaspaExplorer,
+					Source.KaspaNode_Grpc,
+					Source.KaspaNode_Rest,
+					Source.KaspaNode_Wrpc,
+				],
+			})}
+
+	<KaspaTransactionView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

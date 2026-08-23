@@ -16,15 +16,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.EvmTrace, {
-		$transaction: data.selector,
-		traceAddress: params.traceAddress,
-	}, {
-		fields: {
-			index: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -33,12 +24,35 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? 'EVM trace' : (String(pageSelection.entity.index ?? '') ? 'Trace #' + String(pageSelection.entity.index ?? '') : '') || (pageSelection.entitySelector.traceAddress ?? '') || 'EVM trace')} • EVM trace • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.EvmTrace, {
+				$transaction: data.selector,
+				traceAddress: params.traceAddress,
+			}, {
+				fields: {
+					index: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'EVM trace' : (String(pageSelection.entity.index ?? '') ? 'Trace #' + String(pageSelection.entity.index ?? '') : '') || (pageSelection.entitySelector.traceAddress ?? '') || 'EVM trace')} • EVM trace • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'EVM trace'} • EVM trace • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.EvmTrace, {
+				$transaction: data.selector,
+				traceAddress: params.traceAddress,
+			}, {
+				fields: {
+					index: true,
+				},
+			})}
+
 	<EvmTraceView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

@@ -17,18 +17,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.CurveLendingVault, {
-		$network: data.selector,
-		vaultAddress: params.vaultAddress,
-	}, {
-		sources: [
-			Source.Curve_Rest,
-		],
-		fields: {
-			name: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -37,12 +25,41 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? 'Curve Lend vault' : pageSelection.entity.name || 'Curve Lend vault')} • Curve Lend vault • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.CurveLendingVault, {
+				$network: data.selector,
+				vaultAddress: params.vaultAddress,
+			}, {
+				sources: [
+					Source.Curve_Rest,
+				],
+				fields: {
+					name: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'Curve Lend vault' : pageSelection.entity.name || 'Curve Lend vault')} • Curve Lend vault • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Curve Lend vault'} • Curve Lend vault • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.CurveLendingVault, {
+				$network: data.selector,
+				vaultAddress: params.vaultAddress,
+			}, {
+				sources: [
+					Source.Curve_Rest,
+				],
+				fields: {
+					name: true,
+				},
+			})}
+
 	<CurveLendingVaultView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

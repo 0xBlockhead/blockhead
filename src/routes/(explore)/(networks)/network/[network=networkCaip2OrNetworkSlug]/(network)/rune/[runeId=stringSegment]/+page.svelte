@@ -16,16 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.BitcoinRune, data.selector, {
-		sources: [
-			Source.UniSat_Rest,
-		],
-		fields: {
-			spacedRune: true,
-			rune: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -34,12 +24,37 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? 'Bitcoin Rune' : [(pageSelection.entity.spacedRune ?? ''), (pageSelection.entity.rune ?? '')].filter(Boolean).join(' ') || 'Bitcoin Rune')} • Bitcoin Rune • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BitcoinRune, data.selector, {
+				sources: [
+					Source.UniSat_Rest,
+				],
+				fields: {
+					spacedRune: true,
+					rune: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'Bitcoin Rune' : [(pageSelection.entity.spacedRune ?? ''), (pageSelection.entity.rune ?? '')].filter(Boolean).join(' ') || 'Bitcoin Rune')} • Bitcoin Rune • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Bitcoin Rune'} • Bitcoin Rune • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BitcoinRune, data.selector, {
+				sources: [
+					Source.UniSat_Rest,
+				],
+				fields: {
+					spacedRune: true,
+					rune: true,
+				},
+			})}
+
 	<BitcoinRuneView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

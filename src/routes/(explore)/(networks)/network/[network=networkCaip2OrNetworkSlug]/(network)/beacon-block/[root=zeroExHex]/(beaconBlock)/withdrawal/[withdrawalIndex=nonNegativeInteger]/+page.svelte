@@ -17,16 +17,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.BeaconWithdrawal, {
-		$block: data.selector,
-		withdrawalIndex: Number(params.withdrawalIndex),
-	}, {
-		sources: [
-			Source.Beacon_Rest,
-			Source.BeaconchaIn_Rest,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -35,12 +25,37 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? ((String(pageSelection.entitySelector.withdrawalIndex ?? '') ? 'Withdrawal #' + String(pageSelection.entitySelector.withdrawalIndex ?? '') : '') || 'beacon withdrawal')} • beacon withdrawal • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BeaconWithdrawal, {
+				$block: data.selector,
+				withdrawalIndex: Number(params.withdrawalIndex),
+			}, {
+				sources: [
+					Source.Beacon_Rest,
+					Source.BeaconchaIn_Rest,
+				],
+			})}
+		<title>{data?.title ?? ((String(pageSelection.entitySelector.withdrawalIndex ?? '') ? 'Withdrawal #' + String(pageSelection.entitySelector.withdrawalIndex ?? '') : '') || 'beacon withdrawal')} • beacon withdrawal • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'beacon withdrawal'} • beacon withdrawal • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BeaconWithdrawal, {
+				$block: data.selector,
+				withdrawalIndex: Number(params.withdrawalIndex),
+			}, {
+				sources: [
+					Source.Beacon_Rest,
+					Source.BeaconchaIn_Rest,
+				],
+			})}
+
 	<BeaconWithdrawalView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

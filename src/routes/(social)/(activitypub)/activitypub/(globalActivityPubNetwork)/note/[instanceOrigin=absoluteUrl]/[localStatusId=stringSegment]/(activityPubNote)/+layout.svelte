@@ -41,17 +41,19 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<ActivityPubNoteView
-			selection={
-				select(EntityType.ActivityPubNote, data.selector, {
-					sources: [
-						Source.Mastodon_Rest,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<ActivityPubNoteView
+				selection={
+					select(EntityType.ActivityPubNote, data.selector, {
+						sources: [
+							Source.Mastodon_Rest,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

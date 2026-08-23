@@ -24,20 +24,33 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'tezos baking right timestamp'} • tezos baking right timestamp • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<TezosBakingRight_TimestampView
-		selection={
-			select(EntityType.TezosBakingRight_Timestamp, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.TezosBakingRight_Timestamp, {
 				$right: data.selector,
 				timestampMs: Number(params.timestampMs),
 				source: params.source,
 			}, {
 				sources: [params.source],
-			})
-		}
+			})}
+		<title>{data?.title ?? 'tezos baking right timestamp'} • tezos baking right timestamp • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'tezos baking right timestamp'} • tezos baking right timestamp • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.TezosBakingRight_Timestamp, {
+				$right: data.selector,
+				timestampMs: Number(params.timestampMs),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+
+	<TezosBakingRight_TimestampView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

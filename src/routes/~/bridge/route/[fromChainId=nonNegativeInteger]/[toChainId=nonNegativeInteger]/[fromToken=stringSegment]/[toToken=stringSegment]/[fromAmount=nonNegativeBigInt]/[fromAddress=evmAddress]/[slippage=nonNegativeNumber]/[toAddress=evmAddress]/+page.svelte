@@ -16,12 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.BridgeRoute, data.selector, {
-		sources: [
-			Source.Lifi_Rest,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -30,12 +24,29 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? ([String(pageSelection.entitySelector.fromChainId), 'to', String(pageSelection.entitySelector.toChainId)].filter(Boolean).join(' ') || 'bridge route')} • bridge route • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BridgeRoute, data.selector, {
+				sources: [
+					Source.Lifi_Rest,
+				],
+			})}
+		<title>{data?.title ?? ([String(pageSelection.entitySelector.fromChainId), 'to', String(pageSelection.entitySelector.toChainId)].filter(Boolean).join(' ') || 'bridge route')} • bridge route • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'bridge route'} • bridge route • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BridgeRoute, data.selector, {
+				sources: [
+					Source.Lifi_Rest,
+				],
+			})}
+
 	<BridgeRouteView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

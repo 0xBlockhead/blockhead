@@ -43,17 +43,19 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<MoneroKeyImageView
-			selection={
-				select(EntityType.MoneroKeyImage, data.selector, {
-					sources: [
-						Source.MoneroDaemonRpc_JsonRpc,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<MoneroKeyImageView
+				selection={
+					select(EntityType.MoneroKeyImage, data.selector, {
+						sources: [
+							Source.MoneroDaemonRpc_JsonRpc,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

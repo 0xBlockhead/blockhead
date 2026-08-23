@@ -41,17 +41,19 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<BlockheadLightningPaymentView
-			selection={
-				select(EntityType.BlockheadLightningPayment, data.selector, {
-					sources: [
-						Source.LightningLnd_Rest,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<BlockheadLightningPaymentView
+				selection={
+					select(EntityType.BlockheadLightningPayment, data.selector, {
+						sources: [
+							Source.LightningLnd_Rest,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

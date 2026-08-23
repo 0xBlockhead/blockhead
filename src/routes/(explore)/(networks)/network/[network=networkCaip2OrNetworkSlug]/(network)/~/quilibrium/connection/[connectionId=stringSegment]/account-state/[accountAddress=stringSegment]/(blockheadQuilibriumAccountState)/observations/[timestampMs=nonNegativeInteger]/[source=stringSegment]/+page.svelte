@@ -16,14 +16,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.BlockheadQuilibriumAccountState_Timestamp, {
-		$accountState: data.selector,
-		timestampMs: Number(params.timestampMs),
-		source: params.source,
-	}, {
-		sources: [params.source],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -32,12 +24,33 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (String(pageSelection.entitySelector.timestampMs) || 'blockhead quilibrium account state timestamp')} • blockhead quilibrium account state timestamp • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BlockheadQuilibriumAccountState_Timestamp, {
+				$accountState: data.selector,
+				timestampMs: Number(params.timestampMs),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+		<title>{data?.title ?? (String(pageSelection.entitySelector.timestampMs) || 'blockhead quilibrium account state timestamp')} • blockhead quilibrium account state timestamp • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'blockhead quilibrium account state timestamp'} • blockhead quilibrium account state timestamp • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BlockheadQuilibriumAccountState_Timestamp, {
+				$accountState: data.selector,
+				timestampMs: Number(params.timestampMs),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+
 	<BlockheadQuilibriumAccountState_TimestampView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

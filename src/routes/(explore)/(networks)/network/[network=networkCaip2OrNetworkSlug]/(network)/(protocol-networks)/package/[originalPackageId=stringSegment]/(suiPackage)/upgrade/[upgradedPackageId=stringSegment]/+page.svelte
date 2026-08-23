@@ -24,17 +24,27 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'Sui package upgrade'} • Sui package upgrade • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.SuiPackageUpgrade, {
+				$package: data.selector,
+				upgradedPackageId: params.upgradedPackageId,
+			})}
+		<title>{data?.title ?? 'Sui package upgrade'} • Sui package upgrade • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Sui package upgrade'} • Sui package upgrade • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
-	<SuiPackageUpgradeView
-		selection={
-			select(EntityType.SuiPackageUpgrade, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.SuiPackageUpgrade, {
 				$package: data.selector,
 				upgradedPackageId: params.upgradedPackageId,
-			})
-		}
+			})}
+
+	<SuiPackageUpgradeView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

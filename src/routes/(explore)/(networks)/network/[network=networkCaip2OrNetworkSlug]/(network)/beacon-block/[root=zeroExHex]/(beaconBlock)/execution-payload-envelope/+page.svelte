@@ -16,15 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.BeaconExecutionPayloadEnvelope, data.selector, {
-		sources: [
-			Source.Beacon_Rest,
-		],
-		fields: {
-			blockNumber: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -33,12 +24,35 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? 'Beacon execution payload envelope' : 'Execution block ' + String(pageSelection.entity.blockNumber))} • Beacon execution payload envelope • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BeaconExecutionPayloadEnvelope, data.selector, {
+				sources: [
+					Source.Beacon_Rest,
+				],
+				fields: {
+					blockNumber: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'Beacon execution payload envelope' : 'Execution block ' + String(pageSelection.entity.blockNumber))} • Beacon execution payload envelope • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Beacon execution payload envelope'} • Beacon execution payload envelope • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BeaconExecutionPayloadEnvelope, data.selector, {
+				sources: [
+					Source.Beacon_Rest,
+				],
+				fields: {
+					blockNumber: true,
+				},
+			})}
+
 	<BeaconExecutionPayloadEnvelopeView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

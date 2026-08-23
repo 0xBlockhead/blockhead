@@ -16,12 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.QuilibriumShard, data.selector, {
-		sources: [
-			Source.QuilibriumNode_Grpc,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -30,12 +24,29 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.shardKey || 'quilibrium shard')} • quilibrium shard • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.QuilibriumShard, data.selector, {
+				sources: [
+					Source.QuilibriumNode_Grpc,
+				],
+			})}
+		<title>{data?.title ?? (pageSelection.entitySelector.shardKey || 'quilibrium shard')} • quilibrium shard • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'quilibrium shard'} • quilibrium shard • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.QuilibriumShard, data.selector, {
+				sources: [
+					Source.QuilibriumNode_Grpc,
+				],
+			})}
+
 	<QuilibriumShardView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

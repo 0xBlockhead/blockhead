@@ -40,17 +40,19 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<BlockheadLocalMediaIngestView
-			selection={
-				select(EntityType.BlockheadLocalMediaIngest, data.selector, {
-					sources: [
-						Source.Local_Internal,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<BlockheadLocalMediaIngestView
+				selection={
+					select(EntityType.BlockheadLocalMediaIngest, data.selector, {
+						sources: [
+							Source.Local_Internal,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

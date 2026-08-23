@@ -17,15 +17,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.McpServerPackageVersion, {
-		$package: data.selector,
-		version: params.version,
-	}, {
-		sources: [
-			Source.McpPackageRegistry_Rest,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -34,12 +25,35 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? ((pageSelection.entitySelector.version ?? '') || 'mcp server package version')} • mcp server package version • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.McpServerPackageVersion, {
+				$package: data.selector,
+				version: params.version,
+			}, {
+				sources: [
+					Source.McpPackageRegistry_Rest,
+				],
+			})}
+		<title>{data?.title ?? ((pageSelection.entitySelector.version ?? '') || 'mcp server package version')} • mcp server package version • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'mcp server package version'} • mcp server package version • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.McpServerPackageVersion, {
+				$package: data.selector,
+				version: params.version,
+			}, {
+				sources: [
+					Source.McpPackageRegistry_Rest,
+				],
+			})}
+
 	<McpServerPackageVersionView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

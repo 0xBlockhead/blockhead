@@ -24,20 +24,33 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'tezos token transfer'} • tezos token transfer • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<TezosTokenTransferView
-		selection={
-			select(EntityType.TezosTokenTransfer, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.TezosTokenTransfer, {
 				$network: data.selector,
 				transferId: params.transferId,
 				source: params.source,
 			}, {
 				sources: [params.source],
-			})
-		}
+			})}
+		<title>{data?.title ?? 'tezos token transfer'} • tezos token transfer • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'tezos token transfer'} • tezos token transfer • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.TezosTokenTransfer, {
+				$network: data.selector,
+				transferId: params.transferId,
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+
+	<TezosTokenTransferView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

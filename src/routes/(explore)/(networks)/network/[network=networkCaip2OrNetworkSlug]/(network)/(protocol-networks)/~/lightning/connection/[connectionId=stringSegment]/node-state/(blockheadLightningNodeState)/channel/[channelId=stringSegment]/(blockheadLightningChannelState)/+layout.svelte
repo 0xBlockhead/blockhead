@@ -42,18 +42,20 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<BlockheadLightningChannelStateView
-			selection={
-				select(EntityType.BlockheadLightningChannelState, data.selector, {
-					sources: [
-						Source.LightningLnd_Rest,
-						Source.Local_Internal,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<BlockheadLightningChannelStateView
+				selection={
+					select(EntityType.BlockheadLightningChannelState, data.selector, {
+						sources: [
+							Source.LightningLnd_Rest,
+							Source.Local_Internal,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

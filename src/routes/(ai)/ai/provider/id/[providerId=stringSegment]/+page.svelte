@@ -15,13 +15,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.AiModelProvider, data.selector, {
-		fields: {
-			label: true,
-			domain: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -30,12 +23,31 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.providerId ?? '') || 'AI model provider' : (pageSelection.entity.label ?? '') || [(pageSelection.entitySelector.providerId ?? ''), (pageSelection.entity.domain ?? '')].filter(Boolean).join(' ') || 'AI model provider')} • AI model provider • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.AiModelProvider, data.selector, {
+				fields: {
+					label: true,
+					domain: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.providerId ?? '') || 'AI model provider' : (pageSelection.entity.label ?? '') || [(pageSelection.entitySelector.providerId ?? ''), (pageSelection.entity.domain ?? '')].filter(Boolean).join(' ') || 'AI model provider')} • AI model provider • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'AI model provider'} • AI model provider • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.AiModelProvider, data.selector, {
+				fields: {
+					label: true,
+					domain: true,
+				},
+			})}
+
 	<AiModelProviderView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

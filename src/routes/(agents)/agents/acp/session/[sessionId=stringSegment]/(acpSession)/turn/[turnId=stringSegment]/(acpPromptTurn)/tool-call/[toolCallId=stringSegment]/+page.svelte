@@ -16,12 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.AcpToolCall, data.selector, {
-		sources: [
-			Source.AcpLocal_JsonRpc,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -30,12 +24,29 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.toolCallId || 'ACP tool call')} • ACP tool call • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.AcpToolCall, data.selector, {
+				sources: [
+					Source.AcpLocal_JsonRpc,
+				],
+			})}
+		<title>{data?.title ?? (pageSelection.entitySelector.toolCallId || 'ACP tool call')} • ACP tool call • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'ACP tool call'} • ACP tool call • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.AcpToolCall, data.selector, {
+				sources: [
+					Source.AcpLocal_JsonRpc,
+				],
+			})}
+
 	<AcpToolCallView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

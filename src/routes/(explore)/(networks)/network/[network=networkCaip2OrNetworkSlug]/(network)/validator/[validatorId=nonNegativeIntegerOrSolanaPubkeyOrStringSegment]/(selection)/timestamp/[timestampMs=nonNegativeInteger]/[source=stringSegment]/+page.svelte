@@ -16,14 +16,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.CosmosValidator_Timestamp, {
-		$validator: data.selector,
-		timestampMs: Number(params.timestampMs),
-		source: params.source,
-	}, {
-		sources: [params.source],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -32,12 +24,33 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.source || 'Cosmos validator timestamp')} • Cosmos validator timestamp • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.CosmosValidator_Timestamp, {
+				$validator: data.selector,
+				timestampMs: Number(params.timestampMs),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+		<title>{data?.title ?? (pageSelection.entitySelector.source || 'Cosmos validator timestamp')} • Cosmos validator timestamp • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Cosmos validator timestamp'} • Cosmos validator timestamp • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.CosmosValidator_Timestamp, {
+				$validator: data.selector,
+				timestampMs: Number(params.timestampMs),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+
 	<CosmosValidator_TimestampView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

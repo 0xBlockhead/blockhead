@@ -42,11 +42,13 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<GitForgeReleaseView
-			selection={select(EntityType.GitForgeRelease, data.selector)}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<GitForgeReleaseView
+				selection={select(EntityType.GitForgeRelease, data.selector)}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

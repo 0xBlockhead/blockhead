@@ -41,18 +41,20 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<UniswapV3PositionView
-			selection={
-				select(EntityType.UniswapV3Position, data.selector, {
-					sources: [
-						Source.Voltaire_JsonRpc,
-						Source.UniswapContracts_Evm,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<UniswapV3PositionView
+				selection={
+					select(EntityType.UniswapV3Position, data.selector, {
+						sources: [
+							Source.Voltaire_JsonRpc,
+							Source.UniswapContracts_Evm,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

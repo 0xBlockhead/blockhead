@@ -41,17 +41,19 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<EigenLayerAvsView
-			selection={
-				select(EntityType.EigenLayerAvs, data.selector, {
-					sources: [
-						Source.EigenExplorer_Rest,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<EigenLayerAvsView
+				selection={
+					select(EntityType.EigenLayerAvs, data.selector, {
+						sources: [
+							Source.EigenExplorer_Rest,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

@@ -16,12 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.BlockheadLitecoinMwebWalletState, data.selector, {
-		sources: [
-			Source.Local_Internal,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -30,12 +24,29 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.walletId || 'blockhead litecoin mweb wallet state')} • blockhead litecoin mweb wallet state • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BlockheadLitecoinMwebWalletState, data.selector, {
+				sources: [
+					Source.Local_Internal,
+				],
+			})}
+		<title>{data?.title ?? (pageSelection.entitySelector.walletId || 'blockhead litecoin mweb wallet state')} • blockhead litecoin mweb wallet state • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'blockhead litecoin mweb wallet state'} • blockhead litecoin mweb wallet state • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BlockheadLitecoinMwebWalletState, data.selector, {
+				sources: [
+					Source.Local_Internal,
+				],
+			})}
+
 	<BlockheadLitecoinMwebWalletStateView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

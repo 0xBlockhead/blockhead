@@ -24,14 +24,8 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'tezos token balance timestamp'} • tezos token balance timestamp • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<TezosTokenBalance_TimestampView
-		selection={
-			select(EntityType.TezosTokenBalance_Timestamp, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.TezosTokenBalance_Timestamp, {
 				$account: data.selector,
 				$token: {
 					$network: data.selector.$network,
@@ -42,7 +36,31 @@
 				source: params.source,
 			}, {
 				sources: [params.source],
-			})
-		}
+			})}
+		<title>{data?.title ?? 'tezos token balance timestamp'} • tezos token balance timestamp • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'tezos token balance timestamp'} • tezos token balance timestamp • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.TezosTokenBalance_Timestamp, {
+				$account: data.selector,
+				$token: {
+					$network: data.selector.$network,
+					contractAddress: params.contractAddress,
+					tokenId: BigInt(params.tokenId),
+				},
+				level: BigInt(params.level),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+
+	<TezosTokenBalance_TimestampView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

@@ -40,19 +40,21 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<NostrProfileView
-			selection={
-				select(EntityType.NostrProfile, data.selector, {
-					sources: [
-						Source.Constants_Internal,
-						Source.NostrRelay_WebSocket,
-						Source.Primal_Rest,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<NostrProfileView
+				selection={
+					select(EntityType.NostrProfile, data.selector, {
+						sources: [
+							Source.Constants_Internal,
+							Source.NostrRelay_WebSocket,
+							Source.Primal_Rest,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

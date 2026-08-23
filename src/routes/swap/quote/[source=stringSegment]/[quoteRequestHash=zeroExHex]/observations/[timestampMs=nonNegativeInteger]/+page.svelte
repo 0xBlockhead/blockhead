@@ -23,16 +23,25 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'swap quote timestamp'} • swap quote timestamp • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.SwapQuote_Timestamp, data.selector, {
+				sources: [data.selector.source],
+			})}
+		<title>{data?.title ?? 'swap quote timestamp'} • swap quote timestamp • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'swap quote timestamp'} • swap quote timestamp • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
-	<SwapQuote_TimestampView
-		selection={
-			select(EntityType.SwapQuote_Timestamp, data.selector, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.SwapQuote_Timestamp, data.selector, {
 				sources: [data.selector.source],
-			})
-		}
+			})}
+
+	<SwapQuote_TimestampView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

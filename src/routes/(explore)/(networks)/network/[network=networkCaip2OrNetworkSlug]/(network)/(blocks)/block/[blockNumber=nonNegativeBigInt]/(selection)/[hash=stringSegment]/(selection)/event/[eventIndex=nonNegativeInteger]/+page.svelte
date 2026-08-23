@@ -16,15 +16,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.PolkadotEvent, {
-		$block: data.selector,
-		indexInBlock: Number(params.eventIndex),
-	}, {
-		fields: {
-			eventName: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -33,12 +24,35 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? 'Event ' + String(pageSelection.entitySelector.indexInBlock ?? '') : [pageSelection.entity.eventName, 'Event ' + String(pageSelection.entitySelector.indexInBlock)].filter(Boolean).join(' ') || 'Polkadot event')} • Polkadot event • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.PolkadotEvent, {
+				$block: data.selector,
+				indexInBlock: Number(params.eventIndex),
+			}, {
+				fields: {
+					eventName: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'Event ' + String(pageSelection.entitySelector.indexInBlock ?? '') : [pageSelection.entity.eventName, 'Event ' + String(pageSelection.entitySelector.indexInBlock)].filter(Boolean).join(' ') || 'Polkadot event')} • Polkadot event • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Polkadot event'} • Polkadot event • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.PolkadotEvent, {
+				$block: data.selector,
+				indexInBlock: Number(params.eventIndex),
+			}, {
+				fields: {
+					eventName: true,
+				},
+			})}
+
 	<PolkadotEventView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

@@ -24,20 +24,33 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'Network timestamp'} • Network timestamp • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<Network_TimestampView
-		selection={
-			select(EntityType.Network_Timestamp, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.Network_Timestamp, {
 				$network: data.selector,
 				timestampMs: Number(params.timestampMs),
 				source: params.source,
 			}, {
 				sources: [params.source],
-			})
-		}
+			})}
+		<title>{data?.title ?? 'Network timestamp'} • Network timestamp • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Network timestamp'} • Network timestamp • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.Network_Timestamp, {
+				$network: data.selector,
+				timestampMs: Number(params.timestampMs),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+
+	<Network_TimestampView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

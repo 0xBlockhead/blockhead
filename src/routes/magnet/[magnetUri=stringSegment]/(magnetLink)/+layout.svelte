@@ -39,11 +39,13 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<MagnetLinkView
-			selection={select(EntityType.MagnetLink, data.selector)}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<MagnetLinkView
+				selection={select(EntityType.MagnetLink, data.selector)}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

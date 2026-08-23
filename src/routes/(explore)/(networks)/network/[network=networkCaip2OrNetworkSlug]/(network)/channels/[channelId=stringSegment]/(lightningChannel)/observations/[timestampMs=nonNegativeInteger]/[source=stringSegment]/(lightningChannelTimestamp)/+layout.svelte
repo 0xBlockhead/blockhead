@@ -42,11 +42,13 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<LightningChannel_TimestampView
-			selection={select(EntityType.LightningChannel_Timestamp, data.selector)}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<LightningChannel_TimestampView
+				selection={select(EntityType.LightningChannel_Timestamp, data.selector)}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

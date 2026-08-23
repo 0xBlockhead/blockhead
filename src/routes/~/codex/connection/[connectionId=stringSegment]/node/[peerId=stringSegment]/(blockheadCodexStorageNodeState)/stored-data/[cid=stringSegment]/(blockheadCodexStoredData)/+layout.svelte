@@ -42,17 +42,19 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<BlockheadCodexStoredDataView
-			selection={
-				select(EntityType.BlockheadCodexStoredData, data.selector, {
-					sources: [
-						Source.Local_Internal,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<BlockheadCodexStoredDataView
+				selection={
+					select(EntityType.BlockheadCodexStoredData, data.selector, {
+						sources: [
+							Source.Local_Internal,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

@@ -16,12 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.OsmosisPosition, data.selector, {
-		sources: [
-			Source.Osmosis_LCD_Rest,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -30,12 +24,29 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.positionId || 'Osmosis position')} • Osmosis position • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.OsmosisPosition, data.selector, {
+				sources: [
+					Source.Osmosis_LCD_Rest,
+				],
+			})}
+		<title>{data?.title ?? (pageSelection.entitySelector.positionId || 'Osmosis position')} • Osmosis position • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Osmosis position'} • Osmosis position • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.OsmosisPosition, data.selector, {
+				sources: [
+					Source.Osmosis_LCD_Rest,
+				],
+			})}
+
 	<OsmosisPositionView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

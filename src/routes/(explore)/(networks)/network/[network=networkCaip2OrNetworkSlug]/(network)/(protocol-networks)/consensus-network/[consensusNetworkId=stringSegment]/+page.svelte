@@ -16,12 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.ZeroGConsensusNetwork, data.selector, {
-		sources: [
-			Source.ZeroGChainScan_Rest,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -30,12 +24,29 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.consensusNetworkId || 'zero g consensus network')} • zero g consensus network • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.ZeroGConsensusNetwork, data.selector, {
+				sources: [
+					Source.ZeroGChainScan_Rest,
+				],
+			})}
+		<title>{data?.title ?? (pageSelection.entitySelector.consensusNetworkId || 'zero g consensus network')} • zero g consensus network • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'zero g consensus network'} • zero g consensus network • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.ZeroGConsensusNetwork, data.selector, {
+				sources: [
+					Source.ZeroGChainScan_Rest,
+				],
+			})}
+
 	<ZeroGConsensusNetworkView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

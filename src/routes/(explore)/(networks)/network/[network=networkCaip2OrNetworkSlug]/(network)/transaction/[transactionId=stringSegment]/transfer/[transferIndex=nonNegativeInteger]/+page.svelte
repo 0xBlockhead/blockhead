@@ -24,18 +24,29 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'tron token transfer'} • tron token transfer • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.TronTokenTransfer, {
+				$network: data.selector,
+				transactionId: params.transactionId,
+				transferIndex: Number(params.transferIndex),
+			})}
+		<title>{data?.title ?? 'tron token transfer'} • tron token transfer • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'tron token transfer'} • tron token transfer • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
-	<TronTokenTransferView
-		selection={
-			select(EntityType.TronTokenTransfer, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.TronTokenTransfer, {
 				$network: data.selector,
 				transactionId: params.transactionId,
 				transferIndex: Number(params.transferIndex),
-			})
-		}
+			})}
+
+	<TronTokenTransferView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

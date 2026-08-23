@@ -24,19 +24,31 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'Sui checkpoint'} • Sui checkpoint • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<SuiCheckpointView
-		selection={
-			select(EntityType.SuiCheckpoint, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.SuiCheckpoint, {
 				$network: {
 					$network: data.selector,
 				},
 				sequence: BigInt(params.sequence),
-			})
-		}
+			})}
+		<title>{data?.title ?? 'Sui checkpoint'} • Sui checkpoint • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Sui checkpoint'} • Sui checkpoint • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.SuiCheckpoint, {
+				$network: {
+					$network: data.selector,
+				},
+				sequence: BigInt(params.sequence),
+			})}
+
+	<SuiCheckpointView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

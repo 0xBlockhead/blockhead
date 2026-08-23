@@ -24,17 +24,27 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'hedera schedule signature'} • hedera schedule signature • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.HederaScheduleSignature, {
+				$schedule: data.selector,
+				publicKeyPrefix: params.publicKeyPrefix,
+			})}
+		<title>{data?.title ?? 'hedera schedule signature'} • hedera schedule signature • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'hedera schedule signature'} • hedera schedule signature • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
-	<HederaScheduleSignatureView
-		selection={
-			select(EntityType.HederaScheduleSignature, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.HederaScheduleSignature, {
 				$schedule: data.selector,
 				publicKeyPrefix: params.publicKeyPrefix,
-			})
-		}
+			})}
+
+	<HederaScheduleSignatureView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

@@ -24,20 +24,33 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'radicle signed ref timestamp'} • radicle signed ref timestamp • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<RadicleSignedRef_TimestampView
-		selection={
-			select(EntityType.RadicleSignedRef_Timestamp, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.RadicleSignedRef_Timestamp, {
 				$signedRef: data.selector,
 				timestampMs: Number(params.timestampMs),
 				source: params.source,
 			}, {
 				sources: [params.source],
-			})
-		}
+			})}
+		<title>{data?.title ?? 'radicle signed ref timestamp'} • radicle signed ref timestamp • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'radicle signed ref timestamp'} • radicle signed ref timestamp • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.RadicleSignedRef_Timestamp, {
+				$signedRef: data.selector,
+				timestampMs: Number(params.timestampMs),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+
+	<RadicleSignedRef_TimestampView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

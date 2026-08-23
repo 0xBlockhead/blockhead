@@ -16,15 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.SnapshotSpace, data.selector, {
-		sources: [
-			Source.SnapshotHub_Graphql,
-		],
-		fields: {
-			name: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -33,12 +24,35 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.spaceId ?? '') || 'Snapshot space' : (pageSelection.entity.name ?? '') || pageSelection.entitySelector.spaceId || 'Snapshot space')} • Snapshot space • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.SnapshotSpace, data.selector, {
+				sources: [
+					Source.SnapshotHub_Graphql,
+				],
+				fields: {
+					name: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.spaceId ?? '') || 'Snapshot space' : (pageSelection.entity.name ?? '') || pageSelection.entitySelector.spaceId || 'Snapshot space')} • Snapshot space • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Snapshot space'} • Snapshot space • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.SnapshotSpace, data.selector, {
+				sources: [
+					Source.SnapshotHub_Graphql,
+				],
+				fields: {
+					name: true,
+				},
+			})}
+
 	<SnapshotSpaceView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

@@ -42,13 +42,15 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		{@const DetailView = data.entityType === EntityType.SuiAccount ? SuiAccountView : data.entityType === EntityType.TezosAccount ? TezosAccountView : KaspaAddressView}
+		{#if data?.selector != null}
+			{@const DetailView = data.entityType === EntityType.SuiAccount ? SuiAccountView : data.entityType === EntityType.TezosAccount ? TezosAccountView : KaspaAddressView}
 
-		<DetailView
-			selection={select(data.entityType, data.selector)}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+			<DetailView
+				selection={select(data.entityType, data.selector)}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

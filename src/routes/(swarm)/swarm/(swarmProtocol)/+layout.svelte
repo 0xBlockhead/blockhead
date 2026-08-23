@@ -33,17 +33,19 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<SwarmProtocolView
-			selection={
-				select(EntityType.SwarmProtocol, data.selector, {
-					sources: [
-						Source.Constants_Internal,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<SwarmProtocolView
+				selection={
+					select(EntityType.SwarmProtocol, data.selector, {
+						sources: [
+							Source.Constants_Internal,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

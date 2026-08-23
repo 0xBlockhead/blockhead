@@ -40,17 +40,19 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<CctpAllowanceView
-			selection={
-				select(EntityType.CctpAllowance, data.selector, {
-					sources: [
-						Source.CircleCctpIris,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<CctpAllowanceView
+				selection={
+					select(EntityType.CctpAllowance, data.selector, {
+						sources: [
+							Source.CircleCctpIris,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

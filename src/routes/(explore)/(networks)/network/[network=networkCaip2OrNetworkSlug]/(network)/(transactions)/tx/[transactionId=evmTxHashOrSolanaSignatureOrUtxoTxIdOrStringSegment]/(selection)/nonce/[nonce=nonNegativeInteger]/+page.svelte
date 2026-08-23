@@ -15,12 +15,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.HederaTransaction, data.selector, {
-		fields: {
-			transactionType: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -29,12 +23,29 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.transactionId ?? '') || 'hedera transaction' : pageSelection.entity.transactionType || pageSelection.entitySelector.transactionId || 'hedera transaction')} • hedera transaction • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.HederaTransaction, data.selector, {
+				fields: {
+					transactionType: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.transactionId ?? '') || 'hedera transaction' : pageSelection.entity.transactionType || pageSelection.entitySelector.transactionId || 'hedera transaction')} • hedera transaction • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'hedera transaction'} • hedera transaction • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.HederaTransaction, data.selector, {
+				fields: {
+					transactionType: true,
+				},
+			})}
+
 	<HederaTransactionView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

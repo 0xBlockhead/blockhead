@@ -41,17 +41,19 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<EulerEvkVaultView
-			selection={
-				select(EntityType.EulerEvkVault, data.selector, {
-					sources: [
-						Source.Euler_Rest,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<EulerEvkVaultView
+				selection={
+					select(EntityType.EulerEvkVault, data.selector, {
+						sources: [
+							Source.Euler_Rest,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

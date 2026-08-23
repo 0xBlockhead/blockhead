@@ -16,16 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.BeaconValidator, data.selector, {
-		sources: [
-			Source.Beacon_Rest,
-			Source.BeaconchaIn_Rest,
-		],
-		fields: {
-			indexInNetwork: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -34,12 +24,37 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? 'beacon validator' : (String(pageSelection.entity.indexInNetwork ?? '') ? 'Validator #' + String(pageSelection.entity.indexInNetwork ?? '') : '') || 'beacon validator')} • beacon validator • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BeaconValidator, data.selector, {
+				sources: [
+					Source.Beacon_Rest,
+					Source.BeaconchaIn_Rest,
+				],
+				fields: {
+					indexInNetwork: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'beacon validator' : (String(pageSelection.entity.indexInNetwork ?? '') ? 'Validator #' + String(pageSelection.entity.indexInNetwork ?? '') : '') || 'beacon validator')} • beacon validator • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'beacon validator'} • beacon validator • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BeaconValidator, data.selector, {
+				sources: [
+					Source.Beacon_Rest,
+					Source.BeaconchaIn_Rest,
+				],
+				fields: {
+					indexInNetwork: true,
+				},
+			})}
+
 	<BeaconValidatorView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

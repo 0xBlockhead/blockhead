@@ -24,17 +24,27 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'NFT token'} • NFT token • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.NftToken, {
+				$collection: data.selector,
+				tokenKey: params.tokenKey,
+			})}
+		<title>{data?.title ?? 'NFT token'} • NFT token • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'NFT token'} • NFT token • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
-	<NftTokenView
-		selection={
-			select(EntityType.NftToken, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.NftToken, {
 				$collection: data.selector,
 				tokenKey: params.tokenKey,
-			})
-		}
+			})}
+
+	<NftTokenView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

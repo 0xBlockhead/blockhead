@@ -40,17 +40,19 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<A2aAgentCardView
-			selection={
-				select(EntityType.A2aAgentCard, data.selector, {
-					sources: [
-						Source.Eip8004Scan_Rest,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<A2aAgentCardView
+				selection={
+					select(EntityType.A2aAgentCard, data.selector, {
+						sources: [
+							Source.Eip8004Scan_Rest,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

@@ -17,18 +17,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.GitForgeReleaseLink, {
-		$release: data.selector,
-		linkId: Number(params.linkId),
-	}, {
-		sources: [
-			Source.Gitlab_Rest,
-		],
-		fields: {
-			name: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -37,12 +25,41 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? 'Git forge release link' : pageSelection.entity.name || 'Git forge release link')} • Git forge release link • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.GitForgeReleaseLink, {
+				$release: data.selector,
+				linkId: Number(params.linkId),
+			}, {
+				sources: [
+					Source.Gitlab_Rest,
+				],
+				fields: {
+					name: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'Git forge release link' : pageSelection.entity.name || 'Git forge release link')} • Git forge release link • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Git forge release link'} • Git forge release link • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.GitForgeReleaseLink, {
+				$release: data.selector,
+				linkId: Number(params.linkId),
+			}, {
+				sources: [
+					Source.Gitlab_Rest,
+				],
+				fields: {
+					name: true,
+				},
+			})}
+
 	<GitForgeReleaseLinkView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

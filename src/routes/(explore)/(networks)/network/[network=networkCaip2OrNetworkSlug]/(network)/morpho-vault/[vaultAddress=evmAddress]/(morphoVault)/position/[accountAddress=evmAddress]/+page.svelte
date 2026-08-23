@@ -25,14 +25,8 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'Morpho vault position'} • Morpho vault position • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<MorphoVaultPositionView
-		selection={
-			select(EntityType.MorphoVaultPosition, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.MorphoVaultPosition, {
 				$account: {
 					$network: data.selector.$network,
 					$actor: {
@@ -44,7 +38,32 @@
 				sources: [
 					Source.Morpho_Graphql,
 				],
-			})
-		}
+			})}
+		<title>{data?.title ?? 'Morpho vault position'} • Morpho vault position • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Morpho vault position'} • Morpho vault position • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.MorphoVaultPosition, {
+				$account: {
+					$network: data.selector.$network,
+					$actor: {
+						address: params.accountAddress,
+					},
+				},
+				$vault: data.selector,
+			}, {
+				sources: [
+					Source.Morpho_Graphql,
+				],
+			})}
+
+	<MorphoVaultPositionView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

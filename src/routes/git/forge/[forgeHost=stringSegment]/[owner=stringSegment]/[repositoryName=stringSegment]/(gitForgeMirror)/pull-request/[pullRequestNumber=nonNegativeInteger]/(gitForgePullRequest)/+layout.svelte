@@ -42,11 +42,13 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<GitForgePullRequestView
-			selection={select(EntityType.GitForgePullRequest, data.selector)}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<GitForgePullRequestView
+				selection={select(EntityType.GitForgePullRequest, data.selector)}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

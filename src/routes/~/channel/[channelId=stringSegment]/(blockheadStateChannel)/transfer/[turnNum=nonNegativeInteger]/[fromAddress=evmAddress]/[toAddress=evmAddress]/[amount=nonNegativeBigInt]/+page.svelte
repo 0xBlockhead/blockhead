@@ -17,22 +17,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.BlockheadStateChannelTransfer, {
-		$channel: data.selector,
-		turnNum: Number(params.turnNum),
-		$from: {
-			address: params.fromAddress,
-		},
-		$to: {
-			address: params.toAddress,
-		},
-		amount: BigInt(params.amount),
-	}, {
-		sources: [
-			Source.Local_Internal,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -41,12 +25,49 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (String(pageSelection.entitySelector.amount) || 'blockhead state channel transfer')} • blockhead state channel transfer • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BlockheadStateChannelTransfer, {
+				$channel: data.selector,
+				turnNum: Number(params.turnNum),
+				$from: {
+					address: params.fromAddress,
+				},
+				$to: {
+					address: params.toAddress,
+				},
+				amount: BigInt(params.amount),
+			}, {
+				sources: [
+					Source.Local_Internal,
+				],
+			})}
+		<title>{data?.title ?? (String(pageSelection.entitySelector.amount) || 'blockhead state channel transfer')} • blockhead state channel transfer • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'blockhead state channel transfer'} • blockhead state channel transfer • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BlockheadStateChannelTransfer, {
+				$channel: data.selector,
+				turnNum: Number(params.turnNum),
+				$from: {
+					address: params.fromAddress,
+				},
+				$to: {
+					address: params.toAddress,
+				},
+				amount: BigInt(params.amount),
+			}, {
+				sources: [
+					Source.Local_Internal,
+				],
+			})}
+
 	<BlockheadStateChannelTransferView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

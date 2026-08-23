@@ -16,16 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.XPost, data.selector, {
-		sources: [
-			Source.X_Rest,
-			Source.X_FxEmbed_Rest,
-		],
-		fields: {
-			text: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -34,12 +24,37 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.id ?? '') || 'X post' : [(pageSelection.entity.text ?? ''), pageSelection.entitySelector.id].filter(Boolean).join(' ') || 'X post')} • X post • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.XPost, data.selector, {
+				sources: [
+					Source.X_Rest,
+					Source.X_FxEmbed_Rest,
+				],
+				fields: {
+					text: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.id ?? '') || 'X post' : [(pageSelection.entity.text ?? ''), pageSelection.entitySelector.id].filter(Boolean).join(' ') || 'X post')} • X post • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'X post'} • X post • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.XPost, data.selector, {
+				sources: [
+					Source.X_Rest,
+					Source.X_FxEmbed_Rest,
+				],
+				fields: {
+					text: true,
+				},
+			})}
+
 	<XPostView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

@@ -41,19 +41,21 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<LightningNodeView
-			selection={
-				select(EntityType.LightningNode, data.selector, {
-					sources: [
-						Source.LightningMempoolSpace_Rest,
-						Source.LightningLnd_Rest,
-						Source.Amboss_Graphql,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<LightningNodeView
+				selection={
+					select(EntityType.LightningNode, data.selector, {
+						sources: [
+							Source.LightningMempoolSpace_Rest,
+							Source.LightningLnd_Rest,
+							Source.Amboss_Graphql,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

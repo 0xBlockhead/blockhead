@@ -17,15 +17,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.NearExecutionOutcome, {
-		$transaction: data.selector,
-		outcomeId: params.outcomeId,
-	}, {
-		sources: [
-			Source.NearRpc_JsonRpc,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -34,12 +25,35 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.outcomeId || 'near execution outcome')} • near execution outcome • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.NearExecutionOutcome, {
+				$transaction: data.selector,
+				outcomeId: params.outcomeId,
+			}, {
+				sources: [
+					Source.NearRpc_JsonRpc,
+				],
+			})}
+		<title>{data?.title ?? (pageSelection.entitySelector.outcomeId || 'near execution outcome')} • near execution outcome • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'near execution outcome'} • near execution outcome • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.NearExecutionOutcome, {
+				$transaction: data.selector,
+				outcomeId: params.outcomeId,
+			}, {
+				sources: [
+					Source.NearRpc_JsonRpc,
+				],
+			})}
+
 	<NearExecutionOutcomeView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

@@ -16,15 +16,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.BlockheadRadicleSeedObservation_Timestamp, {
-		$repository: data.selector,
-		nodeId: params.nodeId,
-		timestampMs: Number(params.timestampMs),
-		source: params.source,
-	}, {
-		sources: [params.source],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -33,12 +24,35 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.nodeId || 'blockhead radicle seed observation timestamp')} • blockhead radicle seed observation timestamp • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BlockheadRadicleSeedObservation_Timestamp, {
+				$repository: data.selector,
+				nodeId: params.nodeId,
+				timestampMs: Number(params.timestampMs),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+		<title>{data?.title ?? (pageSelection.entitySelector.nodeId || 'blockhead radicle seed observation timestamp')} • blockhead radicle seed observation timestamp • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'blockhead radicle seed observation timestamp'} • blockhead radicle seed observation timestamp • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BlockheadRadicleSeedObservation_Timestamp, {
+				$repository: data.selector,
+				nodeId: params.nodeId,
+				timestampMs: Number(params.timestampMs),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+
 	<BlockheadRadicleSeedObservation_TimestampView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

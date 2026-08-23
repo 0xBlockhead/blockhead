@@ -40,17 +40,19 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<SnapshotProposalView
-			selection={
-				select(EntityType.SnapshotProposal, data.selector, {
-					sources: [
-						Source.SnapshotHub_Graphql,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<SnapshotProposalView
+				selection={
+					select(EntityType.SnapshotProposal, data.selector, {
+						sources: [
+							Source.SnapshotHub_Graphql,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

@@ -43,17 +43,19 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<DydxChainPerpetualPositionView
-			selection={
-				select(EntityType.DydxChainPerpetualPosition, data.selector, {
-					sources: [
-						Source.DydxIndexer,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<DydxChainPerpetualPositionView
+				selection={
+					select(EntityType.DydxChainPerpetualPosition, data.selector, {
+						sources: [
+							Source.DydxIndexer,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

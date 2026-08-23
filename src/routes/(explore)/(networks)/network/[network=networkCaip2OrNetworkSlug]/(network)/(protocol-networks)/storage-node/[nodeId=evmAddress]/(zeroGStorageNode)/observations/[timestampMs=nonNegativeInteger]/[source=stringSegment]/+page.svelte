@@ -24,20 +24,33 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'zero g storage node timestamp'} • zero g storage node timestamp • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<ZeroGStorageNode_TimestampView
-		selection={
-			select(EntityType.ZeroGStorageNode_Timestamp, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.ZeroGStorageNode_Timestamp, {
 				$storageNode: data.selector,
 				timestampMs: Number(params.timestampMs),
 				source: params.source,
 			}, {
 				sources: [params.source],
-			})
-		}
+			})}
+		<title>{data?.title ?? 'zero g storage node timestamp'} • zero g storage node timestamp • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'zero g storage node timestamp'} • zero g storage node timestamp • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.ZeroGStorageNode_Timestamp, {
+				$storageNode: data.selector,
+				timestampMs: Number(params.timestampMs),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+
+	<ZeroGStorageNode_TimestampView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

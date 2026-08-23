@@ -24,17 +24,27 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'tezos michelson script'} • tezos michelson script • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.TezosMichelsonScript, {
+				$network: data.selector,
+				scriptHash: params.scriptHash,
+			})}
+		<title>{data?.title ?? 'tezos michelson script'} • tezos michelson script • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'tezos michelson script'} • tezos michelson script • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
-	<TezosMichelsonScriptView
-		selection={
-			select(EntityType.TezosMichelsonScript, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.TezosMichelsonScript, {
 				$network: data.selector,
 				scriptHash: params.scriptHash,
-			})
-		}
+			})}
+
+	<TezosMichelsonScriptView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

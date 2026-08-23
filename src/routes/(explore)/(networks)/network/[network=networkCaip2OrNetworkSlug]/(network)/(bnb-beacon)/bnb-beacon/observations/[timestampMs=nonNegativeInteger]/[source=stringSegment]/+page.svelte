@@ -16,14 +16,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.BnbBeaconNetwork_Timestamp, {
-		$network: data.selector,
-		timestampMs: Number(params.timestampMs),
-		source: params.source,
-	}, {
-		sources: [params.source],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -32,12 +24,33 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (String(pageSelection.entitySelector.timestampMs) || 'bnb beacon network timestamp')} • bnb beacon network timestamp • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BnbBeaconNetwork_Timestamp, {
+				$network: data.selector,
+				timestampMs: Number(params.timestampMs),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+		<title>{data?.title ?? (String(pageSelection.entitySelector.timestampMs) || 'bnb beacon network timestamp')} • bnb beacon network timestamp • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'bnb beacon network timestamp'} • bnb beacon network timestamp • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BnbBeaconNetwork_Timestamp, {
+				$network: data.selector,
+				timestampMs: Number(params.timestampMs),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+
 	<BnbBeaconNetwork_TimestampView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

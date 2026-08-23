@@ -24,20 +24,33 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'tezos account timestamp'} • tezos account timestamp • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<TezosAccount_TimestampView
-		selection={
-			select(EntityType.TezosAccount_Timestamp, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.TezosAccount_Timestamp, {
 				$account: data.selector,
 				level: BigInt(params.level),
 				source: params.source,
 			}, {
 				sources: [params.source],
-			})
-		}
+			})}
+		<title>{data?.title ?? 'tezos account timestamp'} • tezos account timestamp • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'tezos account timestamp'} • tezos account timestamp • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.TezosAccount_Timestamp, {
+				$account: data.selector,
+				level: BigInt(params.level),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+
+	<TezosAccount_TimestampView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

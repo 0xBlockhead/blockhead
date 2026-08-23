@@ -17,15 +17,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.BlockheadTransferRequest, {
-		id: params.id,
-		$network: data.selector,
-	}, {
-		sources: [
-			Source.Local_Internal,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -34,12 +25,35 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.id || 'blockhead transfer request')} • blockhead transfer request • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BlockheadTransferRequest, {
+				id: params.id,
+				$network: data.selector,
+			}, {
+				sources: [
+					Source.Local_Internal,
+				],
+			})}
+		<title>{data?.title ?? (pageSelection.entitySelector.id || 'blockhead transfer request')} • blockhead transfer request • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'blockhead transfer request'} • blockhead transfer request • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BlockheadTransferRequest, {
+				id: params.id,
+				$network: data.selector,
+			}, {
+				sources: [
+					Source.Local_Internal,
+				],
+			})}
+
 	<BlockheadTransferRequestView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

@@ -16,15 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.Currency, data.selector, {
-		sources: [
-			Source.Constants_Internal,
-		],
-		fields: {
-			name: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -33,12 +24,35 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.iso4217 ?? '') || 'currency' : pageSelection.entity.name || pageSelection.entitySelector.iso4217 || 'currency')} • currency • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.Currency, data.selector, {
+				sources: [
+					Source.Constants_Internal,
+				],
+				fields: {
+					name: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.iso4217 ?? '') || 'currency' : pageSelection.entity.name || pageSelection.entitySelector.iso4217 || 'currency')} • currency • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'currency'} • currency • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.Currency, data.selector, {
+				sources: [
+					Source.Constants_Internal,
+				],
+				fields: {
+					name: true,
+				},
+			})}
+
 	<CurrencyView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

@@ -40,18 +40,20 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<BlockheadSourceView
-			selection={
-				select(EntityType.BlockheadSource, data.selector, {
-					sources: [
-						Source.Constants_Internal,
-						Source.Local_Internal,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<BlockheadSourceView
+				selection={
+					select(EntityType.BlockheadSource, data.selector, {
+						sources: [
+							Source.Constants_Internal,
+							Source.Local_Internal,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

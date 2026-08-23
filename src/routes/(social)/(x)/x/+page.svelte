@@ -16,15 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.XNetwork, data.selector, {
-		sources: [
-			Source.Constants_Internal,
-		],
-		fields: {
-			protocolName: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -33,12 +24,35 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? 'X' : pageSelection.entity.protocolName || 'X')} • X • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.XNetwork, data.selector, {
+				sources: [
+					Source.Constants_Internal,
+				],
+				fields: {
+					protocolName: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'X' : pageSelection.entity.protocolName || 'X')} • X • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'X'} • X • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.XNetwork, data.selector, {
+				sources: [
+					Source.Constants_Internal,
+				],
+				fields: {
+					protocolName: true,
+				},
+			})}
+
 	<XNetworkView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

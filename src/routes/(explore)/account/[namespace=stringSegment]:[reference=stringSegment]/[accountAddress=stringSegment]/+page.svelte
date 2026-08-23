@@ -16,12 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.Account, data.selector, {
-		sources: [
-			Source.Constants_Internal,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -30,12 +24,29 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (`${pageSelection.entitySelector.caip10.namespace}:${pageSelection.entitySelector.caip10.reference}:${pageSelection.entitySelector.caip10.accountAddress}` || 'account')} • account • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.Account, data.selector, {
+				sources: [
+					Source.Constants_Internal,
+				],
+			})}
+		<title>{data?.title ?? (`${pageSelection.entitySelector.caip10.namespace}:${pageSelection.entitySelector.caip10.reference}:${pageSelection.entitySelector.caip10.accountAddress}` || 'account')} • account • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'account'} • account • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.Account, data.selector, {
+				sources: [
+					Source.Constants_Internal,
+				],
+			})}
+
 	<AccountView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

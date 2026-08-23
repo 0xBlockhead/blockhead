@@ -16,14 +16,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.PolkadotValidator_Era, {
-		$validator: data.selector,
-		eraIndex: BigInt(params.eraIndex),
-		source: params.source,
-	}, {
-		sources: [params.source],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -32,12 +24,33 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (String(pageSelection.entitySelector.eraIndex) || 'polkadot validator era')} • polkadot validator era • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.PolkadotValidator_Era, {
+				$validator: data.selector,
+				eraIndex: BigInt(params.eraIndex),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+		<title>{data?.title ?? (String(pageSelection.entitySelector.eraIndex) || 'polkadot validator era')} • polkadot validator era • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'polkadot validator era'} • polkadot validator era • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.PolkadotValidator_Era, {
+				$validator: data.selector,
+				eraIndex: BigInt(params.eraIndex),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+
 	<PolkadotValidator_EraView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

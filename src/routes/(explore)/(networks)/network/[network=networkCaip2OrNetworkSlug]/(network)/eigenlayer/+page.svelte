@@ -16,16 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.EigenLayerProtocol, data.selector, {
-		sources: [
-			Source.Constants_Internal,
-			Source.EigenExplorer_Rest,
-		],
-		fields: {
-			protocolName: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -34,12 +24,37 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? 'eigen layer protocol' : pageSelection.entity.protocolName || 'eigen layer protocol')} • eigen layer protocol • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.EigenLayerProtocol, data.selector, {
+				sources: [
+					Source.Constants_Internal,
+					Source.EigenExplorer_Rest,
+				],
+				fields: {
+					protocolName: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'eigen layer protocol' : pageSelection.entity.protocolName || 'eigen layer protocol')} • eigen layer protocol • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'eigen layer protocol'} • eigen layer protocol • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.EigenLayerProtocol, data.selector, {
+				sources: [
+					Source.Constants_Internal,
+					Source.EigenExplorer_Rest,
+				],
+				fields: {
+					protocolName: true,
+				},
+			})}
+
 	<EigenLayerProtocolView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

@@ -39,11 +39,13 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<LensUsernameNamespaceView
-			selection={select(EntityType.LensUsernameNamespace, data.selector)}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<LensUsernameNamespaceView
+				selection={select(EntityType.LensUsernameNamespace, data.selector)}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

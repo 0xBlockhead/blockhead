@@ -24,20 +24,33 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'TON jetton transfer'} • TON jetton transfer • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<TonJettonTransferView
-		selection={
-			select(EntityType.TonJettonTransfer, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.TonJettonTransfer, {
 				$network: data.selector,
 				transferId: params.transferId,
 				source: params.source,
 			}, {
 				sources: [params.source],
-			})
-		}
+			})}
+		<title>{data?.title ?? 'TON jetton transfer'} • TON jetton transfer • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'TON jetton transfer'} • TON jetton transfer • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.TonJettonTransfer, {
+				$network: data.selector,
+				transferId: params.transferId,
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+
+	<TonJettonTransferView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

@@ -16,11 +16,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.BlockheadSource_Timestamp, {
-		$source: data.selector,
-		timestampMs: Number(params.timestampMs),
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -29,12 +24,27 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (String(pageSelection.entitySelector.timestampMs) || 'blockhead source timestamp')} • blockhead source timestamp • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BlockheadSource_Timestamp, {
+				$source: data.selector,
+				timestampMs: Number(params.timestampMs),
+			})}
+		<title>{data?.title ?? (String(pageSelection.entitySelector.timestampMs) || 'blockhead source timestamp')} • blockhead source timestamp • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'blockhead source timestamp'} • blockhead source timestamp • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BlockheadSource_Timestamp, {
+				$source: data.selector,
+				timestampMs: Number(params.timestampMs),
+			})}
+
 	<BlockheadSource_TimestampView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

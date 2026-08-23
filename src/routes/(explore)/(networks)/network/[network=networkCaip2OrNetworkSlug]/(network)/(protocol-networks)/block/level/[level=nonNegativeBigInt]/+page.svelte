@@ -24,17 +24,27 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'tezos block'} • tezos block • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.TezosBlock, {
+				$network: data.selector,
+				level: BigInt(params.level),
+			})}
+		<title>{data?.title ?? 'tezos block'} • tezos block • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'tezos block'} • tezos block • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
-	<TezosBlockView
-		selection={
-			select(EntityType.TezosBlock, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.TezosBlock, {
 				$network: data.selector,
 				level: BigInt(params.level),
-			})
-		}
+			})}
+
+	<TezosBlockView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

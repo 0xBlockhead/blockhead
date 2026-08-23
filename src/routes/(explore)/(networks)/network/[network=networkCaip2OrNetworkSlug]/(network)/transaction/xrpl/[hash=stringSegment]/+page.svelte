@@ -23,12 +23,21 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'XRPL transaction'} • XRPL transaction • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.XrplTransaction, data.selector)}
+		<title>{data?.title ?? 'XRPL transaction'} • XRPL transaction • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'XRPL transaction'} • XRPL transaction • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.XrplTransaction, data.selector)}
+
 	<XrplTransactionView
-		selection={select(EntityType.XrplTransaction, data.selector)}
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

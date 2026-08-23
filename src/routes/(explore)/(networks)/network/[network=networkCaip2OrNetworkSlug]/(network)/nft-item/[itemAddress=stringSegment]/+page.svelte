@@ -23,12 +23,21 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'TON NFT item'} • TON NFT item • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.TonNftItem, data.selector)}
+		<title>{data?.title ?? 'TON NFT item'} • TON NFT item • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'TON NFT item'} • TON NFT item • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.TonNftItem, data.selector)}
+
 	<TonNftItemView
-		selection={select(EntityType.TonNftItem, data.selector)}
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

@@ -16,15 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.StarknetTransaction, data.selector, {
-		sources: [
-			Source.Juno_JsonRpc,
-			Source.Pathfinder,
-			Source.Starkscan,
-			Source.Voyager,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -33,12 +24,35 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.transactionHash || 'starknet transaction')} • starknet transaction • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.StarknetTransaction, data.selector, {
+				sources: [
+					Source.Juno_JsonRpc,
+					Source.Pathfinder,
+					Source.Starkscan,
+					Source.Voyager,
+				],
+			})}
+		<title>{data?.title ?? (pageSelection.entitySelector.transactionHash || 'starknet transaction')} • starknet transaction • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'starknet transaction'} • starknet transaction • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.StarknetTransaction, data.selector, {
+				sources: [
+					Source.Juno_JsonRpc,
+					Source.Pathfinder,
+					Source.Starkscan,
+					Source.Voyager,
+				],
+			})}
+
 	<StarknetTransactionView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

@@ -24,17 +24,27 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'hyperliquid spot pair'} • hyperliquid spot pair • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.HyperliquidSpotPair, {
+				$network: data.selector.$network,
+				pairIndex: Number(params.pairIndex),
+			})}
+		<title>{data?.title ?? 'hyperliquid spot pair'} • hyperliquid spot pair • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'hyperliquid spot pair'} • hyperliquid spot pair • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
-	<HyperliquidSpotPairView
-		selection={
-			select(EntityType.HyperliquidSpotPair, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.HyperliquidSpotPair, {
 				$network: data.selector.$network,
 				pairIndex: Number(params.pairIndex),
-			})
-		}
+			})}
+
+	<HyperliquidSpotPairView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

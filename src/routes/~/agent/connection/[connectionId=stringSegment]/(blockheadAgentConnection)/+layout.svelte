@@ -40,17 +40,19 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<BlockheadAgentConnectionView
-			selection={
-				select(EntityType.BlockheadAgentConnection, data.selector, {
-					sources: [
-						Source.Local_Internal,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<BlockheadAgentConnectionView
+				selection={
+					select(EntityType.BlockheadAgentConnection, data.selector, {
+						sources: [
+							Source.Local_Internal,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

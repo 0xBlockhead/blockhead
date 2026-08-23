@@ -40,18 +40,20 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<XUserView
-			selection={
-				select(EntityType.XUser, data.selector, {
-					sources: [
-						Source.X_Rest,
-						Source.X_FxEmbed_Rest,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<XUserView
+				selection={
+					select(EntityType.XUser, data.selector, {
+						sources: [
+							Source.X_Rest,
+							Source.X_FxEmbed_Rest,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

@@ -16,11 +16,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.AssetObject, {
-		$assetInstance: data.selector,
-		objectKey: params.objectKey,
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -29,12 +24,27 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.objectKey || 'asset object')} • asset object • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.AssetObject, {
+				$assetInstance: data.selector,
+				objectKey: params.objectKey,
+			})}
+		<title>{data?.title ?? (pageSelection.entitySelector.objectKey || 'asset object')} • asset object • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'asset object'} • asset object • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.AssetObject, {
+				$assetInstance: data.selector,
+				objectKey: params.objectKey,
+			})}
+
 	<AssetObjectView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

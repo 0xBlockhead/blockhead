@@ -39,11 +39,13 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<FedimintFederationView
-			selection={select(EntityType.FedimintFederation, data.selector)}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<FedimintFederationView
+				selection={select(EntityType.FedimintFederation, data.selector)}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

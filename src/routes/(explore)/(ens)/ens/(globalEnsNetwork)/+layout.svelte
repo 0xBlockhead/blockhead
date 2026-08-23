@@ -33,17 +33,19 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<GlobalEnsNetworkView
-			selection={
-				select(EntityType._GlobalEnsNetwork, data.selector, {
-					sources: [
-						Source.Constants_Internal,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<GlobalEnsNetworkView
+				selection={
+					select(EntityType._GlobalEnsNetwork, data.selector, {
+						sources: [
+							Source.Constants_Internal,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

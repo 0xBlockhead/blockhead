@@ -15,12 +15,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.RegulatedAssetProfile, data.selector, {
-		fields: {
-			standard: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -29,12 +23,29 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? 'regulated asset profile' : pageSelection.entity.standard || 'regulated asset profile')} • regulated asset profile • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.RegulatedAssetProfile, data.selector, {
+				fields: {
+					standard: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'regulated asset profile' : pageSelection.entity.standard || 'regulated asset profile')} • regulated asset profile • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'regulated asset profile'} • regulated asset profile • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.RegulatedAssetProfile, data.selector, {
+				fields: {
+					standard: true,
+				},
+			})}
+
 	<RegulatedAssetProfileView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

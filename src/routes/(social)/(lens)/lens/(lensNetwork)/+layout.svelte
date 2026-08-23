@@ -33,17 +33,19 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<LensNetworkView
-			selection={
-				select(EntityType.LensNetwork, data.selector, {
-					sources: [
-						Source.Constants_Internal,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<LensNetworkView
+				selection={
+					select(EntityType.LensNetwork, data.selector, {
+						sources: [
+							Source.Constants_Internal,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

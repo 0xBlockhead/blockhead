@@ -24,20 +24,33 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'stellar account timestamp'} • stellar account timestamp • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<StellarAccount_TimestampView
-		selection={
-			select(EntityType.StellarAccount_Timestamp, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.StellarAccount_Timestamp, {
 				$account: data.selector,
 				timestampMs: Number(params.timestampMs),
 				source: params.source,
 			}, {
 				sources: [params.source],
-			})
-		}
+			})}
+		<title>{data?.title ?? 'stellar account timestamp'} • stellar account timestamp • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'stellar account timestamp'} • stellar account timestamp • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.StellarAccount_Timestamp, {
+				$account: data.selector,
+				timestampMs: Number(params.timestampMs),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+
+	<StellarAccount_TimestampView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

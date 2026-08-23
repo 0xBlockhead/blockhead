@@ -16,14 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.NostrProfile, data.selector, {
-		sources: [
-			Source.Constants_Internal,
-			Source.NostrRelay_WebSocket,
-			Source.Primal_Rest,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -32,12 +24,33 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.pubkey || 'Nostr profile')} • Nostr profile • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.NostrProfile, data.selector, {
+				sources: [
+					Source.Constants_Internal,
+					Source.NostrRelay_WebSocket,
+					Source.Primal_Rest,
+				],
+			})}
+		<title>{data?.title ?? (pageSelection.entitySelector.pubkey || 'Nostr profile')} • Nostr profile • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Nostr profile'} • Nostr profile • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.NostrProfile, data.selector, {
+				sources: [
+					Source.Constants_Internal,
+					Source.NostrRelay_WebSocket,
+					Source.Primal_Rest,
+				],
+			})}
+
 	<NostrProfileView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

@@ -41,17 +41,19 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<ElementsAssetView
-			selection={
-				select(EntityType.ElementsAsset, data.selector, {
-					sources: [
-						Source.Esplora_Rest,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<ElementsAssetView
+				selection={
+					select(EntityType.ElementsAsset, data.selector, {
+						sources: [
+							Source.Esplora_Rest,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

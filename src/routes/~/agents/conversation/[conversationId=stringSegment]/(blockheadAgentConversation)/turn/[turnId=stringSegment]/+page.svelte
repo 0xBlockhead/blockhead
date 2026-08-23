@@ -16,15 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.BlockheadAgentConversationTurn, data.selector, {
-		sources: [
-			Source.Local_Internal,
-		],
-		fields: {
-			userPrompt: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -33,12 +24,35 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? 'agent conversation turn' : pageSelection.entity.userPrompt || 'agent conversation turn')} • agent conversation turn • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BlockheadAgentConversationTurn, data.selector, {
+				sources: [
+					Source.Local_Internal,
+				],
+				fields: {
+					userPrompt: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'agent conversation turn' : pageSelection.entity.userPrompt || 'agent conversation turn')} • agent conversation turn • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'agent conversation turn'} • agent conversation turn • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BlockheadAgentConversationTurn, data.selector, {
+				sources: [
+					Source.Local_Internal,
+				],
+				fields: {
+					userPrompt: true,
+				},
+			})}
+
 	<BlockheadAgentConversationTurnView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

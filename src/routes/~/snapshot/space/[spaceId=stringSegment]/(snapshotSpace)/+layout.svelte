@@ -40,17 +40,19 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<SnapshotSpaceView
-			selection={
-				select(EntityType.SnapshotSpace, data.selector, {
-					sources: [
-						Source.SnapshotHub_Graphql,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<SnapshotSpaceView
+				selection={
+					select(EntityType.SnapshotSpace, data.selector, {
+						sources: [
+							Source.SnapshotHub_Graphql,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

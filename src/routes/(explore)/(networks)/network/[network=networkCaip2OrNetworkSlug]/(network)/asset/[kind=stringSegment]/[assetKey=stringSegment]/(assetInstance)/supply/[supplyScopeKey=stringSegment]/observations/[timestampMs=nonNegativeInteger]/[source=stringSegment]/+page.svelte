@@ -16,15 +16,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.AssetSupply_Timestamp, {
-		$assetInstance: data.selector,
-		supplyScopeKey: params.supplyScopeKey,
-		timestampMs: Number(params.timestampMs),
-		source: params.source,
-	}, {
-		sources: [params.source],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -33,12 +24,35 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.supplyScopeKey || 'asset supply timestamp')} • asset supply timestamp • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.AssetSupply_Timestamp, {
+				$assetInstance: data.selector,
+				supplyScopeKey: params.supplyScopeKey,
+				timestampMs: Number(params.timestampMs),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+		<title>{data?.title ?? (pageSelection.entitySelector.supplyScopeKey || 'asset supply timestamp')} • asset supply timestamp • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'asset supply timestamp'} • asset supply timestamp • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.AssetSupply_Timestamp, {
+				$assetInstance: data.selector,
+				supplyScopeKey: params.supplyScopeKey,
+				timestampMs: Number(params.timestampMs),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+
 	<AssetSupply_TimestampView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

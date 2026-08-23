@@ -41,17 +41,19 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<ZeroGConsensusNetworkView
-			selection={
-				select(EntityType.ZeroGConsensusNetwork, data.selector, {
-					sources: [
-						Source.ZeroGChainScan_Rest,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<ZeroGConsensusNetworkView
+				selection={
+					select(EntityType.ZeroGConsensusNetwork, data.selector, {
+						sources: [
+							Source.ZeroGChainScan_Rest,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

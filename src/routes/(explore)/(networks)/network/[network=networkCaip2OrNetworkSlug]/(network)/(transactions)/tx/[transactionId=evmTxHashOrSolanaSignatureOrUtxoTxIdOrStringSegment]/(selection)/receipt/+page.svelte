@@ -23,16 +23,25 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'tron transaction receipt'} • tron transaction receipt • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.TronTransactionReceipt, {
+				$transaction: data.selector,
+			})}
+		<title>{data?.title ?? 'tron transaction receipt'} • tron transaction receipt • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'tron transaction receipt'} • tron transaction receipt • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
-	<TronTransactionReceiptView
-		selection={
-			select(EntityType.TronTransactionReceipt, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.TronTransactionReceipt, {
 				$transaction: data.selector,
-			})
-		}
+			})}
+
+	<TronTransactionReceiptView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

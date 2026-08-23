@@ -24,14 +24,8 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'ICP ledger account timestamp'} • ICP ledger account timestamp • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<IcpLedgerAccount_TimestampView
-		selection={
-			select(EntityType.IcpLedgerAccount_Timestamp, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.IcpLedgerAccount_Timestamp, {
 				$ledger: data.selector,
 				owner: params.owner,
 				subaccount: params.subaccount,
@@ -39,7 +33,28 @@
 				source: params.source,
 			}, {
 				sources: [params.source],
-			})
-		}
+			})}
+		<title>{data?.title ?? 'ICP ledger account timestamp'} • ICP ledger account timestamp • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'ICP ledger account timestamp'} • ICP ledger account timestamp • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.IcpLedgerAccount_Timestamp, {
+				$ledger: data.selector,
+				owner: params.owner,
+				subaccount: params.subaccount,
+				timestampMs: Number(params.timestampMs),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+
+	<IcpLedgerAccount_TimestampView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

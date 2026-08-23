@@ -15,8 +15,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.MoveModule, data.selector))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -25,12 +23,21 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.moduleName || 'move module')} • move module • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.MoveModule, data.selector)}
+		<title>{data?.title ?? (pageSelection.entitySelector.moduleName || 'move module')} • move module • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'move module'} • move module • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.MoveModule, data.selector)}
+
 	<MoveModuleView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

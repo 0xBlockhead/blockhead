@@ -24,17 +24,27 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'hyperliquid order'} • hyperliquid order • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.HyperliquidOrder, {
+				$account: data.selector,
+				oid: BigInt(params.oid),
+			})}
+		<title>{data?.title ?? 'hyperliquid order'} • hyperliquid order • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'hyperliquid order'} • hyperliquid order • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
-	<HyperliquidOrderView
-		selection={
-			select(EntityType.HyperliquidOrder, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.HyperliquidOrder, {
 				$account: data.selector,
 				oid: BigInt(params.oid),
-			})
-		}
+			})}
+
+	<HyperliquidOrderView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

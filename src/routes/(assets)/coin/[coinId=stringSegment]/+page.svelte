@@ -16,16 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.Coin, data.selector, {
-		sources: [
-			Source.Constants_Internal,
-		],
-		fields: {
-			symbol: true,
-			name: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -34,12 +24,37 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? 'Coin' : [pageSelection.entity.symbol, pageSelection.entity.name].filter(Boolean).join(' ') || 'Coin')} • Coin • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.Coin, data.selector, {
+				sources: [
+					Source.Constants_Internal,
+				],
+				fields: {
+					symbol: true,
+					name: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'Coin' : [pageSelection.entity.symbol, pageSelection.entity.name].filter(Boolean).join(' ') || 'Coin')} • Coin • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Coin'} • Coin • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.Coin, data.selector, {
+				sources: [
+					Source.Constants_Internal,
+				],
+				fields: {
+					symbol: true,
+					name: true,
+				},
+			})}
+
 	<CoinView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

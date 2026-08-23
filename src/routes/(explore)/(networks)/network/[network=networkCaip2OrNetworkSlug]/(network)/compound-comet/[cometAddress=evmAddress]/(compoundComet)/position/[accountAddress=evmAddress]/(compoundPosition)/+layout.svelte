@@ -42,17 +42,19 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<CompoundPositionView
-			selection={
-				select(EntityType.CompoundPosition, data.selector, {
-					sources: [
-						Source.Compound_Rest,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<CompoundPositionView
+				selection={
+					select(EntityType.CompoundPosition, data.selector, {
+						sources: [
+							Source.Compound_Rest,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

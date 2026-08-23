@@ -41,17 +41,19 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<LitecoinMwebBlockView
-			selection={
-				select(EntityType.LitecoinMwebBlock, data.selector, {
-					sources: [
-						Source.LitecoinCore_JsonRpc,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<LitecoinMwebBlockView
+				selection={
+					select(EntityType.LitecoinMwebBlock, data.selector, {
+						sources: [
+							Source.LitecoinCore_JsonRpc,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

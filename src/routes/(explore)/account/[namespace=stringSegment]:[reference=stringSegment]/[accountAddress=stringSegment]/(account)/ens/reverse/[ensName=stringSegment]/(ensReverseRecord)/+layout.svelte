@@ -43,18 +43,20 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<EnsReverseRecordView
-			selection={
-				select(EntityType.EnsReverseRecord, data.selector, {
-					sources: [
-						Source.TheGraph_Graphql,
-						Source.Voltaire_JsonRpc,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<EnsReverseRecordView
+				selection={
+					select(EntityType.EnsReverseRecord, data.selector, {
+						sources: [
+							Source.TheGraph_Graphql,
+							Source.Voltaire_JsonRpc,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

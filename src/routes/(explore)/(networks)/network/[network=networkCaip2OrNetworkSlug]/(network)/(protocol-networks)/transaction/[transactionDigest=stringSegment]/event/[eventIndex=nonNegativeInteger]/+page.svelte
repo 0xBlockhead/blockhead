@@ -24,18 +24,29 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'Sui event'} • Sui event • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.SuiEvent, {
+				$network: data.selector,
+				transactionDigest: params.transactionDigest,
+				eventIndex: Number(params.eventIndex),
+			})}
+		<title>{data?.title ?? 'Sui event'} • Sui event • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Sui event'} • Sui event • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
-	<SuiEventView
-		selection={
-			select(EntityType.SuiEvent, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.SuiEvent, {
 				$network: data.selector,
 				transactionDigest: params.transactionDigest,
 				eventIndex: Number(params.eventIndex),
-			})
-		}
+			})}
+
+	<SuiEventView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

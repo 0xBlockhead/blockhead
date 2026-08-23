@@ -17,21 +17,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.StarknetBlock, {
-		$network: data.selector,
-		blockHash: params.blockHash,
-	}, {
-		sources: [
-			Source.Juno_JsonRpc,
-			Source.Pathfinder,
-			Source.Starkscan,
-			Source.Voyager,
-		],
-		fields: {
-			blockNumber: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -40,12 +25,47 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? 'starknet block' : String(pageSelection.entity.blockNumber) || 'starknet block')} • starknet block • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.StarknetBlock, {
+				$network: data.selector,
+				blockHash: params.blockHash,
+			}, {
+				sources: [
+					Source.Juno_JsonRpc,
+					Source.Pathfinder,
+					Source.Starkscan,
+					Source.Voyager,
+				],
+				fields: {
+					blockNumber: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'starknet block' : String(pageSelection.entity.blockNumber) || 'starknet block')} • starknet block • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'starknet block'} • starknet block • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.StarknetBlock, {
+				$network: data.selector,
+				blockHash: params.blockHash,
+			}, {
+				sources: [
+					Source.Juno_JsonRpc,
+					Source.Pathfinder,
+					Source.Starkscan,
+					Source.Voyager,
+				],
+				fields: {
+					blockNumber: true,
+				},
+			})}
+
 	<StarknetBlockView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

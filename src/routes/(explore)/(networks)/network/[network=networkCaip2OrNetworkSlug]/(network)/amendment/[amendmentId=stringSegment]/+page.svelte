@@ -23,12 +23,21 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'XRPL amendment'} • XRPL amendment • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.XrplAmendment, data.selector)}
+		<title>{data?.title ?? 'XRPL amendment'} • XRPL amendment • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'XRPL amendment'} • XRPL amendment • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.XrplAmendment, data.selector)}
+
 	<XrplAmendmentView
-		selection={select(EntityType.XrplAmendment, data.selector)}
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

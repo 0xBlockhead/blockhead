@@ -17,18 +17,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.FilecoinMessageTransfer, {
-		$message: data.selector,
-		index: Number(params.index),
-	}, {
-		sources: [
-			Source.Filfox_Rest,
-		],
-		fields: {
-			transferType: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -37,12 +25,41 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? 'filecoin message transfer' : pageSelection.entity.transferType || 'filecoin message transfer')} • filecoin message transfer • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.FilecoinMessageTransfer, {
+				$message: data.selector,
+				index: Number(params.index),
+			}, {
+				sources: [
+					Source.Filfox_Rest,
+				],
+				fields: {
+					transferType: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'filecoin message transfer' : pageSelection.entity.transferType || 'filecoin message transfer')} • filecoin message transfer • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'filecoin message transfer'} • filecoin message transfer • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.FilecoinMessageTransfer, {
+				$message: data.selector,
+				index: Number(params.index),
+			}, {
+				sources: [
+					Source.Filfox_Rest,
+				],
+				fields: {
+					transferType: true,
+				},
+			})}
+
 	<FilecoinMessageTransferView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

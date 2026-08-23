@@ -43,11 +43,13 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<TransferRestrictionView
-			selection={select(EntityType.TransferRestriction, data.selector)}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<TransferRestrictionView
+				selection={select(EntityType.TransferRestriction, data.selector)}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

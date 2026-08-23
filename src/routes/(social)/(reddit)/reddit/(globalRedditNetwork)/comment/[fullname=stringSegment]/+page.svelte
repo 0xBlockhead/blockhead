@@ -16,16 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.RedditComment, data.selector, {
-		sources: [
-			Source.Reddit_PublicJson,
-			Source.Reddit_Rest,
-		],
-		fields: {
-			body: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -34,12 +24,37 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.fullname ?? '') || 'Reddit comment' : (pageSelection.entity.body ?? '') || pageSelection.entitySelector.fullname || 'Reddit comment')} • Reddit comment • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.RedditComment, data.selector, {
+				sources: [
+					Source.Reddit_PublicJson,
+					Source.Reddit_Rest,
+				],
+				fields: {
+					body: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.fullname ?? '') || 'Reddit comment' : (pageSelection.entity.body ?? '') || pageSelection.entitySelector.fullname || 'Reddit comment')} • Reddit comment • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Reddit comment'} • Reddit comment • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.RedditComment, data.selector, {
+				sources: [
+					Source.Reddit_PublicJson,
+					Source.Reddit_Rest,
+				],
+				fields: {
+					body: true,
+				},
+			})}
+
 	<RedditCommentView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

@@ -15,8 +15,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.EvmNetworkBridge, data.selector))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -25,12 +23,21 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.url || 'EVM network bridge')} • EVM network bridge • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.EvmNetworkBridge, data.selector)}
+		<title>{data?.title ?? (pageSelection.entitySelector.url || 'EVM network bridge')} • EVM network bridge • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'EVM network bridge'} • EVM network bridge • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.EvmNetworkBridge, data.selector)}
+
 	<EvmNetworkBridgeView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

@@ -24,18 +24,29 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'ICP certified state'} • ICP certified state • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.IcpCertifiedState, {
+				$canister: data.selector,
+				certificateHash: params.certificateHash,
+				pathHash: params.pathHash,
+			})}
+		<title>{data?.title ?? 'ICP certified state'} • ICP certified state • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'ICP certified state'} • ICP certified state • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
-	<IcpCertifiedStateView
-		selection={
-			select(EntityType.IcpCertifiedState, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.IcpCertifiedState, {
 				$canister: data.selector,
 				certificateHash: params.certificateHash,
 				pathHash: params.pathHash,
-			})
-		}
+			})}
+
+	<IcpCertifiedStateView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

@@ -39,11 +39,13 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<BitTorrentTrackerView
-			selection={select(EntityType.BitTorrentTracker, data.selector)}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<BitTorrentTrackerView
+				selection={select(EntityType.BitTorrentTracker, data.selector)}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

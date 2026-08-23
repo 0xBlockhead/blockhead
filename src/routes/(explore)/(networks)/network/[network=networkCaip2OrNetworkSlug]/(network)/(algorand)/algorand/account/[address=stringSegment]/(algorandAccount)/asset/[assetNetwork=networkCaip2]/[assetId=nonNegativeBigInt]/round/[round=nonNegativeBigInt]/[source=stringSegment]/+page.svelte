@@ -24,14 +24,8 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'algorand asset holding round'} • algorand asset holding round • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<AlgorandAssetHolding_RoundView
-		selection={
-			select(EntityType.AlgorandAssetHolding_Round, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.AlgorandAssetHolding_Round, {
 				$account: data.selector,
 				$asset: {
 					$network: {
@@ -45,7 +39,34 @@
 				source: params.source,
 			}, {
 				sources: [params.source],
-			})
-		}
+			})}
+		<title>{data?.title ?? 'algorand asset holding round'} • algorand asset holding round • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'algorand asset holding round'} • algorand asset holding round • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.AlgorandAssetHolding_Round, {
+				$account: data.selector,
+				$asset: {
+					$network: {
+						$network: {
+							caip2: params.assetNetwork,
+						},
+					},
+					assetId: BigInt(params.assetId),
+				},
+				round: BigInt(params.round),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+
+	<AlgorandAssetHolding_RoundView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

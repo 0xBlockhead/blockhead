@@ -33,17 +33,19 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<GlobalEvmAbiCatalogView
-			selection={
-				select(EntityType._GlobalEvmAbiCatalog, data.selector, {
-					sources: [
-						Source.Local_Internal,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<GlobalEvmAbiCatalogView
+				selection={
+					select(EntityType._GlobalEvmAbiCatalog, data.selector, {
+						sources: [
+							Source.Local_Internal,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

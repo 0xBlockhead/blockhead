@@ -16,12 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.SafeMultisigTransaction, data.selector, {
-		sources: [
-			Source.SafeTransactionService_Rest,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -30,12 +24,29 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.safeTxHash || 'Safe transaction')} • Safe transaction • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.SafeMultisigTransaction, data.selector, {
+				sources: [
+					Source.SafeTransactionService_Rest,
+				],
+			})}
+		<title>{data?.title ?? (pageSelection.entitySelector.safeTxHash || 'Safe transaction')} • Safe transaction • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Safe transaction'} • Safe transaction • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.SafeMultisigTransaction, data.selector, {
+				sources: [
+					Source.SafeTransactionService_Rest,
+				],
+			})}
+
 	<SafeMultisigTransactionView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

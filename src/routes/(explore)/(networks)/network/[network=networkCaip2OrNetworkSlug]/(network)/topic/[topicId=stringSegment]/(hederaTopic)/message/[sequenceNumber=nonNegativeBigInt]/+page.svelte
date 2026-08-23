@@ -24,17 +24,27 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'hedera topic message'} • hedera topic message • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.HederaTopicMessage, {
+				$topic: data.selector,
+				sequenceNumber: BigInt(params.sequenceNumber),
+			})}
+		<title>{data?.title ?? 'hedera topic message'} • hedera topic message • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'hedera topic message'} • hedera topic message • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
-	<HederaTopicMessageView
-		selection={
-			select(EntityType.HederaTopicMessage, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.HederaTopicMessage, {
 				$topic: data.selector,
 				sequenceNumber: BigInt(params.sequenceNumber),
-			})
-		}
+			})}
+
+	<HederaTopicMessageView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

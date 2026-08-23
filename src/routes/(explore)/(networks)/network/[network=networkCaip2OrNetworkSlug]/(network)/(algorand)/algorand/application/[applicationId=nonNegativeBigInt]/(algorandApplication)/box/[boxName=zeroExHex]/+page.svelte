@@ -23,12 +23,21 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'algorand box'} • algorand box • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.AlgorandBox, data.selector)}
+		<title>{data?.title ?? 'algorand box'} • algorand box • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'algorand box'} • algorand box • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.AlgorandBox, data.selector)}
+
 	<AlgorandBoxView
-		selection={select(EntityType.AlgorandBox, data.selector)}
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

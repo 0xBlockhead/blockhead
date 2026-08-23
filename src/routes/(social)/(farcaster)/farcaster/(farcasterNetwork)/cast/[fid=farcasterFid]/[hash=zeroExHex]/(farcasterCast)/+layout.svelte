@@ -41,19 +41,21 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<FarcasterCastView
-			selection={
-				select(EntityType.FarcasterCast, data.selector, {
-					sources: [
-						Source.Snapchain_Rest,
-						Source.Neynar_Rest,
-						Source.Farcaster_Rest,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<FarcasterCastView
+				selection={
+					select(EntityType.FarcasterCast, data.selector, {
+						sources: [
+							Source.Snapchain_Rest,
+							Source.Neynar_Rest,
+							Source.Farcaster_Rest,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

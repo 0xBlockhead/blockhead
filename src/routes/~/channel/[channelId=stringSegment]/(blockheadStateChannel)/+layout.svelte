@@ -40,17 +40,19 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<BlockheadStateChannelView
-			selection={
-				select(EntityType.BlockheadStateChannel, data.selector, {
-					sources: [
-						Source.Local_Internal,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<BlockheadStateChannelView
+				selection={
+					select(EntityType.BlockheadStateChannel, data.selector, {
+						sources: [
+							Source.Local_Internal,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

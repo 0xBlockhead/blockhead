@@ -15,8 +15,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.MevRelay, data.selector))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -25,12 +23,21 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.host || 'MEV relay')} • MEV relay • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.MevRelay, data.selector)}
+		<title>{data?.title ?? (pageSelection.entitySelector.host || 'MEV relay')} • MEV relay • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'MEV relay'} • MEV relay • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.MevRelay, data.selector)}
+
 	<MevRelayView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

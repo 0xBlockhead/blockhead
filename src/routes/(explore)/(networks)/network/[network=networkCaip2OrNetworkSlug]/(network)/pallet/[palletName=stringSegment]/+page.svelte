@@ -15,8 +15,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.PolkadotPallet, data.selector))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -25,12 +23,21 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.palletName || 'Polkadot pallet')} • Polkadot pallet • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.PolkadotPallet, data.selector)}
+		<title>{data?.title ?? (pageSelection.entitySelector.palletName || 'Polkadot pallet')} • Polkadot pallet • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Polkadot pallet'} • Polkadot pallet • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.PolkadotPallet, data.selector)}
+
 	<PolkadotPalletView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

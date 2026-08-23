@@ -24,17 +24,27 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'compliance module'} • compliance module • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.ComplianceModule, {
+				$profile: data.selector,
+				moduleKey: params.moduleKey,
+			})}
+		<title>{data?.title ?? 'compliance module'} • compliance module • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'compliance module'} • compliance module • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
-	<ComplianceModuleView
-		selection={
-			select(EntityType.ComplianceModule, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.ComplianceModule, {
 				$profile: data.selector,
 				moduleKey: params.moduleKey,
-			})
-		}
+			})}
+
+	<ComplianceModuleView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

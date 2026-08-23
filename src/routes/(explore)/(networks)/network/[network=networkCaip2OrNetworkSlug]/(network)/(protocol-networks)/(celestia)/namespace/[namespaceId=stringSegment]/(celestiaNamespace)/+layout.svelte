@@ -41,17 +41,19 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<CelestiaNamespaceView
-			selection={
-				select(EntityType.CelestiaNamespace, data.selector, {
-					sources: [
-						Source.Celenium_Rest,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<CelestiaNamespaceView
+				selection={
+					select(EntityType.CelestiaNamespace, data.selector, {
+						sources: [
+							Source.Celenium_Rest,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

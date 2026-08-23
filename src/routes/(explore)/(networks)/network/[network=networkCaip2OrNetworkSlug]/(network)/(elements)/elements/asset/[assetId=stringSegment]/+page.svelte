@@ -16,16 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.ElementsAsset, data.selector, {
-		sources: [
-			Source.Esplora_Rest,
-		],
-		fields: {
-			name: true,
-			ticker: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -34,12 +24,37 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.assetId ?? '') || 'Elements asset' : [(pageSelection.entity.name ?? ''), (pageSelection.entity.ticker ?? ''), pageSelection.entitySelector.assetId].filter(Boolean).join(' ') || 'Elements asset')} • Elements asset • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.ElementsAsset, data.selector, {
+				sources: [
+					Source.Esplora_Rest,
+				],
+				fields: {
+					name: true,
+					ticker: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.assetId ?? '') || 'Elements asset' : [(pageSelection.entity.name ?? ''), (pageSelection.entity.ticker ?? ''), pageSelection.entitySelector.assetId].filter(Boolean).join(' ') || 'Elements asset')} • Elements asset • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Elements asset'} • Elements asset • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.ElementsAsset, data.selector, {
+				sources: [
+					Source.Esplora_Rest,
+				],
+				fields: {
+					name: true,
+					ticker: true,
+				},
+			})}
+
 	<ElementsAssetView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

@@ -16,15 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.IpfsResource, data.selector, {
-		sources: [
-			Source.Ipfs_Rest,
-		],
-		fields: {
-			canonicalUri: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -33,12 +24,35 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? 'IPFS resource' : pageSelection.entity.canonicalUri || 'IPFS resource')} • IPFS resource • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.IpfsResource, data.selector, {
+				sources: [
+					Source.Ipfs_Rest,
+				],
+				fields: {
+					canonicalUri: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'IPFS resource' : pageSelection.entity.canonicalUri || 'IPFS resource')} • IPFS resource • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'IPFS resource'} • IPFS resource • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.IpfsResource, data.selector, {
+				sources: [
+					Source.Ipfs_Rest,
+				],
+				fields: {
+					canonicalUri: true,
+				},
+			})}
+
 	<IpfsResourceView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

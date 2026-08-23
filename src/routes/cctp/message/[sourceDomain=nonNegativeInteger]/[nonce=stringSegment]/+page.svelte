@@ -16,15 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.CctpMessage, data.selector, {
-		sources: [
-			Source.CircleCctpContracts_Evm,
-			Source.CircleCctpContracts_Solana,
-			Source.CircleCctpContracts_Stellar,
-			Source.CircleCctpIris,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -33,12 +24,35 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.nonce || 'CCTP message')} • CCTP message • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.CctpMessage, data.selector, {
+				sources: [
+					Source.CircleCctpContracts_Evm,
+					Source.CircleCctpContracts_Solana,
+					Source.CircleCctpContracts_Stellar,
+					Source.CircleCctpIris,
+				],
+			})}
+		<title>{data?.title ?? (pageSelection.entitySelector.nonce || 'CCTP message')} • CCTP message • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'CCTP message'} • CCTP message • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.CctpMessage, data.selector, {
+				sources: [
+					Source.CircleCctpContracts_Evm,
+					Source.CircleCctpContracts_Solana,
+					Source.CircleCctpContracts_Stellar,
+					Source.CircleCctpIris,
+				],
+			})}
+
 	<CctpMessageView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

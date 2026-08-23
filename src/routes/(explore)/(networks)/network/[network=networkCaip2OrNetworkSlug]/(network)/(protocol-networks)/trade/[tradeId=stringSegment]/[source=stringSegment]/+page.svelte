@@ -24,20 +24,33 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'stellar trade'} • stellar trade • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<StellarTradeView
-		selection={
-			select(EntityType.StellarTrade, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.StellarTrade, {
 				$network: data.selector,
 				tradeId: params.tradeId,
 				source: params.source,
 			}, {
 				sources: [params.source],
-			})
-		}
+			})}
+		<title>{data?.title ?? 'stellar trade'} • stellar trade • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'stellar trade'} • stellar trade • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.StellarTrade, {
+				$network: data.selector,
+				tradeId: params.tradeId,
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+
+	<StellarTradeView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

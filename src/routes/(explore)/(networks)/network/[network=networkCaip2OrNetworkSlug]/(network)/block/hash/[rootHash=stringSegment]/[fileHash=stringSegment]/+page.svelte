@@ -24,18 +24,29 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'TON block'} • TON block • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.TonBlock, {
+				$network: data.selector,
+				rootHash: params.rootHash,
+				fileHash: params.fileHash,
+			})}
+		<title>{data?.title ?? 'TON block'} • TON block • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'TON block'} • TON block • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
-	<TonBlockView
-		selection={
-			select(EntityType.TonBlock, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.TonBlock, {
 				$network: data.selector,
 				rootHash: params.rootHash,
 				fileHash: params.fileHash,
-			})
-		}
+			})}
+
+	<TonBlockView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

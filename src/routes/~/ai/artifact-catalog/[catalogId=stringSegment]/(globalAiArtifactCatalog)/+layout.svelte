@@ -39,11 +39,13 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<GlobalAiArtifactCatalogView
-			selection={select(EntityType._GlobalAiArtifactCatalog, data.selector)}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<GlobalAiArtifactCatalogView
+				selection={select(EntityType._GlobalAiArtifactCatalog, data.selector)}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

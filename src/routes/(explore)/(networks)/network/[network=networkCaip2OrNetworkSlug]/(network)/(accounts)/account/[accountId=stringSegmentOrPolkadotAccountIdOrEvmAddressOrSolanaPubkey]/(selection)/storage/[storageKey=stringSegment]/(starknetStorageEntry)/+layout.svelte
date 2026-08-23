@@ -42,18 +42,20 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<StarknetStorageEntryView
-			selection={
-				select(EntityType.StarknetStorageEntry, data.selector, {
-					sources: [
-						Source.Juno_JsonRpc,
-						Source.Pathfinder,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<StarknetStorageEntryView
+				selection={
+					select(EntityType.StarknetStorageEntry, data.selector, {
+						sources: [
+							Source.Juno_JsonRpc,
+							Source.Pathfinder,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

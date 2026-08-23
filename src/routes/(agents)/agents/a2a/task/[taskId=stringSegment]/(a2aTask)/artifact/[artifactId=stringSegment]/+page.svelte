@@ -15,13 +15,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.A2aArtifact, data.selector, {
-		sources: [],
-		fields: {
-			name: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -30,12 +23,31 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.artifactId ?? '') || 'A2A artifact' : (pageSelection.entity.name ?? '') || pageSelection.entitySelector.artifactId || 'A2A artifact')} • A2A artifact • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.A2aArtifact, data.selector, {
+				sources: [],
+				fields: {
+					name: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.artifactId ?? '') || 'A2A artifact' : (pageSelection.entity.name ?? '') || pageSelection.entitySelector.artifactId || 'A2A artifact')} • A2A artifact • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'A2A artifact'} • A2A artifact • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.A2aArtifact, data.selector, {
+				sources: [],
+				fields: {
+					name: true,
+				},
+			})}
+
 	<A2aArtifactView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

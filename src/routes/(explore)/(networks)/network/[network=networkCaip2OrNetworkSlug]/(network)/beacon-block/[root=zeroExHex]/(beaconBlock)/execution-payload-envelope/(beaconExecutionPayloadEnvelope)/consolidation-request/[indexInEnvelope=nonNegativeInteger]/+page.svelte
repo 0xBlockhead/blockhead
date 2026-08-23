@@ -17,15 +17,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.BeaconExecutionConsolidationRequest, {
-		$envelope: data.selector,
-		indexInEnvelope: Number(params.indexInEnvelope),
-	}, {
-		sources: [
-			Source.Beacon_Rest,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -34,12 +25,35 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? ((String(pageSelection.entitySelector.indexInEnvelope ?? '') ? 'Consolidation request #' + String(pageSelection.entitySelector.indexInEnvelope ?? '') : '') || 'Beacon execution consolidation request')} • Beacon execution consolidation request • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BeaconExecutionConsolidationRequest, {
+				$envelope: data.selector,
+				indexInEnvelope: Number(params.indexInEnvelope),
+			}, {
+				sources: [
+					Source.Beacon_Rest,
+				],
+			})}
+		<title>{data?.title ?? ((String(pageSelection.entitySelector.indexInEnvelope ?? '') ? 'Consolidation request #' + String(pageSelection.entitySelector.indexInEnvelope ?? '') : '') || 'Beacon execution consolidation request')} • Beacon execution consolidation request • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Beacon execution consolidation request'} • Beacon execution consolidation request • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BeaconExecutionConsolidationRequest, {
+				$envelope: data.selector,
+				indexInEnvelope: Number(params.indexInEnvelope),
+			}, {
+				sources: [
+					Source.Beacon_Rest,
+				],
+			})}
+
 	<BeaconExecutionConsolidationRequestView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

@@ -16,14 +16,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.AvailDataSubmission, {
-		$network: data.selector,
-		source: params.source,
-		submissionKey: params.submissionKey,
-	}, {
-		sources: [params.source],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -32,12 +24,33 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.submissionKey || 'avail data submission')} • avail data submission • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.AvailDataSubmission, {
+				$network: data.selector,
+				source: params.source,
+				submissionKey: params.submissionKey,
+			}, {
+				sources: [params.source],
+			})}
+		<title>{data?.title ?? (pageSelection.entitySelector.submissionKey || 'avail data submission')} • avail data submission • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'avail data submission'} • avail data submission • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.AvailDataSubmission, {
+				$network: data.selector,
+				source: params.source,
+				submissionKey: params.submissionKey,
+			}, {
+				sources: [params.source],
+			})}
+
 	<AvailDataSubmissionView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

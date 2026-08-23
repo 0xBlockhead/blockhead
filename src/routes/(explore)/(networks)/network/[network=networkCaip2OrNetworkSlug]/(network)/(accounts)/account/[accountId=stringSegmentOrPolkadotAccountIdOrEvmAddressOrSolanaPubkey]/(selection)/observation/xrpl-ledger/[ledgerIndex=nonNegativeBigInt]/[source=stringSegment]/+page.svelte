@@ -16,17 +16,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.XrplAccount_Timestamp, {
-		$account: data.selector,
-		ledgerIndex: BigInt(params.ledgerIndex),
-		source: params.source,
-	}, {
-		sources: [params.source],
-		fields: {
-			balanceDrops: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -35,12 +24,39 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? 'XRPL account timestamp' : String(pageSelection.entity.balanceDrops ?? '') || 'XRPL account timestamp')} • XRPL account timestamp • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.XrplAccount_Timestamp, {
+				$account: data.selector,
+				ledgerIndex: BigInt(params.ledgerIndex),
+				source: params.source,
+			}, {
+				sources: [params.source],
+				fields: {
+					balanceDrops: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'XRPL account timestamp' : String(pageSelection.entity.balanceDrops ?? '') || 'XRPL account timestamp')} • XRPL account timestamp • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'XRPL account timestamp'} • XRPL account timestamp • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.XrplAccount_Timestamp, {
+				$account: data.selector,
+				ledgerIndex: BigInt(params.ledgerIndex),
+				source: params.source,
+			}, {
+				sources: [params.source],
+				fields: {
+					balanceDrops: true,
+				},
+			})}
+
 	<XrplAccount_TimestampView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

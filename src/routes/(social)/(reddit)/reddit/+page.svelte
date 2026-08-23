@@ -24,19 +24,31 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'Reddit'} • Reddit • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<GlobalRedditNetworkView
-		selection={
-			select(EntityType._GlobalRedditNetwork, data.selector, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType._GlobalRedditNetwork, data.selector, {
 				sources: [
 					Source.Reddit_PublicJson,
 					Source.Reddit_Rest,
 				],
-			})
-		}
+			})}
+		<title>{data?.title ?? 'Reddit'} • Reddit • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Reddit'} • Reddit • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType._GlobalRedditNetwork, data.selector, {
+				sources: [
+					Source.Reddit_PublicJson,
+					Source.Reddit_Rest,
+				],
+			})}
+
+	<GlobalRedditNetworkView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

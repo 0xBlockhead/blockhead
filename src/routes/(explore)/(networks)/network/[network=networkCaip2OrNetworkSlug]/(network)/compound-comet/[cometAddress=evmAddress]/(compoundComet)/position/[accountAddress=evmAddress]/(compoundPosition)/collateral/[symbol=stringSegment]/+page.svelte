@@ -25,14 +25,8 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'Compound position collateral'} • Compound position collateral • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<CompoundPositionCollateralView
-		selection={
-			select(EntityType.CompoundPositionCollateral, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.CompoundPositionCollateral, {
 				$position: data.selector,
 				$asset: {
 					$comet: data.selector.$comet,
@@ -42,7 +36,30 @@
 				sources: [
 					Source.Compound_Rest,
 				],
-			})
-		}
+			})}
+		<title>{data?.title ?? 'Compound position collateral'} • Compound position collateral • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Compound position collateral'} • Compound position collateral • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.CompoundPositionCollateral, {
+				$position: data.selector,
+				$asset: {
+					$comet: data.selector.$comet,
+					symbol: params.symbol,
+				},
+			}, {
+				sources: [
+					Source.Compound_Rest,
+				],
+			})}
+
+	<CompoundPositionCollateralView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

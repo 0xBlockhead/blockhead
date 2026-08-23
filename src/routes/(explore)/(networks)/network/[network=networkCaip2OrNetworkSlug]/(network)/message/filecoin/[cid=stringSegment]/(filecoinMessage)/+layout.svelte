@@ -41,18 +41,20 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<FilecoinMessageView
-			selection={
-				select(EntityType.FilecoinMessage, data.selector, {
-					sources: [
-						Source.Filfox_Rest,
-						Source.Lotus_JsonRpc,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<FilecoinMessageView
+				selection={
+					select(EntityType.FilecoinMessage, data.selector, {
+						sources: [
+							Source.Filfox_Rest,
+							Source.Lotus_JsonRpc,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

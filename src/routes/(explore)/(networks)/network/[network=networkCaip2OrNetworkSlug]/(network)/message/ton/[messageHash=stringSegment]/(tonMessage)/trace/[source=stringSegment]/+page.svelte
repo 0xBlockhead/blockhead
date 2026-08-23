@@ -24,19 +24,31 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'TON trace'} • TON trace • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<TonTraceView
-		selection={
-			select(EntityType.TonTrace, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.TonTrace, {
 				$rootMessage: data.selector,
 				source: params.source,
 			}, {
 				sources: [params.source],
-			})
-		}
+			})}
+		<title>{data?.title ?? 'TON trace'} • TON trace • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'TON trace'} • TON trace • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.TonTrace, {
+				$rootMessage: data.selector,
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+
+	<TonTraceView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

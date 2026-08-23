@@ -17,16 +17,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.BalancerPoolAprItem, {
-		$pool: data.selector,
-		title: params.title,
-		aprType: params.aprType,
-	}, {
-		sources: [
-			Source.Balancer_Rest,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -35,12 +25,37 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.title || 'Balancer pool APR item')} • Balancer pool APR item • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BalancerPoolAprItem, {
+				$pool: data.selector,
+				title: params.title,
+				aprType: params.aprType,
+			}, {
+				sources: [
+					Source.Balancer_Rest,
+				],
+			})}
+		<title>{data?.title ?? (pageSelection.entitySelector.title || 'Balancer pool APR item')} • Balancer pool APR item • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Balancer pool APR item'} • Balancer pool APR item • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BalancerPoolAprItem, {
+				$pool: data.selector,
+				title: params.title,
+				aprType: params.aprType,
+			}, {
+				sources: [
+					Source.Balancer_Rest,
+				],
+			})}
+
 	<BalancerPoolAprItemView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

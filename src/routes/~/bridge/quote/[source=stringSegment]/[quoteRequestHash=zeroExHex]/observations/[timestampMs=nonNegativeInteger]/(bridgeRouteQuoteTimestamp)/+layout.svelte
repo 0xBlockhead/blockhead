@@ -41,11 +41,13 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<BridgeRouteQuote_TimestampView
-			selection={select(EntityType.BridgeRouteQuote_Timestamp, data.selector)}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<BridgeRouteQuote_TimestampView
+				selection={select(EntityType.BridgeRouteQuote_Timestamp, data.selector)}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

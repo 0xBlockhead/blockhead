@@ -43,13 +43,15 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		{@const DetailView = data.entityType === EntityType.HederaToken_Timestamp ? HederaToken_TimestampView : TronToken_TimestampView}
+		{#if data?.selector != null}
+			{@const DetailView = data.entityType === EntityType.HederaToken_Timestamp ? HederaToken_TimestampView : TronToken_TimestampView}
 
-		<DetailView
-			selection={select(data.entityType, data.selector)}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+			<DetailView
+				selection={select(data.entityType, data.selector)}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

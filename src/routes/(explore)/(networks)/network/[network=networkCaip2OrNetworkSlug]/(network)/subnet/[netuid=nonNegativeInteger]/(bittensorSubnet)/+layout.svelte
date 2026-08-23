@@ -41,18 +41,20 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<BittensorSubnetView
-			selection={
-				select(EntityType.BittensorSubnet, data.selector, {
-					sources: [
-						Source.Constants_Internal,
-						Source.Bittensor_JsonRpc,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<BittensorSubnetView
+				selection={
+					select(EntityType.BittensorSubnet, data.selector, {
+						sources: [
+							Source.Constants_Internal,
+							Source.Bittensor_JsonRpc,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

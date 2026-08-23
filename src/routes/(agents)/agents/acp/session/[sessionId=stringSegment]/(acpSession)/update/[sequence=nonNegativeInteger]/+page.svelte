@@ -17,15 +17,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.AcpSessionUpdate, {
-		$session: data.selector,
-		sequence: Number(params.sequence),
-	}, {
-		sources: [
-			Source.AcpLocal_JsonRpc,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -34,12 +25,35 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? ((String(pageSelection.entitySelector.sequence ?? '') ? 'Update #' + String(pageSelection.entitySelector.sequence ?? '') : '') || 'ACP session update')} • ACP session update • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.AcpSessionUpdate, {
+				$session: data.selector,
+				sequence: Number(params.sequence),
+			}, {
+				sources: [
+					Source.AcpLocal_JsonRpc,
+				],
+			})}
+		<title>{data?.title ?? ((String(pageSelection.entitySelector.sequence ?? '') ? 'Update #' + String(pageSelection.entitySelector.sequence ?? '') : '') || 'ACP session update')} • ACP session update • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'ACP session update'} • ACP session update • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.AcpSessionUpdate, {
+				$session: data.selector,
+				sequence: Number(params.sequence),
+			}, {
+				sources: [
+					Source.AcpLocal_JsonRpc,
+				],
+			})}
+
 	<AcpSessionUpdateView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

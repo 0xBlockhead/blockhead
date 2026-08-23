@@ -16,15 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.SpecificationRealm, data.selector, {
-		sources: [
-			Source.Constants_Internal,
-		],
-		fields: {
-			label: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -33,12 +24,35 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.realm ?? '') || 'Specification realm' : pageSelection.entity.label || pageSelection.entitySelector.realm || 'Specification realm')} • Specification realm • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.SpecificationRealm, data.selector, {
+				sources: [
+					Source.Constants_Internal,
+				],
+				fields: {
+					label: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.realm ?? '') || 'Specification realm' : pageSelection.entity.label || pageSelection.entitySelector.realm || 'Specification realm')} • Specification realm • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Specification realm'} • Specification realm • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.SpecificationRealm, data.selector, {
+				sources: [
+					Source.Constants_Internal,
+				],
+				fields: {
+					label: true,
+				},
+			})}
+
 	<SpecificationRealmView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

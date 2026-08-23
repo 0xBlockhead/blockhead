@@ -40,18 +40,20 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<RssFeedView
-			selection={
-				select(EntityType.RssFeed, data.selector, {
-					sources: [
-						Source.Rss_Rest,
-						Source.Rss2Json_Rest,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<RssFeedView
+				selection={
+					select(EntityType.RssFeed, data.selector, {
+						sources: [
+							Source.Rss_Rest,
+							Source.Rss2Json_Rest,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

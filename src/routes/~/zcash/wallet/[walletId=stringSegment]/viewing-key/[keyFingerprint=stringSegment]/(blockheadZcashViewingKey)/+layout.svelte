@@ -41,19 +41,21 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<BlockheadZcashViewingKeyView
-			selection={
-				select(EntityType.BlockheadZcashViewingKey, data.selector, {
-					sources: [
-						Source.Local_Internal,
-						Source.ZcashClientBackend_Local,
-						Source.ZcashdWallet_JsonRpc,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<BlockheadZcashViewingKeyView
+				selection={
+					select(EntityType.BlockheadZcashViewingKey, data.selector, {
+						sources: [
+							Source.Local_Internal,
+							Source.ZcashClientBackend_Local,
+							Source.ZcashdWallet_JsonRpc,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

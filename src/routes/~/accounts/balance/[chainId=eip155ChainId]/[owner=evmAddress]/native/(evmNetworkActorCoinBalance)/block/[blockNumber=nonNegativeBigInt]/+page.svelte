@@ -24,20 +24,33 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'EVM network actor coin balance EVM block'} • EVM network actor coin balance EVM block • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<EvmNetworkActorCoinBalance_EvmBlockView
-		selection={
-			select(EntityType.EvmNetworkActorCoinBalance_EvmBlock, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.EvmNetworkActorCoinBalance_EvmBlock, {
 				$actorCoin: data.selector,
 				$block: {
 					$network: data.selector.$network,
 					blockNumber: BigInt(params.blockNumber),
 				},
-			})
-		}
+			})}
+		<title>{data?.title ?? 'EVM network actor coin balance EVM block'} • EVM network actor coin balance EVM block • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'EVM network actor coin balance EVM block'} • EVM network actor coin balance EVM block • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.EvmNetworkActorCoinBalance_EvmBlock, {
+				$actorCoin: data.selector,
+				$block: {
+					$network: data.selector.$network,
+					blockNumber: BigInt(params.blockNumber),
+				},
+			})}
+
+	<EvmNetworkActorCoinBalance_EvmBlockView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

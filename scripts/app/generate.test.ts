@@ -1261,6 +1261,41 @@ test('inlines generated resource selections with one consumer', () => {
 	assert.match(sharedPageSelection, /selection=\{pageSelection\}/)
 })
 
+test('guards transient detail page selectors without weakening route parsing', () => {
+	const sessionPage = baselineCompiledApp.generatedFiles.find(({ path }) => (
+		path === 'src/routes/~/session/[sessionId=stringSegment]/+page.svelte'
+	))
+	const sessionDetailLayout = baselineCompiledApp.generatedFiles.find(({ path }) => (
+		path === 'src/routes/~/session/[sessionId=stringSegment]/(blockheadSession)/+layout.svelte'
+	))
+	const sessionRouteModule = baselineCompiledApp.generatedFiles.find(({ path }) => (
+		path === 'src/routes/~/session/[sessionId=stringSegment]/+layout.ts'
+	))
+
+	assert.ok(sessionPage)
+	assert.ok(sessionDetailLayout)
+	assert.ok(sessionRouteModule)
+	const pageSource = renderGeneratedFile(sessionPage)
+	const detailLayoutSource = renderGeneratedFile(sessionDetailLayout)
+	const routeModuleSource = renderGeneratedFile(sessionRouteModule)
+
+	assert.match(
+		pageSource,
+		/\{#if data\?\.selector != null\}[\s\S]*?\{@const pageSelection = select\(EntityType\.BlockheadSession, data\.selector,[\s\S]*?<BlockheadSessionView[\s\S]*?selection=\{pageSelection\}[\s\S]*?\{\/if\}/
+	)
+	assert.match(
+		pageSource,
+		/<svelte:head>[\s\S]*?\{#if data\?\.selector != null\}[\s\S]*?\{@const pageSelection = select\(EntityType\.BlockheadSession, data\.selector,[\s\S]*?\{:else\}[\s\S]*?data\?\.title[\s\S]*?\{\/if\}[\s\S]*?<\/svelte:head>/
+	)
+	assert.doesNotMatch(pageSource, /const pageSelection = \$derived/)
+	assert.match(
+		detailLayoutSource,
+		/\{#snippet Summary\(\)\}[\s\S]*?\{#if data\?\.selector != null\}[\s\S]*?select\(EntityType\.BlockheadSession, data\.selector,[\s\S]*?\{\/if\}[\s\S]*?\{\/snippet\}/
+	)
+	assert.match(routeModuleSource, /error\(404, 'Invalid BlockheadSession selector'\)/)
+	assert.doesNotMatch(routeModuleSource, /catch|\?\? \{\}/)
+})
+
 test('passes route source selector fields directly to page selections', () => {
 	const sourceSelectedRoutePages = generatedRouteSvelteFiles
 		.map((generatedFile) => ({

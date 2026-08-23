@@ -16,12 +16,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.BeaconCommittee, {
-		$network: data.selector,
-		slot: Number(params.slot),
-		indexInSlot: Number(params.index),
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -30,12 +24,29 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? ((String(pageSelection.entitySelector.indexInSlot ?? '') ? 'Committee #' + String(pageSelection.entitySelector.indexInSlot ?? '') : '') || 'beacon committee')} • beacon committee • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BeaconCommittee, {
+				$network: data.selector,
+				slot: Number(params.slot),
+				indexInSlot: Number(params.index),
+			})}
+		<title>{data?.title ?? ((String(pageSelection.entitySelector.indexInSlot ?? '') ? 'Committee #' + String(pageSelection.entitySelector.indexInSlot ?? '') : '') || 'beacon committee')} • beacon committee • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'beacon committee'} • beacon committee • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BeaconCommittee, {
+				$network: data.selector,
+				slot: Number(params.slot),
+				indexInSlot: Number(params.index),
+			})}
+
 	<BeaconCommitteeView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

@@ -23,12 +23,21 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'radicle identity document'} • radicle identity document • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.RadicleIdentityDocument, data.selector)}
+		<title>{data?.title ?? 'radicle identity document'} • radicle identity document • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'radicle identity document'} • radicle identity document • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.RadicleIdentityDocument, data.selector)}
+
 	<RadicleIdentityDocumentView
-		selection={select(EntityType.RadicleIdentityDocument, data.selector)}
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

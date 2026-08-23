@@ -24,18 +24,29 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'monero ring'} • monero ring • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.MoneroRing, data.selector, {
+				sources: [
+					Source.MoneroDaemonRpc_JsonRpc,
+				],
+			})}
+		<title>{data?.title ?? 'monero ring'} • monero ring • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'monero ring'} • monero ring • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
-	<MoneroRingView
-		selection={
-			select(EntityType.MoneroRing, data.selector, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.MoneroRing, data.selector, {
 				sources: [
 					Source.MoneroDaemonRpc_JsonRpc,
 				],
-			})
-		}
+			})}
+
+	<MoneroRingView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

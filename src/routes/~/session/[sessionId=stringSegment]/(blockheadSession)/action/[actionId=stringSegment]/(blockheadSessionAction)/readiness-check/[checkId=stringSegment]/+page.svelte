@@ -16,15 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.BlockheadActionReadinessCheck, data.selector, {
-		sources: [
-			Source.Local_Internal,
-		],
-		fields: {
-			checkKind: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -33,12 +24,35 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? 'blockhead action readiness check' : pageSelection.entity.checkKind || 'blockhead action readiness check')} • blockhead action readiness check • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BlockheadActionReadinessCheck, data.selector, {
+				sources: [
+					Source.Local_Internal,
+				],
+				fields: {
+					checkKind: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'blockhead action readiness check' : pageSelection.entity.checkKind || 'blockhead action readiness check')} • blockhead action readiness check • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'blockhead action readiness check'} • blockhead action readiness check • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BlockheadActionReadinessCheck, data.selector, {
+				sources: [
+					Source.Local_Internal,
+				],
+				fields: {
+					checkKind: true,
+				},
+			})}
+
 	<BlockheadActionReadinessCheckView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

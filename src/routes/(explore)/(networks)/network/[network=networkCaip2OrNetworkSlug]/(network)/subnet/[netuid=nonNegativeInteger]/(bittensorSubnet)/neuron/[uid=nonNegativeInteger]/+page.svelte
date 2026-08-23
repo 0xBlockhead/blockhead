@@ -17,15 +17,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.BittensorNeuron, {
-		$subnet: data.selector,
-		uid: Number(params.uid),
-	}, {
-		sources: [
-			Source.Bittensor_JsonRpc,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -34,12 +25,35 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (String(pageSelection.entitySelector.uid) || 'Bittensor neuron')} • Bittensor neuron • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BittensorNeuron, {
+				$subnet: data.selector,
+				uid: Number(params.uid),
+			}, {
+				sources: [
+					Source.Bittensor_JsonRpc,
+				],
+			})}
+		<title>{data?.title ?? (String(pageSelection.entitySelector.uid) || 'Bittensor neuron')} • Bittensor neuron • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Bittensor neuron'} • Bittensor neuron • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BittensorNeuron, {
+				$subnet: data.selector,
+				uid: Number(params.uid),
+			}, {
+				sources: [
+					Source.Bittensor_JsonRpc,
+				],
+			})}
+
 	<BittensorNeuronView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

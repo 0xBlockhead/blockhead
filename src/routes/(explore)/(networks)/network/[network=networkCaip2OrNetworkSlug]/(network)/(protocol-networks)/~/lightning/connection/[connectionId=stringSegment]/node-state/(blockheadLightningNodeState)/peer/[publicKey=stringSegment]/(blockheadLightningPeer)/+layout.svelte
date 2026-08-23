@@ -42,18 +42,20 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<BlockheadLightningPeerView
-			selection={
-				select(EntityType.BlockheadLightningPeer, data.selector, {
-					sources: [
-						Source.LightningLnd_Rest,
-						Source.Local_Internal,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<BlockheadLightningPeerView
+				selection={
+					select(EntityType.BlockheadLightningPeer, data.selector, {
+						sources: [
+							Source.LightningLnd_Rest,
+							Source.Local_Internal,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

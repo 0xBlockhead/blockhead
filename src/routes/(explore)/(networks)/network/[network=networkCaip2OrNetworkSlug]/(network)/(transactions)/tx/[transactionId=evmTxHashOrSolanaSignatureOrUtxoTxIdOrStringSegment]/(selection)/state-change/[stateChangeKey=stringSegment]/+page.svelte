@@ -16,15 +16,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.EvmStateChange, {
-		$transaction: data.selector,
-		stateChangeKey: decodeURIComponent(params.stateChangeKey),
-	}, {
-		fields: {
-			kind: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -33,12 +24,35 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? 'EVM state change' : pageSelection.entity.kind || 'EVM state change')} • EVM state change • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.EvmStateChange, {
+				$transaction: data.selector,
+				stateChangeKey: decodeURIComponent(params.stateChangeKey),
+			}, {
+				fields: {
+					kind: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'EVM state change' : pageSelection.entity.kind || 'EVM state change')} • EVM state change • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'EVM state change'} • EVM state change • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.EvmStateChange, {
+				$transaction: data.selector,
+				stateChangeKey: decodeURIComponent(params.stateChangeKey),
+			}, {
+				fields: {
+					kind: true,
+				},
+			})}
+
 	<EvmStateChangeView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

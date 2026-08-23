@@ -24,20 +24,33 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'algorand network timestamp'} • algorand network timestamp • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<AlgorandNetwork_TimestampView
-		selection={
-			select(EntityType.AlgorandNetwork_Timestamp, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.AlgorandNetwork_Timestamp, {
 				$network: data.selector,
 				timestampMs: Number(params.timestampMs),
 				source: params.source,
 			}, {
 				sources: [params.source],
-			})
-		}
+			})}
+		<title>{data?.title ?? 'algorand network timestamp'} • algorand network timestamp • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'algorand network timestamp'} • algorand network timestamp • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.AlgorandNetwork_Timestamp, {
+				$network: data.selector,
+				timestampMs: Number(params.timestampMs),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+
+	<AlgorandNetwork_TimestampView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

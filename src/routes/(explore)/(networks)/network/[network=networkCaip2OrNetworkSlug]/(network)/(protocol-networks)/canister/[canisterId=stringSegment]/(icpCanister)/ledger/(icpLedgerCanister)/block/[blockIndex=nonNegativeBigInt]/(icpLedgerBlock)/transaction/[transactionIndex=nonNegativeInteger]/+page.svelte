@@ -24,17 +24,27 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'ICP ledger transaction'} • ICP ledger transaction • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.IcpLedgerTransaction, {
+				$block: data.selector,
+				transactionIndex: Number(params.transactionIndex),
+			})}
+		<title>{data?.title ?? 'ICP ledger transaction'} • ICP ledger transaction • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'ICP ledger transaction'} • ICP ledger transaction • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
-	<IcpLedgerTransactionView
-		selection={
-			select(EntityType.IcpLedgerTransaction, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.IcpLedgerTransaction, {
 				$block: data.selector,
 				transactionIndex: Number(params.transactionIndex),
-			})
-		}
+			})}
+
+	<IcpLedgerTransactionView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

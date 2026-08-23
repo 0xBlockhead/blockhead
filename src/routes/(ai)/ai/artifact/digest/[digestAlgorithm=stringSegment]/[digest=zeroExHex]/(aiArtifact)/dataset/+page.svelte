@@ -15,17 +15,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.AiDataset, {
-		$artifact: data.selector,
-	}, {
-		fields: {
-			label: true,
-			datasetUri: true,
-			datasetName: true,
-			huggingFaceDatasetId: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -34,12 +23,39 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? 'AI dataset' : (pageSelection.entity.label ?? '') || [(pageSelection.entity.datasetUri ?? ''), (pageSelection.entity.datasetName ?? ''), (pageSelection.entity.huggingFaceDatasetId ?? '')].filter(Boolean).join(' ') || 'AI dataset')} • AI dataset • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.AiDataset, {
+				$artifact: data.selector,
+			}, {
+				fields: {
+					label: true,
+					datasetUri: true,
+					datasetName: true,
+					huggingFaceDatasetId: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'AI dataset' : (pageSelection.entity.label ?? '') || [(pageSelection.entity.datasetUri ?? ''), (pageSelection.entity.datasetName ?? ''), (pageSelection.entity.huggingFaceDatasetId ?? '')].filter(Boolean).join(' ') || 'AI dataset')} • AI dataset • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'AI dataset'} • AI dataset • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.AiDataset, {
+				$artifact: data.selector,
+			}, {
+				fields: {
+					label: true,
+					datasetUri: true,
+					datasetName: true,
+					huggingFaceDatasetId: true,
+				},
+			})}
+
 	<AiDatasetView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

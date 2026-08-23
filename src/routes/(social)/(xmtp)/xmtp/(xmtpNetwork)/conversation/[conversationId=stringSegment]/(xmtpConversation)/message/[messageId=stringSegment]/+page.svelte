@@ -17,18 +17,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.XmtpMessage, {
-		$conversation: data.selector,
-		id: params.messageId,
-	}, {
-		sources: [
-			Source.Local_Internal,
-		],
-		fields: {
-			contentText: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -37,12 +25,41 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.id ?? '') || 'XMTP message' : [(pageSelection.entity.contentText ?? ''), pageSelection.entitySelector.id].filter(Boolean).join(' ') || 'XMTP message')} • XMTP message • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.XmtpMessage, {
+				$conversation: data.selector,
+				id: params.messageId,
+			}, {
+				sources: [
+					Source.Local_Internal,
+				],
+				fields: {
+					contentText: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.id ?? '') || 'XMTP message' : [(pageSelection.entity.contentText ?? ''), pageSelection.entitySelector.id].filter(Boolean).join(' ') || 'XMTP message')} • XMTP message • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'XMTP message'} • XMTP message • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.XmtpMessage, {
+				$conversation: data.selector,
+				id: params.messageId,
+			}, {
+				sources: [
+					Source.Local_Internal,
+				],
+				fields: {
+					contentText: true,
+				},
+			})}
+
 	<XmtpMessageView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

@@ -16,12 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.ZeroGStorageLogEntry, data.selector, {
-		sources: [
-			Source.ZeroGStorageScan_Rest,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -30,12 +24,29 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.logEntryId || 'zero g storage log entry')} • zero g storage log entry • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.ZeroGStorageLogEntry, data.selector, {
+				sources: [
+					Source.ZeroGStorageScan_Rest,
+				],
+			})}
+		<title>{data?.title ?? (pageSelection.entitySelector.logEntryId || 'zero g storage log entry')} • zero g storage log entry • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'zero g storage log entry'} • zero g storage log entry • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.ZeroGStorageLogEntry, data.selector, {
+				sources: [
+					Source.ZeroGStorageScan_Rest,
+				],
+			})}
+
 	<ZeroGStorageLogEntryView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

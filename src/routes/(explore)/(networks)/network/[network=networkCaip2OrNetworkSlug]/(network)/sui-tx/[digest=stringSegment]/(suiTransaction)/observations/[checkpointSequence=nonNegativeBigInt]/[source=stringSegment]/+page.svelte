@@ -24,20 +24,33 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'Sui transaction timestamp'} • Sui transaction timestamp • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<SuiTransaction_TimestampView
-		selection={
-			select(EntityType.SuiTransaction_Timestamp, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.SuiTransaction_Timestamp, {
 				$transaction: data.selector,
 				checkpointSequence: BigInt(params.checkpointSequence),
 				source: params.source,
 			}, {
 				sources: [params.source],
-			})
-		}
+			})}
+		<title>{data?.title ?? 'Sui transaction timestamp'} • Sui transaction timestamp • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Sui transaction timestamp'} • Sui transaction timestamp • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.SuiTransaction_Timestamp, {
+				$transaction: data.selector,
+				checkpointSequence: BigInt(params.checkpointSequence),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+
+	<SuiTransaction_TimestampView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

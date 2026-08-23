@@ -42,13 +42,15 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		{@const DetailView = data.entityType === EntityType.CardanoTxOutput ? CardanoTxOutputView : UtxoOutputView}
+		{#if data?.selector != null}
+			{@const DetailView = data.entityType === EntityType.CardanoTxOutput ? CardanoTxOutputView : UtxoOutputView}
 
-		<DetailView
-			selection={select(data.entityType, data.selector)}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+			<DetailView
+				selection={select(data.entityType, data.selector)}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

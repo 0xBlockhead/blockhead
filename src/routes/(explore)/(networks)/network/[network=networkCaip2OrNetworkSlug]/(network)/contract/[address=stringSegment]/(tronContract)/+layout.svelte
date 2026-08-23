@@ -41,17 +41,19 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<TronContractView
-			selection={
-				select(EntityType.TronContract, data.selector, {
-					sources: [
-						Source.TronScan_Rest,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<TronContractView
+				selection={
+					select(EntityType.TronContract, data.selector, {
+						sources: [
+							Source.TronScan_Rest,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

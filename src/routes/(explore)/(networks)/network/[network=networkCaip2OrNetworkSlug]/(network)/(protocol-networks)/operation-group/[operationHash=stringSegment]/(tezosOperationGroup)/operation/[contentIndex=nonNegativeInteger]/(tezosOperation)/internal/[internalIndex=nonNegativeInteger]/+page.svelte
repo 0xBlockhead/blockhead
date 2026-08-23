@@ -24,17 +24,27 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'tezos internal operation'} • tezos internal operation • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.TezosInternalOperation, {
+				$parentOperation: data.selector,
+				internalIndex: Number(params.internalIndex),
+			})}
+		<title>{data?.title ?? 'tezos internal operation'} • tezos internal operation • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'tezos internal operation'} • tezos internal operation • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
-	<TezosInternalOperationView
-		selection={
-			select(EntityType.TezosInternalOperation, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.TezosInternalOperation, {
 				$parentOperation: data.selector,
 				internalIndex: Number(params.internalIndex),
-			})
-		}
+			})}
+
+	<TezosInternalOperationView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

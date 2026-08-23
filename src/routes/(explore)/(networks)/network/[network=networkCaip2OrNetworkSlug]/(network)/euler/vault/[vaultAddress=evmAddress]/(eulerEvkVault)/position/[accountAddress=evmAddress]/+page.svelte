@@ -25,14 +25,8 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'Euler EVK vault position'} • Euler EVK vault position • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<EulerEvkVaultPositionView
-		selection={
-			select(EntityType.EulerEvkVaultPosition, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.EulerEvkVaultPosition, {
 				$account: {
 					$network: data.selector.$network,
 					$actor: {
@@ -44,7 +38,32 @@
 				sources: [
 					Source.Euler_Rest,
 				],
-			})
-		}
+			})}
+		<title>{data?.title ?? 'Euler EVK vault position'} • Euler EVK vault position • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Euler EVK vault position'} • Euler EVK vault position • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.EulerEvkVaultPosition, {
+				$account: {
+					$network: data.selector.$network,
+					$actor: {
+						address: params.accountAddress,
+					},
+				},
+				$vault: data.selector,
+			}, {
+				sources: [
+					Source.Euler_Rest,
+				],
+			})}
+
+	<EulerEvkVaultPositionView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

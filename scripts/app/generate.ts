@@ -14466,6 +14466,16 @@ const generatePageFile = (
 		:
 			pageSelectionExpression
 	)
+	// SvelteKit can briefly retain a page instance while replacing its load data.
+	// Keep `select` inside the rendered selector-presence branch: a loaded malformed
+	// selector still reaches route parsing, while a transient missing data value does not
+	// construct an invalid proxy during navigation.
+	const usesTransientSelectorBoundary = (
+		isEntityDetailPage
+		&& usesData
+		&& pageSelectionExpression != null
+		&& !typeScriptSourceReferencesBinding(view?.script ?? '', 'pageSelection')
+	)
 	if (
 		mapping?.href?.canonicalize === true
 		&& viewEntity != null
@@ -14618,9 +14628,9 @@ const generatePageFile = (
 					...(hasFieldConditionedSources ? [
 						`const entitySelector = $derived(${selectorExpression})`,
 					] : []),
-					...(pageSelectionReference === 'pageSelection' ? [
-						`const pageSelection = $derived(${pageSelectionExpression})`,
-					] : []),
+				...(pageSelectionReference === 'pageSelection' && !usesTransientSelectorBoundary ? [
+					`const pageSelection = $derived(${pageSelectionExpression})`,
+				] : []),
 				]),
 				...((view?.script ?? '').trim() === '' ? [] : [
 					'',
@@ -14647,7 +14657,18 @@ const generatePageFile = (
 			],
 			head: (
 				pageEntityTitleExpression != null && entityTypeLabel != null ?
-					[
+					usesTransientSelectorBoundary ? [
+						'{#if data?.selector != null}',
+						renderSvelteConst(1, 'pageSelection', pageSelectionExpression),
+						...(literalPageEntityTitle == null ?
+							[`\t<title>{${pageEntityTitleExpression}} • ${entityTypeLabel} • Blockhead</title>`]
+						:
+							[`\t<title>${svelteText(literalPageEntityTitle)} • ${entityTypeLabel} • Blockhead</title>`]
+						),
+						'{:else}',
+						`\t<title>{data?.title ?? ${emitTypeScript(entityTypeLabel)}} • ${entityTypeLabel} • Blockhead</title>`,
+						'{/if}',
+					] : [
 						literalPageEntityTitle == null ?
 							`<title>{${pageEntityTitleExpression}} • ${entityTypeLabel} • Blockhead</title>`
 						:
@@ -14662,7 +14683,20 @@ const generatePageFile = (
 			),
 			markup: [
 				'<Page>',
-				...(collection == null ?
+				...(usesTransientSelectorBoundary ? [
+					'\t{#if data?.selector != null}',
+					renderSvelteConst(2, 'pageSelection', pageSelectionExpression),
+					'',
+					...reindentLines(renderEntityPageMarkup(
+						routeFile,
+						component,
+						'pageSelection.entitySelector',
+						routeId(appRoutePath),
+						indexes,
+						'pageSelection'
+					), 1),
+					'\t{/if}',
+				] : collection == null ?
 					renderEntityPageMarkup(
 						routeFile,
 						component,
@@ -14867,15 +14901,17 @@ const generateLayoutFile = (routeFile: CompiledLayoutRouteFileFacts) => {
 			renderSvelteAttribute(1, 'href', 'detailHref'),
 			'>',
 			'\t{#snippet Summary()}',
+			'\t\t{#if data?.selector != null}',
 			...(routeFile.detailLayout.components.length === 1 ? [] : [
-				'\t\t{@const DetailView = ' + routeFile.detailLayout.detailViewExpression + '}',
+				'\t\t\t{@const DetailView = ' + routeFile.detailLayout.detailViewExpression + '}',
 				'',
 			]),
-			`\t\t<${component}`,
-			renderSvelteAttribute(3, 'selection', routeFile.detailLayout.detailSelectionExpression),
-			renderSvelteAttribute(3, 'href', 'detailHref'),
-			'\t\t\tlayout={EntityLayout.SummaryInline}',
-			'\t\t/>',
+			`\t\t\t<${component}`,
+			renderSvelteAttribute(4, 'selection', routeFile.detailLayout.detailSelectionExpression),
+			renderSvelteAttribute(4, 'href', 'detailHref'),
+			'\t\t\t\tlayout={EntityLayout.SummaryInline}',
+			'\t\t\t/>',
+			'\t\t{/if}',
 			'\t{/snippet}',
 			'',
 			'\t{@render children()}',

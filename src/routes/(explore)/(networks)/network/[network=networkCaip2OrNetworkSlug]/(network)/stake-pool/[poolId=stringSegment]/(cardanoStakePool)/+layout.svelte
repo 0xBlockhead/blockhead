@@ -41,17 +41,19 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<CardanoStakePoolView
-			selection={
-				select(EntityType.CardanoStakePool, data.selector, {
-					sources: [
-						Source.Blockfrost_Rest,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<CardanoStakePoolView
+				selection={
+					select(EntityType.CardanoStakePool, data.selector, {
+						sources: [
+							Source.Blockfrost_Rest,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

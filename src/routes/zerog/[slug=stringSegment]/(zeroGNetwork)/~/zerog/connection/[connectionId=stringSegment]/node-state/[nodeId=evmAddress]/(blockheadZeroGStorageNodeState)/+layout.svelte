@@ -42,18 +42,20 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<BlockheadZeroGStorageNodeStateView
-			selection={
-				select(EntityType.BlockheadZeroGStorageNodeState, data.selector, {
-					sources: [
-						Source.Local_Internal,
-						Source.ZeroGStorageNode_JsonRpc,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<BlockheadZeroGStorageNodeStateView
+				selection={
+					select(EntityType.BlockheadZeroGStorageNodeState, data.selector, {
+						sources: [
+							Source.Local_Internal,
+							Source.ZeroGStorageNode_JsonRpc,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

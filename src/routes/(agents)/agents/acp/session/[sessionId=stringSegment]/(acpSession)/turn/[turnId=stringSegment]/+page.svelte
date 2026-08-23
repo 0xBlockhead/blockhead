@@ -16,12 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.AcpPromptTurn, data.selector, {
-		sources: [
-			Source.AcpLocal_JsonRpc,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -30,12 +24,29 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.turnId || 'ACP prompt turn')} • ACP prompt turn • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.AcpPromptTurn, data.selector, {
+				sources: [
+					Source.AcpLocal_JsonRpc,
+				],
+			})}
+		<title>{data?.title ?? (pageSelection.entitySelector.turnId || 'ACP prompt turn')} • ACP prompt turn • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'ACP prompt turn'} • ACP prompt turn • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.AcpPromptTurn, data.selector, {
+				sources: [
+					Source.AcpLocal_JsonRpc,
+				],
+			})}
+
 	<AcpPromptTurnView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

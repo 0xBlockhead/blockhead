@@ -23,12 +23,21 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'solana instruction'} • solana instruction • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.SolanaInstruction, data.selector)}
+		<title>{data?.title ?? 'solana instruction'} • solana instruction • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'solana instruction'} • solana instruction • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.SolanaInstruction, data.selector)}
+
 	<SolanaInstructionView
-		selection={select(EntityType.SolanaInstruction, data.selector)}
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

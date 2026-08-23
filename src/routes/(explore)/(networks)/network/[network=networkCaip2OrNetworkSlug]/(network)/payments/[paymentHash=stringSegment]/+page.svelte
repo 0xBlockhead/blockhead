@@ -16,12 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.BlockheadLightningPayment, data.selector, {
-		sources: [
-			Source.LightningLnd_Rest,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -30,12 +24,29 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.paymentHash || 'local LND payment')} • local LND payment • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BlockheadLightningPayment, data.selector, {
+				sources: [
+					Source.LightningLnd_Rest,
+				],
+			})}
+		<title>{data?.title ?? (pageSelection.entitySelector.paymentHash || 'local LND payment')} • local LND payment • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'local LND payment'} • local LND payment • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BlockheadLightningPayment, data.selector, {
+				sources: [
+					Source.LightningLnd_Rest,
+				],
+			})}
+
 	<BlockheadLightningPaymentView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

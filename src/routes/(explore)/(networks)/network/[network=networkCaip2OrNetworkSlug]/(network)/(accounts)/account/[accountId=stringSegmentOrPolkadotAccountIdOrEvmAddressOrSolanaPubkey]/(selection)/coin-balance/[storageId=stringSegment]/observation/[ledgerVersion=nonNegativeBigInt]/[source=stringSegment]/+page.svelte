@@ -16,18 +16,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.AptosCoinBalance_Timestamp, {
-		$account: data.selector,
-		storageId: params.storageId,
-		ledgerVersion: BigInt(params.ledgerVersion),
-		source: params.source,
-	}, {
-		sources: [params.source],
-		fields: {
-			assetType: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -36,12 +24,41 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? 'current Aptos coin balance observation' : pageSelection.entity.assetType || 'current Aptos coin balance observation')} • current Aptos coin balance observation • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.AptosCoinBalance_Timestamp, {
+				$account: data.selector,
+				storageId: params.storageId,
+				ledgerVersion: BigInt(params.ledgerVersion),
+				source: params.source,
+			}, {
+				sources: [params.source],
+				fields: {
+					assetType: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'current Aptos coin balance observation' : pageSelection.entity.assetType || 'current Aptos coin balance observation')} • current Aptos coin balance observation • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'current Aptos coin balance observation'} • current Aptos coin balance observation • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.AptosCoinBalance_Timestamp, {
+				$account: data.selector,
+				storageId: params.storageId,
+				ledgerVersion: BigInt(params.ledgerVersion),
+				source: params.source,
+			}, {
+				sources: [params.source],
+				fields: {
+					assetType: true,
+				},
+			})}
+
 	<AptosCoinBalance_TimestampView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

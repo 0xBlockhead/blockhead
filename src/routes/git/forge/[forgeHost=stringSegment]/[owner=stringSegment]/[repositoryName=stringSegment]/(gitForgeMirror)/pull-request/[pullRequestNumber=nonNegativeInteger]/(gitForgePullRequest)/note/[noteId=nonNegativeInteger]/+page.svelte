@@ -17,18 +17,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.GitForgePullRequestNote, {
-		$pullRequest: data.selector,
-		noteId: Number(params.noteId),
-	}, {
-		sources: [
-			Source.Gitlab_Rest,
-		],
-		fields: {
-			body: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -37,12 +25,41 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? String(pageSelection.entitySelector.noteId ?? '') || 'Git forge pull request note' : pageSelection.entity.body || String(pageSelection.entitySelector.noteId) || 'Git forge pull request note')} • Git forge pull request note • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.GitForgePullRequestNote, {
+				$pullRequest: data.selector,
+				noteId: Number(params.noteId),
+			}, {
+				sources: [
+					Source.Gitlab_Rest,
+				],
+				fields: {
+					body: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? String(pageSelection.entitySelector.noteId ?? '') || 'Git forge pull request note' : pageSelection.entity.body || String(pageSelection.entitySelector.noteId) || 'Git forge pull request note')} • Git forge pull request note • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Git forge pull request note'} • Git forge pull request note • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.GitForgePullRequestNote, {
+				$pullRequest: data.selector,
+				noteId: Number(params.noteId),
+			}, {
+				sources: [
+					Source.Gitlab_Rest,
+				],
+				fields: {
+					body: true,
+				},
+			})}
+
 	<GitForgePullRequestNoteView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

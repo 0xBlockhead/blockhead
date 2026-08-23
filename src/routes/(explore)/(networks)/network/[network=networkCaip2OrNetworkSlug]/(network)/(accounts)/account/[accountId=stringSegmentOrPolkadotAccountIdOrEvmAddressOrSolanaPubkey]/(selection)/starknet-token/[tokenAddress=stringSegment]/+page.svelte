@@ -24,18 +24,29 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'starknet token holding'} • starknet token holding • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.StarknetTokenHolding, data.selector, {
+				sources: [
+					Source.Starkscan,
+				],
+			})}
+		<title>{data?.title ?? 'starknet token holding'} • starknet token holding • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'starknet token holding'} • starknet token holding • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
-	<StarknetTokenHoldingView
-		selection={
-			select(EntityType.StarknetTokenHolding, data.selector, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.StarknetTokenHolding, data.selector, {
 				sources: [
 					Source.Starkscan,
 				],
-			})
-		}
+			})}
+
+	<StarknetTokenHoldingView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

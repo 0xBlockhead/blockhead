@@ -16,15 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.BlockheadWalletRequest, data.selector, {
-		sources: [
-			Source.Local_Internal,
-		],
-		fields: {
-			requestKind: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -33,12 +24,35 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? 'blockhead wallet request' : pageSelection.entity.requestKind || 'blockhead wallet request')} • blockhead wallet request • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BlockheadWalletRequest, data.selector, {
+				sources: [
+					Source.Local_Internal,
+				],
+				fields: {
+					requestKind: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'blockhead wallet request' : pageSelection.entity.requestKind || 'blockhead wallet request')} • blockhead wallet request • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'blockhead wallet request'} • blockhead wallet request • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BlockheadWalletRequest, data.selector, {
+				sources: [
+					Source.Local_Internal,
+				],
+				fields: {
+					requestKind: true,
+				},
+			})}
+
 	<BlockheadWalletRequestView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

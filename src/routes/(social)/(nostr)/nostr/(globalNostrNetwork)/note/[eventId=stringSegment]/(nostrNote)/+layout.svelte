@@ -40,19 +40,21 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<NostrNoteView
-			selection={
-				select(EntityType.NostrNote, data.selector, {
-					sources: [
-						Source.Constants_Internal,
-						Source.NostrRelay_WebSocket,
-						Source.Primal_Rest,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<NostrNoteView
+				selection={
+					select(EntityType.NostrNote, data.selector, {
+						sources: [
+							Source.Constants_Internal,
+							Source.NostrRelay_WebSocket,
+							Source.Primal_Rest,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

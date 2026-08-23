@@ -24,14 +24,8 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'hyperliquid market time interval timestamp'} • hyperliquid market time interval timestamp • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<HyperliquidMarket_TimeInterval_TimestampView
-		selection={
-			select(EntityType.HyperliquidMarket_TimeInterval_Timestamp, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.HyperliquidMarket_TimeInterval_Timestamp, {
 				$network: data.selector.$network,
 				marketKey: params.marketKey,
 				timeInterval: {
@@ -39,7 +33,28 @@
 					unit: params.intervalUnit,
 				},
 				timestampMs: Number(params.timestampMs),
-			})
-		}
+			})}
+		<title>{data?.title ?? 'hyperliquid market time interval timestamp'} • hyperliquid market time interval timestamp • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'hyperliquid market time interval timestamp'} • hyperliquid market time interval timestamp • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.HyperliquidMarket_TimeInterval_Timestamp, {
+				$network: data.selector.$network,
+				marketKey: params.marketKey,
+				timeInterval: {
+					value: Number(params.intervalValue),
+					unit: params.intervalUnit,
+				},
+				timestampMs: Number(params.timestampMs),
+			})}
+
+	<HyperliquidMarket_TimeInterval_TimestampView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

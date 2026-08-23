@@ -15,8 +15,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.MevBuilder, data.selector))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -25,12 +23,21 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.builderPubkey || 'MEV builder')} • MEV builder • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.MevBuilder, data.selector)}
+		<title>{data?.title ?? (pageSelection.entitySelector.builderPubkey || 'MEV builder')} • MEV builder • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'MEV builder'} • MEV builder • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.MevBuilder, data.selector)}
+
 	<MevBuilderView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

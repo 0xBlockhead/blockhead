@@ -23,12 +23,21 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'stellar claimable balance'} • stellar claimable balance • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.StellarClaimableBalance, data.selector)}
+		<title>{data?.title ?? 'stellar claimable balance'} • stellar claimable balance • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'stellar claimable balance'} • stellar claimable balance • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.StellarClaimableBalance, data.selector)}
+
 	<StellarClaimableBalanceView
-		selection={select(EntityType.StellarClaimableBalance, data.selector)}
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

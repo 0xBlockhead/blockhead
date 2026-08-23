@@ -17,15 +17,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.OsmosisPoolAsset, {
-		$pool: data.selector,
-		denom: params.denom,
-	}, {
-		sources: [
-			Source.Osmosis_LCD_Rest,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -34,12 +25,35 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.denom || 'Osmosis pool asset')} • Osmosis pool asset • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.OsmosisPoolAsset, {
+				$pool: data.selector,
+				denom: params.denom,
+			}, {
+				sources: [
+					Source.Osmosis_LCD_Rest,
+				],
+			})}
+		<title>{data?.title ?? (pageSelection.entitySelector.denom || 'Osmosis pool asset')} • Osmosis pool asset • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Osmosis pool asset'} • Osmosis pool asset • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.OsmosisPoolAsset, {
+				$pool: data.selector,
+				denom: params.denom,
+			}, {
+				sources: [
+					Source.Osmosis_LCD_Rest,
+				],
+			})}
+
 	<OsmosisPoolAssetView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

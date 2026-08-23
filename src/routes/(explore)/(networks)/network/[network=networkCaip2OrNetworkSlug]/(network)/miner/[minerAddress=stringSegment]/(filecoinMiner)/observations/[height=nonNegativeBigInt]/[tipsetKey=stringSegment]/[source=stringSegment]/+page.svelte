@@ -16,18 +16,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.FilecoinMiner_Timestamp, {
-		$miner: data.selector,
-		height: BigInt(params.height),
-		tipsetKey: params.tipsetKey,
-		source: params.source,
-	}, {
-		sources: [params.source],
-		fields: {
-			timestampMs: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -36,12 +24,41 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? 'filecoin miner timestamp' : String(pageSelection.entity.timestampMs) || 'filecoin miner timestamp')} • filecoin miner timestamp • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.FilecoinMiner_Timestamp, {
+				$miner: data.selector,
+				height: BigInt(params.height),
+				tipsetKey: params.tipsetKey,
+				source: params.source,
+			}, {
+				sources: [params.source],
+				fields: {
+					timestampMs: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'filecoin miner timestamp' : String(pageSelection.entity.timestampMs) || 'filecoin miner timestamp')} • filecoin miner timestamp • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'filecoin miner timestamp'} • filecoin miner timestamp • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.FilecoinMiner_Timestamp, {
+				$miner: data.selector,
+				height: BigInt(params.height),
+				tipsetKey: params.tipsetKey,
+				source: params.source,
+			}, {
+				sources: [params.source],
+				fields: {
+					timestampMs: true,
+				},
+			})}
+
 	<FilecoinMiner_TimestampView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

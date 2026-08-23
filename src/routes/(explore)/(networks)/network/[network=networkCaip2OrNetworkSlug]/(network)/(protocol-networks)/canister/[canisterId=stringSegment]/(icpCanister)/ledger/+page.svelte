@@ -23,12 +23,21 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'ICP ledger canister'} • ICP ledger canister • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.IcpLedgerCanister, data.selector)}
+		<title>{data?.title ?? 'ICP ledger canister'} • ICP ledger canister • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'ICP ledger canister'} • ICP ledger canister • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.IcpLedgerCanister, data.selector)}
+
 	<IcpLedgerCanisterView
-		selection={select(EntityType.IcpLedgerCanister, data.selector)}
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

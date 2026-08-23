@@ -16,12 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.EvmLog, data.selector, {
-		sources: [
-			Source.Blockscout_Rest,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -30,12 +24,29 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? ((String(pageSelection.entitySelector.indexInTransaction ?? '') ? 'Log #' + String(pageSelection.entitySelector.indexInTransaction ?? '') : '') || 'EVM log')} • EVM log • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.EvmLog, data.selector, {
+				sources: [
+					Source.Blockscout_Rest,
+				],
+			})}
+		<title>{data?.title ?? ((String(pageSelection.entitySelector.indexInTransaction ?? '') ? 'Log #' + String(pageSelection.entitySelector.indexInTransaction ?? '') : '') || 'EVM log')} • EVM log • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'EVM log'} • EVM log • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.EvmLog, data.selector, {
+				sources: [
+					Source.Blockscout_Rest,
+				],
+			})}
+
 	<EvmLogView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

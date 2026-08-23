@@ -23,12 +23,21 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'hedera token association'} • hedera token association • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.HederaTokenAssociation, data.selector)}
+		<title>{data?.title ?? 'hedera token association'} • hedera token association • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'hedera token association'} • hedera token association • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.HederaTokenAssociation, data.selector)}
+
 	<HederaTokenAssociationView
-		selection={select(EntityType.HederaTokenAssociation, data.selector)}
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

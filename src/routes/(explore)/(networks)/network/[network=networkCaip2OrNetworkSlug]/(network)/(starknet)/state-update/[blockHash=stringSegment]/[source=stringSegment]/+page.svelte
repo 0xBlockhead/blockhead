@@ -16,16 +16,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.StarknetStateUpdate, {
-		$network: {
-			$network: data.selector,
-		},
-		blockHash: params.blockHash,
-		source: params.source,
-	}, {
-		sources: [params.source],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -34,12 +24,37 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.blockHash || 'Starknet state update')} • Starknet state update • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.StarknetStateUpdate, {
+				$network: {
+					$network: data.selector,
+				},
+				blockHash: params.blockHash,
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+		<title>{data?.title ?? (pageSelection.entitySelector.blockHash || 'Starknet state update')} • Starknet state update • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Starknet state update'} • Starknet state update • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.StarknetStateUpdate, {
+				$network: {
+					$network: data.selector,
+				},
+				blockHash: params.blockHash,
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+
 	<StarknetStateUpdateView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

@@ -16,15 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.BlockheadSessionAction, data.selector, {
-		sources: [
-			Source.Local_Internal,
-		],
-		fields: {
-			actionType: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -33,12 +24,35 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? 'blockhead session action' : pageSelection.entity.actionType || 'blockhead session action')} • blockhead session action • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BlockheadSessionAction, data.selector, {
+				sources: [
+					Source.Local_Internal,
+				],
+				fields: {
+					actionType: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'blockhead session action' : pageSelection.entity.actionType || 'blockhead session action')} • blockhead session action • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'blockhead session action'} • blockhead session action • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BlockheadSessionAction, data.selector, {
+				sources: [
+					Source.Local_Internal,
+				],
+				fields: {
+					actionType: true,
+				},
+			})}
+
 	<BlockheadSessionActionView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

@@ -42,17 +42,19 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<FilecoinSectorView
-			selection={
-				select(EntityType.FilecoinSector, data.selector, {
-					sources: [
-						Source.Lotus_JsonRpc,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<FilecoinSectorView
+				selection={
+					select(EntityType.FilecoinSector, data.selector, {
+						sources: [
+							Source.Lotus_JsonRpc,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

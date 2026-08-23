@@ -24,20 +24,33 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'hyperliquid vault timestamp'} • hyperliquid vault timestamp • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<HyperliquidVault_TimestampView
-		selection={
-			select(EntityType.HyperliquidVault_Timestamp, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.HyperliquidVault_Timestamp, {
 				$vault: data.selector,
 				timestampMs: Number(params.timestampMs),
 				source: params.source,
 			}, {
 				sources: [params.source],
-			})
-		}
+			})}
+		<title>{data?.title ?? 'hyperliquid vault timestamp'} • hyperliquid vault timestamp • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'hyperliquid vault timestamp'} • hyperliquid vault timestamp • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.HyperliquidVault_Timestamp, {
+				$vault: data.selector,
+				timestampMs: Number(params.timestampMs),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+
+	<HyperliquidVault_TimestampView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

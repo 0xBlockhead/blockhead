@@ -16,16 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.RedditLink, data.selector, {
-		sources: [
-			Source.Reddit_PublicJson,
-			Source.Reddit_Rest,
-		],
-		fields: {
-			title: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -34,12 +24,37 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.fullname ?? '') || 'Reddit submission' : (pageSelection.entity.title ?? '') || pageSelection.entitySelector.fullname || 'Reddit submission')} • Reddit submission • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.RedditLink, data.selector, {
+				sources: [
+					Source.Reddit_PublicJson,
+					Source.Reddit_Rest,
+				],
+				fields: {
+					title: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.fullname ?? '') || 'Reddit submission' : (pageSelection.entity.title ?? '') || pageSelection.entitySelector.fullname || 'Reddit submission')} • Reddit submission • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Reddit submission'} • Reddit submission • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.RedditLink, data.selector, {
+				sources: [
+					Source.Reddit_PublicJson,
+					Source.Reddit_Rest,
+				],
+				fields: {
+					title: true,
+				},
+			})}
+
 	<RedditLinkView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

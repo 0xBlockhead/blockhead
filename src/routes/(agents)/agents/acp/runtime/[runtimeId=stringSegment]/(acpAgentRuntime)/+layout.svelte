@@ -40,18 +40,20 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<AcpAgentRuntimeView
-			selection={
-				select(EntityType.AcpAgentRuntime, data.selector, {
-					sources: [
-						Source.AcpLocal_JsonRpc,
-						Source.Local_Internal,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<AcpAgentRuntimeView
+				selection={
+					select(EntityType.AcpAgentRuntime, data.selector, {
+						sources: [
+							Source.AcpLocal_JsonRpc,
+							Source.Local_Internal,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

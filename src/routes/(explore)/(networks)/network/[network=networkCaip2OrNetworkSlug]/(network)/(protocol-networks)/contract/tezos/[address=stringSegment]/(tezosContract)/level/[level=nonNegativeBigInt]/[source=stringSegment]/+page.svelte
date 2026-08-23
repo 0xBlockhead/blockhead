@@ -24,20 +24,33 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'tezos contract timestamp'} • tezos contract timestamp • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<TezosContract_TimestampView
-		selection={
-			select(EntityType.TezosContract_Timestamp, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.TezosContract_Timestamp, {
 				$contract: data.selector,
 				level: BigInt(params.level),
 				source: params.source,
 			}, {
 				sources: [params.source],
-			})
-		}
+			})}
+		<title>{data?.title ?? 'tezos contract timestamp'} • tezos contract timestamp • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'tezos contract timestamp'} • tezos contract timestamp • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.TezosContract_Timestamp, {
+				$contract: data.selector,
+				level: BigInt(params.level),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+
+	<TezosContract_TimestampView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

@@ -24,17 +24,27 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'algorand transaction group'} • algorand transaction group • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.AlgorandTransactionGroup, {
+				$network: data.selector,
+				group: params.group,
+			})}
+		<title>{data?.title ?? 'algorand transaction group'} • algorand transaction group • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'algorand transaction group'} • algorand transaction group • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
-	<AlgorandTransactionGroupView
-		selection={
-			select(EntityType.AlgorandTransactionGroup, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.AlgorandTransactionGroup, {
 				$network: data.selector,
 				group: params.group,
-			})
-		}
+			})}
+
+	<AlgorandTransactionGroupView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

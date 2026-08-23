@@ -16,16 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.EulerEvkVault, data.selector, {
-		sources: [
-			Source.Euler_Rest,
-		],
-		fields: {
-			name: true,
-			symbol: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -34,12 +24,37 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? 'Euler EVK vault' : [pageSelection.entity.name, pageSelection.entity.symbol].filter(Boolean).join(' ') || 'Euler EVK vault')} • Euler EVK vault • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.EulerEvkVault, data.selector, {
+				sources: [
+					Source.Euler_Rest,
+				],
+				fields: {
+					name: true,
+					symbol: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'Euler EVK vault' : [pageSelection.entity.name, pageSelection.entity.symbol].filter(Boolean).join(' ') || 'Euler EVK vault')} • Euler EVK vault • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Euler EVK vault'} • Euler EVK vault • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.EulerEvkVault, data.selector, {
+				sources: [
+					Source.Euler_Rest,
+				],
+				fields: {
+					name: true,
+					symbol: true,
+				},
+			})}
+
 	<EulerEvkVaultView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

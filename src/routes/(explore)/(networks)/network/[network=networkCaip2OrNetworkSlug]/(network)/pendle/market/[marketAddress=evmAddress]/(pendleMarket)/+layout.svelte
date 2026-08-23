@@ -41,17 +41,19 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<PendleMarketView
-			selection={
-				select(EntityType.PendleMarket, data.selector, {
-					sources: [
-						Source.Pendle_Rest,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<PendleMarketView
+				selection={
+					select(EntityType.PendleMarket, data.selector, {
+						sources: [
+							Source.Pendle_Rest,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

@@ -23,12 +23,21 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'TON contract get method'} • TON contract get method • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.TonContractGetMethod, data.selector)}
+		<title>{data?.title ?? 'TON contract get method'} • TON contract get method • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'TON contract get method'} • TON contract get method • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.TonContractGetMethod, data.selector)}
+
 	<TonContractGetMethodView
-		selection={select(EntityType.TonContractGetMethod, data.selector)}
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

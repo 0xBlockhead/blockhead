@@ -40,17 +40,19 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<LensPostView
-			selection={
-				select(EntityType.LensPost, data.selector, {
-					sources: [
-						Source.Lens_Graphql,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<LensPostView
+				selection={
+					select(EntityType.LensPost, data.selector, {
+						sources: [
+							Source.Lens_Graphql,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

@@ -17,21 +17,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.BitcoinRuneBalance, {
-		$output: data.selector,
-		$rune: {
-			$network: data.selector.$transaction.$network,
-			runeId: params.runeId,
-		},
-	}, {
-		sources: [
-			Source.UniSat_Rest,
-		],
-		fields: {
-			amount: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -40,12 +25,47 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? 'Bitcoin Rune balance' : pageSelection.entity.amount || 'Bitcoin Rune balance')} • Bitcoin Rune balance • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BitcoinRuneBalance, {
+				$output: data.selector,
+				$rune: {
+					$network: data.selector.$transaction.$network,
+					runeId: params.runeId,
+				},
+			}, {
+				sources: [
+					Source.UniSat_Rest,
+				],
+				fields: {
+					amount: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'Bitcoin Rune balance' : pageSelection.entity.amount || 'Bitcoin Rune balance')} • Bitcoin Rune balance • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Bitcoin Rune balance'} • Bitcoin Rune balance • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BitcoinRuneBalance, {
+				$output: data.selector,
+				$rune: {
+					$network: data.selector.$transaction.$network,
+					runeId: params.runeId,
+				},
+			}, {
+				sources: [
+					Source.UniSat_Rest,
+				],
+				fields: {
+					amount: true,
+				},
+			})}
+
 	<BitcoinRuneBalanceView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

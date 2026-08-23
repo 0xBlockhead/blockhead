@@ -15,8 +15,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.EnsName, data.selector))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -25,12 +23,21 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.name || 'ENS name')} • ENS name • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.EnsName, data.selector)}
+		<title>{data?.title ?? (pageSelection.entitySelector.name || 'ENS name')} • ENS name • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'ENS name'} • ENS name • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.EnsName, data.selector)}
+
 	<EnsNameView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

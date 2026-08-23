@@ -41,18 +41,20 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<ZeroGServiceProviderView
-			selection={
-				select(EntityType.ZeroGServiceProvider, data.selector, {
-					sources: [
-						Source.ZeroGStorageNode_JsonRpc,
-						Source.ZeroGStorageScan_Rest,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<ZeroGServiceProviderView
+				selection={
+					select(EntityType.ZeroGServiceProvider, data.selector, {
+						sources: [
+							Source.ZeroGStorageNode_JsonRpc,
+							Source.ZeroGStorageScan_Rest,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

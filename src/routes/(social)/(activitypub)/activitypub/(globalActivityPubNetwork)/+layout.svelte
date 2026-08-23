@@ -33,18 +33,20 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<GlobalActivityPubNetworkView
-			selection={
-				select(EntityType._GlobalActivityPubNetwork, data.selector, {
-					sources: [
-						Source.Constants_Internal,
-						Source.Mastodon_Rest,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<GlobalActivityPubNetworkView
+				selection={
+					select(EntityType._GlobalActivityPubNetwork, data.selector, {
+						sources: [
+							Source.Constants_Internal,
+							Source.Mastodon_Rest,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

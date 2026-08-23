@@ -24,17 +24,27 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'stellar asset'} • stellar asset • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.StellarAsset, {
+				$network: data.selector,
+				assetKey: params.assetKey,
+			})}
+		<title>{data?.title ?? 'stellar asset'} • stellar asset • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'stellar asset'} • stellar asset • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
-	<StellarAssetView
-		selection={
-			select(EntityType.StellarAsset, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.StellarAsset, {
 				$network: data.selector,
 				assetKey: params.assetKey,
-			})
-		}
+			})}
+
+	<StellarAssetView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

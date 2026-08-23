@@ -23,12 +23,21 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'tezos operation group'} • tezos operation group • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.TezosOperationGroup, data.selector)}
+		<title>{data?.title ?? 'tezos operation group'} • tezos operation group • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'tezos operation group'} • tezos operation group • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.TezosOperationGroup, data.selector)}
+
 	<TezosOperationGroupView
-		selection={select(EntityType.TezosOperationGroup, data.selector)}
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

@@ -16,13 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.AcpAgentRuntime, data.selector, {
-		sources: [
-			Source.AcpLocal_JsonRpc,
-			Source.Local_Internal,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -31,12 +24,31 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.runtimeId || 'ACP agent runtime')} • ACP agent runtime • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.AcpAgentRuntime, data.selector, {
+				sources: [
+					Source.AcpLocal_JsonRpc,
+					Source.Local_Internal,
+				],
+			})}
+		<title>{data?.title ?? (pageSelection.entitySelector.runtimeId || 'ACP agent runtime')} • ACP agent runtime • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'ACP agent runtime'} • ACP agent runtime • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.AcpAgentRuntime, data.selector, {
+				sources: [
+					Source.AcpLocal_JsonRpc,
+					Source.Local_Internal,
+				],
+			})}
+
 	<AcpAgentRuntimeView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

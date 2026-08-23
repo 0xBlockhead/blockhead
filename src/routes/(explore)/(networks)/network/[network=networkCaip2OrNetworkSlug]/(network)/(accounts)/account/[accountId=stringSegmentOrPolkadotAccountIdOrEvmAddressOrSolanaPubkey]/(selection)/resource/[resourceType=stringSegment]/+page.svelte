@@ -15,8 +15,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.AptosAccountResource, data.selector))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -25,12 +23,21 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.resourceType || 'aptos account resource')} • aptos account resource • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.AptosAccountResource, data.selector)}
+		<title>{data?.title ?? (pageSelection.entitySelector.resourceType || 'aptos account resource')} • aptos account resource • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'aptos account resource'} • aptos account resource • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.AptosAccountResource, data.selector)}
+
 	<AptosAccountResourceView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

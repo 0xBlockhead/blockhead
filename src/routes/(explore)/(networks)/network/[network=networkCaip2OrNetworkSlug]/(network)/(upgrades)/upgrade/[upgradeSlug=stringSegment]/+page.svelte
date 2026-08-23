@@ -16,16 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.EthereumNetworkUpgrade, data.selector, {
-		sources: [
-			Source.Constants_Internal,
-		],
-		fields: {
-			upgradeId: true,
-			name: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -34,12 +24,37 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? 'Ethereum network upgrade' : pageSelection.entity.upgradeId || pageSelection.entity.name || 'Ethereum network upgrade')} • Ethereum network upgrade • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.EthereumNetworkUpgrade, data.selector, {
+				sources: [
+					Source.Constants_Internal,
+				],
+				fields: {
+					upgradeId: true,
+					name: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'Ethereum network upgrade' : pageSelection.entity.upgradeId || pageSelection.entity.name || 'Ethereum network upgrade')} • Ethereum network upgrade • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Ethereum network upgrade'} • Ethereum network upgrade • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.EthereumNetworkUpgrade, data.selector, {
+				sources: [
+					Source.Constants_Internal,
+				],
+				fields: {
+					upgradeId: true,
+					name: true,
+				},
+			})}
+
 	<EthereumNetworkUpgradeView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

@@ -16,12 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.OciManifest, data.selector, {
-		sources: [
-			Source.OciRegistry_Distribution,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -30,12 +24,29 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.repository || 'OCI manifest')} • OCI manifest • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.OciManifest, data.selector, {
+				sources: [
+					Source.OciRegistry_Distribution,
+				],
+			})}
+		<title>{data?.title ?? (pageSelection.entitySelector.repository || 'OCI manifest')} • OCI manifest • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'OCI manifest'} • OCI manifest • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.OciManifest, data.selector, {
+				sources: [
+					Source.OciRegistry_Distribution,
+				],
+			})}
+
 	<OciManifestView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

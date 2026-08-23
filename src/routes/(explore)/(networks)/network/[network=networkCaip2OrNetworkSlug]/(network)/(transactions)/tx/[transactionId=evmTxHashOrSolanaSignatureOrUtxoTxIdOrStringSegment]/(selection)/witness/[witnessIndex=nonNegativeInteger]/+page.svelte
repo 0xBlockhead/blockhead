@@ -16,15 +16,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.CardanoScriptWitness, {
-		$transaction: data.selector,
-		witnessIndex: Number(params.witnessIndex),
-	}, {
-		fields: {
-			scriptKind: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -33,12 +24,35 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? 'Script #' + String(pageSelection.entitySelector.witnessIndex ?? '') : [pageSelection.entity.scriptKind, 'Script #' + String(pageSelection.entitySelector.witnessIndex)].filter(Boolean).join(' ') || 'Cardano script witness')} • Cardano script witness • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.CardanoScriptWitness, {
+				$transaction: data.selector,
+				witnessIndex: Number(params.witnessIndex),
+			}, {
+				fields: {
+					scriptKind: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'Script #' + String(pageSelection.entitySelector.witnessIndex ?? '') : [pageSelection.entity.scriptKind, 'Script #' + String(pageSelection.entitySelector.witnessIndex)].filter(Boolean).join(' ') || 'Cardano script witness')} • Cardano script witness • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Cardano script witness'} • Cardano script witness • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.CardanoScriptWitness, {
+				$transaction: data.selector,
+				witnessIndex: Number(params.witnessIndex),
+			}, {
+				fields: {
+					scriptKind: true,
+				},
+			})}
+
 	<CardanoScriptWitnessView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

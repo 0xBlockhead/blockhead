@@ -42,18 +42,20 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<DydxChainSubaccountView
-			selection={
-				select(EntityType.DydxChainSubaccount, data.selector, {
-					sources: [
-						Source.DydxIndexer,
-						Source.KingnodesDydxNode,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<DydxChainSubaccountView
+				selection={
+					select(EntityType.DydxChainSubaccount, data.selector, {
+						sources: [
+							Source.DydxIndexer,
+							Source.KingnodesDydxNode,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

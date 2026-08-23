@@ -24,20 +24,33 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'XRPL transaction timestamp'} • XRPL transaction timestamp • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<XrplTransaction_TimestampView
-		selection={
-			select(EntityType.XrplTransaction_Timestamp, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.XrplTransaction_Timestamp, {
 				$transaction: data.selector,
 				ledgerIndex: BigInt(params.ledgerIndex),
 				source: params.source,
 			}, {
 				sources: [params.source],
-			})
-		}
+			})}
+		<title>{data?.title ?? 'XRPL transaction timestamp'} • XRPL transaction timestamp • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'XRPL transaction timestamp'} • XRPL transaction timestamp • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.XrplTransaction_Timestamp, {
+				$transaction: data.selector,
+				ledgerIndex: BigInt(params.ledgerIndex),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+
+	<XrplTransaction_TimestampView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

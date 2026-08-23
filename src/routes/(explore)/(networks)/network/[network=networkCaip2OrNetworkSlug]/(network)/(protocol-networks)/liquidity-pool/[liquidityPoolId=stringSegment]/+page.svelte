@@ -23,12 +23,21 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'stellar liquidity pool'} • stellar liquidity pool • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.StellarLiquidityPool, data.selector)}
+		<title>{data?.title ?? 'stellar liquidity pool'} • stellar liquidity pool • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'stellar liquidity pool'} • stellar liquidity pool • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.StellarLiquidityPool, data.selector)}
+
 	<StellarLiquidityPoolView
-		selection={select(EntityType.StellarLiquidityPool, data.selector)}
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

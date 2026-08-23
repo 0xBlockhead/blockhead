@@ -16,13 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.BlockheadLightningPeer, data.selector, {
-		sources: [
-			Source.LightningLnd_Rest,
-			Source.Local_Internal,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -31,12 +24,31 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.publicKey || 'local LND peer')} • local LND peer • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BlockheadLightningPeer, data.selector, {
+				sources: [
+					Source.LightningLnd_Rest,
+					Source.Local_Internal,
+				],
+			})}
+		<title>{data?.title ?? (pageSelection.entitySelector.publicKey || 'local LND peer')} • local LND peer • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'local LND peer'} • local LND peer • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BlockheadLightningPeer, data.selector, {
+				sources: [
+					Source.LightningLnd_Rest,
+					Source.Local_Internal,
+				],
+			})}
+
 	<BlockheadLightningPeerView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

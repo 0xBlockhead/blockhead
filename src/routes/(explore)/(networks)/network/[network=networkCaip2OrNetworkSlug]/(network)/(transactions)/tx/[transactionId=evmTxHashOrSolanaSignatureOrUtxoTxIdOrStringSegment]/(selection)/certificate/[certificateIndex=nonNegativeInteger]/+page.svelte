@@ -16,15 +16,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.CardanoCertificate, {
-		$transaction: data.selector,
-		certificateIndex: Number(params.certificateIndex),
-	}, {
-		fields: {
-			certificateKind: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -33,12 +24,35 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? 'Certificate #' + String(pageSelection.entitySelector.certificateIndex ?? '') : [pageSelection.entity.certificateKind, 'Certificate #' + String(pageSelection.entitySelector.certificateIndex)].filter(Boolean).join(' ') || 'Cardano certificate')} • Cardano certificate • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.CardanoCertificate, {
+				$transaction: data.selector,
+				certificateIndex: Number(params.certificateIndex),
+			}, {
+				fields: {
+					certificateKind: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'Certificate #' + String(pageSelection.entitySelector.certificateIndex ?? '') : [pageSelection.entity.certificateKind, 'Certificate #' + String(pageSelection.entitySelector.certificateIndex)].filter(Boolean).join(' ') || 'Cardano certificate')} • Cardano certificate • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Cardano certificate'} • Cardano certificate • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.CardanoCertificate, {
+				$transaction: data.selector,
+				certificateIndex: Number(params.certificateIndex),
+			}, {
+				fields: {
+					certificateKind: true,
+				},
+			})}
+
 	<CardanoCertificateView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

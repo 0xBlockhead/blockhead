@@ -24,18 +24,29 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'litecoin MWEB block'} • litecoin MWEB block • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.LitecoinMwebBlock, data.selector, {
+				sources: [
+					Source.LitecoinCore_JsonRpc,
+				],
+			})}
+		<title>{data?.title ?? 'litecoin MWEB block'} • litecoin MWEB block • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'litecoin MWEB block'} • litecoin MWEB block • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
-	<LitecoinMwebBlockView
-		selection={
-			select(EntityType.LitecoinMwebBlock, data.selector, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.LitecoinMwebBlock, data.selector, {
 				sources: [
 					Source.LitecoinCore_JsonRpc,
 				],
-			})
-		}
+			})}
+
+	<LitecoinMwebBlockView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

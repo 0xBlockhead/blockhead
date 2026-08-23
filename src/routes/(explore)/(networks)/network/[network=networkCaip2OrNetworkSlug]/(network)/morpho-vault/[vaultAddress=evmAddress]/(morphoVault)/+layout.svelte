@@ -41,17 +41,19 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<MorphoVaultView
-			selection={
-				select(EntityType.MorphoVault, data.selector, {
-					sources: [
-						Source.Morpho_Graphql,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<MorphoVaultView
+				selection={
+					select(EntityType.MorphoVault, data.selector, {
+						sources: [
+							Source.Morpho_Graphql,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

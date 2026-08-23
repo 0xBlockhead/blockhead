@@ -16,13 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.EvmBlob, data.selector, {
-		sources: [
-			Source.Voltaire_JsonRpc,
-			Source.Blobscan_Rest,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -31,12 +24,31 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? ((String(pageSelection.entitySelector.indexInTransaction ?? '') ? 'Blob #' + String(pageSelection.entitySelector.indexInTransaction ?? '') : '') || 'EVM blob')} • EVM blob • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.EvmBlob, data.selector, {
+				sources: [
+					Source.Voltaire_JsonRpc,
+					Source.Blobscan_Rest,
+				],
+			})}
+		<title>{data?.title ?? ((String(pageSelection.entitySelector.indexInTransaction ?? '') ? 'Blob #' + String(pageSelection.entitySelector.indexInTransaction ?? '') : '') || 'EVM blob')} • EVM blob • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'EVM blob'} • EVM blob • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.EvmBlob, data.selector, {
+				sources: [
+					Source.Voltaire_JsonRpc,
+					Source.Blobscan_Rest,
+				],
+			})}
+
 	<EvmBlobView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

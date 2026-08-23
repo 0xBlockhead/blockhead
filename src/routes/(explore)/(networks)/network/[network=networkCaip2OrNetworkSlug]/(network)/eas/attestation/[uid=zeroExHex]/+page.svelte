@@ -16,12 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.EasAttestation, data.selector, {
-		sources: [
-			Source.EasScan_Graphql,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -30,12 +24,29 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.uid || 'EAS attestation')} • EAS attestation • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.EasAttestation, data.selector, {
+				sources: [
+					Source.EasScan_Graphql,
+				],
+			})}
+		<title>{data?.title ?? (pageSelection.entitySelector.uid || 'EAS attestation')} • EAS attestation • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'EAS attestation'} • EAS attestation • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.EasAttestation, data.selector, {
+				sources: [
+					Source.EasScan_Graphql,
+				],
+			})}
+
 	<EasAttestationView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

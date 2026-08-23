@@ -24,20 +24,33 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'tezos big map key timestamp'} • tezos big map key timestamp • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<TezosBigMapKey_TimestampView
-		selection={
-			select(EntityType.TezosBigMapKey_Timestamp, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.TezosBigMapKey_Timestamp, {
 				$bigMapKey: data.selector,
 				level: BigInt(params.level),
 				source: params.source,
 			}, {
 				sources: [params.source],
-			})
-		}
+			})}
+		<title>{data?.title ?? 'tezos big map key timestamp'} • tezos big map key timestamp • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'tezos big map key timestamp'} • tezos big map key timestamp • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.TezosBigMapKey_Timestamp, {
+				$bigMapKey: data.selector,
+				level: BigInt(params.level),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+
+	<TezosBigMapKey_TimestampView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

@@ -41,17 +41,19 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<EasAttestationView
-			selection={
-				select(EntityType.EasAttestation, data.selector, {
-					sources: [
-						Source.EasScan_Graphql,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<EasAttestationView
+				selection={
+					select(EntityType.EasAttestation, data.selector, {
+						sources: [
+							Source.EasScan_Graphql,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

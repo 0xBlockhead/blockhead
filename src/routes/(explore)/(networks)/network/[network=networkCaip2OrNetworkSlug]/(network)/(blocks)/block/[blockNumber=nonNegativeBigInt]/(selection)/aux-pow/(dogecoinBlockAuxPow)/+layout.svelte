@@ -41,17 +41,19 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<DogecoinBlockAuxPowView
-			selection={
-				select(EntityType.DogecoinBlockAuxPow, data.selector, {
-					sources: [
-						Source.DogecoinCore_JsonRpc,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<DogecoinBlockAuxPowView
+				selection={
+					select(EntityType.DogecoinBlockAuxPow, data.selector, {
+						sources: [
+							Source.DogecoinCore_JsonRpc,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

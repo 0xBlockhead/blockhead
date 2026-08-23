@@ -24,20 +24,33 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'Sui dynamic field edge timestamp'} • Sui dynamic field edge timestamp • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<SuiDynamicFieldEdge_TimestampView
-		selection={
-			select(EntityType.SuiDynamicFieldEdge_Timestamp, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.SuiDynamicFieldEdge_Timestamp, {
 				$edge: data.selector,
 				checkpointSequence: BigInt(params.checkpointSequence),
 				source: params.source,
 			}, {
 				sources: [params.source],
-			})
-		}
+			})}
+		<title>{data?.title ?? 'Sui dynamic field edge timestamp'} • Sui dynamic field edge timestamp • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Sui dynamic field edge timestamp'} • Sui dynamic field edge timestamp • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.SuiDynamicFieldEdge_Timestamp, {
+				$edge: data.selector,
+				checkpointSequence: BigInt(params.checkpointSequence),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+
+	<SuiDynamicFieldEdge_TimestampView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

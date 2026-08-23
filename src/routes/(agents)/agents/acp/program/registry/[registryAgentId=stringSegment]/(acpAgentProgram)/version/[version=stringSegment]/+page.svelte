@@ -17,15 +17,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.AcpAgentProgramVersion, {
-		$program: data.selector,
-		version: params.version,
-	}, {
-		sources: [
-			Source.AcpRegistry_Rest,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -34,12 +25,35 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? ((pageSelection.entitySelector.version ?? '') || 'ACP agent program version')} • ACP agent program version • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.AcpAgentProgramVersion, {
+				$program: data.selector,
+				version: params.version,
+			}, {
+				sources: [
+					Source.AcpRegistry_Rest,
+				],
+			})}
+		<title>{data?.title ?? ((pageSelection.entitySelector.version ?? '') || 'ACP agent program version')} • ACP agent program version • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'ACP agent program version'} • ACP agent program version • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.AcpAgentProgramVersion, {
+				$program: data.selector,
+				version: params.version,
+			}, {
+				sources: [
+					Source.AcpRegistry_Rest,
+				],
+			})}
+
 	<AcpAgentProgramVersionView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

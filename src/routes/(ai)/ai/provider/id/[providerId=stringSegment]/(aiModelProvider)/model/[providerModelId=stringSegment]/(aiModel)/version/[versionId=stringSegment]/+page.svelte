@@ -17,19 +17,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.AiModelVersion, {
-		$model: data.selector,
-		versionId: params.versionId,
-	}, {
-		sources: [
-			Source.HuggingFaceHub_Rest,
-			Source.Mlflow_Rest,
-		],
-		fields: {
-			revision: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -38,12 +25,43 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.versionId ?? '') || 'AI model version' : (pageSelection.entitySelector.versionId ?? '') || (pageSelection.entity.revision ?? '') || 'AI model version')} • AI model version • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.AiModelVersion, {
+				$model: data.selector,
+				versionId: params.versionId,
+			}, {
+				sources: [
+					Source.HuggingFaceHub_Rest,
+					Source.Mlflow_Rest,
+				],
+				fields: {
+					revision: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.versionId ?? '') || 'AI model version' : (pageSelection.entitySelector.versionId ?? '') || (pageSelection.entity.revision ?? '') || 'AI model version')} • AI model version • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'AI model version'} • AI model version • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.AiModelVersion, {
+				$model: data.selector,
+				versionId: params.versionId,
+			}, {
+				sources: [
+					Source.HuggingFaceHub_Rest,
+					Source.Mlflow_Rest,
+				],
+				fields: {
+					revision: true,
+				},
+			})}
+
 	<AiModelVersionView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

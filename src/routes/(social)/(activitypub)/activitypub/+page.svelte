@@ -24,19 +24,31 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'global ActivityPub network'} • global ActivityPub network • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<GlobalActivityPubNetworkView
-		selection={
-			select(EntityType._GlobalActivityPubNetwork, data.selector, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType._GlobalActivityPubNetwork, data.selector, {
 				sources: [
 					Source.Constants_Internal,
 					Source.Mastodon_Rest,
 				],
-			})
-		}
+			})}
+		<title>{data?.title ?? 'global ActivityPub network'} • global ActivityPub network • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'global ActivityPub network'} • global ActivityPub network • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType._GlobalActivityPubNetwork, data.selector, {
+				sources: [
+					Source.Constants_Internal,
+					Source.Mastodon_Rest,
+				],
+			})}
+
+	<GlobalActivityPubNetworkView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

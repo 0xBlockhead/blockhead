@@ -17,16 +17,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.Eip8004AgentServiceEndpoint, {
-		$registrationFile: data.selector,
-		endpointKind: params.endpointKind,
-		endpointUrl: decodeURIComponent(params.endpointUrl),
-	}, {
-		sources: [
-			Source.Eip8004Scan_Rest,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -35,12 +25,37 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.endpointUrl || 'EIP-8004 agent service endpoint')} • EIP-8004 agent service endpoint • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.Eip8004AgentServiceEndpoint, {
+				$registrationFile: data.selector,
+				endpointKind: params.endpointKind,
+				endpointUrl: decodeURIComponent(params.endpointUrl),
+			}, {
+				sources: [
+					Source.Eip8004Scan_Rest,
+				],
+			})}
+		<title>{data?.title ?? (pageSelection.entitySelector.endpointUrl || 'EIP-8004 agent service endpoint')} • EIP-8004 agent service endpoint • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'EIP-8004 agent service endpoint'} • EIP-8004 agent service endpoint • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.Eip8004AgentServiceEndpoint, {
+				$registrationFile: data.selector,
+				endpointKind: params.endpointKind,
+				endpointUrl: decodeURIComponent(params.endpointUrl),
+			}, {
+				sources: [
+					Source.Eip8004Scan_Rest,
+				],
+			})}
+
 	<Eip8004AgentServiceEndpointView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

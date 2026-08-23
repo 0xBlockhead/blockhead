@@ -16,11 +16,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.BeaconAttestation, {
-		$block: data.selector,
-		indexInBlock: Number(params.indexInBlock),
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -29,12 +24,27 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? ((String(pageSelection.entitySelector.indexInBlock ?? '') ? 'Attestation #' + String(pageSelection.entitySelector.indexInBlock ?? '') : '') || 'beacon attestation')} • beacon attestation • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BeaconAttestation, {
+				$block: data.selector,
+				indexInBlock: Number(params.indexInBlock),
+			})}
+		<title>{data?.title ?? ((String(pageSelection.entitySelector.indexInBlock ?? '') ? 'Attestation #' + String(pageSelection.entitySelector.indexInBlock ?? '') : '') || 'beacon attestation')} • beacon attestation • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'beacon attestation'} • beacon attestation • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BeaconAttestation, {
+				$block: data.selector,
+				indexInBlock: Number(params.indexInBlock),
+			})}
+
 	<BeaconAttestationView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

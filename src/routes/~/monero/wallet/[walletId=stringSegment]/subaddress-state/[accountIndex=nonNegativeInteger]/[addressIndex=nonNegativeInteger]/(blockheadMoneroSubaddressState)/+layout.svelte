@@ -42,18 +42,20 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<BlockheadMoneroSubaddressStateView
-			selection={
-				select(EntityType.BlockheadMoneroSubaddressState, data.selector, {
-					sources: [
-						Source.Local_Internal,
-						Source.MoneroWalletRpc_JsonRpc,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<BlockheadMoneroSubaddressStateView
+				selection={
+					select(EntityType.BlockheadMoneroSubaddressState, data.selector, {
+						sources: [
+							Source.Local_Internal,
+							Source.MoneroWalletRpc_JsonRpc,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

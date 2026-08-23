@@ -42,18 +42,20 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<BlockheadQuilibriumAccountStateView
-			selection={
-				select(EntityType.BlockheadQuilibriumAccountState, data.selector, {
-					sources: [
-						Source.Local_Internal,
-						Source.QuilibriumNodeRpc_Grpc,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<BlockheadQuilibriumAccountStateView
+				selection={
+					select(EntityType.BlockheadQuilibriumAccountState, data.selector, {
+						sources: [
+							Source.Local_Internal,
+							Source.QuilibriumNodeRpc_Grpc,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

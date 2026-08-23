@@ -23,12 +23,21 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'TON jetton'} • TON jetton • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.TonJetton, data.selector)}
+		<title>{data?.title ?? 'TON jetton'} • TON jetton • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'TON jetton'} • TON jetton • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.TonJetton, data.selector)}
+
 	<TonJettonView
-		selection={select(EntityType.TonJetton, data.selector)}
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

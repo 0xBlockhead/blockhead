@@ -16,18 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.AiModel, data.selector, {
-		sources: [
-			Source.Anthropic_Rest,
-			Source.HuggingFaceHub_Rest,
-			Source.Mlflow_Rest,
-			Source.OpenAI_Rest,
-		],
-		fields: {
-			label: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -36,12 +24,41 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.providerModelId ?? '') || 'AI model' : (pageSelection.entity.label ?? '') || pageSelection.entitySelector.providerModelId || 'AI model')} • AI model • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.AiModel, data.selector, {
+				sources: [
+					Source.Anthropic_Rest,
+					Source.HuggingFaceHub_Rest,
+					Source.Mlflow_Rest,
+					Source.OpenAI_Rest,
+				],
+				fields: {
+					label: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.providerModelId ?? '') || 'AI model' : (pageSelection.entity.label ?? '') || pageSelection.entitySelector.providerModelId || 'AI model')} • AI model • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'AI model'} • AI model • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.AiModel, data.selector, {
+				sources: [
+					Source.Anthropic_Rest,
+					Source.HuggingFaceHub_Rest,
+					Source.Mlflow_Rest,
+					Source.OpenAI_Rest,
+				],
+				fields: {
+					label: true,
+				},
+			})}
+
 	<AiModelView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

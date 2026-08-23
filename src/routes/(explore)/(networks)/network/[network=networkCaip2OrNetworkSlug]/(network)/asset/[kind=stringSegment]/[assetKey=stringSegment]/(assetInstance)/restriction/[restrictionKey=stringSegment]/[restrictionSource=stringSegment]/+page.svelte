@@ -23,16 +23,25 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'transfer restriction'} • transfer restriction • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.TransferRestriction, data.selector, {
+				sources: [data.selector.source],
+			})}
+		<title>{data?.title ?? 'transfer restriction'} • transfer restriction • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'transfer restriction'} • transfer restriction • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
-	<TransferRestrictionView
-		selection={
-			select(EntityType.TransferRestriction, data.selector, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.TransferRestriction, data.selector, {
 				sources: [data.selector.source],
-			})
-		}
+			})}
+
+	<TransferRestrictionView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

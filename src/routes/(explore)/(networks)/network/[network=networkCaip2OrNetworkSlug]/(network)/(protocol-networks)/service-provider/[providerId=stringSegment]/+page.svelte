@@ -16,13 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.ZeroGServiceProvider, data.selector, {
-		sources: [
-			Source.ZeroGStorageNode_JsonRpc,
-			Source.ZeroGStorageScan_Rest,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -31,12 +24,31 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.providerId || 'zero g service provider')} • zero g service provider • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.ZeroGServiceProvider, data.selector, {
+				sources: [
+					Source.ZeroGStorageNode_JsonRpc,
+					Source.ZeroGStorageScan_Rest,
+				],
+			})}
+		<title>{data?.title ?? (pageSelection.entitySelector.providerId || 'zero g service provider')} • zero g service provider • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'zero g service provider'} • zero g service provider • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.ZeroGServiceProvider, data.selector, {
+				sources: [
+					Source.ZeroGStorageNode_JsonRpc,
+					Source.ZeroGStorageScan_Rest,
+				],
+			})}
+
 	<ZeroGServiceProviderView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

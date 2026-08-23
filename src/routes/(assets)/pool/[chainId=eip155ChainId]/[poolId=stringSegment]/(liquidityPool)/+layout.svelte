@@ -41,17 +41,19 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<LiquidityPoolView
-			selection={
-				select(EntityType.LiquidityPool, data.selector, {
-					sources: [
-						Source.Dexscreener_Rest,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<LiquidityPoolView
+				selection={
+					select(EntityType.LiquidityPool, data.selector, {
+						sources: [
+							Source.Dexscreener_Rest,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

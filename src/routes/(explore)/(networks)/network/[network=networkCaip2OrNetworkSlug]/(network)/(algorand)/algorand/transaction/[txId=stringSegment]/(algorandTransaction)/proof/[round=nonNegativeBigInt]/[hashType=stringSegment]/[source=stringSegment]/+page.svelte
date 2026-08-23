@@ -24,21 +24,35 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'algorand transaction proof'} • algorand transaction proof • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<AlgorandTransactionProofView
-		selection={
-			select(EntityType.AlgorandTransactionProof, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.AlgorandTransactionProof, {
 				$transaction: data.selector,
 				round: BigInt(params.round),
 				hashType: params.hashType,
 				source: params.source,
 			}, {
 				sources: [params.source],
-			})
-		}
+			})}
+		<title>{data?.title ?? 'algorand transaction proof'} • algorand transaction proof • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'algorand transaction proof'} • algorand transaction proof • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.AlgorandTransactionProof, {
+				$transaction: data.selector,
+				round: BigInt(params.round),
+				hashType: params.hashType,
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+
+	<AlgorandTransactionProofView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

@@ -16,19 +16,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.CardanoGovernanceVote, {
-		$proposal: data.selector,
-		voterKind: params.voterKind,
-		voterCredential: params.voterCredential,
-		voteTxHash: params.voteTxHash,
-		source: params.source,
-	}, {
-		sources: [params.source],
-		fields: {
-			vote: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -37,12 +24,43 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? 'Cardano governance vote' : pageSelection.entity.vote || 'Cardano governance vote')} • Cardano governance vote • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.CardanoGovernanceVote, {
+				$proposal: data.selector,
+				voterKind: params.voterKind,
+				voterCredential: params.voterCredential,
+				voteTxHash: params.voteTxHash,
+				source: params.source,
+			}, {
+				sources: [params.source],
+				fields: {
+					vote: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'Cardano governance vote' : pageSelection.entity.vote || 'Cardano governance vote')} • Cardano governance vote • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Cardano governance vote'} • Cardano governance vote • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.CardanoGovernanceVote, {
+				$proposal: data.selector,
+				voterKind: params.voterKind,
+				voterCredential: params.voterCredential,
+				voteTxHash: params.voteTxHash,
+				source: params.source,
+			}, {
+				sources: [params.source],
+				fields: {
+					vote: true,
+				},
+			})}
+
 	<CardanoGovernanceVoteView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

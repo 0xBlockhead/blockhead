@@ -42,17 +42,19 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<EvmLogView
-			selection={
-				select(EntityType.EvmLog, data.selector, {
-					sources: [
-						Source.Blockscout_Rest,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<EvmLogView
+				selection={
+					select(EntityType.EvmLog, data.selector, {
+						sources: [
+							Source.Blockscout_Rest,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

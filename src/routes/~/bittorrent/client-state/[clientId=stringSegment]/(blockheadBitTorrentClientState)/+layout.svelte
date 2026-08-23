@@ -39,11 +39,13 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<BlockheadBitTorrentClientStateView
-			selection={select(EntityType.BlockheadBitTorrentClientState, data.selector)}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<BlockheadBitTorrentClientStateView
+				selection={select(EntityType.BlockheadBitTorrentClientState, data.selector)}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

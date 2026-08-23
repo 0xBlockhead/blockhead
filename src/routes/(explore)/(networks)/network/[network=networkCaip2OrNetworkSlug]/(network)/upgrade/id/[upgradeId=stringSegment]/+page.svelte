@@ -16,15 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.NetworkUpgrade, data.selector, {
-		sources: [
-			Source.Constants_Internal,
-		],
-		fields: {
-			name: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -33,12 +24,35 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.upgradeId ?? '') || 'network upgrade' : [pageSelection.entity.name, pageSelection.entitySelector.upgradeId].filter(Boolean).join(' ') || 'network upgrade')} • network upgrade • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.NetworkUpgrade, data.selector, {
+				sources: [
+					Source.Constants_Internal,
+				],
+				fields: {
+					name: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.upgradeId ?? '') || 'network upgrade' : [pageSelection.entity.name, pageSelection.entitySelector.upgradeId].filter(Boolean).join(' ') || 'network upgrade')} • network upgrade • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'network upgrade'} • network upgrade • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.NetworkUpgrade, data.selector, {
+				sources: [
+					Source.Constants_Internal,
+				],
+				fields: {
+					name: true,
+				},
+			})}
+
 	<NetworkUpgradeView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

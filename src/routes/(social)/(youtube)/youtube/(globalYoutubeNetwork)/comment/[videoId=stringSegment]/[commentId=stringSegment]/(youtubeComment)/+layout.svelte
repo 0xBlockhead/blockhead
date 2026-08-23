@@ -41,18 +41,20 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<YoutubeCommentView
-			selection={
-				select(EntityType.YoutubeComment, data.selector, {
-					sources: [
-						Source.Youtube_Rest,
-						Source.Piped_Rest,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<YoutubeCommentView
+				selection={
+					select(EntityType.YoutubeComment, data.selector, {
+						sources: [
+							Source.Youtube_Rest,
+							Source.Piped_Rest,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

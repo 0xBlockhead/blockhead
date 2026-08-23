@@ -15,13 +15,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.LensUsernameNamespace, data.selector, {
-		fields: {
-			namespace: true,
-			tokenName: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -30,12 +23,31 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? 'Lens username namespace' : [pageSelection.entity.namespace, (pageSelection.entity.tokenName ?? '')].filter(Boolean).join(' ') || 'Lens username namespace')} • Lens username namespace • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.LensUsernameNamespace, data.selector, {
+				fields: {
+					namespace: true,
+					tokenName: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'Lens username namespace' : [pageSelection.entity.namespace, (pageSelection.entity.tokenName ?? '')].filter(Boolean).join(' ') || 'Lens username namespace')} • Lens username namespace • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Lens username namespace'} • Lens username namespace • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.LensUsernameNamespace, data.selector, {
+				fields: {
+					namespace: true,
+					tokenName: true,
+				},
+			})}
+
 	<LensUsernameNamespaceView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

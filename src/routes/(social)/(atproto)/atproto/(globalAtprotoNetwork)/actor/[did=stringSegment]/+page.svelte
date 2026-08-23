@@ -16,13 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.AtprotoActor, data.selector, {
-		sources: [
-			Source.Atproto_Xrpc,
-			Source.Atproto_BskySocial_Xrpc,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -31,12 +24,31 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.did || 'AT Protocol account')} • AT Protocol account • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.AtprotoActor, data.selector, {
+				sources: [
+					Source.Atproto_Xrpc,
+					Source.Atproto_BskySocial_Xrpc,
+				],
+			})}
+		<title>{data?.title ?? (pageSelection.entitySelector.did || 'AT Protocol account')} • AT Protocol account • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'AT Protocol account'} • AT Protocol account • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.AtprotoActor, data.selector, {
+				sources: [
+					Source.Atproto_Xrpc,
+					Source.Atproto_BskySocial_Xrpc,
+				],
+			})}
+
 	<AtprotoActorView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

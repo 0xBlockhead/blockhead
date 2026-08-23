@@ -25,14 +25,8 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'local LND forward'} • local LND forward • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<BlockheadLightningForwardView
-		selection={
-			select(EntityType.BlockheadLightningForward, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BlockheadLightningForward, {
 				$localNodeState: data.selector,
 				$incomingChannel: {
 					$network: data.selector.$network.$network,
@@ -44,7 +38,32 @@
 					Source.LightningLnd_Rest,
 					Source.Local_Internal,
 				],
-			})
-		}
+			})}
+		<title>{data?.title ?? 'local LND forward'} • local LND forward • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'local LND forward'} • local LND forward • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BlockheadLightningForward, {
+				$localNodeState: data.selector,
+				$incomingChannel: {
+					$network: data.selector.$network.$network,
+					channelId: params.incomingChannelId,
+				},
+				incomingHtlcId: BigInt(params.incomingHtlcId),
+			}, {
+				sources: [
+					Source.LightningLnd_Rest,
+					Source.Local_Internal,
+				],
+			})}
+
+	<BlockheadLightningForwardView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

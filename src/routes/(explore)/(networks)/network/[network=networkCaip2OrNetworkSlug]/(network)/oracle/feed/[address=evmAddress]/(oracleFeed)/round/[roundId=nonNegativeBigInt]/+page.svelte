@@ -16,11 +16,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.OracleFeed_Round, {
-		$oracleFeed: data.selector,
-		roundId: BigInt(params.roundId),
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -29,12 +24,27 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (String(pageSelection.entitySelector.roundId) || 'oracle feed round')} • oracle feed round • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.OracleFeed_Round, {
+				$oracleFeed: data.selector,
+				roundId: BigInt(params.roundId),
+			})}
+		<title>{data?.title ?? (String(pageSelection.entitySelector.roundId) || 'oracle feed round')} • oracle feed round • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'oracle feed round'} • oracle feed round • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.OracleFeed_Round, {
+				$oracleFeed: data.selector,
+				roundId: BigInt(params.roundId),
+			})}
+
 	<OracleFeed_RoundView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

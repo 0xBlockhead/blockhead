@@ -24,17 +24,27 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'Sui object change'} • Sui object change • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.SuiObjectChange, {
+				$transaction: data.selector,
+				changeIndex: Number(params.changeIndex),
+			})}
+		<title>{data?.title ?? 'Sui object change'} • Sui object change • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Sui object change'} • Sui object change • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
-	<SuiObjectChangeView
-		selection={
-			select(EntityType.SuiObjectChange, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.SuiObjectChange, {
 				$transaction: data.selector,
 				changeIndex: Number(params.changeIndex),
-			})
-		}
+			})}
+
+	<SuiObjectChangeView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

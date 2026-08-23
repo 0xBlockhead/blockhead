@@ -41,17 +41,19 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<OsmosisPoolView
-			selection={
-				select(EntityType.OsmosisPool, data.selector, {
-					sources: [
-						Source.Osmosis_LCD_Rest,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<OsmosisPoolView
+				selection={
+					select(EntityType.OsmosisPool, data.selector, {
+						sources: [
+							Source.Osmosis_LCD_Rest,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

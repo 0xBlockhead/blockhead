@@ -16,17 +16,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.BridgeTransfer, {
-		$sourceTx: data.selector,
-		source: params.source,
-		logIndex: Number(params.logIndex),
-	}, {
-		sources: [params.source],
-		fields: {
-			transferId: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -35,12 +24,39 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? 'bridge transfer' : pageSelection.entity.transferId || 'bridge transfer')} • bridge transfer • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BridgeTransfer, {
+				$sourceTx: data.selector,
+				source: params.source,
+				logIndex: Number(params.logIndex),
+			}, {
+				sources: [params.source],
+				fields: {
+					transferId: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'bridge transfer' : pageSelection.entity.transferId || 'bridge transfer')} • bridge transfer • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'bridge transfer'} • bridge transfer • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BridgeTransfer, {
+				$sourceTx: data.selector,
+				source: params.source,
+				logIndex: Number(params.logIndex),
+			}, {
+				sources: [params.source],
+				fields: {
+					transferId: true,
+				},
+			})}
+
 	<BridgeTransferView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

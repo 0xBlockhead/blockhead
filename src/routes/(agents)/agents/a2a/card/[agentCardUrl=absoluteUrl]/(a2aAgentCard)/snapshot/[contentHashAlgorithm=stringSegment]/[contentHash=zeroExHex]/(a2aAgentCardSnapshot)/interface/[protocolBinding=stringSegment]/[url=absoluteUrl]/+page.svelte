@@ -16,14 +16,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.A2aAgentInterface, {
-		$cardSnapshot: data.selector,
-		protocolBinding: params.protocolBinding,
-		url: decodeURIComponent(params.url),
-	}, {
-		sources: [],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -32,12 +24,33 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.protocolBinding || 'A2A agent interface')} • A2A agent interface • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.A2aAgentInterface, {
+				$cardSnapshot: data.selector,
+				protocolBinding: params.protocolBinding,
+				url: decodeURIComponent(params.url),
+			}, {
+				sources: [],
+			})}
+		<title>{data?.title ?? (pageSelection.entitySelector.protocolBinding || 'A2A agent interface')} • A2A agent interface • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'A2A agent interface'} • A2A agent interface • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.A2aAgentInterface, {
+				$cardSnapshot: data.selector,
+				protocolBinding: params.protocolBinding,
+				url: decodeURIComponent(params.url),
+			}, {
+				sources: [],
+			})}
+
 	<A2aAgentInterfaceView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

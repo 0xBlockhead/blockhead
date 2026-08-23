@@ -17,18 +17,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.BalancerPoolEvent, {
-		$pool: data.selector,
-		eventId: decodeURIComponent(params.eventId),
-	}, {
-		sources: [
-			Source.Balancer_Rest,
-		],
-		fields: {
-			eventType: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -37,12 +25,41 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? 'Balancer pool event' : pageSelection.entity.eventType || 'Balancer pool event')} • Balancer pool event • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BalancerPoolEvent, {
+				$pool: data.selector,
+				eventId: decodeURIComponent(params.eventId),
+			}, {
+				sources: [
+					Source.Balancer_Rest,
+				],
+				fields: {
+					eventType: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'Balancer pool event' : pageSelection.entity.eventType || 'Balancer pool event')} • Balancer pool event • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Balancer pool event'} • Balancer pool event • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BalancerPoolEvent, {
+				$pool: data.selector,
+				eventId: decodeURIComponent(params.eventId),
+			}, {
+				sources: [
+					Source.Balancer_Rest,
+				],
+				fields: {
+					eventType: true,
+				},
+			})}
+
 	<BalancerPoolEventView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

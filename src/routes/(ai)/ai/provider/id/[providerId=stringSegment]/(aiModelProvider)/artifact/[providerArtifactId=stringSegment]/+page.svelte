@@ -16,22 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.AiArtifact, data.selector, {
-		sources: [
-			Source.HuggingFaceHub_Rest,
-			Source.Ipfs_Rest,
-			Source.Mlflow_Rest,
-		],
-		fields: {
-			artifactType: true,
-			ociDigest: true,
-			ipfsCid: true,
-			arweaveId: true,
-			gitObject: true,
-			digest: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -40,12 +24,49 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.providerArtifactId ?? '') || 'AI artifact' : (pageSelection.entity.artifactType ?? '') || [(pageSelection.entitySelector.providerArtifactId ?? ''), (pageSelection.entity.ociDigest ?? ''), (pageSelection.entity.ipfsCid ?? ''), (pageSelection.entity.arweaveId ?? ''), (pageSelection.entity.gitObject ?? ''), (pageSelection.entity.digest ?? '')].filter(Boolean).join(' ') || 'AI artifact')} • AI artifact • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.AiArtifact, data.selector, {
+				sources: [
+					Source.HuggingFaceHub_Rest,
+					Source.Ipfs_Rest,
+					Source.Mlflow_Rest,
+				],
+				fields: {
+					artifactType: true,
+					ociDigest: true,
+					ipfsCid: true,
+					arweaveId: true,
+					gitObject: true,
+					digest: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.providerArtifactId ?? '') || 'AI artifact' : (pageSelection.entity.artifactType ?? '') || [(pageSelection.entitySelector.providerArtifactId ?? ''), (pageSelection.entity.ociDigest ?? ''), (pageSelection.entity.ipfsCid ?? ''), (pageSelection.entity.arweaveId ?? ''), (pageSelection.entity.gitObject ?? ''), (pageSelection.entity.digest ?? '')].filter(Boolean).join(' ') || 'AI artifact')} • AI artifact • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'AI artifact'} • AI artifact • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.AiArtifact, data.selector, {
+				sources: [
+					Source.HuggingFaceHub_Rest,
+					Source.Ipfs_Rest,
+					Source.Mlflow_Rest,
+				],
+				fields: {
+					artifactType: true,
+					ociDigest: true,
+					ipfsCid: true,
+					arweaveId: true,
+					gitObject: true,
+					digest: true,
+				},
+			})}
+
 	<AiArtifactView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

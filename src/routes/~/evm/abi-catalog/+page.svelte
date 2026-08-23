@@ -24,18 +24,29 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'global EVM ABI catalog'} • global EVM ABI catalog • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType._GlobalEvmAbiCatalog, data.selector, {
+				sources: [
+					Source.Local_Internal,
+				],
+			})}
+		<title>{data?.title ?? 'global EVM ABI catalog'} • global EVM ABI catalog • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'global EVM ABI catalog'} • global EVM ABI catalog • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
-	<GlobalEvmAbiCatalogView
-		selection={
-			select(EntityType._GlobalEvmAbiCatalog, data.selector, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType._GlobalEvmAbiCatalog, data.selector, {
 				sources: [
 					Source.Local_Internal,
 				],
-			})
-		}
+			})}
+
+	<GlobalEvmAbiCatalogView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

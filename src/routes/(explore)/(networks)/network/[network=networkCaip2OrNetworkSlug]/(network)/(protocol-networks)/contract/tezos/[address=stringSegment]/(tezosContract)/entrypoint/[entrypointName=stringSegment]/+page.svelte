@@ -24,17 +24,27 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'tezos entrypoint'} • tezos entrypoint • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.TezosEntrypoint, {
+				$contract: data.selector,
+				entrypointName: params.entrypointName,
+			})}
+		<title>{data?.title ?? 'tezos entrypoint'} • tezos entrypoint • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'tezos entrypoint'} • tezos entrypoint • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
-	<TezosEntrypointView
-		selection={
-			select(EntityType.TezosEntrypoint, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.TezosEntrypoint, {
 				$contract: data.selector,
 				entrypointName: params.entrypointName,
-			})
-		}
+			})}
+
+	<TezosEntrypointView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

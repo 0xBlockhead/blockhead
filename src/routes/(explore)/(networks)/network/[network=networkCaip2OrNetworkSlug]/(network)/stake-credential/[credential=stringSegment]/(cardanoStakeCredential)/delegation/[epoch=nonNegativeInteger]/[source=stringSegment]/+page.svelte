@@ -24,20 +24,33 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'Cardano stake delegation epoch'} • Cardano stake delegation epoch • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<CardanoStakeDelegation_EpochView
-		selection={
-			select(EntityType.CardanoStakeDelegation_Epoch, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.CardanoStakeDelegation_Epoch, {
 				$stakeCredential: data.selector,
 				epoch: Number(params.epoch),
 				source: params.source,
 			}, {
 				sources: [params.source],
-			})
-		}
+			})}
+		<title>{data?.title ?? 'Cardano stake delegation epoch'} • Cardano stake delegation epoch • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Cardano stake delegation epoch'} • Cardano stake delegation epoch • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.CardanoStakeDelegation_Epoch, {
+				$stakeCredential: data.selector,
+				epoch: Number(params.epoch),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+
+	<CardanoStakeDelegation_EpochView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

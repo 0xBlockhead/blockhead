@@ -23,16 +23,25 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'Cardano protocol parameters epoch'} • Cardano protocol parameters epoch • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.CardanoProtocolParameters_Epoch, data.selector, {
+				sources: [data.selector.source],
+			})}
+		<title>{data?.title ?? 'Cardano protocol parameters epoch'} • Cardano protocol parameters epoch • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Cardano protocol parameters epoch'} • Cardano protocol parameters epoch • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
-	<CardanoProtocolParameters_EpochView
-		selection={
-			select(EntityType.CardanoProtocolParameters_Epoch, data.selector, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.CardanoProtocolParameters_Epoch, data.selector, {
 				sources: [data.selector.source],
-			})
-		}
+			})}
+
+	<CardanoProtocolParameters_EpochView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

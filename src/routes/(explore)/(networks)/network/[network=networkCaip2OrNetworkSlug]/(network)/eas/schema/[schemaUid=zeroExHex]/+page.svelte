@@ -17,15 +17,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.EasSchema, {
-		$network: data.selector,
-		schemaUid: params.schemaUid,
-	}, {
-		sources: [
-			Source.EasScan_Graphql,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -34,12 +25,35 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.schemaUid || 'EAS schema')} • EAS schema • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.EasSchema, {
+				$network: data.selector,
+				schemaUid: params.schemaUid,
+			}, {
+				sources: [
+					Source.EasScan_Graphql,
+				],
+			})}
+		<title>{data?.title ?? (pageSelection.entitySelector.schemaUid || 'EAS schema')} • EAS schema • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'EAS schema'} • EAS schema • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.EasSchema, {
+				$network: data.selector,
+				schemaUid: params.schemaUid,
+			}, {
+				sources: [
+					Source.EasScan_Graphql,
+				],
+			})}
+
 	<EasSchemaView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

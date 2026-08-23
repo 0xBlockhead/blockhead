@@ -41,20 +41,22 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<KaspaBlockView
-			selection={
-				select(EntityType.KaspaBlock, data.selector, {
-					sources: [
-						Source.KaspaExplorer,
-						Source.KaspaNode_Grpc,
-						Source.KaspaNode_Rest,
-						Source.KaspaNode_Wrpc,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<KaspaBlockView
+				selection={
+					select(EntityType.KaspaBlock, data.selector, {
+						sources: [
+							Source.KaspaExplorer,
+							Source.KaspaNode_Grpc,
+							Source.KaspaNode_Rest,
+							Source.KaspaNode_Wrpc,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

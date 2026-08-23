@@ -40,17 +40,19 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<LensAccountView
-			selection={
-				select(EntityType.LensAccount, data.selector, {
-					sources: [
-						Source.Lens_Graphql,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<LensAccountView
+				selection={
+					select(EntityType.LensAccount, data.selector, {
+						sources: [
+							Source.Lens_Graphql,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

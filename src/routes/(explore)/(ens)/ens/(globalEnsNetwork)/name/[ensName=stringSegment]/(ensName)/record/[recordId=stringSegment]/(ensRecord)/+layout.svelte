@@ -41,18 +41,20 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<EnsRecordView
-			selection={
-				select(EntityType.EnsRecord, data.selector, {
-					sources: [
-						Source.TheGraph_Graphql,
-						Source.Voltaire_JsonRpc,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<EnsRecordView
+				selection={
+					select(EntityType.EnsRecord, data.selector, {
+						sources: [
+							Source.TheGraph_Graphql,
+							Source.Voltaire_JsonRpc,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

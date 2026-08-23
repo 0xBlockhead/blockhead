@@ -16,16 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.YoutubeComment, data.selector, {
-		sources: [
-			Source.Youtube_Rest,
-			Source.Piped_Rest,
-		],
-		fields: {
-			text: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -34,12 +24,37 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? 'YouTube comment' : (pageSelection.entity.text ?? '') || 'YouTube comment')} • YouTube comment • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.YoutubeComment, data.selector, {
+				sources: [
+					Source.Youtube_Rest,
+					Source.Piped_Rest,
+				],
+				fields: {
+					text: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'YouTube comment' : (pageSelection.entity.text ?? '') || 'YouTube comment')} • YouTube comment • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'YouTube comment'} • YouTube comment • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.YoutubeComment, data.selector, {
+				sources: [
+					Source.Youtube_Rest,
+					Source.Piped_Rest,
+				],
+				fields: {
+					text: true,
+				},
+			})}
+
 	<YoutubeCommentView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

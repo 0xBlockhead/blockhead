@@ -40,17 +40,19 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<BlockheadAvalancheNodeStateView
-			selection={
-				select(EntityType.BlockheadAvalancheNodeState, data.selector, {
-					sources: [
-						Source.AvalancheInfo_JsonRpc,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<BlockheadAvalancheNodeStateView
+				selection={
+					select(EntityType.BlockheadAvalancheNodeState, data.selector, {
+						sources: [
+							Source.AvalancheInfo_JsonRpc,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

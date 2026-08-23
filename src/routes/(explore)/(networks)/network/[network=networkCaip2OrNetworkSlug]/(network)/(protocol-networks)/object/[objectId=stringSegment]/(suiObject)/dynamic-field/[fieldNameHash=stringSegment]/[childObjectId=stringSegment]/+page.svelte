@@ -23,12 +23,21 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'Sui dynamic field edge'} • Sui dynamic field edge • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.SuiDynamicFieldEdge, data.selector)}
+		<title>{data?.title ?? 'Sui dynamic field edge'} • Sui dynamic field edge • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Sui dynamic field edge'} • Sui dynamic field edge • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.SuiDynamicFieldEdge, data.selector)}
+
 	<SuiDynamicFieldEdgeView
-		selection={select(EntityType.SuiDynamicFieldEdge, data.selector)}
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

@@ -23,12 +23,21 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'ICP canister method'} • ICP canister method • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.IcpCanisterMethod, data.selector)}
+		<title>{data?.title ?? 'ICP canister method'} • ICP canister method • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'ICP canister method'} • ICP canister method • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.IcpCanisterMethod, data.selector)}
+
 	<IcpCanisterMethodView
-		selection={select(EntityType.IcpCanisterMethod, data.selector)}
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

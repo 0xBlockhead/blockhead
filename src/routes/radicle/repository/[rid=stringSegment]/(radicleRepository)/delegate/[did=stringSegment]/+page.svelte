@@ -24,17 +24,27 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'radicle delegate'} • radicle delegate • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.RadicleDelegate, {
+				$repository: data.selector,
+				did: params.did,
+			})}
+		<title>{data?.title ?? 'radicle delegate'} • radicle delegate • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'radicle delegate'} • radicle delegate • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
-	<RadicleDelegateView
-		selection={
-			select(EntityType.RadicleDelegate, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.RadicleDelegate, {
 				$repository: data.selector,
 				did: params.did,
-			})
-		}
+			})}
+
+	<RadicleDelegateView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

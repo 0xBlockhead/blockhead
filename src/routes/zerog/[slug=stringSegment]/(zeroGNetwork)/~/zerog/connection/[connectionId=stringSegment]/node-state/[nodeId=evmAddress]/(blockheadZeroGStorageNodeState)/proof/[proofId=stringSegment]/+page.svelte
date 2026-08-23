@@ -17,16 +17,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.BlockheadZeroGStorageProof, {
-		$nodeState: data.selector,
-		proofId: params.proofId,
-	}, {
-		sources: [
-			Source.Local_Internal,
-			Source.ZeroGStorageNode_JsonRpc,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -35,12 +25,37 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.proofId || 'blockhead zero g storage proof')} • blockhead zero g storage proof • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BlockheadZeroGStorageProof, {
+				$nodeState: data.selector,
+				proofId: params.proofId,
+			}, {
+				sources: [
+					Source.Local_Internal,
+					Source.ZeroGStorageNode_JsonRpc,
+				],
+			})}
+		<title>{data?.title ?? (pageSelection.entitySelector.proofId || 'blockhead zero g storage proof')} • blockhead zero g storage proof • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'blockhead zero g storage proof'} • blockhead zero g storage proof • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BlockheadZeroGStorageProof, {
+				$nodeState: data.selector,
+				proofId: params.proofId,
+			}, {
+				sources: [
+					Source.Local_Internal,
+					Source.ZeroGStorageNode_JsonRpc,
+				],
+			})}
+
 	<BlockheadZeroGStorageProofView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

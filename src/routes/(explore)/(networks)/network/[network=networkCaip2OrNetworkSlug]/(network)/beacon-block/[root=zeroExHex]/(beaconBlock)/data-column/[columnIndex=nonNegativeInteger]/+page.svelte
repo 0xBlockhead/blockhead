@@ -16,12 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.BeaconDataColumn, data.selector, {
-		sources: [
-			Source.Beacon_Rest,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -30,12 +24,29 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? ((String(pageSelection.entitySelector.columnIndex ?? '') ? 'Data column #' + String(pageSelection.entitySelector.columnIndex ?? '') : '') || 'beacon data column')} • beacon data column • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BeaconDataColumn, data.selector, {
+				sources: [
+					Source.Beacon_Rest,
+				],
+			})}
+		<title>{data?.title ?? ((String(pageSelection.entitySelector.columnIndex ?? '') ? 'Data column #' + String(pageSelection.entitySelector.columnIndex ?? '') : '') || 'beacon data column')} • beacon data column • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'beacon data column'} • beacon data column • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BeaconDataColumn, data.selector, {
+				sources: [
+					Source.Beacon_Rest,
+				],
+			})}
+
 	<BeaconDataColumnView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

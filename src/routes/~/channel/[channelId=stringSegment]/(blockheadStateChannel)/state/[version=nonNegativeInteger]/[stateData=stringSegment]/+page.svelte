@@ -17,16 +17,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.BlockheadStateChannelState, {
-		$channel: data.selector,
-		version: Number(params.version),
-		stateData: params.stateData,
-	}, {
-		sources: [
-			Source.Local_Internal,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -35,12 +25,37 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (String(pageSelection.entitySelector.version) || 'blockhead state channel state')} • blockhead state channel state • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BlockheadStateChannelState, {
+				$channel: data.selector,
+				version: Number(params.version),
+				stateData: params.stateData,
+			}, {
+				sources: [
+					Source.Local_Internal,
+				],
+			})}
+		<title>{data?.title ?? (String(pageSelection.entitySelector.version) || 'blockhead state channel state')} • blockhead state channel state • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'blockhead state channel state'} • blockhead state channel state • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BlockheadStateChannelState, {
+				$channel: data.selector,
+				version: Number(params.version),
+				stateData: params.stateData,
+			}, {
+				sources: [
+					Source.Local_Internal,
+				],
+			})}
+
 	<BlockheadStateChannelStateView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

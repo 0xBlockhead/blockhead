@@ -16,16 +16,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.A2aTask, {
-		$service: data.selector,
-		providerTaskId: params.providerTaskId,
-	}, {
-		sources: [],
-		fields: {
-			taskId: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -34,12 +24,37 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.providerTaskId ?? '') || 'A2A task' : pageSelection.entity.taskId || (pageSelection.entitySelector.providerTaskId ?? '') || 'A2A task')} • A2A task • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.A2aTask, {
+				$service: data.selector,
+				providerTaskId: params.providerTaskId,
+			}, {
+				sources: [],
+				fields: {
+					taskId: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.providerTaskId ?? '') || 'A2A task' : pageSelection.entity.taskId || (pageSelection.entitySelector.providerTaskId ?? '') || 'A2A task')} • A2A task • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'A2A task'} • A2A task • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.A2aTask, {
+				$service: data.selector,
+				providerTaskId: params.providerTaskId,
+			}, {
+				sources: [],
+				fields: {
+					taskId: true,
+				},
+			})}
+
 	<A2aTaskView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

@@ -24,14 +24,8 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'eigen layer slashing event'} • eigen layer slashing event • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<EigenLayerSlashingEventView
-		selection={
-			select(EntityType.EigenLayerSlashingEvent, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.EigenLayerSlashingEvent, {
 				$operator: data.selector,
 				$avs: {
 					$network: data.selector.$network,
@@ -41,7 +35,30 @@
 				slashId: params.slashId,
 			}, {
 				sources: [params.source],
-			})
-		}
+			})}
+		<title>{data?.title ?? 'eigen layer slashing event'} • eigen layer slashing event • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'eigen layer slashing event'} • eigen layer slashing event • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.EigenLayerSlashingEvent, {
+				$operator: data.selector,
+				$avs: {
+					$network: data.selector.$network,
+					avsAddress: params.avsAddress,
+				},
+				source: params.source,
+				slashId: params.slashId,
+			}, {
+				sources: [params.source],
+			})}
+
+	<EigenLayerSlashingEventView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

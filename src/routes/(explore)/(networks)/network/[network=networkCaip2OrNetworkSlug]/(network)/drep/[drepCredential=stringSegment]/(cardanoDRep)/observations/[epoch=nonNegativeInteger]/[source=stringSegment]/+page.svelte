@@ -24,20 +24,33 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'Cardano DRep timestamp'} • Cardano DRep timestamp • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<CardanoDRep_TimestampView
-		selection={
-			select(EntityType.CardanoDRep_Timestamp, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.CardanoDRep_Timestamp, {
 				$drep: data.selector,
 				epoch: Number(params.epoch),
 				source: params.source,
 			}, {
 				sources: [params.source],
-			})
-		}
+			})}
+		<title>{data?.title ?? 'Cardano DRep timestamp'} • Cardano DRep timestamp • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Cardano DRep timestamp'} • Cardano DRep timestamp • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.CardanoDRep_Timestamp, {
+				$drep: data.selector,
+				epoch: Number(params.epoch),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+
+	<CardanoDRep_TimestampView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

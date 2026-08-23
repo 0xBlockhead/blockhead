@@ -16,16 +16,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.McpPromptResult, {
-		$prompt: data.selector,
-		argumentsHashAlgorithm: params.argumentsHashAlgorithm,
-		argumentsHash: params.argumentsHash,
-		timestampMs: Number(params.timestampMs),
-		source: params.source,
-	}, {
-		sources: [params.source],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -34,12 +24,37 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (String(pageSelection.entitySelector.timestampMs) || 'mcp prompt result')} • mcp prompt result • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.McpPromptResult, {
+				$prompt: data.selector,
+				argumentsHashAlgorithm: params.argumentsHashAlgorithm,
+				argumentsHash: params.argumentsHash,
+				timestampMs: Number(params.timestampMs),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+		<title>{data?.title ?? (String(pageSelection.entitySelector.timestampMs) || 'mcp prompt result')} • mcp prompt result • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'mcp prompt result'} • mcp prompt result • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.McpPromptResult, {
+				$prompt: data.selector,
+				argumentsHashAlgorithm: params.argumentsHashAlgorithm,
+				argumentsHash: params.argumentsHash,
+				timestampMs: Number(params.timestampMs),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+
 	<McpPromptResultView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

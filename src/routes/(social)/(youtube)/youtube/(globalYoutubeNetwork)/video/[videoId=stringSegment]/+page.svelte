@@ -16,17 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.YoutubeVideo, data.selector, {
-		sources: [
-			Source.Youtube_Rest,
-			Source.Piped_Rest,
-			Source.Constants_Internal,
-		],
-		fields: {
-			title: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -35,12 +24,39 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.videoId ?? '') || 'YouTube video' : (pageSelection.entity.title ?? '') || pageSelection.entitySelector.videoId || 'YouTube video')} • YouTube video • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.YoutubeVideo, data.selector, {
+				sources: [
+					Source.Youtube_Rest,
+					Source.Piped_Rest,
+					Source.Constants_Internal,
+				],
+				fields: {
+					title: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.videoId ?? '') || 'YouTube video' : (pageSelection.entity.title ?? '') || pageSelection.entitySelector.videoId || 'YouTube video')} • YouTube video • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'YouTube video'} • YouTube video • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.YoutubeVideo, data.selector, {
+				sources: [
+					Source.Youtube_Rest,
+					Source.Piped_Rest,
+					Source.Constants_Internal,
+				],
+				fields: {
+					title: true,
+				},
+			})}
+
 	<YoutubeVideoView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

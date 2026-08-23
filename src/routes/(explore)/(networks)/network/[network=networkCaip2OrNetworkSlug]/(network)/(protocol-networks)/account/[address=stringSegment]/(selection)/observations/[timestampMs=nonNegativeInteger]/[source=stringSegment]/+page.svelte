@@ -24,20 +24,33 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'kaspa address timestamp'} • kaspa address timestamp • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<KaspaAddress_TimestampView
-		selection={
-			select(EntityType.KaspaAddress_Timestamp, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.KaspaAddress_Timestamp, {
 				$address: data.selector,
 				timestampMs: Number(params.timestampMs),
 				source: params.source,
 			}, {
 				sources: [params.source],
-			})
-		}
+			})}
+		<title>{data?.title ?? 'kaspa address timestamp'} • kaspa address timestamp • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'kaspa address timestamp'} • kaspa address timestamp • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.KaspaAddress_Timestamp, {
+				$address: data.selector,
+				timestampMs: Number(params.timestampMs),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+
+	<KaspaAddress_TimestampView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

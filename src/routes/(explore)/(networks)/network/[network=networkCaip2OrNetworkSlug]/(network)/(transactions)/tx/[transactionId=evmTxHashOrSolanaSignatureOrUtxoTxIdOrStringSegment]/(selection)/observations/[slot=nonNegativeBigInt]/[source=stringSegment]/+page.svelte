@@ -16,14 +16,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.SolanaTransaction_Timestamp, {
-		$transaction: data.selector,
-		slot: BigInt(params.slot),
-		source: params.source,
-	}, {
-		sources: [params.source],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -32,12 +24,33 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (String(pageSelection.entitySelector.slot) || 'solana transaction timestamp')} • solana transaction timestamp • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.SolanaTransaction_Timestamp, {
+				$transaction: data.selector,
+				slot: BigInt(params.slot),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+		<title>{data?.title ?? (String(pageSelection.entitySelector.slot) || 'solana transaction timestamp')} • solana transaction timestamp • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'solana transaction timestamp'} • solana transaction timestamp • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.SolanaTransaction_Timestamp, {
+				$transaction: data.selector,
+				slot: BigInt(params.slot),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+
 	<SolanaTransaction_TimestampView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

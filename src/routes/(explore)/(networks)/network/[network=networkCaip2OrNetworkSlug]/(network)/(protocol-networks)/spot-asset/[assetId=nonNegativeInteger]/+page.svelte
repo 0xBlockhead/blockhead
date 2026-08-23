@@ -17,18 +17,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.HyperliquidSpotAsset, {
-		$network: data.selector.$network,
-		assetId: Number(params.assetId),
-	}, {
-		sources: [
-			Source.Hyperliquid,
-		],
-		fields: {
-			name: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -37,12 +25,41 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? String(pageSelection.entitySelector.assetId ?? '') || 'hyperliquid spot asset' : (pageSelection.entity.name ?? '') || String(pageSelection.entitySelector.assetId) || 'hyperliquid spot asset')} • hyperliquid spot asset • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.HyperliquidSpotAsset, {
+				$network: data.selector.$network,
+				assetId: Number(params.assetId),
+			}, {
+				sources: [
+					Source.Hyperliquid,
+				],
+				fields: {
+					name: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? String(pageSelection.entitySelector.assetId ?? '') || 'hyperliquid spot asset' : (pageSelection.entity.name ?? '') || String(pageSelection.entitySelector.assetId) || 'hyperliquid spot asset')} • hyperliquid spot asset • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'hyperliquid spot asset'} • hyperliquid spot asset • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.HyperliquidSpotAsset, {
+				$network: data.selector.$network,
+				assetId: Number(params.assetId),
+			}, {
+				sources: [
+					Source.Hyperliquid,
+				],
+				fields: {
+					name: true,
+				},
+			})}
+
 	<HyperliquidSpotAssetView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

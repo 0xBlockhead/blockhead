@@ -17,17 +17,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.AiArtifactAttestation, {
-		$artifact: data.selector,
-		attestationKind: params.attestationKind,
-		logEntryId: params.logEntryId,
-	}, {
-		sources: [
-			Source.Eip8004Scan_Rest,
-			Source.Ipfs_Rest,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -36,12 +25,39 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.attestationKind || 'AI artifact attestation')} • AI artifact attestation • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.AiArtifactAttestation, {
+				$artifact: data.selector,
+				attestationKind: params.attestationKind,
+				logEntryId: params.logEntryId,
+			}, {
+				sources: [
+					Source.Eip8004Scan_Rest,
+					Source.Ipfs_Rest,
+				],
+			})}
+		<title>{data?.title ?? (pageSelection.entitySelector.attestationKind || 'AI artifact attestation')} • AI artifact attestation • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'AI artifact attestation'} • AI artifact attestation • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.AiArtifactAttestation, {
+				$artifact: data.selector,
+				attestationKind: params.attestationKind,
+				logEntryId: params.logEntryId,
+			}, {
+				sources: [
+					Source.Eip8004Scan_Rest,
+					Source.Ipfs_Rest,
+				],
+			})}
+
 	<AiArtifactAttestationView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

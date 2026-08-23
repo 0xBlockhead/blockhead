@@ -42,18 +42,20 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<BlockheadMoneroTransferStateView
-			selection={
-				select(EntityType.BlockheadMoneroTransferState, data.selector, {
-					sources: [
-						Source.Local_Internal,
-						Source.MoneroWalletRpc_JsonRpc,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<BlockheadMoneroTransferStateView
+				selection={
+					select(EntityType.BlockheadMoneroTransferState, data.selector, {
+						sources: [
+							Source.Local_Internal,
+							Source.MoneroWalletRpc_JsonRpc,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

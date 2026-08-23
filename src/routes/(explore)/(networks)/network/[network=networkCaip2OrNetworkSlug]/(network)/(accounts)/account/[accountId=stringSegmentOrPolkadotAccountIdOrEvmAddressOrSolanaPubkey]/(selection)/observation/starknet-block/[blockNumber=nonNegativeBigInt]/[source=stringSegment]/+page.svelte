@@ -24,20 +24,33 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'starknet account timestamp'} • starknet account timestamp • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<StarknetAccount_TimestampView
-		selection={
-			select(EntityType.StarknetAccount_Timestamp, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.StarknetAccount_Timestamp, {
 				$contract: data.selector,
 				blockNumber: BigInt(params.blockNumber),
 				source: params.source,
 			}, {
 				sources: [params.source],
-			})
-		}
+			})}
+		<title>{data?.title ?? 'starknet account timestamp'} • starknet account timestamp • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'starknet account timestamp'} • starknet account timestamp • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.StarknetAccount_Timestamp, {
+				$contract: data.selector,
+				blockNumber: BigInt(params.blockNumber),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+
+	<StarknetAccount_TimestampView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

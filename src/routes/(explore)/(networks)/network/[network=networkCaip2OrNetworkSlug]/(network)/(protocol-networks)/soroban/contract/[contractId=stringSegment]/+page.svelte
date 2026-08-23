@@ -23,12 +23,21 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'soroban contract'} • soroban contract • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.SorobanContract, data.selector)}
+		<title>{data?.title ?? 'soroban contract'} • soroban contract • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'soroban contract'} • soroban contract • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.SorobanContract, data.selector)}
+
 	<SorobanContractView
-		selection={select(EntityType.SorobanContract, data.selector)}
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

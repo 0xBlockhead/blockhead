@@ -16,11 +16,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.TallyProposalExecutableCall, {
-		$proposal: data.selector,
-		index: Number(params.index),
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -29,12 +24,27 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'Call #' + String(pageSelection.entitySelector.index)} • Tally proposal executable call • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.TallyProposalExecutableCall, {
+				$proposal: data.selector,
+				index: Number(params.index),
+			})}
+		<title>{data?.title ?? 'Call #' + String(pageSelection.entitySelector.index)} • Tally proposal executable call • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Tally proposal executable call'} • Tally proposal executable call • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.TallyProposalExecutableCall, {
+				$proposal: data.selector,
+				index: Number(params.index),
+			})}
+
 	<TallyProposalExecutableCallView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

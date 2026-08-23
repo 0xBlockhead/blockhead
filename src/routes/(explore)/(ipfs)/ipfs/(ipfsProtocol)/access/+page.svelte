@@ -24,18 +24,29 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'global IPFS access'} • global IPFS access • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType._GlobalIpfsAccess, data.selector, {
+				sources: [
+					Source.Constants_Internal,
+				],
+			})}
+		<title>{data?.title ?? 'global IPFS access'} • global IPFS access • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'global IPFS access'} • global IPFS access • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
-	<GlobalIpfsAccessView
-		selection={
-			select(EntityType._GlobalIpfsAccess, data.selector, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType._GlobalIpfsAccess, data.selector, {
 				sources: [
 					Source.Constants_Internal,
 				],
-			})
-		}
+			})}
+
+	<GlobalIpfsAccessView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

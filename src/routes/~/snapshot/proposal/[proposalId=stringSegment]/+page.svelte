@@ -16,15 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.SnapshotProposal, data.selector, {
-		sources: [
-			Source.SnapshotHub_Graphql,
-		],
-		fields: {
-			title: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -33,12 +24,35 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.proposalId ?? '') || 'Snapshot proposal' : (pageSelection.entity.title ?? '') || pageSelection.entitySelector.proposalId || 'Snapshot proposal')} • Snapshot proposal • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.SnapshotProposal, data.selector, {
+				sources: [
+					Source.SnapshotHub_Graphql,
+				],
+				fields: {
+					title: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.proposalId ?? '') || 'Snapshot proposal' : (pageSelection.entity.title ?? '') || pageSelection.entitySelector.proposalId || 'Snapshot proposal')} • Snapshot proposal • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Snapshot proposal'} • Snapshot proposal • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.SnapshotProposal, data.selector, {
+				sources: [
+					Source.SnapshotHub_Graphql,
+				],
+				fields: {
+					title: true,
+				},
+			})}
+
 	<SnapshotProposalView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

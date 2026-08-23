@@ -24,20 +24,33 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'zcash shielded pool block state'} • zcash shielded pool block state • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<ZcashShieldedPoolBlockStateView
-		selection={
-			select(EntityType.ZcashShieldedPoolBlockState, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.ZcashShieldedPoolBlockState, {
 				$block: data.selector,
 				$pool: {
 					$network: data.selector.$network,
 					pool: params.pool,
 				},
-			})
-		}
+			})}
+		<title>{data?.title ?? 'zcash shielded pool block state'} • zcash shielded pool block state • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'zcash shielded pool block state'} • zcash shielded pool block state • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.ZcashShieldedPoolBlockState, {
+				$block: data.selector,
+				$pool: {
+					$network: data.selector.$network,
+					pool: params.pool,
+				},
+			})}
+
+	<ZcashShieldedPoolBlockStateView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

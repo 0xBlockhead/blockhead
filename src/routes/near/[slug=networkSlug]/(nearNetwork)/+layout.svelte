@@ -40,18 +40,20 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<NearNetworkView
-			selection={
-				select(EntityType.NearNetwork, data.selector, {
-					sources: [
-						Source.Constants_Internal,
-						Source.NearRpc_JsonRpc,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<NearNetworkView
+				selection={
+					select(EntityType.NearNetwork, data.selector, {
+						sources: [
+							Source.Constants_Internal,
+							Source.NearRpc_JsonRpc,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

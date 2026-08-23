@@ -17,18 +17,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.StarknetClass, {
-		$network: data.selector,
-		classHash: params.classHash,
-	}, {
-		sources: [
-			Source.Juno_JsonRpc,
-			Source.Pathfinder,
-			Source.Starkscan,
-			Source.Voyager,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -37,12 +25,41 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.classHash || 'starknet class')} • starknet class • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.StarknetClass, {
+				$network: data.selector,
+				classHash: params.classHash,
+			}, {
+				sources: [
+					Source.Juno_JsonRpc,
+					Source.Pathfinder,
+					Source.Starkscan,
+					Source.Voyager,
+				],
+			})}
+		<title>{data?.title ?? (pageSelection.entitySelector.classHash || 'starknet class')} • starknet class • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'starknet class'} • starknet class • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.StarknetClass, {
+				$network: data.selector,
+				classHash: params.classHash,
+			}, {
+				sources: [
+					Source.Juno_JsonRpc,
+					Source.Pathfinder,
+					Source.Starkscan,
+					Source.Voyager,
+				],
+			})}
+
 	<StarknetClassView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

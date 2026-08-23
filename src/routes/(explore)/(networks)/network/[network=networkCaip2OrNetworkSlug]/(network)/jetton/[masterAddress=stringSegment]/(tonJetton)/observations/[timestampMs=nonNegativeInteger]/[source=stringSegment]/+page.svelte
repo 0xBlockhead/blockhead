@@ -24,20 +24,33 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'TON jetton timestamp'} • TON jetton timestamp • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<TonJetton_TimestampView
-		selection={
-			select(EntityType.TonJetton_Timestamp, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.TonJetton_Timestamp, {
 				$jetton: data.selector,
 				timestampMs: Number(params.timestampMs),
 				source: params.source,
 			}, {
 				sources: [params.source],
-			})
-		}
+			})}
+		<title>{data?.title ?? 'TON jetton timestamp'} • TON jetton timestamp • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'TON jetton timestamp'} • TON jetton timestamp • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.TonJetton_Timestamp, {
+				$jetton: data.selector,
+				timestampMs: Number(params.timestampMs),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+
+	<TonJetton_TimestampView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

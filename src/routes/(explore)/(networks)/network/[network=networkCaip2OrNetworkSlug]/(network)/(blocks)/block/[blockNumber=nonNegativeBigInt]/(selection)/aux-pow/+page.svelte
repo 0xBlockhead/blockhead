@@ -24,18 +24,29 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'dogecoin block aux pow'} • dogecoin block aux pow • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.DogecoinBlockAuxPow, data.selector, {
+				sources: [
+					Source.DogecoinCore_JsonRpc,
+				],
+			})}
+		<title>{data?.title ?? 'dogecoin block aux pow'} • dogecoin block aux pow • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'dogecoin block aux pow'} • dogecoin block aux pow • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
-	<DogecoinBlockAuxPowView
-		selection={
-			select(EntityType.DogecoinBlockAuxPow, data.selector, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.DogecoinBlockAuxPow, data.selector, {
 				sources: [
 					Source.DogecoinCore_JsonRpc,
 				],
-			})
-		}
+			})}
+
+	<DogecoinBlockAuxPowView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

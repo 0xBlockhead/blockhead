@@ -24,19 +24,31 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'Sui object version'} • Sui object version • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<SuiObjectVersionView
-		selection={
-			select(EntityType.SuiObjectVersion, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.SuiObjectVersion, {
 				$network: data.selector,
 				objectId: params.objectId,
 				version: BigInt(params.version),
 				digest: params.digest,
-			})
-		}
+			})}
+		<title>{data?.title ?? 'Sui object version'} • Sui object version • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Sui object version'} • Sui object version • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.SuiObjectVersion, {
+				$network: data.selector,
+				objectId: params.objectId,
+				version: BigInt(params.version),
+				digest: params.digest,
+			})}
+
+	<SuiObjectVersionView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

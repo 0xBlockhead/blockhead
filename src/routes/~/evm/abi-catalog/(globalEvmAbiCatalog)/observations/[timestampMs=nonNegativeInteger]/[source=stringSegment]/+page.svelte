@@ -24,20 +24,33 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'global EVM ABI catalog timestamp'} • global EVM ABI catalog timestamp • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<GlobalEvmAbiCatalog_TimestampView
-		selection={
-			select(EntityType._GlobalEvmAbiCatalog_Timestamp, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType._GlobalEvmAbiCatalog_Timestamp, {
 				$hub: data.selector,
 				timestampMs: Number(params.timestampMs),
 				source: params.source,
 			}, {
 				sources: [params.source],
-			})
-		}
+			})}
+		<title>{data?.title ?? 'global EVM ABI catalog timestamp'} • global EVM ABI catalog timestamp • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'global EVM ABI catalog timestamp'} • global EVM ABI catalog timestamp • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType._GlobalEvmAbiCatalog_Timestamp, {
+				$hub: data.selector,
+				timestampMs: Number(params.timestampMs),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+
+	<GlobalEvmAbiCatalog_TimestampView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

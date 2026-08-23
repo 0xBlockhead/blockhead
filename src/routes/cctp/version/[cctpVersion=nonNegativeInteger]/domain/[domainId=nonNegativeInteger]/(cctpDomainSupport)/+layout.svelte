@@ -41,20 +41,22 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<CctpDomainSupportView
-			selection={
-				select(EntityType.CctpDomainSupport, data.selector, {
-					sources: [
-						Source.CircleCctpContracts_Evm,
-						Source.CircleCctpContracts_Solana,
-						Source.CircleCctpContracts_Stellar,
-						Source.CircleCctpIris,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<CctpDomainSupportView
+				selection={
+					select(EntityType.CctpDomainSupport, data.selector, {
+						sources: [
+							Source.CircleCctpContracts_Evm,
+							Source.CircleCctpContracts_Solana,
+							Source.CircleCctpContracts_Stellar,
+							Source.CircleCctpIris,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

@@ -24,17 +24,27 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'algorand round'} • algorand round • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.AlgorandRound, {
+				$network: data.selector,
+				round: BigInt(params.round),
+			})}
+		<title>{data?.title ?? 'algorand round'} • algorand round • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'algorand round'} • algorand round • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
-	<AlgorandRoundView
-		selection={
-			select(EntityType.AlgorandRound, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.AlgorandRound, {
 				$network: data.selector,
 				round: BigInt(params.round),
-			})
-		}
+			})}
+
+	<AlgorandRoundView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

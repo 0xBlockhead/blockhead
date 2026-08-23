@@ -42,17 +42,19 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<PolkadotAssetView
-			selection={
-				select(EntityType.PolkadotAsset, data.selector, {
-					sources: [
-						Source.SubstrateSidecar_Rest,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<PolkadotAssetView
+				selection={
+					select(EntityType.PolkadotAsset, data.selector, {
+						sources: [
+							Source.SubstrateSidecar_Rest,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

@@ -16,13 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.BeaconSlot, data.selector, {
-		sources: [
-			Source.Beacon_Rest,
-			Source.BeaconchaIn_Rest,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -31,12 +24,31 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? ((String(pageSelection.entitySelector.slot ?? '') ? 'Slot #' + String(pageSelection.entitySelector.slot ?? '') : '') || 'beacon slot')} • beacon slot • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BeaconSlot, data.selector, {
+				sources: [
+					Source.Beacon_Rest,
+					Source.BeaconchaIn_Rest,
+				],
+			})}
+		<title>{data?.title ?? ((String(pageSelection.entitySelector.slot ?? '') ? 'Slot #' + String(pageSelection.entitySelector.slot ?? '') : '') || 'beacon slot')} • beacon slot • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'beacon slot'} • beacon slot • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BeaconSlot, data.selector, {
+				sources: [
+					Source.Beacon_Rest,
+					Source.BeaconchaIn_Rest,
+				],
+			})}
+
 	<BeaconSlotView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

@@ -41,17 +41,19 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<AcpTerminalView
-			selection={
-				select(EntityType.AcpTerminal, data.selector, {
-					sources: [
-						Source.AcpLocal_JsonRpc,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<AcpTerminalView
+				selection={
+					select(EntityType.AcpTerminal, data.selector, {
+						sources: [
+							Source.AcpLocal_JsonRpc,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

@@ -24,20 +24,33 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'dogecoin aux pow parent block header'} • dogecoin aux pow parent block header • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<DogecoinAuxPowParentBlockHeaderView
-		selection={
-			select(EntityType.DogecoinAuxPowParentBlockHeader, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.DogecoinAuxPowParentBlockHeader, {
 				$auxPow: data.selector,
 			}, {
 				sources: [
 					Source.DogecoinCore_JsonRpc,
 				],
-			})
-		}
+			})}
+		<title>{data?.title ?? 'dogecoin aux pow parent block header'} • dogecoin aux pow parent block header • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'dogecoin aux pow parent block header'} • dogecoin aux pow parent block header • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.DogecoinAuxPowParentBlockHeader, {
+				$auxPow: data.selector,
+			}, {
+				sources: [
+					Source.DogecoinCore_JsonRpc,
+				],
+			})}
+
+	<DogecoinAuxPowParentBlockHeaderView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

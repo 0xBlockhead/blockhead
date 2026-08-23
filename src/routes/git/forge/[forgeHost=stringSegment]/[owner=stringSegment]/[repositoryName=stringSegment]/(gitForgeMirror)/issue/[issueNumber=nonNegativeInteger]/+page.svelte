@@ -15,12 +15,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.GitForgeIssue, data.selector, {
-		fields: {
-			title: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -29,12 +23,29 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? String(pageSelection.entitySelector.issueNumber ?? '') || 'Git forge issue' : (pageSelection.entity.title ?? '') || String(pageSelection.entitySelector.issueNumber) || 'Git forge issue')} • Git forge issue • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.GitForgeIssue, data.selector, {
+				fields: {
+					title: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? String(pageSelection.entitySelector.issueNumber ?? '') || 'Git forge issue' : (pageSelection.entity.title ?? '') || String(pageSelection.entitySelector.issueNumber) || 'Git forge issue')} • Git forge issue • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Git forge issue'} • Git forge issue • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.GitForgeIssue, data.selector, {
+				fields: {
+					title: true,
+				},
+			})}
+
 	<GitForgeIssueView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

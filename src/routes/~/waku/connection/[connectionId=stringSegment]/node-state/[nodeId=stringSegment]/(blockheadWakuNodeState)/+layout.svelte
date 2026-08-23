@@ -41,18 +41,20 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<BlockheadWakuNodeStateView
-			selection={
-				select(EntityType.BlockheadWakuNodeState, data.selector, {
-					sources: [
-						Source.Local_Internal,
-						Source.WakuNode,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<BlockheadWakuNodeStateView
+				selection={
+					select(EntityType.BlockheadWakuNodeState, data.selector, {
+						sources: [
+							Source.Local_Internal,
+							Source.WakuNode,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

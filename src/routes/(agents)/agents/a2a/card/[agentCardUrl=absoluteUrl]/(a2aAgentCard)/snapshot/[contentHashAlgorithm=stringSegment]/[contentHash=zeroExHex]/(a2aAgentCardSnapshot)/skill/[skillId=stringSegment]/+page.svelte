@@ -16,16 +16,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.A2aAgentSkill, {
-		$cardSnapshot: data.selector,
-		skillId: params.skillId,
-	}, {
-		sources: [],
-		fields: {
-			name: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -34,12 +24,37 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.skillId ?? '') || 'A2A agent skill' : (pageSelection.entity.name ?? '') || pageSelection.entitySelector.skillId || 'A2A agent skill')} • A2A agent skill • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.A2aAgentSkill, {
+				$cardSnapshot: data.selector,
+				skillId: params.skillId,
+			}, {
+				sources: [],
+				fields: {
+					name: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.skillId ?? '') || 'A2A agent skill' : (pageSelection.entity.name ?? '') || pageSelection.entitySelector.skillId || 'A2A agent skill')} • A2A agent skill • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'A2A agent skill'} • A2A agent skill • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.A2aAgentSkill, {
+				$cardSnapshot: data.selector,
+				skillId: params.skillId,
+			}, {
+				sources: [],
+				fields: {
+					name: true,
+				},
+			})}
+
 	<A2aAgentSkillView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

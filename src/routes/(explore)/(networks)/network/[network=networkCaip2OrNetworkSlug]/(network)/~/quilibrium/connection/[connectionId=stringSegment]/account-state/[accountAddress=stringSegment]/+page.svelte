@@ -16,13 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.BlockheadQuilibriumAccountState, data.selector, {
-		sources: [
-			Source.Local_Internal,
-			Source.QuilibriumNodeRpc_Grpc,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -31,12 +24,31 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.accountAddress || 'blockhead quilibrium account state')} • blockhead quilibrium account state • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BlockheadQuilibriumAccountState, data.selector, {
+				sources: [
+					Source.Local_Internal,
+					Source.QuilibriumNodeRpc_Grpc,
+				],
+			})}
+		<title>{data?.title ?? (pageSelection.entitySelector.accountAddress || 'blockhead quilibrium account state')} • blockhead quilibrium account state • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'blockhead quilibrium account state'} • blockhead quilibrium account state • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BlockheadQuilibriumAccountState, data.selector, {
+				sources: [
+					Source.Local_Internal,
+					Source.QuilibriumNodeRpc_Grpc,
+				],
+			})}
+
 	<BlockheadQuilibriumAccountStateView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

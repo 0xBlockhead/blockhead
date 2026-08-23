@@ -15,12 +15,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.GitRepository, data.selector, {
-		fields: {
-			canonicalRemoteUrl: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -29,12 +23,29 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.repositoryId ?? '') || 'Git repository' : [pageSelection.entitySelector.repositoryId, (pageSelection.entity.canonicalRemoteUrl ?? '')].filter(Boolean).join(' ') || 'Git repository')} • Git repository • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.GitRepository, data.selector, {
+				fields: {
+					canonicalRemoteUrl: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.repositoryId ?? '') || 'Git repository' : [pageSelection.entitySelector.repositoryId, (pageSelection.entity.canonicalRemoteUrl ?? '')].filter(Boolean).join(' ') || 'Git repository')} • Git repository • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Git repository'} • Git repository • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.GitRepository, data.selector, {
+				fields: {
+					canonicalRemoteUrl: true,
+				},
+			})}
+
 	<GitRepositoryView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

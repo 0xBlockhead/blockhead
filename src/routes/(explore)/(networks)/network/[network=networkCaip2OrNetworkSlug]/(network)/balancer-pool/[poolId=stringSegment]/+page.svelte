@@ -16,15 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.BalancerPool, data.selector, {
-		sources: [
-			Source.Balancer_Rest,
-		],
-		fields: {
-			name: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -33,12 +24,35 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? 'Balancer pool' : pageSelection.entity.name || 'Balancer pool')} • Balancer pool • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BalancerPool, data.selector, {
+				sources: [
+					Source.Balancer_Rest,
+				],
+				fields: {
+					name: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'Balancer pool' : pageSelection.entity.name || 'Balancer pool')} • Balancer pool • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Balancer pool'} • Balancer pool • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BalancerPool, data.selector, {
+				sources: [
+					Source.Balancer_Rest,
+				],
+				fields: {
+					name: true,
+				},
+			})}
+
 	<BalancerPoolView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

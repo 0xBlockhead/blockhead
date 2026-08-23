@@ -40,18 +40,20 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<EigenLayerProtocolView
-			selection={
-				select(EntityType.EigenLayerProtocol, data.selector, {
-					sources: [
-						Source.Constants_Internal,
-						Source.EigenExplorer_Rest,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<EigenLayerProtocolView
+				selection={
+					select(EntityType.EigenLayerProtocol, data.selector, {
+						sources: [
+							Source.Constants_Internal,
+							Source.EigenExplorer_Rest,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

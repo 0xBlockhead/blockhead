@@ -41,18 +41,20 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<ZeroGDataBlobView
-			selection={
-				select(EntityType.ZeroGDataBlob, data.selector, {
-					sources: [
-						Source.ZeroGStorageScan_Rest,
-						Source.ZeroGStorageNode_JsonRpc,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<ZeroGDataBlobView
+				selection={
+					select(EntityType.ZeroGDataBlob, data.selector, {
+						sources: [
+							Source.ZeroGStorageScan_Rest,
+							Source.ZeroGStorageNode_JsonRpc,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

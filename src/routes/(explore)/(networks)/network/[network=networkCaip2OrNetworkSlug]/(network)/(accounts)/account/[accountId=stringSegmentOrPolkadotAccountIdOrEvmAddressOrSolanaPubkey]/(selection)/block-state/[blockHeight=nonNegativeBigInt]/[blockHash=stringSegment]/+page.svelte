@@ -25,14 +25,8 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'near account block state'} • near account block state • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<NearAccount_BlockView
-		selection={
-			select(EntityType.NearAccount_Block, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.NearAccount_Block, {
 				$account: data.selector,
 				$block: {
 					$network: data.selector.$network,
@@ -43,7 +37,31 @@
 				sources: [
 					Source.NearRpc_JsonRpc,
 				],
-			})
-		}
+			})}
+		<title>{data?.title ?? 'near account block state'} • near account block state • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'near account block state'} • near account block state • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.NearAccount_Block, {
+				$account: data.selector,
+				$block: {
+					$network: data.selector.$network,
+					height: BigInt(params.blockHeight),
+					hash: params.blockHash,
+				},
+			}, {
+				sources: [
+					Source.NearRpc_JsonRpc,
+				],
+			})}
+
+	<NearAccount_BlockView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

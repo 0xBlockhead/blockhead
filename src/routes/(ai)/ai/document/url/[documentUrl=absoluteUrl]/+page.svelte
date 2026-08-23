@@ -16,18 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.AiDocument, data.selector, {
-		sources: [
-			Source.Eip8004Scan_Rest,
-			Source.HuggingFaceHub_Rest,
-			Source.Ipfs_Rest,
-			Source.Mlflow_Rest,
-		],
-		fields: {
-			documentKind: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -36,12 +24,41 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? 'AI document' : pageSelection.entity.documentKind || 'AI document')} • AI document • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.AiDocument, data.selector, {
+				sources: [
+					Source.Eip8004Scan_Rest,
+					Source.HuggingFaceHub_Rest,
+					Source.Ipfs_Rest,
+					Source.Mlflow_Rest,
+				],
+				fields: {
+					documentKind: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'AI document' : pageSelection.entity.documentKind || 'AI document')} • AI document • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'AI document'} • AI document • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.AiDocument, data.selector, {
+				sources: [
+					Source.Eip8004Scan_Rest,
+					Source.HuggingFaceHub_Rest,
+					Source.Ipfs_Rest,
+					Source.Mlflow_Rest,
+				],
+				fields: {
+					documentKind: true,
+				},
+			})}
+
 	<AiDocumentView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

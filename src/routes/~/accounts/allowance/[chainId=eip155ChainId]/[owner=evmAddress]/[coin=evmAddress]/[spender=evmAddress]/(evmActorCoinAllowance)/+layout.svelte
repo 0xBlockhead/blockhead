@@ -43,19 +43,21 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<EvmActorCoinAllowanceView
-			selection={
-				select(EntityType.EvmActorCoinAllowance, data.selector, {
-					sources: [
-						Source.EnvioHyperSync_RawHttp,
-						Source.SqdPortal_RawHttp,
-						Source.Voltaire_JsonRpc,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<EvmActorCoinAllowanceView
+				selection={
+					select(EntityType.EvmActorCoinAllowance, data.selector, {
+						sources: [
+							Source.EnvioHyperSync_RawHttp,
+							Source.SqdPortal_RawHttp,
+							Source.Voltaire_JsonRpc,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

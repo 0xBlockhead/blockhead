@@ -41,17 +41,19 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<CurvePoolView
-			selection={
-				select(EntityType.CurvePool, data.selector, {
-					sources: [
-						Source.Curve_Rest,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<CurvePoolView
+				selection={
+					select(EntityType.CurvePool, data.selector, {
+						sources: [
+							Source.Curve_Rest,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

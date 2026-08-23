@@ -16,13 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.BeaconEpoch, data.selector, {
-		sources: [
-			Source.Beacon_Rest,
-			Source.BeaconchaIn_Rest,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -31,12 +24,31 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? ((String(pageSelection.entitySelector.epoch ?? '') ? 'Epoch #' + String(pageSelection.entitySelector.epoch ?? '') : '') || 'beacon epoch')} • beacon epoch • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BeaconEpoch, data.selector, {
+				sources: [
+					Source.Beacon_Rest,
+					Source.BeaconchaIn_Rest,
+				],
+			})}
+		<title>{data?.title ?? ((String(pageSelection.entitySelector.epoch ?? '') ? 'Epoch #' + String(pageSelection.entitySelector.epoch ?? '') : '') || 'beacon epoch')} • beacon epoch • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'beacon epoch'} • beacon epoch • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BeaconEpoch, data.selector, {
+				sources: [
+					Source.Beacon_Rest,
+					Source.BeaconchaIn_Rest,
+				],
+			})}
+
 	<BeaconEpochView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

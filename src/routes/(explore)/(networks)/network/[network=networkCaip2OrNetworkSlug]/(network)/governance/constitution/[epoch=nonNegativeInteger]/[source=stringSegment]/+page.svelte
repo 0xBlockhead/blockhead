@@ -23,16 +23,25 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'Cardano constitution epoch'} • Cardano constitution epoch • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.CardanoConstitution_Epoch, data.selector, {
+				sources: [data.selector.source],
+			})}
+		<title>{data?.title ?? 'Cardano constitution epoch'} • Cardano constitution epoch • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Cardano constitution epoch'} • Cardano constitution epoch • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
-	<CardanoConstitution_EpochView
-		selection={
-			select(EntityType.CardanoConstitution_Epoch, data.selector, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.CardanoConstitution_Epoch, data.selector, {
 				sources: [data.selector.source],
-			})
-		}
+			})}
+
+	<CardanoConstitution_EpochView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

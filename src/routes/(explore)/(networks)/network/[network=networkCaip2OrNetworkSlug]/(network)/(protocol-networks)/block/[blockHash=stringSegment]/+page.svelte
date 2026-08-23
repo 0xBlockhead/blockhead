@@ -24,21 +24,35 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'kaspa block'} • kaspa block • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<KaspaBlockView
-		selection={
-			select(EntityType.KaspaBlock, data.selector, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.KaspaBlock, data.selector, {
 				sources: [
 					Source.KaspaExplorer,
 					Source.KaspaNode_Grpc,
 					Source.KaspaNode_Rest,
 					Source.KaspaNode_Wrpc,
 				],
-			})
-		}
+			})}
+		<title>{data?.title ?? 'kaspa block'} • kaspa block • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'kaspa block'} • kaspa block • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.KaspaBlock, data.selector, {
+				sources: [
+					Source.KaspaExplorer,
+					Source.KaspaNode_Grpc,
+					Source.KaspaNode_Rest,
+					Source.KaspaNode_Wrpc,
+				],
+			})}
+
+	<KaspaBlockView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

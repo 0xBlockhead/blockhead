@@ -43,17 +43,19 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<MoneroRingView
-			selection={
-				select(EntityType.MoneroRing, data.selector, {
-					sources: [
-						Source.MoneroDaemonRpc_JsonRpc,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<MoneroRingView
+				selection={
+					select(EntityType.MoneroRing, data.selector, {
+						sources: [
+							Source.MoneroDaemonRpc_JsonRpc,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

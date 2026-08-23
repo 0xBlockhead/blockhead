@@ -41,20 +41,22 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<AiModelView
-			selection={
-				select(EntityType.AiModel, data.selector, {
-					sources: [
-						Source.Anthropic_Rest,
-						Source.HuggingFaceHub_Rest,
-						Source.Mlflow_Rest,
-						Source.OpenAI_Rest,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<AiModelView
+				selection={
+					select(EntityType.AiModel, data.selector, {
+						sources: [
+							Source.Anthropic_Rest,
+							Source.HuggingFaceHub_Rest,
+							Source.Mlflow_Rest,
+							Source.OpenAI_Rest,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

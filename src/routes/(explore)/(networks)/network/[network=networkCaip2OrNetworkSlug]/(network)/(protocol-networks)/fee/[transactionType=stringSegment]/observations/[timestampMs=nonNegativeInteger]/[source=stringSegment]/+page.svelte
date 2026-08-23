@@ -23,16 +23,25 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'hedera network fee timestamp'} • hedera network fee timestamp • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.HederaNetworkFee_Timestamp, data.selector, {
+				sources: [data.selector.source],
+			})}
+		<title>{data?.title ?? 'hedera network fee timestamp'} • hedera network fee timestamp • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'hedera network fee timestamp'} • hedera network fee timestamp • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
-	<HederaNetworkFee_TimestampView
-		selection={
-			select(EntityType.HederaNetworkFee_Timestamp, data.selector, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.HederaNetworkFee_Timestamp, data.selector, {
 				sources: [data.selector.source],
-			})
-		}
+			})}
+
+	<HederaNetworkFee_TimestampView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

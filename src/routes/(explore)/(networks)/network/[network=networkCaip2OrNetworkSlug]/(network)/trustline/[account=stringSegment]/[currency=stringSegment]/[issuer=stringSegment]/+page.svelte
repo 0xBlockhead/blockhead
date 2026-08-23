@@ -23,12 +23,21 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'XRPL trustline'} • XRPL trustline • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.XrplTrustline, data.selector)}
+		<title>{data?.title ?? 'XRPL trustline'} • XRPL trustline • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'XRPL trustline'} • XRPL trustline • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.XrplTrustline, data.selector)}
+
 	<XrplTrustlineView
-		selection={select(EntityType.XrplTrustline, data.selector)}
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

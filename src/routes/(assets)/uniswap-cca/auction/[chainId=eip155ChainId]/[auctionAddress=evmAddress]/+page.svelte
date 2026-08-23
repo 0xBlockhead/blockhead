@@ -16,12 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.UniswapCcaAuction, data.selector, {
-		sources: [
-			Source.UniswapContracts_Evm,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -30,12 +24,29 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.auctionAddress || 'Uniswap CCA auction')} • Uniswap CCA auction • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.UniswapCcaAuction, data.selector, {
+				sources: [
+					Source.UniswapContracts_Evm,
+				],
+			})}
+		<title>{data?.title ?? (pageSelection.entitySelector.auctionAddress || 'Uniswap CCA auction')} • Uniswap CCA auction • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Uniswap CCA auction'} • Uniswap CCA auction • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.UniswapCcaAuction, data.selector, {
+				sources: [
+					Source.UniswapContracts_Evm,
+				],
+			})}
+
 	<UniswapCcaAuctionView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

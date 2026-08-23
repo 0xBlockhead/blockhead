@@ -24,21 +24,35 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'issuer power'} • issuer power • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<IssuerPowerView
-		selection={
-			select(EntityType.IssuerPower, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.IssuerPower, {
 				$profile: data.selector,
 				powerKind: params.powerKind,
 				actorKey: params.actorKey,
 				source: params.source,
 			}, {
 				sources: [params.source],
-			})
-		}
+			})}
+		<title>{data?.title ?? 'issuer power'} • issuer power • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'issuer power'} • issuer power • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.IssuerPower, {
+				$profile: data.selector,
+				powerKind: params.powerKind,
+				actorKey: params.actorKey,
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+
+	<IssuerPowerView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

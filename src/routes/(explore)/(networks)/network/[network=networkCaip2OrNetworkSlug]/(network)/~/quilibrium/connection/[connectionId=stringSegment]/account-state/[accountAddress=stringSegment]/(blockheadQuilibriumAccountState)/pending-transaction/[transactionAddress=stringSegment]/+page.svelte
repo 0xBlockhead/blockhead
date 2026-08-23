@@ -17,16 +17,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.BlockheadQuilibriumPendingTransaction, {
-		$accountState: data.selector,
-		transactionAddress: params.transactionAddress,
-	}, {
-		sources: [
-			Source.Local_Internal,
-			Source.QuilibriumNodeRpc_Grpc,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -35,12 +25,37 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.transactionAddress || 'blockhead quilibrium pending transaction')} • blockhead quilibrium pending transaction • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BlockheadQuilibriumPendingTransaction, {
+				$accountState: data.selector,
+				transactionAddress: params.transactionAddress,
+			}, {
+				sources: [
+					Source.Local_Internal,
+					Source.QuilibriumNodeRpc_Grpc,
+				],
+			})}
+		<title>{data?.title ?? (pageSelection.entitySelector.transactionAddress || 'blockhead quilibrium pending transaction')} • blockhead quilibrium pending transaction • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'blockhead quilibrium pending transaction'} • blockhead quilibrium pending transaction • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BlockheadQuilibriumPendingTransaction, {
+				$accountState: data.selector,
+				transactionAddress: params.transactionAddress,
+			}, {
+				sources: [
+					Source.Local_Internal,
+					Source.QuilibriumNodeRpc_Grpc,
+				],
+			})}
+
 	<BlockheadQuilibriumPendingTransactionView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

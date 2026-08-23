@@ -24,20 +24,33 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'eigen layer avs timestamp'} • eigen layer avs timestamp • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<EigenLayerAvs_TimestampView
-		selection={
-			select(EntityType.EigenLayerAvs_Timestamp, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.EigenLayerAvs_Timestamp, {
 				$avs: data.selector,
 				timestampMs: Number(params.timestampMs),
 				source: params.source,
 			}, {
 				sources: [params.source],
-			})
-		}
+			})}
+		<title>{data?.title ?? 'eigen layer avs timestamp'} • eigen layer avs timestamp • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'eigen layer avs timestamp'} • eigen layer avs timestamp • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.EigenLayerAvs_Timestamp, {
+				$avs: data.selector,
+				timestampMs: Number(params.timestampMs),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+
+	<EigenLayerAvs_TimestampView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

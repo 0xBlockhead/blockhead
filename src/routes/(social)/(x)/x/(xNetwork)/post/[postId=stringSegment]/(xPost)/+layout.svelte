@@ -40,18 +40,20 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<XPostView
-			selection={
-				select(EntityType.XPost, data.selector, {
-					sources: [
-						Source.X_Rest,
-						Source.X_FxEmbed_Rest,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<XPostView
+				selection={
+					select(EntityType.XPost, data.selector, {
+						sources: [
+							Source.X_Rest,
+							Source.X_FxEmbed_Rest,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

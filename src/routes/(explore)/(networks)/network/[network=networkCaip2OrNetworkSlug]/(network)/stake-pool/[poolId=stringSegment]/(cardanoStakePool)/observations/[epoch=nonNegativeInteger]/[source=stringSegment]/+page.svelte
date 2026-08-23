@@ -24,20 +24,33 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'Cardano stake pool timestamp'} • Cardano stake pool timestamp • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<CardanoStakePool_TimestampView
-		selection={
-			select(EntityType.CardanoStakePool_Timestamp, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.CardanoStakePool_Timestamp, {
 				$pool: data.selector,
 				epoch: Number(params.epoch),
 				source: params.source,
 			}, {
 				sources: [params.source],
-			})
-		}
+			})}
+		<title>{data?.title ?? 'Cardano stake pool timestamp'} • Cardano stake pool timestamp • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Cardano stake pool timestamp'} • Cardano stake pool timestamp • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.CardanoStakePool_Timestamp, {
+				$pool: data.selector,
+				epoch: Number(params.epoch),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+
+	<CardanoStakePool_TimestampView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

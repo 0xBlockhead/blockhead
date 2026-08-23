@@ -17,18 +17,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.GmxMarket, {
-		$network: data.selector,
-		marketTokenAddress: params.marketTokenAddress,
-	}, {
-		sources: [
-			Source.Gmx_Rest,
-		],
-		fields: {
-			name: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -37,12 +25,41 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? 'GMX market' : pageSelection.entity.name || 'GMX market')} • GMX market • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.GmxMarket, {
+				$network: data.selector,
+				marketTokenAddress: params.marketTokenAddress,
+			}, {
+				sources: [
+					Source.Gmx_Rest,
+				],
+				fields: {
+					name: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'GMX market' : pageSelection.entity.name || 'GMX market')} • GMX market • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'GMX market'} • GMX market • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.GmxMarket, {
+				$network: data.selector,
+				marketTokenAddress: params.marketTokenAddress,
+			}, {
+				sources: [
+					Source.Gmx_Rest,
+				],
+				fields: {
+					name: true,
+				},
+			})}
+
 	<GmxMarketView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

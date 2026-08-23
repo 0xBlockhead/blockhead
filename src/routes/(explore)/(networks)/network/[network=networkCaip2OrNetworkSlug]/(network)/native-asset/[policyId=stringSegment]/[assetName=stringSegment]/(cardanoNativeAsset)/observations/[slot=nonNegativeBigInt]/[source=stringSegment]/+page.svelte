@@ -24,20 +24,33 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'Cardano native asset timestamp'} • Cardano native asset timestamp • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<CardanoNativeAsset_TimestampView
-		selection={
-			select(EntityType.CardanoNativeAsset_Timestamp, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.CardanoNativeAsset_Timestamp, {
 				$asset: data.selector,
 				slot: BigInt(params.slot),
 				source: params.source,
 			}, {
 				sources: [params.source],
-			})
-		}
+			})}
+		<title>{data?.title ?? 'Cardano native asset timestamp'} • Cardano native asset timestamp • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Cardano native asset timestamp'} • Cardano native asset timestamp • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.CardanoNativeAsset_Timestamp, {
+				$asset: data.selector,
+				slot: BigInt(params.slot),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+
+	<CardanoNativeAsset_TimestampView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

@@ -24,18 +24,29 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'blockhead state channel deposit'} • blockhead state channel deposit • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BlockheadStateChannelDeposit, data.selector, {
+				sources: [
+					Source.Local_Internal,
+				],
+			})}
+		<title>{data?.title ?? 'blockhead state channel deposit'} • blockhead state channel deposit • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'blockhead state channel deposit'} • blockhead state channel deposit • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
-	<BlockheadStateChannelDepositView
-		selection={
-			select(EntityType.BlockheadStateChannelDeposit, data.selector, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BlockheadStateChannelDeposit, data.selector, {
 				sources: [
 					Source.Local_Internal,
 				],
-			})
-		}
+			})}
+
+	<BlockheadStateChannelDepositView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

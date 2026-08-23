@@ -16,12 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.CashuKeyset, data.selector, {
-		sources: [
-			Source.CashuMint_Rest,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -30,12 +24,29 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.keysetId || 'Cashu keyset')} • Cashu keyset • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.CashuKeyset, data.selector, {
+				sources: [
+					Source.CashuMint_Rest,
+				],
+			})}
+		<title>{data?.title ?? (pageSelection.entitySelector.keysetId || 'Cashu keyset')} • Cashu keyset • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Cashu keyset'} • Cashu keyset • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.CashuKeyset, data.selector, {
+				sources: [
+					Source.CashuMint_Rest,
+				],
+			})}
+
 	<CashuKeysetView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

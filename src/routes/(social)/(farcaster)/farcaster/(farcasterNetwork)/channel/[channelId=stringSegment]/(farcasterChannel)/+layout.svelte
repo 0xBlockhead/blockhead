@@ -40,18 +40,20 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<FarcasterChannelView
-			selection={
-				select(EntityType.FarcasterChannel, data.selector, {
-					sources: [
-						Source.Farcaster_Rest,
-						Source.Neynar_Rest,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<FarcasterChannelView
+				selection={
+					select(EntityType.FarcasterChannel, data.selector, {
+						sources: [
+							Source.Farcaster_Rest,
+							Source.Neynar_Rest,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

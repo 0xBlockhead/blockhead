@@ -16,16 +16,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.TokenProgramExtension_Timestamp, {
-		$assetInstance: data.selector,
-		extensionKind: params.extensionKind,
-		extensionScope: params.extensionScope,
-		timestampMs: Number(params.timestampMs),
-		source: params.source,
-	}, {
-		sources: [params.source],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -34,12 +24,37 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.extensionKind || 'token program extension timestamp')} • token program extension timestamp • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.TokenProgramExtension_Timestamp, {
+				$assetInstance: data.selector,
+				extensionKind: params.extensionKind,
+				extensionScope: params.extensionScope,
+				timestampMs: Number(params.timestampMs),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+		<title>{data?.title ?? (pageSelection.entitySelector.extensionKind || 'token program extension timestamp')} • token program extension timestamp • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'token program extension timestamp'} • token program extension timestamp • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.TokenProgramExtension_Timestamp, {
+				$assetInstance: data.selector,
+				extensionKind: params.extensionKind,
+				extensionScope: params.extensionScope,
+				timestampMs: Number(params.timestampMs),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+
 	<TokenProgramExtension_TimestampView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

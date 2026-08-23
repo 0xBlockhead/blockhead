@@ -24,20 +24,33 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'allowance'} • allowance • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<EvmActorCoinAllowanceView
-		selection={
-			select(EntityType.EvmActorCoinAllowance, data.selector, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.EvmActorCoinAllowance, data.selector, {
 				sources: [
 					Source.EnvioHyperSync_RawHttp,
 					Source.SqdPortal_RawHttp,
 					Source.Voltaire_JsonRpc,
 				],
-			})
-		}
+			})}
+		<title>{data?.title ?? 'allowance'} • allowance • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'allowance'} • allowance • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.EvmActorCoinAllowance, data.selector, {
+				sources: [
+					Source.EnvioHyperSync_RawHttp,
+					Source.SqdPortal_RawHttp,
+					Source.Voltaire_JsonRpc,
+				],
+			})}
+
+	<EvmActorCoinAllowanceView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

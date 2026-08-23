@@ -16,12 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.NearChunk, data.selector, {
-		sources: [
-			Source.NearRpc_JsonRpc,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -30,12 +24,29 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.chunkHash || 'near chunk')} • near chunk • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.NearChunk, data.selector, {
+				sources: [
+					Source.NearRpc_JsonRpc,
+				],
+			})}
+		<title>{data?.title ?? (pageSelection.entitySelector.chunkHash || 'near chunk')} • near chunk • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'near chunk'} • near chunk • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.NearChunk, data.selector, {
+				sources: [
+					Source.NearRpc_JsonRpc,
+				],
+			})}
+
 	<NearChunkView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

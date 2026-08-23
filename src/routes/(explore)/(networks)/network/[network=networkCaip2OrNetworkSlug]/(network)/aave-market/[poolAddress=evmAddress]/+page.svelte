@@ -16,15 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.AaveMarket, data.selector, {
-		sources: [
-			Source.Aave_Rest,
-		],
-		fields: {
-			name: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -33,12 +24,35 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? 'Aave market' : pageSelection.entity.name || 'Aave market')} • Aave market • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.AaveMarket, data.selector, {
+				sources: [
+					Source.Aave_Rest,
+				],
+				fields: {
+					name: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'Aave market' : pageSelection.entity.name || 'Aave market')} • Aave market • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Aave market'} • Aave market • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.AaveMarket, data.selector, {
+				sources: [
+					Source.Aave_Rest,
+				],
+				fields: {
+					name: true,
+				},
+			})}
+
 	<AaveMarketView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

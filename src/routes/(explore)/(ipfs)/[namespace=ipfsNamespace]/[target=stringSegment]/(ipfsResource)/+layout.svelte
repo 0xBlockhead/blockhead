@@ -41,17 +41,19 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<IpfsResourceView
-			selection={
-				select(EntityType.IpfsResource, data.selector, {
-					sources: [
-						Source.Ipfs_Rest,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<IpfsResourceView
+				selection={
+					select(EntityType.IpfsResource, data.selector, {
+						sources: [
+							Source.Ipfs_Rest,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

@@ -16,12 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.QuilibriumFrame, data.selector, {
-		sources: [
-			Source.QuilibriumNode_Grpc,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -30,12 +24,29 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (String(pageSelection.entitySelector.frameNumber) || 'quilibrium frame')} • quilibrium frame • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.QuilibriumFrame, data.selector, {
+				sources: [
+					Source.QuilibriumNode_Grpc,
+				],
+			})}
+		<title>{data?.title ?? (String(pageSelection.entitySelector.frameNumber) || 'quilibrium frame')} • quilibrium frame • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'quilibrium frame'} • quilibrium frame • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.QuilibriumFrame, data.selector, {
+				sources: [
+					Source.QuilibriumNode_Grpc,
+				],
+			})}
+
 	<QuilibriumFrameView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

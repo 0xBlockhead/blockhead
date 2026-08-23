@@ -40,17 +40,19 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<SwarmResourceView
-			selection={
-				select(EntityType.SwarmResource, data.selector, {
-					sources: [
-						Source.Swarm_Rest,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<SwarmResourceView
+				selection={
+					select(EntityType.SwarmResource, data.selector, {
+						sources: [
+							Source.Swarm_Rest,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

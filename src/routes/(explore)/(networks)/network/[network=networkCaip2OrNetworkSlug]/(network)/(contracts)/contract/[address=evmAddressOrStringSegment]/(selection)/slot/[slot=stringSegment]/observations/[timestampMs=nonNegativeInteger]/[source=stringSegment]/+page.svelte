@@ -24,21 +24,35 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'hedera contract state timestamp'} • hedera contract state timestamp • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<HederaContractState_TimestampView
-		selection={
-			select(EntityType.HederaContractState_Timestamp, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.HederaContractState_Timestamp, {
 				$contract: data.selector,
 				slot: params.slot,
 				timestampMs: Number(params.timestampMs),
 				source: params.source,
 			}, {
 				sources: [params.source],
-			})
-		}
+			})}
+		<title>{data?.title ?? 'hedera contract state timestamp'} • hedera contract state timestamp • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'hedera contract state timestamp'} • hedera contract state timestamp • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.HederaContractState_Timestamp, {
+				$contract: data.selector,
+				slot: params.slot,
+				timestampMs: Number(params.timestampMs),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+
+	<HederaContractState_TimestampView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

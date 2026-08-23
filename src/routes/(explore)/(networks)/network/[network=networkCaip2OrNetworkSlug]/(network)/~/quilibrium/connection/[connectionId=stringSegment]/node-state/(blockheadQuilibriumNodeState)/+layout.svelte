@@ -41,19 +41,21 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<BlockheadQuilibriumNodeStateView
-			selection={
-				select(EntityType.BlockheadQuilibriumNodeState, data.selector, {
-					sources: [
-						Source.Local_Internal,
-						Source.QuilibriumNodeMetrics_Prometheus,
-						Source.QuilibriumNode_Grpc,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<BlockheadQuilibriumNodeStateView
+				selection={
+					select(EntityType.BlockheadQuilibriumNodeState, data.selector, {
+						sources: [
+							Source.Local_Internal,
+							Source.QuilibriumNodeMetrics_Prometheus,
+							Source.QuilibriumNode_Grpc,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

@@ -16,12 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.McpToolCall, data.selector, {
-		sources: [
-			Source.McpDeclared_Protocol,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -30,12 +24,29 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.callId || 'mcp tool call')} • mcp tool call • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.McpToolCall, data.selector, {
+				sources: [
+					Source.McpDeclared_Protocol,
+				],
+			})}
+		<title>{data?.title ?? (pageSelection.entitySelector.callId || 'mcp tool call')} • mcp tool call • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'mcp tool call'} • mcp tool call • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.McpToolCall, data.selector, {
+				sources: [
+					Source.McpDeclared_Protocol,
+				],
+			})}
+
 	<McpToolCallView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

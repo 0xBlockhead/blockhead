@@ -17,17 +17,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.NearTransaction, {
-		$network: data.selector.$network,
-		hash: params.transactionId,
-		signerAccountId: params.signerAccountId,
-	}, {
-		sources: [
-			Source.NearRpc_JsonRpc,
-			Source.NearBlocks_Rest,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -36,12 +25,39 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.hash || 'near transaction')} • near transaction • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.NearTransaction, {
+				$network: data.selector.$network,
+				hash: params.transactionId,
+				signerAccountId: params.signerAccountId,
+			}, {
+				sources: [
+					Source.NearRpc_JsonRpc,
+					Source.NearBlocks_Rest,
+				],
+			})}
+		<title>{data?.title ?? (pageSelection.entitySelector.hash || 'near transaction')} • near transaction • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'near transaction'} • near transaction • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.NearTransaction, {
+				$network: data.selector.$network,
+				hash: params.transactionId,
+				signerAccountId: params.signerAccountId,
+			}, {
+				sources: [
+					Source.NearRpc_JsonRpc,
+					Source.NearBlocks_Rest,
+				],
+			})}
+
 	<NearTransactionView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

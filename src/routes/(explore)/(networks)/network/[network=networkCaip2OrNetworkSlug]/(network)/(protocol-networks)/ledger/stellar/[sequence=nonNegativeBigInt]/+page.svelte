@@ -16,11 +16,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.StellarLedger, {
-		$network: data.selector,
-		sequence: BigInt(params.sequence),
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -29,12 +24,27 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (String(pageSelection.entitySelector.sequence) || 'stellar ledger')} • stellar ledger • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.StellarLedger, {
+				$network: data.selector,
+				sequence: BigInt(params.sequence),
+			})}
+		<title>{data?.title ?? (String(pageSelection.entitySelector.sequence) || 'stellar ledger')} • stellar ledger • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'stellar ledger'} • stellar ledger • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.StellarLedger, {
+				$network: data.selector,
+				sequence: BigInt(params.sequence),
+			})}
+
 	<StellarLedgerView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

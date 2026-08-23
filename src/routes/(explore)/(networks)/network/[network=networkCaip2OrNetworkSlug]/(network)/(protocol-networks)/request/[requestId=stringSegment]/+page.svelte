@@ -23,12 +23,21 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'ICP request status'} • ICP request status • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.IcpRequestStatus, data.selector)}
+		<title>{data?.title ?? 'ICP request status'} • ICP request status • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'ICP request status'} • ICP request status • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.IcpRequestStatus, data.selector)}
+
 	<IcpRequestStatusView
-		selection={select(EntityType.IcpRequestStatus, data.selector)}
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

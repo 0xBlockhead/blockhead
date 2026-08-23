@@ -41,18 +41,20 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<FilecoinActorView
-			selection={
-				select(EntityType.FilecoinActor, data.selector, {
-					sources: [
-						Source.Lotus_JsonRpc,
-						Source.Filfox_Rest,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<FilecoinActorView
+				selection={
+					select(EntityType.FilecoinActor, data.selector, {
+						sources: [
+							Source.Lotus_JsonRpc,
+							Source.Filfox_Rest,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

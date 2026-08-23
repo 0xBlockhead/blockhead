@@ -24,20 +24,33 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'mainline DHT lookup'} • mainline DHT lookup • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<BitTorrentDhtLookup_TimestampView
-		selection={
-			select(EntityType.BitTorrentDhtLookup_Timestamp, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BitTorrentDhtLookup_Timestamp, {
 				$torrent: data.selector,
 				timestampMs: Number(params.timestampMs),
 				source: params.source,
 			}, {
 				sources: [params.source],
-			})
-		}
+			})}
+		<title>{data?.title ?? 'mainline DHT lookup'} • mainline DHT lookup • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'mainline DHT lookup'} • mainline DHT lookup • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BitTorrentDhtLookup_Timestamp, {
+				$torrent: data.selector,
+				timestampMs: Number(params.timestampMs),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+
+	<BitTorrentDhtLookup_TimestampView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

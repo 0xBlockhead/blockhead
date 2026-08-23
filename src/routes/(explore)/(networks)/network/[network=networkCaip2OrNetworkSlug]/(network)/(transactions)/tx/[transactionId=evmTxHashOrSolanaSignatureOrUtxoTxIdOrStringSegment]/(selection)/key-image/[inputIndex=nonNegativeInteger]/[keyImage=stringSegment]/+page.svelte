@@ -16,12 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.MoneroKeyImage, data.selector, {
-		sources: [
-			Source.MoneroDaemonRpc_JsonRpc,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -30,12 +24,29 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.keyImage || 'monero key image')} • monero key image • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.MoneroKeyImage, data.selector, {
+				sources: [
+					Source.MoneroDaemonRpc_JsonRpc,
+				],
+			})}
+		<title>{data?.title ?? (pageSelection.entitySelector.keyImage || 'monero key image')} • monero key image • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'monero key image'} • monero key image • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.MoneroKeyImage, data.selector, {
+				sources: [
+					Source.MoneroDaemonRpc_JsonRpc,
+				],
+			})}
+
 	<MoneroKeyImageView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

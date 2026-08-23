@@ -24,20 +24,33 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'algorand application timestamp'} • algorand application timestamp • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<AlgorandApplication_TimestampView
-		selection={
-			select(EntityType.AlgorandApplication_Timestamp, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.AlgorandApplication_Timestamp, {
 				$application: data.selector,
 				round: BigInt(params.round),
 				source: params.source,
 			}, {
 				sources: [params.source],
-			})
-		}
+			})}
+		<title>{data?.title ?? 'algorand application timestamp'} • algorand application timestamp • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'algorand application timestamp'} • algorand application timestamp • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.AlgorandApplication_Timestamp, {
+				$application: data.selector,
+				round: BigInt(params.round),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+
+	<AlgorandApplication_TimestampView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

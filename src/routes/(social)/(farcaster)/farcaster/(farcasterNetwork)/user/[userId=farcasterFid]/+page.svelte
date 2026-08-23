@@ -16,17 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.FarcasterUser, data.selector, {
-		sources: [
-			Source.Neynar_Rest,
-			Source.Snapchain_Rest,
-		],
-		fields: {
-			displayName: true,
-			username: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -35,12 +24,39 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? String(pageSelection.entitySelector.fid ?? '') || 'Farcaster user' : [(pageSelection.entity.displayName ?? ''), (pageSelection.entity.username ?? ''), String(pageSelection.entitySelector.fid)].filter(Boolean).join(' ') || 'Farcaster user')} • Farcaster user • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.FarcasterUser, data.selector, {
+				sources: [
+					Source.Neynar_Rest,
+					Source.Snapchain_Rest,
+				],
+				fields: {
+					displayName: true,
+					username: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? String(pageSelection.entitySelector.fid ?? '') || 'Farcaster user' : [(pageSelection.entity.displayName ?? ''), (pageSelection.entity.username ?? ''), String(pageSelection.entitySelector.fid)].filter(Boolean).join(' ') || 'Farcaster user')} • Farcaster user • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Farcaster user'} • Farcaster user • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.FarcasterUser, data.selector, {
+				sources: [
+					Source.Neynar_Rest,
+					Source.Snapchain_Rest,
+				],
+				fields: {
+					displayName: true,
+					username: true,
+				},
+			})}
+
 	<FarcasterUserView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

@@ -25,21 +25,35 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'litecoin MWEB peg in'} • litecoin MWEB peg in • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<LitecoinMwebPegInView
-		selection={
-			select(EntityType.LitecoinMwebPegIn, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.LitecoinMwebPegIn, {
 				$transaction: data.selector,
 				pegInIndex: Number(params.pegInIndex),
 			}, {
 				sources: [
 					Source.LitecoinCore_JsonRpc,
 				],
-			})
-		}
+			})}
+		<title>{data?.title ?? 'litecoin MWEB peg in'} • litecoin MWEB peg in • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'litecoin MWEB peg in'} • litecoin MWEB peg in • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.LitecoinMwebPegIn, {
+				$transaction: data.selector,
+				pegInIndex: Number(params.pegInIndex),
+			}, {
+				sources: [
+					Source.LitecoinCore_JsonRpc,
+				],
+			})}
+
+	<LitecoinMwebPegInView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

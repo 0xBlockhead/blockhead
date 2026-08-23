@@ -42,11 +42,13 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<SuiDynamicFieldEdgeView
-			selection={select(EntityType.SuiDynamicFieldEdge, data.selector)}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<SuiDynamicFieldEdgeView
+				selection={select(EntityType.SuiDynamicFieldEdge, data.selector)}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

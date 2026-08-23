@@ -24,20 +24,33 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'TON NFT transfer'} • TON NFT transfer • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<TonNftTransferView
-		selection={
-			select(EntityType.TonNftTransfer, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.TonNftTransfer, {
 				$network: data.selector,
 				transferId: params.transferId,
 				source: params.source,
 			}, {
 				sources: [params.source],
-			})
-		}
+			})}
+		<title>{data?.title ?? 'TON NFT transfer'} • TON NFT transfer • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'TON NFT transfer'} • TON NFT transfer • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.TonNftTransfer, {
+				$network: data.selector,
+				transferId: params.transferId,
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+
+	<TonNftTransferView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

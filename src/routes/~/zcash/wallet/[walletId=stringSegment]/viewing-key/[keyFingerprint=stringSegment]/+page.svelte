@@ -16,14 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.BlockheadZcashViewingKey, data.selector, {
-		sources: [
-			Source.Local_Internal,
-			Source.ZcashClientBackend_Local,
-			Source.ZcashdWallet_JsonRpc,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -32,12 +24,33 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.keyFingerprint || 'blockhead zcash viewing key')} • blockhead zcash viewing key • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BlockheadZcashViewingKey, data.selector, {
+				sources: [
+					Source.Local_Internal,
+					Source.ZcashClientBackend_Local,
+					Source.ZcashdWallet_JsonRpc,
+				],
+			})}
+		<title>{data?.title ?? (pageSelection.entitySelector.keyFingerprint || 'blockhead zcash viewing key')} • blockhead zcash viewing key • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'blockhead zcash viewing key'} • blockhead zcash viewing key • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BlockheadZcashViewingKey, data.selector, {
+				sources: [
+					Source.Local_Internal,
+					Source.ZcashClientBackend_Local,
+					Source.ZcashdWallet_JsonRpc,
+				],
+			})}
+
 	<BlockheadZcashViewingKeyView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

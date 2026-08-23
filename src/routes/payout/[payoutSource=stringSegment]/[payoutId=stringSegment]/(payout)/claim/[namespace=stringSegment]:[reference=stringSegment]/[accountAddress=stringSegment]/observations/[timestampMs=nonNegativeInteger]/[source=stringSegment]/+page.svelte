@@ -24,14 +24,8 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'payout claim timestamp'} • payout claim timestamp • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<PayoutClaim_TimestampView
-		selection={
-			select(EntityType.PayoutClaim_Timestamp, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.PayoutClaim_Timestamp, {
 				$payout: data.selector,
 				$account: {
 					caip10: {
@@ -44,7 +38,33 @@
 				source: params.source,
 			}, {
 				sources: [params.source],
-			})
-		}
+			})}
+		<title>{data?.title ?? 'payout claim timestamp'} • payout claim timestamp • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'payout claim timestamp'} • payout claim timestamp • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.PayoutClaim_Timestamp, {
+				$payout: data.selector,
+				$account: {
+					caip10: {
+						namespace: params.namespace,
+						reference: params.reference,
+						accountAddress: params.accountAddress,
+					},
+				},
+				timestampMs: Number(params.timestampMs),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+
+	<PayoutClaim_TimestampView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

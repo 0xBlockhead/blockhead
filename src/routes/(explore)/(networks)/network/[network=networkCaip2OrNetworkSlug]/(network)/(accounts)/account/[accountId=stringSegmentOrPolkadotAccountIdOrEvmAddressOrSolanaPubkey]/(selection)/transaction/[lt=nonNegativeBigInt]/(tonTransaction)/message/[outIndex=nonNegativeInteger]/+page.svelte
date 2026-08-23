@@ -24,17 +24,27 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'TON message'} • TON message • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.TonMessage, {
+				$sourceTransaction: data.selector,
+				outIndex: Number(params.outIndex),
+			})}
+		<title>{data?.title ?? 'TON message'} • TON message • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'TON message'} • TON message • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
-	<TonMessageView
-		selection={
-			select(EntityType.TonMessage, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.TonMessage, {
 				$sourceTransaction: data.selector,
 				outIndex: Number(params.outIndex),
-			})
-		}
+			})}
+
+	<TonMessageView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

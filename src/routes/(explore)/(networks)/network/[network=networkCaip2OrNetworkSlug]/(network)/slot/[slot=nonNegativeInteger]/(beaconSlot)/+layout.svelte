@@ -41,18 +41,20 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<BeaconSlotView
-			selection={
-				select(EntityType.BeaconSlot, data.selector, {
-					sources: [
-						Source.Beacon_Rest,
-						Source.BeaconchaIn_Rest,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<BeaconSlotView
+				selection={
+					select(EntityType.BeaconSlot, data.selector, {
+						sources: [
+							Source.Beacon_Rest,
+							Source.BeaconchaIn_Rest,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

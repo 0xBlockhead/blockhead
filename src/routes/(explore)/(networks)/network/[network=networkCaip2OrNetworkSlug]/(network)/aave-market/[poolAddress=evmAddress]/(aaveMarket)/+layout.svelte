@@ -41,17 +41,19 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<AaveMarketView
-			selection={
-				select(EntityType.AaveMarket, data.selector, {
-					sources: [
-						Source.Aave_Rest,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<AaveMarketView
+				selection={
+					select(EntityType.AaveMarket, data.selector, {
+						sources: [
+							Source.Aave_Rest,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

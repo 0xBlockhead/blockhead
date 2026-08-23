@@ -16,15 +16,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.AvalancheDelegator, {
-		$validator: data.selector,
-		txId: params.txId,
-	}, {
-		fields: {
-			delegatorAddress: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -33,12 +24,35 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.txId ?? '') || 'avalanche delegator' : (pageSelection.entity.delegatorAddress ?? '') || pageSelection.entitySelector.txId || 'avalanche delegator')} • avalanche delegator • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.AvalancheDelegator, {
+				$validator: data.selector,
+				txId: params.txId,
+			}, {
+				fields: {
+					delegatorAddress: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.txId ?? '') || 'avalanche delegator' : (pageSelection.entity.delegatorAddress ?? '') || pageSelection.entitySelector.txId || 'avalanche delegator')} • avalanche delegator • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'avalanche delegator'} • avalanche delegator • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.AvalancheDelegator, {
+				$validator: data.selector,
+				txId: params.txId,
+			}, {
+				fields: {
+					delegatorAddress: true,
+				},
+			})}
+
 	<AvalancheDelegatorView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

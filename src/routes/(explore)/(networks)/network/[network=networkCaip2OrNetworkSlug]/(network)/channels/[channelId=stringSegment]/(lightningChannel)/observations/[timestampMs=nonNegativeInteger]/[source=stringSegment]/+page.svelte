@@ -15,10 +15,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.LightningChannel_Timestamp, data.selector, {
-		sources: [data.selector.source],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -27,12 +23,25 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (String(pageSelection.entitySelector.timestampMs) || 'Lightning public channel observation')} • Lightning public channel observation • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.LightningChannel_Timestamp, data.selector, {
+				sources: [data.selector.source],
+			})}
+		<title>{data?.title ?? (String(pageSelection.entitySelector.timestampMs) || 'Lightning public channel observation')} • Lightning public channel observation • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Lightning public channel observation'} • Lightning public channel observation • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.LightningChannel_Timestamp, data.selector, {
+				sources: [data.selector.source],
+			})}
+
 	<LightningChannel_TimestampView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

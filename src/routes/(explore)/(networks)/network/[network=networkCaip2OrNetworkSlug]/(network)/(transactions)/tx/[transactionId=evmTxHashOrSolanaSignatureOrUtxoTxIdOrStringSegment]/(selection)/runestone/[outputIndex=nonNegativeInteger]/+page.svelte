@@ -17,17 +17,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.BitcoinRunestone, {
-		$transaction: data.selector,
-		outputIndex: Number(params.outputIndex),
-	}, {
-		sources: [
-			Source.BitcoinCore_JsonRpc,
-			Source.Esplora_Rest,
-			Source.MempoolSpace_Rest,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -36,12 +25,39 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (String(pageSelection.entitySelector.outputIndex) || 'Bitcoin runestone')} • Bitcoin runestone • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BitcoinRunestone, {
+				$transaction: data.selector,
+				outputIndex: Number(params.outputIndex),
+			}, {
+				sources: [
+					Source.BitcoinCore_JsonRpc,
+					Source.Esplora_Rest,
+					Source.MempoolSpace_Rest,
+				],
+			})}
+		<title>{data?.title ?? (String(pageSelection.entitySelector.outputIndex) || 'Bitcoin runestone')} • Bitcoin runestone • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Bitcoin runestone'} • Bitcoin runestone • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BitcoinRunestone, {
+				$transaction: data.selector,
+				outputIndex: Number(params.outputIndex),
+			}, {
+				sources: [
+					Source.BitcoinCore_JsonRpc,
+					Source.Esplora_Rest,
+					Source.MempoolSpace_Rest,
+				],
+			})}
+
 	<BitcoinRunestoneView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

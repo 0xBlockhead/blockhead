@@ -23,12 +23,21 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'soroban contract storage entry'} • soroban contract storage entry • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.SorobanContractStorageEntry, data.selector)}
+		<title>{data?.title ?? 'soroban contract storage entry'} • soroban contract storage entry • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'soroban contract storage entry'} • soroban contract storage entry • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.SorobanContractStorageEntry, data.selector)}
+
 	<SorobanContractStorageEntryView
-		selection={select(EntityType.SorobanContractStorageEntry, data.selector)}
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

@@ -16,14 +16,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.Erc4626Vault_Block, {
-		$vault: data.selector,
-		blockNumber: Number(params.blockNumber),
-		source: params.source,
-	}, {
-		sources: [params.source],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -32,12 +24,33 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (String(pageSelection.entitySelector.blockNumber) || 'erc4626 vault block')} • erc4626 vault block • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.Erc4626Vault_Block, {
+				$vault: data.selector,
+				blockNumber: Number(params.blockNumber),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+		<title>{data?.title ?? (String(pageSelection.entitySelector.blockNumber) || 'erc4626 vault block')} • erc4626 vault block • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'erc4626 vault block'} • erc4626 vault block • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.Erc4626Vault_Block, {
+				$vault: data.selector,
+				blockNumber: Number(params.blockNumber),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+
 	<Erc4626Vault_BlockView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

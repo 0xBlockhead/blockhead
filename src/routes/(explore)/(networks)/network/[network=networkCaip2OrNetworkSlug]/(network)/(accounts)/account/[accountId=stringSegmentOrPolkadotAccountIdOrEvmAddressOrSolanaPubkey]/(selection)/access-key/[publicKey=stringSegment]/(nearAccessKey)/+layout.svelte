@@ -42,17 +42,19 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<NearAccessKeyView
-			selection={
-				select(EntityType.NearAccessKey, data.selector, {
-					sources: [
-						Source.NearRpc_JsonRpc,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<NearAccessKeyView
+				selection={
+					select(EntityType.NearAccessKey, data.selector, {
+						sources: [
+							Source.NearRpc_JsonRpc,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

@@ -24,20 +24,33 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'stellar liquidity pool timestamp'} • stellar liquidity pool timestamp • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<StellarLiquidityPool_TimestampView
-		selection={
-			select(EntityType.StellarLiquidityPool_Timestamp, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.StellarLiquidityPool_Timestamp, {
 				$liquidityPool: data.selector,
 				timestampMs: Number(params.timestampMs),
 				source: params.source,
 			}, {
 				sources: [params.source],
-			})
-		}
+			})}
+		<title>{data?.title ?? 'stellar liquidity pool timestamp'} • stellar liquidity pool timestamp • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'stellar liquidity pool timestamp'} • stellar liquidity pool timestamp • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.StellarLiquidityPool_Timestamp, {
+				$liquidityPool: data.selector,
+				timestampMs: Number(params.timestampMs),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+
+	<StellarLiquidityPool_TimestampView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

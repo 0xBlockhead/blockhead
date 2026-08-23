@@ -43,18 +43,20 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<Eip8004AgentRegistrationView
-			selection={
-				select(EntityType.Eip8004AgentRegistration, data.selector, {
-					sources: [
-						Source.Eip8004Scan_Rest,
-						Source.Voltaire_JsonRpc,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<Eip8004AgentRegistrationView
+				selection={
+					select(EntityType.Eip8004AgentRegistration, data.selector, {
+						sources: [
+							Source.Eip8004Scan_Rest,
+							Source.Voltaire_JsonRpc,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

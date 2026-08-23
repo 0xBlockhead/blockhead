@@ -24,20 +24,33 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'ICP request status timestamp'} • ICP request status timestamp • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<IcpRequestStatus_TimestampView
-		selection={
-			select(EntityType.IcpRequestStatus_Timestamp, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.IcpRequestStatus_Timestamp, {
 				$requestStatus: data.selector,
 				timestampMs: Number(params.timestampMs),
 				source: params.source,
 			}, {
 				sources: [params.source],
-			})
-		}
+			})}
+		<title>{data?.title ?? 'ICP request status timestamp'} • ICP request status timestamp • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'ICP request status timestamp'} • ICP request status timestamp • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.IcpRequestStatus_Timestamp, {
+				$requestStatus: data.selector,
+				timestampMs: Number(params.timestampMs),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+
+	<IcpRequestStatus_TimestampView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

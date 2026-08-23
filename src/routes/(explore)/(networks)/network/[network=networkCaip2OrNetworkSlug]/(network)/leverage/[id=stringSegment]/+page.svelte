@@ -16,11 +16,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.Leverage, {
-		$network: data.selector,
-		id: params.id,
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -29,12 +24,27 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.id || 'leverage')} • leverage • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.Leverage, {
+				$network: data.selector,
+				id: params.id,
+			})}
+		<title>{data?.title ?? (pageSelection.entitySelector.id || 'leverage')} • leverage • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'leverage'} • leverage • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.Leverage, {
+				$network: data.selector,
+				id: params.id,
+			})}
+
 	<LeverageView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

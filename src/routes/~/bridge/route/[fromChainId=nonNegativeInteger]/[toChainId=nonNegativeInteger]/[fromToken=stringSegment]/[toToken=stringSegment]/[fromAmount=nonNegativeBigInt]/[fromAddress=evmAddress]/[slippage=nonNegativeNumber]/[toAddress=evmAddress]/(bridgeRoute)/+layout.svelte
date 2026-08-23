@@ -47,17 +47,19 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<BridgeRouteView
-			selection={
-				select(EntityType.BridgeRoute, data.selector, {
-					sources: [
-						Source.Lifi_Rest,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<BridgeRouteView
+				selection={
+					select(EntityType.BridgeRoute, data.selector, {
+						sources: [
+							Source.Lifi_Rest,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

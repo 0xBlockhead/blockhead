@@ -16,17 +16,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.HederaAllowance, {
-		$owner: data.selector,
-		$spender: {
-			$network: data.selector.$network,
-			accountId: params.spenderAccountId,
-		},
-		allowanceKind: params.allowanceKind,
-		tokenId: params.tokenId,
-		serialNumber: BigInt(params.serialNumber),
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -35,12 +24,39 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.allowanceKind || 'hedera allowance')} • hedera allowance • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.HederaAllowance, {
+				$owner: data.selector,
+				$spender: {
+					$network: data.selector.$network,
+					accountId: params.spenderAccountId,
+				},
+				allowanceKind: params.allowanceKind,
+				tokenId: params.tokenId,
+				serialNumber: BigInt(params.serialNumber),
+			})}
+		<title>{data?.title ?? (pageSelection.entitySelector.allowanceKind || 'hedera allowance')} • hedera allowance • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'hedera allowance'} • hedera allowance • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.HederaAllowance, {
+				$owner: data.selector,
+				$spender: {
+					$network: data.selector.$network,
+					accountId: params.spenderAccountId,
+				},
+				allowanceKind: params.allowanceKind,
+				tokenId: params.tokenId,
+				serialNumber: BigInt(params.serialNumber),
+			})}
+
 	<HederaAllowanceView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

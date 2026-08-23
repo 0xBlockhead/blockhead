@@ -15,10 +15,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.Network_Activity_Day, data.selector, {
-		sources: [data.selector.source],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -27,12 +23,25 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (String(pageSelection.entitySelector.dayStartTimestampMs) || 'network activity day')} • network activity day • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.Network_Activity_Day, data.selector, {
+				sources: [data.selector.source],
+			})}
+		<title>{data?.title ?? (String(pageSelection.entitySelector.dayStartTimestampMs) || 'network activity day')} • network activity day • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'network activity day'} • network activity day • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.Network_Activity_Day, data.selector, {
+				sources: [data.selector.source],
+			})}
+
 	<Network_Activity_DayView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

@@ -44,11 +44,13 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<TezosBakingRightView
-			selection={select(EntityType.TezosBakingRight, data.selector)}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<TezosBakingRightView
+				selection={select(EntityType.TezosBakingRight, data.selector)}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

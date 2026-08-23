@@ -16,12 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.PolkadotAsset, data.selector, {
-		sources: [
-			Source.SubstrateSidecar_Rest,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -30,12 +24,29 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.assetId || 'Polkadot asset')} • Polkadot asset • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.PolkadotAsset, data.selector, {
+				sources: [
+					Source.SubstrateSidecar_Rest,
+				],
+			})}
+		<title>{data?.title ?? (pageSelection.entitySelector.assetId || 'Polkadot asset')} • Polkadot asset • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Polkadot asset'} • Polkadot asset • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.PolkadotAsset, data.selector, {
+				sources: [
+					Source.SubstrateSidecar_Rest,
+				],
+			})}
+
 	<PolkadotAssetView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

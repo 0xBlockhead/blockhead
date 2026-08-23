@@ -23,12 +23,21 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'XRPL ledger'} • XRPL ledger • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.XrplLedger, data.selector)}
+		<title>{data?.title ?? 'XRPL ledger'} • XRPL ledger • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'XRPL ledger'} • XRPL ledger • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.XrplLedger, data.selector)}
+
 	<XrplLedgerView
-		selection={select(EntityType.XrplLedger, data.selector)}
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

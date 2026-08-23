@@ -16,15 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.BlockheadLightningInvoice, data.selector, {
-		sources: [
-			Source.LightningLnd_Rest,
-		],
-		fields: {
-			memo: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -33,12 +24,35 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.paymentHash ?? '') || 'local LND invoice' : (pageSelection.entity.memo ?? '') || pageSelection.entitySelector.paymentHash || 'local LND invoice')} • local LND invoice • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BlockheadLightningInvoice, data.selector, {
+				sources: [
+					Source.LightningLnd_Rest,
+				],
+				fields: {
+					memo: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.paymentHash ?? '') || 'local LND invoice' : (pageSelection.entity.memo ?? '') || pageSelection.entitySelector.paymentHash || 'local LND invoice')} • local LND invoice • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'local LND invoice'} • local LND invoice • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BlockheadLightningInvoice, data.selector, {
+				sources: [
+					Source.LightningLnd_Rest,
+				],
+				fields: {
+					memo: true,
+				},
+			})}
+
 	<BlockheadLightningInvoiceView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

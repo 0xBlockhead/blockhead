@@ -16,11 +16,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.GitForgeProtectedBranch, {
-		$forgeMirror: data.selector,
-		name: params.name,
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -29,12 +24,27 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.name || 'Git forge protected branch')} • Git forge protected branch • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.GitForgeProtectedBranch, {
+				$forgeMirror: data.selector,
+				name: params.name,
+			})}
+		<title>{data?.title ?? (pageSelection.entitySelector.name || 'Git forge protected branch')} • Git forge protected branch • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Git forge protected branch'} • Git forge protected branch • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.GitForgeProtectedBranch, {
+				$forgeMirror: data.selector,
+				name: params.name,
+			})}
+
 	<GitForgeProtectedBranchView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

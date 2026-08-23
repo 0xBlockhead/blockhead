@@ -41,17 +41,19 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<BeaconBlockView
-			selection={
-				select(EntityType.BeaconBlock, data.selector, {
-					sources: [
-						Source.Beacon_Rest,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<BeaconBlockView
+				selection={
+					select(EntityType.BeaconBlock, data.selector, {
+						sources: [
+							Source.Beacon_Rest,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

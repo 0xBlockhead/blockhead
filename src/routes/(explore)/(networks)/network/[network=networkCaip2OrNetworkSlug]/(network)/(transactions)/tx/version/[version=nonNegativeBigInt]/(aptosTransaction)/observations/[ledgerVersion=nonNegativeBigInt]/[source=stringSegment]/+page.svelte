@@ -16,14 +16,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.AptosTransaction_Timestamp, {
-		$transaction: data.selector,
-		ledgerVersion: BigInt(params.ledgerVersion),
-		source: params.source,
-	}, {
-		sources: [params.source],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -32,12 +24,33 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (String(pageSelection.entitySelector.ledgerVersion) || 'aptos transaction timestamp')} • aptos transaction timestamp • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.AptosTransaction_Timestamp, {
+				$transaction: data.selector,
+				ledgerVersion: BigInt(params.ledgerVersion),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+		<title>{data?.title ?? (String(pageSelection.entitySelector.ledgerVersion) || 'aptos transaction timestamp')} • aptos transaction timestamp • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'aptos transaction timestamp'} • aptos transaction timestamp • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.AptosTransaction_Timestamp, {
+				$transaction: data.selector,
+				ledgerVersion: BigInt(params.ledgerVersion),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+
 	<AptosTransaction_TimestampView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

@@ -17,15 +17,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.XmtpParticipant, {
-		$conversation: data.selector,
-		inboxId: params.inboxId,
-	}, {
-		sources: [
-			Source.Local_Internal,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -34,12 +25,35 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.inboxId || 'XMTP participant')} • XMTP participant • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.XmtpParticipant, {
+				$conversation: data.selector,
+				inboxId: params.inboxId,
+			}, {
+				sources: [
+					Source.Local_Internal,
+				],
+			})}
+		<title>{data?.title ?? (pageSelection.entitySelector.inboxId || 'XMTP participant')} • XMTP participant • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'XMTP participant'} • XMTP participant • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.XmtpParticipant, {
+				$conversation: data.selector,
+				inboxId: params.inboxId,
+			}, {
+				sources: [
+					Source.Local_Internal,
+				],
+			})}
+
 	<XmtpParticipantView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

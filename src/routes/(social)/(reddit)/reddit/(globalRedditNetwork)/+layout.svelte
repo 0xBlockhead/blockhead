@@ -33,18 +33,20 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<GlobalRedditNetworkView
-			selection={
-				select(EntityType._GlobalRedditNetwork, data.selector, {
-					sources: [
-						Source.Reddit_PublicJson,
-						Source.Reddit_Rest,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<GlobalRedditNetworkView
+				selection={
+					select(EntityType._GlobalRedditNetwork, data.selector, {
+						sources: [
+							Source.Reddit_PublicJson,
+							Source.Reddit_Rest,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

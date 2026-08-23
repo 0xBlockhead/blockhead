@@ -16,15 +16,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.Market_TimeInterval_Timestamp, {
-		$market: data.selector,
-		timeInterval: {
-			unit: params.timeIntervalUnit,
-			value: Number(params.timeIntervalValue),
-		},
-		timestampMs: Number(params.timestampMs),
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -33,12 +24,35 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (`${pageSelection.entitySelector.timeInterval.value}${pageSelection.entitySelector.timeInterval.unit}` || 'OHLC candle')} • OHLC candle • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.Market_TimeInterval_Timestamp, {
+				$market: data.selector,
+				timeInterval: {
+					unit: params.timeIntervalUnit,
+					value: Number(params.timeIntervalValue),
+				},
+				timestampMs: Number(params.timestampMs),
+			})}
+		<title>{data?.title ?? (`${pageSelection.entitySelector.timeInterval.value}${pageSelection.entitySelector.timeInterval.unit}` || 'OHLC candle')} • OHLC candle • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'OHLC candle'} • OHLC candle • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.Market_TimeInterval_Timestamp, {
+				$market: data.selector,
+				timeInterval: {
+					unit: params.timeIntervalUnit,
+					value: Number(params.timeIntervalValue),
+				},
+				timestampMs: Number(params.timestampMs),
+			})}
+
 	<Market_TimeInterval_TimestampView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

@@ -41,17 +41,19 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<EigenLayerOperatorView
-			selection={
-				select(EntityType.EigenLayerOperator, data.selector, {
-					sources: [
-						Source.EigenExplorer_Rest,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<EigenLayerOperatorView
+				selection={
+					select(EntityType.EigenLayerOperator, data.selector, {
+						sources: [
+							Source.EigenExplorer_Rest,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

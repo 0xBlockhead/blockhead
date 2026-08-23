@@ -16,15 +16,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.BeaconDeposit, {
-		$block: data.selector,
-		indexInBlock: Number(params.indexInBlock),
-	}, {
-		fields: {
-			pubkey: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -33,12 +24,35 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? `Deposit #${pageSelection.entitySelector.indexInBlock}` : (String(pageSelection.entitySelector.indexInBlock ?? '') ? 'Deposit #' + String(pageSelection.entitySelector.indexInBlock ?? '') : '') || 'beacon deposit')} • beacon deposit • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BeaconDeposit, {
+				$block: data.selector,
+				indexInBlock: Number(params.indexInBlock),
+			}, {
+				fields: {
+					pubkey: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? `Deposit #${pageSelection.entitySelector.indexInBlock}` : (String(pageSelection.entitySelector.indexInBlock ?? '') ? 'Deposit #' + String(pageSelection.entitySelector.indexInBlock ?? '') : '') || 'beacon deposit')} • beacon deposit • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'beacon deposit'} • beacon deposit • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BeaconDeposit, {
+				$block: data.selector,
+				indexInBlock: Number(params.indexInBlock),
+			}, {
+				fields: {
+					pubkey: true,
+				},
+			})}
+
 	<BeaconDepositView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

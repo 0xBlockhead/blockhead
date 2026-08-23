@@ -24,20 +24,33 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'hyperliquid order timestamp'} • hyperliquid order timestamp • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<HyperliquidOrder_TimestampView
-		selection={
-			select(EntityType.HyperliquidOrder_Timestamp, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.HyperliquidOrder_Timestamp, {
 				$order: data.selector,
 				timestampMs: Number(params.timestampMs),
 				source: params.source,
 			}, {
 				sources: [params.source],
-			})
-		}
+			})}
+		<title>{data?.title ?? 'hyperliquid order timestamp'} • hyperliquid order timestamp • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'hyperliquid order timestamp'} • hyperliquid order timestamp • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.HyperliquidOrder_Timestamp, {
+				$order: data.selector,
+				timestampMs: Number(params.timestampMs),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+
+	<HyperliquidOrder_TimestampView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

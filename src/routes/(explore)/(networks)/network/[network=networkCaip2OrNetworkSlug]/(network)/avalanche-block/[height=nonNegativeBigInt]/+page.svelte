@@ -15,12 +15,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.AvalanchePChainBlock, data.selector, {
-		fields: {
-			blockId: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -29,12 +23,29 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? String(pageSelection.entitySelector.height ?? '') || 'avalanche p chain block' : String(pageSelection.entitySelector.height) || pageSelection.entity.blockId || 'avalanche p chain block')} • avalanche p chain block • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.AvalanchePChainBlock, data.selector, {
+				fields: {
+					blockId: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? String(pageSelection.entitySelector.height ?? '') || 'avalanche p chain block' : String(pageSelection.entitySelector.height) || pageSelection.entity.blockId || 'avalanche p chain block')} • avalanche p chain block • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'avalanche p chain block'} • avalanche p chain block • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.AvalanchePChainBlock, data.selector, {
+				fields: {
+					blockId: true,
+				},
+			})}
+
 	<AvalanchePChainBlockView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

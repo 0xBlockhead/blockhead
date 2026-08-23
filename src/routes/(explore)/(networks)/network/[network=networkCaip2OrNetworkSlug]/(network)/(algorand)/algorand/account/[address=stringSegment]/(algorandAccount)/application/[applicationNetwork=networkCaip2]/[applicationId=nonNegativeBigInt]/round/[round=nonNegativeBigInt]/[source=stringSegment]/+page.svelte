@@ -24,14 +24,8 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'algorand application local state round'} • algorand application local state round • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<AlgorandApplicationLocalState_RoundView
-		selection={
-			select(EntityType.AlgorandApplicationLocalState_Round, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.AlgorandApplicationLocalState_Round, {
 				$account: data.selector,
 				$application: {
 					$network: {
@@ -45,7 +39,34 @@
 				source: params.source,
 			}, {
 				sources: [params.source],
-			})
-		}
+			})}
+		<title>{data?.title ?? 'algorand application local state round'} • algorand application local state round • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'algorand application local state round'} • algorand application local state round • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.AlgorandApplicationLocalState_Round, {
+				$account: data.selector,
+				$application: {
+					$network: {
+						$network: {
+							caip2: params.applicationNetwork,
+						},
+					},
+					applicationId: BigInt(params.applicationId),
+				},
+				round: BigInt(params.round),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+
+	<AlgorandApplicationLocalState_RoundView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

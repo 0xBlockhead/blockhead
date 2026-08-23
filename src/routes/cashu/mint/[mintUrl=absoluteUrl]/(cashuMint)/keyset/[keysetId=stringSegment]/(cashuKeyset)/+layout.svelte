@@ -41,17 +41,19 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<CashuKeysetView
-			selection={
-				select(EntityType.CashuKeyset, data.selector, {
-					sources: [
-						Source.CashuMint_Rest,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<CashuKeysetView
+				selection={
+					select(EntityType.CashuKeyset, data.selector, {
+						sources: [
+							Source.CashuMint_Rest,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

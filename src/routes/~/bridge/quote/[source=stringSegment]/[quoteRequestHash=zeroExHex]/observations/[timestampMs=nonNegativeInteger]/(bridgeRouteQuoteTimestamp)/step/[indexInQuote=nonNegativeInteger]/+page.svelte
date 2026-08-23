@@ -16,11 +16,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.BridgeRouteQuoteStep, {
-		$quote: data.selector,
-		indexInQuote: Number(params.indexInQuote),
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -29,12 +24,27 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? ((String(pageSelection.entitySelector.indexInQuote ?? '') ? 'Step #' + String(pageSelection.entitySelector.indexInQuote ?? '') : '') || 'bridge route quote step')} • bridge route quote step • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BridgeRouteQuoteStep, {
+				$quote: data.selector,
+				indexInQuote: Number(params.indexInQuote),
+			})}
+		<title>{data?.title ?? ((String(pageSelection.entitySelector.indexInQuote ?? '') ? 'Step #' + String(pageSelection.entitySelector.indexInQuote ?? '') : '') || 'bridge route quote step')} • bridge route quote step • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'bridge route quote step'} • bridge route quote step • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BridgeRouteQuoteStep, {
+				$quote: data.selector,
+				indexInQuote: Number(params.indexInQuote),
+			})}
+
 	<BridgeRouteQuoteStepView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

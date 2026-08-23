@@ -43,17 +43,19 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<DydxChainOrderView
-			selection={
-				select(EntityType.DydxChainOrder, data.selector, {
-					sources: [
-						Source.DydxIndexer,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<DydxChainOrderView
+				selection={
+					select(EntityType.DydxChainOrder, data.selector, {
+						sources: [
+							Source.DydxIndexer,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

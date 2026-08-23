@@ -24,20 +24,33 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'stellar trustline timestamp'} • stellar trustline timestamp • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<StellarTrustline_TimestampView
-		selection={
-			select(EntityType.StellarTrustline_Timestamp, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.StellarTrustline_Timestamp, {
 				$trustline: data.selector,
 				timestampMs: Number(params.timestampMs),
 				source: params.source,
 			}, {
 				sources: [params.source],
-			})
-		}
+			})}
+		<title>{data?.title ?? 'stellar trustline timestamp'} • stellar trustline timestamp • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'stellar trustline timestamp'} • stellar trustline timestamp • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.StellarTrustline_Timestamp, {
+				$trustline: data.selector,
+				timestampMs: Number(params.timestampMs),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+
+	<StellarTrustline_TimestampView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

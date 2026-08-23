@@ -41,19 +41,21 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<AiArtifactView
-			selection={
-				select(EntityType.AiArtifact, data.selector, {
-					sources: [
-						Source.HuggingFaceHub_Rest,
-						Source.Ipfs_Rest,
-						Source.Mlflow_Rest,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<AiArtifactView
+				selection={
+					select(EntityType.AiArtifact, data.selector, {
+						sources: [
+							Source.HuggingFaceHub_Rest,
+							Source.Ipfs_Rest,
+							Source.Mlflow_Rest,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

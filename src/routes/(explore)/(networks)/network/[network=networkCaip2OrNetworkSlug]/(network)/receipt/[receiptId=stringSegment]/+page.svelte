@@ -16,12 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.NearReceipt, data.selector, {
-		sources: [
-			Source.NearRpc_JsonRpc,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -30,12 +24,29 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.receiptId || 'near receipt')} • near receipt • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.NearReceipt, data.selector, {
+				sources: [
+					Source.NearRpc_JsonRpc,
+				],
+			})}
+		<title>{data?.title ?? (pageSelection.entitySelector.receiptId || 'near receipt')} • near receipt • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'near receipt'} • near receipt • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.NearReceipt, data.selector, {
+				sources: [
+					Source.NearRpc_JsonRpc,
+				],
+			})}
+
 	<NearReceiptView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

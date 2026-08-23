@@ -16,12 +16,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.BeaconSlashing, {
-		$block: data.selector,
-		kind: params.kind,
-		indexInKind: Number(params.indexInKind),
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -30,12 +24,29 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? ((String(pageSelection.entitySelector.indexInKind ?? '') ? 'Slashing #' + String(pageSelection.entitySelector.indexInKind ?? '') : '') || 'beacon slashing')} • beacon slashing • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BeaconSlashing, {
+				$block: data.selector,
+				kind: params.kind,
+				indexInKind: Number(params.indexInKind),
+			})}
+		<title>{data?.title ?? ((String(pageSelection.entitySelector.indexInKind ?? '') ? 'Slashing #' + String(pageSelection.entitySelector.indexInKind ?? '') : '') || 'beacon slashing')} • beacon slashing • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'beacon slashing'} • beacon slashing • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BeaconSlashing, {
+				$block: data.selector,
+				kind: params.kind,
+				indexInKind: Number(params.indexInKind),
+			})}
+
 	<BeaconSlashingView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

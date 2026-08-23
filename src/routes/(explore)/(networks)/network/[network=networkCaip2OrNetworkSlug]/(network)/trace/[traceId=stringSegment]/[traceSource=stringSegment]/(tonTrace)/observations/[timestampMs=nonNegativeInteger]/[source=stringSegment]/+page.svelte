@@ -24,20 +24,33 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'TON trace timestamp'} • TON trace timestamp • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<TonTrace_TimestampView
-		selection={
-			select(EntityType.TonTrace_Timestamp, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.TonTrace_Timestamp, {
 				$trace: data.selector,
 				timestampMs: Number(params.timestampMs),
 				source: params.source,
 			}, {
 				sources: [params.source],
-			})
-		}
+			})}
+		<title>{data?.title ?? 'TON trace timestamp'} • TON trace timestamp • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'TON trace timestamp'} • TON trace timestamp • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.TonTrace_Timestamp, {
+				$trace: data.selector,
+				timestampMs: Number(params.timestampMs),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+
+	<TonTrace_TimestampView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

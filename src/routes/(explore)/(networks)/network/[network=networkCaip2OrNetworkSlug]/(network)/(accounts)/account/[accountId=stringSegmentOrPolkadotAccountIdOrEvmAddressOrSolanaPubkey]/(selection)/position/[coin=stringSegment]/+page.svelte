@@ -24,17 +24,27 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'hyperliquid position'} • hyperliquid position • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.HyperliquidPosition, {
+				$account: data.selector,
+				coin: params.coin,
+			})}
+		<title>{data?.title ?? 'hyperliquid position'} • hyperliquid position • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'hyperliquid position'} • hyperliquid position • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
-	<HyperliquidPositionView
-		selection={
-			select(EntityType.HyperliquidPosition, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.HyperliquidPosition, {
 				$account: data.selector,
 				coin: params.coin,
-			})
-		}
+			})}
+
+	<HyperliquidPositionView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

@@ -16,13 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.Eip8004AgentRegistration, data.selector, {
-		sources: [
-			Source.Eip8004Scan_Rest,
-			Source.Voltaire_JsonRpc,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -31,12 +24,31 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.agentId || 'EIP-8004 agent registration')} • EIP-8004 agent registration • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.Eip8004AgentRegistration, data.selector, {
+				sources: [
+					Source.Eip8004Scan_Rest,
+					Source.Voltaire_JsonRpc,
+				],
+			})}
+		<title>{data?.title ?? (pageSelection.entitySelector.agentId || 'EIP-8004 agent registration')} • EIP-8004 agent registration • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'EIP-8004 agent registration'} • EIP-8004 agent registration • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.Eip8004AgentRegistration, data.selector, {
+				sources: [
+					Source.Eip8004Scan_Rest,
+					Source.Voltaire_JsonRpc,
+				],
+			})}
+
 	<Eip8004AgentRegistrationView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

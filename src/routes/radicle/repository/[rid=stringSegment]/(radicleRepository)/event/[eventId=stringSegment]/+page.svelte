@@ -24,17 +24,27 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'radicle collaboration event'} • radicle collaboration event • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.RadicleCollaborationEvent, {
+				$repository: data.selector,
+				eventId: params.eventId,
+			})}
+		<title>{data?.title ?? 'radicle collaboration event'} • radicle collaboration event • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'radicle collaboration event'} • radicle collaboration event • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
-	<RadicleCollaborationEventView
-		selection={
-			select(EntityType.RadicleCollaborationEvent, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.RadicleCollaborationEvent, {
 				$repository: data.selector,
 				eventId: params.eventId,
-			})
-		}
+			})}
+
+	<RadicleCollaborationEventView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

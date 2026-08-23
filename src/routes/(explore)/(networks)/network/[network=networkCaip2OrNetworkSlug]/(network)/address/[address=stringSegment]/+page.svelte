@@ -15,8 +15,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.UtxoAddress, data.selector))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -25,12 +23,21 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.address || 'UTXO address')} • UTXO address • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.UtxoAddress, data.selector)}
+		<title>{data?.title ?? (pageSelection.entitySelector.address || 'UTXO address')} • UTXO address • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'UTXO address'} • UTXO address • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.UtxoAddress, data.selector)}
+
 	<UtxoAddressView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

@@ -15,8 +15,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.IbcClient, data.selector))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -25,12 +23,21 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.clientId || 'IBC client')} • IBC client • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.IbcClient, data.selector)}
+		<title>{data?.title ?? (pageSelection.entitySelector.clientId || 'IBC client')} • IBC client • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'IBC client'} • IBC client • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.IbcClient, data.selector)}
+
 	<IbcClientView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

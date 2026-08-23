@@ -16,13 +16,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.FilecoinMessageFee, {
-		$message: data.selector,
-		source: params.source,
-	}, {
-		sources: [params.source],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -31,12 +24,31 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.source || 'filecoin message fee')} • filecoin message fee • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.FilecoinMessageFee, {
+				$message: data.selector,
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+		<title>{data?.title ?? (pageSelection.entitySelector.source || 'filecoin message fee')} • filecoin message fee • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'filecoin message fee'} • filecoin message fee • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.FilecoinMessageFee, {
+				$message: data.selector,
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+
 	<FilecoinMessageFeeView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

@@ -16,15 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.BlockheadIntentOrder, data.selector, {
-		sources: [
-			Source.Local_Internal,
-		],
-		fields: {
-			orderId: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -33,12 +24,35 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? 'blockhead intent order' : pageSelection.entity.orderId || 'blockhead intent order')} • blockhead intent order • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BlockheadIntentOrder, data.selector, {
+				sources: [
+					Source.Local_Internal,
+				],
+				fields: {
+					orderId: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'blockhead intent order' : pageSelection.entity.orderId || 'blockhead intent order')} • blockhead intent order • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'blockhead intent order'} • blockhead intent order • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BlockheadIntentOrder, data.selector, {
+				sources: [
+					Source.Local_Internal,
+				],
+				fields: {
+					orderId: true,
+				},
+			})}
+
 	<BlockheadIntentOrderView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

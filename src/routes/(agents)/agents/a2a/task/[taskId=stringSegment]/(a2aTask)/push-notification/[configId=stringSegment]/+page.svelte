@@ -16,13 +16,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.A2aPushNotificationConfig, {
-		$task: data.selector,
-		configId: params.configId,
-	}, {
-		sources: [],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -31,12 +24,31 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.configId || 'A2A push notification config')} • A2A push notification config • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.A2aPushNotificationConfig, {
+				$task: data.selector,
+				configId: params.configId,
+			}, {
+				sources: [],
+			})}
+		<title>{data?.title ?? (pageSelection.entitySelector.configId || 'A2A push notification config')} • A2A push notification config • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'A2A push notification config'} • A2A push notification config • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.A2aPushNotificationConfig, {
+				$task: data.selector,
+				configId: params.configId,
+			}, {
+				sources: [],
+			})}
+
 	<A2aPushNotificationConfigView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

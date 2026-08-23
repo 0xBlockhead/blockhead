@@ -15,8 +15,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.AlgorandTransaction, data.selector))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -25,12 +23,21 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.txId || 'algorand transaction')} • algorand transaction • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.AlgorandTransaction, data.selector)}
+		<title>{data?.title ?? (pageSelection.entitySelector.txId || 'algorand transaction')} • algorand transaction • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'algorand transaction'} • algorand transaction • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.AlgorandTransaction, data.selector)}
+
 	<AlgorandTransactionView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

@@ -24,20 +24,33 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'ICP canister timestamp'} • ICP canister timestamp • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<IcpCanister_TimestampView
-		selection={
-			select(EntityType.IcpCanister_Timestamp, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.IcpCanister_Timestamp, {
 				$canister: data.selector,
 				timestampMs: Number(params.timestampMs),
 				source: params.source,
 			}, {
 				sources: [params.source],
-			})
-		}
+			})}
+		<title>{data?.title ?? 'ICP canister timestamp'} • ICP canister timestamp • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'ICP canister timestamp'} • ICP canister timestamp • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.IcpCanister_Timestamp, {
+				$canister: data.selector,
+				timestampMs: Number(params.timestampMs),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+
+	<IcpCanister_TimestampView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

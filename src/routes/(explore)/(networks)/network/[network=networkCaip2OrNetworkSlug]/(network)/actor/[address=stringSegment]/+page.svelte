@@ -16,13 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.FilecoinActor, data.selector, {
-		sources: [
-			Source.Lotus_JsonRpc,
-			Source.Filfox_Rest,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -31,12 +24,31 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.address || 'filecoin actor')} • filecoin actor • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.FilecoinActor, data.selector, {
+				sources: [
+					Source.Lotus_JsonRpc,
+					Source.Filfox_Rest,
+				],
+			})}
+		<title>{data?.title ?? (pageSelection.entitySelector.address || 'filecoin actor')} • filecoin actor • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'filecoin actor'} • filecoin actor • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.FilecoinActor, data.selector, {
+				sources: [
+					Source.Lotus_JsonRpc,
+					Source.Filfox_Rest,
+				],
+			})}
+
 	<FilecoinActorView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

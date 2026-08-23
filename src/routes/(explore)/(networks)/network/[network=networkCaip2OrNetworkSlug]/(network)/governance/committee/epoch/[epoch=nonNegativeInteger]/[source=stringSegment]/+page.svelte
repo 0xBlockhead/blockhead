@@ -15,10 +15,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.CardanoCommittee_Epoch, data.selector, {
-		sources: [data.selector.source],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -27,12 +23,25 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'Epoch ' + String(pageSelection.entitySelector.epoch)} • Cardano committee epoch • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.CardanoCommittee_Epoch, data.selector, {
+				sources: [data.selector.source],
+			})}
+		<title>{data?.title ?? 'Epoch ' + String(pageSelection.entitySelector.epoch)} • Cardano committee epoch • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Cardano committee epoch'} • Cardano committee epoch • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.CardanoCommittee_Epoch, data.selector, {
+				sources: [data.selector.source],
+			})}
+
 	<CardanoCommittee_EpochView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

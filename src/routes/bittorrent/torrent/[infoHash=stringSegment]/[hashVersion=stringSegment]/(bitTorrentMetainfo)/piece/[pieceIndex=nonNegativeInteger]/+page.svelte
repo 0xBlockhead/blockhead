@@ -16,11 +16,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.BitTorrentPiece, {
-		$torrent: data.selector,
-		pieceIndex: Number(params.pieceIndex),
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -29,12 +24,27 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (String(pageSelection.entitySelector.pieceIndex) || 'bit torrent piece')} • bit torrent piece • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BitTorrentPiece, {
+				$torrent: data.selector,
+				pieceIndex: Number(params.pieceIndex),
+			})}
+		<title>{data?.title ?? (String(pageSelection.entitySelector.pieceIndex) || 'bit torrent piece')} • bit torrent piece • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'bit torrent piece'} • bit torrent piece • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BitTorrentPiece, {
+				$torrent: data.selector,
+				pieceIndex: Number(params.pieceIndex),
+			})}
+
 	<BitTorrentPieceView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

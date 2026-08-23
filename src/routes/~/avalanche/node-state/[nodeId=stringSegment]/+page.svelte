@@ -16,12 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.BlockheadAvalancheNodeState, data.selector, {
-		sources: [
-			Source.AvalancheInfo_JsonRpc,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -30,12 +24,29 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.nodeId || 'blockhead avalanche node state')} • blockhead avalanche node state • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BlockheadAvalancheNodeState, data.selector, {
+				sources: [
+					Source.AvalancheInfo_JsonRpc,
+				],
+			})}
+		<title>{data?.title ?? (pageSelection.entitySelector.nodeId || 'blockhead avalanche node state')} • blockhead avalanche node state • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'blockhead avalanche node state'} • blockhead avalanche node state • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BlockheadAvalancheNodeState, data.selector, {
+				sources: [
+					Source.AvalancheInfo_JsonRpc,
+				],
+			})}
+
 	<BlockheadAvalancheNodeStateView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

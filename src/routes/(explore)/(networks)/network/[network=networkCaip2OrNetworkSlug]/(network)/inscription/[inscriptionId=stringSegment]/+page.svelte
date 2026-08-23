@@ -16,15 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.BitcoinOrdinalInscription, data.selector, {
-		sources: [
-			Source.BitcoinCore_JsonRpc,
-			Source.Esplora_Rest,
-			Source.MempoolSpace_Rest,
-			Source.UniSat_Rest,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -33,12 +24,35 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.inscriptionId || 'Bitcoin Ordinal inscription')} • Bitcoin Ordinal inscription • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BitcoinOrdinalInscription, data.selector, {
+				sources: [
+					Source.BitcoinCore_JsonRpc,
+					Source.Esplora_Rest,
+					Source.MempoolSpace_Rest,
+					Source.UniSat_Rest,
+				],
+			})}
+		<title>{data?.title ?? (pageSelection.entitySelector.inscriptionId || 'Bitcoin Ordinal inscription')} • Bitcoin Ordinal inscription • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Bitcoin Ordinal inscription'} • Bitcoin Ordinal inscription • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BitcoinOrdinalInscription, data.selector, {
+				sources: [
+					Source.BitcoinCore_JsonRpc,
+					Source.Esplora_Rest,
+					Source.MempoolSpace_Rest,
+					Source.UniSat_Rest,
+				],
+			})}
+
 	<BitcoinOrdinalInscriptionView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

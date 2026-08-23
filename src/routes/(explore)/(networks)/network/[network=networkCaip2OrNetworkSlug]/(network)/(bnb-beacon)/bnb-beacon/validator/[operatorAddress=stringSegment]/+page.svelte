@@ -15,12 +15,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.BnbValidator, data.selector, {
-		fields: {
-			moniker: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -29,12 +23,29 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.operatorAddress ?? '') || 'bnb validator' : (pageSelection.entity.moniker ?? '') || pageSelection.entitySelector.operatorAddress || 'bnb validator')} • bnb validator • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BnbValidator, data.selector, {
+				fields: {
+					moniker: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.operatorAddress ?? '') || 'bnb validator' : (pageSelection.entity.moniker ?? '') || pageSelection.entitySelector.operatorAddress || 'bnb validator')} • bnb validator • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'bnb validator'} • bnb validator • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BnbValidator, data.selector, {
+				fields: {
+					moniker: true,
+				},
+			})}
+
 	<BnbValidatorView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

@@ -16,17 +16,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.CardanoAddress_Timestamp, {
-		$address: data.selector,
-		blockSlot: BigInt(params.blockSlot),
-		source: params.source,
-	}, {
-		sources: [params.source],
-		fields: {
-			timestampMs: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -35,12 +24,39 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? String(pageSelection.entitySelector.blockSlot ?? '') || 'Cardano address timestamp' : String(pageSelection.entity.timestampMs ?? '') || String(pageSelection.entitySelector.blockSlot) || 'Cardano address timestamp')} • Cardano address timestamp • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.CardanoAddress_Timestamp, {
+				$address: data.selector,
+				blockSlot: BigInt(params.blockSlot),
+				source: params.source,
+			}, {
+				sources: [params.source],
+				fields: {
+					timestampMs: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? String(pageSelection.entitySelector.blockSlot ?? '') || 'Cardano address timestamp' : String(pageSelection.entity.timestampMs ?? '') || String(pageSelection.entitySelector.blockSlot) || 'Cardano address timestamp')} • Cardano address timestamp • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Cardano address timestamp'} • Cardano address timestamp • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.CardanoAddress_Timestamp, {
+				$address: data.selector,
+				blockSlot: BigInt(params.blockSlot),
+				source: params.source,
+			}, {
+				sources: [params.source],
+				fields: {
+					timestampMs: true,
+				},
+			})}
+
 	<CardanoAddress_TimestampView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

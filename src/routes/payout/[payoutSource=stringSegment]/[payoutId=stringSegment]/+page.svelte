@@ -23,16 +23,25 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'payout'} • payout • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.Payout, data.selector, {
+				sources: [data.selector.source],
+			})}
+		<title>{data?.title ?? 'payout'} • payout • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'payout'} • payout • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
-	<PayoutView
-		selection={
-			select(EntityType.Payout, data.selector, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.Payout, data.selector, {
 				sources: [data.selector.source],
-			})
-		}
+			})}
+
+	<PayoutView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

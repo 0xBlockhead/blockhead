@@ -40,17 +40,19 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<AcpAgentProgramView
-			selection={
-				select(EntityType.AcpAgentProgram, data.selector, {
-					sources: [
-						Source.AcpRegistry_Rest,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<AcpAgentProgramView
+				selection={
+					select(EntityType.AcpAgentProgram, data.selector, {
+						sources: [
+							Source.AcpRegistry_Rest,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

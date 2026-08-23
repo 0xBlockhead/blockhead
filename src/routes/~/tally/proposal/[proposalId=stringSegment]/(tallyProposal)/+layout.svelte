@@ -40,17 +40,19 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<TallyProposalView
-			selection={
-				select(EntityType.TallyProposal, data.selector, {
-					sources: [
-						Source.Tally,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<TallyProposalView
+				selection={
+					select(EntityType.TallyProposal, data.selector, {
+						sources: [
+							Source.Tally,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

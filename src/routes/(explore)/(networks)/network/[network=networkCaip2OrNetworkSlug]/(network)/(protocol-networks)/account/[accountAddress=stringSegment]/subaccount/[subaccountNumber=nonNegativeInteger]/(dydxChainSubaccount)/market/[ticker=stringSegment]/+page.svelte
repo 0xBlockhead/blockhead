@@ -24,18 +24,29 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'dydx chain open perpetual position'} • dydx chain open perpetual position • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.DydxChainPerpetualPosition, data.selector, {
+				sources: [
+					Source.DydxIndexer,
+				],
+			})}
+		<title>{data?.title ?? 'dydx chain open perpetual position'} • dydx chain open perpetual position • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'dydx chain open perpetual position'} • dydx chain open perpetual position • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
-	<DydxChainPerpetualPositionView
-		selection={
-			select(EntityType.DydxChainPerpetualPosition, data.selector, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.DydxChainPerpetualPosition, data.selector, {
 				sources: [
 					Source.DydxIndexer,
 				],
-			})
-		}
+			})}
+
+	<DydxChainPerpetualPositionView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

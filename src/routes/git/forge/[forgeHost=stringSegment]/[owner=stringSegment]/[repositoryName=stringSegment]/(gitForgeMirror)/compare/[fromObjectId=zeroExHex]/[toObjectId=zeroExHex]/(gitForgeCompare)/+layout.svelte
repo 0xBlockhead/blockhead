@@ -44,17 +44,19 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<GitForgeCompareView
-			selection={
-				select(EntityType.GitForgeCompare, data.selector, {
-					sources: [
-						Source.Gitlab_Rest,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<GitForgeCompareView
+				selection={
+					select(EntityType.GitForgeCompare, data.selector, {
+						sources: [
+							Source.Gitlab_Rest,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

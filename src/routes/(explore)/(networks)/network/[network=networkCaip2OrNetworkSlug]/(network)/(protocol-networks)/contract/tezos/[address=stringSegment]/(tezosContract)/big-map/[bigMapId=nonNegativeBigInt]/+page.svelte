@@ -23,12 +23,21 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'tezos big map'} • tezos big map • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.TezosBigMap, data.selector)}
+		<title>{data?.title ?? 'tezos big map'} • tezos big map • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'tezos big map'} • tezos big map • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.TezosBigMap, data.selector)}
+
 	<TezosBigMapView
-		selection={select(EntityType.TezosBigMap, data.selector)}
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

@@ -24,21 +24,35 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'Cardano transaction output asset'} • Cardano transaction output asset • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<CardanoTxOutputAssetView
-		selection={
-			select(EntityType.CardanoTxOutputAsset, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.CardanoTxOutputAsset, {
 				$output: data.selector,
 				$asset: {
 					$network: data.selector.$transaction.$network,
 					policyId: params.policyId,
 					assetName: params.assetName,
 				},
-			})
-		}
+			})}
+		<title>{data?.title ?? 'Cardano transaction output asset'} • Cardano transaction output asset • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Cardano transaction output asset'} • Cardano transaction output asset • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.CardanoTxOutputAsset, {
+				$output: data.selector,
+				$asset: {
+					$network: data.selector.$transaction.$network,
+					policyId: params.policyId,
+					assetName: params.assetName,
+				},
+			})}
+
+	<CardanoTxOutputAssetView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

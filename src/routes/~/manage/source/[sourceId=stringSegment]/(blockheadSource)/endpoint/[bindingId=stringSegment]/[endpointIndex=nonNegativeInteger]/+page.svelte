@@ -16,16 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.BlockheadSourceEndpoint, data.selector, {
-		sources: [
-			Source.Constants_Internal,
-			Source.Local_Internal,
-		],
-		fields: {
-			endpointUrl: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -34,12 +24,37 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? 'source endpoint' : pageSelection.entity.endpointUrl || 'source endpoint')} • source endpoint • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BlockheadSourceEndpoint, data.selector, {
+				sources: [
+					Source.Constants_Internal,
+					Source.Local_Internal,
+				],
+				fields: {
+					endpointUrl: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'source endpoint' : pageSelection.entity.endpointUrl || 'source endpoint')} • source endpoint • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'source endpoint'} • source endpoint • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BlockheadSourceEndpoint, data.selector, {
+				sources: [
+					Source.Constants_Internal,
+					Source.Local_Internal,
+				],
+				fields: {
+					endpointUrl: true,
+				},
+			})}
+
 	<BlockheadSourceEndpointView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

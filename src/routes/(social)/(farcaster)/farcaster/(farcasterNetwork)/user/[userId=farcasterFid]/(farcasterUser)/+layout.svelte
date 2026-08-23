@@ -40,18 +40,20 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<FarcasterUserView
-			selection={
-				select(EntityType.FarcasterUser, data.selector, {
-					sources: [
-						Source.Neynar_Rest,
-						Source.Snapchain_Rest,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<FarcasterUserView
+				selection={
+					select(EntityType.FarcasterUser, data.selector, {
+						sources: [
+							Source.Neynar_Rest,
+							Source.Snapchain_Rest,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

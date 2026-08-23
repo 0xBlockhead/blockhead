@@ -24,18 +24,29 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'ENS'} • ENS • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType._GlobalEnsNetwork, data.selector, {
+				sources: [
+					Source.Constants_Internal,
+				],
+			})}
+		<title>{data?.title ?? 'ENS'} • ENS • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'ENS'} • ENS • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
-	<GlobalEnsNetworkView
-		selection={
-			select(EntityType._GlobalEnsNetwork, data.selector, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType._GlobalEnsNetwork, data.selector, {
 				sources: [
 					Source.Constants_Internal,
 				],
-			})
-		}
+			})}
+
+	<GlobalEnsNetworkView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

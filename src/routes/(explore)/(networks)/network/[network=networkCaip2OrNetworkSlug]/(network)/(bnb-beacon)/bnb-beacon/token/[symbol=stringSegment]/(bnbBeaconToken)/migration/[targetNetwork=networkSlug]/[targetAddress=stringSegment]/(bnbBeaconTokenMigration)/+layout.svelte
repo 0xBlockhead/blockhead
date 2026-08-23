@@ -42,11 +42,13 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<BnbBeaconTokenMigrationView
-			selection={select(EntityType.BnbBeaconTokenMigration, data.selector)}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<BnbBeaconTokenMigrationView
+				selection={select(EntityType.BnbBeaconTokenMigration, data.selector)}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

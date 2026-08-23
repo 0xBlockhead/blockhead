@@ -41,18 +41,20 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<PythPriceFeedView
-			selection={
-				select(EntityType.PythPriceFeed, data.selector, {
-					sources: [
-						Source.PythBenchmarks_Rest,
-						Source.PythHermes_Rest,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<PythPriceFeedView
+				selection={
+					select(EntityType.PythPriceFeed, data.selector, {
+						sources: [
+							Source.PythBenchmarks_Rest,
+							Source.PythHermes_Rest,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

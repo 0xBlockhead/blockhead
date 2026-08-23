@@ -24,20 +24,33 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'tezos baker cycle timestamp'} • tezos baker cycle timestamp • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<TezosBaker_Cycle_TimestampView
-		selection={
-			select(EntityType.TezosBaker_Cycle_Timestamp, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.TezosBaker_Cycle_Timestamp, {
 				$baker: data.selector,
 				cycle: BigInt(params.cycle),
 				source: params.source,
 			}, {
 				sources: [params.source],
-			})
-		}
+			})}
+		<title>{data?.title ?? 'tezos baker cycle timestamp'} • tezos baker cycle timestamp • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'tezos baker cycle timestamp'} • tezos baker cycle timestamp • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.TezosBaker_Cycle_Timestamp, {
+				$baker: data.selector,
+				cycle: BigInt(params.cycle),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+
+	<TezosBaker_Cycle_TimestampView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

@@ -16,14 +16,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.BitTorrentSwarmObservation_Timestamp, {
-		$torrent: data.selector,
-		timestampMs: Number(params.timestampMs),
-		source: params.source,
-	}, {
-		sources: [params.source],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -32,12 +24,33 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (String(pageSelection.entitySelector.timestampMs) || 'bit torrent swarm observation timestamp')} • bit torrent swarm observation timestamp • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BitTorrentSwarmObservation_Timestamp, {
+				$torrent: data.selector,
+				timestampMs: Number(params.timestampMs),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+		<title>{data?.title ?? (String(pageSelection.entitySelector.timestampMs) || 'bit torrent swarm observation timestamp')} • bit torrent swarm observation timestamp • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'bit torrent swarm observation timestamp'} • bit torrent swarm observation timestamp • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BitTorrentSwarmObservation_Timestamp, {
+				$torrent: data.selector,
+				timestampMs: Number(params.timestampMs),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+
 	<BitTorrentSwarmObservation_TimestampView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

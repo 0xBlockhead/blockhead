@@ -23,12 +23,21 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'global AI model catalog'} • global AI model catalog • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType._GlobalAiModelCatalog, data.selector)}
+		<title>{data?.title ?? 'global AI model catalog'} • global AI model catalog • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'global AI model catalog'} • global AI model catalog • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType._GlobalAiModelCatalog, data.selector)}
+
 	<GlobalAiModelCatalogView
-		selection={select(EntityType._GlobalAiModelCatalog, data.selector)}
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

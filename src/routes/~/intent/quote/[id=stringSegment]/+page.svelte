@@ -16,15 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.BlockheadIntentQuote, data.selector, {
-		sources: [
-			Source.Local_Internal,
-		],
-		fields: {
-			providerProtocol: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -33,12 +24,35 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? 'blockhead intent quote' : pageSelection.entity.providerProtocol || 'blockhead intent quote')} • blockhead intent quote • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BlockheadIntentQuote, data.selector, {
+				sources: [
+					Source.Local_Internal,
+				],
+				fields: {
+					providerProtocol: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'blockhead intent quote' : pageSelection.entity.providerProtocol || 'blockhead intent quote')} • blockhead intent quote • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'blockhead intent quote'} • blockhead intent quote • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BlockheadIntentQuote, data.selector, {
+				sources: [
+					Source.Local_Internal,
+				],
+				fields: {
+					providerProtocol: true,
+				},
+			})}
+
 	<BlockheadIntentQuoteView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

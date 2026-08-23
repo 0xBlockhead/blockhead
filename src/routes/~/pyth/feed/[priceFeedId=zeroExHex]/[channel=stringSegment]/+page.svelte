@@ -16,16 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.PythPriceFeed, data.selector, {
-		sources: [
-			Source.PythBenchmarks_Rest,
-			Source.PythHermes_Rest,
-		],
-		fields: {
-			symbol: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -34,12 +24,37 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.priceFeedId ?? '') || 'Pyth price feed' : (pageSelection.entity.symbol ?? '') || pageSelection.entitySelector.priceFeedId || 'Pyth price feed')} • Pyth price feed • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.PythPriceFeed, data.selector, {
+				sources: [
+					Source.PythBenchmarks_Rest,
+					Source.PythHermes_Rest,
+				],
+				fields: {
+					symbol: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.priceFeedId ?? '') || 'Pyth price feed' : (pageSelection.entity.symbol ?? '') || pageSelection.entitySelector.priceFeedId || 'Pyth price feed')} • Pyth price feed • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Pyth price feed'} • Pyth price feed • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.PythPriceFeed, data.selector, {
+				sources: [
+					Source.PythBenchmarks_Rest,
+					Source.PythHermes_Rest,
+				],
+				fields: {
+					symbol: true,
+				},
+			})}
+
 	<PythPriceFeedView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

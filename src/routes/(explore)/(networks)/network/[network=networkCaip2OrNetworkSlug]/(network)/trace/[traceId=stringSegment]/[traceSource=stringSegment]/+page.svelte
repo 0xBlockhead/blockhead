@@ -23,16 +23,25 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'TON trace'} • TON trace • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.TonTrace, data.selector, {
+				sources: [data.selector.source],
+			})}
+		<title>{data?.title ?? 'TON trace'} • TON trace • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'TON trace'} • TON trace • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
-	<TonTraceView
-		selection={
-			select(EntityType.TonTrace, data.selector, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.TonTrace, data.selector, {
 				sources: [data.selector.source],
-			})
-		}
+			})}
+
+	<TonTraceView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

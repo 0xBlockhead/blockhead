@@ -24,19 +24,31 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'solana instruction'} • solana instruction • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<SolanaInstructionView
-		selection={
-			select(EntityType.SolanaInstruction, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.SolanaInstruction, {
 				$transaction: data.selector.$transaction,
 				instructionKind: params.instructionKind,
 				indexInTransaction: Number(params.indexInTransaction),
 				indexInInstruction: Number(params.indexInInstruction),
-			})
-		}
+			})}
+		<title>{data?.title ?? 'solana instruction'} • solana instruction • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'solana instruction'} • solana instruction • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.SolanaInstruction, {
+				$transaction: data.selector.$transaction,
+				instructionKind: params.instructionKind,
+				indexInTransaction: Number(params.indexInTransaction),
+				indexInInstruction: Number(params.indexInInstruction),
+			})}
+
+	<SolanaInstructionView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

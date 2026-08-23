@@ -23,12 +23,21 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'hyperliquid order'} • hyperliquid order • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.HyperliquidOrder, data.selector)}
+		<title>{data?.title ?? 'hyperliquid order'} • hyperliquid order • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'hyperliquid order'} • hyperliquid order • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.HyperliquidOrder, data.selector)}
+
 	<HyperliquidOrderView
-		selection={select(EntityType.HyperliquidOrder, data.selector)}
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

@@ -15,12 +15,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.GitForgePipeline, data.selector, {
-		fields: {
-			pipelineIid: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -29,12 +23,29 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? 'Git forge pipeline' : 'Pipeline #' + String(pageSelection.entity.pipelineIid))} • Git forge pipeline • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.GitForgePipeline, data.selector, {
+				fields: {
+					pipelineIid: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'Git forge pipeline' : 'Pipeline #' + String(pageSelection.entity.pipelineIid))} • Git forge pipeline • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Git forge pipeline'} • Git forge pipeline • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.GitForgePipeline, data.selector, {
+				fields: {
+					pipelineIid: true,
+				},
+			})}
+
 	<GitForgePipelineView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

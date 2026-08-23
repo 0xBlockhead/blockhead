@@ -41,17 +41,19 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<DydxChainMarketView
-			selection={
-				select(EntityType.DydxChainMarket, data.selector, {
-					sources: [
-						Source.DydxIndexer,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<DydxChainMarketView
+				selection={
+					select(EntityType.DydxChainMarket, data.selector, {
+						sources: [
+							Source.DydxIndexer,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

@@ -16,15 +16,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.BridgeTransfer_Timestamp, {
-		$transfer: data.selector,
-		timestampMs: Number(params.timestampMs),
-		source: params.observationSource,
-		eventKind: params.eventKind,
-	}, {
-		sources: [params.observationSource],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -33,12 +24,35 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (String(pageSelection.entitySelector.timestampMs) || 'bridge transfer timestamp')} • bridge transfer timestamp • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BridgeTransfer_Timestamp, {
+				$transfer: data.selector,
+				timestampMs: Number(params.timestampMs),
+				source: params.observationSource,
+				eventKind: params.eventKind,
+			}, {
+				sources: [params.observationSource],
+			})}
+		<title>{data?.title ?? (String(pageSelection.entitySelector.timestampMs) || 'bridge transfer timestamp')} • bridge transfer timestamp • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'bridge transfer timestamp'} • bridge transfer timestamp • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BridgeTransfer_Timestamp, {
+				$transfer: data.selector,
+				timestampMs: Number(params.timestampMs),
+				source: params.observationSource,
+				eventKind: params.eventKind,
+			}, {
+				sources: [params.observationSource],
+			})}
+
 	<BridgeTransfer_TimestampView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

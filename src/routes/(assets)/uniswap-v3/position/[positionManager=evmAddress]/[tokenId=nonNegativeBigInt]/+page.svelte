@@ -16,13 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.UniswapV3Position, data.selector, {
-		sources: [
-			Source.Voltaire_JsonRpc,
-			Source.UniswapContracts_Evm,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -31,12 +24,31 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (String(pageSelection.entitySelector.tokenId) || 'Uniswap V3 position')} • Uniswap V3 position • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.UniswapV3Position, data.selector, {
+				sources: [
+					Source.Voltaire_JsonRpc,
+					Source.UniswapContracts_Evm,
+				],
+			})}
+		<title>{data?.title ?? (String(pageSelection.entitySelector.tokenId) || 'Uniswap V3 position')} • Uniswap V3 position • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Uniswap V3 position'} • Uniswap V3 position • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.UniswapV3Position, data.selector, {
+				sources: [
+					Source.Voltaire_JsonRpc,
+					Source.UniswapContracts_Evm,
+				],
+			})}
+
 	<UniswapV3PositionView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

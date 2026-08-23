@@ -41,18 +41,20 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<MorphoMarketView
-			selection={
-				select(EntityType.MorphoMarket, data.selector, {
-					sources: [
-						Source.Morpho_Graphql,
-						Source.Morpho_Rest,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<MorphoMarketView
+				selection={
+					select(EntityType.MorphoMarket, data.selector, {
+						sources: [
+							Source.Morpho_Graphql,
+							Source.Morpho_Rest,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

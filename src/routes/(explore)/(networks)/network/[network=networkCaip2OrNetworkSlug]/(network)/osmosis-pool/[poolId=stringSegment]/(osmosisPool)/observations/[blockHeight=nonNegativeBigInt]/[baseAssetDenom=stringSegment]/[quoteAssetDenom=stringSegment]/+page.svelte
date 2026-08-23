@@ -17,17 +17,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.OsmosisPool_Timestamp, {
-		$pool: data.selector,
-		blockHeight: BigInt(params.blockHeight),
-		baseAssetDenom: params.baseAssetDenom,
-		quoteAssetDenom: params.quoteAssetDenom,
-	}, {
-		sources: [
-			Source.Osmosis_LCD_Rest,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -36,12 +25,39 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? ([pageSelection.entitySelector.baseAssetDenom, pageSelection.entitySelector.quoteAssetDenom].filter(Boolean).join(' ') || 'Osmosis pool timestamp')} • Osmosis pool timestamp • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.OsmosisPool_Timestamp, {
+				$pool: data.selector,
+				blockHeight: BigInt(params.blockHeight),
+				baseAssetDenom: params.baseAssetDenom,
+				quoteAssetDenom: params.quoteAssetDenom,
+			}, {
+				sources: [
+					Source.Osmosis_LCD_Rest,
+				],
+			})}
+		<title>{data?.title ?? ([pageSelection.entitySelector.baseAssetDenom, pageSelection.entitySelector.quoteAssetDenom].filter(Boolean).join(' ') || 'Osmosis pool timestamp')} • Osmosis pool timestamp • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Osmosis pool timestamp'} • Osmosis pool timestamp • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.OsmosisPool_Timestamp, {
+				$pool: data.selector,
+				blockHeight: BigInt(params.blockHeight),
+				baseAssetDenom: params.baseAssetDenom,
+				quoteAssetDenom: params.quoteAssetDenom,
+			}, {
+				sources: [
+					Source.Osmosis_LCD_Rest,
+				],
+			})}
+
 	<OsmosisPool_TimestampView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

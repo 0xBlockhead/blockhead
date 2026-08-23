@@ -23,12 +23,21 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'tezos token'} • tezos token • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.TezosToken, data.selector)}
+		<title>{data?.title ?? 'tezos token'} • tezos token • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'tezos token'} • tezos token • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.TezosToken, data.selector)}
+
 	<TezosTokenView
-		selection={select(EntityType.TezosToken, data.selector)}
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

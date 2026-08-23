@@ -16,11 +16,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.PolkadotExtrinsic, {
-		$block: data.selector,
-		indexInBlock: Number(params.extrinsicIndex),
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -29,12 +24,27 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? ((String(pageSelection.entitySelector.indexInBlock ?? '') ? 'Extrinsic #' + String(pageSelection.entitySelector.indexInBlock ?? '') : '') || 'Polkadot extrinsic')} • Polkadot extrinsic • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.PolkadotExtrinsic, {
+				$block: data.selector,
+				indexInBlock: Number(params.extrinsicIndex),
+			})}
+		<title>{data?.title ?? ((String(pageSelection.entitySelector.indexInBlock ?? '') ? 'Extrinsic #' + String(pageSelection.entitySelector.indexInBlock ?? '') : '') || 'Polkadot extrinsic')} • Polkadot extrinsic • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Polkadot extrinsic'} • Polkadot extrinsic • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.PolkadotExtrinsic, {
+				$block: data.selector,
+				indexInBlock: Number(params.extrinsicIndex),
+			})}
+
 	<PolkadotExtrinsicView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

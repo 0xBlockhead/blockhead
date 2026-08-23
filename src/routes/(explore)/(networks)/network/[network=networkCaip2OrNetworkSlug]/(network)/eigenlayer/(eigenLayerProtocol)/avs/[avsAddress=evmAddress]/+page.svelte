@@ -16,12 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.EigenLayerAvs, data.selector, {
-		sources: [
-			Source.EigenExplorer_Rest,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -30,12 +24,29 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.avsAddress || 'eigen layer avs')} • eigen layer avs • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.EigenLayerAvs, data.selector, {
+				sources: [
+					Source.EigenExplorer_Rest,
+				],
+			})}
+		<title>{data?.title ?? (pageSelection.entitySelector.avsAddress || 'eigen layer avs')} • eigen layer avs • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'eigen layer avs'} • eigen layer avs • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.EigenLayerAvs, data.selector, {
+				sources: [
+					Source.EigenExplorer_Rest,
+				],
+			})}
+
 	<EigenLayerAvsView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

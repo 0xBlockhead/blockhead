@@ -15,8 +15,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.ZcashShieldedPool, data.selector))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -25,12 +23,21 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.pool || 'Zcash shielded pool')} • Zcash shielded pool • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.ZcashShieldedPool, data.selector)}
+		<title>{data?.title ?? (pageSelection.entitySelector.pool || 'Zcash shielded pool')} • Zcash shielded pool • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Zcash shielded pool'} • Zcash shielded pool • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.ZcashShieldedPool, data.selector)}
+
 	<ZcashShieldedPoolView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

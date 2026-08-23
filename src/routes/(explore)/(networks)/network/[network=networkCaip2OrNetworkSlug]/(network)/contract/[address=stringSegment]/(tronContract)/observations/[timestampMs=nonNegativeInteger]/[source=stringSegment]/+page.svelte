@@ -24,20 +24,33 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'tron contract timestamp'} • tron contract timestamp • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<TronContract_TimestampView
-		selection={
-			select(EntityType.TronContract_Timestamp, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.TronContract_Timestamp, {
 				$contract: data.selector,
 				timestampMs: Number(params.timestampMs),
 				source: params.source,
 			}, {
 				sources: [params.source],
-			})
-		}
+			})}
+		<title>{data?.title ?? 'tron contract timestamp'} • tron contract timestamp • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'tron contract timestamp'} • tron contract timestamp • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.TronContract_Timestamp, {
+				$contract: data.selector,
+				timestampMs: Number(params.timestampMs),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+
+	<TronContract_TimestampView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

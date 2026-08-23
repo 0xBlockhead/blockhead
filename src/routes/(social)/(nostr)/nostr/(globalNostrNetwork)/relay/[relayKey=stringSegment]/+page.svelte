@@ -15,8 +15,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.NostrRelay, data.selector))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -25,12 +23,21 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.relayUrl || 'Nostr relay')} • Nostr relay • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.NostrRelay, data.selector)}
+		<title>{data?.title ?? (pageSelection.entitySelector.relayUrl || 'Nostr relay')} • Nostr relay • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Nostr relay'} • Nostr relay • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.NostrRelay, data.selector)}
+
 	<NostrRelayView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

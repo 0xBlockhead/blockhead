@@ -15,8 +15,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.Erc4337Paymaster, data.selector))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -25,12 +23,21 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.address || 'ERC-4337 paymaster')} • ERC-4337 paymaster • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.Erc4337Paymaster, data.selector)}
+		<title>{data?.title ?? (pageSelection.entitySelector.address || 'ERC-4337 paymaster')} • ERC-4337 paymaster • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'ERC-4337 paymaster'} • ERC-4337 paymaster • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.Erc4337Paymaster, data.selector)}
+
 	<Erc4337PaymasterView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

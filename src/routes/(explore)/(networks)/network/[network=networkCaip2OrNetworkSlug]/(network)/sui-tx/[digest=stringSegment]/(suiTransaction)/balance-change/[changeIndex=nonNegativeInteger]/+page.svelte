@@ -24,17 +24,27 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'Sui balance change'} • Sui balance change • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.SuiBalanceChange, {
+				$transaction: data.selector,
+				changeIndex: Number(params.changeIndex),
+			})}
+		<title>{data?.title ?? 'Sui balance change'} • Sui balance change • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Sui balance change'} • Sui balance change • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
-	<SuiBalanceChangeView
-		selection={
-			select(EntityType.SuiBalanceChange, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.SuiBalanceChange, {
 				$transaction: data.selector,
 				changeIndex: Number(params.changeIndex),
-			})
-		}
+			})}
+
+	<SuiBalanceChangeView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

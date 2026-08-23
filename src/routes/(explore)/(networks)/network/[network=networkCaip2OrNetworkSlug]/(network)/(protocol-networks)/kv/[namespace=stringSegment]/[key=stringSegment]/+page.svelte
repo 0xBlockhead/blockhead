@@ -16,13 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.ZeroGKvEntry, data.selector, {
-		sources: [
-			Source.ZeroGStorageNode_JsonRpc,
-			Source.ZeroGStorageScan_Rest,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -31,12 +24,31 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.key || 'zero g kv entry')} • zero g kv entry • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.ZeroGKvEntry, data.selector, {
+				sources: [
+					Source.ZeroGStorageNode_JsonRpc,
+					Source.ZeroGStorageScan_Rest,
+				],
+			})}
+		<title>{data?.title ?? (pageSelection.entitySelector.key || 'zero g kv entry')} • zero g kv entry • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'zero g kv entry'} • zero g kv entry • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.ZeroGKvEntry, data.selector, {
+				sources: [
+					Source.ZeroGStorageNode_JsonRpc,
+					Source.ZeroGStorageScan_Rest,
+				],
+			})}
+
 	<ZeroGKvEntryView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

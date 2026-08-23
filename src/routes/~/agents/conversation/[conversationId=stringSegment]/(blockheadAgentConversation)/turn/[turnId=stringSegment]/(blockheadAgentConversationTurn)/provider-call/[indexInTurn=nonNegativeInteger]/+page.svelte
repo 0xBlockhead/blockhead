@@ -17,15 +17,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.BlockheadAgentProviderCall, {
-		$turn: data.selector,
-		indexInTurn: Number(params.indexInTurn),
-	}, {
-		sources: [
-			Source.Local_Internal,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -34,12 +25,35 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? ((String(pageSelection.entitySelector.indexInTurn ?? '') ? 'Call #' + String(pageSelection.entitySelector.indexInTurn ?? '') : '') || 'blockhead agent provider call')} • blockhead agent provider call • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BlockheadAgentProviderCall, {
+				$turn: data.selector,
+				indexInTurn: Number(params.indexInTurn),
+			}, {
+				sources: [
+					Source.Local_Internal,
+				],
+			})}
+		<title>{data?.title ?? ((String(pageSelection.entitySelector.indexInTurn ?? '') ? 'Call #' + String(pageSelection.entitySelector.indexInTurn ?? '') : '') || 'blockhead agent provider call')} • blockhead agent provider call • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'blockhead agent provider call'} • blockhead agent provider call • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BlockheadAgentProviderCall, {
+				$turn: data.selector,
+				indexInTurn: Number(params.indexInTurn),
+			}, {
+				sources: [
+					Source.Local_Internal,
+				],
+			})}
+
 	<BlockheadAgentProviderCallView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

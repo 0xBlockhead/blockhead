@@ -17,15 +17,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.ActivityPubNote, data.selector, {
-		sources: [
-			Source.Mastodon_Rest,
-		],
-		fields: {
-			content: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -34,12 +25,35 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.localStatusId ?? '') || 'ActivityPub note' : [pageSelection.entity.content == null ? '' : htmlToPlainText(pageSelection.entity.content), pageSelection.entitySelector.localStatusId].filter(Boolean).join(' ') || 'ActivityPub note')} • ActivityPub note • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.ActivityPubNote, data.selector, {
+				sources: [
+					Source.Mastodon_Rest,
+				],
+				fields: {
+					content: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.localStatusId ?? '') || 'ActivityPub note' : [pageSelection.entity.content == null ? '' : htmlToPlainText(pageSelection.entity.content), pageSelection.entitySelector.localStatusId].filter(Boolean).join(' ') || 'ActivityPub note')} • ActivityPub note • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'ActivityPub note'} • ActivityPub note • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.ActivityPubNote, data.selector, {
+				sources: [
+					Source.Mastodon_Rest,
+				],
+				fields: {
+					content: true,
+				},
+			})}
+
 	<ActivityPubNoteView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

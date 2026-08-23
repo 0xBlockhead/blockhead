@@ -40,20 +40,22 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<AiDocumentView
-			selection={
-				select(EntityType.AiDocument, data.selector, {
-					sources: [
-						Source.Eip8004Scan_Rest,
-						Source.HuggingFaceHub_Rest,
-						Source.Ipfs_Rest,
-						Source.Mlflow_Rest,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<AiDocumentView
+				selection={
+					select(EntityType.AiDocument, data.selector, {
+						sources: [
+							Source.Eip8004Scan_Rest,
+							Source.HuggingFaceHub_Rest,
+							Source.Ipfs_Rest,
+							Source.Mlflow_Rest,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

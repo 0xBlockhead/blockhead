@@ -40,18 +40,20 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<AtprotoActorView
-			selection={
-				select(EntityType.AtprotoActor, data.selector, {
-					sources: [
-						Source.Atproto_Xrpc,
-						Source.Atproto_BskySocial_Xrpc,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<AtprotoActorView
+				selection={
+					select(EntityType.AtprotoActor, data.selector, {
+						sources: [
+							Source.Atproto_Xrpc,
+							Source.Atproto_BskySocial_Xrpc,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

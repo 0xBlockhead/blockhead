@@ -16,15 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.BalancerGauge, data.selector, {
-		sources: [
-			Source.Balancer_Rest,
-		],
-		fields: {
-			poolSymbol: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -33,12 +24,35 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.gaugeAddress ?? '') || 'Balancer gauge' : [(pageSelection.entity.poolSymbol ?? ''), pageSelection.entitySelector.gaugeAddress].filter(Boolean).join(' ') || 'Balancer gauge')} • Balancer gauge • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BalancerGauge, data.selector, {
+				sources: [
+					Source.Balancer_Rest,
+				],
+				fields: {
+					poolSymbol: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.gaugeAddress ?? '') || 'Balancer gauge' : [(pageSelection.entity.poolSymbol ?? ''), pageSelection.entitySelector.gaugeAddress].filter(Boolean).join(' ') || 'Balancer gauge')} • Balancer gauge • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Balancer gauge'} • Balancer gauge • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BalancerGauge, data.selector, {
+				sources: [
+					Source.Balancer_Rest,
+				],
+				fields: {
+					poolSymbol: true,
+				},
+			})}
+
 	<BalancerGaugeView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

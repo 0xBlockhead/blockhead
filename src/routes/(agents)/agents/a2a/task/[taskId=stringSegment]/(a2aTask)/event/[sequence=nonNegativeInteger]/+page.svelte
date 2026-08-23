@@ -16,13 +16,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.A2aTaskEvent, {
-		$task: data.selector,
-		sequence: Number(params.sequence),
-	}, {
-		sources: [],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -31,12 +24,31 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (String(pageSelection.entitySelector.sequence) || 'A2A task event')} • A2A task event • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.A2aTaskEvent, {
+				$task: data.selector,
+				sequence: Number(params.sequence),
+			}, {
+				sources: [],
+			})}
+		<title>{data?.title ?? (String(pageSelection.entitySelector.sequence) || 'A2A task event')} • A2A task event • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'A2A task event'} • A2A task event • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.A2aTaskEvent, {
+				$task: data.selector,
+				sequence: Number(params.sequence),
+			}, {
+				sources: [],
+			})}
+
 	<A2aTaskEventView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

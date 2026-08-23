@@ -16,17 +16,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.BlockheadActionReadinessCheck_Timestamp, {
-		$readinessCheck: data.selector,
-		timestampMs: Number(params.timestampMs),
-		source: params.source,
-	}, {
-		sources: [params.source],
-		fields: {
-			status: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -35,12 +24,39 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? 'blockhead action readiness check timestamp' : pageSelection.entity.status || 'blockhead action readiness check timestamp')} • blockhead action readiness check timestamp • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BlockheadActionReadinessCheck_Timestamp, {
+				$readinessCheck: data.selector,
+				timestampMs: Number(params.timestampMs),
+				source: params.source,
+			}, {
+				sources: [params.source],
+				fields: {
+					status: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'blockhead action readiness check timestamp' : pageSelection.entity.status || 'blockhead action readiness check timestamp')} • blockhead action readiness check timestamp • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'blockhead action readiness check timestamp'} • blockhead action readiness check timestamp • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BlockheadActionReadinessCheck_Timestamp, {
+				$readinessCheck: data.selector,
+				timestampMs: Number(params.timestampMs),
+				source: params.source,
+			}, {
+				sources: [params.source],
+				fields: {
+					status: true,
+				},
+			})}
+
 	<BlockheadActionReadinessCheck_TimestampView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

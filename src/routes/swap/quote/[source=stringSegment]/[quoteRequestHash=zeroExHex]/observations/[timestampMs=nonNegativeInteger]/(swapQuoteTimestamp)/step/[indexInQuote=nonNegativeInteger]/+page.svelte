@@ -24,17 +24,27 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'swap quote step'} • swap quote step • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.SwapQuoteStep, {
+				$quote: data.selector,
+				indexInQuote: Number(params.indexInQuote),
+			})}
+		<title>{data?.title ?? 'swap quote step'} • swap quote step • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'swap quote step'} • swap quote step • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
-	<SwapQuoteStepView
-		selection={
-			select(EntityType.SwapQuoteStep, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.SwapQuoteStep, {
 				$quote: data.selector,
 				indexInQuote: Number(params.indexInQuote),
-			})
-		}
+			})}
+
+	<SwapQuoteStepView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

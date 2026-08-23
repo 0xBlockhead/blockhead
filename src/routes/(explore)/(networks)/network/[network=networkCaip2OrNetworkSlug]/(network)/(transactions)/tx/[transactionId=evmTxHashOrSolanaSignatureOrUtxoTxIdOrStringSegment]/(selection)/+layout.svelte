@@ -50,13 +50,15 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		{@const DetailView = data.entityType === EntityType.EvmTransaction ? EvmTransactionView : data.entityType === EntityType.SolanaTransaction ? SolanaTransactionView : data.entityType === EntityType.CardanoTransaction ? CardanoTransactionView : data.entityType === EntityType.UtxoTransaction ? UtxoTransactionView : data.entityType === EntityType.ArweaveTransaction ? ArweaveTransactionView : data.entityType === EntityType.CosmosTransaction ? CosmosTransactionView : data.entityType === EntityType.HyperliquidTransaction ? HyperliquidTransactionView : data.entityType === EntityType.MoneroTransaction ? MoneroTransactionView : data.entityType === EntityType.NearTransaction ? NearTransactionView : data.entityType === EntityType.TronTransaction ? TronTransactionView : AptosTransactionView}
+		{#if data?.selector != null}
+			{@const DetailView = data.entityType === EntityType.EvmTransaction ? EvmTransactionView : data.entityType === EntityType.SolanaTransaction ? SolanaTransactionView : data.entityType === EntityType.CardanoTransaction ? CardanoTransactionView : data.entityType === EntityType.UtxoTransaction ? UtxoTransactionView : data.entityType === EntityType.ArweaveTransaction ? ArweaveTransactionView : data.entityType === EntityType.CosmosTransaction ? CosmosTransactionView : data.entityType === EntityType.HyperliquidTransaction ? HyperliquidTransactionView : data.entityType === EntityType.MoneroTransaction ? MoneroTransactionView : data.entityType === EntityType.NearTransaction ? NearTransactionView : data.entityType === EntityType.TronTransaction ? TronTransactionView : AptosTransactionView}
 
-		<DetailView
-			selection={select(data.entityType, data.selector)}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+			<DetailView
+				selection={select(data.entityType, data.selector)}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

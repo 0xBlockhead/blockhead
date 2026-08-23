@@ -40,17 +40,19 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<FedimintGatewayView
-			selection={
-				select(EntityType.FedimintGateway, data.selector, {
-					sources: [
-						Source.FedimintGatewayd_Rest,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<FedimintGatewayView
+				selection={
+					select(EntityType.FedimintGateway, data.selector, {
+						sources: [
+							Source.FedimintGatewayd_Rest,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

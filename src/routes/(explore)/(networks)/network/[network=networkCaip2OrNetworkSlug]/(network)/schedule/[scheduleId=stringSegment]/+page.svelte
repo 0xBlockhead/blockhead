@@ -23,12 +23,21 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'hedera schedule'} • hedera schedule • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.HederaSchedule, data.selector)}
+		<title>{data?.title ?? 'hedera schedule'} • hedera schedule • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'hedera schedule'} • hedera schedule • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.HederaSchedule, data.selector)}
+
 	<HederaScheduleView
-		selection={select(EntityType.HederaSchedule, data.selector)}
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

@@ -16,14 +16,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.BeaconValidator_Timestamp, {
-		$validator: data.selector,
-		slot: Number(params.slot),
-		source: params.source,
-	}, {
-		sources: [params.source],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -32,12 +24,33 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? ((String(pageSelection.entitySelector.slot ?? '') ? 'Slot #' + String(pageSelection.entitySelector.slot ?? '') : '') || 'beacon validator timestamp')} • beacon validator timestamp • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BeaconValidator_Timestamp, {
+				$validator: data.selector,
+				slot: Number(params.slot),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+		<title>{data?.title ?? ((String(pageSelection.entitySelector.slot ?? '') ? 'Slot #' + String(pageSelection.entitySelector.slot ?? '') : '') || 'beacon validator timestamp')} • beacon validator timestamp • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'beacon validator timestamp'} • beacon validator timestamp • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BeaconValidator_Timestamp, {
+				$validator: data.selector,
+				slot: Number(params.slot),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+
 	<BeaconValidator_TimestampView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

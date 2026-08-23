@@ -40,17 +40,19 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<CashuMintView
-			selection={
-				select(EntityType.CashuMint, data.selector, {
-					sources: [
-						Source.CashuMint_Rest,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<CashuMintView
+				selection={
+					select(EntityType.CashuMint, data.selector, {
+						sources: [
+							Source.CashuMint_Rest,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

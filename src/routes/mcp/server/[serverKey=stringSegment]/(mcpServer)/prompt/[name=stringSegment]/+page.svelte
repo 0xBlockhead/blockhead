@@ -16,15 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.McpPrompt, data.selector, {
-		sources: [
-			Source.McpDeclared_Protocol,
-		],
-		fields: {
-			title: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -33,12 +24,35 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.name ?? '') || 'mcp prompt' : (pageSelection.entity.title ?? '') || pageSelection.entitySelector.name || 'mcp prompt')} • mcp prompt • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.McpPrompt, data.selector, {
+				sources: [
+					Source.McpDeclared_Protocol,
+				],
+				fields: {
+					title: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.name ?? '') || 'mcp prompt' : (pageSelection.entity.title ?? '') || pageSelection.entitySelector.name || 'mcp prompt')} • mcp prompt • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'mcp prompt'} • mcp prompt • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.McpPrompt, data.selector, {
+				sources: [
+					Source.McpDeclared_Protocol,
+				],
+				fields: {
+					title: true,
+				},
+			})}
+
 	<McpPromptView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

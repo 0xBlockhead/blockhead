@@ -16,12 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.A2aAgentCard, data.selector, {
-		sources: [
-			Source.Eip8004Scan_Rest,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -30,12 +24,29 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.agentCardUrl || 'A2A agent card')} • A2A agent card • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.A2aAgentCard, data.selector, {
+				sources: [
+					Source.Eip8004Scan_Rest,
+				],
+			})}
+		<title>{data?.title ?? (pageSelection.entitySelector.agentCardUrl || 'A2A agent card')} • A2A agent card • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'A2A agent card'} • A2A agent card • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.A2aAgentCard, data.selector, {
+				sources: [
+					Source.Eip8004Scan_Rest,
+				],
+			})}
+
 	<A2aAgentCardView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

@@ -24,20 +24,33 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'soroban Wasm timestamp'} • soroban Wasm timestamp • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<SorobanWasm_TimestampView
-		selection={
-			select(EntityType.SorobanWasm_Timestamp, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.SorobanWasm_Timestamp, {
 				$wasm: data.selector,
 				ledgerSequence: BigInt(params.ledgerSequence),
 				source: params.source,
 			}, {
 				sources: [params.source],
-			})
-		}
+			})}
+		<title>{data?.title ?? 'soroban Wasm timestamp'} • soroban Wasm timestamp • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'soroban Wasm timestamp'} • soroban Wasm timestamp • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.SorobanWasm_Timestamp, {
+				$wasm: data.selector,
+				ledgerSequence: BigInt(params.ledgerSequence),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+
+	<SorobanWasm_TimestampView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

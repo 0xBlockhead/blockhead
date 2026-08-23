@@ -24,19 +24,31 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'ENS reverse record'} • ENS reverse record • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<EnsReverseRecordView
-		selection={
-			select(EntityType.EnsReverseRecord, data.selector, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.EnsReverseRecord, data.selector, {
 				sources: [
 					Source.TheGraph_Graphql,
 					Source.Voltaire_JsonRpc,
 				],
-			})
-		}
+			})}
+		<title>{data?.title ?? 'ENS reverse record'} • ENS reverse record • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'ENS reverse record'} • ENS reverse record • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.EnsReverseRecord, data.selector, {
+				sources: [
+					Source.TheGraph_Graphql,
+					Source.Voltaire_JsonRpc,
+				],
+			})}
+
+	<EnsReverseRecordView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

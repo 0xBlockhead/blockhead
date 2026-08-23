@@ -16,16 +16,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.AssetSupply_LedgerCoordinate, {
-		$assetInstance: data.selector,
-		supplyScopeKey: params.supplyScopeKey,
-		ledgerCoordinateKind: params.ledgerCoordinateKind,
-		ledgerCoordinateValue: BigInt(params.ledgerCoordinateValue),
-		source: params.source,
-	}, {
-		sources: [params.source],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -34,12 +24,37 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.supplyScopeKey || 'asset supply ledger coordinate')} • asset supply ledger coordinate • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.AssetSupply_LedgerCoordinate, {
+				$assetInstance: data.selector,
+				supplyScopeKey: params.supplyScopeKey,
+				ledgerCoordinateKind: params.ledgerCoordinateKind,
+				ledgerCoordinateValue: BigInt(params.ledgerCoordinateValue),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+		<title>{data?.title ?? (pageSelection.entitySelector.supplyScopeKey || 'asset supply ledger coordinate')} • asset supply ledger coordinate • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'asset supply ledger coordinate'} • asset supply ledger coordinate • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.AssetSupply_LedgerCoordinate, {
+				$assetInstance: data.selector,
+				supplyScopeKey: params.supplyScopeKey,
+				ledgerCoordinateKind: params.ledgerCoordinateKind,
+				ledgerCoordinateValue: BigInt(params.ledgerCoordinateValue),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+
 	<AssetSupply_LedgerCoordinateView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

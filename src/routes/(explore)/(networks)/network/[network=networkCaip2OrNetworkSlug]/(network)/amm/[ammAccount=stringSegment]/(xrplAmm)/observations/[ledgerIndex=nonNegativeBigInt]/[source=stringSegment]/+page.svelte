@@ -24,20 +24,33 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'XRPL AMM timestamp'} • XRPL AMM timestamp • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<XrplAmm_TimestampView
-		selection={
-			select(EntityType.XrplAmm_Timestamp, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.XrplAmm_Timestamp, {
 				$amm: data.selector,
 				ledgerIndex: BigInt(params.ledgerIndex),
 				source: params.source,
 			}, {
 				sources: [params.source],
-			})
-		}
+			})}
+		<title>{data?.title ?? 'XRPL AMM timestamp'} • XRPL AMM timestamp • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'XRPL AMM timestamp'} • XRPL AMM timestamp • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.XrplAmm_Timestamp, {
+				$amm: data.selector,
+				ledgerIndex: BigInt(params.ledgerIndex),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+
+	<XrplAmm_TimestampView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

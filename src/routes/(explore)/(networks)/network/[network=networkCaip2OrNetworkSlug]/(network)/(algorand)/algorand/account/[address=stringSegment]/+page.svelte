@@ -23,12 +23,21 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'algorand account'} • algorand account • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.AlgorandAccount, data.selector)}
+		<title>{data?.title ?? 'algorand account'} • algorand account • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'algorand account'} • algorand account • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.AlgorandAccount, data.selector)}
+
 	<AlgorandAccountView
-		selection={select(EntityType.AlgorandAccount, data.selector)}
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

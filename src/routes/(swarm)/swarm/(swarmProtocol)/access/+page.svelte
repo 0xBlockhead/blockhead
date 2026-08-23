@@ -24,18 +24,29 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'global Swarm access'} • global Swarm access • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType._GlobalSwarmAccess, data.selector, {
+				sources: [
+					Source.Constants_Internal,
+				],
+			})}
+		<title>{data?.title ?? 'global Swarm access'} • global Swarm access • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'global Swarm access'} • global Swarm access • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
-	<GlobalSwarmAccessView
-		selection={
-			select(EntityType._GlobalSwarmAccess, data.selector, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType._GlobalSwarmAccess, data.selector, {
 				sources: [
 					Source.Constants_Internal,
 				],
-			})
-		}
+			})}
+
+	<GlobalSwarmAccessView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

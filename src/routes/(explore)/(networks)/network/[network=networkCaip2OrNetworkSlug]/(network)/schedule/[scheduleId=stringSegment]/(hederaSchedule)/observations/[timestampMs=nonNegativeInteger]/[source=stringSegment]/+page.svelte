@@ -24,20 +24,33 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'hedera schedule timestamp'} • hedera schedule timestamp • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<HederaSchedule_TimestampView
-		selection={
-			select(EntityType.HederaSchedule_Timestamp, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.HederaSchedule_Timestamp, {
 				$schedule: data.selector,
 				timestampMs: Number(params.timestampMs),
 				source: params.source,
 			}, {
 				sources: [params.source],
-			})
-		}
+			})}
+		<title>{data?.title ?? 'hedera schedule timestamp'} • hedera schedule timestamp • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'hedera schedule timestamp'} • hedera schedule timestamp • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.HederaSchedule_Timestamp, {
+				$schedule: data.selector,
+				timestampMs: Number(params.timestampMs),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+
+	<HederaSchedule_TimestampView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

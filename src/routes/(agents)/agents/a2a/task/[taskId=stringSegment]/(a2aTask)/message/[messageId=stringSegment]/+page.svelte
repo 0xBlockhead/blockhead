@@ -15,10 +15,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.A2aMessage, data.selector, {
-		sources: [],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -27,12 +23,25 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.messageId || 'A2A message')} • A2A message • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.A2aMessage, data.selector, {
+				sources: [],
+			})}
+		<title>{data?.title ?? (pageSelection.entitySelector.messageId || 'A2A message')} • A2A message • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'A2A message'} • A2A message • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.A2aMessage, data.selector, {
+				sources: [],
+			})}
+
 	<A2aMessageView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

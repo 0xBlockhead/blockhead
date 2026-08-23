@@ -23,16 +23,25 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'cronos network profile'} • cronos network profile • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.CronosNetworkProfile, {
+				$network: data.selector,
+			})}
+		<title>{data?.title ?? 'cronos network profile'} • cronos network profile • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'cronos network profile'} • cronos network profile • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
-	<CronosNetworkProfileView
-		selection={
-			select(EntityType.CronosNetworkProfile, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.CronosNetworkProfile, {
 				$network: data.selector,
-			})
-		}
+			})}
+
+	<CronosNetworkProfileView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

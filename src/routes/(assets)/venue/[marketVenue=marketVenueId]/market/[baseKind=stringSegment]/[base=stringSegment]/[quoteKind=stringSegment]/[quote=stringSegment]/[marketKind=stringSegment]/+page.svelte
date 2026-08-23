@@ -23,12 +23,21 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'Market'} • Market • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.Market, data.selector)}
+		<title>{data?.title ?? 'Market'} • Market • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Market'} • Market • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.Market, data.selector)}
+
 	<MarketView
-		selection={select(EntityType.Market, data.selector)}
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

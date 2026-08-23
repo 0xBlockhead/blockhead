@@ -16,15 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.SwarmResource, data.selector, {
-		sources: [
-			Source.Swarm_Rest,
-		],
-		fields: {
-			canonicalUri: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -33,12 +24,35 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? 'Swarm resource' : pageSelection.entity.canonicalUri || 'Swarm resource')} • Swarm resource • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.SwarmResource, data.selector, {
+				sources: [
+					Source.Swarm_Rest,
+				],
+				fields: {
+					canonicalUri: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'Swarm resource' : pageSelection.entity.canonicalUri || 'Swarm resource')} • Swarm resource • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Swarm resource'} • Swarm resource • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.SwarmResource, data.selector, {
+				sources: [
+					Source.Swarm_Rest,
+				],
+				fields: {
+					canonicalUri: true,
+				},
+			})}
+
 	<SwarmResourceView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

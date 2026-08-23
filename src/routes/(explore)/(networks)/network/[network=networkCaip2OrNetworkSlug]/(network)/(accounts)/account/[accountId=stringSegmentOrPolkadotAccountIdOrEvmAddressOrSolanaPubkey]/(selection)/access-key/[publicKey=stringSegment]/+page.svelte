@@ -16,12 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.NearAccessKey, data.selector, {
-		sources: [
-			Source.NearRpc_JsonRpc,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -30,12 +24,29 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.publicKey || 'near access key')} • near access key • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.NearAccessKey, data.selector, {
+				sources: [
+					Source.NearRpc_JsonRpc,
+				],
+			})}
+		<title>{data?.title ?? (pageSelection.entitySelector.publicKey || 'near access key')} • near access key • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'near access key'} • near access key • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.NearAccessKey, data.selector, {
+				sources: [
+					Source.NearRpc_JsonRpc,
+				],
+			})}
+
 	<NearAccessKeyView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

@@ -17,17 +17,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.ZeroGSettlementTrace, {
-		$serviceRequest: data.selector,
-		traceId: params.traceId,
-	}, {
-		sources: [
-			Source.ZeroGChain_JsonRpc,
-			Source.ZeroGStorageNode_JsonRpc,
-			Source.ZeroGStorageScan_Rest,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -36,12 +25,39 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.traceId || 'zero g settlement trace')} • zero g settlement trace • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.ZeroGSettlementTrace, {
+				$serviceRequest: data.selector,
+				traceId: params.traceId,
+			}, {
+				sources: [
+					Source.ZeroGChain_JsonRpc,
+					Source.ZeroGStorageNode_JsonRpc,
+					Source.ZeroGStorageScan_Rest,
+				],
+			})}
+		<title>{data?.title ?? (pageSelection.entitySelector.traceId || 'zero g settlement trace')} • zero g settlement trace • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'zero g settlement trace'} • zero g settlement trace • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.ZeroGSettlementTrace, {
+				$serviceRequest: data.selector,
+				traceId: params.traceId,
+			}, {
+				sources: [
+					Source.ZeroGChain_JsonRpc,
+					Source.ZeroGStorageNode_JsonRpc,
+					Source.ZeroGStorageScan_Rest,
+				],
+			})}
+
 	<ZeroGSettlementTraceView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

@@ -16,15 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.EvmNetworkActorCoinBalance, data.selector, {
-		sources: [
-			Source.Constants_Internal,
-		],
-		fields: {
-			symbol: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -33,12 +24,35 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? 'balance' : pageSelection.entity.symbol || 'balance')} • balance • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.EvmNetworkActorCoinBalance, data.selector, {
+				sources: [
+					Source.Constants_Internal,
+				],
+				fields: {
+					symbol: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'balance' : pageSelection.entity.symbol || 'balance')} • balance • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'balance'} • balance • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.EvmNetworkActorCoinBalance, data.selector, {
+				sources: [
+					Source.Constants_Internal,
+				],
+				fields: {
+					symbol: true,
+				},
+			})}
+
 	<EvmNetworkActorCoinBalanceView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

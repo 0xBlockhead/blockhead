@@ -41,17 +41,19 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<UniswapCcaAuctionView
-			selection={
-				select(EntityType.UniswapCcaAuction, data.selector, {
-					sources: [
-						Source.UniswapContracts_Evm,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<UniswapCcaAuctionView
+				selection={
+					select(EntityType.UniswapCcaAuction, data.selector, {
+						sources: [
+							Source.UniswapContracts_Evm,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

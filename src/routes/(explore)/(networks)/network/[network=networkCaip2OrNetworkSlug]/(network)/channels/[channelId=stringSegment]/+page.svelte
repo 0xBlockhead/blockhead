@@ -16,16 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.LightningChannel, data.selector, {
-		sources: [
-			Source.LightningMempoolSpace_Rest,
-			Source.LightningLnd_Rest,
-		],
-		fields: {
-			shortChannelId: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -34,12 +24,37 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.channelId ?? '') || 'Lightning channel' : (pageSelection.entity.shortChannelId ?? '') || pageSelection.entitySelector.channelId || 'Lightning channel')} • Lightning channel • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.LightningChannel, data.selector, {
+				sources: [
+					Source.LightningMempoolSpace_Rest,
+					Source.LightningLnd_Rest,
+				],
+				fields: {
+					shortChannelId: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.channelId ?? '') || 'Lightning channel' : (pageSelection.entity.shortChannelId ?? '') || pageSelection.entitySelector.channelId || 'Lightning channel')} • Lightning channel • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Lightning channel'} • Lightning channel • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.LightningChannel, data.selector, {
+				sources: [
+					Source.LightningMempoolSpace_Rest,
+					Source.LightningLnd_Rest,
+				],
+				fields: {
+					shortChannelId: true,
+				},
+			})}
+
 	<LightningChannelView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

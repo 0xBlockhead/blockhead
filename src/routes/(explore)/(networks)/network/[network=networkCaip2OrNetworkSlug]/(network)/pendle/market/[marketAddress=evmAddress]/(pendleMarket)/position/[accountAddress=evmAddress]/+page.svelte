@@ -25,14 +25,8 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'Pendle position'} • Pendle position • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<PendlePositionView
-		selection={
-			select(EntityType.PendlePosition, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.PendlePosition, {
 				$account: {
 					$network: data.selector.$network,
 					$actor: {
@@ -44,7 +38,32 @@
 				sources: [
 					Source.Pendle_Rest,
 				],
-			})
-		}
+			})}
+		<title>{data?.title ?? 'Pendle position'} • Pendle position • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Pendle position'} • Pendle position • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.PendlePosition, {
+				$account: {
+					$network: data.selector.$network,
+					$actor: {
+						address: params.accountAddress,
+					},
+				},
+				$market: data.selector,
+			}, {
+				sources: [
+					Source.Pendle_Rest,
+				],
+			})}
+
+	<PendlePositionView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

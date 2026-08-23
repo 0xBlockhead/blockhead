@@ -41,20 +41,22 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<StarknetTransactionView
-			selection={
-				select(EntityType.StarknetTransaction, data.selector, {
-					sources: [
-						Source.Juno_JsonRpc,
-						Source.Pathfinder,
-						Source.Starkscan,
-						Source.Voyager,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<StarknetTransactionView
+				selection={
+					select(EntityType.StarknetTransaction, data.selector, {
+						sources: [
+							Source.Juno_JsonRpc,
+							Source.Pathfinder,
+							Source.Starkscan,
+							Source.Voyager,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

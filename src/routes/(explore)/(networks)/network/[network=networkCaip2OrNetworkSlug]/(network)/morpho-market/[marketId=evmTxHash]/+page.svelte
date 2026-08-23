@@ -16,13 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.MorphoMarket, data.selector, {
-		sources: [
-			Source.Morpho_Graphql,
-			Source.Morpho_Rest,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -31,12 +24,31 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.marketId || 'Morpho market')} • Morpho market • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.MorphoMarket, data.selector, {
+				sources: [
+					Source.Morpho_Graphql,
+					Source.Morpho_Rest,
+				],
+			})}
+		<title>{data?.title ?? (pageSelection.entitySelector.marketId || 'Morpho market')} • Morpho market • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Morpho market'} • Morpho market • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.MorphoMarket, data.selector, {
+				sources: [
+					Source.Morpho_Graphql,
+					Source.Morpho_Rest,
+				],
+			})}
+
 	<MorphoMarketView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

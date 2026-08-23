@@ -16,12 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.Erc4337SmartAccount, data.selector, {
-		sources: [
-			Source.Blockscout_Rest,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -30,12 +24,29 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.address || 'ERC-4337 smart account')} • ERC-4337 smart account • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.Erc4337SmartAccount, data.selector, {
+				sources: [
+					Source.Blockscout_Rest,
+				],
+			})}
+		<title>{data?.title ?? (pageSelection.entitySelector.address || 'ERC-4337 smart account')} • ERC-4337 smart account • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'ERC-4337 smart account'} • ERC-4337 smart account • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.Erc4337SmartAccount, data.selector, {
+				sources: [
+					Source.Blockscout_Rest,
+				],
+			})}
+
 	<Erc4337SmartAccountView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

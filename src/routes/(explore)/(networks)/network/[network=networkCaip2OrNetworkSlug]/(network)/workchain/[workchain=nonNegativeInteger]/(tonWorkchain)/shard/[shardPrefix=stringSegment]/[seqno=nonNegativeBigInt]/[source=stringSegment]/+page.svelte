@@ -24,21 +24,35 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'TON shard timestamp'} • TON shard timestamp • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<TonShard_TimestampView
-		selection={
-			select(EntityType.TonShard_Timestamp, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.TonShard_Timestamp, {
 				$workchain: data.selector,
 				shardPrefix: params.shardPrefix,
 				seqno: BigInt(params.seqno),
 				source: params.source,
 			}, {
 				sources: [params.source],
-			})
-		}
+			})}
+		<title>{data?.title ?? 'TON shard timestamp'} • TON shard timestamp • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'TON shard timestamp'} • TON shard timestamp • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.TonShard_Timestamp, {
+				$workchain: data.selector,
+				shardPrefix: params.shardPrefix,
+				seqno: BigInt(params.seqno),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+
+	<TonShard_TimestampView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

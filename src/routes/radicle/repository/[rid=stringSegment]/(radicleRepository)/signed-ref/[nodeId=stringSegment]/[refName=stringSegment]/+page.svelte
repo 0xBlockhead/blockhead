@@ -23,12 +23,21 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'radicle signed ref'} • radicle signed ref • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.RadicleSignedRef, data.selector)}
+		<title>{data?.title ?? 'radicle signed ref'} • radicle signed ref • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'radicle signed ref'} • radicle signed ref • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.RadicleSignedRef, data.selector)}
+
 	<RadicleSignedRefView
-		selection={select(EntityType.RadicleSignedRef, data.selector)}
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

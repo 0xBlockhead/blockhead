@@ -23,12 +23,21 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'hyperliquid vault'} • hyperliquid vault • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.HyperliquidVault, data.selector)}
+		<title>{data?.title ?? 'hyperliquid vault'} • hyperliquid vault • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'hyperliquid vault'} • hyperliquid vault • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.HyperliquidVault, data.selector)}
+
 	<HyperliquidVaultView
-		selection={select(EntityType.HyperliquidVault, data.selector)}
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

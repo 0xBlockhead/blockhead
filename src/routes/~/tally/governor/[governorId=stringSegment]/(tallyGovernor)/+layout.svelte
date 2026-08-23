@@ -40,17 +40,19 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<TallyGovernorView
-			selection={
-				select(EntityType.TallyGovernor, data.selector, {
-					sources: [
-						Source.Tally,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<TallyGovernorView
+				selection={
+					select(EntityType.TallyGovernor, data.selector, {
+						sources: [
+							Source.Tally,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

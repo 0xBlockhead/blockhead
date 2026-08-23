@@ -16,14 +16,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.EvmActorCoinAllowance_Block, {
-		$allowance: data.selector,
-		blockNumber: BigInt(params.blockNumber),
-		source: params.source,
-	}, {
-		sources: [params.source],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -32,12 +24,33 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'Block ' + String(pageSelection.entitySelector.blockNumber)} • EVM actor coin allowance block • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.EvmActorCoinAllowance_Block, {
+				$allowance: data.selector,
+				blockNumber: BigInt(params.blockNumber),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+		<title>{data?.title ?? 'Block ' + String(pageSelection.entitySelector.blockNumber)} • EVM actor coin allowance block • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'EVM actor coin allowance block'} • EVM actor coin allowance block • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.EvmActorCoinAllowance_Block, {
+				$allowance: data.selector,
+				blockNumber: BigInt(params.blockNumber),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+
 	<EvmActorCoinAllowance_BlockView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

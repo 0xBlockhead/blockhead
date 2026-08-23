@@ -41,17 +41,19 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<BeaconExecutionPayloadEnvelopeView
-			selection={
-				select(EntityType.BeaconExecutionPayloadEnvelope, data.selector, {
-					sources: [
-						Source.Beacon_Rest,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<BeaconExecutionPayloadEnvelopeView
+				selection={
+					select(EntityType.BeaconExecutionPayloadEnvelope, data.selector, {
+						sources: [
+							Source.Beacon_Rest,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

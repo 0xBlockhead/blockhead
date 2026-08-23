@@ -23,12 +23,21 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'zero g storage node'} • zero g storage node • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.ZeroGStorageNode, data.selector)}
+		<title>{data?.title ?? 'zero g storage node'} • zero g storage node • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'zero g storage node'} • zero g storage node • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.ZeroGStorageNode, data.selector)}
+
 	<ZeroGStorageNodeView
-		selection={select(EntityType.ZeroGStorageNode, data.selector)}
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

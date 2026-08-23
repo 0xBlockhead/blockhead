@@ -16,12 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.GitForgeCompare, data.selector, {
-		sources: [
-			Source.Gitlab_Rest,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -30,12 +24,29 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? ([pageSelection.entitySelector.fromObjectId, pageSelection.entitySelector.toObjectId].filter(Boolean).join(' ') || 'Git forge compare')} • Git forge compare • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.GitForgeCompare, data.selector, {
+				sources: [
+					Source.Gitlab_Rest,
+				],
+			})}
+		<title>{data?.title ?? ([pageSelection.entitySelector.fromObjectId, pageSelection.entitySelector.toObjectId].filter(Boolean).join(' ') || 'Git forge compare')} • Git forge compare • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Git forge compare'} • Git forge compare • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.GitForgeCompare, data.selector, {
+				sources: [
+					Source.Gitlab_Rest,
+				],
+			})}
+
 	<GitForgeCompareView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

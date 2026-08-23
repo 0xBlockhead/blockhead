@@ -15,8 +15,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.GitPackfile, data.selector))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -25,12 +23,21 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entitySelector.packHash || 'Git packfile')} • Git packfile • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.GitPackfile, data.selector)}
+		<title>{data?.title ?? (pageSelection.entitySelector.packHash || 'Git packfile')} • Git packfile • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'Git packfile'} • Git packfile • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.GitPackfile, data.selector)}
+
 	<GitPackfileView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

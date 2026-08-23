@@ -17,18 +17,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.AcpMessagePart, {
-		$message: data.selector,
-		partIndex: Number(params.partIndex),
-	}, {
-		sources: [
-			Source.AcpLocal_JsonRpc,
-		],
-		fields: {
-			partKind: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -37,12 +25,41 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? 'ACP message part' : pageSelection.entity.partKind || 'ACP message part')} • ACP message part • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.AcpMessagePart, {
+				$message: data.selector,
+				partIndex: Number(params.partIndex),
+			}, {
+				sources: [
+					Source.AcpLocal_JsonRpc,
+				],
+				fields: {
+					partKind: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'ACP message part' : pageSelection.entity.partKind || 'ACP message part')} • ACP message part • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'ACP message part'} • ACP message part • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.AcpMessagePart, {
+				$message: data.selector,
+				partIndex: Number(params.partIndex),
+			}, {
+				sources: [
+					Source.AcpLocal_JsonRpc,
+				],
+				fields: {
+					partKind: true,
+				},
+			})}
+
 	<AcpMessagePartView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

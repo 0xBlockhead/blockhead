@@ -17,18 +17,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.McpTool, {
-		$server: data.selector,
-		name: params.name,
-	}, {
-		sources: [
-			Source.McpDeclared_Protocol,
-		],
-		fields: {
-			title: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -37,12 +25,41 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.name ?? '') || 'mcp tool' : (pageSelection.entity.title ?? '') || pageSelection.entitySelector.name || 'mcp tool')} • mcp tool • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.McpTool, {
+				$server: data.selector,
+				name: params.name,
+			}, {
+				sources: [
+					Source.McpDeclared_Protocol,
+				],
+				fields: {
+					title: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.name ?? '') || 'mcp tool' : (pageSelection.entity.title ?? '') || pageSelection.entitySelector.name || 'mcp tool')} • mcp tool • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'mcp tool'} • mcp tool • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.McpTool, {
+				$server: data.selector,
+				name: params.name,
+			}, {
+				sources: [
+					Source.McpDeclared_Protocol,
+				],
+				fields: {
+					title: true,
+				},
+			})}
+
 	<McpToolView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

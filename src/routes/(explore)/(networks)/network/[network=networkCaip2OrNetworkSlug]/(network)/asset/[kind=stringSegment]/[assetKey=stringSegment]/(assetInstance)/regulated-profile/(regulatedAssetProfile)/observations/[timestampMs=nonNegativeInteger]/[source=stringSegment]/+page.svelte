@@ -24,20 +24,33 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'regulated asset profile timestamp'} • regulated asset profile timestamp • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<RegulatedAssetProfile_TimestampView
-		selection={
-			select(EntityType.RegulatedAssetProfile_Timestamp, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.RegulatedAssetProfile_Timestamp, {
 				$profile: data.selector,
 				timestampMs: Number(params.timestampMs),
 				source: params.source,
 			}, {
 				sources: [params.source],
-			})
-		}
+			})}
+		<title>{data?.title ?? 'regulated asset profile timestamp'} • regulated asset profile timestamp • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'regulated asset profile timestamp'} • regulated asset profile timestamp • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.RegulatedAssetProfile_Timestamp, {
+				$profile: data.selector,
+				timestampMs: Number(params.timestampMs),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+
+	<RegulatedAssetProfile_TimestampView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

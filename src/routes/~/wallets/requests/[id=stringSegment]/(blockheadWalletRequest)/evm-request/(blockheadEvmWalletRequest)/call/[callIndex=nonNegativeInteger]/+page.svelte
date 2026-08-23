@@ -17,15 +17,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.BlockheadWalletRequestCall, {
-		$evmRequest: data.selector,
-		callIndex: Number(params.callIndex),
-	}, {
-		sources: [
-			Source.Local_Internal,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -34,12 +25,35 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? ((String(pageSelection.entitySelector.callIndex ?? '') ? 'Call #' + String(pageSelection.entitySelector.callIndex ?? '') : '') || 'blockhead wallet request call')} • blockhead wallet request call • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BlockheadWalletRequestCall, {
+				$evmRequest: data.selector,
+				callIndex: Number(params.callIndex),
+			}, {
+				sources: [
+					Source.Local_Internal,
+				],
+			})}
+		<title>{data?.title ?? ((String(pageSelection.entitySelector.callIndex ?? '') ? 'Call #' + String(pageSelection.entitySelector.callIndex ?? '') : '') || 'blockhead wallet request call')} • blockhead wallet request call • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'blockhead wallet request call'} • blockhead wallet request call • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BlockheadWalletRequestCall, {
+				$evmRequest: data.selector,
+				callIndex: Number(params.callIndex),
+			}, {
+				sources: [
+					Source.Local_Internal,
+				],
+			})}
+
 	<BlockheadWalletRequestCallView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

@@ -16,15 +16,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.BitTorrentFile, {
-		$torrent: data.selector,
-		fileIndex: Number(params.fileIndex),
-	}, {
-		fields: {
-			path: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -33,12 +24,35 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? 'bit torrent file' : pageSelection.entity.path || 'bit torrent file')} • bit torrent file • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BitTorrentFile, {
+				$torrent: data.selector,
+				fileIndex: Number(params.fileIndex),
+			}, {
+				fields: {
+					path: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'bit torrent file' : pageSelection.entity.path || 'bit torrent file')} • bit torrent file • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'bit torrent file'} • bit torrent file • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.BitTorrentFile, {
+				$torrent: data.selector,
+				fileIndex: Number(params.fileIndex),
+			}, {
+				fields: {
+					path: true,
+				},
+			})}
+
 	<BitTorrentFileView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

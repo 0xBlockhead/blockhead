@@ -40,18 +40,20 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<McpServerView
-			selection={
-				select(EntityType.McpServer, data.selector, {
-					sources: [
-						Source.Eip8004Scan_Rest,
-						Source.McpDeclared_Protocol,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<McpServerView
+				selection={
+					select(EntityType.McpServer, data.selector, {
+						sources: [
+							Source.Eip8004Scan_Rest,
+							Source.McpDeclared_Protocol,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

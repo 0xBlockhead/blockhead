@@ -41,17 +41,19 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<CompoundCometView
-			selection={
-				select(EntityType.CompoundComet, data.selector, {
-					sources: [
-						Source.Compound_Rest,
-					],
-				})
-			}
-			href={detailHref}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if data?.selector != null}
+			<CompoundCometView
+				selection={
+					select(EntityType.CompoundComet, data.selector, {
+						sources: [
+							Source.Compound_Rest,
+						],
+					})
+				}
+				href={detailHref}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

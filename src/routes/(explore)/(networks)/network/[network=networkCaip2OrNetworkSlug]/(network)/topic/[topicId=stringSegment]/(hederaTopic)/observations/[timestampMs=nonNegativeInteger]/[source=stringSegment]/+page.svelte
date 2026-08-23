@@ -24,20 +24,33 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'hedera topic timestamp'} • hedera topic timestamp • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	<HederaTopic_TimestampView
-		selection={
-			select(EntityType.HederaTopic_Timestamp, {
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.HederaTopic_Timestamp, {
 				$topic: data.selector,
 				timestampMs: Number(params.timestampMs),
 				source: params.source,
 			}, {
 				sources: [params.source],
-			})
-		}
+			})}
+		<title>{data?.title ?? 'hedera topic timestamp'} • hedera topic timestamp • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'hedera topic timestamp'} • hedera topic timestamp • Blockhead</title>
+	{/if}
+</svelte:head>
+
+
+<Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.HederaTopic_Timestamp, {
+				$topic: data.selector,
+				timestampMs: Number(params.timestampMs),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})}
+
+	<HederaTopic_TimestampView
+		selection={pageSelection}
 	/>
+	{/if}
 </Page>

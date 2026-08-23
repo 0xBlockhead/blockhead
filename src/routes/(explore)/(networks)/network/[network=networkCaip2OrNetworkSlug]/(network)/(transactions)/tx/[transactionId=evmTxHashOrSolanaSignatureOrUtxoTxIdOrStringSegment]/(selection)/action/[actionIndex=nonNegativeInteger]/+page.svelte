@@ -17,18 +17,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.NearAction, {
-		$transaction: data.selector,
-		actionIndex: Number(params.actionIndex),
-	}, {
-		sources: [
-			Source.NearRpc_JsonRpc,
-		],
-		fields: {
-			actionKind: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -37,12 +25,41 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? 'near action' : pageSelection.entity.actionKind || 'near action')} • near action • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.NearAction, {
+				$transaction: data.selector,
+				actionIndex: Number(params.actionIndex),
+			}, {
+				sources: [
+					Source.NearRpc_JsonRpc,
+				],
+				fields: {
+					actionKind: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'near action' : pageSelection.entity.actionKind || 'near action')} • near action • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'near action'} • near action • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.NearAction, {
+				$transaction: data.selector,
+				actionIndex: Number(params.actionIndex),
+			}, {
+				sources: [
+					Source.NearRpc_JsonRpc,
+				],
+				fields: {
+					actionKind: true,
+				},
+			})}
+
 	<NearActionView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>

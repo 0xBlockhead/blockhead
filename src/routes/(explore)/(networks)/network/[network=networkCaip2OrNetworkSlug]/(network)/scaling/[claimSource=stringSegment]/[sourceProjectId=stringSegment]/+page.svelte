@@ -15,13 +15,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.ScalingDeploymentClaim, data.selector, {
-		sources: [data.selector.source],
-		fields: {
-			scalingDeploymentClaimId: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -30,12 +23,31 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.sourceProjectId ?? '') || 'scaling deployment claim' : [pageSelection.entitySelector.sourceProjectId, (pageSelection.entity.scalingDeploymentClaimId ?? '')].filter(Boolean).join(' ') || 'scaling deployment claim')} • scaling deployment claim • Blockhead</title>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.ScalingDeploymentClaim, data.selector, {
+				sources: [data.selector.source],
+				fields: {
+					scalingDeploymentClaimId: true,
+				},
+			})}
+		<title>{data?.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.sourceProjectId ?? '') || 'scaling deployment claim' : [pageSelection.entitySelector.sourceProjectId, (pageSelection.entity.scalingDeploymentClaimId ?? '')].filter(Boolean).join(' ') || 'scaling deployment claim')} • scaling deployment claim • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'scaling deployment claim'} • scaling deployment claim • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
+	{#if data?.selector != null}
+		{@const pageSelection = select(EntityType.ScalingDeploymentClaim, data.selector, {
+				sources: [data.selector.source],
+				fields: {
+					scalingDeploymentClaimId: true,
+				},
+			})}
+
 	<ScalingDeploymentClaimView
 		selection={pageSelection}
 	/>
+	{/if}
 </Page>
