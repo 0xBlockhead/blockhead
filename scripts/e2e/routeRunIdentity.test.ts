@@ -77,6 +77,14 @@ test('requires an exact, versioned result for every corpus example', () => {
 		runIdentity: identity,
 	}))
 	assert.throws(
+		() => assertRouteResultsArtifactCoherent({
+			artifact: { runIdentity: identity, corpusFingerprint: 'stale', results },
+			corpusTargets: targets,
+			runIdentity: identity,
+		}),
+		/results has incoherent corpus fingerprint/,
+	)
+	assert.throws(
 		() => assertRouteResultsCoherent({
 			corpusTargets: targets,
 			results: results.map((result, index) => index === 0 ? { ...result, exampleVersion: 'stale' } : result),
@@ -135,6 +143,16 @@ test('reports reject stale checkpoints and reports derived from another result s
 			reportName: 'gallery.html',
 		}),
 		/gallery.html has incoherent run identity/,
+	)
+	assert.throws(
+		() => assertRouteReportCoherent({
+			acceptedResults: results,
+			corpusTargets: targets,
+			report: { ...report, corpusFingerprint: 'stale' },
+			runIdentity: identity,
+			reportName: 'gallery.html',
+		}),
+		/gallery.html has incoherent corpus fingerprint/,
 	)
 	assert.throws(
 		() => assertRouteReportCoherent({
