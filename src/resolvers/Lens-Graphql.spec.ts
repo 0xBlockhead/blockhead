@@ -177,6 +177,7 @@ describe('Lens_Graphql reading relationships', () => {
 						[EntityMetaKey.Selector]: {
 							$post: { id: 'post-one' },
 							timestampMs: 1_750_000_000_000,
+							source: Source.Lens_Graphql,
 						},
 						[EntityMetaKey.Fields]: {
 							[entityFieldAddressKey(EntityType.LensPost_Timestamp, [], 'commentCount')]: 0,
@@ -316,6 +317,7 @@ describe('Lens_Graphql reading relationships', () => {
 							address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
 						},
 						timestampMs: 1_750_000_000_000,
+						source: Source.Lens_Graphql,
 					},
 					[EntityMetaKey.Fields]: {
 						[entityFieldAddressKey(EntityType.LensAccount_Timestamp, [], 'followerCount')]: 42,
@@ -464,6 +466,7 @@ describe('Lens_Graphql reading relationships', () => {
 							id: 'post-one',
 						},
 						timestampMs: 1_750_000_000_001,
+						source: Source.Lens_Graphql,
 					},
 					[EntityMetaKey.Fields]: {
 						[entityFieldAddressKey(EntityType.LensPost_Timestamp, [], 'commentCount')]: 3,

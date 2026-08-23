@@ -4,6 +4,7 @@ import { with0xHex, zeroExLowerCase } from '$/lib/hexLowerOfByteSize.ts'
 import { optionalNonemptyString } from '$/lib/string.ts'
 import { optionalTimestampMs } from '$/lib/time.ts'
 import { mediaFromUrl } from '$/resolvers/media.ts'
+import { defineObservationTimeWriter } from '$/resolvers/observationTimeWriter.ts'
 import {
 	EntityMetaKey,
 	entityFieldAddressKey,
@@ -33,6 +34,20 @@ const {
 	queryUsername,
 	queryUsernames,
 } = lensQueries
+
+const lensAccountTimestampWriter = defineObservationTimeWriter({
+	entityType: EntityType.LensAccount_Timestamp,
+	selectorName: 'LensAccountTimestampMs',
+	source: Source.Lens_Graphql,
+	provenance: 'LocalRefresh',
+})
+
+const lensPostTimestampWriter = defineObservationTimeWriter({
+	entityType: EntityType.LensPost_Timestamp,
+	selectorName: 'LensPostTimestampMs',
+	source: Source.Lens_Graphql,
+	provenance: 'LocalRefresh',
+})
 
 const lensPageContinuationFromToken = (token?: string) => {
 	if (token == null)
@@ -190,32 +205,30 @@ const lensPostTipTimestampReferenceFromWire = (
 				stats: post.stats,
 			})
 	)
-	return {
-		[EntityMetaKey.Selector]: {
-			$post: { id },
-			timestampMs: Date.now(),
-		},
-		[EntityMetaKey.Fields]: {
-			...(engagement.commentCount != null && {
-				[entityFieldAddressKey(EntityType.LensPost_Timestamp, [], 'commentCount')]: engagement.commentCount,
-			}),
-			...(engagement.repostCount != null && {
-				[entityFieldAddressKey(EntityType.LensPost_Timestamp, [], 'repostCount')]: engagement.repostCount,
-			}),
-			...(engagement.quoteCount != null && {
-				[entityFieldAddressKey(EntityType.LensPost_Timestamp, [], 'quoteCount')]: engagement.quoteCount,
-			}),
-			...(engagement.bookmarkCount != null && {
-				[entityFieldAddressKey(EntityType.LensPost_Timestamp, [], 'bookmarkCount')]: engagement.bookmarkCount,
-			}),
-			...(engagement.collectCount != null && {
-				[entityFieldAddressKey(EntityType.LensPost_Timestamp, [], 'collectCount')]: engagement.collectCount,
-			}),
-			...(engagement.reactionCount != null && {
-				[entityFieldAddressKey(EntityType.LensPost_Timestamp, [], 'reactionCount')]: engagement.reactionCount,
-			}),
-		},
-	}
+	return lensPostTimestampWriter.write({
+		$post: { id },
+		timestampMs: Date.now(),
+		source: Source.Lens_Graphql,
+	}, {
+		...(engagement.commentCount != null && {
+			[entityFieldAddressKey(EntityType.LensPost_Timestamp, [], 'commentCount')]: engagement.commentCount,
+		}),
+		...(engagement.repostCount != null && {
+			[entityFieldAddressKey(EntityType.LensPost_Timestamp, [], 'repostCount')]: engagement.repostCount,
+		}),
+		...(engagement.quoteCount != null && {
+			[entityFieldAddressKey(EntityType.LensPost_Timestamp, [], 'quoteCount')]: engagement.quoteCount,
+		}),
+		...(engagement.bookmarkCount != null && {
+			[entityFieldAddressKey(EntityType.LensPost_Timestamp, [], 'bookmarkCount')]: engagement.bookmarkCount,
+		}),
+		...(engagement.collectCount != null && {
+			[entityFieldAddressKey(EntityType.LensPost_Timestamp, [], 'collectCount')]: engagement.collectCount,
+		}),
+		...(engagement.reactionCount != null && {
+			[entityFieldAddressKey(EntityType.LensPost_Timestamp, [], 'reactionCount')]: engagement.reactionCount,
+		}),
+	})
 }
 
 const lensAccountTipTimestampReferenceFromWire = (
@@ -224,16 +237,14 @@ const lensAccountTipTimestampReferenceFromWire = (
 		followerCount: number
 		followingCount: number
 	}
-) => ({
-	[EntityMetaKey.Selector]: {
+) => lensAccountTimestampWriter.write({
 		$account: { address },
 		timestampMs: Date.now(),
-	},
-	[EntityMetaKey.Fields]: {
+		source: Source.Lens_Graphql,
+	}, {
 		[entityFieldAddressKey(EntityType.LensAccount_Timestamp, [], 'followerCount')]: stats.followerCount,
 		[entityFieldAddressKey(EntityType.LensAccount_Timestamp, [], 'followingCount')]: stats.followingCount,
-	},
-})
+	})
 
 const lensAccountAuthorReferenceFromWire = (
 	author:
@@ -606,12 +617,11 @@ const lensAccountFromWire = (
 			tipStats != null ?
 				lensAccountTipTimestampReferenceFromWire(address, tipStats)
 			:
-				{
-					[EntityMetaKey.Selector]: {
-						$account: { address },
-						timestampMs: Date.now(),
-					},
-				},
+				lensAccountTimestampWriter.write({
+					$account: { address },
+					timestampMs: Date.now(),
+					source: Source.Lens_Graphql,
+				}, {}),
 		],
 	}
 }
@@ -745,12 +755,11 @@ const lensGraphqlResolvers = {
 								$root: undefined,
 								$author: lensAccountAuthorReferenceFromWire(p.author),
 								$$timestamps: [
-									{
-										[EntityMetaKey.Selector]: {
-											$post: { id },
-											timestampMs: Date.now(),
-										},
-									},
+									lensPostTimestampWriter.write({
+										$post: { id },
+										timestampMs: Date.now(),
+										source: Source.Lens_Graphql,
+									}, {}),
 								],
 								...((postSlug) => (
 									postSlug != null && {
