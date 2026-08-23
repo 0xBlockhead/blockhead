@@ -15,13 +15,13 @@ const sha256 = (value: string | Uint8Array) => createHash('sha256').update(value
 export const controlledRetrySchemaVersion = 3
 
 export type ControlledRetryManifest = {
-	schemaVersion: typeof controlledRetrySchemaVersion
+	schemaVersion: number
 	ids: string[]
 	paths: string[]
 	commit: string
 	dirtyPatchHash: string | null
-	workers: 1
-	freshContextPerAttempt: true
+	workers: number
+	freshContextPerAttempt: boolean
 	attempts: number
 	runnerSha256: string | null
 	server: { url: string, buildIdentity: string, command?: string }
