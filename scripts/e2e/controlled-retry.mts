@@ -12,6 +12,11 @@ import {
 	routeCorpusTargetsFromPathnames,
 	type RouteRunIdentity,
 } from './routeRunIdentity.ts'
+import {
+	routeScreenshotQuality,
+	type RouteScreenshotQuality,
+	type RouteScreenshotQualityInput,
+} from '../../tests/_routeScreenshotQuality.ts'
 
 const execFileAsync = promisify(execFile)
 const sha256 = (value: string | Uint8Array) => createHash('sha256').update(value).digest('hex')
@@ -53,8 +58,23 @@ export type ControlledRetryAttempt = {
 	endedAt: string
 	runIdentity: RouteRunIdentity
 	artifacts: { screenshot: Artifact | null, trace: Artifact | null, diagnostics: Artifact }
+	runtimeDiagnostics: ControlledRetryRuntimeDiagnostics
+	classification: RouteScreenshotQuality
 	toolInputHash: string
 	toolOutputHash: string
+}
+
+export type ControlledRetryRuntimeDiagnostics = {
+	console: { type: string, text: string }[]
+	pageErrors: { message: string, stack?: string }[]
+	requestFailures: { url: string, method: string, failure: string | null, resourceType: string }[]
+	main: RouteScreenshotQualityInput & {
+		finalUrl: string
+		readyState: string
+		visible: boolean
+		textLength: number
+		contentMarkerCount: number
+	}
 }
 
 export type ControlledRetryRun = {
@@ -80,7 +100,7 @@ export type ControlledRetryRun = {
 export type CaptureContext = {
 	id: string
 	startTracing: () => Promise<void>
-	newPage: () => Promise<{ goto: (url: string) => Promise<void>, screenshot: (options: { path: string, fullPage: boolean }) => Promise<void>, content: () => Promise<string>, url: () => string, isMainVisible: () => Promise<boolean>, waitForTimeout: (milliseconds: number) => Promise<void>, close: () => Promise<void> }>
+	newPage: () => Promise<{ goto: (url: string) => Promise<void>, screenshot: (options: { path: string, fullPage: boolean }) => Promise<void>, content: () => Promise<string>, url: () => string, isMainVisible: () => Promise<boolean>, runtimeDiagnostics: () => Promise<ControlledRetryRuntimeDiagnostics>, waitForTimeout: (milliseconds: number) => Promise<void>, close: () => Promise<void> }>
 	stopTracing: (path: string) => Promise<void>
 	close: () => Promise<void>
 }
@@ -95,17 +115,60 @@ export const adaptCapturePage = (page: {
 	content: CapturePage['content']
 	url: CapturePage['url']
 	locator: (selector: string) => { isVisible: () => Promise<boolean> }
+	evaluate: (pageFunction: () => ControlledRetryRuntimeDiagnostics['main']) => Promise<ControlledRetryRuntimeDiagnostics['main']>
+	on: {
+		(event: 'console', listener: (message: { type: () => string, text: () => string }) => void): void
+		(event: 'pageerror', listener: (error: { message: string, stack?: string }) => void): void
+		(event: 'requestfailed', listener: (request: { url: () => string, method: () => string, failure: () => { errorText?: string } | null, resourceType: () => string }) => void): void
+	}
 	waitForTimeout: CapturePage['waitForTimeout']
 	close: CapturePage['close']
-}): CapturePage => ({
-	goto: (url) => page.goto(url),
-	screenshot: (options) => page.screenshot(options),
-	content: () => page.content(),
-	url: () => page.url(),
-	isMainVisible: () => page.locator('#main').isVisible(),
-	waitForTimeout: (milliseconds) => page.waitForTimeout(milliseconds),
-	close: () => page.close(),
-})
+}): CapturePage => {
+	const diagnostics: Omit<ControlledRetryRuntimeDiagnostics, 'main'> = { console: [], pageErrors: [], requestFailures: [] }
+	page.on('console', (message) => {
+		if (message.type() === 'error' || message.type() === 'warning')
+			diagnostics.console.push({ type: message.type(), text: message.text() })
+	})
+	page.on('pageerror', (error) => diagnostics.pageErrors.push({ message: error.message, stack: error.stack }))
+	page.on('requestfailed', (request) => diagnostics.requestFailures.push({
+		url: request.url(), method: request.method(), failure: request.failure()?.errorText ?? null, resourceType: request.resourceType(),
+	}))
+	return {
+		goto: (url) => page.goto(url),
+		screenshot: (options) => page.screenshot(options),
+		content: () => page.content(),
+		url: () => page.url(),
+		isMainVisible: () => page.locator('#main').isVisible(),
+		runtimeDiagnostics: async () => ({
+			...diagnostics,
+			main: await page.evaluate(() => {
+				const main = document.querySelector('#main')
+				const failed = main == null ? [] : [...main.querySelectorAll('[data-error], [role="alert"], [data-tag].inline-placeholder:not([aria-busy="true"])')]
+				const loading = main == null ? [] : [...main.querySelectorAll('.loading, [aria-busy="true"]')]
+				const mainText = main?.textContent?.replace(/\s+/g, ' ').trim() ?? ''
+				const contentMarkerCount = main?.querySelectorAll('section, dl, ul, ol, [data-card], h1, h2, h3, h4, h5, h6, table, pre, canvas').length ?? 0
+				const contentHeight = Math.ceil(Math.max(1, ...[...document.querySelectorAll<HTMLElement>('#main, #main *')].map((element) => element.getBoundingClientRect().bottom + scrollY)))
+				const documentElement = document.documentElement
+				const body = document.body
+				const carouselX = Math.max(0, ...[...document.querySelectorAll<HTMLElement>("#main [data-scroll-container~='layout-carousel']")].map((element) => element.scrollWidth - element.clientWidth))
+				return {
+					boundaryEvents: [...failed.map(() => ({ kind: 'dom-failed' }))],
+					contentHeight,
+					mainText,
+					overflow: { carouselX, pageX: Math.max(documentElement.scrollWidth, body.scrollWidth) - innerWidth, pageY: Math.max(documentElement.scrollHeight, body.scrollHeight) - innerHeight },
+					settled: { empty: failed.length === 0 && loading.length === 0 && contentMarkerCount === 0 && mainText.length < 24, failed: failed.map(() => ({})), loading: loading.map(() => ({})) },
+					finalUrl: location.href,
+					readyState: document.readyState,
+					visible: Boolean(main && getComputedStyle(main).display !== 'none' && getComputedStyle(main).visibility !== 'hidden'),
+					textLength: mainText.length,
+					contentMarkerCount,
+				} satisfies ControlledRetryRuntimeDiagnostics['main']
+			}),
+		}),
+		waitForTimeout: (milliseconds) => page.waitForTimeout(milliseconds),
+		close: () => page.close(),
+	}
+}
 
 const captureSettleTimeoutMs = 120_000
 const captureQuietMs = 2_000
@@ -195,6 +258,43 @@ const expectedKeys = (manifest: ControlledRetryManifest) => manifest.paths.flatM
 	Array.from({ length: manifest.attempts }, (_, index) => `${pathname}\u0000${index + 1}`)
 ))
 
+const emptyRuntimeDiagnostics = (): ControlledRetryRuntimeDiagnostics => ({
+	console: [],
+	pageErrors: [],
+	requestFailures: [],
+	main: {
+		boundaryEvents: [],
+		contentHeight: 0,
+		mainText: '',
+		overflow: { carouselX: 0, pageX: 0, pageY: 0 },
+		settled: { empty: true, failed: [], loading: [] },
+		finalUrl: '',
+		readyState: 'unavailable',
+		visible: false,
+		textLength: 0,
+		contentMarkerCount: 0,
+	},
+})
+
+const classifyRuntimeDiagnostics = (runtimeDiagnostics: ControlledRetryRuntimeDiagnostics) => {
+	const boundaryEvents = [
+		...runtimeDiagnostics.main.boundaryEvents,
+		...runtimeDiagnostics.console.filter(({ type }) => type === 'error').map(() => ({ kind: 'console-failed' })),
+		...runtimeDiagnostics.pageErrors.map(() => ({ kind: 'console-uncaught' })),
+	]
+	const input = { ...runtimeDiagnostics.main, boundaryEvents }
+	return {
+		runtimeDiagnostics: {
+		...runtimeDiagnostics,
+		console: [...runtimeDiagnostics.console].sort((left, right) => canonicalJson(left).localeCompare(canonicalJson(right))),
+		pageErrors: [...runtimeDiagnostics.pageErrors].sort((left, right) => canonicalJson(left).localeCompare(canonicalJson(right))),
+		requestFailures: [...runtimeDiagnostics.requestFailures].sort((left, right) => canonicalJson(left).localeCompare(canonicalJson(right))),
+		main: input,
+	},
+		classification: routeScreenshotQuality(input),
+	}
+}
+
 export const validateControlledRetryRun = ({ attempts, manifest, run }: {
 	attempts: readonly ControlledRetryAttempt[]
 	manifest: ControlledRetryManifest
@@ -216,6 +316,8 @@ export const validateControlledRetryRun = ({ attempts, manifest, run }: {
 	for (const attempt of attempts) {
 		if (attempt.runIdentity.commit !== run.runIdentity.commit || attempt.runIdentity.dirtyTreeFingerprint !== run.runIdentity.dirtyTreeFingerprint)
 			throw new Error('controlled retry attempt omitted coherent run provenance')
+		if (attempt.runtimeDiagnostics == null || attempt.classification == null)
+			throw new Error('controlled retry attempt omitted classifier evidence')
 		if (!attempt.artifacts.diagnostics.sha256 || (attempt.outcome === 'captured' && (attempt.artifacts.screenshot == null || attempt.artifacts.trace == null)))
 			throw new Error('controlled retry attempt omitted capture artifacts')
 	}
@@ -266,22 +368,29 @@ export const runControlledRetry = async ({ browser, manifest, outputDirectory, p
 		let screenshot: Artifact | null = null
 		let trace: Artifact | null = null
 		let detail = ''
+		let runtimeDiagnostics = emptyRuntimeDiagnostics()
+		let classification = routeScreenshotQuality(runtimeDiagnostics.main)
 		try {
 			await context.startTracing()
 			const page = await context.newPage()
 			try {
 				await page.goto(new URL(pathname, manifest.server.url).href)
 				await waitForCaptureQuality(page, pathname)
+				({ runtimeDiagnostics, classification } = classifyRuntimeDiagnostics(await page.runtimeDiagnostics()))
+				if (classification.failures.length > 0)
+					detail = `screenshot quality: ${classification.failures.join('; ')}`
 				const screenshotPath = join(outputDirectory, 'screenshots', `${stem}.png`)
 				await page.screenshot({ path: screenshotPath, fullPage: true })
 				screenshot = await artifact(screenshotPath)
 				const diagnosticPath = join(outputDirectory, 'diagnostics', `${stem}.html`)
 				await writeFile(diagnosticPath, await page.content())
 			} finally {
+				if (runtimeDiagnostics.main.finalUrl === '')
+					({ runtimeDiagnostics, classification } = classifyRuntimeDiagnostics(await page.runtimeDiagnostics().catch(() => emptyRuntimeDiagnostics())))
 				await page.close()
 			}
 		} catch (error) {
-			detail = error instanceof Error ? error.message : String(error)
+			detail ||= error instanceof Error ? error.message : String(error)
 		} finally {
 			const tracePath = join(outputDirectory, 'traces', `${stem}.zip`)
 			try { await context.stopTracing(tracePath); trace = await artifact(tracePath) } catch (error) { detail ||= error instanceof Error ? error.message : String(error) }
@@ -305,6 +414,8 @@ export const runControlledRetry = async ({ browser, manifest, outputDirectory, p
 			endedAt: new Date().toISOString(),
 			runIdentity,
 			artifacts: { screenshot, trace, diagnostics },
+			runtimeDiagnostics,
+			classification,
 			toolInputHash: manifestSha256,
 		} as const
 		const completed = { ...record, toolOutputHash: sha256(canonicalJson(record)) } satisfies ControlledRetryAttempt
