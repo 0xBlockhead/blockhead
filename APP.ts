@@ -115658,6 +115658,10 @@ export const app = {
 				path: "src/resolvers/Aave-Rest.ts",
 			},
 			{
+				source: Source.AcpLocal_JsonRpc,
+				path: "src/resolvers/AcpLocal-JsonRpc.ts",
+			},
+			{
 				source: Source.AcpRegistry_Rest,
 				path: "src/resolvers/AcpRegistry-Rest.ts",
 			},
