@@ -35,7 +35,7 @@
 				$network: data.selector,
 				marketKey: params.marketKey,
 				timeInterval: {
-					value: params.intervalValue,
+					value: Number(params.intervalValue),
 					unit: params.intervalUnit,
 				},
 				timestampMs: Number(params.timestampMs),

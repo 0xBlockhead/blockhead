@@ -783,6 +783,27 @@ const removeFreshRoot = (freshRoot: string) => {
 const baselineCompileStartedAt = performance.now()
 const baselineCompiledApp = compileApp(app)
 const baselineCompileElapsedMs = performance.now() - baselineCompileStartedAt
+
+test('decodes nested primitive route values only when their value-type members are compatible', () => {
+	const hyperliquidObservationPage = baselineCompiledApp.generatedFiles.find(({ path }) => (
+		path === 'src/routes/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/market/[marketKey=stringSegment]/interval/[intervalValue=nonNegativeInteger]/[intervalUnit=stringSegment]/observations/[timestampMs=nonNegativeInteger]/+page.svelte'
+	))
+	const evmPoolLayout = baselineCompiledApp.generatedFiles.find(({ path }) => (
+		path === 'src/routes/(assets)/pool/[chainId=eip155ChainId]/[poolId=stringSegment]/+layout.ts'
+	))
+
+	assert.ok(hyperliquidObservationPage)
+	assert.ok(evmPoolLayout)
+	const hyperliquidObservationSource = renderGeneratedFile(hyperliquidObservationPage)
+	const evmPoolSource = renderGeneratedFile(evmPoolLayout)
+	assert.match(
+		hyperliquidObservationSource,
+		/timeInterval: \{\s*value: Number\(params\.intervalValue\),\s*unit: params\.intervalUnit,\s*\}/
+	)
+	assert.match(evmPoolSource, /reference: params\.chainId,/)
+	assert.doesNotMatch(evmPoolSource, /reference: Number\(params\.chainId\)/)
+})
+
 const generatedFileByPath = new Map(baselineCompiledApp.generatedFiles.map((generatedFile) => [generatedFile.path, generatedFile]))
 const generatedSource = (filePath: string) => {
 	const generatedFile = generatedFileByPath.get(filePath)

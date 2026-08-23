@@ -2991,18 +2991,40 @@ const validateRouteParamDecode = (
 		throw new Error(`${owner} parameter ${paramName} decoder disagrees with normalized route metadata`)
 }
 
+const routeParamDecodeForValueTypeMember = (
+	decode: _ExpressionDecode | _RouteParamTransform | undefined,
+	valueTypeMember: ValueTypeType
+) => {
+	if (typeof decode !== 'string' || !('primitive' in valueTypeMember))
+		return undefined
+	if (
+		(decode === _ExpressionDecode.Number && valueTypeMember.primitive === 'number')
+		|| (decode === _ExpressionDecode.BigInt && valueTypeMember.primitive === 'bigint')
+		|| (decode === _ExpressionDecode.DecodeURIComponent && valueTypeMember.primitive === 'string')
+	)
+		return decode
+
+	return undefined
+}
+
 const normalizeRouteParamDecodes = (
 	expression: _Expression,
 	decodeByParam: ReadonlyMap<string, _ExpressionDecode | _RouteParamTransform | undefined>,
 	owner: string,
 	entityByType?: Readonly<Record<string, Entity>>,
 	valueTypeById?: Readonly<Record<string, ValueType>>,
-	expectedField?: EntityField
+	expectedField?: EntityField,
+	expectedValueTypeMember?: ValueTypeType
 ): _Expression => {
 	if (typeof expression === 'string' || 'raw' in expression)
 		return expression
 	if (expression.kind === 'param') {
-		const decode = expectedField?.type === EntityFieldType.Primitive && expectedField.valueType != null ?
+		const decode = expectedValueTypeMember != null ?
+			routeParamDecodeForValueTypeMember(
+				decodeByParam.get(expression.name),
+				expectedValueTypeMember
+			)
+		: expectedField?.type === EntityFieldType.Primitive && expectedField.valueType != null ?
 			valueTypeById?.[expectedField.valueType]?.routeParam?.decode
 		:
 			decodeByParam.get(expression.name)
@@ -3020,10 +3042,6 @@ const normalizeRouteParamDecodes = (
 		entityByType?.[expectedField.entityType]
 	:
 		undefined
-	const objectDecodeByParam = expression.kind === 'object' && expectedField?.type === EntityFieldType.Primitive ?
-		new Map<string, _ExpressionDecode | _RouteParamTransform | undefined>()
-	:
-		decodeByParam
 	return mapExpressionChildren(
 		expression.kind === 'selector' ? {
 			...expression,
@@ -3055,7 +3073,7 @@ const normalizeRouteParamDecodes = (
 		} : expression,
 		(child, role) => normalizeRouteParamDecodes(
 			child,
-			role[0] === 'objectField' ? objectDecodeByParam : decodeByParam,
+			decodeByParam,
 			owner,
 			entityByType,
 			valueTypeById,
@@ -3065,6 +3083,15 @@ const normalizeRouteParamDecodes = (
 				entityByType?.[role[1]]?.fields.find((field) => field.name === role[2])
 			: role[0] === 'caseResult' ?
 				expectedField
+			:
+				undefined,
+			role[0] === 'objectField'
+				&& expectedField?.type === EntityFieldType.Primitive
+				&& expectedField.valueType != null
+				&& 'object' in (valueTypeById?.[expectedField.valueType]?.type ?? {}) ?
+				valueTypeById?.[expectedField.valueType]?.type.object
+					.find((member) => member.name === role[1])
+					?.type
 			:
 				undefined
 		)

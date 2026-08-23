@@ -20,7 +20,7 @@
 		$market: data.selector,
 		timeInterval: {
 			unit: params.timeIntervalUnit,
-			value: params.timeIntervalValue,
+			value: Number(params.timeIntervalValue),
 		},
 		timestampMs: Number(params.timestampMs),
 	}))
