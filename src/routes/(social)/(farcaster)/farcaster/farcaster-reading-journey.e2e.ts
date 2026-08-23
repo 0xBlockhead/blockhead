@@ -44,7 +44,10 @@ const cast = {
 		name: 'Protocol',
 	},
 	embeds: [],
-	mentioned_profiles: [],
+	mentioned_profiles: [
+		{ fid: 303 },
+		{ fid: 404 },
+	],
 	mentioned_channels: [],
 }
 
@@ -307,6 +310,12 @@ test('feed, cast, author, channel, and replies form a canonical reading journey'
 	await expect(page.locator('#main')).toContainText('A deterministic Farcaster reading journey.')
 	await expect(page.locator('#main')).toContainText('A direct reply keeps the thread readable.')
 	await expect(page.locator('#main a[href="/farcaster/user/101"]')).toContainText('101')
+	const mentionedProfileFids = page.locator('#main dt', {
+		hasText: 'Mentioned profile FIDs',
+	})
+	await expect(mentionedProfileFids).toHaveCount(1)
+	await expect(mentionedProfileFids).toBeVisible()
+	await expect(mentionedProfileFids.locator('+ dd')).toHaveText('303, 404')
 	await expect(page.locator('#main dt', {
 		hasText: 'Channel',
 	})).toBeAttached()
