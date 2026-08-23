@@ -25,6 +25,7 @@ import type {
 	ClientProbe as BlockheadClientProbe,
 	PersistenceTraceEvent,
 } from './e2e/$e2eProbe.ts'
+import { waitForBoundarySettlement } from '../scripts/e2e/boundarySettlement.ts'
 
 export { e2eBrowserNewContextOptions } from '../playwright.env.ts'
 
@@ -756,95 +757,31 @@ export const waitForBoundarySettle = async (
 		semanticReadiness?: MainSemanticReadiness
 	} = {}
 ) => {
-	const deadline = Date.now() + timeoutMs
-	let lastSignature = ''
-	let quietSince = Date.now()
-	let semanticSnapshot: MainSemanticReadinessSnapshot = {
-		ready: true,
-		unmet: [],
-		signature: '',
-	}
-	const withProbeTimeout = async <
-		const _Value,
-	>(
-		label: string,
-		promise: Promise<_Value>
-	) => (
-		Promise.race([
-			promise,
-			new Promise<never>((_resolve, reject) => {
-				setTimeout(() => {
-					reject(new Error(`${label} timed out`))
-				}, probeTimeoutMs)
-			}),
-		])
-	)
-
-	while (Date.now() < deadline) {
-		let snapshot: BoundaryMainSnapshot
-		try {
-			snapshot = await withProbeTimeout('snapshotBoundaryMain', snapshotBoundaryMain(page))
-		}
-		catch {
-			return {
-				failed: [],
-				loading: [],
-				empty: true,
-				emptyReason: page.isClosed() ? 'page-closed' : 'probe-evaluate-timeout',
-				textLength: 0,
-				contentMarkerCount: 0,
-			}
-		}
-		const eventCount = await withProbeTimeout('getBoundaryProbeEventCount', getBoundaryProbeEventCount(page))
-			.catch(() => -1)
-		semanticSnapshot = semanticReadiness == null ?
-			semanticSnapshot
-		:
-			await withProbeTimeout(
-				'snapshotMainSemanticReadiness',
-				snapshotMainSemanticReadiness(page, semanticReadiness)
-			).catch(() => ({
-				ready: false,
-				unmet: ['semantic-probe-timeout'],
-				signature: 'semantic-probe-timeout',
-			}))
-		const signature = JSON.stringify({
-			loading: snapshot.loading.length,
-			failed: snapshot.failed.length,
-			events: eventCount,
-			semantics: semanticSnapshot.signature,
-		})
-
-		if (
-			signature === lastSignature
-			&& snapshot.loading.length === 0
-			&& semanticSnapshot.ready
-		) {
-			if (Date.now() - quietSince >= quietMs)
-				return snapshot
-		}
-		else {
-			lastSignature = signature
-			quietSince = Date.now()
-		}
-
-		await page.waitForTimeout(250)
-	}
-
-	const snapshot = await withProbeTimeout('snapshotBoundaryMain', snapshotBoundaryMain(page))
-		.catch(() => ({
-			failed: [],
-			loading: [],
+	const result = await waitForBoundarySettlement({
+		snapshot: async () => {
+			const snapshot = await snapshotBoundaryMain(page)
+			return { ...snapshot, loading: snapshot.loading.length, failed: snapshot.failed.length, reason: snapshot.emptyReason ?? 'ready' }
+		},
+		events: () => getBoundaryProbeEventCount(page),
+		semantic: semanticReadiness == null ? undefined : () => snapshotMainSemanticReadiness(page, semanticReadiness),
+		wait: (milliseconds) => page.waitForTimeout(milliseconds),
+		isClosed: () => page.isClosed(),
+		probeTimeoutMs,
+	}, { timeoutMs, quietMs })
+	const snapshot = result.settled ? await snapshotBoundaryMain(page).catch(() => ({
+		failed: [],
+		loading: [],
 			empty: true,
 			emptyReason: page.isClosed() ? 'page-closed' : 'probe-evaluate-timeout',
 			textLength: 0,
-			contentMarkerCount: 0,
-		}))
-	if (!semanticSnapshot.ready)
+		contentMarkerCount: 0,
+	})) : await snapshotBoundaryMain(page).catch(() => ({
+		failed: [], loading: [], empty: true, emptyReason: result.reason, textLength: 0, contentMarkerCount: 0,
+	}))
+	if (result.semantic?.ready === false)
 		return {
 			...snapshot,
-			empty: true,
-			emptyReason: `semantic-readiness-timeout:${semanticSnapshot.unmet.join(',')}`,
+			empty: true, emptyReason: `semantic-readiness-timeout:${result.semantic.unmet?.join(',') ?? 'unknown'}`,
 		}
 
 	return snapshot

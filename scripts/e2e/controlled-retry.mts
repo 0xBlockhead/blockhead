@@ -17,6 +17,7 @@ import {
 	type RouteScreenshotQuality,
 	type RouteScreenshotQualityInput,
 } from '../../tests/_routeScreenshotQuality.ts'
+import { installBoundaryProbe, snapshotBoundary, waitForBoundarySettlement } from './boundarySettlement.ts'
 
 const execFileAsync = promisify(execFile)
 const sha256 = (value: string | Uint8Array) => createHash('sha256').update(value).digest('hex')
@@ -102,7 +103,7 @@ export type ControlledRetryRun = {
 export type CaptureContext = {
 	id: string
 	startTracing: () => Promise<void>
-	newPage: () => Promise<{ goto: (url: string) => Promise<void>, screenshot: (options: { path: string, fullPage: boolean }) => Promise<void>, content: () => Promise<string>, url: () => string, isMainVisible: () => Promise<boolean>, runtimeDiagnostics: () => Promise<ControlledRetryRuntimeDiagnostics>, waitForTimeout: (milliseconds: number) => Promise<void>, close: () => Promise<void> }>
+	newPage: () => Promise<{ goto: (url: string) => Promise<void>, screenshot: (options: { path: string, fullPage: boolean }) => Promise<void>, content: () => Promise<string>, url: () => string, isMainVisible: () => Promise<boolean>, runtimeDiagnostics: () => Promise<ControlledRetryRuntimeDiagnostics>, boundarySnapshot?: () => Promise<{ loading: number, failed: number, empty: boolean, reason: string }>, boundaryEvents?: () => Promise<number>, waitForTimeout: (milliseconds: number) => Promise<void>, close: () => Promise<void> }>
 	stopTracing: (path: string) => Promise<void>
 	close: () => Promise<void>
 }
@@ -117,7 +118,8 @@ export const adaptCapturePage = (page: {
 	content: CapturePage['content']
 	url: CapturePage['url']
 	locator: (selector: string) => { isVisible: () => Promise<boolean> }
-	evaluate: (pageFunction: () => ControlledRetryRuntimeDiagnostics['main']) => Promise<ControlledRetryRuntimeDiagnostics['main']>
+	evaluate: <T>(pageFunction: () => T) => Promise<T>
+	addInitScript?: (script: () => void) => Promise<void>
 	on: {
 		(event: 'console', listener: (message: { type: () => string, text: () => string }) => void): void
 		(event: 'pageerror', listener: (error: { message: string, stack?: string }) => void): void
@@ -167,6 +169,8 @@ export const adaptCapturePage = (page: {
 				} satisfies ControlledRetryRuntimeDiagnostics['main']
 			}),
 		}),
+		boundarySnapshot: () => page.evaluate == null ? Promise.resolve({ loading: 0, failed: 0, empty: true, reason: 'probe-unavailable' }) : snapshotBoundary(page),
+		boundaryEvents: () => page.evaluate?.(() => (globalThis as { __blockheadBoundaryProbe?: unknown[] }).__blockheadBoundaryProbe?.length ?? 0) ?? Promise.resolve(0),
 		waitForTimeout: (milliseconds) => page.waitForTimeout(milliseconds),
 		close: () => page.close(),
 	}
@@ -179,37 +183,21 @@ export const waitForCaptureQuality = async (page: CapturePage, pathname: string,
 	timeoutMs = captureSettleTimeoutMs,
 	quietMs = captureQuietMs,
 }: { timeoutMs?: number, quietMs?: number } = {}) => {
-	const deadline = Date.now() + timeoutMs
-	let lastSignature = ''
-	let quietSince = Date.now()
-	let lastReason = 'bootstrap-shell'
-	while (Date.now() < deadline) {
-		const runtimeDiagnostics = await page.runtimeDiagnostics()
-		const main = runtimeDiagnostics.main
-		if (main.readyState === 'complete' && main.visible) {
-			const signature = canonicalJson(main)
-			lastReason = `#main-text-length=${main.textLength}`
-			if (signature === lastSignature) {
-				if (Date.now() - quietSince >= quietMs) {
-					const finalUrl = new URL(main.finalUrl)
-					if (finalUrl.pathname !== pathname)
-						throw new Error(`capture canonical route mismatch: expected ${pathname}, received ${finalUrl.pathname}`)
-					return
-				}
-			}
-			else {
-				lastSignature = signature
-				quietSince = Date.now()
-			}
-		}
-		else {
-			lastReason = main.readyState === 'complete' ? 'no-visible-#main' : `document-${main.readyState}`
-			lastSignature = ''
-			quietSince = Date.now()
-		}
-		await page.waitForTimeout(250)
-	}
-	throw new Error(`capture settlement timed out: ${lastReason}`)
+	const settled = await waitForBoundarySettlement({
+		snapshot: async () => {
+			const diagnostics = await page.runtimeDiagnostics()
+			const main = diagnostics.main
+			const probe = await (page.boundarySnapshot?.() ?? Promise.resolve({ loading: 0, failed: 0, empty: false, reason: '#main-ready' }))
+			return { ...probe, loading: Math.max(probe.loading, main.settled.loading.length), failed: Math.max(probe.failed, main.settled.failed.length), empty: probe.empty || main.readyState !== 'complete' || !main.visible, reason: main.readyState === 'complete' ? `#main-text-length=${main.textLength}` : `document-${main.readyState}` }
+		},
+		events: () => page.boundaryEvents?.() ?? page.runtimeDiagnostics().then(({ main }) => main.boundaryEvents.length),
+		wait: page.waitForTimeout,
+	}, { timeoutMs, quietMs })
+	if (!settled.settled || settled.empty || settled.loading > 0 || settled.failed > 0)
+		throw new Error(`capture settlement timed out: ${settled.reason}`)
+	const finalUrl = new URL((await page.runtimeDiagnostics()).main.finalUrl)
+	if (finalUrl.pathname !== pathname)
+		throw new Error(`capture canonical route mismatch: expected ${pathname}, received ${finalUrl.pathname}`)
 }
 
 const git = async (productRoot: string, ...args: string[]) => (
@@ -512,7 +500,11 @@ if (process.argv[1]?.endsWith('controlled-retry.mts')) {
 					return {
 						id: crypto.randomUUID(),
 						startTracing: () => context.tracing.start({ screenshots: true, snapshots: true, sources: true }),
-						newPage: async () => adaptCapturePage(await context.newPage()),
+						newPage: async () => {
+							const page = await context.newPage()
+							await installBoundaryProbe(page)
+							return adaptCapturePage(page)
+						},
 						stopTracing: (path) => context.tracing.stop({ path }),
 						close: () => context.close(),
 					}
