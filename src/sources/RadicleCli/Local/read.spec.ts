@@ -32,4 +32,14 @@ describe('Radicle CLI local read boundary', () => {
 			})),
 		})).rejects.toThrow('invalid rad inspect repository payload')
 	})
+
+	it.each([
+		['malformed JSON', '{'],
+		['private repositories', JSON.stringify({ rid: repositoryId, visibility: 'private', git: { repositoryId: 'abc123', objectFormat: 'sha1' } })],
+		['incomplete Git identity', JSON.stringify({ rid: repositoryId, visibility: 'public', git: { repositoryId: '', objectFormat: 'sha1' } })],
+	])('rejects %s payloads', async (_label, payload) => {
+		await expect(readRadicleRepository(repositoryId, {
+			read: vi.fn().mockResolvedValue(payload),
+		})).rejects.toThrow('invalid rad inspect repository payload')
+	})
 })

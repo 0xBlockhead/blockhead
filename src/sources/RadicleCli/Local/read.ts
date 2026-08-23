@@ -6,15 +6,21 @@ export const readRadicleRepository = async (
 	repositoryId: string,
 	adapter: RadicleCliPlatformAdapter
 ): Promise<RadicleRepositoryRead> => {
-	const payload = JSON.parse(await adapter.read(inspectRepositoryPayload(repositoryId))) as JsonValue
+	let payload: JsonValue
+	try {
+		payload = JSON.parse(await adapter.read(inspectRepositoryPayload(repositoryId))) as JsonValue
+	} catch {
+		throw new Error('RadicleCli_Local: invalid rad inspect repository payload')
+	}
 	if (!isJsonObject(payload))
 		throw new Error('RadicleCli_Local: rad inspect payload was not an object')
 	const git = isJsonObject(payload.git) ? payload.git : undefined
 	if (
 		payload.rid !== repositoryId
-		|| (payload.visibility !== 'public' && payload.visibility !== 'private')
+		|| payload.visibility !== 'public'
 		|| git == null
 		|| !isJsonString(git.repositoryId)
+		|| git.repositoryId.length === 0
 		|| (git.objectFormat !== 'sha1' && git.objectFormat !== 'sha256')
 	)
 		throw new Error('RadicleCli_Local: invalid rad inspect repository payload')

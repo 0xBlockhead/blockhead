@@ -15,3 +15,7 @@ export type RadicleRepositoryRead = {
 export type RadicleCliPlatformAdapter = {
 	read: (command: RadicleCliCommand) => Promise<string>
 }
+
+export type RadicleCliSession = {
+	readRepository: (repositoryId: string) => Promise<RadicleRepositoryRead>
+}
