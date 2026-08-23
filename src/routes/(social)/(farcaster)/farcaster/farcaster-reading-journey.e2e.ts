@@ -20,7 +20,13 @@ const replyHash = '0x2222222222222222222222222222222222222222'
 const proxyPath = (binding: SourceBinding) => `/api-proxy/${sourceBindingId(binding)}/`
 
 const author = {
+	active_status: 'active',
+	auth_addresses: [],
+	custody_address: '0x0000000000000000000000000000000000000000',
 	fid: 101,
+	follower_count: 0,
+	following_count: 0,
+	object: 'user',
 	username: 'protocol-reader',
 	display_name: 'Protocol Reader',
 	profile: {
@@ -30,8 +36,14 @@ const author = {
 	},
 	verified_addresses: {
 		eth_addresses: [],
+		primary: {
+			eth_address: null,
+			sol_address: null,
+		},
 		sol_addresses: [],
 	},
+	verifications: [],
+	verified_accounts: [],
 }
 
 const cast = {
@@ -44,25 +56,72 @@ const cast = {
 		name: 'Protocol',
 	},
 	embeds: [],
+	object: 'cast',
+	parent_author: { fid: null },
+	parent_hash: null,
+	parent_url: null,
 	mentioned_profiles: [
 		{ fid: 303 },
 		{ fid: 404 },
 	],
+	mentioned_profiles_ranges: [],
 	mentioned_channels: [],
+	mentioned_channels_ranges: [],
+	reactions: {
+		likes: [],
+		likes_count: 0,
+		recasts: [],
+		recasts_count: 0,
+	},
+	replies: { count: 1 },
+	root_parent_url: null,
+	thread_hash: null,
 }
 
 const reply = {
 	hash: replyHash,
 	author: {
+		active_status: 'active',
+		auth_addresses: [],
+		custody_address: '0x0000000000000000000000000000000000000000',
 		fid: 202,
+		follower_count: 0,
+		following_count: 0,
+		object: 'user',
 		username: 'reply-reader',
 		display_name: 'Reply Reader',
+		profile: { bio: { text: '' } },
+		verified_addresses: {
+			eth_addresses: [],
+			primary: {
+				eth_address: null,
+				sol_address: null,
+			},
+			sol_addresses: [],
+		},
+		verifications: [],
+		verified_accounts: [],
 	},
 	text: 'A direct reply keeps the thread readable.',
 	timestamp: '2026-07-20T12:01:00.000Z',
 	embeds: [],
+	object: 'cast',
+	parent_author: { fid: author.fid },
+	parent_hash: castHash,
+	parent_url: null,
 	mentioned_profiles: [],
+	mentioned_profiles_ranges: [],
 	mentioned_channels: [],
+	mentioned_channels_ranges: [],
+	reactions: {
+		likes: [],
+		likes_count: 0,
+		recasts: [],
+		recasts_count: 0,
+	},
+	replies: { count: 0 },
+	root_parent_url: null,
+	thread_hash: castHash,
 }
 
 
@@ -90,7 +149,20 @@ test('feed, cast, author, channel, and replies form a canonical reading journey'
 	await installChainlistRpcsJsonStub(page)
 	await page.route('**/*', async (route) => {
 		const sourceUrl = decodeURIComponent(route.request().url())
-		if (sourceUrl.includes(proxyPath(farcasterBindings[Source.Farcaster_Rest]))) {
+		if (farcasterBindings[Source.Farcaster_Rest].some((binding) => (
+			sourceUrl.includes(proxyPath(binding))
+		))) {
+			if (sourceUrl.includes('/v1/user-following-channels')) {
+				await route.fulfill({
+					json: {
+						result: {
+							channels: [],
+						},
+					},
+				})
+				return
+			}
+
 			if (sourceUrl.includes('/v1/channel-followers')) {
 				await route.fulfill({
 					json: {
@@ -140,7 +212,7 @@ test('feed, cast, author, channel, and replies form a canonical reading journey'
 					result: {
 						casts: [
 							{
-								hash: cast.hash,
+								hash: new URL(sourceUrl).searchParams.get('castHashPrefix') ?? cast.hash,
 								author: {
 									fid: cast.author.fid,
 									username: cast.author.username,
@@ -276,6 +348,34 @@ test('feed, cast, author, channel, and replies form a canonical reading journey'
 			return
 		}
 
+		if (sourceUrl.includes('/v2/farcaster/channel/?')) {
+			await route.fulfill({
+				json: {
+					channel: {
+						created_at: '2026-07-15T00:00:00.000Z',
+						follower_count: 0,
+						id: 'protocol',
+						member_count: 0,
+						name: 'Protocol',
+						object: 'channel',
+						parent_url: 'https://warpcast.com/~/channel/protocol',
+						url: 'https://warpcast.com/~/channel/protocol',
+					},
+				},
+			})
+			return
+		}
+
+		if (sourceUrl.includes('/v2/farcaster/user/channels/')) {
+			await route.fulfill({
+				json: {
+					channels: [],
+					next: { cursor: null },
+				},
+			})
+			return
+		}
+
 		if (sourceUrl.includes('/v2/farcaster/user/bulk/')) {
 			await route.fulfill({
 				json: {
@@ -347,7 +447,9 @@ test('feed, cast, author, channel, and replies form a canonical reading journey'
 	await expect(page.locator('#main')).toContainText(reply.text)
 	await expect(page.locator(`#main a[href="/farcaster/user/${author.fid}"]`)).toBeAttached()
 	await expect(page.locator('#main a[href="/farcaster/channel/protocol"]')).toBeAttached()
-	await expect(page.locator(`#main dt:has-text("Client URL") + dd a[href="https://warpcast.com/${author.username}/${castHash}"]`)).toBeAttached()
+	await expect(page.locator('#main').getByRole('button', {
+		name: `https://warpcast.com/${author.username}/${castHash}`,
+	})).toBeAttached()
 	await expect(page.locator('#main [data-error], #main [role="alert"]')).toHaveCount(0)
 
 	expect(farcasterProxyRequests.some((url) => url.includes('/~api/v2/user-thread-casts'))).toBe(true)
