@@ -4,18 +4,14 @@ import { basename, join, resolve } from 'node:path'
 import { execFile, spawn, type ChildProcess } from 'node:child_process'
 import { promisify } from 'node:util'
 
-import { createRouteRunIdentity, type RouteRunIdentity } from './routeRunIdentity.ts'
+import {
+	canonicalJson,
+	createRouteRunIdentity,
+	type RouteRunIdentity,
+} from './routeRunIdentity.ts'
 
 const execFileAsync = promisify(execFile)
 const sha256 = (value: string | Uint8Array) => createHash('sha256').update(value).digest('hex')
-const canonicalJson = (value: unknown): string => {
-	if (value === null || typeof value !== 'object')
-		return JSON.stringify(value) ?? 'undefined'
-	if (Array.isArray(value))
-		return `[${value.map(canonicalJson).join(',')}]`
-	return `{${Object.entries(value).sort(([left], [right]) => left.localeCompare(right)).map(([key, entry]) => `${JSON.stringify(key)}:${canonicalJson(entry)}`).join(',')}}`
-}
-
 export const controlledRetrySchemaVersion = 3
 
 export type ControlledRetryManifest = {
@@ -250,7 +246,10 @@ export const runControlledRetry = async ({ browser, manifest, outputDirectory, p
 	return run
 }
 
-const parseManifest = async (path: string): Promise<ControlledRetryManifest> => JSON.parse(await readFile(path, 'utf8')) as ControlledRetryManifest
+const parseManifest = async (path: string): Promise<ControlledRetryManifest> => {
+	const manifest: ControlledRetryManifest = JSON.parse(await readFile(path, 'utf8'))
+	return manifest
+}
 const argument = (name: string) => {
 	const index = process.argv.indexOf(name)
 	return index === -1 ? undefined : process.argv[index + 1]
