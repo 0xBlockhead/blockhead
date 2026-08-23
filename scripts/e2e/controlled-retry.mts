@@ -15,7 +15,7 @@ import {
 
 const execFileAsync = promisify(execFile)
 const sha256 = (value: string | Uint8Array) => createHash('sha256').update(value).digest('hex')
-export const controlledRetrySchemaVersion = 3
+export const controlledRetrySchemaVersion = 4
 
 export type ControlledRetryManifest = {
 	schemaVersion: number
@@ -27,7 +27,14 @@ export type ControlledRetryManifest = {
 	freshContextPerAttempt: boolean
 	attempts: number
 	runnerSha256: string | null
-	server: { url: string, buildIdentity: string, command?: string }
+	server: {
+		url: string
+		buildIdentity: string
+		command?: {
+			executable: string
+			arguments: string[]
+		}
+	}
 	corpusVersion: string
 	classifierVersion: string
 }
@@ -276,7 +283,11 @@ const argument = (name: string) => {
 const startPinnedServer = async (manifest: ControlledRetryManifest, productRoot: string): Promise<ChildProcess | null> => {
 	if (manifest.server.command == null)
 		return null
-	const server = spawn(manifest.server.command, { cwd: productRoot, shell: true, stdio: 'inherit' })
+	const server = spawn(
+		manifest.server.command.executable,
+		manifest.server.command.arguments,
+		{ cwd: productRoot, stdio: 'inherit' }
+	)
 	const deadline = Date.now() + 60_000
 	while (Date.now() < deadline) {
 		try {
@@ -288,6 +299,18 @@ const startPinnedServer = async (manifest: ControlledRetryManifest, productRoot:
 	}
 	server.kill('SIGTERM')
 	throw new Error(`pinned product server did not become ready: ${manifest.server.url}`)
+}
+
+const stopPinnedServer = async (server: ChildProcess | null) => {
+	if (server == null || server.exitCode !== null)
+		return
+	server.kill('SIGTERM')
+	await Promise.race([
+		new Promise<void>((resolveExit) => server.once('exit', () => resolveExit())),
+		new Promise<void>((resolveTimeout) => setTimeout(resolveTimeout, 5_000)),
+	])
+	if (server.exitCode === null)
+		server.kill('SIGKILL')
 }
 
 if (process.argv[1]?.endsWith('controlled-retry.mts')) {
@@ -322,6 +345,6 @@ if (process.argv[1]?.endsWith('controlled-retry.mts')) {
 			productRoot: resolvedProductRoot,
 		})
 	} finally {
-		server?.kill('SIGTERM')
+		await stopPinnedServer(server)
 	}
 }

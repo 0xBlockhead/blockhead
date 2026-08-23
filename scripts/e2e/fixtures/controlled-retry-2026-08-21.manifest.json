@@ -1,5 +1,5 @@
 {
-	"schemaVersion": 3,
+	"schemaVersion": 4,
 	"ids": [
 		"ATOMIC-GAP-0089",
 		"ATOMIC-GAP-0122",
@@ -51,7 +51,17 @@
 	"server": {
 		"url": "http://127.0.0.1:44763/",
 		"buildIdentity": "vite-development-server",
-		"command": "pnpm run dev -- --host 127.0.0.1 --port 44763"
+		"command": {
+			"executable": "node",
+			"arguments": [
+				"node_modules/vite/bin/vite.js",
+				"dev",
+				"--host",
+				"127.0.0.1",
+				"--port",
+				"44763"
+			]
+		}
 	},
 	"corpusVersion": "controlled-retry-2026-08-21",
 	"classifierVersion": "route-screenshot-quality/v1"
