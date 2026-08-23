@@ -6125,6 +6125,64 @@ test('retracts stale Hyperliquid orderbook and arbitrary timestamp page surfaces
 	)
 })
 
+test('retracts non-executable BNB Beacon observation routes while retaining their parents', () => {
+	const retractedSelectors = [
+		[EntityType.BnbBeaconToken_Timestamp, 'TokenTimestampMsSource'],
+		[EntityType.BnbBeaconTokenMigration_Timestamp, 'MigrationTimestampMsSource'],
+		[EntityType.BnbValidator_Timestamp, 'ValidatorTimestampMsSource'],
+	] as const
+	const retractedRoutePaths = [
+		'src/routes/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(bnb-beacon)/bnb-beacon/token/[symbol=stringSegment]/(bnbBeaconToken)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]/+page.svelte',
+		'src/routes/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(bnb-beacon)/bnb-beacon/token/[symbol=stringSegment]/(bnbBeaconToken)/migration/[targetNetwork=networkSlug]/[targetAddress=stringSegment]/(bnbBeaconTokenMigration)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]/+page.svelte',
+		'src/routes/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(bnb-beacon)/bnb-beacon/validator/[operatorAddress=stringSegment]/(bnbValidator)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]/+page.svelte',
+	] as const
+	const retainedRoutePaths = [
+		'src/routes/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(bnb-beacon)/bnb-beacon/token/[symbol=stringSegment]/+page.svelte',
+		'src/routes/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(bnb-beacon)/bnb-beacon/token/[symbol=stringSegment]/(bnbBeaconToken)/migration/[targetNetwork=networkSlug]/[targetAddress=stringSegment]/+page.svelte',
+		'src/routes/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(bnb-beacon)/bnb-beacon/validator/[operatorAddress=stringSegment]/+page.svelte',
+		'src/routes/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(bnb-beacon)/bnb-beacon/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]/+page.svelte',
+	] as const
+	const routes = [app.routes]
+	const mappings: {
+		entityType: string
+		page: boolean | object | undefined
+		selectorName: string
+	}[] = []
+
+	for (const route of routes) {
+		for (const [entityType, selectors] of Object.entries(route.selectors ?? {}))
+			for (const [selectorName, mapping] of Object.entries(selectors))
+				if (retractedSelectors.some((selector) => selector[0] === entityType && selector[1] === selectorName))
+					mappings.push({
+						entityType,
+						page: mapping.page,
+						selectorName,
+					})
+
+		routes.push(...Object.values(route.children ?? {}))
+	}
+
+	assert.deepEqual(
+		mappings.toSorted((left, right) => left.entityType.localeCompare(right.entityType, 'en')),
+		retractedSelectors.map(([entityType, selectorName]) => ({
+			entityType,
+			page: false,
+			selectorName,
+		})).toSorted((left, right) => left.entityType.localeCompare(right.entityType, 'en'))
+	)
+	for (const routePath of retractedRoutePaths)
+		assert.equal(baselineCompiledApp.generatedFiles.some(({ path }) => path === routePath), false, routePath)
+	for (const routePath of retainedRoutePaths)
+		assert.equal(baselineCompiledApp.generatedFiles.some(({ path }) => path === routePath), true, routePath)
+
+	const routeFixtures = baselineCompiledApp.generatedFiles.find(({ path }) => path === 'tests/e2e/_generatedRouteFixtureMetadata.ts')
+
+	assert.ok(routeFixtures)
+	for (const [entityType, selectorName] of retractedSelectors)
+		assert.doesNotMatch(renderGeneratedFile(routeFixtures), new RegExp(`${entityType}\\.${selectorName}`))
+	assert.match(renderGeneratedFile(routeFixtures), /BnbBeaconNetwork_Timestamp\.NetworkTimestampMsSource/)
+})
+
 test('keeps social observations parent-materialized without direct timestamp products', () => {
 	const targets = [
 		[EntityType._GlobalActivityPubNetwork_Timestamp, 'HubTimestampMsSource'],

@@ -2,10 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -16,13 +14,11 @@
 	let {
 		selection,
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.BnbBeaconTokenMigration_Timestamp>, 'prefetched'> = $props()
 
-	const migration = $derived(selection.entitySelector.$migration)
 	const bnbBeaconTokenMigrationTimestamp = $derived(selection({
 		fields: {
 			status: true,
@@ -41,32 +37,6 @@
 	entityType={EntityType.BnbBeaconTokenMigration_Timestamp}
 	entitySelector={selection.entitySelector}
 	title={title ?? String(selection.entitySelector.timestampMs)}
-	href={
-		href === undefined ?
-			(
-				'slug' in migration.$targetNetwork ?
-					resolve(
-						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(bnb-beacon)/bnb-beacon/token/[symbol=stringSegment]/(bnbBeaconToken)/migration/[targetNetwork=networkSlug]/[targetAddress=stringSegment]/(bnbBeaconTokenMigration)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-						{
-							network: (
-								'caip2' in migration.$token.$network.$network ?
-									caip2StringFromValue(migration.$token.$network.$network.caip2)
-								:
-									migration.$token.$network.$network.slug
-							),
-							symbol: migration.$token.symbol,
-							targetNetwork: migration.$targetNetwork.slug,
-							targetAddress: migration.targetAddress,
-							timestampMs: String(selection.entitySelector.timestampMs),
-							source: selection.entitySelector.source,
-						}
-					)
-				:
-					undefined
-			)
-		:
-			href ?? undefined
-	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

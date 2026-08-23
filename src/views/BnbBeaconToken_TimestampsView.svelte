@@ -2,11 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// State
@@ -40,26 +38,9 @@
 >
 	{#snippet Item({ item: bnbBeaconTokenTimestamp })}
 		{@const bnbBeaconTokenTimestampSelector = bnbBeaconTokenTimestamp[EntityMetaKey.Selector]}
-		{@const token = bnbBeaconTokenTimestampSelector.$token}
 		<EntityView
 			entityType={EntityType.BnbBeaconToken_Timestamp}
 			entitySelector={bnbBeaconTokenTimestampSelector}
-			href={
-				resolve(
-					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(bnb-beacon)/bnb-beacon/token/[symbol=stringSegment]/(bnbBeaconToken)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-					{
-						network: (
-							'caip2' in token.$network.$network ?
-								caip2StringFromValue(token.$network.$network.caip2)
-							:
-								token.$network.$network.slug
-						),
-						symbol: token.symbol,
-						timestampMs: String(bnbBeaconTokenTimestampSelector.timestampMs),
-						source: bnbBeaconTokenTimestampSelector.source,
-					}
-				)
-			}
 		>
 			{#snippet Title()}
 				{bnbBeaconTokenTimestampSelector.timestampMs}

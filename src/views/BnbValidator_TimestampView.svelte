@@ -2,10 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -16,13 +14,11 @@
 	let {
 		selection,
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.BnbValidator_Timestamp>, 'prefetched'> = $props()
 
-	const validator = $derived(selection.entitySelector.$validator)
 	const bnbValidatorTimestamp = $derived(selection({
 		fields: {
 			status: true,
@@ -43,25 +39,6 @@
 	entityType={EntityType.BnbValidator_Timestamp}
 	entitySelector={selection.entitySelector}
 	title={title ?? String(selection.entitySelector.timestampMs)}
-	href={
-		href === undefined ?
-			resolve(
-				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(bnb-beacon)/bnb-beacon/validator/[operatorAddress=stringSegment]/(bnbValidator)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-				{
-					network: (
-						'caip2' in validator.$network.$network ?
-							caip2StringFromValue(validator.$network.$network.caip2)
-						:
-							validator.$network.$network.slug
-					),
-					operatorAddress: validator.operatorAddress,
-					timestampMs: String(selection.entitySelector.timestampMs),
-					source: selection.entitySelector.source,
-				}
-			)
-		:
-			href ?? undefined
-	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

@@ -2,11 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// State
@@ -41,26 +39,9 @@
 >
 	{#snippet Item({ item: bnbValidatorTimestamp })}
 		{@const bnbValidatorTimestampSelector = bnbValidatorTimestamp[EntityMetaKey.Selector]}
-		{@const validator = bnbValidatorTimestampSelector.$validator}
 		<EntityView
 			entityType={EntityType.BnbValidator_Timestamp}
 			entitySelector={bnbValidatorTimestampSelector}
-			href={
-				resolve(
-					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(bnb-beacon)/bnb-beacon/validator/[operatorAddress=stringSegment]/(bnbValidator)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-					{
-						network: (
-							'caip2' in validator.$network.$network ?
-								caip2StringFromValue(validator.$network.$network.caip2)
-							:
-								validator.$network.$network.slug
-						),
-						operatorAddress: validator.operatorAddress,
-						timestampMs: String(bnbValidatorTimestampSelector.timestampMs),
-						source: bnbValidatorTimestampSelector.source,
-					}
-				)
-			}
 		>
 			{#snippet Title()}
 				{bnbValidatorTimestampSelector.timestampMs}

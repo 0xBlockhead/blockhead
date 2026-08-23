@@ -2726,34 +2726,6 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
-	'/(explore)/(networks)/network/[network]/(bnb-beacon)/bnb-beacon/token/[symbol]/migration/[targetNetwork]/[targetAddress]/observations/[timestampMs]/[source]': {
-		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(bnb-beacon)/bnb-beacon/token/[symbol=stringSegment]/(bnbBeaconToken)/migration/[targetNetwork=networkSlug]/[targetAddress=stringSegment]/(bnbBeaconTokenMigration)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-		mappings: [
-			{
-				id: 'BnbBeaconTokenMigration_Timestamp.MigrationTimestampMsSource',
-				projectionEntity: 'Network',
-				probeAtomPrefixes: ['/network/[network]/bnb-beacon/token/[symbol]/migration/[targetNetwork]/[targetAddress]/observations/[timestampMs]/[source]:BnbBeaconTokenMigration_Timestamp.MigrationTimestampMsSource'],
-				probeCases: [[[0, '1', ['timestampMs', 'source', 'targetNetwork', 'targetAddress', 'symbol', 'network']]]],
-				projectionPath: [
-					'BnbBeacon',
-				],
-			},
-		],
-	},
-	'/(explore)/(networks)/network/[network]/(bnb-beacon)/bnb-beacon/token/[symbol]/observations/[timestampMs]/[source]': {
-		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(bnb-beacon)/bnb-beacon/token/[symbol=stringSegment]/(bnbBeaconToken)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-		mappings: [
-			{
-				id: 'BnbBeaconToken_Timestamp.TokenTimestampMsSource',
-				projectionEntity: 'Network',
-				probeAtomPrefixes: ['/network/[network]/bnb-beacon/token/[symbol]/observations/[timestampMs]/[source]:BnbBeaconToken_Timestamp.TokenTimestampMsSource'],
-				probeCases: [[[0, '1', ['timestampMs', 'source', 'symbol', 'network']]]],
-				projectionPath: [
-					'BnbBeacon',
-				],
-			},
-		],
-	},
 	'/(explore)/(networks)/network/[network]/(bnb-beacon)/bnb-beacon/transaction/[txHash]': {
 		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(bnb-beacon)/bnb-beacon/transaction/[txHash=stringSegment]',
 		mappings: [
@@ -2790,20 +2762,6 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				projectionEntity: 'Network',
 				probeAtomPrefixes: ['/network/[network]/bnb-beacon/validator/[operatorAddress]:BnbValidator.NetworkOperatorAddress'],
 				probeCases: [[[0, '1', ['operatorAddress', 'network']]]],
-				projectionPath: [
-					'BnbBeacon',
-				],
-			},
-		],
-	},
-	'/(explore)/(networks)/network/[network]/(bnb-beacon)/bnb-beacon/validator/[operatorAddress]/observations/[timestampMs]/[source]': {
-		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(bnb-beacon)/bnb-beacon/validator/[operatorAddress=stringSegment]/(bnbValidator)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-		mappings: [
-			{
-				id: 'BnbValidator_Timestamp.ValidatorTimestampMsSource',
-				projectionEntity: 'Network',
-				probeAtomPrefixes: ['/network/[network]/bnb-beacon/validator/[operatorAddress]/observations/[timestampMs]/[source]:BnbValidator_Timestamp.ValidatorTimestampMsSource'],
-				probeCases: [[[0, '1', ['timestampMs', 'source', 'operatorAddress', 'network']]]],
 				projectionPath: [
 					'BnbBeacon',
 				],

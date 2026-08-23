@@ -88231,7 +88231,7 @@ export const routes = defineRoutes(schema)({
 																									"TokenTimestampMsSource": {
 																										params: {},
 																										derivations: { "timestampMs": { kind: "param", name: "timestampMs" }, "source": { kind: "param", name: "source" } },
-																										page: {},
+																										page: false,
 																										when: { path: ["slug"], is: "bnb-beacon" },
 																										projection: { entityType: EntityType.Network, facetPath: ["BnbBeacon"] },
 																									}
@@ -88269,7 +88269,7 @@ export const routes = defineRoutes(schema)({
 																														[EntityType.BnbBeaconTokenMigration_Timestamp]: {
 																															"MigrationTimestampMsSource": {
 																																params: { "timestampMs": ["timestampMs"], "source": ["source"] },
-																																page: {},
+																																page: false,
 																																when: { path: ["slug"], is: "bnb-beacon" },
 																																projection: { entityType: EntityType.Network, facetPath: ["BnbBeacon"] },
 																															}
@@ -88348,7 +88348,7 @@ export const routes = defineRoutes(schema)({
 																									"ValidatorTimestampMsSource": {
 																										params: {},
 																										derivations: { "timestampMs": { kind: "param", name: "timestampMs" }, "source": { kind: "param", name: "source" } },
-																										page: {},
+																										page: false,
 																										when: { path: ["slug"], is: "bnb-beacon" },
 																										projection: { entityType: EntityType.Network, facetPath: ["BnbBeacon"] },
 																									}
