@@ -3,6 +3,7 @@ import {
 	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import { mediaFromUrl } from '$/resolvers/media.ts'
+import { defineObservationTimeWriter } from '$/resolvers/observationTimeWriter.ts'
 import {
 	EntityMetaKey,
 	entityFieldAddressKey,
@@ -10,6 +11,13 @@ import {
 import { MediaType } from '$/schema/MediaType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
+
+const swarmAccessTimestampWriter = defineObservationTimeWriter({
+	entityType: EntityType._GlobalSwarmAccess_Timestamp,
+	selectorName: 'HubTimestampMsSource',
+	source: Source.Swarm_Rest,
+	provenance: 'LocalRefresh',
+})
 
 export default {
 	source: Source.Swarm_Rest,
@@ -118,25 +126,22 @@ export default {
 						return {
 							scope,
 							$$timestamps: [
-								{
-									[EntityMetaKey.Selector]: {
-										$hub: { scope },
-										timestampMs,
-										source: Source.Swarm_Rest,
-									},
-									[EntityMetaKey.Fields]: {
-										[entityFieldAddressKey(EntityType._GlobalSwarmAccess_Timestamp, [], 'declaredAccessEndpointCount')]:
+								swarmAccessTimestampWriter.write({
+									$hub: { scope },
+									timestampMs,
+									source: Source.Swarm_Rest,
+								}, {
+									[entityFieldAddressKey(EntityType._GlobalSwarmAccess_Timestamp, [], 'declaredAccessEndpointCount')]:
 											reachability.declaredAccessEndpointCount,
-										[entityFieldAddressKey(EntityType._GlobalSwarmAccess_Timestamp, [], 'reachableAccessEndpointCount')]:
+									[entityFieldAddressKey(EntityType._GlobalSwarmAccess_Timestamp, [], 'reachableAccessEndpointCount')]:
 											reachability.reachableAccessEndpointCount,
-										[entityFieldAddressKey(EntityType._GlobalSwarmAccess_Timestamp, [], 'reachable')]:
+									[entityFieldAddressKey(EntityType._GlobalSwarmAccess_Timestamp, [], 'reachable')]:
 											reachability.reachable,
-										[entityFieldAddressKey(EntityType._GlobalSwarmAccess_Timestamp, [], 'observedResourceCount')]:
+									[entityFieldAddressKey(EntityType._GlobalSwarmAccess_Timestamp, [], 'observedResourceCount')]:
 											seededExampleCount,
-										[entityFieldAddressKey(EntityType._GlobalSwarmAccess_Timestamp, [], 'seededExampleCount')]:
+									[entityFieldAddressKey(EntityType._GlobalSwarmAccess_Timestamp, [], 'seededExampleCount')]:
 											seededExampleCount,
-									},
-								},
+									}),
 							],
 							$$observedResources: seededExamples.map((resource) => ({
 								[EntityMetaKey.Selector]: resource,

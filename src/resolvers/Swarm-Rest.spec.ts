@@ -40,6 +40,7 @@ describe('Swarm access hub + timestamp resolvers', () => {
 	})
 
 	it('emits a tip $$timestamps row with seeded counts and observed resources', async () => {
+		vi.spyOn(Date, 'now').mockReturnValue(1700000000000)
 		for (const _endpoint of binding.endpoints)
 			sourceFetch.mockResolvedValueOnce({ ok: true })
 
@@ -54,6 +55,7 @@ describe('Swarm access hub + timestamp resolvers', () => {
 					scope: '_GlobalSwarmAccess',
 				},
 				source: Source.Swarm_Rest,
+				timestampMs: 1700000000000,
 			},
 		})
 		expect(typeof snapshot.$$timestamps[0][EntityMetaKey.Selector].timestampMs).toBe('number')

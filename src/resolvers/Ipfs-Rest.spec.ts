@@ -35,6 +35,7 @@ describe('Ipfs access hub + timestamp resolvers', () => {
 	})
 
 	it('emits a tip $$timestamps row and seeded $$observedResources', async () => {
+		vi.spyOn(Date, 'now').mockReturnValue(1700000000000)
 		for (const _endpoint of binding.endpoints)
 			sourceFetch.mockResolvedValueOnce({ ok: true })
 
@@ -49,6 +50,7 @@ describe('Ipfs access hub + timestamp resolvers', () => {
 					scope: '_GlobalIpfsAccess',
 				},
 				source: Source.Ipfs_Rest,
+				timestampMs: 1700000000000,
 			},
 		})
 		expect(typeof snapshot.$$timestamps[0][EntityMetaKey.Selector].timestampMs).toBe('number')

@@ -279,7 +279,7 @@ test('re-derives the complete observation-time writer denominator without blessi
 		['BeaconExecutionPayloadEnvelope_Timestamp', 'EnvelopeTimestampMsSource', 'Beacon_Rest', ObservationTimeProvenance.LocalRefresh],
 		['NetworkEndpointObservation_Timestamp', 'NetworkEndpointUrlEndpointKindTimestampMsSource', 'Beacon_Rest', ObservationTimeProvenance.HttpResponse],
 	])
-	assert.equal(rows.filter((row) => row.provenance === ObservationTimeProvenance.Unclassified).length, 343)
+	assert.equal(rows.filter((row) => row.provenance === ObservationTimeProvenance.Unclassified).length, 341)
 	for (const row of rows.filter((row) => row.provenance === ObservationTimeProvenance.Unclassified)) {
 		assert.equal(row.selectorFields.includes('timestampMs'), true)
 		assert.equal(row.route.startsWith('/'), true)

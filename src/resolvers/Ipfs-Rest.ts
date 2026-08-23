@@ -6,6 +6,7 @@ import { ipfsNamespaceFromString } from '$/lib/ipfs.ts'
 import { canonicalIpfsCidString, decodeIpfsCid } from '$/lib/multiformats.ts'
 import { ipfsResourceCanonicalUri } from '$/lib/ipfs.ts'
 import { mediaFromUrl } from '$/resolvers/media.ts'
+import { defineObservationTimeWriter } from '$/resolvers/observationTimeWriter.ts'
 import {
 	EntityMetaKey,
 	entityFieldAddressKey,
@@ -13,6 +14,13 @@ import {
 import { MediaType } from '$/schema/MediaType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
+
+const ipfsAccessTimestampWriter = defineObservationTimeWriter({
+	entityType: EntityType._GlobalIpfsAccess_Timestamp,
+	selectorName: 'HubTimestampMsSource',
+	source: Source.Ipfs_Rest,
+	provenance: 'LocalRefresh',
+})
 
 export default {
 	source: Source.Ipfs_Rest,
@@ -143,21 +151,18 @@ export default {
 						return {
 							scope,
 							$$timestamps: [
-								{
-									[EntityMetaKey.Selector]: {
-										$hub: { scope },
-										timestampMs,
-										source: Source.Ipfs_Rest,
-									},
-									[EntityMetaKey.Fields]: {
-										[entityFieldAddressKey(EntityType._GlobalIpfsAccess_Timestamp, [], 'declaredAccessEndpointCount')]:
-											reachability.declaredAccessEndpointCount,
-										[entityFieldAddressKey(EntityType._GlobalIpfsAccess_Timestamp, [], 'reachableAccessEndpointCount')]:
-											reachability.reachableAccessEndpointCount,
-										[entityFieldAddressKey(EntityType._GlobalIpfsAccess_Timestamp, [], 'reachable')]:
-											reachability.reachable,
-									},
-								},
+								ipfsAccessTimestampWriter.write({
+									$hub: { scope },
+									timestampMs,
+									source: Source.Ipfs_Rest,
+								}, {
+									[entityFieldAddressKey(EntityType._GlobalIpfsAccess_Timestamp, [], 'declaredAccessEndpointCount')]:
+										reachability.declaredAccessEndpointCount,
+									[entityFieldAddressKey(EntityType._GlobalIpfsAccess_Timestamp, [], 'reachableAccessEndpointCount')]:
+										reachability.reachableAccessEndpointCount,
+									[entityFieldAddressKey(EntityType._GlobalIpfsAccess_Timestamp, [], 'reachable')]:
+										reachability.reachable,
+								}),
 							],
 							$$observedResources: seededExamples.map((resource) => ({
 								[EntityMetaKey.Selector]: resource,
