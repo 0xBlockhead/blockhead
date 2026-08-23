@@ -226,6 +226,18 @@ test('re-derives the complete observation-time writer denominator without blessi
 			provenance: 'LocalRefresh',
 		},
 		{
+			entityType: '_GlobalIpfsAccess_Timestamp',
+			selectorName: 'HubTimestampMsSource',
+			source: 'Ipfs_Rest',
+			provenance: 'LocalRefresh',
+		},
+		{
+			entityType: '_GlobalSwarmAccess_Timestamp',
+			selectorName: 'HubTimestampMsSource',
+			source: 'Swarm_Rest',
+			provenance: 'LocalRefresh',
+		},
+		{
 			entityType: 'ActivityPubActor_Timestamp',
 			selectorName: 'ActivityPubActorTimestampMsSource',
 			source: 'Mastodon_Rest',
@@ -271,6 +283,8 @@ test('re-derives the complete observation-time writer denominator without blessi
 	const truthfulRows = truthfulObservationTimeAccountability(rows)
 	assert.deepEqual(truthfulRows.map(({ entityType, selectorName, source, provenance }) => [entityType, selectorName, source, provenance]), [
 		['_GlobalActivityPubNetwork_Timestamp', 'HubTimestampMsSource', 'Mastodon_Rest', ObservationTimeProvenance.LocalRefresh],
+		['_GlobalIpfsAccess_Timestamp', 'HubTimestampMsSource', 'Ipfs_Rest', ObservationTimeProvenance.LocalRefresh],
+		['_GlobalSwarmAccess_Timestamp', 'HubTimestampMsSource', 'Swarm_Rest', ObservationTimeProvenance.LocalRefresh],
 		['ActivityPubActor_Timestamp', 'ActivityPubActorTimestampMsSource', 'Mastodon_Rest', ObservationTimeProvenance.LocalRefresh],
 		['ActivityPubInstance_Timestamp', 'InstanceTimestampMsSource', 'Mastodon_Rest', ObservationTimeProvenance.LocalRefresh],
 		['ActivityPubNote_Timestamp', 'ActivityPubNoteTimestampMsSource', 'Mastodon_Rest', ObservationTimeProvenance.LocalRefresh],
