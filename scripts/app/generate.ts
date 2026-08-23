@@ -24,10 +24,13 @@ import {
 import {
 	classifyMappedSelector,
 	classifySourceClaim,
+	compileObservationTimeAccountability,
 	indexAccountabilityAuthority,
 	MappedSelectorAccountability,
+	ObservationTimeProvenance,
 	publicColdReadGaps,
 	SourceAccess,
+	type ObservationTimeAccountabilityRow,
 	type MappedSelectorAccountabilityRow,
 	type SourceClaimAccountabilityRow,
 } from './accountability.ts'
@@ -352,6 +355,7 @@ export type CompiledApp = Readonly<{
 	presentationManifest: readonly CompiledPresentationManifestFact[]
 	sourceClaims: readonly CompiledSourceClaim[]
 	sourceAccountability: CompiledSourceAccountability
+	observationTimeAccountability: readonly ObservationTimeAccountabilityRow[]
 }>
 
 export type CompiledSourceAccountability = Readonly<{
@@ -6120,6 +6124,10 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 		mappedSelectors: compileMappedSelectorFacts(indexedRouteNodes)
 			.map((mapping) => classifyMappedSelector(mapping, accountabilityAuthority)),
 	}
+	const observationTimeAccountability = compileObservationTimeAccountability(
+		activeEntities,
+		sourceAccountability.mappedSelectors
+	)
 	const undeclaredAccessSources = unique([
 		...sourceAccountability.claims
 			.filter((row) => row.access === SourceAccess.Undeclared)
@@ -6136,6 +6144,7 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 		presentationManifest,
 		sourceClaims,
 		sourceAccountability,
+		observationTimeAccountability,
 	})
 }
 
@@ -15308,11 +15317,34 @@ const renderAccountabilityReport = ({
 		].join('\t')),
 ].join('\n')
 
+const renderObservationTimeAccountabilityReport = (
+	rows: readonly ObservationTimeAccountabilityRow[]
+) => [
+	...Object.entries(Object.groupBy(rows, (row) => row.provenance))
+		.map(([provenance, entries]) => `clock ${provenance}: ${entries?.length ?? 0}`)
+		.toSorted((left, right) => left.localeCompare(right, 'en')),
+	'',
+	'Unclassified observation-time clocks:',
+	...rows
+		.filter((row) => row.provenance === ObservationTimeProvenance.Unclassified)
+		.map((row) => [
+			row.entityType,
+			row.selectorName,
+			row.source ?? 'no-source-selection',
+			row.route,
+			row.authoredPage ? 'authored-page' : 'resolver-only',
+		].join('\t')),
+].join('\n')
+
 const main = async () => {
 	const command = process.argv[2] ?? 'check'
 	const compiledApp = compileApp(app)
 	if (command === 'accountability') {
 		console.log(renderAccountabilityReport(compiledApp.sourceAccountability))
+		return
+	}
+	if (command === 'observation-time-accountability') {
+		console.log(renderObservationTimeAccountabilityReport(compiledApp.observationTimeAccountability))
 		return
 	}
 

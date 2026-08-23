@@ -5,19 +5,24 @@ import { app } from '../../APP.ts'
 import {
 	classifyMappedSelector,
 	classifySourceClaim,
+	compileObservationTimeAccountability,
 	countBy,
 	indexAccountabilityAuthority,
 	MappedSelectorAccountability,
+	ObservationTimeProvenance,
+	observationTimeAccountabilityKey,
 	publicColdReadGaps,
 	SourceAccess,
 	SourceClaimDemand,
 	SourceClaimExecutability,
 	sourceClaimAccountabilityKey,
+	truthfulObservationTimeAccountability,
 } from './accountability.ts'
 import { compileApp } from './generate.ts'
 
 
-const compiledSourceAccountability = compileApp(app).sourceAccountability
+const compiledApp = compileApp(app)
+const compiledSourceAccountability = compiledApp.sourceAccountability
 
 const fixtureAuthority = indexAccountabilityAuthority({
 	sourceBindings: [
@@ -136,6 +141,59 @@ test('keys source claims without aliasing route punctuation or omitted coordinat
 
 	assert.notEqual(sourceClaimAccountabilityKey(routeClaim), sourceClaimAccountabilityKey(fieldClaim))
 	assert.notEqual(sourceClaimAccountabilityKey({ ...routeClaim, selectorName: undefined }), sourceClaimAccountabilityKey(routeClaim))
+})
+
+test('keeps generated observation clocks unclassified until a writer proves their provenance', () => {
+	const rows = compileObservationTimeAccountability([
+		{
+			entityType: 'HistoricalThing_Timestamp',
+			selectors: [{
+				name: 'ThingTimestampMsSource',
+				fields: ['$thing', 'timestampMs', 'source'],
+			}],
+		},
+	], [{
+		entityType: 'HistoricalThing_Timestamp',
+		selectorName: 'ThingTimestampMsSource',
+		route: '/thing/[thing]/observations/[timestampMs]/[source]',
+		authoredPage: true,
+		sources: ['Provider_Rest', 'Provider_Stream'],
+	}])
+
+	assert.deepEqual(rows.map((row) => row.provenance), [
+		ObservationTimeProvenance.Unclassified,
+		ObservationTimeProvenance.Unclassified,
+	])
+	assert.deepEqual(truthfulObservationTimeAccountability(rows), [])
+	assert.deepEqual(rows.map(observationTimeAccountabilityKey), [
+		'["HistoricalThing_Timestamp","ThingTimestampMsSource","/thing/[thing]/observations/[timestampMs]/[source]","Provider_Rest"]',
+		'["HistoricalThing_Timestamp","ThingTimestampMsSource","/thing/[thing]/observations/[timestampMs]/[source]","Provider_Stream"]',
+	])
+	assert.throws(
+		() => compileObservationTimeAccountability([
+			{
+				entityType: 'HistoricalThing_Timestamp',
+				selectors: [{
+					name: 'ThingTimestampMsSource',
+					fields: ['$thing', 'timestampMs', 'source'],
+				}],
+			},
+		], []),
+		/Observation time selector HistoricalThing_Timestamp\.ThingTimestampMsSource has no generated route identity/
+	)
+})
+
+test('re-derives the complete observation-time writer denominator without blessing unknown clocks', () => {
+	const rows = compiledApp.observationTimeAccountability
+
+	assert.equal(rows.length, 351)
+	assert.deepEqual(truthfulObservationTimeAccountability(rows), [])
+	for (const row of rows) {
+		assert.equal(row.provenance, ObservationTimeProvenance.Unclassified)
+		assert.equal(row.selectorFields.includes('timestampMs'), true)
+		assert.equal(row.route.startsWith('/'), true)
+		assert.equal(observationTimeAccountabilityKey(row).startsWith('['), true)
+	}
 })
 
 test('reports only publicly deliverable route claims without a resolver as cold-read gaps', () => {

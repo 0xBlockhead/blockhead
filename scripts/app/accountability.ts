@@ -34,6 +34,82 @@ export enum MappedSelectorAccountability {
 	SchemaIdentityOnly = 'SchemaIdentityOnly',
 }
 
+// A timestamp coordinate is historical only when its writer has evidence for
+// the origin of that clock. Keeping the unclassified class in the compiler IR
+// makes every missing proof an actionable row instead of silently treating a
+// newly sampled current response as a historical read.
+export enum ObservationTimeProvenance {
+	ProviderEvent = 'ProviderEvent',
+	ProviderSnapshot = 'ProviderSnapshot',
+	HttpResponse = 'HttpResponse',
+	Ingestion = 'Ingestion',
+	LocalRefresh = 'LocalRefresh',
+	Unclassified = 'Unclassified',
+}
+
+export type ObservationTimeAccountabilityRow = Readonly<{
+	entityType: string
+	selectorName: string
+	selectorFields: readonly string[]
+	route: string
+	authoredPage: boolean
+	source?: string
+	provenance: ObservationTimeProvenance
+}>
+
+type ObservationTimeSelector = Readonly<{
+	entityType: string
+	selectors: readonly {
+		name: string
+		fields: readonly string[]
+	}[]
+}>
+
+type ObservationTimeRoute = Readonly<{
+	entityType: string
+	selectorName: string
+	route: string
+	authoredPage: boolean
+	sources: readonly string[]
+}>
+
+export const observationTimeAccountabilityKey = (
+	row: Pick<ObservationTimeAccountabilityRow, 'entityType' | 'selectorName' | 'route' | 'source'>
+) => JSON.stringify([
+	row.entityType,
+	row.selectorName,
+	row.route,
+	row.source ?? null,
+])
+
+export const compileObservationTimeAccountability = (
+	entities: readonly ObservationTimeSelector[],
+	routes: readonly ObservationTimeRoute[]
+) => entities.flatMap(({ entityType, selectors }) => selectors
+	.filter(({ fields }) => fields.includes('timestampMs'))
+	.flatMap(({ name, fields }) => {
+		const route = routes.find((candidate) => (
+			candidate.entityType === entityType
+			&& candidate.selectorName === name
+		))
+		if (route == null)
+			throw new Error(`Observation time selector ${entityType}.${name} has no generated route identity`)
+
+		return (route.sources.length === 0 ? [undefined] : route.sources).map((source) => ({
+			entityType,
+			selectorName: name,
+			selectorFields: fields,
+			route: route.route,
+			authoredPage: route.authoredPage,
+			...(source == null ? {} : { source }),
+			provenance: ObservationTimeProvenance.Unclassified,
+		}))
+	}))
+
+export const truthfulObservationTimeAccountability = (
+	rows: readonly ObservationTimeAccountabilityRow[]
+) => rows.filter((row) => row.provenance !== ObservationTimeProvenance.Unclassified)
+
 export type AccountabilityAuthority = Readonly<{
 	accessBySource: ReadonlyMap<string, SourceAccess>
 	deliveriesBySource: ReadonlyMap<string, readonly string[]>
