@@ -3,6 +3,7 @@ import {
 	defineResolver,
 	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
+import { defineObservationTimeWriter } from '$/resolvers/observationTimeWriter.ts'
 import { mediaFromUrl } from '$/resolvers/media.ts'
 import { optionalNonemptyString } from '$/lib/string.ts'
 import { optionalTimestampMs } from '$/lib/time.ts'
@@ -23,6 +24,34 @@ import type {
 	MastodonApiV1MediaAttachment,
 	MastodonApiV1Status,
 } from '$/sources/Mastodon/Rest/types.ts'
+
+const mastodonGlobalActivityPubNetworkTimestampWriter = defineObservationTimeWriter({
+	entityType: EntityType._GlobalActivityPubNetwork_Timestamp,
+	selectorName: 'HubTimestampMsSource',
+	source: Source.Mastodon_Rest,
+	provenance: 'LocalRefresh',
+})
+
+const mastodonActivityPubInstanceTimestampWriter = defineObservationTimeWriter({
+	entityType: EntityType.ActivityPubInstance_Timestamp,
+	selectorName: 'InstanceTimestampMsSource',
+	source: Source.Mastodon_Rest,
+	provenance: 'LocalRefresh',
+})
+
+const mastodonActivityPubActorTimestampWriter = defineObservationTimeWriter({
+	entityType: EntityType.ActivityPubActor_Timestamp,
+	selectorName: 'ActivityPubActorTimestampMsSource',
+	source: Source.Mastodon_Rest,
+	provenance: 'LocalRefresh',
+})
+
+const mastodonActivityPubNoteTimestampWriter = defineObservationTimeWriter({
+	entityType: EntityType.ActivityPubNote_Timestamp,
+	selectorName: 'ActivityPubNoteTimestampMsSource',
+	source: Source.Mastodon_Rest,
+	provenance: 'LocalRefresh',
+})
 
 const mastodonLocalAccountId = (
 	account: MastodonApiV1Account | null | undefined
@@ -337,26 +366,23 @@ const activityPubActorTimestampReferenceFromMastodonAccount = (
 	if (activityStreamsUri == null)
 		throw new Error('Mastodon_Rest: ActivityPub actor account missing ActivityStreams URI')
 
-	return {
-		[EntityMetaKey.Selector]: {
-			$actor: {
-				activityStreamsUri,
-			},
-			timestampMs,
-			source: Source.Mastodon_Rest,
+	return mastodonActivityPubActorTimestampWriter.write({
+		$actor: {
+			activityStreamsUri,
 		},
-		[EntityMetaKey.Fields]: {
-			...(account.followers_count != null && {
-				[entityFieldAddressKey(EntityType.ActivityPubActor_Timestamp, [], 'followersCount')]: account.followers_count,
-			}),
-			...(account.following_count != null && {
-				[entityFieldAddressKey(EntityType.ActivityPubActor_Timestamp, [], 'followingCount')]: account.following_count,
-			}),
-			...(account.statuses_count != null && {
-				[entityFieldAddressKey(EntityType.ActivityPubActor_Timestamp, [], 'statusesCount')]: account.statuses_count,
-			}),
-		},
-	}
+		timestampMs,
+		source: Source.Mastodon_Rest,
+	}, {
+		...(account.followers_count != null && {
+			[entityFieldAddressKey(EntityType.ActivityPubActor_Timestamp, [], 'followersCount')]: account.followers_count,
+		}),
+		...(account.following_count != null && {
+			[entityFieldAddressKey(EntityType.ActivityPubActor_Timestamp, [], 'followingCount')]: account.following_count,
+		}),
+		...(account.statuses_count != null && {
+			[entityFieldAddressKey(EntityType.ActivityPubActor_Timestamp, [], 'statusesCount')]: account.statuses_count,
+		}),
+	})
 }
 
 const activityPubActorCardReferenceFromMastodonStatus = (
@@ -429,26 +455,23 @@ const activityPubNoteTimestampReferenceFromMastodonStatus = (
 	if (activityStreamsUri == null)
 		throw new Error('Mastodon_Rest: ActivityPub note missing ActivityStreams URI')
 
-	return {
-		[EntityMetaKey.Selector]: {
-			$note: {
-				activityStreamsUri,
-			},
-			timestampMs,
-			source: Source.Mastodon_Rest,
+	return mastodonActivityPubNoteTimestampWriter.write({
+		$note: {
+			activityStreamsUri,
 		},
-		[EntityMetaKey.Fields]: {
-			...(status.favourites_count != null && {
-				[entityFieldAddressKey(EntityType.ActivityPubNote_Timestamp, [], 'favouriteCount')]: status.favourites_count,
-			}),
-			...(status.reblogs_count != null && {
-				[entityFieldAddressKey(EntityType.ActivityPubNote_Timestamp, [], 'reblogCount')]: status.reblogs_count,
-			}),
-			...(status.replies_count != null && {
-				[entityFieldAddressKey(EntityType.ActivityPubNote_Timestamp, [], 'replyCount')]: status.replies_count,
-			}),
-		},
-	}
+		timestampMs,
+		source: Source.Mastodon_Rest,
+	}, {
+		...(status.favourites_count != null && {
+			[entityFieldAddressKey(EntityType.ActivityPubNote_Timestamp, [], 'favouriteCount')]: status.favourites_count,
+		}),
+		...(status.reblogs_count != null && {
+			[entityFieldAddressKey(EntityType.ActivityPubNote_Timestamp, [], 'reblogCount')]: status.reblogs_count,
+		}),
+		...(status.replies_count != null && {
+			[entityFieldAddressKey(EntityType.ActivityPubNote_Timestamp, [], 'replyCount')]: status.replies_count,
+		}),
+	})
 }
 
 const activityPubThreadNoteReferenceFromMastodonStatus = (
@@ -663,55 +686,49 @@ export default {
 										})
 									).size
 							)
-							return [{
-								[EntityMetaKey.Selector]: {
-									$hub: { scope },
-									timestampMs: Date.now(),
-									source: Source.Mastodon_Rest,
-								},
-								[EntityMetaKey.Fields]: {
-									[entityFieldAddressKey(EntityType._GlobalActivityPubNetwork_Timestamp, [], 'instanceOrigin')]: instanceOrigin,
-									...(instance.title != null && {
-										[entityFieldAddressKey(EntityType._GlobalActivityPubNetwork_Timestamp, [], 'instanceTitle')]: instance.title,
-									}),
-									...(instance.description != null && {
-										[entityFieldAddressKey(EntityType._GlobalActivityPubNetwork_Timestamp, [], 'instanceDescription')]: instance.description,
-									}),
-									...(instance.version != null && {
-										[entityFieldAddressKey(EntityType._GlobalActivityPubNetwork_Timestamp, [], 'instanceVersion')]: instance.version,
-									}),
-									...(activeUserCount != null && {
-										[entityFieldAddressKey(EntityType._GlobalActivityPubNetwork_Timestamp, [], 'activeUserCount')]: activeUserCount,
-									}),
-									...(observedActorCount != null && {
-										[entityFieldAddressKey(EntityType._GlobalActivityPubNetwork_Timestamp, [], 'observedActorCount')]: observedActorCount,
-									}),
-									...(observedNoteCount != null && {
-										[entityFieldAddressKey(EntityType._GlobalActivityPubNetwork_Timestamp, [], 'observedNoteCount')]: observedNoteCount,
-									}),
-									[entityFieldAddressKey(EntityType._GlobalActivityPubNetwork_Timestamp, [], 'seededInstanceCount')]: mastodonInstances.length,
-									...(peerDomains != null && {
-										[entityFieldAddressKey(EntityType._GlobalActivityPubNetwork_Timestamp, [], 'knownPeerDomainCount')]: peerDomains.length,
-									}),
-									...(moderatedDomains != null && {
-										[entityFieldAddressKey(EntityType._GlobalActivityPubNetwork_Timestamp, [], 'moderatedDomainCount')]: moderatedDomains.length,
-									}),
-									[entityFieldAddressKey(EntityType._GlobalActivityPubNetwork_Timestamp, [], 'reachable')]: true,
-								},
-							}]
+							return [mastodonGlobalActivityPubNetworkTimestampWriter.write({
+								$hub: { scope },
+								timestampMs: Date.now(),
+								source: Source.Mastodon_Rest,
+							}, {
+								[entityFieldAddressKey(EntityType._GlobalActivityPubNetwork_Timestamp, [], 'instanceOrigin')]: instanceOrigin,
+								...(instance.title != null && {
+									[entityFieldAddressKey(EntityType._GlobalActivityPubNetwork_Timestamp, [], 'instanceTitle')]: instance.title,
+								}),
+								...(instance.description != null && {
+									[entityFieldAddressKey(EntityType._GlobalActivityPubNetwork_Timestamp, [], 'instanceDescription')]: instance.description,
+								}),
+								...(instance.version != null && {
+									[entityFieldAddressKey(EntityType._GlobalActivityPubNetwork_Timestamp, [], 'instanceVersion')]: instance.version,
+								}),
+								...(activeUserCount != null && {
+									[entityFieldAddressKey(EntityType._GlobalActivityPubNetwork_Timestamp, [], 'activeUserCount')]: activeUserCount,
+								}),
+								...(observedActorCount != null && {
+									[entityFieldAddressKey(EntityType._GlobalActivityPubNetwork_Timestamp, [], 'observedActorCount')]: observedActorCount,
+								}),
+								...(observedNoteCount != null && {
+									[entityFieldAddressKey(EntityType._GlobalActivityPubNetwork_Timestamp, [], 'observedNoteCount')]: observedNoteCount,
+								}),
+								[entityFieldAddressKey(EntityType._GlobalActivityPubNetwork_Timestamp, [], 'seededInstanceCount')]: mastodonInstances.length,
+								...(peerDomains != null && {
+									[entityFieldAddressKey(EntityType._GlobalActivityPubNetwork_Timestamp, [], 'knownPeerDomainCount')]: peerDomains.length,
+								}),
+								...(moderatedDomains != null && {
+									[entityFieldAddressKey(EntityType._GlobalActivityPubNetwork_Timestamp, [], 'moderatedDomainCount')]: moderatedDomains.length,
+								}),
+								[entityFieldAddressKey(EntityType._GlobalActivityPubNetwork_Timestamp, [], 'reachable')]: true,
+							})]
 						} catch {
-							return [{
-								[EntityMetaKey.Selector]: {
-									$hub: { scope },
-									timestampMs: Date.now(),
-									source: Source.Mastodon_Rest,
-								},
-								[EntityMetaKey.Fields]: {
-									[entityFieldAddressKey(EntityType._GlobalActivityPubNetwork_Timestamp, [], 'instanceOrigin')]: instanceOrigin,
-									[entityFieldAddressKey(EntityType._GlobalActivityPubNetwork_Timestamp, [], 'seededInstanceCount')]: mastodonInstances.length,
-									[entityFieldAddressKey(EntityType._GlobalActivityPubNetwork_Timestamp, [], 'reachable')]: false,
-								},
-							}]
+							return [mastodonGlobalActivityPubNetworkTimestampWriter.write({
+								$hub: { scope },
+								timestampMs: Date.now(),
+								source: Source.Mastodon_Rest,
+							}, {
+								[entityFieldAddressKey(EntityType._GlobalActivityPubNetwork_Timestamp, [], 'instanceOrigin')]: instanceOrigin,
+								[entityFieldAddressKey(EntityType._GlobalActivityPubNetwork_Timestamp, [], 'seededInstanceCount')]: mastodonInstances.length,
+								[entityFieldAddressKey(EntityType._GlobalActivityPubNetwork_Timestamp, [], 'reachable')]: false,
+							})]
 						}
 					},
 				},
@@ -757,41 +774,38 @@ export default {
 							timestampMs: Date.now(),
 							source: Source.Mastodon_Rest,
 						}
-						return [{
-							[EntityMetaKey.Selector]: $observation,
-							[EntityMetaKey.Fields]: {
-								...(instance.title != null && {
-									[entityFieldAddressKey(EntityType.ActivityPubInstance_Timestamp, [], 'title')]: instance.title,
-								}),
-								...(instance.description != null && {
-									[entityFieldAddressKey(EntityType.ActivityPubInstance_Timestamp, [], 'description')]: instance.description,
-								}),
-								...(instance.version != null && {
-									[entityFieldAddressKey(EntityType.ActivityPubInstance_Timestamp, [], 'version')]: instance.version,
-								}),
-								[entityFieldAddressKey(EntityType.ActivityPubInstance_Timestamp, [], '$$peers')]: peerDomains.map((peerDomain) => ({
+						return [mastodonActivityPubInstanceTimestampWriter.write($observation, {
+							...(instance.title != null && {
+								[entityFieldAddressKey(EntityType.ActivityPubInstance_Timestamp, [], 'title')]: instance.title,
+							}),
+							...(instance.description != null && {
+								[entityFieldAddressKey(EntityType.ActivityPubInstance_Timestamp, [], 'description')]: instance.description,
+							}),
+							...(instance.version != null && {
+								[entityFieldAddressKey(EntityType.ActivityPubInstance_Timestamp, [], 'version')]: instance.version,
+							}),
+							[entityFieldAddressKey(EntityType.ActivityPubInstance_Timestamp, [], '$$peers')]: peerDomains.map((peerDomain) => ({
+								[EntityMetaKey.Selector]: {
+									$observation,
+									peerDomain,
+								},
+							})),
+							...(moderatedDomains != null && {
+								[entityFieldAddressKey(EntityType.ActivityPubInstance_Timestamp, [], '$$moderatedDomains')]: moderatedDomains.map((domainBlock) => ({
 									[EntityMetaKey.Selector]: {
 										$observation,
-										peerDomain,
+										digest: domainBlock.digest.toLowerCase(),
+									},
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.ActivityPubInstanceModeratedDomain, [], 'domain')]: domainBlock.domain,
+										[entityFieldAddressKey(EntityType.ActivityPubInstanceModeratedDomain, [], 'severity')]: domainBlock.severity,
+										...(domainBlock.comment != null && {
+											[entityFieldAddressKey(EntityType.ActivityPubInstanceModeratedDomain, [], 'comment')]: domainBlock.comment,
+										}),
 									},
 								})),
-								...(moderatedDomains != null && {
-									[entityFieldAddressKey(EntityType.ActivityPubInstance_Timestamp, [], '$$moderatedDomains')]: moderatedDomains.map((domainBlock) => ({
-										[EntityMetaKey.Selector]: {
-											$observation,
-											digest: domainBlock.digest.toLowerCase(),
-											},
-											[EntityMetaKey.Fields]: {
-												[entityFieldAddressKey(EntityType.ActivityPubInstanceModeratedDomain, [], 'domain')]: domainBlock.domain,
-												[entityFieldAddressKey(EntityType.ActivityPubInstanceModeratedDomain, [], 'severity')]: domainBlock.severity,
-												...(domainBlock.comment != null && {
-													[entityFieldAddressKey(EntityType.ActivityPubInstanceModeratedDomain, [], 'comment')]: domainBlock.comment,
-												}),
-											},
-									})),
-								}),
-							},
-						}]
+							}),
+						})]
 					},
 				},
 			},

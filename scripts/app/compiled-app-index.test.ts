@@ -70,7 +70,7 @@ test('exports complete immutable generated-file, source-claim, and source-accoun
 	assert.ok(compiledApp.sourceAccountability.claims.length > 0)
 	assert.ok(compiledApp.sourceAccountability.mappedSelectors.length > 0)
 	assert.equal(compiledApp.observationTimeAccountability.length, 351)
-	assert.equal(compiledApp.observationTimeWriterManifest.length, 4)
+	assert.equal(compiledApp.observationTimeWriterManifest.length, 8)
 	assert.equal(
 		new Set(compiledApp.generatedFiles.map((generatedFile) => generatedFile.path)).size,
 		compiledApp.generatedFiles.length

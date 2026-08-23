@@ -220,6 +220,30 @@ test('re-derives the complete observation-time writer denominator without blessi
 	assert.equal(rows.length, 351)
 	assert.deepEqual(compiledApp.observationTimeWriterManifest.map((writer) => ({ ...writer })), [
 		{
+			entityType: '_GlobalActivityPubNetwork_Timestamp',
+			selectorName: 'HubTimestampMsSource',
+			source: 'Mastodon_Rest',
+			provenance: 'LocalRefresh',
+		},
+		{
+			entityType: 'ActivityPubActor_Timestamp',
+			selectorName: 'ActivityPubActorTimestampMsSource',
+			source: 'Mastodon_Rest',
+			provenance: 'LocalRefresh',
+		},
+		{
+			entityType: 'ActivityPubInstance_Timestamp',
+			selectorName: 'InstanceTimestampMsSource',
+			source: 'Mastodon_Rest',
+			provenance: 'LocalRefresh',
+		},
+		{
+			entityType: 'ActivityPubNote_Timestamp',
+			selectorName: 'ActivityPubNoteTimestampMsSource',
+			source: 'Mastodon_Rest',
+			provenance: 'LocalRefresh',
+		},
+		{
 			entityType: 'BeaconBlock_Timestamp',
 			selectorName: 'BlockTimestampMsSource',
 			source: 'Beacon_Rest',
@@ -246,12 +270,16 @@ test('re-derives the complete observation-time writer denominator without blessi
 	])
 	const truthfulRows = truthfulObservationTimeAccountability(rows)
 	assert.deepEqual(truthfulRows.map(({ entityType, selectorName, source, provenance }) => [entityType, selectorName, source, provenance]), [
+		['_GlobalActivityPubNetwork_Timestamp', 'HubTimestampMsSource', 'Mastodon_Rest', ObservationTimeProvenance.LocalRefresh],
+		['ActivityPubActor_Timestamp', 'ActivityPubActorTimestampMsSource', 'Mastodon_Rest', ObservationTimeProvenance.LocalRefresh],
+		['ActivityPubInstance_Timestamp', 'InstanceTimestampMsSource', 'Mastodon_Rest', ObservationTimeProvenance.LocalRefresh],
+		['ActivityPubNote_Timestamp', 'ActivityPubNoteTimestampMsSource', 'Mastodon_Rest', ObservationTimeProvenance.LocalRefresh],
 		['BeaconBlock_Timestamp', 'BlockTimestampMsSource', 'Beacon_Rest', ObservationTimeProvenance.LocalRefresh],
 		['BeaconDataColumn_Timestamp', 'DataColumnTimestampMsSource', 'Beacon_Rest', ObservationTimeProvenance.LocalRefresh],
 		['BeaconExecutionPayloadEnvelope_Timestamp', 'EnvelopeTimestampMsSource', 'Beacon_Rest', ObservationTimeProvenance.LocalRefresh],
 		['NetworkEndpointObservation_Timestamp', 'NetworkEndpointUrlEndpointKindTimestampMsSource', 'Beacon_Rest', ObservationTimeProvenance.HttpResponse],
 	])
-	assert.equal(rows.filter((row) => row.provenance === ObservationTimeProvenance.Unclassified).length, 347)
+	assert.equal(rows.filter((row) => row.provenance === ObservationTimeProvenance.Unclassified).length, 343)
 	for (const row of rows.filter((row) => row.provenance === ObservationTimeProvenance.Unclassified)) {
 		assert.equal(row.selectorFields.includes('timestampMs'), true)
 		assert.equal(row.route.startsWith('/'), true)
