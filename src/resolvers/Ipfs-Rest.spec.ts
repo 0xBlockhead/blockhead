@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
 	EntityMetaKey,
@@ -32,6 +32,9 @@ const resolveAccessHub = accessHubResolver.resolve[
 describe('Ipfs access hub + timestamp resolvers', () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
+	})
+	afterEach(() => {
+		vi.restoreAllMocks()
 	})
 
 	it('emits a tip $$timestamps row and seeded $$observedResources', async () => {

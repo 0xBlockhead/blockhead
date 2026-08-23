@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
 	EntityMetaKey,
@@ -37,6 +37,9 @@ const resolveAccessHub = accessHubResolver.resolve[
 describe('Swarm access hub + timestamp resolvers', () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
+	})
+	afterEach(() => {
+		vi.restoreAllMocks()
 	})
 
 	it('emits a tip $$timestamps row with seeded counts and observed resources', async () => {
