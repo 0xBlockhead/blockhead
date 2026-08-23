@@ -10,6 +10,8 @@ import {
 	productDirtyPatchHash,
 	runControlledRetry,
 	validateControlledRetryRun,
+	waitForCaptureQuality,
+	adaptCapturePage,
 	type CaptureBrowser,
 	type ControlledRetryManifest,
 } from './controlled-retry.mts'
@@ -38,7 +40,7 @@ const browser = (): CaptureBrowser => {
 			return {
 				id: `context-${contexts}`,
 				startTracing: async () => {},
-				newPage: async () => ({ goto: async () => {}, screenshot: async ({ path }) => writeFile(path, 'image'), content: async () => '<main>fixture</main>', close: async () => {} }),
+				newPage: async () => ({ goto: async () => {}, screenshot: async ({ path }) => writeFile(path, 'image'), content: async () => '<main id="main">fixture</main>', url: () => 'http://127.0.0.1:4173/a', isMainVisible: async () => true, waitForTimeout: async () => {}, close: async () => {} }),
 				stopTracing: async (path) => writeFile(path, 'trace'),
 				close: async () => {},
 			}
@@ -60,6 +62,36 @@ test('captures every manifest attempt with complete route run provenance', async
 	assert.equal(run.runIdentity.buildIdentity, 'fixture-build')
 	assert.match(run.outputs.corpusFingerprint, /^[0-9a-f]{64}$/)
 	assert.match(run.outputs.resultSetFingerprint, /^[0-9a-f]{64}$/)
+})
+
+test('bootstrap-only HTML cannot complete as captured', async () => {
+	const bootstrapHtml = '<!DOCTYPE html><html lang="en"><head>\n\t\t<meta charset="utf-8">\n\t\t<meta name="viewport" content="width=device-width, initial-scale=1">\n\t\t\n\t</head>\n\t<body data-sveltekit-preload-data="hover">\n\t\t<div style="display: contents">\n\t\t\t<script>\n\t\t\t\t{\n\t\t\t\t\t__sveltekit_dev = {\n\t\t\t\t\t\tbase: new URL("../../../..", location).pathname.slice(0, -1),\n\t\t\t\t\t\tenv: {}\n\t\t\t\t\t};\n\n\t\t\t\t\tconst element = document.currentScript.parentElement;\n\n\t\t\t\t\tPromise.all([\n\t\t\t\t\t\timport("/node_modules/.pnpm/@sveltejs+kit@2.70.2_@sveltejs+vite-plugin-svelte@7.2.0_svelte@5.56.8_vite@8.2.0_@types_681cb7889114275696b99222ec402ce9/node_modules/@sveltejs/kit/src/runtime/client/entry.js"),\n\t\t\t\t\t\timport("/@fs/Users/sample/Developer/blockhead-2026-agent/consolidated-20260821/acceptance-live/.svelte-kit/generated/client/app.js")\n\t\t\t\t\t]).then(([kit, app]) => {\n\t\t\t\t\t\tkit.start(app, element);\n\t\t\t\t\t});\n\t\t\t\t}\n\t\t\t</script>\n\t\t</div>\n\t\n\n</body></html>'
+	assert.equal(Buffer.byteLength(bootstrapHtml), 905)
+	const page = {
+		content: async () => bootstrapHtml,
+		url: () => 'http://127.0.0.1:4173/a',
+		waitForTimeout: async () => {},
+	}
+	await assert.rejects(
+		waitForCaptureQuality(page, '/a', { timeoutMs: 1, quietMs: 0 }),
+		/capture settlement timed out: no-#main/
+	)
+})
+
+test('capture page adapter preserves prototype-backed Playwright methods', async () => {
+	class FakePage {
+		async goto() {}
+		async screenshot() {}
+		async content() { return '<main id="main">fixture</main>' }
+		url() { return 'http://127.0.0.1:4173/a' }
+		locator() { return { isVisible: async () => true } }
+		async waitForTimeout() {}
+		async close() {}
+	}
+	const page = adaptCapturePage(new FakePage())
+	await page.goto('/a')
+	assert.equal(await page.content(), '<main id="main">fixture</main>')
+	assert.equal(await page.isMainVisible(), true)
 })
 
 test('contract rejects omitted provenance, mismatched counts, reused contexts, and partial completion', async () => {
@@ -85,4 +117,15 @@ test('the historical 26-path evidence remains a reusable fixture rather than run
 	assert.equal(historical.attempts, 2)
 	assert.equal(historical.workers, 1)
 	assert.equal(historical.freshContextPerAttempt, true)
+	assert.deepEqual(historical.server.command, {
+		executable: 'node',
+		arguments: [
+			'node_modules/vite/bin/vite.js',
+			'dev',
+			'--host',
+			'127.0.0.1',
+			'--port',
+			'44763',
+		],
+	})
 })

@@ -80,12 +80,86 @@ export type ControlledRetryRun = {
 export type CaptureContext = {
 	id: string
 	startTracing: () => Promise<void>
-	newPage: () => Promise<{ goto: (url: string) => Promise<void>, screenshot: (options: { path: string, fullPage: boolean }) => Promise<void>, content: () => Promise<string>, close: () => Promise<void> }>
+	newPage: () => Promise<{ goto: (url: string) => Promise<void>, screenshot: (options: { path: string, fullPage: boolean }) => Promise<void>, content: () => Promise<string>, url: () => string, isMainVisible: () => Promise<boolean>, waitForTimeout: (milliseconds: number) => Promise<void>, close: () => Promise<void> }>
 	stopTracing: (path: string) => Promise<void>
 	close: () => Promise<void>
 }
 
 export type CaptureBrowser = { newContext: () => Promise<CaptureContext>, close: () => Promise<void>, identity: string }
+
+type CapturePage = Awaited<ReturnType<CaptureContext['newPage']>>
+
+export const adaptCapturePage = (page: {
+	goto: CapturePage['goto']
+	screenshot: CapturePage['screenshot']
+	content: CapturePage['content']
+	url: CapturePage['url']
+	locator: (selector: string) => { isVisible: () => Promise<boolean> }
+	waitForTimeout: CapturePage['waitForTimeout']
+	close: CapturePage['close']
+}): CapturePage => ({
+	goto: (url) => page.goto(url),
+	screenshot: (options) => page.screenshot(options),
+	content: () => page.content(),
+	url: () => page.url(),
+	isMainVisible: () => page.locator('#main').isVisible(),
+	waitForTimeout: (milliseconds) => page.waitForTimeout(milliseconds),
+	close: () => page.close(),
+})
+
+const captureSettleTimeoutMs = 120_000
+const captureQuietMs = 2_000
+
+const renderedMainState = (html: string) => {
+	const main = html.match(/<main\b[^>]*\bid=["']main["'][^>]*>([\s\S]*?)<\/main>/i)
+	if (main == null)
+		return { ready: false, reason: 'no-#main' }
+	const text = main[1].replace(/<[^>]*>/g, ' ').replace(/&nbsp;/gi, ' ').replace(/\s+/g, ' ').trim()
+	if (text.length === 0)
+		return { ready: false, reason: '#main-empty' }
+	if (/\baria-busy=["']true["']|\bdata-loading\b/i.test(main[0]))
+		return { ready: false, reason: '#main-still-loading' }
+	if (/\bdata-error\b/i.test(main[0]))
+		return { ready: false, reason: '#main-boundary-error' }
+	return { ready: true, reason: `#main-text-length=${text.length}` }
+}
+
+export const waitForCaptureQuality = async (page: CapturePage, pathname: string, {
+	timeoutMs = captureSettleTimeoutMs,
+	quietMs = captureQuietMs,
+}: { timeoutMs?: number, quietMs?: number } = {}) => {
+	const deadline = Date.now() + timeoutMs
+	let lastHtml = ''
+	let quietSince = Date.now()
+	let lastReason = 'bootstrap-shell'
+	while (Date.now() < deadline) {
+		const html = await page.content()
+		const state = renderedMainState(html)
+		lastReason = state.reason
+		if (state.ready && await page.isMainVisible()) {
+			if (html === lastHtml) {
+				if (Date.now() - quietSince >= quietMs) {
+					const finalUrl = new URL(page.url())
+					if (finalUrl.pathname !== pathname)
+						throw new Error(`capture canonical route mismatch: expected ${pathname}, received ${finalUrl.pathname}`)
+					return
+				}
+			}
+			else {
+				lastHtml = html
+				quietSince = Date.now()
+			}
+		}
+		else {
+			if (state.ready)
+				lastReason = '#main-not-visible'
+			lastHtml = ''
+			quietSince = Date.now()
+		}
+		await page.waitForTimeout(250)
+	}
+	throw new Error(`capture settlement timed out: ${lastReason}`)
+}
 
 const git = async (productRoot: string, ...args: string[]) => (
 	(await execFileAsync('git', args, { cwd: productRoot })).stdout.trim()
@@ -197,6 +271,7 @@ export const runControlledRetry = async ({ browser, manifest, outputDirectory, p
 			const page = await context.newPage()
 			try {
 				await page.goto(new URL(pathname, manifest.server.url).href)
+				await waitForCaptureQuality(page, pathname)
 				const screenshotPath = join(outputDirectory, 'screenshots', `${stem}.png`)
 				await page.screenshot({ path: screenshotPath, fullPage: true })
 				screenshot = await artifact(screenshotPath)
@@ -333,7 +408,7 @@ if (process.argv[1]?.endsWith('controlled-retry.mts')) {
 					return {
 						id: crypto.randomUUID(),
 						startTracing: () => context.tracing.start({ screenshots: true, snapshots: true, sources: true }),
-						newPage: () => context.newPage(),
+						newPage: async () => adaptCapturePage(await context.newPage()),
 						stopTracing: (path) => context.tracing.stop({ path }),
 						close: () => context.close(),
 					}
