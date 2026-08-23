@@ -260,6 +260,37 @@ describe('TonAPI blockchain raw account transport leftovers', () => {
 		vi.clearAllMocks()
 	})
 
+	it('accepts a friendly selector and canonicalizes the returned raw identity', async () => {
+		getJson.mockResolvedValueOnce({
+			address: '0:ABCDEFabcdefABCDEFabcdefABCDEFabcdefABCDEFabcdefABCDEFabcdefABCD',
+			balance: '1',
+			last_activity: 1,
+			status: 'active',
+			interfaces: [],
+			get_methods: [],
+			is_wallet: false,
+		})
+
+		await expect(getAccount('EQ/a+b')).resolves.toMatchObject({
+			address: '0:abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd',
+		})
+		expect(getJson).toHaveBeenCalledWith(binding, '/v2/accounts/EQ%2Fa%2Bb')
+	})
+
+	it('rejects a valid raw response substitution for a raw selector', async () => {
+		getJson.mockResolvedValueOnce({
+			address: `0:${'f'.repeat(64)}`,
+			balance: '1',
+			last_activity: 1,
+			status: 'active',
+			interfaces: [],
+			get_methods: [],
+			is_wallet: false,
+		})
+
+		await expect(getAccount(accountId)).rejects.toThrow('account response identity mismatch')
+	})
+
 	it('accepts enrolled leftover clocks/hashes and fail-closes unsafe integers', async () => {
 		getJson.mockResolvedValueOnce({
 			address: accountId,
