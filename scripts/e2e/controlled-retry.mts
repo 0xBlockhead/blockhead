@@ -64,6 +64,8 @@ export type ControlledRetryAttempt = {
 	toolOutputHash: string
 }
 
+type ControlledRetryAttemptCandidate = Omit<ControlledRetryAttempt, 'runtimeDiagnostics' | 'classification'> & Partial<Pick<ControlledRetryAttempt, 'runtimeDiagnostics' | 'classification'>>
+
 export type ControlledRetryRuntimeDiagnostics = {
 	console: { type: string, text: string }[]
 	pageErrors: { message: string, stack?: string }[]
@@ -145,7 +147,7 @@ export const adaptCapturePage = (page: {
 				const main = document.querySelector('#main')
 				const failed = main == null ? [] : [...main.querySelectorAll('[data-error], [role="alert"], [data-tag].inline-placeholder:not([aria-busy="true"])')]
 				const loading = main == null ? [] : [...main.querySelectorAll('.loading, [aria-busy="true"]')]
-				const mainText = main?.textContent?.replace(/\s+/g, ' ').trim() ?? ''
+				const mainText = main?.textContent.replace(/\s+/g, ' ').trim() ?? ''
 				const contentMarkerCount = main?.querySelectorAll('section, dl, ul, ol, [data-card], h1, h2, h3, h4, h5, h6, table, pre, canvas').length ?? 0
 				const contentHeight = Math.ceil(Math.max(1, ...[...document.querySelectorAll<HTMLElement>('#main, #main *')].map((element) => element.getBoundingClientRect().bottom + scrollY)))
 				const documentElement = document.documentElement
@@ -296,7 +298,7 @@ const classifyRuntimeDiagnostics = (runtimeDiagnostics: ControlledRetryRuntimeDi
 }
 
 export const validateControlledRetryRun = ({ attempts, manifest, run }: {
-	attempts: readonly ControlledRetryAttempt[]
+	attempts: readonly ControlledRetryAttemptCandidate[]
 	manifest: ControlledRetryManifest
 	run: ControlledRetryRun
 }) => {
