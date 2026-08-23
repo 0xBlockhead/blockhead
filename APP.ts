@@ -115301,6 +115301,10 @@ export const app = {
 				path: "src/resolvers/GetBlock-Yellowstone.ts",
 			},
 			{
+				source: Source.Git_Local,
+				path: "src/resolvers/Git-Local.ts",
+			},
+			{
 				source: Source.Gitlab_Rest,
 				path: "src/resolvers/Gitlab-Rest.ts",
 			},

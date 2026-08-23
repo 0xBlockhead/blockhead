@@ -93,6 +93,7 @@ const resolverLoaderEntries = [
 	[Source.FourByteDirectory_Rest, () => import('./FourByteDirectory-Rest.ts')],
 	[Source.GetBlockRpc_JsonRpc, () => import('./GetBlock-Rpc.ts')],
 	[Source.GetBlockYellowstone_Grpc, () => import('./GetBlock-Yellowstone.ts')],
+	[Source.Git_Local, () => import('./Git-Local.ts')],
 	[Source.Gitlab_Rest, () => import('./Gitlab-Rest.ts')],
 	[Source.Gmx_Rest, () => import('./Gmx-Rest.ts')],
 	[Source.GoldRushFoundational_Rest, () => import('./Covalent-Rest.ts')],
