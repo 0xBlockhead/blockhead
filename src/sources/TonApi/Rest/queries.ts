@@ -25,22 +25,22 @@ const getTonApiRestJson = <_Json>(
 
 export const getAccount = (
 	accountId: string
-) => {
-	const canonicalAccountId = rawTonAddressCoordinates(accountId)
-	return getTonApiRestJson<unknown>(
+) => (
+	getTonApiRestJson<unknown>(
 		`/v2/accounts/${encodeURIComponent(accountId)}`
 	).then((wire) => {
 		const account = TonApiAccount.assert(wire)
 		if (!/^(?:0|[1-9]\d*)$/.test(account.balance))
 			throw new Error('TonApi_Rest: account balance is not a non-negative decimal integer')
-		if (rawTonAddressCoordinates(account.address) !== canonicalAccountId)
-			throw new Error('TonApi_Rest: account response identity mismatch')
 		if (!Number.isSafeInteger(account.last_activity * 1_000))
 			throw new Error('TonApi_Rest: account activity clock exceeds safe millisecond bounds')
 
-		return account
+		return {
+			...account,
+			address: rawTonAddressCoordinates(account.address),
+		}
 	})
-}
+)
 
 export const getBlockchainMasterchainHead = () => (
 	getTonApiRestJson<unknown>(

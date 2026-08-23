@@ -299,7 +299,7 @@ describe('TonAPI blockchain raw account transport leftovers', () => {
 	it('rejects malformed account identity and unsafe account clocks before resolver projection', async () => {
 		getJson
 			.mockResolvedValueOnce({
-				address: '0:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff',
+				address: 'not-a-raw-ton-address',
 				balance: '1',
 				last_activity: 1,
 				status: 'active',
@@ -330,7 +330,7 @@ describe('TonAPI blockchain raw account transport leftovers', () => {
 				},
 			})
 
-		await expect(getAccount(accountId)).rejects.toThrow('account response identity mismatch')
+		await expect(getAccount(accountId)).rejects.toThrow('malformed raw account address')
 		await expect(getAccount(accountId)).rejects.toThrow('activity clock exceeds safe millisecond bounds')
 		await expect(getBlockchainRawAccount(accountId)).rejects.toThrow('raw account numeric field exceeds lossless JSON bounds')
 	})

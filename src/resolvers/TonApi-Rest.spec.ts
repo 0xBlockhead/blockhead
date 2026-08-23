@@ -303,7 +303,7 @@ describe('TonAPI account resolver', () => {
 				},
 				address: 'EQ/a+b',
 			}
-		)).rejects.toThrow('malformed raw address')
+	)).rejects.toThrow('malformed raw account address')
 	})
 
 	it('fails closed on an unsafe workchain coordinate', async () => {
@@ -324,7 +324,7 @@ describe('TonAPI account resolver', () => {
 				},
 				address: 'EQ/a+b',
 			}
-		)).rejects.toThrow('malformed workchain')
+	)).rejects.toThrow('malformed raw account address')
 	})
 
 	it('rejects a non-TON parent before transport', async () => {
@@ -403,7 +403,7 @@ describe('TonAPI jetton resolver', () => {
 				},
 				masterAddress: 'EQ/a+b',
 				}
-			)).rejects.toThrow('malformed raw address')
+	)).rejects.toThrow('malformed raw account address')
 	})
 })
 
