@@ -234,11 +234,11 @@
 		)
 	}
 
-	const updateResourceBoundarySession = () => {
+	const updateResourceBoundarySession = async () => {
 		if (resourceBoundarySessionSelector === undefined)
 			return
 
-		writeLocalBlockheadSessionName(
+		await writeLocalBlockheadSessionName(
 			getAppClient(),
 			resourceBoundarySessionSelector,
 			'Resource Boundary 101'

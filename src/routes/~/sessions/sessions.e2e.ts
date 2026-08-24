@@ -345,6 +345,8 @@ test('keeps session actions as drafts until explicit confirmation', async ({ pag
 	await page.getByLabel('Session name').fill('Intent draft test')
 	await page.getByRole('button', { name: 'Create session' }).click()
 	await expect(page).toHaveURL(/\/~\/session\/session-[^/]+(?:\?|$)/)
+	await page.reload({ waitUntil: 'domcontentloaded' })
+	await expectMainAttached(page, 120_000, diagnostics)
 	await expect(page.getByText('No actions.', { exact: true })).toBeVisible({
 		timeout: 120_000,
 	})

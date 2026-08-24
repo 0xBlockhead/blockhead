@@ -342,9 +342,9 @@
 				{#if resolvedSession.lockedAt == null}
 					<form
 						data-row="start wrap align-center gap-2"
-						onsubmit={(event) => {
+						onsubmit={async (event) => {
 							event.preventDefault()
-							writeLocalBlockheadSessionName(
+							await writeLocalBlockheadSessionName(
 								getAppClient(),
 								selection.entitySelector,
 								sessionName,
@@ -381,9 +381,9 @@
 
 				<button
 					type="button"
-					onclick={() => {
+					onclick={async () => {
 						cancelDraft()
-						writeLocalBlockheadSessionLockedAt(
+						await writeLocalBlockheadSessionLockedAt(
 							getAppClient(),
 							selection.entitySelector,
 							Date.now(),
@@ -395,7 +395,7 @@
 			{:else}
 				<button
 					type="button"
-					onclick={() => deleteLocalBlockheadSessionLockedAt(
+					onclick={async () => await deleteLocalBlockheadSessionLockedAt(
 						getAppClient(),
 						selection.entitySelector,
 					)}

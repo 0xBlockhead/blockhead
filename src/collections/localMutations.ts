@@ -1202,7 +1202,7 @@ export const writeLocalBlockheadSessionLifecycle = async (
 	return persistSessionLifecycle(applied)
 }
 
-export const writeLocalBlockheadSessionName = (
+export const writeLocalBlockheadSessionName = async (
 	context: LocalMutationContext,
 	entitySelector: EntitySelector<typeof schema, EntityType.BlockheadSession>,
 	sessionName: string
@@ -1222,6 +1222,9 @@ export const writeLocalBlockheadSessionName = (
 			...(previous.lockedAt != null && { lockedAt: previous.lockedAt }),
 		})
 	)
+	await context.entityCollections[EntityType.BlockheadSession].utils.waitForPersistence()
+	await Promise.all(Object.values(context.entityFieldCollections[EntityType.BlockheadSession])
+		.map((collection) => collection.utils.waitForPersistence()))
 }
 
 export const writeLocalBlockheadSessionAction = (
@@ -1326,7 +1329,7 @@ export const writeLocalBlockheadSessionAction = (
 	})
 }
 
-export const writeLocalBlockheadSessionLockedAt = (
+export const writeLocalBlockheadSessionLockedAt = async (
 	context: LocalMutationContext,
 	entitySelector: EntitySelector<typeof schema, EntityType.BlockheadSession>,
 	lockedAt: number | undefined
@@ -1343,9 +1346,12 @@ export const writeLocalBlockheadSessionLockedAt = (
 		return
 
 	applyLocalBlockheadSessionLifecycleUpdate(context, entitySelector, next)
+	await context.entityCollections[EntityType.BlockheadSession].utils.waitForPersistence()
+	await Promise.all(Object.values(context.entityFieldCollections[EntityType.BlockheadSession])
+		.map((collection) => collection.utils.waitForPersistence()))
 }
 
-export const deleteLocalBlockheadSessionLockedAt = (
+export const deleteLocalBlockheadSessionLockedAt = async (
 	context: LocalMutationContext,
 	entitySelector: EntitySelector<typeof schema, EntityType.BlockheadSession>
 ) => {
@@ -1358,6 +1364,9 @@ export const deleteLocalBlockheadSessionLockedAt = (
 		return
 
 	applyLocalBlockheadSessionLifecycleUpdate(context, entitySelector, next)
+	await context.entityCollections[EntityType.BlockheadSession].utils.waitForPersistence()
+	await Promise.all(Object.values(context.entityFieldCollections[EntityType.BlockheadSession])
+		.map((collection) => collection.utils.waitForPersistence()))
 }
 
 export const deleteLocalBlockheadSession = (
