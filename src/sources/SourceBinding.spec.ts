@@ -1,4 +1,5 @@
 import {
+	readFileSync,
 	statSync,
 } from 'node:fs'
 
@@ -58,6 +59,17 @@ const sourceMember = (
 ) => (Source as Record<string, Source | undefined>)[name]
 
 describe('source binding indexes', () => {
+	it('keeps Reddit OAuth credentials out of public environment configuration', () => {
+		const environmentExample = readFileSync(
+			new URL('../../.env.example', import.meta.url),
+			'utf8'
+		)
+
+		expect(environmentExample).toMatch(/^REDDIT_CLIENT_ID=$/m)
+		expect(environmentExample).toMatch(/^REDDIT_CLIENT_SECRET=$/m)
+		expect(environmentExample).not.toMatch(/^PUBLIC_REDDIT_(?:CLIENT_ID|CLIENT_SECRET)=/m)
+	})
+
 	it('retains every present source bucket as one nonempty array shape', () => {
 		const binding = sourceBindings[0]
 
