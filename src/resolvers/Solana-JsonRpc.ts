@@ -36,9 +36,13 @@ const solanaMainnetCaip2 = networkBySlug.solana.caip2
 
 const assertSolanaMainnet = (network: SolanaNetworkSelector) => {
 	if (
-		!('caip2' in network)
-		|| network.caip2.namespace !== solanaMainnetCaip2.namespace
-		|| network.caip2.reference !== solanaMainnetCaip2.reference
+		'caip2' in network ?
+			(
+				network.caip2.namespace !== solanaMainnetCaip2.namespace
+				|| network.caip2.reference !== solanaMainnetCaip2.reference
+			)
+		:
+			network.slug !== networkBySlug.solana.slug
 	) {
 		throw new Error('Solana_JsonRpc: unsupported network')
 	}

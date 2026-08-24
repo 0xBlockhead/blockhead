@@ -159,6 +159,9 @@ const networkSelector = {
 		reference: '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
 	},
 }
+const networkSlugSelector = {
+	slug: 'solana',
+}
 
 const networkTimestampsResolver = solanaJsonRpc.resolvers.find((candidate) => (
 	candidate.entityType === EntityType.Network
@@ -581,6 +584,21 @@ describe('Solana transaction instruction hierarchy', () => {
 		}, context)
 		expect(transactionResolver.projections.$$instructions.select(snapshot)).toHaveLength(3)
 		expect(transactionResolver.projections.$$instructions.resolveCount(snapshot)).toBe(3)
+	})
+
+	it('accepts the canonical network slug selector used by slug routes', async () => {
+		const blockResolver = solanaJsonRpc.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.SolanaBlock
+		))
+		if (blockResolver == null)
+			throw new Error('missing Solana block resolver')
+
+		await expect(blockResolver.resolve.Slot.resolve({
+			$network: networkSlugSelector,
+			slot: 100n,
+		}, context)).resolves.toEqual(expect.objectContaining({
+			blockHash: 'block-hash',
+		}))
 	})
 })
 

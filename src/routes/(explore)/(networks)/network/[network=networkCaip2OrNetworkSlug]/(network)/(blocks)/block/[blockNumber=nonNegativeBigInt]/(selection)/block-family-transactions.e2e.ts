@@ -10,7 +10,7 @@ const networkPath = (slug: 'bitcoin' | 'solana') => {
 
 const solanaBlockHeight = 1
 const solanaTransactionId = 'solana-block-family-fixture-signature'
-const solanaNetworkPath = networkPath('solana')
+const solanaNetworkPath = '/network/solana'
 const solanaTransactionsPath = `${solanaNetworkPath}/block/${solanaBlockHeight}/transactions`
 const solanaBlockPath = `${solanaNetworkPath}/block/${solanaBlockHeight}`
 const solanaBlock = {
