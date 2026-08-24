@@ -178,6 +178,12 @@ export const retargetSessionActionDraft = (
 	actionType: ActionType
 ): Exclude<SessionActionDraft, { mode: 'idle' }> => {
 	const fields = emptyDraftFieldsForActionType(actionType)
+	if (draft.actionType === ActionType.Transfer && actionType === ActionType.Bridge)
+		fields.fields = {
+			...fields.fields,
+			tokenAddress: draft.fields.tokenAddress,
+			amount: draft.fields.amount,
+		}
 	if (draft.mode === 'edit')
 		return {
 			mode: 'edit',

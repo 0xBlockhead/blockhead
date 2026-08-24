@@ -842,6 +842,13 @@ describe('local mutation authority journal', () => {
 				}),
 			})
 		)
+		expect(entityFieldCollections[EntityType.BlockheadSession][entityFieldAddressKey(
+			EntityType.BlockheadSession,
+			[],
+			'updatedAt'
+		)].toArray).toContainEqual(expect.objectContaining({
+			[EntityMetaKey.Value]: expect.any(Number),
+		}))
 		expect(() => writeLocalBlockheadSessionAction(
 			context,
 			sessionSelector,

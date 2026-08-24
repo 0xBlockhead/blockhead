@@ -256,13 +256,13 @@
 		}
 	}
 
-	const confirmDraft = () => {
+	const confirmDraft = async () => {
 		if (draft.mode === 'idle')
 			return
 
 		try {
 			if (draft.actionType === ActionType.Transfer)
-				writeAction(draft, actionTypeDefinitionByActionType[draft.actionType].params.assert({
+				await writeAction(draft, actionTypeDefinitionByActionType[draft.actionType].params.assert({
 					fromActor: draft.fields.fromActor,
 					toActor: draft.fields.toActor,
 					chainId: Number(draft.fields.chainId),
@@ -270,7 +270,7 @@
 					amount: BigInt(draft.fields.amount),
 				}))
 			else if (draft.actionType === ActionType.Swap)
-				writeAction(draft, actionTypeDefinitionByActionType[draft.actionType].params.assert({
+				await writeAction(draft, actionTypeDefinitionByActionType[draft.actionType].params.assert({
 					chainId: Number(draft.fields.chainId),
 					tokenIn: draft.fields.tokenIn,
 					tokenOut: draft.fields.tokenOut,
@@ -278,7 +278,7 @@
 					slippage: Number(draft.fields.slippage),
 				}))
 			else
-				writeAction(draft, actionTypeDefinitionByActionType[draft.actionType].params.assert({
+				await writeAction(draft, actionTypeDefinitionByActionType[draft.actionType].params.assert({
 					fromChainId: Number(draft.fields.fromChainId),
 					toChainId: Number(draft.fields.toChainId),
 					tokenAddress: draft.fields.tokenAddress,

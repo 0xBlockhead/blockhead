@@ -471,3 +471,41 @@ test('cancels a keyboard-created draft without adding an action', async ({ page 
 	await expect(page.getByText('Transfer draft', { exact: true })).not.toBeAttached()
 	await expect(page.getByText('Transfer draft added.')).not.toBeAttached()
 })
+
+test('persists an edited session action through navigation and reload', async ({ page }) => {
+	const diagnostics = setupPageRuntimeDiagnostics(page)
+	await diagnostics.step(page.goto('/~/sessions'))
+	await expectMainAttached(page, 120_000, diagnostics)
+	await page.getByLabel('Session name').fill('Persisted action edit')
+	await page.getByRole('button', { name: 'Create session' }).click()
+	await expect(page).toHaveURL(/\/~\/session\/session-[^/]+(?:\?|$)/)
+	const sessionHref = new URL(page.url()).pathname
+
+	await page.getByLabel('Source account').fill('0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045')
+	await page.getByLabel('Source chain ID').fill('1')
+	await page.getByRole('button', { name: 'Start transfer draft with keyboard' }).click()
+	await page.getByLabel('To account').fill('0x000000000000000000000000000000000000dEaD')
+	await page.getByLabel('Chain ID', { exact: true }).fill('1')
+	await page.getByLabel('Token address').fill('0x0000000000000000000000000000000000000000')
+	await page.getByLabel('Amount (base units)').fill('1')
+	await page.getByRole('button', { name: 'Confirm draft' }).evaluate((button) => {
+		button.closest('form')?.dispatchEvent(new SubmitEvent('submit', { bubbles: true, cancelable: true }))
+	})
+	await expect(page.getByText('Transfer draft added.')).toBeVisible({ timeout: 120_000 })
+
+	await page.getByRole('button', { name: 'Edit Transfer action' }).click()
+	await page.getByLabel('Draft action type').selectOption('Bridge')
+	await page.getByLabel('From chain ID').fill('1')
+	await page.getByLabel('To chain ID').fill('10')
+	await page.getByRole('button', { name: 'Confirm draft' }).evaluate((button) => {
+		button.closest('form')?.dispatchEvent(new SubmitEvent('submit', { bubbles: true, cancelable: true }))
+	})
+	await expect(page.getByText('Bridge draft updated.')).toBeVisible({ timeout: 120_000 })
+
+	await page.goto('/~/sessions', { waitUntil: 'load', timeout: 120_000 })
+	await expect(page.getByRole('link', { name: 'Persisted action edit' })).toBeVisible({ timeout: 120_000 })
+	await page.goto(sessionHref, { waitUntil: 'load', timeout: 120_000 })
+	await expect(page.getByRole('button', { name: 'Edit Bridge action' })).toBeVisible({ timeout: 120_000 })
+	await page.reload({ waitUntil: 'load' })
+	await expect(page.getByRole('button', { name: 'Edit Bridge action' })).toBeVisible({ timeout: 120_000 })
+})

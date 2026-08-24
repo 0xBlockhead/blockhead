@@ -97,8 +97,8 @@ describe('sessionActionsComposerState', () => {
 			fields: {
 				fromChainId: '',
 				toChainId: '',
-				tokenAddress: '',
-				amount: '',
+				tokenAddress: '0x0000000000000000000000000000000000000000',
+				amount: '3',
 				slippage: '0.005',
 			},
 			selector: {

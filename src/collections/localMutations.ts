@@ -1646,7 +1646,7 @@ export const deleteLocalBlockheadWalletCapabilityGrantsForConnection = async (
 	)
 }
 
-export const updateLocalBlockheadSessionActionType = (
+export const updateLocalBlockheadSessionActionType = async (
 	context: LocalMutationContext,
 	entitySelector: EntitySelector<typeof schema, EntityType.BlockheadSessionAction>,
 	sessionSelector: EntitySelector<typeof schema, EntityType.BlockheadSession>,
@@ -1671,7 +1671,18 @@ export const updateLocalBlockheadSessionActionType = (
 		createdAt,
 		updatedAt: Date.now(),
 	})
-	return Promise.all([
+	const previousSession = readLocalBlockheadSessionLifecycle(context, sessionSelector)
+	if (previousSession != null) {
+		applyLocalBlockheadSessionLifecycleUpdate(
+			context,
+			sessionSelector,
+			sessionLifecycleFromPersisted({
+				...persistSessionLifecycle(previousSession),
+				updatedAt: Date.now(),
+			})
+		)
+	}
+	await Promise.all([
 		relationshipApplication,
 		context.entityCollections[EntityType.BlockheadSessionAction].utils.waitForPersistence(),
 		...[
@@ -1684,6 +1695,9 @@ export const updateLocalBlockheadSessionActionType = (
 		].map((fieldName) => context.entityFieldCollections[EntityType.BlockheadSessionAction][
 			entityFieldAddressKey(EntityType.BlockheadSessionAction, [], fieldName)
 		].utils.waitForPersistence()),
+		context.entityFieldCollections[EntityType.BlockheadSession][
+			entityFieldAddressKey(EntityType.BlockheadSession, [], 'updatedAt')
+		].utils.waitForPersistence(),
 	])
 }
 
