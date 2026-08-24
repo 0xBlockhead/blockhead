@@ -26,6 +26,7 @@
 		hex,
 		kind,
 		resource,
+		retry,
 		source,
 		selectedSignatureIndex = $bindable(0),
 	}: {
@@ -33,6 +34,7 @@
 		hex: `0x${string}`
 		kind: CalldataSignatureKind
 		resource: SvelteKitResource<{ values: readonly string[] }>
+		retry: () => void
 		source: Source
 		selectedSignatureIndex?: number
 	} = $props()
@@ -262,7 +264,7 @@
 		{/if}
 	{/snippet}
 
-	{#snippet Failed(error, retry)}
+	{#snippet Failed(error)}
 		<p
 			data-resource-state="failed"
 			role="alert"

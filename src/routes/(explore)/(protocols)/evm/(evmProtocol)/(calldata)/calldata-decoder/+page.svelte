@@ -11,7 +11,7 @@
 	import { normalizeEvmSelectorHex, normalizeEvmTopicHex } from '$/lib/signature-paths.ts'
 	import { afterNavigate } from '$app/navigation'
 	import { page } from '$app/state'
-	import { untrack } from 'svelte'
+	import { onDestroy, untrack } from 'svelte'
 	import Collapsible from '$/components/Collapsible.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import Heading from '$/components/Heading.svelte'
@@ -19,6 +19,7 @@
 	import Select from '$/components/Select.svelte'
 	import EvmAccountView from '$/views/EvmAccountView.svelte'
 	import CalldataSignatureResult, { CalldataSignatureKind } from './CalldataSignatureResult.svelte'
+	import { CalldataRetryResource } from './calldataRetryResource.svelte.ts'
 
 
 	const hexFromParam = (value: string | null) => {
@@ -164,6 +165,44 @@
 		},
 	))
 
+	const selectorResourceKey = (source: string, value: `0x${string}` | null) => `${source}:${value ?? IDLE_SELECTOR_HEX}`
+	const topicResourceKey = (source: string, value: `0x${string}` | null) => `${source}:${value ?? IDLE_TOPIC_HEX}`
+	const initialSelector = untrack(() => selector)
+	const initialTopic = untrack(() => topic)
+	const selectorOpenchainKey = selectorResourceKey('selector:openchain', initialSelector)
+	const selectorFourByteDirectoryKey = selectorResourceKey('selector:fourbyte', initialSelector)
+	const topicOpenchainKey = topicResourceKey('topic:openchain', initialTopic)
+	const topicFourByteDirectoryKey = topicResourceKey('topic:fourbyte', initialTopic)
+
+	const selectorOpenchainResource = new CalldataRetryResource(() => selectorOpenchainEntity.signatures, selectorOpenchainKey)
+	const selectorFourByteDirectoryResource = new CalldataRetryResource(() => selectorFourByteDirectoryEntity.signatures, selectorFourByteDirectoryKey)
+	const topicOpenchainResource = new CalldataRetryResource(() => topicOpenchainEntity.signatures, topicOpenchainKey)
+	const topicFourByteDirectoryResource = new CalldataRetryResource(() => topicFourByteDirectoryEntity.signatures, topicFourByteDirectoryKey)
+
+	$effect(() => {
+		selectorOpenchainEntity
+		selectorOpenchainResource.setFactory(() => selectorOpenchainEntity.signatures, selectorResourceKey('selector:openchain', selector))
+	})
+	$effect(() => {
+		selectorFourByteDirectoryEntity
+		selectorFourByteDirectoryResource.setFactory(() => selectorFourByteDirectoryEntity.signatures, selectorResourceKey('selector:fourbyte', selector))
+	})
+	$effect(() => {
+		topicOpenchainEntity
+		topicOpenchainResource.setFactory(() => topicOpenchainEntity.signatures, topicResourceKey('topic:openchain', topic))
+	})
+	$effect(() => {
+		topicFourByteDirectoryEntity
+		topicFourByteDirectoryResource.setFactory(() => topicFourByteDirectoryEntity.signatures, topicResourceKey('topic:fourbyte', topic))
+	})
+
+	onDestroy(() => {
+		selectorOpenchainResource.destroy()
+		selectorFourByteDirectoryResource.destroy()
+		topicOpenchainResource.destroy()
+		topicFourByteDirectoryResource.destroy()
+	})
+
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -282,7 +321,8 @@
 																hex={ZeroExHex.assert(hexWithPrefix)}
 																kind={CalldataSignatureKind.Function}
 																source={Source.Openchain_Rest}
-																resource={selectorOpenchainEntity.signatures}
+											resource={selectorOpenchainResource.resource}
+											retry={() => selectorOpenchainResource.retry()}
 																bind:selectedSignatureIndex={selectedOpenchainFunctionSignatureIndex}
 															>
 											{#snippet Address(address)}
@@ -297,7 +337,8 @@
 																hex={ZeroExHex.assert(hexWithPrefix)}
 																kind={CalldataSignatureKind.Function}
 																source={Source.FourByteDirectory_Rest}
-																resource={selectorFourByteDirectoryEntity.signatures}
+											resource={selectorFourByteDirectoryResource.resource}
+											retry={() => selectorFourByteDirectoryResource.retry()}
 																bind:selectedSignatureIndex={selectedFourByteDirectoryFunctionSignatureIndex}
 															>
 																{#snippet Address(address)}
@@ -360,7 +401,8 @@
 																hex={ZeroExHex.assert(hexWithPrefix)}
 																kind={CalldataSignatureKind.Event}
 																source={Source.Openchain_Rest}
-																resource={topicOpenchainEntity.signatures}
+											resource={topicOpenchainResource.resource}
+											retry={() => topicOpenchainResource.retry()}
 																bind:selectedSignatureIndex={selectedOpenchainEventSignatureIndex}
 															>
 											{#snippet Address(address)}
@@ -375,7 +417,8 @@
 																hex={ZeroExHex.assert(hexWithPrefix)}
 																kind={CalldataSignatureKind.Event}
 																source={Source.FourByteDirectory_Rest}
-																resource={topicFourByteDirectoryEntity.signatures}
+											resource={topicFourByteDirectoryResource.resource}
+											retry={() => topicFourByteDirectoryResource.retry()}
 																bind:selectedSignatureIndex={selectedFourByteDirectoryEventSignatureIndex}
 															>
 																{#snippet Address(address)}

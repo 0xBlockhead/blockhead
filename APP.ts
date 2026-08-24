@@ -73760,7 +73760,7 @@ export const routes = defineRoutes(schema)({
 														{ from: "$/lib/signature-paths.ts", names: ["normalizeEvmSelectorHex", "normalizeEvmTopicHex"] },
 														{ from: "$app/navigation", names: ["afterNavigate"] },
 														{ from: "$app/state", names: ["page"] },
-														{ from: "svelte", names: ["untrack"] },
+														{ from: "svelte", names: ["onDestroy", "untrack"] },
 														{ from: "$/components/Collapsible.svelte", default: "Collapsible" },
 														{ from: "$/components/EntityView.svelte", default: "EntityView", names: ["EntityLayout"] },
 														{ from: "$/components/Heading.svelte", default: "Heading" },
@@ -73768,6 +73768,7 @@ export const routes = defineRoutes(schema)({
 														{ from: "$/components/Select.svelte", default: "Select" },
 														{ from: "$/views/EvmAccountView.svelte", default: "EvmAccountView" },
 														{ from: "./CalldataSignatureResult.svelte", default: "CalldataSignatureResult", names: ["CalldataSignatureKind"] },
+														{ from: "./calldataRetryResource.svelte.ts", names: ["CalldataRetryResource"] },
 													],
 													script: dedent `
 															const hexFromParam = (value: string | null) => {
@@ -73912,6 +73913,44 @@ export const routes = defineRoutes(schema)({
 																	fields: { signatures: true },
 																},
 															))
+
+															const selectorResourceKey = (source: string, value: \`0x\${string}\` | null) => \`\${source}:\${value ?? IDLE_SELECTOR_HEX}\`
+															const topicResourceKey = (source: string, value: \`0x\${string}\` | null) => \`\${source}:\${value ?? IDLE_TOPIC_HEX}\`
+															const initialSelector = untrack(() => selector)
+															const initialTopic = untrack(() => topic)
+															const selectorOpenchainKey = selectorResourceKey('selector:openchain', initialSelector)
+															const selectorFourByteDirectoryKey = selectorResourceKey('selector:fourbyte', initialSelector)
+															const topicOpenchainKey = topicResourceKey('topic:openchain', initialTopic)
+															const topicFourByteDirectoryKey = topicResourceKey('topic:fourbyte', initialTopic)
+
+															const selectorOpenchainResource = new CalldataRetryResource(() => selectorOpenchainEntity.signatures, selectorOpenchainKey)
+															const selectorFourByteDirectoryResource = new CalldataRetryResource(() => selectorFourByteDirectoryEntity.signatures, selectorFourByteDirectoryKey)
+															const topicOpenchainResource = new CalldataRetryResource(() => topicOpenchainEntity.signatures, topicOpenchainKey)
+															const topicFourByteDirectoryResource = new CalldataRetryResource(() => topicFourByteDirectoryEntity.signatures, topicFourByteDirectoryKey)
+
+															$effect(() => {
+																selectorOpenchainEntity
+																selectorOpenchainResource.setFactory(() => selectorOpenchainEntity.signatures, selectorResourceKey('selector:openchain', selector))
+															})
+															$effect(() => {
+																selectorFourByteDirectoryEntity
+																selectorFourByteDirectoryResource.setFactory(() => selectorFourByteDirectoryEntity.signatures, selectorResourceKey('selector:fourbyte', selector))
+															})
+															$effect(() => {
+																topicOpenchainEntity
+																topicOpenchainResource.setFactory(() => topicOpenchainEntity.signatures, topicResourceKey('topic:openchain', topic))
+															})
+															$effect(() => {
+																topicFourByteDirectoryEntity
+																topicFourByteDirectoryResource.setFactory(() => topicFourByteDirectoryEntity.signatures, topicResourceKey('topic:fourbyte', topic))
+															})
+
+															onDestroy(() => {
+																selectorOpenchainResource.destroy()
+																selectorFourByteDirectoryResource.destroy()
+																topicOpenchainResource.destroy()
+																topicFourByteDirectoryResource.destroy()
+															})
 														`.raw,
 													Content: dedent `
 															<section
@@ -74020,7 +74059,8 @@ export const routes = defineRoutes(schema)({
 																														hex={ZeroExHex.assert(hexWithPrefix)}
 																														kind={CalldataSignatureKind.Function}
 																														source={Source.Openchain_Rest}
-																														resource={selectorOpenchainEntity.signatures}
+																									resource={selectorOpenchainResource.resource}
+																									retry={() => selectorOpenchainResource.retry()}
 																														bind:selectedSignatureIndex={selectedOpenchainFunctionSignatureIndex}
 																													>
 																									{#snippet Address(address)}
@@ -74035,7 +74075,8 @@ export const routes = defineRoutes(schema)({
 																														hex={ZeroExHex.assert(hexWithPrefix)}
 																														kind={CalldataSignatureKind.Function}
 																														source={Source.FourByteDirectory_Rest}
-																														resource={selectorFourByteDirectoryEntity.signatures}
+																									resource={selectorFourByteDirectoryResource.resource}
+																									retry={() => selectorFourByteDirectoryResource.retry()}
 																														bind:selectedSignatureIndex={selectedFourByteDirectoryFunctionSignatureIndex}
 																													>
 																														{#snippet Address(address)}
@@ -74098,7 +74139,8 @@ export const routes = defineRoutes(schema)({
 																														hex={ZeroExHex.assert(hexWithPrefix)}
 																														kind={CalldataSignatureKind.Event}
 																														source={Source.Openchain_Rest}
-																														resource={topicOpenchainEntity.signatures}
+																									resource={topicOpenchainResource.resource}
+																									retry={() => topicOpenchainResource.retry()}
 																														bind:selectedSignatureIndex={selectedOpenchainEventSignatureIndex}
 																													>
 																									{#snippet Address(address)}
@@ -74113,7 +74155,8 @@ export const routes = defineRoutes(schema)({
 																														hex={ZeroExHex.assert(hexWithPrefix)}
 																														kind={CalldataSignatureKind.Event}
 																														source={Source.FourByteDirectory_Rest}
-																														resource={topicFourByteDirectoryEntity.signatures}
+																									resource={topicFourByteDirectoryResource.resource}
+																									retry={() => topicFourByteDirectoryResource.retry()}
 																														bind:selectedSignatureIndex={selectedFourByteDirectoryEventSignatureIndex}
 																													>
 																														{#snippet Address(address)}

@@ -22,6 +22,7 @@ test('keeps pending, ready-empty, late decoded data, and failure distinct withou
 		hex: `${functionSelectorFromSignature(signature)}${'0'.repeat(62)}7b`,
 		kind: 'Function',
 		resource,
+		retry: () => {},
 		source: Source.Openchain_Rest,
 	})
 
