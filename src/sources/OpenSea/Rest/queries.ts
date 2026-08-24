@@ -36,6 +36,18 @@ import { type as arktype } from 'arktype'
 
 const binding = Object.fromEntries(bindings[Source.OpenSea_Rest].map((binding) => [binding.target.key, binding]))['opensea-api']
 
+export type OpenSeaRestErrorCode = 'upstream' | 'malformed-response' | 'aborted'
+
+export class OpenSeaRestError extends Error {
+	readonly code: OpenSeaRestErrorCode
+
+	constructor(code: OpenSeaRestErrorCode, message: string, options?: ErrorOptions) {
+		super(message, options)
+		this.name = 'OpenSeaRestError'
+		this.code = code
+	}
+}
+
 /** OpenAPI Trait — transport-typed; no enrolled EvmNft trait bag. */
 const openSeaTraitWire = arktype({
 	trait_type: 'string',
@@ -140,7 +152,7 @@ const assertEnvelope = (
 	try {
 		envelope.assert(value)
 	} catch {
-		throw new Error(`OpenSea_Rest: invalid ${label} response envelope`)
+		throw new OpenSeaRestError('malformed-response', `OpenSea_Rest: invalid ${label} response envelope`)
 	}
 }
 
@@ -159,16 +171,34 @@ const requestOpenSeaJson = async <_Response>({
 }: {
 	path: string
 }) => {
-	const response = await sourceFetch(binding, new URL(path, firstHttpUrlForBinding(binding)).toString(), {
-		headers: {
-			accept: 'application/json',
-		},
-	})
+	let response: Response
+	try {
+		response = await sourceFetch(binding, new URL(path, firstHttpUrlForBinding(binding)).toString(), {
+			headers: {
+				accept: 'application/json',
+			},
+		})
+	} catch (cause) {
+		if (cause instanceof DOMException && cause.name === 'AbortError')
+			throw new OpenSeaRestError('aborted', 'OpenSea_Rest: upstream request aborted', { cause })
+		throw new OpenSeaRestError('upstream', 'OpenSea_Rest: upstream request failed', { cause })
+	}
 
-	if (!response.ok)
-		await throwHttpError(binding.source, response)
+	if (!response.ok) {
+		try {
+			await throwHttpError(binding.source, response)
+		} catch (cause) {
+			throw new OpenSeaRestError('upstream', 'OpenSea_Rest: upstream request failed', { cause })
+		}
+	}
 
-	return response.json<_Response>()
+	try {
+		return await response.json<_Response>()
+	} catch (cause) {
+		if (cause instanceof DOMException && cause.name === 'AbortError')
+			throw new OpenSeaRestError('aborted', 'OpenSea_Rest: upstream request aborted', { cause })
+		throw new OpenSeaRestError('malformed-response', 'OpenSea_Rest: malformed upstream JSON response', { cause })
+	}
 }
 
 const pagination = ({

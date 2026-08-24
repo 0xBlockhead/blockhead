@@ -19,6 +19,7 @@ import {
 	getNftsByContract,
 	openSeaChainForChainId,
 } from '$/sources/OpenSea/Rest/queries.ts'
+import { OpenSeaRestError } from '$/sources/OpenSea/Rest/queries.ts'
 import type {
 	OpenSeaAccountEventsResponse,
 	OpenSeaAccountNftsResponse,
@@ -98,6 +99,22 @@ beforeEach(() => {
 })
 
 describe('OpenSea account endpoints', () => {
+	it('fails closed with typed errors for upstream and malformed responses', async () => {
+		respond({ nfts: [] }, 503)
+		await expect(getAccountNfts({ chain: 'ethereum', address })).rejects.toMatchObject({
+			name: 'OpenSeaRestError',
+			code: 'upstream',
+		})
+
+		vi.mocked(sourceFetch).mockResolvedValueOnce(new Response('{', {
+			status: 200,
+			headers: { 'content-type': 'application/json' },
+		}))
+		const malformed = getAccountNfts({ chain: 'ethereum', address })
+		await expect(malformed).rejects.toBeInstanceOf(OpenSeaRestError)
+		await expect(malformed).rejects.toMatchObject({ code: 'malformed-response' })
+	})
+
 	it('encodes every documented NFT account parameter', async () => {
 		respond({
 			nfts: [nft],
