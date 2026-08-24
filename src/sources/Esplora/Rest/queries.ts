@@ -3,6 +3,7 @@ import {
 	firstHttpUrlForBinding,
 	sourceFetch,
 	sourceGetJson,
+	sourceGetText,
 } from '$/sources/_runtime/http.ts'
 import bindings from '$/sources/Esplora/bindings.ts'
 import {
@@ -41,6 +42,20 @@ const getEsploraJson = async <_Response>(
 	)
 }
 
+const getEsploraText = async (
+	target: EsploraTarget,
+	path: string
+) => {
+	const binding = bindingByTarget.get(target)
+	if (binding == null)
+		throw new Error(`Esplora_Rest: unsupported source target ${target}`)
+
+	return sourceGetText(
+		binding,
+		`${firstHttpUrlForBinding(binding).replace(/\/$/, '')}${path}`
+	)
+}
+
 export const getBlock = async ({
 	blockHash,
 	target,
@@ -65,7 +80,7 @@ export const getBlockHashByHeight = async ({
 	height: bigint
 	target: EsploraTarget
 }) => {
-	const hash = await getEsploraJson<unknown>(target, `/block-height/${height.toString()}`)
+	const hash = await getEsploraText(target, `/block-height/${height.toString()}`)
 	if (!esploraBlockHashWire.allows(hash))
 		throw new Error('Esplora_Rest: invalid block hash envelope')
 	return hash

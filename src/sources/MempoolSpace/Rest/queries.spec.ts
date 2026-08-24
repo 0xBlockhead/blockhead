@@ -5,6 +5,7 @@ import bindings from '$/sources/MempoolSpace/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 
 const sourceGetJson = vi.hoisted(() => vi.fn())
+const sourceGetText = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/_runtime/http.ts', () => ({
 	firstHttpUrlForBinding: (binding: {
@@ -13,6 +14,7 @@ vi.mock('$/sources/_runtime/http.ts', () => ({
 		}[]
 	}) => binding.endpoints[0]?.locator,
 	sourceGetJson,
+	sourceGetText,
 }))
 
 const {
@@ -52,6 +54,7 @@ const validBlock = {
 describe('mempool.space Bitcoin REST binding', () => {
 	beforeEach(() => {
 		sourceGetJson.mockReset()
+		sourceGetText.mockReset()
 	})
 
 	it('validates the tip height boundary', async () => {
@@ -103,13 +106,13 @@ describe('mempool.space Bitcoin REST binding', () => {
 	})
 
 	it('binds the Bitcoin Testnet genesis coordinate to the official testnet API', async () => {
-		sourceGetJson.mockResolvedValueOnce('000000000933ea01ad0ee984209779baaec3ced90fa3f408719526f8d77f4943')
+		sourceGetText.mockResolvedValueOnce('000000000933ea01ad0ee984209779baaec3ced90fa3f408719526f8d77f4943')
 
 		await expect(getBlockHashByHeight({
 			height: 0n,
 			target: bitcoinTestnetTarget,
 		})).resolves.toBe('000000000933ea01ad0ee984209779baaec3ced90fa3f408719526f8d77f4943')
-		expect(sourceGetJson).toHaveBeenCalledWith(
+		expect(sourceGetText).toHaveBeenCalledWith(
 			bitcoinTestnetBinding,
 			'https://mempool.space/testnet/api/block-height/0'
 		)

@@ -1,6 +1,7 @@
 import {
 	firstHttpUrlForBinding,
 	sourceGetJson,
+	sourceGetText,
 } from '$/sources/_runtime/http.ts'
 import {
 	assertEsploraEnvelope,
@@ -62,6 +63,20 @@ const getMempoolSpaceJson = <_Response>(
 	)
 }
 
+const getMempoolSpaceText = (
+	target: MempoolSpaceTarget,
+	path: string
+) => {
+	const binding = bindingByTarget.get(target)
+	if (binding == null)
+		throw new Error(`${sourceLabel}: unsupported source target ${target}`)
+
+	return sourceGetText(
+		binding,
+		mempoolSpaceRestUrl(target, path)
+	)
+}
+
 const assertBlockHash = (blockHash: string) => {
 	if (!esploraBlockHashWire.allows(blockHash))
 		throw new Error(`${sourceLabel}: invalid block hash`)
@@ -105,7 +120,7 @@ export const getBlockHashByHeight = async ({
 }) => {
 	if (height < 0n)
 		throw new Error(`${sourceLabel}: block height must be non-negative`)
-	const hash = await getMempoolSpaceJson<unknown>(target, `block-height/${height.toString()}`)
+	const hash = await getMempoolSpaceText(target, `block-height/${height.toString()}`)
 	if (!esploraBlockHashWire.allows(hash))
 		throw new Error(`${sourceLabel}: invalid block hash envelope`)
 	return hash

@@ -5,6 +5,7 @@ import { Source } from '$/sources/Source.ts'
 import { SourceTargetKind } from '$/sources/SourceBinding.ts'
 
 const sourceGetJson = vi.hoisted(() => vi.fn())
+const sourceGetText = vi.hoisted(() => vi.fn())
 const sourceFetch = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/_runtime/http.ts', () => ({
@@ -15,6 +16,7 @@ vi.mock('$/sources/_runtime/http.ts', () => ({
 	}) => binding.endpoints[0]?.locator,
 	sourceFetch,
 	sourceGetJson,
+	sourceGetText,
 }))
 
 const {
@@ -60,6 +62,7 @@ describe('Esplora REST binding selection', () => {
 	beforeEach(() => {
 		sourceFetch.mockReset()
 		sourceGetJson.mockReset()
+		sourceGetText.mockReset()
 	})
 
 	it('selects the exact target binding and preserves its API prefix', async () => {
@@ -89,13 +92,13 @@ describe('Esplora REST binding selection', () => {
 	})
 
 	it('binds the Bitcoin Testnet genesis coordinate to the official testnet API', async () => {
-		sourceGetJson.mockResolvedValueOnce('000000000933ea01ad0ee984209779baaec3ced90fa3f408719526f8d77f4943')
+		sourceGetText.mockResolvedValueOnce('000000000933ea01ad0ee984209779baaec3ced90fa3f408719526f8d77f4943')
 
 		await expect(getBlockHashByHeight({
 			height: 0n,
 			target: bitcoinTestnetBinding.target.key,
 		})).resolves.toBe('000000000933ea01ad0ee984209779baaec3ced90fa3f408719526f8d77f4943')
-		expect(sourceGetJson).toHaveBeenCalledWith(
+		expect(sourceGetText).toHaveBeenCalledWith(
 			bitcoinTestnetBinding,
 			'https://blockstream.info/testnet/api/block-height/0'
 		)
