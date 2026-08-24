@@ -447,8 +447,8 @@ describe('mempool.space Bitcoin REST binding', () => {
 	})
 
 	it('resolves block hash by height and address UTXOs on hard-fail paths', async () => {
+		sourceGetText.mockResolvedValueOnce('a'.repeat(64))
 		sourceGetJson
-			.mockResolvedValueOnce('a'.repeat(64))
 			.mockResolvedValueOnce([
 				{
 					txid: 'b'.repeat(64),
@@ -481,11 +481,13 @@ describe('mempool.space Bitcoin REST binding', () => {
 			target: bitcoinTarget,
 		})).rejects.toThrow('Bitcoin address UTXO is missing value')
 
-		expect(sourceGetJson.mock.calls).toEqual([
+		expect(sourceGetText.mock.calls).toEqual([
 			[
 				bitcoinBinding,
 				'https://mempool.space/api/block-height/840000',
 			],
+		])
+		expect(sourceGetJson.mock.calls).toEqual([
 			[
 				bitcoinBinding,
 				'https://mempool.space/api/address/bc1qexample/utxo',
