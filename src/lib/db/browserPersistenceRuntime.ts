@@ -77,6 +77,7 @@ export class BrowserPersistenceRuntime {
 	#lastHeartbeat = performance.now()
 	#lockRelease = Promise.withResolvers<void>()
 	#ownerPersistence: PersistedCollectionPersistence | undefined
+	#ownerQueue = Promise.resolve()
 	#pending = new Map<string, {
 		arguments: unknown[]
 		deferred: PromiseWithResolvers<unknown>
@@ -116,7 +117,10 @@ export class BrowserPersistenceRuntime {
 			this.#settleReady(error)
 			void this.close()
 		}, bootstrapTimeoutMs)
-		void this.#promote(options).catch((error) => this.#settleReady(error))
+		void this.#promote(options).catch((error) => {
+			this.#settleReady(error)
+			void this.close()
+		})
 	}
 
 	get persistence() { return this.#persistence }
@@ -141,9 +145,10 @@ export class BrowserPersistenceRuntime {
 		this.#setPhase('closed')
 		if (this.#heartbeat !== undefined) clearInterval(this.#heartbeat)
 		if (this.#bootstrapTimeout !== undefined) clearTimeout(this.#bootstrapTimeout)
-		this.#lockRelease.resolve()
 		this.#closePromise = (async () => {
+			await this.#ownerQueue
 			await this.#closeOwner?.()
+			this.#lockRelease.resolve()
 			this.#channel.removeEventListener('message', this.#onMessage)
 			this.#channel.close()
 			for (const pending of this.#pending.values()) {
@@ -186,6 +191,7 @@ export class BrowserPersistenceRuntime {
 		const locks = options.locks ?? navigator.locks
 		const promoted = Promise.withResolvers<void>()
 		this.#promotion = promoted.promise
+		void promoted.promise.catch(() => undefined)
 		try {
 			await locks.request(`blockhead:sqlite:${options.name}`, { ifAvailable: true, mode: 'exclusive' }, async (lock) => {
 				if (lock === null) {
@@ -336,23 +342,28 @@ export class BrowserPersistenceRuntime {
 		if (ownerPersistence === undefined)
 			return Promise.reject(new Error('SQLite persistence owner is unavailable'))
 
-		const selectedPersistence = selection?.type === 'collection'
-			? ownerPersistence.resolvePersistenceForCollection?.(selection.options)
-				?? ownerPersistence.resolvePersistenceForMode?.(selection.options.mode)
-				?? ownerPersistence
-			: selection?.type === 'mode'
-				? ownerPersistence.resolvePersistenceForMode?.(selection.mode)
+		const execute = () => {
+			const selectedPersistence = selection?.type === 'collection'
+				? ownerPersistence.resolvePersistenceForCollection?.(selection.options)
+					?? ownerPersistence.resolvePersistenceForMode?.(selection.options.mode)
 					?? ownerPersistence
-				: ownerPersistence
-		const operationMethod = selectedPersistence.adapter[operation]
-		return operationMethod === undefined ?
-			Promise.resolve(undefined)
-		:
-			Promise.resolve(Reflect.apply(
-				operationMethod,
-				selectedPersistence.adapter,
-				arguments_
-			))
+				: selection?.type === 'mode'
+					? ownerPersistence.resolvePersistenceForMode?.(selection.mode)
+						?? ownerPersistence
+					: ownerPersistence
+			const operationMethod = selectedPersistence.adapter[operation]
+			return operationMethod === undefined ?
+				Promise.resolve(undefined)
+			:
+				Promise.resolve(Reflect.apply(
+					operationMethod,
+					selectedPersistence.adapter,
+					arguments_
+				))
+		}
+		const queued = this.#ownerQueue.then(execute, execute)
+		this.#ownerQueue = queued.then(() => undefined, () => undefined)
+		return queued
 	}
 
 	#replayPendingLocally() {

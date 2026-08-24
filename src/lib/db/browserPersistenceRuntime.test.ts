@@ -89,6 +89,72 @@ describe('BrowserPersistenceRuntime', () => {
 		expect(calls).toEqual(['close'])
 	})
 
+	test('fails one clean owner open instead of reopening a stale profile', async () => {
+		let opens = 0
+		const runtime = new BrowserPersistenceRuntime({
+			name: crypto.randomUUID(),
+			channel: new TestChannel('failed-owner') as never,
+			locks: lockManager() as never,
+			openOwner: async () => {
+				opens++
+				throw new Error('sqlite3_open_v2')
+			},
+			heartbeatMs: 5,
+		})
+		await expect(runtime.ready).rejects.toThrow('sqlite3_open_v2')
+		await wait()
+		expect(runtime.phase).toBe('closed')
+		expect(opens).toBe(1)
+	})
+
+	test('drains owner work before closing its worker and releasing its lease', async () => {
+		const calls: string[] = []
+		const locks = lockManager()
+		const started = Promise.withResolvers<void>()
+		const finish = Promise.withResolvers<void>()
+		const name = crypto.randomUUID()
+		const owner = new BrowserPersistenceRuntime({
+			name,
+			channel: new TestChannel(name) as never,
+			locks: locks as never,
+			openOwner: async () => ({
+				persistence: {
+					adapter: {
+						...persistence(calls).adapter,
+						applyCommittedTx: async () => {
+							calls.push('commit:start')
+							started.resolve()
+							await finish.promise
+							calls.push('commit:finish')
+						},
+					},
+				},
+				close: () => { calls.push('close') },
+			}),
+		})
+		await owner.ready
+		const commit = owner.persistence.adapter.applyCommittedTx('rows', {} as never)
+		await started.promise
+		const close = owner.close()
+		const follower = new BrowserPersistenceRuntime({
+			name,
+			channel: new TestChannel(name) as never,
+			locks: locks as never,
+			openOwner: async () => ({ persistence: persistence([]), close: () => undefined }),
+			heartbeatMs: 5,
+		})
+		await follower.ready
+		expect(calls).toEqual(['commit:start'])
+		expect(follower.phase).toBe('follower')
+		finish.resolve()
+		await commit
+		await close
+		expect(calls).toEqual(['commit:start', 'commit:finish', 'close'])
+		await new Promise<void>((resolve) => setTimeout(resolve, 25))
+		expect(follower.phase).toBe('owner')
+		await follower.close()
+	})
+
 	test('a follower proxies commits, receives invalidation, and promotes after owner teardown', async () => {
 		const name = crypto.randomUUID()
 		const locks = lockManager()
