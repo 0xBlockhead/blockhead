@@ -16,6 +16,7 @@ import {
 	type ControlledRetryManifest,
 	type ControlledRetryRuntimeDiagnostics,
 } from './controlled-retry.mts'
+import { waitForBoundarySettlement } from './boundarySettlement.ts'
 
 const manifest = (commit: string): ControlledRetryManifest => ({
 	schemaVersion: controlledRetrySchemaVersion,
@@ -30,6 +31,17 @@ const manifest = (commit: string): ControlledRetryManifest => ({
 	server: { url: 'http://127.0.0.1:4173/', buildIdentity: 'fixture-build' },
 	corpusVersion: 'fixture-corpus',
 	classifierVersion: 'fixture-classifier',
+})
+
+test('settlement yields when a fixture wait resolves immediately', async () => {
+	let snapshots = 0
+	const result = await waitForBoundarySettlement({
+		snapshot: async () => ({ loading: 0, failed: 0, empty: false, reason: 'ready', snapshots: ++snapshots }),
+		events: async () => 0,
+		wait: async () => {},
+	}, { timeoutMs: 250, quietMs: 10 })
+	assert.equal(result.settled, true)
+	assert.ok(snapshots < 100)
 })
 
 const cleanRuntimeDiagnostics = (): ControlledRetryRuntimeDiagnostics => ({

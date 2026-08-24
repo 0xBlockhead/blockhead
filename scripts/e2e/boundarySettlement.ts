@@ -100,6 +100,7 @@ export const waitForBoundarySettlement = async (
 			quietSince = Date.now()
 		}
 		await probe.wait(250)
+		await new Promise<void>((resolve) => setTimeout(resolve, 0))
 	}
 	return { ...last, settled: false, semantic: lastSemantic }
 }

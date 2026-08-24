@@ -188,7 +188,7 @@ export const waitForCaptureQuality = async (page: CapturePage, pathname: string,
 			const diagnostics = await page.runtimeDiagnostics()
 			const main = diagnostics.main
 			const probe = await (page.boundarySnapshot?.() ?? Promise.resolve({ loading: 0, failed: 0, empty: false, reason: '#main-ready' }))
-			return { ...probe, loading: Math.max(probe.loading, main.settled.loading.length), failed: Math.max(probe.failed, main.settled.failed.length), empty: probe.empty || main.readyState !== 'complete' || !main.visible, reason: main.readyState === 'complete' ? `#main-text-length=${main.textLength}` : `document-${main.readyState}` }
+			return { ...probe, empty: probe.empty || main.readyState !== 'complete' || !main.visible, reason: main.readyState === 'complete' ? (main.visible ? `#main-text-length=${main.textLength}` : 'no-visible-#main') : `document-${main.readyState}` }
 		},
 		events: () => page.boundaryEvents?.() ?? page.runtimeDiagnostics().then(({ main }) => main.boundaryEvents.length),
 		wait: page.waitForTimeout,
