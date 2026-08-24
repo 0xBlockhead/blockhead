@@ -13,8 +13,8 @@ test.describe('Evm block + transactions', () => {
 		test.setTimeout(300_000)
 		await installChainlistRpcsJsonStub(page)
 		const diagnostics = setupPageRuntimeDiagnostics(page)
-		// Mainnet block 18_000_000: non-empty; RPC + new Voltaire field resolver populate the field collection.
-		await page.goto('/network/eip155:1/block/18000000', { waitUntil: 'load' })
+		// Controlled retry defect route: native RPC block identity and transactions must settle.
+		await page.goto('/network/eip155:1/block/20000000/transactions', { waitUntil: 'load' })
 		await expectMainVisible(page, 120_000, diagnostics)
 		await assertMainSettled(page, 120_000, diagnostics)
 		await expect(page.locator('#transactions')).toBeVisible()

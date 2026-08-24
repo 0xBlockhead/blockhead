@@ -70,6 +70,65 @@ vi.mock('$/sources/Voltaire/JsonRpc/queries.ts', () => ({
 
 const { default: voltaireJsonRpc } = await import('$/resolvers/Voltaire-JsonRpc.ts')
 
+describe('Voltaire native EVM identity applicability', () => {
+	beforeEach(() => {
+		vi.clearAllMocks()
+	})
+
+	it('rejects a block response whose height differs from the requested selector', async () => {
+		const resolver = voltaireJsonRpc.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.EvmBlock
+		))
+		if (resolver == null)
+			throw new Error('Voltaire EVM block resolver is not registered')
+
+		getBlockByNumber.mockResolvedValue({
+			number: '0x2',
+			hash: `0x${'a'.repeat(64)}`,
+			parentHash: `0x${'b'.repeat(64)}`,
+			timestamp: '0x1',
+			miner: `0x${'1'.repeat(40)}`,
+			gasUsed: '0x0',
+			gasLimit: '0x1',
+			transactions: [],
+		})
+
+		await expect(resolver.resolve.EvmNetworkBlockNumber.resolve({
+			$network: { caip2: { namespace: 'eip155', reference: '1' } },
+			blockNumber: 1n,
+		})).rejects.toThrow('block number does not match the requested selector')
+	})
+
+	it('rejects a transaction response whose hash differs from the requested selector', async () => {
+		const resolver = voltaireJsonRpc.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.EvmTransaction
+		))
+		if (resolver == null)
+			throw new Error('Voltaire EVM transaction resolver is not registered')
+
+		const requestedTxHash = `0x${'a'.repeat(64)}`
+		getTransactionByHash.mockResolvedValue({
+			hash: `0x${'b'.repeat(64)}`,
+			blockNumber: null,
+			blockHash: null,
+			transactionIndex: null,
+			from: `0x${'1'.repeat(40)}`,
+			to: null,
+			value: '0x0',
+			nonce: '0x0',
+			input: '0x',
+			gas: '0x1',
+			r: '0x1',
+			s: '0x1',
+		})
+
+		await expect(resolver.resolve.EvmNetworkTxHash.resolve({
+			$network: { caip2: { namespace: 'eip155', reference: '1' } },
+			txHash: requestedTxHash,
+		})).rejects.toThrow('transaction hash does not match the requested selector')
+	})
+})
+
 describe('Voltaire ERC-20 allowance blocks', () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
