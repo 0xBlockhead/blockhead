@@ -39,7 +39,7 @@ const parsePayloadBlockNumber = (payload: BidTrace) => {
 }
 
 const relayHostsForChainId = async (chainId: number) => {
-	const { mevRelayHosts } = await import('$/constants/MevRelayHosts.ts')
+	const { mevRelayHosts } = await import('$/sources/MevRelay/constants.ts')
 	const hosts = mevRelayHosts
 		.filter((mevRelayHost) => mevRelayHost.chainId === chainId)
 		.map((mevRelayHost) => mevRelayHost.host)

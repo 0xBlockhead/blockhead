@@ -2977,7 +2977,7 @@ export default {
 			resolve: {
 				Slug: {
 					resolve: async ({ slug }) => {
-						const { mevRelayHosts } = await import('$/constants/MevRelayHosts.ts')
+						const { mevRelayHosts } = await import('$/sources/MevRelay/constants.ts')
 						const network = networkBySlug[slug]
 						if (!('caip2' in network))
 							return []
@@ -3001,7 +3001,7 @@ export default {
 				},
 				Caip2: {
 					resolve: async ({ caip2 }) => {
-						const { mevRelayHosts } = await import('$/constants/MevRelayHosts.ts')
+						const { mevRelayHosts } = await import('$/sources/MevRelay/constants.ts')
 						const chainId = Number(caip2.reference)
 						return (
 							mevRelayHosts
