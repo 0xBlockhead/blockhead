@@ -132,6 +132,7 @@ describe('Pyth Hermes OpenAPI operations', () => {
 		await expect(result).resolves.toEqual({
 			priceUpdate,
 			fetchedAtMs: 1_700_000_000_123,
+			providerClockMs: 1_785_470_400_000,
 		})
 	})
 
@@ -305,6 +306,7 @@ describe('Pyth Benchmarks REST operations', () => {
 		await expect(result).resolves.toEqual({
 			priceUpdate,
 			fetchedAtMs: 1_700_000_000_456,
+			providerClockMs: 1_785_470_400_000,
 		})
 	})
 

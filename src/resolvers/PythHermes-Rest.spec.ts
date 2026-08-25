@@ -30,7 +30,7 @@ const context = {
 
 const priceFeedId = '0xe62df6c8b4a85fe1a67db44dc12de5db330f7ac66b72dc658afedf0f4a415b43' as const
 const publishTimeSec = 1_785_470_400
-const fetchedAtMs = 1_785_470_400_123
+const providerClockMs = publishTimeSec * 1000
 
 const priceUpdate = {
 	binary: {
@@ -74,7 +74,7 @@ describe('PythHermes_Rest PythPriceFeed projections', () => {
 	it('projects enrolled tip feed + observation fields from Hermes latest updates', async () => {
 		getLatestPriceUpdates.mockResolvedValue({
 			priceUpdate,
-			fetchedAtMs,
+			providerClockMs,
 		})
 
 		await expect(feedResolver.resolve.PriceFeedIdChannel.resolve({
@@ -92,7 +92,7 @@ describe('PythHermes_Rest PythPriceFeed projections', () => {
 					publishTimeMs: publishTimeSec * 1000,
 					source: Source.PythHermes_Rest,
 				},
-				observedAtMs: fetchedAtMs,
+				observedAtMs: providerClockMs,
 				price: 900719925474099312345n,
 				conf: 12345678901234567890n,
 				expo: -8,
@@ -118,7 +118,7 @@ describe('PythHermes_Rest PythPriceFeed projections', () => {
 
 		getLatestPriceUpdates.mockResolvedValue({
 			priceUpdate,
-			fetchedAtMs,
+			providerClockMs,
 		})
 		await expect(timestampResolver.resolve.FeedPublishTimeMsSource.resolve({
 			$feed: {

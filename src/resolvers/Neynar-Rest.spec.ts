@@ -813,6 +813,7 @@ describe('Neynar Farcaster cast resolver', () => {
 				hash: '0xabcdef',
 				fid: 42,
 				text: 'Counted cast',
+				timestamp: '2026-01-15T00:00:00.000Z',
 			},
 			{
 				embeds: [{

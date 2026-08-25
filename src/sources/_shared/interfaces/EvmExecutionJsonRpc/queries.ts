@@ -264,21 +264,27 @@ export const evmExecutionJsonRpc = ({
 				blockTag,
 			]
 		).then((result) => stringResult(result, 'eth_getBalance')),
-		getPeerCountObservation: () => request('net_peerCount')
-			.then((result) => {
-				const quantity = stringResult(result, 'net_peerCount')
-				if (!/^0x(?:0|[1-9a-f][0-9a-f]*)$/i.test(quantity))
-					throw new Error('EVM execution JSON-RPC net_peerCount: malformed QUANTITY result')
+		getPeerCountObservation: async () => {
+			const block = await getBlockByNumber({ blockNumber: 'latest', txObjects: false })
+			if (block == null)
+				throw new Error('EVM execution JSON-RPC net_peerCount: no latest block for provider clock')
 
-				const peerCount = BigInt(quantity)
-				if (peerCount > BigInt(Number.MAX_SAFE_INTEGER))
-					throw new Error('EVM execution JSON-RPC net_peerCount: peer count exceeds safe integer range')
+			const result = await request('net_peerCount')
+			const quantity = stringResult(result, 'net_peerCount')
+			if (!/^0x(?:0|[1-9a-f][0-9a-f]*)$/i.test(quantity))
+				throw new Error('EVM execution JSON-RPC net_peerCount: malformed QUANTITY result')
 
-				return {
-					peerCount: Number(peerCount),
-					fetchedAtMs: Date.now(),
-				}
-			}),
+			const peerCount = BigInt(quantity)
+			if (peerCount > BigInt(Number.MAX_SAFE_INTEGER))
+				throw new Error('EVM execution JSON-RPC net_peerCount: peer count exceeds safe integer range')
+
+			const timestamp = BigInt(block.timestamp)
+			return {
+				peerCount: Number(peerCount),
+				providerClockMs: Number(timestamp) * 1000,
+				fetchedAtMs: Date.now(),
+			}
+		},
 		getGasPrice: () => request('eth_gasPrice')
 			.then((result) => stringResult(result, 'eth_gasPrice')),
 		getMaxPriorityFeePerGas: () => request('eth_maxPriorityFeePerGas')

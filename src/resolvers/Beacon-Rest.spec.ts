@@ -34,7 +34,9 @@ const getBlockRewards = vi.hoisted(() => vi.fn())
 const getAttestationRewards = vi.hoisted(() => vi.fn())
 const getSyncCommitteeRewards = vi.hoisted(() => vi.fn())
 const getDataColumnSidecars = vi.hoisted(() => vi.fn())
+const getGenesisTimeSeconds = vi.hoisted(() => vi.fn())
 const getHeader = vi.hoisted(() => vi.fn())
+const getSecondsPerSlot = vi.hoisted(() => vi.fn())
 const getHeadersAtSlot = vi.hoisted(() => vi.fn())
 const getHeadSlot = vi.hoisted(() => vi.fn())
 const getNodeHealthObservation = vi.hoisted(() => vi.fn())
@@ -49,6 +51,7 @@ vi.mock('$/sources/Beacon/Rest/queries.ts', async (importOriginal) => ({
 	...await importOriginal<typeof import('$/sources/Beacon/Rest/queries.ts')>(),
 	getFinalityCheckpoints,
 	getForkSchedule,
+	getGenesisTimeSeconds,
 	getCommittees,
 	getProposerDuties,
 	getSyncCommittee,
@@ -68,6 +71,7 @@ vi.mock('$/sources/Beacon/Rest/queries.ts', async (importOriginal) => ({
 	getNodePeerCountObservation,
 	getNodeSyncingObservation,
 	getNodeVersionObservation,
+	getSecondsPerSlot,
 	getRecentProposerValidatorIndices,
 	getValidators,
 }))
@@ -1908,6 +1912,9 @@ describe('Beacon REST checkpoint and fork projections', () => {
 describe('Beacon endpoint observation', () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
+		getGenesisTimeSeconds.mockResolvedValue('0')
+		getHeadSlot.mockResolvedValue('100')
+		getSecondsPerSlot.mockResolvedValue(12)
 		getNodeHealthObservation.mockResolvedValue({
 			statusCode: 206,
 			endpointUrl: 'https://ethereum-beacon-api.publicnode.com',
@@ -1974,7 +1981,7 @@ describe('Beacon endpoint observation', () => {
 				$network: network,
 				endpointUrl: 'https://ethereum-beacon-api.publicnode.com',
 				endpointKind: 'EthereumBeaconRest',
-				timestampMs: 1_785_477_600_105,
+				timestampMs: 1_200_000,
 				source: Source.Beacon_Rest,
 			},
 			[EntityMetaKey.Fields]: {

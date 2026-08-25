@@ -309,6 +309,24 @@ describe('Voyager OpenAPI operations', () => {
 		expect(getJson.mock.calls[0]).toHaveLength(2)
 	})
 
+	it('rejects malformed numeric fee and gas price strings', async () => {
+		getJson.mockResolvedValueOnce({
+			...transactionEnvelope,
+			actualFee: 'not-a-number',
+		})
+		await expect(getTransactionByHash({
+			txnHash: '0x1',
+		})).rejects.toThrow('invalid transaction envelope')
+
+		getJson.mockResolvedValueOnce({
+			...blockEnvelope,
+			ethGasPrice: '0x',
+		})
+		await expect(getBlockByHash({
+			blockHash: '0x1',
+		})).rejects.toThrow('invalid block envelope')
+	})
+
 	it('fail-closes malformed singular envelopes', async () => {
 		getJson.mockResolvedValueOnce({})
 		await expect(getTransactionByHash({

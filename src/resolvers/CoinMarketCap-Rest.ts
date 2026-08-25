@@ -265,7 +265,15 @@ export default {
 						const price = quote?.quote?.USD?.price
 						const lastUpdated = quote?.quote?.USD?.last_updated
 						const updatedAt = Date.parse(lastUpdated ?? '')
-						if (!Number.isFinite(price) || !Number.isFinite(updatedAt))
+						if (
+							(
+								typeof price !== 'number'
+								&& typeof price !== 'string'
+							)
+							|| price === ''
+							|| Number.isNaN(Number(price))
+							|| !Number.isFinite(updatedAt)
+						)
 							throw new Error('CoinMarketCap_Rest: quote invalid')
 						const timestampMs = Math.floor(updatedAt)
 						if (timestampMs !== timestampMsSelector)
@@ -285,8 +293,14 @@ export default {
 								undefined
 						)
 
+						const priceString = String(price)
+						if (!/^[0-9]+(?:\.[0-9]+)?$/.test(priceString))
+							throw new Error('CoinMarketCap_Rest: price is not a decimal string')
+						const [whole, fraction = ''] = priceString.split('.')
+						const scaled = `${whole}${fraction.padEnd(8, '0').slice(0, 8)}`
+
 						return {
-							price: BigInt(Math.round((price ?? 0) * 1e8)),
+							price: BigInt(scaled),
 							transport: 'coinmarketcap-v2-quotes-and-info-usd-1e8',
 							providerAssetId: String(coinMarketCapId),
 							...(caip2 && { caip2 }),

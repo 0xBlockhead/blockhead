@@ -680,6 +680,9 @@ describe('Sui GraphQL checkpoint and transaction queries', () => {
 						digest: 'DenyCapDigest',
 					},
 				},
+				checkpoint: {
+					timestamp: '2025-07-16T00:00:00.123Z',
+				},
 			})
 			.mockResolvedValueOnce({
 				package: {
@@ -725,11 +728,13 @@ describe('Sui GraphQL checkpoint and transaction queries', () => {
 				balance: '1',
 			},
 		})
-		const fetchedAtMs = Date.now()
+		const providerClockMs = 1_752_624_000_123
+		const fetchedAtMs = providerClockMs + 456
 		vi.spyOn(Date, 'now').mockReturnValueOnce(fetchedAtMs)
 		await expect(getCoinMetadata('0x2::sui::SUI')).resolves.toEqual({
 			coinType: '0x2::sui::SUI',
 			fetchedAtMs,
+			providerClockMs,
 			metadataObjectId: `0x${'0'.repeat(61)}abc`,
 			decimals: 9,
 			symbol: 'SUI',

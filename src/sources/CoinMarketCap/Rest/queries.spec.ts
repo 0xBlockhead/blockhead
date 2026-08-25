@@ -110,7 +110,7 @@ describe('CoinMarketCap REST market transport', () => {
 					total_supply: 120_000_000,
 					quote: {
 						USD: {
-							price: 3500,
+							price: '3500',
 							market_cap: 400_000_000_000,
 							percent_change_24h: 1.25,
 						},

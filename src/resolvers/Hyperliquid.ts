@@ -955,6 +955,7 @@ export default {
 										[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'crossMaintenanceMarginUsed')]: clearinghouseObservation.state.crossMaintenanceMarginUsed,
 									},
 								},
+								// lifecycle fallback: the remaining info endpoints expose no wire timestamp
 								{
 									[EntityMetaKey.Selector]: {
 										$account: {

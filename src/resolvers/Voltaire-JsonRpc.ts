@@ -2889,7 +2889,7 @@ export default {
 										$network: { caip2 },
 										endpointUrl: jsonRpcTransport.origin,
 										endpointKind: ApiFamily.EvmExecutionJsonRpc,
-										timestampMs: observation.fetchedAtMs,
+										timestampMs: observation.providerClockMs,
 										source: Source.Voltaire_JsonRpc,
 									},
 									[EntityMetaKey.Fields]: {

@@ -151,6 +151,9 @@ const coinMetadataDocument = graphql(`
 				digest
 			}
 		}
+		checkpoint {
+			timestamp
+		}
 	}
 `)
 
@@ -1503,9 +1506,14 @@ export const getCoinMetadata = async (coinType: string) => {
 	)
 	if (result.coinMetadata == null)
 		throw new Error(`Sui GraphQL coin metadata for ${coinType} was not found`)
+	const providerClockMs = requireTimestampMs(
+		result.checkpoint?.timestamp,
+		'checkpoint timestamp'
+	)
 	return {
 		coinType,
 		fetchedAtMs: Date.now(),
+		providerClockMs,
 		metadataObjectId: normalizeSuiAddress(result.coinMetadata.address),
 		...(result.coinMetadata.decimals != null && {
 			decimals: result.coinMetadata.decimals,

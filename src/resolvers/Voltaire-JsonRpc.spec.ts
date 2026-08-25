@@ -364,6 +364,7 @@ describe('Voltaire endpoint observation', () => {
 	it('materializes the current execution endpoint snapshot from Network', async () => {
 		getPeerCountObservation.mockResolvedValue({
 			peerCount: 17,
+			providerClockMs: 1_785_477_600_123,
 			fetchedAtMs: 1_785_477_600_123,
 		})
 		const resolver = voltaireJsonRpc.resolvers.find((candidate) => (
@@ -413,6 +414,7 @@ describe('Voltaire endpoint observation', () => {
 	it('paginates configured execution endpoint observations without treating exhaustion as missing configuration', async () => {
 		getSecondPeerCountObservation.mockResolvedValue({
 			peerCount: 9,
+			providerClockMs: 1_785_477_600_124,
 			fetchedAtMs: 1_785_477_600_124,
 		})
 		const resolver = voltaireJsonRpc.resolvers.find((candidate) => (

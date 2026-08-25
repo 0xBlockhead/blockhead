@@ -423,6 +423,9 @@ describe('Sui GraphQL network / checkpoint / transaction resolvers', () => {
 					digest: 'DenyCapDigest',
 				},
 			},
+			checkpoint: {
+				timestamp: '2025-07-16T00:00:00.123Z',
+			},
 		})
 		const selector = {
 			$network: suiNetwork,

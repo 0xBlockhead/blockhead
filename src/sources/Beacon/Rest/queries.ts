@@ -720,6 +720,22 @@ export const getGenesisTimeSeconds = async (
 	return genesis.genesis_time
 }
 
+export const getSecondsPerSlot = async (
+	chainId: number
+) => {
+	const res = await beaconFetch(chainId, '/eth/v1/config/spec', {
+		headers: { accept: 'application/json' },
+	})
+	if (!res.ok) await throwHttpError('Beacon GET config spec', res)
+	const wire = await res.json<JsonValue>()
+	if (!isJsonObject(wire) || !isJsonObject(wire.data)) return undefined
+	const value = wire.data['SECONDS_PER_SLOT']
+	if (typeof value !== 'string' || !isUint64Wire(value)) return undefined
+	const seconds = Number(value)
+	if (!Number.isSafeInteger(seconds) || seconds < 1) return undefined
+	return seconds
+}
+
 export const getCommitteesFromWire = (
 	wire: JsonValue
 ) => {

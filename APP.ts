@@ -48548,7 +48548,7 @@ export const schema = {
 						"$$jettons": { label: "Jettons", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.TonJetton },
 						"$$nftCollections": { label: "NFT collections", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.TonNftCollection },
 						"$$nftItems": { label: "NFT items", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.TonNftItem },
-						"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.TonNetwork_Timestamp, defaultSources: [Source.TonApi_Rest, Source.TonCenter] },
+						"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.TonNetwork_Timestamp, defaultSources: [Source.TonApi_Rest] },
 					})({
 						singularView: {
 							carousels: [

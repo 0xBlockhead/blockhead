@@ -140,6 +140,16 @@ describe('shared EVM execution JSON-RPC queries', () => {
 		const dateNow = vi.spyOn(Date, 'now').mockReturnValue(1_700_000_000_123)
 		const request = vi.fn()
 			.mockResolvedValueOnce('0x20000000000001')
+			.mockResolvedValueOnce({
+				number: '0x1',
+				hash: '0xhash',
+				parentHash: '0xparent',
+				miner: '0xminer',
+				gasUsed: '0x0',
+				gasLimit: '0x0',
+				timestamp: '0x65a8',
+				transactions: [],
+			})
 			.mockResolvedValueOnce('0x2a')
 			.mockResolvedValueOnce('0x2a')
 			.mockResolvedValueOnce('0x3')
@@ -169,6 +179,7 @@ describe('shared EVM execution JSON-RPC queries', () => {
 		await expect(client.getBlockNumber()).resolves.toBe(0x20000000000001n)
 		await expect(client.getPeerCountObservation()).resolves.toEqual({
 			peerCount: 42,
+			providerClockMs: 26_024_000,
 			fetchedAtMs: 1_700_000_000_123,
 		})
 		await expect(client.getGasPrice()).resolves.toBe('0x2a')
@@ -211,6 +222,13 @@ describe('shared EVM execution JSON-RPC queries', () => {
 
 		expect(request.mock.calls).toEqual([
 			['eth_blockNumber'],
+			[
+				'eth_getBlockByNumber',
+				[
+					'latest',
+					false,
+				],
+			],
 			['net_peerCount'],
 			['eth_gasPrice'],
 			['eth_maxPriorityFeePerGas'],
@@ -275,8 +293,20 @@ describe('shared EVM execution JSON-RPC queries', () => {
 
 	it('rejects malformed or unsafe peer-count quantities before timestamping', async () => {
 		const dateNow = vi.spyOn(Date, 'now')
+		const block = {
+			number: '0x1',
+			hash: '0xhash',
+			parentHash: '0xparent',
+			miner: '0xminer',
+			gasUsed: '0x0',
+			gasLimit: '0x0',
+			timestamp: '0x65a8',
+			transactions: [],
+		}
 		const request = vi.fn()
+			.mockResolvedValueOnce(block)
 			.mockResolvedValueOnce('0x00')
+			.mockResolvedValueOnce(block)
 			.mockResolvedValueOnce('0x20000000000000')
 		const client = evmExecutionJsonRpc({
 			binding,

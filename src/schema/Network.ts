@@ -1347,7 +1347,6 @@ export default entity({
 				cardinality: EntityFieldCardinality.Many,
 				defaultSources: [
 					Source.TonApi_Rest,
-					Source.TonCenter,
 				],
 			},
 		}),

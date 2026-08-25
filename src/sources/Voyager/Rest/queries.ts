@@ -8,6 +8,7 @@ const binding = bindings[Source.Voyager][0]
 
 const felt = arktype('/^0[xX][\\da-fA-F]{1,64}$/')
 const nonNegativeInteger = arktype('number.integer >= 0')
+const nonNegativeIntegerString = arktype('/^(?:0[xX][\\da-fA-F]+|\\d+)$/')
 const nonEmptyString = arktype('string > 0')
 
 const transactionDetailsWire = arktype({
@@ -16,13 +17,13 @@ const transactionDetailsWire = arktype({
 	timestamp: nonNegativeInteger,
 	status: nonEmptyString,
 	type: nonEmptyString,
-	'actualFee?': 'string|null',
+	'actualFee?': nonNegativeIntegerString.or('null'),
 	'executionStatus?': 'string|null',
 	'revertError?': 'string|null',
 	'senderAddress?': felt.or('null'),
 	'nonce?': 'string|null',
 	'version?': 'string|null',
-	'maxFee?': 'string|null',
+	'maxFee?': nonNegativeIntegerString.or('null'),
 	'calldata?': arktype(felt.or('null')).array().or('null'),
 	signature: arktype(felt.or('null')).array(),
 	receipt: {
@@ -46,8 +47,8 @@ const blockDetailsWire = arktype({
 	'status?': 'string|null',
 	'prevBlockHash?': felt.or('null'),
 	'sequencerAddress?': felt.or('null'),
-	'ethGasPrice?': 'string|null',
-	'strkGasPrice?': 'string|null',
+	'ethGasPrice?': nonNegativeIntegerString.or('null'),
+	'strkGasPrice?': nonNegativeIntegerString.or('null'),
 })
 
 const contractDetailsWire = arktype({
@@ -97,7 +98,7 @@ const listTransactionsWire = arktype({
 		'index?': nonNegativeInteger,
 		'contractAddress?': felt.or('null'),
 		'classHash?': felt.or('null'),
-		'actualFee?': 'string|null',
+		'actualFee?': nonNegativeIntegerString.or('null'),
 	}).array(),
 	lastPage: nonNegativeInteger,
 })

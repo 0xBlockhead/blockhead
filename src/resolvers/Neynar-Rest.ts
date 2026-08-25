@@ -41,11 +41,15 @@ const neynarCastTimestamps = (
 		fid: number
 		hash: CastHash
 	}
-) => (
-	[{
+) => {
+	const timestampMs = Date.parse(cast.timestamp)
+	if (!Number.isFinite(timestampMs))
+		throw new Error('Neynar_Rest: cast missing timestamp')
+
+	return [{
 		[EntityMetaKey.Selector]: {
 			$cast: castId,
-			timestampMs: Date.now(),
+			timestampMs,
 			source: Source.Neynar_Rest,
 		},
 		[EntityMetaKey.Fields]: {
@@ -57,7 +61,7 @@ const neynarCastTimestamps = (
 				cast.replies.count,
 		},
 	}]
-)
+}
 
 
 const neynarCastSnapshot = (

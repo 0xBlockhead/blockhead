@@ -961,7 +961,7 @@ export default {
 						$network,
 						coinType: coin.coinType,
 					},
-					timestampMs: coin.fetchedAtMs,
+					timestampMs: coin.providerClockMs,
 					source: Source.Sui,
 				},
 				[EntityMetaKey.Fields]: {

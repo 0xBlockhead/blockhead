@@ -81,6 +81,11 @@ export const getQuotesLatest = async ({
 		),
 		'quotes latest'
 	)
+	for (const quote of Object.values(response.data ?? {})) {
+		const usd = quote.quote?.USD
+		if (usd?.price != null && typeof usd.price === 'number')
+			usd.price = String(usd.price)
+	}
 	assertApiStatus(response.status, 'quotes latest')
 	assertRequestedCoin(response, id, 'quotes latest')
 	return response

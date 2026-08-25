@@ -98,11 +98,20 @@ export const getPriceFeeds = async (
 	)
 )
 
+const providerClockMsFor = (
+	priceUpdate: PythPriceUpdateResponse
+): number => {
+	if (priceUpdate.parsed == null || priceUpdate.parsed.length === 0)
+		throw new Error('Pyth_Rest: parsed price update missing for provider clock')
+	return priceUpdate.parsed[0].price.publish_time * 1000
+}
+
 export const getLatestPriceUpdates = async (
 	parameters: paths['/v2/updates/price/latest']['get']['parameters']['query']
 ): Promise<{
 	priceUpdate: PythPriceUpdateResponse
 	fetchedAtMs: number
+	providerClockMs: number
 }> => {
 	const ids = assertPriceFeedIds(parameters['ids[]'])
 	const priceUpdate = assertEnvelope(
@@ -126,6 +135,7 @@ export const getLatestPriceUpdates = async (
 	return {
 		priceUpdate,
 		fetchedAtMs: Date.now(),
+		providerClockMs: providerClockMsFor(priceUpdate),
 	}
 }
 
@@ -185,6 +195,7 @@ export const getBenchmarkPriceUpdateAt = async (
 ): Promise<{
 	priceUpdate: PythPriceUpdateResponse
 	fetchedAtMs: number
+	providerClockMs: number
 }> => {
 	if (!Number.isSafeInteger(timestampSec) || timestampSec < 0)
 		throw new Error(`Pyth_Rest: invalid Benchmarks price update timestamp ${timestampSec}`)
@@ -207,5 +218,6 @@ export const getBenchmarkPriceUpdateAt = async (
 	return {
 		priceUpdate,
 		fetchedAtMs: Date.now(),
+		providerClockMs: providerClockMsFor(priceUpdate),
 	}
 }

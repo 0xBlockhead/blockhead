@@ -103,6 +103,7 @@ const starknetTokenHoldingObservation = (
 ) => ({
 	[EntityMetaKey.Selector]: {
 		$holding: holding,
+		// lifecycle fallback: the token-holdings wire has no timestamp field
 		timestampMs: fetchedAtMs,
 		source: Source.Starkscan,
 	},

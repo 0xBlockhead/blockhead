@@ -103,7 +103,7 @@ const tipParsedUpdateFor = async (
 	const { getBenchmarkPriceUpdateAt } = await import('$/sources/Pyth/Rest/queries.ts')
 	const {
 		priceUpdate,
-		fetchedAtMs,
+		providerClockMs,
 	} = await getBenchmarkPriceUpdateAt({
 		timestampSec: Math.floor(Date.now() / 1000),
 		ids: [priceFeedId.slice(2)],
@@ -120,7 +120,7 @@ const tipParsedUpdateFor = async (
 	return {
 		priceUpdate,
 		update,
-		fetchedAtMs,
+		providerClockMs,
 	}
 }
 
@@ -134,7 +134,7 @@ const historicalParsedUpdateFor = async (
 	const { getBenchmarkPriceUpdateAt } = await import('$/sources/Pyth/Rest/queries.ts')
 	const {
 		priceUpdate,
-		fetchedAtMs,
+		providerClockMs,
 	} = await getBenchmarkPriceUpdateAt({
 		timestampSec: publishTimeMs / 1000,
 		ids: [priceFeedId.slice(2)],
@@ -153,7 +153,7 @@ const historicalParsedUpdateFor = async (
 	return {
 		priceUpdate,
 		update,
-		fetchedAtMs,
+		providerClockMs,
 	}
 }
 
@@ -182,7 +182,7 @@ export default {
 						const {
 							priceUpdate,
 							update,
-							fetchedAtMs,
+							providerClockMs,
 						} = await tipParsedUpdateFor(feedId)
 
 						return {
@@ -195,7 +195,7 @@ export default {
 									},
 									update,
 									priceUpdate,
-									fetchedAtMs
+									providerClockMs
 								),
 							],
 						}
@@ -228,7 +228,7 @@ export default {
 						const {
 							priceUpdate,
 							update,
-							fetchedAtMs,
+							providerClockMs,
 						} = await historicalParsedUpdateFor(feedId, publishTimeMs)
 
 						const observation = observationFromParsedUpdate(
@@ -238,7 +238,7 @@ export default {
 							},
 							update,
 							priceUpdate,
-							fetchedAtMs
+							providerClockMs
 						)
 
 						return {

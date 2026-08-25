@@ -611,6 +611,9 @@ export default {
 					resolve: async ({ caip2 }) => {
 						const chainId = Number(caip2.reference)
 						const {
+							getGenesisTimeSeconds,
+							getHeadSlot,
+							getSecondsPerSlot,
 							getNodeHealthObservation,
 							getNodeIdentityObservation,
 							getNodePeerCountObservation,
@@ -623,12 +626,18 @@ export default {
 							peerCount,
 							syncing,
 							version,
+							genesisTimeSeconds,
+							headSlot,
+							secondsPerSlot,
 						] = await Promise.all([
 							getNodeHealthObservation(chainId),
 							getNodeIdentityObservation(chainId),
 							getNodePeerCountObservation(chainId),
 							getNodeSyncingObservation(chainId),
 							getNodeVersionObservation(chainId),
+							getGenesisTimeSeconds(chainId),
+							getHeadSlot(chainId),
+							getSecondsPerSlot(chainId),
 						])
 						if (![
 							health.endpointUrl,
@@ -638,18 +647,21 @@ export default {
 						].every((endpointUrl) => endpointUrl === peerCount.endpointUrl))
 							throw new Error('Beacon_Rest: node observation endpoints do not match')
 
+						if (
+							genesisTimeSeconds == null
+							|| headSlot == null
+							|| secondsPerSlot == null
+						)
+							throw new Error('Beacon_Rest: missing provider clock for endpoint observation')
+
+						const providerClockMs = (Number(genesisTimeSeconds) + Number(headSlot) * secondsPerSlot) * 1000
+
 						return [beaconNetworkEndpointObservationTimestampWriter.write(
 							{
 								$network: { caip2 },
 								endpointUrl: peerCount.endpointUrl,
 								endpointKind: ApiFamily.EthereumBeaconRest,
-								timestampMs: Math.max(
-									health.fetchedAtMs,
-									identity.fetchedAtMs,
-									peerCount.fetchedAtMs,
-									syncing.fetchedAtMs,
-									version.fetchedAtMs
-								),
+								timestampMs: providerClockMs,
 								source: Source.Beacon_Rest,
 							},
 							{
