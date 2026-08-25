@@ -14,11 +14,20 @@ import {
 	waitForBoundarySettle,
 } from '../_e2eBrowserHelpers.ts'
 import { routeScreenshotQuality } from '../_routeScreenshotQuality.ts'
+import { createRouteRunIdentity } from '../../scripts/e2e/routeRunIdentity.ts'
 
 import { e2eDomQualityProbeOverlays } from './_routeParamFixtures.ts'
 
 
 const settleTimeoutMs = 120_000
+const routeRunIdentity = createRouteRunIdentity({
+	repositoryDirectory: process.cwd(),
+	browserIdentity: process.env.E2E_BROWSER_IDENTITY?.trim() || 'playwright',
+	buildIdentity: process.env.E2E_BUILD_IDENTITY?.trim() || 'screenshot-quality',
+	captureContractVersion: process.env.E2E_CAPTURE_CONTRACT_VERSION?.trim() || 'screenshot-quality-v1',
+	classifierVersion: process.env.E2E_CLASSIFIER_VERSION?.trim() || 'route-screenshot-quality-v1',
+	corpusVersion: process.env.E2E_CORPUS_VERSION?.trim() || 'representative-provider-overlays-v1',
+})
 
 test.skip(
 	process.env.E2E_SCREENSHOT_QUALITY !== '1',
@@ -28,6 +37,10 @@ test.skip(
 test.describe('representative route screenshot quality', () => {
 	for (const [pathname, overlay] of Object.entries(e2eDomQualityProbeOverlays)) {
 		test(pathname, async ({ page }, testInfo) => {
+			await testInfo.attach('route-screenshot-quality-run.json', {
+				body: JSON.stringify({ runIdentity: await routeRunIdentity, pathname }, null, 2),
+				contentType: 'application/json',
+			})
 			testInfo.setTimeout(settleTimeoutMs + 60_000)
 			await installBoundaryProbe(page)
 			await installChainlistRpcsJsonStub(page)
