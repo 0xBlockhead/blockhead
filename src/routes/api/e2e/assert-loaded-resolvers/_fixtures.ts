@@ -3247,8 +3247,8 @@ export const classifyAssertLoadedResolverProbeCase = (
 		probeCase.resolveRejected
 		&& probeCase.resolveError != null
 		&& (
-			probeCase.resolveError.includes('unsupported')
-			|| probeCase.resolveError.includes('not implemented')
+			probeCase.resolveError.toLowerCase().includes('unsupported')
+			|| probeCase.resolveError.toLowerCase().includes('not implemented')
 		)
 	) {
 		return 'unsupportedField'

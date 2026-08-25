@@ -12,6 +12,7 @@ import { Source } from '$/sources/Source.ts'
 
 import {
 	assertLoadedResolverProbeCategories,
+	classifyAssertLoadedResolverProbeCase,
 	resolveProbeEntitySelector,
 } from './_fixtures.ts'
 import {
@@ -394,4 +395,12 @@ describe('resolver snapshot probes', () => {
 			}])).toThrow('Resolver materialization failures')
 		}
 	)
+
+	test('classifies capitalized unsupported resolver failures separately from live upstream failures', () => {
+		expect(classifyAssertLoadedResolverProbeCase({
+			key: 'field:0:Event.kind:Source',
+			resolveRejected: true,
+			resolveError: 'Unsupported conditional facet dependency Event.kind',
+		})).toBe('unsupportedField')
+	})
 })
