@@ -78,6 +78,7 @@ vi.mock('$/sources/index.server.ts', () => ({
 			endpointKind: string
 			locator: string
 		}[]
+		wireProtocol?: string
 	}>([
 		['header', {
 			endpoints: [{
@@ -108,6 +109,13 @@ vi.mock('$/sources/index.server.ts', () => ({
 					locator: 'https://fallback.example.test/api',
 				},
 			],
+		}],
+		['json-rpc', {
+			endpoints: [{
+				endpointKind: 'HttpUrl',
+				locator: 'https://rpc.example.test',
+			}],
+			wireProtocol: 'JsonRpc2',
 		}],
 		['other', {
 			endpoints: [{
@@ -458,6 +466,44 @@ describe('runtime secret proxy', () => {
 		}
 		expect(event.fetch.mock.calls[0]?.[1]?.signal)
 			.toBeInstanceOf(AbortSignal)
+	})
+
+	it('forwards proxied JSON-RPC bodies as application/json', async () => {
+		const { event } = proxyEvent(
+			'json-rpc',
+			0,
+			'https://rpc.example.test',
+			new Response(JSON.stringify({
+				jsonrpc: '2.0',
+				id: 1,
+				result: '0x1',
+			}))
+		)
+		const body = JSON.stringify({
+			jsonrpc: '2.0',
+			id: 1,
+			method: 'eth_getCode',
+			params: [
+				'0x0000000000000000000000000000000000000000',
+				'latest',
+			],
+		})
+		event.request = new Request(event.url, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'text/plain',
+			},
+			body,
+		})
+
+		await proxySourceHttpRequest(event)
+
+		const upstreamRequest = new Request(
+			event.fetch.mock.calls[0]?.[0],
+			event.fetch.mock.calls[0]?.[1]
+		)
+		expect(upstreamRequest.headers.get('Content-Type')).toBe('application/json')
+		expect(await upstreamRequest.text()).toBe(body)
 	})
 
 	it.each([

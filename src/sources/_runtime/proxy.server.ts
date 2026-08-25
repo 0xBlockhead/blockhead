@@ -10,6 +10,7 @@ import {
 	SourceEndpointKind,
 	sourceEndpointOrigin,
 	type SourceServerCredentialDefinition,
+	WireProtocol,
 } from '$/sources/SourceBinding.ts'
 import {
 	httpProxyBindingByProxyId,
@@ -225,6 +226,8 @@ export const proxySourceHttpRequest = async (
 	])
 		requestHeaders.delete(header)
 	requestHeaders.delete('accept-encoding')
+	if (binding.wireProtocol === WireProtocol.JsonRpc2)
+		requestHeaders.set('content-type', 'application/json')
 	if (credentialDefinition?.definition.injection.header != null) {
 		requestHeaders.delete(credentialDefinition.definition.injection.header.name)
 		requestHeaders.set(
