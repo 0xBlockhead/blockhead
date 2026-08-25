@@ -50,6 +50,10 @@ const oauthAccessTokenFor = async ({
 		.update(clientId)
 		.update('\0')
 		.update(clientSecret)
+		.update('\0')
+		.update(definition.tokenEndpoint)
+		.update('\0')
+		.update(definition.userAgent ?? '')
 		.digest('base64url')
 	const cachedAccessTokenPromise = oauthAccessTokenPromiseByProxyId.get(proxyId)
 	if (cachedAccessTokenPromise != null) {

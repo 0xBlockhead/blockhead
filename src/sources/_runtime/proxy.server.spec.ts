@@ -67,7 +67,10 @@ vi.mock('$/sources/$sourceServerCredentials.server.ts', () => ({
 		}],
 		['oauth', oauthCredentialDefinition],
 		['oauth-cache', oauthCredentialDefinition],
+		['oauth-concurrent', oauthCredentialDefinition],
+		['oauth-malformed', oauthCredentialDefinition],
 		['oauth-rotation', oauthCredentialDefinition],
+		['oauth-config-rotation', oauthCredentialDefinition],
 		['oauth-failure', oauthCredentialDefinition],
 	]),
 }))
@@ -136,6 +139,24 @@ vi.mock('$/sources/index.server.ts', () => ({
 			}],
 		}],
 		['oauth-rotation', {
+			endpoints: [{
+				endpointKind: 'HttpUrl',
+				locator: 'https://oauth-api.example.test',
+			}],
+		}],
+		['oauth-config-rotation', {
+			endpoints: [{
+				endpointKind: 'HttpUrl',
+				locator: 'https://oauth-api.example.test',
+			}],
+		}],
+		['oauth-concurrent', {
+			endpoints: [{
+				endpointKind: 'HttpUrl',
+				locator: 'https://oauth-api.example.test',
+			}],
+		}],
+		['oauth-malformed', {
 			endpoints: [{
 				endpointKind: 'HttpUrl',
 				locator: 'https://oauth-api.example.test',
@@ -277,6 +298,44 @@ describe('runtime secret proxy', () => {
 		].join('\n')).not.toMatch(/oauth-client|oauth-secret|server-access-token/)
 	})
 
+	it('deduplicates concurrent OAuth grants for one binding and credential set', async () => {
+		let releaseGrant: (() => void) | undefined
+		const grantReleased = new Promise<void>((resolve) => {
+			releaseGrant = resolve
+		})
+		const first = proxyEvent('oauth-concurrent', 0, 'https://oauth-api.example.test/api/one')
+		const second = proxyEvent('oauth-concurrent', 0, 'https://oauth-api.example.test/api/two')
+		for (const event of [first.event, second.event]) {
+			event.fetch.mockReset().mockImplementationOnce(async () => {
+				await grantReleased
+				return new Response(JSON.stringify({ access_token: 'shared-token' }))
+			}).mockResolvedValueOnce(new Response('ok'))
+		}
+
+		const firstRequest = proxySourceHttpRequest(first.event)
+		const secondRequest = proxySourceHttpRequest(second.event)
+		releaseGrant?.()
+		await Promise.all([firstRequest, secondRequest])
+
+		expect(first.event.fetch).toHaveBeenCalledTimes(2)
+		expect(second.event.fetch).toHaveBeenCalledTimes(1)
+		expect(new Headers(second.event.fetch.mock.calls[0]?.[1]?.headers).get('Authorization'))
+			.toBe('Bearer shared-token')
+	})
+
+	it('fails closed on malformed OAuth JSON and does not cache the failure', async () => {
+		const failed = proxyEvent('oauth-malformed', 0, 'https://oauth-api.example.test/api/info')
+		failed.event.fetch.mockReset().mockResolvedValueOnce(new Response('{'))
+		await expect(proxySourceHttpRequest(failed.event)).rejects.toMatchObject({ status: 502 })
+
+		const retry = proxyEvent('oauth-malformed', 0, 'https://oauth-api.example.test/api/info')
+		retry.event.fetch.mockReset()
+			.mockResolvedValueOnce(new Response(JSON.stringify({ access_token: 'after-malformed' })))
+			.mockResolvedValueOnce(new Response('ok'))
+		await expect(proxySourceHttpRequest(retry.event)).resolves.toBeInstanceOf(Response)
+		expect(retry.event.fetch).toHaveBeenCalledTimes(2)
+	})
+
 	it('reuses OAuth access tokens only until the runtime-owned default expiry skew', async () => {
 		vi.spyOn(Date, 'now').mockReturnValue(100_000)
 		const first = proxyEvent(
@@ -377,6 +436,27 @@ describe('runtime secret proxy', () => {
 		)
 		expect(new Headers(rotated.event.fetch.mock.calls[1]?.[1]?.headers).get('Authorization'))
 			.toBe('Bearer second-rotation-token')
+	})
+
+	it('invalidates the OAuth cache when server OAuth configuration rotates', async () => {
+		const first = proxyEvent('oauth-config-rotation', 0, 'https://oauth-api.example.test/api/info')
+		first.event.fetch
+			.mockReset()
+			.mockResolvedValueOnce(new Response(JSON.stringify({ access_token: 'old-config-token' })))
+			.mockResolvedValueOnce(new Response('first'))
+		await proxySourceHttpRequest(first.event)
+
+		oauthCredentialDefinition.oauthClientCredentials.tokenEndpoint = 'https://identity-rotated.example.test/oauth/token'
+		const rotated = proxyEvent('oauth-config-rotation', 0, 'https://oauth-api.example.test/api/info')
+		rotated.event.fetch
+			.mockReset()
+			.mockResolvedValueOnce(new Response(JSON.stringify({ access_token: 'new-config-token' })))
+			.mockResolvedValueOnce(new Response('rotated'))
+		await proxySourceHttpRequest(rotated.event)
+
+		expect(rotated.event.fetch).toHaveBeenCalledTimes(2)
+		expect(String(rotated.event.fetch.mock.calls[0]?.[0])).toBe('https://identity-rotated.example.test/oauth/token')
+		oauthCredentialDefinition.oauthClientCredentials.tokenEndpoint = 'https://identity.example.test/oauth/token'
 	})
 
 	it('fails closed on OAuth exchange errors, avoids poisoning the cache, and redacts every credential form', async () => {
