@@ -407,7 +407,7 @@ export default {
 			resolve: {
 				NetworkBlockHash: {
 					appliesTo: kaspaAddressApplicability,
-					resolve: async ({ $network, blockHash }) => {
+					resolve: async ({ $network, blockHash }, context) => {
 						assertKaspaMainnet($network)
 						const { getBlock } = await import('$/sources/KaspaExplorer/Rest/queries.ts')
 						const block = await getBlock({
@@ -416,6 +416,12 @@ export default {
 						})
 						const parentHashes = block.header.parents
 							.flatMap((parent) => parent.parentHashes)
+						const transactionIds = (
+							block.verboseData.transactionIds
+							?? block.transactions?.map((transaction) => transaction.verboseData.transactionId)
+							?? []
+						)
+						const limit = resolverContextRowLimit(context)
 						return {
 							version: block.header.version,
 							timestampMs: Number(block.header.timestamp),
@@ -442,6 +448,11 @@ export default {
 									mergeSetReds: block.verboseData.mergeSetRedsHashes,
 								}
 							),
+							acceptedTransactions: transactionIds
+								.slice(0, limit)
+								.map((transactionId, acceptedIndex) => (
+									kaspaAcceptedTransaction($network, blockHash, transactionId, acceptedIndex)
+								)),
 						}
 					},
 				},
@@ -460,6 +471,7 @@ export default {
 			parentHashes: (block) => block.parentHashes,
 			mergeSetBlues: (block) => block.mergeSetBlues,
 			mergeSetReds: (block) => block.mergeSetReds,
+			$$acceptedTransactions: (block) => block.acceptedTransactions,
 		}),
 
 		defineResolver({
@@ -488,6 +500,60 @@ export default {
 			},
 		})({
 			$$blocks: (blocks) => blocks,
+		}),
+
+		defineResolver({
+			entityType: EntityType.KaspaNetwork,
+			resolve: {
+				Network: {
+					appliesTo: kaspaNetworkApplicability,
+					resolve: async (network, context) => {
+						assertKaspaMainnet(network)
+						const limit = resolverContextRowLimit(context)
+						if (limit === 0)
+							return {
+								acceptedTransactions: [],
+								transactions: [],
+							}
+
+						const {
+							getBlock,
+							getBlockdag,
+						} = await import('$/sources/KaspaExplorer/Rest/queries.ts')
+						const blockdag = await getBlockdag()
+						const block = await getBlock({
+							blockId: blockdag.sink,
+							includeTransactions: false,
+						})
+						const acceptingBlockHash = block.verboseData.hash ?? blockdag.sink
+						const transactionIds = (
+							block.verboseData.transactionIds
+							?? block.transactions?.map((transaction) => transaction.verboseData.transactionId)
+							?? []
+						)
+						const limitedTransactionIds = transactionIds.slice(0, limit)
+						const acceptedTransactions = limitedTransactionIds.map((transactionId, acceptedIndex) => (
+							kaspaAcceptedTransaction(network, acceptingBlockHash, transactionId, acceptedIndex)
+						))
+						const transactions = limitedTransactionIds.map((transactionId) => ({
+							[EntityMetaKey.Selector]: {
+								$network: network,
+								transactionId,
+							},
+							[EntityMetaKey.Fields]: {
+								[entityFieldAddressKey(EntityType.KaspaTransaction, [], 'blockHashes')]: [acceptingBlockHash],
+							},
+						}))
+						return {
+							acceptedTransactions,
+							transactions,
+						}
+					},
+				},
+			},
+		})({
+			$$acceptedTransactions: (result) => result.acceptedTransactions,
+			$$transactions: (result) => result.transactions,
 		}),
 	],
 } satisfies RegisteredSourceResolverModule
