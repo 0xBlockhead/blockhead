@@ -26,7 +26,7 @@ const rootDir = resolve(
 	'../../..'
 )
 
-const dataDir = resolve(rootDir, 'src/data/precompiles')
+const dataDir = resolve(rootDir, 'src/constants/precompiles')
 const manifestFile = resolve(dataDir, 'manifest.json')
 
 const usage = `
@@ -34,7 +34,7 @@ Usage:
   pnpm run sources:precompiles:sync
   pnpm run sources:precompiles:check
 
-Downloads shemnon/precompiles _data/precompiles JSON into src/data/precompiles/.
+Downloads shemnon/precompiles _data/precompiles JSON into src/constants/precompiles/.
 `.trim()
 
 const readManifest = async (): Promise<PrecompilesManifest> => {

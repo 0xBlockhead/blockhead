@@ -554,13 +554,13 @@ describe('source provider registry', () => {
 		const packageJson = readFileSync(join(process.cwd(), 'package.json'), 'utf8')
 		const scriptSource = readFileSync(join(process.cwd(), 'scripts', 'sources', 'precompiles', 'source.ts'), 'utf8')
 		const manifest = JSON.parse(
-			readFileSync(join(process.cwd(), 'src', 'data', 'precompiles', 'manifest.json'), 'utf8')
+			readFileSync(join(process.cwd(), 'src', 'constants', 'precompiles', 'manifest.json'), 'utf8')
 		) as {
 			source?: string
 			ref?: string
 		}
 		const definitions = new Set<string>()
-		const schedules = globSync('src/data/precompiles/eip155-*-schedule.json')
+		const schedules = globSync('src/constants/precompiles/eip155-*-schedule.json')
 
 		expect(packageJson).toMatch(/"sources:precompiles:sync": "node --import tsx scripts\/sources\/precompiles\/source\.ts sync"/)
 		expect(packageJson).toMatch(/"sources:precompiles:check": "node --import tsx scripts\/sources\/precompiles\/source\.ts check"/)
@@ -569,7 +569,7 @@ describe('source provider registry', () => {
 		expect(manifest.ref).toBeTruthy()
 		expect(schedules.length).toBeGreaterThan(0)
 
-		for (const filePath of globSync('src/data/precompiles/*.json')) {
+		for (const filePath of globSync('src/constants/precompiles/*.json')) {
 			if (filePath.endsWith('/manifest.json'))
 				continue
 
