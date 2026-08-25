@@ -1,15 +1,34 @@
-import { createHash } from 'node:crypto'
-import { readFile } from 'node:fs/promises'
-import { join } from 'node:path'
+import { createHash, randomUUID } from 'node:crypto'
+import { readFile, rename, unlink, writeFile } from 'node:fs/promises'
+import { join, resolve } from 'node:path'
 import { execFile } from 'node:child_process'
 import { promisify } from 'node:util'
 
 const execFileAsync = promisify(execFile)
 
-export const routeRunIdentityVersion = 1
+export const routeRunIdentityVersion = 2
+export const preservedRouteRunIdentityVersion = 1
+export const writerLockFileName = '.route-run-writer.lock'
 
 export type RouteRunIdentity = {
 	version: typeof routeRunIdentityVersion
+	runId: string
+	commit: string
+	dirtyTreeFingerprint: string
+	appGeneratedRouteFingerprint: string
+	fixtureMetadataFingerprint: string
+	corpusVersion: string
+	captureContractVersion: string
+	classifierVersion: string
+	buildIdentity: string
+	browserIdentity: string
+	captureConfigFingerprint: string
+	attemptCohort: string
+	artifactRoot: string
+}
+
+export type PreservedRouteRunIdentity = {
+	version: typeof preservedRouteRunIdentityVersion
 	commit: string
 	dirtyTreeFingerprint: string
 	appGeneratedRouteFingerprint: string
@@ -140,6 +159,9 @@ export const createRouteRunIdentity = async ({
 	classifierVersion,
 	corpusVersion,
 	repositoryDirectory,
+	artifactRoot = 'unbound',
+	attemptCohort = 'all',
+	captureConfigFingerprint = captureContractVersion,
 }: {
 	browserIdentity: string
 	buildIdentity: string
@@ -147,13 +169,17 @@ export const createRouteRunIdentity = async ({
 	classifierVersion: string
 	corpusVersion: string
 	repositoryDirectory: string
+	artifactRoot?: string
+	attemptCohort?: string
+	captureConfigFingerprint?: string
 }): Promise<RouteRunIdentity> => {
 	const [commit, dirtyFingerprint] = await Promise.all([
 		git(repositoryDirectory, 'rev-parse', 'HEAD'),
 		dirtyTreeFingerprint(repositoryDirectory),
 	])
-	return {
+	const identity = {
 		version: routeRunIdentityVersion,
+		runId: '',
 		commit: commit.trim(),
 		dirtyTreeFingerprint: dirtyFingerprint,
 		appGeneratedRouteFingerprint: await fingerprintFiles(repositoryDirectory, [
@@ -171,6 +197,60 @@ export const createRouteRunIdentity = async ({
 		classifierVersion,
 		buildIdentity,
 		browserIdentity,
+		captureConfigFingerprint,
+		attemptCohort,
+		artifactRoot: resolve(artifactRoot),
+	}
+	return { ...identity, runId: `sha256:${sha256(canonicalJson(identity))}` }
+}
+
+/** Compatibility contract for preserved v1 attempt ledgers and historical manifests. */
+export const historicalRouteRunId = ({ manifestSha256, commit, dirtyTreeFingerprint, runnerSha256 }: {
+	manifestSha256: string
+	commit: string
+	dirtyTreeFingerprint: string
+	runnerSha256: string
+}) => `sha256:${sha256(`${manifestSha256}\u0000${commit}\u0000${dirtyTreeFingerprint}\u0000${runnerSha256}`)}`
+
+export const acquireExclusiveWriterLock = async (artifactRoot: string) => {
+	const lockPath = `${artifactRoot}${writerLockFileName}`
+	const token = randomUUID()
+	const lock = { pid: process.pid, hostname: process.env.HOSTNAME ?? 'unknown', token }
+	for (;;) {
+		try {
+			await writeFile(lockPath, `${JSON.stringify(lock)}\n`, { flag: 'wx' })
+			break
+		}
+		catch (error) {
+			if (!(error instanceof Error) || !('code' in error) || error.code !== 'EEXIST')
+				throw error
+			const owner = JSON.parse(await readFile(lockPath, 'utf8')) as { pid?: number }
+			let live = false
+			if (typeof owner.pid === 'number') {
+				try { process.kill(owner.pid, 0); live = true } catch (signalError) {
+					if (signalError instanceof Error && 'code' in signalError && signalError.code === 'EPERM') live = true
+				}
+			}
+			if (live)
+				throw new Error(`controlled retry writer lock is active: ${lockPath}`)
+			const reclaimPath = `${lockPath}.${token}.reclaim`
+			try { await rename(lockPath, reclaimPath) }
+			catch (reclaimError) {
+				if (reclaimError instanceof Error && 'code' in reclaimError && reclaimError.code === 'ENOENT') continue
+				throw reclaimError
+			}
+			await unlink(reclaimPath).catch((cleanupError) => {
+				if (!(cleanupError instanceof Error) || !('code' in cleanupError) || cleanupError.code !== 'ENOENT') throw cleanupError
+			})
+		}
+	}
+	return async () => {
+		try {
+			const current = JSON.parse(await readFile(lockPath, 'utf8')) as { token?: string }
+			if (current.token === token) await unlink(lockPath)
+		} catch (error) {
+			if (!(error instanceof Error) || !('code' in error) || error.code !== 'ENOENT') throw error
+		}
 	}
 }
 
@@ -186,6 +266,7 @@ export const corpusFingerprint = (corpusTargets: readonly RouteCorpusTarget[]) =
 
 const identityFields = Object.keys({
 	version: 0,
+	runId: '',
 	commit: '',
 	dirtyTreeFingerprint: '',
 	appGeneratedRouteFingerprint: '',
@@ -195,6 +276,9 @@ const identityFields = Object.keys({
 	classifierVersion: '',
 	buildIdentity: '',
 	browserIdentity: '',
+	captureConfigFingerprint: '',
+	attemptCohort: '',
+	artifactRoot: '',
 }) as (keyof RouteRunIdentity)[]
 
 export const assertRunIdentityMatches = (

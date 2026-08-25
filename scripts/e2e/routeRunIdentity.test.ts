@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
+import { spawn } from 'node:child_process'
 
 import {
 	assertRouteReportCoherent,
@@ -9,6 +10,9 @@ import {
 	assertRouteResultsArtifactCoherent,
 	assertRouteResultsCoherent,
 	assertRunIdentityMatches,
+	acquireExclusiveWriterLock,
+	createRouteRunIdentity,
+	historicalRouteRunId,
 	corpusFingerprint,
 	resultSetFingerprint,
 	routeCorpusTargetsFromPathnames,
@@ -22,7 +26,8 @@ import {
 } from './routeRunIdentity.ts'
 
 const identity = {
-	version: 1,
+	version: 2,
+	runId: 'sha256:run-a',
 	commit: 'commit-a',
 	dirtyTreeFingerprint: 'dirty-a',
 	appGeneratedRouteFingerprint: 'app-a',
@@ -32,6 +37,9 @@ const identity = {
 	classifierVersion: 'classifier-a',
 	buildIdentity: 'build-a',
 	browserIdentity: 'browser-a',
+	captureConfigFingerprint: 'capture-a',
+	attemptCohort: 'cohort-a',
+	artifactRoot: '/artifacts/run-a',
 } as const satisfies RouteRunIdentity
 
 const targets = [
@@ -51,7 +59,7 @@ const results = [
 
 test('rejects every identity dimension that can invalidate a route report', () => {
 	for (const field of [
-		'commit',
+		'runId', 'commit',
 		'dirtyTreeFingerprint',
 		'appGeneratedRouteFingerprint',
 		'fixtureMetadataFingerprint',
@@ -60,6 +68,9 @@ test('rejects every identity dimension that can invalidate a route report', () =
 		'classifierVersion',
 		'buildIdentity',
 		'browserIdentity',
+		'captureConfigFingerprint',
+		'attemptCohort',
+		'artifactRoot',
 	] as const) {
 		const actual = { ...identity, [field]: `${identity[field]}-changed` }
 		assert.throws(
@@ -67,6 +78,56 @@ test('rejects every identity dimension that can invalidate a route report', () =
 			new RegExp(`checkpoint has incoherent run identity: ${field}`),
 		)
 	}
+})
+
+test('writer lock rejects active owners and recovers stale owners deterministically', async () => {
+	const { mkdtemp, writeFile } = await import('node:fs/promises')
+	const { tmpdir } = await import('node:os')
+	const { join } = await import('node:path')
+	const root = await mkdtemp(join(tmpdir(), 'route-run-lock-'))
+	const release = await acquireExclusiveWriterLock(root)
+	const liveChild = spawn(process.execPath, ['-e', 'setTimeout(() => {}, 5000)'])
+	await new Promise((resolve) => liveChild.once('spawn', resolve))
+	await writeFile(`${root}.route-run-writer.lock`, JSON.stringify({ pid: liveChild.pid, token: 'live' }))
+	await assert.rejects(acquireExclusiveWriterLock(root), /writer lock is active/)
+	liveChild.kill()
+	await release()
+	await writeFile(`${root}.route-run-writer.lock`, '{"pid":999999,"token":"stale"}\n')
+	const staleRelease = await acquireExclusiveWriterLock(root)
+	await staleRelease()
+	const first = await acquireExclusiveWriterLock(root)
+	const second = await acquireExclusiveWriterLock(root).catch(() => null)
+	assert.equal(second, null)
+	await writeFile(`${root}.route-run-writer.lock`, '{"pid":999999,"token":"successor"}\n')
+	await first()
+	assert.match(await (await import('node:fs/promises')).readFile(`${root}.route-run-writer.lock`, 'utf8'), /successor/)
+})
+
+test('writer lock does not create or mutate a missing artifact root', async () => {
+	const { mkdtemp, stat, readFile } = await import('node:fs/promises')
+	const { tmpdir } = await import('node:os')
+	const { join } = await import('node:path')
+	const parent = await mkdtemp(join(tmpdir(), 'route-run-lock-parent-'))
+	const root = join(parent, 'missing-artifacts')
+	const release = await acquireExclusiveWriterLock(root)
+	assert.equal(await stat(root).catch(() => null), null)
+	await release()
+	assert.equal(await readFile(`${root}.route-run-writer.lock`, 'utf8').catch(() => null), null)
+})
+
+test('preserves v1 historical runId derivation and canonicalizes artifact roots', async () => {
+	assert.match(historicalRouteRunId({ manifestSha256: 'manifest', commit: 'commit', dirtyTreeFingerprint: 'dirty', runnerSha256: 'runner' }), /^sha256:[0-9a-f]{64}$/)
+	const repositoryDirectory = process.cwd()
+	const relative = await createRouteRunIdentity({
+		browserIdentity: 'browser', buildIdentity: 'build', captureContractVersion: 'capture', classifierVersion: 'classifier', corpusVersion: 'corpus',
+		repositoryDirectory, artifactRoot: '.',
+	})
+	const absolute = await createRouteRunIdentity({
+		browserIdentity: 'browser', buildIdentity: 'build', captureContractVersion: 'capture', classifierVersion: 'classifier', corpusVersion: 'corpus',
+		repositoryDirectory, artifactRoot: repositoryDirectory,
+	})
+	assert.equal(relative.artifactRoot, absolute.artifactRoot)
+	assert.equal(relative.runId, absolute.runId)
 })
 
 test('requires an exact, versioned result for every corpus example', () => {

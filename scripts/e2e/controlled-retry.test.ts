@@ -17,6 +17,7 @@ import {
 	type ControlledRetryRuntimeDiagnostics,
 } from './controlled-retry.mts'
 import { waitForBoundarySettlement } from './boundarySettlement.ts'
+import { acquireExclusiveWriterLock } from './routeRunIdentity.ts'
 
 const manifest = (commit: string): ControlledRetryManifest => ({
 	schemaVersion: controlledRetrySchemaVersion,
@@ -106,6 +107,17 @@ test('captures every manifest attempt with complete route run provenance', async
 	assert.equal(run.runIdentity.buildIdentity, 'fixture-build')
 	assert.match(run.outputs.corpusFingerprint, /^[0-9a-f]{64}$/)
 	assert.match(run.outputs.resultSetFingerprint, /^[0-9a-f]{64}$/)
+})
+
+test('failed retry releases its writer lock for an immediate retry', async () => {
+	const productRoot = process.cwd()
+	const commit = (await (await import('node:child_process')).execFileSync('git', ['rev-parse', 'HEAD'], { cwd: productRoot })).toString().trim()
+	const outputDirectory = await mkdtemp(join(tmpdir(), 'controlled-retry-failure-'))
+	await writeFile(join(outputDirectory, 'preexisting.txt'), 'busy')
+	const input = { ...manifest(commit), dirtyPatchHash: await productDirtyPatchHash(productRoot) }
+	await assert.rejects(runControlledRetry({ browser: browser(), manifest: input, outputDirectory, productRoot, runnerPath: new URL(import.meta.url).pathname }), /output directory must be empty/)
+	const release = await acquireExclusiveWriterLock(outputDirectory)
+	await release()
 })
 
 test('classifies clean attempts and persists deterministic runtime diagnostics', async () => {

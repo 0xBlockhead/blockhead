@@ -6,11 +6,13 @@ import { promisify } from 'node:util'
 
 import {
 	canonicalJson,
+	acquireExclusiveWriterLock,
 	corpusFingerprint,
 	createRouteRunIdentity,
 	resultSetFingerprint,
 	routeCorpusTargetsFromPathnames,
 	type RouteRunIdentity,
+	type PreservedRouteRunIdentity,
 } from './routeRunIdentity.ts'
 import {
 	routeScreenshotQuality,
@@ -22,6 +24,10 @@ import { installBoundaryProbe, snapshotBoundary, waitForBoundarySettlement } fro
 const execFileAsync = promisify(execFile)
 const sha256 = (value: string | Uint8Array) => createHash('sha256').update(value).digest('hex')
 export const controlledRetrySchemaVersion = 4
+
+declare global {
+	var __blockheadBoundaryProbe: { kind: string }[] | undefined
+}
 
 export type ControlledRetryManifest = {
 	schemaVersion: number
@@ -57,7 +63,7 @@ export type ControlledRetryAttempt = {
 	detail: string
 	startedAt: string
 	endedAt: string
-	runIdentity: RouteRunIdentity
+	runIdentity: RouteRunIdentity | PreservedRouteRunIdentity
 	artifacts: { screenshot: Artifact | null, trace: Artifact | null, diagnostics: Artifact }
 	runtimeDiagnostics: ControlledRetryRuntimeDiagnostics
 	classification: RouteScreenshotQuality
@@ -169,8 +175,8 @@ export const adaptCapturePage = (page: {
 				} satisfies ControlledRetryRuntimeDiagnostics['main']
 			}),
 		}),
-		boundarySnapshot: () => page.evaluate == null ? Promise.resolve({ loading: 0, failed: 0, empty: true, reason: 'probe-unavailable' }) : snapshotBoundary(page),
-		boundaryEvents: () => page.evaluate?.(() => (globalThis as { __blockheadBoundaryProbe?: unknown[] }).__blockheadBoundaryProbe?.length ?? 0) ?? Promise.resolve(0),
+		boundarySnapshot: () => snapshotBoundary(page),
+		boundaryEvents: () => page.evaluate(() => globalThis.__blockheadBoundaryProbe?.length ?? 0),
 		waitForTimeout: (milliseconds) => page.waitForTimeout(milliseconds),
 		close: () => page.close(),
 	}
@@ -299,7 +305,7 @@ export const validateControlledRetryRun = ({ attempts, manifest, run }: {
 	}
 }
 
-export const runControlledRetry = async ({ browser, manifest, outputDirectory, productRoot, runnerPath = new URL(import.meta.url).pathname }: {
+const runControlledRetryImplementation = async ({ browser, manifest, outputDirectory, productRoot, runnerPath = new URL(import.meta.url).pathname }: {
 	browser: CaptureBrowser
 	manifest: ControlledRetryManifest
 	outputDirectory: string
@@ -319,11 +325,6 @@ export const runControlledRetry = async ({ browser, manifest, outputDirectory, p
 	if (manifest.runnerSha256 !== null && manifest.runnerSha256 !== runnerSha256)
 		throw new Error('runner SHA256 does not match manifest')
 
-	await mkdir(outputDirectory, { recursive: true })
-	if ((await readdir(outputDirectory)).length > 0)
-		throw new Error('controlled retry output directory must be empty')
-	await Promise.all(['screenshots', 'traces', 'diagnostics'].map((directory) => mkdir(join(outputDirectory, directory), { recursive: true })))
-	const startedAt = new Date().toISOString()
 	const runIdentity = await createRouteRunIdentity({
 		browserIdentity: browser.identity,
 		buildIdentity: manifest.server.buildIdentity,
@@ -331,9 +332,17 @@ export const runControlledRetry = async ({ browser, manifest, outputDirectory, p
 		classifierVersion: manifest.classifierVersion,
 		corpusVersion: manifest.corpusVersion,
 		repositoryDirectory: productRoot,
+		artifactRoot: outputDirectory,
+		attemptCohort: `${manifest.paths.join('\u0000')}\u0000${manifest.attempts}`,
+		captureConfigFingerprint: sha256(canonicalJson({ manifest, runnerSha256 })),
 	})
+	await mkdir(outputDirectory, { recursive: true })
+	if ((await readdir(outputDirectory)).length > 0)
+		throw new Error('controlled retry output directory must be empty')
+	await Promise.all(['screenshots', 'traces', 'diagnostics'].map((directory) => mkdir(join(outputDirectory, directory), { recursive: true })))
+	const startedAt = new Date().toISOString()
 	const manifestSha256 = sha256(canonicalJson(manifest))
-	const runId = `sha256:${sha256(`${manifestSha256}\u0000${runIdentity.commit}\u0000${runIdentity.dirtyTreeFingerprint}\u0000${runnerSha256}`)}`
+	const runId = runIdentity.runId
 	const attempts: ControlledRetryAttempt[] = []
 	const attemptsPath = join(outputDirectory, 'attempts.jsonl')
 
@@ -436,6 +445,12 @@ export const runControlledRetry = async ({ browser, manifest, outputDirectory, p
 	await writeFile(join(outputDirectory, 'capture-run.json'), `${JSON.stringify(run, null, '\t')}\n`)
 	await appendFile(join(outputDirectory, 'capture-history.jsonl'), `${JSON.stringify(run)}\n`)
 	return run
+}
+
+export const runControlledRetry = async (options: Parameters<typeof runControlledRetryImplementation>[0]) => {
+	const releaseWriterLock = await acquireExclusiveWriterLock(options.outputDirectory)
+	try { return await runControlledRetryImplementation(options) }
+	finally { await releaseWriterLock() }
 }
 
 const parseManifest = async (path: string): Promise<ControlledRetryManifest> => {

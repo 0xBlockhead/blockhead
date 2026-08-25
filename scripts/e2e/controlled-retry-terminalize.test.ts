@@ -15,6 +15,8 @@ import {
 import {
 	canonicalJson,
 	createRouteRunIdentity,
+	acquireExclusiveWriterLock,
+	historicalRouteRunId,
 } from './routeRunIdentity.ts'
 import {
 	controlledRetryInterruptionDisposition,
@@ -60,9 +62,12 @@ const createFixture = async (count = 43) => {
 		classifierVersion: manifest.classifierVersion,
 		corpusVersion: manifest.corpusVersion,
 		repositoryDirectory: productRoot,
+		artifactRoot: outputDirectory,
+		attemptCohort: `${manifest.paths.join('\u0000')}\u0000${manifest.attempts}`,
+		captureConfigFingerprint: sha256(canonicalJson({ manifest, runnerSha256: historicalRunnerSha256 })),
 	})
 	const manifestSha256 = sha256(canonicalJson(manifest))
-	const runId = `sha256:${sha256(`${manifestSha256}\u0000${identity.commit}\u0000${identity.dirtyTreeFingerprint}\u0000${historicalRunnerSha256}`)}`
+	const runId = identity.runId
 	const attempts: ControlledRetryAttempt[] = []
 	for (const pathname of paths) for (let attempt = 1; attempt <= manifest.attempts; attempt += 1) {
 		const index = attempts.length + 1
@@ -154,4 +159,40 @@ test('refuses an output directory with an existing completed ledger', async () =
 		terminalizeControlledRetry({ ...fixture, productRoot: process.cwd(), originalRunnerPath: runnerPath }),
 		/output already has a terminal summary/
 	)
+	const release = await acquireExclusiveWriterLock(fixture.outputDirectory)
+	await release()
+})
+
+test('terminalizes an unchanged preserved v1 attempt ledger with its historical runId', async () => {
+	const fixture = await createFixture(1)
+	const before = await readFile(join(fixture.outputDirectory, 'attempts.jsonl'), 'utf8')
+	const manifest = JSON.parse(await readFile(fixture.manifestPath, 'utf8')) as ControlledRetryManifest & { historicalRunnerSha256: string }
+	const attempts = before.trim().split('\n').map((line) => JSON.parse(line) as ControlledRetryAttempt)
+	const legacyIdentity = {
+		version: 1 as const,
+		commit: attempts[0].runIdentity.commit,
+		dirtyTreeFingerprint: attempts[0].runIdentity.dirtyTreeFingerprint,
+		appGeneratedRouteFingerprint: attempts[0].runIdentity.appGeneratedRouteFingerprint,
+		fixtureMetadataFingerprint: attempts[0].runIdentity.fixtureMetadataFingerprint,
+		corpusVersion: attempts[0].runIdentity.corpusVersion,
+		captureContractVersion: attempts[0].runIdentity.captureContractVersion,
+		classifierVersion: attempts[0].runIdentity.classifierVersion,
+		buildIdentity: attempts[0].runIdentity.buildIdentity,
+		browserIdentity: attempts[0].runIdentity.browserIdentity,
+	}
+	const historicalRunId = historicalRouteRunId({
+		manifestSha256: sha256(canonicalJson(manifest)),
+		commit: manifest.commit,
+		dirtyTreeFingerprint: legacyIdentity.dirtyTreeFingerprint,
+		runnerSha256: manifest.historicalRunnerSha256,
+	})
+	const preserved = attempts.map((attempt) => {
+		const { toolOutputHash: _toolOutputHash, ...attemptWithoutHash } = attempt
+		const record = { ...attemptWithoutHash, runId: historicalRunId, runIdentity: legacyIdentity }
+		return { ...record, toolOutputHash: sha256(canonicalJson(record)) }
+	})
+	await writeFile(join(fixture.outputDirectory, 'attempts.jsonl'), `${JSON.stringify(preserved[0])}\n`)
+	const expected = await readFile(join(fixture.outputDirectory, 'attempts.jsonl'), 'utf8')
+	await terminalizeControlledRetry({ ...fixture, productRoot: process.cwd(), originalRunnerPath: runnerPath })
+	assert.equal(await readFile(join(fixture.outputDirectory, 'attempts.jsonl'), 'utf8'), expected)
 })

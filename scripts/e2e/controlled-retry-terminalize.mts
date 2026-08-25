@@ -16,10 +16,14 @@ import {
 } from './controlled-retry.mts'
 import {
 	canonicalJson,
+	acquireExclusiveWriterLock,
 	corpusFingerprint,
 	createRouteRunIdentity,
+	historicalRouteRunId,
+	preservedRouteRunIdentityVersion,
 	resultSetFingerprint,
 	routeCorpusTargetsFromPathnames,
+	type PreservedRouteRunIdentity,
 	type RouteRunIdentity,
 } from './routeRunIdentity.ts'
 import type { RouteScreenshotQuality } from '../../tests/_routeScreenshotQuality.ts'
@@ -158,7 +162,7 @@ const assertAttemptEvidence = async ({
 	manifestSha256: string
 	runId: string
 	outputDirectory: string
-	identity: RouteRunIdentity
+	identity: RouteRunIdentity | PreservedRouteRunIdentity
 }) => {
 	if (attempt.schemaVersion !== controlledRetrySchemaVersion)
 		throw new Error(`attempt ${index + 1} has unsupported schema version`)
@@ -208,7 +212,7 @@ const assertInterruptedPrefix = (attempts: readonly TerminalizerAttempt[], manif
 	return { observedKeys: actual, missingKeys: expected.slice(actual.length) }
 }
 
-export const terminalizeControlledRetry = async ({
+const terminalizeControlledRetryImplementation = async ({
 	manifestPath,
 	outputDirectory,
 	productRoot,
@@ -257,11 +261,17 @@ export const terminalizeControlledRetry = async ({
 		classifierVersion: manifest.classifierVersion,
 		corpusVersion: manifest.corpusVersion,
 		repositoryDirectory: productRoot,
+		artifactRoot: outputRoot,
+		attemptCohort: `${manifest.paths.join('\u0000')}\u0000${manifest.attempts}`,
+		captureConfigFingerprint: sha256(canonicalJson({ manifest, runnerSha256: pinnedRunnerSha256 })),
 	})
-	const runId = `sha256:${sha256(`${manifestSha256}\u0000${identity.commit}\u0000${identity.dirtyTreeFingerprint}\u0000${originalRunnerSha256}`)}`
+	const isPreservedV1 = firstAttempt.runIdentity.version === preservedRouteRunIdentityVersion
+	const runId = isPreservedV1
+		? historicalRouteRunId({ manifestSha256, commit, dirtyTreeFingerprint: firstAttempt.runIdentity.dirtyTreeFingerprint, runnerSha256: originalRunnerSha256 })
+		: identity.runId
 	const { observedKeys, missingKeys } = assertInterruptedPrefix(attempts, manifest)
 	for (const [index, attempt] of attempts.entries())
-		await assertAttemptEvidence({ attempt, index, manifestSha256, runId, outputDirectory: outputRoot, identity })
+		await assertAttemptEvidence({ attempt, index, manifestSha256, runId, outputDirectory: outputRoot, identity: isPreservedV1 ? firstAttempt.runIdentity : identity })
 	await assertOutputFiles(outputRoot, attempts)
 
 	const run = {
@@ -308,6 +318,12 @@ export const terminalizeControlledRetry = async ({
 	await writeFile(join(outputRoot, captureRunFileName), `${JSON.stringify(run, null, '\t')}\n`)
 	await writeFile(join(outputRoot, captureHistoryFileName), `${JSON.stringify(run)}\n`)
 	return run
+}
+
+export const terminalizeControlledRetry = async (options: Parameters<typeof terminalizeControlledRetryImplementation>[0]) => {
+	const releaseWriterLock = await acquireExclusiveWriterLock(options.outputDirectory)
+	try { return await terminalizeControlledRetryImplementation(options) }
+	finally { await releaseWriterLock() }
 }
 
 const argument = (name: string) => {
