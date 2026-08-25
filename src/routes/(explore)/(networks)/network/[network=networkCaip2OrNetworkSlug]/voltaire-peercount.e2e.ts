@@ -83,6 +83,9 @@ test('Ethereum network page attaches Voltaire net_peerCount as Execution peerCou
 		hasText: 'Voltaire_JsonRpc',
 	}).first()
 	const empty = observations.getByText('No endpoint observations.')
+	const peerCount = observations.locator('dt', {
+		hasText: /^Peer count$/,
+	})
 
 	await expect(page.locator('#main').getByRole('heading', {
 		name: 'Endpoint observations',
@@ -94,7 +97,10 @@ test('Ethereum network page attaches Voltaire net_peerCount as Execution peerCou
 		timeout: 120_000,
 	})
 	await expect(executionObservation).toBeAttached()
-	await expect(executionObservation.getByText('17', {
+	await expect(peerCount).toBeAttached({
+		timeout: 120_000,
+	})
+	await expect(peerCount.locator('xpath=following-sibling::dd').getByText('17', {
 		exact: true,
 	})).toBeAttached()
 	expect(voltaireMethods).toContain('net_peerCount')
