@@ -13,7 +13,7 @@ import {
 	WalletProtocol,
 	WalletTransportKind,
 } from '$/constants/Wallet.ts'
-import { ActionType } from '$/constants/actions.ts'
+import { ActionType } from '$/actions/index.ts'
 import {
 	localMutationAuthorityKey,
 } from '$/client/$client.svelte.ts'

@@ -1,7 +1,7 @@
 import {
 	type ActionType,
 	actionTypeDefinitionByActionType,
-} from '$/constants/actions.ts'
+} from '$/actions/index.ts'
 import type { WalletCapability, WalletDiscoveryKind, WalletProtocol, WalletTransportKind } from '$/constants/Wallet.ts'
 import { walletConnectionMethodByProtocolDiscoveryKindTransportKind } from '$/constants/Wallet.ts'
 import type { WalletConnection } from '$/state/wallets/adapters/types.ts'

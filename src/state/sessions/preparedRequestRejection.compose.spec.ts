@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { ActionType } from '$/constants/actions.ts'
+import { ActionType } from '$/actions/index.ts'
 import { BlockheadSessionStatus } from '$/schema/BlockheadSessionStatus.ts'
 import {
 	isPreparedWalletRequestWithoutSend,

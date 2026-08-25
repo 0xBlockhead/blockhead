@@ -64,7 +64,7 @@
 		ActionType,
 		actionTypeDefinitionByActionType,
 		actionTypeDefinitions,
-	} from '$/constants/actions.ts'
+	} from '$/actions/index.ts'
 	import { entityDragDataType } from '$/components/EntityId.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -86,7 +86,7 @@
 		sessionComposerWalletRequestId,
 		type SessionActionDraft,
 		type SessionComposerNotice,
-	} from '$/views/sessionActionsComposerState.ts'
+	} from '$/state/sessions/sessionActionsComposerState.ts'
 
 
 	// Context

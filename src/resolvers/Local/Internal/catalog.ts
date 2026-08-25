@@ -1,5 +1,5 @@
 import { entitySelectorKey, type EntitySelector } from '$/schema/$schema.ts'
-import { ActionType } from '$/constants/actions.ts'
+import { ActionType } from '$/actions/index.ts'
 import { networkByCaip2 } from '$/constants/Network.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { BlockheadAgentConversationTurnStatus } from '$/schema/BlockheadAgentConversationTurnStatus.ts'

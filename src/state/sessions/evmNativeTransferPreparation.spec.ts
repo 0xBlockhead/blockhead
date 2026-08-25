@@ -6,7 +6,7 @@ import {
 	vi,
 } from 'vitest'
 
-import { ActionType, zeroAddress } from '$/constants/actions.ts'
+import { ActionType, zeroAddress } from '$/actions/index.ts'
 import { WalletCapability, WalletProtocol, WalletTransportKind } from '$/constants/Wallet.ts'
 import { BlockheadConnectionStatus } from '$/schema/BlockheadConnectionStatus.ts'
 import { CoinInstanceType } from '$/schema/CoinInstanceType.ts'

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { ActionType } from '$/constants/actions.ts'
+import { ActionType } from '$/actions/index.ts'
 import {
 	beginSessionComposerPreparation,
 	blockSessionComposerPreparation,
@@ -15,7 +15,7 @@ import {
 	sessionComposerNoticeMessage,
 	sessionComposerReadinessCheckIds,
 	sessionComposerWalletRequestId,
-} from './sessionActionsComposerState.ts'
+} from '$/state/sessions/sessionActionsComposerState.ts'
 
 
 describe('sessionActionsComposerState', () => {

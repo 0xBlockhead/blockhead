@@ -1,4 +1,4 @@
-import { ActionType } from '$/constants/actions.ts'
+import { ActionType } from '$/actions/index.ts'
 import type { EntitySelector } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import type { schema } from '$/schema/index.ts'

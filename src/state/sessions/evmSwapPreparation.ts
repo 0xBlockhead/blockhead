@@ -6,7 +6,7 @@ import {
 	ActionType,
 	actionTypeDefinitionByActionType,
 	zeroAddress,
-} from '$/constants/actions.ts'
+} from '$/actions/index.ts'
 import { Caip2Namespace } from '$/constants/Network.ts'
 import { CoinInstanceType } from '$/schema/CoinInstanceType.ts'
 import {
