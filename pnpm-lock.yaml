@@ -131,7 +131,7 @@ importers:
         specifier: ^26.1.2
         version: 26.1.2
       '@typescript/native':
-        specifier: npm:typescript@^7.0.2
+        specifier: npm:typescript@7.0.2
         version: typescript@7.0.2
       '@vitest/browser-playwright':
         specifier: ^4.1.10

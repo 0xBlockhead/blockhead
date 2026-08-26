@@ -3,7 +3,7 @@ import { readFileSync, writeFileSync } from 'node:fs'
 
 const typeScript = (await import('typescript')).default
 const usesLegacyCompilerApi = Number(typeScript.versionMajorMinor.split('.')[0]) < 7
-const typeScriptAst = usesLegacyCompilerApi ? typeScript : await import('typescript/unstable/ast')
+const typeScriptAst = usesLegacyCompilerApi ? typeScript : await import('@typescript/native/unstable/ast')
 
 const files = execFileSync(
 	'rg',
@@ -25,7 +25,7 @@ const files = execFileSync(
 
 const failures = []
 const shouldFix = process.argv.includes('--fix')
-const api = usesLegacyCompilerApi ? undefined : new (await import('typescript/unstable/sync')).API()
+const api = usesLegacyCompilerApi ? undefined : new (await import('@typescript/native/unstable/sync')).API()
 const snapshot = api?.updateSnapshot({
 	openFiles: files,
 })
