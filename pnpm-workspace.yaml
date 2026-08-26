@@ -1,27 +1,34 @@
 packages:
   - .
+
 verifyDepsBeforeRun: false
+engineStrict: true
+
 overrides:
-  "@napi-rs/wasm-runtime": 1.2.3
+  '@napi-rs/wasm-runtime': 1.2.3
+
 peerDependencyRules:
   allowedVersions:
-    openapi-typescript>typescript: ^5 || ^6
-    "@tevm/chains@0.0.1>typescript": ^5 || ^6
+    'openapi-typescript>typescript': ^5 || ^6
+    '@tevm/chains@0.0.1>typescript': ^5 || ^6
+
 supportedArchitectures:
   cpu:
     - current
     - wasm32
+
 allowBuilds:
-  "@journeyapps/wa-sqlite": true
+  '@journeyapps/wa-sqlite': true
   es5-ext: false
   esbuild: true
+
 patchedDependencies:
-  "@tanstack/db-sqlite-persistence-core@0.2.18": patches/@tanstack__db-sqlite-persistence-core@0.2.18.patch
-engineStrict: true
+  '@tanstack/db-sqlite-persistence-core@0.2.18': patches/@tanstack__db-sqlite-persistence-core@0.2.18.patch
+
 minimumReleaseAgeExclude:
-  - "@tanstack/browser-db-sqlite-persistence@0.2.18"
-  - "@tanstack/db-sqlite-persistence-core@0.2.18"
-  - "@tanstack/db@0.8.5"
-  - "@tanstack/query-core@5.102.4"
-  - "@tanstack/query-db-collection@1.2.10"
-  - "@tanstack/svelte-db@0.3.5"
+  - '@tanstack/browser-db-sqlite-persistence@0.2.18'
+  - '@tanstack/db-sqlite-persistence-core@0.2.18'
+  - '@tanstack/db@0.8.5'
+  - '@tanstack/query-core@5.102.4'
+  - '@tanstack/query-db-collection@1.2.10'
+  - '@tanstack/svelte-db@0.3.5'

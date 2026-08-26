@@ -10,6 +10,9 @@
 			"onFail": "ignore"
 		}
 	},
+	"engines": {
+		"node": ">=22.13"
+	},
 	"type": "module",
 	"scripts": {
 		"dev": "pnpm exec dotenvx run -f .env.local -- vite dev",
@@ -121,8 +124,5 @@
 	},
 	"workspaces": [
 		"."
-	],
-	"engines": {
-		"node": ">=22.13"
-	}
+	]
 }
