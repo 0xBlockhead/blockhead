@@ -3,7 +3,6 @@ packages:
 verifyDepsBeforeRun: false
 overrides:
   "@napi-rs/wasm-runtime": 1.2.3
-  cookie: 0.7.2
 peerDependencyRules:
   allowedVersions:
     openapi-typescript>typescript: ^5 || ^6
