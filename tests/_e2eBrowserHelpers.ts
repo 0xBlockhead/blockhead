@@ -768,14 +768,14 @@ export const waitForBoundarySettle = async (
 		isClosed: () => page.isClosed(),
 		probeTimeoutMs,
 	}, { timeoutMs, quietMs })
-	const snapshot = result.settled ? await snapshotBoundaryMain(page).catch(() => ({
+	const snapshot = result.settled ? await Promise.resolve(snapshotBoundaryMain(page)).catch(() => ({
 		failed: [],
 		loading: [],
 			empty: true,
 			emptyReason: page.isClosed() ? 'page-closed' : 'probe-evaluate-timeout',
 			textLength: 0,
 		contentMarkerCount: 0,
-	})) : await snapshotBoundaryMain(page).catch(() => ({
+	})) : await Promise.resolve(snapshotBoundaryMain(page)).catch(() => ({
 		failed: [], loading: [], empty: true, emptyReason: result.reason, textLength: 0, contentMarkerCount: 0,
 	}))
 	if (result.semantic?.ready === false)
