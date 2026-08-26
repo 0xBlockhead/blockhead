@@ -97445,7 +97445,7 @@ export const app = {
 			{
 				id: "explore",
 				title: "Explore",
-				href: "/explore",
+				href: "/~/explore",
 				icon: "🧭",
 				defaultIsOpen: true,
 				children: [
@@ -97486,7 +97486,7 @@ export const app = {
 					{
 						id: "explore-services",
 						title: "Services",
-						href: "/services",
+						href: "/~/services",
 						icon: "⚙️",
 					},
 					{
@@ -97531,7 +97531,7 @@ export const app = {
 					{
 						id: "explore-upgrades",
 						title: "Upgrades",
-						href: "/upgrades",
+						href: "/~/upgrades",
 						icon: "🔀",
 						defaultIsOpen: true,
 					},
@@ -97576,7 +97576,7 @@ export const app = {
 						{
 				id: "assets",
 				title: "Assets",
-				href: "/assets",
+				href: "/~/assets",
 				icon: "💼",
 				defaultIsOpen: true,
 				children: [
@@ -97628,7 +97628,7 @@ export const app = {
 					{
 						id: "assets-channels",
 						title: "Channels",
-						href: "/channels",
+						href: "/~/channels",
 						icon: "↔️",
 					},
 				],
@@ -97651,7 +97651,7 @@ export const app = {
 			{
 				id: "social",
 				title: "Social",
-				href: "/social",
+				href: "/~/social",
 				icon: "👥",
 				defaultIsOpen: true,
 				children: [
@@ -97828,13 +97828,13 @@ export const app = {
 					{
 						id: "governance-snapshot",
 						title: "Snapshot",
-						href: "/snapshot/spaces",
+						href: "/~/snapshot/spaces",
 						icon: "🗳️",
 					},
 					{
 						id: "governance-tally",
 						title: "Tally",
-						href: "/tally",
+						href: "/~/tally",
 						icon: "⚖️",
 					},
 					{

@@ -68,7 +68,7 @@ export default [
 	{
 		id: 'explore',
 		title: 'Explore',
-		href: '/explore',
+		href: '/~/explore',
 		icon: '🧭',
 		defaultIsOpen: true,
 		children: [
@@ -109,7 +109,7 @@ export default [
 			{
 				id: 'explore-services',
 				title: 'Services',
-				href: '/services',
+				href: '/~/services',
 				icon: '⚙️',
 			},
 			{
@@ -154,7 +154,7 @@ export default [
 			{
 				id: 'explore-upgrades',
 				title: 'Upgrades',
-				href: '/upgrades',
+				href: '/~/upgrades',
 				icon: '🔀',
 				defaultIsOpen: true,
 			},
@@ -199,7 +199,7 @@ export default [
 			{
 				id: 'assets',
 				title: 'Assets',
-				href: '/assets',
+				href: '/~/assets',
 				icon: '💼',
 				defaultIsOpen: true,
 				children: [
@@ -251,7 +251,7 @@ export default [
 					{
 						id: 'assets-channels',
 						title: 'Channels',
-						href: '/channels',
+						href: '/~/channels',
 						icon: '↔️',
 					},
 				],
@@ -274,7 +274,7 @@ export default [
 			{
 				id: 'social',
 				title: 'Social',
-				href: '/social',
+				href: '/~/social',
 				icon: '👥',
 				defaultIsOpen: true,
 				children: [
@@ -451,13 +451,13 @@ export default [
 					{
 						id: 'governance-snapshot',
 						title: 'Snapshot',
-						href: '/snapshot/spaces',
+						href: '/~/snapshot/spaces',
 						icon: '🗳️',
 					},
 					{
 						id: 'governance-tally',
 						title: 'Tally',
-						href: '/tally',
+						href: '/~/tally',
 						icon: '⚖️',
 					},
 					{
