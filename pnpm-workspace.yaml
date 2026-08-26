@@ -16,5 +16,12 @@ allowBuilds:
   es5-ext: false
   esbuild: true
 patchedDependencies:
-  "@tanstack/db-sqlite-persistence-core@0.2.9": patches/@tanstack__db-sqlite-persistence-core@0.2.9.patch
+  "@tanstack/db-sqlite-persistence-core@0.2.18": patches/@tanstack__db-sqlite-persistence-core@0.2.18.patch
 engineStrict: true
+minimumReleaseAgeExclude:
+  - "@tanstack/browser-db-sqlite-persistence@0.2.18"
+  - "@tanstack/db-sqlite-persistence-core@0.2.18"
+  - "@tanstack/db@0.8.5"
+  - "@tanstack/query-core@5.102.4"
+  - "@tanstack/query-db-collection@1.2.10"
+  - "@tanstack/svelte-db@0.3.5"
