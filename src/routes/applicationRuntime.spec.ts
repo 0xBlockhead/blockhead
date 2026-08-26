@@ -40,18 +40,29 @@ test('does not mount after the layout is destroyed before client readiness', asy
 		resolveClient = resolve
 	})
 	let mountCount = 0
-	const runtime = applicationRuntimeWhenReady(clientPromise, () => {
-		mountCount += 1
+	let disposeCount = 0
+	const runtime = applicationRuntimeWhenReady(
+		clientPromise,
+		() => {
+			mountCount += 1
 
-		return {
-			destroy: () => {},
+			return {
+				destroy: () => {},
+			}
+		},
+		(client) => {
+			expect(client.id).toBe('canonical')
+			disposeCount += 1
 		}
-	})
+	)
 
 	runtime.destroy()
 	resolveClient?.({ id: 'canonical' })
 	await runtime.ready
 	expect(mountCount).toBe(0)
+	expect(disposeCount).toBe(1)
+	runtime.destroy()
+	expect(disposeCount).toBe(1)
 })
 
 test('propagates a late bootstrap rejection after teardown without mounting', async () => {

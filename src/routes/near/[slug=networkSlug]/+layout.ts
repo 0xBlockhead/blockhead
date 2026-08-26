@@ -3,7 +3,7 @@
 import type { LayoutLoad } from './$types'
 import { error } from '@sveltejs/kit'
 import { match as matchNetworkSlug } from '$/params/networkSlug.ts'
-import { parseEntitySelector } from '$/schema/$schema.ts'
+import { parseRouteEntitySelector } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
 import NearNetworkSchema from '$/schema/NearNetwork.ts'
 import { type as arktype } from 'arktype'
@@ -12,7 +12,7 @@ export const load: LayoutLoad = ({ params }) => {
 	if (!(matchNetworkSlug(params.slug)))
 		error(404, 'Route mapping not applicable')
 
-	const nearNetworkSlugSelector = parseEntitySelector(
+	const nearNetworkSlugSelector = parseRouteEntitySelector(
 		schema,
 		NearNetworkSchema,
 		{

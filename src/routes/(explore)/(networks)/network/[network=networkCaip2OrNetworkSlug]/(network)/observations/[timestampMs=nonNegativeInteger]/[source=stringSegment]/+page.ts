@@ -4,7 +4,7 @@ import type { PageLoad } from './$types'
 import { error } from '@sveltejs/kit'
 import { match as matchNonNegativeInteger } from '$/params/nonNegativeInteger.ts'
 import { match as matchStringSegment } from '$/params/stringSegment.ts'
-import { parseEntitySelector, type EntitySelectorForSelectorName } from '$/schema/$schema.ts'
+import { parseRouteEntitySelector } from '$/schema/$schema.ts'
 import AvailNetwork_TimestampSchema from '$/schema/AvailNetwork_Timestamp.ts'
 import BittensorNetwork_TimestampSchema from '$/schema/BittensorNetwork_Timestamp.ts'
 import CardanoNetwork_TimestampSchema from '$/schema/CardanoNetwork_Timestamp.ts'
@@ -31,186 +31,15 @@ import { type as arktype } from 'arktype'
 export const load: PageLoad = async ({ params, parent }) => {
 	const parentData = await parent()
 
-	const routeCandidates: (
-		| {
-			readonly entityType: EntityType.BittensorNetwork_Timestamp
-			readonly selectorName: 'NetworkTimestampMsSource'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.BittensorNetwork_Timestamp,
-				'NetworkTimestampMsSource'
-			>
-		}
-		| {
-			readonly entityType: EntityType.CardanoNetwork_Timestamp
-			readonly selectorName: 'NetworkTimestampMsSource'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.CardanoNetwork_Timestamp,
-				'NetworkTimestampMsSource'
-			>
-		}
-		| {
-			readonly entityType: EntityType.FilecoinNetwork_Timestamp
-			readonly selectorName: 'NetworkTimestampMsSource'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.FilecoinNetwork_Timestamp,
-				'NetworkTimestampMsSource'
-			>
-		}
-		| {
-			readonly entityType: EntityType.HederaNetwork_Timestamp
-			readonly selectorName: 'NetworkTimestampMsSource'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.HederaNetwork_Timestamp,
-				'NetworkTimestampMsSource'
-			>
-		}
-		| {
-			readonly entityType: EntityType.MoneroNetwork_Timestamp
-			readonly selectorName: 'NetworkTimestampMsSource'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.MoneroNetwork_Timestamp,
-				'NetworkTimestampMsSource'
-			>
-		}
-		| {
-			readonly entityType: EntityType.TonNetwork_Timestamp
-			readonly selectorName: 'NetworkTimestampMsSource'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.TonNetwork_Timestamp,
-				'NetworkTimestampMsSource'
-			>
-		}
-		| {
-			readonly entityType: EntityType.TronNetwork_Timestamp
-			readonly selectorName: 'NetworkTimestampMsSource'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.TronNetwork_Timestamp,
-				'NetworkTimestampMsSource'
-			>
-		}
-		| {
-			readonly entityType: EntityType.AvailNetwork_Timestamp
-			readonly selectorName: 'NetworkTimestampMsSource'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.AvailNetwork_Timestamp,
-				'NetworkTimestampMsSource'
-			>
-		}
-		| {
-			readonly entityType: EntityType.CelestiaNetwork_Timestamp
-			readonly selectorName: 'NetworkTimestampMsSource'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.CelestiaNetwork_Timestamp,
-				'NetworkTimestampMsSource'
-			>
-		}
-		| {
-			readonly entityType: EntityType.DydxChainNetwork_Timestamp
-			readonly selectorName: 'NetworkTimestampMsSource'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.DydxChainNetwork_Timestamp,
-				'NetworkTimestampMsSource'
-			>
-		}
-		| {
-			readonly entityType: EntityType.LightningNetwork_Timestamp
-			readonly selectorName: 'LightningNetworkTimestampMsSource'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.LightningNetwork_Timestamp,
-				'LightningNetworkTimestampMsSource'
-			>
-		}
-		| {
-			readonly entityType: EntityType.StarknetNetwork_Timestamp
-			readonly selectorName: 'NetworkTimestampMsSource'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.StarknetNetwork_Timestamp,
-				'NetworkTimestampMsSource'
-			>
-		}
-		| {
-			readonly entityType: EntityType.HyperliquidNetwork_Timestamp
-			readonly selectorName: 'NetworkTimestampMsSource'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.HyperliquidNetwork_Timestamp,
-				'NetworkTimestampMsSource'
-			>
-		}
-		| {
-			readonly entityType: EntityType.IcpNetwork_Timestamp
-			readonly selectorName: 'NetworkTimestampMsSource'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.IcpNetwork_Timestamp,
-				'NetworkTimestampMsSource'
-			>
-		}
-		| {
-			readonly entityType: EntityType.KaspaNetwork_Timestamp
-			readonly selectorName: 'NetworkTimestampMsSource'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.KaspaNetwork_Timestamp,
-				'NetworkTimestampMsSource'
-			>
-		}
-		| {
-			readonly entityType: EntityType.LogosBlockchainNetwork_Timestamp
-			readonly selectorName: 'NetworkTimestampMsSource'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.LogosBlockchainNetwork_Timestamp,
-				'NetworkTimestampMsSource'
-			>
-		}
-		| {
-			readonly entityType: EntityType.StellarNetwork_Timestamp
-			readonly selectorName: 'NetworkTimestampMsSource'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.StellarNetwork_Timestamp,
-				'NetworkTimestampMsSource'
-			>
-		}
-		| {
-			readonly entityType: EntityType.SuiNetwork_Timestamp
-			readonly selectorName: 'NetworkTimestampMsSource'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.SuiNetwork_Timestamp,
-				'NetworkTimestampMsSource'
-			>
-		}
-		| {
-			readonly entityType: EntityType.TezosNetwork_Timestamp
-			readonly selectorName: 'NetworkTimestampMsSource'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.TezosNetwork_Timestamp,
-				'NetworkTimestampMsSource'
-			>
-		}
-	)[] = []
+	const bittensorNetworkTimestampNetworkTimestampMsSourceSelectorCandidate = (() => {
+		if (!(
+			parentData.projectionNetwork.namespace === 'Bittensor'
+			&& matchStringSegment(params.source)
+			&& matchNonNegativeInteger(params.timestampMs)
+		))
+			return
 
-	if (
-		parentData.projectionNetwork.namespace === 'Bittensor'
-		&& matchStringSegment(params.source)
-		&& matchNonNegativeInteger(params.timestampMs)
-	) {
-		const bittensorNetworkTimestampNetworkTimestampMsSourceSelector = parseEntitySelector(
+		const bittensorNetworkTimestampNetworkTimestampMsSourceSelector = parseRouteEntitySelector(
 			schema,
 			BittensorNetwork_TimestampSchema,
 			{
@@ -220,20 +49,23 @@ export const load: PageLoad = async ({ params, parent }) => {
 			},
 			'NetworkTimestampMsSource'
 		)
-		if (!(bittensorNetworkTimestampNetworkTimestampMsSourceSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(bittensorNetworkTimestampNetworkTimestampMsSourceSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.BittensorNetwork_Timestamp,
 				selectorName: 'NetworkTimestampMsSource',
 				selector: bittensorNetworkTimestampNetworkTimestampMsSourceSelector,
-			})
-	}
+			} as const
+	})()
 
-	if (
-		parentData.projectionNetwork.namespace === 'Cardano'
-		&& matchStringSegment(params.source)
-		&& matchNonNegativeInteger(params.timestampMs)
-	) {
-		const cardanoNetworkTimestampNetworkTimestampMsSourceSelector = parseEntitySelector(
+	const cardanoNetworkTimestampNetworkTimestampMsSourceSelectorCandidate = (() => {
+		if (!(
+			parentData.projectionNetwork.namespace === 'Cardano'
+			&& matchStringSegment(params.source)
+			&& matchNonNegativeInteger(params.timestampMs)
+		))
+			return
+
+		const cardanoNetworkTimestampNetworkTimestampMsSourceSelector = parseRouteEntitySelector(
 			schema,
 			CardanoNetwork_TimestampSchema,
 			{
@@ -243,20 +75,23 @@ export const load: PageLoad = async ({ params, parent }) => {
 			},
 			'NetworkTimestampMsSource'
 		)
-		if (!(cardanoNetworkTimestampNetworkTimestampMsSourceSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(cardanoNetworkTimestampNetworkTimestampMsSourceSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.CardanoNetwork_Timestamp,
 				selectorName: 'NetworkTimestampMsSource',
 				selector: cardanoNetworkTimestampNetworkTimestampMsSourceSelector,
-			})
-	}
+			} as const
+	})()
 
-	if (
-		parentData.projectionNetwork.namespace === 'Filecoin'
-		&& matchStringSegment(params.source)
-		&& matchNonNegativeInteger(params.timestampMs)
-	) {
-		const filecoinNetworkTimestampNetworkTimestampMsSourceSelector = parseEntitySelector(
+	const filecoinNetworkTimestampNetworkTimestampMsSourceSelectorCandidate = (() => {
+		if (!(
+			parentData.projectionNetwork.namespace === 'Filecoin'
+			&& matchStringSegment(params.source)
+			&& matchNonNegativeInteger(params.timestampMs)
+		))
+			return
+
+		const filecoinNetworkTimestampNetworkTimestampMsSourceSelector = parseRouteEntitySelector(
 			schema,
 			FilecoinNetwork_TimestampSchema,
 			{
@@ -266,20 +101,23 @@ export const load: PageLoad = async ({ params, parent }) => {
 			},
 			'NetworkTimestampMsSource'
 		)
-		if (!(filecoinNetworkTimestampNetworkTimestampMsSourceSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(filecoinNetworkTimestampNetworkTimestampMsSourceSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.FilecoinNetwork_Timestamp,
 				selectorName: 'NetworkTimestampMsSource',
 				selector: filecoinNetworkTimestampNetworkTimestampMsSourceSelector,
-			})
-	}
+			} as const
+	})()
 
-	if (
-		parentData.projectionNetwork.namespace === 'Hedera'
-		&& matchStringSegment(params.source)
-		&& matchNonNegativeInteger(params.timestampMs)
-	) {
-		const hederaNetworkTimestampNetworkTimestampMsSourceSelector = parseEntitySelector(
+	const hederaNetworkTimestampNetworkTimestampMsSourceSelectorCandidate = (() => {
+		if (!(
+			parentData.projectionNetwork.namespace === 'Hedera'
+			&& matchStringSegment(params.source)
+			&& matchNonNegativeInteger(params.timestampMs)
+		))
+			return
+
+		const hederaNetworkTimestampNetworkTimestampMsSourceSelector = parseRouteEntitySelector(
 			schema,
 			HederaNetwork_TimestampSchema,
 			{
@@ -289,20 +127,23 @@ export const load: PageLoad = async ({ params, parent }) => {
 			},
 			'NetworkTimestampMsSource'
 		)
-		if (!(hederaNetworkTimestampNetworkTimestampMsSourceSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(hederaNetworkTimestampNetworkTimestampMsSourceSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.HederaNetwork_Timestamp,
 				selectorName: 'NetworkTimestampMsSource',
 				selector: hederaNetworkTimestampNetworkTimestampMsSourceSelector,
-			})
-	}
+			} as const
+	})()
 
-	if (
-		parentData.projectionNetwork.namespace === 'Monero'
-		&& matchStringSegment(params.source)
-		&& matchNonNegativeInteger(params.timestampMs)
-	) {
-		const moneroNetworkTimestampNetworkTimestampMsSourceSelector = parseEntitySelector(
+	const moneroNetworkTimestampNetworkTimestampMsSourceSelectorCandidate = (() => {
+		if (!(
+			parentData.projectionNetwork.namespace === 'Monero'
+			&& matchStringSegment(params.source)
+			&& matchNonNegativeInteger(params.timestampMs)
+		))
+			return
+
+		const moneroNetworkTimestampNetworkTimestampMsSourceSelector = parseRouteEntitySelector(
 			schema,
 			MoneroNetwork_TimestampSchema,
 			{
@@ -312,20 +153,23 @@ export const load: PageLoad = async ({ params, parent }) => {
 			},
 			'NetworkTimestampMsSource'
 		)
-		if (!(moneroNetworkTimestampNetworkTimestampMsSourceSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(moneroNetworkTimestampNetworkTimestampMsSourceSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.MoneroNetwork_Timestamp,
 				selectorName: 'NetworkTimestampMsSource',
 				selector: moneroNetworkTimestampNetworkTimestampMsSourceSelector,
-			})
-	}
+			} as const
+	})()
 
-	if (
-		parentData.projectionNetwork.namespace === 'Ton'
-		&& matchStringSegment(params.source)
-		&& matchNonNegativeInteger(params.timestampMs)
-	) {
-		const tonNetworkTimestampNetworkTimestampMsSourceSelector = parseEntitySelector(
+	const tonNetworkTimestampNetworkTimestampMsSourceSelectorCandidate = (() => {
+		if (!(
+			parentData.projectionNetwork.namespace === 'Ton'
+			&& matchStringSegment(params.source)
+			&& matchNonNegativeInteger(params.timestampMs)
+		))
+			return
+
+		const tonNetworkTimestampNetworkTimestampMsSourceSelector = parseRouteEntitySelector(
 			schema,
 			TonNetwork_TimestampSchema,
 			{
@@ -335,20 +179,23 @@ export const load: PageLoad = async ({ params, parent }) => {
 			},
 			'NetworkTimestampMsSource'
 		)
-		if (!(tonNetworkTimestampNetworkTimestampMsSourceSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(tonNetworkTimestampNetworkTimestampMsSourceSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.TonNetwork_Timestamp,
 				selectorName: 'NetworkTimestampMsSource',
 				selector: tonNetworkTimestampNetworkTimestampMsSourceSelector,
-			})
-	}
+			} as const
+	})()
 
-	if (
-		parentData.projectionNetwork.namespace === 'Tron'
-		&& matchStringSegment(params.source)
-		&& matchNonNegativeInteger(params.timestampMs)
-	) {
-		const tronNetworkTimestampNetworkTimestampMsSourceSelector = parseEntitySelector(
+	const tronNetworkTimestampNetworkTimestampMsSourceSelectorCandidate = (() => {
+		if (!(
+			parentData.projectionNetwork.namespace === 'Tron'
+			&& matchStringSegment(params.source)
+			&& matchNonNegativeInteger(params.timestampMs)
+		))
+			return
+
+		const tronNetworkTimestampNetworkTimestampMsSourceSelector = parseRouteEntitySelector(
 			schema,
 			TronNetwork_TimestampSchema,
 			{
@@ -358,20 +205,23 @@ export const load: PageLoad = async ({ params, parent }) => {
 			},
 			'NetworkTimestampMsSource'
 		)
-		if (!(tronNetworkTimestampNetworkTimestampMsSourceSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(tronNetworkTimestampNetworkTimestampMsSourceSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.TronNetwork_Timestamp,
 				selectorName: 'NetworkTimestampMsSource',
 				selector: tronNetworkTimestampNetworkTimestampMsSourceSelector,
-			})
-	}
+			} as const
+	})()
 
-	if (
-		parentData.projectionNetwork.namespace === 'Avail'
-		&& matchNonNegativeInteger(params.timestampMs)
-		&& matchStringSegment(params.source)
-	) {
-		const availNetworkTimestampNetworkTimestampMsSourceSelector = parseEntitySelector(
+	const availNetworkTimestampNetworkTimestampMsSourceSelectorCandidate = (() => {
+		if (!(
+			parentData.projectionNetwork.namespace === 'Avail'
+			&& matchNonNegativeInteger(params.timestampMs)
+			&& matchStringSegment(params.source)
+		))
+			return
+
+		const availNetworkTimestampNetworkTimestampMsSourceSelector = parseRouteEntitySelector(
 			schema,
 			AvailNetwork_TimestampSchema,
 			{
@@ -383,20 +233,23 @@ export const load: PageLoad = async ({ params, parent }) => {
 			},
 			'NetworkTimestampMsSource'
 		)
-		if (!(availNetworkTimestampNetworkTimestampMsSourceSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(availNetworkTimestampNetworkTimestampMsSourceSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.AvailNetwork_Timestamp,
 				selectorName: 'NetworkTimestampMsSource',
 				selector: availNetworkTimestampNetworkTimestampMsSourceSelector,
-			})
-	}
+			} as const
+	})()
 
-	if (
-		parentData.projectionNetwork.namespace === 'Celestia'
-		&& matchNonNegativeInteger(params.timestampMs)
-		&& matchStringSegment(params.source)
-	) {
-		const celestiaNetworkTimestampNetworkTimestampMsSourceSelector = parseEntitySelector(
+	const celestiaNetworkTimestampNetworkTimestampMsSourceSelectorCandidate = (() => {
+		if (!(
+			parentData.projectionNetwork.namespace === 'Celestia'
+			&& matchNonNegativeInteger(params.timestampMs)
+			&& matchStringSegment(params.source)
+		))
+			return
+
+		const celestiaNetworkTimestampNetworkTimestampMsSourceSelector = parseRouteEntitySelector(
 			schema,
 			CelestiaNetwork_TimestampSchema,
 			{
@@ -408,20 +261,23 @@ export const load: PageLoad = async ({ params, parent }) => {
 			},
 			'NetworkTimestampMsSource'
 		)
-		if (!(celestiaNetworkTimestampNetworkTimestampMsSourceSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(celestiaNetworkTimestampNetworkTimestampMsSourceSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.CelestiaNetwork_Timestamp,
 				selectorName: 'NetworkTimestampMsSource',
 				selector: celestiaNetworkTimestampNetworkTimestampMsSourceSelector,
-			})
-	}
+			} as const
+	})()
 
-	if (
-		parentData.projectionNetwork.namespace === 'Dydx'
-		&& matchNonNegativeInteger(params.timestampMs)
-		&& matchStringSegment(params.source)
-	) {
-		const dydxChainNetworkTimestampNetworkTimestampMsSourceSelector = parseEntitySelector(
+	const dydxChainNetworkTimestampNetworkTimestampMsSourceSelectorCandidate = (() => {
+		if (!(
+			parentData.projectionNetwork.namespace === 'Dydx'
+			&& matchNonNegativeInteger(params.timestampMs)
+			&& matchStringSegment(params.source)
+		))
+			return
+
+		const dydxChainNetworkTimestampNetworkTimestampMsSourceSelector = parseRouteEntitySelector(
 			schema,
 			DydxChainNetwork_TimestampSchema,
 			{
@@ -433,20 +289,23 @@ export const load: PageLoad = async ({ params, parent }) => {
 			},
 			'NetworkTimestampMsSource'
 		)
-		if (!(dydxChainNetworkTimestampNetworkTimestampMsSourceSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(dydxChainNetworkTimestampNetworkTimestampMsSourceSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.DydxChainNetwork_Timestamp,
 				selectorName: 'NetworkTimestampMsSource',
 				selector: dydxChainNetworkTimestampNetworkTimestampMsSourceSelector,
-			})
-	}
+			} as const
+	})()
 
-	if (
-		parentData.projectionNetwork.namespace === 'Lightning'
-		&& matchNonNegativeInteger(params.timestampMs)
-		&& matchStringSegment(params.source)
-	) {
-		const lightningNetworkTimestampLightningNetworkTimestampMsSourceSelector = parseEntitySelector(
+	const lightningNetworkTimestampLightningNetworkTimestampMsSourceSelectorCandidate = (() => {
+		if (!(
+			parentData.projectionNetwork.namespace === 'Lightning'
+			&& matchNonNegativeInteger(params.timestampMs)
+			&& matchStringSegment(params.source)
+		))
+			return
+
+		const lightningNetworkTimestampLightningNetworkTimestampMsSourceSelector = parseRouteEntitySelector(
 			schema,
 			LightningNetwork_TimestampSchema,
 			{
@@ -458,20 +317,23 @@ export const load: PageLoad = async ({ params, parent }) => {
 			},
 			'LightningNetworkTimestampMsSource'
 		)
-		if (!(lightningNetworkTimestampLightningNetworkTimestampMsSourceSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(lightningNetworkTimestampLightningNetworkTimestampMsSourceSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.LightningNetwork_Timestamp,
 				selectorName: 'LightningNetworkTimestampMsSource',
 				selector: lightningNetworkTimestampLightningNetworkTimestampMsSourceSelector,
-			})
-	}
+			} as const
+	})()
 
-	if (
-		parentData.projectionNetwork.namespace === 'Starknet'
-		&& matchNonNegativeInteger(params.timestampMs)
-		&& matchStringSegment(params.source)
-	) {
-		const starknetNetworkTimestampNetworkTimestampMsSourceSelector = parseEntitySelector(
+	const starknetNetworkTimestampNetworkTimestampMsSourceSelectorCandidate = (() => {
+		if (!(
+			parentData.projectionNetwork.namespace === 'Starknet'
+			&& matchNonNegativeInteger(params.timestampMs)
+			&& matchStringSegment(params.source)
+		))
+			return
+
+		const starknetNetworkTimestampNetworkTimestampMsSourceSelector = parseRouteEntitySelector(
 			schema,
 			StarknetNetwork_TimestampSchema,
 			{
@@ -483,20 +345,23 @@ export const load: PageLoad = async ({ params, parent }) => {
 			},
 			'NetworkTimestampMsSource'
 		)
-		if (!(starknetNetworkTimestampNetworkTimestampMsSourceSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(starknetNetworkTimestampNetworkTimestampMsSourceSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.StarknetNetwork_Timestamp,
 				selectorName: 'NetworkTimestampMsSource',
 				selector: starknetNetworkTimestampNetworkTimestampMsSourceSelector,
-			})
-	}
+			} as const
+	})()
 
-	if (
-		parentData.projectionNetwork.namespace === 'Hyperliquid'
-		&& matchNonNegativeInteger(params.timestampMs)
-		&& matchStringSegment(params.source)
-	) {
-		const hyperliquidNetworkTimestampNetworkTimestampMsSourceSelector = parseEntitySelector(
+	const hyperliquidNetworkTimestampNetworkTimestampMsSourceSelectorCandidate = (() => {
+		if (!(
+			parentData.projectionNetwork.namespace === 'Hyperliquid'
+			&& matchNonNegativeInteger(params.timestampMs)
+			&& matchStringSegment(params.source)
+		))
+			return
+
+		const hyperliquidNetworkTimestampNetworkTimestampMsSourceSelector = parseRouteEntitySelector(
 			schema,
 			HyperliquidNetwork_TimestampSchema,
 			{
@@ -508,20 +373,23 @@ export const load: PageLoad = async ({ params, parent }) => {
 			},
 			'NetworkTimestampMsSource'
 		)
-		if (!(hyperliquidNetworkTimestampNetworkTimestampMsSourceSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(hyperliquidNetworkTimestampNetworkTimestampMsSourceSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.HyperliquidNetwork_Timestamp,
 				selectorName: 'NetworkTimestampMsSource',
 				selector: hyperliquidNetworkTimestampNetworkTimestampMsSourceSelector,
-			})
-	}
+			} as const
+	})()
 
-	if (
-		parentData.projectionNetwork.namespace === 'InternetComputer'
-		&& matchNonNegativeInteger(params.timestampMs)
-		&& matchStringSegment(params.source)
-	) {
-		const icpNetworkTimestampNetworkTimestampMsSourceSelector = parseEntitySelector(
+	const icpNetworkTimestampNetworkTimestampMsSourceSelectorCandidate = (() => {
+		if (!(
+			parentData.projectionNetwork.namespace === 'InternetComputer'
+			&& matchNonNegativeInteger(params.timestampMs)
+			&& matchStringSegment(params.source)
+		))
+			return
+
+		const icpNetworkTimestampNetworkTimestampMsSourceSelector = parseRouteEntitySelector(
 			schema,
 			IcpNetwork_TimestampSchema,
 			{
@@ -533,20 +401,23 @@ export const load: PageLoad = async ({ params, parent }) => {
 			},
 			'NetworkTimestampMsSource'
 		)
-		if (!(icpNetworkTimestampNetworkTimestampMsSourceSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(icpNetworkTimestampNetworkTimestampMsSourceSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.IcpNetwork_Timestamp,
 				selectorName: 'NetworkTimestampMsSource',
 				selector: icpNetworkTimestampNetworkTimestampMsSourceSelector,
-			})
-	}
+			} as const
+	})()
 
-	if (
-		parentData.projectionNetwork.namespace === 'Kaspa'
-		&& matchNonNegativeInteger(params.timestampMs)
-		&& matchStringSegment(params.source)
-	) {
-		const kaspaNetworkTimestampNetworkTimestampMsSourceSelector = parseEntitySelector(
+	const kaspaNetworkTimestampNetworkTimestampMsSourceSelectorCandidate = (() => {
+		if (!(
+			parentData.projectionNetwork.namespace === 'Kaspa'
+			&& matchNonNegativeInteger(params.timestampMs)
+			&& matchStringSegment(params.source)
+		))
+			return
+
+		const kaspaNetworkTimestampNetworkTimestampMsSourceSelector = parseRouteEntitySelector(
 			schema,
 			KaspaNetwork_TimestampSchema,
 			{
@@ -558,20 +429,23 @@ export const load: PageLoad = async ({ params, parent }) => {
 			},
 			'NetworkTimestampMsSource'
 		)
-		if (!(kaspaNetworkTimestampNetworkTimestampMsSourceSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(kaspaNetworkTimestampNetworkTimestampMsSourceSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.KaspaNetwork_Timestamp,
 				selectorName: 'NetworkTimestampMsSource',
 				selector: kaspaNetworkTimestampNetworkTimestampMsSourceSelector,
-			})
-	}
+			} as const
+	})()
 
-	if (
-		parentData.projectionNetwork.namespace === 'Logos'
-		&& matchNonNegativeInteger(params.timestampMs)
-		&& matchStringSegment(params.source)
-	) {
-		const logosBlockchainNetworkTimestampNetworkTimestampMsSourceSelector = parseEntitySelector(
+	const logosBlockchainNetworkTimestampNetworkTimestampMsSourceSelectorCandidate = (() => {
+		if (!(
+			parentData.projectionNetwork.namespace === 'Logos'
+			&& matchNonNegativeInteger(params.timestampMs)
+			&& matchStringSegment(params.source)
+		))
+			return
+
+		const logosBlockchainNetworkTimestampNetworkTimestampMsSourceSelector = parseRouteEntitySelector(
 			schema,
 			LogosBlockchainNetwork_TimestampSchema,
 			{
@@ -583,20 +457,23 @@ export const load: PageLoad = async ({ params, parent }) => {
 			},
 			'NetworkTimestampMsSource'
 		)
-		if (!(logosBlockchainNetworkTimestampNetworkTimestampMsSourceSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(logosBlockchainNetworkTimestampNetworkTimestampMsSourceSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.LogosBlockchainNetwork_Timestamp,
 				selectorName: 'NetworkTimestampMsSource',
 				selector: logosBlockchainNetworkTimestampNetworkTimestampMsSourceSelector,
-			})
-	}
+			} as const
+	})()
 
-	if (
-		parentData.projectionNetwork.namespace === 'Stellar'
-		&& matchNonNegativeInteger(params.timestampMs)
-		&& matchStringSegment(params.source)
-	) {
-		const stellarNetworkTimestampNetworkTimestampMsSourceSelector = parseEntitySelector(
+	const stellarNetworkTimestampNetworkTimestampMsSourceSelectorCandidate = (() => {
+		if (!(
+			parentData.projectionNetwork.namespace === 'Stellar'
+			&& matchNonNegativeInteger(params.timestampMs)
+			&& matchStringSegment(params.source)
+		))
+			return
+
+		const stellarNetworkTimestampNetworkTimestampMsSourceSelector = parseRouteEntitySelector(
 			schema,
 			StellarNetwork_TimestampSchema,
 			{
@@ -608,20 +485,23 @@ export const load: PageLoad = async ({ params, parent }) => {
 			},
 			'NetworkTimestampMsSource'
 		)
-		if (!(stellarNetworkTimestampNetworkTimestampMsSourceSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(stellarNetworkTimestampNetworkTimestampMsSourceSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.StellarNetwork_Timestamp,
 				selectorName: 'NetworkTimestampMsSource',
 				selector: stellarNetworkTimestampNetworkTimestampMsSourceSelector,
-			})
-	}
+			} as const
+	})()
 
-	if (
-		parentData.projectionNetwork.namespace === 'Sui'
-		&& matchNonNegativeInteger(params.timestampMs)
-		&& matchStringSegment(params.source)
-	) {
-		const suiNetworkTimestampNetworkTimestampMsSourceSelector = parseEntitySelector(
+	const suiNetworkTimestampNetworkTimestampMsSourceSelectorCandidate = (() => {
+		if (!(
+			parentData.projectionNetwork.namespace === 'Sui'
+			&& matchNonNegativeInteger(params.timestampMs)
+			&& matchStringSegment(params.source)
+		))
+			return
+
+		const suiNetworkTimestampNetworkTimestampMsSourceSelector = parseRouteEntitySelector(
 			schema,
 			SuiNetwork_TimestampSchema,
 			{
@@ -633,20 +513,23 @@ export const load: PageLoad = async ({ params, parent }) => {
 			},
 			'NetworkTimestampMsSource'
 		)
-		if (!(suiNetworkTimestampNetworkTimestampMsSourceSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(suiNetworkTimestampNetworkTimestampMsSourceSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.SuiNetwork_Timestamp,
 				selectorName: 'NetworkTimestampMsSource',
 				selector: suiNetworkTimestampNetworkTimestampMsSourceSelector,
-			})
-	}
+			} as const
+	})()
 
-	if (
-		parentData.projectionNetwork.namespace === 'Tezos'
-		&& matchNonNegativeInteger(params.timestampMs)
-		&& matchStringSegment(params.source)
-	) {
-		const tezosNetworkTimestampNetworkTimestampMsSourceSelector = parseEntitySelector(
+	const tezosNetworkTimestampNetworkTimestampMsSourceSelectorCandidate = (() => {
+		if (!(
+			parentData.projectionNetwork.namespace === 'Tezos'
+			&& matchNonNegativeInteger(params.timestampMs)
+			&& matchStringSegment(params.source)
+		))
+			return
+
+		const tezosNetworkTimestampNetworkTimestampMsSourceSelector = parseRouteEntitySelector(
 			schema,
 			TezosNetwork_TimestampSchema,
 			{
@@ -658,13 +541,35 @@ export const load: PageLoad = async ({ params, parent }) => {
 			},
 			'NetworkTimestampMsSource'
 		)
-		if (!(tezosNetworkTimestampNetworkTimestampMsSourceSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(tezosNetworkTimestampNetworkTimestampMsSourceSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.TezosNetwork_Timestamp,
 				selectorName: 'NetworkTimestampMsSource',
 				selector: tezosNetworkTimestampNetworkTimestampMsSourceSelector,
-			})
-	}
+			} as const
+	})()
+
+	const routeCandidates = [
+		bittensorNetworkTimestampNetworkTimestampMsSourceSelectorCandidate,
+		cardanoNetworkTimestampNetworkTimestampMsSourceSelectorCandidate,
+		filecoinNetworkTimestampNetworkTimestampMsSourceSelectorCandidate,
+		hederaNetworkTimestampNetworkTimestampMsSourceSelectorCandidate,
+		moneroNetworkTimestampNetworkTimestampMsSourceSelectorCandidate,
+		tonNetworkTimestampNetworkTimestampMsSourceSelectorCandidate,
+		tronNetworkTimestampNetworkTimestampMsSourceSelectorCandidate,
+		availNetworkTimestampNetworkTimestampMsSourceSelectorCandidate,
+		celestiaNetworkTimestampNetworkTimestampMsSourceSelectorCandidate,
+		dydxChainNetworkTimestampNetworkTimestampMsSourceSelectorCandidate,
+		lightningNetworkTimestampLightningNetworkTimestampMsSourceSelectorCandidate,
+		starknetNetworkTimestampNetworkTimestampMsSourceSelectorCandidate,
+		hyperliquidNetworkTimestampNetworkTimestampMsSourceSelectorCandidate,
+		icpNetworkTimestampNetworkTimestampMsSourceSelectorCandidate,
+		kaspaNetworkTimestampNetworkTimestampMsSourceSelectorCandidate,
+		logosBlockchainNetworkTimestampNetworkTimestampMsSourceSelectorCandidate,
+		stellarNetworkTimestampNetworkTimestampMsSourceSelectorCandidate,
+		suiNetworkTimestampNetworkTimestampMsSourceSelectorCandidate,
+		tezosNetworkTimestampNetworkTimestampMsSourceSelectorCandidate,
+	].filter((candidate) => candidate != null)
 
 	if (routeCandidates.length === 0)
 		error(404, 'Route selector not applicable')

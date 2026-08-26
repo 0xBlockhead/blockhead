@@ -4,7 +4,7 @@ import type { LayoutLoad } from './$types'
 import { error } from '@sveltejs/kit'
 import { match as matchNetworkSlug } from '$/params/networkSlug.ts'
 import { match as matchStringSegment } from '$/params/stringSegment.ts'
-import { parseEntitySelector } from '$/schema/$schema.ts'
+import { parseRouteEntitySelector } from '$/schema/$schema.ts'
 import BnbBeaconTokenMigrationSchema from '$/schema/BnbBeaconTokenMigration.ts'
 import { schema } from '$/schema/index.ts'
 import { type as arktype } from 'arktype'
@@ -20,7 +20,7 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 	))
 		error(404, 'Route mapping not applicable')
 
-	const bnbBeaconTokenMigrationTokenTargetNetworkTargetAddressSelector = parseEntitySelector(
+	const bnbBeaconTokenMigrationTokenTargetNetworkTargetAddressSelector = parseRouteEntitySelector(
 		schema,
 		BnbBeaconTokenMigrationSchema,
 		{

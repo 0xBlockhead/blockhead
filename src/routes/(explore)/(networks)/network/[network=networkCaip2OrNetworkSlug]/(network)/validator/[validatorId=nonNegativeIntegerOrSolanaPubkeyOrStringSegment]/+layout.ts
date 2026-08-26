@@ -5,7 +5,7 @@ import { error } from '@sveltejs/kit'
 import { match as matchNonNegativeInteger } from '$/params/nonNegativeInteger.ts'
 import { match as matchSolanaPubkey } from '$/params/solanaPubkey.ts'
 import { match as matchStringSegment } from '$/params/stringSegment.ts'
-import { parseEntitySelector, type EntitySelectorForSelectorName } from '$/schema/$schema.ts'
+import { parseRouteEntitySelector } from '$/schema/$schema.ts'
 import BeaconValidatorSchema from '$/schema/BeaconValidator.ts'
 import CosmosValidatorSchema from '$/schema/CosmosValidator.ts'
 import { EntityType } from '$/schema/EntityType.ts'
@@ -17,56 +17,20 @@ import { type as arktype } from 'arktype'
 export const load: LayoutLoad = async ({ params, parent }) => {
 	const parentData = await parent()
 
-	const routeCandidates: (
-		| {
-			readonly entityType: EntityType.BeaconValidator
-			readonly selectorName: 'NetworkIndexInNetwork'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.BeaconValidator,
-				'NetworkIndexInNetwork'
-			>
-		}
-		| {
-			readonly entityType: EntityType.SolanaValidator
-			readonly selectorName: 'NetworkVotePubkey'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.SolanaValidator,
-				'NetworkVotePubkey'
-			>
-		}
-		| {
-			readonly entityType: EntityType.CosmosValidator
-			readonly selectorName: 'NetworkOperatorAddress'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.CosmosValidator,
-				'NetworkOperatorAddress'
-			>
-		}
-		| {
-			readonly entityType: EntityType.NearValidator
-			readonly selectorName: 'NetworkAccountId'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.NearValidator,
-				'NetworkAccountId'
-			>
-		}
-	)[] = []
-
-	if (
-		(
+	const beaconValidatorNetworkIndexInNetworkSelectorCandidate = (() => {
+		if (!(
 			(
-				parentData.projectionNetwork.executionModels !== undefined
-				&& parentData.projectionNetwork.executionModels.some((value: string | number | boolean | null) => value === 'Evm')
+				(
+					parentData.projectionNetwork.executionModels !== undefined
+					&& parentData.projectionNetwork.executionModels.some((value: string | number | boolean | null) => value === 'Evm')
+				)
+				&& parentData.projectionNetwork.namespace === 'Evm'
 			)
-			&& parentData.projectionNetwork.namespace === 'Evm'
-		)
-		&& matchNonNegativeInteger(params.validatorId)
-	) {
-		const beaconValidatorNetworkIndexInNetworkSelector = parseEntitySelector(
+			&& matchNonNegativeInteger(params.validatorId)
+		))
+			return
+
+		const beaconValidatorNetworkIndexInNetworkSelector = parseRouteEntitySelector(
 			schema,
 			BeaconValidatorSchema,
 			{
@@ -75,25 +39,28 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			},
 			'NetworkIndexInNetwork'
 		)
-		if (!(beaconValidatorNetworkIndexInNetworkSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(beaconValidatorNetworkIndexInNetworkSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.BeaconValidator,
 				selectorName: 'NetworkIndexInNetwork',
 				selector: beaconValidatorNetworkIndexInNetworkSelector,
-			})
-	}
+			} as const
+	})()
 
-	if (
-		(
+	const solanaValidatorNetworkVotePubkeySelectorCandidate = (() => {
+		if (!(
 			(
-				parentData.projectionNetwork.executionModels !== undefined
-				&& parentData.projectionNetwork.executionModels.some((value: string | number | boolean | null) => value === 'SolanaRuntime')
+				(
+					parentData.projectionNetwork.executionModels !== undefined
+					&& parentData.projectionNetwork.executionModels.some((value: string | number | boolean | null) => value === 'SolanaRuntime')
+				)
+				&& parentData.projectionNetwork.namespace === 'Solana'
 			)
-			&& parentData.projectionNetwork.namespace === 'Solana'
-		)
-		&& matchSolanaPubkey(params.validatorId)
-	) {
-		const solanaValidatorNetworkVotePubkeySelector = parseEntitySelector(
+			&& matchSolanaPubkey(params.validatorId)
+		))
+			return
+
+		const solanaValidatorNetworkVotePubkeySelector = parseRouteEntitySelector(
 			schema,
 			SolanaValidatorSchema,
 			{
@@ -102,25 +69,28 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			},
 			'NetworkVotePubkey'
 		)
-		if (!(solanaValidatorNetworkVotePubkeySelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(solanaValidatorNetworkVotePubkeySelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.SolanaValidator,
 				selectorName: 'NetworkVotePubkey',
 				selector: solanaValidatorNetworkVotePubkeySelector,
-			})
-	}
+			} as const
+	})()
 
-	if (
-		(
+	const cosmosValidatorNetworkOperatorAddressSelectorCandidate = (() => {
+		if (!(
 			(
-				parentData.projectionNetwork.executionModels !== undefined
-				&& parentData.projectionNetwork.executionModels.some((value: string | number | boolean | null) => value === 'CosmosSdk')
+				(
+					parentData.projectionNetwork.executionModels !== undefined
+					&& parentData.projectionNetwork.executionModels.some((value: string | number | boolean | null) => value === 'CosmosSdk')
+				)
+				&& parentData.projectionNetwork.namespace === 'Cosmos'
 			)
-			&& parentData.projectionNetwork.namespace === 'Cosmos'
-		)
-		&& matchStringSegment(params.validatorId)
-	) {
-		const cosmosValidatorNetworkOperatorAddressSelector = parseEntitySelector(
+			&& matchStringSegment(params.validatorId)
+		))
+			return
+
+		const cosmosValidatorNetworkOperatorAddressSelector = parseRouteEntitySelector(
 			schema,
 			CosmosValidatorSchema,
 			{
@@ -129,16 +99,19 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			},
 			'NetworkOperatorAddress'
 		)
-		if (!(cosmosValidatorNetworkOperatorAddressSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(cosmosValidatorNetworkOperatorAddressSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.CosmosValidator,
 				selectorName: 'NetworkOperatorAddress',
 				selector: cosmosValidatorNetworkOperatorAddressSelector,
-			})
-	}
+			} as const
+	})()
 
-	if (parentData.projectionNetwork.namespace === 'Near' && matchStringSegment(params.validatorId)) {
-		const nearValidatorNetworkAccountIdSelector = parseEntitySelector(
+	const nearValidatorNetworkAccountIdSelectorCandidate = (() => {
+		if (!(parentData.projectionNetwork.namespace === 'Near' && matchStringSegment(params.validatorId)))
+			return
+
+		const nearValidatorNetworkAccountIdSelector = parseRouteEntitySelector(
 			schema,
 			NearValidatorSchema,
 			{
@@ -147,13 +120,20 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			},
 			'NetworkAccountId'
 		)
-		if (!(nearValidatorNetworkAccountIdSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(nearValidatorNetworkAccountIdSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.NearValidator,
 				selectorName: 'NetworkAccountId',
 				selector: nearValidatorNetworkAccountIdSelector,
-			})
-	}
+			} as const
+	})()
+
+	const routeCandidates = [
+		beaconValidatorNetworkIndexInNetworkSelectorCandidate,
+		solanaValidatorNetworkVotePubkeySelectorCandidate,
+		cosmosValidatorNetworkOperatorAddressSelectorCandidate,
+		nearValidatorNetworkAccountIdSelectorCandidate,
+	].filter((candidate) => candidate != null)
 
 	if (routeCandidates.length === 0)
 		error(404, 'Route selector not applicable')

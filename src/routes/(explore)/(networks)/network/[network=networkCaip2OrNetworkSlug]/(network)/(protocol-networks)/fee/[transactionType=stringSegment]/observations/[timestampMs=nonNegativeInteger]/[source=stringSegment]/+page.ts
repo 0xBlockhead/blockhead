@@ -4,7 +4,7 @@ import type { PageLoad } from './$types'
 import { error } from '@sveltejs/kit'
 import { match as matchNonNegativeInteger } from '$/params/nonNegativeInteger.ts'
 import { match as matchStringSegment } from '$/params/stringSegment.ts'
-import { parseEntitySelector } from '$/schema/$schema.ts'
+import { parseRouteEntitySelector } from '$/schema/$schema.ts'
 import HederaNetworkFee_TimestampSchema from '$/schema/HederaNetworkFee_Timestamp.ts'
 import { schema } from '$/schema/index.ts'
 import { type as arktype } from 'arktype'
@@ -21,7 +21,7 @@ export const load: PageLoad = async ({ params, parent }) => {
 	))
 		error(404, 'Route mapping not applicable')
 
-	const hederaNetworkFeeTimestampNetworkTransactionTypeTimestampMsSourceSelector = parseEntitySelector(
+	const hederaNetworkFeeTimestampNetworkTransactionTypeTimestampMsSourceSelector = parseRouteEntitySelector(
 		schema,
 		HederaNetworkFee_TimestampSchema,
 		{

@@ -3,7 +3,7 @@
 import type { PageLoad } from './$types'
 import { error } from '@sveltejs/kit'
 import { match as matchStringSegment } from '$/params/stringSegment.ts'
-import { parseEntitySelector } from '$/schema/$schema.ts'
+import { parseRouteEntitySelector } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
 import ZeroGDaQuorumSchema from '$/schema/ZeroGDaQuorum.ts'
 import { type as arktype } from 'arktype'
@@ -15,7 +15,7 @@ export const load: PageLoad = async ({ params, parent }) => {
 	if (!(parentData.projectionNetwork.namespace === 'ZeroG' && matchStringSegment(params.quorumId)))
 		error(404, 'Route mapping not applicable')
 
-	const zeroGDaQuorumNetworkQuorumIdSelector = parseEntitySelector(
+	const zeroGDaQuorumNetworkQuorumIdSelector = parseRouteEntitySelector(
 		schema,
 		ZeroGDaQuorumSchema,
 		{

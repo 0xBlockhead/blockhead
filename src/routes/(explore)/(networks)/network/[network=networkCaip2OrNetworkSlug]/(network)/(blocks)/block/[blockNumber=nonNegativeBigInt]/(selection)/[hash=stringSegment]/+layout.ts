@@ -4,7 +4,7 @@ import type { LayoutLoad } from './$types'
 import { error } from '@sveltejs/kit'
 import { match as matchNonNegativeBigInt } from '$/params/nonNegativeBigInt.ts'
 import { match as matchStringSegment } from '$/params/stringSegment.ts'
-import { parseEntitySelector, type EntitySelectorForSelectorName } from '$/schema/$schema.ts'
+import { parseRouteEntitySelector } from '$/schema/$schema.ts'
 import BittensorBlockSchema from '$/schema/BittensorBlock.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
@@ -18,75 +18,21 @@ import { type as arktype } from 'arktype'
 export const load: LayoutLoad = async ({ params, parent }) => {
 	const parentData = await parent()
 
-	const routeCandidates: (
-		| {
-			readonly entityType: EntityType.PolkadotBlock
-			readonly selectorName: 'NetworkBlockNumberHash'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.PolkadotBlock,
-				'NetworkBlockNumberHash'
-			>
-		}
-		| {
-			readonly entityType: EntityType.UtxoBlock
-			readonly selectorName: 'NetworkHeightHash'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.UtxoBlock,
-				'NetworkHeightHash'
-			>
-		}
-		| {
-			readonly entityType: EntityType.BittensorBlock
-			readonly selectorName: 'NetworkBlockNumberHash'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.BittensorBlock,
-				'NetworkBlockNumberHash'
-			>
-		}
-		| {
-			readonly entityType: EntityType.MoneroBlock
-			readonly selectorName: 'NetworkHeightHash'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.MoneroBlock,
-				'NetworkHeightHash'
-			>
-		}
-		| {
-			readonly entityType: EntityType.NearBlock
-			readonly selectorName: 'NetworkHeightHash'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.NearBlock,
-				'NetworkHeightHash'
-			>
-		}
-		| {
-			readonly entityType: EntityType.TronBlock
-			readonly selectorName: 'NetworkHeightHash'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.TronBlock,
-				'NetworkHeightHash'
-			>
-		}
-	)[] = []
-
-	if (
-		(
+	const polkadotBlockNetworkBlockNumberHashSelectorCandidate = (() => {
+		if (!(
 			(
-				parentData.projectionNetwork.executionModels !== undefined
-				&& parentData.projectionNetwork.executionModels.some((value: string | number | boolean | null) => value === 'PolkadotRuntime')
+				(
+					parentData.projectionNetwork.executionModels !== undefined
+					&& parentData.projectionNetwork.executionModels.some((value: string | number | boolean | null) => value === 'PolkadotRuntime')
+				)
+				&& parentData.projectionNetwork.namespace === 'Polkadot'
 			)
-			&& parentData.projectionNetwork.namespace === 'Polkadot'
-		)
-		&& matchNonNegativeBigInt(params.blockNumber)
-		&& matchStringSegment(params.hash)
-	) {
-		const polkadotBlockNetworkBlockNumberHashSelector = parseEntitySelector(
+			&& matchNonNegativeBigInt(params.blockNumber)
+			&& matchStringSegment(params.hash)
+		))
+			return
+
+		const polkadotBlockNetworkBlockNumberHashSelector = parseRouteEntitySelector(
 			schema,
 			PolkadotBlockSchema,
 			{
@@ -96,34 +42,37 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			},
 			'NetworkBlockNumberHash'
 		)
-		if (!(polkadotBlockNetworkBlockNumberHashSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(polkadotBlockNetworkBlockNumberHashSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.PolkadotBlock,
 				selectorName: 'NetworkBlockNumberHash',
 				selector: polkadotBlockNetworkBlockNumberHashSelector,
-			})
-	}
+			} as const
+	})()
 
-	if (
-		(
+	const utxoBlockNetworkHeightHashSelectorCandidate = (() => {
+		if (!(
 			(
-				parentData.projectionNetwork.ledgerModels !== undefined
-				&& parentData.projectionNetwork.ledgerModels.some((value: string | number | boolean | null) => value === 'Utxo')
+				(
+					parentData.projectionNetwork.ledgerModels !== undefined
+					&& parentData.projectionNetwork.ledgerModels.some((value: string | number | boolean | null) => value === 'Utxo')
+				)
+				&& [
+					'Bitcoin',
+					'BitcoinCash',
+					'Cardano',
+					'Dogecoin',
+					'Elements',
+					'Litecoin',
+					'Zcash',
+				].includes(parentData.projectionNetwork.namespace)
 			)
-			&& [
-				'Bitcoin',
-				'BitcoinCash',
-				'Cardano',
-				'Dogecoin',
-				'Elements',
-				'Litecoin',
-				'Zcash',
-			].includes(parentData.projectionNetwork.namespace)
-		)
-		&& matchNonNegativeBigInt(params.blockNumber)
-		&& matchStringSegment(params.hash)
-	) {
-		const utxoBlockNetworkHeightHashSelector = parseEntitySelector(
+			&& matchNonNegativeBigInt(params.blockNumber)
+			&& matchStringSegment(params.hash)
+		))
+			return
+
+		const utxoBlockNetworkHeightHashSelector = parseRouteEntitySelector(
 			schema,
 			UtxoBlockSchema,
 			{
@@ -133,20 +82,23 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			},
 			'NetworkHeightHash'
 		)
-		if (!(utxoBlockNetworkHeightHashSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(utxoBlockNetworkHeightHashSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.UtxoBlock,
 				selectorName: 'NetworkHeightHash',
 				selector: utxoBlockNetworkHeightHashSelector,
-			})
-	}
+			} as const
+	})()
 
-	if (
-		parentData.projectionNetwork.namespace === 'Bittensor'
-		&& matchStringSegment(params.hash)
-		&& matchNonNegativeBigInt(params.blockNumber)
-	) {
-		const bittensorBlockNetworkBlockNumberHashSelector = parseEntitySelector(
+	const bittensorBlockNetworkBlockNumberHashSelectorCandidate = (() => {
+		if (!(
+			parentData.projectionNetwork.namespace === 'Bittensor'
+			&& matchStringSegment(params.hash)
+			&& matchNonNegativeBigInt(params.blockNumber)
+		))
+			return
+
+		const bittensorBlockNetworkBlockNumberHashSelector = parseRouteEntitySelector(
 			schema,
 			BittensorBlockSchema,
 			{
@@ -156,20 +108,23 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			},
 			'NetworkBlockNumberHash'
 		)
-		if (!(bittensorBlockNetworkBlockNumberHashSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(bittensorBlockNetworkBlockNumberHashSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.BittensorBlock,
 				selectorName: 'NetworkBlockNumberHash',
 				selector: bittensorBlockNetworkBlockNumberHashSelector,
-			})
-	}
+			} as const
+	})()
 
-	if (
-		parentData.projectionNetwork.namespace === 'Monero'
-		&& matchStringSegment(params.hash)
-		&& matchNonNegativeBigInt(params.blockNumber)
-	) {
-		const moneroBlockNetworkHeightHashSelector = parseEntitySelector(
+	const moneroBlockNetworkHeightHashSelectorCandidate = (() => {
+		if (!(
+			parentData.projectionNetwork.namespace === 'Monero'
+			&& matchStringSegment(params.hash)
+			&& matchNonNegativeBigInt(params.blockNumber)
+		))
+			return
+
+		const moneroBlockNetworkHeightHashSelector = parseRouteEntitySelector(
 			schema,
 			MoneroBlockSchema,
 			{
@@ -179,20 +134,23 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			},
 			'NetworkHeightHash'
 		)
-		if (!(moneroBlockNetworkHeightHashSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(moneroBlockNetworkHeightHashSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.MoneroBlock,
 				selectorName: 'NetworkHeightHash',
 				selector: moneroBlockNetworkHeightHashSelector,
-			})
-	}
+			} as const
+	})()
 
-	if (
-		parentData.projectionNetwork.namespace === 'Near'
-		&& matchStringSegment(params.hash)
-		&& matchNonNegativeBigInt(params.blockNumber)
-	) {
-		const nearBlockNetworkHeightHashSelector = parseEntitySelector(
+	const nearBlockNetworkHeightHashSelectorCandidate = (() => {
+		if (!(
+			parentData.projectionNetwork.namespace === 'Near'
+			&& matchStringSegment(params.hash)
+			&& matchNonNegativeBigInt(params.blockNumber)
+		))
+			return
+
+		const nearBlockNetworkHeightHashSelector = parseRouteEntitySelector(
 			schema,
 			NearBlockSchema,
 			{
@@ -202,20 +160,23 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			},
 			'NetworkHeightHash'
 		)
-		if (!(nearBlockNetworkHeightHashSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(nearBlockNetworkHeightHashSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.NearBlock,
 				selectorName: 'NetworkHeightHash',
 				selector: nearBlockNetworkHeightHashSelector,
-			})
-	}
+			} as const
+	})()
 
-	if (
-		parentData.projectionNetwork.namespace === 'Tron'
-		&& matchStringSegment(params.hash)
-		&& matchNonNegativeBigInt(params.blockNumber)
-	) {
-		const tronBlockNetworkHeightHashSelector = parseEntitySelector(
+	const tronBlockNetworkHeightHashSelectorCandidate = (() => {
+		if (!(
+			parentData.projectionNetwork.namespace === 'Tron'
+			&& matchStringSegment(params.hash)
+			&& matchNonNegativeBigInt(params.blockNumber)
+		))
+			return
+
+		const tronBlockNetworkHeightHashSelector = parseRouteEntitySelector(
 			schema,
 			TronBlockSchema,
 			{
@@ -225,13 +186,22 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			},
 			'NetworkHeightHash'
 		)
-		if (!(tronBlockNetworkHeightHashSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(tronBlockNetworkHeightHashSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.TronBlock,
 				selectorName: 'NetworkHeightHash',
 				selector: tronBlockNetworkHeightHashSelector,
-			})
-	}
+			} as const
+	})()
+
+	const routeCandidates = [
+		polkadotBlockNetworkBlockNumberHashSelectorCandidate,
+		utxoBlockNetworkHeightHashSelectorCandidate,
+		bittensorBlockNetworkBlockNumberHashSelectorCandidate,
+		moneroBlockNetworkHeightHashSelectorCandidate,
+		nearBlockNetworkHeightHashSelectorCandidate,
+		tronBlockNetworkHeightHashSelectorCandidate,
+	].filter((candidate) => candidate != null)
 
 	if (routeCandidates.length === 0)
 		error(404, 'Route selector not applicable')

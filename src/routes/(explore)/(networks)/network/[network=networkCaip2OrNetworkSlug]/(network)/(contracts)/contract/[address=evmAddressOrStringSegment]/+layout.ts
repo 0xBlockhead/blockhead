@@ -4,7 +4,7 @@ import type { LayoutLoad } from './$types'
 import { error } from '@sveltejs/kit'
 import { match as matchEvmAddress } from '$/params/evmAddress.ts'
 import { match as matchStringSegment } from '$/params/stringSegment.ts'
-import { parseEntitySelector, type EntitySelectorForSelectorName } from '$/schema/$schema.ts'
+import { parseRouteEntitySelector } from '$/schema/$schema.ts'
 import CosmosContractSchema from '$/schema/CosmosContract.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import EvmContractSchema from '$/schema/EvmContract.ts'
@@ -16,56 +16,20 @@ import { type as arktype } from 'arktype'
 export const load: LayoutLoad = async ({ params, parent }) => {
 	const parentData = await parent()
 
-	const routeCandidates: (
-		| {
-			readonly entityType: EntityType.EvmContract
-			readonly selectorName: 'EvmNetworkAddress'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.EvmContract,
-				'EvmNetworkAddress'
-			>
-		}
-		| {
-			readonly entityType: EntityType.CosmosContract
-			readonly selectorName: 'NetworkAddress'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.CosmosContract,
-				'NetworkAddress'
-			>
-		}
-		| {
-			readonly entityType: EntityType.HederaContract
-			readonly selectorName: 'NetworkContractId'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.HederaContract,
-				'NetworkContractId'
-			>
-		}
-		| {
-			readonly entityType: EntityType.NearContract
-			readonly selectorName: 'NetworkAccountId'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.NearContract,
-				'NetworkAccountId'
-			>
-		}
-	)[] = []
-
-	if (
-		(
+	const evmContractEvmNetworkAddressSelectorCandidate = (() => {
+		if (!(
 			(
-				parentData.projectionNetwork.executionModels !== undefined
-				&& parentData.projectionNetwork.executionModels.some((value: string | number | boolean | null) => value === 'Evm')
+				(
+					parentData.projectionNetwork.executionModels !== undefined
+					&& parentData.projectionNetwork.executionModels.some((value: string | number | boolean | null) => value === 'Evm')
+				)
+				&& parentData.projectionNetwork.namespace === 'Evm'
 			)
-			&& parentData.projectionNetwork.namespace === 'Evm'
-		)
-		&& matchEvmAddress(params.address)
-	) {
-		const evmContractEvmNetworkAddressSelector = parseEntitySelector(
+			&& matchEvmAddress(params.address)
+		))
+			return
+
+		const evmContractEvmNetworkAddressSelector = parseRouteEntitySelector(
 			schema,
 			EvmContractSchema,
 			{
@@ -74,25 +38,28 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			},
 			'EvmNetworkAddress'
 		)
-		if (!(evmContractEvmNetworkAddressSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(evmContractEvmNetworkAddressSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.EvmContract,
 				selectorName: 'EvmNetworkAddress',
 				selector: evmContractEvmNetworkAddressSelector,
-			})
-	}
+			} as const
+	})()
 
-	if (
-		(
+	const cosmosContractNetworkAddressSelectorCandidate = (() => {
+		if (!(
 			(
-				parentData.projectionNetwork.executionModels !== undefined
-				&& parentData.projectionNetwork.executionModels.some((value: string | number | boolean | null) => value === 'CosmosSdk')
+				(
+					parentData.projectionNetwork.executionModels !== undefined
+					&& parentData.projectionNetwork.executionModels.some((value: string | number | boolean | null) => value === 'CosmosSdk')
+				)
+				&& parentData.projectionNetwork.namespace === 'Cosmos'
 			)
-			&& parentData.projectionNetwork.namespace === 'Cosmos'
-		)
-		&& matchStringSegment(params.address)
-	) {
-		const cosmosContractNetworkAddressSelector = parseEntitySelector(
+			&& matchStringSegment(params.address)
+		))
+			return
+
+		const cosmosContractNetworkAddressSelector = parseRouteEntitySelector(
 			schema,
 			CosmosContractSchema,
 			{
@@ -101,16 +68,19 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			},
 			'NetworkAddress'
 		)
-		if (!(cosmosContractNetworkAddressSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(cosmosContractNetworkAddressSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.CosmosContract,
 				selectorName: 'NetworkAddress',
 				selector: cosmosContractNetworkAddressSelector,
-			})
-	}
+			} as const
+	})()
 
-	if (parentData.projectionNetwork.namespace === 'Hedera' && matchStringSegment(params.address)) {
-		const hederaContractNetworkContractIdSelector = parseEntitySelector(
+	const hederaContractNetworkContractIdSelectorCandidate = (() => {
+		if (!(parentData.projectionNetwork.namespace === 'Hedera' && matchStringSegment(params.address)))
+			return
+
+		const hederaContractNetworkContractIdSelector = parseRouteEntitySelector(
 			schema,
 			HederaContractSchema,
 			{
@@ -119,16 +89,19 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			},
 			'NetworkContractId'
 		)
-		if (!(hederaContractNetworkContractIdSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(hederaContractNetworkContractIdSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.HederaContract,
 				selectorName: 'NetworkContractId',
 				selector: hederaContractNetworkContractIdSelector,
-			})
-	}
+			} as const
+	})()
 
-	if (parentData.projectionNetwork.namespace === 'Near' && matchStringSegment(params.address)) {
-		const nearContractNetworkAccountIdSelector = parseEntitySelector(
+	const nearContractNetworkAccountIdSelectorCandidate = (() => {
+		if (!(parentData.projectionNetwork.namespace === 'Near' && matchStringSegment(params.address)))
+			return
+
+		const nearContractNetworkAccountIdSelector = parseRouteEntitySelector(
 			schema,
 			NearContractSchema,
 			{
@@ -137,13 +110,20 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			},
 			'NetworkAccountId'
 		)
-		if (!(nearContractNetworkAccountIdSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(nearContractNetworkAccountIdSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.NearContract,
 				selectorName: 'NetworkAccountId',
 				selector: nearContractNetworkAccountIdSelector,
-			})
-	}
+			} as const
+	})()
+
+	const routeCandidates = [
+		evmContractEvmNetworkAddressSelectorCandidate,
+		cosmosContractNetworkAddressSelectorCandidate,
+		hederaContractNetworkContractIdSelectorCandidate,
+		nearContractNetworkAccountIdSelectorCandidate,
+	].filter((candidate) => candidate != null)
 
 	if (routeCandidates.length === 0)
 		error(404, 'Route selector not applicable')

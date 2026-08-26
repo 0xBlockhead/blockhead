@@ -273,7 +273,7 @@ describe('wallet connection runtime normalization', () => {
 		vi.resetModules()
 		vi.doUnmock('./adapters/eip6963.ts')
 		vi.doUnmock('$/collections/localMutations.ts')
-		vi.doUnmock('$/routes/+layout.svelte')
+		vi.doUnmock('$/routes/applicationClient.ts')
 	})
 
 	it('normalizes EIP-6963 provider details into wallet candidates', () => {

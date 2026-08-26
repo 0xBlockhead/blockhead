@@ -2,13 +2,17 @@
 
 <script lang="ts">
 	// Types/constants
-	import { resolve } from '$app/paths'
-	import { EntityType } from '$/schema/EntityType.ts'
-	import { select } from '$/routes/+layout.svelte'
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
-	import FarcasterNetworkView from '$/views/FarcasterNetworkView.svelte'
+	import { getAppClient } from '$/routes/applicationClient.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import RedditNetworkView from '$/views/_GlobalRedditNetworkView.svelte'
+	import FarcasterNetworkView from '$/views/FarcasterNetworkView.svelte'
+	import { resolve } from '$app/paths'
+
+
+	// Context
+	const select = getAppClient().select
 
 
 	// Components

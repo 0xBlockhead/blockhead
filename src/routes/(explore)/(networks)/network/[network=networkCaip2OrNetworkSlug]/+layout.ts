@@ -6,36 +6,18 @@ import { networkByCaip2, networkBySlug } from '$/constants/Network.ts'
 import { caip2SelectorValueFromString } from '$/lib/caip2.ts'
 import { match as matchNetworkCaip2 } from '$/params/networkCaip2.ts'
 import { match as matchNetworkSlug } from '$/params/networkSlug.ts'
-import { parseEntitySelector, type EntitySelectorForSelectorName } from '$/schema/$schema.ts'
+import { parseRouteEntitySelector } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import NetworkSchema from '$/schema/Network.ts'
 import { type as arktype } from 'arktype'
 
 export const load: LayoutLoad = ({ params }) => {
-	const routeCandidates: (
-		| {
-			readonly entityType: EntityType.Network
-			readonly selectorName: 'Caip2'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.Network,
-				'Caip2'
-			>
-		}
-		| {
-			readonly entityType: EntityType.Network
-			readonly selectorName: 'Slug'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.Network,
-				'Slug'
-			>
-		}
-	)[] = []
+	const networkCaip2SelectorCandidate = (() => {
+		if (!(matchNetworkCaip2(params.network)))
+			return
 
-	if (matchNetworkCaip2(params.network)) {
-		const networkCaip2Selector = parseEntitySelector(
+		const networkCaip2Selector = parseRouteEntitySelector(
 			schema,
 			NetworkSchema,
 			{
@@ -43,16 +25,19 @@ export const load: LayoutLoad = ({ params }) => {
 			},
 			'Caip2'
 		)
-		if (!(networkCaip2Selector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(networkCaip2Selector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.Network,
 				selectorName: 'Caip2',
 				selector: networkCaip2Selector,
-			})
-	}
+			} as const
+	})()
 
-	if (matchNetworkSlug(params.network)) {
-		const networkSlugSelector = parseEntitySelector(
+	const networkSlugSelectorCandidate = (() => {
+		if (!(matchNetworkSlug(params.network)))
+			return
+
+		const networkSlugSelector = parseRouteEntitySelector(
 			schema,
 			NetworkSchema,
 			{
@@ -60,13 +45,18 @@ export const load: LayoutLoad = ({ params }) => {
 			},
 			'Slug'
 		)
-		if (!(networkSlugSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(networkSlugSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.Network,
 				selectorName: 'Slug',
 				selector: networkSlugSelector,
-			})
-	}
+			} as const
+	})()
+
+	const routeCandidates = [
+		networkCaip2SelectorCandidate,
+		networkSlugSelectorCandidate,
+	].filter((candidate) => candidate != null)
 
 	if (routeCandidates.length === 0)
 		error(404, 'Route selector not applicable')

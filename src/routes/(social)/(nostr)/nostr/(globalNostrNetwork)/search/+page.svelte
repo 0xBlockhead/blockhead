@@ -2,8 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import { resolve } from '$app/paths'
 	import { goto } from '$app/navigation'
+	import { resolve } from '$app/paths'
 
 
 	let query = $state('')

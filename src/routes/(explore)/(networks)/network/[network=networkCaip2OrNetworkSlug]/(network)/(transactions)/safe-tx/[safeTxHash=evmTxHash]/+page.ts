@@ -3,7 +3,7 @@
 import type { PageLoad } from './$types'
 import { error } from '@sveltejs/kit'
 import { match as matchEvmTxHash } from '$/params/evmTxHash.ts'
-import { parseEntitySelector } from '$/schema/$schema.ts'
+import { parseRouteEntitySelector } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
 import SafeMultisigTransactionSchema from '$/schema/SafeMultisigTransaction.ts'
 import { type as arktype } from 'arktype'
@@ -24,7 +24,7 @@ export const load: PageLoad = async ({ params, parent }) => {
 	))
 		error(404, 'Route mapping not applicable')
 
-	const safeMultisigTransactionEvmNetworkSafeTxHashSelector = parseEntitySelector(
+	const safeMultisigTransactionEvmNetworkSafeTxHashSelector = parseRouteEntitySelector(
 		schema,
 		SafeMultisigTransactionSchema,
 		{

@@ -5,7 +5,7 @@ import { error } from '@sveltejs/kit'
 import { match as matchNonNegativeInteger } from '$/params/nonNegativeInteger.ts'
 import { match as matchStringSegment } from '$/params/stringSegment.ts'
 import { match as matchZeroExHex } from '$/params/zeroExHex.ts'
-import { parseEntitySelector } from '$/schema/$schema.ts'
+import { parseRouteEntitySelector } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
 import SwapQuote_TimestampSchema from '$/schema/SwapQuote_Timestamp.ts'
 import { type as arktype } from 'arktype'
@@ -18,7 +18,7 @@ export const load: LayoutLoad = ({ params }) => {
 	))
 		error(404, 'Route mapping not applicable')
 
-	const swapQuoteTimestampSourceQuoteRequestHashTimestampMsSelector = parseEntitySelector(
+	const swapQuoteTimestampSourceQuoteRequestHashTimestampMsSelector = parseRouteEntitySelector(
 		schema,
 		SwapQuote_TimestampSchema,
 		{

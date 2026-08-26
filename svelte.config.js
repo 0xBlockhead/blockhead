@@ -1,4 +1,4 @@
-import adapter from '@sveltejs/adapter-auto'
+import adapterAuto from '@sveltejs/adapter-auto'
 import { vitePreprocess } from '@sveltejs/vite-plugin-svelte'
 import { relative, sep } from 'node:path'
 
@@ -30,7 +30,7 @@ export default {
 	},
 
 	kit: {
-		adapter: adapter(),
+		adapter: adapterAuto(),
 
 		alias: {
 			'$': './src',

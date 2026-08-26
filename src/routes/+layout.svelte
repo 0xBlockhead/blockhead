@@ -1,117 +1,6 @@
 <script module lang="ts">
 	// Polyfills
 	import '$/polyfills.ts'
-
-	import { QueryClient } from '@tanstack/query-core'
-	import {
-		createBrowserWASQLitePersistence,
-		openBrowserWASQLiteOPFSDatabase,
-	} from '@tanstack/browser-db-sqlite-persistence'
-	import { env } from '$env/dynamic/public'
-
-	import {
-		client,
-		trackPersistedCollectionPersistence,
-	} from '$/client/$client.svelte.ts'
-	import {
-		BLOCKHEAD_PERSISTED_COLLECTION_SCHEMA_VERSION,
-		BLOCKHEAD_WA_SQLITE_DATABASE_NAME,
-	} from '$/constants/Persistence.ts'
-	import { BrowserPersistenceRuntime } from '$/lib/db/browserPersistenceRuntime.ts'
-	import { loadResolvers } from '$/resolvers/index.ts'
-	import {
-		schema,
-		schemaMeta,
-	} from '$/schema/index.ts'
-	import { sourceRuntimeCapabilities } from '$/sources/_runtime/capabilities.remote.ts'
-	import {
-		browserDirectSourceBindingIds,
-		sourceProviders,
-	} from '$/sources/index.ts'
-	import type { Source } from '$/sources/Source.ts'
-	import type { SourceProvider } from '$/sources/SourceProvider.ts'
-	import { indexSourceProviders } from '$/sources/$sources.ts'
-	import { applicationRuntimeWhenReady } from './applicationRuntime.ts'
-	const persistenceRuntime = new BrowserPersistenceRuntime({
-		name: BLOCKHEAD_WA_SQLITE_DATABASE_NAME,
-		openOwner: async () => {
-			await import.meta.hot?.data.databaseClose
-			const database = await openBrowserWASQLiteOPFSDatabase({
-				databaseName: BLOCKHEAD_WA_SQLITE_DATABASE_NAME,
-			})
-			return {
-				persistence: createBrowserWASQLitePersistence({
-					database,
-					schemaMismatchPolicy: 'throw',
-				}),
-				close: () => database.close?.(),
-			}
-		},
-	})
-	import.meta.hot?.dispose((data) => {
-		data.databaseClose = persistenceRuntime.close()
-	})
-
-	type AppClient = ReturnType<ReturnType<ReturnType<typeof client<
-		typeof schema,
-		SourceProvider,
-		Source
-	>>>>
-	let appClient: AppClient | undefined
-	const bootstrap = Promise.all([
-		sourceRuntimeCapabilities(),
-		persistenceRuntime.ready,
-	]).then(async ([sourceCapabilities]) => {
-		const sourceIndex = indexSourceProviders(
-			sourceProviders,
-			env,
-			new Set([
-				...browserDirectSourceBindingIds,
-				...sourceCapabilities.enabledServerBindingIds,
-			])
-		)
-		const {
-			persistence,
-			waitForPersistence,
-		} = trackPersistedCollectionPersistence(
-			persistenceRuntime.persistence
-		)
-
-		appClient = client(
-			{
-				schema,
-				schemaIndex: schemaMeta,
-				sourceProviders,
-			}
-		)(
-			{
-				resolvers: await loadResolvers(sourceIndex.enabledSources),
-				sourceIndex,
-			}
-		)(
-			{
-				queryClient: new QueryClient({
-					defaultOptions: {
-						queries: {
-							gcTime: 0,
-						},
-					},
-				}),
-				persistence,
-				schemaVersion: BLOCKHEAD_PERSISTED_COLLECTION_SCHEMA_VERSION,
-				waitForPersistence,
-			}
-		)
-		return appClient
-	})
-	export const getAppClient = () => {
-		if (appClient == null)
-			throw new Error('App client was read before bootstrap completed')
-
-		return appClient
-	}
-
-	export const select: AppClient['select'] = (...parameters) => getAppClient().select(...parameters)
 </script>
 
 
@@ -128,44 +17,81 @@
 
 	// Context
 	import { untrack } from 'svelte'
-	import {
-		mountWalletConnectionRuntime,
-	} from '$/state/wallets/walletConnectionRuntime.svelte.ts'
-	import navigationItems from './navigationItems.svelte.ts'
+	const navigationReady = new Promise<void>((resolve) => setTimeout(resolve, 0))
+		.then(() => Promise.all([
+			import('./Navigation.svelte'),
+			import('./navigationItems.svelte.ts'),
+		]))
+		.then(([{ default: Navigation }, { default: navigationItems }]) => ({
+			Navigation,
+			navigationItems,
+		}))
 
 
 	// State
 	let {
 		children,
 	} = $props()
-	let persistencePhase = $state(persistenceRuntime.phase)
+	let persistencePhase = $state('opening')
+	const persistenceRuntimeReady = new Promise<void>((resolve) => setTimeout(resolve, 0))
+		.then(() => import('$/lib/db/browserPersistenceSingleton.ts'))
+		.then(({ getBrowserPersistenceRuntime }) => getBrowserPersistenceRuntime())
+	const bootstrap = persistenceRuntimeReady.then(async (persistenceRuntime) => {
+		const { bootstrapApplicationClient } = await import('./applicationClientBootstrap.ts')
+		return bootstrapApplicationClient(persistenceRuntime)
+	})
+	const preparedBootstrap = bootstrap.then(async (appClient) => {
+		const [
+			{ mountWalletConnectionRuntime },
+			{ registerAppClient, unregisterAppClient },
+		] = await Promise.all([
+			import('$/state/wallets/walletConnectionRuntime.svelte.ts'),
+			import('./applicationClient.ts'),
+		])
+		return {
+			appClient,
+			mountWalletConnectionRuntime,
+			registerAppClient,
+			unregisterAppClient,
+		}
+	})
 
+	import { applicationRuntimeWhenReady } from './applicationRuntime.ts'
 	const applicationRuntime = applicationRuntimeWhenReady(
-		bootstrap,
-		(appClient) => untrack(() => {
+		preparedBootstrap,
+		({ appClient, mountWalletConnectionRuntime, registerAppClient, unregisterAppClient }) => untrack(() => {
+			registerAppClient(appClient)
 			const walletConnectionRuntime = mountWalletConnectionRuntime(appClient)
 			return {
 				destroy: () => {
 					walletConnectionRuntime.destroy()
+					unregisterAppClient(appClient)
 					appClient.destroy()
 				},
 			}
-		})
+		}),
+		({ appClient }) => appClient.destroy()
 	)
 	$effect(() => {
-		const unsubscribePersistencePhase = persistenceRuntime.subscribePhase((phase) => {
-			persistencePhase = phase
+		let unsubscribePersistencePhase: (() => void) | undefined
+		let active = true
+		persistenceRuntimeReady.then((persistenceRuntime) => {
+			if (!active)
+				return
+			unsubscribePersistencePhase = persistenceRuntime.subscribePhase((phase) => {
+				persistencePhase = phase
+			})
 		})
 		return () => {
-			unsubscribePersistencePhase()
+			active = false
+			unsubscribePersistencePhase?.()
 			applicationRuntime.destroy()
-			void persistenceRuntime.close()
+			persistenceRuntimeReady.then((persistenceRuntime) => persistenceRuntime.close())
 		}
 	})
 
 	// Components
 	import ApplicationBootstrap from './ApplicationBootstrap.svelte'
-	import Navigation from './Navigation.svelte'
 
 
 	// Functions
@@ -194,9 +120,11 @@
 		Skip to main content
 	</a>
 
-	<Navigation
-		{navigationItems}
-	/>
+	{#await navigationReady then navigation}
+		<navigation.Navigation
+			navigationItems={navigation.navigationItems}
+		/>
+	{/await}
 
 	<div
 		id="main"

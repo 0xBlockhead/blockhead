@@ -806,6 +806,60 @@ type EntitySelectorFromSelectorDefinition<
 		never
 )
 
+type RouteEntitySelectorFieldValue<
+	_EntityDefinition extends EntityDefinition,
+	_FieldName extends string,
+	_Value extends object,
+> = Extract<
+	EntityFieldDefinitions<_EntityDefinition>,
+	{ readonly name: _FieldName }
+> extends infer _FieldDefinition ?
+	_FieldDefinition extends {
+		readonly type: EntityFieldType.Primitive
+		readonly primitiveType: {
+			readonly infer: infer _PrimitiveValue
+		}
+	} ?
+		_PrimitiveValue
+	: _FieldDefinition extends {
+		readonly type: EntityFieldType.EntityReference
+	} ?
+		_FieldName extends keyof _Value ?
+			_Value[_FieldName]
+		:
+			never
+	:
+		never
+:
+	never
+
+export type RouteEntitySelectorForSelectorName<
+	_EntityDefinition extends EntityDefinition,
+	_SelectorName extends _EntityDefinition['selectors'][number]['name'],
+	_Value extends object,
+	_SelectorDefinition = Extract<
+		_EntityDefinition['selectors'][number],
+		{ readonly name: _SelectorName }
+	>,
+	_AllSelectorFields extends string = _EntityDefinition['selectors'][number]['fields'][number],
+> = (
+	_SelectorDefinition extends {
+		readonly fields: infer _Fields extends readonly string[]
+	} ?
+		{
+			readonly [
+				_FieldName in _Fields[number]
+			]: RouteEntitySelectorFieldValue<_EntityDefinition, _FieldName, _Value>
+		}
+		& {
+			readonly [
+				_FieldName in Exclude<_AllSelectorFields, _Fields[number]>
+			]?: never
+		}
+	:
+		never
+)
+
 type EntitySelectorFromDefinition<
 	_Schema extends Schema,
 	_EntityDefinition,
@@ -978,6 +1032,29 @@ export function parseEntitySelector(
 	}
 
 	return arktype('never')(value)
+}
+
+export function parseRouteEntitySelector<
+	const _EntityDefinition extends EntityDefinition,
+	const _SelectorName extends _EntityDefinition['selectors'][number]['name'],
+	const _Value extends object,
+>(
+	schema: Schema,
+	entityDefinition: _EntityDefinition,
+	value: _Value,
+	selectorName: _SelectorName
+): RouteEntitySelectorForSelectorName<
+	_EntityDefinition,
+	_SelectorName,
+	_Value
+> | InstanceType<typeof arktype.errors>
+export function parseRouteEntitySelector(
+	schema: Schema,
+	entityDefinition: EntityDefinition,
+	value: object,
+	selectorName: string
+) {
+	return parseEntitySelector(schema, entityDefinition, value, selectorName)
 }
 
 export const validateEntitySelector = (

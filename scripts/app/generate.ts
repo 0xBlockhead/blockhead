@@ -9676,19 +9676,26 @@ const generateSingularViewFile = (
 	]))
 	const declaredComponentImportSpecs = declaredImportSpecs.filter((importSpec) => (
 		importSpec.from.endsWith('.svelte')
-		&& importSpec.from !== '$/routes/+layout.svelte'
+		&& importSpec.from !== '$/routes/applicationClient.ts'
 	))
-	const declaredContextImportSpecs = declaredImportSpecs.filter((importSpec) => importSpec.from === '$/routes/+layout.svelte')
+	const declaredContextImportSpecs = declaredImportSpecs.filter((importSpec) => importSpec.from === '$/routes/applicationClient.ts')
+	const declaredUsesSelect = declaredContextImportSpecs.some((importSpec) => (
+		importSpec.names?.some((name) => importNameKey(name) === 'select') === true
+	))
+	const usesSelect = generatedUsesSelect || declaredUsesSelect
 	const expressionImportSpecs = declaredImportSpecs.filter((importSpec) => (
 		!importSpec.from.endsWith('.svelte')
-		&& importSpec.from !== '$/routes/+layout.svelte'
+		&& importSpec.from !== '$/routes/applicationClient.ts'
 	))
 	const usesTruncatedValue = ['address', 'truncated', 'namespaceReference', 'url'].some((format) => viewFormats.has(format))
 	const contextImportSpecs = mergeImports([
-		...declaredContextImportSpecs,
-		...(generatedUsesSelect ? [{
-			from: '$/routes/+layout.svelte',
-			names: ['select'],
+		...declaredContextImportSpecs.map((importSpec) => ({
+			...importSpec,
+			names: importSpec.names?.filter((name) => importNameKey(name) !== 'select'),
+		})),
+		...(usesSelect ? [{
+			from: '$/routes/applicationClient.ts',
+			names: ['getAppClient'],
 		}] : []),
 	])
 	const relationshipMarkup = renderRelationshipSections(entity, indexes, sections)
@@ -10232,6 +10239,10 @@ const generateSingularViewFile = (
 			'',
 			'',
 		]),
+		...(usesSelect ? [
+			'const select = getAppClient().select',
+			'',
+		] : []),
 		'// State',
 		'let {',
 		'\tselection,',
@@ -13223,8 +13234,10 @@ const generatePluralViewPlan = (entity: Entity, indexes: GenerationIndexes) => {
 		'',
 		...(rowProjectionPaths.length === 0 ? [] : [
 			'// Context',
-			'import { select } from \'$/routes/+layout.svelte\'',
+			'import { getAppClient } from \'$/routes/applicationClient.ts\'',
 			'',
+			'',
+			'const select = getAppClient().select',
 			'',
 		]),
 		'// State',
@@ -13626,8 +13639,7 @@ const generatePageModuleFile = (
 					},
 					{
 						from: '$/schema/$schema.ts',
-						names: ['parseEntitySelector'],
-						typeNames: ['EntitySelectorForSelectorName'],
+						names: ['parseRouteEntitySelector'],
 					},
 					{
 						from: '$/schema/EntityType.ts',
@@ -13656,20 +13668,6 @@ const generatePageModuleFile = (
 						'\tconst parentData = await parent()',
 						'',
 					] : []),
-					'\tconst routeCandidates: (',
-					...contexts.flatMap((context) => [
-						'\t\t| {',
-						`\t\t\treadonly entityType: EntityType.${context.entityType}`,
-						`\t\t\treadonly selectorName: ${emitTypeScript(context.mapping.selectorName)}`,
-						'\t\t\treadonly selector: EntitySelectorForSelectorName<',
-						'\t\t\t\ttypeof schema,',
-						`\t\t\t\tEntityType.${context.entityType},`,
-						`\t\t\t\t${emitTypeScript(context.mapping.selectorName)}`,
-						'\t\t\t>',
-						'\t\t}',
-					]),
-					'\t)[] = []',
-					'',
 					...contexts.flatMap((context) => {
 						const selectorCondition = logicalExpression([
 							`!(${context.selectorVariableName} instanceof arktype.errors)`,
@@ -13677,23 +13675,32 @@ const generatePageModuleFile = (
 						], '&&')
 
 						return [
-						...(context.guardExpression == null ? [] : [indent(`if ${context.guardExpression} {`)]),
-						`\t${context.guardExpression == null ? '' : '\t'}const ${context.selectorVariableName} = parseEntitySelector(`,
-						`\t${context.guardExpression == null ? '' : '\t'}\tschema,`,
-						`\t${context.guardExpression == null ? '' : '\t'}\t${context.entitySchemaName},`,
-						...commaTerminatedExpressionLines(context.selectorFieldsExpression, context.guardExpression == null ? 2 : 3),
-						`\t${context.guardExpression == null ? '' : '\t'}\t${emitTypeScript(context.mapping.selectorName)}`,
-						`\t${context.guardExpression == null ? '' : '\t'})`,
-						indent(`if ${selectorCondition}`, context.guardExpression == null ? 1 : 2),
-						indent(`routeCandidates.push(${emitObject([
+						`\tconst ${context.selectorVariableName}Candidate = (() => {`,
+						...(context.guardExpression == null ? [] : [
+							indent(`if (!${context.guardExpression})`, 2),
+							'\t\t\treturn',
+							'',
+						]),
+						`\t\tconst ${context.selectorVariableName} = parseRouteEntitySelector(`,
+						'\t\t\tschema,',
+						`\t\t\t${context.entitySchemaName},`,
+						...commaTerminatedExpressionLines(context.selectorFieldsExpression, 3),
+						`\t\t\t${emitTypeScript(context.mapping.selectorName)}`,
+						'\t\t)',
+						indent(`if (${selectorCondition})`, 2),
+						indent(`return ${emitObject([
 							['entityType', `EntityType.${context.entityType}`],
 							['selectorName', emitTypeScript(context.mapping.selectorName)],
 							['selector', context.selectorVariableName],
-						])})`, context.guardExpression == null ? 2 : 3),
-						...(context.guardExpression == null ? [] : ['\t}']),
+						])} as const`, 3),
+						'\t})()',
 						'',
 						]
 					}),
+					'\tconst routeCandidates = [',
+					...contexts.map((context) => `\t\t${context.selectorVariableName}Candidate,`),
+					'\t].filter((candidate) => candidate != null)',
+					'',
 					'\tif (routeCandidates.length === 0)',
 					`\t\terror(404, 'Route selector not applicable')`,
 					'',
@@ -13748,7 +13755,7 @@ const generatePageModuleFile = (
 				...importSpecsFromMap(context.imports),
 				{
 					from: '$/schema/$schema.ts',
-					names: ['parseEntitySelector'],
+					names: ['parseRouteEntitySelector'],
 				},
 				{
 					from: schemaModulePath(context.entityType),
@@ -13777,7 +13784,7 @@ const generatePageModuleFile = (
 					`\t\terror(404, 'Route mapping not applicable')`,
 					'',
 				]),
-				`\tconst ${context.selectorVariableName} = parseEntitySelector(`,
+				`\tconst ${context.selectorVariableName} = parseRouteEntitySelector(`,
 				'\t\tschema,',
 				`\t\t${context.entitySchemaName},`,
 				...commaTerminatedExpressionLines(context.selectorFieldsExpression, 2),
@@ -13945,7 +13952,8 @@ const generateMultiCollectionPageFile = (
 				] : []),
 				...pageContextSection,
 				'import { resolve } from \'$app/paths\'',
-				'import { select } from \'$/routes/+layout.svelte\'',
+				'import { getAppClient } from \'$/routes/applicationClient.ts\'',
+				'const select = getAppClient().select',
 				...pageStateSection,
 				...(usesData || usesParams ? renderPagePropsState([
 					...(usesData ? ['data'] : []),
@@ -14256,7 +14264,8 @@ const generatePageFile = (
 					...pageSelectionImports,
 					...(typeScriptExpressionReferencesBinding(pageSelectionExpression, 'Source') ? ['import { Source } from \'$/sources/Source.ts\''] : []),
 					...pageContextSection,
-					'import { select } from \'$/routes/+layout.svelte\'',
+					'import { getAppClient } from \'$/routes/applicationClient.ts\'',
+					'const select = getAppClient().select',
 					...pageStateSection,
 					...renderPagePropsState(['data']),
 					'',
@@ -14341,6 +14350,21 @@ const generatePageFile = (
 		pluralComponentName(collectionEntityDefinition)
 	))
 	const collectionComponent = collectionComponentFile == null ? undefined : componentIdentifier(collectionComponentFile)
+	const declaredPageImportSpecs = emitImportObject(view?.imports)
+	const declaredPageUsesSelect = declaredPageImportSpecs.some((importSpec) => (
+		importSpec.from === '$/routes/applicationClient.ts'
+		&& importSpec.names?.some((name) => importNameKey(name) === 'select') === true
+	))
+	const pageImportSpecs = mergeImports([
+		...declaredPageImportSpecs.map((importSpec) => ({
+			...importSpec,
+			names: importSpec.names?.filter((name) => importNameKey(name) !== 'select'),
+		})),
+		...(declaredPageUsesSelect ? [{
+			from: '$/routes/applicationClient.ts',
+			names: ['getAppClient'],
+		}] : []),
+	])
 	const inlinesDefaultCollectionView = (
 		collectionEntity != null
 		&& collectionComponentFile != null
@@ -14520,7 +14544,8 @@ const generatePageFile = (
 						`import { Source } from '$/sources/Source.ts'`,
 					] : []),
 					...pageContextSection,
-					`import { select } from '$/routes/+layout.svelte'`,
+					`import { getAppClient } from '$/routes/applicationClient.ts'`,
+					'const select = getAppClient().select',
 					...pageStateSection,
 					...renderPagePropsState(['params']),
 					'',
@@ -14605,16 +14630,17 @@ const generatePageFile = (
 							...(pageTitle?.imports ?? []),
 						]).map(emitImport)
 				),
-				...emitImportObject(view?.imports).map(emitImport),
+				...pageImportSpecs.map(emitImport),
 				...(isFieldConditionedSourceSelection(mapping?.sourceSelection) ? [
 					`import ${sourceSelectionFunctionName(mapping.sourceSelection)} from '${sourceSelectionModulePath(mapping.sourceSelection)}'`,
 				] : []),
 				...(typeScriptExpressionReferencesBinding(collectionSelectionExpression, 'Source') || pageSelectionExpression != null && typeScriptExpressionReferencesBinding(pageSelectionExpression, 'Source') ? [
 					'import { Source } from \'$/sources/Source.ts\'',
 				] : []),
-				...(usesGeneratedSelection ? [
+				...(usesGeneratedSelection || declaredPageUsesSelect ? [
 					...pageContextSection,
-					'import { select } from \'$/routes/+layout.svelte\'',
+					...(declaredPageUsesSelect ? [] : ['import { getAppClient } from \'$/routes/applicationClient.ts\'']),
+					'const select = getAppClient().select',
 				] : []),
 				...(hasPageProps ? [
 					...pageStateSection,
@@ -14934,7 +14960,8 @@ const generateLayoutFile = (routeFile: CompiledLayoutRouteFileFacts) => {
 					'',
 					'// Context',
 					'import { resolve } from \'$app/paths\'',
-					'import { select } from \'$/routes/+layout.svelte\'',
+					'import { getAppClient } from \'$/routes/applicationClient.ts\'',
+					'const select = getAppClient().select',
 					'',
 					'',
 					'// State',

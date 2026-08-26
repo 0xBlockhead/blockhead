@@ -13,9 +13,10 @@
 
 
 	// Context
-	import { select } from '$/routes/+layout.svelte'
+	import { getAppClient } from '$/routes/applicationClient.ts'
 	import { getWalletConnectionRuntime } from '$/state/wallets/walletConnectionRuntime.svelte.ts'
 	import { walletConnectionError } from '$/state/wallets/walletConnectionState.ts'
+	const select = getAppClient().select
 
 
 	// IDs

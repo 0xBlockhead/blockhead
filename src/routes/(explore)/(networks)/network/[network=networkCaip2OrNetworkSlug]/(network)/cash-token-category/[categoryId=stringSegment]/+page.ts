@@ -3,7 +3,7 @@
 import type { PageLoad } from './$types'
 import { error } from '@sveltejs/kit'
 import { match as matchStringSegment } from '$/params/stringSegment.ts'
-import { parseEntitySelector } from '$/schema/$schema.ts'
+import { parseRouteEntitySelector } from '$/schema/$schema.ts'
 import BitcoinCashCashTokenCategorySchema from '$/schema/BitcoinCashCashTokenCategory.ts'
 import { schema } from '$/schema/index.ts'
 import { type as arktype } from 'arktype'
@@ -15,7 +15,7 @@ export const load: PageLoad = async ({ params, parent }) => {
 	if (!(parentData.projectionNetwork.namespace === 'BitcoinCash' && matchStringSegment(params.categoryId)))
 		error(404, 'Route mapping not applicable')
 
-	const bitcoinCashCashTokenCategoryNetworkCategoryIdSelector = parseEntitySelector(
+	const bitcoinCashCashTokenCategoryNetworkCategoryIdSelector = parseRouteEntitySelector(
 		schema,
 		BitcoinCashCashTokenCategorySchema,
 		{

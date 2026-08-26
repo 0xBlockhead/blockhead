@@ -32526,7 +32526,7 @@ export const schema = {
 											`,
 											imports: [
 												{ from: "$/views/FarcasterCastsView.svelte", default: "FarcasterCastsView" },
-												{ from: "$/routes/+layout.svelte", names: ["select"] },
+												{ from: "$/routes/applicationClient.ts", names: ["select"] },
 											],
 										},
 									},
@@ -43728,7 +43728,7 @@ export const schema = {
 								names: ["EntityMetaKey"],
 							},
 							{
-								from: "$/routes/+layout.svelte",
+								from: "$/routes/applicationClient.ts",
 								names: ["select"],
 							},
 							{
@@ -70007,7 +70007,7 @@ export const routes = defineRoutes(schema)({
 							imports: [
 								{ from: "$app/paths", names: ["resolve"] },
 								{ from: "$/schema/EntityType.ts", names: ["EntityType"] },
-								{ from: "$/routes/+layout.svelte", names: ["select"] },
+								{ from: "$/routes/applicationClient.ts", names: ["select"] },
 								{ from: "$/components/CollapsibleTabs.svelte", default: "CollapsibleTabs" },
 								{ from: "$/components/Heading.svelte", default: "HeadingComponent" },
 								{ from: "$/views/BlockheadSourcesView.svelte", default: "BlockheadSourcesView" },
@@ -70147,7 +70147,7 @@ export const routes = defineRoutes(schema)({
 							imports: [
 								{ from: "$app/paths", names: ["resolve"] },
 								{ from: "$/schema/EntityType.ts", names: ["EntityType"] },
-								{ from: "$/routes/+layout.svelte", names: ["select"] },
+								{ from: "$/routes/applicationClient.ts", names: ["select"] },
 								{ from: "$/components/CollapsibleTabs.svelte", default: "CollapsibleTabs" },
 								{ from: "$/components/Heading.svelte", default: "HeadingComponent" },
 								{ from: "$/views/BlockheadRoomPeersView.svelte", default: "BlockheadRoomPeersView" },
@@ -72464,7 +72464,7 @@ export const routes = defineRoutes(schema)({
 							imports: [
 								{ from: "$app/paths", names: ["resolve"] },
 								{ from: "$/schema/EntityType.ts", names: ["EntityType"] },
-								{ from: "$/routes/+layout.svelte", names: ["select"] },
+								{ from: "$/routes/applicationClient.ts", names: ["select"] },
 								{ from: "$/components/CollapsibleTabs.svelte", default: "CollapsibleTabs" },
 								{ from: "$/components/Heading.svelte", default: "HeadingComponent" },
 								{ from: "$/views/CoinsView.svelte", default: "CoinsView" },
@@ -72699,7 +72699,7 @@ export const routes = defineRoutes(schema)({
 							imports: [
 								{ from: "$app/paths", names: ["resolve"] },
 								{ from: "$/schema/EntityType.ts", names: ["EntityType"] },
-								{ from: "$/routes/+layout.svelte", names: ["select"] },
+								{ from: "$/routes/applicationClient.ts", names: ["select"] },
 								{ from: "$/components/CollapsibleTabs.svelte", default: "CollapsibleTabs" },
 								{ from: "$/components/Heading.svelte", default: "HeadingComponent" },
 								{ from: "$/views/EthereumNetworkUpgradesView.svelte", default: "EthereumNetworkUpgradesView" },
@@ -72849,7 +72849,7 @@ export const routes = defineRoutes(schema)({
 							imports: [
 								{ from: "$app/paths", names: ["resolve"] },
 								{ from: "$/schema/EntityType.ts", names: ["EntityType"] },
-								{ from: "$/routes/+layout.svelte", names: ["select"] },
+								{ from: "$/routes/applicationClient.ts", names: ["select"] },
 								{ from: "$/components/CollapsibleTabs.svelte", default: "CollapsibleTabs" },
 								{ from: "$/components/Heading.svelte", default: "HeadingComponent" },
 								{ from: "$/views/EvmNftsView.svelte", default: "EvmNftsView" },
@@ -73391,7 +73391,7 @@ export const routes = defineRoutes(schema)({
 							imports: [
 								{ from: "$app/paths", names: ["resolve"] },
 								{ from: "$/schema/EntityType.ts", names: ["EntityType"] },
-								{ from: "$/routes/+layout.svelte", names: ["select"] },
+								{ from: "$/routes/applicationClient.ts", names: ["select"] },
 								{ from: "$/components/CollapsibleTabs.svelte", default: "CollapsibleTabs" },
 								{ from: "$/components/Heading.svelte", default: "HeadingComponent" },
 								{ from: "$/views/FarcasterNetworkView.svelte", default: "FarcasterNetworkView" },
@@ -73753,7 +73753,7 @@ export const routes = defineRoutes(schema)({
 													imports: [
 														{ from: "$app/paths", names: ["resolve"] },
 														{ from: "$/schema/EntityType.ts", names: ["EntityType"] },
-														{ from: "$/routes/+layout.svelte", names: ["select"] },
+														{ from: "$/routes/applicationClient.ts", names: ["select"] },
 														{ from: "$/constants/calldata-examples.ts", typeNames: ["CalldataExample"], names: ["calldataExamples"] },
 														{ from: "$/schema/ZeroExHex.ts", names: ["EvmAddress", "ZeroExHex"] },
 														{ from: "$/sources/Source.ts", names: ["Source"] },
@@ -75201,21 +75201,21 @@ export const routes = defineRoutes(schema)({
 																								page: {},
 																							},
 																						},
-																						[EntityType.TronAccount_Timestamp]: {
-																							"AccountTimestampMsSource": {
-																								when: { path: ["namespace"], is: "Tron" },
-																								projection: { entityType: EntityType.Network, facetPath: ["Tron"] },
-																								params: { "source": ["source"] },
-																								derivations: { "timestampMs": { kind: "param", name: "timestampMs" } },
-																							},
-																						}
-																					},
-																				}
+																			[EntityType.TronAccount_Timestamp]: {
+																				"AccountTimestampMsSource": {
+																					when: { path: ["namespace"], is: "Tron" },
+																					projection: { entityType: EntityType.Network, facetPath: ["Tron"] },
+																					params: { "source": ["source"] },
+																					derivations: { "timestampMs": { kind: "param", name: "timestampMs" } },
+																				},
 																			}
-																		}
+																		},
 																	}
-																},
-																"block-state": {
+																}
+															}
+														}
+													},
+													"block-state": {
 																	children: {
 																		"[blockHeight]": {
 																			params: { "blockHeight": ["NonNegativeBigInt"] },
@@ -75959,30 +75959,30 @@ export const routes = defineRoutes(schema)({
 																						"[timestampMs]": {
 																							children: {
 																								"[source]": {
-																									selectors: {
-																										[EntityType.TronAccountTokenBalance_Timestamp]: {
-																											"AccountTokenTimestampMsSource": {
-																												params: { "timestampMs": ["timestampMs"], "source": ["source"] },
-																												derivations: {
-																													"$token": {
-																														kind: "selector",
-																														entity: EntityType.TronToken,
-																														selector: "NetworkTokenId",
-																														params: [
-																															{
-																																field: "$network",
-																																value: { kind: "property", value: { kind: "field", name: "$account" }, property: "$network" },
+																											selectors: {
+																												[EntityType.TronAccountTokenBalance_Timestamp]: {
+																													"AccountTokenTimestampMsSource": {
+																														params: { "timestampMs": ["timestampMs"], "source": ["source"] },
+																														derivations: {
+																															"$token": {
+																																kind: "selector",
+																																entity: EntityType.TronToken,
+																																selector: "NetworkTokenId",
+																																params: [
+																																	{
+																																		field: "$network",
+																																		value: { kind: "property", value: { kind: "field", name: "$account" }, property: "$network" },
+																																	},
+																																	{ field: "tokenId", param: "tokenId" },
+																																],
 																															},
-																															{ field: "tokenId", param: "tokenId" },
-																														],
-																													},
+																														},
+																														page: {},
+																														when: { path: ["namespace"], is: "Tron" },
+																														projection: { entityType: EntityType.Network, facetPath: ["Tron"] },
+																													}
 																												},
-																												page: {},
-																												when: { path: ["namespace"], is: "Tron" },
-																												projection: { entityType: EntityType.Network, facetPath: ["Tron"] },
-																											}
-																										},
-																										[EntityType.HederaTokenAssociation_Timestamp]: {
+																												[EntityType.HederaTokenAssociation_Timestamp]: {
 																											"AssociationTimestampMsSource": {
 																												params: { "timestampMs": ["timestampMs"], "source": ["source"] },
 																													page: {},

@@ -16,9 +16,10 @@ import path from 'node:path'
 import { spawnSync } from 'node:child_process'
 import { performance } from 'node:perf_hooks'
 import test from 'node:test'
-import ts from 'typescript'
 import { type as arktype } from 'arktype'
 import { compile as compileSvelte } from 'svelte/compiler'
+import * as ts from '@typescript/native/unstable/ast'
+import { API } from '@typescript/native/unstable/sync'
 
 import {
 	app,
@@ -33,6 +34,36 @@ import {
 	type _SourceSelection,
 	rawSnippetReference,
 } from './model.ts'
+
+const virtualTypeScriptPath = path.resolve('.generate-test-source.ts')
+const virtualTypeScriptSources = new Map<string, string>()
+const typeScriptApi = new API({
+	fs: {
+		fileExists: (candidate) => virtualTypeScriptSources.has(path.resolve(candidate)) ? true : undefined,
+		readFile: (candidate) => virtualTypeScriptSources.get(path.resolve(candidate)),
+	},
+})
+let typeScriptSnapshot: ReturnType<API['updateSnapshot']> | undefined
+const parseTestTypeScript = (source: string) => {
+	virtualTypeScriptSources.set(virtualTypeScriptPath, source)
+	const nextSnapshot = typeScriptApi.updateSnapshot({
+		...(typeScriptSnapshot == null ? { openFiles: [virtualTypeScriptPath] } : {}),
+		...(typeScriptSnapshot == null ? {} : {
+			fileChanges: { changed: [virtualTypeScriptPath] },
+		}),
+	})
+	typeScriptSnapshot?.dispose()
+	typeScriptSnapshot = nextSnapshot
+	const project = nextSnapshot.getDefaultProjectForFile(virtualTypeScriptPath)
+	const sourceFile = project?.program.getSourceFile(virtualTypeScriptPath)
+	if (project == null || sourceFile == null)
+		throw new Error('Cannot parse generated TypeScript test source')
+
+	return {
+		diagnostics: project.program.getSyntacticDiagnostics(virtualTypeScriptPath),
+		sourceFile,
+	}
+}
 import {
 	ApiFamily,
 	SourceArtifactKind,
@@ -877,14 +908,7 @@ test('resolves nested route selector derivations before emitting page modules', 
 	for (const [index, source] of routeSources.entries()) {
 		assert.doesNotMatch(source, /(?:^|[^.\w])selector\.\$/m, routePaths[index])
 		assert.deepEqual(
-			ts.transpileModule(source, {
-				compilerOptions: {
-					module: ts.ModuleKind.ESNext,
-					target: ts.ScriptTarget.ESNext,
-				},
-				fileName: routePaths[index],
-				reportDiagnostics: true,
-			}).diagnostics?.filter(({ category }) => category === ts.DiagnosticCategory.Error) ?? [],
+			parseTestTypeScript(source).diagnostics,
 			[],
 			routePaths[index]
 		)
@@ -893,26 +917,20 @@ test('resolves nested route selector derivations before emitting page modules', 
 	const typeTestRoot = createFreshRoot('blockhead-route-selector-derivation-types-')
 	try {
 		const selectorExpressions = routeSources.map((source, index) => {
-			const sourceFile = ts.createSourceFile(
-				routePaths[index] ?? 'route.ts',
-				source,
-				ts.ScriptTarget.Latest,
-				true,
-				ts.ScriptKind.TS
-			)
+			const sourceFile = parseTestTypeScript(source).sourceFile
 			let selectorExpression: ts.ObjectLiteralExpression | undefined
 			const visit = (node: ts.Node) => {
 				const selectorArgument = ts.isCallExpression(node) ? node.arguments[2] : undefined
 				if (
 					ts.isCallExpression(node)
 					&& ts.isIdentifier(node.expression)
-					&& node.expression.text === 'parseEntitySelector'
+					&& node.expression.text === 'parseRouteEntitySelector'
 					&& selectorArgument != null
 					&& ts.isObjectLiteralExpression(selectorArgument)
 				)
 					selectorExpression = selectorArgument
 				else
-					ts.forEachChild(node, visit)
+					node.forEachChild(visit)
 			}
 			visit(sourceFile)
 			assert.ok(selectorExpression)
@@ -1106,7 +1124,8 @@ test('generated views and pages import exactly the dependencies they use', () =>
 		['resolve', /^\s*import \{ resolve \} from '\$app\/paths'$/m, /\bresolve\(/],
 		['EntityType', /^\s*import \{ EntityType \} from '\$\/schema\/EntityType\.ts'$/m, /\bEntityType\./],
 		['Source', /^\s*import \{ Source \} from '\$\/sources\/Source\.ts'$/m, /\bSource\./],
-		['select', /^\s*import \{ select \} from '\$\/routes\/\+layout\.svelte'$/m, /\bselect\(/],
+		['getAppClient', /^\s*import \{ getAppClient \} from '\$\/routes\/applicationClient\.ts'$/m, /\bgetAppClient\(\)\.select/],
+		['select binding', /^\s*const select = getAppClient\(\)\.select$/m, /\bselect\(/],
 	] as const
 	const mismatches = baselineCompiledApp.generatedFiles
 		.filter(({ path }) => (
@@ -1131,6 +1150,16 @@ test('generated views and pages import exactly the dependencies they use', () =>
 		})
 
 	assert.deepEqual(mismatches, [])
+	for (const generatedFile of baselineCompiledApp.generatedFiles) {
+		if (generatedFile.kind !== 'svelte')
+			continue
+
+		assert.doesNotMatch(
+			renderGeneratedFile(generatedFile),
+			/from ['"]\$\/routes\/\+layout\.svelte['"]/,
+			generatedFile.path
+		)
+	}
 })
 
 test('accepts and passes prefetched rows only where pending display consumes them', () => {
@@ -1742,7 +1771,7 @@ test('keeps APP field presentation metadata out of runtime schema modules', () =
 	const violations = app.schema.entities.flatMap((entity) => {
 		const filePath = `src/schema/${entity.entityType}.ts`
 		const source = generatedSource(filePath)
-		const sourceFile = ts.createSourceFile(filePath, source, ts.ScriptTarget.Latest, true)
+		const sourceFile = parseTestTypeScript(source).sourceFile
 		const fieldViolations: string[] = []
 		const visit = (node: ts.Node) => {
 			if (ts.isObjectLiteralExpression(node)) {
@@ -1758,7 +1787,7 @@ test('keeps APP field presentation metadata out of runtime schema modules', () =
 					)).map((propertyName) => `${filePath}:${propertyName}`))
 			}
 
-			ts.forEachChild(node, visit)
+			node.forEachChild(visit)
 		}
 		visit(sourceFile)
 
@@ -3854,8 +3883,8 @@ test('renders selected entity titles on every multi-selector detail page', () =>
 		file.path.endsWith('/network/[network=networkCaip2OrNetworkSlug]/+layout.ts')
 	))
 	assert.ok(networkLayout)
-	assert.match(renderGeneratedFile(networkLayout), /readonly selectorName: 'Caip2'[\s\S]*?EntitySelectorForSelectorName<[\s\S]*?EntityType\.Network,[\s\S]*?'Caip2'[\s\S]*?readonly selectorName: 'Slug'[\s\S]*?'Slug'/)
-	assert.doesNotMatch(renderGeneratedFile(networkLayout), /selectorName: string|EntitySelector<typeof schema/)
+	assert.match(renderGeneratedFile(networkLayout), /networkCaip2SelectorCandidate[\s\S]*?parseRouteEntitySelector\([\s\S]*?'Caip2'[\s\S]*?networkSlugSelectorCandidate[\s\S]*?'Slug'/)
+	assert.doesNotMatch(renderGeneratedFile(networkLayout), /EntitySelectorForSelectorName<typeof schema|parseEntitySelector\(/)
 })
 
 test('keeps detail-page selections limited to page-owned title fields and sources', () => {
@@ -5336,13 +5365,7 @@ test('imports every enum referenced by generated schema construction', () => {
 test('imports ArkType only when generated schema construction references it', () => {
 	const schemaImportContracts = app.schema.entities.map((entity) => {
 		const filePath = `src/schema/${entity.entityType}.ts`
-		const sourceFile = ts.createSourceFile(
-			filePath,
-			generatedSource(filePath),
-			ts.ScriptTarget.Latest,
-			true,
-			ts.ScriptKind.TS
-		)
+		const sourceFile = parseTestTypeScript(generatedSource(filePath)).sourceFile
 		const imported = sourceFile.statements.some((statement) => (
 			ts.isImportDeclaration(statement)
 			&& ts.isStringLiteral(statement.moduleSpecifier)
@@ -5361,7 +5384,7 @@ test('imports ArkType only when generated schema construction references it', ()
 			)
 				referenced = true
 			else
-				ts.forEachChild(node, visit)
+				node.forEachChild(visit)
 		}
 		for (const statement of sourceFile.statements)
 			if (!ts.isImportDeclaration(statement))
@@ -5898,9 +5921,9 @@ test('returns discriminated route identity for detail dispatch', () => {
 
 	assert.match(
 		routeModuleSource,
-		/routeCandidates\.push\(\{[\s\S]*?entityType: EntityType\.EvmTransaction,[\s\S]*?selectorName: 'EvmNetworkTxHash'/
+		/evmTransactionEvmNetworkTxHashSelectorCandidate[\s\S]*?entityType: EntityType\.EvmTransaction,[\s\S]*?selectorName: 'EvmNetworkTxHash'/
 	)
-	assert.match(routeModuleSource, /parseEntitySelector\([\s\S]*?'EvmNetworkTxHash'\s*\)/)
+	assert.match(routeModuleSource, /parseRouteEntitySelector\([\s\S]*?'EvmNetworkTxHash'\s*\)/)
 	assert.doesNotMatch(routeModuleSource, /'(?:\$network|txHash)' in [A-Za-z0-9]+Selector/)
 	assert.match(detailPageSource, /data\.entityType === EntityType\.EvmTransaction \?/)
 	assert.doesNotMatch(detailPageSource, /data\.selectorName/)
@@ -7804,7 +7827,7 @@ test('rejects conditional route source keys that could fall through to a broad d
 test('rejects invalid entity view field references at every captured view level', () => {
 	const typeTestRoot = createFreshRoot('blockhead-app-view-types-test-')
 	const appSource = readFileSync(path.join(root, 'APP.ts'), 'utf8')
-	const appSourceFile = ts.createSourceFile('APP.ts', appSource, ts.ScriptTarget.Latest, true)
+	const appSourceFile = parseTestTypeScript(appSource).sourceFile
 	const facetStatement = appSourceFile.statements.find((statement) => (
 		ts.isVariableStatement(statement)
 		&& statement.declarationList.declarations.some((declaration) => (
@@ -7813,12 +7836,7 @@ test('rejects invalid entity view field references at every captured view level'
 		))
 	))
 	const fixtureSource = readFileSync(path.join(root, 'scripts/app/entity-view-field-references.types.ts'), 'utf8')
-	const fixtureSourceFile = ts.createSourceFile(
-		'entity-view-field-references.types.ts',
-		fixtureSource,
-		ts.ScriptTarget.Latest,
-		true
-	)
+	const fixtureSourceFile = parseTestTypeScript(fixtureSource).sourceFile
 	const fixtureImport = fixtureSourceFile.statements.find(ts.isImportDeclaration)
 
 	assert.ok(facetStatement)

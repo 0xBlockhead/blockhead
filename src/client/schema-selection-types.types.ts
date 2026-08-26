@@ -11,6 +11,7 @@ import {
 	type EntitySelectedValue,
 	type EntitySelection,
 	type EntitySelectorForSelectorName,
+	type RouteEntitySelectorForSelectorName,
 } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
 import { EntityFieldType } from '$/schema/EntityFieldType.ts'
@@ -169,11 +170,50 @@ const nestedReferencesFieldKindIsLiteral: TypesEqual<
 	Extract<EvmLogEventField, { readonly name: '$$eventTransactions' }>['type'],
 	EntityFieldType.EntitiesReference
 > = true
+
+const routeLog = entity({
+	entityType: 'RouteLog',
+	labels: {
+		singular: 'route log',
+		plural: 'route logs',
+	},
+})({
+	$transaction: {
+		entityType: EntityType.EvmTransaction,
+		cardinality: EntityFieldCardinality.One,
+	},
+	topic0: {
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.One,
+	},
+})({
+	selectors: {
+		TransactionTopic: [
+			'$transaction',
+			'topic0',
+		],
+	},
+})
+type RouteLogSelectorInput = {
+	readonly $transaction: {
+		readonly txHash: string
+	}
+	readonly topic0: string
+}
+declare const routeLogSelectorInput: RouteLogSelectorInput
+const routeSelectorPreservesConcreteReference: RouteEntitySelectorForSelectorName<
+	typeof routeLog,
+	'TransactionTopic',
+	RouteLogSelectorInput
+> = routeLogSelectorInput
+const routeSelectorReturnsConcreteReference: RouteLogSelectorInput = routeSelectorPreservesConcreteReference
 void [
 	primitiveFieldKindIsLiteral,
 	referenceFieldKindIsLiteral,
 	referencesFieldKindIsLiteral,
 	nestedReferencesFieldKindIsLiteral,
+	routeSelectorPreservesConcreteReference,
+	routeSelectorReturnsConcreteReference,
 ]
 
 entity({

@@ -22,10 +22,8 @@
 		writeLocalBlockheadWallet,
 		writeLocalBlockheadWalletConnection,
 	} from '$/collections/localMutations.ts'
-	import {
-		getAppClient,
-		select,
-	} from '$/routes/+layout.svelte'
+	import { getAppClient } from '$/routes/applicationClient.ts'
+	const select = getAppClient().select
 
 
 	// State

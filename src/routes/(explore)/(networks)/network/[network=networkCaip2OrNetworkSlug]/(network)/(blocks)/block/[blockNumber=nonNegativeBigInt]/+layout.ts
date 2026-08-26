@@ -3,7 +3,7 @@
 import type { LayoutLoad } from './$types'
 import { error } from '@sveltejs/kit'
 import { match as matchNonNegativeBigInt } from '$/params/nonNegativeBigInt.ts'
-import { parseEntitySelector, type EntitySelectorForSelectorName } from '$/schema/$schema.ts'
+import { parseRouteEntitySelector } from '$/schema/$schema.ts'
 import ArweaveBlockSchema from '$/schema/ArweaveBlock.ts'
 import CosmosBlockSchema from '$/schema/CosmosBlock.ts'
 import { EntityType } from '$/schema/EntityType.ts'
@@ -22,119 +22,20 @@ import { type as arktype } from 'arktype'
 export const load: LayoutLoad = async ({ params, parent }) => {
 	const parentData = await parent()
 
-	const routeCandidates: (
-		| {
-			readonly entityType: EntityType.EvmBlock
-			readonly selectorName: 'EvmNetworkBlockNumber'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.EvmBlock,
-				'EvmNetworkBlockNumber'
-			>
-		}
-		| {
-			readonly entityType: EntityType.SolanaBlock
-			readonly selectorName: 'Slot'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.SolanaBlock,
-				'Slot'
-			>
-		}
-		| {
-			readonly entityType: EntityType.UtxoBlock
-			readonly selectorName: 'NetworkHeight'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.UtxoBlock,
-				'NetworkHeight'
-			>
-		}
-		| {
-			readonly entityType: EntityType.PolkadotBlock
-			readonly selectorName: 'NetworkBlockNumber'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.PolkadotBlock,
-				'NetworkBlockNumber'
-			>
-		}
-		| {
-			readonly entityType: EntityType.ArweaveBlock
-			readonly selectorName: 'NetworkHeight'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.ArweaveBlock,
-				'NetworkHeight'
-			>
-		}
-		| {
-			readonly entityType: EntityType.CosmosBlock
-			readonly selectorName: 'NetworkHeight'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.CosmosBlock,
-				'NetworkHeight'
-			>
-		}
-		| {
-			readonly entityType: EntityType.HederaBlock
-			readonly selectorName: 'NetworkBlockNumber'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.HederaBlock,
-				'NetworkBlockNumber'
-			>
-		}
-		| {
-			readonly entityType: EntityType.HyperliquidBlock
-			readonly selectorName: 'Height'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.HyperliquidBlock,
-				'Height'
-			>
-		}
-		| {
-			readonly entityType: EntityType.MoneroBlock
-			readonly selectorName: 'NetworkHeight'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.MoneroBlock,
-				'NetworkHeight'
-			>
-		}
-		| {
-			readonly entityType: EntityType.NearBlock
-			readonly selectorName: 'NetworkHeight'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.NearBlock,
-				'NetworkHeight'
-			>
-		}
-		| {
-			readonly entityType: EntityType.TronBlock
-			readonly selectorName: 'NetworkHeight'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.TronBlock,
-				'NetworkHeight'
-			>
-		}
-	)[] = []
-
-	if (
-		(
+	const evmBlockEvmNetworkBlockNumberSelectorCandidate = (() => {
+		if (!(
 			(
-				parentData.projectionNetwork.executionModels !== undefined
-				&& parentData.projectionNetwork.executionModels.some((value: string | number | boolean | null) => value === 'Evm')
+				(
+					parentData.projectionNetwork.executionModels !== undefined
+					&& parentData.projectionNetwork.executionModels.some((value: string | number | boolean | null) => value === 'Evm')
+				)
+				&& parentData.projectionNetwork.namespace === 'Evm'
 			)
-			&& parentData.projectionNetwork.namespace === 'Evm'
-		)
-		&& matchNonNegativeBigInt(params.blockNumber)
-	) {
-		const evmBlockEvmNetworkBlockNumberSelector = parseEntitySelector(
+			&& matchNonNegativeBigInt(params.blockNumber)
+		))
+			return
+
+		const evmBlockEvmNetworkBlockNumberSelector = parseRouteEntitySelector(
 			schema,
 			EvmBlockSchema,
 			{
@@ -143,25 +44,28 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			},
 			'EvmNetworkBlockNumber'
 		)
-		if (!(evmBlockEvmNetworkBlockNumberSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(evmBlockEvmNetworkBlockNumberSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.EvmBlock,
 				selectorName: 'EvmNetworkBlockNumber',
 				selector: evmBlockEvmNetworkBlockNumberSelector,
-			})
-	}
+			} as const
+	})()
 
-	if (
-		(
+	const solanaBlockSlotSelectorCandidate = (() => {
+		if (!(
 			(
-				parentData.projectionNetwork.executionModels !== undefined
-				&& parentData.projectionNetwork.executionModels.some((value: string | number | boolean | null) => value === 'SolanaRuntime')
+				(
+					parentData.projectionNetwork.executionModels !== undefined
+					&& parentData.projectionNetwork.executionModels.some((value: string | number | boolean | null) => value === 'SolanaRuntime')
+				)
+				&& parentData.projectionNetwork.namespace === 'Solana'
 			)
-			&& parentData.projectionNetwork.namespace === 'Solana'
-		)
-		&& matchNonNegativeBigInt(params.blockNumber)
-	) {
-		const solanaBlockSlotSelector = parseEntitySelector(
+			&& matchNonNegativeBigInt(params.blockNumber)
+		))
+			return
+
+		const solanaBlockSlotSelector = parseRouteEntitySelector(
 			schema,
 			SolanaBlockSchema,
 			{
@@ -170,33 +74,36 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			},
 			'Slot'
 		)
-		if (!(solanaBlockSlotSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(solanaBlockSlotSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.SolanaBlock,
 				selectorName: 'Slot',
 				selector: solanaBlockSlotSelector,
-			})
-	}
+			} as const
+	})()
 
-	if (
-		(
+	const utxoBlockNetworkHeightSelectorCandidate = (() => {
+		if (!(
 			(
-				parentData.projectionNetwork.ledgerModels !== undefined
-				&& parentData.projectionNetwork.ledgerModels.some((value: string | number | boolean | null) => value === 'Utxo')
+				(
+					parentData.projectionNetwork.ledgerModels !== undefined
+					&& parentData.projectionNetwork.ledgerModels.some((value: string | number | boolean | null) => value === 'Utxo')
+				)
+				&& [
+					'Bitcoin',
+					'BitcoinCash',
+					'Cardano',
+					'Dogecoin',
+					'Elements',
+					'Litecoin',
+					'Zcash',
+				].includes(parentData.projectionNetwork.namespace)
 			)
-			&& [
-				'Bitcoin',
-				'BitcoinCash',
-				'Cardano',
-				'Dogecoin',
-				'Elements',
-				'Litecoin',
-				'Zcash',
-			].includes(parentData.projectionNetwork.namespace)
-		)
-		&& matchNonNegativeBigInt(params.blockNumber)
-	) {
-		const utxoBlockNetworkHeightSelector = parseEntitySelector(
+			&& matchNonNegativeBigInt(params.blockNumber)
+		))
+			return
+
+		const utxoBlockNetworkHeightSelector = parseRouteEntitySelector(
 			schema,
 			UtxoBlockSchema,
 			{
@@ -205,25 +112,28 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			},
 			'NetworkHeight'
 		)
-		if (!(utxoBlockNetworkHeightSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(utxoBlockNetworkHeightSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.UtxoBlock,
 				selectorName: 'NetworkHeight',
 				selector: utxoBlockNetworkHeightSelector,
-			})
-	}
+			} as const
+	})()
 
-	if (
-		(
+	const polkadotBlockNetworkBlockNumberSelectorCandidate = (() => {
+		if (!(
 			(
-				parentData.projectionNetwork.executionModels !== undefined
-				&& parentData.projectionNetwork.executionModels.some((value: string | number | boolean | null) => value === 'PolkadotRuntime')
+				(
+					parentData.projectionNetwork.executionModels !== undefined
+					&& parentData.projectionNetwork.executionModels.some((value: string | number | boolean | null) => value === 'PolkadotRuntime')
+				)
+				&& parentData.projectionNetwork.namespace === 'Polkadot'
 			)
-			&& parentData.projectionNetwork.namespace === 'Polkadot'
-		)
-		&& matchNonNegativeBigInt(params.blockNumber)
-	) {
-		const polkadotBlockNetworkBlockNumberSelector = parseEntitySelector(
+			&& matchNonNegativeBigInt(params.blockNumber)
+		))
+			return
+
+		const polkadotBlockNetworkBlockNumberSelector = parseRouteEntitySelector(
 			schema,
 			PolkadotBlockSchema,
 			{
@@ -232,16 +142,19 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			},
 			'NetworkBlockNumber'
 		)
-		if (!(polkadotBlockNetworkBlockNumberSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(polkadotBlockNetworkBlockNumberSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.PolkadotBlock,
 				selectorName: 'NetworkBlockNumber',
 				selector: polkadotBlockNetworkBlockNumberSelector,
-			})
-	}
+			} as const
+	})()
 
-	if (parentData.projectionNetwork.namespace === 'Arweave' && matchNonNegativeBigInt(params.blockNumber)) {
-		const arweaveBlockNetworkHeightSelector = parseEntitySelector(
+	const arweaveBlockNetworkHeightSelectorCandidate = (() => {
+		if (!(parentData.projectionNetwork.namespace === 'Arweave' && matchNonNegativeBigInt(params.blockNumber)))
+			return
+
+		const arweaveBlockNetworkHeightSelector = parseRouteEntitySelector(
 			schema,
 			ArweaveBlockSchema,
 			{
@@ -252,25 +165,28 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			},
 			'NetworkHeight'
 		)
-		if (!(arweaveBlockNetworkHeightSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(arweaveBlockNetworkHeightSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.ArweaveBlock,
 				selectorName: 'NetworkHeight',
 				selector: arweaveBlockNetworkHeightSelector,
-			})
-	}
+			} as const
+	})()
 
-	if (
-		(
+	const cosmosBlockNetworkHeightSelectorCandidate = (() => {
+		if (!(
 			(
-				parentData.projectionNetwork.executionModels !== undefined
-				&& parentData.projectionNetwork.executionModels.some((value: string | number | boolean | null) => value === 'CosmosSdk')
+				(
+					parentData.projectionNetwork.executionModels !== undefined
+					&& parentData.projectionNetwork.executionModels.some((value: string | number | boolean | null) => value === 'CosmosSdk')
+				)
+				&& parentData.projectionNetwork.namespace === 'Cosmos'
 			)
-			&& parentData.projectionNetwork.namespace === 'Cosmos'
-		)
-		&& matchNonNegativeBigInt(params.blockNumber)
-	) {
-		const cosmosBlockNetworkHeightSelector = parseEntitySelector(
+			&& matchNonNegativeBigInt(params.blockNumber)
+		))
+			return
+
+		const cosmosBlockNetworkHeightSelector = parseRouteEntitySelector(
 			schema,
 			CosmosBlockSchema,
 			{
@@ -279,16 +195,19 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			},
 			'NetworkHeight'
 		)
-		if (!(cosmosBlockNetworkHeightSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(cosmosBlockNetworkHeightSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.CosmosBlock,
 				selectorName: 'NetworkHeight',
 				selector: cosmosBlockNetworkHeightSelector,
-			})
-	}
+			} as const
+	})()
 
-	if (parentData.projectionNetwork.namespace === 'Hedera' && matchNonNegativeBigInt(params.blockNumber)) {
-		const hederaBlockNetworkBlockNumberSelector = parseEntitySelector(
+	const hederaBlockNetworkBlockNumberSelectorCandidate = (() => {
+		if (!(parentData.projectionNetwork.namespace === 'Hedera' && matchNonNegativeBigInt(params.blockNumber)))
+			return
+
+		const hederaBlockNetworkBlockNumberSelector = parseRouteEntitySelector(
 			schema,
 			HederaBlockSchema,
 			{
@@ -297,16 +216,19 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			},
 			'NetworkBlockNumber'
 		)
-		if (!(hederaBlockNetworkBlockNumberSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(hederaBlockNetworkBlockNumberSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.HederaBlock,
 				selectorName: 'NetworkBlockNumber',
 				selector: hederaBlockNetworkBlockNumberSelector,
-			})
-	}
+			} as const
+	})()
 
-	if (parentData.projectionNetwork.namespace === 'Hyperliquid' && matchNonNegativeBigInt(params.blockNumber)) {
-		const hyperliquidBlockHeightSelector = parseEntitySelector(
+	const hyperliquidBlockHeightSelectorCandidate = (() => {
+		if (!(parentData.projectionNetwork.namespace === 'Hyperliquid' && matchNonNegativeBigInt(params.blockNumber)))
+			return
+
+		const hyperliquidBlockHeightSelector = parseRouteEntitySelector(
 			schema,
 			HyperliquidBlockSchema,
 			{
@@ -315,16 +237,19 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			},
 			'Height'
 		)
-		if (!(hyperliquidBlockHeightSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(hyperliquidBlockHeightSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.HyperliquidBlock,
 				selectorName: 'Height',
 				selector: hyperliquidBlockHeightSelector,
-			})
-	}
+			} as const
+	})()
 
-	if (parentData.projectionNetwork.namespace === 'Monero' && matchNonNegativeBigInt(params.blockNumber)) {
-		const moneroBlockNetworkHeightSelector = parseEntitySelector(
+	const moneroBlockNetworkHeightSelectorCandidate = (() => {
+		if (!(parentData.projectionNetwork.namespace === 'Monero' && matchNonNegativeBigInt(params.blockNumber)))
+			return
+
+		const moneroBlockNetworkHeightSelector = parseRouteEntitySelector(
 			schema,
 			MoneroBlockSchema,
 			{
@@ -333,16 +258,19 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			},
 			'NetworkHeight'
 		)
-		if (!(moneroBlockNetworkHeightSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(moneroBlockNetworkHeightSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.MoneroBlock,
 				selectorName: 'NetworkHeight',
 				selector: moneroBlockNetworkHeightSelector,
-			})
-	}
+			} as const
+	})()
 
-	if (parentData.projectionNetwork.namespace === 'Near' && matchNonNegativeBigInt(params.blockNumber)) {
-		const nearBlockNetworkHeightSelector = parseEntitySelector(
+	const nearBlockNetworkHeightSelectorCandidate = (() => {
+		if (!(parentData.projectionNetwork.namespace === 'Near' && matchNonNegativeBigInt(params.blockNumber)))
+			return
+
+		const nearBlockNetworkHeightSelector = parseRouteEntitySelector(
 			schema,
 			NearBlockSchema,
 			{
@@ -351,16 +279,19 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			},
 			'NetworkHeight'
 		)
-		if (!(nearBlockNetworkHeightSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(nearBlockNetworkHeightSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.NearBlock,
 				selectorName: 'NetworkHeight',
 				selector: nearBlockNetworkHeightSelector,
-			})
-	}
+			} as const
+	})()
 
-	if (parentData.projectionNetwork.namespace === 'Tron' && matchNonNegativeBigInt(params.blockNumber)) {
-		const tronBlockNetworkHeightSelector = parseEntitySelector(
+	const tronBlockNetworkHeightSelectorCandidate = (() => {
+		if (!(parentData.projectionNetwork.namespace === 'Tron' && matchNonNegativeBigInt(params.blockNumber)))
+			return
+
+		const tronBlockNetworkHeightSelector = parseRouteEntitySelector(
 			schema,
 			TronBlockSchema,
 			{
@@ -369,13 +300,27 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			},
 			'NetworkHeight'
 		)
-		if (!(tronBlockNetworkHeightSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(tronBlockNetworkHeightSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.TronBlock,
 				selectorName: 'NetworkHeight',
 				selector: tronBlockNetworkHeightSelector,
-			})
-	}
+			} as const
+	})()
+
+	const routeCandidates = [
+		evmBlockEvmNetworkBlockNumberSelectorCandidate,
+		solanaBlockSlotSelectorCandidate,
+		utxoBlockNetworkHeightSelectorCandidate,
+		polkadotBlockNetworkBlockNumberSelectorCandidate,
+		arweaveBlockNetworkHeightSelectorCandidate,
+		cosmosBlockNetworkHeightSelectorCandidate,
+		hederaBlockNetworkBlockNumberSelectorCandidate,
+		hyperliquidBlockHeightSelectorCandidate,
+		moneroBlockNetworkHeightSelectorCandidate,
+		nearBlockNetworkHeightSelectorCandidate,
+		tronBlockNetworkHeightSelectorCandidate,
+	].filter((candidate) => candidate != null)
 
 	if (routeCandidates.length === 0)
 		error(404, 'Route selector not applicable')

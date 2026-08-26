@@ -3,7 +3,7 @@
 import type { LayoutLoad } from './$types'
 import { error } from '@sveltejs/kit'
 import { match as matchZeroExHex } from '$/params/zeroExHex.ts'
-import { parseEntitySelector } from '$/schema/$schema.ts'
+import { parseRouteEntitySelector } from '$/schema/$schema.ts'
 import AlgorandTealProgramSchema from '$/schema/AlgorandTealProgram.ts'
 import { schema } from '$/schema/index.ts'
 import { type as arktype } from 'arktype'
@@ -15,7 +15,7 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 	if (!(parentData.projectionNetwork.namespace === 'Algorand' && matchZeroExHex(params.programHash)))
 		error(404, 'Route mapping not applicable')
 
-	const algorandTealProgramNetworkProgramHashSelector = parseEntitySelector(
+	const algorandTealProgramNetworkProgramHashSelector = parseRouteEntitySelector(
 		schema,
 		AlgorandTealProgramSchema,
 		{

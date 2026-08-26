@@ -1658,6 +1658,40 @@ const persistedCollectionUtils = <
 	}
 }
 
+export const activeLoadSubsetOwner = (
+	activeLoadSubsets: ReadonlyMap<string, {
+		readonly loadSubsetOptions: ReadonlySet<LoadSubsetOptions>
+	}>,
+	key: string
+) => [...activeLoadSubsets.get(key)?.loadSubsetOptions ?? []]
+	.find((loadSubsetOptions) => loadSubsetOptions.signal?.aborted !== true)
+
+export const requireActiveLoadSubsetOwner = (
+	activeLoadSubsets: ReadonlyMap<string, {
+		readonly loadSubsetOptions: ReadonlySet<LoadSubsetOptions>
+	}>,
+	key: string
+) => {
+	const loadSubsetOptions = activeLoadSubsetOwner(activeLoadSubsets, key)
+	if (loadSubsetOptions === undefined)
+		throw new DOMException('The subset request was cancelled.', 'AbortError')
+
+	return loadSubsetOptions
+}
+
+export const sharedLoadSubsetOptions = (
+	activeLoadSubsets: ReadonlyMap<string, {
+		readonly loadSubsetOptions: ReadonlySet<LoadSubsetOptions>
+	}>,
+	key: string
+) => {
+	const {
+		signal: _requestSignal,
+		...sharedOptions
+	} = requireActiveLoadSubsetOwner(activeLoadSubsets, key)
+	return sharedOptions
+}
+
 const persistedCollectionSync = <
 	const _Row extends PersistedCollectionRow,
 >({
@@ -1703,18 +1737,22 @@ const persistedCollectionSync = <
 			metadata,
 		}) => {
 			const activeLoadSubsets = new Map<string, {
-				count: number
-				loadSubsetOptions: LoadSubsetOptions
+				loadSubsetOptions: Set<LoadSubsetOptions>
 			}>()
 			const resolvedLoadSubsets = new Map<string, {
 				loadSubsetOptions: LoadSubsetOptions
 				sources: readonly string[]
 			}>()
 			const liveCleanupByLoadSubsetOptions = new WeakMap<LoadSubsetOptions, () => void>()
+			const activeOwner = (key: string) => activeLoadSubsetOwner(activeLoadSubsets, key)
+			const requireActiveOwner = (key: string) => requireActiveLoadSubsetOwner(activeLoadSubsets, key)
 			let latestWritePersistence = Promise.resolve()
 			setResolverSubsetLoading((selectorKey, selectedSources) => (
-				[...activeLoadSubsets].some(([key, { loadSubsetOptions }]) => {
+				[...activeLoadSubsets].some(([key]) => {
+					const loadSubsetOptions = activeOwner(key)
 					if (!inFlightLoads.has(key))
+						return false
+					if (loadSubsetOptions === undefined)
 						return false
 
 					const subset = parseResolverSubset(loadSubsetOptions)
@@ -1909,6 +1947,7 @@ const persistedCollectionSync = <
 						hydrationPlan.decision !== CollectionLoadDecision.Remote
 						&& hydrationPlan.marker !== undefined
 					) {
+						requireActiveOwner(key)
 						events.push({
 							type: ClientEventType.CollectionLoad,
 							collectionId,
@@ -1936,10 +1975,11 @@ const persistedCollectionSync = <
 							reason: hydrationPlan.missReason,
 						})
 						const loadedRows = await loadRows(
-							loadSubsetOptions,
+							sharedLoadSubsetOptions(activeLoadSubsets, key),
 							hydrationPlan.remoteSources,
 							forceRemote
 						)
+						requireActiveOwner(key)
 						const currentLocalSourceRowKeys = localAuthoritySourceRowKeys?.(
 							loadSubsetOptions,
 							collection.toArray
@@ -1991,6 +2031,7 @@ const persistedCollectionSync = <
 							))
 						)
 						const malformedRowKeys = new Set(hydratedRows.malformedRowKeys)
+						requireActiveOwner(key)
 						begin()
 						for (const row of hydratedRows.allRows)
 							if (
@@ -2088,6 +2129,7 @@ const persistedCollectionSync = <
 								await new Promise((resolve) => setTimeout(resolve, 10))
 							}
 
+						requireActiveOwner(key)
 						events.push({
 							type: ClientEventType.CollectionLoad,
 							collectionId,
@@ -2132,6 +2174,9 @@ const persistedCollectionSync = <
 						})
 						markReady()
 					} catch (error) {
+						if (activeOwner(key) === undefined)
+							throw error
+
 						events.push({
 							type: ClientEventType.CollectionLoad,
 							collectionId,
@@ -2325,8 +2370,12 @@ const persistedCollectionSync = <
 				}
 			}
 			setContinuationForRows((parentSelectorKey, sourceRowKeys, selectedSources) => {
-				const candidates = [...activeLoadSubsets].flatMap(([key, activeLoadSubset]) => {
-					const subset = parseResolverSubset(activeLoadSubset.loadSubsetOptions)
+				const candidates = [...activeLoadSubsets].flatMap(([key]) => {
+					const loadSubsetOptions = activeOwner(key)
+					if (loadSubsetOptions === undefined)
+						return []
+
+					const subset = parseResolverSubset(loadSubsetOptions)
 					if (!subset.parentSelectorKeys.includes(parentSelectorKey))
 						return []
 
@@ -2356,7 +2405,7 @@ const persistedCollectionSync = <
 
 						return [{
 							key,
-							loadSubsetOptions: activeLoadSubset.loadSubsetOptions,
+							loadSubsetOptions,
 							source,
 							continuation,
 						}]
@@ -2392,9 +2441,13 @@ const persistedCollectionSync = <
 				))
 			})
 			setRefreshRows(() => {
-				for (const [key, activeLoadSubset] of activeLoadSubsets) {
+				for (const [key] of activeLoadSubsets) {
+					const loadSubsetOptions = activeOwner(key)
+					if (loadSubsetOptions === undefined)
+						continue
+
 					staleSubsetKeys.add(key)
-					void loadSubset(activeLoadSubset.loadSubsetOptions)
+					void loadSubset(loadSubsetOptions)
 				}
 			})
 			return {
@@ -2402,10 +2455,12 @@ const persistedCollectionSync = <
 					if (!liveCleanupByLoadSubsetOptions.has(loadSubsetOptions)) {
 						const key = loadedKey(loadSubsetOptions)
 						const activeLoadSubset = activeLoadSubsets.get(key)
-						activeLoadSubsets.set(key, {
-							count: (activeLoadSubset?.count ?? 0) + 1,
-							loadSubsetOptions,
-						})
+						if (activeLoadSubset === undefined)
+							activeLoadSubsets.set(key, {
+								loadSubsetOptions: new Set([loadSubsetOptions]),
+							})
+						else
+							activeLoadSubset.loadSubsetOptions.add(loadSubsetOptions)
 						liveCleanupByLoadSubsetOptions.set(
 							loadSubsetOptions,
 							mountLive?.(loadSubsetOptions) ?? (() => {})
@@ -2419,16 +2474,13 @@ const persistedCollectionSync = <
 					liveCleanupByLoadSubsetOptions.delete(loadSubsetOptions)
 					const key = loadedKey(loadSubsetOptions)
 					const activeLoadSubset = activeLoadSubsets.get(key)
-					if (activeLoadSubset == null || activeLoadSubset.count === 1) {
+					activeLoadSubset?.loadSubsetOptions.delete(loadSubsetOptions)
+					if (activeLoadSubset == null || activeLoadSubset.loadSubsetOptions.size === 0) {
 						activeLoadSubsets.delete(key)
 						for (const [appendKey, abortController] of inFlightAppendAbortControllerByKey)
 							if (appendKey.startsWith(`append:${key}:`))
 								abortController.abort()
-					} else
-						activeLoadSubsets.set(key, {
-							...activeLoadSubset,
-							count: activeLoadSubset.count - 1,
-						})
+					}
 				},
 			}
 		},
@@ -2488,7 +2540,7 @@ const resolverSnapshot = async <
 	const resolve = resolver.resolve[selectorName]
 	if (resolve == null)
 		return undefined
-	return context.queryClient.fetchQuery({
+	return context.queryClient.query({
 		queryKey: [
 			'client',
 			'resolverSnapshot',

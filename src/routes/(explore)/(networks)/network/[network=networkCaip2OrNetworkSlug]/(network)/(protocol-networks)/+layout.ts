@@ -2,7 +2,7 @@
 
 import type { LayoutLoad } from './$types'
 import { error } from '@sveltejs/kit'
-import { parseEntitySelector, type EntitySelectorForSelectorName } from '$/schema/$schema.ts'
+import { parseRouteEntitySelector } from '$/schema/$schema.ts'
 import AptosNetworkSchema from '$/schema/AptosNetwork.ts'
 import ArweaveNetworkSchema from '$/schema/ArweaveNetwork.ts'
 import AvailNetworkSchema from '$/schema/AvailNetwork.ts'
@@ -27,164 +27,11 @@ import { type as arktype } from 'arktype'
 export const load: LayoutLoad = async ({ params, parent }) => {
 	const parentData = await parent()
 
-	const routeCandidates: (
-		| {
-			readonly entityType: EntityType.AptosNetwork
-			readonly selectorName: 'Network'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.AptosNetwork,
-				'Network'
-			>
-		}
-		| {
-			readonly entityType: EntityType.ArweaveNetwork
-			readonly selectorName: 'Network'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.ArweaveNetwork,
-				'Network'
-			>
-		}
-		| {
-			readonly entityType: EntityType.AvailNetwork
-			readonly selectorName: 'Network'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.AvailNetwork,
-				'Network'
-			>
-		}
-		| {
-			readonly entityType: EntityType.BittensorNetwork
-			readonly selectorName: 'Network'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.BittensorNetwork,
-				'Network'
-			>
-		}
-		| {
-			readonly entityType: EntityType.CelestiaNetwork
-			readonly selectorName: 'Network'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.CelestiaNetwork,
-				'Network'
-			>
-		}
-		| {
-			readonly entityType: EntityType.DydxChainNetwork
-			readonly selectorName: 'Network'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.DydxChainNetwork,
-				'Network'
-			>
-		}
-		| {
-			readonly entityType: EntityType.FilecoinNetwork
-			readonly selectorName: 'Network'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.FilecoinNetwork,
-				'Network'
-			>
-		}
-		| {
-			readonly entityType: EntityType.HyperliquidNetwork
-			readonly selectorName: 'Network'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.HyperliquidNetwork,
-				'Network'
-			>
-		}
-		| {
-			readonly entityType: EntityType.LightningNetwork
-			readonly selectorName: 'Network'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.LightningNetwork,
-				'Network'
-			>
-		}
-		| {
-			readonly entityType: EntityType.MoneroNetwork
-			readonly selectorName: 'Network'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.MoneroNetwork,
-				'Network'
-			>
-		}
-		| {
-			readonly entityType: EntityType.StarknetNetwork
-			readonly selectorName: 'Network'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.StarknetNetwork,
-				'Network'
-			>
-		}
-		| {
-			readonly entityType: EntityType.IcpNetwork
-			readonly selectorName: 'Network'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.IcpNetwork,
-				'Network'
-			>
-		}
-		| {
-			readonly entityType: EntityType.KaspaNetwork
-			readonly selectorName: 'Network'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.KaspaNetwork,
-				'Network'
-			>
-		}
-		| {
-			readonly entityType: EntityType.LogosBlockchainNetwork
-			readonly selectorName: 'Network'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.LogosBlockchainNetwork,
-				'Network'
-			>
-		}
-		| {
-			readonly entityType: EntityType.StellarNetwork
-			readonly selectorName: 'Network'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.StellarNetwork,
-				'Network'
-			>
-		}
-		| {
-			readonly entityType: EntityType.SuiNetwork
-			readonly selectorName: 'Network'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.SuiNetwork,
-				'Network'
-			>
-		}
-		| {
-			readonly entityType: EntityType.TezosNetwork
-			readonly selectorName: 'Network'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.TezosNetwork,
-				'Network'
-			>
-		}
-	)[] = []
+	const aptosNetworkNetworkSelectorCandidate = (() => {
+		if (!(parentData.projectionNetwork.namespace === 'Aptos'))
+			return
 
-	if (parentData.projectionNetwork.namespace === 'Aptos') {
-		const aptosNetworkNetworkSelector = parseEntitySelector(
+		const aptosNetworkNetworkSelector = parseRouteEntitySelector(
 			schema,
 			AptosNetworkSchema,
 			{
@@ -192,16 +39,19 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			},
 			'Network'
 		)
-		if (!(aptosNetworkNetworkSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(aptosNetworkNetworkSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.AptosNetwork,
 				selectorName: 'Network',
 				selector: aptosNetworkNetworkSelector,
-			})
-	}
+			} as const
+	})()
 
-	if (parentData.projectionNetwork.namespace === 'Arweave') {
-		const arweaveNetworkNetworkSelector = parseEntitySelector(
+	const arweaveNetworkNetworkSelectorCandidate = (() => {
+		if (!(parentData.projectionNetwork.namespace === 'Arweave'))
+			return
+
+		const arweaveNetworkNetworkSelector = parseRouteEntitySelector(
 			schema,
 			ArweaveNetworkSchema,
 			{
@@ -209,16 +59,19 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			},
 			'Network'
 		)
-		if (!(arweaveNetworkNetworkSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(arweaveNetworkNetworkSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.ArweaveNetwork,
 				selectorName: 'Network',
 				selector: arweaveNetworkNetworkSelector,
-			})
-	}
+			} as const
+	})()
 
-	if (parentData.projectionNetwork.namespace === 'Avail') {
-		const availNetworkNetworkSelector = parseEntitySelector(
+	const availNetworkNetworkSelectorCandidate = (() => {
+		if (!(parentData.projectionNetwork.namespace === 'Avail'))
+			return
+
+		const availNetworkNetworkSelector = parseRouteEntitySelector(
 			schema,
 			AvailNetworkSchema,
 			{
@@ -226,16 +79,19 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			},
 			'Network'
 		)
-		if (!(availNetworkNetworkSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(availNetworkNetworkSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.AvailNetwork,
 				selectorName: 'Network',
 				selector: availNetworkNetworkSelector,
-			})
-	}
+			} as const
+	})()
 
-	if (parentData.projectionNetwork.namespace === 'Bittensor') {
-		const bittensorNetworkNetworkSelector = parseEntitySelector(
+	const bittensorNetworkNetworkSelectorCandidate = (() => {
+		if (!(parentData.projectionNetwork.namespace === 'Bittensor'))
+			return
+
+		const bittensorNetworkNetworkSelector = parseRouteEntitySelector(
 			schema,
 			BittensorNetworkSchema,
 			{
@@ -243,16 +99,19 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			},
 			'Network'
 		)
-		if (!(bittensorNetworkNetworkSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(bittensorNetworkNetworkSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.BittensorNetwork,
 				selectorName: 'Network',
 				selector: bittensorNetworkNetworkSelector,
-			})
-	}
+			} as const
+	})()
 
-	if (parentData.projectionNetwork.namespace === 'Celestia') {
-		const celestiaNetworkNetworkSelector = parseEntitySelector(
+	const celestiaNetworkNetworkSelectorCandidate = (() => {
+		if (!(parentData.projectionNetwork.namespace === 'Celestia'))
+			return
+
+		const celestiaNetworkNetworkSelector = parseRouteEntitySelector(
 			schema,
 			CelestiaNetworkSchema,
 			{
@@ -260,16 +119,19 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			},
 			'Network'
 		)
-		if (!(celestiaNetworkNetworkSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(celestiaNetworkNetworkSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.CelestiaNetwork,
 				selectorName: 'Network',
 				selector: celestiaNetworkNetworkSelector,
-			})
-	}
+			} as const
+	})()
 
-	if (parentData.projectionNetwork.namespace === 'Dydx') {
-		const dydxChainNetworkNetworkSelector = parseEntitySelector(
+	const dydxChainNetworkNetworkSelectorCandidate = (() => {
+		if (!(parentData.projectionNetwork.namespace === 'Dydx'))
+			return
+
+		const dydxChainNetworkNetworkSelector = parseRouteEntitySelector(
 			schema,
 			DydxChainNetworkSchema,
 			{
@@ -277,16 +139,19 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			},
 			'Network'
 		)
-		if (!(dydxChainNetworkNetworkSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(dydxChainNetworkNetworkSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.DydxChainNetwork,
 				selectorName: 'Network',
 				selector: dydxChainNetworkNetworkSelector,
-			})
-	}
+			} as const
+	})()
 
-	if (parentData.projectionNetwork.namespace === 'Filecoin') {
-		const filecoinNetworkNetworkSelector = parseEntitySelector(
+	const filecoinNetworkNetworkSelectorCandidate = (() => {
+		if (!(parentData.projectionNetwork.namespace === 'Filecoin'))
+			return
+
+		const filecoinNetworkNetworkSelector = parseRouteEntitySelector(
 			schema,
 			FilecoinNetworkSchema,
 			{
@@ -294,16 +159,19 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			},
 			'Network'
 		)
-		if (!(filecoinNetworkNetworkSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(filecoinNetworkNetworkSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.FilecoinNetwork,
 				selectorName: 'Network',
 				selector: filecoinNetworkNetworkSelector,
-			})
-	}
+			} as const
+	})()
 
-	if (parentData.projectionNetwork.namespace === 'Hyperliquid') {
-		const hyperliquidNetworkNetworkSelector = parseEntitySelector(
+	const hyperliquidNetworkNetworkSelectorCandidate = (() => {
+		if (!(parentData.projectionNetwork.namespace === 'Hyperliquid'))
+			return
+
+		const hyperliquidNetworkNetworkSelector = parseRouteEntitySelector(
 			schema,
 			HyperliquidNetworkSchema,
 			{
@@ -311,16 +179,19 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			},
 			'Network'
 		)
-		if (!(hyperliquidNetworkNetworkSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(hyperliquidNetworkNetworkSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.HyperliquidNetwork,
 				selectorName: 'Network',
 				selector: hyperliquidNetworkNetworkSelector,
-			})
-	}
+			} as const
+	})()
 
-	if (parentData.projectionNetwork.namespace === 'Lightning') {
-		const lightningNetworkNetworkSelector = parseEntitySelector(
+	const lightningNetworkNetworkSelectorCandidate = (() => {
+		if (!(parentData.projectionNetwork.namespace === 'Lightning'))
+			return
+
+		const lightningNetworkNetworkSelector = parseRouteEntitySelector(
 			schema,
 			LightningNetworkSchema,
 			{
@@ -328,16 +199,19 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			},
 			'Network'
 		)
-		if (!(lightningNetworkNetworkSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(lightningNetworkNetworkSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.LightningNetwork,
 				selectorName: 'Network',
 				selector: lightningNetworkNetworkSelector,
-			})
-	}
+			} as const
+	})()
 
-	if (parentData.projectionNetwork.namespace === 'Monero') {
-		const moneroNetworkNetworkSelector = parseEntitySelector(
+	const moneroNetworkNetworkSelectorCandidate = (() => {
+		if (!(parentData.projectionNetwork.namespace === 'Monero'))
+			return
+
+		const moneroNetworkNetworkSelector = parseRouteEntitySelector(
 			schema,
 			MoneroNetworkSchema,
 			{
@@ -345,16 +219,19 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			},
 			'Network'
 		)
-		if (!(moneroNetworkNetworkSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(moneroNetworkNetworkSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.MoneroNetwork,
 				selectorName: 'Network',
 				selector: moneroNetworkNetworkSelector,
-			})
-	}
+			} as const
+	})()
 
-	if (parentData.projectionNetwork.namespace === 'Starknet') {
-		const starknetNetworkNetworkSelector = parseEntitySelector(
+	const starknetNetworkNetworkSelectorCandidate = (() => {
+		if (!(parentData.projectionNetwork.namespace === 'Starknet'))
+			return
+
+		const starknetNetworkNetworkSelector = parseRouteEntitySelector(
 			schema,
 			StarknetNetworkSchema,
 			{
@@ -362,16 +239,19 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			},
 			'Network'
 		)
-		if (!(starknetNetworkNetworkSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(starknetNetworkNetworkSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.StarknetNetwork,
 				selectorName: 'Network',
 				selector: starknetNetworkNetworkSelector,
-			})
-	}
+			} as const
+	})()
 
-	if (parentData.projectionNetwork.namespace === 'InternetComputer') {
-		const icpNetworkNetworkSelector = parseEntitySelector(
+	const icpNetworkNetworkSelectorCandidate = (() => {
+		if (!(parentData.projectionNetwork.namespace === 'InternetComputer'))
+			return
+
+		const icpNetworkNetworkSelector = parseRouteEntitySelector(
 			schema,
 			IcpNetworkSchema,
 			{
@@ -379,16 +259,19 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			},
 			'Network'
 		)
-		if (!(icpNetworkNetworkSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(icpNetworkNetworkSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.IcpNetwork,
 				selectorName: 'Network',
 				selector: icpNetworkNetworkSelector,
-			})
-	}
+			} as const
+	})()
 
-	if (parentData.projectionNetwork.namespace === 'Kaspa') {
-		const kaspaNetworkNetworkSelector = parseEntitySelector(
+	const kaspaNetworkNetworkSelectorCandidate = (() => {
+		if (!(parentData.projectionNetwork.namespace === 'Kaspa'))
+			return
+
+		const kaspaNetworkNetworkSelector = parseRouteEntitySelector(
 			schema,
 			KaspaNetworkSchema,
 			{
@@ -396,16 +279,19 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			},
 			'Network'
 		)
-		if (!(kaspaNetworkNetworkSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(kaspaNetworkNetworkSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.KaspaNetwork,
 				selectorName: 'Network',
 				selector: kaspaNetworkNetworkSelector,
-			})
-	}
+			} as const
+	})()
 
-	if (parentData.projectionNetwork.namespace === 'Logos') {
-		const logosBlockchainNetworkNetworkSelector = parseEntitySelector(
+	const logosBlockchainNetworkNetworkSelectorCandidate = (() => {
+		if (!(parentData.projectionNetwork.namespace === 'Logos'))
+			return
+
+		const logosBlockchainNetworkNetworkSelector = parseRouteEntitySelector(
 			schema,
 			LogosBlockchainNetworkSchema,
 			{
@@ -413,16 +299,19 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			},
 			'Network'
 		)
-		if (!(logosBlockchainNetworkNetworkSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(logosBlockchainNetworkNetworkSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.LogosBlockchainNetwork,
 				selectorName: 'Network',
 				selector: logosBlockchainNetworkNetworkSelector,
-			})
-	}
+			} as const
+	})()
 
-	if (parentData.projectionNetwork.namespace === 'Stellar') {
-		const stellarNetworkNetworkSelector = parseEntitySelector(
+	const stellarNetworkNetworkSelectorCandidate = (() => {
+		if (!(parentData.projectionNetwork.namespace === 'Stellar'))
+			return
+
+		const stellarNetworkNetworkSelector = parseRouteEntitySelector(
 			schema,
 			StellarNetworkSchema,
 			{
@@ -430,16 +319,19 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			},
 			'Network'
 		)
-		if (!(stellarNetworkNetworkSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(stellarNetworkNetworkSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.StellarNetwork,
 				selectorName: 'Network',
 				selector: stellarNetworkNetworkSelector,
-			})
-	}
+			} as const
+	})()
 
-	if (parentData.projectionNetwork.namespace === 'Sui') {
-		const suiNetworkNetworkSelector = parseEntitySelector(
+	const suiNetworkNetworkSelectorCandidate = (() => {
+		if (!(parentData.projectionNetwork.namespace === 'Sui'))
+			return
+
+		const suiNetworkNetworkSelector = parseRouteEntitySelector(
 			schema,
 			SuiNetworkSchema,
 			{
@@ -447,16 +339,19 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			},
 			'Network'
 		)
-		if (!(suiNetworkNetworkSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(suiNetworkNetworkSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.SuiNetwork,
 				selectorName: 'Network',
 				selector: suiNetworkNetworkSelector,
-			})
-	}
+			} as const
+	})()
 
-	if (parentData.projectionNetwork.namespace === 'Tezos') {
-		const tezosNetworkNetworkSelector = parseEntitySelector(
+	const tezosNetworkNetworkSelectorCandidate = (() => {
+		if (!(parentData.projectionNetwork.namespace === 'Tezos'))
+			return
+
+		const tezosNetworkNetworkSelector = parseRouteEntitySelector(
 			schema,
 			TezosNetworkSchema,
 			{
@@ -464,13 +359,33 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			},
 			'Network'
 		)
-		if (!(tezosNetworkNetworkSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(tezosNetworkNetworkSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.TezosNetwork,
 				selectorName: 'Network',
 				selector: tezosNetworkNetworkSelector,
-			})
-	}
+			} as const
+	})()
+
+	const routeCandidates = [
+		aptosNetworkNetworkSelectorCandidate,
+		arweaveNetworkNetworkSelectorCandidate,
+		availNetworkNetworkSelectorCandidate,
+		bittensorNetworkNetworkSelectorCandidate,
+		celestiaNetworkNetworkSelectorCandidate,
+		dydxChainNetworkNetworkSelectorCandidate,
+		filecoinNetworkNetworkSelectorCandidate,
+		hyperliquidNetworkNetworkSelectorCandidate,
+		lightningNetworkNetworkSelectorCandidate,
+		moneroNetworkNetworkSelectorCandidate,
+		starknetNetworkNetworkSelectorCandidate,
+		icpNetworkNetworkSelectorCandidate,
+		kaspaNetworkNetworkSelectorCandidate,
+		logosBlockchainNetworkNetworkSelectorCandidate,
+		stellarNetworkNetworkSelectorCandidate,
+		suiNetworkNetworkSelectorCandidate,
+		tezosNetworkNetworkSelectorCandidate,
+	].filter((candidate) => candidate != null)
 
 	if (routeCandidates.length === 0)
 		error(404, 'Route selector not applicable')

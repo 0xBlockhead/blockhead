@@ -5,45 +5,54 @@ export const e2eProbeVitePlugin = () => ({
 	name: 'blockhead-e2e-probe',
 	enforce: 'pre',
 	transform: (source, id) => {
-		if (!id.endsWith('/src/routes/+layout.svelte'))
-			return
+		if (id.endsWith('/src/lib/db/browserPersistenceSingleton.ts')) {
+			for (const expected of [
+				"import { BrowserPersistenceRuntime } from './browserPersistenceRuntime.ts'\n",
+				'\t\tname: BLOCKHEAD_WA_SQLITE_DATABASE_NAME,',
+				'\t\t\tconst database = await openBrowserWASQLiteOPFSDatabase({\n\t\t\t\tdatabaseName: BLOCKHEAD_WA_SQLITE_DATABASE_NAME,\n\t\t\t})',
+			]) {
+				if (!source.includes(expected))
+					throw new Error(`E2E probe injection anchor missing from src/lib/db/browserPersistenceSingleton.ts: ${expected}`)
+			}
 
-		for (const expected of [
-			"\t} from '$/client/$client.svelte.ts'\n",
-			'\t\tname: BLOCKHEAD_WA_SQLITE_DATABASE_NAME,',
-			'\t\t\tconst database = await openBrowserWASQLiteOPFSDatabase({\n\t\t\t\tdatabaseName: BLOCKHEAD_WA_SQLITE_DATABASE_NAME,\n\t\t\t})',
-			"\t\t\t\tpersistence: createBrowserWASQLitePersistence({\n\t\t\t\t\tdatabase,\n\t\t\t\t\tschemaMismatchPolicy: 'throw',\n\t\t\t\t}),",
-			'\t\t\t\tschemaVersion: BLOCKHEAD_PERSISTED_COLLECTION_SCHEMA_VERSION,',
-			'\t\treturn appClient',
-		]) {
-			if (!source.includes(expected))
-				throw new Error(`E2E probe injection anchor missing from src/routes/+layout.svelte: ${expected}`)
+			return source
+				.replace(
+					"import { BrowserPersistenceRuntime } from './browserPersistenceRuntime.ts'\n",
+					"import { BrowserPersistenceRuntime } from './browserPersistenceRuntime.ts'\nimport {\n\te2eDatabaseName,\n\te2eVfsName,\n\topenBlockheadBrowserDatabase,\n} from '/tests/e2e/$e2eDatabaseRuntime.ts'\n"
+				)
+				.replace(
+					'\t\tname: BLOCKHEAD_WA_SQLITE_DATABASE_NAME,',
+					'\t\tname: e2eDatabaseName(BLOCKHEAD_WA_SQLITE_DATABASE_NAME),'
+				)
+				.replace(
+					'\t\t\tconst database = await openBrowserWASQLiteOPFSDatabase({\n\t\t\t\tdatabaseName: BLOCKHEAD_WA_SQLITE_DATABASE_NAME,\n\t\t\t})',
+					'\t\t\tconst database = await openBlockheadBrowserDatabase({\n\t\t\t\tdatabaseName: e2eDatabaseName(BLOCKHEAD_WA_SQLITE_DATABASE_NAME),\n\t\t\t\tvfsName: e2eVfsName(),\n\t\t\t})'
+				)
 		}
 
-		return source
-			.replace(
-				"\t} from '$/client/$client.svelte.ts'\n",
-				"\t} from '$/client/$client.svelte.ts'\n\timport {\n\t\tcreateE2EClientInstrumentation,\n\t\te2eDatabaseName,\n\t\te2eSchemaVersion,\n\t\te2eVfsName,\n\t\tinstallAppClientProbe,\n\t\topenBlockheadBrowserDatabase,\n\t} from '/tests/e2e/$e2eProbe.ts'\n"
-			)
-			.replace(
-				'\t\tname: BLOCKHEAD_WA_SQLITE_DATABASE_NAME,',
-				'\t\tname: e2eDatabaseName(BLOCKHEAD_WA_SQLITE_DATABASE_NAME),'
-			)
-			.replace(
-				'\t\t\tconst database = await openBrowserWASQLiteOPFSDatabase({\n\t\t\t\tdatabaseName: BLOCKHEAD_WA_SQLITE_DATABASE_NAME,\n\t\t\t})',
-				'\t\t\tconst database = await openBlockheadBrowserDatabase({\n\t\t\t\tdatabaseName: e2eDatabaseName(BLOCKHEAD_WA_SQLITE_DATABASE_NAME),\n\t\t\t\tvfsName: e2eVfsName(),\n\t\t\t})'
-			)
-			.replace(
-				"\t\t\t\tpersistence: createBrowserWASQLitePersistence({\n\t\t\t\t\tdatabase,\n\t\t\t\t\tschemaMismatchPolicy: 'throw',\n\t\t\t\t}),",
-				"\t\t\t\tpersistence: createE2EClientInstrumentation(\n\t\t\t\t\tcreateBrowserWASQLitePersistence({\n\t\t\t\t\t\tdatabase,\n\t\t\t\t\t\tschemaMismatchPolicy: 'throw',\n\t\t\t\t\t})\n\t\t\t\t).persistence,"
-			)
-			.replace(
-				'\t\t\t\tschemaVersion: BLOCKHEAD_PERSISTED_COLLECTION_SCHEMA_VERSION,',
-				'\t\t\t\tschemaVersion: e2eSchemaVersion(BLOCKHEAD_PERSISTED_COLLECTION_SCHEMA_VERSION),'
-			)
-			.replace(
-				'\t\treturn appClient',
-				'\t\tinstallAppClientProbe(appClient)\n\n\t\treturn appClient'
-			)
+		if (id.endsWith('/src/routes/applicationClientBootstrap.ts')) {
+			for (const expected of [
+				"} from '$/client/$client.svelte.ts'\n",
+				'\t\t\tpersistence,\n\t\t\tschemaVersion: BLOCKHEAD_PERSISTED_COLLECTION_SCHEMA_VERSION,',
+				'\t\t\tschemaVersion: BLOCKHEAD_PERSISTED_COLLECTION_SCHEMA_VERSION,',
+				'\treturn client(',
+				'\t)\n}',
+			]) {
+				if (!source.includes(expected))
+					throw new Error(`E2E probe injection anchor missing from src/routes/applicationClientBootstrap.ts: ${expected}`)
+			}
+
+			return source
+				.replace(
+					"} from '$/client/$client.svelte.ts'\n",
+					"} from '$/client/$client.svelte.ts'\nimport {\n\tcreateE2EClientInstrumentation,\n\te2eSchemaVersion,\n\tinstallAppClientProbe,\n} from '/tests/e2e/$e2eProbe.ts'\n"
+				)
+				.replace(
+					'\t\t\tpersistence,\n\t\t\tschemaVersion: BLOCKHEAD_PERSISTED_COLLECTION_SCHEMA_VERSION,',
+					'\t\t\tpersistence: createE2EClientInstrumentation(persistence).persistence,\n\t\t\tschemaVersion: e2eSchemaVersion(BLOCKHEAD_PERSISTED_COLLECTION_SCHEMA_VERSION),'
+				)
+				.replace('\treturn client(', '\tconst appClient = client(')
+				.replace('\t)\n}', '\t)\n\tinstallAppClientProbe(appClient)\n\n\treturn appClient\n}')
+		}
 	},
 }) satisfies Plugin

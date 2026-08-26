@@ -12,7 +12,8 @@
 		type SvelteKitResource,
 		TanStackLiveQueryResource,
 	} from '$/lib/db/queryResource.svelte.ts'
-	import { select } from '$/routes/+layout.svelte'
+	import { getAppClient } from '$/routes/applicationClient.ts'
+	const select = getAppClient().select
 
 	let cachedBoundaryOpen = $state(
 		true

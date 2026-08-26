@@ -6,7 +6,7 @@ import { match as matchEvmAddress } from '$/params/evmAddress.ts'
 import { match as matchPolkadotAccountId } from '$/params/polkadotAccountId.ts'
 import { match as matchSolanaPubkey } from '$/params/solanaPubkey.ts'
 import { match as matchStringSegment } from '$/params/stringSegment.ts'
-import { parseEntitySelector, type EntitySelectorForSelectorName } from '$/schema/$schema.ts'
+import { parseRouteEntitySelector } from '$/schema/$schema.ts'
 import AptosAccountSchema from '$/schema/AptosAccount.ts'
 import CosmosAccountSchema from '$/schema/CosmosAccount.ts'
 import { EntityType } from '$/schema/EntityType.ts'
@@ -27,128 +27,11 @@ import { type as arktype } from 'arktype'
 export const load: LayoutLoad = async ({ params, parent }) => {
 	const parentData = await parent()
 
-	const routeCandidates: (
-		| {
-			readonly entityType: EntityType.AptosAccount
-			readonly selectorName: 'NetworkAddress'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.AptosAccount,
-				'NetworkAddress'
-			>
-		}
-		| {
-			readonly entityType: EntityType.PolkadotAccount
-			readonly selectorName: 'NetworkAccountId'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.PolkadotAccount,
-				'NetworkAccountId'
-			>
-		}
-		| {
-			readonly entityType: EntityType.CosmosAccount
-			readonly selectorName: 'NetworkAddress'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.CosmosAccount,
-				'NetworkAddress'
-			>
-		}
-		| {
-			readonly entityType: EntityType.HederaAccount
-			readonly selectorName: 'NetworkAccountId'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.HederaAccount,
-				'NetworkAccountId'
-			>
-		}
-		| {
-			readonly entityType: EntityType.EvmNetworkAccount
-			readonly selectorName: 'EvmNetworkEvmAccount'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.EvmNetworkAccount,
-				'EvmNetworkEvmAccount'
-			>
-		}
-		| {
-			readonly entityType: EntityType.SolanaAccount
-			readonly selectorName: 'NetworkPubkey'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.SolanaAccount,
-				'NetworkPubkey'
-			>
-		}
-		| {
-			readonly entityType: EntityType.StarknetContract
-			readonly selectorName: 'NetworkAddress'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.StarknetContract,
-				'NetworkAddress'
-			>
-		}
-		| {
-			readonly entityType: EntityType.TronAccount
-			readonly selectorName: 'NetworkAddress'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.TronAccount,
-				'NetworkAddress'
-			>
-		}
-		| {
-			readonly entityType: EntityType.TonAccount
-			readonly selectorName: 'NetworkAddress'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.TonAccount,
-				'NetworkAddress'
-			>
-		}
-		| {
-			readonly entityType: EntityType.XrplAccount
-			readonly selectorName: 'NetworkAccount'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.XrplAccount,
-				'NetworkAccount'
-			>
-		}
-		| {
-			readonly entityType: EntityType.NearAccount
-			readonly selectorName: 'NetworkAccountId'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.NearAccount,
-				'NetworkAccountId'
-			>
-		}
-		| {
-			readonly entityType: EntityType.HyperliquidAccount
-			readonly selectorName: 'NetworkAddress'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.HyperliquidAccount,
-				'NetworkAddress'
-			>
-		}
-		| {
-			readonly entityType: EntityType.QuilibriumAccount
-			readonly selectorName: 'NetworkAccountAddress'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.QuilibriumAccount,
-				'NetworkAccountAddress'
-			>
-		}
-	)[] = []
+	const aptosAccountNetworkAddressSelectorCandidate = (() => {
+		if (!(parentData.projectionNetwork.namespace === 'Aptos' && matchStringSegment(params.accountId)))
+			return
 
-	if (parentData.projectionNetwork.namespace === 'Aptos' && matchStringSegment(params.accountId)) {
-		const aptosAccountNetworkAddressSelector = parseEntitySelector(
+		const aptosAccountNetworkAddressSelector = parseRouteEntitySelector(
 			schema,
 			AptosAccountSchema,
 			{
@@ -159,25 +42,28 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			},
 			'NetworkAddress'
 		)
-		if (!(aptosAccountNetworkAddressSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(aptosAccountNetworkAddressSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.AptosAccount,
 				selectorName: 'NetworkAddress',
 				selector: aptosAccountNetworkAddressSelector,
-			})
-	}
+			} as const
+	})()
 
-	if (
-		(
+	const polkadotAccountNetworkAccountIdSelectorCandidate = (() => {
+		if (!(
 			(
-				parentData.projectionNetwork.executionModels !== undefined
-				&& parentData.projectionNetwork.executionModels.some((value: string | number | boolean | null) => value === 'PolkadotRuntime')
+				(
+					parentData.projectionNetwork.executionModels !== undefined
+					&& parentData.projectionNetwork.executionModels.some((value: string | number | boolean | null) => value === 'PolkadotRuntime')
+				)
+				&& parentData.projectionNetwork.namespace === 'Polkadot'
 			)
-			&& parentData.projectionNetwork.namespace === 'Polkadot'
-		)
-		&& matchPolkadotAccountId(params.accountId)
-	) {
-		const polkadotAccountNetworkAccountIdSelector = parseEntitySelector(
+			&& matchPolkadotAccountId(params.accountId)
+		))
+			return
+
+		const polkadotAccountNetworkAccountIdSelector = parseRouteEntitySelector(
 			schema,
 			PolkadotAccountSchema,
 			{
@@ -186,25 +72,28 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			},
 			'NetworkAccountId'
 		)
-		if (!(polkadotAccountNetworkAccountIdSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(polkadotAccountNetworkAccountIdSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.PolkadotAccount,
 				selectorName: 'NetworkAccountId',
 				selector: polkadotAccountNetworkAccountIdSelector,
-			})
-	}
+			} as const
+	})()
 
-	if (
-		(
+	const cosmosAccountNetworkAddressSelectorCandidate = (() => {
+		if (!(
 			(
-				parentData.projectionNetwork.executionModels !== undefined
-				&& parentData.projectionNetwork.executionModels.some((value: string | number | boolean | null) => value === 'CosmosSdk')
+				(
+					parentData.projectionNetwork.executionModels !== undefined
+					&& parentData.projectionNetwork.executionModels.some((value: string | number | boolean | null) => value === 'CosmosSdk')
+				)
+				&& parentData.projectionNetwork.namespace === 'Cosmos'
 			)
-			&& parentData.projectionNetwork.namespace === 'Cosmos'
-		)
-		&& matchStringSegment(params.accountId)
-	) {
-		const cosmosAccountNetworkAddressSelector = parseEntitySelector(
+			&& matchStringSegment(params.accountId)
+		))
+			return
+
+		const cosmosAccountNetworkAddressSelector = parseRouteEntitySelector(
 			schema,
 			CosmosAccountSchema,
 			{
@@ -213,16 +102,19 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			},
 			'NetworkAddress'
 		)
-		if (!(cosmosAccountNetworkAddressSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(cosmosAccountNetworkAddressSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.CosmosAccount,
 				selectorName: 'NetworkAddress',
 				selector: cosmosAccountNetworkAddressSelector,
-			})
-	}
+			} as const
+	})()
 
-	if (parentData.projectionNetwork.namespace === 'Hedera' && matchStringSegment(params.accountId)) {
-		const hederaAccountNetworkAccountIdSelector = parseEntitySelector(
+	const hederaAccountNetworkAccountIdSelectorCandidate = (() => {
+		if (!(parentData.projectionNetwork.namespace === 'Hedera' && matchStringSegment(params.accountId)))
+			return
+
+		const hederaAccountNetworkAccountIdSelector = parseRouteEntitySelector(
 			schema,
 			HederaAccountSchema,
 			{
@@ -231,25 +123,28 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			},
 			'NetworkAccountId'
 		)
-		if (!(hederaAccountNetworkAccountIdSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(hederaAccountNetworkAccountIdSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.HederaAccount,
 				selectorName: 'NetworkAccountId',
 				selector: hederaAccountNetworkAccountIdSelector,
-			})
-	}
+			} as const
+	})()
 
-	if (
-		(
+	const evmNetworkAccountEvmNetworkEvmAccountSelectorCandidate = (() => {
+		if (!(
 			(
-				parentData.projectionNetwork.executionModels !== undefined
-				&& parentData.projectionNetwork.executionModels.some((value: string | number | boolean | null) => value === 'Evm')
+				(
+					parentData.projectionNetwork.executionModels !== undefined
+					&& parentData.projectionNetwork.executionModels.some((value: string | number | boolean | null) => value === 'Evm')
+				)
+				&& parentData.projectionNetwork.namespace === 'Evm'
 			)
-			&& parentData.projectionNetwork.namespace === 'Evm'
-		)
-		&& matchEvmAddress(params.accountId)
-	) {
-		const evmNetworkAccountEvmNetworkEvmAccountSelector = parseEntitySelector(
+			&& matchEvmAddress(params.accountId)
+		))
+			return
+
+		const evmNetworkAccountEvmNetworkEvmAccountSelector = parseRouteEntitySelector(
 			schema,
 			EvmNetworkAccountSchema,
 			{
@@ -260,25 +155,28 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			},
 			'EvmNetworkEvmAccount'
 		)
-		if (!(evmNetworkAccountEvmNetworkEvmAccountSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(evmNetworkAccountEvmNetworkEvmAccountSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.EvmNetworkAccount,
 				selectorName: 'EvmNetworkEvmAccount',
 				selector: evmNetworkAccountEvmNetworkEvmAccountSelector,
-			})
-	}
+			} as const
+	})()
 
-	if (
-		(
+	const solanaAccountNetworkPubkeySelectorCandidate = (() => {
+		if (!(
 			(
-				parentData.projectionNetwork.executionModels !== undefined
-				&& parentData.projectionNetwork.executionModels.some((value: string | number | boolean | null) => value === 'SolanaRuntime')
+				(
+					parentData.projectionNetwork.executionModels !== undefined
+					&& parentData.projectionNetwork.executionModels.some((value: string | number | boolean | null) => value === 'SolanaRuntime')
+				)
+				&& parentData.projectionNetwork.namespace === 'Solana'
 			)
-			&& parentData.projectionNetwork.namespace === 'Solana'
-		)
-		&& matchSolanaPubkey(params.accountId)
-	) {
-		const solanaAccountNetworkPubkeySelector = parseEntitySelector(
+			&& matchSolanaPubkey(params.accountId)
+		))
+			return
+
+		const solanaAccountNetworkPubkeySelector = parseRouteEntitySelector(
 			schema,
 			SolanaAccountSchema,
 			{
@@ -287,16 +185,19 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			},
 			'NetworkPubkey'
 		)
-		if (!(solanaAccountNetworkPubkeySelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(solanaAccountNetworkPubkeySelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.SolanaAccount,
 				selectorName: 'NetworkPubkey',
 				selector: solanaAccountNetworkPubkeySelector,
-			})
-	}
+			} as const
+	})()
 
-	if (parentData.projectionNetwork.namespace === 'Starknet' && matchStringSegment(params.accountId)) {
-		const starknetContractNetworkAddressSelector = parseEntitySelector(
+	const starknetContractNetworkAddressSelectorCandidate = (() => {
+		if (!(parentData.projectionNetwork.namespace === 'Starknet' && matchStringSegment(params.accountId)))
+			return
+
+		const starknetContractNetworkAddressSelector = parseRouteEntitySelector(
 			schema,
 			StarknetContractSchema,
 			{
@@ -307,16 +208,19 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			},
 			'NetworkAddress'
 		)
-		if (!(starknetContractNetworkAddressSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(starknetContractNetworkAddressSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.StarknetContract,
 				selectorName: 'NetworkAddress',
 				selector: starknetContractNetworkAddressSelector,
-			})
-	}
+			} as const
+	})()
 
-	if (parentData.projectionNetwork.namespace === 'Tron' && matchStringSegment(params.accountId)) {
-		const tronAccountNetworkAddressSelector = parseEntitySelector(
+	const tronAccountNetworkAddressSelectorCandidate = (() => {
+		if (!(parentData.projectionNetwork.namespace === 'Tron' && matchStringSegment(params.accountId)))
+			return
+
+		const tronAccountNetworkAddressSelector = parseRouteEntitySelector(
 			schema,
 			TronAccountSchema,
 			{
@@ -325,16 +229,19 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			},
 			'NetworkAddress'
 		)
-		if (!(tronAccountNetworkAddressSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(tronAccountNetworkAddressSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.TronAccount,
 				selectorName: 'NetworkAddress',
 				selector: tronAccountNetworkAddressSelector,
-			})
-	}
+			} as const
+	})()
 
-	if (parentData.projectionNetwork.namespace === 'Ton' && matchStringSegment(params.accountId)) {
-		const tonAccountNetworkAddressSelector = parseEntitySelector(
+	const tonAccountNetworkAddressSelectorCandidate = (() => {
+		if (!(parentData.projectionNetwork.namespace === 'Ton' && matchStringSegment(params.accountId)))
+			return
+
+		const tonAccountNetworkAddressSelector = parseRouteEntitySelector(
 			schema,
 			TonAccountSchema,
 			{
@@ -343,16 +250,19 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			},
 			'NetworkAddress'
 		)
-		if (!(tonAccountNetworkAddressSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(tonAccountNetworkAddressSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.TonAccount,
 				selectorName: 'NetworkAddress',
 				selector: tonAccountNetworkAddressSelector,
-			})
-	}
+			} as const
+	})()
 
-	if (parentData.projectionNetwork.namespace === 'Xrpl' && matchStringSegment(params.accountId)) {
-		const xrplAccountNetworkAccountSelector = parseEntitySelector(
+	const xrplAccountNetworkAccountSelectorCandidate = (() => {
+		if (!(parentData.projectionNetwork.namespace === 'Xrpl' && matchStringSegment(params.accountId)))
+			return
+
+		const xrplAccountNetworkAccountSelector = parseRouteEntitySelector(
 			schema,
 			XrplAccountSchema,
 			{
@@ -361,16 +271,19 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			},
 			'NetworkAccount'
 		)
-		if (!(xrplAccountNetworkAccountSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(xrplAccountNetworkAccountSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.XrplAccount,
 				selectorName: 'NetworkAccount',
 				selector: xrplAccountNetworkAccountSelector,
-			})
-	}
+			} as const
+	})()
 
-	if (parentData.projectionNetwork.namespace === 'Near' && matchStringSegment(params.accountId)) {
-		const nearAccountNetworkAccountIdSelector = parseEntitySelector(
+	const nearAccountNetworkAccountIdSelectorCandidate = (() => {
+		if (!(parentData.projectionNetwork.namespace === 'Near' && matchStringSegment(params.accountId)))
+			return
+
+		const nearAccountNetworkAccountIdSelector = parseRouteEntitySelector(
 			schema,
 			NearAccountSchema,
 			{
@@ -379,24 +292,27 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			},
 			'NetworkAccountId'
 		)
-		if (!(nearAccountNetworkAccountIdSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(nearAccountNetworkAccountIdSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.NearAccount,
 				selectorName: 'NetworkAccountId',
 				selector: nearAccountNetworkAccountIdSelector,
-			})
-	}
+			} as const
+	})()
 
-	if (
-		parentData.projectionNetwork.namespace === 'Hyperliquid'
-		&& (
-			matchStringSegment(params.accountId)
-			|| matchPolkadotAccountId(params.accountId)
-			|| matchEvmAddress(params.accountId)
-			|| matchSolanaPubkey(params.accountId)
-		)
-	) {
-		const hyperliquidAccountNetworkAddressSelector = parseEntitySelector(
+	const hyperliquidAccountNetworkAddressSelectorCandidate = (() => {
+		if (!(
+			parentData.projectionNetwork.namespace === 'Hyperliquid'
+			&& (
+				matchStringSegment(params.accountId)
+				|| matchPolkadotAccountId(params.accountId)
+				|| matchEvmAddress(params.accountId)
+				|| matchSolanaPubkey(params.accountId)
+			)
+		))
+			return
+
+		const hyperliquidAccountNetworkAddressSelector = parseRouteEntitySelector(
 			schema,
 			HyperliquidAccountSchema,
 			{
@@ -405,16 +321,19 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			},
 			'NetworkAddress'
 		)
-		if (!(hyperliquidAccountNetworkAddressSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(hyperliquidAccountNetworkAddressSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.HyperliquidAccount,
 				selectorName: 'NetworkAddress',
 				selector: hyperliquidAccountNetworkAddressSelector,
-			})
-	}
+			} as const
+	})()
 
-	if (parentData.projectionNetwork.namespace === 'Quilibrium' && matchStringSegment(params.accountId)) {
-		const quilibriumAccountNetworkAccountAddressSelector = parseEntitySelector(
+	const quilibriumAccountNetworkAccountAddressSelectorCandidate = (() => {
+		if (!(parentData.projectionNetwork.namespace === 'Quilibrium' && matchStringSegment(params.accountId)))
+			return
+
+		const quilibriumAccountNetworkAccountAddressSelector = parseRouteEntitySelector(
 			schema,
 			QuilibriumAccountSchema,
 			{
@@ -423,13 +342,29 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			},
 			'NetworkAccountAddress'
 		)
-		if (!(quilibriumAccountNetworkAccountAddressSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(quilibriumAccountNetworkAccountAddressSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.QuilibriumAccount,
 				selectorName: 'NetworkAccountAddress',
 				selector: quilibriumAccountNetworkAccountAddressSelector,
-			})
-	}
+			} as const
+	})()
+
+	const routeCandidates = [
+		aptosAccountNetworkAddressSelectorCandidate,
+		polkadotAccountNetworkAccountIdSelectorCandidate,
+		cosmosAccountNetworkAddressSelectorCandidate,
+		hederaAccountNetworkAccountIdSelectorCandidate,
+		evmNetworkAccountEvmNetworkEvmAccountSelectorCandidate,
+		solanaAccountNetworkPubkeySelectorCandidate,
+		starknetContractNetworkAddressSelectorCandidate,
+		tronAccountNetworkAddressSelectorCandidate,
+		tonAccountNetworkAddressSelectorCandidate,
+		xrplAccountNetworkAccountSelectorCandidate,
+		nearAccountNetworkAccountIdSelectorCandidate,
+		hyperliquidAccountNetworkAddressSelectorCandidate,
+		quilibriumAccountNetworkAccountAddressSelectorCandidate,
+	].filter((candidate) => candidate != null)
 
 	if (routeCandidates.length === 0)
 		error(404, 'Route selector not applicable')

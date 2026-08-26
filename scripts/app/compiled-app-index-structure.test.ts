@@ -3,7 +3,8 @@ import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import test from 'node:test'
 
-import ts from 'typescript'
+import * as ts from '@typescript/native/unstable/ast'
+import { API, TypeFlags, type Symbol } from '@typescript/native/unstable/sync'
 
 
 type Finding = {
@@ -42,22 +43,12 @@ const semanticPropertyNames = new Set([
 	'sourceProviders',
 	'sources',
 ])
-const compilerOptions = {
-	module: ts.ModuleKind.ESNext,
-	noResolve: true,
-	skipLibCheck: true,
-	strict: true,
-	target: ts.ScriptTarget.ESNext,
-	types: [],
-} as const satisfies ts.CompilerOptions
 const syntheticSvelteFileName = path.join(process.cwd(), 'scripts/app/svelte-compiler.generated.d.ts')
 const syntheticSvelteSource = `
 	declare module 'svelte/compiler' {
 		export const parse: (source: string) => unknown
 	}
 `
-const sharedCompilerSourceFiles = new Map<string, ts.SourceFile>()
-
 assert.ok(
 	mode === 'self-test' || mode === 'product',
 	'COMPILED_APP_INDEX_STRUCTURE_MODE must be self-test or product'
@@ -65,44 +56,24 @@ assert.ok(
 
 const analyzeRenderModule = (source: string, fileName = path.join(process.cwd(), 'scripts/app/render-fixture.ts')) => {
 	const normalizedFileName = path.resolve(fileName)
-	const compilerHost = ts.createCompilerHost(compilerOptions)
-	const getSourceFile = compilerHost.getSourceFile.bind(compilerHost)
-	compilerHost.fileExists = (candidate) => (
-		path.resolve(candidate) === normalizedFileName
-		|| path.resolve(candidate) === syntheticSvelteFileName
-		|| ts.sys.fileExists(candidate)
-	)
-	compilerHost.readFile = (candidate) => (
-		path.resolve(candidate) === normalizedFileName ?
-			source
-		: path.resolve(candidate) === syntheticSvelteFileName ?
-			syntheticSvelteSource
-		:
-			ts.sys.readFile(candidate)
-	)
-	compilerHost.getSourceFile = (candidate, languageVersion, onError, shouldCreateNewSourceFile) => {
-		if (path.resolve(candidate) === normalizedFileName)
-			return ts.createSourceFile(candidate, source, languageVersion, true, ts.ScriptKind.TS)
-		if (path.resolve(candidate) === syntheticSvelteFileName)
-			return ts.createSourceFile(candidate, syntheticSvelteSource, languageVersion, true, ts.ScriptKind.TS)
-
-		const cached = sharedCompilerSourceFiles.get(candidate)
-		if (cached != null)
-			return cached
-
-		const loaded = getSourceFile(candidate, languageVersion, onError, shouldCreateNewSourceFile)
-		if (loaded != null)
-			sharedCompilerSourceFiles.set(candidate, loaded)
-
-		return loaded
-	}
-	const program = ts.createProgram([
-		normalizedFileName,
-		syntheticSvelteFileName,
-	], compilerOptions, compilerHost)
-	const sourceFile = program.getSourceFile(normalizedFileName)
+	const virtualSources = new Map([
+		[normalizedFileName, source],
+		[syntheticSvelteFileName, syntheticSvelteSource],
+	])
+	const api = new API({
+		fs: {
+			fileExists: (candidate) => virtualSources.has(path.resolve(candidate)) ? true : undefined,
+			readFile: (candidate) => virtualSources.get(path.resolve(candidate)),
+		},
+	})
+	const snapshot = api.updateSnapshot({
+		openFiles: [normalizedFileName, syntheticSvelteFileName],
+	})
+	const project = snapshot.getDefaultProjectForFile(normalizedFileName)
+	const sourceFile = project?.program.getSourceFile(normalizedFileName)
 	assert.ok(sourceFile)
-	const checker = program.getTypeChecker()
+	assert.ok(project)
+	const checker = project.checker
 	const findings: Finding[] = []
 	const addFinding = (node: ts.Node, reason: string) => {
 		findings.push({
@@ -110,23 +81,23 @@ const analyzeRenderModule = (source: string, fileName = path.join(process.cwd(),
 			reason,
 		})
 	}
-	const isExported = (node: ts.Node) => ts.canHaveModifiers(node)
-		&& ts.getModifiers(node)?.some((modifier) => modifier.kind === ts.SyntaxKind.ExportKeyword) === true
+	const isExported = (node: ts.Node) => (ts.isTypeAliasDeclaration(node) || ts.isVariableStatement(node))
+		&& node.modifiers?.some((modifier) => modifier.kind === ts.SyntaxKind.ExportKeyword) === true
 	const unwrapExpression = (expression: ts.Expression): ts.Expression => {
 		if (
 			ts.isParenthesizedExpression(expression)
 			|| ts.isAsExpression(expression)
 			|| ts.isSatisfiesExpression(expression)
 			|| ts.isNonNullExpression(expression)
-			|| ts.isTypeAssertionExpression(expression)
+			|| ts.isTypeAssertion(expression)
 		)
 			return unwrapExpression(expression.expression)
 
 		return expression
 	}
-	const constantString = (expression: ts.Expression, seen = new Set<ts.Symbol>()): string | undefined => {
+	const constantString = (expression: ts.Expression, seen = new Set<Symbol>()): string | undefined => {
 		const unwrapped = unwrapExpression(expression)
-		if (ts.isStringLiteralLike(unwrapped))
+		if (ts.isStringLiteralLikeNode(unwrapped))
 			return unwrapped.text
 		if (
 			ts.isBinaryExpression(unwrapped)
@@ -142,7 +113,7 @@ const analyzeRenderModule = (source: string, fileName = path.join(process.cwd(),
 				return undefined
 
 			seen.add(symbol)
-			const declaration = symbol.valueDeclaration
+			const declaration = symbol.valueDeclaration?.resolve(project)
 			return declaration != null && ts.isVariableDeclaration(declaration) && declaration.initializer != null ?
 				constantString(declaration.initializer, seen)
 			:
@@ -155,17 +126,25 @@ const analyzeRenderModule = (source: string, fileName = path.join(process.cwd(),
 		if (ts.isImportDeclaration(node)) {
 			const importClause = node.importClause
 			const namedBindings = importClause?.namedBindings
-			if (!(
+			const isSvelteParserImport = (
 				ts.isStringLiteral(node.moduleSpecifier)
 				&& node.moduleSpecifier.text === 'svelte/compiler'
-				&& importClause?.isTypeOnly === false
+				&& importClause != null
+				&& importClause.phaseModifier == null
 				&& importClause.name == null
 				&& namedBindings != null
 				&& ts.isNamedImports(namedBindings)
 				&& namedBindings.elements.length === 1
 				&& namedBindings.elements[0]?.propertyName?.text === 'parse'
 				&& namedBindings.elements[0].name.text === 'parseSvelte'
-			))
+			)
+			const isTypeScriptCompilerImport = ts.isStringLiteral(node.moduleSpecifier)
+				&& [
+					'@typescript/native/unstable/ast',
+					'@typescript/native/unstable/ast/factory',
+					'@typescript/native/unstable/sync',
+				].includes(node.moduleSpecifier.text)
+			if (!isSvelteParserImport && !isTypeScriptCompilerImport)
 				addFinding(node, 'renderer import is outside the explicit parseSvelte allowlist')
 		}
 		if (ts.isCallExpression(node) && node.expression.kind === ts.SyntaxKind.ImportKeyword)
@@ -187,13 +166,13 @@ const analyzeRenderModule = (source: string, fileName = path.join(process.cwd(),
 				addFinding(node, `renderer cannot access computed ${capability}`)
 		}
 
-		ts.forEachChild(node, visitCapabilities)
+		node.forEachChild(visitCapabilities)
 	}
 	visitCapabilities(sourceFile)
 
 	const imports = sourceFile.statements.filter(ts.isImportDeclaration)
-	if (imports.length !== 1)
-		addFinding(sourceFile, 'renderer must have exactly one static import')
+	if (imports.length < 1 || imports.length > 4)
+		addFinding(sourceFile, 'renderer must have one to four allowlisted static imports')
 
 	const localTypeAliases = new Map(
 		sourceFile.statements
@@ -240,7 +219,7 @@ const analyzeRenderModule = (source: string, fileName = path.join(process.cwd(),
 	const visitedIrAliases = new Set<ts.TypeAliasDeclaration>()
 	const visitIrType = (node: ts.Node, ownerName: string) => {
 		if (
-			ts.isPropertySignature(node)
+			ts.isPropertySignatureDeclaration(node)
 			&& node.modifiers?.some((modifier) => modifier.kind === ts.SyntaxKind.ReadonlyKeyword) !== true
 		)
 			addFinding(node, `${ownerName} exposes a mutable property`)
@@ -251,7 +230,9 @@ const analyzeRenderModule = (source: string, fileName = path.join(process.cwd(),
 			addFinding(node, `${ownerName} exposes a mutable array`)
 		if (ts.isTypeReferenceNode(node) && ts.isIdentifier(node.typeName)) {
 			const symbol = checker.getSymbolAtLocation(node.typeName)
-			const declaration = symbol?.declarations?.find(ts.isTypeAliasDeclaration)
+			const declaration = symbol?.declarations
+				.map((candidate) => candidate.resolve(project))
+				.find((candidate): candidate is ts.TypeAliasDeclaration => candidate != null && ts.isTypeAliasDeclaration(candidate))
 			if (declaration != null) {
 				if (!rendererTypeNames.has(declaration.name.text))
 					addFinding(node, `${ownerName} reaches non-IR alias ${declaration.name.text}`)
@@ -262,7 +243,7 @@ const analyzeRenderModule = (source: string, fileName = path.join(process.cwd(),
 			}
 		}
 
-		ts.forEachChild(node, (child) => visitIrType(child, ownerName))
+		node.forEachChild((child) => visitIrType(child, ownerName))
 	}
 	for (const [typeName, expectedVariants] of Object.entries(rendererTypeProperties)) {
 		const declaration = localTypeAliases.get(typeName)
@@ -275,9 +256,9 @@ const analyzeRenderModule = (source: string, fileName = path.join(process.cwd(),
 		const symbol = checker.getSymbolAtLocation(declaration.name)
 		assert.ok(symbol)
 		const declaredType = checker.getDeclaredTypeOfSymbol(symbol)
-		const variants = declaredType.isUnion() ? declaredType.types : [declaredType]
+		const variants = declaredType.isUnionType() ? declaredType.getTypes() : [declaredType]
 		const actualVariants = variants.map((variant) => (
-			(variant.flags & ts.TypeFlags.StringLike) !== 0 ?
+			(variant.flags & TypeFlags.StringLike) !== 0 ?
 				[]
 			:
 				checker.getPropertiesOfType(variant)
@@ -307,15 +288,16 @@ const analyzeRenderModule = (source: string, fileName = path.join(process.cwd(),
 			addFinding(runtimeExport.declaration, 'renderer input must be the locally owned GeneratedFile IR symbol')
 
 		const signature = checker.getSignatureFromDeclaration(runtimeExport.declaration)
-		if (signature == null || (checker.getReturnTypeOfSignature(signature).flags & ts.TypeFlags.StringLike) === 0)
+		const returnType = signature == null ? undefined : checker.getReturnTypeOfSignature(signature)
+		if (returnType == null || (returnType.flags & TypeFlags.StringLike) === 0)
 			addFinding(runtimeExport.declaration, 'renderer must return only serialized text')
 	}
 
-	const functionBySymbol = new Map<ts.Symbol, ts.FunctionLikeDeclaration>()
-	const variableBySymbol = new Map<ts.Symbol, ts.VariableDeclaration>()
+	const functionBySymbol = new Map<Symbol, ts.FunctionLikeDeclaration>()
+	const variableBySymbol = new Map<Symbol, ts.VariableDeclaration>()
 	const collectDeclarations = (node: ts.Node) => {
 		if (
-			(ts.isFunctionDeclaration(node) || ts.isFunctionExpression(node) || ts.isArrowFunction(node))
+			(ts.isFunctionDeclaration(node) || ts.isFunctionExpression(node))
 			&& node.name != null
 			&& ts.isIdentifier(node.name)
 		) {
@@ -332,12 +314,12 @@ const analyzeRenderModule = (source: string, fileName = path.join(process.cwd(),
 			}
 		}
 
-		ts.forEachChild(node, collectDeclarations)
+		node.forEachChild(collectDeclarations)
 	}
 	collectDeclarations(sourceFile)
 	const resolveObjectLiteral = (
 		expression: ts.Expression,
-		seen = new Set<ts.Symbol>()
+		seen = new Set<Symbol>()
 	): ts.ObjectLiteralExpression | undefined => {
 		const unwrapped = unwrapExpression(expression)
 		if (ts.isObjectLiteralExpression(unwrapped))
@@ -348,7 +330,7 @@ const analyzeRenderModule = (source: string, fileName = path.join(process.cwd(),
 				return undefined
 
 			seen.add(symbol)
-			const declaration = symbol.valueDeclaration
+			const declaration = symbol.valueDeclaration?.resolve(project)
 			return declaration != null && ts.isVariableDeclaration(declaration) && declaration.initializer != null ?
 				resolveObjectLiteral(declaration.initializer, seen)
 			:
@@ -357,7 +339,7 @@ const analyzeRenderModule = (source: string, fileName = path.join(process.cwd(),
 
 		return undefined
 	}
-	const resolveFunction = (expression: ts.Expression, seen = new Set<ts.Symbol>()): ts.FunctionLikeDeclaration | undefined => {
+	const resolveFunction = (expression: ts.Expression, seen = new Set<Symbol>()): ts.FunctionLikeDeclaration | undefined => {
 		const unwrapped = unwrapExpression(expression)
 		if (ts.isArrowFunction(unwrapped) || ts.isFunctionExpression(unwrapped))
 			return unwrapped
@@ -375,9 +357,11 @@ const analyzeRenderModule = (source: string, fileName = path.join(process.cwd(),
 				constantString(unwrapped.argumentExpression)
 			const objectLiteral = resolveObjectLiteral(unwrapped.expression)
 			const property = propertyName == null ? undefined : objectLiteral?.properties.find((candidate) => {
+				if (!('name' in candidate))
+					return false
 				const candidateName = ts.isComputedPropertyName(candidate.name) ?
 					constantString(candidate.name.expression)
-				: ts.isIdentifier(candidate.name) || ts.isStringLiteralLike(candidate.name) ?
+				: ts.isIdentifier(candidate.name) || ts.isStringLiteralLikeNode(candidate.name) ?
 					candidate.name.text
 				:
 					undefined
@@ -387,7 +371,7 @@ const analyzeRenderModule = (source: string, fileName = path.join(process.cwd(),
 				return property
 			if (property != null && ts.isPropertyAssignment(property))
 				return resolveFunction(property.initializer, seen)
-			if (property != null && ts.isShorthandPropertyAssignment(property))
+			if (property != null && ts.isShorthandPropertyAssignment(property) && ts.isIdentifier(property.name))
 				return resolveFunction(property.name, seen)
 		}
 		if (ts.isIdentifier(unwrapped)) {
@@ -399,21 +383,23 @@ const analyzeRenderModule = (source: string, fileName = path.join(process.cwd(),
 			const direct = functionBySymbol.get(symbol)
 			if (direct != null)
 				return direct
-			const declaration = symbol.valueDeclaration
+			const declaration = symbol.valueDeclaration?.resolve(project)
 			if (declaration != null && ts.isBindingElement(declaration)) {
 				const variableDeclaration = declaration.parent.parent
 				if (ts.isVariableDeclaration(variableDeclaration) && variableDeclaration.initializer != null) {
 					const propertyName = declaration.propertyName == null ?
-						(ts.isIdentifier(declaration.name) ? declaration.name.text : undefined)
-					: ts.isIdentifier(declaration.propertyName) || ts.isStringLiteralLike(declaration.propertyName) ?
+						(declaration.name != null && ts.isIdentifier(declaration.name) ? declaration.name.text : undefined)
+					: ts.isIdentifier(declaration.propertyName) || ts.isStringLiteralLikeNode(declaration.propertyName) ?
 						declaration.propertyName.text
 					:
 						undefined
 					const objectLiteral = resolveObjectLiteral(variableDeclaration.initializer)
-					const property = propertyName == null ? undefined : objectLiteral?.properties.find((candidate) => (
-						(ts.isIdentifier(candidate.name) || ts.isStringLiteralLike(candidate.name))
-						&& candidate.name.text === propertyName
-					))
+					const property = propertyName == null ? undefined : objectLiteral?.properties.find((candidate) => {
+						if (!('name' in candidate))
+							return false
+						return (ts.isIdentifier(candidate.name) || ts.isStringLiteralLikeNode(candidate.name))
+							&& candidate.name.text === propertyName
+					})
 					if (property != null && ts.isMethodDeclaration(property))
 						return property
 					if (property != null && ts.isPropertyAssignment(property))
@@ -440,7 +426,9 @@ const analyzeRenderModule = (source: string, fileName = path.join(process.cwd(),
 					reachableFunctions.add(calledFunction)
 			}
 			if (ts.isTypeReferenceNode(node) && ts.isIdentifier(node.typeName)) {
-				const declaration = checker.getSymbolAtLocation(node.typeName)?.declarations?.find(ts.isTypeAliasDeclaration)
+				const declaration = checker.getSymbolAtLocation(node.typeName)?.declarations
+					.map((candidate) => candidate.resolve(project))
+					.find((candidate): candidate is ts.TypeAliasDeclaration => candidate != null && ts.isTypeAliasDeclaration(candidate))
 				if (declaration != null && !rendererTypeNames.has(declaration.name.text))
 					addFinding(node, `renderer call graph reaches semantic alias ${declaration.name.text}`)
 			}
@@ -452,12 +440,15 @@ const analyzeRenderModule = (source: string, fileName = path.join(process.cwd(),
 			)
 				addFinding(node, `renderer call graph reconstructs semantic property ${node.name.getText(sourceFile)}`)
 
-			ts.forEachChild(node, visitReachable)
+			node.forEachChild(visitReachable)
 		}
 		visitReachable(reachableFunction)
 	}
 
-	return [...new Map(findings.map((finding) => [`${finding.line}:${finding.reason}`, finding])).values()]
+	const uniqueFindings = [...new Map(findings.map((finding) => [`${finding.line}:${finding.reason}`, finding])).values()]
+	snapshot.dispose()
+	api.close()
+	return uniqueFindings
 }
 
 const validIr = `
@@ -540,8 +531,21 @@ test('product compiler separates source-claim analysis IR from renderer capabili
 	const generatorPath = path.join(process.cwd(), 'scripts/app/generate.ts')
 	const renderer = readFileSync(rendererPath, 'utf8')
 	const generator = readFileSync(generatorPath, 'utf8')
-	const rendererSourceFile = ts.createSourceFile(rendererPath, renderer, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS)
-	const generatorSourceFile = ts.createSourceFile(generatorPath, generator, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS)
+	const virtualSources = new Map([
+		[rendererPath, renderer],
+		[generatorPath, generator],
+	])
+	const api = new API({
+		fs: {
+			fileExists: (candidate) => virtualSources.has(path.resolve(candidate)) ? true : undefined,
+			readFile: (candidate) => virtualSources.get(path.resolve(candidate)),
+		},
+	})
+	const snapshot = api.updateSnapshot({ openFiles: [rendererPath, generatorPath] })
+	const rendererSourceFile = snapshot.getDefaultProjectForFile(rendererPath)?.program.getSourceFile(rendererPath)
+	const generatorSourceFile = snapshot.getDefaultProjectForFile(generatorPath)?.program.getSourceFile(generatorPath)
+	assert.ok(rendererSourceFile)
+	assert.ok(generatorSourceFile)
 	const renderGeneratedFileDeclaration = rendererSourceFile.statements
 		.filter(ts.isVariableStatement)
 		.flatMap((statement) => statement.declarationList.declarations)
@@ -564,7 +568,9 @@ test('product compiler separates source-claim analysis IR from renderer capabili
 			.map((moduleSpecifier) => moduleSpecifier.text),
 		[
 			'svelte/compiler',
-			'typescript',
+			'@typescript/native/unstable/ast',
+			'@typescript/native/unstable/ast/factory',
+			'@typescript/native/unstable/sync',
 		]
 	)
 	assert.ok(renderGeneratedFileDeclaration?.initializer != null && ts.isArrowFunction(renderGeneratedFileDeclaration.initializer))
@@ -593,7 +599,7 @@ test('product compiler separates source-claim analysis IR from renderer capabili
 	assert.ok(ts.isTypeLiteralNode(compiledSourceAccountabilityType))
 	assert.deepEqual(
 		[...compiledAppType.members]
-			.filter(ts.isPropertySignature)
+			.filter(ts.isPropertySignatureDeclaration)
 			.map((property) => property.name.getText(generatorSourceFile)),
 		[
 			'generatedFiles',
@@ -603,7 +609,7 @@ test('product compiler separates source-claim analysis IR from renderer capabili
 	)
 	assert.deepEqual(
 		[...compiledSourceClaimType.members]
-			.filter(ts.isPropertySignature)
+			.filter(ts.isPropertySignatureDeclaration)
 			.map((property) => property.name.getText(generatorSourceFile)),
 		[
 			'source',
@@ -616,7 +622,7 @@ test('product compiler separates source-claim analysis IR from renderer capabili
 	)
 	assert.deepEqual(
 		[...compiledSourceAccountabilityType.members]
-			.filter(ts.isPropertySignature)
+			.filter(ts.isPropertySignatureDeclaration)
 			.map((property) => property.name.getText(generatorSourceFile)),
 		[
 			'claims',
@@ -630,4 +636,6 @@ test('product compiler separates source-claim analysis IR from renderer capabili
 	assert.match(generator, /sourceClaims,/)
 	assert.match(generator, /const compiledApp = compileApp\(app\)/)
 	assert.doesNotMatch(generator, /compileApp\(app\)\.renderPlan/)
+	snapshot.dispose()
+	api.close()
 })

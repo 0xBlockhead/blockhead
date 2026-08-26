@@ -3,7 +3,7 @@
 import type { LayoutLoad } from './$types'
 import { error } from '@sveltejs/kit'
 import { match as matchStringSegment } from '$/params/stringSegment.ts'
-import { parseEntitySelector } from '$/schema/$schema.ts'
+import { parseRouteEntitySelector } from '$/schema/$schema.ts'
 import CardanoStakeCredentialSchema from '$/schema/CardanoStakeCredential.ts'
 import { schema } from '$/schema/index.ts'
 import { type as arktype } from 'arktype'
@@ -15,7 +15,7 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 	if (!(parentData.projectionNetwork.namespace === 'Cardano' && matchStringSegment(params.credential)))
 		error(404, 'Route mapping not applicable')
 
-	const cardanoStakeCredentialNetworkCredentialSelector = parseEntitySelector(
+	const cardanoStakeCredentialNetworkCredentialSelector = parseRouteEntitySelector(
 		schema,
 		CardanoStakeCredentialSchema,
 		{

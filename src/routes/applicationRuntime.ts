@@ -1,16 +1,21 @@
-export const applicationRuntimeWhenReady = <_Client>(
+export function applicationRuntimeWhenReady<_Client>(
 	clientPromise: Promise<_Client>,
 	mount: (client: _Client) => {
 		destroy: () => void
-	}
-) => {
+	},
+	disposeUnclaimed: (client: _Client) => void = () => {}
+) {
 	let active = true
 	let destroyRuntime: (() => void) | undefined
 
 	return {
 		ready: clientPromise.then((client) => {
-			if (active)
-				destroyRuntime = mount(client).destroy
+			if (!active) {
+				disposeUnclaimed(client)
+				return
+			}
+
+			destroyRuntime = mount(client).destroy
 		}),
 		destroy: () => {
 			active = false

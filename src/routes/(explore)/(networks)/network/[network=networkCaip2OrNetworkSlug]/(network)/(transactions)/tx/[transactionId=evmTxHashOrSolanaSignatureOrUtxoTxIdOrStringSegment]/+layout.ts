@@ -6,7 +6,7 @@ import { match as matchEvmTxHash } from '$/params/evmTxHash.ts'
 import { match as matchSolanaSignature } from '$/params/solanaSignature.ts'
 import { match as matchStringSegment } from '$/params/stringSegment.ts'
 import { match as matchUtxoTxId } from '$/params/utxoTxId.ts'
-import { parseEntitySelector, type EntitySelectorForSelectorName } from '$/schema/$schema.ts'
+import { parseRouteEntitySelector } from '$/schema/$schema.ts'
 import AptosTransactionSchema from '$/schema/AptosTransaction.ts'
 import ArweaveTransactionSchema from '$/schema/ArweaveTransaction.ts'
 import CardanoTransactionSchema from '$/schema/CardanoTransaction.ts'
@@ -25,119 +25,20 @@ import { type as arktype } from 'arktype'
 export const load: LayoutLoad = async ({ params, parent }) => {
 	const parentData = await parent()
 
-	const routeCandidates: (
-		| {
-			readonly entityType: EntityType.EvmTransaction
-			readonly selectorName: 'EvmNetworkTxHash'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.EvmTransaction,
-				'EvmNetworkTxHash'
-			>
-		}
-		| {
-			readonly entityType: EntityType.SolanaTransaction
-			readonly selectorName: 'NetworkSignature'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.SolanaTransaction,
-				'NetworkSignature'
-			>
-		}
-		| {
-			readonly entityType: EntityType.CardanoTransaction
-			readonly selectorName: 'NetworkHash'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.CardanoTransaction,
-				'NetworkHash'
-			>
-		}
-		| {
-			readonly entityType: EntityType.UtxoTransaction
-			readonly selectorName: 'NetworkTxId'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.UtxoTransaction,
-				'NetworkTxId'
-			>
-		}
-		| {
-			readonly entityType: EntityType.ArweaveTransaction
-			readonly selectorName: 'NetworkTransactionId'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.ArweaveTransaction,
-				'NetworkTransactionId'
-			>
-		}
-		| {
-			readonly entityType: EntityType.CosmosTransaction
-			readonly selectorName: 'NetworkTxHash'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.CosmosTransaction,
-				'NetworkTxHash'
-			>
-		}
-		| {
-			readonly entityType: EntityType.HyperliquidTransaction
-			readonly selectorName: 'NetworkTxHash'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.HyperliquidTransaction,
-				'NetworkTxHash'
-			>
-		}
-		| {
-			readonly entityType: EntityType.MoneroTransaction
-			readonly selectorName: 'NetworkTxHash'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.MoneroTransaction,
-				'NetworkTxHash'
-			>
-		}
-		| {
-			readonly entityType: EntityType.NearTransaction
-			readonly selectorName: 'NetworkHash'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.NearTransaction,
-				'NetworkHash'
-			>
-		}
-		| {
-			readonly entityType: EntityType.TronTransaction
-			readonly selectorName: 'NetworkTransactionId'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.TronTransaction,
-				'NetworkTransactionId'
-			>
-		}
-		| {
-			readonly entityType: EntityType.AptosTransaction
-			readonly selectorName: 'NetworkHash'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.AptosTransaction,
-				'NetworkHash'
-			>
-		}
-	)[] = []
-
-	if (
-		(
+	const evmTransactionEvmNetworkTxHashSelectorCandidate = (() => {
+		if (!(
 			(
-				parentData.projectionNetwork.executionModels !== undefined
-				&& parentData.projectionNetwork.executionModels.some((value: string | number | boolean | null) => value === 'Evm')
+				(
+					parentData.projectionNetwork.executionModels !== undefined
+					&& parentData.projectionNetwork.executionModels.some((value: string | number | boolean | null) => value === 'Evm')
+				)
+				&& parentData.projectionNetwork.namespace === 'Evm'
 			)
-			&& parentData.projectionNetwork.namespace === 'Evm'
-		)
-		&& matchEvmTxHash(params.transactionId)
-	) {
-		const evmTransactionEvmNetworkTxHashSelector = parseEntitySelector(
+			&& matchEvmTxHash(params.transactionId)
+		))
+			return
+
+		const evmTransactionEvmNetworkTxHashSelector = parseRouteEntitySelector(
 			schema,
 			EvmTransactionSchema,
 			{
@@ -146,25 +47,28 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			},
 			'EvmNetworkTxHash'
 		)
-		if (!(evmTransactionEvmNetworkTxHashSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(evmTransactionEvmNetworkTxHashSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.EvmTransaction,
 				selectorName: 'EvmNetworkTxHash',
 				selector: evmTransactionEvmNetworkTxHashSelector,
-			})
-	}
+			} as const
+	})()
 
-	if (
-		(
+	const solanaTransactionNetworkSignatureSelectorCandidate = (() => {
+		if (!(
 			(
-				parentData.projectionNetwork.executionModels !== undefined
-				&& parentData.projectionNetwork.executionModels.some((value: string | number | boolean | null) => value === 'SolanaRuntime')
+				(
+					parentData.projectionNetwork.executionModels !== undefined
+					&& parentData.projectionNetwork.executionModels.some((value: string | number | boolean | null) => value === 'SolanaRuntime')
+				)
+				&& parentData.projectionNetwork.namespace === 'Solana'
 			)
-			&& parentData.projectionNetwork.namespace === 'Solana'
-		)
-		&& matchSolanaSignature(params.transactionId)
-	) {
-		const solanaTransactionNetworkSignatureSelector = parseEntitySelector(
+			&& matchSolanaSignature(params.transactionId)
+		))
+			return
+
+		const solanaTransactionNetworkSignatureSelector = parseRouteEntitySelector(
 			schema,
 			SolanaTransactionSchema,
 			{
@@ -173,16 +77,19 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			},
 			'NetworkSignature'
 		)
-		if (!(solanaTransactionNetworkSignatureSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(solanaTransactionNetworkSignatureSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.SolanaTransaction,
 				selectorName: 'NetworkSignature',
 				selector: solanaTransactionNetworkSignatureSelector,
-			})
-	}
+			} as const
+	})()
 
-	if (parentData.projectionNetwork.namespace === 'Cardano' && matchUtxoTxId(params.transactionId)) {
-		const cardanoTransactionNetworkHashSelector = parseEntitySelector(
+	const cardanoTransactionNetworkHashSelectorCandidate = (() => {
+		if (!(parentData.projectionNetwork.namespace === 'Cardano' && matchUtxoTxId(params.transactionId)))
+			return
+
+		const cardanoTransactionNetworkHashSelector = parseRouteEntitySelector(
 			schema,
 			CardanoTransactionSchema,
 			{
@@ -191,32 +98,35 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			},
 			'NetworkHash'
 		)
-		if (!(cardanoTransactionNetworkHashSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(cardanoTransactionNetworkHashSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.CardanoTransaction,
 				selectorName: 'NetworkHash',
 				selector: cardanoTransactionNetworkHashSelector,
-			})
-	}
+			} as const
+	})()
 
-	if (
-		(
+	const utxoTransactionNetworkTxIdSelectorCandidate = (() => {
+		if (!(
 			(
-				parentData.projectionNetwork.ledgerModels !== undefined
-				&& parentData.projectionNetwork.ledgerModels.some((value: string | number | boolean | null) => value === 'Utxo')
+				(
+					parentData.projectionNetwork.ledgerModels !== undefined
+					&& parentData.projectionNetwork.ledgerModels.some((value: string | number | boolean | null) => value === 'Utxo')
+				)
+				&& [
+					'Bitcoin',
+					'BitcoinCash',
+					'Dogecoin',
+					'Elements',
+					'Litecoin',
+					'Zcash',
+				].includes(parentData.projectionNetwork.namespace)
 			)
-			&& [
-				'Bitcoin',
-				'BitcoinCash',
-				'Dogecoin',
-				'Elements',
-				'Litecoin',
-				'Zcash',
-			].includes(parentData.projectionNetwork.namespace)
-		)
-		&& matchUtxoTxId(params.transactionId)
-	) {
-		const utxoTransactionNetworkTxIdSelector = parseEntitySelector(
+			&& matchUtxoTxId(params.transactionId)
+		))
+			return
+
+		const utxoTransactionNetworkTxIdSelector = parseRouteEntitySelector(
 			schema,
 			UtxoTransactionSchema,
 			{
@@ -225,16 +135,19 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			},
 			'NetworkTxId'
 		)
-		if (!(utxoTransactionNetworkTxIdSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(utxoTransactionNetworkTxIdSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.UtxoTransaction,
 				selectorName: 'NetworkTxId',
 				selector: utxoTransactionNetworkTxIdSelector,
-			})
-	}
+			} as const
+	})()
 
-	if (parentData.projectionNetwork.namespace === 'Arweave' && matchStringSegment(params.transactionId)) {
-		const arweaveTransactionNetworkTransactionIdSelector = parseEntitySelector(
+	const arweaveTransactionNetworkTransactionIdSelectorCandidate = (() => {
+		if (!(parentData.projectionNetwork.namespace === 'Arweave' && matchStringSegment(params.transactionId)))
+			return
+
+		const arweaveTransactionNetworkTransactionIdSelector = parseRouteEntitySelector(
 			schema,
 			ArweaveTransactionSchema,
 			{
@@ -245,25 +158,28 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			},
 			'NetworkTransactionId'
 		)
-		if (!(arweaveTransactionNetworkTransactionIdSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(arweaveTransactionNetworkTransactionIdSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.ArweaveTransaction,
 				selectorName: 'NetworkTransactionId',
 				selector: arweaveTransactionNetworkTransactionIdSelector,
-			})
-	}
+			} as const
+	})()
 
-	if (
-		(
+	const cosmosTransactionNetworkTxHashSelectorCandidate = (() => {
+		if (!(
 			(
-				parentData.projectionNetwork.executionModels !== undefined
-				&& parentData.projectionNetwork.executionModels.some((value: string | number | boolean | null) => value === 'CosmosSdk')
+				(
+					parentData.projectionNetwork.executionModels !== undefined
+					&& parentData.projectionNetwork.executionModels.some((value: string | number | boolean | null) => value === 'CosmosSdk')
+				)
+				&& parentData.projectionNetwork.namespace === 'Cosmos'
 			)
-			&& parentData.projectionNetwork.namespace === 'Cosmos'
-		)
-		&& matchStringSegment(params.transactionId)
-	) {
-		const cosmosTransactionNetworkTxHashSelector = parseEntitySelector(
+			&& matchStringSegment(params.transactionId)
+		))
+			return
+
+		const cosmosTransactionNetworkTxHashSelector = parseRouteEntitySelector(
 			schema,
 			CosmosTransactionSchema,
 			{
@@ -272,24 +188,27 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			},
 			'NetworkTxHash'
 		)
-		if (!(cosmosTransactionNetworkTxHashSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(cosmosTransactionNetworkTxHashSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.CosmosTransaction,
 				selectorName: 'NetworkTxHash',
 				selector: cosmosTransactionNetworkTxHashSelector,
-			})
-	}
+			} as const
+	})()
 
-	if (
-		parentData.projectionNetwork.namespace === 'Hyperliquid'
-		&& (
-			matchEvmTxHash(params.transactionId)
-			|| matchSolanaSignature(params.transactionId)
-			|| matchUtxoTxId(params.transactionId)
-			|| matchStringSegment(params.transactionId)
-		)
-	) {
-		const hyperliquidTransactionNetworkTxHashSelector = parseEntitySelector(
+	const hyperliquidTransactionNetworkTxHashSelectorCandidate = (() => {
+		if (!(
+			parentData.projectionNetwork.namespace === 'Hyperliquid'
+			&& (
+				matchEvmTxHash(params.transactionId)
+				|| matchSolanaSignature(params.transactionId)
+				|| matchUtxoTxId(params.transactionId)
+				|| matchStringSegment(params.transactionId)
+			)
+		))
+			return
+
+		const hyperliquidTransactionNetworkTxHashSelector = parseRouteEntitySelector(
 			schema,
 			HyperliquidTransactionSchema,
 			{
@@ -298,16 +217,19 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			},
 			'NetworkTxHash'
 		)
-		if (!(hyperliquidTransactionNetworkTxHashSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(hyperliquidTransactionNetworkTxHashSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.HyperliquidTransaction,
 				selectorName: 'NetworkTxHash',
 				selector: hyperliquidTransactionNetworkTxHashSelector,
-			})
-	}
+			} as const
+	})()
 
-	if (parentData.projectionNetwork.namespace === 'Monero' && matchStringSegment(params.transactionId)) {
-		const moneroTransactionNetworkTxHashSelector = parseEntitySelector(
+	const moneroTransactionNetworkTxHashSelectorCandidate = (() => {
+		if (!(parentData.projectionNetwork.namespace === 'Monero' && matchStringSegment(params.transactionId)))
+			return
+
+		const moneroTransactionNetworkTxHashSelector = parseRouteEntitySelector(
 			schema,
 			MoneroTransactionSchema,
 			{
@@ -316,16 +238,19 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			},
 			'NetworkTxHash'
 		)
-		if (!(moneroTransactionNetworkTxHashSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(moneroTransactionNetworkTxHashSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.MoneroTransaction,
 				selectorName: 'NetworkTxHash',
 				selector: moneroTransactionNetworkTxHashSelector,
-			})
-	}
+			} as const
+	})()
 
-	if (parentData.projectionNetwork.namespace === 'Near' && matchStringSegment(params.transactionId)) {
-		const nearTransactionNetworkHashSelector = parseEntitySelector(
+	const nearTransactionNetworkHashSelectorCandidate = (() => {
+		if (!(parentData.projectionNetwork.namespace === 'Near' && matchStringSegment(params.transactionId)))
+			return
+
+		const nearTransactionNetworkHashSelector = parseRouteEntitySelector(
 			schema,
 			NearTransactionSchema,
 			{
@@ -334,16 +259,19 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			},
 			'NetworkHash'
 		)
-		if (!(nearTransactionNetworkHashSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(nearTransactionNetworkHashSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.NearTransaction,
 				selectorName: 'NetworkHash',
 				selector: nearTransactionNetworkHashSelector,
-			})
-	}
+			} as const
+	})()
 
-	if (parentData.projectionNetwork.namespace === 'Tron' && matchStringSegment(params.transactionId)) {
-		const tronTransactionNetworkTransactionIdSelector = parseEntitySelector(
+	const tronTransactionNetworkTransactionIdSelectorCandidate = (() => {
+		if (!(parentData.projectionNetwork.namespace === 'Tron' && matchStringSegment(params.transactionId)))
+			return
+
+		const tronTransactionNetworkTransactionIdSelector = parseRouteEntitySelector(
 			schema,
 			TronTransactionSchema,
 			{
@@ -352,16 +280,19 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			},
 			'NetworkTransactionId'
 		)
-		if (!(tronTransactionNetworkTransactionIdSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(tronTransactionNetworkTransactionIdSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.TronTransaction,
 				selectorName: 'NetworkTransactionId',
 				selector: tronTransactionNetworkTransactionIdSelector,
-			})
-	}
+			} as const
+	})()
 
-	if (parentData.projectionNetwork.namespace === 'Aptos' && matchStringSegment(params.transactionId)) {
-		const aptosTransactionNetworkHashSelector = parseEntitySelector(
+	const aptosTransactionNetworkHashSelectorCandidate = (() => {
+		if (!(parentData.projectionNetwork.namespace === 'Aptos' && matchStringSegment(params.transactionId)))
+			return
+
+		const aptosTransactionNetworkHashSelector = parseRouteEntitySelector(
 			schema,
 			AptosTransactionSchema,
 			{
@@ -372,13 +303,27 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			},
 			'NetworkHash'
 		)
-		if (!(aptosTransactionNetworkHashSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(aptosTransactionNetworkHashSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.AptosTransaction,
 				selectorName: 'NetworkHash',
 				selector: aptosTransactionNetworkHashSelector,
-			})
-	}
+			} as const
+	})()
+
+	const routeCandidates = [
+		evmTransactionEvmNetworkTxHashSelectorCandidate,
+		solanaTransactionNetworkSignatureSelectorCandidate,
+		cardanoTransactionNetworkHashSelectorCandidate,
+		utxoTransactionNetworkTxIdSelectorCandidate,
+		arweaveTransactionNetworkTransactionIdSelectorCandidate,
+		cosmosTransactionNetworkTxHashSelectorCandidate,
+		hyperliquidTransactionNetworkTxHashSelectorCandidate,
+		moneroTransactionNetworkTxHashSelectorCandidate,
+		nearTransactionNetworkHashSelectorCandidate,
+		tronTransactionNetworkTransactionIdSelectorCandidate,
+		aptosTransactionNetworkHashSelectorCandidate,
+	].filter((candidate) => candidate != null)
 
 	if (routeCandidates.length === 0)
 		error(404, 'Route selector not applicable')

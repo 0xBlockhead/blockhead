@@ -7,16 +7,14 @@ installPolyfills()
 
 const PROXY_PATH = '/api-proxy/'
 
-export const handle: Handle = async ({
-	event,
-	resolve,
-}) => {
+export const handle: Handle = async ({ event, resolve }) => {
 	if (!event.url.pathname.startsWith(PROXY_PATH)) return resolve(event)
 
 	try {
 		return await proxySourceHttpRequest(event)
-	} catch (err) {
-		if (err instanceof Response) throw err
-		throw error(502, err instanceof Error ? err.message : 'Proxy upstream error')
+	}
+	catch (cause) {
+		if (cause instanceof Response) throw cause
+		throw error(502, cause instanceof Error ? cause.message : 'Proxy upstream error')
 	}
 }

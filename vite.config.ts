@@ -22,11 +22,6 @@ const tanstackBrowserSqliteSrc = fileURLToPath(new URL(
 	import.meta.url
 ))
 
-const satteriBrowserEntry = fileURLToPath(new URL(
-	'node_modules/satteri/browser.js',
-	import.meta.url
-))
-
 const generatorPublicationPlugin = (): Plugin => {
 	let paused = false
 	let server: ViteDevServer
@@ -84,7 +79,6 @@ export default defineConfig({
 		alias: {
 			'bun:ffi': resolve(import.meta.dirname, 'shims/bun-ffi.js'),
 			'@tanstack/browser-db-sqlite-persistence': tanstackBrowserSqliteSrc,
-			'satteri-browser': satteriBrowserEntry,
 		},
 	},
 	optimizeDeps: {

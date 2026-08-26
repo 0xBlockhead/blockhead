@@ -3,7 +3,7 @@
 import type { PageLoad } from './$types'
 import { error } from '@sveltejs/kit'
 import { match as matchNonNegativeBigInt } from '$/params/nonNegativeBigInt.ts'
-import { parseEntitySelector } from '$/schema/$schema.ts'
+import { parseRouteEntitySelector } from '$/schema/$schema.ts'
 import EvmNetwork_GasFee_BlockSchema from '$/schema/EvmNetwork_GasFee_Block.ts'
 import { schema } from '$/schema/index.ts'
 import { type as arktype } from 'arktype'
@@ -21,7 +21,7 @@ export const load: PageLoad = async ({ params, parent }) => {
 	))
 		error(404, 'Route mapping not applicable')
 
-	const evmNetworkGasFeeBlockEvmNetworkBlockNumberSelector = parseEntitySelector(
+	const evmNetworkGasFeeBlockEvmNetworkBlockNumberSelector = parseRouteEntitySelector(
 		schema,
 		EvmNetwork_GasFee_BlockSchema,
 		{

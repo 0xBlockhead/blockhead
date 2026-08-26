@@ -3,12 +3,12 @@
 import type { LayoutLoad } from './$types'
 import { error } from '@sveltejs/kit'
 import _GlobalIpfsAccessSchema from '$/schema/_GlobalIpfsAccess.ts'
-import { parseEntitySelector } from '$/schema/$schema.ts'
+import { parseRouteEntitySelector } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
 import { type as arktype } from 'arktype'
 
 export const load: LayoutLoad = ({ params }) => {
-	const globalIpfsAccessScopeSelector = parseEntitySelector(
+	const globalIpfsAccessScopeSelector = parseRouteEntitySelector(
 		schema,
 		_GlobalIpfsAccessSchema,
 		{

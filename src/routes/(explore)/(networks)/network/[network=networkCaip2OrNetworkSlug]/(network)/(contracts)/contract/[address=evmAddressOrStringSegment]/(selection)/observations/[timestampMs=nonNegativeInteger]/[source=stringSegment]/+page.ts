@@ -4,7 +4,7 @@ import type { PageLoad } from './$types'
 import { error } from '@sveltejs/kit'
 import { match as matchNonNegativeInteger } from '$/params/nonNegativeInteger.ts'
 import { match as matchStringSegment } from '$/params/stringSegment.ts'
-import { parseEntitySelector, type EntitySelectorForSelectorName } from '$/schema/$schema.ts'
+import { parseRouteEntitySelector } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import HederaContract_TimestampSchema from '$/schema/HederaContract_Timestamp.ts'
 import { schema } from '$/schema/index.ts'
@@ -14,33 +14,15 @@ import { type as arktype } from 'arktype'
 export const load: PageLoad = async ({ params, parent }) => {
 	const parentData = await parent()
 
-	const routeCandidates: (
-		| {
-			readonly entityType: EntityType.HederaContract_Timestamp
-			readonly selectorName: 'ContractTimestampMsSource'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.HederaContract_Timestamp,
-				'ContractTimestampMsSource'
-			>
-		}
-		| {
-			readonly entityType: EntityType.NearContract_Timestamp
-			readonly selectorName: 'ContractTimestampMsSource'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.NearContract_Timestamp,
-				'ContractTimestampMsSource'
-			>
-		}
-	)[] = []
+	const hederaContractTimestampContractTimestampMsSourceSelectorCandidate = (() => {
+		if (!(
+			parentData.projectionNetwork.namespace === 'Hedera'
+			&& matchNonNegativeInteger(params.timestampMs)
+			&& matchStringSegment(params.source)
+		))
+			return
 
-	if (
-		parentData.projectionNetwork.namespace === 'Hedera'
-		&& matchNonNegativeInteger(params.timestampMs)
-		&& matchStringSegment(params.source)
-	) {
-		const hederaContractTimestampContractTimestampMsSourceSelector = parseEntitySelector(
+		const hederaContractTimestampContractTimestampMsSourceSelector = parseRouteEntitySelector(
 			schema,
 			HederaContract_TimestampSchema,
 			{
@@ -50,20 +32,23 @@ export const load: PageLoad = async ({ params, parent }) => {
 			},
 			'ContractTimestampMsSource'
 		)
-		if (!(hederaContractTimestampContractTimestampMsSourceSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(hederaContractTimestampContractTimestampMsSourceSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.HederaContract_Timestamp,
 				selectorName: 'ContractTimestampMsSource',
 				selector: hederaContractTimestampContractTimestampMsSourceSelector,
-			})
-	}
+			} as const
+	})()
 
-	if (
-		parentData.projectionNetwork.namespace === 'Near'
-		&& matchNonNegativeInteger(params.timestampMs)
-		&& matchStringSegment(params.source)
-	) {
-		const nearContractTimestampContractTimestampMsSourceSelector = parseEntitySelector(
+	const nearContractTimestampContractTimestampMsSourceSelectorCandidate = (() => {
+		if (!(
+			parentData.projectionNetwork.namespace === 'Near'
+			&& matchNonNegativeInteger(params.timestampMs)
+			&& matchStringSegment(params.source)
+		))
+			return
+
+		const nearContractTimestampContractTimestampMsSourceSelector = parseRouteEntitySelector(
 			schema,
 			NearContract_TimestampSchema,
 			{
@@ -73,13 +58,18 @@ export const load: PageLoad = async ({ params, parent }) => {
 			},
 			'ContractTimestampMsSource'
 		)
-		if (!(nearContractTimestampContractTimestampMsSourceSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(nearContractTimestampContractTimestampMsSourceSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.NearContract_Timestamp,
 				selectorName: 'ContractTimestampMsSource',
 				selector: nearContractTimestampContractTimestampMsSourceSelector,
-			})
-	}
+			} as const
+	})()
+
+	const routeCandidates = [
+		hederaContractTimestampContractTimestampMsSourceSelectorCandidate,
+		nearContractTimestampContractTimestampMsSourceSelectorCandidate,
+	].filter((candidate) => candidate != null)
 
 	if (routeCandidates.length === 0)
 		error(404, 'Route selector not applicable')

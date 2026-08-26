@@ -4,7 +4,7 @@ import type { LayoutLoad } from './$types'
 import { error } from '@sveltejs/kit'
 import { match as matchAbsoluteUrl } from '$/params/absoluteUrl.ts'
 import { match as matchStringSegment } from '$/params/stringSegment.ts'
-import { parseEntitySelector } from '$/schema/$schema.ts'
+import { parseRouteEntitySelector } from '$/schema/$schema.ts'
 import BlockheadCashuProofSchema from '$/schema/BlockheadCashuProof.ts'
 import { schema } from '$/schema/index.ts'
 import { type as arktype } from 'arktype'
@@ -18,7 +18,7 @@ export const load: LayoutLoad = ({ params }) => {
 	))
 		error(404, 'Route mapping not applicable')
 
-	const blockheadCashuProofWalletIdMintUrlKeysetIdSecretHashSelector = parseEntitySelector(
+	const blockheadCashuProofWalletIdMintUrlKeysetIdSecretHashSelector = parseRouteEntitySelector(
 		schema,
 		BlockheadCashuProofSchema,
 		{

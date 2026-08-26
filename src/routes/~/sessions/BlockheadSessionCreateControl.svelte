@@ -6,7 +6,7 @@
 
 	// Context
 	import { writeLocalBlockheadSession } from '$/collections/localMutations.ts'
-	import { getAppClient } from '$/routes/+layout.svelte'
+	import { getAppClient } from '$/routes/applicationClient.ts'
 
 
 	// State

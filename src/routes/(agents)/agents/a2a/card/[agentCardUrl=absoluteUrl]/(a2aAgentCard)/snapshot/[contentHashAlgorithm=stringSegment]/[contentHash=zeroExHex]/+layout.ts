@@ -4,7 +4,7 @@ import type { LayoutLoad } from './$types'
 import { error } from '@sveltejs/kit'
 import { match as matchStringSegment } from '$/params/stringSegment.ts'
 import { match as matchZeroExHex } from '$/params/zeroExHex.ts'
-import { parseEntitySelector } from '$/schema/$schema.ts'
+import { parseRouteEntitySelector } from '$/schema/$schema.ts'
 import A2aAgentCard_SnapshotSchema from '$/schema/A2aAgentCard_Snapshot.ts'
 import { schema } from '$/schema/index.ts'
 import { type as arktype } from 'arktype'
@@ -15,7 +15,7 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 	if (!(matchStringSegment(params.contentHashAlgorithm) && matchZeroExHex(params.contentHash)))
 		error(404, 'Route mapping not applicable')
 
-	const a2aAgentCardSnapshotCardContentHashSelector = parseEntitySelector(
+	const a2aAgentCardSnapshotCardContentHashSelector = parseRouteEntitySelector(
 		schema,
 		A2aAgentCard_SnapshotSchema,
 		{

@@ -5,7 +5,7 @@ import { error } from '@sveltejs/kit'
 import { caip2SelectorValueFromString } from '$/lib/caip2.ts'
 import { match as matchAbsoluteUrl } from '$/params/absoluteUrl.ts'
 import { match as matchNetworkCaip2 } from '$/params/networkCaip2.ts'
-import { parseEntitySelector } from '$/schema/$schema.ts'
+import { parseRouteEntitySelector } from '$/schema/$schema.ts'
 import EvmNetworkBridgeSchema from '$/schema/EvmNetworkBridge.ts'
 import { schema } from '$/schema/index.ts'
 import { type as arktype } from 'arktype'
@@ -24,7 +24,7 @@ export const load: PageLoad = async ({ params, parent }) => {
 	))
 		error(404, 'Route mapping not applicable')
 
-	const evmNetworkBridgeFromToUrlSelector = parseEntitySelector(
+	const evmNetworkBridgeFromToUrlSelector = parseRouteEntitySelector(
 		schema,
 		EvmNetworkBridgeSchema,
 		{

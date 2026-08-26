@@ -6,7 +6,7 @@ import { match as matchNetworkCaip2 } from '$/params/networkCaip2.ts'
 import { match as matchNetworkSlug } from '$/params/networkSlug.ts'
 import { match as matchNonNegativeInteger } from '$/params/nonNegativeInteger.ts'
 import { match as matchStringSegment } from '$/params/stringSegment.ts'
-import { parseEntitySelector } from '$/schema/$schema.ts'
+import { parseRouteEntitySelector } from '$/schema/$schema.ts'
 import DydxChainSubaccountSchema from '$/schema/DydxChainSubaccount.ts'
 import { schema } from '$/schema/index.ts'
 import { type as arktype } from 'arktype'
@@ -23,7 +23,7 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 	))
 		error(404, 'Route mapping not applicable')
 
-	const dydxChainSubaccountNetworkAccountSubaccountNumberSelector = parseEntitySelector(
+	const dydxChainSubaccountNetworkAccountSubaccountNumberSelector = parseRouteEntitySelector(
 		schema,
 		DydxChainSubaccountSchema,
 		{

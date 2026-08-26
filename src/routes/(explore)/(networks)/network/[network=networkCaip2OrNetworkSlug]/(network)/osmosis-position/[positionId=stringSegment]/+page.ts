@@ -3,7 +3,7 @@
 import type { PageLoad } from './$types'
 import { error } from '@sveltejs/kit'
 import { match as matchStringSegment } from '$/params/stringSegment.ts'
-import { parseEntitySelector } from '$/schema/$schema.ts'
+import { parseRouteEntitySelector } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
 import OsmosisPositionSchema from '$/schema/OsmosisPosition.ts'
 import { type as arktype } from 'arktype'
@@ -24,7 +24,7 @@ export const load: PageLoad = async ({ params, parent }) => {
 	))
 		error(404, 'Route mapping not applicable')
 
-	const osmosisPositionNetworkPositionIdSelector = parseEntitySelector(
+	const osmosisPositionNetworkPositionIdSelector = parseRouteEntitySelector(
 		schema,
 		OsmosisPositionSchema,
 		{

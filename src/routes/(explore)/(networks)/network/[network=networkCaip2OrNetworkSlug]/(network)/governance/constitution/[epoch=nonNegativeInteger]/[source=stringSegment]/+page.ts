@@ -4,7 +4,7 @@ import type { PageLoad } from './$types'
 import { error } from '@sveltejs/kit'
 import { match as matchNonNegativeInteger } from '$/params/nonNegativeInteger.ts'
 import { match as matchStringSegment } from '$/params/stringSegment.ts'
-import { parseEntitySelector } from '$/schema/$schema.ts'
+import { parseRouteEntitySelector } from '$/schema/$schema.ts'
 import CardanoConstitution_EpochSchema from '$/schema/CardanoConstitution_Epoch.ts'
 import { schema } from '$/schema/index.ts'
 import { type as arktype } from 'arktype'
@@ -20,7 +20,7 @@ export const load: PageLoad = async ({ params, parent }) => {
 	))
 		error(404, 'Route mapping not applicable')
 
-	const cardanoConstitutionEpochNetworkEpochSourceSelector = parseEntitySelector(
+	const cardanoConstitutionEpochNetworkEpochSourceSelector = parseRouteEntitySelector(
 		schema,
 		CardanoConstitution_EpochSchema,
 		{

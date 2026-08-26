@@ -240,13 +240,13 @@ const asQuerySnapshot = <Data>(
 	}
 }
 
-const subscribeToLiveQueryCollections = (
+export const subscribeToLiveQueryCollections = (
 	queries: readonly {
 		initialSnapshot?: boolean
 		collection: {
 			readonly status: CollectionStatus
 			readonly isLoadingSubset: boolean
-			onFirstReady(update: () => void): void
+			onFirstReady(update: () => void): () => void
 			on(
 				event: 'loadingSubset:change',
 				update: () => void
@@ -275,7 +275,7 @@ const subscribeToLiveQueryCollections = (
 		subscribeToFailures(update),
 	]
 	for (const query of queries) {
-		query.collection.onFirstReady(update)
+		subscriptions.push(query.collection.onFirstReady(update))
 		const subscription = (
 			query.initialSnapshot === false ?
 				query.collection.subscribeChanges(() => {
@@ -308,13 +308,13 @@ const subscribeToLiveQueryCollections = (
 	}
 }
 
-const waitForLiveQueryCollections = (
+export const waitForLiveQueryCollections = (
 	queries: readonly {
 		initialSnapshot?: boolean
 		collection: {
 			readonly status: CollectionStatus
 			readonly isLoadingSubset: boolean
-			onFirstReady(update: () => void): void
+			onFirstReady(update: () => void): () => void
 			on(
 				event: 'loadingSubset:change',
 				update: () => void
@@ -325,6 +325,7 @@ const waitForLiveQueryCollections = (
 ) => (
 	new Promise<void>((resolve) => {
 		const subscriptions: (() => void)[] = []
+		let settled = false
 		const done = () => (
 			queries.every((query) => (
 				query.initialSnapshot === false
@@ -335,11 +336,13 @@ const waitForLiveQueryCollections = (
 			))
 		)
 		const complete = () => {
-			if (!done())
+			if (settled || !done())
 				return
 
+			settled = true
 			for (const subscription of subscriptions)
 				subscription()
+			subscriptions.length = 0
 			resolve()
 		}
 
@@ -347,8 +350,18 @@ const waitForLiveQueryCollections = (
 			if (query.initialSnapshot === false)
 				continue
 
-			query.collection.onFirstReady(complete)
-			subscriptions.push(query.collection.on('loadingSubset:change', complete))
+			const unsubscribeFirstReady = query.collection.onFirstReady(complete)
+			if (settled) {
+				unsubscribeFirstReady()
+				continue
+			}
+
+			subscriptions.push(unsubscribeFirstReady)
+			const unsubscribeLoadingSubset = query.collection.on('loadingSubset:change', complete)
+			if (settled)
+				unsubscribeLoadingSubset()
+			else
+				subscriptions.push(unsubscribeLoadingSubset)
 		}
 		void (async () => {
 			for (const query of queries) {
@@ -365,7 +378,7 @@ const liveQuerySnapshot = <Data>(
 		readonly status: CollectionStatus
 		readonly isLoadingSubset: boolean
 		readonly toArray: readonly Data[]
-		onFirstReady(update: () => void): void
+		onFirstReady(update: () => void): () => void
 		on(
 			event: 'loadingSubset:change',
 			update: () => void

@@ -4,7 +4,7 @@ import type { LayoutLoad } from './$types'
 import { error } from '@sveltejs/kit'
 import { specificationRealmBySlug } from '$/constants/SpecificationProposal.ts'
 import { match as matchSpecificationRealmSlug } from '$/params/specificationRealmSlug.ts'
-import { parseEntitySelector } from '$/schema/$schema.ts'
+import { parseRouteEntitySelector } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
 import SpecificationRealmSchema from '$/schema/SpecificationRealm.ts'
 import { type as arktype } from 'arktype'
@@ -13,7 +13,7 @@ export const load: LayoutLoad = ({ params }) => {
 	if (!(matchSpecificationRealmSlug(params.specificationRealmSlug)))
 		error(404, 'Route mapping not applicable')
 
-	const specificationRealmRealmSelector = parseEntitySelector(
+	const specificationRealmRealmSelector = parseRouteEntitySelector(
 		schema,
 		SpecificationRealmSchema,
 		{

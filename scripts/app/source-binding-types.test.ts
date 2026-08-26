@@ -11,7 +11,8 @@ import {
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
 import test from 'node:test'
-import ts from 'typescript'
+import * as ts from '@typescript/native/unstable/ast'
+import { API } from '@typescript/native/unstable/sync'
 
 const runTypeScript = (entryFile: string, listFiles = false) => spawnSync(
 	process.execPath,
@@ -38,13 +39,18 @@ const runTypeScript = (entryFile: string, listFiles = false) => spawnSync(
 )
 
 const appSource = readFileSync('APP.ts', 'utf8')
-const appSourceFile = ts.createSourceFile(
-	'APP.ts',
-	appSource,
-	ts.ScriptTarget.Latest,
-	true,
-	ts.ScriptKind.TS
-)
+const typeScriptApi = new API()
+const typeScriptSnapshot = typeScriptApi.updateSnapshot({
+	openFiles: ['APP.ts'],
+})
+const appSourceFile = typeScriptSnapshot
+	.getDefaultProjectForFile('APP.ts')
+	?.program.getSourceFile('APP.ts')
+assert.ok(appSourceFile)
+test.after(() => {
+	typeScriptSnapshot.dispose()
+	typeScriptApi.close()
+})
 test('rejects incompatible source binding declarations at compile time', () => {
 	const fixturePath = join(process.cwd(), 'scripts/app/source-binding-types.types.ts')
 	const result = runTypeScript(fixturePath, true)
@@ -81,7 +87,7 @@ test('type-checks the actual APP Envio and GetBlock EVM execution rows', () => {
 				sourceDefinitionBySource.set(sourceProperty.initializer.name.text, node)
 		}
 
-		ts.forEachChild(node, visit)
+		node.forEachChild(visit)
 	}
 	visit(appSourceFile)
 

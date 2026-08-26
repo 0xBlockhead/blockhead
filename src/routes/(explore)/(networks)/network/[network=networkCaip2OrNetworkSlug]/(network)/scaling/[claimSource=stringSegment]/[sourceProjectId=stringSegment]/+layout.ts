@@ -3,7 +3,7 @@
 import type { LayoutLoad } from './$types'
 import { error } from '@sveltejs/kit'
 import { match as matchStringSegment } from '$/params/stringSegment.ts'
-import { parseEntitySelector } from '$/schema/$schema.ts'
+import { parseRouteEntitySelector } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
 import ScalingDeploymentClaimSchema from '$/schema/ScalingDeploymentClaim.ts'
 import { type as arktype } from 'arktype'
@@ -14,7 +14,7 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 	if (!(matchStringSegment(params.claimSource) && matchStringSegment(params.sourceProjectId)))
 		error(404, 'Route mapping not applicable')
 
-	const scalingDeploymentClaimNetworkSourceSourceProjectIdSelector = parseEntitySelector(
+	const scalingDeploymentClaimNetworkSourceSourceProjectIdSelector = parseRouteEntitySelector(
 		schema,
 		ScalingDeploymentClaimSchema,
 		{

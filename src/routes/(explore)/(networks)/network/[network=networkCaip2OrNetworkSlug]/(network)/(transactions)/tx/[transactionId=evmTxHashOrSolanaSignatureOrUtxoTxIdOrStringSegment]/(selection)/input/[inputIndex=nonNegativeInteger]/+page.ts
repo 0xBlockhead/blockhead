@@ -3,7 +3,7 @@
 import type { PageLoad } from './$types'
 import { error } from '@sveltejs/kit'
 import { match as matchNonNegativeInteger } from '$/params/nonNegativeInteger.ts'
-import { parseEntitySelector, type EntitySelectorForSelectorName } from '$/schema/$schema.ts'
+import { parseRouteEntitySelector } from '$/schema/$schema.ts'
 import CardanoTxInputSchema from '$/schema/CardanoTxInput.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
@@ -13,29 +13,11 @@ import { type as arktype } from 'arktype'
 export const load: PageLoad = async ({ params, parent }) => {
 	const parentData = await parent()
 
-	const routeCandidates: (
-		| {
-			readonly entityType: EntityType.CardanoTxInput
-			readonly selectorName: 'TransactionInputIndex'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.CardanoTxInput,
-				'TransactionInputIndex'
-			>
-		}
-		| {
-			readonly entityType: EntityType.UtxoInput
-			readonly selectorName: 'TransactionIndexInTransaction'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.UtxoInput,
-				'TransactionIndexInTransaction'
-			>
-		}
-	)[] = []
+	const cardanoTxInputTransactionInputIndexSelectorCandidate = (() => {
+		if (!(parentData.projectionNetwork.namespace === 'Cardano' && matchNonNegativeInteger(params.inputIndex)))
+			return
 
-	if (parentData.projectionNetwork.namespace === 'Cardano' && matchNonNegativeInteger(params.inputIndex)) {
-		const cardanoTxInputTransactionInputIndexSelector = parseEntitySelector(
+		const cardanoTxInputTransactionInputIndexSelector = parseRouteEntitySelector(
 			schema,
 			CardanoTxInputSchema,
 			{
@@ -44,32 +26,35 @@ export const load: PageLoad = async ({ params, parent }) => {
 			},
 			'TransactionInputIndex'
 		)
-		if (!(cardanoTxInputTransactionInputIndexSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(cardanoTxInputTransactionInputIndexSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.CardanoTxInput,
 				selectorName: 'TransactionInputIndex',
 				selector: cardanoTxInputTransactionInputIndexSelector,
-			})
-	}
+			} as const
+	})()
 
-	if (
-		(
+	const utxoInputTransactionIndexInTransactionSelectorCandidate = (() => {
+		if (!(
 			(
-				parentData.projectionNetwork.ledgerModels !== undefined
-				&& parentData.projectionNetwork.ledgerModels.some((value: string | number | boolean | null) => value === 'Utxo')
+				(
+					parentData.projectionNetwork.ledgerModels !== undefined
+					&& parentData.projectionNetwork.ledgerModels.some((value: string | number | boolean | null) => value === 'Utxo')
+				)
+				&& [
+					'Bitcoin',
+					'BitcoinCash',
+					'Dogecoin',
+					'Elements',
+					'Litecoin',
+					'Zcash',
+				].includes(parentData.projectionNetwork.namespace)
 			)
-			&& [
-				'Bitcoin',
-				'BitcoinCash',
-				'Dogecoin',
-				'Elements',
-				'Litecoin',
-				'Zcash',
-			].includes(parentData.projectionNetwork.namespace)
-		)
-		&& matchNonNegativeInteger(params.inputIndex)
-	) {
-		const utxoInputTransactionIndexInTransactionSelector = parseEntitySelector(
+			&& matchNonNegativeInteger(params.inputIndex)
+		))
+			return
+
+		const utxoInputTransactionIndexInTransactionSelector = parseRouteEntitySelector(
 			schema,
 			UtxoInputSchema,
 			{
@@ -78,13 +63,18 @@ export const load: PageLoad = async ({ params, parent }) => {
 			},
 			'TransactionIndexInTransaction'
 		)
-		if (!(utxoInputTransactionIndexInTransactionSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(utxoInputTransactionIndexInTransactionSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.UtxoInput,
 				selectorName: 'TransactionIndexInTransaction',
 				selector: utxoInputTransactionIndexInTransactionSelector,
-			})
-	}
+			} as const
+	})()
+
+	const routeCandidates = [
+		cardanoTxInputTransactionInputIndexSelectorCandidate,
+		utxoInputTransactionIndexInTransactionSelectorCandidate,
+	].filter((candidate) => candidate != null)
 
 	if (routeCandidates.length === 0)
 		error(404, 'Route selector not applicable')

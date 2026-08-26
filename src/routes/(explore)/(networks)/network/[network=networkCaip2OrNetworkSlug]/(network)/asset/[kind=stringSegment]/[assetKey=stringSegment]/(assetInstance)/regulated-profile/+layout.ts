@@ -2,7 +2,7 @@
 
 import type { LayoutLoad } from './$types'
 import { error } from '@sveltejs/kit'
-import { parseEntitySelector } from '$/schema/$schema.ts'
+import { parseRouteEntitySelector } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
 import RegulatedAssetProfileSchema from '$/schema/RegulatedAssetProfile.ts'
 import { type as arktype } from 'arktype'
@@ -10,7 +10,7 @@ import { type as arktype } from 'arktype'
 export const load: LayoutLoad = async ({ params, parent }) => {
 	const parentData = await parent()
 
-	const regulatedAssetProfileAssetInstanceSelector = parseEntitySelector(
+	const regulatedAssetProfileAssetInstanceSelector = parseRouteEntitySelector(
 		schema,
 		RegulatedAssetProfileSchema,
 		{

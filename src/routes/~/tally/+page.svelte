@@ -2,8 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import { resolve } from '$app/paths'
 	import HeadingComponent from '$/components/Heading.svelte'
+	import { resolve } from '$app/paths'
 
 
 	// Components

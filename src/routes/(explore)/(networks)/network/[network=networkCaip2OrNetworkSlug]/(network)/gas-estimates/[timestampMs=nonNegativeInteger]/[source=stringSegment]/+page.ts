@@ -4,7 +4,7 @@ import type { PageLoad } from './$types'
 import { error } from '@sveltejs/kit'
 import { match as matchNonNegativeInteger } from '$/params/nonNegativeInteger.ts'
 import { match as matchStringSegment } from '$/params/stringSegment.ts'
-import { parseEntitySelector } from '$/schema/$schema.ts'
+import { parseRouteEntitySelector } from '$/schema/$schema.ts'
 import EvmNetwork_GasEstimate_TimestampSchema from '$/schema/EvmNetwork_GasEstimate_Timestamp.ts'
 import { schema } from '$/schema/index.ts'
 import { type as arktype } from 'arktype'
@@ -23,7 +23,7 @@ export const load: PageLoad = async ({ params, parent }) => {
 	))
 		error(404, 'Route mapping not applicable')
 
-	const evmNetworkGasEstimateTimestampNetworkTimestampMsSourceSelector = parseEntitySelector(
+	const evmNetworkGasEstimateTimestampNetworkTimestampMsSourceSelector = parseRouteEntitySelector(
 		schema,
 		EvmNetwork_GasEstimate_TimestampSchema,
 		{

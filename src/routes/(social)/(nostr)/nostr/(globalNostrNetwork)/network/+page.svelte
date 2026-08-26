@@ -6,7 +6,8 @@
 
 
 	// Context
-	import { select } from '$/routes/+layout.svelte'
+	import { getAppClient } from '$/routes/applicationClient.ts'
+	const select = getAppClient().select
 
 	const pageSelection = $derived(select(EntityType.NostrNetwork, {
 		scope: 'NostrNetwork',

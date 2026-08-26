@@ -5,7 +5,7 @@ import { error } from '@sveltejs/kit'
 import { match as matchStringSegment } from '$/params/stringSegment.ts'
 import { match as matchUtxoTxId } from '$/params/utxoTxId.ts'
 import { match as matchZeroExHex } from '$/params/zeroExHex.ts'
-import { parseEntitySelector, type EntitySelectorForSelectorName } from '$/schema/$schema.ts'
+import { parseRouteEntitySelector } from '$/schema/$schema.ts'
 import ArweaveBlockSchema from '$/schema/ArweaveBlock.ts'
 import CardanoBlockSchema from '$/schema/CardanoBlock.ts'
 import CosmosBlockSchema from '$/schema/CosmosBlock.ts'
@@ -18,65 +18,20 @@ import { type as arktype } from 'arktype'
 export const load: PageLoad = async ({ params, parent }) => {
 	const parentData = await parent()
 
-	const routeCandidates: (
-		| {
-			readonly entityType: EntityType.EvmBlock
-			readonly selectorName: 'EvmNetworkBlockHash'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.EvmBlock,
-				'EvmNetworkBlockHash'
-			>
-		}
-		| {
-			readonly entityType: EntityType.ArweaveBlock
-			readonly selectorName: 'NetworkIndepHash'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.ArweaveBlock,
-				'NetworkIndepHash'
-			>
-		}
-		| {
-			readonly entityType: EntityType.CardanoBlock
-			readonly selectorName: 'NetworkHash'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.CardanoBlock,
-				'NetworkHash'
-			>
-		}
-		| {
-			readonly entityType: EntityType.CosmosBlock
-			readonly selectorName: 'NetworkHash'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.CosmosBlock,
-				'NetworkHash'
-			>
-		}
-		| {
-			readonly entityType: EntityType.HederaBlock
-			readonly selectorName: 'NetworkBlockHash'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.HederaBlock,
-				'NetworkBlockHash'
-			>
-		}
-	)[] = []
-
-	if (
-		(
+	const evmBlockEvmNetworkBlockHashSelectorCandidate = (() => {
+		if (!(
 			(
-				parentData.projectionNetwork.executionModels !== undefined
-				&& parentData.projectionNetwork.executionModels.some((value: string | number | boolean | null) => value === 'Evm')
+				(
+					parentData.projectionNetwork.executionModels !== undefined
+					&& parentData.projectionNetwork.executionModels.some((value: string | number | boolean | null) => value === 'Evm')
+				)
+				&& parentData.projectionNetwork.namespace === 'Evm'
 			)
-			&& parentData.projectionNetwork.namespace === 'Evm'
-		)
-		&& matchZeroExHex(params.blockHash)
-	) {
-		const evmBlockEvmNetworkBlockHashSelector = parseEntitySelector(
+			&& matchZeroExHex(params.blockHash)
+		))
+			return
+
+		const evmBlockEvmNetworkBlockHashSelector = parseRouteEntitySelector(
 			schema,
 			EvmBlockSchema,
 			{
@@ -85,16 +40,19 @@ export const load: PageLoad = async ({ params, parent }) => {
 			},
 			'EvmNetworkBlockHash'
 		)
-		if (!(evmBlockEvmNetworkBlockHashSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(evmBlockEvmNetworkBlockHashSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.EvmBlock,
 				selectorName: 'EvmNetworkBlockHash',
 				selector: evmBlockEvmNetworkBlockHashSelector,
-			})
-	}
+			} as const
+	})()
 
-	if (parentData.projectionNetwork.namespace === 'Arweave' && matchStringSegment(params.blockHash)) {
-		const arweaveBlockNetworkIndepHashSelector = parseEntitySelector(
+	const arweaveBlockNetworkIndepHashSelectorCandidate = (() => {
+		if (!(parentData.projectionNetwork.namespace === 'Arweave' && matchStringSegment(params.blockHash)))
+			return
+
+		const arweaveBlockNetworkIndepHashSelector = parseRouteEntitySelector(
 			schema,
 			ArweaveBlockSchema,
 			{
@@ -105,16 +63,19 @@ export const load: PageLoad = async ({ params, parent }) => {
 			},
 			'NetworkIndepHash'
 		)
-		if (!(arweaveBlockNetworkIndepHashSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(arweaveBlockNetworkIndepHashSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.ArweaveBlock,
 				selectorName: 'NetworkIndepHash',
 				selector: arweaveBlockNetworkIndepHashSelector,
-			})
-	}
+			} as const
+	})()
 
-	if (parentData.projectionNetwork.namespace === 'Cardano' && matchUtxoTxId(params.blockHash)) {
-		const cardanoBlockNetworkHashSelector = parseEntitySelector(
+	const cardanoBlockNetworkHashSelectorCandidate = (() => {
+		if (!(parentData.projectionNetwork.namespace === 'Cardano' && matchUtxoTxId(params.blockHash)))
+			return
+
+		const cardanoBlockNetworkHashSelector = parseRouteEntitySelector(
 			schema,
 			CardanoBlockSchema,
 			{
@@ -123,25 +84,28 @@ export const load: PageLoad = async ({ params, parent }) => {
 			},
 			'NetworkHash'
 		)
-		if (!(cardanoBlockNetworkHashSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(cardanoBlockNetworkHashSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.CardanoBlock,
 				selectorName: 'NetworkHash',
 				selector: cardanoBlockNetworkHashSelector,
-			})
-	}
+			} as const
+	})()
 
-	if (
-		(
+	const cosmosBlockNetworkHashSelectorCandidate = (() => {
+		if (!(
 			(
-				parentData.projectionNetwork.executionModels !== undefined
-				&& parentData.projectionNetwork.executionModels.some((value: string | number | boolean | null) => value === 'CosmosSdk')
+				(
+					parentData.projectionNetwork.executionModels !== undefined
+					&& parentData.projectionNetwork.executionModels.some((value: string | number | boolean | null) => value === 'CosmosSdk')
+				)
+				&& parentData.projectionNetwork.namespace === 'Cosmos'
 			)
-			&& parentData.projectionNetwork.namespace === 'Cosmos'
-		)
-		&& matchStringSegment(params.blockHash)
-	) {
-		const cosmosBlockNetworkHashSelector = parseEntitySelector(
+			&& matchStringSegment(params.blockHash)
+		))
+			return
+
+		const cosmosBlockNetworkHashSelector = parseRouteEntitySelector(
 			schema,
 			CosmosBlockSchema,
 			{
@@ -150,16 +114,19 @@ export const load: PageLoad = async ({ params, parent }) => {
 			},
 			'NetworkHash'
 		)
-		if (!(cosmosBlockNetworkHashSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(cosmosBlockNetworkHashSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.CosmosBlock,
 				selectorName: 'NetworkHash',
 				selector: cosmosBlockNetworkHashSelector,
-			})
-	}
+			} as const
+	})()
 
-	if (parentData.projectionNetwork.namespace === 'Hedera' && matchStringSegment(params.blockHash)) {
-		const hederaBlockNetworkBlockHashSelector = parseEntitySelector(
+	const hederaBlockNetworkBlockHashSelectorCandidate = (() => {
+		if (!(parentData.projectionNetwork.namespace === 'Hedera' && matchStringSegment(params.blockHash)))
+			return
+
+		const hederaBlockNetworkBlockHashSelector = parseRouteEntitySelector(
 			schema,
 			HederaBlockSchema,
 			{
@@ -168,13 +135,21 @@ export const load: PageLoad = async ({ params, parent }) => {
 			},
 			'NetworkBlockHash'
 		)
-		if (!(hederaBlockNetworkBlockHashSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(hederaBlockNetworkBlockHashSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.HederaBlock,
 				selectorName: 'NetworkBlockHash',
 				selector: hederaBlockNetworkBlockHashSelector,
-			})
-	}
+			} as const
+	})()
+
+	const routeCandidates = [
+		evmBlockEvmNetworkBlockHashSelectorCandidate,
+		arweaveBlockNetworkIndepHashSelectorCandidate,
+		cardanoBlockNetworkHashSelectorCandidate,
+		cosmosBlockNetworkHashSelectorCandidate,
+		hederaBlockNetworkBlockHashSelectorCandidate,
+	].filter((candidate) => candidate != null)
 
 	if (routeCandidates.length === 0)
 		error(404, 'Route selector not applicable')

@@ -11,7 +11,7 @@ import {
 	sessionTransferSourceFromSerialized,
 } from './BlockheadSessionActionsComposer.svelte'
 
-vi.mock('$/routes/+layout.svelte', () => ({
+vi.mock('$/routes/applicationClient.ts', () => ({
 	getAppClient: () => {
 		throw new Error('getAppClient is outside the receiver contract test')
 	},

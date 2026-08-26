@@ -2,7 +2,7 @@
 
 import type { LayoutLoad } from './$types'
 import { error } from '@sveltejs/kit'
-import { parseEntitySelector } from '$/schema/$schema.ts'
+import { parseRouteEntitySelector } from '$/schema/$schema.ts'
 import HederaContractResultSchema from '$/schema/HederaContractResult.ts'
 import { schema } from '$/schema/index.ts'
 import { type as arktype } from 'arktype'
@@ -14,7 +14,7 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 	if (!(parentData.projectionNetwork.namespace === 'Hedera'))
 		error(404, 'Route mapping not applicable')
 
-	const hederaContractResultTransactionSelector = parseEntitySelector(
+	const hederaContractResultTransactionSelector = parseRouteEntitySelector(
 		schema,
 		HederaContractResultSchema,
 		{

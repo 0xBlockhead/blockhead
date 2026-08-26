@@ -2,7 +2,7 @@
 
 import type { LayoutLoad } from './$types'
 import { error } from '@sveltejs/kit'
-import { parseEntitySelector } from '$/schema/$schema.ts'
+import { parseRouteEntitySelector } from '$/schema/$schema.ts'
 import Erc4626VaultSchema from '$/schema/Erc4626Vault.ts'
 import { schema } from '$/schema/index.ts'
 import { type as arktype } from 'arktype'
@@ -22,7 +22,7 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 	))
 		error(404, 'Route mapping not applicable')
 
-	const erc4626VaultContractSelector = parseEntitySelector(
+	const erc4626VaultContractSelector = parseRouteEntitySelector(
 		schema,
 		Erc4626VaultSchema,
 		{

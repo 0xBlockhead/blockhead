@@ -4,7 +4,7 @@ import type { PageLoad } from './$types'
 import { error } from '@sveltejs/kit'
 import { match as matchNonNegativeInteger } from '$/params/nonNegativeInteger.ts'
 import { match as matchStringSegment } from '$/params/stringSegment.ts'
-import { parseEntitySelector, type EntitySelectorForSelectorName } from '$/schema/$schema.ts'
+import { parseRouteEntitySelector } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import HederaTokenAssociation_TimestampSchema from '$/schema/HederaTokenAssociation_Timestamp.ts'
 import { schema } from '$/schema/index.ts'
@@ -14,34 +14,16 @@ import { type as arktype } from 'arktype'
 export const load: PageLoad = async ({ params, parent }) => {
 	const parentData = await parent()
 
-	const routeCandidates: (
-		| {
-			readonly entityType: EntityType.TronAccountTokenBalance_Timestamp
-			readonly selectorName: 'AccountTokenTimestampMsSource'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.TronAccountTokenBalance_Timestamp,
-				'AccountTokenTimestampMsSource'
-			>
-		}
-		| {
-			readonly entityType: EntityType.HederaTokenAssociation_Timestamp
-			readonly selectorName: 'AssociationTimestampMsSource'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.HederaTokenAssociation_Timestamp,
-				'AssociationTimestampMsSource'
-			>
-		}
-	)[] = []
+	const tronAccountTokenBalanceTimestampAccountTokenTimestampMsSourceSelectorCandidate = (() => {
+		if (!(
+			parentData.projectionNetwork.namespace === 'Tron'
+			&& matchNonNegativeInteger(params.timestampMs)
+			&& matchStringSegment(params.source)
+			&& matchStringSegment(params.tokenId)
+		))
+			return
 
-	if (
-		parentData.projectionNetwork.namespace === 'Tron'
-		&& matchNonNegativeInteger(params.timestampMs)
-		&& matchStringSegment(params.source)
-		&& matchStringSegment(params.tokenId)
-	) {
-		const tronAccountTokenBalanceTimestampAccountTokenTimestampMsSourceSelector = parseEntitySelector(
+		const tronAccountTokenBalanceTimestampAccountTokenTimestampMsSourceSelector = parseRouteEntitySelector(
 			schema,
 			TronAccountTokenBalance_TimestampSchema,
 			{
@@ -55,20 +37,23 @@ export const load: PageLoad = async ({ params, parent }) => {
 			},
 			'AccountTokenTimestampMsSource'
 		)
-		if (!(tronAccountTokenBalanceTimestampAccountTokenTimestampMsSourceSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(tronAccountTokenBalanceTimestampAccountTokenTimestampMsSourceSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.TronAccountTokenBalance_Timestamp,
 				selectorName: 'AccountTokenTimestampMsSource',
 				selector: tronAccountTokenBalanceTimestampAccountTokenTimestampMsSourceSelector,
-			})
-	}
+			} as const
+	})()
 
-	if (
-		parentData.projectionNetwork.namespace === 'Hedera'
-		&& matchNonNegativeInteger(params.timestampMs)
-		&& matchStringSegment(params.source)
-	) {
-		const hederaTokenAssociationTimestampAssociationTimestampMsSourceSelector = parseEntitySelector(
+	const hederaTokenAssociationTimestampAssociationTimestampMsSourceSelectorCandidate = (() => {
+		if (!(
+			parentData.projectionNetwork.namespace === 'Hedera'
+			&& matchNonNegativeInteger(params.timestampMs)
+			&& matchStringSegment(params.source)
+		))
+			return
+
+		const hederaTokenAssociationTimestampAssociationTimestampMsSourceSelector = parseRouteEntitySelector(
 			schema,
 			HederaTokenAssociation_TimestampSchema,
 			{
@@ -78,13 +63,18 @@ export const load: PageLoad = async ({ params, parent }) => {
 			},
 			'AssociationTimestampMsSource'
 		)
-		if (!(hederaTokenAssociationTimestampAssociationTimestampMsSourceSelector instanceof arktype.errors))
-			routeCandidates.push({
+		if ((!(hederaTokenAssociationTimestampAssociationTimestampMsSourceSelector instanceof arktype.errors)))
+			return {
 				entityType: EntityType.HederaTokenAssociation_Timestamp,
 				selectorName: 'AssociationTimestampMsSource',
 				selector: hederaTokenAssociationTimestampAssociationTimestampMsSourceSelector,
-			})
-	}
+			} as const
+	})()
+
+	const routeCandidates = [
+		tronAccountTokenBalanceTimestampAccountTokenTimestampMsSourceSelectorCandidate,
+		hederaTokenAssociationTimestampAssociationTimestampMsSourceSelectorCandidate,
+	].filter((candidate) => candidate != null)
 
 	if (routeCandidates.length === 0)
 		error(404, 'Route selector not applicable')

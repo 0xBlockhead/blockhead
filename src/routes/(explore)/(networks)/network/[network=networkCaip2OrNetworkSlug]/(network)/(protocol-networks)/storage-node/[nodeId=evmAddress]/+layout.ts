@@ -3,7 +3,7 @@
 import type { LayoutLoad } from './$types'
 import { error } from '@sveltejs/kit'
 import { match as matchEvmAddress } from '$/params/evmAddress.ts'
-import { parseEntitySelector } from '$/schema/$schema.ts'
+import { parseRouteEntitySelector } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
 import ZeroGStorageNodeSchema from '$/schema/ZeroGStorageNode.ts'
 import { type as arktype } from 'arktype'
@@ -15,7 +15,7 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 	if (!(parentData.projectionNetwork.namespace === 'ZeroG' && matchEvmAddress(params.nodeId)))
 		error(404, 'Route mapping not applicable')
 
-	const zeroGStorageNodeNetworkNodeIdSelector = parseEntitySelector(
+	const zeroGStorageNodeNetworkNodeIdSelector = parseRouteEntitySelector(
 		schema,
 		ZeroGStorageNodeSchema,
 		{

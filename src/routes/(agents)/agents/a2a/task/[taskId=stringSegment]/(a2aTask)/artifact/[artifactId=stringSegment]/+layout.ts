@@ -3,7 +3,7 @@
 import type { LayoutLoad } from './$types'
 import { error } from '@sveltejs/kit'
 import { match as matchStringSegment } from '$/params/stringSegment.ts'
-import { parseEntitySelector } from '$/schema/$schema.ts'
+import { parseRouteEntitySelector } from '$/schema/$schema.ts'
 import A2aArtifactSchema from '$/schema/A2aArtifact.ts'
 import { schema } from '$/schema/index.ts'
 import { type as arktype } from 'arktype'
@@ -14,7 +14,7 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 	if (!(matchStringSegment(params.artifactId)))
 		error(404, 'Route mapping not applicable')
 
-	const a2aArtifactTaskArtifactIdSelector = parseEntitySelector(
+	const a2aArtifactTaskArtifactIdSelector = parseRouteEntitySelector(
 		schema,
 		A2aArtifactSchema,
 		{

@@ -4,7 +4,7 @@ import type { PageLoad } from './$types'
 import { error } from '@sveltejs/kit'
 import { match as matchNonNegativeInteger } from '$/params/nonNegativeInteger.ts'
 import { match as matchStringSegment } from '$/params/stringSegment.ts'
-import { parseEntitySelector } from '$/schema/$schema.ts'
+import { parseRouteEntitySelector } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
 import ZcashShieldedActionSchema from '$/schema/ZcashShieldedAction.ts'
 import { type as arktype } from 'arktype'
@@ -24,7 +24,7 @@ export const load: PageLoad = async ({ params, parent }) => {
 	))
 		error(404, 'Route mapping not applicable')
 
-	const zcashShieldedActionTransactionPoolActionKindIndexInTransactionSelector = parseEntitySelector(
+	const zcashShieldedActionTransactionPoolActionKindIndexInTransactionSelector = parseRouteEntitySelector(
 		schema,
 		ZcashShieldedActionSchema,
 		{

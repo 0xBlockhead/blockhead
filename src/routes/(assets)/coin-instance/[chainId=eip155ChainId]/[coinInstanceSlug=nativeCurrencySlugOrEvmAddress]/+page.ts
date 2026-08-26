@@ -5,36 +5,18 @@ import { error } from '@sveltejs/kit'
 import { match as matchEip155ChainId } from '$/params/eip155ChainId.ts'
 import { match as matchEvmAddress } from '$/params/evmAddress.ts'
 import { match as matchNativeCurrencySlug } from '$/params/nativeCurrencySlug.ts'
-import { parseEntitySelector, type EntitySelectorForSelectorName } from '$/schema/$schema.ts'
+import { parseRouteEntitySelector } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import EvmCoinInstanceSchema from '$/schema/EvmCoinInstance.ts'
 import { schema } from '$/schema/index.ts'
 import { type as arktype } from 'arktype'
 
 export const load: PageLoad = ({ params }) => {
-	const routeCandidates: (
-		| {
-			readonly entityType: EntityType.EvmCoinInstance
-			readonly selectorName: 'NetworkType'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.EvmCoinInstance,
-				'NetworkType'
-			>
-		}
-		| {
-			readonly entityType: EntityType.EvmCoinInstance
-			readonly selectorName: 'NetworkTypeContract'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.EvmCoinInstance,
-				'NetworkTypeContract'
-			>
-		}
-	)[] = []
+	const evmCoinInstanceNetworkTypeSelectorCandidate = (() => {
+		if (!(matchEip155ChainId(params.chainId) && matchNativeCurrencySlug(params.coinInstanceSlug)))
+			return
 
-	if (matchEip155ChainId(params.chainId) && matchNativeCurrencySlug(params.coinInstanceSlug)) {
-		const evmCoinInstanceNetworkTypeSelector = parseEntitySelector(
+		const evmCoinInstanceNetworkTypeSelector = parseRouteEntitySelector(
 			schema,
 			EvmCoinInstanceSchema,
 			{
@@ -48,19 +30,22 @@ export const load: PageLoad = ({ params }) => {
 			},
 			'NetworkType'
 		)
-		if (
+		if ((
 			!(evmCoinInstanceNetworkTypeSelector instanceof arktype.errors)
 			&& evmCoinInstanceNetworkTypeSelector.type === 'NativeCurrency'
-		)
-			routeCandidates.push({
+		))
+			return {
 				entityType: EntityType.EvmCoinInstance,
 				selectorName: 'NetworkType',
 				selector: evmCoinInstanceNetworkTypeSelector,
-			})
-	}
+			} as const
+	})()
 
-	if (matchEvmAddress(params.coinInstanceSlug) && matchEip155ChainId(params.chainId)) {
-		const evmCoinInstanceNetworkTypeContractSelector = parseEntitySelector(
+	const evmCoinInstanceNetworkTypeContractSelectorCandidate = (() => {
+		if (!(matchEvmAddress(params.coinInstanceSlug) && matchEip155ChainId(params.chainId)))
+			return
+
+		const evmCoinInstanceNetworkTypeContractSelector = parseRouteEntitySelector(
 			schema,
 			EvmCoinInstanceSchema,
 			{
@@ -83,16 +68,21 @@ export const load: PageLoad = ({ params }) => {
 			},
 			'NetworkTypeContract'
 		)
-		if (
+		if ((
 			!(evmCoinInstanceNetworkTypeContractSelector instanceof arktype.errors)
 			&& evmCoinInstanceNetworkTypeContractSelector.type === 'Erc20Token'
-		)
-			routeCandidates.push({
+		))
+			return {
 				entityType: EntityType.EvmCoinInstance,
 				selectorName: 'NetworkTypeContract',
 				selector: evmCoinInstanceNetworkTypeContractSelector,
-			})
-	}
+			} as const
+	})()
+
+	const routeCandidates = [
+		evmCoinInstanceNetworkTypeSelectorCandidate,
+		evmCoinInstanceNetworkTypeContractSelectorCandidate,
+	].filter((candidate) => candidate != null)
 
 	if (routeCandidates.length === 0)
 		error(404, 'Route selector not applicable')

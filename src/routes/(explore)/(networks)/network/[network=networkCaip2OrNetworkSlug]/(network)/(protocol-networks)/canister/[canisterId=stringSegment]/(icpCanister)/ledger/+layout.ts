@@ -2,7 +2,7 @@
 
 import type { LayoutLoad } from './$types'
 import { error } from '@sveltejs/kit'
-import { parseEntitySelector } from '$/schema/$schema.ts'
+import { parseRouteEntitySelector } from '$/schema/$schema.ts'
 import IcpLedgerCanisterSchema from '$/schema/IcpLedgerCanister.ts'
 import { schema } from '$/schema/index.ts'
 import { type as arktype } from 'arktype'
@@ -14,7 +14,7 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 	if (!(parentData.projectionNetwork.namespace === 'InternetComputer'))
 		error(404, 'Route mapping not applicable')
 
-	const icpLedgerCanisterCanisterSelector = parseEntitySelector(
+	const icpLedgerCanisterCanisterSelector = parseRouteEntitySelector(
 		schema,
 		IcpLedgerCanisterSchema,
 		{

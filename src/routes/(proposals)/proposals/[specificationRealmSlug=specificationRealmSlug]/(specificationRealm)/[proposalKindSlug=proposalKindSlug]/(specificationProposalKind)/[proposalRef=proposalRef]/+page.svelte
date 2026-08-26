@@ -13,7 +13,8 @@
 
 
 	// Context
-	import { select } from '$/routes/+layout.svelte'
+	import { getAppClient } from '$/routes/applicationClient.ts'
+	const select = getAppClient().select
 
 
 	// State

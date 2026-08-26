@@ -2,14 +2,18 @@
 
 <script lang="ts">
 	// Types/constants
-	import { resolve } from '$app/paths'
-	import { EntityType } from '$/schema/EntityType.ts'
-	import { select } from '$/routes/+layout.svelte'
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
+	import { getAppClient } from '$/routes/applicationClient.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import EthereumNetworkUpgradesView from '$/views/EthereumNetworkUpgradesView.svelte'
 	import NetworksView from '$/views/NetworksView.svelte'
 	import SpecificationRealmsView from '$/views/SpecificationRealmsView.svelte'
+	import { resolve } from '$app/paths'
+
+
+	// Context
+	const select = getAppClient().select
 
 
 	// Components

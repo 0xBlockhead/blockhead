@@ -2,24 +2,28 @@
 
 <script lang="ts">
 	// Types/constants
-	import { resolve } from '$app/paths'
-	import { EntityType } from '$/schema/EntityType.ts'
-	import { select } from '$/routes/+layout.svelte'
-	import { calldataExamples, type CalldataExample } from '$/constants/calldata-examples.ts'
-	import { EvmAddress, ZeroExHex } from '$/schema/ZeroExHex.ts'
-	import { Source } from '$/sources/Source.ts'
-	import { normalizeEvmSelectorHex, normalizeEvmTopicHex } from '$/lib/signature-paths.ts'
-	import { afterNavigate } from '$app/navigation'
-	import { page } from '$app/state'
-	import { onDestroy, untrack } from 'svelte'
+	import { CalldataRetryResource } from './calldataRetryResource.svelte.ts'
+	import CalldataSignatureResult, { CalldataSignatureKind } from './CalldataSignatureResult.svelte'
 	import Collapsible from '$/components/Collapsible.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import Heading from '$/components/Heading.svelte'
 	import Icon from '$/components/Icon.svelte'
 	import Select from '$/components/Select.svelte'
+	import { calldataExamples, type CalldataExample } from '$/constants/calldata-examples.ts'
+	import { normalizeEvmSelectorHex, normalizeEvmTopicHex } from '$/lib/signature-paths.ts'
+	import { getAppClient } from '$/routes/applicationClient.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { EvmAddress, ZeroExHex } from '$/schema/ZeroExHex.ts'
+	import { Source } from '$/sources/Source.ts'
 	import EvmAccountView from '$/views/EvmAccountView.svelte'
-	import CalldataSignatureResult, { CalldataSignatureKind } from './CalldataSignatureResult.svelte'
-	import { CalldataRetryResource } from './calldataRetryResource.svelte.ts'
+	import { afterNavigate } from '$app/navigation'
+	import { resolve } from '$app/paths'
+	import { page } from '$app/state'
+	import { onDestroy, untrack } from 'svelte'
+
+
+	// Context
+	const select = getAppClient().select
 
 
 	const hexFromParam = (value: string | null) => {

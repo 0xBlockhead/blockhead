@@ -4,7 +4,7 @@ import type { LayoutLoad } from './$types'
 import { error } from '@sveltejs/kit'
 import { match as matchRssItemIdentityKind } from '$/params/rssItemIdentityKind.ts'
 import { match as matchStringSegment } from '$/params/stringSegment.ts'
-import { parseEntitySelector } from '$/schema/$schema.ts'
+import { parseRouteEntitySelector } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
 import RssItemSchema from '$/schema/RssItem.ts'
 import { type as arktype } from 'arktype'
@@ -15,7 +15,7 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 	if (!(matchRssItemIdentityKind(params.itemIdentityKind) && matchStringSegment(params.itemIdentity)))
 		error(404, 'Route mapping not applicable')
 
-	const rssItemFeedIdentitySelector = parseEntitySelector(
+	const rssItemFeedIdentitySelector = parseRouteEntitySelector(
 		schema,
 		RssItemSchema,
 		{

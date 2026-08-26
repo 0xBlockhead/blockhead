@@ -2,7 +2,7 @@
 
 import type { LayoutLoad } from './$types'
 import { error } from '@sveltejs/kit'
-import { parseEntitySelector } from '$/schema/$schema.ts'
+import { parseRouteEntitySelector } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
 import LitecoinMwebBlockSchema from '$/schema/LitecoinMwebBlock.ts'
 import { type as arktype } from 'arktype'
@@ -22,7 +22,7 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 	))
 		error(404, 'Route mapping not applicable')
 
-	const litecoinMwebBlockUtxoBlockSelector = parseEntitySelector(
+	const litecoinMwebBlockUtxoBlockSelector = parseRouteEntitySelector(
 		schema,
 		LitecoinMwebBlockSchema,
 		{
