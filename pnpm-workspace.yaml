@@ -2,7 +2,7 @@ packages:
   - .
 verifyDepsBeforeRun: false
 overrides:
-  "@napi-rs/wasm-runtime": 1.1.5
+  "@napi-rs/wasm-runtime": 1.2.3
   cookie: 0.7.2
 peerDependencyRules:
   allowedVersions:

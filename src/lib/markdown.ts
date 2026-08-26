@@ -3,7 +3,7 @@
  * On parse error, fall back to escaped plain text in <pre>.
  */
 
-import { parseToHtml } from 'satteri-browser'
+import { markdownToHtml as renderMarkdownToHtml } from 'satteri'
 
 import { syndicationHtmlToSafeHtml } from './html.ts'
 
@@ -15,7 +15,7 @@ export const markdownToHtml = (
 		.replace(/\r\n/g, '\n')
 		.replace(/\r/g, '\n')
 	try {
-		return syndicationHtmlToSafeHtml(parseToHtml(markdown))
+		return syndicationHtmlToSafeHtml(renderMarkdownToHtml(markdown).html)
 	} catch {
 		return `<pre>${
 			markdown

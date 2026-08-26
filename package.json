@@ -116,7 +116,7 @@
 		"map.prototype.getorinsertcomputed": "^1.0.1",
 		"multiformats": "^14.0.5",
 		"ox": "1.7.1",
-		"satteri": "^0.9.5",
+		"satteri": "^0.10.5",
 		"weakmap.prototype.getorinsertcomputed": "^1.0.0"
 	},
 	"workspaces": [
