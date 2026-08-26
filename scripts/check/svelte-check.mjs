@@ -5,17 +5,11 @@ import path from 'node:path'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 
-import ts from 'typescript'
 import { parse } from 'svelte/compiler'
+import tsConfig from 'typescript'
 
 
 export const fatalCompilerWarnings = 'await_reactivity_loss:error,derived_inert:error,state_referenced_locally:error'
-
-const extraFileExtensions = [{
-	extension: '.svelte',
-	isMixedContent: true,
-	scriptKind: ts.ScriptKind.Deferred,
-}]
 
 const positiveInteger = (value, fallback) => {
 	const parsed = Number(value)
@@ -104,29 +98,30 @@ export const runProcess = ({
 })
 
 export const readCanonicalFileManifest = (projectRoot, tsconfigPath) => {
-	const configFile = ts.readConfigFile(tsconfigPath, ts.sys.readFile)
+	const diagnosticHost = {
+		getCanonicalFileName: (fileName) => fileName,
+		getCurrentDirectory: () => projectRoot,
+		getNewLine: () => '\n',
+	}
+	const configFile = tsConfig.readConfigFile(tsconfigPath, tsConfig.sys.readFile)
 	if (configFile.error != null)
-		throw new Error(ts.formatDiagnostic(configFile.error, {
-			getCanonicalFileName: (fileName) => fileName,
-			getCurrentDirectory: () => projectRoot,
-			getNewLine: () => '\n',
-		}))
+		throw new Error(tsConfig.formatDiagnostic(configFile.error, diagnosticHost))
 
-	const parsed = ts.parseJsonConfigFileContent(
+	const parsed = tsConfig.parseJsonConfigFileContent(
 		configFile.config,
-		ts.sys,
+		tsConfig.sys,
 		path.dirname(tsconfigPath),
 		undefined,
 		tsconfigPath,
 		undefined,
-		extraFileExtensions
+		[{
+			extension: '.svelte',
+			isMixedContent: true,
+			scriptKind: tsConfig.ScriptKind.Deferred,
+		}]
 	)
 	if (parsed.errors.length > 0)
-		throw new Error(ts.formatDiagnostics(parsed.errors, {
-			getCanonicalFileName: (fileName) => fileName,
-			getCurrentDirectory: () => projectRoot,
-			getNewLine: () => '\n',
-		}))
+		throw new Error(tsConfig.formatDiagnostics(parsed.errors, diagnosticHost))
 
 	const canonicalFiles = [...new Set(parsed.fileNames.map((fileName) => path.resolve(fileName)))].sort()
 	const declarationFiles = canonicalFiles.filter((fileName) => fileName.endsWith('.d.ts'))
@@ -145,6 +140,8 @@ export const readCanonicalFileManifest = (projectRoot, tsconfigPath) => {
 		)),
 	}
 }
+
+const typeScriptImports = (source) => tsConfig.preProcessFile(source).importedFiles
 
 export const readCanonicalSvelteRoots = (projectRoot, tsconfigPath) => (
 	readCanonicalFileManifest(projectRoot, tsconfigPath).svelteRoots
@@ -184,7 +181,7 @@ export const readSvelteGraph = async (projectRoot, roots) => {
 			})
 		}
 		for (const scriptSource of scriptSources) {
-			for (const importedFile of ts.preProcessFile(scriptSource).importedFiles) {
+			for (const importedFile of typeScriptImports(scriptSource)) {
 				const resolved = resolveSvelteImport(projectRoot, filePath, importedFile.fileName)
 				if (resolved != null && rootSet.has(resolved))
 					imports.add(resolved)
@@ -220,7 +217,7 @@ export const readTypeScriptRootsReachedFromSvelte = async (projectRoot, manifest
 					svelteScriptSources(source)
 				:
 					[source]
-			).flatMap((scriptSource) => ts.preProcessFile(scriptSource).importedFiles),
+			).flatMap(typeScriptImports),
 		]
 	})))
 

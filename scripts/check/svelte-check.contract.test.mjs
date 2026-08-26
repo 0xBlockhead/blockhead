@@ -209,7 +209,10 @@ import fs from 'node:fs'
 const configPath = process.argv[process.argv.indexOf('--tsconfig') + 1]
 const config = JSON.parse(fs.readFileSync(configPath, 'utf8'))
 fs.appendFileSync(process.env.ACTIVITY_PATH, 'start ' + configPath + '\\n')
-await new Promise((resolve) => setTimeout(resolve, 40))
+if (!configPath.endsWith('shard-03.json')) {
+	while (fs.readFileSync(process.env.ACTIVITY_PATH, 'utf8').split('\\n').filter((line) => line.startsWith('start ')).length < 2)
+		await new Promise((resolve) => setTimeout(resolve, 10))
+}
 fs.appendFileSync(process.env.ACTIVITY_PATH, 'end ' + configPath + '\\n')
 if (config.include.some((file) => file.endsWith('Gamma.svelte'))) {
 	console.error('Gamma.svelte:1:1 synthetic diagnostic')
@@ -227,11 +230,12 @@ if (config.include.some((file) => file.endsWith('Gamma.svelte'))) {
 	)
 	const results = await runShardQueue({
 		shards,
-		command: fakeChecker,
+		command: process.execPath,
+		argsForShard: (shard) => [fakeChecker, ...svelteCheckArgs(root, shard.configPath)],
 		projectRoot: root,
 		concurrency: 2,
-		shardTimeoutMs: 5_000,
-		deadline: Date.now() + 10_000,
+		shardTimeoutMs: 15_000,
+		deadline: Date.now() + 30_000,
 		environment: {
 			...process.env,
 			ACTIVITY_PATH: activityPath,
@@ -259,6 +263,7 @@ test('stops scheduling new shards after the first failed wave', async () => {
 import fs from 'node:fs'
 const configPath = process.argv[process.argv.indexOf('--tsconfig') + 1]
 fs.appendFileSync(process.env.ACTIVITY_PATH, configPath + '\\n')
+console.error('intentional shard failure')
 process.exitCode = configPath.endsWith('shard-01.json') ? 1 : 0
 `)
 	const shards = await writeShardConfigs(
@@ -272,62 +277,102 @@ process.exitCode = configPath.endsWith('shard-01.json') ? 1 : 0
 	)
 	const results = await runShardQueue({
 		shards,
-		command: fakeChecker,
+		command: process.execPath,
+		argsForShard: (shard) => [fakeChecker, ...svelteCheckArgs(root, shard.configPath)],
 		projectRoot: root,
 		concurrency: 1,
-		shardTimeoutMs: 1_000,
-		deadline: Date.now() + 2_000,
+		shardTimeoutMs: 15_000,
+		deadline: Date.now() + 30_000,
 		environment: {
 			...process.env,
 			ACTIVITY_PATH: activityPath,
 		},
 	})
 	assert.deepEqual(results.map((result) => result.label), ['shard-01'])
+	assert.equal(results[0].timedOut, false)
+	assert.equal(results[0].code, 1)
+	assert.match(results[0].output, /intentional shard failure/)
 	assert.equal((await fs.readFile(activityPath, 'utf8')).trim().split('\n').length, 1)
 })
 
 test('kills a timed-out checker process group and reports failure', async () => {
 	const root = await fixture()
-	const childMarker = path.join(root, 'child-alive')
+	const childMarker = path.join(root, 'child-started')
 	const hangingChecker = await executable(root, 'hanging-checker.mjs', `#!/usr/bin/env node
 import { spawn } from 'node:child_process'
-spawn(process.execPath, ['-e', ${JSON.stringify(`setTimeout(() => require('node:fs').writeFileSync(${JSON.stringify(childMarker)}, 'alive'), 500)`)}], { stdio: 'ignore' })
-await new Promise(() => {})
+spawn(process.execPath, ['-e', ${JSON.stringify(`require('node:fs').writeFileSync(${JSON.stringify(childMarker)}, String(process.pid)); setInterval(() => {}, 1000)`)}], { stdio: 'ignore' })
+setInterval(() => {}, 1000)
 `)
 	const result = await runProcess({
-		command: hangingChecker,
-		args: [],
+		command: process.execPath,
+		args: [hangingChecker],
 		cwd: root,
-		timeoutMs: 50,
+		timeoutMs: 10_000,
 		label: 'timeout',
 	})
 	assert.equal(result.timedOut, true)
 	assert.notEqual(result.code, 0)
-	await new Promise((resolve) => setTimeout(resolve, 650))
-	await assert.rejects(fs.access(childMarker))
+	const childPid = Number(await fs.readFile(childMarker, 'utf8'))
+	assert.equal(Number.isSafeInteger(childPid) && childPid > 0, true, 'descendant must have started before timeout')
+	const exitDeadline = Date.now() + 5_000
+	let terminated = false
+	try {
+		while (true) {
+			try {
+				process.kill(childPid, 0)
+			} catch (error) {
+				assert.equal(error.code, 'ESRCH')
+				terminated = true
+				break
+			}
+			assert.ok(Date.now() < exitDeadline, 'timed-out descendant is still alive')
+			await new Promise((resolve) => setTimeout(resolve, 10))
+		}
+	} finally {
+		if (!terminated) {
+			try {
+				process.kill(childPid, 'SIGKILL')
+			} catch (error) {
+				if (error.code !== 'ESRCH') throw error
+			}
+		}
+	}
 })
 
 test('reports phase start, liveness, and terminal state while a checker runs', async () => {
 	const root = await fixture()
+	const releasePath = path.join(root, 'release')
 	const checker = await executable(root, 'progress-checker.mjs', `#!/usr/bin/env node
-await new Promise((resolve) => setTimeout(resolve, 40))
+import fs from 'node:fs'
+while (!fs.existsSync(${JSON.stringify(releasePath)}))
+	await new Promise((resolve) => setTimeout(resolve, 10))
 `)
 	let progress = ''
+	let onHeartbeat
+	const heartbeat = new Promise((resolve) => { onHeartbeat = resolve })
 	const write = process.stderr.write
 	process.stderr.write = (chunk) => {
 		progress += chunk
+		if (String(chunk).includes('progress: RUNNING')) onHeartbeat()
 		return true
 	}
 	try {
-		const result = await runProcess({
-			command: checker,
-			args: [],
+		const running = runProcess({
+			command: process.execPath,
+			args: [checker],
 			cwd: root,
-			timeoutMs: 1_000,
+			timeoutMs: 15_000,
 			label: 'progress',
 			heartbeatMs: 10,
 		})
+		await Promise.race([
+			heartbeat,
+			running.then(() => { throw new Error('checker terminated before reporting liveness') }),
+		])
+		await fs.writeFile(releasePath, 'heartbeat observed')
+		const result = await running
 		assert.equal(result.code, 0)
+		assert.equal(result.timedOut, false)
 	} finally {
 		process.stderr.write = write
 	}
