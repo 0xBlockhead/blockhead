@@ -44,7 +44,8 @@ class TestChannel {
 		for (const channel of TestChannel.channels.get(this.#name) ?? [])
 			if (channel !== this)
 				queueMicrotask(() => {
-					for (const listener of channel.#listeners) listener({ data: message } as MessageEvent)
+					const clonedMessage = structuredClone(message)
+					for (const listener of channel.#listeners) listener({ data: clonedMessage } as MessageEvent)
 				})
 	}
 
@@ -180,6 +181,44 @@ describe('BrowserPersistenceRuntime', () => {
 		await new Promise<void>((resolve) => setTimeout(resolve, 25))
 		expect(follower.phase).toBe('owner')
 		await follower.close()
+	})
+
+	test('removes the local subscription object before follower RPC structured clone', async () => {
+		const name = crypto.randomUUID()
+		const locks = lockManager()
+		const ownerLoads: object[] = []
+		const owner = new BrowserPersistenceRuntime({
+			name,
+			channel: new TestChannel(name) as never,
+			locks: locks as never,
+			openOwner: async () => ({
+				persistence: {
+					adapter: {
+						...persistence([]).adapter,
+						loadSubset: async (_collectionId, options) => {
+							ownerLoads.push(options)
+							return []
+						},
+					},
+				},
+				close: () => undefined,
+			}),
+		})
+		await owner.ready
+		const follower = new BrowserPersistenceRuntime({
+			name,
+			channel: new TestChannel(name) as never,
+			locks: locks as never,
+			openOwner: async () => ({ persistence: persistence([]), close: () => undefined }),
+		})
+		await follower.ready
+		await follower.persistence.adapter.loadSubset('rows', {
+			limit: 1,
+			subscription: { on: () => () => undefined, status: 'ready' },
+		})
+		expect(ownerLoads).toEqual([{ limit: 1 }])
+		await follower.close()
+		await owner.close()
 	})
 
 	test('preserves collection mode and schema selection through follower RPC', async () => {

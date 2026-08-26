@@ -164,7 +164,10 @@ export class BrowserPersistenceRuntime {
 		selection?: PersistenceSelection
 	): PersistedCollectionPersistence {
 		const adapter: PersistenceAdapter = {
-			loadSubset: (...arguments_) => this.#call('loadSubset', arguments_, selection),
+			loadSubset: (collectionId, options, context) => {
+				const { subscription: _subscription, ...serializableOptions } = options
+				return this.#call('loadSubset', [collectionId, serializableOptions, context], selection)
+			},
 			applyCommittedTx: (...arguments_) => this.#call('applyCommittedTx', arguments_, selection),
 			loadCollectionMetadata: (...arguments_) => this.#call('loadCollectionMetadata', arguments_, selection),
 			scanRows: (...arguments_) => this.#call('scanRows', arguments_, selection),
