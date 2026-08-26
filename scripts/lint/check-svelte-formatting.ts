@@ -1,7 +1,7 @@
 import { readFileSync, writeFileSync } from 'node:fs'
 import { readdir, stat } from 'node:fs/promises'
-import { join, relative } from 'node:path'
-import { parse } from 'svelte/compiler'
+import { join, relative, resolve } from 'node:path'
+import { type AST, parse } from 'svelte/compiler'
 import ts from 'typescript'
 
 type Edit = {
@@ -24,6 +24,25 @@ const shouldCheckSectionOrder = process.argv.includes('--section-order')
 const shouldCheckConstPlacement = true
 const shouldCheckScriptTrailingCommas = shouldSelfTest || process.argv.includes('--script-trailing-commas')
 const root = process.cwd()
+
+const parseTypeScript = (fileName: string, source: string) => {
+	const absoluteFileName = resolve(fileName)
+	const sourceFile = ts.createSourceFile(absoluteFileName, source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS)
+	const options = {
+		noLib: true,
+		noResolve: true,
+		target: ts.ScriptTarget.Latest,
+	}
+	const program = ts.createProgram([absoluteFileName], options, {
+		...ts.createCompilerHost(options),
+		getSourceFile: (candidate) => candidate === absoluteFileName ? sourceFile : undefined,
+	})
+
+	return {
+		diagnostics: program.getSyntacticDiagnostics(sourceFile),
+		sourceFile,
+	}
+}
 
 const allowedConstParents = new Set([
 	'SnippetBlock',
@@ -169,37 +188,40 @@ const checkTypeScriptNode = (
 	}
 
 	if (
-		'parameters' in node
-		&& node.parameters?.hasTrailingComma
+		ts.isFunctionLike(node)
+		&& node.parameters.hasTrailingComma
 	) {
 		reportTypeScriptNode(file, sourceFile, offset, node, 'Remove trailing comma from function parameters.', failures)
 		removeTypeScriptTrailingComma(edits, offset, node.parameters)
 	}
 
 	if (
-		'typeArguments' in node
+		(
+			ts.isCallExpression(node)
+			|| ts.isNewExpression(node)
+			|| ts.isTaggedTemplateExpression(node)
+			|| ts.isTypeReferenceNode(node)
+			|| ts.isTypeQueryNode(node)
+			|| ts.isImportTypeNode(node)
+			|| ts.isExpressionWithTypeArguments(node)
+		)
 		&& node.typeArguments?.hasTrailingComma
 	) {
 		reportTypeScriptNode(file, sourceFile, offset, node, 'Remove trailing comma from type arguments.', failures)
 		removeTypeScriptTrailingComma(edits, offset, node.typeArguments)
 	}
 
-	ts.forEachChild(node, (child) => checkTypeScriptNode(file, sourceFile, offset, child, failures, edits))
+	node.forEachChild((child) => checkTypeScriptNode(file, sourceFile, offset, child, failures, edits))
 }
 
 const checkScriptTypeScript = (file: string, text: string, failures: Failure[], edits: Edit[]) => {
 	for (const match of text.matchAll(/<script\b[^>]*\blang=(['"])ts\1[^>]*>([\s\S]*?)<\/script>/g)) {
 		const script = match[2]
 		const offset = match.index + match[0].indexOf(script)
-		const sourceFile = ts.createSourceFile(
-			file,
-			script,
-			ts.ScriptTarget.Latest,
-			true,
-			ts.ScriptKind.TS
-		)
+		const parsed = parseTypeScript(`${file}.${offset}.ts`, script)
+		const sourceFile = parsed.sourceFile
 
-		for (const diagnostic of sourceFile.parseDiagnostics)
+		for (const diagnostic of parsed.diagnostics)
 			failures.push({
 				file,
 				position: offset + (diagnostic.start ?? 0),
@@ -302,38 +324,36 @@ const checkScriptTagShape = (file: string, text: string, failures: Failure[], ed
 const checkTopLevelSpacing = (
 	file: string,
 	text: string,
-	ast: Record<string, unknown>,
+	ast: AST.Root,
 	failures: Failure[],
 	edits: Edit[]
 ) => {
 	const blocks = [
-		ast.module && {
+		...(ast.module ? [{
 			name: '<script module lang="ts">',
-			start: (ast.module as Record<string, number>).start,
-			end: (ast.module as Record<string, number>).end,
-		},
-		ast.instance && {
+			start: ast.module.start,
+			end: ast.module.end,
+		}] : []),
+		...(ast.instance ? [{
 			name: '<script lang="ts">',
-			start: (ast.instance as Record<string, number>).start,
-			end: (ast.instance as Record<string, number>).end,
-		},
-		...((ast.fragment as { nodes?: Record<string, unknown>[] }).nodes ?? [])
+			start: ast.instance.start,
+			end: ast.instance.end,
+		}] : []),
+		...ast.fragment.nodes
 			.filter((node) => !(
 				node.type === 'Text'
-				&& typeof node.data === 'string'
 				&& !node.data.trim()
 			)),
-		ast.css && {
+		...(ast.css ? [{
 			name: '<style>',
-			start: (ast.css as Record<string, number>).start,
-			end: (ast.css as Record<string, number>).end,
-		},
+			start: ast.css.start,
+			end: ast.css.end,
+		}] : []),
 	]
-		.filter(Boolean)
 		.map((block) => ({
-			name: 'name' in block ? String(block.name) : String(block.type),
-			start: Number(block.start),
-			end: Number(block.end),
+			name: 'name' in block ? block.name : block.type,
+			start: block.start,
+			end: block.end,
 		}))
 		.sort((a, b) => a.start - b.start)
 
@@ -369,23 +389,21 @@ const checkTopLevelSpacing = (
 const checkScriptSections = (
 	file: string,
 	text: string,
-	ast: Record<string, unknown>,
+	ast: AST.Root,
 	failures: Failure[]
 ) => {
-	const instance = ast.instance as { content?: { body?: Record<string, unknown>[] } } | undefined
-	const body = instance?.content?.body
+	const body = ast.instance?.content.body
 	if (!body)
 		return
 
-	const comments = ast.comments as { start: number, end: number, value?: string, data?: string }[] | undefined
-	const sectionComments = (comments ?? [])
+	const sectionComments = ast.comments
 		.filter((comment) => text.slice(comment.start, comment.end).startsWith('// '))
 		.filter((comment) => {
 			const before = text.slice(0, comment.start)
 			return before.lastIndexOf('<script') > before.lastIndexOf('</script>')
 		})
 		.map((comment) => ({
-			name: (comment.value ?? comment.data ?? '').trim(),
+			name: comment.value.trim(),
 			start: comment.start,
 		}))
 		.filter((comment) => sectionOrder.includes(comment.name))
@@ -414,13 +432,13 @@ const checkScriptSections = (
 }
 
 const checkSvelteAst = (file: string, text: string, failures: Failure[], edits: Edit[]) => {
-	let ast: Record<string, unknown>
+	let ast: AST.Root
 	let skippedScriptAst = false
 	try {
 		ast = parse(text, {
 			modern: true,
 			filename: file,
-		}) as Record<string, unknown>
+		})
 	} catch (error) {
 		const masked = text.replace(
 			/(<script\b[^>]*>)([\s\S]*?)(<\/script>)/g,
@@ -435,7 +453,7 @@ const checkSvelteAst = (file: string, text: string, failures: Failure[], edits: 
 			ast = parse(masked, {
 				modern: true,
 				filename: file,
-			}) as Record<string, unknown>
+			})
 			skippedScriptAst = true
 		} catch {
 			failures.push({
@@ -567,7 +585,15 @@ const checkFile = (file: string) => {
 }
 
 const selfTest = () => {
+	if (parseTypeScript('invalid.ts', 'const value =').diagnostics.length === 0)
+		throw new Error('Missing embedded TypeScript syntax diagnostic')
+
 	const cases = [
+		{
+			name: 'script trailing commas',
+			input: '<script lang="ts">\nconst f = (x: number,) => x\nf(1,)\nnew Map([],)\nf<number,>(1)\n</script>\n',
+			output: '<script lang="ts">\nconst f = (x: number) => x\nf(1)\nnew Map([])\nf<number>(1)\n</script>\n',
+		},
 		{
 			name: 'shorthand attribute',
 			input: '<script lang="ts">let foo = 1</script>\n\n\n<A foo={foo} />\n',
