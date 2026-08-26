@@ -1,11 +1,8 @@
 import { defineResolver, type RegisteredSourceResolverModule } from '$/resolvers/defineResolver.ts'
-import { resolverSourceBinding, type ResolverContext } from '$/resolvers/$resolvers.ts'
 import { EntityMetaKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import type { AnthropicModel } from '$/sources/Anthropic/Rest/types.ts'
-
-const anthropicVersion = '2023-06-01'
 
 const assertAnthropicProvider = (provider: { providerId?: string, domain?: string }) => {
 	if (provider.providerId === 'anthropic' || provider.domain === 'anthropic.com')
@@ -47,34 +44,12 @@ const operationById = new Map([
 	}],
 ] as const)
 
-const retrieve = async (
-	modelId: string,
-	context: ResolverContext
-) => {
-	const binding = resolverSourceBinding(context)
-	if (typeof window === 'undefined') {
-		const { env } = await import('$env/dynamic/private')
-		const credential = env.ANTHROPIC_API_KEY?.trim() ?? ''
-		if (credential === '')
-			throw new Error('Anthropic_Rest: missing runtime credential ANTHROPIC_API_KEY')
-		const { retrieveModel } = await import('$/sources/Anthropic/Rest/queries.ts')
-		return retrieveModel({ binding, modelId, credential, anthropicVersion })
-	}
+const retrieve = async (modelId: string) => {
 	const { retrieveModelRemote } = await import('$/sources/Anthropic/Rest/queries.remote.ts')
 	return retrieveModelRemote({ modelId })
 }
 
-const verifyCatalogAccess = async (context: ResolverContext) => {
-	const binding = resolverSourceBinding(context)
-	if (typeof window === 'undefined') {
-		const { env } = await import('$env/dynamic/private')
-		const credential = env.ANTHROPIC_API_KEY?.trim() ?? ''
-		if (credential === '')
-			throw new Error('Anthropic_Rest: missing runtime credential ANTHROPIC_API_KEY')
-		const { listModels } = await import('$/sources/Anthropic/Rest/queries.ts')
-		await listModels({ binding, credential, anthropicVersion })
-		return
-	}
+const verifyCatalogAccess = async () => {
 	const { listModelsRemote } = await import('$/sources/Anthropic/Rest/queries.remote.ts')
 	await listModelsRemote({})
 }
@@ -86,9 +61,9 @@ export default {
 			entityType: EntityType.AiModel,
 			resolve: {
 				ProviderModelId: {
-					resolve: async ({ $provider, providerModelId }, context) => {
+					resolve: async ({ $provider, providerModelId }) => {
 						assertAnthropicProvider($provider)
-						return modelFields(await retrieve(providerModelId, context), $provider)
+						return modelFields(await retrieve(providerModelId), $provider)
 					},
 				},
 			},
@@ -103,11 +78,11 @@ export default {
 			entityType: EntityType.AiProviderCatalogEntry,
 			resolve: {
 				ProviderCatalogKindProviderEntryId: {
-					resolve: async ({ $provider, catalogKind, providerEntryId }, context) => {
+					resolve: async ({ $provider, catalogKind, providerEntryId }) => {
 						assertAnthropicProvider($provider)
 						if (catalogKind !== 'model')
 							throw new Error(`Anthropic_Rest: unsupported catalog kind ${catalogKind}`)
-						const model = await retrieve(providerEntryId, context)
+						const model = await retrieve(providerEntryId)
 						return {
 							$provider: { [EntityMetaKey.Selector]: $provider },
 							catalogKind,
@@ -131,12 +106,12 @@ export default {
 			entityType: EntityType.AiProviderApiOperation,
 			resolve: {
 				ProviderOperationId: {
-					resolve: async ({ $provider, operationId }, context) => {
+					resolve: async ({ $provider, operationId }) => {
 						assertAnthropicProvider($provider)
 						const operation = operationById.get(operationId)
 						if (operation == null)
 							throw new Error(`Anthropic_Rest: unsupported operation ${operationId}`)
-						await verifyCatalogAccess(context)
+						await verifyCatalogAccess()
 						return {
 							$provider: { [EntityMetaKey.Selector]: $provider },
 							operationId,

@@ -5,17 +5,12 @@ import { EntityType } from '$/schema/EntityType.ts'
 import bindings from '$/sources/Anthropic/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 
-const listModels = vi.fn()
-const retrieveModel = vi.fn()
+const listModelsRemote = vi.fn()
+const retrieveModelRemote = vi.fn()
 
-vi.mock('$/sources/Anthropic/Rest/queries.ts', () => ({
-	listModels,
-	retrieveModel,
-}))
-vi.mock('$env/dynamic/private', () => ({
-	env: {
-		ANTHROPIC_API_KEY: 'test-key',
-	},
+vi.mock('$/sources/Anthropic/Rest/queries.remote.ts', () => ({
+	listModelsRemote,
+	retrieveModelRemote,
 }))
 
 const { default: anthropicResolvers } = await import('$/resolvers/Anthropic-Rest.ts')
@@ -45,10 +40,10 @@ const resolverFor = (entityType: EntityType) => {
 }
 
 beforeEach(() => {
-	listModels.mockReset()
-	retrieveModel.mockReset()
-	retrieveModel.mockResolvedValue(model)
-	listModels.mockResolvedValue({ data: [model], has_more: false })
+	listModelsRemote.mockReset()
+	retrieveModelRemote.mockReset()
+	retrieveModelRemote.mockResolvedValue(model)
+	listModelsRemote.mockResolvedValue({ data: [model], has_more: false })
 })
 
 describe('Anthropic REST public claims', () => {
@@ -64,12 +59,7 @@ describe('Anthropic REST public claims', () => {
 			label: model.display_name,
 			providerCreatedAt: Date.parse(model.created_at),
 		})
-		expect(retrieveModel).toHaveBeenCalledWith({
-			binding: sourceBinding,
-			modelId: model.id,
-			credential: 'test-key',
-			anthropicVersion: '2023-06-01',
-		})
+		expect(retrieveModelRemote).toHaveBeenCalledWith({ modelId: model.id })
 	})
 
 	it('resolves the catalog entry and both documented operation identities', async () => {
@@ -90,7 +80,7 @@ describe('Anthropic REST public claims', () => {
 				$provider,
 				operationId,
 			}, context)).resolves.toMatchObject({ operationId })
-		expect(listModels).toHaveBeenCalledTimes(2)
+		expect(listModelsRemote).toHaveBeenCalledTimes(2)
 	})
 
 	it('rejects an unsupported provider and operation without provider work', async () => {
@@ -105,7 +95,7 @@ describe('Anthropic REST public claims', () => {
 			$provider,
 			operationId: 'unknown',
 		}, context)).rejects.toThrow('Anthropic_Rest: unsupported operation unknown')
-		expect(retrieveModel).not.toHaveBeenCalled()
-		expect(listModels).not.toHaveBeenCalled()
+		expect(retrieveModelRemote).not.toHaveBeenCalled()
+		expect(listModelsRemote).not.toHaveBeenCalled()
 	})
 })
