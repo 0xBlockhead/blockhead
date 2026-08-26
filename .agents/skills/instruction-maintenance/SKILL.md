@@ -1,15 +1,15 @@
 ---
-name: create-skill
-description: Create or revise repository agent skills and their conditional resources. Use when authoring, splitting, consolidating, or evaluating SKILL.md workflows; not for ordinary documentation or AGENTS.md-only changes.
+name: instruction-maintenance
+description: Create, revise, split, consolidate, or evaluate repository AGENTS.md instructions, agent skills, and their conditional resources.
 ---
 
-# Create Skill
+# Instruction Maintenance
 
 Encode decisions the agent would otherwise get wrong, not domain knowledge it already has.
 
 ## Method
 
-1. Read `docs/agents/context-architecture.md` and `docs/agents/instruction-coverage.md`. Inspect nearby skills and the real tasks, corrections, failures, or artifacts that justify this one.
+1. Read [references/architecture.md](references/architecture.md) and [references/coverage.md](references/coverage.md). Inspect nearby instructions, skills, and the real tasks, corrections, failures, or artifacts that justify the change.
 2. Choose the narrowest reliable owner. Keep standing or path rules in `AGENTS.md`, mechanically enforceable rules in code or tests, and repeatable task procedure here. Do not create a skill if those owners suffice.
 3. Write the description as a classifier: capability, concrete triggers, and only exclusions that prevent plausible false activation. Do not summarize the body.
 4. Keep only decision-changing instructions: surprising defaults, hard boundaries, failure recovery, tool choice, and verification. For every sentence ask: would removal change an action or catch a real failure? If not, cut it.
@@ -27,4 +27,4 @@ Test behavior, not wording:
 - Repeat meaningful comparisons at least five times; do not encode a rule from one stochastic run.
 - Keep a change only when it improves observable work or prevents a demonstrated failure at acceptable context and execution cost.
 
-Validate structure with the bundled `skill-creator/scripts/quick_validate.py` when available. Update `docs/agents/instruction-coverage.md` when ownership moves and `docs/agents/instruction-evaluation.md` when a correction supplies a reusable case.
+Validate skill structure with the bundled `skill-creator/scripts/quick_validate.py` when available. Update [references/coverage.md](references/coverage.md) when ownership moves. Read and update [references/evaluation.md](references/evaluation.md) when a correction supplies a reusable case or when evaluating instruction behavior.

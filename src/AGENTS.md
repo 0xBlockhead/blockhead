@@ -1,9 +1,9 @@
 # Source tree instructions
 
-- Keep imports flowing from routes toward views, components, collections, resolvers, sources, and foundational modules.
-- `src/routes/+layout.svelte` currently exports collection state consumed by several views. Do not treat that existing link as permission for new lower-to-higher imports.
-- Shared live-query behavior belongs in `src/collections`; schema-neutral utilities belong in `src/lib` only when they are genuinely cross-domain.
-- Keep provider I/O in `src/sources` and payload-to-entity mapping in `src/resolvers`.
+- Keep dependencies mostly flowing inward: routes compose views and components; views and components may consume collections; collections own collection construction and shared live-query helpers; resolvers map source payloads into schema rows; sources own provider transport and external I/O; schema, constants, lib, and typescript remain foundational.
+- `src/routes/+layout.svelte` currently creates and exports `entityCollectionByEntityType` and `entityFieldCollections` consumed by several views. Do not treat that existing link as permission for new lower-to-higher imports.
+- `src/collections/$queries.svelte.ts` already centralizes some `useLiveQuery` helpers. Shared live-query behavior belongs in `src/collections`; schema-neutral utilities belong in `src/lib` only when genuinely cross-domain.
+- `src/resolvers/index.ts` is the resolver registry, and `src/resolvers/$resolvers.ts` owns shared resolver types and helpers.
+- If a lower layer starts importing a higher one, move the shared code into `lib`, `schema`, `constants`, or `collections`.
 - Apply the root TypeScript rules to every file in this tree.
 - For Svelte work, load the `svelte-development` skill before editing.
-- Read `docs/agents/code-architecture-reference.md` when an existing cross-layer exception affects an import decision.

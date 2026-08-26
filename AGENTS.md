@@ -38,7 +38,8 @@ Read the nearest nested `AGENTS.md` before editing its subtree. Load a matching 
 
 ## Specialized work
 
-- Creating, revising, splitting, consolidating, or evaluating repository skills: `create-skill`.
+- Recalling or recrawling prior Codex or Cursor task context: global `recall-task-context`.
+- Creating, revising, splitting, consolidating, or evaluating repository instructions or skills: `instruction-maintenance`.
 - Writing, reviewing, consolidating, or improving automated tests: `test-methodology`.
 - Explicit code, test, fixture, schema, or instruction reduction while preserving behavior and fault detection: `reduce`.
 - Persistent delivery programs optimizing accepted product progress across a mutable work denominator: `orchestrate-program`.
@@ -71,4 +72,4 @@ Read the nearest nested `AGENTS.md` before editing its subtree. Load a matching 
 
 ## Instruction maintenance
 
-- Before changing instructions or skills, read `docs/agents/context-architecture.md`; use `docs/agents/instruction-coverage.md` to locate existing knowledge.
+- Before changing instructions or skills, load `instruction-maintenance`.
