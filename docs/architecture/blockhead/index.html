@@ -1,0 +1,685 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Blockhead architecture</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --background:#090b10;
+      --foreground:#e8edf5;
+      --card:#111722;
+      --muted-foreground:#9ca9bc;
+      --border:#334155;
+      --blue:#60a5fa;
+      --orange:#f59e0b;
+      --green:#34d399;
+      --red:#fb7185;
+      --purple:#c084fc;
+    }
+    * { box-sizing:border-box; }
+    html, body { margin:0; width:100%; min-height:100%; background:var(--background); color:var(--foreground); font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+    body { padding:12px; overflow:auto; }
+    code { font-family:"SFMono-Regular",Consolas,"Liberation Mono",monospace; }
+  </style>
+</head>
+<body>
+<div id="blockhead-architecture-accurate">
+  <style>
+    #blockhead-architecture-accurate { color:var(--foreground); color-scheme:dark; }
+    #blockhead-architecture-accurate .viz-row { display:flex; align-items:baseline; justify-content:space-between; gap:16px; margin-bottom:6px; }
+    #blockhead-architecture-accurate .legend { display:flex; gap:12px; flex-wrap:wrap; color:var(--muted-foreground); }
+    #blockhead-architecture-accurate .legend span { display:inline-flex; gap:5px; align-items:center; }
+    #blockhead-architecture-accurate .legend i { width:10px; height:10px; display:inline-block; }
+    #blockhead-architecture-accurate .implemented { border:2px solid var(--green); border-radius:2px; }
+    #blockhead-architecture-accurate .contested { border:2px dashed var(--orange); border-radius:50%; }
+    #blockhead-architecture-accurate .external { border:2px dotted var(--purple); border-radius:50%; }
+    #blockhead-architecture-accurate .gateway { width:9px; height:9px; border:2px solid var(--blue); border-radius:50%; }
+    #blockhead-architecture-accurate #architecture-canvas { width:100%; height:calc(100dvh - 190px); min-height:480px; border:1px solid #1e293b; border-radius:9px; overflow:hidden; background:var(--background); }
+    #blockhead-architecture-accurate #architecture-canvas svg { width:100%; height:100%; background:var(--background); }
+    #blockhead-architecture-accurate .selection { min-height:34px; margin-top:6px; color:var(--muted-foreground); }
+    #blockhead-architecture-accurate .tools { display:flex; align-items:center; gap:7px; margin:8px 0; flex-wrap:wrap; }
+    #blockhead-architecture-accurate .tools button,
+    #blockhead-architecture-accurate .tools select { appearance:none; border:1px solid var(--border); background:var(--card); color:var(--foreground); padding:7px 10px; border-radius:6px; cursor:pointer; font:inherit; }
+    #blockhead-architecture-accurate .tools select { min-width:190px; }
+    #blockhead-architecture-accurate .tools .engine { margin-left:auto; color:var(--muted-foreground); }
+    #blockhead-architecture-accurate .tools .count { color:var(--foreground); }
+    #blockhead-architecture-accurate .loading { display:grid; place-items:center; height:100%; color:var(--muted-foreground); }
+    #blockhead-architecture-accurate #architecture-canvas text#edgeLabel { paint-order:stroke; stroke:var(--background); stroke-width:2.5px; stroke-linejoin:round; }
+    #blockhead-architecture-accurate #architecture-canvas .architecture-edge-dimmed { opacity:.075 !important; }
+    #blockhead-architecture-accurate #architecture-canvas .architecture-active-edge { opacity:1 !important; }
+    #blockhead-architecture-accurate #architecture-canvas .architecture-active-edge #curve { stroke:var(--foreground) !important; stroke-width:2.8 !important; filter:drop-shadow(0 0 2px #090b10); }
+    #blockhead-architecture-accurate #architecture-canvas .architecture-active-edge #targetArr { stroke:var(--foreground) !important; fill:var(--foreground) !important; stroke-width:2 !important; }
+    #blockhead-architecture-accurate #architecture-canvas .architecture-active-label { opacity:1 !important; }
+    #blockhead-architecture-accurate #architecture-canvas .architecture-active-label text { fill:var(--foreground) !important; font-weight:700; stroke-width:3.5px; }
+    #blockhead-architecture-accurate #architecture-canvas .architecture-endpoint #boundaryCurve { stroke:var(--foreground) !important; stroke-width:3 !important; filter:drop-shadow(0 0 3px #090b10); }
+    #blockhead-architecture-accurate #architecture-canvas .architecture-source-port { pointer-events:none; stroke:var(--background); stroke-width:1.2; }
+    #blockhead-architecture-accurate #architecture-canvas .architecture-target-port { pointer-events:none; stroke:var(--background); stroke-width:1.2; }
+    #blockhead-architecture-accurate #architecture-canvas .architecture-active-edge .architecture-source-port { fill:var(--foreground) !important; r:3.2px; }
+    #blockhead-architecture-accurate #architecture-canvas .architecture-active-edge .architecture-target-port { fill:var(--foreground) !important; r:3.2px; }
+    #blockhead-architecture-accurate #architecture-canvas .architecture-gateway #nodeLabel { display:none; }
+    @media (max-width:720px) {
+      body { padding:8px; }
+      #blockhead-architecture-accurate .viz-row { align-items:flex-start; flex-direction:column; }
+      #blockhead-architecture-accurate .tools .engine { margin-left:0; width:100%; }
+      #blockhead-architecture-accurate #architecture-canvas { height:64dvh; min-height:520px; }
+    }
+  </style>
+  <div class="viz-row">
+    <strong>Blockhead architecture</strong>
+    <div class="legend text-small">
+      <span><i class="implemented"></i>implemented path</span>
+      <span><i class="contested"></i>contested successor or seam</span>
+      <span><i class="external"></i>outside Blockhead</span>
+      <span><i class="gateway"></i>process-boundary gateway</span>
+    </div>
+  </div>
+  <div class="text-small" style="color:var(--muted-foreground);margin-bottom:4px">Working-tree architecture at <code>cc00b6f2e9</code> · 8,543 <code>src</code> files · 2,118 route files · 2,301 source files · solid green is implemented in the current checkout; orange dashed regions are isolated candidate lineages, not app internals.</div>
+  <div class="tools">
+    <label for="architecture-view" class="text-small">View</label>
+    <select id="architecture-view" data-action="view" aria-label="Architecture view">
+      <option value="complete">Complete architecture</option>
+      <option value="context">System context</option>
+      <option value="compile">Compile-time model</option>
+      <option value="bootstrap">Bootstrap</option>
+      <option value="acquisition">Acquisition</option>
+      <option value="state">State + reactivity</option>
+      <option value="presentation">Routes + views</option>
+      <option value="actions">Actions</option>
+      <option value="candidates">Candidate lineages</option>
+      <option value="verification">Verification</option>
+    </select>
+    <label for="architecture-routing" class="text-small">Edges</label>
+    <select id="architecture-routing" data-action="routing" aria-label="Edge routing">
+      <option value="orthogonal">True rectilinear + gateways</option>
+      <option value="layered">Layered curves</option>
+      <option value="corridor">Shortest paths</option>
+      <option value="direct">Direct diagnostic</option>
+    </select>
+    <button type="button" data-action="fit">Fit</button>
+    <button type="button" data-action="layout">Re-layout vertically</button>
+    <span class="engine text-small">MSAGL.js · Sugiyama TB · <span class="routing-name">orthogonal</span> · <span class="count"></span></span>
+  </div>
+  <div id="architecture-canvas" role="img" aria-label="Deeply grouped Blockhead software and process architecture"></div>
+  <div class="selection text-small" aria-live="polite">Pan and zoom. Select a component or relationship for its exact role, source location, and Codex thread.</div>
+  <script src="./vendor/msagl-1.1.26.bundle.js"></script>
+  <script>
+    (() => {
+      const root=document.getElementById('blockhead-architecture-accurate');
+      const selection=root.querySelector('.selection');
+      const N=(id,label,parent,status,detail,path,ref)=>({data:{id,label,parent,status,detail,path,ref}});
+      const E=(id,source,target,label,kind='data')=>({data:{id,source,target,label,kind}});
+
+      const nodes=[
+        N('build','BUILD-TIME AUTHORITY',null,'build','Not part of the running application. Produces canonical generated source.','',''),
+        N('appsrc','APP model','build','stable','Authored product model and generation source of truth.','APP.ts','01a03268-367e-7f42-aa40-15f16968d198'),
+        N('appgen','APP generator','build','stable','Validates APP and writes generated source.','scripts/app/generate.ts','01a03268-367e-7f42-aa40-15f16968d198'),
+        N('sourcegen','source generators','build','stable','Generate GraphQL, OpenAPI, OpenRPC, discovery, and precompile artifacts.','scripts/sources/**',''),
+        N('vite','Vite + Svelte compiler','build','stable','Bundles browser runtime and compiles Svelte components.','vite.config.ts',''),
+
+        N('browser','BLOCKHEAD BROWSER APPLICATION',null,'app','The implemented application runtime in the current checkout.','',''),
+        N('generated','generated product graph','browser','group','Generated artifacts consumed at runtime.','',''),
+        N('ontology','compiled domain ontology','generated','group','Generated runtime representation of APP entity identity, fields, selectors, references, cardinality, source defaults, view contracts, and route contracts.','',''),
+        N('sourceontology','compiled source ontology','generated','group','Generated provider/source/binding description. It is data that configures runtime dispatch, not provider I/O itself.','',''),
+        N('presentationontology','compiled presentation ontology','generated','group','Generated views, routes, and parameter matchers derived from APP presentation and route declarations.','',''),
+        N('schemafiles','entity definitions','ontology','stable','Generated entity definitions: selectors first, then fields and cardinality.','src/schema/*.ts',''),
+        N('schemaindex','schema index','ontology','stable','Registers the generated schema and schema metadata.','src/schema/index.ts',''),
+        N('selectors','selectors','ontology','stable','Named unique addressing contracts; composite selectors are ordered tuples and become collection keys and route keys.','src/schema/*.ts',''),
+        N('references','reference fields','ontology','stable','Single-$ parent/reference fields and double-$$ related-entity collections encode graph edges.','src/schema/*.ts',''),
+        N('cardinality','cardinality','ontology','stable','Domain cardinality One/Optional/Many remains distinct from resolver transport shape and loaded window size.','src/schema/*.ts',''),
+        N('sourceproviders','SourceProvider registry','sourceontology','stable','Provider identities and their member Sources.','src/sources/$sourceProviders.ts',''),
+        N('sourcesregistry','Source registry','sourceontology','stable','Concrete data authority identities referenced by entity defaults and resolver ownership.','src/sources/$sourceProviders.ts',''),
+        N('sourcebinding','SourceBinding registry','sourceontology','stable','Independent source-to-target capability records; one Source may expose multiple bindings.','src/sources/SourceBinding.ts',''),
+        N('bindingtarget','target + endpoint','sourceontology','stable','Target identity, protocol, endpoint templates, API groups, and generated artifacts.','src/sources/SourceBinding.ts',''),
+        N('bindingdelivery','delivery','sourceontology','stable','BrowserDirect, HttpProxy, RemoteQuery, RemoteLive, LocalOnly, or ServerOnly execution placement.','src/sources/SourceBinding.ts',''),
+        N('bindingcredentials','credential scope','sourceontology','stable','Public configuration versus runtime-secret requirements determines browser/server enablement.','src/sources/SourceBinding.ts',''),
+        N('resolverloader','resolver loaders','generated','stable','Generated source-to-module dynamic import registry.','src/resolvers/index.ts','01a03268-367e-7f42-aa40-15f16968d198'),
+        N('generatedviews','generated views','presentationontology','stable','Generated singular, plural, timestamp, and relationship views.','src/views/*View.svelte',''),
+        N('generatedroutes','generated routes','presentationontology','stable','Generated list, detail, nested child, observation, facet, and layout routes.','src/routes/**',''),
+        N('parammatchers','route matchers','presentationontology','stable','Validated SvelteKit parameter matchers emitted from selector primitives.','src/params/**',''),
+
+        N('bootstrap','application bootstrap','browser','group','Module initialization and runtime mount.','',''),
+        N('layoutmodule','+layout module','bootstrap','stable','Owns the singleton database promise, source capability discovery, resolver loading, client creation, and exported select function.','src/routes/+layout.svelte',''),
+        N('capabilitiescall','capabilities query','bootstrap','stable','Calls the SvelteKit remote capability query for enabled server bindings.','src/sources/_runtime/capabilities.remote.ts',''),
+        N('opendb','open wa-sqlite DB','bootstrap','stable','Opens the named browser wa-sqlite OPFS database.','src/routes/+layout.svelte','01a02174-d7ab-7761-8700-3a8968db97ab'),
+        N('sourceindex','source index','bootstrap','stable','Combines public env, browser-direct bindings, and server-enabled binding IDs into enabled sources and binding indexes.','src/sources/$sources.ts',''),
+        N('loadresolvers','load enabled resolvers','bootstrap','stable','Dynamically loads only resolver modules whose Source is enabled.','src/resolvers/index.ts',''),
+        N('queryclient','QueryClient','bootstrap','stable','TanStack Query client supplied to the Blockhead client runtime.','src/routes/+layout.svelte',''),
+        N('persistenceadapter','tracked persistence','bootstrap','stable','Wraps the TanStack SQLite persistence adapter and tracks committed persistence promises.','src/client/$client.svelte.ts',''),
+        N('clientfactory','client()','bootstrap','stable','Three-stage factory: schema/providers → resolvers/source index → query client/persistence/schema version.','src/client/$client.svelte.ts',''),
+        N('appruntime','application runtime','bootstrap','stable','Waits for bootstrap, mounts wallet runtime, and owns teardown.','src/routes/applicationRuntime.ts',''),
+        N('walletmount','wallet runtime','bootstrap','stable','Mounts the connection runtime only after the app client exists.','src/state/wallets/walletConnectionRuntime.svelte.ts',''),
+        N('bootui','ApplicationBootstrap','bootstrap','stable','Gates route children on bootstrap readiness.','src/routes/ApplicationBootstrap.svelte',''),
+
+        N('sources','source runtime','browser','group','Browser-safe source metadata and provider query modules.','',''),
+        N('sourcepublicindex','browser source index','sources','stable','Exposes browser-eligible bindings and public environment compatibility.','src/sources/index.ts',''),
+        N('sourcequery','provider query','sources','stable','Provider-local query/client modules perform external transport; resolver modules never fetch directly.','src/sources/<Provider>/**/queries.ts',''),
+        N('sourcefetch','sourceFetch','sources','stable','Applies binding endpoint selection, concurrency, signal, and HTTP delivery.','src/sources/_runtime/http.ts',''),
+        N('httpdispatch','HTTP dispatch','sources','stable','Routes BrowserDirect to fetch, HttpProxy to /api-proxy, and rejects server/local-only delivery in browser code.','src/lib/http.ts',''),
+        N('browserdirect','BrowserDirect','sources','stable','Browser performs provider fetch only for a CORS-enabled binding.','src/sources/SourceBinding.ts',''),
+        N('httpproxy','HttpProxy','sources','stable','Browser sends the registered binding request to the same-origin server proxy.','src/sources/SourceBinding.ts',''),
+        N('remotequery','RemoteQuery','sources','stable','Browser invokes a SvelteKit remote query whose source work runs in the server process.','src/sources/SourceBinding.ts',''),
+        N('remotelive','RemoteLive','sources','stable','Browser subscribes to SvelteKit query.live and receives server-owned upstream updates.','src/sources/SourceBinding.ts',''),
+        N('localdelivery','LocalOnly / ServerOnly','sources','stable','Excluded from browser enablement unless surfaced through an explicit supported runtime boundary.','src/sources/SourceBinding.ts',''),
+
+        N('resolver','resolver execution','browser','group','Translates a requested collection subset into materialized schema rows.','',''),
+        N('subparser','subset parser','resolver','stable','Extracts simple filters, ordering, pagination, sources, selector keys, and parent selector keys from LoadSubsetOptions.','src/resolvers/$resolvers.ts',''),
+        N('resolverindex','indexResolvers','resolver','stable','Indexes enabled resolver entries by schema entity, field facet, projection, and Source.','src/resolvers/$resolvers.ts',''),
+        N('bindingselect','binding selection','resolver','stable','Selects an applicable enabled SourceBinding and supplies public environment and continuation context.','src/client/$client.svelte.ts',''),
+        N('singleflight','resolver singleFlight','resolver','stable','Deduplicates a provider query at the resolver call site.','src/resolvers/**',''),
+        N('snapshotresolve','snapshot resolve','resolver','stable','One primary source request resolves the entity snapshot.','src/resolvers/**',''),
+        N('fieldresolve','field facets','resolver','stable','Field-scoped values, related entity references, and source-specific support.','src/resolvers/**',''),
+        N('countresolve','count facets','resolver','stable','Explicit authoritative count capability; never inferred from a window length.','src/resolvers/**',''),
+        N('liveresolve','live publisher','resolver','stable','Projection-scoped publisher replaces rows or invalidates active subsets while retaining last-good data on failure.','src/resolvers/**',''),
+        N('materialize','materialize output','resolver','stable','Validates selector, field, count, and row ownership before collection writes.','src/collections/assertLoadedCollectionRows.ts',''),
+        N('observationmodel','observation identity','resolver','contested','Stable parent identity and provider/event-clocked timestamp entities are still being reconciled across domain families.','src/schema/** + src/resolvers/**','01a03268-367e-7f42-aa40-15f16968d198'),
+
+        N('client','client data runtime','browser','group','Owns collections, persistence hydration, resolver loading, local mutation authority, live mounts, and selection.','',''),
+        N('entitycollection','Entity collections','client','stable','One persisted on-demand collection per entity type.','src/client/$client.svelte.ts',''),
+        N('fieldcollection','Field collections','client','stable','One persisted on-demand collection per entity field/facet.','src/client/$client.svelte.ts',''),
+        N('countcollection','Count collections','client','stable','Persisted on-demand explicit field count rows.','src/client/$client.svelte.ts',''),
+        N('loadedsubset','LoadedSubset metadata','client','stable','Local-only durable completion metadata: collectionId, canonical key, rowCount, per-source rows, continuations.','src/client/$client.svelte.ts',''),
+        N('persistedsync','persisted collection sync','client','stable','For each subset: wait for hydration → validate rows/marker → load missing sources → persist rows and marker.','src/client/$client.svelte.ts',''),
+        N('hydrationplan','hydration plan','client','stable','Chooses HydratedRows, LoadedMarker, or Remote per requested compatible source.','src/client/$client.svelte.ts',''),
+        N('continuations','continuations','client','stable','Stores per-source cursor metadata and exposes load-more/cancel state.','src/client/$client.svelte.ts',''),
+        N('localauthority','local mutation authority','client','stable','Records present/resolved/deleted ownership so remote hydration cannot overwrite durable local decisions.','src/client/$client.svelte.ts','01a034fb-a8d1-7d02-a040-476141b385bd'),
+        N('livemount','live subset mounts','client','stable','Mounts projection publishers for active subsets and aborts the shared publisher on last unsubscribe.','src/client/$client.svelte.ts',''),
+        N('loadfailures','load failures','client','stable','Tracks source-specific subset failures without converting errors into empty success.','src/client/$client.svelte.ts',''),
+
+        N('resource','selection + resource API','browser','group','Turns collection rows into SvelteKit-shaped entity resources consumed by UI.','',''),
+        N('selectapi','select()','resource','stable','Public app-client selection entry point exported through +layout.','src/client/$client.svelte.ts',''),
+        N('entityproxy','EntityProxy','resource','stable','Typed selector, reference-path, projection, field, count, continuation, and prefetched-data proxy.','src/client/$proxy.svelte.ts',''),
+        N('subscribeentity','subscribeEntity','resource','stable','Builds shared TanStack live-query resources for entity selections.','src/client/$subscribe.svelte.ts',''),
+        N('subscribefield','subscribeEntityField','resource','stable','Queries field rows, validates cardinality/completion, and exposes a localized resource.','src/client/$subscribe.svelte.ts',''),
+        N('subscribecount','subscribeEntityFieldCount','resource','stable','Queries explicit count rows and waits for source-priority completeness.','src/client/$subscribe.svelte.ts',''),
+        N('liveresource','TanStack live query','resource','stable','Reactive query snapshot driven by collection notifications.','@tanstack/svelte-db',''),
+        N('resourceadapter','SvelteKit resource adapter','resource','stable','Getter and then/catch/finally observe one resource-owned state machine.','src/lib/db/queryResource.svelte.ts',''),
+
+        N('ui','presentation + routing','browser','group','Generated and hand-authored Svelte UI.','',''),
+        N('routefamily','route families','ui','stable','List, detail, nested child, scoped slice, composite-key, facet, and provider-hub shapes.','src/routes/**',''),
+        N('routeparams','selector route keys','ui','stable','Each composite selector component becomes an ordered typed parameter directory.','src/routes/**',''),
+        N('layoutchrome','entity layouts','ui','stable','Shared item chrome sits below the item key in the item-named route group.','src/routes/**/+layout.svelte',''),
+        N('viewidentity','Value / Title / Heading','ui','stable','Value-only identity, labeled link identity, and loaded summary are distinct view contracts.','src/views/**',''),
+        N('viewcontent','Content / Details','ui','stable','Content owns details lists and prose; Details owns related-entity placement.','src/views/**',''),
+        N('relatedentities','related entities','ui','stable','References render as contextual links, embedded summaries, lists, or dedicated routes according to relationship weight.','src/views/**',''),
+        N('resourceboundary','ResourceBoundary','ui','stable','Localizes loading, retained data, refresh error, retry, and teardown without owning query state.','src/components/ResourceBoundary.svelte',''),
+        N('navigation','Navigation','ui','stable','Global application navigation and responsive shell.','src/routes/Navigation.svelte',''),
+        N('semanticplacement','field placement','ui','contested','Compiler-derived exactly-once display placement or typed omission is not fully closed across the generated denominator.','APP.ts + src/views/**','01a03268-367e-7f42-aa40-15f16968d198'),
+        N('routeclosure','route closure','ui','contested','Selector-to-route exactness and representative useful rendering remain active acceptance surfaces.','APP.ts + src/routes/**','01a03268-367e-7f42-aa40-15f16968d198'),
+
+        N('actions','session + wallet writes','browser','group','User-delegated actions and durable local state.','',''),
+        N('walletconnections','wallet connection runtime','actions','stable','Discovers and maintains protocol wallet connections.','src/state/wallets/**',''),
+        N('preparation','request preparation','actions','stable','Validates selected account, network, capability, grant, and simulation before sending.','src/state/sessions/*Preparation.ts','01a034fb-a8d1-7d02-a040-476141b385bd'),
+        N('approval','approval / rejection','actions','stable','Explicit user decision; rejection cannot persist a successful outcome.','src/state/sessions/**',''),
+        N('execution','wallet execution','actions','stable','Sends through the selected connection after preparation and approval.','src/state/sessions/**',''),
+        N('actionrows','main action ontology','actions','stable','Current main models Session, IntentInvocation, SessionAction, ReadinessCheck, Simulation/Call/Log, IntentOrder/Quote, and ActionOutcome observations. It does not yet contain PlanningRun/Plan/Operation/PlanRun/OperationAttempt.','APP.ts + src/schema/Blockhead*.ts','01a034fb-a8d1-7d02-a040-476141b385bd'),
+        N('localmutations','localMutations','actions','stable','Writes schema rows through local authority-aware collection mutation helpers.','src/collections/localMutations.ts','01a034fb-a8d1-7d02-a040-476141b385bd'),
+
+        N('storage','browser persistence process boundary',null,'process','Browser storage and WASM execution used by the current application.','',''),
+        N('wasqlite','wa-sqlite','storage','stable','SQLite WASM engine used by TanStack browser persistence.','@journeyapps/wa-sqlite',''),
+        N('opfs','OPFS database','storage','stable','Durable browser database opened during +layout module initialization.','@tanstack/browser-db-sqlite-persistence','01a02174-d7ab-7761-8700-3a8968db97ab'),
+        N('sqlitepersistence','TanStack SQLite persistence','storage','stable','Persistence implementation for entity, field, count, and metadata collections.','@tanstack/db-sqlite-persistence-core',''),
+
+        N('server','SVELTEKIT SERVER PROCESS',null,'process','Same-origin server capabilities used by browser deployment; not part of client state.','',''),
+        N('hooks','hooks.server','server','stable','Intercepts /api-proxy requests and delegates registered source HTTP work.','src/hooks.server.ts',''),
+        N('proxyserver','proxySourceHttpRequest','server','stable','Validates binding, origin, credentials, redirects, timeout, and response semantics.','src/sources/_runtime/proxy.server.ts',''),
+        N('serverindex','server source index','server','stable','Filters bindings by private credentials and exposes proxy/remote-live enablement.','src/sources/index.server.ts',''),
+        N('capabilitiesremote','sourceRuntimeCapabilities','server','stable','Returns enabled server binding IDs to client bootstrap through SvelteKit query().','src/sources/_runtime/capabilities.remote.ts',''),
+        N('queryremote','provider remote queries','server','stable','Provider-specific SvelteKit remote query functions execute server-only source work.','src/sources/**/**.remote.ts',''),
+        N('liveremote','sourceLive / query.live','server','stable','Server owns upstream subscription and abort lifecycle; browser receives serialized updates.','src/sources/_runtime/live.remote.ts',''),
+        N('serversecrets','private environment','server','stable','RuntimeSecret values remain in the server process.','$env/dynamic/private',''),
+
+        N('upstream','UPSTREAM SYSTEMS',null,'external','Systems not owned by Blockhead.','',''),
+        N('httpapis','HTTP / GraphQL APIs','upstream','external','Remote provider endpoints.','',''),
+        N('rpcnodes','RPC / node services','upstream','external','Remote or local chain and protocol nodes.','',''),
+        N('streams','WebSocket / stream services','upstream','external','Push providers consumed by server-owned live queries.','',''),
+        N('wallets','wallet processes','upstream','external','Extensions, WalletConnect peers, mobile wallets, and native providers.','',''),
+        N('localservices','local services','upstream','external','MCP, ACP, Git, Radicle, daemons, and private nodes.','',''),
+
+        N('dbtarget','ISOLATED DATABASE CANDIDATE LINEAGE',null,'contestedGroup','Not present in main. Active DB worktrees are evaluating a SQLite operational authority plus DuckDB analytical-history successor and copy-first cutover.','','01a02174-d7ab-7761-8700-3a8968db97ab'),
+        N('hotprojection','bounded hot projection','dbtarget','contested','Reactive current-state tier remains bounded.','database finalist worktree','01a02174-d7ab-7761-8700-3a8968db97ab'),
+        N('sqliteworker','worker-owned SQLite','dbtarget','contested','Operational and local-user authority with one writer and typed RPC.','database finalist worktree','01a02174-d7ab-7761-8700-3a8968db97ab'),
+        N('ownerfollower','owner / follower RPC','dbtarget','contested','Multi-tab writer ownership, lost-ack retry, and promotion.','database finalist worktree','01a02174-d7ab-7761-8700-3a8968db97ab'),
+        N('outbox','outbox','dbtarget','contested','Idempotent projection from operational authority to analytical history.','database finalist worktree','01a02174-d7ab-7761-8700-3a8968db97ab'),
+        N('duckdb','DuckDB-EH','dbtarget','contested','Independently scheduled immutable history and analytical queries.','database finalist worktree','01a02174-d7ab-7761-8700-3a8968db97ab'),
+        N('watermarks','persisted watermarks','dbtarget','contested','Exact gap-safe analytical progress.','database finalist worktree','01a02174-d7ab-7761-8700-3a8968db97ab'),
+        N('dbmigration','copy-first migration','dbtarget','contested','Non-destructive current-schema copy, validation, promotion, rollback, and legacy recovery.','database finalist worktree','01a02174-d7ab-7761-8700-3a8968db97ab'),
+
+        N('tauri','ISOLATED TAURI CANDIDATE LINEAGE',null,'contestedGroup','Not present in main. Native-shell, source-derived HTTP, persistence, capability, and packaging work lives in separate preserved worktrees.','','01a0388c-7a33-7ee0-b651-f30293be6b9d'),
+        N('staticbundle','adapter-static bundle','tauri','contested','Static SvelteKit client bundle embedded in Tauri.','Tauri worktree','01a0388c-7a33-7ee0-b651-f30293be6b9d'),
+        N('rustshell','Rust shell','tauri','contested','Native window, startup, deep-link, external-link, and diagnostic host.','src-tauri','01a0388c-7a33-7ee0-b651-f30293be6b9d'),
+        N('nativehttp','native HTTP','tauri','contested','Source-derived least-privilege replacement for the SvelteKit HTTP proxy.','src-tauri','01a0388c-7a33-7ee0-b651-f30293be6b9d'),
+        N('nativesqlite','native SQLite','tauri','contested','Native implementation of the selected persistence semantic contract.','src-tauri','01a0388c-7a33-7ee0-b651-f30293be6b9d'),
+        N('capabilities','capability manifests','tauri','contested','Named-window, command, origin, CSP, and feature-gated permissions.','src-tauri/capabilities','01a0388c-7a33-7ee0-b651-f30293be6b9d'),
+        N('platforms','platform runtimes','tauri','external','macOS, Linux, Windows, Android, and iOS evidence must be obtained on truthful runners/devices.','','01a0388c-7a33-7ee0-b651-f30293be6b9d'),
+
+        N('actioncandidate','ISOLATED ACTIONS CANDIDATE LINEAGE',null,'contestedGroup','Not present in main. Active worktree expands the current action model into a planner/provider/simulation/execution architecture.','','01a034fb-a8d1-7d02-a040-476141b385bd'),
+        N('planningrun','PlanningRun','actioncandidate','contested','Session-scoped planning occurrence over one or more Actions.','candidate APP.ts','01a034fb-a8d1-7d02-a040-476141b385bd'),
+        N('plan','Plan','actioncandidate','contested','Immutable planner/provider claim with provenance, ranking, validity, and Operations.','candidate APP.ts','01a034fb-a8d1-7d02-a040-476141b385bd'),
+        N('operation','Operation DAG','actioncandidate','contested','Immutable plan-owned operation whose dependency references define the DAG.','candidate APP.ts','01a034fb-a8d1-7d02-a040-476141b385bd'),
+        N('planrun','PlanRun','actioncandidate','contested','Execution occurrence for a selected Plan.','candidate APP.ts','01a034fb-a8d1-7d02-a040-476141b385bd'),
+        N('operationattempt','OperationAttempt','actioncandidate','contested','Per-operation authorization, materialized payload, submission, and observation lineage.','candidate APP.ts','01a034fb-a8d1-7d02-a040-476141b385bd'),
+        N('capabilitymatch','capability matcher','actioncandidate','contested','Exact effect + protocol + adapter registration; declared gaps return typed refusals rather than fake support.','candidate src/actions/capabilities.ts','01a034fb-a8d1-7d02-a040-476141b385bd'),
+        N('plannerproviders','planner providers','actioncandidate','contested','Direct-ledger, SpanDEX, and CCTP candidate adapters produce truthful plan topologies.','candidate src/actions/providers/**','01a034fb-a8d1-7d02-a040-476141b385bd'),
+        N('simulationbackends','simulation backends','actioncandidate','contested','Backend-specific simulation contracts; cross-chain and non-EVM semantics are intentionally not flattened.','candidate src/actions/simulation.ts','01a034fb-a8d1-7d02-a040-476141b385bd'),
+        N('candidateexecutor','dependency executor','actioncandidate','contested','Materializes deferred payloads, respects dependencies, obtains authorization, submits, and records attempts.','candidate src/actions/execution.ts','01a034fb-a8d1-7d02-a040-476141b385bd'),
+
+        N('verification','VERIFICATION PROCESSES',null,'verification','Processes outside product runtime.','',''),
+        N('unit','Vitest / Node contracts','verification','external','Schema, resolver, client, source, generator, and local-mutation behavioral contracts.','src/**/*.spec.ts + scripts/**/*.test.*',''),
+        N('playwright','Playwright','verification','external','Browser-level route, CORS, persistence, reactivity, action, and screenshot execution.','tests/e2e/**',''),
+        N('routematrix','route matrix','verification','external','Generated/hand-authored route discovery and fail-fast boundary checks.','tests/e2e/route-matrix.e2e.ts',''),
+        N('persistencee2e','persistence E2E','verification','external','Cold load → OPFS persistence → refresh without same-subset remote replay.','tests/e2e/tanstack-db-persistence.e2e.ts','01a02174-d7ab-7761-8700-3a8968db97ab'),
+        N('screenshots','screenshot corpus','verification','external','Diagnostic captures and semantic classification, not product authority.','tests/e2e/**','019ff49b-8b39-78b3-956d-fb5adc65600d'),
+        N('runidentity','run identity','verification','contested','Commit, generated inputs, browser, corpus, capture config, and artifacts must fail closed as one run.','harness program','01a02190-a3ec-7471-95d8-606e1b476d04')
+      ];
+
+      const edges=[
+        E('e1','appsrc','appgen','compile','build'),E('e2','appgen','schemafiles','emit','build'),E('e3','appgen','schemaindex','emit','build'),E('e4','appgen','sourceproviders','emit','build'),E('e5','appgen','sourcebinding','emit','build'),E('e6','appgen','resolverloader','emit','build'),E('e7','appgen','generatedviews','emit','build'),E('e8','appgen','generatedroutes','emit','build'),E('e9','appgen','parammatchers','emit','build'),E('e10','sourcegen','sourcequery','generate artifacts','build'),E('e11','generatedviews','vite','compile input','build'),E('e12','generatedroutes','vite','compile input','build'),E('e13','schemafiles','selectors','declare'),E('e14','schemafiles','references','declare'),E('e15','schemafiles','cardinality','declare'),E('e16','sourceproviders','sourcesregistry','owns'),E('e17','sourcesregistry','sourcebinding','exposes'),E('e18','sourcebinding','bindingtarget','targets'),E('e19','sourcebinding','bindingdelivery','places execution'),E('e19b','sourcebinding','bindingcredentials','requires'),
+        E('e20','layoutmodule','capabilitiescall','parallel bootstrap'),E('e21','layoutmodule','opendb','parallel bootstrap'),E('e22','capabilitiescall','capabilitiesremote','remote query','process'),E('e23','capabilitiesremote','serverindex','read'),E('e24','sourceproviders','sourceindex','index'),E('e25','sourcebinding','sourceindex','index'),E('e26','capabilitiescall','sourceindex','enabled binding IDs'),E('e27','sourceindex','loadresolvers','enabled Sources'),E('e28','resolverloader','loadresolvers','dynamic imports'),E('e29','opendb','persistenceadapter','database'),E('e30','persistenceadapter','clientfactory','persistence'),E('e31','schemaindex','clientfactory','schema + meta'),E('e32','sourceindex','clientfactory','source index'),E('e33','loadresolvers','clientfactory','resolver modules'),E('e34','queryclient','clientfactory','query client'),E('e35','clientfactory','appruntime','ready'),E('e36','appruntime','walletmount','mount'),E('e37','appruntime','bootui','ready state'),E('e38','bootui','navigation','render shell'),E('e39','bootui','routefamily','render children'),
+        E('e40','sourcepublicindex','sourcequery','binding metadata'),E('e41','sourcequery','sourcefetch','request'),E('e42','sourcefetch','httpdispatch','delivery'),E('e43','httpdispatch','browserdirect','direct'),E('e44','httpdispatch','httpproxy','same-origin proxy'),E('e45','httpdispatch','remotequery','remote function'),E('e46','httpdispatch','remotelive','live remote'),E('e47','browserdirect','httpapis','fetch','process'),E('e48','browserdirect','rpcnodes','fetch / RPC','process'),E('e49','httpproxy','hooks','/api-proxy','process'),E('e50','hooks','proxyserver','delegate'),E('e51','serverindex','proxyserver','allow-list + binding'),E('e52','serversecrets','proxyserver','runtime secret'),E('e53','proxyserver','httpapis','HTTP','process'),E('e54','proxyserver','rpcnodes','RPC','process'),E('e55','remotequery','queryremote','SvelteKit query()','process'),E('e56','queryremote','httpapis','server request','process'),E('e57','remotelive','liveremote','query.live()','process'),E('e58','liveremote','streams','subscribe','process'),E('e59','walletconnections','wallets','provider API','process'),E('e60','localdelivery','localservices','explicit local boundary','process'),
+        E('e70','clientfactory','entitycollection','create'),E('e71','clientfactory','fieldcollection','create'),E('e72','clientfactory','countcollection','create'),E('e73','clientfactory','loadedsubset','create'),E('e74','entitycollection','persistedsync','sync'),E('e75','fieldcollection','persistedsync','sync'),E('e76','countcollection','persistedsync','sync'),E('e77','loadedsubset','hydrationplan','marker'),E('e78','sqlitepersistence','hydrationplan','hydrated rows'),E('e79','hydrationplan','persistedsync','load decision'),E('e80','persistedsync','subparser','LoadSubsetOptions'),E('e81','subparser','resolverindex','subset'),E('e82','resolverindex','bindingselect','applicable resolver candidates'),E('e83','sourceindex','bindingselect','enabled bindings'),E('e84','bindingselect','singleflight','resolver context'),E('e85','singleflight','snapshotresolve','query'),E('e86','snapshotresolve','sourcequery','dynamic import + call'),E('e87','snapshotresolve','fieldresolve','snapshot'),E('e88','snapshotresolve','countresolve','snapshot'),E('e89','snapshotresolve','materialize','entity fields'),E('e90','fieldresolve','materialize','field rows'),E('e91','countresolve','materialize','count rows'),E('e92','materialize','entitycollection','write'),E('e93','materialize','fieldcollection','write'),E('e94','materialize','countcollection','write'),E('e95','persistedsync','loadedsubset','persist completion','mutation'),E('e96','persistedsync','loadfailures','record failures'),E('e97','continuations','persistedsync','cursor'),E('e98','liveresolve','livemount','publisher'),E('e99','livemount','entitycollection','replace / invalidate','mutation'),E('e100','livemount','fieldcollection','replace / invalidate','mutation'),
+        E('e110','selectapi','entityproxy','create proxy'),E('e111','entityproxy','subscribeentity','entity selection'),E('e112','entityproxy','subscribefield','field selection'),E('e113','entityproxy','subscribecount','count selection'),E('e114','subscribeentity','liveresource','useLiveQuery'),E('e115','subscribefield','liveresource','useLiveQuery'),E('e116','subscribecount','liveresource','useLiveQuery'),E('e117','entitycollection','liveresource','rows + notifications'),E('e118','fieldcollection','liveresource','rows + notifications'),E('e119','countcollection','liveresource','rows + notifications'),E('e120','loadfailures','resourceadapter','error state'),E('e121','liveresource','resourceadapter','single state machine'),E('e122','resourceadapter','resourceboundary','render state'),E('e123','entityproxy','viewidentity','typed data'),E('e124','entityproxy','viewcontent','typed data'),E('e125','entityproxy','relatedentities','references'),E('e126','viewidentity','generatedviews','snippet'),E('e127','viewcontent','generatedviews','snippet'),E('e128','relatedentities','generatedviews','snippet'),E('e129','generatedviews','routefamily','compose'),E('e130','generatedroutes','routefamily','files'),E('e131','parammatchers','routeparams','validate'),E('e132','routeparams','routefamily','key'),E('e133','layoutchrome','routefamily','shared chrome'),E('e134','routefamily','navigation','navigate'),
+        E('e140','walletconnections','preparation','connection context'),E('e141','preparation','approval','prepared request'),E('e142','approval','execution','approved'),E('e143','execution','actionrows','attempt + outcome','mutation'),E('e144','actionrows','localmutations','schema rows','mutation'),E('e145','localmutations','localauthority','authority rows','mutation'),E('e146','localmutations','entitycollection','upsert / delete','mutation'),E('e147','localmutations','fieldcollection','replace','mutation'),
+        E('e150','persistenceadapter','sqlitepersistence','adapter'),E('e151','sqlitepersistence','wasqlite','SQL'),E('e152','wasqlite','opfs','durable bytes','process'),
+        E('e160','entitycollection','hotprojection','candidate replacement','contested'),E('e161','hotprojection','sqliteworker','operational commit','contested'),E('e162','ownerfollower','sqliteworker','writer RPC','contested'),E('e163','sqliteworker','outbox','enqueue','contested'),E('e164','outbox','duckdb','project history','contested'),E('e165','duckdb','watermarks','advance','contested'),E('e166','dbmigration','sqliteworker','cutover','contested'),
+        E('e170','vite','staticbundle','candidate static output','contested'),E('e171','staticbundle','rustshell','embed','contested'),E('e172','sourcefetch','nativehttp','candidate native delivery','contested'),E('e173','clientfactory','nativesqlite','candidate persistence','contested'),E('e174','capabilities','nativehttp','permit','contested'),E('e175','capabilities','nativesqlite','permit','contested'),E('e176','rustshell','platforms','launch / package','contested'),
+        E('e177','actionrows','planningrun','candidate expansion','contested'),E('e178','planningrun','capabilitymatch','request capabilities','contested'),E('e179','capabilitymatch','plannerproviders','dispatch','contested'),E('e179a','plannerproviders','plan','produce','contested'),E('e179b','plan','operation','owns','contested'),E('e179c','operation','simulationbackends','simulate','contested'),E('e179d','plan','planrun','select','contested'),E('e179e','planrun','candidateexecutor','execute','contested'),E('e179f','candidateexecutor','operationattempt','record','contested'),E('e179g','operation','candidateexecutor','dependency order + payload recipe','contested'),
+        E('e180','unit','appgen','test','evidence'),E('e181','unit','clientfactory','test','evidence'),E('e182','unit','snapshotresolve','test','evidence'),E('e183','playwright','routefamily','exercise','evidence'),E('e184','routematrix','playwright','route inputs','evidence'),E('e185','persistencee2e','opfs','cold / warm oracle','evidence'),E('e186','screenshots','routefamily','diagnose','evidence'),E('e187','runidentity','screenshots','bind artifacts','evidence')
+      ];
+
+      const overviewEdges=[
+        E('ov1','build','browser','generates','build'),E('ov2','browser','server','remote functions + proxy','process'),E('ov3','browser','storage','persist','process'),E('ov4','browser','upstream','direct I/O','process'),E('ov5','server','upstream','server-owned I/O','process'),E('ov6','upstream','browser','wallet provider events','process'),E('ov7','verification','browser','exercise','evidence'),E('ov8','verification','server','exercise','evidence'),E('ov9','browser','dbtarget','candidate successor','contested'),E('ov10','browser','tauri','candidate host','contested'),E('ov11','actions','actioncandidate','candidate expansion','contested')
+      ];
+      const views={
+        context:{label:'System context',nodes:['build','browser','server','storage','upstream','verification','dbtarget','tauri','actioncandidate'],edges:overviewEdges},
+        compile:{label:'Compile-time model',nodes:['build','generated','ontology','sourceontology','presentationontology','appsrc','appgen','sourcegen','vite','schemafiles','schemaindex','selectors','references','cardinality','sourceproviders','sourcesregistry','sourcebinding','bindingtarget','bindingdelivery','bindingcredentials','resolverloader','generatedviews','generatedroutes','parammatchers']},
+        bootstrap:{label:'Bootstrap',nodes:['bootstrap','layoutmodule','capabilitiescall','opendb','sourceindex','loadresolvers','queryclient','persistenceadapter','clientfactory','appruntime','walletmount','bootui','server','serverindex','capabilitiesremote','storage','wasqlite','opfs','sqlitepersistence']},
+        acquisition:{label:'Acquisition',nodes:['sources','sourcepublicindex','sourcequery','sourcefetch','httpdispatch','browserdirect','httpproxy','remotequery','remotelive','localdelivery','resolver','subparser','resolverindex','bindingselect','singleflight','snapshotresolve','fieldresolve','countresolve','liveresolve','materialize','observationmodel','server','hooks','proxyserver','serverindex','queryremote','liveremote','serversecrets','upstream','httpapis','rpcnodes','streams','localservices']},
+        state:{label:'State + reactivity',nodes:['client','entitycollection','fieldcollection','countcollection','loadedsubset','persistedsync','hydrationplan','continuations','localauthority','livemount','loadfailures','resource','selectapi','entityproxy','subscribeentity','subscribefield','subscribecount','liveresource','resourceadapter','storage','wasqlite','opfs','sqlitepersistence','resolver','materialize','liveresolve']},
+        presentation:{label:'Routes + views',nodes:['presentationontology','generatedviews','generatedroutes','parammatchers','ui','routefamily','routeparams','layoutchrome','viewidentity','viewcontent','relatedentities','resourceboundary','navigation','semanticplacement','routeclosure','resource','entityproxy','resourceadapter']},
+        actions:{label:'Actions',nodes:['actions','walletconnections','preparation','approval','execution','actionrows','localmutations','client','localauthority','entitycollection','fieldcollection','upstream','wallets','actioncandidate','planningrun','plan','operation','planrun','operationattempt','capabilitymatch','plannerproviders','simulationbackends','candidateexecutor']},
+        candidates:{label:'Candidate lineages',nodes:['browser','client','entitycollection','sourcefetch','vite','actions','actionrows','dbtarget','hotprojection','sqliteworker','ownerfollower','outbox','duckdb','watermarks','dbmigration','tauri','staticbundle','rustshell','nativehttp','nativesqlite','capabilities','platforms','actioncandidate','planningrun','plan','operation','planrun','operationattempt','capabilitymatch','plannerproviders','simulationbackends','candidateexecutor']},
+        verification:{label:'Verification',nodes:['verification','unit','playwright','routematrix','persistencee2e','screenshots','runidentity','build','appgen','browser','clientfactory','resolver','snapshotresolve','ui','routefamily','storage','opfs']}
+      };
+
+      const nodeById=new Map(nodes.map(node=>[node.data.id,node]));
+      const withParents=ids=>{
+        const result=new Set(ids);
+        for(const id of [...result]){
+          let parent=nodeById.get(id)?.data.parent;
+          while(parent){result.add(parent);parent=nodeById.get(parent)?.data.parent}
+        }
+        return result;
+      };
+      const elementsFor=view=>{
+        const ids=withParents(view.nodes);
+        const relevantEdges=[...edges,...(view.edges??[])].filter(edge=>ids.has(edge.data.source)&&ids.has(edge.data.target));
+        return [...nodes.filter(node=>ids.has(node.data.id)),...relevantEdges];
+      };
+
+      const canvas=root.querySelector('#architecture-canvas');
+      const count=root.querySelector('.count');
+      const viewControl=root.querySelector('[data-action="view"]');
+      const routingControl=root.querySelector('[data-action="routing"]');
+      const routingName=root.querySelector('.routing-name');
+      const h=value=>String(value??'').replace(/[&<>"']/g,character=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[character]));
+      const q=value=>'"'+String(value??'').replace(/\\/g,'\\\\').replace(/"/g,'\\"').replace(/\n/g,'\\n')+'"';
+      const colors={
+        foreground:'#e8edf5ff',
+        muted:'#aab6c7ff',
+        card:'#111722ff',
+        inner:'#0b0f17ff',
+        outer:'#0d1119ff',
+        border:'#475569ff',
+        blue:'#60a5faff',
+        orange:'#f59e0bff',
+        green:'#34d399ff',
+        red:'#fb7185ff',
+        purple:'#c084fcff'
+      };
+      const statusColor=status=>({
+        stable:colors.green,
+        contested:colors.orange,
+        external:colors.purple,
+        app:colors.green,
+        build:colors.blue,
+        process:colors.orange,
+        contestedGroup:colors.orange,
+        verification:colors.purple,
+        group:colors.border
+      }[status]??colors.border);
+      const edgeColor=kind=>({
+        build:colors.blue,
+        process:colors.orange,
+        mutation:colors.red,
+        contested:colors.orange,
+        evidence:colors.purple
+      }[kind]??colors.border);
+      const edgeStyle=kind=>kind==='evidence'?'dotted':(['process','contested'].includes(kind)?'dashed':'solid');
+      const edgeWidth=kind=>['mutation','contested'].includes(kind)?1.8:1;
+      let renderer=null;
+      let activeKey='complete';
+      let activeRouting='orthogonal';
+      let activeNodes=nodes;
+      let activeEdges=edges;
+      let activeGatewayIds=new Set();
+      let semanticEdgeBySegment=new Map();
+      let semanticEdgeByGateway=new Map();
+      let segmentsBySemanticEdge=new Map();
+      let viewerObjects=[];
+
+      const segmentKey=(source,target)=>source+'\u0000'+target;
+      const topLevelDomain=id=>{
+        let current=nodeById.get(id);
+        if(!current)return id;
+        while(current.data.parent){
+          const parent=nodeById.get(current.data.parent);
+          if(!parent)break;
+          current=parent;
+        }
+        return current.data.id;
+      };
+      const expandBoundaryGateways=(visibleNodes,visibleEdges)=>{
+        const visibleIds=new Set(visibleNodes.map(node=>node.data.id));
+        const routedNodes=[...visibleNodes];
+        const routedEdges=[];
+        const gatewayIds=new Set();
+        const edgeByGateway=new Map();
+        const edgeBySegment=new Map();
+        const segmentsByEdge=new Map();
+        const register=(segment,semanticEdge)=>{
+          routedEdges.push(segment);
+          const key=segmentKey(segment.data.source,segment.data.target);
+          edgeBySegment.set(key,semanticEdge);
+          if(!segmentsByEdge.has(semanticEdge.data.id))segmentsByEdge.set(semanticEdge.data.id,[]);
+          segmentsByEdge.get(semanticEdge.data.id).push(key);
+        };
+        for(const edge of visibleEdges){
+          const sourceDomain=topLevelDomain(edge.data.source);
+          const targetDomain=topLevelDomain(edge.data.target);
+          const crossesProcessBoundary=sourceDomain!==targetDomain
+            && visibleIds.has(sourceDomain)
+            && visibleIds.has(targetDomain)
+            && edge.data.source!==sourceDomain
+            && edge.data.target!==targetDomain;
+          if(!crossesProcessBoundary){
+            register({...edge,data:{...edge.data,semanticRole:'direct'}},edge);
+            continue;
+          }
+          const egressId='gateway_'+edge.data.id+'_egress';
+          const ingressId='gateway_'+edge.data.id+'_ingress';
+          const gatewayDetail=edge.data.label+' · '+sourceDomain+' → '+targetDomain;
+          routedNodes.push(
+            {data:{id:egressId,label:'',parent:sourceDomain,status:'gateway',kind:edge.data.kind,detail:'Egress gateway · '+gatewayDetail,path:'',ref:''}},
+            {data:{id:ingressId,label:'',parent:targetDomain,status:'gateway',kind:edge.data.kind,detail:'Ingress gateway · '+gatewayDetail,path:'',ref:''}}
+          );
+          gatewayIds.add(egressId);
+          gatewayIds.add(ingressId);
+          edgeByGateway.set(egressId,edge);
+          edgeByGateway.set(ingressId,edge);
+          register({data:{id:edge.data.id+'_source',source:edge.data.source,target:egressId,label:'',kind:edge.data.kind,semanticRole:'source'}},edge);
+          register({data:{id:edge.data.id+'_boundary',source:egressId,target:ingressId,label:edge.data.label,kind:edge.data.kind,semanticRole:'boundary'}},edge);
+          register({data:{id:edge.data.id+'_target',source:ingressId,target:edge.data.target,label:'',kind:edge.data.kind,semanticRole:'target'}},edge);
+        }
+        return {nodes:routedNodes,edges:routedEdges,gatewayIds,edgeByGateway,edgeBySegment,segmentsByEdge};
+      };
+
+      const makeDot=(visibleNodes,visibleEdges)=>{
+        const visibleIds=new Set(visibleNodes.map(node=>node.data.id));
+        const children=new Map();
+        for(const node of visibleNodes){
+          const parent=node.data.parent;
+          if(parent&&visibleIds.has(parent)){
+            if(!children.has(parent))children.set(parent,[]);
+            children.get(parent).push(node);
+          }
+        }
+        const lines=[
+          'digraph Blockhead {',
+          'graph [rankdir=TB, compound=true, newrank=true, concentrate=true, splines=spline, outputorder=edgesfirst, bgcolor='+q(colors.background??'#090b10ff')+', pad=0.28, nodesep=0.32, ranksep=0.78, fontname="Arial", fontsize=14, fontcolor='+q(colors.foreground)+'];',
+          'node [shape=box, fontname="Arial", fontsize=10.5, margin="0.14,0.09", penwidth=1.2];',
+          'edge [arrowsize=0.82, penwidth=1, fontname="Arial", fontsize=8.5, fontcolor='+q(colors.muted)+'];'
+        ];
+        const emit=(node,depth)=>{
+          const data=node.data;
+          const nested=children.get(data.id)??[];
+          const indent='  '.repeat(depth);
+          if(nested.length){
+            const groupStyle=data.status==='contestedGroup'?'rounded,dashed':data.status==='external'?'rounded,dotted':'rounded';
+            const groupFill=data.status==='app'?colors.outer:colors.inner;
+            const groupWidth=data.status==='app'?2.6:data.status==='contestedGroup'?2.2:1.35;
+            lines.push(indent+'subgraph '+q('cluster_'+data.id)+' {');
+            lines.push(indent+'  label='+q(data.label)+';');
+            lines.push(indent+'  tooltip='+q(data.detail+(data.path?'\nPath: '+data.path:'')+(data.ref?'\nCodex: '+data.ref:''))+';');
+            lines.push(indent+'  color='+q(statusColor(data.status))+';');
+            lines.push(indent+'  fontcolor='+q(colors.foreground)+';');
+            lines.push(indent+'  bgcolor='+q(groupFill)+';');
+            lines.push(indent+'  style='+q(groupStyle)+';');
+            lines.push(indent+'  penwidth='+groupWidth+';');
+            lines.push(indent+'  margin='+(data.status==='app'?22:15)+';');
+            nested.forEach(child=>emit(child,depth+1));
+            lines.push(indent+'}');
+            return;
+          }
+          if(data.status==='gateway'){
+            const color=edgeColor(data.kind);
+            lines.push(indent+q(data.id)+' [label="", shape=circle, width=0.09, height=0.09, fixedsize=true, color='+q(color)+', fillcolor='+q(color)+', style="filled", penwidth=1.2, tooltip='+q(data.detail)+'];');
+            return;
+          }
+          const style=data.status==='contested'?'filled,dashed':data.status==='external'?'filled,dotted':'filled,solid';
+          const shape=data.status==='external'?'ellipse':'box';
+          const width=data.status==='contested'?1.8:data.status==='stable'?1.4:1.2;
+          const tooltip=data.detail+(data.path?'\nPath: '+data.path:'')+(data.ref?'\nCodex: '+data.ref:'');
+          lines.push(indent+q(data.id)+' [label='+q(data.label)+', shape='+shape+', color='+q(statusColor(data.status))+', style='+q(style)+', fillcolor='+q(colors.card)+', fontcolor='+q(colors.foreground)+', penwidth='+width+', tooltip='+q(tooltip)+'];');
+        };
+        visibleNodes.filter(node=>!node.data.parent||!visibleIds.has(node.data.parent)).forEach(node=>emit(node,1));
+        for(const edge of visibleEdges){
+          const data=edge.data;
+          const arrowhead=['source','boundary'].includes(data.semanticRole)?', arrowhead=none':'';
+          lines.push('  '+q(data.source)+' -> '+q(data.target)+' [label='+q(data.label)+', color='+q(edgeColor(data.kind))+', fontcolor='+q(colors.muted)+', style='+q(edgeStyle(data.kind))+', penwidth='+edgeWidth(data.kind)+arrowhead+'];');
+        }
+        lines.push('}');
+        return lines.join('\n');
+      };
+
+      const resolveView=key=>{
+        if(key==='complete')return {nodes,edges};
+        const view=views[key];
+        const ids=withParents(view.nodes);
+        const viewNodes=nodes.filter(node=>ids.has(node.data.id));
+        const sourceEdges=key==='context'?overviewEdges:[...edges,...(view.edges??[])];
+        const viewEdges=sourceEdges.filter(edge=>ids.has(edge.data.source)&&ids.has(edge.data.target));
+        return {nodes:viewNodes,edges:viewEdges};
+      };
+
+      const showNode=data=>{
+        selection.innerHTML='<strong>'+h(data.label)+'</strong> — '+h(data.detail)+(data.path?' · <code>'+h(data.path)+'</code>':'')+(data.ref?' · Codex thread <code>'+h(data.ref)+'</code>':'');
+      };
+      const showEdge=data=>{
+        const source=nodeById.get(data.source)?.data.label??data.source;
+        const target=nodeById.get(data.target)?.data.label??data.target;
+        selection.innerHTML='<strong>'+h(source)+' → '+h(target)+'</strong> — '+h(data.label);
+      };
+
+      const routingLabels={
+        orthogonal:'true rectilinear + boundary gateways',
+        layered:'layered curves',
+        corridor:'shortest paths',
+        direct:'direct diagnostic'
+      };
+      const routingOptions=()=>{
+        const modes=MSAGL.EdgeRoutingMode;
+        const edgeRoutingMode={
+          orthogonal:modes.Rectilinear,
+          layered:modes.SugiyamaSplines,
+          corridor:modes.Corridor,
+          direct:modes.StraightLine
+        }[activeRouting];
+        return {layoutType:'Sugiyama TB',edgeRoutingMode,smoothCorners:activeRouting==='corridor'};
+      };
+      const clearFocus=()=>{
+        for(const object of viewerObjects){
+          object.svgData?.classList.remove('architecture-edge-dimmed','architecture-active-edge','architecture-active-label','architecture-endpoint');
+        }
+      };
+      const endpointObject=id=>viewerObjects.find(object=>object.entity?.id===id);
+      const semanticEdgeForEntity=edgeEntity=>semanticEdgeBySegment.get(segmentKey(edgeEntity.source.id,edgeEntity.target.id));
+      const activateSemanticEdge=semanticEdge=>{
+        if(!semanticEdge)return;
+        for(const object of viewerObjects){
+          const edgeEntity=object.entity;
+          if(!(edgeEntity?.source&&edgeEntity?.target))continue;
+          if(semanticEdgeForEntity(edgeEntity)?.data.id!==semanticEdge.data.id)continue;
+          object.svgData?.classList.remove('architecture-edge-dimmed');
+          object.svgData?.classList.add('architecture-active-edge');
+          const labelObject=viewerObjects.find(candidate=>candidate.entity?.parent===edgeEntity);
+          labelObject?.svgData?.classList.remove('architecture-edge-dimmed');
+          labelObject?.svgData?.classList.add('architecture-active-label');
+        }
+        endpointObject(semanticEdge.data.source)?.svgData?.classList.add('architecture-endpoint');
+        endpointObject(semanticEdge.data.target)?.svgData?.classList.add('architecture-endpoint');
+      };
+      const dimRelationships=()=>{
+        for(const object of viewerObjects){
+          const entity=object.entity;
+          if((entity?.source&&entity?.target)||(entity?.parent?.source&&entity?.parent?.target)){
+            object.svgData?.classList.add('architecture-edge-dimmed');
+          }
+        }
+      };
+      const focusEdge=edgeEntity=>{
+        clearFocus();
+        dimRelationships();
+        activateSemanticEdge(semanticEdgeForEntity(edgeEntity));
+      };
+      const focusNode=nodeId=>{
+        clearFocus();
+        dimRelationships();
+        endpointObject(nodeId)?.svgData?.classList.add('architecture-endpoint');
+        for(const edge of activeEdges){
+          if(edge.data.source===nodeId||edge.data.target===nodeId)activateSemanticEdge(edge);
+        }
+      };
+      const decorateGraph=()=>{
+        viewerObjects=[...renderer.entities];
+        canvas.querySelectorAll('text').forEach(label=>label.setAttribute('fill',label.id==='edgeLabel'?colors.muted:colors.foreground));
+        for(const object of viewerObjects){
+          const entity=object.entity;
+          if(activeGatewayIds.has(entity?.id))object.svgData?.classList.add('architecture-gateway');
+          if(!(entity?.source&&entity?.target))continue;
+          const group=object.svgData;
+          const curve=group?.querySelector('#curve');
+          if(!curve)continue;
+          const semanticEdge=semanticEdgeForEntity(entity);
+          const segmentRole=activeGatewayIds.has(entity.source.id)?'boundary-or-target':activeGatewayIds.has(entity.target.id)?'source-or-boundary':'direct';
+          const color=curve.getAttribute('stroke')??colors.muted;
+          if((segmentRole==='direct'||entity.source.id===semanticEdge?.data.source)&&!group.querySelector('.architecture-source-port')){
+            const start=curve.getPointAtLength(0);
+            const marker=document.createElementNS('http://www.w3.org/2000/svg','circle');
+            marker.classList.add('architecture-source-port');
+            marker.setAttribute('cx',start.x);
+            marker.setAttribute('cy',start.y);
+            marker.setAttribute('r','2.2');
+            marker.setAttribute('fill',color);
+            group.append(marker);
+          }
+          if((segmentRole==='direct'||entity.target.id===semanticEdge?.data.target)&&!group.querySelector('.architecture-target-port')){
+            const end=curve.getPointAtLength(curve.getTotalLength());
+            const marker=document.createElementNS('http://www.w3.org/2000/svg','circle');
+            marker.classList.add('architecture-target-port');
+            marker.setAttribute('cx',end.x);
+            marker.setAttribute('cy',end.y);
+            marker.setAttribute('r','2.2');
+            marker.setAttribute('fill',color);
+            group.insertBefore(marker,group.firstChild);
+          }
+        }
+        routingName.textContent=routingLabels[activeRouting];
+      };
+
+      const renderView=key=>{
+        activeKey=key;
+        viewControl.value=key;
+        const resolved=resolveView(key);
+        activeNodes=resolved.nodes;
+        activeEdges=resolved.edges;
+        const routed=expandBoundaryGateways(activeNodes,activeEdges);
+        activeGatewayIds=routed.gatewayIds;
+        semanticEdgeByGateway=routed.edgeByGateway;
+        semanticEdgeBySegment=routed.edgeBySegment;
+        segmentsBySemanticEdge=routed.segmentsByEdge;
+        canvas.innerHTML='<div class="loading">Laying out '+h(activeNodes.length)+' nodes, '+h(activeEdges.length)+' labeled relationships, and nested boundaries…</div>';
+        if(renderer?.panZoom)renderer.panZoom.dispose();
+        const graph=MSAGL.parseDot(makeDot(routed.nodes,routed.edges));
+        renderer=new MSAGL.RendererSvg(canvas);
+        renderer.layoutEditingEnabled=false;
+        renderer.setGraph(graph,routingOptions());
+        renderer.layoutEditingEnabled=false;
+        decorateGraph();
+        count.textContent=activeNodes.length+' components · '+activeEdges.length+' labeled relationships · '+activeGatewayIds.size+' boundary gateways';
+        selection.textContent='Pan and zoom. Select a component to isolate its incident relationships, or select an edge to expose both endpoints.';
+        window.blockheadArchitecture={nodes,edges,views,graph,renderer,clearFocus,focusEdge,focusNode,activeGatewayIds,semanticEdgeBySegment,segmentsBySemanticEdge};
+      };
+
+      canvas.addEventListener('click',event=>{
+        if(!renderer)return;
+        renderer.setObjectUnderCursorFromEvent(event);
+        const entity=renderer.objectUnderMouseCursor?.entity;
+        if(!entity){
+          clearFocus();
+          selection.textContent='Pan and zoom. Select a component to isolate its incident relationships, or select an edge to expose both endpoints.';
+          return;
+        }
+        const nodeId=String(entity.id??'').replace(/^cluster_/,'');
+        const node=nodeById.get(nodeId);
+        if(node){
+          focusNode(nodeId);
+          showNode(node.data);
+          return;
+        }
+        const gatewayEdge=semanticEdgeByGateway.get(nodeId);
+        if(gatewayEdge){
+          clearFocus();
+          dimRelationships();
+          activateSemanticEdge(gatewayEdge);
+          showEdge(gatewayEdge.data);
+          return;
+        }
+        const edgeEntity=entity.source&&entity.target?entity:(entity.parent?.source&&entity.parent?.target?entity.parent:null);
+        if(edgeEntity){
+          focusEdge(edgeEntity);
+          const match=semanticEdgeForEntity(edgeEntity);
+          if(match)showEdge(match.data);
+          return;
+        }
+        clearFocus();
+      });
+      viewControl.addEventListener('change',event=>renderView(event.target.value));
+      routingControl.addEventListener('change',event=>{
+        activeRouting=event.target.value;
+        if(renderer){
+          renderer.setGraph(renderer.graph,routingOptions());
+          decorateGraph();
+          selection.textContent='Routing changed to '+routingLabels[activeRouting]+'. Select an edge to expose both endpoints.';
+        }
+      });
+      root.querySelector('[data-action="fit"]').addEventListener('click',()=>{
+        if(renderer){
+          renderer.setGraph(renderer.graph,routingOptions());
+          decorateGraph();
+        }
+      });
+      root.querySelector('[data-action="layout"]').addEventListener('click',()=>renderView(activeKey));
+
+      if(!window.MSAGL){
+        canvas.innerHTML='<div class="loading">MSAGL.js failed to load.</div>';
+        return;
+      }
+      canvas.innerHTML='<div class="loading">Preparing complete architecture…</div>';
+      setTimeout(()=>renderView('complete'),0);
+    })();
+  </script>
+</div>
+</body>
+</html>
