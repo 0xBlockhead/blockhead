@@ -119,5 +119,10 @@
 		"satteri": "^0.9.5",
 		"weakmap.prototype.getorinsertcomputed": "^1.0.0"
 	},
-	"workspaces": ["."]
+	"workspaces": [
+		"."
+	],
+	"engines": {
+		"node": ">=22.13"
+	}
 }
