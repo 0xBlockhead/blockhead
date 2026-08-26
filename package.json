@@ -111,7 +111,7 @@
 		"devalue": "^5.9.0",
 		"file-type": "^22.0.1",
 		"gql.tada": "^1.11.3",
-		"graphql": "^16.14.0",
+		"graphql": "^17.0.2",
 		"insane": "^2.6.2",
 		"map.prototype.getorinsertcomputed": "^1.0.1",
 		"multiformats": "^14.0.5",
