@@ -23,6 +23,7 @@ const root = process.cwd()
 const canonicalInputPaths = [
 	'APP.ts',
 	'package.json',
+	'scripts/app/accountability.ts',
 	'scripts/app/generate.ts',
 	'scripts/app/inputs/source-target.ts',
 	'scripts/app/model.ts',
@@ -30,6 +31,10 @@ const canonicalInputPaths = [
 	'scripts/app/source.ts',
 	'src/constants/Network.ts',
 ] as const
+
+const resolverInputPaths = app.resolvers.modules.flatMap((resolverModule) => (
+	resolverModule.paths ?? (resolverModule.path == null ? [] : [resolverModule.path])
+)).toSorted()
 
 const sha256 = (source: string) => createHash('sha256').update(source).digest('hex')
 
@@ -70,6 +75,7 @@ test('cold-reconstructs the generated product from only canonical and manual inp
 	const inputPaths = [
 		...canonicalInputPaths,
 		...manualInputPaths,
+		...resolverInputPaths,
 	].toSorted()
 	const expectedGeneratedHashes = [...generatedSourceByPath]
 		.map(([relativePath, source]) => [
@@ -101,7 +107,7 @@ test('cold-reconstructs the generated product from only canonical and manual inp
 
 	try {
 		assert.deepEqual(manualInputPaths, ['src/views/BlockheadSessionActionsComposer.svelte'])
-		assert.equal(inputPaths.length, 9)
+		assert.equal(inputPaths.length, canonicalInputPaths.length + manualInputPaths.length + resolverInputPaths.length)
 		for (const inputPath of inputPaths) {
 			mkdirSync(path.dirname(path.join(isolatedRoot, inputPath)), {
 				recursive: true,
