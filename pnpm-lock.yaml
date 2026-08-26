@@ -73,8 +73,8 @@ importers:
         specifier: ^6.1.1
         version: 6.1.1
       devalue:
-        specifier: ^5.9.0
-        version: 5.9.0
+        specifier: ^5.9.1
+        version: 5.9.1
       file-type:
         specifier: ^22.0.2
         version: 22.0.2(supports-color@10.2.2)
@@ -1683,6 +1683,9 @@ packages:
 
   devalue@5.9.0:
     resolution: { integrity: sha512-RWrqdArjvPbsATEhOPUo6Wndc/iWnkWKlhIrdlF3zMMYo/c3CVtoaVAyLtWxz5h8nSlkHzxnzV2uLydPXmtF+A== }
+
+  devalue@5.9.1:
+    resolution: { integrity: sha512-+17vil3EVQRzvtDJSFuTWEb8XJRvXqAiV3qZyQWD398QeXUa6CxsUyMdD1fxzEhUrd4FojitFz7lhIHBTlV4fw== }
 
   dotenv@16.6.1:
     resolution: { integrity: sha512-uBq4egWHTcTt33a72vpSG0z3HnPuIl6NqYcTrKEg2azoEyl2hpW0zqlxysq2pK9HlDIHyHyakeYaYnSAwd8bow== }
@@ -4770,6 +4773,8 @@ snapshots:
   devalue@5.8.1: {}
 
   devalue@5.9.0: {}
+
+  devalue@5.9.1: {}
 
   dotenv@16.6.1: {}
 
