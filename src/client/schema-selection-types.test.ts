@@ -30,14 +30,19 @@ test('enforces schema-derived projection selections and field addresses', () => 
 				process.env.TSC_PATH ?? path.join(root, 'node_modules/@typescript/native/bin/tsc'),
 				'--project',
 				tsconfigPath,
+				'--listFiles',
 			],
 			{
 				cwd: root,
 				encoding: 'utf8',
+				maxBuffer: 32 * 1024 * 1024,
 			}
 		)
 
 		expect(result.status, result.stderr || result.stdout).toBe(0)
+		const listedFiles = result.stdout.split('\n')
+		expect(listedFiles).toContain(path.join(root, 'src/client/schema-selection-types.types.ts'))
+		expect(listedFiles).not.toContain(path.join(root, 'APP.ts'))
 	} finally {
 		rmSync(typeTestRoot, {
 			force: true,
