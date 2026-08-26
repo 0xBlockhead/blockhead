@@ -3,6 +3,13 @@
 	"private": true,
 	"version": "0.0.1",
 	"packageManager": "pnpm@11.20.0",
+	"devEngines": {
+		"packageManager": {
+			"name": "pnpm",
+			"version": "11.20.0",
+			"onFail": "ignore"
+		}
+	},
 	"type": "module",
 	"scripts": {
 		"dev": "pnpm exec dotenvx run -f .env.local -- vite dev",
