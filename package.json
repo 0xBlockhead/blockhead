@@ -60,7 +60,7 @@
 		"verify": "pnpm run lint && pnpm run check && pnpm run check:e2e && pnpm run check:sources && pnpm run test:unit -- --run && pnpm run test:contracts"
 	},
 	"devDependencies": {
-		"@dotenvx/dotenvx": "^1.69.2",
+		"@dotenvx/dotenvx": "^2.21.0",
 		"@gql.tada/cli-utils": "^1.9.3",
 		"@playwright/test": "^1.62.1",
 		"@sveltejs/adapter-auto": "^7.0.1",
