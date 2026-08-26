@@ -1060,13 +1060,13 @@ const forwardBrowserConsoleLine = (
 	text: string,
 	location: {
 		url: string
-		lineNumber: number
-		columnNumber: number
+		line: number
+		column: number
 	}
 ) => {
 	const locStr = (
 		location.url ?
-			` ${location.url}:${location.lineNumber}:${location.columnNumber}`
+			` ${location.url}:${location.line}:${location.column}`
 		:
 			''
 	)
