@@ -284,7 +284,7 @@ type LocalBlockheadIntentQuote_Timestamp = Omit<
 }
 type LocalBlockheadIntentInvocation = Omit<
 	EntityFieldValues<typeof schema, EntityType.BlockheadIntentInvocation>,
-	'$createdAction' | '$session' | 'sourceSelector' | 'targetSelector'
+	'$createdAction' | '$session' | 'sessionId' | 'sourceSelector' | 'targetSelector'
 > & {
 	createdAction?: EntitySelector<typeof schema, EntityType.BlockheadSessionAction>
 	sourceSelector?: object
@@ -292,7 +292,7 @@ type LocalBlockheadIntentInvocation = Omit<
 }
 type LocalBlockheadActionOutcome = Omit<
 	EntityFieldValues<typeof schema, EntityType.BlockheadActionOutcome>,
-	'$$evmTransactions' | '$intentOrder' | '$sessionAction' | '$simulation' | '$walletRequest' | '$$timestamps'
+	'$$evmTransactions' | '$intentOrder' | '$sessionAction' | '$simulation' | '$walletRequest' | '$$timestamps' | 'actionId' | 'sessionId'
 > & {
 	intentOrder?: EntitySelector<typeof schema, EntityType.BlockheadIntentOrder>
 	simulation?: EntitySelector<typeof schema, EntityType.BlockheadSessionSimulation>
