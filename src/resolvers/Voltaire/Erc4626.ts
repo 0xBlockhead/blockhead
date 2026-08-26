@@ -1,8 +1,10 @@
 import { networks } from '$/constants/Network.ts'
+import type { ResolverSelectorPattern } from '$/resolvers/$resolvers.ts'
 import { defineResolver } from '$/resolvers/defineResolver.ts'
 import {
 	EntityMetaKey,
 	type EntitySelector,
+	type EntitySelectorForSelectorName,
 } from '$/schema/$schema.ts'
 import { CoinInstanceType } from '$/schema/CoinInstanceType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
@@ -11,6 +13,17 @@ import { Source } from '$/sources/Source.ts'
 
 
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
+type VaultBlockSourceSelector = EntitySelectorForSelectorName<
+	typeof schema,
+	EntityType.Erc4626Vault_Block,
+	'VaultBlockNumberSource'
+>
+
+const voltaireVaultBlockApplicability = [{
+	source: Source.Voltaire_JsonRpc,
+}] as const satisfies readonly [
+	ResolverSelectorPattern<Pick<VaultBlockSourceSelector, 'source'>>,
+]
 
 const chainIdFromNetwork = (network: NetworkId) => {
 	const caip2 = (
@@ -114,9 +127,7 @@ export const erc4626Resolvers = [
 		entityType: EntityType.Erc4626Vault_Block,
 		resolve: {
 			VaultBlockNumberSource: {
-				appliesTo: [{
-					source: Source.Voltaire_JsonRpc,
-				}],
+				appliesTo: voltaireVaultBlockApplicability,
 				resolve: async ({
 					$vault,
 					blockNumber,
