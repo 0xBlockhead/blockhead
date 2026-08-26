@@ -626,7 +626,7 @@ const resolveEnsForward = async ({
 		)
 			.then((entries) => (
 				Object.fromEntries(
-					entries.filter((entry): entry is [string, string] => entry[1] != null)
+					entries.filter((entry): entry is readonly [string, string] => entry[1] != null)
 				)
 			)),
 		Promise.all(
@@ -645,7 +645,7 @@ const resolveEnsForward = async ({
 		)
 			.then((entries) => (
 				Object.fromEntries(
-					entries.filter((entry): entry is [string, string] => entry[1] != null)
+					entries.filter((entry): entry is readonly [`dns:${number}:${string}`, string] => entry[1] != null)
 				)
 			)),
 		zonehash ?
