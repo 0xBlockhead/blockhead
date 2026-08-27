@@ -7733,14 +7733,16 @@ test('indexes row href parameter names from the route at definition time', () =>
 
 	try {
 		const fixturePath = path.join(typeTestRoot, 'row-href-key-types.ts')
-		const appSource = readFileSync(path.join(root, 'APP.ts'), 'utf8')
-		const helperStart = appSource.indexOf('type _RouteParameterName')
-		const helperEnd = appSource.indexOf('\nconst routeTemplate', helperStart)
-		assert.notEqual(helperStart, -1)
-		assert.notEqual(helperEnd, -1)
-		writeFileSync(fixturePath, `type _Expression = string
-
-${appSource.slice(helperStart, helperEnd).replace('export const defineRowHref', 'const defineRowHref')}
+		for (const filePath of [
+			'scripts/app/model.ts',
+			'scripts/app/source.ts',
+			'scripts/app/inputs/source-target.ts',
+			'src/constants/Network.ts',
+		]) {
+			mkdirSync(path.dirname(path.join(typeTestRoot, filePath)), { recursive: true })
+			copyFileSync(path.join(root, filePath), path.join(typeTestRoot, filePath))
+		}
+		writeFileSync(fixturePath, `import { defineRowHref } from './scripts/app/model.ts'
 
 defineRowHref('/items/[itemId]/[...contentPath=stringSegment]', {
 	itemId: 'item',
