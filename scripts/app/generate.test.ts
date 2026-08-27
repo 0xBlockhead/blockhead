@@ -18,8 +18,7 @@ import { performance } from 'node:perf_hooks'
 import test from 'node:test'
 import { type as arktype } from 'arktype'
 import { compile as compileSvelte } from 'svelte/compiler'
-import * as ts from '@typescript/native/unstable/ast'
-import { API } from '@typescript/native/unstable/sync'
+import ts from 'typescript'
 
 import {
 	app,
@@ -35,35 +34,30 @@ import {
 	rawSnippetReference,
 } from './model.ts'
 
-const virtualTypeScriptPath = path.resolve('.generate-test-source.ts')
-const virtualTypeScriptSources = new Map<string, string>()
-const typeScriptApi = new API({
-	fs: {
-		fileExists: (candidate) => virtualTypeScriptSources.has(path.resolve(candidate)) ? true : undefined,
-		readFile: (candidate) => virtualTypeScriptSources.get(path.resolve(candidate)),
+const parseTestTypeScript = (source: string) => ({
+	sourceFile: ts.createSourceFile('generated.ts', source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS),
+	get diagnostics() {
+		return ts.transpileModule(source, {
+			fileName: 'generated.ts',
+			compilerOptions: {
+				module: ts.ModuleKind.ESNext,
+				target: ts.ScriptTarget.ESNext,
+			},
+			reportDiagnostics: true,
+		}).diagnostics?.filter(({ category }) => category === ts.DiagnosticCategory.Error) ?? []
 	},
 })
-let typeScriptSnapshot: ReturnType<API['updateSnapshot']> | undefined
-const parseTestTypeScript = (source: string) => {
-	virtualTypeScriptSources.set(virtualTypeScriptPath, source)
-	const nextSnapshot = typeScriptApi.updateSnapshot({
-		...(typeScriptSnapshot == null ? { openFiles: [virtualTypeScriptPath] } : {}),
-		...(typeScriptSnapshot == null ? {} : {
-			fileChanges: { changed: [virtualTypeScriptPath] },
-		}),
-	})
-	typeScriptSnapshot?.dispose()
-	typeScriptSnapshot = nextSnapshot
-	const project = nextSnapshot.getDefaultProjectForFile(virtualTypeScriptPath)
-	const sourceFile = project?.program.getSourceFile(virtualTypeScriptPath)
-	if (project == null || sourceFile == null)
-		throw new Error('Cannot parse generated TypeScript test source')
 
-	return {
-		diagnostics: project.program.getSyntacticDiagnostics(virtualTypeScriptPath),
-		sourceFile,
-	}
-}
+test('parses each generated TypeScript input independently and rejects malformed later input', () => {
+	const validSource = 'const first = { value: 1 }'
+	const invalidSource = 'const second = {'
+	const valid = parseTestTypeScript(validSource)
+	const invalid = parseTestTypeScript(invalidSource)
+	assert.equal(valid.sourceFile.text, validSource)
+	assert.deepEqual(valid.diagnostics, [])
+	assert.equal(invalid.sourceFile.text, invalidSource)
+	assert.equal(invalid.diagnostics.some(({ code }) => code === 1005), true)
+})
 import {
 	ApiFamily,
 	SourceArtifactKind,
