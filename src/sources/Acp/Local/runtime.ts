@@ -1,4 +1,4 @@
-import type { AcpLocalAuthorization, AcpLocalHistoryBoundary, AcpLocalHistorySnapshot, AcpLocalInitializeResult, AcpLocalMutation, AcpLocalMutationResult, AcpLocalRuntime, AcpLocalSessionSnapshot } from './types.ts'
+import type { AcpLocalHistoryBoundary, AcpLocalHistorySnapshot, AcpLocalInitializeResult, AcpLocalRuntime, AcpLocalSessionSnapshot } from './types.ts'
 
 let configuredRuntime: AcpLocalRuntime | undefined
 
@@ -42,7 +42,6 @@ export const createAcpLocalRuntime = ({
 	readSession,
 	listSessions,
 	readHistory,
-	mutate,
 }: AcpLocalRuntime): AcpLocalRuntime => ({
 	runtimeId,
 	transportKind,
@@ -64,11 +63,6 @@ export const createAcpLocalRuntime = ({
 			throw new Error('AcpLocal_JsonRpc: invalid durable history boundary')
 		return history
 	},
-	mutate: async (request: AcpLocalMutation, authorization: AcpLocalAuthorization): Promise<AcpLocalMutationResult> => {
-		if (!authorization.allow)
-			throw new Error(`AcpLocal_JsonRpc: unauthorized mutation ${request.method}`)
-		return mutate(request, authorization)
-	},
 })
 
-export type { AcpLocalAuthorization, AcpLocalHistoryBoundary, AcpLocalHistorySnapshot, AcpLocalInitializeResult, AcpLocalMutation, AcpLocalMutationResult, AcpLocalRuntime, AcpLocalSessionSnapshot }
+export type { AcpLocalHistoryBoundary, AcpLocalHistorySnapshot, AcpLocalInitializeResult, AcpLocalRuntime, AcpLocalSessionSnapshot }

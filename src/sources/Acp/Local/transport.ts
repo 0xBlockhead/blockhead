@@ -1,5 +1,5 @@
 import { type } from 'arktype'
-import type { AcpLocalAuthorization, AcpLocalJsonRpcRequest, AcpLocalJsonRpcResponse } from './types.ts'
+import type { AcpLocalJsonRpcRequest, AcpLocalJsonRpcResponse } from './types.ts'
 
 const responseType = type({
 	jsonrpc: '"2.0"',
@@ -13,7 +13,7 @@ const responseType = type({
 })
 
 export type AcpLocalJsonRpcTransport = {
-	readonly request: (method: string, params?: unknown, authorization?: AcpLocalAuthorization) => Promise<unknown>
+	readonly request: (method: string, params?: unknown) => Promise<unknown>
 	readonly disconnect: () => void
 }
 
@@ -34,21 +34,18 @@ export const parseAcpLocalJsonRpcResponse = (payload: string, requestId: string)
 
 export const createAcpLocalJsonRpcTransport = ({
 	send,
-	authorize = () => ({ allow: false, reason: 'mutation authorization is required' }),
 	id = () => `acp-${Date.now()}`,
 }: {
 	readonly send: (request: AcpLocalJsonRpcRequest) => Promise<string>
-	readonly authorize?: (method: string, params: unknown) => AcpLocalAuthorization
 	readonly id?: () => string
 }): AcpLocalJsonRpcTransport => {
 	let connected = true
 	return {
-		async request(method, params, authorization) {
+		async request(method, params) {
 			if (!connected)
 				throw new Error('AcpLocal_JsonRpc: disconnected')
-			const mutation = method !== 'initialize' && method !== 'session/list' && method !== 'session/read' && method !== 'session/history'
-			if (mutation && !(authorization?.allow ?? authorize(method, params).allow))
-				throw new Error(`AcpLocal_JsonRpc: unauthorized mutation ${method}`)
+			if (method !== 'initialize' && method !== 'session/list' && method !== 'session/read' && method !== 'session/history')
+				throw new Error(`AcpLocal_JsonRpc: unsupported read method ${method}`)
 			const requestId = id()
 			const response = parseAcpLocalJsonRpcResponse(await send({ jsonrpc: '2.0', id: requestId, method, ...(params !== undefined && { params }) }), requestId)
 			if (response.error != null)

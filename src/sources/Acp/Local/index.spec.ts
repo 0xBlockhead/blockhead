@@ -23,11 +23,10 @@ const fakeRuntime = (): AcpLocalRuntime => createAcpLocalRuntime({
 		fileOperations: [],
 		permissionRequests: [],
 	}),
-	mutate: async (request) => ({ accepted: true, sessionId: request.sessionId, status: 'accepted' }),
 })
 
 describe('ACP local JSON-RPC boundary', () => {
-	it('keeps read access local and requires explicit mutation authority', async () => {
+	it('keeps read access local and rejects mutation dispatch', async () => {
 		const sent: string[] = []
 		const transport = createAcpLocalJsonRpcTransport({
 			id: () => '1',
@@ -36,10 +35,10 @@ describe('ACP local JSON-RPC boundary', () => {
 				return JSON.stringify({ jsonrpc: '2.0', id: request.id, result: { ok: true } })
 			},
 		})
-		await expect(transport.request('session/read', { sessionId: 'session-test' })).resolves.toEqual({ ok: true })
-		await expect(transport.request('session/prompt', { sessionId: 'session-test' })).rejects.toThrow('unauthorized')
-		await expect(transport.request('session/prompt', {}, { allow: true })).resolves.toEqual({ ok: true })
-		expect(sent).toEqual(['session/read', 'session/prompt'])
+		for (const method of ['initialize', 'session/list', 'session/read', 'session/history'])
+			await expect(transport.request(method, { sessionId: 'session-test' })).resolves.toEqual({ ok: true })
+		await expect(transport.request('session/prompt', { sessionId: 'session-test' })).rejects.toThrow('unsupported read method')
+		expect(sent).toEqual(['initialize', 'session/list', 'session/read', 'session/history'])
 	})
 
 	it('distinguishes malformed and disconnected runtime states', async () => {

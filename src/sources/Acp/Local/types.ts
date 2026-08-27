@@ -1,10 +1,5 @@
 export type AcpLocalHealth = 'ready' | 'disconnected' | 'malformed' | 'unavailable'
 
-export type AcpLocalAuthorization = {
-	readonly allow: boolean
-	readonly reason?: string
-}
-
 export type AcpLocalJsonRpcRequest = {
 	readonly jsonrpc: '2.0'
 	readonly id: string
@@ -32,7 +27,6 @@ export type AcpLocalRuntime = {
 	readonly readSession: (sessionId: string) => Promise<AcpLocalSessionSnapshot>
 	readonly listSessions: () => Promise<readonly AcpLocalSessionSnapshot[]>
 	readonly readHistory: (sessionId: string, boundary: AcpLocalHistoryBoundary) => Promise<AcpLocalHistorySnapshot>
-	readonly mutate: (request: AcpLocalMutation, authorization: AcpLocalAuthorization) => Promise<AcpLocalMutationResult>
 }
 
 export type AcpLocalInitializeResult = {
@@ -86,6 +80,3 @@ export type AcpLocalTerminal = { readonly terminalId: string; readonly command?:
 export type AcpLocalTerminalObservation = { readonly timestampMs: number; readonly source: string; readonly exitCode?: number; readonly status?: string; readonly outputBytes?: number; readonly error?: string }
 export type AcpLocalFileOperation = { readonly operationId: string; readonly operationKind: string; readonly path?: string; readonly startLine?: number; readonly endLine?: number; readonly contentHashAlgorithm?: string; readonly contentHash?: string; readonly timestampMs?: number; readonly status?: string; readonly error?: string }
 export type AcpLocalPermissionRequest = { readonly requestId: string; readonly requestKind: string; readonly createdAt?: number; readonly resolvedAt?: number; readonly decision?: string; readonly payload?: unknown }
-
-export type AcpLocalMutation = { readonly method: string; readonly sessionId: string; readonly params?: unknown }
-export type AcpLocalMutationResult = { readonly accepted: boolean; readonly sessionId: string; readonly status?: string; readonly error?: string }
