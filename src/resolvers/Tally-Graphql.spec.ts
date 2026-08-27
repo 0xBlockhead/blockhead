@@ -253,7 +253,7 @@ describe('Tally resolver field shaping', () => {
 	it('preserves executable-call index, network, target, value, and calldata identity', () => {
 		expect(tallyProposalExecutableCallFields(
 			proposalId,
-			proposal.executableCalls[0],
+			proposal.executableCalls[0]
 		)).toMatchObject({
 			[EntityMetaKey.Selector]: {
 				$proposal: { proposalId },

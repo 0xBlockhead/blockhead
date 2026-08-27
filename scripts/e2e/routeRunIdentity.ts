@@ -257,11 +257,11 @@ export const acquireExclusiveWriterLock = async (artifactRoot: string) => {
 export const resultSetFingerprint = (results: readonly RouteResult[]) => sha256(
 	canonicalJson([...results].sort((resultA, resultB) => (
 		`${resultA.targetId}\u0000${resultA.exampleId}`.localeCompare(`${resultB.targetId}\u0000${resultB.exampleId}`)
-	))),
+	)))
 )
 
 export const corpusFingerprint = (corpusTargets: readonly RouteCorpusTarget[]) => sha256(
-	canonicalJson([...corpusTargets].sort((targetA, targetB) => targetA.id.localeCompare(targetB.id))),
+	canonicalJson([...corpusTargets].sort((targetA, targetB) => targetA.id.localeCompare(targetB.id)))
 )
 
 const identityFields = Object.keys({
@@ -304,7 +304,7 @@ export const assertRouteResultsCoherent = ({
 		corpusTargets.flatMap((target) => target.examples.map((example) => [
 			`${target.id}\u0000${example.id}`,
 			example.version,
-		] as const)),
+		] as const))
 	)
 	assertRouteResultEntriesCoherent({ corpusTargets, results })
 	if (results.length !== examplesByKey.size)
@@ -323,7 +323,7 @@ export const assertRouteResultEntriesCoherent = ({
 		corpusTargets.flatMap((target) => target.examples.map((example) => [
 			`${target.id}\u0000${example.id}`,
 			example.version,
-		] as const)),
+		] as const))
 	)
 	const seen = new Set<string>()
 	for (const result of results) {

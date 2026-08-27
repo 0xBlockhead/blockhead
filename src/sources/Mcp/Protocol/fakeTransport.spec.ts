@@ -21,7 +21,7 @@ it('materializes the deterministic catalog without a tools/call request', async 
 	const snapshot = await discoverMcpServer(
 		bindings[Source.McpDeclared_Protocol][0],
 		'fake-server',
-		fakeMcpTransport(),
+		fakeMcpTransport()
 	)
 
 	expect(snapshot).toMatchObject({
@@ -38,7 +38,7 @@ it('fails closed when browser identity is unavailable', async () => {
 	const snapshot = await discoverMcpServer(
 		bindings[Source.McpDeclared_Protocol][0],
 		'missing-identity',
-		{ request: async () => { throw new Error('McpDeclared_Protocol: browser identity unavailable') } },
+		{ request: async () => { throw new Error('McpDeclared_Protocol: browser identity unavailable') } }
 	)
 
 	expect(snapshot).toMatchObject({ status: 'disconnected' })

@@ -122,7 +122,7 @@ const request = async (transport: McpJsonRpcTransport, id: number, method: strin
 export const discoverMcpServer = async (
 	binding: SourceBinding,
 	serverKey: string,
-	transport: McpJsonRpcTransport,
+	transport: McpJsonRpcTransport
 ): Promise<McpServerSnapshot> => {
 	if (binding.source !== Source.McpDeclared_Protocol)
 		throw new Error('McpDeclared_Protocol: discovery requires declared-protocol binding')
@@ -167,7 +167,7 @@ export const invokeMcpTool = async (
 	serverKey: string,
 	transport: McpJsonRpcTransport,
 	invocation: Omit<McpInvocation, 'startedAt'> & { readonly startedAt?: number },
-	authorize: () => boolean,
+	authorize: () => boolean
 ): Promise<McpInvocationResult> => {
 	if (binding.source !== Source.McpDeclared_Protocol)
 		throw new Error('McpDeclared_Protocol: invocation requires declared-protocol binding')

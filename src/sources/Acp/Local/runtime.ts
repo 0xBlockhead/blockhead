@@ -15,7 +15,7 @@ export const getAcpLocalRuntime = () => {
 export const materializeAcpLocalSession = async (
 	runtime: AcpLocalRuntime,
 	sessionId: string,
-	boundary: AcpLocalHistoryBoundary,
+	boundary: AcpLocalHistoryBoundary
 ) => {
 	const session = await runtime.readSession(sessionId)
 	const durable = await runtime.readHistory(session.sessionId, boundary)

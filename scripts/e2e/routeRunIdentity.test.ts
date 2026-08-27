@@ -75,7 +75,7 @@ test('rejects every identity dimension that can invalidate a route report', () =
 		const actual = { ...identity, [field]: `${identity[field]}-changed` }
 		assert.throws(
 			() => assertRunIdentityMatches(identity, actual, 'checkpoint'),
-			new RegExp(`checkpoint has incoherent run identity: ${field}`),
+			new RegExp(`checkpoint has incoherent run identity: ${field}`)
 		)
 	}
 })
@@ -143,7 +143,7 @@ test('requires an exact, versioned result for every corpus example', () => {
 			corpusTargets: targets,
 			runIdentity: identity,
 		}),
-		/results has incoherent corpus fingerprint/,
+		/results has incoherent corpus fingerprint/
 	)
 	assert.throws(
 		() => assertRouteResultsCoherent({
@@ -151,11 +151,11 @@ test('requires an exact, versioned result for every corpus example', () => {
 			results: results.map((result, index) => index === 0 ? { ...result, exampleVersion: 'stale' } : result),
 			runIdentity: identity,
 		}),
-		/stale example version/,
+		/stale example version/
 	)
 	assert.throws(
 		() => assertRouteResultsCoherent({ corpusTargets: targets, results: results.slice(0, 1), runIdentity: identity }),
-		/result set is incomplete/,
+		/result set is incomplete/
 	)
 })
 
@@ -176,7 +176,7 @@ test('reports reject stale checkpoints and reports derived from another result s
 			corpusTargets: targets,
 			runIdentity: identity,
 		}),
-		/checkpoint has incoherent corpus fingerprint/,
+		/checkpoint has incoherent corpus fingerprint/
 	)
 	assert.doesNotThrow(() => assertRouteResultEntriesCoherent({
 		corpusTargets: targets,
@@ -203,7 +203,7 @@ test('reports reject stale checkpoints and reports derived from another result s
 			runIdentity: identity,
 			reportName: 'gallery.html',
 		}),
-		/gallery.html has incoherent run identity/,
+		/gallery.html has incoherent run identity/
 	)
 	assert.throws(
 		() => assertRouteReportCoherent({
@@ -213,7 +213,7 @@ test('reports reject stale checkpoints and reports derived from another result s
 			runIdentity: identity,
 			reportName: 'gallery.html',
 		}),
-		/gallery.html has incoherent corpus fingerprint/,
+		/gallery.html has incoherent corpus fingerprint/
 	)
 	assert.throws(
 		() => assertRouteReportCoherent({
@@ -223,7 +223,7 @@ test('reports reject stale checkpoints and reports derived from another result s
 			runIdentity: identity,
 			reportName: 'gallery.html',
 		}),
-		/not derived from the accepted result set/,
+		/not derived from the accepted result set/
 	)
 })
 
@@ -244,7 +244,7 @@ test('corpus artifacts reject target or example-version drift', () => {
 			corpusTargets: targets,
 			runIdentity: identity,
 		}),
-		/corpus artifact targets do not match/,
+		/corpus artifact targets do not match/
 	)
 	assert.throws(
 		() => assertRouteCorpusArtifactCoherent({
@@ -252,7 +252,7 @@ test('corpus artifacts reject target or example-version drift', () => {
 			corpusTargets: targets,
 			runIdentity: identity,
 		}),
-		/corpus contains duplicate target/,
+		/corpus contains duplicate target/
 	)
 })
 
@@ -262,11 +262,11 @@ test('adapts discovered pathnames into stable versioned route results', () => {
 	assert.equal(corpus[0]?.examples[0]?.id, 'default')
 	assert.equal(
 		routeResultFromReport({ pathname: '/alpha' }, corpus).exampleVersion,
-		corpus[0]?.examples[0]?.version,
+		corpus[0]?.examples[0]?.version
 	)
 	assert.deepEqual(
 		routeResultFromReport({ pathname: '/alpha', targetId: 'spoofed', exampleId: 'spoofed', exampleVersion: 'stale' }, corpus),
-		{ pathname: '/alpha', targetId: '/alpha', exampleId: 'default', exampleVersion: corpus[0]?.examples[0]?.version },
+		{ pathname: '/alpha', targetId: '/alpha', exampleId: 'default', exampleVersion: corpus[0]?.examples[0]?.version }
 	)
 	assert.throws(
 		() => routeResultFromReport({ pathname: '/missing' }, corpus),

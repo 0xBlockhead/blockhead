@@ -664,7 +664,7 @@ describe('Osmosis LCD named operations', () => {
 			httpUrl(binding, '/osmosis/poolmanager/v2/pools/1/prices?base_asset_denom=uosmo&quote_asset_denom=uion'),
 			expect.objectContaining({
 				headers: { 'x-cosmos-block-height': '42' },
-			}),
+			})
 		)
 	})
 
