@@ -16,4 +16,5 @@
 	})
 </script>
 
+
 <output aria-label="resource observation" data-resource={observed === controller.resource ? 'current' : 'stale'}></output>
