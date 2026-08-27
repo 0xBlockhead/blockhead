@@ -1,4 +1,4 @@
-import { expect, test, vi } from 'vitest'
+import { expect, test } from 'vitest'
 
 import { TanStackLiveQueryResource } from '$/lib/db/queryResource.svelte.ts'
 import { CalldataRetryResource } from './calldataRetryResource.svelte.ts'
@@ -6,14 +6,45 @@ import { page } from 'vitest/browser'
 import { render } from 'vitest-browser-svelte'
 import Consumer from './CalldataRetryConsumer.svelte'
 import { tick } from 'svelte'
+import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 
-const resource = () => new TanStackLiveQueryResource<{ value: string }>(() => ({
-	data: undefined,
-	isLoading: true,
-	isError: false,
-	isReady: false,
-	status: 'loading',
-}))
+const resource = (read: () => void = () => {}) => new TanStackLiveQueryResource<{ value: string }>(() => {
+	read()
+	return {
+		data: undefined,
+		isLoading: true,
+		isError: false,
+		isReady: false,
+		status: 'loading',
+	}
+})
+
+test.each(['success', 'failure'] as const)('settles retry after %s using only the declared SvelteKit resource contract', async (outcome) => {
+	const started = Promise.withResolvers<void>()
+	const source = resource(started.resolve)
+	const portable: SvelteKitResource<{ value: string }> = {
+		get current() { return source.current },
+		get loading() { return source.loading },
+		get ready() { return source.ready },
+		get error() { return source.error },
+		get then() { return source.then },
+		get catch() { return source.catch },
+		get finally() { return source.finally },
+		[Symbol.toStringTag]: 'Resource',
+	}
+	const controller = new CalldataRetryResource(() => portable, 'portable')
+	controller.retry()
+	await started.promise
+	if (outcome === 'success')
+		source.set({ value: 'resolved' })
+	else
+		source.fail('failed retry')
+
+	await expect.poll(() => controller.retryPending).toBe(false)
+	expect(controller.resource).toBe(portable)
+	controller.destroy()
+	source.destroy()
+})
 
 test('replaces a failed generation, guards duplicate retry, and ignores stale completion', async () => {
 	const resources: TanStackLiveQueryResource<{ value: string }>[] = []
@@ -36,26 +67,32 @@ test('replaces a failed generation, guards duplicate retry, and ignores stale co
 	expect(controller.retryPending).toBe(true)
 
 	second.set({ value: 'current success' })
-	await Promise.resolve()
-	expect(controller.retryPending).toBe(false)
+	await expect.poll(() => controller.retryPending).toBe(false)
 	expect(controller.resource).toBe(second)
 })
 
-test('selector replacement creates a new generation and tears down the old subscription', () => {
-	const first = resource()
-	const second = resource()
-	const firstSubscribe = vi.spyOn(first, 'subscribe')
-	const firstUnsubscribe = vi.fn()
-	firstSubscribe.mockReturnValue(firstUnsubscribe)
+test('selector replacement and destruction ignore obsolete completion', async () => {
+	const firstStarted = Promise.withResolvers<void>()
+	const secondStarted = Promise.withResolvers<void>()
+	const first = resource(firstStarted.resolve)
+	const second = resource(secondStarted.resolve)
 	let selected = first
 	const controller = new CalldataRetryResource(() => selected, 'first')
+	controller.retry()
 	selected = second
 	controller.setFactory(() => selected, 'second')
-
+	controller.retry()
+	await Promise.all([firstStarted.promise, secondStarted.promise])
+	first.set({ value: 'obsolete' })
+	await first
 	expect(controller.resource).toBe(second)
-	expect(firstSubscribe).toHaveBeenCalledOnce()
+	expect(controller.retryPending).toBe(true)
 	controller.destroy()
-	expect(firstUnsubscribe).toHaveBeenCalledOnce()
+	second.set({ value: 'after destruction' })
+	await second
+	expect(controller.retryPending).toBe(true)
+	first.destroy()
+	second.destroy()
 })
 
 test('does not call the factory for a same-key replacement', () => {
@@ -76,7 +113,7 @@ test('does not call the factory for a same-key replacement', () => {
 
 test('replacement reaches a Svelte effect consumer', async () => {
 	const controller = new CalldataRetryResource(() => resource(), 'consumer')
-	const observed: unknown[] = []
+	const observed: SvelteKitResource<{ value: string }>[] = []
 	await render(Consumer, { controller, onObserve: (value) => observed.push(value) })
 	await expect.element(page.getByLabelText('resource observation')).toHaveAttribute('data-resource', 'current')
 	expect(observed).toHaveLength(1)

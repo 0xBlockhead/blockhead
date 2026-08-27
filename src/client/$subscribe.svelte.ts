@@ -49,6 +49,35 @@ import { localMutationAuthorityKey, entityResolverSourcesForSelectorKeys } from 
 import { resolverPartsKey } from '$/resolvers/$resolvers.ts'
 import { Source } from '$/sources/Source.ts'
 
+const observeNestedResource = (
+	resource: SvelteKitResource<object>,
+	update: () => void
+) => {
+	let active = true
+	const notify = () => {
+		if (active)
+			update()
+	}
+	const stop = typeof window === 'undefined' ?
+		undefined
+	:
+		$effect.root(() => {
+			$effect(() => {
+				resource.current
+				resource.loading
+				resource.error
+				queueMicrotask(notify)
+			})
+		})
+	if (typeof window === 'undefined')
+		void resource.then(notify, notify)
+
+	return () => {
+		active = false
+		stop?.()
+	}
+}
+
 
 export type EntityResourceData<
 	_Schema extends Schema,
@@ -992,7 +1021,7 @@ export function subscribeEntityField<
 
 						unsubscribeByNestedResource.set(
 							nestedResource,
-							nestedResource.subscribe(nestedResourceUpdate)
+							observeNestedResource(nestedResource, nestedResourceUpdate)
 						)
 						nestedResourceUpdate()
 					})
@@ -1635,7 +1664,7 @@ const subscribeEntitySelection = <
 
 								unsubscribeByNestedResource.set(
 									nestedResource,
-									nestedResource.subscribe(nestedResourceUpdate)
+									observeNestedResource(nestedResource, nestedResourceUpdate)
 								)
 								nestedResourceUpdate()
 							})

@@ -4,16 +4,15 @@ type RetryResourceFactory<Data> = () => SvelteKitResource<Data>
 
 export class CalldataRetryResource<Data> {
 	#factory: RetryResourceFactory<Data>
-	#unsubscribe: (() => void) | undefined
-	#generation = $state(0)
-	#resource = $state.raw<SvelteKitResource<Data>>()
+	#generation = 0
+	#resource: SvelteKitResource<Data>
 	#factoryKey: string
 	#pending = $state(false)
 
 	constructor(factory: RetryResourceFactory<Data>, factoryKey: string) {
 		this.#factory = factory
 		this.#factoryKey = factoryKey
-		this.#replace()
+		this.#resource = $state.raw(this.#replace())
 	}
 
 	get resource() {
@@ -30,31 +29,28 @@ export class CalldataRetryResource<Data> {
 		this.#factory = factory
 		this.#factoryKey = factoryKey
 		this.#pending = false
-		this.#replace()
+		this.#resource = this.#replace()
 	}
 
 	retry() {
 		if (this.#pending) return
 
 		this.#pending = true
-		this.#replace()
+		this.#resource = this.#replace()
 	}
 
 	destroy() {
-		this.#unsubscribe?.()
-		this.#unsubscribe = undefined
+		this.#generation += 1
 	}
 
 	#replace() {
-		this.#unsubscribe?.()
-		this.#unsubscribe = undefined
 		const generation = ++this.#generation
 		const resource = this.#factory()
-		this.#resource = resource
-		this.#unsubscribe = resource.subscribe(() => {
+		const settled = () => {
 			if (generation !== this.#generation) return
-			if (resource.loading) return
 			this.#pending = false
-		})
+		}
+		void resource.then(settled, settled)
+		return resource
 	}
 }

@@ -5,8 +5,10 @@
 	// State
 	let {
 		resource,
+		direct = false,
 	}: {
 		resource: SvelteKitResource<string>
+		direct?: boolean
 	} = $props()
 
 	// Components
@@ -14,8 +16,18 @@
 </script>
 
 
-<ResourceBoundary {resource}>
-	{#snippet children(value)}
-		<p>{value}</p>
-	{/snippet}
-</ResourceBoundary>
+{#if direct}
+	<output aria-label="current">{resource.current}</output>
+
+	<output aria-label="loading">{String(resource.loading)}</output>
+
+	<output aria-label="ready">{String(resource.ready)}</output>
+
+	<output aria-label="error">{String(resource.error ?? '')}</output>
+{:else}
+	<ResourceBoundary {resource}>
+		{#snippet children(value)}
+			<p>{value}</p>
+		{/snippet}
+	</ResourceBoundary>
+{/if}

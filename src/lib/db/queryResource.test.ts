@@ -81,6 +81,130 @@ const createFixture = (
 }
 
 describe('TanStackLiveQueryResource', () => {
+	it.each(['success', 'failure'] as const)('awaits asynchronous finally cleanup after %s', async (outcome) => {
+		const fixture = createFixture(outcome === 'success' ? readySnapshot('ready') : errorSnapshot('source failure'))
+		const cleanup = Promise.withResolvers<void>()
+		const entered = Promise.withResolvers<void>()
+		let settled = false
+		const result = fixture.resource.finally(() => {
+			entered.resolve()
+			return cleanup.promise
+		}).then(
+			(value) => {
+				settled = true
+				return value
+			},
+			(error) => {
+				settled = true
+				return String(error)
+			}
+		)
+		await entered.promise
+		await new Promise((resolve) => setTimeout(resolve, 0))
+		expect(settled).toBe(false)
+		cleanup.resolve()
+		await expect(result).resolves.toBe(outcome === 'success' ? 'ready' : 'source failure')
+		fixture.resource.destroy()
+	})
+
+	it.each(['success', 'failure'] as const)('lets rejected finally cleanup override %s', async (outcome) => {
+		const fixture = createFixture(outcome === 'success' ? readySnapshot('ready') : errorSnapshot('source failure'))
+		const cleanupFailure = new Error('cleanup failed')
+		await expect(fixture.resource.finally(async () => {
+			throw cleanupFailure
+		})).rejects.toBe(cleanupFailure)
+		fixture.resource.destroy()
+	})
+
+	it.each([undefined, null, false, 0, ''])('resolves valid falsey data %s without treating it as pending', async (data) => {
+		const resource = new TanStackLiveQueryResource(() => ({
+			data,
+			isLoading: false,
+			isReady: true,
+			isError: false,
+			status: 'ready',
+		}))
+		await expect(resource).resolves.toBe(data)
+		expect(resource.current).toBe(data)
+		expect(resource.ready).toBe(true)
+		expect(resource.loading).toBe(false)
+		resource.destroy()
+	})
+
+	it.each(['resolve', 'reject'] as const)('does not publish initialization %s after destruction', async (outcome) => {
+		const initialization = Promise.withResolvers<void>()
+		const started = Promise.withResolvers<void>()
+		const fixture = createFixture(readySnapshot('late'), () => {
+			started.resolve()
+			return initialization.promise
+		})
+		void fixture.resource.current
+		await started.promise
+		fixture.resource.destroy()
+		if (outcome === 'resolve')
+			initialization.resolve()
+		else
+			initialization.reject(new Error('late failure'))
+
+		await new Promise((resolve) => setTimeout(resolve, 0))
+		expect(fixture.queryCount).toBe(0)
+		expect(fixture.resource.current).toBeUndefined()
+		expect(fixture.resource.error).toBeUndefined()
+		expect(fixture.sourceSubscriptionCount).toBe(0)
+	})
+
+	it('does not start initialization after destruction during deferred startup', async () => {
+		let initialized = false
+		const fixture = createFixture(readySnapshot('unused'), () => {
+			initialized = true
+			return Promise.resolve()
+		})
+		void fixture.resource.current
+		fixture.resource.destroy()
+		await new Promise((resolve) => setTimeout(resolve, 0))
+		expect(initialized).toBe(false)
+		expect(fixture.queryCount).toBe(0)
+	})
+
+	it('lets authoritative source readiness settle independently of a pending bootstrap waiter', async () => {
+		const initialization = Promise.withResolvers<void>()
+		const started = Promise.withResolvers<void>()
+		const fixture = createFixture(loadingSnapshot, () => {
+			started.resolve()
+			return initialization.promise
+		})
+		void fixture.resource.current
+		await started.promise
+		fixture.setSnapshot(readySnapshot('authoritative'))
+		expect(fixture.resource.ready).toBe(true)
+		expect(fixture.resource.current).toBe('authoritative')
+		await expect(fixture.resource).resolves.toBe('authoritative')
+		initialization.resolve()
+		fixture.resource.destroy()
+	})
+
+	it('surfaces a throwing source snapshot through the resource error contract', async () => {
+		const failure = new Error('invalid source projection')
+		let fail = false
+		let publish = () => {}
+		const resource = new TanStackLiveQueryResource(() => {
+			if (fail)
+				throw failure
+
+			return readySnapshot('last good')
+		}, (update) => {
+			publish = update
+			return () => {}
+		})
+		await expect(resource).resolves.toBe('last good')
+		fail = true
+		expect(publish).not.toThrow()
+		expect(resource.error).toBe(failure)
+		expect(resource.current).toBe('last good')
+		await expect(resource).rejects.toBe(failure)
+		resource.destroy()
+	})
+
 	it('keeps plural direct getter and promise reads on one source subscription', async () => {
 		let snapshot = {
 			data: ['first'],
