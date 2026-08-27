@@ -93,8 +93,8 @@ importers:
         specifier: ^14.0.5
         version: 14.0.5
       ox:
-        specifier: 1.7.1
-        version: 1.7.1(typescript@6.0.3)
+        specifier: 1.7.2
+        version: 1.7.2(typescript@6.0.3)
       satteri:
         specifier: ^0.10.5
         version: 0.10.5
@@ -2481,8 +2481,8 @@ packages:
       typescript:
         optional: true
 
-  ox@1.7.1:
-    resolution: {integrity: sha512-19pRmXwiGOw8+Yk/2C3kN2FlQUpDXJxO0FFZHkYJyv49+/kfF4ao7k1I6WEI6acf05Y9cgTsk8CQDlmLJpDZoA==}
+  ox@1.7.2:
+    resolution: {integrity: sha512-vLIGXURTJqcb79zP3sOKNFclkPxxPoe2+4LmejRl8NNISeupRJjLBYx4iCq/a4Qx6I85oxLYcZzLBU6SftqLaw==}
     peerDependencies:
       typescript: '>=5.4.0'
     peerDependenciesMeta:
@@ -5717,7 +5717,7 @@ snapshots:
     transitivePeerDependencies:
       - zod
 
-  ox@1.7.1(typescript@6.0.3):
+  ox@1.7.2(typescript@6.0.3):
     dependencies:
       '@adraffy/ens-normalize': 1.11.1
       '@noble/ciphers': 2.3.0
