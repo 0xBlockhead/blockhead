@@ -86,22 +86,3 @@ export type McpServerSnapshot = {
 	readonly catalog?: McpCapabilityCatalog
 	readonly error?: string
 }
-
-export type McpInvocation = {
-	readonly serverKey: string
-	readonly callId: string
-	readonly toolName: string
-	readonly arguments: JsonObject
-	readonly startedAt: number
-}
-
-export type McpInvocationResult = {
-	readonly status: McpExecutionStatus
-	readonly call: McpInvocation
-	readonly completedAt: number
-	readonly isError?: boolean
-	readonly content?: JsonValue
-	readonly structuredContent?: JsonValue
-	readonly error?: string
-	readonly payload?: JsonValue
-}

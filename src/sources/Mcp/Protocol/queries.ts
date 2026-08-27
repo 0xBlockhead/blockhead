@@ -9,10 +9,6 @@ import {
 import type {
 	McpCapabilityCatalog,
 	McpCapabilitySnapshot,
-	McpExecutionStatus,
-	McpInvocation,
-	McpInvocationResult,
-	McpJsonRpcRequest,
 	McpJsonRpcResponse,
 	McpJsonRpcTransport,
 	McpPrompt,
@@ -51,11 +47,6 @@ const stringField = (object: JsonObject, field: string, method: string) => {
 const optionalString = (object: JsonObject, field: string) => {
 	const value = object[field]
 	return value == null ? undefined : isJsonString(value) ? value : undefined
-}
-
-const optionalBoolean = (object: JsonObject, field: string) => {
-	const value = object[field]
-	return value == null ? undefined : typeof value === 'boolean' ? value : undefined
 }
 
 const listResult = (method: string, response: McpJsonRpcResponse, expectedId: number, field: string) => {
@@ -159,38 +150,5 @@ export const discoverMcpServer = async (
 			server: { name: serverKey, version: 'unavailable' },
 			error: message,
 		}
-	}
-}
-
-export const invokeMcpTool = async (
-	binding: SourceBinding,
-	serverKey: string,
-	transport: McpJsonRpcTransport,
-	invocation: Omit<McpInvocation, 'startedAt'> & { readonly startedAt?: number },
-	authorize: () => boolean
-): Promise<McpInvocationResult> => {
-	if (binding.source !== Source.McpDeclared_Protocol)
-		throw new Error('McpDeclared_Protocol: invocation requires declared-protocol binding')
-	const call = { ...invocation, serverKey, startedAt: invocation.startedAt ?? Date.now() }
-	if (!authorize())
-		return { status: 'unavailable', call, completedAt: Date.now(), error: 'McpDeclared_Protocol: tool invocation was not authorized' }
-	try {
-		const response = await request(transport, 6, 'tools/call', {
-			name: call.toolName,
-			arguments: call.arguments,
-		})
-		const result = objectResultFor('tools/call', response, 6)
-		return {
-			status: 'connected',
-			call,
-			completedAt: Date.now(),
-			...(optionalBoolean(result, 'isError') != null && { isError: optionalBoolean(result, 'isError') }),
-			...(result.content != null && { content: result.content }),
-			...(result.structuredContent != null && { structuredContent: result.structuredContent }),
-			payload: result,
-		}
-	} catch (error) {
-		const message = String(error)
-		return { status: message.includes('malformed') ? 'malformed' : 'disconnected', call, completedAt: Date.now(), error: message }
 	}
 }

@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest'
 
 import bindings from '$/sources/Mcp/bindings.ts'
-import { discoverMcpServer, invokeMcpTool } from '$/sources/Mcp/Protocol/queries.ts'
+import { discoverMcpServer } from '$/sources/Mcp/Protocol/queries.ts'
 import type { McpJsonRpcRequest, McpJsonRpcResponse, McpJsonRpcTransport } from '$/sources/Mcp/Protocol/types.ts'
 import { Source } from '$/sources/Source.ts'
 
@@ -74,16 +74,4 @@ it('keeps disconnected and malformed discovery truthful', async () => {
 	expect(disconnected).toMatchObject({ status: 'disconnected', serverKey: 'offline' })
 	expect(disconnected.error).toContain('socket closed')
 	expect(malformed).toMatchObject({ status: 'malformed', serverKey: 'broken' })
-})
-
-it('requires explicit authorization before tools/call and records the result', async () => {
-	const server = fakeServer({
-		'tools/call': { jsonrpc: '2.0', id: 6, result: { content: [{ type: 'text', text: '3' }], structuredContent: { value: 3 } } },
-	})
-	const denied = await invokeMcpTool(binding, 'fake-key', server, { callId: 'denied', toolName: 'sum', arguments: { a: 1, b: 2 } }, () => false)
-	const allowed = await invokeMcpTool(binding, 'fake-key', server, { callId: 'allowed', toolName: 'sum', arguments: { a: 1, b: 2 } }, () => true)
-
-	expect(denied).toMatchObject({ status: 'unavailable', error: 'McpDeclared_Protocol: tool invocation was not authorized' })
-	expect(server.requests.map(({ method }) => method)).toEqual(['tools/call'])
-	expect(allowed).toMatchObject({ status: 'connected', call: { callId: 'allowed' }, structuredContent: { value: 3 } })
 })
