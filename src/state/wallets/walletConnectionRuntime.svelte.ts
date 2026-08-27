@@ -303,13 +303,8 @@ const createWalletRuntimeState = (
 						sources: [Source.Local_Internal],
 					}
 				)
-				const [
-					persistedConnection,
-					persistedWallet,
-					persistedAccounts,
-					persistedActiveAccount,
-				] = await Promise.all([
-					persistedConnectionSelection({
+				const hydrate = async (): Promise<WalletConnection> => {
+					const connectionResource = persistedConnectionSelection({
 						sources: [Source.Local_Internal],
 						fields: {
 							status: true,
@@ -322,61 +317,75 @@ const createWalletRuntimeState = (
 							sessionTopic: true,
 							error: true,
 						},
-					}).then((connection) => connection),
-					persistedConnectionSelection.$wallet,
-					persistedConnectionSelection.$$accounts({
-						sources: [Source.Local_Internal],
-					}),
-					persistedConnectionSelection.$activeAccount,
-				])
-				const candidate = candidates.find(({ id }) => (
-					id === persistedWallet[EntityMetaKey.Selector].id
-				))
-
-				const accounts = persistedAccounts.values.map((account) => ({
-					...account[EntityMetaKey.Selector].caip10,
-					capabilities: [...(candidate?.capabilities ?? [])],
-				}))
-				const protocol = walletProtocols.find(({ protocol }) => (
-					protocol === persistedConnection.protocol
-				))?.protocol
-				const transportKind = walletConnectionMethods.find(({ transportKind }) => (
-					transportKind === persistedConnection.transportKind
-				))?.transportKind
-				if (protocol == null || transportKind == null)
-					throw new Error(`Persisted wallet connection ${persistedConnectionReference.connectionKey} has an unknown protocol or transport`)
-				const selected = (
-					persistedConnection.status === BlockheadConnectionStatus.Connected ?
-						await persistedConnectionSelection.Connected.selected({
+					})
+					const [
+						persistedConnection,
+						persistedWallet,
+						persistedAccounts,
+						persistedActiveAccount,
+					] = await Promise.all([
+						connectionResource.then((connection) => connection),
+						persistedConnectionSelection.$wallet,
+						persistedConnectionSelection.$$accounts({
 							sources: [Source.Local_Internal],
-						})
-					:
-						undefined
-				)
+						}),
+						persistedConnectionSelection.$activeAccount,
+					])
+					const candidate = candidates.find(({ id }) => (
+						id === persistedWallet[EntityMetaKey.Selector].id
+					))
 
-				return walletConnectionFromPersisted({
-					connectionKey: persistedConnectionReference.connectionKey,
-					walletId: persistedWallet[EntityMetaKey.Selector].id,
-					status: persistedConnection.status,
-					protocol,
-					transportKind,
-					scopes: persistedConnection.scopes,
-					accounts,
-					activeAccount: accounts.find((account) => (
-						account.namespace === persistedActiveAccount?.[EntityMetaKey.Selector].caip10.namespace
-						&& account.reference === persistedActiveAccount[EntityMetaKey.Selector].caip10.reference
-						&& account.accountAddress === persistedActiveAccount[EntityMetaKey.Selector].caip10.accountAddress
-					)),
-					...(
-						selected !== undefined
-						&& { selected }
-					),
-					connectedAt: persistedConnection.connectedAt,
-					disconnectedAt: persistedConnection.disconnectedAt,
-					sessionId: persistedConnection.sessionId,
-					sessionTopic: persistedConnection.sessionTopic,
-					error: persistedConnection.error,
-				})
+					const accounts = persistedAccounts.values.map((account) => ({
+						...account[EntityMetaKey.Selector].caip10,
+						capabilities: [...(candidate?.capabilities ?? [])],
+					}))
+					const protocol = walletProtocols.find(({ protocol }) => (
+						protocol === persistedConnection.protocol
+					))?.protocol
+					const transportKind = walletConnectionMethods.find(({ transportKind }) => (
+						transportKind === persistedConnection.transportKind
+					))?.transportKind
+					if (protocol == null || transportKind == null)
+						throw new Error(`Persisted wallet connection ${persistedConnectionReference.connectionKey} has an unknown protocol or transport`)
+					let selected: boolean | undefined
+					try {
+						if (persistedConnection.status === BlockheadConnectionStatus.Connected)
+							selected = await persistedConnectionSelection.Connected.selected({
+								sources: [Source.Local_Internal],
+							})
+					} catch (error) {
+						if (connectionResource.current && connectionResource.current.status !== persistedConnection.status)
+							return hydrate()
+						throw error
+					}
+					if (connectionResource.current && connectionResource.current.status !== persistedConnection.status)
+						return hydrate()
+
+					return walletConnectionFromPersisted({
+						connectionKey: persistedConnectionReference.connectionKey,
+						walletId: persistedWallet[EntityMetaKey.Selector].id,
+						status: persistedConnection.status,
+						protocol,
+						transportKind,
+						scopes: persistedConnection.scopes,
+						accounts,
+						activeAccount: accounts.find((account) => (
+							account.namespace === persistedActiveAccount?.[EntityMetaKey.Selector].caip10.namespace
+							&& account.reference === persistedActiveAccount[EntityMetaKey.Selector].caip10.reference
+							&& account.accountAddress === persistedActiveAccount[EntityMetaKey.Selector].caip10.accountAddress
+						)),
+						...(
+							selected !== undefined
+							&& { selected }
+						),
+						connectedAt: persistedConnection.connectedAt,
+						disconnectedAt: persistedConnection.disconnectedAt,
+						sessionId: persistedConnection.sessionId,
+						sessionTopic: persistedConnection.sessionTopic,
+						error: persistedConnection.error,
+					})
+				}
+				return hydrate()
 			}))
 		)
 

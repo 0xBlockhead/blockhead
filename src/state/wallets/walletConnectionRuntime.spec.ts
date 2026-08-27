@@ -32,6 +32,7 @@ type MockRow = Record<string, string | number | boolean | object | readonly obje
 
 const mountMockWalletRuntime = async ({
 	candidateAvailable = true,
+	disconnectDuringHydration,
 	connectionResults = [],
 	disconnect = vi.fn(),
 	persistWalletRequest = vi.fn(),
@@ -42,11 +43,13 @@ const mountMockWalletRuntime = async ({
 	persistedStatus,
 	persistedTransportKind = WalletTransportKind.InjectedProvider,
 	persistedWalletId = 'eip6963:com.example.wallet',
+	selectedError,
 	signMessage = vi.fn(async () => '0xsigned'),
 	signTypedData = vi.fn(async () => '0xtyped'),
 	switchScope,
 }: {
 	candidateAvailable?: boolean
+	disconnectDuringHydration?: 'resolve' | 'reject'
 	connectionResults?: (Error | WalletConnection)[]
 	disconnect?: (walletId: string, connectionKey?: string) => void | Promise<void>
 	persistWalletRequest?: (context: object, request: object) => void | Promise<void>
@@ -72,6 +75,7 @@ const mountMockWalletRuntime = async ({
 	persistedStatus?: BlockheadConnectionStatus
 	persistedTransportKind?: WalletTransportKind
 	persistedWalletId?: string
+	selectedError?: Error
 	signMessage?: (walletId: string, accountAddress: string, message: string) => Promise<string>
 	signTypedData?: (
 		walletId: string,
@@ -183,16 +187,35 @@ const mountMockWalletRuntime = async ({
 	const selectionFor = (
 		connectionKey: string
 	) => {
-		const persistedConnection = persistedByKey[connectionKey]
+		let persistedConnection = persistedByKey[connectionKey]
 		const persistedConnectionPromise = Promise.resolve(persistedConnection)
 		return Object.assign(
-			() => persistedConnectionPromise,
+			() => Object.defineProperty(Promise.resolve(persistedConnection), 'current', {
+				get: () => persistedConnection,
+			}),
 			{
 				then: persistedConnectionPromise.then.bind(persistedConnectionPromise),
 				catch: persistedConnectionPromise.catch.bind(persistedConnectionPromise),
 				finally: persistedConnectionPromise.finally.bind(persistedConnectionPromise),
 				Connected: {
-					selected: () => Promise.resolve(persistedConnection?.selected),
+					selected: () => {
+						if (disconnectDuringHydration) {
+							const selected = persistedConnection.selected
+							persistedConnection = {
+								...persistedConnection,
+								status: BlockheadConnectionStatus.Disconnected,
+								selected: false,
+							}
+							return disconnectDuringHydration === 'reject' ?
+								Promise.reject(new Error('Connected.selected cleared by disconnect'))
+							:
+								Promise.resolve(selected)
+						}
+						if (selectedError)
+							return Promise.reject(selectedError)
+
+						return Promise.resolve(persistedConnection?.selected)
+					},
 				},
 				$wallet: Promise.resolve({
 					[EntityMetaKey.Selector]: {
@@ -227,6 +250,16 @@ const mountMockWalletRuntime = async ({
 			}
 		)
 	}
+	const persistedReferences = {
+		values: persistedRows.map((row) => ({
+			connectionKey: row.connectionKey,
+			[EntityMetaKey.Selector]: {
+				connectionKey: row.connectionKey,
+			},
+		})),
+	}
+	const hydration = Promise.withResolvers<void>()
+	void hydration.promise.catch(() => {})
 	const { mountWalletConnectionRuntime } = await import('./walletConnectionRuntime.svelte.ts')
 	const runtime = mountWalletConnectionRuntime({
 		entityCollections: {},
@@ -240,13 +273,16 @@ const mountMockWalletRuntime = async ({
 		) => (
 			entityType === EntityType._Global ?
 				{
-					$$blockheadWalletConnections: () => Promise.resolve({
-						values: persistedRows.map((row) => ({
-							connectionKey: row.connectionKey,
-							[EntityMetaKey.Selector]: {
-								connectionKey: row.connectionKey,
-							},
-						})),
+					$$blockheadWalletConnections: () => ({
+						then: (hydrate: (references: typeof persistedReferences) => Promise<void>) => (
+							Promise.resolve(persistedReferences)
+								.then(hydrate)
+								.then(hydration.resolve, (error: Error) => {
+									hydration.reject(error)
+									if (!selectedError)
+										throw error
+								})
+						),
 					}),
 				}
 			:
@@ -255,6 +291,7 @@ const mountMockWalletRuntime = async ({
 	})
 
 	return {
+		hydration: hydration.promise,
 		deleteConnection,
 		disconnect,
 		runtime,
@@ -1900,6 +1937,35 @@ describe('wallet connection runtime normalization', () => {
 			}),
 		]))
 
+		runtime.destroy()
+	})
+
+	it.each(['resolve', 'reject'] as const)('hydrates the newer disconnected snapshot when the stale Connected field read settles with %s', async (disconnectDuringHydration) => {
+		const { runtime, hydration } = await mountMockWalletRuntime({
+			candidateAvailable: false,
+			persistedStatus: BlockheadConnectionStatus.Connected,
+			disconnectDuringHydration,
+		})
+		await hydration
+		expect(runtime.connections).toEqual([
+			expect.objectContaining({
+				connectionKey: 'persisted-session',
+				status: BlockheadConnectionStatus.Disconnected,
+			}),
+		])
+		expect(runtime.connections[0]).not.toHaveProperty('selected')
+		runtime.destroy()
+	})
+
+	it('rejects missing required selected data when hydration still describes a Connected connection', async () => {
+		const selectedError = new Error('Connected.selected resolved without a required value')
+		const { runtime, hydration } = await mountMockWalletRuntime({
+			candidateAvailable: false,
+			persistedStatus: BlockheadConnectionStatus.Connected,
+			selectedError,
+		})
+		await expect(hydration).rejects.toBe(selectedError)
+		expect(runtime.connections).toEqual([])
 		runtime.destroy()
 	})
 
