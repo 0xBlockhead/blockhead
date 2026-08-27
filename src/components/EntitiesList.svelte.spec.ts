@@ -12,10 +12,7 @@ it('isolates continuation failure state while query-owned rows append once', asy
 	const loadMore = page.getByRole('button', {
 		name: 'Load more',
 	})
-	await Promise.all([
-		userEvent.click(loadMore),
-		userEvent.click(loadMore),
-	])
+	await userEvent.dblClick(loadMore)
 	const loadingMore = page.getByRole('button', {
 		name: 'Loading more…',
 	})
@@ -32,10 +29,7 @@ it('isolates continuation failure state while query-owned rows append once', asy
 	const retry = page.getByRole('button', {
 		name: 'Retry',
 	})
-	await Promise.all([
-		userEvent.click(retry),
-		userEvent.click(retry),
-	])
+	await userEvent.dblClick(retry)
 	await expect.element(page.getByText('Next attempts: 2')).toBeInTheDocument()
 	await userEvent.click(page.getByRole('button', {
 		name: 'Resolve page',
