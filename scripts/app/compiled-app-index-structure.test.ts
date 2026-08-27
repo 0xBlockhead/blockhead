@@ -28,6 +28,12 @@ const rendererTypeProperties = {
 	TypeScriptFilePlan: [['body', 'imports']],
 } as const
 const rendererTypeNames = new Set(Object.keys(rendererTypeProperties))
+// These recursive values describe syntax to print, not compiled application facts.
+const serializationTypeNames = new Set([
+	...rendererTypeNames,
+	'GeneratedTypeScriptValue',
+	'TypeScriptEmission',
+])
 const semanticPropertyNames = new Set([
 	'activeEntities',
 	'bindings',
@@ -49,6 +55,15 @@ const syntheticSvelteSource = `
 		export const parse: (source: string) => unknown
 	}
 `
+// Analyze local contracts without loading APP.ts and the entire generated application.
+const structuralConfigPath = path.join(process.cwd(), 'scripts/app/tsconfig.json')
+const structuralConfig = (files: string[]) => JSON.stringify({
+	compilerOptions: {
+		target: 'ESNext',
+		noResolve: true,
+	},
+	files,
+})
 assert.ok(
 	mode === 'self-test' || mode === 'product',
 	'COMPILED_APP_INDEX_STRUCTURE_MODE must be self-test or product'
@@ -59,6 +74,7 @@ const analyzeRenderModule = (source: string, fileName = path.join(process.cwd(),
 	const virtualSources = new Map([
 		[normalizedFileName, source],
 		[syntheticSvelteFileName, syntheticSvelteSource],
+		[structuralConfigPath, structuralConfig([normalizedFileName, syntheticSvelteFileName])],
 	])
 	const api = new API({
 		fs: {
@@ -139,13 +155,9 @@ const analyzeRenderModule = (source: string, fileName = path.join(process.cwd(),
 				&& namedBindings.elements[0].name.text === 'parseSvelte'
 			)
 			const isTypeScriptCompilerImport = ts.isStringLiteral(node.moduleSpecifier)
-				&& [
-					'@typescript/native/unstable/ast',
-					'@typescript/native/unstable/ast/factory',
-					'@typescript/native/unstable/sync',
-				].includes(node.moduleSpecifier.text)
+				&& node.moduleSpecifier.text === 'typescript'
 			if (!isSvelteParserImport && !isTypeScriptCompilerImport)
-				addFinding(node, 'renderer import is outside the explicit parseSvelte allowlist')
+				addFinding(node, 'renderer import is outside the syntax-parser/printer allowlist')
 		}
 		if (ts.isCallExpression(node) && node.expression.kind === ts.SyntaxKind.ImportKeyword)
 			addFinding(node, 'renderer cannot use dynamic import')
@@ -199,7 +211,6 @@ const analyzeRenderModule = (source: string, fileName = path.join(process.cwd(),
 			for (const declaration of statement.declarationList.declarations) {
 				if (
 					ts.isIdentifier(declaration.name)
-					&& declaration.name.text === 'renderGeneratedFile'
 					&& declaration.initializer != null
 					&& (ts.isArrowFunction(declaration.initializer) || ts.isFunctionExpression(declaration.initializer))
 				)
@@ -207,14 +218,14 @@ const analyzeRenderModule = (source: string, fileName = path.join(process.cwd(),
 						declaration: declaration.initializer,
 						name: declaration.name,
 					})
-				else
-					addFinding(declaration, 'renderer exports a runtime value other than renderGeneratedFile')
+				else if (declaration.initializer == null || !ts.isStringLiteralLikeNode(declaration.initializer))
+					addFinding(declaration, 'renderer exports state instead of a serialization helper or literal header')
 			}
 	}
-	if (runtimeExports.length !== 1)
+	if (runtimeExports.filter(({ name }) => name.text === 'renderGeneratedFile').length !== 1)
 		addFinding(sourceFile, 'renderer must export exactly one renderGeneratedFile runtime value')
-	if (JSON.stringify(exportedTypeNames.toSorted()) !== JSON.stringify([...rendererTypeNames].toSorted()))
-		addFinding(sourceFile, 'renderer must explicitly export only the generated-file IR type aliases')
+	if (exportedTypeNames.some((name) => !serializationTypeNames.has(name)))
+		addFinding(sourceFile, 'renderer must export only serialization IR type aliases')
 
 	const visitedIrAliases = new Set<ts.TypeAliasDeclaration>()
 	const visitIrType = (node: ts.Node, ownerName: string) => {
@@ -272,6 +283,9 @@ const analyzeRenderModule = (source: string, fileName = path.join(process.cwd(),
 	const generatedFileDeclaration = localTypeAliases.get('GeneratedFile')
 	const generatedFileSymbol = generatedFileDeclaration == null ? undefined : checker.getSymbolAtLocation(generatedFileDeclaration.name)
 	for (const runtimeExport of runtimeExports) {
+		if (runtimeExport.name.text !== 'renderGeneratedFile')
+			continue
+
 		const parameter = runtimeExport.declaration.parameters[0]
 		const parameterType = parameter?.type
 		const parameterSymbol = parameterType != null && ts.isTypeReferenceNode(parameterType) && ts.isIdentifier(parameterType.typeName) ?
@@ -429,11 +443,19 @@ const analyzeRenderModule = (source: string, fileName = path.join(process.cwd(),
 				const declaration = checker.getSymbolAtLocation(node.typeName)?.declarations
 					.map((candidate) => candidate.resolve(project))
 					.find((candidate): candidate is ts.TypeAliasDeclaration => candidate != null && ts.isTypeAliasDeclaration(candidate))
-				if (declaration != null && !rendererTypeNames.has(declaration.name.text))
+				if (declaration != null && !serializationTypeNames.has(declaration.name.text))
 					addFinding(node, `renderer call graph reaches semantic alias ${declaration.name.text}`)
 			}
 			if (ts.isComputedPropertyName(node))
 				addFinding(node, 'renderer call graph constructs a computed-key aggregate')
+			const accessedProperty = ts.isPropertyAccessExpression(node) ?
+				node.name.text
+			: ts.isElementAccessExpression(node) && node.argumentExpression != null ?
+				constantString(node.argumentExpression)
+			:
+				undefined
+			if (accessedProperty != null && semanticPropertyNames.has(accessedProperty))
+				addFinding(node, `renderer call graph reads semantic property ${accessedProperty}`)
 			if (
 				(ts.isPropertyAssignment(node) || ts.isShorthandPropertyAssignment(node))
 				&& semanticPropertyNames.has(node.name.getText(sourceFile).replaceAll(/['"]/g, ''))
@@ -463,13 +485,17 @@ const validIr = `
 		| { readonly path: string, readonly kind: 'text', readonly body: readonly string[] }
 `
 
-test('rejects all seven renderer capability bypass classes', {
+test('rejects renderer capability bypasses and semantic-state exports', {
 	skip: mode !== 'self-test',
 }, () => {
 	const rejectedFixtures = [
 		{
 			source: `${validIr}\nexport const semanticIndex = new Map()\nexport const renderGeneratedFile = (file: GeneratedFile) => file.path`,
-			reasons: [/runtime value other than renderGeneratedFile/],
+			reasons: [/exports state/],
+		},
+		{
+			source: `${validIr}\nexport const build = () => ({ indexes: new Map() })\nexport const renderGeneratedFile = (file: GeneratedFile) => file.path`,
+			reasons: [/semantic property indexes/],
 		},
 		{
 			source: `${validIr}\nconst serializer = (file: GeneratedFile) => file.path\nexport { serializer as renderGeneratedFile }`,
@@ -514,6 +540,9 @@ test('allows serialization-only IR helpers, aliases, and nested callbacks', {
 	skip: mode !== 'self-test',
 }, () => {
 	assert.deepEqual(analyzeRenderModule(`${validIr}
+		import ts from 'typescript'
+		export const generatedHeader = '// Generated from APP.ts.'
+		export const indent = (source: string) => '  ' + source
 		const helpers = {
 			serialize(file: GeneratedFile) {
 				return [file].map((item) => item.path).join('')
@@ -534,6 +563,7 @@ test('product compiler separates source-claim analysis IR from renderer capabili
 	const virtualSources = new Map([
 		[rendererPath, renderer],
 		[generatorPath, generator],
+		[structuralConfigPath, structuralConfig([rendererPath, generatorPath])],
 	])
 	const api = new API({
 		fs: {
@@ -560,19 +590,17 @@ test('product compiler separates source-claim analysis IR from renderer capabili
 		ts.isTypeAliasDeclaration(statement) && statement.name.text === 'CompiledSourceAccountability'
 	))
 
-	assert.deepEqual(
-		rendererSourceFile.statements
-			.filter(ts.isImportDeclaration)
-			.map((declaration) => declaration.moduleSpecifier)
-			.filter(ts.isStringLiteral)
-			.map((moduleSpecifier) => moduleSpecifier.text),
-		[
-			'svelte/compiler',
-			'@typescript/native/unstable/ast',
-			'@typescript/native/unstable/ast/factory',
-			'@typescript/native/unstable/sync',
-		]
-	)
+	assert.deepEqual(analyzeRenderModule(renderer, rendererPath), [])
+	// Exercise the real renderer, not just synthetic fixtures: legitimate compiler
+	// imports and extra serializer helpers must not open an application-state seam.
+	for (const [addition, expectedReason] of [
+		["\nimport { compileApp } from './generate.ts'", /syntax-parser\/printer allowlist/],
+		['\nexport const leak = () => ({ indexes: new Map() })', /semantic property indexes/],
+		['\nexport const leak = (app) => app["source" + "Claims"]', /reads semantic property sourceClaims/],
+	] as const)
+		assert.ok(analyzeRenderModule(renderer + addition, rendererPath)
+			.some(({ reason }) => expectedReason.test(reason)), `Missing ${expectedReason}`)
+
 	assert.ok(renderGeneratedFileDeclaration?.initializer != null && ts.isArrowFunction(renderGeneratedFileDeclaration.initializer))
 	assert.equal(renderGeneratedFileDeclaration.initializer.parameters[0]?.type?.getText(rendererSourceFile), 'GeneratedFile')
 	assert.ok(compiledAppDeclaration)
@@ -601,10 +629,15 @@ test('product compiler separates source-claim analysis IR from renderer capabili
 		[...compiledAppType.members]
 			.filter(ts.isPropertySignatureDeclaration)
 			.map((property) => property.name.getText(generatorSourceFile)),
+		// Public reporting products are intentional; CompiledAppFacts and its
+		// entity/route/provider indexes remain compiler-private (asserted above).
 		[
 			'generatedFiles',
+			'presentationManifest',
 			'sourceClaims',
 			'sourceAccountability',
+			'observationTimeAccountability',
+			'observationTimeWriterManifest',
 		]
 	)
 	assert.deepEqual(
