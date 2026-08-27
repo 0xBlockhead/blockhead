@@ -75,3 +75,29 @@ it('keeps disconnected and malformed discovery truthful', async () => {
 	expect(disconnected.error).toContain('socket closed')
 	expect(malformed).toMatchObject({ status: 'malformed', serverKey: 'broken' })
 })
+
+it.each([
+	{
+		name: 'unsupported protocol version',
+		jsonrpc: '1.0',
+		id: 1,
+	},
+	{
+		name: 'mismatched response ID',
+		jsonrpc: '2.0',
+		id: 99,
+	},
+])('rejects $name before using discovery results', async ({ jsonrpc, id }) => {
+	const server = fakeServer({
+		initialize: {
+			...responses.initialize,
+			jsonrpc,
+			id,
+		},
+	})
+	const snapshot = await discoverMcpServer(binding, 'invalid-envelope', server)
+
+	expect(snapshot.status).toBe('malformed')
+	expect(snapshot.error).toContain('malformed JSON-RPC response')
+	expect(server.requests.map(({ method }) => method)).toEqual(['initialize'])
+})

@@ -10,7 +10,7 @@ export type McpJsonRpcRequest = {
 }
 
 export type McpJsonRpcResponse = {
-	readonly jsonrpc: '2.0'
+	readonly jsonrpc: string
 	readonly id: JsonRpcId | null
 	readonly result?: JsonValue
 	readonly error?: {
