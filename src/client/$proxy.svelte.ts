@@ -1,5 +1,6 @@
 import {
 	TanStackLiveQueryResource,
+	type QueryResourceError,
 	type SvelteKitResource,
 } from '$/lib/db/queryResource.svelte.ts'
 import type {
@@ -148,7 +149,7 @@ type EntityProxyEntitiesRelationshipProperties<
 	& {
 		readonly [
 			_FacetName in EntityFacetName<_Schema, _EntityType, _FacetPath>
-		]: EntityProxyEntitiesRelationshipProperties<
+		]: EntityProxyEntitiesProjectionResource<
 			_Schema,
 			_EntityType,
 			[
@@ -157,6 +158,17 @@ type EntityProxyEntitiesRelationshipProperties<
 			]
 		>
 	}
+)
+
+type EntityProxyEntitiesProjectionResource<
+	_Schema extends Schema,
+	_EntityType extends EntityType<_Schema>,
+	_FacetPath extends readonly string[],
+> = (
+	& EntityProxyEntitiesRelationshipProperties<_Schema, _EntityType, _FacetPath>
+	& SvelteKitResource<ProjectionValue<
+		EntityProxyEntitiesRelationshipProperties<_Schema, _EntityType, _FacetPath>
+	>>
 )
 
 export type EntityProxyFieldResource<
@@ -751,13 +763,7 @@ const resourceProperty = <_Data>(
 		return (
 			onfulfilled?: Parameters<Promise<_Data>['then']>[0],
 			onrejected?: Parameters<Promise<_Data>['then']>[1]
-		) => then(
-			onfulfilled == null ?
-				undefined
-			:
-				(data) => Promise.resolve(projectAsync(data)).then(onfulfilled),
-			onrejected
-		)
+		) => then(projectAsync).then(onfulfilled, onrejected)
 	}
 	if (property === 'catch') {
 		const then = getResource().then
@@ -820,15 +826,7 @@ const projectResource = <_Input, _Output>(
 	},
 	get then(): Promise<_Output>['then'] {
 		const then = resource.then
-		return (onfulfilled, onrejected) => (
-			then(
-				onfulfilled == null ?
-					undefined
-				:
-					(data) => onfulfilled(project(data)),
-				onrejected
-			)
-		)
+		return (onfulfilled, onrejected) => then(project).then(onfulfilled, onrejected)
 	},
 	get catch(): Promise<_Output>['catch'] {
 		const then = resource.then
@@ -1551,7 +1549,8 @@ const createEntityReferencePathProxy = (
 	}
 
 	const traverse = (
-		sourceData: EntityReferencePathData
+		sourceData: EntityReferencePathData,
+		errors: QueryResourceError[]
 	): EntityReferencePathResult | undefined => {
 		let references = [...sourceData.values]
 		for (const [
@@ -1571,6 +1570,7 @@ const createEntityReferencePathProxy = (
 			const referencedEntityType = fieldDefinition.entityType
 
 			const nextReferences: object[] = []
+			let pending = false
 			for (const reference of references) {
 				const selector = Object.getOwnPropertyDescriptor(reference, EntityMetaKey.Selector)?.value
 				?? Object.getOwnPropertyDescriptor(reference, 'entitySelector')?.value
@@ -1615,10 +1615,14 @@ const createEntityReferencePathProxy = (
 						)
 
 					const projectionResource = projectionResourceByStepAndSelector.get(resourceKey)!
-					if (projectionResource.error !== undefined)
+					if (projectionResource.error !== undefined) {
+						errors.push(projectionResource.error)
 						continue
-					if (!projectionResource.ready)
-						return undefined
+					}
+					if (!projectionResource.ready) {
+						pending = true
+						continue
+					}
 					if (projectionResource.current?.resolution !== ProjectionResolution.Applicable)
 						continue
 				}
@@ -1636,16 +1640,23 @@ const createEntityReferencePathProxy = (
 					)
 
 				const fieldResource = fieldResourceByStepAndSelector.get(resourceKey)!
-				if (fieldResource.error !== undefined)
+				if (fieldResource.error !== undefined) {
+					errors.push(fieldResource.error)
 					continue
-				if (!fieldResource.ready)
-					return undefined
+				}
+				if (!fieldResource.ready) {
+					pending = true
+					continue
+				}
 
 				nextReferences.push(...referenceValues(
 					fieldDefinition,
 					fieldResource.current
 				))
 			}
+			if (pending)
+				return undefined
+
 			references = [...new Map(nextReferences.map((reference) => {
 				const selector = Object.getOwnPropertyDescriptor(reference, EntityMetaKey.Selector)?.value
 					?? Object.getOwnPropertyDescriptor(reference, 'entitySelector')?.value
@@ -1663,6 +1674,10 @@ const createEntityReferencePathProxy = (
 
 		if (facetPath.length > 0) {
 			const projections = references.map((reference) => terminalProjectionResource(reference))
+			for (const projection of projections)
+				if (projection.error !== undefined)
+					errors.push(projection.error)
+
 			if (projections.some((projection) => !projection.ready))
 				return undefined
 
@@ -1677,14 +1692,9 @@ const createEntityReferencePathProxy = (
 
 	const pathSnapshot = () => {
 		const sourceData = source.current
-		const data = sourceData === undefined ? undefined : traverse(sourceData)
-		const error = (
-			source.error
-			?? [...projectionResourceByStepAndSelector.values()]
-				.find((resource) => resource.error !== undefined)?.error
-			?? [...fieldResourceByStepAndSelector.values()]
-				.find((resource) => resource.error !== undefined)?.error
-		)
+		const errors: QueryResourceError[] = source.error === undefined ? [] : [source.error]
+		const data = sourceData === undefined ? undefined : traverse(sourceData, errors)
+		const error = errors.at(0)
 		return {
 			data: data ?? {
 				values: [],
@@ -1725,7 +1735,7 @@ const createEntityReferencePathProxy = (
 				if (pendingResources.length === 0)
 					return
 
-				await Promise.all(pendingResources.map((resource) => (
+				await Promise.race(pendingResources.map((resource) => (
 					resource.catch(() => undefined)
 				)))
 			}

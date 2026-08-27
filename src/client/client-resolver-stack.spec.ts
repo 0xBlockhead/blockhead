@@ -2476,6 +2476,9 @@ describe('client resolver stack architecture', () => {
 		await expect(accountProjection).resolves.toMatchObject({
 			resolution: ProjectionResolution.Applicable,
 		})
+		await expect(accountProjection.then()).resolves.toMatchObject({
+			resolution: ProjectionResolution.Applicable,
+		})
 		const evmAccounts = (await accountProjection).value.$account({
 			sources: [Source.Constants_Internal],
 		})
@@ -2494,6 +2497,9 @@ describe('client resolver stack architecture', () => {
 		await expect.poll(() => networkProjection.current?.resolution).toBe(
 			ProjectionResolution.Applicable
 		)
+		await expect(networkProjection.then()).resolves.toMatchObject({
+			resolution: ProjectionResolution.Applicable,
+		})
 		const upgrades = (await networkProjection).value
 			.$$upgrades({
 				sources: [Source.Constants_Internal],
