@@ -1,6 +1,6 @@
 import {
 	EntityType,
-} from '../../APP.ts'
+} from '../../src/schema/EntityType.ts'
 import {
 	EntityFieldCardinality,
 	EntityFieldType,

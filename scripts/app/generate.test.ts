@@ -7820,35 +7820,20 @@ test('rejects conditional route source keys that could fall through to a broad d
 
 test('rejects invalid entity view field references at every captured view level', () => {
 	const typeTestRoot = createFreshRoot('blockhead-app-view-types-test-')
-	const appSource = readFileSync(path.join(root, 'APP.ts'), 'utf8')
-	const appSourceFile = parseTestTypeScript(appSource).sourceFile
-	const facetStatement = appSourceFile.statements.find((statement) => (
-		ts.isVariableStatement(statement)
-		&& statement.declarationList.declarations.some((declaration) => (
-			ts.isIdentifier(declaration.name)
-			&& declaration.name.text === 'facet'
-		))
-	))
-	const fixtureSource = readFileSync(path.join(root, 'scripts/app/entity-view-field-references.types.ts'), 'utf8')
-	const fixtureSourceFile = parseTestTypeScript(fixtureSource).sourceFile
-	const fixtureImport = fixtureSourceFile.statements.find(ts.isImportDeclaration)
-
-	assert.ok(facetStatement)
-	assert.ok(fixtureImport)
 
 	try {
-		const typeTestPath = path.join(typeTestRoot, 'entity-view-field-references.types.ts')
-		mkdirSync(path.join(typeTestRoot, 'scripts/app/inputs'), { recursive: true })
-		mkdirSync(path.join(typeTestRoot, 'src/constants'), { recursive: true })
-		copyFileSync(
-			path.join(root, 'scripts/app/inputs/source-target.ts'),
-			path.join(typeTestRoot, 'scripts/app/inputs/source-target.ts')
-		)
-		copyFileSync(
-			path.join(root, 'src/constants/Network.ts'),
-			path.join(typeTestRoot, 'src/constants/Network.ts')
-		)
-		writeFileSync(typeTestPath, `${appSource.slice(0, facetStatement.end)}\n${fixtureSource.slice(fixtureImport.end)}`)
+		const typeTestPath = path.join(typeTestRoot, 'scripts/app/entity-view-field-references.types.ts')
+		for (const filePath of [
+			'scripts/app/entity-view-field-references.types.ts',
+			'scripts/app/model.ts',
+			'scripts/app/source.ts',
+			'scripts/app/inputs/source-target.ts',
+			'src/constants/Network.ts',
+			'src/schema/EntityType.ts',
+		]) {
+			mkdirSync(path.dirname(path.join(typeTestRoot, filePath)), { recursive: true })
+			copyFileSync(path.join(root, filePath), path.join(typeTestRoot, filePath))
+		}
 		assertTypeChecks('entity-view-field-references:typecheck', [typeTestPath])
 	} finally {
 		removeFreshRoot(typeTestRoot)
