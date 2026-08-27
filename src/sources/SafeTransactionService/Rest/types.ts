@@ -15,8 +15,9 @@ const safeNullableAddress = safeAddress.or(arktype('null'))
 const safeNullableString = arktype('string').or(arktype('null'))
 const safeNullableIsoTimestamp = safeIsoTimestamp.or(arktype('null'))
 const safeNullableBoolean = arktype('boolean').or(arktype('null'))
-const safeNullableBlockNumber = arktype(`number.integer >= 0 <= ${Number.MAX_SAFE_INTEGER}`).or(arktype('null'))
-const safeThreshold = arktype('number.integer >= 1 <= 1000')
+const safeNonNegativeInteger = arktype('number.integer').atLeast(0).atMost(Number.MAX_SAFE_INTEGER)
+const safeNullableBlockNumber = safeNonNegativeInteger.or(arktype('null'))
+const safeThreshold = arktype('number.integer').atLeast(1).atMost(1000)
 const safeOperation = arktype('0 | 1')
 
 export const safeStatusEnvelope = arktype({
@@ -110,9 +111,9 @@ export const safeCreationEnvelope = arktype({
 export type SafeCreation = typeof safeCreationEnvelope.infer
 
 export const safeMultisigTransactionPageEnvelope = arktype({
-	count: arktype(`number.integer >= 0 <= ${Number.MAX_SAFE_INTEGER}`),
+	count: safeNonNegativeInteger,
 	/** Distinct Safe nonce count on the filtered page window — transport leftover (not `count`). */
-	'countUniqueNonce?': arktype(`number.integer >= 0 <= ${Number.MAX_SAFE_INTEGER}`),
+	'countUniqueNonce?': safeNonNegativeInteger,
 	next: arktype('string').or(arktype('null')),
 	previous: arktype('string').or(arktype('null')),
 	results: safeMultisigTransactionEnvelope.array(),
@@ -121,7 +122,7 @@ export const safeMultisigTransactionPageEnvelope = arktype({
 export type SafeMultisigTransactionPage = typeof safeMultisigTransactionPageEnvelope.infer
 
 export const safeMultisigConfirmationPageEnvelope = arktype({
-	count: arktype(`number.integer >= 0 <= ${Number.MAX_SAFE_INTEGER}`),
+	count: safeNonNegativeInteger,
 	next: arktype('string').or(arktype('null')),
 	previous: arktype('string').or(arktype('null')),
 	results: safeMultisigConfirmationEnvelope.array(),

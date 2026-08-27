@@ -7,16 +7,15 @@ import {
 	sourceGetJson,
 } from '$/sources/_runtime/http.ts'
 import { Source } from '$/sources/Source.ts'
+import type { JsonValue } from '$/typescript/JsonValue.ts'
 import {
 	safeCreationEnvelope,
 	safeMultisigConfirmationPageEnvelope,
 	safeMultisigTransactionEnvelope,
 	safeMultisigTransactionPageEnvelope,
 	safeStatusEnvelope,
-	type SafeCreation,
 	type SafeMultisigConfirmation,
 	type SafeMultisigTransaction,
-	type SafeStatus,
 } from '$/sources/SafeTransactionService/Rest/types.ts'
 
 const bindingByChainId = new Map(
@@ -40,30 +39,13 @@ export const requireSafeTransactionServiceBinding = (
 	return binding
 }
 
-const omitUndefinedJson = (
-	value: unknown
-): unknown => {
-	if (Array.isArray(value))
-		return value.map(omitUndefinedJson)
-	if (value != null && typeof value === 'object')
-		return Object.fromEntries(
-			Object.entries(value)
-				.filter(([, entry]) => entry !== undefined)
-				.map(([key, entry]) => [
-					key,
-					omitUndefinedJson(entry),
-				])
-		)
-	return value
-}
-
 const assertEnvelope = <_Value>(
 	label: string,
 	wire: { assert: (value: unknown) => _Value },
-	response: unknown
+	response: JsonValue
 ) => {
 	try {
-		return wire.assert(omitUndefinedJson(response))
+		return wire.assert(response)
 	} catch {
 		throw new Error(`SafeTransactionService_Rest: invalid ${label} response envelope`)
 	}
@@ -102,14 +84,14 @@ const assertPageNumber = (
 		throw new Error(`SafeTransactionService_Rest: invalid ${label}`)
 }
 
-const request = <_Result>({
+const request = ({
 	binding,
 	path,
 }: {
 	binding: SourceBinding
 	path: string
 }) => (
-	sourceGetJson<_Result>(
+	sourceGetJson<JsonValue>(
 		binding,
 		`${firstHttpUrlForBinding(binding).replace(/\/$/, '')}${path}`
 	)
@@ -175,7 +157,7 @@ export const getSafeStatus = async ({
 	const status = assertEnvelope(
 		'Safe status',
 		safeStatusEnvelope,
-		await request<SafeStatus>({
+		await request({
 			binding,
 			path: `/api/v1/safes/${encodeURIComponent(checksummedSafeAddress)}/`,
 		})
@@ -214,7 +196,7 @@ export const getSafeCreation = async ({
 	const creation = assertEnvelope(
 		'Safe creation',
 		safeCreationEnvelope,
-		await request<SafeCreation>({
+		await request({
 			binding,
 			path: `/api/v1/safes/${encodeURIComponent(checksummedSafeAddress)}/creation/`,
 		})

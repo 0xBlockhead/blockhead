@@ -600,6 +600,67 @@ describe('Safe Transaction Service public multisig queries', () => {
 		})).rejects.toThrow('threshold exceeds its owner set')
 	})
 
+	it.each([
+		{
+			threshold: 0,
+			error: 'invalid Safe status response envelope',
+		},
+		{
+			threshold: 1.5,
+			error: 'invalid Safe status response envelope',
+		},
+		{
+			threshold: 1000,
+			error: 'threshold exceeds its owner set',
+		},
+		{
+			threshold: 1001,
+			error: 'invalid Safe status response envelope',
+		},
+	])('enforces the wire threshold boundary at $threshold', async ({ threshold, error }) => {
+		sourceGetJson.mockResolvedValue({
+			...safeStatus,
+			threshold,
+		})
+		await expect(getSafeStatus({
+			chainId,
+			safeAddress,
+		})).rejects.toThrow(error)
+	})
+
+	it.each([0, Number.MAX_SAFE_INTEGER])('preserves valid page count %s', async (count) => {
+		sourceGetJson.mockResolvedValue({
+			count,
+			next: null,
+			previous: null,
+			results: [],
+		})
+		await expect(getSafeMultisigTransactions({
+			chainId,
+			safeAddress,
+			limit: 20,
+			offset: 0,
+		})).resolves.toMatchObject({
+			count,
+			results: [],
+		})
+	})
+
+	it.each([-1, 0.5, Number.MAX_SAFE_INTEGER + 1])('rejects invalid page count %s', async (count) => {
+		sourceGetJson.mockResolvedValue({
+			count,
+			next: null,
+			previous: null,
+			results: [],
+		})
+		await expect(getSafeMultisigTransactions({
+			chainId,
+			safeAddress,
+			limit: 20,
+			offset: 0,
+		})).rejects.toThrow('invalid transaction page response envelope')
+	})
+
 	it('recognizes only the canonical empty self-call as a nonce rejection', () => {
 		expect(isSafeNonceRejectionTransaction({
 			...transaction,
