@@ -192,11 +192,13 @@ type ResolverContinuation<
 	_EntityType extends EntityType<_Schema>,
 	_Snapshot,
 	_Context extends ResolverContext,
-> = (
-	snapshot: _Snapshot,
-	entitySelector: EntitySelector<_Schema, _EntityType>,
-	context: _Context
-) => ProviderContinuation
+> = {
+	continuation(
+		snapshot: _Snapshot,
+		entitySelector: EntitySelector<_Schema, _EntityType>,
+		context: _Context
+	): ProviderContinuation
+}['continuation']
 
 export type ResolverSubset = {
 	readonly filters: readonly ResolverFilter[]

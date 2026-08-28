@@ -7439,6 +7439,8 @@ import {
 	type RegisteredSourceResolverModule,
 } from '${root}/src/resolvers/defineResolver.ts'
 import { EntityType } from '${root}/src/schema/EntityType.ts'
+import type { schema } from '${root}/src/schema/index.ts'
+import type { FieldSelector, ResolverValue } from '${root}/src/resolvers/$resolvers.ts'
 import { Source } from '${root}/src/sources/Source.ts'
 import { SourceProvider } from '${root}/src/sources/SourceProvider.ts'
 import type { SourceProviderDefinition } from '${root}/src/sources/SourceProviderDefinition.ts'
@@ -7516,6 +7518,30 @@ defineResolver({
 	},
 })({})
 const validBindings = lightningLndBindings satisfies SourceBindingIndex
+type ContinuationSnapshot = { resources: readonly []; cursor?: string }
+const resourceProjection = {
+	select: (snapshot: ContinuationSnapshot) => snapshot.resources,
+	continuation: (snapshot: ContinuationSnapshot) => ({
+		operation: 'account-resources',
+		target: 'aptos',
+		terminal: false as const,
+		token: snapshot.cursor ?? '',
+	}),
+}
+const definitionProjection: FieldSelector<typeof schema, EntityType.AptosAccount, '$$resources', ContinuationSnapshot> = resourceProjection
+const registeredProjection: FieldSelector<typeof schema, EntityType.AptosAccount, '$$resources', ResolverValue> = resourceProjection
+const invalidContinuationToken: FieldSelector<typeof schema, EntityType.AptosAccount, '$$resources', ContinuationSnapshot> = {
+	// @ts-expect-error A nonterminal continuation must carry its token.
+	continuation: () => ({ operation: 'account-resources', target: 'aptos', terminal: false }),
+}
+const invalidContinuationSnapshot: FieldSelector<typeof schema, EntityType.AptosAccount, '$$resources', ContinuationSnapshot> = {
+	// @ts-expect-error Snapshot validation still rejects an unrelated callback input.
+	continuation: (snapshot: { other: string }) => ({ operation: snapshot.other, target: 'aptos', terminal: true }),
+}
+const invalidResourceProjection: FieldSelector<typeof schema, EntityType.AptosAccount, '$$resources', ContinuationSnapshot> = {
+	// @ts-expect-error A resource collection cannot project a scalar.
+	select: () => 'wrong',
+}
 const completeSourceBindings = sourceBindingsBySource satisfies CompleteSourceBindingIndex
 const completeAcrossBinding: SourceBinding<Source.Across_Rest> = sourceBindingsBySource[Source.Across_Rest][0]
 const {
