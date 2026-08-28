@@ -1584,9 +1584,8 @@ describe('Hyperliquid market catalog resolvers', () => {
 	})
 
 	it('retains current observation selectors without arbitrary timestamp resolution', () => {
-		expect(hyperliquid.resolvers.find((resolver) => (
-			resolver.entityType === EntityType.HyperliquidPerpMarket_Timestamp
-		))).toBeUndefined()
+		expect(hyperliquid.resolvers.map((resolver) => resolver.entityType))
+			.not.toContain('HyperliquidPerpMarket_Timestamp')
 		expect(hyperliquid.resolvers.find((resolver) => (
 			resolver.entityType === EntityType.HyperliquidValidator_Timestamp
 		))).toBeUndefined()

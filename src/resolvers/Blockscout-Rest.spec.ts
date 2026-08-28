@@ -424,9 +424,8 @@ describe('Blockscout Network account abstraction applicability', () => {
 			address: contract.address,
 		})
 		expect(resolver.projections.userOperationsCount(resolved)).toBe(9)
-		expect(blockscoutRest.resolvers.some((candidate) => (
-			candidate.entityType === EntityType.Erc4337Bundler_Timestamp
-		))).toBe(false)
+		expect(blockscoutRest.resolvers.map((candidate) => candidate.entityType))
+			.not.toContain('Erc4337Bundler_Timestamp')
 	})
 
 	it('materializes the official user-operation list response', async () => {
