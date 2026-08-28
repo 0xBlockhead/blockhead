@@ -88,7 +88,7 @@ export class BrowserPersistenceRuntime {
 	#phase: BrowserPersistencePhase = 'opening'
 	#phaseSubscribers = new Set<(phase: BrowserPersistencePhase) => void>()
 	#persistence: PersistedCollectionPersistence
-	#promotion: Promise<void> | undefined
+	#promoting = false
 	#ready: Promise<void>
 	#readyDeferred = Promise.withResolvers<void>()
 	#readySettled = false
@@ -117,10 +117,7 @@ export class BrowserPersistenceRuntime {
 			this.#settleReady(error)
 			void this.close()
 		}, bootstrapTimeoutMs)
-		void this.#promote(options).catch((error) => {
-			this.#settleReady(error)
-			void this.close()
-		})
+		void this.#promote(options)
 	}
 
 	get persistence() { return this.#persistence }
@@ -190,25 +187,24 @@ export class BrowserPersistenceRuntime {
 
 	async #promote(options: BrowserPersistenceRuntimeOptions) {
 		if (this.#closed || this.#ownerPersistence !== undefined) return
-		if (this.#promotion !== undefined) return this.#promotion
+		if (this.#promoting) return
 		const locks = options.locks ?? navigator.locks
-		const promoted = Promise.withResolvers<void>()
-		this.#promotion = promoted.promise
-		void promoted.promise.catch(() => undefined)
+		this.#promoting = true
 		try {
 			await locks.request(`blockhead:sqlite:${options.name}`, { ifAvailable: true, mode: 'exclusive' }, async (lock) => {
+				if (this.#closed)
+					return
+
 				if (lock === null) {
 					this.#setPhase('follower')
-					promoted.resolve()
 					this.#settleReady()
-					this.#promotion = undefined
 					return
 				}
 				this.#setPhase('recovering')
 				const owner = await options.openOwner()
+				// oxlint-disable-next-line typescript/no-unnecessary-condition -- Bootstrap timeout can close the runtime during openOwner; the late-owner regression covers this race.
 				if (this.#closed) {
 					await owner.close()
-					promoted.reject(new Error('SQLite persistence runtime closed'))
 					return
 				}
 				this.#ownerPersistence = owner.persistence
@@ -216,16 +212,15 @@ export class BrowserPersistenceRuntime {
 				this.#setPhase('owner')
 				this.#replayPendingLocally()
 				this.#channel.postMessage({ type: 'heartbeat', ownerId: this.#runtimeId })
-				promoted.resolve()
 				this.#settleReady()
 				await this.#lockRelease.promise
 			})
 		} catch (error) {
-			this.#promotion = undefined
-			promoted.reject(error)
-			throw error
+			this.#settleReady(error)
+			void this.close()
+		} finally {
+			this.#promoting = false
 		}
-		return promoted.promise
 	}
 
 	#call(

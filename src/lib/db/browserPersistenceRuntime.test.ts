@@ -1,4 +1,8 @@
 import {
+	createCollection,
+	localOnlyCollectionOptions,
+} from '@tanstack/db'
+import {
 	describe,
 	expect,
 	test,
@@ -212,11 +216,17 @@ describe('BrowserPersistenceRuntime', () => {
 			openOwner: async () => ({ persistence: persistence([]), close: () => undefined }),
 		})
 		await follower.ready
+		const collection = createCollection(localOnlyCollectionOptions({
+			getKey: (row: { id: string }) => row.id,
+		}))
+		const subscription = collection.subscribeChanges(() => {})
 		await follower.persistence.adapter.loadSubset('rows', {
 			limit: 1,
-			subscription: { on: () => () => undefined, status: 'ready' },
+			subscription,
 		})
 		expect(ownerLoads).toEqual([{ limit: 1 }])
+		subscription.unsubscribe()
+		await collection.cleanup()
 		await follower.close()
 		await owner.close()
 	})
@@ -431,6 +441,108 @@ describe('BrowserPersistenceRuntime', () => {
 		expect(vi.getTimerCount()).toBe(0)
 		await runtime.close()
 		vi.useRealTimers()
+	})
+
+	test('closes an owner that finishes after bootstrap timeout without leaking heartbeat failures', async () => {
+		vi.useFakeTimers()
+		const opened = Promise.withResolvers<void>()
+		const closed = vi.fn()
+		const runtime = new BrowserPersistenceRuntime({
+			name: crypto.randomUUID(),
+			channel: new TestChannel('late-owner'),
+			locks: lockManager(),
+			openOwner: async () => {
+				await opened.promise
+				return {
+					persistence: persistence([]),
+					close: closed,
+				}
+			},
+			bootstrapTimeoutMs: 25,
+			heartbeatMs: 5,
+		})
+		try {
+			const ready = expect(runtime.ready).rejects.toThrow('bootstrap timed out')
+			await vi.advanceTimersByTimeAsync(25)
+			await ready
+			opened.resolve()
+			await vi.advanceTimersByTimeAsync(0)
+			expect(closed).toHaveBeenCalledOnce()
+			expect(runtime.phase).toBe('closed')
+			expect(vi.getTimerCount()).toBe(0)
+		} finally {
+			await runtime.close()
+			vi.useRealTimers()
+		}
+	})
+
+	test('closes a ready follower and rejects its work when later owner promotion fails', async () => {
+		vi.useFakeTimers()
+		const locks = lockManager()
+		locks.hold()
+		const openOwner = vi.fn(async () => {
+			throw new Error('owner unavailable')
+		})
+		const runtime = new BrowserPersistenceRuntime({
+			name: crypto.randomUUID(),
+			channel: new TestChannel('failed-promotion'),
+			locks,
+			openOwner,
+			heartbeatMs: 5,
+		})
+		try {
+			await runtime.ready
+			expect(runtime.phase).toBe('follower')
+			const pending = expect(runtime.persistence.adapter.loadSubset('rows', {}))
+				.rejects.toThrow('runtime closed')
+			locks.release()
+			await vi.advanceTimersByTimeAsync(25)
+			await pending
+			expect(openOwner).toHaveBeenCalledOnce()
+			expect(runtime.phase).toBe('closed')
+			expect(vi.getTimerCount()).toBe(0)
+		} finally {
+			await runtime.close()
+			vi.useRealTimers()
+		}
+	})
+
+	test.each([true, false])('keeps a closed runtime closed when a lock callback arrives late (available=%s)', async (available) => {
+		vi.useFakeTimers()
+		const delivered = Promise.withResolvers<void>()
+		const openOwner = vi.fn(async () => ({
+			persistence: persistence([]),
+			close: () => undefined,
+		}))
+		const runtime = new BrowserPersistenceRuntime({
+			name: crypto.randomUUID(),
+			channel: new TestChannel('late-lock'),
+			locks: {
+				request: async (name, options, callback) => {
+					await delivered.promise
+					await callback(available ? {
+						name,
+						mode: options.mode,
+					} : null)
+				},
+			},
+			openOwner,
+			bootstrapTimeoutMs: 25,
+			heartbeatMs: 5,
+		})
+		try {
+			const ready = expect(runtime.ready).rejects.toThrow('bootstrap timed out')
+			await vi.advanceTimersByTimeAsync(25)
+			await ready
+			delivered.resolve()
+			await vi.advanceTimersByTimeAsync(0)
+			expect(openOwner).not.toHaveBeenCalled()
+			expect(runtime.phase).toBe('closed')
+			expect(vi.getTimerCount()).toBe(0)
+		} finally {
+			await runtime.close()
+			vi.useRealTimers()
+		}
 	})
 
 	test('close is idempotent and clears pending request retries', async () => {
