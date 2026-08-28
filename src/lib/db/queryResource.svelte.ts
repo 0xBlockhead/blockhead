@@ -17,7 +17,6 @@ export type TanStackLiveQuerySnapshot<Data> = Pick<
 	| 'isError'
 	| 'status'
 > & {
-	readonly [Symbol.toStringTag]?: undefined
 	error?: QueryResourceError
 }
 
@@ -36,27 +35,9 @@ export class TanStackLiveQueryResource<Data> implements SvelteKitResource<Data> 
 	#pending: PromiseWithResolvers<void> | undefined
 	#loading = $state(true)
 	#raw = $state.raw<{ readonly value: Data } | undefined>()
-	#ready = $derived(this.#raw !== undefined)
-	#current = $derived(this.#raw?.value)
 	#error = $state.raw<QueryResourceError | undefined>()
 	#promise: Promise<void>
-	#started = false
-	#destroyed = false
-
-	#then = $derived.by((): Promise<Data>['then'] => {
-		const promise = this.#promise
-		this.#raw
-		return (onFulfilled, onRejected) => {
-			const result = promise.then(tick).then(() => {
-				if (this.#raw === undefined)
-					throw new Error('TanStackLiveQueryResource resolved before current value was available')
-
-				return this.#raw.value
-			})
-
-			return result.then(onFulfilled, onRejected)
-		}
-	})
+	#lifecycle: 'idle' | 'started' | 'destroyed' = 'idle'
 
 	constructor(
 		query: () => TanStackLiveQuerySnapshot<Data>,
@@ -73,12 +54,43 @@ export class TanStackLiveQueryResource<Data> implements SvelteKitResource<Data> 
 	}
 
 	#update = () => {
-		if (this.#destroyed)
+		if (this.#lifecycle === 'destroyed')
 			return
 
 		try {
 			untrack(() => {
-				this.#apply(this.#query())
+				const snapshot = this.#query()
+				if (snapshot.isError) {
+					this.fail(snapshot.error ?? snapshot.status)
+					return
+				}
+
+				if (
+					snapshot.isLoading
+					|| !snapshot.isReady
+				) {
+					const hadError = this.#error !== undefined
+					this.#loading = true
+					this.#error = undefined
+					if (snapshot.data === undefined)
+						this.#raw = undefined
+
+					if (
+						(
+							this.#raw === undefined
+							|| hadError
+						)
+						&& !this.#pending
+					) {
+						this.#pending = Promise.withResolvers<void>()
+						this.#promise = this.#pending.promise
+						this.#promise.catch(() => {})
+					}
+
+					return
+				}
+
+				this.set(snapshot.data)
 			})
 		} catch (error) {
 			this.fail(error instanceof Error ? error : String(error))
@@ -86,16 +98,13 @@ export class TanStackLiveQueryResource<Data> implements SvelteKitResource<Data> 
 	}
 
 	#start() {
-		if (
-			this.#destroyed
-			|| this.#started
-		)
+		if (this.#lifecycle !== 'idle')
 			return
 
-		this.#started = true
+		this.#lifecycle = 'started'
 		void tick()
 			.then(() => {
-				if (this.#destroyed)
+				if (this.#lifecycle === 'destroyed')
 					return
 
 				this.#unsubscribe = this.#subscribeToSource(this.#update)
@@ -103,81 +112,51 @@ export class TanStackLiveQueryResource<Data> implements SvelteKitResource<Data> 
 			})
 			.then(this.#update)
 			.catch((error) => {
-				if (!this.#destroyed)
+				if (this.#lifecycle !== 'destroyed')
 					this.fail(error instanceof Error ? error : String(error))
 			})
 	}
 
 	destroy() {
-		if (this.#destroyed)
+		if (this.#lifecycle === 'destroyed')
 			return
 
-		this.#destroyed = true
+		this.#lifecycle = 'destroyed'
 		this.#unsubscribe?.()
 		this.#unsubscribe = undefined
 	}
 
-	#apply(
-		snapshot: TanStackLiveQuerySnapshot<Data>
-	) {
-		if (snapshot.isError) {
-			this.fail(snapshot.error ?? String(snapshot.status))
-			return
-		}
-
-		if (
-			snapshot.isLoading
-			|| snapshot.isReady === false
-		) {
-			const hadError = this.#error !== undefined
-			this.#loading = true
-			this.#error = undefined
-			if (snapshot.data === undefined) {
-				this.#raw = undefined
-			}
-			if (
-				(
-					!this.#ready
-					|| hadError
-				)
-				&& !this.#pending
-			)
-				this.#resetPending()
-
-			return
-		}
-
-		this.set(snapshot.data)
-	}
-
-	#resetPending() {
-		this.#pending = Promise.withResolvers<void>()
-		this.#promise = this.#pending.promise
-		this.#promise.catch(() => {})
-	}
-
 	get then(): Promise<Data>['then'] {
 		this.#start()
-		return this.#then
+		const promise = this.#promise
+		return (onFulfilled, onRejected) => (
+			promise
+				.then(tick)
+				.then(() => {
+					if (this.#raw === undefined)
+						throw new Error('TanStackLiveQueryResource resolved before current value was available')
+
+					return this.#raw.value
+				})
+				.then(onFulfilled, onRejected)
+		)
 	}
 
 	get catch(): Promise<Data>['catch'] {
-		this.#start()
-		this.#then
+		this.then
 		return (
 			onRejected
-		) => this.#then(undefined, onRejected)
+		) => this.then(undefined, onRejected)
 	}
 
 	get finally(): Promise<Data>['finally'] {
-		this.#start()
-		this.#then
-		return (onFinally) => this.#then().finally(onFinally)
+		this.then
+		return (onFinally) => this.then().finally(onFinally)
 	}
 
 	get current() {
 		this.#start()
-		return this.#current
+		return this.#raw?.value
 	}
 
 	get error() {
@@ -192,7 +171,7 @@ export class TanStackLiveQueryResource<Data> implements SvelteKitResource<Data> 
 
 	get ready() {
 		this.#start()
-		return this.#ready
+		return this.#raw !== undefined
 	}
 
 	set(
@@ -214,13 +193,10 @@ export class TanStackLiveQueryResource<Data> implements SvelteKitResource<Data> 
 	) {
 		this.#error = error
 		this.#loading = false
-		if (this.#pending !== undefined) {
-			this.#pending.reject(error)
-			this.#pending = undefined
-		} else {
-			this.#promise = Promise.reject(error)
-			this.#promise.catch(() => {})
-		}
+		this.#pending?.reject(error)
+		this.#pending = undefined
+		this.#promise = Promise.reject(error)
+		this.#promise.catch(() => {})
 	}
 
 	get [Symbol.toStringTag]() {

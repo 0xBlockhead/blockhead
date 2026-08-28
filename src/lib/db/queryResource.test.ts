@@ -16,7 +16,6 @@ const loadingSnapshot = {
 	isError: false,
 	isReady: false,
 	status: 'loading',
-	[Symbol.toStringTag]: undefined,
 } satisfies TanStackLiveQuerySnapshot<string | undefined>
 
 const readySnapshot = (
@@ -298,12 +297,22 @@ describe('TanStackLiveQueryResource', () => {
 		expect(fixture.queryCount).toBe(1)
 	})
 
-	it('keeps the last ready value during refresh loading', async () => {
+	it.each([
+		{
+			isLoading: true,
+			isReady: true,
+		},
+		{
+			isLoading: false,
+			isReady: false,
+		},
+	])('keeps the last value while the source is pending: %j', async (flags) => {
 		const fixture = createFixture(readySnapshot('first'))
 		await expect(fixture.resource).resolves.toBe('first')
 
 		fixture.setSnapshot({
 			...loadingSnapshot,
+			...flags,
 			data: 'first',
 		})
 		expect(fixture.resource.current).toBe('first')
@@ -331,7 +340,13 @@ describe('TanStackLiveQueryResource', () => {
 		expect(fixture.resource.ready).toBe(false)
 		expect(fixture.resource.error).toBeUndefined()
 
-		const reloaded = fixture.resource.then((value) => value)
+		let settled = false
+		const reloaded = fixture.resource.finally(() => {
+			settled = true
+		})
+		void reloaded.catch(() => {})
+		await new Promise((resolve) => setTimeout(resolve, 0))
+		expect(settled).toBe(false)
 		fixture.setSnapshot(readySnapshot('second'))
 		await expect(reloaded).resolves.toBe('second')
 		expect(fixture.resource.current).toBe('second')
@@ -371,12 +386,12 @@ describe('TanStackLiveQueryResource', () => {
 		await expect(fixture.resource).rejects.toBe('failure')
 	})
 
-	it('starts one new pending promise after an error while retaining the last ready value', async () => {
+	it.each([false, true])('keeps recovery pending after an empty-string error; deletion=%s', async (deleteDuringRecovery) => {
 		const fixture = createFixture(readySnapshot('first'))
 		await expect(fixture.resource).resolves.toBe('first')
 
-		fixture.setSnapshot(errorSnapshot('failure'))
-		await expect(fixture.resource).rejects.toBe('failure')
+		fixture.setSnapshot(errorSnapshot(''))
+		await expect(fixture.resource).rejects.toBe('')
 
 		fixture.setSnapshot({
 			...loadingSnapshot,
@@ -388,8 +403,26 @@ describe('TanStackLiveQueryResource', () => {
 		expect(fixture.resource.error).toBeUndefined()
 
 		const recovered = fixture.resource.then((value) => value)
+		if (deleteDuringRecovery) {
+			fixture.setSnapshot(loadingSnapshot)
+			expect(fixture.resource.current).toBeUndefined()
+			expect(fixture.resource.ready).toBe(false)
+			expect(fixture.resource.loading).toBe(true)
+		}
+		const laterAwaiter = fixture.resource.then((value) => value)
 		fixture.setSnapshot(readySnapshot('recovered'))
 		await expect(recovered).resolves.toBe('recovered')
+		await expect(laterAwaiter).resolves.toBe('recovered')
+	})
+
+	it('uses the source status when an error snapshot has no detail', async () => {
+		const fixture = createFixture({
+			...errorSnapshot('unused'),
+			error: undefined,
+		})
+		await expect(fixture.resource).rejects.toBe('error')
+		expect(fixture.resource.error).toBe('error')
+		fixture.resource.destroy()
 	})
 
 	it('resets a first-error promise before recovery', async () => {
@@ -408,23 +441,52 @@ describe('TanStackLiveQueryResource', () => {
 		expect(fixture.resource.error).toBeUndefined()
 	})
 
-	it('unsubscribes exactly once when destroyed after starting', async () => {
-		const fixture = createFixture(readySnapshot('ready'))
-		await expect(fixture.resource).resolves.toBe('ready')
-		expect(fixture.sourceSubscriptionCount).toBe(1)
-
+	it('reads the latest state when previously extracted catch and finally methods are invoked', async () => {
+		const fixture = createFixture(readySnapshot('first'))
+		await expect(fixture.resource).resolves.toBe('first')
+		const catchLater = fixture.resource.catch
+		const finallyLater = fixture.resource.finally
+		let finallyCount = 0
+		fixture.setSnapshot(errorSnapshot('later failure'))
+		await expect(catchLater((error) => String(error))).resolves.toBe('later failure')
+		await expect(finallyLater(() => {
+			finallyCount += 1
+		})).rejects.toBe('later failure')
+		expect(finallyCount).toBe(1)
 		fixture.resource.destroy()
-		fixture.resource.destroy()
-		expect(fixture.sourceSubscriptionCount).toBe(0)
 	})
 
-	it('does not subscribe when destroyed during the deferred start', async () => {
+	it('unsubscribes exactly once even when cleanup reenters destruction', async () => {
+		let subscriptions = 0
+		let unsubscriptions = 0
+		const resource = new TanStackLiveQueryResource<string>(
+			() => readySnapshot('ready'),
+			() => {
+				subscriptions++
+				return () => {
+					unsubscriptions++
+					resource.destroy()
+				}
+			}
+		)
+		await expect(resource).resolves.toBe('ready')
+		expect(subscriptions).toBe(1)
+
+		resource.destroy()
+		resource.destroy()
+		expect(unsubscriptions).toBe(1)
+	})
+
+	it.each([false, true])('does not subscribe after destruction (deferred=%s)', async (deferred) => {
 		const fixture = createFixture(readySnapshot('ready'))
-		void fixture.resource.current
+		if (deferred)
+			void fixture.resource.current
+
 		fixture.resource.destroy()
-		await Promise.resolve()
-		await Promise.resolve()
+		expect(fixture.resource.current).toBeUndefined()
+		await new Promise((resolve) => setTimeout(resolve, 0))
 
 		expect(fixture.sourceSubscriptionCount).toBe(0)
+		expect(fixture.queryCount).toBe(0)
 	})
 })

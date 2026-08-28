@@ -68,8 +68,8 @@ test('renders subsequent values from the resource-owned await state', async () =
 	await expect.element(page.getByText('Initial value')).not.toBeInTheDocument()
 })
 
-test('renders subsequent values from an asynchronous source notification', async () => {
-	let snapshot = {
+test('renders subsequent source values and then a failure without losing retained data', async () => {
+	let snapshot: TanStackLiveQuerySnapshot<string> = {
 		data: 'Initial source value',
 		isLoading: false,
 		isError: false,
@@ -97,6 +97,21 @@ test('renders subsequent values from an asynchronous source notification', async
 	queueMicrotask(publish)
 	await expect.element(page.getByText('Updated source value')).toBeInTheDocument()
 	await expect.element(page.getByText('Initial source value')).not.toBeInTheDocument()
+
+	const failure = new Error('later provider failure')
+	snapshot = {
+		...snapshot,
+		isError: true,
+		isReady: false,
+		status: 'error',
+		error: failure,
+	}
+	queueMicrotask(publish)
+	await expect.element(page.getByRole('alert', { name: 'later provider failure' })).toHaveTextContent('Failed to load')
+	expect(resource.current).toBe('Updated source value')
+	expect(resource.ready).toBe(true)
+	expect(resource.error).toBe(failure)
+	resource.destroy()
 })
 
 test('renders an explicit default source failure without hiding its detail', async () => {
