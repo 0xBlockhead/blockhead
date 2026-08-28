@@ -85,7 +85,7 @@ export type QBittorrentTorrentPeers = {
 const nonNegativeNumber = arktype('number >= 0')
 
 const qBittorrentApplicationPreferencesWire = arktype({
-	'listen_port?': 'number.integer >= 1 <= 65535',
+	'listen_port?': '1 <= number.integer <= 65535',
 	'current_interface_address?': 'string',
 }) satisfies Type<QBittorrentApplicationPreferences>
 
@@ -108,9 +108,9 @@ const qBittorrentTorrentInfoWire = arktype({
 	'num_seeds?': 'number.integer >= 0',
 	'num_leechs?': 'number.integer >= 0',
 	'amount_left?': nonNegativeNumber,
-	'progress?': 'number >= 0 <= 1',
+	'progress?': '0 <= number <= 1',
 	'priority?': 'number.integer >= -1',
-	'ratio?': 'number >= 0 <= 9999',
+	'ratio?': '0 <= number <= 9999',
 }) satisfies Type<QBittorrentTorrentInfo>
 
 const qBittorrentTorrentInfoListWire = qBittorrentTorrentInfoWire.array()
@@ -119,7 +119,7 @@ const qBittorrentTorrentFileListWire = arktype({
 	index: 'number.integer >= 0',
 	name: 'string > 0',
 	size: nonNegativeNumber,
-	'progress?': 'number >= 0 <= 1',
+	'progress?': '0 <= number <= 1',
 	'priority?': 'number.integer >= 0',
 }).array() satisfies Type<QBittorrentTorrentFile[]>
 
@@ -135,7 +135,7 @@ const qBittorrentTorrentPropertiesWire = arktype({
 
 const qBittorrentTorrentTrackerListWire = arktype({
 	url: 'string > 0',
-	'status?': 'number.integer >= 0 <= 4',
+	'status?': '0 <= number.integer <= 4',
 	'num_peers?': 'number.integer >= -1',
 	'num_seeds?': 'number.integer >= -1',
 	'num_leeches?': 'number.integer >= -1',
@@ -146,9 +146,9 @@ const qBittorrentTorrentTrackerListWire = arktype({
 const qBittorrentTorrentPeerWire = arktype({
 	'peer_id_client?': 'string',
 	'ip?': 'string',
-	'port?': 'number.integer >= 0 <= 65535',
+	'port?': '0 <= number.integer <= 65535',
 	'client?': 'string',
-	'progress?': 'number >= 0 <= 1',
+	'progress?': '0 <= number <= 1',
 }) satisfies Type<QBittorrentTorrentPeer>
 
 const qBittorrentTorrentPeersWire = arktype({
