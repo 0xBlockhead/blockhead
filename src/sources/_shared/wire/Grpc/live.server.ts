@@ -4,10 +4,10 @@ import {
 	type ClientHttp2Session,
 	type ClientHttp2Stream,
 	type IncomingHttpHeaders,
+	type IncomingHttpStatusHeader,
 } from 'node:http2'
 
 import {
-	ApiFamily,
 	SourceCredentialScope,
 	SourceDelivery,
 	SourceEndpointKind,
@@ -33,10 +33,7 @@ const frameGrpcMessage = (message: Uint8Array): Uint8Array => {
 
 const parseGrpcFrames = (
 	buffer: Uint8Array
-): {
-	messages: Uint8Array[]
-	remainder: Uint8Array
-} => {
+) => {
 	const messages: Uint8Array[] = []
 	let offset = 0
 	while (buffer.length - offset >= 5) {
@@ -103,7 +100,6 @@ export const iterateManagedGrpcLive = async function* ({
 }): AsyncGenerator<GrpcLiveEvent> {
 	if (
 		binding.wireProtocol !== WireProtocol.Grpc
-		|| binding.apiFamily !== ApiFamily.GrpcService
 		|| binding.delivery !== SourceDelivery.RemoteLive
 	)
 		throw new Error(`${binding.source}: managed gRPC stream requires Grpc / GrpcService / RemoteLive`)
@@ -120,8 +116,8 @@ export const iterateManagedGrpcLive = async function* ({
 	)
 		throw new Error(`${binding.source}: missing server credential definition`)
 
-	const secret = serverCredential == null ? undefined : process.env[serverCredential.envKey]?.trim()
-	if (serverCredential != null && (secret == null || secret === ''))
+	const secret = serverCredential == null ? '' : (process.env[serverCredential.envKey]?.trim() ?? '')
+	if (serverCredential != null && secret === '')
 		throw new Error(`${binding.source}: missing runtime credential ${serverCredential.envKey}`)
 
 	let locator = endpoint.locator
@@ -147,7 +143,7 @@ export const iterateManagedGrpcLive = async function* ({
 			[serverCredential.injection.header.name]: `${serverCredential.injection.header.prefix ?? ''}${secret}`,
 		}),
 	})
-	let responseHeaders: IncomingHttpHeaders | undefined
+	let responseHeaders: (IncomingHttpHeaders & IncomingHttpStatusHeader) | undefined
 	let trailers: IncomingHttpHeaders = {}
 	stream.once('response', (headers) => {
 		responseHeaders = headers
