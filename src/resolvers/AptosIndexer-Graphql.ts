@@ -48,7 +48,7 @@ const assertAptosMainnet = (network: NetworkId) => {
 			&& network.slug === networkBySlug.aptos.slug
 		)
 		&& !(
-			'caip2' in network
+			network.caip2 !== undefined
 			&& network.caip2.namespace === networkBySlug.aptos.caip2.namespace
 			&& network.caip2.reference === networkBySlug.aptos.caip2.reference
 		)

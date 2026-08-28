@@ -98,7 +98,7 @@ const assertAptosMainnet = (network: NetworkId) => {
 			&& network.slug === networkBySlug.aptos.slug
 		)
 		&& !(
-			'caip2' in network
+			network.caip2 !== undefined
 			&& network.caip2.namespace === networkBySlug.aptos.caip2.namespace
 			&& network.caip2.reference === networkBySlug.aptos.caip2.reference
 		)
@@ -1051,7 +1051,7 @@ export default {
 						assertAptosMainnet($transaction.$network.$network)
 						const { getTransactionByHash, getTransactionByVersion } = await import('$/sources/AptosFullnode/Rest/queries.ts')
 						const transaction = committedTransaction(
-							'version' in $transaction ?
+							$transaction.version !== undefined ?
 								(await getTransactionByVersion(resolverSourceBinding(context), $transaction.version)).body
 								:
 								(await getTransactionByHash(resolverSourceBinding(context), $transaction.hash)).body
