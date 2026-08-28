@@ -68,7 +68,7 @@ const bigintFromWire = (
 }
 
 const timestampMsFromWire = (
-	value: string | null,
+	value: string | null | undefined,
 	fieldName: string
 ) => {
 	if (value == null)
