@@ -1341,7 +1341,7 @@ describe('entity selectors', () => {
 		expect(osmosisPoolTimestamp.selectors.map((selector) => selector.fields)).toEqual([
 			[
 				'$pool',
-				'timestampMs',
+				'blockHeight',
 				'baseAssetDenom',
 				'quoteAssetDenom',
 			],
