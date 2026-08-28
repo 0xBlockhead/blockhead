@@ -10,7 +10,7 @@ export const chainlinkPriceFeedCatalogRowWire = arktype({
 	proxyAddress: evmAddress,
 	baseAsset: assetSymbol,
 	quoteAsset: assetSymbol,
-	decimals: 'number.integer >= 0 <= 255',
+	decimals: '0 <= number.integer <= 255',
 	feedKind: 'string > 0',
 	label: 'string > 0',
 })

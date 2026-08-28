@@ -71,7 +71,7 @@ export type GetTokenAccountsPage =
 	}
 
 
-const safeUnsignedInteger = 'number.integer >= 0 <= 9007199254740991'
+const safeUnsignedInteger = '0 <= number.integer <= 9007199254740991'
 
 export const dasAssetOwnershipWire = arktype({
 	owner: 'string > 0',
@@ -83,7 +83,7 @@ export const dasAssetOwnershipWire = arktype({
 }).onUndeclaredKey('delete')
 
 export const dasAssetTokenInfoWire = arktype({
-	decimals: 'number.integer >= 0 <= 255',
+	decimals: '0 <= number.integer <= 255',
 	supply: safeUnsignedInteger,
 	token_program: 'string > 0',
 	'mint_authority?': arktype('string > 0').or('null'),

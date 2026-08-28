@@ -111,7 +111,7 @@ export type GoldRushTransactionExpansions = {
 }
 
 export const goldRushTokenBalanceItemWire = arktype({
-	contract_decimals: arktype('number.integer >= 0 <= 255'),
+	contract_decimals: arktype('0 <= number.integer <= 255'),
 	contract_name: 'string',
 	contract_ticker_symbol: nonEmptyString,
 	contract_address: evmAddress,

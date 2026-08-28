@@ -50,7 +50,7 @@ export type DasSamplingStatsWire = CelestiaSchemas['das_SamplingStats_Result']
 export type NodeInfoWire = CelestiaSchemas['node_Info_Result']
 
 
-const safeUnsignedInteger = 'number.integer >= 0 <= 9007199254740991'
+const safeUnsignedInteger = '0 <= number.integer <= 9007199254740991'
 
 /** Fail-closed ExtendedHeader envelope for tip / by-height / by-hash reads. */
 export const celestiaExtendedHeaderWire = arktype({

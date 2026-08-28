@@ -10,7 +10,7 @@ import { type as arktype } from 'arktype'
 const nonEmptyString = arktype('string > 0')
 const nonNegativeInteger = arktype('number.integer >= 0')
 const unsignedIntegerString = arktype(/^(0|[1-9][0-9]*)$/)
-const decimals = arktype('number.integer >= 0 <= 255')
+const decimals = arktype('0 <= number.integer <= 255')
 
 export const alliumTokenInfoWire = arktype({
 	name: nonEmptyString,

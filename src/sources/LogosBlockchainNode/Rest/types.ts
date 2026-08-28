@@ -2,7 +2,7 @@ import { type } from 'arktype'
 
 const headerId = /^[0-9a-f]{64}$/
 const zkPublicKey = /^[0-9a-f]{64}$/
-const unsignedSafeInteger = 'number.integer >= 0 <= 9007199254740991'
+const unsignedSafeInteger = '0 <= number.integer <= 9007199254740991'
 const multiaddr = type('string > 0')
 const peerId = type('string > 0')
 

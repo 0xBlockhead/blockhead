@@ -216,7 +216,7 @@ export type HederaMirrorNodeTransactionResponse = {
 
 // https://docs.hedera.com/api-reference/network/get-the-network-address-book-nodes
 
-const hederaMirrorNodeNodeServiceEndpointPortWire = arktype('number.integer >= 0 <= 65535')
+const hederaMirrorNodeNodeServiceEndpointPortWire = arktype('0 <= number.integer <= 65535')
 
 export const hederaMirrorNodeNodeServiceEndpointWire = arktype({
 	'domain_name?': 'string',

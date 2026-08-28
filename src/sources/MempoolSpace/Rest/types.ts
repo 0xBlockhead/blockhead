@@ -1,10 +1,10 @@
 import { type as arktype } from 'arktype'
 
-export const mempoolSpaceTipHeightWire = arktype(`number.integer >= 0 <= ${Number.MAX_SAFE_INTEGER}`)
+export const mempoolSpaceTipHeightWire = arktype(`0 <= number.integer <= ${Number.MAX_SAFE_INTEGER}`)
 
 export const mempoolSpaceMiningHashrateWire = arktype({
 	hashrates: arktype({
-		timestamp: 'number.integer >= 0 <= 9007199254740',
+		timestamp: '0 <= number.integer <= 9007199254740',
 		avgHashrate: 'number >= 0',
 	}).array(),
 	difficulty: 'unknown[]',
@@ -20,8 +20,8 @@ export const mempoolSpaceMiningHashrateWire = arktype({
  * @see https://github.com/mempool/mempool/blob/c863f02ae6abff3699d42b3ff5ae50a11240748f/backend/src/api/mining/mining.ts
  */
 export const mempoolSpaceDifficultyAdjustmentHistoryRowWire = arktype([
-	'number.integer >= 0 <= 9007199254740',
-	`number.integer >= 0 <= ${Number.MAX_SAFE_INTEGER}`,
+	'0 <= number.integer <= 9007199254740',
+	`0 <= number.integer <= ${Number.MAX_SAFE_INTEGER}`,
 	'number >= 0',
 	'number >= 0',
 ])
@@ -33,12 +33,12 @@ export const mempoolSpaceDifficultyAdjustmentHistoryWire = mempoolSpaceDifficult
  * @see https://mempool.space/docs/api/rest#get-difficulty-adjustment
  */
 export const mempoolSpaceDifficultyAdjustmentWire = arktype({
-	progressPercent: 'number >= 0 <= 100',
-	difficultyChange: 'number >= -75 <= 300',
+	progressPercent: '0 <= number <= 100',
+	difficultyChange: '-75 <= number <= 300',
 	estimatedRetargetDate: 'number >= 0',
 	remainingBlocks: 'number.integer >= 0',
 	remainingTime: 'number >= 0',
-	previousRetarget: 'number >= -75 <= 300',
+	previousRetarget: '-75 <= number <= 300',
 	previousTime: 'number >= 0',
 	nextRetargetHeight: 'number.integer >= 0',
 	timeAvg: 'number >= 0',

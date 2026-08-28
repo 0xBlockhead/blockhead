@@ -38,7 +38,7 @@ export const stellarHorizonBalanceWire = arktype({
 
 export type StellarHorizonBalance = typeof stellarHorizonBalanceWire.infer
 
-const stellarHorizonSignerWeightWire = arktype('number.integer >= 0 <= 255')
+const stellarHorizonSignerWeightWire = arktype('0 <= number.integer <= 255')
 
 export const stellarHorizonSignerWire = arktype({
 	key: 'string > 0',
