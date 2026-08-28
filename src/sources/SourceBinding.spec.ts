@@ -680,12 +680,12 @@ describe('source binding indexes', () => {
 			}],
 			[Source.LightningLnd_Rest]: [{
 				scope: SourceCredentialScope.RuntimeSecret,
-				keys: ['LND_MACAROON_HEX'],
+				keys: undefined,
 				envKeys: undefined,
 			}],
 			[Source.X_Rest]: [{
 				scope: SourceCredentialScope.RuntimeSecret,
-				keys: ['X_API_BEARER'],
+				keys: undefined,
 				envKeys: undefined,
 			}],
 		})

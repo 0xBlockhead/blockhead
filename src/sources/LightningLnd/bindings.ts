@@ -47,9 +47,6 @@ export default indexSourceBindings([
 		credentials: [
 			{
 				scope: SourceCredentialScope.RuntimeSecret,
-				keys: [
-					'LND_MACAROON_HEX',
-				],
 			},
 		],
 		artifacts: [

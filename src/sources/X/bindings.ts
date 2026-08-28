@@ -32,9 +32,6 @@ export default indexSourceBindings([
 		credentials: [
 			{
 				scope: SourceCredentialScope.RuntimeSecret,
-				keys: [
-					'X_API_BEARER',
-				],
 			},
 		],
 		artifacts: [
