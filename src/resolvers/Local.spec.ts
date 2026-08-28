@@ -2,6 +2,18 @@ import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const sourceFetch = vi.hoisted(() => vi.fn())
 
+// Preserve single-endpoint observations; multi-endpoint cases use other sources below.
+vi.mock('$/sources/MempoolSpace/bindings.ts', async (importOriginal) => {
+	const { default: bindings } = await importOriginal<typeof import('$/sources/MempoolSpace/bindings.ts')>()
+	return {
+		default: {
+			MempoolSpace_Rest: bindings.MempoolSpace_Rest.filter((binding) => (
+				binding.target.key === 'bip122:000000000019d6689c085ae165831e93'
+			)),
+		},
+	}
+})
+
 vi.mock('$/sources/_runtime/http.ts', async (importOriginal) => ({
 	...await importOriginal<typeof import('$/sources/_runtime/http.ts')>(),
 	sourceFetch,

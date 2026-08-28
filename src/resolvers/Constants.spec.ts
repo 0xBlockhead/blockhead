@@ -166,28 +166,31 @@ describe('Constants resolver projections', () => {
 			id: Source.MempoolSpace_Rest,
 		}, resolverContext)
 		const endpoints = blockheadSourceResolver.projections.$$endpoints(blockheadSource)
-		expect(endpoints).toHaveLength(1)
-		const endpointReference = endpoints[0]
-		if (endpointReference == null)
-			throw new Error('Constants source catalog omitted MempoolSpace endpoint')
-
-		const endpoint = await blockheadSourceEndpointResolver.resolve.SourceBindingIdEndpointIndex.resolve(
-			endpointReference[EntityMetaKey.Selector],
-			resolverContext
-		)
-		expect({
+		const endpointRows = await Promise.all(endpoints.map((reference) => (
+			blockheadSourceEndpointResolver.resolve.SourceBindingIdEndpointIndex.resolve(
+				reference[EntityMetaKey.Selector],
+				resolverContext
+			)
+		)))
+		expect(endpointRows.map((endpoint) => ({
 			endpointUrl: blockheadSourceEndpointResolver.projections.endpointUrl(endpoint),
 			targetKind: blockheadSourceEndpointResolver.projections.targetKind(endpoint),
 			targetKey: blockheadSourceEndpointResolver.projections.targetKey(endpoint),
 			apiFamily: blockheadSourceEndpointResolver.projections.apiFamily(endpoint),
 			delivery: blockheadSourceEndpointResolver.projections.delivery(endpoint),
-		}).toEqual({
+		}))).toEqual([{
 			endpointUrl: 'https://mempool.space/api',
 			targetKind: 'Caip2Network',
 			targetKey: 'bip122:000000000019d6689c085ae165831e93',
 			apiFamily: 'RestJson',
 			delivery: 'BrowserDirect',
-		})
+		}, {
+			endpointUrl: 'https://mempool.space/testnet/api',
+			targetKind: 'Caip2Network',
+			targetKey: 'bip122:000000000933ea01ad0ee984209779ba',
+			apiFamily: 'RestJson',
+			delivery: 'BrowserDirect',
+		}])
 	})
 
 	it('resolves the canonical source registry without displacing editable local rows', async () => {
@@ -263,7 +266,7 @@ describe('Constants resolver projections', () => {
 			proxyMode: blockheadSourceResolver.projections.proxyMode(mempoolSpaceSource),
 			environmentScope: blockheadSourceResolver.projections.environmentScope(mempoolSpaceSource),
 		}).toEqual({
-			endpointUrl: 'https://mempool.space/api',
+			endpointUrl: undefined,
 			transportKind: 'HttpRest',
 			authKind: 'None',
 			corsMode: 'Browser CORS',

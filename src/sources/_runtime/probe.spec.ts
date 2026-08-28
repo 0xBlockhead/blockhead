@@ -3,6 +3,18 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const sourceFetch = vi.fn()
 
+// Keep the single-endpoint transport contract independent of registry growth.
+vi.mock('$/sources/MempoolSpace/bindings.ts', async (importOriginal) => {
+	const { default: bindings } = await importOriginal<typeof import('$/sources/MempoolSpace/bindings.ts')>()
+	return {
+		default: {
+			MempoolSpace_Rest: bindings.MempoolSpace_Rest.filter((binding) => (
+				binding.target.key === 'bip122:000000000019d6689c085ae165831e93'
+			)),
+		},
+	}
+})
+
 vi.mock('$/sources/_runtime/http.ts', () => ({
 	sourceFetch,
 }))
