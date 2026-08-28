@@ -176,6 +176,41 @@ describe('AptosFullnode Rest arktype envelopes', () => {
 		await expect(getBlockByHeight(binding, 9n)).rejects.toThrow('invalid block response envelope')
 		await expect(getTransactionByVersion(binding, 42n)).rejects.toThrow('invalid transaction response envelope')
 	})
+	it.each(['transaction', 'height', 'version'])('validates nested event JSON through %s responses', async (endpoint) => {
+		const transaction = {
+			type: 'user_transaction',
+			version: '42',
+			hash: '0x42',
+			changes: [],
+			events: [{
+				guid: {
+					creation_number: '0',
+					account_address: '0xa11ce',
+				},
+				sequence_number: '0',
+				type: '0x1::event::Value',
+				data: { values: [null, true, 2, 'value'] },
+			}],
+		}
+		const body = endpoint === 'transaction' ? transaction : {
+			block_height: '9',
+			block_hash: '0xblock',
+			block_timestamp: '1720000000123456',
+			first_version: '42',
+			last_version: '42',
+			transactions: [transaction],
+		}
+		const load = () => endpoint === 'transaction' ? getTransactionByVersion(binding, 42n) :
+			endpoint === 'height' ? getBlockByHeight(binding, 9n) : getBlockByVersion(binding, 42n)
+		sourceFetch.mockResolvedValueOnce(jsonResponse(body))
+		await expect(load()).resolves.toMatchObject({ body })
+		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify(body, (key, value) => key === 'data' ? undefined : value), {
+			status: 200,
+			headers: metadataHeaders,
+		}))
+		await expect(load()).rejects.toThrow('invalid transaction event response envelope')
+	})
+
 
 	it('fail-closes malformed committed transaction effects before resolver materialization', async () => {
 		sourceFetch
@@ -340,7 +375,11 @@ describe('AptosFullnode Rest arktype envelopes', () => {
 					name: 'CoinStore',
 					is_native: false,
 					is_event: false,
-					is_enum: false,
+					is_enum: true,
+					variants: [{
+						name: 'Some',
+						fields: [],
+					}],
 					abilities: [
 						'key',
 					],
@@ -350,6 +389,29 @@ describe('AptosFullnode Rest arktype envelopes', () => {
 					fields: [{
 						name: 'coin',
 						type: 'u64',
+	it('fail-closes malformed Move enum variants', async () => {
+		sourceFetch.mockResolvedValueOnce(jsonResponse({
+			bytecode: '0xab',
+			abi: {
+				address: '0xa11ce',
+				name: 'payments',
+				friends: [],
+				exposed_functions: [],
+				structs: [{
+					name: 'CoinStore',
+					is_native: false,
+					is_event: false,
+					is_enum: true,
+					abilities: [],
+					generic_type_params: [],
+					fields: [],
+					variants: [{ name: 'Some', fields: 3 }],
+				}],
+			},
+		}))
+		await expect(getAccountModule(binding, '0xa11ce', 'payments')).rejects.toThrow('invalid account module response envelope')
+	})
+
 					}],
 				}],
 			},

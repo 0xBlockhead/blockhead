@@ -6,12 +6,18 @@ import {
 
 export type AptosLedgerInfo = components['schemas']['IndexResponse']
 export type AptosAccount = components['schemas']['AccountData']
-export type AptosMoveResource = components['schemas']['MoveResource']
+export type AptosMoveResource = typeof aptosMoveResourceWire.infer
 export type AptosMoveModule = components['schemas']['MoveModuleBytecode']
-export type AptosEvent = components['schemas']['Event']
-export type AptosWriteSetChange = components['schemas']['WriteSetChange']
-export type AptosTransaction = components['schemas']['Transaction']
-export type AptosBlock = components['schemas']['Block']
+export type AptosEvent = typeof aptosEventWire.infer
+export type AptosWriteSetChange = typeof aptosWriteSetChangeWire.infer
+type TransactionWithDecodedEffects<_Transaction> = {
+	[_Key in keyof _Transaction]: _Key extends 'events' ? AptosEvent[] :
+		_Key extends 'changes' ? AptosWriteSetChange[] : _Transaction[_Key]
+}
+export type AptosTransaction = TransactionWithDecodedEffects<components['schemas']['Transaction']>
+export type AptosBlock = Omit<components['schemas']['Block'], 'transactions'> & {
+	transactions?: AptosTransaction[]
+}
 export type AptosTableItemRequest = components['schemas']['TableItemRequest']
 
 export type AptosResponseMetadata = {
@@ -48,6 +54,8 @@ export const aptosLedgerInfoWire = arktype({
 })
 
 export const aptosAccountWire = arktype({
+const aptosJsonValue = arktype('string | number | boolean | null | object.json')
+
 	sequence_number: aptosU64String,
 	authentication_key: 'string',
 }) satisfies Type<{
@@ -57,7 +65,7 @@ export const aptosAccountWire = arktype({
 
 export const aptosMoveResourceWire = arktype({
 	type: 'string',
-	data: 'unknown',
+	data: aptosJsonValue,
 })
 
 export const aptosEventWire = arktype({
@@ -67,7 +75,7 @@ export const aptosEventWire = arktype({
 	},
 	sequence_number: aptosU64String,
 	type: 'string',
-	data: 'unknown',
+	data: aptosJsonValue,
 })
 
 export const aptosBlockWire = arktype({
@@ -123,7 +131,10 @@ const aptosMoveStructWire = arktype({
 		constraints: 'string[]',
 	}).array(),
 	fields: aptosMoveStructFieldWire.array(),
-	'variants?': 'unknown[]',
+	'variants?': arktype({
+		name: 'string',
+		fields: aptosMoveStructFieldWire.array(),
+	}).array(),
 })
 
 export const aptosMoveModuleAbiWire = arktype({
@@ -140,14 +151,14 @@ export const aptosMoveModuleBytecodeWire = arktype({
 })
 
 const aptosDeletedTableDataWire = arktype({
-	key: 'unknown',
+	key: aptosJsonValue,
 	key_type: 'string',
 })
 
 const aptosDecodedTableDataWire = arktype({
-	key: 'unknown',
+	key: aptosJsonValue,
 	key_type: 'string',
-	value: 'unknown',
+	value: aptosJsonValue,
 	value_type: 'string',
 })
 

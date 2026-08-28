@@ -16,7 +16,6 @@ import {
 	aptosWriteSetChangeWire,
 	type AptosAccount,
 	type AptosBlock,
-	type AptosEvent,
 	type AptosLedgerInfo,
 	type AptosMoveModule,
 	type AptosMoveResource,
@@ -251,6 +250,9 @@ export const getBlockByHeight = async (
 	const block = assertEnvelope('block', aptosBlockWire, response.body) as AptosBlock
 	if (block.block_height !== height.toString())
 		throw new Error('AptosFullnode_Rest: block height response does not match request')
+	for (const transaction of block.transactions ?? [])
+		assertTransactionEffects(transaction)
+
 	return {
 		body: block,
 		metadata: response.metadata,
@@ -263,6 +265,9 @@ export const getBlockByVersion = async (
 	withTransactions = true
 ) => {
 	const response = await request(binding, `blocks/by_version/${version.toString()}?with_transactions=${String(withTransactions)}`)
+	for (const transaction of block.transactions ?? [])
+		assertTransactionEffects(transaction)
+
 	const block = assertEnvelope('block', aptosBlockWire, response.body) as AptosBlock
 	if (BigInt(block.first_version) > version || BigInt(block.last_version) < version)
 		throw new Error('AptosFullnode_Rest: block version response does not contain request')
@@ -296,7 +301,7 @@ export const getEventsByEventHandle = async (
 	return {
 		body: response.body.map((event) => (
 			assertEnvelope('event', aptosEventWire, event)
-		)) as AptosEvent[],
+		)),
 		metadata: response.metadata,
 	}
 }

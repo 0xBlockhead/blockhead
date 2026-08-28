@@ -1,6 +1,7 @@
 import { networkBySlug } from '$/constants/Network.ts'
 import {
 	resolverContextRowLimit,
+	type ResolverValue,
 	resolverSourceBinding,
 } from '$/resolvers/$resolvers.ts'
 import { defineResolver, type RegisteredSourceResolverModule } from '$/resolvers/defineResolver.ts'
@@ -283,7 +284,7 @@ const stateChangeFields = (
 			}
 			resourceType: string
 		}
-		[EntityMetaKey.Fields]?: Record<string, unknown>
+		[EntityMetaKey.Fields]?: Record<string, ResolverValue>
 	}
 	$module?: {
 		[EntityMetaKey.Selector]: {
@@ -298,15 +299,15 @@ const stateChangeFields = (
 			tableHandle: string
 			keyHash: string
 		}
-		[EntityMetaKey.Fields]: Record<string, unknown>
+		[EntityMetaKey.Fields]: Record<string, ResolverValue>
 	}
-	value?: unknown
+	value?: ResolverValue
 } => {
 	const resourceFields = (
 		address: string,
 		stateKeyHash: string,
 		resourceType: string,
-		value?: unknown
+		value?: ResolverValue
 	) => ({
 		changeKind: change.type,
 		address,
@@ -352,7 +353,7 @@ const stateChangeFields = (
 		address: string,
 		stateKeyHash: string,
 		moduleName: string,
-		value?: unknown
+		value?: ResolverValue
 	) => ({
 		changeKind: change.type,
 		address,
