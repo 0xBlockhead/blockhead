@@ -326,21 +326,34 @@ export const aptosTransactionResolver = aptosIndexerResolver(
 	})
 )
 
+const aptosTransactionObservationApplicability = [
+	{
+		$transaction: aptosNetworkReferenceApplicability[0],
+		source: Source.AptosIndexer_Graphql,
+	},
+	{
+		$transaction: aptosNetworkReferenceApplicability[1],
+		source: Source.AptosIndexer_Graphql,
+	},
+] as const
+
+const aptosTableItemObservationApplicability = [
+	{
+		$tableItem: aptosNetworkReferenceApplicability[0],
+		source: Source.AptosIndexer_Graphql,
+	},
+	{
+		$tableItem: aptosNetworkReferenceApplicability[1],
+		source: Source.AptosIndexer_Graphql,
+	},
+] as const
+
 export const aptosTransactionTimestampResolver = aptosIndexerResolver(
 	defineResolver({
 		entityType: EntityType.AptosTransaction_Timestamp,
 		resolve: {
 			TransactionLedgerVersionSource: {
-				appliesTo: [
-					{
-						$transaction: aptosNetworkReferenceApplicability[0],
-						source: Source.AptosIndexer_Graphql,
-					},
-					{
-						$transaction: aptosNetworkReferenceApplicability[1],
-						source: Source.AptosIndexer_Graphql,
-					},
-				],
+				appliesTo: aptosTransactionObservationApplicability,
 				resolve: async ({
 					$transaction,
 					ledgerVersion,
@@ -422,16 +435,7 @@ export const aptosTableItemTimestampResolver = aptosIndexerResolver(
 		entityType: EntityType.AptosTableItem_Timestamp,
 		resolve: {
 			TableItemLedgerVersionSource: {
-				appliesTo: [
-					{
-						$tableItem: aptosNetworkReferenceApplicability[0],
-						source: Source.AptosIndexer_Graphql,
-					},
-					{
-						$tableItem: aptosNetworkReferenceApplicability[1],
-						source: Source.AptosIndexer_Graphql,
-					},
-				],
+				appliesTo: aptosTableItemObservationApplicability,
 				resolve: async ({
 					$tableItem,
 					ledgerVersion,
