@@ -101,7 +101,7 @@
 		"@tanstack/browser-db-sqlite-persistence": "^0.2.18",
 		"@tanstack/db": "^0.8.5",
 		"@tanstack/db-sqlite-persistence-core": "^0.2.18",
-		"@tanstack/query-core": "^5.102.4",
+		"@tanstack/query-core": "^5.102.6",
 		"@tanstack/query-db-collection": "^1.2.10",
 		"@tanstack/svelte-db": "^0.3.5",
 		"@tevm/voltaire": "^0.4.0",

@@ -42,11 +42,11 @@ importers:
         specifier: ^0.2.18
         version: 0.2.18(patch_hash=9f4484036e98ee520d7238ee3338cedc1be453e2f7a6b836cd82c30040d56c8a)(typescript@6.0.3)
       '@tanstack/query-core':
-        specifier: ^5.102.4
-        version: 5.102.4
+        specifier: ^5.102.6
+        version: 5.102.6
       '@tanstack/query-db-collection':
         specifier: ^1.2.10
-        version: 1.2.10(@tanstack/query-core@5.102.4)(typescript@6.0.3)
+        version: 1.2.10(@tanstack/query-core@5.102.6)(typescript@6.0.3)
       '@tanstack/svelte-db':
         specifier: ^0.3.5
         version: 0.3.5(svelte@5.56.10)(typescript@6.0.3)
@@ -1080,8 +1080,8 @@ packages:
     resolution: {integrity: sha512-eQ1MyLKCHyXiH7NbdmB80W77OhiMgGBUb+qDx/8WMGbwg5Lf/NlfD0TfNYAqY77i8V3AxoDoYdICrQE5ADw4Yw==}
     engines: {node: '>=18'}
 
-  '@tanstack/query-core@5.102.4':
-    resolution: {integrity: sha512-6eXkL+KFyVAZdpKoThCjPQQylZK8/ZOMYTJEVoPtHLkLs2PYks6vUiim9qzgvFXakSkRIAZwAZTeZLIJmpgRpQ==}
+  '@tanstack/query-core@5.102.6':
+    resolution: {integrity: sha512-jp+GucyQ+fel2ILb8ZLQeqMaAqZL/Bzaj+dKOQiPk4vPdf2rQPEV7heUyEVIhatpY42j4AFHav4DzBa1oTIp/A==}
 
   '@tanstack/query-db-collection@1.2.10':
     resolution: {integrity: sha512-vK+tAu6dUkJFOqgt5h8dmOruY7IRxsQZhkMHpgvZuX+nT2AeBbom38A+wlHTcloEnIl1qps3kEv4xoGnR68fRg==}
@@ -4037,13 +4037,13 @@ snapshots:
 
   '@tanstack/pacer-lite@0.2.2': {}
 
-  '@tanstack/query-core@5.102.4': {}
+  '@tanstack/query-core@5.102.6': {}
 
-  '@tanstack/query-db-collection@1.2.10(@tanstack/query-core@5.102.4)(typescript@6.0.3)':
+  '@tanstack/query-db-collection@1.2.10(@tanstack/query-core@5.102.6)(typescript@6.0.3)':
     dependencies:
       '@standard-schema/spec': 1.1.0
       '@tanstack/db': 0.8.5(typescript@6.0.3)
-      '@tanstack/query-core': 5.102.4
+      '@tanstack/query-core': 5.102.6
       typescript: 6.0.3
 
   '@tanstack/svelte-db@0.3.5(svelte@5.56.10)(typescript@6.0.3)':
