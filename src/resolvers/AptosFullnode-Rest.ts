@@ -71,6 +71,17 @@ const aptosNetworkReferenceApplicability = [
 	},
 ] as const
 
+const aptosNetworkObservationApplicability = [
+	{
+		$network: aptosNetworkApplicability[0],
+		source: Source.AptosFullnode_Rest,
+	},
+	{
+		$network: aptosNetworkApplicability[1],
+		source: Source.AptosFullnode_Rest,
+	},
+] as const
+
 const aptosAccountReferenceApplicability = [
 	{
 		$account: aptosNetworkReferenceApplicability[0],
@@ -581,6 +592,77 @@ const moveStructRows = (
 	})
 }
 
+const aptosAccountObservationApplicability = [
+	{
+		...aptosAccountReferenceApplicability[0],
+		source: Source.AptosFullnode_Rest,
+	},
+	{
+		...aptosAccountReferenceApplicability[1],
+		source: Source.AptosFullnode_Rest,
+	},
+] as const
+
+const aptosAccountResourceObservationApplicability = [
+	{
+		$resource: aptosAccountReferenceApplicability[0],
+		source: Source.AptosFullnode_Rest,
+	},
+	{
+		$resource: aptosAccountReferenceApplicability[1],
+		source: Source.AptosFullnode_Rest,
+	},
+] as const
+
+const aptosTransactionObservationApplicability = [
+	{
+		$transaction: aptosNetworkReferenceApplicability[0],
+		source: Source.AptosFullnode_Rest,
+	},
+	{
+		$transaction: aptosNetworkReferenceApplicability[1],
+		source: Source.AptosFullnode_Rest,
+	},
+] as const
+
+const aptosStateChangeApplicability = [
+	{
+		$transaction: aptosNetworkReferenceApplicability[0],
+	},
+	{
+		$transaction: aptosNetworkReferenceApplicability[1],
+	},
+] as const
+
+const moveModuleObservationApplicability = [
+	{
+		$module: aptosNetworkApplicability[0],
+		source: Source.AptosFullnode_Rest,
+	},
+	{
+		$module: aptosNetworkApplicability[1],
+		source: Source.AptosFullnode_Rest,
+	},
+] as const
+
+const moveFunctionApplicability = [
+	{
+		$module: aptosNetworkApplicability[0],
+	},
+	{
+		$module: aptosNetworkApplicability[1],
+	},
+] as const
+
+const moveStructApplicability = [
+	{
+		$module: aptosNetworkApplicability[0],
+	},
+	{
+		$module: aptosNetworkApplicability[1],
+	},
+] as const
+
 export default {
 	source: Source.AptosFullnode_Rest,
 
@@ -613,16 +695,7 @@ export default {
 			entityType: EntityType.AptosNetwork_Timestamp,
 			resolve: {
 				NetworkLedgerVersionSource: {
-					appliesTo: [
-						{
-							$network: aptosNetworkApplicability[0],
-							source: Source.AptosFullnode_Rest,
-						},
-						{
-							$network: aptosNetworkApplicability[1],
-							source: Source.AptosFullnode_Rest,
-						},
-					],
+					appliesTo: aptosNetworkObservationApplicability,
 					resolve: async ({ $network, ledgerVersion, source }, context) => {
 						assertAptosMainnet($network.$network)
 						assertSource(source)
@@ -743,16 +816,7 @@ export default {
 			entityType: EntityType.AptosAccount_Timestamp,
 			resolve: {
 				AccountLedgerVersionSource: {
-					appliesTo: [
-						{
-							...aptosAccountReferenceApplicability[0],
-							source: Source.AptosFullnode_Rest,
-						},
-						{
-							...aptosAccountReferenceApplicability[1],
-							source: Source.AptosFullnode_Rest,
-						},
-					],
+					appliesTo: aptosAccountObservationApplicability,
 					resolve: async ({ $account, ledgerVersion, source }, context) => {
 						assertAptosMainnet($account.$network.$network)
 						assertSource(source)
@@ -815,16 +879,7 @@ export default {
 			entityType: EntityType.AptosAccountResource_Timestamp,
 			resolve: {
 				ResourceLedgerVersionSource: {
-					appliesTo: [
-						{
-							$resource: aptosAccountReferenceApplicability[0],
-							source: Source.AptosFullnode_Rest,
-						},
-						{
-							$resource: aptosAccountReferenceApplicability[1],
-							source: Source.AptosFullnode_Rest,
-						},
-					],
+					appliesTo: aptosAccountResourceObservationApplicability,
 					resolve: async ({ $resource, ledgerVersion, source }, context) => {
 						assertAptosMainnet($resource.$account.$network.$network)
 						assertSource(source)
@@ -916,16 +971,7 @@ export default {
 			entityType: EntityType.AptosTransaction_Timestamp,
 			resolve: {
 				TransactionLedgerVersionSource: {
-					appliesTo: [
-						{
-							$transaction: aptosNetworkReferenceApplicability[0],
-							source: Source.AptosFullnode_Rest,
-						},
-						{
-							$transaction: aptosNetworkReferenceApplicability[1],
-							source: Source.AptosFullnode_Rest,
-						},
-					],
+					appliesTo: aptosTransactionObservationApplicability,
 					resolve: async ({ $transaction, ledgerVersion, source }, context) => {
 						assertAptosMainnet($transaction.$network.$network)
 						assertSource(source)
@@ -1000,14 +1046,7 @@ export default {
 			entityType: EntityType.AptosStateChange,
 			resolve: {
 				TransactionChangeIndex: {
-					appliesTo: [
-						{
-							$transaction: aptosNetworkReferenceApplicability[0],
-						},
-						{
-							$transaction: aptosNetworkReferenceApplicability[1],
-						},
-					],
+					appliesTo: aptosStateChangeApplicability,
 					resolve: async ({ $transaction, changeIndex }, context) => {
 						assertAptosMainnet($transaction.$network.$network)
 						const { getTransactionByHash, getTransactionByVersion } = await import('$/sources/AptosFullnode/Rest/queries.ts')
@@ -1097,16 +1136,7 @@ export default {
 			entityType: EntityType.MoveModule_Timestamp,
 			resolve: {
 				ModuleTimestampMsSource: {
-					appliesTo: [
-						{
-							$module: aptosNetworkApplicability[0],
-							source: Source.AptosFullnode_Rest,
-						},
-						{
-							$module: aptosNetworkApplicability[1],
-							source: Source.AptosFullnode_Rest,
-						},
-					],
+					appliesTo: moveModuleObservationApplicability,
 					resolve: async ({ $module, timestampMs, source }, context) => {
 						assertAptosMainnet($module.$network)
 						assertSource(source)
@@ -1146,14 +1176,7 @@ export default {
 			entityType: EntityType.MoveFunction,
 			resolve: {
 				ModuleFunctionName: {
-					appliesTo: [
-						{
-							$module: aptosNetworkApplicability[0],
-						},
-						{
-							$module: aptosNetworkApplicability[1],
-						},
-					],
+					appliesTo: moveFunctionApplicability,
 					resolve: async ({ $module, functionName }, context) => {
 						assertAptosMainnet($module.$network)
 						if (functionName.length === 0)
@@ -1185,14 +1208,7 @@ export default {
 			entityType: EntityType.MoveStruct,
 			resolve: {
 				ModuleStructName: {
-					appliesTo: [
-						{
-							$module: aptosNetworkApplicability[0],
-						},
-						{
-							$module: aptosNetworkApplicability[1],
-						},
-					],
+					appliesTo: moveStructApplicability,
 					resolve: async ({ $module, structName }, context) => {
 						assertAptosMainnet($module.$network)
 						if (structName.length === 0)
