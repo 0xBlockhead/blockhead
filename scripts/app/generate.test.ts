@@ -2894,8 +2894,7 @@ test('folds Hyperliquid Directory into Network.Hyperliquid without EVM Liquidity
 	const hyperliquidNetwork = app.schema.entities.find((entity) => entity.entityType === EntityType.HyperliquidNetwork)
 	const hyperliquidNetworkTimestamp = app.schema.entities.find((entity) => entity.entityType === EntityType.HyperliquidNetwork_Timestamp)
 	const hyperliquidPerpMarket = app.schema.entities.find((entity) => entity.entityType === EntityType.HyperliquidPerpMarket)
-	const hyperliquidPerpMarketTimestamp = app.schema.entities.find((entity) => entity.entityType === EntityType.HyperliquidPerpMarket_Timestamp)
-	assert.ok(hyperliquidNetwork && hyperliquidNetworkTimestamp && hyperliquidPerpMarket && hyperliquidPerpMarketTimestamp)
+	assert.ok(hyperliquidNetwork && hyperliquidNetworkTimestamp && hyperliquidPerpMarket)
 	assert.notEqual(hyperliquidPerpMarket.entityType, EntityType.LiquidityPool)
 	assert.deepEqual(
 		hyperliquidNetwork.fields.find((field) => field.name === '$$timestamps')?.defaultSources,
@@ -2914,7 +2913,7 @@ test('folds Hyperliquid Directory into Network.Hyperliquid without EVM Liquidity
 		/"coin"/,
 	)
 	assert.match(
-		JSON.stringify(hyperliquidPerpMarketTimestamp.views?.singular?.content?.dl ?? []),
+		JSON.stringify(hyperliquidPerpMarket.views?.singular?.content?.dl ?? []),
 		/maxLeverage/,
 	)
 
@@ -2928,7 +2927,8 @@ test('folds Hyperliquid Directory into Network.Hyperliquid without EVM Liquidity
 	assert.ok(hyperliquidPerpMarketView)
 	const renderedHyperliquidPerpMarketView = renderGeneratedFile(hyperliquidPerpMarketView)
 	assert.match(renderedHyperliquidPerpMarketView, /\bcoin\b/)
-	assert.match(renderedHyperliquidPerpMarketView, /HyperliquidPerpMarket_TimestampsView|\$\$timestamps/)
+	assert.match(renderedHyperliquidPerpMarketView, /maxLeverage|max leverage/)
+	assert.doesNotMatch(renderedHyperliquidPerpMarketView, /HyperliquidPerpMarket_TimestampsView|\$\$timestamps/)
 
 	const hyperliquidNetworkTimestampView = baselineCompiledApp.generatedFiles.find(({ path }) => path === 'src/views/HyperliquidNetwork_TimestampView.svelte')
 	assert.ok(hyperliquidNetworkTimestampView)
@@ -2936,8 +2936,7 @@ test('folds Hyperliquid Directory into Network.Hyperliquid without EVM Liquidity
 	assert.match(renderGeneratedFile(hyperliquidNetworkTimestampView), /totalStake|total stake/)
 
 	const hyperliquidPerpMarketTimestampView = baselineCompiledApp.generatedFiles.find(({ path }) => path === 'src/views/HyperliquidPerpMarket_TimestampView.svelte')
-	assert.ok(hyperliquidPerpMarketTimestampView)
-	assert.match(renderGeneratedFile(hyperliquidPerpMarketTimestampView), /maxLeverage|max leverage/)
+	assert.equal(hyperliquidPerpMarketTimestampView, undefined)
 
 	assert.ok(
 		baselineCompiledApp.generatedFiles.some(({ path }) => (
