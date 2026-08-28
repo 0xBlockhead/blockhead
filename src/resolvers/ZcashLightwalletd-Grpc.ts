@@ -22,12 +22,6 @@ const blockSnapshot = async ($network: { caip2?: { namespace: string; reference:
 	const hash = hex(block.hash)
 	if (expectedHash != null && expectedHash !== hash)
 		throw new Error(`${Source.ZcashLightwalletd_Grpc}: block hash does not match requested selector`)
-	const transactionSelector = ($transaction: { txid: Uint8Array }) => ({
-		[EntityMetaKey.Selector]: {
-			$network,
-			txId: hex($transaction.txid),
-		},
-	})
 	return {
 		hash,
 		...(height > 0n && { $parent: {
@@ -39,7 +33,7 @@ const blockSnapshot = async ($network: { caip2?: { namespace: string; reference:
 		} }),
 		timestampMs: block.time * 1000,
 		transactionCount: block.vtx.length,
-		$$transactions: block.vtx.map(transactionSelector),
+		$$transactions: block.vtx.map((transaction) => transactionFields($network, transaction)),
 	}
 }
 
@@ -77,7 +71,7 @@ export default {
 			entityType: EntityType.Network,
 			resolve: {
 				Caip2: {
-					appliesTo: networkApplicability,
+					appliesTo: [networkApplicability[0]],
 					resolve: async ({ caip2 }) => {
 						const $network = { caip2 }
 						const { getLatestBlock, getLightdInfo } = await import('$/sources/ZcashLightwalletd/Grpc/queries.ts')
@@ -115,31 +109,6 @@ export default {
 			timestampMs: (snapshot) => snapshot.timestampMs,
 			transactionCount: (snapshot) => snapshot.transactionCount,
 			$$transactions: (snapshot) => snapshot.$$transactions,
-		}),
-		defineResolver({
-			entityType: EntityType.UtxoBlock,
-			resolve: {
-				NetworkHeight: {
-					appliesTo: applicability,
-					resolve: async ({ $network, height }) => {
-						const { getBlock } = await import('$/sources/ZcashLightwalletd/Grpc/queries.ts')
-						const block = await getBlock({ height })
-						return block.vtx.map((transaction) => transactionFields($network, transaction))
-					},
-				},
-				NetworkHeightHash: {
-					appliesTo: applicability,
-					resolve: async ({ $network, height, hash }) => {
-						const { getBlock } = await import('$/sources/ZcashLightwalletd/Grpc/queries.ts')
-						const block = await getBlock({ height })
-						if (hex(block.hash) !== hash)
-							throw new Error(`${Source.ZcashLightwalletd_Grpc}: block hash does not match requested selector`)
-						return block.vtx.map((transaction) => transactionFields($network, transaction))
-					},
-				},
-			},
-		})({
-			$$transactions: (transactions) => transactions,
 		}),
 		defineResolver({
 			entityType: EntityType.ZcashShieldedPoolBlockState,
