@@ -1075,7 +1075,7 @@ type EndOfEpochTransaction {
   transactions(first: Int, after: String, last: Int, before: String): EndOfEpochTransactionKindConnection
 }
 
-union EndOfEpochTransactionKind = ChangeEpochTransaction | AuthenticatorStateCreateTransaction | AuthenticatorStateExpireTransaction | RandomnessStateCreateTransaction | CoinDenyListStateCreateTransaction | StoreExecutionTimeObservationsTransaction | BridgeStateCreateTransaction | BridgeCommitteeInitTransaction | AccumulatorRootCreateTransaction | CoinRegistryCreateTransaction | DisplayRegistryCreateTransaction | AddressAliasStateCreateTransaction | WriteAccumulatorStorageCostTransaction
+union EndOfEpochTransactionKind = ChangeEpochTransaction | AuthenticatorStateCreateTransaction | AuthenticatorStateExpireTransaction | RandomnessStateCreateTransaction | CoinDenyListStateCreateTransaction | StoreExecutionTimeObservationsTransaction | BridgeStateCreateTransaction | BridgeCommitteeInitTransaction | AccumulatorRootCreateTransaction | CoinRegistryCreateTransaction | DisplayRegistryCreateTransaction | AddressAliasStateCreateTransaction | WriteAccumulatorStorageCostTransaction | ForwardingAddressRegistryCreateTransaction
 
 type EndOfEpochTransactionKindConnection {
   """Information to aid in pagination."""
@@ -1399,6 +1399,12 @@ type FeatureFlag {
 
   """Feature flag value."""
   value: Boolean!
+}
+
+"""System transaction for creating the forwarding address registry."""
+type ForwardingAddressRegistryCreateTransaction {
+  """A workaround to define an empty variant of a GraphQL union."""
+  _: Boolean
 }
 
 """
