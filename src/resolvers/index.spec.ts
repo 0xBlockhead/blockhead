@@ -556,10 +556,11 @@ describe('resolver registry live resolver architecture', () => {
 	})
 
 	it('keeps resolver parts anchored to materialized resolver and field positions', () => {
+		const partsByResolver = Map.groupBy(resolverParts, (resolverPart) => resolverPart.resolver)
 		expect(resolverParts.length).toBeGreaterThan(0)
 		expect(resolverParts.every((resolverPart) => (
 			resolverDefinitions[resolverPart.resolver.definitionIndex] === resolverPart.resolver
-			&& resolverParts.filter((candidate) => candidate.resolver === resolverPart.resolver)[resolverPart.partIndex] === resolverPart
+			&& partsByResolver.get(resolverPart.resolver)?.[resolverPart.partIndex] === resolverPart
 		))).toBe(true)
 		expect(
 			resolverParts.some((resolverPart, resolverPartIndex) => (
