@@ -1,9 +1,11 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import { randomUUID } from 'node:crypto'
+import { createRequire } from 'node:module'
 
-import { parse as parseSvelte } from 'svelte/compiler'
 import ts from 'typescript'
+
+const { parse: parseSvelte }: typeof import('svelte/compiler') = createRequire(import.meta.url)('svelte/compiler')
 
 import {
 	emitTypeScript,
