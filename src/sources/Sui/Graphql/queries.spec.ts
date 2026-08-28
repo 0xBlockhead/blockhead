@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { print } from 'graphql'
+import { print, stripIgnoredCharacters } from 'graphql'
 
 import { Source } from '$/sources/Source.ts'
 import {
@@ -140,7 +140,7 @@ describe('Sui GraphQL account portfolio queries', () => {
 			address,
 			first: 1,
 		})
-		expect(print(executeSui.mock.calls[0][1])).toContain('filter: {affectedAddress: $address}')
+		expect(stripIgnoredCharacters(print(executeSui.mock.calls[0][1]))).toContain('filter:{affectedAddress:$address}')
 	})
 
 	it('normalizes shorthand addresses to the canonical GraphQL identity', async () => {

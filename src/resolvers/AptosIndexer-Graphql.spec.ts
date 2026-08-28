@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { stripIgnoredCharacters } from 'graphql'
 
 import {
 	EntityMetaKey,
@@ -186,9 +187,10 @@ describe('Aptos Indexer typed operations', () => {
 				transactionVersion: '42',
 			},
 		])
-		expect(JSON.parse(sourceFetch.mock.calls[1][2].body).query).toContain('order_by: {storage_id: asc}')
-		expect(JSON.parse(sourceFetch.mock.calls[1][2].body).query).toContain('limit: $limit')
-		expect(JSON.parse(sourceFetch.mock.calls[1][2].body).query).toContain('offset: $offset')
+		const balanceQuery = stripIgnoredCharacters(JSON.parse(sourceFetch.mock.calls[1][2].body).query)
+		expect(balanceQuery).toContain('order_by:{storage_id:asc}')
+		expect(balanceQuery).toContain('limit:$limit')
+		expect(balanceQuery).toContain('offset:$offset')
 	})
 })
 
