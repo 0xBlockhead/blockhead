@@ -31,6 +31,11 @@ const openFixture = async (
 		timeout: 120_000,
 	}))
 	await expectMainVisible(page, 120_000, diagnostics)
+	await diagnostics.step(expect(page.getByRole('heading', {
+		level: 1,
+		name: 'Local mutation authority',
+		exact: true,
+	})).toBeVisible({ timeout: 120_000 }))
 
 	return diagnostics
 }
