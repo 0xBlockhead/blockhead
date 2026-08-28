@@ -27,31 +27,13 @@ const bithompTokenHeaders = (publicEnv: SourcePublicEnv) => ({
 	'x-bithomp-token': requiredPublicEnvString(publicEnv, 'PUBLIC_BITHOMP_API_KEY'),
 })
 
-const omitUndefinedJson = (
-	value: unknown
-): unknown => {
-	if (Array.isArray(value))
-		return value.map(omitUndefinedJson)
-	if (value != null && typeof value === 'object')
-		return Object.fromEntries(
-				Object.entries(value)
-					// oxlint-disable-next-line typescript/no-unnecessary-condition -- unknown wire objects may contain explicit undefined properties
-					.filter(([, entry]) => entry !== undefined)
-				.map(([key, entry]) => [
-					key,
-					omitUndefinedJson(entry),
-				])
-		)
-	return value
-}
-
 const assertEnvelope = <_Value>(
 	label: string,
 	wire: { assert: (value: unknown) => _Value },
 	response: unknown
 ) => {
 	try {
-		return wire.assert(omitUndefinedJson(response))
+		return wire.assert(response)
 	} catch {
 		throw new Error(`Bithomp: invalid ${label} response envelope`)
 	}

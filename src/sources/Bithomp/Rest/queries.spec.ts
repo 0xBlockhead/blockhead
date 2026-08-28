@@ -201,6 +201,24 @@ describe('Bithomp Rest fail-closed envelopes', () => {
 			.rejects.toThrow('invalid ledger entry response envelope')
 	})
 
+	it('validates parsed JSON omissions while rejecting explicit null wire values', async () => {
+		sourceFetch
+			.mockResolvedValueOnce(jsonResponse({
+				address: 'rAccount',
+				xAddress: undefined,
+			}))
+			.mockResolvedValueOnce(jsonResponse({
+				address: 'rAccount',
+				xAddress: null,
+			}))
+
+		await expect(getAccount(publicEnv, { address: 'rAccount' })).resolves.toEqual({
+			address: 'rAccount',
+		})
+		await expect(getAccount(publicEnv, { address: 'rAccount' }))
+			.rejects.toThrow('invalid account response envelope')
+	})
+
 	it('hard-fails non-OK HTTP instead of soft-emptying', async () => {
 		sourceFetch.mockResolvedValue(new Response('upstream', { status: 503 }))
 
