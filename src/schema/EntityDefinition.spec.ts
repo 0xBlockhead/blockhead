@@ -1360,14 +1360,12 @@ describe('entity selectors', () => {
 		const hyperliquidNetwork = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.HyperliquidNetwork)
 		const hyperliquidNetworkTimestamp = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.HyperliquidNetwork_Timestamp)
 		const hyperliquidPerpMarket = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.HyperliquidPerpMarket)
-		const hyperliquidPerpMarketTimestamp = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.HyperliquidPerpMarket_Timestamp)
 		const liquidityPool = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.LiquidityPool)
 
 		if (
 			hyperliquidNetwork == null
 			|| hyperliquidNetworkTimestamp == null
 			|| hyperliquidPerpMarket == null
-			|| hyperliquidPerpMarketTimestamp == null
 			|| liquidityPool == null
 		)
 			throw new Error('Hyperliquid native schema rows missing')
@@ -1425,18 +1423,11 @@ describe('entity selectors', () => {
 				'coin',
 			],
 		])
-		expect(entityFieldDefinitions(hyperliquidPerpMarket).find(({ name }) => name === '$$timestamps')).toMatchObject({
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.HyperliquidPerpMarket_Timestamp,
-			defaultSources: [
-				Source.Hyperliquid,
-			],
-		})
-		expect(entityFieldDefinitions(hyperliquidPerpMarketTimestamp).map(({ name }) => name)).toEqual(
+		expect(entityFieldDefinitions(hyperliquidPerpMarket).map(({ name }) => name)).not.toContain('$$timestamps')
+		expect(entityFieldDefinitions(hyperliquidPerpMarket).map(({ name }) => name)).toEqual(
 			expect.arrayContaining([
-				'$perpMarket',
-				'timestampMs',
-				'source',
+				'$network',
+				'coin',
 				'maxLeverage',
 				'onlyIsolated',
 			])
