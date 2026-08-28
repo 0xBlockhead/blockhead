@@ -41,7 +41,7 @@ export const iterateSourceLive = async function* (
 	if (
 		binding.source !== request.source
 		|| binding.target.key !== request.targetKey
-		|| !binding.operationGroups.includes(request.operationGroup)
+		|| !binding.operationGroups.some((group) => group === request.operationGroup)
 	)
 		throw new Error(`${request.source}: RemoteLive request does not match binding ${request.bindingId}`)
 	if (

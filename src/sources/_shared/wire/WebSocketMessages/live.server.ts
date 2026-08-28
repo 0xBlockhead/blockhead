@@ -87,7 +87,7 @@ export const iterateWebSocketLive = async function* ({
 	if (signal?.aborted)
 		return
 
-	const endpoint = binding.endpoints.find((candidate) => (
+	const endpoint = [...binding.endpoints].find((candidate) => (
 		candidate.endpointKind === SourceEndpointKind.WebSocketUrl
 	))
 	if (endpoint == null)
