@@ -110,7 +110,7 @@ describe('Nostr protocol projections', () => {
 	})
 
 	it('keeps NIP-23 URLs and published_at on their strict wire domains', () => {
-		expect(nostrArticleFieldValues(event(
+		const invalidArticle = nostrArticleFieldValues(event(
 			'6'.repeat(64),
 			30_023,
 			[
@@ -118,10 +118,9 @@ describe('Nostr protocol projections', () => {
 				['image', 'not a URL'],
 				['published_at', '2026-08-02'],
 			]
-		))).toEqual(expect.objectContaining({
-			imageUrl: undefined,
-			publishedAt: 1_700_000_000_000,
-		}))
+		))
+		expect(invalidArticle).not.toHaveProperty('imageUrl')
+		expect(invalidArticle.publishedAt).toBe(1_700_000_000_000)
 		expect(nostrArticleFieldValues(event(
 			'6'.repeat(64),
 			30_023,
