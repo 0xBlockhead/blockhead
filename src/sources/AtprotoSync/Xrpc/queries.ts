@@ -4,9 +4,7 @@ import { fetchFailedMessage } from '$/lib/http.ts'
 import {
 	sourceBindingId,
 	SourceDelivery,
-	SourceEndpointKind,
 	SourceOperationGroup,
-	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
 import { sourceFetch } from '$/sources/_runtime/http.ts'
 import { sourceLive } from '$/sources/_runtime/live.remote.ts'
@@ -84,38 +82,24 @@ const resolvedRemoteQueryBinding = ({
 	binding,
 	serviceOrigin,
 }: {
-	binding: SourceBinding
+	binding: NonNullable<typeof remoteQueryBinding>
 	serviceOrigin: string
 }) => {
-	if (binding.delivery !== SourceDelivery.RemoteQuery)
-		throw new Error('AtprotoSync_Xrpc: HTTP sync reads require the RemoteQuery binding')
-
 	if (typeof window !== 'undefined')
 		throw new Error('AtprotoSync_Xrpc: RemoteQuery must run through a SvelteKit query')
 
 	const validatedOrigin = validatedServiceOrigin(serviceOrigin)
-	const resolvedBinding = binding.endpoints.some((endpoint) => (
-		endpoint.endpointKind === SourceEndpointKind.HttpUrl
-		&& endpoint.locator !== validatedOrigin
-	)) ?
-		{
-			...binding,
-			endpoints: binding.endpoints.map((endpoint) => (
-				endpoint.endpointKind === SourceEndpointKind.HttpUrl ?
-					{
-						...endpoint,
-						locator: validatedOrigin,
-					}
-				:
-					endpoint
-			)),
-		}
-	:
-		binding
-	if (!resolvedBinding.endpoints.some((endpoint) => (
-		endpoint.endpointKind === SourceEndpointKind.HttpUrl
-	)))
-		throw new Error('AtprotoSync_Xrpc: RemoteQuery binding requires an HttpUrl endpoint')
+	const resolveEndpoint = (endpoint: typeof binding.endpoints[number]) => ({
+		...endpoint,
+		locator: validatedOrigin,
+	})
+	const resolvedBinding = {
+		...binding,
+		endpoints: [
+			resolveEndpoint(binding.endpoints[0]),
+			...binding.endpoints.slice(1).map(resolveEndpoint),
+		] as const,
+	}
 
 	return {
 		validatedOrigin,
