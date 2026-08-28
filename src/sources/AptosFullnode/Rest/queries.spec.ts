@@ -143,6 +143,16 @@ describe('AptosFullnode Rest arktype envelopes', () => {
 			},
 		})
 	})
+	it.each([undefined, '42'])('rejects a pending transaction from the version endpoint (version=%s)', async (version) => {
+		sourceFetch.mockResolvedValueOnce(jsonResponse({
+			type: 'pending_transaction',
+			hash: '0x42',
+			version,
+		}))
+		await expect(getTransactionByVersion(binding, 42n))
+			.rejects.toThrow('transaction version response does not match request')
+	})
+
 
 	it('fail-closes malformed ledger / account / block / transaction envelopes', async () => {
 		sourceFetch

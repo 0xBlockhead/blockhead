@@ -349,7 +349,10 @@ export const getTransactionByVersion = async (
 ) => {
 	const response = await request(binding, `transactions/by_version/${version.toString()}`)
 	const transaction = assertEnvelope('transaction', aptosTransactionWire, response.body) as AptosTransaction
-	if (transaction.version !== version.toString())
+	if (
+		transaction.type === 'pending_transaction'
+		|| transaction.version !== version.toString()
+	)
 		throw new Error('AptosFullnode_Rest: transaction version response does not match request')
 	assertTransactionEffects(transaction)
 	return {
