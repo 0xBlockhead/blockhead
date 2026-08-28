@@ -113,9 +113,9 @@ const transmissionTorrentFileStatsWire = arktype({
 }) satisfies Type<TransmissionTorrentFileStats>
 const transmissionTorrentPeerWire = arktype({
 	address: 'string > 0',
-	port: 'number.integer >= 0 <= 65535',
+	port: '0 <= number.integer <= 65535',
 	'clientName?': 'string',
-	'progress?': 'number >= 0 <= 1',
+	'progress?': '0 <= number <= 1',
 }) satisfies Type<TransmissionTorrentPeer>
 const transmissionTorrentWire = arktype({
 	hashString: 'string',
