@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'vitest'
+import { EntityType } from '$/schema/EntityType.ts'
 
 import {
 	entityFieldAddressKey,
@@ -28,6 +29,24 @@ const resolvers = await loadResolvers()
 
 
 describe('resolver snapshot probes', () => {
+	test('addresses NEAR account observations by their block rather than a refresh timestamp', async () => {
+		await expect(resolveProbeEntitySelector(
+			EntityType.NearAccount_Block,
+			'AccountBlock',
+			Source.NearRpc_JsonRpc
+		)).resolves.toEqual({
+			$account: {
+				$network: { slug: 'near' },
+				accountId: 'near',
+			},
+			$block: {
+				$network: { slug: 'near' },
+				height: 100_000_000n,
+				hash: 'e2e-probe-near-block-hash',
+			},
+		})
+	})
+
 	test('resolves alternate selectors from exact selector-addressed fixtures', async () => {
 		await expect(resolveProbeEntitySelector(
 			'AtprotoActor',

@@ -826,14 +826,6 @@ const probeEntitySelectorByType = defineProbeEntitySelectors({
 		$network: mainnet,
 		address: ERC4337_SMART_ACCOUNT_ADDRESS,
 	},
-	[EntityType.Erc4337SmartAccount_Timestamp]: {
-		$account: {
-			$network: mainnet,
-			address: ERC4337_SMART_ACCOUNT_ADDRESS,
-		},
-		timestampMs: 0,
-		source: Source.Blockscout_Rest,
-	},
 	[EntityType.Erc4337Bundler]: {
 		$network: mainnet,
 		address: ERC4337_BUNDLER_ADDRESS,
@@ -2642,14 +2634,17 @@ const parentProbeEntitySelectorOverridesByTypeAndName = defineParentProbeEntityS
 			source: Source.MoneroDaemonRpc_JsonRpc,
 		},
 	},
-	[EntityType.NearAccount_Timestamp]: {
-		AccountTimestampMsSource: {
+	[EntityType.NearAccount_Block]: {
+		AccountBlock: {
 			$account: {
 				$network: nearNetwork,
 				accountId: 'near',
 			},
-			timestampMs: 0,
-			source: Source.NearRpc_JsonRpc,
+			$block: {
+				$network: nearNetwork,
+				height: 100_000_000n,
+				hash: 'e2e-probe-near-block-hash',
+			},
 		},
 	},
 	[EntityType.NearContract_Timestamp]: {
