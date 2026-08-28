@@ -20,7 +20,7 @@ const errorFrameBody = type({
 	error: 'string',
 	'message?': 'string',
 })
-const knownMessageType = type.enumerated<AtprotoSyncSubscribeReposMessage['type']>(
+const knownMessageType = type.enumerated(
 	'#account',
 	'#commit',
 	'#identity',
