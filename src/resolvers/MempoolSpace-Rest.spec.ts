@@ -7,10 +7,12 @@ import bindings from '$/sources/MempoolSpace/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 
 const sourceGetJson = vi.fn()
+const sourceGetText = vi.fn()
 
 vi.mock('$/sources/_runtime/http.ts', async (importOriginal) => ({
 	...await importOriginal<typeof import('$/sources/_runtime/http.ts')>(),
 	sourceGetJson,
+	sourceGetText,
 }))
 
 const { default: mempoolSpaceResolvers } = await import('$/resolvers/MempoolSpace-Rest.ts')
@@ -163,7 +165,7 @@ const transactions = [
 
 describe('MempoolSpace UTXO', () => {
 	beforeEach(() => {
-		vi.clearAllMocks()
+		vi.resetAllMocks()
 	})
 
 	it('projects transaction fields and child selectors from one provider response', async () => {
@@ -441,8 +443,8 @@ describe('MempoolSpace UTXO', () => {
 	it('resolves UtxoBlock by height via block-height then block', async () => {
 		const hash = 'c'.repeat(64)
 		const previous = 'd'.repeat(64)
+		sourceGetText.mockResolvedValueOnce(hash)
 		sourceGetJson
-			.mockResolvedValueOnce(hash)
 			.mockResolvedValueOnce({
 				id: hash,
 				height: 840_000,
@@ -461,11 +463,13 @@ describe('MempoolSpace UTXO', () => {
 			height: 840_000n,
 		})
 
-		expect(sourceGetJson.mock.calls).toEqual([
+		expect(sourceGetText.mock.calls).toEqual([
 			[
 				bitcoinBinding,
 				'https://mempool.space/api/block-height/840000',
 			],
+		])
+		expect(sourceGetJson.mock.calls).toEqual([
 			[
 				bitcoinBinding,
 				`https://mempool.space/api/block/${hash}`,
@@ -531,8 +535,8 @@ describe('MempoolSpace UTXO', () => {
 				block_hash: blockHash,
 			},
 		})
+		sourceGetText.mockResolvedValueOnce(blockHash)
 		sourceGetJson
-			.mockResolvedValueOnce(blockHash)
 			.mockResolvedValueOnce({
 				id: blockHash,
 				height: 840_000,
@@ -574,23 +578,23 @@ describe('MempoolSpace UTXO', () => {
 			height: 840_000n,
 			hash: blockHash,
 		}, resolverContext)).toBe(50)
-		expect(sourceGetJson).toHaveBeenNthCalledWith(
+		expect(sourceGetText).toHaveBeenNthCalledWith(
 			1,
 			bitcoinBinding,
 			`https://mempool.space/api/block-height/840000`
 		)
 		expect(sourceGetJson).toHaveBeenNthCalledWith(
-			2,
+			1,
 			bitcoinBinding,
 			`https://mempool.space/api/block/${blockHash}`
 		)
 		expect(sourceGetJson).toHaveBeenNthCalledWith(
-			3,
+			2,
 			bitcoinBinding,
 			`https://mempool.space/api/block/${blockHash}/txs/10`
 		)
 		expect(sourceGetJson).toHaveBeenNthCalledWith(
-			4,
+			3,
 			bitcoinBinding,
 			`https://mempool.space/api/block/${blockHash}/txs/35`
 		)
@@ -990,7 +994,7 @@ describe('MempoolSpace UTXO', () => {
 				[1_786_217_755, 961_632, 127_479_855_693_691.4, 1.00989],
 				[1_785_019_866, 959_616, 126_231_507_121_868.2, 0.992616],
 			])
-			.mockResolvedValueOnce('a'.repeat(64))
+		sourceGetText.mockResolvedValueOnce('a'.repeat(64))
 
 		expect(await difficultyAdjustmentBlocksResolver.resolve.Caip2.resolve(network, {
 			...resolverContext,
@@ -1012,7 +1016,8 @@ describe('MempoolSpace UTXO', () => {
 				[entityFieldAddressKey(EntityType.UtxoBlock, [], 'difficultyAdjustmentPercent')]: -0.7383999999999946,
 			},
 		}])
-		expect(sourceGetJson).toHaveBeenCalledTimes(2)
+		expect(sourceGetJson).toHaveBeenCalledOnce()
+		expect(sourceGetText).toHaveBeenCalledWith(bitcoinBinding, 'https://mempool.space/api/block-height/959616')
 	})
 
 	it('fail-closes repeated block hashes in sparse difficulty adjustment history', async () => {
@@ -1021,6 +1026,7 @@ describe('MempoolSpace UTXO', () => {
 				[1_786_217_755, 961_632, 127_479_855_693_691.4, 1.00989],
 				[1_785_019_866, 959_616, 126_231_507_121_868.2, 0.992616],
 			])
+		sourceGetText
 			.mockResolvedValueOnce('a'.repeat(64))
 			.mockResolvedValueOnce('a'.repeat(64))
 
@@ -1042,8 +1048,8 @@ describe('MempoolSpace UTXO', () => {
 		}, resolverContext)
 		expect(difficultyAdjustmentBlockResolver.projections.difficultyAdjustmentPercent(difficultyAdjustment)).toBeCloseTo(0.989)
 
+		sourceGetText.mockResolvedValueOnce('a'.repeat(64))
 		sourceGetJson
-			.mockResolvedValueOnce('a'.repeat(64))
 			.mockResolvedValueOnce([
 				[1_786_217_755, 961_632, 127_479_855_693_691.4, 1.00989],
 			])
@@ -1055,7 +1061,7 @@ describe('MempoolSpace UTXO', () => {
 			height: 961_632,
 		})
 
-		sourceGetJson.mockResolvedValueOnce('b'.repeat(64))
+		sourceGetText.mockResolvedValueOnce('b'.repeat(64))
 		await expect(difficultyAdjustmentBlockResolver.resolve.NetworkHeightHash.resolve({
 			$network: network,
 			height: 961_632n,
@@ -1569,7 +1575,7 @@ describe('MempoolSpace UTXO', () => {
 
 describe('MempoolSpace live network head', () => {
 	beforeEach(() => {
-		vi.clearAllMocks()
+		vi.resetAllMocks()
 		vi.useFakeTimers()
 		sourceGetJson
 			.mockResolvedValueOnce(840_000)
