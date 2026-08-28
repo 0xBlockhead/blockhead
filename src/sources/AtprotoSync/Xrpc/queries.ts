@@ -413,7 +413,10 @@ export const subscribeRepos = async function* ({
 				return
 			if (result.value.type === 'connected')
 				continue
-			if (!(result.value.payload instanceof Uint8Array))
+			if (
+				result.value.type !== 'message'
+				|| !(result.value.payload instanceof Uint8Array)
+			)
 				throw new Error('AtprotoSync_Xrpc: subscribeRepos received a non-binary WebSocket frame')
 
 			const message = decodeAtprotoSyncFrame(result.value.payload)

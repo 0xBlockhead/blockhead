@@ -446,13 +446,21 @@ describe('AtprotoSync_Xrpc subscribeRepos RemoteLive transport', () => {
 		expect(sourceLive).not.toHaveBeenCalled()
 	})
 
-	it('fails on non-binary frames instead of silently skipping malformed transport data', async () => {
+	it.each([
+		{
+			type: 'message',
+			payload: 'not binary',
+		},
+		{
+			type: 'grpc-message',
+			messageBase64: '',
+		},
+	])('rejects non-WebSocket binary data from $type events', async (event) => {
 		sourceLive.mockImplementation(() => (async function* () {
 			yield {
-				type: 'message',
+				...event,
 				source: Source.AtprotoSync_Xrpc,
 				targetKey: remoteLiveBinding.target.key,
-				payload: 'not binary',
 			}
 		})())
 
