@@ -156,12 +156,19 @@ export const aptosAccountTransactionsResolver = aptosIndexerResolver(
 				const nextOffset = aptosIndexerOffset(context) + transactions.length
 				const terminal = limit === 0 || transactions.length < limit
 
-				return {
-					operation: 'account-transactions',
-					target: 'aptos-indexer',
-					terminal,
-					...(!terminal && { token: String(nextOffset) }),
-				}
+				return terminal ?
+					{
+						operation: 'account-transactions',
+						target: 'aptos-indexer',
+						terminal: true,
+					}
+				:
+					{
+						operation: 'account-transactions',
+						target: 'aptos-indexer',
+						terminal: false,
+						token: String(nextOffset),
+					}
 			},
 		},
 	})
