@@ -5,6 +5,7 @@ import { error } from '@sveltejs/kit'
 import { match as matchStringSegment } from '$/params/stringSegment.ts'
 import { parseRouteEntitySelector } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
+import TezosNetworkSchema from '$/schema/TezosNetwork.ts'
 import TezosOperationGroupSchema from '$/schema/TezosOperationGroup.ts'
 import { type as arktype } from 'arktype'
 
@@ -15,11 +16,20 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 	if (!(parentData.projectionNetwork.namespace === 'Tezos' && matchStringSegment(params.operationHash)))
 		error(404, 'Route mapping not applicable')
 
+	const tezosNetworkNetworkParentSelector = parseRouteEntitySelector(
+		schema,
+		TezosNetworkSchema,
+		parentData.selector,
+		'Network'
+	)
+	if (tezosNetworkNetworkParentSelector instanceof arktype.errors)
+		error(404, 'Parent route selector not applicable')
+
 	const tezosOperationGroupNetworkOperationHashSelector = parseRouteEntitySelector(
 		schema,
 		TezosOperationGroupSchema,
 		{
-			$network: parentData.selector,
+			$network: tezosNetworkNetworkParentSelector,
 			operationHash: params.operationHash,
 		},
 		'NetworkOperationHash'

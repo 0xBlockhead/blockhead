@@ -6,6 +6,7 @@ import { match as matchStringSegment } from '$/params/stringSegment.ts'
 import { parseRouteEntitySelector } from '$/schema/$schema.ts'
 import BlockheadKaspaNodeStateSchema from '$/schema/BlockheadKaspaNodeState.ts'
 import { schema } from '$/schema/index.ts'
+import KaspaNetworkSchema from '$/schema/KaspaNetwork.ts'
 import { type as arktype } from 'arktype'
 
 // Projection eligibility: facetPath=['Kaspa']
@@ -15,12 +16,21 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 	if (!(parentData.projectionNetwork.namespace === 'Kaspa' && matchStringSegment(params.connectionId)))
 		error(404, 'Route mapping not applicable')
 
+	const kaspaNetworkNetworkParentSelector = parseRouteEntitySelector(
+		schema,
+		KaspaNetworkSchema,
+		parentData.selector,
+		'Network'
+	)
+	if (kaspaNetworkNetworkParentSelector instanceof arktype.errors)
+		error(404, 'Parent route selector not applicable')
+
 	const blockheadKaspaNodeStateConnectionIdNetworkSelector = parseRouteEntitySelector(
 		schema,
 		BlockheadKaspaNodeStateSchema,
 		{
 			connectionId: params.connectionId,
-			$network: parentData.selector,
+			$network: kaspaNetworkNetworkParentSelector,
 		},
 		'ConnectionIdNetwork'
 	)

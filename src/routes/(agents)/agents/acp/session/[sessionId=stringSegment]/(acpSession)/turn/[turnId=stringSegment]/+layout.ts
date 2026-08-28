@@ -5,6 +5,7 @@ import { error } from '@sveltejs/kit'
 import { match as matchStringSegment } from '$/params/stringSegment.ts'
 import { parseRouteEntitySelector } from '$/schema/$schema.ts'
 import AcpPromptTurnSchema from '$/schema/AcpPromptTurn.ts'
+import AcpSessionSchema from '$/schema/AcpSession.ts'
 import { schema } from '$/schema/index.ts'
 import { type as arktype } from 'arktype'
 
@@ -14,11 +15,20 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 	if (!(matchStringSegment(params.turnId)))
 		error(404, 'Route mapping not applicable')
 
+	const acpSessionSessionIdParentSelector = parseRouteEntitySelector(
+		schema,
+		AcpSessionSchema,
+		parentData.selector,
+		'SessionId'
+	)
+	if (acpSessionSessionIdParentSelector instanceof arktype.errors)
+		error(404, 'Parent route selector not applicable')
+
 	const acpPromptTurnSessionTurnIdSelector = parseRouteEntitySelector(
 		schema,
 		AcpPromptTurnSchema,
 		{
-			$session: parentData.selector,
+			$session: acpSessionSessionIdParentSelector,
 			turnId: params.turnId,
 		},
 		'SessionTurnId'

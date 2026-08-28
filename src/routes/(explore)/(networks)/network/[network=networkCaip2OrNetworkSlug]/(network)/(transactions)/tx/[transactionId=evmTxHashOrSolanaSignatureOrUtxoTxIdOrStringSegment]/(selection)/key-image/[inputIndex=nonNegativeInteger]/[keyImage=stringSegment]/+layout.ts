@@ -7,6 +7,7 @@ import { match as matchStringSegment } from '$/params/stringSegment.ts'
 import { parseRouteEntitySelector } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
 import MoneroKeyImageSchema from '$/schema/MoneroKeyImage.ts'
+import MoneroTransactionSchema from '$/schema/MoneroTransaction.ts'
 import { type as arktype } from 'arktype'
 
 // Projection eligibility: facetPath=['Monero']
@@ -20,11 +21,20 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 	))
 		error(404, 'Route mapping not applicable')
 
+	const moneroTransactionNetworkTxHashParentSelector = parseRouteEntitySelector(
+		schema,
+		MoneroTransactionSchema,
+		parentData.selector,
+		'NetworkTxHash'
+	)
+	if (moneroTransactionNetworkTxHashParentSelector instanceof arktype.errors)
+		error(404, 'Parent route selector not applicable')
+
 	const moneroKeyImageMoneroTransactionInputIndexKeyImageSelector = parseRouteEntitySelector(
 		schema,
 		MoneroKeyImageSchema,
 		{
-			$transaction: parentData.selector,
+			$transaction: moneroTransactionNetworkTxHashParentSelector,
 			inputIndex: Number(params.inputIndex),
 			keyImage: params.keyImage,
 		},

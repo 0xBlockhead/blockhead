@@ -5,6 +5,7 @@ import { error } from '@sveltejs/kit'
 import { match as matchStringSegment } from '$/params/stringSegment.ts'
 import { parseRouteEntitySelector } from '$/schema/$schema.ts'
 import CelestiaNamespaceSchema from '$/schema/CelestiaNamespace.ts'
+import CelestiaNetworkSchema from '$/schema/CelestiaNetwork.ts'
 import { schema } from '$/schema/index.ts'
 import { type as arktype } from 'arktype'
 
@@ -15,11 +16,20 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 	if (!(parentData.projectionNetwork.namespace === 'Celestia' && matchStringSegment(params.namespaceId)))
 		error(404, 'Route mapping not applicable')
 
+	const celestiaNetworkNetworkParentSelector = parseRouteEntitySelector(
+		schema,
+		CelestiaNetworkSchema,
+		parentData.selector,
+		'Network'
+	)
+	if (celestiaNetworkNetworkParentSelector instanceof arktype.errors)
+		error(404, 'Parent route selector not applicable')
+
 	const celestiaNamespaceNetworkNamespaceIdSelector = parseRouteEntitySelector(
 		schema,
 		CelestiaNamespaceSchema,
 		{
-			$network: parentData.selector,
+			$network: celestiaNetworkNetworkParentSelector,
 			namespaceId: params.namespaceId,
 		},
 		'NetworkNamespaceId'

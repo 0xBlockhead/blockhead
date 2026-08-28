@@ -48,7 +48,7 @@
 			entitySelector={tronAccountTokenBalanceTimestampSelector}
 			href={
 				resolve(
-					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=stringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey]/(selection)/token/[tokenId=stringSegment]/(hederaTokenAssociation)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=stringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey]/(selection)/token/[tokenId=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 					{
 						network: (
 							'caip2' in account.$network ?

@@ -7,6 +7,7 @@ import { match as matchStringSegment } from '$/params/stringSegment.ts'
 import { parseRouteEntitySelector } from '$/schema/$schema.ts'
 import BlockheadZeroGStorageNodeStateSchema from '$/schema/BlockheadZeroGStorageNodeState.ts'
 import { schema } from '$/schema/index.ts'
+import ZeroGNetworkSchema from '$/schema/ZeroGNetwork.ts'
 import { type as arktype } from 'arktype'
 
 export const load: LayoutLoad = async ({ params, parent }) => {
@@ -15,12 +16,21 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 	if (!(matchStringSegment(params.connectionId) && matchEvmAddress(params.nodeId)))
 		error(404, 'Route mapping not applicable')
 
+	const zeroGNetworkSlugParentSelector = parseRouteEntitySelector(
+		schema,
+		ZeroGNetworkSchema,
+		parentData.selector,
+		'Slug'
+	)
+	if (zeroGNetworkSlugParentSelector instanceof arktype.errors)
+		error(404, 'Parent route selector not applicable')
+
 	const blockheadZeroGStorageNodeStateConnectionIdNetworkNodeIdSelector = parseRouteEntitySelector(
 		schema,
 		BlockheadZeroGStorageNodeStateSchema,
 		{
 			connectionId: params.connectionId,
-			$network: parentData.selector,
+			$network: zeroGNetworkSlugParentSelector,
 			nodeId: params.nodeId,
 		},
 		'ConnectionIdNetworkNodeId'

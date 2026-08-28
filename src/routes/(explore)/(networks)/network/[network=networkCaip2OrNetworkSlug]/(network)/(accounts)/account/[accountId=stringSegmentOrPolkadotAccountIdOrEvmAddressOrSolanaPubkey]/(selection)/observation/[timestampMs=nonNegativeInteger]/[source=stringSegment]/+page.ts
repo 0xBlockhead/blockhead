@@ -6,13 +6,19 @@ import { match as matchNonNegativeInteger } from '$/params/nonNegativeInteger.ts
 import { match as matchStringSegment } from '$/params/stringSegment.ts'
 import { parseRouteEntitySelector } from '$/schema/$schema.ts'
 import CosmosAccount_TimestampSchema from '$/schema/CosmosAccount_Timestamp.ts'
+import CosmosAccountSchema from '$/schema/CosmosAccount.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import EvmNetworkAccount_TimestampSchema from '$/schema/EvmNetworkAccount_Timestamp.ts'
+import EvmNetworkAccountSchema from '$/schema/EvmNetworkAccount.ts'
 import HederaAccount_TimestampSchema from '$/schema/HederaAccount_Timestamp.ts'
+import HederaAccountSchema from '$/schema/HederaAccount.ts'
 import { schema } from '$/schema/index.ts'
 import PolkadotAccount_TimestampSchema from '$/schema/PolkadotAccount_Timestamp.ts'
+import PolkadotAccountSchema from '$/schema/PolkadotAccount.ts'
 import TonAccount_TimestampSchema from '$/schema/TonAccount_Timestamp.ts'
+import TonAccountSchema from '$/schema/TonAccount.ts'
 import TronAccount_TimestampSchema from '$/schema/TronAccount_Timestamp.ts'
+import TronAccountSchema from '$/schema/TronAccount.ts'
 import { type as arktype } from 'arktype'
 
 export const load: PageLoad = async ({ params, parent }) => {
@@ -32,11 +38,20 @@ export const load: PageLoad = async ({ params, parent }) => {
 		))
 			return
 
+		const polkadotAccountNetworkAccountIdParentSelector = parseRouteEntitySelector(
+			schema,
+			PolkadotAccountSchema,
+			parentData.selector,
+			'NetworkAccountId'
+		)
+		if (polkadotAccountNetworkAccountIdParentSelector instanceof arktype.errors)
+			return
+
 		const polkadotAccountTimestampAccountTimestampMsSourceSelector = parseRouteEntitySelector(
 			schema,
 			PolkadotAccount_TimestampSchema,
 			{
-				$account: parentData.selector,
+				$account: polkadotAccountNetworkAccountIdParentSelector,
 				timestampMs: Number(params.timestampMs),
 				source: params.source,
 			},
@@ -64,11 +79,20 @@ export const load: PageLoad = async ({ params, parent }) => {
 		))
 			return
 
+		const cosmosAccountNetworkAddressParentSelector = parseRouteEntitySelector(
+			schema,
+			CosmosAccountSchema,
+			parentData.selector,
+			'NetworkAddress'
+		)
+		if (cosmosAccountNetworkAddressParentSelector instanceof arktype.errors)
+			return
+
 		const cosmosAccountTimestampAccountTimestampMsSourceSelector = parseRouteEntitySelector(
 			schema,
 			CosmosAccount_TimestampSchema,
 			{
-				$account: parentData.selector,
+				$account: cosmosAccountNetworkAddressParentSelector,
 				timestampMs: Number(params.timestampMs),
 				source: params.source,
 			},
@@ -96,11 +120,20 @@ export const load: PageLoad = async ({ params, parent }) => {
 		))
 			return
 
+		const evmNetworkAccountEvmNetworkEvmAccountParentSelector = parseRouteEntitySelector(
+			schema,
+			EvmNetworkAccountSchema,
+			parentData.selector,
+			'EvmNetworkEvmAccount'
+		)
+		if (evmNetworkAccountEvmNetworkEvmAccountParentSelector instanceof arktype.errors)
+			return
+
 		const evmNetworkAccountTimestampAccountTimestampMsSourceSelector = parseRouteEntitySelector(
 			schema,
 			EvmNetworkAccount_TimestampSchema,
 			{
-				$account: parentData.selector,
+				$account: evmNetworkAccountEvmNetworkEvmAccountParentSelector,
 				timestampMs: Number(params.timestampMs),
 				source: params.source,
 			},
@@ -122,11 +155,20 @@ export const load: PageLoad = async ({ params, parent }) => {
 		))
 			return
 
+		const hederaAccountNetworkAccountIdParentSelector = parseRouteEntitySelector(
+			schema,
+			HederaAccountSchema,
+			parentData.selector,
+			'NetworkAccountId'
+		)
+		if (hederaAccountNetworkAccountIdParentSelector instanceof arktype.errors)
+			return
+
 		const hederaAccountTimestampAccountTimestampMsSourceSelector = parseRouteEntitySelector(
 			schema,
 			HederaAccount_TimestampSchema,
 			{
-				$account: parentData.selector,
+				$account: hederaAccountNetworkAccountIdParentSelector,
 				timestampMs: Number(params.timestampMs),
 				source: params.source,
 			},
@@ -148,11 +190,20 @@ export const load: PageLoad = async ({ params, parent }) => {
 		))
 			return
 
+		const tonAccountNetworkAddressParentSelector = parseRouteEntitySelector(
+			schema,
+			TonAccountSchema,
+			parentData.selector,
+			'NetworkAddress'
+		)
+		if (tonAccountNetworkAddressParentSelector instanceof arktype.errors)
+			return
+
 		const tonAccountTimestampAccountTimestampMsSourceSelector = parseRouteEntitySelector(
 			schema,
 			TonAccount_TimestampSchema,
 			{
-				$account: parentData.selector,
+				$account: tonAccountNetworkAddressParentSelector,
 				timestampMs: Number(params.timestampMs),
 				source: params.source,
 			},
@@ -174,11 +225,20 @@ export const load: PageLoad = async ({ params, parent }) => {
 		))
 			return
 
+		const tronAccountNetworkAddressParentSelector = parseRouteEntitySelector(
+			schema,
+			TronAccountSchema,
+			parentData.selector,
+			'NetworkAddress'
+		)
+		if (tronAccountNetworkAddressParentSelector instanceof arktype.errors)
+			return
+
 		const tronAccountTimestampAccountTimestampMsSourceSelector = parseRouteEntitySelector(
 			schema,
 			TronAccount_TimestampSchema,
 			{
-				$account: parentData.selector,
+				$account: tronAccountNetworkAddressParentSelector,
 				timestampMs: Number(params.timestampMs),
 				source: params.source,
 			},

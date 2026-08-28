@@ -75924,36 +75924,36 @@ export const routes = defineRoutes(schema)({
 																		},
 																	},
 																},
-																"token": {
-																	children: {
-																		"[tokenId]": {
-																			params: { "tokenId": ["string"] },
-																			selectors: {
-																				[EntityType.HederaTokenAssociation]: {
-																					"AccountToken": {
-																						derivations: {
-																							"$token": {
-																								kind: "selector",
-																								entity: EntityType.HederaToken,
-																								selector: "NetworkTokenId",
-																								params: [
-																									{
-																										field: "$network",
-																										value: {
-																											kind: "property",
-																											value: { kind: "field", name: "$account" },
-																											property: "$network",
-																										},
-																									},
-																								{ field: "tokenId", param: "tokenId" },
-																							],
-																						},
-																					},
-																					page: {},
-																				}
-																			}
-																		},
-																			children: {
+										"token": {
+											children: {
+												"[tokenId]": {
+													params: { "tokenId": ["string"] },
+													selectors: {
+														[EntityType.HederaTokenAssociation]: {
+															"AccountToken": {
+																derivations: {
+																	"$token": {
+																		kind: "selector",
+																		entity: EntityType.HederaToken,
+																		selector: "NetworkTokenId",
+																		params: [
+																			{
+																				field: "$network",
+																				value: {
+																					kind: "property",
+																					value: { kind: "field", name: "$account" },
+																					property: "$network",
+																				},
+																			},
+																			{ field: "tokenId", param: "tokenId" },
+																		],
+																	},
+																},
+																page: false,
+															},
+														},
+													},
+													children: {
 																				"observations": {
 																					children: {
 																						"[timestampMs]": {
@@ -75982,10 +75982,35 @@ export const routes = defineRoutes(schema)({
 																														projection: { entityType: EntityType.Network, facetPath: ["Tron"] },
 																													}
 																												},
-																												[EntityType.HederaTokenAssociation_Timestamp]: {
-																											"AssociationTimestampMsSource": {
-																												params: { "timestampMs": ["timestampMs"], "source": ["source"] },
-																													page: {},
+																				[EntityType.HederaTokenAssociation_Timestamp]: {
+																		"AssociationTimestampMsSource": {
+																			params: { "timestampMs": ["timestampMs"], "source": ["source"] },
+																			derivations: {
+																				"$association": {
+																					kind: "selector",
+																					entity: EntityType.HederaTokenAssociation,
+																					selector: "AccountToken",
+																					params: [
+																						{ field: "$account", value: { kind: "pageSelector" } },
+																						{
+																							field: "$token",
+																							value: {
+																								kind: "selector",
+																								entity: EntityType.HederaToken,
+																								selector: "NetworkTokenId",
+																								params: [
+																									{
+																										field: "$network",
+																									value: { kind: "property", value: { kind: "pageSelector" }, property: "$network" },
+																									},
+																									{ field: "tokenId", param: "tokenId" },
+																								],
+																							},
+																						},
+																					],
+																				},
+																			},
+																			page: {},
 																													when: { path: ["namespace"], is: "Hedera" },
 																													projection: { entityType: EntityType.Network, facetPath: ["Hedera"] },
 																												}

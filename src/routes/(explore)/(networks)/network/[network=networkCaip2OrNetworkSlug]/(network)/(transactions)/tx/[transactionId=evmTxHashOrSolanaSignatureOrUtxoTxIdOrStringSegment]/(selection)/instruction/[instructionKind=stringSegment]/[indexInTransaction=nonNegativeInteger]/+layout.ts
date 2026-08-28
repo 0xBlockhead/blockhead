@@ -7,6 +7,7 @@ import { match as matchStringSegment } from '$/params/stringSegment.ts'
 import { parseRouteEntitySelector } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
 import SolanaInstructionSchema from '$/schema/SolanaInstruction.ts'
+import SolanaTransactionSchema from '$/schema/SolanaTransaction.ts'
 import { type as arktype } from 'arktype'
 
 // Projection eligibility: facetPath=['Solana']
@@ -23,11 +24,20 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 	))
 		error(404, 'Route mapping not applicable')
 
+	const solanaTransactionNetworkSignatureParentSelector = parseRouteEntitySelector(
+		schema,
+		SolanaTransactionSchema,
+		parentData.selector,
+		'NetworkSignature'
+	)
+	if (solanaTransactionNetworkSignatureParentSelector instanceof arktype.errors)
+		error(404, 'Parent route selector not applicable')
+
 	const solanaInstructionSolanaTransactionIndexInTransactionSelector = parseRouteEntitySelector(
 		schema,
 		SolanaInstructionSchema,
 		{
-			$transaction: parentData.selector,
+			$transaction: solanaTransactionNetworkSignatureParentSelector,
 			instructionKind: params.instructionKind,
 			indexInTransaction: Number(params.indexInTransaction),
 		},

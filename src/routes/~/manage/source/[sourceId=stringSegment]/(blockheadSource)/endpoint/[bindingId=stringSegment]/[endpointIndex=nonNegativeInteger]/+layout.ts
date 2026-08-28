@@ -5,6 +5,7 @@ import { error } from '@sveltejs/kit'
 import { match as matchNonNegativeInteger } from '$/params/nonNegativeInteger.ts'
 import { match as matchStringSegment } from '$/params/stringSegment.ts'
 import { parseRouteEntitySelector } from '$/schema/$schema.ts'
+import BlockheadSourceSchema from '$/schema/BlockheadSource.ts'
 import BlockheadSourceEndpointSchema from '$/schema/BlockheadSourceEndpoint.ts'
 import { schema } from '$/schema/index.ts'
 import { type as arktype } from 'arktype'
@@ -15,11 +16,20 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 	if (!(matchStringSegment(params.bindingId) && matchNonNegativeInteger(params.endpointIndex)))
 		error(404, 'Route mapping not applicable')
 
+	const blockheadSourceIdParentSelector = parseRouteEntitySelector(
+		schema,
+		BlockheadSourceSchema,
+		parentData.selector,
+		'Id'
+	)
+	if (blockheadSourceIdParentSelector instanceof arktype.errors)
+		error(404, 'Parent route selector not applicable')
+
 	const blockheadSourceEndpointSourceBindingIdEndpointIndexSelector = parseRouteEntitySelector(
 		schema,
 		BlockheadSourceEndpointSchema,
 		{
-			$source: parentData.selector,
+			$source: blockheadSourceIdParentSelector,
 			bindingId: decodeURIComponent(params.bindingId),
 			endpointIndex: Number(params.endpointIndex),
 		},

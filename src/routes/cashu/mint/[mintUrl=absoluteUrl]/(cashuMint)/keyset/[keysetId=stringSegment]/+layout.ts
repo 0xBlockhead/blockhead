@@ -5,6 +5,7 @@ import { error } from '@sveltejs/kit'
 import { match as matchStringSegment } from '$/params/stringSegment.ts'
 import { parseRouteEntitySelector } from '$/schema/$schema.ts'
 import CashuKeysetSchema from '$/schema/CashuKeyset.ts'
+import CashuMintSchema from '$/schema/CashuMint.ts'
 import { schema } from '$/schema/index.ts'
 import { type as arktype } from 'arktype'
 
@@ -14,11 +15,20 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 	if (!(matchStringSegment(params.keysetId)))
 		error(404, 'Route mapping not applicable')
 
+	const cashuMintMintUrlParentSelector = parseRouteEntitySelector(
+		schema,
+		CashuMintSchema,
+		parentData.selector,
+		'MintUrl'
+	)
+	if (cashuMintMintUrlParentSelector instanceof arktype.errors)
+		error(404, 'Parent route selector not applicable')
+
 	const cashuKeysetCashuMintKeysetIdSelector = parseRouteEntitySelector(
 		schema,
 		CashuKeysetSchema,
 		{
-			$mint: parentData.selector,
+			$mint: cashuMintMintUrlParentSelector,
 			keysetId: params.keysetId,
 		},
 		'CashuMintKeysetId'

@@ -5,6 +5,7 @@ import { error } from '@sveltejs/kit'
 import { match as matchNonNegativeBigInt } from '$/params/nonNegativeBigInt.ts'
 import { parseRouteEntitySelector } from '$/schema/$schema.ts'
 import HederaNftSchema from '$/schema/HederaNft.ts'
+import HederaTokenSchema from '$/schema/HederaToken.ts'
 import { schema } from '$/schema/index.ts'
 import { type as arktype } from 'arktype'
 
@@ -14,11 +15,20 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 	if (!(matchNonNegativeBigInt(params.serialNumber)))
 		error(404, 'Route mapping not applicable')
 
+	const hederaTokenNetworkTokenIdParentSelector = parseRouteEntitySelector(
+		schema,
+		HederaTokenSchema,
+		parentData.selector,
+		'NetworkTokenId'
+	)
+	if (hederaTokenNetworkTokenIdParentSelector instanceof arktype.errors)
+		error(404, 'Parent route selector not applicable')
+
 	const hederaNftTokenSerialNumberSelector = parseRouteEntitySelector(
 		schema,
 		HederaNftSchema,
 		{
-			$token: parentData.selector,
+			$token: hederaTokenNetworkTokenIdParentSelector,
 			serialNumber: BigInt(params.serialNumber),
 		},
 		'TokenSerialNumber'

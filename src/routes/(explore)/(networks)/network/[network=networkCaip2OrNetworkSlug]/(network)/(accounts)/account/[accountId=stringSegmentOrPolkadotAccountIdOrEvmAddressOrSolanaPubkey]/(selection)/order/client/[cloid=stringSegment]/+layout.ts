@@ -4,6 +4,7 @@ import type { LayoutLoad } from './$types'
 import { error } from '@sveltejs/kit'
 import { match as matchStringSegment } from '$/params/stringSegment.ts'
 import { parseRouteEntitySelector } from '$/schema/$schema.ts'
+import HyperliquidAccountSchema from '$/schema/HyperliquidAccount.ts'
 import HyperliquidOrderSchema from '$/schema/HyperliquidOrder.ts'
 import { schema } from '$/schema/index.ts'
 import { type as arktype } from 'arktype'
@@ -14,11 +15,20 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 	if (!(matchStringSegment(params.cloid)))
 		error(404, 'Route mapping not applicable')
 
+	const hyperliquidAccountNetworkAddressParentSelector = parseRouteEntitySelector(
+		schema,
+		HyperliquidAccountSchema,
+		parentData.selector,
+		'NetworkAddress'
+	)
+	if (hyperliquidAccountNetworkAddressParentSelector instanceof arktype.errors)
+		error(404, 'Parent route selector not applicable')
+
 	const hyperliquidOrderAccountCloidSelector = parseRouteEntitySelector(
 		schema,
 		HyperliquidOrderSchema,
 		{
-			$account: parentData.selector,
+			$account: hyperliquidAccountNetworkAddressParentSelector,
 			cloid: params.cloid,
 		},
 		'AccountCloid'

@@ -7,8 +7,11 @@ import { parseRouteEntitySelector } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import KaspaAddressSchema from '$/schema/KaspaAddress.ts'
+import KaspaNetworkSchema from '$/schema/KaspaNetwork.ts'
 import SuiAccountSchema from '$/schema/SuiAccount.ts'
+import SuiNetworkSchema from '$/schema/SuiNetwork.ts'
 import TezosAccountSchema from '$/schema/TezosAccount.ts'
+import TezosNetworkSchema from '$/schema/TezosNetwork.ts'
 import { type as arktype } from 'arktype'
 
 export const load: LayoutLoad = async ({ params, parent }) => {
@@ -18,11 +21,20 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 		if (!(parentData.projectionNetwork.namespace === 'Sui' && matchStringSegment(params.address)))
 			return
 
+		const suiNetworkNetworkParentSelector = parseRouteEntitySelector(
+			schema,
+			SuiNetworkSchema,
+			parentData.selector,
+			'Network'
+		)
+		if (suiNetworkNetworkParentSelector instanceof arktype.errors)
+			return
+
 		const suiAccountNetworkAddressSelector = parseRouteEntitySelector(
 			schema,
 			SuiAccountSchema,
 			{
-				$network: parentData.selector,
+				$network: suiNetworkNetworkParentSelector,
 				address: params.address,
 			},
 			'NetworkAddress'
@@ -39,11 +51,20 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 		if (!(parentData.projectionNetwork.namespace === 'Tezos' && matchStringSegment(params.address)))
 			return
 
+		const tezosNetworkNetworkParentSelector = parseRouteEntitySelector(
+			schema,
+			TezosNetworkSchema,
+			parentData.selector,
+			'Network'
+		)
+		if (tezosNetworkNetworkParentSelector instanceof arktype.errors)
+			return
+
 		const tezosAccountNetworkAddressSelector = parseRouteEntitySelector(
 			schema,
 			TezosAccountSchema,
 			{
-				$network: parentData.selector,
+				$network: tezosNetworkNetworkParentSelector,
 				address: params.address,
 			},
 			'NetworkAddress'
@@ -60,11 +81,20 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 		if (!(parentData.projectionNetwork.namespace === 'Kaspa' && matchStringSegment(params.address)))
 			return
 
+		const kaspaNetworkNetworkParentSelector = parseRouteEntitySelector(
+			schema,
+			KaspaNetworkSchema,
+			parentData.selector,
+			'Network'
+		)
+		if (kaspaNetworkNetworkParentSelector instanceof arktype.errors)
+			return
+
 		const kaspaAddressNetworkAddressSelector = parseRouteEntitySelector(
 			schema,
 			KaspaAddressSchema,
 			{
-				$network: parentData.selector,
+				$network: kaspaNetworkNetworkParentSelector,
 				address: params.address,
 			},
 			'NetworkAddress'

@@ -6,6 +6,7 @@ import { match as matchStringSegment } from '$/params/stringSegment.ts'
 import { parseRouteEntitySelector } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
 import SorobanContractSchema from '$/schema/SorobanContract.ts'
+import StellarNetworkSchema from '$/schema/StellarNetwork.ts'
 import { type as arktype } from 'arktype'
 
 // Projection eligibility: facetPath=['Stellar']
@@ -15,11 +16,20 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 	if (!(parentData.projectionNetwork.namespace === 'Stellar' && matchStringSegment(params.contractId)))
 		error(404, 'Route mapping not applicable')
 
+	const stellarNetworkNetworkParentSelector = parseRouteEntitySelector(
+		schema,
+		StellarNetworkSchema,
+		parentData.selector,
+		'Network'
+	)
+	if (stellarNetworkNetworkParentSelector instanceof arktype.errors)
+		error(404, 'Parent route selector not applicable')
+
 	const sorobanContractNetworkContractIdSelector = parseRouteEntitySelector(
 		schema,
 		SorobanContractSchema,
 		{
-			$network: parentData.selector,
+			$network: stellarNetworkNetworkParentSelector,
 			contractId: params.contractId,
 		},
 		'NetworkContractId'

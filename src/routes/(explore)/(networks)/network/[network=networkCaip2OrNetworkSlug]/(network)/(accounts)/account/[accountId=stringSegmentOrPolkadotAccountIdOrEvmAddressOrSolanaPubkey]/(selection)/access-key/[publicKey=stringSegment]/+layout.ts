@@ -6,6 +6,7 @@ import { match as matchStringSegment } from '$/params/stringSegment.ts'
 import { parseRouteEntitySelector } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
 import NearAccessKeySchema from '$/schema/NearAccessKey.ts'
+import NearAccountSchema from '$/schema/NearAccount.ts'
 import { type as arktype } from 'arktype'
 
 // Projection eligibility: facetPath=['Near']
@@ -15,11 +16,20 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 	if (!(parentData.projectionNetwork.namespace === 'Near' && matchStringSegment(params.publicKey)))
 		error(404, 'Route mapping not applicable')
 
+	const nearAccountNetworkAccountIdParentSelector = parseRouteEntitySelector(
+		schema,
+		NearAccountSchema,
+		parentData.selector,
+		'NetworkAccountId'
+	)
+	if (nearAccountNetworkAccountIdParentSelector instanceof arktype.errors)
+		error(404, 'Parent route selector not applicable')
+
 	const nearAccessKeyNearAccountPublicKeySelector = parseRouteEntitySelector(
 		schema,
 		NearAccessKeySchema,
 		{
-			$account: parentData.selector,
+			$account: nearAccountNetworkAccountIdParentSelector,
 			publicKey: params.publicKey,
 		},
 		'NearAccountPublicKey'

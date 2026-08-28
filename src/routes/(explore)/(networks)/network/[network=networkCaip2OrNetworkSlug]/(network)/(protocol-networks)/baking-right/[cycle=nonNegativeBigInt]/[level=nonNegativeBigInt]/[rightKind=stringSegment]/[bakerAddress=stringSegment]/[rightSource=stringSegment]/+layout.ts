@@ -7,6 +7,7 @@ import { match as matchStringSegment } from '$/params/stringSegment.ts'
 import { parseRouteEntitySelector } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
 import TezosBakingRightSchema from '$/schema/TezosBakingRight.ts'
+import TezosNetworkSchema from '$/schema/TezosNetwork.ts'
 import { type as arktype } from 'arktype'
 
 // Projection eligibility: facetPath=['Tezos']
@@ -23,11 +24,20 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 	))
 		error(404, 'Route mapping not applicable')
 
+	const tezosNetworkNetworkParentSelector = parseRouteEntitySelector(
+		schema,
+		TezosNetworkSchema,
+		parentData.selector,
+		'Network'
+	)
+	if (tezosNetworkNetworkParentSelector instanceof arktype.errors)
+		error(404, 'Parent route selector not applicable')
+
 	const tezosBakingRightNetworkCycleLevelRightKindBakerAddressSourceSelector = parseRouteEntitySelector(
 		schema,
 		TezosBakingRightSchema,
 		{
-			$network: parentData.selector,
+			$network: tezosNetworkNetworkParentSelector,
 			cycle: BigInt(params.cycle),
 			level: BigInt(params.level),
 			rightKind: params.rightKind,

@@ -5,6 +5,7 @@ import { error } from '@sveltejs/kit'
 import { match as matchNetworkSlug } from '$/params/networkSlug.ts'
 import { match as matchStringSegment } from '$/params/stringSegment.ts'
 import { parseRouteEntitySelector } from '$/schema/$schema.ts'
+import BnbBeaconTokenSchema from '$/schema/BnbBeaconToken.ts'
 import BnbBeaconTokenMigrationSchema from '$/schema/BnbBeaconTokenMigration.ts'
 import { schema } from '$/schema/index.ts'
 import { type as arktype } from 'arktype'
@@ -20,11 +21,20 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 	))
 		error(404, 'Route mapping not applicable')
 
+	const bnbBeaconTokenNetworkSymbolParentSelector = parseRouteEntitySelector(
+		schema,
+		BnbBeaconTokenSchema,
+		parentData.selector,
+		'NetworkSymbol'
+	)
+	if (bnbBeaconTokenNetworkSymbolParentSelector instanceof arktype.errors)
+		error(404, 'Parent route selector not applicable')
+
 	const bnbBeaconTokenMigrationTokenTargetNetworkTargetAddressSelector = parseRouteEntitySelector(
 		schema,
 		BnbBeaconTokenMigrationSchema,
 		{
-			$token: parentData.selector,
+			$token: bnbBeaconTokenNetworkSymbolParentSelector,
 			$targetNetwork: {
 				slug: params.targetNetwork,
 			},

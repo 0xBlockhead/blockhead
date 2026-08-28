@@ -5,6 +5,7 @@ import { error } from '@sveltejs/kit'
 import { match as matchNonNegativeInteger } from '$/params/nonNegativeInteger.ts'
 import { parseRouteEntitySelector } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
+import LitecoinMwebBlockSchema from '$/schema/LitecoinMwebBlock.ts'
 import LitecoinMwebTransactionSchema from '$/schema/LitecoinMwebTransaction.ts'
 import { type as arktype } from 'arktype'
 
@@ -14,11 +15,20 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 	if (!(matchNonNegativeInteger(params.transactionIndex)))
 		error(404, 'Route mapping not applicable')
 
+	const litecoinMwebBlockUtxoBlockParentSelector = parseRouteEntitySelector(
+		schema,
+		LitecoinMwebBlockSchema,
+		parentData.selector,
+		'UtxoBlock'
+	)
+	if (litecoinMwebBlockUtxoBlockParentSelector instanceof arktype.errors)
+		error(404, 'Parent route selector not applicable')
+
 	const litecoinMwebTransactionLitecoinMwebBlockTransactionIndexSelector = parseRouteEntitySelector(
 		schema,
 		LitecoinMwebTransactionSchema,
 		{
-			$mwebBlock: parentData.selector,
+			$mwebBlock: litecoinMwebBlockUtxoBlockParentSelector,
 			transactionIndex: Number(params.transactionIndex),
 		},
 		'LitecoinMwebBlockTransactionIndex'

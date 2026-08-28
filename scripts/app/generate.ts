@@ -190,6 +190,11 @@ type SelectorRouteMapping = {
 		name: string
 		value: _Expression
 	}[]
+	parentSelectorBindings: readonly {
+		field?: string
+		entityType: string
+		selectorName: string
+	}[]
 	title?: _Expression
 	projection?: {
 		entityType: string
@@ -3747,6 +3752,66 @@ const compileRouteTree = (
 				throw new Error(`${routeId(routePath)} ${entityType}.${selectorName} projection subject ${mapping.projection?.entityType} has ambiguous route parameters ${projectionRouteParams.join(', ')}`)
 
 			const sourceSelection = entity.views.singular?.query?.sources
+			const directParentSelectorBindings = [...ancestorBindingByField].flatMap(([field, binding]) => {
+				const fieldValue = fields.find((candidate) => candidate.name === field)?.value
+				if (fieldValue == null || typeof fieldValue === 'string' || 'raw' in fieldValue || fieldValue.kind !== 'pageSelector')
+					return []
+
+				const alternatives = unique(binding.alternatives.map(({ ancestor }) => (
+					`${ancestor.mapping.entityType}\0${ancestor.mapping.selectorName}`
+				)))
+				if (alternatives.length !== 1)
+					return []
+
+				const [entityType, selectorName] = (alternatives[0] ?? '').split('\0')
+				if (entityType == null || selectorName == null)
+					throw new Error(`${routeId(routePath)} ${entityType}.${selectorName} has an invalid parent selector binding`)
+
+				return [{
+					field,
+					entityType,
+					selectorName,
+				}]
+			})
+			const pageSelectorReferenceEntityTypes = (expression: _Expression): readonly string[] => {
+				if (typeof expression === 'string' || 'raw' in expression)
+					return []
+				if (expression.kind === 'selector') {
+					const selectorEntity = entityByType[expression.entity]
+					return expression.params.flatMap((param) => {
+						const field = selectorEntity?.fields.find((candidate) => candidate.name === param.field)
+						const value = 'value' in param ? param.value : undefined
+						return field?.entityType == null || value == null || !expressionUsesKind(value, 'pageSelector') ?
+							pageSelectorReferenceEntityTypes(value ?? { kind: 'literal', value: null })
+						:
+							[field.entityType]
+					})
+				}
+
+				return expressionChildren(expression).flatMap(pageSelectorReferenceEntityTypes)
+			}
+			const nestedParentSelectorBindings = unique(fields
+				.flatMap(({ value }) => pageSelectorReferenceEntityTypes(value)))
+				.flatMap((entityType) => {
+					const nearestDepth = Math.max(...ancestorSelectorsAtNode
+						.filter((ancestor) => ancestor.mapping.entityType === entityType)
+						.map((ancestor) => ancestor.depth))
+					const alternatives = unique(ancestorSelectorsAtNode
+						.filter((ancestor) => ancestor.depth === nearestDepth && ancestor.mapping.entityType === entityType)
+						.map((ancestor) => `${ancestor.mapping.entityType}\0${ancestor.mapping.selectorName}`))
+					if (alternatives.length !== 1)
+						return []
+
+					const [boundEntityType, selectorName] = (alternatives[0] ?? '').split('\0')
+					return boundEntityType == null || selectorName == null ? [] : [{
+						entityType: boundEntityType,
+						selectorName,
+					}]
+				})
+			const parentSelectorBindings = [...new Map([
+				...directParentSelectorBindings,
+				...nestedParentSelectorBindings,
+			].map((binding) => [`${binding.field ?? ''}\0${binding.entityType}\0${binding.selectorName}`, binding])).values()]
 			return {
 				entityType,
 				selectorName,
@@ -3780,6 +3845,7 @@ const compileRouteTree = (
 				}),
 				routeParamAlternatives,
 				fields,
+				parentSelectorBindings,
 				...(mapping.title == null ? {} : { title: mapping.title }),
 				...(mapping.when == null ? {} : { when: mapping.when }),
 				...(mapping.projection == null ? {} : {
@@ -13518,12 +13584,34 @@ const routeMappingContext = (
 	mapping: SelectorRouteMapping
 ) => {
 	const networkParam = mapping.projectionRouteParam
-	const fieldValueByName = new Map(mapping.fields.map(({ name, value }) => [name, value]))
+	const parentSelectorVariableName = (binding: SelectorRouteMapping['parentSelectorBindings'][number]) => (
+		`${camel(binding.entityType)}${binding.selectorName}ParentSelector`
+	)
+	const parentSelectorBindingByField = new Map(mapping.parentSelectorBindings.flatMap((binding) => (
+		binding.field == null ? [] : [[binding.field, binding] as const]
+	)))
+	const fieldValueByName = new Map(mapping.fields.flatMap(({ name, value }) => (
+		parentSelectorBindingByField.has(name) ? [] : [[name, value] as const]
+	)))
+	const parentSelectorVariableByField = Object.fromEntries(mapping.parentSelectorBindings.flatMap((binding) => (
+		binding.field == null ? [] : [[
+		binding.field,
+		parentSelectorVariableName(binding),
+		] as const]
+	)))
+	const parentSelectorVariableNames = unique(mapping.parentSelectorBindings.map((binding) => (
+		parentSelectorVariableName(binding)
+	)))
+	const pageSelectorExpression = parentSelectorVariableNames.length === 1 ?
+		parentSelectorVariableNames[0] ?? 'parentData.selector'
+	:
+		'parentData.selector'
 	const fieldsExpression = emitObject(mapping.fields.map((field) => [
 		field.name,
 		renderExpression(resolveRouteSelectorFieldExpression(field.value, fieldValueByName), {
 			params: 'params',
-			pageSelector: 'parentData.selector',
+			pageSelector: pageSelectorExpression,
+			fieldExpressionByName: parentSelectorVariableByField,
 		}),
 	]))
 	const projectionEntity = mapping.projection == null ? undefined : indexes.entityByType[mapping.projection.entityType]
@@ -13581,6 +13669,10 @@ const routeMappingContext = (
 				}]),
 			],
 		} satisfies _Expression),
+		parentSelectorBindings: mapping.parentSelectorBindings.map((binding) => ({
+			...binding,
+			variableName: parentSelectorVariableName(binding),
+		})),
 		entityType: mapping.entityType,
 		entitySchemaName: `${mapping.entityType}Schema`,
 		selectorVariableName: `${camel(mapping.entityType)}${mapping.selectorName}Selector`,
@@ -13658,6 +13750,10 @@ const generatePageModuleFile = (
 							from: schemaModulePath(context.entityType),
 							defaultName: context.entitySchemaName,
 						},
+						...context.parentSelectorBindings.map((binding) => ({
+							from: schemaModulePath(binding.entityType),
+							defaultName: `${binding.entityType}Schema`,
+						})),
 					]),
 					{
 						from: './$types',
@@ -13680,6 +13776,17 @@ const generatePageModuleFile = (
 						`\tconst ${context.selectorVariableName}Candidate = (() => {`,
 						...(context.guardExpression == null ? [] : [
 							indent(`if (!${context.guardExpression})`, 2),
+							'\t\t\treturn',
+							'',
+						]),
+						...context.parentSelectorBindings.flatMap((binding) => [
+							`\t\tconst ${binding.variableName} = parseRouteEntitySelector(`,
+							'\t\t\tschema,',
+							`\t\t\t${binding.entityType}Schema,`,
+							'\t\t\tparentData.selector,',
+							`\t\t\t${emitTypeScript(binding.selectorName)}`,
+							'\t\t)',
+							`\t\tif (${binding.variableName} instanceof arktype.errors)`,
 							'\t\t\treturn',
 							'',
 						]),
@@ -13763,6 +13870,10 @@ const generatePageModuleFile = (
 					from: schemaModulePath(context.entityType),
 					defaultName: context.entitySchemaName,
 				},
+				...context.parentSelectorBindings.map((binding) => ({
+					from: schemaModulePath(binding.entityType),
+					defaultName: `${binding.entityType}Schema`,
+				})),
 				{
 					from: '$/schema/index.ts',
 					names: ['schema'],
@@ -13784,6 +13895,17 @@ const generatePageModuleFile = (
 				...(context.guardExpression == null ? [] : [
 					indent(`if (!${context.guardExpression})`),
 					`\t\terror(404, 'Route mapping not applicable')`,
+					'',
+				]),
+				...context.parentSelectorBindings.flatMap((binding) => [
+					`\tconst ${binding.variableName} = parseRouteEntitySelector(`,
+					'\t\tschema,',
+					`\t\t${binding.entityType}Schema,`,
+					'\t\tparentData.selector,',
+					`\t\t${emitTypeScript(binding.selectorName)}`,
+					'\t)',
+					`\tif (${binding.variableName} instanceof arktype.errors)`,
+					"\t\terror(404, 'Parent route selector not applicable')",
 					'',
 				]),
 				`\tconst ${context.selectorVariableName} = parseRouteEntitySelector(`,

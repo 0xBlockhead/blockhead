@@ -6,6 +6,7 @@ import { match as matchNonNegativeInteger } from '$/params/nonNegativeInteger.ts
 import { match as matchStringSegment } from '$/params/stringSegment.ts'
 import { parseRouteEntitySelector } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
+import UtxoTransactionSchema from '$/schema/UtxoTransaction.ts'
 import ZcashShieldedActionSchema from '$/schema/ZcashShieldedAction.ts'
 import { type as arktype } from 'arktype'
 
@@ -24,11 +25,20 @@ export const load: PageLoad = async ({ params, parent }) => {
 	))
 		error(404, 'Route mapping not applicable')
 
+	const utxoTransactionNetworkTxIdParentSelector = parseRouteEntitySelector(
+		schema,
+		UtxoTransactionSchema,
+		parentData.selector,
+		'NetworkTxId'
+	)
+	if (utxoTransactionNetworkTxIdParentSelector instanceof arktype.errors)
+		error(404, 'Parent route selector not applicable')
+
 	const zcashShieldedActionTransactionPoolActionKindIndexInTransactionSelector = parseRouteEntitySelector(
 		schema,
 		ZcashShieldedActionSchema,
 		{
-			$transaction: parentData.selector,
+			$transaction: utxoTransactionNetworkTxIdParentSelector,
 			pool: params.pool,
 			actionKind: params.actionKind,
 			indexInTransaction: Number(params.actionIndex),

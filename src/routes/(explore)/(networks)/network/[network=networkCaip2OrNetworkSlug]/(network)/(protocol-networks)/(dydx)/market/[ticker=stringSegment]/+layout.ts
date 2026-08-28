@@ -5,6 +5,7 @@ import { error } from '@sveltejs/kit'
 import { match as matchStringSegment } from '$/params/stringSegment.ts'
 import { parseRouteEntitySelector } from '$/schema/$schema.ts'
 import DydxChainMarketSchema from '$/schema/DydxChainMarket.ts'
+import DydxChainNetworkSchema from '$/schema/DydxChainNetwork.ts'
 import { schema } from '$/schema/index.ts'
 import { type as arktype } from 'arktype'
 
@@ -15,11 +16,20 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 	if (!(parentData.projectionNetwork.namespace === 'Dydx' && matchStringSegment(params.ticker)))
 		error(404, 'Route mapping not applicable')
 
+	const dydxChainNetworkNetworkParentSelector = parseRouteEntitySelector(
+		schema,
+		DydxChainNetworkSchema,
+		parentData.selector,
+		'Network'
+	)
+	if (dydxChainNetworkNetworkParentSelector instanceof arktype.errors)
+		error(404, 'Parent route selector not applicable')
+
 	const dydxChainMarketNetworkTickerSelector = parseRouteEntitySelector(
 		schema,
 		DydxChainMarketSchema,
 		{
-			$network: parentData.selector,
+			$network: dydxChainNetworkNetworkParentSelector,
 			ticker: params.ticker,
 		},
 		'NetworkTicker'

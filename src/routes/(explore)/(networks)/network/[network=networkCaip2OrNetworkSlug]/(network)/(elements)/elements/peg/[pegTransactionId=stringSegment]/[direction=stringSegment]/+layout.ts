@@ -4,6 +4,7 @@ import type { LayoutLoad } from './$types'
 import { error } from '@sveltejs/kit'
 import { match as matchStringSegment } from '$/params/stringSegment.ts'
 import { parseRouteEntitySelector } from '$/schema/$schema.ts'
+import ElementsNetworkSchema from '$/schema/ElementsNetwork.ts'
 import ElementsPegSchema from '$/schema/ElementsPeg.ts'
 import { schema } from '$/schema/index.ts'
 import { type as arktype } from 'arktype'
@@ -19,11 +20,20 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 	))
 		error(404, 'Route mapping not applicable')
 
+	const elementsNetworkNetworkParentSelector = parseRouteEntitySelector(
+		schema,
+		ElementsNetworkSchema,
+		parentData.selector,
+		'Network'
+	)
+	if (elementsNetworkNetworkParentSelector instanceof arktype.errors)
+		error(404, 'Parent route selector not applicable')
+
 	const elementsPegElementsNetworkPegTransactionIdDirectionSelector = parseRouteEntitySelector(
 		schema,
 		ElementsPegSchema,
 		{
-			$network: parentData.selector,
+			$network: elementsNetworkNetworkParentSelector,
 			pegTransactionId: params.pegTransactionId,
 			direction: params.direction,
 		},

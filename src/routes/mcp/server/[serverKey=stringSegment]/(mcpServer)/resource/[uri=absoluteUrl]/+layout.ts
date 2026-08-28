@@ -6,6 +6,7 @@ import { match as matchAbsoluteUrl } from '$/params/absoluteUrl.ts'
 import { parseRouteEntitySelector } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
 import McpResourceSchema from '$/schema/McpResource.ts'
+import McpServerSchema from '$/schema/McpServer.ts'
 import { type as arktype } from 'arktype'
 
 export const load: LayoutLoad = async ({ params, parent }) => {
@@ -14,11 +15,20 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 	if (!(matchAbsoluteUrl(params.uri)))
 		error(404, 'Route mapping not applicable')
 
+	const mcpServerServerKeyParentSelector = parseRouteEntitySelector(
+		schema,
+		McpServerSchema,
+		parentData.selector,
+		'ServerKey'
+	)
+	if (mcpServerServerKeyParentSelector instanceof arktype.errors)
+		error(404, 'Parent route selector not applicable')
+
 	const mcpResourceServerUriSelector = parseRouteEntitySelector(
 		schema,
 		McpResourceSchema,
 		{
-			$server: parentData.selector,
+			$server: mcpServerServerKeyParentSelector,
 			uri: decodeURIComponent(params.uri),
 		},
 		'ServerUri'

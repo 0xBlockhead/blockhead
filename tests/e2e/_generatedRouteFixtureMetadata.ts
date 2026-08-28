@@ -1814,18 +1814,8 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
-	'/(explore)/(networks)/network/[network]/(accounts)/account/[accountId]/token/[tokenId]': {
-		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=stringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey]/(selection)/token/[tokenId=stringSegment]',
-		mappings: [
-			{
-				id: 'HederaTokenAssociation.AccountToken',
-				probeAtomPrefixes: ['/network/[network]/account/[accountId]/token/[tokenId]:HederaTokenAssociation.AccountToken'],
-				probeCases: [[[0, '1', ['tokenId', 'accountId', 'network']]]],
-			},
-		],
-	},
 	'/(explore)/(networks)/network/[network]/(accounts)/account/[accountId]/token/[tokenId]/observations/[timestampMs]/[source]': {
-		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=stringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey]/(selection)/token/[tokenId=stringSegment]/(hederaTokenAssociation)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=stringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey]/(selection)/token/[tokenId=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 		mappings: [
 			{
 				id: 'TronAccountTokenBalance_Timestamp.AccountTokenTimestampMsSource',

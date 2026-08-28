@@ -5,6 +5,7 @@ import { error } from '@sveltejs/kit'
 import { parseRouteEntitySelector } from '$/schema/$schema.ts'
 import DogecoinBlockAuxPowSchema from '$/schema/DogecoinBlockAuxPow.ts'
 import { schema } from '$/schema/index.ts'
+import UtxoBlockSchema from '$/schema/UtxoBlock.ts'
 import { type as arktype } from 'arktype'
 
 // Projection eligibility: facetPath=['Utxo']
@@ -22,11 +23,20 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 	))
 		error(404, 'Route mapping not applicable')
 
+	const utxoBlockNetworkHeightParentSelector = parseRouteEntitySelector(
+		schema,
+		UtxoBlockSchema,
+		parentData.selector,
+		'NetworkHeight'
+	)
+	if (utxoBlockNetworkHeightParentSelector instanceof arktype.errors)
+		error(404, 'Parent route selector not applicable')
+
 	const dogecoinBlockAuxPowBlockSelector = parseRouteEntitySelector(
 		schema,
 		DogecoinBlockAuxPowSchema,
 		{
-			$block: parentData.selector,
+			$block: utxoBlockNetworkHeightParentSelector,
 		},
 		'Block'
 	)

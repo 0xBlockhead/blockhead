@@ -7,6 +7,7 @@ import { match as matchStringSegment } from '$/params/stringSegment.ts'
 import { parseRouteEntitySelector } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
 import LightningChannel_TimestampSchema from '$/schema/LightningChannel_Timestamp.ts'
+import LightningChannelSchema from '$/schema/LightningChannel.ts'
 import { type as arktype } from 'arktype'
 
 export const load: LayoutLoad = async ({ params, parent }) => {
@@ -15,11 +16,20 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 	if (!(matchStringSegment(params.source) && matchNonNegativeInteger(params.timestampMs)))
 		error(404, 'Route mapping not applicable')
 
+	const lightningChannelNetworkChannelIdParentSelector = parseRouteEntitySelector(
+		schema,
+		LightningChannelSchema,
+		parentData.selector,
+		'NetworkChannelId'
+	)
+	if (lightningChannelNetworkChannelIdParentSelector instanceof arktype.errors)
+		error(404, 'Parent route selector not applicable')
+
 	const lightningChannelTimestampChannelTimestampMsSourceSelector = parseRouteEntitySelector(
 		schema,
 		LightningChannel_TimestampSchema,
 		{
-			$channel: parentData.selector,
+			$channel: lightningChannelNetworkChannelIdParentSelector,
 			timestampMs: Number(params.timestampMs),
 			source: params.source,
 		},

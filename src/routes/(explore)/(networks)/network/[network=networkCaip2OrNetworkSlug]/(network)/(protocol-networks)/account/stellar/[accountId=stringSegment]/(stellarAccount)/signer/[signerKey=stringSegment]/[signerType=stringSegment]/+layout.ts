@@ -5,6 +5,7 @@ import { error } from '@sveltejs/kit'
 import { match as matchStringSegment } from '$/params/stringSegment.ts'
 import { parseRouteEntitySelector } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
+import StellarAccountSchema from '$/schema/StellarAccount.ts'
 import StellarAccountSignerSchema from '$/schema/StellarAccountSigner.ts'
 import { type as arktype } from 'arktype'
 
@@ -19,11 +20,20 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 	))
 		error(404, 'Route mapping not applicable')
 
+	const stellarAccountNetworkAccountIdParentSelector = parseRouteEntitySelector(
+		schema,
+		StellarAccountSchema,
+		parentData.selector,
+		'NetworkAccountId'
+	)
+	if (stellarAccountNetworkAccountIdParentSelector instanceof arktype.errors)
+		error(404, 'Parent route selector not applicable')
+
 	const stellarAccountSignerAccountSignerKeySignerTypeSelector = parseRouteEntitySelector(
 		schema,
 		StellarAccountSignerSchema,
 		{
-			$account: parentData.selector,
+			$account: stellarAccountNetworkAccountIdParentSelector,
 			signerKey: params.signerKey,
 			signerType: params.signerType,
 		},

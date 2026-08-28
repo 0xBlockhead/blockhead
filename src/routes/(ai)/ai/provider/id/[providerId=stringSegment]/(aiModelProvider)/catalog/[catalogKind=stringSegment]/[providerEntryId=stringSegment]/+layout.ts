@@ -4,6 +4,7 @@ import type { LayoutLoad } from './$types'
 import { error } from '@sveltejs/kit'
 import { match as matchStringSegment } from '$/params/stringSegment.ts'
 import { parseRouteEntitySelector } from '$/schema/$schema.ts'
+import AiModelProviderSchema from '$/schema/AiModelProvider.ts'
 import AiProviderCatalogEntrySchema from '$/schema/AiProviderCatalogEntry.ts'
 import { schema } from '$/schema/index.ts'
 import { type as arktype } from 'arktype'
@@ -14,11 +15,20 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 	if (!(matchStringSegment(params.catalogKind) && matchStringSegment(params.providerEntryId)))
 		error(404, 'Route mapping not applicable')
 
+	const aiModelProviderProviderIdParentSelector = parseRouteEntitySelector(
+		schema,
+		AiModelProviderSchema,
+		parentData.selector,
+		'ProviderId'
+	)
+	if (aiModelProviderProviderIdParentSelector instanceof arktype.errors)
+		error(404, 'Parent route selector not applicable')
+
 	const aiProviderCatalogEntryProviderCatalogKindProviderEntryIdSelector = parseRouteEntitySelector(
 		schema,
 		AiProviderCatalogEntrySchema,
 		{
-			$provider: parentData.selector,
+			$provider: aiModelProviderProviderIdParentSelector,
 			catalogKind: params.catalogKind,
 			providerEntryId: params.providerEntryId,
 		},

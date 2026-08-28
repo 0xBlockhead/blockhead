@@ -6,6 +6,7 @@ import { match as matchNonNegativeInteger } from '$/params/nonNegativeInteger.ts
 import { parseRouteEntitySelector } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
 import TezosOperationSchema from '$/schema/TezosOperation.ts'
+import TezosOperationGroupSchema from '$/schema/TezosOperationGroup.ts'
 import { type as arktype } from 'arktype'
 
 // Projection eligibility: facetPath=['Tezos']
@@ -15,11 +16,20 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 	if (!(parentData.projectionNetwork.namespace === 'Tezos' && matchNonNegativeInteger(params.contentIndex)))
 		error(404, 'Route mapping not applicable')
 
+	const tezosOperationGroupNetworkOperationHashParentSelector = parseRouteEntitySelector(
+		schema,
+		TezosOperationGroupSchema,
+		parentData.selector,
+		'NetworkOperationHash'
+	)
+	if (tezosOperationGroupNetworkOperationHashParentSelector instanceof arktype.errors)
+		error(404, 'Parent route selector not applicable')
+
 	const tezosOperationOperationGroupContentIndexSelector = parseRouteEntitySelector(
 		schema,
 		TezosOperationSchema,
 		{
-			$operationGroup: parentData.selector,
+			$operationGroup: tezosOperationGroupNetworkOperationHashParentSelector,
 			contentIndex: Number(params.contentIndex),
 		},
 		'OperationGroupContentIndex'

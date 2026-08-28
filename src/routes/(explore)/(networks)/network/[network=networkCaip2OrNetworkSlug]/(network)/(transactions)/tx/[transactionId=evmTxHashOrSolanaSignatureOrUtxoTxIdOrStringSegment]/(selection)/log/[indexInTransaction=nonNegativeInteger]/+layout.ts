@@ -5,6 +5,7 @@ import { error } from '@sveltejs/kit'
 import { match as matchNonNegativeInteger } from '$/params/nonNegativeInteger.ts'
 import { parseRouteEntitySelector } from '$/schema/$schema.ts'
 import EvmLogSchema from '$/schema/EvmLog.ts'
+import EvmTransactionSchema from '$/schema/EvmTransaction.ts'
 import { schema } from '$/schema/index.ts'
 import { type as arktype } from 'arktype'
 
@@ -21,11 +22,20 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 	))
 		error(404, 'Route mapping not applicable')
 
+	const evmTransactionEvmNetworkTxHashParentSelector = parseRouteEntitySelector(
+		schema,
+		EvmTransactionSchema,
+		parentData.selector,
+		'EvmNetworkTxHash'
+	)
+	if (evmTransactionEvmNetworkTxHashParentSelector instanceof arktype.errors)
+		error(404, 'Parent route selector not applicable')
+
 	const evmLogTransactionIndexInTransactionSelector = parseRouteEntitySelector(
 		schema,
 		EvmLogSchema,
 		{
-			$transaction: parentData.selector,
+			$transaction: evmTransactionEvmNetworkTxHashParentSelector,
 			indexInTransaction: Number(params.indexInTransaction),
 		},
 		'TransactionIndexInTransaction'

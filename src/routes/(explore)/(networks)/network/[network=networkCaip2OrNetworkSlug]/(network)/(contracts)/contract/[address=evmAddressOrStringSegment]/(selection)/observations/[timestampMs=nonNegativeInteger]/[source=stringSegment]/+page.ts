@@ -7,8 +7,10 @@ import { match as matchStringSegment } from '$/params/stringSegment.ts'
 import { parseRouteEntitySelector } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import HederaContract_TimestampSchema from '$/schema/HederaContract_Timestamp.ts'
+import HederaContractSchema from '$/schema/HederaContract.ts'
 import { schema } from '$/schema/index.ts'
 import NearContract_TimestampSchema from '$/schema/NearContract_Timestamp.ts'
+import NearContractSchema from '$/schema/NearContract.ts'
 import { type as arktype } from 'arktype'
 
 export const load: PageLoad = async ({ params, parent }) => {
@@ -22,11 +24,20 @@ export const load: PageLoad = async ({ params, parent }) => {
 		))
 			return
 
+		const hederaContractNetworkContractIdParentSelector = parseRouteEntitySelector(
+			schema,
+			HederaContractSchema,
+			parentData.selector,
+			'NetworkContractId'
+		)
+		if (hederaContractNetworkContractIdParentSelector instanceof arktype.errors)
+			return
+
 		const hederaContractTimestampContractTimestampMsSourceSelector = parseRouteEntitySelector(
 			schema,
 			HederaContract_TimestampSchema,
 			{
-				$contract: parentData.selector,
+				$contract: hederaContractNetworkContractIdParentSelector,
 				timestampMs: Number(params.timestampMs),
 				source: params.source,
 			},
@@ -48,11 +59,20 @@ export const load: PageLoad = async ({ params, parent }) => {
 		))
 			return
 
+		const nearContractNetworkAccountIdParentSelector = parseRouteEntitySelector(
+			schema,
+			NearContractSchema,
+			parentData.selector,
+			'NetworkAccountId'
+		)
+		if (nearContractNetworkAccountIdParentSelector instanceof arktype.errors)
+			return
+
 		const nearContractTimestampContractTimestampMsSourceSelector = parseRouteEntitySelector(
 			schema,
 			NearContract_TimestampSchema,
 			{
-				$contract: parentData.selector,
+				$contract: nearContractNetworkAccountIdParentSelector,
 				timestampMs: Number(params.timestampMs),
 				source: params.source,
 			},

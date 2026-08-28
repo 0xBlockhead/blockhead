@@ -7,8 +7,10 @@ import { match as matchStringSegment } from '$/params/stringSegment.ts'
 import { parseRouteEntitySelector } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import HederaToken_TimestampSchema from '$/schema/HederaToken_Timestamp.ts'
+import HederaTokenSchema from '$/schema/HederaToken.ts'
 import { schema } from '$/schema/index.ts'
 import TronToken_TimestampSchema from '$/schema/TronToken_Timestamp.ts'
+import TronTokenSchema from '$/schema/TronToken.ts'
 import { type as arktype } from 'arktype'
 
 export const load: LayoutLoad = async ({ params, parent }) => {
@@ -22,11 +24,20 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 		))
 			return
 
+		const hederaTokenNetworkTokenIdParentSelector = parseRouteEntitySelector(
+			schema,
+			HederaTokenSchema,
+			parentData.selector,
+			'NetworkTokenId'
+		)
+		if (hederaTokenNetworkTokenIdParentSelector instanceof arktype.errors)
+			return
+
 		const hederaTokenTimestampTokenTimestampMsSourceSelector = parseRouteEntitySelector(
 			schema,
 			HederaToken_TimestampSchema,
 			{
-				$token: parentData.selector,
+				$token: hederaTokenNetworkTokenIdParentSelector,
 				timestampMs: Number(params.timestampMs),
 				source: params.source,
 			},
@@ -48,11 +59,20 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 		))
 			return
 
+		const tronTokenNetworkTokenIdParentSelector = parseRouteEntitySelector(
+			schema,
+			TronTokenSchema,
+			parentData.selector,
+			'NetworkTokenId'
+		)
+		if (tronTokenNetworkTokenIdParentSelector instanceof arktype.errors)
+			return
+
 		const tronTokenTimestampTokenTimestampMsSourceSelector = parseRouteEntitySelector(
 			schema,
 			TronToken_TimestampSchema,
 			{
-				$token: parentData.selector,
+				$token: tronTokenNetworkTokenIdParentSelector,
 				timestampMs: Number(params.timestampMs),
 				source: params.source,
 			},

@@ -887,18 +887,29 @@ const retainedPluralEntities = app.schema.entities.filter((entity) => (
 ))
 
 test('resolves nested route selector derivations before emitting page modules', () => {
+	const tokenObservationRoutePath = 'src/routes/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=stringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey]/(selection)/token/[tokenId=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]/+page.ts'
 	const routePaths = [
 		'src/routes/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=stringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey]/(selection)/starknet-token/[tokenAddress=stringSegment]/+layout.ts',
 		'src/routes/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=stringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey]/(selection)/allowance/spender/[spenderAccountId=stringSegment]/[allowanceKind=stringSegment]/+layout.ts',
 		'src/routes/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/account/[accountAddress=stringSegment]/subaccount/[subaccountNumber=nonNegativeInteger]/+layout.ts',
 	] as const
 	const routeSources = routePaths.map(generatedSource)
+	const tokenObservationSource = generatedSource(tokenObservationRoutePath)
 
-	assert.match(routeSources[0], /\$network: parentData\.selector\.\$network/)
-	assert.match(routeSources[1], /\$network: parentData\.selector\.\$network/)
+	assert.match(routeSources[0], /starknetContractNetworkAddressParentSelector\.\$network/)
+	assert.match(routeSources[1], /hederaAccountNetworkAccountIdParentSelector\.\$network/)
 	assert.match(routeSources[2], /export const load: LayoutLoad = async \(\{ params, parent \}\) => \{/)
 	assert.match(routeSources[2], /const parentData = await parent\(\)/)
 	assert.match(routeSources[2], /parentData\.projectionNetwork\.namespace === 'Dydx'/)
+	assert.match(tokenObservationSource, /TronAccountSchema/)
+	assert.match(tokenObservationSource, /HederaAccountSchema/)
+	assert.match(tokenObservationSource, /tronAccountNetworkAddressParentSelector\.\$network/)
+	assert.match(tokenObservationSource, /hederaAccountNetworkAccountIdParentSelector\.\$network/)
+	assert.doesNotMatch(tokenObservationSource, /parentData\.selector\.\$network/)
+	assert.equal(
+		baselineCompiledApp.generatedFiles.some(({ path }) => path.includes('/token/[tokenId=stringSegment]/(hederaTokenAssociation)/')),
+		false
+	)
 	for (const [index, source] of routeSources.entries()) {
 		assert.doesNotMatch(source, /(?:^|[^.\w])selector\.\$/m, routePaths[index])
 		assert.deepEqual(
@@ -934,6 +945,8 @@ test('resolves nested route selector derivations before emitting page modules', 
 		const fixturePath = path.join(typeTestRoot, 'route-selector-derivations.ts')
 		writeFileSync(fixturePath, `declare const params: Record<string, string>
 declare const parentData: { selector: Record<string, unknown> }
+declare const starknetContractNetworkAddressParentSelector: { $network: unknown }
+declare const hederaAccountNetworkAccountIdParentSelector: { $network: unknown }
 
 const starknetTokenHoldingSelector = ${selectorExpressions[0]}
 const hederaAllowanceSelector = ${selectorExpressions[1]}

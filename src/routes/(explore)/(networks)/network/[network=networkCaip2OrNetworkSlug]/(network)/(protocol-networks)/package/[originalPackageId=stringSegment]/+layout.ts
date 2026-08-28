@@ -5,6 +5,7 @@ import { error } from '@sveltejs/kit'
 import { match as matchStringSegment } from '$/params/stringSegment.ts'
 import { parseRouteEntitySelector } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
+import SuiNetworkSchema from '$/schema/SuiNetwork.ts'
 import SuiPackageSchema from '$/schema/SuiPackage.ts'
 import { type as arktype } from 'arktype'
 
@@ -15,11 +16,20 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 	if (!(parentData.projectionNetwork.namespace === 'Sui' && matchStringSegment(params.originalPackageId)))
 		error(404, 'Route mapping not applicable')
 
+	const suiNetworkNetworkParentSelector = parseRouteEntitySelector(
+		schema,
+		SuiNetworkSchema,
+		parentData.selector,
+		'Network'
+	)
+	if (suiNetworkNetworkParentSelector instanceof arktype.errors)
+		error(404, 'Parent route selector not applicable')
+
 	const suiPackageNetworkOriginalPackageIdSelector = parseRouteEntitySelector(
 		schema,
 		SuiPackageSchema,
 		{
-			$network: parentData.selector,
+			$network: suiNetworkNetworkParentSelector,
 			originalPackageId: params.originalPackageId,
 		},
 		'NetworkOriginalPackageId'

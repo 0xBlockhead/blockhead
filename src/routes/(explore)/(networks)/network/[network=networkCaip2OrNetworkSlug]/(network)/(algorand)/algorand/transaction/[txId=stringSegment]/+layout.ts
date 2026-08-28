@@ -4,6 +4,7 @@ import type { LayoutLoad } from './$types'
 import { error } from '@sveltejs/kit'
 import { match as matchStringSegment } from '$/params/stringSegment.ts'
 import { parseRouteEntitySelector } from '$/schema/$schema.ts'
+import AlgorandNetworkSchema from '$/schema/AlgorandNetwork.ts'
 import AlgorandTransactionSchema from '$/schema/AlgorandTransaction.ts'
 import { schema } from '$/schema/index.ts'
 import { type as arktype } from 'arktype'
@@ -15,11 +16,20 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 	if (!(parentData.projectionNetwork.namespace === 'Algorand' && matchStringSegment(params.txId)))
 		error(404, 'Route mapping not applicable')
 
+	const algorandNetworkNetworkParentSelector = parseRouteEntitySelector(
+		schema,
+		AlgorandNetworkSchema,
+		parentData.selector,
+		'Network'
+	)
+	if (algorandNetworkNetworkParentSelector instanceof arktype.errors)
+		error(404, 'Parent route selector not applicable')
+
 	const algorandTransactionNetworkTxIdSelector = parseRouteEntitySelector(
 		schema,
 		AlgorandTransactionSchema,
 		{
-			$network: parentData.selector,
+			$network: algorandNetworkNetworkParentSelector,
 			txId: params.txId,
 		},
 		'NetworkTxId'

@@ -5,6 +5,7 @@ import { error } from '@sveltejs/kit'
 import { match as matchNonNegativeBigInt } from '$/params/nonNegativeBigInt.ts'
 import { parseRouteEntitySelector } from '$/schema/$schema.ts'
 import IcpLedgerBlockSchema from '$/schema/IcpLedgerBlock.ts'
+import IcpLedgerCanisterSchema from '$/schema/IcpLedgerCanister.ts'
 import { schema } from '$/schema/index.ts'
 import { type as arktype } from 'arktype'
 
@@ -15,11 +16,20 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 	if (!(parentData.projectionNetwork.namespace === 'InternetComputer' && matchNonNegativeBigInt(params.blockIndex)))
 		error(404, 'Route mapping not applicable')
 
+	const icpLedgerCanisterCanisterParentSelector = parseRouteEntitySelector(
+		schema,
+		IcpLedgerCanisterSchema,
+		parentData.selector,
+		'Canister'
+	)
+	if (icpLedgerCanisterCanisterParentSelector instanceof arktype.errors)
+		error(404, 'Parent route selector not applicable')
+
 	const icpLedgerBlockLedgerBlockIndexSelector = parseRouteEntitySelector(
 		schema,
 		IcpLedgerBlockSchema,
 		{
-			$ledger: parentData.selector,
+			$ledger: icpLedgerCanisterCanisterParentSelector,
 			blockIndex: BigInt(params.blockIndex),
 		},
 		'LedgerBlockIndex'

@@ -6,6 +6,7 @@ import { match as matchNonNegativeBigInt } from '$/params/nonNegativeBigInt.ts'
 import { parseRouteEntitySelector } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
 import TezosBigMapSchema from '$/schema/TezosBigMap.ts'
+import TezosContractSchema from '$/schema/TezosContract.ts'
 import { type as arktype } from 'arktype'
 
 // Projection eligibility: facetPath=['Tezos']
@@ -15,11 +16,20 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 	if (!(parentData.projectionNetwork.namespace === 'Tezos' && matchNonNegativeBigInt(params.bigMapId)))
 		error(404, 'Route mapping not applicable')
 
+	const tezosContractNetworkAddressParentSelector = parseRouteEntitySelector(
+		schema,
+		TezosContractSchema,
+		parentData.selector,
+		'NetworkAddress'
+	)
+	if (tezosContractNetworkAddressParentSelector instanceof arktype.errors)
+		error(404, 'Parent route selector not applicable')
+
 	const tezosBigMapContractBigMapIdSelector = parseRouteEntitySelector(
 		schema,
 		TezosBigMapSchema,
 		{
-			$contract: parentData.selector,
+			$contract: tezosContractNetworkAddressParentSelector,
 			bigMapId: BigInt(params.bigMapId),
 		},
 		'ContractBigMapId'

@@ -4,10 +4,12 @@ import type { LayoutLoad } from './$types'
 import { error } from '@sveltejs/kit'
 import { match as matchNonNegativeInteger } from '$/params/nonNegativeInteger.ts'
 import { parseRouteEntitySelector } from '$/schema/$schema.ts'
+import CardanoTransactionSchema from '$/schema/CardanoTransaction.ts'
 import CardanoTxOutputSchema from '$/schema/CardanoTxOutput.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import UtxoOutputSchema from '$/schema/UtxoOutput.ts'
+import UtxoTransactionSchema from '$/schema/UtxoTransaction.ts'
 import { type as arktype } from 'arktype'
 
 export const load: LayoutLoad = async ({ params, parent }) => {
@@ -17,11 +19,20 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 		if (!(parentData.projectionNetwork.namespace === 'Cardano' && matchNonNegativeInteger(params.outputIndex)))
 			return
 
+		const cardanoTransactionNetworkHashParentSelector = parseRouteEntitySelector(
+			schema,
+			CardanoTransactionSchema,
+			parentData.selector,
+			'NetworkHash'
+		)
+		if (cardanoTransactionNetworkHashParentSelector instanceof arktype.errors)
+			return
+
 		const cardanoTxOutputTransactionOutputIndexSelector = parseRouteEntitySelector(
 			schema,
 			CardanoTxOutputSchema,
 			{
-				$transaction: parentData.selector,
+				$transaction: cardanoTransactionNetworkHashParentSelector,
 				outputIndex: Number(params.outputIndex),
 			},
 			'TransactionOutputIndex'
@@ -54,11 +65,20 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 		))
 			return
 
+		const utxoTransactionNetworkTxIdParentSelector = parseRouteEntitySelector(
+			schema,
+			UtxoTransactionSchema,
+			parentData.selector,
+			'NetworkTxId'
+		)
+		if (utxoTransactionNetworkTxIdParentSelector instanceof arktype.errors)
+			return
+
 		const utxoOutputTransactionIndexInTransactionSelector = parseRouteEntitySelector(
 			schema,
 			UtxoOutputSchema,
 			{
-				$transaction: parentData.selector,
+				$transaction: utxoTransactionNetworkTxIdParentSelector,
 				indexInTransaction: Number(params.outputIndex),
 			},
 			'TransactionIndexInTransaction'

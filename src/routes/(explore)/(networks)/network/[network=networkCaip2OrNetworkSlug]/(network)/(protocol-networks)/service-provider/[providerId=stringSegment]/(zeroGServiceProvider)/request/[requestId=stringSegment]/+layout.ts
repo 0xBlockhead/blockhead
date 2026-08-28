@@ -5,6 +5,7 @@ import { error } from '@sveltejs/kit'
 import { match as matchStringSegment } from '$/params/stringSegment.ts'
 import { parseRouteEntitySelector } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
+import ZeroGServiceProviderSchema from '$/schema/ZeroGServiceProvider.ts'
 import ZeroGServiceRequestSchema from '$/schema/ZeroGServiceRequest.ts'
 import { type as arktype } from 'arktype'
 
@@ -15,11 +16,20 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 	if (!(parentData.projectionNetwork.namespace === 'ZeroG' && matchStringSegment(params.requestId)))
 		error(404, 'Route mapping not applicable')
 
+	const zeroGServiceProviderNetworkProviderIdParentSelector = parseRouteEntitySelector(
+		schema,
+		ZeroGServiceProviderSchema,
+		parentData.selector,
+		'NetworkProviderId'
+	)
+	if (zeroGServiceProviderNetworkProviderIdParentSelector instanceof arktype.errors)
+		error(404, 'Parent route selector not applicable')
+
 	const zeroGServiceRequestZeroGServiceProviderRequestIdSelector = parseRouteEntitySelector(
 		schema,
 		ZeroGServiceRequestSchema,
 		{
-			$serviceProvider: parentData.selector,
+			$serviceProvider: zeroGServiceProviderNetworkProviderIdParentSelector,
 			requestId: params.requestId,
 		},
 		'ZeroGServiceProviderRequestId'

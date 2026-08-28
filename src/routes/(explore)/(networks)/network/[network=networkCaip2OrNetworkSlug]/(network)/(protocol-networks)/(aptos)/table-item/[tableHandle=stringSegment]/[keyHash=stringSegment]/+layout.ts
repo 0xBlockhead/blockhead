@@ -4,6 +4,7 @@ import type { LayoutLoad } from './$types'
 import { error } from '@sveltejs/kit'
 import { match as matchStringSegment } from '$/params/stringSegment.ts'
 import { parseRouteEntitySelector } from '$/schema/$schema.ts'
+import AptosNetworkSchema from '$/schema/AptosNetwork.ts'
 import AptosTableItemSchema from '$/schema/AptosTableItem.ts'
 import { schema } from '$/schema/index.ts'
 import { type as arktype } from 'arktype'
@@ -19,11 +20,20 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 	))
 		error(404, 'Route mapping not applicable')
 
+	const aptosNetworkNetworkParentSelector = parseRouteEntitySelector(
+		schema,
+		AptosNetworkSchema,
+		parentData.selector,
+		'Network'
+	)
+	if (aptosNetworkNetworkParentSelector instanceof arktype.errors)
+		error(404, 'Parent route selector not applicable')
+
 	const aptosTableItemNetworkTableHandleKeyHashSelector = parseRouteEntitySelector(
 		schema,
 		AptosTableItemSchema,
 		{
-			$network: parentData.selector,
+			$network: aptosNetworkNetworkParentSelector,
 			tableHandle: params.tableHandle,
 			keyHash: params.keyHash,
 		},

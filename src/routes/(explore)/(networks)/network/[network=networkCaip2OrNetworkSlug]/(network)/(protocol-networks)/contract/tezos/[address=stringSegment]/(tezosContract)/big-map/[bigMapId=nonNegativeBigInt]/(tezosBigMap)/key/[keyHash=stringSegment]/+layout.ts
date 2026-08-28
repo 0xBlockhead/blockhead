@@ -5,6 +5,7 @@ import { error } from '@sveltejs/kit'
 import { match as matchStringSegment } from '$/params/stringSegment.ts'
 import { parseRouteEntitySelector } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
+import TezosBigMapSchema from '$/schema/TezosBigMap.ts'
 import TezosBigMapKeySchema from '$/schema/TezosBigMapKey.ts'
 import { type as arktype } from 'arktype'
 
@@ -15,11 +16,20 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 	if (!(parentData.projectionNetwork.namespace === 'Tezos' && matchStringSegment(params.keyHash)))
 		error(404, 'Route mapping not applicable')
 
+	const tezosBigMapContractBigMapIdParentSelector = parseRouteEntitySelector(
+		schema,
+		TezosBigMapSchema,
+		parentData.selector,
+		'ContractBigMapId'
+	)
+	if (tezosBigMapContractBigMapIdParentSelector instanceof arktype.errors)
+		error(404, 'Parent route selector not applicable')
+
 	const tezosBigMapKeyBigMapKeyHashSelector = parseRouteEntitySelector(
 		schema,
 		TezosBigMapKeySchema,
 		{
-			$bigMap: parentData.selector,
+			$bigMap: tezosBigMapContractBigMapIdParentSelector,
 			keyHash: params.keyHash,
 		},
 		'BigMapKeyHash'

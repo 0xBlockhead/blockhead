@@ -5,6 +5,7 @@ import { error } from '@sveltejs/kit'
 import { match as matchNonNegativeInteger } from '$/params/nonNegativeInteger.ts'
 import { parseRouteEntitySelector } from '$/schema/$schema.ts'
 import AvailAppIdSchema from '$/schema/AvailAppId.ts'
+import AvailNetworkSchema from '$/schema/AvailNetwork.ts'
 import { schema } from '$/schema/index.ts'
 import { type as arktype } from 'arktype'
 
@@ -15,11 +16,20 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 	if (!(parentData.projectionNetwork.namespace === 'Avail' && matchNonNegativeInteger(params.appId)))
 		error(404, 'Route mapping not applicable')
 
+	const availNetworkNetworkParentSelector = parseRouteEntitySelector(
+		schema,
+		AvailNetworkSchema,
+		parentData.selector,
+		'Network'
+	)
+	if (availNetworkNetworkParentSelector instanceof arktype.errors)
+		error(404, 'Parent route selector not applicable')
+
 	const availAppIdNetworkAppIdSelector = parseRouteEntitySelector(
 		schema,
 		AvailAppIdSchema,
 		{
-			$network: parentData.selector,
+			$network: availNetworkNetworkParentSelector,
 			appId: Number(params.appId),
 		},
 		'NetworkAppId'
