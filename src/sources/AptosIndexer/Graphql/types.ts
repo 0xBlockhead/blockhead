@@ -21,7 +21,7 @@ const aptosIndexerNonNegativeIntegerString = arktype('string').narrow((value, ct
 })
 
 const aptosIndexerJsonValue = arktype(
-	'string | number | boolean | null | unknown[] | Record<string, unknown>'
+	'string | number | boolean | null | object.json'
 )
 
 export const aptosIndexerUserTransactionWire = arktype({

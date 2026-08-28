@@ -162,6 +162,35 @@ describe('Aptos Indexer account portfolio queries', () => {
 		})
 		await expect(getTableItem('0xhandle', '0xkeyhash')).rejects.toThrow('response envelope')
 	})
+	it('preserves nested table-item JSON values', async () => {
+		const item = {
+			...currentTableItem,
+			decoded_value: {
+				entries: [
+					null,
+					true,
+					2,
+					{ amount: '25' },
+				],
+			},
+		}
+		executeAptosIndexer.mockResolvedValueOnce({ current_table_items: [item] })
+		await expect(getTableItem('0xhandle', '0xkeyhash')).resolves.toEqual({
+			current: item,
+			versioned: undefined,
+		})
+	})
+
+	it('rejects non-JSON values nested in a table-item envelope', async () => {
+		executeAptosIndexer.mockResolvedValueOnce({
+			current_table_items: [{
+				...currentTableItem,
+				decoded_value: { entries: [undefined] },
+			}],
+		})
+		await expect(getTableItem('0xhandle', '0xkeyhash')).rejects.toThrow('response envelope')
+	})
+
 
 	it('bounds offset pages and avoids transport for zero cardinality', async () => {
 		await expect(getAccountTransactions('0xa11ce', 0)).resolves.toEqual([])
