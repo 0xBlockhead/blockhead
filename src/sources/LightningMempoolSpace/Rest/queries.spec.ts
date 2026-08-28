@@ -343,6 +343,7 @@ describe('mempool.space public Lightning graph queries', () => {
 						[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'capacitySats')]: 250000n,
 						[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'updatedAtMs')]: Date.parse(updatedAt),
 						[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'feeRatePpm')]: 125,
+						[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], '$$routingPolicies')]: [],
 					},
 				})],
 			}),
