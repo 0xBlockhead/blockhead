@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test'
 
 import { assertLoadedValue } from '$/collections/assertLoadedCollectionRows.ts'
 import { assertLoadedResolverProbeCategories } from '$/routes/api/e2e/assert-loaded-resolvers/_fixtures.ts'
-import type { AssertLoadedResolverProbeResult } from '$/routes/api/e2e/assert-loaded-resolvers/_runProbes.ts'
+import type { AssertLoadedResolverProbeResult } from '$/routes/api/e2e/assert-loaded-resolvers/_types.ts'
 import { EntityMetaKey } from '$/schema/$schema.ts'
 
 

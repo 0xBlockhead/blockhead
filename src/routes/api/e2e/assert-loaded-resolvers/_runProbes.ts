@@ -37,10 +37,13 @@ import {
 	classifyAssertLoadedResolverProbeCase,
 	resolverPartProbeKey,
 	resolveProbeEntitySelector,
-	type AssertLoadedResolverProbeCategory,
-	type AssertLoadedResolverProbeCategoryBucket,
-	type AssertLoadedResolverProbeCategorySummary,
 } from './_fixtures.ts'
+import type {
+	AssertLoadedResolverProbeCase,
+	AssertLoadedResolverProbeCategoryBucket,
+	AssertLoadedResolverProbeCategorySummary,
+	AssertLoadedResolverProbeResult,
+} from './_types.ts'
 
 export const resolverProbeSourceIndex = indexSourceProviders(
 	sourceProviders,
@@ -308,34 +311,6 @@ const unassignedResolverPartProbes = [
 	snapshotProbe.index === part.resolverIndex
 	&& snapshotProbe.selectorName === part.parentSelectorName
 )))
-
-
-export type AssertLoadedResolverProbeCase = {
-	kind: 'entity' | 'field' | 'count'
-	key: string
-	category: AssertLoadedResolverProbeCategory
-	resolveRejected: boolean
-	resolveError?: string
-	assertThrew: boolean
-	assertError?: string
-}
-
-
-export type AssertLoadedResolverProbeResult = {
-	cases: AssertLoadedResolverProbeCase[]
-	/** Resolver-definition and exact-selector snapshots exercised. */
-	resolverDefinitionCount: number
-	resolverValuePartCount: number
-	countResolverPartCount: number
-	countResolverFields: string[]
-	fieldLiveResolverPartCount: number
-	rootLiveResolverCount: number
-	assertOk: number
-	resolveOk: number
-	/** Resolve succeeded but materialization failed. Fulfilled violations are never expected upstream gaps. */
-	fulfilledButAssertFailed: AssertLoadedResolverProbeCase[]
-	categorySummary: AssertLoadedResolverProbeCategorySummary
-}
 
 
 const emptyCategoryBucket = (): AssertLoadedResolverProbeCategoryBucket => ({

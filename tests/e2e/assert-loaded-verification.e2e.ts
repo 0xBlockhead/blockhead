@@ -9,10 +9,7 @@ import {
 import {
 	assertLoadedResolverProbeCategories,
 } from '$/routes/api/e2e/assert-loaded-resolvers/_fixtures.ts'
-import type { AssertLoadedResolverProbeResult } from '$/routes/api/e2e/assert-loaded-resolvers/_runProbes.ts'
-import RedditPublicJson from '$/resolvers/Reddit-PublicJson.ts'
-import RedditRest from '$/resolvers/Reddit-Rest.ts'
-import YoutubeRest from '$/resolvers/Youtube-Rest.ts'
+import type { AssertLoadedResolverProbeResult } from '$/routes/api/e2e/assert-loaded-resolvers/_types.ts'
 import {
 	EntityMetaKey,
 	entityFieldDefinitions,
@@ -22,18 +19,6 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { entityDefinitionByType } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
 
-
-const resolverHasCountSelector = (
-	fields: object,
-	fieldName: string
-) => {
-	const fieldSelector = Object.getOwnPropertyDescriptor(fields, fieldName)?.value
-	return (
-		fieldSelector != null
-		&& typeof fieldSelector === 'object'
-		&& 'resolveCount' in fieldSelector
-	)
-}
 
 /**
  * Confirms the assert-loaded machinery (not domain correctness of resolver payloads):
@@ -99,37 +84,6 @@ test.describe('assertLoaded verification', () => {
 		})
 	})
 
-	test('YouTube list fields expose provider totals through count selectors', () => {
-		expect(YoutubeRest.resolvers.some((resolver) => (
-			resolver.entityType === EntityType.YoutubeChannel
-			&& resolverHasCountSelector(resolver.projections, '$$videos')
-		))).toBe(true)
-		expect(YoutubeRest.resolvers.some((resolver) => (
-			resolver.entityType === EntityType.YoutubePlaylist
-			&& resolverHasCountSelector(resolver.projections, '$$videos')
-		))).toBe(true)
-		expect(YoutubeRest.resolvers.some((resolver) => (
-			resolver.entityType === EntityType.YoutubeVideo
-			&& resolverHasCountSelector(resolver.projections, '$$comments')
-		))).toBe(true)
-		expect(YoutubeRest.resolvers.some((resolver) => (
-			resolver.entityType === EntityType.YoutubeComment
-			&& resolverHasCountSelector(resolver.projections, '$$replies')
-		))).toBe(true)
-	})
-
-	test('Reddit link comments expose provider totals through count selectors', () => {
-		for (const sourceResolvers of [
-			RedditPublicJson,
-			RedditRest,
-		]) {
-			expect(sourceResolvers.resolvers.some((resolver) => (
-				resolver.entityType === EntityType.RedditLink
-				&& resolverHasCountSelector(resolver.projections, '$$comments')
-			))).toBe(true)
-		}
-	})
-
 	test('GET /api/e2e/assert-loaded-resolvers: probe covers every resolver with consistent case metadata', async ({
 		request,
 	}) => {
@@ -166,6 +120,10 @@ test.describe('assertLoaded verification', () => {
 			'EvmNetworkAccount.$$tokenTransfers',
 			'EvmNetworkAccount.$$transactions',
 			'RedditLink.$$comments',
+			'YoutubeChannel.$$videos',
+			'YoutubePlaylist.$$videos',
+			'YoutubeVideo.$$comments',
+			'YoutubeComment.$$replies',
 		]))
 		expect(body.rootLiveResolverCount).toBeGreaterThan(0)
 

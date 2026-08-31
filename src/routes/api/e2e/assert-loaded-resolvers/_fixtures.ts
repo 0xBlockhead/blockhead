@@ -39,6 +39,7 @@ import { Source } from '$/sources/Source.ts'
 import { SourceCredentialScope } from '$/sources/SourceBinding.ts'
 import { sourceBindings } from '$/sources/$sourceProviders.ts'
 import { SolanaInstructionKind } from '$/schema/SolanaInstructionKind.ts'
+import type { AssertLoadedResolverProbeCategory } from './_types.ts'
 
 const { entityDefinitionByType } = indexSchema(schema)
 
@@ -566,6 +567,7 @@ const probeEntitySelectorByType = defineProbeEntitySelectors({
 	[EntityType.AtprotoActor_Timestamp]: {
 		$actor: atprotoNetworkSeedActors[0],
 		timestampMs: 0,
+		source: Source.Atproto_Xrpc,
 	},
 	[EntityType.AtprotoNetwork]: { scope: 'AtprotoNetwork' },
 	[EntityType.AtprotoPost]: {
@@ -685,9 +687,11 @@ const probeEntitySelectorByType = defineProbeEntitySelectors({
 		period: 0,
 	},
 	[EntityType.BeaconAttestation]: {
-		$network: mainnet,
-		slot: 9_500_000,
-		indexInSlot: 0,
+		$block: {
+			$network: mainnet,
+			root: `0x${'0'.repeat(64)}`,
+		},
+		indexInBlock: 0,
 	},
 	[EntityType.BeaconWithdrawal]: {
 		$block: {
@@ -697,10 +701,12 @@ const probeEntitySelectorByType = defineProbeEntitySelectors({
 		withdrawalIndex: 0,
 	},
 	[EntityType.BeaconSlashing]: {
-		$network: mainnet,
-		slot: 9_500_000,
+		$block: {
+			$network: mainnet,
+			root: `0x${'0'.repeat(64)}`,
+		},
 		kind: 'attester',
-		indexInSlot: 0,
+		indexInKind: 0,
 	},
 
 	[EntityType.BittensorNetwork]: bittensor,
@@ -734,7 +740,7 @@ const probeEntitySelectorByType = defineProbeEntitySelectors({
 		uid: 0,
 	},
 
-	[EntityType.BlockheadFarcasterAccountConnection]: { fid: 3 },
+	[EntityType.BlockheadFarcasterAccountConnection]: { connectionId: 'e2e-probe-farcaster-connection' },
 
 	[EntityType.BlockheadSource]: { id: Source.Local_Internal },
 	[EntityType.BlockheadPanelTree]: { id: 'e2e-probe-panel-tree' },
@@ -910,11 +916,13 @@ const probeEntitySelectorByType = defineProbeEntitySelectors({
 			hash: CAST_HASH_32,
 		},
 		timestampMs: 1_700_000_000_000,
+		source: Source.Neynar_Rest,
 	},
 	[EntityType.FarcasterChannel]: { id: 'memes' },
 	[EntityType.FarcasterChannel_Timestamp]: {
 		$channel: { id: 'memes' },
 		timestampMs: 1_700_000_000_000,
+		source: Source.Neynar_Rest,
 	},
 	[EntityType.FarcasterFeed]: { variant: 'trending' },
 	[EntityType.FarcasterNetwork]: { scope: 'FarcasterNetwork' },
@@ -922,6 +930,7 @@ const probeEntitySelectorByType = defineProbeEntitySelectors({
 	[EntityType.FarcasterUser_Timestamp]: {
 		$user: { fid: 3 },
 		timestampMs: 1_700_000_000_000,
+		source: Source.Neynar_Rest,
 	},
 	[EntityType.FarcasterVerifiedAddress]: {
 		fid: 3,
@@ -1780,11 +1789,13 @@ const probeEntitySelectorByType = defineProbeEntitySelectors({
 	[EntityType.XPost_Timestamp]: {
 		$post: { id: '2081809802515136887' },
 		timestampMs: 1_700_000_000_000,
+		source: Source.X_Rest,
 	},
 	[EntityType.XUser]: { id: '12' },
 	[EntityType.XUser_Timestamp]: {
 		$user: { id: '12' },
 		timestampMs: 1_700_000_000_000,
+		source: Source.X_Rest,
 	},
 
 		[EntityType.YoutubeNetwork]: { scope: 'YoutubeNetwork' },
@@ -1792,6 +1803,7 @@ const probeEntitySelectorByType = defineProbeEntitySelectors({
 		[EntityType.YoutubeChannel_Timestamp]: {
 			$channel: { channelId: 'UC_x5XG1OV2P6uZZ5FSM9Ttw' },
 			timestampMs: 0,
+			source: Source.Youtube_Rest,
 		},
 		[EntityType.YoutubeComment]: {
 			videoId: YOUTUBE_PROBE_VIDEO_ID,
@@ -2302,7 +2314,7 @@ const parentProbeEntitySelectorOverridesByTypeAndName = defineParentProbeEntityS
 		ClientUrl: { clientUrl: 'https://warpcast.com/~/conversations/e2e-probe' },
 		UsernameHashPrefix: {
 			username: 'vitalik.eth',
-			hashPrefix: CAST_HASH_32.slice(0, 12),
+			hashPrefix: '0xe4f2e1c70d',
 		},
 	},
 	[EntityType.LensAccount_Timestamp]: {
@@ -2454,14 +2466,6 @@ const parentProbeEntitySelectorOverridesByTypeAndName = defineParentProbeEntityS
 		},
 	},
 	[EntityType.FilecoinActor_Timestamp]: {
-		ActorTimestampMsSource: {
-			$actor: {
-				$network: filecoin,
-				address: 'f01234',
-			},
-			timestampMs: 0,
-			source: Source.Lotus_JsonRpc,
-		},
 		ActorHeightTipsetKeySource: {
 			$actor: {
 				$network: filecoin,
@@ -2486,14 +2490,6 @@ const parentProbeEntitySelectorOverridesByTypeAndName = defineParentProbeEntityS
 		},
 	},
 	[EntityType.FilecoinMiner_Timestamp]: {
-		MinerTimestampMsSource: {
-			$miner: {
-				$network: filecoin,
-				minerAddress: 'f01234',
-			},
-			timestampMs: 0,
-			source: Source.Lotus_JsonRpc,
-		},
 		MinerHeightTipsetKeySource: {
 			$miner: {
 				$network: filecoin,
@@ -2518,10 +2514,6 @@ const parentProbeEntitySelectorOverridesByTypeAndName = defineParentProbeEntityS
 		InstanceOrigin: {
 			instanceOrigin: 'https://mastodon.social',
 		},
-		InstanceOriginSource: {
-			instanceOrigin: 'https://mastodon.social',
-			source: Source.Mastodon_Rest,
-		},
 	},
 	[EntityType.ActivityPubInstance_Timestamp]: {
 		InstanceTimestampMsSource: {
@@ -2543,14 +2535,9 @@ const parentProbeEntitySelectorOverridesByTypeAndName = defineParentProbeEntityS
 			},
 			peerDomain: 'fosstodon.org',
 		},
-		InstanceOriginPeerDomainSource: {
-			instanceOrigin: 'https://mastodon.social',
-			peerDomain: 'fosstodon.org',
-			source: Source.Mastodon_Rest,
-		},
 	},
 	[EntityType.ActivityPubInstanceModeratedDomain]: {
-		ObservationDomain: {
+		ObservationDigest: {
 			$observation: {
 				$instance: {
 					instanceOrigin: 'https://mastodon.social',
@@ -2558,22 +2545,10 @@ const parentProbeEntitySelectorOverridesByTypeAndName = defineParentProbeEntityS
 				timestampMs: 0,
 				source: Source.Mastodon_Rest,
 			},
-			domain: 'example.com',
-		},
-		InstanceOriginModeratedDomainSource: {
-			instanceOrigin: 'https://mastodon.social',
-			domain: 'example.com',
-			source: Source.Mastodon_Rest,
+			digest: 'e2e-probe-moderated-domain',
 		},
 	},
 	[EntityType.ActivityPubActor_Timestamp]: {
-		ActivityPubActorTimestampMs: {
-			$actor: {
-				instanceOrigin: 'https://mastodon.social',
-				localAccountId: '13179',
-			},
-			timestampMs: 0,
-		},
 		ActivityPubActorTimestampMsSource: {
 			$actor: {
 				instanceOrigin: 'https://mastodon.social',
@@ -2584,13 +2559,6 @@ const parentProbeEntitySelectorOverridesByTypeAndName = defineParentProbeEntityS
 		},
 	},
 	[EntityType.ActivityPubNote_Timestamp]: {
-		ActivityPubNoteTimestampMs: {
-			$note: {
-				instanceOrigin: 'https://mastodon.social',
-				localStatusId: '116539053870420123',
-			},
-			timestampMs: 0,
-		},
 		ActivityPubNoteTimestampMsSource: {
 			$note: {
 				instanceOrigin: 'https://mastodon.social',
@@ -2805,18 +2773,20 @@ const parentProbeEntitySelectorOverridesByTypeAndName = defineParentProbeEntityS
 		},
 	},
 	[EntityType.YoutubeComment_Timestamp]: {
-		YoutubeCommentTimestampMs: {
+		YoutubeCommentTimestampMsSource: {
 			$comment: {
 				videoId: YOUTUBE_PROBE_VIDEO_ID,
 				commentId: YOUTUBE_PROBE_COMMENT_ID,
 			},
 			timestampMs: 0,
+			source: Source.Youtube_Rest,
 		},
 	},
 	[EntityType.YoutubePlaylist_Timestamp]: {
-		YoutubePlaylistTimestampMs: {
+		YoutubePlaylistTimestampMsSource: {
 			$playlist: { playlistId: YOUTUBE_PROBE_PLAYLIST_ID },
 			timestampMs: 0,
+			source: Source.Youtube_Rest,
 		},
 	},
 	[EntityType.RssItem]: {
@@ -2890,12 +2860,12 @@ const parentProbeEntitySelectorOverridesByTypeAndName = defineParentProbeEntityS
 		},
 	},
 	[EntityType.SolanaValidator_Timestamp]: {
-		ValidatorSlotSource: {
+		ValidatorTimestampMsSource: {
 			$validator: {
 				$network: solana,
 				votePubkey: 'Vote111111111111111111111111111111111111111',
 			},
-			slot: 250_000_000n,
+			timestampMs: 0,
 			source: Source.Solana_JsonRpc,
 		},
 	},
@@ -3066,9 +3036,10 @@ const parentProbeEntitySelectorOverridesByTypeAndName = defineParentProbeEntityS
 		},
 	},
 	[EntityType.YoutubeVideo_Timestamp]: {
-		YoutubeVideoTimestampMs: {
+		YoutubeVideoTimestampMsSource: {
 			$video: { videoId: YOUTUBE_PROBE_VIDEO_ID },
 			timestampMs: 0,
+			source: Source.Youtube_Rest,
 		},
 	},
 	[EntityType.EvmNetworkAccount_Timestamp]: {
@@ -3100,9 +3071,11 @@ const parentProbeEntitySelectorOverridesByTypeAndName = defineParentProbeEntityS
 	},
 })
 
-const parentProbeEntitySelectorByTypeAndName = Object.fromEntries(schema.map((entityDefinition) => [
-	entityDefinition.entityType,
-	Object.fromEntries(entityDefinition.selectors.flatMap((selectorDefinition) => {
+const parentProbeEntitySelectorByTypeAndName = Object.create(null)
+for (const entityDefinition of schema) {
+	const selectorByName = Object.create(null)
+	parentProbeEntitySelectorByTypeAndName[entityDefinition.entityType] = selectorByName
+	for (const selectorDefinition of entityDefinition.selectors) {
 		const override = Object.getOwnPropertyDescriptor(
 			Object.getOwnPropertyDescriptor(
 				parentProbeEntitySelectorOverridesByTypeAndName,
@@ -3110,35 +3083,30 @@ const parentProbeEntitySelectorByTypeAndName = Object.fromEntries(schema.map((en
 			)?.value ?? {},
 			selectorDefinition.name
 		)?.value
-		if (override != null)
-			return [[selectorDefinition.name, override]]
+		if (override != null) {
+			selectorByName[selectorDefinition.name] = override
+			continue
+		}
 
-		const entitySelector = probeEntitySelectorByType[entityDefinition.entityType]
+		const entitySelector = Object.getOwnPropertyDescriptor(
+			probeEntitySelectorByType,
+			entityDefinition.entityType
+		)?.value
 		if (entitySelector === undefined)
-			return []
+			continue
 
 		const selector = Object.fromEntries(Object.entries(entitySelector).filter(([fieldName]) => (
-			selectorDefinition.fields.includes(fieldName)
+			selectorDefinition.fields.some((selectorFieldName) => selectorFieldName === fieldName)
 		)))
 		try {
 			if (validateEntitySelector(schema, entityDefinition, selector).name === selectorDefinition.name)
-				return [[selectorDefinition.name, selector]]
+				selectorByName[selectorDefinition.name] = selector
 		} catch {
-			return []
+			continue
 		}
+	}
+}
 
-		return []
-	})),
-]))
-
-
-export type AssertLoadedResolverProbeCategory = (
-	| 'catalog'
-	| 'networkLive'
-	| 'envGated'
-	| 'knownUpstreamGap'
-	| 'unsupportedField'
-)
 
 export const assertLoadedResolverProbeCategories = [
 	'catalog',
@@ -3147,21 +3115,6 @@ export const assertLoadedResolverProbeCategories = [
 	'knownUpstreamGap',
 	'unsupportedField',
 ] as const satisfies readonly AssertLoadedResolverProbeCategory[]
-
-
-export type AssertLoadedResolverProbeCategoryBucket = {
-	total: number
-	resolveOk: number
-	resolveRejected: number
-	assertOk: number
-	fulfilledButAssertFailed: number
-}
-
-
-export type AssertLoadedResolverProbeCategorySummary = Record<
-	AssertLoadedResolverProbeCategory,
-	AssertLoadedResolverProbeCategoryBucket
->
 
 
 /** Sources for which every executable binding requires process environment credentials. */
@@ -3259,27 +3212,6 @@ export const classifyAssertLoadedResolverProbeCase = (
 }
 
 
-const probeEntitySelectorForType = (
-	entityType: EntityType,
-	selectorName: string
-): EntitySelector<typeof schema, EntityType> => {
-	const entitySelector = probeEntitySelectorByType[entityType]
-	if (entitySelector === undefined)
-		throw new Error(`Missing probe entity selector ${entityType}.${selectorName}`)
-	const entityDefinition = entityDefinitionByType[entityType]
-	const selectorDefinition = entityDefinition.selectors.find((selector) => selector.name === selectorName)
-	if (selectorDefinition == null)
-		throw new Error(`Missing probe entity selector ${entityType}.${selectorName}`)
-
-	const projectedEntitySelector = Object.fromEntries(
-		Object.entries(entitySelector).filter(([fieldName]) => selectorDefinition.fields.includes(fieldName))
-	)
-	if (validateEntitySelector(schema, entityDefinition, projectedEntitySelector).name !== selectorName)
-		throw new Error(`Missing probe entity selector ${entityType}.${selectorName}`)
-
-	return projectedEntitySelector
-}
-
 export const resolveProbeEntitySelector = async (
 	entityType: EntityType,
 	selectorName: string,
@@ -3289,11 +3221,8 @@ export const resolveProbeEntitySelector = async (
 
 	return entityDefinitionByType[entityType].selectors
 		.find((selector) => selector.name === selectorName)
-		?.fields.includes('source') === true ?
-			{
-				...entitySelector,
-				source,
-			}
+		?.fields.some((fieldName) => fieldName === 'source') === true ?
+			Object.assign(Object.create(Object.prototype), entitySelector, { source })
 		:
 			entitySelector
 }
