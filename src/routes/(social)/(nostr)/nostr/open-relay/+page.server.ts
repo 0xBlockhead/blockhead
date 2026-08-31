@@ -1,12 +1,8 @@
-import { resolve } from '$app/paths'
-import { error, redirect } from '@sveltejs/kit'
+import { error, redirect, type RequestEvent } from '@sveltejs/kit'
 
-import { relayWebSocketUrl } from '$/sources/NostrRelay/WebSocket/queries.ts'
+import { relayWebSocketUrl } from '$/sources/NostrRelay/WebSocket/relayWebSocketUrl.ts'
 
-import type { PageServerLoad } from './$types.ts'
-
-
-export const load: PageServerLoad = ({ url }) => {
+export const load = ({ url }: Pick<RequestEvent, 'url'>) => {
 	const relayUrl = url.searchParams.get('url')
 	if (relayUrl == null)
 		return {}
@@ -18,5 +14,5 @@ export const load: PageServerLoad = ({ url }) => {
 		error(400, reason instanceof Error ? reason.message : 'Invalid Nostr relay URL')
 	}
 
-	redirect(303, resolve(`/nostr/relay/${encodeURIComponent(normalizedRelayUrl)}`))
+	redirect(303, `/nostr/relay/${encodeURIComponent(normalizedRelayUrl)}`)
 }

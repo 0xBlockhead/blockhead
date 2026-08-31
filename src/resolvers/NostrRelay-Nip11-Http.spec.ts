@@ -134,7 +134,8 @@ describe('NostrRelay NIP-11 Http resolver', () => {
 	})
 
 	it('does not register a direct NostrRelay_Timestamp resolver', () => {
-		expect(nostrRelayNip11Http.resolvers.some((candidate) => (
+		const resolvers: readonly { entityType: EntityType }[] = nostrRelayNip11Http.resolvers
+		expect(resolvers.some((candidate) => (
 			candidate.entityType === EntityType.NostrRelay_Timestamp
 		))).toBe(false)
 	})

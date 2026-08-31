@@ -16,8 +16,8 @@ import {
 	nostrZapRequestFromEvent,
 	openRelaySubscription,
 	publishRelayEvent,
-	relayWebSocketUrl,
 } from '$/sources/NostrRelay/WebSocket/queries.ts'
+import { relayWebSocketUrl } from '$/sources/NostrRelay/WebSocket/relayWebSocketUrl.ts'
 import { Source } from '$/sources/Source.ts'
 import {
 	SourceEndpointKind,

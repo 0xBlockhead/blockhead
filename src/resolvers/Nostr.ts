@@ -68,8 +68,8 @@ const hasNostrMarkedThreadTags = (tags: string[][]) => tags.some((tag) => (
 export const nostrReplyToEventId = (tags: string[][]) => {
 	const unmarkedEventIds = tags.flatMap((tag) => (
 		tag[0] === 'e'
-		&& tag[3] == null ?
-			[normalizeNostrEventId(tag[1])]
+		&& tag.at(3) == null ?
+			[normalizeNostrEventId(tag.at(1))]
 		:
 			[]
 	)).filter((eventId) => eventId != null)
@@ -77,7 +77,7 @@ export const nostrReplyToEventId = (tags: string[][]) => {
 		tags.flatMap((tag) => (
 			tag[0] === 'e'
 			&& tag[3] === 'reply' ?
-				[normalizeNostrEventId(tag[1])]
+					[normalizeNostrEventId(tag.at(1))]
 			:
 				[]
 		)).at(0)
@@ -93,8 +93,8 @@ export const nostrReplyToEventId = (tags: string[][]) => {
 const nostrRootEventId = (tags: string[][]) => {
 	const unmarkedEventIds = tags.flatMap((tag) => (
 		tag[0] === 'e'
-		&& tag[3] == null ?
-			[normalizeNostrEventId(tag[1])]
+		&& tag.at(3) == null ?
+			[normalizeNostrEventId(tag.at(1))]
 		:
 			[]
 	)).filter((eventId) => eventId != null)
@@ -102,7 +102,7 @@ const nostrRootEventId = (tags: string[][]) => {
 		tags.flatMap((tag) => (
 			tag[0] === 'e'
 			&& tag[3] === 'root' ?
-				[normalizeNostrEventId(tag[1])]
+					[normalizeNostrEventId(tag.at(1))]
 			:
 				[]
 		)).at(0)
