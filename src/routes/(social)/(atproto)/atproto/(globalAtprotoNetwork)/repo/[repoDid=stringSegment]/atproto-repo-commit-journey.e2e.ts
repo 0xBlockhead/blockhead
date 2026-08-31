@@ -8,10 +8,10 @@ test('renders the current repository commit from the server-owned sync read', as
 		`https://bsky.network/xrpc/com.atproto.sync.getLatestCommit?did=${encodeURIComponent(repoDid)}`
 	)
 	expect(latestResponse.ok()).toBe(true)
-	const latest = await latestResponse.json() as {
+	const latest: {
 		cid: string
 		rev: string
-	}
+	} = await latestResponse.json()
 	await page.addInitScript(({ name, schemaVersion }) => {
 		window.__blockheadWaSqliteDatabaseNameOverride = name
 		window.__blockheadWaSqliteVfsNameOverride = name.replace(/[^a-zA-Z0-9_-]/g, '_')

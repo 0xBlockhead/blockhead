@@ -106,7 +106,7 @@ test('renders raw v0.2 declarations independently from resolved root content', a
 
 	await expect(page.getByText('0.2.0', { exact: true }).first()).toBeVisible({
 		timeout: 30_000,
-	}).catch((error: unknown) => {
+	}).catch((error) => {
 		throw new Error(`${String(error)}\nProvider requests: ${providerRequests.join('\n')}\nPage errors: ${pageErrors.join('\n')}\nUnexpected requests: ${unexpectedRequests.join('\n')}`)
 	})
 	await expect(page.getByText('index.html', { exact: true }).first()).toBeVisible()

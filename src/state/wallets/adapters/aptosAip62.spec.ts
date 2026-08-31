@@ -371,7 +371,7 @@ describe('Aptos AIP-62 discovery adapter', () => {
 		await expect(adapter.signMessage?.(
 			'aptos-aip62:Petra',
 			canonicalAccountA,
-			'Sign this Aptos challenge',
+			'Sign this Aptos challenge'
 		)).resolves.toBe('0xaptos-signature')
 
 		expect(synthetic.wallet.features['aptos:signMessage'].signMessage).toHaveBeenCalledWith({
@@ -399,7 +399,7 @@ describe('Aptos AIP-62 discovery adapter', () => {
 		await expect(adapter.signMessage?.(
 			'aptos-aip62:Petra',
 			canonicalAccountA,
-			'hello',
+			'hello'
 		)).rejects.toThrow('Petra rejected message signing')
 	})
 })

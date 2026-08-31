@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import type { BrowserContext, Page, TestInfo } from '@playwright/test'
+import type { BrowserContext, Locator, Page, TestInfo } from '@playwright/test'
 
 import {
 	expectMainAttached,
@@ -2018,12 +2018,13 @@ test('aggregates eligible public account data and omits ineligible facets', asyn
 	await expect.poll(() => [...aptosBalanceStorageIds], {
 		timeout: 120_000,
 	}).toEqual(['0xaptos-primary-store'])
-	await Promise.all([
+	const balanceExpectations: readonly [Locator, number][] = [
 		[aptosBalances, 1],
 		[tronBalances, 1],
 		[tronTokenBalances, 1],
 		[utxoBalances, 1],
-	].map(([protocolBalances, expectedRowCount]) => (
+	]
+	await Promise.all(balanceExpectations.map(([protocolBalances, expectedRowCount]) => (
 		expect(protocolBalances.locator('li[data-list-item]')).toHaveCount(expectedRowCount, {
 			timeout: 120_000,
 		})

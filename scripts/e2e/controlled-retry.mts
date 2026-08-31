@@ -4,6 +4,8 @@ import { basename, join, resolve } from 'node:path'
 import { execFile, spawn, type ChildProcess } from 'node:child_process'
 import { promisify } from 'node:util'
 
+import type { Page } from '@playwright/test'
+
 import {
 	canonicalJson,
 	acquireExclusiveWriterLock,
@@ -19,15 +21,16 @@ import {
 	type RouteScreenshotQuality,
 	type RouteScreenshotQualityInput,
 } from '../../tests/_routeScreenshotQuality.ts'
-import { installBoundaryProbe, snapshotBoundary, waitForBoundarySettlement } from './boundarySettlement.ts'
+import {
+	installBoundaryProbe,
+	snapshotBoundary,
+	waitForBoundarySettlement,
+	type BoundarySettlementSnapshot,
+} from './boundarySettlement.ts'
 
 const execFileAsync = promisify(execFile)
 const sha256 = (value: string | Uint8Array) => createHash('sha256').update(value).digest('hex')
 export const controlledRetrySchemaVersion = 4
-
-declare global {
-	var __blockheadBoundaryProbe: { kind: string }[] | undefined
-}
 
 export type ControlledRetryManifest = {
 	schemaVersion: number
@@ -117,15 +120,25 @@ export type CaptureContext = {
 export type CaptureBrowser = { newContext: () => Promise<CaptureContext>, close: () => Promise<void>, identity: string }
 
 type CapturePage = Awaited<ReturnType<CaptureContext['newPage']>>
+type CaptureQualityPage = Pick<
+	CapturePage,
+	'runtimeDiagnostics' | 'boundarySnapshot' | 'boundaryEvents' | 'waitForTimeout'
+>
+
+type CapturePageEvaluate = {
+	(pageFunction: () => ControlledRetryRuntimeDiagnostics['main']): Promise<ControlledRetryRuntimeDiagnostics['main']>
+	(pageFunction: () => BoundarySettlementSnapshot): Promise<BoundarySettlementSnapshot>
+	(pageFunction: () => number): Promise<number>
+}
 
 export const adaptCapturePage = (page: {
-	goto: CapturePage['goto']
-	screenshot: CapturePage['screenshot']
+	goto: (url: string) => Promise<Awaited<ReturnType<Page['goto']>> | void>
+	screenshot: (options: { path: string, fullPage: boolean }) => Promise<Awaited<ReturnType<Page['screenshot']>> | void>
 	content: CapturePage['content']
 	url: CapturePage['url']
 	locator: (selector: string) => { isVisible: () => Promise<boolean> }
-	evaluate: <T>(pageFunction: () => T) => Promise<T>
-	addInitScript?: (script: () => void) => Promise<void>
+	evaluate: CapturePageEvaluate
+	addInitScript?: (script: () => void) => Promise<Awaited<ReturnType<Page['addInitScript']>> | void>
 	on: {
 		(event: 'console', listener: (message: { type: () => string, text: () => string }) => void): void
 		(event: 'pageerror', listener: (error: { message: string, stack?: string }) => void): void
@@ -144,8 +157,8 @@ export const adaptCapturePage = (page: {
 		url: request.url(), method: request.method(), failure: request.failure()?.errorText ?? null, resourceType: request.resourceType(),
 	}))
 	return {
-		goto: (url) => page.goto(url),
-		screenshot: (options) => page.screenshot(options),
+		goto: async (url) => { await page.goto(url) },
+		screenshot: async (options) => { await page.screenshot(options) },
 		content: () => page.content(),
 		url: () => page.url(),
 		isMainVisible: () => page.locator('#main').isVisible(),
@@ -185,7 +198,7 @@ export const adaptCapturePage = (page: {
 const captureSettleTimeoutMs = 120_000
 const captureQuietMs = 2_000
 
-export const waitForCaptureQuality = async (page: CapturePage, pathname: string, {
+export const waitForCaptureQuality = async (page: CaptureQualityPage, pathname: string, {
 	timeoutMs = captureSettleTimeoutMs,
 	quietMs = captureQuietMs,
 }: { timeoutMs?: number, quietMs?: number } = {}) => {

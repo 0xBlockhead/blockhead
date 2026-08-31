@@ -30,9 +30,9 @@ test('keeps rejected consent out of connected and submitted request rows after r
 
 	await page.addInitScript(() => {
 		const accountAddress = '0x1111111111111111111111111111111111111111'
-		const providerCallCounts = () => JSON.parse(
+		const providerCallCounts = (): Record<string, number> => JSON.parse(
 			localStorage.getItem('wallet-consent-provider-call-counts') ?? '{}'
-		) as Record<string, number>
+		)
 		const countProviderCall = (method: string) => {
 			const counts = providerCallCounts()
 			counts[method] = (counts[method] ?? 0) + 1

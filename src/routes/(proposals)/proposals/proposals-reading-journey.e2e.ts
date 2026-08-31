@@ -19,9 +19,9 @@ if (ethereumEipsBinding == null)
 	throw new Error('Ethereum EIPs Git repository proxy binding is missing')
 
 const githubApiEndpointIndex = ethereumEipsBinding.endpoints
-	.findIndex(({ origin }) => origin === 'https://api.github.com')
+	.findIndex(({ locator }) => locator === 'https://api.github.com')
 const githubRawEndpointIndex = ethereumEipsBinding.endpoints
-	.findIndex(({ origin }) => origin === 'https://raw.githubusercontent.com')
+	.findIndex(({ locator }) => locator === 'https://raw.githubusercontent.com')
 if (
 	githubApiEndpointIndex < 0
 	|| githubRawEndpointIndex < 0

@@ -148,7 +148,7 @@ describe('EIP-6963 discovery identity', () => {
 		window.ethereum = provider
 		await expect.poll(
 			() => candidates.mock.lastCall?.[0],
-			{ timeout: 1000 },
+			{ timeout: 1000 }
 		).toEqual(
 			expect.arrayContaining([
 				expect.objectContaining({

@@ -232,18 +232,22 @@ export const backpackDriver = {
 		})
 	),
 	rejectConnection: async (page: Page) => {
-		await page.getByRole('button', {
-			name: 'Deny',
-			exact: true,
-		}).click()
-		await expect(page).toBeClosed()
+		await Promise.all([
+			page.waitForEvent('close'),
+			page.getByRole('button', {
+				name: 'Deny',
+				exact: true,
+			}).click(),
+		])
 	},
 	approveConnection: async (page: Page) => {
-		await page.getByRole('button', {
-			name: 'Approve',
-			exact: true,
-		}).click()
-		await expect(page).toBeClosed()
+		await Promise.all([
+			page.waitForEvent('close'),
+			page.getByRole('button', {
+				name: 'Approve',
+				exact: true,
+			}).click(),
+		])
 	},
 	switchAccount: async (page: Page, currentLabel: string, nextLabel: string) => {
 		await page.getByText(currentLabel, {

@@ -43,7 +43,7 @@ const networkPathPattern = (
 		undefined
 )
 const networkPathnames = process.env.E2E_NETWORK_PATHS?.split(',').filter(Boolean)
-const inapplicableCarouselFacetIdsByPathname = new Map([
+const inapplicableCarouselFacetIdsByPathname = new Map<string, readonly string[]>([
 	[
 		'/network/bitcoin',
 		[

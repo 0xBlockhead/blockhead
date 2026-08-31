@@ -1,6 +1,5 @@
 import { expect, test } from '@playwright/test'
 
-
 test('renders a public Hugging Face model and immutable revision through server-owned reads', async ({ page }, testInfo) => {
 	testInfo.setTimeout(180_000)
 	const consoleErrors: string[] = []

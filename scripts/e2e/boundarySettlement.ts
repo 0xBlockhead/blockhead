@@ -1,3 +1,6 @@
+import type { Page } from '@playwright/test'
+
+
 export type BoundarySettlementSnapshot = {
 	loading: number
 	failed: number
@@ -5,31 +8,65 @@ export type BoundarySettlementSnapshot = {
 	reason: string
 }
 
+export type BoundaryUpdateEvent = {
+	at: number
+	kind: string
+	id: string | null
+	key: string | null
+	message: string
+	context: string
+}
+
+export type BoundaryLoadingProbeRow = {
+	id: string
+	startedAt: number
+	key: string | null
+	message: string
+	context: string
+}
+
+export type BoundarySemanticReadiness = {
+	ready: boolean
+	signature: string
+	unmet?: string[]
+}
+
+declare global {
+	var __blockheadBoundaryProbe: BoundaryUpdateEvent[] | undefined
+	var __blockheadBoundaryProbeActive: BoundaryLoadingProbeRow[] | undefined
+}
+
 export type BoundaryProbePage = {
-	addInitScript: (script: () => void) => Promise<void>
+	addInitScript: (script: () => void) => Promise<Awaited<ReturnType<Page['addInitScript']>> | void>
 	evaluate: <T>(script: () => T) => Promise<T>
 }
 
 export const installBoundaryProbe = (page: BoundaryProbePage) => page.addInitScript(() => {
-	const events: unknown[] = []
-	const active = new Map<Element, { id: string }>()
+	const events: BoundaryUpdateEvent[] = []
+	const active = new Map<Element, BoundaryLoadingProbeRow>()
 	let nextId = 0
 	const sync = (element: Element) => {
 		const loading = element.matches('.loading, [aria-busy="true"]')
 		const failed = element.matches('[data-error], [role="alert"], [data-tag].inline-placeholder:not([aria-busy="true"])')
 		if (loading && !active.has(element)) {
-			const row = { id: String(++nextId) }
+			const row: BoundaryLoadingProbeRow = {
+				id: String(++nextId),
+				startedAt: Date.now(),
+				key: null,
+				message: '',
+				context: '',
+			}
 			active.set(element, row)
-			events.push({ kind: 'dom-loading', id: row.id, at: Date.now() })
+			events.push({ kind: 'dom-loading', id: row.id, at: Date.now(), key: null, message: '', context: '' })
 		}
 		else if (!loading && active.has(element)) {
-			events.push({ kind: 'dom-resolved', id: active.get(element)?.id ?? null, at: Date.now() })
+			events.push({ kind: 'dom-resolved', id: active.get(element)?.id ?? null, at: Date.now(), key: null, message: '', context: '' })
 			active.delete(element)
 		}
-		if (failed) events.push({ kind: 'dom-failed', id: null, at: Date.now() })
+		if (failed) events.push({ kind: 'dom-failed', id: null, at: Date.now(), key: null, message: '', context: '' })
 		window.__blockheadBoundaryProbeActive = [...active.values()]
 	}
-	window.__blockheadBoundaryProbe = events as never[]
+	window.__blockheadBoundaryProbe = events
 	window.__blockheadBoundaryProbeActive = []
 	const attach = () => {
 		const main = document.querySelector('#main')
@@ -51,7 +88,9 @@ export const installBoundaryProbe = (page: BoundaryProbePage) => page.addInitScr
 	}
 })
 
-export const snapshotBoundary = (page: { evaluate: BoundaryProbePage['evaluate'] }) => page.evaluate(() => {
+export const snapshotBoundary = (page: {
+	evaluate: (script: () => BoundarySettlementSnapshot) => Promise<BoundarySettlementSnapshot>
+}) => page.evaluate(() => {
 	const main = document.querySelector('#main')
 	const failed = main == null ? 0 : main.querySelectorAll('[data-error], [role="alert"], [data-tag].inline-placeholder:not([aria-busy="true"])').length
 	const loading = main == null ? 0 : main.querySelectorAll('.loading, [aria-busy="true"]').length
@@ -63,7 +102,7 @@ export const snapshotBoundary = (page: { evaluate: BoundaryProbePage['evaluate']
 export type BoundarySettlementProbe = {
 	snapshot: () => Promise<BoundarySettlementSnapshot & Record<string, unknown>>
 	events: () => Promise<number>
-	semantic?: () => Promise<{ ready: boolean, signature: string, unmet?: string[] }>
+	semantic?: () => Promise<BoundarySemanticReadiness>
 	wait: (milliseconds: number) => Promise<void>
 	isClosed?: () => boolean
 	probeTimeoutMs?: number
@@ -80,7 +119,7 @@ export const waitForBoundarySettlement = async (
 	let lastSignature = ''
 	let quietSince = Date.now()
 	let last: BoundarySettlementSnapshot & Record<string, unknown> = { loading: 0, failed: 0, empty: true, reason: 'bootstrap-shell' }
-	let lastSemantic = { ready: true, signature: '' } as { ready: boolean, signature: string, unmet?: string[] }
+	let lastSemantic: BoundarySemanticReadiness = { ready: true, signature: '' }
 
 	while (Date.now() < deadline) {
 		const timeout = probe.probeTimeoutMs ?? 20_000
@@ -88,7 +127,12 @@ export const waitForBoundarySettlement = async (
 		try { last = await withTimeout(probe.snapshot()) }
 		catch { last = { ...last, empty: true, reason: probe.isClosed?.() ? 'page-closed' : 'probe-evaluate-timeout' } }
 		const events = await withTimeout(probe.events()).catch(() => -1)
-		const semantic = await (probe.semantic == null ? Promise.resolve({ ready: true, signature: '' }) : withTimeout(probe.semantic())).catch(() => ({ ready: false, signature: 'semantic-probe-timeout', unmet: ['semantic-probe-timeout'] }))
+		const semantic: BoundarySemanticReadiness = await (
+			probe.semantic == null ?
+				Promise.resolve({ ready: true, signature: '' })
+			:
+				withTimeout(probe.semantic())
+		).catch(() => ({ ready: false, signature: 'semantic-probe-timeout', unmet: ['semantic-probe-timeout'] }))
 		lastSemantic = semantic
 		const signature = JSON.stringify({ loading: last.loading, failed: last.failed, events, semantics: semantic.signature })
 		if (signature === lastSignature && last.loading === 0 && semantic.ready) {

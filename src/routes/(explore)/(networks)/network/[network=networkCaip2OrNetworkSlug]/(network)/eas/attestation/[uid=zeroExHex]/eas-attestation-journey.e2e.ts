@@ -9,13 +9,13 @@ test('renders a current EAS attestation through the server-owned GraphQL query',
 		},
 	})
 	expect(latestResponse.ok()).toBe(true)
-	const latest = await latestResponse.json() as {
+	const latest: {
 		data: {
 			attestations: [{
 				id: string
 			}]
 		}
-	}
+	} = await latestResponse.json()
 	expect(latest.data.attestations).toHaveLength(1)
 	await page.addInitScript(({ name, schemaVersion }) => {
 		window.__blockheadWaSqliteDatabaseNameOverride = name

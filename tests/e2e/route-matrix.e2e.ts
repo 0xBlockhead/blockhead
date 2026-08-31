@@ -686,8 +686,9 @@ const {
 		}
 	} catch (error) {
 		// Keep probe/contract tests loadable when generated route atoms lag `_routeParamFixtures`.
+		const routePathnames: string[] = []
 		return {
-			routePathnames: [] as string[],
+			routePathnames,
 			routeDiscoveryError: error,
 		}
 	}

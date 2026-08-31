@@ -277,7 +277,7 @@ const assertWalletSigningNotSubmitted = async (
 	)
 }
 
-const assert = (condition: boolean, message: string): asserts condition => {
+const assert: (condition: boolean, message: string) => asserts condition = (condition, message) => {
 	if (!condition)
 		throw new Error(message)
 }
@@ -464,7 +464,7 @@ export const extensionIdForManifest = (manifest: WalletExtensionManifest, path: 
 		.map((byte) => (
 			String.fromCharCode(
 				97 + (byte >> 4),
-				97 + (byte & 15),
+				97 + (byte & 15)
 			)
 		))
 		.join('')

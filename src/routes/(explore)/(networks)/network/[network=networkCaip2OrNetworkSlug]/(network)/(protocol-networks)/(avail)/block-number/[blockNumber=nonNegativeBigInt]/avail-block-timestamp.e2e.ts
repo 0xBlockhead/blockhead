@@ -5,6 +5,15 @@ import { Source } from '$/sources/Source.ts'
 import { sourceBindingId } from '$/sources/SourceBinding.ts'
 
 
+declare global {
+	interface Window {
+		__blockheadPersistedCollectionSchemaVersionOverride?: number
+		__blockheadWaSqliteDatabaseNameOverride?: string
+		__blockheadWaSqliteVfsNameOverride?: string
+	}
+}
+
+
 const blockNumber = 3_355_961
 const blockPath = `/network/avail/block-number/${blockNumber}`
 const blockHash = '0x16545958f0edb021cda965d8211875f3190c864cccacc6570873be3b4f926728'

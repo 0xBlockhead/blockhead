@@ -5,12 +5,12 @@ test('renders a current LayerZero transfer and source-clocked lifecycle observat
 	testInfo.setTimeout(180_000)
 	const latestResponse = await request.get('https://scan.layerzero-api.com/v1/messages/latest?limit=1')
 	expect(latestResponse.ok()).toBe(true)
-	const latest = await latestResponse.json() as {
+	const latest: {
 		data: [{
 			guid: string
 			updated: string
 		}]
-	}
+	} = await latestResponse.json()
 	expect(latest.data).toHaveLength(1)
 	await page.addInitScript(({ name, schemaVersion }) => {
 		window.__blockheadWaSqliteDatabaseNameOverride = name

@@ -181,14 +181,17 @@ test('bootstrap-only runtime cannot complete as captured', async () => {
 	)
 })
 
-test('capture page adapter preserves prototype-backed Playwright methods', async () => {
-	class FakePage {
+	test('capture page adapter preserves prototype-backed Playwright methods', async () => {
+		class FakePage {
 		async goto() {}
 		async screenshot() {}
 		async content() { return '<main id="main">fixture</main>' }
 		url() { return 'http://127.0.0.1:4173/a' }
 		locator() { return { isVisible: async () => true } }
-		async evaluate(_pageFunction: () => ControlledRetryRuntimeDiagnostics['main']): Promise<ControlledRetryRuntimeDiagnostics['main']> {
+		async evaluate(_pageFunction: () => ControlledRetryRuntimeDiagnostics['main']): Promise<ControlledRetryRuntimeDiagnostics['main']>
+		async evaluate(_pageFunction: () => { loading: number, failed: number, empty: boolean, reason: string }): Promise<{ loading: number, failed: number, empty: boolean, reason: string }>
+		async evaluate(_pageFunction: () => number): Promise<number>
+		async evaluate(): Promise<ControlledRetryRuntimeDiagnostics['main'] | { loading: number, failed: number, empty: boolean, reason: string } | number> {
 			return {
 				boundaryEvents: [], contentHeight: 900, mainText: 'fixture',
 				overflow: { carouselX: 0, pageX: 0, pageY: 0 },

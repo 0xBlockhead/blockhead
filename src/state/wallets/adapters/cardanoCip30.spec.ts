@@ -300,7 +300,7 @@ describe('Cardano CIP-30 wallet adapter', () => {
 		adapter.start(() => {})
 
 		const connection = await adapter.connect('cip30:nami')
-		const accountAddress = connection!.accounts[0]!.accountAddress
+		const accountAddress = connection!.accounts[0].accountAddress
 		expect(connection?.accounts[0]?.capabilities).toContain(WalletCapability.SignMessage)
 		expect(connection?.scopes[0]?.methods).toContain('signData')
 		expect(connection?.accounts[0]?.capabilities).toContain(WalletCapability.SignTransaction)
@@ -312,7 +312,7 @@ describe('Cardano CIP-30 wallet adapter', () => {
 		)).resolves.toBe('cip30-signature')
 		expect(signData).toHaveBeenCalledWith(
 			mainnetAddress,
-			expect.stringMatching(/^0x/),
+			expect.stringMatching(/^0x/)
 		)
 	})
 })

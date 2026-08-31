@@ -40,12 +40,10 @@ test('keeps the Petra account lifecycle shard free of invented recover / key-imp
 			lifecycleEdgeCase: 'fixture-material-not-provided-blocked',
 		},
 	])
-	assert.equal(
-		petraWalletMatrixScenarios('2.5.0').some(({ initializationFlow }) => (
-			initializationFlow === 'import-private-key'
-		)),
-		false,
-		'Petra must not invent an import-private-key pass while fixture material is unavailable'
+	assert.deepEqual(
+		[...new Set(petraWalletMatrixScenarios('2.5.0').map(({ initializationFlow }) => initializationFlow))],
+		['create-new', 'recover'],
+		'Petra must expose only the initialization flows backed by available fixture material'
 	)
 })
 

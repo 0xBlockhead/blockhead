@@ -16,18 +16,20 @@ import { e2eRouteProbeAtomValueById } from '../../tests/e2e/_routeParamFixtures.
 
 
 test('route probe atom values exactly cover every generated atom', () => {
+	const metadataValues: readonly { mappings: readonly E2eRouteFixtureMapping[] }[] = Object.values(e2eRouteFixtureMetadataByNodeId)
+	const atomValues: Record<string, string> = { ...e2eRouteProbeAtomValueById }
 	assert.deepEqual(
-		[...new Set(Object.values(e2eRouteFixtureMetadataByNodeId).flatMap((metadata) => (
+		[...new Set(metadataValues.flatMap((metadata) => (
 			metadata.mappings.flatMap((mapping) => (
 				routeProbeCasesForMapping(mapping).flatMap(({ atoms }) => atoms)
 			))
 		)))].sort(),
-		Object.keys(e2eRouteProbeAtomValueById).sort()
+		Object.keys(atomValues).sort()
 	)
 })
 
 test('excludes unsupported Hyperliquid observations while retaining block-scoped Near account state', () => {
-	const mappingIds = Object.values(e2eRouteFixtureMetadataByNodeId).flatMap(({ mappings }) => (
+	const mappingIds: string[] = Object.values(e2eRouteFixtureMetadataByNodeId).flatMap(({ mappings }) => (
 		mappings.map(({ id }) => id)
 	))
 
@@ -97,12 +99,13 @@ test('keeps Polkadot and Lightning route atoms on their canonical networks', () 
 		assert.ok(metadata)
 		const mapping: E2eRouteFixtureMapping | undefined = metadata.mappings.find((candidate) => candidate.id === mappingId)
 		assert.ok(mapping)
-		const probeCase = routeProbeCasesForMapping(mapping)[0]
-		assert.ok(probeCase)
-		assert.equal(
-			pathnameFromRouteFixture(metadata, Object.fromEntries(Object.entries(routeProbeCaseParams(probeCase)).map(([param, atom]) => [
-				param,
-				e2eRouteProbeAtomValueById[atom],
+			const probeCase = routeProbeCasesForMapping(mapping)[0]
+			assert.ok(probeCase)
+			const probeAtomValues: Record<string, string> = { ...e2eRouteProbeAtomValueById }
+			assert.equal(
+				pathnameFromRouteFixture(metadata, Object.fromEntries(Object.entries(routeProbeCaseParams(probeCase)).map(([param, atom]) => [
+					param,
+					probeAtomValues[atom],
 			]))),
 			expectedPathname
 		)

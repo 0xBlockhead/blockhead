@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test'
+import { expect, test, type Route } from '@playwright/test'
 
 
 const txId = 'e'.repeat(64)
@@ -64,7 +64,7 @@ test.beforeEach(async ({ page }, testInfo) => {
 
 
 const fulfillFromMempoolSpace = async (
-	route: { request: () => { url: () => string }, fulfill: (payload: { json: unknown }) => Promise<void> },
+	route: Route,
 	pathname: string
 ) => {
 	if (pathname === `/api/tx/${txId}`)

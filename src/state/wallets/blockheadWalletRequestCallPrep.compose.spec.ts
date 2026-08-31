@@ -186,7 +186,7 @@ describe('BlockheadWalletRequestCall prep compose', () => {
 				updatedAt: 1,
 			}),
 			3,
-			3,
+			3
 		)!
 		expect(locked).toMatchObject({
 			status: BlockheadSessionStatus.Draft,

@@ -5,6 +5,15 @@ import { Source } from '$/sources/Source.ts'
 import { sourceBindingId } from '$/sources/SourceBinding.ts'
 
 
+declare global {
+	interface Window {
+		__blockheadPersistedCollectionSchemaVersionOverride?: number
+		__blockheadWaSqliteDatabaseNameOverride?: string
+		__blockheadWaSqliteVfsNameOverride?: string
+	}
+}
+
+
 const tokenId = '0.0.700'
 const timestampMs = '1710000002000'
 const tokenPath = `/network/hedera:mainnet/token/${tokenId}`

@@ -948,9 +948,6 @@ export const e2eRouteProbeAtomValueById = {
 	"/network/[network]/account/[accountId]/storage/[storageKey]/block/[blockNumber]/[source]:StarknetStorageEntry_Timestamp.EntryBlockNumberSource.1.storageKey": "e2e-probe-storageKey",
 	"/network/[network]/account/[accountId]/storage/[storageKey]/block/[blockNumber]/[source]:StarknetStorageEntry_Timestamp.EntryBlockNumberSource.1.accountId": "e2e-probe-accountId",
 	"/network/[network]/account/[accountId]/storage/[storageKey]/block/[blockNumber]/[source]:StarknetStorageEntry_Timestamp.EntryBlockNumberSource.1.network": "starknet",
-	"/network/[network]/account/[accountId]/token/[tokenId]:HederaTokenAssociation.AccountToken.1.tokenId": "e2e-probe-tokenId",
-	"/network/[network]/account/[accountId]/token/[tokenId]:HederaTokenAssociation.AccountToken.1.accountId": "e2e-probe-accountId",
-	"/network/[network]/account/[accountId]/token/[tokenId]:HederaTokenAssociation.AccountToken.1.network": "hedera",
 	"/network/[network]/account/[accountId]/token/[tokenId]/observations/[timestampMs]/[source]:TronAccountTokenBalance_Timestamp.AccountTokenTimestampMsSource.1.timestampMs": "0",
 	"/network/[network]/account/[accountId]/token/[tokenId]/observations/[timestampMs]/[source]:TronAccountTokenBalance_Timestamp.AccountTokenTimestampMsSource.1.source": "Constants_Internal",
 	"/network/[network]/account/[accountId]/token/[tokenId]/observations/[timestampMs]/[source]:TronAccountTokenBalance_Timestamp.AccountTokenTimestampMsSource.1.tokenId": "e2e-probe-tokenId",
@@ -3230,7 +3227,18 @@ export const e2eBoundaryLiveOptionalPathnames = new Set<string>([
 ])
 
 
-export const e2eDomQualityProbeOverlays = {
+export type E2eDomQualityProbeOverlay = {
+	entityType?: 'Network' | 'SpecificationProposal'
+	routeTitle?: string
+	required?: readonly string[]
+	forbidden?: readonly string[]
+	requiredDt?: readonly string[]
+	minDt?: number
+	minLinks?: number
+	minEntityRows?: number
+}
+
+export const e2eDomQualityProbeOverlays: Readonly<Record<string, E2eDomQualityProbeOverlay>> = {
 	'/network/eip155:1': {
 		entityType: 'Network',
 		required: ['Ethereum Mainnet'],
@@ -3292,13 +3300,4 @@ export const e2eDomQualityProbeOverlays = {
 		minDt: 2,
 		minLinks: 1,
 	},
-} as const satisfies Readonly<Record<string, {
-	entityType?: 'Network' | 'SpecificationProposal'
-	routeTitle?: string
-	required?: readonly string[]
-	forbidden?: readonly string[]
-	requiredDt?: readonly string[]
-	minDt?: number
-	minLinks?: number
-	minEntityRows?: number
-}>>
+}

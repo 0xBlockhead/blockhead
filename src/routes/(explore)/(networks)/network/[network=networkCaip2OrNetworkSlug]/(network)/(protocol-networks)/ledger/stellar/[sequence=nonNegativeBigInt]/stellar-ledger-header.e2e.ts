@@ -5,6 +5,16 @@ import { Source } from '$/sources/Source.ts'
 import { sourceBindingId } from '$/sources/SourceBinding.ts'
 
 
+declare global {
+	interface Window {
+		__blockheadClientProbeEnabled?: boolean
+		__blockheadPersistedCollectionSchemaVersionOverride?: number
+		__blockheadWaSqliteDatabaseNameOverride?: string
+		__blockheadWaSqliteVfsNameOverride?: string
+	}
+}
+
+
 const ledgerSequence = 64_041_727
 const ledgerHash = '37d36e0c8fe4e7500e430b404f9e9dd7a96f63e85d7d83f791f1861f96f97b71'
 const ledgerPath = `/network/stellar/ledger/stellar/${ledgerSequence}`

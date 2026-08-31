@@ -2,6 +2,7 @@ import {
 	createEphemeralWalletSecret,
 	exerciseWalletSigningRequest,
 } from '../../../../scripts/wallet-extensions/WalletExtensionHarness.ts'
+import { WalletHarnessEcosystem } from '../../../../scripts/wallet-extensions/ecosystems.ts'
 import {
 	metamaskDriver,
 	metamaskUnsupportedEnvironmentEvidence,
@@ -126,6 +127,7 @@ test('runs the MetaMask real-extension matrix shard', async ({
 				}),
 			},
 			request: {
+				ecosystem: WalletHarnessEcosystem.Evm,
 				kind: 'message',
 				method: 'personal_sign',
 				accountAddress: addresses[1],

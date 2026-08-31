@@ -375,7 +375,7 @@ describe('Wallet Standard adapter', () => {
 		await expect(mounted.adapter.signMessage?.(
 			'wallet-standard:Standard Wallet',
 			firstSolanaAccount,
-			'Sign this private challenge',
+			'Sign this private challenge'
 		)).resolves.toBe(base58.encode(new Uint8Array(64).fill(7)))
 
 		expect(signMessage).toHaveBeenCalledWith({
@@ -397,7 +397,7 @@ describe('Wallet Standard adapter', () => {
 		await expect(mounted.adapter.signMessage?.(
 			'wallet-standard:Standard Wallet',
 			firstSolanaAccount,
-			'hello',
+			'hello'
 		)).rejects.toThrow('Standard Wallet does not implement solana:signMessage 1.0.0')
 		mounted.cleanup()
 	})

@@ -16,7 +16,7 @@ import {
 	redditNetworkSeedSubreddits,
 } from '$/constants/Social/Reddit.ts'
 import { rssNetworkSeedFeeds } from '$/constants/Social/Rss.ts'
-import { sourceBindings } from '$/sources/$sourceProviders.ts'
+import { sourceBindingsBySource } from '$/sources/$sourceProviders.ts'
 import { nostrEventId } from '$/sources/NostrRelay/Nip01/event.ts'
 import { Source } from '$/sources/Source.ts'
 import { SourceEndpointKind } from '$/sources/SourceBinding.ts'
@@ -25,7 +25,11 @@ import type {
 	ClientProbe as BlockheadClientProbe,
 	PersistenceTraceEvent,
 } from './e2e/$e2eProbe.ts'
-import { waitForBoundarySettlement } from '../scripts/e2e/boundarySettlement.ts'
+import {
+	type BoundaryLoadingProbeRow,
+	type BoundaryUpdateEvent,
+	waitForBoundarySettlement,
+} from '../scripts/e2e/boundarySettlement.ts'
 
 export { e2eBrowserNewContextOptions } from '../playwright.env.ts'
 
@@ -135,29 +139,6 @@ declare global {
 		__blockheadBoundaryProbe?: BoundaryUpdateEvent[]
 		__blockheadBoundaryProbeActive?: BoundaryLoadingProbeRow[]
 	}
-}
-
-export type BoundaryUpdateEvent = {
-	at: number
-	kind: (
-		| 'console-failed'
-		| 'console-uncaught'
-		| 'dom-failed'
-		| 'dom-loading'
-		| 'dom-resolved'
-	)
-	id: string | null
-	key: string | null
-	message: string
-	context: string
-}
-
-export type BoundaryLoadingProbeRow = {
-	id: string
-	startedAt: number
-	key: string | null
-	message: string
-	context: string
 }
 
 export type BoundaryDomRow = {
@@ -1822,10 +1803,9 @@ export const ipfsPublicGatewayGetWire = (url: string) => {
 export const swarmPublicGatewayGetWire = (url: string) => {
 	try {
 		const u = new URL(url)
-		if (!sourceBindings.some((binding) => (
-			binding.source === Source.Swarm_Rest
-			&& binding.endpoints.some((endpoint) => (
-				endpoint.origin === u.origin
+		if (!sourceBindingsBySource[Source.Swarm_Rest].some((binding) => (
+			binding.endpoints.some((endpoint) => (
+				new URL(endpoint.locator).origin === u.origin
 			))
 		)))
 			return false
@@ -4927,16 +4907,18 @@ export const blockStreamBlocksConsoleEvent = (page: Page, timeoutMs = 90_000) =>
  * Playwright preflight uses `fetch` only, so WebSocket-only chains cannot use this probe.
  */
 export const publicJsonRpcHttpUrlForChainE2e = async (chainId: number) => {
-	return sourceBindings
-		.filter((binding) => (
-			binding.source === Source.Voltaire_JsonRpc
-				&& binding.target.key === String(chainId)
-		))
-		.flatMap((binding) => binding.endpoints)
-		.find((endpoint) => (
-			endpoint.endpointKind === SourceEndpointKind.HttpUrl
+	for (const binding of sourceBindingsBySource[Source.Voltaire_JsonRpc]) {
+		if (binding.target.key !== String(chainId))
+			continue
+		for (const endpoint of binding.endpoints) {
+			if (
+				endpoint.endpointKind === SourceEndpointKind.HttpUrl
 				&& endpoint.corsEnabled === true
-		))?.locator ?? null
+			)
+				return endpoint.locator
+		}
+	}
+	return null
 }
 
 /** In-browser public RPC check — matches client `fetch` + `corsEnabled: true` (not `/api-proxy`). Two `eth_blockNumber` samples; fail-fast when the chain is stuck or rate-limited (429). */

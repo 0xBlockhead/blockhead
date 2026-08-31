@@ -6,6 +6,7 @@ import {
 } from '../../../../scripts/wallet-extensions/Rabby/driver.ts'
 import { rabbyWalletMatrixScenarios } from '../../../../scripts/wallet-extensions/Rabby/matrix.ts'
 import { exerciseWalletSigningRequest } from '../../../../scripts/wallet-extensions/WalletExtensionHarness.ts'
+import { WalletHarnessEcosystem } from '../../../../scripts/wallet-extensions/ecosystems.ts'
 import {
 	assertWalletMatrixOutcomes,
 	logWalletMatrixResults,
@@ -134,6 +135,7 @@ test('runs the Rabby real-extension matrix shard', async ({
 				}),
 			},
 			request: {
+				ecosystem: WalletHarnessEcosystem.Evm,
 				kind: 'message',
 				method: 'personal_sign',
 				accountAddress: wallet.addresses[1],

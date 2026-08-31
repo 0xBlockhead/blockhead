@@ -114,7 +114,7 @@ export const unisatDriver = {
 		await page.waitForURL(/#\/account\/create-hd-wallet$/)
 
 		const recoveryWords = await page.locator('body').evaluate((body) => (
-			body.innerText
+			(body.textContent ?? '')
 				.split('\n')
 				.flatMap((line, index, lines) => (
 					/^\d+\.$/.test(lines[index - 1] ?? '') && /^[a-z]+$/.test(line) ?

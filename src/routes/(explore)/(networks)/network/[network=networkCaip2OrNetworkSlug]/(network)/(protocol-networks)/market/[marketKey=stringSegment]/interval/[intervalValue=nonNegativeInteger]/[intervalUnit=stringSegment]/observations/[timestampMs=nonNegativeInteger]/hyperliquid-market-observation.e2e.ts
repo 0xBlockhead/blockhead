@@ -6,6 +6,16 @@ import {
 } from '../../../../../../../../../../../../../../../tests/e2e/$e2eDatabaseProfile.ts'
 
 
+declare global {
+	interface Window {
+		__blockheadClientProbeEnabled?: boolean
+		__blockheadPersistedCollectionSchemaVersionOverride?: number
+		__blockheadWaSqliteDatabaseNameOverride?: string
+		__blockheadWaSqliteVfsNameOverride?: string
+	}
+}
+
+
 const marketKey = 'ETH'
 const interval = '1h'
 const intervalValue = '1'

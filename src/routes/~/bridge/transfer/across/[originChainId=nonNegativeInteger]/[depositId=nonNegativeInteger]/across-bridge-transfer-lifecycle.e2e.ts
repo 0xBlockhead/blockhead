@@ -3,7 +3,6 @@ import {
 	test,
 } from '@playwright/test'
 
-
 const originChainId = 8453
 const depositId = 42
 const sourceTransactionHash = `0x${'1'.repeat(64)}`

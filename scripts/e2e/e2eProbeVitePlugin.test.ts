@@ -29,8 +29,8 @@ test('keys clean E2E database opens and owner election to the same profile ident
 	const persistenceSource = readFileSync('src/lib/db/browserPersistenceSingleton.ts', 'utf8')
 	const bootstrapSource = readFileSync('src/routes/applicationClientBootstrap.ts', 'utf8')
 	const probeSource = readFileSync('tests/e2e/$e2eProbe.ts', 'utf8')
-	const transformedPersistence = transform(persistenceSource, '/workspace/src/lib/db/browserPersistenceSingleton.ts')
-	const transformedBootstrap = transform(bootstrapSource, '/workspace/src/routes/applicationClientBootstrap.ts')
+	const transformedPersistence = Reflect.apply(transform, undefined, [persistenceSource, '/workspace/src/lib/db/browserPersistenceSingleton.ts'])
+	const transformedBootstrap = Reflect.apply(transform, undefined, [bootstrapSource, '/workspace/src/routes/applicationClientBootstrap.ts'])
 
 	assert.equal(typeof transformedPersistence, 'string')
 	assert.equal(typeof transformedBootstrap, 'string')
@@ -54,11 +54,11 @@ test('keys clean E2E database opens and owner election to the same profile ident
 		/persistenceQueue|runSerializedPersistence|pendingPersistenceByCollection|transactionComplete/
 	)
 	assert.throws(
-		() => transform(persistenceSource.replace('\t\tname: BLOCKHEAD_WA_SQLITE_DATABASE_NAME', '\t\tname: missingDatabaseName'), '/workspace/src/lib/db/browserPersistenceSingleton.ts'),
+		() => Reflect.apply(transform, undefined, [persistenceSource.replace('\t\tname: BLOCKHEAD_WA_SQLITE_DATABASE_NAME', '\t\tname: missingDatabaseName'), '/workspace/src/lib/db/browserPersistenceSingleton.ts']),
 		/E2E probe injection anchor missing/
 	)
 	assert.throws(
-		() => transform(bootstrapSource.replace('\treturn client(', '\treturn missingClient('), '/workspace/src/routes/applicationClientBootstrap.ts'),
+		() => Reflect.apply(transform, undefined, [bootstrapSource.replace('\treturn client(', '\treturn missingClient('), '/workspace/src/routes/applicationClientBootstrap.ts']),
 		/E2E probe injection anchor missing/
 	)
 })

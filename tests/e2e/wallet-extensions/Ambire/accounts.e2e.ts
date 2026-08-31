@@ -140,8 +140,8 @@ test('runs the Ambire view-only account lifecycle through Blockhead', async ({
 				method: 'eth_requestAccounts',
 			}).then(
 				() => true,
-				() => false,
-			),
+				() => false
+			)
 		)
 	})
 	const rejectedRequestPage = await ambireDriver.waitForRequest(context, extension, pagesBeforeRejection)
@@ -161,8 +161,8 @@ test('runs the Ambire view-only account lifecycle through Blockhead', async ({
 				method: 'eth_requestAccounts',
 			}).then(
 				() => true,
-				() => false,
-			),
+				() => false
+			)
 		)
 	})
 	const retryRequestPage = await ambireDriver.waitForRequest(context, extension, pagesBeforeRetry)

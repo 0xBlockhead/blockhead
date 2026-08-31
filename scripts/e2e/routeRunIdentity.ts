@@ -119,7 +119,8 @@ export const canonicalJson = (value: unknown): string => {
 	if (Array.isArray(value))
 		return `[${value.map(canonicalJson).join(',')}]`
 
-	return `{${Object.entries(value)
+	const entries: [string, unknown][] = Object.entries(value)
+	return `{${entries
 		.sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
 		.map(([key, entry]) => `${JSON.stringify(key)}:${canonicalJson(entry)}`)
 		.join(',')}}`
@@ -177,7 +178,7 @@ export const createRouteRunIdentity = async ({
 		git(repositoryDirectory, 'rev-parse', 'HEAD'),
 		dirtyTreeFingerprint(repositoryDirectory),
 	])
-	const identity = {
+	const identity: RouteRunIdentity = {
 		version: routeRunIdentityVersion,
 		runId: '',
 		commit: commit.trim(),

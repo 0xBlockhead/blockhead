@@ -34,7 +34,7 @@ export const publicRouteIdFromRouteId = (routeId: string) => publicRouteIdFromSe
 )
 
 const routeParamNames = (routeId: string) => [
-	...new Set([...routeId.matchAll(/\[(?:\.\.\.)?([^=\]]+)(?:=[^\]]+)?\]/g)].map((match) => match[1])),
+	...new Set([...routeId.matchAll(/\[(?:\.\.\.)?([^=\]]+)(?:=[^\]]+)?\]/g)].map((match) => String(match[1]))),
 ]
 
 export const pathnameFromRouteFixture = (
@@ -94,7 +94,7 @@ const pathnamesFromMetadata = (metadata: E2eRouteFixtureMetadata) => {
 			/\[\[?(?:\.\.\.)?([^=\]]+)=([^\]]+)\]\]?/g
 		)].map((match) => [match[1], match[2]]))
 		const probeParams = routeProbeCaseParams(probeCase)
-		const caseParams = Object.keys(probeParams)
+		const caseParams = Object.keys(probeParams).map(String)
 		if (
 			expectedParams.some((param) => !caseParams.includes(param))
 			|| caseParams.some((param) => !expectedParams.includes(param))

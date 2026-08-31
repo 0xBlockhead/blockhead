@@ -31,9 +31,9 @@ test('Balancer pool event route renders the source-owned lifecycle hierarchy', a
 
 	const operations: string[] = []
 	await page.route('https://api-v3.balancer.fi/**', async (route) => {
-		const body = route.request().postDataJSON() as {
+		const body: {
 			query: string
-		}
+		} = route.request().postDataJSON()
 		if (body.query.includes('query PoolEvents')) {
 			operations.push('PoolEvents')
 			await route.fulfill({

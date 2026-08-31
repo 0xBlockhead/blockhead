@@ -385,7 +385,7 @@ const koiosProtocolParameters = {
 	min_pool_cost: '170000000',
 	coins_per_utxo_size: '4310',
 } satisfies CardanoKoiosProtocolParameters
-const koiosTransactionInfo = {
+const koiosTransactionInfo: CardanoKoiosTransactionInfo & JsonValue = {
 	tx_hash: 'proposal-hash',
 	epoch_no: 599,
 	absolute_slot: 130_000_000,
@@ -428,7 +428,7 @@ const koiosTransactionInfo = {
 			return_address: 'stake1koiosproposal',
 		},
 	],
-} satisfies CardanoKoiosTransactionInfo
+}
 
 const koiosVoteTransactionInfo = {
 	...koiosTransactionInfo,
@@ -483,7 +483,7 @@ const installCardanoGovernanceFixtures = async (
 		'GET txs/proposal-hash': proposalTransaction,
 		'GET txs/proposal-hash/utxos': proposalTransactionUtxos,
 	}))
-	const koiosResponseByRequest = new Map<string, JsonValue>(Object.entries({
+	const koiosResponses: Record<string, JsonValue> = {
 		'GET asset_list?limit=16': [] satisfies CardanoKoiosAsset[],
 		'GET blocks?limit=16': koiosBlocks,
 		'GET committee_info': [koiosCommittee],
@@ -500,7 +500,8 @@ const installCardanoGovernanceFixtures = async (
 		'GET tip': [koiosTip],
 		'POST block_txs': [] satisfies CardanoKoiosBlockTransaction[],
 		'POST tx_info': [koiosTransactionInfo],
-	}))
+	}
+	const koiosResponseByRequest = new Map(Object.entries(koiosResponses))
 
 	await page.route(
 		'**/*',
